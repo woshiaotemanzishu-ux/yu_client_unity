@@ -6,7 +6,7 @@
 > - [编码规范](Shenxiao编码规范.md)
 > - [Copilot 红线](../.github/copilot-instructions.md)
 
-**最近更新**：2026-06-09
+**最近更新**：2026-06-10
 
 **状态图例**：
 - ✅ 已完成
@@ -128,7 +128,7 @@
 | L.1 | 旧 Laya Login prefab / Bind 试点 | 已清理 | 已删除 `Assets/Prefabs/UI/Login`、`Assets/Scripts/Generated/UI/Login`、`LayaSourceInfo`、旧 login 资源和旧 Remote Addressables 组。 |
 | L.2 | LoginBootstrap / LoginFlow / LoginEnterView | 已清理 | 旧 UI 绑定链已删除；`GmApi` 保留，后续可作为登录协议/GM 调用参考。 |
 | L.3 | 蓝湖 UI 接入工具 | ✅ | 已定 `lanhu_manifest.json + assets/` 导入包规范；`LanhuCreator` 基础版可生成 Prefab + Bind + 缺图报告。 |
-| L.4 | Phase 1 登录界面重建 | 待开始 | 以蓝湖生成的 Prefab 为准接 yu_client 逻辑；不再重跑旧 Laya UICreator。 |
+| L.4 | Phase 1 登录界面重建 | 🟡 | 2026-06-10 改走 LayaUI 直转流水线(见 [LayaUI转换流水线.md](LayaUI转换流水线.md)):login 模块转换工具已就绪,待本地 Unity 实跑「加载页 LoginLoadingView + 登录页 LoginView」验收。 |
 
 ### 项目级路线记忆（2026-06-09）
 
@@ -139,6 +139,12 @@
 - 蓝湖工具必须遵守现有资源策略：Editor 可挂本地 Sprite 预览，运行时统一走 Addressables Remote / CDN；功能存在但图片不存在时输出缺图报告，推动 UI/美术补资源。
 - 2026-06-09 已清理旧 Laya Login 试点产物：Prefab、Bind、旧 UICreator 工具、旧 login 资源和旧 Remote Addressables 组；后续 UI 任务从蓝湖路线继续。
 - 对接蓝湖前先收口工程骨架：启动场景、Addressable key、包体资源、编译与最小运行链路。
+
+> **2026-06-10 路线更新**:用户拍板 UI 主线回到 **Laya .scene 直转**,蓝湖路线保留备用。
+> 与 06-09 判定的区别:旧 UICreator 失败的根因是「逐界面手写 + 无粒度决策 + 尺寸/图源规则缺失」,
+> 不是直转路线本身不可行。新流水线(归属分析 manifest + 通用转换器 + 报告)见
+> [LayaUI转换流水线.md](LayaUI转换流水线.md);「运行时动态生成的 UI 内容会漏」的问题依旧存在,
+> 由转换报告的「运行时赋值」清单显式列出,在接业务逻辑时补。
 
 ---
 
@@ -181,6 +187,8 @@
 | 2026-06-09 | 新增 | `LanhuCreator` 基础版：定义蓝湖导入包、生成 Loading/Login 所需 Prefab + Bind + 缺图报告；修正 `ResourcePath.Normalize()` 为小写输出，对齐 Addressable key。|
 | 2026-06-09 | 新增 | 地图加载重构方案：确认 `yu_client` 地图加载链路、`.bytes` 格式、`sceneId != mapResId`、瓦片异步补齐和 Shenxiao Framework/Combat/Editor 落点。|
 | 2026-06-09 | 决策 | 写入项目级协议规范：Shenxiao 只重构 Unity 客户端，协议按 `yu_client` / 既有 Erlang 服务端照抄接入；确需调整服务端或协议时先报告。|
+| 2026-06-10 | 决策 | 用户拍板:UI 路线回到 **Laya .scene 直转 Prefab**(蓝湖路线保留备用)。与旧 UICreator 的区别:不再逐界面手写 Creator,改为「Python 归属分析器 + manifest 粒度决策 + 通用转换器」。粒度规则按代码引用拓扑:窗口独立 prefab、单归属 item 内联 `__Templates`、多归属出共享 prefab,全量 2056 scene → 1077 prefab。详见 [LayaUI转换流水线.md](LayaUI转换流水线.md)。|
+| 2026-06-10 | 新增 | `Tools/LayaUI/analyze_layaui.py`(已对 yu_client 跑出 `Schemas/LayaUI/ui_manifest.json`)+ `Assets/Editor/LayaUI/` 通用转换器(模板/坐标数学/三级图源/Bind 生成回填/报告);BaseView 补 `EnsureBound`;`Shenxiao.Generated`、`Shenxiao.Editor` asmdef 补 `UnityEngine.UI` 引用。试点 = login 模块(加载页 LoginLoadingView + 登录页 LoginView),待本地 Unity 实跑验收。|
 
 ---
 

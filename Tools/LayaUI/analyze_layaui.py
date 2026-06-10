@@ -1,0 +1,320 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""LayaUI 归属分析器。
+
+扫描 yu_client 的 h5/src TS 源码与 cdn 运行时 scene JSON,产出 ui_manifest.json,
+为 Unity Editor 端的 LayaUI 转换器(Assets/Editor/LayaUI/)提供粒度决策。
+
+判定规则(注意:这个项目里基类不可靠,achvView 这种主界面也继承 BaseItem1,
+所以以「引用拓扑 + layer_value 信号」为准):
+
+  window(BaseView1 链 / 设置过 this.layer_value)      -> view-prefab(独立)
+  component 被恰好 1 个 UI 类引用                      -> inline(内联进宿主 __Templates)
+  component 被 >=2 个 UI 类引用                        -> shared-prefab(共享,嵌套进宿主)
+  component 只被控制器等非 UI 文件引用                 -> standalone-prefab(独立,控制器直开)
+  component / scene 无任何代码引用                     -> dead-flag(默认不转换,报告列出)
+  *Skin / *Exml 等无类绑定的换皮变体                   -> variant-unused(默认不转换)
+  其余无类绑定的孤儿 scene                             -> orphan-flag(默认不转换)
+
+用法:
+  python3 Tools/LayaUI/analyze_layaui.py [yu_client根目录]
+  缺省 yu_client 根目录取本仓库同级的 ../yu_client。
+"""
+import json
+import os
+import re
+import sys
+import time
+from collections import defaultdict
+
+UNITY_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DEFAULT_CLIENT = os.path.normpath(os.path.join(UNITY_ROOT, "..", "yu_client"))
+
+RE_CLASS = re.compile(r"^(?:export\s+)?class\s+(\w+)\s+extends\s+([\w\.]+)", re.M)
+RE_BASE_FILE = re.compile(r"""(?:this\.)?base_file\s*=\s*["']([^"']+)["']""")
+RE_LAYOUT_FILE = re.compile(r"""(?:this\.)?layout_file\s*=\s*["']([^"']+)["']""")
+RE_LAYER = re.compile(r"this\.layer_value\s*=")
+
+# 窗口基类(继承到这里的必然是独立窗口)
+VIEW_BASES = {"BaseView1", "BaseView", "BaseSubView"}
+
+SKIN_PROP_KEYS = ("skin", "texture", "vScrollBarSkin", "hScrollBarSkin", "sceneBg")
+
+
+def scan_ts_classes(src_root):
+    """返回 classes: name -> dict(file, base, module, layout)。"""
+    classes = {}
+    file_text = {}
+    for dirpath, _dirnames, filenames in os.walk(src_root):
+        for fn in filenames:
+            if not fn.endswith(".ts"):
+                continue
+            path = os.path.join(dirpath, fn)
+            try:
+                with open(path, encoding="utf-8", errors="replace") as f:
+                    text = f.read()
+            except OSError:
+                continue
+            file_text[path] = text
+            matches = list(RE_CLASS.finditer(text))
+            for i, m in enumerate(matches):
+                name, base = m.group(1), m.group(2).split(".")[-1]
+                body_end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+                body = text[m.start():body_end]
+                bf = RE_BASE_FILE.search(body)
+                lf = RE_LAYOUT_FILE.search(body)
+                if name in classes:
+                    # 重名类:保留先发现的,记录冲突
+                    classes[name].setdefault("dup_files", []).append(path)
+                    continue
+                classes[name] = {
+                    "file": os.path.relpath(path, src_root),
+                    "base": base,
+                    "module": bf.group(1) if bf else None,
+                    "layout": lf.group(1) if lf else None,
+                    "hasLayer": bool(RE_LAYER.search(body)),
+                }
+    return classes, file_text
+
+
+def is_window(name, classes):
+    """窗口判定:继承链到 BaseView1 系,或类体里设置过 layer_value。"""
+    seen = set()
+    cur = name
+    while cur and cur not in seen:
+        seen.add(cur)
+        if cur in VIEW_BASES:
+            return True
+        info = classes.get(cur)
+        if info is None:
+            return False
+        if info.get("hasLayer"):
+            return True
+        cur = info["base"]
+    return False
+
+
+def build_usage(classes, file_text, src_root):
+    """UI 类 -> (引用它的其他 UI 类集合, 引用它的非 UI 文件集合)。
+
+    同文件里共同声明的 UI 类也算宿主(item 常和宿主 view 写在一个文件里)。
+    """
+    ui_in_file = defaultdict(list)  # 文件 -> 该文件声明的 UI 类
+    for name, info in classes.items():
+        if info["isUI"]:
+            ui_in_file[info["file"]].append(name)
+
+    owners = defaultdict(set)
+    other_refs = defaultdict(set)
+    word_re_cache = {}
+    ui_names = [n for n, i in classes.items() if i["isUI"]]
+    for path, text in file_text.items():
+        rel = os.path.relpath(path, src_root)
+        file_ui = ui_in_file.get(rel, ())
+        for cls in ui_names:
+            if cls not in text:
+                continue
+            wr = word_re_cache.get(cls)
+            if wr is None:
+                wr = re.compile(r"\b%s\b" % re.escape(cls))
+                word_re_cache[cls] = wr
+            if not wr.search(text):
+                continue
+            hosts = [u for u in file_ui if u != cls]
+            if hosts:
+                owners[cls].update(hosts)
+            elif classes[cls]["file"] != rel:
+                other_refs[cls].add(rel)
+    return owners, other_refs
+
+
+def walk_scene(node, skins, types):
+    t = node.get("type")
+    if t:
+        types[t] = types.get(t, 0) + 1
+    props = node.get("props", {})
+    for k in SKIN_PROP_KEYS:
+        v = props.get(k)
+        if isinstance(v, str) and v:
+            skins.add(v)
+    for c in node.get("child", ()):  # 运行时 json 的子节点字段
+        walk_scene(c, skins, types)
+    for c in props.get("child", ()):  # 个别 Label 嵌套
+        if isinstance(c, dict):
+            walk_scene(c, skins, types)
+
+
+def classify_skin(skin, client_root, atlas_index):
+    """loose / atlas / comp / missing"""
+    if skin.startswith("comp/"):
+        loose = os.path.join(client_root, "h5", "laya", "assets", skin)
+        return "comp" if os.path.exists(loose) else "missing"
+    loose = os.path.join(client_root, "h5", "laya", "assets", skin)
+    if os.path.exists(loose):
+        return "loose"
+    m = re.match(r"resource/game/([^/]+)/texture/(.+)$", skin)
+    if m:
+        frames = atlas_index.get("%s/texture.atlas" % m.group(1), {}).get("frames", {})
+        if m.group(2) in frames:
+            return "atlas"
+    return "missing"
+
+
+def pascal(s):
+    return "".join(p[:1].upper() + p[1:] for p in re.split(r"[_\-]+", s) if p)
+
+
+def main():
+    client_root = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CLIENT
+    src_root = os.path.join(client_root, "h5", "src")
+    cdn_game = os.path.join(client_root, "cdn", "resource", "game")
+    if not os.path.isdir(src_root) or not os.path.isdir(cdn_game):
+        sys.exit("yu_client 路径不对: %s (需要 h5/src 与 cdn/resource/game)" % client_root)
+
+    print("[1/4] 扫描 TS 类 ...")
+    classes, file_text = scan_ts_classes(src_root)
+    for name, info in classes.items():
+        info["isUI"] = bool(info["module"] and info["layout"])
+        info["kind"] = "window" if (info["isUI"] and is_window(name, classes)) else (
+            "component" if info["isUI"] else "non-ui")
+    n_win = sum(1 for i in classes.values() if i["kind"] == "window")
+    n_comp = sum(1 for i in classes.values() if i["kind"] == "component")
+    print("   类总数 %d (window=%d, component=%d, non-ui=%d)"
+          % (len(classes), n_win, n_comp, len(classes) - n_win - n_comp))
+
+    print("[2/4] 引用归属分析 ...")
+    owners, other_refs = build_usage(classes, file_text, src_root)
+
+    print("[3/4] 扫描 cdn 运行时 scene JSON ...")
+    uicfg_path = os.path.join(client_root, "cdn", "resource", "UIConfig.json")
+    atlas_index = {}
+    if os.path.exists(uicfg_path):
+        with open(uicfg_path, encoding="utf-8") as f:
+            atlas_index = json.load(f)
+
+    # scene key("module/Name") -> 类
+    scene_class = {}
+    for name, info in classes.items():
+        if info["module"] and info["layout"]:
+            scene_class.setdefault("%s/%s" % (info["module"], info["layout"]), name)
+
+    scenes = {}
+    for dirpath, _d, filenames in os.walk(cdn_game):
+        for fn in filenames:
+            if not fn.endswith(".json"):
+                continue
+            scene_file = os.path.join(dirpath, fn[:-5] + ".scene")
+            if not os.path.exists(scene_file):
+                continue  # 不是 scene 的配套 json
+            jpath = os.path.join(dirpath, fn)
+            rel = os.path.relpath(jpath, cdn_game).replace(os.sep, "/")
+            module = rel.split("/")[0]
+            name = fn[:-5]
+            key = "%s/%s" % (module, name)
+            try:
+                with open(jpath, encoding="utf-8") as f:
+                    data = json.load(f)
+            except (OSError, ValueError) as e:
+                scenes[key] = {"error": str(e)}
+                continue
+            skins, types = set(), {}
+            walk_scene(data, skins, types)
+            props = data.get("props", {})
+            scenes[key] = {
+                "module": module,
+                "name": name,
+                "json": "cdn/resource/game/%s" % rel,
+                "width": props.get("width"),
+                "height": props.get("height"),
+                "nodeTypes": types,
+                "skins": sorted(skins),
+            }
+
+    print("   scene 总数 %d" % len(scenes))
+
+    print("[4/4] 粒度决策 ...")
+    counts = defaultdict(int)
+    for key, sc in scenes.items():
+        if "error" in sc:
+            continue
+        cls = scene_class.get(key)
+        sc["tsClass"] = cls
+        sc["kind"] = classes[cls]["kind"] if cls else "orphan"
+        own = sorted(owners.get(cls, ())) if cls else []
+        sc["ownerClasses"] = own
+        sc["otherRefFiles"] = sorted(other_refs.get(cls, ())) if cls else []
+        if cls is None:
+            base = re.sub(r"(Skin\d*|Exml)$", "", sc["name"])
+            if base != sc["name"]:
+                sc["decision"] = "variant-unused"
+                sc["variantOf"] = "%s/%s" % (sc["module"], base)
+            else:
+                sc["decision"] = "orphan-flag"
+        elif sc["kind"] == "window":
+            sc["decision"] = "view-prefab"
+        elif len(own) == 1:
+            sc["decision"] = "inline"
+            sc["inlineHost"] = own[0]
+        elif len(own) > 1:
+            sc["decision"] = "shared-prefab"
+        elif sc["otherRefFiles"]:
+            sc["decision"] = "standalone-prefab"  # 控制器直开的组件
+        else:
+            sc["decision"] = "dead-flag"  # 代码无任何引用
+        # 皮肤来源
+        skin_src = {}
+        for s in sc.get("skins", ()):
+            skin_src[s] = classify_skin(s, client_root, atlas_index)
+        sc["skinSource"] = skin_src
+        sc["missingSkins"] = sorted(s for s, v in skin_src.items() if v == "missing")
+
+    # inline 链防环:沿 inlineHost 上溯,遇到环或断链则降级为 standalone-prefab
+    class_scene = {v: k for k, v in scene_class.items()}
+    for key, sc in scenes.items():
+        if sc.get("decision") != "inline":
+            continue
+        seen, cur, ok = {key}, sc, True
+        while cur.get("decision") == "inline":
+            host_key = class_scene.get(cur["inlineHost"])
+            if host_key is None or host_key in seen or host_key not in scenes:
+                ok = False
+                break
+            seen.add(host_key)
+            cur = scenes[host_key]
+        if not ok:
+            sc["decision"] = "standalone-prefab"
+            sc["notes"] = "inline 链成环或宿主缺 scene,降级独立 prefab"
+            sc.pop("inlineHost", None)
+
+    # 反向:每个宿主内联哪些 item
+    inline_of = defaultdict(list)
+    for key, sc in scenes.items():
+        if sc.get("decision") == "inline":
+            inline_of[class_scene[sc["inlineHost"]]].append(key)
+    for host, items in inline_of.items():
+        if host in scenes:
+            scenes[host]["inlineItems"] = sorted(items)
+    for key, sc in scenes.items():
+        counts[sc.get("decision", "error")] += 1
+
+    manifest = {
+        "version": 1,
+        "generatedAt": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "designWidth": 720,
+        "designHeight": 1280,
+        "moduleDirCase": {m: pascal(m) for m in sorted({s["module"] for s in scenes.values() if "module" in s})},
+        "summary": dict(counts),
+        "scenes": scenes,
+    }
+    out = os.path.join(UNITY_ROOT, "Schemas", "LayaUI", "ui_manifest.json")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=1, sort_keys=True)
+    print("已写出 %s" % out)
+    print("决策统计:", dict(counts))
+    missing_total = sum(len(s.get("missingSkins", ())) for s in scenes.values())
+    print("缺图引用合计: %d (详见 manifest 各 scene 的 missingSkins)" % missing_total)
+
+
+if __name__ == "__main__":
+    main()

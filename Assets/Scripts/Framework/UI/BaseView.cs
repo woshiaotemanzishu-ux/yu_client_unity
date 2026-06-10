@@ -58,5 +58,17 @@ namespace Shenxiao.Framework.UI
 
         /// <summary>Called when the view is destroyed. Release resources here.</summary>
         protected virtual void OnDispose() { }
+
+        /// <summary>
+        /// Null-check for generated Bind fields. References are assigned in the editor by the
+        /// UI generator; a miss here means the prefab and the Bind script are out of sync.
+        /// </summary>
+        protected void EnsureBound(string fieldName, Object reference)
+        {
+            if (reference == null)
+            {
+                Debug.LogError($"[{GetType().Name}] Bind 字段未绑定: {fieldName}(重跑回填或检查节点是否被删)", this);
+            }
+        }
     }
 }
