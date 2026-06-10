@@ -30,6 +30,8 @@ namespace Shenxiao.Editor.LayaUI
             [JsonProperty("ownerClasses")] public List<string> OwnerClasses = new List<string>();
             [JsonProperty("missingSkins")] public List<string> MissingSkins = new List<string>();
             [JsonProperty("skinSource")] public Dictionary<string, string> SkinSource = new Dictionary<string, string>();
+            /// <summary>节点名 -> TS 里静态解析出的运行时图(scene 里 skin 为空时烘焙用)。</summary>
+            [JsonProperty("bakedSkins")] public Dictionary<string, string> BakedSkins = new Dictionary<string, string>();
         }
 
         private static LayaUIManifest _cached;

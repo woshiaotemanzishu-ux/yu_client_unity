@@ -22,6 +22,9 @@ namespace Shenxiao.Editor.LayaUI
     /// </summary>
     public static class LayaSceneConverter
     {
+        // 当前正在转换的窗口/item 的烘焙皮肤表(节点名 -> 图路径,来自 TS 静态扫描)
+        private static Dictionary<string, string> _bakedSkins;
+
         // 已处理过的布局属性(其余属性记入"未映射"报告)
         private static readonly HashSet<string> HandledProps = new HashSet<string>
         {
@@ -262,7 +265,9 @@ namespace Shenxiao.Editor.LayaUI
             LayaUIManifest manifest, LayaUIReport report, HashSet<string> stack)
         {
             report.BeginScene(sceneKey);
+            _bakedSkins = entry.BakedSkins;
             GameObject go = BuildRoot(entry.Name, rootJson, manifest, report);
+            _bakedSkins = null;
 
             List<GameObject> templates = new List<GameObject>();
             CollectInlineTemplates(entry, manifest, report, templates);
@@ -301,7 +306,9 @@ namespace Shenxiao.Editor.LayaUI
                 LayaUIManifest.SceneEntry ie = manifest.Get(itemKey);
                 JObject ij = ie != null ? LoadSceneJson(ie) : null;
                 if (ij == null) { report.Note("内联 item 读不到 json: " + itemKey); continue; }
+                _bakedSkins = ie.BakedSkins;
                 templates.Add(BuildRoot(ie.Name, ij, manifest, report));
+                _bakedSkins = null;
                 CollectInlineTemplates(ie, manifest, report, templates); // item 套 item
             }
         }
@@ -456,6 +463,17 @@ namespace Shenxiao.Editor.LayaUI
             string skin = (string)p["skin"] ?? (string)p["texture"];
             string sizeGrid = (string)p["sizeGrid"];
             Vector4 border = string.IsNullOrEmpty(sizeGrid) ? Vector4.zero : LayaRectMath.SizeGridToBorder(sizeGrid);
+
+            // scene 里没图,但 TS 静态扫描烘焙出了运行时赋的图
+            if (string.IsNullOrEmpty(skin) && _bakedSkins != null)
+            {
+                string baked;
+                if (_bakedSkins.TryGetValue(name, out baked))
+                {
+                    skin = baked;
+                    report.Note("`" + name + "` 烘焙运行时图 ← " + baked + "(来自 TS 静态扫描,真实运行可能换图)");
+                }
+            }
 
             Sprite sprite = null;
             if (!string.IsNullOrEmpty(skin))

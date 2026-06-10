@@ -101,6 +101,16 @@ namespace Shenxiao.Editor.LayaUI
             }
 
             GUILayout.Space(8f);
+            GUILayout.Label("5. 预览", EditorStyles.boldLabel);
+            if (GUILayout.Button("创建 720×1280 预览场景(放入本模块全部 prefab)"))
+            {
+                LayaUIPreview.OpenWithPrefab(_module.Trim());
+            }
+            EditorGUILayout.HelpBox("UI prefab 必须挂在带 CanvasScaler 的 Canvas 下看才有\"屏幕\"参照;" +
+                                    "直接开 prefab 会漂在天空盒里,看起来就像超屏/偏移。" +
+                                    "Game 视图分辨率切 720x1280。", MessageType.None);
+
+            GUILayout.Space(8f);
             if (GUILayout.Button("打开转换报告目录"))
             {
                 string dir = Path.GetFullPath(LayaUISettings.REPORT_ROOT);

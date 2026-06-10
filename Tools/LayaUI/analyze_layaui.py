@@ -35,8 +35,37 @@ RE_BASE_FILE = re.compile(r"""(?:this\.)?base_file\s*=\s*["']([^"']+)["']""")
 RE_LAYOUT_FILE = re.compile(r"""(?:this\.)?layout_file\s*=\s*["']([^"']+)["']""")
 RE_LAYER = re.compile(r"this\.layer_value\s*=")
 
+# 运行时皮肤静态烘焙:能从 TS 字面量解析出来的 skin 赋值(首写胜)
+RE_SKIN_LITERAL = re.compile(r"""this\.(\w+)\.skin\s*=\s*["'](resource/[^"']+)["']""")
+RE_SKIN_GAMERES = re.compile(r"""this\.(\w+)\.skin\s*=\s*GameResPath\.(\w+)\(\s*["'](\w+)["']\s*,\s*["']([\w\-]+)["']\s*\)""")
+RE_SETTEX_LITERAL = re.compile(r"""SetTexture\(\s*this\s*,\s*this\.(\w+)\s*,\s*["'](resource/[^"']+)["']""")
+RE_SETTEX_GAMERES = re.compile(r"""SetTexture\(\s*this\s*,\s*this\.(\w+)\s*,\s*GameResPath\.(\w+)\(\s*["'](\w+)["']\s*,\s*["']([\w\-]+)["']\s*\)""")
+
+# GameResPath 的四个模块图方法 -> 路径模板(与 h5/src/util/GameResPath.ts 一致)
+GAMERES_FN = {
+    "GetIcon": "resource/game/%s/texture/%s.png",
+    "GetIconJpg": "resource/game/%s/texture/%s.jpg",
+    "GetIconOtherPath": "resource/game/%s/other/%s.png",
+    "GetIconJpgOtherPath": "resource/game/%s/other/%s.jpg",
+}
+
 # 窗口基类(继承到这里的必然是独立窗口)
 VIEW_BASES = {"BaseView1", "BaseView", "BaseSubView"}
+
+
+def extract_baked_skins(body):
+    """从类体里静态解析「节点 -> 运行时赋的图」。同一节点首写胜。"""
+    baked = {}
+    for m in RE_SKIN_LITERAL.finditer(body):
+        baked.setdefault(m.group(1), m.group(2))
+    for m in RE_SETTEX_LITERAL.finditer(body):
+        baked.setdefault(m.group(1), m.group(2))
+    for m in list(RE_SKIN_GAMERES.finditer(body)) + list(RE_SETTEX_GAMERES.finditer(body)):
+        node, fn, mod, res = m.group(1), m.group(2), m.group(3), m.group(4)
+        tpl = GAMERES_FN.get(fn)
+        if tpl:
+            baked.setdefault(node, tpl % (mod, res))
+    return baked
 
 SKIN_PROP_KEYS = ("skin", "texture", "vScrollBarSkin", "hScrollBarSkin", "sceneBg")
 
@@ -73,6 +102,7 @@ def scan_ts_classes(src_root):
                     "module": bf.group(1) if bf else None,
                     "layout": lf.group(1) if lf else None,
                     "hasLayer": bool(RE_LAYER.search(body)),
+                    "bakedSkins": extract_baked_skins(body),
                 }
     return classes, file_text
 
@@ -240,6 +270,7 @@ def main():
         cls = scene_class.get(key)
         sc["tsClass"] = cls
         sc["kind"] = classes[cls]["kind"] if cls else "orphan"
+        sc["bakedSkins"] = classes[cls]["bakedSkins"] if cls else {}
         own = sorted(owners.get(cls, ())) if cls else []
         sc["ownerClasses"] = own
         sc["otherRefFiles"] = sorted(other_refs.get(cls, ())) if cls else []

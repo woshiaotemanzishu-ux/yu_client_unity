@@ -96,9 +96,28 @@ Reports/LayaUI/{module}_report.md    ← 缺图/近似/运行时赋值清单(不
 - **List**:转出 ScrollRect 骨架(方向按 repeatX/repeatY),item 模板在 `__Templates`,
   虚拟列表逻辑归运行时框架,转换器不管。
 
+## 正确的观察方式(2026-06-10 试点反馈后补)
+
+1. **必须在 Canvas 下看**:直接打开 prefab 会漂在天空盒里,没有"屏幕"参照,看起来就像
+   超屏/偏移。用转换器窗口的「创建 720×1280 预览场景」,Game 视图分辨率切 720x1280。
+2. **窗口要叠着看**:Laya 运行时是多窗口叠层的——选服/进入/创角界面的全屏背景其实是
+   底下的 `LoginBgView`(或运行时赋图)。预览场景里同时激活 LoginBgView + 当前窗口
+   才是运行时的样子。
+3. **进度条满格是正常的**:Laya 用 `_mask_box` 这类 Box 在运行时改宽度当进度遮罩,
+   静态转换给的是满宽初始态,业务代码接进度后即正确。
+
+## 运行时图静态烘焙(2026-06-10 加)
+
+scene 里大量 `_img_bg` 等节点 skin 为空,图是 TS 运行时赋的。分析器现在静态扫描
+`this._img_xxx.skin = "..."` / `SetTexture(this, this._img_xxx, GameResPath.GetIcon[Jpg]("m","n"))`
+等字面量模式(首写胜),全项目解析出 ~300 处,写进 manifest 的 `bakedSkins`,
+转换时烘焙回 prefab 并在报告标注「真实运行可能换图」。
+动态的(模板串 `${id}`、平台 logo、随机背景列表)烘焙不了,仍是透明占位 + 报告。
+
 ## 已知边界(转出来 ≈ 静态初始态,预期 85~95% 还原)
 
-- View.ts 运行时赋的图/文本不在 prefab 里(报告里有「运行时赋值」清单,无 skin 的 Image 转成 `enabled=false` 占位)。
+- View.ts 运行时赋的图/文本:字面量已烘焙(见上),动态的不在 prefab 里
+  (报告里有「运行时赋值」清单,无 skin 的 Image 转成 `enabled=false` 占位)。
 - `animations` 时间轴、Laya 内置 `comp/` 皮肤组件交互(CheckBox 等)需手工补。
 - Bind 脚本两步走:转换生成 cs → Unity 编译 → 回填引用(新脚本编译前无法 AddComponent)。
 
