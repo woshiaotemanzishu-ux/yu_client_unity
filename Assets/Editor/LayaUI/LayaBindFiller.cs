@@ -38,34 +38,23 @@ namespace Shenxiao.Editor.LayaUI
 
         private static bool FillOne(string prefabPath, string moduleDir)
         {
-            string name = Path.GetFileNameWithoutExtension(prefabPath);
-            Type bindType = FindBindType("Shenxiao.Generated.UI." + moduleDir + "." + name + "Bind");
-            if (bindType == null)
-            {
-                Debug.LogWarning("[LayaUI] 找不到 Bind 类(还没编译?): " + name + "Bind");
-                return false;
-            }
-
             GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);
             try
             {
-                Component bind = root.GetComponent(bindType);
-                if (bind == null) bind = root.AddComponent(bindType);
-
-                List<LayaBindGenerator.FieldInfo> fields = new List<LayaBindGenerator.FieldInfo>();
-                LayaUIReport dummy = new LayaUIReport("bindfill");
-                LayaBindGenerator.Collect(root.transform, root.transform, fields, new HashSet<string>(), dummy, name);
-
-                SerializedObject so = new SerializedObject(bind);
-                foreach (LayaBindGenerator.FieldInfo f in fields)
+                int filled = 0;
+                // 单窗口 prefab:Bind 在根上;合并 prefab:Bind 在各窗口子根上
+                if (FillWindow(root.transform, root.transform.name, moduleDir)) filled++;
+                for (int i = 0; i < root.transform.childCount; i++)
                 {
-                    SerializedProperty prop = so.FindProperty(f.FieldName);
-                    if (prop == null) continue;
-                    Transform t = root.transform.Find(f.NodePath);
-                    if (t == null) continue;
-                    prop.objectReferenceValue = ResolveRef(t, f.TypeName);
+                    Transform child = root.transform.GetChild(i);
+                    if (child.name == "__Templates") continue;
+                    if (FillWindow(child, child.name, moduleDir)) filled++;
                 }
-                so.ApplyModifiedPropertiesWithoutUndo();
+                if (filled == 0)
+                {
+                    Debug.LogWarning("[LayaUI] " + prefabPath + " 没匹配到任何 Bind 类(还没编译?)");
+                    return false;
+                }
                 PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
                 return true;
             }
@@ -73,6 +62,32 @@ namespace Shenxiao.Editor.LayaUI
             {
                 PrefabUtility.UnloadPrefabContents(root);
             }
+        }
+
+        /// <summary>给一个窗口根挂 {Name}Bind 并按节点名回填字段。没有对应类时返回 false。</summary>
+        private static bool FillWindow(Transform windowRoot, string windowName, string moduleDir)
+        {
+            Type bindType = FindBindType("Shenxiao.Generated.UI." + moduleDir + "." + windowName + "Bind");
+            if (bindType == null) return false;
+
+            Component bind = windowRoot.GetComponent(bindType);
+            if (bind == null) bind = windowRoot.gameObject.AddComponent(bindType);
+
+            List<LayaBindGenerator.FieldInfo> fields = new List<LayaBindGenerator.FieldInfo>();
+            LayaUIReport dummy = new LayaUIReport("bindfill");
+            LayaBindGenerator.Collect(windowRoot, windowRoot, fields, new HashSet<string>(), dummy, windowName);
+
+            SerializedObject so = new SerializedObject(bind);
+            foreach (LayaBindGenerator.FieldInfo f in fields)
+            {
+                SerializedProperty prop = so.FindProperty(f.FieldName);
+                if (prop == null) continue;
+                Transform t = windowRoot.Find(f.NodePath);
+                if (t == null) continue;
+                prop.objectReferenceValue = ResolveRef(t, f.TypeName);
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return true;
         }
 
         private static UnityEngine.Object ResolveRef(Transform t, string typeName)

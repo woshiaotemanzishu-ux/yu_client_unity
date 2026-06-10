@@ -11,8 +11,13 @@ namespace Shenxiao.Editor.LayaUI
 {
     /// <summary>
     /// 核心转换器:cdn 运行时 scene json -> UGUI prefab。
-    /// 粒度按 ui_manifest.json 决策:窗口/独立组件出 prefab,inline item 进宿主的
-    /// __Templates 节点(禁用),shared item 先转成共享 prefab 再嵌套进宿主。
+    ///
+    /// 两种产出粒度:
+    ///  - 合并模式(推荐):一个模块(或 ui_groups.json 自定义的大 Panel)= 一个 prefab,
+    ///    各窗口是其下的子节点(默认只激活第一个),Bind 组件挂在各窗口子根上。
+    ///  - 单窗口模式:一个窗口 scene = 一个 prefab(保留,供共享组件与零散需求)。
+    ///
+    /// 列表项按 manifest 决策内联进窗口的 __Templates(禁用)节点;
     /// 布局换算全部走 LayaRectMath,皮肤全部走 LayaSpriteImporter。
     /// </summary>
     public static class LayaSceneConverter
@@ -33,6 +38,48 @@ namespace Shenxiao.Editor.LayaUI
             "autoDestroyAtClosed", "hideSlider", "disabled", "gray", "child",
         };
 
+        // ---------------------------------------------------------------- 入口
+
+        /// <summary>合并模式:模块(按 ui_groups.json 分组,缺省整模块一组)→ 大 prefab。</summary>
+        public static void ConvertModuleCombined(string module)
+        {
+            LayaUIManifest manifest = LayaUIManifest.Load(true);
+            if (manifest == null) return;
+            string err;
+            if (!LayaUISettings.ValidateClientRoot(out err)) { Debug.LogError("[LayaUI] " + err); return; }
+
+            LayaSpriteImporter.ResetCache();
+            LayaUIReport report = new LayaUIReport(module);
+            HashSet<string> stack = new HashSet<string>();
+            try
+            {
+                List<string> leftovers;
+                List<LayaUIGroups.Group> groups = LayaUIGroups.ForModule(module, manifest, out leftovers);
+                int total = groups.Count + leftovers.Count, idx = 0;
+                foreach (LayaUIGroups.Group g in groups)
+                {
+                    EditorUtility.DisplayProgressBar("LayaUI 合并转换 " + module, g.Name, (float)idx++ / total);
+                    BuildGroupPrefab(g, manifest, report, stack);
+                }
+                foreach (string key in leftovers)
+                {
+                    EditorUtility.DisplayProgressBar("LayaUI 合并转换 " + module, key, (float)idx++ / total);
+                    ConvertOne(key, manifest, report, stack);
+                }
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+                LayaSpriteImporter.ResetCache();
+            }
+            report.Save();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("[LayaUI] 模块 " + module + " 合并转换完成。缺图 " + report.MissingCount +
+                      " 处,详见报告。编译通过后执行『回填 Bind 引用』。");
+        }
+
+        /// <summary>单窗口模式:模块内每个窗口一个 prefab(保留,零散需求用)。</summary>
         public static void ConvertModule(string module)
         {
             LayaUIManifest manifest = LayaUIManifest.Load(true);
@@ -42,7 +89,6 @@ namespace Shenxiao.Editor.LayaUI
 
             LayaSpriteImporter.ResetCache();
             LayaUIReport report = new LayaUIReport(module);
-            int done = 0;
             try
             {
                 List<string> keys = new List<string>();
@@ -58,7 +104,6 @@ namespace Shenxiao.Editor.LayaUI
                 {
                     EditorUtility.DisplayProgressBar("LayaUI 转换 " + module, keys[i], (float)i / keys.Count);
                     ConvertOne(keys[i], manifest, report, new HashSet<string>());
-                    done++;
                 }
             }
             finally
@@ -69,8 +114,7 @@ namespace Shenxiao.Editor.LayaUI
             report.Save();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[LayaUI] 模块 " + module + " 转换完成,共 " + done + " 个 prefab。缺图 " + report.MissingCount +
-                      " 处,详见报告。之后请编译通过后执行『回填 Bind 引用』。");
+            Debug.Log("[LayaUI] 模块 " + module + " 转换完成(单窗口模式)。缺图 " + report.MissingCount + " 处。");
         }
 
         public static void ConvertSingle(string sceneKey)
@@ -88,13 +132,112 @@ namespace Shenxiao.Editor.LayaUI
             AssetDatabase.Refresh();
         }
 
-        /// <summary>转换一个 scene 为 prefab,返回 prefab 资产路径。</summary>
+        /// <summary>
+        /// 组内重转单个窗口:在包含它的合并 prefab 里只替换该窗口的子树,
+        /// 不动其他窗口(包括你手调过的)。
+        /// </summary>
+        public static void ReconvertWindowInGroup(string sceneKey)
+        {
+            LayaUIManifest manifest = LayaUIManifest.Load(true);
+            if (manifest == null) return;
+            LayaUIManifest.SceneEntry entry = manifest.Get(sceneKey);
+            if (entry == null) { Debug.LogError("[LayaUI] manifest 里没有 " + sceneKey); return; }
+
+            string folder = LayaUISettings.PREFAB_ROOT + "/" + manifest.ModuleDir(entry.Module);
+            string groupPath = FindGroupPrefabContaining(folder, entry.Name);
+            if (groupPath == null)
+            {
+                Debug.LogError("[LayaUI] " + folder + " 下没有哪个合并 prefab 包含窗口 " + entry.Name +
+                               ",先跑一次合并转换");
+                return;
+            }
+
+            LayaUIReport report = new LayaUIReport(entry.Module);
+            LayaSpriteImporter.ResetCache();
+            GameObject root = PrefabUtility.LoadPrefabContents(groupPath);
+            try
+            {
+                Transform old = root.transform.Find(entry.Name);
+                int siblingIndex = old != null ? old.GetSiblingIndex() : root.transform.childCount;
+                bool active = old != null && old.gameObject.activeSelf;
+                if (old != null) Object.DestroyImmediate(old.gameObject);
+
+                JObject json = LoadSceneJson(entry);
+                if (json == null) { Debug.LogError("[LayaUI] 读不到 " + entry.Json); return; }
+                GameObject win = BuildWindow(sceneKey, entry, json, manifest, report, new HashSet<string>());
+                win.transform.SetParent(root.transform, false);
+                win.transform.SetSiblingIndex(siblingIndex);
+                win.SetActive(active);
+
+                LayaBindGenerator.Generate(entry, manifest, win.transform, report);
+                PrefabUtility.SaveAsPrefabAsset(root, groupPath);
+                Debug.Log("[LayaUI] 已在 " + groupPath + " 内重转窗口 " + entry.Name);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+                LayaSpriteImporter.ResetCache();
+            }
+            report.Save();
+            AssetDatabase.SaveAssets();
+        }
+
+        // ---------------------------------------------------------------- 组装
+
+        private static void BuildGroupPrefab(LayaUIGroups.Group group, LayaUIManifest manifest,
+            LayaUIReport report, HashSet<string> stack)
+        {
+            if (group.Scenes.Count == 0) return;
+
+            GameObject root = new GameObject(group.Name, typeof(RectTransform));
+            RectTransform rt = (RectTransform)root.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(manifest.DesignWidth, manifest.DesignHeight);
+
+            string moduleDir = null;
+            bool first = true;
+            foreach (string key in group.Scenes)
+            {
+                LayaUIManifest.SceneEntry entry = manifest.Get(key);
+                if (entry == null) continue;
+                if (moduleDir == null) moduleDir = manifest.ModuleDir(entry.Module);
+                JObject json = LoadSceneJson(entry);
+                if (json == null)
+                {
+                    report.BeginScene(key);
+                    report.Note("❌ 运行时 json 读取失败: " + entry.Json);
+                    continue;
+                }
+                GameObject win = BuildWindow(key, entry, json, manifest, report, stack);
+                win.transform.SetParent(root.transform, false);
+                win.SetActive(first); // 默认只亮第一个窗口,其余在编辑器里手动切
+                first = false;
+
+                LayaBindGenerator.Generate(entry, manifest, win.transform, report);
+
+                // 清掉以前单窗口模式留下的同名 prefab,避免新旧两套并存
+                string oldPath = PrefabPath(entry, manifest);
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(oldPath) != null)
+                {
+                    AssetDatabase.DeleteAsset(oldPath);
+                    report.Note("删除旧单窗口 prefab: " + oldPath + "(已并入 " + group.Name + ")");
+                }
+            }
+
+            string prefabPath = LayaUISettings.PREFAB_ROOT + "/" + (moduleDir ?? "Unknown") + "/" + group.Name + ".prefab";
+            Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
+            PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
+            Object.DestroyImmediate(root);
+        }
+
+        /// <summary>转换一个 scene 为独立 prefab(共享组件、组外窗口、单窗口模式用)。</summary>
         private static string ConvertOne(string sceneKey, LayaUIManifest manifest, LayaUIReport report, HashSet<string> stack)
         {
             LayaUIManifest.SceneEntry entry = manifest.Get(sceneKey);
             if (entry == null) return null;
             string prefabPath = PrefabPath(entry, manifest);
-            if (stack.Contains(sceneKey)) return prefabPath; // 防环
+            if (stack.Contains(sceneKey)) return prefabPath; // 防环/防重复
             stack.Add(sceneKey);
 
             JObject root = LoadSceneJson(entry);
@@ -105,34 +248,25 @@ namespace Shenxiao.Editor.LayaUI
                 return null;
             }
 
-            report.BeginScene(sceneKey);
-            GameObject go = BuildRoot(entry.Name, root, manifest, report);
+            GameObject go = BuildWindow(sceneKey, entry, root, manifest, report, stack);
+            LayaBindGenerator.Generate(entry, manifest, go.transform, report);
 
-            // 内联 item:挂在禁用的 __Templates 下,业务代码用 _tpl_xxx 字段 Instantiate
-            List<string> inline = entry.InlineItems;
+            Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
+            PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
+            Object.DestroyImmediate(go);
+            return prefabPath;
+        }
+
+        /// <summary>窗口 = scene 节点树 + __Templates(内联 item + 共享 item 嵌套)。返回未保存的 GO。</summary>
+        private static GameObject BuildWindow(string sceneKey, LayaUIManifest.SceneEntry entry, JObject rootJson,
+            LayaUIManifest manifest, LayaUIReport report, HashSet<string> stack)
+        {
+            report.BeginScene(sceneKey);
+            GameObject go = BuildRoot(entry.Name, rootJson, manifest, report);
+
             List<GameObject> templates = new List<GameObject>();
-            if (inline != null && inline.Count > 0)
-            {
-                foreach (string itemKey in inline)
-                {
-                    LayaUIManifest.SceneEntry ie = manifest.Get(itemKey);
-                    JObject ij = ie != null ? LoadSceneJson(ie) : null;
-                    if (ij == null) { report.Note("内联 item 读不到 json: " + itemKey); continue; }
-                    GameObject item = BuildRoot(ie.Name, ij, manifest, report);
-                    templates.Add(item);
-                    // item 自己的内联链(item 套 item)
-                    if (ie.InlineItems != null)
-                    {
-                        foreach (string sub in ie.InlineItems)
-                        {
-                            LayaUIManifest.SceneEntry se = manifest.Get(sub);
-                            JObject sj = se != null ? LoadSceneJson(se) : null;
-                            if (sj == null) continue;
-                            templates.Add(BuildRoot(se.Name, sj, manifest, report));
-                        }
-                    }
-                }
-            }
+            CollectInlineTemplates(entry, manifest, report, templates);
+
             // 共享 item:先保证共享 prefab 存在,再嵌套进 __Templates
             if (entry.TsClass != null)
             {
@@ -155,18 +289,40 @@ namespace Shenxiao.Editor.LayaUI
                 foreach (GameObject t in templates) t.transform.SetParent(tplRoot.transform, false);
                 tplRoot.SetActive(false);
             }
+            return go;
+        }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
-            PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
-            Object.DestroyImmediate(go);
-
-            LayaBindGenerator.Generate(entry, manifest, prefabPath, report);
-            return prefabPath;
+        private static void CollectInlineTemplates(LayaUIManifest.SceneEntry entry, LayaUIManifest manifest,
+            LayaUIReport report, List<GameObject> templates)
+        {
+            if (entry.InlineItems == null) return;
+            foreach (string itemKey in entry.InlineItems)
+            {
+                LayaUIManifest.SceneEntry ie = manifest.Get(itemKey);
+                JObject ij = ie != null ? LoadSceneJson(ie) : null;
+                if (ij == null) { report.Note("内联 item 读不到 json: " + itemKey); continue; }
+                templates.Add(BuildRoot(ie.Name, ij, manifest, report));
+                CollectInlineTemplates(ie, manifest, report, templates); // item 套 item
+            }
         }
 
         public static string PrefabPath(LayaUIManifest.SceneEntry entry, LayaUIManifest manifest)
         {
             return LayaUISettings.PREFAB_ROOT + "/" + manifest.ModuleDir(entry.Module) + "/" + entry.Name + ".prefab";
+        }
+
+        private static string FindGroupPrefabContaining(string folder, string windowName)
+        {
+            if (!Directory.Exists(folder)) return null;
+            foreach (string file in Directory.GetFiles(folder, "*.prefab", SearchOption.TopDirectoryOnly))
+            {
+                string path = file.Replace('\\', '/');
+                GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (asset == null) continue;
+                Transform child = asset.transform.Find(windowName);
+                if (child != null && child.parent == asset.transform) return path;
+            }
+            return null;
         }
 
         private static JObject LoadSceneJson(LayaUIManifest.SceneEntry entry)
@@ -177,6 +333,8 @@ namespace Shenxiao.Editor.LayaUI
             catch (System.Exception e) { Debug.LogError("[LayaUI] 解析失败 " + path + ": " + e.Message); return null; }
         }
 
+        // ---------------------------------------------------------------- 节点树
+
         private static GameObject BuildRoot(string name, JObject root, LayaUIManifest manifest, LayaUIReport report)
         {
             JObject props = root["props"] as JObject ?? new JObject();
@@ -185,7 +343,7 @@ namespace Shenxiao.Editor.LayaUI
 
             GameObject go = new GameObject(name, typeof(RectTransform));
             RectTransform rt = (RectTransform)go.transform;
-            // 根节点居中锚定;LoginView 这类窗口由 ViewManager 挂到全屏层下,居中即原 is_center 行为
+            // 根节点居中锚定;窗口由 ViewManager 挂到全屏层下,居中即原 is_center 行为
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.sizeDelta = new Vector2(w, h);

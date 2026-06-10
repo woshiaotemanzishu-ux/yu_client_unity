@@ -10,21 +10,21 @@ using UnityEngine.UI;
 namespace Shenxiao.Editor.LayaUI
 {
     /// <summary>
-    /// 为转换出来的 View prefab 生成 {Name}Bind.cs(Assets/Scripts/Generated/UI/{Module}/)。
+    /// 为转换出来的窗口生成 {Name}Bind.cs(Assets/Scripts/Generated/UI/{Module}/)。
     /// 收集规则:节点名以 "_" 开头的(Laya 项目约定的代码引用节点)+ __Templates 下的模板
     /// (字段名 _tpl_xxx)。字段类型按节点组件取最具体的。
+    /// 合并模式下 Bind 组件挂在大 prefab 内的窗口子根上,路径相对窗口根。
     /// 生成后需要 Unity 编译一轮,再跑『回填 Bind 引用』把字段填进 prefab。
     /// </summary>
     public static class LayaBindGenerator
     {
-        public static void Generate(LayaUIManifest.SceneEntry entry, LayaUIManifest manifest, string prefabPath, LayaUIReport report)
+        public static void Generate(LayaUIManifest.SceneEntry entry, LayaUIManifest manifest, Transform windowRoot, LayaUIReport report)
         {
-            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-            if (prefab == null) return;
+            if (windowRoot == null) return;
 
             List<FieldInfo> fields = new List<FieldInfo>();
             HashSet<string> used = new HashSet<string>();
-            Collect(prefab.transform, prefab.transform, fields, used, report, entry.Name);
+            Collect(windowRoot, windowRoot, fields, used, report, entry.Name);
 
             string moduleDir = manifest.ModuleDir(entry.Module);
             string className = SanitizeType(entry.Name) + "Bind";

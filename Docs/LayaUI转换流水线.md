@@ -21,6 +21,38 @@
 2026-06-10 对 yu_client 全量分析结果:2056 个 scene →
 **756 view + 161 standalone + 160 shared = 1077 个 prefab**,715 个 item 内联,264 个不转。
 
+### 合并模式(2026-06-10 加,默认推荐)
+
+上面的「窗口=prefab」试点后反馈仍太碎(login 一个模块 16 个文件)。合并模式把
+**一个模块(或自定义大 Panel)收成一个 prefab**:
+
+```
+Assets/Prefabs/UI/Login/LoginModule.prefab
+ ├─ LoginBgView          ← 各窗口为子节点,默认只激活第一个
+ ├─ LoginLoadingView     (每个窗口子根挂自己的 {Name}Bind 组件)
+ ├─ LoginView
+ │   └─ __Templates/...  (该窗口的列表项模板,禁用)
+ ├─ RegisterView
+ └─ ...
+```
+
+- 默认整模块一组,名字 `{Module}Module`;想拆几个大 Panel,建 `Schemas/LayaUI/ui_groups.json`:
+
+```json
+{
+  "login": [
+    { "name": "LoginEntry",  "scenes": ["login/LoginBgView", "login/LoginLoadingView", "login/LoginView", "login/RegisterView"] },
+    { "name": "LoginSelect", "scenes": ["login/LoginSelectServerView", "login/LoginSelectRoleView"] }
+  ]
+}
+```
+
+  没列进任何组的窗口仍按单窗口 prefab 转。
+- 合并转换会**删除**该组窗口旧的单窗口 prefab(报告里有记录),避免两套并存。
+- 改了某个窗口想重转:转换器窗口填 scene key → 「在合并 prefab 内重转该窗口」,
+  只替换该子树,**其他窗口(含手调过的)不动**。
+- 跨模块共享组件(`shared-prefab`)仍是独立 prefab,嵌套进各窗口 `__Templates`。
+
 ## 流水线
 
 ```

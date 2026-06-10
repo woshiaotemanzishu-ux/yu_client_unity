@@ -70,14 +70,27 @@ namespace Shenxiao.Editor.LayaUI
             GUILayout.Space(8f);
             GUILayout.Label("3. 转换", EditorStyles.boldLabel);
             _module = EditorGUILayout.TextField("模块名(如 login)", _module);
-            if (GUILayout.Button("转换整个模块"))
+            if (GUILayout.Button("转换模块 → 合并成大 prefab(推荐)"))
+            {
+                LayaSceneConverter.ConvertModuleCombined(_module.Trim());
+            }
+            EditorGUILayout.HelpBox("合并模式:整个模块一个 prefab,各窗口是子节点(默认只激活第一个)。" +
+                                    "想拆成几个大 Panel,编辑 " + LayaUIGroups.CONFIG_PATH + " 后重转。", MessageType.None);
+            if (GUILayout.Button("转换模块 → 每窗口一个 prefab"))
             {
                 LayaSceneConverter.ConvertModule(_module.Trim());
             }
             _singleKey = EditorGUILayout.TextField("单个 scene key", _singleKey);
-            if (GUILayout.Button("转换单个 scene"))
+            using (new EditorGUILayout.HorizontalScope())
             {
-                LayaSceneConverter.ConvertSingle(_singleKey.Trim());
+                if (GUILayout.Button("在合并 prefab 内重转该窗口"))
+                {
+                    LayaSceneConverter.ReconvertWindowInGroup(_singleKey.Trim());
+                }
+                if (GUILayout.Button("转成独立 prefab"))
+                {
+                    LayaSceneConverter.ConvertSingle(_singleKey.Trim());
+                }
             }
 
             GUILayout.Space(8f);
