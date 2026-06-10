@@ -1,0 +1,16 @@
+{
+  "table": "client_attention",
+  "vo_name": "AttentionCfg",
+  "source": "resource/config/client/ClientAttention",
+  "key_field": "id",
+  "key_type": "string",
+  "comment": "Sample schema (matches yu_client ClientAttention.json shape)",
+  "fields": [
+    { "name": "image", "type": "string", "comment": "image asset name" },
+    { "name": "wx_name", "type": "string" },
+    { "name": "des", "type": "string", "comment": "description (HTML)" },
+    { "name": "reward", "type": "int[][]", "comment": "[ [type,id,num], ... ]" },
+    { "name": "open_day", "type": "int", "default": "1" },
+    { "name": "open_lv", "type": "int", "default": "1" }
+  ]
+}
