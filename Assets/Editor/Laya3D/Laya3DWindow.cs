@@ -18,6 +18,7 @@ namespace Shenxiao.Editor.Laya3D
         private readonly List<string> _selectedLanis = new List<string>();
         private Vector2 _laniScroll;
         private bool _mirrorX;
+        private Laya3DImporter.MaterialMode _materialMode = Laya3DImporter.MaterialMode.Auto;
         private string[] _laniFiles = System.Array.Empty<string>();
 
         [MenuItem("神霄/Laya3D 转换器(MVP)", priority = 1)]
@@ -82,6 +83,8 @@ namespace Shenxiao.Editor.Laya3D
             EditorGUILayout.EndScrollView();
 
             _mirrorX = EditorGUILayout.ToggleLeft("mirrorX(坐标系翻转,首渲镜像时切换)", _mirrorX);
+            _materialMode = (Laya3DImporter.MaterialMode)EditorGUILayout.EnumPopup(
+                new GUIContent("材质模式", "Auto=按 .lmat;偏暗/朦胧时试 Unlit(贴图直出,老端手游观感)"), _materialMode);
 
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -91,7 +94,7 @@ namespace Shenxiao.Editor.Laya3D
                 }
                 if (GUILayout.Button("转换生成 Prefab", GUILayout.Height(28f)))
                 {
-                    var result = Laya3DImporter.Convert(_lhPath, new List<string>(_selectedLanis), _mirrorX);
+                    var result = Laya3DImporter.Convert(_lhPath, new List<string>(_selectedLanis), _mirrorX, _materialMode);
                     if (result.Ok)
                     {
                         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(result.PrefabPath);

@@ -165,5 +165,19 @@ namespace Shenxiao.Editor.Laya3D
             }
             return result;
         }
+
+        /// <summary>.lmat 的材质类型与 albedo 颜色(Laya LAYAMATERIAL props.type / albedoColor)。</summary>
+        public static (string type, float[] albedo) ExtractMaterialParams(string lmatPath)
+        {
+            JObject mat = JObject.Parse(File.ReadAllText(lmatPath));
+            var props = mat["props"] as JObject;
+            string type = (string)props?["type"] ?? "";
+            float[] albedo = null;
+            if (props?["albedoColor"] is JArray a && a.Count >= 3)
+            {
+                albedo = new[] { (float)a[0], (float)a[1], (float)a[2], a.Count > 3 ? (float)a[3] : 1f };
+            }
+            return (type, albedo);
+        }
     }
 }
