@@ -1,7 +1,7 @@
 {
  "designHeight": 1280,
  "designWidth": 720,
- "generatedAt": "2026-06-11 04:27:01",
+ "generatedAt": "2026-06-11 07:14:40",
  "moduleDirCase": {
   "achv": "Achv",
   "activity": "Activity",
@@ -6494,7 +6494,9 @@
    "width": 581
   },
   "bossPersonal/BossPersonalEnterView": {
-   "bakedSkins": {},
+   "bakedSkins": {
+    "_img_goodsicon": "resource/game/goodsIcon/"
+   },
    "decision": "standalone-prefab",
    "height": 992,
    "inlineItems": [
@@ -12916,6 +12918,7 @@
   },
   "common/SkillTipsView": {
    "bakedSkins": {
+    "icon": "resource/game/skillIcon/",
     "icon_bg": "resource/game/role/role_15.png"
    },
    "decision": "view-prefab",
@@ -48895,7 +48898,9 @@
    "width": 581
   },
   "login/LoginBgView": {
-   "bakedSkins": {},
+   "bakedSkins": {
+    "_img_bg": "resource/game/scene/dragonBones/denglu/denglu_bg.jpg"
+   },
    "decision": "view-prefab",
    "height": 1280,
    "json": "cdn/resource/game/login/LoginBgView.json",
@@ -51636,7 +51641,8 @@
   },
   "lung/LungSkillTipsView": {
    "bakedSkins": {
-    "_Image1": "resource/game/common2/other/uity_016j.png"
+    "_Image1": "resource/game/common2/other/uity_016j.png",
+    "icon": "resource/game/skillIcon/"
    },
    "decision": "view-prefab",
    "height": 298,
@@ -62816,7 +62822,8 @@
   },
   "pet/PetLvSystemSkillView": {
    "bakedSkins": {
-    "_Image1": "resource/game/common2/other/uity_016j.png"
+    "_Image1": "resource/game/common2/other/uity_016j.png",
+    "icon": "resource/game/skillIcon/"
    },
    "decision": "view-prefab",
    "height": 408,
@@ -62990,7 +62997,9 @@
    "width": 85
   },
   "pet/PetSkillView": {
-   "bakedSkins": {},
+   "bakedSkins": {
+    "icon": "resource/game/skillIcon/"
+   },
    "decision": "view-prefab",
    "height": 340,
    "json": "cdn/resource/game/pet/PetSkillView.json",
@@ -64519,6 +64528,7 @@
   },
   "playerMessage/PlayerMessageRuneItem": {
    "bakedSkins": {
+    "_img_icon": "resource/game/runeIcon/",
     "runeBg1Img": "resource/game/runeCard/icon_kp_0",
     "runeBgImg": "resource/game/runeCard/icon_kpbg_0",
     "runeCardImg": "resource/game/runeCard/",
@@ -64641,6 +64651,7 @@
     "_icon_bg": "resource/game/friend/texture/uickwj_004.png",
     "_icon_medal": "resource/game/achv/texture/image_.png",
     "_stage_bg": "resource/game/friend/other/uickwj_003.png",
+    "_title_img": "resource/game/dsgtIcon/",
     "illusionBg": "resource/game/playerMessage/other/ui_rwxx_bg_04.png",
     "image_faeries_bg": "resource/game/playerMessage/other/bg_01.png",
     "img_line": "resource/game/playerMessage/other/com_line_1.png"
@@ -68070,7 +68081,9 @@
    "width": 870
   },
   "role/SkillInitiativeItem": {
-   "bakedSkins": {},
+   "bakedSkins": {
+    "_img_icon": "resource/game/skillIcon/"
+   },
    "decision": "inline",
    "height": 116,
    "inlineHost": "SkillInitiativeSubItem",
@@ -69644,7 +69657,9 @@
    "width": 657
   },
   "runeTreasure/RuneResultItem": {
-   "bakedSkins": {},
+   "bakedSkins": {
+    "_img_icon": "resource/game/runeIcon/"
+   },
    "decision": "shared-prefab",
    "height": 250,
    "json": "cdn/resource/game/runeTreasure/RuneResultItem.json",
@@ -76309,6 +76324,7 @@
   },
   "suitActivity/SuitActivityView": {
    "bakedSkins": {
+    "_img_skill": "resource/game/skillIcon/",
     "img_bg": "resource/game/suitActivity/other/ui_sstz_010.png",
     "img_fill": "resource/game/suitActivity/other/ui_sstz_009a.png",
     "img_sche": "resource/game/suitActivity/other/ui_sstz_009.png"
@@ -81186,7 +81202,9 @@
    "width": 650
   },
   "topVip/TopVipSkillIntroduceView": {
-   "bakedSkins": {},
+   "bakedSkins": {
+    "skill_img": "resource/game/skillIcon/"
+   },
    "decision": "view-prefab",
    "height": 330,
    "json": "cdn/resource/game/topVip/TopVipSkillIntroduceView.json",
@@ -83259,6 +83277,7 @@
   "vip/VipCardItem": {
    "bakedSkins": {
     "button_img": "resource/game/common/texture/com_rect_btn2.png",
+    "card_bg": "resource/game/vip/other/",
     "free_img": "resource/game/vip/other/",
     "image_bg_left": "resource/game/vip/other/uivip_info_bg_35.png",
     "image_bg_right": "resource/game/vip/other/uivip_info_bg_36.png",

@@ -34,6 +34,11 @@ namespace Shenxiao.Framework.Res
         public static async Task<T> LoadAsync<T>(string addrKey) where T : UnityEngine.Object
         {
             string key = ResourcePath.Normalize(addrKey);
+            if (!await KeyExists(key))
+            {
+                GameLog.Error("Res", "load failed key={0} type={1}(key 不在 Addressables,跑 神霄/资源/Addressable 自动分组)", key, typeof(T).Name);
+                return null;
+            }
             var handle = Addressables.LoadAssetAsync<T>(key);
             await handle.Task;
 
@@ -54,6 +59,23 @@ namespace Shenxiao.Framework.Res
         public static async Task<GameObject> InstantiateAsync(string addrKey, Transform parent = null)
         {
             string key = ResourcePath.Normalize(addrKey);
+            // 先查 key 是否登记,避免 Addressables 对无效 key 在控制台抛 InvalidKeyException
+            if (!await KeyExists(key))
+            {
+#if UNITY_EDITOR
+                GameObject fallbackPrefab = LoadEditorPrefabFallback(key);
+                if (fallbackPrefab != null)
+                {
+                    GameObject fb = UnityEngine.Object.Instantiate(fallbackPrefab, parent);
+                    _editorFallbackInstances.Add(fb);
+                    GameLog.Warn("Res", "editor prefab fallback key={0}(未进 Addressables 组,记得跑 自动分组)", key);
+                    return fb;
+                }
+#endif
+                GameLog.Error("Res", "instantiate failed key={0}(key 不在 Addressables)", key);
+                return null;
+            }
+
             var handle = Addressables.InstantiateAsync(key, parent);
             await handle.Task;
 
@@ -78,6 +100,17 @@ namespace Shenxiao.Framework.Res
             GameObject go = handle.Result;
             if (go != null) _instanceHandles[go] = handle;
             return go;
+        }
+
+        /// <summary>key 是否已登记进 Addressables(查 location,不触发加载、不抛异常)。</summary>
+        private static async Task<bool> KeyExists(string key)
+        {
+            var locHandle = Addressables.LoadResourceLocationsAsync(key);
+            await locHandle.Task;
+            bool exists = locHandle.Status == AsyncOperationStatus.Succeeded
+                          && locHandle.Result != null && locHandle.Result.Count > 0;
+            Addressables.Release(locHandle);
+            return exists;
         }
 
         /// <summary>

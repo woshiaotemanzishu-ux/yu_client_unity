@@ -48,6 +48,8 @@ RE_LAYER = re.compile(r"this\.layer_value\s*=")
 # 同一节点首写胜。解析不了的(变量/模板串/三元)留给报告的「运行时赋值」清单。
 
 RE_ALIAS = re.compile(r"(?:let|const|var)\s+(\w+)\s*=\s*this\.(\w+)\s*[;\n]")
+# 局部字符串常量:let bg_url = "resource/..." 再传给 SetTexture(LoginBgView 等的写法)
+RE_STRCONST = re.compile(r"""(?:let|const|var)\s+(\w+)\s*=\s*["'](resource/[^"']+)["']""")
 _LIT = r"""["']([^"']+)["']"""
 _GRP_CALL = r"""GameResPath\.(\w+)\(\s*((?:["'][^"']*["']\s*,\s*)*["'][^"']*["'])\s*\)"""
 # target: this.node 或 别名
@@ -57,6 +59,7 @@ RE_SKIN_ASSIGN_LIT = re.compile(r"this\.(\w+)\.skin\s*=\s*" + _LIT)
 RE_SKIN_ASSIGN_GRP = re.compile(r"this\.(\w+)\.skin\s*=\s*" + _GRP_CALL)
 RE_TEX_LIT = re.compile(r"(SetTexture|SetOutsideImageSprite|SetImageSpriteTrans)\(\s*this\s*,\s*" + _TARGET + r"\s*,\s*" + _LIT)
 RE_TEX_GRP = re.compile(r"(SetTexture|SetOutsideImageSprite|SetImageSpriteTrans)\(\s*this\s*,\s*" + _TARGET + r"\s*,\s*" + _GRP_CALL)
+RE_TEX_VAR = re.compile(r"(SetTexture|SetOutsideImageSprite|SetImageSpriteTrans)\(\s*this\s*,\s*" + _TARGET + r"\s*,\s*(\w+)\s*[,)]")
 RE_IMGSPRITE = re.compile(r"SetImageSprite\(\s*this\s*,\s*" + _TARGET + r"\s*,\s*" + _LIT + r"\s*,\s*" + _LIT)
 
 RE_GRP_METHOD = re.compile(
@@ -96,6 +99,7 @@ def _texture_to_other(path):
 
 def extract_baked_skins(body):
     aliases = {a: node for a, node in RE_ALIAS.findall(body)}
+    strconsts = {a: path for a, path in RE_STRCONST.findall(body)}
 
     def target_node(this_node, alias):
         return this_node if this_node else aliases.get(alias)
@@ -126,6 +130,12 @@ def extract_baked_skins(body):
         if "_" in ab[1:]:
             ab = ab[:ab.rindex("_")]
         put(target_node(m.group(1), m.group(2)), "resource/game/%s/texture/%s.png" % (ab, res))
+    for m in RE_TEX_VAR.finditer(body):
+        fn = m.group(1)
+        path = strconsts.get(m.group(4))
+        if path and fn != "SetImageSpriteTrans":
+            path = _texture_to_other(path)
+        put(target_node(m.group(2), m.group(3)), path)
     return baked
 
 # 窗口基类(继承到这里的必然是独立窗口)
