@@ -70,6 +70,10 @@ namespace Shenxiao.Module.Core.Login
 
             EventDispatcher.On<int>(GlobalEvent.EVT_GAME_ROLE_LIST, OnRoleList);
 
+            // 确定性层级:背景永远垫底;其余窗口靠 BaseView.Show() 置顶,
+            // 弹出顺序即渲染顺序(Hierarchy 里可见:Show 的窗口跳到最后一位)
+            _bg.transform.SetAsFirstSibling();
+
             // ---------- ① 加载页 ----------
             _loading.Show();
             _loading.SetProgress(0f);
@@ -178,6 +182,7 @@ namespace Shenxiao.Module.Core.Login
 
         public static void ShowAgreement()
         {
+            GameLog.Info("Login", "弹出用户协议弹层(LoginAlertView 激活并置顶)");
             _alert.ShowWith(
                 onOk: OnAgreementOk,
                 onCancel: OnAgreementCancel);
@@ -241,7 +246,8 @@ namespace Shenxiao.Module.Core.Login
         {
             if (!AgreementAgreed)
             {
-                ShowAgreement(); // 老客户端规则:未同意协议不能踏入仙界
+                GameLog.Info("Login", "踏入仙界被拦截:协议未勾选 → 弹协议层(老客户端规则)");
+                ShowAgreement();
                 return;
             }
             if (_busy) return;
