@@ -110,7 +110,13 @@ namespace Shenxiao.Module.Core.Login
             {
                 bool selected = _tabAreas[i] == _selectedArea;
                 Image bg = FindImage(_tabs[i], "_img_bg");
-                if (bg != null) bg.enabled = selected;
+                if (bg != null)
+                {
+                    // 不能用 enabled 隐藏:Graphic 禁用后不接收点击,未选中 tab 会点不动;
+                    // 用 alpha=0 隐藏底图,点击区保持有效
+                    bg.enabled = true;
+                    bg.color = selected ? Color.white : Color.clear;
+                }
                 TextMeshProUGUI nameLabel = FindLabel(_tabs[i], "_lb_name");
                 if (nameLabel != null) nameLabel.color = selected ? TAB_SELECTED : TAB_NORMAL;
             }
