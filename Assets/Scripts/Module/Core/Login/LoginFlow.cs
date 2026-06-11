@@ -101,7 +101,16 @@ namespace Shenxiao.Module.Core.Login
         private static async Task<bool> HttpLoginAsync()
         {
             _loading.SetProgress(0.6f, "登录账号 ...");
-            LoginRequestResult result = await LoginController.Instance.DevLoginAsync(_config.devAccount);
+            Task<LoginRequestResult> loginTask = LoginController.Instance.DevLoginAsync(_config.devAccount);
+            // 看门狗:服务器不可达时 TCP 层可能长时间无响应,别让玩家对着"登录账号..."干等
+            Task finished = await Task.WhenAny(loginTask, Task.Delay(15000));
+            if (finished != loginTask)
+            {
+                GameLog.Error("Login", "登录超时:{0} 不可达(浏览器开 {0} 应显示 API is ready;检查 yu_gm 服务/防火墙)", _config.gmApiUrl);
+                _loading.SetProgress(0.6f, "登录超时:账号服务器不可达");
+                return false;
+            }
+            LoginRequestResult result = loginTask.Result;
             if (!result.success)
             {
                 GameLog.Error("Login", "HTTP 登录失败: {0}", result.message);

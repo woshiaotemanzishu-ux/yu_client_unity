@@ -78,11 +78,8 @@ namespace Shenxiao.Module.Core.Login
 
             string time = (DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ToString();
             string sign = Md5Lower((LoginKey ?? string.Empty) + time + method);
+            // 保留结尾斜杠,与 Laya 完全一致地请求 .../api/?method=...
             string baseUrl = BaseUrl.Trim();
-            while (baseUrl.EndsWith("/", StringComparison.Ordinal))
-            {
-                baseUrl = baseUrl.Substring(0, baseUrl.Length - 1);
-            }
 
             var sb = new StringBuilder();
             sb.Append(baseUrl);
