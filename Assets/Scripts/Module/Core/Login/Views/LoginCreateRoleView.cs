@@ -15,15 +15,19 @@ namespace Shenxiao.Module.Core.Login
     /// </summary>
     public sealed class LoginCreateRoleView : LoginCreateRoleViewBind
     {
-        // 临时:ConfigLogin.CreateRole.UI/Res 的镜像(career/sex/名称/头像/默认装 role_res)
+        // 临时:ConfigLogin.CreateRole.UI/Res 的镜像(career/sex/名称/头像/默认装 role_res/模型位偏移 PosOffset)
         // TODO(配表线):ConfigManager 接入 ConfigLogin 后替换
-        private static readonly (int career, int sex, string name, string selectIcon, string unselectIcon, int roleRes)[] CAREERS =
+        private static readonly (int career, int sex, string name, string selectIcon, string unselectIcon, int roleRes, float posOffsetY)[] CAREERS =
         {
-            (1, 1, "剑士", "ui_Login_10", "ui_Login_10a", 1111),
-            (2, 2, "武姬", "ui_Login_12", "ui_Login_12a", 1213),
-            (3, 1, "枪使", "ui_Login_11", "ui_Login_11a", 1300),
-            (4, 2, "弓手", "ui_Login_13", "ui_Login_13a", 1400),
+            (1, 1, "剑士", "ui_Login_10", "ui_Login_10a", 1111, -0.53f),
+            (2, 2, "武姬", "ui_Login_12", "ui_Login_12a", 1213, 0f),
+            (3, 1, "枪使", "ui_Login_11", "ui_Login_11a", 1300, 0f),
+            (4, 2, "弓手", "ui_Login_13", "ui_Login_13a", 1400, 0f),
         };
+
+        // ConfigLogin.CreateRole.ModelPos 与 show_model_data.scale=0.5 的镜像
+        private static readonly Vector2 MODEL_POS = new Vector2(0f, 1.53f);
+        private const float MODEL_SCALE = 0.5f;
 
         private static readonly string[] RANDOM_NAMES =
         {
@@ -118,15 +122,16 @@ namespace Shenxiao.Module.Core.Login
         /// <summary>中央 3D 模型(Laya SetRoleModel 对等):按职业默认装加载转换产物。</summary>
         private async void ShowCareerModel()
         {
-            int roleRes = CAREERS[_selectedIndex].roleRes;
-            string key = $"object/role/model_clothe_{roleRes}/model_clothe_{roleRes}";
+            var career = CAREERS[_selectedIndex];
+            string key = $"object/role/model_clothe_{career.roleRes}/model_clothe_{career.roleRes}";
             GameObject prefab = await Shenxiao.Framework.Res.ResManager.LoadAsync<GameObject>(key);
             if (prefab == null)
             {
                 GameLog.Warn("Login", "职业模型未找到(先用 Laya3D 转换器生成):{0}", key);
                 return;
             }
-            Shenxiao.Common.UI3D.UIModelStage.Show(_gp_model_con, prefab);
+            Shenxiao.Common.UI3D.UIModelStage.Show(_gp_model_con, prefab,
+                MODEL_SCALE, MODEL_POS + new Vector2(0f, career.posOffsetY));
         }
 
         private void OnClickRandomName()

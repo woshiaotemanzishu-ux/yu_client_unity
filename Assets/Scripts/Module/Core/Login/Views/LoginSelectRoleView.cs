@@ -14,6 +14,11 @@ namespace Shenxiao.Module.Core.Login
     {
         private const float ITEM_SPACING = 12f;
 
+        // ConfigLogin.SelectRole.ModelPos 与 show_model_data.scale=0.5 的镜像
+        // TODO(配表线):ConfigManager 接入 ConfigLogin 后替换
+        private static readonly Vector2 MODEL_POS = new Vector2(0f, 2.3f);
+        private const float MODEL_SCALE = 0.5f;
+
         private readonly List<GameObject> _items = new List<GameObject>();
         private long _selectedRoleId;
 
@@ -112,7 +117,7 @@ namespace Shenxiao.Module.Core.Login
                 GameLog.Warn("Login", "角色模型未找到(先用 Laya3D 转换器生成):{0}", key);
                 return;
             }
-            Shenxiao.Common.UI3D.UIModelStage.Show(_gp_model, prefab);
+            Shenxiao.Common.UI3D.UIModelStage.Show(_gp_model, prefab, MODEL_SCALE, MODEL_POS);
         }
 
         private void OnClickEnter()
