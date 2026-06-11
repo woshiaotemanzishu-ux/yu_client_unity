@@ -448,7 +448,17 @@ namespace Shenxiao.Editor.LayaUI
             }
             if (autoSizeContainer)
             {
-                Vector2 bounds = ChildBounds(childContainer);
+                // HBox/VBox 的自动尺寸是「子节点依次排列」语义(Σ显示宽 + 间距),
+                // 普通 Box 才是「子节点边界」语义
+                Vector2 bounds;
+                if (type == "HBox" || type == "VBox")
+                {
+                    bounds = SumBounds(childContainer, type == "HBox", LayaRectMath.F(p, "space") ?? 0f);
+                }
+                else
+                {
+                    bounds = ChildBounds(childContainer);
+                }
                 if (p["width"] == null) size.x = bounds.x;
                 if (p["height"] == null) size.y = bounds.y;
             }
@@ -465,6 +475,26 @@ namespace Shenxiao.Editor.LayaUI
                 go.SetActive(false);
             }
             CollectUnknownProps(type, p, report);
+        }
+
+        /// <summary>HBox/VBox 自动尺寸:主轴 = Σ子节点显示尺寸 + 间距,交叉轴 = 最大显示尺寸
+        /// (Laya HBox/VBox 会重排子节点,设计时 x/y 无效,不能用边界算法)。</summary>
+        private static Vector2 SumBounds(RectTransform container, bool horizontal, float spacing)
+        {
+            float main = 0f, cross = 0f;
+            int count = 0;
+            for (int i = 0; i < container.childCount; i++)
+            {
+                RectTransform c = container.GetChild(i) as RectTransform;
+                if (c == null || !c.gameObject.activeSelf) continue;
+                Vector2 d = new Vector2(c.sizeDelta.x * Mathf.Abs(c.localScale.x),
+                                        c.sizeDelta.y * Mathf.Abs(c.localScale.y));
+                main += horizontal ? d.x : d.y;
+                cross = Mathf.Max(cross, horizontal ? d.y : d.x);
+                count++;
+            }
+            if (count > 1) main += spacing * (count - 1);
+            return horizontal ? new Vector2(main, cross) : new Vector2(cross, main);
         }
 
         /// <summary>子节点内容边界(Laya 自动宽高语义:max(child.x + child.width))。
@@ -686,6 +716,8 @@ namespace Shenxiao.Editor.LayaUI
             lg.childControlHeight = false;
             lg.childForceExpandWidth = false;
             lg.childForceExpandHeight = false;
+            lg.childScaleWidth = true;  // Laya HBox 按显示尺寸(含 scale)排列
+            lg.childScaleHeight = true;
             string align = (string)p["align"];
             lg.childAlignment = align == "center" ? TextAnchor.UpperCenter
                 : align == "right" || align == "bottom" ? TextAnchor.UpperRight

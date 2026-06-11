@@ -51,6 +51,11 @@ namespace Shenxiao.Editor.LayaUI
             Vector2 aMin = rt.anchorMin, aMax = rt.anchorMax;
             Vector2 pos = rt.anchoredPosition;
             float w = size.x, h = size.y;
+            // Laya 的 right/centerX/bottom 等相对布局用的是显示尺寸(width×scaleX),
+            // 定位公式必须用 dw/dh,否则带缩放的节点(如 0.35 倍的 16+ 图标)整体偏移
+            float sclX = Mathf.Abs(F(p, "scaleX") ?? 1f);
+            float sclY = Mathf.Abs(F(p, "scaleY") ?? 1f);
+            float dw = w * sclX, dh = h * sclY;
 
             // 水平轴
             if (left.HasValue && right.HasValue)
@@ -60,17 +65,17 @@ namespace Shenxiao.Editor.LayaUI
             else if (centerX.HasValue)
             {
                 aMin.x = aMax.x = 0.5f;
-                pos.x = centerX.Value + (pivot.x - 0.5f) * w;
+                pos.x = centerX.Value + (pivot.x - 0.5f) * dw;
             }
             else if (right.HasValue)
             {
                 aMin.x = aMax.x = 1f;
-                pos.x = -(right.Value + (1f - pivot.x) * w);
+                pos.x = -(right.Value + (1f - pivot.x) * dw);
             }
             else if (left.HasValue)
             {
                 aMin.x = aMax.x = 0f;
-                pos.x = left.Value + pivot.x * w;
+                pos.x = left.Value + pivot.x * dw;
             }
             else
             {
@@ -86,17 +91,17 @@ namespace Shenxiao.Editor.LayaUI
             else if (centerY.HasValue)
             {
                 aMin.y = aMax.y = 0.5f;
-                pos.y = -(centerY.Value + (0.5f - pivot.y) * h);
+                pos.y = -(centerY.Value + (0.5f - pivot.y) * dh);
             }
             else if (bottom.HasValue)
             {
                 aMin.y = aMax.y = 0f;
-                pos.y = bottom.Value + pivot.y * h;
+                pos.y = bottom.Value + pivot.y * dh;
             }
             else if (top.HasValue)
             {
                 aMin.y = aMax.y = 1f;
-                pos.y = -(top.Value + (1f - pivot.y) * h);
+                pos.y = -(top.Value + (1f - pivot.y) * dh);
             }
             else
             {
