@@ -248,6 +248,9 @@ namespace Shenxiao.Editor.Laya3D
             Shader shader = Shader.Find("Universal Render Pipeline/Simple Lit")
                             ?? Shader.Find("Universal Render Pipeline/Lit");
             var mat = new Material(shader) { name = modelName + "_mat" };
+            // 对标 Laya 布料材质:双面渲染(裙摆/袖子是单层面片,单面剔除会"看穿"衣服内侧)
+            mat.SetFloat("_Cull", (float)UnityEngine.Rendering.CullMode.Off);
+            mat.doubleSidedGI = true;
 
             if (lh.MaterialPaths.Count > 0)
             {
