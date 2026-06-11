@@ -80,6 +80,15 @@ namespace Shenxiao.Editor.LayaUI
             {
                 LayaSceneConverter.ConvertModule(_module.Trim());
             }
+            if (GUILayout.Button("导入本模块全部散图(运行时动态换图用)"))
+            {
+                var report = new LayaUIReport(_module.Trim() + "_sprites");
+                int n = LayaSpriteImporter.ImportModuleAll(_module.Trim(), report);
+                report.Save();
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+                Debug.Log("[LayaUI] 模块散图导入完成,新增 " + n + " 张(已存在的跳过)");
+            }
             _singleKey = EditorGUILayout.TextField("单个 scene key", _singleKey);
             using (new EditorGUILayout.HorizontalScope())
             {

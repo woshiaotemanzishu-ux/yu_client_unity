@@ -36,6 +36,14 @@ namespace Shenxiao.Framework.Res
             string key = ResourcePath.Normalize(addrKey);
             if (!await KeyExists(key))
             {
+#if UNITY_EDITOR
+                T fallback = LoadEditorAssetFallback<T>(key);
+                if (fallback != null)
+                {
+                    GameLog.Warn("Res", "editor asset fallback key={0}(未进 Addressables 组,记得跑 自动分组)", key);
+                    return fallback;
+                }
+#endif
                 GameLog.Error("Res", "load failed key={0} type={1}(key 不在 Addressables,跑 神霄/资源/Addressable 自动分组)", key, typeof(T).Name);
                 return null;
             }
@@ -161,11 +169,13 @@ namespace Shenxiao.Framework.Res
         }
 
         /// <summary>
-        /// Get total download size for given keys.
+        /// Get total download size for given keys. 未登记的 key 自动跳过(一条 Warn),不抛异常。
         /// </summary>
         public static async Task<long> GetDownloadSize(IEnumerable<string> keys)
         {
-            var handle = Addressables.GetDownloadSizeAsync((IEnumerable<object>)keys);
+            List<string> valid = await FilterExistingKeys(keys);
+            if (valid.Count == 0) return 0;
+            var handle = Addressables.GetDownloadSizeAsync((IEnumerable<object>)valid);
             await handle.Task;
             long size = handle.Result;
             Addressables.Release(handle);
@@ -173,11 +183,13 @@ namespace Shenxiao.Framework.Res
         }
 
         /// <summary>
-        /// Download dependencies for given keys with progress callback.
+        /// Download dependencies for given keys with progress callback. 未登记的 key 自动跳过。
         /// </summary>
         public static async Task DownloadAsync(IEnumerable<string> keys, Action<float> onProgress)
         {
-            var handle = Addressables.DownloadDependenciesAsync((IEnumerable<object>)keys, Addressables.MergeMode.Union);
+            List<string> valid = await FilterExistingKeys(keys);
+            if (valid.Count == 0) { onProgress?.Invoke(1f); return; }
+            var handle = Addressables.DownloadDependenciesAsync((IEnumerable<object>)valid, Addressables.MergeMode.Union);
             while (!handle.IsDone)
             {
                 onProgress?.Invoke(handle.PercentComplete);
@@ -185,6 +197,45 @@ namespace Shenxiao.Framework.Res
             }
             onProgress?.Invoke(1f);
             Addressables.Release(handle);
+        }
+
+        private static async Task<List<string>> FilterExistingKeys(IEnumerable<string> keys)
+        {
+            var valid = new List<string>();
+            if (keys == null) return valid;
+            foreach (string raw in keys)
+            {
+                string key = ResourcePath.Normalize(raw);
+                if (await KeyExists(key)) valid.Add(key);
+                else GameLog.Warn("Res", "预下载 key 未登记,跳过: {0}", key);
+            }
+            return valid;
+        }
+
+        /// <summary>
+        /// 动态给 Image 赋图,对标 Laya 的 ResManager.SetTexture(业务运行时换图统一走这里)。
+        /// layaSkinPath 直接用 Laya 资源路径(如 resource/game/login/other/load_bg0.jpg)。
+        /// coverScreen=true 复刻 Util.SetLargeScreenImageSize:等比放大盖满设计分辨率。
+        /// </summary>
+        public static async Task<bool> SetImageAsync(UnityEngine.UI.Image image, string layaSkinPath, bool coverScreen = false)
+        {
+            if (image == null || string.IsNullOrEmpty(layaSkinPath)) return false;
+            Sprite sprite = await LoadAsync<Sprite>(layaSkinPath);
+            if (sprite == null || image == null) return false;
+            image.sprite = sprite;
+            image.enabled = true;
+            if (coverScreen)
+            {
+                RectTransform rt = image.rectTransform;
+                Rect canvasRect = ((RectTransform)rt.GetComponentInParent<Canvas>().transform).rect;
+                float scale = Mathf.Max(canvasRect.width / sprite.rect.width, canvasRect.height / sprite.rect.height);
+                rt.sizeDelta = new Vector2(sprite.rect.width * scale, sprite.rect.height * scale);
+            }
+            else
+            {
+                image.SetNativeSize();
+            }
+            return true;
         }
 
 #if UNITY_EDITOR
@@ -214,6 +265,24 @@ namespace Shenxiao.Framework.Res
             string ext = Path.GetExtension(rel);
             if (!string.IsNullOrEmpty(ext)) rel = rel.Substring(0, rel.Length - ext.Length);
             return rel.Replace('\\', '/').ToLowerInvariant();
+        }
+
+        /// <summary>编辑器兜底加载任意资产(Sprite/Texture 等),按文件名+规范化地址匹配 GameRes/_App。</summary>
+        private static T LoadEditorAssetFallback<T>(string key) where T : UnityEngine.Object
+        {
+            string fileName = Path.GetFileName(key);
+            if (string.IsNullOrEmpty(fileName)) return null;
+
+            string[] searchFolders = { "Assets/GameRes", "Assets/_App" };
+            string[] guids = AssetDatabase.FindAssets(fileName, searchFolders);
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                if (ResourcePath.Normalize(MakeEditorAddress(path)) != key) continue;
+                T asset = AssetDatabase.LoadAssetAtPath<T>(path);
+                if (asset != null) return asset;
+            }
+            return null;
         }
 #endif
     }

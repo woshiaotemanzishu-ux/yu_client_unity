@@ -30,6 +30,53 @@ namespace Shenxiao.Editor.LayaUI
         }
 
         /// <summary>
+        /// 整模块散图批量导入(动态图用):转换只导被引用的图,运行时代码随机/按状态换的图
+        /// 不在其中,这里把模块 texture/ 与 other/ 目录的 png/jpg 全部落进 GameRes。
+        /// 已存在的跳过,幂等。返回新导入数量。
+        /// </summary>
+        public static int ImportModuleAll(string module, LayaUIReport report)
+        {
+            string[] sourceRoots =
+            {
+                Path.Combine(LayaUISettings.LayaAssetsRoot, "resource", "game", module),
+                Path.Combine(LayaUISettings.CdnResourceRoot, "game", module),
+            };
+            int imported = 0;
+            var seen = new HashSet<string>();
+            foreach (string root in sourceRoots)
+            {
+                foreach (string sub in new[] { "texture", "other" })
+                {
+                    string dir = Path.Combine(root, sub);
+                    if (!Directory.Exists(dir)) continue;
+                    foreach (string file in Directory.GetFiles(dir))
+                    {
+                        string ext = Path.GetExtension(file).ToLowerInvariant();
+                        if (ext != ".png" && ext != ".jpg") continue;
+                        string name = Path.GetFileName(file);
+                        // 模块图集本体不导(texture.png 是 atlas 合图)
+                        if (sub == "texture" && name == "texture.png") continue;
+                        string skin = "resource/game/" + module + "/" + sub + "/" + name;
+                        if (!seen.Add(skin)) continue; // 镜像源优先,cdn 兜底
+                        string assetPath = LayaUISettings.GAMERES_ROOT + "/" + skin;
+                        if (File.Exists(assetPath)) continue;
+                        if (IsLfsPlaceholder(file))
+                        {
+                            report.MissingSkin(skin, "git-lfs 占位文件,先 git lfs pull");
+                            continue;
+                        }
+                        Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+                        File.Copy(file, assetPath, true);
+                        AssetDatabase.ImportAsset(assetPath);
+                        ConfigureImporter(assetPath, Vector4.zero, report, skin);
+                        imported++;
+                    }
+                }
+            }
+            return imported;
+        }
+
+        /// <summary>
         /// 确保 skin 对应的 Sprite 资产存在并配置好,返回资产路径;失败返回 null 并把原因写进 report。
         /// border 为 Vector4.zero 表示不带九宫格。
         /// </summary>
