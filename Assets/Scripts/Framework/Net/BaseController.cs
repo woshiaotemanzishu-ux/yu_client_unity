@@ -23,7 +23,7 @@ namespace Shenxiao.Framework.Net
         protected void UnregisterProtocal(int protoId)
             => NetManager.UnregisterProtocal(protoId);
 
-        /// <summary>SendFmt(Proto.CS_LOGIN, "ss", acc, pwd).</summary>
+        /// <summary>SendFmt(Proto.ACCOUNT_LOGIN, "iiss", pid, time, accountId, platName)。</summary>
         protected void SendFmt(int protoId, string format = null, params object[] args)
             => NetManager.SendFmt(protoId, format, args);
     }

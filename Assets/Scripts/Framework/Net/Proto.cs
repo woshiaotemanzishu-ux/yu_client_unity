@@ -1,24 +1,26 @@
 namespace Shenxiao.Framework.Net
 {
     /// <summary>
-    /// Protocol id constants. Mirrors yu_server protocol numbers.
-    /// Naming: CS_* = client to server, SC_* = server to client.
-    /// Append new entries here, do not scatter ids.
+    /// 协议号常量,与 yu_client/yu_server 一致(请求与回包同号,注册回调即收该号回包)。
+    /// 出处:yu_client h5/src/login/LoginController.ts。新协议号统一加在这里,不要散落。
     /// </summary>
     public static class Proto
     {
-        // ----- Login (1xxxx) -----
-        public const int CS_LOGIN = 11001;
-        public const int SC_LOGIN = 11002;
+        // ----- 登录链(1xxxx) -----
+        /// <summary>账号登录游戏服。发 "iiss"(pid, 时间戳秒, account_id, plat_name);
+        /// 回包 "clihi"(career, 服务器时间l, 开服时间i, 角色数h, 注册数i)+ 逐角色数据。</summary>
+        public const int ACCOUNT_LOGIN = 10000;
 
-        // ----- Heartbeat -----
-        public const int CS_HEARTBEAT = 10001;
-        public const int SC_HEARTBEAT = 10002;
+        /// <summary>创角。发 "cccsslsscscc",见 LoginController.ts TRY_CREATE_ROLE。</summary>
+        public const int CREATE_ROLE = 10003;
 
-        // ----- Role (12xxx) -----
-        public const int CS_ROLE_INFO = 12001;
-        public const int SC_ROLE_INFO = 12002;
+        /// <summary>选角进入游戏。发 "lsisisscscsh",见 TRY_LOGIN_GAME。</summary>
+        public const int ENTER_GAME = 10004;
 
-        // Append more protocol ids here. Keep request/response adjacent.
+        /// <summary>心跳(无字段)。</summary>
+        public const int HEARTBEAT = 10006;
+
+        /// <summary>顶号/踢下线通知(yu_client On10007)。</summary>
+        public const int KICK_NOTIFY = 10007;
     }
 }

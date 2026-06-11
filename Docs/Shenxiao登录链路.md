@@ -57,6 +57,24 @@
 - 游戏服对 10000 的账号校验:account 库为 yu_gm 与 yu_server 共享数据源
   (验证细节在 yu_server,试点联调时再核对)。
 
+## Unity 实现状态(2026-06-11 已落码)
+
+- **线协议(逐字节对标 Laya)**:发 `[i16 总长][i16 1000][i16 cmd][字段]`,
+  收 `[u32 总长][u16 cmd][u8 压缩标记][载荷]`;格式字符 c/C/h/H/i/I/l/L/s。
+  实现:`Framework/Net/UserMsgAdapter.cs`(编码)、`NetReader.cs`(解码)、
+  `NetManager.cs`(连接/拆帧/主线程泵/心跳)。处理器签名 `Handler(NetReader)`,
+  用法与 Laya 一致:`reader.ReadFmt("clihi")`。
+- **登录链**:`LoginController.DevLoginAsync`(player_login 自动注册)→
+  `SelectServerAsync` → `ResolveSelectedServerEndpointAsync`(get_server_info)→
+  `ConnectGameAsync`(ws 连接 + 心跳 + 发 10000"iiss")→ `OnAccountLogin`
+  解析角色列表头 → `EVT_GAME_ROLE_LIST`。
+- **冒烟开关**:AppConfig.asset 勾 `autoLoginSmokeTest`,Play 后自动跑全链,
+  Console 看 ①②③④ 步日志,终点是"✅ 登录链全通"。
+- **配置驱动**:环境地址不进代码——菜单 `神霄/配置/从 yu_client 平台cfg 导入登录环境`
+  把 `cdn/platform/*.cfg` 的 url_account_path+login_php 写进 AppConfig;
+  心跳间隔、devAccount 同在 AppConfig。
+- 待办:10000 回包的 FigureProtoVo 外观块解析(选角 UI 阶段)、断线重连策略、wss。
+
 ## 对 Unity 实现的直接结论(M1-M4 映射)
 
 1. **M2 登录**:`HttpUtil.GetAsync` + 上表接口即可,`GmApi.cs` 已是现成的 HTTP 调用范例;

@@ -18,6 +18,8 @@ namespace Shenxiao.Framework.Event
         public const string EVT_LOGIN_SUCCESS = "EVT_LOGIN_SUCCESS";
         public const string EVT_LOGIN_FAIL = "EVT_LOGIN_FAIL";
         public const string EVT_LOGIN_SERVER_SELECTED = "EVT_LOGIN_SERVER_SELECTED";
+        /// <summary>游戏服 10000 回包解析完成,参数: roleCount (int)。</summary>
+        public const string EVT_GAME_ROLE_LIST = "EVT_GAME_ROLE_LIST";
 
         // ----- Bag -----
         public const string EVT_BAG_UPDATE = "EVT_BAG_UPDATE";

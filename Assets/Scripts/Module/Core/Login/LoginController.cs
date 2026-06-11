@@ -117,6 +117,56 @@ namespace Shenxiao.Module.Core.Login
             return Task.FromResult(LoginRequestResult.Ok());
         }
 
+        /// <summary>
+        /// 开发/冒烟登录:跳过账号密码校验,直接走 player_login(yu_gm 侧账号不存在会自动注册)。
+        /// 对应 Laya 平台 SDK 登录后的同一条路。
+        /// </summary>
+        public async Task<LoginRequestResult> DevLoginAsync(string account)
+        {
+            string trimmedAccount = (account ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(trimmedAccount))
+            {
+                return LoginRequestResult.Fail("请输入账号");
+            }
+            return await PlayerLoginAsync(trimmedAccount, string.Empty);
+        }
+
+        /// <summary>
+        /// 连接已解析好入口的游戏服并发送账号登录协议(10000)。
+        /// 角色列表回包由 OnAccountLogin 处理,完成后发 EVT_GAME_ROLE_LIST。
+        /// </summary>
+        public async Task<LoginRequestResult> ConnectGameAsync()
+        {
+            LoginServerInfo server = Model.SelectedServer;
+            if (server == null || string.IsNullOrEmpty(server.host) || server.port <= 0)
+            {
+                return LoginRequestResult.Fail("服务器入口未解析,先调 ResolveSelectedServerEndpointAsync");
+            }
+
+            string url = $"ws://{server.host}:{server.port}";
+            try
+            {
+                await NetManager.ConnectAsync(url);
+            }
+            catch (Exception e)
+            {
+                GameLog.Error("Login", "连接游戏服失败 {0}: {1}", url, e.Message);
+                return LoginRequestResult.Fail("连接游戏服失败: " + e.Message);
+            }
+
+            if (_config != null)
+            {
+                NetManager.ConfigureHeartbeat(Proto.HEARTBEAT, _config.heartbeatIntervalSec);
+            }
+
+            // 对标 Laya GAME_CONNECT 后的 SendFmtToGame(10000, "iiss", pid, 时间戳, account_id, plat_name)
+            int pid = server.pid > 0 ? server.pid : 1;
+            long timeStamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            SendFmt(Proto.ACCOUNT_LOGIN, "iiss", pid, timeStamp, Model.PlayerId.ToString(), Model.PlatName);
+            GameLog.Info("Login", "已发送账号登录协议 pid={0} account_id={1} plat={2}", pid, Model.PlayerId, Model.PlatName);
+            return LoginRequestResult.Ok();
+        }
+
         public async Task<LoginRequestResult> ResolveSelectedServerEndpointAsync()
         {
             LoginServerInfo server = Model.SelectedServer;
@@ -138,6 +188,49 @@ namespace Shenxiao.Module.Core.Login
 
         protected override void Register()
         {
+            RegisterProtocal(Proto.ACCOUNT_LOGIN, OnAccountLogin);
+            RegisterProtocal(Proto.HEARTBEAT, OnHeartbeat);
+            RegisterProtocal(Proto.KICK_NOTIFY, OnKickNotify);
+        }
+
+        /// <summary>
+        /// 10000 回包(对标 yu_client LoginController.On10000):
+        /// "clihi" = career, 服务器时间(毫秒), 开服时间, 角色数, 注册数;
+        /// 然后逐角色 "l" role_id + "c" state + FigureProtoVo 外观块 + "c" reward_id。
+        /// 外观块解析在选角 UI 阶段做(TODO),这里读到第一个 role_id 即可证明链路,
+        /// 剩余字节安全丢弃(每帧独立缓冲,不影响后续协议)。
+        /// </summary>
+        private void OnAccountLogin(NetReader reader)
+        {
+            object[] head = reader.ReadFmt("clihi");
+            byte career = (byte)head[0];
+            long serverTimeMs = (long)head[1];
+            uint openTime = (uint)head[2];
+            int roleCount = (ushort)head[3];
+            uint registerNum = (uint)head[4];
+
+            long firstRoleId = 0;
+            byte firstRoleState = 0;
+            if (roleCount > 0 && reader.Remaining >= 9)
+            {
+                firstRoleId = reader.ReadU64();
+                firstRoleState = reader.ReadU8();
+            }
+
+            GameLog.Info("Login",
+                "★ 游戏服 10000 回包: 角色数={0} 首角色id={1}(state={2}) career={3} 服务器时间={4} 开服时间={5} 注册数={6}",
+                roleCount, firstRoleId, firstRoleState, career, serverTimeMs, openTime, registerNum);
+            EventDispatcher.Emit(GlobalEvent.EVT_GAME_ROLE_LIST, roleCount);
+        }
+
+        private void OnHeartbeat(NetReader reader)
+        {
+            // 心跳回包无须处理
+        }
+
+        private void OnKickNotify(NetReader reader)
+        {
+            GameLog.Warn("Login", "收到顶号/踢线通知(10007)");
         }
 
         private async Task<LoginRequestResult> PlayerLoginAsync(string account, string token)
