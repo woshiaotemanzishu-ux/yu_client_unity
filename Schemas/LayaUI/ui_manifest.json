@@ -1,7 +1,7 @@
 {
  "designHeight": 1280,
  "designWidth": 720,
- "generatedAt": "2026-06-11 07:14:40",
+ "generatedAt": "2026-06-11 07:50:25",
  "moduleDirCase": {
   "achv": "Achv",
   "activity": "Activity",
@@ -19151,7 +19151,8 @@
   },
   "dialogue/DialogueView": {
    "bakedSkins": {
-    "_img_bottom_bg": "resource/game/dialogue/other/uijq_ditu.png"
+    "_img_bottom_bg": "resource/game/dialogue/other/uijq_ditu.png",
+    "head_icon": "resource/game/story/other/sys.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -33182,7 +33183,9 @@
    "width": 455
   },
   "ftvInvest/FtvInvestBtnView": {
-   "bakedSkins": {},
+   "bakedSkins": {
+    "_img_type": "resource/game/ftvInvest/other/show_001.png"
+   },
    "decision": "inline",
    "height": 130,
    "inlineHost": "FtvInvestView",
@@ -34596,7 +34599,9 @@
    "width": 115
   },
   "godBeast/GodBeastItem": {
-   "bakedSkins": {},
+   "bakedSkins": {
+    "_img_icon": "resource/game/godBeast/other/icon_390001.png"
+   },
    "decision": "inline",
    "height": 330,
    "inlineHost": "GodBeastView",
@@ -34984,7 +34989,9 @@
    "width": 643
   },
   "godBeast/GodBeastView": {
-   "bakedSkins": {},
+   "bakedSkins": {
+    "_img_icon": "resource/game/godBeast/other/390001.png"
+   },
    "decision": "shared-prefab",
    "height": 1280,
    "inlineItems": [
@@ -39572,7 +39579,11 @@
    "width": 489
   },
   "guildFight/GuildFightMapItem": {
-   "bakedSkins": {},
+   "bakedSkins": {
+    "selectImg": "resource/game/guildFight/other/uildzdz_s1.png",
+    "shadowImg": "resource/game/guildFight/other/uildzdz_u1.png",
+    "towerBg": "resource/game/guildFight/other/uildzdz_i1.png"
+   },
    "decision": "view-prefab",
    "height": 190,
    "json": "cdn/resource/game/guildFight/GuildFightMapItem.json",
@@ -49150,6 +49161,7 @@
   "login/LoginEnterView": {
    "bakedSkins": {
     "_img_change_account": "resource/game/login/other/uixxsz_007.png",
+    "_img_logo": "resource/game/login/other/bg_03.png",
     "_img_search_server_bg": "resource/game/login/other/ui_Login_18.png"
    },
    "decision": "view-prefab",
@@ -49203,6 +49215,7 @@
   "login/LoginLoadingView": {
    "bakedSkins": {
     "_img_back": "resource/game/login/other/uidl_016.png",
+    "_img_bg": "resource/game/login/other/load_bg1.jpg",
     "_img_front": "resource/game/login/other/uidl_015.png"
    },
    "decision": "view-prefab",
@@ -51211,6 +51224,7 @@
    "bakedSkins": {
     "bg1": "resource/game/lung/other/uilwmb_011.png",
     "bg2": "resource/game/lung/other/uilwmb_011.png",
+    "icon": "resource/game/skillIcon/101012.png",
     "upgrade_bg": "resource/game/lung/other/uilwmb_033.png"
    },
    "decision": "standalone-prefab",
@@ -51608,7 +51622,9 @@
    "width": 610
   },
   "lung/LungSkillItem": {
-   "bakedSkins": {},
+   "bakedSkins": {
+    "icon": "resource/game/skillIcon/101012.png"
+   },
    "decision": "inline",
    "height": 72,
    "inlineHost": "LungMainView",
@@ -51688,7 +51704,8 @@
   "lung/LungStoveMainView": {
    "bakedSkins": {
     "bgImg1": "resource/game/lung/other/ui_swzh_01.png",
-    "bgImg2": "resource/game/zeroMoney/other/ui_gift_02.png"
+    "bgImg2": "resource/game/zeroMoney/other/ui_gift_02.png",
+    "target_name_img": "resource/game/lung/other/ui_swzh_01.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -51847,6 +51864,9 @@
   "lung/LungStoveView": {
    "bakedSkins": {
     "_img_discount": "resource/game/common2/texture/sh_discount_9.png",
+    "bg_left_img": "resource/game/lung/other/uilwrl_001.png",
+    "bg_right_img": "resource/game/lung/other/uilwrl_001.png",
+    "target_name_img": "resource/game/lung/other/ui_swzh_01.png",
     "title_img": "lung"
    },
    "decision": "view-prefab",
@@ -64164,7 +64184,8 @@
   },
   "playerMessage/PlayerMessageGodbeastItem": {
    "bakedSkins": {
-    "bg": "resource/game/playerMessage/other/ui_rwxx_cy01.png"
+    "bg": "resource/game/playerMessage/other/ui_rwxx_cy01.png",
+    "img_show": "resource/game/godBeast/other/390001.png"
    },
    "decision": "inline",
    "height": 226,
@@ -69247,6 +69268,8 @@
   },
   "runeTreasure/ATreasureBaseView": {
    "bakedSkins": {
+    "Round": "resource/game/runeTreasure/other/uizbxb_003a.png",
+    "Round2": "resource/game/runeTreasure/other/uizbxb_006a.png",
     "fif_discount": "resource/game/common2/texture/sh_discount_9.png",
     "person_image": "resource/game/runeTreasure/texture/uizbxb_004.png",
     "record_bg": "resource/game/runeTreasure/other/uizbxb_012a.png",
@@ -69413,7 +69436,9 @@
   },
   "runeTreasure/BabyTreasureView": {
    "bakedSkins": {
-    "_img_discount": "resource/game/common2/texture/sh_discount_9.png"
+    "_img_discount": "resource/game/common2/texture/sh_discount_9.png",
+    "bg1": "resource/game/runeTreasure/other/uidjtz_005.png",
+    "mask_img": "resource/game/runeTreasure/other/babyround.png"
    },
    "decision": "standalone-prefab",
    "height": 992,
@@ -69658,6 +69683,7 @@
   },
   "runeTreasure/RuneResultItem": {
    "bakedSkins": {
+    "_img_bg": "resource/game/runeIcon/26020003.png",
     "_img_icon": "resource/game/runeIcon/"
    },
    "decision": "shared-prefab",
@@ -72367,7 +72393,9 @@
    "width": 720
   },
   "seaHegemony/SeaTargetItem": {
-   "bakedSkins": {},
+   "bakedSkins": {
+    "_head_img": "resource/game/monsterHead/10010001.png"
+   },
    "decision": "inline",
    "height": 90,
    "inlineHost": "SeaTargetPanel",

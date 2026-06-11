@@ -226,7 +226,11 @@ namespace Shenxiao.Framework.Res
             image.enabled = true;
             if (coverScreen)
             {
+                // 全屏底图:居中锚定 + 等比放大盖满(转换产物的 pivot 可能在左上,必须一并归位)
                 RectTransform rt = image.rectTransform;
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.anchoredPosition = Vector2.zero;
                 Rect canvasRect = ((RectTransform)rt.GetComponentInParent<Canvas>().transform).rect;
                 float scale = Mathf.Max(canvasRect.width / sprite.rect.width, canvasRect.height / sprite.rect.height);
                 rt.sizeDelta = new Vector2(sprite.rect.width * scale, sprite.rect.height * scale);

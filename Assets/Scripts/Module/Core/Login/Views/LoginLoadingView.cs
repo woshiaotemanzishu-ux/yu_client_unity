@@ -10,16 +10,9 @@ namespace Shenxiao.Module.Core.Login
     /// </summary>
     public sealed class LoginLoadingView : LoginLoadingViewBind
     {
-        // Laya 按 id 随机选 load_bg{id}.jpg(LoginLoadingView.ts:222),默认第 0 张;
-        // 换图机制接平台/活动配置时再扩展
-        private const string DEFAULT_BG = "resource/game/login/other/load_bg0.jpg";
-
+        // 背景图已由转换器「动态图默认填充」烘进 prefab(load_bg*.jpg 取第一张);
+        // Laya 按 id 随机换图的逻辑接平台/活动配置时再用 ResManager.SetImageAsync 覆盖
         private float _fullWidth;
-
-        protected override void OnShow(object args)
-        {
-            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(_img_bg, DEFAULT_BG, true);
-        }
 
         protected override void OnInit()
         {

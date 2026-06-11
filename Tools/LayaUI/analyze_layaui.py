@@ -50,6 +50,8 @@ RE_LAYER = re.compile(r"this\.layer_value\s*=")
 RE_ALIAS = re.compile(r"(?:let|const|var)\s+(\w+)\s*=\s*this\.(\w+)\s*[;\n]")
 # 局部字符串常量:let bg_url = "resource/..." 再传给 SetTexture(LoginBgView 等的写法)
 RE_STRCONST = re.compile(r"""(?:let|const|var)\s+(\w+)\s*=\s*["'](resource/[^"']+)["']""")
+# 模板串常量/实参:`resource/...${id}.jpg` —— ${...} 当通配符 glob 资源目录,取第一张当编辑器默认
+RE_STRCONST_TPL = re.compile(r"(?:let|const|var)\s+(\w+)\s*=\s*`(resource/[^`]+)`")
 _LIT = r"""["']([^"']+)["']"""
 _GRP_CALL = r"""GameResPath\.(\w+)\(\s*((?:["'][^"']*["']\s*,\s*)*["'][^"']*["'])\s*\)"""
 # target: this.node 或 别名
@@ -60,6 +62,26 @@ RE_SKIN_ASSIGN_GRP = re.compile(r"this\.(\w+)\.skin\s*=\s*" + _GRP_CALL)
 RE_TEX_LIT = re.compile(r"(SetTexture|SetOutsideImageSprite|SetImageSpriteTrans)\(\s*this\s*,\s*" + _TARGET + r"\s*,\s*" + _LIT)
 RE_TEX_GRP = re.compile(r"(SetTexture|SetOutsideImageSprite|SetImageSpriteTrans)\(\s*this\s*,\s*" + _TARGET + r"\s*,\s*" + _GRP_CALL)
 RE_TEX_VAR = re.compile(r"(SetTexture|SetOutsideImageSprite|SetImageSpriteTrans)\(\s*this\s*,\s*" + _TARGET + r"\s*,\s*(\w+)\s*[,)]")
+RE_TEX_TPL = re.compile(r"(SetTexture|SetOutsideImageSprite|SetImageSpriteTrans)\(\s*this\s*,\s*" + _TARGET + r"\s*,\s*`(resource/[^`]+)`")
+
+_CLIENT_ROOT = None  # main() 里设置,供模板串 glob 用
+
+
+def resolve_template_path(tpl):
+    """`resource/...${id}.jpg` -> 资源目录里 glob 第一张匹配;无 ${} 即原样返回。"""
+    pattern = re.sub(r"\$\{[^}]*\}", "*", tpl)
+    if "*" not in pattern:
+        return pattern
+    if _CLIENT_ROOT is None:
+        return None
+    import glob as _glob
+    for base in (os.path.join(_CLIENT_ROOT, "h5", "laya", "assets"),
+                 os.path.join(_CLIENT_ROOT, "cdn")):
+        matches = sorted(_glob.glob(os.path.join(base, pattern.replace("/", os.sep))))
+        for m in matches:
+            if m.lower().endswith((".png", ".jpg")):
+                return os.path.relpath(m, base).replace(os.sep, "/")
+    return None
 RE_IMGSPRITE = re.compile(r"SetImageSprite\(\s*this\s*,\s*" + _TARGET + r"\s*,\s*" + _LIT + r"\s*,\s*" + _LIT)
 
 RE_GRP_METHOD = re.compile(
@@ -100,6 +122,10 @@ def _texture_to_other(path):
 def extract_baked_skins(body):
     aliases = {a: node for a, node in RE_ALIAS.findall(body)}
     strconsts = {a: path for a, path in RE_STRCONST.findall(body)}
+    for a, tpl in RE_STRCONST_TPL.findall(body):
+        resolved = resolve_template_path(_texture_to_other(tpl))
+        if resolved:
+            strconsts.setdefault(a, resolved)
 
     def target_node(this_node, alias):
         return this_node if this_node else aliases.get(alias)
@@ -136,6 +162,11 @@ def extract_baked_skins(body):
         if path and fn != "SetImageSpriteTrans":
             path = _texture_to_other(path)
         put(target_node(m.group(2), m.group(3)), path)
+    for m in RE_TEX_TPL.finditer(body):
+        fn, tpl = m.group(1), m.group(4)
+        if fn != "SetImageSpriteTrans":
+            tpl = _texture_to_other(tpl)
+        put(target_node(m.group(2), m.group(3)), resolve_template_path(tpl))
     return baked
 
 # 窗口基类(继承到这里的必然是独立窗口)
@@ -277,6 +308,9 @@ def main():
     if not os.path.isdir(src_root) or not os.path.isdir(cdn_game):
         sys.exit("yu_client 路径不对: %s (需要 h5/src 与 cdn/resource/game)" % client_root)
 
+    global _CLIENT_ROOT
+    _CLIENT_ROOT = client_root
+
     print("[1/4] 扫描 TS 类 ...")
     load_gameres_templates(src_root)
     print("   GameResPath 模板方法 %d 个(自动推导)" % len(_gameres_templates))
@@ -341,6 +375,12 @@ def main():
     print("   scene 总数 %d" % len(scenes))
 
     print("[4/4] 粒度决策 ...")
+    default_skins = {}
+    default_skins_path = os.path.join(UNITY_ROOT, "Schemas", "LayaUI", "ui_default_skins.json")
+    if os.path.exists(default_skins_path):
+        with open(default_skins_path, encoding="utf-8") as f:
+            default_skins = json.load(f)
+        print("   手工默认图: %d 个 scene" % len(default_skins))
     counts = defaultdict(int)
     for key, sc in scenes.items():
         if "error" in sc:
@@ -348,7 +388,10 @@ def main():
         cls = scene_class.get(key)
         sc["tsClass"] = cls
         sc["kind"] = classes[cls]["kind"] if cls else "orphan"
-        sc["bakedSkins"] = classes[cls]["bakedSkins"] if cls else {}
+        sc["bakedSkins"] = dict(classes[cls]["bakedSkins"]) if cls else {}
+        # 手工默认图兜底(平台 logo 等完全外部的动态图):Schemas/LayaUI/ui_default_skins.json
+        for node, path in default_skins.get(key, {}).items():
+            sc["bakedSkins"].setdefault(node, path)
         own = sorted(owners.get(cls, ())) if cls else []
         sc["ownerClasses"] = own
         sc["otherRefFiles"] = sorted(other_refs.get(cls, ())) if cls else []
