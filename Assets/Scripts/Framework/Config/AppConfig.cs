@@ -54,6 +54,10 @@ namespace Shenxiao.Framework.Config
         [Tooltip("心跳协议发送间隔(秒),<=0 关闭。")]
         public float heartbeatIntervalSec = 10f;
 
+        [Header("Boot Loading")]
+        [Tooltip("启动加载页要预下载的 Addressable key/label 列表(编辑器本地组为 0 下载,真机走 CDN)。")]
+        public string[] preloadKeys = { "prefabs/ui/login/loginmodule" };
+
         [Header("Debug")]
         public bool enableEditorVerboseLog = true;
 

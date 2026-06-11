@@ -9,13 +9,15 @@ using UnityEngine;
 namespace Shenxiao.Module.Core.Login
 {
     /// <summary>
-    /// 登录模块 UI 流程编排(模块合并 prefab 的运行时模型):
-    /// 整个 LoginModule.prefab 一次实例化,子窗口由本类 Show/Hide。
+    /// 登录模块 UI 流程编排(对标 Laya LoginManager 的时序,模块合并 prefab 模型):
     ///
-    /// 流程(对标 Laya LoginStateManager,账号由 AppConfig.devAccount 顶替平台 SDK):
-    ///   启动 → BgView+EnterView → 后台 player_login(自动注册,拿服务器列表)
-    ///   → 点换区开 SelectServerView(真实列表) → 点「踏入仙界」
-    ///   → get_server_info → WebSocket → 10000 → 角色列表 → 提示结果(创角/选角窗待接)。
+    ///   阶段① 加载页:只显示 LoginLoadingView,真实驱动进度
+    ///        (Addressables 预下载 0~60% → HTTP player_login 60~90% → 收尾 100%)
+    ///   阶段② 登录页:LoginBgView + LoginEnterView(服务器名已就绪)
+    ///   阶段③ 选服/进服:换区弹 LoginSelectServerView;踏入仙界 → 入口解析 →
+    ///        WebSocket → 10000 → 角色列表(创角/选角窗待接)
+    ///
+    /// 账号由 AppConfig.devAccount 顶替平台 SDK(与 Laya 正式流程一致:UI 无账号输入)。
     /// </summary>
     public static class LoginFlow
     {
@@ -24,6 +26,7 @@ namespace Shenxiao.Module.Core.Login
         private static LoginBgView _bg;
         private static LoginEnterView _enter;
         private static LoginSelectServerView _select;
+        private static LoginLoadingView _loading;
         private static bool _entering;
 
         public static async Task StartAsync(AppConfig config)
@@ -33,11 +36,10 @@ namespace Shenxiao.Module.Core.Login
             _moduleRoot = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
             if (_moduleRoot == null)
             {
-                GameLog.Error("Login", "LoginModule prefab 加载失败(key={0})。先跑 LayaUI 转换 + Addressables 分组,Editor 下有 fallback", key);
+                GameLog.Error("Login", "LoginModule prefab 加载失败(key={0})。先跑 LayaUI 转换 + 回填", key);
                 return;
             }
 
-            // 模块内全部窗口先隐藏,再按流程打开
             BaseView[] views = _moduleRoot.GetComponentsInChildren<BaseView>(true);
             foreach (BaseView v in views)
             {
@@ -45,30 +47,71 @@ namespace Shenxiao.Module.Core.Login
                 if (v is LoginBgView bg) _bg = bg;
                 else if (v is LoginEnterView enter) _enter = enter;
                 else if (v is LoginSelectServerView select) _select = select;
+                else if (v is LoginLoadingView loading) _loading = loading;
             }
-            if (_bg == null || _enter == null || _select == null)
+            if (_bg == null || _enter == null || _select == null || _loading == null)
             {
-                GameLog.Error("Login", "LoginModule 缺业务窗口(bg={0} enter={1} select={2})——回填 Bind 后业务类才会挂上,先在转换器点『回填 Bind 引用』",
-                    _bg != null, _enter != null, _select != null);
+                GameLog.Error("Login", "LoginModule 缺业务窗口(bg={0} enter={1} select={2} loading={3})——先在转换器点『回填 Bind 引用』",
+                    _bg != null, _enter != null, _select != null, _loading != null);
                 return;
             }
 
             EventDispatcher.On<int>(GlobalEvent.EVT_GAME_ROLE_LIST, OnRoleList);
 
+            // ---------- 阶段① 加载页 ----------
+            _loading.Show();
+            _loading.SetProgress(0f);
+
+            await PreloadAsync();          // 0 ~ 0.6
+            bool loginOk = await HttpLoginAsync();  // 0.6 ~ 0.9
+            if (!loginOk) return;          // 失败留在加载页,文案已说明原因
+            _loading.SetProgress(1f);
+            await Task.Yield();
+
+            // ---------- 阶段② 登录页 ----------
+            _loading.Hide();
             _bg.Show();
             _enter.Show();
-            _enter.SetTip("登录中 ...");
+        }
 
+        private static async Task PreloadAsync()
+        {
+            string[] keys = _config.preloadKeys;
+            if (keys == null || keys.Length == 0)
+            {
+                _loading.SetProgress(0.6f);
+                return;
+            }
+            try
+            {
+                long size = await ResManager.GetDownloadSize(keys);
+                if (size > 0)
+                {
+                    GameLog.Info("Login", "预下载 {0} 项,共 {1} KB", keys.Length, size / 1024);
+                    await ResManager.DownloadAsync(keys, p => _loading.SetProgress(p * 0.6f));
+                }
+            }
+            catch (System.Exception e)
+            {
+                GameLog.Warn("Login", "预下载跳过: {0}", e.Message);
+            }
+            _loading.SetProgress(0.6f);
+        }
+
+        private static async Task<bool> HttpLoginAsync()
+        {
+            _loading.SetProgress(0.6f, "登录账号 ...");
             LoginRequestResult result = await LoginController.Instance.DevLoginAsync(_config.devAccount);
             if (!result.success)
             {
                 GameLog.Error("Login", "HTTP 登录失败: {0}", result.message);
-                _enter.SetTip("登录失败: " + result.message);
-                return;
+                _loading.SetProgress(0.6f, "登录失败: " + result.message);
+                return false;
             }
             GameLog.Info("Login", "HTTP 登录通过 player_id={0} 服务器数={1}",
                 LoginController.Instance.Model.PlayerId, LoginController.Instance.Model.Servers.Count);
-            _enter.RefreshServer();
+            _loading.SetProgress(0.9f);
+            return true;
         }
 
         public static void OpenServerSelect()
@@ -119,7 +162,7 @@ namespace Shenxiao.Module.Core.Login
 
         private static void OnRoleList(int roleCount)
         {
-            GameLog.Info("Login", "—— ✅ 真实链路全通:UI → HTTP 登录 → 选服 → 入口 → WebSocket → 角色列表(角色数={0})——", roleCount);
+            GameLog.Info("Login", "—— ✅ 真实链路全通:加载页 → 登录页 → 选服 → 入口 → WebSocket → 角色列表(角色数={0})——", roleCount);
             if (_enter != null)
             {
                 _enter.SetTip(roleCount > 0
