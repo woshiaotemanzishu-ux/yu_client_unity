@@ -72,16 +72,15 @@ Assets/Scripts/Generated/UI/{Module}/{Name}Bind.cs
 Reports/LayaUI/{module}_report.md    ← 缺图/近似/运行时赋值清单(不进 git)
 ```
 
-## Unity 端操作步骤(本地)
+## Unity 端操作步骤(本地,2026-06-11 改版后)
 
 1. yu_client 仓库先 `git lfs pull`(图集与散图在 LFS)。
-2. 打开 `神霄/LayaUI/转换器`:
-   - 确认 yu_client 路径;
-   - 指定中文 TMP 字体(ttf 放 `Assets/GameRes/Fonts`,Font Asset Creator 生成。不配中文显示方块);
-   - 点「生成 / 补齐 UI 模板」(模板在 `Assets/Editor/LayaUI/Templates`,Label 字体、描边、List 弹性等样式都在模板上调,调完重转自动继承);
-   - 模块名填 `login`,点「转换整个模块」;
-   - 等编译完,点「回填 Bind 引用」。
-3. 打开 prefab 与 Laya 运行时截图半透明叠加比对;问题记到对应 scene,改转换器后可幂等重转。
+2. 打开 `神霄/LayaUI/转换器`:设置里配一次 yu_client 目录 + 中文 TMP 字体;
+   之后**点模块按钮即一键流水线**(散图导入→模板→转换→编译后自动回填→
+   Addressable 分组→报告)。Tab 按域分类,按钮中英对照
+   (`Schemas/LayaUI/module_names_cn.json` 维护),右侧 ⚠N=缺图数、
+   「验收」勾上后重转会弹确认。单窗口重转/预览/报告在「高级」折叠里。
+3. 预览场景与 Laya 运行时截图比对;问题改转换器/默认表后幂等重转。
 
 ## 转换映射要点
 

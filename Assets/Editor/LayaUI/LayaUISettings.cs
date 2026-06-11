@@ -48,6 +48,13 @@ namespace Shenxiao.Editor.LayaUI
             set { EditorPrefs.SetString(ProjectKey(KEY_FONT_PATH), value); }
         }
 
+        /// <summary>流水线收尾是否自动跑 Addressable 分组(消 InvalidKey 噪音;大项目嫌慢可关)。</summary>
+        public static bool AutoGroupAfterConvert
+        {
+            get { return EditorPrefs.GetBool(ProjectKey("Shenxiao.LayaUI.AutoGroup"), true); }
+            set { EditorPrefs.SetBool(ProjectKey("Shenxiao.LayaUI.AutoGroup"), value); }
+        }
+
         /// <summary>取默认 TMP 字体;没配置就用 TMP 默认字体(中文会缺字,报告里会提示)。</summary>
         public static TMP_FontAsset LoadFont()
         {

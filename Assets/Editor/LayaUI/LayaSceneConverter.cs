@@ -43,13 +43,13 @@ namespace Shenxiao.Editor.LayaUI
 
         // ---------------------------------------------------------------- 入口
 
-        /// <summary>合并模式:模块(按 ui_groups.json 分组,缺省整模块一组)→ 大 prefab。</summary>
-        public static void ConvertModuleCombined(string module)
+        /// <summary>合并模式:模块(按 ui_groups.json 分组,缺省整模块一组)→ 大 prefab。返回缺图数(-1=失败)。</summary>
+        public static int ConvertModuleCombined(string module)
         {
             LayaUIManifest manifest = LayaUIManifest.Load(true);
-            if (manifest == null) return;
+            if (manifest == null) return -1;
             string err;
-            if (!LayaUISettings.ValidateClientRoot(out err)) { Debug.LogError("[LayaUI] " + err); return; }
+            if (!LayaUISettings.ValidateClientRoot(out err)) { Debug.LogError("[LayaUI] " + err); return -1; }
 
             LayaSpriteImporter.ResetCache();
             LayaUIReport report = new LayaUIReport(module);
@@ -80,6 +80,7 @@ namespace Shenxiao.Editor.LayaUI
             AssetDatabase.Refresh();
             Debug.Log("[LayaUI] 模块 " + module + " 合并转换完成。缺图 " + report.MissingCount +
                       " 处,详见报告。编译通过后执行『回填 Bind 引用』。");
+            return report.MissingCount;
         }
 
         /// <summary>单窗口模式:模块内每个窗口一个 prefab(保留,零散需求用)。</summary>
