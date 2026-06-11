@@ -34,7 +34,7 @@ namespace Shenxiao.Editor.LayaUI
         private TMP_FontAsset _font;
         private string _singleKey = "login/LoginView";
 
-        [MenuItem("神霄/LayaUI/转换器", priority = 10)]
+        [MenuItem("神霄/LayaUI 转换器", priority = 0)]
         public static void Open()
         {
             LayaUIWindow w = GetWindow<LayaUIWindow>("LayaUI 转换器");

@@ -20,7 +20,7 @@ namespace Shenxiao.EditorTools.ConfigGen
         private const string OutputDir = "Assets/Scripts/Generated/Config";
         private const string DefaultSourcePrefix = "resource/config/server/";
 
-        [MenuItem("神霄/配表/全部生成", priority = 20)]
+        [MenuItem("神霄/配表/全部生成", priority = 60)]
         public static void GenerateAll()
         {
             var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
@@ -56,7 +56,7 @@ namespace Shenxiao.EditorTools.ConfigGen
             Debug.Log($"[ConfigGenerator] Done. ok={ok}, fail={fail}, total={files.Length}");
         }
 
-        [MenuItem("神霄/配表/打开 Schema 目录", priority = 21)]
+        [MenuItem("神霄/配表/打开 Schema 目录", priority = 61)]
         public static void OpenSchemaFolder()
         {
             var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));

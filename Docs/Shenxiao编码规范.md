@@ -156,14 +156,24 @@ var go = Object.Instantiate(prefab); // 来源不是 ResManager 的禁止
 - `Release` / `ReleaseInstance` 必须配对调用，View 在 `OnDispose` 里释放
 - Editor 同步加载只能写在 `#if UNITY_EDITOR` 块里
 
-### 3.2 UI（BaseView / ViewManager）
+### 3.2 UI（BaseView / ViewManager / LayaUI 转换产物）
 
-- View 必须继承 `BaseView`（或由蓝湖 UI 生成工具生成的 `XxxBind` 间接继承）
-- 打开/关闭只能走 `ViewManager.Open<T>(args)` / `ViewManager.Close<T>()`
-- 节点引用必须用蓝湖 UI 生成工具生成的字段（`_btn_xxx`），禁止运行时 `transform.Find`
-- 业务 View 只负责状态、数据、事件和必要显隐；除非明确要求，不要在运行时代码里改颜色、尺寸、位置、字体、描边、过渡等 UI 样式
+- View 必须继承 `BaseView`（业务类继承 LayaUI 转换器生成的 `{Name}Bind`）
+- 窗口模型分两种：独立 prefab 走 `ViewManager.Open<T>/Close<T>`；
+  **模块合并 prefab**（LayaUI 主路线）由该模块的流程类（如 `LoginFlow`）统一
+  `Show()/Hide()` 子窗口——`Show()` 自带置顶，背景窗启动时固定垫底
+- 节点引用必须用生成的 Bind 字段（`_btn_xxx` / codeNodes），禁止运行时 `transform.Find`
+  （当前唯一豁免：`_tpl_*` 列表项模板内部，待 ItemBind 生成器落地后一并收口）
+- 交互统一 `UIUtil.AddClick`（转换产物默认无 Button）；
+  **隐藏可点击元素用 `color` 透明度，禁止 `Graphic.enabled=false`（会同时关掉点击）**
+- 业务 View 只负责状态、数据、事件和必要显隐；不要在运行时代码里改颜色、尺寸、
+  位置、字体、描边、过渡等样式——样式改模板 prefab，图改 `ui_default_skins.json`，
+  布局改 yu_client 源头后重转，prefab 手调是最后手段且模块要标记验收
+- 运行时动态换图统一 `ResManager.SetImageAsync`（Laya `SetTexture` 对等物）
 - 事件订阅在 `OnShow`，反订阅在 `OnHide`，资源释放在 `OnDispose`
 - 不要把业务数据存在 View 上，View 只渲染；数据放对应 Module 的 Model
+- 业务行为对齐老客户端时**必须查 yu_client TS 源码**，不要凭记忆/猜测
+  （协议时机、弹窗条件、状态持久化口径都以源码为准）
 
 ### 3.3 协议（Net）
 

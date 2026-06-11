@@ -20,13 +20,13 @@ namespace Shenxiao.EditorTools.Fonts
         private const string FontFolder = "Assets/_App/Fonts";
         private const int AtlasSize = 2048;
 
-        [MenuItem("神霄/字体/默认 TMP 字体（按需生成）", priority = 30)]
+        [MenuItem("神霄/工具/字体/默认 TMP 字体(按需生成)", priority = 81)]
         public static void Setup()
         {
             DoSetup(forceRebuild: false);
         }
 
-        [MenuItem("神霄/字体/默认 TMP 字体（强制重建）", priority = 31)]
+        [MenuItem("神霄/工具/字体/默认 TMP 字体(强制重建)", priority = 82)]
         public static void ForceSetup()
         {
             DoSetup(forceRebuild: true);

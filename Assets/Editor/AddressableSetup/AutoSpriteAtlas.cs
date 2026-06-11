@@ -19,7 +19,7 @@ namespace Shenxiao.EditorTools.AddrSetup
         private const string ResourceRoot = "Assets/GameRes/resource";
         private const string TextureFolderName = "texture";
 
-        [MenuItem("神霄/资源/自动建 SpriteAtlas", priority = 11)]
+        [MenuItem("神霄/资源/自动建 SpriteAtlas", priority = 21)]
         public static void Build()
         {
             int created = 0, refreshed = 0;

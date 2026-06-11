@@ -6,7 +6,7 @@
 > - [编码规范](Shenxiao编码规范.md)
 > - [Copilot 红线](../.github/copilot-instructions.md)
 
-**最近更新**：2026-06-10
+**最近更新**：2026-06-11
 
 **状态图例**：
 - ✅ 已完成
@@ -129,7 +129,7 @@
 | L.2 | LoginBootstrap / LoginFlow / LoginEnterView | 已清理 | 旧 UI 绑定链已删除；`GmApi` 保留，后续可作为登录协议/GM 调用参考。 |
 | L.3 | 蓝湖 UI 接入工具 | ✅ | 已定 `lanhu_manifest.json + assets/` 导入包规范；`LanhuCreator` 基础版可生成 Prefab + Bind + 缺图报告。 |
 | L.4 | Phase 1 登录界面重建 | 🟡 | 2026-06-10 改走 LayaUI 直转流水线(见 [LayaUI转换流水线.md](LayaUI转换流水线.md)):login 模块转换工具已就绪,待本地 Unity 实跑「加载页 LoginLoadingView + 登录页 LoginView」验收。 |
-| L.5 | **登录链路端到端试点(量产前置门槛)** | 🔵 | 2026-06-11 用户拍板:量产前先用转换产物接真实 API 跑通整条登录链路,验证"UI 不只是长得对,还得用得对"。链路与里程碑见下表。 |
+| L.5 | **登录链路端到端试点(量产前置门槛)** | ✅ | 2026-06-11 用户拍板:量产前先用转换产物接真实 API 跑通整条登录链路,验证"UI 不只是长得对,还得用得对"。链路与里程碑见下表。 |
 
 #### L.5 登录链路端到端试点
 
@@ -210,6 +210,14 @@ HttpUtil / GmApi(HTTP 参考)/ NetManager / ErlangParser / UserMsgAdapter / View
 | 2026-06-09 | 决策 | 写入项目级协议规范：Shenxiao 只重构 Unity 客户端，协议按 `yu_client` / 既有 Erlang 服务端照抄接入；确需调整服务端或协议时先报告。|
 | 2026-06-10 | 决策 | 用户拍板:UI 路线回到 **Laya .scene 直转 Prefab**(蓝湖路线保留备用)。与旧 UICreator 的区别:不再逐界面手写 Creator,改为「Python 归属分析器 + manifest 粒度决策 + 通用转换器」。粒度规则按代码引用拓扑:窗口独立 prefab、单归属 item 内联 `__Templates`、多归属出共享 prefab,全量 2056 scene → 1077 prefab。详见 [LayaUI转换流水线.md](LayaUI转换流水线.md)。|
 | 2026-06-10 | 新增 | `Tools/LayaUI/analyze_layaui.py`(已对 yu_client 跑出 `Schemas/LayaUI/ui_manifest.json`)+ `Assets/Editor/LayaUI/` 通用转换器(模板/坐标数学/三级图源/Bind 生成回填/报告);BaseView 补 `EnsureBound`;`Shenxiao.Generated`、`Shenxiao.Editor` asmdef 补 `UnityEngine.UI` 引用。试点 = login 模块(加载页 LoginLoadingView + 登录页 LoginView),待本地 Unity 实跑验收。|
+| 2026-06-11 | 里程碑 | **登录链路端到端全通**(真实 UI + 真实 API):加载页(真实进度)→ 账号密码登录/注册 → 协议弹层(按账号,同意即进)→ 踏入仙界 → 大区 tab 选服 → WebSocket 10000 → 角色列表。全程与 yu_client 源码逐行为对齐。|
+| 2026-06-11 | 新增 | 转换器改版:Tab 分类 + 中英模块按钮(module_names_cn.json,211 模块)+ 一键流水线(散图→转换→编译后自动回填→分组)+ 验收闸门(ui_acceptance.json,验收模块重转弹确认)。|
+| 2026-06-11 | 清理 | 编辑器菜单收纳为 神霄/{LayaUI 转换器,资源,配置,配表,工具,调试};删除旧 UICreator 残留(英文根菜单清零)。|
+| 2026-06-11 | 规范 | 编码规范 §3.2 更新为 LayaUI 路线(Bind/UIUtil/alpha 红线/三层样式修改原则/查源码原则);补建 .github/copilot-instructions.md;AGENTS 必读清单加流水线与登录链路文档。|
+| 2026-06-11 | 里程碑 | **登录链路端到端全通**(真实 UI + 真实 API):加载页(真实进度)→ 账号密码登录/注册 → 协议弹层(按账号,同意即进)→ 踏入仙界 → 大区 tab 选服 → WebSocket 10000 → 角色列表。全程与 yu_client 源码逐行为对齐。|
+| 2026-06-11 | 新增 | 转换器改版:Tab 分类 + 中英模块按钮(module_names_cn.json,211 模块)+ 一键流水线(散图→转换→编译后自动回填→分组)+ 验收闸门(ui_acceptance.json,验收模块重转弹确认)。|
+| 2026-06-11 | 清理 | 编辑器菜单收纳为 神霄/{LayaUI 转换器,资源,配置,配表,工具,调试};删除旧 UICreator 残留(英文根菜单清零)。|
+| 2026-06-11 | 规范 | 编码规范 §3.2 更新为 LayaUI 路线(Bind/UIUtil/alpha 红线/三层样式修改原则/查源码原则);补建 .github/copilot-instructions.md;AGENTS 必读清单加流水线与登录链路文档。|
 
 ---
 

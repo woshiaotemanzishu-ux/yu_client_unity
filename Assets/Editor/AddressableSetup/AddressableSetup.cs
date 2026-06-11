@@ -20,7 +20,7 @@ namespace Shenxiao.EditorTools.AddrSetup
         private const string LocalGroupName = "App_Local";
         private const string RemoteGroupPrefix = "Remote_";
 
-        [MenuItem("神霄/资源/Addressable 自动分组", priority = 10)]
+        [MenuItem("神霄/资源/Addressable 自动分组", priority = 20)]
         public static void AutoGroupAll()
         {
             var settings = AddressableAssetSettingsDefaultObject.Settings;

@@ -22,7 +22,7 @@ namespace Shenxiao.EditorTools.Lanhu
         private const string GeneratedRoot = "Assets/Scripts/Generated/UI";
         private const string GameResRoot = "Assets/GameRes";
 
-        [MenuItem("神霄/UI/蓝湖/导入 Package...", priority = 30)]
+        [MenuItem("神霄/工具/蓝湖(备用路线)/导入 Package...", priority = 85)]
         public static void ImportPackageMenu()
         {
             var dir = EditorUtility.OpenFolderPanel("选择蓝湖导入包目录", "", "");
@@ -32,7 +32,7 @@ namespace Shenxiao.EditorTools.Lanhu
             EditorUtility.DisplayDialog("蓝湖导入完成", BuildDialogSummary(report), "OK");
         }
 
-        [MenuItem("神霄/UI/蓝湖/校验 Package...", priority = 31)]
+        [MenuItem("神霄/工具/蓝湖(备用路线)/校验 Package...", priority = 86)]
         public static void ValidatePackageMenu()
         {
             var dir = EditorUtility.OpenFolderPanel("选择蓝湖导入包目录", "", "");

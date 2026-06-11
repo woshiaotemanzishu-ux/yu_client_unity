@@ -21,7 +21,7 @@ namespace Shenxiao.EditorTools.Bootstrap
         private const string ConfigPath = "Assets/_App/Configs/AppConfig.asset";
         private const string ScenePath = "Assets/_App/Scenes/Launch.unity";
 
-        [MenuItem("神霄/启动/创建启动场景", priority = 40)]
+        [MenuItem("神霄/工具/创建启动场景", priority = 80)]
         public static void CreateLaunchScene()
         {
             // 1) AppConfig

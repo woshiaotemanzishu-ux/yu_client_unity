@@ -15,7 +15,7 @@ namespace Shenxiao.Editor.PlatformCfg
     {
         private const string APP_CONFIG_PATH = "Assets/_App/Configs/AppConfig.asset";
 
-        [MenuItem("神霄/配置/从 yu_client 平台cfg 导入登录环境", priority = 20)]
+        [MenuItem("神霄/配置/从 yu_client 平台cfg 导入登录环境", priority = 40)]
         public static void Import()
         {
             string defaultDir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "yu_client", "cdn", "platform"));

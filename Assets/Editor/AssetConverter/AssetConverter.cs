@@ -11,7 +11,7 @@ namespace Shenxiao.EditorTools.AssetConverter
     /// </summary>
     public static class AssetConverter
     {
-        [MenuItem("神霄/资源转换/转单个文件", priority = 50)]
+        [MenuItem("神霄/资源/3D 转换(占位)/转单个文件", priority = 25)]
         public static void ConvertSelectedFile()
         {
             string path = EditorUtility.OpenFilePanel("选 LayaAir 资源文件", "", "lh,lm,lani,lmat");
@@ -19,7 +19,7 @@ namespace Shenxiao.EditorTools.AssetConverter
             ConvertOne(path);
         }
 
-        [MenuItem("神霄/资源转换/批量转文件夹...", priority = 51)]
+        [MenuItem("神霄/资源/3D 转换(占位)/批量转文件夹...", priority = 26)]
         public static void ConvertFolder()
         {
             string folder = EditorUtility.OpenFolderPanel("选文件夹", "", "");
