@@ -15,10 +15,14 @@ namespace Shenxiao.Module.Core.Login
     /// </summary>
     public sealed class LoginCreateRoleView : LoginCreateRoleViewBind
     {
-        // 临时:ConfigLogin.CreateRole.UI 的镜像(career, sex, 名称)
-        private static readonly (int career, int sex, string name)[] CAREERS =
+        // 临时:ConfigLogin.CreateRole.UI 的镜像(career/sex/名称/选中与未选中头像)
+        // TODO(配表线):ConfigManager 接入 ConfigLogin 后替换
+        private static readonly (int career, int sex, string name, string selectIcon, string unselectIcon)[] CAREERS =
         {
-            (1, 1, "剑士"), (2, 2, "武姬"), (3, 1, "枪使"), (4, 2, "弓手"),
+            (1, 1, "剑士", "ui_Login_10", "ui_Login_10a"),
+            (2, 2, "武姬", "ui_Login_12", "ui_Login_12a"),
+            (3, 1, "枪使", "ui_Login_11", "ui_Login_11a"),
+            (4, 2, "弓手", "ui_Login_13", "ui_Login_13a"),
         };
 
         private static readonly string[] RANDOM_NAMES =
@@ -87,7 +91,14 @@ namespace Shenxiao.Module.Core.Login
             {
                 var bind = _items[i].GetComponent<LoginCreateRoleItemBind>();
                 if (bind == null) continue;
-                bind._img_bg.color = i == _selectedIndex ? Color.white : new Color(1f, 1f, 1f, 0.55f);
+                bool selected = i == _selectedIndex;
+                // 对标 LoginCreateRoleItem.ts:选中底图 ui_Login_02,未选 ui_Login_03;头像换 a 版
+                string bg = selected ? "ui_Login_02" : "ui_Login_03";
+                string icon = selected ? CAREERS[i].selectIcon : CAREERS[i].unselectIcon;
+                _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg,
+                        $"resource/game/login/texture/{bg}.png");
+                _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_icon,
+                        $"resource/game/login/texture/{icon}.png");
             }
         }
 
@@ -113,8 +124,8 @@ namespace Shenxiao.Module.Core.Login
                 return;
             }
             _creating = true;
-            (int career, int sex, string _) = CAREERS[_selectedIndex];
-            LoginController.Instance.SendCreateRole(roleName, career, sex);
+            var selected = CAREERS[_selectedIndex];
+            LoginController.Instance.SendCreateRole(roleName, selected.career, selected.sex);
         }
 
         private void OnCreateResult(int result)

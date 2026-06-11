@@ -61,7 +61,24 @@ namespace Shenxiao.Module.Core.Login
                 UIUtil.AddClick(bind._img_bg2, () => OnClickRole(captured));
                 _items.Add(item);
             }
-            content.sizeDelta = new Vector2(content.sizeDelta.x, roles.Count * (itemHeight + ITEM_SPACING));
+            // 列表尾部追加「+创建角色」入口(老客户端在角色列表末尾,复用行模板)
+            GameObject createItem = Instantiate(_tpl_LoginSelectRoleItem, content);
+            createItem.SetActive(true);
+            ((RectTransform)createItem.transform).anchoredPosition =
+                new Vector2(0f, -roles.Count * (itemHeight + ITEM_SPACING));
+            var createBind = createItem.GetComponent<LoginSelectRoleItemBind>();
+            if (createBind != null)
+            {
+                createBind._lb_name.text = "+ 创建角色";
+                createBind._lb_turn.text = string.Empty;
+                createBind._lb_lv.text = string.Empty;
+                createBind._img_sc.enabled = false;
+                UIUtil.AddClick(createBind._img_bg, LoginFlow.ShowCreateRole);
+                UIUtil.AddClick(createBind._img_bg2, LoginFlow.ShowCreateRole);
+            }
+            _items.Add(createItem);
+
+            content.sizeDelta = new Vector2(content.sizeDelta.x, (roles.Count + 1) * (itemHeight + ITEM_SPACING));
         }
 
         private void OnClickRole(long roleId)

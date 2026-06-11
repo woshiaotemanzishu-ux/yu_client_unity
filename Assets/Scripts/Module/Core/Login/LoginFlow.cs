@@ -308,8 +308,17 @@ namespace Shenxiao.Module.Core.Login
             GameLog.Info("Login", "角色列表到达(角色数={0})→ {1}", roleCount, roleCount > 0 ? "选角页" : "创角页");
             _enter.RefreshServer();
             _enter.Hide();
+            _selectRole.Hide();
+            _createRole.Hide();
             if (roleCount > 0) _selectRole.Show();
             else _createRole.Show();
+        }
+
+        /// <summary>选角页的「+创建角色」入口。</summary>
+        public static void ShowCreateRole()
+        {
+            _selectRole.Hide();
+            _createRole.Show();
         }
 
         /// <summary>选角/创角页的返回:回到踏入仙界页(断开游戏服重选)。</summary>
@@ -328,6 +337,11 @@ namespace Shenxiao.Module.Core.Login
 
         private static void OnGameEntered()
         {
+            // 清场:登录模块全部窗口退下,等主城/场景接管(背景暂留;创角/选角的
+            // 樱花舞台是 Laya 3D 场景,归 .lh 转换线)
+            _selectRole.Hide();
+            _createRole.Hide();
+            _enter.Hide();
             GameLog.Info("Login", "—— 🎉 全链路终点:已进入游戏,登录模块使命完成,主城/场景接管(待接)——");
         }
     }
