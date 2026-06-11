@@ -35,16 +35,21 @@
   python 解析器作为规格书的移植一次成功(老教训"先走通一个真实样本"执行到位)。
 - 布料必须双面渲染(Cull Off),否则单层面片"看穿"——已固化进材质生成。
 - **弄巧成拙记录**:尝试读 .lmat 的 type/albedoColor 自动决策材质 → 模型不可见,
-  已回退到已验证的 SimpleLit(+可选 Unlit 对比观感)。待拿到真实 .lmat 样本
-  核对字段格式后再启用参数化(LFS 占位拿不到,需用户提供)。
-- 观感(偏暗/朦胧)属材质调优,留到批量管线后统一做材质模板,MVP 不追像素级。
+  已回退到固定模板(MaterialMode)。待拿到真实 .lmat 样本核对字段格式后再
+  启用参数化(LFS 占位拿不到,需用户提供)。
+- **材质定案:角色 UI 模型用 Unlit(默认)**。证据:UIModelClass3D.ts:456 把角色
+  材质按 Laya.UnlitMaterial 处理;electron 工具 glb_to_role_pack.py 生成 .lmat
+  写的也是 Laya.UnlitMaterial。即贴图直出、不吃光照——SimpleLit + 无灯场景
+  正是「偏暗/朦胧/发黑」的根因。Lit 模式保留给后续真需要光照的资产。
 
 ## UI 内 3D 展示(SetRoleModel 对等物)
 
 `Common/UI3D/UIModelStage`:隔离区摆模型 → 专用相机 → RenderTexture → RawImage
-贴进 UI 容器,相机按包围盒自动取景、透明底。创角页(按职业默认装)与选角页
-(按角色职业)已接入;职业→默认装映射 剑士1111/武姬1213/枪使1300/弓手1400
-(镜像 ConfigLogin,TODO 配表线)。
+贴进 UI 容器、透明底。取景逐行复刻老客户端 UIModelClass3D.ts:正交相机
+(orthographicVerticalSize=12.8、z=-20),层级 root(×1.1)→yaw(180°转身)→
+body(×5×scale),RT 尺寸跟随容器;scale/position 由调用方传入(登录链路
+scale=0.5,position=ConfigLogin 的 ModelPos+PosOffset,TODO 配表线)。
+创角页与选角页已接入;职业→默认装映射 剑士1111/武姬1213/枪使1300/弓手1400。
 
 ## 下一步(顺序)
 

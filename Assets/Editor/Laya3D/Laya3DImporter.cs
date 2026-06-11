@@ -16,7 +16,9 @@ namespace Shenxiao.Editor.Laya3D
     /// </summary>
     public static class Laya3DImporter
     {
-        /// <summary>材质模式:Lit=URP SimpleLit(已验证);Unlit=贴图直出(观感对比用)。
+        /// <summary>材质模式:Unlit=贴图直出,对标老客户端(UIModelClass3D.ts 把角色材质按
+        /// Laya.UnlitMaterial 处理,electron 工具 .lmat 也写 Laya.UnlitMaterial),不吃光照不会发黑;
+        /// Lit=URP SimpleLit,受场景光照(留给后续真需要光照的资产)。
         /// 注:按 .lmat type/albedoColor 自动决策曾导致模型不可见,待真实 .lmat 样本核对后再启用。</summary>
         public enum MaterialMode { Lit, Unlit }
 
@@ -27,7 +29,7 @@ namespace Shenxiao.Editor.Laya3D
             public readonly StringBuilder Log = new StringBuilder();
         }
 
-        public static Result Convert(string lhPath, List<string> laniPaths, bool mirrorX, MaterialMode materialMode = MaterialMode.Lit)
+        public static Result Convert(string lhPath, List<string> laniPaths, bool mirrorX, MaterialMode materialMode = MaterialMode.Unlit)
         {
             var r = new Result();
             try

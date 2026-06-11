@@ -18,7 +18,7 @@ namespace Shenxiao.Editor.Laya3D
         private readonly List<string> _selectedLanis = new List<string>();
         private Vector2 _laniScroll;
         private bool _mirrorX;
-        private Laya3DImporter.MaterialMode _materialMode = Laya3DImporter.MaterialMode.Lit;
+        private Laya3DImporter.MaterialMode _materialMode = Laya3DImporter.MaterialMode.Unlit;
         private string[] _laniFiles = System.Array.Empty<string>();
 
         [MenuItem("神霄/Laya3D 转换器(MVP)", priority = 1)]
@@ -84,7 +84,7 @@ namespace Shenxiao.Editor.Laya3D
 
             _mirrorX = EditorGUILayout.ToggleLeft("mirrorX(坐标系翻转,首渲镜像时切换)", _mirrorX);
             _materialMode = (Laya3DImporter.MaterialMode)EditorGUILayout.EnumPopup(
-                new GUIContent("材质模式", "Lit=已验证;观感偏暗可切 Unlit(贴图直出)对比"), _materialMode);
+                new GUIContent("材质模式", "Unlit=对标老客户端(UnlitMaterial 贴图直出,不吃光照不发黑,默认);Lit=URP SimpleLit 受场景光照"), _materialMode);
 
             using (new EditorGUILayout.HorizontalScope())
             {
