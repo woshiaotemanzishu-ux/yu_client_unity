@@ -7,6 +7,7 @@ namespace Shenxiao.Module.Core.Login
     {
         private static readonly LoginModel _instance = new LoginModel();
         private readonly List<LoginServerInfo> _servers = new List<LoginServerInfo>();
+        private readonly List<LoginAreaInfo> _areas = new List<LoginAreaInfo>();
 
         public static LoginModel Instance => _instance;
 
@@ -17,6 +18,8 @@ namespace Shenxiao.Module.Core.Login
         public int LastServerId { get; private set; }
         public LoginServerInfo SelectedServer { get; private set; }
         public IReadOnlyList<LoginServerInfo> Servers => _servers;
+        /// <summary>大区列表(yu_gm buildServerList 的 areas:id/name/otime)。</summary>
+        public IReadOnlyList<LoginAreaInfo> Areas => _areas;
 
         private LoginModel()
         {
@@ -45,6 +48,7 @@ namespace Shenxiao.Module.Core.Login
             AddServerNodes(info["server"]);
             AddHistoryServers(info["player_server"]);
             AddFallbackLastServer(info);
+            ApplyAreas(info["areas"]);
             SortServers();
             SelectServer(FindServer(LastServerId) ?? (_servers.Count > 0 ? _servers[0] : null));
         }
@@ -55,8 +59,27 @@ namespace Shenxiao.Module.Core.Login
 
             _servers.Clear();
             AddServerNodes(info["server"]);
+            ApplyAreas(info["areas"]);
             SortServers();
             SelectServer(FindServer(LastServerId) ?? (_servers.Count > 0 ? _servers[0] : null));
+        }
+
+        private void ApplyAreas(JToken token)
+        {
+            _areas.Clear();
+            var obj = token as JObject;
+            if (obj == null) return;
+            foreach (KeyValuePair<string, JToken> kv in obj)
+            {
+                var area = kv.Value as JObject;
+                if (area == null) continue;
+                _areas.Add(new LoginAreaInfo
+                {
+                    id = ReadInt(area, "id", ParseInt(kv.Key, 0)),
+                    name = ReadString(area, "name", "第" + kv.Key + "区"),
+                });
+            }
+            _areas.Sort((a, b) => a.id.CompareTo(b.id));
         }
 
         public void ApplySelectedServerInfo(JObject info)

@@ -517,7 +517,9 @@ namespace Shenxiao.Editor.LayaUI
         }
 
         /// <summary>子节点内容边界(Laya 自动宽高语义:max(child.x + child.width))。
-        /// 只统计左上锚定的子节点,centerX/拉伸子节点跳过(在自动宽高容器里 Laya 同样是病态布局)。</summary>
+        /// 逐轴独立统计:水平只看左锚定子节点,垂直只看顶锚定子节点——
+        /// 协议行这类「子节点 centerY 垂直居中」的容器,宽度照样要算
+        /// (此前整节点跳过导致 _box_agreement 宽=34,centerX 居中后整行偏右)。</summary>
         private static Vector2 ChildBounds(RectTransform container)
         {
             float w = 0f, h = 0f;
@@ -525,13 +527,20 @@ namespace Shenxiao.Editor.LayaUI
             {
                 RectTransform c = container.GetChild(i) as RectTransform;
                 if (c == null || !c.gameObject.activeSelf) continue;
-                if (c.anchorMin != new Vector2(0f, 1f) || c.anchorMax != new Vector2(0f, 1f)) continue;
                 Vector2 sz = c.sizeDelta;
                 Vector3 sc = c.localScale;
-                float left = c.anchoredPosition.x - c.pivot.x * sz.x * Mathf.Abs(sc.x);
-                float top = -c.anchoredPosition.y - (1f - c.pivot.y) * sz.y * Mathf.Abs(sc.y);
-                w = Mathf.Max(w, left + sz.x * Mathf.Abs(sc.x));
-                h = Mathf.Max(h, top + sz.y * Mathf.Abs(sc.y));
+                float dw = sz.x * Mathf.Abs(sc.x);
+                float dh = sz.y * Mathf.Abs(sc.y);
+                if (c.anchorMin.x == 0f && c.anchorMax.x == 0f)
+                {
+                    float left = c.anchoredPosition.x - c.pivot.x * dw;
+                    w = Mathf.Max(w, left + dw);
+                }
+                if (c.anchorMin.y == 1f && c.anchorMax.y == 1f)
+                {
+                    float top = -c.anchoredPosition.y - (1f - c.pivot.y) * dh;
+                    h = Mathf.Max(h, top + dh);
+                }
             }
             return new Vector2(w, h);
         }

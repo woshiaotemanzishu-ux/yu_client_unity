@@ -15,11 +15,27 @@ namespace Shenxiao.Module.Core.Login
             UIUtil.AddClick(_img_search_server_bg, OnClickChangeServer);
             UIUtil.AddClick(_lb_cur_server_name, OnClickChangeServer);
             UIUtil.AddClick(_lb_tips, OnClickChangeServer);
+            UIUtil.AddClick(_img_agreement_check_bg, OnClickAgreement);
+            UIUtil.AddClick(_img_anreement_check, OnClickAgreement);
         }
 
         protected override void OnShow(object args)
         {
             RefreshServer();
+            RefreshAgreement();
+        }
+
+        public void RefreshAgreement()
+        {
+            if (_img_anreement_check != null)
+            {
+                _img_anreement_check.enabled = LoginFlow.AgreementAgreed;
+            }
+        }
+
+        private void OnClickAgreement()
+        {
+            LoginFlow.ToggleAgreement();
         }
 
         public void RefreshServer()

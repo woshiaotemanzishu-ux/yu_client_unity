@@ -19,6 +19,8 @@ namespace Shenxiao.Module.Core.Login
     /// </summary>
     public static class LoginFlow
     {
+        private const string PREF_AGREED = "login.agreement_agreed";
+
         private static AppConfig _config;
         private static GameObject _moduleRoot;
         private static LoginBgView _bg;
@@ -27,7 +29,15 @@ namespace Shenxiao.Module.Core.Login
         private static RegisterView _register;
         private static LoginEnterView _enter;
         private static LoginSelectServerView _select;
+        private static LoginAlertView _alert;
         private static bool _busy;
+
+        /// <summary>用户协议是否已同意(持久化;踏入仙界的前置条件,对标老客户端)。</summary>
+        public static bool AgreementAgreed
+        {
+            get => Shenxiao.Common.Prefs.PrefsManager.GetBool(PREF_AGREED, false);
+            private set => Shenxiao.Common.Prefs.PrefsManager.SetBool(PREF_AGREED, value);
+        }
 
         public static async Task StartAsync(AppConfig config)
         {
@@ -50,12 +60,13 @@ namespace Shenxiao.Module.Core.Login
                 else if (v is RegisterView register) _register = register;
                 else if (v is LoginEnterView enter) _enter = enter;
                 else if (v is LoginSelectServerView select) _select = select;
+                else if (v is LoginAlertView alert) _alert = alert;
             }
-            if (_bg == null || _loading == null || _login == null || _register == null || _enter == null || _select == null)
+            if (_bg == null || _loading == null || _login == null || _register == null || _enter == null || _select == null || _alert == null)
             {
                 GameLog.Error("Login",
-                    "LoginModule 缺业务窗口(bg={0} loading={1} login={2} register={3} enter={4} select={5})——先在转换器点『回填 Bind 引用』",
-                    _bg != null, _loading != null, _login != null, _register != null, _enter != null, _select != null);
+                    "LoginModule 缺业务窗口(bg={0} loading={1} login={2} register={3} enter={4} select={5} alert={6})——先在转换器点『回填 Bind 引用』",
+                    _bg != null, _loading != null, _login != null, _register != null, _enter != null, _select != null, _alert != null);
                 return;
             }
 
@@ -156,14 +167,44 @@ namespace Shenxiao.Module.Core.Login
             }
         }
 
-        /// <summary>登录/注册成功 → ③ 踏入仙界页。</summary>
+        /// <summary>登录/注册成功 → ③ 踏入仙界页;首次弹用户协议(对标老客户端)。</summary>
         private static void EnterLobby()
         {
-            GameLog.Info("Login", "账号就绪 player_id={0} 服务器数={1}",
-                LoginController.Instance.Model.PlayerId, LoginController.Instance.Model.Servers.Count);
+            GameLog.Info("Login", "账号就绪 player_id={0} 服务器数={1} 大区数={2}",
+                LoginController.Instance.Model.PlayerId, LoginController.Instance.Model.Servers.Count,
+                LoginController.Instance.Model.Areas.Count);
             _login.Hide();
             _register.Hide();
             _enter.Show();
+            if (!AgreementAgreed)
+            {
+                ShowAgreement();
+            }
+        }
+
+        public static void ShowAgreement()
+        {
+            _alert.ShowWith(
+                onOk: OnAgreementOk,
+                onCancel: OnAgreementCancel);
+        }
+
+        private static void OnAgreementOk()
+        {
+            AgreementAgreed = true;
+            _enter.RefreshAgreement();
+        }
+
+        private static void OnAgreementCancel()
+        {
+            AgreementAgreed = false;
+            _enter.RefreshAgreement();
+        }
+
+        public static void ToggleAgreement()
+        {
+            AgreementAgreed = !AgreementAgreed;
+            _enter.RefreshAgreement();
         }
 
         private static void TipsToLoginPage(string message)
@@ -204,6 +245,11 @@ namespace Shenxiao.Module.Core.Login
 
         public static async Task EnterGameAsync()
         {
+            if (!AgreementAgreed)
+            {
+                ShowAgreement(); // 老客户端规则:未同意协议不能踏入仙界
+                return;
+            }
             if (_busy) return;
             _busy = true;
             try

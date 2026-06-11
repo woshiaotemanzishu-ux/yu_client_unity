@@ -35,3 +35,13 @@ namespace Shenxiao.Module.Core.Login
         }
     }
 }
+
+namespace Shenxiao.Module.Core.Login
+{
+    /// <summary>大区信息(选服页左侧 tab 数据源)。</summary>
+    public sealed class LoginAreaInfo
+    {
+        public int id;
+        public string name = "";
+    }
+}

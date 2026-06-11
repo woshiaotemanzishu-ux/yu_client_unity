@@ -397,6 +397,9 @@ def main():
         sc["tsClass"] = cls
         sc["kind"] = classes[cls]["kind"] if cls else "orphan"
         sc["bakedSkins"] = dict(classes[cls]["bakedSkins"]) if cls else {}
+        # 手工默认表强制覆盖自动烘焙(用于纠正分支选择,如选服背景的普通/位置模式分支)
+        for node, path in default_skins.get(key, {}).items():
+            sc["bakedSkins"][node] = path
         # 被代码引用的非下划线节点(Bind 收集 = "_"前缀 ∪ codeNodes)
         node_names = set(sc.pop("nodeNames", []) or [])
         if cls:
@@ -404,9 +407,6 @@ def main():
                                      if not n.startswith("_"))
         else:
             sc["codeNodes"] = []
-        # 手工默认图兜底(平台 logo 等完全外部的动态图):Schemas/LayaUI/ui_default_skins.json
-        for node, path in default_skins.get(key, {}).items():
-            sc["bakedSkins"].setdefault(node, path)
         own = sorted(owners.get(cls, ())) if cls else []
         sc["ownerClasses"] = own
         sc["otherRefFiles"] = sorted(other_refs.get(cls, ())) if cls else []

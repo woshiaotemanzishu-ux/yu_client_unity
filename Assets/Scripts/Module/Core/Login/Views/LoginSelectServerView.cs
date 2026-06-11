@@ -22,10 +22,12 @@ namespace Shenxiao.Module.Core.Login
         private static readonly Color TAB_SELECTED = ParseColor("#FFEEE4");
         private static readonly Color TAB_NORMAL = ParseColor("#81452B");
 
+        private const int TAB_RECENT = -1; // 「最近登录」虚拟分区
+
         private readonly List<GameObject> _items = new List<GameObject>();
         private readonly List<GameObject> _tabs = new List<GameObject>();
         private readonly List<int> _tabAreas = new List<int>();
-        private int _selectedArea;
+        private int _selectedArea = TAB_RECENT;
 
         protected override void OnInit()
         {
@@ -48,24 +50,37 @@ namespace Shenxiao.Module.Core.Login
 
             if (_tpl_LoginSelectServerTabItem == null || _list_tab == null) return;
 
-            var areas = new SortedSet<int>();
-            foreach (LoginServerInfo s in LoginModel.Instance.Servers) areas.Add(Mathf.Max(1, s.area));
-            if (areas.Count == 0) areas.Add(1);
-            if (!areas.Contains(_selectedArea)) _selectedArea = GetFirst(areas);
+            // 老客户端 tab 序:最近登录(玩过的服)+ 各大区(名字来自登录返回的 areas)
+            var tabs = new List<(int area, string label)> { (TAB_RECENT, "最近登录") };
+            foreach (LoginAreaInfo area in LoginModel.Instance.Areas)
+            {
+                tabs.Add((area.id, area.name));
+            }
+            if (tabs.Count == 1)
+            {
+                // 没有大区数据时按 server.area 兜底分组
+                var fallback = new SortedSet<int>();
+                foreach (LoginServerInfo s in LoginModel.Instance.Servers) fallback.Add(Mathf.Max(1, s.area));
+                foreach (int a in fallback) tabs.Add((a, $"第{a}区"));
+            }
+            if (!HasRecentServers() && _selectedArea == TAB_RECENT && tabs.Count > 1)
+            {
+                _selectedArea = tabs[1].area;
+            }
 
             RectTransform content = _list_tab.content;
             RectTransform tplRect = (RectTransform)_tpl_LoginSelectServerTabItem.transform;
             float tabHeight = tplRect.sizeDelta.y;
 
-            int index = 0;
-            foreach (int area in areas)
+            for (int i = 0; i < tabs.Count; i++)
             {
+                (int area, string label) = tabs[i];
                 GameObject tab = Instantiate(_tpl_LoginSelectServerTabItem, content);
                 tab.SetActive(true);
-                ((RectTransform)tab.transform).anchoredPosition = new Vector2(0f, -index * (tabHeight + TAB_SPACING));
+                ((RectTransform)tab.transform).anchoredPosition = new Vector2(0f, -i * (tabHeight + TAB_SPACING));
 
                 TextMeshProUGUI nameLabel = FindLabel(tab, "_lb_name");
-                if (nameLabel != null) nameLabel.text = $"第{area}区";
+                if (nameLabel != null) nameLabel.text = label;
                 Image bg = FindImage(tab, "_img_bg");
                 if (bg != null)
                 {
@@ -75,10 +90,18 @@ namespace Shenxiao.Module.Core.Login
 
                 _tabs.Add(tab);
                 _tabAreas.Add(area);
-                index++;
             }
-            content.sizeDelta = new Vector2(content.sizeDelta.x, index * (tabHeight + TAB_SPACING));
+            content.sizeDelta = new Vector2(content.sizeDelta.x, tabs.Count * (tabHeight + TAB_SPACING));
             RefreshTabStates();
+        }
+
+        private static bool HasRecentServers()
+        {
+            foreach (LoginServerInfo s in LoginModel.Instance.Servers)
+            {
+                if (s.roleId > 0 || s.level > 0) return true;
+            }
+            return false;
         }
 
         private void RefreshTabStates()
@@ -121,7 +144,10 @@ namespace Shenxiao.Module.Core.Login
             int index = 0;
             foreach (LoginServerInfo server in LoginModel.Instance.Servers)
             {
-                if (Mathf.Max(1, server.area) != _selectedArea) continue;
+                bool match = _selectedArea == TAB_RECENT
+                    ? (server.roleId > 0 || server.level > 0)
+                    : server.area == _selectedArea;
+                if (!match) continue;
                 GameObject item = Instantiate(_tpl_LoginSelectServerItem, content);
                 item.SetActive(true);
                 ((RectTransform)item.transform).anchoredPosition = new Vector2(0f, -index * (itemHeight + ITEM_SPACING));
@@ -183,12 +209,6 @@ namespace Shenxiao.Module.Core.Login
         {
             Transform t = root.transform.Find(name);
             return t != null ? t.GetComponent<Image>() : null;
-        }
-
-        private static int GetFirst(SortedSet<int> set)
-        {
-            foreach (int v in set) return v;
-            return 1;
         }
 
         private static Color ParseColor(string hex)

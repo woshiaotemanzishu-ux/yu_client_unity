@@ -1,3 +1,6 @@
 {
-  "_说明": "动态图的手工默认表:scene key -> { 节点名: Laya资源路径 }。分析器烘不到的(方法调用/平台配置的图)在这里补,重跑 analyze_layaui.py + 重转生效。LoginEnterView._img_logo 经确认老客户端测试环境不显示,保持空占位。"
+  "_说明": "动态图手工默认表(强制覆盖自动烘焙):scene key -> { 节点名: Laya资源路径 }。用于纠正分支选择或补完全外部的图,重跑 analyze_layaui.py + 重转生效。",
+  "login/LoginSelectServerView": {
+    "_img_bg": "resource/game/login/other/ui_Login_bg1.jpg"
+  }
 }
