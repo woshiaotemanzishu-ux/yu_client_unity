@@ -27,12 +27,13 @@ namespace Shenxiao.Module.Core.Login
 
             if (config.autoLoginSmokeTest && !string.IsNullOrEmpty(config.devAccount))
             {
+                // 无 UI 冒烟(排查链路问题用);正常走下面的真实 UI 流程
                 EventDispatcher.On<int>(GlobalEvent.EVT_GAME_ROLE_LIST, OnRoleListReceived);
                 _ = RunChainSmokeTestAsync(config);
             }
             else
             {
-                GameLog.Info("Login", "登录链冒烟未开启(AppConfig.autoLoginSmokeTest);等待 UI 接入驱动登录");
+                _ = LoginFlow.StartAsync(config);
             }
         }
 

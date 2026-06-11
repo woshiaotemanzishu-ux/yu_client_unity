@@ -21,6 +21,12 @@ namespace Shenxiao.Framework.UI
             _layers = layers;
         }
 
+        /// <summary>给"模块合并 prefab"这类自管窗口的流程取层节点(如登录模块整体挂 Window 层)。</summary>
+        public static Transform GetLayer(UILayer layer)
+        {
+            return _layers?.GetLayer(layer);
+        }
+
         public static async Task<T> Open<T>(object args = null) where T : BaseView
         {
             if (_views.TryGetValue(typeof(T), out var existed))

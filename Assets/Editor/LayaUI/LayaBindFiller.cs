@@ -64,14 +64,23 @@ namespace Shenxiao.Editor.LayaUI
             }
         }
 
-        /// <summary>给一个窗口根挂 {Name}Bind 并按节点名回填字段。没有对应类时返回 false。</summary>
+        /// <summary>
+        /// 给一个窗口根挂 Bind 组件并按节点名回填字段。没有对应类时返回 false。
+        /// 优先挂业务子类(如 LoginEnterView : LoginEnterViewBind),业务逻辑才会随 prefab 实例化。
+        /// </summary>
         private static bool FillWindow(Transform windowRoot, string windowName, string moduleDir)
         {
             Type bindType = FindBindType("Shenxiao.Generated.UI." + moduleDir + "." + windowName + "Bind");
             if (bindType == null) return false;
+            Type concreteType = FindSingleSubclass(bindType) ?? bindType;
 
             Component bind = windowRoot.GetComponent(bindType);
-            if (bind == null) bind = windowRoot.gameObject.AddComponent(bindType);
+            if (bind != null && concreteType != bind.GetType())
+            {
+                UnityEngine.Object.DestroyImmediate(bind, true); // 升级成业务子类
+                bind = null;
+            }
+            if (bind == null) bind = windowRoot.gameObject.AddComponent(concreteType);
 
             List<LayaBindGenerator.FieldInfo> fields = new List<LayaBindGenerator.FieldInfo>();
             LayaUIReport dummy = new LayaUIReport("bindfill");
@@ -111,6 +120,29 @@ namespace Shenxiao.Editor.LayaUI
                 if (t != null) return t;
             }
             return null;
+        }
+
+        /// <summary>找 Bind 的唯一业务子类;0 个返回 null,多个报错并用基类。</summary>
+        private static Type FindSingleSubclass(Type bindType)
+        {
+            Type found = null;
+            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                Type[] types;
+                try { types = asm.GetTypes(); }
+                catch (ReflectionTypeLoadException e) { types = e.Types; }
+                foreach (Type t in types)
+                {
+                    if (t == null || t.IsAbstract || !bindType.IsAssignableFrom(t) || t == bindType) continue;
+                    if (found != null)
+                    {
+                        Debug.LogError("[LayaUI] " + bindType.Name + " 有多个业务子类(" + found.Name + ", " + t.Name + "),用基类回填");
+                        return null;
+                    }
+                    found = t;
+                }
+            }
+            return found;
         }
     }
 }

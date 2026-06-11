@@ -23,6 +23,14 @@ namespace Shenxiao.Framework.UI
             IsInitialized = true;
         }
 
+        /// <summary>
+        /// 公开的显示/隐藏入口,给"模块合并 prefab"内由业务流程直接管理的子窗口用
+        /// (独立 prefab 窗口仍走 ViewManager.Open/Close)。
+        /// </summary>
+        public void Show(object args = null) => InternalShow(args);
+
+        public void Hide() => InternalHide();
+
         internal void InternalShow(object args)
         {
             if (!IsInitialized) InternalInit();
