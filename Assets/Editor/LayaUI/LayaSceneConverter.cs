@@ -252,6 +252,10 @@ namespace Shenxiao.Editor.LayaUI
             }
 
             GameObject go = BuildWindow(sceneKey, entry, root, manifest, report, stack);
+            if (entry.Decision == "shared-prefab")
+            {
+                NormalizeItemRoot(go); // 共享件也是列表项语义,统一左上锚定
+            }
             LayaBindGenerator.Generate(entry, manifest, go.transform, report);
 
             Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
@@ -307,10 +311,25 @@ namespace Shenxiao.Editor.LayaUI
                 JObject ij = ie != null ? LoadSceneJson(ie) : null;
                 if (ij == null) { report.Note("内联 item 读不到 json: " + itemKey); continue; }
                 _bakedSkins = ie.BakedSkins;
-                templates.Add(BuildRoot(ie.Name, ij, manifest, report));
+                GameObject item = BuildRoot(ie.Name, ij, manifest, report);
                 _bakedSkins = null;
+                NormalizeItemRoot(item);
+                templates.Add(item);
                 CollectInlineTemplates(ie, manifest, report, templates); // item 套 item
             }
+        }
+
+        /// <summary>
+        /// 列表项模板根归一为左上锚定。BuildRoot 给的是窗口语义(居中锚点+居中 pivot),
+        /// 业务 Instantiate 进列表 content(左上)后会把项的"中心"对到 x=0,整行左半被
+        /// 视口裁掉(选服列表名字看不见就是这个原因)。Laya 的列表项本来就是左上坐标系。
+        /// </summary>
+        private static void NormalizeItemRoot(GameObject item)
+        {
+            RectTransform rt = (RectTransform)item.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.anchoredPosition = Vector2.zero;
         }
 
         public static string PrefabPath(LayaUIManifest.SceneEntry entry, LayaUIManifest manifest)
