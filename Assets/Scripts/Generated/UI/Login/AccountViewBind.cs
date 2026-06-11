@@ -12,6 +12,8 @@ namespace Shenxiao.Generated.UI.Login
         public RectTransform _gp_con;
         public TextMeshProUGUI _lb_server;
         public ScrollRect _scroller_address;
+        public Image m_account;
+        public Image m_enter_btn;
         public GameObject _tpl_AccountItem;
 
         protected override void BindNodes()
@@ -19,6 +21,8 @@ namespace Shenxiao.Generated.UI.Login
             EnsureBound(nameof(_gp_con), _gp_con);
             EnsureBound(nameof(_lb_server), _lb_server);
             EnsureBound(nameof(_scroller_address), _scroller_address);
+            EnsureBound(nameof(m_account), m_account);
+            EnsureBound(nameof(m_enter_btn), m_enter_btn);
             EnsureBound(nameof(_tpl_AccountItem), _tpl_AccountItem);
         }
     }
