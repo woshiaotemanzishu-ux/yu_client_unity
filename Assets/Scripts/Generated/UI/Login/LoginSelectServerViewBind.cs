@@ -20,6 +20,7 @@ namespace Shenxiao.Generated.UI.Login
         public GameObject _tpl_LoginSelectServerItem;
         public GameObject _tpl_LoginSelectServerLocationItem;
         public GameObject _tpl_LoginSelectServerTabItem;
+        public GameObject _tpl_EyouThAdultItem;
 
         protected override void BindNodes()
         {
@@ -34,6 +35,7 @@ namespace Shenxiao.Generated.UI.Login
             EnsureBound(nameof(_tpl_LoginSelectServerItem), _tpl_LoginSelectServerItem);
             EnsureBound(nameof(_tpl_LoginSelectServerLocationItem), _tpl_LoginSelectServerLocationItem);
             EnsureBound(nameof(_tpl_LoginSelectServerTabItem), _tpl_LoginSelectServerTabItem);
+            EnsureBound(nameof(_tpl_EyouThAdultItem), _tpl_EyouThAdultItem);
         }
     }
 }

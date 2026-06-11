@@ -19,6 +19,7 @@ namespace Shenxiao.Generated.UI.Login
         public RectTransform _mask_box;
         public Image _img_front;
         public Image _img_progress_end;
+        public GameObject _tpl_EyouThAdultItem;
 
         protected override void BindNodes()
         {
@@ -32,6 +33,7 @@ namespace Shenxiao.Generated.UI.Login
             EnsureBound(nameof(_mask_box), _mask_box);
             EnsureBound(nameof(_img_front), _img_front);
             EnsureBound(nameof(_img_progress_end), _img_progress_end);
+            EnsureBound(nameof(_tpl_EyouThAdultItem), _tpl_EyouThAdultItem);
         }
     }
 }
