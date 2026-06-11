@@ -26,6 +26,12 @@ namespace Shenxiao.Module.Core.Login
         protected override void OnShow(object args)
         {
             BuildList();
+            ShowRoleModel();
+        }
+
+        protected override void OnHide()
+        {
+            Shenxiao.Common.UI3D.UIModelStage.Clear();
         }
 
         private void BuildList()
@@ -85,6 +91,28 @@ namespace Shenxiao.Module.Core.Login
         {
             _selectedRoleId = roleId;
             GameLog.Info("Login", "选中角色 role_id={0}", roleId);
+            ShowRoleModel();
+        }
+
+        /// <summary>中央 3D 模型:按选中角色职业的默认装展示(时装外观待配表线)。</summary>
+        private async void ShowRoleModel()
+        {
+            int career = 0;
+            foreach (GameRoleInfo role in LoginModel.Instance.Roles)
+            {
+                if (role.roleId == _selectedRoleId) { career = role.Career; break; }
+            }
+            // TODO(配表线):ConfigLogin.CreateRole.Res.role_res;此处镜像 剑士1111/武姬1213/枪使1300/弓手1400
+            int roleRes = career == 1 ? 1111 : career == 2 ? 1213 : career == 3 ? 1300 : career == 4 ? 1400 : 0;
+            if (roleRes == 0) return;
+            string key = $"object/role/model_clothe_{roleRes}/model_clothe_{roleRes}";
+            GameObject prefab = await Shenxiao.Framework.Res.ResManager.LoadAsync<GameObject>(key);
+            if (prefab == null)
+            {
+                GameLog.Warn("Login", "角色模型未找到(先用 Laya3D 转换器生成):{0}", key);
+                return;
+            }
+            Shenxiao.Common.UI3D.UIModelStage.Show(_gp_model, prefab);
         }
 
         private void OnClickEnter()

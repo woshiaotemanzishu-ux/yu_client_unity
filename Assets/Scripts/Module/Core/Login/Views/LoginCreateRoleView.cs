@@ -15,14 +15,14 @@ namespace Shenxiao.Module.Core.Login
     /// </summary>
     public sealed class LoginCreateRoleView : LoginCreateRoleViewBind
     {
-        // 临时:ConfigLogin.CreateRole.UI 的镜像(career/sex/名称/选中与未选中头像)
+        // 临时:ConfigLogin.CreateRole.UI/Res 的镜像(career/sex/名称/头像/默认装 role_res)
         // TODO(配表线):ConfigManager 接入 ConfigLogin 后替换
-        private static readonly (int career, int sex, string name, string selectIcon, string unselectIcon)[] CAREERS =
+        private static readonly (int career, int sex, string name, string selectIcon, string unselectIcon, int roleRes)[] CAREERS =
         {
-            (1, 1, "剑士", "ui_Login_10", "ui_Login_10a"),
-            (2, 2, "武姬", "ui_Login_12", "ui_Login_12a"),
-            (3, 1, "枪使", "ui_Login_11", "ui_Login_11a"),
-            (4, 2, "弓手", "ui_Login_13", "ui_Login_13a"),
+            (1, 1, "剑士", "ui_Login_10", "ui_Login_10a", 1111),
+            (2, 2, "武姬", "ui_Login_12", "ui_Login_12a", 1213),
+            (3, 1, "枪使", "ui_Login_11", "ui_Login_11a", 1300),
+            (4, 2, "弓手", "ui_Login_13", "ui_Login_13a", 1400),
         };
 
         private static readonly string[] RANDOM_NAMES =
@@ -50,6 +50,12 @@ namespace Shenxiao.Module.Core.Login
             _creating = false;
             BuildCareers();
             OnClickRandomName();
+            ShowCareerModel();
+        }
+
+        protected override void OnHide()
+        {
+            Shenxiao.Common.UI3D.UIModelStage.Clear();
         }
 
         protected override void OnDispose()
@@ -106,6 +112,21 @@ namespace Shenxiao.Module.Core.Login
         {
             _selectedIndex = index;
             RefreshCareerStates();
+            ShowCareerModel();
+        }
+
+        /// <summary>中央 3D 模型(Laya SetRoleModel 对等):按职业默认装加载转换产物。</summary>
+        private async void ShowCareerModel()
+        {
+            int roleRes = CAREERS[_selectedIndex].roleRes;
+            string key = $"object/role/model_clothe_{roleRes}/model_clothe_{roleRes}";
+            GameObject prefab = await Shenxiao.Framework.Res.ResManager.LoadAsync<GameObject>(key);
+            if (prefab == null)
+            {
+                GameLog.Warn("Login", "职业模型未找到(先用 Laya3D 转换器生成):{0}", key);
+                return;
+            }
+            Shenxiao.Common.UI3D.UIModelStage.Show(_gp_model_con, prefab);
         }
 
         private void OnClickRandomName()

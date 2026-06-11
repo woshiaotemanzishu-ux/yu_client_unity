@@ -16,8 +16,9 @@ namespace Shenxiao.Editor.Laya3D
     /// </summary>
     public static class Laya3DImporter
     {
-        /// <summary>材质模式:Auto=按 .lmat 的 type 决定;Unlit=贴图直出(老端手游观感);Lit=URP SimpleLit。</summary>
-        public enum MaterialMode { Auto, Unlit, Lit }
+        /// <summary>材质模式:Lit=URP SimpleLit(已验证);Unlit=贴图直出(观感对比用)。
+        /// 注:按 .lmat type/albedoColor 自动决策曾导致模型不可见,待真实 .lmat 样本核对后再启用。</summary>
+        public enum MaterialMode { Lit, Unlit }
 
         public sealed class Result
         {
@@ -26,7 +27,7 @@ namespace Shenxiao.Editor.Laya3D
             public readonly StringBuilder Log = new StringBuilder();
         }
 
-        public static Result Convert(string lhPath, List<string> laniPaths, bool mirrorX, MaterialMode materialMode = MaterialMode.Auto)
+        public static Result Convert(string lhPath, List<string> laniPaths, bool mirrorX, MaterialMode materialMode = MaterialMode.Lit)
         {
             var r = new Result();
             try
@@ -249,48 +250,36 @@ namespace Shenxiao.Editor.Laya3D
         private static Material BuildMaterial(LhDocument lh, string modelName, string outDir,
             MaterialMode materialMode, Result r)
         {
-            string lmatPath = lh.MaterialPaths.Count > 0 ? lh.ResolveAssetPath(lh.MaterialPaths[0]) : null;
-            string layaType = "";
-            float[] albedo = null;
-            if (lmatPath != null)
-            {
-                (layaType, albedo) = LhDocument.ExtractMaterialParams(lmatPath);
-            }
-
-            // 模式决策:Auto 按 .lmat 的 type ——UNLIT 系直出贴图(不受场景光,
-            // 也是老端手游角色的典型观感);其余走 SimpleLit
-            bool unlit = materialMode == MaterialMode.Unlit
-                         || (materialMode == MaterialMode.Auto && layaType.ToUpperInvariant().Contains("UNLIT"));
-            Shader shader = unlit
+            Shader shader = materialMode == MaterialMode.Unlit
                 ? Shader.Find("Universal Render Pipeline/Unlit")
                 : (Shader.Find("Universal Render Pipeline/Simple Lit") ?? Shader.Find("Universal Render Pipeline/Lit"));
             var mat = new Material(shader) { name = modelName + "_mat" };
             // 对标 Laya 布料材质:双面渲染(裙摆/袖子是单层面片,单面剔除会"看穿"衣服内侧)
             mat.SetFloat("_Cull", (float)UnityEngine.Rendering.CullMode.Off);
             mat.doubleSidedGI = true;
-            if (albedo != null)
-            {
-                mat.SetColor("_BaseColor", new Color(albedo[0], albedo[1], albedo[2], albedo[3]));
-            }
-            r.Log.AppendLine($"⑤ 材质: laya type='{layaType}' albedo={(albedo == null ? "默认" : $"({albedo[0]:0.##},{albedo[1]:0.##},{albedo[2]:0.##})")} → {(unlit ? "URP Unlit(直出)" : "URP SimpleLit")}");
+            r.Log.AppendLine("⑤ 材质: " + (materialMode == MaterialMode.Unlit ? "URP Unlit(直出)" : "URP SimpleLit"));
 
-            if (lmatPath != null)
+            if (lh.MaterialPaths.Count > 0)
             {
-                List<string> textures = LhDocument.ExtractTextures(lmatPath);
-                r.Log.AppendLine($"   {Path.GetFileName(lmatPath)} 贴图 {textures.Count} 张");
-                if (textures.Count > 0)
+                string lmatPath = lh.ResolveAssetPath(lh.MaterialPaths[0]);
+                if (lmatPath != null)
                 {
-                    string texSrc = textures[0];
-                    string texDst = outDir + "/" + Path.GetFileName(texSrc);
-                    if (!File.Exists(texDst)) File.Copy(texSrc, texDst, true);
-                    AssetDatabase.ImportAsset(texDst);
-                    var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(texDst);
-                    mat.SetTexture("_BaseMap", tex);
+                    List<string> textures = LhDocument.ExtractTextures(lmatPath);
+                    r.Log.AppendLine($"   {Path.GetFileName(lmatPath)} 贴图 {textures.Count} 张");
+                    if (textures.Count > 0)
+                    {
+                        string texSrc = textures[0];
+                        string texDst = outDir + "/" + Path.GetFileName(texSrc);
+                        if (!File.Exists(texDst)) File.Copy(texSrc, texDst, true);
+                        AssetDatabase.ImportAsset(texDst);
+                        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(texDst);
+                        mat.SetTexture("_BaseMap", tex);
+                    }
                 }
-            }
-            else if (lh.MaterialPaths.Count > 0)
-            {
-                r.Log.AppendLine("⑤ 材质: .lmat 未找到 " + lh.MaterialPaths[0]);
+                else
+                {
+                    r.Log.AppendLine("   ⚠ .lmat 未找到 " + lh.MaterialPaths[0]);
+                }
             }
             string matAsset = outDir + "/" + modelName + ".mat";
             AssetDatabase.CreateAsset(mat, matAsset);
