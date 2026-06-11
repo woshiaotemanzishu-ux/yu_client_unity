@@ -28,6 +28,8 @@ namespace Shenxiao.Module.Core.Login
         private static LoginEnterView _enter;
         private static LoginSelectServerView _select;
         private static LoginAlertView _alert;
+        private static LoginSelectRoleView _selectRole;
+        private static LoginCreateRoleView _createRole;
         private static bool _busy;
 
         /// <summary>
@@ -62,16 +64,21 @@ namespace Shenxiao.Module.Core.Login
                 else if (v is LoginEnterView enter) _enter = enter;
                 else if (v is LoginSelectServerView select) _select = select;
                 else if (v is LoginAlertView alert) _alert = alert;
+                else if (v is LoginSelectRoleView selectRole) _selectRole = selectRole;
+                else if (v is LoginCreateRoleView createRole) _createRole = createRole;
             }
-            if (_bg == null || _loading == null || _login == null || _register == null || _enter == null || _select == null || _alert == null)
+            if (_bg == null || _loading == null || _login == null || _register == null || _enter == null
+                || _select == null || _alert == null || _selectRole == null || _createRole == null)
             {
                 GameLog.Error("Login",
-                    "LoginModule 缺业务窗口(bg={0} loading={1} login={2} register={3} enter={4} select={5} alert={6})——先在转换器点『回填 Bind 引用』",
-                    _bg != null, _loading != null, _login != null, _register != null, _enter != null, _select != null, _alert != null);
+                    "LoginModule 缺业务窗口(bg={0} loading={1} login={2} register={3} enter={4} select={5} alert={6} selectRole={7} createRole={8})——重跑 login 流水线(转换+回填)",
+                    _bg != null, _loading != null, _login != null, _register != null, _enter != null,
+                    _select != null, _alert != null, _selectRole != null, _createRole != null);
                 return;
             }
 
             EventDispatcher.On<int>(GlobalEvent.EVT_GAME_ROLE_LIST, OnRoleList);
+            EventDispatcher.On(GlobalEvent.EVT_GAME_ENTERED, OnGameEntered);
 
             // 确定性层级:背景永远垫底;其余窗口靠 BaseView.Show() 置顶,
             // 弹出顺序即渲染顺序(Hierarchy 里可见:Show 的窗口跳到最后一位)
@@ -295,11 +302,33 @@ namespace Shenxiao.Module.Core.Login
             }
         }
 
+        /// <summary>角色列表到达 → 有角色进选角页,无角色进创角页(对标老客户端 On10000 分流)。</summary>
         private static void OnRoleList(int roleCount)
         {
-            GameLog.Info("Login", "—— ✅ 真实链路全通:加载 → 登录 → 协议 → 选服 → 入口 → WebSocket → 角色列表(角色数={0})——", roleCount);
-            // 角色数据已就绪;选角/创角页接入前,界面不再额外提示
-            if (_enter != null) _enter.RefreshServer();
+            GameLog.Info("Login", "角色列表到达(角色数={0})→ {1}", roleCount, roleCount > 0 ? "选角页" : "创角页");
+            _enter.RefreshServer();
+            _enter.Hide();
+            if (roleCount > 0) _selectRole.Show();
+            else _createRole.Show();
+        }
+
+        /// <summary>选角/创角页的返回:回到踏入仙界页(断开游戏服重选)。</summary>
+        public static void BackToEnter()
+        {
+            _selectRole.Hide();
+            _createRole.Hide();
+            _ = NetManagerDisconnect();
+            _enter.Show();
+        }
+
+        private static async Task NetManagerDisconnect()
+        {
+            await Shenxiao.Framework.Net.NetManager.DisconnectAsync();
+        }
+
+        private static void OnGameEntered()
+        {
+            GameLog.Info("Login", "—— 🎉 全链路终点:已进入游戏,登录模块使命完成,主城/场景接管(待接)——");
         }
     }
 }

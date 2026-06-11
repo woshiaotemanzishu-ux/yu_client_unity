@@ -107,6 +107,18 @@ namespace Shenxiao.Editor.LayaUI
                 prop.objectReferenceValue = ResolveRef(t, f.TypeName);
             }
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            // __Templates 下的列表项模板同样挂 {ItemName}Bind 并回填(字段相对模板根),
+            // 业务 Instantiate 模板后 GetComponent 即得字段(克隆自动重映射内部引用)
+            Transform tplRoot = windowRoot.Find("__Templates");
+            if (tplRoot != null)
+            {
+                for (int i = 0; i < tplRoot.childCount; i++)
+                {
+                    Transform tpl = tplRoot.GetChild(i);
+                    FillWindow(tpl, tpl.name, moduleDir, manifest);
+                }
+            }
             return true;
         }
 

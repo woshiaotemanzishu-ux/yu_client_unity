@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Shenxiao.Common.Prefs;
+using Shenxiao.Common.Proto;
 using Shenxiao.Framework.Config;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
@@ -189,6 +191,8 @@ namespace Shenxiao.Module.Core.Login
         protected override void Register()
         {
             RegisterProtocal(Proto.ACCOUNT_LOGIN, OnAccountLogin);
+            RegisterProtocal(Proto.CREATE_ROLE, OnCreateRole);
+            RegisterProtocal(Proto.ENTER_GAME, OnEnterGame);
             RegisterProtocal(Proto.HEARTBEAT, OnHeartbeat);
             RegisterProtocal(Proto.KICK_NOTIFY, OnKickNotify);
         }
@@ -196,31 +200,94 @@ namespace Shenxiao.Module.Core.Login
         /// <summary>
         /// 10000 回包(对标 yu_client LoginController.On10000):
         /// "clihi" = career, 服务器时间(毫秒), 开服时间, 角色数, 注册数;
-        /// 然后逐角色 "l" role_id + "c" state + FigureProtoVo 外观块 + "c" reward_id。
-        /// 外观块解析在选角 UI 阶段做(TODO),这里读到第一个 role_id 即可证明链路,
-        /// 剩余字节安全丢弃(每帧独立缓冲,不影响后续协议)。
+        /// 逐角色 "l" role_id + "c" state + FigureProto 外观块 + "c" reward_id。
         /// </summary>
         private void OnAccountLogin(NetReader reader)
         {
             object[] head = reader.ReadFmt("clihi");
-            byte career = (byte)head[0];
             long serverTimeMs = (long)head[1];
-            uint openTime = (uint)head[2];
             int roleCount = (ushort)head[3];
-            uint registerNum = (uint)head[4];
 
-            long firstRoleId = 0;
-            byte firstRoleState = 0;
-            if (roleCount > 0 && reader.Remaining >= 9)
+            var roles = new List<GameRoleInfo>(roleCount);
+            for (int i = 0; i < roleCount; i++)
             {
-                firstRoleId = reader.ReadU64();
-                firstRoleState = reader.ReadU8();
+                var role = new GameRoleInfo();
+                role.roleId = reader.ReadU64();
+                role.state = reader.ReadU8();
+                role.figure = FigureProto.Read(reader);
+                role.rewardId = reader.ReadU8();
+                roles.Add(role);
             }
+            Model.SetRoles(roles);
 
-            GameLog.Info("Login",
-                "★ 游戏服 10000 回包: 角色数={0} 首角色id={1}(state={2}) career={3} 服务器时间={4} 开服时间={5} 注册数={6}",
-                roleCount, firstRoleId, firstRoleState, career, serverTimeMs, openTime, registerNum);
+            GameLog.Info("Login", "★ 10000 回包: 角色数={0} 服务器时间={1}", roleCount, serverTimeMs);
+            for (int i = 0; i < roles.Count; i++)
+            {
+                GameLog.Info("Login", "  角色[{0}] id={1} {2} 职业={3} 等级={4} {5}转",
+                    i, roles[i].roleId, roles[i].DisplayName, roles[i].Career, roles[i].Level, roles[i].Turn);
+            }
             EventDispatcher.Emit(GlobalEvent.EVT_GAME_ROLE_LIST, roleCount);
+        }
+
+        /// <summary>
+        /// 创角请求(对标 TRY_CREATE_ROLE 的 10003 "cccsslsscscc")。
+        /// 打点/邀请/模拟器等渠道字段按首登默认值发送。
+        /// </summary>
+        public void SendCreateRole(string roleName, int career, int sex)
+        {
+            SendFmt(Proto.CREATE_ROLE, "cccsslsscscc",
+                0, career, sex, roleName, Model.PlatName,
+                0L,        // inviter_id
+                "",        // plat_account
+                "",        // ta_distinct_id
+                0,         // is_simulator
+                "",        // ta_device_id
+                0, 0);     // create_role_change_career / change_name
+            GameLog.Info("Login", "发送创角: name={0} career={1} sex={2}", roleName, career, sex);
+        }
+
+        /// <summary>选角进入游戏(对标 TRY_LOGIN_GAME 的 10004 "lsisisscscsh")。</summary>
+        public void EnterGameWithRole(long roleId)
+        {
+            long timeStamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            SendFmt(Proto.ENTER_GAME, "lsisisscscsh",
+                roleId, "开发", timeStamp, "", 1, Model.PlatName,
+                "",   // plat_account
+                0,    // is_whitelist
+                "",   // ta_distinct_id
+                0,    // is_simulator
+                "",   // ta_device_id
+                0);   // scene_id(重连续接用,首登 0)
+            GameLog.Info("Login", "发送进入游戏: role_id={0}", roleId);
+        }
+
+        /// <summary>10003 回包 "cl":result + role_id。result==1 直接进游戏(对标 On10003)。</summary>
+        private void OnCreateRole(NetReader reader)
+        {
+            object[] data = reader.ReadFmt("cl");
+            int result = (byte)data[0];
+            long roleId = (long)data[1];
+            GameLog.Info("Login", "创角结果 result={0} role_id={1}", result, roleId);
+            EventDispatcher.Emit(GlobalEvent.EVT_GAME_CREATE_ROLE_RESULT, result);
+            if (result == 1)
+            {
+                EnterGameWithRole(roleId);
+            }
+        }
+
+        /// <summary>10004 回包 "c":result==1 进入游戏成功(对标 On10004,后续 GAME_START 主城接管)。</summary>
+        private void OnEnterGame(NetReader reader)
+        {
+            int result = reader.ReadU8();
+            if (result == 1)
+            {
+                GameLog.Info("Login", "🎉 进入游戏成功(10004),主城/场景流程待接");
+                EventDispatcher.Emit(GlobalEvent.EVT_GAME_ENTERED);
+            }
+            else
+            {
+                GameLog.Warn("Login", "进入游戏失败 result={0}", result);
+            }
         }
 
         private void OnHeartbeat(NetReader reader)

@@ -163,7 +163,8 @@ var go = Object.Instantiate(prefab); // 来源不是 ResManager 的禁止
   **模块合并 prefab**（LayaUI 主路线）由该模块的流程类（如 `LoginFlow`）统一
   `Show()/Hide()` 子窗口——`Show()` 自带置顶，背景窗启动时固定垫底
 - 节点引用必须用生成的 Bind 字段（`_btn_xxx` / codeNodes），禁止运行时 `transform.Find`
-  （当前唯一豁免：`_tpl_*` 列表项模板内部，待 ItemBind 生成器落地后一并收口）
+  （列表项:Instantiate `_tpl_*` 模板后 `GetComponent<{Item}Bind>()` 取字段,
+  模板上的 ItemBind 由转换器生成、回填器挂载,克隆自动重映射引用）
 - 交互统一 `UIUtil.AddClick`（转换产物默认无 Button）；
   **隐藏可点击元素用 `color` 透明度，禁止 `Graphic.enabled=false`（会同时关掉点击）**
 - 业务 View 只负责状态、数据、事件和必要显隐；不要在运行时代码里改颜色、尺寸、

@@ -8,6 +8,7 @@ namespace Shenxiao.Module.Core.Login
         private static readonly LoginModel _instance = new LoginModel();
         private readonly List<LoginServerInfo> _servers = new List<LoginServerInfo>();
         private readonly List<LoginAreaInfo> _areas = new List<LoginAreaInfo>();
+        private readonly List<GameRoleInfo> _roles = new List<GameRoleInfo>();
 
         public static LoginModel Instance => _instance;
 
@@ -20,6 +21,14 @@ namespace Shenxiao.Module.Core.Login
         public IReadOnlyList<LoginServerInfo> Servers => _servers;
         /// <summary>大区列表(yu_gm buildServerList 的 areas:id/name/otime)。</summary>
         public IReadOnlyList<LoginAreaInfo> Areas => _areas;
+        /// <summary>当前游戏服的角色列表(10000 回包)。</summary>
+        public IReadOnlyList<GameRoleInfo> Roles => _roles;
+
+        public void SetRoles(List<GameRoleInfo> roles)
+        {
+            _roles.Clear();
+            if (roles != null) _roles.AddRange(roles);
+        }
 
         private LoginModel()
         {

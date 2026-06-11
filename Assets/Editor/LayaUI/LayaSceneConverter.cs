@@ -274,8 +274,9 @@ namespace Shenxiao.Editor.LayaUI
             GameObject go = BuildRoot(entry.Name, rootJson, manifest, report);
             _bakedSkins = null;
 
-            List<GameObject> templates = new List<GameObject>();
-            CollectInlineTemplates(entry, manifest, report, templates);
+            var templates = new List<GameObject>();
+            var templateEntries = new List<LayaUIManifest.SceneEntry>();
+            CollectInlineTemplates(entry, manifest, report, templates, templateEntries);
 
             // 共享 item:先保证共享 prefab 存在,再嵌套进 __Templates
             if (entry.TsClass != null)
@@ -298,12 +299,19 @@ namespace Shenxiao.Editor.LayaUI
                 tplRoot.transform.SetParent(go.transform, false);
                 foreach (GameObject t in templates) t.transform.SetParent(tplRoot.transform, false);
                 tplRoot.SetActive(false);
+
+                // 为每个内联模板生成 {ItemName}Bind(业务 Instantiate 后 GetComponent 取字段,
+                // 取代 transform.Find);共享件的 Bind 在其独立 prefab 转换时已生成
+                for (int i = 0; i < templateEntries.Count; i++)
+                {
+                    LayaBindGenerator.Generate(templateEntries[i], manifest, templates[i].transform, report);
+                }
             }
             return go;
         }
 
         private static void CollectInlineTemplates(LayaUIManifest.SceneEntry entry, LayaUIManifest manifest,
-            LayaUIReport report, List<GameObject> templates)
+            LayaUIReport report, List<GameObject> templates, List<LayaUIManifest.SceneEntry> templateEntries)
         {
             if (entry.InlineItems == null) return;
             foreach (string itemKey in entry.InlineItems)
@@ -316,7 +324,8 @@ namespace Shenxiao.Editor.LayaUI
                 _bakedSkins = null;
                 NormalizeItemRoot(item);
                 templates.Add(item);
-                CollectInlineTemplates(ie, manifest, report, templates); // item 套 item
+                templateEntries.Add(ie);
+                CollectInlineTemplates(ie, manifest, report, templates, templateEntries); // item 套 item
             }
         }
 

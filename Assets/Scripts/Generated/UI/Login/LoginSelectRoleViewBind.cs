@@ -14,7 +14,6 @@ namespace Shenxiao.Generated.UI.Login
         public Image _img_enter;
         public Image _img_return;
         public GameObject _tpl_LoginSelectRoleItem;
-        public GameObject _tpl_EyouThAdultItem;
 
         protected override void BindNodes()
         {
@@ -23,7 +22,6 @@ namespace Shenxiao.Generated.UI.Login
             EnsureBound(nameof(_img_enter), _img_enter);
             EnsureBound(nameof(_img_return), _img_return);
             EnsureBound(nameof(_tpl_LoginSelectRoleItem), _tpl_LoginSelectRoleItem);
-            EnsureBound(nameof(_tpl_EyouThAdultItem), _tpl_EyouThAdultItem);
         }
     }
 }
