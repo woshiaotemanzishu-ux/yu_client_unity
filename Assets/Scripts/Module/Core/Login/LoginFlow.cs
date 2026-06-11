@@ -310,6 +310,7 @@ namespace Shenxiao.Module.Core.Login
             _enter.Hide();
             _selectRole.Hide();
             _createRole.Hide();
+            _bg.ChangeRoleStatus(); // 对标老客户端:创角/选角阶段隐藏版权+换樱花底图
             if (roleCount > 0) _selectRole.Show();
             else _createRole.Show();
         }
@@ -326,6 +327,7 @@ namespace Shenxiao.Module.Core.Login
         {
             _selectRole.Hide();
             _createRole.Hide();
+            _bg.RestoreLoginStatus();
             _ = NetManagerDisconnect();
             _enter.Show();
         }

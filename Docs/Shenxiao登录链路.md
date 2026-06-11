@@ -86,8 +86,9 @@
 
 ## 创角/选角阶段的加载链(2026-06-11 查证)
 
-- **2D 背景**:登录全程只有一张 `scene/dragonBones/denglu/denglu_bg.jpg`(龙图,
-  LoginBgView 三个分支同源;denglu_bg1.jpg 无代码引用)。Unity 已对齐。
+- **2D 背景分阶段**(LoginBgView.ts):登录/踏入仙界 = `denglu_bg.jpg`(龙图);
+  进创角/选角(OPEN_VIEW 触发 `ChangeRoleStatus`)= 换 `ui_Login_bg2.jpg`(樱花底)
+  并**隐藏版权块**;回登录态 `UpdateView` 恢复。Unity 已按此实现。
 - **创角/选角的樱花树/石台/角色** = **3D 展示链**:
   `ResManager.SetRoleModel(this, _gp_model_con, show_model_data)`,
   UI_MODEL_TYPE.ROLE + clothe/weapon/wing res(即 model_clothe_*.lh 那套)+ 环境场景。
