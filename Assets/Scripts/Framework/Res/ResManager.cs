@@ -59,17 +59,19 @@ namespace Shenxiao.Framework.Res
 
             if (handle.Status != AsyncOperationStatus.Succeeded)
             {
-                GameLog.Error("Res", "instantiate failed key={0}", key);
 #if UNITY_EDITOR
+                // 编辑器兜底:资源还没进 Addressables 组时直接实例化工程内 prefab。
+                // 兜底成功只提示 Warn(去跑 神霄/资源/Addressable 自动分组),不刷 Error。
                 GameObject prefab = LoadEditorPrefabFallback(key);
                 if (prefab != null)
                 {
                     GameObject fallbackGo = UnityEngine.Object.Instantiate(prefab, parent);
                     _editorFallbackInstances.Add(fallbackGo);
-                    GameLog.Warn("Res", "editor prefab fallback key={0}", key);
+                    GameLog.Warn("Res", "editor prefab fallback key={0}(未进 Addressables 组,记得跑 自动分组)", key);
                     return fallbackGo;
                 }
 #endif
+                GameLog.Error("Res", "instantiate failed key={0}", key);
                 return null;
             }
 
