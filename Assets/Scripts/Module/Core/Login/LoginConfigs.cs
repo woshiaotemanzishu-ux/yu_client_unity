@@ -40,14 +40,14 @@ namespace Shenxiao.Module.Core.Login
         private static JObject _modelAni;
         private static JObject _randomName;
 
-        public static bool IsLoaded => _login != null;
+        public static bool IsLoaded => _login != null && _modelAni != null && _randomName != null;
 
         public static async Task EnsureLoaded()
         {
-            if (IsLoaded) return;
-            _login = await LoadJson("resource/config/client/configlogin");
-            _modelAni = await LoadJson("resource/config/client/configmodelani");
-            _randomName = await LoadJson("resource/config/client/configrandomname");
+            // 失败不缓存(保持 null),下次进页面还会重试;访问器全部 null 安全
+            if (_login == null) _login = await LoadJson("resource/config/client/configlogin");
+            if (_modelAni == null) _modelAni = await LoadJson("resource/config/client/configmodelani");
+            if (_randomName == null) _randomName = await LoadJson("resource/config/client/configrandomname");
         }
 
         private static async Task<JObject> LoadJson(string key)
@@ -55,8 +55,8 @@ namespace Shenxiao.Module.Core.Login
             TextAsset asset = await ResManager.LoadAsync<TextAsset>(key);
             if (asset == null)
             {
-                GameLog.Error("Config", "客户端配置缺失:{0}(编辑器菜单 神霄/配表/同步客户端配置 后重试)", key);
-                return new JObject();
+                GameLog.Error("Config", "客户端配置缺失:{0}(进 Play 前会自动同步;手动菜单 神霄/配表/同步客户端配置)", key);
+                return null;
             }
             var jo = JObject.Parse(asset.text);
             ResManager.Release(asset);

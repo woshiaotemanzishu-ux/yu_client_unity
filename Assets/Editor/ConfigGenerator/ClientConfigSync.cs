@@ -25,10 +25,18 @@ namespace Shenxiao.EditorTools.ConfigGen
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]
         public static void Sync()
         {
+            int ok = SyncIfStale(force: true);
+            Debug.Log($"[ClientConfigSync] 同步 {ok}/{SYNC_LIST.Length} 份 → {DST_DIR}");
+        }
+
+        private const string DST_DIR = "Assets/GameRes/resource/config/client";
+
+        /// <summary>缺失或源更新才拷贝;返回拷贝数。进 Play 模式前自动调用(免去手动菜单步骤)。</summary>
+        public static int SyncIfStale(bool force = false)
+        {
             string srcDir = Path.Combine(LayaUISettings.CdnResourceRoot, "config", "client");
-            const string dstDir = "Assets/GameRes/resource/config/client";
-            Directory.CreateDirectory(dstDir);
-            int ok = 0;
+            Directory.CreateDirectory(DST_DIR);
+            int copied = 0;
             foreach (string name in SYNC_LIST)
             {
                 string src = Path.Combine(srcDir, name + ".json");
@@ -37,11 +45,31 @@ namespace Shenxiao.EditorTools.ConfigGen
                     Debug.LogError($"[ClientConfigSync] 缺源文件: {src}");
                     continue;
                 }
-                File.Copy(src, Path.Combine(dstDir, name.ToLowerInvariant() + ".json"), true);
-                ok++;
+                string dst = Path.Combine(DST_DIR, name.ToLowerInvariant() + ".json");
+                if (!force && File.Exists(dst)
+                    && File.GetLastWriteTimeUtc(dst) >= File.GetLastWriteTimeUtc(src)) continue;
+                File.Copy(src, dst, true);
+                copied++;
             }
-            AssetDatabase.Refresh();
-            Debug.Log($"[ClientConfigSync] 同步 {ok}/{SYNC_LIST.Length} 份 → {dstDir}");
+            if (copied > 0)
+            {
+                AssetDatabase.Refresh();
+                Debug.Log($"[ClientConfigSync] 自动同步客户端配置 {copied} 份 → {DST_DIR}");
+            }
+            return copied;
+        }
+    }
+
+    /// <summary>进 Play 模式前自动同步客户端配置(运行时链路依赖这些 JSON,不靠人记菜单)。</summary>
+    [InitializeOnLoad]
+    internal static class ClientConfigAutoSync
+    {
+        static ClientConfigAutoSync()
+        {
+            EditorApplication.playModeStateChanged += state =>
+            {
+                if (state == PlayModeStateChange.ExitingEditMode) ClientConfigSync.SyncIfStale();
+            };
         }
     }
 }

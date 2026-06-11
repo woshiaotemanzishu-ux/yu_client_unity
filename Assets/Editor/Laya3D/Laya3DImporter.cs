@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -16,6 +17,9 @@ namespace Shenxiao.Editor.Laya3D
     /// </summary>
     public static class Laya3DImporter
     {
+        /// <summary>转换逻辑版本:改了产物结构/默认行为就 +1,资产管理会把旧版产物标 🔶 要求重转。
+        /// v2 = 动作 clip 共享目录 + 默认全量动作 + 非蒙皮分支 + Unlit 默认。</summary>
+        public const int TOOL_VERSION = 2;
         /// <summary>材质模式:Unlit=贴图直出,对标老客户端(UIModelClass3D.ts 把角色材质按
         /// Laya.UnlitMaterial 处理,electron 工具 .lmat 也写 Laya.UnlitMaterial),不吃光照不会发黑;
         /// Lit=URP SimpleLit,受场景光照(留给后续真需要光照的资产)。
@@ -156,7 +160,19 @@ namespace Shenxiao.Editor.Laya3D
             string prefabPath = outDir + "/" + modelName + ".prefab";
             PrefabUtility.SaveAsPrefabAsset(rootGo, prefabPath);
             UnityEngine.Object.DestroyImmediate(rootGo);
+
+            // 转换元数据:版本戳 + 实际转的动作,资产管理用它判断「转换器升级需重转」
+            var meta = new JObject
+            {
+                ["tool"] = TOOL_VERSION,
+                ["material"] = materialMode.ToString(),
+                ["clips"] = new JArray(clips.ConvertAll(c => c.name)),
+            };
+            File.WriteAllText(Path.GetFullPath(Path.Combine(Application.dataPath, "..", outDir, modelName + ".import.json")),
+                meta.ToString());
+
             AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
             r.PrefabPath = prefabPath;
             r.Log.AppendLine("✅ 完成: " + prefabPath);
         }

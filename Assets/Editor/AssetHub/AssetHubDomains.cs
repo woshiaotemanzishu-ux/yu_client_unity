@@ -184,9 +184,23 @@ namespace Shenxiao.Editor.AssetHub
             if (IsLfsPlaceholder(e.LhPath)) return EntryStatus.SourceLfs;
             string prefabAbs = AssetPathToAbs(e.PrefabPath);
             if (!File.Exists(prefabAbs)) return EntryStatus.NotConverted;
+            if (ImportedToolVersion(e) != Laya3D.Laya3DImporter.TOOL_VERSION) return EntryStatus.Stale;
             return SourceMTime(e) > File.GetLastWriteTimeUtc(prefabAbs)
                 ? EntryStatus.Stale
                 : EntryStatus.Converted;
+        }
+
+        /// <summary>产物旁的 {model}.import.json 版本戳;旧产物(无戳/旧戳)= 转换器升级过,需重转。</summary>
+        private static int ImportedToolVersion(AssetEntry e)
+        {
+            string metaAbs = AssetPathToAbs(e.OutDir + "/" + Path.GetFileNameWithoutExtension(e.LhPath) + ".import.json");
+            if (!File.Exists(metaAbs)) return 0;
+            try
+            {
+                var meta = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(metaAbs));
+                return meta.Value<int>("tool");
+            }
+            catch { return 0; }
         }
 
         /// <summary>源最新改动时间:objs 下同 model 前缀的所有文件(.lh/.lm/.lmat/贴图)取最大。</summary>
@@ -239,7 +253,7 @@ namespace Shenxiao.Editor.AssetHub
             switch (s)
             {
                 case EntryStatus.Converted: return "已转换";
-                case EntryStatus.Stale: return "源已更新,需重转";
+                case EntryStatus.Stale: return "源已更新或转换器升级,需重转";
                 case EntryStatus.NotConverted: return "未转换";
                 case EntryStatus.SourceLfs: return "源是 LFS 占位(本机 git lfs pull 后刷新)";
                 default: return "源 .lh 缺失";

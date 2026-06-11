@@ -101,6 +101,7 @@ namespace Shenxiao.EditorTools.AddrSetup
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 if (AssetDatabase.IsValidFolder(path)) continue;
                 if (path.EndsWith(".meta") || path.EndsWith(".cs") || path.EndsWith(".asmdef")) continue;
+                if (path.EndsWith(".import.json")) continue; // Laya3D 转换元数据,仅编辑器用
 
                 var address = MakeAddress(path);
                 var entry = settings.CreateOrMoveEntry(guid, group, false, false);
