@@ -315,11 +315,18 @@ namespace Shenxiao.Module.Core.Login
             else _createRole.Show();
         }
 
-        /// <summary>选角页的「+创建角色」入口。</summary>
+        /// <summary>选角页空槽的「创建角色」入口。</summary>
         public static void ShowCreateRole()
         {
             _selectRole.Hide();
             _createRole.Show();
+        }
+
+        /// <summary>创角页返回(有角色时):回选角页(对标老客户端 _img_return 分支)。</summary>
+        public static void ShowSelectRole()
+        {
+            _createRole.Hide();
+            _selectRole.Show();
         }
 
         /// <summary>选角/创角页的返回:回到踏入仙界页(断开游戏服重选)。</summary>

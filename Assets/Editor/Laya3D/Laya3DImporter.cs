@@ -50,7 +50,9 @@ namespace Shenxiao.Editor.Laya3D
         private static void ConvertInner(string lhPath, List<string> laniPaths, bool mirrorX, MaterialMode materialMode, Result r)
         {
             string modelName = Path.GetFileNameWithoutExtension(lhPath);
-            string outDir = "Assets/GameRes/object/role/" + modelName;
+            // 输出目录按源目录约定泛化:.../object/{module}/objs/x.lh → Assets/GameRes/object/{module}/x
+            string module = DeriveModule(lhPath);
+            string outDir = $"Assets/GameRes/object/{module}/{modelName}";
             Directory.CreateDirectory(outDir);
 
             // ---------- ① .lh ----------
@@ -102,47 +104,52 @@ namespace Shenxiao.Editor.Laya3D
             // ---------- ⑤ 材质 ----------
             Material mat = BuildMaterial(lh, modelName, outDir, materialMode, r);
 
-            // ---------- ⑥ SkinnedMeshRenderer ----------
+            // ---------- ⑥ 渲染器(蒙皮=SkinnedMeshRenderer,静态=MeshFilter+MeshRenderer) ----------
             var meshGo = new GameObject(lm.Name == "" ? "mesh" : lm.Name);
             meshGo.transform.SetParent(rootGo.transform, false);
             if (lh.MeshNodeRotation != null)
             {
                 meshGo.transform.localRotation = Rot(lh.MeshNodeRotation, mirrorX);
             }
-            var smr = meshGo.AddComponent<SkinnedMeshRenderer>();
-            smr.sharedMesh = mesh;
-            smr.sharedMaterial = mat;
-
-            var bones = new Transform[lm.BoneNames.Count];
-            for (int i = 0; i < lm.BoneNames.Count; i++)
+            if (lm.BoneNames.Count > 0)
             {
-                bones[i] = lh.BoneNameToIndex.TryGetValue(lm.BoneNames[i], out int bi)
-                    ? boneTransforms[bi]
-                    : rootGo.transform;
-            }
-            smr.bones = bones;
-            smr.rootBone = lh.Bones.Count > 0 ? boneTransforms[0] : rootGo.transform;
-            smr.updateWhenOffscreen = true;
+                var smr = meshGo.AddComponent<SkinnedMeshRenderer>();
+                smr.sharedMesh = mesh;
+                smr.sharedMaterial = mat;
 
-            // ---------- ⑦ 动画(Legacy) ----------
+                var bones = new Transform[lm.BoneNames.Count];
+                for (int i = 0; i < lm.BoneNames.Count; i++)
+                {
+                    bones[i] = lh.BoneNameToIndex.TryGetValue(lm.BoneNames[i], out int bi)
+                        ? boneTransforms[bi]
+                        : rootGo.transform;
+                }
+                smr.bones = bones;
+                smr.rootBone = lh.Bones.Count > 0 ? boneTransforms[0] : rootGo.transform;
+                smr.updateWhenOffscreen = true;
+            }
+            else
+            {
+                meshGo.AddComponent<MeshFilter>().sharedMesh = mesh;
+                meshGo.AddComponent<MeshRenderer>().sharedMaterial = mat;
+                r.Log.AppendLine("⑥ 静态网格(无骨骼,武器/部件常见)");
+            }
+
+            // ---------- ⑦ 动画(Legacy):clip 共享在 object/{module}/action/{dir}/,增量生成 ----------
             var clips = new List<AnimationClip>();
             foreach (string laniPath in laniPaths)
             {
-                AnimationClip clip = BuildClip(laniPath, mirrorX, rootGo.transform, r);
-                if (clip != null)
-                {
-                    string clipAsset = outDir + "/" + clip.name + ".anim";
-                    AssetDatabase.CreateAsset(clip, clipAsset);
-                    clips.Add(AssetDatabase.LoadAssetAtPath<AnimationClip>(clipAsset));
-                }
+                AnimationClip clip = BuildOrReuseClip(laniPath, mirrorX, module, rootGo.transform, r);
+                if (clip != null) clips.Add(clip);
             }
             if (clips.Count > 0)
             {
                 var anim = rootGo.AddComponent<Animation>();
                 AnimationUtility.SetAnimationClips(anim, clips.ToArray());
-                anim.clip = clips[0];
+                // 默认播放待机:stand > idle > 第一个(对标老客户端 UI 默认动作)
+                anim.clip = clips.Find(c => c.name == "stand") ?? clips.Find(c => c.name == "idle") ?? clips[0];
                 anim.playAutomatically = true;
-                r.Log.AppendLine($"⑦ 动画 {clips.Count} 个,默认自动播放: {clips[0].name}");
+                r.Log.AppendLine($"⑦ 动画 {clips.Count} 个,默认自动播放: {anim.clip.name}");
             }
 
             // ---------- ⑧ Prefab ----------
@@ -288,12 +295,57 @@ namespace Shenxiao.Editor.Laya3D
             return AssetDatabase.LoadAssetAtPath<Material>(matAsset);
         }
 
+        /// <summary>源约定 .../object/{module}/objs/x.lh → module;不符合约定回退 role。</summary>
+        private static string DeriveModule(string lhPath)
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(
+                lhPath.Replace('\\', '/'), "/object/([^/]+)/objs/");
+            return m.Success ? m.Groups[1].Value : "role";
+        }
+
+        /// <summary>
+        /// 动作名:文件约定 "{动作名}-{动作名}.lani"(stand-stand、skill4_2-skill4_2),取首个 '-' 前段。
+        /// 老客户端按动作名播放(CommonPlayAnim(animator,"stand")),用文件名保证确定性与增量比对。
+        /// </summary>
+        private static string ClipNameOf(string laniPath)
+        {
+            string baseName = Path.GetFileNameWithoutExtension(laniPath);
+            int dash = baseName.IndexOf('-');
+            return dash > 0 ? baseName.Substring(0, dash) : baseName;
+        }
+
+        /// <summary>
+        /// clip 资产共享在 Assets/GameRes/object/{module}/action/{动作目录名}/(同职业多模型共用,
+        /// 对标老客户端 action/{career*1000+100} 共用约定);已存在且比 .lani 新则直接复用。
+        /// </summary>
+        private static AnimationClip BuildOrReuseClip(string laniPath, bool mirrorX, string module, Transform root, Result r)
+        {
+            string clipName = ClipNameOf(laniPath);
+            string clipDir = $"Assets/GameRes/object/{module}/action/{Path.GetFileName(Path.GetDirectoryName(laniPath))}";
+            string clipAsset = clipDir + "/" + clipName + ".anim";
+            string clipAbs = Path.GetFullPath(Path.Combine(Application.dataPath, "..", clipAsset));
+            if (File.Exists(clipAbs) && File.GetLastWriteTimeUtc(clipAbs) >= File.GetLastWriteTimeUtc(laniPath))
+            {
+                var cached = AssetDatabase.LoadAssetAtPath<AnimationClip>(clipAsset);
+                if (cached != null)
+                {
+                    r.Log.AppendLine($"⑥ 动画 {clipName}: 复用已有 clip");
+                    return cached;
+                }
+            }
+            Directory.CreateDirectory(clipDir);
+            AnimationClip clip = BuildClip(laniPath, mirrorX, root, r);
+            if (clip == null) return null;
+            AssetDatabase.CreateAsset(clip, clipAsset);
+            return AssetDatabase.LoadAssetAtPath<AnimationClip>(clipAsset);
+        }
+
         private static AnimationClip BuildClip(string laniPath, bool mirrorX, Transform root, Result r)
         {
             LaniClip lani = LaniParser.Parse(File.ReadAllBytes(laniPath));
             var clip = new AnimationClip
             {
-                name = string.IsNullOrEmpty(lani.Name) ? Path.GetFileNameWithoutExtension(laniPath) : lani.Name,
+                name = ClipNameOf(laniPath),
                 legacy = true,
                 frameRate = lani.FrameRate,
                 wrapMode = lani.IsLooping ? WrapMode.Loop : WrapMode.Once,

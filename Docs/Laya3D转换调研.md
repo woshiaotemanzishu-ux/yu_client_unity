@@ -48,8 +48,31 @@
 贴进 UI 容器、透明底。取景逐行复刻老客户端 UIModelClass3D.ts:正交相机
 (orthographicVerticalSize=12.8、z=-20),层级 root(×1.1)→yaw(180°转身)→
 body(×5×scale),RT 尺寸跟随容器;scale/position 由调用方传入(登录链路
-scale=0.5,position=ConfigLogin 的 ModelPos+PosOffset,TODO 配表线)。
-创角页与选角页已接入;职业→默认装映射 剑士1111/武姬1213/枪使1300/弓手1400。
+scale=0.5(视图代码字面量),position=ConfigLogin 的 ModelPos+PosOffset,运行时读)。
+
+`Common/UI3D/RoleModelAssembler`:组装(UIModelClass3D 装配部分对等)——
+衣服主体 + 头饰挂 `head` 骨 + 武器挂 `rhand` 骨(职业 1~4 均右手单持,
+对标 WeaponCountInfo.role),挂后 ResetTransform;动作按名从共享目录加载,
+对标 PlayActions 顺序播放(创角=create2→create3,选角=idle,来自 ConfigModelAni)。
+待办:翅膀/背饰(挂 `wing` 骨)、时装贴图 Clothe、形象线(figure 数据换装)。
+
+## 动作(.lani)共享与命名约定
+
+- clip 资产共享:`Assets/GameRes/object/{module}/action/{动作目录名}/{动作名}.anim`,
+  增量生成(.anim 比 .lani 新则复用)。同职业 22 个时装共用一套(老客户端约定)。
+- 动作名 = 文件名 "{name}-{name}.lani" 取 '-' 前段(stand/skill4_2…),
+  与老客户端 CommonPlayAnim 的动作名一致;clip.wrapMode 由 .lani 循环标记决定。
+- 模型 prefab 默认引用转换时勾选的动作(默认全部),默认自动播 stand>idle>第一个;
+  运行时可再按名 AddClip(RoleModelAssembler.ApplyActions)。
+- 非蒙皮 .lm(武器等静态件)→ MeshFilter+MeshRenderer 分支。
+
+## 客户端配置运行时化(登录链路)
+
+`神霄/配表/同步客户端配置(JSON)`(Editor/ConfigGenerator/ClientConfigSync)把
+ConfigLogin / ConfigModelAni / ConfigRandomName / UIModelParameter 从 yu_client 同步进
+`GameRes/resource/config/client/`(文件名小写=地址)。运行时 `LoginConfigs`(JObject 直读)
+提供:创角职业项(含 random_weight/介绍图)、默认装 Res、ModelPos/PosOffset、
+SelectRole.TotalCount、UI 动作清单、随机名。创角/选角视图零硬编码镜像。
 
 ## 资产管理工具(神霄/资产管理,Editor/AssetHub)
 
@@ -57,19 +80,23 @@ scale=0.5,position=ConfigLogin 的 ModelPos+PosOffset,TODO 配表线)。
 
 - **定位**:配置表=清单真相源(第一期只读),工具管资源。配表编辑走配表线,不在此工具。
 - 左栏资源域:角色时装(config_fashion_model.json,88 个 model_id)、创角默认装
-  (ConfigLogin.CreateRole,4 个);头饰/武器/翅膀/坐骑占位待接入(各自配置表+路径模板)。
+  (ConfigLogin.CreateRole,4 个)、头饰/武器/背饰/翅膀(清单=objs 目录,明细配置待配表线);
+  坐骑待接(骑乘组合逻辑,先验真实样本)。
 - 中栏清单:搜索 + 状态徽标(✅已转 / 🔶源已更新 / ⬜未转 / ⚠LFS 占位 / ❌缺源)+
   「转换缺失+过期」「全部重转」批量按钮(进度条,完后按设置自动 Addressable 分组)。
   状态比对 = objs 下同前缀源文件最新 mtime vs 产物 prefab mtime。
-- 右栏详情:配置字段、源/产物路径、转换动作勾选(默认 stand/idle)、材质模式
-  (默认 Unlit 定案)、转换/重转、定位产物、删产物(只删 Assets 产物,源不动)、
+- 右栏详情:配置字段、源/产物路径、转换动作勾选(默认全部,clip 共享增量不重复花钱)、
+  材质模式(默认 Unlit 定案)、转换/重转、定位产物、删产物(只删 Assets 产物,源不动)、
   源目录、可旋转预览(Editor.CreateEditor 的 InteractivePreview)。
 - **换源/新增入口**:替换=本机覆盖 objs 源文件后列表变 🔶 重转;新美术 FBX 线就绪后
   在详情页加「换源」按钮(老约定:新资产走 FBX,转换链不变)。
+- MVP 单模型窗口(Laya3D 转换器)与「3D 转换(占位)」菜单已删,统一走资产管理。
 
 ## 下一步(顺序)
 
 1. ✅ 四职业默认装游戏内验收(位置/大小/朝向/亮度全过,2026-06-11);
-2. 用资产管理工具把时装全清单批量转换,游戏内抽查若干;
-3. 头饰/武器/翅膀/坐骑域逐个接入(配置表+GameResPath 路径模板,转换器需先各验一个真实样本);
-4. 材质模板统一调优(.lmat 样本核对后参数化);新资产 FBX 导入线(美术 SOP)。
+2. 头饰/武器各转一个真实样本(model_head_1100 / model_weapon_r_1100)游戏内验收
+   (老教训:部件结构≠角色结构,先走通一个再批量);
+3. 用资产管理工具批量转换时装/头饰/武器全清单,游戏内抽查;
+4. 翅膀/背饰挂接 + 时装贴图 Clothe + 形象线(选角页按 figure 数据换装);
+5. 材质模板统一调优(.lmat 样本核对后参数化);新资产 FBX 导入线(美术 SOP)。

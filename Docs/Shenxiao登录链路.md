@@ -97,3 +97,21 @@
   选中底图 ui_Login_02/未选 ui_Login_03),**左侧竖排** item.SetPosition(0, career*133)。
 - 加载页背景按 ConfigLoadingBgTime 条件表选 load_bg{id}(等级/开服天数/星期等),
   Unity 当前取第一张为编辑器默认,接配表线后按表选。
+
+## 创角/选角页表现对齐(2026-06-11 二次查证,老客户端为准)
+
+- **分流**(On10000):role_num==0 → 创角页;>0 → 选角页。两页可互达:
+  创角页返回 → 有角色回**选角页**、无角色断线回踏入仙界页;选角页空槽点击 → 创角页。
+- **选角页**(LoginSelectRoleView/Item.ts):固定 `SelectRole.TotalCount`(4)个槽位,
+  角色按 role_id 升序;**空槽=创建角色入口**(只显 `ui_Login_04` 底图,bg2/名字/等级全藏);
+  角色槽选中态 `ui_Login_02`+`ui_Login_05`、未选 `ui_Login_03`+`ui_Login_06`;
+  等级>370 显「升仙」角标 `_img_sc` 且等级显示 level-370;行位 (50, index*136);
+  默认选中**上次登录角色**(cookie LAST_LOGIN_ROLE_ID ≈ Prefs login.lastRoleId);
+  模型=选中角色形象 + idle(Unity 暂为职业默认装,形象线 TODO)。
+- **创角页**(LoginCreateRoleView.ts):进入按 `random_weight` **加权随机预选职业** +
+  自动随机名(ConfigRandomName 姓+性别名);右侧三张职业介绍图 img1/2/3
+  (login/other/ 下,随职业切换);模型动作=ConfigModelAni 的 create2→create3。
+- 以上配置全部运行时读(LoginConfigs),编辑器菜单「神霄/配表/同步客户端配置(JSON)」
+  负责把 JSON 从 yu_client 带进 GameRes。
+- 未对齐(记账):入场 Tween(条目飞入/按钮浮入)、角色头像 CustomHeadItem、
+  创角音效+骨骼特效、选角页形象线换装、创角视频(LoginCreatRoleVideoView)。

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
@@ -8,36 +9,19 @@ using UnityEngine;
 namespace Shenxiao.Module.Core.Login
 {
     /// <summary>
-    /// 创角页:职业头像列表(_tpl_LoginCreateRoleItem)+ 名字输入 + 随机名 + 进入(10003)。
-    /// TODO(配表线):职业定义与随机名词库应来自 ConfigLogin(CreateRole.UI / 名字库),
-    /// ConfigManager 接入 yu_client 配表后替换下面的临时常量。
-    /// 中央 _gp_model_con 是 3D 模型位,待 .lh 转换线。
+    /// 创角页(对标老客户端 LoginCreateRoleView.ts):
+    /// 职业列表/图标/介绍图/随机名/默认装模型全部来自 ConfigLogin+ConfigModelAni+ConfigRandomName
+    /// (LoginConfigs 运行时读 JSON,无硬编码镜像)。
+    /// 进入时按 random_weight 加权随机预选职业;返回:有角色回选角页,无角色断线回踏入仙界页。
     /// </summary>
     public sealed class LoginCreateRoleView : LoginCreateRoleViewBind
     {
-        // 临时:ConfigLogin.CreateRole.UI/Res 的镜像(career/sex/名称/头像/默认装 role_res/模型位偏移 PosOffset)
-        // TODO(配表线):ConfigManager 接入 ConfigLogin 后替换
-        private static readonly (int career, int sex, string name, string selectIcon, string unselectIcon, int roleRes, float posOffsetY)[] CAREERS =
-        {
-            (1, 1, "剑士", "ui_Login_10", "ui_Login_10a", 1111, -0.53f),
-            (2, 2, "武姬", "ui_Login_12", "ui_Login_12a", 1213, 0f),
-            (3, 1, "枪使", "ui_Login_11", "ui_Login_11a", 1300, 0f),
-            (4, 2, "弓手", "ui_Login_13", "ui_Login_13a", 1400, 0f),
-        };
-
-        // ConfigLogin.CreateRole.ModelPos 与 show_model_data.scale=0.5 的镜像
-        private static readonly Vector2 MODEL_POS = new Vector2(0f, 1.53f);
+        // 老客户端视图代码字面量(非配置):item.SetPosition(0, career*133)、show_model_data.scale=0.5
+        private const float ITEM_STEP_Y = 133f;
         private const float MODEL_SCALE = 0.5f;
 
-        private static readonly string[] RANDOM_NAMES =
-        {
-            "凌霄", "青岚", "破晓", "听雪", "惊鸿", "御风", "星河", "暮云",
-        };
-
-        // 对标老客户端 LoginCreateRoleView.ts:item.SetPosition(0, career*133) —— 左侧竖排
-        private const float ITEM_STEP_Y = 133f;
-
         private readonly List<GameObject> _items = new List<GameObject>();
+        private List<LoginConfigs.CareerOption> _options = new List<LoginConfigs.CareerOption>();
         private int _selectedIndex;
         private bool _creating;
 
@@ -52,14 +36,12 @@ namespace Shenxiao.Module.Core.Login
         protected override void OnShow(object args)
         {
             _creating = false;
-            BuildCareers();
-            OnClickRandomName();
-            ShowCareerModel();
+            InitAsync();
         }
 
         protected override void OnHide()
         {
-            Shenxiao.Common.UI3D.UIModelStage.Clear();
+            UIModelStage.Clear();
         }
 
         protected override void OnDispose()
@@ -67,19 +49,32 @@ namespace Shenxiao.Module.Core.Login
             EventDispatcher.Off<int>(GlobalEvent.EVT_GAME_CREATE_ROLE_RESULT, OnCreateResult);
         }
 
+        private async void InitAsync()
+        {
+            await LoginConfigs.EnsureLoaded();
+            _options = LoginConfigs.CreateRoleOptions();
+            if (_options.Count == 0)
+            {
+                GameLog.Error("Login", "ConfigLogin.CreateRole.UI 为空(配置未同步?)");
+                return;
+            }
+            BuildCareers();
+            SelectCareer(WeightedRandomIndex()); // 老客户端 GetRandomIndex:按 random_weight 加权
+            OnClickRandomName();
+        }
+
         private void BuildCareers()
         {
             foreach (GameObject go in _items) Destroy(go);
             _items.Clear();
-            _selectedIndex = 0;
 
-            for (int i = 0; i < CAREERS.Length; i++)
+            for (int i = 0; i < _options.Count; i++)
             {
                 GameObject item = Instantiate(_tpl_LoginCreateRoleItem, _gp_head_con);
                 item.SetActive(true);
-                // y = career*133(Laya y 向下 → Unity 取负),x 固定 0
+                // y = career*133(Laya y 向下 → Unity 取负)
                 ((RectTransform)item.transform).anchoredPosition =
-                    new Vector2(0f, -CAREERS[i].career * ITEM_STEP_Y);
+                    new Vector2(0f, -_options[i].Career * ITEM_STEP_Y);
 
                 var bind = item.GetComponent<LoginCreateRoleItemBind>();
                 if (bind == null)
@@ -87,12 +82,33 @@ namespace Shenxiao.Module.Core.Login
                     GameLog.Error("Login", "职业项缺 LoginCreateRoleItemBind,重跑回填");
                     continue;
                 }
-                bind._lb_career.text = CAREERS[i].name;
+                bind._lb_career.text = _options[i].Name;
                 int captured = i;
-                UIUtil.AddClick(bind._img_bg, () => OnClickCareer(captured));
+                UIUtil.AddClick(bind._img_bg, () => SelectCareer(captured));
                 _items.Add(item);
             }
+        }
+
+        private int WeightedRandomIndex()
+        {
+            int total = 0;
+            foreach (var o in _options) total += Mathf.Max(o.RandomWeight, 0);
+            if (total <= 0) return 0;
+            int roll = Random.Range(0, total);
+            for (int i = 0; i < _options.Count; i++)
+            {
+                roll -= Mathf.Max(_options[i].RandomWeight, 0);
+                if (roll < 0) return i;
+            }
+            return 0;
+        }
+
+        private void SelectCareer(int index)
+        {
+            _selectedIndex = Mathf.Clamp(index, 0, _options.Count - 1);
             RefreshCareerStates();
+            RefreshTips();
+            ShowCareerModel();
         }
 
         private void RefreshCareerStates()
@@ -104,7 +120,7 @@ namespace Shenxiao.Module.Core.Login
                 bool selected = i == _selectedIndex;
                 // 对标 LoginCreateRoleItem.ts:选中底图 ui_Login_02,未选 ui_Login_03;头像换 a 版
                 string bg = selected ? "ui_Login_02" : "ui_Login_03";
-                string icon = selected ? CAREERS[i].selectIcon : CAREERS[i].unselectIcon;
+                string icon = selected ? _options[i].SelectIcon : _options[i].UnselectIcon;
                 _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg,
                         $"resource/game/login/texture/{bg}.png");
                 _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_icon,
@@ -112,32 +128,47 @@ namespace Shenxiao.Module.Core.Login
             }
         }
 
-        private void OnClickCareer(int index)
+        /// <summary>右侧职业介绍三连图(老客户端 SetOutsideImageSprite(GetIconOtherPath))。</summary>
+        private void RefreshTips()
         {
-            _selectedIndex = index;
-            RefreshCareerStates();
-            ShowCareerModel();
+            var o = _options[_selectedIndex];
+            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(_img_tips, $"resource/game/login/other/{o.Img1}.png");
+            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(_img_tips2, $"resource/game/login/other/{o.Img2}.png");
+            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(_img_tips3, $"resource/game/login/other/{o.Img3}.png");
         }
 
-        /// <summary>中央 3D 模型(Laya SetRoleModel 对等):按职业默认装加载转换产物。</summary>
+        /// <summary>中央 3D 模型:默认装(衣+头饰+武器)+ ConfigModelAni 的 create 动作序列。</summary>
         private async void ShowCareerModel()
         {
-            var career = CAREERS[_selectedIndex];
-            string key = $"object/role/model_clothe_{career.roleRes}/model_clothe_{career.roleRes}";
-            GameObject prefab = await Shenxiao.Framework.Res.ResManager.LoadAsync<GameObject>(key);
-            if (prefab == null)
+            var o = _options[_selectedIndex];
+            LoginConfigs.CareerRes res = LoginConfigs.GetCreateRes(o.Career, o.Sex);
+            if (res == null)
             {
-                GameLog.Warn("Login", "职业模型未找到(先用 Laya3D 转换器生成):{0}", key);
+                GameLog.Warn("Login", "CreateRole.Res 缺 {0}@{1}", o.Career, o.Sex);
                 return;
             }
-            Shenxiao.Common.UI3D.UIModelStage.Show(_gp_model_con, prefab,
-                MODEL_SCALE, MODEL_POS + new Vector2(0f, career.posOffsetY));
+            int selectedAtRequest = _selectedIndex;
+            GameObject model = await RoleModelAssembler.BuildAsync(new RoleModelSpec
+            {
+                Career = o.Career,
+                ClotheRes = res.RoleRes,
+                WeaponRes = res.WeaponRes,
+                HeadRes = res.HeadRes,
+                Actions = LoginConfigs.RoleUIActions("LoginCreateRoleView"),
+            });
+            if (model == null) return;
+            if (selectedAtRequest != _selectedIndex || !gameObject.activeInHierarchy)
+            {
+                Destroy(model); // 加载期间切了职业/关了页:丢弃过期结果
+                return;
+            }
+            UIModelStage.ShowInstance(_gp_model_con, model,
+                MODEL_SCALE, LoginConfigs.GetModelPos("CreateRole", o.Career, o.Sex));
         }
 
         private void OnClickRandomName()
         {
-            string baseName = RANDOM_NAMES[Random.Range(0, RANDOM_NAMES.Length)];
-            _lb_random_name.text = baseName + Random.Range(100, 999);
+            _lb_random_name.text = LoginConfigs.RandomRoleName(_options.Count > 0 ? _options[_selectedIndex].Sex : 1);
         }
 
         private void OnClickEnter()
@@ -150,8 +181,8 @@ namespace Shenxiao.Module.Core.Login
                 return;
             }
             _creating = true;
-            var selected = CAREERS[_selectedIndex];
-            LoginController.Instance.SendCreateRole(roleName, selected.career, selected.sex);
+            var o = _options[_selectedIndex];
+            LoginController.Instance.SendCreateRole(roleName, o.Career, o.Sex);
         }
 
         private void OnCreateResult(int result)
@@ -168,9 +199,11 @@ namespace Shenxiao.Module.Core.Login
             }
         }
 
+        /// <summary>对标老客户端:有角色 → 回选角页;无角色 → 断线回踏入仙界页。</summary>
         private void OnClickReturn()
         {
-            LoginFlow.BackToEnter();
+            if (LoginModel.Instance.Roles.Count > 0) LoginFlow.ShowSelectRole();
+            else LoginFlow.BackToEnter();
         }
     }
 }

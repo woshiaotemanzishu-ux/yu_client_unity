@@ -36,13 +36,26 @@ namespace Shenxiao.Common.UI3D
         public static void Show(RectTransform container, GameObject modelPrefab,
             float scale = 1f, Vector2 position = default)
         {
-            if (container == null || modelPrefab == null) return;
+            if (modelPrefab == null) return;
+            ShowInstance(container, Object.Instantiate(modelPrefab), scale, position);
+        }
+
+        /// <summary>已组装好的实例(RoleModelAssembler 产物)上台,所有权交给舞台。</summary>
+        public static void ShowInstance(RectTransform container, GameObject modelInstance,
+            float scale = 1f, Vector2 position = default)
+        {
+            if (container == null || modelInstance == null)
+            {
+                if (modelInstance != null) Object.Destroy(modelInstance);
+                return;
+            }
             EnsureStage();
             EnsureRenderTexture(container);
 
             if (_model != null) Object.Destroy(_model);
             _modelRoot.localPosition = new Vector3(position.x, position.y + BASE_Y, 0f);
-            _model = Object.Instantiate(modelPrefab, _modelYaw);
+            _model = modelInstance;
+            _model.transform.SetParent(_modelYaw, false);
             _model.transform.localPosition = Vector3.zero;
             _model.transform.localRotation = Quaternion.identity;
             _model.transform.localScale = Vector3.one * (BODY_SCALE_MUL * scale);

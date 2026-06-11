@@ -101,17 +101,13 @@ namespace Shenxiao.Editor.AssetHub
             return files;
         }
 
-        /// <summary>该条目要转哪些动作:用户勾过用勾选,否则默认待机(stand/idle 第一个)。</summary>
+        /// <summary>该条目要转哪些动作:用户勾过用勾选,否则默认全部
+        /// (clip 共享存放、增量生成,转全不重复花钱;老客户端一个角色十几个动作都要)。</summary>
         private List<string> LanisFor(AssetEntry e)
         {
             if (_laniChoice.TryGetValue(e.Id, out List<string> picked) && picked.Count > 0)
                 return picked;
-            foreach (string f in LaniFiles(e))
-            {
-                string n = Path.GetFileName(f).ToLowerInvariant();
-                if (n.Contains("stand") || n.Contains("idle")) return new List<string> { f };
-            }
-            return new List<string>();
+            return new List<string>(LaniFiles(e));
         }
 
         // ================= 转换 =================
@@ -237,8 +233,10 @@ namespace Shenxiao.Editor.AssetHub
                 _listScroll = EditorGUILayout.BeginScrollView(_listScroll);
                 foreach (AssetEntry e in shown)
                 {
-                    string label = $"{AssetHubDomains.StatusIcon(StatusOf(e))} {e.Id}  {e.DisplayName}" +
-                                   $"  <color=#888888>{AssetHubDomains.CAREER_NAMES[Mathf.Clamp(e.Career, 0, 4)]}</color>";
+                    string careerTag = e.Career > 0
+                        ? $"  <color=#888888>{AssetHubDomains.CAREER_NAMES[Mathf.Clamp(e.Career, 0, 4)]}</color>"
+                        : "";
+                    string label = $"{AssetHubDomains.StatusIcon(StatusOf(e))} {e.Id}  {e.DisplayName}{careerTag}";
                     Rect row = GUILayoutUtility.GetRect(10f, 22f, GUILayout.ExpandWidth(true));
                     if (_selected == e)
                         EditorGUI.DrawRect(row, new Color(0.24f, 0.49f, 0.91f, 0.35f));
@@ -266,10 +264,11 @@ namespace Shenxiao.Editor.AssetHub
                 EntryStatus s = StatusOf(e);
 
                 _detailScroll = EditorGUILayout.BeginScrollView(_detailScroll);
-                EditorGUILayout.LabelField($"model_clothe_{e.Id}  {e.DisplayName}", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField($"{Path.GetFileNameWithoutExtension(e.LhPath)}  {e.DisplayName}", EditorStyles.boldLabel);
                 EditorGUILayout.LabelField("状态", $"{AssetHubDomains.StatusIcon(s)} {AssetHubDomains.StatusText(s)}");
-                EditorGUILayout.LabelField("职业/性别",
-                    $"{AssetHubDomains.CAREER_NAMES[Mathf.Clamp(e.Career, 0, 4)]} / {(e.Sex == 2 ? "女" : "男")}");
+                if (e.Career > 0)
+                    EditorGUILayout.LabelField("职业/性别",
+                        $"{AssetHubDomains.CAREER_NAMES[Mathf.Clamp(e.Career, 0, 4)]} / {(e.Sex == 2 ? "女" : "男")}");
                 if (!string.IsNullOrEmpty(e.Note))
                     EditorGUILayout.LabelField("配置来源", e.Note, EditorStyles.wordWrappedLabel);
                 EditorGUILayout.LabelField("源", e.LhPath, EditorStyles.wordWrappedMiniLabel);
@@ -316,8 +315,10 @@ namespace Shenxiao.Editor.AssetHub
         private void DrawLaniChoice(AssetEntry e)
         {
             List<string> current = LanisFor(e);
+            string names = string.Join(",", current.Take(5).Select(Path.GetFileNameWithoutExtension));
+            if (current.Count > 5) names += " …";
             _laniFoldout = EditorGUILayout.Foldout(_laniFoldout,
-                $"转换动作({current.Count} 个:{string.Join(",", current.Select(Path.GetFileNameWithoutExtension))})", true);
+                $"转换动作({current.Count} 个:{names})", true);
             if (!_laniFoldout) return;
 
             string[] files = LaniFiles(e);

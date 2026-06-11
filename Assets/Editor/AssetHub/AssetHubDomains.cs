@@ -57,10 +57,12 @@ namespace Shenxiao.Editor.AssetHub
             {
                 new AssetDomain { Name = "角色时装", Enabled = true, Scan = ScanFashion },
                 new AssetDomain { Name = "创角默认装", Enabled = true, Scan = ScanCreateRole },
-                new AssetDomain { Name = "头饰", Enabled = false, DisabledNote = "待接入:config 表 + head 路径模板" },
-                new AssetDomain { Name = "武器", Enabled = false, DisabledNote = "待接入:ConfigUIModelWeapon" },
-                new AssetDomain { Name = "翅膀", Enabled = false, DisabledNote = "待接入:ConfigUIModelWing" },
-                new AssetDomain { Name = "坐骑", Enabled = false, DisabledNote = "待接入:mount 路径模板" },
+                // 部件域:清单=objs 目录文件(目录即资产清单;明细配置表待配表线接入后补充名称等信息)
+                new AssetDomain { Name = "头饰", Enabled = true, Scan = () => ScanObjsDir("head", "model_head_") },
+                new AssetDomain { Name = "武器", Enabled = true, Scan = () => ScanObjsDir("weapon", "model_weapon_") },
+                new AssetDomain { Name = "背饰", Enabled = true, Scan = () => ScanObjsDir("back", "model_back_") },
+                new AssetDomain { Name = "翅膀", Enabled = true, Scan = () => ScanObjsDir("wing", "model_wing_") },
+                new AssetDomain { Name = "坐骑", Enabled = false, DisabledNote = "待接入:mount(含骑乘组合逻辑,先验一个真实样本)" },
             };
         }
 
@@ -116,20 +118,50 @@ namespace Shenxiao.Editor.AssetHub
 
         private static AssetEntry NewRoleEntry(int modelId, int career, int sex)
         {
-            string model = "model_clothe_" + modelId;
-            string roleRoot = Path.Combine(LayaUISettings.CdnResourceRoot, "object", "role");
+            // 角色动作目录按职业共用:career*1000+100(老客户端约定)
+            AssetEntry e = NewObjectEntry("role", "model_clothe_" + modelId, (career * 1000 + 100).ToString());
+            e.Id = modelId.ToString();
+            e.Career = career;
+            e.Sex = sex;
+            return e;
+        }
+
+        /// <summary>object/{module} 的通用条目:源 objs/{name}.lh,动作 action/{actionDirName}。</summary>
+        private static AssetEntry NewObjectEntry(string module, string name, string actionDirName)
+        {
+            string root = Path.Combine(LayaUISettings.CdnResourceRoot, "object", module);
             return new AssetEntry
             {
-                Id = modelId.ToString(),
+                Id = name,
                 DisplayName = "",
-                Career = career,
-                Sex = sex,
+                Career = 0,
+                Sex = 0,
                 Note = "",
-                LhPath = Path.Combine(roleRoot, "objs", model + ".lh"),
-                ActionDir = Path.Combine(roleRoot, "action", (career * 1000 + 100).ToString()),
-                OutDir = "Assets/GameRes/object/role/" + model,
-                PrefabPath = "Assets/GameRes/object/role/" + model + "/" + model + ".prefab",
+                LhPath = Path.Combine(root, "objs", name + ".lh"),
+                ActionDir = Path.Combine(root, "action", actionDirName),
+                OutDir = $"Assets/GameRes/object/{module}/{name}",
+                PrefabPath = $"Assets/GameRes/object/{module}/{name}/{name}.prefab",
             };
+        }
+
+        /// <summary>部件域扫描:objs/*.lh 即清单;动作目录=action/{id 后缀}(部件每 id 一个目录)。</summary>
+        private static List<AssetEntry> ScanObjsDir(string module, string prefix)
+        {
+            string objsDir = Path.Combine(LayaUISettings.CdnResourceRoot, "object", module, "objs");
+            var list = new List<AssetEntry>();
+            if (!Directory.Exists(objsDir)) return list;
+            foreach (string f in Directory.GetFiles(objsDir, "*.lh").OrderBy(p => p))
+            {
+                string name = Path.GetFileNameWithoutExtension(f);
+                // 动作目录名 = 名字里最后一段数字 id(model_weapon_r_1100 → 1100)
+                int us = name.LastIndexOf('_');
+                string actionDirName = us >= 0 ? name.Substring(us + 1) : name;
+                AssetEntry e = NewObjectEntry(module, name, actionDirName);
+                e.DisplayName = name.StartsWith(prefix) ? name.Substring(prefix.Length) : name;
+                e.Note = "清单=objs 目录(明细配置待配表线)";
+                list.Add(e);
+            }
+            return Finish(list);
         }
 
         private static List<AssetEntry> Finish(IEnumerable<AssetEntry> entries)

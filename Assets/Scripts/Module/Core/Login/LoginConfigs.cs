@@ -1,0 +1,161 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using Shenxiao.Framework.Res;
+using Shenxiao.Framework.Util;
+using UnityEngine;
+
+namespace Shenxiao.Module.Core.Login
+{
+    /// <summary>
+    /// 登录链路的客户端配置访问(老客户端 preload_client_config 的对等物):
+    /// ConfigLogin(创角/选角)、ConfigModelAni(UI 模型动作)、ConfigRandomName(随机名)。
+    /// JSON 由编辑器菜单「神霄/配表/同步客户端配置(JSON)」从 yu_client 同步进 GameRes。
+    /// 结构不规则,用 JObject 直读;等配表线强类型方案覆盖到客户端表再迁移。
+    /// </summary>
+    public static class LoginConfigs
+    {
+        public sealed class CareerOption
+        {
+            public int Career;
+            public int Sex;
+            public bool Open;
+            public int RandomWeight;
+            public string Name;
+            public string SelectIcon;
+            public string UnselectIcon;
+            public string Img1;
+            public string Img2;
+            public string Img3;
+        }
+
+        public sealed class CareerRes
+        {
+            public int RoleRes;
+            public int WeaponRes;
+            public int HeadRes;
+        }
+
+        private static JObject _login;
+        private static JObject _modelAni;
+        private static JObject _randomName;
+
+        public static bool IsLoaded => _login != null;
+
+        public static async Task EnsureLoaded()
+        {
+            if (IsLoaded) return;
+            _login = await LoadJson("resource/config/client/configlogin");
+            _modelAni = await LoadJson("resource/config/client/configmodelani");
+            _randomName = await LoadJson("resource/config/client/configrandomname");
+        }
+
+        private static async Task<JObject> LoadJson(string key)
+        {
+            TextAsset asset = await ResManager.LoadAsync<TextAsset>(key);
+            if (asset == null)
+            {
+                GameLog.Error("Config", "客户端配置缺失:{0}(编辑器菜单 神霄/配表/同步客户端配置 后重试)", key);
+                return new JObject();
+            }
+            var jo = JObject.Parse(asset.text);
+            ResManager.Release(asset);
+            return jo;
+        }
+
+        // ---------------- ConfigLogin.CreateRole ----------------
+
+        /// <summary>创角页职业项(过滤 open_state=false)。</summary>
+        public static List<CareerOption> CreateRoleOptions()
+        {
+            var list = new List<CareerOption>();
+            if (!(_login?["CreateRole"]?["UI"] is JArray arr)) return list;
+            foreach (JToken t in arr)
+            {
+                if (!(t is JObject o) || !o.Value<bool>("open_state")) continue;
+                list.Add(new CareerOption
+                {
+                    Career = o.Value<int>("career"),
+                    Sex = o.Value<int>("sex"),
+                    Open = true,
+                    RandomWeight = o.Value<int>("random_weight"),
+                    Name = o.Value<string>("name"),
+                    SelectIcon = o.Value<string>("select_icon"),
+                    UnselectIcon = o.Value<string>("unselect_icon"),
+                    Img1 = o.Value<string>("img1"),
+                    Img2 = o.Value<string>("img2"),
+                    Img3 = o.Value<string>("img3"),
+                });
+            }
+            return list;
+        }
+
+        /// <summary>默认装(CreateRole.Res["career@sex"]):role_res/weapon_res/head_res。</summary>
+        public static CareerRes GetCreateRes(int career, int sex)
+        {
+            JToken r = _login?["CreateRole"]?["Res"]?[$"{career}@{sex}"];
+            if (r == null) return null;
+            return new CareerRes
+            {
+                RoleRes = r.Value<int>("role_res"),
+                WeaponRes = r.Value<int>("weapon_res"),
+                HeadRes = r.Value<int>("head_res"),
+            };
+        }
+
+        /// <summary>模型展示位移:ModelPos + PosOffset["career@sex"](x 右正,y 上正)。</summary>
+        public static Vector2 GetModelPos(string section, int career, int sex)
+        {
+            JToken s = _login?[section];
+            float x = s?["ModelPos"]?.Value<float>("x") ?? 0f;
+            float y = s?["ModelPos"]?.Value<float>("y") ?? 0f;
+            JToken off = s?["PosOffset"]?[$"{career}@{sex}"];
+            if (off != null)
+            {
+                x += off.Value<float>("x");
+                y += off.Value<float>("y");
+            }
+            return new Vector2(x, y);
+        }
+
+        /// <summary>选角页固定槽位数(SelectRole.TotalCount,不足补「创建角色」空槽)。</summary>
+        public static int SelectRoleTotalCount()
+        {
+            return _login?["SelectRole"]?.Value<int>("TotalCount") ?? 4;
+        }
+
+        // ---------------- ConfigModelAni ----------------
+
+        /// <summary>UI 角色模型动作清单:role[layout].default → role.UI.default → ["idle"]。</summary>
+        public static string[] RoleUIActions(string layoutFile)
+        {
+            JToken role = _modelAni?["role"];
+            JToken list = role?[layoutFile]?["default"] ?? role?["UI"]?["default"];
+            if (list is JArray arr && arr.Count > 0)
+            {
+                var result = new string[arr.Count];
+                for (int i = 0; i < arr.Count; i++) result[i] = arr[i].Value<string>();
+                return result;
+            }
+            return new[] { "idle" };
+        }
+
+        // ---------------- ConfigRandomName ----------------
+
+        /// <summary>随机名 = 随机姓 + 按性别随机名(对标老客户端 RandomName)。</summary>
+        public static string RandomRoleName(int sex)
+        {
+            string surname = PickRandom(_randomName?["surname"] as JArray);
+            string forename = PickRandom(
+                (sex == 2 ? _randomName?["forename_woman"] : _randomName?["forename_man"]) as JArray);
+            if (surname == null || forename == null) return "无名" + Random.Range(100, 999);
+            return surname + forename;
+        }
+
+        private static string PickRandom(JArray arr)
+        {
+            if (arr == null || arr.Count == 0) return null;
+            return arr[Random.Range(0, arr.Count)].Value<string>();
+        }
+    }
+}

@@ -249,6 +249,8 @@ namespace Shenxiao.Module.Core.Login
         /// <summary>选角进入游戏(对标 TRY_LOGIN_GAME 的 10004 "lsisisscscsh")。</summary>
         public void EnterGameWithRole(long roleId)
         {
+            // 对标老客户端 cookie LAST_LOGIN_ROLE_ID:选角页下次默认选中它
+            Shenxiao.Common.Prefs.PrefsManager.SetString(LoginSelectRoleView.PREF_LAST_ROLE_ID, roleId.ToString());
             long timeStamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             SendFmt(Proto.ENTER_GAME, "lsisisscscsh",
                 roleId, "开发", timeStamp, "", 1, Model.PlatName,
