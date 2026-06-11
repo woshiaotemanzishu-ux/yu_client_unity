@@ -53,13 +53,18 @@ namespace Shenxiao.Editor.LayaUI
 
         private static bool MaterializePng(string skin, string assetPath, LayaUIReport report)
         {
-            // 1) 散图
-            string loose = Path.Combine(LayaUISettings.LayaAssetsRoot, skin.Replace('/', Path.DirectorySeparatorChar));
-            if (File.Exists(loose))
+            // 1) 散图:h5/laya/assets 镜像优先,镜像缺了用 cdn/resource 兜底
+            string[] looseSources =
             {
+                Path.Combine(LayaUISettings.LayaAssetsRoot, skin.Replace('/', Path.DirectorySeparatorChar)),
+                Path.Combine(LayaUISettings.ClientRoot, "cdn", skin.Replace('/', Path.DirectorySeparatorChar)),
+            };
+            foreach (string loose in looseSources)
+            {
+                if (!File.Exists(loose)) continue;
                 if (IsLfsPlaceholder(loose))
                 {
-                    report.MissingSkin(skin, "散图是 git-lfs 占位文件,请在 yu_client 里执行 git lfs pull");
+                    report.MissingSkin(skin, "散图是 git-lfs 占位文件,请在 yu_client 里执行 git lfs pull: " + loose);
                     return false;
                 }
                 Directory.CreateDirectory(Path.GetDirectoryName(assetPath));

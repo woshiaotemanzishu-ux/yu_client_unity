@@ -54,17 +54,26 @@ VIEW_BASES = {"BaseView1", "BaseView", "BaseSubView"}
 
 
 def extract_baked_skins(body):
-    """从类体里静态解析「节点 -> 运行时赋的图」。同一节点首写胜。"""
+    """从类体里静态解析「节点 -> 运行时赋的图」。同一节点首写胜。
+
+    注意:ResManager.SetTexture 运行时会把路径里的 /texture/ 替换成 /other/
+    (ResManager.ts SetTexture 开头几行,移植后遗症),走 SetTexture 的烘焙路径必须复刻。
+    """
     baked = {}
     for m in RE_SKIN_LITERAL.finditer(body):
         baked.setdefault(m.group(1), m.group(2))
     for m in RE_SETTEX_LITERAL.finditer(body):
-        baked.setdefault(m.group(1), m.group(2))
-    for m in list(RE_SKIN_GAMERES.finditer(body)) + list(RE_SETTEX_GAMERES.finditer(body)):
+        baked.setdefault(m.group(1), m.group(2).replace("/texture/", "/other/", 1))
+    for m in RE_SKIN_GAMERES.finditer(body):
         node, fn, mod, res = m.group(1), m.group(2), m.group(3), m.group(4)
         tpl = GAMERES_FN.get(fn)
         if tpl:
             baked.setdefault(node, tpl % (mod, res))
+    for m in RE_SETTEX_GAMERES.finditer(body):
+        node, fn, mod, res = m.group(1), m.group(2), m.group(3), m.group(4)
+        tpl = GAMERES_FN.get(fn)
+        if tpl:
+            baked.setdefault(node, (tpl % (mod, res)).replace("/texture/", "/other/", 1))
     return baked
 
 SKIN_PROP_KEYS = ("skin", "texture", "vScrollBarSkin", "hScrollBarSkin", "sceneBg")
@@ -175,13 +184,15 @@ def walk_scene(node, skins, types):
 
 
 def classify_skin(skin, client_root, atlas_index):
-    """loose / atlas / comp / missing"""
+    """loose / cdn / atlas / comp / missing"""
     if skin.startswith("comp/"):
         loose = os.path.join(client_root, "h5", "laya", "assets", skin)
         return "comp" if os.path.exists(loose) else "missing"
     loose = os.path.join(client_root, "h5", "laya", "assets", skin)
     if os.path.exists(loose):
         return "loose"
+    if os.path.exists(os.path.join(client_root, "cdn", skin)):
+        return "cdn"  # 镜像缺、cdn 有(散图兜底源)
     m = re.match(r"resource/game/([^/]+)/texture/(.+)$", skin)
     if m:
         frames = atlas_index.get("%s/texture.atlas" % m.group(1), {}).get("frames", {})

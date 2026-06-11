@@ -1,7 +1,7 @@
 {
  "designHeight": 1280,
  "designWidth": 720,
- "generatedAt": "2026-06-10 19:10:48",
+ "generatedAt": "2026-06-11 04:02:36",
  "moduleDirCase": {
   "achv": "Achv",
   "activity": "Activity",
@@ -218,7 +218,7 @@
  "scenes": {
   "achv/AchvChildItem": {
    "bakedSkins": {
-    "scheduleImg": "resource/game/achv/texture/ui_pro_bar_3.png"
+    "scheduleImg": "resource/game/achv/other/ui_pro_bar_3.png"
    },
    "decision": "inline",
    "height": 36,
@@ -972,7 +972,7 @@
   },
   "activity/DailySupplyView": {
    "bakedSkins": {
-    "_img_bg2": "resource/game/activity/texture/bg.png"
+    "_img_bg2": "resource/game/activity/other/bg.png"
    },
    "decision": "standalone-prefab",
    "height": 992,
@@ -1313,15 +1313,13 @@
   },
   "addVipService/AddVipServiceView": {
    "bakedSkins": {
-    "_img_bg": "resource/game/addVipService/texture/ui_gz_01.png"
+    "_img_bg": "resource/game/addVipService/other/ui_gz_01.png"
    },
    "decision": "view-prefab",
    "height": 928,
    "json": "cdn/resource/game/addVipService/AddVipServiceView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/addVipService/texture/ui_gz_title.png"
-   ],
+   "missingSkins": [],
    "module": "addVipService",
    "name": "AddVipServiceView",
    "nodeTypes": {
@@ -1338,7 +1336,7 @@
    "skinSource": {
     "resource/game/addVipService/texture/ui_gz_02.png": "loose",
     "resource/game/addVipService/texture/ui_gz_03.png": "loose",
-    "resource/game/addVipService/texture/ui_gz_title.png": "missing",
+    "resource/game/addVipService/texture/ui_gz_title.png": "cdn",
     "resource/game/common/texture/ui_close_btn_4.png": "loose"
    },
    "skins": [
@@ -1382,7 +1380,7 @@
   },
   "adventure/AdventureMainView": {
    "bakedSkins": {
-    "_img_bg": "resource/game/adventure/texture/ui_tb_bg.png"
+    "_img_bg": "resource/game/adventure/other/ui_tb_bg.png"
    },
    "decision": "view-prefab",
    "height": 1094,
@@ -1489,8 +1487,8 @@
   },
   "adventure/AdventureShopView": {
    "bakedSkins": {
-    "line_1": "resource/game/adventure/texture/ui_tb_13.png",
-    "line_2": "resource/game/adventure/texture/ui_tb_13.png"
+    "line_1": "resource/game/adventure/other/ui_tb_13.png",
+    "line_2": "resource/game/adventure/other/ui_tb_13.png"
    },
    "decision": "view-prefab",
    "height": 720,
@@ -1834,7 +1832,7 @@
   },
   "alert/AlertTypeTreasure": {
    "bakedSkins": {
-    "_img_bg": "resource/game/alert/texture/xx_titleBg_01.png"
+    "_img_bg": "resource/game/alert/other/xx_titleBg_01.png"
    },
    "decision": "view-prefab",
    "height": 488,
@@ -2052,7 +2050,7 @@
   },
   "arena/ArenaBuyTimesView": {
    "bakedSkins": {
-    "_Image10": "resource/game/arena/texture/com_tips.png"
+    "_Image10": "resource/game/arena/other/com_tips.png"
    },
    "decision": "view-prefab",
    "height": 446,
@@ -2489,7 +2487,7 @@
   },
   "atListPurchase/AtListPurchaseView": {
    "bakedSkins": {
-    "_img_title": "resource/game/atListPurchase/texture/ui_1.png"
+    "_img_title": "resource/game/atListPurchase/other/ui_1.png"
    },
    "decision": "standalone-prefab",
    "height": 1280,
@@ -2753,7 +2751,7 @@
   "autoBrush/AutoBrushMainView": {
    "bakedSkins": {
     "_img_assist_bg": "resource/game/autoBrush/texture/ui_zy_24.png",
-    "_img_bg4": "resource/game/autoBrush/texture/ui_zy_05.png"
+    "_img_bg4": "resource/game/autoBrush/other/ui_zy_05.png"
    },
    "decision": "standalone-prefab",
    "height": 1280,
@@ -2961,11 +2959,7 @@
    "height": 344,
    "json": "cdn/resource/game/baby/BabyAddImprintView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/baby/texture/uibjmk_001.png",
-    "resource/game/baby/texture/uibjmk_003.png",
-    "resource/game/baby/texture/uibjmk_004.png"
-   ],
+   "missingSkins": [],
    "module": "baby",
    "name": "BabyAddImprintView",
    "nodeTypes": {
@@ -2980,9 +2974,9 @@
    "ownerClasses": [],
    "skinSource": {
     "comp/vscroll.png": "comp",
-    "resource/game/baby/texture/uibjmk_001.png": "missing",
-    "resource/game/baby/texture/uibjmk_003.png": "missing",
-    "resource/game/baby/texture/uibjmk_004.png": "missing"
+    "resource/game/baby/texture/uibjmk_001.png": "cdn",
+    "resource/game/baby/texture/uibjmk_003.png": "cdn",
+    "resource/game/baby/texture/uibjmk_004.png": "cdn"
    },
    "skins": [
     "comp/vscroll.png",
@@ -3030,9 +3024,7 @@
    "height": 93,
    "json": "cdn/resource/game/baby/BabyBelikeItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/baby/texture/uiszjl_003.png"
-   ],
+   "missingSkins": [],
    "module": "baby",
    "name": "BabyBelikeItem",
    "nodeTypes": {
@@ -3044,7 +3036,7 @@
    "ownerClasses": [],
    "skinSource": {
     "resource/game/baby/texture/uiszjl_002.png": "loose",
-    "resource/game/baby/texture/uiszjl_003.png": "missing"
+    "resource/game/baby/texture/uiszjl_003.png": "cdn"
    },
    "skins": [
     "resource/game/baby/texture/uiszjl_002.png",
@@ -3059,10 +3051,7 @@
    "height": 558.79,
    "json": "cdn/resource/game/baby/BabyBelikeView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/baby/texture/uisy_017.png",
-    "resource/game/baby/texture/uiszjl_001.png"
-   ],
+   "missingSkins": [],
    "module": "baby",
    "name": "BabyBelikeView",
    "nodeTypes": {
@@ -3076,8 +3065,8 @@
    "ownerClasses": [],
    "skinSource": {
     "comp/vscroll.png": "comp",
-    "resource/game/baby/texture/uisy_017.png": "missing",
-    "resource/game/baby/texture/uiszjl_001.png": "missing",
+    "resource/game/baby/texture/uisy_017.png": "cdn",
+    "resource/game/baby/texture/uiszjl_001.png": "cdn",
     "resource/game/common/texture/com_empty.png": "loose",
     "resource/game/common/texture/uity_016k.png": "loose"
    },
@@ -3093,7 +3082,7 @@
   },
   "baby/BabyChangedView": {
    "bakedSkins": {
-    "table_img": "resource/game/baby/texture/uixxxjs_001.png"
+    "table_img": "resource/game/baby/other/uixxxjs_001.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -3167,7 +3156,7 @@
   },
   "baby/BabyCultivateView": {
    "bakedSkins": {
-    "bg1": "resource/game/baby/texture/uibbsj_013a.png"
+    "bg1": "resource/game/baby/other/uibbsj_013a.png"
    },
    "decision": "standalone-prefab",
    "height": 1280,
@@ -3255,9 +3244,7 @@
    "height": 1280,
    "json": "cdn/resource/game/baby/BabyEquipFuncView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/baby/texture/uisy_017.png"
-   ],
+   "missingSkins": [],
    "module": "baby",
    "name": "BabyEquipFuncView",
    "nodeTypes": {
@@ -3269,7 +3256,7 @@
    "otherRefFiles": [],
    "ownerClasses": [],
    "skinSource": {
-    "resource/game/baby/texture/uisy_017.png": "missing",
+    "resource/game/baby/texture/uisy_017.png": "cdn",
     "resource/game/common/texture/com_empty.png": "loose",
     "resource/game/common/texture/uity_016k.png": "loose"
    },
@@ -3314,9 +3301,7 @@
    "height": 208,
    "json": "cdn/resource/game/baby/BabyEquipSubItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/baby/texture/uibjmk_007.png"
-   ],
+   "missingSkins": [],
    "module": "baby",
    "name": "BabyEquipSubItem",
    "nodeTypes": {
@@ -3328,7 +3313,7 @@
    "otherRefFiles": [],
    "ownerClasses": [],
    "skinSource": {
-    "resource/game/baby/texture/uibjmk_007.png": "missing",
+    "resource/game/baby/texture/uibjmk_007.png": "cdn",
     "resource/game/baby/texture/uibjmk_007a.png": "loose",
     "resource/game/common4/texture/icon_red.png": "loose"
    },
@@ -3346,9 +3331,7 @@
    "height": 66,
    "json": "cdn/resource/game/baby/BabyEquipTabItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/baby/texture/uilwmb_042.png"
-   ],
+   "missingSkins": [],
    "module": "baby",
    "name": "BabyEquipTabItem",
    "nodeTypes": {
@@ -3360,7 +3343,7 @@
    "otherRefFiles": [],
    "ownerClasses": [],
    "skinSource": {
-    "resource/game/baby/texture/uilwmb_042.png": "missing",
+    "resource/game/baby/texture/uilwmb_042.png": "cdn",
     "resource/game/common/texture/com_red_point.png": "loose"
    },
    "skins": [
@@ -3376,14 +3359,7 @@
    "height": 992,
    "json": "cdn/resource/game/baby/BabyEquipView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/baby/texture/bbdb.png",
-    "resource/game/baby/texture/uibb_061a.png",
-    "resource/game/baby/texture/uibb_57.png",
-    "resource/game/baby/texture/uibb_60.png",
-    "resource/game/baby/texture/uibbsj_011.png",
-    "resource/game/baby/texture/uirwv4_023.png"
-   ],
+   "missingSkins": [],
    "module": "baby",
    "name": "BabyEquipView",
    "nodeTypes": {
@@ -3398,15 +3374,15 @@
    "ownerClasses": [],
    "skinSource": {
     "comp/vscroll.png": "comp",
-    "resource/game/baby/texture/bbdb.png": "missing",
-    "resource/game/baby/texture/uibb_061a.png": "missing",
-    "resource/game/baby/texture/uibb_57.png": "missing",
+    "resource/game/baby/texture/bbdb.png": "cdn",
+    "resource/game/baby/texture/uibb_061a.png": "cdn",
+    "resource/game/baby/texture/uibb_57.png": "cdn",
     "resource/game/baby/texture/uibb_58.png": "loose",
     "resource/game/baby/texture/uibb_59.png": "loose",
-    "resource/game/baby/texture/uibb_60.png": "missing",
-    "resource/game/baby/texture/uibbsj_011.png": "missing",
+    "resource/game/baby/texture/uibb_60.png": "cdn",
+    "resource/game/baby/texture/uibbsj_011.png": "cdn",
     "resource/game/baby/texture/uibj_002.png": "loose",
-    "resource/game/baby/texture/uirwv4_023.png": "missing",
+    "resource/game/baby/texture/uirwv4_023.png": "cdn",
     "resource/game/common/texture/com_empty.png": "loose",
     "resource/game/common4/texture/icon_red.png": "loose",
     "resource/game/common4/texture/uirwv4_003.png": "loose"
@@ -3488,12 +3464,6 @@
    "json": "cdn/resource/game/baby/BabyForgeView.json",
    "kind": "orphan",
    "missingSkins": [
-    "resource/game/baby/texture/uibb4_009.png",
-    "resource/game/baby/texture/uibb4_011.png",
-    "resource/game/baby/texture/uibb_015.png",
-    "resource/game/baby/texture/uibb_sjxh.png",
-    "resource/game/baby/texture/uibjmk_010.png",
-    "resource/game/baby/texture/uirwv4_009_690x36.png",
     "resource/game/common/texture/com_rect_btn12.png"
    ],
    "module": "baby",
@@ -3513,13 +3483,13 @@
     "comp/hscroll.png": "comp",
     "comp/vscroll.png": "comp",
     "resource/game/baby/texture/max_stage.png": "loose",
-    "resource/game/baby/texture/uibb4_009.png": "missing",
-    "resource/game/baby/texture/uibb4_011.png": "missing",
-    "resource/game/baby/texture/uibb_015.png": "missing",
-    "resource/game/baby/texture/uibb_sjxh.png": "missing",
+    "resource/game/baby/texture/uibb4_009.png": "cdn",
+    "resource/game/baby/texture/uibb4_011.png": "cdn",
+    "resource/game/baby/texture/uibb_015.png": "cdn",
+    "resource/game/baby/texture/uibb_sjxh.png": "cdn",
     "resource/game/baby/texture/uibj_002.png": "loose",
-    "resource/game/baby/texture/uibjmk_010.png": "missing",
-    "resource/game/baby/texture/uirwv4_009_690x36.png": "missing",
+    "resource/game/baby/texture/uibjmk_010.png": "cdn",
+    "resource/game/baby/texture/uirwv4_009_690x36.png": "cdn",
     "resource/game/common/texture/com_empty.png": "loose",
     "resource/game/common/texture/com_rect_btn12.png": "missing",
     "resource/game/common4/texture/icon_red.png": "loose",
@@ -3551,9 +3521,7 @@
    "inlineHost": "BabyIllusionView",
    "json": "cdn/resource/game/baby/BabyIlluItem.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/baby/texture/uibbxx_003.png"
-   ],
+   "missingSkins": [],
    "module": "baby",
    "name": "BabyIlluItem",
    "nodeTypes": {
@@ -3568,7 +3536,7 @@
     "BabyIllusionView"
    ],
    "skinSource": {
-    "resource/game/baby/texture/uibbxx_003.png": "missing",
+    "resource/game/baby/texture/uibbxx_003.png": "cdn",
     "resource/game/baby/texture/uibbxx_004.png": "loose",
     "resource/game/baby/texture/uibbxx_005.png": "loose",
     "resource/game/baby/texture/uibjmk_007a.png": "loose",
@@ -3588,7 +3556,7 @@
   },
   "baby/BabyIllusionView": {
    "bakedSkins": {
-    "bg1": "resource/game/baby/texture/uibbsj_013a.png"
+    "bg1": "resource/game/baby/other/uibbsj_013a.png"
    },
    "decision": "standalone-prefab",
    "height": 1280,
@@ -3695,11 +3663,6 @@
    "json": "cdn/resource/game/baby/BabyImprintView.json",
    "kind": "orphan",
    "missingSkins": [
-    "resource/game/baby/texture/uibb_015.png",
-    "resource/game/baby/texture/uibjmk_009.png",
-    "resource/game/baby/texture/uibjmk_009a.png",
-    "resource/game/baby/texture/uibjmk_010.png",
-    "resource/game/baby/texture/uirwv4_009_690x36.png",
     "resource/game/common/texture/com_rect_btn12.png"
    ],
    "module": "baby",
@@ -3718,13 +3681,13 @@
    "skinSource": {
     "comp/hscroll.png": "comp",
     "comp/vscroll.png": "comp",
-    "resource/game/baby/texture/uibb_015.png": "missing",
+    "resource/game/baby/texture/uibb_015.png": "cdn",
     "resource/game/baby/texture/uibj_002.png": "loose",
     "resource/game/baby/texture/uibjmk_008.png": "loose",
-    "resource/game/baby/texture/uibjmk_009.png": "missing",
-    "resource/game/baby/texture/uibjmk_009a.png": "missing",
-    "resource/game/baby/texture/uibjmk_010.png": "missing",
-    "resource/game/baby/texture/uirwv4_009_690x36.png": "missing",
+    "resource/game/baby/texture/uibjmk_009.png": "cdn",
+    "resource/game/baby/texture/uibjmk_009a.png": "cdn",
+    "resource/game/baby/texture/uibjmk_010.png": "cdn",
+    "resource/game/baby/texture/uirwv4_009_690x36.png": "cdn",
     "resource/game/common/texture/com_empty.png": "loose",
     "resource/game/common/texture/com_rect_btn12.png": "missing",
     "resource/game/common4/texture/icon_red.png": "loose",
@@ -3754,9 +3717,7 @@
    "height": 57,
    "json": "cdn/resource/game/baby/BabyLikeItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/baby/texture/uikf3v3_007.png"
-   ],
+   "missingSkins": [],
    "module": "baby",
    "name": "BabyLikeItem",
    "nodeTypes": {
@@ -3767,7 +3728,7 @@
    "otherRefFiles": [],
    "ownerClasses": [],
    "skinSource": {
-    "resource/game/baby/texture/uikf3v3_007.png": "missing",
+    "resource/game/baby/texture/uikf3v3_007.png": "cdn",
     "resource/game/common/texture/com_empty.png": "loose"
    },
    "skins": [
@@ -3783,10 +3744,7 @@
    "height": 130,
    "json": "cdn/resource/game/baby/BabyLikeReward.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/baby/texture/uijzb_003.png",
-    "resource/game/baby/texture/uikf3v3_009.png"
-   ],
+   "missingSkins": [],
    "module": "baby",
    "name": "BabyLikeReward",
    "nodeTypes": {
@@ -3799,8 +3757,8 @@
    "otherRefFiles": [],
    "ownerClasses": [],
    "skinSource": {
-    "resource/game/baby/texture/uijzb_003.png": "missing",
-    "resource/game/baby/texture/uikf3v3_009.png": "missing"
+    "resource/game/baby/texture/uijzb_003.png": "cdn",
+    "resource/game/baby/texture/uikf3v3_009.png": "cdn"
    },
    "skins": [
     "resource/game/baby/texture/uijzb_003.png",
@@ -3815,14 +3773,7 @@
    "height": 1280,
    "json": "cdn/resource/game/baby/BabyLikeView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/baby/texture/uijzb_001.png",
-    "resource/game/baby/texture/uijzb_002.png",
-    "resource/game/baby/texture/uijzb_003a.png",
-    "resource/game/baby/texture/uikf3v3_006.png",
-    "resource/game/baby/texture/uikf3v3_009.png",
-    "resource/game/baby/texture/uisy_017.png"
-   ],
+   "missingSkins": [],
    "module": "baby",
    "name": "BabyLikeView",
    "nodeTypes": {
@@ -3838,13 +3789,13 @@
    "skinSource": {
     "comp/hscroll.png": "comp",
     "comp/vscroll.png": "comp",
-    "resource/game/baby/texture/uijzb_001.png": "missing",
-    "resource/game/baby/texture/uijzb_002.png": "missing",
-    "resource/game/baby/texture/uijzb_003a.png": "missing",
+    "resource/game/baby/texture/uijzb_001.png": "cdn",
+    "resource/game/baby/texture/uijzb_002.png": "cdn",
+    "resource/game/baby/texture/uijzb_003a.png": "cdn",
     "resource/game/baby/texture/uijzb_004.png": "loose",
-    "resource/game/baby/texture/uikf3v3_006.png": "missing",
-    "resource/game/baby/texture/uikf3v3_009.png": "missing",
-    "resource/game/baby/texture/uisy_017.png": "missing",
+    "resource/game/baby/texture/uikf3v3_006.png": "cdn",
+    "resource/game/baby/texture/uikf3v3_009.png": "cdn",
+    "resource/game/baby/texture/uisy_017.png": "cdn",
     "resource/game/common/texture/com_empty.png": "loose",
     "resource/game/common/texture/uity_016k.png": "loose",
     "resource/game/common4/texture/icon_red.png": "loose",
@@ -3903,9 +3854,7 @@
    "height": 1280,
    "json": "cdn/resource/game/baby/BabyTeaseView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/baby/texture/uisy_017.png"
-   ],
+   "missingSkins": [],
    "module": "baby",
    "name": "BabyTeaseView",
    "nodeTypes": {
@@ -3919,7 +3868,7 @@
    "skinSource": {
     "resource/game/baby/texture/uibbsj_003.png": "loose",
     "resource/game/baby/texture/uibbsj_014.png": "loose",
-    "resource/game/baby/texture/uisy_017.png": "missing",
+    "resource/game/baby/texture/uisy_017.png": "cdn",
     "resource/game/baby/texture/usw_001.png": "loose",
     "resource/game/common/texture/com_empty.png": "loose",
     "resource/game/common/texture/com_tips_3.png": "loose",
@@ -3939,9 +3888,9 @@
   },
   "baby/GestateBabyView": {
    "bakedSkins": {
-    "bg1": "resource/game/baby/texture/uisy_023.png",
-    "bg2": "resource/game/baby/texture/Uibaobao_004.png",
-    "bg3": "resource/game/baby/texture/Uibaobao_003.png"
+    "bg1": "resource/game/baby/other/uisy_023.png",
+    "bg2": "resource/game/baby/other/Uibaobao_004.png",
+    "bg3": "resource/game/baby/other/Uibaobao_003.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -4008,7 +3957,7 @@
   },
   "bag/BagComponentView": {
    "bakedSkins": {
-    "roleBG": "resource/game/bag/texture/ui_bg_2.png"
+    "roleBG": "resource/game/bag/other/ui_bg_2.png"
    },
    "decision": "view-prefab",
    "height": 992,
@@ -4759,7 +4708,7 @@
   },
   "bindJageWish/BindJageWishView": {
    "bakedSkins": {
-    "_img_title": "resource/game/bindJageWish/texture/ui_byqy_bt.png"
+    "_img_title": "resource/game/bindJageWish/other/ui_byqy_bt.png"
    },
    "decision": "view-prefab",
    "height": 1200,
@@ -7689,7 +7638,7 @@
   },
   "carnival/CarnivalMainView": {
    "bakedSkins": {
-    "_img_bg": "resource/game/activity/texture/ui_qmkh_01.jpg"
+    "_img_bg": "resource/game/activity/other/ui_qmkh_01.jpg"
    },
    "decision": "view-prefab",
    "height": 992,
@@ -7899,7 +7848,7 @@
   },
   "chat/ChatParentView": {
    "bakedSkins": {
-    "_Image11": "resource/game/chat/texture/uilt_001.png"
+    "_Image11": "resource/game/chat/other/uilt_001.png"
    },
    "decision": "view-prefab",
    "height": 660,
@@ -8241,8 +8190,8 @@
   },
   "chat/FriendChatView": {
    "bakedSkins": {
-    "_Image11": "resource/game/chat/texture/uilt_001.png",
-    "_Image2": "resource/game/chat/texture/uilt_020.png"
+    "_Image11": "resource/game/chat/other/uilt_001.png",
+    "_Image2": "resource/game/chat/other/uilt_020.png"
    },
    "decision": "view-prefab",
    "height": 760,
@@ -10044,7 +9993,7 @@
   },
   "common/CongratulationObtainAutoView": {
    "bakedSkins": {
-    "left_bg": "resource/game/common4/texture/uijs_062.png"
+    "left_bg": "resource/game/common4/other/uijs_062.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -10102,12 +10051,12 @@
   },
   "common/CongratulationObtainView": {
    "bakedSkins": {
-    "_img_item_bg_left": "resource/game/common4/texture/uijs_064.png",
-    "_img_item_bg_right": "resource/game/common4/texture/uijs_064.png",
-    "left_bg": "resource/game/common4/texture/uijs_062.png",
-    "light": "resource/game/common4/texture/uich_008.png",
+    "_img_item_bg_left": "resource/game/common4/other/uijs_064.png",
+    "_img_item_bg_right": "resource/game/common4/other/uijs_064.png",
+    "left_bg": "resource/game/common4/other/uijs_062.png",
+    "light": "resource/game/common4/other/uich_008.png",
     "right_bg": "resource/game/dungeonCommon/texture/uipj_046.png",
-    "title": "resource/game/common2/texture/uijs_061.png"
+    "title": "resource/game/common2/other/uijs_061.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -11216,7 +11165,7 @@
   },
   "common/ExchangeViewOne": {
    "bakedSkins": {
-    "_bg": "resource/game/common2/texture/uitc_001.png"
+    "_bg": "resource/game/common2/other/uitc_001.png"
    },
    "decision": "view-prefab",
    "height": 479,
@@ -12614,7 +12563,7 @@
   },
   "common/RewardPreView": {
    "bakedSkins": {
-    "title_img": "resource/game/common/texture/uildzdz_008a.png"
+    "title_img": "resource/game/common/other/uildzdz_008a.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -13133,9 +13082,7 @@
    ],
    "json": "cdn/resource/game/competelist/CompetelistView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/competelist/texture/ui_sm_021.png"
-   ],
+   "missingSkins": [],
    "module": "competelist",
    "name": "CompetelistView",
    "nodeTypes": {
@@ -13172,7 +13119,7 @@
     "resource/game/competelist/texture/ui_sm_014.png": "loose",
     "resource/game/competelist/texture/ui_sm_014a.png": "loose",
     "resource/game/competelist/texture/ui_sm_020.png": "loose",
-    "resource/game/competelist/texture/ui_sm_021.png": "missing",
+    "resource/game/competelist/texture/ui_sm_021.png": "cdn",
     "resource/game/competelist/texture/uijrcb_003.png": "loose",
     "resource/game/competelist/texture/uijrcb_003_1.png": "loose",
     "resource/game/competelist/texture/uikf3v3_009.png": "loose"
@@ -15848,9 +15795,9 @@
   },
   "cycleimpActlist/CycleimpActlistView": {
    "bakedSkins": {
-    "_img_bg": "resource/game/cycleimpActlist/texture/ui_activity_bg5.png",
-    "img_title_bg": "resource/game/cycleimpActlist/texture/ui_activity_bg6.png",
-    "self_info_bg": "resource/game/cycleimpActlist/texture/ui_activity_08.png"
+    "_img_bg": "resource/game/cycleimpActlist/other/ui_activity_bg5.png",
+    "img_title_bg": "resource/game/cycleimpActlist/other/ui_activity_bg6.png",
+    "self_info_bg": "resource/game/cycleimpActlist/other/ui_activity_08.png"
    },
    "decision": "view-prefab",
    "height": 1200,
@@ -16649,9 +16596,7 @@
    ],
    "json": "cdn/resource/game/daily/DailyResFindView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/daily/texture/com_line_1.png"
-   ],
+   "missingSkins": [],
    "module": "daily",
    "name": "DailyResFindView",
    "nodeTypes": {
@@ -16672,7 +16617,7 @@
     "resource/game/common/texture/com_ui_gx.png": "loose",
     "resource/game/common/texture/uity_040.png": "loose",
     "resource/game/common2/texture/uity_027.png": "loose",
-    "resource/game/daily/texture/com_line_1.png": "missing",
+    "resource/game/daily/texture/com_line_1.png": "cdn",
     "resource/game/daily/texture/uity_033f.png": "loose",
     "resource/game/daily/texture/uity_033g.png": "loose"
    },
@@ -16804,9 +16749,7 @@
    ],
    "json": "cdn/resource/game/daily/DailyStrongerView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/daily/texture/com_line_1.png"
-   ],
+   "missingSkins": [],
    "module": "daily",
    "name": "DailyStrongerView",
    "nodeTypes": {
@@ -16823,7 +16766,7 @@
    "skinSource": {
     "comp/hscroll.png": "comp",
     "comp/vscroll.png": "comp",
-    "resource/game/daily/texture/com_line_1.png": "missing",
+    "resource/game/daily/texture/com_line_1.png": "cdn",
     "resource/game/daily/texture/uidz_028.png": "loose"
    },
    "skins": [
@@ -17088,7 +17031,7 @@
   },
   "dailySign/DailySignItem": {
    "bakedSkins": {
-    "top_img": "resource/game/dailySign/texture/uiqd_012.png"
+    "top_img": "resource/game/dailySign/other/uiqd_012.png"
    },
    "decision": "view-prefab",
    "height": 115,
@@ -17299,7 +17242,7 @@
   },
   "dailylogin/DailyLogInView": {
    "bakedSkins": {
-    "_img_top_title": "resource/game/dailylogin/texture/uimrbj_004.png"
+    "_img_top_title": "resource/game/dailylogin/other/uimrbj_004.png"
    },
    "decision": "standalone-prefab",
    "height": 1280,
@@ -17333,11 +17276,11 @@
   },
   "demon/DemonActivatingView": {
    "bakedSkins": {
-    "_img_bg": "resource/game/demon/texture/ui_shape_29.png",
-    "_img_bg0": "resource/game/demon/texture/uijs_041.png",
-    "_img_bg1": "resource/game/demon/texture/ui_shape_28.png",
-    "_img_name": "resource/game/demon/texture/demon_name/",
-    "_img_title": "resource/game/demon/texture/"
+    "_img_bg": "resource/game/demon/other/ui_shape_29.png",
+    "_img_bg0": "resource/game/demon/other/uijs_041.png",
+    "_img_bg1": "resource/game/demon/other/ui_shape_28.png",
+    "_img_name": "resource/game/demon/other/demon_name/",
+    "_img_title": "resource/game/demon/other/"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -17402,7 +17345,7 @@
   },
   "demon/DemonFettersItem": {
    "bakedSkins": {
-    "_img_bg": "resource/game/demon/texture/uism_057.png"
+    "_img_bg": "resource/game/demon/other/uism_057.png"
    },
    "decision": "inline",
    "height": 212,
@@ -17481,7 +17424,7 @@
   },
   "demon/DemonMainView": {
    "bakedSkins": {
-    "_bg": "resource/game/demon/texture/ui_servant_08.png",
+    "_bg": "resource/game/demon/other/ui_servant_08.png",
     "_img_full": "resource/game/demon/texture/uiwg_042.png",
     "_img_material_tips": "resource/game/demon/texture/uism_00911.png"
    },
@@ -17603,8 +17546,7 @@
    "json": "cdn/resource/game/demon/DemonPaintingView.json",
    "kind": "component",
    "missingSkins": [
-    "resource/game/common4/texture/bg_07.png",
-    "resource/game/demon/texture/com_line_5.png"
+    "resource/game/common4/texture/bg_07.png"
    ],
    "module": "demon",
    "name": "DemonPaintingView",
@@ -17631,7 +17573,7 @@
     "resource/game/common/texture/com_red_point.png": "loose",
     "resource/game/common4/texture/bg_07.png": "missing",
     "resource/game/demon/texture/award_light_bg2.png": "loose",
-    "resource/game/demon/texture/com_line_5.png": "missing",
+    "resource/game/demon/texture/com_line_5.png": "cdn",
     "resource/game/demon/texture/uism_049.png": "loose",
     "resource/game/demon/texture/uism_050.png": "loose"
    },
@@ -17796,10 +17738,10 @@
   "demon/DemonRotaryView": {
    "bakedSkins": {
     "_add_desc": "resource/game/demon/texture/uijlzp_010b.png",
-    "_bg1": "resource/game/demon/texture/",
-    "_bg3": "resource/game/demon/texture/",
-    "_bg4": "resource/game/demon/texture/",
-    "_bg_5": "resource/game/demon/texture/",
+    "_bg1": "resource/game/demon/other/",
+    "_bg3": "resource/game/demon/other/",
+    "_bg4": "resource/game/demon/other/",
+    "_bg_5": "resource/game/demon/other/",
     "_tab1": "resource/game/demon/texture/uijlzp_005.png",
     "_tab2": "resource/game/demon/texture/uijlzp_004.png"
    },
@@ -17870,10 +17812,7 @@
    "inlineHost": "DemonShopView",
    "json": "cdn/resource/game/demon/DemonShopItem.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/demon/texture/uismhd_001.png",
-    "resource/game/demon/texture/uismhd_001a.png"
-   ],
+   "missingSkins": [],
    "module": "demon",
    "name": "DemonShopItem",
    "nodeTypes": {
@@ -17893,8 +17832,8 @@
     "resource/game/demon/texture/uikf_005.png": "loose",
     "resource/game/demon/texture/uism_064.png": "loose",
     "resource/game/demon/texture/uism_081.png": "loose",
-    "resource/game/demon/texture/uismhd_001.png": "missing",
-    "resource/game/demon/texture/uismhd_001a.png": "missing"
+    "resource/game/demon/texture/uismhd_001.png": "cdn",
+    "resource/game/demon/texture/uismhd_001a.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_diamond.png",
@@ -17910,7 +17849,7 @@
   },
   "demon/DemonShopView": {
    "bakedSkins": {
-    "top_title": "resource/game/demon/texture/ui_servant_title1.png"
+    "top_title": "resource/game/demon/other/ui_servant_title1.png"
    },
    "decision": "standalone-prefab",
    "height": 996,
@@ -17919,9 +17858,7 @@
    ],
    "json": "cdn/resource/game/demon/DemonShopView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/demon/texture/uismhd_003.png"
-   ],
+   "missingSkins": [],
    "module": "demon",
    "name": "DemonShopView",
    "nodeTypes": {
@@ -17942,7 +17879,7 @@
     "resource/game/demon/texture/award_light_bg2.png": "loose",
     "resource/game/demon/texture/ui_servant_09.png": "loose",
     "resource/game/demon/texture/uismhd_002a-1.png": "loose",
-    "resource/game/demon/texture/uismhd_003.png": "missing"
+    "resource/game/demon/texture/uismhd_003.png": "cdn"
    },
    "skins": [
     "comp/vscroll.png",
@@ -17988,7 +17925,7 @@
   },
   "demon/DemonSkillTipsView": {
    "bakedSkins": {
-    "_img_bg": "resource/game/fieldBoss/texture/uity_016bb.png"
+    "_img_bg": "resource/game/fieldBoss/other/uity_016bb.png"
    },
    "decision": "view-prefab",
    "height": 620,
@@ -18160,9 +18097,7 @@
    "inlineHost": "DemonTalentSelectView",
    "json": "cdn/resource/game/demon/DemonTalentSelectItem.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/demon/texture/com_selectbg4.png"
-   ],
+   "missingSkins": [],
    "module": "demon",
    "name": "DemonTalentSelectItem",
    "nodeTypes": {
@@ -18177,7 +18112,7 @@
    "skinSource": {
     "resource/game/common/texture/com_red_point.png": "loose",
     "resource/game/common/texture/com_selectbg4.png": "loose",
-    "resource/game/demon/texture/com_selectbg4.png": "missing"
+    "resource/game/demon/texture/com_selectbg4.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_red_point.png",
@@ -20507,7 +20442,7 @@
   },
   "dsgt/DsgtDetailsItem": {
    "bakedSkins": {
-    "img_bg_details": "resource/game/dsgt/texture/ui_role_52.png"
+    "img_bg_details": "resource/game/dsgt/other/ui_role_52.png"
    },
    "decision": "view-prefab",
    "height": 261,
@@ -20558,8 +20493,7 @@
    "json": "cdn/resource/game/dsgt/DsgtDetailsItemEXML.json",
    "kind": "orphan",
    "missingSkins": [
-    "resource/game/common/texture/com_rect_btn6.png",
-    "resource/game/dsgt/texture/ui_role_52.png"
+    "resource/game/common/texture/com_rect_btn6.png"
    ],
    "module": "dsgt",
    "name": "DsgtDetailsItemEXML",
@@ -20578,7 +20512,7 @@
     "resource/game/common/texture/com_rect_btn1.png": "loose",
     "resource/game/common/texture/com_rect_btn6.png": "missing",
     "resource/game/common/texture/com_red_point.png": "loose",
-    "resource/game/dsgt/texture/ui_role_52.png": "missing",
+    "resource/game/dsgt/texture/ui_role_52.png": "cdn",
     "resource/game/dsgt/texture/ui_role_53.png": "loose",
     "resource/game/dsgt/texture/uirwch_005a.png": "loose",
     "resource/game/dsgt/texture/uitfjn_009.png": "loose"
@@ -23131,9 +23065,7 @@
    "height": 380,
    "json": "cdn/resource/game/dungeonMaterial/DungeonMaterialAlertView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/dungeonMaterial/texture/uildzdz_008c.png"
-   ],
+   "missingSkins": [],
    "module": "dungeonMaterial",
    "name": "DungeonMaterialAlertView",
    "nodeTypes": {
@@ -23161,7 +23093,7 @@
     "resource/game/common2/texture/com_title_bg_1.png": "loose",
     "resource/game/common4/texture/bg_03.png": "loose",
     "resource/game/common4/texture/ui_content_bg1.png": "loose",
-    "resource/game/dungeonMaterial/texture/uildzdz_008c.png": "missing",
+    "resource/game/dungeonMaterial/texture/uildzdz_008c.png": "cdn",
     "resource/game/dungeonMaterial/texture/uisy_017.png": "loose"
    },
    "skins": [
@@ -23187,9 +23119,7 @@
    "json": "cdn/resource/game/dungeonMaterial/DungeonMaterialEnterItem.json",
    "kind": "orphan",
    "missingSkins": [
-    "resource/game/dungeonCommon/texture/uifb_027.png",
-    "resource/game/dungeonMaterial/texture/material_level_06.png",
-    "resource/game/dungeonMaterial/texture/uifb_003.png"
+    "resource/game/dungeonCommon/texture/uifb_027.png"
    ],
    "module": "dungeonMaterial",
    "name": "DungeonMaterialEnterItem",
@@ -23213,9 +23143,9 @@
     "resource/game/common/texture/ui_button_rect14.png": "loose",
     "resource/game/dungeonCommon/texture/uifb_027.png": "missing",
     "resource/game/dungeonMaterial/texture/com_add_2.png": "loose",
-    "resource/game/dungeonMaterial/texture/material_level_06.png": "missing",
+    "resource/game/dungeonMaterial/texture/material_level_06.png": "cdn",
     "resource/game/dungeonMaterial/texture/ui_button_rect20.png": "loose",
-    "resource/game/dungeonMaterial/texture/uifb_003.png": "missing",
+    "resource/game/dungeonMaterial/texture/uifb_003.png": "cdn",
     "resource/game/dungeonMaterial/texture/uifb_006.png": "loose"
    },
    "skins": [
@@ -23853,9 +23783,7 @@
    ],
    "json": "cdn/resource/game/dungeonPartner/DungeonPartnerView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/dungeonPartner/texture/ui_copy_42.png"
-   ],
+   "missingSkins": [],
    "module": "dungeonPartner",
    "name": "DungeonPartnerView",
    "nodeTypes": {
@@ -23879,7 +23807,7 @@
     "resource/game/dungeonPartner/texture/com_arrow_left.png": "loose",
     "resource/game/dungeonPartner/texture/com_arrow_right.png": "loose",
     "resource/game/dungeonPartner/texture/ui_copy_39.png": "loose",
-    "resource/game/dungeonPartner/texture/ui_copy_42.png": "missing",
+    "resource/game/dungeonPartner/texture/ui_copy_42.png": "cdn",
     "resource/game/dungeonPartner/texture/ui_copy_50.png": "loose",
     "resource/game/dungeonPartner/texture/ui_copy_icon_6.png": "loose",
     "resource/game/dungeonPartner/texture/uifbhb_008.png": "loose"
@@ -25142,7 +25070,7 @@
   },
   "dungeonShow/DungeonShowView": {
    "bakedSkins": {
-    "_img_bg": "resource/game/dungeonShow/texture/uisbcl_001.png"
+    "_img_bg": "resource/game/dungeonShow/other/uisbcl_001.png"
    },
    "decision": "standalone-prefab",
    "height": 1222,
@@ -26900,9 +26828,7 @@
    ],
    "json": "cdn/resource/game/eudaemon/EudaemonShopBigItem.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/eudaemon/texture/ui_kf_dgxs005a.png"
-   ],
+   "missingSkins": [],
    "module": "eudaemon",
    "name": "EudaemonShopBigItem",
    "nodeTypes": {
@@ -26915,7 +26841,7 @@
     "EudaemonShopView"
    ],
    "skinSource": {
-    "resource/game/eudaemon/texture/ui_kf_dgxs005a.png": "missing"
+    "resource/game/eudaemon/texture/ui_kf_dgxs005a.png": "cdn"
    },
    "skins": [
     "resource/game/eudaemon/texture/ui_kf_dgxs005a.png"
@@ -27506,9 +27432,7 @@
    "height": 1280,
    "json": "cdn/resource/game/evening/EveningBossView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/evening/texture/uighyh_003.png"
-   ],
+   "missingSkins": [],
    "module": "evening",
    "name": "EveningBossView",
    "nodeTypes": {
@@ -27524,7 +27448,7 @@
    "ownerClasses": [],
    "skinSource": {
     "resource/game/common/texture/com_exp.png": "loose",
-    "resource/game/evening/texture/uighyh_003.png": "missing",
+    "resource/game/evening/texture/uighyh_003.png": "cdn",
     "resource/game/evening/texture/uiygjl_001.png": "loose"
    },
    "skins": [
@@ -27605,10 +27529,7 @@
    "height": 1280,
    "json": "cdn/resource/game/evening/EveningDragonFightView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/evening/texture/uigh_031.png",
-    "resource/game/evening/texture/uighyh_003.png"
-   ],
+   "missingSkins": [],
    "module": "evening",
    "name": "EveningDragonFightView",
    "nodeTypes": {
@@ -27625,8 +27546,8 @@
     "comp/hscroll.png": "comp",
     "comp/vscroll.png": "comp",
     "resource/game/common/texture/com_empty.png": "loose",
-    "resource/game/evening/texture/uigh_031.png": "missing",
-    "resource/game/evening/texture/uighyh_003.png": "missing",
+    "resource/game/evening/texture/uigh_031.png": "cdn",
+    "resource/game/evening/texture/uighyh_003.png": "cdn",
     "resource/game/mainUI/texture/redPacket.png": "loose"
    },
    "skins": [
@@ -27676,9 +27597,7 @@
    "height": 1280,
    "json": "cdn/resource/game/evening/EveningFireView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/evening/texture/uighyh_003.png"
-   ],
+   "missingSkins": [],
    "module": "evening",
    "name": "EveningFireView",
    "nodeTypes": {
@@ -27692,7 +27611,7 @@
    "ownerClasses": [],
    "skinSource": {
     "resource/game/common/texture/com_exp.png": "loose",
-    "resource/game/evening/texture/uighyh_003.png": "missing"
+    "resource/game/evening/texture/uighyh_003.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_exp.png",
@@ -28075,11 +27994,8 @@
    "kind": "orphan",
    "missingSkins": [
     "resource/game/common/texture/com_rect_btn12.png",
-    "resource/game/evening/texture/uigh_035.png",
-    "resource/game/evening/texture/uigh_036.png",
     "resource/game/evening/texture/uigh_037.png",
-    "resource/game/evening/texture/uijh_111.png",
-    "resource/game/evening/texture/uirwv4_003.png"
+    "resource/game/evening/texture/uijh_111.png"
    ],
    "module": "evening",
    "name": "EveningMonView",
@@ -28099,11 +28015,11 @@
     "resource/game/common/texture/com_bind_diamond.png": "loose",
     "resource/game/common/texture/com_empty.png": "loose",
     "resource/game/common/texture/com_rect_btn12.png": "missing",
-    "resource/game/evening/texture/uigh_035.png": "missing",
-    "resource/game/evening/texture/uigh_036.png": "missing",
+    "resource/game/evening/texture/uigh_035.png": "cdn",
+    "resource/game/evening/texture/uigh_036.png": "cdn",
     "resource/game/evening/texture/uigh_037.png": "missing",
     "resource/game/evening/texture/uijh_111.png": "missing",
-    "resource/game/evening/texture/uirwv4_003.png": "missing"
+    "resource/game/evening/texture/uirwv4_003.png": "cdn"
    },
    "skins": [
     "comp/hscroll.png",
@@ -28301,9 +28217,7 @@
    "height": 906,
    "json": "cdn/resource/game/evening/EveningRewardView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/evening/texture/uighyh_006.png"
-   ],
+   "missingSkins": [],
    "module": "evening",
    "name": "EveningRewardView",
    "nodeTypes": {
@@ -28325,7 +28239,7 @@
     "resource/game/common/texture/com_ui_1.png": "loose",
     "resource/game/common/texture/com_ui_2.png": "loose",
     "resource/game/common2/texture/com_sub_bg_5.png": "loose",
-    "resource/game/evening/texture/uighyh_006.png": "missing"
+    "resource/game/evening/texture/uighyh_006.png": "cdn"
    },
    "skins": [
     "comp/hscroll.png",
@@ -28388,9 +28302,7 @@
    "height": 992,
    "json": "cdn/resource/game/exchange/ExchangeGiftView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/exchange/texture/uifl_dhlb_004.png"
-   ],
+   "missingSkins": [],
    "module": "exchange",
    "name": "ExchangeGiftView",
    "nodeTypes": {
@@ -28409,7 +28321,7 @@
     "resource/game/common/texture/com_empty.png": "loose",
     "resource/game/common/texture/com_rect_btn1.png": "loose",
     "resource/game/exchange/texture/uifl_dhlb_002.png": "loose",
-    "resource/game/exchange/texture/uifl_dhlb_004.png": "missing"
+    "resource/game/exchange/texture/uifl_dhlb_004.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_empty.png",
@@ -28609,8 +28521,8 @@
   },
   "fairyWish/FairyWishView": {
    "bakedSkins": {
-    "_bottom_bg": "resource/game/fairyWish/texture/ui_xlzf_015.png",
-    "_top_bg": "resource/game/fairyWish/texture/ui_xlzf_016.png",
+    "_bottom_bg": "resource/game/fairyWish/other/ui_xlzf_015.png",
+    "_top_bg": "resource/game/fairyWish/other/ui_xlzf_016.png",
     "preview_image": "resource/game/fairyWish/texture/ui_xlzf_017.png"
    },
    "decision": "view-prefab",
@@ -29706,7 +29618,7 @@
   },
   "firstBlood/FirstBloodMainView": {
    "bakedSkins": {
-    "img_reward_gp": "resource/game/firstBlood/texture/ui_activity_37.png"
+    "img_reward_gp": "resource/game/firstBlood/other/ui_activity_37.png"
    },
    "decision": "standalone-prefab",
    "height": 1222,
@@ -30429,9 +30341,7 @@
    "height": 659,
    "json": "cdn/resource/game/friend/FightCompareItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/friend/texture/ui_phb_001.png"
-   ],
+   "missingSkins": [],
    "module": "friend",
    "name": "FightCompareItem",
    "nodeTypes": {
@@ -30448,7 +30358,7 @@
     "resource/game/common/texture/com_fight_label_2.png": "loose",
     "resource/game/friend/texture/com_title_bg_4.png": "loose",
     "resource/game/friend/texture/ui_content_bg1.png": "loose",
-    "resource/game/friend/texture/ui_phb_001.png": "missing",
+    "resource/game/friend/texture/ui_phb_001.png": "cdn",
     "resource/game/friend/texture/ui_phb_002.png": "loose"
    },
    "skins": [
@@ -31087,10 +30997,7 @@
    "height": 800,
    "json": "cdn/resource/game/friend/PlayerMessageView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/friend/texture/uifckwj_001.png",
-    "resource/game/friend/texture/uifckwj_001n.jpg"
-   ],
+   "missingSkins": [],
    "module": "friend",
    "name": "PlayerMessageView",
    "nodeTypes": {
@@ -31108,8 +31015,8 @@
     "resource/game/common/texture/com_fight_label_1.png": "loose",
     "resource/game/common/texture/com_fight_label_2.png": "loose",
     "resource/game/common/texture/uisy_026.png": "loose",
-    "resource/game/friend/texture/uifckwj_001.png": "missing",
-    "resource/game/friend/texture/uifckwj_001n.jpg": "missing",
+    "resource/game/friend/texture/uifckwj_001.png": "cdn",
+    "resource/game/friend/texture/uifckwj_001n.jpg": "cdn",
     "resource/game/friend/texture/uisy_017.png": "loose",
     "resource/game/mainUI/texture/uisc_006.png": "loose",
     "resource/game/mainUI/texture/uivip_zjm_1.png": "loose"
@@ -31162,10 +31069,7 @@
    "height": 992,
    "json": "cdn/resource/game/friend/WXCustomerServiceView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/friend/texture/uilxkf_0011.png",
-    "resource/game/friend/texture/uilxkf_002.png"
-   ],
+   "missingSkins": [],
    "module": "friend",
    "name": "WXCustomerServiceView",
    "nodeTypes": {
@@ -31182,8 +31086,8 @@
    "ownerClasses": [],
    "skinSource": {
     "comp/vscroll.png": "comp",
-    "resource/game/friend/texture/uilxkf_0011.png": "missing",
-    "resource/game/friend/texture/uilxkf_002.png": "missing",
+    "resource/game/friend/texture/uilxkf_0011.png": "cdn",
+    "resource/game/friend/texture/uilxkf_002.png": "cdn",
     "resource/game/friend/texture/uilxkf_003.png": "loose",
     "resource/game/friend/texture/uilxkf_003a.png": "loose",
     "resource/game/friend/texture/uilxkf_004.png": "loose"
@@ -31589,9 +31493,7 @@
    ],
    "json": "cdn/resource/game/friendInvite/FriendInviteShopView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/friendInvite/texture/uiyqkbx_033.png"
-   ],
+   "missingSkins": [],
    "module": "friendInvite",
    "name": "FriendInviteShopView",
    "nodeTypes": {
@@ -31609,7 +31511,7 @@
     "resource/game/common/texture/empty.png": "loose",
     "resource/game/friendInvite/texture/uiyqkbx_002.png": "loose",
     "resource/game/friendInvite/texture/uiyqkbx_021.png": "loose",
-    "resource/game/friendInvite/texture/uiyqkbx_033.png": "missing",
+    "resource/game/friendInvite/texture/uiyqkbx_033.png": "cdn",
     "resource/game/friendInvite/texture/uiyqkbx_035.png": "loose"
    },
    "skins": [
@@ -31869,7 +31771,7 @@
   },
   "ftvActiveness/FtvActivenessMainView": {
    "bakedSkins": {
-    "_img_titlebg": "resource/game/ftvActiveness/texture/uihyjl_015.jpg"
+    "_img_titlebg": "resource/game/ftvActiveness/other/uihyjl_015.jpg"
    },
    "decision": "standalone-prefab",
    "height": 996,
@@ -32119,7 +32021,7 @@
   },
   "ftvCollectionExchange/FtvCollectionExchangeItem": {
    "bakedSkins": {
-    "bg_img": "resource/game/ftvCollectionExchange/texture/uidjtz_005a.png"
+    "bg_img": "resource/game/ftvCollectionExchange/other/uidjtz_005a.png"
    },
    "decision": "view-prefab",
    "height": 171,
@@ -32162,7 +32064,7 @@
   },
   "ftvCollectionExchange/FtvCollectionExchangeMain": {
    "bakedSkins": {
-    "_img_titlebg": "resource/game/ftvCollectionExchange/texture/uijzdh_001fc.jpg"
+    "_img_titlebg": "resource/game/ftvCollectionExchange/other/uijzdh_001fc.jpg"
    },
    "decision": "standalone-prefab",
    "height": 1000,
@@ -32455,7 +32357,7 @@
   },
   "ftvInvest/FtvInvestView": {
    "bakedSkins": {
-    "_img_title": "resource/game/ftvInvest/texture/uijrtz_002.png"
+    "_img_title": "resource/game/ftvInvest/other/uijrtz_002.png"
    },
    "decision": "standalone-prefab",
    "height": 990,
@@ -32591,7 +32493,7 @@
   },
   "ftvShop/FtvShopView": {
    "bakedSkins": {
-    "_img_time_bg": "resource/game/ftvShop/texture/uixys_007.png"
+    "_img_time_bg": "resource/game/ftvShop/other/uixys_007.png"
    },
    "decision": "inline",
    "height": 997,
@@ -32881,7 +32783,7 @@
   },
   "gameNotice/GameNoticeContentItem": {
    "bakedSkins": {
-    "_img_lb": "resource/game/gameNotice/texture/ui_notice_05.png"
+    "_img_lb": "resource/game/gameNotice/other/ui_notice_05.png"
    },
    "decision": "inline",
    "height": null,
@@ -33655,7 +33557,7 @@
   },
   "godBeast/GodBeastComView": {
    "bakedSkins": {
-    "bg0": "resource/game/godBeast/texture/ui_rare_16.png"
+    "bg0": "resource/game/godBeast/other/ui_rare_16.png"
    },
    "decision": "view-prefab",
    "height": 1050,
@@ -33955,9 +33857,9 @@
   },
   "godBeast/GodBeastStrView": {
    "bakedSkins": {
-    "bg1": "resource/game/bag/texture/uisy_023.png",
-    "bg2": "resource/game/godBeast/texture/ui_rare_20.png",
-    "bg3": "resource/game/godBeast/texture/uihl_013.png"
+    "bg1": "resource/game/bag/other/uisy_023.png",
+    "bg2": "resource/game/godBeast/other/ui_rare_20.png",
+    "bg3": "resource/game/godBeast/other/uihl_013.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -33967,8 +33869,7 @@
    "json": "cdn/resource/game/godBeast/GodBeastStrView.json",
    "kind": "window",
    "missingSkins": [
-    "laya/views/resource/game/godBeast/GodBeastStrView.jpg",
-    "resource/game/godBeast/texture/uihl_007.png"
+    "laya/views/resource/game/godBeast/GodBeastStrView.jpg"
    ],
    "module": "godBeast",
    "name": "GodBeastStrView",
@@ -34000,7 +33901,7 @@
     "resource/game/common4/texture/bg_11.png": "loose",
     "resource/game/common4/texture/com_flower_brown.png": "loose",
     "resource/game/common4/texture/ui_content_bg1.png": "loose",
-    "resource/game/godBeast/texture/uihl_007.png": "missing",
+    "resource/game/godBeast/texture/uihl_007.png": "cdn",
     "resource/game/godBeast/texture/uihl_011.png": "loose",
     "resource/game/godBeast/texture/uihl_012.png": "loose",
     "resource/game/godBeast/texture/uihl_014.png": "loose",
@@ -34069,8 +33970,7 @@
    "json": "cdn/resource/game/godBeast/GodBeastStrenView.json",
    "kind": "component",
    "missingSkins": [
-    "resource/game/common/texture/com_rect_btn5.png",
-    "resource/game/godBeast/texture/uiss_018.png"
+    "resource/game/common/texture/com_rect_btn5.png"
    ],
    "module": "godBeast",
    "name": "GodBeastStrenView",
@@ -34095,7 +33995,7 @@
     "resource/game/common2/texture/uity_060.png": "loose",
     "resource/game/common4/texture/uity_034.png": "loose",
     "resource/game/godBeast/texture/uiss_017.png": "loose",
-    "resource/game/godBeast/texture/uiss_018.png": "missing"
+    "resource/game/godBeast/texture/uiss_018.png": "cdn"
    },
    "skins": [
     "comp/vscroll.png",
@@ -34231,9 +34131,7 @@
    "height": 0,
    "json": "cdn/resource/game/godBefall/GBCheckBoxSkin.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/godBefall/texture/uity_045d.png"
-   ],
+   "missingSkins": [],
    "module": "godBefall",
    "name": "GBCheckBoxSkin",
    "nodeTypes": {
@@ -34245,7 +34143,7 @@
    "otherRefFiles": [],
    "ownerClasses": [],
    "skinSource": {
-    "resource/game/godBefall/texture/uity_045d.png": "missing"
+    "resource/game/godBefall/texture/uity_045d.png": "cdn"
    },
    "skins": [
     "resource/game/godBefall/texture/uity_045d.png"
@@ -34286,12 +34184,7 @@
    "height": 100,
    "json": "cdn/resource/game/godBefall/GodBefallAutoComposeItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/godBefall/texture/uijs_052.png",
-    "resource/game/godBefall/texture/uitc_035.png",
-    "resource/game/godBefall/texture/uity_045c.png",
-    "resource/game/godBefall/texture/uity_045d.png"
-   ],
+   "missingSkins": [],
    "module": "godBefall",
    "name": "GodBefallAutoComposeItem",
    "nodeTypes": {
@@ -34303,10 +34196,10 @@
    "otherRefFiles": [],
    "ownerClasses": [],
    "skinSource": {
-    "resource/game/godBefall/texture/uijs_052.png": "missing",
-    "resource/game/godBefall/texture/uitc_035.png": "missing",
-    "resource/game/godBefall/texture/uity_045c.png": "missing",
-    "resource/game/godBefall/texture/uity_045d.png": "missing"
+    "resource/game/godBefall/texture/uijs_052.png": "cdn",
+    "resource/game/godBefall/texture/uitc_035.png": "cdn",
+    "resource/game/godBefall/texture/uity_045c.png": "cdn",
+    "resource/game/godBefall/texture/uity_045d.png": "cdn"
    },
    "skins": [
     "resource/game/godBefall/texture/uijs_052.png",
@@ -34324,9 +34217,7 @@
    "json": "cdn/resource/game/godBefall/GodBefallAutoComposeView.json",
    "kind": "orphan",
    "missingSkins": [
-    "resource/game/common/texture/com_rect_btn12.png",
-    "resource/game/godBefall/texture/uijs_065.png",
-    "resource/game/godBefall/texture/uisy_023.png"
+    "resource/game/common/texture/com_rect_btn12.png"
    ],
    "module": "godBefall",
    "name": "GodBefallAutoComposeView",
@@ -34345,8 +34236,8 @@
     "resource/game/common/texture/uisy_017.png": "loose",
     "resource/game/common/texture/uity_016k.png": "loose",
     "resource/game/common2/texture/uity_027.png": "loose",
-    "resource/game/godBefall/texture/uijs_065.png": "missing",
-    "resource/game/godBefall/texture/uisy_023.png": "missing"
+    "resource/game/godBefall/texture/uijs_065.png": "cdn",
+    "resource/game/godBefall/texture/uisy_023.png": "cdn"
    },
    "skins": [
     "comp/vscroll.png",
@@ -34367,9 +34258,7 @@
    "inlineHost": "GodBefallEquipView",
    "json": "cdn/resource/game/godBefall/GodBefallBagItem.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/godBefall/texture/uijs_018.png"
-   ],
+   "missingSkins": [],
    "module": "godBefall",
    "name": "GodBefallBagItem",
    "nodeTypes": {
@@ -34386,7 +34275,7 @@
     "resource/game/common/texture/com_red_point.png": "loose",
     "resource/game/common/texture/com_uparrow.png": "loose",
     "resource/game/common/texture/ui_lock _1.png": "loose",
-    "resource/game/godBefall/texture/uijs_018.png": "missing"
+    "resource/game/godBefall/texture/uijs_018.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_goods_plate_0.png",
@@ -34404,9 +34293,7 @@
    "height": null,
    "json": "cdn/resource/game/godBefall/GodBefallCheckBox.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/godBefall/texture/uity_045d.png"
-   ],
+   "missingSkins": [],
    "module": "godBefall",
    "name": "GodBefallCheckBox",
    "nodeTypes": {
@@ -34418,7 +34305,7 @@
    "otherRefFiles": [],
    "ownerClasses": [],
    "skinSource": {
-    "resource/game/godBefall/texture/uity_045d.png": "missing"
+    "resource/game/godBefall/texture/uity_045d.png": "cdn"
    },
    "skins": [
     "resource/game/godBefall/texture/uity_045d.png"
@@ -34433,9 +34320,6 @@
    "json": "cdn/resource/game/godBefall/GodBefallComTipsView.json",
    "kind": "orphan",
    "missingSkins": [
-    "resource/game/godBefall/texture/uijs_006.png",
-    "resource/game/godBefall/texture/uijs_042.png",
-    "resource/game/godBefall/texture/uisy_023.png",
     "resource/game/godBefall/texture/uisy_026.png"
    ],
    "module": "godBefall",
@@ -34454,9 +34338,9 @@
     "resource/game/common/texture/com_rect_btn2.png": "loose",
     "resource/game/common/texture/uisy_017.png": "loose",
     "resource/game/common4/texture/uity_083.png": "loose",
-    "resource/game/godBefall/texture/uijs_006.png": "missing",
-    "resource/game/godBefall/texture/uijs_042.png": "missing",
-    "resource/game/godBefall/texture/uisy_023.png": "missing",
+    "resource/game/godBefall/texture/uijs_006.png": "cdn",
+    "resource/game/godBefall/texture/uijs_042.png": "cdn",
+    "resource/game/godBefall/texture/uisy_023.png": "cdn",
     "resource/game/godBefall/texture/uisy_026.png": "missing"
    },
    "skins": [
@@ -34617,10 +34501,7 @@
    ],
    "json": "cdn/resource/game/godBefall/GodBefallMainView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/godBefall/texture/hecheng.png",
-    "resource/game/godBefall/texture/shenge.png"
-   ],
+   "missingSkins": [],
    "module": "godBefall",
    "name": "GodBefallMainView",
    "nodeTypes": {
@@ -34655,8 +34536,8 @@
     "resource/game/common4/texture/ui_pro_bar_3.png": "loose",
     "resource/game/common4/texture/ui_pro_bg_3.png": "loose",
     "resource/game/godBefall/other/ui_role_66.png": "loose",
-    "resource/game/godBefall/texture/hecheng.png": "missing",
-    "resource/game/godBefall/texture/shenge.png": "missing",
+    "resource/game/godBefall/texture/hecheng.png": "cdn",
+    "resource/game/godBefall/texture/shenge.png": "cdn",
     "resource/game/godBefall/texture/ui_button_rect15.png": "loose",
     "resource/game/godBefall/texture/ui_button_rect16.png": "loose",
     "resource/game/godBefall/texture/ui_js_11.png": "loose",
@@ -34898,9 +34779,7 @@
    "json": "cdn/resource/game/godBefall/GodBefallStageView.json",
    "kind": "orphan",
    "missingSkins": [
-    "resource/game/common4/texture/bg_07.png",
-    "resource/game/godBefall/texture/ui_stage_0.png",
-    "resource/game/godBefall/texture/ui_stage_1.png"
+    "resource/game/common4/texture/bg_07.png"
    ],
    "module": "godBefall",
    "name": "GodBefallStageView",
@@ -34929,8 +34808,8 @@
     "resource/game/godBefall/texture/ui_role_title_bg1.png": "loose",
     "resource/game/godBefall/texture/ui_shape_13.png": "loose",
     "resource/game/godBefall/texture/ui_shape_15.png": "loose",
-    "resource/game/godBefall/texture/ui_stage_0.png": "missing",
-    "resource/game/godBefall/texture/ui_stage_1.png": "missing"
+    "resource/game/godBefall/texture/ui_stage_0.png": "cdn",
+    "resource/game/godBefall/texture/ui_stage_1.png": "cdn"
    },
    "skins": [
     "comp/hscroll.png",
@@ -34958,9 +34837,7 @@
    "height": 1280,
    "json": "cdn/resource/game/godBefall/GodBefallStarTipsView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/godBefall/texture/ui_shape_27.png"
-   ],
+   "missingSkins": [],
    "module": "godBefall",
    "name": "GodBefallStarTipsView",
    "nodeTypes": {
@@ -34978,7 +34855,7 @@
     "resource/game/common/texture/uian_010b.png": "loose",
     "resource/game/common4/texture/com_title_bg_2.png": "loose",
     "resource/game/godBefall/texture/ui_role_title_bg1.png": "loose",
-    "resource/game/godBefall/texture/ui_shape_27.png": "missing"
+    "resource/game/godBefall/texture/ui_shape_27.png": "cdn"
    },
    "skins": [
     "comp/vscroll.png",
@@ -34996,9 +34873,7 @@
    "height": 30,
    "json": "cdn/resource/game/godBefall/GodBefallStrongAttrItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/godBefall/texture/uijs_060.png"
-   ],
+   "missingSkins": [],
    "module": "godBefall",
    "name": "GodBefallStrongAttrItem",
    "nodeTypes": {
@@ -35009,7 +34884,7 @@
    "otherRefFiles": [],
    "ownerClasses": [],
    "skinSource": {
-    "resource/game/godBefall/texture/uijs_060.png": "missing"
+    "resource/game/godBefall/texture/uijs_060.png": "cdn"
    },
    "skins": [
     "resource/game/godBefall/texture/uijs_060.png"
@@ -35023,10 +34898,7 @@
    "height": 90,
    "json": "cdn/resource/game/godBefall/GodBefallStrongBagItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/godBefall/texture/uijs_054.png",
-    "resource/game/godBefall/texture/uijs_055.png"
-   ],
+   "missingSkins": [],
    "module": "godBefall",
    "name": "GodBefallStrongBagItem",
    "nodeTypes": {
@@ -35040,8 +34912,8 @@
    "ownerClasses": [],
    "skinSource": {
     "resource/game/common4/texture/default.png": "loose",
-    "resource/game/godBefall/texture/uijs_054.png": "missing",
-    "resource/game/godBefall/texture/uijs_055.png": "missing"
+    "resource/game/godBefall/texture/uijs_054.png": "cdn",
+    "resource/game/godBefall/texture/uijs_055.png": "cdn"
    },
    "skins": [
     "resource/game/common4/texture/default.png",
@@ -35059,15 +34931,7 @@
    "kind": "orphan",
    "missingSkins": [
     "resource/game/common/texture/com_rect_btn12.png",
-    "resource/game/common/texture/com_rect_btn13.png",
-    "resource/game/godBefall/texture/uijs_057.png",
-    "resource/game/godBefall/texture/uijs_058.png",
-    "resource/game/godBefall/texture/uijs_059.png",
-    "resource/game/godBefall/texture/uijs_060.png",
-    "resource/game/godBefall/texture/uijs_066a.png",
-    "resource/game/godBefall/texture/uijs_070.png",
-    "resource/game/godBefall/texture/uijs_071.png",
-    "resource/game/godBefall/texture/uisy_023.png"
+    "resource/game/common/texture/com_rect_btn13.png"
    ],
    "module": "godBefall",
    "name": "GodBefallStrongGodView",
@@ -35090,14 +34954,14 @@
     "resource/game/common/texture/uisy_017.png": "loose",
     "resource/game/common/texture/uity_016k.png": "loose",
     "resource/game/common2/texture/uity_027.png": "loose",
-    "resource/game/godBefall/texture/uijs_057.png": "missing",
-    "resource/game/godBefall/texture/uijs_058.png": "missing",
-    "resource/game/godBefall/texture/uijs_059.png": "missing",
-    "resource/game/godBefall/texture/uijs_060.png": "missing",
-    "resource/game/godBefall/texture/uijs_066a.png": "missing",
-    "resource/game/godBefall/texture/uijs_070.png": "missing",
-    "resource/game/godBefall/texture/uijs_071.png": "missing",
-    "resource/game/godBefall/texture/uisy_023.png": "missing"
+    "resource/game/godBefall/texture/uijs_057.png": "cdn",
+    "resource/game/godBefall/texture/uijs_058.png": "cdn",
+    "resource/game/godBefall/texture/uijs_059.png": "cdn",
+    "resource/game/godBefall/texture/uijs_060.png": "cdn",
+    "resource/game/godBefall/texture/uijs_066a.png": "cdn",
+    "resource/game/godBefall/texture/uijs_070.png": "cdn",
+    "resource/game/godBefall/texture/uijs_071.png": "cdn",
+    "resource/game/godBefall/texture/uisy_023.png": "cdn"
    },
    "skins": [
     "comp/vscroll.png",
@@ -35125,9 +34989,7 @@
    "height": 52,
    "json": "cdn/resource/game/godBefall/GodBefallStrongTab.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/godBefall/texture/uitc_005.png"
-   ],
+   "missingSkins": [],
    "module": "godBefall",
    "name": "GodBefallStrongTab",
    "nodeTypes": {
@@ -35139,7 +35001,7 @@
    "ownerClasses": [],
    "skinSource": {
     "resource/game/common/texture/com_red_point.png": "loose",
-    "resource/game/godBefall/texture/uitc_005.png": "missing"
+    "resource/game/godBefall/texture/uitc_005.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_red_point.png",
@@ -38377,9 +38239,7 @@
    "inlineHost": "GuildSkillView",
    "json": "cdn/resource/game/guild/GuildSkillShowItem.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/guild/texture/uigh_030.png"
-   ],
+   "missingSkins": [],
    "module": "guild",
    "name": "GuildSkillShowItem",
    "nodeTypes": {
@@ -38401,7 +38261,7 @@
     "resource/game/guild/texture/mainui_head_circle_blue.png": "loose",
     "resource/game/guild/texture/ui_role_35.png": "loose",
     "resource/game/guild/texture/ui_role_36.png": "loose",
-    "resource/game/guild/texture/uigh_030.png": "missing"
+    "resource/game/guild/texture/uigh_030.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_empty.png",
@@ -38645,10 +38505,7 @@
    "height": 71,
    "json": "cdn/resource/game/guildFight/GuildFightGuildRankItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/guildFight/texture/uitc_035.png",
-    "resource/game/guildFight/texture/uizbz_019a.png"
-   ],
+   "missingSkins": [],
    "module": "guildFight",
    "name": "GuildFightGuildRankItem",
    "nodeTypes": {
@@ -38660,8 +38517,8 @@
    "ownerClasses": [],
    "skinSource": {
     "resource/game/common/texture/uijjsh_006a.png": "loose",
-    "resource/game/guildFight/texture/uitc_035.png": "missing",
-    "resource/game/guildFight/texture/uizbz_019a.png": "missing"
+    "resource/game/guildFight/texture/uitc_035.png": "cdn",
+    "resource/game/guildFight/texture/uizbz_019a.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/uijjsh_006a.png",
@@ -38921,9 +38778,7 @@
    "height": 143,
    "json": "cdn/resource/game/guildFight/GuildFightRankRewardItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/guildFight/texture/uizbz_002a.png"
-   ],
+   "missingSkins": [],
    "module": "guildFight",
    "name": "GuildFightRankRewardItem",
    "nodeTypes": {
@@ -38938,7 +38793,7 @@
    "skinSource": {
     "comp/hscroll.png": "comp",
     "resource/game/common/texture/com_empty.png": "loose",
-    "resource/game/guildFight/texture/uizbz_002a.png": "missing"
+    "resource/game/guildFight/texture/uizbz_002a.png": "cdn"
    },
    "skins": [
     "comp/hscroll.png",
@@ -38996,9 +38851,7 @@
    "height": 788,
    "json": "cdn/resource/game/guildFight/GuildFightRankView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/guildFight/texture/uitc_023.png"
-   ],
+   "missingSkins": [],
    "module": "guildFight",
    "name": "GuildFightRankView",
    "nodeTypes": {
@@ -39017,7 +38870,7 @@
     "resource/game/common/texture/uity_066.png": "loose",
     "resource/game/common2/texture/com_title_bg_1.png": "loose",
     "resource/game/common4/texture/bg_03.png": "loose",
-    "resource/game/guildFight/texture/uitc_023.png": "missing"
+    "resource/game/guildFight/texture/uitc_023.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_sub_bg_6.png",
@@ -39198,9 +39051,7 @@
    "height": 30,
    "json": "cdn/resource/game/guildFight/GuildFightSceneRankItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/guildFight/texture/uizbz_025.png"
-   ],
+   "missingSkins": [],
    "module": "guildFight",
    "name": "GuildFightSceneRankItem",
    "nodeTypes": {
@@ -39211,7 +39062,7 @@
    "otherRefFiles": [],
    "ownerClasses": [],
    "skinSource": {
-    "resource/game/guildFight/texture/uizbz_025.png": "missing"
+    "resource/game/guildFight/texture/uizbz_025.png": "cdn"
    },
    "skins": [
     "resource/game/guildFight/texture/uizbz_025.png"
@@ -39341,10 +39192,7 @@
    "height": 63,
    "json": "cdn/resource/game/guildFight/GuildFightSettleItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/guildFight/texture/uizbz_003.png",
-    "resource/game/guildFight/texture/uizbz_007b.png"
-   ],
+   "missingSkins": [],
    "module": "guildFight",
    "name": "GuildFightSettleItem",
    "nodeTypes": {
@@ -39355,8 +39203,8 @@
    "otherRefFiles": [],
    "ownerClasses": [],
    "skinSource": {
-    "resource/game/guildFight/texture/uizbz_003.png": "missing",
-    "resource/game/guildFight/texture/uizbz_007b.png": "missing"
+    "resource/game/guildFight/texture/uizbz_003.png": "cdn",
+    "resource/game/guildFight/texture/uizbz_007b.png": "cdn"
    },
    "skins": [
     "resource/game/guildFight/texture/uizbz_003.png",
@@ -39475,17 +39323,7 @@
    "height": 155,
    "json": "cdn/resource/game/guildFight/GuildFightTowerItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/guildFight/texture/self_flag.png",
-    "resource/game/guildFight/texture/uizbz_020a.png",
-    "resource/game/guildFight/texture/uizbz_020b.png",
-    "resource/game/guildFight/texture/uizbz_020c.png",
-    "resource/game/guildFight/texture/uizbz_021a.png",
-    "resource/game/guildFight/texture/uizbz_021b.png",
-    "resource/game/guildFight/texture/uizbz_021c.png",
-    "resource/game/guildFight/texture/uizbz_022.png",
-    "resource/game/guildFight/texture/uizbz_023.png"
-   ],
+   "missingSkins": [],
    "module": "guildFight",
    "name": "GuildFightTowerItem",
    "nodeTypes": {
@@ -39497,15 +39335,15 @@
    "otherRefFiles": [],
    "ownerClasses": [],
    "skinSource": {
-    "resource/game/guildFight/texture/self_flag.png": "missing",
-    "resource/game/guildFight/texture/uizbz_020a.png": "missing",
-    "resource/game/guildFight/texture/uizbz_020b.png": "missing",
-    "resource/game/guildFight/texture/uizbz_020c.png": "missing",
-    "resource/game/guildFight/texture/uizbz_021a.png": "missing",
-    "resource/game/guildFight/texture/uizbz_021b.png": "missing",
-    "resource/game/guildFight/texture/uizbz_021c.png": "missing",
-    "resource/game/guildFight/texture/uizbz_022.png": "missing",
-    "resource/game/guildFight/texture/uizbz_023.png": "missing"
+    "resource/game/guildFight/texture/self_flag.png": "cdn",
+    "resource/game/guildFight/texture/uizbz_020a.png": "cdn",
+    "resource/game/guildFight/texture/uizbz_020b.png": "cdn",
+    "resource/game/guildFight/texture/uizbz_020c.png": "cdn",
+    "resource/game/guildFight/texture/uizbz_021a.png": "cdn",
+    "resource/game/guildFight/texture/uizbz_021b.png": "cdn",
+    "resource/game/guildFight/texture/uizbz_021c.png": "cdn",
+    "resource/game/guildFight/texture/uizbz_022.png": "cdn",
+    "resource/game/guildFight/texture/uizbz_023.png": "cdn"
    },
    "skins": [
     "resource/game/guildFight/texture/self_flag.png",
@@ -39844,7 +39682,7 @@
   },
   "guildidol/GuildIdolMainAct": {
    "bakedSkins": {
-    "_img": "resource/game/guildidol/texture/figure"
+    "_img": "resource/game/guildidol/other/figure"
    },
    "decision": "view-prefab",
    "height": 992,
@@ -39899,7 +39737,7 @@
   },
   "guildidol/GuildIdolMainAwaken": {
    "bakedSkins": {
-    "_img": "resource/game/guildidol/texture/figure"
+    "_img": "resource/game/guildidol/other/figure"
    },
    "decision": "view-prefab",
    "height": 992,
@@ -40355,9 +40193,7 @@
    "height": 843,
    "json": "cdn/resource/game/guildidol/GuildIdolRuneMasterView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/guildidol/texture/uigh_116.png"
-   ],
+   "missingSkins": [],
    "module": "guildidol",
    "name": "GuildIdolRuneMasterView",
    "nodeTypes": {
@@ -40386,7 +40222,7 @@
     "resource/game/common4/texture/bg_12.png": "loose",
     "resource/game/common4/texture/com_title_bg_2.png": "loose",
     "resource/game/common4/texture/xx_titleBg8.png": "loose",
-    "resource/game/guildidol/texture/uigh_116.png": "missing"
+    "resource/game/guildidol/texture/uigh_116.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_empty.png",
@@ -40877,9 +40713,7 @@
    "inlineHost": "HolyBattleRecordView",
    "json": "cdn/resource/game/holyBattle/HolyBattleRecordItem.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/holyBattle/texture/ui_slzc_bg2.png"
-   ],
+   "missingSkins": [],
    "module": "holyBattle",
    "name": "HolyBattleRecordItem",
    "nodeTypes": {
@@ -40895,7 +40729,7 @@
    ],
    "skinSource": {
     "resource/game/common/texture/com_empty.png": "loose",
-    "resource/game/holyBattle/texture/ui_slzc_bg2.png": "missing"
+    "resource/game/holyBattle/texture/ui_slzc_bg2.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_empty.png",
@@ -41705,7 +41539,7 @@
   },
   "holySeal/HolySealDismantleView": {
    "bakedSkins": {
-    "_img_bg": "resource/game/common/texture/uisy_023.png"
+    "_img_bg": "resource/game/common/other/uisy_023.png"
    },
    "decision": "view-prefab",
    "height": 414,
@@ -41864,8 +41698,8 @@
   },
   "holySeal/HolySealStrenView": {
    "bakedSkins": {
-    "_img_bg3": "resource/game/holySeal/texture/ui_seal_bg1.png",
-    "_img_bg4": "resource/game/holySeal/texture/ui_seal_01.png"
+    "_img_bg3": "resource/game/holySeal/other/ui_seal_bg1.png",
+    "_img_bg4": "resource/game/holySeal/other/ui_seal_01.png"
    },
    "decision": "view-prefab",
    "height": 1060,
@@ -41990,8 +41824,8 @@
   },
   "holySeal/HolySealSuitPreviewView": {
    "bakedSkins": {
-    "_img_bg1": "resource/game/holySeal/texture/ui_seal_bg1.png",
-    "_img_bg2": "resource/game/holySeal/texture/ui_seal_01.png"
+    "_img_bg1": "resource/game/holySeal/other/ui_seal_bg1.png",
+    "_img_bg2": "resource/game/holySeal/other/ui_seal_01.png"
    },
    "decision": "view-prefab",
    "height": 1161,
@@ -42139,7 +41973,7 @@
   },
   "holySeal/HolySoulItem": {
    "bakedSkins": {
-    "_img_bg": "resource/game/holySeal/texture/uisy_022.png"
+    "_img_bg": "resource/game/holySeal/other/uisy_022.png"
    },
    "decision": "inline",
    "height": 120,
@@ -42180,7 +42014,7 @@
   },
   "holySeal/HolySoulView": {
    "bakedSkins": {
-    "_img_bg2": "resource/game/holySeal/texture/ui_seal_bg2.png"
+    "_img_bg2": "resource/game/holySeal/other/ui_seal_bg2.png"
    },
    "decision": "view-prefab",
    "height": 780,
@@ -46252,7 +46086,7 @@
   },
   "kfHotPoint/kfHotPointView": {
    "bakedSkins": {
-    "_img0": "resource/game/kfHotPoint/texture/uikfhd_012.png"
+    "_img0": "resource/game/kfHotPoint/other/uikfhd_012.png"
    },
    "decision": "standalone-prefab",
    "height": 1000,
@@ -47192,9 +47026,7 @@
    "height": 992,
    "json": "cdn/resource/game/levelReward/LevelRewardView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/levelReward/texture/uicjhl_001.jpg"
-   ],
+   "missingSkins": [],
    "module": "levelReward",
    "name": "LevelRewardView",
    "nodeTypes": {
@@ -47213,7 +47045,7 @@
    "skinSource": {
     "resource/game/common/texture/com_empty.png": "loose",
     "resource/game/common4/texture/ui_content_bg1.png": "loose",
-    "resource/game/levelReward/texture/uicjhl_001.jpg": "missing"
+    "resource/game/levelReward/texture/uicjhl_001.jpg": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_empty.png",
@@ -48067,8 +47899,8 @@
   },
   "login/LoginLoadingView": {
    "bakedSkins": {
-    "_img_back": "resource/game/login/texture/uidl_016.png",
-    "_img_front": "resource/game/login/texture/uidl_015.png"
+    "_img_back": "resource/game/login/other/uidl_016.png",
+    "_img_front": "resource/game/login/other/uidl_015.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -48197,7 +48029,7 @@
   },
   "login/LoginNoticeView": {
    "bakedSkins": {
-    "_img_bg": "resource/game/login/texture/uidl_029.jpg"
+    "_img_bg": "resource/game/login/other/uidl_029.jpg"
    },
    "decision": "view-prefab",
    "height": 1050,
@@ -48520,7 +48352,7 @@
   },
   "login/LoginSelectServerView": {
    "bakedSkins": {
-    "_img_bg": "resource/game/login/texture/ui_Login_bg11.jpg"
+    "_img_bg": "resource/game/login/other/ui_Login_bg11.jpg"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -49958,7 +49790,7 @@
   },
   "lung/LungGridList": {
    "bakedSkins": {
-    "bg": "resource/game/lung/texture/uilwmb_009.png"
+    "bg": "resource/game/lung/other/uilwmb_009.png"
    },
    "decision": "inline",
    "height": 566,
@@ -50017,9 +49849,9 @@
   },
   "lung/LungMainView": {
    "bakedSkins": {
-    "bg1": "resource/game/lung/texture/uilwmb_011.png",
-    "bg2": "resource/game/lung/texture/uilwmb_011.png",
-    "upgrade_bg": "resource/game/lung/texture/uilwmb_033.png"
+    "bg1": "resource/game/lung/other/uilwmb_011.png",
+    "bg2": "resource/game/lung/other/uilwmb_011.png",
+    "upgrade_bg": "resource/game/lung/other/uilwmb_033.png"
    },
    "decision": "standalone-prefab",
    "height": 1222,
@@ -50171,8 +50003,8 @@
   },
   "lung/LungResolveView": {
    "bakedSkins": {
-    "line": "resource/game/lung/texture/uilwmb_030.png",
-    "line2": "resource/game/lung/texture/uilwmb_030.png"
+    "line": "resource/game/lung/other/uilwmb_030.png",
+    "line2": "resource/game/lung/other/uilwmb_030.png"
    },
    "decision": "view-prefab",
    "height": 870,
@@ -50444,7 +50276,7 @@
   },
   "lung/LungSkillTipsView": {
    "bakedSkins": {
-    "_Image1": "resource/game/common2/texture/uity_016j.png"
+    "_Image1": "resource/game/common2/other/uity_016j.png"
    },
    "decision": "view-prefab",
    "height": 298,
@@ -50489,8 +50321,8 @@
   },
   "lung/LungStoveMainView": {
    "bakedSkins": {
-    "bgImg1": "resource/game/lung/texture/ui_swzh_01.png",
-    "bgImg2": "resource/game/zeroMoney/texture/ui_gift_02.png"
+    "bgImg1": "resource/game/lung/other/ui_swzh_01.png",
+    "bgImg2": "resource/game/zeroMoney/other/ui_gift_02.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -51577,7 +51409,7 @@
   },
   "mainUI/MainUIDownView": {
    "bakedSkins": {
-    "_img_bg": "resource/game/mainUI/texture/uizjmv3_001.png"
+    "_img_bg": "resource/game/mainUI/other/uizjmv3_001.png"
    },
    "decision": "view-prefab",
    "height": 1,
@@ -53330,9 +53162,7 @@
    "inlineHost": "MarketPlzView",
    "json": "cdn/resource/game/market/MarketPlzListView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/market/texture/uishi_014.png"
-   ],
+   "missingSkins": [],
    "module": "market",
    "name": "MarketPlzListView",
    "nodeTypes": {
@@ -53352,7 +53182,7 @@
    "skinSource": {
     "comp/vscroll.png": "comp",
     "resource/game/common/texture/uity_040.png": "loose",
-    "resource/game/market/texture/uishi_014.png": "missing",
+    "resource/game/market/texture/uishi_014.png": "cdn",
     "resource/game/market/texture/uishi_015.png": "loose"
    },
    "skins": [
@@ -53895,9 +53725,7 @@
    ],
    "json": "cdn/resource/game/market/MarketSellView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/market/texture/xx_titleBg_012.png"
-   ],
+   "missingSkins": [],
    "module": "market",
    "name": "MarketSellView",
    "nodeTypes": {
@@ -53921,7 +53749,7 @@
     "resource/game/market/texture/uisc_003_r1_c2.png": "loose",
     "resource/game/market/texture/uisc_003_r2_c1.png": "loose",
     "resource/game/market/texture/uisc_003_r2_c2.png": "loose",
-    "resource/game/market/texture/xx_titleBg_012.png": "missing"
+    "resource/game/market/texture/xx_titleBg_012.png": "cdn"
    },
    "skins": [
     "comp/vscroll.png",
@@ -54120,7 +53948,7 @@
   },
   "marriage/MarriageAskListView": {
    "bakedSkins": {
-    "_Image1": "resource/game/marriage/texture/uijh_081.png"
+    "_Image1": "resource/game/marriage/other/uijh_081.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -54171,9 +53999,9 @@
   },
   "marriage/MarriageAskTipsView": {
    "bakedSkins": {
-    "_img_086": "resource/game/marriage/texture/uijh_086.png",
-    "_img_bg": "resource/game/marriage/texture/uijh_090.png",
-    "img1": "resource/game/marriage/texture/uijh_081.png"
+    "_img_086": "resource/game/marriage/other/uijh_086.png",
+    "_img_bg": "resource/game/marriage/other/uijh_090.png",
+    "img1": "resource/game/marriage/other/uijh_081.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -54219,8 +54047,8 @@
   },
   "marriage/MarriageAskView": {
    "bakedSkins": {
-    "_img_005c": "resource/game/marriage/texture/uijh_005c.jpg",
-    "_img_040": "resource/game/marriage/texture/uijh_040.png"
+    "_img_005c": "resource/game/marriage/other/uijh_005c.jpg",
+    "_img_040": "resource/game/marriage/other/uijh_040.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -54376,8 +54204,8 @@
   },
   "marriage/MarriageBreakTipsView": {
    "bakedSkins": {
-    "_img_086": "resource/game/marriage/texture/uijh_086.png",
-    "_img_bg": "resource/game/marriage/texture/uijh_090.png"
+    "_img_086": "resource/game/marriage/other/uijh_086.png",
+    "_img_bg": "resource/game/marriage/other/uijh_090.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -54468,7 +54296,7 @@
   },
   "marriage/MarriageComView": {
    "bakedSkins": {
-    "_img_bg": "resource/game/marriage/texture/uijh_092.png"
+    "_img_bg": "resource/game/marriage/other/uijh_092.png"
    },
    "decision": "view-prefab",
    "height": 424,
@@ -54643,9 +54471,9 @@
   },
   "marriage/MarriageDsgtView": {
    "bakedSkins": {
-    "_img_005c": "resource/game/marriage/texture/uijh_005c.jpg",
-    "_img_040": "resource/game/marriage/texture/uijh_040.png",
-    "_img_progress": "resource/game/marriage/texture/uijh_050.png"
+    "_img_005c": "resource/game/marriage/other/uijh_005c.jpg",
+    "_img_040": "resource/game/marriage/other/uijh_040.png",
+    "_img_progress": "resource/game/marriage/other/uijh_050.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -54772,7 +54600,7 @@
   },
   "marriage/MarriageDunTipsView": {
    "bakedSkins": {
-    "_img_125": "resource/game/marriage/texture/uijh_1251.jpg"
+    "_img_125": "resource/game/marriage/other/uijh_1251.jpg"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -54902,8 +54730,8 @@
   },
   "marriage/MarriageFlowView": {
    "bakedSkins": {
-    "_img_005c": "resource/game/marriage/texture/uijh_005c.jpg",
-    "_img_040": "resource/game/marriage/texture/uijh_040.png"
+    "_img_005c": "resource/game/marriage/other/uijh_005c.jpg",
+    "_img_040": "resource/game/marriage/other/uijh_040.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -55381,7 +55209,7 @@
   },
   "marriage/MarriageIssueView": {
    "bakedSkins": {
-    "_img_bg": "resource/game/marriage/texture/uijh_092.png"
+    "_img_bg": "resource/game/marriage/other/uijh_092.png"
    },
    "decision": "view-prefab",
    "height": 399,
@@ -55730,9 +55558,9 @@
   },
   "marriage/MarriageSuccessView": {
    "bakedSkins": {
-    "_img_086": "resource/game/marriage/texture/uijh_086.png",
-    "_img_bg": "resource/game/marriage/texture/uijh_090.png",
-    "img1": "resource/game/marriage/texture/uijh_081.png"
+    "_img_086": "resource/game/marriage/other/uijh_086.png",
+    "_img_bg": "resource/game/marriage/other/uijh_090.png",
+    "img1": "resource/game/marriage/other/uijh_081.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -55954,7 +55782,7 @@
   },
   "marriage2/BanBarrageView": {
    "bakedSkins": {
-    "_Image2": "resource/game/marriage2/texture/uijh_118.png"
+    "_Image2": "resource/game/marriage2/other/uijh_118.png"
    },
    "decision": "view-prefab",
    "height": 410,
@@ -56059,7 +55887,7 @@
   },
   "marriage2/BanquetApplyView": {
    "bakedSkins": {
-    "_Image1": "resource/game/marriage2/texture/uijh_200.png"
+    "_Image1": "resource/game/marriage2/other/uijh_200.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -56196,7 +56024,7 @@
   },
   "marriage2/BanquetInviteView": {
    "bakedSkins": {
-    "BG2": "resource/game/marriage2/texture/uijh_116.png"
+    "BG2": "resource/game/marriage2/other/uijh_116.png"
    },
    "decision": "view-prefab",
    "height": 746,
@@ -56248,7 +56076,7 @@
   },
   "marriage2/BanquetNoticeView": {
    "bakedSkins": {
-    "BG1": "resource/game/marriage2/texture/uijh_168.png"
+    "BG1": "resource/game/marriage2/other/uijh_168.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -56444,7 +56272,7 @@
   },
   "marriage2/BuyInviteView": {
    "bakedSkins": {
-    "_Image2": "resource/game/marriage2/texture/uijh_118.png"
+    "_Image2": "resource/game/marriage2/other/uijh_118.png"
    },
    "decision": "view-prefab",
    "height": 410,
@@ -56489,7 +56317,7 @@
   },
   "marriage2/ChoseBanquetView": {
    "bakedSkins": {
-    "_Image2": "resource/game/marriage2/texture/uijh_118.png"
+    "_Image2": "resource/game/marriage2/other/uijh_118.png"
    },
    "decision": "view-prefab",
    "height": 511,
@@ -57213,7 +57041,7 @@
   },
   "monBook/MonBookDecomposeView": {
    "bakedSkins": {
-    "_bg_img": "resource/game/monBook/texture/uiboss_049.png"
+    "_bg_img": "resource/game/monBook/other/uiboss_049.png"
    },
    "decision": "view-prefab",
    "height": 730,
@@ -57269,9 +57097,7 @@
    "height": 152,
    "json": "cdn/resource/game/monBook/MonBookGroupAttrItem.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/monBook/texture/monBook_013.png"
-   ],
+   "missingSkins": [],
    "module": "monBook",
    "name": "MonBookGroupAttrItem",
    "nodeTypes": {
@@ -57287,7 +57113,7 @@
    "skinSource": {
     "comp/vscroll.png": "comp",
     "resource/game/common4/texture/uity_020.png": "loose",
-    "resource/game/monBook/texture/monBook_013.png": "missing"
+    "resource/game/monBook/texture/monBook_013.png": "cdn"
    },
    "skins": [
     "comp/vscroll.png",
@@ -57430,7 +57256,7 @@
   },
   "monBook/MonBookMainView": {
    "bakedSkins": {
-    "_img_bg_1": "resource/game/monBook/texture/uitjg_003.jpg"
+    "_img_bg_1": "resource/game/monBook/other/uitjg_003.jpg"
    },
    "decision": "standalone-prefab",
    "height": 1222,
@@ -57745,7 +57571,7 @@
   },
   "mondaysaward/MondaysAwardChnageView": {
    "bakedSkins": {
-    "_img_middle": "resource/game/mondaysaward/texture/uizydj_008.png"
+    "_img_middle": "resource/game/mondaysaward/other/uizydj_008.png"
    },
    "decision": "view-prefab",
    "height": 1000,
@@ -57756,8 +57582,7 @@
    "json": "cdn/resource/game/mondaysaward/MondaysAwardChnageView.json",
    "kind": "window",
    "missingSkins": [
-    "resource/game/common4/texture/bg_07.png",
-    "resource/game/mondaysaward/texture/uisy_023.png"
+    "resource/game/common4/texture/bg_07.png"
    ],
    "module": "mondaysaward",
    "name": "MondaysAwardChnageView",
@@ -57787,7 +57612,7 @@
     "resource/game/common4/texture/bg_07.png": "missing",
     "resource/game/common4/texture/ui_content_bg1.png": "loose",
     "resource/game/mondaysaward/texture/com_title_bg_41.png": "loose",
-    "resource/game/mondaysaward/texture/uisy_023.png": "missing",
+    "resource/game/mondaysaward/texture/uisy_023.png": "cdn",
     "resource/game/mondaysaward/texture/uizydj_0010.png": "loose",
     "resource/game/mondaysaward/texture/uizydj_0011.png": "loose",
     "resource/game/mondaysaward/texture/uizydj_0012.png": "loose",
@@ -58082,7 +57907,7 @@
   },
   "moneyTree/MoneyTreeRewardView": {
    "bakedSkins": {
-    "left_bg": "resource/game/common4/texture/uijs_062.png"
+    "left_bg": "resource/game/common4/other/uijs_062.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -58208,7 +58033,7 @@
   },
   "moneyTree/MoneyTreeView": {
    "bakedSkins": {
-    "_img_1": "resource/game/moneyTree/texture/uixys_001.png"
+    "_img_1": "resource/game/moneyTree/other/uixys_001.png"
    },
    "decision": "standalone-prefab",
    "height": 993,
@@ -58945,9 +58770,7 @@
    "inlineHost": "NineSkyFightSceneView",
    "json": "cdn/resource/game/nineSky/NineSkyFightHeadItem.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/nineSky/texture/uijhsd_016.png"
-   ],
+   "missingSkins": [],
    "module": "nineSky",
    "name": "NineSkyFightHeadItem",
    "nodeTypes": {
@@ -58965,7 +58788,7 @@
     "resource/game/nineSky/texture/ui_arena_02.png": "loose",
     "resource/game/nineSky/texture/ui_arena_03.png": "loose",
     "resource/game/nineSky/texture/ui_arena_04.png": "loose",
-    "resource/game/nineSky/texture/uijhsd_016.png": "missing"
+    "resource/game/nineSky/texture/uijhsd_016.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_empty.png",
@@ -59303,10 +59126,7 @@
    "height": 96,
    "json": "cdn/resource/game/nineSky/NineSkyServerItem.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/nineSky/texture/bg_05.png",
-    "resource/game/nineSky/texture/ui_Login_27.png"
-   ],
+   "missingSkins": [],
    "module": "nineSky",
    "name": "NineSkyServerItem",
    "nodeTypes": {
@@ -59317,8 +59137,8 @@
    "otherRefFiles": [],
    "ownerClasses": [],
    "skinSource": {
-    "resource/game/nineSky/texture/bg_05.png": "missing",
-    "resource/game/nineSky/texture/ui_Login_27.png": "missing"
+    "resource/game/nineSky/texture/bg_05.png": "cdn",
+    "resource/game/nineSky/texture/ui_Login_27.png": "cdn"
    },
    "skins": [
     "resource/game/nineSky/texture/bg_05.png",
@@ -59443,7 +59263,7 @@
   },
   "onHook/OnHookAdditionTips": {
    "bakedSkins": {
-    "bg": "resource/game/onHook/texture/ui_gj_05.png"
+    "bg": "resource/game/onHook/other/ui_gj_05.png"
    },
    "decision": "view-prefab",
    "height": 394,
@@ -59562,8 +59382,8 @@
   },
   "onHook/OnHookMainView": {
    "bakedSkins": {
-    "_img_title_bg": "resource/game/onHook/texture/ui_gift_02.png",
-    "bg": "resource/game/onHook/texture/ui_gj_03.png"
+    "_img_title_bg": "resource/game/onHook/other/ui_gift_02.png",
+    "bg": "resource/game/onHook/other/ui_gj_03.png"
    },
    "decision": "view-prefab",
    "height": 866,
@@ -59767,8 +59587,8 @@
   },
   "online/OnlineView": {
    "bakedSkins": {
-    "_img_loli": "resource/game/online/texture/uizx_003.png",
-    "_img_slogan": "resource/game/online/texture/uizx_002.png"
+    "_img_loli": "resource/game/online/other/uizx_003.png",
+    "_img_slogan": "resource/game/online/other/uizx_002.png"
    },
    "decision": "standalone-prefab",
    "height": 992,
@@ -60352,8 +60172,8 @@
   },
   "partner/PartnerDetailsView": {
    "bakedSkins": {
-    "name_bg": "resource/game/partner/texture/uirw_093.png",
-    "skillbg": "resource/game/partner/texture/ui_witch_02.png"
+    "name_bg": "resource/game/partner/other/uirw_093.png",
+    "skillbg": "resource/game/partner/other/ui_witch_02.png"
    },
    "decision": "view-prefab",
    "height": 520,
@@ -60640,7 +60460,7 @@
   },
   "partnerAwake/PartnerAwakeShowView": {
    "bakedSkins": {
-    "bg": "resource/game/partnerAwake/texture/uiqlhx_000.png"
+    "bg": "resource/game/partnerAwake/other/uiqlhx_000.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -60909,8 +60729,8 @@
   },
   "pet/OutWardBaseView": {
    "bakedSkins": {
-    "_Image4": "resource/game/pet/texture/uigh_036.png",
-    "_Image7": "resource/game/pet/texture/uigh_036.png",
+    "_Image4": "resource/game/pet/other/uigh_036.png",
+    "_Image7": "resource/game/pet/other/uigh_036.png",
     "lv_button_img": "resource/game/common/texture/com_rect_btn2.png"
    },
    "decision": "view-prefab",
@@ -61141,7 +60961,7 @@
   },
   "pet/OutwardChangedView": {
    "bakedSkins": {
-    "table_img": "resource/game/pet/texture/uixxxjs_001.png"
+    "table_img": "resource/game/pet/other/uixxxjs_001.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -61187,7 +61007,7 @@
   },
   "pet/OutwardLvSystem": {
    "bakedSkins": {
-    "down_bg": "resource/game/pet/texture/ui_shape_42.png",
+    "down_bg": "resource/game/pet/other/ui_shape_42.png",
     "img_btn_group3": "resource/game/common/texture/com_rect_btn1.png"
    },
    "decision": "view-prefab",
@@ -61257,8 +61077,8 @@
   },
   "pet/OutwardStarView": {
    "bakedSkins": {
-    "bg1": "resource/game/pet/texture/uisy_023.png",
-    "bg2": "resource/game/pet/texture/zqsx_005.jpg"
+    "bg1": "resource/game/pet/other/uisy_023.png",
+    "bg2": "resource/game/pet/other/zqsx_005.jpg"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -61325,9 +61145,9 @@
   },
   "pet/PetBlessView": {
    "bakedSkins": {
-    "bg2": "resource/game/pet/texture/uizfz_004.jpg",
-    "bg3": "resource/game/pet/texture/uizfz_002.png",
-    "bg4": "resource/game/pet/texture/uizfz_002.png"
+    "bg2": "resource/game/pet/other/uizfz_004.jpg",
+    "bg3": "resource/game/pet/other/uizfz_002.png",
+    "bg4": "resource/game/pet/other/uizfz_002.png"
    },
    "decision": "view-prefab",
    "height": 677,
@@ -61413,7 +61233,7 @@
   },
   "pet/PetLvSystemSkillView": {
    "bakedSkins": {
-    "_Image1": "resource/game/common2/texture/uity_016j.png"
+    "_Image1": "resource/game/common2/other/uity_016j.png"
    },
    "decision": "view-prefab",
    "height": 408,
@@ -61993,8 +61813,8 @@
   },
   "petEquip/PetEquipMasterView": {
    "bakedSkins": {
-    "_Image3": "resource/game/common2/texture/uity_016j.png",
-    "_Image4": "resource/game/common2/texture/uity_016j.png"
+    "_Image3": "resource/game/common2/other/uity_016j.png",
+    "_Image4": "resource/game/common2/other/uity_016j.png"
    },
    "decision": "view-prefab",
    "height": 607,
@@ -62164,9 +61984,9 @@
   },
   "petEquip/PetEquipStarView": {
    "bakedSkins": {
-    "_Image111": "resource/game/petEquip/texture/uiwg_052a.png",
-    "_Image2": "resource/game/petEquip/texture/uiwg_052c.png",
-    "_Image3": "resource/game/petEquip/texture/uiwg_053a.png"
+    "_Image111": "resource/game/petEquip/other/uiwg_052a.png",
+    "_Image2": "resource/game/petEquip/other/uiwg_052c.png",
+    "_Image3": "resource/game/petEquip/other/uiwg_053a.png"
    },
    "decision": "standalone-prefab",
    "height": 992,
@@ -62228,11 +62048,11 @@
   },
   "petEquip/PetEquipStrenView": {
    "bakedSkins": {
-    "_Image11": "resource/game/petEquip/texture/uiwg_052a.png",
-    "_Image13": "resource/game/petEquip/texture/uiwg_055a.png",
-    "_Image2": "resource/game/petEquip/texture/uiwg_052c.png",
-    "_Image3": "resource/game/petEquip/texture/uiwg_053.png",
-    "_img_pb": "resource/game/petEquip/texture/uiwg_055b.png"
+    "_Image11": "resource/game/petEquip/other/uiwg_052a.png",
+    "_Image13": "resource/game/petEquip/other/uiwg_055a.png",
+    "_Image2": "resource/game/petEquip/other/uiwg_052c.png",
+    "_Image3": "resource/game/petEquip/other/uiwg_053.png",
+    "_img_pb": "resource/game/petEquip/other/uiwg_055b.png"
    },
    "decision": "standalone-prefab",
    "height": 992,
@@ -62432,7 +62252,7 @@
   },
   "playerMessage/PlayerMessageDragonBall": {
    "bakedSkins": {
-    "_img_none_1": "resource/game/playerMessage/texture/none_1.png"
+    "_img_none_1": "resource/game/playerMessage/other/none_1.png"
    },
    "decision": "view-prefab",
    "height": 722,
@@ -62656,9 +62476,9 @@
   },
   "playerMessage/PlayerMessageGodBeast": {
    "bakedSkins": {
-    "BG": "resource/game/playerMessage/texture/ui_rwxx_ssbg.png",
-    "line": "resource/game/playerMessage/texture/ui_rwxx_cy02.png",
-    "none_1": "resource/game/playerMessage/texture/none_1.png"
+    "BG": "resource/game/playerMessage/other/ui_rwxx_ssbg.png",
+    "line": "resource/game/playerMessage/other/ui_rwxx_cy02.png",
+    "none_1": "resource/game/playerMessage/other/none_1.png"
    },
    "decision": "view-prefab",
    "height": 725,
@@ -62699,8 +62519,8 @@
   },
   "playerMessage/PlayerMessageGodBefallView": {
    "bakedSkins": {
-    "bg": "resource/game/playerMessage/texture/ui_rwxx_jsbg.png",
-    "none_1": "resource/game/playerMessage/texture/none_1.png"
+    "bg": "resource/game/playerMessage/other/ui_rwxx_jsbg.png",
+    "none_1": "resource/game/playerMessage/other/none_1.png"
    },
    "decision": "view-prefab",
    "height": 837,
@@ -62744,7 +62564,7 @@
   },
   "playerMessage/PlayerMessageGodbeastItem": {
    "bakedSkins": {
-    "bg": "resource/game/playerMessage/texture/ui_rwxx_cy01.png"
+    "bg": "resource/game/playerMessage/other/ui_rwxx_cy01.png"
    },
    "decision": "inline",
    "height": 226,
@@ -62771,9 +62591,9 @@
   },
   "playerMessage/PlayerMessageHolySealView": {
    "bakedSkins": {
-    "bg": "resource/game/playerMessage/texture/ui_seal_01.png",
-    "big_bg": "resource/game/playerMessage/texture/ui_rwxx_bg_02.png",
-    "none_1": "resource/game/playerMessage/texture/none_1.png"
+    "bg": "resource/game/playerMessage/other/ui_seal_01.png",
+    "big_bg": "resource/game/playerMessage/other/ui_rwxx_bg_02.png",
+    "none_1": "resource/game/playerMessage/other/none_1.png"
    },
    "decision": "view-prefab",
    "height": 722,
@@ -62827,8 +62647,8 @@
   },
   "playerMessage/PlayerMessageLongLanguageView": {
    "bakedSkins": {
-    "bg": "resource/game/playerMessage/texture/ui_rwxx_bg_03.png",
-    "none_1": "resource/game/playerMessage/texture/none_1.png"
+    "bg": "resource/game/playerMessage/other/ui_rwxx_bg_03.png",
+    "none_1": "resource/game/playerMessage/other/none_1.png"
    },
    "decision": "view-prefab",
    "height": 722,
@@ -62863,7 +62683,7 @@
   },
   "playerMessage/PlayerMessageLungGridList": {
    "bakedSkins": {
-    "bg": "resource/game/playerMessage/texture/uilwmb_009.png"
+    "bg": "resource/game/playerMessage/other/uilwmb_009.png"
    },
    "decision": "inline",
    "height": 583,
@@ -62894,8 +62714,8 @@
   },
   "playerMessage/PlayerMessageLungView": {
    "bakedSkins": {
-    "bg": "resource/game/playerMessage/texture/ui_rwxx_bg.png",
-    "none_1": "resource/game/playerMessage/texture/none_1.png"
+    "bg": "resource/game/playerMessage/other/ui_rwxx_bg.png",
+    "none_1": "resource/game/playerMessage/other/none_1.png"
    },
    "decision": "inline",
    "height": 672,
@@ -62934,7 +62754,7 @@
   },
   "playerMessage/PlayerMessageOutWard": {
    "bakedSkins": {
-    "role_bg": "resource/game/playerMessage/texture/none_1.png"
+    "role_bg": "resource/game/playerMessage/other/none_1.png"
    },
    "decision": "view-prefab",
    "height": 622,
@@ -62979,7 +62799,7 @@
   },
   "playerMessage/PlayerMessagePetItem": {
    "bakedSkins": {
-    "bg": "resource/game/playerMessage/texture/ui_rwxx_ss03.png",
+    "bg": "resource/game/playerMessage/other/ui_rwxx_ss03.png",
     "is_show": "resource/game/playerMessage/texture/ui_rwxx_ss_11.png"
    },
    "decision": "inline",
@@ -63018,13 +62838,13 @@
   },
   "playerMessage/PlayerMessagePetView": {
    "bakedSkins": {
-    "demon_none_1": "resource/game/playerMessage/texture/none_1.png",
-    "demon_title_bg": "resource/game/playerMessage/texture/ui_rwxx_ss01.png",
-    "line_1": "resource/game/playerMessage/texture/ui_rwxx_ss_10.png",
-    "line_2": "resource/game/playerMessage/texture/ui_rwxx_ss_10.png",
-    "partner_none_1": "resource/game/playerMessage/texture/none_1.png",
-    "partner_title_bg": "resource/game/playerMessage/texture/ui_rwxx_ss01.png",
-    "petBg": "resource/game/playerMessage/texture/ui_rwxx_ssbg.png"
+    "demon_none_1": "resource/game/playerMessage/other/none_1.png",
+    "demon_title_bg": "resource/game/playerMessage/other/ui_rwxx_ss01.png",
+    "line_1": "resource/game/playerMessage/other/ui_rwxx_ss_10.png",
+    "line_2": "resource/game/playerMessage/other/ui_rwxx_ss_10.png",
+    "partner_none_1": "resource/game/playerMessage/other/none_1.png",
+    "partner_title_bg": "resource/game/playerMessage/other/ui_rwxx_ss01.png",
+    "petBg": "resource/game/playerMessage/other/ui_rwxx_ssbg.png"
    },
    "decision": "view-prefab",
    "height": 841,
@@ -63130,8 +62950,8 @@
   },
   "playerMessage/PlayerMessageRuneView": {
    "bakedSkins": {
-    "bg": "resource/game/playerMessage/texture/ui_rwxx_bg.png",
-    "none_1": "resource/game/playerMessage/texture/none_1.png"
+    "bg": "resource/game/playerMessage/other/ui_rwxx_bg.png",
+    "none_1": "resource/game/playerMessage/other/none_1.png"
    },
    "decision": "inline",
    "height": 672,
@@ -63170,9 +62990,9 @@
   },
   "playerMessage/PlayerMessageUnreal": {
    "bakedSkins": {
-    "bg": "resource/game/playerMessage/texture/ui_rwxx_bg.png",
-    "bg_1": "resource/game/playerMessage/texture/ui_rwxx_ls01.png",
-    "none_1": "resource/game/playerMessage/texture/none_1.png"
+    "bg": "resource/game/playerMessage/other/ui_rwxx_bg.png",
+    "bg_1": "resource/game/playerMessage/other/ui_rwxx_ls01.png",
+    "none_1": "resource/game/playerMessage/other/none_1.png"
    },
    "decision": "inline",
    "height": 672,
@@ -63208,9 +63028,9 @@
   },
   "playerMessage/PlayerMessageView": {
    "bakedSkins": {
-    "illusionBg": "resource/game/playerMessage/texture/ui_rwxx_bg_04.png",
-    "image_faeries_bg": "resource/game/playerMessage/texture/bg_01.png",
-    "img_line": "resource/game/playerMessage/texture/com_line_1.png"
+    "illusionBg": "resource/game/playerMessage/other/ui_rwxx_bg_04.png",
+    "image_faeries_bg": "resource/game/playerMessage/other/bg_01.png",
+    "img_line": "resource/game/playerMessage/other/com_line_1.png"
    },
    "decision": "view-prefab",
    "height": 913,
@@ -63393,7 +63213,7 @@
   },
   "pray/PrayMainView": {
    "bakedSkins": {
-    "_img_mask_bg": "resource/game/pray/texture/uiqy_015.png",
+    "_img_mask_bg": "resource/game/pray/other/uiqy_015.png",
     "exp_baoji": "resource/game/pray/texture/uiqy_icon_",
     "money_baoji": "resource/game/pray/texture/uiqy_icon_"
    },
@@ -63790,7 +63610,7 @@
   },
   "rank/RankView": {
    "bakedSkins": {
-    "mainrole_bg": "resource/game/rank/texture/ui_kdb_11.png"
+    "mainrole_bg": "resource/game/rank/other/ui_kdb_11.png"
    },
    "decision": "standalone-prefab",
    "height": 992,
@@ -63800,9 +63620,7 @@
    ],
    "json": "cdn/resource/game/rank/RankView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/rank/texture/bg_07.png"
-   ],
+   "missingSkins": [],
    "module": "rank",
    "name": "RankView",
    "nodeTypes": {
@@ -63824,7 +63642,7 @@
     "resource/game/common/texture/com_empty.png": "loose",
     "resource/game/mainUI/texture/uisc_006.png": "loose",
     "resource/game/mainUI/texture/uivip_zjm_1.png": "loose",
-    "resource/game/rank/texture/bg_07.png": "missing",
+    "resource/game/rank/texture/bg_07.png": "cdn",
     "resource/game/rank/texture/rank_icon_1.png": "loose",
     "resource/game/rank/texture/rank_line2.png": "loose",
     "resource/game/rank/texture/ui_kdb_1.png": "loose",
@@ -63904,8 +63722,8 @@
   },
   "rareSurface/RareSurfaceView": {
    "bakedSkins": {
-    "_img_banner": "resource/game/rareSurface/texture/ui_wgzg_09.png",
-    "_img_tips": "resource/game/rareSurface/texture/ui_wgzg_03.png"
+    "_img_banner": "resource/game/rareSurface/other/ui_wgzg_09.png",
+    "_img_tips": "resource/game/rareSurface/other/ui_wgzg_03.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -64261,10 +64079,7 @@
    "height": 68,
    "json": "cdn/resource/game/redPacket/RedPacektDetailItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/redPacket/texture/uighhb_020.png",
-    "resource/game/redPacket/texture/uighhb_022.png"
-   ],
+   "missingSkins": [],
    "module": "redPacket",
    "name": "RedPacektDetailItem",
    "nodeTypes": {
@@ -64279,9 +64094,9 @@
    "skinSource": {
     "resource/game/common/texture/com_diamond.png": "loose",
     "resource/game/common/texture/com_empty.png": "loose",
-    "resource/game/redPacket/texture/uighhb_020.png": "missing",
+    "resource/game/redPacket/texture/uighhb_020.png": "cdn",
     "resource/game/redPacket/texture/uighhb_021.png": "loose",
-    "resource/game/redPacket/texture/uighhb_022.png": "missing"
+    "resource/game/redPacket/texture/uighhb_022.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_diamond.png",
@@ -64299,9 +64114,7 @@
    "height": 416,
    "json": "cdn/resource/game/redPacket/RedPacketCtrlView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/redPacket/texture/uighhb_012.png"
-   ],
+   "missingSkins": [],
    "module": "redPacket",
    "name": "RedPacketCtrlView",
    "nodeTypes": {
@@ -64321,7 +64134,7 @@
    ],
    "skinSource": {
     "resource/game/common/texture/com_empty.png": "loose",
-    "resource/game/redPacket/texture/uighhb_012.png": "missing",
+    "resource/game/redPacket/texture/uighhb_012.png": "cdn",
     "resource/game/redPacket/texture/uighhb_013.png": "loose",
     "resource/game/redPacket/texture/uighhb_014.png": "loose",
     "resource/game/redPacket/texture/uighhb_015.png": "loose",
@@ -64347,9 +64160,7 @@
    "inlineHost": "RedPacketDetailView",
    "json": "cdn/resource/game/redPacket/RedPacketDetailItem.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/redPacket/texture/uighhb_022.png"
-   ],
+   "missingSkins": [],
    "module": "redPacket",
    "name": "RedPacketDetailItem",
    "nodeTypes": {
@@ -64368,7 +64179,7 @@
    "skinSource": {
     "resource/game/common/texture/com_diamond.png": "loose",
     "resource/game/redPacket/texture/ui_Guild_43.png": "loose",
-    "resource/game/redPacket/texture/uighhb_022.png": "missing"
+    "resource/game/redPacket/texture/uighhb_022.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_diamond.png",
@@ -66825,8 +66636,8 @@
   },
   "rune/RuneAwakenView": {
    "bakedSkins": {
-    "_bg": "resource/game/common/texture/uisy_023.png",
-    "_img": "resource/game/rune/texture/ui_rare_09.jpg"
+    "_bg": "resource/game/common/other/uisy_023.png",
+    "_img": "resource/game/rune/other/ui_rare_09.jpg"
    },
    "decision": "view-prefab",
    "height": 1032,
@@ -67171,7 +66982,7 @@
   },
   "rune/RuneDecomposeView": {
    "bakedSkins": {
-    "_bg": "resource/game/soul/texture/uisy_023.png"
+    "_bg": "resource/game/soul/other/uisy_023.png"
    },
    "decision": "inline",
    "height": 817,
@@ -67547,7 +67358,7 @@
   },
   "rune/RuneSkillView": {
    "bakedSkins": {
-    "skillBg": "resource/game/rune/texture/uifwjn_004.jpg"
+    "skillBg": "resource/game/rune/other/uifwjn_004.jpg"
    },
    "decision": "view-prefab",
    "height": 924,
@@ -68099,10 +67910,10 @@
   },
   "runeTreasure/RuneTreasureGetRewardView": {
    "bakedSkins": {
-    "_img_item_bg_left": "resource/game/common4/texture/uijs_064.png",
-    "_img_item_bg_right": "resource/game/common4/texture/uijs_064.png",
-    "left_bg": "resource/game/common4/texture/uijs_062.png",
-    "right_bg": "resource/game/common4/texture/uijs_062.png"
+    "_img_item_bg_left": "resource/game/common4/other/uijs_064.png",
+    "_img_item_bg_right": "resource/game/common4/other/uijs_064.png",
+    "left_bg": "resource/game/common4/other/uijs_062.png",
+    "right_bg": "resource/game/common4/other/uijs_062.png"
    },
    "decision": "view-prefab",
    "height": 1280,
@@ -69482,8 +69293,7 @@
    "missingSkins": [
     "resource/game/common/texture/com_rect_btn12.png",
     "resource/game/common/texture/com_rect_btn13.png",
-    "resource/game/seaHegemony/texture/uitc_023.png",
-    "resource/game/seaHegemony/texture/uitc_067.png"
+    "resource/game/seaHegemony/texture/uitc_023.png"
    ],
    "module": "seaHegemony",
    "name": "SeaDistributionView",
@@ -69512,7 +69322,7 @@
     "resource/game/common/texture/uity_066.png": "loose",
     "resource/game/common2/texture/uity_027.png": "loose",
     "resource/game/seaHegemony/texture/uitc_023.png": "missing",
-    "resource/game/seaHegemony/texture/uitc_067.png": "missing"
+    "resource/game/seaHegemony/texture/uitc_067.png": "cdn"
    },
    "skins": [
     "comp/hscroll.png",
@@ -69991,9 +69801,6 @@
    "kind": "orphan",
    "missingSkins": [
     "resource/game/common/texture/com_rect_btn12.png",
-    "resource/game/seaHegemony/texture/ui_shzb_004.png",
-    "resource/game/seaHegemony/texture/ui_shzb_005.png",
-    "resource/game/seaHegemony/texture/ui_shzb_007.png",
     "resource/game/seaHegemony/texture/ui_shzb_008.png"
    ],
    "module": "seaHegemony",
@@ -70016,9 +69823,9 @@
     "resource/game/seaHegemony/texture/dsgt.png": "loose",
     "resource/game/seaHegemony/texture/payIcon.png": "loose",
     "resource/game/seaHegemony/texture/ui_shzb_003.png": "loose",
-    "resource/game/seaHegemony/texture/ui_shzb_004.png": "missing",
-    "resource/game/seaHegemony/texture/ui_shzb_005.png": "missing",
-    "resource/game/seaHegemony/texture/ui_shzb_007.png": "missing",
+    "resource/game/seaHegemony/texture/ui_shzb_004.png": "cdn",
+    "resource/game/seaHegemony/texture/ui_shzb_005.png": "cdn",
+    "resource/game/seaHegemony/texture/ui_shzb_007.png": "cdn",
     "resource/game/seaHegemony/texture/ui_shzb_008.png": "missing"
    },
    "skins": [
@@ -70076,9 +69883,7 @@
    "height": 992,
    "json": "cdn/resource/game/seaHegemony/SeaHegemonyMainView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/seaHegemony/texture/ui_shzb_015.png"
-   ],
+   "missingSkins": [],
    "module": "seaHegemony",
    "name": "SeaHegemonyMainView",
    "nodeTypes": {
@@ -70096,7 +69901,7 @@
     "comp/vscroll.png": "comp",
     "resource/game/common/texture/com_empty.png": "loose",
     "resource/game/common/texture/com_tips_3.png": "loose",
-    "resource/game/seaHegemony/texture/ui_shzb_015.png": "missing"
+    "resource/game/seaHegemony/texture/ui_shzb_015.png": "cdn"
    },
    "skins": [
     "comp/hscroll.png",
@@ -70191,12 +69996,7 @@
    "height": 927,
    "json": "cdn/resource/game/seaHegemony/SeaKingView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/seaHegemony/texture/icon3.png",
-    "resource/game/seaHegemony/texture/ui_shzb_013.png",
-    "resource/game/seaHegemony/texture/ui_shzb_015.png",
-    "resource/game/seaHegemony/texture/ui_shzb_032.png"
-   ],
+   "missingSkins": [],
    "module": "seaHegemony",
    "name": "SeaKingView",
    "nodeTypes": {
@@ -70215,12 +70015,12 @@
     "resource/game/common/texture/com_red_point.png": "loose",
     "resource/game/common/texture/com_tips_3.png": "loose",
     "resource/game/seaHegemony/texture/icon2.png": "loose",
-    "resource/game/seaHegemony/texture/icon3.png": "missing",
+    "resource/game/seaHegemony/texture/icon3.png": "cdn",
     "resource/game/seaHegemony/texture/ui_shzb_003.png": "loose",
-    "resource/game/seaHegemony/texture/ui_shzb_013.png": "missing",
-    "resource/game/seaHegemony/texture/ui_shzb_015.png": "missing",
+    "resource/game/seaHegemony/texture/ui_shzb_013.png": "cdn",
+    "resource/game/seaHegemony/texture/ui_shzb_015.png": "cdn",
     "resource/game/seaHegemony/texture/ui_shzb_017.png": "loose",
-    "resource/game/seaHegemony/texture/ui_shzb_032.png": "missing"
+    "resource/game/seaHegemony/texture/ui_shzb_032.png": "cdn"
    },
    "skins": [
     "comp/hscroll.png",
@@ -70309,9 +70109,7 @@
    ],
    "json": "cdn/resource/game/seaHegemony/SeaPayView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/seaHegemony/texture/uitc_063.png"
-   ],
+   "missingSkins": [],
    "module": "seaHegemony",
    "name": "SeaPayView",
    "nodeTypes": {
@@ -70332,7 +70130,7 @@
     "resource/game/common/texture/uisy_017.png": "loose",
     "resource/game/common/texture/uity_016k.png": "loose",
     "resource/game/common2/texture/uity_027.png": "loose",
-    "resource/game/seaHegemony/texture/uitc_063.png": "missing"
+    "resource/game/seaHegemony/texture/uitc_063.png": "cdn"
    },
    "skins": [
     "comp/hscroll.png",
@@ -70812,9 +70610,7 @@
    "height": 792,
    "json": "cdn/resource/game/seaHegemony/SeaWinRewardView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/seaHegemony/texture/uitc_066.png"
-   ],
+   "missingSkins": [],
    "module": "seaHegemony",
    "name": "SeaWinRewardView",
    "nodeTypes": {
@@ -70837,7 +70633,7 @@
     "resource/game/common/texture/uisy_017.png": "loose",
     "resource/game/common/texture/uity_016k.png": "loose",
     "resource/game/common2/texture/uity_027.png": "loose",
-    "resource/game/seaHegemony/texture/uitc_066.png": "missing"
+    "resource/game/seaHegemony/texture/uitc_066.png": "cdn"
    },
    "skins": [
     "comp/hscroll.png",
@@ -73861,9 +73657,7 @@
    ],
    "json": "cdn/resource/game/starEquip/StarEquipView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/starEquip/texture/uixzsy_060.png"
-   ],
+   "missingSkins": [],
    "module": "starEquip",
    "name": "StarEquipView",
    "nodeTypes": {
@@ -73898,7 +73692,7 @@
     "resource/game/starEquip/texture/uixzsy_012.png": "loose",
     "resource/game/starEquip/texture/uixzsy_013.png": "loose",
     "resource/game/starEquip/texture/uixzsy_014.png": "loose",
-    "resource/game/starEquip/texture/uixzsy_060.png": "missing",
+    "resource/game/starEquip/texture/uixzsy_060.png": "cdn",
     "resource/game/starEquip/texture/uixzsy_061.png": "loose",
     "resource/game/starEquip/texture/uixzsy_09.png": "loose",
     "resource/game/starEquip/texture/uixzsy_star1.png": "loose",
@@ -74252,7 +74046,7 @@
   },
   "suit/EquipSuitReturnView": {
    "bakedSkins": {
-    "line": "resource/game/common/texture/uity_064.png"
+    "line": "resource/game/common/other/uity_064.png"
    },
    "decision": "view-prefab",
    "height": 565,
@@ -74308,7 +74102,7 @@
   },
   "suit/EquipSuitView": {
    "bakedSkins": {
-    "line": "resource/game/suit/texture/com_line_1.png"
+    "line": "resource/game/suit/other/com_line_1.png"
    },
    "decision": "standalone-prefab",
    "height": 993,
@@ -75807,9 +75601,7 @@
    ],
    "json": "cdn/resource/game/surpriseGift/DrawView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/surpriseGift/texture/uijxlb_202a.png"
-   ],
+   "missingSkins": [],
    "module": "surpriseGift",
    "name": "DrawView",
    "nodeTypes": {
@@ -75832,7 +75624,7 @@
     "resource/game/common/texture/ui_button_rect12.png": "loose",
     "resource/game/common4/texture/ui_content_bg1.png": "loose",
     "resource/game/surpriseGift/texture/uijxlb_202.png": "loose",
-    "resource/game/surpriseGift/texture/uijxlb_202a.png": "missing"
+    "resource/game/surpriseGift/texture/uijxlb_202a.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_empty.png",
@@ -76059,7 +75851,7 @@
   },
   "sysInfo/ChuanwenSpecItem": {
    "bakedSkins": {
-    "_img_bg": "resource/game/sysInfo/texture/uity_087.png"
+    "_img_bg": "resource/game/sysInfo/other/uity_087.png"
    },
    "decision": "standalone-prefab",
    "height": 90,
@@ -76697,15 +76489,13 @@
   },
   "team/TeamApplyView": {
    "bakedSkins": {
-    "_Image1": "resource/game/team/texture/ui_content_bg2.png"
+    "_Image1": "resource/game/team/other/ui_content_bg2.png"
    },
    "decision": "view-prefab",
    "height": 553,
    "json": "cdn/resource/game/team/TeamApplyView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/team/texture/com_line_1.png"
-   ],
+   "missingSkins": [],
    "module": "team",
    "name": "TeamApplyView",
    "nodeTypes": {
@@ -76729,7 +76519,7 @@
     "resource/game/common/texture/uity_016k.png": "loose",
     "resource/game/common/texture/uity_040.png": "loose",
     "resource/game/team/texture/award_light_bg2.png": "loose",
-    "resource/game/team/texture/com_line_1.png": "missing",
+    "resource/game/team/texture/com_line_1.png": "cdn",
     "resource/game/team/texture/img_fault.png": "loose",
     "resource/game/team/texture/ui_content_bg1.png": "loose",
     "resource/game/team/texture/ui_sqlb_title1.png": "loose"
@@ -76791,7 +76581,7 @@
   },
   "team/TeamBeInvitedView": {
    "bakedSkins": {
-    "_Image1": "resource/game/team/texture/ui_content_bg2.png"
+    "_Image1": "resource/game/team/other/ui_content_bg2.png"
    },
    "decision": "view-prefab",
    "height": 400,
@@ -76868,7 +76658,7 @@
   },
   "team/TeamChangeTargetView": {
    "bakedSkins": {
-    "_Image1": "resource/game/team/texture/ui_content_bg2.png"
+    "_Image1": "resource/game/team/other/ui_content_bg2.png"
    },
    "decision": "view-prefab",
    "height": 400,
@@ -76999,7 +76789,7 @@
   },
   "team/TeamInviteView": {
    "bakedSkins": {
-    "_Image1": "resource/game/team/texture/ui_content_bg2.png"
+    "_Image1": "resource/game/team/other/ui_content_bg2.png"
    },
    "decision": "view-prefab",
    "height": 515,
@@ -77127,7 +76917,7 @@
   },
   "team/TeamRoleItem": {
    "bakedSkins": {
-    "_Image1": "resource/game/team/texture/ui_dw_zdyq006.png"
+    "_Image1": "resource/game/team/other/ui_dw_zdyq006.png"
    },
    "decision": "inline",
    "height": 82,
@@ -77236,7 +77026,7 @@
   },
   "team/TeamView": {
    "bakedSkins": {
-    "_Image1": "resource/game/team/texture/ui_content_bg2.png"
+    "_Image1": "resource/game/team/other/ui_content_bg2.png"
    },
    "decision": "view-prefab",
    "height": 553,
@@ -77490,7 +77280,7 @@
   },
   "testAct/TestActBaseView": {
    "bakedSkins": {
-    "_img_bg": "resource/game/testAct/texture/uifcxl_009.png",
+    "_img_bg": "resource/game/testAct/other/uifcxl_009.png",
     "img_btn_1": "resource/game/testAct/texture/uifcxl_004.png",
     "img_btn_2": "resource/game/testAct/texture/uifcxl_005.png"
    },
@@ -77569,7 +77359,7 @@
   },
   "testAct/TestActRecharge": {
    "bakedSkins": {
-    "_img_good": "resource/game/testAct/texture/uifcxl_018b.png"
+    "_img_good": "resource/game/testAct/other/uifcxl_018b.png"
    },
    "decision": "inline",
    "height": 777,
@@ -77895,9 +77685,7 @@
    "height": 330,
    "json": "cdn/resource/game/topPk/TopPkBuyCountView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/topPk/texture/bg_03.png"
-   ],
+   "missingSkins": [],
    "module": "topPk",
    "name": "TopPkBuyCountView",
    "nodeTypes": {
@@ -77921,7 +77709,7 @@
     "resource/game/common/texture/com_ui_1.png": "loose",
     "resource/game/common/texture/uisy_026.png": "loose",
     "resource/game/common2/texture/com_sub_bg_5.png": "loose",
-    "resource/game/topPk/texture/bg_03.png": "missing",
+    "resource/game/topPk/texture/bg_03.png": "cdn",
     "resource/game/topPk/texture/com_title_bg_1.png": "loose"
    },
    "skins": [
@@ -77985,9 +77773,7 @@
    "inlineHost": "TopPkRewardView",
    "json": "cdn/resource/game/topPk/TopPkDailyRewardView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/topPk/texture/ui_phb_12.png"
-   ],
+   "missingSkins": [],
    "module": "topPk",
    "name": "TopPkDailyRewardView",
    "nodeTypes": {
@@ -78007,7 +77793,7 @@
    "skinSource": {
     "resource/game/common4/texture/ui_content_bg1.png": "loose",
     "resource/game/topPk/texture/award_light_bg2.png": "loose",
-    "resource/game/topPk/texture/ui_phb_12.png": "missing"
+    "resource/game/topPk/texture/ui_phb_12.png": "cdn"
    },
    "skins": [
     "resource/game/common4/texture/ui_content_bg1.png",
@@ -78291,9 +78077,7 @@
    "height": 345,
    "json": "cdn/resource/game/topPk/TopPkMatchView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/topPk/texture/uidfjj_024.png"
-   ],
+   "missingSkins": [],
    "module": "topPk",
    "name": "TopPkMatchView",
    "nodeTypes": {
@@ -78308,7 +78092,7 @@
    "ownerClasses": [],
    "skinSource": {
     "resource/game/common/texture/com_rect_btn1.png": "loose",
-    "resource/game/topPk/texture/uidfjj_024.png": "missing",
+    "resource/game/topPk/texture/uidfjj_024.png": "cdn",
     "resource/game/topPk/texture/uidfjj_025a.png": "loose",
     "resource/game/topPk/texture/uidfjj_025ab.png": "loose",
     "resource/game/topPk/texture/uidfjj_025b.png": "loose",
@@ -78371,9 +78155,7 @@
    ],
    "json": "cdn/resource/game/topPk/TopPkRankRewardView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/topPk/texture/ui_phb_12.png"
-   ],
+   "missingSkins": [],
    "module": "topPk",
    "name": "TopPkRankRewardView",
    "nodeTypes": {
@@ -78393,7 +78175,7 @@
    "skinSource": {
     "resource/game/common4/texture/ui_content_bg1.png": "loose",
     "resource/game/topPk/texture/award_light_bg2.png": "loose",
-    "resource/game/topPk/texture/ui_phb_12.png": "missing"
+    "resource/game/topPk/texture/ui_phb_12.png": "cdn"
    },
    "skins": [
     "resource/game/common4/texture/ui_content_bg1.png",
@@ -78409,9 +78191,7 @@
    "height": 1280,
    "json": "cdn/resource/game/topPk/TopPkResultView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/topPk/texture/ui_sjjj_003.png"
-   ],
+   "missingSkins": [],
    "module": "topPk",
    "name": "TopPkResultView",
    "nodeTypes": {
@@ -78426,7 +78206,7 @@
    "ownerClasses": [],
    "skinSource": {
     "resource/game/common/texture/com_empty.png": "loose",
-    "resource/game/topPk/texture/ui_sjjj_003.png": "missing",
+    "resource/game/topPk/texture/ui_sjjj_003.png": "cdn",
     "resource/game/topPk/texture/uidfjj_011.png": "loose",
     "resource/game/topPk/texture/uidfjj_027.png": "loose",
     "resource/game/topPk/texture/uidfjj_028.png": "loose"
@@ -78992,8 +78772,8 @@
   },
   "topVip/TopVipMainView": {
    "bakedSkins": {
-    "top_img": "resource/game/topVip/texture/uizz_010.png",
-    "vip_stage_bg_img": "resource/game/topvip_asset/texture/uizz_010.png"
+    "top_img": "resource/game/topVip/other/uizz_010.png",
+    "vip_stage_bg_img": "resource/game/topvip_asset/other/uizz_010.png"
    },
    "decision": "standalone-prefab",
    "height": 1225,
@@ -79137,7 +78917,7 @@
   },
   "topVip/TopVipShopView": {
    "bakedSkins": {
-    "target_img": "resource/game/topVip/texture/uizzsd_003.png"
+    "target_img": "resource/game/topVip/other/uizzsd_003.png"
    },
    "decision": "view-prefab",
    "height": 1024,
@@ -79399,9 +79179,7 @@
    ],
    "json": "cdn/resource/game/topVip/TopVipSkillView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/topVip/texture/uizz_010.png"
-   ],
+   "missingSkins": [],
    "module": "topVip",
    "name": "TopVipSkillView",
    "nodeTypes": {
@@ -79434,7 +79212,7 @@
     "resource/game/topVip/texture/uizz_005.png": "loose",
     "resource/game/topVip/texture/uizz_008.png": "loose",
     "resource/game/topVip/texture/uizz_009.png": "loose",
-    "resource/game/topVip/texture/uizz_010.png": "missing",
+    "resource/game/topVip/texture/uizz_010.png": "cdn",
     "resource/game/topVip/texture/uizzjn_028.png": "loose"
    },
    "skins": [
@@ -79502,7 +79280,7 @@
   },
   "topVip/TopVipTaskView": {
    "bakedSkins": {
-    "img_top_bg": "resource/game/topVip/texture/uihflc_001a.png"
+    "img_top_bg": "resource/game/topVip/other/uihflc_001a.png"
    },
    "decision": "standalone-prefab",
    "height": 1000,
@@ -79736,9 +79514,7 @@
    "height": 844,
    "json": "cdn/resource/game/tsCrack/TSCrackInstructionView.json",
    "kind": "window",
-   "missingSkins": [
-    "resource/game/tsCrack/texture/uisksh_115.png"
-   ],
+   "missingSkins": [],
    "module": "tsCrack",
    "name": "TSCrackInstructionView",
    "nodeTypes": {
@@ -79758,7 +79534,7 @@
     "resource/game/common/texture/uisy_017.png": "loose",
     "resource/game/common/texture/uity_016k.png": "loose",
     "resource/game/tsCrack/texture/ui_slzc_wfjc06.png": "loose",
-    "resource/game/tsCrack/texture/uisksh_115.png": "missing"
+    "resource/game/tsCrack/texture/uisksh_115.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/uisy_017.png",
@@ -80694,8 +80470,8 @@
   },
   "unreal/UnrealBagView": {
    "bakedSkins": {
-    "_img_big_bg": "resource/game/unreal/texture//uihs_004.png",
-    "_img_title_bg": "resource/game/unreal/texture/uihs_005.png"
+    "_img_big_bg": "resource/game/unreal/other//uihs_004.png",
+    "_img_title_bg": "resource/game/unreal/other/uihs_005.png"
    },
    "decision": "shared-prefab",
    "height": 1280,
@@ -81006,8 +80782,8 @@
   },
   "unreal/UnrealStrengthenView": {
    "bakedSkins": {
-    "_img_attr_bg": "resource/game/unreal/texture/uihs_004.png",
-    "_img_equip_bg": "resource/game/unreal/texture/uihs_007.png"
+    "_img_attr_bg": "resource/game/unreal/other/uihs_004.png",
+    "_img_equip_bg": "resource/game/unreal/other/uihs_007.png"
    },
    "decision": "standalone-prefab",
    "height": 1280,
@@ -81018,8 +80794,7 @@
    "json": "cdn/resource/game/unreal/UnrealStrengthenView.json",
    "kind": "component",
    "missingSkins": [
-    "resource/game/common4/texture/bg_07.png",
-    "resource/game/unreal/texture/uihs_003.png"
+    "resource/game/common4/texture/bg_07.png"
    ],
    "module": "unreal",
    "name": "UnrealStrengthenView",
@@ -81044,7 +80819,7 @@
     "resource/game/common/texture/uihl_008.png": "loose",
     "resource/game/common4/texture/bg_07.png": "missing",
     "resource/game/common4/texture/com_title_bg_2.png": "loose",
-    "resource/game/unreal/texture/uihs_003.png": "missing",
+    "resource/game/unreal/texture/uihs_003.png": "cdn",
     "resource/game/unreal/texture/uihs_005.png": "loose",
     "resource/game/unreal/texture/uihs_008.png": "loose",
     "resource/game/unreal/texture/uihs_011.png": "loose",
@@ -81346,7 +81121,7 @@
   },
   "vip/VipPrivilegeCardView": {
    "bakedSkins": {
-    "bg_di": "resource/game/vip/texture/ui_content_bg11.png"
+    "bg_di": "resource/game/vip/other/ui_content_bg11.png"
    },
    "decision": "inline",
    "height": 812,
@@ -81399,12 +81174,7 @@
    ],
    "json": "cdn/resource/game/vip/VipPrivilegeShowView.json",
    "kind": "component",
-   "missingSkins": [
-    "resource/game/vip/texture/uivip_012.png",
-    "resource/game/vip/texture/uivip_041(16).png",
-    "resource/game/vip/texture/uivip_042(16).png",
-    "resource/game/vip/texture/uivip_042(17).png"
-   ],
+   "missingSkins": [],
    "module": "vip",
    "name": "VipPrivilegeShowView",
    "nodeTypes": {
@@ -81432,11 +81202,11 @@
     "resource/game/common/texture/received_icon.png": "loose",
     "resource/game/common4/texture/com_received.png": "loose",
     "resource/game/vip/texture/com_arrow_right.png": "loose",
-    "resource/game/vip/texture/uivip_012.png": "missing",
+    "resource/game/vip/texture/uivip_012.png": "cdn",
     "resource/game/vip/texture/uivip_040.png": "loose",
-    "resource/game/vip/texture/uivip_041(16).png": "missing",
-    "resource/game/vip/texture/uivip_042(16).png": "missing",
-    "resource/game/vip/texture/uivip_042(17).png": "missing",
+    "resource/game/vip/texture/uivip_041(16).png": "cdn",
+    "resource/game/vip/texture/uivip_042(16).png": "cdn",
+    "resource/game/vip/texture/uivip_042(17).png": "cdn",
     "resource/game/vip/texture/uivip_043.png": "loose",
     "resource/game/vip/texture/vip_034.png": "loose",
     "resource/game/vip/texture/vip_035.png": "loose"
@@ -81541,12 +81311,7 @@
    "height": 812,
    "json": "cdn/resource/game/vip/VipShowItem.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/vip/texture/uivip_012.png",
-    "resource/game/vip/texture/uivip_041(16).png",
-    "resource/game/vip/texture/uivip_042(16).png",
-    "resource/game/vip/texture/uivip_042(17).png"
-   ],
+   "missingSkins": [],
    "module": "vip",
    "name": "VipShowItem",
    "nodeTypes": {
@@ -81570,11 +81335,11 @@
     "resource/game/common/texture/received_icon.png": "loose",
     "resource/game/common4/texture/com_received.png": "loose",
     "resource/game/vip/texture/com_arrow_right.png": "loose",
-    "resource/game/vip/texture/uivip_012.png": "missing",
+    "resource/game/vip/texture/uivip_012.png": "cdn",
     "resource/game/vip/texture/uivip_040.png": "loose",
-    "resource/game/vip/texture/uivip_041(16).png": "missing",
-    "resource/game/vip/texture/uivip_042(16).png": "missing",
-    "resource/game/vip/texture/uivip_042(17).png": "missing",
+    "resource/game/vip/texture/uivip_041(16).png": "cdn",
+    "resource/game/vip/texture/uivip_042(16).png": "cdn",
+    "resource/game/vip/texture/uivip_042(17).png": "cdn",
     "resource/game/vip/texture/uivip_043.png": "loose",
     "resource/game/vip/texture/vip_034.png": "loose",
     "resource/game/vip/texture/vip_035.png": "loose"
@@ -81730,8 +81495,8 @@
   },
   "vip/VipWeekGiftView": {
    "bakedSkins": {
-    "_Image2": "resource/game/vip/texture/ui_content_bg11.png",
-    "newbg": "resource/game/vip/texture/bg_031.png"
+    "_Image2": "resource/game/vip/other/ui_content_bg11.png",
+    "newbg": "resource/game/vip/other/bg_031.png"
    },
    "decision": "view-prefab",
    "height": 342.67,
@@ -81780,7 +81545,7 @@
   },
   "vipActive/VipActiveView": {
    "bakedSkins": {
-    "topImg": "resource/game/vipActive/texture/uivipzs_001.png"
+    "topImg": "resource/game/vipActive/other/uivipzs_001.png"
    },
    "decision": "view-prefab",
    "height": 680,
@@ -81931,7 +81696,7 @@
   },
   "vipGift/vipGiftView": {
    "bakedSkins": {
-    "_img_8": "resource/game/vipGift/texture/ui_vip_thlb006.png"
+    "_img_8": "resource/game/vipGift/other/ui_vip_thlb006.png"
    },
    "decision": "view-prefab",
    "height": 1100,
@@ -82142,9 +81907,7 @@
    "height": 1280,
    "json": "cdn/resource/game/welfare/WelfareWelcomeView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/welfare/texture/uidldl_0012.png"
-   ],
+   "missingSkins": [],
    "module": "welfare",
    "name": "WelfareWelcomeView",
    "nodeTypes": {
@@ -82156,7 +81919,7 @@
    "otherRefFiles": [],
    "ownerClasses": [],
    "skinSource": {
-    "resource/game/welfare/texture/uidldl_0012.png": "missing",
+    "resource/game/welfare/texture/uidldl_0012.png": "cdn",
     "resource/game/welfare/texture/uidldl_002.png": "loose",
     "resource/game/welfare/texture/uidldl_003.png": "loose",
     "resource/game/welfare/texture/uidldl_004.png": "loose"
@@ -82172,12 +81935,12 @@
   },
   "wxOneMoney/WXOneMoneyView": {
    "bakedSkins": {
-    "_bg": "resource/game/wxOneMoney/texture/ui_yylb_01.png",
-    "_img_desc": "resource/game/wxOneMoney/texture/uiyylb_003.png",
-    "_img_left_bg": "resource/game/wxOneMoney/texture/uiyylb_006.png",
-    "_img_left_desc": "resource/game/wxOneMoney/texture/uiyylb_006b.png",
-    "_img_right_bg": "resource/game/wxOneMoney/texture/uiyylb_006.png",
-    "_img_right_desc": "resource/game/wxOneMoney/texture/uiyylb_006a.png"
+    "_bg": "resource/game/wxOneMoney/other/ui_yylb_01.png",
+    "_img_desc": "resource/game/wxOneMoney/other/uiyylb_003.png",
+    "_img_left_bg": "resource/game/wxOneMoney/other/uiyylb_006.png",
+    "_img_left_desc": "resource/game/wxOneMoney/other/uiyylb_006b.png",
+    "_img_right_bg": "resource/game/wxOneMoney/other/uiyylb_006.png",
+    "_img_right_desc": "resource/game/wxOneMoney/other/uiyylb_006a.png"
    },
    "decision": "view-prefab",
    "height": 690,
@@ -82226,10 +81989,7 @@
    "height": 1000,
    "json": "cdn/resource/game/zeroMoney/ZeroMoneyBaseView.json",
    "kind": "orphan",
-   "missingSkins": [
-    "resource/game/zeroMoney/texture/ui0yg_006.png",
-    "resource/game/zeroMoney/texture/ui0yg_007.png"
-   ],
+   "missingSkins": [],
    "module": "zeroMoney",
    "name": "ZeroMoneyBaseView",
    "nodeTypes": {
@@ -82247,8 +82007,8 @@
     "resource/game/common/texture/com_empty.png": "loose",
     "resource/game/common/texture/com_red_big_point.png": "loose",
     "resource/game/common4/texture/uihd_lzkc_005.png": "loose",
-    "resource/game/zeroMoney/texture/ui0yg_006.png": "missing",
-    "resource/game/zeroMoney/texture/ui0yg_007.png": "missing"
+    "resource/game/zeroMoney/texture/ui0yg_006.png": "cdn",
+    "resource/game/zeroMoney/texture/ui0yg_007.png": "cdn"
    },
    "skins": [
     "resource/game/common/texture/com_diamond.png",

@@ -381,6 +381,7 @@ namespace Shenxiao.Editor.LayaUI
             GameObject go;
             RectTransform childContainer; // 子节点挂到哪(Panel/List 有 Content)
             Vector2 size;
+            bool autoSizeContainer = false; // 容器没写宽/高:按子节点边界算(Laya 行为)
 
             switch (type)
             {
@@ -416,6 +417,7 @@ namespace Shenxiao.Editor.LayaUI
                 case "VBox":
                     go = BuildBoxLayout(p, name, type == "HBox", report, out size);
                     childContainer = (RectTransform)go.transform;
+                    autoSizeContainer = p["width"] == null || p["height"] == null;
                     break;
                 default:
                     if (type != "Box" && type != "View" && type != "Scene")
@@ -424,11 +426,33 @@ namespace Shenxiao.Editor.LayaUI
                     go.name = name;
                     size = SizeOf(p, 0, 0);
                     childContainer = (RectTransform)go.transform;
+                    autoSizeContainer = p["width"] == null || p["height"] == null;
                     break;
             }
 
             RectTransform rt = (RectTransform)go.transform;
             rt.SetParent(parent, false);
+
+            // 先建子节点(子节点锚定容器左上角,不依赖容器尺寸),
+            // 容器缺宽/高时按子节点边界补全,再套自身布局——
+            // 否则 centerX/right/bottom 定位的自动宽高容器会整体偏移(Laya 是按实际内容宽居中的)。
+            JArray children = node["child"] as JArray;
+            if (children == null || children.Count == 0)
+            {
+                children = p["child"] as JArray; // 少数节点(如 Label)子级挂在 props.child
+            }
+            if (children != null && children.Count > 0)
+            {
+                foreach (JToken c in children) BuildNode((JObject)c, childContainer, report);
+                ApplyZOrder(childContainer, children);
+            }
+            if (autoSizeContainer)
+            {
+                Vector2 bounds = ChildBounds(childContainer);
+                if (p["width"] == null) size.x = bounds.x;
+                if (p["height"] == null) size.y = bounds.y;
+            }
+
             LayaRectMath.Apply(rt, p, size);
 
             if ((LayaRectMath.F(p, "alpha") ?? 1f) < 1f)
@@ -440,18 +464,27 @@ namespace Shenxiao.Editor.LayaUI
             {
                 go.SetActive(false);
             }
-
-            JArray children = node["child"] as JArray;
-            if (children == null || children.Count == 0)
-            {
-                children = p["child"] as JArray; // 少数节点(如 Label)子级挂在 props.child
-            }
-            if (children != null && children.Count > 0)
-            {
-                foreach (JToken c in children) BuildNode((JObject)c, childContainer, report);
-                ApplyZOrder(childContainer, children);
-            }
             CollectUnknownProps(type, p, report);
+        }
+
+        /// <summary>子节点内容边界(Laya 自动宽高语义:max(child.x + child.width))。
+        /// 只统计左上锚定的子节点,centerX/拉伸子节点跳过(在自动宽高容器里 Laya 同样是病态布局)。</summary>
+        private static Vector2 ChildBounds(RectTransform container)
+        {
+            float w = 0f, h = 0f;
+            for (int i = 0; i < container.childCount; i++)
+            {
+                RectTransform c = container.GetChild(i) as RectTransform;
+                if (c == null || !c.gameObject.activeSelf) continue;
+                if (c.anchorMin != new Vector2(0f, 1f) || c.anchorMax != new Vector2(0f, 1f)) continue;
+                Vector2 sz = c.sizeDelta;
+                Vector3 sc = c.localScale;
+                float left = c.anchoredPosition.x - c.pivot.x * sz.x * Mathf.Abs(sc.x);
+                float top = -c.anchoredPosition.y - (1f - c.pivot.y) * sz.y * Mathf.Abs(sc.y);
+                w = Mathf.Max(w, left + sz.x * Mathf.Abs(sc.x));
+                h = Mathf.Max(h, top + sz.y * Mathf.Abs(sc.y));
+            }
+            return new Vector2(w, h);
         }
 
         private static GameObject BuildImage(JObject p, string name, string type, LayaUIReport report, out Vector2 size)
