@@ -31,11 +31,14 @@ namespace Shenxiao.Module.Core.Login
         private static bool _busy;
 
         /// <summary>
-        /// 用户协议勾选状态。对标老客户端 LoginEnterView.agreement_agree_state:
-        /// 会话内存字段、不持久化(每次启动重置为未勾选);
-        /// 点「踏入仙界」时未勾选 → 弹 LoginAlertView,同意即勾选。
+        /// 用户协议勾选状态(会话内)。持久化按账号记录,对标老客户端
+        /// LoginEnterView.InitAgreementAgreeState 的 cookie LOCAL_ACCOUNT_INFO:
+        /// 进入踏入仙界页瞬间,该账号同意过 → 自动勾选;否则立即弹 LoginAlertView;
+        /// 弹层点同意 → 勾选 + 记录账号 + 直接进入游戏;拒绝 → 仅关闭。
         /// </summary>
         public static bool AgreementAgreed { get; private set; }
+
+        private static string AgreedPrefKey => "login.agreed." + LoginController.Instance.Model.PlayerId;
 
         public static async Task StartAsync(AppConfig config)
         {
@@ -169,7 +172,7 @@ namespace Shenxiao.Module.Core.Login
             }
         }
 
-        /// <summary>登录/注册成功 → ③ 踏入仙界页(协议弹层由点「踏入仙界」触发,对标老客户端)。</summary>
+        /// <summary>登录/注册成功 → ③ 踏入仙界页;进入瞬间按账号决定协议弹层(对标老客户端)。</summary>
         private static void EnterLobby()
         {
             GameLog.Info("Login", "账号就绪 player_id={0} 服务器数={1} 大区数={2}",
@@ -178,6 +181,18 @@ namespace Shenxiao.Module.Core.Login
             _login.Hide();
             _register.Hide();
             _enter.Show();
+
+            if (Shenxiao.Common.Prefs.PrefsManager.GetBool(AgreedPrefKey, false))
+            {
+                AgreementAgreed = true;   // 该账号同意过:自动勾选,不弹
+                _enter.RefreshAgreement();
+            }
+            else
+            {
+                AgreementAgreed = false;  // 新账号:进入瞬间弹协议层
+                _enter.RefreshAgreement();
+                ShowAgreement();
+            }
         }
 
         public static void ShowAgreement()
@@ -190,8 +205,11 @@ namespace Shenxiao.Module.Core.Login
 
         private static void OnAgreementOk()
         {
+            // 老客户端 AGREE_LOGIN_ALERT:勾选 + 记录该账号 + 直接进入游戏
             AgreementAgreed = true;
+            Shenxiao.Common.Prefs.PrefsManager.SetBool(AgreedPrefKey, true);
             _enter.RefreshAgreement();
+            _ = EnterGameAsync();
         }
 
         private static void OnAgreementCancel()
