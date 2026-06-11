@@ -544,10 +544,13 @@ namespace Shenxiao.Editor.LayaUI
             go.name = name;
             TextMeshProUGUI tmp = go.GetComponent<TextMeshProUGUI>();
 
-            string text = (string)p["text"] ?? "";
+            // scene 文本里的换行存的是字面 \n 两个字符,Laya 运行时当换行渲染,这里复刻;
+            // 不转的话长文本会按一整行渲染,居中时左右外溢(健康忠告/版权文字就是这么超屏的)
+            string text = UnescapeLayaText((string)p["text"]);
             if (html)
             {
-                string raw = (string)p["innerHTML"] ?? text;
+                string raw = UnescapeLayaText((string)p["innerHTML"]) ?? text;
+                if (string.IsNullOrEmpty(raw)) raw = text;
                 text = HtmlToTmp(raw);
                 tmp.richText = true;
                 if (!string.IsNullOrEmpty(raw) && raw.IndexOf('<') >= 0)
@@ -619,7 +622,7 @@ namespace Shenxiao.Editor.LayaUI
                 bg.enabled = false;
             }
 
-            input.text = (string)p["text"] ?? "";
+            input.text = UnescapeLayaText((string)p["text"]);
             float fontSize = LayaRectMath.F(p, "fontSize") ?? 24f;
             Color color = LayaRectMath.ParseColor((string)p["color"], Color.white);
             TextMeshProUGUI textComp = input.textComponent as TextMeshProUGUI;
@@ -741,6 +744,13 @@ namespace Shenxiao.Editor.LayaUI
                 order[j + 1] = t; z[j + 1] = zi;
             }
             for (int i = 0; i < order.Count; i++) order[i].SetSiblingIndex(i);
+        }
+
+        /// <summary>Laya scene 文本的字面转义(\n \t)转真实控制符,复刻运行时渲染。</summary>
+        private static string UnescapeLayaText(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s ?? "";
+            return s.Replace("\\n", "\n").Replace("\\r", "").Replace("\\t", "\t");
         }
 
         private static string HtmlToTmp(string html)

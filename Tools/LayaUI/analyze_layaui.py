@@ -35,46 +35,101 @@ RE_BASE_FILE = re.compile(r"""(?:this\.)?base_file\s*=\s*["']([^"']+)["']""")
 RE_LAYOUT_FILE = re.compile(r"""(?:this\.)?layout_file\s*=\s*["']([^"']+)["']""")
 RE_LAYER = re.compile(r"this\.layer_value\s*=")
 
-# 运行时皮肤静态烘焙:能从 TS 字面量解析出来的 skin 赋值(首写胜)
-RE_SKIN_LITERAL = re.compile(r"""this\.(\w+)\.skin\s*=\s*["'](resource/[^"']+)["']""")
-RE_SKIN_GAMERES = re.compile(r"""this\.(\w+)\.skin\s*=\s*GameResPath\.(\w+)\(\s*["'](\w+)["']\s*,\s*["']([\w\-]+)["']\s*\)""")
-RE_SETTEX_LITERAL = re.compile(r"""SetTexture\(\s*this\s*,\s*this\.(\w+)\s*,\s*["'](resource/[^"']+)["']""")
-RE_SETTEX_GAMERES = re.compile(r"""SetTexture\(\s*this\s*,\s*this\.(\w+)\s*,\s*GameResPath\.(\w+)\(\s*["'](\w+)["']\s*,\s*["']([\w\-]+)["']\s*\)""")
+# 运行时皮肤静态烘焙 —————————————————————————————————————————————
+# 规律(全部来自 ResManager.ts / GameResPath.ts,改这两个文件时要同步):
+#   1. GameResPath 的简单方法都是单行模板串 return `...${arg}...`,
+#      直接解析 GameResPath.ts 自动推导「方法名 -> 路径模板」,不硬编码。
+#   2. SetTexture / SetOutsideImageSprite(内部调 SetTexture)运行时会把路径里
+#      第一个 /texture/ 替换成 /other/(移植后遗症),烘焙路径必须复刻;
+#      SetImageSpriteTrans / 直接 .skin= 不做替换。
+#   3. SetImageSprite(this, img, ab, res):ab 去掉最后一个 _ 后缀,
+#      拼 resource/game/{ab}/texture/{res}.png。
+#   4. 支持 let/const/var x = this._img_xxx 的别名再赋图(全项目 ~800 处)。
+# 同一节点首写胜。解析不了的(变量/模板串/三元)留给报告的「运行时赋值」清单。
 
-# GameResPath 的四个模块图方法 -> 路径模板(与 h5/src/util/GameResPath.ts 一致)
-GAMERES_FN = {
-    "GetIcon": "resource/game/%s/texture/%s.png",
-    "GetIconJpg": "resource/game/%s/texture/%s.jpg",
-    "GetIconOtherPath": "resource/game/%s/other/%s.png",
-    "GetIconJpgOtherPath": "resource/game/%s/other/%s.jpg",
-}
+RE_ALIAS = re.compile(r"(?:let|const|var)\s+(\w+)\s*=\s*this\.(\w+)\s*[;\n]")
+_LIT = r"""["']([^"']+)["']"""
+_GRP_CALL = r"""GameResPath\.(\w+)\(\s*((?:["'][^"']*["']\s*,\s*)*["'][^"']*["'])\s*\)"""
+# target: this.node 或 别名
+_TARGET = r"(?:this\.(\w+)|(\w+))"
 
-# 窗口基类(继承到这里的必然是独立窗口)
-VIEW_BASES = {"BaseView1", "BaseView", "BaseSubView"}
+RE_SKIN_ASSIGN_LIT = re.compile(r"this\.(\w+)\.skin\s*=\s*" + _LIT)
+RE_SKIN_ASSIGN_GRP = re.compile(r"this\.(\w+)\.skin\s*=\s*" + _GRP_CALL)
+RE_TEX_LIT = re.compile(r"(SetTexture|SetOutsideImageSprite|SetImageSpriteTrans)\(\s*this\s*,\s*" + _TARGET + r"\s*,\s*" + _LIT)
+RE_TEX_GRP = re.compile(r"(SetTexture|SetOutsideImageSprite|SetImageSpriteTrans)\(\s*this\s*,\s*" + _TARGET + r"\s*,\s*" + _GRP_CALL)
+RE_IMGSPRITE = re.compile(r"SetImageSprite\(\s*this\s*,\s*" + _TARGET + r"\s*,\s*" + _LIT + r"\s*,\s*" + _LIT)
+
+RE_GRP_METHOD = re.compile(
+    r"public static (\w+)\(([^)]*)\)\s*\{\s*return\s+`([^`]+)`", re.S)
+
+_gameres_templates = {}
+
+
+def load_gameres_templates(src_root):
+    """解析 GameResPath.ts,推导「方法名 -> (参数名列表, 模板)」。只收单行模板方法。"""
+    path = os.path.join(src_root, "util", "GameResPath.ts")
+    if not os.path.exists(path):
+        return
+    text = open(path, encoding="utf-8", errors="replace").read()
+    for m in RE_GRP_METHOD.finditer(text):
+        fn, params, tpl = m.group(1), m.group(2), m.group(3)
+        names = [p.split(":")[0].strip() for p in params.split(",") if p.strip()]
+        _gameres_templates[fn] = (names, tpl)
+
+
+def resolve_gameres(fn, raw_args):
+    """GameResPath.Fn("a","b") -> 路径;含未替换占位符则放弃。"""
+    info = _gameres_templates.get(fn)
+    if info is None:
+        return None
+    names, tpl = info
+    args = re.findall(r"""["']([^"']*)["']""", raw_args)
+    out = tpl
+    for name, val in zip(names, args):
+        out = out.replace("${%s}" % name, val)
+    return None if "${" in out else out
+
+
+def _texture_to_other(path):
+    return path.replace("/texture/", "/other/", 1)
 
 
 def extract_baked_skins(body):
-    """从类体里静态解析「节点 -> 运行时赋的图」。同一节点首写胜。
+    aliases = {a: node for a, node in RE_ALIAS.findall(body)}
 
-    注意:ResManager.SetTexture 运行时会把路径里的 /texture/ 替换成 /other/
-    (ResManager.ts SetTexture 开头几行,移植后遗症),走 SetTexture 的烘焙路径必须复刻。
-    """
+    def target_node(this_node, alias):
+        return this_node if this_node else aliases.get(alias)
+
     baked = {}
-    for m in RE_SKIN_LITERAL.finditer(body):
-        baked.setdefault(m.group(1), m.group(2))
-    for m in RE_SETTEX_LITERAL.finditer(body):
-        baked.setdefault(m.group(1), m.group(2).replace("/texture/", "/other/", 1))
-    for m in RE_SKIN_GAMERES.finditer(body):
-        node, fn, mod, res = m.group(1), m.group(2), m.group(3), m.group(4)
-        tpl = GAMERES_FN.get(fn)
-        if tpl:
-            baked.setdefault(node, tpl % (mod, res))
-    for m in RE_SETTEX_GAMERES.finditer(body):
-        node, fn, mod, res = m.group(1), m.group(2), m.group(3), m.group(4)
-        tpl = GAMERES_FN.get(fn)
-        if tpl:
-            baked.setdefault(node, (tpl % (mod, res)).replace("/texture/", "/other/", 1))
+
+    def put(node, path):
+        if node and path:
+            baked.setdefault(node, path)
+
+    for m in RE_SKIN_ASSIGN_LIT.finditer(body):
+        put(m.group(1), m.group(2))
+    for m in RE_SKIN_ASSIGN_GRP.finditer(body):
+        put(m.group(1), resolve_gameres(m.group(2), m.group(3)))
+    for m in RE_TEX_LIT.finditer(body):
+        fn, path = m.group(1), m.group(4)
+        if fn != "SetImageSpriteTrans":
+            path = _texture_to_other(path)
+        put(target_node(m.group(2), m.group(3)), path)
+    for m in RE_TEX_GRP.finditer(body):
+        fn = m.group(1)
+        path = resolve_gameres(m.group(4), m.group(5))
+        if path and fn != "SetImageSpriteTrans":
+            path = _texture_to_other(path)
+        put(target_node(m.group(2), m.group(3)), path)
+    for m in RE_IMGSPRITE.finditer(body):
+        ab, res = m.group(3), m.group(4)
+        if "_" in ab[1:]:
+            ab = ab[:ab.rindex("_")]
+        put(target_node(m.group(1), m.group(2)), "resource/game/%s/texture/%s.png" % (ab, res))
     return baked
+
+# 窗口基类(继承到这里的必然是独立窗口)
+VIEW_BASES = {"BaseView1", "BaseView", "BaseSubView"}
 
 SKIN_PROP_KEYS = ("skin", "texture", "vScrollBarSkin", "hScrollBarSkin", "sceneBg")
 
@@ -213,6 +268,8 @@ def main():
         sys.exit("yu_client 路径不对: %s (需要 h5/src 与 cdn/resource/game)" % client_root)
 
     print("[1/4] 扫描 TS 类 ...")
+    load_gameres_templates(src_root)
+    print("   GameResPath 模板方法 %d 个(自动推导)" % len(_gameres_templates))
     classes, file_text = scan_ts_classes(src_root)
     for name, info in classes.items():
         info["isUI"] = bool(info["module"] and info["layout"])
