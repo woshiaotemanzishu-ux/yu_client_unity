@@ -297,13 +297,9 @@ namespace Shenxiao.Module.Core.Login
 
         private static void OnRoleList(int roleCount)
         {
-            GameLog.Info("Login", "—— ✅ 真实链路全通:加载 → 登录 → 选服 → 入口 → WebSocket → 角色列表(角色数={0})——", roleCount);
-            if (_enter != null)
-            {
-                _enter.SetTip(roleCount > 0
-                    ? $"连接成功,已有 {roleCount} 个角色(选角窗待接)"
-                    : "连接成功,该服暂无角色(创角窗待接)");
-            }
+            GameLog.Info("Login", "—— ✅ 真实链路全通:加载 → 登录 → 协议 → 选服 → 入口 → WebSocket → 角色列表(角色数={0})——", roleCount);
+            // 角色数据已就绪;选角/创角页接入前,界面不再额外提示
+            if (_enter != null) _enter.RefreshServer();
         }
     }
 }
