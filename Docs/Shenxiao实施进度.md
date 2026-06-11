@@ -129,6 +129,27 @@
 | L.2 | LoginBootstrap / LoginFlow / LoginEnterView | 已清理 | 旧 UI 绑定链已删除；`GmApi` 保留，后续可作为登录协议/GM 调用参考。 |
 | L.3 | 蓝湖 UI 接入工具 | ✅ | 已定 `lanhu_manifest.json + assets/` 导入包规范；`LanhuCreator` 基础版可生成 Prefab + Bind + 缺图报告。 |
 | L.4 | Phase 1 登录界面重建 | 🟡 | 2026-06-10 改走 LayaUI 直转流水线(见 [LayaUI转换流水线.md](LayaUI转换流水线.md)):login 模块转换工具已就绪,待本地 Unity 实跑「加载页 LoginLoadingView + 登录页 LoginView」验收。 |
+| L.5 | **登录链路端到端试点(量产前置门槛)** | 🔵 | 2026-06-11 用户拍板:量产前先用转换产物接真实 API 跑通整条登录链路,验证"UI 不只是长得对,还得用得对"。链路与里程碑见下表。 |
+
+#### L.5 登录链路端到端试点
+
+yu_client 真实链路(已核对源码):`LoginStateManager` 状态机
+`Register / Login → (SimplifyServer | ServerList → ServerWin) → ConnectGame`;
+账号登录/注册 = HTTP GET `ClientConfig.login_php`;服务器列表 = HTTP(md5+cookie,ServerModel);
+连游戏服 = WebSocket(UserMsgAdapter)+ Erlang 协议。Unity 侧已有对应骨架:
+HttpUtil / GmApi(HTTP 参考)/ NetManager / ErlangParser / UserMsgAdapter / ViewManager。
+
+| # | 里程碑 | 验收点 |
+|---|--------|--------|
+| M1 | 资源加载 | LoginModule.prefab 经 Addressables 加载;LoginLoadingView 显示真实加载进度 |
+| M2 | 登录/注册 | LoginView/RegisterView 接 `login_php` 真实 API,成功拿到账号凭据 |
+| M3 | 选服 | ServerModel 移植,服务器列表渲染进 LoginSelectServerView(item 用 `_tpl_*` 模板 Instantiate) |
+| M4 | 连游戏服 | WebSocket 握手 + 首个游戏协议(角色列表)收到,推进到选角/创角界面显示 |
+| M5 | 复盘量产 | 试点暴露的转换器问题全部修掉 → 全模块批量转换 |
+
+**UI 验收红线(衡量"UI 真的处理好了")**:业务代码零 `transform.Find`、零样式参数;
+节点全走 Bind 字段;动态图全走 ResManager(Addressables);窗口切换全走 ViewManager
+操作 LoginModule 子窗口;转换报告里 login 模块「运行时赋值」清单全部被业务代码覆盖。
 
 ### 项目级路线记忆（2026-06-09）
 
