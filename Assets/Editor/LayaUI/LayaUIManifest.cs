@@ -32,6 +32,8 @@ namespace Shenxiao.Editor.LayaUI
             [JsonProperty("skinSource")] public Dictionary<string, string> SkinSource = new Dictionary<string, string>();
             /// <summary>节点名 -> TS 里静态解析出的运行时图(scene 里 skin 为空时烘焙用)。</summary>
             [JsonProperty("bakedSkins")] public Dictionary<string, string> BakedSkins = new Dictionary<string, string>();
+            /// <summary>被 TS this.xxx 引用的非下划线节点(Bind 收集 = "_"前缀 ∪ codeNodes)。</summary>
+            [JsonProperty("codeNodes")] public List<string> CodeNodes = new List<string>();
         }
 
         private static LayaUIManifest _cached;

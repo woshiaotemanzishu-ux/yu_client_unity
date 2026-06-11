@@ -24,7 +24,8 @@ namespace Shenxiao.Editor.LayaUI
 
             List<FieldInfo> fields = new List<FieldInfo>();
             HashSet<string> used = new HashSet<string>();
-            Collect(windowRoot, windowRoot, fields, used, report, entry.Name);
+            HashSet<string> codeNodes = entry.CodeNodes != null ? new HashSet<string>(entry.CodeNodes) : new HashSet<string>();
+            Collect(windowRoot, windowRoot, fields, used, report, entry.Name, codeNodes);
 
             string moduleDir = manifest.ModuleDir(entry.Module);
             string className = SanitizeType(entry.Name) + "Bind";
@@ -67,8 +68,9 @@ namespace Shenxiao.Editor.LayaUI
             public string NodePath; // 回填用:prefab 内相对路径
         }
 
+        /// <summary>收集 Bind 字段:"_" 前缀节点 ∪ codeNodes(老界面的 account/loginBtn 等无前缀命名)。</summary>
         public static void Collect(Transform root, Transform node, List<FieldInfo> fields, HashSet<string> used,
-            LayaUIReport report, string sceneName)
+            LayaUIReport report, string sceneName, HashSet<string> codeNodes = null)
         {
             for (int i = 0; i < node.childCount; i++)
             {
@@ -83,11 +85,11 @@ namespace Shenxiao.Editor.LayaUI
                     }
                     continue; // 模板内部节点不进 Bind
                 }
-                if (c.name.StartsWith("_"))
+                if (c.name.StartsWith("_") || (codeNodes != null && codeNodes.Contains(c.name)))
                 {
                     AddField(fields, used, SanitizeField(c.name), TypeOf(c), Path(root, c), report, sceneName);
                 }
-                Collect(root, c, fields, used, report, sceneName);
+                Collect(root, c, fields, used, report, sceneName, codeNodes);
             }
         }
 

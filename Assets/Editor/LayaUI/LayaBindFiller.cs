@@ -17,7 +17,7 @@ namespace Shenxiao.Editor.LayaUI
     {
         public static void FillModule(string module)
         {
-            LayaUIManifest manifest = LayaUIManifest.Load();
+            LayaUIManifest manifest = LayaUIManifest.Load(true);
             if (manifest == null) return;
             string moduleDir = manifest.ModuleDir(module);
             string folder = LayaUISettings.PREFAB_ROOT + "/" + moduleDir;
@@ -30,25 +30,25 @@ namespace Shenxiao.Editor.LayaUI
             foreach (string file in Directory.GetFiles(folder, "*.prefab", SearchOption.TopDirectoryOnly))
             {
                 string path = file.Replace('\\', '/');
-                if (FillOne(path, moduleDir)) ok++; else miss++;
+                if (FillOne(path, moduleDir, manifest)) ok++; else miss++;
             }
             AssetDatabase.SaveAssets();
             Debug.Log("[LayaUI] 回填完成: 成功 " + ok + ",缺 Bind 类 " + miss + "(缺的看 Console 前面的警告)");
         }
 
-        private static bool FillOne(string prefabPath, string moduleDir)
+        private static bool FillOne(string prefabPath, string moduleDir, LayaUIManifest manifest)
         {
             GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);
             try
             {
                 int filled = 0;
                 // 单窗口 prefab:Bind 在根上;合并 prefab:Bind 在各窗口子根上
-                if (FillWindow(root.transform, root.transform.name, moduleDir)) filled++;
+                if (FillWindow(root.transform, root.transform.name, moduleDir, manifest)) filled++;
                 for (int i = 0; i < root.transform.childCount; i++)
                 {
                     Transform child = root.transform.GetChild(i);
                     if (child.name == "__Templates") continue;
-                    if (FillWindow(child, child.name, moduleDir)) filled++;
+                    if (FillWindow(child, child.name, moduleDir, manifest)) filled++;
                 }
                 if (filled == 0)
                 {
@@ -68,7 +68,7 @@ namespace Shenxiao.Editor.LayaUI
         /// 给一个窗口根挂 Bind 组件并按节点名回填字段。没有对应类时返回 false。
         /// 优先挂业务子类(如 LoginEnterView : LoginEnterViewBind),业务逻辑才会随 prefab 实例化。
         /// </summary>
-        private static bool FillWindow(Transform windowRoot, string windowName, string moduleDir)
+        private static bool FillWindow(Transform windowRoot, string windowName, string moduleDir, LayaUIManifest manifest)
         {
             Type bindType = FindBindType("Shenxiao.Generated.UI." + moduleDir + "." + windowName + "Bind");
             if (bindType == null) return false;
@@ -82,9 +82,20 @@ namespace Shenxiao.Editor.LayaUI
             }
             if (bind == null) bind = windowRoot.gameObject.AddComponent(concreteType);
 
+            // codeNodes 与生成器同源(manifest),否则无前缀字段收集不到
+            HashSet<string> codeNodes = null;
+            foreach (KeyValuePair<string, LayaUIManifest.SceneEntry> kv in manifest.Scenes)
+            {
+                if (kv.Value.Name == windowName && manifest.ModuleDir(kv.Value.Module) == moduleDir)
+                {
+                    codeNodes = new HashSet<string>(kv.Value.CodeNodes ?? new List<string>());
+                    break;
+                }
+            }
+
             List<LayaBindGenerator.FieldInfo> fields = new List<LayaBindGenerator.FieldInfo>();
             LayaUIReport dummy = new LayaUIReport("bindfill");
-            LayaBindGenerator.Collect(windowRoot, windowRoot, fields, new HashSet<string>(), dummy, windowName);
+            LayaBindGenerator.Collect(windowRoot, windowRoot, fields, new HashSet<string>(), dummy, windowName, codeNodes);
 
             SerializedObject so = new SerializedObject(bind);
             foreach (LayaBindGenerator.FieldInfo f in fields)

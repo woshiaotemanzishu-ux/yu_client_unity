@@ -31,7 +31,6 @@ namespace Shenxiao.Generated.UI.Login
         public TextMeshProUGUI _lb_agrement3;
         public TextMeshProUGUI _lb_agrement4;
         public Image _img_return;
-        public GameObject _tpl_EyouThAdultItem;
 
         protected override void BindNodes()
         {
@@ -57,7 +56,6 @@ namespace Shenxiao.Generated.UI.Login
             EnsureBound(nameof(_lb_agrement3), _lb_agrement3);
             EnsureBound(nameof(_lb_agrement4), _lb_agrement4);
             EnsureBound(nameof(_img_return), _img_return);
-            EnsureBound(nameof(_tpl_EyouThAdultItem), _tpl_EyouThAdultItem);
         }
     }
 }

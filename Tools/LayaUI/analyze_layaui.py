@@ -208,6 +208,10 @@ def scan_ts_classes(src_root):
                     "layout": lf.group(1) if lf else None,
                     "hasLayer": bool(RE_LAYER.search(body)),
                     "bakedSkins": extract_baked_skins(body),
+                    # 类体里 this.xxx 引用集合:与 scene 节点名求交得 codeNodes,
+                    # Bind 收集 = "_" 前缀节点 ∪ codeNodes(老界面如 LoginView 的
+                    # account/loginBtn 不带下划线,只靠前缀会漏)
+                    "thisRefs": set(re.findall(r"this\.(\w+)\b", body)),
                 }
     return classes, file_text
 
@@ -263,20 +267,23 @@ def build_usage(classes, file_text, src_root):
     return owners, other_refs
 
 
-def walk_scene(node, skins, types):
+def walk_scene(node, skins, types, names):
     t = node.get("type")
     if t:
         types[t] = types.get(t, 0) + 1
     props = node.get("props", {})
+    n = props.get("name")
+    if isinstance(n, str) and n:
+        names.add(n)
     for k in SKIN_PROP_KEYS:
         v = props.get(k)
         if isinstance(v, str) and v:
             skins.add(v)
     for c in node.get("child", ()):  # 运行时 json 的子节点字段
-        walk_scene(c, skins, types)
+        walk_scene(c, skins, types, names)
     for c in props.get("child", ()):  # 个别 Label 嵌套
         if isinstance(c, dict):
-            walk_scene(c, skins, types)
+            walk_scene(c, skins, types, names)
 
 
 def classify_skin(skin, client_root, atlas_index):
@@ -359,8 +366,8 @@ def main():
             except (OSError, ValueError) as e:
                 scenes[key] = {"error": str(e)}
                 continue
-            skins, types = set(), {}
-            walk_scene(data, skins, types)
+            skins, types, names = set(), {}, set()
+            walk_scene(data, skins, types, names)
             props = data.get("props", {})
             scenes[key] = {
                 "module": module,
@@ -370,6 +377,7 @@ def main():
                 "height": props.get("height"),
                 "nodeTypes": types,
                 "skins": sorted(skins),
+                "nodeNames": sorted(names),
             }
 
     print("   scene 总数 %d" % len(scenes))
@@ -389,6 +397,13 @@ def main():
         sc["tsClass"] = cls
         sc["kind"] = classes[cls]["kind"] if cls else "orphan"
         sc["bakedSkins"] = dict(classes[cls]["bakedSkins"]) if cls else {}
+        # 被代码引用的非下划线节点(Bind 收集 = "_"前缀 ∪ codeNodes)
+        node_names = set(sc.pop("nodeNames", []) or [])
+        if cls:
+            sc["codeNodes"] = sorted(n for n in (classes[cls]["thisRefs"] & node_names)
+                                     if not n.startswith("_"))
+        else:
+            sc["codeNodes"] = []
         # 手工默认图兜底(平台 logo 等完全外部的动态图):Schemas/LayaUI/ui_default_skins.json
         for node, path in default_skins.get(key, {}).items():
             sc["bakedSkins"].setdefault(node, path)

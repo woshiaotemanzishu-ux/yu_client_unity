@@ -9,25 +9,25 @@ using UnityEngine;
 namespace Shenxiao.Module.Core.Login
 {
     /// <summary>
-    /// 登录模块 UI 流程编排(对标 Laya LoginManager 的时序,模块合并 prefab 模型):
+    /// 登录模块 UI 流程编排,严格对齐老客户端链路:
     ///
-    ///   阶段① 加载页:只显示 LoginLoadingView,真实驱动进度
-    ///        (Addressables 预下载 0~60% → HTTP player_login 60~90% → 收尾 100%)
-    ///   阶段② 登录页:LoginBgView + LoginEnterView(服务器名已就绪)
-    ///   阶段③ 选服/进服:换区弹 LoginSelectServerView;踏入仙界 → 入口解析 →
-    ///        WebSocket → 10000 → 角色列表(创角/选角窗待接)
-    ///
-    /// 账号由 AppConfig.devAccount 顶替平台 SDK(与 Laya 正式流程一致:UI 无账号输入)。
+    ///   ① 加载页 LoginLoadingView(真实资源下载进度)
+    ///   ② 登录/注册页 LoginView ⇄ RegisterView(输入账号密码,背景 LoginBgView)
+    ///   ③ 登录成功 → LoginEnterView(显示当前服,踏入仙界)
+    ///   ④ 点服务器名 → LoginSelectServerView 列表选服
+    ///   ⑤ 踏入仙界 → get_server_info → WebSocket → 10000 → 选角/创角(待接)→ 进游戏
     /// </summary>
     public static class LoginFlow
     {
         private static AppConfig _config;
         private static GameObject _moduleRoot;
         private static LoginBgView _bg;
+        private static LoginLoadingView _loading;
+        private static LoginView _login;
+        private static RegisterView _register;
         private static LoginEnterView _enter;
         private static LoginSelectServerView _select;
-        private static LoginLoadingView _loading;
-        private static bool _entering;
+        private static bool _busy;
 
         public static async Task StartAsync(AppConfig config)
         {
@@ -45,33 +45,33 @@ namespace Shenxiao.Module.Core.Login
             {
                 v.gameObject.SetActive(false);
                 if (v is LoginBgView bg) _bg = bg;
+                else if (v is LoginLoadingView loading) _loading = loading;
+                else if (v is LoginView login) _login = login;
+                else if (v is RegisterView register) _register = register;
                 else if (v is LoginEnterView enter) _enter = enter;
                 else if (v is LoginSelectServerView select) _select = select;
-                else if (v is LoginLoadingView loading) _loading = loading;
             }
-            if (_bg == null || _enter == null || _select == null || _loading == null)
+            if (_bg == null || _loading == null || _login == null || _register == null || _enter == null || _select == null)
             {
-                GameLog.Error("Login", "LoginModule 缺业务窗口(bg={0} enter={1} select={2} loading={3})——先在转换器点『回填 Bind 引用』",
-                    _bg != null, _enter != null, _select != null, _loading != null);
+                GameLog.Error("Login",
+                    "LoginModule 缺业务窗口(bg={0} loading={1} login={2} register={3} enter={4} select={5})——先在转换器点『回填 Bind 引用』",
+                    _bg != null, _loading != null, _login != null, _register != null, _enter != null, _select != null);
                 return;
             }
 
             EventDispatcher.On<int>(GlobalEvent.EVT_GAME_ROLE_LIST, OnRoleList);
 
-            // ---------- 阶段① 加载页 ----------
+            // ---------- ① 加载页 ----------
             _loading.Show();
             _loading.SetProgress(0f);
-
-            await PreloadAsync();          // 0 ~ 0.6
-            bool loginOk = await HttpLoginAsync();  // 0.6 ~ 0.9
-            if (!loginOk) return;          // 失败留在加载页,文案已说明原因
+            await PreloadAsync();
             _loading.SetProgress(1f);
             await Task.Yield();
-
-            // ---------- 阶段② 登录页 ----------
             _loading.Hide();
+
+            // ---------- ② 登录页 ----------
             _bg.Show();
-            _enter.Show();
+            ShowLogin();
         }
 
         private static async Task PreloadAsync()
@@ -79,7 +79,6 @@ namespace Shenxiao.Module.Core.Login
             string[] keys = _config.preloadKeys;
             if (keys == null || keys.Length == 0)
             {
-                _loading.SetProgress(0.6f);
                 return;
             }
             try
@@ -88,40 +87,103 @@ namespace Shenxiao.Module.Core.Login
                 if (size > 0)
                 {
                     GameLog.Info("Login", "预下载 {0} 项,共 {1} KB", keys.Length, size / 1024);
-                    await ResManager.DownloadAsync(keys, p => _loading.SetProgress(p * 0.6f));
+                    await ResManager.DownloadAsync(keys, p => _loading.SetProgress(p));
                 }
             }
             catch (System.Exception e)
             {
                 GameLog.Warn("Login", "预下载跳过: {0}", e.Message);
             }
-            _loading.SetProgress(0.6f);
         }
 
-        private static async Task<bool> HttpLoginAsync()
+        // ---------------------------------------------------------------- ② 登录/注册
+
+        public static void ShowLogin()
         {
-            _loading.SetProgress(0.6f, "登录账号 ...");
-            Task<LoginRequestResult> loginTask = LoginController.Instance.DevLoginAsync(_config.devAccount);
-            // 看门狗:服务器不可达时 TCP 层可能长时间无响应,别让玩家对着"登录账号..."干等
-            Task finished = await Task.WhenAny(loginTask, Task.Delay(15000));
-            if (finished != loginTask)
-            {
-                GameLog.Error("Login", "登录超时:{0} 不可达(浏览器开 {0} 应显示 API is ready;检查 yu_gm 服务/防火墙)", _config.gmApiUrl);
-                _loading.SetProgress(0.6f, "登录超时:账号服务器不可达");
-                return false;
-            }
-            LoginRequestResult result = loginTask.Result;
-            if (!result.success)
-            {
-                GameLog.Error("Login", "HTTP 登录失败: {0}", result.message);
-                _loading.SetProgress(0.6f, "登录失败: " + result.message);
-                return false;
-            }
-            GameLog.Info("Login", "HTTP 登录通过 player_id={0} 服务器数={1}",
-                LoginController.Instance.Model.PlayerId, LoginController.Instance.Model.Servers.Count);
-            _loading.SetProgress(0.9f);
-            return true;
+            _register.Hide();
+            _login.Show();
         }
+
+        public static void ShowRegister()
+        {
+            _login.Hide();
+            _register.Show();
+        }
+
+        public static async Task SubmitLoginAsync(string account, string password, bool remember)
+        {
+            if (_busy) return;
+            _busy = true;
+            _login.SetBusy(true);
+            try
+            {
+                Task<LoginRequestResult> task = LoginController.Instance.LoginAsync(account, password, remember);
+                LoginRequestResult result = await WithTimeout(task, "登录");
+                if (!result.success)
+                {
+                    GameLog.Warn("Login", "登录失败: {0}", result.message);
+                    TipsToLoginPage(result.message);
+                    return;
+                }
+                EnterLobby();
+            }
+            finally
+            {
+                _busy = false;
+                _login.SetBusy(false);
+            }
+        }
+
+        public static async Task SubmitRegisterAsync(string account, string password)
+        {
+            if (_busy) return;
+            _busy = true;
+            try
+            {
+                Task<LoginRequestResult> task = LoginController.Instance.RegisterAsync(account, password, true);
+                LoginRequestResult result = await WithTimeout(task, "注册");
+                if (!result.success)
+                {
+                    GameLog.Warn("Login", "注册失败: {0}", result.message);
+                    TipsToLoginPage(result.message);
+                    return;
+                }
+                EnterLobby();
+            }
+            finally
+            {
+                _busy = false;
+            }
+        }
+
+        /// <summary>登录/注册成功 → ③ 踏入仙界页。</summary>
+        private static void EnterLobby()
+        {
+            GameLog.Info("Login", "账号就绪 player_id={0} 服务器数={1}",
+                LoginController.Instance.Model.PlayerId, LoginController.Instance.Model.Servers.Count);
+            _login.Hide();
+            _register.Hide();
+            _enter.Show();
+        }
+
+        private static void TipsToLoginPage(string message)
+        {
+            // TODO:接 TipsSystem 的 Toast;现阶段用日志 + 标题文案
+            GameLog.Warn("Login", "提示: {0}", message);
+        }
+
+        private static async Task<LoginRequestResult> WithTimeout(Task<LoginRequestResult> task, string what)
+        {
+            Task finished = await Task.WhenAny(task, Task.Delay(15000));
+            if (finished != task)
+            {
+                GameLog.Error("Login", "{0}超时:{1} 不可达(浏览器应能打开并显示 API is ready)", what, _config.gmApiUrl);
+                return LoginRequestResult.Fail(what + "超时:账号服务器不可达");
+            }
+            return task.Result;
+        }
+
+        // ---------------------------------------------------------------- ④ 选服 / ⑤ 进服
 
         public static void OpenServerSelect()
         {
@@ -142,8 +204,8 @@ namespace Shenxiao.Module.Core.Login
 
         public static async Task EnterGameAsync()
         {
-            if (_entering) return;
-            _entering = true;
+            if (_busy) return;
+            _busy = true;
             try
             {
                 _enter.SetTip("解析服务器入口 ...");
@@ -165,13 +227,13 @@ namespace Shenxiao.Module.Core.Login
             }
             finally
             {
-                _entering = false;
+                _busy = false;
             }
         }
 
         private static void OnRoleList(int roleCount)
         {
-            GameLog.Info("Login", "—— ✅ 真实链路全通:加载页 → 登录页 → 选服 → 入口 → WebSocket → 角色列表(角色数={0})——", roleCount);
+            GameLog.Info("Login", "—— ✅ 真实链路全通:加载 → 登录 → 选服 → 入口 → WebSocket → 角色列表(角色数={0})——", roleCount);
             if (_enter != null)
             {
                 _enter.SetTip(roleCount > 0
