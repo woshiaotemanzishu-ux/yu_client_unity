@@ -19,8 +19,6 @@ namespace Shenxiao.Module.Core.Login
     /// </summary>
     public static class LoginFlow
     {
-        private const string PREF_AGREED = "login.agreement_agreed";
-
         private static AppConfig _config;
         private static GameObject _moduleRoot;
         private static LoginBgView _bg;
@@ -32,12 +30,12 @@ namespace Shenxiao.Module.Core.Login
         private static LoginAlertView _alert;
         private static bool _busy;
 
-        /// <summary>用户协议是否已同意(持久化;踏入仙界的前置条件,对标老客户端)。</summary>
-        public static bool AgreementAgreed
-        {
-            get => Shenxiao.Common.Prefs.PrefsManager.GetBool(PREF_AGREED, false);
-            private set => Shenxiao.Common.Prefs.PrefsManager.SetBool(PREF_AGREED, value);
-        }
+        /// <summary>
+        /// 用户协议勾选状态。对标老客户端 LoginEnterView.agreement_agree_state:
+        /// 会话内存字段、不持久化(每次启动重置为未勾选);
+        /// 点「踏入仙界」时未勾选 → 弹 LoginAlertView,同意即勾选。
+        /// </summary>
+        public static bool AgreementAgreed { get; private set; }
 
         public static async Task StartAsync(AppConfig config)
         {
@@ -167,7 +165,7 @@ namespace Shenxiao.Module.Core.Login
             }
         }
 
-        /// <summary>登录/注册成功 → ③ 踏入仙界页;首次弹用户协议(对标老客户端)。</summary>
+        /// <summary>登录/注册成功 → ③ 踏入仙界页(协议弹层由点「踏入仙界」触发,对标老客户端)。</summary>
         private static void EnterLobby()
         {
             GameLog.Info("Login", "账号就绪 player_id={0} 服务器数={1} 大区数={2}",
@@ -176,10 +174,6 @@ namespace Shenxiao.Module.Core.Login
             _login.Hide();
             _register.Hide();
             _enter.Show();
-            if (!AgreementAgreed)
-            {
-                ShowAgreement();
-            }
         }
 
         public static void ShowAgreement()
