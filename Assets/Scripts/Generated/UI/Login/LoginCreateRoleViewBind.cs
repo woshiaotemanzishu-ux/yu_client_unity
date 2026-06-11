@@ -21,6 +21,7 @@ namespace Shenxiao.Generated.UI.Login
         public Image _img_16;
         public TMP_InputField _lb_random_name;
         public GameObject _tpl_LoginCreateRoleItem;
+        public GameObject _tpl_EyouThAdultItem;
 
         protected override void BindNodes()
         {
@@ -36,6 +37,7 @@ namespace Shenxiao.Generated.UI.Login
             EnsureBound(nameof(_img_16), _img_16);
             EnsureBound(nameof(_lb_random_name), _lb_random_name);
             EnsureBound(nameof(_tpl_LoginCreateRoleItem), _tpl_LoginCreateRoleItem);
+            EnsureBound(nameof(_tpl_EyouThAdultItem), _tpl_EyouThAdultItem);
         }
     }
 }

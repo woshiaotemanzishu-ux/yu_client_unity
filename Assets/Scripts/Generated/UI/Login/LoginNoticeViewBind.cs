@@ -14,6 +14,7 @@ namespace Shenxiao.Generated.UI.Login
         public TextMeshProUGUI _lb_test_server;
         public RectTransform _btn_read;
         public Image _Image122;
+        public TextMeshProUGUI labelDisplay;
         public ScrollRect _scroll_con;
         public RectTransform _gp_item;
         public RectTransform _gp_test_server;
@@ -31,6 +32,7 @@ namespace Shenxiao.Generated.UI.Login
             EnsureBound(nameof(_lb_test_server), _lb_test_server);
             EnsureBound(nameof(_btn_read), _btn_read);
             EnsureBound(nameof(_Image122), _Image122);
+            EnsureBound(nameof(labelDisplay), labelDisplay);
             EnsureBound(nameof(_scroll_con), _scroll_con);
             EnsureBound(nameof(_gp_item), _gp_item);
             EnsureBound(nameof(_gp_test_server), _gp_test_server);
