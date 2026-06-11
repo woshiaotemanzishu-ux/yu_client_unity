@@ -30,7 +30,8 @@ namespace Shenxiao.Module.Core.Login
             "凌霄", "青岚", "破晓", "听雪", "惊鸿", "御风", "星河", "暮云",
         };
 
-        private const float ITEM_SPACING = 10f;
+        // 对标老客户端 LoginCreateRoleView.ts:item.SetPosition(0, career*133) —— 左侧竖排
+        private const float ITEM_STEP_Y = 133f;
 
         private readonly List<GameObject> _items = new List<GameObject>();
         private int _selectedIndex;
@@ -62,14 +63,13 @@ namespace Shenxiao.Module.Core.Login
             _items.Clear();
             _selectedIndex = 0;
 
-            RectTransform tplRect = (RectTransform)_tpl_LoginCreateRoleItem.transform;
-            float itemWidth = tplRect.sizeDelta.x;
-
             for (int i = 0; i < CAREERS.Length; i++)
             {
                 GameObject item = Instantiate(_tpl_LoginCreateRoleItem, _gp_head_con);
                 item.SetActive(true);
-                ((RectTransform)item.transform).anchoredPosition = new Vector2(i * (itemWidth + ITEM_SPACING), 0f);
+                // y = career*133(Laya y 向下 → Unity 取负),x 固定 0
+                ((RectTransform)item.transform).anchoredPosition =
+                    new Vector2(0f, -CAREERS[i].career * ITEM_STEP_Y);
 
                 var bind = item.GetComponent<LoginCreateRoleItemBind>();
                 if (bind == null)

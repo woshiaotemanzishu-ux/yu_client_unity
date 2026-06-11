@@ -83,3 +83,16 @@
 3. **M4 连接**:`get_server_info` 拿 host/port → WebSocket → 发 `10000` → 等角色列表回包。
 4. 测试环境入口写死取 `config_jzy_sh921_test_P0010642.cfg` 的值,做成 AppConfig 字段,
    不在代码里拼地址(编码规范:Addressable key/路径不硬编码同理)。
+
+## 创角/选角阶段的加载链(2026-06-11 查证)
+
+- **2D 背景**:登录全程只有一张 `scene/dragonBones/denglu/denglu_bg.jpg`(龙图,
+  LoginBgView 三个分支同源;denglu_bg1.jpg 无代码引用)。Unity 已对齐。
+- **创角/选角的樱花树/石台/角色** = **3D 展示链**:
+  `ResManager.SetRoleModel(this, _gp_model_con, show_model_data)`,
+  UI_MODEL_TYPE.ROLE + clothe/weapon/wing res(即 model_clothe_*.lh 那套)+ 环境场景。
+  归 .lh/.lm/.lani 3D 转换线,2D 流水线不伪造。
+- **创角职业头像**:ConfigLogin.CreateRole.UI(select_icon/unselect_icon,
+  选中底图 ui_Login_02/未选 ui_Login_03),**左侧竖排** item.SetPosition(0, career*133)。
+- 加载页背景按 ConfigLoadingBgTime 条件表选 load_bg{id}(等级/开服天数/星期等),
+  Unity 当前取第一张为编辑器默认,接配表线后按表选。
