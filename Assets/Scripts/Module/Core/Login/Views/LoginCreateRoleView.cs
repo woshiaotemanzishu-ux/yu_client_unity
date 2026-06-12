@@ -118,23 +118,24 @@ namespace Shenxiao.Module.Core.Login
                 var bind = _items[i].GetComponent<LoginCreateRoleItemBind>();
                 if (bind == null) continue;
                 bool selected = i == _selectedIndex;
-                // 对标 LoginCreateRoleItem.ts:选中底图 ui_Login_02,未选 ui_Login_03;头像换 a 版
+                // 对标 LoginCreateRoleItem.ts:选中底图 ui_Login_02,未选 ui_Login_03;头像换 a 版。
+                // 换肤 nativeSize:false 保留场景尺寸(对标 Laya skin=)
                 string bg = selected ? "ui_Login_02" : "ui_Login_03";
                 string icon = selected ? _options[i].SelectIcon : _options[i].UnselectIcon;
                 _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg,
-                        $"resource/game/login/texture/{bg}.png");
+                        $"resource/game/login/texture/{bg}.png", nativeSize: false);
                 _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_icon,
-                        $"resource/game/login/texture/{icon}.png");
+                        $"resource/game/login/texture/{icon}.png", nativeSize: false);
             }
         }
 
-        /// <summary>右侧职业介绍三连图(老客户端 SetOutsideImageSprite(GetIconOtherPath))。</summary>
+        /// <summary>右侧职业介绍三连图(老客户端 SetOutsideImageSprite(GetIconOtherPath)),保留场景尺寸。</summary>
         private void RefreshTips()
         {
             var o = _options[_selectedIndex];
-            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(_img_tips, $"resource/game/login/other/{o.Img1}.png");
-            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(_img_tips2, $"resource/game/login/other/{o.Img2}.png");
-            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(_img_tips3, $"resource/game/login/other/{o.Img3}.png");
+            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(_img_tips, $"resource/game/login/other/{o.Img1}.png", nativeSize: false);
+            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(_img_tips2, $"resource/game/login/other/{o.Img2}.png", nativeSize: false);
+            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(_img_tips3, $"resource/game/login/other/{o.Img3}.png", nativeSize: false);
         }
 
         /// <summary>中央 3D 模型:默认装(衣+头饰+武器)+ ConfigModelAni 的 create 动作序列。</summary>

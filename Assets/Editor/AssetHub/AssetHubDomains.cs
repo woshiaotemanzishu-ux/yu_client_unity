@@ -118,8 +118,9 @@ namespace Shenxiao.Editor.AssetHub
 
         private static AssetEntry NewRoleEntry(int modelId, int career, int sex)
         {
-            // 角色动作目录按职业共用:career*1000+100(老客户端约定)
-            AssetEntry e = NewObjectEntry("role", "model_clothe_" + modelId, (career * 1000 + 100).ToString());
+            // 角色动作目录按职业共用:1000 + career*100(剑士1100/武姬1200/枪使1300/弓手1400)
+            // 注意不是 career*1000+100——那只在剑士碰巧同值,曾导致其他职业转出无动作
+            AssetEntry e = NewObjectEntry("role", "model_clothe_" + modelId, (1000 + career * 100).ToString());
             e.Id = modelId.ToString();
             e.Career = career;
             e.Sex = sex;

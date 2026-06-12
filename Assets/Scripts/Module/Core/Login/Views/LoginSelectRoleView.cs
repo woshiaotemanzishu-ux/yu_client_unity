@@ -115,8 +115,10 @@ namespace Shenxiao.Module.Core.Login
 
             if (!isRole)
             {
+                // 换肤一律 nativeSize:false:保留场景里摆好的宽高(对标 Laya skin=),
+                // SetNativeSize 会把行底图撑成原图大小(此前胶囊形错位的根因)
                 _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg,
-                        "resource/game/login/texture/ui_Login_04.png");
+                        "resource/game/login/texture/ui_Login_04.png", nativeSize: false);
                 return;
             }
 
@@ -129,14 +131,15 @@ namespace Shenxiao.Module.Core.Login
 
             string bg = selected ? "ui_Login_02" : "ui_Login_03";
             string bg2 = selected ? "ui_Login_05" : "ui_Login_06";
-            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg, $"resource/game/login/texture/{bg}.png");
-            // 内框等图就位(SetNativeSize 落定)后再对齐头像,否则头像按旧矩形摆会偏
-            await Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg2, $"resource/game/login/texture/{bg2}.png");
-            if (bind == null || head == null) return;
+            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg,
+                    $"resource/game/login/texture/{bg}.png", nativeSize: false);
+            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg2,
+                    $"resource/game/login/texture/{bg2}.png", nativeSize: false);
+            // 内框保持场景尺寸,头像直接按场景矩形对齐(不用等图加载)
             SyncHeadRect(head, (RectTransform)bind._img_bg2.transform);
 
             // 头像:config_dress_up_cfg(按转生数选装扮,screen 按职业给图标);自定义头像 picture 待头像线。
-            // 直接赋 sprite,不走 SetImageAsync——SetNativeSize 会把头像撑回原图大小盖出框外
+            // 直接赋 sprite 不改矩形
             string headIcon = LoginConfigs.HeadIconPath(role.Career, role.Turn);
             if (!string.IsNullOrEmpty(headIcon))
             {

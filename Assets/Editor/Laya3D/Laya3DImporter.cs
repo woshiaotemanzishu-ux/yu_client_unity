@@ -22,8 +22,10 @@ namespace Shenxiao.Editor.Laya3D
         /// v2 = 动作 clip 共享目录 + 默认全量动作 + 非蒙皮分支 + Unlit 默认。
         /// v3 = mirrorX=true 几何镜像(已撤回:蒙皮塌陷/扭曲,镜像数学需真实样本字节级核对)。
         /// v4 = 回退 mirrorX=false;镜像问题改在 UIModelStage 渲染层水平翻转解决
-        ///      (与老客户端同向,见 UIModelStage.FLIP_HORIZONTAL;几何镜像留给场景线用真实样本再攻)。</summary>
-        public const int TOOL_VERSION = 4;
+        ///      (与老客户端同向,见 UIModelStage.FLIP_HORIZONTAL;几何镜像留给场景线用真实样本再攻)。
+        /// v5 = 角色动作目录公式修正:1000+career*100(此前 career*1000+100 只剑士碰巧对,
+        ///      武姬/枪使/弓手转出无动作,需重转补动作)。</summary>
+        public const int TOOL_VERSION = 5;
         /// <summary>材质模式:Unlit=贴图直出,对标老客户端(UIModelClass3D.ts 把角色材质按
         /// Laya.UnlitMaterial 处理,electron 工具 .lmat 也写 Laya.UnlitMaterial),不吃光照不会发黑;
         /// Lit=URP SimpleLit,受场景光照(留给后续真需要光照的资产)。

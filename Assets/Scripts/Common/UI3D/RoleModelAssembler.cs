@@ -80,7 +80,8 @@ namespace Shenxiao.Common.UI3D
             if (spec.Actions == null || spec.Actions.Length == 0) return;
             var anim = root.GetComponent<Animation>();
             if (anim == null) anim = root.AddComponent<Animation>();
-            string dir = (spec.Career * 1000 + 100).ToString();
+            // 动作目录 = 1000 + career*100(剑士1100/武姬1200/枪使1300/弓手1400)
+            string dir = (1000 + spec.Career * 100).ToString();
             bool first = true;
             foreach (string name in spec.Actions)
             {

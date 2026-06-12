@@ -221,14 +221,18 @@ namespace Shenxiao.Framework.Res
         /// 动态给 Image 赋图,对标 Laya 的 ResManager.SetTexture(业务运行时换图统一走这里)。
         /// layaSkinPath 直接用 Laya 资源路径(如 resource/game/login/other/load_bg0.jpg)。
         /// coverScreen=true 复刻 Util.SetLargeScreenImageSize:等比放大盖满设计分辨率。
+        /// nativeSize=false 复刻 Laya skin= 换肤:保留节点场景尺寸,只换图——
+        /// 选中态换图/状态切换一律用 false,否则 SetNativeSize 会把节点撑回原图大小。
         /// </summary>
-        public static async Task<bool> SetImageAsync(UnityEngine.UI.Image image, string layaSkinPath, bool coverScreen = false)
+        public static async Task<bool> SetImageAsync(UnityEngine.UI.Image image, string layaSkinPath,
+            bool coverScreen = false, bool nativeSize = true)
         {
             if (image == null || string.IsNullOrEmpty(layaSkinPath)) return false;
             Sprite sprite = await LoadAsync<Sprite>(layaSkinPath);
             if (sprite == null || image == null) return false;
             image.sprite = sprite;
             image.enabled = true;
+            if (!coverScreen && !nativeSize) return true; // 保留场景尺寸,只换图
             if (coverScreen)
             {
                 // 全屏底图:居中锚定 + 等比放大盖满(转换产物的 pivot 可能在左上,必须一并归位)
