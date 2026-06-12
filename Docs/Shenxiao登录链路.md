@@ -40,7 +40,7 @@
 
 | 协议 | 格式 | 时机 / 内容 |
 |---|---|---|
-| `10000` | `iiss` | GAME_CONNECT 后立刻发:`pid, time_stamp, account_id, plat_name`(账号登录游戏服) |
+| `10000` | `iiss` | GAME_CONNECT 后立刻发:`pid, time_stamp, account_id, plat_name`。**踩坑(2026-06-12)**:account_id/time_stamp/pid 必须用 `get_server_info` 下发的 `accname`/`time`/`pid`(LoginManager PLAYER_SERVER_INFO),游戏服按 accname 认账号——发 GM 的 player_id 会被当成另一个空账号,满角色的号也会落进创角页 |
 | (回包) | — | 角色列表 → 进 LoginSelectRoleView / 无角色进 LoginCreateRoleView |
 | `10003` | `cccsslsscscc` | 创角:career, sex, role_name, plat_name, inviter_id, ... |
 | `10004` | `lsisisscscsh` | 选角进游戏:role_id, ... → 成功后事件 `GAME_START` |

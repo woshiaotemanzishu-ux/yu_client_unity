@@ -101,6 +101,7 @@ namespace Shenxiao.Module.Core.Login
             SelectedServer.lburl = ReadString(info, "lburl", SelectedServer.lburl);
             SelectedServer.accname = ReadString(info, "accname", SelectedServer.accname);
             SelectedServer.pid = ReadInt(info, "pid", SelectedServer.pid);
+            SelectedServer.time = ReadString(info, "time", SelectedServer.time);
             SelectedServer.payMode = ReadString(info, "pay_mode", SelectedServer.payMode);
             SelectedServer.closed = ReadInt(info, "closed", SelectedServer.closed);
         }

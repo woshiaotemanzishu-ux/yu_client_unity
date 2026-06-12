@@ -16,6 +16,7 @@ namespace Shenxiao.Module.Core.Login
         public string lburl;
         public string accname;
         public int pid;
+        public string time;     // get_server_info 下发的登录时间戳,10000 原样回传(老客户端 time_stamp)
         public string payMode;
         public long roleId;
         public string nickname;

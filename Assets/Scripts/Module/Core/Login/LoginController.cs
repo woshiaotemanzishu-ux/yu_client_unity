@@ -161,11 +161,19 @@ namespace Shenxiao.Module.Core.Login
                 NetManager.ConfigureHeartbeat(Proto.HEARTBEAT, _config.heartbeatIntervalSec);
             }
 
-            // 对标 Laya GAME_CONNECT 后的 SendFmtToGame(10000, "iiss", pid, 时间戳, account_id, plat_name)
+            // 对标 Laya GAME_CONNECT:SendFmtToGame(10000, "iiss", pid, time_stamp, account_id, plat_name)。
+            // 关键:account_id = get_server_info 的 accname(游戏服按它认账号,发 player_id 会被当成
+            // 另一个空账号 → 满角色的号进了创角页);time_stamp 同样优先用服务器下发的 time。
             int pid = server.pid > 0 ? server.pid : 1;
-            long timeStamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            SendFmt(Proto.ACCOUNT_LOGIN, "iiss", pid, timeStamp, Model.PlayerId.ToString(), Model.PlatName);
-            GameLog.Info("Login", "已发送账号登录协议 pid={0} account_id={1} plat={2}", pid, Model.PlayerId, Model.PlatName);
+            string accountId = !string.IsNullOrEmpty(server.accname)
+                ? server.accname
+                : Model.PlayerId.ToString();
+            long timeStamp = long.TryParse(server.time, out long svrTime) && svrTime > 0
+                ? svrTime
+                : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            SendFmt(Proto.ACCOUNT_LOGIN, "iiss", pid, timeStamp, accountId, Model.PlatName);
+            GameLog.Info("Login", "已发送账号登录协议 pid={0} accname={1} time={2} plat={3}",
+                pid, accountId, timeStamp, Model.PlatName);
             return LoginRequestResult.Ok();
         }
 
