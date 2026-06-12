@@ -366,7 +366,7 @@ namespace Shenxiao.Editor.AssetHub
             EditorGUILayout.EndScrollView();
         }
 
-        /// <summary>常驻特效(SceneObjectParticle.always):模型加载即挂骨骼,特效转换线接通前先盘点。</summary>
+        /// <summary>特效盘点:SceneObjectParticle(常驻/动作)+ ConfigLogin.CreateRole(创角/套装武器)。</summary>
         private void DrawAlwaysEffects(AssetEntry e)
         {
             AssetHubEffects.EffectInfo fx = EffectsOf(e);
@@ -375,19 +375,27 @@ namespace Shenxiao.Editor.AssetHub
             EditorGUILayout.LabelField(
                 $"特效映射(SceneObjectParticle.{fx.Section}:常驻 {fx.Always.Count} / 动作 {fx.ActionEffectTotal})",
                 EditorStyles.boldLabel);
-            if (fx.Always.Count == 0 && fx.ActionEffectTotal == 0)
+            if (fx.IsEmpty)
             {
-                EditorGUILayout.LabelField("无特效记录", EditorStyles.miniLabel);
+                EditorGUILayout.LabelField(
+                    "  该模型本体无特效记录(正常:Body 节只有少数时装有;展示线特效多在武器/翅膀/创角特效上)",
+                    EditorStyles.wordWrappedMiniLabel);
                 return;
             }
             foreach (AssetHubEffects.EffectRef r in fx.Always)
-            {
                 EditorGUILayout.LabelField(
                     $"  常驻 {AssetHubEffects.StateIcon(r.State)} {r.Bone} → {r.Name}", EditorStyles.miniLabel);
-            }
+            foreach (AssetHubEffects.EffectRef r in fx.CreateEffects)
+                EditorGUILayout.LabelField(
+                    $"  创角 {AssetHubEffects.StateIcon(r.State)} {r.Bone} → {r.Name}(skills_effect,创角页挂衣服骨骼)",
+                    EditorStyles.miniLabel);
+            foreach (AssetHubEffects.EffectRef r in fx.SetWeapon)
+                EditorGUILayout.LabelField(
+                    $"  套装武器 {AssetHubEffects.StateIcon(r.State)} {r.Bone} → {r.Name}(挂在武器模型上,见武器域)",
+                    EditorStyles.miniLabel);
             if (fx.Variants.Count > 0)
                 EditorGUILayout.LabelField("  变体键: " + string.Join(", ", fx.Variants), EditorStyles.miniLabel);
-            EditorGUILayout.LabelField("  (特效 .lh=Laya 粒子,Unity 侧渲染待特效转换线)", EditorStyles.miniLabel);
+            EditorGUILayout.LabelField("  (特效 .lh=Laya 粒子,Unity 侧渲染待特效转换线;Electron 预览可直接看)", EditorStyles.miniLabel);
         }
 
         private AssetHubEffects.EffectInfo EffectsOf(AssetEntry e)
