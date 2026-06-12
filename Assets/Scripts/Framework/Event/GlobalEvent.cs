@@ -22,6 +22,9 @@ namespace Shenxiao.Framework.Event
         public const string EVT_GAME_ROLE_LIST = "EVT_GAME_ROLE_LIST";
         /// <summary>创角结果(10003),参数: result (int,1=成功;3 重名/4 敏感字/5 长度/6 已有角色)。</summary>
         public const string EVT_GAME_CREATE_ROLE_RESULT = "EVT_GAME_CREATE_ROLE_RESULT";
+
+        /// <summary>GM 秘籍清单到达(GmCheatController,11100 回包解析完)。</summary>
+        public const string EVT_GM_CHEAT_LIST = "EVT_GM_CHEAT_LIST";
         /// <summary>进入游戏成功(10004 result=1)。</summary>
         public const string EVT_GAME_ENTERED = "EVT_GAME_ENTERED";
 

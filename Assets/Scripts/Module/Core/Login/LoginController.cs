@@ -202,7 +202,7 @@ namespace Shenxiao.Module.Core.Login
             RegisterProtocal(Proto.CREATE_ROLE, OnCreateRole);
             RegisterProtocal(Proto.ENTER_GAME, OnEnterGame);
             RegisterProtocal(Proto.HEARTBEAT, OnHeartbeat);
-            RegisterProtocal(Proto.KICK_NOTIFY, OnKickNotify);
+            RegisterProtocal(Proto.NAME_VERIFY, OnNameVerify);
         }
 
         /// <summary>
@@ -305,9 +305,20 @@ namespace Shenxiao.Module.Core.Login
             // 心跳回包无须处理
         }
 
-        private void OnKickNotify(NetReader reader)
+        /// <summary>10007 回包 "c":角色名验证结果(对标老客户端 On10007;此前误标为踢线)。</summary>
+        private void OnNameVerify(NetReader reader)
         {
-            GameLog.Warn("Login", "收到顶号/踢线通知(10007)");
+            int code = reader.ReadU8();
+            string msg = code switch
+            {
+                1 => "验证成功",
+                2 => "验证失败",
+                4 => "角色名称已被使用",
+                5 => "含非法字符",
+                6 => "名称长度需 1~5",
+                _ => "未知结果 " + code,
+            };
+            GameLog.Info("Login", "角色名验证(10007): {0}", msg);
         }
 
         private async Task<LoginRequestResult> PlayerLoginAsync(string account, string token)

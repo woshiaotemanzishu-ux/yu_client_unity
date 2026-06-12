@@ -163,6 +163,11 @@ namespace Shenxiao.Module.Core.Login
                 Destroy(model); // 加载期间切了职业/关了页:丢弃过期结果
                 return;
             }
+            // 创角骨骼特效(ConfigLogin.CreateRole.Effect,如 cj_1100 脚下漩涡,skills_effect 目录)
+            foreach ((string bone, string fx) in LoginConfigs.CreateRoleEffects(o.Career, o.Sex))
+            {
+                _ = Shenxiao.Common.UI3D.EffectBinder.AttachOne(model, bone, "skills_effect", fx);
+            }
             UIModelStage.ShowInstance(_gp_model_con, model,
                 MODEL_SCALE, LoginConfigs.GetModelPos("CreateRole", o.Career, o.Sex));
         }

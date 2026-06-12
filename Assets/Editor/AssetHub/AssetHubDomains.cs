@@ -18,18 +18,23 @@ namespace Shenxiao.Editor.AssetHub
         Converted,      // ✅ 已转换
     }
 
-    /// <summary>一条可管理的资源(目前=一个 model_id 的角色模型)。</summary>
+    /// <summary>条目种类:模型(.lm 蒙皮/静态)走 Laya3DImporter,特效(粒子)走 LayaEffectImporter。</summary>
+    public enum AssetKind { Model, Effect }
+
+    /// <summary>一条可管理的资源(模型或特效)。</summary>
     public sealed class AssetEntry
     {
-        public string Id;                 // "1101"
+        public string Id;                 // "1101" / "skills_effect/cj_1100"
         public string DisplayName;        // "剑客之殇"
         public int Career;
         public int Sex;
         public string Note;               // 来源备注(时装名全集/默认装职业)
         public string LhPath;             // 源 .lh 绝对路径
-        public string ActionDir;          // 动作目录绝对路径(按职业共用)
+        public string ActionDir;          // 动作目录绝对路径(按职业共用;特效无)
         public string OutDir;             // "Assets/GameRes/object/role/model_clothe_1101"
         public string PrefabPath;         // OutDir/model_clothe_1101.prefab
+        public AssetKind Kind = AssetKind.Model;
+        public int ExpectedToolVersion = Laya3D.Laya3DImporter.TOOL_VERSION;
 
         public string SearchText;         // 小写,Id+名字,供过滤
     }
@@ -62,8 +67,38 @@ namespace Shenxiao.Editor.AssetHub
                 new AssetDomain { Name = "武器", Enabled = true, Scan = () => ScanObjsDir("weapon", "model_weapon_") },
                 new AssetDomain { Name = "背饰", Enabled = true, Scan = () => ScanObjsDir("back", "model_back_") },
                 new AssetDomain { Name = "翅膀", Enabled = true, Scan = () => ScanObjsDir("wing", "model_wing_") },
+                new AssetDomain { Name = "特效", Enabled = true, Scan = ScanEffects },
                 new AssetDomain { Name = "坐骑", Enabled = false, DisabledNote = "待接入:mount(含骑乘组合逻辑,先验一个真实样本)" },
             };
+        }
+
+        /// <summary>特效域:effect/objs/{18 个类型目录}/*.lh 全清单;走 LayaEffectImporter(粒子线 v1)。</summary>
+        private static List<AssetEntry> ScanEffects()
+        {
+            string objsRoot = Path.Combine(LayaUISettings.CdnResourceRoot, "effect", "objs");
+            var list = new List<AssetEntry>();
+            if (!Directory.Exists(objsRoot)) return list;
+            foreach (string dir in Directory.GetDirectories(objsRoot).OrderBy(d => d))
+            {
+                string dirName = Path.GetFileName(dir);
+                foreach (string f in Directory.GetFiles(dir, "*.lh").OrderBy(p => p))
+                {
+                    string name = Path.GetFileNameWithoutExtension(f);
+                    list.Add(new AssetEntry
+                    {
+                        Id = dirName + "/" + name,
+                        DisplayName = name,
+                        Note = dirName,
+                        LhPath = f,
+                        ActionDir = "",
+                        OutDir = $"Assets/GameRes/effect/objs/{dirName}/{name}",
+                        PrefabPath = $"Assets/GameRes/effect/objs/{dirName}/{name}/{name}.prefab",
+                        Kind = AssetKind.Effect,
+                        ExpectedToolVersion = Laya3D.LayaEffectImporter.TOOL_VERSION,
+                    });
+                }
+            }
+            return Finish(list);
         }
 
         // ---------- 扫描:角色时装(config_fashion_model.json,88 个 model_id) ----------
@@ -185,7 +220,7 @@ namespace Shenxiao.Editor.AssetHub
             if (IsLfsPlaceholder(e.LhPath)) return EntryStatus.SourceLfs;
             string prefabAbs = AssetPathToAbs(e.PrefabPath);
             if (!File.Exists(prefabAbs)) return EntryStatus.NotConverted;
-            if (ImportedToolVersion(e) != Laya3D.Laya3DImporter.TOOL_VERSION) return EntryStatus.Stale;
+            if (ImportedToolVersion(e) != e.ExpectedToolVersion) return EntryStatus.Stale;
             return SourceMTime(e) > File.GetLastWriteTimeUtc(prefabAbs)
                 ? EntryStatus.Stale
                 : EntryStatus.Converted;

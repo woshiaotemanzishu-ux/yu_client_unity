@@ -35,15 +35,20 @@ namespace Shenxiao.Common.UI3D
                 return null;
             }
             GameObject root = Object.Instantiate(prefab);
+            // 常驻特效(SceneObjectParticle.Body;默认装多无记录,时装 N125 家族有)
+            await EffectBinder.AttachAlways(root, "role", spec.ClotheRes.ToString());
 
             if (spec.HeadRes > 0)
-                await AttachPart(root, "head", Key("head", "model_head_" + spec.HeadRes));
+                await AttachPart(root, "head", Key("head", "model_head_" + spec.HeadRes), null, null);
             if (spec.WeaponRes > 0)
-                await AttachPart(root, "rhand", Key("weapon", "model_weapon_r_" + spec.WeaponRes));
+                await AttachPart(root, "rhand", Key("weapon", "model_weapon_r_" + spec.WeaponRes),
+                    "weapon", spec.WeaponRes.ToString());
             if (spec.WingId > 0)
-                await AttachPart(root, "wing", Key("wing", "model_wing_" + spec.WingId));
+                await AttachPart(root, "wing", Key("wing", "model_wing_" + spec.WingId),
+                    "wing", spec.WingId.ToString());
             if (spec.BackOrnamentId > 0)
-                await AttachPart(root, "wing", Key("back", "model_back_" + spec.BackOrnamentId));
+                await AttachPart(root, "wing", Key("back", "model_back_" + spec.BackOrnamentId),
+                    "back", spec.BackOrnamentId.ToString());
 
             await ApplyActions(root, spec);
             return root;
@@ -54,7 +59,8 @@ namespace Shenxiao.Common.UI3D
             return $"object/{module}/{name}/{name}";
         }
 
-        private static async Task AttachPart(GameObject root, string boneName, string key)
+        private static async Task AttachPart(GameObject root, string boneName, string key,
+            string effectModule, string effectKey)
         {
             GameObject prefab = await ResManager.LoadAsync<GameObject>(key);
             if (prefab == null)
@@ -62,7 +68,7 @@ namespace Shenxiao.Common.UI3D
                 GameLog.Warn("UI3D", "部件未转换,跳过:{0}(资产管理工具里转)", key);
                 return;
             }
-            Transform bone = FindDeep(root.transform, boneName);
+            Transform bone = FindBone(root.transform, boneName);
             if (bone == null)
             {
                 GameLog.Warn("UI3D", "挂点骨骼缺失:{0}(模型 {1})", boneName, root.name);
@@ -73,6 +79,9 @@ namespace Shenxiao.Common.UI3D
             part.transform.localPosition = Vector3.zero;
             part.transform.localRotation = Quaternion.identity;
             part.transform.localScale = Vector3.one;
+            // 部件常驻特效(如武器 Weapon[1100] 的剑光,挂在武器自身骨骼上)
+            if (effectModule != null)
+                await EffectBinder.AttachAlways(part, effectModule, effectKey);
         }
 
         private static async Task ApplyActions(GameObject root, RoleModelSpec spec)
@@ -107,12 +116,13 @@ namespace Shenxiao.Common.UI3D
             }
         }
 
-        private static Transform FindDeep(Transform t, string name)
+        /// <summary>按名递归找骨骼(老客户端 Util.FindBone 对等;EffectBinder 也用)。</summary>
+        public static Transform FindBone(Transform t, string name)
         {
             if (t.name == name) return t;
             for (int i = 0; i < t.childCount; i++)
             {
-                Transform found = FindDeep(t.GetChild(i), name);
+                Transform found = FindBone(t.GetChild(i), name);
                 if (found != null) return found;
             }
             return null;

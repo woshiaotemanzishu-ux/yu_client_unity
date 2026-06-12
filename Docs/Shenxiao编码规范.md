@@ -557,3 +557,41 @@ public class LoginController : BaseController {
 | §八 Editor 工具 | 五 |
 
 冲突时以**方案文档为权威**，本规范同步修订。
+
+
+---
+
+## 十二、3D/特效/协议/GM 线硬规则(2026-06-12 增补)
+
+**3D 与特效转换:**
+
+- 转换逻辑变更必须 bump 版本(模型 `Laya3DImporter.TOOL_VERSION`、特效
+  `LayaEffectImporter.TOOL_VERSION`),产物旁写 `{名}.import.json` 版本戳;
+  资产管理按 `AssetEntry.ExpectedToolVersion` 自动把旧产物标 🔶。禁止改了逻辑不升版本。
+- 格式问题以引擎为准:`cdn/libs/laya.d3.js` 的 `_parse` 系列就是 .lh/.lmat 的权威规格书,
+  排格式疑难先读引擎源(electron python 解析器为辅证)。
+- 镜像定案:转换 mirrorX=false,朝向差异在 UIModelStage 渲染层水平翻转(uvRect)。
+  几何镜像路径有蒙皮坑,未经真实样本字节级验证不得启用。
+- 特效映射真相源 = SceneObjectParticle.json(常驻/按动作)+ ConfigLogin.CreateRole.Effect
+  (创角)。module→(节名,目录) 映射表在三处必须一致:AssetHubEffects / EffectBinder /
+  electron main.py PARTICLE_SECTION_BY_TYPE。
+- 运行时挂特效统一走 `EffectBinder`(查表挂骨骼 + ResetTransform + tag 成组清理),
+  禁止业务自己 Instantiate 特效 prefab。
+
+**协议线(详见 Docs/Shenxiao协议架构.md):**
+
+- 协议号体系不可改(服务端 routing 按百位硬编码分发);新协议常量统一加 `Proto.cs`,
+  注释带格式串与出处(pt_xxx.erl 行为准,老客户端 ReadFmt 对照)。
+- 一个业务模块 = 一个 BaseController 子类(单例 + Register),对标老客户端
+  commonController;复杂回包先读服务端 pt 的 write。
+- 未注册协议是预期内噪音(Info 级日志),按模块推进消化,不许为了消日志写空 handler。
+
+**换肤与状态图:**
+
+- 运行时换图一律 `ResManager.SetImageAsync(..., nativeSize:false)` 保留场景尺寸
+  (对标 Laya skin=);只有"图就是内容本身"(全屏底图 coverScreen、头像直赋 sprite)例外。
+
+**GM:**
+
+- GM 秘籍清单由服务端 11100 下发,客户端/工具零硬编码;入口=编辑器窗口「神霄/GM 秘籍」,
+  运行时复用 `GmCheatController`。游戏内不做 GM UI(打包不带)。

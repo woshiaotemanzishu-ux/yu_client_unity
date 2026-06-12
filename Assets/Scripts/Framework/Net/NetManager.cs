@@ -118,7 +118,9 @@ namespace Shenxiao.Framework.Net
             }
             else
             {
-                GameLog.Warn("Net", "no handler for proto={0} payload={1}B", frame.ProtoId, frame.Payload.Length);
+                // 进游戏初期服务端会推送大量尚未实现模块的协议(130xx/150xx/16xxx…),
+                // 这是按模块推进的预期内噪音,只记 Info 不刷 Warn(见 Docs/Shenxiao协议架构.md §4)
+                GameLog.Info("Net", "未注册协议 proto={0} payload={1}B(对应模块未接,预期内)", frame.ProtoId, frame.Payload.Length);
             }
         }
 

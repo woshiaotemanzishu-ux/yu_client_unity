@@ -183,6 +183,9 @@ namespace Shenxiao.Editor.Laya3D
             r.Log.AppendLine("✅ 完成: " + prefabPath);
         }
 
+        /// <summary>特效线复用:.lm → Mesh(无镜像;特效网格均为静态面片)。</summary>
+        internal static Mesh BuildMeshForEffect(LmMesh lm, Result r) => BuildMesh(lm, false, r);
+
         private static Mesh BuildMesh(LmMesh lm, bool mirrorX, Result r)
         {
             var mesh = new Mesh { name = lm.Name };

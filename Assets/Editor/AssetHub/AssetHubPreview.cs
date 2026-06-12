@@ -25,6 +25,10 @@ namespace Shenxiao.Editor.AssetHub
         public AnimationClip[] Clips { get; private set; } = System.Array.Empty<AnimationClip>();
         public AnimationClip Playing => _clip;
         public bool HasModel => _instance != null;
+        /// <summary>含粒子系统(特效产物):编辑器内逐帧 Simulate,无需 Play 模式。</summary>
+        public bool HasParticles { get; private set; }
+        private ParticleSystem[] _particles = System.Array.Empty<ParticleSystem>();
+        private float _psTime;
 
         public void SetPrefab(string prefabPath)
         {
@@ -43,6 +47,10 @@ namespace Shenxiao.Editor.AssetHub
             var anim = _instance.GetComponent<Animation>();
             Clips = anim != null ? AnimationUtility.GetAnimationClips(_instance) : System.Array.Empty<AnimationClip>();
             _clip = null;
+            _particles = _instance.GetComponentsInChildren<ParticleSystem>(true);
+            HasParticles = _particles.Length > 0;
+            _psTime = 0f;
+            _lastTick = EditorApplication.timeSinceStartup;
             _bounds = CalcBounds();
         }
 
@@ -63,15 +71,29 @@ namespace Shenxiao.Editor.AssetHub
             HandleInput(rect);
             if (Event.current.type != EventType.Repaint) return;
 
-            // 动画采样(Legacy clip 编辑器采样)
-            if (_clip != null)
+            // 动画采样(Legacy clip 编辑器采样)+ 粒子模拟(编辑器内不依赖 Play 模式)
+            if (_clip != null || HasParticles)
             {
                 double now = EditorApplication.timeSinceStartup;
-                _time += Mathf.Clamp((float)(now - _lastTick), 0f, 0.1f);
+                float dt = Mathf.Clamp((float)(now - _lastTick), 0f, 0.1f);
                 _lastTick = now;
-                float t = _clip.length > 0.01f ? _time % _clip.length : 0f;
-                _clip.SampleAnimation(_instance, t);
-                _bounds = CalcBounds();
+                if (_clip != null)
+                {
+                    _time += dt;
+                    float t = _clip.length > 0.01f ? _time % _clip.length : 0f;
+                    _clip.SampleAnimation(_instance, t);
+                    _bounds = CalcBounds();
+                }
+                if (HasParticles)
+                {
+                    _psTime += dt;
+                    foreach (ParticleSystem psys in _particles)
+                    {
+                        if (psys == null || psys.transform.parent != null
+                            && psys.transform.parent.GetComponentInParent<ParticleSystem>() != null) continue;
+                        psys.Simulate(dt, withChildren: true, restart: false);
+                    }
+                }
             }
 
             float size = Mathf.Max(_bounds.extents.magnitude, 0.2f);
@@ -134,6 +156,8 @@ namespace Shenxiao.Editor.AssetHub
             _instance = null;
             _clip = null;
             Clips = System.Array.Empty<AnimationClip>();
+            _particles = System.Array.Empty<ParticleSystem>();
+            HasParticles = false;
         }
 
         public void Dispose()

@@ -105,6 +105,21 @@ namespace Shenxiao.Module.Core.Login
             };
         }
 
+        /// <summary>创角骨骼特效(CreateRole.Effect["career@sex"].clothe):骨骼名→特效名(skills_effect)。</summary>
+        public static List<(string bone, string name)> CreateRoleEffects(int career, int sex)
+        {
+            var list = new List<(string, string)>();
+            if (_login?["CreateRole"]?["Effect"]?[$"{career}@{sex}"]?["clothe"] is JObject boneMap)
+            {
+                foreach (var kv in boneMap)
+                {
+                    string name = kv.Value?.Value<string>();
+                    if (!string.IsNullOrEmpty(name)) list.Add((kv.Key, name));
+                }
+            }
+            return list;
+        }
+
         /// <summary>模型展示位移:ModelPos + PosOffset["career@sex"](x 右正,y 上正)。</summary>
         public static Vector2 GetModelPos(string section, int career, int sex)
         {

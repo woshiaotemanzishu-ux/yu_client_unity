@@ -64,7 +64,7 @@ namespace Shenxiao.Editor.AssetHub
 
         private void OnEditorUpdate()
         {
-            if (_preview.Playing != null) Repaint(); // 动画播放期间持续重绘
+            if (_preview.Playing != null || _preview.HasParticles) Repaint(); // 动画/粒子播放期间持续重绘
         }
 
         private void OnFocus()
@@ -135,10 +135,18 @@ namespace Shenxiao.Editor.AssetHub
                             $"({i + 1}/{targets.Count}) {System.IO.Path.GetFileNameWithoutExtension(e.LhPath)} {e.DisplayName}",
                             (float)i / targets.Count))
                         break;
-                    // mirrorX=false(v4):几何镜像路径有蒙皮 bug 已撤回,
-                    // 与老客户端的朝向差异由 UIModelStage 渲染层水平翻转补偿
-                    Laya3DImporter.Result r = Laya3DImporter.Convert(e.LhPath, LanisFor(e), mirrorX: false, _materialMode);
-                    if (!r.Ok) failed.Add($"{e.Id} {e.DisplayName}");
+                    bool ok;
+                    if (e.Kind == AssetKind.Effect)
+                    {
+                        ok = LayaEffectImporter.Convert(e.LhPath).Ok;
+                    }
+                    else
+                    {
+                        // mirrorX=false(v4):几何镜像路径有蒙皮 bug 已撤回,
+                        // 与老客户端的朝向差异由 UIModelStage 渲染层水平翻转补偿
+                        ok = Laya3DImporter.Convert(e.LhPath, LanisFor(e), mirrorX: false, _materialMode).Ok;
+                    }
+                    if (!ok) failed.Add($"{e.Id} {e.DisplayName}");
                 }
             }
             finally
@@ -286,14 +294,20 @@ namespace Shenxiao.Editor.AssetHub
                 EditorGUILayout.LabelField("源", e.LhPath, EditorStyles.wordWrappedMiniLabel);
                 EditorGUILayout.LabelField("产物", e.PrefabPath, EditorStyles.wordWrappedMiniLabel);
 
-                DrawClipsSection(e, s);
-                DrawAlwaysEffects(e);
+                if (e.Kind == AssetKind.Model)
+                {
+                    DrawClipsSection(e, s);
+                    DrawAlwaysEffects(e);
+                }
 
                 EditorGUILayout.Space(4f);
                 EditorGUILayout.LabelField("操作", EditorStyles.boldLabel);
-                DrawLaniChoice(e);
-                _materialMode = (Laya3DImporter.MaterialMode)EditorGUILayout.EnumPopup(
-                    new GUIContent("材质模式", "Unlit=对标老客户端贴图直出(默认);Lit=受场景光照"), _materialMode);
+                if (e.Kind == AssetKind.Model)
+                {
+                    DrawLaniChoice(e);
+                    _materialMode = (Laya3DImporter.MaterialMode)EditorGUILayout.EnumPopup(
+                        new GUIContent("材质模式", "Unlit=对标老客户端贴图直出(默认);Lit=受场景光照"), _materialMode);
+                }
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
