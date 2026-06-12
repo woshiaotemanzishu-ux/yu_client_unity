@@ -63,7 +63,13 @@ namespace Shenxiao.Module.Core.Login
             _roles = LoginModel.Instance.Roles.OrderBy(r => r.roleId).ToList();
             int slotCount = Mathf.Max(LoginConfigs.SelectRoleTotalCount(), _roles.Count);
 
+            // content 锚到顶(转换产物 pivot 可能在中心:改 sizeDelta 会向上下两头长,
+            // 把前几行顶出视口——「4 个角色只见 2 个」的根因)。行坐标从 content 顶部往下排。
             RectTransform content = _panel_item.content;
+            content.anchorMin = new Vector2(content.anchorMin.x, 1f);
+            content.anchorMax = new Vector2(content.anchorMax.x, 1f);
+            content.pivot = new Vector2(content.pivot.x, 1f);
+            content.anchoredPosition = new Vector2(content.anchoredPosition.x, 0f);
             for (int i = 0; i < slotCount; i++)
             {
                 GameObject item = Instantiate(_tpl_LoginSelectRoleItem, content);

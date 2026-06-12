@@ -38,6 +38,11 @@ namespace Shenxiao.Framework.Res
             {
 #if UNITY_EDITOR
                 T fallback = LoadEditorAssetFallback<T>(key);
+                if (fallback == null && (typeof(T) == typeof(Sprite) || typeof(T) == typeof(Texture2D))
+                    && TryImportLooseImageFromClient(key))
+                {
+                    fallback = LoadEditorAssetFallback<T>(key);
+                }
                 if (fallback != null)
                 {
                     GameLog.Warn("Res", "editor asset fallback key={0}(未进 Addressables 组,记得跑 自动分组)", key);
@@ -269,6 +274,51 @@ namespace Shenxiao.Framework.Res
             string ext = Path.GetExtension(rel);
             if (!string.IsNullOrEmpty(ext)) rel = rel.Substring(0, rel.Length - ext.Length);
             return rel.Replace('\\', '/').ToLowerInvariant();
+        }
+
+        /// <summary>
+        /// 编辑器兜底再兜一层:GameRes 缺图时从 yu_client 散图镜像(h5/laya/assets → cdn)按需拷入并
+        /// 导成 Sprite。解决「运行时引用的图从没被任何 UI 模块导入过」这一类问题(如头像 head/texture)。
+        /// 拷入后仍提示跑 Addressable 分组,打真机包前必须分组登记。
+        /// </summary>
+        private static bool TryImportLooseImageFromClient(string key)
+        {
+            // ClientRoot 取值与 LayaUISettings.ProjectKey 保持一致(框架层不依赖 Editor 程序集,内联读取)
+            string def = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "yu_client"));
+            string clientRoot = UnityEditor.EditorPrefs.GetString(
+                "Shenxiao.LayaUI.ClientRoot:" + Application.dataPath.GetHashCode(), def);
+            string[] roots = { Path.Combine(clientRoot, "h5", "laya", "assets"), Path.Combine(clientRoot, "cdn") };
+            string[] exts = { ".png", ".jpg" };
+            foreach (string root in roots)
+            {
+                foreach (string ext in exts)
+                {
+                    string src = Path.Combine(root, key + ext);
+                    if (!File.Exists(src)) continue;
+                    // git LFS 占位文件不算有图(需要在本机 git lfs pull)
+                    var info = new FileInfo(src);
+                    if (info.Length < 300)
+                    {
+                        using var sr = new StreamReader(src);
+                        char[] head = new char[30];
+                        int n = sr.Read(head, 0, head.Length);
+                        if (new string(head, 0, n).StartsWith("version https://git-lfs")) continue;
+                    }
+                    string assetPath = "Assets/GameRes/" + key + ext;
+                    Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+                    File.Copy(src, assetPath, true);
+                    AssetDatabase.ImportAsset(assetPath);
+                    if (AssetImporter.GetAtPath(assetPath) is TextureImporter ti
+                        && ti.textureType != TextureImporterType.Sprite)
+                    {
+                        ti.textureType = TextureImporterType.Sprite;
+                        ti.SaveAndReimport();
+                    }
+                    GameLog.Warn("Res", "editor 兜底:已从 yu_client 导入散图 {0}{1}", key, ext);
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>编辑器兜底加载任意资产(Sprite/Texture 等),按文件名+规范化地址匹配 GameRes/_App。</summary>

@@ -730,6 +730,23 @@ namespace Shenxiao.Editor.LayaUI
             bool horizontal = repeatY == 1f && repeatX != 1f;
             sr.vertical = !horizontal;
             sr.horizontal = horizontal;
+
+            // content 锚定滚动起点(纵向=顶、横向=左):pivot 居中时业务改 sizeDelta 会向
+            // 两头同时生长,头部条目被顶出视口(选角页 4 行只见 2 行的根因,通用修)
+            if (sr.vertical)
+            {
+                content.anchorMin = new Vector2(content.anchorMin.x, 1f);
+                content.anchorMax = new Vector2(content.anchorMax.x, 1f);
+                content.pivot = new Vector2(content.pivot.x, 1f);
+            }
+            else
+            {
+                content.anchorMin = new Vector2(0f, content.anchorMin.y);
+                content.anchorMax = new Vector2(0f, content.anchorMax.y);
+                content.pivot = new Vector2(0f, content.pivot.y);
+            }
+            content.anchoredPosition = Vector2.zero;
+
             if (repeatX > 1f && repeatY > 1f)
                 report.Approx(name + " 是网格 List(repeatX=" + repeatX + ", repeatY=" + repeatY + "),滚动方向按纵向,需确认");
 
