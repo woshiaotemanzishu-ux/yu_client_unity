@@ -282,6 +282,8 @@ namespace Shenxiao.Editor.AssetHub
                 }
                 AssetEntry e = _selected;
                 EntryStatus s = StatusOf(e);
+                // 先装载预览实例:动作列表(DrawClipsSection)读 _preview.Clips,需与当前条目同步
+                _preview.SetPrefab(s == EntryStatus.Converted || s == EntryStatus.Stale ? e.PrefabPath : null);
 
                 _detailScroll = EditorGUILayout.BeginScrollView(_detailScroll);
                 EditorGUILayout.LabelField($"{Path.GetFileNameWithoutExtension(e.LhPath)}  {e.DisplayName}", EditorStyles.boldLabel);
@@ -339,7 +341,6 @@ namespace Shenxiao.Editor.AssetHub
                 EditorGUILayout.EndScrollView();
 
                 // 可播放预览(拖拽旋转/滚轮缩放;点上面的动作行即播)
-                _preview.SetPrefab(s == EntryStatus.Converted || s == EntryStatus.Stale ? e.PrefabPath : null);
                 Rect previewRect = GUILayoutUtility.GetRect(200f, 280f, GUILayout.ExpandWidth(true));
                 _preview.OnGUI(previewRect);
             }
