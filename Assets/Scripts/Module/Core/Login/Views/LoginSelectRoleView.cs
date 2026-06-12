@@ -135,8 +135,10 @@ namespace Shenxiao.Module.Core.Login
                     $"resource/game/login/texture/{bg}.png", nativeSize: false);
             _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg2,
                     $"resource/game/login/texture/{bg2}.png", nativeSize: false);
-            // 内框保持场景尺寸,头像直接按场景矩形对齐(不用等图加载)
-            SyncHeadRect(head, (RectTransform)bind._img_bg2.transform);
+            // 头像贴在 _img_bg(场景左侧 102×102 方形底板)上,铺满底板。
+            // 场景结构(LoginSelectRoleItem.json):_img_bg=头像方块底板(02/03 选中态),
+            // _img_bg2=右侧 160×56 名字胶囊(05/06)——此前对齐到胶囊上=又小又偏的根因
+            SyncHeadRect(head, (RectTransform)bind._img_bg.transform);
 
             // 头像:config_dress_up_cfg(按转生数选装扮,screen 按职业给图标);自定义头像 picture 待头像线。
             // 直接赋 sprite 不改矩形
@@ -152,17 +154,20 @@ namespace Shenxiao.Module.Core.Login
             }
         }
 
-        /// <summary>槽位头像(对标 CustomHeadItem,贴在内框 _img_bg2 下层;通用头像组件出来后替换)。</summary>
+        /// <summary>
+        /// 槽位头像(对标 CustomHeadItem:加进 _box_con、缩放 1.19 铺满 102 方块、绘制在底板之上)。
+        /// 通用头像组件出来后替换。
+        /// </summary>
         private Image EnsureHeadIcon(LoginSelectRoleItemBind bind)
         {
-            RectTransform frame = (RectTransform)bind._img_bg2.transform;
-            Transform exist = frame.parent.Find("__head");
+            RectTransform plate = (RectTransform)bind._img_bg.transform;
+            Transform exist = plate.parent.Find("__head");
             if (exist != null) return exist.GetComponent<Image>();
 
             var go = new GameObject("__head", typeof(RectTransform), typeof(Image));
             var rt = (RectTransform)go.transform;
-            rt.SetParent(frame.parent, false);
-            rt.SetSiblingIndex(frame.GetSiblingIndex()); // 插到内框下层,框压在头像上
+            rt.SetParent(plate.parent, false);
+            rt.SetSiblingIndex(plate.GetSiblingIndex() + 1); // 底板之上、胶囊/文字之下
             var img = go.GetComponent<Image>();
             img.raycastTarget = false;
             img.preserveAspect = true;
@@ -170,18 +175,18 @@ namespace Shenxiao.Module.Core.Login
             return img;
         }
 
-        /// <summary>头像矩形对齐内框中心(内框图 SetNativeSize 落定后调用)。</summary>
-        private static void SyncHeadRect(Image head, RectTransform frame)
+        /// <summary>头像矩形对齐底板中心、铺满底板(老客户端头像填满 102 方块,框边即图边)。</summary>
+        private static void SyncHeadRect(Image head, RectTransform plate)
         {
             var rt = (RectTransform)head.transform;
-            Vector2 size = frame.sizeDelta;
-            rt.anchorMin = frame.anchorMin;
-            rt.anchorMax = frame.anchorMax;
+            Vector2 size = plate.sizeDelta;
+            rt.anchorMin = plate.anchorMin;
+            rt.anchorMax = plate.anchorMax;
             rt.pivot = new Vector2(0.5f, 0.5f);
-            // frame.anchoredPosition 是其 pivot 点的位置 → 换算到中心点
-            rt.anchoredPosition = frame.anchoredPosition
-                + new Vector2((0.5f - frame.pivot.x) * size.x, (0.5f - frame.pivot.y) * size.y);
-            rt.sizeDelta = size * 0.88f;
+            // plate.anchoredPosition 是其 pivot 点的位置 → 换算到中心点
+            rt.anchoredPosition = plate.anchoredPosition
+                + new Vector2((0.5f - plate.pivot.x) * size.x, (0.5f - plate.pivot.y) * size.y);
+            rt.sizeDelta = size;
         }
 
         private void OnClickSlot(int index)
