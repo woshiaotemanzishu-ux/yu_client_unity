@@ -27,14 +27,16 @@ namespace Shenxiao.Editor.AssetHub
         private Vector2 _detailScroll;
         private AssetEntry _selected;
 
-        // 动作选择:按条目 Id 记用户勾选;没勾过用默认(stand/idle 第一个)
+        // 动作选择:按条目 Id 记用户勾选;没勾过默认全部(clip 共享增量,不重复花钱)
         private readonly Dictionary<string, List<string>> _laniChoice = new Dictionary<string, List<string>>();
         private readonly Dictionary<string, string[]> _laniDirCache = new Dictionary<string, string[]>();
         private bool _laniFoldout;
         private Laya3DImporter.MaterialMode _materialMode = Laya3DImporter.MaterialMode.Unlit;
 
-        private UnityEditor.Editor _previewEditor;
-        private string _previewPrefabPath;
+        private readonly AssetHubPreview _preview = new AssetHubPreview();
+        private AssetHubEffects.EffectInfo _effects;
+        private string _effectsForId;
+        private Vector2 _clipScroll;
 
         private static GUIStyle _rowStyle;
         private static GUIStyle RowStyle => _rowStyle ??= new GUIStyle(EditorStyles.label)
@@ -51,11 +53,18 @@ namespace Shenxiao.Editor.AssetHub
         {
             _domains = AssetHubDomains.Build();
             RefreshDomain();
+            EditorApplication.update += OnEditorUpdate;
         }
 
         private void OnDisable()
         {
-            DestroyPreview();
+            EditorApplication.update -= OnEditorUpdate;
+            _preview.Dispose();
+        }
+
+        private void OnEditorUpdate()
+        {
+            if (_preview.Playing != null) Repaint(); // 动画播放期间持续重绘
         }
 
         private void OnFocus()
@@ -70,7 +79,8 @@ namespace Shenxiao.Editor.AssetHub
             _entries.Clear();
             _selected = null;
             _scanError = null;
-            DestroyPreview();
+            _effectsForId = null;
+            _preview.SetPrefab(null);
             AssetDomain d = _domains[_domainIndex];
             if (!d.Enabled) return;
             try { _entries = d.Scan(); }
@@ -122,7 +132,7 @@ namespace Shenxiao.Editor.AssetHub
                 {
                     AssetEntry e = targets[i];
                     if (EditorUtility.DisplayCancelableProgressBar("Laya3D 批量转换",
-                            $"({i + 1}/{targets.Count}) model_clothe_{e.Id} {e.DisplayName}",
+                            $"({i + 1}/{targets.Count}) {System.IO.Path.GetFileNameWithoutExtension(e.LhPath)} {e.DisplayName}",
                             (float)i / targets.Count))
                         break;
                     // mirrorX=false(v4):几何镜像路径有蒙皮 bug 已撤回,
@@ -142,7 +152,7 @@ namespace Shenxiao.Editor.AssetHub
                 catch (System.Exception e) { Debug.LogWarning("[AssetHub] Addressable 分组失败: " + e.Message); }
             }
             RefreshStatus();
-            DestroyPreview();
+            _preview.SetPrefab(null); // 产物已重建,下次绘制重新加载
 
             string msg = failed.Count == 0
                 ? $"完成 {targets.Count} 个。"
@@ -276,7 +286,11 @@ namespace Shenxiao.Editor.AssetHub
                 EditorGUILayout.LabelField("源", e.LhPath, EditorStyles.wordWrappedMiniLabel);
                 EditorGUILayout.LabelField("产物", e.PrefabPath, EditorStyles.wordWrappedMiniLabel);
 
+                DrawClipsSection(e, s);
+                DrawAlwaysEffects(e);
+
                 EditorGUILayout.Space(4f);
+                EditorGUILayout.LabelField("操作", EditorStyles.boldLabel);
                 DrawLaniChoice(e);
                 _materialMode = (Laya3DImporter.MaterialMode)EditorGUILayout.EnumPopup(
                     new GUIContent("材质模式", "Unlit=对标老客户端贴图直出(默认);Lit=受场景光照"), _materialMode);
@@ -302,7 +316,7 @@ namespace Shenxiao.Editor.AssetHub
                         {
                             AssetDatabase.DeleteAsset(e.OutDir);
                             RefreshStatus();
-                            DestroyPreview();
+                            _preview.SetPrefab(null);
                         }
                     }
                     if (GUILayout.Button("源目录", GUILayout.Height(26f)))
@@ -310,8 +324,80 @@ namespace Shenxiao.Editor.AssetHub
                 }
                 EditorGUILayout.EndScrollView();
 
-                DrawPreview(e, s);
+                // 可播放预览(拖拽旋转/滚轮缩放;点上面的动作行即播)
+                _preview.SetPrefab(s == EntryStatus.Converted || s == EntryStatus.Stale ? e.PrefabPath : null);
+                Rect previewRect = GUILayoutUtility.GetRect(200f, 280f, GUILayout.ExpandWidth(true));
+                _preview.OnGUI(previewRect);
             }
+        }
+
+        /// <summary>动作清单:产物里的 clip,点 ▶ 在下方预览台播放;✨n=该动作挂 n 条特效(悬停看明细)。</summary>
+        private void DrawClipsSection(AssetEntry e, EntryStatus s)
+        {
+            if (s != EntryStatus.Converted && s != EntryStatus.Stale) return;
+            AnimationClip[] clips = _preview.Clips;
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField($"动作({clips.Length})", EditorStyles.boldLabel);
+            if (clips.Length == 0)
+            {
+                EditorGUILayout.LabelField("产物无动作(转换时未勾 .lani 或目录为空)", EditorStyles.miniLabel);
+                return;
+            }
+            AssetHubEffects.EffectInfo fx = EffectsOf(e);
+            _clipScroll = EditorGUILayout.BeginScrollView(_clipScroll,
+                GUILayout.Height(Mathf.Min(clips.Length, 6) * 22f + 8f));
+            foreach (AnimationClip clip in clips)
+            {
+                bool playing = _preview.Playing == clip;
+                string badge = "";
+                string tooltip = "";
+                if (fx.Actions.TryGetValue(clip.name, out var list))
+                {
+                    badge = $"  ✨{list.Count}";
+                    tooltip = string.Join("\n", list.Select(r =>
+                        $"{AssetHubEffects.StateIcon(r.State)} {r.Bone} → {r.Name}"));
+                }
+                var content = new GUIContent($"{(playing ? "■" : "▶")} {clip.name}{badge}  ({clip.length:0.##}s)", tooltip);
+                if (GUILayout.Button(content, playing ? EditorStyles.boldLabel : EditorStyles.label, GUILayout.Height(20f)))
+                {
+                    _preview.Play(playing ? null : clip);
+                }
+            }
+            EditorGUILayout.EndScrollView();
+        }
+
+        /// <summary>常驻特效(SceneObjectParticle.always):模型加载即挂骨骼,特效转换线接通前先盘点。</summary>
+        private void DrawAlwaysEffects(AssetEntry e)
+        {
+            AssetHubEffects.EffectInfo fx = EffectsOf(e);
+            if (!fx.Supported) return;
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField(
+                $"特效映射(SceneObjectParticle.{fx.Section}:常驻 {fx.Always.Count} / 动作 {fx.ActionEffectTotal})",
+                EditorStyles.boldLabel);
+            if (fx.Always.Count == 0 && fx.ActionEffectTotal == 0)
+            {
+                EditorGUILayout.LabelField("无特效记录", EditorStyles.miniLabel);
+                return;
+            }
+            foreach (AssetHubEffects.EffectRef r in fx.Always)
+            {
+                EditorGUILayout.LabelField(
+                    $"  常驻 {AssetHubEffects.StateIcon(r.State)} {r.Bone} → {r.Name}", EditorStyles.miniLabel);
+            }
+            if (fx.Variants.Count > 0)
+                EditorGUILayout.LabelField("  变体键: " + string.Join(", ", fx.Variants), EditorStyles.miniLabel);
+            EditorGUILayout.LabelField("  (特效 .lh=Laya 粒子,Unity 侧渲染待特效转换线)", EditorStyles.miniLabel);
+        }
+
+        private AssetHubEffects.EffectInfo EffectsOf(AssetEntry e)
+        {
+            if (_effectsForId != e.Id || _effects == null)
+            {
+                _effects = AssetHubEffects.Query(e);
+                _effectsForId = e.Id;
+            }
+            return _effects;
         }
 
         private void DrawLaniChoice(AssetEntry e)
@@ -346,30 +432,5 @@ namespace Shenxiao.Editor.AssetHub
             }
         }
 
-        private void DrawPreview(AssetEntry e, EntryStatus s)
-        {
-            if (s != EntryStatus.Converted && s != EntryStatus.Stale)
-            {
-                DestroyPreview();
-                return;
-            }
-            if (_previewPrefabPath != e.PrefabPath || _previewEditor == null)
-            {
-                DestroyPreview();
-                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(e.PrefabPath);
-                if (prefab == null) return;
-                _previewEditor = UnityEditor.Editor.CreateEditor(prefab);
-                _previewPrefabPath = e.PrefabPath;
-            }
-            Rect rect = GUILayoutUtility.GetRect(200f, 260f, GUILayout.ExpandWidth(true));
-            _previewEditor.OnInteractivePreviewGUI(rect, GUIStyle.none);
-        }
-
-        private void DestroyPreview()
-        {
-            if (_previewEditor != null) DestroyImmediate(_previewEditor);
-            _previewEditor = null;
-            _previewPrefabPath = null;
-        }
     }
 }
