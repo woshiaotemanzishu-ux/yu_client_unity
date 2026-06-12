@@ -21,6 +21,11 @@ namespace Shenxiao.Common.UI3D
         private const float BASE_Y = -5f;              // pos_y = ... - 5(模型根在相机中心下方 5,再加 position.y 配置)
         private const float MODEL_YAW = 180f;          // 默认 rotate = (0, 180, 0),模型转身面向相机
 
+        // Laya UI 相机 rotY180 → 屏幕x = 世界-X;Unity 相机屏幕x = +X,同一几何互为镜像
+        // (铁证:武器右手单持,老客户端剑在画面左)。几何镜像(mirrorX)有蒙皮坑,
+        // 在渲染层把 RT 水平翻转补偿,像素级对齐老客户端朝向。
+        private static readonly Rect FLIP_HORIZONTAL = new Rect(1f, 0f, -1f, 1f);
+
         private static GameObject _root;
         private static Camera _cam;
         private static RenderTexture _rt;
@@ -72,6 +77,7 @@ namespace Shenxiao.Common.UI3D
                 rt.offsetMax = Vector2.zero;
                 _img = go.GetComponent<RawImage>();
                 _img.raycastTarget = false;
+                _img.uvRect = FLIP_HORIZONTAL;
             }
             _img.texture = _rt;
             _img.gameObject.SetActive(true);

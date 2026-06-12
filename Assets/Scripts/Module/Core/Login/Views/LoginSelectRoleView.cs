@@ -102,7 +102,7 @@ namespace Shenxiao.Module.Core.Login
         }
 
         /// <summary>对标 LoginSelectRoleItem.UpdateItem/UpdateState:空槽=创建入口,角色槽按选中态换图。</summary>
-        private void FillSlot(LoginSelectRoleItemBind bind, int index, bool selected)
+        private async void FillSlot(LoginSelectRoleItemBind bind, int index, bool selected)
         {
             bool isRole = index < _roles.Count;
             bind._img_bg2.enabled = isRole;
@@ -121,21 +121,32 @@ namespace Shenxiao.Module.Core.Login
             }
 
             GameRoleInfo role = _roles[index];
-            string bg = selected ? "ui_Login_02" : "ui_Login_03";
-            string bg2 = selected ? "ui_Login_05" : "ui_Login_06";
-            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg, $"resource/game/login/texture/{bg}.png");
-            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg2, $"resource/game/login/texture/{bg2}.png");
-
-            // 头像:config_dress_up_cfg(按转生数选装扮,screen 按职业给图标);自定义头像 picture 待头像线
-            string headIcon = LoginConfigs.HeadIconPath(role.Career, role.Turn);
-            if (!string.IsNullOrEmpty(headIcon))
-                _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(head, headIcon);
-
             bind._lb_name.text = role.DisplayName;
             bind._lb_turn.text = role.Turn + "转";
             bool isSc = role.Level > SC_LEVEL;
             bind._img_sc.enabled = isSc;
             bind._lb_lv.text = (isSc ? role.Level - SC_LEVEL : role.Level) + "级";
+
+            string bg = selected ? "ui_Login_02" : "ui_Login_03";
+            string bg2 = selected ? "ui_Login_05" : "ui_Login_06";
+            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg, $"resource/game/login/texture/{bg}.png");
+            // 内框等图就位(SetNativeSize 落定)后再对齐头像,否则头像按旧矩形摆会偏
+            await Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg2, $"resource/game/login/texture/{bg2}.png");
+            if (bind == null || head == null) return;
+            SyncHeadRect(head, (RectTransform)bind._img_bg2.transform);
+
+            // 头像:config_dress_up_cfg(按转生数选装扮,screen 按职业给图标);自定义头像 picture 待头像线。
+            // 直接赋 sprite,不走 SetImageAsync——SetNativeSize 会把头像撑回原图大小盖出框外
+            string headIcon = LoginConfigs.HeadIconPath(role.Career, role.Turn);
+            if (!string.IsNullOrEmpty(headIcon))
+            {
+                Sprite s = await Shenxiao.Framework.Res.ResManager.LoadAsync<Sprite>(headIcon);
+                if (s != null && head != null)
+                {
+                    head.sprite = s;
+                    head.enabled = true;
+                }
+            }
         }
 
         /// <summary>槽位头像(对标 CustomHeadItem,贴在内框 _img_bg2 下层;通用头像组件出来后替换)。</summary>
@@ -148,16 +159,26 @@ namespace Shenxiao.Module.Core.Login
             var go = new GameObject("__head", typeof(RectTransform), typeof(Image));
             var rt = (RectTransform)go.transform;
             rt.SetParent(frame.parent, false);
-            rt.anchorMin = frame.anchorMin;
-            rt.anchorMax = frame.anchorMax;
-            rt.pivot = frame.pivot;
-            rt.anchoredPosition = frame.anchoredPosition;
-            rt.sizeDelta = frame.sizeDelta * 0.88f; // 比内框略小,框压在头像上
-            rt.SetSiblingIndex(frame.GetSiblingIndex()); // 插到内框下层
+            rt.SetSiblingIndex(frame.GetSiblingIndex()); // 插到内框下层,框压在头像上
             var img = go.GetComponent<Image>();
             img.raycastTarget = false;
             img.preserveAspect = true;
+            img.enabled = false; // 图就位前不显示白块
             return img;
+        }
+
+        /// <summary>头像矩形对齐内框中心(内框图 SetNativeSize 落定后调用)。</summary>
+        private static void SyncHeadRect(Image head, RectTransform frame)
+        {
+            var rt = (RectTransform)head.transform;
+            Vector2 size = frame.sizeDelta;
+            rt.anchorMin = frame.anchorMin;
+            rt.anchorMax = frame.anchorMax;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            // frame.anchoredPosition 是其 pivot 点的位置 → 换算到中心点
+            rt.anchoredPosition = frame.anchoredPosition
+                + new Vector2((0.5f - frame.pivot.x) * size.x, (0.5f - frame.pivot.y) * size.y);
+            rt.sizeDelta = size * 0.88f;
         }
 
         private void OnClickSlot(int index)
