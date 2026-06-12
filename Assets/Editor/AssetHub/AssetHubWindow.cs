@@ -125,7 +125,9 @@ namespace Shenxiao.Editor.AssetHub
                             $"({i + 1}/{targets.Count}) model_clothe_{e.Id} {e.DisplayName}",
                             (float)i / targets.Count))
                         break;
-                    Laya3DImporter.Result r = Laya3DImporter.Convert(e.LhPath, LanisFor(e), mirrorX: false, _materialMode);
+                    // mirrorX=true 定案(2026-06-12):Laya 渲染屏幕x=-X(相机 rotY180),Unity 屏幕x=+X,
+                    // 几何必须镜像才与老客户端同向。铁证:武器右手单持,老客户端剑在画面左侧(角色右手)。
+                    Laya3DImporter.Result r = Laya3DImporter.Convert(e.LhPath, LanisFor(e), mirrorX: true, _materialMode);
                     if (!r.Ok) failed.Add($"{e.Id} {e.DisplayName}");
                 }
             }

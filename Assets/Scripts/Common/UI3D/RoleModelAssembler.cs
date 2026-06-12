@@ -5,13 +5,15 @@ using UnityEngine;
 
 namespace Shenxiao.Common.UI3D
 {
-    /// <summary>组装参数(老客户端 show_model_data 的最小子集;翅膀/时装贴图/背饰待时装线)。</summary>
+    /// <summary>组装参数(老客户端 show_model_data 的最小子集;时装贴图 Clothe/坐骑待形象线)。</summary>
     public sealed class RoleModelSpec
     {
         public int Career;
         public int ClotheRes;       // model_clothe_{id}
         public int WeaponRes;       // model_weapon_r_{id},0=无
         public int HeadRes;         // model_head_{id},0=无
+        public int WingId;          // model_wing_{id},0=无(挂 wing 骨)
+        public int BackOrnamentId;  // model_back_{id},0=无(挂 wing 骨,AttachNode.BackOrnament)
         public string[] Actions;    // 按 ConfigModelAni(顺序播放,最后一个循环与否由 .lani 决定)
     }
 
@@ -38,6 +40,10 @@ namespace Shenxiao.Common.UI3D
                 await AttachPart(root, "head", Key("head", "model_head_" + spec.HeadRes));
             if (spec.WeaponRes > 0)
                 await AttachPart(root, "rhand", Key("weapon", "model_weapon_r_" + spec.WeaponRes));
+            if (spec.WingId > 0)
+                await AttachPart(root, "wing", Key("wing", "model_wing_" + spec.WingId));
+            if (spec.BackOrnamentId > 0)
+                await AttachPart(root, "wing", Key("back", "model_back_" + spec.BackOrnamentId));
 
             await ApplyActions(root, spec);
             return root;

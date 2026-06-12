@@ -6,6 +6,7 @@ using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.Login;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Login
 {
@@ -103,6 +104,8 @@ namespace Shenxiao.Module.Core.Login
             bind._lb_lv.enabled = isRole;
             bind._lb_turn.enabled = isRole;
             bind._img_sc.enabled = false;
+            Image head = EnsureHeadIcon(bind);
+            head.gameObject.SetActive(isRole);
 
             if (!isRole)
             {
@@ -117,12 +120,38 @@ namespace Shenxiao.Module.Core.Login
             _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg, $"resource/game/login/texture/{bg}.png");
             _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg2, $"resource/game/login/texture/{bg2}.png");
 
+            // 头像:config_dress_up_cfg(按转生数选装扮,screen 按职业给图标);自定义头像 picture 待头像线
+            string headIcon = LoginConfigs.HeadIconPath(role.Career, role.Turn);
+            if (!string.IsNullOrEmpty(headIcon))
+                _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(head, headIcon);
+
             bind._lb_name.text = role.DisplayName;
             bind._lb_turn.text = role.Turn + "转";
             bool isSc = role.Level > SC_LEVEL;
             bind._img_sc.enabled = isSc;
             bind._lb_lv.text = (isSc ? role.Level - SC_LEVEL : role.Level) + "级";
-            // TODO(头像线):老客户端槽位里有 CustomHeadItem 角色头像,等通用头像组件再补
+        }
+
+        /// <summary>槽位头像(对标 CustomHeadItem,贴在内框 _img_bg2 下层;通用头像组件出来后替换)。</summary>
+        private Image EnsureHeadIcon(LoginSelectRoleItemBind bind)
+        {
+            RectTransform frame = (RectTransform)bind._img_bg2.transform;
+            Transform exist = frame.parent.Find("__head");
+            if (exist != null) return exist.GetComponent<Image>();
+
+            var go = new GameObject("__head", typeof(RectTransform), typeof(Image));
+            var rt = (RectTransform)go.transform;
+            rt.SetParent(frame.parent, false);
+            rt.anchorMin = frame.anchorMin;
+            rt.anchorMax = frame.anchorMax;
+            rt.pivot = frame.pivot;
+            rt.anchoredPosition = frame.anchoredPosition;
+            rt.sizeDelta = frame.sizeDelta * 0.88f; // 比内框略小,框压在头像上
+            rt.SetSiblingIndex(frame.GetSiblingIndex()); // 插到内框下层
+            var img = go.GetComponent<Image>();
+            img.raycastTarget = false;
+            img.preserveAspect = true;
+            return img;
         }
 
         private void OnClickSlot(int index)
@@ -147,7 +176,10 @@ namespace Shenxiao.Module.Core.Login
             ShowRoleModel();
         }
 
-        /// <summary>中央 3D 模型:选中角色职业默认装 + ConfigModelAni 的 idle(TODO 形象线换装)。</summary>
+        /// <summary>
+        /// 中央 3D 模型:角色 10000 形象数据换装(衣/头饰/武器/翅膀/背饰,对标 Util.GetRoleClotheId 系列),
+        /// 字段为 0 时回退职业默认装。天启/史诗套装/神殿觉醒 overrides + 时装贴图待形象线。
+        /// </summary>
         private async void ShowRoleModel()
         {
             if (_selectedIndex < 0 || _selectedIndex >= _roles.Count) return;
@@ -156,14 +188,17 @@ namespace Shenxiao.Module.Core.Login
             if (option == null) return;
             LoginConfigs.CareerRes res = LoginConfigs.GetCreateRes(option.Career, option.Sex);
             if (res == null) return;
+            var figure = role.figure;
 
             int selectedAtRequest = _selectedIndex;
             GameObject model = await RoleModelAssembler.BuildAsync(new RoleModelSpec
             {
                 Career = option.Career,
-                ClotheRes = res.RoleRes,
-                WeaponRes = res.WeaponRes,
-                HeadRes = res.HeadRes,
+                ClotheRes = figure != null && figure.ClotheModelId > 0 ? figure.ClotheModelId : res.RoleRes,
+                HeadRes = figure != null && figure.HeadModelId > 0 ? figure.HeadModelId : res.HeadRes,
+                WeaponRes = figure != null && figure.WeaponModelId > 0 ? figure.WeaponModelId : res.WeaponRes,
+                WingId = figure != null ? figure.WingId : 0,
+                BackOrnamentId = figure != null ? figure.BackOrnamentId : 0,
                 Actions = LoginConfigs.RoleUIActions("LoginSelectRoleView"),
             });
             if (model == null) return;

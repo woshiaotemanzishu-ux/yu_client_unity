@@ -22,11 +22,17 @@ namespace Shenxiao.EditorTools.ConfigGen
             "UIModelParameter",
         };
 
+        // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)
+        private static readonly string[] SYNC_LIST_SERVER =
+        {
+            "config_dress_up_cfg",
+        };
+
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]
         public static void Sync()
         {
             int ok = SyncIfStale(force: true);
-            Debug.Log($"[ClientConfigSync] 同步 {ok}/{SYNC_LIST.Length} 份 → {DST_DIR}");
+            Debug.Log($"[ClientConfigSync] 强制同步 {ok} 份(client {SYNC_LIST.Length} + server {SYNC_LIST_SERVER.Length})");
         }
 
         private const string DST_DIR = "Assets/GameRes/resource/config/client";
@@ -34,10 +40,23 @@ namespace Shenxiao.EditorTools.ConfigGen
         /// <summary>缺失或源更新才拷贝;返回拷贝数。进 Play 模式前自动调用(免去手动菜单步骤)。</summary>
         public static int SyncIfStale(bool force = false)
         {
-            string srcDir = Path.Combine(LayaUISettings.CdnResourceRoot, "config", "client");
-            Directory.CreateDirectory(DST_DIR);
             int copied = 0;
-            foreach (string name in SYNC_LIST)
+            copied += SyncDir("client", SYNC_LIST, DST_DIR, force);
+            copied += SyncDir("server", SYNC_LIST_SERVER, "Assets/GameRes/resource/config/server", force);
+            if (copied > 0)
+            {
+                AssetDatabase.Refresh();
+                Debug.Log($"[ClientConfigSync] 自动同步配置 {copied} 份 → Assets/GameRes/resource/config");
+            }
+            return copied;
+        }
+
+        private static int SyncDir(string sub, string[] names, string dstDir, bool force)
+        {
+            string srcDir = Path.Combine(LayaUISettings.CdnResourceRoot, "config", sub);
+            Directory.CreateDirectory(dstDir);
+            int copied = 0;
+            foreach (string name in names)
             {
                 string src = Path.Combine(srcDir, name + ".json");
                 if (!File.Exists(src))
@@ -45,16 +64,11 @@ namespace Shenxiao.EditorTools.ConfigGen
                     Debug.LogError($"[ClientConfigSync] 缺源文件: {src}");
                     continue;
                 }
-                string dst = Path.Combine(DST_DIR, name.ToLowerInvariant() + ".json");
+                string dst = Path.Combine(dstDir, name.ToLowerInvariant() + ".json");
                 if (!force && File.Exists(dst)
                     && File.GetLastWriteTimeUtc(dst) >= File.GetLastWriteTimeUtc(src)) continue;
                 File.Copy(src, dst, true);
                 copied++;
-            }
-            if (copied > 0)
-            {
-                AssetDatabase.Refresh();
-                Debug.Log($"[ClientConfigSync] 自动同步客户端配置 {copied} 份 → {DST_DIR}");
             }
             return copied;
         }

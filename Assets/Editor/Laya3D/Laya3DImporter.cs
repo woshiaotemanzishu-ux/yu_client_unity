@@ -13,13 +13,15 @@ namespace Shenxiao.Editor.Laya3D
     /// .lh(层级/引用)+ .lm(网格/蒙皮)+ .lmat(贴图)+ .lani(动画)
     /// → Mesh.asset + .anim(Legacy)+ .mat(URP)+ .prefab,产物进 GameRes。
     /// 解析逻辑 1:1 对标 Electron 工具 python 参考实现(已被 3D 预览渲染验证)。
-    /// mirrorX:坐标系翻转开关(若首渲左右镜像/法线翻面,切换重转,MVP 验收期定死后固化)。
+    /// mirrorX:已固化 true(v3)——Laya 屏幕x=-X vs Unity +X,几何须镜像才与老客户端同向。
     /// </summary>
     public static class Laya3DImporter
     {
         /// <summary>转换逻辑版本:改了产物结构/默认行为就 +1,资产管理会把旧版产物标 🔶 要求重转。
-        /// v2 = 动作 clip 共享目录 + 默认全量动作 + 非蒙皮分支 + Unlit 默认。</summary>
-        public const int TOOL_VERSION = 2;
+        /// v2 = 动作 clip 共享目录 + 默认全量动作 + 非蒙皮分支 + Unlit 默认。
+        /// v3 = mirrorX=true 定案(Laya 屏幕x=-X vs Unity +X,几何镜像才与老客户端同向;
+        ///      此前 mirrorX=false 的"验收"是在近似对称模型上的误判,武器右手位铁证推翻)。</summary>
+        public const int TOOL_VERSION = 3;
         /// <summary>材质模式:Unlit=贴图直出,对标老客户端(UIModelClass3D.ts 把角色材质按
         /// Laya.UnlitMaterial 处理,electron 工具 .lmat 也写 Laya.UnlitMaterial),不吃光照不会发黑;
         /// Lit=URP SimpleLit,受场景光照(留给后续真需要光照的资产)。

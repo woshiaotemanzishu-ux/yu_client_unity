@@ -116,6 +116,53 @@ namespace Shenxiao.Common.Proto
             return figure;
         }
 
+        // ---------------- 形象取值(对标 Util.GetRoleClotheId / GetRoleHeadId / GetWeaponClotheId /
+        // GetWingClotheId / GetBackOrnamentId 的基础分支;天启/史诗套装/神殿觉醒 overrides 待形象线)----------------
+
+        // ModelPartPos / FashionPartPos(RoleVo.ts / SceneConfig.ts):衣 1 / 武器 2 / 头饰 3
+        private const int PART_CLOTHE = 1;
+        private const int PART_WEAPON = 2;
+        private const int PART_HEAD = 3;
+        // FigureProtoVo.FigureType:坐骑 1 / 翅膀 3 / 武器 5 / 新背饰 12
+        private const int FIGURE_WING = 3;
+        private const int FIGURE_WEAPON = 5;
+        private const int FIGURE_NEW_BACK = 12;
+
+        /// <summary>衣服:时装(part 1)优先,其次等级模型。0=无(用职业默认装兜底)。</summary>
+        public int ClotheModelId => FromList("fashion_model_list", "part_pos", PART_CLOTHE, "fashion_model_id",
+            FromList("level_model_list", "part_pos", PART_CLOTHE, "level_model_id", 0));
+
+        /// <summary>头饰(发型):时装(part 3)优先,其次等级模型。</summary>
+        public int HeadModelId => FromList("fashion_model_list", "part_pos", PART_HEAD, "fashion_model_id",
+            FromList("level_model_list", "part_pos", PART_HEAD, "level_model_id", 0));
+
+        /// <summary>武器:时装(part 2)→ 幻化(type 5)→ 等级模型(part 2)。</summary>
+        public int WeaponModelId => FromList("fashion_model_list", "part_pos", PART_WEAPON, "fashion_model_id",
+            FromList("figure_list", "figure_type", FIGURE_WEAPON, "figure_id",
+                FromList("level_model_list", "part_pos", PART_WEAPON, "level_model_id", 0)));
+
+        /// <summary>翅膀:幻化列表 type 3。</summary>
+        public int WingId => FromList("figure_list", "figure_type", FIGURE_WING, "figure_id", 0);
+
+        /// <summary>背饰:幻化列表 type 12(NewBackOrnament)。</summary>
+        public int BackOrnamentId => FromList("figure_list", "figure_type", FIGURE_NEW_BACK, "figure_id", 0);
+
+        private int FromList(string listName, string keyField, int keyValue, string valueField, int fallback)
+        {
+            if (!Raw.TryGetValue(listName, out object o) || !(o is List<Dictionary<string, object>> list))
+                return fallback;
+            foreach (Dictionary<string, object> item in list)
+            {
+                if (item.TryGetValue(keyField, out object k) && System.Convert.ToInt32(k) == keyValue
+                    && item.TryGetValue(valueField, out object v))
+                {
+                    int id = (int)System.Convert.ToInt64(v);
+                    if (id > 0) return id;
+                }
+            }
+            return fallback;
+        }
+
         private static object ReadOne(NetReader reader, string fmt)
         {
             switch (fmt)

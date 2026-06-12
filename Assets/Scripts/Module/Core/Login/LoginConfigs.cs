@@ -39,8 +39,9 @@ namespace Shenxiao.Module.Core.Login
         private static JObject _login;
         private static JObject _modelAni;
         private static JObject _randomName;
+        private static JObject _dress;
 
-        public static bool IsLoaded => _login != null && _modelAni != null && _randomName != null;
+        public static bool IsLoaded => _login != null && _modelAni != null && _randomName != null && _dress != null;
 
         public static async Task EnsureLoaded()
         {
@@ -48,6 +49,7 @@ namespace Shenxiao.Module.Core.Login
             if (_login == null) _login = await LoadJson("resource/config/client/configlogin");
             if (_modelAni == null) _modelAni = await LoadJson("resource/config/client/configmodelani");
             if (_randomName == null) _randomName = await LoadJson("resource/config/client/configrandomname");
+            if (_dress == null) _dress = await LoadJson("resource/config/server/config_dress_up_cfg");
         }
 
         private static async Task<JObject> LoadJson(string key)
@@ -138,6 +140,53 @@ namespace Shenxiao.Module.Core.Login
                 return result;
             }
             return new[] { "idle" };
+        }
+
+        // ---------------- config_dress_up_cfg(头像)----------------
+
+        // DressModel.ts:DressType.Head=5,getDressIdByTurn 默认 90,条件 [["turn",n]] 匹配转生数;
+        // screen 字段 [{"0":career,"1":icon}],图标在 head/texture/{icon}.png
+        private const int DRESS_TYPE_HEAD = 5;
+        private const int DEFAULT_HEAD_DRESS_ID = 90;
+
+        /// <summary>角色默认头像图标路径(对标 CustomHeadItem.SetDefaultHead;自定义头像 picture 待头像线)。</summary>
+        public static string HeadIconPath(int career, int turn)
+        {
+            int dressId = DEFAULT_HEAD_DRESS_ID;
+            if (_dress != null)
+            {
+                foreach (KeyValuePair<string, JToken> kv in _dress)
+                {
+                    if (!(kv.Value is JObject o)) continue;
+                    if (o.Value<int>("type") != DRESS_TYPE_HEAD || o.Value<int>("level") != 1) continue;
+                    string cond = o.Value<string>("condition");
+                    if (string.IsNullOrEmpty(cond) || cond == "[]") continue;
+                    try
+                    {
+                        var arr = JArray.Parse(cond);
+                        if (arr.Count > 0 && arr[0] is JArray c && c.Count >= 2
+                            && c[0].Value<string>() == "turn" && c[1].Value<int>() == turn)
+                        {
+                            dressId = o.Value<int>("id");
+                            break;
+                        }
+                    }
+                    catch { /* 条件格式异类,跳过 */ }
+                }
+            }
+            JToken entry = _dress?[$"{DRESS_TYPE_HEAD}@{dressId}@1"];
+            string screen = entry?.Value<string>("screen");
+            if (string.IsNullOrEmpty(screen) || screen == "[]") return null;
+            try
+            {
+                foreach (JToken t in JArray.Parse(screen))
+                {
+                    if (t.Value<int>("0") == career)
+                        return $"resource/game/head/texture/{t.Value<int>("1")}.png";
+                }
+            }
+            catch { }
+            return null;
         }
 
         // ---------------- ConfigRandomName ----------------
