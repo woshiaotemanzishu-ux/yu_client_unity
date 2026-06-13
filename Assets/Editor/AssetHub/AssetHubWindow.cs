@@ -49,6 +49,25 @@ namespace Shenxiao.Editor.AssetHub
             w.minSize = new Vector2(900f, 520f);
         }
 
+        /// <summary>独立入口:直达「特效」域(特效导入/管理/转换/预览都在这)。</summary>
+        [MenuItem("神霄/特效导入", priority = 4)]
+        public static void OpenEffects()
+        {
+            var w = GetWindow<AssetHubWindow>("资产管理");
+            w.minSize = new Vector2(900f, 520f);
+            w.SelectDomainByName("特效");
+        }
+
+        /// <summary>按域名定位左栏(供独立菜单入口用)。</summary>
+        public void SelectDomainByName(string name)
+        {
+            if (_domains == null) _domains = AssetHubDomains.Build();
+            for (int i = 0; i < _domains.Count; i++)
+            {
+                if (_domains[i].Name == name) { _domainIndex = i; RefreshDomain(); break; }
+            }
+        }
+
         private void OnEnable()
         {
             _domains = AssetHubDomains.Build();
@@ -301,6 +320,10 @@ namespace Shenxiao.Editor.AssetHub
                     DrawClipsSection(e, s);
                     DrawAlwaysEffects(e);
                 }
+                else if (e.Kind == AssetKind.Effect)
+                {
+                    DrawEffectStructure(e, s);
+                }
 
                 EditorGUILayout.Space(4f);
                 EditorGUILayout.LabelField("操作", EditorStyles.boldLabel);
@@ -421,6 +444,25 @@ namespace Shenxiao.Editor.AssetHub
                 _effectsForId = e.Id;
             }
             return _effects;
+        }
+
+        /// <summary>
+        /// 特效结构速览(只读解析,不产资产):列出粒子节点数 / 网格 / 拖尾,
+        /// LFS 占位时明确提示。让用户转换前先确认能读懂这个特效文件。
+        /// </summary>
+        private void DrawEffectStructure(AssetEntry e, EntryStatus s)
+        {
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("特效结构(只读速览)", EditorStyles.boldLabel);
+            if (s == EntryStatus.SourceMissing) { EditorGUILayout.LabelField("  源文件缺失", EditorStyles.miniLabel); return; }
+            if (s == EntryStatus.SourceLfs)
+            {
+                EditorGUILayout.HelpBox("源是 LFS 占位(130字节):在本机 git lfs pull 后才能解析/转换。", MessageType.Warning);
+                return;
+            }
+            (int particles, int meshes, int trails, string err) = LayaEffectImporter.Inspect(e.LhPath);
+            if (err != null) { EditorGUILayout.HelpBox("解析失败:" + err, MessageType.Error); return; }
+            EditorGUILayout.LabelField($"  粒子节点 {particles} / 静态网格 {meshes} / 拖尾 {trails}", EditorStyles.miniLabel);
         }
 
         private void DrawLaniChoice(AssetEntry e)

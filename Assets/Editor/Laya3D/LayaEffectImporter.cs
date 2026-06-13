@@ -47,6 +47,33 @@ namespace Shenxiao.Editor.Laya3D
             return r;
         }
 
+        /// <summary>只读速览:解析 .lh 统计粒子/网格/拖尾节点数(不产资产),给 UI 转换前确认用。</summary>
+        public static (int particles, int meshes, int trails, string error) Inspect(string lhPath)
+        {
+            try
+            {
+                JObject doc = JObject.Parse(File.ReadAllText(lhPath));
+                JObject root = doc["data"] as JObject ?? doc;
+                int p = 0, m = 0, t = 0;
+                CountNodes(root, ref p, ref m, ref t);
+                return (p, m, t, null);
+            }
+            catch (Exception e) { return (0, 0, 0, e.Message); }
+        }
+
+        private static void CountNodes(JObject node, ref int p, ref int m, ref int t)
+        {
+            switch ((string)node["type"])
+            {
+                case "ShuriKenParticle3D": p++; break;
+                case "MeshSprite3D": m++; break;
+                case "TrailSprite3D": t++; break;
+            }
+            if (node["child"] is JArray children)
+                foreach (JToken c in children)
+                    if (c is JObject child) CountNodes(child, ref p, ref m, ref t);
+        }
+
         private static void ConvertInner(string lhPath, Result r)
         {
             string name = Path.GetFileNameWithoutExtension(lhPath);
