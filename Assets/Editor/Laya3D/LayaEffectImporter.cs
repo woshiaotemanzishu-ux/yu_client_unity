@@ -20,7 +20,7 @@ namespace Shenxiao.Editor.Laya3D
     public static class LayaEffectImporter
     {
         /// <summary>特效转换逻辑版本(独立于模型线 Laya3DImporter.TOOL_VERSION)。</summary>
-        public const int TOOL_VERSION = 1;
+        public const int TOOL_VERSION = 2; // v2: 粒子默认加色/材质混合修正(发黑修复)
 
         public sealed class Result
         {
