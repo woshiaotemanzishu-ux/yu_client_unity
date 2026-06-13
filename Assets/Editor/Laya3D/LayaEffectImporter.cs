@@ -626,9 +626,28 @@ namespace Shenxiao.Editor.Laya3D
             }
             JObject props = doc["props"] as JObject ?? new JObject();
             string type = (string)props["type"] ?? "ShurikenParticleMaterial";
-            int renderMode = (int)(props.Value<float?>("renderMode") ?? 0f);
 
-            bool additive = type == "ShurikenParticleMaterial" ? renderMode == 1 : renderMode == 3;
+            // 混合模式判定(优先级:.lmat 显式 srcBlend/dstBlend > renderMode > 类型默认)。
+            // Laya 加色 = dst 为 ONE(1);普通混合 = dst 为 ONE_MINUS_SRC_ALPHA。
+            // 关键:仙侠发光特效默认加色——纹理黑底亮线,普通混合会把黑底盖成黑块(发黑根因)。
+            bool additive;
+            JToken dstTok = props["dstBlend"];
+            if (dstTok != null)
+            {
+                int dst = (int)(float)dstTok;
+                additive = dst == 1 || dst == 0x0001; // BLENDPARAM_ONE
+            }
+            else if (props["renderMode"] != null)
+            {
+                int renderMode = (int)(float)props["renderMode"];
+                additive = type == "ShurikenParticleMaterial" ? renderMode != 0 : renderMode == 3;
+            }
+            else
+            {
+                additive = type == "ShurikenParticleMaterial"; // 粒子默认加色
+            }
+            ctx.Report.Log.AppendLine($"   材质 {Path.GetFileName(lmatAbs)}: type={type} 混合={(additive ? "加色Additive" : "普通Alpha")}");
+
             var mat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
             SetupTransparent(mat, additive);
 
@@ -665,11 +684,15 @@ namespace Shenxiao.Editor.Laya3D
             return loaded;
         }
 
-        /// <summary>URP Particles/Unlit 透明设置:加色=SrcAlpha/One,混合=SrcAlpha/OneMinusSrcAlpha;双面不写深度。</summary>
+        /// <summary>
+        /// URP Particles/Unlit 透明设置。_Blend 枚举:0 Alpha / 1 Premultiply / 2 Additive / 3 Multiply。
+        /// 加色 = SrcAlpha/One;普通 = SrcAlpha/OneMinusSrcAlpha;均双面、不写深度、透明队列。
+        /// _BaseColor 强制白(缺 tint 时不发黑);加色还要关掉颜色 tint 影响。
+        /// </summary>
         private static void SetupTransparent(Material mat, bool additive)
         {
-            mat.SetFloat("_Surface", 1f); // Transparent
-            mat.SetFloat("_Blend", additive ? 1f : 0f);
+            mat.SetFloat("_Surface", 1f);                    // Transparent
+            mat.SetFloat("_Blend", additive ? 2f : 0f);      // 2=Additive / 0=Alpha
             mat.SetOverrideTag("RenderType", "Transparent");
             mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
             mat.SetFloat("_DstBlend", additive
@@ -677,9 +700,12 @@ namespace Shenxiao.Editor.Laya3D
                 : (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
             mat.SetFloat("_ZWrite", 0f);
             mat.SetFloat("_Cull", (float)UnityEngine.Rendering.CullMode.Off);
+            mat.SetColor("_BaseColor", Color.white);         // 默认白,避免缺 tint 时发黑
             mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
             mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            if (additive) mat.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+            // URP 粒子混合关键字:加色/普通都走 modulate,不要 premultiply(会压暗)
+            mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            mat.EnableKeyword("_ALPHAMODULATE_ON");
         }
 
         /// <summary>贴图镜像进 GameRes(按 cdn/resource 相对路径,跨特效共享)。</summary>
