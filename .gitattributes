@@ -1,0 +1,19 @@
+# Keep source/config files reviewable in Git.
+*.cs -filter -diff -merge text eol=lf
+*.asmdef -filter -diff -merge text eol=lf
+*.shader -filter -diff -merge text eol=lf
+*.json -filter -diff -merge text eol=lf
+*.meta -filter -diff -merge text eol=lf
+*.asset -filter -diff -merge text eol=lf
+*.prefab -filter -diff -merge text eol=lf
+*.unity -filter -diff -merge text eol=lf
+*.mat -filter -diff -merge text eol=lf
+*.anim -filter -diff -merge text eol=lf
+
+# Converted Laya runtime resources are generated assets and can be very large.
+Assets/GameRes/effect/** filter=lfs diff=lfs merge=lfs -text
+Assets/GameRes/object/** filter=lfs diff=lfs merge=lfs -text
+
+# Unity metadata and small manifests must stay as normal text even under GameRes.
+*.meta -filter -diff -merge text eol=lf
+*.json -filter -diff -merge text eol=lf
