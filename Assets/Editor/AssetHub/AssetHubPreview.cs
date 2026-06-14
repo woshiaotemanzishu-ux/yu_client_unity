@@ -6,7 +6,7 @@ namespace Shenxiao.Editor.AssetHub
     /// <summary>
     /// 资产管理的可播放预览台:PreviewRenderUtility 渲 prefab 实例,
     /// 选中动作后逐帧采样 Legacy clip(编辑器不进 Play 模式即可看动画)。
-    /// 拖拽=旋转视角,滚轮=缩放。粒子特效预览待特效转换线接入后叠加。
+    /// 拖拽=旋转视角,滚轮=缩放。粒子特效产物在编辑器内逐帧 Simulate 预览。
     /// </summary>
     public sealed class AssetHubPreview : System.IDisposable
     {

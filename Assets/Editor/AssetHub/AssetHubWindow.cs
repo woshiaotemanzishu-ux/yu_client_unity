@@ -433,7 +433,7 @@ namespace Shenxiao.Editor.AssetHub
                     EditorStyles.miniLabel);
             if (fx.Variants.Count > 0)
                 EditorGUILayout.LabelField("  变体键: " + string.Join(", ", fx.Variants), EditorStyles.miniLabel);
-            EditorGUILayout.LabelField("  (特效 .lh=Laya 粒子,Unity 侧渲染待特效转换线;Electron 预览可直接看)", EditorStyles.miniLabel);
+            EditorGUILayout.LabelField("  (特效 .lh=Laya 粒子,Unity 侧统一走 LayaEffectImporter 转换)", EditorStyles.miniLabel);
         }
 
         private AssetHubEffects.EffectInfo EffectsOf(AssetEntry e)

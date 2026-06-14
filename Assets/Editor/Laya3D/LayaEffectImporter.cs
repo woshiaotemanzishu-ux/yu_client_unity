@@ -20,7 +20,7 @@ namespace Shenxiao.Editor.Laya3D
     public static class LayaEffectImporter
     {
         /// <summary>特效转换逻辑版本(独立于模型线 Laya3DImporter.TOOL_VERSION)。</summary>
-        public const int TOOL_VERSION = 2; // v2: 粒子默认加色/材质混合修正(发黑修复)
+        public const int TOOL_VERSION = 14; // v14: match Laya3D Shuriken shader color semantics.
 
         public sealed class Result
         {
@@ -117,6 +117,7 @@ namespace Shenxiao.Editor.Laya3D
             public Result Report;
             public int ParticleCount, MeshCount, TrailCount;
             public readonly Dictionary<string, Material> MaterialCache = new Dictionary<string, Material>();
+            public readonly Dictionary<string, Mesh> MeshCache = new Dictionary<string, Mesh>();
         }
 
         // ================= 节点树 =================
@@ -166,7 +167,162 @@ namespace Shenxiao.Editor.Laya3D
                     if (c is JObject child) BuildNode(child, go.transform, ctx);
                 }
             }
+
+            // Laya Animator 组件:子节点建完后接上(轨路径可指向子节点)。
+            // 注意:components 挂在节点根(node)上,不在 props 里。
+            ApplyAnimator(go, node, ctx);
             return go;
+        }
+
+        /// <summary>
+        /// 节点上的 Laya Animator 组件 → 传统 Animation + .lani 转出的 AnimationClip 并自动播放。
+        /// 缺这步:靠动画驱动的特效子节点(刀光挥砍等)会定格在作者预设姿态 —— 看着像"只显示最后一帧、
+        /// 不按动作播放、也不消失",而纯粒子节点能自播(所以"部分特效正常")。
+        /// .lani 轨路径相对该 Animator 节点(创角特效里多为空 = 动画器自身 transform)。
+        /// </summary>
+        private static void ApplyAnimator(GameObject go, JObject node, Context ctx)
+        {
+            if (!(node["components"] is JArray comps)) return;
+            var clips = new List<AnimationClip>();
+            foreach (JToken comp in comps)
+            {
+                if ((string)comp["type"] != "Animator" || !(comp["layers"] is JArray layers)) continue;
+                foreach (JToken layer in layers)
+                {
+                    if (!(layer["states"] is JArray states)) continue;
+                    foreach (JToken st in states)
+                    {
+                        string clipPath = (string)st["clipPath"];
+                        if (string.IsNullOrEmpty(clipPath)) continue;
+                        string laniAbs = Path.GetFullPath(Path.Combine(ctx.LhDir, clipPath));
+                        if (!File.Exists(laniAbs))
+                        {
+                            ctx.Report.Log.AppendLine("   ⚠ .lani 不存在 " + clipPath);
+                            continue;
+                        }
+                        string clipName = (string)st["name"] ?? Path.GetFileNameWithoutExtension(laniAbs);
+                        AnimationClip clip = BuildEffectClip(laniAbs, clipName, ctx);
+                        if (clip != null) clips.Add(clip);
+                    }
+                }
+            }
+            if (clips.Count == 0) return;
+            var anim = go.AddComponent<Animation>();
+            foreach (AnimationClip c in clips) anim.AddClip(c, c.name);
+            anim.clip = clips[0];
+            anim.playAutomatically = true;
+            // 离屏 RT 舞台:别因渲染器在主相机视锥外而暂停动画(否则又定格)
+            anim.cullingType = AnimationCullingType.AlwaysAnimate;
+        }
+
+        /// <summary>.lani → 传统 AnimationClip。轨:localPosition/localScale(3)、localRotation(四元数)、
+        /// localRotationEuler(欧拉,度;烘成四元数轨以兼容传统动画)。</summary>
+        private static AnimationClip BuildEffectClip(string laniAbs, string clipName, Context ctx)
+        {
+            LaniClip lani;
+            try { lani = LaniParser.Parse(File.ReadAllBytes(laniAbs)); }
+            catch (Exception e) { ctx.Report.Log.AppendLine($"   ⚠ .lani 解析失败 {clipName}: {e.Message}"); return null; }
+
+            var clip = new AnimationClip
+            {
+                name = clipName,
+                legacy = true,
+                frameRate = lani.FrameRate > 0 ? lani.FrameRate : 30,
+                wrapMode = lani.IsLooping ? WrapMode.Loop : WrapMode.Once,
+            };
+            foreach (LaniNode node in lani.Nodes)
+            {
+                string path = node.Path;
+                string owner = node.PropertyOwner;
+                string prop = node.PropertyName;
+                if (owner == "transform" && node.Type == 2 && prop == "localRotation")
+                    SetAxisCurves(clip, path, "localRotation", node, 4);
+                else if (owner == "transform" && prop == "localPosition")
+                    SetAxisCurves(clip, path, "localPosition", node, 3);
+                else if (owner == "transform" && prop == "localScale")
+                    SetAxisCurves(clip, path, "localScale", node, 3);
+                else if (owner == "transform" && prop == "localRotationEuler")
+                    SetEulerAsQuaternion(clip, path, node);
+                else if (owner == "meshRenderer" && prop == "material")
+                    SetMaterialCurve(clip, path, node, ctx);   // _TintColor 淡入淡出(决定特效消不消失)、_MainTex_ST UV 滚动
+                else
+                    ctx.Report.Log.AppendLine($"   ⚠ 跳过动画轨 {owner}.{string.Join(".", node.Properties)}");
+            }
+            clip.EnsureQuaternionContinuity();
+
+            string clipAsset = ctx.OutDir + "/" + clipName + ".anim";
+            AssetDatabase.CreateAsset(clip, clipAsset);
+            ctx.Report.Log.AppendLine($"   动画 {clipName}: {lani.Duration:0.##}s 轨{lani.Nodes.Count} loop={lani.IsLooping}");
+            return AssetDatabase.LoadAssetAtPath<AnimationClip>(clipAsset);
+        }
+
+        private static readonly string[] AXIS = { "x", "y", "z", "w" };
+
+        private static void SetAxisCurves(AnimationClip clip, string path, string property, LaniNode node, int components)
+        {
+            if (node.Keyframes.Count == 0) return;
+            int comp = Mathf.Min(components, node.Keyframes[0].Value.Length);
+            for (int c = 0; c < comp; c++)
+            {
+                var keys = new Keyframe[node.Keyframes.Count];
+                for (int k = 0; k < keys.Length; k++)
+                {
+                    LaniKeyframe kf = node.Keyframes[k];
+                    keys[k] = new Keyframe(kf.Time, kf.Value[c], kf.InTangent[c], kf.OutTangent[c]);
+                }
+                clip.SetCurve(path, typeof(Transform), property + "." + AXIS[c], new AnimationCurve(keys));
+            }
+        }
+
+        /// <summary>材质属性轨(单分量,type 0):_TintColor→_BaseColor(x/y/z/w→r/g/b/a)、
+        /// _MainTex_ST→_BaseMap_ST(同布局)。绑到 MeshRenderer 的 material.*,运行时自动实例化材质。</summary>
+        private static void SetMaterialCurve(AnimationClip clip, string path, LaniNode node, Context ctx)
+        {
+            if (node.Properties.Length < 3 || node.Keyframes.Count == 0) return;
+            string layaProp = node.Properties[1];
+            string comp = node.Properties[2];
+            string unityProp, unityComp;
+            if (IsLayaColorComponent(layaProp))
+            {
+                unityProp = "_BaseColor";
+                unityComp = comp == "x" ? "r" : comp == "y" ? "g" : comp == "z" ? "b" : "a";
+            }
+            else if (layaProp == "_MainTex_ST" || layaProp == "tilingOffset")
+            {
+                unityProp = "_BaseMap_ST";
+                unityComp = comp; // x/y/z/w 同布局(tiling.xy / offset.zw)
+            }
+            else { ctx.Report.Log.AppendLine($"   ⚠ 跳过材质轨 {layaProp}.{comp}"); return; }
+
+            float multiplier = IsLayaColorComponent(layaProp) && comp != "w" && comp != "a" ? 2f : 1f;
+            var keys = new Keyframe[node.Keyframes.Count];
+            for (int k = 0; k < keys.Length; k++)
+            {
+                LaniKeyframe kf = node.Keyframes[k];
+                keys[k] = new Keyframe(kf.Time, kf.Value[0] * multiplier,
+                    kf.InTangent[0] * multiplier, kf.OutTangent[0] * multiplier);
+            }
+            clip.SetCurve(path, typeof(MeshRenderer), "material." + unityProp + "." + unityComp, new AnimationCurve(keys));
+        }
+
+        /// <summary>欧拉角轨(Laya 度)烘成四元数 localRotation 轨(传统动画不认 localEulerAngles)。
+        /// 关键帧少、按时间线性插值即可;切线交给 EnsureQuaternionContinuity 平滑。</summary>
+        private static void SetEulerAsQuaternion(AnimationClip clip, string path, LaniNode node)
+        {
+            int n = node.Keyframes.Count;
+            if (n == 0) return;
+            var kx = new Keyframe[n]; var ky = new Keyframe[n]; var kz = new Keyframe[n]; var kw = new Keyframe[n];
+            for (int k = 0; k < n; k++)
+            {
+                LaniKeyframe kf = node.Keyframes[k];
+                Quaternion q = Quaternion.Euler(kf.Value[0], kf.Value[1], kf.Value[2]);
+                kx[k] = new Keyframe(kf.Time, q.x); ky[k] = new Keyframe(kf.Time, q.y);
+                kz[k] = new Keyframe(kf.Time, q.z); kw[k] = new Keyframe(kf.Time, q.w);
+            }
+            clip.SetCurve(path, typeof(Transform), "localRotation.x", new AnimationCurve(kx));
+            clip.SetCurve(path, typeof(Transform), "localRotation.y", new AnimationCurve(ky));
+            clip.SetCurve(path, typeof(Transform), "localRotation.z", new AnimationCurve(kz));
+            clip.SetCurve(path, typeof(Transform), "localRotation.w", new AnimationCurve(kw));
         }
 
         /// <summary>Sprite3D._parse:position/rotationEuler/rotation/scale(数组)。</summary>
@@ -207,6 +363,9 @@ namespace Shenxiao.Editor.Laya3D
             main.scalingMode = (ParticleSystemScalingMode)Mathf.Clamp((int)F(bases, "scaleMode", 1f), 0, 2);
             main.playOnAwake = B(bases, "playOnAwake", true);
             main.gravityModifier = F(bases, "gravityModifier", 0f);
+            // 特效只在离屏 RT 舞台(远离原点)里渲染,主相机视锥外。Automatic 剔除会暂停模拟
+            // → 创角特效卡住/不动/不出现。强制 AlwaysSimulate,保证一直推进。
+            main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
 
             main.startDelay = (int)F(bases, "startDelayType", 0f) == 1
                 ? new ParticleSystem.MinMaxCurve(F(bases, "startDelayMin", 0f), F(bases, "startDelayMax", 0f))
@@ -262,8 +421,10 @@ namespace Shenxiao.Editor.Laya3D
             int colorType = (int)F(bases, "startColorType", 0f);
             if (colorType == 2 && vec4s?["startColorConstantMin"] is JArray cMin && vec4s["startColorConstantMax"] is JArray cMax)
                 main.startColor = new ParticleSystem.MinMaxGradient(C4(cMin), C4(cMax));
-            else if (vec4s?["startColorConstant"] is JArray c0)
+            else if (colorType == 0 && vec4s?["startColorConstant"] is JArray c0)
                 main.startColor = new ParticleSystem.MinMaxGradient(C4(c0));
+            else if (colorType != 0)
+                main.startColor = new ParticleSystem.MinMaxGradient(Color.white);
 
             if (bases["randomSeed"] != null && !B(bases, "autoRandomSeed", true))
             {
@@ -281,8 +442,7 @@ namespace Shenxiao.Editor.Laya3D
                 {
                     var list = new List<ParticleSystem.Burst>();
                     foreach (JToken b in bursts)
-                        list.Add(new ParticleSystem.Burst(JF(b, "time", 0f),
-                            (short)JF(b, "min", 0f), (short)JF(b, "max", 0f)));
+                        list.Add(CreateBurst(b));
                     emission.SetBursts(list.ToArray());
                 }
             }
@@ -309,8 +469,19 @@ namespace Shenxiao.Editor.Laya3D
                 case 2: psr.renderMode = ParticleSystemRenderMode.HorizontalBillboard; break;
                 case 3: psr.renderMode = ParticleSystemRenderMode.VerticalBillboard; break;
                 case 4:
-                    psr.renderMode = ParticleSystemRenderMode.Mesh;
-                    ctx.Report.Log.AppendLine($"   ⚠ {go.name}: Mesh 渲染模式的网格引用待样本核对(暂按 Billboard 资源缺省)");
+                    Mesh particleMesh = LoadEffectMesh((string)(rd?["resources"]?["mesh"]), ctx);
+                    if (particleMesh != null)
+                    {
+                        psr.renderMode = ParticleSystemRenderMode.Mesh;
+                        psr.alignment = ParticleSystemRenderSpace.Local;
+                        psr.mesh = particleMesh;
+                        ctx.Report.Log.AppendLine($"   Mesh 粒子 {go.name}: {Path.GetFileName((string)(rd?["resources"]?["mesh"]))}");
+                    }
+                    else
+                    {
+                        psr.renderMode = ParticleSystemRenderMode.Billboard;
+                        ctx.Report.Log.AppendLine($"   ⚠ {go.name}: Mesh 粒子缺少 mesh 资源,已回退 Billboard");
+                    }
                     break;
                 default: psr.renderMode = ParticleSystemRenderMode.Billboard; break;
             }
@@ -578,6 +749,36 @@ namespace Shenxiao.Editor.Laya3D
             go.AddComponent<MeshRenderer>().sharedMaterial = mat ?? DefaultParticleMaterial(ctx);
         }
 
+        private static Mesh LoadEffectMesh(string lmRel, Context ctx)
+        {
+            if (string.IsNullOrEmpty(lmRel)) return null;
+            string lmAbs = Path.GetFullPath(Path.Combine(ctx.LhDir, lmRel));
+            if (ctx.MeshCache.TryGetValue(lmAbs, out Mesh cached)) return cached;
+            if (!File.Exists(lmAbs))
+            {
+                ctx.Report.Log.AppendLine("   ⚠ 粒子 .lm 不存在 " + lmRel);
+                return null;
+            }
+
+            LmMesh lm = LmParser.Parse(File.ReadAllBytes(lmAbs));
+            Mesh mesh = Laya3DImporter.BuildMeshForEffect(lm, new Laya3DImporter.Result());
+            string meshAsset = ctx.OutDir + "/" + SafeAssetStem(lmAbs) + "_particle_mesh.asset";
+            Mesh existing = AssetDatabase.LoadAssetAtPath<Mesh>(meshAsset);
+            if (existing != null)
+            {
+                EditorUtility.CopySerialized(mesh, existing);
+                UnityEngine.Object.DestroyImmediate(mesh);
+            }
+            else
+            {
+                AssetDatabase.CreateAsset(mesh, meshAsset);
+            }
+
+            Mesh loaded = AssetDatabase.LoadAssetAtPath<Mesh>(meshAsset);
+            ctx.MeshCache[lmAbs] = loaded;
+            return loaded;
+        }
+
         /// <summary>TrailSprite3D → TrailRenderer 近似(time/width/widthCurve/colorGradient)。</summary>
         private static void BuildTrail(GameObject go, JObject props, Context ctx)
         {
@@ -627,29 +828,40 @@ namespace Shenxiao.Editor.Laya3D
             JObject props = doc["props"] as JObject ?? new JObject();
             string type = (string)props["type"] ?? "ShurikenParticleMaterial";
 
-            // 混合模式判定(优先级:.lmat 显式 srcBlend/dstBlend > renderMode > 类型默认)。
-            // Laya 加色 = dst 为 ONE(1);普通混合 = dst 为 ONE_MINUS_SRC_ALPHA。
-            // 关键:仙侠发光特效默认加色——纹理黑底亮线,普通混合会把黑底盖成黑块(发黑根因)。
+            // 混合状态:Laya 存在 props.renderStates[0]。srcBlend/dstBlend 是 WebGL 混合因子枚举
+            // (770=SrcAlpha 771=OneMinusSrcAlpha 1=One 0=Zero),depthWrite/cull 同处;旧式材质退化读 props。
+            // 关键修复(v3):此前只读 props["dstBlend"](恒为空,真实数据在 renderStates 里)+ 类型判等漏了
+            // "Laya." 前缀,导致加色刀光/glow(dstBlend=One)全被当普通混合 → 黑底盖成黑块(发黑根因)。
+            JArray rsArr = props["renderStates"] as JArray;
+            JObject rs = rsArr != null && rsArr.Count > 0 ? rsArr[0] as JObject : null;
+            int? srcGl = IntFrom(rs, props, "srcBlend");
+            int? dstGl = IntFrom(rs, props, "dstBlend");
+
             bool additive;
-            JToken dstTok = props["dstBlend"];
-            if (dstTok != null)
+            UnityEngine.Rendering.BlendMode srcBlend, dstBlend;
+            if (srcGl.HasValue && dstGl.HasValue)
             {
-                int dst = (int)(float)dstTok;
-                additive = dst == 1 || dst == 0x0001; // BLENDPARAM_ONE
-            }
-            else if (props["renderMode"] != null)
-            {
-                int renderMode = (int)(float)props["renderMode"];
-                additive = type == "ShurikenParticleMaterial" ? renderMode != 0 : renderMode == 3;
+                srcBlend = MapGlBlend(srcGl.Value, UnityEngine.Rendering.BlendMode.SrcAlpha);
+                dstBlend = MapGlBlend(dstGl.Value, UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                additive = dstBlend == UnityEngine.Rendering.BlendMode.One;
             }
             else
             {
-                additive = type == "ShurikenParticleMaterial"; // 粒子默认加色
+                bool isParticle = type.EndsWith("ShurikenParticleMaterial"); // 兼容 "Laya." 命名空间前缀
+                if (props["renderMode"] != null)
+                {
+                    int renderMode = (int)(float)props["renderMode"];
+                    additive = isParticle ? renderMode != 0 : renderMode == 3;
+                }
+                else additive = isParticle; // 粒子无显式混合时默认加色
+                srcBlend = UnityEngine.Rendering.BlendMode.SrcAlpha;
+                dstBlend = additive ? UnityEngine.Rendering.BlendMode.One : UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha;
             }
-            ctx.Report.Log.AppendLine($"   材质 {Path.GetFileName(lmatAbs)}: type={type} 混合={(additive ? "加色Additive" : "普通Alpha")}");
+            bool depthWrite = (rs ?? props).Value<bool?>("depthWrite") ?? false;
+            ctx.Report.Log.AppendLine($"   材质 {Path.GetFileName(lmatAbs)}: type={type} src={srcBlend} dst={dstBlend} 混合={(additive ? "加色Additive" : "普通Alpha")}");
 
-            var mat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
-            SetupTransparent(mat, additive);
+            var mat = CreateParticleMaterial();
+            SetupTransparent(mat, srcBlend, dstBlend, additive, depthWrite);
 
             // vectors:color/_TintColor/albedoColor → _BaseColor;tilingOffset → _BaseMap_ST
             if (props["vectors"] is JArray vectors)
@@ -659,10 +871,14 @@ namespace Shenxiao.Editor.Laya3D
                     string vName = (string)v["name"];
                     JArray val = v["value"] as JArray;
                     if (val == null) continue;
-                    if ((vName == "color" || vName == "_TintColor" || vName == "albedoColor") && val.Count >= 4)
-                        mat.SetColor("_BaseColor", C4(val));
+                    if (IsLayaColorComponent(vName) && val.Count >= 4)
+                    {
+                        Color color = LayaShaderColor(C4(val));
+                        mat.SetColor("_BaseColor", color);
+                        mat.SetColor("_Color", color);
+                    }
                     else if (vName == "tilingOffset" && val.Count >= 4)
-                        mat.SetVector("_BaseMap_ST", new Vector4((float)val[0], (float)val[1], (float)val[2], (float)val[3]));
+                        SetTextureScaleOffset(mat, val);
                 }
             }
 
@@ -673,7 +889,12 @@ namespace Shenxiao.Editor.Laya3D
                     string texRel = (string)t["path"];
                     if (string.IsNullOrEmpty(texRel)) continue;
                     Texture2D tex = ImportTexture(texRel, lmatAbs, ctx);
-                    if (tex != null) { mat.SetTexture("_BaseMap", tex); break; }
+                    if (tex != null)
+                    {
+                        mat.SetTexture("_BaseMap", tex);
+                        mat.SetTexture("_MainTex", tex);
+                        break;
+                    }
                 }
             }
 
@@ -685,27 +906,144 @@ namespace Shenxiao.Editor.Laya3D
         }
 
         /// <summary>
-        /// URP Particles/Unlit 透明设置。_Blend 枚举:0 Alpha / 1 Premultiply / 2 Additive / 3 Multiply。
-        /// 加色 = SrcAlpha/One;普通 = SrcAlpha/OneMinusSrcAlpha;均双面、不写深度、透明队列。
-        /// _BaseColor 强制白(缺 tint 时不发黑);加色还要关掉颜色 tint 影响。
+        /// URP Particles/Unlit 透明设置。src/dst = 解析自 Laya renderStates 的真实混合因子(GPU 实际生效);
+        /// _Blend 枚举(0 Alpha / 2 Additive)仅作 Inspector 显示。均双面、透明队列;
+        /// depthWrite 跟随源(特效一般不写深度)。_BaseColor 默认白,随后被 .lmat 的 tint 覆盖(若有)。
         /// </summary>
-        private static void SetupTransparent(Material mat, bool additive)
+        private static void SetupTransparent(Material mat, UnityEngine.Rendering.BlendMode src,
+            UnityEngine.Rendering.BlendMode dst, bool additive, bool depthWrite)
         {
+            bool premultiply = src == UnityEngine.Rendering.BlendMode.One &&
+                dst == UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha;
+            bool multiply = IsMultiplyBlend(src, dst);
+
             mat.SetFloat("_Surface", 1f);                    // Transparent
-            mat.SetFloat("_Blend", additive ? 2f : 0f);      // 2=Additive / 0=Alpha
+            mat.SetFloat("_Blend", additive ? 2f : premultiply ? 1f : multiply ? 3f : 0f);
             mat.SetOverrideTag("RenderType", "Transparent");
-            mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            mat.SetFloat("_DstBlend", additive
-                ? (float)UnityEngine.Rendering.BlendMode.One
-                : (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            mat.SetFloat("_ZWrite", 0f);
+            mat.SetFloat("_SrcBlend", (float)src);
+            mat.SetFloat("_DstBlend", (float)dst);
+            mat.SetFloat("_SrcBlendAlpha", (float)src);
+            mat.SetFloat("_DstBlendAlpha", (float)dst);
+            mat.SetFloat("_BlendOp", (float)UnityEngine.Rendering.BlendOp.Add);
+            mat.SetFloat("_ZWrite", depthWrite ? 1f : 0f);
             mat.SetFloat("_Cull", (float)UnityEngine.Rendering.CullMode.Off);
-            mat.SetColor("_BaseColor", Color.white);         // 默认白,避免缺 tint 时发黑
             mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            // URP 粒子混合关键字:加色/普通都走 modulate,不要 premultiply(会压暗)
-            mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-            mat.EnableKeyword("_ALPHAMODULATE_ON");
+            mat.SetColor("_BaseColor", Color.white);         // 默认白,避免缺 tint 时发黑
+            mat.SetShaderPassEnabled("ALWAYS", false);
+            mat.SetShaderPassEnabled("DepthOnly", false);
+            mat.SetShaderPassEnabled("SHADOWCASTER", false);
+            if (mat.shader == null || mat.shader.name != "Shenxiao/Effect/LayaParticleUnlit")
+            {
+                mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                mat.DisableKeyword("_ALPHAMODULATE_ON");
+                if (premultiply) mat.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+                else if (multiply) mat.EnableKeyword("_ALPHAMODULATE_ON");
+            }
+        }
+
+        /// <summary>
+        /// Laya burst 使用浮点 emitCount, for(i&lt;emitCount) 导致 0~1 的正随机值也会发 1 个;
+        /// Unity Burst 是整数随机,直接 0~1 会有一半概率不发,创角刀光会整片丢失。
+        /// </summary>
+        private static ParticleSystem.Burst CreateBurst(JToken data)
+        {
+            float time = JF(data, "time", 0f);
+            float layaMin = JF(data, "min", 0f);
+            float layaMax = JF(data, "max", 0f);
+            int max = Mathf.Max(0, Mathf.CeilToInt(layaMax));
+            int min;
+            if (layaMax > layaMin)
+                min = Mathf.Max(1, Mathf.FloorToInt(layaMin) + 1);
+            else
+                min = Mathf.Max(0, Mathf.CeilToInt(layaMin));
+            min = Mathf.Clamp(min, 0, max);
+            return new ParticleSystem.Burst(time, (short)min, (short)max);
+        }
+
+        private static bool IsMultiplyBlend(UnityEngine.Rendering.BlendMode src, UnityEngine.Rendering.BlendMode dst)
+        {
+            return src == UnityEngine.Rendering.BlendMode.DstColor ||
+                dst == UnityEngine.Rendering.BlendMode.SrcColor ||
+                dst == UnityEngine.Rendering.BlendMode.DstColor ||
+                (src == UnityEngine.Rendering.BlendMode.Zero && dst != UnityEngine.Rendering.BlendMode.One);
+        }
+
+        private static Shader FindParticleShader()
+        {
+            const string customShaderPath = "Assets/Shaders/LayaParticleUnlit.shader";
+            Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(customShaderPath);
+            if (shader != null) return shader;
+            shader = Shader.Find("Shenxiao/Effect/LayaParticleUnlit");
+            if (shader != null) return shader;
+            shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+            if (shader != null) return shader;
+            shader = Shader.Find("Particles/Standard Unlit");
+            if (shader != null) return shader;
+            shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader != null) return shader;
+            throw new InvalidOperationException("找不到可用的粒子透明 Shader。请确认 URP 包已导入。");
+        }
+
+        private static Material CreateParticleMaterial()
+        {
+            return new Material(FindParticleShader());
+        }
+
+        private static void SetTextureScaleOffset(Material mat, JArray val)
+        {
+            var scale = new Vector2((float)val[0], (float)val[1]);
+            var offset = new Vector2((float)val[2], (float)val[3]);
+            mat.SetTextureScale("_BaseMap", scale);
+            mat.SetTextureOffset("_BaseMap", offset);
+            mat.SetTextureScale("_MainTex", scale);
+            mat.SetTextureOffset("_MainTex", offset);
+            mat.SetVector("_BaseMap_ST", new Vector4(scale.x, scale.y, offset.x, offset.y));
+            mat.SetVector("_MainTex_ST", new Vector4(scale.x, scale.y, offset.x, offset.y));
+        }
+
+        private static string SafeAssetStem(string path)
+        {
+            string name = Path.GetFileNameWithoutExtension(path);
+            foreach (char c in Path.GetInvalidFileNameChars())
+                name = name.Replace(c, '_');
+            return name;
+        }
+
+        /// <summary>renderStates[0] 优先、退化到 props 的 int 取值(混合因子/枚举用)。</summary>
+        private static int? IntFrom(JObject primary, JObject fallback, string key)
+        {
+            JToken t = primary?[key] ?? fallback?[key];
+            return t == null || t.Type == JTokenType.Null ? (int?)null : (int)(float)t;
+        }
+
+        /// <summary>WebGL/Laya 混合因子枚举 → Unity BlendMode(770=SrcAlpha 771=OneMinusSrcAlpha 1=One …)。</summary>
+        private static UnityEngine.Rendering.BlendMode MapGlBlend(int gl, UnityEngine.Rendering.BlendMode def)
+        {
+            switch (gl)
+            {
+                case 0: return UnityEngine.Rendering.BlendMode.Zero;
+                case 1: return UnityEngine.Rendering.BlendMode.One;
+                case 768: return UnityEngine.Rendering.BlendMode.SrcColor;
+                case 769: return UnityEngine.Rendering.BlendMode.OneMinusSrcColor;
+                case 770: return UnityEngine.Rendering.BlendMode.SrcAlpha;
+                case 771: return UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha;
+                case 772: return UnityEngine.Rendering.BlendMode.DstAlpha;
+                case 773: return UnityEngine.Rendering.BlendMode.OneMinusDstAlpha;
+                case 774: return UnityEngine.Rendering.BlendMode.DstColor;
+                case 775: return UnityEngine.Rendering.BlendMode.OneMinusDstColor;
+                default: return def;
+            }
+        }
+
+        private static bool IsLayaColorComponent(string name)
+        {
+            return name == "color" || name == "_TintColor" || name == "_Color" || name == "albedoColor";
+        }
+
+        private static Color LayaShaderColor(Color color)
+        {
+            return new Color(color.r * 2f, color.g * 2f, color.b * 2f, color.a);
         }
 
         /// <summary>贴图镜像进 GameRes(按 cdn/resource 相对路径,跨特效共享)。</summary>
@@ -738,8 +1076,9 @@ namespace Shenxiao.Editor.Laya3D
             const string path = "Assets/GameRes/effect/__default_particle.mat";
             var existing = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (existing != null) return existing;
-            var mat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
-            SetupTransparent(mat, additive: true);
+            var mat = CreateParticleMaterial();
+            SetupTransparent(mat, UnityEngine.Rendering.BlendMode.SrcAlpha,
+                UnityEngine.Rendering.BlendMode.One, additive: true, depthWrite: false);
             Directory.CreateDirectory("Assets/GameRes/effect");
             AssetDatabase.CreateAsset(mat, path);
             return AssetDatabase.LoadAssetAtPath<Material>(path);

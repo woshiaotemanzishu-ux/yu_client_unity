@@ -72,7 +72,7 @@ namespace Shenxiao.Editor.AssetHub
             };
         }
 
-        /// <summary>特效域:effect/objs/{18 个类型目录}/*.lh 全清单;走 LayaEffectImporter(粒子线 v1)。</summary>
+        /// <summary>特效域:effect/objs/{18 个类型目录}/*.lh 全清单;统一走 LayaEffectImporter 当前版本。</summary>
         private static List<AssetEntry> ScanEffects()
         {
             string objsRoot = Path.Combine(LayaUISettings.CdnResourceRoot, "effect", "objs");

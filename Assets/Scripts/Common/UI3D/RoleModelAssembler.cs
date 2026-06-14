@@ -15,6 +15,7 @@ namespace Shenxiao.Common.UI3D
         public int WingId;          // model_wing_{id},0=无(挂 wing 骨)
         public int BackOrnamentId;  // model_back_{id},0=无(挂 wing 骨,AttachNode.BackOrnament)
         public string[] Actions;    // 按 ConfigModelAni(顺序播放,最后一个循环与否由 .lani 决定)
+        public bool AutoPlayActions = true;
     }
 
     /// <summary>
@@ -50,7 +51,8 @@ namespace Shenxiao.Common.UI3D
                 await AttachPart(root, "wing", Key("back", "model_back_" + spec.BackOrnamentId),
                     "back", spec.BackOrnamentId.ToString());
 
-            await ApplyActions(root, spec);
+            await PrepareActions(root, spec.Career, spec.Actions);
+            if (spec.AutoPlayActions) PlayActions(root, spec.Actions);
             return root;
         }
 
@@ -84,15 +86,14 @@ namespace Shenxiao.Common.UI3D
                 await EffectBinder.AttachAlways(part, effectModule, effectKey);
         }
 
-        private static async Task ApplyActions(GameObject root, RoleModelSpec spec)
+        public static async Task PrepareActions(GameObject root, int career, string[] actions)
         {
-            if (spec.Actions == null || spec.Actions.Length == 0) return;
+            if (root == null || actions == null || actions.Length == 0) return;
             var anim = root.GetComponent<Animation>();
             if (anim == null) anim = root.AddComponent<Animation>();
             // 动作目录 = 1000 + career*100(剑士1100/武姬1200/枪使1300/弓手1400)
-            string dir = (1000 + spec.Career * 100).ToString();
-            bool first = true;
-            foreach (string name in spec.Actions)
+            string dir = (1000 + career * 100).ToString();
+            foreach (string name in actions)
             {
                 if (anim.GetClip(name) == null)
                 {
@@ -104,6 +105,19 @@ namespace Shenxiao.Common.UI3D
                     }
                     anim.AddClip(clip, name);
                 }
+            }
+        }
+
+        public static void PlayActions(GameObject root, string[] actions)
+        {
+            if (root == null || actions == null || actions.Length == 0) return;
+            var anim = root.GetComponent<Animation>();
+            if (anim == null) return;
+            anim.Stop();
+            bool first = true;
+            foreach (string name in actions)
+            {
+                if (anim.GetClip(name) == null) continue;
                 if (first)
                 {
                     anim.Play(name);

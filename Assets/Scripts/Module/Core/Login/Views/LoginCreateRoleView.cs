@@ -149,13 +149,15 @@ namespace Shenxiao.Module.Core.Login
                 return;
             }
             int selectedAtRequest = _selectedIndex;
+            string[] actions = LoginConfigs.RoleUIActions("LoginCreateRoleView");
             GameObject model = await RoleModelAssembler.BuildAsync(new RoleModelSpec
             {
                 Career = o.Career,
                 ClotheRes = res.RoleRes,
                 WeaponRes = res.WeaponRes,
                 HeadRes = res.HeadRes,
-                Actions = LoginConfigs.RoleUIActions("LoginCreateRoleView"),
+                Actions = actions,
+                AutoPlayActions = false,
             });
             if (model == null) return;
             if (selectedAtRequest != _selectedIndex || !gameObject.activeInHierarchy)
@@ -164,12 +166,25 @@ namespace Shenxiao.Module.Core.Login
                 return;
             }
             // 创角骨骼特效(ConfigLogin.CreateRole.Effect,如 cj_1100 脚下漩涡,skills_effect 目录)
+            var createEffects = new List<GameObject>();
             foreach ((string bone, string fx) in LoginConfigs.CreateRoleEffects(o.Career, o.Sex))
             {
-                _ = Shenxiao.Common.UI3D.EffectBinder.AttachOne(model, bone, "skills_effect", fx);
+                GameObject effect = await Shenxiao.Common.UI3D.EffectBinder.AttachOne(
+                    model, bone, "skills_effect", fx, "bone", playOnAttach: false);
+                if (effect != null) createEffects.Add(effect);
+            }
+            if (selectedAtRequest != _selectedIndex || !gameObject.activeInHierarchy)
+            {
+                Destroy(model);
+                return;
             }
             UIModelStage.ShowInstance(_gp_model_con, model,
                 MODEL_SCALE, LoginConfigs.GetModelPos("CreateRole", o.Career, o.Sex));
+            RoleModelAssembler.PlayActions(model, actions);
+            foreach (GameObject effect in createEffects)
+            {
+                Shenxiao.Common.UI3D.EffectBinder.PlayOneShot(effect);
+            }
         }
 
         private void OnClickRandomName()
