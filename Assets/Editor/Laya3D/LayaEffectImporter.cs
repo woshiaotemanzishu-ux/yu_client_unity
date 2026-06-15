@@ -20,7 +20,7 @@ namespace Shenxiao.Editor.Laya3D
     public static class LayaEffectImporter
     {
         /// <summary>特效转换逻辑版本(独立于模型线 Laya3DImporter.TOOL_VERSION)。</summary>
-        public const int TOOL_VERSION = 14; // v14: match Laya3D Shuriken shader color semantics.
+        public const int TOOL_VERSION = 15; // v15: ×2 移进 shader(无条件),tint 不再在 C# ×2;旧材质须重转(否则 4 倍过亮)
 
         public sealed class Result
         {
@@ -1054,9 +1054,13 @@ namespace Shenxiao.Editor.Laya3D
             return name == "color" || name == "_TintColor" || name == "_Color" || name == "albedoColor";
         }
 
+        /// <summary>
+        /// 读取 tint 原值,不再 ×2。Laya 的 "* 2.0" 已移进 LayaParticleUnlit.shader(无条件、含顶点色),
+        /// 在这里 ×2 只会命中"有显式 tint 向量的材质",无 tint 材质漏掉 → 半亮(旧暗淡根因)。
+        /// </summary>
         private static Color LayaShaderColor(Color color)
         {
-            return new Color(color.r * 2f, color.g * 2f, color.b * 2f, color.a);
+            return color;
         }
 
         /// <summary>贴图镜像进 GameRes(按 cdn/resource 相对路径,跨特效共享)。</summary>

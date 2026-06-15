@@ -77,8 +77,11 @@ Shader "Shenxiao/Effect/LayaParticleUnlit"
 
             half4 Frag(Varyings input) : SV_Target
             {
+                // 对标 Laya 原生粒子 shader:gl_FragColor = texture * u_Tintcolor * 2.0 * v_Color。
+                // ×2 无条件作用于每个粒子(含默认白 tint),这一步必须在 shader 里做——
+                // 放 C# 只在材质有显式 tint 时生效,导致无 tint 材质半亮(暗淡根因)。
                 half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv) * _BaseColor * input.color;
-                return color;
+                return color * 2.0h;
             }
             ENDHLSL
         }
