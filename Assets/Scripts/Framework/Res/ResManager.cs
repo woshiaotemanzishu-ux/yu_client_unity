@@ -34,6 +34,10 @@ namespace Shenxiao.Framework.Res
         public static async Task<T> LoadAsync<T>(string addrKey) where T : UnityEngine.Object
         {
             string key = ResourcePath.Normalize(addrKey);
+#if UNITY_EDITOR
+            T convertedEffect = LoadEditorConvertedEffectSource<T>(key);
+            if (convertedEffect != null) return convertedEffect;
+#endif
             if (!await KeyExists(key))
             {
 #if UNITY_EDITOR
@@ -72,6 +76,15 @@ namespace Shenxiao.Framework.Res
         public static async Task<GameObject> InstantiateAsync(string addrKey, Transform parent = null)
         {
             string key = ResourcePath.Normalize(addrKey);
+#if UNITY_EDITOR
+            GameObject convertedEffect = LoadEditorConvertedEffectSource<GameObject>(key);
+            if (convertedEffect != null)
+            {
+                GameObject effectGo = UnityEngine.Object.Instantiate(convertedEffect, parent);
+                _editorFallbackInstances.Add(effectGo);
+                return effectGo;
+            }
+#endif
             // 先查 key 是否登记,避免 Addressables 对无效 key 在控制台抛 InvalidKeyException
             if (!await KeyExists(key))
             {
@@ -252,12 +265,19 @@ namespace Shenxiao.Framework.Res
         }
 
 #if UNITY_EDITOR
+        private static T LoadEditorConvertedEffectSource<T>(string key) where T : UnityEngine.Object
+        {
+            if (typeof(T) != typeof(GameObject)) return null;
+            if (!key.StartsWith("effect/objs/", StringComparison.Ordinal)) return null;
+            return LoadEditorAssetFallback<T>(key);
+        }
+
         private static GameObject LoadEditorPrefabFallback(string key)
         {
             string fileName = Path.GetFileName(key);
             if (string.IsNullOrEmpty(fileName)) return null;
 
-            string[] searchFolders = { "Assets/Prefabs", "Assets/_App" };
+            string[] searchFolders = { "Assets/GameRes", "Assets/Prefabs", "Assets/_App" };
             string[] guids = AssetDatabase.FindAssets(fileName + " t:Prefab", searchFolders);
             for (int i = 0; i < guids.Length; i++)
             {
