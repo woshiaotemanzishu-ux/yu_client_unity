@@ -33,5 +33,18 @@ namespace Shenxiao.Framework.Net
         /// <summary>执行 GM 秘籍。发 "s" 命令串(命令_参数_参数,如 "lv_100"、"goods_36010001_10")。
         /// 鉴权:服务端 gm_password 为空则全放行;否则先发 "setgmpassword_密码"。</summary>
         public const int GM_CHEAT_EXEC = 11101;
+
+        // ----- 玩家信息(130xx,yu_server pt_130.erl)进游戏后服务端主动推送 -----
+        /// <summary>主角全量信息(进游戏首推)。回包见 pt_130 write(13001):
+        /// Id:l, 平台:s, 服数:h, 跨服消息:s, 服id:h, 服名:s, Figure块, BattleAttr块,
+        /// 场景:i, X:h, Y:h, 副本:i, 经验:l, 经验上限:l, 元宝:i, 绑元:i, 铜币:l, 帮贡:i,
+        /// 战力:l, 帮派id:l, 帮派名:s, pk变更时间:h, pk值:h, 队伍id:l, 配偶id:l, ip:s, 阵营:h, 注册时间:i。</summary>
+        public const int ROLE_INFO = 13001;
+        /// <summary>经验变更。回包 "l"(exp)。</summary>
+        public const int ROLE_EXP = 13002;
+        /// <summary>升级。回包 "hll"(level, exp, expLim)。</summary>
+        public const int ROLE_LEVEL = 13003;
+        /// <summary>货币。回包 "liii"(铜币 coin, 元宝 gold, 绑元 bgold, 帮贡 gcoin)。</summary>
+        public const int ROLE_CURRENCY = 13006;
     }
 }

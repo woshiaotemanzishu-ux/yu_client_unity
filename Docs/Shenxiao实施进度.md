@@ -255,3 +255,13 @@ HttpUtil / GmApi(HTTP 参考)/ NetManager / ErlangParser / UserMsgAdapter / View
 - GM 秘籍工具:服务端 11100 下发全量清单(350+ 命令零硬编码),神霄/GM 秘籍 窗口
   分类/搜索/参数默认值/直发;运行时 GmCheatController。
 - 编码规范 §十二 增补(3D/特效/协议/GM 硬规则)。
+
+
+## 2026-06-15(协议线 Phase A)
+
+- 特效线闭环:色彩空间切 Gamma + ×2 移进 shader(无条件,对标 Laya 原生)+ 自定义 shader 进本地
+  Addressable 组(修紫块)+ Play Mode 默认 Use Asset Database(杜绝重转 vs 旧 bundle 错位)。
+- 进游戏协议框架 Phase A:ControllerHub(注册中心)+ GameEntryFlow(进游戏编排,自装)+
+  RoleController/RoleModel(13001/13002/13003/13006,对标 pt_130)+ BaseController.Dispose +
+  NetReader.ReadArray + BattleAttrProto。"进游戏看到主角数据"骨架就位,待真机验证。
+- 方案定:协议接入"先手搓一个真实模块(RoleController)→ 再建协议代码生成器(Phase B)→ 按模块批量(Phase C)"。

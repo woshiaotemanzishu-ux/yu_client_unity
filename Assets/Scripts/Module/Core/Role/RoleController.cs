@@ -1,0 +1,96 @@
+using Shenxiao.Common.Proto;
+using Shenxiao.Framework.Event;
+using Shenxiao.Framework.Net;
+using Shenxiao.Framework.Util;
+
+namespace Shenxiao.Module.Core.Role
+{
+    /// <summary>
+    /// 主角信息控制器(对标老客户端 RoleController 的 130xx 部分):
+    /// 接服务端进游戏后主动推送的 13001(全量)/13002(经验)/13003(升级)/13006(货币),
+    /// 写进 RoleModel,发 EVT_ROLE_INFO_UPDATE 供 UI 绑定。格式严格对标 yu_server pt_130。
+    /// 这是"进游戏看到主角"的首个游戏内模块,后续 130xx 其余协议在此扩展。
+    /// </summary>
+    public sealed class RoleController : BaseController
+    {
+        public static readonly RoleController Instance = new RoleController();
+        private RoleController() { }
+
+        protected override void Register()
+        {
+            RegisterProtocal(Proto.ROLE_INFO, On13001);
+            RegisterProtocal(Proto.ROLE_EXP, On13002);
+            RegisterProtocal(Proto.ROLE_LEVEL, On13003);
+            RegisterProtocal(Proto.ROLE_CURRENCY, On13006);
+        }
+
+        /// <summary>13001 主角全量(字段顺序严格对标 pt_130 write(13001))。</summary>
+        private void On13001(NetReader r)
+        {
+            RoleModel m = RoleModel.Instance;
+            m.RoleId = r.ReadU64();
+            r.ReadString();                 // platform(平台名,暂不用)
+            r.ReadU16();                    // server_num(服数)
+            r.ReadString();                 // cserver_msg(跨服消息)
+            m.ServerId = r.ReadU16();
+            m.ServerName = r.ReadString();
+            m.Figure = FigureProto.Read(r);
+            m.BattleAttr = BattleAttrProto.Read(r);
+            m.SceneId = (int)r.ReadU32();
+            m.X = r.ReadU16();
+            m.Y = r.ReadU16();
+            m.DunId = (int)r.ReadU32();
+            m.Exp = r.ReadU64();
+            m.ExpLim = r.ReadU64();
+            m.Gold = (int)r.ReadU32();       // 元宝
+            m.BGold = (int)r.ReadU32();      // 绑元
+            m.Coin = r.ReadU64();            // 铜币
+            m.GCoin = (int)r.ReadU32();      // 帮贡
+            m.CombatPower = r.ReadU64();
+            m.GuildId = r.ReadU64();
+            m.GuildName = r.ReadString();
+            r.ReadU16();                     // pk_change_time
+            r.ReadU16();                     // pk_value
+            r.ReadU64();                     // team_id
+            r.ReadU64();                     // mate_role_id
+            r.ReadString();                  // ip
+            r.ReadU16();                     // camp(阵营)
+            r.ReadU32();                     // reg_time
+            // level 不在 13001 里(由 13003 给);若从未收到 13003,用 figure.level 兜底
+            if (m.Level == 0 && m.Figure != null) m.Level = m.Figure.level;
+            m.MarkBaseInfoReady();
+            GameLog.Info("Role", "★ 13001 主角: {0} 服[{1}]{2} 战力={3} 场景={4}({5},{6}) 铜币={7} 元宝={8}",
+                m.Name, m.ServerId, m.ServerName, m.CombatPower, m.SceneId, m.X, m.Y, m.Coin, m.Gold);
+            EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
+        }
+
+        /// <summary>13002 经验 "l"。</summary>
+        private void On13002(NetReader r)
+        {
+            RoleModel.Instance.Exp = r.ReadU64();
+            EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
+        }
+
+        /// <summary>13003 升级 "hll"。</summary>
+        private void On13003(NetReader r)
+        {
+            RoleModel m = RoleModel.Instance;
+            m.Level = r.ReadU16();
+            m.Exp = r.ReadU64();
+            m.ExpLim = r.ReadU64();
+            GameLog.Info("Role", "13003 等级={0} 经验={1}/{2}", m.Level, m.Exp, m.ExpLim);
+            EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
+        }
+
+        /// <summary>13006 货币 "liii"(铜币/元宝/绑元/帮贡)。</summary>
+        private void On13006(NetReader r)
+        {
+            RoleModel m = RoleModel.Instance;
+            m.Coin = r.ReadU64();
+            m.Gold = (int)r.ReadU32();
+            m.BGold = (int)r.ReadU32();
+            m.GCoin = (int)r.ReadU32();
+            EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
+        }
+    }
+}

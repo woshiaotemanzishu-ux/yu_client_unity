@@ -83,6 +83,18 @@ namespace Shenxiao.Framework.Net
             return result;
         }
 
+        /// <summary>
+        /// 数组:u16 计数 + 逐元素(对标服务端 pt:write_array / 客户端数组约定)。
+        /// elem 用 NetReader 自行读一个元素,返回它。例:ReadArray(r => (r.ReadU16(), r.ReadI32()))。
+        /// </summary>
+        public System.Collections.Generic.List<T> ReadArray<T>(System.Func<NetReader, T> elem)
+        {
+            int count = ReadU16();
+            var list = new System.Collections.Generic.List<T>(count);
+            for (int i = 0; i < count; i++) list.Add(elem(this));
+            return list;
+        }
+
         private object ReadOne(char fmt)
         {
             switch (fmt)

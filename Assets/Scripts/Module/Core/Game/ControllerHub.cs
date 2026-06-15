@@ -1,0 +1,39 @@
+using System.Collections.Generic;
+using Shenxiao.Framework.Net;
+using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Gm;
+using Shenxiao.Module.Core.Role;
+
+namespace Shenxiao.Module.Core.Game
+{
+    /// <summary>
+    /// 游戏内控制器注册中心:进游戏统一 Init、断线/登出统一 Dispose。
+    /// 新增游戏内模块 = 在 ALL 里加一行(对标老客户端各 commonController 的集中注册)。
+    /// 登录控制器(LoginController)不在此列——它在登录链就绪、跨越进游戏边界,单独管理。
+    /// </summary>
+    public static class ControllerHub
+    {
+        private static readonly BaseController[] ALL =
+        {
+            RoleController.Instance,
+            GmCheatController.Instance,
+            // 后续:BagController / EquipController / ChatController / TaskController ...
+        };
+
+        public static bool Initialized { get; private set; }
+
+        public static void InitAll()
+        {
+            foreach (BaseController c in ALL) c.Init();
+            Initialized = true;
+            GameLog.Info("Game", "游戏内控制器已注册: {0} 个", ALL.Length);
+        }
+
+        public static void DisposeAll()
+        {
+            foreach (BaseController c in ALL) c.Dispose();
+            Initialized = false;
+            GameLog.Info("Game", "游戏内控制器已注销(断线/登出)");
+        }
+    }
+}

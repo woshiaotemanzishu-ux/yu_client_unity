@@ -88,3 +88,22 @@
 - Unity 工具:`神霄/GM 秘籍`(Play 模式)——拉取清单 → 分类/搜索/参数默认值/一键发送,
   顶部直发框可敲任意命令。运行时 `GmCheatController` 可被其他调试入口复用。
 - 老客户端对照:按 Z 呼出 CheatInputView(KeyInput.ts:65,需 TestYouWant=1 或本地模式)。
+
+
+## 7. 进游戏框架(Phase A 落地,2026-06-15)
+
+进游戏后的协议接入骨架就位,"进游戏看到主角数据"打通:
+
+- **ControllerHub**(Module/Core/Game):游戏内控制器注册中心。进游戏 `InitAll()`、断线/登出 `DisposeAll()`;新增模块在 `ALL[]` 加一行。当前含 RoleController、GmCheatController。
+- **GameEntryFlow**(Module/Core/Game):进游戏编排。`EVT_GAME_ENTERED`(10004 成功)→ 注册控制器 → 等 13001 全量 → 发 `EVT_ROLE_READY`(交主城/场景);`EVT_NET_DISCONNECTED` → 注销 + 重置主角。`[RuntimeInitializeOnLoadMethod]` 自装,无需手挂。
+- **RoleController + RoleModel**(Module/Core/Role):首个游戏内模块。接 13001(全量)/13002(经验)/13003(升级 hll)/13006(货币 liii),写 RoleModel,发 `EVT_ROLE_INFO_UPDATE`。格式严格对标 pt_130。
+- **BaseController 升级**:记录已注册协议号,`Dispose()` 统一注销(可重入)。
+- **NetReader.ReadArray<T>**:u16 计数数组通用读取(对标 pt:write_array);**BattleAttrProto**(Common/Proto):Hp/HpLim/Speed + 属性表,对标 pt:write_battle_attr。
+
+**模块接入模板(后续每个 130xx+ 模块照此)**:
+1. `Proto` 加该段协议号常量(注释带格式串 + pt 出处)。
+2. 复合 VO 放 `Common/Proto`(跨模块)或模块内;数组用 `NetReader.ReadArray`。
+3. `{X}Controller : BaseController`,Register 注册回调,回包写 `{X}Model`,发 `EVT_*`。
+4. 在 `ControllerHub.ALL` 注册一行。
+
+**下一步**:① 真机验证 13001 链路(进游戏 Console 看到主角名/等级/货币 + 不刷未注册错误);② 场景段 120xx 最小接入(出生场景);③ Phase B 协议代码生成器(schema→常量/VO/读取/桩)。
