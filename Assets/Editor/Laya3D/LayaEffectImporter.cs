@@ -882,21 +882,34 @@ namespace Shenxiao.Editor.Laya3D
                 }
             }
 
+            bool hasTexture = false;
+            int texDeclared = 0;
             if (props["textures"] is JArray textures)
             {
                 foreach (JToken t in textures)
                 {
                     string texRel = (string)t["path"];
                     if (string.IsNullOrEmpty(texRel)) continue;
+                    texDeclared++;
                     Texture2D tex = ImportTexture(texRel, lmatAbs, ctx);
                     if (tex != null)
                     {
                         mat.SetTexture("_BaseMap", tex);
                         mat.SetTexture("_MainTex", tex);
+                        hasTexture = true;
                         break;
                     }
                 }
             }
+
+            // 紫块诊断:shader 丢失/未编译 = 品红;贴图缺失 = 白(不是紫)。把"好像"变确定。
+            string shaderName = mat.shader != null ? mat.shader.name : "<null>";
+            bool shaderBad = mat.shader == null || !mat.shader.isSupported
+                             || shaderName == "Hidden/InternalErrorShader";
+            if (shaderBad)
+                ctx.Report.Log.AppendLine($"   ❌紫块根因 {Path.GetFileName(lmatAbs)}: shader 不可用 = {shaderName}(品红即此)");
+            if (texDeclared > 0 && !hasTexture)
+                ctx.Report.Log.AppendLine($"   ⚠贴图缺失 {Path.GetFileName(lmatAbs)}: 声明 {texDeclared} 张但全部导入失败(LFS 占位?)");
 
             string matAsset = ctx.OutDir + "/" + Path.GetFileNameWithoutExtension(lmatAbs) + ".mat";
             AssetDatabase.CreateAsset(mat, matAsset);
