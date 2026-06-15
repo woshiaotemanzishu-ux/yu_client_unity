@@ -39,6 +39,13 @@ namespace Shenxiao.EditorTools.AddrSetup
             AutoSpriteAtlas.Build();
 
             int countLocal = AssignFolderToGroup(settings, "Assets/_App", EnsureLocalGroup(settings));
+
+            // 自定义特效/通用 shader 必须随构建可用:它们被 Remote 特效材质隐式引用,
+            // 若不显式登记成本地 Addressable,bundle 模式下材质可能找不到 shader → 品红(紫块)。
+            // 放本地组(随包,不走远端)。
+            if (AssetDatabase.IsValidFolder("Assets/Shaders"))
+                countLocal += AssignFolderToGroup(settings, "Assets/Shaders", EnsureLocalGroup(settings));
+
             int countRemote = 0;
             var remoteRoot = "Assets/GameRes";
             if (AssetDatabase.IsValidFolder(remoteRoot))
