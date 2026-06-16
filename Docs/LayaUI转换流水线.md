@@ -220,3 +220,14 @@ login 模块(13 个窗口、9 个内联模板、完整业务链)证明了分工�
 **已知系统性边界(量产时直接归档,不算模块问题)**:
 3D 展示位(SetRoleModel/_gp_model 类容器)、Laya 时间轴动画、粒子,分别归
 3D 转换线与特效线;报告里见到这类节点直接标注跳过。
+
+
+## 主界面(mainUI)组合生成(2026-06-16)
+
+主界面不是单个场景,是 9 个 HUD 根 view 在运行时叠成的(对标老客户端 MainUIController.InitMainUI)。
+转换器默认"整模块所有 view-prefab 合一个预制体",对 mainUI 会把 35+ 个独立弹窗也揉进去 → 对不上。
+修:`Schemas/LayaUI/ui_groups.json` 定义 mainUI 组 = MainUIModule(顶栏/活动/技能/聊天/次级/
+任务队伍/下方/挂机/摇杆 9 个,与 ui_root_layouts.json 的根布局、MainUIFlow.FirstPassViews 一致)。
+其余 mainUI 场景自动成 leftovers,各自单独弹窗预制体。
+生成:神霄/LayaUI 转换器 → 选 mainUI → 合并转换 → 回填 → 得 MainUIModule.prefab(对标 LoginModule),
+再对着老客户端运行时微调。
