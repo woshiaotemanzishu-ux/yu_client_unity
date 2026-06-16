@@ -58,6 +58,7 @@ namespace Shenxiao.Module.Core.Game
             long serverTime = reader.ReadU64();
 
             TimeUtil.SyncServerTime(serverTime);
+            ServerTimeModel.SetServerTime(openTime, mergeStartTime);
             GameLog.Info("Game", "10201 server time ready: open={0} merge={1} mergeStart={2} mergeCount={3}",
                 openTime, mergeTime, mergeStartTime, mergeCount);
             EventDispatcher.Emit(GlobalEvent.EVT_GAME_START_FLAG_READY, "10201");

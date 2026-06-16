@@ -22,6 +22,7 @@ namespace Shenxiao.EditorTools.ConfigGen
             "UIModelParameter",
             "SceneObjectParticle",
             "ConfigFunctionIcon",
+            "ConfigFuncOpenCondition",
         };
 
         // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)

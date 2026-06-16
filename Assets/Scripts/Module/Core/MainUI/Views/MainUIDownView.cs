@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
+using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
+using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
 
@@ -18,17 +21,54 @@ namespace Shenxiao.Module.Core.MainUI
     ///   文案 "0 / 0"(对标 RefreshExpWithoutLevelUp 的 exp_lim==0 → persent=0 分支)。
     /// 数据只读 RoleModel(唯一真相源),监听 EVT_ROLE_INFO_UPDATE 刷新(对标老客户端 EXP_CHANGE_WITHOUT_ANIMATION)。
     /// 与 MainUITopView 一致用 OnDestroy 兜底注销:模块释放不走 ViewManager,只靠 OnDispose 会漏注销。
-    /// MainUIModel 尚未移植:翻面红点 _img_red 与经验特效盒 _box_exp_effect 在拿到数据/特效前隐藏(对标
-    /// UpdateTurnRed 的 turn_red_dot 驱动与 PlayAnim 里 AddUIEffect("ui_expbar") 后才显的 _box_exp_effect)。
-    /// 功能图标(MainFuncIconItem)依赖 MainUIModel.GetMainFuncOpenCond + Main_Func_Icons,未移植不造假图标。
+    /// 翻面红点 _img_red 与经验特效盒 _box_exp_effect:GetMainFuncRedState/AddUIEffect 依赖未移植模块,先隐藏。
+    /// 功能图标条(对标 UpdateIconItem):按 MainUIModel.Main_Func_Icons 两行 + ConfigFuncOpenCondition 开放判定
+    /// (FuncOpenConfig)铺设,翻面按钮在等级 ≥65 时循环 show_type;图标的点击跳转(SwitchView)依赖各功能
+    /// 模块,本期不接,只还原"显示哪些图标 + 翻面切换"。
     /// </summary>
     public sealed class MainUIDownView : MainUIDownViewBind
     {
         // 老客户端 MainUIDownView.ts 明确写死 max_len = 722,经验条目标宽度按它计算。
         private const float EXP_BAR_MAX_WIDTH = 722f;
         private const float FUNC_ICON_GAP = 105f;
-        private static readonly string[] AlwaysOpenMainFuncIcons = { "role", "bag" };
+        // 对标 MainUIModel.Turn_Open_lv:到此等级才能翻面切换第二行功能。
+        private const int TURN_OPEN_LV = 65;
+
+        /// <summary>功能图标条目:res=图标名(mainUI atlas);openView=功能开放判定的 view 类名(null=恒开)。</summary>
+        private readonly struct FuncIcon
+        {
+            public readonly string Res;
+            public readonly string OpenView;
+            public FuncIcon(string res, string openView)
+            {
+                Res = res;
+                OpenView = openView;
+            }
+        }
+
+        // 对标 MainUIModel.Main_Func_Icons:两行(show_type 0/1)。func→view 映射对标 GetMainFuncOpenCond。
+        private static readonly FuncIcon[][] FuncIconLines =
+        {
+            new[]
+            {
+                new FuncIcon("role", null),
+                new FuncIcon("bag", null),
+                new FuncIcon("pet", "MountPetView"),
+                new FuncIcon("equip", "EquipView"),
+                new FuncIcon("treasure", "SecretTreasureMainView"),
+            },
+            new[]
+            {
+                new FuncIcon("red", "RedEnterView"),
+                new FuncIcon("love", "MarriageBaseView"),
+                new FuncIcon("guild", "GuildJoinBaseView"),
+                new FuncIcon("composite", "CompositeView"),
+                new FuncIcon("232", "GodBefallMainView"),
+            },
+        };
+
         private readonly List<MainFuncIconItemBind> _funcIconItems = new List<MainFuncIconItemBind>();
+        private int _showType;
 
         protected override void OnInit()
         {
@@ -37,9 +77,19 @@ namespace Shenxiao.Module.Core.MainUI
 
             HideUnbackedIndicators();
             HideTemplates();
-            RefreshMainFuncIcons();
+
+            // 翻面按钮点击(对标 _gp_turn 的 turn_btn_fun);_gp_turn 是 Box 无 Graphic,点在可见的 _img_turn 上。
+            if (_img_turn != null)
+            {
+                _img_turn.raycastTarget = true;
+                UIUtil.AddClick(_img_turn, OnClickTurn);
+            }
+
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskListUpdate);
+
             RefreshExp();
+            _ = RefreshFuncIconsAsync();
         }
 
         protected override void OnShow(object args)
@@ -50,17 +100,31 @@ namespace Shenxiao.Module.Core.MainUI
 
         protected override void OnDispose()
         {
-            EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            Unsubscribe();
         }
 
         private void OnDestroy()
         {
+            Unsubscribe();
+        }
+
+        private void Unsubscribe()
+        {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskListUpdate);
         }
 
         private void OnRoleInfoUpdate()
         {
             RefreshExp();
+            // 等级变化可能解锁图标/翻面(对标 CHANGE_LEVEL → UpdateTurnState + 图标开放条件)。
+            _ = RefreshFuncIconsAsync();
+        }
+
+        private void OnTaskListUpdate()
+        {
+            // 最新完成任务变化可能解锁图标(对标 UPDATE_NEWEST_TASK_ID_NOT_DELAY → TryRefreshItem)。
+            _ = RefreshFuncIconsAsync();
         }
 
         /// <summary>
@@ -127,26 +191,80 @@ namespace Shenxiao.Module.Core.MainUI
             }
         }
 
-        private void RefreshMainFuncIcons()
+        /// <summary>
+        /// 先确保功能开放表就绪,再按当前 show_type 行 + 开放条件铺图标(对标 UpdateView → UpdateIconItem)。
+        /// 表是异步加载;await 后做存活检查(模块释放/对象销毁则不再操作)。
+        /// </summary>
+        private async Task RefreshFuncIconsAsync()
         {
-            for (int i = 0; i < AlwaysOpenMainFuncIcons.Length; i++)
+            await FuncOpenConfig.EnsureLoaded();
+            if (this == null) return; // view destroyed during await
+
+            UpdateTurnState();
+            BuildFuncIcons();
+        }
+
+        /// <summary>对标 UpdateIconItem:遍历当前行,GetMainFuncOpenCond 过的才显示并按 105 间距排布。</summary>
+        private void BuildFuncIcons()
+        {
+            FuncIcon[] line = FuncIconLines[_showType];
+            int shown = 0;
+            for (int i = 0; i < line.Length; i++)
             {
-                MainFuncIconItemBind item = GetOrCreateFuncIconItem(i);
+                FuncIcon fi = line[i];
+                // 恒开图标 openView==null;其余查功能开放表(对标 GetMainFuncOpenCond)。
+                if (fi.OpenView != null && !FuncOpenConfig.CheckFuncOpenState(fi.OpenView)) continue;
+
+                MainFuncIconItemBind item = GetOrCreateFuncIconItem(shown);
                 if (item == null) continue;
 
                 item.gameObject.SetActive(true);
-                SetFuncIconPosition(item, i * FUNC_ICON_GAP, 0f);
+                SetFuncIconPosition(item, shown * FUNC_ICON_GAP, 0f);
+                // 图标红点 GetMainFuncRedState 依赖一堆未移植模块,先隐藏。
                 if (item._img_red != null) item._img_red.gameObject.SetActive(false);
-                _ = ResManager.SetImageAsync(item._img_icon, GameResPath.GetIcon("mainUI", AlwaysOpenMainFuncIcons[i]), nativeSize: false);
+                _ = ResManager.SetImageAsync(item._img_icon, GameResPath.GetIcon("mainUI", fi.Res), nativeSize: false);
+                shown++;
             }
 
-            for (int i = AlwaysOpenMainFuncIcons.Length; i < _funcIconItems.Count; i++)
+            // 多余复用项隐藏(对标 UpdateIconItem 尾部 SetVisible(false))。
+            for (int i = shown; i < _funcIconItems.Count; i++)
             {
                 if (_funcIconItems[i] != null)
                 {
                     _funcIconItems[i].gameObject.SetActive(false);
                 }
             }
+        }
+
+        /// <summary>对标 MainUIModel.GetTurnState:角色等级达到翻面等级才能翻面。</summary>
+        private static bool GetTurnState()
+        {
+            return RoleModel.Instance.Level >= TURN_OPEN_LV;
+        }
+
+        /// <summary>对标 turn_btn_fun:可翻面时 show_type 在 0/1 间循环,刷新按钮态与图标行。</summary>
+        private void OnClickTurn()
+        {
+            if (!GetTurnState()) return;
+
+            _showType++;
+            if (_showType > 1) _showType = 0;
+            UpdateTurnState();
+            BuildFuncIcons();
+        }
+
+        /// <summary>
+        /// 对标 UpdateTurnState:可翻面非灰,图标按 show_type 取 uizjmv3_015/016;不可翻面置灰 + 015。
+        /// 老端用 _img_turn.gray;Unity 无灰度材质,用颜色压暗近似(不伪造,仅视觉降级)。
+        /// </summary>
+        private void UpdateTurnState()
+        {
+            if (_img_turn == null) return;
+
+            bool open = GetTurnState();
+            string res = open && _showType != 0 ? "uizjmv3_016" : "uizjmv3_015";
+            _ = ResManager.SetImageAsync(_img_turn, GameResPath.GetIcon("mainUI", res), nativeSize: false);
+            _img_turn.color = open ? Color.white : new Color(0.5f, 0.5f, 0.5f, 1f);
         }
 
         private MainFuncIconItemBind GetOrCreateFuncIconItem(int index)
