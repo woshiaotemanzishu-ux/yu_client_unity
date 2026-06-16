@@ -70,7 +70,9 @@ namespace Shenxiao.Editor.LayaUI
         /// </summary>
         private static bool FillWindow(Transform windowRoot, string windowName, string moduleDir, LayaUIManifest manifest)
         {
-            Type bindType = FindBindType("Shenxiao.Generated.UI." + moduleDir + "." + windowName + "Bind");
+            string resolvedModuleDir;
+            LayaUIManifest.SceneEntry sceneEntry = ResolveSceneEntry(windowName, moduleDir, manifest, out resolvedModuleDir);
+            Type bindType = FindBindType("Shenxiao.Generated.UI." + resolvedModuleDir + "." + windowName + "Bind");
             if (bindType == null) return false;
             Type concreteType = FindSingleSubclass(bindType) ?? bindType;
 
@@ -84,13 +86,9 @@ namespace Shenxiao.Editor.LayaUI
 
             // codeNodes 与生成器同源(manifest),否则无前缀字段收集不到
             HashSet<string> codeNodes = null;
-            foreach (KeyValuePair<string, LayaUIManifest.SceneEntry> kv in manifest.Scenes)
+            if (sceneEntry != null)
             {
-                if (kv.Value.Name == windowName && manifest.ModuleDir(kv.Value.Module) == moduleDir)
-                {
-                    codeNodes = new HashSet<string>(kv.Value.CodeNodes ?? new List<string>());
-                    break;
-                }
+                codeNodes = new HashSet<string>(sceneEntry.CodeNodes ?? new List<string>());
             }
 
             List<LayaBindGenerator.FieldInfo> fields = new List<LayaBindGenerator.FieldInfo>();
@@ -116,10 +114,47 @@ namespace Shenxiao.Editor.LayaUI
                 for (int i = 0; i < tplRoot.childCount; i++)
                 {
                     Transform tpl = tplRoot.GetChild(i);
-                    FillWindow(tpl, tpl.name, moduleDir, manifest);
+                    FillWindow(tpl, tpl.name, resolvedModuleDir, manifest);
                 }
             }
             return true;
+        }
+
+        private static LayaUIManifest.SceneEntry ResolveSceneEntry(string windowName, string preferredModuleDir,
+            LayaUIManifest manifest, out string resolvedModuleDir)
+        {
+            resolvedModuleDir = preferredModuleDir;
+            if (manifest == null || manifest.Scenes == null) return null;
+
+            LayaUIManifest.SceneEntry fallback = null;
+            foreach (KeyValuePair<string, LayaUIManifest.SceneEntry> kv in manifest.Scenes)
+            {
+                LayaUIManifest.SceneEntry entry = kv.Value;
+                if (entry == null || entry.Name != windowName) continue;
+
+                string entryModuleDir = manifest.ModuleDir(entry.Module);
+                if (entryModuleDir == preferredModuleDir)
+                {
+                    resolvedModuleDir = entryModuleDir;
+                    return entry;
+                }
+
+                if (fallback == null || IsReusableTemplate(entry) && !IsReusableTemplate(fallback))
+                {
+                    fallback = entry;
+                }
+            }
+
+            if (fallback != null)
+            {
+                resolvedModuleDir = manifest.ModuleDir(fallback.Module);
+            }
+            return fallback;
+        }
+
+        private static bool IsReusableTemplate(LayaUIManifest.SceneEntry entry)
+        {
+            return entry.Decision == "inline" || entry.Decision == "shared-prefab";
         }
 
         private static UnityEngine.Object ResolveRef(Transform t, string typeName)

@@ -57,7 +57,7 @@ namespace Shenxiao.Framework.Res
             if (!string.IsNullOrEmpty(info.catalogUrl))
             {
                 var loadHandle = Addressables.LoadContentCatalogAsync(info.catalogUrl, true);
-                await loadHandle.Task;
+                await AddressablesAwaiter.Wait(loadHandle);
                 GameLog.Info("Res", "catalog loaded version={0}", info.resourceVersion);
             }
         }

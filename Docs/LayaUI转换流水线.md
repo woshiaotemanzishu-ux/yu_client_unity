@@ -95,6 +95,22 @@ Reports/LayaUI/{module}_report.md    ← 缺图/近似/运行时赋值清单(不
 - **List**:转出 ScrollRect 骨架(方向按 repeatX/repeatY),item 模板在 `__Templates`,
   虚拟列表逻辑归运行时框架,转换器不管。
 
+## 静态 scene 属性 vs 运行时 View/Flow 同构(2026-06-15 加,职责边界硬规则)
+
+进游戏主界面(MainUI)审计暴露出一个反复踩的边界问题:**界面位置不对,先分清它是"转换器该做的静态属性",还是"运行时该做的 View 行为",再动手——两者都不该用手工像素微调凑。**
+
+1. **静态 scene 属性 = 转换器负责。** scene `.json` 里写死的 `width/height/x/y/left/right/top/bottom/centerX/centerY/anchor/pivot/scale/skin/sizeGrid/visible/...` 是转换器的产物,走统一的 `LayaRectMath.Apply` 语法落到 prefab。**根节点也走同一套** `LayaRectMath.Apply`(`BuildRoot`,2026-06-15 起):根级 `left/right/top/bottom/centerX/centerY/scale` 不再被丢弃;只有完全没有显式定位的窗口才退回 `is_center` 居中默认(顶层窗口 `x=0/y=0` 视为占位,靠运行时 is_center)。
+
+2. **运行时 `LoadSuccess`/`open_callback` 的摆放与重父 = 运行时 View/Flow 同构,不是转换器、也不是 prefab 像素调整。** 老客户端每个 View 的 `LoadSuccess` 里设置的**根窗口屏幕摆放**(如 `MainUITopView` 的 `centerX=0;top=0(+刘海)`、`MainUISkillView` 的 `bottom=254`)和**节点重父**(如 `MainUISecondaryView` 把 `_box_right` 移出原父、重挂到 Main 层再定位)属于运行时行为,必须在 Unity 对应的 **View 子类(`OnInit`,即 `LoadSuccess` 对等)/ 模块 Flow** 里复刻,而不是:
+   - ❌ 在 prefab 上手工拖动某个控件的像素位置;
+   - ❌ 把这些数值当魔法数冻结进转换器配置长期堆积;
+   - ❌ 在业务 Flow 里 `transform.Find` + 改锚点/`anchoredPosition` 写死(应落到 View 子类的 Bind 字段上)。
+   注意:**设备条件量**(`Util.GetLiuhaiHeight()` 刘海高度)、**运行时计算值**(Activity 的 `y`)、**重父节点**(`_box_right`)天然只能在运行时算,转换器表达不了,必须归运行时。
+
+3. **`Schemas/LayaUI/ui_root_layouts.json` 是临时的"静态初始态近似桥",不是权威源。** 它是各 View **逐子类 `LoadSuccess`**(注意:不是 `BaseView1.LoadSuccess`,基类没有设布局的 `LoadSuccess`)摆放的手抄快照,由 `ApplyConfiguredRootLayout` 在转换时覆盖根布局。它**无法表达**刘海偏移、动态计算值,对这些情况是"静默丢精度"。定位:在 MainUI 各 View 拿到真正的 `LoadSuccess` 同构(View 子类)之前,允许它作为静态初始态过渡;**不要把它当真理,也不要往里堆魔法数**——根布局的最终归宿是 View/Flow 运行时同构。
+
+4. **不允许用逐控件像素微调来"修 UI"。** 样式改模板 prefab,图改 `ui_default_skins.json`,布局改 yu_client 源头后幂等重转,运行时摆放改 View/Flow 同构;prefab 手调是最后手段且模块须标记验收。看到界面"多出/少掉/偏移",先查老客户端同阶段的 `LoadSuccess`/事件绑定/显隐控制,判断它属于上面哪一类,再决定改哪里。
+
 ## 正确的观察方式(2026-06-10 试点反馈后补)
 
 1. **必须在 Canvas 下看**:直接打开 prefab 会漂在天空盒里,没有"屏幕"参照,看起来就像

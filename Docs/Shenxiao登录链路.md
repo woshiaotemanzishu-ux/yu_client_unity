@@ -46,6 +46,10 @@
 | `10004` | `lsisisscscsh` | 选角进游戏:role_id, ... → 成功后事件 `GAME_START` |
 | `10006` | —— | 心跳/确认类(LoginController.ts:363) |
 
+- `10006` 心跳节奏必须按老客户端 `LoginController.On10006` 复刻: `10000` 回包后先发一次,
+  收到 `10006` 回包后取消旧延迟并重新排一个 5 秒后发送的任务。不要在 `NetManager.Pump()`
+  里从连接时刻开始固定周期盲发,否则会和 `10000` 后的首次心跳叠加,导致过早/重复心跳。
+
 - 协议格式串解析与收发:Unity 侧已有 `ErlangParser / UserMsgAdapter / NetManager / Proto` 骨架,
   格式串语义照抄 yu_client(编码规范 3.3:协议照抄,不改服务端)。
 

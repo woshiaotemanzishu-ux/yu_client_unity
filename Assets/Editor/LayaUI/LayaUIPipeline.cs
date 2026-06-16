@@ -14,6 +14,12 @@ namespace Shenxiao.Editor.LayaUI
         private static string PendingKey => "Shenxiao.LayaUI.PendingFill:" + Application.dataPath.GetHashCode();
         private static string MissingKey(string module) => "Shenxiao.LayaUI.Missing." + module + ":" + Application.dataPath.GetHashCode();
 
+        [MenuItem("神霄/LayaUI/重转主界面(MainUI)", priority = 20)]
+        public static void RunMainUI()
+        {
+            RunModule("mainUI");
+        }
+
         public static int GetLastMissingCount(string module)
         {
             return EditorPrefs.GetInt(MissingKey(module), -1);

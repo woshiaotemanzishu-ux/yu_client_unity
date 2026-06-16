@@ -52,7 +52,7 @@ namespace Shenxiao.Framework.Config
 
         [Header("Game Net")]
         [Tooltip("心跳协议发送间隔(秒),<=0 关闭。")]
-        public float heartbeatIntervalSec = 10f;
+        public float heartbeatIntervalSec = 5f;
 
         [Header("Boot Loading")]
         [Tooltip("启动加载页要预下载的 Addressable key/label 列表(编辑器本地组为 0 下载,真机走 CDN)。")]
@@ -63,5 +63,8 @@ namespace Shenxiao.Framework.Config
 
         [Tooltip("启动后自动用 devAccount 跑通整条登录链(HTTP登录→选服→连游戏服→收角色列表),链路冒烟用。")]
         public bool autoLoginSmokeTest = false;
+
+        [Tooltip("Debug only. When autoLoginSmokeTest receives a real role list, immediately enter the first role.")]
+        public bool autoEnterFirstRoleSmokeTest = false;
     }
 }

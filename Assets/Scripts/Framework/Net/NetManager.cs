@@ -42,6 +42,9 @@ namespace Shenxiao.Framework.Net
         private static int _heartbeatProtoId;
         private static float _heartbeatInterval;
         private static float _nextHeartbeatAt;
+        private static bool _remoteClosePending;
+        private static WebSocketCloseStatus? _remoteCloseStatus;
+        private static string _remoteCloseDescription;
 
         public static bool IsConnected => _ws != null && _ws.State == WebSocketState.Open;
 
@@ -53,13 +56,16 @@ namespace Shenxiao.Framework.Net
         {
             _heartbeatProtoId = protoId;
             _heartbeatInterval = intervalSec;
-            _nextHeartbeatAt = Time.realtimeSinceStartup + intervalSec;
+            _nextHeartbeatAt = intervalSec > 0f
+                ? Time.realtimeSinceStartup + intervalSec
+                : float.PositiveInfinity;
         }
 
         /// <summary>连接 ws:// 或 wss://,失败抛异常;成功后发 EVT_NET_CONNECTED。</summary>
         public static async Task ConnectAsync(string url)
         {
             await DisconnectAsync();
+            ClearRemoteCloseState();
             _ws = new ClientWebSocket();
             _cts = new CancellationTokenSource();
             GameLog.Info("Net", "connecting {0}", url);
@@ -71,6 +77,8 @@ namespace Shenxiao.Framework.Net
 
         public static async Task DisconnectAsync()
         {
+            ConfigureHeartbeat(0, 0f);
+            ClearRemoteCloseState();
             if (_cts != null) { _cts.Cancel(); _cts = null; }
             if (_ws != null)
             {
@@ -88,6 +96,13 @@ namespace Shenxiao.Framework.Net
             _ = SendRaw(frame, protoId);
         }
 
+        /// <summary>Send and wait for the WebSocket write to complete. Use for login gate packets.</summary>
+        public static Task SendFmtAsync(int protoId, string format = null, params object[] args)
+        {
+            byte[] frame = UserMsgAdapter.Encode(protoId, format, args);
+            return SendRaw(frame, protoId);
+        }
+
         /// <summary>主线程消息泵 + 心跳。AppLauncher.Update 每帧调用。</summary>
         public static void Pump()
         {
@@ -102,10 +117,15 @@ namespace Shenxiao.Framework.Net
                 InboundFrame frame;
                 lock (_inboxLock)
                 {
-                    if (_inbox.Count == 0) return;
+                    if (_inbox.Count == 0) break;
                     frame = _inbox.Dequeue();
                 }
                 Dispatch(frame);
+            }
+
+            if (TryConsumeRemoteClose(out WebSocketCloseStatus? closeStatus, out string closeDescription))
+            {
+                _ = CompleteRemoteCloseAsync(closeStatus, closeDescription);
             }
         }
 
@@ -130,6 +150,10 @@ namespace Shenxiao.Framework.Net
             try
             {
                 await _ws.SendAsync(new ArraySegment<byte>(frame), WebSocketMessageType.Binary, true, _cts.Token);
+                if (ShouldLogHandshakeTraffic(protoId))
+                {
+                    GameLog.Info("Net", "sent proto={0} bytes={1}", protoId, frame.Length);
+                }
             }
             catch (Exception e)
             {
@@ -152,12 +176,20 @@ namespace Shenxiao.Framework.Net
                         r = await _ws.ReceiveAsync(new ArraySegment<byte>(buf), _cts.Token);
                         if (r.MessageType == WebSocketMessageType.Close)
                         {
-                            await DisconnectAsync();
+                            MarkRemoteClose(r.CloseStatus, r.CloseStatusDescription);
                             return;
                         }
                         message.Write(buf, 0, r.Count);
                     } while (!r.EndOfMessage);
 
+                    if (message.Length >= RECV_HEADER_SIZE)
+                    {
+                        int protoId = (buf[4] << 8) | buf[5];
+                        if (ShouldLogHandshakeTraffic(protoId))
+                        {
+                            GameLog.Info("Net", "recv ws message bytes={0} proto={1}", message.Length, protoId);
+                        }
+                    }
                     SplitFrames(message.GetBuffer(), (int)message.Length);
                 }
             }
@@ -171,6 +203,58 @@ namespace Shenxiao.Framework.Net
                 EventDispatcher.Emit(GlobalEvent.EVT_NET_ERROR);
                 await DisconnectAsync();
             }
+        }
+
+        private static void MarkRemoteClose(WebSocketCloseStatus? status, string description)
+        {
+            int pendingFrames;
+            lock (_inboxLock)
+            {
+                _remoteClosePending = true;
+                _remoteCloseStatus = status;
+                _remoteCloseDescription = description;
+                pendingFrames = _inbox.Count;
+            }
+
+            GameLog.Warn("Net", "websocket close received status={0} desc={1} pendingFrames={2}",
+                status, description, pendingFrames);
+        }
+
+        private static bool TryConsumeRemoteClose(out WebSocketCloseStatus? status, out string description)
+        {
+            lock (_inboxLock)
+            {
+                if (!_remoteClosePending)
+                {
+                    status = null;
+                    description = null;
+                    return false;
+                }
+
+                _remoteClosePending = false;
+                status = _remoteCloseStatus;
+                description = _remoteCloseDescription;
+                _remoteCloseStatus = null;
+                _remoteCloseDescription = null;
+                return true;
+            }
+        }
+
+        private static void ClearRemoteCloseState()
+        {
+            lock (_inboxLock)
+            {
+                _remoteClosePending = false;
+                _remoteCloseStatus = null;
+                _remoteCloseDescription = null;
+            }
+        }
+
+        private static async Task CompleteRemoteCloseAsync(WebSocketCloseStatus? status, string description)
+        {
+            GameLog.Warn("Net", "websocket remote close dispatch complete status={0} desc={1}",
+                status, description);
+            await DisconnectAsync();
         }
 
         /// <summary>按 [u32 总长] 把一条 ws message 切成若干协议帧入队。</summary>
@@ -202,6 +286,11 @@ namespace Shenxiao.Framework.Net
                 }
                 offset += frameLen;
             }
+        }
+
+        private static bool ShouldLogHandshakeTraffic(int protoId)
+        {
+            return protoId == 10000 || protoId == 10003 || protoId == 10004;
         }
     }
 }

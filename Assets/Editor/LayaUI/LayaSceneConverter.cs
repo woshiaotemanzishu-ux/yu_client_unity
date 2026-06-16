@@ -22,8 +22,11 @@ namespace Shenxiao.Editor.LayaUI
     /// </summary>
     public static class LayaSceneConverter
     {
+        private const string ROOT_LAYOUT_CONFIG_PATH = "Schemas/LayaUI/ui_root_layouts.json";
+
         // 当前正在转换的窗口/item 的烘焙皮肤表(节点名 -> 图路径,来自 TS 静态扫描)
         private static Dictionary<string, string> _bakedSkins;
+        private static JObject _rootLayoutConfig;
 
         // 已处理过的布局属性(其余属性记入"未映射"报告)
         private static readonly HashSet<string> HandledProps = new HashSet<string>
@@ -51,6 +54,7 @@ namespace Shenxiao.Editor.LayaUI
             string err;
             if (!LayaUISettings.ValidateClientRoot(out err)) { Debug.LogError("[LayaUI] " + err); return -1; }
 
+            _rootLayoutConfig = null;
             LayaSpriteImporter.ResetCache();
             LayaUIReport report = new LayaUIReport(module);
             HashSet<string> stack = new HashSet<string>();
@@ -91,6 +95,7 @@ namespace Shenxiao.Editor.LayaUI
             string err;
             if (!LayaUISettings.ValidateClientRoot(out err)) { Debug.LogError("[LayaUI] " + err); return; }
 
+            _rootLayoutConfig = null;
             LayaSpriteImporter.ResetCache();
             LayaUIReport report = new LayaUIReport(module);
             try
@@ -123,6 +128,7 @@ namespace Shenxiao.Editor.LayaUI
 
         public static void ConvertSingle(string sceneKey)
         {
+            _rootLayoutConfig = null;
             LayaUIManifest manifest = LayaUIManifest.Load(true);
             if (manifest == null) return;
             LayaUIManifest.SceneEntry e = manifest.Get(sceneKey);
@@ -142,6 +148,7 @@ namespace Shenxiao.Editor.LayaUI
         /// </summary>
         public static void ReconvertWindowInGroup(string sceneKey)
         {
+            _rootLayoutConfig = null;
             LayaUIManifest manifest = LayaUIManifest.Load(true);
             if (manifest == null) return;
             LayaUIManifest.SceneEntry entry = manifest.Get(sceneKey);
@@ -195,9 +202,11 @@ namespace Shenxiao.Editor.LayaUI
 
             GameObject root = new GameObject(group.Name, typeof(RectTransform));
             RectTransform rt = (RectTransform)root.transform;
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(manifest.DesignWidth, manifest.DesignHeight);
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.pivot = new Vector2(0f, 1f);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
 
             string moduleDir = null;
             bool first = true;
@@ -273,6 +282,7 @@ namespace Shenxiao.Editor.LayaUI
             _bakedSkins = entry.BakedSkins;
             GameObject go = BuildRoot(entry.Name, rootJson, manifest, report);
             _bakedSkins = null;
+            ApplyConfiguredRootLayout(sceneKey, entry, rootJson, go, manifest, report);
 
             var templates = new List<GameObject>();
             var templateEntries = new List<LayaUIManifest.SceneEntry>();
@@ -361,6 +371,67 @@ namespace Shenxiao.Editor.LayaUI
             return null;
         }
 
+        private static JObject LoadRootLayoutConfig()
+        {
+            if (_rootLayoutConfig != null) return _rootLayoutConfig;
+
+            string path = Path.Combine(Directory.GetCurrentDirectory(), ROOT_LAYOUT_CONFIG_PATH);
+            if (!File.Exists(path))
+            {
+                _rootLayoutConfig = new JObject();
+                return _rootLayoutConfig;
+            }
+
+            try
+            {
+                _rootLayoutConfig = JObject.Parse(File.ReadAllText(path));
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("[LayaUI] ui_root_layouts.json 瑙ｆ瀽澶辫触: " + e.Message);
+                _rootLayoutConfig = new JObject();
+            }
+            return _rootLayoutConfig;
+        }
+
+        private static JObject GetConfiguredRootLayout(string sceneKey, LayaUIManifest.SceneEntry entry)
+        {
+            JObject cfg = LoadRootLayoutConfig();
+            if (cfg == null) return null;
+
+            JToken token = cfg[sceneKey];
+            if (token == null && entry != null && !string.IsNullOrEmpty(entry.TsClass)) token = cfg[entry.TsClass];
+            if (token == null && entry != null && !string.IsNullOrEmpty(entry.Name)) token = cfg[entry.Name];
+            return token as JObject;
+        }
+
+        private static void ApplyConfiguredRootLayout(string sceneKey, LayaUIManifest.SceneEntry entry, JObject rootJson,
+            GameObject go, LayaUIManifest manifest, LayaUIReport report)
+        {
+            JObject layout = GetConfiguredRootLayout(sceneKey, entry);
+            if (layout == null) return;
+
+            JObject rootProps = rootJson["props"] as JObject ?? new JObject();
+            float w = LayaRectMath.F(rootProps, "width") ?? manifest.DesignWidth;
+            float h = LayaRectMath.F(rootProps, "height") ?? manifest.DesignHeight;
+
+            // Root layout overrides model BaseView1.LoadSuccess display_obj assignments.
+            // Use a clean prop object so stale JSON top/bottom/center fields do not survive TS assignments.
+            JObject p = new JObject
+            {
+                ["width"] = w,
+                ["height"] = h,
+            };
+            foreach (JProperty prop in layout.Properties())
+            {
+                p[prop.Name] = prop.Value.DeepClone();
+            }
+
+            RectTransform rt = (RectTransform)go.transform;
+            LayaRectMath.Apply(rt, p, new Vector2(w, h));
+            report.Note("RootLayout " + sceneKey + " -> " + layout.ToString(Newtonsoft.Json.Formatting.None));
+        }
+
         private static JObject LoadSceneJson(LayaUIManifest.SceneEntry entry)
         {
             string path = Path.Combine(LayaUISettings.ClientRoot, entry.Json.Replace('/', Path.DirectorySeparatorChar));
@@ -379,13 +450,25 @@ namespace Shenxiao.Editor.LayaUI
 
             GameObject go = new GameObject(name, typeof(RectTransform));
             RectTransform rt = (RectTransform)go.transform;
-            // 根节点居中锚定;窗口由 ViewManager 挂到全屏层下,居中即原 is_center 行为
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(w, h);
-            float cx = LayaRectMath.F(props, "centerX") ?? 0f;
-            float cy = LayaRectMath.F(props, "centerY") ?? 0f;
-            rt.anchoredPosition = new Vector2(cx, -cy);
+            if (HasExplicitRootLayout(props))
+            {
+                // 根节点声明了相对边/居中/缩放定位:走与子节点完全一致的 LayaRectMath 语法,
+                // 不再丢弃根级 left/right/top/bottom/centerX/centerY/scale。
+                // (centerX/centerY 经 Apply 得到与原居中实现相同的屏幕矩形与尺寸,
+                //  仅锚点内部值不同,子节点因落在同一矩形而渲染一致。)
+                // ApplyConfiguredRootLayout 仍会在其后覆盖配置过的 MainUI 根。
+                rt.sizeDelta = new Vector2(w, h);
+                LayaRectMath.Apply(rt, props, new Vector2(w, h));
+            }
+            else
+            {
+                // 无显式定位的普通窗口:沿用 is_center 居中默认
+                // (窗口由 ViewManager 挂到全屏层下,居中即原 is_center 行为)。
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.sizeDelta = new Vector2(w, h);
+                rt.anchoredPosition = Vector2.zero;
+            }
 
             JArray children = root["child"] as JArray;
             if (children != null)
@@ -398,6 +481,21 @@ namespace Shenxiao.Editor.LayaUI
             }
             CollectUnknownProps("View", props, report);
             return go;
+        }
+
+        /// <summary>根 props 是否声明了相对边/居中/缩放定位。有则走 LayaRectMath 语法,
+        /// 无则保留 is_center 居中默认(x/y 不计入:顶层窗口的 x=0/y=0 多为占位,运行时靠 is_center)。</summary>
+        private static bool HasExplicitRootLayout(JObject p)
+        {
+            return HasProp(p, "left") || HasProp(p, "right") || HasProp(p, "top") || HasProp(p, "bottom")
+                || HasProp(p, "centerX") || HasProp(p, "centerY")
+                || HasProp(p, "scaleX") || HasProp(p, "scaleY");
+        }
+
+        private static bool HasProp(JObject p, string key)
+        {
+            JToken t = p[key];
+            return t != null && t.Type != JTokenType.Null;
         }
 
         private static void BuildNode(JObject node, RectTransform parent, LayaUIReport report)

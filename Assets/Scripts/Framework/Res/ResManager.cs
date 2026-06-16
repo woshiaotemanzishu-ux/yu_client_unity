@@ -47,6 +47,16 @@ namespace Shenxiao.Framework.Res
                 {
                     fallback = LoadEditorAssetFallback<T>(key);
                 }
+                if (fallback == null && (typeof(T) == typeof(Sprite) || typeof(T) == typeof(Texture2D))
+                    && TryImportSceneMapJxrTileFromClient(key))
+                {
+                    fallback = LoadEditorAssetFallback<T>(key);
+                }
+                if (fallback == null && typeof(T) == typeof(TextAsset)
+                    && TryImportSceneMapBytesFromClient(key))
+                {
+                    fallback = LoadEditorAssetFallback<T>(key);
+                }
                 if (fallback != null)
                 {
                     GameLog.Warn("Res", "editor asset fallback key={0}(未进 Addressables 组,记得跑 自动分组)", key);
@@ -57,7 +67,7 @@ namespace Shenxiao.Framework.Res
                 return null;
             }
             var handle = Addressables.LoadAssetAsync<T>(key);
-            await handle.Task;
+            await AddressablesAwaiter.Wait(handle);
 
             if (handle.Status != AsyncOperationStatus.Succeeded)
             {
@@ -84,6 +94,14 @@ namespace Shenxiao.Framework.Res
                 _editorFallbackInstances.Add(effectGo);
                 return effectGo;
             }
+
+            GameObject editorPrefab = LoadEditorPrefabFallback(key);
+            if (editorPrefab != null)
+            {
+                GameObject editorGo = UnityEngine.Object.Instantiate(editorPrefab, parent);
+                _editorFallbackInstances.Add(editorGo);
+                return editorGo;
+            }
 #endif
             // 先查 key 是否登记,避免 Addressables 对无效 key 在控制台抛 InvalidKeyException
             if (!await KeyExists(key))
@@ -103,7 +121,7 @@ namespace Shenxiao.Framework.Res
             }
 
             var handle = Addressables.InstantiateAsync(key, parent);
-            await handle.Task;
+            await AddressablesAwaiter.Wait(handle);
 
             if (handle.Status != AsyncOperationStatus.Succeeded)
             {
@@ -132,7 +150,7 @@ namespace Shenxiao.Framework.Res
         private static async Task<bool> KeyExists(string key)
         {
             var locHandle = Addressables.LoadResourceLocationsAsync(key);
-            await locHandle.Task;
+            await AddressablesAwaiter.Wait(locHandle);
             bool exists = locHandle.Status == AsyncOperationStatus.Succeeded
                           && locHandle.Result != null && locHandle.Result.Count > 0;
             Addressables.Release(locHandle);
@@ -182,7 +200,7 @@ namespace Shenxiao.Framework.Res
         public static async Task PreloadGroup(string label)
         {
             var handle = Addressables.DownloadDependenciesAsync(label);
-            await handle.Task;
+            await AddressablesAwaiter.Wait(handle);
             Addressables.Release(handle);
         }
 
@@ -194,7 +212,7 @@ namespace Shenxiao.Framework.Res
             List<string> valid = await FilterExistingKeys(keys);
             if (valid.Count == 0) return 0;
             var handle = Addressables.GetDownloadSizeAsync((IEnumerable<object>)valid);
-            await handle.Task;
+            await AddressablesAwaiter.Wait(handle);
             long size = handle.Result;
             Addressables.Release(handle);
             return size;
@@ -231,7 +249,9 @@ namespace Shenxiao.Framework.Res
         }
 
         /// <summary>
-        /// 动态给 Image 赋图,对标 Laya 的 ResManager.SetTexture(业务运行时换图统一走这里)。
+        /// Dynamically assign an Image from a direct Laya skin path.
+        /// Use SetLayaTextureAsync for old-client ResManager.SetTexture/SetOutsideImageSprite calls,
+        /// because those APIs rewrite /texture/ to /other/ before loading.
         /// layaSkinPath 直接用 Laya 资源路径(如 resource/game/login/other/load_bg0.jpg)。
         /// coverScreen=true 复刻 Util.SetLargeScreenImageSize:等比放大盖满设计分辨率。
         /// nativeSize=false 复刻 Laya skin= 换肤:保留节点场景尺寸,只换图——
@@ -262,6 +282,27 @@ namespace Shenxiao.Framework.Res
                 image.SetNativeSize();
             }
             return true;
+        }
+
+        /// <summary>
+        /// Match yu_client ResManager.SetTexture/SetOutsideImageSprite path semantics.
+        /// Those APIs rewrite the first /texture/ segment to /other/ before loading.
+        /// Direct Laya skin assignment and SetImageSpriteTrans should keep using SetImageAsync.
+        /// </summary>
+        public static Task<bool> SetLayaTextureAsync(UnityEngine.UI.Image image, string layaSkinPath,
+            bool coverScreen = false, bool nativeSize = true)
+        {
+            return SetImageAsync(image, ToLayaSetTexturePath(layaSkinPath), coverScreen, nativeSize);
+        }
+
+        public static string ToLayaSetTexturePath(string layaSkinPath)
+        {
+            if (string.IsNullOrEmpty(layaSkinPath)) return layaSkinPath;
+            string path = layaSkinPath.Replace('\\', '/');
+            const string textureSegment = "/texture/";
+            int index = path.IndexOf(textureSegment, StringComparison.Ordinal);
+            if (index < 0) return path;
+            return path.Substring(0, index) + "/other/" + path.Substring(index + textureSegment.Length);
         }
 
 #if UNITY_EDITOR
@@ -346,6 +387,58 @@ namespace Shenxiao.Framework.Res
         }
 
         /// <summary>编辑器兜底加载任意资产(Sprite/Texture 等),按文件名+规范化地址匹配 GameRes/_App。</summary>
+        private static bool TryImportSceneMapBytesFromClient(string key)
+        {
+            if (!key.StartsWith("resource/game/scene/map/", StringComparison.Ordinal)) return false;
+
+            string def = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "yu_client"));
+            string clientRoot = UnityEditor.EditorPrefs.GetString(
+                "Shenxiao.LayaUI.ClientRoot:" + Application.dataPath.GetHashCode(), def);
+            string src = Path.Combine(clientRoot, "cdn", key + ".bytes");
+            if (!File.Exists(src)) return false;
+
+            string assetPath = "Assets/GameRes/" + key + ".bytes";
+            Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+            File.Copy(src, assetPath, true);
+            AssetDatabase.ImportAsset(assetPath);
+            GameLog.Warn("Res", "editor fallback imported scene map bytes from yu_client: {0}", key);
+            return true;
+        }
+
+        private static bool TryImportSceneMapJxrTileFromClient(string key)
+        {
+            if (!key.StartsWith("resource/game/scene/map/", StringComparison.Ordinal)) return false;
+            string fileName = Path.GetFileName(key);
+            if (string.IsNullOrEmpty(fileName) || fileName.Length != 4) return false;
+
+            string def = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "yu_client"));
+            string clientRoot = UnityEditor.EditorPrefs.GetString(
+                "Shenxiao.LayaUI.ClientRoot:" + Application.dataPath.GetHashCode(), def);
+            string src = Path.Combine(clientRoot, "cdn", key + ".jxr");
+            if (!File.Exists(src)) return false;
+
+            byte[] bytes = File.ReadAllBytes(src);
+            if (bytes.Length < 3 || bytes[0] != 0xFF || bytes[1] != 0xD8 || bytes[2] != 0xFF)
+            {
+                GameLog.Warn("Res", "scene map .jxr is not JPEG data, skip editor import: {0}", key);
+                return false;
+            }
+
+            string assetPath = "Assets/GameRes/" + key + ".jpg";
+            Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+            File.WriteAllBytes(assetPath, bytes);
+            AssetDatabase.ImportAsset(assetPath);
+            if (AssetImporter.GetAtPath(assetPath) is TextureImporter ti)
+            {
+                ti.textureType = TextureImporterType.Sprite;
+                ti.mipmapEnabled = false;
+                ti.npotScale = TextureImporterNPOTScale.None;
+                ti.SaveAndReimport();
+            }
+            GameLog.Warn("Res", "editor fallback imported scene map .jxr tile as jpg from yu_client: {0}", key);
+            return true;
+        }
+
         private static T LoadEditorAssetFallback<T>(string key) where T : UnityEngine.Object
         {
             string fileName = Path.GetFileName(key);

@@ -24,6 +24,8 @@ namespace Shenxiao.Framework.Net
         /// (1成功/2失败/4已使用/5非法字符/6长度1-5,对标老客户端 On10007)。
         /// 注:此前误标为「踢下线通知」,已按 yu_server pt_100.erl 纠正。</summary>
         public const int NAME_VERIFY = 10007;
+        public const int SERVER_TIME = 10201;
+        public const int SETTING_LIST = 10202;
 
         // ----- GM 秘籍(111xx,yu_server pt_111.erl / pp_gm.erl) -----
         /// <summary>请求 GM 秘籍清单(无字段)。回包:u16 分类数 × { s 分类名,
@@ -33,6 +35,35 @@ namespace Shenxiao.Framework.Net
         /// <summary>执行 GM 秘籍。发 "s" 命令串(命令_参数_参数,如 "lv_100"、"goods_36010001_10")。
         /// 鉴权:服务端 gm_password 为空则全放行;否则先发 "setgmpassword_密码"。</summary>
         public const int GM_CHEAT_EXEC = 11101;
+
+        // ----- Scene / map (120xx, yu_client h5/src/scene/SceneController.ts) -----
+        /// <summary>Scene load complete / request scene snapshot. Send empty; reply is the full scene snapshot.</summary>
+        public const int SC_LOAD_SCENE = 12002;
+        /// <summary>Change/enter scene. Send "iicchh"; reply "ihhiicc".</summary>
+        public const int SC_CHANGE_SCENE = 12005;
+        /// <summary>Request current scene drop list. Send empty; reply starts with u16 count.</summary>
+        public const int SC_DROP_LIST = 12018;
+        /// <summary>NPC task icon refresh. Send empty or receive pushed u16 count + {u32 npcId, u8 iconFlag}.</summary>
+        public const int SC_NPC_ICON_REFRESH = 12020;
+
+        // ----- Task (300xx, yu_client h5/src/commonController/TaskController.ts) -----
+        /// <summary>Task full list. Send empty; reply h + task list, then h + received task list.
+        /// Task item format: i task_id, h tip_count, then each tip "c s c i i i i i h h c".</summary>
+        public const int TASK_LIST = 30000;
+
+        /// <summary>Single task update. Reply has the same ReadTaskVo payload as TASK_LIST entries.</summary>
+        public const int TASK_UPDATE_ONE = 30001;
+        public const int TASK_LATEST_FINISHED = 30005;
+
+        // ----- AutoBrush / main-line guard (133xx, yu_client h5/src/commonController/AutoBrushController.ts) -----
+        /// <summary>Auto-brush monster progress. Send empty; reply "iiill".</summary>
+        public const int AUTOBRUSH_INFO = 13300;
+
+        /// <summary>Auto-brush rank/basic level info. Send empty; reply starts "cii" + rank list.</summary>
+        public const int AUTOBRUSH_RANK = 13301;
+
+        /// <summary>Toggle auto-brush. Send "c"; reply "ic".</summary>
+        public const int AUTOBRUSH_TOGGLE = 13307;
 
         // ----- 玩家信息(130xx,yu_server pt_130.erl)进游戏后服务端主动推送 -----
         /// <summary>主角全量信息(进游戏首推)。回包见 pt_130 write(13001):
@@ -46,5 +77,16 @@ namespace Shenxiao.Framework.Net
         public const int ROLE_LEVEL = 13003;
         /// <summary>货币。回包 "liii"(铜币 coin, 元宝 gold, 绑元 bgold, 帮贡 gcoin)。</summary>
         public const int ROLE_CURRENCY = 13006;
+        public const int ROLE_LIFELONG_COUNT = 13088;
+
+        // ----- Login/common kick notice (590xx, yu_server pt_590.erl) -----
+        /// <summary>Server-side forced logout / kick reason. Reply payload: u16 code.</summary>
+        public const int LOGIN_KICK_REASON = 59004;
+
+        // ----- NPC (121xx, yu_client h5/src/scene/SceneController.ts) -----
+        /// <summary>Request scene NPC list. Send "i" sceneId; reply sceneId + npc list.</summary>
+        public const int SC_NPC_LIST = 12100;
+        /// <summary>Dynamic NPC add/remove push. Reply starts with u16 count.</summary>
+        public const int SC_NPC_DYNAMIC = 12103;
     }
 }

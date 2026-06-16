@@ -46,7 +46,7 @@ namespace Shenxiao.Framework
 
             // 3. Initialize Addressables (no-op if catalog already loaded above).
             var initHandle = UnityEngine.AddressableAssets.Addressables.InitializeAsync();
-            await initHandle.Task;
+            await AddressablesAwaiter.Wait(initHandle);
 
             GameLog.Info("App", "framework ready");
 

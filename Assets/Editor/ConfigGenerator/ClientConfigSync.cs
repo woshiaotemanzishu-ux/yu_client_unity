@@ -21,12 +21,15 @@ namespace Shenxiao.EditorTools.ConfigGen
             "ConfigRandomName",
             "UIModelParameter",
             "SceneObjectParticle",
+            "ConfigFunctionIcon",
         };
 
         // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)
         private static readonly string[] SYNC_LIST_SERVER =
         {
             "config_dress_up_cfg",
+            "config_task",
+            "config_scene",
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

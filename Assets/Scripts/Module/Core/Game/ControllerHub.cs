@@ -1,8 +1,11 @@
 using System.Collections.Generic;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.AutoBrush;
 using Shenxiao.Module.Core.Gm;
 using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.Scene;
+using Shenxiao.Module.Core.Tasks;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -15,15 +18,21 @@ namespace Shenxiao.Module.Core.Game
     {
         private static readonly BaseController[] ALL =
         {
+            GameStartController.Instance,
             RoleController.Instance,
+            SceneController.Instance,
+            TaskController.Instance,
+            AutoBrushController.Instance,
             GmCheatController.Instance,
-            // 后续:BagController / EquipController / ChatController / TaskController ...
+            // 后续:BagController / EquipController / ChatController ...
         };
 
         public static bool Initialized { get; private set; }
 
         public static void InitAll()
         {
+            if (Initialized) return;
+
             foreach (BaseController c in ALL) c.Init();
             Initialized = true;
             GameLog.Info("Game", "游戏内控制器已注册: {0} 个", ALL.Length);

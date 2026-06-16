@@ -14,6 +14,8 @@ namespace Shenxiao.Module.Core.Login
     /// </summary>
     public static class LoginBootstrap
     {
+        private static AppConfig _smokeConfig;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
         {
@@ -28,11 +30,13 @@ namespace Shenxiao.Module.Core.Login
             if (config.autoLoginSmokeTest && !string.IsNullOrEmpty(config.devAccount))
             {
                 // 无 UI 冒烟(排查链路问题用);正常走下面的真实 UI 流程
+                _smokeConfig = config;
                 EventDispatcher.On<int>(GlobalEvent.EVT_GAME_ROLE_LIST, OnRoleListReceived);
                 _ = RunChainSmokeTestAsync(config);
             }
             else
             {
+                _smokeConfig = null;
                 _ = LoginFlow.StartAsync(config);
             }
         }
@@ -68,7 +72,21 @@ namespace Shenxiao.Module.Core.Login
         private static void OnRoleListReceived(int roleCount)
         {
             EventDispatcher.Off<int>(GlobalEvent.EVT_GAME_ROLE_LIST, OnRoleListReceived);
+            AppConfig config = _smokeConfig;
+            _smokeConfig = null;
             GameLog.Info("Login", "—— ✅ 登录链全通:HTTP登录 → 选服 → 入口 → WebSocket → 10000 回包(角色数={0})——", roleCount);
+            if (config == null || !config.autoEnterFirstRoleSmokeTest) return;
+
+            var roles = LoginModel.Instance.Roles;
+            if (roles.Count <= 0)
+            {
+                GameLog.Warn("Login", "auto-enter smoke skipped: role list is empty");
+                return;
+            }
+
+            GameRoleInfo role = roles[0];
+            GameLog.Info("Login", "auto-enter smoke: role_id={0} name={1}", role.roleId, role.DisplayName);
+            LoginController.Instance.EnterGameWithRole(role.roleId);
         }
 
         private static bool Check(LoginRequestResult result, string step)

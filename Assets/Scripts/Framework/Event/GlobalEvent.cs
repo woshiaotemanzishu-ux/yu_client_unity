@@ -27,6 +27,8 @@ namespace Shenxiao.Framework.Event
         public const string EVT_GM_CHEAT_LIST = "EVT_GM_CHEAT_LIST";
         /// <summary>进入游戏成功(10004 result=1)。</summary>
         public const string EVT_GAME_ENTERED = "EVT_GAME_ENTERED";
+        public const string EVT_GAME_START_FLAG_READY = "EVT_GAME_START_FLAG_READY";
+        public const string EVT_GAME_START = "EVT_GAME_START";
 
         // ----- Bag -----
         public const string EVT_BAG_UPDATE = "EVT_BAG_UPDATE";
@@ -35,6 +37,23 @@ namespace Shenxiao.Framework.Event
         public const string EVT_ROLE_INFO_UPDATE = "EVT_ROLE_INFO_UPDATE";
         /// <summary>主角全量(13001)到齐,可进主城/场景。GameEntryFlow 发。</summary>
         public const string EVT_ROLE_READY = "EVT_ROLE_READY";
+
+        // ----- Scene -----
+        public const string EVT_SCENE_MAP_READY = "EVT_SCENE_MAP_READY";
+
+        // ----- Task -----
+        public const string EVT_TASK_LIST_UPDATED = "EVT_TASK_LIST_UPDATED";
+        public const string EVT_TASK_ONE_UPDATED = "EVT_TASK_ONE_UPDATED";
+
+        // ----- AutoBrush -----
+        public const string EVT_AUTOBRUSH_INFO_UPDATED = "EVT_AUTOBRUSH_INFO_UPDATED";
+        public const string EVT_AUTOBRUSH_LEVEL_UPDATED = "EVT_AUTOBRUSH_LEVEL_UPDATED";
+        public const string EVT_AUTOBRUSH_STATE_UPDATED = "EVT_AUTOBRUSH_STATE_UPDATED";
+
+        // ----- MainUI -----
+        public const string EVT_MAINUI_ACTIVITY_ICON_ADD = "EVT_MAINUI_ACTIVITY_ICON_ADD";
+        public const string EVT_MAINUI_ACTIVITY_ICON_DELETE = "EVT_MAINUI_ACTIVITY_ICON_DELETE";
+        public const string EVT_MAINUI_ACTIVITY_ICON_UPDATE = "EVT_MAINUI_ACTIVITY_ICON_UPDATE";
 
         // ----- Res -----
         public const string EVT_RES_UPDATE_PROGRESS = "EVT_RES_UPDATE_PROGRESS";

@@ -27,6 +27,15 @@ namespace Shenxiao.Framework.Res
         public static string GetSceneWingPath() => "resource/game/scene/wing/";
         public static string GetSceneHorsePath() => "resource/game/scene/horse/";
 
+        public static string GetSceneMapData(int sceneId)
+            => "resource/game/scene/map/" + sceneId + "/" + sceneId + ".bytes";
+
+        public static string GetSceneMapPreview(int mapResId)
+            => "resource/game/scene/map/" + mapResId + "/tile/" + mapResId + ".jpg";
+
+        public static string GetSceneMapTile(int mapResId, int row, int col, string ext)
+            => "resource/game/scene/map/" + mapResId + "/tile/" + row.ToString("00") + col.ToString("00") + ext;
+
         public static string GetObjectPath(string mName, string resName)
             => "resource/object/" + mName + "/objs/" + resName + ".lh";
 

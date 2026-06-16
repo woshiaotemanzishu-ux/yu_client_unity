@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Shenxiao.Common.Prefs;
@@ -8,6 +9,7 @@ using Shenxiao.Framework.Config;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Game;
 
 namespace Shenxiao.Module.Core.Login
 {
@@ -17,12 +19,22 @@ namespace Shenxiao.Module.Core.Login
         private const string PREF_PASSWORD = "login.password";
         private const string PREF_REMEMBER = "login.remember";
         private const string PREF_DEVICE_ID = "login.device_id";
+        private const int MAX_IN_GAME_AUTO_RECONNECT = 2;
+        private const float IN_GAME_AUTO_RECONNECT_DELAY_SEC = 2f;
         private static readonly LoginController _instance = new LoginController();
 
         private AppConfig _config;
+        private long _pendingEnterRoleId;
+        private long _activeRoleId;
+        private int _inGameAutoReconnectLeft;
+        private bool _connectingGame;
+        private bool _enteringFromInGameReconnect;
+        private CancellationTokenSource _heartbeatDelayCts;
+        private CancellationTokenSource _autoReconnectCts;
 
         public static LoginController Instance => _instance;
         public LoginModel Model => LoginModel.Instance;
+        public bool CanAutoReconnectInGame => _activeRoleId > 0 && _inGameAutoReconnectLeft > 0;
 
         private LoginController()
         {
@@ -148,7 +160,9 @@ namespace Shenxiao.Module.Core.Login
             string url = $"ws://{server.host}:{server.port}";
             try
             {
+                _connectingGame = true;
                 await NetManager.ConnectAsync(url);
+                ControllerHub.InitAll();
             }
             catch (Exception e)
             {
@@ -156,10 +170,15 @@ namespace Shenxiao.Module.Core.Login
                 return LoginRequestResult.Fail("连接游戏服失败: " + e.Message);
             }
 
-            if (_config != null)
+            finally
             {
-                NetManager.ConfigureHeartbeat(Proto.HEARTBEAT, _config.heartbeatIntervalSec);
+                _connectingGame = false;
             }
+
+            // Old client drives 10006 from LoginController: send once after 10000,
+            // then schedule the next heartbeat only after receiving a 10006 reply.
+            NetManager.ConfigureHeartbeat(0, 0f);
+            CancelHeartbeatDelay();
 
             // 对标 Laya GAME_CONNECT:SendFmtToGame(10000, "iiss", pid, time_stamp, account_id, plat_name)。
             // 关键:account_id = get_server_info 的 accname(游戏服按它认账号,发 player_id 会被当成
@@ -171,7 +190,7 @@ namespace Shenxiao.Module.Core.Login
             long timeStamp = long.TryParse(server.time, out long svrTime) && svrTime > 0
                 ? svrTime
                 : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            SendFmt(Proto.ACCOUNT_LOGIN, "iiss", pid, timeStamp, accountId, Model.PlatName);
+            await NetManager.SendFmtAsync(Proto.ACCOUNT_LOGIN, "iiss", pid, timeStamp, accountId, Model.PlatName);
             GameLog.Info("Login", "已发送账号登录协议 pid={0} accname={1} time={2} plat={3}",
                 pid, accountId, timeStamp, Model.PlatName);
             return LoginRequestResult.Ok();
@@ -203,6 +222,16 @@ namespace Shenxiao.Module.Core.Login
             RegisterProtocal(Proto.ENTER_GAME, OnEnterGame);
             RegisterProtocal(Proto.HEARTBEAT, OnHeartbeat);
             RegisterProtocal(Proto.NAME_VERIFY, OnNameVerify);
+            RegisterProtocal(Proto.LOGIN_KICK_REASON, OnKickReason);
+            EventDispatcher.On(GlobalEvent.EVT_NET_DISCONNECTED, OnNetDisconnected);
+        }
+
+        public override void Dispose()
+        {
+            EventDispatcher.Off(GlobalEvent.EVT_NET_DISCONNECTED, OnNetDisconnected);
+            CancelHeartbeatDelay();
+            CancelAutoReconnect();
+            base.Dispose();
         }
 
         /// <summary>
@@ -234,6 +263,16 @@ namespace Shenxiao.Module.Core.Login
                 GameLog.Info("Login", "  角色[{0}] id={1} {2} 职业={3} 等级={4} {5}转",
                     i, roles[i].roleId, roles[i].DisplayName, roles[i].Career, roles[i].Level, roles[i].Turn);
             }
+            SendHeartbeatNow();
+            if (_pendingEnterRoleId > 0)
+            {
+                long roleId = _pendingEnterRoleId;
+                _pendingEnterRoleId = 0;
+                GameLog.Info("Login", "select-role reconnect received 10000, continue 10004 role_id={0}", roleId);
+                SendEnterGamePacket(roleId);
+                return;
+            }
+
             EventDispatcher.Emit(GlobalEvent.EVT_GAME_ROLE_LIST, roleCount);
         }
 
@@ -259,6 +298,30 @@ namespace Shenxiao.Module.Core.Login
         {
             // 对标老客户端 cookie LAST_LOGIN_ROLE_ID:选角页下次默认选中它
             Shenxiao.Common.Prefs.PrefsManager.SetString(LoginSelectRoleView.PREF_LAST_ROLE_ID, roleId.ToString());
+            _activeRoleId = roleId;
+            if (!NetManager.IsConnected)
+            {
+                _pendingEnterRoleId = roleId;
+                GameLog.Warn("Login", "enter-game requested while disconnected, reconnect before 10004 role_id={0}", roleId);
+                _ = ReconnectThenEnterPendingRoleAsync();
+                return;
+            }
+
+            SendEnterGamePacket(roleId);
+        }
+
+        private async Task ReconnectThenEnterPendingRoleAsync()
+        {
+            LoginRequestResult result = await ConnectGameAsync();
+            if (!result.success)
+            {
+                GameLog.Warn("Login", "select-role reconnect failed: {0}", result.message);
+                _pendingEnterRoleId = 0;
+            }
+        }
+
+        private void SendEnterGamePacket(long roleId)
+        {
             long timeStamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             SendFmt(Proto.ENTER_GAME, "lsisisscscsh",
                 roleId, "开发", timeStamp, "", 1, Model.PlatName,
@@ -291,21 +354,157 @@ namespace Shenxiao.Module.Core.Login
             int result = reader.ReadU8();
             if (result == 1)
             {
+                if (_enteringFromInGameReconnect)
+                {
+                    _enteringFromInGameReconnect = false;
+                }
+                else
+                {
+                    _inGameAutoReconnectLeft = MAX_IN_GAME_AUTO_RECONNECT;
+                }
                 GameLog.Info("Login", "🎉 进入游戏成功(10004),主城/场景流程待接");
                 EventDispatcher.Emit(GlobalEvent.EVT_GAME_ENTERED);
             }
             else
             {
+                _enteringFromInGameReconnect = false;
                 GameLog.Warn("Login", "进入游戏失败 result={0}", result);
             }
         }
 
         private void OnHeartbeat(NetReader reader)
         {
-            // 心跳回包无须处理
+            ScheduleNextHeartbeat();
+        }
+
+        private void OnKickReason(NetReader reader)
+        {
+            int code = reader.Remaining >= 2 ? reader.ReadU16() : -1;
+            GameLog.Warn("Login", "59004 server kick reason code={0}", code);
+        }
+
+        private void SendHeartbeatNow()
+        {
+            CancelHeartbeatDelay();
+            if (!NetManager.IsConnected) return;
+            SendFmt(Proto.HEARTBEAT, "");
+            GameLog.Debug("Login", "10006 heartbeat sent");
+        }
+
+        private void ScheduleNextHeartbeat()
+        {
+            CancelHeartbeatDelay();
+            if (_config != null && _config.heartbeatIntervalSec <= 0f) return;
+            float delaySec = GetHeartbeatIntervalSec();
+            _heartbeatDelayCts = new CancellationTokenSource();
+            CancellationToken token = _heartbeatDelayCts.Token;
+            _ = SendHeartbeatAfterDelayAsync(delaySec, token);
+            GameLog.Debug("Login", "10006 heartbeat response, next in {0:0.###}s", delaySec);
+        }
+
+        private async Task SendHeartbeatAfterDelayAsync(float delaySec, CancellationToken token)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(delaySec), token);
+                if (!token.IsCancellationRequested) SendHeartbeatNow();
+            }
+            catch (OperationCanceledException)
+            {
+                // Replaced by a newer heartbeat schedule or connection lifecycle reset.
+            }
+        }
+
+        private float GetHeartbeatIntervalSec()
+        {
+            if (_config == null || _config.heartbeatIntervalSec <= 0f) return 5f;
+            return _config.heartbeatIntervalSec;
+        }
+
+        private void CancelHeartbeatDelay()
+        {
+            if (_heartbeatDelayCts == null) return;
+            _heartbeatDelayCts.Cancel();
+            _heartbeatDelayCts.Dispose();
+            _heartbeatDelayCts = null;
+        }
+
+        private void OnNetDisconnected()
+        {
+            CancelHeartbeatDelay();
+            if (_connectingGame || _activeRoleId <= 0 || _inGameAutoReconnectLeft <= 0)
+            {
+                return;
+            }
+
+            ScheduleInGameAutoReconnect();
         }
 
         /// <summary>10007 回包 "c":角色名验证结果(对标老客户端 On10007;此前误标为踢线)。</summary>
+        public void ClearInGameReconnectState()
+        {
+            _activeRoleId = 0;
+            _pendingEnterRoleId = 0;
+            _inGameAutoReconnectLeft = 0;
+            _enteringFromInGameReconnect = false;
+            CancelAutoReconnect();
+        }
+
+        private void ScheduleInGameAutoReconnect()
+        {
+            if (_autoReconnectCts != null || _activeRoleId <= 0 || _inGameAutoReconnectLeft <= 0) return;
+            long roleId = _activeRoleId;
+            _inGameAutoReconnectLeft--;
+            _autoReconnectCts = new CancellationTokenSource();
+            GameLog.Warn("Login", "game socket disconnected, auto reconnect in {0:0.#}s role_id={1} left={2}",
+                IN_GAME_AUTO_RECONNECT_DELAY_SEC, roleId, _inGameAutoReconnectLeft);
+            _ = ReconnectInGameAfterDelayAsync(roleId, _autoReconnectCts);
+        }
+
+        private async Task ReconnectInGameAfterDelayAsync(long roleId, CancellationTokenSource cts)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(IN_GAME_AUTO_RECONNECT_DELAY_SEC), cts.Token);
+                if (cts.Token.IsCancellationRequested || roleId <= 0 || roleId != _activeRoleId) return;
+
+                if (_autoReconnectCts == cts)
+                {
+                    _autoReconnectCts = null;
+                }
+                cts.Dispose();
+
+                _enteringFromInGameReconnect = true;
+                _pendingEnterRoleId = roleId;
+                LoginRequestResult result = await ConnectGameAsync();
+                if (!result.success)
+                {
+                    _enteringFromInGameReconnect = false;
+                    GameLog.Warn("Login", "in-game auto reconnect failed: {0}", result.message);
+                    ScheduleInGameAutoReconnect();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                if (_autoReconnectCts == cts)
+                {
+                    _autoReconnectCts = null;
+                    cts.Dispose();
+                }
+            }
+        }
+
+        private void CancelAutoReconnect()
+        {
+            if (_autoReconnectCts == null) return;
+            _autoReconnectCts.Cancel();
+            _autoReconnectCts.Dispose();
+            _autoReconnectCts = null;
+        }
+
         private void OnNameVerify(NetReader reader)
         {
             int code = reader.ReadU8();

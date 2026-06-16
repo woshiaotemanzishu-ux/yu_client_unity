@@ -335,6 +335,7 @@ namespace Shenxiao.Module.Core.Login
             _selectRole.Hide();
             _createRole.Hide();
             _bg.RestoreLoginStatus();
+            LoginController.Instance.ClearInGameReconnectState();
             _ = NetManagerDisconnect();
             _enter.Show();
         }
@@ -351,6 +352,7 @@ namespace Shenxiao.Module.Core.Login
             _selectRole.Hide();
             _createRole.Hide();
             _enter.Hide();
+            _bg.Hide();
             GameLog.Info("Login", "—— 🎉 全链路终点:已进入游戏,登录模块使命完成,主城/场景接管(待接)——");
         }
     }
