@@ -93,24 +93,53 @@ namespace Shenxiao.Common.UI3D
         public static async Task<GameObject> AttachOne(GameObject host, string boneName, string effectDir,
             string effectName, string tag = "always", bool playOnAttach = true)
         {
-            if (host == null) return null;
             string key = $"effect/objs/{effectDir}/{effectName}/{effectName}";
-            GameObject prefab = await ResManager.LoadAsync<GameObject>(key);
+            return await AttachOneByKey(host, boneName, key, tag, playOnAttach);
+        }
+
+        public static async Task<GameObject> AttachOneByKey(GameObject host, string boneName, string effectKey,
+            string tag = "always", bool playOnAttach = true)
+        {
+            if (host == null) return null;
+            GameObject prefab = await ResManager.LoadAsync<GameObject>(effectKey);
             if (prefab == null)
             {
-                GameLog.Warn("Effect", "特效未转换,跳过:{0}(资产管理「特效」域里转)", key);
+                GameLog.Warn("Effect", "特效未转换,跳过:{0}(资产管理「特效」域里转)", effectKey);
                 return null;
             }
             if (host == null) return null; // 加载期间宿主可能已销毁
             Transform bone = RoleModelAssembler.FindBone(host.transform, boneName) ?? host.transform;
             GameObject eff = Object.Instantiate(prefab, bone);
-            eff.name = "__fx_" + tag + "_" + effectName;
+            eff.name = "__fx_" + tag + "_" + System.IO.Path.GetFileName(effectKey);
             eff.transform.localPosition = Vector3.zero;
             eff.transform.localRotation = Quaternion.identity;
             eff.transform.localScale = Vector3.one;
             if (playOnAttach) PlayEffect(eff);
             else eff.SetActive(false);
             return eff;
+        }
+
+        public static async Task AttachBindings(GameObject host, IEnumerable<AssetEffectBinding> bindings,
+            string tag = "always", bool playOnAttach = true)
+        {
+            if (host == null || bindings == null) return;
+            ClearTag(host, tag);
+            foreach (AssetEffectBinding binding in bindings)
+            {
+                if (binding == null) continue;
+                string effectKey = binding.ResolveEffectKey();
+                if (string.IsNullOrEmpty(effectKey)) continue;
+                GameObject effect = await AttachOneByKey(host, binding.Bone, effectKey, tag, playOnAttach);
+                ApplyBindingTransform(effect, binding);
+            }
+        }
+
+        private static void ApplyBindingTransform(GameObject effect, AssetEffectBinding binding)
+        {
+            if (effect == null || binding == null) return;
+            effect.transform.localPosition = binding.ResolvePosition();
+            effect.transform.localRotation = binding.ResolveRotation();
+            effect.transform.localScale = binding.ResolveScale();
         }
 
         public static void PlayEffect(GameObject effect)

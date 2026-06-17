@@ -37,6 +37,10 @@ namespace Shenxiao.Framework.Net
         public const int GM_CHEAT_EXEC = 11101;
 
         // ----- Scene / map (120xx, yu_client h5/src/scene/SceneController.ts) -----
+        /// <summary>主角移动上报(对标 SceneController.ts:1042 moveRequestHandler)。
+        /// 发 "ihhchhhh"(scene_id, 当前x, 当前y, move_type, 目标x, 目标y, 起飞x, 起飞y);
+        /// 摇杆普通移动时 move_type=0(NORMOL_MOVE),目标=当前坐标,起飞=0,约每 0.5s 上报一次。</summary>
+        public const int SC_MOVE = 12001;
         /// <summary>Scene load complete / request scene snapshot. Send empty; reply is the full scene snapshot.</summary>
         public const int SC_LOAD_SCENE = 12002;
         /// <summary>Change/enter scene. Send "iicchh"; reply "ihhiicc".</summary>

@@ -42,6 +42,24 @@ namespace Shenxiao.Module.Core.Scene
             GameLog.Info("Scene", "request 12005: dunId={0} sceneId={1}", role.DunId, role.SceneId);
         }
 
+        /// <summary>
+        /// 主角移动上报(对标 SceneController.ts:1042 moveRequestHandler → SendFmtToGame(12001,"ihhchhhh"))。
+        /// 老客户端把 MOVEREQUEST 事件统一在 SceneController 转成 12001;这里由 MainRoleAgent 调用,
+        /// 协议发包留在 Module 层(Framework 不直接发协议)。负坐标按老客户端规则取 0。
+        /// </summary>
+        public void SendMoveRequest(int curX, int curY, int moveType, int targetX, int targetY)
+        {
+            int sceneId = RoleModel.Instance.SceneId;
+            SendFmt(Proto.SC_MOVE, "ihhchhhh",
+                Floor0(sceneId),
+                Floor0(curX), Floor0(curY),
+                Floor0(moveType),
+                Floor0(targetX), Floor0(targetY),
+                0, 0);
+        }
+
+        private static int Floor0(int v) => v < 0 ? 0 : v;
+
         public override void Dispose()
         {
             bool keepMap = LoginController.Instance.CanAutoReconnectInGame;

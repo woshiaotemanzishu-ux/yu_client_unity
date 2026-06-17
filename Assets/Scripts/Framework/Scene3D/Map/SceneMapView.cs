@@ -9,19 +9,41 @@ using UnityEngine.UI;
 namespace Shenxiao.Framework.Scene3D.Map
 {
     /// <summary>
-    /// Runtime 2D map layer that mirrors yu_client MapManager's mini_scene_bg path.
-    /// Tile pooling and high quality tile replacement are separate follow-up work.
+    /// 运行时 2D 地图层,移植自 yu_client MapManager(mini_scene_bg 低清底图 + 固定瓦片池滚动复用)。
+    ///
+    /// 流畅性三件套(对标老客户端,详见 Docs/Shenxiao地图加载重构方案.md):
+    /// 1. 滚屏只移动地图自身的独立 Canvas(__SceneMap),不触发根 Canvas/HUD 重建(对标 CameraManager 只挪一个容器)。
+    /// 2. 低清底图先铺满,高清瓦片异步在其上补齐——瓦片晚到也只是"略糊",绝不空白/卡住。
+    /// 3. 固定瓦片池滚动复用(对标 MapManager.tile_list + UpdateTiles):池大小=视野+边距,
+    ///    跨 tile 边界才刷新,移出视野的瓦片直接挪去新格复用,不 new/Destroy、不涨内存、不产生 GC 尖刺。
+    /// 我们的元素:单飞加载泵把瓦片加载(及编辑器现导)分摊到多帧,避免一帧涌入几十块造成尖刺。
     /// </summary>
     public static class SceneMapView
     {
         private const float SceneLayerYOffset = 100f;
+        /// <summary>地图 Canvas 排序值:压在 HUD/主界面之后(对标老客户端场景层在 UI 之下)。</summary>
+        private const int MapSortingOrder = -100;
 
         private static int _version;
         private static GameObject _root;
         private static Image _preview;
         private static Sprite _previewSprite;
         private static RectTransform _tileRoot;
-        private static readonly Dictionary<string, TileEntry> _tiles = new Dictionary<string, TileEntry>();
+
+        private static SceneMapData _data;
+        private static int _lastFocusX = int.MinValue;
+        private static int _lastFocusY = int.MinValue;
+
+        // —— 固定瓦片池(对标 MapManager.tile_list)——
+        private static TileSlot[] _tilePool;
+        private static int _poolCols;
+        private static int _poolRows;
+        private static int _lastStartCol = int.MinValue;
+        private static int _lastStartRow = int.MinValue;
+
+        // —— 加载泵(单飞顺序加载,分摊到多帧)——
+        private static readonly Queue<TileLoadRequest> _loadQueue = new Queue<TileLoadRequest>();
+        private static bool _pumping;
 
         public static async Task ShowAsync(SceneMapData data, int focusX, int focusY)
         {
@@ -60,15 +82,39 @@ namespace Shenxiao.Framework.Scene3D.Map
             RectTransform imageRt = _preview.rectTransform;
             imageRt.sizeDelta = new Vector2(data.MapWidth, data.MapHeight);
 
-            Vector2 camera = ApplyCamera(data, focusX, focusY);
-            _ = RefreshVisibleTilesAsync(data, camera.x, camera.y, version);
-            GameLog.Info("SceneMap", "map preview ready: sceneId={0} mapResId={1} focus=({2},{3})",
-                data.SceneId, data.MapResId, focusX, focusY);
+            _data = data;
+            _lastFocusX = int.MinValue;
+            _lastFocusY = int.MinValue;
+            EnsureTilePool(data);
+            SetFocus(focusX, focusY);
+            GameLog.Info("SceneMap", "map preview ready: sceneId={0} mapResId={1} focus=({2},{3}) pool={4}x{5}",
+                data.SceneId, data.MapResId, focusX, focusY, _poolCols, _poolRows);
+        }
+
+        /// <summary>
+        /// 把相机焦点移到指定地图像素坐标(对标老客户端相机跟随主角:主角恒居屏幕中心,地图滚动)。
+        /// 焦点未变整帧跳过;滚屏只移动独立地图 Canvas;瓦片仅在跨 tile 边界时才滚动复用(UpdateTiles 内部 early-out)。
+        /// </summary>
+        public static void SetFocus(int focusX, int focusY)
+        {
+            if (_root == null || _preview == null || _data == null) return;
+
+            // 焦点(主角格子坐标)没变就整帧跳过(对标 CameraManager.UpdateCamera 的 _camera_pos 未变 early-out)。
+            if (focusX == _lastFocusX && focusY == _lastFocusY) return;
+            _lastFocusX = focusX;
+            _lastFocusY = focusY;
+
+            Vector2 camera = ApplyCamera(_data, focusX, focusY);
+            UpdateTiles(camera.x, camera.y);
         }
 
         public static void Clear()
         {
             ++_version;
+            _data = null;
+            _lastFocusX = int.MinValue;
+            _lastFocusY = int.MinValue;
+
             if (_previewSprite != null)
             {
                 ResManager.Release(_previewSprite);
@@ -77,7 +123,7 @@ namespace Shenxiao.Framework.Scene3D.Map
 
             if (_root != null)
             {
-                ClearTiles();
+                ClearPool();
                 Object.Destroy(_root);
                 _root = null;
                 _preview = null;
@@ -98,8 +144,14 @@ namespace Shenxiao.Framework.Scene3D.Map
                 return;
             }
 
-            _root = new GameObject("__SceneMap", typeof(RectTransform));
+            // __SceneMap 自带 Canvas:成为独立的重建/合批边界。移动它(滚屏)只改它自己的变换矩阵,
+            // 不会触发根 Canvas(HUD/主界面)重建——这是"移动相机不卡"的关键(对标 Laya 只挪场景层容器)。
+            _root = new GameObject("__SceneMap", typeof(RectTransform), typeof(Canvas));
             _root.transform.SetParent(sceneLayer, false);
+
+            Canvas mapCanvas = _root.GetComponent<Canvas>();
+            mapCanvas.overrideSorting = true;
+            mapCanvas.sortingOrder = MapSortingOrder; // 压在 HUD 之下
 
             RectTransform rootRt = (RectTransform)_root.transform;
             rootRt.anchorMin = new Vector2(0f, 1f);
@@ -148,108 +200,202 @@ namespace Shenxiao.Framework.Scene3D.Map
             float halfHeight = stageHeight * 0.5f;
             float cameraX = ClampCameraX(data.MapWidth, focusX, halfWidth);
             float cameraY = ClampCameraY(data.MapHeight, focusY, halfHeight);
+
+            // 只滚动地图自身的 Canvas(__SceneMap),sceneLayer 保持满屏静止——这样滚屏不触碰根 Canvas,
+            // 不会每帧重建 HUD。对标 CameraManager:_scene_layer.x = h_w - _camera_pos.x(只挪一个容器)。
             float layaLayerX = halfWidth - cameraX;
             float layaLayerY = halfHeight + SceneLayerYOffset - cameraY;
-
-            sceneLayer.anchorMin = new Vector2(0f, 1f);
-            sceneLayer.anchorMax = new Vector2(0f, 1f);
-            sceneLayer.pivot = new Vector2(0f, 1f);
-            sceneLayer.sizeDelta = new Vector2(data.MapWidth, data.MapHeight);
-            sceneLayer.anchoredPosition = new Vector2(layaLayerX, -layaLayerY);
-
-            mapRt.anchoredPosition = Vector2.zero;
+            mapRt.anchoredPosition = new Vector2(layaLayerX, -layaLayerY);
             return new Vector2(cameraX, cameraY);
         }
 
-        private static async Task RefreshVisibleTilesAsync(SceneMapData data, float cameraX, float cameraY, int version)
+        /// <summary>建立/复用固定瓦片池(对标 MapManager.InitData:池大小=视野+边距,该边距即屏幕外预取缓冲)。</summary>
+        private static void EnsureTilePool(SceneMapData data)
         {
             if (_tileRoot == null || data == null || data.TileSize <= 0) return;
+            int tileSize = data.TileSize;
 
             RectTransform sceneLayer = ViewManager.GetLayer(UILayer.Scene) as RectTransform;
             RectTransform canvasRt = sceneLayer != null ? sceneLayer.parent as RectTransform : null;
             float stageWidth = canvasRt != null && canvasRt.rect.width > 0f ? canvasRt.rect.width : Screen.width;
             float stageHeight = canvasRt != null && canvasRt.rect.height > 0f ? canvasRt.rect.height : Screen.height;
 
-            int countX = Application.isEditor ? 12 : Mathf.FloorToInt(stageWidth / data.TileSize) + 2;
-            int countY = Mathf.FloorToInt(stageHeight / data.TileSize) + 1;
-            countX = Mathf.Max(1, countX);
-            countY = Mathf.Max(1, countY);
+            // 对标 MapManager:onPC 取 12 列,否则 floor(w/tile)+2;行 floor(h/tile)+1。+2/+1 即屏幕外预取边距。
+            int cols = Application.isEditor ? 12 : Mathf.FloorToInt(stageWidth / tileSize) + 2;
+            int rows = Mathf.FloorToInt(stageHeight / tileSize) + 1;
+            cols = Mathf.Max(1, cols);
+            rows = Mathf.Max(1, rows);
 
-            int centerCol = Mathf.CeilToInt(cameraX / data.TileSize);
-            int centerRow = Mathf.CeilToInt(cameraY / data.TileSize);
-            int startColOffset = Mathf.CeilToInt(countX * 0.5f) - 1;
-            int startRowOffset = Mathf.CeilToInt(countY * 0.5f);
-            if (cameraX % data.TileSize < 0.5f * data.TileSize) startColOffset++;
-            if (cameraY % data.TileSize < 0.5f * data.TileSize) startRowOffset++;
-
-            int startCol = centerCol - startColOffset;
-            int startRow = centerRow - startRowOffset;
-            int maxCol = Mathf.CeilToInt((float)data.MapWidth / data.TileSize);
-            int maxRow = Mathf.CeilToInt((float)data.MapHeight / data.TileSize);
-            int requested = 0;
-
-            for (int row = startRow; row < startRow + countY; row++)
+            if (_tilePool != null && _poolCols == cols && _poolRows == rows)
             {
-                for (int col = startCol; col < startCol + countX; col++)
+                ResetPool(); // 同尺寸:复用对象,只重置内容触发整屏重刷
+                return;
+            }
+
+            ClearPool();
+            _poolCols = cols;
+            _poolRows = rows;
+            _tilePool = new TileSlot[cols * rows];
+            for (int i = 0; i < _tilePool.Length; i++)
+            {
+                var go = new GameObject("Tile", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                go.transform.SetParent(_tileRoot, false);
+                var rt = (RectTransform)go.transform;
+                rt.anchorMin = new Vector2(0f, 1f);
+                rt.anchorMax = new Vector2(0f, 1f);
+                rt.pivot = new Vector2(0f, 1f);
+                rt.sizeDelta = new Vector2(tileSize, tileSize);
+                var img = go.GetComponent<Image>();
+                img.raycastTarget = false;
+                img.enabled = false;
+                _tilePool[i] = new TileSlot { Root = go, Image = img, Rt = rt };
+            }
+            _lastStartCol = int.MinValue;
+            _lastStartRow = int.MinValue;
+        }
+
+        /// <summary>滚动复用可见瓦片(逐行逐列移植 MapManager.UpdateTiles)。仅在窗口起点格变化时才工作。</summary>
+        private static void UpdateTiles(float cameraX, float cameraY)
+        {
+            if (_tilePool == null || _data == null) return;
+            int tileSize = _data.TileSize;
+            if (tileSize <= 0) return;
+
+            int x = Mathf.CeilToInt(cameraX / tileSize);
+            int y = Mathf.CeilToInt(cameraY / tileSize);
+            int startCol = Mathf.CeilToInt(_poolCols * 0.5f) - 1;
+            int startRow = Mathf.CeilToInt(_poolRows * 0.5f);
+            if (cameraX % tileSize < 0.5f * tileSize) startCol++;
+            if (cameraY % tileSize < 0.5f * tileSize) startRow++;
+            startCol = x - startCol;
+            startRow = y - startRow;
+
+            // 窗口起点格未变 → 整个刷新跳过(对标 MapManager.ts:598)。
+            if (startCol == _lastStartCol && startRow == _lastStartRow) return;
+
+            int colLen = startCol + _poolCols - 1;
+            int rowLen = startRow + _poolRows - 1;
+            int lastColLen = _lastStartCol + _poolCols - 1;
+            int lastRowLen = _lastStartRow + _poolRows - 1;
+            bool first = _lastStartCol == int.MinValue || _lastStartRow == int.MinValue;
+
+            int cacheIndex = 0;
+            for (int i = startRow; i <= rowLen; i++)
+            {
+                for (int j = startCol; j <= colLen; j++)
                 {
-                    if (row <= 0 || col <= 0 || row > maxRow || col > maxCol) continue;
-                    requested++;
-                    await LoadTileAsync(data, row, col, version);
-                    if (version != _version) return;
+                    // 只处理"本次新进入视野"的格(原窗口外的)。
+                    bool newlyEntered = first || i < _lastStartRow || i > lastRowLen || j < _lastStartCol || j > lastColLen;
+                    if (!newlyEntered) continue;
+
+                    // 找一个"已滚出新窗口"的池瓦片来复用(对标原 cache_index 单向扫描)。
+                    for (int index = cacheIndex; index < _tilePool.Length; index++)
+                    {
+                        TileSlot t = _tilePool[index];
+                        cacheIndex++;
+                        if (t.Row < startRow || t.Row > rowLen || t.Col < startCol || t.Col > colLen)
+                        {
+                            AssignSlot(t, i, j);
+                            break;
+                        }
+                    }
                 }
             }
 
-            GameLog.Info("SceneMap", "map visible tiles requested: sceneId={0} mapResId={1} count={2}",
-                data.SceneId, data.MapResId, requested);
+            _lastStartCol = startCol;
+            _lastStartRow = startRow;
         }
 
-        private static async Task LoadTileAsync(SceneMapData data, int row, int col, int version)
+        /// <summary>把一个池瓦片移到目标格并排队加载它的图(越界格保持隐藏,低清底图透出)。</summary>
+        private static void AssignSlot(TileSlot slot, int row, int col)
         {
-            string tileKey = row.ToString("00") + col.ToString("00");
-            if (_tiles.ContainsKey(tileKey)) return;
+            slot.Row = row;
+            slot.Col = col;
+            int token = ++slot.Token;
 
-            GameObject tileGo = new GameObject(tileKey, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-            tileGo.transform.SetParent(_tileRoot, false);
-            RectTransform rt = (RectTransform)tileGo.transform;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(0f, 1f);
-            rt.pivot = new Vector2(0f, 1f);
-            rt.anchoredPosition = new Vector2((col - 1) * data.TileSize, -(row - 1) * data.TileSize);
-            rt.sizeDelta = new Vector2(data.TileSize, data.TileSize);
+            if (slot.Sprite != null) { ResManager.Release(slot.Sprite); slot.Sprite = null; }
+            if (slot.Image != null) { slot.Image.sprite = null; slot.Image.enabled = false; }
 
-            Image image = tileGo.GetComponent<Image>();
-            image.raycastTarget = false;
-            image.enabled = false;
+            slot.Rt.anchoredPosition = new Vector2((col - 1) * _data.TileSize, -(row - 1) * _data.TileSize);
 
-            TileEntry entry = new TileEntry(tileGo, image);
-            _tiles.Add(tileKey, entry);
+            int maxCol = Mathf.CeilToInt((float)_data.MapWidth / _data.TileSize);
+            int maxRow = Mathf.CeilToInt((float)_data.MapHeight / _data.TileSize);
+            if (row < 1 || col < 1 || row > maxRow || col > maxCol) return; // 越界:保持隐藏
 
-            Sprite sprite = await ResManager.LoadAsync<Sprite>(GameResPath.GetSceneMapTile(data.MapResId, row, col, ".jxr"));
-            if (version != _version)
-            {
-                if (sprite != null) ResManager.Release(sprite);
-                return;
-            }
-
-            if (sprite == null)
-            {
-                GameLog.Warn("SceneMap", "map tile load failed: mapResId={0} row={1} col={2}", data.MapResId, row, col);
-                return;
-            }
-
-            entry.Sprite = sprite;
-            image.sprite = sprite;
-            image.enabled = true;
+            _loadQueue.Enqueue(new TileLoadRequest(slot, row, col, token, _version));
+            PumpLoads();
         }
 
-        private static void ClearTiles()
+        /// <summary>单飞加载泵:一次只加载一块,把加载/编辑器现导分摊到多帧,避免一帧尖刺。</summary>
+        private static async void PumpLoads()
         {
-            foreach (TileEntry entry in _tiles.Values)
+            if (_pumping) return;
+            _pumping = true;
+            try
             {
-                if (entry.Sprite != null) ResManager.Release(entry.Sprite);
-                if (entry.Root != null) Object.Destroy(entry.Root);
+                while (_loadQueue.Count > 0)
+                {
+                    if (_data == null) break;
+                    TileLoadRequest req = _loadQueue.Dequeue();
+                    if (req.Version != _version || req.Slot.Token != req.Token) continue; // 槽已被复用/换图,丢弃
+
+                    Sprite sprite = await ResManager.LoadAsync<Sprite>(
+                        GameResPath.GetSceneMapTile(_data.MapResId, req.Row, req.Col, ".jxr"));
+
+                    if (req.Version != _version || req.Slot.Token != req.Token)
+                    {
+                        if (sprite != null) ResManager.Release(sprite);
+                        continue;
+                    }
+                    if (sprite == null) continue; // 缺图:保持隐藏,低清底图透出
+
+                    req.Slot.Sprite = sprite;
+                    req.Slot.Image.sprite = sprite;
+                    req.Slot.Image.enabled = true;
+                }
             }
-            _tiles.Clear();
+            finally
+            {
+                _pumping = false;
+            }
+        }
+
+        private static void ResetPool()
+        {
+            _loadQueue.Clear();
+            if (_tilePool != null)
+            {
+                foreach (TileSlot t in _tilePool)
+                {
+                    if (t == null) continue;
+                    t.Token++;
+                    if (t.Sprite != null) { ResManager.Release(t.Sprite); t.Sprite = null; }
+                    if (t.Image != null) { t.Image.sprite = null; t.Image.enabled = false; }
+                    t.Row = int.MinValue;
+                    t.Col = int.MinValue;
+                }
+            }
+            _lastStartCol = int.MinValue;
+            _lastStartRow = int.MinValue;
+        }
+
+        private static void ClearPool()
+        {
+            _loadQueue.Clear();
+            if (_tilePool != null)
+            {
+                foreach (TileSlot t in _tilePool)
+                {
+                    if (t == null) continue;
+                    if (t.Sprite != null) ResManager.Release(t.Sprite);
+                    if (t.Root != null) Object.Destroy(t.Root);
+                }
+                _tilePool = null;
+            }
+            _poolCols = 0;
+            _poolRows = 0;
+            _lastStartCol = int.MinValue;
+            _lastStartRow = int.MinValue;
         }
 
         private static float ClampCameraX(int mapWidth, int focusX, float halfWidth)
@@ -278,16 +424,32 @@ namespace Shenxiao.Framework.Scene3D.Map
             sceneLayer.localScale = Vector3.one;
         }
 
-        private sealed class TileEntry
+        private sealed class TileSlot
         {
-            public readonly GameObject Root;
-            public readonly Image Image;
-            public Sprite Sprite;
+            public GameObject Root;
+            public Image Image;
+            public RectTransform Rt;
+            public int Row = int.MinValue;
+            public int Col = int.MinValue;
+            public int Token;     // 每次复用 +1,过期加载据此丢弃
+            public Sprite Sprite; // 当前贴图(换图前 Release)
+        }
 
-            public TileEntry(GameObject root, Image image)
+        private readonly struct TileLoadRequest
+        {
+            public readonly TileSlot Slot;
+            public readonly int Row;
+            public readonly int Col;
+            public readonly int Token;
+            public readonly int Version;
+
+            public TileLoadRequest(TileSlot slot, int row, int col, int token, int version)
             {
-                Root = root;
-                Image = image;
+                Slot = slot;
+                Row = row;
+                Col = col;
+                Token = token;
+                Version = version;
             }
         }
     }

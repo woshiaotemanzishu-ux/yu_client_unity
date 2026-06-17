@@ -265,3 +265,124 @@ HttpUtil / GmApi(HTTP 参考)/ NetManager / ErlangParser / UserMsgAdapter / View
   RoleController/RoleModel(13001/13002/13003/13006,对标 pt_130)+ BaseController.Dispose +
   NetReader.ReadArray + BattleAttrProto。"进游戏看到主角数据"骨架就位,待真机验证。
 - 方案定:协议接入"先手搓一个真实模块(RoleController)→ 再建协议代码生成器(Phase B)→ 按模块批量(Phase C)"。
+
+
+## 2026-06-16(摇杆移动闭环)
+
+计划:完善摇杆 UI + 主角移动,目标"角色在地图中正常跑动"(进游戏链路 2.3/2.5)。
+原因:对齐老客户端 UIJoyStick.ts + Scene.ts 输入 + MainRole.UpdateStateMove 移动。
+影响范围:
+- Framework/Net/Proto.cs:新增 `SC_MOVE = 12001`(移动上报)。
+- Framework/Scene3D/Map/SceneMapData.cs:新增 `IsBlockPixel`(像素→逻辑格 /60,/30,阻挡位 &1,越界阻挡;
+  动态区域阻挡留待场景对象线)。
+- Framework/Scene3D/Map/SceneMapView.cs:抽出公开 `SetFocus(x,y)` 做相机跟随(滚动场景层,焦点移过半 tile 才补刷瓦片)。
+- Module/Core/Scene/SceneInput.cs(新):场景输入状态,对标 SceneManager.curr_click_start_pos/move_dist/joystick_dir
+  (舞台坐标 x 右 y 下,已归一化,死区 12px)。
+- Module/Core/Scene/SceneInputDriver.cs(新):场景级指针捕获(对标 Scene.ts 的 stage MOUSE_DOWN/MOVE/UP),
+  落在 UI 按钮上的按压不进摇杆;鼠标走 Editor/PC,触摸走真机。
+- Module/Core/Scene/MainRoleAgent.cs(新):每帧按摇杆方向推进 real_pos(速度 250、单帧 dt≤0.04、撞墙 X/Y 分轴滑动),
+  写回 RoleModel + 相机跟随 + 播 run/idle + 转向 + 约 0.5s 上报 12001(松手补发一次)。
+- Module/Core/Scene/SceneController.cs:新增 `SendMoveRequest`(12001 "ihhchhhh",对标 SceneController.ts:1042;
+  发包留在 Module 层)。
+- Module/Core/MainUI/Views/UIJoyStick.cs:补齐摇杆图——按下场景空白处才显示并跟手定位底盘,摇杆头沿方向偏移
+  (截断到半径 53.5)并旋转(1:1 端口 UIJoyStick.ts:48-67)。
+- Module/Core/Scene/MainRoleFlow.cs:装配后补 run 动作、挂 MainRoleAgent、装 SceneInputDriver;改为跟随相机模型——
+  主角恒居屏幕中心、移动靠相机滚动地图体现(不再按 X/Y 平移主角节点)。
+- Shenxiao.Module.Core.csproj:补 3 个新文件 Compile 项(Unity 重导会自动覆盖)。
+验收:摇杆按真实贴图显隐/跟手/转向;主角按摇杆方向跑动、撞墙沿墙滑、地图在脚下滚动、约 0.5s 上报 12001。
+3D 主角模型在 UGUI 地图上的精确合成(屏幕对位/遮挡)仍属"待真机验证"(承 2026-06-15),本批只闭环数据/动作/朝向/相机跟随这条可验证逻辑线。
+回滚:删除 SceneInput/SceneInputDriver/MainRoleAgent 三个新文件 + 回退 Proto/SceneMapData/SceneMapView/SceneController/UIJoyStick/MainRoleFlow 的本批改动。
+
+### 2026-06-16 真机首跑两处修复(读 Editor.log 定位)
+
+1. 输入后端:本工程 Active Input Handling = Input System Package,SceneInputDriver 原用旧 `UnityEngine.Input`
+   每帧抛 InvalidOperationException 刷屏。改为 UGUI EventSystem 捕获——铺满屏幕的透明 raycast 接收板
+   挂 canvas 最底层,实现 IPointerDown/Drag/Up 写 SceneInput;与输入后端无关,且"UI 在上层先吃点击"自然成立。
+
+2. **协议解析(关键,主角进不了场景的真因)**:`BattleAttrProto` 早期误按服务端 write_attr_list 的
+   "count+id16+val32 列表"分支解析,但 13001 主角实际走 `#attr{}` 固定记录分支
+   = Hp:64 + HpLim:64 + Speed:16 + **51×int32 固定属性**(无计数、无 id,对标老客户端 BattleProtoVo+BaseAttrProtoVo)。
+   少读约 202 字节 → 同包后续 场景id/副本id/坐标 全部错位(日志 场景=2031616、副本=1048576 = 真值<<16),
+   12005 进场被服务端拒(errorCode 1200005),地图/主角自然出不来。已重写 BattleAttrProto 为固定 51 字段,
+   字节消耗与服务端 pt.erl write_attr_list/1 的 #attr{} 分支、老客户端 BaseAttrProtoVo.pro_list 完全对齐。
+   (注:role_id=4294967349 是服务端 ServerId<<32|本地号 的合成 id,正常,非解析错。)
+
+待验证:Unity 重跑后 12005 应返回有效 instanceId,地图加载 → 主角出现 → 摇杆驱动跑动。
+旁路噪声(非本项):UnityConnect/Curl cert 404、UIElements 渲染异常,与进游戏链路无关。
+
+### 2026-06-16 移动卡顿优化(对标老客户端 CameraManager/Laya 滚屏)
+
+症状:摇杆移动相机时非常卡。两处根因:
+1. **每帧根 Canvas 重建(常驻卡顿)**:SceneMapView.ApplyCamera 原来每帧移动 `UILayer.Scene`(根 Canvas 的子节点)→
+   每帧重建整个根 Canvas(含 HUD)。老客户端是只挪一个容器/相机(CameraManager.ts:676 `_scene_layer.x=h_w-_camera_pos.x`、
+   :229 移 3D 相机 transform),Laya 保留模式下几乎免费。
+   **修复**:`__SceneMap` 改为自带 `Canvas`(overrideSorting + sortingOrder=-100,压在 HUD 下),滚屏改为只移动这个
+   独立 Canvas 的 anchoredPosition → 不触碰根 Canvas、不重建 HUD;sceneLayer 保持满屏静止。
+   并加 early-out:焦点(主角格)未变整帧跳过(对标 UpdateCamera:648 的 _camera_pos 未变即 return)。
+   文件:SceneMapView.cs(EnsureRoot 加 Canvas、ApplyCamera 改移 _root、SetFocus 加焦点 early-out)。
+2. **进新区域时每瓦片同步导入(尖刺卡顿,仅编辑器)**:瓦片未进 Addressables 时,ResManager 编辑器兜底走
+   AssetDatabase.FindAssets + 从 yu_client 拷 .jxr→.jpg + ImportAsset/SaveAndReimport(主线程同步),
+   每块新瓦片一次大顿。老客户端瓦片是预存 .jxr/.ktx 异步加载,无此问题。
+   **缓解**:瓦片仅在相机移过半个 tile 时补刷、已加载不重复请求(本就有);彻底解决需把地图瓦片
+   预导入并跑「神霄/资源/Addressable 自动分组」,运行时即走 Addressables 异步,不再触发编辑器重导。
+   (首次探索把整图瓦片导入 Assets/GameRes 后,后续会话不再 SaveAndReimport,只剩较轻的 FindAssets。)
+
+### 2026-06-16 瓦片固定池滚动复用(移植 MapManager.UpdateTiles)
+
+针对"H5/小程序按需流式加载还要不卡"的目标,把 SceneMapView 的瓦片系统从"按需建 GameObject 的字典"
+重写为对标老客户端的**固定瓦片池滚动复用**(MapManager.tile_list + UpdateTiles:581-628):
+- 池大小=视野+边距(编辑器 12 列,真机 floor(w/tile)+2 列 × floor(h/tile)+1 行);**+2/+1 边距即屏幕外预取缓冲**。
+- 跨 tile 边界才刷新(窗口起点格未变即整体跳过,对标 :598);移出视野的瓦片直接挪到新格复用,
+  **不 new/Destroy、不涨内存、不产生 GC 与 Canvas 重建尖刺**;换图前 Release 旧 sprite(顺带修早期"瓦片只增不放"的泄漏)。
+- 越界格保持隐藏,缺图也保持隐藏 → 低清底图透出,绝不空白。
+- 我们的元素:**单飞加载泵**(_loadQueue + PumpLoads)一次只加载一块,把加载/编辑器现导分摊到多帧,
+  避免一帧涌入几十块造成尖刺;每槽 Token + 版本号双重校验,过期/换图的加载结果直接丢弃。
+文件:SceneMapView.cs(EnsureTilePool/UpdateTiles/AssignSlot/PumpLoads/ResetPool/ClearPool;删除旧 RefreshVisibleTiles/LoadTile/字典)。
+
+仍未做(单列为资源管线项,改动影响打包,做前报告):⑤瓦片走平台压缩纹理(对标老客户端 .ktx,
+让 GPU 上传零解码),这是真机/小程序彻底消除"加载一块顿一下"的物理基础。当前运行时层(对象池+预取边距+
+每帧预算+独立 Canvas)已就位。
+
+### 2026-06-17 地图瓦片离线转换工具(根治"进新区域第一次很卡")
+
+定位:运行时卡顿剩余项 = 编辑器**逐块同步现导**瓦片(ResManager 的 #if UNITY_EDITOR 兜底:把 yu_client 的
+.jxr 拷进 GameRes + ImportAsset/SaveAndReimport)。日志实测出生图 10000 是 10960x9009、1548 块瓦片,
+之前只零散转了 257 块 → 没去过的区域第一次进就现导卡。运行时优化(对象池等)改善不了"同步导入"这一帧硬卡,
+唯一解是**提前离线批量转好**;这不违反两项目边界——转换是编辑器期把素材搬进本项目,运行时仍只走本项目 Addressables。
+
+新增 `Assets/Editor/MapResourceTools/`:
+- `MapTileConverter.cs`:可复用的离线转换/盘点。ScanScenes(列出有 {id}.bytes 的场景)、Inspect(解析 .bytes 拿
+  mapResId/尺寸 + 数源/产物 RRCC 瓦片)、Convert(批量拷 .bytes+底图+全部 .jxr→.jpg 进 GameRes,
+  StartAssetEditing 包裹一次性导入,增量跳过已转,JPEG magic 校验)。
+- `MapAssetWindow.cs`:菜单 `神霄/资源/地图资源`。左=场景地图清单 + 转换状态(○未转/◐部分/●已转,显示 已转/总数);
+  右=选中图详情(sceneId、mapResId 是否复用、尺寸、瓦片进度)+ 转换(补齐缺失)/定位/删产物 + 顺便分组开关。
+  风格对标「资产管理」,但地图是瓦片文件夹(无 .lh/prefab),单独成窗不动模型/特效/装配线。
+- 删除上一版临时的单图导入窗 MapTileImporter.cs(被列表窗取代)。
+用法:打开 `神霄/资源/地图资源` → 选出生场景(日志里 `12005 ok: sceneId=…`,当前是 10000)→「转换并分组」一次转完
+→ 之后进图任何位置不再现导、不卡。出真机/小程序包时这些瓦片在 Remote 组,仍是 CDN 异步流式,不打进首包。
+
+### 2026-06-17 地图工具加名字/类型/出生点/缩略图(对标 electron 资源工具)
+
+对标老客户端 Electron 资源工具 `yu_client/tools/yu-resource-tool`(SceneMaps.vue 列表 + MapEditor.vue 标注画布)。
+之前地图工具只有编号,不知是哪张图、无标注。本批补:
+- 地图**名字/类型/出生点/尺寸**:`MapTileConverter` 读 `config_scene.json`(server,`{id:{name,type,x,y,width,height}}`,
+  Newtonsoft 直读,无需 yu_server/python);类型中文对标 MapEditor.formatSceneType。MapStat 带上 Name/SceneType/BirthX/Y。
+- `MapAssetWindow`:列表显示「编号 名字」、可按名字搜;详情显示 名字/类型/出生点/尺寸/瓦片进度 +
+  **缩略图(底图)+ 出生点标注**(地图像素→缩略图坐标,y 向下)。
+- 完整标注点(NPC/怪/采集/传送门/Boss/跳跃点/任务路线)在 electron 里来自 **yu_server** 数据(map_editor.py 解析),
+  坐标为世界像素(逻辑格 60×30)。
+记忆:已存 `yu-resource-tool-electron`(参考蓝本)、`map-tile-offline-conversion`(卡顿根因+工具)。
+
+### 2026-06-17 完整标注点(NPC/怪/门/Boss)+ 一键转换全部
+
+- `MapServerData.cs`(新):C# 移植 electron `map_editor.py` 的解析,纯编辑器只读:
+  - 位置来自 **yu_server** `src/data/create/data_scene.erl`(`get(ID)->#ets_scene{...};`:mon=[[id,x,y,type,group]]、
+    npc=[[id,x,y,"action"]]、elem=[{id,x,y,p1,p2}]、reborn_xys=[{x,y}])+ `data_boss.erl`(`get_boss_cfg`/`get_boss_type_name`);
+    正则与 python 一致(方括号平衡取列表、`[^;]+` 取记录体)。
+  - 名字来自 **yu_client** `config_mon.json`(字段"1"=名,"2"=类型→采集判定)/`config_npc.json`(name/title)。
+  - yu_server 路径存 EditorPrefs(默认 `ClientRoot/../yu_server`),窗口可改。
+  - **校验**:scene 10000 解析出 npc=34(与运行时 12100 回包 count=34 完全一致)、mon=79,移植正确。
+- `MapAssetWindow` 升级:详情缩略图上叠加 出生点/NPC/怪/采集/传送门/Boss/复活 标注(按图层开关,带计数色块)+
+  「标注清单」折叠列表(id+名字+坐标,每类上限 60);新增列表页「一键转换全部」(只转未转/部分,强确认+进度+可取消+分组)。
+- 跳跃点/任务路线(electron 还有)暂未接;需 data_task.erl + jump 配置,留待后续。
+- electron 记忆已更新为"Unity 侧标注点已落地"。

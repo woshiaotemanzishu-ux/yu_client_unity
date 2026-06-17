@@ -8,6 +8,13 @@ namespace Shenxiao.Framework.Scene3D.Map
     /// </summary>
     public sealed class SceneMapData
     {
+        /// <summary>逻辑格/真实像素比例,对标 SceneObj.LogicRealRatio2D(60,30)。</summary>
+        public const int LogicRatioX = 60;
+        public const int LogicRatioY = 30;
+
+        /// <summary>寻路格阻挡位(对标 AstarManager ZONE_TYPE_BLOCK = 1)。</summary>
+        private const int BlockBit = 1;
+
         public int SceneId { get; private set; }
         public int MapResId { get; internal set; }
         public int TileSize { get; internal set; }
@@ -28,6 +35,20 @@ namespace Shenxiao.Framework.Scene3D.Map
             Tiles = new List<SceneMapTileCoord>();
             WalkGrid = new sbyte[0, 0];
             Areas = new List<SceneMapArea>();
+        }
+
+        /// <summary>
+        /// 真实像素坐标是否阻挡(对标 MapManager.IsBlockXY → AstarManager.GetZoneInfo 的静态寻路格判断):
+        /// 先把像素坐标换算成逻辑格(/60,/30 向下取整),越界视为阻挡,否则取格值的阻挡位。
+        /// 动态区域阻挡(DynamicBlock)属于后续场景对象生命周期范畴,本最小移动闭环不纳入。
+        /// </summary>
+        public bool IsBlockPixel(float realX, float realY)
+        {
+            int lx = (int)System.Math.Floor(realX / LogicRatioX);
+            int ly = (int)System.Math.Floor(realY / LogicRatioY);
+            if (lx < 0 || ly < 0 || lx >= GridColumns || ly >= GridRows) return true;
+            if (WalkGrid == null || WalkGrid.Length == 0) return false;
+            return (WalkGrid[lx, ly] & BlockBit) != 0;
         }
     }
 

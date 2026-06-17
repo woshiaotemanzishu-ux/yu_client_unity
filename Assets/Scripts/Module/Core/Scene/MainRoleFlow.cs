@@ -18,7 +18,7 @@ namespace Shenxiao.Module.Core.Scene
         private const float MODEL_ROOT_SCALE = 1.1f;
         private const float SCENE_ROTATE_X = 38f;
         private const float SCENE_ROTATE_Y = 180f;
-        private const float REAL_POS_SCALE = 0.01f;
+        private const string ACTION_RUN = "run";
         private static readonly string[] STAND_ACTIONS = { "idle" };
 
         private static GameObject _sceneRoot;
@@ -86,6 +86,14 @@ namespace Shenxiao.Module.Core.Scene
                 return;
             }
 
+            // 跑动用 run 动作(idle 已由装配器自动播放;这里再补 run 的 clip,不自动播)。
+            await RoleModelAssembler.PrepareRoleActions(model, role.Career, spec.ClotheRes, new[] { ACTION_RUN });
+            if (version != _buildVersion)
+            {
+                UnityEngine.Object.Destroy(model);
+                return;
+            }
+
             EnsureSceneRoot();
             ClearMainRole(false);
 
@@ -97,6 +105,11 @@ namespace Shenxiao.Module.Core.Scene
             model.transform.localPosition = Vector3.zero;
             model.transform.localRotation = Quaternion.identity;
             model.transform.localScale = Vector3.one;
+
+            // 摇杆移动驱动:主角恒居屏幕中心,相机跟随滚动地图(SceneMapView.SetFocus)。
+            MainRoleAgent agent = _mainRoleRoot.AddComponent<MainRoleAgent>();
+            agent.Init(model, role.X, role.Y);
+            SceneInputDriver.EnsureInstalled();
 
             GameLog.Info("Scene", "main role ready: roleId={0} pos=({1},{2}) clothe={3}",
                 role.RoleId, role.X, role.Y, spec.ClotheRes);
@@ -147,7 +160,12 @@ namespace Shenxiao.Module.Core.Scene
 
         private static void ClearMainRole(bool bumpVersion)
         {
-            if (bumpVersion) ++_buildVersion;
+            if (bumpVersion)
+            {
+                ++_buildVersion;
+                // 彻底清主角(非重建)时一并撤掉场景输入,避免无主角时仍在采集移动。
+                SceneInputDriver.Remove();
+            }
             if (_mainRoleRoot != null)
             {
                 UnityEngine.Object.Destroy(_mainRoleRoot);
@@ -157,10 +175,9 @@ namespace Shenxiao.Module.Core.Scene
 
         private static void ApplyOldClientSceneTransform(Transform root, RoleModel role)
         {
-            root.localPosition = new Vector3(
-                -role.X * REAL_POS_SCALE,
-                -role.Y * REAL_POS_SCALE,
-                SceneObjDepth(role.Y));
+            // 跟随相机模型:主角恒居屏幕中心,移动靠相机滚动地图(SceneMapView.SetFocus)体现,
+            // 故主角节点不按 X/Y 平移,只保留老客户端的场景倾斜与缩放;深度按出生 Y 取一次。
+            root.localPosition = new Vector3(0f, 0f, SceneObjDepth(role.Y));
             root.localRotation = Quaternion.Euler(SCENE_ROTATE_X, SCENE_ROTATE_Y, 0f);
             root.localScale = Vector3.one * MODEL_ROOT_SCALE;
         }
