@@ -116,5 +116,15 @@ namespace Shenxiao.Framework.Net
         public const int SC_NPC_LIST = 12100;
         /// <summary>Dynamic NPC add/remove push. Reply starts with u16 count.</summary>
         public const int SC_NPC_DYNAMIC = 12103;
+
+        // ----- 邮件(190xx,yu_server pt_190.erl) -----
+        /// <summary>请求/回:邮件列表。回包 h + {MailId:l,Type:c,State:c,Title:s,IsAttach:c,Time:i,EffectEt:i}×N。</summary>
+        public const int MAIL_LIST = 19001;
+        /// <summary>新邮件推送(S2C,单封,同列表项格式)。</summary>
+        public const int MAIL_NEW = 19007;
+        /// <summary>是否有未读邮件(S2C "c")。</summary>
+        public const int MAIL_UNREAD = 19008;
+        /// <summary>可发邮件剩余次数(S2C "c")。</summary>
+        public const int MAIL_LEFT_NUM = 19009;
     }
 }

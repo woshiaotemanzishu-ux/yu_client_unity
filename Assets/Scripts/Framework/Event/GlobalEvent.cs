@@ -51,6 +51,12 @@ namespace Shenxiao.Framework.Event
         /// <summary>传闻广播(11015/11018)到达,读 NoticeModel.RecentChuanwen。</summary>
         public const string EVT_CHUANWEN = "EVT_CHUANWEN";
 
+        // ----- Mail / 邮件 -----
+        /// <summary>邮件列表/新邮件(19001/19007)变化,读 MailModel.Mails。</summary>
+        public const string EVT_MAIL_LIST_UPDATE = "EVT_MAIL_LIST_UPDATE";
+        /// <summary>邮件未读标记(19008)变化,读 MailModel.HasUnread。</summary>
+        public const string EVT_MAIL_UNREAD_UPDATE = "EVT_MAIL_UNREAD_UPDATE";
+
         // ----- Task -----
         public const string EVT_TASK_LIST_UPDATED = "EVT_TASK_LIST_UPDATED";
         public const string EVT_TASK_ONE_UPDATED = "EVT_TASK_ONE_UPDATED";
