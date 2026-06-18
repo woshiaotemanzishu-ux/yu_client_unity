@@ -39,6 +39,9 @@ namespace Shenxiao.Module.Core.Scene.Vo
         /// <summary>最近一次移动广播(12001)的移动类型,渲染层据此选普通/轻功/瞬移表现。</summary>
         public int MoveFlag;
 
+        /// <summary>展示状态(12075 广播设置,非 12003 字段,默认 0)。</summary>
+        public int Show;
+
         public void ReadFromProtocal(NetReader r)
         {
             RoleId = r.ReadU64();

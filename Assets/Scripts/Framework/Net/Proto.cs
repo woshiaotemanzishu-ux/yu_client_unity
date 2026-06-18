@@ -71,6 +71,12 @@ namespace Shenxiao.Framework.Net
         public const int SC_GROUP = 12072;
         /// <summary>PK 状态字段广播。回包 "clc"(sign, id, pkStatus)。</summary>
         public const int SC_PK_STATUS = 12074;
+        /// <summary>展示状态字段广播。回包 "clc"(sign, id, show)。</summary>
+        public const int SC_SHOW = 12075;
+        /// <summary>移动速度变更广播。回包 "clh"(sign, playerId, speed)。</summary>
+        public const int SC_SPEED = 12082;
+        /// <summary>玩家改名通知。回包 "ls"(playerId, name)，无 sign 前缀。</summary>
+        public const int SC_RENAME = 12086;
         /// <summary>九宫格玩家增删:h+12003×N(加) + h+l×N(删)。</summary>
         public const int SC_VIEW_ROLE_REFRESH = 12011;
         /// <summary>九宫格对象增删:怪物/伙伴/其他/假人(加) + i×N(删)。</summary>
