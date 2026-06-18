@@ -40,6 +40,10 @@ namespace Shenxiao.Framework.Event
 
         // ----- Scene -----
         public const string EVT_SCENE_MAP_READY = "EVT_SCENE_MAP_READY";
+        /// <summary>12002 场景快照解析完成、场景对象表(SceneManager)已就绪。携带数据用 SceneManager 的强类型事件。</summary>
+        public const string EVT_SCENE_SNAPSHOT_READY = "EVT_SCENE_SNAPSHOT_READY";
+        /// <summary>切场景/登出:场景对象表已清空。</summary>
+        public const string EVT_SCENE_OBJECTS_CLEARED = "EVT_SCENE_OBJECTS_CLEARED";
 
         // ----- Task -----
         public const string EVT_TASK_LIST_UPDATED = "EVT_TASK_LIST_UPDATED";
