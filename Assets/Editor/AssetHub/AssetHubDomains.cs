@@ -72,6 +72,20 @@ namespace Shenxiao.Editor.AssetHub
                 // 已验真实样本 model_mount_1000 经 laya_to_glb 导出齐全:48 骨骼 / 4 动画 / 网格+材质+贴图(2026-06-19)。
                 // 注:骑乘组合(把角色挂到坐骑 Bone_ride/ride 节点)属下游 RoleModelAssembler,与此处的「坐骑模型导入」无关,另议。
                 new AssetDomain { Name = "坐骑", Enabled = true, Scan = () => ScanObjsDir("mount", "model_mount_") },
+                // 实体模型域(独立角色:怪物/NPC/宠物/灵兽…)。模型本身=蒙皮+自带动作,与部件域同构,清单=objs 目录。
+                // 已逐域验真实样本经 laya_to_glb 导出齐全(2026-06-19):monster 54骨/8动画、npc 49骨/2动画、
+                // pet 66骨、spirit 56骨、child 20骨、fabao 5骨、god 57骨、ghost 24骨、fairy 11骨,贴图均在。
+                // 注:monster/npc 的 .lh 命名沿用 model_clothe_*(怪=8位id、NPC=6位id),与角色时装分属各自
+                //   object/{域}/ 子目录,OutDir 也分目录,无冲突。用途语义(刷怪/宠物跟随)属运行时,与模型导入无关。
+                new AssetDomain { Name = "怪物", Enabled = true, Scan = () => ScanObjsDir("monster", "model_clothe_") },
+                new AssetDomain { Name = "NPC",  Enabled = true, Scan = () => ScanObjsDir("npc", "model_clothe_") },
+                new AssetDomain { Name = "宠物", Enabled = true, Scan = () => ScanObjsDir("pet", "model_pet_") },
+                new AssetDomain { Name = "精灵", Enabled = true, Scan = () => ScanObjsDir("spirit", "model_spirit_") },
+                new AssetDomain { Name = "童子", Enabled = true, Scan = () => ScanObjsDir("child", "model_child_") },
+                new AssetDomain { Name = "法宝", Enabled = true, Scan = () => ScanObjsDir("fabao", "model_fabao_") },
+                new AssetDomain { Name = "神祇", Enabled = true, Scan = () => ScanObjsDir("god", "model_god_") },
+                new AssetDomain { Name = "鬼魂", Enabled = true, Scan = () => ScanObjsDir("ghost", "model_ghost_") },
+                new AssetDomain { Name = "仙灵", Enabled = true, Scan = () => ScanObjsDir("fairy", "model_fairy_") },
             };
         }
 
