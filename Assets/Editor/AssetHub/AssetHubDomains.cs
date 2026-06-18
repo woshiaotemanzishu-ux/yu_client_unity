@@ -86,6 +86,12 @@ namespace Shenxiao.Editor.AssetHub
                 new AssetDomain { Name = "神祇", Enabled = true, Scan = () => ScanObjsDir("god", "model_god_") },
                 new AssetDomain { Name = "鬼魂", Enabled = true, Scan = () => ScanObjsDir("ghost", "model_ghost_") },
                 new AssetDomain { Name = "仙灵", Enabled = true, Scan = () => ScanObjsDir("fairy", "model_fairy_") },
+                // littlepet/other:非标 res 布局(res/{name}/model/)但 .lh 的 meshPath 相对解析正常,已验 laya_to_glb 导出齐全。
+                //   小宠 littlepet 23 个:动作布局标准(object/littlepet/action/{id})、0 失配 → ScanObjsDir 完全正确。
+                //   杂项 other 5 个:其中 4 个共用 action/401416(待 C# 动作目录修复覆盖,同 child/mount)。
+                // faqi(26):动作在 res/model_faqi_X/action/(非标)且 clip 名特殊 → 暂不接,待 C# 改读 .lh clipPath 后再接。
+                new AssetDomain { Name = "小宠", Enabled = true, Scan = () => ScanObjsDir("littlepet", "model_littlepet_") },
+                new AssetDomain { Name = "杂项", Enabled = true, Scan = () => ScanObjsDir("other", "model_clothe_") },
             };
         }
 
