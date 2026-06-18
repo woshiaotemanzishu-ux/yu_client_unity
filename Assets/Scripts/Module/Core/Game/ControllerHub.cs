@@ -3,6 +3,7 @@ using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoBrush;
 using Shenxiao.Module.Core.Gm;
+using Shenxiao.Module.Core.Notice;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene;
 using Shenxiao.Module.Core.Tasks;
@@ -24,6 +25,7 @@ namespace Shenxiao.Module.Core.Game
             TaskController.Instance,
             AutoBrushController.Instance,
             GmCheatController.Instance,
+            NoticeController.Instance,
             // 后续:BagController / EquipController / ChatController ...
         };
 

@@ -45,6 +45,12 @@ namespace Shenxiao.Framework.Event
         /// <summary>切场景/登出:场景对象表已清空。</summary>
         public const string EVT_SCENE_OBJECTS_CLEARED = "EVT_SCENE_OBJECTS_CLEARED";
 
+        // ----- Notice / 公告 -----
+        /// <summary>系统公告(11020)到达,读 NoticeModel.LastSysNotice。</summary>
+        public const string EVT_SYS_NOTICE = "EVT_SYS_NOTICE";
+        /// <summary>传闻广播(11015/11018)到达,读 NoticeModel.RecentChuanwen。</summary>
+        public const string EVT_CHUANWEN = "EVT_CHUANWEN";
+
         // ----- Task -----
         public const string EVT_TASK_LIST_UPDATED = "EVT_TASK_LIST_UPDATED";
         public const string EVT_TASK_ONE_UPDATED = "EVT_TASK_ONE_UPDATED";

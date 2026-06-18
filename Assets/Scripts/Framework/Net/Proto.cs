@@ -27,6 +27,14 @@ namespace Shenxiao.Framework.Net
         public const int SERVER_TIME = 10201;
         public const int SETTING_LIST = 10202;
 
+        // ----- 聊天/公告(110xx,yu_server pt_110.erl) -----
+        /// <summary>传闻广播(全服)。回包 "hhs"(moduleId, id, content)。</summary>
+        public const int SC_CHUANWEN = 11015;
+        /// <summary>传闻广播(带发送者形象)。回包 serId:h, playerId:l, figure 块, moduleId:h, id:h, content:s。</summary>
+        public const int SC_CHUANWEN_FIGURE = 11018;
+        /// <summary>系统公告/提示(跑马灯)。回包 "s"(content)。</summary>
+        public const int SC_SYS_NOTICE = 11020;
+
         // ----- GM 秘籍(111xx,yu_server pt_111.erl / pp_gm.erl) -----
         /// <summary>请求 GM 秘籍清单(无字段)。回包:u16 分类数 × { s 分类名,
         /// u16 命令数 × { s 命令, s 中文名, u16×s 参数描述, u16×s 默认值 } }。</summary>
