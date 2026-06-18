@@ -148,5 +148,13 @@ namespace Shenxiao.Framework.Net
         public const int MAIL_UNREAD = 19008;
         /// <summary>可发邮件剩余次数(S2C "c")。</summary>
         public const int MAIL_LEFT_NUM = 19009;
+
+        // ----- 首充(159xx 子集,yu_server pt_159.erl) -----
+        /// <summary>首充信息。请求无参;回包 h+{Open:c,Index:c}×N + ProductId:i + IsNotify:c。</summary>
+        public const int FIRST_RECHARGE_INFO = 15905;
+        /// <summary>领取首充奖励。发 "c"(index);回包 Errcode:i, Index:c。</summary>
+        public const int FIRST_RECHARGE_CLAIM = 15906;
+        /// <summary>是否已购首充。请求无参;回包 "c"(isBuy)。</summary>
+        public const int FIRST_RECHARGE_ISBUY = 15908;
     }
 }

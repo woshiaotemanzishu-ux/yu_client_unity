@@ -63,6 +63,10 @@ namespace Shenxiao.Framework.Event
         /// <summary>功能开放达成列表/状态(13800/13801/13802)变化,读 FunctionOpenModel.FinishState。</summary>
         public const string EVT_FUNC_OPEN_UPDATE = "EVT_FUNC_OPEN_UPDATE";
 
+        // ----- FirstRecharge / 首充 -----
+        /// <summary>首充信息/状态(15905/15906/15908)变化,读 FirstRechargeModel。</summary>
+        public const string EVT_FIRST_RECHARGE_UPDATE = "EVT_FIRST_RECHARGE_UPDATE";
+
         // ----- Task -----
         public const string EVT_TASK_LIST_UPDATED = "EVT_TASK_LIST_UPDATED";
         public const string EVT_TASK_ONE_UPDATED = "EVT_TASK_ONE_UPDATED";
