@@ -1,16 +1,19 @@
 using System;
 using System.Threading.Tasks;
+using Shenxiao.Common.Proto;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Scene3D.Map;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.Scene.Vo;
 
 namespace Shenxiao.Module.Core.Scene
 {
     /// <summary>
     /// Scene protocol controller. Mirrors old-client SceneController 12005 entry path.
+    /// 协议层:解析 12xxx 后落到 <see cref="SceneManager"/>(数据层),渲染层订阅 SceneManager 事件建模。
     /// </summary>
     public sealed class SceneController : BaseController
     {
@@ -24,7 +27,15 @@ namespace Shenxiao.Module.Core.Scene
         {
             RegisterProtocal(Proto.SC_MOVE, On12001);
             RegisterProtocal(Proto.SC_LOAD_SCENE, On12002);
+            RegisterProtocal(Proto.SC_ROLE_ADD, On12003);
+            RegisterProtocal(Proto.SC_ROLE_REMOVE, On12004);
             RegisterProtocal(Proto.SC_CHANGE_SCENE, On12005);
+            RegisterProtocal(Proto.SC_ENTITY_DELETE, On12006);
+            RegisterProtocal(Proto.SC_MONSTER_ADD, On12007);
+            RegisterProtocal(Proto.SC_SCENE_MOVE, On12008);
+            RegisterProtocal(Proto.SC_HP_UPDATE, On12009);
+            RegisterProtocal(Proto.SC_VIEW_ROLE_REFRESH, On12011);
+            RegisterProtocal(Proto.SC_VIEW_OBJ_REFRESH, On12012);
             RegisterProtocal(Proto.SC_DROP_LIST, On12018);
             RegisterProtocal(Proto.SC_NPC_ICON_REFRESH, On12020);
             RegisterProtocal(Proto.SC_NPC_LIST, On12100);
@@ -45,8 +56,6 @@ namespace Shenxiao.Module.Core.Scene
 
         /// <summary>
         /// 主角移动上报(对标 SceneController.ts:1042 moveRequestHandler → SendFmtToGame(12001,"ihhchhhh"))。
-        /// 老客户端把 MOVEREQUEST 事件统一在 SceneController 转成 12001;这里由 MainRoleAgent 调用,
-        /// 协议发包留在 Module 层(Framework 不直接发协议)。负坐标按老客户端规则取 0。
         /// </summary>
         public void SendMoveRequest(int curX, int curY, int moveType, int targetX, int targetY)
         {
@@ -71,18 +80,19 @@ namespace Shenxiao.Module.Core.Scene
             }
             else
             {
+                SceneManager.Instance.Clear();
+                EventDispatcher.Emit(GlobalEvent.EVT_SCENE_OBJECTS_CLEARED);
                 SceneMapLoader.Clear();
                 SceneMapView.Clear();
             }
             base.Dispose();
         }
 
+        // ===================== 移动 =====================
+
         /// <summary>
-        /// 12001(S2C)移动广播:服务器把所有单位(主角/其他玩家/怪物/NPC)的移动同步下来。
-        /// 对标老客户端 SceneController.ts:99-121 —— 读 "hhlc"(x, y, role_id, move_flag);
-        /// move_flag != Normal 时,后面再跟 "hh"(start_fly_x, start_fly_y)。
-        /// role_id == 主角 → 空处理(主角用本地插值推进,不做服务器坐标纠正,与老客户端一致);
-        /// 其他单位 → 本期先解析+日志,场景对象表(SceneManager)接入后改为驱动其 DoMove(见 chunk B/C/E/F)。
+        /// 12001(S2C)移动广播。读 "hhlc"(x, y, role_id, move_flag);move_flag != Normal 时再读 "hh" 起飞坐标。
+        /// role_id==主角 → 空处理(本地插值,不纠正,与老客户端一致);其他玩家 → 驱动其 VO 移动(渲染层插值)。
         /// </summary>
         private void On12001(NetReader reader)
         {
@@ -91,29 +101,35 @@ namespace Shenxiao.Module.Core.Scene
             long roleId = reader.ReadU64();
             int moveFlag = reader.ReadU8();
 
-            int startFlyX = 0, startFlyY = 0;
             if (moveFlag != MoveType.Normal)
             {
-                if (reader.Remaining >= 4)
-                {
-                    startFlyX = reader.ReadU16();
-                    startFlyY = reader.ReadU16();
-                }
-                else
-                {
-                    GameLog.Warn("Scene", "12001 move flag={0} 缺起飞坐标(remaining={1}B)", moveFlag, reader.Remaining);
-                }
+                if (reader.Remaining >= 4) { reader.ReadU16(); reader.ReadU16(); } // start_fly_x/y(轻功/瞬移起飞点,本期暂不用)
+                else GameLog.Warn("Scene", "12001 flag={0} 缺起飞坐标(remaining={1}B)", moveFlag, reader.Remaining);
             }
 
-            if (roleId == RoleModel.Instance.RoleId)
-            {
-                return; // 主角:本地推进,不被服务器纠正(对标老客户端对自身 12001 的空处理)
-            }
-
-            // TODO(chunk B/C/E/F): 接入 SceneManager,按 roleId 找到场景单位 → DoMove((x,y), moveFlag, 起飞点)
-            GameLog.Info("Scene", "12001 move: id={0} pos=({1},{2}) flag={3} fly=({4},{5})",
-                roleId, x, y, moveFlag, startFlyX, startFlyY);
+            if (roleId == RoleModel.Instance.RoleId) return; // 主角本地推进,不纠正
+            SceneManager.Instance.MoveRole(roleId, x, y, moveFlag);
         }
+
+        /// <summary>12008 通用对象位置同步 "hhi"(x, y, instance_id)。</summary>
+        private void On12008(NetReader reader)
+        {
+            int x = reader.ReadU16();
+            int y = reader.ReadU16();
+            long id = reader.ReadU32();
+            SceneManager.Instance.MoveSceneObj(id, x, y);
+        }
+
+        /// <summary>12009 血量更新 "lll"(obj_id, hp, hpLim)。</summary>
+        private void On12009(NetReader reader)
+        {
+            long objId = reader.ReadU64();
+            long hp = reader.ReadU64();
+            long hpLim = reader.ReadU64();
+            SceneManager.Instance.ApplyHp(objId, hp, hpLim);
+        }
+
+        // ===================== 进入/切换场景 =====================
 
         private void On12005(NetReader reader)
         {
@@ -137,6 +153,10 @@ namespace Shenxiao.Module.Core.Scene
             role.X = x;
             role.Y = y;
             role.DunId = dunId;
+
+            // 进入新场景:清空上一场景的对象表(对标老客户端 ClearAllVo),再由 12100/12002 重新填充。
+            SceneManager.Instance.Clear();
+            EventDispatcher.Emit(GlobalEvent.EVT_SCENE_OBJECTS_CLEARED);
             EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
 
             GameLog.Info("Scene", "12005 ok: sceneId={0} dunId={1} pos=({2},{3})", instanceId, dunId, x, y);
@@ -158,13 +178,96 @@ namespace Shenxiao.Module.Core.Scene
             EventDispatcher.Emit(GlobalEvent.EVT_SCENE_MAP_READY);
         }
 
+        // ===================== 12002 场景快照 =====================
+
+        /// <summary>
+        /// 12002 场景快照:玩家(h+12003×N)→怪物(h+12007×N)→伙伴(h+12013×N)→其他(h+12014×N)→
+        /// 假人(h+12015×N)→区域标记(h+cc×N)。对标 yu_server pt_120 write(12002)/老客户端 On12002。
+        /// 伙伴/其他/假人本期只跳读保持字节对齐(不建 VO);玩家/怪物落 SceneManager。
+        /// </summary>
+        private void On12002(NetReader reader)
+        {
+            try
+            {
+                int players = reader.ReadU16();
+                for (int i = 0; i < players; i++) ParseRole(reader);
+
+                int monsters = reader.ReadU16();
+                for (int i = 0; i < monsters; i++) ParseMonster(reader);
+
+                int partners = reader.ReadU16();
+                for (int i = 0; i < partners; i++) SkipPartner(reader);
+
+                int others = reader.ReadU16();
+                for (int i = 0; i < others; i++) SkipOther(reader);
+
+                int fakes = reader.ReadU16();
+                for (int i = 0; i < fakes; i++) SkipDummy(reader);
+
+                SkipAreaMark(reader); // 12030 内联:动态区域标记
+
+                GameLog.Info("Scene", "12002 快照: 玩家={0} 怪物/采集={1} 伙伴={2} 其他={3} 假人={4} remaining={5}B",
+                    players, monsters, partners, others, fakes, reader.Remaining);
+                EventDispatcher.Emit(GlobalEvent.EVT_SCENE_SNAPSHOT_READY);
+            }
+            catch (Exception e)
+            {
+                GameLog.Error("Scene", "12002 解析错位(字段顺序与服务端不一致?): {0}", e.Message);
+            }
+
+            SendFmt(Proto.SC_DROP_LIST);
+            SendFmt(Proto.SC_NPC_ICON_REFRESH);
+            GameLog.Info("Scene", "request 12018/12020: drop list + npc icon");
+        }
+
+        private void On12003(NetReader reader) => ParseRole(reader);
+
+        private void On12004(NetReader reader)
+        {
+            long roleId = reader.ReadU64();
+            SceneManager.Instance.RemoveRole(roleId);
+        }
+
+        private void On12006(NetReader reader)
+        {
+            long instanceId = reader.ReadU32();
+            SceneManager.Instance.DeleteSceneObj(instanceId);
+        }
+
+        private void On12007(NetReader reader) => ParseMonster(reader);
+
+        /// <summary>12011 九宫格玩家增删:h+12003×N(加) + h+l×N(删)。</summary>
+        private void On12011(NetReader reader)
+        {
+            int add = reader.ReadU16();
+            for (int i = 0; i < add; i++) ParseRole(reader);
+            int remove = reader.ReadU16();
+            for (int i = 0; i < remove; i++) SceneManager.Instance.RemoveRole(reader.ReadU64());
+        }
+
+        /// <summary>12012 九宫格对象增删:怪物/伙伴/其他/假人(各 h+块×N) + i×N(删)。</summary>
+        private void On12012(NetReader reader)
+        {
+            int monsters = reader.ReadU16();
+            for (int i = 0; i < monsters; i++) ParseMonster(reader);
+            int partners = reader.ReadU16();
+            for (int i = 0; i < partners; i++) SkipPartner(reader);
+            int others = reader.ReadU16();
+            for (int i = 0; i < others; i++) SkipOther(reader);
+            int fakes = reader.ReadU16();
+            for (int i = 0; i < fakes; i++) SkipDummy(reader);
+            int remove = reader.ReadU16();
+            for (int i = 0; i < remove; i++) SceneManager.Instance.DeleteSceneObj(reader.ReadU32());
+        }
+
+        // ===================== NPC / 掉落 =====================
+
         private void On12100(NetReader reader)
         {
-            int sceneId = ToInt(reader.ReadU32());
+            int sceneId = (int)reader.ReadU32();
             int npcCount = reader.ReadU16();
-            int parsed = ParseNpcList(reader, npcCount);
-            GameLog.Info("Scene", "12100 npc list ready: sceneId={0} count={1} parsed={2} remaining={3}B",
-                sceneId, npcCount, parsed, reader.Remaining);
+            for (int i = 0; i < npcCount; i++) ParseNpc(reader);
+            GameLog.Info("Scene", "12100 npc list: sceneId={0} count={1} remaining={2}B", sceneId, npcCount, reader.Remaining);
 
             if (sceneId != RoleModel.Instance.SceneId)
             {
@@ -179,21 +282,8 @@ namespace Shenxiao.Module.Core.Scene
         private void On12103(NetReader reader)
         {
             int npcCount = reader.ReadU16();
-            int parsed = ParseNpcList(reader, npcCount);
-            GameLog.Info("Scene", "12103 dynamic npc list: count={0} parsed={1} remaining={2}B",
-                npcCount, parsed, reader.Remaining);
-        }
-
-        private void On12002(NetReader reader)
-        {
-            int payloadBytes = reader.Remaining;
-            GameLog.Info("Scene", "12002 scene snapshot ready: payload={0}B, object parsing deferred", payloadBytes);
-
-            SendFmt(Proto.SC_DROP_LIST);
-            GameLog.Info("Scene", "request 12018: scene drop list");
-
-            SendFmt(Proto.SC_NPC_ICON_REFRESH);
-            GameLog.Info("Scene", "request 12020: npc icon refresh");
+            for (int i = 0; i < npcCount; i++) ParseNpc(reader);
+            GameLog.Info("Scene", "12103 dynamic npc: count={0} remaining={1}B", npcCount, reader.Remaining);
         }
 
         private void On12018(NetReader reader)
@@ -205,7 +295,13 @@ namespace Shenxiao.Module.Core.Scene
             }
 
             int dropCount = reader.ReadU16();
-            GameLog.Info("Scene", "12018 drop list ready: count={0} remaining={1}B", dropCount, reader.Remaining);
+            for (int i = 0; i < dropCount; i++)
+            {
+                var vo = new DropVo();
+                vo.ReadFromProtocal(reader);
+                SceneManager.Instance.AddDrop(vo);
+            }
+            GameLog.Info("Scene", "12018 drop list: count={0} remaining={1}B", dropCount, reader.Remaining);
         }
 
         private void On12020(NetReader reader)
@@ -217,39 +313,99 @@ namespace Shenxiao.Module.Core.Scene
             }
 
             int count = reader.ReadU16();
-            int parsed = 0;
             for (int i = 0; i < count && reader.Remaining >= 5; i++)
             {
-                reader.ReadU32();
-                reader.ReadU8();
-                parsed++;
+                int npcId = (int)reader.ReadU32();
+                int icon = reader.ReadU8();
+                SceneManager.Instance.SetNpcTaskIcon(npcId, icon);
             }
-
-            GameLog.Info("Scene", "12020 npc icon refresh: count={0} parsed={1} remaining={2}B", count, parsed, reader.Remaining);
+            GameLog.Info("Scene", "12020 npc icon refresh: count={0} remaining={1}B", count, reader.Remaining);
         }
 
-        private static int ToInt(object value)
+        // ===================== 解析/跳读 辅助 =====================
+
+        private static void ParseRole(NetReader reader)
         {
-            return Convert.ToInt32(value);
+            var vo = new RoleVo();
+            vo.ReadFromProtocal(reader);
+            SceneManager.Instance.AddRole(vo);
         }
 
-        private static int ParseNpcList(NetReader reader, int count)
+        private static void ParseMonster(NetReader reader)
         {
-            int parsed = 0;
-            for (int i = 0; i < count; i++)
-            {
-                if (reader.Remaining < 13) break;
-
-                reader.ReadU32();    // npc_id
-                reader.ReadU8();     // is_show
-                reader.ReadU32();    // scene_id
-                reader.ReadU16();    // x
-                reader.ReadU16();    // y
-                reader.ReadString(); // args
-                parsed++;
-            }
-
-            return parsed;
+            var vo = new MonsterVo();
+            vo.ReadFromProtocal(reader);
+            SceneManager.Instance.AddMonster(vo);
         }
+
+        private static void ParseNpc(NetReader reader)
+        {
+            var vo = new NpcVo();
+            vo.ReadFromProtocal(reader);
+            SceneManager.Instance.AddNpc(vo);
+        }
+
+        /// <summary>伙伴 12013(对标 pt_120 binary_12013):跳读以保持字节对齐,本期不建 VO。</summary>
+        private static void SkipPartner(NetReader r)
+        {
+            r.ReadU16();   // x
+            r.ReadU16();   // y
+            r.ReadU32();   // id
+            r.ReadU64();   // hp
+            r.ReadU64();   // hpLim
+            r.ReadString();// name
+            r.ReadU16();   // lv
+            r.ReadU16();   // speed
+            r.ReadU8();    // career
+            r.ReadU8();    // hide
+            r.ReadU64();   // group
+            int lvModel = r.ReadU16();
+            for (int i = 0; i < lvModel; i++) { r.ReadU8(); r.ReadU32(); } // part, modelId
+            r.ReadU32();   // iconTexture
+            r.ReadU64();   // ownerId
+        }
+
+        /// <summary>一般场景物 12014(对标 pt_120 binary_12014):跳读保持对齐。</summary>
+        private static void SkipOther(NetReader r)
+        {
+            r.ReadU16();   // x
+            r.ReadU16();   // y
+            r.ReadU32();   // id
+            r.ReadString();// name
+            r.ReadU32();   // body
+            r.ReadString();// iconEffect
+            r.ReadU16();   // speed
+            r.ReadU8();    // isBeClicked
+            r.ReadU64();   // teamId
+            r.ReadU64();   // playerId
+        }
+
+        /// <summary>假人 12015(对标 pt_120 binary_12015):含 figure 块,跳读保持对齐。</summary>
+        private static void SkipDummy(NetReader r)
+        {
+            r.ReadU32();        // id
+            r.ReadU16();        // 占位 0
+            r.ReadU16();        // serverId
+            r.ReadU16();        // serverNum
+            FigureProto.Read(r);// figure 块
+            r.ReadU16();        // x
+            r.ReadU16();        // y
+            r.ReadU64();        // hp
+            r.ReadU64();        // hpLim
+            r.ReadU16();        // speed
+            r.ReadU8();         // hide
+            r.ReadU8();         // ghost
+            r.ReadU64();        // group
+        }
+
+        /// <summary>动态区域标记(pt_120 pack_area_mark):h(count) + (areaId:c, clientType:c)×count。</summary>
+        private static void SkipAreaMark(NetReader r)
+        {
+            if (r.Remaining < 2) return;
+            int n = r.ReadU16();
+            for (int i = 0; i < n && r.Remaining >= 2; i++) { r.ReadU8(); r.ReadU8(); }
+        }
+
+        private static int ToInt(object value) => Convert.ToInt32(value);
     }
 }

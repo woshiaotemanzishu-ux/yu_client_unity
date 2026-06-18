@@ -43,6 +43,22 @@ namespace Shenxiao.Framework.Net
         public const int SC_MOVE = 12001;
         /// <summary>Scene load complete / request scene snapshot. Send empty; reply is the full scene snapshot.</summary>
         public const int SC_LOAD_SCENE = 12002;
+        /// <summary>其他玩家进入视野(单条,RoleVo)。回包体同 12002 内的玩家块,见 pt_120 binary_to_12003。</summary>
+        public const int SC_ROLE_ADD = 12003;
+        /// <summary>玩家离开视野。回包 "l"(role_id)。</summary>
+        public const int SC_ROLE_REMOVE = 12004;
+        /// <summary>删除场景对象(怪物/其他)。回包 "i"(instance_id)。</summary>
+        public const int SC_ENTITY_DELETE = 12006;
+        /// <summary>怪物/采集物进入视野(单条,MonsterVo)。回包体同 12002 内的怪物块,见 pt_120 binary_12007。</summary>
+        public const int SC_MONSTER_ADD = 12007;
+        /// <summary>场景对象通用位置同步。回包 "hhi"(x, y, instance_id)。</summary>
+        public const int SC_SCENE_MOVE = 12008;
+        /// <summary>场景对象血量更新。回包 "lll"(obj_id, hp, hpLim)。</summary>
+        public const int SC_HP_UPDATE = 12009;
+        /// <summary>九宫格玩家增删:h+12003×N(加) + h+l×N(删)。</summary>
+        public const int SC_VIEW_ROLE_REFRESH = 12011;
+        /// <summary>九宫格对象增删:怪物/伙伴/其他/假人(加) + i×N(删)。</summary>
+        public const int SC_VIEW_OBJ_REFRESH = 12012;
         /// <summary>Change/enter scene. Send "iicchh"; reply "ihhiicc".</summary>
         public const int SC_CHANGE_SCENE = 12005;
         /// <summary>Request current scene drop list. Send empty; reply starts with u16 count.</summary>
