@@ -71,6 +71,10 @@ namespace Shenxiao.Framework.Event
         /// <summary>周卡信息/奖励(45201/45202/45203)变化,读 WeekCardModel。</summary>
         public const string EVT_WEEK_CARD_UPDATE = "EVT_WEEK_CARD_UPDATE";
 
+        // ----- SurpriseGift / 惊喜礼包 -----
+        /// <summary>惊喜礼包信息/抽奖/购买(49000-49004)变化,读 SurpriseGiftModel。</summary>
+        public const string EVT_SURPRISE_GIFT_UPDATE = "EVT_SURPRISE_GIFT_UPDATE";
+
         // ----- Task -----
         public const string EVT_TASK_LIST_UPDATED = "EVT_TASK_LIST_UPDATED";
         public const string EVT_TASK_ONE_UPDATED = "EVT_TASK_ONE_UPDATED";

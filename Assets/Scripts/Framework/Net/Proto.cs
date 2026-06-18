@@ -164,5 +164,17 @@ namespace Shenxiao.Framework.Net
         public const int WEEK_CARD_CLAIM = 45202;
         /// <summary>周卡奖励推送(S2C)。Type:c + 奖励[…]。</summary>
         public const int WEEK_CARD_REWARD = 45203;
+
+        // ----- 惊喜礼包(490xx,yu_server pt_490.erl) -----
+        /// <summary>惊喜礼包信息。请求无参;回包见 pt_490 write(49000)。</summary>
+        public const int SURPRISE_GIFT_INFO = 49000;
+        /// <summary>抽奖。发 "i"(giftId);回包 Code:i, GiftId:i。</summary>
+        public const int SURPRISE_GIFT_DRAW = 49001;
+        /// <summary>翻牌。请求无参;回包 Code:i, TurnId:h, GiftId:h, UseFreeTimes:i。</summary>
+        public const int SURPRISE_GIFT_TURN = 49002;
+        /// <summary>购买礼包。发 "i"(giftId);回包 Code:i, GiftId:i。</summary>
+        public const int SURPRISE_GIFT_BUY = 49003;
+        /// <summary>刷新推送(S2C)。次数:i×3 + DayTaskList[h+{TaskId:c,State:c}×N]。</summary>
+        public const int SURPRISE_GIFT_REFRESH = 49004;
     }
 }

@@ -9,6 +9,7 @@ using Shenxiao.Module.Core.Mail;
 using Shenxiao.Module.Core.Notice;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene;
+using Shenxiao.Module.Core.SurpriseGift;
 using Shenxiao.Module.Core.Tasks;
 using Shenxiao.Module.Core.WeekCard;
 
@@ -34,6 +35,7 @@ namespace Shenxiao.Module.Core.Game
             FunctionOpenController.Instance,
             FirstRechargeController.Instance,
             WeekCardController.Instance,
+            SurpriseGiftController.Instance,
             // 后续:BagController / EquipController / ChatController ...
         };
 
