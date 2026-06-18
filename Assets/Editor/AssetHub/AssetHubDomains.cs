@@ -68,7 +68,10 @@ namespace Shenxiao.Editor.AssetHub
                 new AssetDomain { Name = "背饰", Enabled = true, Scan = () => ScanObjsDir("back", "model_back_") },
                 new AssetDomain { Name = "翅膀", Enabled = true, Scan = () => ScanObjsDir("wing", "model_wing_") },
                 new AssetDomain { Name = "特效", Enabled = true, Scan = ScanEffects },
-                new AssetDomain { Name = "坐骑", Enabled = false, DisabledNote = "待接入:mount(含骑乘组合逻辑,先验一个真实样本)" },
+                // 坐骑:模型本身与部件域同构(蒙皮 + 自带动作 idle/run/show/show2),清单=objs 目录。
+                // 已验真实样本 model_mount_1000 经 laya_to_glb 导出齐全:48 骨骼 / 4 动画 / 网格+材质+贴图(2026-06-19)。
+                // 注:骑乘组合(把角色挂到坐骑 Bone_ride/ride 节点)属下游 RoleModelAssembler,与此处的「坐骑模型导入」无关,另议。
+                new AssetDomain { Name = "坐骑", Enabled = true, Scan = () => ScanObjsDir("mount", "model_mount_") },
             };
         }
 
