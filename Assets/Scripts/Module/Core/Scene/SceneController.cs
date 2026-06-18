@@ -22,6 +22,7 @@ namespace Shenxiao.Module.Core.Scene
 
         protected override void Register()
         {
+            RegisterProtocal(Proto.SC_MOVE, On12001);
             RegisterProtocal(Proto.SC_LOAD_SCENE, On12002);
             RegisterProtocal(Proto.SC_CHANGE_SCENE, On12005);
             RegisterProtocal(Proto.SC_DROP_LIST, On12018);
@@ -74,6 +75,44 @@ namespace Shenxiao.Module.Core.Scene
                 SceneMapView.Clear();
             }
             base.Dispose();
+        }
+
+        /// <summary>
+        /// 12001(S2C)移动广播:服务器把所有单位(主角/其他玩家/怪物/NPC)的移动同步下来。
+        /// 对标老客户端 SceneController.ts:99-121 —— 读 "hhlc"(x, y, role_id, move_flag);
+        /// move_flag != Normal 时,后面再跟 "hh"(start_fly_x, start_fly_y)。
+        /// role_id == 主角 → 空处理(主角用本地插值推进,不做服务器坐标纠正,与老客户端一致);
+        /// 其他单位 → 本期先解析+日志,场景对象表(SceneManager)接入后改为驱动其 DoMove(见 chunk B/C/E/F)。
+        /// </summary>
+        private void On12001(NetReader reader)
+        {
+            int x = reader.ReadU16();
+            int y = reader.ReadU16();
+            long roleId = reader.ReadU64();
+            int moveFlag = reader.ReadU8();
+
+            int startFlyX = 0, startFlyY = 0;
+            if (moveFlag != MoveType.Normal)
+            {
+                if (reader.Remaining >= 4)
+                {
+                    startFlyX = reader.ReadU16();
+                    startFlyY = reader.ReadU16();
+                }
+                else
+                {
+                    GameLog.Warn("Scene", "12001 move flag={0} 缺起飞坐标(remaining={1}B)", moveFlag, reader.Remaining);
+                }
+            }
+
+            if (roleId == RoleModel.Instance.RoleId)
+            {
+                return; // 主角:本地推进,不被服务器纠正(对标老客户端对自身 12001 的空处理)
+            }
+
+            // TODO(chunk B/C/E/F): 接入 SceneManager,按 roleId 找到场景单位 → DoMove((x,y), moveFlag, 起飞点)
+            GameLog.Info("Scene", "12001 move: id={0} pos=({1},{2}) flag={3} fly=({4},{5})",
+                roleId, x, y, moveFlag, startFlyX, startFlyY);
         }
 
         private void On12005(NetReader reader)
