@@ -20,7 +20,10 @@ namespace Shenxiao.Framework.Scene3D.Map
     /// </summary>
     public static class SceneMapView
     {
-        private const float SceneLayerYOffset = 100f;
+        // 相机焦点(主角像素)在屏幕上的竖直落点 = 中心下方这么多像素(对标老客户端 CameraManager._scene_layer_y_off=100)。
+        // SceneCharacterStage(另一程序集)也要用它把主角"脚底"对齐到同一处,故设为 public 供跨程序集引用
+        // (internal 跨不了 asmdef;本工程 Framework / Common 是不同程序集,对标 CameraPos 也是 public)。避免两处各写一个 100。
+        public const float SceneLayerYOffset = 100f;
         /// <summary>地图 Canvas 排序值:压在 HUD/主界面之后(对标老客户端场景层在 UI 之下)。</summary>
         private const int MapSortingOrder = -100;
 
@@ -34,6 +37,14 @@ namespace Shenxiao.Framework.Scene3D.Map
         private static int _lastFocusX = int.MinValue;
         private static int _lastFocusY = int.MinValue;
 
+        /// <summary>
+        /// 最近一次焦点解算后的(夹边后)相机像素坐标。主角合成台据此把模型摆到「逻辑像素 (role.X,role.Y)
+        /// 在地图上实际被画出的屏幕位置」上:屏幕偏移 = (role.X - Camera.x, role.Y - Camera.y)。
+        /// 地图内部(未夹边)该偏移恒为 0;靠近地图边缘相机夹紧时随之增大,主角滑向屏幕边缘
+        /// (对标老客户端 CameraManager.UpdateCamera:角色挂世界层、相机夹边后角色滑向屏幕边)。
+        /// </summary>
+        public static Vector2 CameraPos { get; private set; }
+
         // —— 固定瓦片池(对标 MapManager.tile_list)——
         private static TileSlot[] _tilePool;
         private static int _poolCols;
@@ -45,9 +56,29 @@ namespace Shenxiao.Framework.Scene3D.Map
         private static readonly Queue<TileLoadRequest> _loadQueue = new Queue<TileLoadRequest>();
         private static bool _pumping;
 
+        // —— 瓦片 sprite 缓存(键=格 (row,col)):滚出视野的瓦片图保留在缓存里,走回原区域直接同步复用,
+        //    不再变模糊重新加载(解决"跑出一个屏再回来,地块重新加载"的问题)。LRU 上限封顶内存,
+        //    sprite 归缓存所有,Release 只发生在 LRU 淘汰或整图清理时;瓦片槽只引用、不持有。
+        //    上限随视野自适应(EnsureTilePool 里按池大小算),编辑器约 200+、真机更小,内存有界。——
+        private static readonly Dictionary<long, Sprite> _tileCache = new Dictionary<long, Sprite>();
+        private static readonly LinkedList<long> _tileCacheLru = new LinkedList<long>(); // 头=最近用,尾=最久未用
+        private static int _tileCacheCap = 192;
+
         public static async Task ShowAsync(SceneMapData data, int focusX, int focusY)
         {
             if (data == null) return;
+
+            // 同一张图已经在显示(重进/断线重连进同一场景)→ 不重刷瓦片:保留已加载的底图与瓦片,
+            // 只更新相机焦点(SetFocus 内部 focus 未变会整帧跳过)。这就是"地图缓存":重连不再整屏变模糊重载。
+            // 不 ++_version、不 ResetPool、不重载底图,沿用现有 Addressable sprite 引用(避免 Release→refcount 归零→卸载重载)。
+            if (IsSameMapShown(data))
+            {
+                _data = data; // 换上新解析的数据对象(WalkGrid 等最新),但尺寸一致,瓦片布局不动
+                SetFocus(focusX, focusY);
+                GameLog.Info("SceneMap", "map already shown, reuse tiles (no reload): sceneId={0} mapResId={1}",
+                    data.SceneId, data.MapResId);
+                return;
+            }
 
             int version = ++_version;
             EnsureRoot();
@@ -105,6 +136,7 @@ namespace Shenxiao.Framework.Scene3D.Map
             _lastFocusY = focusY;
 
             Vector2 camera = ApplyCamera(_data, focusX, focusY);
+            CameraPos = camera;
             UpdateTiles(camera.x, camera.y);
         }
 
@@ -131,6 +163,19 @@ namespace Shenxiao.Framework.Scene3D.Map
             }
 
             ResetSceneLayer();
+        }
+
+        /// <summary>当前是否已在显示同一张图(身份 + 尺寸都一致,且视图/瓦片池已建好)。</summary>
+        private static bool IsSameMapShown(SceneMapData data)
+        {
+            return _data != null
+                && _root != null && _preview != null && _previewSprite != null && _preview.enabled
+                && _tilePool != null
+                && _data.SceneId == data.SceneId
+                && _data.MapResId == data.MapResId
+                && _data.MapWidth == data.MapWidth
+                && _data.MapHeight == data.MapHeight
+                && _data.TileSize == data.TileSize;
         }
 
         private static void EnsureRoot()
@@ -226,6 +271,9 @@ namespace Shenxiao.Framework.Scene3D.Map
             cols = Mathf.Max(1, cols);
             rows = Mathf.Max(1, rows);
 
+            // 缓存上限 = 视野瓦片数的 ~3 倍(覆盖来回走动的邻近区域),封顶 256 防内存膨胀。
+            _tileCacheCap = Mathf.Clamp(cols * rows * 3, 96, 256);
+
             if (_tilePool != null && _poolCols == cols && _poolRows == rows)
             {
                 ResetPool(); // 同尺寸:复用对象,只重置内容触发整屏重刷
@@ -306,14 +354,14 @@ namespace Shenxiao.Framework.Scene3D.Map
             _lastStartRow = startRow;
         }
 
-        /// <summary>把一个池瓦片移到目标格并排队加载它的图(越界格保持隐藏,低清底图透出)。</summary>
+        /// <summary>把一个池瓦片移到目标格(越界格保持隐藏);缓存命中即同步贴图,否则排队加载。</summary>
         private static void AssignSlot(TileSlot slot, int row, int col)
         {
             slot.Row = row;
             slot.Col = col;
             int token = ++slot.Token;
 
-            if (slot.Sprite != null) { ResManager.Release(slot.Sprite); slot.Sprite = null; }
+            slot.Sprite = null; // 不 Release:sprite 归缓存所有,本槽只是换引用
             if (slot.Image != null) { slot.Image.sprite = null; slot.Image.enabled = false; }
 
             slot.Rt.anchoredPosition = new Vector2((col - 1) * _data.TileSize, -(row - 1) * _data.TileSize);
@@ -321,6 +369,16 @@ namespace Shenxiao.Framework.Scene3D.Map
             int maxCol = Mathf.CeilToInt((float)_data.MapWidth / _data.TileSize);
             int maxRow = Mathf.CeilToInt((float)_data.MapHeight / _data.TileSize);
             if (row < 1 || col < 1 || row > maxRow || col > maxCol) return; // 越界:保持隐藏
+
+            // 缓存命中:走回加载过的区域,直接同步贴图,不变模糊、不重新加载、不入队。
+            Sprite cached = TileCacheGet(row, col);
+            if (cached != null)
+            {
+                slot.Sprite = cached;
+                slot.Image.sprite = cached;
+                slot.Image.enabled = true;
+                return;
+            }
 
             _loadQueue.Enqueue(new TileLoadRequest(slot, row, col, token, _version));
             PumpLoads();
@@ -337,20 +395,35 @@ namespace Shenxiao.Framework.Scene3D.Map
                 {
                     if (_data == null) break;
                     TileLoadRequest req = _loadQueue.Dequeue();
-                    if (req.Version != _version || req.Slot.Token != req.Token) continue; // 槽已被复用/换图,丢弃
+                    if (req.Version != _version) continue;            // 换图/清图:整批作废
+                    if (req.Slot.Token != req.Token) continue;        // 槽已被复用:无需再加载(命中时会走缓存)
+
+                    // 入队到处理之间可能已被缓存(快速来回):命中即同步贴,免一次异步加载。
+                    Sprite cached = TileCacheGet(req.Row, req.Col);
+                    if (cached != null)
+                    {
+                        req.Slot.Sprite = cached;
+                        req.Slot.Image.sprite = cached;
+                        req.Slot.Image.enabled = true;
+                        continue;
+                    }
 
                     Sprite sprite = await ResManager.LoadAsync<Sprite>(
                         GameResPath.GetSceneMapTile(_data.MapResId, req.Row, req.Col, ".jxr"));
 
-                    if (req.Version != _version || req.Slot.Token != req.Token)
+                    if (req.Version != _version) // 加载期间换了图:这块属旧图,别污染缓存
                     {
                         if (sprite != null) ResManager.Release(sprite);
                         continue;
                     }
                     if (sprite == null) continue; // 缺图:保持隐藏,低清底图透出
 
-                    req.Slot.Sprite = sprite;
-                    req.Slot.Image.sprite = sprite;
+                    Sprite owned = TileCachePut(req.Row, req.Col, sprite); // 进缓存(归缓存所有)
+
+                    // 槽可能已被复用(token 变):图已入缓存留待复用,只是不贴这个槽。
+                    if (req.Slot.Token != req.Token) continue;
+                    req.Slot.Sprite = owned;
+                    req.Slot.Image.sprite = owned;
                     req.Slot.Image.enabled = true;
                 }
             }
@@ -360,16 +433,92 @@ namespace Shenxiao.Framework.Scene3D.Map
             }
         }
 
+        // —— 瓦片 sprite 缓存(LRU)——
+
+        private static long TileKey(int row, int col) => ((long)row << 32) | (uint)col;
+
+        /// <summary>缓存命中则标记最近使用并返回 sprite;否则 null。</summary>
+        private static Sprite TileCacheGet(int row, int col)
+        {
+            long key = TileKey(row, col);
+            if (_tileCache.TryGetValue(key, out Sprite s) && s != null)
+            {
+                _tileCacheLru.Remove(key);
+                _tileCacheLru.AddFirst(key);
+                return s;
+            }
+            return null;
+        }
+
+        /// <summary>把刚加载的 sprite 放进缓存并返回缓存里的实例(重复加载则丢弃新的、复用旧的)。</summary>
+        private static Sprite TileCachePut(int row, int col, Sprite sprite)
+        {
+            long key = TileKey(row, col);
+            if (_tileCache.TryGetValue(key, out Sprite existing) && existing != null)
+            {
+                if (sprite != null && sprite != existing) ResManager.Release(sprite);
+                _tileCacheLru.Remove(key);
+                _tileCacheLru.AddFirst(key);
+                return existing;
+            }
+            if (sprite == null) return null;
+            _tileCache[key] = sprite;
+            _tileCacheLru.Remove(key); // 防御:避免极端情况下出现重复 LRU 节点
+            _tileCacheLru.AddFirst(key);
+            TrimTileCache();
+            return sprite;
+        }
+
+        /// <summary>超出上限时淘汰最久未用的瓦片(跳过当前仍被可见槽显示的格,避免瞬间变白)。</summary>
+        private static void TrimTileCache()
+        {
+            while (_tileCache.Count > _tileCacheCap && _tileCacheLru.Count > 0)
+            {
+                LinkedListNode<long> node = _tileCacheLru.Last;
+                while (node != null && IsTileVisible(node.Value)) node = node.Previous;
+                if (node == null) break; // 全在显示(cap 远大于池,实际不会发生):本次放弃淘汰
+                long key = node.Value;
+                _tileCacheLru.Remove(node);
+                if (_tileCache.TryGetValue(key, out Sprite s))
+                {
+                    _tileCache.Remove(key);
+                    if (s != null) ResManager.Release(s);
+                }
+            }
+        }
+
+        private static bool IsTileVisible(long key)
+        {
+            if (_tilePool == null) return false;
+            foreach (TileSlot t in _tilePool)
+            {
+                if (t != null && t.Sprite != null && TileKey(t.Row, t.Col) == key) return true;
+            }
+            return false;
+        }
+
+        /// <summary>清空瓦片缓存并释放所有 sprite(换图/整图清理时)。</summary>
+        private static void ClearTileCache()
+        {
+            foreach (Sprite s in _tileCache.Values)
+            {
+                if (s != null) ResManager.Release(s);
+            }
+            _tileCache.Clear();
+            _tileCacheLru.Clear();
+        }
+
         private static void ResetPool()
         {
             _loadQueue.Clear();
+            ClearTileCache(); // 换的是另一张图,旧缓存作废
             if (_tilePool != null)
             {
                 foreach (TileSlot t in _tilePool)
                 {
                     if (t == null) continue;
                     t.Token++;
-                    if (t.Sprite != null) { ResManager.Release(t.Sprite); t.Sprite = null; }
+                    t.Sprite = null; // 不 Release(已由 ClearTileCache 统一释放)
                     if (t.Image != null) { t.Image.sprite = null; t.Image.enabled = false; }
                     t.Row = int.MinValue;
                     t.Col = int.MinValue;
@@ -382,12 +531,12 @@ namespace Shenxiao.Framework.Scene3D.Map
         private static void ClearPool()
         {
             _loadQueue.Clear();
+            ClearTileCache(); // sprite 归缓存,统一在此释放
             if (_tilePool != null)
             {
                 foreach (TileSlot t in _tilePool)
                 {
                     if (t == null) continue;
-                    if (t.Sprite != null) ResManager.Release(t.Sprite);
                     if (t.Root != null) Object.Destroy(t.Root);
                 }
                 _tilePool = null;

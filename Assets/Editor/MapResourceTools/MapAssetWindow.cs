@@ -28,6 +28,23 @@ namespace Shenxiao.Editor.MapTools
         private bool _lyMon = true, _lyCollect = true, _lyNpc = true, _lyDoor = true, _lyBoss = true, _lyReborn = true;
         private bool _entityListFoldout;
 
+        // 编辑模式
+        private bool _editMode;
+        private bool _dirty;
+        private List<MapEntity> _selList; // 选中实体所在列表(null + _selBirth=true 表示出生点)
+        private int _selIdx = -1;
+        private bool _selBirth;
+        private bool _dragging;
+        private int _birthX, _birthY;
+
+        // 画布缩放/平移(组内局部坐标)
+        private float _zoom = 1f;
+        private Vector2 _pan;
+        private bool _panning;
+        private float _mapScale;
+        private Vector2 _mapOrigin;
+        private Vector2 _localSize;
+
         private static readonly Color C_MON = new Color(0.91f, 0.30f, 0.24f);
         private static readonly Color C_COLLECT = new Color(0.10f, 0.74f, 0.61f);
         private static readonly Color C_NPC = new Color(0.18f, 0.80f, 0.44f);
@@ -56,6 +73,8 @@ namespace Shenxiao.Editor.MapTools
             _stats.Clear();
             _selected = -1;
             _entities = null;
+            ClearSelection();
+            _dirty = false;
             MapTileConverter.ReloadSceneMeta();
             MapServerData.Reload();
             try { _sceneIds.AddRange(MapTileConverter.ScanScenes()); }
@@ -71,6 +90,33 @@ namespace Shenxiao.Editor.MapTools
             }
             return s;
         }
+
+        private void LoadEntities(int sceneId)
+        {
+            _entities = MapServerData.Available ? MapServerData.GetEntities(sceneId) : null;
+            _birthX = _entities != null ? _entities.BirthX : 0;
+            _birthY = _entities != null ? _entities.BirthY : 0;
+            if (_birthX == 0 && _birthY == 0 && _stats.TryGetValue(sceneId, out MapStat st))
+            {
+                _birthX = st.BirthX;
+                _birthY = st.BirthY;
+            }
+            ClearSelection();
+            _dirty = false;
+            _zoom = 1f;
+            _pan = Vector2.zero;
+        }
+
+        private void ClearSelection()
+        {
+            _selList = null;
+            _selIdx = -1;
+            _selBirth = false;
+            _dragging = false;
+        }
+
+        private static bool ConfirmDiscard() =>
+            EditorUtility.DisplayDialog("未保存的修改", "当前地图标注有未保存的修改,切换会丢弃。继续?", "丢弃", "取消");
 
         private void OnGUI()
         {
@@ -133,9 +179,10 @@ namespace Shenxiao.Editor.MapTools
                     if (_selected == id) EditorGUI.DrawRect(row, new Color(0.24f, 0.49f, 0.91f, 0.35f));
                     if (GUI.Button(row, label, RowStyle) && _selected != id)
                     {
+                        if (_dirty && !ConfirmDiscard()) continue;
                         _selected = id;
                         StatOf(id); // 选中即盘点该图
-                        _entities = MapServerData.Available ? MapServerData.GetEntities(id) : null;
+                        LoadEntities(id);
                         GUI.FocusControl(null);
                     }
                 }
@@ -170,11 +217,14 @@ namespace Shenxiao.Editor.MapTools
                     EditorGUILayout.HelpBox("没有该场景的 .bytes(可能不是独立场景,或源缺失)。", MessageType.Warning);
                 EditorGUILayout.LabelField("出生点", $"({s.BirthX}, {s.BirthY})");
 
+                DrawEditToolbar();
                 DrawThumbnail(s);
+                if (_editMode) DrawEditPanel();
 
                 EditorGUILayout.Space(4f);
                 EditorGUILayout.LabelField("转换状态", EditorStyles.boldLabel);
-                EditorGUILayout.LabelField("瓦片", $"{StatusIcon(_selected)} {s.TileConverted}/{s.TileTotal} 已转进 Assets/GameRes");
+                string tileGlyph = s.FullyConverted ? "●" : s.PartiallyConverted ? "◐" : "○";
+                EditorGUILayout.LabelField("瓦片", $"{tileGlyph} {s.TileConverted}/{s.TileTotal} 已转进 Assets/GameRes");
                 EditorGUILayout.LabelField("底图", s.PreviewConverted ? "● 已转" : "○ 未转");
                 if (s.PartiallyConverted)
                     EditorGUILayout.HelpBox("只转了一部分:没转到的区域第一次进去仍会现导卡顿。点下面「转换」补齐。", MessageType.Warning);
@@ -267,27 +317,47 @@ namespace Shenxiao.Editor.MapTools
                 return;
             }
 
-            Rect box = GUILayoutUtility.GetRect(10f, 300f, GUILayout.ExpandWidth(true));
-            EditorGUI.DrawRect(box, new Color(0.12f, 0.12f, 0.12f, 1f));
-            Rect fit = FitRect(box, tex.width, tex.height);
-            GUI.DrawTexture(fit, tex, ScaleMode.ScaleToFit);
-
             int w = s.MapWidth, h = s.MapHeight;
+
+            // 缩放/平移工具条
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField($"缩放 {_zoom * 100f:0}%", EditorStyles.miniLabel, GUILayout.Width(80f));
+                if (GUILayout.Button("－", GUILayout.Width(28f))) _zoom = Mathf.Clamp(_zoom * 0.8f, 0.2f, 10f);
+                if (GUILayout.Button("＋", GUILayout.Width(28f))) _zoom = Mathf.Clamp(_zoom * 1.25f, 0.2f, 10f);
+                if (GUILayout.Button("适应", GUILayout.Width(48f))) { _zoom = 1f; _pan = Vector2.zero; }
+                EditorGUILayout.LabelField("滚轮缩放 · 右键/中键拖动平移" + (_editMode ? " · 左键点/拖标注" : " · 左键拖动平移"),
+                    EditorStyles.miniLabel);
+            }
+
+            // 大画布(铺满宽度,尽量高);用 Group 裁剪,组内局部坐标
+            float canvasH = Mathf.Max(360f, position.height - 380f);
+            Rect box = GUILayoutUtility.GetRect(10f, canvasH, GUILayout.ExpandWidth(true));
+            GUI.BeginGroup(box);
+            Rect local = new Rect(0f, 0f, box.width, box.height);
+            EditorGUI.DrawRect(local, new Color(0.10f, 0.10f, 0.10f, 1f));
+
             if (w > 0 && h > 0)
             {
-                // 出生点
-                if (s.BirthX > 0 || s.BirthY > 0) DrawMarker(fit, w, h, s.BirthX, s.BirthY, C_BIRTH, 4f);
-                // 标注点(按图层)
+                ComputeTransform(local, w, h);
+                GUI.DrawTexture(new Rect(_mapOrigin.x, _mapOrigin.y, w * _mapScale, h * _mapScale), tex, ScaleMode.StretchToFill);
+
+                int bx = _entities != null ? _birthX : s.BirthX;
+                int by = _entities != null ? _birthY : s.BirthY;
+                if (bx > 0 || by > 0) DrawMarker(bx, by, C_BIRTH, 4f);
                 if (_entities != null)
                 {
-                    if (_lyReborn) DrawMarkers(fit, w, h, _entities.Reborns, C_REBORN, 2.5f);
-                    if (_lyDoor) DrawMarkers(fit, w, h, _entities.Doors, C_DOOR, 3f);
-                    if (_lyCollect) DrawMarkers(fit, w, h, _entities.Collects, C_COLLECT, 2.5f);
-                    if (_lyMon) DrawMarkers(fit, w, h, _entities.Monsters, C_MON, 2.5f);
-                    if (_lyNpc) DrawMarkers(fit, w, h, _entities.Npcs, C_NPC, 3f);
-                    if (_lyBoss) DrawMarkers(fit, w, h, _entities.Bosses, C_BOSS, 4f);
+                    if (_lyReborn) DrawMarkers(_entities.Reborns, C_REBORN, 3f);
+                    if (_lyDoor) DrawMarkers(_entities.Doors, C_DOOR, 3.5f);
+                    if (_lyCollect) DrawMarkers(_entities.Collects, C_COLLECT, 3f);
+                    if (_lyMon) DrawMarkers(_entities.Monsters, C_MON, 3f);
+                    if (_lyNpc) DrawMarkers(_entities.Npcs, C_NPC, 3.5f);
+                    if (_lyBoss) DrawMarkers(_entities.Bosses, C_BOSS, 4.5f);
                 }
+                if (_editMode && _entities != null) DrawSelectionHighlight();
+                HandleCanvasInput(local, w, h);
             }
+            GUI.EndGroup();
 
             DrawEntityList();
         }
@@ -375,27 +445,297 @@ namespace Shenxiao.Editor.MapTools
                 EditorGUILayout.LabelField($"  …还有 {list.Count - cap} 个", EditorStyles.miniLabel);
         }
 
-        private void DrawMarkers(Rect fit, int w, int h, List<MapEntity> list, Color c, float size)
+        // 世界(地图像素)↔ 画布组内局部坐标
+        private void ComputeTransform(Rect local, int w, int h)
+        {
+            _localSize = new Vector2(local.width, local.height);
+            float baseScale = Mathf.Min(local.width / w, local.height / h);
+            _mapScale = baseScale * _zoom;
+            float cw = w * _mapScale, ch = h * _mapScale;
+            _mapOrigin = new Vector2((local.width - cw) * 0.5f + _pan.x, (local.height - ch) * 0.5f + _pan.y);
+        }
+
+        private Vector2 WorldToLocal(int x, int y) =>
+            new Vector2(_mapOrigin.x + x * _mapScale, _mapOrigin.y + y * _mapScale);
+
+        private void DrawMarkers(List<MapEntity> list, Color c, float size)
         {
             if (list == null) return;
-            foreach (MapEntity e in list) DrawMarker(fit, w, h, e.X, e.Y, c, size);
+            foreach (MapEntity e in list) DrawMarker(e.X, e.Y, c, size);
         }
 
-        private static void DrawMarker(Rect fit, int w, int h, int x, int y, Color c, float size)
+        private void DrawMarker(int x, int y, Color c, float size)
         {
-            float nx = Mathf.Clamp01((float)x / w);
-            float ny = Mathf.Clamp01((float)y / h);
-            float cx = fit.x + nx * fit.width;
-            float cy = fit.y + ny * fit.height;
-            EditorGUI.DrawRect(new Rect(cx - size, cy - size, size * 2f, size * 2f), c);
+            Vector2 p = WorldToLocal(x, y);
+            if (p.x < -size || p.y < -size || p.x > _localSize.x + size || p.y > _localSize.y + size) return; // 视野外裁剪
+            EditorGUI.DrawRect(new Rect(p.x - size, p.y - size, size * 2f, size * 2f), c);
         }
 
-        private static Rect FitRect(Rect box, float w, float h)
+        // ==================== 编辑 ====================
+
+        private void DrawEditToolbar()
         {
-            if (w <= 0f || h <= 0f) return box;
-            float scale = Mathf.Min(box.width / w, box.height / h);
-            float dw = w * scale, dh = h * scale;
-            return new Rect(box.x + (box.width - dw) * 0.5f, box.y + (box.height - dh) * 0.5f, dw, dh);
+            if (!MapServerData.Available || _entities == null) return;
+            EditorGUILayout.Space(2f);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                bool em = GUILayout.Toggle(_editMode, _editMode ? "编辑中" : "编辑模式", "Button",
+                    GUILayout.Height(22f), GUILayout.Width(90f));
+                if (em != _editMode) { _editMode = em; ClearSelection(); }
+                using (new EditorGUI.DisabledScope(!_dirty))
+                {
+                    if (GUILayout.Button("保存到 data_scene.erl", GUILayout.Height(22f))) SaveScene();
+                    if (GUILayout.Button("还原", GUILayout.Height(22f), GUILayout.Width(56f))) LoadEntities(_selected);
+                }
+            }
+            if (_editMode)
+                EditorGUILayout.HelpBox("在缩略图上点标注点选中、拖动移动;右下属性可精调坐标/增删。保存写回 yu_server data_scene.erl(自动 .bak 备份)。",
+                    MessageType.Info);
+        }
+
+        private IEnumerable<(List<MapEntity> list, bool on)> EditableLayers()
+        {
+            yield return (_entities.Npcs, _lyNpc);
+            yield return (_entities.Monsters, _lyMon);
+            yield return (_entities.Collects, _lyCollect);
+            yield return (_entities.Doors, _lyDoor);
+            yield return (_entities.Reborns, _lyReborn);
+        }
+
+        /// <summary>画布交互(组内局部坐标):滚轮缩放(向光标)+ 平移 +(编辑模式)点选/拖动标注。</summary>
+        private void HandleCanvasInput(Rect local, int w, int h)
+        {
+            Event ev = Event.current;
+            bool inside = local.Contains(ev.mousePosition);
+
+            if (ev.type == EventType.ScrollWheel && inside)
+            {
+                float nz = Mathf.Clamp(_zoom * (ev.delta.y < 0f ? 1.1f : 0.9f), 0.2f, 10f);
+                ZoomTowardCursor(nz, ev.mousePosition, local, w, h);
+                ev.Use();
+                Repaint();
+                return;
+            }
+
+            switch (ev.type)
+            {
+                case EventType.MouseDown:
+                    if (!inside) break;
+                    if (_editMode && ev.button == 0)
+                    {
+                        PickMarker(ev.mousePosition);
+                        if (_selBirth || (_selList != null && _selIdx >= 0)) _dragging = true;
+                        else _panning = true; // 点空白处=平移
+                    }
+                    else { _panning = true; } // 右键/中键(或非编辑左键)平移
+                    ev.Use();
+                    Repaint();
+                    break;
+                case EventType.MouseDrag:
+                    if (_dragging)
+                    {
+                        int wx = Mathf.Clamp(Mathf.RoundToInt((ev.mousePosition.x - _mapOrigin.x) / _mapScale), 0, w);
+                        int wy = Mathf.Clamp(Mathf.RoundToInt((ev.mousePosition.y - _mapOrigin.y) / _mapScale), 0, h);
+                        SetSelectedPos(wx, wy);
+                        ev.Use();
+                        Repaint();
+                    }
+                    else if (_panning)
+                    {
+                        _pan += ev.delta;
+                        ev.Use();
+                        Repaint();
+                    }
+                    break;
+                case EventType.MouseUp:
+                    if (_dragging || _panning) { _dragging = false; _panning = false; ev.Use(); }
+                    break;
+            }
+        }
+
+        private void ZoomTowardCursor(float newZoom, Vector2 pivot, Rect local, int w, int h)
+        {
+            // 保持光标下的世界点不动:先用当前变换求该世界点,改 zoom 后调 _pan 使其屏幕位置不变
+            float wx = (pivot.x - _mapOrigin.x) / _mapScale;
+            float wy = (pivot.y - _mapOrigin.y) / _mapScale;
+            _zoom = newZoom;
+            float baseScale = Mathf.Min(local.width / w, local.height / h);
+            float ns = baseScale * _zoom;
+            _pan.x = pivot.x - wx * ns - (local.width - w * ns) * 0.5f;
+            _pan.y = pivot.y - wy * ns - (local.height - h * ns) * 0.5f;
+        }
+
+        private void PickMarker(Vector2 mouse)
+        {
+            float best = 12f;
+            List<MapEntity> bestList = null;
+            int bestIdx = -1;
+            bool bestBirth = false;
+
+            if (Vector2.Distance(WorldToLocal(_birthX, _birthY), mouse) < best) { best = Vector2.Distance(WorldToLocal(_birthX, _birthY), mouse); bestBirth = true; }
+
+            foreach ((List<MapEntity> list, bool on) in EditableLayers())
+            {
+                if (!on || list == null) continue;
+                for (int i = 0; i < list.Count; i++)
+                {
+                    float d = Vector2.Distance(WorldToLocal(list[i].X, list[i].Y), mouse);
+                    if (d < best) { best = d; bestBirth = false; bestList = list; bestIdx = i; }
+                }
+            }
+            _selBirth = bestBirth;
+            _selList = bestList;
+            _selIdx = bestIdx;
+        }
+
+        private void SetSelectedPos(int wx, int wy)
+        {
+            if (_selBirth) { _birthX = wx; _birthY = wy; _dirty = true; }
+            else if (_selList != null && _selIdx >= 0 && _selIdx < _selList.Count)
+            {
+                MapEntity e = _selList[_selIdx];
+                e.X = wx; e.Y = wy;
+                _selList[_selIdx] = e;
+                _dirty = true;
+            }
+        }
+
+        private void DrawSelectionHighlight()
+        {
+            Vector2 sp;
+            if (_selBirth) sp = WorldToLocal(_birthX, _birthY);
+            else if (_selList != null && _selIdx >= 0 && _selIdx < _selList.Count)
+                sp = WorldToLocal(_selList[_selIdx].X, _selList[_selIdx].Y);
+            else return;
+
+            float r = 6f;
+            var c = Color.white;
+            EditorGUI.DrawRect(new Rect(sp.x - r, sp.y - r, r * 2f, 1f), c);
+            EditorGUI.DrawRect(new Rect(sp.x - r, sp.y + r, r * 2f, 1f), c);
+            EditorGUI.DrawRect(new Rect(sp.x - r, sp.y - r, 1f, r * 2f), c);
+            EditorGUI.DrawRect(new Rect(sp.x + r, sp.y - r, 1f, r * 2f + 1f), c);
+        }
+
+        private void DrawEditPanel()
+        {
+            EditorGUILayout.Space(2f);
+            EditorGUILayout.LabelField("编辑选中", EditorStyles.boldLabel);
+
+            if (_selBirth)
+            {
+                EditorGUILayout.LabelField("类型", "出生点");
+                EditorGUI.BeginChangeCheck();
+                int x = EditorGUILayout.IntField("X", _birthX);
+                int y = EditorGUILayout.IntField("Y", _birthY);
+                if (EditorGUI.EndChangeCheck()) { _birthX = x; _birthY = y; _dirty = true; }
+            }
+            else if (_selList != null && _selIdx >= 0 && _selIdx < _selList.Count)
+            {
+                MapEntity e = _selList[_selIdx];
+                EditorGUILayout.LabelField("类型", KindLabel(e.Kind));
+                EditorGUILayout.LabelField("名称", e.Name);
+                EditorGUI.BeginChangeCheck();
+                int id = EditorGUILayout.IntField(e.Kind == MapEntityKind.Door ? "目标场景" : "ID", e.Id);
+                int x = EditorGUILayout.IntField("X", e.X);
+                int y = EditorGUILayout.IntField("Y", e.Y);
+                int type = e.Type, group = e.Group, p1 = e.P1, p2 = e.P2;
+                string action = e.Action ?? "";
+                if (e.Kind == MapEntityKind.Monster || e.Kind == MapEntityKind.Collect)
+                {
+                    type = EditorGUILayout.IntField("战斗类型", type);
+                    group = EditorGUILayout.IntField("分组", group);
+                }
+                if (e.Kind == MapEntityKind.Npc) action = EditorGUILayout.TextField("动画", action);
+                if (e.Kind == MapEntityKind.Door)
+                {
+                    p1 = EditorGUILayout.IntField("目标X", p1);
+                    p2 = EditorGUILayout.IntField("目标Y", p2);
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    e.Id = id; e.X = x; e.Y = y; e.Type = type; e.Group = group; e.Action = action; e.P1 = p1; e.P2 = p2;
+                    _selList[_selIdx] = e;
+                    _dirty = true;
+                }
+                if (e.Kind == MapEntityKind.Boss)
+                    EditorGUILayout.HelpBox("Boss 在 data_boss.erl,本编辑器只读不写。", MessageType.None);
+                else if (GUILayout.Button("删除该标注"))
+                {
+                    _selList.RemoveAt(_selIdx);
+                    ClearSelection();
+                    _dirty = true;
+                }
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("在缩略图上点一个标注点选中(或拖动移动);也可用下面按钮新增。", MessageType.Info);
+            }
+
+            EditorGUILayout.Space(2f);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("＋怪")) AddEntity(MapEntityKind.Monster);
+                if (GUILayout.Button("＋NPC")) AddEntity(MapEntityKind.Npc);
+                if (GUILayout.Button("＋传送门")) AddEntity(MapEntityKind.Door);
+                if (GUILayout.Button("＋复活点")) AddEntity(MapEntityKind.Reborn);
+            }
+        }
+
+        private void AddEntity(MapEntityKind kind)
+        {
+            if (_entities == null) return;
+            var e = new MapEntity
+            {
+                Kind = kind, X = _birthX, Y = _birthY,
+                Name = kind == MapEntityKind.Npc ? "NPC" : kind == MapEntityKind.Door ? "传送门" : kind == MapEntityKind.Reborn ? "复活点" : "怪",
+                Action = kind == MapEntityKind.Npc ? "stat3" : "",
+            };
+            List<MapEntity> list =
+                kind == MapEntityKind.Npc ? _entities.Npcs :
+                kind == MapEntityKind.Door ? _entities.Doors :
+                kind == MapEntityKind.Reborn ? _entities.Reborns : _entities.Monsters;
+            list.Add(e);
+            _selBirth = false;
+            _selList = list;
+            _selIdx = list.Count - 1;
+            _dirty = true;
+        }
+
+        private void SaveScene()
+        {
+            if (_entities == null) return;
+            if (!EditorUtility.DisplayDialog("保存到 data_scene.erl",
+                $"将把场景 {_selected} 的标注(怪/NPC/传送门/复活/出生点)写回 yu_server data_scene.erl。\n会先自动备份 .bak。继续?",
+                "保存", "取消"))
+                return;
+
+            string ts = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            MapSceneWriter.Result r = MapSceneWriter.SaveScene(_selected, _entities, _birthX, _birthY, ts);
+            if (r.Ok)
+            {
+                _dirty = false;
+                MapServerData.Reload();
+                LoadEntities(_selected);
+                EditorUtility.DisplayDialog("保存成功", "已写回 data_scene.erl\n备份: " + r.BackupPath, "好");
+            }
+            else
+            {
+                EditorUtility.DisplayDialog("保存失败", r.Message, "好");
+            }
+        }
+
+        private static string KindLabel(MapEntityKind k)
+        {
+            switch (k)
+            {
+                case MapEntityKind.Monster: return "怪";
+                case MapEntityKind.Collect: return "采集";
+                case MapEntityKind.Npc: return "NPC";
+                case MapEntityKind.Door: return "传送门";
+                case MapEntityKind.Boss: return "Boss";
+                case MapEntityKind.Reborn: return "复活点";
+                default: return k.ToString();
+            }
         }
 
         /// <summary>一键转换全部缺失/部分的场景(已全转的跳过)。大批量,带强确认 + 进度 + 可取消。</summary>

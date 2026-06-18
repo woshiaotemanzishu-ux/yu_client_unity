@@ -15,9 +15,6 @@ namespace Shenxiao.Module.Core.Scene
     /// </summary>
     public static class MainRoleFlow
     {
-        private const float MODEL_ROOT_SCALE = 1.1f;
-        private const float SCENE_ROTATE_X = 38f;
-        private const float SCENE_ROTATE_Y = 180f;
         private const string ACTION_RUN = "run";
         private static readonly string[] STAND_ACTIONS = { "idle" };
 
@@ -97,14 +94,13 @@ namespace Shenxiao.Module.Core.Scene
             EnsureSceneRoot();
             ClearMainRole(false);
 
+            // 视觉:模型进 3D 合成台(专用相机 → RT → Scene 层 RawImage),压在地图之上、HUD 之下。
+            // 不能直接摆世界里——根 Canvas 是 ScreenSpaceOverlay,不透明地图会盖住任何世界 3D 物体。
+            SceneCharacterStage.SetMainRole(model);
+
+            // 逻辑:MainRoleAgent 挂在轻量逻辑节点上,跨层驱动合成台里的模型(转向/动作/相机跟随/上报)。
             _mainRoleRoot = new GameObject("MainRole_" + role.RoleId);
             _mainRoleRoot.transform.SetParent(_sceneRoot.transform, false);
-            ApplyOldClientSceneTransform(_mainRoleRoot.transform, role);
-
-            model.transform.SetParent(_mainRoleRoot.transform, false);
-            model.transform.localPosition = Vector3.zero;
-            model.transform.localRotation = Quaternion.identity;
-            model.transform.localScale = Vector3.one;
 
             // 摇杆移动驱动:主角恒居屏幕中心,相机跟随滚动地图(SceneMapView.SetFocus)。
             MainRoleAgent agent = _mainRoleRoot.AddComponent<MainRoleAgent>();
@@ -171,20 +167,8 @@ namespace Shenxiao.Module.Core.Scene
                 UnityEngine.Object.Destroy(_mainRoleRoot);
                 _mainRoleRoot = null;
             }
-        }
-
-        private static void ApplyOldClientSceneTransform(Transform root, RoleModel role)
-        {
-            // 跟随相机模型:主角恒居屏幕中心,移动靠相机滚动地图(SceneMapView.SetFocus)体现,
-            // 故主角节点不按 X/Y 平移,只保留老客户端的场景倾斜与缩放;深度按出生 Y 取一次。
-            root.localPosition = new Vector3(0f, 0f, SceneObjDepth(role.Y));
-            root.localRotation = Quaternion.Euler(SCENE_ROTATE_X, SCENE_ROTATE_Y, 0f);
-            root.localScale = Vector3.one * MODEL_ROOT_SCALE;
-        }
-
-        private static float SceneObjDepth(int realY)
-        {
-            return 900f - realY * 0.02f;
+            // 模型挂在合成台上,逻辑节点销毁时一并清掉合成台里的主角与画面。
+            SceneCharacterStage.Clear();
         }
     }
 }

@@ -19,7 +19,13 @@ namespace Shenxiao.Editor.MapTools
         public int X;
         public int Y;
         public string Name;
-        public string Info; // 门→目标场景/坐标;Boss→类型名;NPC→动画
+        public string Info;   // 门→目标场景/坐标;Boss→类型名;NPC→动画(展示用)
+        // 回写 data_scene.erl 需保留的原始字段:
+        public int Type;      // 怪:战斗类型
+        public int Group;     // 怪:分组
+        public string Action; // NPC:动画 state
+        public int P1;        // 门:目标 x
+        public int P2;        // 门:目标 y
     }
 
     public sealed class SceneEntities
@@ -30,6 +36,8 @@ namespace Shenxiao.Editor.MapTools
         public readonly List<MapEntity> Doors = new List<MapEntity>();
         public readonly List<MapEntity> Bosses = new List<MapEntity>();
         public readonly List<MapEntity> Reborns = new List<MapEntity>();
+        public int BirthX;   // data_scene.erl 里的出生点 x(编辑器编辑/回写的就是它)
+        public int BirthY;
         public int Total => Monsters.Count + Collects.Count + Npcs.Count + Doors.Count + Bosses.Count + Reborns.Count;
     }
 
@@ -82,6 +90,8 @@ namespace Shenxiao.Editor.MapTools
             var se = new SceneEntities();
             if (_sceneBodies != null && _sceneBodies.TryGetValue(sceneId, out string body))
             {
+                se.BirthX = IntField(body, "x") ?? 0;
+                se.BirthY = IntField(body, "y") ?? 0;
                 ParseMon(body, se);
                 ParseNpc(body, se);
                 ParseElem(body, se);
@@ -116,11 +126,14 @@ namespace Shenxiao.Editor.MapTools
                 if (!TryInt(p[0], out int id) || !TryInt(p[1], out int x) || !TryInt(p[2], out int y)) continue;
                 int kind = _monKind != null && _monKind.TryGetValue(id, out int k) ? k : 0;
                 bool collect = kind == 1 || kind == 2 || kind == 8 || kind == 9;
+                int type = p.Length >= 4 && TryInt(p[3], out int tp) ? tp : 0;
+                int group = p.Length >= 5 && TryInt(p[4], out int gp) ? gp : 0;
                 var e = new MapEntity
                 {
                     Kind = collect ? MapEntityKind.Collect : MapEntityKind.Monster,
                     Id = id, X = x, Y = y,
                     Name = MonName(id),
+                    Type = type, Group = group,
                 };
                 if (collect) se.Collects.Add(e); else se.Monsters.Add(e);
             }
@@ -137,7 +150,7 @@ namespace Shenxiao.Editor.MapTools
                 se.Npcs.Add(new MapEntity
                 {
                     Kind = MapEntityKind.Npc, Id = id, X = x, Y = y,
-                    Name = NpcName(id), Info = action,
+                    Name = NpcName(id), Info = action, Action = action,
                 });
             }
         }
@@ -149,6 +162,8 @@ namespace Shenxiao.Editor.MapTools
             foreach (Match m in Regex.Matches(text, @"\{(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\}"))
             {
                 int target = int.Parse(m.Groups[1].Value);
+                int p1 = int.Parse(m.Groups[4].Value);
+                int p2 = int.Parse(m.Groups[5].Value);
                 se.Doors.Add(new MapEntity
                 {
                     Kind = MapEntityKind.Door,
@@ -156,7 +171,8 @@ namespace Shenxiao.Editor.MapTools
                     X = int.Parse(m.Groups[2].Value),
                     Y = int.Parse(m.Groups[3].Value),
                     Name = "传送门",
-                    Info = $"→{target}({m.Groups[4].Value},{m.Groups[5].Value})",
+                    Info = $"→{target}({p1},{p2})",
+                    P1 = p1, P2 = p2,
                 });
             }
         }

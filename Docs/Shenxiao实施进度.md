@@ -386,3 +386,78 @@ HttpUtil / GmApi(HTTP 参考)/ NetManager / ErlangParser / UserMsgAdapter / View
   「标注清单」折叠列表(id+名字+坐标,每类上限 60);新增列表页「一键转换全部」(只转未转/部分,强确认+进度+可取消+分组)。
 - 跳跃点/任务路线(electron 还有)暂未接;需 data_task.erl + jump 配置,留待后续。
 - electron 记忆已更新为"Unity 侧标注点已落地"。
+
+### 2026-06-17 地图标注点 编辑 + 保存(写回 yu_server data_scene.erl)
+
+之前 Unity 地图工具只读;electron 能拖点位/改属性/写回。本批补编辑+保存:
+- `MapSceneWriter.cs`(新):C# 移植 map_editor.py 的 `save_scene_fields` + `_replace_*`/`_format_*` + 备份。
+  定位 `(get(ID)->#ets_scene{)(body)(};)`,只替换 body 里 mon/npc/elem/reborn_xys/x/y 字段文本(正则+方括号平衡),
+  其余原样;写前自动 `.bak_时间戳` 备份;UTF-8 无 BOM。怪(普通+采集)合并回 mon 列表;Erlang 文本格式与 python 逐字一致。
+- `MapServerData`:MapEntity 补回写所需原始字段(怪 Type/Group、NPC Action、门 P1/P2);SceneEntities 补 data_scene 的出生点 x/y。
+- `MapAssetWindow`:详情加「编辑模式」——缩略图上点标注点选中、拖动移动;右侧属性面板精调坐标/ID/类型/分组/动画/门目标 +
+  删除 + 新增(怪/NPC/传送门/复活);「保存到 data_scene.erl」(强确认 + 备份 + 保存后重载)。可编辑:怪/采集/NPC/门/复活/出生点;
+  Boss 在 data_boss.erl 只读不写。
+- 缩略图是整图缩放(粗拖),精确坐标用属性面板数字框;**缩放/平移画布**(更顺手的拖拽)留作下一步。
+- 仍缺:跳跃点(data_scene 无 jump 数据,源待确认 JumpSceneInfo.json)、任务路线(需 data_task.erl 解析)——下一步补。
+
+### 2026-06-17 主角真正显示在地图上(3D 角色合成台)+ 全向转向 + 取景
+
+进度 2.5「主角加载」此前只闭环了数据/动作/相机跟随逻辑,角色**看不见**——根因不是真机问题:
+根 Canvas 是 `ScreenSpaceOverlay`(`Launch.unity` m_RenderMode:0),不透明 UGUI 地图会盖住主相机渲染的
+任何世界 3D 物体,而 `MainRoleFlow` 把 3D 主角直接摆进世界空间 `__SceneRoot` → 永远被地图遮死。
+
+- `SceneCharacterStage.cs`(新,Common/UI3D):场景 3D 角色合成台,沿用本工程 `UIModelStage` 已验证的
+  「专用正交相机 → RenderTexture → RawImage」套路。角色摆隔离区(3000,-3000,3000),相机渲到满屏 RT,
+  贴成 `UILayer.Scene` 层里一张 RawImage(自带 Canvas,overrideSorting sortingOrder=-50:压在地图 -100 之上、
+  HUD/Main 之下)。`raycastTarget=false` 不吃点击。主角恒居屏幕中心(相机跟随模型,地图在脚下滚)。
+  NPC/怪后续按 (世界坐标-主角焦点) 偏移摆进同一台共用合成(已留 `CharsRoot`)。
+- `MainRoleFlow.cs`:模型改走 `SceneCharacterStage.SetMainRole(model)`;`MainRoleAgent` 挂轻量逻辑节点跨层
+  驱动模型(转向/动作/相机跟随/上报);删掉原把模型摆世界里的 `ApplyOldClientSceneTransform`。
+- `MainRoleAgent.Face` 重写为**全向转向**:`yaw = Atan2(dir.x, -dir.y)*Rad2Deg`(连续朝向移动方向,
+  对标老客户端 atan2 全向转身),替换旧的「按 dir.x 正负左右翻面」(那是「只会两个方向跑」的根因);
+  加 `TurnSmoothSpeed=720` 最短弧平滑。**实跑(2026-06-17)确认上下+左右皆反 → 整体 +180°(两参同时取反),
+  已落定为 `Atan2(dir.x,-dir.y)`**。Face 内不叠加基准 yaw(已删 `_baseModelYaw`)。
+- 取景:`SceneCharacterStage.ORTHO_SIZE` 2.6→5.1。依据老客户端**场景相机**(正交全高 12.8@1280px、平视;
+  `ResManager.ts:1703/1715`)主角占竖屏典型 ~14%;校准点 ortho2.6→占屏~30% 反比得几何 ~5.57,
+  再乘俯角补偿 ~0.914(我方相机俯 24° vs 老版平视+模型倾 38°,`SceneObj.ts:469` extent.x*0.79≈cos38°)≈ **5.1**(区间 4.8~5.6)。
+  落地点 `GROUND_FRACTION=0.5`(按半高比例,改 ORTHO_SIZE 时接地点不漂)。模型 localScale 保持 1(对齐老客户端
+  场景模型本体 scale=1,大小只由相机管;root 1.1 是容器缩放不算个体大小)。
+
+待 Unity Play 验证(若仍有偏差再微调):①四向转身(理应已对;若再现左右反→第一参符号、上下反→第二参符号、整体差180→+180f);
+②占屏比例(目标 ~1/7~1/6;偏大调大 ORTHO_SIZE 5.1→5.6,偏小调小→4.8);③接地点调 GROUND_FRACTION;
+④首跑看 Console 有无「衣服模型未转换 / 动作未转换」(资源未转,需先用 神霄/资源 转模型/动作)。
+注:相机俯角 24° 与老客户端「相机平视+模型倾 38°」透视不同,接地/仰角像素级 1:1 属后续微调。
+
+### 2026-06-17 断线重连根因(待修)+ 地图重进缓存(已修)
+
+实跑发现"地图隔几秒重新加载"实为**断线重连循环**(读 Editor 日志定位):
+- 现象链:进游戏成功 → 几秒后游戏服干净关 WebSocket(remote close)→ 客户端游戏内自动重连
+  (`LoginController` `MAX_IN_GAME_AUTO_RECONNECT=2`、2s 间隔,预算耗尽即 3 轮)→ 每轮重发 10000/10004 重进 →
+  重新 12005 进场景 → 重载地图。日志:`enter-game ack` ×3、心跳 10006 一来一回正常、无 59004 踢人、无客户端报错。
+- 服务端根因(查 yu_server 源码):干净 Close **唯一**来自 `Sid ! {send,close}`(`lib_socket_msg.erl:20-24`);
+  框架层无空闲/心跳超时断线。最可能 = **顶号 relogin 循环**:同账号重连命中"已在线"(`mod_login.erl:128`)→
+  `mod_server:relogin` 是 5s 超时的重活 `gen_server:call`(`mod_server.erl:63-64,102-333`),超时/抛错 →
+  `login_outside`(`mod_login.erl:133-137`)发 59004+logout 关连接 → 客户端又自动重连 → 又顶号失败 → 稳定几秒一断。
+  诱因:Unity Stop 不发干净登出,账号在服务端**残留在线**,下次进游戏即触发顶号。
+- **待决定性证据**:进 Play 清空 Console,看 `[Net]` 的 Close status/desc + 断开间隔(≈5.5s?)+ 断前是否收到 59004,
+  即可在 R1(顶号自关)/R2(客户端误判先重连)间一锤定音。修复方向:登出干净化 + 重连退避(2s→≥8s,等服务端释放旧会话)+
+  Close 紧跟自身重连时停重连。**断线本身本批未改(等证据),先解地图缓存以便测试。**
+
+**地图重进缓存(本批已修,`SceneMapView.ShowAsync`)**:
+- Bug:断线重连进**同一场景**时,`SceneController.Dispose` 虽 keepMap=true 保留了地图,但重进仍调 `ShowAsync` →
+  无条件重载底图 + `EnsureTilePool→ResetPool`(Release 所有瓦片 sprite、整屏重刷)→ 整张图变模糊重下。
+- 修复:`ShowAsync` 开头加 `IsSameMapShown(data)` 短路(身份 SceneId/MapResId + 尺寸 全一致且视图/瓦片池已建)→
+  不 `++_version`、不 ResetPool、不重载底图,只 `SetFocus`(焦点未变整帧跳过)。重连进同图 = 瓦片零重载。
+- 关于"编辑器有没有缓存":瓦片 sprite 本由 Addressables 缓存,但旧逻辑 ResetPool 会 Release 使 refcount 归零卸载、
+  且未转 Addressables 的瓦片在编辑器走慢速现导(`.jxr→.jpg`+SaveAndReimport)→ 编辑器尤其明显;短路后这两条都不触发。
+- 仍在(同principle,可继续收敛):`MainRoleFlow` 仍在每次 `EVT_SCENE_MAP_READY` 重建主角模型 → 重连时角色会重载/闪一下;
+  可同样加"同 roleId+同场景已建则跳过"的守卫,本批未动(用户本次只要地图缓存)。
+
+**瓦片 sprite LRU 缓存(本批已修,`SceneMapView`)**:
+- 另一个独立现象:跑出一个屏再回来,原区域瓦片又变模糊重载。根因=固定瓦片池只持有"视野+边距",滚出视野的槽被复用、
+  旧 sprite 被 Release,走回来即重新异步加载(编辑器还要现导)→ 变模糊。这是池设计本身的取舍,不是 bug,但体验差。
+- 修复:加 `_tileCache`(键=格 (row,col))+ `_tileCacheLru`,sprite **归缓存所有**,瓦片槽只引用不持有;
+  `AssignSlot`/`PumpLoads` 命中缓存即**同步贴图**(不异步、不变模糊);`Release` 只在 LRU 淘汰或换图/清图(`ClearTileCache`)时发生。
+  上限 `_tileCacheCap = clamp(视野格数×3, 96, 256)`(EnsureTilePool 里按池大小自适应),内存有界;
+  淘汰跳过当前可见格防变白。**来回走动邻近区域 = 零重载**;只有走出缓存覆盖范围(>cap)再回来才重载。
+- 真机内存:cap 256 上限下若瓦片未压缩纹理,最坏约几十 MB;彻底降内存仍指向那条未做的"瓦片走平台压缩纹理(.ktx)"资源管线项。

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -aE '^[a-z][a-zA-Z0-9_]+$')",
+      "Bash(grep -aE '.{3,}')",
+      "Bash(grep -aiE '^\\(gen_server|gen_tcp|inet|prim_inet|proc_lib\\)$')",
+      "Read(//c/Users/Fengx/.claude/**)"
+    ]
+  }
+}

@@ -1,3 +1,4 @@
+using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Scene3D.Map;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
@@ -20,13 +21,13 @@ namespace Shenxiao.Module.Core.Scene
         private const float MaxDeltaTime = 0.04f;   // MainRole.ts:746 单帧步进上限
         private const float SendInterval = 0.5f;    // MainRole.ts:547 上报节流
         private const int MoveTypeNormal = 0;       // SceneConfig NORMOL_MOVE
+        private const float TurnSmoothSpeed = 720f; // 转向角速度(度/秒);<=0 则瞬时转向
 
         private const string ActionIdle = "idle";
         private const string ActionRun = "run";
 
         private Transform _modelTr;     // 模型子节点(用于转向)
         private Animation _anim;        // RoleModelAssembler 在模型根挂的 Animation
-        private float _baseModelYaw;    // 模型初始朝向(场景倾斜下的默认 yaw)
 
         private float _posX;            // 真实像素 X(real_pos.x)
         private float _posY;            // 真实像素 Y(real_pos.y)
@@ -38,12 +39,25 @@ namespace Shenxiao.Module.Core.Scene
         {
             _modelTr = model != null ? model.transform : transform;
             _anim = model != null ? model.GetComponent<Animation>() : null;
-            _baseModelYaw = _modelTr.localEulerAngles.y;
             _posX = spawnX;
             _posY = spawnY;
             _moving = false;
             _sendTimer = 0f;
             PlayAction(ActionIdle);
+            SyncModelScreenOffset(); // 出生点可能就在地图边缘:按相机夹边量先把模型摆到正确屏幕位
+        }
+
+        /// <summary>
+        /// 让主角模型在屏幕上对齐它的逻辑格:把 (role.X - cameraX, role.Y - cameraY) 推给合成台。
+        /// 地图内部相机跟随主角,偏移为 0(模型居中,沿用经验落点);靠近边缘相机夹紧后偏移增大,
+        /// 模型随之滑向屏幕边缘——这样「画出来的主角」始终压在它真正占用的逻辑格上,而非恒居屏幕中心
+        /// (恒居中心正是之前"看着像走进墙里"的根因:碰撞用逻辑格判定一直是对的,只是模型画歪了)。
+        /// </summary>
+        private void SyncModelScreenOffset()
+        {
+            RoleModel role = RoleModel.Instance;
+            Vector2 cam = SceneMapView.CameraPos;
+            SceneCharacterStage.SetMainRoleScreenOffset(new Vector2(role.X - cam.x, role.Y - cam.y));
         }
 
         private void Update()
@@ -102,6 +116,7 @@ namespace Shenxiao.Module.Core.Scene
 
             Face(dir);
             SceneMapView.SetFocus(role.X, role.Y);
+            SyncModelScreenOffset(); // 焦点(相机)已更新,随即把模型摆到 (role - camera) 的屏幕偏移上
 
             if (moved)
             {
@@ -123,13 +138,32 @@ namespace Shenxiao.Module.Core.Scene
             SceneController.Instance.SendMoveRequest(role.X, role.Y, MoveTypeNormal, role.X, role.Y);
         }
 
-        /// <summary>朝向:按水平分量左右翻面(2.5D 表现下最稳的近似;3D 自由转向待真机调）。</summary>
+        /// <summary>
+        /// 全向转向:让主角连续朝向移动方向(对标老客户端 atan2 全向转身,非左右翻面)。
+        /// 输入 dir 为舞台坐标(x 右、y 下,已归一化)。合成台相机看向世界 +Z、俯角 24°:
+        /// 屏右=世界+X、屏下(朝相机)=世界-Z;模型美术正脸朝本地 -Z(故 yaw=180 静止背对相机)。
+        /// 令正脸朝世界 V=(dir.x,0,-dir.y) 解得 yaw=Atan2(-dir.x,dir.y);该式在屏上方向自动给出 180°,
+        /// 与 SceneCharacterStage.SetMainRole 的基准 Euler(0,180,0) 自洽(故 Face 内不再叠加基准 yaw)。
+        /// 若实跑发现左右反/上下反/整体差 180°,翻对应参数符号或整体 +180(见进度文档验证清单)。
+        /// </summary>
         private void Face(Vector2 dir)
         {
-            if (_modelTr == null || Mathf.Abs(dir.x) < 0.2f) return;
-            float yaw = dir.x >= 0f ? _baseModelYaw : _baseModelYaw + 180f;
+            if (_modelTr == null || dir.sqrMagnitude < 0.0001f) return; // 无方向(死区/松手)保持当前朝向
+
+            // 实跑(2026-06-17)确认上下+左右皆反 → 模型美术朝向与初判相反,整体 +180°(两参同时取反)。
+            // 屏上跑(dir=(0,-1))→yaw 0、屏下→180、右→90、左→-90:连续朝向移动方向。
+            float yaw = Mathf.Atan2(dir.x, -dir.y) * Mathf.Rad2Deg;
             Vector3 e = _modelTr.localEulerAngles;
-            _modelTr.localEulerAngles = new Vector3(e.x, yaw, e.z);
+            if (TurnSmoothSpeed <= 0f)
+            {
+                _modelTr.localEulerAngles = new Vector3(e.x, yaw, e.z); // 瞬时转向
+            }
+            else
+            {
+                // 沿最短弧平滑到目标 yaw(对标老客户端 >10° 分帧平滑转身)
+                float newY = Mathf.MoveTowardsAngle(e.y, yaw, TurnSmoothSpeed * Time.deltaTime);
+                _modelTr.localEulerAngles = new Vector3(e.x, newY, e.z);
+            }
         }
 
         private void PlayAction(string action)
