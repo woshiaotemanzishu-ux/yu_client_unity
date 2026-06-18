@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoBrush;
+using Shenxiao.Module.Core.FunctionOpen;
 using Shenxiao.Module.Core.Gm;
 using Shenxiao.Module.Core.Mail;
 using Shenxiao.Module.Core.Notice;
@@ -28,6 +29,7 @@ namespace Shenxiao.Module.Core.Game
             GmCheatController.Instance,
             NoticeController.Instance,
             MailController.Instance,
+            FunctionOpenController.Instance,
             // 后续:BagController / EquipController / ChatController ...
         };
 

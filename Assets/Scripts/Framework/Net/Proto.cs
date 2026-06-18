@@ -93,6 +93,14 @@ namespace Shenxiao.Framework.Net
         /// <summary>Toggle auto-brush. Send "c"; reply "ic".</summary>
         public const int AUTOBRUSH_TOGGLE = 13307;
 
+        // ----- 功能开放达成奖励(138xx,yu_server pt_138.erl) -----
+        /// <summary>已完成功能列表。请求无参;回包 h + {Id:h, State:c}×N。</summary>
+        public const int FUNC_OPEN_LIST = 13800;
+        /// <summary>领取功能开放奖励。发 "hc"(id, state);回包 Code:i, Id:h, State:c。</summary>
+        public const int FUNC_OPEN_CLAIM = 13801;
+        /// <summary>新功能开放推送(S2C)。h + {Id:h}×N。</summary>
+        public const int FUNC_OPEN_NEW = 13802;
+
         // ----- 玩家信息(130xx,yu_server pt_130.erl)进游戏后服务端主动推送 -----
         /// <summary>主角全量信息(进游戏首推)。回包见 pt_130 write(13001):
         /// Id:l, 平台:s, 服数:h, 跨服消息:s, 服id:h, 服名:s, Figure块, BattleAttr块,

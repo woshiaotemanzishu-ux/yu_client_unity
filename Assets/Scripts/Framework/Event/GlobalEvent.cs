@@ -57,6 +57,10 @@ namespace Shenxiao.Framework.Event
         /// <summary>邮件未读标记(19008)变化,读 MailModel.HasUnread。</summary>
         public const string EVT_MAIL_UNREAD_UPDATE = "EVT_MAIL_UNREAD_UPDATE";
 
+        // ----- FunctionOpen / 功能开放达成奖励 -----
+        /// <summary>功能开放达成列表/状态(13800/13801/13802)变化,读 FunctionOpenModel.FinishState。</summary>
+        public const string EVT_FUNC_OPEN_UPDATE = "EVT_FUNC_OPEN_UPDATE";
+
         // ----- Task -----
         public const string EVT_TASK_LIST_UPDATED = "EVT_TASK_LIST_UPDATED";
         public const string EVT_TASK_ONE_UPDATED = "EVT_TASK_ONE_UPDATED";
