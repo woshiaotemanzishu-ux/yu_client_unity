@@ -67,6 +67,10 @@ namespace Shenxiao.Framework.Event
         /// <summary>首充信息/状态(15905/15906/15908)变化,读 FirstRechargeModel。</summary>
         public const string EVT_FIRST_RECHARGE_UPDATE = "EVT_FIRST_RECHARGE_UPDATE";
 
+        // ----- WeekCard / 周卡 -----
+        /// <summary>周卡信息/奖励(45201/45202/45203)变化,读 WeekCardModel。</summary>
+        public const string EVT_WEEK_CARD_UPDATE = "EVT_WEEK_CARD_UPDATE";
+
         // ----- Task -----
         public const string EVT_TASK_LIST_UPDATED = "EVT_TASK_LIST_UPDATED";
         public const string EVT_TASK_ONE_UPDATED = "EVT_TASK_ONE_UPDATED";

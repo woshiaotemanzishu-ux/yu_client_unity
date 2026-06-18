@@ -10,6 +10,7 @@ using Shenxiao.Module.Core.Notice;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene;
 using Shenxiao.Module.Core.Tasks;
+using Shenxiao.Module.Core.WeekCard;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -32,6 +33,7 @@ namespace Shenxiao.Module.Core.Game
             MailController.Instance,
             FunctionOpenController.Instance,
             FirstRechargeController.Instance,
+            WeekCardController.Instance,
             // 后续:BagController / EquipController / ChatController ...
         };
 

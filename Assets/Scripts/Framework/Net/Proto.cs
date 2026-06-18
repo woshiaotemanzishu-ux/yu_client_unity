@@ -156,5 +156,13 @@ namespace Shenxiao.Framework.Net
         public const int FIRST_RECHARGE_CLAIM = 15906;
         /// <summary>是否已购首充。请求无参;回包 "c"(isBuy)。</summary>
         public const int FIRST_RECHARGE_ISBUY = 15908;
+
+        // ----- 周卡(452xx,yu_server pt_452.erl) -----
+        /// <summary>周卡信息。请求无参;回包 Lv:h, Exp:i, IsActivity:c, GiftBagNum:h, CanReceiveGift:h, ExpiredTime:i。</summary>
+        public const int WEEK_CARD_INFO = 45201;
+        /// <summary>领取周卡奖励。请求无参;回包 Code:i + 奖励[h+{Style:c,TypeId:i,Count:i}×N]。</summary>
+        public const int WEEK_CARD_CLAIM = 45202;
+        /// <summary>周卡奖励推送(S2C)。Type:c + 奖励[…]。</summary>
+        public const int WEEK_CARD_REWARD = 45203;
     }
 }
