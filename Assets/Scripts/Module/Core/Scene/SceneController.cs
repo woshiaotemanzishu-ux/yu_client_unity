@@ -34,6 +34,10 @@ namespace Shenxiao.Module.Core.Scene
             RegisterProtocal(Proto.SC_MONSTER_ADD, On12007);
             RegisterProtocal(Proto.SC_SCENE_MOVE, On12008);
             RegisterProtocal(Proto.SC_HP_UPDATE, On12009);
+            RegisterProtocal(Proto.SC_HIDE, On12070);
+            RegisterProtocal(Proto.SC_GHOST, On12071);
+            RegisterProtocal(Proto.SC_GROUP, On12072);
+            RegisterProtocal(Proto.SC_PK_STATUS, On12074);
             RegisterProtocal(Proto.SC_VIEW_ROLE_REFRESH, On12011);
             RegisterProtocal(Proto.SC_VIEW_OBJ_REFRESH, On12012);
             RegisterProtocal(Proto.SC_DROP_LIST, On12018);
@@ -127,6 +131,21 @@ namespace Shenxiao.Module.Core.Scene
             long hp = reader.ReadU64();
             long hpLim = reader.ReadU64();
             SceneManager.Instance.ApplyHp(objId, hp, hpLim);
+        }
+
+        // —— 场景对象字段广播(pt_120):Sign(c) + Id(l) + 值。先更新对应玩家 VO 字段;
+        //    怪物的同类字段广播(HideFlag/GhostMode/WarGroup)待补。渲染层订阅 EVT_SCENE_ROLE_STATE 刷新表现。
+        private void On12070(NetReader r) { r.ReadU8(); long id = r.ReadU64(); int v = r.ReadU8(); SetRoleField(id, vo => vo.Hide = v); }      // 隐身
+        private void On12071(NetReader r) { r.ReadU8(); long id = r.ReadU64(); int v = r.ReadU8(); SetRoleField(id, vo => vo.Ghost = v); }     // 幽灵
+        private void On12072(NetReader r) { r.ReadU8(); long id = r.ReadU64(); long g = r.ReadU64(); SetRoleField(id, vo => vo.Group = g); }   // 分组
+        private void On12074(NetReader r) { r.ReadU8(); long id = r.ReadU64(); int v = r.ReadU8(); SetRoleField(id, vo => vo.PkStatus = v); }  // PK 状态
+
+        private static void SetRoleField(long roleId, System.Action<RoleVo> set)
+        {
+            RoleVo vo = SceneManager.Instance.GetRole(roleId);
+            if (vo == null) return;
+            set(vo);
+            EventDispatcher.Emit(GlobalEvent.EVT_SCENE_ROLE_STATE);
         }
 
         // ===================== 进入/切换场景 =====================

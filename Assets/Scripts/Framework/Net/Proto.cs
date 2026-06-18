@@ -63,6 +63,14 @@ namespace Shenxiao.Framework.Net
         public const int SC_SCENE_MOVE = 12008;
         /// <summary>场景对象血量更新。回包 "lll"(obj_id, hp, hpLim)。</summary>
         public const int SC_HP_UPDATE = 12009;
+        /// <summary>隐身字段广播。回包 "clc"(sign, id, hide)。</summary>
+        public const int SC_HIDE = 12070;
+        /// <summary>幽灵字段广播。回包 "clc"(sign, id, ghost)。</summary>
+        public const int SC_GHOST = 12071;
+        /// <summary>分组字段广播。回包 "cll"(sign, id, group)。</summary>
+        public const int SC_GROUP = 12072;
+        /// <summary>PK 状态字段广播。回包 "clc"(sign, id, pkStatus)。</summary>
+        public const int SC_PK_STATUS = 12074;
         /// <summary>九宫格玩家增删:h+12003×N(加) + h+l×N(删)。</summary>
         public const int SC_VIEW_ROLE_REFRESH = 12011;
         /// <summary>九宫格对象增删:怪物/伙伴/其他/假人(加) + i×N(删)。</summary>

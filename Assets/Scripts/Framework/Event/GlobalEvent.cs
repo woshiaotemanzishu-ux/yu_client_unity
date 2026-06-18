@@ -44,6 +44,8 @@ namespace Shenxiao.Framework.Event
         public const string EVT_SCENE_SNAPSHOT_READY = "EVT_SCENE_SNAPSHOT_READY";
         /// <summary>切场景/登出:场景对象表已清空。</summary>
         public const string EVT_SCENE_OBJECTS_CLEARED = "EVT_SCENE_OBJECTS_CLEARED";
+        /// <summary>某场景角色的状态字段(隐身/幽灵/分组/PK)变化(12070/12071/12072/12074),渲染层据此刷新表现。</summary>
+        public const string EVT_SCENE_ROLE_STATE = "EVT_SCENE_ROLE_STATE";
 
         // ----- Notice / 公告 -----
         /// <summary>系统公告(11020)到达,读 NoticeModel.LastSysNotice。</summary>
