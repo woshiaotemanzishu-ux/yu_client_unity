@@ -212,15 +212,68 @@ namespace Shenxiao.Editor.AssetHub
             foreach (string f in Directory.GetFiles(objsDir, "*.lh").OrderBy(p => p))
             {
                 string name = Path.GetFileNameWithoutExtension(f);
-                // 动作目录名 = 名字里最后一段数字 id(model_weapon_r_1100 → 1100)
-                int us = name.LastIndexOf('_');
-                string actionDirName = us >= 0 ? name.Substring(us + 1) : name;
+                // 动作目录名以 .lh 内 Animator clipPath 为权威(模型常共用别 id 的动作:
+                // head_13xx→action/11xx、back_100x→action/100(x-1)、mount_1021→action/1007、
+                // other_4014xx→action/401416);解析不到再退回文件名末段数字。
+                string actionDirName = ResolveActionDirName(f, name);
                 AssetEntry e = NewObjectEntry(module, name, actionDirName);
                 e.DisplayName = name.StartsWith(prefix) ? name.Substring(prefix.Length) : name;
                 e.Note = "清单=objs 目录(明细配置待配表线)";
                 list.Add(e);
             }
             return Finish(list);
+        }
+
+        /// <summary>
+        /// 动作目录名以 .lh 内首个 Animator clipPath 为权威(模型常共用别 id 的动作目录,
+        /// 如 head_13xx→action/11xx、back_100x→action/100(x-1)、mount_1021→action/1007);
+        /// .lh 无 Animator/clipPath 或解析失败时,退回文件名末段数字(model_weapon_r_1100→1100)。
+        /// 对标 role 域 NewRoleEntry 的「共用动作目录」处理,推广到部件/实体域。
+        /// </summary>
+        private static string ResolveActionDirName(string lhPath, string modelName)
+        {
+            try
+            {
+                var data = JObject.Parse(File.ReadAllText(lhPath))["data"] as JObject;
+                string cp = FindFirstClipPath(data);
+                if (!string.IsNullOrEmpty(cp))
+                {
+                    cp = cp.Replace('\\', '/');
+                    int ai = cp.IndexOf("/action/", StringComparison.OrdinalIgnoreCase);
+                    if (ai >= 0)
+                    {
+                        string rest = cp.Substring(ai + "/action/".Length);
+                        int slash = rest.IndexOf('/');
+                        if (slash > 0) return rest.Substring(0, slash);
+                    }
+                }
+            }
+            catch { }
+            int us = modelName.LastIndexOf('_');
+            return us >= 0 ? modelName.Substring(us + 1) : modelName;
+        }
+
+        /// <summary>深度优先找 .lh 节点树里第一个 Animator 组件的首个 state.clipPath。</summary>
+        private static string FindFirstClipPath(JObject node)
+        {
+            if (node == null) return null;
+            if (node["components"] is JArray comps)
+                foreach (var c in comps)
+                    if ((string)c["type"] == "Animator" && c["layers"] is JArray layers)
+                        foreach (var l in layers)
+                            if (l["states"] is JArray states)
+                                foreach (var s in states)
+                                {
+                                    string cp = (string)s["clipPath"];
+                                    if (!string.IsNullOrEmpty(cp)) return cp;
+                                }
+            if (node["child"] is JArray children)
+                foreach (var ch in children)
+                {
+                    string r = FindFirstClipPath(ch as JObject);
+                    if (r != null) return r;
+                }
+            return null;
         }
 
         private static List<AssetEntry> Finish(IEnumerable<AssetEntry> entries)
