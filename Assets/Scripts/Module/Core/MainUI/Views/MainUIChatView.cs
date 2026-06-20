@@ -37,12 +37,14 @@ namespace Shenxiao.Module.Core.MainUI
         /// 接 HUD 聊天条上的入口按钮,经 MainUIRouter 解耦打开对应面板(各模块 Bootstrap 注册 key,MainUI 不直接依赖它们):
         /// - 聊天底图 _img_bg → "chat"(对标老端点 _panel_chat/_panel_sys 区域 Fire OPEN_CHAT_VIEW);点击热区精度归预制体。
         /// - 设置按钮 _img_setting → "setting"(对标老端 SettingBtn → SettingView)。
-        /// 好友/商城(_img_friend/_img_shop)待对应模块移植后在此追加 RouteClick。
+        /// - 好友按钮 _img_friend → "friend"(对标老端 FriendBtn → FriendView)。
+        /// 商城(_img_shop)待 shop 模块移植后在此追加 RouteClick。
         /// </summary>
         private void WireHudEntries()
         {
             RouteClick(_img_bg, "chat");
             RouteClick(_img_setting, "setting");
+            RouteClick(_img_friend, "friend");
         }
 
         private static void RouteClick(Image target, string viewKey)
