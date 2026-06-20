@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Shenxiao.Generated.UI.Chat;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
@@ -18,6 +19,13 @@ namespace Shenxiao.Module.Core.Chat
     /// </summary>
     public sealed class ChatParentView : ChatParentViewBind
     {
+        // 频道页签(对标老端 ViewClassCFG:世界/仙宗/队伍/跨服/活动/阵营/海域/系统)。
+        private static readonly string[] ChannelLabels = { "世界", "仙宗", "队伍", "跨服", "活动", "阵营", "海域", "系统" };
+
+        private readonly List<ChatParentTab> _tabs = new List<ChatParentTab>();
+        private int _curChannel = -1;
+        private bool _tabsBuilt;
+
         protected override void OnInit()
         {
             HideTemplates();
@@ -25,12 +33,64 @@ namespace Shenxiao.Module.Core.Chat
             BindClose(_close);
             BindClose(_btn_close);
             BindButtons();
+            BuildChannelTabs();
         }
 
         protected override void OnShow(object args)
         {
-            // 老端 open → CustomMehod(0, chatViewIndex(channel)) 选频道 + 铺消息列表。ChatModel/协议未移植 → 频道/消息空降级。
-            GameLog.Info("Chat", "聊天窗口打开 → 待对接 ChatModel/ChatController(频道/消息空降级)");
+            // 老端 open → CustomMehod(0, chatViewIndex(channel)) 选频道 + 铺消息列表。ChatModel/协议未移植 → 消息空、仅切频道高亮。
+            SelectChannel(_curChannel < 0 ? 0 : _curChannel);
+            GameLog.Info("Chat", "聊天窗口打开 → 待对接 ChatModel/ChatController(消息空降级,频道页签可切)");
+        }
+
+        /// <summary>对标老端 构建频道页签条:克隆 _tpl_ChatParentTab 到 Content_tab 内容区,填频道名 + 绑点击切换。</summary>
+        private void BuildChannelTabs()
+        {
+            if (_tabsBuilt) return;
+            if (_tpl_ChatParentTab == null)
+            {
+                GameLog.Warn("Chat", "ChatParentView 缺 _tpl_ChatParentTab,频道页签无法构建(重跑 chat 流水线)");
+                return;
+            }
+
+            // ScrollRect 的内容区作父节点(布局/位置归预制体);取不到则退回模板原父级。
+            Transform parent = (Content_tab != null && Content_tab.content != null)
+                ? Content_tab.content
+                : _tpl_ChatParentTab.transform.parent;
+
+            for (int i = 0; i < ChannelLabels.Length; i++)
+            {
+                GameObject go = Instantiate(_tpl_ChatParentTab, parent);
+                go.SetActive(true);
+                ChatParentTab tab = go.GetComponent<ChatParentTab>();
+                if (tab == null)
+                {
+                    GameLog.Warn("Chat", "ChatParentTab 模板缺业务脚本(重跑回填)");
+                    Destroy(go);
+                    continue;
+                }
+                tab.SetData(ChannelLabels[i], i, OnChannelClick);
+                _tabs.Add(tab);
+            }
+            _tabsBuilt = true;
+        }
+
+        private void OnChannelClick(int index)
+        {
+            SelectChannel(index);
+        }
+
+        /// <summary>切频道:更新页签高亮 + 打日志(消息列表过滤待 ChatModel)。</summary>
+        private void SelectChannel(int index)
+        {
+            if (index < 0 || index >= _tabs.Count) index = 0;
+            for (int i = 0; i < _tabs.Count; i++)
+            {
+                if (_tabs[i] != null) _tabs[i].SetSelected(i == index);
+            }
+            _curChannel = index;
+            string name = index >= 0 && index < ChannelLabels.Length ? ChannelLabels[index] : index.ToString();
+            GameLog.Info("Chat", "切换频道 [{0}] → 待对接 ChatModel 消息过滤(列表空)", name);
         }
 
         private void HideTemplates()
