@@ -220,9 +220,21 @@ namespace Shenxiao.Module.Core.MainUI
 
                 item.gameObject.SetActive(true);
                 SetFuncIconPosition(item, shown * FUNC_ICON_GAP, 0f);
-                // 图标红点 GetMainFuncRedState 依赖一堆未移植模块,先隐藏。
-                if (item._img_red != null) item._img_red.gameObject.SetActive(false);
-                _ = ResManager.SetImageAsync(item._img_icon, GameResPath.GetIcon("mainUI", fi.Res), nativeSize: false);
+
+                // 走 MainFuncIconItem.SetData:它填图标 + 隐红点 + 一次性绑定点击(_clickBound 守卫,
+                // 防 BuildFuncIcons 多次调用叠加监听),点击经 MainUIRouter.Open(func) 打开对应面板。
+                // Func 用图标 res 作路由 key(如 "bag"),已注册模块即可打开,未注册的路由打日志降级。
+                MainFuncIconItem view = item as MainFuncIconItem;
+                if (view != null)
+                {
+                    view.SetData(new FuncIconData { Res = fi.Res, Func = fi.Res });
+                }
+                else
+                {
+                    // 兜底:模板未挂 View 子类(理论上回填后不会发生)→ 只显示图标,不接点击。
+                    if (item._img_red != null) item._img_red.gameObject.SetActive(false);
+                    _ = ResManager.SetImageAsync(item._img_icon, GameResPath.GetIcon("mainUI", fi.Res), nativeSize: false);
+                }
                 shown++;
             }
 

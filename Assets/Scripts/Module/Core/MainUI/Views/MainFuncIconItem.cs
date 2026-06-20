@@ -48,8 +48,14 @@ namespace Shenxiao.Module.Core.MainUI
 
         private void OnClick()
         {
-            // TODO 待接:Fire(SWITCH_MAIN_FUNC_VIEW, func) → 各功能界面(可经 MainUIRouter)。
-            GameLog.Info("MainUI", "点击功能图标 func={0} → 待对接 SWITCH_MAIN_FUNC_VIEW", _data != null ? _data.Func : "(null)");
+            // 对标 SWITCH_MAIN_FUNC_VIEW:经主界面功能入口中央路由打开目标面板(已移植则开,未移植则路由打日志)。
+            string key = _data != null ? _data.Func : null;
+            if (string.IsNullOrEmpty(key))
+            {
+                GameLog.Info("MainUI", "点击功能图标(无 func)→ 忽略");
+                return;
+            }
+            MainUIRouter.Open(key);
         }
     }
 
