@@ -29,11 +29,27 @@ namespace Shenxiao.Module.Core.Rune
             BindClose(_btn_close);
         }
 
+        private RuneDecomposeView _decView;
+
         protected override void OnShow(object args)
         {
-            // 老端 LoadSuccess → initTab:建页签 + SwtichView 铺子页(分解/拆解)。RuneModel/LoopScrowViewMgr 未移植 →
-            // 列表空、sub_group 空、默认降级。
-            GameLog.Info("Rune", "RuneDecMainView 打开 → 待对接 RuneModel(列表空/默认降级)");
+            // 老端 LoadSuccess → initTab:建页签 + SwtichView 铺子页(分解/拆解)。Unity 已写分解页 RuneDecomposeView →
+            // 默认铺它进 sub_group(取首页);拆解页 RuneResolutionView 待 2 页签后续接。RuneModel 数据未移植 → 列表空降级。
+            EnsureDecomposePage();
+            GameLog.Info("Rune", "RuneDecMainView 打开 → 默认分解页(拆解页待 2 页签;RuneModel 列表空降级)");
+        }
+
+        /// <summary>把同模块的 RuneDecomposeView reparent 进本窗内容区 sub_group(取首页,懒一次)。</summary>
+        private void EnsureDecomposePage()
+        {
+            if (_decView != null) { _decView.Show(); return; }
+            if (sub_group == null) return;
+            RuneDecomposeView dec = transform.root.GetComponentInChildren<RuneDecomposeView>(true);
+            if (dec == null) return;
+            dec.transform.SetParent(sub_group, false);
+            dec.gameObject.SetActive(true);
+            _decView = dec;
+            _decView.Show();
         }
 
         /// <summary>关闭按钮 → Hide(关闭返回九霄劫魄主面板)。</summary>
