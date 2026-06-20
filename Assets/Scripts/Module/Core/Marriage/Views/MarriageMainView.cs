@@ -45,14 +45,31 @@ namespace Shenxiao.Module.Core.Marriage
 
         private void BindButtons()
         {
+            // 已移植子窗 → 真实打开(经 MarriageFlow.OpenSub 叠加在主面板上,自带 _btn_close 返回)。
+            BindOpen(_btn_ask, "MarriageAskView", "求婚");
+            BindOpen(_btn_again, "MarriageAskView", "再续前缘");
+            BindOpen(_btn_break, "MarriageBreakView", "解除婚约");
+            BindOpen(_btn_flower, "MarriageFlowerView", "送花");
+            // 未移植子窗 → 暂打日志(待对应 View + marriage2/独立模块移植后改 BindOpen)。
             BindBtn(_btn_find, "寻缘 OPEN_VIEW(MarriageAskListView)");
-            BindBtn(_btn_ask, "求婚 OPEN_VIEW(MarriageAskView)");
-            BindBtn(_btn_again, "再续前缘 OPEN_VIEW(MarriageAskView)");
-            BindBtn(_btn_break, "解除婚约 OPEN_VIEW(MarriageBreakView)");
-            BindBtn(_btn_flower, "送花 OPEN_VIEW(MarriageFlowerView)");
             BindBtn(_btn_flow, "花房 OPEN_VIEW(MarriageFlowView)");
             BindBtn(_btn_banquet, "婚宴 OPEN_VIEW(BanquetApplyView)");
             BindBtn(_btn_dsgt, "婚戒设计图 OPEN_VIEW(MarriageDsgtView)");
+        }
+
+        /// <summary>按钮 → 打开婚恋模块内二级弹窗(MarriageFlow.OpenSub 按 View 子类名查找并置顶)。</summary>
+        private void BindOpen(Component target, string viewType, string label)
+        {
+            if (target == null) return;
+            Image img = target as Image;
+            if (img == null) img = target.GetComponentInChildren<Image>(true);
+            if (img == null) return;
+            img.raycastTarget = true;
+            UIUtil.AddClick(img, () =>
+            {
+                GameLog.Info("Marriage", "点击[{0}] → 打开 {1}", label, viewType);
+                MarriageFlow.OpenSub(viewType);
+            });
         }
 
         /// <summary>给按钮(Image 或含 Image 子节点的容器)挂点击 → 打日志(降级:协议/子窗待对接)。</summary>

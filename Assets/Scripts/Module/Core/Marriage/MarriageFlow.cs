@@ -46,6 +46,28 @@ namespace Shenxiao.Module.Core.Marriage
             }
         }
 
+        /// <summary>
+        /// 打开模块内二级弹窗(求婚/送花/离婚…),叠加在主面板之上(BaseView.Show 置顶)。按 View 子类名在模块根里查找;
+        /// 尚未移植 View 的窗口查不到 → 打日志降级(不崩)。供婚恋各页按钮调用作真实打开触发。
+        /// </summary>
+        public static void OpenSub(string viewTypeName)
+        {
+            if (_moduleRoot == null)
+            {
+                GameLog.Warn("Marriage", "OpenSub({0}) 时婚恋模块未打开", viewTypeName);
+                return;
+            }
+            foreach (BaseView v in _moduleRoot.GetComponentsInChildren<BaseView>(true))
+            {
+                if (v.GetType().Name == viewTypeName)
+                {
+                    v.Show();
+                    return;
+                }
+            }
+            GameLog.Info("Marriage", "二级弹窗 [{0}] 未移植 View,待对接", viewTypeName);
+        }
+
         private static async Task OpenAsync()
         {
             if (_moduleRoot != null)
