@@ -39,6 +39,7 @@ namespace Shenxiao.Module.Core.MainUI
             RouteClick(_box_chat, "chat");
             RouteClick(_box_red_packet, "redpacket");
             RouteClick(_box_level_rew, "levelreward");
+            RouteClick(_box_firstblood, "firstblood");
 
             // Old client removes _box_right from Secondary, adds it to Main layer,
             // then applies right=0 and centerY=250.
