@@ -52,7 +52,23 @@ namespace Shenxiao.Module.Core.Equip
             BindBtn(btnStrOne, "强化");
             BindBtn(btnStrAll, "一键强化");
             BindBtn(btnStopAll, "停止一键强化");
-            BindBtn(btnMaster, "淬炉宗师 EquipStrenMasterView");
+            // 淬炉宗师总览子窗(已移植)→ 真打开(EquipFlow.OpenSub 叠主面板上,EquipStrenMasterView.btn_close 返回)。
+            BindOpen(btnMaster, "EquipStrenMasterView", "淬炉宗师");
+        }
+
+        /// <summary>按钮 → 打开装备模块内子窗(EquipFlow.OpenSub 按 View 子类名查找并叠在主面板上)。</summary>
+        private void BindOpen(Component target, string viewType, string label)
+        {
+            if (target == null) return;
+            Image img = target as Image;
+            if (img == null) img = target.GetComponentInChildren<Image>(true);
+            if (img == null) return;
+            img.raycastTarget = true;
+            UIUtil.AddClick(img, () =>
+            {
+                GameLog.Info("Equip", "点击[{0}] → 打开 {1}", label, viewType);
+                EquipFlow.OpenSub(viewType);
+            });
         }
 
         /// <summary>给按钮(Image 或含 Image 子节点的容器)挂点击 → 打日志(降级:协议/子窗待对接)。</summary>

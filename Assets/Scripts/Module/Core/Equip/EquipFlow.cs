@@ -48,6 +48,25 @@ namespace Shenxiao.Module.Core.Equip
             }
         }
 
+        /// <summary>打开装备模块内子窗(淬炉宗师 EquipStrenMasterView…),叠在主面板上;按 View 子类名查找。未移植查不到 → 日志降级。</summary>
+        public static void OpenSub(string viewTypeName)
+        {
+            if (_moduleRoot == null)
+            {
+                GameLog.Warn("Equip", "OpenSub({0}) 时装备模块未打开", viewTypeName);
+                return;
+            }
+            foreach (BaseView v in _moduleRoot.GetComponentsInChildren<BaseView>(true))
+            {
+                if (v.GetType().Name == viewTypeName)
+                {
+                    v.Show();
+                    return;
+                }
+            }
+            GameLog.Info("Equip", "装备子窗 [{0}] 未移植 View,待对接", viewTypeName);
+        }
+
         private static async Task OpenAsync()
         {
             if (_moduleRoot != null)
