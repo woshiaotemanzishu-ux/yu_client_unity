@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
+using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.MainUI;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.MainUI
 {
@@ -31,6 +33,11 @@ namespace Shenxiao.Module.Core.MainUI
             _gp_t_map.gameObject.SetActive(false);
             _box_team.gameObject.SetActive(false);
 
+            // 二级 HUD 常显入口按钮 → 经 MainUIRouter 解耦打开对应面板(各模块 Bootstrap 注册 key)。
+            // 邮件 _box_email → "email"(FriendModule.EmailView);聊天 _box_chat → "chat"(ChatParentView)。
+            RouteClick(_box_email, "email");
+            RouteClick(_box_chat, "chat");
+
             // Old client removes _box_right from Secondary, adds it to Main layer,
             // then applies right=0 and centerY=250.
             // Laya centerY is positive downward; LayaRectMath maps that to
@@ -44,6 +51,17 @@ namespace Shenxiao.Module.Core.MainUI
                 _box_right.anchoredPosition = new Vector2(0f, -250f);
                 _box_right.gameObject.SetActive(true);
             }
+        }
+
+        /// <summary>二级 HUD 按钮(Image 或含 Image 容器)→ 经 MainUIRouter 解耦打开面板(MainUI 不直接依赖各业务模块)。</summary>
+        private static void RouteClick(Component target, string viewKey)
+        {
+            if (target == null) return;
+            Image img = target as Image;
+            if (img == null) img = target.GetComponentInChildren<Image>(true);
+            if (img == null) return;
+            img.raycastTarget = true;
+            UIUtil.AddClick(img, () => MainUIRouter.Open(viewKey));
         }
 
         protected override void OnShow(object args)

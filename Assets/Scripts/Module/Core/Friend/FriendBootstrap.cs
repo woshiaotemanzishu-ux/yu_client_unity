@@ -16,6 +16,8 @@ namespace Shenxiao.Module.Core.Friend
         private static void Install()
         {
             MainUIRouter.Register("friend", FriendFlow.Toggle);
+            // 邮件(二级 HUD 邮件按钮):同属 FriendModule 内顶层窗 EmailView,经 FriendFlow 切换。
+            MainUIRouter.Register("email", FriendFlow.ToggleEmail);
             EventDispatcher.On(GlobalEvent.EVT_NET_DISCONNECTED, OnDisconnected);
         }
 
