@@ -16,6 +16,8 @@ namespace Shenxiao.Module.Core.Composite
         private static void Install()
         {
             MainUIRouter.Register("composite", CompositeFlow.Toggle);
+            // 红装(red 图标 → RedEnterView tab0 = CompositeEquipView,同属 composite 模块)→ 复用 CompositeFlow。
+            MainUIRouter.Register("red", CompositeFlow.Toggle);
             EventDispatcher.On(GlobalEvent.EVT_NET_DISCONNECTED, OnDisconnected);
         }
 
