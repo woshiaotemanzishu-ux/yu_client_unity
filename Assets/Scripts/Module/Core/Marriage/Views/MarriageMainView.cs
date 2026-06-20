@@ -50,11 +50,11 @@ namespace Shenxiao.Module.Core.Marriage
             BindOpen(_btn_again, "MarriageAskView", "再续前缘");
             BindOpen(_btn_break, "MarriageBreakView", "解除婚约");
             BindOpen(_btn_flower, "MarriageFlowerView", "送花");
-            // 未移植子窗 → 暂打日志(待对应 View + marriage2/独立模块移植后改 BindOpen)。
-            BindBtn(_btn_find, "寻缘 OPEN_VIEW(MarriageAskListView)");
-            BindBtn(_btn_flow, "花房 OPEN_VIEW(MarriageFlowView)");
+            BindOpen(_btn_find, "MarriageAskListView", "寻缘");
+            BindOpen(_btn_flow, "MarriageFlowView", "花房");
+            BindOpen(_btn_dsgt, "MarriageDsgtView", "婚戒设计图");
+            // 婚宴属 marriage2 独立模块,未移植 → 暂打日志。
             BindBtn(_btn_banquet, "婚宴 OPEN_VIEW(BanquetApplyView)");
-            BindBtn(_btn_dsgt, "婚戒设计图 OPEN_VIEW(MarriageDsgtView)");
         }
 
         /// <summary>按钮 → 打开婚恋模块内二级弹窗(MarriageFlow.OpenSub 按 View 子类名查找并置顶)。</summary>
