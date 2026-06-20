@@ -252,26 +252,33 @@ namespace Shenxiao.Editor.LayaUI
             string prefabPath = PrefabPath(entry, manifest);
             if (stack.Contains(sceneKey)) return prefabPath; // 防环/防重复
             stack.Add(sceneKey);
-
-            JObject root = LoadSceneJson(entry);
-            if (root == null)
+            // DFS 栈纪律:务必在出栈时 Remove,使 stack 恰好=当前祖先链(用于 BuildWindow 防环判定)。
+            try
             {
-                report.BeginScene(sceneKey);
-                report.Note("❌ 运行时 json 读取失败: " + entry.Json);
-                return null;
-            }
+                JObject root = LoadSceneJson(entry);
+                if (root == null)
+                {
+                    report.BeginScene(sceneKey);
+                    report.Note("❌ 运行时 json 读取失败: " + entry.Json);
+                    return null;
+                }
 
-            GameObject go = BuildWindow(sceneKey, entry, root, manifest, report, stack);
-            if (entry.Decision == "shared-prefab")
+                GameObject go = BuildWindow(sceneKey, entry, root, manifest, report, stack);
+                if (entry.Decision == "shared-prefab")
+                {
+                    NormalizeItemRoot(go); // 共享件也是列表项语义,统一左上锚定
+                }
+                LayaBindGenerator.Generate(entry, manifest, go.transform, report);
+
+                Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
+                PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
+                Object.DestroyImmediate(go);
+                return prefabPath;
+            }
+            finally
             {
-                NormalizeItemRoot(go); // 共享件也是列表项语义,统一左上锚定
+                stack.Remove(sceneKey);
             }
-            LayaBindGenerator.Generate(entry, manifest, go.transform, report);
-
-            Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
-            PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
-            Object.DestroyImmediate(go);
-            return prefabPath;
         }
 
         /// <summary>窗口 = scene 节点树 + __Templates(内联 item + 共享 item 嵌套)。返回未保存的 GO。</summary>
@@ -296,6 +303,9 @@ namespace Shenxiao.Editor.LayaUI
                     LayaUIManifest.SceneEntry se = kv.Value;
                     if (se.Decision != "shared-prefab" || se.OwnerClasses == null) continue;
                     if (!se.OwnerClasses.Contains(entry.TsClass)) continue;
+                    // 防环:该 shared 件正在当前祖先链上构建(back-edge)→ 不回嵌,否则 SaveAsPrefabAsset 会因
+                    // 嵌套自身/祖先的 prefab 实例抛 "Cyclic nesting detected"。互相 own 的 shared 件只保留正向嵌套。
+                    if (stack.Contains(kv.Key)) continue;
                     string sharedPath = ConvertOne(kv.Key, manifest, report, stack);
                     GameObject sharedAsset = sharedPath != null ? AssetDatabase.LoadAssetAtPath<GameObject>(sharedPath) : null;
                     if (sharedAsset == null) continue;
