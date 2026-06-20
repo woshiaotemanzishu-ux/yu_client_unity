@@ -39,8 +39,8 @@ namespace Shenxiao.Module.Core.Daily
         {
             "DailyModule", "DailyModule", "BrightSeaModule", "DailyModule", "DepositModule", "DailyModule"
         };
-        // 已写内容才开放;tab4 托管(deposit)未写 disabled
-        private static readonly bool[] TabEnabled = { true, true, true, true, false, true };
+        // 已写内容才开放;6/6 全开(每日任务/限时活动/无尽之海/资源找回/托管/我要变强)
+        private static readonly bool[] TabEnabled = { true, true, true, true, true, true };
         private const int DefaultTab = 3;
 
         private static GameObject _frameRoot;
