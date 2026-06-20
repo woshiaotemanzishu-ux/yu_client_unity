@@ -34,9 +34,10 @@ namespace Shenxiao.Module.Core.MainUI
             _box_team.gameObject.SetActive(false);
 
             // 二级 HUD 常显入口按钮 → 经 MainUIRouter 解耦打开对应面板(各模块 Bootstrap 注册 key)。
-            // 邮件 _box_email → "email"(FriendModule.EmailView);聊天 _box_chat → "chat"(ChatParentView)。
+            // 邮件 _box_email → "email"(FriendModule.EmailView);聊天 _box_chat → "chat"(ChatParentView);红包 _box_red_packet → "redpacket"(RedPacketMainView)。
             RouteClick(_box_email, "email");
             RouteClick(_box_chat, "chat");
+            RouteClick(_box_red_packet, "redpacket");
 
             // Old client removes _box_right from Secondary, adds it to Main layer,
             // then applies right=0 and centerY=250.
