@@ -50,6 +50,25 @@ namespace Shenxiao.Module.Core.Bag
             }
         }
 
+        /// <summary>切换背包模块内子窗(一键使用/熔炼/扩展…),叠在背包面板上;已显则关、未显则开;按 View 子类名查找。</summary>
+        public static void ToggleSub(string viewTypeName)
+        {
+            if (_moduleRoot == null)
+            {
+                GameLog.Warn("Bag", "ToggleSub({0}) 时背包模块未打开", viewTypeName);
+                return;
+            }
+            foreach (BaseView v in _moduleRoot.GetComponentsInChildren<BaseView>(true))
+            {
+                if (v.GetType().Name == viewTypeName)
+                {
+                    if (v.IsShown) v.Hide(); else v.Show();
+                    return;
+                }
+            }
+            GameLog.Info("Bag", "背包子窗 [{0}] 未移植 View,待对接", viewTypeName);
+        }
+
         private static async Task OpenAsync()
         {
             // 已实例化:直接复用(Show 会置顶 + 走 OnShow 刷新)。Unity fake-null:根被销毁时 _moduleRoot==null 成立。
