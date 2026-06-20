@@ -64,7 +64,7 @@ namespace Shenxiao.Module.Core.Rune
             BindBtn(_btn_fb, "标签-普通");
         }
 
-        /// <summary>按钮 → 打开符文模块内子窗(RuneFlow.OpenSub 按 View 子类名查找并叠在主面板上)。</summary>
+        /// <summary>按钮 → 切换符文模块内子窗(RuneFlow.ToggleSub 按 View 子类名查找,叠在主面板上,再点关闭;含无关闭按钮的子窗)。</summary>
         private void BindOpen(Component target, string viewType, string label)
         {
             if (target == null) return;
@@ -74,8 +74,8 @@ namespace Shenxiao.Module.Core.Rune
             img.raycastTarget = true;
             UIUtil.AddClick(img, () =>
             {
-                GameLog.Info("Rune", "点击[{0}] → 打开 {1}", label, viewType);
-                RuneFlow.OpenSub(viewType);
+                GameLog.Info("Rune", "点击[{0}] → 切换 {1}", label, viewType);
+                RuneFlow.ToggleSub(viewType);
             });
         }
 

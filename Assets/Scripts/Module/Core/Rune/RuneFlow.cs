@@ -51,6 +51,25 @@ namespace Shenxiao.Module.Core.Rune
             GameLog.Info("Rune", "符文子窗 [{0}] 未移植 View,待对接", viewTypeName);
         }
 
+        /// <summary>切换符文模块内子窗:已显则关、未显则开(供主面板按钮再点关闭;部分子窗无关闭按钮靠此收口)。</summary>
+        public static void ToggleSub(string viewTypeName)
+        {
+            if (_moduleRoot == null)
+            {
+                GameLog.Warn("Rune", "ToggleSub({0}) 时符文模块未打开", viewTypeName);
+                return;
+            }
+            foreach (BaseView v in _moduleRoot.GetComponentsInChildren<BaseView>(true))
+            {
+                if (v.GetType().Name == viewTypeName)
+                {
+                    if (v.IsShown) v.Hide(); else v.Show();
+                    return;
+                }
+            }
+            GameLog.Info("Rune", "符文子窗 [{0}] 未移植 View,待对接", viewTypeName);
+        }
+
         private static async Task OpenAsync()
         {
             if (_moduleRoot != null)
