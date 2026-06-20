@@ -1,6 +1,7 @@
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
+using Shenxiao.Framework.UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -29,6 +30,19 @@ namespace Shenxiao.Module.Core.MainUI
             HideTemplates();
             CreateWelcomeSystemMessage();
             CreateStrengthenIcon();
+            WireOpenChat();
+        }
+
+        /// <summary>
+        /// 接 HUD 聊天框点击 → 打开全屏聊天窗(对标老端点 _panel_chat/_panel_sys 区域 Fire OPEN_CHAT_VIEW)。
+        /// 经 MainUIRouter 解耦(ChatBootstrap 注册 "chat" → ChatFlow.Toggle),MainUI 不直接依赖 Chat 模块。
+        /// 点击挂在聊天底图 _img_bg(覆盖整聊天区);若需精确到消息面板热区,归预制体调(我管触发逻辑,用户管点击热区)。
+        /// </summary>
+        private void WireOpenChat()
+        {
+            if (_img_bg == null) return;
+            _img_bg.raycastTarget = true;
+            UIUtil.AddClick(_img_bg, () => MainUIRouter.Open("chat"));
         }
 
         /// <summary>
