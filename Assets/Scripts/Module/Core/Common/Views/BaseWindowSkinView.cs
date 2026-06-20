@@ -58,6 +58,60 @@ namespace Shenxiao.Module.Core.Common
             SelectTab(ClampDefault(defaultIndex));
         }
 
+        // ---- 共享内容模式(多标签复用同一内容视图,如商城 11 标签共用 ShopCommonView 仅切 shop_type)----
+        private Func<RectTransform, BaseView> _sharedFactory;
+        private Action<int> _onSharedTab;
+        private Func<int, bool> _sharedEnabled;
+        private BaseView _sharedContent;
+        private int _sharedCount;
+
+        /// <summary>共享内容模式:tabCount 个标签共用一个内容视图(contentFactory 懒建一次入 _gp_item_con),点标签调 onTabSelected(index) 重喂数据。可选 isEnabled 判定标签可点。</summary>
+        public void ConfigureShared(int tabCount, Func<RectTransform, BaseView> contentFactory, Action<int> onTabSelected, int defaultIndex = 0, Func<int, bool> isEnabled = null)
+        {
+            _sharedCount = tabCount;
+            _sharedFactory = contentFactory;
+            _onSharedTab = onTabSelected;
+            _sharedEnabled = isEnabled;
+            BuildSharedTabs();
+            int def = defaultIndex;
+            if (isEnabled != null && (def < 0 || def >= tabCount || !isEnabled(def)))
+            {
+                def = -1;
+                for (int i = 0; i < tabCount; i++) if (isEnabled(i)) { def = i; break; }
+            }
+            SelectShared(def);
+        }
+
+        private void BuildSharedTabs()
+        {
+            foreach (TabButtonTwoSkin t in _tabs) if (t != null) Destroy(t.gameObject);
+            _tabs.Clear();
+            if (_tpl_TabButtonTwoSkin == null) return;
+            RectTransform parent = TabParent();
+            if (parent == null) return;
+            for (int i = 0; i < _sharedCount; i++)
+            {
+                GameObject go = Instantiate(_tpl_TabButtonTwoSkin, parent);
+                go.SetActive(true);
+                TabButtonTwoSkin tab = go.GetComponent<TabButtonTwoSkin>();
+                if (tab == null) { Destroy(go); continue; }
+                tab.SetEnabledVisual(_sharedEnabled == null || _sharedEnabled(i));
+                tab.SetData(i, SelectShared);
+                _tabs.Add(tab);
+            }
+        }
+
+        public void SelectShared(int index)
+        {
+            if (index < 0 || index >= _sharedCount) return;
+            if (_sharedEnabled != null && !_sharedEnabled(index)) { GameLog.Info("Window", "标签[{0}]未开放", index); return; }
+            if (_sharedContent == null && _sharedFactory != null) _sharedContent = _sharedFactory.Invoke(_gp_item_con);
+            if (_sharedContent != null) _sharedContent.Show();
+            _onSharedTab?.Invoke(index);
+            for (int i = 0; i < _tabs.Count; i++) if (_tabs[i] != null) _tabs[i].SetSelected(i == index);
+            _current = index;
+        }
+
         /// <summary>设置某标签红点(由各窗的红点逻辑调用)。</summary>
         public void SetTabRed(int index, bool on)
         {
