@@ -30,26 +30,50 @@ namespace Shenxiao.Module.Core.Rune
         }
 
         private RuneDecomposeView _decView;
+        private RuneResolutionView _resView;
+        private bool _built;
 
         protected override void OnShow(object args)
         {
-            // 老端 LoadSuccess → initTab:建页签 + SwtichView 铺子页(分解/拆解)。Unity 已写分解页 RuneDecomposeView →
-            // 默认铺它进 sub_group(取首页);拆解页 RuneResolutionView 待 2 页签后续接。RuneModel 数据未移植 → 列表空降级。
-            EnsureDecomposePage();
-            GameLog.Info("Rune", "RuneDecMainView 打开 → 默认分解页(拆解页待 2 页签;RuneModel 列表空降级)");
+            // 老端 LoadSuccess → initTab:建双页签(分解「万魄炼散」/拆解「破印焚魄」)+ SwtichView 铺子页。
+            // Unity 已写两页 → 克隆 _tpl_RuneDecomposeTab 建 2 页签,reparent 两页进 sub_group,默认显分解。RuneModel 数据未移植 → 列表空降级。
+            BuildTabsOnce();
+            SelectPage(0);
+            GameLog.Info("Rune", "RuneDecMainView 打开 → 分解/拆解 双页签(RuneModel 列表空降级)");
         }
 
-        /// <summary>把同模块的 RuneDecomposeView reparent 进本窗内容区 sub_group(取首页,懒一次)。</summary>
-        private void EnsureDecomposePage()
+        /// <summary>懒建一次:把同模块的分解/拆解页 reparent 进 sub_group(先隐),并克隆 2 个页签按钮入 Content。</summary>
+        private void BuildTabsOnce()
         {
-            if (_decView != null) { _decView.Show(); return; }
-            if (sub_group == null) return;
-            RuneDecomposeView dec = transform.root.GetComponentInChildren<RuneDecomposeView>(true);
-            if (dec == null) return;
-            dec.transform.SetParent(sub_group, false);
-            dec.gameObject.SetActive(true);
-            _decView = dec;
-            _decView.Show();
+            if (_built) return;
+            _built = true;
+            Transform root = transform.root;
+            _decView = root.GetComponentInChildren<RuneDecomposeView>(true);
+            _resView = root.GetComponentInChildren<RuneResolutionView>(true);
+            if (sub_group != null)
+            {
+                if (_decView != null) { _decView.transform.SetParent(sub_group, false); _decView.gameObject.SetActive(false); }
+                if (_resView != null) { _resView.transform.SetParent(sub_group, false); _resView.gameObject.SetActive(false); }
+            }
+            BuildTab(0);
+            BuildTab(1);
+        }
+
+        private void BuildTab(int idx)
+        {
+            if (_tpl_RuneDecomposeTab == null || Content == null) return;
+            RectTransform parent = Content.content != null ? Content.content : (RectTransform)Content.transform;
+            GameObject go = Instantiate(_tpl_RuneDecomposeTab, parent);
+            go.SetActive(true);
+            Image img = go.GetComponentInChildren<Image>(true);
+            if (img != null) { img.raycastTarget = true; UIUtil.AddClick(img, () => SelectPage(idx)); }
+        }
+
+        /// <summary>切页:0=分解 RuneDecomposeView / 1=拆解 RuneResolutionView(显选中、隐另一)。</summary>
+        private void SelectPage(int idx)
+        {
+            if (_decView != null) { if (idx == 0) _decView.Show(); else _decView.Hide(); }
+            if (_resView != null) { if (idx == 1) _resView.Show(); else _resView.Hide(); }
         }
 
         /// <summary>关闭按钮 → Hide(关闭返回九霄劫魄主面板)。</summary>
