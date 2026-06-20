@@ -30,19 +30,26 @@ namespace Shenxiao.Module.Core.MainUI
             HideTemplates();
             CreateWelcomeSystemMessage();
             CreateStrengthenIcon();
-            WireOpenChat();
+            WireHudEntries();
         }
 
         /// <summary>
-        /// 接 HUD 聊天框点击 → 打开全屏聊天窗(对标老端点 _panel_chat/_panel_sys 区域 Fire OPEN_CHAT_VIEW)。
-        /// 经 MainUIRouter 解耦(ChatBootstrap 注册 "chat" → ChatFlow.Toggle),MainUI 不直接依赖 Chat 模块。
-        /// 点击挂在聊天底图 _img_bg(覆盖整聊天区);若需精确到消息面板热区,归预制体调(我管触发逻辑,用户管点击热区)。
+        /// 接 HUD 聊天条上的入口按钮,经 MainUIRouter 解耦打开对应面板(各模块 Bootstrap 注册 key,MainUI 不直接依赖它们):
+        /// - 聊天底图 _img_bg → "chat"(对标老端点 _panel_chat/_panel_sys 区域 Fire OPEN_CHAT_VIEW);点击热区精度归预制体。
+        /// - 设置按钮 _img_setting → "setting"(对标老端 SettingBtn → SettingView)。
+        /// 好友/商城(_img_friend/_img_shop)待对应模块移植后在此追加 RouteClick。
         /// </summary>
-        private void WireOpenChat()
+        private void WireHudEntries()
         {
-            if (_img_bg == null) return;
-            _img_bg.raycastTarget = true;
-            UIUtil.AddClick(_img_bg, () => MainUIRouter.Open("chat"));
+            RouteClick(_img_bg, "chat");
+            RouteClick(_img_setting, "setting");
+        }
+
+        private static void RouteClick(Image target, string viewKey)
+        {
+            if (target == null) return;
+            target.raycastTarget = true;
+            UIUtil.AddClick(target, () => MainUIRouter.Open(viewKey));
         }
 
         /// <summary>
