@@ -32,7 +32,8 @@ namespace Shenxiao.Module.Core.Daily
             "DailyResFindView", "DepositView", "DailyStrongerView"
         };
         // 该标签内容视图是否已在 Unity 写好(写好才开放;其余 disabled,写完置 true 即开)
-        private static readonly bool[] TabEnabled = { false, false, false, true, false, false };
+        // tab0 每日任务/tab1 限时活动/tab3 资源找回/tab5 我要变强 已写;tab2 无尽之海(brightSea)/tab4 托管(deposit)跨模块待办
+        private static readonly bool[] TabEnabled = { true, true, false, true, false, true };
         private const int DefaultTab = 3;
 
         private static GameObject _frameRoot;
