@@ -39,9 +39,8 @@ namespace Shenxiao.Module.Core.Bag
         {
             "BagModule", "BagModule", "HolySealView", "RevelationEquipView", "longlanguageView"
         };
-        // 背包/仓库/影骸战衣/启示圣铠 已开(4/5);九天神祭(longlanguage)View 已写但 tab4 暂关:
-        // 转换器 Bind 类名首字母大写(LonglanguageViewBind)而 manifest/prefab 名小写(longlanguageView)→ LayaBindFiller 按名查 Bind 大小写不匹配,挂载失败。待修 filler(大小写不敏感)后置 true。
-        private static readonly bool[] TabEnabled = { true, true, true, true, false };
+        // 5/5 全开(背包/仓库/影骸战衣/启示圣铠/九天神祭);longlanguage 经 LayaBindFiller 大小写不敏感兜底后可正常挂载
+        private static readonly bool[] TabEnabled = { true, true, true, true, true };
         private const int DefaultTab = 0;
 
         private static GameObject _frameRoot;

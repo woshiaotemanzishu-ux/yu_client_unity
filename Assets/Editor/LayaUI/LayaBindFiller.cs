@@ -177,6 +177,17 @@ namespace Shenxiao.Editor.LayaUI
                 Type t = asm.GetType(fullName);
                 if (t != null) return t;
             }
+            // 大小写不敏感兜底:转换器把 Bind 类名首字母大写(如 LonglanguageViewBind),
+            // 而 manifest/prefab 场景名可能小写(longlanguageView)→ 精确查不到时按全名忽略大小写再找一次。
+            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                try
+                {
+                    Type t = asm.GetType(fullName, false, true);
+                    if (t != null) return t;
+                }
+                catch { }
+            }
             return null;
         }
 
