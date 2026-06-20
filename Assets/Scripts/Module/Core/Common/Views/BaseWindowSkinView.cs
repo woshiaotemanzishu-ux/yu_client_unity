@@ -59,19 +59,24 @@ namespace Shenxiao.Module.Core.Common
         }
 
         // ---- 共享内容模式(多标签复用同一内容视图,如商城 11 标签共用 ShopCommonView 仅切 shop_type)----
+        // 支持 overrides:个别标签用专属视图(如商城「抢购」= ShopVieView),其余共用 sharedContent。
         private Func<RectTransform, BaseView> _sharedFactory;
         private Action<int> _onSharedTab;
         private Func<int, bool> _sharedEnabled;
         private BaseView _sharedContent;
         private int _sharedCount;
+        private Dictionary<int, Func<RectTransform, BaseView>> _overrideFactory;
+        private readonly Dictionary<int, BaseView> _overrideCache = new Dictionary<int, BaseView>();
 
-        /// <summary>共享内容模式:tabCount 个标签共用一个内容视图(contentFactory 懒建一次入 _gp_item_con),点标签调 onTabSelected(index) 重喂数据。可选 isEnabled 判定标签可点。</summary>
-        public void ConfigureShared(int tabCount, Func<RectTransform, BaseView> contentFactory, Action<int> onTabSelected, int defaultIndex = 0, Func<int, bool> isEnabled = null)
+        /// <summary>共享内容模式:tabCount 个标签共用一个内容视图(contentFactory 懒建一次入 _gp_item_con),点标签调 onTabSelected(index) 重喂数据。
+        /// overrides:个别标签用专属视图(index→工厂),命中时改显该专属视图(不调 onTabSelected)。可选 isEnabled 判定标签可点。</summary>
+        public void ConfigureShared(int tabCount, Func<RectTransform, BaseView> contentFactory, Action<int> onTabSelected, int defaultIndex = 0, Func<int, bool> isEnabled = null, Dictionary<int, Func<RectTransform, BaseView>> overrides = null)
         {
             _sharedCount = tabCount;
             _sharedFactory = contentFactory;
             _onSharedTab = onTabSelected;
             _sharedEnabled = isEnabled;
+            _overrideFactory = overrides;
             BuildSharedTabs();
             int def = defaultIndex;
             if (isEnabled != null && (def < 0 || def >= tabCount || !isEnabled(def)))
@@ -105,9 +110,27 @@ namespace Shenxiao.Module.Core.Common
         {
             if (index < 0 || index >= _sharedCount) return;
             if (_sharedEnabled != null && !_sharedEnabled(index)) { GameLog.Info("Window", "标签[{0}]未开放", index); return; }
-            if (_sharedContent == null && _sharedFactory != null) _sharedContent = _sharedFactory.Invoke(_gp_item_con);
-            if (_sharedContent != null) _sharedContent.Show();
-            _onSharedTab?.Invoke(index);
+
+            bool isOverride = _overrideFactory != null && _overrideFactory.ContainsKey(index);
+            if (isOverride)
+            {
+                if (!_overrideCache.TryGetValue(index, out BaseView ov))
+                {
+                    ov = _overrideFactory[index] != null ? _overrideFactory[index].Invoke(_gp_item_con) : null;
+                    _overrideCache[index] = ov;
+                }
+                if (_sharedContent != null) _sharedContent.Hide();
+                foreach (KeyValuePair<int, BaseView> kv in _overrideCache)
+                    if (kv.Value != null) { if (kv.Key == index) kv.Value.Show(); else kv.Value.Hide(); }
+            }
+            else
+            {
+                foreach (BaseView ov in _overrideCache.Values) if (ov != null) ov.Hide();
+                if (_sharedContent == null && _sharedFactory != null) _sharedContent = _sharedFactory.Invoke(_gp_item_con);
+                if (_sharedContent != null) _sharedContent.Show();
+                _onSharedTab?.Invoke(index);
+            }
+
             for (int i = 0; i < _tabs.Count; i++) if (_tabs[i] != null) _tabs[i].SetSelected(i == index);
             _current = index;
         }

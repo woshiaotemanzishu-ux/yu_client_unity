@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
@@ -97,9 +99,10 @@ namespace Shenxiao.Module.Core.Shop
                 return;
             }
 
-            // 共享内容模式:11 标签共用 ShopCommonView;切标签重喂 shop_type(数据待对接)。
+            // 共享内容模式:多数标签共用 ShopCommonView(切标签重喂 shop_type);抢购(tab3)用专属 ShopVieView(override)。
+            var overrides = new Dictionary<int, Func<RectTransform, BaseView>> { { 3, ReparentVie } };
             _window.Show();
-            _window.ConfigureShared(ShopTabs.Length, ReparentCommon, OnShopTab, DefaultTab);
+            _window.ConfigureShared(ShopTabs.Length, ReparentCommon, OnShopTab, DefaultTab, null, overrides);
             GameLog.Info("Shop", "商城多标签窗打开(BaseWindowSkinView 共享内容,{0} 标签,默认 tab{1} {2})", ShopTabs.Length, DefaultTab, ShopTabs[DefaultTab]);
         }
 
@@ -111,13 +114,18 @@ namespace Shenxiao.Module.Core.Shop
         }
 
         /// <summary>把内容源里的 ShopCommonView reparent 进窗框内容区(保留原始布局),返回其 BaseView。</summary>
-        private static BaseView ReparentCommon(RectTransform parent)
+        private static BaseView ReparentCommon(RectTransform parent) => ReparentNamed("ShopCommonView", parent);
+
+        /// <summary>抢购标签专属:把 ShopVieView reparent 进窗框内容区。</summary>
+        private static BaseView ReparentVie(RectTransform parent) => ReparentNamed("ShopVieView", parent);
+
+        private static BaseView ReparentNamed(string viewName, RectTransform parent)
         {
             if (_contentRoot == null) return null;
-            Transform t = _contentRoot.transform.Find("ShopCommonView");
+            Transform t = _contentRoot.transform.Find(viewName);
             if (t == null)
             {
-                GameLog.Warn("Shop", "ShopCommonView 不在 ShopModule 顶层");
+                GameLog.Warn("Shop", "{0} 不在 ShopModule 顶层", viewName);
                 return null;
             }
             t.SetParent(parent, false);
