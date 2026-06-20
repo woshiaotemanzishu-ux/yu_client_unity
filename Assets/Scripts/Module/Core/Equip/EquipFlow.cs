@@ -41,7 +41,7 @@ namespace Shenxiao.Module.Core.Equip
             "EquipModule", "EquipModule", "JewelModule", "EquipModule", "EquipRefinementModule", "EquipArmorModule"
         };
         // 该标签内容是否已在 Unity 写好(写好才开放;其余 disabled,写完置 true 即开)
-        private static readonly bool[] TabEnabled = { true, true, false, true, true, false };
+        private static readonly bool[] TabEnabled = { true, true, false, true, true, true };
         private const int DefaultTab = 0;
 
         private static GameObject _frameRoot;
