@@ -48,15 +48,32 @@ namespace Shenxiao.Module.Core.Chat
 
         private void BindButtons()
         {
+            // 已移植子面板 → 真实切换打开(ChatFlow.ToggleSub:再点关闭;表情/背包是 arrow 弹层、喇叭是带 _btn_close 的窗)。
+            BindToggle(faceBtn, "ChatToolPanel", "表情");
+            BindToggle(_trumpet, "ChatTrumpetView", "喇叭");
+            BindToggle(_bag, "ChatBagPanel", "聊天背包");
+            // 未移植/纯逻辑 → 暂打日志。
             BindBtn(sendBtn, "发送消息(协议待接)");
-            BindBtn(faceBtn, "表情 ChatToolPanel");
             BindBtn(btn_speak, "语音输入");
             BindBtn(voice, "语音切换");
-            BindBtn(_trumpet, "喇叭 ChatTrumpetView");
-            BindBtn(_bag, "聊天背包 ChatBagPanel");
             BindBtn(_dress_up, "装扮");
             BindBtn(_position, "定位/坐标分享");
             BindBtn(_to_bottom, "回到底部");
+        }
+
+        /// <summary>按钮 → 切换聊天模块内子面板(ChatFlow.ToggleSub 按 View 子类名查找,叠在主窗上,再点关闭)。</summary>
+        private void BindToggle(Component target, string viewType, string label)
+        {
+            if (target == null) return;
+            Image img = target as Image;
+            if (img == null) img = target.GetComponentInChildren<Image>(true);
+            if (img == null) return;
+            img.raycastTarget = true;
+            UIUtil.AddClick(img, () =>
+            {
+                GameLog.Info("Chat", "点击[{0}] → 切换 {1}", label, viewType);
+                ChatFlow.ToggleSub(viewType);
+            });
         }
 
         /// <summary>关闭按钮(Image 或含 Image 容器)→ Hide(关闭本窗)。</summary>

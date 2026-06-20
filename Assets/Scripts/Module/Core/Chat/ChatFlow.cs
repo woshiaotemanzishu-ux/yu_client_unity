@@ -45,6 +45,29 @@ namespace Shenxiao.Module.Core.Chat
             }
         }
 
+        /// <summary>
+        /// 切换聊天模块内子面板(表情 ChatToolPanel / 喇叭 ChatTrumpetView / 背包 ChatBagPanel…):已显则关、未显则开(叠在主窗上)。
+        /// 按 View 子类名在模块根里查 BaseView;未移植的查不到 → 日志降级。供 ChatParentView 各按钮调用作真实触发。
+        /// </summary>
+        public static void ToggleSub(string viewTypeName)
+        {
+            if (_moduleRoot == null)
+            {
+                GameLog.Warn("Chat", "ToggleSub({0}) 时聊天模块未打开", viewTypeName);
+                return;
+            }
+            foreach (BaseView v in _moduleRoot.GetComponentsInChildren<BaseView>(true))
+            {
+                if (v.GetType().Name == viewTypeName)
+                {
+                    if (v.IsShown) v.Hide();
+                    else v.Show();
+                    return;
+                }
+            }
+            GameLog.Info("Chat", "聊天子面板 [{0}] 未移植 View,待对接", viewTypeName);
+        }
+
         private static async Task OpenAsync()
         {
             if (_moduleRoot != null)
