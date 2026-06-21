@@ -26,6 +26,9 @@ namespace Shenxiao.Module.Core.Scene
         private const string ActionIdle = "idle";
         private const string ActionRun = "run";
 
+        /// <summary>当前主角驱动(MainRoleFlow 装配后唯一存在;清主角时置空)。任务/对话用它让主角朝 NPC 转向。</summary>
+        public static MainRoleAgent Current { get; private set; }
+
         private Transform _modelTr;     // 模型子节点(用于转向)
         private Animation _anim;        // RoleModelAssembler 在模型根挂的 Animation
 
@@ -37,6 +40,7 @@ namespace Shenxiao.Module.Core.Scene
         /// <summary>由 MainRoleFlow 在装配完成后初始化:传入模型子节点与出生坐标。</summary>
         public void Init(GameObject model, int spawnX, int spawnY)
         {
+            Current = this;
             _modelTr = model != null ? model.transform : transform;
             _anim = model != null ? model.GetComponent<Animation>() : null;
             _posX = spawnX;
@@ -164,6 +168,29 @@ namespace Shenxiao.Module.Core.Scene
                 float newY = Mathf.MoveTowardsAngle(e.y, yaw, TurnSmoothSpeed * Time.deltaTime);
                 _modelTr.localEulerAngles = new Vector3(e.x, newY, e.z);
             }
+        }
+
+        /// <summary>
+        /// 主角瞬时朝某像素坐标转身(对标老端 Scene.MainRoleToNpc 的 main_role.SetDirection(npcpos.getDir(rolepos)))。
+        /// 任务点击找 NPC 时调用——"任务驱动角色发生动作"的最小可见行为(完整走到 NPC 的寻路/直线移动见下一轮 P2)。
+        /// dir 用舞台坐标(x 右、y 下,与地图像素一致),与 <see cref="Face"/> 同一 yaw 解算,但瞬时落位。
+        /// 之后玩家推摇杆时 Update→Face 会接管朝向,不冲突。
+        /// </summary>
+        public void FaceTowardPixel(float targetX, float targetY)
+        {
+            if (_modelTr == null) return;
+            RoleModel role = RoleModel.Instance;
+            Vector2 dir = new Vector2(targetX - role.X, targetY - role.Y);
+            if (dir.sqrMagnitude < 0.0001f) return; // 与目标同格:保持当前朝向
+            dir.Normalize();
+            float yaw = Mathf.Atan2(dir.x, -dir.y) * Mathf.Rad2Deg;
+            Vector3 e = _modelTr.localEulerAngles;
+            _modelTr.localEulerAngles = new Vector3(e.x, yaw, e.z);
+        }
+
+        private void OnDestroy()
+        {
+            if (Current == this) Current = null;
         }
 
         private void PlayAction(string action)

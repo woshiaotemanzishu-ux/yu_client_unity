@@ -294,8 +294,10 @@ namespace Shenxiao.Module.Core.Tasks
                 return;
             }
 
-            // NPC 在当前场景:打开对话入口(发 12101)。P2 将在此前插入"走到 NPC"动作。
-            GameLog.Info("Task", "DoTask 找 NPC: NPC {0} 在场景 pos=({1},{2}) → 打开对话(12101)", task.Id, npc.X, npc.Y);
+            // NPC 在当前场景:① 主角朝 NPC 转身(P2 最小可见动作,对标 Scene.MainRoleToNpc 的 SetDirection);
+            //                  ② 打开对话入口(发 12101)。完整"走到 NPC 附近"的直线/寻路移动留待下一轮 P2。
+            MainRoleAgent.Current?.FaceTowardPixel(npc.X, npc.Y);
+            GameLog.Info("Task", "DoTask 找 NPC: NPC {0} 在场景 pos=({1},{2}),主角朝其转身 → 打开对话(12101)", task.Id, npc.X, npc.Y);
             DialogueController.Instance.ShowTask(task.Id);
         }
 
