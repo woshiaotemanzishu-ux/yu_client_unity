@@ -798,4 +798,48 @@ commit `753ff3b39`(P2 货币图标格 + 嵌套 `{career,[...]}` 职业礼包)。
   数据链,与协议同轮做、同包验证(避免「核心未通先写辅助」)。
 - 活服整合往返、`BaseAwardItem` 点击 tips、立绘/格子微调:均需 config 加载/真机渲染,本会话编辑器 Play 态不具备,转 round 8。
 
+## 主线竖切 第 8 轮(2026-06-21):背包真实物品页落地(15010)+ 物品点击弹真实详情(P1+P2 双落地)
+
+commit `51dc670e2`(P1 背包 15010 + P2 物品 tips)。第 7 轮定位的「活服 blocker」本轮**收窄到只剩数据**:协议/Model/解析/渲染全链已写齐并真机渲染验证,活服回 15010 即显真背包。
+
+**P0 保护基线**:worktree 干净;第 7 轮链路 rg 命中(AppendTriple/ErlangTerm.Kind.List/GetGoodsIcon(rewards,3 文件);dotnet build 0 错(1 既有无关警告 MainRoleAgent.cs);未重做第 7 轮。
+
+**P1 背包入口真实物品页(BagModel + 15010 + 复用 BaseAwardItem,对标 GoodsController/BagModel.ts;字段照抄 ClientProtocol.json)**:
+- **新增 `BagModel`**(`Module/Core/Bag`):`BagGoodsList`(对标 `GoodsModel.bag_goods_list`)+ `MaxCell`/`CellNum`;
+  `SetBagFull` 对标 `CreateBagList`(清空再装入满包全量语义)。`BagGoods` 暂存显示 4 字段 `type_id/goods_num/color/cell` + 主键 `goods_id`。
+- **新增 `BagController`**(`Module/Core/Bag`,镜像 `TaskController`):`RegisterProtocal(15010, On15010)` + `EVT_GAME_START`
+  发 `SendFmt(15010,"h",4)`(对标 GoodsController GAME_START 批量请求 bag pos);注册进 `ControllerHub.ALL`。
+  `On15010` 用 `NetReader.ReadArray(ReadGoods)` 逐项读 goods_list,字段名/顺序/3 嵌套数组(addition_attrlist/equip_extra_attr/
+  awake_list)照抄 `ClientProtocol.json "15010"`,按 pos 区分仅 bag 落 `BagModel` → 发 `EVT_BAG_UPDATE`。`Proto.GOODS_CONTAINER_INFO=15010`。
+- **`BagItemRenderer` 复用 `BaseAwardItem` View**:`_item` 改 `BaseAwardItem`(非 Bind),`SetData` 调 `_item.SetData(typeId,count)`
+  显真实图标 + 品质底板 + 数量;`BagItemData` 加 `TypeId`。**RunCommand 实证**:内联 `_tpl_BaseAwardItem`(`bagItemRenderer/__Templates/BaseAwardItem`)
+  = `common/BaseAwardItem.prefab` 的**嵌套实例**(第 6 轮已回填 View 组件)→ 克隆即得可用 View(无需回填工具/不点杀)。
+- **`BagComponentView.OnShow` 用 `BagModel` 铺格**:克隆 `bagItemRenderer` 模板进 `bag_con.content`(127px 网格,viewport 宽算列数),
+  `EVT_BAG_UPDATE` 重铺;无数据空铺(不造假背包)。渲染模板 `bagItemRenderer` 是 `BagModule` 顶层兄弟(非视图 Bind 字段)→
+  由 **`BagFlow.ReparentFrom` 注入**(flow 已负责模块结构导航,避免业务视图反向 `transform.Find` 兄弟)。
+
+**P2 BaseAwardItem 点击弹物品详情(对标老端 `UIToolTipMgr.AppendGoodsTips` → `GoodsTooltips`;真实 config,禁臆造)**:
+- **`GoodsModel` 加 `intro`**:`config_goods` key **"2" = intro**(RunCommand 实证:`config_table_default.json` config_goods 下标 2 = intro;
+  100150 庆典水晶/100152 福气鞭炮 实测有描述,装备 101011010 intro 空)。`GetGoodsIntro(typeId)`。
+- **新增 `ItemTipsView`**(`Module/Core/Common/Views`,同 `TaskFinishView` TEMP 壳):真名(key1)+ 真实图标(key14)+ 品质底板
+  (key18→com_goods_plate_{color},复用 BaseAwardItem)+ intro 描述(key2);Laya HTML(`<br/>`/`<font color>`)→ TMP 富文本(`<color>`)。
+  `BaseAwardItem.OnClick` 默认分支(`_clickCb==null`)由 log 改为 `ItemTipsView.Show(_typeId)`。
+- **`BaseAwardItem`/`BagItemRenderer` 幂等 `EnsureInit`**(框架要点):列表项被克隆后常**不经 `BaseView.Show`**(`OnInit` 不自动跑,
+  `BaseView` 无 Awake),故由 `SetData` 兜底初始化(点击绑定 + 模板克隆就位)→ 修复**全部图标格的点击 tips**(完成弹层/背包同源,非点杀)。
+
+**验证**(Unity RunCommand 编辑期渲染 + RenderTexture 截图;本会话 config 在编辑期已加载 `GoodsModel.IsLoaded=True`):
+- **P1**(`Temp/shot_p1_bag.png`):克隆 `bagItemRenderer` + `SetData` 真实 type_id(初樱系列 101011010/102011010/103011010/104011010)
+  → 2×2 真实物品图标 + 真实品质底板(com_goods_plate_1,color1)+ 末格数量角标「88」。render-path 真机渲染。
+- **P2**(`Temp/shot_p2_tips.png`):`ItemTipsView.Show(100152 福气鞭炮)`→ 金色真名 + 真实图标(cdn 兜底导入 100152.png)+
+  **紫色**品质底板(color4,兜底导入 com_goods_plate_4)+ intro 富文本(「春节运营活动」橙字 `<color=#ff9015>` + `<br/>` 换行)。
+- 双编译 0 错(dotnet build + Unity 域重编);git 仅本轮 10 源文件,无 prefab/scene/config 改动(兜底图入 gitignored GameRes)。
+
+**本轮 blocker(诚实声明,已收窄)**:
+- **背包真实物品内容 = 活服回 15010 实包**:本会话无登录会话/无活服,无法收真满包 → 真实「你的背包有哪些物品」拿不到。
+  但**协议码/Model/解析/渲染全链已就绪**(BagController 进游戏即发 15010、On15010 解析落 BagModel、BagComponentView 据此铺格);
+  活服联调即显真背包。本轮以 render-path 真机渲染(真实 config 驱动单元格)替代,**不造假背包/不臆造字段**(红线)。
+- 未喂真实 15010 字节单测:无活服抓包样本,造字节即造假(红线禁),故解析器以「格式串照抄 ClientProtocol.json + 编译 + ReadArray 范式」保证,待真包/活服回归。
+
+**下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第9轮.md`。
+
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第8轮.md`。
