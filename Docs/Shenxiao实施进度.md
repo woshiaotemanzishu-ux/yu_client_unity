@@ -599,3 +599,55 @@ commit `656490ba3`(P1+P2 一并;TaskModel.cs 同时含两者改动,无法按文�
 - TaskFinishView/DialogueView 仍为原生 TEMP 壳,待 LayaUI 转换产出 Bind/prefab 替换。
 
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第3轮.md`。
+
+
+## 主线竖切 第 4 轮(2026-06-21):奖励真实物品名 + NPC 名牌/缩放/朝向
+
+commit `3dff3442c`(P1 真实物品名)+ `d170a5f54`(P2 NPC 名牌/缩放/朝向)。文件无交叠,按 P 拆 commit。
+
+**P1 奖励显示真实物品名(对标 commonModel/GoodsModel.ts + task/TaskFinishView.ts:206-213)**:
+- `ClientConfigSync.SYNC_LIST_SERVER` 加 `config_goods`(对标 config_task/config_npc 路线);实测现网为
+  【数字索引键】(同 config_task,非 config_npc 具名键):"0"=id "1"=goods_name "9"=goods_icon "10"=color/品质。
+- 新增 `GoodsModel`(对标 GoodsModel.ts):`EnsureLoaded`/`GetGoodsBasicByTypeId`/`GetGoodsName`/
+  `GetGoodsIcon`/`GetColor`/`GetMappingTypeId`(JObject 数字键读取,同 NpcConfigs 套路);
+  `TaskController.OnGameStart` 预载(与 config_task 同点)。
+- `TaskReward.ToText` 用 `GoodsModel.GetGoodsName` 把裸 type_id 换成真实物品名(淬魂原石/初樱轻剑…);
+  **完成弹层 TaskFinishView 与对话奖励摘要 On12102 共用 ToText,一处改两处自动生效**;货币/经验(type_id==0)
+  保持"奖励 ×N"(老端货币不进 goods 表)。
+- `BaseAwardItem.RefreshIcon`(此前是 GoodsModel TODO)接 `GoodsModel` + `ResManager.SetImageAsync` 真实图标
+  (对标 BaseAwardItem.ts SetData);全项目复用的物品格子件即时受益,不只奖励。
+
+**P2 NPC 名牌/缩放/朝向(对标 scene/sceneobj/Npc.ts:92-169)**:
+- `NpcRenderer` 接 `NpcConfigs`(第 3 轮已导入 config_npc):`EnsureLoaded` 兜底(场景 NPC 可能先于对话子系统出现)。
+- 缩放:`AddSceneCharacter(model, icon_scale)`(对标 Npc.ts:109-110 this.scale = icon_scale)。
+- 朝向:`brith_rot+90` → Laya 朝向向量 (cosθ,sinθ) → `Atan2(dx,-dy)` 解出模型 yaw,**与 MainRoleAgent.Face
+  完全同一解算**(对标 Npc.ts:178-180 SetRotateY(brith_rot+90));brith_rot==-1 保持待机默认朝向。
+- 名牌:Scene 层屏幕跟随 TMP(称号金 #fcf910 / 名字青 #c2fdfa,对标 Npc.ts:99-107 NameBoard.SetName/SetNpcName);
+  anchoredPosition=(npc 像素 - 相机像素) 每帧跟随 + 头顶偏移(与合成台/地图同一锚定口径);无名降级不挂(不写假名)。
+- **为何名牌用最小原生 TMP(诚实声明)**:转换产物 `NameBoardBind` 只有血条节点、**无名字文本节点**(改它要动
+  generated prefab,禁止);且 NPC 经合成台 RT 合成(2D NameBoard 无法直接叠进 RT 里的 3D 体)→ 按
+  DialogueView/TaskFinishView 同例做最小原生 TMP,待 NameBoard 补名字节点后替换。
+
+**验证**:
+- dotnet build `yu_client_unity.slnx` 0 错(含 `--no-incremental` 强制重建 Module.Core;6 个既有无关警告:
+  AppLauncher CS0649 / generated Bind CS0108 / MainRoleAgent CS0162,均非本轮引入)。
+- Unity 编辑器编译 0 错(MCP ReadConsole Error=0;Unity 自动重导入 GoodsModel.cs 并写进 .csproj + 生成 .meta)。
+- 运行期校验(MCP RunCommand,跑真实同步后读 GameRes 文件):config_goods 同步进 GameRes(9230 条),
+  17020001=淬魂原石/101011010=初樱轻剑/31=九洲灵钱 真实名按索引 "1" 就位、UTF-8 无乱码;config_npc 真实名/
+  称号在位(云霄月华/觉梦仙子);brith_rot→yaw 与 Face 一致(270→90 右/0→180 下/90→-90 左/180→0 上)。
+
+**解除的第 3 轮 blocker**:奖励物品真实名(GoodsModel/config_goods)、NpcRenderer 名牌/缩放/朝向。
+
+**本轮 blocker / 未做(诚实声明)**:
+- **goodsIcon 真实图标未导入**:`Assets/GameRes/resource/game/goodsIcon/` 为空(yu_client 源
+  `cdn/resource/game/goodsIcon/*.png` 在,但未进 Unity)→ 奖励/物品**图标**降级隐藏、以**真实名称**呈现
+  (BaseAwardItem.RefreshIcon 写精确 blocker:缺哪个 key)。补法:神霄/资源 SpriteImporter 导 goodsIcon。
+- 品质底板 `com_goods_plate_{color}`(common 图集)同未导入 → BaseAwardItem 暂保留 prefab 默认底板。
+- Play 活服往返仍未做(无登录会话):弹层真实名/NPC 名牌的**屏上可见**未在活服跑通;以双编译 0 错 + 真实数据
+  运行期校验替代。活服要看的日志:`config_goods loaded: 9230 goods` / `npc render: … name="…" brithRot=…` /
+  完成弹层奖励名 / 名牌随 NPC 跟随。
+- 名牌竖直贴合(头顶偏移 150px)、icon_scale 视觉大小、brith_rot 朝向 屏上观感属"待真机微调"(同合成台落地点经验值)。
+- NPC 立绘/头像(config_npc.image)对话弹层未接(P3 fallback,本轮 P1/P2 未被卡住未触发)。
+- 货币/经验真名(exp/coin)需客户端 `ConfigNotNormalGoods`(未同步)+ TaskReward 保留货币 type → 暂"奖励 ×N"。
+
+**下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第5轮.md`。
