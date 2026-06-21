@@ -461,3 +461,50 @@ HttpUtil / GmApi(HTTP 参考)/ NetManager / ErlangParser / UserMsgAdapter / View
   上限 `_tileCacheCap = clamp(视野格数×3, 96, 256)`(EnsureTilePool 里按池大小自适应),内存有界;
   淘汰跳过当前可见格防变白。**来回走动邻近区域 = 零重载**;只有走出缓存覆盖范围(>cap)再回来才重载。
 - 真机内存:cap 256 上限下若瓦片未压缩纹理,最坏约几十 MB;彻底降内存仍指向那条未做的"瓦片走平台压缩纹理(.ktx)"资源管线项。
+
+
+## 2026-06-21(主线竖切第 1 轮:资源门 → NPC → 任务点击)
+
+> 方向纠偏(任务包 `Docs/Claude任务包-主线竖切-第1轮.md`):停止扩散 UI shell,打通"进游戏后主竖切"
+> 到可复现、可见、可验收。按 P0 → P1 → P2 推进,每项一 commit,全程 dotnet build 0 error。
+
+**P0 资源可复现门(commit `0f66cca9b`)**:
+- 矛盾:`.gitignore:47` 忽略 `/Assets/Prefabs/UI/`,但 tracked 的 `Remote_Prefabs.asset` 里
+  mainuimodule/mapmodule/settingmodule/basewindowskin 等 Addressables 条目(address→guid)指向其中
+  prefab,而 guid→prefab 资产只在本机(ignored)→ clean checkout 全是悬空引用。
+- 选"入库"路线(非再生成):再生成需 sibling 仓库 yu_client 的 Laya .scene + live Unity 域重载,且
+  SaveAsPrefabAsset 给新 guid 与 HEAD 条目不匹配 → 仅 clone 本仓库不可确定性再生成。
+- 用 `git add -f` 入库 4 个根 prefab 的递归引用闭包(BFS 不动点 = 23 prefab + meta + 5 目录 meta),
+  `.gitignore` 加注释说明例外;其余 105 个 UI prefab 仍忽略(可再生成)。依赖核查:闭包 64 个脚本 guid
+  全可解析(57 tracked 工程脚本 + 7 Unity 包组件如 UGUI RectMask2D);248 个未解析 = 散图/字体,仍在
+  被忽略的 GameRes/resource(静态贴图缺失=优雅降级,动态图运行时走 ResManager)。
+- 验收:4 key 的 HEAD 条目 guid == HEAD prefab.meta guid(全 MATCH);prefab+meta 均可从 HEAD 取出。
+
+**P1 NPC 可见链路(commit `0dd7b327b`)**:
+- 新增 `NpcRenderer`(static flow + `NpcRendererDriver` 每帧驱动,与 MainRoleFlow/Agent 同构):订阅
+  SceneManager.NpcAdded/NpcRemoved/NpcChanged(此前零订阅者),把 12100/12103 真实 NPC 加载成 3D 模型
+  摆进 SceneCharacterStage 合成台。对标老端 Scene.CreateNpc→Npc.InitNpc(yu_client Npc.ts:92-169)。
+- 真实模型:`object/npc/model_clothe_{npcId}/model_clothe_{npcId}` + idle 动作(转换产物,**git tracked**
+  在 GameRes/object/npc,35 个 NPC 模型;非被忽略的 resource/ 树 → clean checkout 可复现)。缺模型打精确
+  blocker,绝不画假模型。位置 = (npcX-roleX, npcY-roleY),相机夹边整图偏移由主角 RawImage 统一承载。
+- SceneCharacterStage 扩展 AddSceneCharacter/SetSceneCharacterPixelOffset/RemoveSceneCharacter(不动主角路径)。
+- 精确 blocker:名字/称号/icon_scale/朝向来自 server 配置 config_npc,**该配置未导入 Unity**(GetServerConfigPath
+  下无 config_npc.json)→ 暂用 NpcId 占位;头顶任务标 sprite 资源路径待确认(12020 的值已落 vo.TaskIcon
+  并经 NpcChanged 到达渲染层,链路通)。
+
+**P2 任务点击链路最小入口(commit `6581c648b`)**:
+- `TaskModel.DoTask(TaskVo)`:置 NowSelectTaskId + 广播 EVT_TASK_SELECT_CHANGED,按 task_tips_type 进三分支。
+  对标老端 TaskModel.DoTask(yu_client TaskModel.ts:744-784 + 797 switch)。
+- 修 bug:`IsFindNpcTask` 错占位 `==0` → Talk(5)/StartTalk(6)/EndTalk(7)(核对老端枚举 + ts:2966-2972)。
+- 三分支(真实路由 + 精确 blocker):①找 NPC 对话 = SceneManager.GetNpc 真实定位,对话链
+  (Scene.MainRoleToNpc→SHOW_TASK→DialogueController→12101/12102)未移植 → blocker;②完成 = TaskFinishView
+  (+30004)未移植 → blocker(不跳弹层直发协议);③带场景坐标 = 寻路(无 A*)/飞鞋(USE_FLY_SHOE)未移植 → blocker。
+- `MainUITaskItem` 点击(UIUtil.AddClick `_img_bg`)→ DoTask;`MainUITaskTeamView` 订阅选中变化刷 `_img_select`。
+- "对话已开则不重复 DoTask"去重(老端 MainUITaskTeamView.ts:563-573)依赖 DialogueModel,待其移植后补。
+
+**本轮统一 blocker(下一步价值最高)**:NPC 对话子系统(DialogueController/DialogueModel/12101/12102 + Scene.MainRoleToNpc
++ SHOW_TASK 事件)——它同时是 P1 任务标语义、P2 找 NPC 分支、journey 新手引导的共同前置。其次:config_npc 导入
+Unity 配表流水线(解锁 NPC 名字/称号)、TaskFinishView 完成弹层、自动寻路/飞鞋。
+
+**未做(诚实声明)**:三项的 Unity Play 实跑未做(本环境只编译,不代表运行)。3D 合成台精确对位承
+2026-06-17「待真机微调」。Play 验收清单见各 commit。
