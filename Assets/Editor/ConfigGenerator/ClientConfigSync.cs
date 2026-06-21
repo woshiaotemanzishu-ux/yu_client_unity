@@ -31,6 +31,8 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_dress_up_cfg",
             "config_task",
             "config_scene",
+            "config_npc",   // NPC 身份/默认对话 id(name/title/talk/icon/icon_scale/brith_rot),对话与场景 NPC 名牌都要
+            "config_talk",  // NPC 对话内容表(content 为 JSON 串,按 talk_id 查),DialogueController 12101/12102 用
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

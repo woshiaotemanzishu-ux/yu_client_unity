@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoBrush;
+using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.FirstRecharge;
 using Shenxiao.Module.Core.FunctionOpen;
 using Shenxiao.Module.Core.Gm;
@@ -28,6 +29,7 @@ namespace Shenxiao.Module.Core.Game
             RoleController.Instance,
             SceneController.Instance,
             TaskController.Instance,
+            DialogueController.Instance,
             AutoBrushController.Instance,
             GmCheatController.Instance,
             NoticeController.Instance,

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene;
 using Shenxiao.Module.Core.Scene.Vo;
@@ -38,6 +39,12 @@ namespace Shenxiao.Module.Core.Tasks
         public TaskVo MainLineTaskVo { get; private set; }
 
         public IReadOnlyDictionary<int, List<TaskVo>> AllTaskList => _allTaskList;
+
+        /// <summary>该任务当前是否"可接"(在 can 列表)。对话空文本自动接受分支用(对标 GetCanTaskList)。</summary>
+        public bool IsCanTask(int taskId) => _canTaskList.ContainsKey(taskId);
+
+        /// <summary>该任务当前是否"已接"(在 received 列表)。对话空文本自动完成分支用(对标 GetHasReceiveTaskList)。</summary>
+        public bool IsReceivedTask(int taskId) => _hasReceiveTaskList.ContainsKey(taskId);
 
         public void ClearData()
         {
@@ -268,7 +275,12 @@ namespace Shenxiao.Module.Core.Tasks
                 "当前最小入口只覆盖 对话/完成/场景坐标 三类;其余(开背包/锻造/进副本等)按需逐 case 补。", task.TaskTipsType);
         }
 
-        /// <summary>找 NPC 对话(对标 ts:1767-1835 Talk/StartTalk/EndTalk:定位 NPC →(到达后)SHOW_TASK → DialogueController)。</summary>
+        /// <summary>
+        /// 找 NPC 对话(对标 ts:1767-1835 Talk/StartTalk/EndTalk)。定位 NPC → 打开真实对话(12101/12102)。
+        /// 老端是"主角走到 NPC(MainRoleToNpc)→ 到达后 SHOW_TASK → DialogueController";本轮 P1 先在点击时
+        /// 直接打开对话入口(ShowTask),把"走到 NPC 再触发"留给 P2(MainRoleToNpc 到达回调里调 ShowTask)。
+        /// 去重(对话已开不重复)由 DialogueController/DialogueModel.DialogIsOpen 负责。
+        /// </summary>
         private void DoFindNpcTask(TaskVo task)
         {
             if (task.Id == 0) { GameLog.Info("Task", "DoTask: 自言自语任务(npcId=0),无目标 NPC,跳过"); return; }
@@ -282,15 +294,9 @@ namespace Shenxiao.Module.Core.Tasks
                 return;
             }
 
-            // NPC 在当前场景:此处应"对话未开则触发对话"——对标 Scene.MainRoleToNpc → SHOW_TASK →
-            // DialogueController.ShowTask → 协议 12101/12102。DialogueController/DialogueModel/12101/12102 在
-            // Unity 端均未移植(进度文档:Unity 端零 NPC 点击处理)→ 精确 blocker。"对话已开则不重复打开"的去重
-            // (老端 MainUITaskTeamView.ts:563-573 依赖 DialogueModel.dialog_is_open)同样待 DialogueModel 移植。
-            // NPC 数据/坐标已就绪(见下),接上对话控制器即可"点任务 → 走到 NPC → 弹对话"。
-            GameLog.Warn("Task",
-                "DoTask 找 NPC blocker: NPC {0} 已在场景 pos=({1},{2}),但 NPC 对话链(Scene.MainRoleToNpc→SHOW_TASK→" +
-                "DialogueController→12101/12102)未移植 → 暂无法弹对话。NPC 已可定位,待移植对话控制器后接通。",
-                task.Id, npc.X, npc.Y);
+            // NPC 在当前场景:打开对话入口(发 12101)。P2 将在此前插入"走到 NPC"动作。
+            GameLog.Info("Task", "DoTask 找 NPC: NPC {0} 在场景 pos=({1},{2}) → 打开对话(12101)", task.Id, npc.X, npc.Y);
+            DialogueController.Instance.ShowTask(task.Id);
         }
 
         /// <summary>完成提交(对标 ts:2385:TaskFinishView/TaskCircleFinishView + 协议 30004)。</summary>

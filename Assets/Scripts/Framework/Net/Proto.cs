@@ -97,6 +97,17 @@ namespace Shenxiao.Framework.Net
         public const int TASK_UPDATE_ONE = 30001;
         public const int TASK_LATEST_FINISHED = 30005;
 
+        /// <summary>接受任务(对话 TRIGGER 节点点击)。发 "i"(task_id)。对标老端
+        /// DialogueController.AcceptTask → TaskModel.Fire(REQUEST_CCMD_EVENT, 30003) → SendFmtToGame(30003,"i",task_id)。
+        /// 成功后服务端推 30001 刷新该任务,客户端无需解 30003 回包即可见状态变化。</summary>
+        public const int CC_TASK_ACCEPT = 30003;
+        /// <summary>提交/完成任务(对话 FINISH/FINISH_AND_TRIGGER 节点点击)。发 "i"(task_id)。对标老端
+        /// DialogueController.FinishTask → 30004。成功后服务端推 30001/新任务,客户端据此刷新。</summary>
+        public const int CC_TASK_FINISH = 30004;
+        /// <summary>对话事件(对话 TALK_EVENT 节点点击)。发 "i"(npc_id,注意传的是 npc_id 不是 task_id)。
+        /// 对标老端 DialogueController.TalkToNPC → 30007。</summary>
+        public const int CC_TASK_TALK_EVENT = 30007;
+
         // ----- AutoBrush / main-line guard (133xx, yu_client h5/src/commonController/AutoBrushController.ts) -----
         /// <summary>Auto-brush monster progress. Send empty; reply "iiill".</summary>
         public const int AUTOBRUSH_INFO = 13300;
@@ -138,6 +149,15 @@ namespace Shenxiao.Framework.Net
         public const int SC_NPC_LIST = 12100;
         /// <summary>Dynamic NPC add/remove push. Reply starts with u16 count.</summary>
         public const int SC_NPC_DYNAMIC = 12103;
+
+        // ----- 对话(121xx,yu_client h5/src/commonController/DialogueController.ts)-----
+        /// <summary>NPC 关联任务/打开 NPC 对话。发 "i"(npc_id);
+        /// 回包(ClientProtocol.json 12101):npc_id:i + task_list[ u16 count × {task_id:i, task_state:c, task_name:s, task_type:c} ]。
+        /// task_state: 0无/1可接/2接了未完成/3完成可提交/4有任务对话。</summary>
+        public const int CC_NPC_TASK_LIST = 12101;
+        /// <summary>获取某任务的对话。发 "ii"(npc_id, task_id);回包(ClientProtocol.json 12102):npc_id:i, task_id:i, talk_id:i。
+        /// talk_id 查 config_talk 取真实对话内容。</summary>
+        public const int CC_NPC_TASK_TALK = 12102;
 
         // ----- 邮件(190xx,yu_server pt_190.erl) -----
         /// <summary>请求/回:邮件列表。回包 h + {MailId:l,Type:c,State:c,Title:s,IsAttach:c,Time:i,EffectEt:i}×N。</summary>
