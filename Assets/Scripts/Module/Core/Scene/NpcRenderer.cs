@@ -3,10 +3,14 @@ using System.Threading.Tasks;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
+using Shenxiao.Framework.Scene3D.Map;
+using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene.Vo;
+using TMPro;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Scene
@@ -25,13 +29,18 @@ namespace Shenxiao.Module.Core.Scene
     ///   key 形如 object/{module}/{name}/{name},与 RoleModelAssembler.Key 同一约定(转换后模型布局),
     ///   不是 GameResPath.GetObjectPath 的老端 .lh 路径(那条指向被忽略的 resource/object/.../objs/*.lh)。
     ///
+    /// 名牌 / 缩放 / 朝向(本轮接入,数据来自 config_npc,经 <see cref="NpcConfigs"/>):
+    ///   - 名字/称号:挂屏幕跟随名牌(称号 <title> 金、名字 青,对标 Npc.ts:99-107 NameBoard.SetName/SetNpcName);
+    ///     缺名(config_npc.name 空)则不挂(降级,不写假名)。名牌走最小原生 TMP 屏幕跟随件 —— 老端 NameBoard.lh
+    ///     的 Unity 转换产物(NameBoardBind)目前只有血条节点、无名字文本节点,且 NPC 经合成台 RT 合成(2D 名牌
+    ///     无法直接叠到 RT 里的 3D 体),故按 DialogueView/TaskFinishView 同例做最小原生件,待 NameBoard 补名字节点后替换。
+    ///   - 缩放:按 config_npc.icon_scale(对标 Npc.ts:109-110 this.scale = icon_scale)传入合成台 AddSceneCharacter。
+    ///   - 朝向:按 config_npc.brith_rot(对标 Npc.ts:178-180 SetRotateY(brith_rot+90))解出模型 yaw,与主角朝向同语义。
+    ///
     /// 已知 blocker(数据到了但资源缺,精确写明、不臆造):
-    ///   - 名字/称号/icon_scale:老端来自 server 配置 config_npc(name/title/icon/icon_scale),
-    ///     该配置尚未导入 Unity(GetServerConfigPath 下无 config_npc.json,ConfigManager 未加载)→ 暂用 NpcId
-    ///     占位、缩放取默认、朝向取默认(brith_rot 同缺)。补法:把 config_npc 纳入配表流水线后,这里按
-    ///     NpcId 查名/称号挂 NameBoard、按 icon 解析模型 id(多数 NPC icon==id,故当前直接用 NpcId 即真实模型)。
     ///   - 头顶任务标 sprite:12020 的 task_icon 值已落 vo.TaskIcon 并经 NpcChanged 到达本层(见日志),
     ///     但任务标图标 sprite 的资源路径/映射待确认 → 暂只记日志,不挂假图标。
+    ///   - NPC 立绘/头像(config_npc.image):对话弹层头像待接(走 ResManager),缺资源时写精确 blocker(P3 fallback)。
     /// </summary>
     public static class NpcRenderer
     {
@@ -43,6 +52,7 @@ namespace Shenxiao.Module.Core.Scene
             public NpcVo Vo;
             public Transform Tilt;   // SceneCharacterStage 里的配角 tilt(挂模型)
             public GameObject Model;
+            public RectTransform NameplateRt; // 屏幕跟随名牌(名字/称号);无名 NPC 为 null
             public int Epoch;        // 清场代次:切场景/断线后过期的在途加载结果丢弃
             public bool Loaded;
         }
@@ -80,9 +90,14 @@ namespace Shenxiao.Module.Core.Scene
             _views[vo.NpcId] = view;
             EnsureDriver();
 
+            // config_npc(名字/称号/缩放/朝向)按需加载:场景 NPC 可能先于对话子系统出现,这里独立兜底(EnsureLoaded 幂等)。
+            await NpcConfigs.EnsureLoaded();
+            if (IsStale(view)) return;
+            NpcConfigs.NpcCfg cfg = NpcConfigs.Get(vo.NpcId);
+
             // is_show 语义(老端 SAP 可见性裁剪)未完全确认:本层先全渲染并记录 isShow,后续如确认 0=隐藏再加门。
-            GameLog.Info("Scene", "npc render: id={0} pos=({1},{2}) isShow={3} args=\"{4}\"(名字/称号待 config_npc 导入)",
-                vo.NpcId, vo.X, vo.Y, vo.IsShow, vo.Args);
+            GameLog.Info("Scene", "npc render: id={0} pos=({1},{2}) isShow={3} name=\"{4}\" title=\"{5}\" iconScale={6} brithRot={7}",
+                vo.NpcId, vo.X, vo.Y, vo.IsShow, cfg?.Name, cfg?.Title, cfg?.IconScale ?? 1f, cfg?.BrithRot ?? -1);
 
             string modelKey = ModelKey(vo.NpcId);
             GameObject prefab = await ResManager.LoadAsync<GameObject>(modelKey);
@@ -101,11 +116,18 @@ namespace Shenxiao.Module.Core.Scene
             }
 
             GameObject model = Object.Instantiate(prefab);
-            Transform tilt = SceneCharacterStage.AddSceneCharacter(model);
+            // 缩放:config_npc.icon_scale(对标 Npc.ts:109-110 this.scale = icon_scale);缺/<=0 用合成台默认 MODEL_SCALE。
+            float iconScale = cfg != null && cfg.IconScale > 0f ? cfg.IconScale : -1f;
+            Transform tilt = iconScale > 0f
+                ? SceneCharacterStage.AddSceneCharacter(model, iconScale)
+                : SceneCharacterStage.AddSceneCharacter(model);
+            // 朝向:config_npc.brith_rot(对标 Npc.ts:178-180 SetRotateY(brith_rot+90));brith_rot==-1 保持待机默认朝向。
+            ApplyBrithRot(model, cfg);
             view.Model = model;
             view.Tilt = tilt;
             view.Loaded = true;
-            UpdateViewPosition(view); // 立即摆一次位,driver 之后每帧维持
+            CreateNameplate(view, cfg); // 屏幕跟随名牌(名字/称号);无名则跳过(降级)
+            UpdateViewPosition(view);   // 立即摆一次位(含名牌),driver 之后每帧维持
 
             await PlayIdle(model, vo.NpcId);
             if (IsStale(view)) return; // PlayIdle 期间被清场:模型已随 tilt 销毁,放弃后续
@@ -134,6 +156,7 @@ namespace Shenxiao.Module.Core.Scene
             foreach (NpcView v in _views.Values)
             {
                 SceneCharacterStage.RemoveSceneCharacter(v.Tilt);
+                DestroyNameplate(v);
             }
             _views.Clear();
         }
@@ -142,6 +165,7 @@ namespace Shenxiao.Module.Core.Scene
         {
             if (view == null) return;
             SceneCharacterStage.RemoveSceneCharacter(view.Tilt);
+            DestroyNameplate(view);
             view.Loaded = false;
             if (_views.TryGetValue(view.NpcId, out NpcView cur) && cur == view)
             {
@@ -172,6 +196,7 @@ namespace Shenxiao.Module.Core.Scene
             RoleModel role = RoleModel.Instance;
             Vector2 off = new Vector2(view.Vo.X - role.X, view.Vo.Y - role.Y);
             SceneCharacterStage.SetSceneCharacterPixelOffset(view.Tilt, off);
+            UpdateNameplatePosition(view);
         }
 
         private static async Task PlayIdle(GameObject model, int npcId)
@@ -195,6 +220,105 @@ namespace Shenxiao.Module.Core.Scene
         // 多数 NPC 的 config_npc.icon == id,故直接用 NpcId 即真实模型;icon!=id 的少数 NPC 待 config_npc 导入后用 icon。
         private static string ModelKey(int npcId)
             => $"object/npc/model_clothe_{npcId}/model_clothe_{npcId}";
+
+        // ===================== 朝向(config_npc.brith_rot)=====================
+        // 老端 Npc.SetRotate:assign_angle(=brith_rot)!=-1 时 SetRotateY(assign_angle + 90)(注释"加90方便策划填配置")。
+        // SceneObj.SetRotateY 把角度化为方向向量 dir=(cos θ, sin θ),θ=(brith_rot+90)°(舞台坐标 x 右、y 下,与地图像素一致);
+        // 本端再用与 MainRoleAgent.Face 完全相同的解算 yaw=Atan2(dir.x, -dir.y) 落到模型自身 yaw —— 保证 NPC 与主角朝向
+        // 同一屏幕语义(主角朝向已实机校对过,NPC 自洽,无需再单独翻符号)。
+        private static void ApplyBrithRot(GameObject model, NpcConfigs.NpcCfg cfg)
+        {
+            if (model == null || cfg == null || cfg.BrithRot == -1) return; // -1=默认朝向(合成台已置待机 yaw 180)
+            float theta = (cfg.BrithRot + 90f) * Mathf.Deg2Rad;
+            float dx = Mathf.Cos(theta);
+            float dy = Mathf.Sin(theta);
+            float yaw = Mathf.Atan2(dx, -dy) * Mathf.Rad2Deg;
+            Vector3 e = model.transform.localEulerAngles;
+            model.transform.localEulerAngles = new Vector3(e.x, yaw, e.z);
+        }
+
+        // ===================== 名牌(名字/称号,屏幕跟随)=====================
+        // NPC 经合成台 RT 合成(3D 体在隔离区),2D 名牌无法直接叠进 RT,故名牌做成 Scene 层屏幕跟随 TMP:
+        // NPC 屏幕位 = (npc 像素 - 相机像素)(与合成台/地图同一锚定口径,推导同 SceneCharacterStage 对主角的
+        // SetMainRoleScreenOffset)—— 故名牌随地图/相机/NPC 一起锚在地图上。精确竖直贴合属"待真机微调"。
+        private const float NAMEPLATE_HEAD_OFFSET = 150f; // 名牌相对脚底锚点上移(参考像素;头顶高度,实跑可调)
+
+        private static RectTransform _nameplateRoot;
+        private static TMP_FontAsset _font;
+        private static Material _fontMat;
+
+        private static void CreateNameplate(NpcView view, NpcConfigs.NpcCfg cfg)
+        {
+            if (view == null || cfg == null || string.IsNullOrEmpty(cfg.Name)) return; // 无名不挂(降级,不写假名)
+            EnsureNameplateRoot();
+            if (_nameplateRoot == null) return;
+
+            var go = new GameObject($"Nameplate_{view.NpcId}", typeof(RectTransform));
+            go.transform.SetParent(_nameplateRoot, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f); // 锚屏幕中心:anchoredPosition 用(npc - 相机)像素
+            rt.pivot = new Vector2(0.5f, 0f);                      // 底边贴在头顶偏移处
+            rt.sizeDelta = new Vector2(260f, 64f);
+
+            var t = go.AddComponent<TextMeshProUGUI>();
+            t.fontSize = 22;
+            t.alignment = TextAlignmentOptions.Bottom;
+            t.richText = true;
+            t.raycastTarget = false;            // 名牌不吃点击
+            t.textWrappingMode = TextWrappingModes.NoWrap;
+            ApplyFont(t);
+            // 称号 <title> 金(#fcf910)在上、名字 青(#c2fdfa)在下(对标 Npc.ts:99-107 NameBoard.SetName/SetNpcName 配色)。
+            string title = string.IsNullOrEmpty(cfg.Title) ? "" : $"<color=#fcf910><{cfg.Title}></color>\n";
+            t.text = title + $"<color=#c2fdfa>{cfg.Name}</color>";
+
+            view.NameplateRt = rt;
+        }
+
+        private static void UpdateNameplatePosition(NpcView view)
+        {
+            if (view?.NameplateRt == null) return;
+            Vector2 cam = SceneMapView.CameraPos;
+            float sx = view.Vo.X - cam.x;
+            float sy = -(view.Vo.Y - cam.y);
+            view.NameplateRt.anchoredPosition = new Vector2(sx, sy + NAMEPLATE_HEAD_OFFSET);
+        }
+
+        private static void DestroyNameplate(NpcView view)
+        {
+            if (view?.NameplateRt == null) return;
+            Object.Destroy(view.NameplateRt.gameObject);
+            view.NameplateRt = null;
+        }
+
+        private static void EnsureNameplateRoot()
+        {
+            if (_nameplateRoot != null) return;
+            Transform sceneLayer = ViewManager.GetLayer(UILayer.Scene);
+            if (sceneLayer == null) return;
+
+            var go = new GameObject("__NpcNameplates", typeof(RectTransform), typeof(Canvas));
+            go.transform.SetParent(sceneLayer, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+
+            var canvas = go.GetComponent<Canvas>();
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = -40; // 合成台 RT(-50)之上、HUD(默认 0)之下
+            _nameplateRoot = rt;
+        }
+
+        // 复用场景里已打开文本的 TMP 字体(含中文字形),避免名牌豆腐块(同 DialogueView/TaskFinishView 的 TEMP 壳约定)。
+        private static void ApplyFont(TextMeshProUGUI t)
+        {
+            if (_font == null)
+            {
+                TextMeshProUGUI src = Object.FindAnyObjectByType<TextMeshProUGUI>();
+                if (src != null) { _font = src.font; _fontMat = src.fontSharedMaterial; }
+            }
+            if (_font != null) t.font = _font;
+            if (_fontMat != null) t.fontSharedMaterial = _fontMat;
+        }
 
         private static void EnsureDriver()
         {
