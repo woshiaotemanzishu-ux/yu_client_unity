@@ -52,6 +52,7 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.On(GlobalEvent.EVT_SKILL_LIST_UPDATED, OnSkillUpdated);
             EventDispatcher.On(GlobalEvent.EVT_SKILL_BAR_UPDATED, OnSkillUpdated);
             EventDispatcher.On<bool>(GlobalEvent.EVT_AUTO_FIGHT_STATE, OnAutoFightState);
+            EventDispatcher.On(GlobalEvent.EVT_AUTO_FIGHT_TEMP_MODE, OnAutoFightTempMode);
 
             RefreshAll();
         }
@@ -76,6 +77,7 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off(GlobalEvent.EVT_SKILL_LIST_UPDATED, OnSkillUpdated);
             EventDispatcher.Off(GlobalEvent.EVT_SKILL_BAR_UPDATED, OnSkillUpdated);
             EventDispatcher.Off<bool>(GlobalEvent.EVT_AUTO_FIGHT_STATE, OnAutoFightState);
+            EventDispatcher.Off(GlobalEvent.EVT_AUTO_FIGHT_TEMP_MODE, OnAutoFightTempMode);
         }
 
         private void RefreshAll()
@@ -87,6 +89,7 @@ namespace Shenxiao.Module.Core.MainUI
 
         private void OnSkillUpdated() => RefreshSkills();
         private void OnAutoFightState(bool _) => UpdateAutoFightState();
+        private void OnAutoFightTempMode() => UpdateAutoFightState();
 
         // ===================== 技能 4 槽(对标 UpdateView)=====================
 

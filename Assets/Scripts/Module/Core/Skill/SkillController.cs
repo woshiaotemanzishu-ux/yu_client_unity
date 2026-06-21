@@ -24,6 +24,9 @@ namespace Shenxiao.Module.Core.Skill
         public static readonly SkillController Instance = new SkillController();
         private SkillController() { }
 
+        /// <summary>伙伴技能职业号(对标老端 PressSkillHandler 的 carrer==52 分支)。</summary>
+        private const int CAREER_PARTNER = 52;
+
         protected override void Register()
         {
             RegisterProtocal(Proto.SKILL_LIST, On21002);
@@ -88,9 +91,37 @@ namespace Shenxiao.Module.Core.Skill
 
         private void PressSkillHandler(int skillId, int attackType)
         {
-            // 对标老端 PressSkillHandler:CanAttack → setCurrentSkillId → Scene.MainRoleAttackTarget / RELEASE_MAIN_SKILL / PartnerUpdateFight。
-            // 这条战斗释放链路(寻敌/朝向/命中/特效)本轮未移植,只到事件边界,不硬造攻击。下一轮打怪链路接。
-            GameLog.Info("Skill", "SKILL_SHORTCUT_CLICK skill={0} type={1} → 真实释放(Scene.MainRoleAttackTarget)未移植,下一轮战斗链路接", skillId, attackType);
+            // 对标老端 SkillManager.PressSkillHandler:CanAttack → setCurrentSkillId → 按职业/选取模式分三支。
+            // 第一步 CanAttack(skill_id, true):老端真链含 pose(跳/被击/死)/眩晕/幽灵/僵直/CD 等(主角+场景+战斗系统),
+            // 本轮未移植 → 只做可支持子集:技能必须真实在 21002 mySkillList 且已学(level>0)。其余阻塞记差异,不假判可攻。
+            SkillVo vo = SkillManager.Instance.GetSkill(skillId);
+            if (vo == null)
+            {
+                GameLog.Info("Skill", "PressSkill skill={0}:不在 21002 mySkillList → 不释放(对标 CanAttack『取不到技能信息』)", skillId);
+                return;
+            }
+            if (vo.Locked)
+            {
+                GameLog.Info("Skill", "PressSkill skill={0}:未学 level=0 → 不释放(对标 UpdateLockState/CanAttack)", skillId);
+                return;
+            }
+
+            // 对标老端 setCurrentSkillId 后按 career / GetSelectType(obj) 分支(真实读 config_skill,不硬编码):
+            int career = vo.Career;
+            int selectType = vo.SelectType; // obj:1自己 2最近敌方 3最近队友
+            if (career == CAREER_PARTNER)
+            {
+                GameLog.Info("Skill", "PressSkill skill={0} 伙伴技能(career=52)→ 老端 Scene.PartnerUpdateFight 边界(伙伴战斗系统未移植,差异记录)", skillId);
+            }
+            else if (selectType == 1)
+            {
+                GameLog.Info("Skill", "PressSkill skill={0} 自我释放(obj=1)→ 老端 Fire(RELEASE_MAIN_SKILL, type={1}) 边界(技能释放/特效链路未移植,差异记录)", skillId, attackType);
+            }
+            else
+            {
+                // 主线最常见:职业输出技能(obj=2 最近敌方),对应老端 else 分支 Scene.MainRoleAttackTarget。
+                GameLog.Info("Skill", "PressSkill skill={0} 目标技能(obj={1})→ 老端 Scene.MainRoleAttackTarget:需 GetClickTarget→MainRoleAttackMonster→RELEASE_MAIN_SKILL;场景/怪物系统未移植 → 无目标只记真实阻塞,不假打不假伤(下一轮战斗链路)", skillId, selectType);
+            }
         }
     }
 }

@@ -18,16 +18,26 @@ namespace Shenxiao.Module.Core.AutoFight
         /// <summary>是否自动战斗中(对标 GetAutoFightState:auto_fight_weight>0)。</summary>
         public bool AutoFightState { get; private set; }
 
-        /// <summary>临时手动模式(对标 GetTempMode)。本轮无触发源,恒 false → 皮肤只在 003a/001b 间切。</summary>
+        /// <summary>临时手动模式(对标 GetTempMode)。AutoFightState 为真且 TempMode 为真 → 第三态皮肤 uizjmgj_001a1。
+        /// 触发源(老端场景拖拽 1.5s 进、3s 后退)属场景系统未移植,本轮经 <see cref="SetTempMode"/> 暴露入口。</summary>
         public bool TempMode { get; private set; }
 
-        /// <summary>对标 SetAutoFight:状态变化才发事件(EventName.UPDATE_AUTO_FIGHT_STATE)。</summary>
+        /// <summary>对标 SetAutoFight:状态变化才发事件(EventName.UPDATE_AUTO_FIGHT_STATE)。显式开关清临时手动(对标老端 SetTempMode(false))。</summary>
         public void SetAutoFight(bool on)
         {
             if (AutoFightState == on && !TempMode) return;
             TempMode = false;
             AutoFightState = on;
             EventDispatcher.Emit(GlobalEvent.EVT_AUTO_FIGHT_STATE, AutoFightState);
+        }
+
+        /// <summary>对标老端 AutoFightManager.SetTempMode:临时手动模式变化才发事件 EVT_AUTO_FIGHT_TEMP_MODE。
+        /// 只在自动战斗中有意义(老端由场景拖拽计时进/退);本轮暴露入口供未来场景层调用,触发计时未移植(差异记录)。</summary>
+        public void SetTempMode(bool on)
+        {
+            if (TempMode == on) return;
+            TempMode = on;
+            EventDispatcher.Emit(GlobalEvent.EVT_AUTO_FIGHT_TEMP_MODE);
         }
 
         /// <summary>对标 ResponseAutoBtnClick 的状态翻转,返回翻转后的状态。</summary>

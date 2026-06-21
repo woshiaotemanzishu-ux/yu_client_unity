@@ -94,6 +94,9 @@ namespace Shenxiao.Framework.Event
         public const string EVT_SKILL_BAR_UPDATED = "EVT_SKILL_BAR_UPDATED";
         /// <summary>自动战斗开关变化(参数: bool 是否自动)。对标老端 EventName.UPDATE_AUTO_FIGHT_STATE。注意与自动闯关 AUTOBRUSH 区分。</summary>
         public const string EVT_AUTO_FIGHT_STATE = "EVT_AUTO_FIGHT_STATE";
+        /// <summary>自动战斗临时手动模式变化(对标老端 EventName.AUTO_FIGHT_TEMP_MODE)。
+        /// 切第三态皮肤 uizjmgj_001a1;触发源(场景拖拽 1.5s)属场景系统,本轮只暴露 setter,差异见报告。</summary>
+        public const string EVT_AUTO_FIGHT_TEMP_MODE = "EVT_AUTO_FIGHT_TEMP_MODE";
         /// <summary>点击技能槽派发(参数: skillId:int, attackType:int)。对标老端 FightEvent.SKILL_SHORTCUT_CLICK。
         /// 本轮只到事件边界,真实释放(Scene.MainRoleAttackTarget)未移植,下一轮战斗链路接。</summary>
         public const string EVT_SKILL_SHORTCUT_CLICK = "EVT_SKILL_SHORTCUT_CLICK";

@@ -19,6 +19,12 @@ namespace Shenxiao.Module.Core.Skill
 
         public string GetName() => SkillConfigs.GetName(Id);
 
+        /// <summary>职业(对标 SkillVo.getCarrer);52=伙伴技能。</summary>
+        public int Career => SkillConfigs.GetCareer(Id);
+
+        /// <summary>选取模式(对标 SkillVo.GetSelectType:1自己 2最近敌方 3最近队友)。</summary>
+        public int SelectType => SkillConfigs.GetSelectType(Id);
+
         /// <summary>取图标资源名(对标 SkillVo.GetIcon:lv_data[level-1].icon,缺省回落 id)。</summary>
         public string GetIcon(int level = 0)
         {

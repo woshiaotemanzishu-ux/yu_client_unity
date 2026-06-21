@@ -50,6 +50,14 @@ namespace Shenxiao.Module.Core.Skill
         public static bool IsNormal(int skillId)
             => _skill?[skillId.ToString()] is JObject o && (o.Value<int?>("is_normal") ?? 0) == 1;
 
+        /// <summary>职业(config_skill[id].career,对标 SkillVo.getCarrer)。52=伙伴技能。</summary>
+        public static int GetCareer(int skillId)
+            => _skill?[skillId.ToString()] is JObject o ? (o.Value<int?>("career") ?? 0) : 0;
+
+        /// <summary>选取模式(config_skill[id].obj,对标 SkillVo.GetSelectType:1自己 2最近敌方 3最近队友)。</summary>
+        public static int GetSelectType(int skillId)
+            => _skill?[skillId.ToString()] is JObject o ? (o.Value<int?>("obj") ?? 0) : 0;
+
         /// <summary>取某级图标资源名(对标 SkillVo.GetIcon:lv_data[level-1].icon,缺省回落技能 id)。</summary>
         public static string GetIconForLevel(int skillId, int level)
         {
