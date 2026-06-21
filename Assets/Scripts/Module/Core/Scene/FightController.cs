@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Scene.Vo;
 
 namespace Shenxiao.Module.Core.Scene
 {
@@ -23,8 +24,11 @@ namespace Shenxiao.Module.Core.Scene
     ///   老端由 EnterFightingState→CHANGE_FIGHTING_STATE 驱动(受 ConfigClientScene.fighting_state_invalidate 限制);
     ///   本端在首次单体攻击进入战斗态时发一次 "c" 1(fighting_state_invalidate[sceneId] 未接入 → 见报告 blocker)。
     ///
-    /// S2C 20001(攻击结果广播:攻击者信息 + 防御者列表 + 伤害,FightVo)格式复杂,本期只记录到达 + 原始长度取证;
-    /// 真正扣血/死亡走既有 12009/12006 链(SceneController → SceneManager → MonsterRenderer 血条/销毁),不在此伪造。
+    /// S2C 20001(攻击结果广播:攻击者头 + 防御者列表 + 伤害,FightVo):第10轮起**真实解析**(见
+    /// <see cref="FightVo"/>,逐字节对标老端 FightVo.ReadFromProtocal)。<see cref="On20001Broadcast"/> 解析后把
+    /// 每个防御者的服务端**新绝对 hp / 死亡**喂给既有 <see cref="SceneManager"/> 链(hp&gt;0→ApplyHp 刷血条;
+    /// hp==0→DeleteSceneObj 移除可见怪,对标老端 RefreshObjVo:1527 + ForceDoDead),与 12009/12006 同一渲染出口,
+    /// 不开新假血条路径、不伪造伤害。damage/damage_flag(飘字)本期只记录不消费。
     /// </summary>
     public sealed class FightController : BaseController
     {
@@ -34,9 +38,14 @@ namespace Shenxiao.Module.Core.Scene
         /// <summary>本段战斗是否已发过 20024 "c" 1(对标老端 is_fighting_state;每段战斗只发一次进战斗态)。</summary>
         private bool _fighting;
 
+        // 老端 SceneBaseType(SceneConfig.ts:31)中本端 20001 defense_list 需路由的子集(协议枚举,非业务魔数)。
+        private const int OBJ_MONSTER = 1;   // 怪 / 采集物
+        private const int OBJ_ROLE = 2;      // 玩家
+        private const int OBJ_FAKE_ROLE = 5; // 假人
+
         protected override void Register()
         {
-            // 同号 S2C 20001 攻击结果广播:仅取证记录(完整 FightVo 解析 = P4 深水区)。
+            // 同号 S2C 20001 攻击结果广播:真实解析 FightVo,把服务端新 hp/死亡喂既有血量链(第10轮)。
             RegisterProtocal(Proto.CS_FIGHT_ATTACK, On20001Broadcast);
             _fighting = false;
         }
@@ -109,14 +118,102 @@ namespace Shenxiao.Module.Core.Scene
                 skillId, string.Join(",", monsterIds), string.Join(",", roleIds), cx, cy, ca, fmt);
         }
 
-        // S2C 20001:攻击结果广播(攻击者信息 + 防御者列表 + 伤害,FightVo)。
-        // 完整解析(逐防御者 hp/damage/死亡/buff)= P4 深水区,本期只记录到达取证;
-        // 怪血条扣减/死亡移除以服务端 12009/12006 为准(已接 MonsterRenderer),此处不解析、不伪造。
+        // S2C 20001:攻击结果广播(攻击者头 + 防御者列表 + 伤害,FightVo)。第10轮起真实解析:
+        // 逐字节按老端 FightVo.ReadFromProtocal 读出 attacker + defense_list,再把每个防御者的服务端
+        // **新绝对 hp / 死亡** 喂既有 SceneManager 链(hp>0 刷血条、hp==0 移除可见怪)。不伪造伤害/死亡。
         private void On20001Broadcast(NetReader reader)
         {
+            int payloadLen = reader.Remaining;
+            var vo = new FightVo();
+            try
+            {
+                vo.ReadFromProtocal(reader);
+            }
+            catch (Exception e)
+            {
+                GameLog.Error("Fight",
+                    "20001 S2C 解析错位(字段顺序与老端 FightVo 不一致?): len={0}B err={1}", payloadLen, e.Message);
+                return;
+            }
+
             GameLog.Info("Fight",
-                "recv 20001 攻击结果广播(S2C): payload={0}B —— 完整 FightVo(攻击者+防御者列表+伤害)解析=P4;扣血/死亡以 12009/12006 为准",
-                reader.Remaining);
+                "recv 20001 攻击结果广播(S2C): len={0}B attacker type={1} role={2} hp={3} skill={4} lv={5} pos=({6},{7}) atkPos=({8},{9}) atkBuff={10} trigger={11} defenders={12} remaining={13}B",
+                payloadLen, vo.Attack.AttackerType, vo.Attack.RoleId, vo.Attack.Hp, vo.Attack.SkillId, vo.Attack.SkillLevel,
+                vo.Attack.PosX, vo.Attack.PosY, vo.Attack.AttackPosX, vo.Attack.AttackPosY,
+                vo.Attack.Buffs.Count, vo.AttackTriggerSkills.Count, vo.DefenseList.Count, reader.Remaining);
+
+            for (int i = 0; i < vo.DefenseList.Count; i++)
+            {
+                FightVo.DefenseInfo d = vo.DefenseList[i];
+                GameLog.Info("Fight",
+                    "  defender[{0}] type_flag={1} id={2} hp={3} damage={4} flag={5} pos=({6},{7})",
+                    i, d.TypeFlag, d.RoleId, d.Hp, d.Damage, d.DamageFlag, d.PosX, d.PosY);
+            }
+
+            ApplyDefenseListToScene(vo);
+        }
+
+        /// <summary>
+        /// 把 20001 S2C 的 defense_list 真实 hp/死亡喂既有 <see cref="SceneManager"/> 链(对标老端 RefreshObjVo:1527):
+        ///   hp&gt;0  → <see cref="SceneManager.ApplyHp"/>(服务端新绝对 hp,保留既有 HpLim)→ MonsterHpChanged/RoleHpChanged → 血条刷新;
+        ///   hp==0 → <see cref="SceneManager.DeleteSceneObj"/>(移除可见怪/玩家)→ MonsterRemoved → 模型/名牌/血条销毁(对标 ForceDoDead)。
+        /// 与 12009/12006 同一渲染出口,不开新假血条路径。找不到对应场景对象只记 warning,绝不造假对象;
+        /// damage/damage_flag(飘字)本轮不消费。
+        /// </summary>
+        private static void ApplyDefenseListToScene(FightVo vo)
+        {
+            SceneManager mgr = SceneManager.Instance;
+            foreach (FightVo.DefenseInfo d in vo.DefenseList)
+            {
+                if (d.TypeFlag == OBJ_MONSTER)
+                {
+                    if (d.RoleId < 0 || d.RoleId > int.MaxValue)
+                    {
+                        GameLog.Warn("Fight", "20001 defender 怪实例 id 越界: {0}", d.RoleId);
+                        continue;
+                    }
+                    int ins = (int)d.RoleId;
+                    MonsterVo m = mgr.GetMonster(ins);
+                    if (m == null)
+                    {
+                        GameLog.Warn("Fight", "20001 defender 怪 {0} 不在 SceneManager(未在视野/已移除),只记录不造假", ins);
+                        continue;
+                    }
+                    if (d.Hp == 0)
+                    {
+                        GameLog.Info("Fight", "怪 {0} 服务端判定死亡(hp=0 damage={1}),移除可见模型/名牌/血条", ins, d.Damage);
+                        mgr.DeleteSceneObj(ins);
+                    }
+                    else
+                    {
+                        GameLog.Info("Fight", "怪 {0} 服务端新 hp={1}/{2}(damage={3} flag={4}),刷新血条", ins, d.Hp, m.HpLim, d.Damage, d.DamageFlag);
+                        mgr.ApplyHp(ins, d.Hp, m.HpLim);
+                    }
+                }
+                else if (d.TypeFlag == OBJ_ROLE || d.TypeFlag == OBJ_FAKE_ROLE)
+                {
+                    RoleVo r = mgr.GetRole(d.RoleId);
+                    if (r == null)
+                    {
+                        // 主角自身被击时不在 _roles(主角 hp 在 RoleModel,非场景玩家表)→ 只记录,主角血条属后续。
+                        GameLog.Warn("Fight", "20001 defender 玩家 {0} 不在 SceneManager(主角自身/未在视野),只记录不造假", d.RoleId);
+                        continue;
+                    }
+                    if (d.Hp == 0)
+                    {
+                        GameLog.Info("Fight", "玩家 {0} 服务端判定死亡(hp=0),移除", d.RoleId);
+                        mgr.DeleteSceneObj(d.RoleId);
+                    }
+                    else
+                    {
+                        mgr.ApplyHp(d.RoleId, d.Hp, r.HpLim);
+                    }
+                }
+                else
+                {
+                    GameLog.Warn("Fight", "20001 defender 未路由 type_flag={0} id={1}(本轮只接怪/玩家/假人)", d.TypeFlag, d.RoleId);
+                }
+            }
         }
     }
 }
