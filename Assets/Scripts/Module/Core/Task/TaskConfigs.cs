@@ -24,6 +24,8 @@ namespace Shenxiao.Module.Core.Tasks
             public int Sep;
             public int MainLineOrder;
             public int ShowFinish;
+            public string SpecialGoodsList; // [23] 职业专属奖励(Erlang 文本 {career,type_id,count})
+            public string AwardList;        // [24] 任务奖励(Erlang 文本 {a,b,type_id,count})
         }
 
         private static JObject _task;
@@ -63,8 +65,10 @@ namespace Shenxiao.Module.Core.Tasks
                 Tips = ReadString(obj, "3"),
                 Type = ReadInt(obj, "4"),
                 // local_config.config_table_default.config_task:
-                // 0 id, 1 name, 2 desc, 3 tips, 4 type, ..., 27 sep,
-                // 29 main_line_order, 30 show_finish.
+                // 0 id, 1 name, 2 desc, 3 tips, 4 type, ..., 23 special_goods_list,
+                // 24 award_list, ..., 27 sep, 29 main_line_order, 30 show_finish.
+                SpecialGoodsList = ReadString(obj, "23"),
+                AwardList = ReadString(obj, "24"),
                 Sep = ReadInt(obj, "27"),
                 MainLineOrder = ReadInt(obj, "29"),
                 ShowFinish = ReadInt(obj, "30"),

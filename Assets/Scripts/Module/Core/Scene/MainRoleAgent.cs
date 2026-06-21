@@ -1,5 +1,7 @@
+using System;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Scene3D.Map;
+using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
 
@@ -23,6 +25,12 @@ namespace Shenxiao.Module.Core.Scene
         private const int MoveTypeNormal = 0;       // SceneConfig NORMOL_MOVE
         private const float TurnSmoothSpeed = 720f; // 转向角速度(度/秒);<=0 则瞬时转向
 
+        // —— 自动接近 NPC(对标 Scene.MainRoleToNpc → MainRoleMove)——
+        private const float ArrivalLogicDist = 2.5f; // 到达判定半径(逻辑格,老端 dist=2.5)
+        private const float AutoMoveTimeout = 8f;    // 直线接近兜底超时(无 A* 绕障:到不了也要把对话开出来)
+        private const float AutoStuckSeconds = 0.6f; // 连续无位移进展达此时长 → 判定卡死兜底
+        private const float AutoStuckEpsilon = 0.5f; // 单帧像素位移进展阈值(< 此值视为无进展)
+
         private const string ActionIdle = "idle";
         private const string ActionRun = "run";
 
@@ -36,6 +44,17 @@ namespace Shenxiao.Module.Core.Scene
         private float _posY;            // 真实像素 Y(real_pos.y)
         private float _sendTimer;
         private bool _moving;
+
+        // —— 自动接近目标(直线 + 分轴滑行,无 A*;对标 MainRoleToNpc 走到 NPC 身边再触发)——
+        private bool _autoMoving;
+        private float _autoTargetX;
+        private float _autoTargetY;
+        private float _autoArriveLogic;
+        private Action _onArrive;
+        private float _autoElapsed;
+        private float _autoStuckTime;
+        private float _autoLastX;
+        private float _autoLastY;
 
         /// <summary>由 MainRoleFlow 在装配完成后初始化:传入模型子节点与出生坐标。</summary>
         public void Init(GameObject model, int spawnX, int spawnY)
@@ -69,7 +88,16 @@ namespace Shenxiao.Module.Core.Scene
             SceneMapData map = SceneMapLoader.Current;
             if (map == null) return;
 
-            if (SceneInput.Active && SceneInput.HasDirection)
+            bool hasManual = SceneInput.Active && SceneInput.HasDirection;
+
+            // 自动接近进行中:玩家一推摇杆即取消自动、让位手动;否则本帧由自动驱动。
+            if (_autoMoving)
+            {
+                if (hasManual) CancelAutoMove("玩家推摇杆,自动接近 NPC 让位手动");
+                else { AutoStep(map); return; }
+            }
+
+            if (hasManual)
             {
                 StepMove(map);
             }
@@ -84,10 +112,25 @@ namespace Shenxiao.Module.Core.Scene
             Vector2 dir = SceneInput.Dir; // 舞台坐标:x 右、y 下,与地图像素一致
             float dt = Mathf.Min(Time.deltaTime, MaxDeltaTime);
             float moveDist = MoveSpeed * dt;
-            float mx = dir.x * moveDist;
-            float my = dir.y * moveDist;
 
-            // 撞墙分轴滑动:整向 → 仅 X → 仅 Y(对标 MainRole.ts:794-819)
+            bool moved = Advance(map, dir.x * moveDist, dir.y * moveDist);
+
+            RoleModel role = RoleModel.Instance;
+            BeginMoveAnim();
+            Face(dir);
+            SceneMapView.SetFocus(role.X, role.Y);
+            SyncModelScreenOffset(); // 焦点(相机)已更新,随即把模型摆到 (role - camera) 的屏幕偏移上
+
+            if (moved) ThrottledSend(role, dt);
+        }
+
+        /// <summary>
+        /// 单步推进内核:整向 → 仅 X → 仅 Y 分轴撞墙滑动(对标 MainRole.ts:794-819),按真实像素步进并写回
+        /// <see cref="RoleModel"/> 逻辑格;返回本帧是否真的发生了位移(供上报节流与卡死检测判断)。
+        /// 手动摇杆(<see cref="StepMove"/>)与自动接近(<see cref="AutoStep"/>)共用此内核,行为完全一致。
+        /// </summary>
+        private bool Advance(SceneMapData map, float mx, float my)
+        {
             bool moved = true;
             if (!map.IsBlockPixel(_posX + mx, _posY + my))
             {
@@ -110,26 +153,26 @@ namespace Shenxiao.Module.Core.Scene
             RoleModel role = RoleModel.Instance;
             role.X = Mathf.Max(0, Mathf.FloorToInt(_posX));
             role.Y = Mathf.Max(0, Mathf.FloorToInt(_posY));
+            return moved;
+        }
 
-            if (!_moving)
+        // 进入跑动态:切 run 动作 + 起步立即上报一次(对标手动起步)。已在跑动则不重复。
+        private void BeginMoveAnim()
+        {
+            if (_moving) return;
+            _moving = true;
+            PlayAction(ActionRun);
+            _sendTimer = SendInterval; // 起步立即上报一次
+        }
+
+        // 移动上报节流(0.5s 一次,对标 MainRole.ts:547)。
+        private void ThrottledSend(RoleModel role, float dt)
+        {
+            _sendTimer += dt;
+            if (_sendTimer >= SendInterval)
             {
-                _moving = true;
-                PlayAction(ActionRun);
-                _sendTimer = SendInterval; // 起步立即上报一次
-            }
-
-            Face(dir);
-            SceneMapView.SetFocus(role.X, role.Y);
-            SyncModelScreenOffset(); // 焦点(相机)已更新,随即把模型摆到 (role - camera) 的屏幕偏移上
-
-            if (moved)
-            {
-                _sendTimer += dt;
-                if (_sendTimer >= SendInterval)
-                {
-                    _sendTimer = 0f;
-                    SceneController.Instance.SendMoveRequest(role.X, role.Y, MoveTypeNormal, role.X, role.Y);
-                }
+                _sendTimer = 0f;
+                SceneController.Instance.SendMoveRequest(role.X, role.Y, MoveTypeNormal, role.X, role.Y);
             }
         }
 
@@ -186,6 +229,114 @@ namespace Shenxiao.Module.Core.Scene
             float yaw = Mathf.Atan2(dir.x, -dir.y) * Mathf.Rad2Deg;
             Vector3 e = _modelTr.localEulerAngles;
             _modelTr.localEulerAngles = new Vector3(e.x, yaw, e.z);
+        }
+
+        // ===================== 自动接近目标 NPC(对标 Scene.MainRoleToNpc → MainRoleMove)=====================
+
+        /// <summary>
+        /// 主角自动走到目标像素点附近,到达后触发 <paramref name="onArrive"/>(对标老端 Scene.MainRoleToNpc:
+        /// 走到 NPC 身边 dist≤2.5 逻辑格、停下转身后才 Fire(SHOW_TASK))。
+        ///
+        /// 本端无 A* 寻路,用直线方向 + <see cref="Advance"/> 分轴撞墙滑行逼近,因此**必有兜底**:卡死
+        /// (连续无位移进展)或超时(沿墙滑行抵达不了)也会触发回调把对话开出来,绝不软锁(任务包 P1 硬约束)。
+        /// 玩家中途推摇杆 → <see cref="CancelAutoMove"/> 取消自动、不触发回调(让位手动,可重新点任务)。
+        /// </summary>
+        /// <param name="targetX">目标真实像素 X(NpcVo.X,与主角同一坐标系)。</param>
+        /// <param name="targetY">目标真实像素 Y(NpcVo.Y)。</param>
+        /// <param name="arriveLogicDist">到达判定半径(逻辑格;<=0 用默认 2.5)。</param>
+        /// <param name="onArrive">到达或兜底后回调(对话入口 ShowTask)。</param>
+        public void MoveToNpc(float targetX, float targetY, float arriveLogicDist, Action onArrive)
+        {
+            _autoTargetX = targetX;
+            _autoTargetY = targetY;
+            _autoArriveLogic = arriveLogicDist > 0f ? arriveLogicDist : ArrivalLogicDist;
+
+            // 已在范围内:不移动,直接转身 + 触发(对标 MainRoleToNpc 的 GetDistance<=dist+1 早退分支)。
+            if (ReachedTarget())
+            {
+                _autoMoving = false;
+                _onArrive = null;
+                FaceTowardPixel(targetX, targetY);
+                GameLog.Info("Scene", "MoveToNpc: 主角已在 NPC 附近,直接触发到达回调(开对话)");
+                onArrive?.Invoke();
+                return;
+            }
+
+            _onArrive = onArrive;
+            _autoMoving = true;
+            _autoElapsed = 0f;
+            _autoStuckTime = 0f;
+            _autoLastX = _posX;
+            _autoLastY = _posY;
+            GameLog.Info("Scene", "MoveToNpc: 自动直线接近目标 ({0:F0},{1:F0}),到达半径={2} 逻辑格", targetX, targetY, _autoArriveLogic);
+        }
+
+        // 自动接近单帧:逼近 → 到达/卡死/超时三选一收尾,收尾必触发回调(避免软锁)。
+        private void AutoStep(SceneMapData map)
+        {
+            RoleModel role = RoleModel.Instance;
+            if (ReachedTarget()) { FinishAutoMove(true, null); return; }
+
+            float dt = Mathf.Min(Time.deltaTime, MaxDeltaTime);
+            _autoElapsed += dt;
+
+            Vector2 dir = new Vector2(_autoTargetX - _posX, _autoTargetY - _posY);
+            if (dir.sqrMagnitude > 0.0001f) dir.Normalize();
+            float moveDist = MoveSpeed * dt;
+
+            bool moved = Advance(map, dir.x * moveDist, dir.y * moveDist);
+
+            BeginMoveAnim();
+            Face(dir);
+            SceneMapView.SetFocus(role.X, role.Y);
+            SyncModelScreenOffset();
+            if (moved) ThrottledSend(role, dt);
+
+            // 卡死检测:连续无像素位移进展(被墙挡死、无 A* 绕障)累计到阈值即兜底触发。
+            float progressed = Mathf.Abs(_posX - _autoLastX) + Mathf.Abs(_posY - _autoLastY);
+            _autoLastX = _posX;
+            _autoLastY = _posY;
+            if (progressed < AutoStuckEpsilon) _autoStuckTime += dt; else _autoStuckTime = 0f;
+
+            if (ReachedTarget()) { FinishAutoMove(true, null); return; }
+            if (_autoStuckTime >= AutoStuckSeconds) { FinishAutoMove(false, "卡死(直线被挡且无 A* 绕障)"); return; }
+            if (_autoElapsed >= AutoMoveTimeout) { FinishAutoMove(false, "超时(沿墙滑行未抵达)"); return; }
+        }
+
+        /// <summary>到达判定:像素差换算到逻辑格(/60、/30)后求欧氏距离 ≤ 半径(对标老端 logic 距离 dist=2.5)。</summary>
+        private bool ReachedTarget()
+        {
+            float lx = (_autoTargetX - _posX) / SceneMapData.LogicRatioX;
+            float ly = (_autoTargetY - _posY) / SceneMapData.LogicRatioY;
+            return lx * lx + ly * ly <= _autoArriveLogic * _autoArriveLogic;
+        }
+
+        // 自动接近收尾:停步(idle + 补发最终坐标)→ 面向 NPC → 触发回调(对标到达 DoStand + SetDirection + SHOW_TASK)。
+        private void FinishAutoMove(bool arrived, string reason)
+        {
+            _autoMoving = false;
+            Action cb = _onArrive;
+            _onArrive = null;
+
+            StopMove();
+            FaceTowardPixel(_autoTargetX, _autoTargetY);
+
+            if (arrived)
+                GameLog.Info("Scene", "MoveToNpc 到达 NPC 附近 → 触发到达回调(开对话)");
+            else
+                GameLog.Warn("Scene", "MoveToNpc 未抵达[{0}] → 直线接近无 A* 寻路,仍触发回调避免软锁(target=({1:F0},{2:F0}))",
+                    reason, _autoTargetX, _autoTargetY);
+
+            cb?.Invoke();
+        }
+
+        // 玩家手动介入:取消自动接近(丢弃到达回调,让位手动驱动;玩家可重新点任务再次自动接近)。
+        private void CancelAutoMove(string why)
+        {
+            if (!_autoMoving) return;
+            _autoMoving = false;
+            _onArrive = null;
+            GameLog.Info("Scene", "MoveToNpc 取消:{0}", why);
         }
 
         private void OnDestroy()

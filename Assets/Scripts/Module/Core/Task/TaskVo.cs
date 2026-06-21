@@ -23,6 +23,10 @@ namespace Shenxiao.Module.Core.Tasks
         public int ShowFinish;
         public bool NewFinishFlag;
 
+        // 奖励原始 Erlang 文本(来自 config_task,经 TaskReward 解析为可展示奖励列表)。
+        public string SpecialGoodsList = "";
+        public string AwardList = "";
+
         public TaskVo(int taskId, int taskTipsType, string taskTipsMsg, int hasFinish, int id,
             int needNum, int nowNum, int showNum, int sceneId, int sceneX, int sceneY, int needGuide)
         {
@@ -49,6 +53,8 @@ namespace Shenxiao.Module.Core.Tasks
             Tips = cfg.Tips ?? "";
             MainLineOrder = cfg.MainLineOrder;
             ShowFinish = cfg.ShowFinish;
+            SpecialGoodsList = cfg.SpecialGoodsList ?? "";
+            AwardList = cfg.AwardList ?? "";
         }
     }
 }

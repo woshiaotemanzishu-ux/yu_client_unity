@@ -25,6 +25,18 @@ namespace Shenxiao.Module.Core.Tasks
             base.Dispose();
         }
 
+        /// <summary>
+        /// 提交完成任务(发 30004)。对标老端 TaskFinishView 的 Fire(REQUEST_CCMD_EVENT, 30004, task_id):
+        /// 非对话的"完成弹层"确认/领奖后由此真实提交,服务端回推 30001/30000 刷新任务栏。
+        /// (对话内的接/交走 DialogueController.AcceptTask/FinishTask,带 dialogue auto 流程;此处是弹层独立提交。)
+        /// </summary>
+        public void SubmitFinish(int taskId)
+        {
+            if (taskId <= 0) return;
+            SendFmt(Proto.CC_TASK_FINISH, "i", taskId);
+            GameLog.Info("Task", "send 30004 finish task={0}(TaskFinishView 提交)", taskId);
+        }
+
         private async void OnGameStart()
         {
             await TaskConfigs.EnsureLoaded();

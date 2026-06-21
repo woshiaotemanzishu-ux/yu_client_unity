@@ -88,8 +88,12 @@ namespace Shenxiao.Module.Core.Dialogue
                     else if (!string.IsNullOrEmpty(n.Text)) lines.Add(n.Text);
                 }
             }
-            _contentText.text = lines.Count > 0 ? string.Join("\n", lines)
+            string body = lines.Count > 0 ? string.Join("\n", lines)
                 : (_vo.TalkCfg == null ? "(talk_id=" + _vo.TalkId + " 无对话配置)" : "");
+            // 任务奖励摘要(与完成弹层共用 TaskReward 解析,真实 config_task 数据,按职业过滤)。
+            if (!string.IsNullOrEmpty(_vo.RewardSummary))
+                body += (body.Length > 0 ? "\n\n" : "") + "<color=#9fd0ff>奖励:" + _vo.RewardSummary.Replace("\n", "  ") + "</color>";
+            _contentText.text = body;
 
             // 1) 12101 默认对话的任务菜单:每个关联任务一个按钮 → SelectTask(发 12102)。
             foreach (DialogueTaskEntry t in _vo.TaskList)

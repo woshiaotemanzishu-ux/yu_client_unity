@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Tasks;
 
 namespace Shenxiao.Module.Core.Dialogue
@@ -176,7 +177,16 @@ namespace Shenxiao.Module.Core.Dialogue
             vo.Set12102Scmd(npcId, taskId, talkId);
             Model.CurrentVo = vo;
 
-            // 奖励列表(special_goods_list/award_list,经 ErlangParser)未移植 → 本期不在对话里展奖励(P3/下一轮)。
+            // 奖励(special_goods_list/award_list,对标 ts:56-80):config_task 真实数据经 TaskReward 按职业过滤解析,
+            // 与完成弹层 TaskFinishView 共用同一解析。装配到 vo.RewardSummary,DialogueView 在对话里展示。
+            TaskConfigs.TaskCfg cfg = TaskConfigs.Get(taskId);
+            if (cfg != null)
+            {
+                List<TaskReward.Entry> rewards = TaskReward.Build(cfg.SpecialGoodsList, cfg.AwardList, RoleModel.Instance.Career);
+                vo.RewardSummary = TaskReward.ToText(rewards);
+                if (rewards.Count > 0)
+                    GameLog.Info("Dialogue", "12102 任务 {0} 奖励 {1} 项: {2}", taskId, rewards.Count, TaskReward.ToText(rewards, " / "));
+            }
 
             // 对话文字为空 → 不弹 UI,直接按可接/已接自动接/交(对标 ts:82-108 空文本自动接受/完成)。
             if (HasEmptyNpcText(vo))

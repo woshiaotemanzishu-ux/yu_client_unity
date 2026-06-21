@@ -32,6 +32,8 @@ namespace Shenxiao.Module.Core.Tasks
         private readonly Dictionary<int, List<TaskVo>> _canTaskList = new Dictionary<int, List<TaskVo>>();
         private readonly Dictionary<int, List<TaskVo>> _allTaskList = new Dictionary<int, List<TaskVo>>();
 
+        private TaskFinishView _finishView; // 完成弹层(懒建复用,对标老端 TaskFinishView)
+
         private TaskModel() { }
 
         public int NowSelectTaskId { get; set; }
@@ -276,9 +278,9 @@ namespace Shenxiao.Module.Core.Tasks
         }
 
         /// <summary>
-        /// 找 NPC 对话(对标 ts:1767-1835 Talk/StartTalk/EndTalk)。定位 NPC → 打开真实对话(12101/12102)。
-        /// 老端是"主角走到 NPC(MainRoleToNpc)→ 到达后 SHOW_TASK → DialogueController";本轮 P1 先在点击时
-        /// 直接打开对话入口(ShowTask),把"走到 NPC 再触发"留给 P2(MainRoleToNpc 到达回调里调 ShowTask)。
+        /// 找 NPC 对话(对标 ts:1767-1835 Talk/StartTalk/EndTalk)。定位 NPC → 主角走到其身边 → 到达后打开
+        /// 真实对话(12101/12102)。完整对标老端 Scene.MainRoleToNpc:走到 NPC(dist≤2.5 逻辑格)、停下转身后
+        /// 才 Fire(SHOW_TASK);走近由 <see cref="MainRoleAgent.MoveToNpc"/> 直线接近(含卡死/超时兜底,无 A*)实现。
         /// 去重(对话已开不重复)由 DialogueController/DialogueModel.DialogIsOpen 负责。
         /// </summary>
         private void DoFindNpcTask(TaskVo task)
@@ -294,21 +296,30 @@ namespace Shenxiao.Module.Core.Tasks
                 return;
             }
 
-            // NPC 在当前场景:① 主角朝 NPC 转身(P2 最小可见动作,对标 Scene.MainRoleToNpc 的 SetDirection);
-            //                  ② 打开对话入口(发 12101)。完整"走到 NPC 附近"的直线/寻路移动留待下一轮 P2。
-            MainRoleAgent.Current?.FaceTowardPixel(npc.X, npc.Y);
-            GameLog.Info("Task", "DoTask 找 NPC: NPC {0} 在场景 pos=({1},{2}),主角朝其转身 → 打开对话(12101)", task.Id, npc.X, npc.Y);
-            DialogueController.Instance.ShowTask(task.Id);
+            int npcId = task.Id;
+            MainRoleAgent agent = MainRoleAgent.Current;
+            if (agent == null)
+            {
+                // 主角驱动尚未装配(进游戏后理论上恒在):不软锁,直接开对话。
+                GameLog.Warn("Task", "DoTask 找 NPC: 无 MainRoleAgent,跳过走近,直接打开对话(12101)");
+                DialogueController.Instance.ShowTask(npcId);
+                return;
+            }
+
+            // 对标 Scene.MainRoleToNpc:主角走到 NPC 身边(dist≤2.5 逻辑格)、停下转身后才打开对话(发 12101)。
+            // 已在范围内则 MoveToNpc 内部立即触发;直线接近无 A* 但有卡死/超时兜底,到不了也会把对话开出来。
+            GameLog.Info("Task", "DoTask 找 NPC: NPC {0} 在场景 pos=({1},{2}),主角走过去,到达后开对话(12101)", npcId, npc.X, npc.Y);
+            agent.MoveToNpc(npc.X, npc.Y, 0f, () => DialogueController.Instance.ShowTask(npcId));
         }
 
         /// <summary>完成提交(对标 ts:2385:TaskFinishView/TaskCircleFinishView + 协议 30004)。</summary>
         private void DoFinishTask(TaskVo task)
         {
-            // 真实入口 = TaskFinishView(完成后展示奖励并发 30004 提交)。该 View 在 Unity 端未生成/未移植 → blocker。
-            // 不直接发 30004:老端要求经完成弹层确认再提交,跳过弹层直接提交不忠实。
-            GameLog.Warn("Task",
-                "DoTask 完成 blocker: 任务 {0} 全步完成,应开 TaskFinishView(展示奖励 + 发 30004 提交)。" +
-                "该完成弹层未移植 → blocker。移植后这里 Emit TASK_OPEN_VIEW 打开它。", task.TaskId);
+            // 打开完成弹层:展示 config_task 真实奖励 + "领取奖励/提交任务"按钮(发 30004);
+            // 对标老端 Fire(TASK_OPEN_VIEW, 'TaskFinishView')。不跳弹层直发 30004——老端要求经弹层确认/领奖再提交。
+            if (_finishView == null) _finishView = new TaskFinishView();
+            _finishView.Open(task);
+            GameLog.Info("Task", "DoTask 完成: 任务 {0} 全步完成 → 打开 TaskFinishView(展示奖励 + 提交 30004)", task.TaskId);
         }
 
         /// <summary>带场景坐标(对标 Kill/Collect/Item case:同场景寻路到点,跨场景飞鞋)。</summary>
