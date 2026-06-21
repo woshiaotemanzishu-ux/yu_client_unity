@@ -58,6 +58,77 @@ namespace Shenxiao.Module.Core.Skill
         public static int GetSelectType(int skillId)
             => _skill?[skillId.ToString()] is JObject o ? (o.Value<int?>("obj") ?? 0) : 0;
 
+        /// <summary>技能类型(config_skill[id].type,对标 SkillVo.GetSkillType:1主动 2辅助 3被动 4门派)。</summary>
+        public static int GetSkillType(int skillId)
+            => _skill?[skillId.ToString()] is JObject o ? (o.Value<int?>("type") ?? 0) : 0;
+
+        /// <summary>攻击参照类型(config_skill[id].att_obj,对标 SkillVo.GetSkillAttObj:1自己 2选取对象)。</summary>
+        public static int GetAttObj(int skillId)
+            => _skill?[skillId.ToString()] is JObject o ? (o.Value<int?>("att_obj") ?? 0) : 0;
+
+        /// <summary>
+        /// 是否群攻(AOE)模式(逐字段对标 SkillVo.IsAoeMode:config_skill[id].mod==1 → 单体非 AOE,
+        /// 其余值/缺省 → AOE)。单体技能的 20001 目标列表=[主目标],可逐字段确定;AOE 需 distance/area/num
+        /// + FindTargets 几何收集链(未移植),本轮 AOE 不发包,见 SceneCombat。
+        /// </summary>
+        public static bool IsAoe(int skillId)
+        {
+            if (_skill?[skillId.ToString()] is JObject o)
+            {
+                int? mod = o.Value<int?>("mod");
+                if (mod.HasValue) return mod.Value != 1; // mod==1 → 单体;否则 AOE(对标老端 Number(mod)==1?false:true)
+            }
+            return true; // mod 缺失/空 → 老端 is_aoe_mode=true
+        }
+
+        /// <summary>攻击距离(对标 SkillVo.GetDistance:lv_data[level-1].distance,缺省 50)。用于真实攻击范围判定。</summary>
+        public static int GetDistanceForLevel(int skillId, int level)
+        {
+            JArray lv = GetLvData(skillId);
+            int idx = (level > 0 ? level : 1) - 1;
+            if (lv != null && idx >= 0 && idx < lv.Count && lv[idx] is JObject lvo)
+            {
+                int? dist = lvo.Value<int?>("distance");
+                if (dist.HasValue && dist.Value > 0) return dist.Value;
+            }
+            return 50;
+        }
+
+        /// <summary>攻击范围半径(对标 SkillVo.GetArea:lv_data[level-1].area,缺省 0)。圆形 AOE 收集半径来源。</summary>
+        public static int GetAreaForLevel(int skillId, int level)
+        {
+            JArray lv = GetLvData(skillId);
+            int idx = (level > 0 ? level : 1) - 1;
+            if (lv != null && idx >= 0 && idx < lv.Count && lv[idx] is JObject lvo)
+                return lvo.Value<int?>("area") ?? 0;
+            return 0;
+        }
+
+        /// <summary>AOE 选取方式(对标 SkillVo.GetAoeMode:config_skill[id].range;1圆形 2直线 3扇形,0/缺省→1)。</summary>
+        public static int GetAoeMode(int skillId)
+        {
+            if (_skill?[skillId.ToString()] is JObject o)
+            {
+                int? range = o.Value<int?>("range");
+                if (range.HasValue && range.Value != 0) return range.Value;
+            }
+            return 1;
+        }
+
+        /// <summary>攻击目标数量(对标 SkillVo.GetAttackNum:lv_data[level-1].num=[玩家数, 怪物数],缺省 [0,0])。
+        /// 0 表示不限(对标老端 att_num==0 → 99)。怪物数用于圆形 AOE 收集上限。</summary>
+        public static int[] GetAttackNumForLevel(int skillId, int level)
+        {
+            JArray lv = GetLvData(skillId);
+            int idx = (level > 0 ? level : 1) - 1;
+            if (lv != null && idx >= 0 && idx < lv.Count && lv[idx] is JObject lvo
+                && lvo["num"] is JArray num && num.Count >= 2)
+            {
+                return new[] { num[0].Value<int>(), num[1].Value<int>() };
+            }
+            return new[] { 0, 0 };
+        }
+
         /// <summary>取某级图标资源名(对标 SkillVo.GetIcon:lv_data[level-1].icon,缺省回落技能 id)。</summary>
         public static string GetIconForLevel(int skillId, int level)
         {

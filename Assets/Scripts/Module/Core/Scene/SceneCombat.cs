@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Scene3D.Map;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene.Vo;
+using Shenxiao.Module.Core.Skill;
 
 namespace Shenxiao.Module.Core.Scene
 {
@@ -22,17 +24,23 @@ namespace Shenxiao.Module.Core.Scene
     ///      空放/AOE 命中需 fight 系统,本轮不假放、不假伤)。
     ///
     /// 真实服务端攻击请求 20001(老端 FightController.ts:800 WriteBegin(20001):
-    ///   h+i×N 怪 + h+l×N 人 + ihhh skill/x/y/angle)由 fight-movie + AOE 碰撞收集链构建;另有 20024 "c"(1 进/2 出战斗态)。
-    /// 本轮不移植 fight-movie/AOE、不猜协议格式,释放只到本地 <see cref="GlobalEvent.EVT_RELEASE_MAIN_SKILL"/> 边界,
-    /// 真实 20001/20024 发送列为下一轮 blocker。
+    ///   h+i×N 怪 + h+l×N 人 + ihhh skill/x/y/angle);另有 20024 "c"(1 进/2 出战斗态)。
+    /// 第 9 轮:释放边界由 <see cref="FightController"/> 逐字段真实发送 20024/20001:
+    ///   · 单体技能(config_skill.mod==1):怪列表=[主目标]。
+    ///   · 圆形 AOE(mod!=1 且 aoe_mode==1,如首杀技能 御剑一式 area=350/num=[1,4]):center=主目标坐标,
+    ///     收集半径 area 内可攻击怪取 num[1] 只(对标 Scene.FindMonsters 圆形分支 + target_hiter 置首)。
+    ///   · 直线/扇形 AOE(aoe_mode 2/3):需朝向几何收集链(未移植)→ 只记 blocker 不发(不猜范围)。
+    /// x/y=主目标坐标、angle=0(见 FightController.ts:1187/1238/1351-1356)。
+    /// 本地 <see cref="GlobalEvent.EVT_RELEASE_MAIN_SKILL"/> 边界保留(供 UI/表现订阅),与真实发包并存。
     /// </summary>
     public sealed class SceneCombat
     {
         public static readonly SceneCombat Instance = new SceneCombat();
         private SceneCombat() { }
 
-        /// <summary>攻击范围下限(对标老端 SkillManager.GetCurrentAttackRange = Math.max(100, skill_distance*0.8))。
-        /// 精确 range 需 config_skill 攻击距离字段 + 主角 attack_range(未接,下一轮),本轮用真实下限 100 像素,不臆造倍率。</summary>
+        /// <summary>攻击范围下限(对标老端 SkillManager.GetCurrentAttackRange = Math.max(100, skill_distance*0.8) 的下限项)。
+        /// 第 9 轮已接 config_skill 真实攻击距离(<see cref="AttackRange"/>):range = max(100, distance*0.8);
+        /// distance 取自 config_skill lv_data[level-1].distance(缺省 50,对标 SkillVo.GetDistance)。</summary>
         private const float AttackRangeFloor = 100f;
 
         /// <summary>当前点击/锁定目标实例 id(对标老端 Scene.curr_click_target;0=无)。</summary>
@@ -85,7 +93,7 @@ namespace Shenxiao.Module.Core.Scene
             float dx = mon.X - role.X;
             float dy = mon.Y - role.Y;
             float dist2 = dx * dx + dy * dy;
-            float range = AttackRangeFloor;
+            float range = AttackRange(skillId);
 
             if (dist2 <= range * range)
             {
@@ -171,16 +179,102 @@ namespace Shenxiao.Module.Core.Scene
         }
 
         /// <summary>
-        /// 本地技能释放边界(对标老端 Fire(FightEvent.RELEASE_MAIN_SKILL, null, null, monster.compress_id, force))。
-        /// 发本地等价事件 EVT_RELEASE_MAIN_SKILL(skillId, targetInstanceId);真实 20001 攻击请求(fight-movie/AOE 链)
-        /// 本轮不发、不猜格式,只记录 blocker。
+        /// 技能释放边界:① 本地等价事件 EVT_RELEASE_MAIN_SKILL(skillId, targetInstanceId)(对标老端
+        /// Fire(FightEvent.RELEASE_MAIN_SKILL, ..., monster.compress_id),供 UI/表现订阅,保留不动);
+        /// ② 真实服务端攻击请求(单体 20001/进战斗态 20024,经 <see cref="FightController"/>,见 <see cref="SendRealAttackOrBlock"/>)。
+        /// 老端真实 20001 在技能动作帧 skill_damage_time 由 fight-movie 触发;本端无动作帧系统,在释放边界即发(时序差异,非字段差异)。
         /// </summary>
         private static void ReleaseMainSkill(int skillId, MonsterVo mon, int attackType)
         {
             EventDispatcher.Emit(GlobalEvent.EVT_RELEASE_MAIN_SKILL, skillId, mon.InstanceId);
             GameLog.Info("Combat",
-                "RELEASE_MAIN_SKILL(本地) skill={0} target ins={1}(compress_id 等价) attackType={2};真实 20001 发送(h+i×N+h+l×N+ihhh,经 fight-movie/AOE 链)= 下一轮 blocker",
+                "RELEASE_MAIN_SKILL(本地) skill={0} target ins={1}(compress_id 等价) attackType={2}",
                 skillId, mon.InstanceId, attackType);
+
+            SendRealAttackOrBlock(skillId, mon);
+        }
+
+        /// <summary>
+        /// 真实服务端攻击请求(对标老端 AttackRequest → onRoleRequestToFightHandler → 20001)。字段全部来自真实数据,不补假字段:
+        ///   · 单体技能(config_skill.mod==1):怪列表=[主目标](对标 FightController.ts:1351-1356)。
+        ///   · 圆形 AOE(mod!=1 且 aoe_mode==1,如首杀技能 御剑一式 area=350/num=[1,4]):center=主目标坐标
+        ///     (FightController.ts:1187),收集 center 半径=config_skill area 内可攻击怪、按距离升序取 num[1] 只
+        ///     (对标 Scene.FindMonsters 圆形分支 3348-3351 + target_hiter 置首 3351-1356)。
+        ///   · 直线/扇形 AOE(aoe_mode 2/3):需主角朝向 + 直线/扇形几何(Scene.FindMonsters 3313-3347),未移植 → 只记 blocker。
+        /// x/y=center=主目标坐标;angle=0(FightController.ts:1238);人列表本期空(PvE 首杀无敌方玩家;PvP FindRoles 链下一轮)。
+        /// </summary>
+        private static void SendRealAttackOrBlock(int skillId, MonsterVo primary)
+        {
+            int level = SkillManager.Instance.GetSkill(skillId)?.Level ?? 0;
+
+            List<int> monsterIds;
+            if (!SkillConfigs.IsAoe(skillId))
+            {
+                monsterIds = new List<int> { primary.InstanceId }; // 单体:仅主目标
+            }
+            else
+            {
+                int aoeMode = SkillConfigs.GetAoeMode(skillId);
+                if (aoeMode != 1)
+                {
+                    GameLog.Info("Combat",
+                        "20001 未发(AOE blocker): skill={0} aoe_mode={1}(直线/扇形)需主角朝向+直线/扇形几何收集链(未移植),不猜范围。主目标 ins={2} 已锁定。",
+                        skillId, aoeMode, primary.InstanceId);
+                    return;
+                }
+
+                int area = SkillConfigs.GetAreaForLevel(skillId, level);
+                int maxMon = SkillConfigs.GetAttackNumForLevel(skillId, level)[1];
+                if (maxMon <= 0) maxMon = 99; // 对标老端 att_num==0 → 99(不限)
+                monsterIds = CollectCircleMonsters(primary, area, maxMon);
+                GameLog.Info("Combat",
+                    "圆形 AOE 收集: skill={0} center=主目标({1},{2}) 半径area={3} 上限num={4} → 命中 {5} 只: [{6}]",
+                    skillId, primary.X, primary.Y, area, maxMon, monsterIds.Count, string.Join(",", monsterIds));
+            }
+
+            // 进战斗态(每段战斗一次)→ 真实攻击请求(经 FightController/NetManager,逐字段对齐老端)。
+            FightController.Instance.EnterFightingState();
+            FightController.Instance.SendMainSkillAttack(skillId, monsterIds, Array.Empty<long>(), primary.X, primary.Y, 0);
+        }
+
+        /// <summary>
+        /// 圆形 AOE 怪物收集(对标 Scene.FindMonsters 圆形分支 3348-3351 + AttackRequest target_hiter 置首 3351-1356):
+        /// 从真实 <see cref="SceneManager.AllMonsters"/> 取以 center(主目标坐标)为圆心、area 为半径内的可攻击怪
+        /// (非采集 + can_attack==1 + hp&gt;0),按到 center 像素距离平方升序;主目标恒置首(距圆心 0,本就最近),
+        /// 再补到 maxMon 上限。area&lt;=0 视为不限半径(对标老端 area_pw==null)。
+        /// </summary>
+        private static List<int> CollectCircleMonsters(MonsterVo primary, int area, int maxMon)
+        {
+            long areaPw = (long)area * area;
+            var cands = new List<KeyValuePair<int, long>>();
+            foreach (MonsterVo m in SceneManager.Instance.AllMonsters)
+            {
+                if (m.IsCollect || m.CanAttack != 1 || m.Hp <= 0) continue;
+                long dx = m.X - primary.X, dy = m.Y - primary.Y;
+                long d2 = dx * dx + dy * dy;
+                if (area <= 0 || d2 <= areaPw) cands.Add(new KeyValuePair<int, long>(m.InstanceId, d2));
+            }
+            cands.Sort((a, b) => a.Value.CompareTo(b.Value));
+
+            var ids = new List<int> { primary.InstanceId }; // target_hiter 置首(对标 FightController.ts:1351)
+            foreach (KeyValuePair<int, long> c in cands)
+            {
+                if (ids.Count >= maxMon) break;
+                if (c.Key == primary.InstanceId) continue;
+                ids.Add(c.Key);
+            }
+            return ids;
+        }
+
+        /// <summary>
+        /// 真实攻击范围(对标老端 SkillManager.GetCurrentAttackRange = max(100, skill_distance*0.8))。
+        /// skill_distance 取 config_skill lv_data[level-1].distance(缺省 50);level 取真实已学等级。
+        /// </summary>
+        private static float AttackRange(int skillId)
+        {
+            int level = SkillManager.Instance.GetSkill(skillId)?.Level ?? 0;
+            int distance = SkillConfigs.GetDistanceForLevel(skillId, level);
+            return Math.Max(AttackRangeFloor, distance * 0.8f);
         }
     }
 }

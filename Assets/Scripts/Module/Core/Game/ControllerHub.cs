@@ -42,6 +42,7 @@ namespace Shenxiao.Module.Core.Game
             SurpriseGiftController.Instance,
             BagController.Instance,
             SkillController.Instance,
+            FightController.Instance,
             // 后续:EquipController / ChatController ...
         };
 

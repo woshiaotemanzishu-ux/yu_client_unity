@@ -88,6 +88,16 @@ namespace Shenxiao.Framework.Net
         /// <summary>NPC task icon refresh. Send empty or receive pushed u16 count + {u32 npcId, u8 iconFlag}.</summary>
         public const int SC_NPC_ICON_REFRESH = 12020;
 
+        // ----- Fight / 战斗 (200xx, yu_client h5/src/scene/fight/FightController.ts) -----
+        /// <summary>主角技能攻击请求(C2S)。对标 FightController.ts:800 WriteBegin(20001):
+        /// h+怪物实例id(i)×N + h+玩家roleId(l)×N + ihhh(skill_id, attack_x, attack_y, attack_angle)。
+        /// 单体目标技能:怪列表=[目标实例id],人列表=[],x/y=目标坐标,angle=0(老端硬编码,见 FightController.ts:1238)。
+        /// 服务端同号广播(S2C)=攻击结果(攻击者信息+防御者列表+伤害,FightVo),本期只记录原始响应取证(完整解析=P4)。</summary>
+        public const int CS_FIGHT_ATTACK = 20001;
+        /// <summary>进/出战斗态(C2S)。对标 FightController.ts:889 SendFmtToGame(20024,"c",1/2):1=进战斗态 2=出战斗态。
+        /// 老端由 CHANGE_FIGHTING_STATE 驱动(受 ConfigClientScene.fighting_state_invalidate 限制)。</summary>
+        public const int CS_FIGHTING_STATE = 20024;
+
         // ----- Task (300xx, yu_client h5/src/commonController/TaskController.ts) -----
         /// <summary>Task full list. Send empty; reply h + task list, then h + received task list.
         /// Task item format: i task_id, h tip_count, then each tip "c s c i i i i i h h c".</summary>
