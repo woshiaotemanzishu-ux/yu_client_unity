@@ -48,6 +48,9 @@ namespace Shenxiao.Module.Core.MainUI
             BindNav(_img_head, "setting");
             BindNav(_box_buff, "buff");
             BindNav(_box_fight_mode, "fightmode");
+            BindNav(_box_vip, "vip");
+            BindNav(_box_recharge, "recharge");
+            BindNav(_box_halo, "halo");
         }
 
         private void BindNav(Component target, string routerKey)
