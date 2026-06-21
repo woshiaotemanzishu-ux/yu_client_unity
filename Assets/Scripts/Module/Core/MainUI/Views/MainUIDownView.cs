@@ -22,50 +22,19 @@ namespace Shenxiao.Module.Core.MainUI
     /// 数据只读 RoleModel(唯一真相源),监听 EVT_ROLE_INFO_UPDATE 刷新(对标老客户端 EXP_CHANGE_WITHOUT_ANIMATION)。
     /// 与 MainUITopView 一致用 OnDestroy 兜底注销:模块释放不走 ViewManager,只靠 OnDispose 会漏注销。
     /// 翻面红点 _img_red 与经验特效盒 _box_exp_effect:GetMainFuncRedState/AddUIEffect 依赖未移植模块,先隐藏。
-    /// 功能图标条(对标 UpdateIconItem):按 MainUIModel.Main_Func_Icons 两行 + ConfigFuncOpenCondition 开放判定
-    /// (FuncOpenConfig)铺设,翻面按钮在等级 ≥65 时循环 show_type;图标的点击跳转(SwitchView)依赖各功能
-    /// 模块,本期不接,只还原"显示哪些图标 + 翻面切换"。
+    /// 功能图标条(对标 UpdateIconItem):功能配置(两行图标 / 开放判定 / 翻面等级)集中在 MainUIModel
+    /// (对标老端 Main_Func_Icons / GetMainFuncOpenCond / Turn_Open_lv),本 View 只按 show_type 行 + 开放判定
+    /// 铺图标并处理翻面;点击经 MainFuncIconItem → MainUIRouter 打开对应功能面板(已注册模块即开,未注册降级)。
     /// </summary>
     public sealed class MainUIDownView : MainUIDownViewBind
     {
         // 老客户端 MainUIDownView.ts 明确写死 max_len = 722,经验条目标宽度按它计算。
         private const float EXP_BAR_MAX_WIDTH = 722f;
+        // 图标中心间距(对标 UpdateIconItem 的 SetPosition((index-1)*105, 0)):属布局,留在 View。
         private const float FUNC_ICON_GAP = 105f;
-        // 对标 MainUIModel.Turn_Open_lv:到此等级才能翻面切换第二行功能。
-        private const int TURN_OPEN_LV = 65;
 
-        /// <summary>功能图标条目:res=图标名(mainUI atlas);openView=功能开放判定的 view 类名(null=恒开)。</summary>
-        private readonly struct FuncIcon
-        {
-            public readonly string Res;
-            public readonly string OpenView;
-            public FuncIcon(string res, string openView)
-            {
-                Res = res;
-                OpenView = openView;
-            }
-        }
-
-        // 对标 MainUIModel.Main_Func_Icons:两行(show_type 0/1)。func→view 映射对标 GetMainFuncOpenCond。
-        private static readonly FuncIcon[][] FuncIconLines =
-        {
-            new[]
-            {
-                new FuncIcon("role", null),
-                new FuncIcon("bag", null),
-                new FuncIcon("pet", "MountPetView"),
-                new FuncIcon("equip", "EquipView"),
-                new FuncIcon("treasure", "SecretTreasureMainView"),
-            },
-            new[]
-            {
-                new FuncIcon("red", "RedEnterView"),
-                new FuncIcon("love", "MarriageBaseView"),
-                new FuncIcon("guild", "GuildJoinBaseView"),
-                new FuncIcon("composite", "CompositeView"),
-                new FuncIcon("232", "GodBefallMainView"),
-            },
-        };
+        // 功能图标配置(两行图标 / 开放判定 / 翻面等级)集中在 MainUIModel(对标老端 Main_Func_Icons /
+        // GetMainFuncOpenCond / Turn_Open_lv),本 View 不再自带硬编码二维数组,只消费模型。
 
         private readonly List<MainFuncIconItemBind> _funcIconItems = new List<MainFuncIconItemBind>();
         private int _showType;
@@ -207,13 +176,13 @@ namespace Shenxiao.Module.Core.MainUI
         /// <summary>对标 UpdateIconItem:遍历当前行,GetMainFuncOpenCond 过的才显示并按 105 间距排布。</summary>
         private void BuildFuncIcons()
         {
-            FuncIcon[] line = FuncIconLines[_showType];
+            MainUIModel.MainFuncIcon[] line = MainUIModel.MainFuncIcons[_showType];
             int shown = 0;
             for (int i = 0; i < line.Length; i++)
             {
-                FuncIcon fi = line[i];
-                // 恒开图标 openView==null;其余查功能开放表(对标 GetMainFuncOpenCond)。
-                if (fi.OpenView != null && !FuncOpenConfig.CheckFuncOpenState(fi.OpenView)) continue;
+                MainUIModel.MainFuncIcon fi = line[i];
+                // 开放判定集中在 MainUIModel.GetMainFuncOpenCond(Role/Bag 恒开,其余查功能开放表)。
+                if (!MainUIModel.GetMainFuncOpenCond(fi.Func)) continue;
 
                 MainFuncIconItemBind item = GetOrCreateFuncIconItem(shown);
                 if (item == null) continue;
@@ -222,12 +191,11 @@ namespace Shenxiao.Module.Core.MainUI
                 SetFuncIconPosition(item, shown * FUNC_ICON_GAP, 0f);
 
                 // 走 MainFuncIconItem.SetData:它填图标 + 隐红点 + 一次性绑定点击(_clickBound 守卫,
-                // 防 BuildFuncIcons 多次调用叠加监听),点击经 MainUIRouter.Open(func) 打开对应面板。
-                // Func 用图标 res 作路由 key(如 "bag"),已注册模块即可打开,未注册的路由打日志降级。
+                // 防 BuildFuncIcons 多次调用叠加监听),点击经 MainUIRouter 用 MainFuncIcon.Res 打开对应面板。
                 MainFuncIconItem view = item as MainFuncIconItem;
                 if (view != null)
                 {
-                    view.SetData(new FuncIconData { Res = fi.Res, Func = fi.Res });
+                    view.SetData(fi);
                 }
                 else
                 {
@@ -248,19 +216,13 @@ namespace Shenxiao.Module.Core.MainUI
             }
         }
 
-        /// <summary>对标 MainUIModel.GetTurnState:角色等级达到翻面等级才能翻面。</summary>
-        private static bool GetTurnState()
-        {
-            return RoleModel.Instance.Level >= TURN_OPEN_LV;
-        }
-
-        /// <summary>对标 turn_btn_fun:可翻面时 show_type 在 0/1 间循环,刷新按钮态与图标行。</summary>
+        /// <summary>对标 turn_btn_fun:可翻面时 show_type 在各行间循环,刷新按钮态与图标行。</summary>
         private void OnClickTurn()
         {
-            if (!GetTurnState()) return;
+            if (!MainUIModel.GetTurnState()) return;
 
             _showType++;
-            if (_showType > 1) _showType = 0;
+            if (_showType >= MainUIModel.MainFuncIcons.Length) _showType = 0;
             UpdateTurnState();
             BuildFuncIcons();
         }
@@ -273,7 +235,7 @@ namespace Shenxiao.Module.Core.MainUI
         {
             if (_img_turn == null) return;
 
-            bool open = GetTurnState();
+            bool open = MainUIModel.GetTurnState();
             string res = open && _showType != 0 ? "uizjmv3_016" : "uizjmv3_015";
             _ = ResManager.SetImageAsync(_img_turn, GameResPath.GetIcon("mainUI", res), nativeSize: false);
             _img_turn.color = open ? Color.white : new Color(0.5f, 0.5f, 0.5f, 1f);
