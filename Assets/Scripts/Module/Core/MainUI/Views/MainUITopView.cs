@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
+using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.MainUI
 {
@@ -31,9 +33,29 @@ namespace Shenxiao.Module.Core.MainUI
         {
             BuildMoneyItems(DEFAULT_MONEY_LIST);
             HideUnbackedIndicators();
+            WireTopButtons();
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             RefreshRole();
             RefreshClock();
+        }
+
+        /// <summary>顶部状态条按钮 → 经 MainUIRouter 解耦打开对应面板(对标老端 MainUITopView 各 AddClickEvent)。
+        /// 已可达目标:地图 _box_map→"map"(MapFlow,世界地图);头像 _img_head→"setting"(SettingView,老端头像开设置)。
+        /// VIP/充值/光环/客服/buff/战斗模式 等待对应模块移植后补 key。</summary>
+        private void WireTopButtons()
+        {
+            BindNav(_box_map, "map");
+            BindNav(_img_head, "setting");
+        }
+
+        private void BindNav(Component target, string routerKey)
+        {
+            if (target == null) return;
+            Image img = target as Image;
+            if (img == null) img = target.GetComponentInChildren<Image>(true);
+            if (img == null) return;
+            img.raycastTarget = true;
+            UIUtil.AddClick(img, () => MainUIRouter.Open(routerKey));
         }
 
         protected override void OnShow(object args)
