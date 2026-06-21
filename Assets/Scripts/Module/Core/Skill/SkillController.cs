@@ -3,6 +3,7 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoFight;
+using Shenxiao.Module.Core.Scene;
 
 namespace Shenxiao.Module.Core.Skill
 {
@@ -15,7 +16,8 @@ namespace Shenxiao.Module.Core.Skill
     /// 技能列表/快捷栏/图标 100% 来自真实协议 21002/13007 + config_skill/ConfigSkillUI,无硬编码技能 id。
     ///
     /// 点击技能槽 → MainUISkillItem 发 EVT_SKILL_SHORTCUT_CLICK → 本控制器 PressSkillHandler:
-    ///   本轮只记录到事件边界(真实释放 Scene.MainRoleAttackTarget 未移植),不硬造攻击 —— 下一轮战斗链路接。
+    ///   CanAttack 子集闸 + career/obj 三分支;目标型技能进 SceneCombat.MainRoleAttackTarget(真实 SceneManager 怪物寻敌 →
+    ///   范围/朝向/接近 → 本地 RELEASE_MAIN_SKILL 边界)。真实 20001 攻击请求(fight-movie/AOE 链)= 下一轮 blocker。
     ///
     /// 老端 GAME_START 还批量请求 21101/21010/18401(远古奥术/天赋/模块加成),属深水区(P4 只记录),本轮不请求不解析。
     /// </summary>
@@ -119,8 +121,9 @@ namespace Shenxiao.Module.Core.Skill
             }
             else
             {
-                // 主线最常见:职业输出技能(obj=2 最近敌方),对应老端 else 分支 Scene.MainRoleAttackTarget。
-                GameLog.Info("Skill", "PressSkill skill={0} 目标技能(obj={1})→ 老端 Scene.MainRoleAttackTarget:需 GetClickTarget→MainRoleAttackMonster→RELEASE_MAIN_SKILL;场景/怪物系统未移植 → 无目标只记真实阻塞,不假打不假伤(下一轮战斗链路)", skillId, selectType);
+                // 主线最常见:职业输出技能(obj=2 最近敌方 / obj=3 最近队友),对应老端 else 分支 Scene.GetInstance().MainRoleAttackTarget()。
+                GameLog.Info("Skill", "PressSkill skill={0} 目标技能(obj={1})→ SceneCombat.MainRoleAttackTarget(真实 SceneManager 怪物寻敌)", skillId, selectType);
+                SceneCombat.Instance.MainRoleAttackTarget(skillId, attackType);
             }
         }
     }
