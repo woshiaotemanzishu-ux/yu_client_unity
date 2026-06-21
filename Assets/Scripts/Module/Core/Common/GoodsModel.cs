@@ -13,13 +13,16 @@ namespace Shenxiao.Module.Core.Common
     /// config_goods.json 同步进 Assets/GameRes/resource/config/server/config_goods.json(地址
     /// resource/config/server/config_goods)。
     ///
-    /// 字段为【数字索引键】(同 config_task,非 config_npc 的具名键)。实测现网 config_goods.json
-    /// 每条形如 <c>"31":{"0":31,"1":"九洲灵钱",...,"9":36,"10":3,...}</c>(38 字段):
-    ///   · "0"  = goods_id(主键)
+    /// 字段为【数字索引键】(同 config_task,非 config_npc 的具名键)。键序以权威 schema 为准:
+    /// yu_client cdn/resource/config/server/config_table_default.json 的 config_goods 字段名列表(下标=键,共 38 字段):
+    ///   · "0"  = type_id(主键)
     ///   · "1"  = goods_name(物品名,对标 GoodsModel.ts GetGoodsName 的 cfg.goods_name)
-    ///   · "9"  = goods_icon(图标资源 id → <see cref="GameResPath.GetGoodsIconPath"/>,对标 cfg.goods_icon)
-    ///   · "10" = color(品质/颜色 0..8 → com_goods_plate_{color},对标 cfg.color)
-    /// 真实样本校验:17020001=淬魂原石(icon 17,color 2)、101011010=初樱轻剑(icon 10,color 1)、31=九洲灵钱(icon 36)。
+    ///   · "9"  = type(物品大类)、"10" = subtype(子类)—— 【不是】图标/品质!
+    ///   · "14" = goods_icon(图标资源 id → <see cref="GameResPath.GetGoodsIconPath"/>,对标 cfg.goods_icon)
+    ///   · "18" = color(品质/颜色 0..8 → com_goods_plate_{color},对标 cfg.color)
+    /// 真实样本校验(键 14/键 18):101011010=初樱轻剑(icon 1010101,color 1)、102011010=初樱仙剑(icon 1020101,color 1)。
+    /// 注:第 4 轮曾误把 "9"/"10" 当 icon/color,实取到的是 type/subtype(如 10/1),拼出 10.png 等不存在的 key →
+    /// 图标恒降级隐藏;现已订正为 14/18(yu_client/cdn/resource/game/goodsIcon/1010101.png 真实存在,加载即显)。
     ///
     /// 用途:奖励/物品显示把 type_id 还原成真实【名称】(<see cref="BaseAwardItem"/> / 完成弹层 / 对话奖励摘要),
     /// 真实【图标】走 ResManager.SetImageAsync。
@@ -39,8 +42,8 @@ namespace Shenxiao.Module.Core.Common
 
         // config_goods 数字索引键(见类注释;改这里=对齐配表字段顺序,勿散落魔法字符串)。
         private const string K_NAME = "1";
-        private const string K_ICON = "9";
-        private const string K_COLOR = "10";
+        private const string K_ICON = "14";   // goods_icon(注:键 "9" 是 type、"10" 是 subtype,勿混)
+        private const string K_COLOR = "18";   // color/品质 0..8
 
         private static JObject _goods;
         private static readonly Dictionary<int, GoodsBasic> _cache = new Dictionary<int, GoodsBasic>();
@@ -93,6 +96,17 @@ namespace Shenxiao.Module.Core.Common
 
         /// <summary>品质/颜色(0..8,对标 cfg.color);无则 0。</summary>
         public static int GetColor(int typeId) => GetGoodsBasicByTypeId(typeId)?.Color ?? 0;
+
+        /// <summary>
+        /// 品质底板色(com_goods_plate_{color} 用):基于 <see cref="GetColor"/>,叠加老端
+        /// BaseAwardItem.ts:273-274 的特例(type_id 26270005/26260005 强制 7)。供 BaseAwardItem 底板与
+        /// 完成弹层奖励行共用,避免特例散落多处。
+        /// </summary>
+        public static int GetDisplayColor(int typeId)
+        {
+            if (typeId == 26270005 || typeId == 26260005) return 7;
+            return GetColor(typeId);
+        }
 
         /// <summary>
         /// 把(type, type_id)映射成真实 goods_id + 绑定标记(对标 GoodsModel.ts GetMappingTypeId → [goods_id, lock])。

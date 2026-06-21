@@ -13,9 +13,11 @@ namespace Shenxiao.Module.Core.Common
     /// 数量 + 锁/选中/限时 覆盖层 + 点击 tips。被背包/装备/活动等几乎所有模块复用(克隆 BaseAwardItem.prefab)。
     ///
     /// 公开 API 对标 Laya:SetData(typeId,num,lock,select)、SetCount、SetSelect、SetLock、SetScale、SetClickCallBack。
-    /// 图标走 <see cref="GoodsModel"/>(type_id→goods_icon/color)+ ResManager.SetImageAsync:真实图标已接,goodsIcon
-    /// png 未导入则降级隐藏 + 精确 blocker(见 <see cref="RefreshIcon"/>);品质底板/UIToolTipMgr 仍待移植(com_goods_plate
-    /// 待 common 图集、点击 tips 待 UIToolTipMgr)。数量/锁/选中/缩放/点击回调 即时可用;特效层(effect_con)先隐藏。
+    /// 图标走 <see cref="GoodsModel"/>(type_id→goods_icon/color)+ ResManager.SetImageAsync:真实图标 + 品质底板
+    /// (com_goods_plate_{color},common 图集)均已接,缺图降级隐藏 + 精确 blocker(见 <see cref="RefreshIcon"/>);
+    /// 数量/锁/选中/缩放/点击回调 即时可用;特效层(effect_con)、点击 tips(UIToolTipMgr)仍待移植。
+    /// 注:本类逻辑就绪,但 Assets/Prefabs/UI/Common/BaseAwardItem.prefab 当前【未挂本组件】(根仅 RectTransform,
+    /// 对照 ItemInfoItem.prefab 有挂),故经 prefab 实例化复用尚被阻断 —— 见第 6 轮任务包(回填 Bind 组件/修转换器)。
     /// </summary>
     public sealed class BaseAwardItem : BaseAwardItemBind
     {
@@ -76,11 +78,11 @@ namespace Shenxiao.Module.Core.Common
         }
 
         /// <summary>
-        /// 图标 + 品质底板(对标老端 BaseAwardItem.SetData:GoodsModel.GetGoodsBasicByTypeId → goods_icon/color):
-        /// 真实图标走 <see cref="ResManager.SetImageAsync"/>(Laya SetTexture 对等);品质底板 com_goods_plate_{color}
-        /// 待 common 图集导入,暂保留 prefab 默认底板。
-        /// 降级(精确 blocker):goodsIcon 的 png 尚未导入(Assets/GameRes/resource/game/goodsIcon/ 为空)→ 隐藏图标位
-        /// (无 skin 的 Image 占位约定 enabled=false,icon 非点击件不影响交互),并写明缺哪个 key;真实名称由列表文本
+        /// 图标 + 品质底板(对标老端 BaseAwardItem.ts SetData → item_bg.skin = AtlasUrl("common","com_goods_plate_"+color)
+        /// + icon 走 GoodsModel.GetGoodsBasicByTypeId.goods_icon):底板与图标均走 <see cref="ResManager.SetImageAsync"/>
+        /// (Laya SetTexture 对等;Editor 下缺图会从 yu_client/cdn 自动兜底导入)。
+        /// 降级(精确 blocker):某 png 在 yu_client/cdn 与 Assets/GameRes 都找不到 → 隐藏图标位(无 skin 的 Image 占位
+        /// 约定 enabled=false,icon 非点击件不影响交互),并写明缺哪个 key;真实名称仍由列表文本
         /// (<see cref="Shenxiao.Module.Core.Tasks.TaskReward.ToText"/>)经 <see cref="GoodsModel"/> 呈现。
         /// </summary>
         private async void RefreshIcon()
@@ -89,7 +91,7 @@ namespace Shenxiao.Module.Core.Common
             int typeId = _typeId;
             if (typeId <= 0)
             {
-                // 货币/经验数值或空格子:无 goods 图标,隐藏图标位(不画假图)。
+                // 货币/经验数值或空格子:无 goods 图标,隐藏图标位(不画假图);底板保留 prefab 默认。
                 icon.enabled = false;
                 return;
             }
@@ -102,6 +104,16 @@ namespace Shenxiao.Module.Core.Common
                 return;
             }
 
+            // 品质底板(对标 BaseAwardItem.ts:279):color → com_goods_plate_{color}(common 图集)。
+            if (item_bg != null)
+            {
+                string plateKey = GameResPath.GetIcon("common", "com_goods_plate_" + GoodsModel.GetDisplayColor(typeId));
+                bool plateOk = await ResManager.SetImageAsync(item_bg, plateKey, false, false);
+                if (_typeId != typeId) return; // 期间该格被复用:丢弃
+                if (!plateOk)
+                    GameLog.Warn("Common", "BaseAwardItem 物品[{0}]{1} 品质底板未加载: key={2}", typeId, basic.Name, plateKey);
+            }
+
             string iconPath = GameResPath.GetGoodsIconPath(basic.Icon);
             bool ok = await ResManager.SetImageAsync(icon, iconPath, false, false);
             if (_typeId != typeId) return; // 期间该格被复用为别的物品:丢弃本次结果
@@ -109,8 +121,8 @@ namespace Shenxiao.Module.Core.Common
             {
                 icon.enabled = false;
                 GameLog.Warn("Common",
-                    "BaseAwardItem 物品[{0}]{1} 图标未导入(blocker): key={2} —— goodsIcon png 未进 " +
-                    "Assets/GameRes/resource/game/goodsIcon/(用 神霄/资源 导该图集),先降级隐藏(名称见列表文本)。",
+                    "BaseAwardItem 物品[{0}]{1} 图标未导入(blocker): key={2} —— goodsIcon png 在 yu_client/cdn 与 " +
+                    "Assets/GameRes/resource/game/goodsIcon/ 均缺(用 神霄/资源 导该图集),先降级隐藏(名称见列表文本)。",
                     typeId, basic.Name, iconPath);
             }
         }
