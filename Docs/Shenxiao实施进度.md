@@ -508,3 +508,46 @@ Unity 配表流水线(解锁 NPC 名字/称号)、TaskFinishView 完成弹层、
 
 **未做(诚实声明)**:三项的 Unity Play 实跑未做(本环境只编译,不代表运行)。3D 合成台精确对位承
 2026-06-17「待真机微调」。Play 验收清单见各 commit。
+
+---
+
+## 主线竖切 第 2 轮(2026-06-21):NPC 对话子系统 + 朝向 NPC
+
+**P1 NPC 对话子系统最小闭环(commit `2a3ae18bc`)**:
+- 新增 `Module/Core/Dialogue/`:DialogueController / DialogueModel / NpcDialogVo / DialogueView /
+  NpcConfigs / TalkConfigs / DialogueNodeVo / DialogueTypeConst。对标老端 commonController/DialogueController.ts
+  + commonModel/DialogueModel.ts + dialogue/NpcDialogVo.ts。
+- 协议(byte 级出处 = `cdn/resource/config/client/ClientProtocol.zip → ClientProtocol.json`,与已验证 12100 同源交叉核对):
+  - 12101 发 `"i"`(npc_id);收 `npc_id:i + task_list[h×{task_id:i, task_state:c, task_name:s, task_type:c}]`。
+  - 12102 发 `"ii"`(npc_id, task_id);收 `npc_id:i, task_id:i, talk_id:i`。
+  - 30003/30004/30007 发 `"i"`(接/交/对话事件;仅发,服务端回推 30001/30000 刷新)。
+  - Proto 常量:CC_NPC_TASK_LIST / CC_NPC_TASK_TALK / CC_TASK_ACCEPT / CC_TASK_FINISH / CC_TASK_TALK_EVENT。
+- 链路:TaskModel.DoFindNpcTask → DialogueController.ShowTask(发 12101)→ On12101 装配 NpcDialogVo(NPC 默认对话)
+  → ShowNpcTalk(单内容块+单行+单任务且 state≠2 → 短路 SelectTask 发 12102;否则展默认对话 + 任务菜单)
+  → On12102 用 talk_id 查 config_talk 展任务对话 → 点动作节点(TRIGGER/FINISH/FINISH_AND_TRIGGER/TALK_EVENT)
+  发 30003/30004/30007。对话已开则不重复请求(DialogueModel.DialogIsOpen 去重)。
+- 数据真实:对话文字 100% 来自 config_talk;NPC 名来自 config_npc;任务来自 12101 真实回包。
+  DialogueView = 最小原生 uGUI 临时壳(已标注 TEMP,字体复用场景已开 MainUI 的 TMP 含中文),数据/入口均真,无假对白。
+- config_npc(265)+ config_talk(959)经 `ClientConfigSync.SYNC_LIST_SERVER` 从 yu_client 同步进 GameRes
+  (可再生成路线,与 config_task 一致;`/Assets/GameRes/resource` 被 .gitignore:46 忽略,SYNC_LIST 为可复现源)。
+  **→ 解除上一轮「config_npc 未导入」blocker**(上文 P1 NPC 可见链路那条已被本轮取代)。
+- 验证:dotnet build 0 错;Unity 编译 0 错(Shenxiao.Module.Core.dll 重建,Console 0 Error,8 个 .cs.meta 生成);
+  离线配表数据路径自检(PowerShell + Unity MCP):npc 100101(云霄月华)→ config_npc.talk 100101 → config_talk.content
+  →「月见梦萦始莫离,弥生魂绕终需醒。」;talk 101 → NPC 行 + FINISH 节点(「完成任务」,IsActionNode=true)。
+
+**P2 朝向 NPC(commit `26fad79f3`)**:
+- `MainRoleAgent.Current` 句柄(Init 置 / OnDestroy 清)+ `FaceTowardPixel(targetX,targetY)`(复用 Face 的
+  yaw 解算 `Atan2(dir.x,-dir.y)`,瞬时落位;玩家推摇杆后 Update→Face 自动接管,不冲突)。
+- `TaskModel.DoFindNpcTask` 定位 NPC 后先 FaceTowardPixel(npc.X,npc.Y) 再 ShowTask。对标 Scene.MainRoleToNpc 的
+  `main_role.SetDirection(npcpos.getDir(rolepos))`(Scene.ts:1437-1438)。玩家可见:点找-NPC 任务 → 主角转身面向 NPC → 弹对话。
+
+**本轮 blocker / 未做(诚实声明)**:
+- Play 活服往返未做:本 worker 无法驱动登录/服务端(Unity MCP 桥间歇可用,RunCommand 沙箱禁 System.Reflection
+  且 EnsureLoaded 异步无法在编辑器同步阻塞)→ 12101/12102 实包未跑;以 dotnet+Unity 双编译 0 错 + 离线配表路径自检替代。
+- 30004 完成奖励展示 / award_list(special_goods_list 经 ErlangParser 按职业过滤)未做 → 对话内暂不展奖励。
+- TaskFinishView 完成弹层未移植(非对话的「完成」分支仍 blocker)。
+- 走到 NPC 的移动(直线 + 碰撞滑行 / A* 寻路)、USE_FLY_SHOE 跨场景未做(本轮只转身)。
+- DialogueView 仍为原生临时壳,待 LayaUI 转换产出 DialogueViewBind/prefab 后替换。
+- NpcRenderer 名牌/缩放/朝向:config_npc 现已导入可接,本轮未接(见第 3 轮包)。
+
+**下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第3轮.md`。
