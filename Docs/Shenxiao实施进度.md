@@ -885,3 +885,37 @@ commit `51dc670e2`(P1 背包 15010 + P2 物品 tips)。第 7 轮定位的「活�
 - **新配表 Addressables 未分组**:`GoodsType`/`ConfigItemAttr`/`config_equip_attr` 同既有 `config_goods` 走编辑期兜底,live Play 前需「Addressable 自动分组」(避免污染已入库 AddressableAssetSettings,本轮不顺手跑)。
 
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第10轮.md`。
+
+## 主线竖切 第 10 轮(2026-06-21):装备 tips config 极品预览 + 专有属性 + 实例透传地基 + 端到端联动(无活服)
+
+第 9 轮 tips 装备分支落了「基础属性 + 部位/阶/星/等级/职业」,但极品 `recommend_attr`/专有 `other_attr` 仅在注释标 TODO、`BagGoods` 实例只暂存未透传。
+本轮把装备 tips 推到**对标 `EquipToolTips.SetBestPro`(极品预览)+ `SetRedPro`(专有)**,并打通**实例透传地基**(点格带 `BagGoods` → `ItemTipsView.Show(BagGoods)` 重载)。改动 5 个源文件(无 prefab/scene/config 入库)。
+
+**P0 保护基线**:worktree 干净;第 9 轮链路 rg 命中(`GetGoodsTypeName`/`GetBaseAttrs`/`GetEquipAttr`/`AppendEquip`/`EquipExtraAttr`);`dotnet build` 0 错(6 既有无关警告);Unity 域重编 console 0 Error;未重做第 9 轮。
+
+**关键:RunCommand 先实证 key5/key6 真实格式(任务包红线「勿臆造」)**——读真实 `config_equip_attr.json`(2442 条 key5 / 1172 条 key6 非空)+ 老端 `EquipBestProItem.SetData`/`Util.GetAttrStr` 渲染源码:
+- **`other_attr`(key6)= `[{attr_id,val},...]`**(同 base_attrlist 对偶)→ 专有属性。
+- **`recommend_attr`(key5)= `[{100,{color,attr_id,v2,tmpl,v4}},...]`**(嵌套;外层 100=极品类型标记预览态忽略)→ 极品预览:内层 `inner[1]`=attr_id(名含 `{0}` 被 `inner[3]` 替换)、值=成长型(attr_id 300..307)取 `inner[4]` 否则 `inner[2]`。
+- **值显示** 对标 `WordManager.ConvertToPercentValue`:`ConfigItemAttr[id].kind==2`(万分比)→ `val/100+"%"`;base_attrlist 显原值(老端不转)。
+
+**P2 装备 tips config 极品/专有 + 实例透传地基**:
+- **`GoodsModel` 新增**:`GetEquipRecommendAttrs`(key5 嵌套解析→预览行)、`GetEquipOtherAttrs`(key6→专有行)、`GetBestProNum`(color 3→1/4→2/5,6→3/7→4)、`FormatAttrValue`(kind 万分比)、`GetAttrKind`、`IsGrowthProType`;均走 `ErlangParser`(递归支持嵌套 tuple)+ `GetAttrName`。
+- **`ItemTipsView.AppendEquip` 加两段**:`AppendBestPro`(有实例 `equip_extra_attr` 显真值,否则 config `recommend_attr` 预览「随机生成 N 条」)、`AppendOtherPro`(config `other_attr`「名:值」);仅 config 时标 blocker 注。TEMP 壳面板加高(560→820)+正文下边距(70→88)避正文压关闭按钮。
+- **实例透传**:`ItemTipsView.Show(BagGoods)` 重载(typeId/数量取自实例;有 `ExtraAttrs`/`Stren` 显实例极品/强化行,缺则回落 config);`BagItemData` 加 `Goods` 字段、`BagItemRenderer.SetData` 给格点击接 `() => ItemTipsView.Show(data.Goods)`、`BagComponentView` 铺格透传真实 `vo`。
+
+**工具修复(红线「工具有问题先修工具」)**:`ResManager.ReleaseInstance` 对 editor 兜底实例由恒 `Destroy` 改 `Application.isPlaying ? Destroy : DestroyImmediate`——edit mode(无 Play 的渲染/截图 harness)下 `Destroy` 抛 "may not be called from edit mode" 错;惠及所有编辑期 harness。
+
+**验证**(Unity RunCommand 编辑期 async `EnsureLoaded` + RenderTexture 真机渲染;`IsLoaded=True`):
+- **数据实证**(RunCommand 返回):晨曦轻剑 101015052 type=10 武器 5阶 lv100 剑士 bestProNum=3 → base 攻击+2550/破甲+1020、recommend [推荐]伤害加深+1.3%/攻击加成+1.7%/破甲加成+3.4%(`{100,{4,9,130}}`→9=伤害加深 130/100=1.3%)、other 攻击:880/破甲:352;沧溟轻剑 101015072 7阶 1.8%/2.4%/4.8%;九霄狂剑 101015092 9阶 2.3%/3.1%/6.1%——逐值对回真实 config。
+- **P2 装备 tips**(`Temp/round10_equip_tips.png`):晨曦轻剑 金名 + 真图标 + 品质底板(color5 兜底导入)+ 类型/数量 + 部位·5阶2星·等级·职业 + 【基础属性】+ 【极品属性】(随机生成 3 条)[推荐]×3 + 【专有属性】×2 + blocker 注,关闭按钮在正文下不压字。
+- **P1 端到端联动**(`Temp/round10_bag_click_tips.png`):真实 `BaseAwardItem` 格(晨曦轻剑 真图标+品质底板)+ 真实 `Button.onClick.Invoke()` → 经 `BagItemRenderer` 同款接线 `ItemTipsView.Show(BagGoods 实例重载)` → tips 弹出;断言 `cellBtn=True; tipsOpen=True; has极品=True; has专有=True`。
+- 双编译 0 错;git 仅本轮 5 源文件,无 prefab/scene/config/meta 入库(配表/兜底图入 gitignored GameRes)。
+
+**本轮 blocker(诚实声明,已收窄)**:
+- **装备实例「极品 `equip_extra_attr`/强化 `stren`」真值 = 活服回 15010 实包**:实例透传链路已**全通**(`Show(BagGoods)` 重载 + 格点击带实例 + `AppendBestPro` 有实例走真值分支),只缺活服实装备的实例数组 → 现显 config 预览(真实 config,非假)。活服联调即显实例真值。
+- **真背包物品内容**:同第 7~9 轮,无登录会话 → 真满包拿不到;协议/Model/渲染/点击→tips 全链就绪,以真实 config 格 + 真实点击端到端替代。
+- **`recommend_attr` 颜色/`config_equip_stren_lv` 强化加值数值**:极品行颜色(老端 `ColorUtil.GetColorDark(inner[0])`)本轮用固定橙色(纯样式,非数据);强化加值需 `config_equip_stren_lv[equip_type@1]`(未载)→ 实例 stren 仅显等级,加值待补表。
+- **新配表 Addressables 未分组**(同第 9 轮顺延):live Play 前需「Addressable 自动分组」。
+- **P3 未触发**:P1/P2 未被卡 >15min,故货币图标真机截图(第 7~9 轮 P3 顺延)/数值红字/Addressables 分组 留第 11 轮。
+
+**下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第11轮.md`。
