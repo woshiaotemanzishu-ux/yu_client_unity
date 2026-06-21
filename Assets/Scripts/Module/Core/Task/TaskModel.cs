@@ -109,6 +109,26 @@ namespace Shenxiao.Module.Core.Tasks
             return result;
         }
 
+        /// <summary>
+        /// 主线引导任务条目(对标老端 SetMainLineTask:当 MainLineTaskNeedShowArrow 时,主线任务从
+        /// 面板列表里排除,改放 _box_main_line 单独渲染)。返回主线任务的 TaskEntry(含 tips 列表),无则 null。
+        /// </summary>
+        public TaskEntry GetMainLineEntry()
+        {
+            if (MainLineTaskVo == null) return null;
+            int id = MainLineTaskVo.TaskId;
+            if (!_allTaskList.TryGetValue(id, out List<TaskVo> tips) || tips == null || tips.Count == 0) return null;
+            (int sortIndex, int sortSubIndex, int sameTypeOrderIndex) = GetSortIndex(id);
+            return new TaskEntry
+            {
+                TaskId = id,
+                SortIndex = sortIndex,
+                SortSubIndex = sortSubIndex,
+                SameTypeOrderIndex = sameTypeOrderIndex,
+                TipsList = tips,
+            };
+        }
+
         public TaskVo FindUnFinishTask(List<TaskVo> tipsList)
         {
             if (tipsList == null || tipsList.Count == 0) return null;
@@ -155,7 +175,7 @@ namespace Shenxiao.Module.Core.Tasks
         {
             if (task == null) return "";
 
-            string tips = string.IsNullOrEmpty(task.TaskTipsMsg) ? task.Tips : task.TaskTipsMsg;
+            string tips = BuildTipBody(task);
             bool finish = IsAllStepFinish(task.TaskId);
             if (finish)
             {
@@ -170,6 +190,23 @@ namespace Shenxiao.Module.Core.Tasks
                 tips += " (" + task.NowNum + "/" + task.NeedNum + ")";
             }
             return tips;
+        }
+
+        /// <summary>
+        /// 任务条文案主体(对标老端 GetTaskTipsMsgByMainUITaskItem,TaskModel.ts:2530)。老端文案是
+        /// **客户端按类型现拼**,不是直接用 config_task.tips:找 NPC 对话类 = "与<NPC名>交谈"(NPC 名取
+        /// config_npc,绿色)。本轮先补主线首屏最常见的对话类(Talk/StartTalk/EndTalk);击杀/采集/收集/
+        /// 通关副本等类型仍回退服务端 tipsMsg / config tips,后续轮按 config_mon/config_goods 逐类补。
+        /// </summary>
+        private string BuildTipBody(TaskVo task)
+        {
+            if (IsFindNpcTask(task.TaskTipsType) && task.Id > 0)
+            {
+                NpcConfigs.NpcCfg npc = NpcConfigs.Get(task.Id);
+                if (npc != null && !string.IsNullOrEmpty(npc.Name))
+                    return "与<color=#00fa64>" + npc.Name + "</color>交谈";
+            }
+            return string.IsNullOrEmpty(task.TaskTipsMsg) ? task.Tips : task.TaskTipsMsg;
         }
 
         public bool IsMainTask(int taskId)

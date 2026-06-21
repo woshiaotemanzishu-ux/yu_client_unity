@@ -19,6 +19,7 @@ namespace Shenxiao.Module.Core.MainUI
         private static readonly Color TaskTabDarkColor = ParseColor("#6CFFD3");
 
         private readonly List<MainUITaskItem> _taskItems = new List<MainUITaskItem>();
+        private MainUITaskItem _mainLineItem; // _box_main_line 内的主线任务条(复用 MainUITaskItem 渲染)
 
         protected override void OnInit()
         {
@@ -29,6 +30,10 @@ namespace Shenxiao.Module.Core.MainUI
             _img_team_role_count_bg.gameObject.SetActive(false);
             _box_main_line.gameObject.SetActive(false);
             _panel_task.gameObject.SetActive(false);
+            // 神殿觉醒框 SetTempleAwaken 未移植(依赖 TempleAwakenModel);prefab 内 _box_open_awaken
+            // 烘焙了占位文案("剑魄同修提升 10/35"),首登(等级低、觉醒未解锁)老端是隐藏的 → 先整体隐藏,
+            // 不展示假占位。完整移植(按真实 TempleAwakenModel 显隐/进度)留后续轮。
+            _box_temple_awaken.gameObject.SetActive(false);
             _lb_task_desc.text = "任务";
             _lb_team_desc.text = "队伍";
             _lb_task_desc_en.gameObject.SetActive(false);
@@ -70,7 +75,13 @@ namespace Shenxiao.Module.Core.MainUI
         {
             List<TaskModel.TaskEntry> list = TaskModel.Instance.GetTaskListForMainUI();
             _panel_task.gameObject.SetActive(list.Count > 0);
-            _box_main_line.gameObject.SetActive(TaskModel.Instance.MainLineTaskNeedShowArrow());
+
+            // 主线引导任务:老端在 _box_main_line 用 MainUITaskMainLineItem 渲染(带引导箭头/特效),
+            // 并把主线从面板列表排除。Unity 暂无 MainUITaskMainLineItem 转换件 → 复用 MainUITaskItem 把
+            // 真实主线任务渲到 _box_main_line(避免空槽 / 不留占位)。引导箭头/手指特效仍 record-only(StoryModel 未移植)。
+            TaskModel.TaskEntry mainLine = TaskModel.Instance.MainLineTaskNeedShowArrow()
+                ? TaskModel.Instance.GetMainLineEntry() : null;
+            RefreshMainLineItem(mainLine);
 
             Transform parent = _panel_task.content != null ? _panel_task.content : _panel_task.transform;
             for (int i = 0; i < list.Count; i++)
@@ -119,6 +130,51 @@ namespace Shenxiao.Module.Core.MainUI
             while (_taskItems.Count <= index) _taskItems.Add(null);
             _taskItems[index] = item;
             return item;
+        }
+
+        // 主线任务条:有引导主线任务时显示在 _box_main_line(复用 MainUITaskItem);否则隐藏整槽。
+        private void RefreshMainLineItem(TaskModel.TaskEntry entry)
+        {
+            if (entry == null)
+            {
+                if (_mainLineItem != null) _mainLineItem.gameObject.SetActive(false);
+                _box_main_line.gameObject.SetActive(false);
+                return;
+            }
+
+            _box_main_line.gameObject.SetActive(true);
+            MainUITaskItem item = EnsureMainLineItem();
+            if (item == null) return;
+            item.gameObject.SetActive(true);
+            item.Show();
+            item.SetData(entry);
+        }
+
+        private MainUITaskItem EnsureMainLineItem()
+        {
+            if (_mainLineItem != null) return _mainLineItem;
+            if (_tpl_MainUITaskItem == null)
+            {
+                GameLog.Error("MainUI", "MainUITaskItem template missing (main line)");
+                return null;
+            }
+
+            GameObject go = Instantiate(_tpl_MainUITaskItem, _box_main_line);
+            go.SetActive(true);
+            _mainLineItem = go.GetComponent<MainUITaskItem>();
+            if (_mainLineItem == null)
+            {
+                GameLog.Error("MainUI", "MainUITaskItem template not rebound (main line)");
+                Destroy(go);
+                return null;
+            }
+            // 贴 _box_main_line 左上(老端主线条在任务区顶部)。
+            RectTransform rt = (RectTransform)_mainLineItem.transform;
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.anchoredPosition = Vector2.zero;
+            return _mainLineItem;
         }
 
         private void ApplyTaskTabState(bool taskSelected)
