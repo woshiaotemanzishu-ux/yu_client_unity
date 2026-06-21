@@ -46,6 +46,7 @@ namespace Shenxiao.Module.Core.Common
         private const string K_COLOR = "18";   // color/品质 0..8
 
         private static JObject _goods;
+        private static JObject _notNormal;   // ConfigNotNormalGoods:货币/经验 type→{goods_id,desc}(GetMappingTypeId 用)
         private static readonly Dictionary<int, GoodsBasic> _cache = new Dictionary<int, GoodsBasic>();
 
         public static bool IsLoaded => _goods != null;
@@ -67,7 +68,21 @@ namespace Shenxiao.Module.Core.Common
             _goods = JObject.Parse(asset.text);
             _cache.Clear();
             ResManager.Release(asset);
-            GameLog.Info("Goods", "config_goods loaded: {0} goods", _goods.Count);
+
+            // 货币/经验映射表(client 配置;type→goods_id,如 3→31 金币、5→32 经验)。
+            string nnKey = GameResPath.GetClientConfigPath("confignotnormalgoods");
+            UnityEngine.TextAsset nnAsset = await ResManager.LoadAsync<UnityEngine.TextAsset>(nnKey);
+            if (nnAsset != null)
+            {
+                _notNormal = JObject.Parse(nnAsset.text);
+                ResManager.Release(nnAsset);
+            }
+            else
+            {
+                _notNormal = new JObject();
+                GameLog.Warn("Goods", "missing ConfigNotNormalGoods: {0}(未同步?跑 神霄/配表/同步客户端配置)", nnKey);
+            }
+            GameLog.Info("Goods", "config_goods loaded: {0} goods, ConfigNotNormalGoods: {1} 类", _goods.Count, _notNormal.Count);
         }
 
         /// <summary>按 type_id 取物品基础数据(对标 GoodsModel.ts GetGoodsBasicByTypeId);未加载/无此物品返回 null。</summary>
@@ -109,16 +124,40 @@ namespace Shenxiao.Module.Core.Common
         }
 
         /// <summary>
-        /// 把(type, type_id)映射成真实 goods_id + 绑定标记(对标 GoodsModel.ts GetMappingTypeId → [goods_id, lock])。
+        /// 把(type, type_id)映射成真实 goods_id + 绑定标记(对标 GoodsModel.ts:2972-2991 GetMappingTypeId → [goods_id, lock])。
         ///   · type==0   普通物品 → (typeId, 0)
         ///   · type==100 绑定物品 → (typeId, 1)
-        ///   · 其它(-1/255/货币经验类)需客户端 ConfigNotNormalGoods 映射(尚未同步)→ 暂原样返回 + 不臆造。
+        ///   · type==-1 / 255    货币:键是 typeId → ConfigNotNormalGoods[typeId].goods_id
+        ///   · 其它(3/5/2/10…) 货币:键是 type   → ConfigNotNormalGoods[type].goods_id(3→31 金币、5→32 经验)
+        /// 表里查不到该键 → 原样返回 typeId(不臆造)。
+        /// 元组语义(special_goods_list {type,type_id,count})以现网 config_task 全量分布实证:首元仅取
+        /// {0,2,3,5,10,255} 等 ConfigNotNormalGoods 类型键(非职业;0/10/255 不可能是职业),次元货币恒 0。
         /// </summary>
         public static (int goodsId, int locked) GetMappingTypeId(int type, int typeId)
         {
             if (type == 100) return (typeId, 1);
-            // type==0 普通物品,或特殊类型(ConfigNotNormalGoods 未移植):原样返回,绝不臆造映射。
-            return (typeId, 0);
+            if (type == 0) return (typeId, 0);
+            int key = (type == -1 || type == 255) ? typeId : type;
+            int mapped = LookupNotNormalGoodsId(key);
+            return mapped > 0 ? (mapped, 0) : (typeId, 0);
+        }
+
+        /// <summary>ConfigNotNormalGoods[key].goods_id;无则 0。</summary>
+        private static int LookupNotNormalGoodsId(int key)
+        {
+            if (_notNormal != null && _notNormal[key.ToString()] is JObject o) return ReadInt(o, "goods_id");
+            return 0;
+        }
+
+        /// <summary>
+        /// 货币/经验的中文 desc(ConfigNotNormalGoods[key].desc,如 "经验"/"金币"):config_goods 查不到名时的兜底名。
+        /// key 规则同 <see cref="GetMappingTypeId"/>(255/-1 用 typeId,其它用 type)。type 为 0/100(普通物品)返回空。
+        /// </summary>
+        public static string GetNotNormalDesc(int type, int typeId)
+        {
+            if (_notNormal == null || type == 0 || type == 100) return "";
+            int key = (type == -1 || type == 255) ? typeId : type;
+            return _notNormal[key.ToString()] is JObject o ? ReadString(o, "desc") : "";
         }
 
         // —— 数字索引键读取小工具(字符串/数字混排容错,同 NpcConfigs)——

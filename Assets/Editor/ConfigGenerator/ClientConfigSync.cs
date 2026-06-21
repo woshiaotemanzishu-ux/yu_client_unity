@@ -23,6 +23,7 @@ namespace Shenxiao.EditorTools.ConfigGen
             "SceneObjectParticle",
             "ConfigFunctionIcon",
             "ConfigFuncOpenCondition",
+            "ConfigNotNormalGoods", // 货币/经验映射(type→goods_id,如 3→31 金币、5→32 经验),GoodsModel.GetMappingTypeId 用
         };
 
         // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)
