@@ -650,4 +650,57 @@ commit `3dff3442c`(P1 真实物品名)+ `d170a5f54`(P2 NPC 名牌/缩放/朝向)
 - NPC 立绘/头像(config_npc.image)对话弹层未接(P3 fallback,本轮 P1/P2 未被卡住未触发)。
 - 货币/经验真名(exp/coin)需客户端 `ConfigNotNormalGoods`(未同步)+ TaskReward 保留货币 type → 暂"奖励 ×N"。
 
+## 主线竖切 第 5 轮(2026-06-21):奖励真实图标 + 品质底板 + NPC 对话 3D 立绘
+
+commit `f29f7831e`(P1 真实图标/品质底板)+ `97324b93f`(P2 NPC 立绘)。文件无交叠,按 P 拆 commit;资源走
+`/Assets/GameRes/resource`(gitignore)+ `object/`(tracked,已有),故 commit 仅代码。
+
+**P1 奖励真实图标 + 品质底板(对标 commonModel/GoodsModel.ts + common/BaseAwardItem.ts:254-279)**:
+- **根因订正(关键)**:第 4 轮把 config_goods 数字键 `"9"`/`"10"` 当 icon/color,实为 `type`/`subtype`;
+  权威 schema `cdn/resource/config/server/config_table_default.json` 的 config_goods 字段名列表:
+  **`"14"`=goods_icon、`"18"`=color**(`"1"`=goods_name 第 4 轮恰好对,故名字一直正常)。键错 → 拼出
+  `10.png` 等不存在 key,图标恒降级隐藏;订正后 101011010→icon `1010101`(yu_client/cdn 真实存在)。
+  → `GoodsModel.cs` K_ICON 9→14、K_COLOR 10→18;新增 `GetDisplayColor`(含老端 26270005/26260005→7 特例);
+  顺手订正 `ClientConfigSync.cs` 注释。(第 4 轮进度段 line 610 的 "9=icon/10=color" 系此 bug 的历史记录,已订正。)
+- `BaseAwardItem.RefreshIcon` 增品质底板:`item_bg = com_goods_plate_{color}`(`GameResPath.GetIcon("common",…)`
+  + `ResManager.SetImageAsync`,对标 `AtlasUrl("common",…)`)。全项目复用的物品格子件即时受益。
+- `TaskFinishView` 完成弹层增**真实物品图标行**(品质底板+图标+数量+名称),复用 GoodsModel/GameResPath/ResManager
+  真实数据与加载路径(货币/经验走底部文本)。
+- **资源落地路径**:`ResManager` 既有编辑器兜底(`TryImportLooseImageFromClient`)在缺图时自 `yu_client/cdn`
+  自动拷入并导成 Sprite → goodsIcon/com_goods_plate **无需手动批量导入**,首次加载即落地(打真机包前仍需跑分组)。
+
+**P2 NPC 对话弹层真实 3D 立绘(对标 dialogue/DialogueView.ts:552-564 SetRoleModel)**:
+- **老端真相**:对话头像 = `SetRoleModel` 渲【真实 3D 模型】(clothe_res_id=config_npc.icon、type=icon_type),
+  `config_npc.image` 全 262 条恒 `"0"` 不用于头像 → **不做假 2D 头像**,直接接真实立绘(避免假图)。
+- `DialogueView` 增 `_modelBox`(面板上方左侧)+ `ShowNpcModel`:config_npc.icon → `object/npc/model_clothe_{icon}`
+  真实模型(SkinnedMesh,git tracked,已有 70 个),经 `UIModelStage`(登录角色预览同款"隔离区相机→RT→RawImage")
+  渲入;`PlayNpcIdle`(`object/npc/action/{icon}/idle`,对标 `NpcRenderer.PlayIdle`);缺模型/动作降级 + 精确 blocker。
+- 生命周期:Open 异步加载(`_modelEpoch` 竞态闸)、Close 清场(`UIModelStage.Clear` + ++epoch 取消在途)。
+
+**验证**:
+- dotnet build `yu_client_unity.slnx` 0 错(仅 1 个既有无关警告 MainRoleAgent CS0162);Unity 编辑器编译 0 错
+  (MCP ReadConsole Error=0,两次编译均经域重载后核对)。
+- **可见证据(MCP RunCommand 渲染,真实资源)**:
+  - P1 `Temp/p1_reward_row.png`:任务 100020 四件奖励【初樱轻剑/仙剑/长枪/短弓】真实图标 + 绿色品质底板
+    `com_goods_plate_1`(color=1)+ 真名(资源经 ResManager 兜底自 yu_client/cdn 导入,sprite 86×86 非空)。
+  - P2 `Temp/p2_npc_lihui.png`:NPC 100101(云霄月华/觉梦仙子)真实 3D 立绘(全身星纹仙装,按 UIModelStage 同参渲染,清晰可辨)。
+- 真实数据校验:config_goods["101011010"] 键 "14"=1010101 / "18"=1;`10.png`(旧错键值)在 yu_client 不存在、
+  `1010101.png` 存在 → 印证"非缺资源,是读错配表键"。
+
+**解除的第 4 轮 blocker**:奖励真实图标 + 品质底板(P1);NPC 对话立绘(老端 P3/本轮 P2,确认为 3D 模型非 2D 头像)。
+
+**本轮 blocker / 未做(诚实声明)**:
+- **活服整合往返截图未做(无登录会话)**:P1 完成弹层、P2 对话立绘的**屏上整合可见**未在活服跑通;以双编译 0 错
+  + 真实资源 RunCommand 渲染截图替代。活服要看:`config_goods loaded` / 完成弹层图标行 / `对话立绘: npcId=… model=…`。
+- **`BaseAwardItem.prefab` 缺 Bind 组件**(根仅 RectTransform,对照 `ItemInfoItem.prefab` 有挂)→ 经 prefab 复用
+  受阻;故 TaskFinishView 按既有原生 TEMP 壳风格自建图标行(数据/加载路径仍走 GoodsModel/ResManager 真实路径)。
+  根治 = 修 UI 转换器补挂 Bind 组件 / 或加一次性回填工具(第 6 轮)。
+- **货币/经验真名**:`ConfigNotNormalGoods`(type→goods_id,如 5→32 经验、3→31 金币)在 yu_client 客户端配置存在、
+  可经 `SYNC_LIST` 同步;但 special_goods_list 元组 `{5,0,150000}` 首元到底是 currency-type 还是 career **存疑**
+  (老端 TaskFinishView.ts/DialogueController.ts 两处解析互相矛盾,且为早期 4 元组残留)→ 贸然实现有误标风险(违"禁假数据"),
+  须先以活服 12102 实包定语义,转第 6 轮。
+- 立绘构图(scale/position/talk_scale/朝向)、数量>1 角标(测试任务 100020 奖励均 count=1,角标规则在但未展示)属待真机微调。
+
+**下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第6轮.md`。
+
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第5轮.md`。
