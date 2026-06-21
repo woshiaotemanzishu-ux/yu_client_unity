@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Shenxiao.Framework.Net;
+using Shenxiao.Module.Core.Common;
 
 namespace Shenxiao.Module.Core.Tasks
 {
@@ -18,7 +19,8 @@ namespace Shenxiao.Module.Core.Tasks
     ///
     /// 说明:老端 TaskFinishView.SetTaskReward 用 vo[1] 作职业过滤、按 [0,vo[2],vo[3]] 读取,与现网 3 元组数据不符
     /// (那是早期 4 元组格式的残留),故此处以真实 config 数据为准、职业索引取 [0](与 On12102 一致)。
-    /// 物品图标/名称需 GoodsModel + config_goods(尚未移植),本期以 type_id×count 真实数值呈现(完成弹层标 TEMP)。
+    /// 物品名经 <see cref="GoodsModel"/>(config_goods)还原成真实名称(ToText 用,替换裸 type_id);真实图标需
+    /// goodsIcon png 导入后由 BaseAwardItem 显示(未导入则降级,精确 blocker 见 BaseAwardItem.RefreshIcon)。
     /// </summary>
     public static class TaskReward
     {
@@ -45,7 +47,11 @@ namespace Shenxiao.Module.Core.Tasks
             return result;
         }
 
-        /// <summary>奖励列表的单行可读文本(无 GoodsModel 时以 type_id×count 呈现),供 TEMP 壳/日志直接展示。</summary>
+        /// <summary>
+        /// 奖励列表的单行可读文本,供 TEMP 壳/日志/对话奖励摘要直接展示。物品名经 <see cref="GoodsModel"/>
+        /// 还原成真实名称(对标老端 GoodsModel.GetGoodsName,替换裸 type_id);config_goods 未加载或查不到时
+        /// 才退回 "物品 {type_id}"。货币/经验(type_id==0)无 goods 记录,保持 "奖励 ×N"(对标老端货币不进 goods 表)。
+        /// </summary>
         public static string ToText(IReadOnlyList<Entry> entries, string separator = "\n")
         {
             if (entries == null || entries.Count == 0) return "";
@@ -54,8 +60,15 @@ namespace Shenxiao.Module.Core.Tasks
             {
                 if (i > 0) sb.Append(separator);
                 Entry e = entries[i];
-                if (e.IsCurrency) sb.Append("奖励 ×").Append(e.Count);
-                else sb.Append("物品 ").Append(e.TypeId).Append(" ×").Append(e.Count);
+                if (e.IsCurrency)
+                {
+                    sb.Append("奖励 ×").Append(e.Count);
+                    continue;
+                }
+                string name = GoodsModel.GetGoodsName(e.TypeId);
+                if (string.IsNullOrEmpty(name)) sb.Append("物品 ").Append(e.TypeId); // 降级:config_goods 缺/未加载
+                else sb.Append(name);                                                  // 真实物品名(淬魂原石 等)
+                sb.Append(" ×").Append(e.Count);
             }
             return sb.ToString();
         }

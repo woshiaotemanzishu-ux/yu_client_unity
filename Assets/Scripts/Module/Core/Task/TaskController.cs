@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Common;
 
 namespace Shenxiao.Module.Core.Tasks
 {
@@ -40,6 +41,8 @@ namespace Shenxiao.Module.Core.Tasks
         private async void OnGameStart()
         {
             await TaskConfigs.EnsureLoaded();
+            // 奖励真实物品名/图标需 config_goods(对话奖励摘要、完成弹层、BaseAwardItem 共用 GoodsModel)。
+            await GoodsModel.EnsureLoaded();
             TaskModel.Instance.ClearData();
             SendFmt(Proto.TASK_LIST);
             GameLog.Info("Task", "request task list proto={0}", Proto.TASK_LIST);

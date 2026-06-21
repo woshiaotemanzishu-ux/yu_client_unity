@@ -18,7 +18,8 @@ namespace Shenxiao.Module.Core.Tasks
     /// ★数据与入口全为真★:任务名/描述来自 config_task(TaskVo),奖励来自 config_task 的
     /// special_goods_list/award_list 经 <see cref="TaskReward"/> 真实解析(按职业过滤),提交是真发 30004。
     /// 老端 Laya UI(TaskFinishView.lh)尚无 Unity 转换产物(无 Bind/prefab),故按任务包许可做最小原生壳;
-    /// 物品图标/名称需 GoodsModel+config_goods(未移植),本期以 type_id×count 真实数值呈现。待转换产出后替换。
+    /// 奖励物品已显示【真实名称】(GoodsModel/config_goods,经 TaskReward.ToText 替换裸 type_id);真实图标需 goodsIcon
+    /// png 导入(未导入则名称降级,精确 blocker 见 BaseAwardItem.RefreshIcon)。待 Bind/prefab + 图标导入后换图标格。
     /// 字体复用场景中已打开文本的 TMP 字体(含中文字形),避免裸建视图豆腐块(同 DialogueView)。
     /// </summary>
     public sealed class TaskFinishView

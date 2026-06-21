@@ -1,5 +1,6 @@
 using System;
 using Shenxiao.Generated.UI.Common;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using UnityEngine;
@@ -12,8 +13,9 @@ namespace Shenxiao.Module.Core.Common
     /// 数量 + 锁/选中/限时 覆盖层 + 点击 tips。被背包/装备/活动等几乎所有模块复用(克隆 BaseAwardItem.prefab)。
     ///
     /// 公开 API 对标 Laya:SetData(typeId,num,lock,select)、SetCount、SetSelect、SetLock、SetScale、SetClickCallBack。
-    /// 降级:GoodsModel(type_id→goods_icon/color/类型)与 UIToolTipMgr 未移植 → 图标/品质底板待接(打 TODO,不崩);
-    /// 数量/锁/选中/缩放/点击回调 即时可用;特效层(effect_con)未移植先隐藏。覆盖层 OnInit 默认隐藏。
+    /// 图标走 <see cref="GoodsModel"/>(type_id→goods_icon/color)+ ResManager.SetImageAsync:真实图标已接,goodsIcon
+    /// png 未导入则降级隐藏 + 精确 blocker(见 <see cref="RefreshIcon"/>);品质底板/UIToolTipMgr 仍待移植(com_goods_plate
+    /// 待 common 图集、点击 tips 待 UIToolTipMgr)。数量/锁/选中/缩放/点击回调 即时可用;特效层(effect_con)先隐藏。
     /// </summary>
     public sealed class BaseAwardItem : BaseAwardItemBind
     {
@@ -73,14 +75,44 @@ namespace Shenxiao.Module.Core.Common
             _clickCb = callback;
         }
 
-        /// <summary>图标 + 品质底板:待 GoodsModel(type_id→goods_icon/color)移植后接;现降级不设、不崩。</summary>
-        private void RefreshIcon()
+        /// <summary>
+        /// 图标 + 品质底板(对标老端 BaseAwardItem.SetData:GoodsModel.GetGoodsBasicByTypeId → goods_icon/color):
+        /// 真实图标走 <see cref="ResManager.SetImageAsync"/>(Laya SetTexture 对等);品质底板 com_goods_plate_{color}
+        /// 待 common 图集导入,暂保留 prefab 默认底板。
+        /// 降级(精确 blocker):goodsIcon 的 png 尚未导入(Assets/GameRes/resource/game/goodsIcon/ 为空)→ 隐藏图标位
+        /// (无 skin 的 Image 占位约定 enabled=false,icon 非点击件不影响交互),并写明缺哪个 key;真实名称由列表文本
+        /// (<see cref="Shenxiao.Module.Core.Tasks.TaskReward.ToText"/>)经 <see cref="GoodsModel"/> 呈现。
+        /// </summary>
+        private async void RefreshIcon()
         {
-            // TODO 待对接 GoodsModel:
-            //   var basic = GoodsModel.GetGoodsBasicByTypeId(_typeId);
-            //   item_bg ← AtlasUrl("common","com_goods_plate_"+basic.color); icon ← GameResPath.GetGoodsIconPath(basic.goods_icon)
-            if (_typeId != 0)
-                GameLog.Info("Common", "BaseAwardItem typeId={0} 图标/品质底板 待对接 GoodsModel", _typeId);
+            if (icon == null) return;
+            int typeId = _typeId;
+            if (typeId <= 0)
+            {
+                // 货币/经验数值或空格子:无 goods 图标,隐藏图标位(不画假图)。
+                icon.enabled = false;
+                return;
+            }
+
+            GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(typeId);
+            if (basic == null)
+            {
+                icon.enabled = false;
+                GameLog.Warn("Common", "BaseAwardItem typeId={0} 不在 config_goods(或未加载)→ 图标降级隐藏", typeId);
+                return;
+            }
+
+            string iconPath = GameResPath.GetGoodsIconPath(basic.Icon);
+            bool ok = await ResManager.SetImageAsync(icon, iconPath, false, false);
+            if (_typeId != typeId) return; // 期间该格被复用为别的物品:丢弃本次结果
+            if (!ok)
+            {
+                icon.enabled = false;
+                GameLog.Warn("Common",
+                    "BaseAwardItem 物品[{0}]{1} 图标未导入(blocker): key={2} —— goodsIcon png 未进 " +
+                    "Assets/GameRes/resource/game/goodsIcon/(用 神霄/资源 导该图集),先降级隐藏(名称见列表文本)。",
+                    typeId, basic.Name, iconPath);
+            }
         }
 
         private void BindClick()
