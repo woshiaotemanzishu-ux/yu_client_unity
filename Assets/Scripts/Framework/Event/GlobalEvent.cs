@@ -86,6 +86,18 @@ namespace Shenxiao.Framework.Event
         public const string EVT_AUTOBRUSH_LEVEL_UPDATED = "EVT_AUTOBRUSH_LEVEL_UPDATED";
         public const string EVT_AUTOBRUSH_STATE_UPDATED = "EVT_AUTOBRUSH_STATE_UPDATED";
 
+        // ----- Skill / 技能(对标老端 SkillManager 的 UPDATE_SKILL_LIST / UPDATE_SKILL_BAR_INFO +
+        //        EventName.UPDATE_AUTO_FIGHT_STATE + FightEvent.SKILL_SHORTCUT_CLICK) -----
+        /// <summary>技能总表(21002)解析完、shortcutList 重建,读 SkillManager.ShortcutList。</summary>
+        public const string EVT_SKILL_LIST_UPDATED = "EVT_SKILL_LIST_UPDATED";
+        /// <summary>快捷栏配置(13007)到达、skill_bar_info 更新。</summary>
+        public const string EVT_SKILL_BAR_UPDATED = "EVT_SKILL_BAR_UPDATED";
+        /// <summary>自动战斗开关变化(参数: bool 是否自动)。对标老端 EventName.UPDATE_AUTO_FIGHT_STATE。注意与自动闯关 AUTOBRUSH 区分。</summary>
+        public const string EVT_AUTO_FIGHT_STATE = "EVT_AUTO_FIGHT_STATE";
+        /// <summary>点击技能槽派发(参数: skillId:int, attackType:int)。对标老端 FightEvent.SKILL_SHORTCUT_CLICK。
+        /// 本轮只到事件边界,真实释放(Scene.MainRoleAttackTarget)未移植,下一轮战斗链路接。</summary>
+        public const string EVT_SKILL_SHORTCUT_CLICK = "EVT_SKILL_SHORTCUT_CLICK";
+
         // ----- MainUI -----
         public const string EVT_MAINUI_ACTIVITY_ICON_ADD = "EVT_MAINUI_ACTIVITY_ICON_ADD";
         public const string EVT_MAINUI_ACTIVITY_ICON_DELETE = "EVT_MAINUI_ACTIVITY_ICON_DELETE";

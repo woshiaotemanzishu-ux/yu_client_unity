@@ -108,6 +108,14 @@ namespace Shenxiao.Framework.Net
         /// 对标老端 DialogueController.TalkToNPC → 30007。</summary>
         public const int CC_TASK_TALK_EVENT = 30007;
 
+        // ----- 技能(21xxx + 13007,yu_client h5/src/skill/SkillController.ts)进游戏 GAME_START 后请求 -----
+        /// <summary>技能总表。请求无参;回包(On21002 → SkillManager.CreateSkillList):
+        /// len:h + {skill_id:i, skill_lv:h}×len。建 mySkillList,据 ConfigSkillUI.carrerSkillList 刷 shortcutList。</summary>
+        public const int SKILL_LIST = 21002;
+        /// <summary>技能快捷栏。请求无参;回包(on13007):len:h + {pos:c, type:c, skill_id:i, is_auto:c}×len,按 pos 升序。
+        /// type==2 的项可覆盖默认 shortcutList 顺序(GetSkillBarAutoFightSkillOrder)。</summary>
+        public const int SKILL_SHORTCUT_BAR = 13007;
+
         // ----- AutoBrush / main-line guard (133xx, yu_client h5/src/commonController/AutoBrushController.ts) -----
         /// <summary>Auto-brush monster progress. Send empty; reply "iiill".</summary>
         public const int AUTOBRUSH_INFO = 13300;
