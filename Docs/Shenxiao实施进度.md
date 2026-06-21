@@ -760,3 +760,42 @@ dotnet build 0 错、Unity 编译 0 错;未重做第 5 轮。
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第7轮.md`。
 
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第5轮.md`。
+
+## 主线竖切 第 7 轮(2026-06-21):奖励货币图标格 + 嵌套职业礼包解析(P2 完成 / P1 背包页转活服 blocker)
+
+commit `753ff3b39`(P2 货币图标格 + 嵌套 `{career,[...]}` 职业礼包)。P1 背包真实物品页本轮**未写码**:核心数据链(bag 协议 + `BagModel`)缺,按红线「核心没跑通前不写辅助代码」转精确 blocker(协议已定位,见下)。
+
+**P0 保护基线**:worktree 干净(仅本轮 2 文件);第 6 轮链路 rg 命中(GetMappingTypeId/GetNotNormalDesc/FillAll/EnsureBindOnWindow/ConfigNotNormalGoods,7 文件);dotnet build 0 错(1 既有无关警告 MainRoleAgent.cs);未重做第 6 轮。
+
+**P2 货币也成图标格 + 嵌套职业定制礼包(对标 TaskFinishView/GoodsModel;真实 config 驱动,禁臆造)**:
+- **嵌套礼包解析**(`TaskReward.AppendSpecialGoods`):special_goods_list 除 flat 3 元组 `{type,type_id,count}` 外,
+  另有嵌套 `{career, [{type,type_id,count},...]}`(circle/循环任务)。新增按当前职业过滤 + 解析子列表(抽 `AppendTriple` 复用);
+  判别 = 元组第 2 元是 List(`ErlangTerm.Kind.List`)。career 参数(第 6 轮预留)启用。
+- **货币图标格**(`TaskFinishView.BuildRewardCells`):由按 `IsCurrency` 强制走文本,改为按真实 `config_goods` 是否有
+  `goods_icon` 路由——有图 → `BaseAwardItem` 图标格;无图 → 文本行。config 未加载时优雅降级回文本(无回归)。
+
+**验证**(Unity RunCommand,running domain 已含新码):
+- **嵌套解析**:真实样本 `[{1,[{0,39510031,2}]},{2,[{0,39510032,2}]},{3,[{0,39510033,2}]}]` →
+  career=1→39510031 / 2→39510032 / 3→39510033(各 ×2);career 无匹配 → 0 项。
+- **货币映射/图标**(主源 config 实证):ConfigNotNormalGoods 3→31/5→32/1→34/2→35;config_goods 31→icon31(九洲灵钱)/
+  32→icon22(经验)/34→icon34(灵玉)/35→icon35(绑玉)→ 货币均 iconable → 进图标格。映射路径沿用第 6 轮已活服验证的
+  GetMappingTypeId/GetGoodsName(第 6 轮 `Temp/p2_reward_panel.png` 已证弹层渲染本体,本轮仅把货币条目移入同一图标格)。
+- 诚实声明:本会话编辑器处 Play 态但 config 未加载(ResManager 异步未泵,`GoodsModel.IsLoaded=False`),弹层真机截图未重拍;
+  以上为运行期单测 + 主源配置实证 + 第 6 轮渲染本体。
+
+**解除的第 6 轮 P2 遗留**:嵌套 `{career,[...]}` 职业礼包(已职业过滤解析);货币也成图标格(已按真实 goods_icon 路由)。
+
+**本轮 blocker / 未做(诚实声明)**:
+- **P1 背包入口真实物品页 = 活服 blocker(协议已精确定位)**:Unity 侧仅有视图壳(`BagFlow`/`BagComponentView`/
+  `BagItemRenderer` + `BagModule.prefab`),**无 `BagModel`、无 bag 协议**。主源定位(`ClientProtocol.json`):满背包拉取 = **15010**
+  (client 送 `pos`(h,bag=4);server 回 `pos:h, cell_num:h, max_cell:h, cell_gold:c, goods_list:[u16 计数数组]`,
+  每项 `goods_id:l, type_id:i, sub_pos:c, cell:h, goods_num:i, bind:c,...,color:c,...` + 3 嵌套属性数组 addition_attrlist/
+  equip_extra_attr/awake_list);15017/15018 为增量推送(非满包)。Unity 待镜像模式 = `BaseController.RegisterProtocal/SendFmt`
+  + `NetReader.ReadArray`(对照 `TaskController.On30000` / `SceneController.On12100`)。**真实物品页需活服回 15010 实包**——本会话
+  无登录会话、ResManager 异步未泵、config 未加载;从零写解析器无真包即无法端到端验证、亦无可见物品页,故不写投机解析器/不造假背包,
+  转 round 8(协议已抄齐,待活服联调)。
+- `BagItemRenderer` 复用 `BaseAwardItem` View 的接线(`BagItemData.TypeId` + `SetData(typeId,count)`)与 15010 解析同属一条
+  数据链,与协议同轮做、同包验证(避免「核心未通先写辅助」)。
+- 活服整合往返、`BaseAwardItem` 点击 tips、立绘/格子微调:均需 config 加载/真机渲染,本会话编辑器 Play 态不具备,转 round 8。
+
+**下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第8轮.md`。
