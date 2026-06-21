@@ -842,4 +842,46 @@ commit `51dc670e2`(P1 背包 15010 + P2 物品 tips)。第 7 轮定位的「活�
 
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第9轮.md`。
 
-**下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第8轮.md`。
+## 主线竖切 第 9 轮(2026-06-21):物品 tips 内容补全(数量/类型/来源)+ 装备分支起步(基础属性)+ 背包格→点击→tips 端到端联动
+
+第 8 轮 tips 仅「名/图标/品质/描述」。本轮把 `ItemTipsView` 补到接近老端 `GoodsTooltips`,并按 `type==10` 起**装备基础属性**分支(对标 `EquipToolTips`),
+再用编辑期真机渲染演示**真实 config 物品格 → 真实点击 → tips** 的端到端联动(无活服、不造假 BagModel)。改动仅 6 个源文件(无 prefab/scene/config 入库)。
+
+**P0 保护基线**:worktree 干净;第 8 轮链路 rg 命中(`BagController`/`GOODS_CONTAINER_INFO`/`ItemTipsView`/`GetGoodsIntro`/`EnsureInit`);`dotnet build` 0 错(1 既有无关警告 MainRoleAgent.cs);未重做第 8 轮。
+
+**配表同步(可再生成,GameRes 仍 gitignore)**:`ClientConfigSync` 加 3 表 → 跑「神霄/配表/同步客户端配置(JSON)」:
+- 服务端 `GoodsType`(→ `goodstype.json`,type→type_name)、`config_equip_attr`(→ 阶/星/评分);客户端 `ConfigItemAttr`(→ `configitemattr.json`,attr_id→name)。
+- 现经 ResManager **编辑期 AssetDatabase 兜底**加载(同既有 `config_goods`,均未进 Addressables 组)→ 活服 Play 路径需先跑「神霄/资源/Addressable 自动分组」(与 config_goods 同状态,留作 live 路径前置)。
+
+**P2a 物品 tips 内容补全(对标 `GoodsTooltips` quantity_text/type_text/ways;真实 config 驱动,键以 `config_table_default.json` 实证)**:
+- **`GoodsModel` 扩键**(权威序 config_goods 字段表):`"3"`=getway(来源)、`"9"`=type、`"10"`=subtype、`"13"`=equip_type、`"15"`=career_id、`"16"`=level、`"26"`=base_attrlist;
+  `GoodsBasic` 一并带出;加 `GetGoodsTypeName`(GoodsType.type_name,对标 `WordManager.GetGoodsStyle`)、`GetAttrName`(ConfigItemAttr.name,对标 `GetProperties`)、
+  `GetEquipPosName`/`GetCareerName`(硬编码数组,照抄 `WordManager.Equip_Pos_arr`/`GetCareerLimit`)、`GetGoodsGetway`、`IsEquip`(type==10)。
+- **`ItemTipsView.Show(typeId, num)`**:正文加 **类型**(GoodsType 类型名)、**数量**(透传堆叠数)、**获取途径**(getway key"3";空 / 占位 `"[]"` 不显)三段;描述 intro 保留。
+- **`BaseAwardItem`** 加 `_num`(SetData/SetCount 同步),`OnClick` 由 `Show(typeId)` 改 `Show(typeId,_num)` → 数量随格子真实透传(对标 `UIToolTipMgr.DefaultAppendTips`)。
+
+**P2b 装备分支起步(对标 `EquipToolTips`:基础属性 + 部位/阶/星/等级/职业;真实 config,实例属性精确 blocker)**:
+- **`ItemTipsView` 按 `type==10` 分流**:装备走 `AppendEquip` —— 部位(equip_type→`GetEquipPosName`)、阶/星(`config_equip_attr`)、等级需求(level key"16")、职业(career_id→`GetCareerName`)、
+  **基础属性行**(base_attrlist key"26" 经 `ErlangParser` 解 `[{attr_id,val},...]` + `GetAttrName` 取真名,对标 `EquipToolTips.basePro`)+ 评分(base_rating>0 时);非装备走描述 intro。
+- **`GoodsModel.GetBaseAttrs`**(Erlang 解析集中于 Model,缺属性名兜底标 `属性{id}` 不臆造)、`GetEquipAttr`(阶/星/评分)。
+- **`BagGoods` 保留装备实例态**:`BagController.ReadGoods` 把跳读的 `addition_attrlist`/`equip_extra_attr`/`awake_list` 3 数组 + stren/rating/combat_power 由「读过即弃」改为「暂存」(地基);
+  `On15010` 日志加 `equipWithInstAttr=N`。**实例「极品/强化」属性行**需活服实装备 + 实例透传到 tips → 本轮只显 config 基础属性,实例行精确 blocker(tips 内已标注,不画假属性)。
+
+**验证**(Unity RunCommand 编辑期:async `EnsureLoaded` + 真机渲染 RenderTexture 截图;config 编辑期可加载 `IsLoaded=True`):
+- **数据实证**(`Temp/tips_verify.txt`):typeName 10=装备/12=外观/14=宝石/42=结社/73=妖灵;attrName 1=攻击/2=生命/3=破甲;
+  初樱轻剑 101011010 type=10 部位=武器 1阶 职业=剑士 baseAttr 攻击+50/破甲+20;四季轻剑(残)1010150420 4阶2星 攻击+1318/破甲+527;
+  镇岳玄龟碎片 7302001 getway='用于激活妖灵';结社红包 4203004 getway='首杀活动'(`[]` 占位的装备 getway 已被抑制)。
+- **P2 装备 tips**(`Temp/shot_p2_tips_equip.png`):初樱轻剑 金名 + 真图标 + 类型/数量 + 部位·阶·等级·职业 + 【基础属性】攻击+50/破甲+20 + 实例属性 blocker 注。
+- **P2 普通 tips**(`Temp/shot_p2_tips_item.png`):结社红包 数量:5 + intro 富文本 + 获取途径:首杀活动。
+- **P1 端到端联动**(`Temp/shot_p1_link.png` + `Temp/p1_link.txt`):一排真实 config 物品格(101011010/100152/4203004/7302001,渲染路径非 BagModel 假数据)→
+  **真实 `Button.onClick.Invoke()`**(经 `BaseAwardItem.OnClick`)→ 福气鞭炮 tips 弹出,正文「数量:88」证明数量经真实点击透传;`tipsOpened=True`。
+- 双编译 0 错(dotnet + Unity 域重编,console 0 Error);git 仅本轮 6 源文件,无 prefab/scene/config/meta 入库(配表/兜底图入 gitignored GameRes)。
+
+**本轮 blocker(诚实声明,已收窄)**:
+- **背包真实物品内容 + 装备实例属性 = 活服回 15010 实包**:本会话无登录会话/无活服 → 真实「背包有哪些物品」「实装备的极品/强化属性」拿不到。
+  协议/Model/解析/渲染/点击→tips 全链已就绪(`BagController` 进游戏发 15010、`On15010` 解析落 `BagModel` 含 3 实例数组、`BagComponentView` 据此铺格、格点击经 `OnClick` 弹 tips);
+  活服联调即显真背包 + 真实例属性。本轮以真实 config 物品格 + 真实点击的端到端联动替代,**不造假背包/不臆造字段/不画假属性**(红线)。
+- **装备实例属性行未接显示**:`equip_extra_attr`(极品)/`stren`(强化)已在 `BagGoods` 暂存,但 tips 仅收 typeId(未透传 `BagGoods` 实例)→ 实例行待「点格透传 goods 实例 + 活服实装备」(第 10 轮)。
+- **新配表 Addressables 未分组**:`GoodsType`/`ConfigItemAttr`/`config_equip_attr` 同既有 `config_goods` 走编辑期兜底,live Play 前需「Addressable 自动分组」(避免污染已入库 AddressableAssetSettings,本轮不顺手跑)。
+
+**下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第10轮.md`。
