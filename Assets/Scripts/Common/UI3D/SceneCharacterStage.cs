@@ -127,6 +127,58 @@ namespace Shenxiao.Common.UI3D
             rt.offsetMax = d;
         }
 
+        // ===================== 场景配角(NPC / 怪物)=====================
+        // 与主角共用同一台相机 / RT / 满屏 RawImage:配角作为 _charsRoot 下的独立 tilt 子节点摆进来,
+        // 一次性合成。水平/竖直基线与 SetMainRole 完全一致(屏右=世界+X、屏下=世界-Y、100px/单位、
+        // 落地点 = SceneLayerYOffset 像素),故偏移 (0,0) 时与主角同高同列。相机夹边的整图偏移由主角那张
+        // RawImage 统一承载(配角同处一图,自动随之滑动 → 配角净屏幕位 = 自身世界像素 - 相机 = 锚在地图上)。
+
+        /// <summary>
+        /// 把一个场景配角(NPC/怪物)模型加进合成台,返回其 tilt 容器(调用方持有:用
+        /// <see cref="SetSceneCharacterPixelOffset"/> 每帧按"配角世界像素 - 主角世界像素"摆位,
+        /// 用 <see cref="RemoveSceneCharacter"/> 销毁)。不影响主角自身那条路径。
+        /// </summary>
+        public static Transform AddSceneCharacter(GameObject model, float modelScale = MODEL_SCALE)
+        {
+            if (model == null) return null;
+            EnsureStage();
+            EnsureView();
+
+            GameObject tiltGo = new GameObject("SceneCharTilt");
+            tiltGo.transform.SetParent(_charsRoot, false);
+            tiltGo.transform.localRotation = Quaternion.Euler(MODEL_TILT, 0f, 0f); // 与主角同一 2.5D 后倾
+            tiltGo.transform.localScale = Vector3.one;
+
+            model.transform.SetParent(tiltGo.transform, false);
+            model.transform.localPosition = Vector3.zero;
+            // 默认朝向同主角待机(美术正脸朝本地 -Z,旋 180 后背对相机)。NPC 的 brith_rot 需 config_npc,
+            // 该配置未导入前用默认朝向(见 NpcRenderer 的 blocker 说明)。
+            model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+            model.transform.localScale = new Vector3(modelScale, modelScale, modelScale);
+
+            if (_img != null) _img.gameObject.SetActive(true);
+            return tiltGo.transform;
+        }
+
+        /// <summary>
+        /// 按"配角世界像素 - 主角世界像素"(舞台坐标:x 右、y 下)把配角摆到台内对应位置。
+        /// 竖直基线与主角一致,故偏移 (0,0) 时配角与主角同一落地点。
+        /// </summary>
+        public static void SetSceneCharacterPixelOffset(Transform sceneCharTilt, Vector2 pixelOffsetFromRole)
+        {
+            if (sceneCharTilt == null) return;
+            float feetDropWorld = (SceneMapView.SceneLayerYOffset + FEET_TUNE_PX) / PIXELS_PER_UNIT;
+            float wx = pixelOffsetFromRole.x / PIXELS_PER_UNIT;
+            float wy = -pixelOffsetFromRole.y / PIXELS_PER_UNIT; // 屏下(像素 y 增大)= 世界 -Y
+            sceneCharTilt.localPosition = new Vector3(wx, -feetDropWorld + wy, 0f);
+        }
+
+        /// <summary>销毁一个场景配角(连同其下模型)。</summary>
+        public static void RemoveSceneCharacter(Transform sceneCharTilt)
+        {
+            if (sceneCharTilt != null) Object.Destroy(sceneCharTilt.gameObject);
+        }
+
         /// <summary>清掉主角并隐藏合成画面(切场景/断线时调)。</summary>
         public static void Clear()
         {
