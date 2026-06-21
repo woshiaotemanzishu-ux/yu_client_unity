@@ -46,7 +46,12 @@ namespace Shenxiao.Module.Core.Bag
             ShowEmpty(!hasItem);
 
             // 真实图标 + 品质底板 + 数量(对标 BaseAwardItem.SetData → GoodsModel.GetGoodsBasicByTypeId → goods_icon/color)。
-            if (hasItem && _item != null) _item.SetData(data.TypeId, data.Count);
+            if (hasItem && _item != null)
+            {
+                _item.SetData(data.TypeId, data.Count);
+                // 点击带 BagGoods 实例 → 装备实例 tips(极品 equip_extra_attr / 强化 stren);无实例(完成弹层等)走 BaseAwardItem 默认 Show(typeId,num)。
+                if (data.Goods != null) _item.SetClickCallBack(() => ItemTipsView.Show(data.Goods));
+            }
 
             HideOverlays();  // 品质角标/星级/装备升降/锁/限时/红点 依赖装备配置(未移植),本轮先隐藏
         }
@@ -71,10 +76,12 @@ namespace Shenxiao.Module.Core.Bag
         }
     }
 
-    /// <summary>背包格子数据(对标 BagGoods 的显示字段:type_id → 真实图标/品质,goods_num → 数量)。</summary>
+    /// <summary>背包格子数据(对标 BagGoods 的显示字段:type_id → 真实图标/品质,goods_num → 数量)。
+    /// <see cref="Goods"/> 携真实 <see cref="BagGoods"/> 实例(装备 tips 极品/强化实例属性透传;非背包来源可空 → 走 typeId 默认 tips)。</summary>
     public sealed class BagItemData
     {
         public int TypeId;
         public long Count;
+        public BagGoods Goods;
     }
 }

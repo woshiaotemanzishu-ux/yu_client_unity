@@ -179,7 +179,9 @@ namespace Shenxiao.Framework.Res
 #if UNITY_EDITOR
             if (_editorFallbackInstances.Remove(go))
             {
-                UnityEngine.Object.Destroy(go);
+                // 编辑期兜底实例:Play 用 Destroy,Edit 模式(无 Play 的渲染/截图 harness)必须 DestroyImmediate(Destroy 在 edit mode 抛错)。
+                if (Application.isPlaying) UnityEngine.Object.Destroy(go);
+                else UnityEngine.Object.DestroyImmediate(go);
                 return;
             }
 #endif

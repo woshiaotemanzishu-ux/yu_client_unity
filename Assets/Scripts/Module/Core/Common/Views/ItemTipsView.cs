@@ -23,9 +23,11 @@ namespace Shenxiao.Module.Core.Common
     ///   · 数量=透传的堆叠数(对标 GoodsTooltips.quantity_text)
     ///   · 获取途径=key"3" getway(对标 GoodsTooltips.ways=basic.getway)
     ///   · 装备(type==10):基础属性=base_attrlist key"26" 经 ErlangParser + ConfigItemAttr 取真名(对标 EquipToolTips basePro);
-    ///     部位=equip_type key"13"、阶/评分=config_equip_attr、等级需求=key"16"、职业=career_id key"15"(对标 EquipToolTips)。
+    ///     部位=equip_type key"13"、阶/评分=config_equip_attr、等级需求=key"16"、职业=career_id key"15"(对标 EquipToolTips);
+    ///     极品属性=config_equip_attr.recommend_attr key5 预览「随机生成 N 条」(对标 SetBestPro is_preview)、专有属性=other_attr key6(对标 SetRedPro)。
     /// 图标 + 品质底板【复用通用 BaseAwardItem.prefab】(同 TaskFinishView:InstantiateAsync + SetData)。
-    /// 装备「实例」属性(极品 equip_extra_attr / 强化 stren)需活服实装备 + 实例透传到 tips,本轮只显 config 基础属性(精确 blocker,不画假属性)。
+    /// 实例透传:<see cref="Show(Bag.BagGoods)"/> 带 BagGoods → 极品 equip_extra_attr 真值 / 强化 stren(对标 EquipToolTips goods_vo);
+    /// 无实例(缺活服)则装备走 config 极品预览 + 基础/专有属性(真实 config,精确 blocker 仅标实例极品/强化加值需活服,不画假属性)。
     /// 老端 GoodsTooltips.lh/EquipToolTips.lh 无 Unity 转换产物,故按任务包许可做最小原生壳(同 TaskFinishView TEMP 壳约定);
     /// 字体复用场景中已打开文本的 TMP 字体(含中文字形)。
     /// </summary>
@@ -42,8 +44,18 @@ namespace Shenxiao.Module.Core.Common
         private static Material _fontMat;
 
         /// <summary>弹物品详情(对标 UIToolTipMgr.DefaultAppendTips):typeId 不在 config_goods 则不弹(对标 if(!basic) return)。
-        /// num=堆叠数量(对标 GoodsTooltips quantity_text,由格子透传;默认 1)。</summary>
-        public static void Show(int typeId, long num = 1)
+        /// num=堆叠数量(对标 GoodsTooltips quantity_text,由格子透传;默认 1)。无实例 → 装备走 config 极品预览/基础属性。</summary>
+        public static void Show(int typeId, long num = 1) => ShowInternal(typeId, num, null);
+
+        /// <summary>弹装备实例详情(对标 EquipToolTips.SetData(goods_vo)):带 <see cref="Bag.BagGoods"/> 实例 →
+        /// 极品 equip_extra_attr / 强化 stren 实例属性行(缺活服实例字段则回落 config 极品预览);typeId/数量取自实例。</summary>
+        public static void Show(Bag.BagGoods goods)
+        {
+            if (goods == null) return;
+            ShowInternal(goods.TypeId, goods.GoodsNum, goods);
+        }
+
+        private static void ShowInternal(int typeId, long num, Bag.BagGoods goods)
         {
             GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(typeId);
             if (basic == null)
@@ -58,11 +70,12 @@ namespace Shenxiao.Module.Core.Common
             _root.transform.SetAsLastSibling();
 
             _nameText.text = string.IsNullOrEmpty(basic.Name) ? ("#" + typeId) : basic.Name;
-            _bodyText.text = BuildBody(typeId, num, basic);
+            _bodyText.text = BuildBody(typeId, num, basic, goods);
 
             _ = BuildIcon(typeId);
-            GameLog.Info("Common", "ItemTips 打开: typeId={0} '{1}' type={2}({3}) color={4} num={5} equip={6}",
-                typeId, basic.Name, basic.Type, GoodsModel.GetGoodsTypeName(basic.Type), basic.Color, num, GoodsModel.IsEquip(typeId));
+            GameLog.Info("Common", "ItemTips 打开: typeId={0} '{1}' type={2}({3}) color={4} num={5} equip={6} inst={7}",
+                typeId, basic.Name, basic.Type, GoodsModel.GetGoodsTypeName(basic.Type), basic.Color, num, GoodsModel.IsEquip(typeId),
+                goods != null && goods.HasInstanceAttr);
         }
 
         public static void Close()
@@ -76,7 +89,7 @@ namespace Shenxiao.Module.Core.Common
         /// 组装详情正文(对标 GoodsTooltips/EquipToolTips 的字段拼装):类型 + 数量 → 装备(基础属性 + 部位/阶/等级/职业)或
         /// 普通物品(描述 intro)→ 获取途径。全字段真实 config 驱动,缺则跳过(不占位、不臆造)。
         /// </summary>
-        private static string BuildBody(int typeId, long num, GoodsModel.GoodsBasic basic)
+        private static string BuildBody(int typeId, long num, GoodsModel.GoodsBasic basic, Bag.BagGoods goods)
         {
             var sb = new StringBuilder();
 
@@ -88,7 +101,7 @@ namespace Shenxiao.Module.Core.Common
             sb.Append(string.Join("    ", head));
 
             if (GoodsModel.IsEquip(typeId))
-                AppendEquip(sb, typeId, basic);
+                AppendEquip(sb, typeId, basic, goods);
             else
                 AppendNormal(sb, basic);
 
@@ -107,12 +120,13 @@ namespace Shenxiao.Module.Core.Common
             sb.Append("\n\n").Append(string.IsNullOrEmpty(intro) ? "<color=#8893a6>(暂无描述)</color>" : intro);
         }
 
-        /// <summary>装备(type==10):部位/阶/等级/职业/评分 + 基础属性行(对标 EquipToolTips pos/grade/level/career/basePro)。</summary>
-        private static void AppendEquip(StringBuilder sb, int typeId, GoodsModel.GoodsBasic basic)
+        /// <summary>装备(type==10):部位/阶/等级/职业/评分 + 基础属性 + 极品属性(实例或 config 预览)+ 专有属性
+        /// (对标 EquipToolTips pos/grade/level/career/basePro/SetBestPro/SetRedPro)。goods!=null 走实例真值,否则 config 预览。</summary>
+        private static void AppendEquip(StringBuilder sb, int typeId, GoodsModel.GoodsBasic basic, Bag.BagGoods goods)
         {
             GoodsModel.EquipAttr ea = GoodsModel.GetEquipAttr(typeId);
 
-            // 部位 + 阶(对标 EquipToolTips pos=GetEquipPos / grade=`${stage}阶`)
+            // 部位 + 阶 + 等级 + 职业(对标 EquipToolTips pos=GetEquipPos / grade=`${stage}阶` / level / career)
             var meta = new List<string>();
             string pos = GoodsModel.GetEquipPosName(basic.EquipType);
             if (!string.IsNullOrEmpty(pos)) meta.Add("部位：<color=#ffe222>" + pos + "</color>");
@@ -121,12 +135,15 @@ namespace Shenxiao.Module.Core.Common
             if (basic.Level > 0) meta.Add("等级需求：<color=#ffe222>" + basic.Level + "</color>");
             meta.Add("职业：<color=#ffe222>" + GoodsModel.GetCareerName(basic.CareerId) + "</color>");
             if (meta.Count > 0) sb.Append("\n").Append(string.Join("    ", meta));
-            if (ea != null && ea.BaseRating > 0)
-                sb.Append("\n评分：<color=#ffef67>").Append(ea.BaseRating).Append("</color>");
 
-            // 基础属性行(对标 EquipToolTips basePro:base_attrlist 逐项 GetProperties+值)
+            // 评分(对标 EquipToolTips score=goods_vo.rating(实例)兜底 config base_rating)
+            long score = (goods != null && goods.Rating > 0) ? goods.Rating : (ea != null ? ea.BaseRating : 0);
+            if (score > 0) sb.Append("\n评分：<color=#ffef67>").Append(score).Append("</color>");
+
+            // 基础属性行(对标 EquipToolTips basePro)+ 实例强化等级(强化加值需 config_equip_stren_lv,未载 → 仅标强化等级)
             List<(string name, long val)> attrs = GoodsModel.GetBaseAttrs(typeId);
             sb.Append("\n\n<color=#7fd0ff>【基础属性】</color>");
+            if (goods != null && goods.Stren > 0) sb.Append("　<color=#0a953e>强化 +").Append(goods.Stren).Append("</color>");
             if (attrs.Count == 0)
             {
                 sb.Append("\n<color=#8893a6>(该装备 config 无基础属性)</color>");
@@ -137,12 +154,60 @@ namespace Shenxiao.Module.Core.Common
                     sb.Append("\n").Append(name).Append("　<color=#d15e00>+").Append(val).Append("</color>");
             }
 
-            // 实例属性(极品/强化)需活服实装备 + 实例透传 → 本轮精确 blocker(不画假属性)
-            sb.Append("\n<color=#8893a6>(极品/强化等实例属性需登录活服取实装备)</color>");
+            AppendBestPro(sb, typeId, goods);   // 极品属性(实例 equip_extra_attr 真值优先,否则 config recommend_attr 预览)
+            AppendOtherPro(sb, typeId);          // 专有属性(config other_attr)
+
+            // 仅 config(无实例)时标注:实例极品/强化加值需活服(精确 blocker,不画假属性)
+            if (goods == null)
+                sb.Append("\n\n<color=#8893a6>(以上极品为 config 预览;强化加值/实例极品属性需登录活服取实装备)</color>");
 
             // 描述附在属性之后(若有)
             string intro = ToTmpRich(basic.Intro);
             if (!string.IsNullOrEmpty(intro)) sb.Append("\n\n").Append(intro);
+        }
+
+        /// <summary>极品属性(对标 EquipToolTips.SetBestPro):实例 equip_extra_attr 真值优先(EquipBestProItem 非预览),
+        /// 否则 config recommend_attr 预览「随机生成 N 条」(is_preview)。两者皆空则不显(不占位)。</summary>
+        private static void AppendBestPro(StringBuilder sb, int typeId, Bag.BagGoods goods)
+        {
+            // 有实例极品 → 实例真值(对标 goods_vo.equip_extra_attr → EquipBestProItem 非预览分支)
+            if (goods != null && goods.ExtraAttrs != null && goods.ExtraAttrs.Count > 0)
+            {
+                sb.Append("\n\n<color=#ff8a3c>【极品属性】</color>");
+                foreach (Bag.EquipExtraAttr ex in goods.ExtraAttrs)
+                {
+                    string name = GoodsModel.GetAttrName(ex.AttrId);
+                    if (string.IsNullOrEmpty(name)) name = "属性" + ex.AttrId;
+                    string val;
+                    if (ex.AttrTypeId == 1)   // type_id==1:区间成长(对标 EquipBestProItem data.type_id==1 → plus_unit + 名 {0}→plus_interval)
+                    {
+                        if (name.Contains("{0}")) name = name.Replace("{0}", ex.PlusInterval.ToString());
+                        val = ex.PlusUnit.ToString();
+                    }
+                    else val = GoodsModel.FormatAttrValue(ex.AttrId, ex.AttrVal);
+                    sb.Append("\n<color=#ffa666>").Append(name).Append("　+").Append(val).Append("</color>");
+                }
+                return;
+            }
+
+            // 无实例 → config 极品预览(对标 SetBestPro is_preview → recommend_attr + GetBestProNum 标题)
+            List<(string name, string val)> rec = GoodsModel.GetEquipRecommendAttrs(typeId);
+            if (rec.Count == 0) return;
+            sb.Append("\n\n<color=#ff8a3c>【极品属性】</color>");
+            int n = GoodsModel.GetBestProNum(typeId);
+            if (n > 0) sb.Append("<color=#8893a6>(随机生成 ").Append(n).Append(" 条)</color>");
+            foreach ((string name, string val) in rec)
+                sb.Append("\n<color=#ffa666>[推荐] ").Append(name).Append("　+").Append(val).Append("</color>");
+        }
+
+        /// <summary>专有属性(对标 EquipToolTips.SetRedPro → Util.GetAttrStr:config other_attr 逐项「名：值」,值经 FormatAttrValue)。空则不显。</summary>
+        private static void AppendOtherPro(StringBuilder sb, int typeId)
+        {
+            List<(string name, string val)> others = GoodsModel.GetEquipOtherAttrs(typeId);
+            if (others.Count == 0) return;
+            sb.Append("\n\n<color=#d15e00>【专有属性】</color>");
+            foreach ((string name, string val) in others)
+                sb.Append("\n<color=#ffcaa0>").Append(name).Append("：").Append(val).Append("</color>");
         }
 
         // 图标 + 品质底板:复用 BaseAwardItem.prefab(真实图标 + com_goods_plate_{color}),epoch 防重开/关闭竞态。
@@ -209,7 +274,8 @@ namespace Shenxiao.Module.Core.Common
             GameObject panel = NewRect("Panel", _root.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
             var panelRt = (RectTransform)panel.transform;
             panelRt.pivot = new Vector2(0.5f, 0.5f);
-            panelRt.sizeDelta = new Vector2(480f, 560f);
+            // 装备 tips 内容较长(基础+极品预览+专有+blocker),面板加高避免正文压到关闭按钮(TEMP 壳无滚动)。
+            panelRt.sizeDelta = new Vector2(480f, 820f);
             panelRt.anchoredPosition = Vector2.zero;
             Image panelImg = panel.AddComponent<Image>();
             panelImg.color = new Color(0.07f, 0.09f, 0.14f, 0.97f);
@@ -233,7 +299,7 @@ namespace Shenxiao.Module.Core.Common
             _bodyText = NewText("Body", panel.transform, 22, TextAlignmentOptions.TopLeft);
             var bodyRt = _bodyText.rectTransform;
             bodyRt.anchorMin = new Vector2(0f, 0f); bodyRt.anchorMax = new Vector2(1f, 1f);
-            bodyRt.offsetMin = new Vector2(28f, 70f); bodyRt.offsetMax = new Vector2(-28f, -218f);
+            bodyRt.offsetMin = new Vector2(28f, 88f); bodyRt.offsetMax = new Vector2(-28f, -218f);
             _bodyText.textWrappingMode = TextWrappingModes.Normal;
             _bodyText.color = new Color(0.86f, 0.91f, 1f);
 

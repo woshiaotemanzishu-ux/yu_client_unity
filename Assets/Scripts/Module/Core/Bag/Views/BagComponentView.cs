@@ -92,7 +92,8 @@ namespace Shenxiao.Module.Core.Bag
                 rt.anchoredPosition = new Vector2(col * (CELL + GAP), -row * (CELL + GAP));
 
                 var renderer = cellGo.GetComponent<BagItemRenderer>();
-                if (renderer != null) renderer.SetData(new BagItemData { TypeId = vo.TypeId, Count = vo.GoodsNum });
+                // 透传真实 BagGoods 实例(vo)→ 点格弹 tips 时装备走实例极品/强化属性(对标 EquipToolTips goods_vo)。
+                if (renderer != null) renderer.SetData(new BagItemData { TypeId = vo.TypeId, Count = vo.GoodsNum, Goods = vo });
                 _cells.Add(cellGo);
             }
 

@@ -50,7 +50,7 @@ namespace Shenxiao.Module.Core.Common
         }
 
         /// <summary>装备配置行(config_equip_attr[type_id];字段下标见 config_table_default.json:1=stage 2=star 3=base_rating)。
-        /// 极品/专有属性(下标 5 recommend_attr / 6 other_attr)待显示分支接入再加(本轮只读阶/星/评分)。</summary>
+        /// 极品/专有属性(下标 5 recommend_attr / 6 other_attr)经 <see cref="GetEquipRecommendAttrs"/>/<see cref="GetEquipOtherAttrs"/> 单独取(本类只读阶/星/评分)。</summary>
         public sealed class EquipAttr
         {
             public int Stage;            // 阶(对标 EquipToolTips grade=`${equip_vo.stage}阶`)
@@ -75,10 +75,13 @@ namespace Shenxiao.Module.Core.Common
         private const string KE_STAGE = "1";
         private const string KE_STAR = "2";
         private const string KE_BASE_RATING = "3";
+        private const string KE_RECOMMEND = "5";   // recommend_attr(极品属性预览,对标 EquipToolTips.SetBestPro is_preview;格式 [{100,{color,attr_id,v2,tmpl,v4}},...])
+        private const string KE_OTHER = "6";        // other_attr(专有属性,对标 EquipToolTips.SetRedPro/Util.GetAttrStr;格式 [{attr_id,val},...] 同 base_attrlist)
 
-        // GoodsType / ConfigItemAttr 具名字段(对标 WordManager.GetGoodsStyle cfg.type_name / GetProperties cfg.name)。
+        // GoodsType / ConfigItemAttr 具名字段(对标 WordManager.GetGoodsStyle cfg.type_name / GetProperties cfg.name / ConvertToPercentValue cfg.kind)。
         private const string K_TYPE_NAME = "type_name";
         private const string K_ATTR_NAME = "name";
+        private const string K_ATTR_KIND = "kind";  // ConfigItemAttr.kind(1=数值/2=万分比 → val/100+"%",对标 WordManager.ConvertToPercentValue)
 
         // 装备部位名(equip_type 1..10,对标 WordManager.Equip_Pos_arr,硬编码同老端)。
         private static readonly string[] EQUIP_POS = { "武器", "头冠", "项链", "衣服", "护符", "裤子", "手镯", "护腕", "戒指", "鞋子" };
@@ -256,6 +259,95 @@ namespace Shenxiao.Module.Core.Common
                 result.Add((name, val));
             }
             return result;
+        }
+
+        /// <summary>属性值的显示种类(ConfigItemAttr[attrId].kind:1=数值/2=万分比;对标 WordManager.ConvertToPercentValue 的 cfg.kind);无则 0。</summary>
+        public static int GetAttrKind(int attrId)
+        {
+            if (_itemAttr != null && _itemAttr[attrId.ToString()] is JObject o) return ReadInt(o, K_ATTR_KIND);
+            return 0;
+        }
+
+        /// <summary>属性值显示串(对标 WordManager.ConvertToPercentValue):kind==2(万分比)→ val/100 + "%"(浮点除,≤2 位小数),否则原值串。</summary>
+        public static string FormatAttrValue(int attrId, long val)
+        {
+            if (GetAttrKind(attrId) == 2)
+                return (val / 100.0).ToString("0.##", CultureInfo.InvariantCulture) + "%";
+            return val.ToString(CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>成长型属性(attr_id 300..307,对标 WordManager.IsGrowthProType:极品预览取内层第 5 元 inner[4] 而非 inner[2])。</summary>
+        private static bool IsGrowthProType(int attrId) => attrId >= 300 && attrId <= 307;
+
+        /// <summary>config_equip_attr[type_id] 的某原始 Erlang term 串(recommend_attr/other_attr key 5/6);未加载/无此装备返回空串。</summary>
+        private static string GetEquipAttrRaw(int typeId, string key)
+        {
+            if (_equipAttr != null && _equipAttr[typeId.ToString()] is JObject o) return ReadString(o, key);
+            return "";
+        }
+
+        /// <summary>
+        /// 专有属性(config_equip_attr.other_attr key "6" 的 [{attr_id,val},...] → [(名,值串)];对标 EquipToolTips.SetRedPro →
+        /// Util.GetAttrStr:每项 name=<see cref="GetAttrName"/>,值经 <see cref="FormatAttrValue"/>(kind 万分比))。空 "[]" 返回空表(多数基础装备无专有属性)。
+        /// </summary>
+        public static List<(string name, string val)> GetEquipOtherAttrs(int typeId)
+        {
+            var result = new List<(string, string)>();
+            ErlangTerm list = ErlangParser.Parse(GetEquipAttrRaw(typeId, KE_OTHER));
+            if (list?.Items == null) return result;
+            foreach (ErlangTerm pair in list.Items)
+            {
+                if (!pair.IsCollection || pair.Items == null || pair.Items.Count < 2) continue;
+                int attrId = pair.Get<int>(0);
+                long val = pair.Get<long>(1);
+                string name = GetAttrName(attrId);
+                if (string.IsNullOrEmpty(name)) name = "属性" + attrId;
+                result.Add((name, FormatAttrValue(attrId, val)));
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 极品属性预览(config_equip_attr.recommend_attr key "5" 的 [{100,{color,attr_id,v2,tmpl,v4}},...] → [(名,值串)];
+        /// 对标 EquipToolTips.SetBestPro(无实例)→ EquipBestProItem.SetData(is_preview):每项取内层元组
+        ///   inner[1]=attr_id(→名,名含 "{0}" 则被 inner[3] 替换)、值=成长型(<see cref="IsGrowthProType"/>)取 inner[4] 否则 inner[2](经 <see cref="FormatAttrValue"/>)。
+        /// 外层首元(100=极品属性类型标记)在预览态忽略。空 "[]" 返回空表。
+        /// </summary>
+        public static List<(string name, string val)> GetEquipRecommendAttrs(int typeId)
+        {
+            var result = new List<(string, string)>();
+            ErlangTerm list = ErlangParser.Parse(GetEquipAttrRaw(typeId, KE_RECOMMEND));
+            if (list?.Items == null) return result;
+            foreach (ErlangTerm elem in list.Items)
+            {
+                // elem = {outer(100), inner};inner = {color, attr_id, v2, tmpl, v4}(对标 EquipBestProItem data[1][..])
+                if (!elem.IsCollection || elem.Items == null || elem.Items.Count < 2) continue;
+                ErlangTerm inner = elem.Items[1];
+                if (inner?.Items == null || inner.Items.Count < 3) continue;
+                int attrId = inner.Get<int>(1);
+                string name = GetAttrName(attrId);
+                if (string.IsNullOrEmpty(name)) name = "属性" + attrId;
+                if (name.Contains("{0}") && inner.Items.Count >= 4)
+                    name = name.Replace("{0}", inner.Get<int>(3).ToString(CultureInfo.InvariantCulture));
+                long rawVal = IsGrowthProType(attrId)
+                    ? (inner.Items.Count >= 5 ? inner.Get<long>(4) : 0L)
+                    : inner.Get<long>(2);
+                result.Add((name, FormatAttrValue(attrId, rawVal)));
+            }
+            return result;
+        }
+
+        /// <summary>极品属性随机条数(对标 EquipToolTips.GetBestProNum:color 3→1/4→2/5,6→3/7→4;其它 0)。供预览标题「随机生成 N 条」。</summary>
+        public static int GetBestProNum(int typeId)
+        {
+            switch (GetColor(typeId))
+            {
+                case 3: return 1;
+                case 4: return 2;
+                case 5: case 6: return 3;
+                case 7: return 4;
+                default: return 0;
+            }
         }
 
         /// <summary>品质/颜色(0..8,对标 cfg.color);无则 0。</summary>
