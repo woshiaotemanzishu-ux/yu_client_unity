@@ -19,7 +19,8 @@ namespace Shenxiao.Module.Core.Tasks
     ///     · {3,0,n}/{5,0,n}/{2,0,n}→ 货币:金币(ConfigNotNormalGoods[3]=31)/经验(=32)/绑定灵玉(=35)…
     ///     · {255,k,n} / {-1,k,n}   → 货币键在 type_id(k),查 ConfigNotNormalGoods[k]
     ///   flat 3 元组是通用奖励(所有职业都给),无职业过滤,全部计入。
-    ///   注:另有少量嵌套 {career,[{...}]} 职业定制礼包(circle/循环任务)——本类按"非 3 元组"跳过,留后续轮处理。
+    ///   另有嵌套 {career, [{type,type_id,count},...]} 职业定制礼包(circle/循环任务):按当前职业过滤后解析子列表
+    ///   (实证样本 config_task:[{1,[{0,39510031,2}]},{2,[{0,39510032,2}]},{3,[{0,39510033,2}]}],career→子奖励列表)。
     ///
     /// award_list:形如 [{a,b,type_id,count}],4 元组,取索引 2/3 为真实物品 type_id/count(无歧义),全部计入。
     ///
@@ -48,13 +49,13 @@ namespace Shenxiao.Module.Core.Tasks
         }
 
         /// <summary>
-        /// 解析某任务的可展示奖励。<paramref name="career"/> 当前不用于 flat 3 元组(通用奖励),
-        /// 保留给后续嵌套 {career,[...]} 职业定制礼包过滤。
+        /// 解析某任务的可展示奖励。flat 3 元组是通用奖励(所有职业);<paramref name="career"/> 用于过滤嵌套
+        /// {career,[...]} 职业定制礼包(circle/循环任务)——只计入与当前职业相符的子礼包。
         /// </summary>
         public static List<Entry> Build(string specialGoodsList, string awardList, int career)
         {
             var result = new List<Entry>();
-            AppendSpecialGoods(result, specialGoodsList);
+            AppendSpecialGoods(result, specialGoodsList, career);
             AppendAward(result, awardList);
             return result;
         }
@@ -73,21 +74,40 @@ namespace Shenxiao.Module.Core.Tasks
             return sb.ToString();
         }
 
-        // special_goods_list:{type, type_id, count}(实证语义),经 GoodsModel.GetMappingTypeId 还原真实 goods_id。
-        private static void AppendSpecialGoods(List<Entry> result, string text)
+        // special_goods_list 两形态(均经 GoodsModel.GetMappingTypeId 还原真实 goods_id):
+        //   · flat 3 元组 {type, type_id, count}:通用奖励(所有职业都给)。
+        //   · 嵌套 {career, [{type,type_id,count},...]}:职业定制礼包(circle/循环任务),按当前职业过滤后解析子列表。
+        private static void AppendSpecialGoods(List<Entry> result, string text, int career)
         {
             ErlangTerm root = ErlangParser.Parse(text);
             if (root?.Items == null) return;
             foreach (ErlangTerm t in root.Items)
             {
-                if (t?.Items == null || t.Items.Count < 3) continue; // 嵌套 {career,[...]} 等非 3 元组:本轮跳过
-                int type = t.Get<int>(0);
-                int typeId = t.Get<int>(1);
-                long count = t.Get<long>(2);
-                (int goodsId, int _) = GoodsModel.GetMappingTypeId(type, typeId);
-                bool isCurrency = type != 0 && type != 100;
-                result.Add(new Entry(goodsId, count, isCurrency, ResolveName(goodsId, type, typeId, isCurrency)));
+                if (t?.Items == null || t.Items.Count < 2) continue;
+                // 嵌套职业定制礼包:第 2 元是子奖励列表 → {career, [子元组...]},按当前职业过滤(非本职业跳过)。
+                if (t.Items[1] != null && t.Items[1].Type == ErlangTerm.Kind.List)
+                {
+                    if (t.Get<int>(0) != career) continue;
+                    IReadOnlyList<ErlangTerm> subList = t.Items[1].Items;
+                    if (subList == null) continue;
+                    foreach (ErlangTerm sub in subList) AppendTriple(result, sub);
+                    continue;
+                }
+                // flat 3 元组(通用奖励)。
+                AppendTriple(result, t);
             }
+        }
+
+        /// <summary>把一个 {type, type_id, count} 元组解析进结果(经 GoodsModel.GetMappingTypeId 还原真实 goods_id)。</summary>
+        private static void AppendTriple(List<Entry> result, ErlangTerm t)
+        {
+            if (t?.Items == null || t.Items.Count < 3) return;
+            int type = t.Get<int>(0);
+            int typeId = t.Get<int>(1);
+            long count = t.Get<long>(2);
+            (int goodsId, int _) = GoodsModel.GetMappingTypeId(type, typeId);
+            bool isCurrency = type != 0 && type != 100;
+            result.Add(new Entry(goodsId, count, isCurrency, ResolveName(goodsId, type, typeId, isCurrency)));
         }
 
         // award_list:{a, b, type_id, count},真实物品(取索引 2/3)。

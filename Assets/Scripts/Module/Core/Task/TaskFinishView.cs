@@ -103,12 +103,17 @@ namespace Shenxiao.Module.Core.Tasks
             _rewardCells.Clear();
             if (_rewardRow == null) return;
 
+            // P2:按真实 config_goods 是否有 goods_icon 路由——有图(含货币:金币31/经验32/灵玉34/绑玉35 在
+            // config_goods 均有图)→ 图标格;无图条目(无 goods_icon 记录的特殊货币)→ 仅文本行。由真实配置决定,不臆造。
             var goods = new List<TaskReward.Entry>();
             var currency = new List<TaskReward.Entry>();
             for (int i = 0; i < rewards.Count; i++)
-                (rewards[i].IsCurrency ? currency : goods).Add(rewards[i]);
+            {
+                bool iconable = !string.IsNullOrEmpty(GoodsModel.GetGoodsIcon(rewards[i].TypeId));
+                (iconable ? goods : currency).Add(rewards[i]);
+            }
 
-            // 名称行:列全部奖励真名(物品经 GoodsModel;货币/经验暂"奖励 ×N",见 P2)。图标由下方真实格子呈现。
+            // 名称行:列全部奖励真名(图标格不显名,文本行保留可读名;货币真名经 ConfigNotNormalGoods/GoodsModel)。
             _rewardText.text = rewards.Count > 0 ? "奖励:" + TaskReward.ToText(rewards, "   ") : "";
 
             int n = goods.Count;
