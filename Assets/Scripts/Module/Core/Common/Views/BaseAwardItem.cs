@@ -57,14 +57,16 @@ namespace Shenxiao.Module.Core.Common
             RefreshIcon();
         }
 
-        /// <summary>数量(对标 ChangeCountVisible:>1 才显示,堆叠物常规)。同步 <see cref="_num"/> 供点击 tips 透传。</summary>
+        /// <summary>数量(对标 ChangeCountVisible:>1 才显示,堆叠物常规)。同步 <see cref="_num"/> 供点击 tips 透传。
+        /// 大数缩写走 <see cref="GoodsModel.FormatCountNum"/>(对标 BaseAwardItem.ts num_text=FormatNumber2(goods_num):150000→"15W"),
+        /// 避免长数字溢出 127px 格子。</summary>
         public void SetCount(long num)
         {
             _num = num;
             if (num_text == null) return;
             bool show = num > 1;
             num_text.gameObject.SetActive(show);
-            if (show) num_text.text = num.ToString();
+            if (show) num_text.text = GoodsModel.FormatCountNum(num);
         }
 
         /// <summary>选中态(对标 SetSelect)。</summary>

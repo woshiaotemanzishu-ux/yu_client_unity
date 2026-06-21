@@ -276,6 +276,30 @@ namespace Shenxiao.Module.Core.Common
             return val.ToString(CultureInfo.InvariantCulture);
         }
 
+        /// <summary>
+        /// 物品格堆叠数量显示串,对标老端 BaseAwardItem.ts 调用 WordManager.FormatNumber2(goods_num)。
+        /// 单参默认 isCN=false/isCarry=true: 150000 -> 15W, 20000 -> 2W, 10000 仍显示原值。
+        /// </summary>
+        public static string FormatCountNum(long num)
+        {
+            if (num > 10000 && num < 100000000)
+            {
+                // isCarry=true: (num / 10000).toFixed(1) then remove trailing ".0".
+                string s = (num / 10000.0).ToString("0.0", CultureInfo.InvariantCulture);
+                if (s.EndsWith(".0")) s = s.Substring(0, s.Length - 2);
+                return s + "W";
+            }
+            if (num >= 100000000)
+            {
+                // Old client does (num / 1e8).toFixed(2).slice(0, -1), then removes trailing ".0".
+                string two = (num / 100000000.0).ToString("0.00", CultureInfo.InvariantCulture);
+                string s = two.Substring(0, two.Length - 1);
+                if (s.EndsWith(".0")) s = s.Substring(0, s.Length - 2);
+                return s + "亿";
+            }
+            return num.ToString(CultureInfo.InvariantCulture);
+        }
+
         /// <summary>成长型属性(attr_id 300..307,对标 WordManager.IsGrowthProType:极品预览取内层第 5 元 inner[4] 而非 inner[2])。</summary>
         private static bool IsGrowthProType(int attrId) => attrId >= 300 && attrId <= 307;
 
