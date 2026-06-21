@@ -703,4 +703,60 @@ commit `f29f7831e`(P1 真实图标/品质底板)+ `97324b93f`(P2 NPC 立绘)。�
 
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第6轮.md`。
 
+
+## 主线竖切 第 6 轮(2026-06-21):BaseAwardItem 可复用(回填 Bind 组件)+ 货币/经验真名
+
+commit `8f700ee4c`(P1 回填 Bind 组件 / 复用 BaseAwardItem)+ `c776bbfca`(P2 货币经验真名)。文件无交叠,按 P 拆 commit。
+
+**P0 保护基线**:worktree 干净;第 5 轮链路 rg 命中(K_ICON/GetDisplayColor/com_goods_plate/ShowNpcModel/UIModelStage);
+dotnet build 0 错、Unity 编译 0 错;未重做第 5 轮。
+
+**P1 BaseAwardItem.prefab 可复用(对标 common/BaseAwardItem.ts;修工具不点杀)**:
+- 根因:shared-prefab/standalone(如 common/BaseAwardItem)不随某模块流水线重转 → 漏挂 Bind 组件,经
+  `ResManager.InstantiateAsync` + `GetComponent<BaseAwardItem>()` 得 null(对照 view 类 ItemInfoItem 根有挂)。
+- **修工具**:`LayaBindFiller` 抽出 `EnsureBindOnWindow` 核心;新增可重跑全量回填 `FillAll` + 菜单
+  「神霄/UI/回填 Bind 组件 /(预览不写盘)」:扫 `Assets/Prefabs/UI/**` 给缺组件的窗口根/内联模板按 `*Bind` 节点名
+  补挂业务子类 + 回填序列化引用,**仅变更才写盘**(避免无关 diff),出报告 `Reports/LayaUI/bind_backfill_report.md`;
+  嵌套 prefab 实例从源继承、不重复挂。去掉全局 `AssetDatabase.SaveAssets()` 避免刷会话脏字体。
+- 跑工具:扫 128 prefab,**补挂 36 组件 / 29 prefab**(BaseAwardItem/EquipmentItem/CustomHeadItem/各 *Item/Tab…);
+  其中 9 个已 git 跟踪的入库,其余在 `.gitignore` 的 `/Assets/Prefabs/UI/` 下(可重生成)。
+- `TaskFinishView` 去掉自建图标行,改 `InstantiateAsync(common/BaseAwardItem)+GetComponent+SetData` 复用真实格子
+  (`async Task` 防竞态 + `ReleaseInstance`);名称走 `_rewardText`。
+
+**P2 货币/经验真名(先定语义、禁臆造;对标 GoodsModel.ts GetMappingTypeId + ConfigNotNormalGoods)**:
+- **元组语义实证**(非凭老端矛盾静态码猜):现网 `config_task` special_goods_list 首元**全量分布**
+  `{0:86, 2:32, 3:542, 5:501, 10:1, 255:32}` 全为 ConfigNotNormalGoods 类型键(非职业:0/10/255 不可能是职业,
+  货币恒 `{type,0,count}`)→ 元组 = `{type, type_id, count}`。老端 TaskFinishView(`vo[1]`)/DialogueController(`vo[0]`)
+  当职业过滤的解析是早期 4 元组残留、对现网 3 元组失配且两处互相矛盾,故不照抄。
+- `ClientConfigSync.SYNC_LIST` 加 `ConfigNotNormalGoods`(client 配置)。
+- `GoodsModel`:加载 ConfigNotNormalGoods;`GetMappingTypeId` 接表(0→typeId;100→绑定;-1/255→键在 typeId;
+  其它→键在 type),补 `GetNotNormalDesc` 兜底名。
+- `TaskReward` 按 `{type,type_id,count}` 解析:GetMappingTypeId 还原真实 goods_id、flat 3 元组通用无职业过滤、
+  名称 config_goods 优先→desc 兜底;嵌套 `{career,[...]}` 礼包跳过(留后续)。TaskFinishView/DialogueController 共用 Build/ToText 自动生效。
+
+**验证**:
+- dotnet build 0 错(6 既有无关警告);Unity 编译 0 错(MCP ReadConsole Error=0,两 P 各经域重载后核对)。
+- **P1 可见证据**(MCP RunCommand 渲染真实资源):`GetComponent<BaseAwardItem>` 非 null、refs 回填
+  (item_bg/icon/num_text 非空);`SetData(101011010,1)` → `Temp/p1_baseawarditem.png`:初樱轻剑(icon 1010101)
+  真实图标 + 绿品质底板(com_goods_plate_1),非降级。
+- **P2 运行期单测**(MCP RunCommand,真实同步数据):map(5,0)→32 经验 / map(3,0)→31 九洲灵钱 / map(2,0)→35 绑定灵玉 /
+  map(0,17020001)→淬魂原石 / map(255,36255042)→至尊币;
+  `TaskReward.Build([{5,0,150000},{3,0,20000},{0,17020001,2}])` → 「经验 ×150000 / 九洲灵钱 ×20000 / 淬魂原石 ×2」
+  (此前货币恒"奖励 ×N")。
+- **整合可见** `Temp/p2_reward_panel.png`:任务完成弹层(真实 BaseAwardItem 淬魂原石格 + 数量角标 2)+ 奖励真名汇总
+  「经验 ×300000 / 九洲灵钱 ×20000 / 淬魂原石 ×2」——P1 复用 + P2 真名同框。
+
+**解除的第 5 轮 blocker**:BaseAwardItem.prefab 缺 Bind 组件(P1,根治=可重跑回填工具);货币/经验真名(P2,元组语义已实证)。
+
+**本轮 blocker / 未做(诚实声明)**:
+- 活服整合往返(登录→进场景→点 NPC 弹立绘→接/交任务→完成弹层→30004→30001 刷新)仍未在活服跑通:本会话无登录会话/
+  无法驱动服务端,以双编译 0 错 + RunCommand 真实资源渲染/运行期单测替代。
+- 嵌套 `{career,[{...}]}` 职业定制礼包(circle/循环任务,config_task 中 18 处 `{N,[`)未处理:TaskReward 按"非 3 元组"
+  跳过,留后续轮(需职业过滤 + 子列表解析)。
+- 货币图标:exp/coin 经 goods_id(32/31)走 config_goods;本轮货币走 `_rewardText` 文本(不进物品图标格)以规避货币
+  无 goods_icon 时的降级——让货币也成图标格留第 7 轮。
+- BaseAwardItem 点击 tips(UIToolTipMgr)、effect_con 物品特效未移植(P1 之外)。
+
+**下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第7轮.md`。
+
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第5轮.md`。
