@@ -73,6 +73,9 @@ namespace Shenxiao.Module.Core.MainUI
 
         private void RefreshTaskItems()
         {
+            // 断线重连期 MainUI 可能已被拆(GameObject 销毁)但事件未退订 → _panel_task 为 Unity-null,
+            // 在已销毁视图上刷新会抛 MissingReferenceException(阻断 DoTask 的 EVT_TASK_SELECT_CHANGED 链)。防御性早退。
+            if (_panel_task == null) return;
             List<TaskModel.TaskEntry> list = TaskModel.Instance.GetTaskListForMainUI();
             _panel_task.gameObject.SetActive(list.Count > 0);
 

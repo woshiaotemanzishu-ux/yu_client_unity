@@ -26,6 +26,9 @@ namespace Shenxiao.Module.Core.Tasks
         public const int TIP_END_TALK = 7;    // 结束对话(不可选)
         public const int TIP_COIN = 80;       // 上交铜钱
 
+        // 自动寻路到任务点的到达半径(逻辑格;复用老端接近 NPC 的 dist=2.5,到点后怪已在九宫格视野内)。
+        private const float TaskPointArriveLogicDist = 2.5f;
+
         public static readonly TaskModel Instance = new TaskModel();
 
         private readonly Dictionary<int, List<TaskVo>> _hasReceiveTaskList = new Dictionary<int, List<TaskVo>>();
@@ -327,9 +330,18 @@ namespace Shenxiao.Module.Core.Tasks
             NpcVo npc = SceneManager.Instance.GetNpc(task.Id);
             if (npc == null)
             {
+                int curScene = RoleModel.Instance.SceneId;
+                if (task.SceneId == 0 || task.SceneId == curScene)
+                {
+                    // 目标 NPC 不是当前场景的可见对象:多为 config_npc scene:0 的对话型/浮空 NPC(如灵枢仙子 100134,
+                    // 仅发新手武器对话,x/y=0 无固定坐标)。老端对这类 NPC 不走近,直接开对话(12101,不依赖场景对象)。
+                    GameLog.Info("Task", "DoTask 找 NPC {0}:非场景可见对象(对话型 NPC),直接打开对话(12101)", task.Id);
+                    DialogueController.Instance.ShowTask(task.Id);
+                    return;
+                }
                 GameLog.Warn("Task",
-                    "DoTask 找 NPC blocker: 目标 NPC {0} 不在当前场景(任务场景={1})→ 需切到任务场景再交互;" +
-                    "跨场景切换(老端 USE_FLY_SHOE/飞鞋协议)未移植 → blocker。", task.Id, task.SceneId);
+                    "DoTask 找 NPC blocker: 目标 NPC {0} 在其他场景(任务场景={1},当前={2})→ 跨场景切换" +
+                    "(老端 USE_FLY_SHOE/飞鞋协议)未移植 → blocker。", task.Id, task.SceneId, curScene);
                 return;
             }
 
@@ -359,23 +371,48 @@ namespace Shenxiao.Module.Core.Tasks
             GameLog.Info("Task", "DoTask 完成: 任务 {0} 全步完成 → 打开 TaskFinishView(展示奖励 + 提交 30004)", task.TaskId);
         }
 
-        /// <summary>带场景坐标(对标 Kill/Collect/Item case:同场景寻路到点,跨场景飞鞋)。</summary>
+        /// <summary>
+        /// 带场景坐标的任务(对标老端 Kill/Collect/Item case:同场景自动寻路到点,跨场景飞鞋)。
+        /// 同场景:复用 <see cref="MainRoleAgent.MoveToNpc"/> 直线接近任务目标点(对标老端 DoTask 自动寻路 + TaskSpeed
+        /// 把主角带到任务坐标)。寻路途中服务器按九宫格(12012/12007)把目标点附近的怪物下发到 SceneManager;
+        /// 到点后由技能点击(SkillController → SceneCombat.MainRoleAttackTarget)命中真实怪(P3)。
+        /// 跨场景:老端走 USE_FLY_SHOE/飞鞋切场景协议,本端未移植 → 记录真实 blocker(不臆造切场景)。
+        /// </summary>
         private void DoGotoSceneTask(TaskVo task)
         {
             int curScene = RoleModel.Instance.SceneId;
-            if (task.SceneId == curScene || task.SceneId == 0)
-            {
-                GameLog.Warn("Task",
-                    "DoTask 寻路 blocker: 任务 {0} 目标在当前场景 pos=({1},{2}),但自动寻路到点未移植" +
-                    "(MainRoleAgent 仅摇杆驱动,无 A* 寻路)→ blocker。目标坐标已就绪,可手动摇杆走到。",
-                    task.TaskId, task.SceneX, task.SceneY);
-            }
-            else
+            if (task.SceneId != 0 && task.SceneId != curScene)
             {
                 GameLog.Warn("Task",
                     "DoTask 切场景 blocker: 任务 {0} 目标在场景 {1}(当前 {2}),跨场景切换(老端 USE_FLY_SHOE/飞鞋)" +
                     "未移植 → blocker。目标坐标 ({3},{4}) 已就绪。", task.TaskId, task.SceneId, curScene, task.SceneX, task.SceneY);
+                return;
             }
+
+            MainRoleAgent agent = MainRoleAgent.Current;
+            if (agent == null)
+            {
+                GameLog.Warn("Task",
+                    "DoTask 寻路 blocker: 任务 {0} 同场景目标 ({1},{2}),但主角驱动(MainRoleAgent)未装配 → 无法自动寻路。",
+                    task.TaskId, task.SceneX, task.SceneY);
+                return;
+            }
+
+            // 同场景自动寻路(直线接近 + 撞墙滑行 + 卡死/超时兜底,对标老端 DoTask 自动寻路/TaskSpeed)。
+            GameLog.Info("Task",
+                "DoTask 寻路: 任务 {0} 同场景自动寻路到目标点 ({1},{2})(对标老端 DoTask 自动寻路/TaskSpeed);" +
+                "途中目标点附近怪物由九宫格(12012/12007)真实下发到 SceneManager,命中走技能点击(SceneCombat)。",
+                task.TaskId, task.SceneX, task.SceneY);
+            agent.MoveToNpc(task.SceneX, task.SceneY, TaskPointArriveLogicDist, () => OnArriveTaskPoint(task));
+        }
+
+        /// <summary>寻路到达任务点(对标老端到点后停下;击杀类在此由技能点击命中真实怪,完整自动战斗循环=后续轮)。</summary>
+        private void OnArriveTaskPoint(TaskVo task)
+        {
+            GameLog.Info("Task",
+                "DoTask 到达任务点 {0}({1},{2}):场景怪物数={3}(九宫格真实下发)。击杀类任务在此由技能点击" +
+                "(SceneCombat.MainRoleAttackTarget)命中真实怪;无怪则按真实语义阻塞,不假放。",
+                task.TaskId, task.SceneX, task.SceneY, SceneManager.Instance.MonsterCount);
         }
 
         private static int CompareTaskEntry(TaskEntry a, TaskEntry b)
