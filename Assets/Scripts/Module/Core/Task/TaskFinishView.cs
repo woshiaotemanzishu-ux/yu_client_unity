@@ -21,10 +21,10 @@ namespace Shenxiao.Module.Core.Tasks
     /// ★数据与入口全为真★:任务名/描述来自 config_task(TaskVo),奖励来自 config_task 的
     /// special_goods_list/award_list 经 <see cref="TaskReward"/> 真实解析(按职业过滤),提交是真发 30004。
     /// 老端 Laya UI(TaskFinishView.lh)尚无 Unity 转换产物(无 Bind/prefab),故按任务包许可做最小原生壳;
-    /// 奖励物品行显示【真实图标 + 品质底板 + 数量 + 名称】(GoodsModel/config_goods + GameResPath + ResManager,
-    /// 与 <see cref="BaseAwardItem"/> 同一数据/加载路径;图标缺图自 yu_client/cdn 兜底导入,真缺才降级 + 精确 blocker);
-    /// 货币/经验(type_id==0)无 goods 记录,走底部文本。复用 BaseAwardItem.prefab 受其缺 Bind 组件阻断(见第 6 轮包),
-    /// 故本壳按既有原生风格自建图标格;待 prefab 回填组件后可换成 BaseAwardItem 实例。
+    /// 奖励物品格【复用通用 <see cref="BaseAwardItem"/>.prefab】(InstantiateAsync + SetData → 真实图标 + 品质底板 + 数量,
+    /// 走 GoodsModel/config_goods + GameResPath + ResManager;图标缺图自 yu_client/cdn 兜底导入,真缺才降级 + 精确 blocker);
+    /// 第 6 轮 P1 已回填 BaseAwardItem.prefab 的 Bind 组件,故此处去掉自建图标行、改真实组件复用(背包/装备/弹层同源)。
+    /// 货币/经验(type_id==0)无 goods 记录,名称走 _rewardText(真名待 P2 ConfigNotNormalGoods)。
     /// 字体复用场景中已打开文本的 TMP 字体(含中文字形),避免裸建视图豆腐块(同 DialogueView)。
     /// </summary>
     public sealed class TaskFinishView
@@ -34,6 +34,7 @@ namespace Shenxiao.Module.Core.Tasks
         private TextMeshProUGUI _targetText;
         private RectTransform _rewardRow;
         private readonly List<GameObject> _rewardCells = new List<GameObject>();
+        private int _rewardEpoch; // 复用 BaseAwardItem 异步实例化的竞态闸(重开/关闭丢弃在途结果)
         private TextMeshProUGUI _rewardText;
         private TextMeshProUGUI _submitLabel;
         private GameObject _submitBtn;
@@ -59,6 +60,10 @@ namespace Shenxiao.Module.Core.Tasks
         public void Close()
         {
             if (_root != null) _root.SetActive(false);
+            _rewardEpoch++; // 取消在途奖励格实例化
+            for (int i = 0; i < _rewardCells.Count; i++)
+                if (_rewardCells[i] != null) ResManager.ReleaseInstance(_rewardCells[i]);
+            _rewardCells.Clear();
             GameLog.Info("Task", "TaskFinishView 关闭");
         }
 
@@ -75,7 +80,7 @@ namespace Shenxiao.Module.Core.Tasks
             // 奖励:config_task 真实数据,按当前职业过滤(对标老端 special_goods_list + award_list 装配)。
             List<TaskReward.Entry> rewards = TaskReward.Build(_task.SpecialGoodsList, _task.AwardList, RoleModel.Instance.Career);
             bool hasReward = rewards.Count > 0;
-            BuildRewardCells(rewards); // 物品 → 图标格(图标+底板+数量+名称);货币/经验 → _rewardText
+            _ = BuildRewardCells(rewards); // 物品 → 复用 BaseAwardItem 格子(图标+底板+数量);货币/经验 → _rewardText
             // 对标 TaskFinishView.ts:189-193:有奖励则"领取奖励",否则"提交任务"。
             _submitLabel.text = hasReward ? "领取奖励" : "提交任务";
 
@@ -83,13 +88,18 @@ namespace Shenxiao.Module.Core.Tasks
                 _task.TaskId, rewards.Count, TaskReward.ToText(rewards, " / "));
         }
 
-        // ===================== 奖励图标格(对标老端 BaseAwardItem 行)=====================
+        // ===================== 奖励图标格(复用通用 BaseAwardItem.prefab)=====================
 
-        /// <summary>物品奖励 → 图标格(底板+图标+数量+名称),走 GoodsModel + ResManager;货币/经验 → _rewardText。</summary>
-        private void BuildRewardCells(List<TaskReward.Entry> rewards)
+        /// <summary>
+        /// 物品奖励 → 复用通用 <see cref="BaseAwardItem"/> 格子(InstantiateAsync + SetData,显真实图标+品质底板+数量);
+        /// 货币/经验 → 名称走 _rewardText。第 6 轮 P1:BaseAwardItem.prefab 已回填 Bind 组件,故不再自建图标行。
+        /// 异步实例化经 <see cref="_rewardEpoch"/> 闸位防重开/关闭竞态。
+        /// </summary>
+        private async Task BuildRewardCells(List<TaskReward.Entry> rewards)
         {
+            int epoch = ++_rewardEpoch;
             for (int i = 0; i < _rewardCells.Count; i++)
-                if (_rewardCells[i] != null) Object.Destroy(_rewardCells[i]);
+                if (_rewardCells[i] != null) ResManager.ReleaseInstance(_rewardCells[i]);
             _rewardCells.Clear();
             if (_rewardRow == null) return;
 
@@ -98,81 +108,50 @@ namespace Shenxiao.Module.Core.Tasks
             for (int i = 0; i < rewards.Count; i++)
                 (rewards[i].IsCurrency ? currency : goods).Add(rewards[i]);
 
-            const float cellW = 116f, cellH = 150f, gap = 16f;
+            // 名称行:列全部奖励真名(物品经 GoodsModel;货币/经验暂"奖励 ×N",见 P2)。图标由下方真实格子呈现。
+            _rewardText.text = rewards.Count > 0 ? "奖励:" + TaskReward.ToText(rewards, "   ") : "";
+
             int n = goods.Count;
-            float totalW = n > 0 ? n * cellW + (n - 1) * gap : 0f;
-            float startX = -totalW / 2f + cellW / 2f;
+            if (n == 0) return;
+
+            // 居中横排;格子超宽则整体等比缩小(BaseAwardItem 根 130×130,pivot 左上)。
+            const float baseSize = 130f, gap = 12f, rowW = 600f;
+            float rawTotal = n * baseSize + (n - 1) * gap;
+            float scale = rawTotal > rowW ? rowW / rawTotal : 1f;
+            float cellW = baseSize * scale, gapS = gap * scale;
+            float totalW = n * cellW + (n - 1) * gapS;
+            float leftStart = -totalW / 2f;
+
             for (int i = 0; i < n; i++)
-                _rewardCells.Add(CreateRewardCell(goods[i], startX + i * (cellW + gap), cellW, cellH));
-
-            // 货币/经验(type_id==0):暂保留文本(真名待 ConfigNotNormalGoods,见第 6 轮包)。
-            _rewardText.text = currency.Count > 0 ? "其它奖励:" + TaskReward.ToText(currency, "   ") : "";
-        }
-
-        private GameObject CreateRewardCell(TaskReward.Entry e, float x, float w, float h)
-        {
-            GameObject cell = NewRect("RewardCell", _rewardRow, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
-            RectTransform crt = (RectTransform)cell.transform;
-            crt.pivot = new Vector2(0.5f, 0.5f);
-            crt.sizeDelta = new Vector2(w, h);
-            crt.anchoredPosition = new Vector2(x, 0f);
-
-            // 品质底板(对标 item_bg = com_goods_plate_{color},common 图集)。
-            GameObject plateGo = NewRect("Plate", cell.transform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, Vector2.zero);
-            RectTransform plateRt = (RectTransform)plateGo.transform;
-            plateRt.pivot = new Vector2(0.5f, 1f);
-            plateRt.sizeDelta = new Vector2(96f, 96f);
-            plateRt.anchoredPosition = Vector2.zero;
-            Image plateImg = plateGo.AddComponent<Image>();
-            plateImg.raycastTarget = false;
-            _ = ResManager.SetImageAsync(plateImg,
-                GameResPath.GetIcon("common", "com_goods_plate_" + GoodsModel.GetDisplayColor(e.TypeId)), false, false);
-
-            // 物品图标(叠底板上)。
-            GameObject iconGo = NewRect("Icon", plateGo.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
-            RectTransform iconRt = (RectTransform)iconGo.transform;
-            iconRt.pivot = new Vector2(0.5f, 0.5f);
-            iconRt.sizeDelta = new Vector2(84f, 84f);
-            iconRt.anchoredPosition = Vector2.zero;
-            Image iconImg = iconGo.AddComponent<Image>();
-            iconImg.raycastTarget = false;
-            _ = LoadCellIcon(iconImg, GameResPath.GetGoodsIconPath(GoodsModel.GetGoodsIcon(e.TypeId)), e.TypeId);
-
-            // 数量(>1 才显,底板右下,对标 ChangeCountVisible)。
-            if (e.Count > 1)
             {
-                TextMeshProUGUI cnt = NewText("Count", plateGo.transform, 22, TextAlignmentOptions.BottomRight);
-                RectTransform cntRt = cnt.rectTransform;
-                cntRt.anchorMin = Vector2.zero; cntRt.anchorMax = Vector2.one;
-                cntRt.offsetMin = new Vector2(2f, 2f); cntRt.offsetMax = new Vector2(-4f, -4f);
-                cnt.text = "×" + e.Count;
-                cnt.fontStyle = FontStyles.Bold;
-                cnt.color = Color.white;
-                cnt.raycastTarget = false;
-            }
-
-            // 名称(底板下方)。
-            TextMeshProUGUI nameT = NewText("Name", cell.transform, 18, TextAlignmentOptions.Top);
-            RectTransform nameRt = nameT.rectTransform;
-            nameRt.anchorMin = new Vector2(0f, 0f); nameRt.anchorMax = new Vector2(1f, 0f); nameRt.pivot = new Vector2(0.5f, 0f);
-            nameRt.anchoredPosition = new Vector2(0f, 2f); nameRt.sizeDelta = new Vector2(0f, 46f);
-            string nm = GoodsModel.GetGoodsName(e.TypeId);
-            nameT.text = string.IsNullOrEmpty(nm) ? ("物品 " + e.TypeId) : nm;
-            nameT.color = new Color(0.95f, 0.96f, 1f);
-            nameT.textWrappingMode = TextWrappingModes.Normal;
-            nameT.raycastTarget = false;
-
-            return cell;
-        }
-
-        private static async Task LoadCellIcon(Image img, string key, int typeId)
-        {
-            bool ok = await ResManager.SetImageAsync(img, key, false, false);
-            if (img == null) return;
-            if (!ok)
-            {
-                img.enabled = false;
-                GameLog.Warn("Task", "TaskFinishView 奖励图标缺失(blocker): typeId={0} key={1}", typeId, key);
+                GameObject cellGo = await ResManager.InstantiateAsync(
+                    GameResPath.GetUIPrefab("common", "BaseAwardItem"), _rewardRow);
+                if (epoch != _rewardEpoch) // 期间被重开/关闭:丢弃本次结果
+                {
+                    if (cellGo != null) ResManager.ReleaseInstance(cellGo);
+                    return;
+                }
+                if (cellGo == null)
+                {
+                    GameLog.Warn("Task", "TaskFinishView 复用 BaseAwardItem 失败(prefab 未导入/未分组?): typeId={0}", goods[i].TypeId);
+                    continue;
+                }
+                cellGo.SetActive(true);
+                BaseAwardItem cell = cellGo.GetComponent<BaseAwardItem>();
+                if (cell == null)
+                {
+                    // 仍缺 Bind 组件(回填工具未跑):精确 blocker,不画假图。
+                    GameLog.Warn("Task", "TaskFinishView: BaseAwardItem.prefab 根缺 BaseAwardItem 组件(跑 神霄/UI/回填 Bind 组件)→ typeId={0}", goods[i].TypeId);
+                    ResManager.ReleaseInstance(cellGo);
+                    continue;
+                }
+                RectTransform rt = (RectTransform)cellGo.transform;
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.localScale = Vector3.one * scale;
+                // pivot 左上(prefab 默认):top-left 角放在行内 → x 左缘偏移、y=+半高 使竖直居中。
+                rt.anchoredPosition = new Vector2(leftStart + i * (cellW + gapS), cellW / 2f);
+                cell.SetData(goods[i].TypeId, goods[i].Count);
+                _rewardCells.Add(cellGo);
             }
         }
 
