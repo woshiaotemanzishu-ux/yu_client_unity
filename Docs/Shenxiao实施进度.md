@@ -550,4 +550,52 @@ Unity 配表流水线(解锁 NPC 名字/称号)、TaskFinishView 完成弹层、
 - DialogueView 仍为原生临时壳,待 LayaUI 转换产出 DialogueViewBind/prefab 后替换。
 - NpcRenderer 名牌/缩放/朝向:config_npc 现已导入可接,本轮未接(见第 3 轮包)。
 
+## 主线竖切 第 3 轮(2026-06-21):走到 NPC 再开对话 + 完成弹层 + 奖励解析
+
+commit `656490ba3`(P1+P2 一并;TaskModel.cs 同时含两者改动,无法按文件拆 commit)。
+
+**P1 走到 NPC 再开对话(对标 Scene.ts:1417-1472 MainRoleToNpc → MainRoleMove)**:
+- `MainRoleAgent`:抽出 `Advance(map,mx,my)` 分轴撞墙滑行内核(整向→仅X→仅Y,对标 MainRole.ts:794-819),
+  手动摇杆 `StepMove` 与新增自动接近 `AutoStep` 共用;`BeginMoveAnim`/`ThrottledSend` 同抽出复用。
+- 新增 `MoveToNpc(tx,ty,arriveLogicDist,onArrive)`:直线接近目标像素点,到达半径=2.5 逻辑格
+  (像素差 /60、/30 换算逻辑格求欧氏距离,对标老端 dist=2.5 + LogicRealRatio 60/30);**必有兜底**——
+  卡死(连续 0.6s 无位移进展)或超时(8s 沿墙滑行未达)也触发 onArrive 把对话开出来,**绝不软锁**;
+  玩家推摇杆即 `CancelAutoMove`(丢回调、让位手动)。已在范围内则立即触发(对标 `<=dist+1` 早退)。
+- `TaskModel.DoFindNpcTask`:`agent.MoveToNpc(npc.X, npc.Y, 0, () => ShowTask(npcId))`——走到 NPC 身边、
+  停下转身后才发 12101,替换第 2 轮「原地转身 + 立刻开对话」。无 MainRoleAgent 时降级直接开对话(不软锁)。
+- 无 A* 寻路是与老端的真实差异(已 log):直线 + 滑行逼近,绕不开凹形障碍 → 靠卡死/超时兜底把对话开出来。
+
+**P2 完成弹层 TaskFinishView + 30004 + 奖励解析(对标 task/TaskFinishView.ts:75-79 + DialogueController.ts:45-110)**:
+- 新增 `TaskFinishView`(原生 uGUI TEMP 壳,同 DialogueView 约定:ViewManager.GetLayer(Popup) + 复用场景 TMP 字体):
+  居中弹层展任务名/目标(完成标)/描述 + 真实奖励列表 + 「领取奖励/提交任务」按钮 → `TaskController.SubmitFinish`
+  发 30004 → Close;背景点击 / × 可关。物品图标/名称需 GoodsModel+config_goods(未移植)→ 暂以 type_id×count 真值呈现。
+- `TaskController.SubmitFinish(taskId)`:BaseController 发 30004(对标 Fire(REQUEST_CCMD_EVENT,30004,task_id));
+  `TaskModel.DoFinishTask` 懒建并打开 TaskFinishView,**替换原 blocker**(对标 Fire(TASK_OPEN_VIEW,'TaskFinishView'))。
+- 新增 `TaskReward`(对话弹层共用解析):`config_task` 字段 23 special_goods_list / 24 award_list 经 `ErlangParser` 解析:
+  - special_goods 3 元组 `{career,type_id,count}`(实测现网格式):career==当前职业 或 ==0(通用)才计入;type_id==0 记货币/经验。
+  - award_list 4 元组 `{a,b,type_id,count}`:取 [2]/[3] 为 type_id/count 全计入(任务奖励总表)。
+  - **修正老端 TaskFinishView 的 bug**:老端用 vo[1] 作职业过滤且按 [0,vo[2],vo[3]] 读取,与现网 3 元组不符(早期 4 元组残留);
+    此处以真实 config 为准、职业索引取 [0](与 On12102 一致)。
+- `TaskConfigs.TaskCfg` / `TaskVo.ApplyConfig` 接入字段 23/24;`On12102` 用 `TaskReward` 装配 `NpcDialogVo.RewardSummary`,
+  `DialogueView` 在对话里展奖励摘要(对话/弹层共用同一解析)。
+
+**验证**:
+- dotnet build `yu_client_unity.slnx` 0 错(仅 1 个既有 CS0162 无关警告,Face() 的 TurnSmoothSpeed<=0 死支,非本轮引入)。
+- Unity 编辑器编译 0 错(MCP ReadConsole Error=0;Unity 自动重导入并把 2 个新脚本写进 .csproj + 生成 .meta)。
+- `TaskReward` 以真实 config 数据运行期单测(MCP RunCommand)通过:
+  `[{5,0,150000},{3,0,20000},{0,17020001,2}]`+`[{1,1,101011010,1},{2,2,102011010,1}]`
+  → career5 = 4 项(奖励×150000 / 物品17020001×2 / 101011010×1 / 102011010×1);career3 = 4 项(货币换 ×20000);
+  career1 = 3 项(无本职业货币,仅通用+award);空表 = 0;task100010 career5 = 1 项(奖励×150000)。
+
+**解除的第 2 轮 blocker**:走到 NPC 移动(P1)、TaskFinishView 完成弹层(P2)、30004 提交、award_list/special_goods 奖励解析(P2)。
+
+**本轮 blocker / 未做(诚实声明)**:
+- Play 活服往返仍未做:无法驱动登录/服务端 → 走到 NPC 的真实位移、12101/12102 实包、30004 提交后 30001 刷新任务栏
+  未在活服跑通;以 dotnet+Unity 双编译 0 错 + TaskReward 真实数据运行期单测替代。要跑活服看的日志:
+  `MoveToNpc: 自动直线接近…` → `MoveToNpc 到达/未抵达…` → `send 12101` / `TaskFinishView 打开` → `send 30004 finish`。
+- 奖励物品图标/名称未做:GoodsModel + config_goods + GetMappingTypeId 未移植 → 弹层/对话以 type_id×count 真值呈现(非假数据,但非成品外观)。BaseAwardItem 组件已存在可复用(其图标查 GoodsModel 亦是 TODO)。
+- NpcRenderer 名牌/缩放/朝向、DialogueView/TaskFinishView 立绘头像(config_npc icon/image)未接(本可作 P3 fallback,因 P1/P2 未被卡住未触发)。
+- USE_FLY_SHOE 跨场景、A* 寻路(本轮直线 + 滑行 + 兜底替代)、TaskFinishView 自动提交倒计时(老端 close_time)未做。
+- TaskFinishView/DialogueView 仍为原生 TEMP 壳,待 LayaUI 转换产出 Bind/prefab 替换。
+
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第3轮.md`。
