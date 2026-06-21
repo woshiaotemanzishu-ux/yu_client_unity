@@ -1,5 +1,9 @@
 using System.Collections.Generic;
+using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.Scene;
+using Shenxiao.Module.Core.Scene.Vo;
 
 namespace Shenxiao.Module.Core.Tasks
 {
@@ -14,6 +18,12 @@ namespace Shenxiao.Module.Core.Tasks
         public const int NORMAL_DAILY = 8;
         public const int EUDAEMON_TASK = 9;
         public const int KFHOLYAREA_TASK = 10;
+
+        // —— task_tips_type(服务端 pt_300 下发的提示类型;对标老端 TaskTipType,yu_client TaskModel.ts:52-243)——
+        public const int TIP_TALK = 5;        // 与 NPC 对话(可选)
+        public const int TIP_START_TALK = 6;  // 开始对话(不可选)
+        public const int TIP_END_TALK = 7;    // 结束对话(不可选)
+        public const int TIP_COIN = 80;       // 上交铜钱
 
         public static readonly TaskModel Instance = new TaskModel();
 
@@ -224,7 +234,92 @@ namespace Shenxiao.Module.Core.Tasks
 
         private static bool IsFindNpcTask(int taskTipsType)
         {
-            return taskTipsType == 0;
+            // 对标 TaskModel.ts:2966-2972 IsFindNpcTask:Talk/StartTalk/EndTalk 三类为"找 NPC 对话"任务。
+            return taskTipsType == TIP_TALK || taskTipsType == TIP_START_TALK || taskTipsType == TIP_END_TALK;
+        }
+
+        /// <summary>
+        /// 任务点击主入口(最小等价,对标老端 TaskModel.DoTask,yu_client TaskModel.ts:744-784 + 797 switch)。
+        /// 先置选中态(NowSelectTaskId)并广播 EVT_TASK_SELECT_CHANGED(对标老端 CLICK_DO_TASK),再按
+        /// task_tips_type 进入正确分支:找 NPC 对话(Talk/StartTalk/EndTalk)→ 定位 NPC;完成且非对话 → 完成弹层;
+        /// 带场景坐标 → 寻路/切场景。未移植的子系统(对话/完成弹层/寻路)给精确 blocker,不臆造、不假装完成。
+        /// </summary>
+        public void DoTask(TaskVo task)
+        {
+            if (task == null) task = MainLineTaskVo;
+            if (task == null) { GameLog.Warn("Task", "DoTask: 无可执行任务(传入 null 且无主线任务)"); return; }
+
+            // 选中态(对标 now_select_task_id):点任务即设选中并广播,任务栏据此刷新 _img_select。
+            NowSelectTaskId = task.TaskId;
+            EventDispatcher.Emit(GlobalEvent.EVT_TASK_SELECT_CHANGED, task.TaskId);
+            GameLog.Info("Task", "DoTask: id={0} tipsType={1} finish={2} npcId={3} scene=({4},{5},{6})",
+                task.TaskId, task.TaskTipsType, task.HasFinish, task.Id, task.SceneId, task.SceneX, task.SceneY);
+
+            // 1) 找 NPC 对话任务(对标 ts:783 finish 早退排除 find-npc + ts:1767 Talk/StartTalk/EndTalk case)。
+            if (IsFindNpcTask(task.TaskTipsType)) { DoFindNpcTask(task); return; }
+
+            // 2) 全部完成且非对话 → 打开完成弹层真实入口(对标 ts:2385 TASK_OPEN_VIEW 'TaskFinishView')。
+            if (IsAllStepFinish(task.TaskId)) { DoFinishTask(task); return; }
+
+            // 3) 带场景坐标 → 寻路/切场景(对标 Kill/Collect/Item 等 case 的 pathfind / USE_FLY_SHOE)。
+            if (task.SceneId > 0 && (task.SceneX > 0 || task.SceneY > 0)) { DoGotoSceneTask(task); return; }
+
+            GameLog.Warn("Task", "DoTask blocker: tipsType={0} 其余 case 未移植(对标 TaskModel.ts:797 switch 的 60+ case)。" +
+                "当前最小入口只覆盖 对话/完成/场景坐标 三类;其余(开背包/锻造/进副本等)按需逐 case 补。", task.TaskTipsType);
+        }
+
+        /// <summary>找 NPC 对话(对标 ts:1767-1835 Talk/StartTalk/EndTalk:定位 NPC →(到达后)SHOW_TASK → DialogueController)。</summary>
+        private void DoFindNpcTask(TaskVo task)
+        {
+            if (task.Id == 0) { GameLog.Info("Task", "DoTask: 自言自语任务(npcId=0),无目标 NPC,跳过"); return; }
+
+            NpcVo npc = SceneManager.Instance.GetNpc(task.Id);
+            if (npc == null)
+            {
+                GameLog.Warn("Task",
+                    "DoTask 找 NPC blocker: 目标 NPC {0} 不在当前场景(任务场景={1})→ 需切到任务场景再交互;" +
+                    "跨场景切换(老端 USE_FLY_SHOE/飞鞋协议)未移植 → blocker。", task.Id, task.SceneId);
+                return;
+            }
+
+            // NPC 在当前场景:此处应"对话未开则触发对话"——对标 Scene.MainRoleToNpc → SHOW_TASK →
+            // DialogueController.ShowTask → 协议 12101/12102。DialogueController/DialogueModel/12101/12102 在
+            // Unity 端均未移植(进度文档:Unity 端零 NPC 点击处理)→ 精确 blocker。"对话已开则不重复打开"的去重
+            // (老端 MainUITaskTeamView.ts:563-573 依赖 DialogueModel.dialog_is_open)同样待 DialogueModel 移植。
+            // NPC 数据/坐标已就绪(见下),接上对话控制器即可"点任务 → 走到 NPC → 弹对话"。
+            GameLog.Warn("Task",
+                "DoTask 找 NPC blocker: NPC {0} 已在场景 pos=({1},{2}),但 NPC 对话链(Scene.MainRoleToNpc→SHOW_TASK→" +
+                "DialogueController→12101/12102)未移植 → 暂无法弹对话。NPC 已可定位,待移植对话控制器后接通。",
+                task.Id, npc.X, npc.Y);
+        }
+
+        /// <summary>完成提交(对标 ts:2385:TaskFinishView/TaskCircleFinishView + 协议 30004)。</summary>
+        private void DoFinishTask(TaskVo task)
+        {
+            // 真实入口 = TaskFinishView(完成后展示奖励并发 30004 提交)。该 View 在 Unity 端未生成/未移植 → blocker。
+            // 不直接发 30004:老端要求经完成弹层确认再提交,跳过弹层直接提交不忠实。
+            GameLog.Warn("Task",
+                "DoTask 完成 blocker: 任务 {0} 全步完成,应开 TaskFinishView(展示奖励 + 发 30004 提交)。" +
+                "该完成弹层未移植 → blocker。移植后这里 Emit TASK_OPEN_VIEW 打开它。", task.TaskId);
+        }
+
+        /// <summary>带场景坐标(对标 Kill/Collect/Item case:同场景寻路到点,跨场景飞鞋)。</summary>
+        private void DoGotoSceneTask(TaskVo task)
+        {
+            int curScene = RoleModel.Instance.SceneId;
+            if (task.SceneId == curScene || task.SceneId == 0)
+            {
+                GameLog.Warn("Task",
+                    "DoTask 寻路 blocker: 任务 {0} 目标在当前场景 pos=({1},{2}),但自动寻路到点未移植" +
+                    "(MainRoleAgent 仅摇杆驱动,无 A* 寻路)→ blocker。目标坐标已就绪,可手动摇杆走到。",
+                    task.TaskId, task.SceneX, task.SceneY);
+            }
+            else
+            {
+                GameLog.Warn("Task",
+                    "DoTask 切场景 blocker: 任务 {0} 目标在场景 {1}(当前 {2}),跨场景切换(老端 USE_FLY_SHOE/飞鞋)" +
+                    "未移植 → blocker。目标坐标 ({3},{4}) 已就绪。", task.TaskId, task.SceneId, curScene, task.SceneX, task.SceneY);
+            }
         }
 
         private static int CompareTaskEntry(TaskEntry a, TaskEntry b)

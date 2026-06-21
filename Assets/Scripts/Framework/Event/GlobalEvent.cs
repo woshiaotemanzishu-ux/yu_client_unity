@@ -78,6 +78,8 @@ namespace Shenxiao.Framework.Event
         // ----- Task -----
         public const string EVT_TASK_LIST_UPDATED = "EVT_TASK_LIST_UPDATED";
         public const string EVT_TASK_ONE_UPDATED = "EVT_TASK_ONE_UPDATED";
+        /// <summary>点任务项后选中任务变化(携带 taskId),刷新任务栏选中态。对标老端 CLICK_DO_TASK。</summary>
+        public const string EVT_TASK_SELECT_CHANGED = "EVT_TASK_SELECT_CHANGED";
 
         // ----- AutoBrush -----
         public const string EVT_AUTOBRUSH_INFO_UPDATED = "EVT_AUTOBRUSH_INFO_UPDATED";

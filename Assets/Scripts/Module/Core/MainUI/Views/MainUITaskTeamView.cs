@@ -44,6 +44,7 @@ namespace Shenxiao.Module.Core.MainUI
         {
             EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, RefreshTaskItems);
             EventDispatcher.On<int>(GlobalEvent.EVT_TASK_ONE_UPDATED, OnTaskOneUpdated);
+            EventDispatcher.On<int>(GlobalEvent.EVT_TASK_SELECT_CHANGED, OnTaskSelectChanged);
             RefreshTaskItems();
         }
 
@@ -51,9 +52,16 @@ namespace Shenxiao.Module.Core.MainUI
         {
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, RefreshTaskItems);
             EventDispatcher.Off<int>(GlobalEvent.EVT_TASK_ONE_UPDATED, OnTaskOneUpdated);
+            EventDispatcher.Off<int>(GlobalEvent.EVT_TASK_SELECT_CHANGED, OnTaskSelectChanged);
         }
 
         private void OnTaskOneUpdated(int taskId)
+        {
+            RefreshTaskItems();
+        }
+
+        // 选中任务变化(点任务项后 DoTask 广播)→ 重刷任务栏,各项据 NowSelectTaskId 更新 _img_select 选中态。
+        private void OnTaskSelectChanged(int taskId)
         {
             RefreshTaskItems();
         }

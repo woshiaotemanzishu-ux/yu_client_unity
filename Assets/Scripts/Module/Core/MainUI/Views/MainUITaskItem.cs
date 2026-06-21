@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Module.Core.Tasks;
 using TMPro;
@@ -21,6 +22,21 @@ namespace Shenxiao.Module.Core.MainUI
             _box_finger_con.gameObject.SetActive(false);
             _box_effect.gameObject.SetActive(false);
             lblTaskTitle2.text = "";
+            // 点任务项 → DoTask(对标老端 MainUITaskItem.OnClick → TaskModel.DoTask)。_img_bg 为背景图,作点击热区。
+            UIUtil.AddClick(_img_bg, OnClick);
+        }
+
+        /// <summary>
+        /// 点击任务项:取当前未完成步 → TaskModel.DoTask(置选中态 + 按 tips 类型进对话/完成/寻路分支)。
+        /// 老端 MainUITaskTeamView.ts:563-573 的"对话已开且 NPC 匹配则不重复 DoTask"去重依赖 DialogueModel,
+        /// Unity 端 DialogueModel 未移植 → 暂直接 DoTask(待对话系统移植后补该去重)。
+        /// </summary>
+        private void OnClick()
+        {
+            if (_entry == null) return;
+            TaskVo task = TaskModel.Instance.FindUnFinishTask(_entry.TipsList);
+            if (task == null) return;
+            TaskModel.Instance.DoTask(task);
         }
 
         public void SetData(TaskModel.TaskEntry entry)
