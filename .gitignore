@@ -46,3 +46,12 @@ Desktop.ini
 /Assets/GameRes/resource/
 /Assets/Prefabs/UI/
 /Assets/_App/Scenes/LayaUIPreview.unity*
+
+# 例外(P0 资源可复现门 — 见 Docs/Claude任务包-主线竖切-第1轮.md):
+# 进游戏「主竖切」结构闭包已用 `git add -f` 入库,使 Remote_Prefabs.asset 里
+# mainuimodule/mapmodule/settingmodule/basewindowskin 等 Addressables key 在
+# clean checkout 可解析。闭包 = 这 4 个根 prefab 递归引用到的全部 UI 预制件,
+# 共 23 个 prefab(+其 .meta +所在目录 .meta)。它们是 tracked 文件,上面的
+# /Assets/Prefabs/UI/ 规则对已跟踪文件不生效;其余 UI prefab 仍忽略(可再生成)。
+# 注:这些 prefab 引用的散图/字体仍在被忽略的 /Assets/GameRes/resource/ 下,
+# clean checkout 时结构与脚本组件可加载,缺失的静态贴图=优雅降级(动态图运行时走 ResManager)。
