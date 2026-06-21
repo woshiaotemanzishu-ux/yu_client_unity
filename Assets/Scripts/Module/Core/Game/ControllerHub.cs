@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoBrush;
+using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.FirstRecharge;
 using Shenxiao.Module.Core.FunctionOpen;
@@ -38,7 +39,8 @@ namespace Shenxiao.Module.Core.Game
             FirstRechargeController.Instance,
             WeekCardController.Instance,
             SurpriseGiftController.Instance,
-            // 后续:BagController / EquipController / ChatController ...
+            BagController.Instance,
+            // 后续:EquipController / ChatController ...
         };
 
         public static bool Initialized { get; private set; }

@@ -23,10 +23,21 @@ namespace Shenxiao.Module.Core.Common
     {
         private Action _clickCb;
         private int _typeId;
+        private bool _inited;
 
         protected override void OnInit()
         {
-            // 动态覆盖层默认隐藏(SetData/SetSelect 再按需打开)
+            EnsureInit();
+        }
+
+        /// <summary>
+        /// 幂等初始化:隐藏动态覆盖层 + 绑定点击。列表项(完成弹层/背包格)常被克隆后直接 SetData(不经 BaseView.Show),
+        /// OnInit 不会自动跑 → 由 SetData 兜底调本方法,保证点击 tips(<see cref="OnClick"/>)与默认态在任何用法下就位。
+        /// </summary>
+        private void EnsureInit()
+        {
+            if (_inited) return;
+            _inited = true;
             if (@lock != null) @lock.gameObject.SetActive(false);
             if (select_image != null) select_image.gameObject.SetActive(false);
             if (time_limit != null) time_limit.gameObject.SetActive(false);
@@ -37,6 +48,7 @@ namespace Shenxiao.Module.Core.Common
         /// <summary>填物品(对标 SetData 核心:type_id + 数量 + 锁 + 选中)。图标/品质底板待 GoodsModel。</summary>
         public void SetData(int typeId, long num, bool isLock = false, bool select = false)
         {
+            EnsureInit();
             _typeId = typeId;
             SetCount(num);
             SetLock(isLock);
@@ -140,7 +152,8 @@ namespace Shenxiao.Module.Core.Common
         private void OnClick()
         {
             if (_clickCb != null) { _clickCb(); return; }
-            GameLog.Info("Common", "物品点击 typeId={0} → 待对接 UIToolTipMgr 物品 tips", _typeId);
+            // 默认分支(未设回调)= 弹物品详情 tips(对标老端 UIToolTipMgr.AppendGoodsTips → GoodsTooltips:名/图标/品质/描述)。
+            if (_typeId > 0) ItemTipsView.Show(_typeId);
         }
     }
 }

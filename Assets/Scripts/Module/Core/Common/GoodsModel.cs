@@ -38,10 +38,12 @@ namespace Shenxiao.Module.Core.Common
             public string Name = "";
             public string Icon = "";   // goods_icon(图标资源 id)
             public int Color;          // 品质/颜色(0..8)
+            public string Intro = "";  // intro(物品介绍/描述,对标老端 GoodsTooltips.intro)
         }
 
         // config_goods 数字索引键(见类注释;改这里=对齐配表字段顺序,勿散落魔法字符串)。
         private const string K_NAME = "1";
+        private const string K_INTRO = "2";    // intro(物品介绍/描述,对标 config_table_default.json config_goods 下标 2)
         private const string K_ICON = "14";   // goods_icon(注:键 "9" 是 type、"10" 是 subtype,勿混)
         private const string K_COLOR = "18";   // color/品质 0..8
 
@@ -98,6 +100,7 @@ namespace Shenxiao.Module.Core.Common
                 Name = ReadString(obj, K_NAME),
                 Icon = ReadString(obj, K_ICON),
                 Color = ReadInt(obj, K_COLOR),
+                Intro = ReadString(obj, K_INTRO),
             };
             _cache[typeId] = basic;
             return basic;
@@ -108,6 +111,10 @@ namespace Shenxiao.Module.Core.Common
 
         /// <summary>图标资源 id(对标 GoodsModel.ts GetGoodsIcon 的 cfg.goods_icon);无则空串。</summary>
         public static string GetGoodsIcon(int typeId) => GetGoodsBasicByTypeId(typeId)?.Icon ?? "";
+
+        /// <summary>物品介绍/描述(对标 config_goods key "2"=intro,老端 GoodsTooltips.intro);无则空串。
+        /// 原文含 Laya HTML(&lt;br/&gt;/&lt;font color&gt;),由调用方(物品 tips)按 TMP 富文本转换显示。</summary>
+        public static string GetGoodsIntro(int typeId) => GetGoodsBasicByTypeId(typeId)?.Intro ?? "";
 
         /// <summary>品质/颜色(0..8,对标 cfg.color);无则 0。</summary>
         public static int GetColor(int typeId) => GetGoodsBasicByTypeId(typeId)?.Color ?? 0;

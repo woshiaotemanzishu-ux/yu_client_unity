@@ -185,6 +185,18 @@ namespace Shenxiao.Framework.Net
         /// <summary>周卡奖励推送(S2C)。Type:c + 奖励[…]。</summary>
         public const int WEEK_CARD_REWARD = 45203;
 
+        // ----- 物品/背包(150xx,yu_client h5/src/commonController/GoodsController.ts + commonModel/BagModel.ts) -----
+        /// <summary>物品容器全量(满背包/装备/仓库…)。发 "h"(pos;背包 pos=4=GoodsModel.GOODS_POS_TYPE.bag,见
+        /// GoodsController.ts GAME_START 批量 SendFmtToGame(15010,"h",pos));回包(ClientProtocol.json "15010"):
+        /// pos:h, cell_num:h, max_cell:h, cell_gold:c,
+        /// goods_list[u16 × {goods_id:l, type_id:i, sub_pos:c, cell:h, goods_num:i, bind:c, trade:c, sell:c, is_drop:c,
+        /// color:c, expire_time:i, combat_power:i, stren:h, level:h, rating:i, overall_rating:i,
+        /// addition_attrlist[u16×{attr_type:c,attr_value:i,color:c,combat_power:i}],
+        /// equip_extra_attr[u16×{color:c,type_id:c,attr_id:h,attr_val:i,plus_interval:c,plus_unit:i}],
+        /// equipStage:c, equipStar:c, skill_id:i, skill_lv:c, awake_list[u16×{attr_type:h,awake_lv:i,awake_exp:i}]}]。
+        /// 显示只取 type_id/goods_num/color/cell,但每项须按序读完(含 3 嵌套数组)否则错位。每个回包对应一个 pos。</summary>
+        public const int GOODS_CONTAINER_INFO = 15010;
+
         // ----- 惊喜礼包(490xx,yu_server pt_490.erl) -----
         /// <summary>惊喜礼包信息。请求无参;回包见 pt_490 write(49000)。</summary>
         public const int SURPRISE_GIFT_INFO = 49000;

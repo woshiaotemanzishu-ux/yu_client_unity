@@ -183,7 +183,18 @@ namespace Shenxiao.Module.Core.Bag
             }
             t.SetParent(parent, false);
             t.gameObject.SetActive(true);
-            return t.GetComponent<BaseView>();
+            BaseView view = t.GetComponent<BaseView>();
+
+            // 背包格渲染模板 bagItemRenderer 是模块组(BagModule)顶层兄弟、非视图 Bind 字段 →
+            // 由 flow(已负责模块结构导航)注入,避免业务视图反向 transform.Find 兄弟节点。
+            if (view is BagComponentView bagView)
+            {
+                Transform tpl = root.transform.Find("bagItemRenderer");
+                BagItemRenderer rend = tpl != null ? tpl.GetComponent<BagItemRenderer>() : null;
+                if (rend != null) bagView.SetItemTemplate(rend);
+                else GameLog.Warn("Bag", "bagItemRenderer 模板未找到(BagModule 结构变动?)→ 背包格无法铺");
+            }
+            return view;
         }
 
         internal static void Reset()
