@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Shenxiao.Common.UI3D;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using TMPro;
@@ -13,7 +16,10 @@ namespace Shenxiao.Module.Core.Dialogue
     /// 说明:老端 dialogue/DialogueView.ts 是 Laya UI,Unity 端尚无对应转换产物(无 DialogueViewBind/prefab),
     /// 故按本轮任务包许可做"最小可交互原生 Unity UI",但 ★数据与入口全为真★:
     ///   · NPC 名 = config_npc.name;对话文字 = config_talk(12101 默认对话 / 12102 任务对话);
-    ///   · 任务项 = 12101 真实 task_list;点"接取/提交/对话"= 真发 30003/30004/30007。
+    ///   · 任务项 = 12101 真实 task_list;点"接取/提交/对话"= 真发 30003/30004/30007;
+    ///   · NPC 立绘 = config_npc.icon 的真实 3D 模型(object/npc/model_clothe_{icon}),经 <see cref="UIModelStage"/>
+    ///     (登录角色预览同款"隔离区相机→RT→RawImage")渲进对话上方;缺模型降级隐藏 + 精确 blocker(不画假头像)。
+    ///     注:老端对话头像即 SetRoleModel 渲 3D 模型(DialogueView.ts:552-564),config_npc.image 恒 "0" 不用于头像。
     /// 待 LayaUI 转换流水线产出 DialogueView 后,用生成 Bind/prefab 替换本壳(见交付报告"下一轮")。
     ///
     /// 字体:复用场景中已打开 MainUI 文本的 TMP 字体(含中文字形),避免裸建视图时字体资源缺失导致豆腐块。
@@ -24,10 +30,16 @@ namespace Shenxiao.Module.Core.Dialogue
         private TextMeshProUGUI _nameText;
         private TextMeshProUGUI _contentText;
         private RectTransform _btnContainer;
+        private RectTransform _modelBox;  // NPC 立绘容器(UIModelStage 渲 RT 进来)
+        private int _modelEpoch;          // 立绘异步加载竞态闸:重开/切 NPC 即 ++,丢弃在途结果
         private readonly List<GameObject> _buttons = new List<GameObject>();
 
         private NpcDialogVo _vo;
         private int _dialogIndex;        // 当前内容块(1 基,对标 dialog_index)
+
+        // 立绘构图:UIModelStage 默认全身正交(scale=1→体缩放 5),对话上方站一只 NPC。
+        private const float MODEL_SCALE = 1.0f;
+        private static readonly Vector2 MODEL_POS = new Vector2(0f, 0f);
 
         private static TMP_FontAsset _font;
         private static Material _fontMat;
@@ -47,12 +59,15 @@ namespace Shenxiao.Module.Core.Dialogue
             DialogueModel.Instance.DialogIsOpen = true;
             DialogueModel.Instance.CurrentNpcId = vo.NpcId;
             Render();
+            _ = ShowNpcModel(vo.NpcId); // NPC 立绘(真实 3D 模型,异步;缺模型降级)
             GameLog.Info("Dialogue", "对话视图打开: npcId={0} talkId={1} 任务数={2} default={3}",
                 vo.NpcId, vo.TalkId, vo.TaskList.Count, vo.IsDefaultTalk());
         }
 
         public void Close()
         {
+            _modelEpoch++;            // 取消在途立绘加载
+            UIModelStage.Clear();     // 收掉 NPC 立绘(销毁模型实例 + 隐藏 RawImage)
             if (_root != null) _root.SetActive(false);
             DialogueModel.Instance.DialogIsOpen = false;
             DialogueModel.Instance.CurrentNpcId = 0;
@@ -65,6 +80,56 @@ namespace Shenxiao.Module.Core.Dialogue
             _dialogIndex++;
             if (_vo == null || _dialogIndex > _vo.GetTalkContentCount()) { Close(); return; }
             Render();
+        }
+
+        // NPC 立绘:config_npc.icon → object/npc/model_clothe_{icon} 真实 3D 模型,经 UIModelStage 渲进 _modelBox。
+        // 异步:加载期间对话被关/切 NPC → 用 _modelEpoch 闸丢弃;缺模型降级隐藏 + 精确 blocker(不画假头像)。
+        private async Task ShowNpcModel(int npcId)
+        {
+            if (_modelBox == null) return;
+            int epoch = ++_modelEpoch;
+
+            await NpcConfigs.EnsureLoaded();
+            if (epoch != _modelEpoch) return;
+
+            NpcConfigs.NpcCfg cfg = NpcConfigs.Get(npcId);
+            string iconId = cfg != null && !string.IsNullOrEmpty(cfg.Icon) ? cfg.Icon : npcId.ToString();
+            string modelKey = $"object/npc/model_clothe_{iconId}/model_clothe_{iconId}";
+
+            GameObject prefab = await ResManager.LoadAsync<GameObject>(modelKey);
+            if (epoch != _modelEpoch || _root == null || !_root.activeSelf) return; // 已关/已切:丢弃
+
+            if (prefab == null)
+            {
+                UIModelStage.Clear();
+                GameLog.Warn("Dialogue",
+                    "对话立绘缺模型(blocker): npcId={0} key={1} — NPC 模型未转换/未入库,立绘降级隐藏(名字/对话照常)。",
+                    npcId, modelKey);
+                return;
+            }
+
+            GameObject instance = Object.Instantiate(prefab);
+            UIModelStage.ShowInstance(_modelBox, instance, MODEL_SCALE, MODEL_POS);
+            GameLog.Info("Dialogue", "对话立绘: npcId={0} model={1}", npcId, modelKey);
+            await PlayNpcIdle(instance, iconId); // 待机动作(同场景 NPC);缺动作则静态展示
+        }
+
+        // 待机动作(对标 NpcRenderer.PlayIdle):object/npc/action/{icon}/idle;缺动作降级静态(不报错)。
+        private static async Task PlayNpcIdle(GameObject model, string resId)
+        {
+            if (model == null) return;
+            string actionKey = $"object/npc/action/{resId}/idle";
+            AnimationClip clip = await ResManager.LoadAsync<AnimationClip>(actionKey);
+            if (model == null) return; // 加载期间对话关闭/切 NPC:实例已销毁
+            if (clip == null)
+            {
+                GameLog.Warn("Dialogue", "对话立绘 idle 动作未转换,静态展示: key={0}", actionKey);
+                return;
+            }
+            Animation anim = model.GetComponent<Animation>();
+            if (anim == null) anim = model.AddComponent<Animation>();
+            if (anim.GetClip("idle") == null) anim.AddClip(clip, "idle");
+            anim.Play("idle");
         }
 
         // ===================== 渲染 =====================
@@ -199,6 +264,13 @@ namespace Shenxiao.Module.Core.Dialogue
             layout.childAlignment = TextAnchor.MiddleCenter;
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
+
+            // NPC 立绘容器:对话面板上方左侧站一只真实 NPC 模型(UIModelStage 渲 RT 进来,放最后→压在面板之上)。
+            GameObject modelBox = NewRect("ModelBox", _root.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), Vector2.zero, Vector2.zero);
+            _modelBox = (RectTransform)modelBox.transform;
+            _modelBox.pivot = new Vector2(0f, 0f);
+            _modelBox.sizeDelta = new Vector2(320f, 460f);
+            _modelBox.anchoredPosition = new Vector2(40f, 410f);
         }
 
         private void AddButton(string label, System.Action onClick)
