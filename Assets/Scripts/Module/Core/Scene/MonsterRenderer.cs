@@ -1,0 +1,425 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Shenxiao.Common.UI3D;
+using Shenxiao.Framework.Event;
+using Shenxiao.Framework.Res;
+using Shenxiao.Framework.Scene3D.Map;
+using Shenxiao.Framework.UI;
+using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Login;
+using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.Scene.Vo;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace Shenxiao.Module.Core.Scene
+{
+    /// <summary>
+    /// 场景怪物/采集物渲染层(对标老客户端 Scene.CreateMonster → Monster.InitMonster,见
+    /// yu_client/h5/src/scene/sceneobj/Monster.ts:140-175 + SceneObj.CreateClotheSprite)。
+    ///
+    /// 职责:订阅数据层 <see cref="SceneManager"/> 的 MonsterAdded/MonsterRemoved/MonsterMoved/MonsterHpChanged
+    /// (12002/12007/12012 落表后触发),把真实 <see cref="MonsterVo"/> 加载成 3D 模型摆进
+    /// <see cref="SceneCharacterStage"/> 合成台(与主角/NPC 共用相机/RT),位置 = (怪物世界像素 - 主角世界像素)。
+    /// 本类不碰协议/字节,只消费 vo;与 <see cref="NpcRenderer"/> 同构(static flow + 一个 MonoBehaviour 驱动)。
+    ///
+    /// 资源来源(真实资源,绝不画假怪 / 不用 cube 占位):
+    ///   模型   = object/monster/model_clothe_{monster_res}/model_clothe_{monster_res}
+    ///   待机   = object/monster/action/{monster_res}/idle
+    ///   其中 monster_res = 协议下发的 <see cref="MonsterVo.MonsterRes"/>(服务端 Body,非 type_id)。
+    ///   对标老端 GameResPath:resource/object/monster/objs/model_clothe_${monster_res}.lh,
+    ///   Unity 转换产物布局同 NPC(object/{module}/{name}/{name}),经 <see cref="ResManager"/> 加载。
+    ///   例:首条打怪 type_id=10001001(转运傀儡)→ monster_res=10020103 → 既有模型/动作资源,无需造假。
+    ///
+    /// 名牌 + 血条(数据来自协议 vo + <see cref="MonsterConfigs"/>):
+    ///   名字 = 协议 vo.Name 优先(对标老端 Monster.ts:326 name_board.SetName(this.vo.name),如实采 "转运达摩"),
+    ///         空则回退 config_mon["1"] 模板名(如 "转运傀儡");两者皆空则不挂名(降级,不写假名)。
+    ///   血条 = vo.Hp/vo.HpLim(12007 下发 + 12009 MonsterHpChanged 实时刷新);采集物(<see cref="MonsterVo.IsCollect"/>)
+    ///         按老端 Monster.SetHpState 不显血条。名牌走最小原生 TMP/Image 屏幕跟随件(同 NpcRenderer 约定,
+    ///         老端 NameBoard.lh 的 Unity 转换产物名字节点缺失,合成台 RT 也无法直接叠 2D 名牌)。
+    ///   缩放 = config_mon["11"] icon_scale(对标 Monster.ts SetScale(vo.icon_scale)),缺表用合成台默认。
+    ///
+    /// 已知 blocker / 后续(精确写明,不臆造):
+    ///   - 怪物朝向(config_mon brith_rot / 移动方向)本轮不接,用合成台默认朝向。
+    ///   - 移动插值:本轮按 vo 当前坐标每帧贴位(无插值),九宫格 12008/12012 改坐标即跟随。
+    ///   - 受击/死亡/攻击动作、任务怪头顶标:本轮只待机 idle,记录为后续。
+    /// </summary>
+    public static class MonsterRenderer
+    {
+        private const string ACTION_IDLE = "idle";
+
+        private sealed class MonView
+        {
+            public int InstanceId;
+            public MonsterVo Vo;
+            public int MonsterRes;   // 当前模型资源(用于判定重复推送时是否需要重建)
+            public Transform Tilt;    // SceneCharacterStage 里的配角 tilt(挂模型)
+            public GameObject Model;
+            public RectTransform NameplateRt; // 屏幕跟随名牌根(名字 + 血条);无可显内容为 null
+            public Image HpFill;      // 血条填充(采集物为 null)
+            public int Epoch;         // 清场代次:切场景/断线后过期的在途加载结果丢弃
+            public bool Loaded;
+        }
+
+        private static readonly Dictionary<int, MonView> _views = new Dictionary<int, MonView>();
+        private static GameObject _driverGo;
+        private static int _epoch;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Install()
+        {
+            SceneManager mgr = SceneManager.Instance;
+            mgr.MonsterAdded += OnMonsterAdded;
+            mgr.MonsterRemoved += OnMonsterRemoved;
+            mgr.MonsterMoved += OnMonsterMoved;
+            mgr.MonsterHpChanged += OnMonsterHpChanged;
+            EventDispatcher.On(GlobalEvent.EVT_SCENE_OBJECTS_CLEARED, ClearAll);
+            EventDispatcher.On(GlobalEvent.EVT_NET_DISCONNECTED, OnNetDisconnected);
+        }
+
+        private static void OnNetDisconnected()
+        {
+            // 游戏内自动重连:保留怪,等重连后 12002/12012 覆盖(避免重连闪一下);真正断开才清场。
+            if (LoginController.Instance.CanAutoReconnectInGame) return;
+            ClearAll();
+        }
+
+        private static async void OnMonsterAdded(MonsterVo vo)
+        {
+            if (vo == null) return;
+
+            // 重复推送(同实例 id 再来,如九宫格 12012 刷新):资源未变就地更新 vo + 血条,避免模型重载闪烁;
+            // 资源变了(极少)才撤旧重建。
+            if (_views.TryGetValue(vo.InstanceId, out MonView exist))
+            {
+                if (exist.MonsterRes == vo.MonsterRes && exist.Loaded)
+                {
+                    exist.Vo = vo;
+                    RefreshHp(exist);
+                    return;
+                }
+                RemoveView(exist);
+            }
+
+            var view = new MonView { InstanceId = vo.InstanceId, Vo = vo, MonsterRes = vo.MonsterRes, Epoch = _epoch };
+            _views[vo.InstanceId] = view;
+            EnsureDriver();
+
+            // config_mon(名字/缩放)按需加载(EnsureLoaded 幂等);缺表优雅降级(见 MonsterConfigs)。
+            await MonsterConfigs.EnsureLoaded();
+            if (IsStale(view)) return;
+            MonsterConfigs.MonCfg cfg = MonsterConfigs.Get(vo.TypeId);
+
+            GameLog.Info("Scene",
+                "monster render: ins={0} type={1} monster_res={2} cfgBody={3} pos=({4},{5}) hp={6}/{7} canAtk={8} collect={9} name=\"{10}\" iconScale={11}",
+                vo.InstanceId, vo.TypeId, vo.MonsterRes, cfg?.Body ?? -1, vo.X, vo.Y, vo.Hp, vo.HpLim,
+                vo.CanAttack, vo.IsCollect, DisplayName(vo, cfg), cfg?.IconScale ?? -1f);
+
+            if (vo.MonsterRes <= 0)
+            {
+                GameLog.Error("Scene",
+                    "monster 渲染缺 monster_res(blocker):ins={0} type={1} — 协议未下发模型资源,无法定位真实模型,不画假怪。",
+                    vo.InstanceId, vo.TypeId);
+                return;
+            }
+
+            string modelKey = ModelKey(vo.MonsterRes);
+            GameObject prefab = await ResManager.LoadAsync<GameObject>(modelKey);
+            if (IsStale(view)) return;
+
+            if (prefab == null)
+            {
+                // 数据到了但模型资源缺 → 精确 blocker,不画假怪冒充。
+                GameLog.Error("Scene",
+                    "monster model 缺失(blocker):ins={0} type={1} key={2} — 怪数据已到但模型未转换/未入库,形象不可见。" +
+                    "处置:用 神霄/资源 转该怪模型,或确认 Assets/GameRes/object/monster/model_clothe_{3} 存在。",
+                    vo.InstanceId, vo.TypeId, modelKey, vo.MonsterRes);
+                return;
+            }
+
+            GameObject model = Object.Instantiate(prefab);
+            float iconScale = cfg != null && cfg.IconScale > 0f ? cfg.IconScale : -1f;
+            Transform tilt = iconScale > 0f
+                ? SceneCharacterStage.AddSceneCharacter(model, iconScale)
+                : SceneCharacterStage.AddSceneCharacter(model);
+            view.Model = model;
+            view.Tilt = tilt;
+            view.Loaded = true;
+            CreateNameplate(view, cfg); // 名字(config/vo)+ 血条(非采集);无可显内容则跳过
+            UpdateViewPosition(view);    // 立即摆一次位(含名牌),driver 之后每帧维持
+
+            await PlayIdle(model, vo.MonsterRes);
+            if (IsStale(view)) return; // PlayIdle 期间被清场:模型已随 tilt 销毁,放弃后续
+
+            GameLog.Info("Scene", "monster visible: ins={0} type={1} model={2} pos=({3},{4})",
+                vo.InstanceId, vo.TypeId, modelKey, vo.X, vo.Y);
+        }
+
+        private static void OnMonsterRemoved(int instanceId)
+        {
+            if (_views.TryGetValue(instanceId, out MonView view)) RemoveView(view);
+        }
+
+        private static void OnMonsterMoved(MonsterVo vo)
+        {
+            if (vo == null || !_views.TryGetValue(vo.InstanceId, out MonView view)) return;
+            view.Vo = vo;              // SceneManager 原地改的是同一 vo,这里保持引用一致
+            UpdateViewPosition(view);  // 立即跟随(driver 每帧也会维持)
+        }
+
+        private static void OnMonsterHpChanged(MonsterVo vo)
+        {
+            if (vo == null || !_views.TryGetValue(vo.InstanceId, out MonView view)) return;
+            view.Vo = vo;
+            RefreshHp(view);
+        }
+
+        /// <summary>切场景/真正断线:清掉所有怪视图(SceneManager.Clear 不逐个发 MonsterRemoved,故整清)。</summary>
+        private static void ClearAll()
+        {
+            _epoch++; // 让在途加载全部过期
+            foreach (MonView v in _views.Values)
+            {
+                SceneCharacterStage.RemoveSceneCharacter(v.Tilt);
+                DestroyNameplate(v);
+            }
+            _views.Clear();
+        }
+
+        private static void RemoveView(MonView view)
+        {
+            if (view == null) return;
+            SceneCharacterStage.RemoveSceneCharacter(view.Tilt);
+            DestroyNameplate(view);
+            view.Loaded = false;
+            if (_views.TryGetValue(view.InstanceId, out MonView cur) && cur == view)
+            {
+                _views.Remove(view.InstanceId);
+            }
+        }
+
+        /// <summary>视图是否已失效(被清场/移除/替换);在途 await 之后用它丢弃过期结果。</summary>
+        private static bool IsStale(MonView view)
+        {
+            return view == null || view.Epoch != _epoch
+                || !_views.TryGetValue(view.InstanceId, out MonView cur) || cur != view;
+        }
+
+        /// <summary>每帧由 driver 调:怪随主角移动重摆相对位(锚在地图上);怪自身移动经 MonsterMoved 改 vo 坐标。</summary>
+        internal static void TickPositions()
+        {
+            if (_views.Count == 0) return;
+            foreach (MonView v in _views.Values)
+            {
+                UpdateViewPosition(v);
+            }
+        }
+
+        private static void UpdateViewPosition(MonView view)
+        {
+            if (view == null || !view.Loaded || view.Tilt == null) return;
+            RoleModel role = RoleModel.Instance;
+            Vector2 off = new Vector2(view.Vo.X - role.X, view.Vo.Y - role.Y);
+            SceneCharacterStage.SetSceneCharacterPixelOffset(view.Tilt, off);
+            UpdateNameplatePosition(view);
+        }
+
+        private static async Task PlayIdle(GameObject model, int monsterRes)
+        {
+            if (model == null) return;
+            string actionKey = $"object/monster/action/{monsterRes}/{ACTION_IDLE}";
+            AnimationClip clip = await ResManager.LoadAsync<AnimationClip>(actionKey);
+            if (model == null) return; // 加载期间被销毁(Unity 重载 == null)
+            if (clip == null)
+            {
+                GameLog.Warn("Scene", "monster idle 动作未转换,静态展示:res={0} key={1}", monsterRes, actionKey);
+                return;
+            }
+            if (!clip.legacy)
+            {
+                // 非 legacy 片段无法挂到 Animation 组件播放(避免抛错);静态展示并记录(同 NPC 走 legacy 约定)。
+                GameLog.Warn("Scene", "monster idle 非 legacy 片段,静态展示:res={0} key={1}", monsterRes, actionKey);
+                return;
+            }
+            Animation anim = model.GetComponent<Animation>();
+            if (anim == null) anim = model.AddComponent<Animation>();
+            if (anim.GetClip(ACTION_IDLE) == null) anim.AddClip(clip, ACTION_IDLE);
+            anim.Play(ACTION_IDLE);
+        }
+
+        // 模型 key:object/monster/model_clothe_{monster_res}/model_clothe_{monster_res}
+        // (转换后模型布局,同 NPC model_clothe_ 约定;monster_res = 协议 vo.MonsterRes,服务端 Body)。
+        private static string ModelKey(int monsterRes)
+            => $"object/monster/model_clothe_{monsterRes}/model_clothe_{monsterRes}";
+
+        private static string DisplayName(MonsterVo vo, MonsterConfigs.MonCfg cfg)
+        {
+            // 对标老端 Monster.UpdateName:name_board.SetName(this.vo.name)(Monster.ts:326)——服务器实例名优先
+            // (如 type 10001001 实例实采 vo.name="转运达摩";config_mon["1"]="转运傀儡" 仅模板,boss 升级路径才覆盖 vo.name)。
+            // vo.name 空 → 回退 config_mon 名(模板);皆空 → 不挂名(降级,不写假名)。
+            if (vo != null && !string.IsNullOrEmpty(vo.Name)) return vo.Name;
+            return cfg != null && !string.IsNullOrEmpty(cfg.Name) ? cfg.Name : "";
+        }
+
+        // ===================== 名牌(名字 + 血条,屏幕跟随)=====================
+        // 怪经合成台 RT 合成(3D 体在隔离区),2D 名牌无法直接叠进 RT,故名牌做成 Scene 层屏幕跟随件:
+        // 怪屏幕位 = (怪像素 - 相机像素)(与合成台/地图同一锚定口径,同 NpcRenderer)。精确竖直贴合属"待真机微调"。
+        private const float NAMEPLATE_HEAD_OFFSET = 140f; // 名牌相对脚底锚点上移(参考像素;头顶高度,实跑可调)
+        private const float HP_BAR_WIDTH = 90f;
+        private const float HP_BAR_HEIGHT = 8f;
+
+        private static RectTransform _nameplateRoot;
+        private static TMP_FontAsset _font;
+        private static Material _fontMat;
+        private static Sprite _whiteSprite;
+
+        private static void CreateNameplate(MonView view, MonsterConfigs.MonCfg cfg)
+        {
+            string name = DisplayName(view.Vo, cfg);
+            bool showHp = !view.Vo.IsCollect && view.Vo.HpLim > 0; // 采集物不显血条(对标 Monster.SetHpState)
+            if (string.IsNullOrEmpty(name) && !showHp) return;      // 无名且无血条 → 不挂
+
+            EnsureNameplateRoot();
+            if (_nameplateRoot == null) return;
+
+            var go = new GameObject($"MonNameplate_{view.InstanceId}", typeof(RectTransform));
+            go.transform.SetParent(_nameplateRoot, false);
+            var root = (RectTransform)go.transform;
+            root.anchorMin = root.anchorMax = new Vector2(0.5f, 0.5f); // 锚屏幕中心:anchoredPosition 用(怪 - 相机)像素
+            root.pivot = new Vector2(0.5f, 0f);                        // 底边贴在头顶偏移处
+            root.sizeDelta = new Vector2(220f, 56f);
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                var txtGo = new GameObject("Name", typeof(RectTransform));
+                txtGo.transform.SetParent(root, false);
+                var trt = (RectTransform)txtGo.transform;
+                trt.anchorMin = trt.anchorMax = new Vector2(0.5f, 0f);
+                trt.pivot = new Vector2(0.5f, 0f);
+                trt.anchoredPosition = new Vector2(0f, HP_BAR_HEIGHT + 6f); // 名字在血条之上
+                trt.sizeDelta = new Vector2(220f, 28f);
+
+                var t = txtGo.AddComponent<TextMeshProUGUI>();
+                t.fontSize = 20;
+                t.alignment = TextAlignmentOptions.Bottom;
+                t.raycastTarget = false;
+                t.textWrappingMode = TextWrappingModes.NoWrap;
+                ApplyFont(t);
+                // 怪名暖色(红橙),与 NPC 名牌(青)区分,对标老端敌对怪名牌配色。
+                t.text = $"<color=#ff7a6a>{name}</color>";
+            }
+
+            if (showHp)
+            {
+                EnsureWhiteSprite();
+                var bgGo = new GameObject("HpBarBg", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                bgGo.transform.SetParent(root, false);
+                var bgRt = (RectTransform)bgGo.transform;
+                bgRt.anchorMin = bgRt.anchorMax = new Vector2(0.5f, 0f);
+                bgRt.pivot = new Vector2(0.5f, 0f);
+                bgRt.anchoredPosition = new Vector2(0f, 2f);
+                bgRt.sizeDelta = new Vector2(HP_BAR_WIDTH, HP_BAR_HEIGHT);
+                var bg = bgGo.GetComponent<Image>();
+                bg.sprite = _whiteSprite;
+                bg.color = new Color(0f, 0f, 0f, 0.6f);
+                bg.raycastTarget = false;
+
+                var fillGo = new GameObject("HpBarFill", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                fillGo.transform.SetParent(bgRt, false);
+                var fillRt = (RectTransform)fillGo.transform;
+                fillRt.anchorMin = Vector2.zero;
+                fillRt.anchorMax = Vector2.one;
+                fillRt.offsetMin = new Vector2(1f, 1f);
+                fillRt.offsetMax = new Vector2(-1f, -1f);
+                var fill = fillGo.GetComponent<Image>();
+                fill.sprite = _whiteSprite;
+                fill.type = Image.Type.Filled;
+                fill.fillMethod = Image.FillMethod.Horizontal;
+                fill.fillOrigin = (int)Image.OriginHorizontal.Left;
+                fill.color = new Color(0.86f, 0.22f, 0.20f, 1f); // 怪血条红
+                fill.raycastTarget = false;
+                view.HpFill = fill;
+            }
+
+            view.NameplateRt = root;
+            RefreshHp(view);
+        }
+
+        private static void RefreshHp(MonView view)
+        {
+            if (view?.HpFill == null) return;
+            long lim = view.Vo.HpLim;
+            float frac = lim > 0 ? Mathf.Clamp01((float)view.Vo.Hp / lim) : 0f;
+            view.HpFill.fillAmount = frac;
+        }
+
+        private static void UpdateNameplatePosition(MonView view)
+        {
+            if (view?.NameplateRt == null) return;
+            Vector2 cam = SceneMapView.CameraPos;
+            float sx = view.Vo.X - cam.x;
+            float sy = -(view.Vo.Y - cam.y);
+            view.NameplateRt.anchoredPosition = new Vector2(sx, sy + NAMEPLATE_HEAD_OFFSET);
+        }
+
+        private static void DestroyNameplate(MonView view)
+        {
+            if (view?.NameplateRt == null) return;
+            Object.Destroy(view.NameplateRt.gameObject);
+            view.NameplateRt = null;
+            view.HpFill = null;
+        }
+
+        private static void EnsureNameplateRoot()
+        {
+            if (_nameplateRoot != null) return;
+            Transform sceneLayer = ViewManager.GetLayer(UILayer.Scene);
+            if (sceneLayer == null) return;
+
+            var go = new GameObject("__MonsterNameplates", typeof(RectTransform), typeof(Canvas));
+            go.transform.SetParent(sceneLayer, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+
+            var canvas = go.GetComponent<Canvas>();
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = -40; // 合成台 RT(-50)之上、HUD(默认 0)之下,同 NPC 名牌
+            _nameplateRoot = rt;
+        }
+
+        private static void EnsureWhiteSprite()
+        {
+            if (_whiteSprite != null) return;
+            Texture2D tex = Texture2D.whiteTexture;
+            _whiteSprite = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
+        }
+
+        // 复用场景里已打开文本的 TMP 字体(含中文字形),避免名牌豆腐块(同 NpcRenderer/DialogueView 约定)。
+        private static void ApplyFont(TextMeshProUGUI t)
+        {
+            if (_font == null)
+            {
+                TextMeshProUGUI src = Object.FindAnyObjectByType<TextMeshProUGUI>();
+                if (src != null) { _font = src.font; _fontMat = src.fontSharedMaterial; }
+            }
+            if (_font != null) t.font = _font;
+            if (_fontMat != null) t.fontSharedMaterial = _fontMat;
+        }
+
+        private static void EnsureDriver()
+        {
+            if (_driverGo != null) return;
+            _driverGo = new GameObject("__MonsterRendererDriver");
+            Object.DontDestroyOnLoad(_driverGo);
+            _driverGo.AddComponent<MonsterRendererDriver>();
+        }
+    }
+
+    /// <summary>怪物渲染层的每帧驱动(对标 NpcRendererDriver):把怪随主角移动重摆相对位。</summary>
+    public sealed class MonsterRendererDriver : MonoBehaviour
+    {
+        private void Update() => MonsterRenderer.TickPositions();
+    }
+}
