@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
@@ -10,21 +12,28 @@ using UnityEngine.UI;
 namespace Shenxiao.Module.Core.Common
 {
     /// <summary>
-    /// 物品详情 tips —— 临时原生 uGUI 壳(TEMP SHELL),对标老端 common/UIToolTipMgr.AppendGoodsTips → GoodsTooltips。
+    /// 物品详情 tips —— 临时原生 uGUI 壳(TEMP SHELL),对标老端 common/UIToolTipMgr.DefaultAppendTips →
+    /// GoodsTooltips(普通物品)/ EquipToolTips(装备 type==10)。
     ///
-    /// 链路:点任意 <see cref="BaseAwardItem"/> 物品格(完成弹层/背包),未设点击回调 → 默认弹本 tips(对标 UIToolTipMgr 默认分支)。
-    /// ★数据全为真★:名/图标/品质底板/描述均来自 config_goods 经 <see cref="GoodsModel"/> 解出
-    /// (名=key"1" goods_name,图标=key"14" goods_icon,品质=key"18" color→com_goods_plate_{color},描述=key"2" intro)。
-    /// 图标 + 品质底板【复用通用 BaseAwardItem.prefab】(同 TaskFinishView:InstantiateAsync + SetData,真实图标+底板);
-    /// 描述 intro 原文含 Laya HTML(&lt;br/&gt;/&lt;font color&gt;)→ <see cref="ToTmpRich"/> 转 TMP 富文本。
-    /// 老端 GoodsTooltips.lh 无 Unity 转换产物(无 Bind/prefab),故按任务包许可做最小原生壳(同 TaskFinishView TEMP 壳约定);
-    /// 字体复用场景中已打开文本的 TMP 字体(含中文字形)。装备详情(属性/按钮)/来源/使用按钮等待装备系统移植,本轮只做通用物品详情。
+    /// 链路:点任意 <see cref="BaseAwardItem"/> 物品格(完成弹层/背包),未设点击回调 → 默认弹本 tips(对标 UIToolTipMgr 默认分支);
+    /// 数量由格子透传(<see cref="BaseAwardItem.OnClick"/> → Show(typeId,num))。
+    /// ★数据全为真★,均来自 config 经 <see cref="GoodsModel"/> 解出:
+    ///   · 名=key"1" / 图标=key"14" / 品质=key"18" / 描述=key"2"
+    ///   · 类型文本=GoodsType[type"9"].type_name(对标 GoodsTooltips.type_text=WordManager.GetGoodsStyle)
+    ///   · 数量=透传的堆叠数(对标 GoodsTooltips.quantity_text)
+    ///   · 获取途径=key"3" getway(对标 GoodsTooltips.ways=basic.getway)
+    ///   · 装备(type==10):基础属性=base_attrlist key"26" 经 ErlangParser + ConfigItemAttr 取真名(对标 EquipToolTips basePro);
+    ///     部位=equip_type key"13"、阶/评分=config_equip_attr、等级需求=key"16"、职业=career_id key"15"(对标 EquipToolTips)。
+    /// 图标 + 品质底板【复用通用 BaseAwardItem.prefab】(同 TaskFinishView:InstantiateAsync + SetData)。
+    /// 装备「实例」属性(极品 equip_extra_attr / 强化 stren)需活服实装备 + 实例透传到 tips,本轮只显 config 基础属性(精确 blocker,不画假属性)。
+    /// 老端 GoodsTooltips.lh/EquipToolTips.lh 无 Unity 转换产物,故按任务包许可做最小原生壳(同 TaskFinishView TEMP 壳约定);
+    /// 字体复用场景中已打开文本的 TMP 字体(含中文字形)。
     /// </summary>
     public static class ItemTipsView
     {
         private static GameObject _root;
         private static TextMeshProUGUI _nameText;
-        private static TextMeshProUGUI _introText;
+        private static TextMeshProUGUI _bodyText;
         private static RectTransform _iconSlot;
         private static GameObject _iconCell;
         private static int _epoch;
@@ -32,8 +41,9 @@ namespace Shenxiao.Module.Core.Common
         private static TMP_FontAsset _font;
         private static Material _fontMat;
 
-        /// <summary>弹物品详情(对标 UIToolTipMgr.AppendGoodsTips):typeId 不在 config_goods 则不弹(对标 if(!basic) return)。</summary>
-        public static void Show(int typeId)
+        /// <summary>弹物品详情(对标 UIToolTipMgr.DefaultAppendTips):typeId 不在 config_goods 则不弹(对标 if(!basic) return)。
+        /// num=堆叠数量(对标 GoodsTooltips quantity_text,由格子透传;默认 1)。</summary>
+        public static void Show(int typeId, long num = 1)
         {
             GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(typeId);
             if (basic == null)
@@ -48,12 +58,11 @@ namespace Shenxiao.Module.Core.Common
             _root.transform.SetAsLastSibling();
 
             _nameText.text = string.IsNullOrEmpty(basic.Name) ? ("#" + typeId) : basic.Name;
-            string intro = ToTmpRich(basic.Intro);
-            _introText.text = string.IsNullOrEmpty(intro) ? "<color=#8893a6>(暂无描述)</color>" : intro;
+            _bodyText.text = BuildBody(typeId, num, basic);
 
             _ = BuildIcon(typeId);
-            GameLog.Info("Common", "ItemTips 打开: typeId={0} '{1}' color={2} intro={3}字",
-                typeId, basic.Name, basic.Color, basic.Intro?.Length ?? 0);
+            GameLog.Info("Common", "ItemTips 打开: typeId={0} '{1}' type={2}({3}) color={4} num={5} equip={6}",
+                typeId, basic.Name, basic.Type, GoodsModel.GetGoodsTypeName(basic.Type), basic.Color, num, GoodsModel.IsEquip(typeId));
         }
 
         public static void Close()
@@ -61,6 +70,79 @@ namespace Shenxiao.Module.Core.Common
             _epoch++;
             if (_iconCell != null) { ResManager.ReleaseInstance(_iconCell); _iconCell = null; }
             if (_root != null) _root.SetActive(false);
+        }
+
+        /// <summary>
+        /// 组装详情正文(对标 GoodsTooltips/EquipToolTips 的字段拼装):类型 + 数量 → 装备(基础属性 + 部位/阶/等级/职业)或
+        /// 普通物品(描述 intro)→ 获取途径。全字段真实 config 驱动,缺则跳过(不占位、不臆造)。
+        /// </summary>
+        private static string BuildBody(int typeId, long num, GoodsModel.GoodsBasic basic)
+        {
+            var sb = new StringBuilder();
+
+            // —— 类型 + 数量(对标 GoodsTooltips type_text / quantity_text)——
+            string typeName = GoodsModel.GetGoodsTypeName(basic.Type);
+            var head = new List<string>();
+            if (!string.IsNullOrEmpty(typeName)) head.Add("类型：<color=#ffe222>" + typeName + "</color>");
+            head.Add("数量：<color=#ffe222>" + num + "</color>");
+            sb.Append(string.Join("    ", head));
+
+            if (GoodsModel.IsEquip(typeId))
+                AppendEquip(sb, typeId, basic);
+            else
+                AppendNormal(sb, basic);
+
+            // —— 获取途径(对标 GoodsTooltips ways=basic.getway,key "3";空 / "[]" 空列表占位则不显)——
+            string getway = basic.Getway?.Trim();
+            if (!string.IsNullOrEmpty(getway) && getway != "[]")
+                sb.Append("\n\n<color=#7fd0ff>获取途径：</color>").Append(ToTmpRich(getway));
+
+            return sb.ToString();
+        }
+
+        /// <summary>普通物品:描述 intro(对标 GoodsTooltips else 分支 basic.intro)。</summary>
+        private static void AppendNormal(StringBuilder sb, GoodsModel.GoodsBasic basic)
+        {
+            string intro = ToTmpRich(basic.Intro);
+            sb.Append("\n\n").Append(string.IsNullOrEmpty(intro) ? "<color=#8893a6>(暂无描述)</color>" : intro);
+        }
+
+        /// <summary>装备(type==10):部位/阶/等级/职业/评分 + 基础属性行(对标 EquipToolTips pos/grade/level/career/basePro)。</summary>
+        private static void AppendEquip(StringBuilder sb, int typeId, GoodsModel.GoodsBasic basic)
+        {
+            GoodsModel.EquipAttr ea = GoodsModel.GetEquipAttr(typeId);
+
+            // 部位 + 阶(对标 EquipToolTips pos=GetEquipPos / grade=`${stage}阶`)
+            var meta = new List<string>();
+            string pos = GoodsModel.GetEquipPosName(basic.EquipType);
+            if (!string.IsNullOrEmpty(pos)) meta.Add("部位：<color=#ffe222>" + pos + "</color>");
+            if (ea != null && ea.Stage > 0)
+                meta.Add("<color=#ffe222>" + ea.Stage + "阶" + (ea.Star > 0 ? ea.Star + "星" : "") + "</color>");
+            if (basic.Level > 0) meta.Add("等级需求：<color=#ffe222>" + basic.Level + "</color>");
+            meta.Add("职业：<color=#ffe222>" + GoodsModel.GetCareerName(basic.CareerId) + "</color>");
+            if (meta.Count > 0) sb.Append("\n").Append(string.Join("    ", meta));
+            if (ea != null && ea.BaseRating > 0)
+                sb.Append("\n评分：<color=#ffef67>").Append(ea.BaseRating).Append("</color>");
+
+            // 基础属性行(对标 EquipToolTips basePro:base_attrlist 逐项 GetProperties+值)
+            List<(string name, long val)> attrs = GoodsModel.GetBaseAttrs(typeId);
+            sb.Append("\n\n<color=#7fd0ff>【基础属性】</color>");
+            if (attrs.Count == 0)
+            {
+                sb.Append("\n<color=#8893a6>(该装备 config 无基础属性)</color>");
+            }
+            else
+            {
+                foreach ((string name, long val) in attrs)
+                    sb.Append("\n").Append(name).Append("　<color=#d15e00>+").Append(val).Append("</color>");
+            }
+
+            // 实例属性(极品/强化)需活服实装备 + 实例透传 → 本轮精确 blocker(不画假属性)
+            sb.Append("\n<color=#8893a6>(极品/强化等实例属性需登录活服取实装备)</color>");
+
+            // 描述附在属性之后(若有)
+            string intro = ToTmpRich(basic.Intro);
+            if (!string.IsNullOrEmpty(intro)) sb.Append("\n\n").Append(intro);
         }
 
         // 图标 + 品质底板:复用 BaseAwardItem.prefab(真实图标 + com_goods_plate_{color}),epoch 防重开/关闭竞态。
@@ -127,7 +209,7 @@ namespace Shenxiao.Module.Core.Common
             GameObject panel = NewRect("Panel", _root.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
             var panelRt = (RectTransform)panel.transform;
             panelRt.pivot = new Vector2(0.5f, 0.5f);
-            panelRt.sizeDelta = new Vector2(480f, 420f);
+            panelRt.sizeDelta = new Vector2(480f, 560f);
             panelRt.anchoredPosition = Vector2.zero;
             Image panelImg = panel.AddComponent<Image>();
             panelImg.color = new Color(0.07f, 0.09f, 0.14f, 0.97f);
@@ -147,20 +229,20 @@ namespace Shenxiao.Module.Core.Common
             _iconSlot.sizeDelta = new Vector2(127f, 127f);
             _iconSlot.anchoredPosition = new Vector2(0f, -76f);
 
-            // 描述(intro)
-            _introText = NewText("Intro", panel.transform, 23, TextAlignmentOptions.TopLeft);
-            var introRt = _introText.rectTransform;
-            introRt.anchorMin = new Vector2(0f, 0f); introRt.anchorMax = new Vector2(1f, 1f);
-            introRt.offsetMin = new Vector2(28f, 70f); introRt.offsetMax = new Vector2(-28f, -224f);
-            _introText.textWrappingMode = TextWrappingModes.Normal;
-            _introText.color = new Color(0.86f, 0.91f, 1f);
+            // 正文(类型/数量 + 装备属性 或 描述 + 获取途径)
+            _bodyText = NewText("Body", panel.transform, 22, TextAlignmentOptions.TopLeft);
+            var bodyRt = _bodyText.rectTransform;
+            bodyRt.anchorMin = new Vector2(0f, 0f); bodyRt.anchorMax = new Vector2(1f, 1f);
+            bodyRt.offsetMin = new Vector2(28f, 70f); bodyRt.offsetMax = new Vector2(-28f, -218f);
+            _bodyText.textWrappingMode = TextWrappingModes.Normal;
+            _bodyText.color = new Color(0.86f, 0.91f, 1f);
 
             // 关闭按钮(底部居中)
             GameObject closeBtn = NewRect("Close", panel.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
             var closeRt = (RectTransform)closeBtn.transform;
             closeRt.pivot = new Vector2(0.5f, 0f);
-            closeRt.sizeDelta = new Vector2(200f, 60f);
-            closeRt.anchoredPosition = new Vector2(0f, 24f);
+            closeRt.sizeDelta = new Vector2(200f, 56f);
+            closeRt.anchoredPosition = new Vector2(0f, 18f);
             Image closeImg = closeBtn.AddComponent<Image>();
             closeImg.color = new Color(0.20f, 0.30f, 0.48f, 1f);
             TextMeshProUGUI closeLbl = NewText("Label", closeBtn.transform, 26, TextAlignmentOptions.Center);

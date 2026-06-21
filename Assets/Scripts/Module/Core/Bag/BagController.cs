@@ -59,8 +59,9 @@ namespace Shenxiao.Module.Core.Bag
             if (pos == BagModel.POS_BAG)
             {
                 BagModel.Instance.SetBagFull(cellNum, maxCell, list);
-                GameLog.Info("Bag", "15010 bag: cellNum={0} maxCell={1} goods={2} remaining={3}B",
-                    cellNum, maxCell, list.Count, r.Remaining);
+                int withInstAttr = list.FindAll(x => x.HasInstanceAttr).Count;
+                GameLog.Info("Bag", "15010 bag: cellNum={0} maxCell={1} goods={2} equipWithInstAttr={3} remaining={4}B",
+                    cellNum, maxCell, list.Count, withInstAttr, r.Remaining);
                 EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
             }
             else
@@ -70,7 +71,8 @@ namespace Shenxiao.Module.Core.Bag
         }
 
         /// <summary>
-        /// 读一项 goods_list(字段名/顺序/嵌套照抄 ClientProtocol.json "15010";只暂存显示字段,余按序读过保对齐)。
+        /// 读一项 goods_list(字段名/顺序/嵌套照抄 ClientProtocol.json "15010")。显示字段 + 装备实例态(强化/评分 +
+        /// 极品/附加/觉醒 3 数组)均暂存进 <see cref="BagGoods"/>(第 9 轮:从「读过即弃」改为「按序读出并留存」,为装备 tips 实例行做地基)。
         /// </summary>
         private static BagGoods ReadGoods(NetReader r)
         {
@@ -88,30 +90,38 @@ namespace Shenxiao.Module.Core.Bag
             r.ReadU8();                      // is_drop:c
             g.Color = r.ReadU8();            // color:c
             r.ReadU32();                     // expire_time:i
-            r.ReadU32();                     // combat_power:i
-            r.ReadU16();                     // stren:h
-            r.ReadU16();                     // level:h
-            r.ReadU32();                     // rating:i
+            g.CombatPower = r.ReadU32();     // combat_power:i
+            g.Stren = r.ReadU16();           // stren:h
+            g.Level = r.ReadU16();           // level:h
+            g.Rating = r.ReadU32();          // rating:i
             r.ReadU32();                     // overall_rating:i
 
             int addCount = r.ReadU16();      // addition_attrlist[]
+            if (addCount > 0) g.AdditionAttrs = new List<EquipAdditionAttr>(addCount);
             for (int i = 0; i < addCount; i++)
             {
-                r.ReadU8();   // attr_type:c
-                r.ReadU32();  // attr_value:i
-                r.ReadU8();   // color:c
-                r.ReadU32();  // combat_power:i
+                g.AdditionAttrs.Add(new EquipAdditionAttr
+                {
+                    AttrType = r.ReadU8(),       // attr_type:c
+                    AttrValue = r.ReadU32(),     // attr_value:i
+                    Color = r.ReadU8(),          // color:c
+                    CombatPower = r.ReadU32(),   // combat_power:i
+                });
             }
 
             int extraCount = r.ReadU16();    // equip_extra_attr[]
+            if (extraCount > 0) g.ExtraAttrs = new List<EquipExtraAttr>(extraCount);
             for (int i = 0; i < extraCount; i++)
             {
-                r.ReadU8();   // color:c
-                r.ReadU8();   // type_id:c
-                r.ReadU16();  // attr_id:h
-                r.ReadU32();  // attr_val:i
-                r.ReadU8();   // plus_interval:c
-                r.ReadU32();  // plus_unit:i
+                g.ExtraAttrs.Add(new EquipExtraAttr
+                {
+                    Color = r.ReadU8(),          // color:c
+                    AttrTypeId = r.ReadU8(),     // type_id:c
+                    AttrId = r.ReadU16(),        // attr_id:h
+                    AttrVal = r.ReadU32(),       // attr_val:i
+                    PlusInterval = r.ReadU8(),   // plus_interval:c
+                    PlusUnit = r.ReadU32(),      // plus_unit:i
+                });
             }
 
             r.ReadU8();                      // equipStage:c
@@ -120,11 +130,15 @@ namespace Shenxiao.Module.Core.Bag
             r.ReadU8();                      // skill_lv:c
 
             int awakeCount = r.ReadU16();    // awake_list[]
+            if (awakeCount > 0) g.AwakeList = new List<EquipAwakeAttr>(awakeCount);
             for (int i = 0; i < awakeCount; i++)
             {
-                r.ReadU16();  // attr_type:h
-                r.ReadU32();  // awake_lv:i
-                r.ReadU32();  // awake_exp:i
+                g.AwakeList.Add(new EquipAwakeAttr
+                {
+                    AttrType = r.ReadU16(),      // attr_type:h
+                    AwakeLv = r.ReadU32(),       // awake_lv:i
+                    AwakeExp = r.ReadU32(),      // awake_exp:i
+                });
             }
             return g;
         }

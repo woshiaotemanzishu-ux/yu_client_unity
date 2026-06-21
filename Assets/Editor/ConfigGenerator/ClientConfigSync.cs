@@ -24,6 +24,7 @@ namespace Shenxiao.EditorTools.ConfigGen
             "ConfigFunctionIcon",
             "ConfigFuncOpenCondition",
             "ConfigNotNormalGoods", // 货币/经验映射(type→goods_id,如 3→31 金币、5→32 经验),GoodsModel.GetMappingTypeId 用
+            "ConfigItemAttr",       // 物品属性 id→名(attr_id→name,如 1→攻击),GoodsModel.GetAttrName 用(对标 WordManager.GetProperties)
         };
 
         // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)
@@ -35,6 +36,8 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_npc",   // NPC 身份/默认对话 id(name/title/talk/icon/icon_scale/brith_rot),对话与场景 NPC 名牌都要
             "config_talk",  // NPC 对话内容表(content 为 JSON 串,按 talk_id 查),DialogueController 12101/12102 用
             "config_goods", // 物品基础表(数字索引键 "1"=名/"14"=图标/"18"=品质;"9"/"10" 是 type/subtype),GoodsModel 解析奖励真实物品名/图标
+            "GoodsType",        // 物品大类 type→type_name(如 10→装备),GoodsModel.GetGoodsTypeName 用(对标 WordManager.GetGoodsStyle)
+            "config_equip_attr", // 装备配置(type_id→{stage 阶/star 星/base_rating 评分/recommend_attr/other_attr}),装备 tips 基础属性用
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

@@ -52,8 +52,10 @@ namespace Shenxiao.Module.Core.Bag
     }
 
     /// <summary>
-    /// 背包物品(对标 15010 goods_list 单项;字段名照抄 ClientProtocol.json,只暂存显示所需的 4 字段 + 主键)。
-    /// type_id → <see cref="Common.GoodsModel"/> 还原真实图标/名/品质;goods_num=堆叠数;color=品质;cell=格子序号。
+    /// 背包物品(对标 15010 goods_list 单项;字段名照抄 ClientProtocol.json)。显示主用 4 字段 + 主键;
+    /// 装备实例态(强化/评分 + 极品/附加/觉醒 3 数组)在 <see cref="BagController.ReadGoods"/> 按序读出后暂存,
+    /// 供装备 tips 实例属性(对标 EquipToolTips equip_extra_attr/stren)——本轮只持有不显示(显示路径需活服实装备 + 实例透传,见任务包 blocker)。
+    /// type_id → <see cref="Common.GoodsModel"/> 还原真实图标/名/品质/基础属性。
     /// </summary>
     public sealed class BagGoods
     {
@@ -62,5 +64,29 @@ namespace Shenxiao.Module.Core.Bag
         public long GoodsNum;  // goods_num:i(堆叠数量)
         public int Color;      // color:c(品质 0..8)
         public int Cell;       // cell:h(格子序号)
+
+        // —— 装备实例态(非装备物品恒 0/null;装备 tips「极品/强化」实例行用,待活服实装备 + 实例透传)——
+        public int Stren;        // stren:h(强化等级)
+        public int Level;        // level:h(实例需求等级)
+        public long Rating;      // rating:i(评分)
+        public long CombatPower; // combat_power:i(战力)
+        public List<EquipExtraAttr> ExtraAttrs;     // equip_extra_attr(极品属性,对标 EquipToolTips SetBestPro)
+        public List<EquipAdditionAttr> AdditionAttrs; // addition_attrlist(附加属性)
+        public List<EquipAwakeAttr> AwakeList;        // awake_list(觉醒)
+
+        /// <summary>是否带任一装备实例属性(供日志/未来实例行判定;无则只能显 config 基础属性)。</summary>
+        public bool HasInstanceAttr =>
+            (ExtraAttrs != null && ExtraAttrs.Count > 0) ||
+            (AdditionAttrs != null && AdditionAttrs.Count > 0) ||
+            (AwakeList != null && AwakeList.Count > 0);
     }
+
+    /// <summary>极品属性(equip_extra_attr 单项,字段照抄 ClientProtocol.json "15010")。</summary>
+    public struct EquipExtraAttr { public int Color; public int AttrTypeId; public int AttrId; public long AttrVal; public int PlusInterval; public long PlusUnit; }
+
+    /// <summary>附加属性(addition_attrlist 单项)。</summary>
+    public struct EquipAdditionAttr { public int AttrType; public long AttrValue; public int Color; public long CombatPower; }
+
+    /// <summary>觉醒属性(awake_list 单项)。</summary>
+    public struct EquipAwakeAttr { public int AttrType; public long AwakeLv; public long AwakeExp; }
 }

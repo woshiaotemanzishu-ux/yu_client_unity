@@ -23,6 +23,7 @@ namespace Shenxiao.Module.Core.Common
     {
         private Action _clickCb;
         private int _typeId;
+        private long _num = 1;   // 堆叠数量(SetData/SetCount 同步;点击 tips 透传给 ItemTipsView,对标 GoodsTooltips quantity)
         private bool _inited;
 
         protected override void OnInit()
@@ -56,9 +57,10 @@ namespace Shenxiao.Module.Core.Common
             RefreshIcon();
         }
 
-        /// <summary>数量(对标 ChangeCountVisible:>1 才显示,堆叠物常规)。</summary>
+        /// <summary>数量(对标 ChangeCountVisible:>1 才显示,堆叠物常规)。同步 <see cref="_num"/> 供点击 tips 透传。</summary>
         public void SetCount(long num)
         {
+            _num = num;
             if (num_text == null) return;
             bool show = num > 1;
             num_text.gameObject.SetActive(show);
@@ -152,8 +154,8 @@ namespace Shenxiao.Module.Core.Common
         private void OnClick()
         {
             if (_clickCb != null) { _clickCb(); return; }
-            // 默认分支(未设回调)= 弹物品详情 tips(对标老端 UIToolTipMgr.AppendGoodsTips → GoodsTooltips:名/图标/品质/描述)。
-            if (_typeId > 0) ItemTipsView.Show(_typeId);
+            // 默认分支(未设回调)= 弹物品详情 tips(对标老端 UIToolTipMgr.DefaultAppendTips → GoodsTooltips/EquipToolTips);数量透传。
+            if (_typeId > 0) ItemTipsView.Show(_typeId, _num);
         }
     }
 }

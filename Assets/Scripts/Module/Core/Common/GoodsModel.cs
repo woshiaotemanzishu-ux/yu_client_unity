@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
 
@@ -31,24 +32,64 @@ namespace Shenxiao.Module.Core.Common
     /// </summary>
     public static class GoodsModel
     {
-        /// <summary>物品基础展示数据(名称/图标/品质),从 config_goods 的数字索引键解出。</summary>
+        /// <summary>物品基础展示数据(名称/图标/品质/类型/装备元数据),从 config_goods 的数字索引键解出。</summary>
         public sealed class GoodsBasic
         {
             public int TypeId;
             public string Name = "";
-            public string Icon = "";   // goods_icon(图标资源 id)
-            public int Color;          // 品质/颜色(0..8)
-            public string Intro = "";  // intro(物品介绍/描述,对标老端 GoodsTooltips.intro)
+            public string Icon = "";   // goods_icon(图标资源 id,key "14")
+            public int Color;          // 品质/颜色(0..8,key "18")
+            public string Intro = "";  // intro(物品介绍/描述,key "2",对标老端 GoodsTooltips.intro)
+            public int Type;           // type(物品大类,key "9";==10 装备 → 走装备 tips 分支,对标 UIToolTipMgr type==10)
+            public int Subtype;        // subtype(子类,key "10")
+            public int EquipType;      // equip_type(装备部位 1..10,key "13" → GetEquipPosName,对标 WordManager.GetEquipPos)
+            public int CareerId;       // career_id(职业需求 0=通用,key "15")
+            public int Level;          // level(需求等级,key "16",对标 GoodsTooltips/EquipToolTips basic.level)
+            public string Getway = ""; // getway(获取途径/来源文本,key "3",对标 GoodsTooltips.ways=basic.getway)
+            public string BaseAttrList = ""; // base_attrlist(装备基础属性 Erlang term [{attr_id,val},...],key "26",对标 EquipToolTips basic.base_attrlist)
         }
 
-        // config_goods 数字索引键(见类注释;改这里=对齐配表字段顺序,勿散落魔法字符串)。
+        /// <summary>装备配置行(config_equip_attr[type_id];字段下标见 config_table_default.json:1=stage 2=star 3=base_rating)。
+        /// 极品/专有属性(下标 5 recommend_attr / 6 other_attr)待显示分支接入再加(本轮只读阶/星/评分)。</summary>
+        public sealed class EquipAttr
+        {
+            public int Stage;            // 阶(对标 EquipToolTips grade=`${equip_vo.stage}阶`)
+            public int Star;             // 星
+            public int BaseRating;       // 基础评分(对标 EquipToolTips score 兜底 base_rating)
+        }
+
+        // config_goods 数字索引键(权威序见 config_table_default.json config_goods 字段列表;改这里=对齐配表字段顺序,勿散落魔法字符串)。
         private const string K_NAME = "1";
-        private const string K_INTRO = "2";    // intro(物品介绍/描述,对标 config_table_default.json config_goods 下标 2)
-        private const string K_ICON = "14";   // goods_icon(注:键 "9" 是 type、"10" 是 subtype,勿混)
-        private const string K_COLOR = "18";   // color/品质 0..8
+        private const string K_INTRO = "2";        // intro(物品介绍/描述)
+        private const string K_GETWAY = "3";       // getway(获取途径/来源文本,对标 GoodsTooltips.ways)
+        private const string K_TYPE = "9";         // type(物品大类;==10 装备)
+        private const string K_SUBTYPE = "10";     // subtype(子类)
+        private const string K_EQUIP_TYPE = "13";  // equip_type(装备部位 1..10)
+        private const string K_ICON = "14";        // goods_icon
+        private const string K_CAREER = "15";      // career_id(职业需求 0=通用)
+        private const string K_LEVEL = "16";       // level(需求等级)
+        private const string K_COLOR = "18";       // color/品质 0..8
+        private const string K_BASE_ATTR = "26";   // base_attrlist(装备基础属性 Erlang term)
+
+        // config_equip_attr 数字键(config_table_default.json:goods_id/stage/star/base_rating/class_type/recommend_attr/other_attr)。
+        private const string KE_STAGE = "1";
+        private const string KE_STAR = "2";
+        private const string KE_BASE_RATING = "3";
+
+        // GoodsType / ConfigItemAttr 具名字段(对标 WordManager.GetGoodsStyle cfg.type_name / GetProperties cfg.name)。
+        private const string K_TYPE_NAME = "type_name";
+        private const string K_ATTR_NAME = "name";
+
+        // 装备部位名(equip_type 1..10,对标 WordManager.Equip_Pos_arr,硬编码同老端)。
+        private static readonly string[] EQUIP_POS = { "武器", "头冠", "项链", "衣服", "护符", "裤子", "手镯", "护腕", "戒指", "鞋子" };
+        // 职业名(career_id 0..4,对标 WordManager.GetCareerLimit)。
+        private static readonly string[] CAREER_NAME = { "通用", "剑士", "武姬", "枪使", "弓手" };
 
         private static JObject _goods;
         private static JObject _notNormal;   // ConfigNotNormalGoods:货币/经验 type→{goods_id,desc}(GetMappingTypeId 用)
+        private static JObject _goodsType;   // GoodsType:type→{type_name}(GetGoodsTypeName 用,对标 WordManager.GetGoodsStyle)
+        private static JObject _itemAttr;    // ConfigItemAttr:attr_id→{name}(GetAttrName 用,对标 WordManager.GetProperties)
+        private static JObject _equipAttr;   // config_equip_attr:type_id→{stage,star,base_rating,recommend_attr,other_attr}
         private static readonly Dictionary<int, GoodsBasic> _cache = new Dictionary<int, GoodsBasic>();
 
         public static bool IsLoaded => _goods != null;
@@ -84,7 +125,28 @@ namespace Shenxiao.Module.Core.Common
                 _notNormal = new JObject();
                 GameLog.Warn("Goods", "missing ConfigNotNormalGoods: {0}(未同步?跑 神霄/配表/同步客户端配置)", nnKey);
             }
-            GameLog.Info("Goods", "config_goods loaded: {0} goods, ConfigNotNormalGoods: {1} 类", _goods.Count, _notNormal.Count);
+
+            // 物品大类名 / 属性名 / 装备配置(tips 类型行 + 装备基础属性行用;对标 WordManager.GetGoodsStyle/GetProperties + config_equip_attr)。
+            _goodsType = await LoadConfigObj(GameResPath.GetServerConfigPath("goodstype"), "GoodsType");
+            _itemAttr = await LoadConfigObj(GameResPath.GetClientConfigPath("configitemattr"), "ConfigItemAttr");
+            _equipAttr = await LoadConfigObj(GameResPath.GetServerConfigPath("config_equip_attr"), "config_equip_attr");
+
+            GameLog.Info("Goods", "config_goods={0} notNormal={1} goodsType={2} itemAttr={3} equipAttr={4}",
+                _goods.Count, _notNormal.Count, _goodsType.Count, _itemAttr.Count, _equipAttr.Count);
+        }
+
+        /// <summary>加载一份 JObject 配置(缺失返回空 JObject + 警告,不让缺表炸链路;对标 EnsureLoaded 的容错)。</summary>
+        private static async Task<JObject> LoadConfigObj(string key, string label)
+        {
+            UnityEngine.TextAsset asset = await ResManager.LoadAsync<UnityEngine.TextAsset>(key);
+            if (asset == null)
+            {
+                GameLog.Warn("Goods", "missing {0}: {1}(未同步?跑 神霄/配表/同步客户端配置)", label, key);
+                return new JObject();
+            }
+            JObject obj = JObject.Parse(asset.text);
+            ResManager.Release(asset);
+            return obj;
         }
 
         /// <summary>按 type_id 取物品基础数据(对标 GoodsModel.ts GetGoodsBasicByTypeId);未加载/无此物品返回 null。</summary>
@@ -101,6 +163,13 @@ namespace Shenxiao.Module.Core.Common
                 Icon = ReadString(obj, K_ICON),
                 Color = ReadInt(obj, K_COLOR),
                 Intro = ReadString(obj, K_INTRO),
+                Type = ReadInt(obj, K_TYPE),
+                Subtype = ReadInt(obj, K_SUBTYPE),
+                EquipType = ReadInt(obj, K_EQUIP_TYPE),
+                CareerId = ReadInt(obj, K_CAREER),
+                Level = ReadInt(obj, K_LEVEL),
+                Getway = ReadString(obj, K_GETWAY),
+                BaseAttrList = ReadString(obj, K_BASE_ATTR),
             };
             _cache[typeId] = basic;
             return basic;
@@ -115,6 +184,79 @@ namespace Shenxiao.Module.Core.Common
         /// <summary>物品介绍/描述(对标 config_goods key "2"=intro,老端 GoodsTooltips.intro);无则空串。
         /// 原文含 Laya HTML(&lt;br/&gt;/&lt;font color&gt;),由调用方(物品 tips)按 TMP 富文本转换显示。</summary>
         public static string GetGoodsIntro(int typeId) => GetGoodsBasicByTypeId(typeId)?.Intro ?? "";
+
+        /// <summary>物品大类 type(config_goods key "9";==10 装备 → 走装备 tips,对标 UIToolTipMgr.DefaultAppendTips type==10)。</summary>
+        public static int GetGoodsType(int typeId) => GetGoodsBasicByTypeId(typeId)?.Type ?? 0;
+
+        /// <summary>是否装备(type==10,对标 UIToolTipMgr type==10 → AppendEquipTips)。</summary>
+        public static bool IsEquip(int typeId) => GetGoodsType(typeId) == 10;
+
+        /// <summary>获取途径/来源文本(config_goods key "3"=getway,对标 GoodsTooltips.ways=basic.getway);无则空串。</summary>
+        public static string GetGoodsGetway(int typeId) => GetGoodsBasicByTypeId(typeId)?.Getway ?? "";
+
+        /// <summary>物品大类文案(GoodsType[type].type_name,如 10→"装备";对标 WordManager.GetGoodsStyle);无则空串。</summary>
+        public static string GetGoodsTypeName(int type)
+        {
+            if (_goodsType != null && _goodsType[type.ToString()] is JObject o) return ReadString(o, K_TYPE_NAME);
+            return "";
+        }
+
+        /// <summary>属性名(ConfigItemAttr[attrId].name,如 1→"攻击";对标 WordManager.GetProperties);无则空串。</summary>
+        public static string GetAttrName(int attrId)
+        {
+            if (_itemAttr != null && _itemAttr[attrId.ToString()] is JObject o) return ReadString(o, K_ATTR_NAME);
+            return "";
+        }
+
+        /// <summary>装备部位名(equip_type 1..10 → 武器/头冠/…;对标 WordManager.GetEquipPos);越界返回 ""。</summary>
+        public static string GetEquipPosName(int equipType)
+        {
+            int idx = equipType - 1;
+            return (idx >= 0 && idx < EQUIP_POS.Length) ? EQUIP_POS[idx] : "";
+        }
+
+        /// <summary>职业名(career_id 0..4 → 通用/剑士/…;对标 WordManager.GetCareerLimit);越界返回 "通用"。</summary>
+        public static string GetCareerName(int careerId)
+        {
+            return (careerId >= 0 && careerId < CAREER_NAME.Length) ? CAREER_NAME[careerId] : "通用";
+        }
+
+        /// <summary>装备配置行(config_equip_attr[type_id]:阶/星/评分/极品/专有属性,对标 EquipToolTips equip_vo);无则 null。</summary>
+        public static EquipAttr GetEquipAttr(int typeId)
+        {
+            if (_equipAttr == null || !(_equipAttr[typeId.ToString()] is JObject o)) return null;
+            return new EquipAttr
+            {
+                Stage = ReadInt(o, KE_STAGE),
+                Star = ReadInt(o, KE_STAR),
+                BaseRating = ReadInt(o, KE_BASE_RATING),
+            };
+        }
+
+        /// <summary>
+        /// 装备基础属性行(config_goods base_attrlist key "26" 的 Erlang term [{attr_id,val},...] → [(属性名,值)];
+        /// 对标 EquipToolTips.GetBaseAndStrenProStrArr 的 base 部分:每项经 <see cref="GetAttrName"/> 取真名)。
+        /// 缺属性名 → 兜底标 "属性{id}"(不臆造名,精确暴露缺哪个 attr_id)。无 base_attrlist 返回空表。
+        /// </summary>
+        public static List<(string name, long val)> GetBaseAttrs(int typeId)
+        {
+            var result = new List<(string, long)>();
+            string raw = GetGoodsBasicByTypeId(typeId)?.BaseAttrList;
+            if (string.IsNullOrEmpty(raw)) return result;
+
+            ErlangTerm list = ErlangParser.Parse(raw);
+            if (list?.Items == null) return result;
+            foreach (ErlangTerm pair in list.Items)
+            {
+                if (!pair.IsCollection || pair.Items == null || pair.Items.Count < 2) continue;
+                int attrId = pair.Get<int>(0);
+                long val = pair.Get<long>(1);
+                string name = GetAttrName(attrId);
+                if (string.IsNullOrEmpty(name)) name = "属性" + attrId;
+                result.Add((name, val));
+            }
+            return result;
+        }
 
         /// <summary>品质/颜色(0..8,对标 cfg.color);无则 0。</summary>
         public static int GetColor(int typeId) => GetGoodsBasicByTypeId(typeId)?.Color ?? 0;
