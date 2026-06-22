@@ -26,8 +26,14 @@ namespace Shenxiao.Module.Core.Scene
         /// <summary>第18轮连续击杀标志(由 LoginBootstrap 在 smoke 模式下设置)。</summary>
         public static bool EnableRound18ContinuousKill { get; set; }
 
+        /// <summary>第21轮任务点击杀标志:12002无怪时发移动请求触发九宫格,等 MonsterAdded 再攻击。</summary>
+        public static bool EnableRound21TaskKillTest { get; set; }
+
         /// <summary>第18轮连续击杀状态:当前正在击杀的目标怪id(0=无)。</summary>
         private int _round18TargetMonster;
+
+        /// <summary>第21轮:是否已订阅 MonsterAdded 等待怪出现(防重复订阅)。</summary>
+        private bool _round21MonitoringMonsters;
 
         private SceneController() { }
 
@@ -87,6 +93,14 @@ namespace Shenxiao.Module.Core.Scene
 
         public override void Dispose()
         {
+            // 清理 Round21 九宫格监听(断线/切场景时取消订阅,防旧场景怪触发新场景攻击)
+            if (_round21MonitoringMonsters)
+            {
+                SceneManager.Instance.MonsterAdded -= OnRound21MonsterAdded;
+                _round21MonitoringMonsters = false;
+            }
+            _round18TargetMonster = 0;
+
             bool keepMap = LoginController.Instance.CanAutoReconnectInGame;
             ++_loadVersion;
             if (keepMap)
@@ -270,9 +284,41 @@ namespace Shenxiao.Module.Core.Scene
         {
             if (!EnableRound15ComboTest) return; // 驱动未启用
 
-            if (SceneManager.Instance.MonsterCount == 0) return; // 无怪,等待下次 On12007
+            if (SceneManager.Instance.MonsterCount == 0)
+            {
+                // 第21轮:快照无怪时，发 12001 移动请求让服务端更新九宫格，等 MonsterAdded 到来再攻击。
+                if (!EnableRound21TaskKillTest || _round21MonitoringMonsters) return;
+                _round21MonitoringMonsters = true;
+                SceneManager.Instance.MonsterAdded += OnRound21MonsterAdded;
+                // 发 12001 C2S 朝任务点(5463,2678)移动:服务端九宫格更新后会推送 12012/12007 下发 10001001 怪。
+                RoleModel role = RoleModel.Instance;
+                GameLog.Info("Scene", "★ [Round21] 12002快照无怪,向任务点(5463,2678)发12001移动请求(curPos=({0},{1})),等待九宫格推送 10001001 怪",
+                    role.X, role.Y);
+                SendMoveRequest(role.X, role.Y, 0, 5463, 2678);
+                return;
+            }
 
             GameLog.Info("Scene", "★ [Round15] 检测到怪物({0}只),延迟 1000ms 后驱动普攻", SceneManager.Instance.MonsterCount);
+            _round18TargetMonster = 0;
+            _ = TriggerRound15AttackAsync();
+        }
+
+        /// <summary>
+        /// 第21轮:九宫格推送怪到达时触发攻击(对标 DoGotoSceneTask OnArriveTaskPoint → 技能释放)。
+        /// 编辑器非 Play 态无 MonoBehaviour.Update,主角不能真实移动;将主角位置暂设为怪物坐标,
+        /// 使距离判定在攻击范围内,允许 SceneCombat.MainRoleAttackTarget 直接释放而不触发 MoveToNpc。
+        /// </summary>
+        private void OnRound21MonsterAdded(MonsterVo vo)
+        {
+            SceneManager.Instance.MonsterAdded -= OnRound21MonsterAdded;
+            _round21MonitoringMonsters = false;
+            if (!EnableRound15ComboTest) return;
+
+            // 将主角逻辑位置对齐到怪物坐标(编辑器 harness 无真实移动驱动;仅影响距离判定)
+            RoleModel.Instance.X = vo.X;
+            RoleModel.Instance.Y = vo.Y;
+            GameLog.Info("Scene", "★ [Round21] 九宫格下发怪: type={0} ins={1} pos=({2},{3}) hp={4}/{5},主角位置对齐,延迟1000ms后驱动普攻",
+                vo.TypeId, vo.InstanceId, vo.X, vo.Y, vo.Hp, vo.HpLim);
             _round18TargetMonster = 0;
             _ = TriggerRound15AttackAsync();
         }
@@ -309,9 +355,22 @@ namespace Shenxiao.Module.Core.Scene
         {
             if (!EnableRound15ComboTest || !EnableRound18ContinuousKill) return;
 
-            // 只在 combo(59100002) 回包且目标活着时继续
+            // 只处理 combo(59100002) 回包
             bool isCombo = (lastSkillId == 59100002);
-            if (!isCombo || !targetAlive) return;
+            if (!isCombo) return;
+
+            if (!targetAlive)
+            {
+                // 目标已死:清目标状态;若场景还有可攻击怪则继续击杀下一只(对标 Round21 击杀 3 只 10001001)。
+                _round18TargetMonster = 0;
+                if (SceneManager.Instance.MonsterCount > 0)
+                {
+                    GameLog.Info("Scene", "★ [Round18] 目标 {0} 已死,场景还有 {1} 只怪,延迟后继续击杀",
+                        targetMonsterId, SceneManager.Instance.MonsterCount);
+                    _ = TriggerRound15AttackAsync();
+                }
+                return;
+            }
 
             _round18TargetMonster = targetMonsterId;
             GameLog.Info("Scene", "★ [Round18] combo 已补发,目标 {0} hp>0,延迟 500ms 后继续击杀", targetMonsterId);

@@ -1,0 +1,32 @@
+==== MainUIDownView (nodes=9) ====
+Y 'MainUIDownView' x=703 y=1279 w=870 h=1
+  c '_box_con' x=0 y=0 w=870 h=0
+    o '_img_bg' x=75 y=-144 w=720 h=140
+    c '_gp_icon_con' x=135 y=-110 w=545 h=104
+    c '_gp_turn' x=676 y=-127 w=115 h=115
+    o '_Image4' x=75 y=-12 w=720 h=12 skin='resource/game/mainUI/texture/ui_pro_bar_1.png'
+  o '_img_exp' x=73 y=-12 w=1e-07 h=12 skin='resource/game/mainUI/texture/exp.png'
+  C '_lb_exp' x=254 y=-12 w=724 h=24 text='0 / 140000'
+    Ie '' x=0 y=0 w=724 h=24 text='0 / 140000'
+
+==== MainUIChatView (nodes=19) ====
+Y 'MainUIChatView' x=778 y=1026 w=720 h=254
+  o '_img_bg' x=0 y=0 w=720 h=254 skin='resource/game/mainUI/other/uizjmv3_003.png'
+  z '_panel_chat' x=148 y=3 w=396 h=65
+  z '_panel_sys' x=148 y=83 w=397 h=65
+  c '_box_setting' x=4 y=25 w=64 h=64
+    o '_img_setting' x=5 y=-17 w=55 h=63 skin='resource/game/mainUI/texture/mainui_set_icon.png'
+  c '_box_friend' x=72 y=22 w=64 h=64
+    o '_img_friend' x=5 y=-15 w=55 h=64 skin='resource/game/mainUI/texture/mainui_friend_icon.png'
+  c '_box_shop' x=550 y=33 w=64 h=64
+    o '_img_shop' x=10 y=-13 w=55 h=65 skin='resource\\game\\icon\\texture\\22.png'
+    o '_img_shop_red' x=44 y=-20 w=23 h=23 skin='resource/game/mainUI/texture/com_red_point.png'
+  c '_box_shop_effect' x=620 y=15 w=100 h=100
+  c '_box_strengthen' x=634 y=15 w=55 h=55
+    Y 'ActivityIcon' x=0 y=0 w=72 h=72
+    c '_box_effect' x=0 y=0 w=72 h=85
+    o '_img_icon' x=0 y=0 w=72 h=72 skin='resource/game/icon/texture/158.png'
+    o '_img_red' x=50 y=-5 w=28 h=29 skin='resource/game/mainUI/texture/com_red_point.png'
+    Ie '_lb_desc' x=36 y=73 w=180 h=0
+    c '_box_effect2' x=-14 y=-14 w=100 h=100
+

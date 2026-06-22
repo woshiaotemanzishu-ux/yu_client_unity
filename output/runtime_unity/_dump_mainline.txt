@@ -1,0 +1,74 @@
+MainUITaskTeamView
+  _box_con
+    _box_task_tab
+      _img_task_bg spr=mainui_taskbtn_light
+      _lb_task_desc TMP='任务'
+      _lb_task_desc_en [INACTIVE] TMP='Quests'
+    _box_team_tab
+      _img_team_bg spr=mainui_taskbtn_normal
+      _lb_team_desc TMP='队伍'
+      _lb_team_desc_en [INACTIVE] TMP='Team'
+      _img_team_red [INACTIVE] spr=com_red_point
+      _img_team_role_count_bg [INACTIVE] spr=mainui_team_mem_num_bg
+        _lb_team_role_count TMP='1'
+    _box_temple_awaken
+      _img_temple_awaken_bg spr=mainui_adventure_item_bg
+      _box_unopen_awaken [INACTIVE]
+        _img_unopen_awaken_icon spr=uijxzlzjm_003
+        _img_awaken spr=jxzl
+        _html_open_lv_bg spr=uijxzlzjm_001
+        _html_open_lv TMP='999级开启'
+      _box_open_awaken
+        _img_goods_icon
+        _lb_open_awaken_progress TMP='10/35'
+        _lb_open_awaken_task_desc_bg spr=uijxzlzjm_001
+        _lb_open_awaken_task_desc TMP='剑魄同修提升'
+        _img_goods_name spr=com_empty
+        _img_awaken_red [INACTIVE] spr=com_red_point
+      _box_awaken_effect [INACTIVE]
+    _box_task
+      _panel_task [INACTIVE]
+        Content
+      _box_main_line
+    _box_team [INACTIVE]
+      _list_team
+        Viewport
+          Content
+    _box_non_team [INACTIVE]
+      _img_not_team_bg spr=task_bg
+      _img_create_team spr=uirwl_008a
+        _lb_create_team TMP='创建队伍'
+      _img_search_team spr=uirwl_008b
+        _lb_search_team TMP='查找队伍'
+  _img_arrow spr=mainui_btn_task_back
+    _img_arrow_icon spr=UIrwl_002
+  __Templates [INACTIVE]
+    MainUITaskItem
+      _img_bg spr=monster_bg
+      _img_done [INACTIVE] spr=UIrwl_006
+      _img_select [INACTIVE] spr=mainui_ui_select
+      lblTaskTitle TMP=''
+      lblTaskTitle2 TMP=''
+      _box_finger_con [INACTIVE]
+      _box_effect [INACTIVE]
+    TeamMainRoleItem
+      _Image1 spr=monster_bg
+      non_role [INACTIVE]
+        Image spr=uirwl_015
+        lbl_tips TMP='邀请队员'
+        red_point [INACTIVE] spr=com_red_point
+      role_group
+        online_img spr=com_empty
+        role_head
+        leader_tag spr=ui_dw_zdyq003
+        head_click_group
+        role_name TMP='玩家名字'
+        _Group1
+        destiny_img spr=uisc_006
+        level TMP=''
+        quitBtn
+          _Image2 spr=uian_0120b
+          _Label1 TMP='退队'
+        pleaseLeaveBtn
+          _Image3 spr=uian_0120b
+          _Label2 TMP='请离'

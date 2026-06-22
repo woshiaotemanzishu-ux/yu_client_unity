@@ -1,0 +1,11 @@
+phase0 start (PLAY task-team harness, AFTER-fix)
+configs task=True npc=True
+config_npc 100101 name='云霄月华'
+MainLineEntry=ok tip='与<color=#00fa64>云霄月华</color>交谈 (0/1)'
+views=73 shown=73
+dumped _dump_mainline_after.txt
+captured play_taskteam_after.png
+--- DoTask routing: tipsType=6 IsFindNpc=True npcId=100101 ---
+  SceneManager.GetNpc(100101)=null (UI-only 无场景NPC)
+  -> 期望分支: DoFindNpcTask → 走近NPC后 DialogueController.ShowTask(发12101);UI-only 无场景NPC → 精确blocker(NPC不在场景/跨场景飞鞋未移植)
+DONE
