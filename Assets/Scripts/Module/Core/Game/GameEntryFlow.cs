@@ -23,14 +23,23 @@ namespace Shenxiao.Module.Core.Game
         private static readonly HashSet<string> _requiredStartFlags = new HashSet<string>(RequiredStartFlags);
         private static readonly HashSet<string> _receivedStartFlags = new HashSet<string>();
         private static bool _waitingGameStart;
+        private static bool _installed;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
         {
+            if (_installed) return;
+            _installed = true;
             EventDispatcher.On(GlobalEvent.EVT_GAME_ENTERED, OnGameEntered);
             EventDispatcher.On(GlobalEvent.EVT_NET_DISCONNECTED, OnDisconnected);
             EventDispatcher.On<string>(GlobalEvent.EVT_GAME_START_FLAG_READY, OnGameStartFlagReady);
         }
+
+        /// <summary>
+        /// Editor RunCommand harness 调用入口：[RuntimeInitializeOnLoadMethod] 在编辑器非 Play 态不自动触发，
+        /// harness 需在 Pump 开始前显式调用此方法完成事件订阅。Play 态由 Install() 幂等保护，不重复订阅。
+        /// </summary>
+        public static void EnsureInstalled() => Install();
 
         private static void OnGameEntered()
         {

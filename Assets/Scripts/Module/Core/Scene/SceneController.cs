@@ -199,6 +199,16 @@ namespace Shenxiao.Module.Core.Scene
         private async Task LoadSceneMapAsync(int sceneId)
         {
             int version = ++_loadVersion;
+#if UNITY_EDITOR
+            if (!UnityEngine.Application.isPlaying)
+            {
+                // Addressables.LoadResourceLocationsAsync blocks in editor non-Play mode; bypass map render.
+                SendFmt(Proto.SC_NPC_LIST, "i", sceneId);
+                GameLog.Info("Scene", "request 12100: editor harness bypass sceneId={0}", sceneId);
+                EventDispatcher.Emit(GlobalEvent.EVT_SCENE_MAP_READY);
+                return;
+            }
+#endif
             SceneMapData data = await SceneMapLoader.LoadAsync(sceneId);
             if (version != _loadVersion || data == null) return;
 
