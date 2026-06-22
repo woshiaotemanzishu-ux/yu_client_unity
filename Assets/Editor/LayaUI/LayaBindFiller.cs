@@ -249,7 +249,7 @@ namespace Shenxiao.Editor.LayaUI
             return found;
         }
 
-        // ===================== 全量回填工具(菜单 神霄/UI/回填 Bind 组件)=====================
+        // ===================== 全量回填工具(菜单 神霄/LayaUI/高级/回填 Bind 组件)=====================
         //
         // 背景:第二步回填原按"模块"跑(FillModule),量产期 view-prefab 都覆盖到了;但 shared-prefab
         // /standalone 这类不随某模块流水线重转的共享件(如 common/BaseAwardItem)会漏挂 Bind 组件,
@@ -270,7 +270,7 @@ namespace Shenxiao.Editor.LayaUI
             internal bool CurrentChanged;
         }
 
-        [MenuItem("神霄/UI/回填 Bind 组件", priority = 30)]
+        [MenuItem("神霄/LayaUI/高级/回填 Bind 组件", priority = 100)]
         public static void MenuBackfill()
         {
             BackfillStats s = FillAll(false);
@@ -279,7 +279,7 @@ namespace Shenxiao.Editor.LayaUI
                 s.PrefabsScanned, s.ComponentsAdded, s.ComponentsUpgraded, s.RefsFilled, s.PrefabsChanged, ReportPath));
         }
 
-        [MenuItem("神霄/UI/回填 Bind 组件(预览不写盘)", priority = 31)]
+        [MenuItem("神霄/LayaUI/高级/回填 Bind 组件(预览不写盘)", priority = 101)]
         public static void MenuBackfillDryRun()
         {
             BackfillStats s = FillAll(true);

@@ -84,6 +84,60 @@ namespace Shenxiao.Module.Core.Dialogue
         /// <summary>NPC 默认对话 id(对标 DialogueModel.GetDialogueId:config_npc[npc_id].talk)。</summary>
         public static int GetDialogueId(int npcId) => Get(npcId)?.Talk ?? 0;
 
+        public static string GetModelKey(int npcId, NpcCfg cfg, out string module, out string resId)
+        {
+            int iconType = cfg?.IconType ?? 0;
+            module = GetModelModuleName(iconType);
+            resId = GetModelResourceId(npcId, cfg);
+            string resName = GetModelPrefix(iconType) + resId;
+            return $"object/{module}/{resName}/{resName}";
+        }
+
+        public static string GetActionKey(string module, string resId, string actionName)
+        {
+            return $"object/{module}/action/{resId}/{actionName}";
+        }
+
+        private static string GetModelResourceId(int npcId, NpcCfg cfg)
+        {
+            if (cfg != null && !string.IsNullOrEmpty(cfg.Icon) && cfg.Icon != "0") return cfg.Icon;
+            return npcId.ToString();
+        }
+
+        private static string GetModelModuleName(int iconType)
+        {
+            switch (iconType)
+            {
+                case 1: return "monster";
+                case 2: return "pet";
+                case 3: return "spirit";
+                case 4: return "mount";
+                case 5: return "littlepet";
+                case 6: return "god";
+                case 7: return "child";
+                case 8: return "fairy";
+                case 0:
+                default: return "npc";
+            }
+        }
+
+        private static string GetModelPrefix(int iconType)
+        {
+            switch (iconType)
+            {
+                case 2: return "model_pet_";
+                case 3: return "model_spirit_";
+                case 4: return "model_mount_";
+                case 5: return "model_littlepet_";
+                case 6: return "model_god_";
+                case 7: return "model_child_";
+                case 8: return "model_fairy_";
+                case 0:
+                case 1:
+                default: return "model_clothe_";
+            }
+        }
+
         // —— 读取小工具:具名键容错(字符串/数字混排)——
         private static int ReadInt(JObject obj, string key)
         {

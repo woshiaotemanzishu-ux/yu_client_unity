@@ -99,7 +99,7 @@ namespace Shenxiao.Module.Core.Scene
             GameLog.Info("Scene", "npc render: id={0} pos=({1},{2}) isShow={3} name=\"{4}\" title=\"{5}\" iconScale={6} brithRot={7}",
                 vo.NpcId, vo.X, vo.Y, vo.IsShow, cfg?.Name, cfg?.Title, cfg?.IconScale ?? 1f, cfg?.BrithRot ?? -1);
 
-            string modelKey = ModelKey(vo.NpcId);
+            string modelKey = NpcConfigs.GetModelKey(vo.NpcId, cfg, out string modelModule, out string modelResId);
             GameObject prefab = await ResManager.LoadAsync<GameObject>(modelKey);
 
             // 加载期间被移除/替换/清场:丢弃(尚未实例化,prefab 句柄由 ResManager 管理)。
@@ -110,8 +110,8 @@ namespace Shenxiao.Module.Core.Scene
                 // 数据到了但模型资源缺 → 精确 blocker,不画假模型冒充。
                 GameLog.Error("Scene",
                     "npc model 缺失(blocker):id={0} key={1} — NPC 数据已到但模型未转换/未入库,形象不可见。" +
-                    "处置:用 神霄/资源 转该 NPC 模型,或确认 Assets/GameRes/object/npc/model_clothe_{0} 存在。",
-                    vo.NpcId, modelKey);
+                    "处置:用 神霄/资源 转该 NPC 模型,或确认 Assets/GameRes/object/{2} 下资源 {3} 存在。",
+                    vo.NpcId, modelKey, modelModule, modelResId);
                 return;
             }
 
@@ -129,10 +129,10 @@ namespace Shenxiao.Module.Core.Scene
             CreateNameplate(view, cfg); // 屏幕跟随名牌(名字/称号);无名则跳过(降级)
             UpdateViewPosition(view);   // 立即摆一次位(含名牌),driver 之后每帧维持
 
-            await PlayIdle(model, vo.NpcId);
+            await PlayIdle(model, modelModule, modelResId);
             if (IsStale(view)) return; // PlayIdle 期间被清场:模型已随 tilt 销毁,放弃后续
 
-            GameLog.Info("Scene", "npc visible: id={0} model={1} pos=({2},{3})", vo.NpcId, modelKey, vo.X, vo.Y);
+            GameLog.Info("Scene", "npc visible: id={0} model={1} res={2} pos=({3},{4})", vo.NpcId, modelKey, modelResId, vo.X, vo.Y);
         }
 
         private static void OnNpcRemoved(int npcId)
@@ -199,15 +199,15 @@ namespace Shenxiao.Module.Core.Scene
             UpdateNameplatePosition(view);
         }
 
-        private static async Task PlayIdle(GameObject model, int npcId)
+        private static async Task PlayIdle(GameObject model, string module, string modelResId)
         {
             if (model == null) return;
-            string actionKey = $"object/npc/action/{npcId}/{ACTION_IDLE}";
+            string actionKey = NpcConfigs.GetActionKey(module, modelResId, ACTION_IDLE);
             AnimationClip clip = await ResManager.LoadAsync<AnimationClip>(actionKey);
             if (model == null) return; // 加载期间被销毁(Unity 重载 == null)
             if (clip == null)
             {
-                GameLog.Warn("Scene", "npc idle 动作未转换,静态展示:id={0} key={1}", npcId, actionKey);
+                GameLog.Warn("Scene", "npc idle 动作未转换,静态展示:res={0} key={1}", modelResId, actionKey);
                 return;
             }
             Animation anim = model.GetComponent<Animation>();
@@ -215,11 +215,6 @@ namespace Shenxiao.Module.Core.Scene
             if (anim.GetClip(ACTION_IDLE) == null) anim.AddClip(clip, ACTION_IDLE);
             anim.Play(ACTION_IDLE);
         }
-
-        // 模型 key:object/{module}/{name}/{name}(转换后模型布局,同 RoleModelAssembler.Key 约定)。
-        // 多数 NPC 的 config_npc.icon == id,故直接用 NpcId 即真实模型;icon!=id 的少数 NPC 待 config_npc 导入后用 icon。
-        private static string ModelKey(int npcId)
-            => $"object/npc/model_clothe_{npcId}/model_clothe_{npcId}";
 
         // ===================== 朝向(config_npc.brith_rot)=====================
         // 老端 Npc.SetRotate:assign_angle(=brith_rot)!=-1 时 SetRotateY(assign_angle + 90)(注释"加90方便策划填配置")。

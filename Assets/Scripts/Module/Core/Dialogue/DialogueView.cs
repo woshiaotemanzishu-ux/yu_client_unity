@@ -93,8 +93,7 @@ namespace Shenxiao.Module.Core.Dialogue
             if (epoch != _modelEpoch) return;
 
             NpcConfigs.NpcCfg cfg = NpcConfigs.Get(npcId);
-            string iconId = cfg != null && !string.IsNullOrEmpty(cfg.Icon) ? cfg.Icon : npcId.ToString();
-            string modelKey = $"object/npc/model_clothe_{iconId}/model_clothe_{iconId}";
+            string modelKey = NpcConfigs.GetModelKey(npcId, cfg, out string modelModule, out string modelResId);
 
             GameObject prefab = await ResManager.LoadAsync<GameObject>(modelKey);
             if (epoch != _modelEpoch || _root == null || !_root.activeSelf) return; // 已关/已切:丢弃
@@ -111,14 +110,14 @@ namespace Shenxiao.Module.Core.Dialogue
             GameObject instance = Object.Instantiate(prefab);
             UIModelStage.ShowInstance(_modelBox, instance, MODEL_SCALE, MODEL_POS);
             GameLog.Info("Dialogue", "对话立绘: npcId={0} model={1}", npcId, modelKey);
-            await PlayNpcIdle(instance, iconId); // 待机动作(同场景 NPC);缺动作则静态展示
+            await PlayNpcIdle(instance, modelModule, modelResId); // 待机动作(同场景 NPC);缺动作则静态展示
         }
 
         // 待机动作(对标 NpcRenderer.PlayIdle):object/npc/action/{icon}/idle;缺动作降级静态(不报错)。
-        private static async Task PlayNpcIdle(GameObject model, string resId)
+        private static async Task PlayNpcIdle(GameObject model, string module, string resId)
         {
             if (model == null) return;
-            string actionKey = $"object/npc/action/{resId}/idle";
+            string actionKey = NpcConfigs.GetActionKey(module, resId, "idle");
             AnimationClip clip = await ResManager.LoadAsync<AnimationClip>(actionKey);
             if (model == null) return; // 加载期间对话关闭/切 NPC:实例已销毁
             if (clip == null)

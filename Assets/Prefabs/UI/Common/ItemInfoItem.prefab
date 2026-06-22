@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3659065792838431838}
-  - component: {fileID: 4010349845729049076}
   m_Layer: 0
   m_Name: ItemInfoItem
   m_TagString: Untagged
@@ -38,22 +37,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 87, y: 87}
   m_Pivot: {x: 0, y: 1}
---- !u!114 &4010349845729049076
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1065430856607444935}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb4ff8f05d2a8ca44a56a765bce41453, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Common.ItemInfoItem
-  iconBox: {fileID: 9168083586955595983}
-  _tpl_BaseAwardItem: {fileID: 4774797182219356879}
-  _tpl_EquipmentItem: {fileID: 4722238394752451906}
-  _itemSize: 87
 --- !u!1 &2556083955094603161
 GameObject:
   m_ObjectHideFlags: 0
@@ -223,11 +206,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 39fc659b34b1fb646b7cbed26e2442d2, type: 3}
---- !u!1 &4774797182219356879 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7900594220294169132, guid: 39fc659b34b1fb646b7cbed26e2442d2, type: 3}
-  m_PrefabInstance: {fileID: 3451991697475234019}
-  m_PrefabAsset: {fileID: 0}
 --- !u!224 &8686170613471501326 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6299561772021724397, guid: 39fc659b34b1fb646b7cbed26e2442d2, type: 3}
@@ -333,10 +311,5 @@ PrefabInstance:
 --- !u!224 &1268039180420724594 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6259585613194349608, guid: 4b61db156a07d9c4182c38b719828178, type: 3}
-  m_PrefabInstance: {fileID: 5135925577065790298}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &4722238394752451906 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 490535933774872088, guid: 4b61db156a07d9c4182c38b719828178, type: 3}
   m_PrefabInstance: {fileID: 5135925577065790298}
   m_PrefabAsset: {fileID: 0}

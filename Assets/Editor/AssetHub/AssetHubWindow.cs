@@ -65,7 +65,7 @@ namespace Shenxiao.Editor.AssetHub
         }
 
         /// <summary>独立入口:直达「特效」域(特效导入/管理/转换/预览都在这)。</summary>
-        [MenuItem("神霄/特效导入", priority = 4)]
+        [MenuItem("神霄/资源/特效管理", priority = 22)]
         public static void OpenEffects()
         {
             var w = GetWindow<AssetHubWindow>("资产管理");

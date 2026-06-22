@@ -30,7 +30,6 @@ namespace Shenxiao.Editor.AssetHub
             public string LhPath;
         }
 
-        [MenuItem("神霄/临时/只转剑士创角特效", priority = 901)]
         public static void ConvertSwordmanCreateRoleEffects()
         {
             if (!EnsureTempConvertCanBeVerified("Convert swordman create-role effects"))
@@ -110,7 +109,6 @@ namespace Shenxiao.Editor.AssetHub
             EditorUtility.DisplayDialog("只转剑士创角特效", msg, "好");
         }
 
-        [MenuItem("神霄/临时/只转枪使创角特效", priority = 902)]
         public static void ConvertGunnerCreateRoleEffects()
         {
             if (!EnsureTempConvertCanBeVerified("Convert gunner create-role effects"))

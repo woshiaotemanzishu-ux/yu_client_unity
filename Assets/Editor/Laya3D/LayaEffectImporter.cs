@@ -20,7 +20,7 @@ namespace Shenxiao.Editor.Laya3D
     public static class LayaEffectImporter
     {
         /// <summary>特效转换逻辑版本(独立于模型线 Laya3DImporter.TOOL_VERSION)。</summary>
-        public const int TOOL_VERSION = 15; // v15: ×2 移进 shader(无条件),tint 不再在 C# ×2;旧材质须重转(否则 4 倍过亮)
+        public const int TOOL_VERSION = 16; // v16: effect texture 输出改到 Assets/GameRes/effect/textures,避免被 GameRes/resource ignore 掉
 
         public sealed class Result
         {
@@ -1063,7 +1063,7 @@ namespace Shenxiao.Editor.Laya3D
             return color;
         }
 
-        /// <summary>贴图镜像进 GameRes(按 cdn/resource 相对路径,跨特效共享)。</summary>
+        /// <summary>贴图镜像进 GameRes(特效贴图放 effect/textures,跨特效共享且可进 LFS)。</summary>
         private static Texture2D ImportTexture(string texRel, string lmatAbs, Context ctx)
         {
             string texAbs = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(lmatAbs), texRel));
@@ -1074,10 +1074,28 @@ namespace Shenxiao.Editor.Laya3D
             }
             // 求相对 cdn/resource 的路径;不在其下则收进产物目录
             string norm = texAbs.Replace('\\', '/');
+            const string effectTextureSegment = "/resource/effect/texture/";
+            const string effectTexturesSegment = "/resource/effect/textures/";
+            int effectTextureIdx = norm.IndexOf(effectTextureSegment, StringComparison.Ordinal);
+            int effectTexturesIdx = norm.IndexOf(effectTexturesSegment, StringComparison.Ordinal);
             int idx = norm.IndexOf("/resource/", StringComparison.Ordinal);
-            string assetPath = idx >= 0
-                ? "Assets/GameRes/resource/" + norm.Substring(idx + "/resource/".Length)
-                : ctx.OutDir + "/" + Path.GetFileName(texAbs);
+            string assetPath;
+            if (effectTextureIdx >= 0)
+            {
+                assetPath = "Assets/GameRes/effect/textures/" +
+                    norm.Substring(effectTextureIdx + effectTextureSegment.Length);
+            }
+            else if (effectTexturesIdx >= 0)
+            {
+                assetPath = "Assets/GameRes/effect/textures/" +
+                    norm.Substring(effectTexturesIdx + effectTexturesSegment.Length);
+            }
+            else
+            {
+                assetPath = idx >= 0
+                    ? "Assets/GameRes/resource/" + norm.Substring(idx + "/resource/".Length)
+                    : ctx.OutDir + "/" + Path.GetFileName(texAbs);
+            }
             string assetAbs = Path.GetFullPath(Path.Combine(Application.dataPath, "..", assetPath));
             if (!File.Exists(assetAbs))
             {

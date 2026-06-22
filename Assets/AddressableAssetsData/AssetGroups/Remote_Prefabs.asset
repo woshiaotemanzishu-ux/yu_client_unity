@@ -15,13 +15,18 @@ MonoBehaviour:
   m_GroupName: Remote_Prefabs
   m_GUID: 225908162833fc24ea7fbcf179014b90
   m_SerializeEntries:
-  - m_GUID: 08664744e849b864e87cd55d07481671
-    m_Address: prefabs/ui/common/downdropitem
+  - m_GUID: 0060cee698b114341adf54c10df4f6e2
+    m_Address: prefabs/ui/mainui/funcboardview
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 088d14283c0bc6c4b9342aed1dd55c82
     m_Address: prefabs/ui/common/greenhslider
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0a5141d81195bdd4198ea3e17d1c73d3
+    m_Address: prefabs/ui/mainui/mainuieffectpartnerskillview
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -35,58 +40,8 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 121253f7e164cf941ae7135c01680205
-    m_Address: prefabs/ui/composite/ringcompositeitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 125881d0bb851b64f85e9828adf95c32
-    m_Address: prefabs/ui/mainui/fightingupview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 12b84ae2ae1d762479fbf28d2527fe9e
-    m_Address: prefabs/ui/longlanguage/longlanguagemodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 13ed90efff838b445bd943019fc5cbe7
-    m_Address: prefabs/ui/rune/runeconvertitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 15bf57ae3eff4584d8b41c653268ac15
-    m_Address: prefabs/ui/godbefall/godbefallequipmentitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1773044b5090ece4ea9dabb06a980493
-    m_Address: prefabs/ui/redpacket/redpacketmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 19e26469655195c4cb2b0f018ab21b52
     m_Address: prefabs/ui/common/tabbuttontwoskin
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1b9d0de6579bbcf41a8547f178917403
-    m_Address: prefabs/ui/guildlist/guildlistmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1f4e0e794f9f3f34a8dc7900f4186010
-    m_Address: prefabs/ui/friend/friendchatitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 254f83dfb216b454aac9fcf8e0c47083
-    m_Address: prefabs/ui/elim/elimmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2714215000803d1479ecfcf6b2f9d271
-    m_Address: prefabs/ui/petequip/petequipitem
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -95,28 +50,13 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2a137152d454e4a46a71225a56a7081e
-    m_Address: prefabs/ui/common/downdroplist
+  - m_GUID: 2d850bebf423efc4896a1fda889fde9d
+    m_Address: prefabs/ui/mainui/dropprogress
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2ba8e484746bec14da68903e09019620
-    m_Address: prefabs/ui/guild/guildmergeitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2c9b267a1b61d45498c2eec859a13aec
-    m_Address: prefabs/ui/gamenotice/gamenoticemodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2ca0f387e99007b41991e9b6905ca5c5
-    m_Address: prefabs/ui/composite/compositeholysealmatitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2eab9c6f1155c4a49b580d90df78d011
-    m_Address: prefabs/ui/equip/equipattritem
+  - m_GUID: 3045de26aed570946ae25a19442d3710
+    m_Address: prefabs/ui/mainui/mainuieffectview
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -125,33 +65,8 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 340a01250e67f4e4f9d99294b62948ce
-    m_Address: prefabs/ui/pray/praymodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3448a4ab37b310e4fa9c1c8f2c9cab7b
-    m_Address: prefabs/ui/holyseal/holysealmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3682e7314fc06c341a116a65949067c9
-    m_Address: prefabs/ui/common/materialsitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 36cc6db6ae82b7d428a19c4c9833b6b9
-    m_Address: prefabs/ui/longlanguage/longlangequipitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 37fdb1234d32d2d4d878e20170caeefa
-    m_Address: prefabs/ui/mainui/mainuiiconboxview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 38cb224a97900c847868bbcd7e49442d
-    m_Address: prefabs/ui/composite/compositegoodsmatitem
+  - m_GUID: 3788a5530fa5cea43aad84d4c43c9831
+    m_Address: prefabs/ui/mainui/flowereffectview
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -160,28 +75,8 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3ae4bcc1d508adf4e89d9822c73ed69b
-    m_Address: prefabs/ui/composite/compositemodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3b69502c07bd4f24098aa61f7044c62f
-    m_Address: prefabs/ui/revelation/revelationequipview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 41c47e98f10dfad40a69bb45a54e8a41
-    m_Address: prefabs/ui/halo/halomodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 44420efd3da9cd04dba89738bd8f84ed
-    m_Address: prefabs/ui/dungeonheart/dungeonheartmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4aa38783658af094dbcc0632b56ed098
-    m_Address: prefabs/ui/svip/svipmodule
+  - m_GUID: 3da030299cd34064eaed4d27de5e6a6f
+    m_Address: prefabs/ui/mainui/fightingupview
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -190,33 +85,8 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4d5731250555c424fa7e3f0136e53973
-    m_Address: prefabs/ui/deposit/depositmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4eed742f1c802f24fabd077af4564d8c
-    m_Address: prefabs/ui/pet/petmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4fab263718bb57d478ccb127ae5a433f
-    m_Address: prefabs/ui/rune/runemodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 50b9bbf6f02abca4488ab375fa91644f
-    m_Address: prefabs/ui/common/instructionitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 581edac46b2cd0b47b8de68364ec62bc
-    m_Address: prefabs/ui/mainui/mainuieffectpartnerskillview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5af03aa321d0a724eb3ac00f1e195485
-    m_Address: prefabs/ui/vipactive/vipactivemodule
+  - m_GUID: 5b0163b5a8ba5d843aa292e9bf11d5f2
+    m_Address: prefabs/ui/mainui/mainuimarriageitem
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -225,23 +95,8 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5dad6435c8a179c4ba1985c04064e44b
-    m_Address: prefabs/ui/transferjob/transferjobmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5e8feafaa3c0e93438dd1c01d6b41a2e
-    m_Address: prefabs/ui/mainui/mainuimarriageitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5f981fc8773b120498ccdaab209e6ec7
-    m_Address: prefabs/ui/shop/shopitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 61ebd517fcf4f6947a7c87a3a58ad447
-    m_Address: prefabs/ui/bag/bagmodule
+  - m_GUID: 5d5c689020f93094290fb4aa32fab306
+    m_Address: prefabs/ui/mainui/eyouthadultitem
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -250,63 +105,13 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 632185dbfd3a5b143a3898249a482ae9
-    m_Address: prefabs/ui/exchange/exchangemodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 63332dce872940a4099f3bfe7413a834
-    m_Address: prefabs/ui/equiprefinement/equiprefiattrsitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 654bf6a64f1999346beb104ca26d44e3
-    m_Address: prefabs/ui/cheat/cheatmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 65551be560bfa0043b0e1e03b8ebf038
     m_Address: prefabs/ui/godbefall/godbefallskillitem
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 68489d307146e0241bf3e184db2e4f7b
-    m_Address: prefabs/ui/mainui/mainuieffectview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 68513570ecfa15945924f7841068249b
-    m_Address: prefabs/ui/revelation/revelationequipitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 686ccc77520af6c4e9c2aa39902ef669
-    m_Address: prefabs/ui/mainui/funcboardview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6b3e3332bf93e3247b3b42355ad18ecb
-    m_Address: prefabs/ui/petequip/petequipoutitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 767826745fcb0fb4bb15c7e883a4c8f3
-    m_Address: prefabs/ui/rune/runepropertyitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 792985095708d7440b35e9e7f7c7099c
-    m_Address: prefabs/ui/noonparty/noonpartymodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7ed383ae3f6e13449bde33e2b2a53c8f
-    m_Address: prefabs/ui/equiprefinement/equiprefinementmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7fe75079b9286af4e8194a6b9b693eb1
-    m_Address: prefabs/ui/fairywish/fairywishmodule
+  - m_GUID: 6bb5f287d398bf04ca9d4f8b70021114
+    m_Address: prefabs/ui/mainui/opendestinyview
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -315,28 +120,13 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8766fdb45ef37824eb015b6343e585c5
-    m_Address: prefabs/ui/role/rolemodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 87a067d31e02db144aedba815f2386ee
-    m_Address: prefabs/ui/testact/testactmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 87a3acb9286a61a459e20285350686d7
-    m_Address: prefabs/ui/equip/equipmasteritem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 87ccd07482dd8994e9b766e3d1f806d9
     m_Address: prefabs/ui/mainui/arrowcomponent
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 888f22e7786fc4544b6b5c404ed30866
-    m_Address: prefabs/ui/market/marketplzshowitem
+  - m_GUID: 87ebd1c902e418f46a522e8c334d86e5
+    m_Address: prefabs/ui/mainui/mainuireliveview
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -345,8 +135,8 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8ea6b0f8ead905f49bdb0e5bc14fbda8
-    m_Address: prefabs/ui/mainui/mainuibuffview
+  - m_GUID: 8c5b9b55efe2d3344b70dfe867c00ce3
+    m_Address: prefabs/ui/mainui/collectbarview
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -355,133 +145,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 93356900b471fad48b174df8af6c8e60
-    m_Address: prefabs/ui/common/downdropbtn
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 93dd79771827866488837f9f4f2e05f8
-    m_Address: prefabs/ui/equip/equipmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9433529de06d9e3438210bee8883d544
-    m_Address: prefabs/ui/guild/guilddepotitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 95ca0e750ca1bba40954a93f64917b7c
     m_Address: prefabs/ui/common/withbtnhslider
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9606fb9ae4c0f214089d8924dbebfb7f
-    m_Address: prefabs/ui/mainui/opendestinyview
+  - m_GUID: 9763eaaedd1d20f49bdf33c714e2c89b
+    m_Address: prefabs/ui/mainui/mainuiiconboxview
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9776ceb454813004f98d19367691d6d5
-    m_Address: prefabs/ui/mainui/mainuifightmodeview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 97ce451fad0993b439eeb9c582765b69
-    m_Address: prefabs/ui/levelreward/levelrewardmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 98d711edf9f9e3b40b4814ac1d509b9b
-    m_Address: prefabs/ui/longlanguage/longlanguageview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9c04ce506b3ecc7419c3a13653826c98
-    m_Address: prefabs/ui/brightsea/brightseacruiselogitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9dea6fc6f85da28478ecd67af44225c8
-    m_Address: prefabs/ui/rune/runeicon
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9eb86a092579a4f4cb8fcbd6240949f5
-    m_Address: prefabs/ui/firstblood/firstbloodmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a858850d76e546c4fafabb9252cb6886
-    m_Address: prefabs/ui/mainui/collectbarview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: aa28e1342b3e8484490361a88f5cabd9
-    m_Address: prefabs/ui/composite/compositeequipresolveview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ab441603039591d44a3a7abe47bed1f7
-    m_Address: prefabs/ui/marriage/marriagefrienditem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ab6b1afb67bb6aa4997d7677569afa69
-    m_Address: prefabs/ui/daily/dailybottomview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: abeb210b8eb4ab74598c8bb72dd44845
-    m_Address: prefabs/ui/friend/friendmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: aec0ff0d9e996ca4f99de2104a9186ba
-    m_Address: prefabs/ui/vip/rechargeitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: af1154ede2835644887510b5fd0e33fe
-    m_Address: prefabs/ui/vip/vipmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b09bb74282d4e7f4ebff5f8d44cc52ae
-    m_Address: prefabs/ui/demon/demontalentitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b11df2fbc23eaab4e847f39bd4a8dd21
-    m_Address: prefabs/ui/chat/chatmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b16639c03a057ae4ab84844528b9926a
-    m_Address: prefabs/ui/runetreasure/runeresultitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b3b35349a74139145a8f5a10975c8b3c
-    m_Address: prefabs/ui/holyseal/holysealequipitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b74b5899807fee848a02d1ab9a8b6614
-    m_Address: prefabs/ui/composite/compositeselectequipitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b7c953f532c7f564d9eb8af21c9f903b
-    m_Address: prefabs/ui/holyseal/holysealview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b854da33795e9f942bf079cbe04f8fa8
-    m_Address: prefabs/ui/demon/demonmainview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b8708224b4302ea4f9b189a15affa3fc
-    m_Address: prefabs/ui/mainui/dropprogress
+  - m_GUID: a2b7d92a2aecdea4cbbbc36a20a4db28
+    m_Address: prefabs/ui/mainui/mainuihiterbigbloodview
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -490,63 +165,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ba2860fd34ea1e24c8f00ec45e5c631e
-    m_Address: prefabs/ui/chat/chatparenttab
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: babe2ab5372df6e4db0073ee15216ead
-    m_Address: prefabs/ui/daily/dailymodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bbc21e07ca59d2f43990b8fc08173188
     m_Address: prefabs/ui/newgameui/uivertabbtn
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bd7a1b54785ed8d409db05c9888782f9
-    m_Address: prefabs/ui/mainui/flowereffectview
+  - m_GUID: c722761bfed169246aceb40c952fa82f
+    m_Address: prefabs/ui/mainui/mainuibuffview
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bedf9873e3b7e434293b7b2c78e99cfe
+  - m_GUID: ca1686cff7ec04f49afd1111942b123a
     m_Address: prefabs/ui/login/loginmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bf2487f8f7cc66e499b4e3f2dbba6a1b
-    m_Address: prefabs/ui/mainstronger/mainstrongermodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bfa2f76eaf4a6b94da059611236daa35
-    m_Address: prefabs/ui/pet/petrounditem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c1af51e9748726b4e844a6c9975c4892
-    m_Address: prefabs/ui/demon/demontalentitem2
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c9d82c087940de241ab1cfe1328700f7
-    m_Address: prefabs/ui/revelation/revelationmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: cb55e9893b9c73a4895325afc472f00b
-    m_Address: prefabs/ui/bag/bagequipmenticon
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: cbe04ed816b25174c865bae32abaf43e
-    m_Address: prefabs/ui/equiparmor/equiparmormodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: cf40b777652a37545a8f718bff3ac53e
-    m_Address: prefabs/ui/shop/shopmodule
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -555,48 +185,8 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d74a4b282f426af479112aed24d5e48a
-    m_Address: prefabs/ui/uicomponent/uicomponentmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d9060385bfbc9c94f81a0c4bb37d653c
-    m_Address: prefabs/ui/demon/demonskillitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: dbabddb848f8f7f489deec27c1369716
-    m_Address: prefabs/ui/marriage/marriagemodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: df130474d4bd6e3478c7c4c4397302b5
     m_Address: prefabs/ui/map/mapmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e189dcb4e74c8eb499d57fa70ce2e94c
-    m_Address: prefabs/ui/revelation/revelationdevouritem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e1da34ee67bd47a49b1f3f69ed4ce066
-    m_Address: prefabs/ui/marriage/marriagedropbtn
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e5d765084b40f0045b18ed876fa30d6b
-    m_Address: prefabs/ui/newgameui/uivertabsubbtn2
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e6dedbd2f0ab10b4c8194112b2453d9d
-    m_Address: prefabs/ui/mainui/mainuireliveview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e9755c8272c05c84488a0aacea86cebf
-    m_Address: prefabs/ui/composite/godbefallbutton
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -605,28 +195,8 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e9e9af85ce9667247b230e0000a92ca4
-    m_Address: prefabs/ui/mainui/mainuihiterbigbloodview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ec10c6ab7bc751b4d91fec44e26ecd67
     m_Address: prefabs/ui/common/iteminfoitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f0875be0d4d27dd47a7be00a22a32a32
-    m_Address: prefabs/ui/godbefall/godbefallmodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f1c97ed5bb4390842a6573e31deeea63
-    m_Address: prefabs/ui/brightsea/brightseamodule
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f1e6d281debc08543a70ef60048233c8
-    m_Address: prefabs/ui/chat/chattoolgriditem
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -635,23 +205,8 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: fac39c21e36d2184e970e9ef6effb2e6
-    m_Address: prefabs/ui/equiparmor/armorattritem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: fc99689b4f94ae34184b673366210702
-    m_Address: prefabs/ui/mainui/giftpushicon
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: fddcd081118b99041b3b4ad3822d3e90
-    m_Address: prefabs/ui/mainui/eyouthadultitem
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: fedb1d091b039e7479e06eae5ff2d98b
-    m_Address: prefabs/ui/runetreasure/runetreasuremainview
+  - m_GUID: faceca161f7c7af4680718727badc58b
+    m_Address: prefabs/ui/mainui/mainuifightmodeview
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
