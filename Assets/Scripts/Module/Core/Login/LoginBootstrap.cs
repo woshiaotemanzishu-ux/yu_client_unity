@@ -46,6 +46,13 @@ namespace Shenxiao.Module.Core.Login
             LoginController login = LoginController.Instance;
             GameLog.Info("Login", "—— 登录链冒烟开始 account={0} api={1} ——", config.devAccount, config.gmApiUrl);
 
+            // 第15轮驱动:smoke 模式下启用 Round15 Combo副技能测试
+            if (config.enableRound15ComboTest)
+            {
+                Shenxiao.Module.Core.Scene.SceneController.EnableRound15ComboTest = true;
+                GameLog.Info("Login", "★ Round15 Combo副技能测试已启用(进游戏后自动驱动)");
+            }
+
             LoginRequestResult result = await login.DevLoginAsync(config.devAccount);
             if (!Check(result, "① HTTP 登录(player_login)")) return;
             GameLog.Info("Login", "① HTTP 登录通过: player_id={0} 服务器数={1} 上次服={2}",

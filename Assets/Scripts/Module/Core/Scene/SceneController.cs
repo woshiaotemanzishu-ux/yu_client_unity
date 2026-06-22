@@ -20,6 +20,8 @@ namespace Shenxiao.Module.Core.Scene
         public static readonly SceneController Instance = new SceneController();
 
         private int _loadVersion;
+        /// <summary>第15轮驱动标志(由 LoginBootstrap 在 smoke 模式下设置)。</summary>
+        public static bool EnableRound15ComboTest { get; set; }
 
         private SceneController() { }
 
@@ -234,6 +236,9 @@ namespace Shenxiao.Module.Core.Scene
                 GameLog.Info("Scene", "12002 快照: 玩家={0} 怪物/采集={1} 伙伴={2} 其他={3} 假人={4} remaining={5}B",
                     players, monsters, partners, others, fakes, reader.Remaining);
                 EventDispatcher.Emit(GlobalEvent.EVT_SCENE_SNAPSHOT_READY);
+
+                // 第15轮 Combo副技能取证驱动:smoke 自动进游戏后,在场景快照接收到怪物时自动驱动普攻并捕获副技能 damage>0
+                TryAutoStartRound15ComboTest();
             }
             catch (Exception e)
             {
@@ -243,6 +248,37 @@ namespace Shenxiao.Module.Core.Scene
             SendFmt(Proto.SC_DROP_LIST);
             SendFmt(Proto.SC_NPC_ICON_REFRESH);
             GameLog.Info("Scene", "request 12018/12020: drop list + npc icon");
+        }
+
+        private static void TryAutoStartRound15ComboTest()
+        {
+            if (!EnableRound15ComboTest) return; // 驱动未启用
+
+            if (SceneManager.Instance.MonsterCount == 0) return; // 无怪,等待下次 On12007
+
+            GameLog.Info("Scene", "★ [Round15] 检测到怪物({0}只),延迟 1000ms 后驱动普攻", SceneManager.Instance.MonsterCount);
+            _ = TriggerRound15AttackAsync();
+        }
+
+        private static async Task TriggerRound15AttackAsync()
+        {
+            try
+            {
+                await Task.Delay(1000); // 让怪物渲染就位
+                if (SceneManager.Instance.MonsterCount == 0) return;
+
+                const int attackSkill = 59100001; // 普攻御剑一式
+                GameLog.Info("Scene", "★ [Round15] 驱动普攻 skill={0};combo 副技能会在 200ms 后自动补发", attackSkill);
+                SceneCombat.Instance.MainRoleAttackTarget(attackSkill, 1);
+
+                GameLog.Info("Scene", "★ [Round15] 普攻已发送,观察日志:");
+                GameLog.Info("Scene", "   - SendMainSkillAttack(59100001) = engage 20001");
+                GameLog.Info("Scene", "   - [200ms 后] SendComboAfterDelayAsync → SendMainSkillAttack(59100002) = combo 副技能 20001(damage>0 预期)");
+            }
+            catch (Exception e)
+            {
+                GameLog.Warn("Scene", "[Round15] 驱动异常: {0}", e.Message);
+            }
         }
 
         private void On12003(NetReader reader) => ParseRole(reader);

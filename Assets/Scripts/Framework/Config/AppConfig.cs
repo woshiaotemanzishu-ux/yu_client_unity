@@ -66,5 +66,8 @@ namespace Shenxiao.Framework.Config
 
         [Tooltip("Debug only. When autoLoginSmokeTest receives a real role list, immediately enter the first role.")]
         public bool autoEnterFirstRoleSmokeTest = false;
+
+        [Tooltip("Round15 Combo副技能测试:启用后进游戏后自动驱动普攻并捕获副技能 damage>0(仅 smoke=1 时有效)。")]
+        public bool enableRound15ComboTest = false;
     }
 }
