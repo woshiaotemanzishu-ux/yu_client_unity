@@ -43,7 +43,8 @@ Desktop.ini
 /Reports/
 
 # LayaUI 转换器生成产物(本地重新生成,调试期不进 git;定稿后再移出 ignore)
-/Assets/GameRes/resource/
+# resource/(UI 图集/贴图/配置)已定稿入库走 LFS(见 .gitattributes Assets/GameRes/resource/**),
+# 让协同开发 clone+lfs pull 即可,无需依赖老 Laya 项目再生成。Prefabs/UI 仍按模块逐步移出。
 /Assets/Prefabs/UI/
 /Assets/_App/Scenes/LayaUIPreview.unity*
 

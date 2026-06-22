@@ -1,0 +1,157 @@
+{
+    "SelectRole": {
+        "TotalCount": 4,
+        "ModelPos": {
+            "y": 2.3,
+            "x": 0
+        },
+        "PosOffset": {
+            "3@1": {
+                "y": 0,
+                "x": 0
+            },
+            "2@2": {
+                "y": 0,
+                "x": 0
+            },
+            "1@1": {
+                "y": 0,
+                "x": 0
+            },
+            "4@2": {
+                "y": 0,
+                "x": 0
+            }
+        }
+    },
+    "CreateRole": {
+        "ModelPos": {
+            "y": 1.53,
+            "x": 0
+        },
+        "PosOffset": {
+            "3@1": {
+                "y": 0,
+                "x": 0
+            },
+            "2@2": {
+                "y": 0,
+                "x": 0
+            },
+            "1@1": {
+                "y": -0.53,
+                "x": 0
+            },
+            "4@2": {
+                "y": 0,
+                "x": 0
+            }
+        },
+        "UI": [
+            {
+                "open_state": true,
+                "career": 1,
+                "sex": 1,
+                "random_weight": 30,
+
+                "name":"剑士",
+                "unselect_icon": "ui_Login_10a",
+                "select_icon": "ui_Login_10",
+                "img1": "ui_Login_14",
+                "img2": "ui_Login_14a",
+                "img3": "ui_Login_14b",
+                "sound": "chuangjue_1"
+            },
+            {
+                "open_state": true,
+                "career": 2,
+                "sex": 2,
+                "random_weight": 10,
+
+                "name":"武姬",
+                "unselect_icon": "ui_Login_12a",
+                "select_icon": "ui_Login_12",
+                "img1": "ui_Login_15",
+                "img2": "ui_Login_15a",
+                "img3": "ui_Login_15b",
+                "sound": "chuangjue_2"
+            },
+            {
+                "open_state": true,
+                "career": 3,
+                "sex": 1,
+                "random_weight": 20,
+
+                "name":"枪使",
+                "unselect_icon": "ui_Login_11a",
+                "select_icon": "ui_Login_11",
+                "img1": "ui_Login_16",
+                "img2": "ui_Login_16a",
+                "img3": "ui_Login_16b",
+                "sound": "chuangjue_3"
+            },
+            {
+                "open_state": true,
+                "career": 4,
+                "sex": 2,
+                "random_weight": 10,
+
+                "name":"弓手",
+                "unselect_icon": "ui_Login_13a",
+                "select_icon": "ui_Login_13",
+                "img1": "ui_Login_17",
+                "img2": "ui_Login_17a",
+                "img3": "ui_Login_17b",
+                "sound": "chuangjue_4"
+            }
+        ],
+        "Res": {
+            "1@1": {
+                
+                "head_res": 1100,
+                "role_res": 1111,
+                "weapon_res": 1100
+            },
+            "2@2": {
+                
+                "head_res": 1213,
+                "role_res": 1213,
+                "weapon_res": 1200
+            },
+            "3@1": {
+                
+                "head_res": 1300,
+                "role_res": 1300,
+                "weapon_res": 1300
+            },
+            "4@2": {
+                
+                "head_res": 1400,
+                "role_res": 1400,
+                "weapon_res": 1400
+            }
+        },
+        "Effect": {
+            "1@1": {
+                "clothe": {
+                    "root": "cj_1100"
+                }
+            },
+            "2@2": {
+                "clothe": {
+                    "root": "cj_1200"
+                }
+            },
+            "3@1": {
+                "clothe": {
+                    "root": "cj_1300"
+                }
+            },
+            "4@2": {
+                "clothe": {
+                    "root": "cj_1400"
+                }
+            }
+        }
+    }
+}
