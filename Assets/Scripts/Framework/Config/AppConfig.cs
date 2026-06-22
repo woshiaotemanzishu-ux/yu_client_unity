@@ -69,5 +69,8 @@ namespace Shenxiao.Framework.Config
 
         [Tooltip("Round15 Combo副技能测试:启用后进游戏后自动驱动普攻并捕获副技能 damage>0(仅 smoke=1 时有效)。")]
         public bool enableRound15ComboTest = false;
+
+        [Tooltip("Round18 连续击杀测试:启用后 combo 回包若目标 hp>0,自动继续驱动下一次普攻,循环至 hp==0(需 enableRound15ComboTest=1)。")]
+        public bool enableRound18ContinuousKill = false;
     }
 }

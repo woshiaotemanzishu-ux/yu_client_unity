@@ -53,6 +53,13 @@ namespace Shenxiao.Module.Core.Login
                 GameLog.Info("Login", "★ Round15 Combo副技能测试已启用(进游戏后自动驱动)");
             }
 
+            // 第18轮驱动:smoke 模式下启用 Round18 连续击杀测试
+            if (config.enableRound18ContinuousKill)
+            {
+                Shenxiao.Module.Core.Scene.SceneController.EnableRound18ContinuousKill = true;
+                GameLog.Info("Login", "★ Round18 连续击杀测试已启用(combo回包若目标hp>0则自动继续)");
+            }
+
             LoginRequestResult result = await login.DevLoginAsync(config.devAccount);
             if (!Check(result, "① HTTP 登录(player_login)")) return;
             GameLog.Info("Login", "① HTTP 登录通过: player_id={0} 服务器数={1} 上次服={2}",

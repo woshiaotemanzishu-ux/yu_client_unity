@@ -23,6 +23,12 @@ namespace Shenxiao.Module.Core.Scene
         /// <summary>第15轮驱动标志(由 LoginBootstrap 在 smoke 模式下设置)。</summary>
         public static bool EnableRound15ComboTest { get; set; }
 
+        /// <summary>第18轮连续击杀标志(由 LoginBootstrap 在 smoke 模式下设置)。</summary>
+        public static bool EnableRound18ContinuousKill { get; set; }
+
+        /// <summary>第18轮连续击杀状态:当前正在击杀的目标怪id(0=无)。</summary>
+        private int _round18TargetMonster;
+
         private SceneController() { }
 
         protected override void Register()
@@ -250,17 +256,21 @@ namespace Shenxiao.Module.Core.Scene
             GameLog.Info("Scene", "request 12018/12020: drop list + npc icon");
         }
 
-        private static void TryAutoStartRound15ComboTest()
+        private void TryAutoStartRound15ComboTest()
         {
             if (!EnableRound15ComboTest) return; // 驱动未启用
 
             if (SceneManager.Instance.MonsterCount == 0) return; // 无怪,等待下次 On12007
 
             GameLog.Info("Scene", "★ [Round15] 检测到怪物({0}只),延迟 1000ms 后驱动普攻", SceneManager.Instance.MonsterCount);
+            _round18TargetMonster = 0;
             _ = TriggerRound15AttackAsync();
         }
 
-        private static async Task TriggerRound15AttackAsync()
+        /// <summary>
+        /// 第15轮 / 第18轮循环击杀驱动。engage+combo 后如 Round18 启用且目标 hp>0,自动继续下一轮。
+        /// </summary>
+        private async Task TriggerRound15AttackAsync()
         {
             try
             {
@@ -278,6 +288,47 @@ namespace Shenxiao.Module.Core.Scene
             catch (Exception e)
             {
                 GameLog.Warn("Scene", "[Round15] 驱动异常: {0}", e.Message);
+            }
+        }
+
+        /// <summary>
+        /// 第18轮:20001 S2C 回包后由 FightController 调用,检查是否继续击杀。
+        /// combo 已补发且目标 hp>0 时,延迟后自动继续普攻(循环直到 hp==0)。
+        /// </summary>
+        public void OnRound18FightResult(int lastSkillId, int targetMonsterId, bool targetAlive)
+        {
+            if (!EnableRound15ComboTest || !EnableRound18ContinuousKill) return;
+
+            // 只在 combo(59100002) 回包且目标活着时继续
+            bool isCombo = (lastSkillId == 59100002);
+            if (!isCombo || !targetAlive) return;
+
+            _round18TargetMonster = targetMonsterId;
+            GameLog.Info("Scene", "★ [Round18] combo 已补发,目标 {0} hp>0,延迟 500ms 后继续击杀", targetMonsterId);
+            _ = ContinueKillAfterDelayAsync();
+        }
+
+        private async Task ContinueKillAfterDelayAsync()
+        {
+            try
+            {
+                await Task.Delay(500);
+                if (_round18TargetMonster == 0) return;
+
+                MonsterVo target = SceneManager.Instance.GetMonster(_round18TargetMonster);
+                if (target == null || target.Hp <= 0)
+                {
+                    GameLog.Info("Scene", "★ [Round18] 目标 {0} 已不在/已死,停止击杀", _round18TargetMonster);
+                    _round18TargetMonster = 0;
+                    return;
+                }
+
+                GameLog.Info("Scene", "★ [Round18] 继续击杀 skill=59100001 目标={0} hp={1}", _round18TargetMonster, target.Hp);
+                SceneCombat.Instance.MainRoleAttackTarget(59100001, 1);
+            }
+            catch (Exception e)
+            {
+                GameLog.Warn("Scene", "[Round18] 继续击杀异常: {0}", e.Message);
             }
         }
 

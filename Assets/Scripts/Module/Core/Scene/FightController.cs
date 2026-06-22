@@ -150,7 +150,7 @@ namespace Shenxiao.Module.Core.Scene
                     i, d.TypeFlag, d.RoleId, d.Hp, d.Damage, d.DamageFlag, d.PosX, d.PosY);
             }
 
-            ApplyDefenseListToScene(vo);
+            ApplyDefenseListToScene(vo, vo.Attack.SkillId);
         }
 
         /// <summary>
@@ -159,10 +159,14 @@ namespace Shenxiao.Module.Core.Scene
         ///   hp==0 → <see cref="SceneManager.DeleteSceneObj"/>(移除可见怪/玩家)→ MonsterRemoved → 模型/名牌/血条销毁(对标 ForceDoDead)。
         /// 与 12009/12006 同一渲染出口,不开新假血条路径。找不到对应场景对象只记 warning,绝不造假对象;
         /// damage/damage_flag(飘字)本轮不消费。
+        /// 第18轮:回包后通知 SceneController 检查是否继续击杀。
         /// </summary>
-        private static void ApplyDefenseListToScene(FightVo vo)
+        private void ApplyDefenseListToScene(FightVo vo, int skillId)
         {
             SceneManager mgr = SceneManager.Instance;
+            int firstMonsterId = 0;
+            bool firstMonsterAlive = false;
+
             foreach (FightVo.DefenseInfo d in vo.DefenseList)
             {
                 if (d.TypeFlag == OBJ_MONSTER)
@@ -179,6 +183,7 @@ namespace Shenxiao.Module.Core.Scene
                         GameLog.Warn("Fight", "20001 defender 怪 {0} 不在 SceneManager(未在视野/已移除),只记录不造假", ins);
                         continue;
                     }
+                    if (firstMonsterId == 0) firstMonsterId = ins;
                     if (d.Hp == 0)
                     {
                         GameLog.Info("Fight", "怪 {0} 服务端判定死亡(hp=0 damage={1}),移除可见模型/名牌/血条", ins, d.Damage);
@@ -186,6 +191,7 @@ namespace Shenxiao.Module.Core.Scene
                     }
                     else
                     {
+                        if (firstMonsterId == ins) firstMonsterAlive = true;
                         GameLog.Info("Fight", "怪 {0} 服务端新 hp={1}/{2}(damage={3} flag={4}),刷新血条", ins, d.Hp, m.HpLim, d.Damage, d.DamageFlag);
                         mgr.ApplyHp(ins, d.Hp, m.HpLim);
                     }
@@ -213,6 +219,12 @@ namespace Shenxiao.Module.Core.Scene
                 {
                     GameLog.Warn("Fight", "20001 defender 未路由 type_flag={0} id={1}(本轮只接怪/玩家/假人)", d.TypeFlag, d.RoleId);
                 }
+            }
+
+            // 第18轮:combo 回包后通知 SceneController 继续击杀
+            if (firstMonsterId > 0)
+            {
+                SceneController.Instance.OnRound18FightResult(skillId, firstMonsterId, firstMonsterAlive);
             }
         }
     }
