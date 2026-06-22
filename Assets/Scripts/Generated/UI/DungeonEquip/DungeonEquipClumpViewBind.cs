@@ -1,0 +1,141 @@
+// 由 LayaUI 转换器自动生成,不要手改。重转会覆盖。
+// 来源: cdn/resource/game/dungeonEquip/DungeonEquipClumpView.json
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using Shenxiao.Framework.UI;
+
+namespace Shenxiao.Generated.UI.DungeonEquip
+{
+    public partial class DungeonEquipClumpViewBind : BaseView
+    {
+        public Image _Image111;
+        public Image _Image2;
+        public Image _Image_blue;
+        public Image _Image_title;
+        public TextMeshProUGUI titleLabel;
+        public RectTransform _Group2;
+        public RectTransform _toggle_recruit;
+        public Image _img_btn1;
+        public TextMeshProUGUI _lb_btn1;
+        public Image red_dot1;
+        public RectTransform _toggle_apply;
+        public Image _img_btn2;
+        public TextMeshProUGUI _lb_btn2;
+        public Image red_dot;
+        public Image _img_apply_red;
+        public RectTransform _gp_invite;
+        public TextMeshProUGUI _Label2;
+        public TextMeshProUGUI _lb_tips;
+        public TextMeshProUGUI _Label3;
+        public Image _Image_split;
+        public Image _img_tab1;
+        public Image _img_tab2;
+        public Image _img_tab3;
+        public TextMeshProUGUI _Label4;
+        public TextMeshProUGUI _Label5;
+        public TextMeshProUGUI _Label6;
+        public ScrollRect Content;
+        public RectTransform _gp_refresh;
+        public Image _Image9;
+        public TextMeshProUGUI _Label7;
+        public RectTransform _gp_world_invite;
+        public Image _Image10;
+        public TextMeshProUGUI _Label8;
+        public RectTransform _gp_invite_none;
+        public Image _Image1111;
+        public Image _Image12;
+        public TextMeshProUGUI _Label101;
+        public RectTransform _gp_guild_none;
+        public Image _Image13;
+        public Image _Image14;
+        public TextMeshProUGUI _Label10;
+        public TextMeshProUGUI _lb_add_guild;
+        public RectTransform _gp_friend_none;
+        public Image _Image15;
+        public Image _Image16;
+        public TextMeshProUGUI _Label11;
+        public TextMeshProUGUI _lb_add_friend;
+        public RectTransform _gp_apply;
+        public TextMeshProUGUI _Label12;
+        public TextMeshProUGUI _Label13;
+        public TextMeshProUGUI _Label14;
+        public RectTransform _gp_refuse;
+        public Image _Image19;
+        public TextMeshProUGUI _Label15;
+        public RectTransform _gp_none;
+        public Image _Image20;
+        public Image _Image21;
+        public TextMeshProUGUI _Label16;
+        public ScrollRect Content1;
+        public Image _img_close;
+        public GameObject _tpl_DungeonEquipClumpApplyItem;
+        public GameObject _tpl_DungeonEquipClumpInviteItem;
+
+        protected override void BindNodes()
+        {
+            EnsureBound(nameof(_Image111), _Image111);
+            EnsureBound(nameof(_Image2), _Image2);
+            EnsureBound(nameof(_Image_blue), _Image_blue);
+            EnsureBound(nameof(_Image_title), _Image_title);
+            EnsureBound(nameof(titleLabel), titleLabel);
+            EnsureBound(nameof(_Group2), _Group2);
+            EnsureBound(nameof(_toggle_recruit), _toggle_recruit);
+            EnsureBound(nameof(_img_btn1), _img_btn1);
+            EnsureBound(nameof(_lb_btn1), _lb_btn1);
+            EnsureBound(nameof(red_dot1), red_dot1);
+            EnsureBound(nameof(_toggle_apply), _toggle_apply);
+            EnsureBound(nameof(_img_btn2), _img_btn2);
+            EnsureBound(nameof(_lb_btn2), _lb_btn2);
+            EnsureBound(nameof(red_dot), red_dot);
+            EnsureBound(nameof(_img_apply_red), _img_apply_red);
+            EnsureBound(nameof(_gp_invite), _gp_invite);
+            EnsureBound(nameof(_Label2), _Label2);
+            EnsureBound(nameof(_lb_tips), _lb_tips);
+            EnsureBound(nameof(_Label3), _Label3);
+            EnsureBound(nameof(_Image_split), _Image_split);
+            EnsureBound(nameof(_img_tab1), _img_tab1);
+            EnsureBound(nameof(_img_tab2), _img_tab2);
+            EnsureBound(nameof(_img_tab3), _img_tab3);
+            EnsureBound(nameof(_Label4), _Label4);
+            EnsureBound(nameof(_Label5), _Label5);
+            EnsureBound(nameof(_Label6), _Label6);
+            EnsureBound(nameof(Content), Content);
+            EnsureBound(nameof(_gp_refresh), _gp_refresh);
+            EnsureBound(nameof(_Image9), _Image9);
+            EnsureBound(nameof(_Label7), _Label7);
+            EnsureBound(nameof(_gp_world_invite), _gp_world_invite);
+            EnsureBound(nameof(_Image10), _Image10);
+            EnsureBound(nameof(_Label8), _Label8);
+            EnsureBound(nameof(_gp_invite_none), _gp_invite_none);
+            EnsureBound(nameof(_Image1111), _Image1111);
+            EnsureBound(nameof(_Image12), _Image12);
+            EnsureBound(nameof(_Label101), _Label101);
+            EnsureBound(nameof(_gp_guild_none), _gp_guild_none);
+            EnsureBound(nameof(_Image13), _Image13);
+            EnsureBound(nameof(_Image14), _Image14);
+            EnsureBound(nameof(_Label10), _Label10);
+            EnsureBound(nameof(_lb_add_guild), _lb_add_guild);
+            EnsureBound(nameof(_gp_friend_none), _gp_friend_none);
+            EnsureBound(nameof(_Image15), _Image15);
+            EnsureBound(nameof(_Image16), _Image16);
+            EnsureBound(nameof(_Label11), _Label11);
+            EnsureBound(nameof(_lb_add_friend), _lb_add_friend);
+            EnsureBound(nameof(_gp_apply), _gp_apply);
+            EnsureBound(nameof(_Label12), _Label12);
+            EnsureBound(nameof(_Label13), _Label13);
+            EnsureBound(nameof(_Label14), _Label14);
+            EnsureBound(nameof(_gp_refuse), _gp_refuse);
+            EnsureBound(nameof(_Image19), _Image19);
+            EnsureBound(nameof(_Label15), _Label15);
+            EnsureBound(nameof(_gp_none), _gp_none);
+            EnsureBound(nameof(_Image20), _Image20);
+            EnsureBound(nameof(_Image21), _Image21);
+            EnsureBound(nameof(_Label16), _Label16);
+            EnsureBound(nameof(Content1), Content1);
+            EnsureBound(nameof(_img_close), _img_close);
+            EnsureBound(nameof(_tpl_DungeonEquipClumpApplyItem), _tpl_DungeonEquipClumpApplyItem);
+            EnsureBound(nameof(_tpl_DungeonEquipClumpInviteItem), _tpl_DungeonEquipClumpInviteItem);
+        }
+    }
+}

@@ -176,7 +176,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: b5f61a4b45cc06c4282b1ea6c090ee26, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 671ba8e1a4055d44d84a3e6a15e0b678, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -251,7 +251,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 29671c09e1d9495458b77bdb193ee504, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 47ec25f56b2bd3e4293cce6904a1364e, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -401,7 +401,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 6a85f0b733c01884da2f7301570a3d7e, type: 3}
+  m_Sprite: {fileID: 21300000, guid: e6a8b82c522aebd4191de2f215cda6ca, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -557,7 +557,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9047508833636754831}
-  - component: {fileID: 8467754878976831066}
   m_Layer: 0
   m_Name: GodBefallSkillItem
   m_TagString: Untagged
@@ -585,25 +584,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 72, y: 72}
   m_Pivot: {x: 0, y: 1}
---- !u!114 &8467754878976831066
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7590282944258257607}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cf39eb425953c48438ab636a84e2593a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.GodBefall.GodBefallSkillItem
-  _box_con: {fileID: 4781889316553390054}
-  _img_icon: {fileID: 4664626909151273468}
-  _img_icon2: {fileID: 3911618363714560544}
-  _box_lock: {fileID: 3029871071425834028}
-  _lb_lock: {fileID: 4341538748707347138}
-  _img_skill_tag: {fileID: 975211277258847536}
-  _img_new: {fileID: 5894288925967432308}
 --- !u!1 &7674071188548451988
 GameObject:
   m_ObjectHideFlags: 0

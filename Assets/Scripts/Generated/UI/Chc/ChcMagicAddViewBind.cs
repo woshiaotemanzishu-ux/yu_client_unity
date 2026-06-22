@@ -1,0 +1,31 @@
+// 由 LayaUI 转换器自动生成,不要手改。重转会覆盖。
+// 来源: cdn/resource/game/chc/chcMagicAddView.json
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using Shenxiao.Framework.UI;
+
+namespace Shenxiao.Generated.UI.Chc
+{
+    public partial class ChcMagicAddViewBind : BaseView
+    {
+        public Image _Image1;
+        public Image _Image2;
+        public TextMeshProUGUI _Label1;
+        public Image _Image3;
+        public TextMeshProUGUI _lb_title;
+        public ScrollRect _Scroller1;
+        public Image _btn_close;
+
+        protected override void BindNodes()
+        {
+            EnsureBound(nameof(_Image1), _Image1);
+            EnsureBound(nameof(_Image2), _Image2);
+            EnsureBound(nameof(_Label1), _Label1);
+            EnsureBound(nameof(_Image3), _Image3);
+            EnsureBound(nameof(_lb_title), _lb_title);
+            EnsureBound(nameof(_Scroller1), _Scroller1);
+            EnsureBound(nameof(_btn_close), _btn_close);
+        }
+    }
+}

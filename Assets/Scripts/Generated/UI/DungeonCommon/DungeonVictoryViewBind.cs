@@ -1,0 +1,145 @@
+// 由 LayaUI 转换器自动生成,不要手改。重转会覆盖。
+// 来源: cdn/resource/game/dungeonCommon/DungeonVictoryView.json
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using Shenxiao.Framework.UI;
+
+namespace Shenxiao.Generated.UI.DungeonCommon
+{
+    public partial class DungeonVictoryViewBind : BaseView
+    {
+        public RectTransform _gp_click;
+        public Image _img_bg;
+        public Image _img_bg2;
+        public RectTransform btn_group;
+        public RectTransform left_btn_group;
+        public RectTransform right_btn_group;
+        public RectTransform _gp_cost_count;
+        public Image _img_cost_icon;
+        public TextMeshProUGUI _lb_cost_count;
+        public RectTransform _gp_victory;
+        public TextMeshProUGUI _html_left_time;
+        public RectTransform _gp_fly;
+        public RectTransform _gp_get_exp;
+        public TextMeshProUGUI _lb_get_exp;
+        public Image merge_num_img;
+        public Image gp_lv;
+        public Image img_arrow;
+        public TextMeshProUGUI exp_old;
+        public TextMeshProUGUI exp_new;
+        public RectTransform _gp_reward_con;
+        public Image _img_reward_bg;
+        public Image _img_equip_reward_bg;
+        public ScrollRect _sc_reward;
+        public TextMeshProUGUI _lb_noreward;
+        public RectTransform _gp_layer;
+        public Image _Image11;
+        public TextMeshProUGUI _lb_layer;
+        public RectTransform _gp_advanceExp;
+        public RectTransform _Group1;
+        public Image _gp_advanceExp_img1;
+        public TextMeshProUGUI levelLb;
+        public RectTransform _Group2;
+        public Image _gp_advanceExp_img2;
+        public TextMeshProUGUI expLb;
+        public ScrollRect _sc_equip_reward;
+        public RectTransform _gp_equip_tips;
+        public ScrollRect _sc_equip_other_reward;
+        public RectTransform _gp_tip_1;
+        public Image _Image2;
+        public Image img_title;
+        public RectTransform _gp_kill;
+        public TextMeshProUGUI _lb_kill;
+        public RectTransform _gp_copper_level_effect;
+        public Image _img_bg3;
+        public Image _img_level;
+        public RectTransform _gp_treasure;
+        public Image _img_box;
+        public RectTransform _gp_treasure_effect;
+        public RectTransform _gp_stars;
+        public Image _img_star0;
+        public Image _img_star1;
+        public Image _img_star2;
+        public RectTransform _gp_btns;
+        public RectTransform _btn_left;
+        public Image _Image1;
+        public TextMeshProUGUI _lb_left;
+        public RectTransform _btn_right;
+        public Image _Image111;
+        public TextMeshProUGUI _lb_right;
+        public Image _img_point;
+        public TextMeshProUGUI _lb_tips;
+        public Image _img_top;
+        public RectTransform wx_share_con;
+        public GameObject _tpl_CommonRewardItem;
+
+        protected override void BindNodes()
+        {
+            EnsureBound(nameof(_gp_click), _gp_click);
+            EnsureBound(nameof(_img_bg), _img_bg);
+            EnsureBound(nameof(_img_bg2), _img_bg2);
+            EnsureBound(nameof(btn_group), btn_group);
+            EnsureBound(nameof(left_btn_group), left_btn_group);
+            EnsureBound(nameof(right_btn_group), right_btn_group);
+            EnsureBound(nameof(_gp_cost_count), _gp_cost_count);
+            EnsureBound(nameof(_img_cost_icon), _img_cost_icon);
+            EnsureBound(nameof(_lb_cost_count), _lb_cost_count);
+            EnsureBound(nameof(_gp_victory), _gp_victory);
+            EnsureBound(nameof(_html_left_time), _html_left_time);
+            EnsureBound(nameof(_gp_fly), _gp_fly);
+            EnsureBound(nameof(_gp_get_exp), _gp_get_exp);
+            EnsureBound(nameof(_lb_get_exp), _lb_get_exp);
+            EnsureBound(nameof(merge_num_img), merge_num_img);
+            EnsureBound(nameof(gp_lv), gp_lv);
+            EnsureBound(nameof(img_arrow), img_arrow);
+            EnsureBound(nameof(exp_old), exp_old);
+            EnsureBound(nameof(exp_new), exp_new);
+            EnsureBound(nameof(_gp_reward_con), _gp_reward_con);
+            EnsureBound(nameof(_img_reward_bg), _img_reward_bg);
+            EnsureBound(nameof(_img_equip_reward_bg), _img_equip_reward_bg);
+            EnsureBound(nameof(_sc_reward), _sc_reward);
+            EnsureBound(nameof(_lb_noreward), _lb_noreward);
+            EnsureBound(nameof(_gp_layer), _gp_layer);
+            EnsureBound(nameof(_Image11), _Image11);
+            EnsureBound(nameof(_lb_layer), _lb_layer);
+            EnsureBound(nameof(_gp_advanceExp), _gp_advanceExp);
+            EnsureBound(nameof(_Group1), _Group1);
+            EnsureBound(nameof(_gp_advanceExp_img1), _gp_advanceExp_img1);
+            EnsureBound(nameof(levelLb), levelLb);
+            EnsureBound(nameof(_Group2), _Group2);
+            EnsureBound(nameof(_gp_advanceExp_img2), _gp_advanceExp_img2);
+            EnsureBound(nameof(expLb), expLb);
+            EnsureBound(nameof(_sc_equip_reward), _sc_equip_reward);
+            EnsureBound(nameof(_gp_equip_tips), _gp_equip_tips);
+            EnsureBound(nameof(_sc_equip_other_reward), _sc_equip_other_reward);
+            EnsureBound(nameof(_gp_tip_1), _gp_tip_1);
+            EnsureBound(nameof(_Image2), _Image2);
+            EnsureBound(nameof(img_title), img_title);
+            EnsureBound(nameof(_gp_kill), _gp_kill);
+            EnsureBound(nameof(_lb_kill), _lb_kill);
+            EnsureBound(nameof(_gp_copper_level_effect), _gp_copper_level_effect);
+            EnsureBound(nameof(_img_bg3), _img_bg3);
+            EnsureBound(nameof(_img_level), _img_level);
+            EnsureBound(nameof(_gp_treasure), _gp_treasure);
+            EnsureBound(nameof(_img_box), _img_box);
+            EnsureBound(nameof(_gp_treasure_effect), _gp_treasure_effect);
+            EnsureBound(nameof(_gp_stars), _gp_stars);
+            EnsureBound(nameof(_img_star0), _img_star0);
+            EnsureBound(nameof(_img_star1), _img_star1);
+            EnsureBound(nameof(_img_star2), _img_star2);
+            EnsureBound(nameof(_gp_btns), _gp_btns);
+            EnsureBound(nameof(_btn_left), _btn_left);
+            EnsureBound(nameof(_Image1), _Image1);
+            EnsureBound(nameof(_lb_left), _lb_left);
+            EnsureBound(nameof(_btn_right), _btn_right);
+            EnsureBound(nameof(_Image111), _Image111);
+            EnsureBound(nameof(_lb_right), _lb_right);
+            EnsureBound(nameof(_img_point), _img_point);
+            EnsureBound(nameof(_lb_tips), _lb_tips);
+            EnsureBound(nameof(_img_top), _img_top);
+            EnsureBound(nameof(wx_share_con), wx_share_con);
+            EnsureBound(nameof(_tpl_CommonRewardItem), _tpl_CommonRewardItem);
+        }
+    }
+}

@@ -1,0 +1,25 @@
+// 由 LayaUI 转换器自动生成,不要手改。重转会覆盖。
+// 来源: cdn/resource/game/kfHolyArea/KfHolyAreaCampItem.json
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using Shenxiao.Framework.UI;
+
+namespace Shenxiao.Generated.UI.KfHolyArea
+{
+    public partial class KfHolyAreaCampItemBind : BaseView
+    {
+        public Image _img_bg;
+        public Image _Image1;
+        public TextMeshProUGUI _lb_camp_name;
+        public RectTransform _gp_con;
+
+        protected override void BindNodes()
+        {
+            EnsureBound(nameof(_img_bg), _img_bg);
+            EnsureBound(nameof(_Image1), _Image1);
+            EnsureBound(nameof(_lb_camp_name), _lb_camp_name);
+            EnsureBound(nameof(_gp_con), _gp_con);
+        }
+    }
+}

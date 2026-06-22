@@ -42,10 +42,9 @@ Desktop.ini
 # LayaUI converter reports (generated)
 /Reports/
 
-# LayaUI 转换器生成产物(本地重新生成,调试期不进 git;定稿后再移出 ignore)
-# resource/(UI 图集/贴图/配置)已定稿入库走 LFS(见 .gitattributes Assets/GameRes/resource/**),
-# 让协同开发 clone+lfs pull 即可,无需依赖老 Laya 项目再生成。Prefabs/UI 仍按模块逐步移出。
-/Assets/Prefabs/UI/
+# LayaUI 转换器生成产物。已定稿入库,让协同开发 clone 即可拿到,无需依赖老 Laya 项目再生成:
+#  - resource/(UI 图集/贴图/配置)走 LFS(见 .gitattributes Assets/GameRes/resource/**)
+#  - Prefabs/UI(已转换的 UI 预制体,文本)已移出 ignore;后续新转换模块按模块提交
 /Assets/_App/Scenes/LayaUIPreview.unity*
 
 # 例外(P0 资源可复现门 — 见 Docs/Claude任务包-主线竖切-第1轮.md):

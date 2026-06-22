@@ -1,0 +1,145 @@
+// 由 LayaUI 转换器自动生成,不要手改。重转会覆盖。
+// 来源: cdn/resource/game/dungeonDragon/DungeonDragonEnterView.json
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using Shenxiao.Framework.UI;
+
+namespace Shenxiao.Generated.UI.DungeonDragon
+{
+    public partial class DungeonDragonEnterViewBind : BaseView
+    {
+        public Image _Image1;
+        public RectTransform _Group1;
+        public Image _img_jiejie_b;
+        public TextMeshProUGUI _txt_title1;
+        public TextMeshProUGUI _lb_times;
+        public TextMeshProUGUI _lb_help_times;
+        public Image _img_tips;
+        public RectTransform _gp_enter;
+        public Image _Image4;
+        public TextMeshProUGUI _lb_enter;
+        public RectTransform _gp_match;
+        public Image _Image5;
+        public TextMeshProUGUI _lb_match;
+        public Image _img_achi;
+        public Image _img_achi_red;
+        public Image _img_help;
+        public ScrollRect _Scroller1;
+        public RectTransform Content;
+        public RectTransform content1;
+        public RectTransform _gp_hall;
+        public Image _Image7;
+        public Image _Image8;
+        public Image _Image81;
+        public Image _Image9;
+        public Image _Image91;
+        public ScrollRect _list_tab;
+        public RectTransform _gp_none;
+        public Image _Image10;
+        public Image _Image11;
+        public TextMeshProUGUI _Label4;
+        public TextMeshProUGUI _lb_create_team;
+        public RectTransform _gp_room;
+        public Image _Image12;
+        public Image _Image13;
+        public Image _Image14;
+        public Image _Image15;
+        public Image _img_clump;
+        public Image _img_clump_red;
+        public RectTransform _gp_role_con;
+        public RectTransform _gp_auto_add;
+        public TextMeshProUGUI _Label5;
+        public Image _img_gx;
+        public TextMeshProUGUI _Label122;
+        public Image _img_chat;
+        public Image _btn_help;
+        public RectTransform _box_halo;
+        public Image _img_merge_count;
+        public TextMeshProUGUI _lb_halo_tips;
+        public GameObject _tpl_DungeonDragonRoleItem;
+        public GameObject _tpl_DungeonDragonTabItem;
+        public GameObject _tpl_DungeonDragonTeamHeadItem;
+        public GameObject _tpl_DungeonDragonTeamItem;
+        public GameObject _tpl_DungeonDragonTipsItem;
+        public GameObject _tpl_EquipmentItem;
+        public GameObject _tpl_DungeonDragonAchiItem;
+        public GameObject _tpl_DungeonDragonAchiTabItem;
+        public GameObject _tpl_DungeonDragonClumpApplyItem;
+        public GameObject _tpl_DungeonDragonClumpInviteItem;
+        public GameObject _tpl_DungeonDragonFightSceneItem;
+        public GameObject _tpl_DungeonDragonRecordItem;
+        public GameObject _tpl_DungeonDragonRewardItem;
+        public GameObject _tpl_DungeonDragonSkillItem;
+        public GameObject _tpl_DungeonDragonTowerItem;
+        public GameObject _tpl_DungeonEquipRoleItem;
+
+        protected override void BindNodes()
+        {
+            EnsureBound(nameof(_Image1), _Image1);
+            EnsureBound(nameof(_Group1), _Group1);
+            EnsureBound(nameof(_img_jiejie_b), _img_jiejie_b);
+            EnsureBound(nameof(_txt_title1), _txt_title1);
+            EnsureBound(nameof(_lb_times), _lb_times);
+            EnsureBound(nameof(_lb_help_times), _lb_help_times);
+            EnsureBound(nameof(_img_tips), _img_tips);
+            EnsureBound(nameof(_gp_enter), _gp_enter);
+            EnsureBound(nameof(_Image4), _Image4);
+            EnsureBound(nameof(_lb_enter), _lb_enter);
+            EnsureBound(nameof(_gp_match), _gp_match);
+            EnsureBound(nameof(_Image5), _Image5);
+            EnsureBound(nameof(_lb_match), _lb_match);
+            EnsureBound(nameof(_img_achi), _img_achi);
+            EnsureBound(nameof(_img_achi_red), _img_achi_red);
+            EnsureBound(nameof(_img_help), _img_help);
+            EnsureBound(nameof(_Scroller1), _Scroller1);
+            EnsureBound(nameof(Content), Content);
+            EnsureBound(nameof(content1), content1);
+            EnsureBound(nameof(_gp_hall), _gp_hall);
+            EnsureBound(nameof(_Image7), _Image7);
+            EnsureBound(nameof(_Image8), _Image8);
+            EnsureBound(nameof(_Image81), _Image81);
+            EnsureBound(nameof(_Image9), _Image9);
+            EnsureBound(nameof(_Image91), _Image91);
+            EnsureBound(nameof(_list_tab), _list_tab);
+            EnsureBound(nameof(_gp_none), _gp_none);
+            EnsureBound(nameof(_Image10), _Image10);
+            EnsureBound(nameof(_Image11), _Image11);
+            EnsureBound(nameof(_Label4), _Label4);
+            EnsureBound(nameof(_lb_create_team), _lb_create_team);
+            EnsureBound(nameof(_gp_room), _gp_room);
+            EnsureBound(nameof(_Image12), _Image12);
+            EnsureBound(nameof(_Image13), _Image13);
+            EnsureBound(nameof(_Image14), _Image14);
+            EnsureBound(nameof(_Image15), _Image15);
+            EnsureBound(nameof(_img_clump), _img_clump);
+            EnsureBound(nameof(_img_clump_red), _img_clump_red);
+            EnsureBound(nameof(_gp_role_con), _gp_role_con);
+            EnsureBound(nameof(_gp_auto_add), _gp_auto_add);
+            EnsureBound(nameof(_Label5), _Label5);
+            EnsureBound(nameof(_img_gx), _img_gx);
+            EnsureBound(nameof(_Label122), _Label122);
+            EnsureBound(nameof(_img_chat), _img_chat);
+            EnsureBound(nameof(_btn_help), _btn_help);
+            EnsureBound(nameof(_box_halo), _box_halo);
+            EnsureBound(nameof(_img_merge_count), _img_merge_count);
+            EnsureBound(nameof(_lb_halo_tips), _lb_halo_tips);
+            EnsureBound(nameof(_tpl_DungeonDragonRoleItem), _tpl_DungeonDragonRoleItem);
+            EnsureBound(nameof(_tpl_DungeonDragonTabItem), _tpl_DungeonDragonTabItem);
+            EnsureBound(nameof(_tpl_DungeonDragonTeamHeadItem), _tpl_DungeonDragonTeamHeadItem);
+            EnsureBound(nameof(_tpl_DungeonDragonTeamItem), _tpl_DungeonDragonTeamItem);
+            EnsureBound(nameof(_tpl_DungeonDragonTipsItem), _tpl_DungeonDragonTipsItem);
+            EnsureBound(nameof(_tpl_EquipmentItem), _tpl_EquipmentItem);
+            EnsureBound(nameof(_tpl_DungeonDragonAchiItem), _tpl_DungeonDragonAchiItem);
+            EnsureBound(nameof(_tpl_DungeonDragonAchiTabItem), _tpl_DungeonDragonAchiTabItem);
+            EnsureBound(nameof(_tpl_DungeonDragonClumpApplyItem), _tpl_DungeonDragonClumpApplyItem);
+            EnsureBound(nameof(_tpl_DungeonDragonClumpInviteItem), _tpl_DungeonDragonClumpInviteItem);
+            EnsureBound(nameof(_tpl_DungeonDragonFightSceneItem), _tpl_DungeonDragonFightSceneItem);
+            EnsureBound(nameof(_tpl_DungeonDragonRecordItem), _tpl_DungeonDragonRecordItem);
+            EnsureBound(nameof(_tpl_DungeonDragonRewardItem), _tpl_DungeonDragonRewardItem);
+            EnsureBound(nameof(_tpl_DungeonDragonSkillItem), _tpl_DungeonDragonSkillItem);
+            EnsureBound(nameof(_tpl_DungeonDragonTowerItem), _tpl_DungeonDragonTowerItem);
+            EnsureBound(nameof(_tpl_DungeonEquipRoleItem), _tpl_DungeonEquipRoleItem);
+        }
+    }
+}

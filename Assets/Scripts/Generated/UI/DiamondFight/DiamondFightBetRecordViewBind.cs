@@ -1,0 +1,31 @@
+// 由 LayaUI 转换器自动生成,不要手改。重转会覆盖。
+// 来源: cdn/resource/game/diamondFight/DiamondFightBetRecordView.json
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using Shenxiao.Framework.UI;
+
+namespace Shenxiao.Generated.UI.DiamondFight
+{
+    public partial class DiamondFightBetRecordViewBind : BaseView
+    {
+        public Image _img_bg;
+        public Image _img_close;
+        public Image _img_title;
+        public Image _img_bg2;
+        public TextMeshProUGUI _lb_none;
+        public ScrollRect _panel_item;
+        public GameObject _tpl_DiamondFightBetRecordItem;
+
+        protected override void BindNodes()
+        {
+            EnsureBound(nameof(_img_bg), _img_bg);
+            EnsureBound(nameof(_img_close), _img_close);
+            EnsureBound(nameof(_img_title), _img_title);
+            EnsureBound(nameof(_img_bg2), _img_bg2);
+            EnsureBound(nameof(_lb_none), _lb_none);
+            EnsureBound(nameof(_panel_item), _panel_item);
+            EnsureBound(nameof(_tpl_DiamondFightBetRecordItem), _tpl_DiamondFightBetRecordItem);
+        }
+    }
+}

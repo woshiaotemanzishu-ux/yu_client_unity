@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: eb440a358f587954c9725350de2da672, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 96921651c602c9443a08768b82d5b0ab, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -84,7 +84,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3414696823690448295}
-  - component: {fileID: 8204925051721346331}
   m_Layer: 0
   m_Name: FightingUpItem
   m_TagString: Untagged
@@ -113,22 +112,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 244, y: 30}
   m_Pivot: {x: 0, y: 1}
---- !u!114 &8204925051721346331
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6200080837823740775}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9e08051a255bcb24ca061b40dec7d1f1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Common.FightingUpItem
-  _Group1: {fileID: 5028382162127282052}
-  _img_2: {fileID: 2772200075639824321}
-  _lb_fighting: {fileID: 8492333698464113771}
-  _tpl_WithBtnHSlider: {fileID: 3962936893318815308}
 --- !u!1 &6394721570732004902
 GameObject:
   m_ObjectHideFlags: 0
@@ -434,184 +417,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 6905224711872432984, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 5150010369295954682}
-    - targetCorrespondingSourceObject: {fileID: 2592263153392238612, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 561205127330860480}
-    - targetCorrespondingSourceObject: {fileID: 4560411672238207659, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 562325274746832058}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
---- !u!224 &987591169840210824 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 7250733544506029724, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-  m_PrefabInstance: {fileID: 7578264398203524372}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1339150638567296031 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8916838334314289419, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-  m_PrefabInstance: {fileID: 7578264398203524372}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
---- !u!114 &1388466600117753254 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8822468475133509810, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-  m_PrefabInstance: {fileID: 7578264398203524372}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
---- !u!114 &2701080022748707753 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5500951961324629693, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-  m_PrefabInstance: {fileID: 7578264398203524372}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!114 &3802828857155235911 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6768131661566485843, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-  m_PrefabInstance: {fileID: 7578264398203524372}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!1 &3962936893318815308 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6905224711872432984, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-  m_PrefabInstance: {fileID: 7578264398203524372}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &5150010369295954682
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3962936893318815308}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 783ee759706821547a7b1750188df195, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Common.WithBtnHSlider
-  slider_con: {fileID: 7309088577773032530}
-  reduce_btn: {fileID: 6216585942527075366}
-  increase_btn: {fileID: 2701080022748707753}
-  _tpl_GreenHSlider: {fileID: 5391643056102331648}
-  _step: 1
---- !u!1 &5391643056102331648 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2592263153392238612, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-  m_PrefabInstance: {fileID: 7578264398203524372}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &561205127330860480
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5391643056102331648}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0e95039a8fec7264bb969f402c1c1462, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Common.GreenHSlider
-  track: {fileID: 8714043539674217181}
-  trackHighlight: {fileID: 6467089276556799839}
-  thumb: {fileID: 3802828857155235911}
-  value_bg: {fileID: 7778444118404499574}
-  value_text: {fileID: 1339150638567296031}
-  _tpl_GoodsItem: {fileID: 6224732323257296831}
-  Minimum: 0
-  Maximum: 100
-  SnapInterval: 1
 --- !u!224 &5860788980410111566 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4070924034571191130, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
   m_PrefabInstance: {fileID: 7578264398203524372}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &6216585942527075366 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4570828904149446962, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-  m_PrefabInstance: {fileID: 7578264398203524372}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!1 &6224732323257296831 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4560411672238207659, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-  m_PrefabInstance: {fileID: 7578264398203524372}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &562325274746832058
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6224732323257296831}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c856fb34cc2a534cba8aacd15ae11e2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.SysInfo.GoodsItemBind
-  _gp_reward: {fileID: 987591169840210824}
-  _lb_name: {fileID: 1388466600117753254}
---- !u!114 &6467089276556799839 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3500651780701616715, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-  m_PrefabInstance: {fileID: 7578264398203524372}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!224 &7309088577773032530 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 883969997732299078, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-  m_PrefabInstance: {fileID: 7578264398203524372}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &7778444118404499574 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 205462332683525474, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-  m_PrefabInstance: {fileID: 7578264398203524372}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!114 &8714043539674217181 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1280683929903869897, guid: 95ca0e750ca1bba40954a93f64917b7c, type: 3}
-  m_PrefabInstance: {fileID: 7578264398203524372}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image

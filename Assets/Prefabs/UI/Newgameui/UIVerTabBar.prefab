@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &276055988652103284
+--- !u!1 &601513862716470111
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,7 +8,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3900426341057085584}
+  - component: {fileID: 154030337677617471}
   m_Layer: 0
   m_Name: __Templates
   m_TagString: Untagged
@@ -16,19 +16,19 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 0
---- !u!224 &3900426341057085584
+--- !u!224 &154030337677617471
 RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 276055988652103284}
+  m_GameObject: {fileID: 601513862716470111}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3822845281891682522}
+  - {fileID: 4010582901002496265}
   m_Father: {fileID: 8282020590345746484}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -81,7 +81,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8282020590345746484}
-  - component: {fileID: 170819621039195552}
   m_Layer: 0
   m_Name: UIVerTabBar
   m_TagString: Untagged
@@ -103,7 +102,7 @@ RectTransform:
   m_Children:
   - {fileID: 589568994589908489}
   - {fileID: 7178534722201896761}
-  - {fileID: 3900426341057085584}
+  - {fileID: 154030337677617471}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -111,23 +110,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 166, y: 38}
   m_Pivot: {x: 0, y: 1}
---- !u!114 &170819621039195552
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 900583501881556614}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc363989f24b1d44e9fd1b4f6c7a4e38, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Newgameui.UIVerTabBarBind
-  scroll: {fileID: 435419107642753089}
-  scroll_group: {fileID: 590710680530769664}
-  _img_arrow: {fileID: 8556563476129684420}
-  img_red: {fileID: 1532418452363241758}
-  _tpl_UIVerTabBtn: {fileID: 5961133916660943005}
 --- !u!1 &3511713120834053562
 GameObject:
   m_ObjectHideFlags: 0
@@ -194,7 +176,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 89c7013149014ef46bb76626c4be77af, type: 3}
+  m_Sprite: {fileID: 21300000, guid: e3f83ef9d28feba489619ec371f2c50a, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -413,7 +395,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 6dcbd6de211df73498ac19f443fa37bf, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a9dd1c9d64bc9494480948d439e5a5ea, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -423,13 +405,13 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!1001 &8738603211597184529
+--- !u!1001 &8926357884350668738
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 3900426341057085584}
+    m_TransformParent: {fileID: 154030337677617471}
     m_Modifications:
     - target: {fileID: 3170519727471441548, guid: bbc21e07ca59d2f43990b8fc08173188, type: 3}
       propertyPath: m_Name
@@ -520,13 +502,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bbc21e07ca59d2f43990b8fc08173188, type: 3}
---- !u!224 &3822845281891682522 stripped
+--- !u!224 &4010582901002496265 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5496846574304163531, guid: bbc21e07ca59d2f43990b8fc08173188, type: 3}
-  m_PrefabInstance: {fileID: 8738603211597184529}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &5961133916660943005 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3170519727471441548, guid: bbc21e07ca59d2f43990b8fc08173188, type: 3}
-  m_PrefabInstance: {fileID: 8738603211597184529}
+  m_PrefabInstance: {fileID: 8926357884350668738}
   m_PrefabAsset: {fileID: 0}

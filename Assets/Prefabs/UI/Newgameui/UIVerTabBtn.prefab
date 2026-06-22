@@ -221,7 +221,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5496846574304163531}
-  - component: {fileID: 1090017142160538801}
   m_Layer: 0
   m_Name: UIVerTabBtn
   m_TagString: Untagged
@@ -250,25 +249,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 158, y: 68}
   m_Pivot: {x: 0, y: 1}
---- !u!114 &1090017142160538801
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3170519727471441548}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 413e16dc75bb7984eb7925101c51874f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Newgameui.UIVerTabBtnBind
-  conta: {fileID: 1966654309252056736}
-  tab: {fileID: 2249218751410127113}
-  btn_img: {fileID: 2948753311722205472}
-  tab_txt: {fileID: 8674867065111971433}
-  subCon: {fileID: 226598755131710237}
-  red_dot: {fileID: 9038121718409035330}
-  _tpl_UIVerTabSubBtn: {fileID: 3793162234641954546}
 --- !u!1 &3717831742281559505
 GameObject:
   m_ObjectHideFlags: 0
@@ -334,7 +314,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 10b626272589aaf4a914c03e1d074359, type: 3}
+  m_Sprite: {fileID: 21300000, guid: d916fffc8c40adf44bc9be4d219f6af1, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -445,7 +425,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 6dcbd6de211df73498ac19f443fa37bf, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a9dd1c9d64bc9494480948d439e5a5ea, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -614,11 +594,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f44e1e93abe53ed4891f26d21c2712da, type: 3}
---- !u!1 &3793162234641954546 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1487135605701706180, guid: f44e1e93abe53ed4891f26d21c2712da, type: 3}
-  m_PrefabInstance: {fileID: 2307911194174633782}
-  m_PrefabAsset: {fileID: 0}
 --- !u!224 &6070566025402978252 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8374903806732679418, guid: f44e1e93abe53ed4891f26d21c2712da, type: 3}

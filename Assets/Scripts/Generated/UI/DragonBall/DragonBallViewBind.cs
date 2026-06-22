@@ -1,0 +1,147 @@
+// 由 LayaUI 转换器自动生成,不要手改。重转会覆盖。
+// 来源: cdn/resource/game/dragonBall/DragonBallView.json
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using Shenxiao.Framework.UI;
+
+namespace Shenxiao.Generated.UI.DragonBall
+{
+    public partial class DragonBallViewBind : BaseView
+    {
+        public Image _img_bg;
+        public RectTransform _box_model;
+        public RectTransform _box_balls;
+        public RectTransform _box_body;
+        public Image _img_body_1;
+        public Image _img_body_2;
+        public Image _img_body_3;
+        public Image _img_body_4;
+        public Image _img_body_5;
+        public Image _img_body_6;
+        public RectTransform _box_body_effect;
+        public Image _img_title;
+        public Image _img_close;
+        public RectTransform _box_fight;
+        public Image _img_attr;
+        public Image _img_suit;
+        public Image _img_suit_red;
+        public Image _img_statue;
+        public Image _img_statue_red;
+        public RectTransform _box_suit_item;
+        public RectTransform _box_statue_con;
+        public Image _img_buy;
+        public TextMeshProUGUI _lb_price;
+        public Image _img_tips;
+        public TextMeshProUGUI _lb_tips_desc;
+        public TextMeshProUGUI _html_statue_attr;
+        public TextMeshProUGUI _html_statue_attr2;
+        public TextMeshProUGUI _html_statue_skill_desc;
+        public TextMeshProUGUI _lb_statue_skill_name;
+        public Image _img_statue_skill_icon;
+        public Image _img_rechage_tips;
+        public Image _img_activated;
+        public RectTransform _box_ball_con;
+        public RectTransform _box_cost_award;
+        public Image _img_ball_active;
+        public TextMeshProUGUI _lb_ball_active_desc;
+        public Image _img_ball_active_red;
+        public TextMeshProUGUI _html_cur_attr;
+        public TextMeshProUGUI _html_cur_skill_desc;
+        public TextMeshProUGUI _html_next_attr;
+        public TextMeshProUGUI _html_next_skill_desc;
+        public TextMeshProUGUI _html_cost_count;
+        public TextMeshProUGUI _lb_cur_skill_name;
+        public TextMeshProUGUI _lb_next_skill_name;
+        public TextMeshProUGUI _lb_cost_tips;
+        public TextMeshProUGUI _lb_cur_attr_tips;
+        public Image _img_fill_level;
+        public RectTransform _box_suit_con;
+        public ScrollRect _list_suit_tab;
+        public Image _img_suit_wear_con;
+        public Image _img_suit_wear;
+        public Image _img_suit_cond;
+        public TextMeshProUGUI _html_suit_cond;
+        public Image _img_suit_active;
+        public TextMeshProUGUI _lb_suit_active_desc;
+        public Image _img_suit_active_red;
+        public TextMeshProUGUI _html_suit_cur_attr;
+        public TextMeshProUGUI _html_suit_next_attr;
+        public Image _img_suit_fill_level;
+        public Image _img_close2;
+        public GameObject _tpl_DragonBallItem;
+        public GameObject _tpl_DragonBallSuitItem;
+        public GameObject _tpl_DragonBallSuitTabItem;
+        public GameObject _tpl_BaseAwardItem;
+        public GameObject _tpl_FightingShowSmallItem;
+
+        protected override void BindNodes()
+        {
+            EnsureBound(nameof(_img_bg), _img_bg);
+            EnsureBound(nameof(_box_model), _box_model);
+            EnsureBound(nameof(_box_balls), _box_balls);
+            EnsureBound(nameof(_box_body), _box_body);
+            EnsureBound(nameof(_img_body_1), _img_body_1);
+            EnsureBound(nameof(_img_body_2), _img_body_2);
+            EnsureBound(nameof(_img_body_3), _img_body_3);
+            EnsureBound(nameof(_img_body_4), _img_body_4);
+            EnsureBound(nameof(_img_body_5), _img_body_5);
+            EnsureBound(nameof(_img_body_6), _img_body_6);
+            EnsureBound(nameof(_box_body_effect), _box_body_effect);
+            EnsureBound(nameof(_img_title), _img_title);
+            EnsureBound(nameof(_img_close), _img_close);
+            EnsureBound(nameof(_box_fight), _box_fight);
+            EnsureBound(nameof(_img_attr), _img_attr);
+            EnsureBound(nameof(_img_suit), _img_suit);
+            EnsureBound(nameof(_img_suit_red), _img_suit_red);
+            EnsureBound(nameof(_img_statue), _img_statue);
+            EnsureBound(nameof(_img_statue_red), _img_statue_red);
+            EnsureBound(nameof(_box_suit_item), _box_suit_item);
+            EnsureBound(nameof(_box_statue_con), _box_statue_con);
+            EnsureBound(nameof(_img_buy), _img_buy);
+            EnsureBound(nameof(_lb_price), _lb_price);
+            EnsureBound(nameof(_img_tips), _img_tips);
+            EnsureBound(nameof(_lb_tips_desc), _lb_tips_desc);
+            EnsureBound(nameof(_html_statue_attr), _html_statue_attr);
+            EnsureBound(nameof(_html_statue_attr2), _html_statue_attr2);
+            EnsureBound(nameof(_html_statue_skill_desc), _html_statue_skill_desc);
+            EnsureBound(nameof(_lb_statue_skill_name), _lb_statue_skill_name);
+            EnsureBound(nameof(_img_statue_skill_icon), _img_statue_skill_icon);
+            EnsureBound(nameof(_img_rechage_tips), _img_rechage_tips);
+            EnsureBound(nameof(_img_activated), _img_activated);
+            EnsureBound(nameof(_box_ball_con), _box_ball_con);
+            EnsureBound(nameof(_box_cost_award), _box_cost_award);
+            EnsureBound(nameof(_img_ball_active), _img_ball_active);
+            EnsureBound(nameof(_lb_ball_active_desc), _lb_ball_active_desc);
+            EnsureBound(nameof(_img_ball_active_red), _img_ball_active_red);
+            EnsureBound(nameof(_html_cur_attr), _html_cur_attr);
+            EnsureBound(nameof(_html_cur_skill_desc), _html_cur_skill_desc);
+            EnsureBound(nameof(_html_next_attr), _html_next_attr);
+            EnsureBound(nameof(_html_next_skill_desc), _html_next_skill_desc);
+            EnsureBound(nameof(_html_cost_count), _html_cost_count);
+            EnsureBound(nameof(_lb_cur_skill_name), _lb_cur_skill_name);
+            EnsureBound(nameof(_lb_next_skill_name), _lb_next_skill_name);
+            EnsureBound(nameof(_lb_cost_tips), _lb_cost_tips);
+            EnsureBound(nameof(_lb_cur_attr_tips), _lb_cur_attr_tips);
+            EnsureBound(nameof(_img_fill_level), _img_fill_level);
+            EnsureBound(nameof(_box_suit_con), _box_suit_con);
+            EnsureBound(nameof(_list_suit_tab), _list_suit_tab);
+            EnsureBound(nameof(_img_suit_wear_con), _img_suit_wear_con);
+            EnsureBound(nameof(_img_suit_wear), _img_suit_wear);
+            EnsureBound(nameof(_img_suit_cond), _img_suit_cond);
+            EnsureBound(nameof(_html_suit_cond), _html_suit_cond);
+            EnsureBound(nameof(_img_suit_active), _img_suit_active);
+            EnsureBound(nameof(_lb_suit_active_desc), _lb_suit_active_desc);
+            EnsureBound(nameof(_img_suit_active_red), _img_suit_active_red);
+            EnsureBound(nameof(_html_suit_cur_attr), _html_suit_cur_attr);
+            EnsureBound(nameof(_html_suit_next_attr), _html_suit_next_attr);
+            EnsureBound(nameof(_img_suit_fill_level), _img_suit_fill_level);
+            EnsureBound(nameof(_img_close2), _img_close2);
+            EnsureBound(nameof(_tpl_DragonBallItem), _tpl_DragonBallItem);
+            EnsureBound(nameof(_tpl_DragonBallSuitItem), _tpl_DragonBallSuitItem);
+            EnsureBound(nameof(_tpl_DragonBallSuitTabItem), _tpl_DragonBallSuitTabItem);
+            EnsureBound(nameof(_tpl_BaseAwardItem), _tpl_BaseAwardItem);
+            EnsureBound(nameof(_tpl_FightingShowSmallItem), _tpl_FightingShowSmallItem);
+        }
+    }
+}

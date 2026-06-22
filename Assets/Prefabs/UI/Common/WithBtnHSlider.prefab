@@ -80,7 +80,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4070924034571191130}
-  - component: {fileID: 8078786282339951292}
   m_Layer: 0
   m_Name: WithBtnHSlider
   m_TagString: Untagged
@@ -111,23 +110,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 322, y: 106}
   m_Pivot: {x: 0, y: 1}
---- !u!114 &8078786282339951292
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6905224711872432984}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 783ee759706821547a7b1750188df195, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Common.WithBtnHSlider
-  slider_con: {fileID: 883969997732299078}
-  reduce_btn: {fileID: 4570828904149446962}
-  increase_btn: {fileID: 5500951961324629693}
-  _tpl_GreenHSlider: {fileID: 2592263153392238612}
-  _step: 1
 --- !u!1 &7908359632451561020
 GameObject:
   m_ObjectHideFlags: 0
@@ -193,7 +175,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 6d6f36fc56e0c12449514360fe5bd27b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 97e65a21a87641940b54d907aabb8680, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -268,7 +250,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: a1edb6fb64481584790b6033c90a2124, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a6490dfafa042b2478cbd3020acab64b, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -375,11 +357,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 088d14283c0bc6c4b9342aed1dd55c82, type: 3}
---- !u!1 &2592263153392238612 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8400100541483588350, guid: 088d14283c0bc6c4b9342aed1dd55c82, type: 3}
-  m_PrefabInstance: {fileID: 6299048743361927914}
-  m_PrefabAsset: {fileID: 0}
 --- !u!224 &4656518047536163954 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1726551063380883096, guid: 088d14283c0bc6c4b9342aed1dd55c82, type: 3}

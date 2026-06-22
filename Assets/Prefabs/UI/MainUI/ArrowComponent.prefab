@@ -195,7 +195,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8864901545817142922}
-  - component: {fileID: 177030858758951539}
   m_Layer: 0
   m_Name: ArrowComponent
   m_TagString: Untagged
@@ -224,31 +223,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 435, y: 209}
   m_Pivot: {x: 0, y: 1}
---- !u!114 &177030858758951539
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2111697648363696081}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9368b5c0e6b550248bb604fd8ff7d4e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.MainUI.ArrowComponent
-  aniGp: {fileID: 3199776901742124675}
-  arrow_effect: {fileID: 4477543111377264189}
-  _Image1: {fileID: 3761680540324521964}
-  rect_conta: {fileID: 8284254952515811785}
-  content_bg: {fileID: 5384411336441607916}
-  content: {fileID: 7084645319887417782}
-  content3: {fileID: 478947898094232591}
-  contentImg: {fileID: 1943507489493923849}
-  autoImg: {fileID: 8961977046366508206}
-  autoLb: {fileID: 2182608829465697516}
-  autoLb2: {fileID: 3308448041109378087}
-  _bobDistance: 10
-  _bobDuration: 1
 --- !u!1 &2160381564254248486
 GameObject:
   m_ObjectHideFlags: 0
