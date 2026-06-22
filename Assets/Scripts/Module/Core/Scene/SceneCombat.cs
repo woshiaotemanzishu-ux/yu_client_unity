@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
+using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Scene3D.Map;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Role;
@@ -235,6 +237,58 @@ namespace Shenxiao.Module.Core.Scene
             // 进战斗态(每段战斗一次)→ 真实攻击请求(经 FightController/NetManager,逐字段对齐老端)。
             FightController.Instance.EnterFightingState();
             FightController.Instance.SendMainSkillAttack(skillId, monsterIds, Array.Empty<long>(), primary.X, primary.Y, 0);
+
+            // 第14轮真实伤害链闭合:普攻主技能(如 御剑一式 59100001)is_att=0/calc=0,服务端 mod_battle.erl 的
+            // is_att=0 分支只回一个 damage=0 的"进战斗 engage 帧"(NoHurtDerList),真正扣血的是它的 combo 副技能
+            // (如 59100002)is_att=1/calc=1。老端 fight-movie 在 comboSkills 时点对同目标补发副技能 20001(实测老端
+            // 运行态 send 20001 后约 +300ms 再 send 20001);本端据 config_skill[skill].combo 链补发副技能(id/延迟全
+            // 从配置读,不 hardcode),闭合真实伤害链。无 combo 链(真实主动技能/链尾)则不补发,行为不变。
+            ScheduleComboFollowUp(skillId, monsterIds, primary.X, primary.Y);
+        }
+
+        /// <summary>
+        /// engage 技能后按 config_skill combo 链补发"承载真实伤害的副技能"20001。对标老端 fight-movie comboSkills:
+        /// 主技能(普攻 御剑一式 is_att=0/calc=0)只是进战斗 engage 帧(服务端恒 damage=0),combo 延迟后对同一目标
+        /// 补发副技能(is_att=1/calc=1)才真实扣血。副技能 id / 延迟全部来自 <see cref="SkillConfigs.GetComboNext"/>
+        /// (config_skill[skill].combo),不 hardcode。无 combo 链(真实主动技能 / 链尾)则不补发,行为不变。
+        /// </summary>
+        private static void ScheduleComboFollowUp(int engageSkillId, List<int> monsterIds, int x, int y)
+        {
+            (int comboSkillId, int delayMs) = SkillConfigs.GetComboNext(engageSkillId);
+            if (comboSkillId <= 0) return; // 非 combo 普攻 / 已是链尾 → 不补发(行为与第13轮一致)
+            _ = SendComboAfterDelayAsync(engageSkillId, comboSkillId, new List<int>(monsterIds), x, y, delayMs);
+        }
+
+        /// <summary>
+        /// combo 延迟后对同一(仍存活)目标补发副技能 20001(承载真实伤害)。延迟对标服务端 combo next_time / 老端
+        /// fight-movie comboSkills;发包前按 hp&gt;0 重过滤(对标老端 onRoleRequestToFightHandler 发包前过滤死亡怪)。
+        /// fire-and-forget(非 async void);异常只记录不吞链路。
+        /// </summary>
+        private static async Task SendComboAfterDelayAsync(int engageSkillId, int comboSkillId, List<int> monsterIds, int x, int y, int delayMs)
+        {
+            try
+            {
+                if (delayMs > 0) await Task.Delay(delayMs);
+                if (!NetManager.IsConnected) return; // 已断线则不补发(短会话窗口兜底)
+
+                // 发包前重过滤:只留仍在场且 hp>0 的怪(engage 帧 damage=0 不会杀怪,通常全保留;防移除/位移)。
+                var alive = new List<int>(monsterIds.Count);
+                foreach (int ins in monsterIds)
+                {
+                    MonsterVo m = SceneManager.Instance.GetMonster(ins);
+                    if (m != null && m.Hp > 0) alive.Add(ins);
+                }
+                if (alive.Count == 0) return;
+
+                GameLog.Info("Combat",
+                    "combo 副技能补发: engage={0} → combo={1} 延迟={2}ms 目标=[{3}](承载真实伤害,对标老端 fight-movie comboSkills 第二次 20001)",
+                    engageSkillId, comboSkillId, delayMs, string.Join(",", alive));
+                FightController.Instance.SendMainSkillAttack(comboSkillId, alive, Array.Empty<long>(), x, y, 0);
+            }
+            catch (Exception e)
+            {
+                GameLog.Warn("Combat", "combo 副技能补发异常 engage={0} combo={1}: {2}", engageSkillId, comboSkillId, e.Message);
+            }
         }
 
         /// <summary>

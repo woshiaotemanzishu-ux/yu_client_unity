@@ -129,6 +129,47 @@ namespace Shenxiao.Module.Core.Skill
             return new[] { 0, 0 };
         }
 
+        /// <summary>
+        /// 普攻 combo 链的"下一跳副技能 + 发包延迟"(对标服务端 mod_battle.erl 的 is_att=0 engage 帧 + combo 机制):
+        /// config_skill[id].combo 是一段 JSON 串 = <c>[{"0":skillId,"1":time(ms),"2":_}, ...]</c>。给定当前(engage)
+        /// 技能 id,在链里定位它,返回 <b>紧随其后的副技能 id</b> 与 <b>当前元素的 time(发副技能的延迟,毫秒)</b>。
+        /// 无 combo 串 / 已是链尾 → 返回 (0,0)。
+        ///
+        /// 背景(第14轮根因):普攻主技能(如 御剑一式 59100001)<c>is_att=0 / calc=0</c>,服务端
+        /// <c>mod_battle.erl</c> 的 <c>is_att=0</c> 分支只回一个 <c>damage=0</c> 的"进战斗 engage 帧"(NoHurtDerList);
+        /// 真正扣血的是它的 combo 副技能(如 59100002)<c>is_att=1 / calc=1</c>,走真实伤害结算。老端 fight-movie 在
+        /// comboSkills 时点对同目标补发副技能 20001;本端据此 combo 链补发,闭合真实伤害链(副技能 id 从配置读,不 hardcode)。
+        /// </summary>
+        public static (int comboSkillId, int delayMs) GetComboNext(int skillId)
+        {
+            if (_skill?[skillId.ToString()] is JObject o)
+            {
+                string raw = o.Value<string>("combo");
+                if (!string.IsNullOrEmpty(raw) && raw != "[]")
+                {
+                    try
+                    {
+                        JArray arr = JArray.Parse(raw);
+                        for (int i = 0; i < arr.Count; i++)
+                        {
+                            if (arr[i] is JObject e && (e.Value<int?>("0") ?? 0) == skillId)
+                            {
+                                int delay = e.Value<int?>("1") ?? 0;
+                                if (i + 1 < arr.Count && arr[i + 1] is JObject nx)
+                                    return (nx.Value<int?>("0") ?? 0, delay);
+                                return (0, 0); // 链尾:无后续副技能
+                            }
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        GameLog.Warn("Skill", "parse combo failed skill={0}: {1}", skillId, ex.Message);
+                    }
+                }
+            }
+            return (0, 0);
+        }
+
         /// <summary>取某级图标资源名(对标 SkillVo.GetIcon:lv_data[level-1].icon,缺省回落技能 id)。</summary>
         public static string GetIconForLevel(int skillId, int level)
         {
