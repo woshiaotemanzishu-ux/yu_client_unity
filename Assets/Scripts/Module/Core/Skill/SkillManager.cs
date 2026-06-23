@@ -33,6 +33,7 @@ namespace Shenxiao.Module.Core.Skill
         }
 
         private readonly Dictionary<int, SkillVo> _mySkillList = new Dictionary<int, SkillVo>();
+        private int _autoFightShortcutIndex;
 
         /// <summary>首屏技能槽(去普攻、按 id 升序)。视图据此铺 4 槽。</summary>
         public List<SkillVo> ShortcutList { get; private set; } = new List<SkillVo>();
@@ -106,10 +107,29 @@ namespace Shenxiao.Module.Core.Skill
 
             list.Sort((a, b) => a.Id - b.Id); // 升序(对标 sort a.id < b.id)
             ShortcutList = list;
+            if (_autoFightShortcutIndex >= ShortcutList.Count) _autoFightShortcutIndex = 0;
         }
 
         public SkillVo GetSkill(int skillId)
             => _mySkillList.TryGetValue(skillId, out SkillVo v) ? v : null;
+
+        public SkillVo GetNextAutoFightSkill()
+        {
+            if (ShortcutList == null || ShortcutList.Count == 0) return null;
+
+            int count = ShortcutList.Count;
+            for (int i = 0; i < count; i++)
+            {
+                int index = (_autoFightShortcutIndex + i) % count;
+                SkillVo skill = ShortcutList[index];
+                if (skill == null || skill.Locked) continue;
+
+                _autoFightShortcutIndex = (index + 1) % count;
+                return skill;
+            }
+
+            return null;
+        }
 
         /// <summary>断线/登出清空(对标 ControllerHub.DisposeAll 链路)。</summary>
         public void Clear()
@@ -117,6 +137,7 @@ namespace Shenxiao.Module.Core.Skill
             _mySkillList.Clear();
             ShortcutList = new List<SkillVo>();
             BarInfo = null;
+            _autoFightShortcutIndex = 0;
             GameLog.Debug("Skill", "SkillManager cleared");
         }
     }

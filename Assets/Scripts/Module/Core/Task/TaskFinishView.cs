@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
@@ -12,33 +13,25 @@ using UnityEngine.UI;
 namespace Shenxiao.Module.Core.Tasks
 {
     /// <summary>
-    /// 任务完成弹层 —— 临时原生 uGUI 壳(TEMP SHELL),对标老端 task/TaskFinishView.ts。
-    ///
-    /// 链路:任务全步完成且非"找 NPC 对话"类 → <see cref="TaskModel.DoFinishTask"/> 打开本弹层 →
-    /// 玩家点"领取奖励/提交任务"→ <see cref="TaskController.SubmitFinish"/> 发 30004 → 服务端回推 30001/30000
-    /// 刷新任务栏。对标 TaskFinishView.ts:75-79 的 Fire(REQUEST_CCMD_EVENT, 30004, task_id) → Close。
-    ///
-    /// ★数据与入口全为真★:任务名/描述来自 config_task(TaskVo),奖励来自 config_task 的
-    /// special_goods_list/award_list 经 <see cref="TaskReward"/> 真实解析(按职业过滤),提交是真发 30004。
-    /// 老端 Laya UI(TaskFinishView.lh)尚无 Unity 转换产物(无 Bind/prefab),故按任务包许可做最小原生壳;
-    /// 奖励物品格【复用通用 <see cref="BaseAwardItem"/>.prefab】(InstantiateAsync + SetData → 真实图标 + 品质底板 + 数量,
-    /// 走 GoodsModel/config_goods + GameResPath + ResManager;图标缺图自 yu_client/cdn 兜底导入,真缺才降级 + 精确 blocker);
-    /// 第 6 轮 P1 已回填 BaseAwardItem.prefab 的 Bind 组件,故此处去掉自建图标行、改真实组件复用(背包/装备/弹层同源)。
-    /// 货币/经验(type_id==0)无 goods 记录,名称走 _rewardText(真名待 P2 ConfigNotNormalGoods)。
-    /// 字体复用场景中已打开文本的 TMP 字体(含中文字形),避免裸建视图豆腐块(同 DialogueView)。
+    /// Temporary runtime shell for task completion. Static UI should be replaced by
+    /// the converted task/TaskFinishView prefab when the task module is generated.
     /// </summary>
     public sealed class TaskFinishView
     {
+        private const int AutoSeconds = 10;
+
         private GameObject _root;
         private TextMeshProUGUI _titleText;
         private TextMeshProUGUI _targetText;
-        private RectTransform _rewardRow;
-        private readonly List<GameObject> _rewardCells = new List<GameObject>();
-        private int _rewardEpoch; // 复用 BaseAwardItem 异步实例化的竞态闸(重开/关闭丢弃在途结果)
         private TextMeshProUGUI _rewardText;
         private TextMeshProUGUI _submitLabel;
+        private TextMeshProUGUI _countdownText;
+        private RectTransform _rewardRow;
         private GameObject _submitBtn;
-
+        private readonly List<GameObject> _rewardCells = new List<GameObject>();
+        private int _rewardEpoch;
+        private CancellationTokenSource _timerCts;
+        private int _closeTime;
         private TaskVo _task;
 
         private static TMP_FontAsset _font;
@@ -54,17 +47,21 @@ namespace Shenxiao.Module.Core.Tasks
             _root.SetActive(true);
             _root.transform.SetAsLastSibling();
             Render();
-            GameLog.Info("Task", "TaskFinishView 打开: 任务 {0} '{1}'", task.TaskId, task.TaskName);
+            StartTime();
+            GameLog.Info("Task", "TaskFinishView opened: task={0} name={1}", task.TaskId, task.TaskName);
         }
 
         public void Close()
         {
+            CancelTimer();
             if (_root != null) _root.SetActive(false);
-            _rewardEpoch++; // 取消在途奖励格实例化
+            _rewardEpoch++;
             for (int i = 0; i < _rewardCells.Count; i++)
+            {
                 if (_rewardCells[i] != null) ResManager.ReleaseInstance(_rewardCells[i]);
+            }
             _rewardCells.Clear();
-            GameLog.Info("Task", "TaskFinishView 关闭");
+            GameLog.Info("Task", "TaskFinishView closed");
         }
 
         private void Render()
@@ -77,83 +74,72 @@ namespace Shenxiao.Module.Core.Tasks
             string desc = string.IsNullOrEmpty(_task.Desc) ? "" : "\n" + _task.Desc;
             _targetText.text = (target + " <color=#0a953e>(完成)</color>").Trim() + desc;
 
-            // 奖励:config_task 真实数据,按当前职业过滤(对标老端 special_goods_list + award_list 装配)。
             List<TaskReward.Entry> rewards = TaskReward.Build(_task.SpecialGoodsList, _task.AwardList, RoleModel.Instance.Career);
             bool hasReward = rewards.Count > 0;
-            _ = BuildRewardCells(rewards); // 物品 → 复用 BaseAwardItem 格子(图标+底板+数量);货币/经验 → _rewardText
-            // 对标 TaskFinishView.ts:189-193:有奖励则"领取奖励",否则"提交任务"。
+            _ = BuildRewardCells(rewards);
             _submitLabel.text = hasReward ? "领取奖励" : "提交任务";
 
-            GameLog.Info("Task", "TaskFinishView 任务 {0} 奖励 {1} 项: {2}",
+            GameLog.Info("Task", "TaskFinishView reward: task={0} count={1} {2}",
                 _task.TaskId, rewards.Count, TaskReward.ToText(rewards, " / "));
         }
 
-        // ===================== 奖励图标格(复用通用 BaseAwardItem.prefab)=====================
-
-        /// <summary>
-        /// 物品奖励 → 复用通用 <see cref="BaseAwardItem"/> 格子(InstantiateAsync + SetData,显真实图标+品质底板+数量);
-        /// 货币/经验 → 名称走 _rewardText。第 6 轮 P1:BaseAwardItem.prefab 已回填 Bind 组件,故不再自建图标行。
-        /// 异步实例化经 <see cref="_rewardEpoch"/> 闸位防重开/关闭竞态。
-        /// </summary>
         private async Task BuildRewardCells(List<TaskReward.Entry> rewards)
         {
             int epoch = ++_rewardEpoch;
             for (int i = 0; i < _rewardCells.Count; i++)
+            {
                 if (_rewardCells[i] != null) ResManager.ReleaseInstance(_rewardCells[i]);
+            }
             _rewardCells.Clear();
             if (_rewardRow == null) return;
 
-            // P2:按真实 config_goods 是否有 goods_icon 路由——有图(含货币:金币31/经验32/灵玉34/绑玉35 在
-            // config_goods 均有图)→ 图标格;无图条目(无 goods_icon 记录的特殊货币)→ 仅文本行。由真实配置决定,不臆造。
             var goods = new List<TaskReward.Entry>();
-            var currency = new List<TaskReward.Entry>();
             for (int i = 0; i < rewards.Count; i++)
             {
-                bool iconable = !string.IsNullOrEmpty(GoodsModel.GetGoodsIcon(rewards[i].TypeId));
-                (iconable ? goods : currency).Add(rewards[i]);
+                if (!string.IsNullOrEmpty(GoodsModel.GetGoodsIcon(rewards[i].TypeId)))
+                    goods.Add(rewards[i]);
             }
 
-            // 名称行:列全部奖励真名(图标格不显名,文本行保留可读名;货币真名经 ConfigNotNormalGoods/GoodsModel)。
             _rewardText.text = rewards.Count > 0 ? "奖励:" + TaskReward.ToText(rewards, "   ") : "";
+            if (goods.Count == 0) return;
 
-            int n = goods.Count;
-            if (n == 0) return;
-
-            // 居中横排;格子超宽则整体等比缩小(BaseAwardItem 根 130×130,pivot 左上)。
-            const float baseSize = 130f, gap = 12f, rowW = 600f;
-            float rawTotal = n * baseSize + (n - 1) * gap;
+            const float baseSize = 130f;
+            const float gap = 12f;
+            const float rowW = 600f;
+            float rawTotal = goods.Count * baseSize + (goods.Count - 1) * gap;
             float scale = rawTotal > rowW ? rowW / rawTotal : 1f;
-            float cellW = baseSize * scale, gapS = gap * scale;
-            float totalW = n * cellW + (n - 1) * gapS;
+            float cellW = baseSize * scale;
+            float gapS = gap * scale;
+            float totalW = goods.Count * cellW + (goods.Count - 1) * gapS;
             float leftStart = -totalW / 2f;
 
-            for (int i = 0; i < n; i++)
+            for (int i = 0; i < goods.Count; i++)
             {
                 GameObject cellGo = await ResManager.InstantiateAsync(
                     GameResPath.GetUIPrefab("common", "BaseAwardItem"), _rewardRow);
-                if (epoch != _rewardEpoch) // 期间被重开/关闭:丢弃本次结果
+                if (epoch != _rewardEpoch)
                 {
                     if (cellGo != null) ResManager.ReleaseInstance(cellGo);
                     return;
                 }
                 if (cellGo == null)
                 {
-                    GameLog.Warn("Task", "TaskFinishView 复用 BaseAwardItem 失败(prefab 未导入/未分组?): typeId={0}", goods[i].TypeId);
+                    GameLog.Warn("Task", "TaskFinishView BaseAwardItem instantiate failed: typeId={0}", goods[i].TypeId);
                     continue;
                 }
-                cellGo.SetActive(true);
+
                 BaseAwardItem cell = cellGo.GetComponent<BaseAwardItem>();
                 if (cell == null)
                 {
-                    // 仍缺 Bind 组件(回填工具未跑):精确 blocker,不画假图。
-                    GameLog.Warn("Task", "TaskFinishView: BaseAwardItem.prefab 根缺 BaseAwardItem 组件(跑 神霄/UI/回填 Bind 组件)→ typeId={0}", goods[i].TypeId);
+                    GameLog.Warn("Task", "BaseAwardItem prefab missing BaseAwardItem component. Run common bind backfill.");
                     ResManager.ReleaseInstance(cellGo);
                     continue;
                 }
+
+                cellGo.SetActive(true);
                 RectTransform rt = (RectTransform)cellGo.transform;
                 rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
                 rt.localScale = Vector3.one * scale;
-                // pivot 左上(prefab 默认):top-left 角放在行内 → x 左缘偏移、y=+半高 使竖直居中。
                 rt.anchoredPosition = new Vector2(leftStart + i * (cellW + gapS), cellW / 2f);
                 cell.SetData(goods[i].TypeId, goods[i].Count);
                 _rewardCells.Add(cellGo);
@@ -162,13 +148,56 @@ namespace Shenxiao.Module.Core.Tasks
 
         private void OnSubmit()
         {
-            if (_task == null) { Close(); return; }
-            // 对标 TaskFinishView.ts:77 Fire(REQUEST_CCMD_EVENT, 30004, task_id):真发提交,关弹层,等服务端刷新任务栏。
+            CancelTimer();
+            if (_task == null)
+            {
+                Close();
+                return;
+            }
+
             TaskController.Instance.SubmitFinish(_task.TaskId);
             Close();
         }
 
-        // ===================== 构建(代码建 uGUI,居中弹层)=====================
+        private void StartTime()
+        {
+            CancelTimer();
+            if (!TaskModel.Instance.GetAutoTaskSetting()) return;
+
+            _closeTime = AutoSeconds;
+            _timerCts = new CancellationTokenSource();
+            _ = CountdownLoop(_timerCts.Token);
+        }
+
+        private async Task CountdownLoop(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                _closeTime--;
+                if (_closeTime > 0)
+                {
+                    if (_countdownText != null) _countdownText.text = _closeTime + "s后自动提交任务";
+                    try { await Task.Delay(1000, token); }
+                    catch (TaskCanceledException) { return; }
+                    continue;
+                }
+
+                if (_countdownText != null) _countdownText.text = "";
+                OnSubmit();
+                return;
+            }
+        }
+
+        private void CancelTimer()
+        {
+            if (_timerCts != null)
+            {
+                _timerCts.Cancel();
+                _timerCts.Dispose();
+                _timerCts = null;
+            }
+            if (_countdownText != null) _countdownText.text = "";
+        }
 
         private void EnsureBuilt()
         {
@@ -176,20 +205,18 @@ namespace Shenxiao.Module.Core.Tasks
             Transform parent = ViewManager.GetLayer(UILayer.Popup);
             if (parent == null)
             {
-                GameLog.Error("Task", "TaskFinishView 无法构建:UI Popup 层未就绪(ViewManager 未 Init)");
+                GameLog.Error("Task", "TaskFinishView cannot build: Popup layer missing");
                 return;
             }
 
             _root = NewRect("TaskFinishView(TempShell)", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-            // 半透明背景(挡住后面点击;点背景关闭,对标 click_bg_toClose)。
             GameObject bg = NewRect("Backdrop", _root.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             Image bgImg = bg.AddComponent<Image>();
             bgImg.color = new Color(0f, 0f, 0f, 0.55f);
             bgImg.raycastTarget = true;
             UIUtil.AddClick(bgImg, Close);
 
-            // 居中面板(对标 is_center=true)。
             GameObject panel = NewRect("Panel", _root.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
             RectTransform panelRt = (RectTransform)panel.transform;
             panelRt.pivot = new Vector2(0.5f, 0.5f);
@@ -200,19 +227,24 @@ namespace Shenxiao.Module.Core.Tasks
 
             _titleText = NewText("Title", panel.transform, 34, TextAlignmentOptions.Top);
             RectTransform titleRt = _titleText.rectTransform;
-            titleRt.anchorMin = new Vector2(0f, 1f); titleRt.anchorMax = new Vector2(1f, 1f); titleRt.pivot = new Vector2(0.5f, 1f);
-            titleRt.anchoredPosition = new Vector2(0f, -24f); titleRt.sizeDelta = new Vector2(-48f, 48f);
+            titleRt.anchorMin = new Vector2(0f, 1f);
+            titleRt.anchorMax = new Vector2(1f, 1f);
+            titleRt.pivot = new Vector2(0.5f, 1f);
+            titleRt.anchoredPosition = new Vector2(0f, -24f);
+            titleRt.sizeDelta = new Vector2(-48f, 48f);
             _titleText.color = new Color(1f, 0.86f, 0.45f);
             _titleText.fontStyle = FontStyles.Bold;
 
             _targetText = NewText("Target", panel.transform, 24, TextAlignmentOptions.TopLeft);
             RectTransform tgtRt = _targetText.rectTransform;
-            tgtRt.anchorMin = new Vector2(0f, 1f); tgtRt.anchorMax = new Vector2(1f, 1f); tgtRt.pivot = new Vector2(0f, 1f);
-            tgtRt.anchoredPosition = new Vector2(28f, -92f); tgtRt.sizeDelta = new Vector2(-56f, 180f);
+            tgtRt.anchorMin = new Vector2(0f, 1f);
+            tgtRt.anchorMax = new Vector2(1f, 1f);
+            tgtRt.pivot = new Vector2(0f, 1f);
+            tgtRt.anchoredPosition = new Vector2(28f, -92f);
+            tgtRt.sizeDelta = new Vector2(-56f, 180f);
             _targetText.textWrappingMode = TextWrappingModes.Normal;
             _targetText.color = Color.white;
 
-            // 奖励图标行(物品格:品质底板 + 图标 + 数量 + 名称),居中带状容器;货币/经验走下方 _rewardText。
             GameObject rowGo = NewRect("RewardRow", panel.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
             _rewardRow = (RectTransform)rowGo.transform;
             _rewardRow.pivot = new Vector2(0.5f, 0.5f);
@@ -221,12 +253,14 @@ namespace Shenxiao.Module.Core.Tasks
 
             _rewardText = NewText("Reward", panel.transform, 24, TextAlignmentOptions.TopLeft);
             RectTransform rwRt = _rewardText.rectTransform;
-            rwRt.anchorMin = new Vector2(0f, 0f); rwRt.anchorMax = new Vector2(1f, 0f); rwRt.pivot = new Vector2(0f, 0f);
-            rwRt.anchoredPosition = new Vector2(28f, 130f); rwRt.sizeDelta = new Vector2(-56f, 200f);
+            rwRt.anchorMin = new Vector2(0f, 0f);
+            rwRt.anchorMax = new Vector2(1f, 0f);
+            rwRt.pivot = new Vector2(0f, 0f);
+            rwRt.anchoredPosition = new Vector2(28f, 130f);
+            rwRt.sizeDelta = new Vector2(-56f, 200f);
             _rewardText.textWrappingMode = TextWrappingModes.Normal;
             _rewardText.color = new Color(0.9f, 0.95f, 1f);
 
-            // 提交/领取按钮(底部居中)。
             _submitBtn = NewRect("Submit", panel.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
             RectTransform subRt = (RectTransform)_submitBtn.transform;
             subRt.pivot = new Vector2(0.5f, 0f);
@@ -236,11 +270,22 @@ namespace Shenxiao.Module.Core.Tasks
             subImg.color = new Color(0.20f, 0.30f, 0.48f, 1f);
             _submitLabel = NewText("Label", _submitBtn.transform, 28, TextAlignmentOptions.Center);
             RectTransform slRt = _submitLabel.rectTransform;
-            slRt.anchorMin = Vector2.zero; slRt.anchorMax = Vector2.one; slRt.offsetMin = Vector2.zero; slRt.offsetMax = Vector2.zero;
+            slRt.anchorMin = Vector2.zero;
+            slRt.anchorMax = Vector2.one;
+            slRt.offsetMin = Vector2.zero;
+            slRt.offsetMax = Vector2.zero;
             _submitLabel.color = Color.white;
             UIUtil.AddClick(subImg, OnSubmit);
 
-            // 关闭 X(右上角)。
+            _countdownText = NewText("Countdown", panel.transform, 20, TextAlignmentOptions.Center);
+            RectTransform ctRt = _countdownText.rectTransform;
+            ctRt.anchorMin = new Vector2(0.5f, 0f);
+            ctRt.anchorMax = new Vector2(0.5f, 0f);
+            ctRt.pivot = new Vector2(0.5f, 0f);
+            ctRt.sizeDelta = new Vector2(360f, 30f);
+            ctRt.anchoredPosition = new Vector2(0f, 108f);
+            _countdownText.color = new Color(0.04f, 0.58f, 0.24f);
+
             GameObject close = NewRect("Close", panel.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
             RectTransform closeRt = (RectTransform)close.transform;
             closeRt.pivot = new Vector2(1f, 1f);
@@ -250,20 +295,24 @@ namespace Shenxiao.Module.Core.Tasks
             closeImg.color = new Color(0.5f, 0.18f, 0.18f, 1f);
             TextMeshProUGUI closeLbl = NewText("X", close.transform, 30, TextAlignmentOptions.Center);
             RectTransform clRt = closeLbl.rectTransform;
-            clRt.anchorMin = Vector2.zero; clRt.anchorMax = Vector2.one; clRt.offsetMin = Vector2.zero; clRt.offsetMax = Vector2.zero;
-            closeLbl.text = "×";
+            clRt.anchorMin = Vector2.zero;
+            clRt.anchorMax = Vector2.one;
+            clRt.offsetMin = Vector2.zero;
+            clRt.offsetMax = Vector2.zero;
+            closeLbl.text = "X";
             closeLbl.color = Color.white;
             UIUtil.AddClick(closeImg, Close);
         }
-
-        // ---- uGUI 构建小工具(同 DialogueView 的 TEMP 壳约定)----
 
         private static GameObject NewRect(string name, Transform parent, Vector2 aMin, Vector2 aMax, Vector2 offMin, Vector2 offMax)
         {
             var go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(parent, false);
             var rt = (RectTransform)go.transform;
-            rt.anchorMin = aMin; rt.anchorMax = aMax; rt.offsetMin = offMin; rt.offsetMax = offMax;
+            rt.anchorMin = aMin;
+            rt.anchorMax = aMax;
+            rt.offsetMin = offMin;
+            rt.offsetMax = offMax;
             return go;
         }
 
@@ -283,8 +332,12 @@ namespace Shenxiao.Module.Core.Tasks
         {
             if (_font == null)
             {
-                TextMeshProUGUI src = Object.FindAnyObjectByType<TextMeshProUGUI>();
-                if (src != null) { _font = src.font; _fontMat = src.fontSharedMaterial; }
+                TextMeshProUGUI src = UnityEngine.Object.FindAnyObjectByType<TextMeshProUGUI>();
+                if (src != null)
+                {
+                    _font = src.font;
+                    _fontMat = src.fontSharedMaterial;
+                }
             }
             if (_font != null) t.font = _font;
             if (_fontMat != null) t.fontSharedMaterial = _fontMat;

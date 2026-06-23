@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoBrush;
+using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Chat;
 using Shenxiao.Module.Core.Dialogue;
@@ -34,6 +35,7 @@ namespace Shenxiao.Module.Core.Game
             TaskController.Instance,
             DialogueController.Instance,
             AutoBrushController.Instance,
+            AutoFightController.Instance,
             GmCheatController.Instance,
             NoticeController.Instance,
             MailController.Instance,

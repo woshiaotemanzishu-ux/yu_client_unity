@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene;
@@ -19,8 +20,12 @@ namespace Shenxiao.Module.Core.Tasks
         public const int NORMAL_DAILY = 8;
         public const int EUDAEMON_TASK = 9;
         public const int KFHOLYAREA_TASK = 10;
-
+        public const int FIRST_TASK_ID = 100010;
+        public const int GUIDE_TASK = 101870;
         // —— task_tips_type(服务端 pt_300 下发的提示类型;对标老端 TaskTipType,yu_client TaskModel.ts:52-243)——
+        public const int TIP_KILL = 1;
+        public const int TIP_ITEM = 3;
+        public const int TIP_COLLECT = 4;
         public const int TIP_TALK = 5;        // 与 NPC 对话(可选)
         public const int TIP_START_TALK = 6;  // 开始对话(不可选)
         public const int TIP_END_TALK = 7;    // 结束对话(不可选)
@@ -42,6 +47,7 @@ namespace Shenxiao.Module.Core.Tasks
         public int NowSelectTaskId { get; set; }
         public int NewestFinishTaskId { get; private set; }
         public TaskVo MainLineTaskVo { get; private set; }
+        public bool AutoTaskEnabled { get; private set; } = true;
 
         public IReadOnlyDictionary<int, List<TaskVo>> AllTaskList => _allTaskList;
 
@@ -50,6 +56,35 @@ namespace Shenxiao.Module.Core.Tasks
 
         /// <summary>该任务当前是否"已接"(在 received 列表)。对话空文本自动完成分支用(对标 GetHasReceiveTaskList)。</summary>
         public bool IsReceivedTask(int taskId) => _hasReceiveTaskList.ContainsKey(taskId);
+
+        public bool GetAutoTaskSetting() => AutoTaskEnabled;
+
+        public void SetAutoTaskSetting(bool enabled)
+        {
+            AutoTaskEnabled = enabled;
+        }
+
+        public void FindNextAutoFightTask()
+        {
+            if (!AutoTaskEnabled) return;
+
+            TaskVo task = MainLineTaskVo;
+            if (task == null)
+            {
+                GameLog.Info("Task", "FindNextAutoFightTask: no main-line task");
+                return;
+            }
+
+            if (!ShouldAutoContinueTask(task))
+            {
+                GameLog.Info("Task", "FindNextAutoFightTask blocked: task={0} tipsType={1} finish={2}",
+                    task.TaskId, task.TaskTipsType, task.HasFinish);
+                return;
+            }
+
+            GameLog.Info("Task", "FindNextAutoFightTask: task={0} tipsType={1}", task.TaskId, task.TaskTipsType);
+            DoTask(task);
+        }
 
         public void ClearData()
         {
@@ -234,7 +269,9 @@ namespace Shenxiao.Module.Core.Tasks
 
         public bool MainLineTaskNeedShowArrow()
         {
-            return MainLineTaskVo != null && MainLineTaskVo.NeedGuide != 0;
+            return MainLineTaskVo != null
+                && MainLineTaskVo.TaskType == MAIN_LINE
+                && MainLineTaskVo.TaskId <= GUIDE_TASK;
         }
 
         public (int sortIndex, int sortSubIndex, int sameTypeOrderIndex) GetSortIndex(int taskId)
@@ -285,6 +322,16 @@ namespace Shenxiao.Module.Core.Tasks
         {
             // 对标 TaskModel.ts:2966-2972 IsFindNpcTask:Talk/StartTalk/EndTalk 三类为"找 NPC 对话"任务。
             return taskTipsType == TIP_TALK || taskTipsType == TIP_START_TALK || taskTipsType == TIP_END_TALK;
+        }
+
+        private bool ShouldAutoContinueTask(TaskVo task)
+        {
+            if (task == null) return false;
+            if (IsAllStepFinish(task.TaskId)) return true;
+            if (IsFindNpcTask(task.TaskTipsType)) return true;
+            return task.TaskTipsType == TIP_KILL
+                || task.TaskTipsType == TIP_ITEM
+                || task.TaskTipsType == TIP_COLLECT;
         }
 
         /// <summary>
@@ -409,6 +456,30 @@ namespace Shenxiao.Module.Core.Tasks
         /// <summary>寻路到达任务点(对标老端到点后停下;击杀类在此由技能点击命中真实怪,完整自动战斗循环=后续轮)。</summary>
         private void OnArriveTaskPoint(TaskVo task)
         {
+            if (task == null) return;
+
+            if (task.TaskTipsType == TIP_KILL || task.TaskTipsType == TIP_ITEM)
+            {
+                bool locked = SceneCombat.Instance.TrySetNearestMonsterByType(task.Id, task.SceneX, task.SceneY);
+                if (!locked)
+                {
+                    GameLog.Warn("Task", "auto task kill blocked: task={0} monsterType={1} no attackable monster in scene, monsterCount={2}",
+                        task.TaskId, task.Id, SceneManager.Instance.MonsterCount);
+                    return;
+                }
+
+                AutoFightModel.Instance.SetAutoFightWeight(AutoFightModel.AUTO_WEIGHT_TASK);
+                GameLog.Info("Task", "auto task kill started: task={0} monsterType={1}", task.TaskId, task.Id);
+                return;
+            }
+
+            if (task.TaskTipsType == TIP_COLLECT)
+            {
+                GameLog.Warn("Task", "auto task collect blocked: task={0} collect target={1}, collect protocol not migrated yet",
+                    task.TaskId, task.Id);
+                return;
+            }
+
             GameLog.Info("Task",
                 "DoTask 到达任务点 {0}({1},{2}):场景怪物数={3}(九宫格真实下发)。击杀类任务在此由技能点击" +
                 "(SceneCombat.MainRoleAttackTarget)命中真实怪;无怪则按真实语义阻塞,不假放。",

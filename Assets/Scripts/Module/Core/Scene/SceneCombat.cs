@@ -51,6 +51,18 @@ namespace Shenxiao.Module.Core.Scene
         /// <summary>对标老端 Scene.SetClickTarget:玩家点怪或自动寻敌后锁定目标。</summary>
         public void SetClickTarget(int monsterInstanceId) => CurrentTargetId = monsterInstanceId;
 
+        public bool TrySetNearestMonsterByType(int monsterTypeId, int centerX, int centerY)
+        {
+            if (monsterTypeId <= 0) return false;
+            MonsterVo target = FindNearestAttackableMonster(monsterTypeId, centerX, centerY);
+            if (target == null) return false;
+
+            SetClickTarget(target.InstanceId);
+            GameLog.Info("Combat", "task target locked type={0} ins={1} pos=({2},{3})",
+                monsterTypeId, target.InstanceId, target.X, target.Y);
+            return true;
+        }
+
         /// <summary>对标老端 Scene.GetClickTarget:返回当前目标 VO;目标已死(hp≤0)或已被移除则清空返回 null。</summary>
         public MonsterVo GetClickTarget()
         {
@@ -120,13 +132,19 @@ namespace Shenxiao.Module.Core.Scene
         private MonsterVo FindNearestAttackableMonster()
         {
             RoleModel role = RoleModel.Instance;
+            return FindNearestAttackableMonster(0, role.X, role.Y);
+        }
+
+        private MonsterVo FindNearestAttackableMonster(int monsterTypeId, int centerX, int centerY)
+        {
             MonsterVo best = null;
             float bestDist2 = float.MaxValue;
             foreach (MonsterVo vo in SceneManager.Instance.AllMonsters)
             {
                 if (vo.IsCollect || vo.CanAttack != 1 || vo.Hp <= 0) continue;
-                float dx = vo.X - role.X;
-                float dy = vo.Y - role.Y;
+                if (monsterTypeId > 0 && vo.TypeId != monsterTypeId) continue;
+                float dx = vo.X - centerX;
+                float dy = vo.Y - centerY;
                 float d2 = dx * dx + dy * dy;
                 if (d2 < bestDist2)
                 {

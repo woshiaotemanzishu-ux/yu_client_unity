@@ -30,6 +30,11 @@ namespace Shenxiao.Module.Core.Login
         private bool _connectingGame;
         private bool _enteringFromInGameReconnect;
         private CancellationTokenSource _heartbeatDelayCts;
+        private CancellationTokenSource _heartbeatTimeoutCts;
+        private int _heartbeatSerial;
+        private bool _heartbeatWaitingResponse;
+        private DateTime _lastHeartbeatSentAt;
+        private DateTime _lastHeartbeatResponseAt;
         private CancellationTokenSource _autoReconnectCts;
 
         public static LoginController Instance => _instance;
@@ -178,7 +183,7 @@ namespace Shenxiao.Module.Core.Login
             // Old client drives 10006 from LoginController: send once after 10000,
             // then schedule the next heartbeat only after receiving a 10006 reply.
             NetManager.ConfigureHeartbeat(0, 0f);
-            CancelHeartbeatDelay();
+            ResetHeartbeatState();
 
             // 对标 Laya GAME_CONNECT:SendFmtToGame(10000, "iiss", pid, time_stamp, account_id, plat_name)。
             // 关键:account_id = get_server_info 的 accname(游戏服按它认账号,发 player_id 会被当成
@@ -229,7 +234,7 @@ namespace Shenxiao.Module.Core.Login
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_NET_DISCONNECTED, OnNetDisconnected);
-            CancelHeartbeatDelay();
+            ResetHeartbeatState();
             CancelAutoReconnect();
             base.Dispose();
         }
@@ -294,10 +299,11 @@ namespace Shenxiao.Module.Core.Login
         }
 
         /// <summary>选角进入游戏(对标 TRY_LOGIN_GAME 的 10004 "lsisisscscsh")。</summary>
-        public void EnterGameWithRole(long roleId)
+        public void EnterGameWithRole(long roleId, bool isNewCareer = false)
         {
             // 对标老客户端 cookie LAST_LOGIN_ROLE_ID:选角页下次默认选中它
             Shenxiao.Common.Prefs.PrefsManager.SetString(LoginSelectRoleView.PREF_LAST_ROLE_ID, roleId.ToString());
+            Model.SetNewCareer(isNewCareer);
             _activeRoleId = roleId;
             if (!NetManager.IsConnected)
             {
@@ -344,7 +350,7 @@ namespace Shenxiao.Module.Core.Login
             EventDispatcher.Emit(GlobalEvent.EVT_GAME_CREATE_ROLE_RESULT, result);
             if (result == 1)
             {
-                EnterGameWithRole(roleId);
+                EnterGameWithRole(roleId, true);
             }
         }
 
@@ -374,6 +380,9 @@ namespace Shenxiao.Module.Core.Login
 
         private void OnHeartbeat(NetReader reader)
         {
+            _heartbeatWaitingResponse = false;
+            _lastHeartbeatResponseAt = DateTime.UtcNow;
+            CancelHeartbeatTimeout();
             ScheduleNextHeartbeat();
         }
 
@@ -386,9 +395,19 @@ namespace Shenxiao.Module.Core.Login
         private void SendHeartbeatNow()
         {
             CancelHeartbeatDelay();
-            if (!NetManager.IsConnected) return;
+            CancelHeartbeatTimeout();
+            if (!NetManager.IsConnected)
+            {
+                _heartbeatWaitingResponse = false;
+                return;
+            }
+
+            int serial = ++_heartbeatSerial;
+            _heartbeatWaitingResponse = true;
+            _lastHeartbeatSentAt = DateTime.UtcNow;
             SendFmt(Proto.HEARTBEAT, "");
-            GameLog.Debug("Login", "10006 heartbeat sent");
+            ScheduleHeartbeatTimeout(serial);
+            GameLog.Debug("Login", "10006 heartbeat sent serial={0}", serial);
         }
 
         private void ScheduleNextHeartbeat()
@@ -399,7 +418,10 @@ namespace Shenxiao.Module.Core.Login
             _heartbeatDelayCts = new CancellationTokenSource();
             CancellationToken token = _heartbeatDelayCts.Token;
             _ = SendHeartbeatAfterDelayAsync(delaySec, token);
-            GameLog.Debug("Login", "10006 heartbeat response, next in {0:0.###}s", delaySec);
+            double rttMs = _lastHeartbeatSentAt == default(DateTime)
+                ? -1
+                : (_lastHeartbeatResponseAt - _lastHeartbeatSentAt).TotalMilliseconds;
+            GameLog.Debug("Login", "10006 heartbeat response rtt={0:0}ms, next in {1:0.###}s", rttMs, delaySec);
         }
 
         private async Task SendHeartbeatAfterDelayAsync(float delaySec, CancellationToken token)
@@ -413,6 +435,43 @@ namespace Shenxiao.Module.Core.Login
             {
                 // Replaced by a newer heartbeat schedule or connection lifecycle reset.
             }
+        }
+
+        private void ScheduleHeartbeatTimeout(int serial)
+        {
+            CancelHeartbeatTimeout();
+            float timeoutSec = Math.Max(GetHeartbeatIntervalSec() * 2f, 10f);
+            _heartbeatTimeoutCts = new CancellationTokenSource();
+            _ = WatchHeartbeatTimeoutAsync(serial, timeoutSec, _heartbeatTimeoutCts);
+        }
+
+        private async Task WatchHeartbeatTimeoutAsync(int serial, float timeoutSec, CancellationTokenSource cts)
+        {
+            bool timeout = false;
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(timeoutSec), cts.Token);
+                timeout = !cts.IsCancellationRequested;
+            }
+            catch (OperationCanceledException)
+            {
+                // Response arrived or connection lifecycle reset.
+            }
+            finally
+            {
+                if (_heartbeatTimeoutCts == cts)
+                {
+                    _heartbeatTimeoutCts = null;
+                    cts.Dispose();
+                }
+            }
+
+            if (!timeout) return;
+            if (serial != _heartbeatSerial || !_heartbeatWaitingResponse || !NetManager.IsConnected) return;
+
+            double sinceMs = (DateTime.UtcNow - _lastHeartbeatSentAt).TotalMilliseconds;
+            GameLog.Warn("Login", "10006 heartbeat timeout serial={0} elapsed={1:0}ms, resend once", serial, sinceMs);
+            SendHeartbeatNow();
         }
 
         private float GetHeartbeatIntervalSec()
@@ -429,9 +488,27 @@ namespace Shenxiao.Module.Core.Login
             _heartbeatDelayCts = null;
         }
 
-        private void OnNetDisconnected()
+        private void CancelHeartbeatTimeout()
+        {
+            if (_heartbeatTimeoutCts == null) return;
+            CancellationTokenSource cts = _heartbeatTimeoutCts;
+            _heartbeatTimeoutCts = null;
+            cts.Cancel();
+            cts.Dispose();
+        }
+
+        private void ResetHeartbeatState()
         {
             CancelHeartbeatDelay();
+            CancelHeartbeatTimeout();
+            _heartbeatWaitingResponse = false;
+            _lastHeartbeatSentAt = default(DateTime);
+            _lastHeartbeatResponseAt = default(DateTime);
+        }
+
+        private void OnNetDisconnected()
+        {
+            ResetHeartbeatState();
             if (_connectingGame || _activeRoleId <= 0 || _inGameAutoReconnectLeft <= 0)
             {
                 return;

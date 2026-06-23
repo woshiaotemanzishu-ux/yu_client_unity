@@ -12,11 +12,21 @@ namespace Shenxiao.Module.Core.AutoFight
     /// </summary>
     public sealed class AutoFightModel
     {
+        public const int AUTO_WEIGHT_CLOSE = 0;
+        public const int AUTO_WEIGHT_NORMAL = 1;
+        public const int AUTO_WEIGHT_TASK = 900;
+
         public static readonly AutoFightModel Instance = new AutoFightModel();
         private AutoFightModel() { }
 
         /// <summary>是否自动战斗中(对标 GetAutoFightState:auto_fight_weight>0)。</summary>
         public bool AutoFightState { get; private set; }
+
+        public int AutoFightWeight { get; private set; }
+
+        public bool AutoFindWayState { get; private set; }
+
+        public int AutoFindWayWeight { get; private set; }
 
         /// <summary>临时手动模式(对标 GetTempMode)。AutoFightState 为真且 TempMode 为真 → 第三态皮肤 uizjmgj_001a1。
         /// 触发源(老端场景拖拽 1.5s 进、3s 后退)属场景系统未移植,本轮经 <see cref="SetTempMode"/> 暴露入口。</summary>
@@ -25,10 +35,27 @@ namespace Shenxiao.Module.Core.AutoFight
         /// <summary>对标 SetAutoFight:状态变化才发事件(EventName.UPDATE_AUTO_FIGHT_STATE)。显式开关清临时手动(对标老端 SetTempMode(false))。</summary>
         public void SetAutoFight(bool on)
         {
-            if (AutoFightState == on && !TempMode) return;
+            SetAutoFightWeight(on ? AUTO_WEIGHT_NORMAL : AUTO_WEIGHT_CLOSE);
+        }
+
+        public void SetAutoFightWeight(int weight)
+        {
+            if (weight < AUTO_WEIGHT_CLOSE) weight = AUTO_WEIGHT_CLOSE;
+            bool on = weight > AUTO_WEIGHT_CLOSE;
+            if (AutoFightState == on && AutoFightWeight == weight && !TempMode) return;
             TempMode = false;
+            AutoFightWeight = weight;
             AutoFightState = on;
             EventDispatcher.Emit(GlobalEvent.EVT_AUTO_FIGHT_STATE, AutoFightState);
+        }
+
+        public void SetAutoFindWay(bool on, int weight = AUTO_WEIGHT_NORMAL)
+        {
+            if (weight < AUTO_WEIGHT_CLOSE) weight = AUTO_WEIGHT_CLOSE;
+            bool next = on && weight > AUTO_WEIGHT_CLOSE;
+            if (AutoFindWayState == next && AutoFindWayWeight == weight) return;
+            AutoFindWayState = next;
+            AutoFindWayWeight = next ? weight : AUTO_WEIGHT_CLOSE;
         }
 
         /// <summary>对标老端 AutoFightManager.SetTempMode:临时手动模式变化才发事件 EVT_AUTO_FIGHT_TEMP_MODE。
@@ -50,6 +77,9 @@ namespace Shenxiao.Module.Core.AutoFight
         public void Reset()
         {
             AutoFightState = false;
+            AutoFightWeight = AUTO_WEIGHT_CLOSE;
+            AutoFindWayState = false;
+            AutoFindWayWeight = AUTO_WEIGHT_CLOSE;
             TempMode = false;
         }
     }

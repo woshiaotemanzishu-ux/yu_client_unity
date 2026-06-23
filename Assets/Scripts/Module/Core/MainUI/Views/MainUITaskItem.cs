@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
+using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Module.Core.Tasks;
 using TMPro;
@@ -14,6 +17,8 @@ namespace Shenxiao.Module.Core.MainUI
 
         private readonly List<TextMeshProUGUI> _tipLabels = new List<TextMeshProUGUI>();
         private TaskModel.TaskEntry _entry;
+        private ArrowComponent _guideArrow;
+        private bool _guideLoading;
 
         protected override void OnInit()
         {
@@ -22,18 +27,18 @@ namespace Shenxiao.Module.Core.MainUI
             _box_finger_con.gameObject.SetActive(false);
             _box_effect.gameObject.SetActive(false);
             lblTaskTitle2.text = "";
-            // 点任务项 → DoTask(对标老端 MainUITaskItem.OnClick → TaskModel.DoTask)。_img_bg 为背景图,作点击热区。
             UIUtil.AddClick(_img_bg, OnClick);
         }
 
-        /// <summary>
-        /// 点击任务项:取当前未完成步 → TaskModel.DoTask(置选中态 + 按 tips 类型进对话/完成/寻路分支)。
-        /// 老端 MainUITaskTeamView.ts:563-573 的"对话已开且 NPC 匹配则不重复 DoTask"去重依赖 DialogueModel,
-        /// Unity 端 DialogueModel 未移植 → 暂直接 DoTask(待对话系统移植后补该去重)。
-        /// </summary>
+        protected override void OnHide()
+        {
+            HideMainLineArrow();
+        }
+
         private void OnClick()
         {
             if (_entry == null) return;
+            HideMainLineArrow();
             TaskVo task = TaskModel.Instance.FindUnFinishTask(_entry.TipsList);
             if (task == null) return;
             TaskModel.Instance.DoTask(task);
@@ -45,6 +50,7 @@ namespace Shenxiao.Module.Core.MainUI
             ClearTipLabels();
             if (_entry == null)
             {
+                HideMainLineArrow();
                 lblTaskTitle.text = "";
                 lblTaskTitle2.text = "";
                 _img_done.gameObject.SetActive(false);
@@ -59,6 +65,59 @@ namespace Shenxiao.Module.Core.MainUI
             SetTips(task);
             _img_done.gameObject.SetActive(TaskModel.Instance.IsAllStepFinish(task.TaskId));
             _img_select.gameObject.SetActive(task.TaskId == TaskModel.Instance.NowSelectTaskId);
+        }
+
+        public void ShowMainLineArrow()
+        {
+            if (_entry == null || _box_finger_con == null) return;
+            _box_finger_con.gameObject.SetActive(true);
+            _ = ShowMainLineArrowAsync();
+        }
+
+        public void HideMainLineArrow()
+        {
+            if (_box_finger_con != null) _box_finger_con.gameObject.SetActive(false);
+            if (_guideArrow != null) _guideArrow.Hide();
+        }
+
+        private async Task ShowMainLineArrowAsync()
+        {
+            if (_guideArrow == null)
+            {
+                if (_guideLoading) return;
+                _guideLoading = true;
+                GameObject go = await ResManager.InstantiateAsync(
+                    GameResPath.GetUIPrefab("mainUI", "ArrowComponent"), _box_finger_con);
+                _guideLoading = false;
+                if (go == null) return;
+
+                _guideArrow = go.GetComponent<ArrowComponent>();
+                if (_guideArrow == null)
+                {
+                    GameLog.Warn("MainUI", "ArrowComponent prefab missing business component. Run mainUI convert + bind backfill.");
+                    ResManager.ReleaseInstance(go);
+                    return;
+                }
+            }
+
+            if (_entry == null || _box_finger_con == null) return;
+            TaskVo task = TaskModel.Instance.FindUnFinishTask(_entry.TipsList);
+            _guideArrow.Show();
+            _guideArrow.SetData(new ArrowData
+            {
+                Content = BuildGuideText(task),
+                Direction = ArrowComponent.DIR_LEFT,
+                CloseTime = 10,
+                Target = _box_finger_con,
+            }, OnClick);
+        }
+
+        private static string BuildGuideText(TaskVo task)
+        {
+            if (task == null) return "点击此处完成任务吧";
+            if (TaskModel.Instance.IsAllStepFinish(task.TaskId)) return "点击此处完成任务吧";
+            if (task.TaskId == TaskModel.FIRST_TASK_ID) return "点击此处完成任务吧";
+            return "继续推进<color=#0a9f42>主线</color>";
         }
 
         private void SetTitle(TaskVo task)

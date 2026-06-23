@@ -18,6 +18,7 @@ namespace Shenxiao.Module.Core.Login
         public long PlayerId { get; private set; }
         public int LastServerId { get; private set; }
         public LoginServerInfo SelectedServer { get; private set; }
+        public bool IsNewCareer { get; private set; }
         public IReadOnlyList<LoginServerInfo> Servers => _servers;
         /// <summary>大区列表(yu_gm buildServerList 的 areas:id/name/otime)。</summary>
         public IReadOnlyList<LoginAreaInfo> Areas => _areas;
@@ -28,6 +29,11 @@ namespace Shenxiao.Module.Core.Login
         {
             _roles.Clear();
             if (roles != null) _roles.AddRange(roles);
+        }
+
+        public void SetNewCareer(bool value)
+        {
+            IsNewCareer = value;
         }
 
         private LoginModel()
@@ -42,6 +48,7 @@ namespace Shenxiao.Module.Core.Login
             PlayerId = 0;
             LastServerId = 0;
             SelectedServer = null;
+            IsNewCareer = false;
             _servers.Clear();
         }
 

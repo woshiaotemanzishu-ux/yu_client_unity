@@ -11,12 +11,16 @@ namespace Shenxiao.Module.Core.Tasks
     {
         public static readonly TaskController Instance = new TaskController();
 
+        private bool _taskFinishPendingAuto;
+
         private TaskController() { }
 
         protected override void Register()
         {
             RegisterProtocal(Proto.TASK_LIST, On30000);
             RegisterProtocal(Proto.TASK_UPDATE_ONE, On30001);
+            RegisterProtocal(Proto.CC_TASK_ACCEPT, On30003);
+            RegisterProtocal(Proto.CC_TASK_FINISH, On30004);
             RegisterProtocal(Proto.TASK_LATEST_FINISHED, On30005);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
@@ -46,6 +50,7 @@ namespace Shenxiao.Module.Core.Tasks
             await GoodsModel.EnsureLoaded();
             // 任务条"与<NPC名>交谈"文案需 config_npc(对标老端 GetTaskTipsMsgByMainUITaskItem 取 config_npc.name)。
             await NpcConfigs.EnsureLoaded();
+            _taskFinishPendingAuto = false;
             TaskModel.Instance.ClearData();
             SendFmt(Proto.TASK_LIST);
             GameLog.Info("Task", "request task list proto={0}", Proto.TASK_LIST);
@@ -76,6 +81,7 @@ namespace Shenxiao.Module.Core.Tasks
             TaskModel.Instance.SetTaskLists(canTaskList, hasReceiveTaskList, allTaskList);
             GameLog.Info("Task", "30000 tasks can={0} receive={1} all={2}", canCount, receiveCount, allTaskList.Count);
             EventDispatcher.Emit(GlobalEvent.EVT_TASK_LIST_UPDATED);
+            TryContinueAutoTaskAfterList();
         }
 
         private void On30001(NetReader r)
@@ -92,6 +98,47 @@ namespace Shenxiao.Module.Core.Tasks
             TaskModel.Instance.SetNewestFinishTaskId(taskId);
             GameLog.Info("Task", "30005 newest finish task id={0}", taskId);
             EventDispatcher.Emit(GlobalEvent.EVT_GAME_START_FLAG_READY, "30005");
+        }
+
+        private void On30003(NetReader r)
+        {
+            if (r.Remaining < 6)
+            {
+                GameLog.Warn("Task", "30003 accept reply too short remaining={0}", r.Remaining);
+                return;
+            }
+
+            int taskId = (int)r.ReadU32();
+            int code = r.ReadU16();
+            GameLog.Info("Task", "30003 accept reply task={0} code={1}", taskId, code);
+        }
+
+        private void On30004(NetReader r)
+        {
+            if (r.Remaining < 8)
+            {
+                GameLog.Warn("Task", "30004 finish reply too short remaining={0}", r.Remaining);
+                return;
+            }
+
+            int taskId = (int)r.ReadU32();
+            int code = (int)r.ReadU32();
+            GameLog.Info("Task", "30004 finish reply task={0} code={1}", taskId, code);
+            if (code != 1) return;
+
+            TaskConfigs.TaskCfg cfg = TaskConfigs.Get(taskId);
+            int taskType = cfg?.Type ?? 0;
+            if (taskType == TaskModel.AWAKE_LINE || taskType == TaskModel.NORMAL_DAILY) return;
+            _taskFinishPendingAuto = true;
+        }
+
+        private void TryContinueAutoTaskAfterList()
+        {
+            if (!_taskFinishPendingAuto) return;
+            if (!TaskModel.Instance.GetAutoTaskSetting()) return;
+
+            _taskFinishPendingAuto = false;
+            TaskModel.Instance.FindNextAutoFightTask();
         }
 
         private static void ReadTaskVo(NetReader r, out int taskId, out List<TaskVo> tips, bool setNewFinishFlag = false)

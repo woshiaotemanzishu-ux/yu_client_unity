@@ -40,6 +40,12 @@ namespace Shenxiao.Editor.LayaUI
             RunModule("mainUI");
         }
 
+        [MenuItem("神霄/LayaUI/重转任务(Task)", priority = 21)]
+        public static void RunTask()
+        {
+            RunModule("task");
+        }
+
         [MenuItem("神霄/LayaUI/高级/一键转换全部模块", priority = 120)]
         public static void RunAllModules()
         {

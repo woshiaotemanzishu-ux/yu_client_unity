@@ -1,8 +1,12 @@
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
+using Shenxiao.Module.Core.Dialogue;
+using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Tasks;
 using UnityEngine;
 
@@ -17,8 +21,12 @@ namespace Shenxiao.Module.Core.MainUI
     {
         private static readonly Color TaskTabLightColor = ParseColor("#FFF7D6");
         private static readonly Color TaskTabDarkColor = ParseColor("#6CFFD3");
+        private const int AutoTaskMaxLevel = 65;
+        private const int AutoTaskStartDelayMs = 500;
+        private const int AutoTaskPeriodMs = 10000;
 
         private readonly List<MainUITaskItem> _taskItems = new List<MainUITaskItem>();
+        private CancellationTokenSource _autoTaskCts;
         private MainUITaskItem _mainLineItem; // _box_main_line 内的主线任务条(复用 MainUITaskItem 渲染)
 
         protected override void OnInit()
@@ -51,6 +59,7 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.On<int>(GlobalEvent.EVT_TASK_ONE_UPDATED, OnTaskOneUpdated);
             EventDispatcher.On<int>(GlobalEvent.EVT_TASK_SELECT_CHANGED, OnTaskSelectChanged);
             RefreshTaskItems();
+            StartAutoTaskTimer();
         }
 
         protected override void OnHide()
@@ -58,6 +67,7 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, RefreshTaskItems);
             EventDispatcher.Off<int>(GlobalEvent.EVT_TASK_ONE_UPDATED, OnTaskOneUpdated);
             EventDispatcher.Off<int>(GlobalEvent.EVT_TASK_SELECT_CHANGED, OnTaskSelectChanged);
+            CancelAutoTaskTimer();
         }
 
         private void OnTaskOneUpdated(int taskId)
@@ -140,7 +150,11 @@ namespace Shenxiao.Module.Core.MainUI
         {
             if (entry == null)
             {
-                if (_mainLineItem != null) _mainLineItem.gameObject.SetActive(false);
+                if (_mainLineItem != null)
+                {
+                    _mainLineItem.HideMainLineArrow();
+                    _mainLineItem.gameObject.SetActive(false);
+                }
                 _box_main_line.gameObject.SetActive(false);
                 return;
             }
@@ -151,6 +165,7 @@ namespace Shenxiao.Module.Core.MainUI
             item.gameObject.SetActive(true);
             item.Show();
             item.SetData(entry);
+            item.ShowMainLineArrow();
         }
 
         private MainUITaskItem EnsureMainLineItem()
@@ -191,6 +206,53 @@ namespace Shenxiao.Module.Core.MainUI
 
             _lb_task_desc.color = taskSelected ? TaskTabLightColor : TaskTabDarkColor;
             _lb_team_desc.color = taskSelected ? TaskTabDarkColor : TaskTabLightColor;
+        }
+
+        private void StartAutoTaskTimer()
+        {
+            CancelAutoTaskTimer();
+            _autoTaskCts = new CancellationTokenSource();
+            _ = AutoTaskLoop(_autoTaskCts.Token);
+        }
+
+        private void CancelAutoTaskTimer()
+        {
+            if (_autoTaskCts == null) return;
+            _autoTaskCts.Cancel();
+            _autoTaskCts.Dispose();
+            _autoTaskCts = null;
+        }
+
+        private async Task AutoTaskLoop(CancellationToken token)
+        {
+            try
+            {
+                await Task.Delay(AutoTaskStartDelayMs, token);
+                while (!token.IsCancellationRequested)
+                {
+                    await Task.Delay(AutoTaskPeriodMs, token);
+                    TryAutoTask();
+                }
+            }
+            catch (TaskCanceledException)
+            {
+            }
+        }
+
+        private void TryAutoTask()
+        {
+            if (!TaskModel.Instance.GetAutoTaskSetting()) return;
+            if (RoleModel.Instance.Level >= AutoTaskMaxLevel) return;
+
+            TaskVo task = TaskModel.Instance.MainLineTaskVo;
+            if (task == null) return;
+
+            if (DialogueModel.Instance.DialogIsOpen && task.Id > 0 && DialogueModel.Instance.CurrentNpcId == task.Id)
+            {
+                return;
+            }
+
+            TaskModel.Instance.FindNextAutoFightTask();
         }
 
         private static Color ParseColor(string html)
