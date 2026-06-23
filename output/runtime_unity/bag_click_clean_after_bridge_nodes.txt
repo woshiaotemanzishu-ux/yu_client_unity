@@ -1,0 +1,19 @@
+start-clean-bag
+config=True
+canvas=UIRoot
+viewManagerInit=existing
+destroyedResidue=8
+topReady=True downReady=True
+top=UIRoot/Main/MainUIModule/MainUITopView head=True map=True icon=True active=True
+down=UIRoot/Main/MainUIModule/MainUIDownView active=True
+bagItem=UIRoot/Main/MainUIModule/MainUIDownView/_box_con/_gp_icon_con/MainFuncIconItem(Clone)
+clicked=True
+top=UIRoot/Window/MainUITopView head=False map=False icon=False active=True
+down=UIRoot/Window/MainUIDownView active=True
+windowCount=1
+window[0] active=True shown=True current=0 path=UIRoot/Window/BaseWindowSkin
+bag=UIRoot/Window/BaseWindowSkin/_root_gp/_gp_item_con/BagComponentView active=True shown=True
+bagItemRenderer active=24 total=25
+bagEquipmentIcon active=10 total=11
+png=D:\git_res\yu_client_unity\output\runtime_unity\bag_click_clean_after_bridge.png
+status=done

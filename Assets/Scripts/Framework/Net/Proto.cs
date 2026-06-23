@@ -26,6 +26,8 @@ namespace Shenxiao.Framework.Net
         public const int NAME_VERIFY = 10007;
         public const int SERVER_TIME = 10201;
         public const int SETTING_LIST = 10202;
+        public const int CHAT_MESSAGE = 11001;
+        public const int CHAT_CACHE = 11010;
 
         // ----- 聊天/公告(110xx,yu_server pt_110.erl) -----
         /// <summary>传闻广播(全服)。回包 "hhs"(moduleId, id, content)。</summary>

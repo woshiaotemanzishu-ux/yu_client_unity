@@ -349,11 +349,27 @@ namespace Shenxiao.Module.Core.Login
         {
             // 清场:登录模块全部窗口退下,等主城/场景接管(背景暂留;创角/选角的
             // 樱花舞台是 Laya 3D 场景,归 .lh 转换线)
-            _selectRole.Hide();
-            _createRole.Hide();
-            _enter.Hide();
-            _bg.Hide();
+            HideAllViews();
+            if (_moduleRoot != null) _moduleRoot.SetActive(false);
             GameLog.Info("Login", "—— 🎉 全链路终点:已进入游戏,登录模块使命完成,主城/场景接管(待接)——");
+        }
+
+        private static void HideAllViews()
+        {
+            HideView(_loading);
+            HideView(_login);
+            HideView(_register);
+            HideView(_enter);
+            HideView(_select);
+            HideView(_alert);
+            HideView(_selectRole);
+            HideView(_createRole);
+            HideView(_bg);
+        }
+
+        private static void HideView(BaseView view)
+        {
+            if (view != null) view.Hide();
         }
     }
 }

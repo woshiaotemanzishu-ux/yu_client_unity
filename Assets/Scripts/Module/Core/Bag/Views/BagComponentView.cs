@@ -1,32 +1,39 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Shenxiao.Common.Proto;
+using Shenxiao.Common.UI3D;
 using Shenxiao.Generated.UI.Bag;
 using Shenxiao.Framework.Event;
-using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
+using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Login;
+using Shenxiao.Module.Core.Role;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Bag
 {
     /// <summary>
-    /// 主背包面板(对标老客户端 bag/BagComponentView.ts):角色模型展示 + 物品格子滚动列表(bag_con) +
-    /// 一键使用/熔炼/红装/扩展/使用 等按钮 + 守护/龙珠入口 + 各红点。
-    ///
-    /// 第 8 轮 P1:物品格子落地 —— <see cref="OnShow"/> 用 <see cref="BagModel"/>(满背包 15010 回包)铺真实物品格
-    /// (克隆 <see cref="BagItemRenderer"/> 模板进 bag_con.content,每格走 BaseAwardItem 真实图标 + 品质底板 + 数量,
-    /// 对标老端 BagModel.GetBagList → LoopScrowViewMgr 铺 bagItemRenderer)。渲染模板 bagItemRenderer 是 BagModule 顶层兄弟
-    /// (非本视图 Bind 字段)→ 由 <see cref="BagFlow"/> 经 <see cref="SetItemTemplate"/> 注入。背包数据收到(EVT_BAG_UPDATE)即重铺。
-    /// 无活服回 15010 时 BagModel 无数据 → 空铺(不造假背包);格子数量/红点/角色模型/子窗路由按既有降级。
-    /// 子窗(一键使用/熔炼/扩展)经 <see cref="BagFlow.ToggleSub"/> 打开。事件驱动窗口,默认关闭、不进 FirstPass。
+    /// Main bag panel. It renders a fixed slot grid first, then overlays real BagModel items
+    /// by their server cell index. Empty slots are part of the runtime UI and must stay visible
+    /// even before 15010 bag data arrives.
     /// </summary>
     public sealed class BagComponentView : BagComponentViewBind
     {
+        private const float Cell = 86f;
+        private const float Gap = 10f;
+        private const int DefaultVisibleCells = 24;
+        private const int EquipmentSlotCount = 10;
+        private const float EquipmentSlotStep = 113f;
+        private const float ModelScale = 0.78f;
+
         private BagItemRenderer _itemTemplate;
         private readonly List<GameObject> _cells = new List<GameObject>();
-
-        // 格子布局(对标 bagItemRenderer 127×127;bag_con viewport ≈580 宽 → 自动算列数)。
-        private const float CELL = 127f;
-        private const float GAP = 6f;
+        private readonly List<BagEquipmentIcon> _equipmentSlots = new List<BagEquipmentIcon>();
+        private FightingShowSmallItem _fightingItem;
+        private bool _subscribed;
+        private int _modelRequestId;
 
         protected override void OnInit()
         {
@@ -35,86 +42,306 @@ namespace Shenxiao.Module.Core.Bag
             BindButtons();
         }
 
-        /// <summary>由 <see cref="BagFlow"/> 注入背包格渲染模板(bagItemRenderer,是 BagModule 顶层兄弟,非本视图 Bind 字段)。</summary>
         public void SetItemTemplate(BagItemRenderer template) => _itemTemplate = template;
 
         protected override void OnShow(object args)
         {
+            BuildEquipmentSlots();
             BuildGrid();
-            EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, BuildGrid);
+            EnsureFightingItem();
+            RefreshRoleInfo();
+            ShowRoleModel();
+            Subscribe();
         }
 
         protected override void OnHide()
         {
-            EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, BuildGrid);
+            Unsubscribe();
+            _modelRequestId++;
+            UIModelStage.Clear();
         }
 
-        // ===================== 物品格(真实背包,复用 BaseAwardItem)=====================
+        protected override void OnDispose()
+        {
+            Unsubscribe();
+            _modelRequestId++;
+            UIModelStage.Clear();
+        }
 
-        /// <summary>用 BagModel 铺真实物品格(克隆 BagItemRenderer 模板,每格 SetData → 真实图标 + 品质底板 + 数量)。</summary>
+        private void OnDestroy()
+        {
+            Unsubscribe();
+            _modelRequestId++;
+            UIModelStage.Clear();
+        }
+
+        private void Subscribe()
+        {
+            if (_subscribed) return;
+            EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, BuildGrid);
+            EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            _subscribed = true;
+        }
+
+        private void Unsubscribe()
+        {
+            if (!_subscribed) return;
+            EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, BuildGrid);
+            EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            _subscribed = false;
+        }
+
+        private void OnRoleInfoUpdate()
+        {
+            RefreshRoleInfo();
+            if (gameObject.activeInHierarchy) ShowRoleModel();
+        }
+
+        private void EnsureFightingItem()
+        {
+            if (_fightingItem != null || _tpl_FightingShowSmallItem == null) return;
+
+            RectTransform parent = transform as RectTransform;
+            if (parent == null) return;
+
+            GameObject go = Instantiate(_tpl_FightingShowSmallItem, parent);
+            go.name = "FightingShowSmallItem_Runtime";
+            var rt = go.transform as RectTransform;
+            if (rt != null)
+            {
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.anchoredPosition = new Vector2(0f, -84f);
+                rt.localScale = Vector3.one;
+            }
+
+            _fightingItem = go.GetComponent<FightingShowSmallItem>();
+            go.SetActive(true);
+        }
+
+        private void RefreshRoleInfo()
+        {
+            RoleModel role = RoleModel.Instance;
+            bool hasInfo = role.HasBaseInfo;
+            if (nameLb != null)
+            {
+                nameLb.gameObject.SetActive(true);
+                nameLb.text = hasInfo ? role.Name : string.Empty;
+            }
+            if (_fightingItem != null) _fightingItem.SetFighting(hasInfo ? role.CombatPower : 0L);
+        }
+
+        private async void ShowRoleModel()
+        {
+            int requestId = ++_modelRequestId;
+            RoleModel role = RoleModel.Instance;
+            RoleModelSpec spec = await BuildRoleModelSpecAsync(role);
+            if (spec == null)
+            {
+                if (requestId == _modelRequestId) UIModelStage.Clear();
+                return;
+            }
+
+            GameObject model = await RoleModelAssembler.BuildAsync(spec);
+            if (model == null) return;
+            if (requestId != _modelRequestId || this == null || !gameObject.activeInHierarchy)
+            {
+                Destroy(model);
+                return;
+            }
+
+            int sex = role.Figure != null ? role.Figure.sex : 0;
+            UIModelStage.ShowInstance(modelGp, model, ModelScale,
+                LoginConfigs.GetModelPos("SelectRole", spec.Career, sex));
+        }
+
+        private static async Task<RoleModelSpec> BuildRoleModelSpecAsync(RoleModel model)
+        {
+            if (model == null || !model.HasBaseInfo || model.Figure == null) return null;
+
+            await LoginConfigs.EnsureLoaded();
+            FigureProto figure = model.Figure;
+            int career = figure.career;
+            int sex = figure.sex;
+            LoginConfigs.CareerRes defaults = LoginConfigs.GetCreateRes(career, sex);
+            int clothe = figure.ClotheModelId > 0 ? figure.ClotheModelId : (defaults != null ? defaults.RoleRes : 0);
+            if (clothe <= 0) return null;
+
+            return new RoleModelSpec
+            {
+                Career = career,
+                ClotheRes = clothe,
+                HeadRes = figure.HeadModelId > 0 ? figure.HeadModelId : (defaults != null ? defaults.HeadRes : 0),
+                WeaponRes = figure.WeaponModelId > 0 ? figure.WeaponModelId : (defaults != null ? defaults.WeaponRes : 0),
+                WingId = figure.WingId,
+                BackOrnamentId = figure.BackOrnamentId,
+                Actions = LoginConfigs.RoleUIActions("BagComponentView"),
+            };
+        }
+
         private void BuildGrid()
         {
             ClearCells();
 
             if (_itemTemplate == null)
             {
-                GameLog.Warn("Bag", "背包格模板未注入(BagFlow 未调 SetItemTemplate?)→ 无法铺格");
+                GameLog.Warn("Bag", "Bag item template was not injected by BagFlow; grid cannot render.");
                 return;
             }
             if (bag_con == null || bag_con.content == null)
             {
-                GameLog.Warn("Bag", "bag_con/content 缺失,无法铺背包格");
+                GameLog.Warn("Bag", "bag_con/content missing; grid cannot render.");
                 return;
             }
 
             RectTransform content = bag_con.content;
             List<BagGoods> goods = BagModel.Instance.BagGoodsList;
-            if (!BagModel.Instance.HasData)
-            {
-                GameLog.Info("Bag", "主背包打开:BagModel 暂无数据(待活服回满背包 15010)→ 空铺;协议链路已就绪(BagController 发 15010 pos=bag)");
-                content.sizeDelta = new Vector2(content.sizeDelta.x, 0f);
-                return;
-            }
-
             float viewW = bag_con.viewport != null ? bag_con.viewport.rect.width : 580f;
             if (viewW <= 1f) viewW = 580f;
-            int cols = Mathf.Max(1, Mathf.FloorToInt((viewW + GAP) / (CELL + GAP)));
 
-            for (int i = 0; i < goods.Count; i++)
+            int cols = Mathf.Max(1, Mathf.FloorToInt((viewW + Gap) / (Cell + Gap)));
+            int slotCount = ResolveSlotCount(goods);
+            BagGoods[] slots = BuildSlots(goods, slotCount);
+
+            for (int i = 0; i < slotCount; i++)
             {
-                BagGoods vo = goods[i];
                 GameObject cellGo = Instantiate(_itemTemplate.gameObject, content);
                 cellGo.SetActive(true);
+
                 var rt = (RectTransform)cellGo.transform;
                 rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
                 rt.pivot = new Vector2(0f, 1f);
-                int col = i % cols, row = i / cols;
-                rt.anchoredPosition = new Vector2(col * (CELL + GAP), -row * (CELL + GAP));
+                ApplyCellScale(rt);
+                int col = i % cols;
+                int row = i / cols;
+                rt.anchoredPosition = new Vector2(col * (Cell + Gap), -row * (Cell + Gap));
 
+                BagGoods vo = slots[i];
                 var renderer = cellGo.GetComponent<BagItemRenderer>();
-                // 透传真实 BagGoods 实例(vo)→ 点格弹 tips 时装备走实例极品/强化属性(对标 EquipToolTips goods_vo)。
-                if (renderer != null) renderer.SetData(new BagItemData { TypeId = vo.TypeId, Count = vo.GoodsNum, Goods = vo });
+                if (renderer != null)
+                {
+                    renderer.SetData(vo != null ? new BagItemData { TypeId = vo.TypeId, Count = vo.GoodsNum, Goods = vo } : null);
+                }
                 _cells.Add(cellGo);
             }
 
-            int rows = Mathf.CeilToInt(goods.Count / (float)cols);
-            content.sizeDelta = new Vector2(content.sizeDelta.x, rows * (CELL + GAP) + GAP);
-            GameLog.Info("Bag", "背包铺格: {0} 件(cols={1} rows={2}),真实图标+品质底板+数量(复用 BaseAwardItem)", goods.Count, cols, rows);
+            int rows = Mathf.CeilToInt(slotCount / (float)cols);
+            content.sizeDelta = new Vector2(content.sizeDelta.x, rows * (Cell + Gap) + Gap);
+            GameLog.Info("Bag", "grid slots={0} goods={1} cols={2} rows={3} hasData={4}",
+                slotCount, goods.Count, cols, rows, BagModel.Instance.HasData);
+        }
+
+        private static void ApplyCellScale(RectTransform rt)
+        {
+            float sourceWidth = rt.rect.width;
+            if (sourceWidth <= 1f) sourceWidth = rt.sizeDelta.x;
+            if (sourceWidth <= 1f) return;
+            float scale = Cell / sourceWidth;
+            rt.localScale = new Vector3(scale, scale, 1f);
+        }
+
+        private static int ResolveSlotCount(List<BagGoods> goods)
+        {
+            int slotCount = BagModel.Instance.HasData
+                ? Mathf.Max(BagModel.Instance.MaxCell, goods != null ? goods.Count : 0)
+                : DefaultVisibleCells;
+            slotCount = Mathf.Max(slotCount, DefaultVisibleCells);
+
+            if (goods != null)
+            {
+                for (int i = 0; i < goods.Count; i++)
+                {
+                    if (goods[i] != null && goods[i].Cell > slotCount) slotCount = goods[i].Cell;
+                }
+            }
+            return slotCount;
+        }
+
+        private static BagGoods[] BuildSlots(List<BagGoods> goods, int slotCount)
+        {
+            var slots = new BagGoods[slotCount];
+            if (goods == null || goods.Count == 0) return slots;
+
+            var overflow = new List<BagGoods>();
+            for (int i = 0; i < goods.Count; i++)
+            {
+                BagGoods vo = goods[i];
+                int index = vo != null ? vo.Cell - 1 : -1;
+                if (index >= 0 && index < slots.Length && slots[index] == null)
+                {
+                    slots[index] = vo;
+                }
+                else if (vo != null)
+                {
+                    overflow.Add(vo);
+                }
+            }
+
+            int cursor = 0;
+            for (int i = 0; i < overflow.Count; i++)
+            {
+                while (cursor < slots.Length && slots[cursor] != null) cursor++;
+                if (cursor >= slots.Length) break;
+                slots[cursor] = overflow[i];
+            }
+            return slots;
         }
 
         private void ClearCells()
         {
             for (int i = 0; i < _cells.Count; i++)
+            {
                 if (_cells[i] != null) Destroy(_cells[i]);
+            }
             _cells.Clear();
         }
 
-        // ===================== 按钮 / 红点(降级)=====================
+        private void BuildEquipmentSlots()
+        {
+            if (_equipmentSlots.Count > 0) return;
+            if (_tpl_BagEquipmentIcon == null || leftGp == null || rightGp == null)
+            {
+                GameLog.Warn("Bag", "equipment slot template or containers missing.");
+                return;
+            }
+
+            for (int pos = 1; pos <= EquipmentSlotCount; pos++)
+            {
+                RectTransform parent = pos % 2 == 0 ? rightGp : leftGp;
+                int row = (pos - 1) / 2;
+                GameObject go = Instantiate(_tpl_BagEquipmentIcon, parent);
+                go.name = "BagEquipmentIcon_" + pos;
+                go.SetActive(true);
+
+                var rt = go.transform as RectTransform;
+                if (rt != null)
+                {
+                    rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
+                    rt.pivot = new Vector2(0f, 1f);
+                    rt.anchoredPosition = new Vector2(0f, -row * EquipmentSlotStep);
+                    rt.localScale = Vector3.one;
+                }
+
+                BagEquipmentIcon icon = go.GetComponent<BagEquipmentIcon>();
+                if (icon != null)
+                {
+                    icon.Show();
+                    icon.SetEmpty(true);
+                    _equipmentSlots.Add(icon);
+                }
+            }
+            GameLog.Info("Bag", "equipment slots built: {0}", _equipmentSlots.Count);
+        }
 
         private void HideReds()
         {
-            HideNode(suitRed); HideNode(guard1_red); HideNode(guard2_red);
-            HideNode(dragonball_red); HideNode(red_quick); HideNode(useRed); HideNode(smeltRed);
+            HideNode(suitRed);
+            HideNode(guard1_red);
+            HideNode(guard2_red);
+            HideNode(dragonball_red);
+            HideNode(red_quick);
+            HideNode(useRed);
+            HideNode(smeltRed);
         }
 
         private void HideTemplates()
@@ -125,19 +352,16 @@ namespace Shenxiao.Module.Core.Bag
 
         private void BindButtons()
         {
-            // 已移植子窗(早期 bag 模块已写 View 并挂载)→ 真切换打开(BagFlow.ToggleSub 叠背包面板上,再点关闭)。
-            BindToggle(onekeyBtn, "OneKeyUseView", "一键使用");
-            BindToggle(smeltBtn, "BagSmeltView", "熔炼");
-            BindToggle(expandBtn, "ExpandBagView", "扩展背包");
-            // 未移植/纯逻辑 → 暂日志。
-            BindBtn(redequipBtn, "红装");
-            BindBtn(useBtn, "使用");
-            BindBtn(_btn_guard1, "守护1");
-            BindBtn(_btn_guard2, "守护2");
-            BindBtn(_btn_dragonball, "龙珠");
+            BindToggle(onekeyBtn, "OneKeyUseView", "one key use");
+            BindToggle(smeltBtn, "BagSmeltView", "smelt");
+            BindToggle(expandBtn, "ExpandBagView", "expand bag");
+            BindBtn(redequipBtn, "red equip");
+            BindBtn(useBtn, "use");
+            BindBtn(_btn_guard1, "guard 1");
+            BindBtn(_btn_guard2, "guard 2");
+            BindBtn(_btn_dragonball, "dragon ball");
         }
 
-        /// <summary>按钮 → 切换背包模块内子窗(BagFlow.ToggleSub 按 View 子类名查找,叠在背包面板上,再点关闭)。</summary>
         private void BindToggle(Component target, string viewType, string label)
         {
             if (target == null) return;
@@ -147,12 +371,11 @@ namespace Shenxiao.Module.Core.Bag
             img.raycastTarget = true;
             UIUtil.AddClick(img, () =>
             {
-                GameLog.Info("Bag", "点击背包按钮[{0}] → 切换 {1}", label, viewType);
+                GameLog.Info("Bag", "click bag button [{0}] -> toggle {1}", label, viewType);
                 BagFlow.ToggleSub(viewType);
             });
         }
 
-        /// <summary>给按钮(Image 或含 Image 子节点的容器)挂点击 → 打日志(降级:子窗/逻辑待对接)。</summary>
         private void BindBtn(Component target, string label)
         {
             if (target == null) return;
@@ -160,7 +383,7 @@ namespace Shenxiao.Module.Core.Bag
             if (img == null) img = target.GetComponentInChildren<Image>(true);
             if (img == null) return;
             img.raycastTarget = true;
-            UIUtil.AddClick(img, () => GameLog.Info("Bag", "点击背包按钮[{0}] → 待对接", label));
+            UIUtil.AddClick(img, () => GameLog.Info("Bag", "click bag button [{0}] -> TODO", label));
         }
 
         private static void HideNode(Component c)

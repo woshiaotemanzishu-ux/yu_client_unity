@@ -52,6 +52,20 @@ namespace Shenxiao.Module.Core.Common
             if (fireCallback && OnValueChanged != null) OnValueChanged(_value);
         }
 
+        public void SetNumberVisible(bool visible)
+        {
+            if (value_text != null) value_text.gameObject.SetActive(visible);
+            if (value_bg != null) value_bg.gameObject.SetActive(visible);
+        }
+
+        public void SetCustomWidth(float width)
+        {
+            if (width <= 0f) return;
+            if (track != null) track.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            if (trackHighlight != null) trackHighlight.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            Refresh();
+        }
+
         private float Clamp(float v)
         {
             if (SnapInterval > 0f)

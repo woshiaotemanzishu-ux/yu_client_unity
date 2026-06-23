@@ -592,6 +592,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2516555202011209541}
+  - component: {fileID: 801356325642774765}
   m_Layer: 0
   m_Name: GoodsItem
   m_TagString: Untagged
@@ -621,6 +622,20 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 276, y: 92}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &801356325642774765
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7503948287271561281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c856fb34cc2a534cba8aacd15ae11e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.SysInfo.GoodsItemBind
+  _gp_reward: {fileID: 3744022684351016054}
+  _lb_name: {fileID: 3244002546802432600}
 --- !u!1 &7682231399344322204
 GameObject:
   m_ObjectHideFlags: 0
@@ -767,6 +782,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1726551063380883096}
+  - component: {fileID: 1908260964719633239}
   m_Layer: 0
   m_Name: GreenHSlider
   m_TagString: Untagged
@@ -799,3 +815,24 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 235, y: 80}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &1908260964719633239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8400100541483588350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e95039a8fec7264bb969f402c1c1462, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Common.GreenHSlider
+  track: {fileID: 5093377986188408099}
+  trackHighlight: {fileID: 7493540398019354785}
+  thumb: {fileID: 758729639354695609}
+  value_bg: {fileID: 6175356009446786952}
+  value_text: {fileID: 3230292929353794529}
+  _tpl_GoodsItem: {fileID: 7503948287271561281}
+  Minimum: 0
+  Maximum: 100
+  SnapInterval: 1

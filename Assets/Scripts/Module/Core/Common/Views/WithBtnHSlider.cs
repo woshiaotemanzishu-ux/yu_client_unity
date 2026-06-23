@@ -34,7 +34,10 @@ namespace Shenxiao.Module.Core.Common
             go.SetActive(true);
             _slider = go.GetComponent<GreenHSlider>();
             if (_slider != null)
+            {
+                _slider.Show();
                 _slider.OnValueChanged = v => { if (_callback != null) _callback(v); };
+            }
         }
 
         /// <summary>配置(对标 SetData):初值 + 步进 + 区间 + 值变回调。</summary>
@@ -49,6 +52,18 @@ namespace Shenxiao.Module.Core.Common
         public float GetValue()
         {
             return _slider != null ? _slider.Value : 0f;
+        }
+
+        public void HideNumBtnAndNumBg()
+        {
+            if (reduce_btn != null) reduce_btn.gameObject.SetActive(false);
+            if (increase_btn != null) increase_btn.gameObject.SetActive(false);
+            if (_slider != null) _slider.SetNumberVisible(false);
+        }
+
+        public void SetCustomWidth(float width)
+        {
+            if (_slider != null) _slider.SetCustomWidth(width);
         }
 
         private void Step(int dir)

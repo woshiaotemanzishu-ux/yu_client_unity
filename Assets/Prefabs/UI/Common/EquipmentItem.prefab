@@ -159,6 +159,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6259585613194349608}
+  - component: {fileID: 3407223551148028227}
   m_Layer: 0
   m_Name: EquipmentItem
   m_TagString: Untagged
@@ -187,6 +188,62 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 127, y: 127}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &3407223551148028227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 490535933774872088}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b20b5e314a5fae439976615cc04f9dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Common.EquipmentItem
+  click_group: {fileID: 672364529161360372}
+  item_bg: {fileID: 6594082142870483121}
+  icon: {fileID: 2803011055189587594}
+  lock: {fileID: 1135404650804832426}
+  select_image: {fileID: 34347944799669247}
+  stren: {fileID: 6195649801585473044}
+  _img_grade_bg: {fileID: 2566705963243428458}
+  grade: {fileID: 5149214191755457559}
+  num_text: {fileID: 7556507416408027523}
+  red_dot: {fileID: 2915198324923648128}
+  up_image: {fileID: 3056256718250225517}
+  lung_con: {fileID: 4138250519223540588}
+  star_bg: {fileID: 4710253161274454054}
+  _Group1: {fileID: 3186332539321043121}
+  lung_star_num: {fileID: 7888832170162986237}
+  _Image1: {fileID: 1825814046660970186}
+  skillImg: {fileID: 6687901708512024913}
+  _bad_icon: {fileID: 8958468949458625441}
+  _img_awaken: {fileID: 3488027874570447246}
+  _img_tips: {fileID: 4698570724767455419}
+  starEquipGp: {fileID: 6097276056666079212}
+  starEquipStarBg: {fileID: 8643479090915484142}
+  starE0: {fileID: 4997347415842739943}
+  starE1: {fileID: 3433263765824264965}
+  starE2: {fileID: 8143910668665966211}
+  starE3: {fileID: 9053233631205530472}
+  starEquipNum: {fileID: 4088668629702707281}
+  _pet_equip_gp: {fileID: 6969448191809129586}
+  petEquip: {fileID: 7336910109899789958}
+  petEquipstage: {fileID: 3313873742048662012}
+  Image: {fileID: 3930883087830618926}
+  god_icon: {fileID: 3007003865553781397}
+  star_group: {fileID: 6958327988849839901}
+  star_0: {fileID: 271552276464576784}
+  star_1: {fileID: 1717142641262984406}
+  star_2: {fileID: 4265713066018293762}
+  star_3: {fileID: 6583808615437626358}
+  effect_con: {fileID: 275999753022265479}
+  _lb_name: {fileID: 163575923670130968}
+  effBox: {fileID: 8120595494014151548}
+  effBox1: {fileID: 3985241090662491190}
+  effBox2: {fileID: 9064179713697886007}
+  time_limit: {fileID: 9005954944524705058}
+  _tpl_BaseAwardItem: {fileID: 7177677121552189111}
 --- !u!1 &792290351103869948
 GameObject:
   m_ObjectHideFlags: 0
@@ -3439,5 +3496,10 @@ PrefabInstance:
 --- !u!224 &6436837712531968118 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6299561772021724397, guid: 39fc659b34b1fb646b7cbed26e2442d2, type: 3}
+  m_PrefabInstance: {fileID: 1024770974810268827}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &7177677121552189111 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7900594220294169132, guid: 39fc659b34b1fb646b7cbed26e2442d2, type: 3}
   m_PrefabInstance: {fileID: 1024770974810268827}
   m_PrefabAsset: {fileID: 0}

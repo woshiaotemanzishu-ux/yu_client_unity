@@ -69,6 +69,28 @@ namespace Shenxiao.Module.Core.MainUI
             RefreshClock();
         }
 
+        public bool HeadVisible => IsNodeVisible(_box_head);
+        public bool MapVisible => IsNodeVisible(_box_map);
+        public bool IconVisible => IsNodeVisible(_box_icon);
+
+        public void SetHeadVisible(bool visible)
+        {
+            SetNodeVisible(_box_head, visible);
+        }
+
+        public void SetMapVisible(bool visible)
+        {
+            SetNodeVisible(_box_map, visible);
+            SetNodeVisible(_box_icon, visible);
+        }
+
+        public void SetBaseWindowTopVisible(bool headVisible, bool mapVisible, bool iconVisible)
+        {
+            SetNodeVisible(_box_head, headVisible);
+            SetNodeVisible(_box_map, mapVisible);
+            SetNodeVisible(_box_icon, iconVisible);
+        }
+
         protected override void OnDispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
@@ -199,6 +221,16 @@ namespace Shenxiao.Module.Core.MainUI
             if (_tpl_MainUITopBuffItem != null) _tpl_MainUITopBuffItem.SetActive(false);
             if (_tpl_CustomHeadItem != null) _tpl_CustomHeadItem.SetActive(false);
             if (_tpl_ActivityIcon != null) _tpl_ActivityIcon.SetActive(false);
+        }
+
+        private static bool IsNodeVisible(Component node)
+        {
+            return node != null && node.gameObject.activeSelf;
+        }
+
+        private static void SetNodeVisible(Component node, bool visible)
+        {
+            if (node != null) node.gameObject.SetActive(visible);
         }
     }
 }

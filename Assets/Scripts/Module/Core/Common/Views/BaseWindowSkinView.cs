@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Shenxiao.Framework.Event;
 using Shenxiao.Generated.UI.Common;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
 using UnityEngine;
@@ -14,6 +16,10 @@ namespace Shenxiao.Module.Core.Common
         public bool Enabled = true;
         /// <summary>首次选中该页时调用:把内容视图 reparent / 实例化到给定内容区(_gp_item_con)下,返回其 BaseView(可空=空页)。结果会被缓存。</summary>
         public Func<RectTransform, BaseView> ContentFactory;
+        public string Label;
+        public string TitleImagePath;
+        public string UpImagePath;
+        public string DownImagePath;
         public Sprite UpSprite;
         public Sprite DownSprite;
     }
@@ -30,9 +36,11 @@ namespace Shenxiao.Module.Core.Common
     public sealed class BaseWindowSkinView : BaseWindowSkinBind
     {
         private readonly List<TabButtonTwoSkin> _tabs = new List<TabButtonTwoSkin>();
+        private readonly List<int> _tabIndices = new List<int>();
         private readonly Dictionary<int, BaseView> _contentCache = new Dictionary<int, BaseView>();
         private IList<TabSpec> _specs;
         private int _current = -1;
+        private bool _windowOpenRaised;
 
         protected override void OnInit()
         {
@@ -51,6 +59,30 @@ namespace Shenxiao.Module.Core.Common
         }
 
         /// <summary>配置标签页 + 默认页索引。在窗口 Show() 之后调用(此时 OnInit 已跑)。</summary>
+        protected override void OnShow(object args)
+        {
+            if (_windowOpenRaised) return;
+            _windowOpenRaised = true;
+            EventDispatcher.Emit(GlobalEvent.EVT_BASE_WINDOW_OPENED);
+        }
+
+        protected override void OnHide()
+        {
+            RaiseWindowClosed();
+        }
+
+        private void OnDestroy()
+        {
+            RaiseWindowClosed();
+        }
+
+        private void RaiseWindowClosed()
+        {
+            if (!_windowOpenRaised) return;
+            _windowOpenRaised = false;
+            EventDispatcher.Emit(GlobalEvent.EVT_BASE_WINDOW_CLOSED);
+        }
+
         public void Configure(IList<TabSpec> specs, int defaultIndex = 0)
         {
             _specs = specs;
@@ -91,18 +123,21 @@ namespace Shenxiao.Module.Core.Common
         {
             foreach (TabButtonTwoSkin t in _tabs) if (t != null) Destroy(t.gameObject);
             _tabs.Clear();
+            _tabIndices.Clear();
             if (_tpl_TabButtonTwoSkin == null) return;
             RectTransform parent = TabParent();
             if (parent == null) return;
             for (int i = 0; i < _sharedCount; i++)
             {
+                if (_sharedEnabled != null && !_sharedEnabled(i)) continue;
                 GameObject go = Instantiate(_tpl_TabButtonTwoSkin, parent);
                 go.SetActive(true);
                 TabButtonTwoSkin tab = go.GetComponent<TabButtonTwoSkin>();
                 if (tab == null) { Destroy(go); continue; }
-                tab.SetEnabledVisual(_sharedEnabled == null || _sharedEnabled(i));
                 tab.SetData(i, SelectShared);
+                LayoutTab(go, _tabs.Count);
                 _tabs.Add(tab);
+                _tabIndices.Add(i);
             }
         }
 
@@ -131,14 +166,21 @@ namespace Shenxiao.Module.Core.Common
                 _onSharedTab?.Invoke(index);
             }
 
-            for (int i = 0; i < _tabs.Count; i++) if (_tabs[i] != null) _tabs[i].SetSelected(i == index);
+            for (int i = 0; i < _tabs.Count; i++) if (_tabs[i] != null) _tabs[i].SetSelected(_tabIndices[i] == index);
             _current = index;
         }
 
         /// <summary>设置某标签红点(由各窗的红点逻辑调用)。</summary>
         public void SetTabRed(int index, bool on)
         {
-            if (index >= 0 && index < _tabs.Count && _tabs[index] != null) _tabs[index].SetRed(on);
+            for (int i = 0; i < _tabIndices.Count; i++)
+            {
+                if (_tabIndices[i] == index && i < _tabs.Count && _tabs[i] != null)
+                {
+                    _tabs[i].SetRed(on);
+                    return;
+                }
+            }
         }
 
         public int CurrentIndex => _current;
@@ -161,6 +203,7 @@ namespace Shenxiao.Module.Core.Common
         {
             foreach (TabButtonTwoSkin t in _tabs) if (t != null) Destroy(t.gameObject);
             _tabs.Clear();
+            _tabIndices.Clear();
 
             if (_specs == null || _tpl_TabButtonTwoSkin == null) return;
             RectTransform parent = TabParent();
@@ -168,13 +211,22 @@ namespace Shenxiao.Module.Core.Common
 
             for (int i = 0; i < _specs.Count; i++)
             {
+                if (!_specs[i].Enabled) continue;
                 GameObject go = Instantiate(_tpl_TabButtonTwoSkin, parent);
                 go.SetActive(true);
                 TabButtonTwoSkin tab = go.GetComponent<TabButtonTwoSkin>();
                 if (tab == null) { Destroy(go); continue; }
-                tab.SetEnabledVisual(_specs[i].Enabled);
-                tab.SetData(i, SelectTab, _specs[i].UpSprite, _specs[i].DownSprite);
+                tab.SetData(
+                    i,
+                    SelectTab,
+                    _specs[i].Label,
+                    _specs[i].UpImagePath,
+                    _specs[i].DownImagePath,
+                    _specs[i].UpSprite,
+                    _specs[i].DownSprite);
+                LayoutTab(go, _tabs.Count);
                 _tabs.Add(tab);
+                _tabIndices.Add(i);
             }
         }
 
@@ -192,6 +244,7 @@ namespace Shenxiao.Module.Core.Common
                 content = _specs[index].ContentFactory != null ? _specs[index].ContentFactory.Invoke(_gp_item_con) : null;
                 _contentCache[index] = content;
             }
+            ApplyTitle(_specs[index].TitleImagePath);
 
             foreach (KeyValuePair<int, BaseView> kv in _contentCache)
             {
@@ -199,8 +252,38 @@ namespace Shenxiao.Module.Core.Common
                 if (kv.Key == index) kv.Value.Show(); else kv.Value.Hide();
             }
 
-            for (int i = 0; i < _tabs.Count; i++) if (_tabs[i] != null) _tabs[i].SetSelected(i == index);
+            for (int i = 0; i < _tabs.Count; i++) if (_tabs[i] != null) _tabs[i].SetSelected(_tabIndices[i] == index);
             _current = index;
+        }
+
+        private static void LayoutTab(GameObject go, int visualIndex)
+        {
+            RectTransform rt = go != null ? go.transform as RectTransform : null;
+            if (rt == null) return;
+
+            const float width = 150f;
+            const float height = 90f;
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.anchoredPosition = new Vector2(width * visualIndex, 0f);
+            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+
+            RectTransform parent = rt.parent as RectTransform;
+            if (parent == null) return;
+
+            float contentWidth = width * (visualIndex + 1);
+            if (parent.rect.width < contentWidth)
+                parent.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, contentWidth);
+            if (parent.rect.height < height)
+                parent.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+        }
+
+        private void ApplyTitle(string titleImagePath)
+        {
+            if (_img_title == null || string.IsNullOrEmpty(titleImagePath)) return;
+            _ = ResManager.SetImageAsync(_img_title, titleImagePath, nativeSize: false);
         }
     }
 }

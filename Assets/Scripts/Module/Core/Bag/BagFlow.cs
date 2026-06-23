@@ -39,8 +39,20 @@ namespace Shenxiao.Module.Core.Bag
         {
             "BagModule", "BagModule", "HolySealView", "RevelationEquipView", "longlanguageView"
         };
+        private static readonly string[] TabTitles =
+        {
+            GameResPath.GetIcon("bag", "title_name"),
+            GameResPath.GetIcon("bag", "title_name"),
+            GameResPath.GetIcon("bag", "uisy_002"),
+            GameResPath.GetIcon("bag", "ui_Apocalypse_title"),
+            GameResPath.GetIcon("bag", "ui_ly_title")
+        };
+        private static readonly string[] TabLabels =
+        {
+            "\u80CC\u5305", "\u4ED3\u5E93", "\u5F71\u9AA8\u6218\u8863", "\u542F\u793A\u5723\u94E0", "\u4E5D\u5929\u795E\u7B26"
+        };
         // 5/5 全开(背包/仓库/影骸战衣/启示圣铠/九天神祭);longlanguage 经 LayaBindFiller 大小写不敏感兜底后可正常挂载
-        private static readonly bool[] TabEnabled = { true, true, true, true, true };
+        private static readonly bool[] TabEnabled = { true, true, false, false, false };
         private const int DefaultTab = 0;
 
         private static GameObject _frameRoot;
@@ -158,6 +170,8 @@ namespace Shenxiao.Module.Core.Bag
                 specs.Add(new TabSpec
                 {
                     Enabled = enabled,
+                    Label = TabLabels[i],
+                    TitleImagePath = TabTitles[i],
                     ContentFactory = enabled ? (Func<RectTransform, BaseView>)(parent => ReparentFrom(prefabName, viewName, parent)) : null,
                 });
             }

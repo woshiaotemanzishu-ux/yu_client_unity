@@ -25,6 +25,7 @@ namespace Shenxiao.Module.Core.Chat
             {
                 return;
             }
+            ChatModel.Instance.Reset();
             ChatFlow.Reset();
         }
     }

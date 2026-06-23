@@ -3,6 +3,7 @@ using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoBrush;
 using Shenxiao.Module.Core.Bag;
+using Shenxiao.Module.Core.Chat;
 using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.FirstRecharge;
 using Shenxiao.Module.Core.FunctionOpen;
@@ -43,7 +44,8 @@ namespace Shenxiao.Module.Core.Game
             BagController.Instance,
             SkillController.Instance,
             FightController.Instance,
-            // 后续:EquipController / ChatController ...
+            ChatController.Instance,
+            // 后续:EquipController ...
         };
 
         public static bool Initialized { get; private set; }

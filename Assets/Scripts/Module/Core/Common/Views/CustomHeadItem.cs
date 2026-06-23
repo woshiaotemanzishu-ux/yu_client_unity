@@ -1,7 +1,9 @@
 using System;
 using Shenxiao.Generated.UI.Common;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Login;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -35,6 +37,46 @@ namespace Shenxiao.Module.Core.Common
         }
 
         /// <summary>等级牌(对标 UpdateLevel:>370 为转生段,显示 level-370)。图标皮肤待接,数字即时。</summary>
+        public void SetRoleData(int career, int turn, int level, bool showLevel)
+        {
+            if (showLevel) SetLevel(level);
+            else SetActiveLevel(false);
+            SetDefaultHead(career, turn);
+        }
+
+        public async void SetDefaultHead(int career, int turn)
+        {
+            await LoginConfigs.EnsureLoaded();
+            string path = LoginConfigs.HeadIconPath(career, turn);
+            if (string.IsNullOrEmpty(path))
+            {
+                GameLog.Warn("Common", "CustomHeadItem default head path missing career={0} turn={1}", career, turn);
+                return;
+            }
+
+            if (icon != null) icon.gameObject.SetActive(false);
+            if (icon_sys_head != null)
+            {
+                icon_sys_head.gameObject.SetActive(true);
+                icon_sys_head.enabled = true;
+                icon_sys_head.color = Color.white;
+                icon_sys_head.preserveAspect = true;
+                HideSystemHeadOverlay();
+                _ = ResManager.SetImageAsync(icon_sys_head, path, nativeSize: false);
+            }
+        }
+
+        private void HideSystemHeadOverlay()
+        {
+            if (icon_sys_head == null) return;
+            Transform t = icon_sys_head.transform;
+            for (int i = 0; i < t.childCount; i++)
+            {
+                Transform child = t.GetChild(i);
+                if (child != null) child.gameObject.SetActive(false);
+            }
+        }
+
         public void SetLevel(int level)
         {
             if (_level_gp != null) _level_gp.gameObject.SetActive(true);

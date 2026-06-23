@@ -1,0 +1,32 @@
+start
+isPlaying=True
+screen=720x1280
+config=True
+canvas=UIRoot
+viewManagerInit=existing
+addressables=Succeeded
+harnessBoot=True
+dev=True msg=
+select=True msg=
+resolve=True msg=
+connect=True msg=
+roleList=True count=1
+entered=True
+roleReady=True hasBase=True name=陶漓琳 combat=980
+gameStart=True
+topReady=True downReady=True
+top=UIRoot/Main/MainUIModule/MainUITopView head=True map=True icon=True active=True
+down=UIRoot/Main/MainUIModule/MainUIDownView active=True
+bagItem=UIRoot/Main/MainUIModule/MainUIDownView/_box_con/_gp_icon_con/MainFuncIconItem(Clone)
+clicked=True
+top=UIRoot/Window/MainUITopView head=False map=False icon=False active=True
+down=UIRoot/Window/MainUIDownView active=True
+windowCount=3
+window[0] active=True shown=True current=0 path=UIRoot/Window/BaseWindowSkin
+window[1] active=True shown=False current=-1 path=BaseWindowSkin
+window[2] active=True shown=True current=0 path=UIRoot/Window/BaseWindowSkin
+bag=UIRoot/Window/BaseWindowSkin/_root_gp/_gp_item_con/BagComponentView active=True shown=True
+bagItemRenderer active=150 total=152
+bagEquipmentIcon active=10 total=11
+png=D:\git_res\yu_client_unity\output\runtime_unity\bag_click_after_bridge_has_shown.png
+status=done

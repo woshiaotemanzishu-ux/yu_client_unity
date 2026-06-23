@@ -8,6 +8,8 @@ namespace Shenxiao.Framework.Event
     {
         // ----- Boot -----
         public const string EVT_FRAMEWORK_READY = "EVT_FRAMEWORK_READY";
+        public const string EVT_BASE_WINDOW_OPENED = "EVT_BASE_WINDOW_OPENED";
+        public const string EVT_BASE_WINDOW_CLOSED = "EVT_BASE_WINDOW_CLOSED";
 
         // ----- Net -----
         public const string EVT_NET_CONNECTED = "EVT_NET_CONNECTED";
@@ -29,6 +31,9 @@ namespace Shenxiao.Framework.Event
         public const string EVT_GAME_ENTERED = "EVT_GAME_ENTERED";
         public const string EVT_GAME_START_FLAG_READY = "EVT_GAME_START_FLAG_READY";
         public const string EVT_GAME_START = "EVT_GAME_START";
+
+        // ----- Chat -----
+        public const string EVT_CHAT_MESSAGES_UPDATED = "EVT_CHAT_MESSAGES_UPDATED";
 
         // ----- Bag -----
         public const string EVT_BAG_UPDATE = "EVT_BAG_UPDATE";

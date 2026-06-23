@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
@@ -75,8 +76,12 @@ namespace Shenxiao.Module.Core.Chat
                 if (_mainView != null)
                 {
                     _mainView.Show();
+                    return;
                 }
-                return;
+
+                GameLog.Warn("Chat", "ChatModule root exists but main view is missing, recreate module");
+                ResManager.ReleaseInstance(_moduleRoot);
+                _moduleRoot = null;
             }
 
             if (_loading)
@@ -86,8 +91,20 @@ namespace Shenxiao.Module.Core.Chat
             _loading = true;
 
             string key = GameResPath.GetUIPrefab(MODULE, PREFAB);
-            GameObject root = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
-            _loading = false;
+            GameObject root = null;
+            try
+            {
+                root = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+            }
+            catch (Exception e)
+            {
+                GameLog.Error("Chat", "ChatModule prefab load exception: {0}, {1}", key, e.Message);
+                return;
+            }
+            finally
+            {
+                _loading = false;
+            }
 
             if (root == null)
             {

@@ -31,6 +31,18 @@ namespace Shenxiao.Module.Core.Role
             "EquipmentView", "WingsComponentView", "ArtifactComponentView",
             "HolyDeviceComponentView", "BackOrnamentComponentView"
         };
+        private static readonly string[] TabTitles =
+        {
+            GameResPath.GetIcon("role", "title_name"),
+            GameResPath.GetIcon("pet", "ui_yuyi"),
+            GameResPath.GetIcon("pet", "ui_yushou"),
+            GameResPath.GetIcon("pet", "ui_shenbin"),
+            GameResPath.GetIcon("pet", "ui_beishi")
+        };
+        private static readonly string[] TabLabels =
+        {
+            "\u4EBA\u7269", string.Empty, string.Empty, string.Empty, string.Empty
+        };
         // 该标签内容视图是否已在 Unity 写好(写好才开放;其余 disabled,写完置 true 即开)
         private static readonly bool[] TabEnabled = { true, false, false, false, false };
         private const int DefaultTab = 0;
@@ -110,6 +122,8 @@ namespace Shenxiao.Module.Core.Role
                 specs.Add(new TabSpec
                 {
                     Enabled = enabled,
+                    Label = TabLabels[i],
+                    TitleImagePath = TabTitles[i],
                     ContentFactory = enabled ? (Func<RectTransform, BaseView>)(parent => ReparentContent(viewName, parent)) : null,
                 });
             }

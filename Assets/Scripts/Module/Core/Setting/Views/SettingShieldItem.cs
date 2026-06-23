@@ -29,11 +29,23 @@ namespace Shenxiao.Module.Core.Setting
         /// </summary>
         public void SetData(string text, bool on)
         {
-            if (_lb_text != null) _lb_text.text = text ?? string.Empty;
+            if (_lb_text != null)
+            {
+                _lb_text.gameObject.SetActive(true);
+                _lb_text.text = text ?? string.Empty;
+            }
 
             // 老端:is_open==0 → check_img 可见、check_img_1 隐藏;is_open==1 → 反之。on=true 表示已勾选(is_open==1)。
-            if (check_img != null) check_img.gameObject.SetActive(!on);
-            if (check_img_1 != null) check_img_1.gameObject.SetActive(on);
+            if (check_img != null)
+            {
+                check_img.gameObject.SetActive(!on);
+                check_img.raycastTarget = true;
+            }
+            if (check_img_1 != null)
+            {
+                check_img_1.gameObject.SetActive(on);
+                check_img_1.raycastTarget = true;
+            }
         }
     }
 }
