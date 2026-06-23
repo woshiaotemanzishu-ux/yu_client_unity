@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -57,6 +58,25 @@ namespace Shenxiao.Module.Core.Dialogue
         /// 已对同一 NPC 打开则不重复发(对标老端 dialog_is_open 去重,MainUITaskTeamView.ts:563-573)。
         /// </summary>
         public void ShowTask(int npcId)
+        {
+            _ = ShowTaskAsync(npcId);
+        }
+
+        private async Task ShowTaskAsync(int npcId)
+        {
+            Model.ChangeSceneClose = false;
+            Model.IsAuto = false;          // 对标老端 SHOW_TASK 事件:发起对话前重置 auto 状态。
+            if (!NpcConfigs.IsLoaded || !TalkConfigs.IsLoaded)
+            {
+                GameLog.Info("Dialogue", "ShowTask({0}) wait configs: config_npc={1} config_talk={2}",
+                    npcId, NpcConfigs.IsLoaded, TalkConfigs.IsLoaded);
+                await NpcConfigs.EnsureLoaded();
+                await TalkConfigs.EnsureLoaded();
+            }
+            SendShowTaskNow(npcId);
+        }
+
+        private void SendShowTaskNow(int npcId)
         {
             if (!NpcConfigs.IsLoaded || !TalkConfigs.IsLoaded)
             {
@@ -183,6 +203,7 @@ namespace Shenxiao.Module.Core.Dialogue
             if (cfg != null)
             {
                 List<TaskReward.Entry> rewards = TaskReward.Build(cfg.SpecialGoodsList, cfg.AwardList, RoleModel.Instance.Career);
+                vo.Rewards = rewards;
                 vo.RewardSummary = TaskReward.ToText(rewards);
                 if (rewards.Count > 0)
                     GameLog.Info("Dialogue", "12102 任务 {0} 奖励 {1} 项: {2}", taskId, rewards.Count, TaskReward.ToText(rewards, " / "));

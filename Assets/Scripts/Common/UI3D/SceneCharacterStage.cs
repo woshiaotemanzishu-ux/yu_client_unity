@@ -265,8 +265,17 @@ namespace Shenxiao.Common.UI3D
                 Object.Destroy(_rt);
             }
             _rt = new RenderTexture(w, h, 16, RenderTextureFormat.ARGB32) { name = "SceneCharStageRT" };
+            ClearRenderTexture(_rt);
             if (_cam != null) _cam.targetTexture = _rt;
             if (_img != null) _img.texture = _rt;
+        }
+
+        private static void ClearRenderTexture(RenderTexture rt)
+        {
+            RenderTexture prev = RenderTexture.active;
+            RenderTexture.active = rt;
+            GL.Clear(true, true, Color.clear);
+            RenderTexture.active = prev;
         }
     }
 }

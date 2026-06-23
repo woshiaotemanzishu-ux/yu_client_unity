@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8374903806732679418}
+  - component: {fileID: 1979494225085621342}
   m_Layer: 0
   m_Name: UIVerTabSubBtn
   m_TagString: Untagged
@@ -36,6 +37,23 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 158, y: 50}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &1979494225085621342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1487135605701706180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e90b79771531d9445a3881ecb026a325, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Newgameui.UIVerTabSubBtnBind
+  sub_conta: {fileID: 5877764140099332215}
+  btn_state: {fileID: 3410250003455945227}
+  down: {fileID: 251870165187251826}
+  btn_text: {fileID: 300417046203494683}
+  red_dot: {fileID: 7628826677545688346}
 --- !u!1 &5377204329600913068
 GameObject:
   m_ObjectHideFlags: 0

@@ -278,6 +278,24 @@ namespace Shenxiao.Module.Core.Tasks
                 && MainLineTaskVo.TaskId <= GUIDE_TASK;
         }
 
+        public TaskGuideStep GetNowGuideCfg(bool isMainUiArrow, TaskVo task = null)
+        {
+            task ??= MainLineTaskVo;
+            if (task == null) return null;
+
+            if (task.TaskId == FIRST_TASK_ID)
+            {
+                return new TaskGuideStep
+                {
+                    Direction = 4,
+                    Text = "点击此处完成任务吧",
+                    CloseTime = 10
+                };
+            }
+
+            return null;
+        }
+
         public (int sortIndex, int sortSubIndex, int sameTypeOrderIndex) GetSortIndex(int taskId)
         {
             TaskConfigs.TaskCfg cfg = TaskConfigs.Get(taskId);
@@ -579,6 +597,14 @@ namespace Shenxiao.Module.Core.Tasks
             public int SortSubIndex;
             public int SameTypeOrderIndex;
             public List<TaskVo> TipsList;
+        }
+
+        public sealed class TaskGuideStep
+        {
+            public int Direction;
+            public string Text;
+            public int CloseTime = 10;
+            public bool AutoCountdown = true;
         }
     }
 }

@@ -51,6 +51,7 @@ namespace Shenxiao.Module.Core.MainUI
             BindNav(_box_vip, "vip");
             BindNav(_box_recharge, "recharge");
             BindNav(_box_halo, "halo");
+            BindNav(_box_cs, "customerservice");
         }
 
         private void BindNav(Component target, string routerKey)

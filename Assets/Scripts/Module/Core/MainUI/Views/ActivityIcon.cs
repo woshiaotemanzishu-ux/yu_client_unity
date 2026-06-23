@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Res;
 using Shenxiao.Generated.UI.MainUI;
 using TMPro;
@@ -19,6 +20,7 @@ namespace Shenxiao.Module.Core.MainUI
         private MainUIConfigs.FunctionIconCfg _cfg;
         private ActivityIconManager.IconInfo _info;
         private CanvasGroup _canvasGroup;
+        private bool _clickBound;
 
         public string IconType => _iconType;
         public MainUIConfigs.FunctionIconCfg Cfg => _cfg;
@@ -28,6 +30,7 @@ namespace Shenxiao.Module.Core.MainUI
             _canvasGroup = GetComponent<CanvasGroup>();
             if (_canvasGroup == null) _canvasGroup = gameObject.AddComponent<CanvasGroup>();
             HideOptionalState();
+            BindClick();
         }
 
         public void SetIconType(string iconType)
@@ -117,6 +120,19 @@ namespace Shenxiao.Module.Core.MainUI
             if (text == null) return;
             if (!visible) text.text = "";
             text.gameObject.SetActive(visible);
+        }
+
+        private void BindClick()
+        {
+            if (_clickBound || _img_icon == null) return;
+            UIUtil.AddClick(_img_icon, OnClick);
+            _clickBound = true;
+        }
+
+        private void OnClick()
+        {
+            string key = _cfg != null && !string.IsNullOrEmpty(_cfg.IconType) ? _cfg.IconType : _iconType;
+            MainUIRouter.Open(key);
         }
     }
 }

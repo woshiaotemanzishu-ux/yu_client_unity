@@ -1,14 +1,17 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
+using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.MainUI
 {
@@ -27,7 +30,9 @@ namespace Shenxiao.Module.Core.MainUI
 
         private readonly List<MainUITaskItem> _taskItems = new List<MainUITaskItem>();
         private CancellationTokenSource _autoTaskCts;
+        private CancellationTokenSource _guideCts;
         private MainUITaskItem _mainLineItem; // _box_main_line 内的主线任务条(复用 MainUITaskItem 渲染)
+        private bool _clickBound;
 
         protected override void OnInit()
         {
@@ -51,6 +56,7 @@ namespace Shenxiao.Module.Core.MainUI
             if (_tpl_MainUITaskItem != null) _tpl_MainUITaskItem.SetActive(false);
             if (_tpl_TeamMainRoleItem != null) _tpl_TeamMainRoleItem.SetActive(false);
             ApplyTaskTabState(true);
+            BindButtons();
         }
 
         protected override void OnShow(object args)
@@ -67,6 +73,8 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, RefreshTaskItems);
             EventDispatcher.Off<int>(GlobalEvent.EVT_TASK_ONE_UPDATED, OnTaskOneUpdated);
             EventDispatcher.Off<int>(GlobalEvent.EVT_TASK_SELECT_CHANGED, OnTaskSelectChanged);
+            CancelGuideTimer();
+            HideMainLineTaskArrow();
             CancelAutoTaskTimer();
         }
 
@@ -78,10 +86,17 @@ namespace Shenxiao.Module.Core.MainUI
         // 选中任务变化(点任务项后 DoTask 广播)→ 重刷任务栏,各项据 NowSelectTaskId 更新 _img_select 选中态。
         private void OnTaskSelectChanged(int taskId)
         {
-            RefreshTaskItems();
+            CancelGuideTimer();
+            HideMainLineTaskArrow();
+            RefreshTaskItems(false);
         }
 
         private void RefreshTaskItems()
+        {
+            RefreshTaskItems(true);
+        }
+
+        private void RefreshTaskItems(bool showMainLineGuide)
         {
             // 断线重连期 MainUI 可能已被拆(GameObject 销毁)但事件未退订 → _panel_task 为 Unity-null,
             // 在已销毁视图上刷新会抛 MissingReferenceException(阻断 DoTask 的 EVT_TASK_SELECT_CHANGED 链)。防御性早退。
@@ -91,10 +106,10 @@ namespace Shenxiao.Module.Core.MainUI
 
             // 主线引导任务:老端在 _box_main_line 用 MainUITaskMainLineItem 渲染(带引导箭头/特效),
             // 并把主线从面板列表排除。Unity 暂无 MainUITaskMainLineItem 转换件 → 复用 MainUITaskItem 把
-            // 真实主线任务渲到 _box_main_line(避免空槽 / 不留占位)。引导箭头/手指特效仍 record-only(StoryModel 未移植)。
+            // 真实主线任务渲到 _box_main_line(避免空槽 / 不留占位),再交给 MainUIGuideManager 显示旧端指引。
             TaskModel.TaskEntry mainLine = TaskModel.Instance.MainLineTaskNeedShowArrow()
                 ? TaskModel.Instance.GetMainLineEntry() : null;
-            RefreshMainLineItem(mainLine);
+            RefreshMainLineItem(mainLine, showMainLineGuide);
 
             Transform parent = _panel_task.content != null ? _panel_task.content : _panel_task.transform;
             for (int i = 0; i < list.Count; i++)
@@ -146,10 +161,11 @@ namespace Shenxiao.Module.Core.MainUI
         }
 
         // 主线任务条:有引导主线任务时显示在 _box_main_line(复用 MainUITaskItem);否则隐藏整槽。
-        private void RefreshMainLineItem(TaskModel.TaskEntry entry)
+        private void RefreshMainLineItem(TaskModel.TaskEntry entry, bool showGuide)
         {
             if (entry == null)
             {
+                CancelGuideTimer();
                 if (_mainLineItem != null)
                 {
                     _mainLineItem.HideMainLineArrow();
@@ -165,7 +181,8 @@ namespace Shenxiao.Module.Core.MainUI
             item.gameObject.SetActive(true);
             item.Show();
             item.SetData(entry);
-            item.ShowMainLineArrow();
+            if (showGuide) ShowFinger();
+            else item.HideMainLineArrow();
         }
 
         private MainUITaskItem EnsureMainLineItem()
@@ -195,6 +212,59 @@ namespace Shenxiao.Module.Core.MainUI
             return _mainLineItem;
         }
 
+        private void ShowFinger()
+        {
+            CancelGuideTimer();
+            if (_mainLineItem == null
+                || _box_main_line == null
+                || !_box_main_line.gameObject.activeInHierarchy
+                || !TaskModel.Instance.MainLineTaskNeedShowArrow())
+            {
+                HideMainLineTaskArrow();
+                return;
+            }
+
+            _guideCts = new CancellationTokenSource();
+            _ = ShowFingerDelayed(_guideCts.Token);
+        }
+
+        private async Task ShowFingerDelayed(CancellationToken token)
+        {
+            try
+            {
+                await Task.Delay(10, token);
+            }
+            catch (TaskCanceledException)
+            {
+                return;
+            }
+
+            if (token.IsCancellationRequested) return;
+            if (_mainLineItem == null
+                || _box_main_line == null
+                || !_box_main_line.gameObject.activeInHierarchy
+                || !TaskModel.Instance.MainLineTaskNeedShowArrow())
+            {
+                HideMainLineTaskArrow();
+                return;
+            }
+
+            _mainLineItem.ShowMainLineArrow();
+        }
+
+        private void CancelGuideTimer()
+        {
+            if (_guideCts == null) return;
+            _guideCts.Cancel();
+            _guideCts.Dispose();
+            _guideCts = null;
+        }
+
+        private void HideMainLineTaskArrow()
+        {
+            if (_mainLineItem != null) _mainLineItem.HideMainLineArrow();
+        }
+
         private void ApplyTaskTabState(bool taskSelected)
         {
             _ = ResManager.SetImageAsync(_img_task_bg,
@@ -206,6 +276,44 @@ namespace Shenxiao.Module.Core.MainUI
 
             _lb_task_desc.color = taskSelected ? TaskTabLightColor : TaskTabDarkColor;
             _lb_team_desc.color = taskSelected ? TaskTabDarkColor : TaskTabLightColor;
+        }
+
+        private void BindButtons()
+        {
+            if (_clickBound) return;
+            BindClick(_img_task_bg, ShowTaskTab);
+            BindClick(_img_team_bg, ShowTeamTab);
+            BindClick(_img_create_team, () => MainUIRouter.Open("team_create"));
+            BindClick(_img_search_team, () => MainUIRouter.Open("team_search"));
+            BindClick(_img_arrow, () => MainUIRouter.Open("task_panel_toggle"));
+            BindClick(_img_temple_awaken_bg, () => MainUIRouter.Open("templeawaken"));
+            BindClick(_img_awaken, () => MainUIRouter.Open("templeawaken"));
+            BindClick(_img_goods_icon, () => MainUIRouter.Open("templeawaken"));
+            _clickBound = true;
+        }
+
+        private static void BindClick(Graphic target, Action onClick)
+        {
+            if (target == null) return;
+            UIUtil.AddClick(target, onClick);
+        }
+
+        private void ShowTaskTab()
+        {
+            _box_task.gameObject.SetActive(true);
+            _box_team.gameObject.SetActive(false);
+            _box_non_team.gameObject.SetActive(false);
+            ApplyTaskTabState(true);
+            RefreshTaskItems(false);
+        }
+
+        private void ShowTeamTab()
+        {
+            _box_task.gameObject.SetActive(false);
+            _box_team.gameObject.SetActive(false);
+            _box_non_team.gameObject.SetActive(true);
+            ApplyTaskTabState(false);
+            GameLog.Info("MainUI", "队伍页签点击 → TeamView 未移植,显示无队伍入口并保留创建/寻找按钮");
         }
 
         private void StartAutoTaskTimer()

@@ -186,6 +186,7 @@ namespace Shenxiao.Module.Core.MainUI
         private void OnClickPartnerLock()
         {
             GameLog.Info("MainUI", "点击伙伴技能锁 → 打开 PartnerAwakeShowView 未移植(伙伴系统下一轮)");
+            MainUIRouter.Open("partnerawake");
         }
     }
 }

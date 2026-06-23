@@ -1,6 +1,9 @@
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.CustomActivity;
+using Shenxiao.Module.Core.FirstRecharge;
+using Shenxiao.Module.Core.Vip;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -32,7 +35,10 @@ namespace Shenxiao.Module.Core.Game
             SendFmt(Proto.TASK_LATEST_FINISHED);
             SendFirstOpenStateRequest();
             SendFmt(Proto.SETTING_LIST, "c", SYS_SETTING);
-            GameLog.Info("Game", "requested startup packets: 13001,10201,30005,13088,10202");
+            VipController.Instance.RequestRechargeProducts();
+            FirstRechargeController.Instance.RequestStartupState();
+            CustomActivityController.Instance.RequestActivityList();
+            GameLog.Info("Game", "requested startup packets: 13001,10201,30005,13088,10202,15800,15905,15908,33101");
         }
 
         private void SendFirstOpenStateRequest()

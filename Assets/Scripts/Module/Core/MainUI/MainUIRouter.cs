@@ -46,6 +46,7 @@ namespace Shenxiao.Module.Core.MainUI
                 return;
             }
             GameLog.Info("MainUI", "点击功能入口 [{0}] → 目标面板未移植,待对接", viewKey);
+            MainUIRoutePlaceholder.Show(viewKey);
         }
 
         /// <summary>切场景/登出清理:不清注册表(模块生命周期各自管),仅供需要时整体重置。</summary>

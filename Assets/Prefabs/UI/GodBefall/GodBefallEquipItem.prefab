@@ -949,6 +949,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5086973600084036736}
+  - component: {fileID: 2261173677976745065}
   m_Layer: 0
   m_Name: GodBefallEquipItem
   m_TagString: Untagged
@@ -977,6 +978,34 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 92, y: 144}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &2261173677976745065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8177784736126134155}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42929ffd011a88d4bbac7c3cd2b56a49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.GodBefall.GodBefallEquipItem
+  _box_con: {fileID: 1587216167880411773}
+  _img_bg: {fileID: 848893593525405555}
+  _box_item: {fileID: 4371971693850137006}
+  _img_icon: {fileID: 3196209125117074412}
+  _img_lock: {fileID: 6628383035630425100}
+  _img_up: {fileID: 947990813008886873}
+  _img_red: {fileID: 28965034533476992}
+  _img_lock2: {fileID: 5733276639193833898}
+  _img_god_icon: {fileID: 7215887765296120912}
+  _box_star: {fileID: 3860886779067072631}
+  _img_star_1: {fileID: 7616905414907525717}
+  _img_star_2: {fileID: 7565355841538919187}
+  _img_star_3: {fileID: 5478716141042010203}
+  _img_star_4: {fileID: 2718760291828661272}
+  _box_effect: {fileID: 7385047731993200547}
+  _tpl_EquipmentItem: {fileID: 4968121316742439158}
 --- !u!1 &8210645245545611383
 GameObject:
   m_ObjectHideFlags: 0
@@ -1152,5 +1181,10 @@ PrefabInstance:
 --- !u!224 &1504879735981068998 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6259585613194349608, guid: 4b61db156a07d9c4182c38b719828178, type: 3}
+  m_PrefabInstance: {fileID: 4772949013207817966}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4968121316742439158 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 490535933774872088, guid: 4b61db156a07d9c4182c38b719828178, type: 3}
   m_PrefabInstance: {fileID: 4772949013207817966}
   m_PrefabAsset: {fileID: 0}

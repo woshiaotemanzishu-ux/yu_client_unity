@@ -5,6 +5,7 @@ using Shenxiao.Module.Core.AutoBrush;
 using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Chat;
+using Shenxiao.Module.Core.CustomActivity;
 using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.FirstRecharge;
 using Shenxiao.Module.Core.FunctionOpen;
@@ -16,6 +17,7 @@ using Shenxiao.Module.Core.Scene;
 using Shenxiao.Module.Core.Skill;
 using Shenxiao.Module.Core.SurpriseGift;
 using Shenxiao.Module.Core.Tasks;
+using Shenxiao.Module.Core.Vip;
 using Shenxiao.Module.Core.WeekCard;
 
 namespace Shenxiao.Module.Core.Game
@@ -40,6 +42,7 @@ namespace Shenxiao.Module.Core.Game
             NoticeController.Instance,
             MailController.Instance,
             FunctionOpenController.Instance,
+            VipController.Instance,
             FirstRechargeController.Instance,
             WeekCardController.Instance,
             SurpriseGiftController.Instance,
@@ -47,6 +50,7 @@ namespace Shenxiao.Module.Core.Game
             SkillController.Instance,
             FightController.Instance,
             ChatController.Instance,
+            CustomActivityController.Instance,
             // 后续:EquipController ...
         };
 

@@ -1152,6 +1152,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7769655444685884608}
+  - component: {fileID: 5791711147754998055}
   m_Layer: 0
   m_Name: TeamHallItem
   m_TagString: Untagged
@@ -1189,6 +1190,33 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 580, y: 80}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &5791711147754998055
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8136059865867956605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cc1afb134e1e68458607a3d5d52c8a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Team.TeamHallItemBind
+  _Image1: {fileID: 8023629789642063960}
+  role_head: {fileID: 8220388984930252640}
+  _img_frame: {fileID: 6135694469218712388}
+  _img_role_head: {fileID: 5711229100186229047}
+  head_click_group: {fileID: 4280487262626385606}
+  name_bg: {fileID: 8550141064711358709}
+  role_name: {fileID: 2600395099223230426}
+  level: {fileID: 2478208941396909088}
+  role_num: {fileID: 5355900364726541356}
+  online_state: {fileID: 2570939443035732009}
+  applyBtn: {fileID: 1182121843627356568}
+  _Image2: {fileID: 767238283937132114}
+  _Label1: {fileID: 4911420889961450254}
+  leader_tag: {fileID: 3392953170120938957}
+  _tpl_CustomHeadItem: {fileID: 7716659538499607591}
 --- !u!1 &8799030741538709123
 GameObject:
   m_ObjectHideFlags: 0
@@ -1426,5 +1454,10 @@ PrefabInstance:
 --- !u!224 &1459380425627184535 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5798077117109077118, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
+  m_PrefabInstance: {fileID: 4915162948461210089}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &7716659538499607591 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3396064174992209358, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
   m_PrefabInstance: {fileID: 4915162948461210089}
   m_PrefabAsset: {fileID: 0}

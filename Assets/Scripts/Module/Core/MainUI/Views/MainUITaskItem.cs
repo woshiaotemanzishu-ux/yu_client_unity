@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Shenxiao.Framework.Res;
+using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.UI;
-using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Module.Core.Tasks;
 using TMPro;
@@ -17,8 +16,9 @@ namespace Shenxiao.Module.Core.MainUI
 
         private readonly List<TextMeshProUGUI> _tipLabels = new List<TextMeshProUGUI>();
         private TaskModel.TaskEntry _entry;
-        private ArrowComponent _guideArrow;
-        private bool _guideLoading;
+        private UIEffectStage.Handle _finishEffect;
+        private bool _finishEffectLoading;
+        private int _finishEffectVersion;
 
         protected override void OnInit()
         {
@@ -35,12 +35,18 @@ namespace Shenxiao.Module.Core.MainUI
             HideMainLineArrow();
         }
 
+        protected override void OnDispose()
+        {
+            HideMainLineArrow();
+            ClearFinishEffect();
+        }
+
         private void OnClick()
         {
             if (_entry == null) return;
-            HideMainLineArrow();
             TaskVo task = TaskModel.Instance.FindUnFinishTask(_entry.TipsList);
             if (task == null) return;
+            HideMainLineArrow();
             TaskModel.Instance.DoTask(task);
         }
 
@@ -55,6 +61,8 @@ namespace Shenxiao.Module.Core.MainUI
                 lblTaskTitle2.text = "";
                 _img_done.gameObject.SetActive(false);
                 _img_select.gameObject.SetActive(false);
+                if (_box_effect != null) _box_effect.gameObject.SetActive(false);
+                ClearFinishEffect();
                 return;
             }
 
@@ -63,61 +71,96 @@ namespace Shenxiao.Module.Core.MainUI
 
             SetTitle(task);
             SetTips(task);
-            _img_done.gameObject.SetActive(TaskModel.Instance.IsAllStepFinish(task.TaskId));
+            bool finish = TaskModel.Instance.IsAllStepFinish(task.TaskId);
+            _img_done.gameObject.SetActive(finish);
             _img_select.gameObject.SetActive(task.TaskId == TaskModel.Instance.NowSelectTaskId);
+            UpdateFinishEffect(finish);
         }
 
         public void ShowMainLineArrow()
         {
-            if (_entry == null || _box_finger_con == null) return;
+            if (!TryBuildGuideData(out ArrowData data))
+            {
+                HideMainLineArrow();
+                return;
+            }
+
             _box_finger_con.gameObject.SetActive(true);
-            _ = ShowMainLineArrowAsync();
+            MainUIGuideManager.Instance.ShowMainUiFinger(this, _box_finger_con, data, OnClick, isTaskItem: true);
         }
 
         public void HideMainLineArrow()
         {
             if (_box_finger_con != null) _box_finger_con.gameObject.SetActive(false);
-            if (_guideArrow != null) _guideArrow.Hide();
+            MainUIGuideManager.Instance.HideMainUiFinger(this);
         }
 
-        private async Task ShowMainLineArrowAsync()
+        private bool TryBuildGuideData(out ArrowData data)
         {
-            if (_guideArrow == null)
-            {
-                if (_guideLoading) return;
-                _guideLoading = true;
-                GameObject go = await ResManager.InstantiateAsync(
-                    GameResPath.GetUIPrefab("mainUI", "ArrowComponent"), _box_finger_con);
-                _guideLoading = false;
-                if (go == null) return;
+            data = null;
+            if (_entry == null || _box_finger_con == null) return false;
 
-                _guideArrow = go.GetComponent<ArrowComponent>();
-                if (_guideArrow == null)
-                {
-                    GameLog.Warn("MainUI", "ArrowComponent prefab missing business component. Run mainUI convert + bind backfill.");
-                    ResManager.ReleaseInstance(go);
-                    return;
-                }
-            }
-
-            if (_entry == null || _box_finger_con == null) return;
             TaskVo task = TaskModel.Instance.FindUnFinishTask(_entry.TipsList);
-            _guideArrow.Show();
-            _guideArrow.SetData(new ArrowData
+            if (task == null) return false;
+            if (TaskModel.Instance.MainLineTaskVo == null || task.TaskId != TaskModel.Instance.MainLineTaskVo.TaskId) return false;
+            if (!TaskModel.Instance.MainLineTaskNeedShowArrow()) return false;
+            TaskModel.TaskGuideStep step = TaskModel.Instance.GetNowGuideCfg(true, task);
+            if (step == null) return false;
+
+            data = new ArrowData
             {
-                Content = BuildGuideText(task),
-                Direction = ArrowComponent.DIR_LEFT,
-                CloseTime = 10,
+                Content = step.Text,
+                Direction = step.Direction,
+                CloseTime = step.CloseTime,
+                AutoCountdown = step.AutoCountdown,
                 Target = _box_finger_con,
-            }, OnClick);
+            };
+            return true;
         }
 
-        private static string BuildGuideText(TaskVo task)
+        private void UpdateFinishEffect(bool finish)
         {
-            if (task == null) return "点击此处完成任务吧";
-            if (TaskModel.Instance.IsAllStepFinish(task.TaskId)) return "点击此处完成任务吧";
-            if (task.TaskId == TaskModel.FIRST_TASK_ID) return "点击此处完成任务吧";
-            return "继续推进<color=#0a9f42>主线</color>";
+            if (_box_effect == null) return;
+            _finishEffectVersion++;
+            _box_effect.gameObject.SetActive(finish);
+            if (!finish)
+            {
+                ClearFinishEffect();
+                return;
+            }
+            if (_finishEffect != null || _finishEffectLoading) return;
+            _ = LoadFinishEffectAsync(_finishEffectVersion);
+        }
+
+        private async Task LoadFinishEffectAsync(int version)
+        {
+            if (_box_effect == null || _finishEffectLoading || _finishEffect != null) return;
+            _finishEffectLoading = true;
+
+            float boxHeight = Mathf.Max(1f, _box_effect.rect.height);
+            float itemHeight = _img_bg != null ? Mathf.Max(1f, _img_bg.rectTransform.rect.height) : 54f;
+            float scale = 1280f / boxHeight * 0.96f;
+            float yScale = scale * itemHeight / 54f;
+            UIEffectStage.Handle effect = await UIEffectStage.AddAsync("ui_renwulan",
+                _box_effect, Vector2.zero, new Vector3(scale, yScale, scale));
+            _finishEffectLoading = false;
+            if (version != _finishEffectVersion || _box_effect == null || !_box_effect.gameObject.activeSelf)
+            {
+                effect?.Dispose();
+                return;
+            }
+            _finishEffect = effect;
+        }
+
+        private void ClearFinishEffect()
+        {
+            _finishEffectVersion++;
+            if (_finishEffect != null)
+            {
+                _finishEffect.Dispose();
+                _finishEffect = null;
+            }
+            _finishEffectLoading = false;
         }
 
         private void SetTitle(TaskVo task)

@@ -39,7 +39,9 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.On<string, int>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_ADD, OnActivityIconAdd);
             EventDispatcher.On<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_DELETE, OnActivityIconDelete);
             EventDispatcher.On<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, OnActivityIconUpdate);
-            InitActivityIconAsync();
+            EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
+            EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
+            RefreshActivityIconAsync();
         }
 
         protected override void OnHide()
@@ -47,11 +49,19 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off<string, int>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_ADD, OnActivityIconAdd);
             EventDispatcher.Off<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_DELETE, OnActivityIconDelete);
             EventDispatcher.Off<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, OnActivityIconUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
+            EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
         }
 
-        private async void InitActivityIconAsync()
+        private void OnOpenConditionChanged()
         {
-            await ActivityIconManager.Instance.EnsureDefaultIconsAsync();
+            RefreshActivityIconAsync();
+        }
+
+        private async void RefreshActivityIconAsync()
+        {
+            await ActivityIconManager.Instance.RefreshDefaultIconsAsync();
+            if (this == null) return;
             foreach (KeyValuePair<string, ActivityIconManager.IconInfo> kv in ActivityIconManager.Instance.IconInfoByType)
             {
                 if (kv.Value?.Data != null && ShouldOwnActivityIcon(kv.Value.Data.LocationType))

@@ -823,6 +823,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3750072341304365007}
+  - component: {fileID: 5852121140677543628}
   m_Layer: 0
   m_Name: RevelationDevourItem
   m_TagString: Untagged
@@ -851,6 +852,31 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 104}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &5852121140677543628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8594841360156782290}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab66b32e8f1905d42a1c01ee129b5f71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Revelation.RevelationDevourItemBind
+  _gp_con: {fileID: 9138626751626562622}
+  _img_bg: {fileID: 3383157802943555506}
+  _img_icon: {fileID: 4029485757248842433}
+  effectGp: {fileID: 1545871759956716641}
+  star_group: {fileID: 3425756755839643178}
+  star_0: {fileID: 5389550813941094393}
+  star_1: {fileID: 5093514394359775870}
+  star_2: {fileID: 7850791937503936243}
+  star_3: {fileID: 1909340189158379024}
+  selectImg: {fileID: 2330397196214829038}
+  lvLb: {fileID: 5641765246767521919}
+  reddot: {fileID: 5010656931250667134}
+  _tpl_RevelationEquipItem: {fileID: 4494136508489639117}
 --- !u!1 &8860083620625170934
 GameObject:
   m_ObjectHideFlags: 0
@@ -1026,5 +1052,10 @@ PrefabInstance:
 --- !u!224 &609832909515612123 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 9160379762116084443, guid: 2ab0dc877d451ab4797c9304548bf6de, type: 3}
+  m_PrefabInstance: {fileID: 8599266220075523328}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4494136508489639117 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5262696163198220749, guid: 2ab0dc877d451ab4797c9304548bf6de, type: 3}
   m_PrefabInstance: {fileID: 8599266220075523328}
   m_PrefabAsset: {fileID: 0}

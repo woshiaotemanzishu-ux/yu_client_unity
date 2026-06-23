@@ -191,11 +191,21 @@ namespace Shenxiao.Framework.Net
 
         // ----- 首充(159xx 子集,yu_server pt_159.erl) -----
         /// <summary>首充信息。请求无参;回包 h+{Open:c,Index:c}×N + ProductId:i + IsNotify:c。</summary>
+        // ----- Recharge/VIP (158xx, yu_server pt_158.erl / pp_recharge.erl) -----
+        /// <summary>充值商品列表。请求无参;回包 h + {ProductId:i, ReturnType:c} x N。</summary>
+        public const int RECHARGE_PRODUCT_LIST = 15800;
+        /// <summary>充值商品返利状态变更。回包 ProductId:i, ReturnType:c。</summary>
+        public const int RECHARGE_PRODUCT_UPDATE = 15801;
+
         public const int FIRST_RECHARGE_INFO = 15905;
         /// <summary>领取首充奖励。发 "c"(index);回包 Errcode:i, Index:c。</summary>
         public const int FIRST_RECHARGE_CLAIM = 15906;
         /// <summary>是否已购首充。请求无参;回包 "c"(isBuy)。</summary>
         public const int FIRST_RECHARGE_ISBUY = 15908;
+
+        // ----- Custom activity (331xx, yu_client h5/src/commonController/CustomActivityController.ts) -----
+        /// <summary>Open custom activity list. Send empty; reply h + {base_type:h, sub_type:h, act_type:c, show_id:h, wlv:h, name:s, desc:s, condition:s, stime:i, etime:i}.</summary>
+        public const int CUSTOM_ACTIVITY_LIST = 33101;
 
         // ----- 周卡(452xx,yu_server pt_452.erl) -----
         /// <summary>周卡信息。请求无参;回包 Lv:h, Exp:i, IsActivity:c, GiftBagNum:h, CanReceiveGift:h, ExpiredTime:i。</summary>

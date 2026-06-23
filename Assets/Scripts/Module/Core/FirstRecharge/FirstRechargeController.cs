@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.MainUI;
 
 namespace Shenxiao.Module.Core.FirstRecharge
 {
@@ -26,6 +27,11 @@ namespace Shenxiao.Module.Core.FirstRecharge
         public void RequestInfo() => SendFmt(Proto.FIRST_RECHARGE_INFO);
         public void Claim(int index) => SendFmt(Proto.FIRST_RECHARGE_CLAIM, "c", index);
         public void QueryBuy() => SendFmt(Proto.FIRST_RECHARGE_ISBUY);
+        public void RequestStartupState()
+        {
+            RequestInfo();
+            QueryBuy();
+        }
 
         private void On15905(NetReader r)
         {
@@ -41,6 +47,7 @@ namespace Shenxiao.Module.Core.FirstRecharge
             int isNotify = r.ReadU8();
             FirstRechargeModel.Instance.SetInfo(slots, productId, isNotify != 0);
             GameLog.Info("FirstRecharge", "15905 首充信息: 档位={0} productId={1}", count, productId);
+            RefreshMainUIIcons();
             EventDispatcher.Emit(GlobalEvent.EVT_FIRST_RECHARGE_UPDATE);
         }
 
@@ -49,13 +56,24 @@ namespace Shenxiao.Module.Core.FirstRecharge
             int errcode = (int)r.ReadU32();
             int index = r.ReadU8();
             GameLog.Info("FirstRecharge", "15906 领取结果: errcode={0} index={1}", errcode, index);
-            if (errcode == 0) EventDispatcher.Emit(GlobalEvent.EVT_FIRST_RECHARGE_UPDATE);
+            if (errcode == 1)
+            {
+                RequestInfo();
+            }
         }
 
         private void On15908(NetReader r)
         {
             FirstRechargeModel.Instance.IsBuy = r.ReadU8() != 0;
+            RefreshMainUIIcons();
             EventDispatcher.Emit(GlobalEvent.EVT_FIRST_RECHARGE_UPDATE);
+        }
+
+        private static async void RefreshMainUIIcons()
+        {
+            FirstRechargeModel model = FirstRechargeModel.Instance;
+            string text = model.HasTomorrowReward() && !model.HasClaimableReward() ? "明天可领" : "";
+            await ActivityIconManager.Instance.RefreshFirstRechargeIconAsync(model.ShouldShowMainIcon(), text);
         }
     }
 }

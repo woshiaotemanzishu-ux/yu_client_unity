@@ -373,7 +373,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6299561772021724397}
-  - component: {fileID: 8148463848688121712}
   m_Layer: 0
   m_Name: BaseAwardItem
   m_TagString: Untagged
@@ -401,26 +400,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 130, y: 130}
   m_Pivot: {x: 0, y: 1}
---- !u!114 &8148463848688121712
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7900594220294169132}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cfc50c26486fe9149afa658397ac2193, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Common.BaseAwardItem
-  click_group: {fileID: 8312580230803570295}
-  item_bg: {fileID: 5481551573704865319}
-  icon: {fileID: 733544057291943332}
-  num_text: {fileID: 6685117242984208740}
-  lock: {fileID: 6029328211800747752}
-  select_image: {fileID: 3536070985539967006}
-  effect_con: {fileID: 575088733328532718}
-  time_limit: {fileID: 3168826165422438022}
 --- !u!1 &8496901203029747887
 GameObject:
   m_ObjectHideFlags: 0

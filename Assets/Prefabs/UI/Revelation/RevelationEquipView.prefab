@@ -2103,6 +2103,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6978641232413237902}
+  - component: {fileID: 515537113932336634}
   m_Layer: 0
   m_Name: RevelationEquipView
   m_TagString: Untagged
@@ -2153,6 +2154,48 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 720, y: 992}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &515537113932336634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6340395633640035885}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d14e687d1af95c14ca3d2bbf0f74a8c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Bag.RevelationEquipView
+  img_bg: {fileID: 623744222066065501}
+  img_line1: {fileID: 5591746943396655703}
+  img_line2: {fileID: 5686481924180313070}
+  effectGp1: {fileID: 4708674958583727323}
+  effectGp2: {fileID: 8666222709184546732}
+  gp_bag: {fileID: 3895913726241761329}
+  suitBtn: {fileID: 5660203549080003294}
+  getBtn: {fileID: 8610558486120070619}
+  comBtn: {fileID: 1777313494661698893}
+  comRed: {fileID: 8263795284426128199}
+  soulBtn: {fileID: 4443164374648004955}
+  devourRed: {fileID: 2542587854075405623}
+  propBtn: {fileID: 8604437517162544337}
+  _Image3: {fileID: 5566593175045882667}
+  _Image4: {fileID: 246124046181961545}
+  _Image5: {fileID: 8784817350971619946}
+  _Image6: {fileID: 4174608488973936591}
+  _Image7: {fileID: 2764417410540627455}
+  _Image8: {fileID: 601083328907429419}
+  _Image9: {fileID: 260609643355959217}
+  _Image10: {fileID: 8148032413378046388}
+  _Image11: {fileID: 5061895178508411683}
+  _Image12: {fileID: 4908251313728749713}
+  equipGp: {fileID: 6114399909278942544}
+  gp_fight: {fileID: 7770136360112124917}
+  _tpl_RevelationBagItem: {fileID: 8226213747496708599}
+  _tpl_FightingShowSmallItem: {fileID: 7137920745299508920}
+  _tpl_DemonMainView: {fileID: 6117292576526692313}
+  _tpl_longlanguageView: {fileID: 6469054267133726534}
+  _tpl_RevelationEquipItem: {fileID: 5453633255653764365}
 --- !u!1 &6991250731864877457
 GameObject:
   m_ObjectHideFlags: 0
@@ -2537,6 +2580,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8447301018641276709}
+  - component: {fileID: 4287143354073665974}
   m_Layer: 0
   m_Name: RevelationBagItem
   m_TagString: Untagged
@@ -2564,6 +2608,32 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 85, y: 85}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &4287143354073665974
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8226213747496708599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34c94e43fada24c44b5a419f91cbd7c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Revelation.RevelationBagItemBind
+  _gp_con: {fileID: 3603947081667475988}
+  _img_bg: {fileID: 9097589902654343143}
+  _img_icon: {fileID: 6415148881768575780}
+  effect1: {fileID: 4794965140638400069}
+  _gp_effect: {fileID: 3839852852858844905}
+  _img_bind: {fileID: 5933106753561189513}
+  _lb_count: {fileID: 1885361458679843201}
+  star_group: {fileID: 4507691210105159700}
+  star_0: {fileID: 2980297854908108334}
+  star_1: {fileID: 372912238899454871}
+  star_2: {fileID: 2021048812485573013}
+  star_3: {fileID: 5962413094503817198}
+  ban: {fileID: 6088779529820566927}
+  img_up: {fileID: 5859814317913770359}
 --- !u!1 &8608165321865863560
 GameObject:
   m_ObjectHideFlags: 0
@@ -2992,6 +3062,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2ab0dc877d451ab4797c9304548bf6de, type: 3}
+--- !u!1 &5453633255653764365 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5262696163198220749, guid: 2ab0dc877d451ab4797c9304548bf6de, type: 3}
+  m_PrefabInstance: {fileID: 191377464042345664}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &9045440363692103195 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 9160379762116084443, guid: 2ab0dc877d451ab4797c9304548bf6de, type: 3}
@@ -3099,6 +3174,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2483005436536950011, guid: 9ec5b1ac406c96941aaf67834aadd817, type: 3}
   m_PrefabInstance: {fileID: 1572094658661335335}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &6117292576526692313 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4698889330407354110, guid: 9ec5b1ac406c96941aaf67834aadd817, type: 3}
+  m_PrefabInstance: {fileID: 1572094658661335335}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5516870681028239340
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3201,6 +3281,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2059338070262766774, guid: cb559e0fd51f3e6488b24247acc51f61, type: 3}
   m_PrefabInstance: {fileID: 5516870681028239340}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &6469054267133726534 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1533878314615148714, guid: cb559e0fd51f3e6488b24247acc51f61, type: 3}
+  m_PrefabInstance: {fileID: 5516870681028239340}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &6975460102584445881
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3301,5 +3386,10 @@ PrefabInstance:
 --- !u!224 &6876286475806302963 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4584851472582527306, guid: ba281e381b37c6941a41a2b674224305, type: 3}
+  m_PrefabInstance: {fileID: 6975460102584445881}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &7137920745299508920 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 271109983893148929, guid: ba281e381b37c6941a41a2b674224305, type: 3}
   m_PrefabInstance: {fileID: 6975460102584445881}
   m_PrefabAsset: {fileID: 0}

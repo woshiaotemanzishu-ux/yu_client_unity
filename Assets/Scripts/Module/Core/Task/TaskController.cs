@@ -97,6 +97,7 @@ namespace Shenxiao.Module.Core.Tasks
             int taskId = (int)r.ReadU32();
             TaskModel.Instance.SetNewestFinishTaskId(taskId);
             GameLog.Info("Task", "30005 newest finish task id={0}", taskId);
+            EventDispatcher.Emit(GlobalEvent.EVT_TASK_LIST_UPDATED);
             EventDispatcher.Emit(GlobalEvent.EVT_GAME_START_FLAG_READY, "30005");
         }
 

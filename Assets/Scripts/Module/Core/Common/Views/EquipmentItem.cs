@@ -1,4 +1,5 @@
 using System;
+using Shenxiao.Framework.Res;
 using Shenxiao.Generated.UI.Common;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
@@ -31,7 +32,7 @@ namespace Shenxiao.Module.Core.Common
             BindClick();
         }
 
-        /// <summary>填装备(对标 SetData 核心:type_id + 数量 + 锁 + 选中)。图标/品质/强化/星级待 EquipModel/GoodsModel。</summary>
+        /// <summary>填装备/物品(对标 SetData 核心:type_id + 数量 + 锁 + 选中)。</summary>
         public void SetData(int typeId, long num, bool isLock = false, bool select = false)
         {
             _typeId = typeId;
@@ -76,9 +77,42 @@ namespace Shenxiao.Module.Core.Common
 
         private void RefreshIcon()
         {
-            // TODO 待对接 EquipModel/GoodsModel:type_id→goods_icon/品质 color/强化 stren/品阶 grade/星级/觉醒…
-            if (_typeId != 0)
-                GameLog.Info("Common", "EquipmentItem typeId={0} 图标/品质/强化/星级 待对接 EquipModel/GoodsModel", _typeId);
+            RefreshIconAsync();
+        }
+
+        private async void RefreshIconAsync()
+        {
+            int typeId = _typeId;
+            if (icon == null) return;
+            if (typeId <= 0)
+            {
+                icon.enabled = false;
+                return;
+            }
+
+            GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(typeId);
+            if (basic == null)
+            {
+                icon.enabled = false;
+                GameLog.Warn("Common", "EquipmentItem typeId={0} 不在 config_goods(或未加载)→ 图标降级隐藏", typeId);
+                return;
+            }
+
+            if (item_bg != null)
+            {
+                string plateKey = GameResPath.GetIcon("common", "com_goods_plate_" + GoodsModel.GetDisplayColor(typeId));
+                await ResManager.SetImageAsync(item_bg, plateKey, false, false);
+                if (_typeId != typeId) return;
+            }
+
+            string iconPath = GameResPath.GetGoodsIconPath(basic.Icon);
+            bool ok = await ResManager.SetImageAsync(icon, iconPath, false, false);
+            if (_typeId != typeId) return;
+            icon.enabled = ok;
+            if (!ok)
+            {
+                GameLog.Warn("Common", "EquipmentItem 物品[{0}]{1} 图标未加载: key={2}", typeId, basic.Name, iconPath);
+            }
         }
 
         private void BindClick()

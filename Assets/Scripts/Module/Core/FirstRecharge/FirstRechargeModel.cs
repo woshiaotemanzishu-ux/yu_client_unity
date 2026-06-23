@@ -39,5 +39,58 @@ namespace Shenxiao.Module.Core.FirstRecharge
             IsNotify = false;
             IsBuy = false;
         }
+
+        public bool IsDoneFirstRecharge()
+        {
+            for (int i = 0; i < Slots.Count; i++)
+            {
+                int open = Slots[i].Open;
+                if (open != 0 && open != 5) return true;
+            }
+            return IsBuy;
+        }
+
+        public bool IsDoneAllReward()
+        {
+            if (Slots.Count == 0) return false;
+            for (int i = 0; i < Slots.Count; i++)
+            {
+                if (Slots[i].Open != 4) return false;
+            }
+            return true;
+        }
+
+        public bool IsNoFirstRecharge()
+        {
+            if (Slots.Count == 0) return !IsBuy;
+            for (int i = 0; i < Slots.Count; i++)
+            {
+                if (Slots[i].Open == 0) return true;
+            }
+            return false;
+        }
+
+        public bool HasClaimableReward()
+        {
+            for (int i = 0; i < Slots.Count; i++)
+            {
+                if (Slots[i].Open == 1) return true;
+            }
+            return false;
+        }
+
+        public bool HasTomorrowReward()
+        {
+            for (int i = 0; i < Slots.Count; i++)
+            {
+                if (Slots[i].Open == 2) return true;
+            }
+            return false;
+        }
+
+        public bool ShouldShowMainIcon()
+        {
+            return Slots.Count > 0 && !IsDoneAllReward();
+        }
     }
 }

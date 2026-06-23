@@ -347,6 +347,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9160379762116084443}
+  - component: {fileID: 7072721305822373885}
   m_Layer: 0
   m_Name: RevelationEquipItem
   m_TagString: Untagged
@@ -374,6 +375,27 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 104}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &7072721305822373885
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5262696163198220749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2baced1cd8737eb4781784b1e3674346, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Revelation.RevelationEquipItemBind
+  _gp_con: {fileID: 3756022824495940382}
+  _img_bg: {fileID: 6364342228719282655}
+  _img_icon: {fileID: 5777244081406655264}
+  effectGp: {fileID: 2972508706532554584}
+  star_group: {fileID: 1468436551629652128}
+  star_0: {fileID: 739795065637259941}
+  star_1: {fileID: 539620585436391584}
+  star_2: {fileID: 8303171511175328608}
+  star_3: {fileID: 7531170344585934388}
 --- !u!1 &5451997972575597593
 GameObject:
   m_ObjectHideFlags: 0

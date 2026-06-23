@@ -7,6 +7,7 @@ using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.Dialogue;
+using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Tasks;
 using UnityEngine;
 
@@ -25,15 +26,20 @@ namespace Shenxiao.Module.Core.Dialogue
         private Task<bool> _loadTask;
         private CancellationTokenSource _timerCts;
         private Action _timerAction;
+        private readonly List<GameObject> _rewardCells = new List<GameObject>();
 
         private NpcDialogVo _vo;
         private int _dialogIndex;
         private int _openEpoch;
         private int _modelEpoch;
+        private int _rewardEpoch;
         private int _time;
+        private bool _layersHidden;
+        private bool _mainLayerWasActive;
+        private bool _windowLayerWasActive;
 
-        private const float MODEL_SCALE = 1.0f;
-        private static readonly Vector2 MODEL_POS = new Vector2(0f, 0f);
+        private const float MODEL_BASE_SCALE = 0.675f;
+        private static readonly Vector2 MODEL_POS = new Vector2(0f, 0.25f);
 
         public void Open(NpcDialogVo vo)
         {
@@ -47,11 +53,13 @@ namespace Shenxiao.Module.Core.Dialogue
         {
             ++_openEpoch;
             CancelTimer();
+            ClearRewardCells();
             _modelEpoch++;
             UIModelStage.Clear();
 
             if (_bind != null) _bind.Hide();
             if (_moduleRoot != null) _moduleRoot.SetActive(false);
+            RestoreMainLayers();
 
             DialogueModel.Instance.DialogIsOpen = false;
             DialogueModel.Instance.CurrentNpcId = 0;
@@ -66,6 +74,7 @@ namespace Shenxiao.Module.Core.Dialogue
             _moduleRoot.SetActive(true);
             _bind.Show();
             _bind.transform.SetAsLastSibling();
+            SetMainLayersVisible(false);
 
             DialogueModel.Instance.DialogIsOpen = true;
             DialogueModel.Instance.CurrentNpcId = _vo.NpcId;
@@ -110,6 +119,7 @@ namespace Shenxiao.Module.Core.Dialogue
                 GameLog.Error("Dialogue", "DialogueModule missing DialogueViewBind. Run dialogue LayaUI convert + bind backfill.");
                 return false;
             }
+            if (_bind._tpl_EquipmentItem != null) _bind._tpl_EquipmentItem.SetActive(false);
 
             _moduleRoot.SetActive(false);
             return true;
@@ -140,9 +150,10 @@ namespace Shenxiao.Module.Core.Dialogue
                 : (_vo.TalkCfg == null ? "(talk_id=" + _vo.TalkId + " has no config text)" : "");
             if (_bind._lb_content != null) _bind._lb_content.text = body;
 
-            bool hasReward = !string.IsNullOrEmpty(_vo.RewardSummary);
+            bool hasReward = _vo.Rewards != null && _vo.Rewards.Count > 0;
             SetActive(_bind._box_award_con, hasReward);
             if (_bind._lb_award != null) _bind._lb_award.text = hasReward ? "奖励:" + _vo.RewardSummary.Replace("\n", "  ") : "";
+            _ = BuildRewardCells(_vo.Rewards);
 
             if (actionNodes.Count > 0)
             {
@@ -151,7 +162,7 @@ namespace Shenxiao.Module.Core.Dialogue
                 {
                     DialogueController.Instance.ClickAnswerHandler(_vo, node);
                     Close();
-                }, IsFinishAction(node.Type));
+                }, UseRewardGetPanel(node.Type));
                 return;
             }
 
@@ -161,7 +172,7 @@ namespace Shenxiao.Module.Core.Dialogue
                 ShowGetButton(TaskActionText(task.TaskState), () =>
                 {
                     DialogueController.Instance.SelectTask(_vo.NpcId, task.TaskId, task.TaskState);
-                }, task.TaskState == 3);
+                }, true);
                 return;
             }
 
@@ -190,7 +201,7 @@ namespace Shenxiao.Module.Core.Dialogue
         private void ShowGetButton(string text, Action onClick, bool isTaskFinish)
         {
             SetActive(_bind._box_dialog_con, !isTaskFinish);
-            SetActive(_bind._box_get_con, true);
+            SetActive(_bind._box_get_con, isTaskFinish);
             SetActive(_bind._box_go_on, false);
             SetActive(_bind._box_skip, true);
 
@@ -230,6 +241,45 @@ namespace Shenxiao.Module.Core.Dialogue
                 return;
             }
             Render();
+        }
+
+        private async Task BuildRewardCells(IReadOnlyList<TaskReward.Entry> rewards)
+        {
+            int epoch = ++_rewardEpoch;
+            ClearRewardCells(false);
+            if (_bind == null || _bind._box_award_con == null || _bind._tpl_EquipmentItem == null) return;
+            if (rewards == null || rewards.Count == 0) return;
+
+            for (int i = 0; i < rewards.Count; i++)
+            {
+                GameObject cellGo = UnityEngine.Object.Instantiate(_bind._tpl_EquipmentItem, _bind._box_award_con);
+                if (epoch != _rewardEpoch)
+                {
+                    UnityEngine.Object.Destroy(cellGo);
+                    return;
+                }
+                cellGo.SetActive(true);
+
+                EquipmentItem cell = cellGo.GetComponent<EquipmentItem>();
+                if (cell == null)
+                {
+                    GameLog.Warn("Dialogue", "EquipmentItem template missing EquipmentItem component. Run dialogue/common bind backfill.");
+                    UnityEngine.Object.Destroy(cellGo);
+                    continue;
+                }
+
+                cell.Show();
+                RectTransform rt = (RectTransform)cellGo.transform;
+                rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
+                rt.pivot = new Vector2(0f, 1f);
+                rt.anchoredPosition = new Vector2(i * 90f, 0f);
+                cell.SetScale(0.6f);
+                cell.SetData(rewards[i].TypeId, rewards[i].Count);
+                _rewardCells.Add(cellGo);
+
+                await Task.Yield();
+                if (epoch != _rewardEpoch) return;
+            }
         }
 
         private void StartAutoTimer(bool showFinishText, Action action, int seconds)
@@ -290,6 +340,16 @@ namespace Shenxiao.Module.Core.Dialogue
             if (_bind?._lb_go_on_time != null) _bind._lb_go_on_time.text = "";
         }
 
+        private void ClearRewardCells(bool bumpEpoch = true)
+        {
+            if (bumpEpoch) _rewardEpoch++;
+            for (int i = 0; i < _rewardCells.Count; i++)
+            {
+                if (_rewardCells[i] != null) UnityEngine.Object.Destroy(_rewardCells[i]);
+            }
+            _rewardCells.Clear();
+        }
+
         private async Task ShowNpcModel(int npcId)
         {
             if (_bind?._box_model == null) return;
@@ -311,7 +371,8 @@ namespace Shenxiao.Module.Core.Dialogue
             }
 
             GameObject instance = UnityEngine.Object.Instantiate(prefab);
-            UIModelStage.ShowInstance(_bind._box_model, instance, MODEL_SCALE, MODEL_POS);
+            float talkScale = cfg != null && cfg.TalkScale > 0f ? cfg.TalkScale : 1f;
+            UIModelStage.ShowInstance(_bind._box_model, instance, MODEL_BASE_SCALE * talkScale, MODEL_POS);
             await PlayNpcIdle(instance, modelModule, modelResId);
         }
 
@@ -331,6 +392,14 @@ namespace Shenxiao.Module.Core.Dialogue
         private static bool IsFinishAction(int type)
         {
             return type == DialogueTypeConst.FINISH || type == DialogueTypeConst.FINISH_AND_TRIGGER;
+        }
+
+        private static bool UseRewardGetPanel(int type)
+        {
+            return type == DialogueTypeConst.FINISH
+                   || type == DialogueTypeConst.FINISH_AND_TRIGGER
+                   || type == DialogueTypeConst.TRIGGER_AND_FINISH
+                   || type == DialogueTypeConst.TALK_EVENT;
         }
 
         private static string ActionDefaultText(int type)
@@ -366,6 +435,30 @@ namespace Shenxiao.Module.Core.Dialogue
         private static void SetActive(GameObject go, bool active)
         {
             if (go != null) go.SetActive(active);
+        }
+
+        private void SetMainLayersVisible(bool visible)
+        {
+            Transform main = ViewManager.GetLayer(UILayer.Main);
+            Transform window = ViewManager.GetLayer(UILayer.Window);
+            if (!_layersHidden)
+            {
+                _mainLayerWasActive = main == null || main.gameObject.activeSelf;
+                _windowLayerWasActive = window == null || window.gameObject.activeSelf;
+                _layersHidden = true;
+            }
+            if (main != null) main.gameObject.SetActive(visible);
+            if (window != null) window.gameObject.SetActive(visible);
+        }
+
+        private void RestoreMainLayers()
+        {
+            if (!_layersHidden) return;
+            Transform main = ViewManager.GetLayer(UILayer.Main);
+            Transform window = ViewManager.GetLayer(UILayer.Window);
+            if (main != null) main.gameObject.SetActive(_mainLayerWasActive);
+            if (window != null) window.gameObject.SetActive(_windowLayerWasActive);
+            _layersHidden = false;
         }
     }
 }

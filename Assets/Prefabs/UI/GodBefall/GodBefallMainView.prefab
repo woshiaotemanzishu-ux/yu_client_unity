@@ -937,6 +937,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6734939765485570693}
+  - component: {fileID: 5621887055354999657}
   m_Layer: 0
   m_Name: GodBefallTabBtn
   m_TagString: Untagged
@@ -964,6 +965,25 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 196, y: 64}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &5621887055354999657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 752652457021660812}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78f3c544165523b47976bd8fc59387bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.GodBefall.GodBefallTabBtnBind
+  _box_con: {fileID: 91497872562869919}
+  _img_bg: {fileID: 2291414081693968499}
+  _lb_name: {fileID: 3781063377462184075}
+  _img_arrow: {fileID: -225891089656554018}
+  _img_icon: {fileID: 262804574862475397}
+  _box_sub_con: {fileID: 9030797675861944259}
+  _img_red: {fileID: 5211049214637907720}
 --- !u!1 &794592662344253691
 GameObject:
   m_ObjectHideFlags: 0
@@ -1337,6 +1357,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6941195778325382675}
+  - component: {fileID: 5010788772114782672}
   m_Layer: 0
   m_Name: GodBefallMainView
   m_TagString: Untagged
@@ -1381,6 +1402,98 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 720, y: 991}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &5010788772114782672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1104065678711801670}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ce65eefeeb9dfc4cba019107bef63a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.GodBefall.GodBefallMainViewBind
+  _box_model: {fileID: 101444922034479038}
+  _box_fight: {fileID: 7859529445179882541}
+  _box_trans: {fileID: 5944334696600490143}
+  _img_trans: {fileID: 2896626587750473855}
+  _img_equip: {fileID: 7169084858776649914}
+  _img_equip_red: {fileID: 3770710375027400848}
+  _img_stren_tab: {fileID: 4517693863658365064}
+  _lb_stren_tab: {fileID: 8571268895697505666}
+  _img_stren_tab_red: {fileID: 2099850440558573209}
+  _img_star_tab: {fileID: 7860287063859684449}
+  _lb_star_tab: {fileID: 3248283126721849041}
+  _img_star_tab_red: {fileID: 3760691513554156272}
+  _img_awaken_tab: {fileID: 8321453547697972994}
+  _lb_awaken_tab: {fileID: 4572556265357497837}
+  _img_awaken_tab_red: {fileID: 8595974102277983051}
+  _box_tab: {fileID: 207472116670608142}
+  _box_equip: {fileID: 3654017714389881819}
+  _box_awaken_equip: {fileID: 7427249175943453620}
+  _Group3: {fileID: 4850402349802788184}
+  compose_gp: {fileID: 3911884213180606901}
+  compose_img: {fileID: 6026630802325207788}
+  auto_compose_red: {fileID: 9047608011612419504}
+  shenge_gp: {fileID: 5923177664506804791}
+  shenge_img: {fileID: 4025730742867575213}
+  shenge_red: {fileID: 1084852876421995388}
+  shenge_img1: {fileID: 1629998302132653461}
+  _box_stren_con: {fileID: 8852834449195342637}
+  _box_stren_skill: {fileID: 4952711773507932082}
+  _panel_stren_attr: {fileID: 8268077138745067021}
+  _html_stren_attr: {fileID: 1011123846138204893}
+  _html_stren_attr2: {fileID: 6851914097546109379}
+  _lb_stren_lv: {fileID: 2386598300647812516}
+  _img_stren_progress: {fileID: 3596022634189439898}
+  _lb_stren_tips: {fileID: 7575468510438591171}
+  _html_stren_desc: {fileID: 5146067835681767679}
+  _box_stren_cost_item: {fileID: 7488373515628580851}
+  _img_stren_btn: {fileID: 6844014273301701697}
+  _lb_stren_btn: {fileID: 8745608724504577596}
+  _img_stren_btn_red: {fileID: 74638226546059443}
+  _lb_stren_value: {fileID: 2171985783075404289}
+  _img_stren_full_level: {fileID: 7288706211009480382}
+  _box_star_con: {fileID: 1401788660824658234}
+  _panel_star_attr: {fileID: 3830161816041491948}
+  _html_star_attr: {fileID: 8310692540223721084}
+  _html_star_attr2: {fileID: 1784207056675967960}
+  _box_star_talent: {fileID: 5465815755626869601}
+  _lb_star_tips: {fileID: 7507924794604223026}
+  _html_star_desc: {fileID: 8732354673191724862}
+  _box_star_cost_item: {fileID: 5768437729667694565}
+  _img_star_btn: {fileID: 1896819039512861082}
+  _img_star_btn_red: {fileID: 7921304193083979742}
+  _img_star_full_level: {fileID: 1572027878346424753}
+  _img_cur_star: {fileID: 3571573678508571437}
+  _img_next_star: {fileID: 5409251013869561599}
+  _img_star_arrow: {fileID: 833528593887850503}
+  _box_awaken_con: {fileID: 5407607673654357801}
+  _img_awaken_lv: {fileID: 32385700487977493}
+  _img_awaken_lv2: {fileID: 8582941094750563315}
+  _panel_awaken_attr: {fileID: 5639787974103373235}
+  _html_awaken_attr: {fileID: 4950461943995203469}
+  _html_awaken_attr2: {fileID: 7406910130600731876}
+  _img_awaken_btn2: {fileID: 1517152550246189741}
+  _lb_awaken_btn2: {fileID: 3648317691797826457}
+  _img_awaken_btn2_red: {fileID: 6097726268352136157}
+  _img_awaken_btn: {fileID: 2436534336061219026}
+  _img_awaken_btn_red: {fileID: 6429657076850816720}
+  _img_awaken_full_level: {fileID: 7779602943069925443}
+  _img_awaken_tips_bg: {fileID: 7116862849349312794}
+  _html_awaken_tips: {fileID: 1915514628221685198}
+  _img_recovery: {fileID: 434397176183423253}
+  _img_recovery_red: {fileID: 7688835711178560397}
+  _img_synthesis: {fileID: 6968266635799478780}
+  _img_synthesis_red: {fileID: 7933277169512633750}
+  _tpl_GodBefallTabBtn: {fileID: 752652457021660812}
+  _tpl_GodBefallTabSubBtn: {fileID: 8248247717203834536}
+  _tpl_BaseAwardItem: {fileID: 2967905901108769969}
+  _tpl_FightingShowSmallItem: {fileID: 8878899283631365552}
+  _tpl_GodBefallEquipItem: {fileID: 4128369082191618563}
+  _tpl_GodBefallSkillItem: {fileID: 3048836018524263358}
+  _tpl_UIVerTabBar: {fileID: 205627489163593775}
 --- !u!1 &1217786940313345990
 GameObject:
   m_ObjectHideFlags: 0
@@ -7496,6 +7609,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3292841030208246421}
+  - component: {fileID: 3413971900451534143}
   m_Layer: 0
   m_Name: GodBefallTabSubBtn
   m_TagString: Untagged
@@ -7523,6 +7637,26 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 128}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &3413971900451534143
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8248247717203834536}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fc02170ddb36ee4badfa6da3b5216c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.GodBefall.GodBefallTabSubBtnBind
+  _box_con: {fileID: 4280833005229896508}
+  _img_select: {fileID: 8660144655483836247}
+  _img_bg: {fileID: 7283515976026911160}
+  _img_icon: {fileID: 530913916868312963}
+  _img_bg2: {fileID: 8927302115776921574}
+  _lb_name: {fileID: 4789095490639316376}
+  _img_tips: {fileID: 1885867589465319278}
+  _img_red: {fileID: 8353322099651927599}
 --- !u!1 &8370244198315201686
 GameObject:
   m_ObjectHideFlags: 0
@@ -8713,6 +8847,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 620e3a9b175b4254687becd51658682e, type: 3}
+--- !u!1 &205627489163593775 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 900583501881556614, guid: 620e3a9b175b4254687becd51658682e, type: 3}
+  m_PrefabInstance: {fileID: 1055261717079848617}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &8956163395340177053 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8282020590345746484, guid: 620e3a9b175b4254687becd51658682e, type: 3}
@@ -8815,6 +8954,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 65551be560bfa0043b0e1e03b8ebf038, type: 3}
+--- !u!1 &3048836018524263358 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7590282944258257607, guid: 65551be560bfa0043b0e1e03b8ebf038, type: 3}
+  m_PrefabInstance: {fileID: 4835104771074826617}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &4509945401965970678 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 9047508833636754831, guid: 65551be560bfa0043b0e1e03b8ebf038, type: 3}
@@ -8922,6 +9066,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6299561772021724397, guid: 39fc659b34b1fb646b7cbed26e2442d2, type: 3}
   m_PrefabInstance: {fileID: 4941735377896265373}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2967905901108769969 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7900594220294169132, guid: 39fc659b34b1fb646b7cbed26e2442d2, type: 3}
+  m_PrefabInstance: {fileID: 4941735377896265373}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5203832598561047944
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9024,6 +9173,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5086973600084036736, guid: 912516feb9851254b9fb7bc1087ac825, type: 3}
   m_PrefabInstance: {fileID: 5203832598561047944}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &4128369082191618563 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8177784736126134155, guid: 912516feb9851254b9fb7bc1087ac825, type: 3}
+  m_PrefabInstance: {fileID: 5203832598561047944}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8717564540924070065
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9124,5 +9278,10 @@ PrefabInstance:
 --- !u!224 &5141889063550665211 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4584851472582527306, guid: ba281e381b37c6941a41a2b674224305, type: 3}
+  m_PrefabInstance: {fileID: 8717564540924070065}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &8878899283631365552 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 271109983893148929, guid: ba281e381b37c6941a41a2b674224305, type: 3}
   m_PrefabInstance: {fileID: 8717564540924070065}
   m_PrefabAsset: {fileID: 0}

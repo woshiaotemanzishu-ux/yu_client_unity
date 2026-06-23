@@ -1,7 +1,9 @@
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Framework.Event;
+using Shenxiao.Framework.UI;
 using Shenxiao.Module.Core.AutoBrush;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.MainUI
 {
@@ -14,6 +16,7 @@ namespace Shenxiao.Module.Core.MainUI
     public sealed class MainUIAutoBrushView : MainUIAutoBrushViewBind
     {
         private float _progressWidth;
+        private bool _clickBound;
 
         protected override void OnInit()
         {
@@ -21,6 +24,7 @@ namespace Shenxiao.Module.Core.MainUI
             _img_red.gameObject.SetActive(false);
             _img_red2.gameObject.SetActive(false);
             _box_effect.gameObject.SetActive(false);
+            BindClicks();
 
             EventDispatcher.On(GlobalEvent.EVT_AUTOBRUSH_INFO_UPDATED, RefreshBrushInfo);
             EventDispatcher.On(GlobalEvent.EVT_AUTOBRUSH_LEVEL_UPDATED, RefreshLevel);
@@ -95,6 +99,28 @@ namespace Shenxiao.Module.Core.MainUI
             Vector2 size = _img_progress.rectTransform.sizeDelta;
             size.x = Mathf.Max(0f, width);
             _img_progress.rectTransform.sizeDelta = size;
+        }
+
+        private void BindClicks()
+        {
+            if (_clickBound) return;
+            BindRoute(click_gp, "autobrush");
+            BindRoute(_img_auto_level, "autobrush");
+            _clickBound = true;
+        }
+
+        private static void BindRoute(Component target, string viewKey)
+        {
+            if (target == null) return;
+            Graphic graphic = target as Graphic;
+            if (graphic == null) graphic = target.GetComponent<Graphic>();
+            if (graphic == null)
+            {
+                Image image = target.gameObject.AddComponent<Image>();
+                image.color = new Color(1f, 1f, 1f, 0f);
+                graphic = image;
+            }
+            UIUtil.AddClick(graphic, () => MainUIRouter.Open(viewKey));
         }
     }
 }

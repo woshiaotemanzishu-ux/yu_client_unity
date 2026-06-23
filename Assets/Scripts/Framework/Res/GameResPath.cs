@@ -45,7 +45,7 @@ namespace Shenxiao.Framework.Res
             => "resource/effect/objs/" + effectType + "/" + resName + ".lh";
 
         public static string GetUIEffectPath(string resName)
-            => "resource/effect/objs/ui_effect/" + resName + ".lh";
+            => "effect/objs/ui_effect/" + resName + "/" + resName + ".lh";
 
         // ---------- Fonts ----------
 

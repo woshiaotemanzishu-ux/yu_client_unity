@@ -796,6 +796,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5687490616326126106}
+  - component: {fileID: 7054028439041748413}
   m_Layer: 0
   m_Name: TopVipShopItem
   m_TagString: Untagged
@@ -831,6 +832,36 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 183, y: 230}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &7054028439041748413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4643215552268982164}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27a0681d0fba7754bafe27b0e9e9f770, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.TopVip.TopVipShopItemBind
+  bg_img: {fileID: 8318050348616633826}
+  name_lb: {fileID: 2354538183307616425}
+  item_gp: {fileID: 7933810766755797529}
+  buy_gp: {fileID: 5675824132578688745}
+  buy_img: {fileID: 8272882337070051182}
+  buy_lb: {fileID: 7339111602274587373}
+  price_lb: {fileID: 6199313098389128862}
+  diamond_img: {fileID: 7898092453482559600}
+  buyed_gp: {fileID: 5855186083070470168}
+  _Image1: {fileID: 6130822557413124540}
+  _Label1: {fileID: 1171499071727043662}
+  limit_gp: {fileID: 6889302504102729833}
+  image: {fileID: 2916089912543355866}
+  _Label2: {fileID: 5384661893112799511}
+  can_buy_num_lb: {fileID: 7341047306909524530}
+  forecast_lb: {fileID: 3969470998817734709}
+  forecast_img: {fileID: 8920526605038820663}
+  _tpl_BaseAwardItem: {fileID: 6650391028154355755}
 --- !u!1 &5295630339218305306
 GameObject:
   m_ObjectHideFlags: 0
@@ -1811,6 +1842,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 39fc659b34b1fb646b7cbed26e2442d2, type: 3}
+--- !u!1 &6650391028154355755 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7900594220294169132, guid: 39fc659b34b1fb646b7cbed26e2442d2, type: 3}
+  m_PrefabInstance: {fileID: 3597923044115788295}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &7386723608192255722 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6299561772021724397, guid: 39fc659b34b1fb646b7cbed26e2442d2, type: 3}

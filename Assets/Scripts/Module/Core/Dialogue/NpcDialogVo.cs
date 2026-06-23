@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Shenxiao.Module.Core.Tasks;
 
 namespace Shenxiao.Module.Core.Dialogue
 {
@@ -18,6 +19,7 @@ namespace Shenxiao.Module.Core.Dialogue
 
         /// <summary>任务奖励摘要(special_goods_list/award_list 经 TaskReward 按职业过滤解析;空串=无可展示奖励)。</summary>
         public string RewardSummary = "";
+        public List<TaskReward.Entry> Rewards = new List<TaskReward.Entry>();
 
         /// <summary>12101:npc_id + task_list,对话 id 取 NPC 默认对话(InitVo)。</summary>
         public void Set12101Scmd(int npcId, List<DialogueTaskEntry> taskList)

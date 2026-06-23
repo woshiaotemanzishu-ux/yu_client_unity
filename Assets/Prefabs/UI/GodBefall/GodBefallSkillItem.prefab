@@ -557,6 +557,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9047508833636754831}
+  - component: {fileID: 3084068845853227676}
   m_Layer: 0
   m_Name: GodBefallSkillItem
   m_TagString: Untagged
@@ -584,6 +585,25 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 72, y: 72}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &3084068845853227676
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7590282944258257607}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf39eb425953c48438ab636a84e2593a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.GodBefall.GodBefallSkillItem
+  _box_con: {fileID: 4781889316553390054}
+  _img_icon: {fileID: 4664626909151273468}
+  _img_icon2: {fileID: 3911618363714560544}
+  _box_lock: {fileID: 3029871071425834028}
+  _lb_lock: {fileID: 4341538748707347138}
+  _img_skill_tag: {fileID: 975211277258847536}
+  _img_new: {fileID: 5894288925967432308}
 --- !u!1 &7674071188548451988
 GameObject:
   m_ObjectHideFlags: 0
