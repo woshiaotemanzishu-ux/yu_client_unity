@@ -238,6 +238,10 @@ namespace Shenxiao.Module.Core.Scene
         // SetMainRoleScreenOffset)—— 故名牌随地图/相机/NPC 一起锚在地图上。精确竖直贴合属"待真机微调"。
         private const float NAMEPLATE_HEAD_OFFSET = 150f; // 名牌相对脚底锚点上移(参考像素;头顶高度,实跑可调)
 
+        private const float BODY_HIT_HALF_WIDTH = 95f;
+        private const float BODY_HIT_BOTTOM = -25f;
+        private const float BODY_HIT_TOP = 225f;
+
         private static RectTransform _nameplateRoot;
         private static TMP_FontAsset _font;
         private static Material _fontMat;
@@ -276,6 +280,76 @@ namespace Shenxiao.Module.Core.Scene
             float sx = view.Vo.X - cam.x;
             float sy = -(view.Vo.Y - cam.y);
             view.NameplateRt.anchoredPosition = new Vector2(sx, sy + NAMEPLATE_HEAD_OFFSET);
+        }
+
+        internal static bool TryHitNpc(Vector2 screenPosition, out NpcVo npc)
+        {
+            npc = null;
+            if (_views.Count == 0) return false;
+            if (!ScreenToSceneLocal(screenPosition, out Vector2 sceneLocal)) return false;
+
+            NpcView best = null;
+            float bestScore = float.MaxValue;
+            Camera eventCamera = GetEventCamera();
+            foreach (NpcView view in _views.Values)
+            {
+                if (view == null || !view.Loaded || view.Vo == null) continue;
+
+                Vector2 foot = SceneLocalPosition(view.Vo.X, view.Vo.Y);
+                bool bodyHit = IsBodyHit(sceneLocal, foot);
+                bool nameHit = view.NameplateRt != null
+                    && RectTransformUtility.RectangleContainsScreenPoint(view.NameplateRt, screenPosition, eventCamera);
+                if (!bodyHit && !nameHit) continue;
+
+                Vector2 center = new Vector2(foot.x, foot.y + NAMEPLATE_HEAD_OFFSET * 0.5f);
+                float score = (sceneLocal - center).sqrMagnitude;
+                if (nameHit) score -= 100000f;
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    best = view;
+                }
+            }
+
+            npc = best?.Vo;
+            return npc != null;
+        }
+
+        private static bool IsBodyHit(Vector2 sceneLocal, Vector2 foot)
+        {
+            float dx = Mathf.Abs(sceneLocal.x - foot.x);
+            float dy = sceneLocal.y - foot.y;
+            return dx <= BODY_HIT_HALF_WIDTH && dy >= BODY_HIT_BOTTOM && dy <= BODY_HIT_TOP;
+        }
+
+        private static Vector2 SceneLocalPosition(int x, int y)
+        {
+            Vector2 cam = SceneMapView.CameraPos;
+            return new Vector2(x - cam.x, -(y - cam.y));
+        }
+
+        private static bool ScreenToSceneLocal(Vector2 screenPosition, out Vector2 local)
+        {
+            RectTransform sceneLayer = ViewManager.GetLayer(UILayer.Scene) as RectTransform;
+            if (sceneLayer == null)
+            {
+                local = screenPosition - new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+                return true;
+            }
+
+            return RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                sceneLayer,
+                screenPosition,
+                GetEventCamera(),
+                out local);
+        }
+
+        private static Camera GetEventCamera()
+        {
+            Transform sceneLayer = ViewManager.GetLayer(UILayer.Scene);
+            Canvas canvas = sceneLayer != null ? sceneLayer.GetComponentInParent<Canvas>() : null;
+            if (canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay) return null;
+            return canvas.worldCamera;
         }
 
         private static void DestroyNameplate(NpcView view)

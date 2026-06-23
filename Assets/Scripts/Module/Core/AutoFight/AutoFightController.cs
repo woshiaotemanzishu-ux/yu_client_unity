@@ -5,7 +5,9 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Scene;
+using Shenxiao.Module.Core.Scene.Vo;
 using Shenxiao.Module.Core.Skill;
+using Shenxiao.Module.Core.Tasks;
 
 namespace Shenxiao.Module.Core.AutoFight
 {
@@ -108,19 +110,33 @@ namespace Shenxiao.Module.Core.AutoFight
             AutoFightModel model = AutoFightModel.Instance;
             if (!model.AutoFightState || model.TempMode || !NetManager.IsConnected) return;
 
-            SkillVo skill = SkillManager.Instance.GetNextAutoFightSkill();
+            SkillVo skill = SkillManager.Instance.GetNextCombatSkill();
             if (skill == null)
             {
                 if (!_warnedNoSkill)
                 {
                     _warnedNoSkill = true;
-                    GameLog.Warn("AutoFight", "auto-fight blocked: no usable shortcut skill");
+                    GameLog.Warn("AutoFight", "auto-fight blocked: no learned combat skill");
                 }
                 return;
             }
 
             _warnedNoSkill = false;
+            if (!EnsureTaskTarget()) return;
             SceneCombat.Instance.MainRoleAttackTarget(skill.Id, SkillManager.ONLY_FIRE_ATTACK);
+        }
+
+        private static bool EnsureTaskTarget()
+        {
+            if (AutoFightModel.Instance.AutoFightWeight != AutoFightModel.AUTO_WEIGHT_TASK) return true;
+
+            TaskVo task = TaskModel.Instance.MainLineTaskVo;
+            if (task == null || (task.TaskTipsType != TaskModel.TIP_KILL && task.TaskTipsType != TaskModel.TIP_ITEM)) return true;
+
+            MonsterVo current = SceneCombat.Instance.GetClickTarget();
+            if (current != null && current.TypeId == task.Id) return true;
+
+            return SceneCombat.Instance.TrySetNearestMonsterByType(task.Id, task.SceneX, task.SceneY);
         }
     }
 }

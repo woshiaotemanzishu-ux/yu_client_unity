@@ -1,5 +1,8 @@
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Dialogue;
+using Shenxiao.Module.Core.Scene.Vo;
+using Shenxiao.Module.Core.Skill;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -71,7 +74,76 @@ namespace Shenxiao.Module.Core.Scene
 
         public void OnPointerUp(PointerEventData eventData)
         {
+            float upDist = SceneInput.Active
+                ? Vector2.Distance(eventData.position, SceneInput.StartScreen)
+                : float.MaxValue;
+            if (SceneInput.Active && SceneInput.MoveDist < SceneInput.MoveDeadZone && upDist < SceneInput.MoveDeadZone)
+            {
+                SceneObjectClickRouter.HandleTap(eventData.position);
+            }
             SceneInput.End();
+        }
+    }
+
+    /// <summary>
+    /// Routes taps on the scene RT back to real scene objects.
+    /// Scene NPCs/monsters are rendered into a RawImage, so they cannot receive
+    /// collider or UGUI clicks directly.
+    /// </summary>
+    internal static class SceneObjectClickRouter
+    {
+        public static bool HandleTap(Vector2 screenPosition)
+        {
+            if (MonsterRenderer.TryHitMonster(screenPosition, out MonsterVo monster))
+            {
+                return HandleMonster(monster);
+            }
+
+            if (NpcRenderer.TryHitNpc(screenPosition, out NpcVo npc))
+            {
+                return HandleNpc(npc);
+            }
+
+            return false;
+        }
+
+        private static bool HandleNpc(NpcVo npc)
+        {
+            if (npc == null) return false;
+
+            SceneCombat.Instance.SetClickTarget(0);
+            MainRoleAgent agent = MainRoleAgent.Current;
+            if (agent == null)
+            {
+                GameLog.Warn("Scene", "click npc {0}: no MainRoleAgent, open dialogue directly", npc.NpcId);
+                DialogueController.Instance.ShowTask(npc.NpcId);
+                return true;
+            }
+
+            GameLog.Info("Scene", "click npc {0} pos=({1},{2}) -> move and open dialogue", npc.NpcId, npc.X, npc.Y);
+            agent.MoveToNpc(npc.X, npc.Y, 0f, () => DialogueController.Instance.ShowTask(npc.NpcId));
+            return true;
+        }
+
+        private static bool HandleMonster(MonsterVo monster)
+        {
+            if (monster == null) return false;
+
+            if (monster.IsCollect)
+            {
+                GameLog.Warn("Scene", "click collect target ins={0} type={1}: collect protocol is not migrated yet",
+                    monster.InstanceId, monster.TypeId);
+                return true;
+            }
+
+            bool started = SceneCombat.Instance.MainRoleAttackMonster(
+                monster.InstanceId,
+                0,
+                SkillManager.ONLY_FIRE_ATTACK);
+
+            GameLog.Info("Scene", "click monster ins={0} type={1} attackStarted={2}",
+                monster.InstanceId, monster.TypeId, started);
+            return true;
         }
     }
 }

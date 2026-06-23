@@ -1,5 +1,6 @@
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Login;
+using UnityEngine;
 
 namespace Shenxiao.Module.Core.Login
 {
@@ -16,8 +17,8 @@ namespace Shenxiao.Module.Core.Login
 
         protected override void OnShow(object args)
         {
-            account.text = string.Empty;
-            password.text = string.Empty;
+            account.text = CreateDefaultInput();
+            password.text = CreateDefaultInput();
         }
 
         private void OnClickConfirm()
@@ -28,6 +29,11 @@ namespace Shenxiao.Module.Core.Login
         private void OnClickReturn()
         {
             LoginFlow.ShowLogin();
+        }
+
+        private static string CreateDefaultInput()
+        {
+            return Random.Range(0, 100000).ToString();
         }
     }
 }

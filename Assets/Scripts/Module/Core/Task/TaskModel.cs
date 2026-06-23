@@ -42,6 +42,9 @@ namespace Shenxiao.Module.Core.Tasks
 
         private TaskFinishView _finishView; // 完成弹层(懒建复用,对标老端 TaskFinishView)
 
+        private int _pendingAutoFightTaskId;
+        private int _pendingAutoFightMonsterTypeId;
+
         private TaskModel() { }
 
         public int NowSelectTaskId { get; set; }
@@ -88,6 +91,7 @@ namespace Shenxiao.Module.Core.Tasks
 
         public void ClearData()
         {
+            StopWaitingTaskMonster();
             _hasReceiveTaskList.Clear();
             _canTaskList.Clear();
             _allTaskList.Clear();
@@ -302,8 +306,10 @@ namespace Shenxiao.Module.Core.Tasks
             {
                 if (!IsMainTask(kv.Key)) continue;
                 MainLineTaskVo = FindUnFinishTask(kv.Value);
+                StopWaitingIfMainTaskChanged();
                 return;
             }
+            StopWaitingIfMainTaskChanged();
         }
 
         private static int GetTypeSortOrder(int taskType)
@@ -460,16 +466,10 @@ namespace Shenxiao.Module.Core.Tasks
 
             if (task.TaskTipsType == TIP_KILL || task.TaskTipsType == TIP_ITEM)
             {
-                bool locked = SceneCombat.Instance.TrySetNearestMonsterByType(task.Id, task.SceneX, task.SceneY);
-                if (!locked)
+                if (!TryStartTaskAutoFight(task))
                 {
-                    GameLog.Warn("Task", "auto task kill blocked: task={0} monsterType={1} no attackable monster in scene, monsterCount={2}",
-                        task.TaskId, task.Id, SceneManager.Instance.MonsterCount);
-                    return;
+                    WaitTaskMonster(task);
                 }
-
-                AutoFightModel.Instance.SetAutoFightWeight(AutoFightModel.AUTO_WEIGHT_TASK);
-                GameLog.Info("Task", "auto task kill started: task={0} monsterType={1}", task.TaskId, task.Id);
                 return;
             }
 
@@ -484,6 +484,71 @@ namespace Shenxiao.Module.Core.Tasks
                 "DoTask 到达任务点 {0}({1},{2}):场景怪物数={3}(九宫格真实下发)。击杀类任务在此由技能点击" +
                 "(SceneCombat.MainRoleAttackTarget)命中真实怪;无怪则按真实语义阻塞,不假放。",
                 task.TaskId, task.SceneX, task.SceneY, SceneManager.Instance.MonsterCount);
+        }
+
+        private bool TryStartTaskAutoFight(TaskVo task)
+        {
+            if (task == null || task.Id <= 0) return false;
+            bool locked = SceneCombat.Instance.TrySetNearestMonsterByType(task.Id, task.SceneX, task.SceneY);
+            if (!locked)
+            {
+                GameLog.Warn("Task", "auto task kill waiting: task={0} monsterType={1} no attackable monster yet, monsterCount={2}",
+                    task.TaskId, task.Id, SceneManager.Instance.MonsterCount);
+                return false;
+            }
+
+            StopWaitingTaskMonster();
+            AutoFightModel.Instance.SetAutoFightWeight(AutoFightModel.AUTO_WEIGHT_TASK);
+            GameLog.Info("Task", "auto task kill started: task={0} monsterType={1}", task.TaskId, task.Id);
+            return true;
+        }
+
+        private void WaitTaskMonster(TaskVo task)
+        {
+            if (task == null || task.Id <= 0) return;
+            if (_pendingAutoFightTaskId == task.TaskId && _pendingAutoFightMonsterTypeId == task.Id) return;
+
+            StopWaitingTaskMonster();
+            _pendingAutoFightTaskId = task.TaskId;
+            _pendingAutoFightMonsterTypeId = task.Id;
+            SceneManager.Instance.MonsterAdded += OnTaskMonsterAdded;
+            GameLog.Info("Task", "auto task kill wait MonsterAdded: task={0} monsterType={1} center=({2},{3})",
+                task.TaskId, task.Id, task.SceneX, task.SceneY);
+        }
+
+        private void OnTaskMonsterAdded(MonsterVo vo)
+        {
+            if (_pendingAutoFightTaskId == 0 || vo == null) return;
+            if (vo.TypeId != _pendingAutoFightMonsterTypeId || vo.IsCollect || vo.CanAttack != 1 || vo.Hp <= 0) return;
+
+            TaskVo task = MainLineTaskVo;
+            if (task == null || task.TaskId != _pendingAutoFightTaskId || task.Id != _pendingAutoFightMonsterTypeId)
+            {
+                StopWaitingTaskMonster();
+                return;
+            }
+
+            TryStartTaskAutoFight(task);
+        }
+
+        private void StopWaitingTaskMonster()
+        {
+            if (_pendingAutoFightTaskId == 0) return;
+            SceneManager.Instance.MonsterAdded -= OnTaskMonsterAdded;
+            _pendingAutoFightTaskId = 0;
+            _pendingAutoFightMonsterTypeId = 0;
+        }
+
+        private void StopWaitingIfMainTaskChanged()
+        {
+            if (_pendingAutoFightTaskId == 0) return;
+            if (MainLineTaskVo == null
+                || MainLineTaskVo.TaskId != _pendingAutoFightTaskId
+                || MainLineTaskVo.Id != _pendingAutoFightMonsterTypeId
+                || MainLineTaskVo.HasFinish == 1)
+            {
+                StopWaitingTaskMonster();
+            }
         }
 
         private static int CompareTaskEntry(TaskEntry a, TaskEntry b)

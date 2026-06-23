@@ -131,6 +131,57 @@ namespace Shenxiao.Module.Core.Skill
             return null;
         }
 
+        /// <summary>Combat skill selection: shortcut skill first, then a learned normal/active target skill.</summary>
+        public SkillVo GetNextCombatSkill()
+        {
+            int shortcutCount = ShortcutList?.Count ?? 0;
+            for (int i = 0; i < shortcutCount; i++)
+            {
+                int index = (_autoFightShortcutIndex + i) % shortcutCount;
+                SkillVo skill = ShortcutList[index];
+                if (!IsCombatSkill(skill)) continue;
+
+                _autoFightShortcutIndex = (index + 1) % shortcutCount;
+                return skill;
+            }
+
+            SkillVo bestNormal = null;
+            SkillVo bestActive = null;
+            foreach (SkillVo vo in _mySkillList.Values)
+            {
+                if (!IsCombatSkill(vo)) continue;
+                if (!SkillConfigs.IsLoaded)
+                {
+                    if (bestActive == null || vo.Id < bestActive.Id) bestActive = vo;
+                    continue;
+                }
+
+                bool normal = SkillConfigs.IsNormal(vo.Id);
+                bool targetSkill = SkillConfigs.GetSelectType(vo.Id) == 2 || SkillConfigs.GetAttObj(vo.Id) == 2;
+                bool activeSkill = SkillConfigs.GetSkillType(vo.Id) == 1;
+                if (normal)
+                {
+                    if (bestNormal == null || vo.Id < bestNormal.Id) bestNormal = vo;
+                }
+                else if (targetSkill && activeSkill)
+                {
+                    if (bestActive == null || vo.Id < bestActive.Id) bestActive = vo;
+                }
+            }
+
+            return bestNormal ?? bestActive;
+        }
+
+        private static bool IsCombatSkill(SkillVo vo)
+        {
+            if (vo == null || vo.Locked) return false;
+            if (!SkillConfigs.IsLoaded) return true;
+            if (SkillConfigs.GetCareer(vo.Id) == 52) return false;
+            if (SkillConfigs.IsNormal(vo.Id)) return true;
+            return SkillConfigs.GetSkillType(vo.Id) == 1
+                && (SkillConfigs.GetSelectType(vo.Id) == 2 || SkillConfigs.GetAttObj(vo.Id) == 2);
+        }
+
         /// <summary>断线/登出清空(对标 ControllerHub.DisposeAll 链路)。</summary>
         public void Clear()
         {

@@ -63,6 +63,49 @@ namespace Shenxiao.Module.Core.Scene
             return true;
         }
 
+        /// <summary>Scene object click entry: lock a real monster instance and release a learned combat skill.</summary>
+        public bool MainRoleAttackMonster(int monsterInstanceId, int skillId = 0, int attackType = SkillManager.ONLY_FIRE_ATTACK)
+        {
+            MonsterVo target = SceneManager.Instance.GetMonster(monsterInstanceId);
+            if (target == null)
+            {
+                if (CurrentTargetId == monsterInstanceId) CurrentTargetId = 0;
+                GameLog.Info("Combat", "click attack blocked: monster ins={0} no longer exists", monsterInstanceId);
+                return false;
+            }
+
+            if (target.IsCollect)
+            {
+                SetClickTarget(target.InstanceId);
+                GameLog.Warn("Combat", "click attack blocked: ins={0} type={1} is collect target", target.InstanceId, target.TypeId);
+                return false;
+            }
+
+            if (target.CanAttack != 1 || target.Hp <= 0)
+            {
+                SetClickTarget(target.InstanceId);
+                GameLog.Info("Combat", "click attack blocked: ins={0} type={1} canAttack={2} hp={3}",
+                    target.InstanceId, target.TypeId, target.CanAttack, target.Hp);
+                return false;
+            }
+
+            if (skillId <= 0)
+            {
+                SkillVo skill = SkillManager.Instance.GetNextCombatSkill();
+                skillId = skill?.Id ?? 0;
+            }
+
+            if (skillId <= 0)
+            {
+                SetClickTarget(target.InstanceId);
+                GameLog.Warn("Combat", "click attack blocked: no learned combat skill for target ins={0}", target.InstanceId);
+                return false;
+            }
+
+            MainRoleAttackMonster(target, skillId, attackType);
+            return true;
+        }
+
         /// <summary>对标老端 Scene.GetClickTarget:返回当前目标 VO;目标已死(hp≤0)或已被移除则清空返回 null。</summary>
         public MonsterVo GetClickTarget()
         {
