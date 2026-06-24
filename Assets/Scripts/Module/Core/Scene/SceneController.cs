@@ -78,7 +78,7 @@ namespace Shenxiao.Module.Core.Scene
         /// <summary>
         /// 主角移动上报(对标 SceneController.ts:1042 moveRequestHandler → SendFmtToGame(12001,"ihhchhhh"))。
         /// </summary>
-        public void SendMoveRequest(int curX, int curY, int moveType, int targetX, int targetY)
+        public void SendMoveRequest(int curX, int curY, int moveType, int targetX, int targetY, int startX = 0, int startY = 0)
         {
             int sceneId = RoleModel.Instance.SceneId;
             SendFmt(Proto.SC_MOVE, "ihhchhhh",
@@ -86,7 +86,7 @@ namespace Shenxiao.Module.Core.Scene
                 Floor0(curX), Floor0(curY),
                 Floor0(moveType),
                 Floor0(targetX), Floor0(targetY),
-                0, 0);
+                Floor0(startX), Floor0(startY));
         }
 
         private static int Floor0(int v) => v < 0 ? 0 : v;

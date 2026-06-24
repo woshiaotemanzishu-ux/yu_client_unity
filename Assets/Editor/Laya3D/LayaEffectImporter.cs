@@ -23,7 +23,7 @@ namespace Shenxiao.Editor.Laya3D
     public static class LayaEffectImporter
     {
         /// <summary>特效转换逻辑版本(独立于模型线 Laya3DImporter.TOOL_VERSION)。</summary>
-        public const int TOOL_VERSION = 22; // v22: split generated base and runtime editable effect prefabs.
+        public const int TOOL_VERSION = 23; // v23: map ShuriKen 3D separate min/max start size/rotation.
 
         private const string RuntimeEffectRoot = "Assets/GameRes/effect/objs";
         private const string GeneratedEffectRoot = "Assets/GameRes/_Generated/effect/objs";
@@ -40,7 +40,7 @@ namespace Shenxiao.Editor.Laya3D
             var r = new Result();
             try
             {
-                ConvertInner(lhPath, r);
+                ConvertInner(lhPath, r, overwriteRuntimeEditable: false);
                 r.Ok = true;
             }
             catch (Exception e)
@@ -50,6 +50,24 @@ namespace Shenxiao.Editor.Laya3D
                 r.Ok = false;
             }
             Debug.Log("[LayaEffect] 转换日志\n" + r.Log);
+            return r;
+        }
+
+        public static Result ResetRuntimeEditable(string lhPath)
+        {
+            var r = new Result();
+            try
+            {
+                ConvertInner(lhPath, r, overwriteRuntimeEditable: true);
+                r.Ok = true;
+            }
+            catch (Exception e)
+            {
+                r.Log.AppendLine("❌ Runtime Editable 重置失败: " + e.Message);
+                r.Log.AppendLine(e.StackTrace);
+                r.Ok = false;
+            }
+            Debug.Log("[LayaEffect] Runtime Editable 重置日志\n" + r.Log);
             return r;
         }
 
@@ -80,7 +98,7 @@ namespace Shenxiao.Editor.Laya3D
                     if (c is JObject child) CountNodes(child, ref p, ref m, ref t);
         }
 
-        private static void ConvertInner(string lhPath, Result r)
+        private static void ConvertInner(string lhPath, Result r, bool overwriteRuntimeEditable)
         {
             string name = Path.GetFileNameWithoutExtension(lhPath);
             string dirName = Path.GetFileName(Path.GetDirectoryName(lhPath)); // skills_effect 等
@@ -98,12 +116,16 @@ namespace Shenxiao.Editor.Laya3D
             WriteImportMeta(generatedOutDir, name, "effect-generated-base", lhPath, generatedPrefabPath, runtimePrefabPath);
 
             bool runtimeExists = File.Exists(AssetPathToAbs(runtimePrefabPath));
-            if (!runtimeExists)
+            if (!runtimeExists || overwriteRuntimeEditable)
             {
                 Directory.CreateDirectory(runtimeOutDir);
                 Context runtime = BuildAndSave(rootNode, lhPath, runtimeOutDir, name, r);
-                WriteImportMeta(runtimeOutDir, name, "effect-runtime-initial", lhPath, generatedPrefabPath, runtimePrefabPath);
-                r.Log.AppendLine($"   Runtime Editable 初始化: {runtimePrefabPath}(粒子 {runtime.ParticleCount} / 网格 {runtime.MeshCount} / 拖尾 {runtime.TrailCount})");
+                WriteImportMeta(runtimeOutDir, name,
+                    overwriteRuntimeEditable ? "effect-runtime-reset" : "effect-runtime-initial",
+                    lhPath, generatedPrefabPath, runtimePrefabPath);
+                r.Log.AppendLine(runtimeExists
+                    ? $"   Runtime Editable 已按用户操作重置: {runtimePrefabPath}(粒子 {runtime.ParticleCount} / 网格 {runtime.MeshCount} / 拖尾 {runtime.TrailCount})"
+                    : $"   Runtime Editable 初始化: {runtimePrefabPath}(粒子 {runtime.ParticleCount} / 网格 {runtime.MeshCount} / 拖尾 {runtime.TrailCount})");
             }
             else
             {
@@ -482,11 +504,12 @@ namespace Shenxiao.Editor.Laya3D
             bool threeDSize = B(bases, "threeDStartSize", false);
             if (threeDSize && vec3s?["startSizeConstantSeparate"] is JArray sizeSep)
             {
+                JArray sizeMinSep = vec3s["startSizeConstantMinSeparate"] as JArray;
                 JArray sizeMaxSep = vec3s["startSizeConstantMaxSeparate"] as JArray;
                 main.startSize3D = true;
-                main.startSizeX = SeparateCurve(sizeSep, sizeMaxSep, 0, sizeType);
-                main.startSizeY = SeparateCurve(sizeSep, sizeMaxSep, 1, sizeType);
-                main.startSizeZ = SeparateCurve(sizeSep, sizeMaxSep, 2, sizeType);
+                main.startSizeX = SeparateCurve(sizeSep, sizeMinSep, sizeMaxSep, 0, sizeType);
+                main.startSizeY = SeparateCurve(sizeSep, sizeMinSep, sizeMaxSep, 1, sizeType);
+                main.startSizeZ = SeparateCurve(sizeSep, sizeMinSep, sizeMaxSep, 2, sizeType);
             }
             else
             {
@@ -501,11 +524,12 @@ namespace Shenxiao.Editor.Laya3D
             bool threeDRot = B(bases, "threeDStartRotation", false);
             if (threeDRot && vec3s?["startRotationConstantSeparate"] is JArray rotSep)
             {
+                JArray rotMinSep = vec3s["startRotationConstantMinSeparate"] as JArray;
                 JArray rotMaxSep = vec3s["startRotationConstantMaxSeparate"] as JArray;
                 main.startRotation3D = true;
-                main.startRotationX = SeparateCurve(rotSep, rotMaxSep, 0, rotType);
-                main.startRotationY = SeparateCurve(rotSep, rotMaxSep, 1, rotType);
-                main.startRotationZ = SeparateCurve(rotSep, rotMaxSep, 2, rotType);
+                main.startRotationX = SeparateCurve(rotSep, rotMinSep, rotMaxSep, 0, rotType);
+                main.startRotationY = SeparateCurve(rotSep, rotMinSep, rotMaxSep, 1, rotType);
+                main.startRotationZ = SeparateCurve(rotSep, rotMinSep, rotMaxSep, 2, rotType);
             }
             else
             {
@@ -1095,15 +1119,16 @@ namespace Shenxiao.Editor.Laya3D
             return new ParticleSystem.Burst(time, (short)min, (short)max);
         }
 
-        private static ParticleSystem.MinMaxCurve SeparateCurve(JArray minValues, JArray maxValues, int axis, int type)
+        private static ParticleSystem.MinMaxCurve SeparateCurve(JArray constantValues, JArray minValues, JArray maxValues, int axis, int type)
         {
-            float min = minValues != null && minValues.Count > axis ? (float)minValues[axis] : 1f;
+            float constant = constantValues != null && constantValues.Count > axis ? (float)constantValues[axis] : 1f;
             if (type == 2 && maxValues != null && maxValues.Count > axis)
             {
+                float min = minValues != null && minValues.Count > axis ? (float)minValues[axis] : constant;
                 float max = (float)maxValues[axis];
                 return new ParticleSystem.MinMaxCurve(min, max);
             }
-            return new ParticleSystem.MinMaxCurve(min);
+            return new ParticleSystem.MinMaxCurve(constant);
         }
 
         private static bool IsMultiplyBlend(UnityEngine.Rendering.BlendMode src, UnityEngine.Rendering.BlendMode dst)

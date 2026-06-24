@@ -21,6 +21,7 @@ namespace Shenxiao.Module.Core.MainUI
         private UIEffectStage.Handle _fingerEffect;
         private RectTransform _selectHolder;
         private RectTransform _fingerHolder;
+        private string _effectSignature;
         private bool _arrowLoading;
         private bool _effectLoading;
         private int _version;
@@ -91,8 +92,22 @@ namespace Shenxiao.Module.Core.MainUI
                 }
             }
 
-            if (data.NotEffect) ClearEffects();
-            else await EnsureEffectsAsync(version, isTaskItem);
+            if (data.NotEffect)
+            {
+                ClearEffects();
+            }
+            else
+            {
+                string signature = BuildEffectSignature(data, isTaskItem);
+                if (_effectSignature != null
+                    && !string.Equals(_effectSignature, signature, StringComparison.Ordinal))
+                {
+                    ClearEffects();
+                }
+                await EnsureEffectsAsync(version, data, isTaskItem);
+                if (!IsCurrent(version)) return;
+                _effectSignature = signature;
+            }
             if (!IsCurrent(version)) return;
 
             _arrow.Show();
@@ -100,7 +115,7 @@ namespace Shenxiao.Module.Core.MainUI
             _arrow.SetData(data, autoAction);
         }
 
-        private async Task EnsureEffectsAsync(int version, bool isTaskItem)
+        private async Task EnsureEffectsAsync(int version, ArrowData data, bool isTaskItem)
         {
             while (_effectLoading)
             {
@@ -115,7 +130,7 @@ namespace Shenxiao.Module.Core.MainUI
             {
                 if (_selectEffect == null)
                 {
-                    _selectHolder = EnsureEffectHolder(_selectHolder, "__main_ui_guide_select_holder");
+                    _selectHolder = EnsureEffectHolder(_selectHolder, "__main_ui_guide_select_holder", Vector2.zero);
                     UIEffectSlot slot = FindEffectSlot(GUIDE_SELECT_SLOT);
                     if (slot == null)
                     {
@@ -124,7 +139,7 @@ namespace Shenxiao.Module.Core.MainUI
                     else
                     {
                         _selectEffect = await UIEffectStage.AddByKeyAsync(slot.EffectName, slot.AddressKey,
-                            _selectHolder, slot.Position, ScaleSlot(slot, GetSelectEffectScale(isTaskItem)),
+                            _selectHolder, slot.Position, ScaleSlot(slot, GetSelectEffectScale(data, isTaskItem)),
                             slot.RotationY);
                     }
                     if (!IsCurrent(version))
@@ -136,7 +151,8 @@ namespace Shenxiao.Module.Core.MainUI
 
                 if (_fingerEffect == null)
                 {
-                    _fingerHolder = EnsureEffectHolder(_fingerHolder, "__main_ui_guide_finger_holder");
+                    _fingerHolder = EnsureEffectHolder(_fingerHolder, "__main_ui_guide_finger_holder",
+                        data.FingerEffectOffset);
                     UIEffectSlot slot = FindEffectSlot(GUIDE_FINGER_SLOT);
                     if (slot == null)
                     {
@@ -165,27 +181,43 @@ namespace Shenxiao.Module.Core.MainUI
                 && _target.gameObject.activeInHierarchy;
         }
 
-        private RectTransform EnsureEffectHolder(RectTransform holder, string name)
+        private RectTransform EnsureEffectHolder(RectTransform holder, string name, Vector2 offset)
         {
-            if (holder != null) return holder;
-            GameObject go = new GameObject(name, typeof(RectTransform));
-            RectTransform rt = (RectTransform)go.transform;
-            rt.SetParent(_target, false);
+            RectTransform rt = holder;
+            if (rt == null)
+            {
+                GameObject go = new GameObject(name, typeof(RectTransform));
+                rt = (RectTransform)go.transform;
+                rt.SetParent(_target, false);
+            }
             rt.anchorMin = new Vector2(0.5f, 0.5f);
             rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = Vector2.zero;
+            rt.anchoredPosition = offset;
             rt.sizeDelta = new Vector2(720f, 1280f);
+            rt.localScale = Vector3.one;
             rt.SetAsLastSibling();
             return rt;
         }
 
-        private Vector3 GetSelectEffectScale(bool isTaskItem)
+        private Vector3 GetSelectEffectScale(ArrowData data, bool isTaskItem)
         {
-            if (!isTaskItem || _target == null) return Vector3.one;
+            Vector3 scale = data != null && data.SelectEffectScale != default
+                ? data.SelectEffectScale
+                : Vector3.one;
+            if (!isTaskItem || _target == null) return scale;
             return _target.rect.height <= 55f
                 ? Vector3.one
-                : new Vector3(1.02f, 1.4f, 1f);
+                : new Vector3(1.02f, 1.4f, scale.z);
+        }
+
+        private string BuildEffectSignature(ArrowData data, bool isTaskItem)
+        {
+            Vector3 selectScale = GetSelectEffectScale(data, isTaskItem);
+            Vector2 fingerOffset = data != null ? data.FingerEffectOffset : Vector2.zero;
+            int targetId = _target != null ? _target.GetInstanceID() : 0;
+            return string.Format("{0}:{1:F3},{2:F3},{3:F3}:{4:F3},{5:F3}",
+                targetId, selectScale.x, selectScale.y, selectScale.z, fingerOffset.x, fingerOffset.y);
         }
 
         private UIEffectSlot FindEffectSlot(string slotId)
@@ -239,6 +271,7 @@ namespace Shenxiao.Module.Core.MainUI
                 DestroyObject(_fingerHolder.gameObject);
                 _fingerHolder = null;
             }
+            _effectSignature = null;
             _effectLoading = false;
         }
 

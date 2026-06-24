@@ -104,7 +104,7 @@ namespace Shenxiao.Module.Core.Scene
 
             // 摇杆移动驱动:主角恒居屏幕中心,相机跟随滚动地图(SceneMapView.SetFocus)。
             MainRoleAgent agent = _mainRoleRoot.AddComponent<MainRoleAgent>();
-            agent.Init(model, role.X, role.Y);
+            agent.Init(model, role.X, role.Y, role.Career, role.Figure?.sex ?? 0, spec.ClotheRes);
             SceneInputDriver.EnsureInstalled();
 
             GameLog.Info("Scene", "main role ready: roleId={0} pos=({1},{2}) clothe={3}",

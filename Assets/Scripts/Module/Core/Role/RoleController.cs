@@ -2,6 +2,7 @@ using Shenxiao.Common.Proto;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Scene;
 
 namespace Shenxiao.Module.Core.Role
 {
@@ -75,10 +76,15 @@ namespace Shenxiao.Module.Core.Role
         private void On13003(NetReader r)
         {
             RoleModel m = RoleModel.Instance;
+            int oldLevel = m.Level;
             m.Level = r.ReadU16();
             m.Exp = r.ReadU64();
             m.ExpLim = r.ReadU64();
             GameLog.Info("Role", "13003 等级={0} 经验={1}/{2}", m.Level, m.Exp, m.ExpLim);
+            if (oldLevel > 0 && m.Level > oldLevel)
+            {
+                MainRoleAgent.Current?.PlayLevelUpEffect();
+            }
             EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
         }
 

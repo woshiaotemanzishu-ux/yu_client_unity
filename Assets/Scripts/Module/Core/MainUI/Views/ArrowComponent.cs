@@ -277,6 +277,8 @@ namespace Shenxiao.Module.Core.MainUI
         public int CloseTime;
         public bool AutoCountdown;
         public bool NotEffect;
+        public Vector3 SelectEffectScale = Vector3.one;
+        public Vector2 FingerEffectOffset;
         public RectTransform Target;
         public Vector2 Offset;
     }

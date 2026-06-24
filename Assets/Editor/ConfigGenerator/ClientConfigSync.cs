@@ -27,6 +27,9 @@ namespace Shenxiao.EditorTools.ConfigGen
             "ConfigNotNormalGoods", // 货币/经验映射(type→goods_id,如 3→31 金币、5→32 经验),GoodsModel.GetMappingTypeId 用
             "ConfigItemAttr",       // 物品属性 id→名(attr_id→name,如 1→攻击),GoodsModel.GetAttrName 用(对标 WordManager.GetProperties)
             "ConfigSkillUI",        // 职业技能快捷栏配置(carrerSkillList[career]→[{skill_id,common,stren}]),SkillUIConfigs/MainUISkillView shortcutList 用
+            "ConfigCareerSkillMovies",
+            "ConfigMonsterSkillMovies",
+            "ConfigOtherFightInfo",
             "ConfigCustomActivity",
             "ConfigCustomActivityShow",
             "ConfigCustomActivityView",

@@ -249,6 +249,7 @@ namespace Shenxiao.Module.Core.Scene
         /// </summary>
         private static void ReleaseMainSkill(int skillId, MonsterVo mon, int attackType)
         {
+            MainRoleAgent.Current?.PlaySkill(skillId);
             EventDispatcher.Emit(GlobalEvent.EVT_RELEASE_MAIN_SKILL, skillId, mon.InstanceId);
             GameLog.Info("Combat",
                 "RELEASE_MAIN_SKILL(本地) skill={0} target ins={1}(compress_id 等价) attackType={2}",

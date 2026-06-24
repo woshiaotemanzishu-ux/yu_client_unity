@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.UI;
+using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Module.Core.Tasks;
 using TMPro;
@@ -12,6 +13,7 @@ namespace Shenxiao.Module.Core.MainUI
 {
     public sealed class MainUITaskItem : MainUITaskItemBind
     {
+        private const string TASK_FINISH_EFFECT_SLOT = "main_ui_task_finish_frame";
         private static readonly Regex FontColorStart = new Regex("<font\\s+color=['\"]?(#[0-9a-fA-F]{6})['\"]?>", RegexOptions.IgnoreCase);
 
         private readonly List<TextMeshProUGUI> _tipLabels = new List<TextMeshProUGUI>();
@@ -115,6 +117,8 @@ namespace Shenxiao.Module.Core.MainUI
                 CloseTime = step.CloseTime,
                 AutoCountdown = step.AutoCountdown,
                 NotEffect = step.NotEffect,
+                SelectEffectScale = new Vector3(step.EffectScaleX, step.EffectScaleY, step.EffectScaleZ),
+                FingerEffectOffset = new Vector2(step.FingerOffsetX, step.FingerOffsetY),
                 Offset = new Vector2(step.OffsetX, step.OffsetY),
                 Target = _box_finger_con,
             };
@@ -144,8 +148,18 @@ namespace Shenxiao.Module.Core.MainUI
             float itemHeight = _img_bg != null ? Mathf.Max(1f, _img_bg.rectTransform.rect.height) : 54f;
             float scale = 1280f / boxHeight * 0.96f;
             float yScale = scale * itemHeight / 54f;
-            UIEffectStage.Handle effect = await UIEffectStage.AddAsync("ui_renwulan",
-                _box_effect, Vector2.zero, new Vector3(scale, yScale, scale));
+            UIEffectSlot slot = FindFinishEffectSlot();
+            if (slot == null)
+            {
+                _finishEffectLoading = false;
+                GameLog.Warn("MainUI", "Task finish effect slot missing: {0}", TASK_FINISH_EFFECT_SLOT);
+                return;
+            }
+
+            Vector3 slotScale = slot.Scale;
+            UIEffectStage.Handle effect = await UIEffectStage.AddByKeyAsync(slot.EffectName, slot.AddressKey,
+                _box_effect, slot.Position, new Vector3(slotScale.x * scale, slotScale.y * yScale, slotScale.z * scale),
+                slot.RotationY);
             _finishEffectLoading = false;
             if (version != _finishEffectVersion || _box_effect == null || !_box_effect.gameObject.activeSelf)
             {
@@ -164,6 +178,17 @@ namespace Shenxiao.Module.Core.MainUI
                 _finishEffect = null;
             }
             _finishEffectLoading = false;
+        }
+
+        private UIEffectSlot FindFinishEffectSlot()
+        {
+            if (_box_effect == null) return null;
+            UIEffectSlot[] slots = _box_effect.GetComponentsInChildren<UIEffectSlot>(true);
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (slots[i] != null && slots[i].SlotId == TASK_FINISH_EFFECT_SLOT) return slots[i];
+            }
+            return null;
         }
 
         private void SetTitle(TaskVo task)

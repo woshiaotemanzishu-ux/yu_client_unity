@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene.Vo;
 
 namespace Shenxiao.Module.Core.Scene
@@ -163,6 +164,9 @@ namespace Shenxiao.Module.Core.Scene
         /// </summary>
         private void ApplyDefenseListToScene(FightVo vo, int skillId)
         {
+            ApplyMonsterFightVisuals(vo);
+            ApplyMoveAnimToMainRole(vo);
+
             SceneManager mgr = SceneManager.Instance;
             int firstMonsterId = 0;
             bool firstMonsterAlive = false;
@@ -225,6 +229,61 @@ namespace Shenxiao.Module.Core.Scene
             if (firstMonsterId > 0)
             {
                 SceneController.Instance.OnRound18FightResult(skillId, firstMonsterId, firstMonsterAlive);
+            }
+        }
+
+        private static void ApplyMonsterFightVisuals(FightVo vo)
+        {
+            if (vo.Attack.AttackerType == OBJ_MONSTER)
+            {
+                if (vo.Attack.RoleId >= 0 && vo.Attack.RoleId <= int.MaxValue)
+                {
+                    MonsterRenderer.PlaySkill((int)vo.Attack.RoleId, vo.Attack.SkillId);
+                    GameLog.Info("Fight", "apply monster attack visual ins={0} skill={1}",
+                        vo.Attack.RoleId, vo.Attack.SkillId);
+                }
+                else
+                {
+                    GameLog.Warn("Fight", "20001 attacker monster id out of int range: {0}", vo.Attack.RoleId);
+                }
+            }
+
+            for (int i = 0; i < vo.DefenseList.Count; i++)
+            {
+                FightVo.DefenseInfo d = vo.DefenseList[i];
+                if (d.TypeFlag != OBJ_MONSTER || d.Hp == 0) continue;
+                if (d.RoleId < 0 || d.RoleId > int.MaxValue) continue;
+                MonsterRenderer.PlayBeHit((int)d.RoleId);
+            }
+        }
+
+        private static void ApplyMoveAnimToMainRole(FightVo vo)
+        {
+            MainRoleAgent agent = MainRoleAgent.Current;
+            if (agent == null) return;
+
+            long mainRoleId = RoleModel.Instance.RoleId;
+            if (mainRoleId <= 0) return;
+
+            if (vo.Attack.MoveAnim > 0
+                && vo.Attack.AttackerType == OBJ_ROLE
+                && vo.Attack.RoleId == mainRoleId)
+            {
+                agent.PlayMoveAnim(vo.Attack.MoveAnim, vo.Attack.PosX, vo.Attack.PosY);
+                GameLog.Info("Fight", "apply main role attack move_anim={0} pos=({1},{2})",
+                    vo.Attack.MoveAnim, vo.Attack.PosX, vo.Attack.PosY);
+            }
+
+            for (int i = 0; i < vo.DefenseList.Count; i++)
+            {
+                FightVo.DefenseInfo d = vo.DefenseList[i];
+                if (d.MoveAnim <= 0) continue;
+                if ((d.TypeFlag == OBJ_ROLE || d.TypeFlag == OBJ_FAKE_ROLE) && d.RoleId == mainRoleId)
+                {
+                    agent.PlayMoveAnim(d.MoveAnim, d.PosX, d.PosY);
+                    GameLog.Info("Fight", "apply main role defender move_anim={0} pos=({1},{2})",
+                        d.MoveAnim, d.PosX, d.PosY);
+                }
             }
         }
     }

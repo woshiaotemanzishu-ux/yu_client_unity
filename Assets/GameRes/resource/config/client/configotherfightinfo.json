@@ -1,0 +1,434 @@
+{
+    "partner_skill_id": 800116,
+    "sprite_skill_id": 40001,
+    "scene_max_role_count": 30,
+    "career1_default_roleResId": 101001,
+    "career2_default_roleResId": 101101,
+    "career1_default_weaponId": 102000,
+    "career2_default_weaponId": 102100,
+    "client_autofight_monster_trace_range": 1200,
+    "client_autofight_monster_attack_range": 165,
+    "client_autofight_monster_attack_interval": 1.5,
+    "client_autofight_refresh_monster_interval": 1,
+    "client_autofight_monster_speed": 150,
+    "client_autofight_create_monster_radii": 50,
+    "client_autofight_every_wave_monster_count": 5,
+    "mainRole_defender_max_count": 12,
+    "mainRole_attacker_max_count": 12,
+    "rush_to_monster_add_speed": 2800,
+    "rush_to_monster_frameRate": 18,
+    "rush_to_monster_min_dist": 300,
+    "rush_to_monster_max_dist": 480,
+    "rush_to_monster_dist_with_monster": 150,
+    "task_rush_to_monster_min_dist": 100,
+    "task_rush_to_monster_max_dist": 300,
+    "task_rush_to_monster_dist_with_monster": 50,
+    "down_horse_animation_time": 0.5,
+    "down_horse_animation_speed": 800,
+    "up_horse_animation_time": 0.3,
+    "down_horse_wing_pos_off": 20,
+    "down_horse_liveness_pos_off": -80,
+    "cross_animation_time": 0.3,
+    "residual_shadow_interval_time": 0.08,
+    "residual_shadow_waitfor_change_alpha_time": 0.3,
+    "residual_shadow_start_alpha": 0.9,
+    "residual_shadow_alpha_change_step": 0.1,
+    "residual_shadow_max_count": 6,
+    "base_move_speed_ratio": 30,
+    "base_attack_framerate": 16,
+    "test_rotate": 1000,
+    "monsterAttackFly": {
+        "distance": 170,
+        "start_speed": 500,
+        "end_speed": 200
+    },
+    "scene_fnt_cfg": {
+        "scene_exp_fnt": [
+            {
+                "parms": {
+                    "y": -20
+                },
+                "time": 1000
+            },
+            {
+                "parms": {
+                    "y": -30,
+                    "alpha": 0
+                },
+                "time": 1000
+            }
+        ],
+        "damage_other_fnt": [
+            {
+                "parms": {
+                    "y": -80
+                },
+                "time": 100
+            },
+            {
+                "parms": {
+                    "y": -90,
+                    "alpha": 0
+                },
+                "time": 600
+            }
+        ],
+        "damage_role_fnt": [
+            {
+                "parms": {
+                    "y": -25
+                },
+                "time": 100
+            },
+            {
+                "parms": {
+                    "y": -35,
+                    "alpha": 0
+                },
+                "time": 600
+            }
+        ]
+    },
+    "buff_res_info_list": {
+        "1": {
+            "attach_type": 7
+        },
+        "9": {
+            "attach_type": 7
+        },
+        "27": {
+            "attach_type": 7
+        },
+        "101": {
+            "attach_type": 1
+        },
+        "104": {
+            "attach_type": 7,
+            "not_max_depth": 1
+        },
+        "105": {
+            "attach_type": 7,
+            "not_max_depth": 1
+        },
+        "106": {
+            "attach_type": 7,
+            "not_max_depth": 1
+        },
+        "115": {
+            "attach_type": 7,
+            "not_max_depth": 1
+        },
+        "116": {
+            "attach_type": 7,
+            "not_max_depth": 1
+        },
+        "121": {
+            "attach_type": 7
+        },
+        "122": {
+            "attach_type": 19
+        },
+        "126": {
+            "attach_type": 7,
+            "not_max_depth": 1
+        }
+    },
+    "buff_not_play_loop": {
+        "126": 1
+    },
+    "pre_warn_buffer_type": {
+        "131": {
+            "area": 500,
+            "time": 2000
+        }
+    },
+    "god_skill_cd": {
+        "59810001": 500,
+        "59810014": 500,
+        "59810029": 500,
+        "59820001": 500,
+        "59820012": 500,
+        "59830001": 500,
+        "59830015": 500,
+        "59830026": 500,
+        "59830040": 500,
+        "59830045": 500,
+        "59820025": 500,
+        "59820037": 500,
+        "59830051": 500,
+        "59830056": 500,
+        "59500002": 500,
+        "59500003": 500
+    },
+    "horse_res_bound": {
+        "1002":{"x" : 150, "y" : 220},
+        "1003":{"x" : 150, "y" : 220},
+		"1004":{"x" : 150, "y" : 220},
+        "1005":{"x" : 150, "y" : 230},
+        "1006":{"x" : 150, "y" : 230},
+		"1007":{"x" : 150, "y" : 280},
+		"1008":{"x" : 150, "y" : 300},
+		"1009":{"x" : 150, "y" : 280},
+		"1013":{"x" : 150, "y" : 320},
+		"1014":{"x" : 150, "y" : 320},
+		"1015":{"x" : 150, "y" : 320},
+		"1018":{"x" : 150, "y" : 320},
+		"1011":{"x" : 150, "y" : 300},
+		"1022":{"x" : 150, "y" : 300},
+		"1023":{"x" : 150, "y" : 300},
+		"1024":{"x" : 150, "y" : 300},
+        "1026":{"x" : 150, "y" : 250},
+		"1027":{"x" : 150, "y" : 300},
+		"1028":{"x" : 150, "y" : 300},
+		"1029":{"x" : 150, "y" : 300},
+        "1030":{"x" : 150, "y" : 250},
+		"1033":{"x" : 150, "y" : 300},
+		"1038":{"x" : 150, "y" : 300}
+		
+	},
+    "jump_vspeed": {
+        "1": 1200,
+        "2": 800,
+        "3": 300,
+        "4": 600,
+        "5": 600
+    },
+    "jump_hspeed": {
+        "1": 900,
+        "2": 1500,
+        "3": 1100,	
+        "4": 1000,
+        "5": 1000
+    },
+    "jump_move_distance": {
+        "1": 600,
+        "2": 500,
+        "3": 800,
+        "4": 800,
+        "5": 800
+    },
+    "jump_height": {
+        "1": 300,
+        "2": 200,
+        "3": 200
+    },
+    "jump_gravity_speed": {
+        "1": 2500,
+        "2": 1000,
+        "3": 1000,
+        "4": 1300,
+        "5": 1300
+    }, 
+    "jump_fall_stay_time": {
+        "1@1": 0.1,
+        "1@2": 0.1,
+        "1@3": 0.1,
+        "1@4": 0.1,
+        "2@1": 0.1,
+        "2@2": 0.1,
+        "2@3": 0.1,
+        "2@4": 0.1,
+        "3@1": 0.05,
+        "3@2": 0.3,
+        "3@3": 0.1,
+        "3@4": 0.1,
+        "4@1": 0.1,
+        "4@2": 0.1,
+        "4@3": 0.1,
+        "4@4": 0.1,
+        "5@1": 0.05,
+        "5@2": 0.3,
+        "5@3": 0.1,
+        "5@4": 0.1
+    },
+    "FightErrorCodes": {
+        "1": "对方没血",
+        "2": "出手太快",
+        "3": "自己没血",
+        "4": "距离太远",
+        "5": "仙诀调息未毕",
+        "6": "仙诀数据有误",
+        "7": "御风云骑不能战斗",
+        "8": "安全区不能pk",
+        "9": "对方处于护送保护时间",
+        "10": "怒气不足，不能施展仙法",
+        "11": "同等级段内的不能劫镖",
+        "12": "巡游中不能攻击",
+        "21": "晕",
+        "22": "沉默",
+        "23": "恐惧",
+        "24": "缠绕",
+        "25": "点穴",
+        "26": "你正处于施法中",
+        "27": "mp值不足",
+        "28": "无法攻击目标",
+        "29": "对方处于和平保护状态",
+        "30": "连招条件不足",
+        "31": "该玩家处于新手保护状态",
+        "32": "身上有宝石,不能攻击该目标",
+        "33": "睡眠",
+        "34": "不能攻击队友",
+        "35": "你处于新手保护状态",
+        "36": "对方处于无敌状态",
+        "37": "飞行器上不能战斗",
+        "38": "天命仙诀验证失败",
+        "39": "红装仙诀只能在1vN使用",
+        "40": "城战主场景只能放形象仙诀",
+        "41": "有目标不存在",
+        "42": "特殊Buff状态异常",
+        "43": "能量值不足",
+        "44": "处于公共调息中",
+        "45": "仙诀正在施展中,无法再衔接下一式"
+    },
+    "RushAction": {
+        "1@1": [
+            "rush"
+        ],
+        "2@2": [
+            "rush"
+        ],
+        "3@1": [
+            "rush"
+        ],
+        "4@2": [
+            "rush"
+        ]
+    },
+    "NoDeadActionMonsterId": {},
+    "horse_run_effect": {},
+    "assist_buff_res": {
+        "59520052": {
+            "res": "effect_pet_1019_attack",
+            "isLoop": false,
+            "effect_res_type": "pet_effect",
+            "attach_type": 7
+        },
+        "59520051": {
+            "res": "effect_pet_1008_attack",
+            "isLoop": false,
+            "effect_res_type": "pet_effect",
+            "attach_type": 7
+        },
+        "59520056": {
+            "res": "buffparticle_107_1",
+            "isLoop": false,
+            "effect_res_type": "buff_effect",
+            "attach_type": 7
+        },
+        "59520046": {
+            "res": "effect_pet_1018_attack",
+            "isLoop": false,
+            "effect_res_type": "pet_effect",
+            "attach_type": 7
+        },
+        "59520014": {
+            "res": "buffparticle_105_1",
+            "isLoop": false,
+            "effect_res_type": "buff_effect",
+            "attach_type": 7
+        },
+        "59520019": {
+            "res": "buffparticle_104_1",
+            "isLoop": false,
+            "effect_res_type": "buff_effect",
+            "attach_type": 7
+        }
+    },
+    "rush_to_monster_speed": 0,
+    "check_jump_point_space": 0.1,
+    "jump_name_list": {
+        "1@1": [
+            "jump",
+            "jump2",
+            "jump3",
+            "jump4"
+        ],
+        "2@2": [
+            "jump",
+            "jump2",
+            "jump3",
+            "jump4"
+        ],
+        "3@1": [
+            "jump",
+            "jump2",
+            "jump3",
+            "jump4"
+        ],
+        "4@2": [
+            "jump",
+            "jump2",
+            "jump3",
+            "jump4"
+        ]
+    },
+    "jump_move_movie_speed_off": {
+        "1@1": {
+            "jump": -0.2,
+            "jump2": 0.03,
+            "jump3": 0,
+            "jump4": -0.01
+        },
+        "2@2": {
+            "jump": 0.3,
+            "jump2": 0.03,
+            "jump3": -0.3,
+            "jump4": 0.3
+        },
+        "3@1": {
+            "jump": 0,
+            "jump2": -0.3,
+            "jump3": -0.3,
+            "jump4": 0
+        },
+        "4@2": {
+            "jump": 0,
+            "jump2": -0.3,
+            "jump3": -0.3,
+            "jump4": 0
+        }
+    },
+    "task_jump_move_movie_speed_off": {
+        "3@1": {
+            "jump3": -0.3,
+            "jump4": 0,
+            "jump5": 0.2,
+            "jump2": -0.3,
+            "jump": 0
+        },
+        "2@2": {
+            "jump3": -0.3,
+            "jump4": -0.35,
+            "jump5": 0.2,
+            "jump2": 0.3,
+            "jump": 0.3
+        },
+        "1@1": {
+            "jump3": 0,
+            "jump4": 0,
+            "jump5": 0.2,
+            "jump2": 0.03,
+            "jump": -0.2
+        },
+        "4@2": {
+            "jump3": -0.3,
+            "jump4": 0,
+            "jump5": 0.2,
+            "jump2": -0.3,
+            "jump": 0
+        }
+    },
+    "FlyShoeEffect": {
+        "down_play_time": 0.3,
+        "up_play_time": 0.3,
+        "delay_show_time": 0.3,
+        "up_fly_time": 1,
+        "gravity_speed": 200,
+        "down_shake_height": 15,
+        "down_height": 100,
+        "down_shake_start_time": 0.1,
+        "down_fly_time": 1,
+        "up_height": 150
+    },
+    "test_ps_angle":-15
+}

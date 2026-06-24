@@ -14,11 +14,16 @@ namespace Shenxiao.Common.UI3D
     /// </summary>
     public static class UIEffectStage
     {
-        private const float ORTHO_FULL_HEIGHT = 12.8f;
+        private const float REFERENCE_STAGE_HEIGHT = 1280f;
+        private const float LAYA_STAGE_TO_WORLD = 0.01f;
         private const float CAMERA_Z = -10f;
         private const int MIN_RT_SIZE = 16;
         private const int MAX_RT_SIZE = 2048;
+        // Reserved unnamed layer for offscreen UI effects; non-owner cameras are forced to exclude it.
+        private const int EFFECT_LAYER = 31;
+        private static readonly int EffectLayerMask = 1 << EFFECT_LAYER;
         private static int _stageIndex;
+        private static Camera[] _cameraBuffer = new Camera[16];
 
         public sealed class Handle
         {
@@ -83,6 +88,7 @@ namespace Shenxiao.Common.UI3D
 
             handle.Effect = effect;
             effect.name = "__ui_effect_" + SafeName(label);
+            SetLayerRecursive(effect, EFFECT_LAYER);
             Transform t = effect.transform;
             t.localPosition = new Vector3(-position.x, -position.y, 0f);
             t.localRotation = Quaternion.Euler(0f, rotationY, 0f);
@@ -104,29 +110,38 @@ namespace Shenxiao.Common.UI3D
         private static Handle CreateHandle(string effectName, RectTransform parent)
         {
             Rect rect = parent.rect;
-            int width = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(1f, rect.width)), MIN_RT_SIZE, MAX_RT_SIZE);
-            int height = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(1f, rect.height)), MIN_RT_SIZE, MAX_RT_SIZE);
+            float stageHeight = GetStageHeight(parent);
+            float renderScale = Mathf.Max(0.01f, stageHeight / REFERENCE_STAGE_HEIGHT);
+            int width = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(1f, rect.width * renderScale)), MIN_RT_SIZE, MAX_RT_SIZE);
+            int height = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(1f, rect.height * renderScale)), MIN_RT_SIZE, MAX_RT_SIZE);
 
             int index = ++_stageIndex;
             var stageRoot = new GameObject("__UIEffectStage_" + effectName);
+            stageRoot.layer = EFFECT_LAYER;
             stageRoot.transform.position = new Vector3(6000f + index * 20f, -6000f, 6000f);
+            UIEffectStageCameraGuard guard = stageRoot.AddComponent<UIEffectStageCameraGuard>();
 
             var effectRoot = new GameObject("EffectRoot").transform;
             effectRoot.SetParent(stageRoot.transform, false);
+            effectRoot.gameObject.layer = EFFECT_LAYER;
 
             var cameraGo = new GameObject("EffectCamera");
             cameraGo.transform.SetParent(stageRoot.transform, false);
             cameraGo.transform.localPosition = new Vector3(0f, 0f, CAMERA_Z);
+            cameraGo.layer = EFFECT_LAYER;
 
             Camera cam = cameraGo.AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
             cam.orthographic = true;
-            cam.orthographicSize = ORTHO_FULL_HEIGHT * 0.5f;
+            cam.orthographicSize = stageHeight * LAYA_STAGE_TO_WORLD * 0.5f;
             cam.nearClipPlane = 0.3f;
             cam.farClipPlane = 1000f;
+            cam.cullingMask = EffectLayerMask;
             cam.useOcclusionCulling = false;
             cam.allowHDR = false;
+            guard.Owner = cam;
+            ExcludeStageLayerFromOtherCameras(cam);
 
             var rt = new RenderTexture(width, height, 16, RenderTextureFormat.ARGB32)
             {
@@ -159,6 +174,20 @@ namespace Shenxiao.Common.UI3D
             };
         }
 
+        private static float GetStageHeight(RectTransform parent)
+        {
+            Canvas canvas = parent != null ? parent.GetComponentInParent<Canvas>() : null;
+            if (canvas != null)
+            {
+                CanvasScaler scaler = canvas.GetComponent<CanvasScaler>();
+                if (scaler != null && scaler.referenceResolution.y > 1f) return scaler.referenceResolution.y;
+            }
+            RectTransform root = canvas != null ? canvas.transform as RectTransform : null;
+            if (root != null && root.rect.height > 1f) return root.rect.height;
+            if (canvas != null && canvas.pixelRect.height > 1f) return canvas.pixelRect.height;
+            return REFERENCE_STAGE_HEIGHT;
+        }
+
         private static void ApplyRenderDefaults(GameObject go)
         {
             Renderer[] renderers = go.GetComponentsInChildren<Renderer>(true);
@@ -166,6 +195,31 @@ namespace Shenxiao.Common.UI3D
             {
                 renderers[i].shadowCastingMode = ShadowCastingMode.Off;
                 renderers[i].receiveShadows = false;
+            }
+        }
+
+        private static void SetLayerRecursive(GameObject go, int layer)
+        {
+            if (go == null) return;
+            go.layer = layer;
+            Transform tr = go.transform;
+            for (int i = 0; i < tr.childCount; i++)
+            {
+                SetLayerRecursive(tr.GetChild(i).gameObject, layer);
+            }
+        }
+
+        internal static void ExcludeStageLayerFromOtherCameras(Camera owner)
+        {
+            int count = Camera.allCamerasCount;
+            if (_cameraBuffer.Length < count) _cameraBuffer = new Camera[count];
+            int written = Camera.GetAllCameras(_cameraBuffer);
+            for (int i = 0; i < written; i++)
+            {
+                Camera cam = _cameraBuffer[i];
+                if (cam == null || cam == owner) continue;
+                if ((cam.cullingMask & EffectLayerMask) != 0)
+                    cam.cullingMask &= ~EffectLayerMask;
             }
         }
 

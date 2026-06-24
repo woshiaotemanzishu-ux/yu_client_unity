@@ -132,6 +132,11 @@ namespace Shenxiao.Module.Core.Tasks
                 AutoCountdown = closeTime > 0 && !ReadBool(obj, "not_auto_countdown"),
                 NotShowInTaskItem = ReadBool(obj, "not_show_in_task_item"),
                 NotEffect = ReadBool(obj, "not_effect"),
+                EffectScaleX = ReadFloat(obj, "effect_scaleX", 1f),
+                EffectScaleY = ReadFloat(obj, "effect_scaleY", 1f),
+                EffectScaleZ = ReadFloat(obj, "effect_scaleZ", 1f),
+                FingerOffsetX = ReadFloat(obj, "finger_offset_x"),
+                FingerOffsetY = ReadFloat(obj, "finger_offset_y"),
                 OffsetX = ReadFloat(obj, "off_x"),
                 OffsetY = ReadFloat(obj, "off_y"),
             };

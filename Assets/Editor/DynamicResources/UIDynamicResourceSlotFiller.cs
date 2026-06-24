@@ -16,10 +16,11 @@ namespace Shenxiao.Editor.DynamicResources
         [MenuItem("神霄/资源/回填 UI 动态资源 Slot", priority = 24)]
         public static void FillAllFromMenu()
         {
+            int expected = CountConfiguredSlots(null);
             int count = FillModules(null);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            EditorUtility.DisplayDialog("UI 动态资源 Slot", "回填完成: " + count + " 个 slot。", "好");
+            EditorUtility.DisplayDialog("UI 动态资源 Slot", "回填完成: " + count + "/" + expected + " 个 slot。", "好");
         }
 
         public static int FillModules(IEnumerable<string> modules)
@@ -44,6 +45,28 @@ namespace Shenxiao.Editor.DynamicResources
                 string module = entry.Value<string>("module") ?? "";
                 if (moduleSet != null && !moduleSet.Contains(module)) continue;
                 total += ApplyEntry(entry);
+            }
+            return total;
+        }
+
+        private static int CountConfiguredSlots(IEnumerable<string> modules)
+        {
+            if (!File.Exists(ConfigPath)) return 0;
+
+            HashSet<string> moduleSet = modules == null
+                ? null
+                : new HashSet<string>(modules.Where(m => !string.IsNullOrWhiteSpace(m)).Select(m => m.Trim()));
+
+            JObject root = JObject.Parse(File.ReadAllText(ConfigPath));
+            JArray entries = root["entries"] as JArray;
+            if (entries == null) return 0;
+
+            int total = 0;
+            foreach (JObject entry in entries.OfType<JObject>())
+            {
+                string module = entry.Value<string>("module") ?? "";
+                if (moduleSet != null && !moduleSet.Contains(module)) continue;
+                if (entry["slots"] is JArray slots) total += slots.Count;
             }
             return total;
         }
@@ -88,6 +111,9 @@ namespace Shenxiao.Editor.DynamicResources
 
         private static List<Transform> FindHosts(Transform root, JObject entry)
         {
+            List<Transform> boundHosts = FindHostsByBoundField(root, entry);
+            if (boundHosts.Count > 0) return boundHosts;
+
             string hostPath = entry.Value<string>("hostPath");
             if (!string.IsNullOrEmpty(hostPath))
             {
@@ -107,6 +133,50 @@ namespace Shenxiao.Editor.DynamicResources
                 result.Add(t);
             }
             return result;
+        }
+
+        private static List<Transform> FindHostsByBoundField(Transform root, JObject entry)
+        {
+            string ownerComponent = entry.Value<string>("ownerComponent");
+            string bindField = entry.Value<string>("bindField");
+            if (string.IsNullOrEmpty(ownerComponent) || string.IsNullOrEmpty(bindField))
+                return new List<Transform>();
+
+            var result = new List<Transform>();
+            MonoBehaviour[] behaviours = root.GetComponentsInChildren<MonoBehaviour>(true);
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                MonoBehaviour behaviour = behaviours[i];
+                if (behaviour == null) continue;
+                System.Type type = behaviour.GetType();
+                if (type.FullName != ownerComponent && type.Name != ownerComponent) continue;
+
+                SerializedObject so = new SerializedObject(behaviour);
+                SerializedProperty prop = so.FindProperty(bindField);
+                if (prop == null || prop.propertyType != SerializedPropertyType.ObjectReference)
+                {
+                    Debug.LogWarning("[UIDynamicResourceSlot] bind field missing: " + ownerComponent + "." + bindField);
+                    continue;
+                }
+
+                Transform host = ResolveTransform(prop.objectReferenceValue);
+                if (host != null && !result.Contains(host)) result.Add(host);
+            }
+
+            if (result.Count == 0)
+            {
+                Debug.LogWarning("[UIDynamicResourceSlot] bound host missing: " + ownerComponent + "." + bindField);
+            }
+            return result;
+        }
+
+        private static Transform ResolveTransform(Object reference)
+        {
+            if (reference == null) return null;
+            if (reference is Transform transform) return transform;
+            if (reference is Component component) return component.transform;
+            if (reference is GameObject go) return go.transform;
+            return null;
         }
 
         private static int ApplySlots(Transform host, JObject entry)

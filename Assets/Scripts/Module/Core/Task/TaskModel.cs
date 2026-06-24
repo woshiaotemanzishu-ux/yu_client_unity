@@ -32,6 +32,11 @@ namespace Shenxiao.Module.Core.Tasks
 
         // 自动寻路到任务点的到达半径(逻辑格;复用老端接近 NPC 的 dist=2.5,到点后怪已在九宫格视野内)。
         private const float TaskPointArriveLogicDist = 2.5f;
+        private const float TaskJumpNormalMoveDistance = 1000f; // FLY_SHOE_DISTANCE.NormalMoveDistance
+        private const float TaskJumpTwoDistance = 1600f;        // FLY_SHOE_DISTANCE.TwoJumoDistance
+        private const float TaskJumpThreeDistance = 1800f;      // FLY_SHOE_DISTANCE.ThreeJumpDistance
+        private const int TaskJumpTwoType = 4;
+        private const int TaskJumpThreeType = 5;
 
         public static readonly TaskModel Instance = new TaskModel();
 
@@ -472,7 +477,33 @@ namespace Shenxiao.Module.Core.Tasks
                 "DoTask 寻路: 任务 {0} 同场景自动寻路到目标点 ({1},{2})(对标老端 DoTask 自动寻路/TaskSpeed);" +
                 "途中目标点附近怪物由九宫格(12012/12007)真实下发到 SceneManager,命中走技能点击(SceneCombat)。",
                 task.TaskId, task.SceneX, task.SceneY);
+            if (TryStartTaskJumpToPoint(agent, task)) return;
             agent.MoveToNpc(task.SceneX, task.SceneY, TaskPointArriveLogicDist, () => OnArriveTaskPoint(task));
+        }
+
+        private bool TryStartTaskJumpToPoint(MainRoleAgent agent, TaskVo task)
+        {
+            if (agent == null || task == null) return false;
+
+            int jumpType = ResolveTaskJumpType(task.SceneX, task.SceneY);
+            if (jumpType == 0) return false;
+
+            GameLog.Info("Task", "DoTask task jump: task={0} jumpType={1} target=({2},{3})",
+                task.TaskId, jumpType, task.SceneX, task.SceneY);
+            agent.TaskJumpTo(task.SceneX, task.SceneY, jumpType, () => OnArriveTaskPoint(task));
+            return true;
+        }
+
+        private static int ResolveTaskJumpType(int targetX, int targetY)
+        {
+            RoleModel role = RoleModel.Instance;
+            double dx = targetX - role.X;
+            double dy = targetY - role.Y;
+            double distance = System.Math.Sqrt(dx * dx + dy * dy);
+            if (distance <= TaskJumpNormalMoveDistance) return 0;
+            if (distance <= TaskJumpTwoDistance) return TaskJumpTwoType;
+            if (distance <= TaskJumpThreeDistance) return TaskJumpThreeType;
+            return 0;
         }
 
         /// <summary>寻路到达任务点(对标老端到点后停下;击杀类在此由技能点击命中真实怪,完整自动战斗循环=后续轮)。</summary>
@@ -605,6 +636,11 @@ namespace Shenxiao.Module.Core.Tasks
             public bool AutoCountdown;
             public bool NotShowInTaskItem;
             public bool NotEffect;
+            public float EffectScaleX = 1f;
+            public float EffectScaleY = 1f;
+            public float EffectScaleZ = 1f;
+            public float FingerOffsetX;
+            public float FingerOffsetY;
             public float OffsetX;
             public float OffsetY;
         }

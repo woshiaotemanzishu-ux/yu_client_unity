@@ -20,5 +20,10 @@ namespace Shenxiao.Module.Core.Scene
         public const int DoorJump = 8;          // 传送门跳转
         public const int PickDrop = 9;
         public const int JumpPoint = 10;
+        public const int FightStartJump = 11;
+        public const int StartJump = 12;
+        public const int JumpPointEnd = 13;
+        public const int TaskJump = 14;
+        public const int TaskJumpUpdatePos = 15;
     }
 }

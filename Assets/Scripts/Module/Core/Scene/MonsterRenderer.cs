@@ -9,6 +9,7 @@ using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene.Vo;
+using Shenxiao.Module.Core.Skill;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -60,6 +61,7 @@ namespace Shenxiao.Module.Core.Scene
             public Image HpFill;      // 血条填充(采集物为 null)
             public int Epoch;         // 清场代次:切场景/断线后过期的在途加载结果丢弃
             public bool Loaded;
+            public int ActionVersion;
         }
 
         private static readonly Dictionary<int, MonView> _views = new Dictionary<int, MonView>();
@@ -246,6 +248,186 @@ namespace Shenxiao.Module.Core.Scene
             if (anim == null) anim = model.AddComponent<Animation>();
             if (anim.GetClip(ACTION_IDLE) == null) anim.AddClip(clip, ACTION_IDLE);
             anim.Play(ACTION_IDLE);
+        }
+
+        public static void PlaySkill(int instanceId, int skillId)
+        {
+            if (!_views.TryGetValue(instanceId, out MonView view) || !view.Loaded || view.Model == null) return;
+            _ = PlaySkillAsync(view, skillId);
+        }
+
+        public static void PlayBeHit(int instanceId)
+        {
+            if (!_views.TryGetValue(instanceId, out MonView view) || !view.Loaded || view.Model == null) return;
+            _ = PlaySimpleActionAsync(view, "behit", true);
+        }
+
+        private static async Task PlaySkillAsync(MonView view, int skillId)
+        {
+            try
+            {
+                if (IsStale(view) || view.Model == null) return;
+                await SkillMovieConfigs.EnsureLoaded();
+
+                string actionName = SkillMovieConfigs.GetActionName(skillId);
+                IReadOnlyList<SkillMovieParticle> particles = SkillMovieConfigs.GetParticles(skillId);
+                if (string.IsNullOrEmpty(actionName) && (particles == null || particles.Count == 0))
+                {
+                    GameLog.Warn("Scene", "monster skill movie missing skill={0} ins={1}", skillId, view.InstanceId);
+                    return;
+                }
+
+                int version = ++view.ActionVersion;
+                if (!string.IsNullOrEmpty(actionName))
+                {
+                    await PrepareMonsterAction(view, actionName);
+                    if (IsStale(view) || view.Model == null || version != view.ActionVersion) return;
+
+                    await EffectBinder.AttachAction(view.Model, "monster", view.MonsterRes.ToString(), actionName);
+                    if (!TryPlayMonsterAction(view, actionName, 0.08f, true))
+                    {
+                        GameLog.Warn("Scene", "monster skill action missing skill={0} action={1} monster_res={2}",
+                            skillId, actionName, view.MonsterRes);
+                    }
+                }
+                else
+                {
+                    EffectBinder.ClearTag(view.Model, "action");
+                }
+
+                PlayMonsterParticles(view, skillId, particles, version);
+
+                float wait = Mathf.Max(GetMonsterActionLength(view, actionName),
+                    SkillMovieConfigs.GetConfiguredDurationSeconds(skillId));
+                if (wait > 0f)
+                {
+                    await Task.Delay(Mathf.RoundToInt(wait * 1000f));
+                    if (!IsStale(view) && version == view.ActionVersion && view.Model != null)
+                    {
+                        TryPlayMonsterAction(view, ACTION_IDLE, 0.12f, false);
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                GameLog.Warn("Scene", "play monster skill failed ins={0} skill={1}: {2}",
+                    view?.InstanceId ?? 0, skillId, ex.Message);
+            }
+        }
+
+        private static async Task PlaySimpleActionAsync(MonView view, string actionName, bool backToIdle)
+        {
+            try
+            {
+                if (IsStale(view) || view.Model == null) return;
+                int version = ++view.ActionVersion;
+                await PrepareMonsterAction(view, actionName);
+                if (IsStale(view) || view.Model == null || version != view.ActionVersion) return;
+                if (!TryPlayMonsterAction(view, actionName, 0.06f, true)) return;
+
+                float wait = GetMonsterActionLength(view, actionName);
+                if (backToIdle && wait > 0f)
+                {
+                    await Task.Delay(Mathf.RoundToInt(wait * 1000f));
+                    if (!IsStale(view) && version == view.ActionVersion && view.Model != null)
+                    {
+                        TryPlayMonsterAction(view, ACTION_IDLE, 0.12f, false);
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                GameLog.Warn("Scene", "play monster action failed ins={0} action={1}: {2}",
+                    view?.InstanceId ?? 0, actionName, ex.Message);
+            }
+        }
+
+        private static async Task PrepareMonsterAction(MonView view, string actionName)
+        {
+            if (view == null || view.Model == null || string.IsNullOrEmpty(actionName)) return;
+            Animation anim = view.Model.GetComponent<Animation>();
+            if (anim == null) anim = view.Model.AddComponent<Animation>();
+            if (anim.GetClip(actionName) != null) return;
+
+            string actionKey = $"object/monster/action/{view.MonsterRes}/{actionName}";
+            AnimationClip clip = await ResManager.LoadAsync<AnimationClip>(actionKey);
+            if (view.Model == null) return;
+            if (clip == null)
+            {
+                GameLog.Warn("Scene", "monster action missing monster_res={0} action={1} key={2}",
+                    view.MonsterRes, actionName, actionKey);
+                return;
+            }
+            if (!clip.legacy)
+            {
+                GameLog.Warn("Scene", "monster action non-legacy monster_res={0} action={1} key={2}",
+                    view.MonsterRes, actionName, actionKey);
+                return;
+            }
+            anim.AddClip(clip, actionName);
+        }
+
+        private static bool TryPlayMonsterAction(MonView view, string actionName, float fade, bool restart)
+        {
+            if (view == null || view.Model == null || string.IsNullOrEmpty(actionName)) return false;
+            Animation anim = view.Model.GetComponent<Animation>();
+            if (anim == null || anim.GetClip(actionName) == null) return false;
+            if (!restart && anim.IsPlaying(actionName)) return true;
+            if (restart) anim.Stop(actionName);
+            anim.CrossFade(actionName, fade);
+            return true;
+        }
+
+        private static float GetMonsterActionLength(MonView view, string actionName)
+        {
+            if (view == null || view.Model == null || string.IsNullOrEmpty(actionName)) return 0f;
+            Animation anim = view.Model.GetComponent<Animation>();
+            AnimationClip clip = anim != null ? anim.GetClip(actionName) : null;
+            return clip != null ? clip.length : 0f;
+        }
+
+        private static void PlayMonsterParticles(MonView view, int skillId,
+            IReadOnlyList<SkillMovieParticle> particles, int version)
+        {
+            if (particles == null || particles.Count == 0) return;
+            for (int i = 0; i < particles.Count; i++)
+            {
+                SkillMovieParticle particle = particles[i];
+                if (particle == null || string.IsNullOrEmpty(particle.Res)) continue;
+                _ = PlayMonsterParticleAsync(view, skillId, particle, version);
+            }
+        }
+
+        private static async Task PlayMonsterParticleAsync(MonView view, int skillId,
+            SkillMovieParticle particle, int version)
+        {
+            try
+            {
+                if (particle.StartTime > 0f)
+                    await Task.Delay(Mathf.RoundToInt(particle.StartTime * 1000f));
+                if (IsStale(view) || view.Model == null || version != view.ActionVersion) return;
+
+                GameObject effect = await EffectBinder.AttachOne(view.Model, "root", "skills_effect",
+                    particle.Res, "action", false);
+                if (effect == null) return;
+                if (particle.Scale > 0f && Mathf.Abs(particle.Scale - 1f) > 0.001f)
+                    effect.transform.localScale = Vector3.one * particle.Scale;
+
+                if (particle.PlayTimeLen > 0f)
+                {
+                    EffectBinder.PlayEffect(effect);
+                    Object.Destroy(effect, particle.PlayTimeLen);
+                }
+                else
+                {
+                    EffectBinder.PlayOneShot(effect);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                GameLog.Warn("Scene", "play monster particle failed ins={0} skill={1} res={2}: {3}",
+                    view?.InstanceId ?? 0, skillId, particle.Res, ex.Message);
+            }
         }
 
         // 模型 key:object/monster/model_clothe_{monster_res}/model_clothe_{monster_res}

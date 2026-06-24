@@ -3,6 +3,8 @@
     {
       "module": "mainUI",
       "prefab": "Assets/Prefabs/UI/MainUI/MainUIModule.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.MainUITaskItem",
+      "bindField": "_box_finger_con",
       "hostName": "_box_finger_con",
       "ancestorName": "MainUITaskItem",
       "source": "yu_client StoryModel.CreateFinger / MainUITaskItem guide",
@@ -20,6 +22,24 @@
           "effectName": "ui_dianjizhiyin",
           "addressKey": "effect/objs/ui_effect/ui_dianjizhiyin/ui_dianjizhiyin",
           "note": "点击手指和光点特效"
+        }
+      ]
+    },
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/MainUIModule.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.MainUITaskItem",
+      "bindField": "_box_effect",
+      "hostName": "_box_effect",
+      "ancestorName": "MainUITaskItem",
+      "source": "yu_client MainUITaskItem.UpdateFinishEffect",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "main_ui_task_finish_frame",
+          "effectName": "ui_renwulan",
+          "addressKey": "effect/objs/ui_effect/ui_renwulan/ui_renwulan",
+          "note": "任务完成时任务框外层流光和粒子特效"
         }
       ]
     }

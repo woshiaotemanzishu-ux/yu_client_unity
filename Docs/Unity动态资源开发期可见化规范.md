@@ -101,10 +101,12 @@ MainUITaskItem
 
 - slot/profile 存的是运行时 Addressable key 或配置引用,不是临时场景对象。
 - slot 必须是宿主节点下的显式子节点,例如 `__DynamicResources/main_ui_guide_select`;禁止只把多个 slot 组件堆在宿主节点 Inspector 上。
+- slot 回填优先用 `ownerComponent + bindField` 指向业务组件实际绑定字段;同名节点很多时,不得只靠节点名猜宿主。`hostName/ancestorName` 只能作为兼容旧配置的兜底定位方式。
 - Inspector 必须能显示资源状态:存在、缺失、过期、未分组、依赖缺失。
 - Inspector 必须能打开 Runtime Editable Asset。
 - Editor 预览可以实例化本地资源,但运行时仍走 `ResManager`。
 - UI 代码优先读取 slot/profile 或配置,不直接散落资源名常量。
+- UIEffect 的离屏 3D stage 必须使用独立渲染隔离层;stage 里的 mesh/particle 只能被对应的 RenderTexture 相机渲染,不得同时被主场景相机直接拍进 Game 画面。
 
 ## Addressables 规则
 
@@ -119,14 +121,15 @@ MainUITaskItem
 1. 转换器负责从 Laya Source 生成 Generated Base。
 2. Runtime Editable Asset 不存在时,工具可以由 Generated Base 初始化一份 runtime prefab/variant。
 3. Runtime Editable Asset 已存在时,默认保留人工修改,只标记 base 过期或提供对比/合并入口。
-4. 转换报告必须列出:
+4. 需要用新转换结果刷新 Runtime Editable Asset 时,必须走显式重置入口,例如 `神霄/资源/重置 UI 动态资源 Runtime Editable`;普通转换不隐式覆盖人工可编辑层。
+5. 转换报告必须列出:
    - source path
    - generated base path
    - runtime asset path
    - addressable key
    - 引用该资源的 UI slot/profile
    - 缺图、缺材质、Shader 错误、依赖缺失
-5. 不允许靠业务代码对某个转换失败资源写临时修正。
+6. 不允许靠业务代码对某个转换失败资源写临时修正。
 
 ## UI 开发规则
 
@@ -173,7 +176,7 @@ MainUITaskItem
    - 无法静态识别的动态资源继续进报告,不得静默丢失。
 
 5. **用 MainUI 引导作为首个验收切片**
-   - `MainUITaskItem` 上能看到 `ui_yindaoxiaoguo` 和 `ui_dianjizhiyin` slot。
+   - `MainUITaskItem` 上能看到 `ui_yindaoxiaoguo`、`ui_dianjizhiyin` 和 `ui_renwulan` slot。
    - 能从 slot 打开对应 runtime prefab。
    - 修改 runtime prefab 后,Play 模式和远程 Addressables 加载同一份资源。
    - 重跑转换器不覆盖人工修改。
@@ -197,5 +200,6 @@ MainUITaskItem
 - 任务条 UI 结构:`MainUITaskTeamView/MainUITaskItem` prefab。
 - 选中框四角/流光:`effect/objs/ui_effect/ui_yindaoxiaoguo/ui_yindaoxiaoguo` runtime prefab。
 - 点击手指/光点:`effect/objs/ui_effect/ui_dianjizhiyin/ui_dianjizhiyin` runtime prefab。
+- 任务完成外框流光/粒子:`effect/objs/ui_effect/ui_renwulan/ui_renwulan` runtime prefab。
 
-这三个资源应通过 UI slot 建立可见关系。修 `ui_dianjizhiyin` 紫块时,应修改它的 runtime prefab/material/shader 或转换规则,而不是在 `MainUIGuideManager` 写资源专用补丁。
+这些资源应通过 UI slot 建立可见关系。修紫块、流光缺失或粒子范围错误时,应修改对应 runtime prefab/material/shader、`UIEffectStage` 或转换规则,而不是在 `MainUIGuideManager`/`MainUITaskItem` 写资源专用补丁。

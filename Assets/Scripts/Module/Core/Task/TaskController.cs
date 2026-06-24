@@ -1,9 +1,12 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Dialogue;
+using Shenxiao.Module.Core.Scene;
 
 namespace Shenxiao.Module.Core.Tasks
 {
@@ -12,6 +15,7 @@ namespace Shenxiao.Module.Core.Tasks
         public static readonly TaskController Instance = new TaskController();
 
         private bool _taskFinishPendingAuto;
+        private int _taskOneAutoEpoch;
 
         private TaskController() { }
 
@@ -52,6 +56,7 @@ namespace Shenxiao.Module.Core.Tasks
             // 任务条"与<NPC名>交谈"文案需 config_npc(对标老端 GetTaskTipsMsgByMainUITaskItem 取 config_npc.name)。
             await NpcConfigs.EnsureLoaded();
             _taskFinishPendingAuto = false;
+            _taskOneAutoEpoch++;
             TaskModel.Instance.ClearData();
             SendFmt(Proto.TASK_LIST);
             GameLog.Info("Task", "request task list proto={0}", Proto.TASK_LIST);
@@ -91,6 +96,7 @@ namespace Shenxiao.Module.Core.Tasks
             TaskModel.Instance.UpdateTask(taskId, tips);
             EventDispatcher.Emit(GlobalEvent.EVT_TASK_ONE_UPDATED, taskId);
             EventDispatcher.Emit(GlobalEvent.EVT_TASK_LIST_UPDATED);
+            TryContinueAutoTaskAfterOne(taskId);
         }
 
         private void On30005(NetReader r)
@@ -140,6 +146,38 @@ namespace Shenxiao.Module.Core.Tasks
             if (!TaskModel.Instance.GetAutoTaskSetting()) return;
 
             _taskFinishPendingAuto = false;
+            TaskModel.Instance.FindNextAutoFightTask();
+        }
+
+        private void TryContinueAutoTaskAfterOne(int taskId)
+        {
+            if (!TaskModel.Instance.GetAutoTaskSetting()) return;
+            if (!TaskModel.Instance.IsAllStepFinish(taskId)) return;
+
+            TaskVo task = TaskModel.Instance.MainLineTaskVo;
+            if (task == null || task.TaskId != taskId) return;
+
+            if (AutoFightModel.Instance.AutoFightWeight == AutoFightModel.AUTO_WEIGHT_TASK)
+            {
+                AutoFightModel.Instance.SetAutoFightWeight(AutoFightModel.AUTO_WEIGHT_CLOSE);
+                SceneCombat.Instance.SetClickTarget(0);
+            }
+
+            int epoch = ++_taskOneAutoEpoch;
+            _ = ContinueAutoTaskAfterOneAsync(taskId, epoch);
+        }
+
+        private async Task ContinueAutoTaskAfterOneAsync(int taskId, int epoch)
+        {
+            await Task.Delay(350);
+            if (epoch != _taskOneAutoEpoch) return;
+            if (!TaskModel.Instance.GetAutoTaskSetting()) return;
+
+            TaskVo task = TaskModel.Instance.MainLineTaskVo;
+            if (task == null || task.TaskId != taskId) return;
+            if (!TaskModel.Instance.IsAllStepFinish(taskId)) return;
+
+            GameLog.Info("Task", "30001 task={0} finished -> continue auto task (open finish countdown)", taskId);
             TaskModel.Instance.FindNextAutoFightTask();
         }
 

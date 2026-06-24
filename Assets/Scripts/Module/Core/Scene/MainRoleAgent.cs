@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Common.UI3D;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Scene3D.Map;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.Skill;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Scene
@@ -23,7 +27,7 @@ namespace Shenxiao.Module.Core.Scene
         private const float MaxDeltaTime = 0.04f;   // MainRole.ts:746 单帧步进上限
         private const float SendInterval = 0.5f;    // MainRole.ts:547 上报节流
         private const int MoveTypeNormal = 0;       // SceneConfig NORMOL_MOVE
-        private const float TurnSmoothSpeed = 720f; // 转向角速度(度/秒);<=0 则瞬时转向
+        private static readonly float TurnSmoothSpeed = 720f; // 转向角速度(度/秒);<=0 则瞬时转向
 
         // —— 自动接近 NPC(对标 Scene.MainRoleToNpc → MainRoleMove)——
         private const float ArrivalLogicDist = 2.5f; // 到达判定半径(逻辑格,老端 dist=2.5)
@@ -33,12 +37,21 @@ namespace Shenxiao.Module.Core.Scene
 
         private const string ActionIdle = "idle";
         private const string ActionRun = "run";
+        private const string ActionJump = "jump";
 
         /// <summary>当前主角驱动(MainRoleFlow 装配后唯一存在;清主角时置空)。任务/对话用它让主角朝 NPC 转向。</summary>
         public static MainRoleAgent Current { get; private set; }
 
         private Transform _modelTr;     // 模型子节点(用于转向)
         private Animation _anim;        // RoleModelAssembler 在模型根挂的 Animation
+        private GameObject _model;
+        private int _career;
+        private int _sex;
+        private int _clotheRes;
+        private int _actionVersion;
+        private Vector3 _modelBaseLocalPos;
+        private int _jumpActionCursor;
+        private int _levelUpEffectCount;
 
         private float _posX;            // 真实像素 X(real_pos.x)
         private float _posY;            // 真实像素 Y(real_pos.y)
@@ -57,13 +70,19 @@ namespace Shenxiao.Module.Core.Scene
         private float _autoLastY;
 
         /// <summary>由 MainRoleFlow 在装配完成后初始化:传入模型子节点与出生坐标。</summary>
-        public void Init(GameObject model, int spawnX, int spawnY)
+        public void Init(GameObject model, int spawnX, int spawnY, int career, int sex, int clotheRes)
         {
             Current = this;
+            _model = model;
             _modelTr = model != null ? model.transform : transform;
             _anim = model != null ? model.GetComponent<Animation>() : null;
+            _career = career;
+            _sex = sex;
+            _clotheRes = clotheRes;
+            _modelBaseLocalPos = _modelTr != null ? _modelTr.localPosition : Vector3.zero;
             _posX = spawnX;
             _posY = spawnY;
+            _actionVersion++;
             _moving = false;
             _sendTimer = 0f;
             PlayAction(ActionIdle);
@@ -161,6 +180,9 @@ namespace Shenxiao.Module.Core.Scene
         {
             if (_moving) return;
             _moving = true;
+            _actionVersion++;
+            EffectBinder.ClearTag(_model, "action");
+            ResetModelVisualOffset();
             PlayAction(ActionRun);
             _sendTimer = SendInterval; // 起步立即上报一次
         }
@@ -179,6 +201,7 @@ namespace Shenxiao.Module.Core.Scene
         private void StopMove()
         {
             _moving = false;
+            ResetModelVisualOffset();
             PlayAction(ActionIdle);
             // 对标 MainRole.QuitStateMove:松手补发一次最终坐标
             RoleModel role = RoleModel.Instance;
@@ -339,17 +362,391 @@ namespace Shenxiao.Module.Core.Scene
             GameLog.Info("Scene", "MoveToNpc 取消:{0}", why);
         }
 
+        public void PlaySkill(int skillId)
+        {
+            _ = PlaySkillAsync(skillId);
+        }
+
+        public void PlayMoveAnim(int moveAnim, int targetX, int targetY)
+        {
+            if (moveAnim <= 0) return;
+            _ = PlayMoveAnimAsync(moveAnim, targetX, targetY);
+        }
+
+        public void TaskJumpTo(int targetX, int targetY, int jumpType, Action onArrive)
+        {
+            if (jumpType <= 0)
+            {
+                MoveToNpc(targetX, targetY, ArrivalLogicDist, onArrive);
+                return;
+            }
+            _ = TaskJumpToAsync(jumpType, targetX, targetY, onArrive);
+        }
+
+        private async Task TaskJumpToAsync(int jumpType, int targetX, int targetY, Action onArrive)
+        {
+            try
+            {
+                if (_model == null || _anim == null)
+                {
+                    ApplyServerPosition(targetX, targetY);
+                    onArrive?.Invoke();
+                    return;
+                }
+
+                await OtherFightConfigs.EnsureLoaded();
+                int version = ++_actionVersion;
+                _moving = false;
+                _autoMoving = false;
+                _onArrive = null;
+                EffectBinder.ClearTag(_model, "action");
+                ResetModelVisualOffset();
+                FaceTowardPixel(targetX, targetY);
+
+                int startX = Mathf.RoundToInt(_posX);
+                int startY = Mathf.RoundToInt(_posY);
+                SceneController.Instance.SendMoveRequest(startX, startY, MoveType.TaskJump, targetX, targetY, startX, startY);
+
+                string playedAction = null;
+                foreach (string candidate in MoveAnimCandidates(jumpType))
+                {
+                    await RoleModelAssembler.PrepareRoleActions(_model, _career, _clotheRes, new[] { candidate });
+                    if (version != _actionVersion || _model == null) return;
+                    if (TryPlayAction(candidate, 0.08f, true))
+                    {
+                        playedAction = candidate;
+                        break;
+                    }
+                }
+
+                if (playedAction == null)
+                {
+                    GameLog.Warn("Scene", "task jump action missing jumpType={0}", jumpType);
+                    ApplyServerPosition(targetX, targetY);
+                    onArrive?.Invoke();
+                    return;
+                }
+
+                await RunConfiguredJumpToAsync(jumpType, targetX, targetY, version);
+                if (version != _actionVersion || _model == null) return;
+
+                ResetModelVisualOffset();
+                PlayAction(ActionIdle);
+                onArrive?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                GameLog.Warn("Scene", "task jump failed jumpType={0}: {1}", jumpType, ex.Message);
+                ResetModelVisualOffset();
+                ApplyServerPosition(targetX, targetY);
+                onArrive?.Invoke();
+            }
+        }
+
+        private async Task PlaySkillAsync(int skillId)
+        {
+            try
+            {
+                if (_model == null || _anim == null) return;
+                await SkillMovieConfigs.EnsureLoaded();
+
+                string actionName = SkillMovieConfigs.GetActionName(skillId);
+                IReadOnlyList<SkillMovieParticle> particles = SkillMovieConfigs.GetParticles(skillId);
+                if (string.IsNullOrEmpty(actionName) && (particles == null || particles.Count == 0))
+                {
+                    GameLog.Warn("Scene", "skill movie missing skill={0}", skillId);
+                    return;
+                }
+
+                int version = ++_actionVersion;
+                _moving = false;
+                _autoMoving = false;
+
+                if (!string.IsNullOrEmpty(actionName))
+                {
+                    await RoleModelAssembler.PrepareRoleActions(_model, _career, _clotheRes, new[] { actionName });
+                    if (version != _actionVersion || _model == null) return;
+                    await EffectBinder.AttachAction(_model, "role", _clotheRes.ToString(), actionName);
+                    if (!TryPlayAction(actionName, 0.08f, true))
+                    {
+                        GameLog.Warn("Scene", "skill action missing skill={0} action={1}", skillId, actionName);
+                    }
+                }
+                else
+                {
+                    EffectBinder.ClearTag(_model, "action");
+                }
+
+                PlaySkillParticles(skillId, particles, version);
+
+                float wait = Mathf.Max(GetActionLength(actionName), SkillMovieConfigs.GetConfiguredDurationSeconds(skillId));
+                if (wait > 0f)
+                {
+                    await Task.Delay(Mathf.RoundToInt(wait * 1000f));
+                    if (version == _actionVersion && !_moving && _model != null) PlayAction(ActionIdle);
+                }
+            }
+            catch (Exception ex)
+            {
+                GameLog.Warn("Scene", "play skill visual failed skill={0}: {1}", skillId, ex.Message);
+            }
+        }
+
+        private async Task PlayMoveAnimAsync(int moveAnim, int targetX, int targetY)
+        {
+            try
+            {
+                if (_model == null || _anim == null) return;
+                await OtherFightConfigs.EnsureLoaded();
+                int version = ++_actionVersion;
+                _moving = false;
+                _autoMoving = false;
+                EffectBinder.ClearTag(_model, "action");
+                ResetModelVisualOffset();
+
+                string playedAction = null;
+                foreach (string candidate in MoveAnimCandidates(moveAnim))
+                {
+                    await RoleModelAssembler.PrepareRoleActions(_model, _career, _clotheRes, new[] { candidate });
+                    if (version != _actionVersion || _model == null) return;
+                    if (TryPlayAction(candidate, 0.08f, true))
+                    {
+                        playedAction = candidate;
+                        break;
+                    }
+                }
+
+                if (playedAction == null)
+                {
+                    GameLog.Warn("Scene", "move_anim action missing moveAnim={0}", moveAnim);
+                    ApplyServerPosition(targetX, targetY);
+                    return;
+                }
+
+                if (targetX > 0 || targetY > 0)
+                {
+                    await RunConfiguredJumpToAsync(moveAnim, targetX, targetY, version);
+                }
+                else
+                {
+                    float duration = GetActionLength(playedAction);
+                    if (duration > 0f) await Task.Delay(Mathf.RoundToInt(duration * 1000f));
+                }
+
+                if (version == _actionVersion && !_moving && _model != null)
+                {
+                    ResetModelVisualOffset();
+                    PlayAction(ActionIdle);
+                }
+            }
+            catch (Exception ex)
+            {
+                GameLog.Warn("Scene", "play move_anim failed moveAnim={0}: {1}", moveAnim, ex.Message);
+                ResetModelVisualOffset();
+            }
+        }
+
+        private void PlaySkillParticles(int skillId, IReadOnlyList<SkillMovieParticle> particles, int version)
+        {
+            if (particles == null || particles.Count == 0) return;
+            for (int i = 0; i < particles.Count; i++)
+            {
+                SkillMovieParticle particle = particles[i];
+                if (particle == null || string.IsNullOrEmpty(particle.Res)) continue;
+                _ = PlaySkillParticleAsync(skillId, particle, version);
+            }
+        }
+
+        private async Task PlaySkillParticleAsync(int skillId, SkillMovieParticle particle, int version)
+        {
+            try
+            {
+                if (particle.StartTime > 0f)
+                    await Task.Delay(Mathf.RoundToInt(particle.StartTime * 1000f));
+                if (version != _actionVersion || _model == null) return;
+
+                GameObject effect = await EffectBinder.AttachOne(_model, "root", "skills_effect", particle.Res, "action", false);
+                if (effect == null) return;
+                if (particle.Scale > 0f && Mathf.Abs(particle.Scale - 1f) > 0.001f)
+                    effect.transform.localScale = Vector3.one * particle.Scale;
+
+                if (particle.PlayTimeLen > 0f)
+                {
+                    EffectBinder.PlayEffect(effect);
+                    UnityEngine.Object.Destroy(effect, particle.PlayTimeLen);
+                }
+                else
+                {
+                    EffectBinder.PlayOneShot(effect);
+                }
+            }
+            catch (Exception ex)
+            {
+                GameLog.Warn("Scene", "play skill particle failed skill={0} res={1}: {2}", skillId, particle.Res, ex.Message);
+            }
+        }
+
+        public void PlayLevelUpEffect()
+        {
+            _ = PlayLevelUpEffectAsync();
+        }
+
+        private async Task PlayLevelUpEffectAsync()
+        {
+            if (_model == null) return;
+            if (_levelUpEffectCount >= 2) return;
+
+            _levelUpEffectCount++;
+            try
+            {
+                string key = GameResPath.GetEffectPrefabPath("other_effect", "effect_xemlvup");
+                GameObject prefab = await ResManager.LoadAsync<GameObject>(key);
+                Transform host = GetDetachedEffectHost();
+                if (prefab == null || host == null)
+                {
+                    GameLog.Warn("Scene", "level up effect missing or host destroyed: {0}", key);
+                    return;
+                }
+
+                GameObject effect = UnityEngine.Object.Instantiate(prefab, host);
+                effect.name = "__fx_levelup_effect_xemlvup";
+                effect.transform.localPosition = Vector3.zero;
+                effect.transform.localRotation = Quaternion.identity;
+                effect.transform.localScale = Vector3.one;
+                if (effect != null) EffectBinder.PlayOneShot(effect);
+                await Task.Delay(1000);
+            }
+            catch (Exception ex)
+            {
+                GameLog.Warn("Scene", "play level up effect failed: {0}", ex.Message);
+            }
+            finally
+            {
+                _levelUpEffectCount = Mathf.Max(0, _levelUpEffectCount - 1);
+            }
+        }
+
+        private Transform GetDetachedEffectHost()
+        {
+            if (_modelTr != null && _modelTr.parent != null) return _modelTr.parent;
+            if (_modelTr != null) return _modelTr;
+            return transform;
+        }
+
+        private async Task RunConfiguredJumpToAsync(int moveAnim, int targetX, int targetY, int version)
+        {
+            float startX = _posX;
+            float startY = _posY;
+            float dx = targetX - startX;
+            float dy = targetY - startY;
+            float distance = Mathf.Sqrt(dx * dx + dy * dy);
+            int jumpType = NormalizeJumpType(moveAnim);
+            float hspeed = OtherFightConfigs.GetJumpHSpeed(jumpType, 900f);
+            float moveTime = hspeed > 0f ? distance / hspeed : GetActionLength(ActionJump);
+            moveTime = Mathf.Max(0.05f, moveTime);
+
+            float vspeed = OtherFightConfigs.GetJumpVSpeed(jumpType, 1200f);
+            float gravity = OtherFightConfigs.GetJumpGravitySpeed(jumpType, 2500f);
+            float upTime = gravity > 0f ? vspeed / gravity : 0f;
+            float maxHeight = gravity > 0f ? 0.5f * gravity * upTime * upTime : 0f;
+
+            float elapsed = 0f;
+            while (elapsed < moveTime)
+            {
+                await Task.Yield();
+                if (version != _actionVersion || _model == null) return;
+
+                elapsed += Mathf.Max(Time.deltaTime, 0.016f);
+                float t = Mathf.Clamp01(elapsed / moveTime);
+                int x = Mathf.RoundToInt(Mathf.Lerp(startX, targetX, t));
+                int y = Mathf.RoundToInt(Mathf.Lerp(startY, targetY, t));
+                ApplyServerPosition(x, y);
+                ApplyJumpVisualHeight(4f * maxHeight * t * (1f - t));
+            }
+
+            ApplyServerPosition(targetX, targetY);
+            ResetModelVisualOffset();
+
+            float stay = OtherFightConfigs.GetJumpFallStayTime(jumpType, _career, 0.1f);
+            if (stay > 0f) await Task.Delay(Mathf.RoundToInt(stay * 1000f));
+        }
+
+        private IEnumerable<string> MoveAnimCandidates(int moveAnim)
+        {
+            IReadOnlyList<string> configured = OtherFightConfigs.GetJumpActionList(_career, _sex);
+            if (configured.Count > 0)
+            {
+                int start = _jumpActionCursor % configured.Count;
+                _jumpActionCursor++;
+                for (int i = 0; i < configured.Count; i++)
+                    yield return configured[(start + i) % configured.Count];
+            }
+
+            if (moveAnim > 1) yield return ActionJump + moveAnim;
+            yield return ActionJump;
+            yield return ActionRun;
+        }
+
+        private static int NormalizeJumpType(int moveAnim)
+        {
+            return moveAnim >= 1 && moveAnim <= 5 ? moveAnim : 1;
+        }
+
+        private void ApplyJumpVisualHeight(float heightPixels)
+        {
+            if (_modelTr == null) return;
+            _modelTr.localPosition = _modelBaseLocalPos + new Vector3(0f, Mathf.Max(0f, heightPixels) / 100f, 0f);
+        }
+
+        private void ResetModelVisualOffset()
+        {
+            if (_modelTr != null) _modelTr.localPosition = _modelBaseLocalPos;
+        }
+
+        private void ApplyServerPosition(int targetX, int targetY)
+        {
+            if (targetX <= 0 && targetY <= 0) return;
+            RoleModel role = RoleModel.Instance;
+            if (targetX > 0)
+            {
+                _posX = targetX;
+                role.X = targetX;
+            }
+            if (targetY > 0)
+            {
+                _posY = targetY;
+                role.Y = targetY;
+            }
+            SceneMapView.SetFocus(role.X, role.Y);
+            SyncModelScreenOffset();
+        }
+
+        private float GetActionLength(string action)
+        {
+            if (_anim == null || string.IsNullOrEmpty(action)) return 0f;
+            AnimationClip clip = _anim.GetClip(action);
+            return clip != null ? clip.length : 0f;
+        }
+
         private void OnDestroy()
         {
             if (Current == this) Current = null;
+            _model = null;
         }
 
         private void PlayAction(string action)
         {
-            if (_anim == null || string.IsNullOrEmpty(action)) return;
-            if (_anim.GetClip(action) == null) return; // 未转换的动作静默跳过,不影响移动
-            if (_anim.IsPlaying(action)) return;
-            _anim.CrossFade(action, 0.15f);
+            TryPlayAction(action, 0.15f, false);
+        }
+
+        private bool TryPlayAction(string action, float fade, bool restart)
+        {
+            if (_anim == null || string.IsNullOrEmpty(action)) return false;
+            if (_anim.GetClip(action) == null) return false; // 未转换的动作静默跳过,不影响移动
+            if (!restart && _anim.IsPlaying(action)) return true;
+            if (restart) _anim.Stop(action);
+            _anim.CrossFade(action, fade);
+            return true;
         }
     }
 }

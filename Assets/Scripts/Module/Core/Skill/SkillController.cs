@@ -51,13 +51,15 @@ namespace Shenxiao.Module.Core.Skill
             // 技能名/等级图标来自 config_skill;快捷栏顺序来自 ConfigSkillUI(EnsureLoaded 幂等,对标 BagController/TaskController)。
             await SkillConfigs.EnsureLoaded();
             await SkillUIConfigs.EnsureLoaded();
+            await SkillMovieConfigs.EnsureLoaded();
+            await OtherFightConfigs.EnsureLoaded();
             AutoFightModel.Instance.Reset();
 
             // 对标 SkillController GAME_START 延迟批量请求;Unity 这里 await 配置即天然延迟,连接已就绪后再发。
             SendFmt(Proto.SKILL_LIST);         // 21002 技能总表
             SendFmt(Proto.SKILL_SHORTCUT_BAR); // 13007 快捷栏
-            GameLog.Info("Skill", "request 21002/13007 (config_skill={0} ConfigSkillUI={1})",
-                SkillConfigs.IsLoaded, SkillUIConfigs.IsLoaded);
+            GameLog.Info("Skill", "request 21002/13007 (config_skill={0} ConfigSkillUI={1} SkillMovies={2} ConfigOtherFightInfo={3})",
+                SkillConfigs.IsLoaded, SkillUIConfigs.IsLoaded, SkillMovieConfigs.IsLoaded, OtherFightConfigs.IsLoaded);
         }
 
         // ===================== 21002:技能总表 =====================
