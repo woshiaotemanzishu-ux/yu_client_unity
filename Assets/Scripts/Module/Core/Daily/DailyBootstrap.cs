@@ -16,6 +16,7 @@ namespace Shenxiao.Module.Core.Daily
         private static void Install()
         {
             MainUIRouter.Register("dailyfind", DailyFlow.Toggle);
+            MainUIRouter.Register("brightsea", DailyFlow.ToggleBrightSea);
             EventDispatcher.On(GlobalEvent.EVT_NET_DISCONNECTED, OnDisconnected);
         }
 

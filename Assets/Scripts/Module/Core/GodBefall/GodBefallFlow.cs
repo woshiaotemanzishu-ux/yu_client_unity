@@ -5,6 +5,7 @@ using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.MainUI;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.GodBefall
@@ -77,13 +78,16 @@ namespace Shenxiao.Module.Core.GodBefall
             _loading = true;
             string frameKey = GameResPath.GetUIPrefab(FRAME_MODULE, FRAME_PREFAB);
             string contentKey = GameResPath.GetUIPrefab(CONTENT_MODULE, CONTENT_PREFAB);
-            _frameRoot = await ResManager.InstantiateAsync(frameKey, ViewManager.GetLayer(UILayer.Window));
-            _contentRoot = await ResManager.InstantiateAsync(contentKey, ViewManager.GetLayer(UILayer.Window));
+            _frameRoot = await MainUIRouteFallback.InstantiateOrShowAsync("232", "GodBefall", frameKey, ViewManager.GetLayer(UILayer.Window));
+            _contentRoot = _frameRoot != null
+                ? await MainUIRouteFallback.InstantiateOrShowAsync("232", "GodBefall", contentKey, ViewManager.GetLayer(UILayer.Window))
+                : null;
             _loading = false;
 
             if (_frameRoot == null || _contentRoot == null)
             {
                 GameLog.Error("GodBefall", "多标签窗加载失败 frame={0} content={1}", frameKey, contentKey);
+                Reset();
                 return;
             }
             _frameRoot.name = FRAME_PREFAB;
@@ -96,6 +100,8 @@ namespace Shenxiao.Module.Core.GodBefall
             if (_window == null)
             {
                 GameLog.Warn("GodBefall", "BaseWindowSkin 缺 BaseWindowSkinView(重跑 common 流水线回填)");
+                MainUIRouteFallback.ShowUnavailable("232", "GodBefall", "BaseWindowSkin missing BaseWindowSkinView");
+                Reset();
                 return;
             }
 

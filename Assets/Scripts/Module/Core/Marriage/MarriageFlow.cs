@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.MainUI;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Marriage
@@ -86,7 +87,7 @@ namespace Shenxiao.Module.Core.Marriage
             _loading = true;
 
             string key = GameResPath.GetUIPrefab(MODULE, PREFAB);
-            GameObject root = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+            GameObject root = await MainUIRouteFallback.InstantiateOrShowAsync("love", "Marriage", key, ViewManager.GetLayer(UILayer.Window));
             _loading = false;
 
             if (root == null)
@@ -116,6 +117,8 @@ namespace Shenxiao.Module.Core.Marriage
             if (_mainView == null)
             {
                 GameLog.Warn("Marriage", "MarriageModule 缺 MarriageBaseView(重跑 marriage 流水线:转换+回填)");
+                MainUIRouteFallback.ShowUnavailable("love", "Marriage", "MarriageModule missing MarriageBaseView");
+                Reset();
                 return;
             }
 

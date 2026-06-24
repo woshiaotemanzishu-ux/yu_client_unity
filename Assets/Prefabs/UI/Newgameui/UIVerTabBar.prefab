@@ -81,7 +81,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8282020590345746484}
-  - component: {fileID: 4343350728967535754}
   m_Layer: 0
   m_Name: UIVerTabBar
   m_TagString: Untagged
@@ -111,23 +110,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 166, y: 38}
   m_Pivot: {x: 0, y: 1}
---- !u!114 &4343350728967535754
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 900583501881556614}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc363989f24b1d44e9fd1b4f6c7a4e38, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Newgameui.UIVerTabBarBind
-  scroll: {fileID: 435419107642753089}
-  scroll_group: {fileID: 590710680530769664}
-  _img_arrow: {fileID: 8556563476129684420}
-  img_red: {fileID: 1532418452363241758}
-  _tpl_UIVerTabBtn: {fileID: 5773396844771486030}
 --- !u!1 &3511713120834053562
 GameObject:
   m_ObjectHideFlags: 0
@@ -523,10 +505,5 @@ PrefabInstance:
 --- !u!224 &4010582901002496265 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5496846574304163531, guid: bbc21e07ca59d2f43990b8fc08173188, type: 3}
-  m_PrefabInstance: {fileID: 8926357884350668738}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &5773396844771486030 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3170519727471441548, guid: bbc21e07ca59d2f43990b8fc08173188, type: 3}
   m_PrefabInstance: {fileID: 8926357884350668738}
   m_PrefabAsset: {fileID: 0}

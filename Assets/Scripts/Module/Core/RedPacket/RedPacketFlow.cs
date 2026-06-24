@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.MainUI;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.RedPacket
@@ -61,7 +62,7 @@ namespace Shenxiao.Module.Core.RedPacket
             if (_loading) return;
             _loading = true;
             string key = GameResPath.GetUIPrefab(MODULE, PREFAB);
-            GameObject root = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+            GameObject root = await MainUIRouteFallback.InstantiateOrShowAsync("redpacket", "RedPacket", key, ViewManager.GetLayer(UILayer.Window));
             _loading = false;
 
             if (root == null)
@@ -86,6 +87,8 @@ namespace Shenxiao.Module.Core.RedPacket
             if (_mainView == null)
             {
                 GameLog.Warn("RedPacket", "RedPacketModule 缺 RedPacketMainView(重跑 redPacket 流水线:转换+回填)");
+                MainUIRouteFallback.ShowUnavailable("redpacket", "RedPacket", "RedPacketModule missing RedPacketMainView");
+                Reset();
                 return;
             }
 

@@ -16,7 +16,16 @@ namespace Shenxiao.Editor.LayaUI
     public static class LayaUIPipeline
     {
         private const string NAMES_PATH = "Schemas/LayaUI/module_names_cn.json";
+        private const string MainUIEntryAutoRunRequestPath = "Temp/ShenxiaoRunMainUIEntryModules.request";
+        private const string MainUIEntryTitle = "MainUI Entry Modules";
+        private const double MainUIEntryQueuePollSeconds = 2.0;
         private static readonly string[] FreshMachineModules = { "login", "mainUI" };
+        private static readonly string[] MainUIEntryModules =
+        {
+            "vip", "pet", "redPacket", "rune", "marriage", "godBefall", "shop", "common"
+        };
+        private static bool mainUIEntryAutoRunQueued;
+        private static double nextMainUIEntryQueuePollTime;
 
         private static string PendingKey => "Shenxiao.LayaUI.PendingFill:" + Application.dataPath.GetHashCode();
         private static string MissingKey(string module) => "Shenxiao.LayaUI.Missing." + module + ":" + Application.dataPath.GetHashCode();
@@ -38,6 +47,72 @@ namespace Shenxiao.Editor.LayaUI
         public static void RunMainUI()
         {
             RunModule("mainUI");
+        }
+
+        [MenuItem("Shenxiao/LayaUI/Rebuild MainUI Entry Modules", priority = 22)]
+        public static void RunMainUIEntryModules()
+        {
+            RunModules(MainUIEntryModules, MainUIEntryTitle, true);
+        }
+
+        public static void RunMainUIEntryModulesNoConfirm()
+        {
+            RunModules(MainUIEntryModules, MainUIEntryTitle, false);
+        }
+
+        [InitializeOnLoadMethod]
+        private static void RegisterQueuedMainUIEntryModules()
+        {
+            EditorApplication.update -= PollQueuedMainUIEntryModules;
+            EditorApplication.update += PollQueuedMainUIEntryModules;
+            ScheduleQueuedMainUIEntryModules();
+        }
+
+        private static void PollQueuedMainUIEntryModules()
+        {
+            if (mainUIEntryAutoRunQueued) return;
+            if (EditorApplication.timeSinceStartup < nextMainUIEntryQueuePollTime) return;
+
+            nextMainUIEntryQueuePollTime = EditorApplication.timeSinceStartup + MainUIEntryQueuePollSeconds;
+            ScheduleQueuedMainUIEntryModules();
+        }
+
+        private static void ScheduleQueuedMainUIEntryModules()
+        {
+            if (mainUIEntryAutoRunQueued) return;
+            if (!File.Exists(GetMainUIEntryAutoRunRequestPath())) return;
+
+            mainUIEntryAutoRunQueued = true;
+            EditorApplication.delayCall += RunQueuedMainUIEntryModules;
+        }
+
+        private static void RunQueuedMainUIEntryModules()
+        {
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating)
+            {
+                EditorApplication.delayCall += RunQueuedMainUIEntryModules;
+                return;
+            }
+
+            string path = GetMainUIEntryAutoRunRequestPath();
+            if (!File.Exists(path))
+            {
+                mainUIEntryAutoRunQueued = false;
+                return;
+            }
+
+            try
+            {
+                File.Delete(path);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[LayaUI] Failed to delete MainUI entry rebuild request: " + e.Message);
+            }
+
+            mainUIEntryAutoRunQueued = false;
+            GameLog("Auto-running queued MainUI entry module rebuild.");
+            RunMainUIEntryModulesNoConfirm();
         }
 
         [MenuItem("神霄/LayaUI/重转任务(Task)", priority = 21)]
@@ -216,6 +291,16 @@ namespace Shenxiao.Editor.LayaUI
                 .Select(p => p.Name)
                 .OrderBy(m => m)
                 .ToArray();
+        }
+
+        private static string GetMainUIEntryAutoRunRequestPath()
+        {
+            string projectRoot = Path.GetDirectoryName(Application.dataPath);
+            if (string.IsNullOrEmpty(projectRoot))
+            {
+                projectRoot = Directory.GetCurrentDirectory();
+            }
+            return Path.Combine(projectRoot, MainUIEntryAutoRunRequestPath);
         }
 
         private static void GameLog(string msg)

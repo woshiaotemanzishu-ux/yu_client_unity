@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
+using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.MainUI
 {
@@ -13,6 +15,8 @@ namespace Shenxiao.Module.Core.MainUI
     public sealed class MainUIActivityView : MainUIActivityViewBind
     {
         private readonly Dictionary<string, ActivityIcon> _iconByType = new Dictionary<string, ActivityIcon>();
+        private bool _activityFolded;
+        private bool _clickBound;
 
         protected override void OnInit()
         {
@@ -32,6 +36,7 @@ namespace Shenxiao.Module.Core.MainUI
             if (_tpl_EquipmentItem != null) _tpl_EquipmentItem.SetActive(false);
             if (_tpl_ActivityIcon != null) _tpl_ActivityIcon.SetActive(false);
             if (_tpl_TopPlayerTipItem != null) _tpl_TopPlayerTipItem.SetActive(false);
+            BindButtons();
         }
 
         protected override void OnShow(object args)
@@ -151,12 +156,51 @@ namespace Shenxiao.Module.Core.MainUI
             SortIcons(fourth);
             SortIcons(rightMiddle);
 
+            if (_activityFolded)
+            {
+                HideAllIcons();
+                UpdateTurnBtnPos(first, second, other);
+                return;
+            }
+
             RefreshIconPos(first, 1, null, null, null);
             RefreshIconPos(second, 2, first, null, null);
             RefreshIconPos(other, 3, first, second, null);
             RefreshIconPos(fourth, 4, first, second, other);
             RefreshIconPos(rightMiddle, 9, null, null, null);
             UpdateTurnBtnPos(first, second, other);
+        }
+
+        private void HideAllIcons()
+        {
+            foreach (ActivityIcon item in _iconByType.Values)
+            {
+                if (item == null) continue;
+                item.SetVisible(false);
+            }
+        }
+
+        private void BindButtons()
+        {
+            if (_clickBound) return;
+            if (_img_turn != null)
+            {
+                UIUtil.AddClick(_img_turn, ToggleActivityFold);
+            }
+            RouteClick(_box_rank, "activity_rank");
+            _clickBound = true;
+        }
+
+        private static void RouteClick(Component target, string viewKey)
+        {
+            if (target == null) return;
+            UIUtil.AddClick(target, () => MainUIRouter.Open(viewKey));
+        }
+
+        private void ToggleActivityFold()
+        {
+            _activityFolded = !_activityFolded;
+            RefreshIcon();
         }
 
         private void RefreshIconPos(List<ActivityIcon> list, int lineNo, List<ActivityIcon> first,

@@ -33,6 +33,7 @@ namespace Shenxiao.Module.Core.MainUI
         private CancellationTokenSource _guideCts;
         private MainUITaskItem _mainLineItem; // _box_main_line 内的主线任务条(复用 MainUITaskItem 渲染)
         private bool _clickBound;
+        private bool _taskFolded;
 
         protected override void OnInit()
         {
@@ -101,6 +102,15 @@ namespace Shenxiao.Module.Core.MainUI
             // 断线重连期 MainUI 可能已被拆(GameObject 销毁)但事件未退订 → _panel_task 为 Unity-null,
             // 在已销毁视图上刷新会抛 MissingReferenceException(阻断 DoTask 的 EVT_TASK_SELECT_CHANGED 链)。防御性早退。
             if (_panel_task == null) return;
+            if (_taskFolded)
+            {
+                _panel_task.gameObject.SetActive(false);
+                _box_main_line.gameObject.SetActive(false);
+                CancelGuideTimer();
+                HideMainLineTaskArrow();
+                return;
+            }
+
             List<TaskModel.TaskEntry> list = TaskModel.Instance.GetTaskListForMainUI();
             _panel_task.gameObject.SetActive(list.Count > 0);
 
@@ -281,18 +291,16 @@ namespace Shenxiao.Module.Core.MainUI
         private void BindButtons()
         {
             if (_clickBound) return;
-            BindClick(_img_task_bg, ShowTaskTab);
-            BindClick(_img_team_bg, ShowTeamTab);
+            BindClick(_box_task_tab, ShowTaskTab);
+            BindClick(_box_team_tab, ShowTeamTab);
             BindClick(_img_create_team, () => MainUIRouter.Open("team_create"));
             BindClick(_img_search_team, () => MainUIRouter.Open("team_search"));
-            BindClick(_img_arrow, () => MainUIRouter.Open("task_panel_toggle"));
-            BindClick(_img_temple_awaken_bg, () => MainUIRouter.Open("templeawaken"));
-            BindClick(_img_awaken, () => MainUIRouter.Open("templeawaken"));
-            BindClick(_img_goods_icon, () => MainUIRouter.Open("templeawaken"));
+            BindClick(_img_arrow, ToggleTaskPanel);
+            BindClick(_box_temple_awaken, () => MainUIRouter.Open("templeawaken"));
             _clickBound = true;
         }
 
-        private static void BindClick(Graphic target, Action onClick)
+        private static void BindClick(Component target, Action onClick)
         {
             if (target == null) return;
             UIUtil.AddClick(target, onClick);
@@ -300,6 +308,7 @@ namespace Shenxiao.Module.Core.MainUI
 
         private void ShowTaskTab()
         {
+            _taskFolded = false;
             _box_task.gameObject.SetActive(true);
             _box_team.gameObject.SetActive(false);
             _box_non_team.gameObject.SetActive(false);
@@ -314,6 +323,23 @@ namespace Shenxiao.Module.Core.MainUI
             _box_non_team.gameObject.SetActive(true);
             ApplyTaskTabState(false);
             GameLog.Info("MainUI", "队伍页签点击 → TeamView 未移植,显示无队伍入口并保留创建/寻找按钮");
+        }
+
+        private void ToggleTaskPanel()
+        {
+            _taskFolded = !_taskFolded;
+            if (_taskFolded)
+            {
+                _panel_task.gameObject.SetActive(false);
+                _box_main_line.gameObject.SetActive(false);
+                CancelGuideTimer();
+                HideMainLineTaskArrow();
+                GameLog.Info("MainUI", "任务栏箭头点击 → 收起任务列表");
+                return;
+            }
+
+            GameLog.Info("MainUI", "任务栏箭头点击 → 展开任务列表");
+            RefreshTaskItems(false);
         }
 
         private void StartAutoTaskTimer()

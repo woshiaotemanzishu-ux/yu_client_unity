@@ -5,6 +5,7 @@ using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.MainUI;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Shop
@@ -77,13 +78,26 @@ namespace Shenxiao.Module.Core.Shop
             _loading = true;
             string frameKey = GameResPath.GetUIPrefab(FRAME_MODULE, FRAME_PREFAB);
             string contentKey = GameResPath.GetUIPrefab(CONTENT_MODULE, CONTENT_PREFAB);
-            _frameRoot = await ResManager.InstantiateAsync(frameKey, ViewManager.GetLayer(UILayer.Window));
-            _contentRoot = await ResManager.InstantiateAsync(contentKey, ViewManager.GetLayer(UILayer.Window));
-            _loading = false;
+            try
+            {
+                _frameRoot = await MainUIRouteFallback.InstantiateOrShowAsync(CONTENT_MODULE, "Shop", frameKey, ViewManager.GetLayer(UILayer.Window));
+                _contentRoot = await MainUIRouteFallback.InstantiateOrShowAsync(CONTENT_MODULE, "Shop", contentKey, ViewManager.GetLayer(UILayer.Window));
+            }
+            catch (Exception e)
+            {
+                GameLog.Error("Shop", "Shop window load exception frame={0} content={1} error={2}", frameKey, contentKey, e.Message);
+                ShowPlaceholderAndReset();
+                return;
+            }
+            finally
+            {
+                _loading = false;
+            }
 
             if (_frameRoot == null || _contentRoot == null)
             {
                 GameLog.Error("Shop", "商城多标签窗加载失败 frame={0} content={1}", frameKey, contentKey);
+                ShowPlaceholderAndReset();
                 return;
             }
             _frameRoot.name = FRAME_PREFAB;
@@ -95,6 +109,7 @@ namespace Shenxiao.Module.Core.Shop
             if (_window == null) _window = _frameRoot.GetComponentInChildren<BaseWindowSkinView>(true);
             if (_window == null)
             {
+                ShowPlaceholderAndReset();
                 GameLog.Warn("Shop", "BaseWindowSkin 缺 BaseWindowSkinView(重跑 common 流水线回填)");
                 return;
             }
@@ -141,6 +156,12 @@ namespace Shenxiao.Module.Core.Shop
             _contentRoot = null;
             _window = null;
             _loading = false;
+        }
+
+        private static void ShowPlaceholderAndReset()
+        {
+            Reset();
+            MainUIRoutePlaceholder.Show(CONTENT_MODULE);
         }
     }
 }

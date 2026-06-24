@@ -47,7 +47,8 @@ namespace Shenxiao.Module.Core.MainUI
         private void OnClickGod()
         {
             // TODO 待接:搬砖中/变身中/冷却中拦截;否则 GodBefallModel.Fire(REQUEST_PROTO, 44011)。
-            GameLog.Info("MainUI", "点击神祇变身 → 待对接变身协议 44011(GodBefallModel)");
+            GameLog.Info("MainUI", "点击神祇变身 → 打开 GodBefall 面板;变身协议 44011 待 GodBefallModel 接入");
+            MainUIRouter.Open("232");
         }
     }
 }

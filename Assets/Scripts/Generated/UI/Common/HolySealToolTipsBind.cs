@@ -1,0 +1,125 @@
+// 由 LayaUI 转换器自动生成,不要手改。重转会覆盖。
+// 来源: cdn/resource/game/common/HolySealToolTips.json
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using Shenxiao.Framework.UI;
+
+namespace Shenxiao.Generated.UI.Common
+{
+    public partial class HolySealToolTipsBind : BaseView
+    {
+        public Image _img_bg;
+        public Image _img_name;
+        public RectTransform _gp_icon;
+        public TextMeshProUGUI _lb_name;
+        public TextMeshProUGUI _lb_rating;
+        public TextMeshProUGUI _lb_level;
+        public ScrollRect _Scroller1;
+        public RectTransform _Group2;
+        public RectTransform _gp_base_attr;
+        public Image _Image2;
+        public TextMeshProUGUI _Label1;
+        public TextMeshProUGUI _lb_base_attr;
+        public RectTransform _gp_suit;
+        public Image _Image5;
+        public TextMeshProUGUI _lb_suit_name;
+        public RectTransform _gp_suit_attr_con;
+        public TextMeshProUGUI _lb_suit_none;
+        public RectTransform _Group3;
+        public Image _Image6;
+        public TextMeshProUGUI _lb_career;
+        public TextMeshProUGUI _lb_pos;
+        public TextMeshProUGUI _Label4;
+        public RectTransform _Group4;
+        public Image _img_decompose_icon;
+        public TextMeshProUGUI _lb_decompose_value;
+        public RectTransform _gp_btns;
+        public RectTransform _btn_upShelf;
+        public Image _img1;
+        public TextMeshProUGUI labelDisplay111;
+        public RectTransform _btn_replace;
+        public Image _img2;
+        public TextMeshProUGUI labelDisplay1;
+        public RectTransform _btn_dismantle;
+        public Image _img3;
+        public TextMeshProUGUI labelDisplay;
+        public RectTransform _btn_close;
+        public Image _img4;
+        public TextMeshProUGUI labelDisplay1111;
+        public RectTransform _btn_outShelf;
+        public Image _img5;
+        public TextMeshProUGUI labelDisplay11;
+        public RectTransform _btn_upStage;
+        public Image _img6;
+        public TextMeshProUGUI Text;
+        public RectTransform _btn_upColor;
+        public Image _img7;
+        public TextMeshProUGUI labelDisplay11111;
+        public RectTransform _btn_outEquip;
+        public Image _img8;
+        public TextMeshProUGUI labelDisplay111111;
+        public Image red0;
+        public Image red1;
+        public GameObject _tpl_EquipmentItem;
+        public GameObject _tpl_HolySealToolSuitAttrItem;
+
+        protected override void BindNodes()
+        {
+            EnsureBound(nameof(_img_bg), _img_bg);
+            EnsureBound(nameof(_img_name), _img_name);
+            EnsureBound(nameof(_gp_icon), _gp_icon);
+            EnsureBound(nameof(_lb_name), _lb_name);
+            EnsureBound(nameof(_lb_rating), _lb_rating);
+            EnsureBound(nameof(_lb_level), _lb_level);
+            EnsureBound(nameof(_Scroller1), _Scroller1);
+            EnsureBound(nameof(_Group2), _Group2);
+            EnsureBound(nameof(_gp_base_attr), _gp_base_attr);
+            EnsureBound(nameof(_Image2), _Image2);
+            EnsureBound(nameof(_Label1), _Label1);
+            EnsureBound(nameof(_lb_base_attr), _lb_base_attr);
+            EnsureBound(nameof(_gp_suit), _gp_suit);
+            EnsureBound(nameof(_Image5), _Image5);
+            EnsureBound(nameof(_lb_suit_name), _lb_suit_name);
+            EnsureBound(nameof(_gp_suit_attr_con), _gp_suit_attr_con);
+            EnsureBound(nameof(_lb_suit_none), _lb_suit_none);
+            EnsureBound(nameof(_Group3), _Group3);
+            EnsureBound(nameof(_Image6), _Image6);
+            EnsureBound(nameof(_lb_career), _lb_career);
+            EnsureBound(nameof(_lb_pos), _lb_pos);
+            EnsureBound(nameof(_Label4), _Label4);
+            EnsureBound(nameof(_Group4), _Group4);
+            EnsureBound(nameof(_img_decompose_icon), _img_decompose_icon);
+            EnsureBound(nameof(_lb_decompose_value), _lb_decompose_value);
+            EnsureBound(nameof(_gp_btns), _gp_btns);
+            EnsureBound(nameof(_btn_upShelf), _btn_upShelf);
+            EnsureBound(nameof(_img1), _img1);
+            EnsureBound(nameof(labelDisplay111), labelDisplay111);
+            EnsureBound(nameof(_btn_replace), _btn_replace);
+            EnsureBound(nameof(_img2), _img2);
+            EnsureBound(nameof(labelDisplay1), labelDisplay1);
+            EnsureBound(nameof(_btn_dismantle), _btn_dismantle);
+            EnsureBound(nameof(_img3), _img3);
+            EnsureBound(nameof(labelDisplay), labelDisplay);
+            EnsureBound(nameof(_btn_close), _btn_close);
+            EnsureBound(nameof(_img4), _img4);
+            EnsureBound(nameof(labelDisplay1111), labelDisplay1111);
+            EnsureBound(nameof(_btn_outShelf), _btn_outShelf);
+            EnsureBound(nameof(_img5), _img5);
+            EnsureBound(nameof(labelDisplay11), labelDisplay11);
+            EnsureBound(nameof(_btn_upStage), _btn_upStage);
+            EnsureBound(nameof(_img6), _img6);
+            EnsureBound(nameof(Text), Text);
+            EnsureBound(nameof(_btn_upColor), _btn_upColor);
+            EnsureBound(nameof(_img7), _img7);
+            EnsureBound(nameof(labelDisplay11111), labelDisplay11111);
+            EnsureBound(nameof(_btn_outEquip), _btn_outEquip);
+            EnsureBound(nameof(_img8), _img8);
+            EnsureBound(nameof(labelDisplay111111), labelDisplay111111);
+            EnsureBound(nameof(red0), red0);
+            EnsureBound(nameof(red1), red1);
+            EnsureBound(nameof(_tpl_EquipmentItem), _tpl_EquipmentItem);
+            EnsureBound(nameof(_tpl_HolySealToolSuitAttrItem), _tpl_HolySealToolSuitAttrItem);
+        }
+    }
+}

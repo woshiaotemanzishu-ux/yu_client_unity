@@ -18,6 +18,7 @@ namespace Shenxiao.Module.Core.Common
         public Func<RectTransform, BaseView> ContentFactory;
         public string Label;
         public string TitleImagePath;
+        public string BackgroundImagePath;
         public string UpImagePath;
         public string DownImagePath;
         public Sprite UpSprite;
@@ -166,6 +167,7 @@ namespace Shenxiao.Module.Core.Common
                 _onSharedTab?.Invoke(index);
             }
 
+            ApplyBackground(null);
             for (int i = 0; i < _tabs.Count; i++) if (_tabs[i] != null) _tabs[i].SetSelected(_tabIndices[i] == index);
             _current = index;
         }
@@ -245,6 +247,7 @@ namespace Shenxiao.Module.Core.Common
                 _contentCache[index] = content;
             }
             ApplyTitle(_specs[index].TitleImagePath);
+            ApplyBackground(_specs[index].BackgroundImagePath);
 
             foreach (KeyValuePair<int, BaseView> kv in _contentCache)
             {
@@ -284,6 +287,16 @@ namespace Shenxiao.Module.Core.Common
         {
             if (_img_title == null || string.IsNullOrEmpty(titleImagePath)) return;
             _ = ResManager.SetImageAsync(_img_title, titleImagePath, nativeSize: false);
+        }
+
+        private void ApplyBackground(string backgroundImagePath)
+        {
+            if (_img_bg == null) return;
+
+            string path = string.IsNullOrEmpty(backgroundImagePath)
+                ? GameResPath.GetBigBgPath("ui_bg_1.jpg")
+                : backgroundImagePath;
+            _ = ResManager.SetImageAsync(_img_bg, path, nativeSize: false);
         }
     }
 }

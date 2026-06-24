@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.MainUI;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Vip
@@ -29,7 +30,8 @@ namespace Shenxiao.Module.Core.Vip
                 if (_loading) return;
                 _loading = true;
                 string key = GameResPath.GetUIPrefab(MODULE, PREFAB);
-                _moduleRoot = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+                string routeKey = viewName == "RechargeView" ? "recharge" : "vip";
+                _moduleRoot = await MainUIRouteFallback.InstantiateOrShowAsync(routeKey, "Vip", key, ViewManager.GetLayer(UILayer.Window));
                 _loading = false;
                 if (_moduleRoot == null)
                 {
@@ -47,6 +49,7 @@ namespace Shenxiao.Module.Core.Vip
             }
             if (target == null)
             {
+                MainUIRouteFallback.ShowUnavailable(viewName == "RechargeView" ? "recharge" : "vip", "Vip", "VipModule missing requested view");
                 GameLog.Info("Vip", "VIP 子窗 [{0}] 未移植 View,待对接", viewName);
                 return;
             }

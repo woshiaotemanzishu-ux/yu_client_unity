@@ -43,15 +43,18 @@ namespace Shenxiao.Module.Core.MainUI
         private void WireHudEntries()
         {
             RouteClick(_img_bg, "chat");
-            RouteClick(_img_setting, "setting");
-            RouteClick(_img_friend, "friend");
-            RouteClick(_img_shop, "shop");
+            RouteClick(_panel_chat, "chat");
+            RouteClick(_panel_sys, "chat");
+            RouteClick(_box_chat_con, "chat");
+            RouteClick(_box_sys_con, "chat");
+            RouteClick(_box_setting, "setting");
+            RouteClick(_box_friend, "friend");
+            RouteClick(_box_shop, "shop");
         }
 
-        private static void RouteClick(Image target, string viewKey)
+        private static void RouteClick(Component target, string viewKey)
         {
             if (target == null) return;
-            target.raycastTarget = true;
             UIUtil.AddClick(target, () => MainUIRouter.Open(viewKey));
         }
 

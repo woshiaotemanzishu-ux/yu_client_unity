@@ -7,6 +7,7 @@ using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Skill;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.MainUI
 {
@@ -180,7 +181,14 @@ namespace Shenxiao.Module.Core.MainUI
             if (_clickBound) return;
             if (_img_auto_fight != null) UIUtil.AddClick(_img_auto_fight, ResponseAutoBtnClick);
             if (_img_partner_lock != null) UIUtil.AddClick(_img_partner_lock, OnClickPartnerLock);
+            RouteClick(_box_partner_skill, "partnerawake");
             _clickBound = true;
+        }
+
+        private static void RouteClick(Component target, string viewKey)
+        {
+            if (target == null) return;
+            UIUtil.AddClick(target, () => MainUIRouter.Open(viewKey));
         }
 
         private void OnClickPartnerLock()

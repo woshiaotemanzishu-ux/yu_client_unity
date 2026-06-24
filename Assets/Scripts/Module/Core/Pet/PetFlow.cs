@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.MainUI;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Pet
@@ -62,7 +63,7 @@ namespace Shenxiao.Module.Core.Pet
             if (_loading) return;
             _loading = true;
             string key = GameResPath.GetUIPrefab(MODULE, PREFAB);
-            GameObject root = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+            GameObject root = await MainUIRouteFallback.InstantiateOrShowAsync(MODULE, "Pet", key, ViewManager.GetLayer(UILayer.Window));
             _loading = false;
 
             if (root == null)
@@ -87,6 +88,8 @@ namespace Shenxiao.Module.Core.Pet
             if (_mainView == null)
             {
                 GameLog.Warn("Pet", "PetModule 缺 OutWardBaseView(重跑 pet 流水线:转换+回填)");
+                MainUIRouteFallback.ShowUnavailable(MODULE, "Pet", "PetModule missing OutWardBaseView");
+                Reset();
                 return;
             }
 

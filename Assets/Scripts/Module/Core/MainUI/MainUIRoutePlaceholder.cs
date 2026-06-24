@@ -1,3 +1,6 @@
+using System;
+using System.Threading.Tasks;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using TMPro;
@@ -25,8 +28,10 @@ namespace Shenxiao.Module.Core.MainUI
                 return;
             }
 
-            _title.text = "Coming Soon";
-            _body.text = "Placeholder opened for MainUI route:\n" + viewKey;
+            _title.text = "功能待接入";
+            _body.text = string.IsNullOrEmpty(viewKey)
+                ? "该功能正在移植中"
+                : string.Format("入口: {0}\n该功能正在移植中", viewKey);
             _root.SetActive(true);
             _root.transform.SetAsLastSibling();
         }
@@ -56,9 +61,9 @@ namespace Shenxiao.Module.Core.MainUI
             panelRt.anchorMax = new Vector2(0.5f, 0.5f);
             panelRt.pivot = new Vector2(0.5f, 0.5f);
             panelRt.anchoredPosition = Vector2.zero;
-            panelRt.sizeDelta = new Vector2(420f, 230f);
+            panelRt.sizeDelta = new Vector2(520f, 300f);
             Image panelImage = panel.AddComponent<Image>();
-            panelImage.color = new Color(0.06f, 0.08f, 0.10f, 0.92f);
+            panelImage.color = new Color(0.10f, 0.07f, 0.04f, 0.94f);
 
             _title = NewText("Title", panel.transform, 34f, TextAlignmentOptions.Center);
             RectTransform titleRt = (RectTransform)_title.transform;
@@ -67,7 +72,7 @@ namespace Shenxiao.Module.Core.MainUI
             titleRt.pivot = new Vector2(0.5f, 1f);
             titleRt.anchoredPosition = new Vector2(0f, -28f);
             titleRt.sizeDelta = new Vector2(-40f, 48f);
-            _title.color = new Color(1f, 0.86f, 0.46f, 1f);
+            _title.color = new Color(1f, 0.82f, 0.36f, 1f);
 
             _body = NewText("Body", panel.transform, 24f, TextAlignmentOptions.Center);
             RectTransform bodyRt = (RectTransform)_body.transform;
@@ -75,8 +80,8 @@ namespace Shenxiao.Module.Core.MainUI
             bodyRt.anchorMax = new Vector2(1f, 1f);
             bodyRt.pivot = new Vector2(0.5f, 0.5f);
             bodyRt.anchoredPosition = new Vector2(0f, -16f);
-            bodyRt.sizeDelta = new Vector2(-48f, -110f);
-            _body.color = Color.white;
+            bodyRt.sizeDelta = new Vector2(-56f, -126f);
+            _body.color = new Color(0.95f, 0.90f, 0.80f, 1f);
 
             GameObject close = NewRect("Close", panel.transform);
             RectTransform closeRt = (RectTransform)close.transform;
@@ -86,7 +91,7 @@ namespace Shenxiao.Module.Core.MainUI
             closeRt.anchoredPosition = new Vector2(-12f, -12f);
             closeRt.sizeDelta = new Vector2(54f, 54f);
             Image closeImage = close.AddComponent<Image>();
-            closeImage.color = new Color(0.85f, 0.28f, 0.20f, 0.95f);
+            closeImage.color = new Color(0.55f, 0.15f, 0.10f, 0.95f);
             UIUtil.AddClick(closeImage, Hide);
 
             TextMeshProUGUI closeText = NewText("Label", close.transform, 28f, TextAlignmentOptions.Center);
@@ -126,10 +131,39 @@ namespace Shenxiao.Module.Core.MainUI
 
         private static void ApplyFont(TextMeshProUGUI target)
         {
-            TextMeshProUGUI source = Object.FindAnyObjectByType<TextMeshProUGUI>();
+            TextMeshProUGUI source = UnityEngine.Object.FindAnyObjectByType<TextMeshProUGUI>();
             if (source == null || source == target) return;
             target.font = source.font;
             target.fontSharedMaterial = source.fontSharedMaterial;
+        }
+    }
+
+    public static class MainUIRouteFallback
+    {
+        public static async Task<GameObject> InstantiateOrShowAsync(string viewKey, string logTag, string addrKey, Transform parent)
+        {
+            try
+            {
+                GameObject root = await ResManager.InstantiateAsync(addrKey, parent);
+                if (root == null)
+                {
+                    GameLog.Error(logTag, "MainUI route [{0}] prefab load failed: {1}", viewKey, addrKey);
+                    MainUIRoutePlaceholder.Show(viewKey);
+                }
+                return root;
+            }
+            catch (Exception e)
+            {
+                GameLog.Error(logTag, "MainUI route [{0}] prefab load exception key={1} error={2}", viewKey, addrKey, e.Message);
+                MainUIRoutePlaceholder.Show(viewKey);
+                return null;
+            }
+        }
+
+        public static void ShowUnavailable(string viewKey, string logTag, string reason)
+        {
+            GameLog.Warn(logTag, "MainUI route [{0}] unavailable: {1}", viewKey, reason);
+            MainUIRoutePlaceholder.Show(viewKey);
         }
     }
 }

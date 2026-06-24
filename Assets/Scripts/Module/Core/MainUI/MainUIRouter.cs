@@ -42,7 +42,15 @@ namespace Shenxiao.Module.Core.MainUI
             if (string.IsNullOrEmpty(viewKey)) return;
             if (_openers.TryGetValue(viewKey, out Action open) && open != null)
             {
-                open();
+                try
+                {
+                    open();
+                }
+                catch (Exception e)
+                {
+                    GameLog.Error("MainUI", "open route [{0}] failed: {1}", viewKey, e.Message);
+                    MainUIRoutePlaceholder.Show(viewKey);
+                }
                 return;
             }
             GameLog.Info("MainUI", "点击功能入口 [{0}] → 目标面板未移植,待对接", viewKey);

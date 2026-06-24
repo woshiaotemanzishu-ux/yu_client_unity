@@ -23,6 +23,16 @@ namespace Shenxiao.Module.Core.AutoBrush
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
+        /// <summary>
+        /// Toggle auto-brush state. Old client sends 13307 "c" with 0=open, 1=close.
+        /// </summary>
+        public void RequestToggle()
+        {
+            byte type = AutoBrushModel.Instance.AutoBrushState ? (byte)1 : (byte)0;
+            SendFmt(Proto.AUTOBRUSH_TOGGLE, "c", type);
+            GameLog.Info("AutoBrush", "request toggle proto={0} type={1}", Proto.AUTOBRUSH_TOGGLE, type);
+        }
+
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);

@@ -42,6 +42,7 @@ namespace Shenxiao.Module.Core.Daily
         // 已写内容才开放;6/6 全开(每日任务/限时活动/无尽之海/资源找回/托管/我要变强)
         private static readonly bool[] TabEnabled = { true, true, true, true, true, true };
         private const int DefaultTab = 3;
+        private const int BrightSeaTab = 2;
 
         private static GameObject _frameRoot;
         private static readonly Dictionary<string, GameObject> _contentRoots = new Dictionary<string, GameObject>();
@@ -51,10 +52,21 @@ namespace Shenxiao.Module.Core.Daily
         public static void Toggle()
         {
             if (_window != null && _window.IsShown) { Close(); return; }
-            _ = OpenAsync();
+            _ = OpenAsync(DefaultTab);
         }
 
-        public static void Open() => _ = OpenAsync();
+        public static void ToggleBrightSea()
+        {
+            if (_window != null && _window.IsShown && _window.CurrentIndex == BrightSeaTab)
+            {
+                Close();
+                return;
+            }
+
+            _ = OpenAsync(BrightSeaTab);
+        }
+
+        public static void Open() => _ = OpenAsync(DefaultTab);
 
         public static void Close()
         {
@@ -80,11 +92,12 @@ namespace Shenxiao.Module.Core.Daily
             GameLog.Info("Daily", "每日子窗 [{0}] 未移植 View,待对接", viewTypeName);
         }
 
-        private static async Task OpenAsync()
+        private static async Task OpenAsync(int defaultTab)
         {
             if (_frameRoot != null)
             {
                 if (_window != null) _window.Show();
+                if (_window != null) _window.SelectTab(defaultTab);
                 return;
             }
 
@@ -141,8 +154,8 @@ namespace Shenxiao.Module.Core.Daily
             }
 
             _window.Show();
-            _window.Configure(specs, DefaultTab);
-            GameLog.Info("Daily", "每日六标签窗打开(BaseWindowSkinView,默认 tab{0} 资源找回)", DefaultTab);
+            _window.Configure(specs, defaultTab);
+            GameLog.Info("Daily", "每日六标签窗打开(BaseWindowSkinView,默认 tab{0})", defaultTab);
         }
 
         /// <summary>从指定内容源 prefab 里把名为 viewName 的内容视图 reparent 进窗框内容区(保留原始布局),返回其 BaseView。</summary>

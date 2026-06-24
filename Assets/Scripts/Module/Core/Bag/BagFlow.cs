@@ -5,6 +5,7 @@ using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.MainUI;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Bag
@@ -46,6 +47,14 @@ namespace Shenxiao.Module.Core.Bag
             GameResPath.GetIcon("bag", "uisy_002"),
             GameResPath.GetIcon("bag", "ui_Apocalypse_title"),
             GameResPath.GetIcon("bag", "ui_ly_title")
+        };
+        private static readonly string[] TabBackgrounds =
+        {
+            GameResPath.GetBigBgPath("ui_bg_1.jpg"),
+            GameResPath.GetBigBgPath("ui_bg_1.jpg"),
+            GameResPath.GetBigBgPath("ui_seal_bg.jpg"),
+            GameResPath.GetBigBgPath("ui_Apocalypse_bg.jpg"),
+            GameResPath.GetBigBgPath("ui_lybg.jpg")
         };
         private static readonly string[] TabLabels =
         {
@@ -120,7 +129,9 @@ namespace Shenxiao.Module.Core.Bag
             _loading = true;
 
             string frameKey = GameResPath.GetUIPrefab(FRAME_MODULE, FRAME_PREFAB);
-            _frameRoot = await ResManager.InstantiateAsync(frameKey, ViewManager.GetLayer(UILayer.Window));
+            try
+            {
+            _frameRoot = await MainUIRouteFallback.InstantiateOrShowAsync(PRIMARY_MODULE, "Bag", frameKey, ViewManager.GetLayer(UILayer.Window));
 
             var needPrefab = new Dictionary<string, string> { { PRIMARY_PREFAB, PRIMARY_MODULE } };
             for (int i = 0; i < TabContent.Length; i++)
@@ -130,7 +141,7 @@ namespace Shenxiao.Module.Core.Bag
             foreach (KeyValuePair<string, string> kv in needPrefab)
             {
                 string key = GameResPath.GetUIPrefab(kv.Value, kv.Key);
-                GameObject root = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+                GameObject root = await MainUIRouteFallback.InstantiateOrShowAsync(PRIMARY_MODULE, "Bag", key, ViewManager.GetLayer(UILayer.Window));
                 if (root == null) continue;
                 root.name = kv.Key;
                 // 两形态:根即视图(shared-prefab) → 隐根;模块组 → 隐各顶层子(保根 active 供 OpenSub)
@@ -144,11 +155,22 @@ namespace Shenxiao.Module.Core.Bag
                 }
                 _contentRoots[kv.Key] = root;
             }
-            _loading = false;
+            }
+            catch (Exception e)
+            {
+                GameLog.Error("Bag", "Bag window load exception frame={0} error={1}", frameKey, e.Message);
+                ShowPlaceholderAndReset();
+                return;
+            }
+            finally
+            {
+                _loading = false;
+            }
 
             if (_frameRoot == null || !_contentRoots.ContainsKey(PRIMARY_PREFAB))
             {
                 GameLog.Error("Bag", "背包五标签窗加载失败(frame 或主内容源缺失)");
+                ShowPlaceholderAndReset();
                 return;
             }
             _frameRoot.name = FRAME_PREFAB;
@@ -158,6 +180,7 @@ namespace Shenxiao.Module.Core.Bag
             if (_window == null)
             {
                 GameLog.Warn("Bag", "BaseWindowSkin 缺 BaseWindowSkinView(重跑 common 流水线回填)");
+                ShowPlaceholderAndReset();
                 return;
             }
 
@@ -172,6 +195,7 @@ namespace Shenxiao.Module.Core.Bag
                     Enabled = enabled,
                     Label = TabLabels[i],
                     TitleImagePath = TabTitles[i],
+                    BackgroundImagePath = TabBackgrounds[i],
                     ContentFactory = enabled ? (Func<RectTransform, BaseView>)(parent => ReparentFrom(prefabName, viewName, parent)) : null,
                 });
             }
@@ -222,6 +246,12 @@ namespace Shenxiao.Module.Core.Bag
             _frameRoot = null;
             _window = null;
             _loading = false;
+        }
+
+        private static void ShowPlaceholderAndReset()
+        {
+            Reset();
+            MainUIRoutePlaceholder.Show(PRIMARY_MODULE);
         }
     }
 }

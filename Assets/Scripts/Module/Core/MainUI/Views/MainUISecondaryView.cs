@@ -41,6 +41,18 @@ namespace Shenxiao.Module.Core.MainUI
             RouteClick(_box_level_rew, "levelreward");
             RouteClick(_box_firstblood, "firstblood");
             RouteClick(_box_daily_find, "dailyfind");
+            RouteClick(_box_help, "guildhelp");
+            RouteClick(_box_sea, "brightsea");
+            RouteClick(_box_team, "team_invite");
+            RouteClick(_box_gift_push, "pushgift");
+            RouteClick(_box_outline_exp, "onhook");
+            RouteClick(_box_exp_btn, "onhook");
+            RouteClick(_box_old_outline_exp, "onhook");
+            RouteClick(_img_add, "onhook_addition");
+            RouteClick(_box_please, "marriage_gift_tips");
+            RouteClick(_box_god, "232");
+            RouteClick(_img_rpr, "redpacket_rain");
+            RouteClick(_img_tt_record, "tt_record");
 
             // Old client removes _box_right from Secondary, adds it to Main layer,
             // then applies right=0 and centerY=250.
@@ -61,11 +73,7 @@ namespace Shenxiao.Module.Core.MainUI
         private static void RouteClick(Component target, string viewKey)
         {
             if (target == null) return;
-            Image img = target as Image;
-            if (img == null) img = target.GetComponentInChildren<Image>(true);
-            if (img == null) return;
-            img.raycastTarget = true;
-            UIUtil.AddClick(img, () => MainUIRouter.Open(viewKey));
+            UIUtil.AddClick(target, () => MainUIRouter.Open(viewKey));
         }
 
         protected override void OnShow(object args)

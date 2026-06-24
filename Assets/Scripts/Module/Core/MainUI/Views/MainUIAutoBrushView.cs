@@ -3,7 +3,6 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
 using Shenxiao.Module.Core.AutoBrush;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.MainUI
 {
@@ -105,22 +104,15 @@ namespace Shenxiao.Module.Core.MainUI
         {
             if (_clickBound) return;
             BindRoute(click_gp, "autobrush");
-            BindRoute(_img_auto_level, "autobrush");
+            BindRoute(_box_auto_level, "autobrush_toggle");
+            BindRoute(_img_auto_level, "autobrush_toggle");
             _clickBound = true;
         }
 
         private static void BindRoute(Component target, string viewKey)
         {
             if (target == null) return;
-            Graphic graphic = target as Graphic;
-            if (graphic == null) graphic = target.GetComponent<Graphic>();
-            if (graphic == null)
-            {
-                Image image = target.gameObject.AddComponent<Image>();
-                image.color = new Color(1f, 1f, 1f, 0f);
-                graphic = image;
-            }
-            UIUtil.AddClick(graphic, () => MainUIRouter.Open(viewKey));
+            UIUtil.AddClick(target, () => MainUIRouter.Open(viewKey));
         }
     }
 }

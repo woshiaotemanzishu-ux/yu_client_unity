@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.MainUI;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Rune
@@ -81,7 +82,7 @@ namespace Shenxiao.Module.Core.Rune
             if (_loading) return;
             _loading = true;
             string key = GameResPath.GetUIPrefab(MODULE, PREFAB);
-            GameObject root = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+            GameObject root = await MainUIRouteFallback.InstantiateOrShowAsync("treasure", "Rune", key, ViewManager.GetLayer(UILayer.Window));
             _loading = false;
 
             if (root == null)
@@ -106,6 +107,8 @@ namespace Shenxiao.Module.Core.Rune
             if (_mainView == null)
             {
                 GameLog.Warn("Rune", "RuneModule 缺 RuneMainUIView(重跑 rune 流水线:转换+回填)");
+                MainUIRouteFallback.ShowUnavailable("treasure", "Rune", "RuneModule missing RuneMainUIView");
+                Reset();
                 return;
             }
 

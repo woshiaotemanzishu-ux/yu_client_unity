@@ -57,11 +57,7 @@ namespace Shenxiao.Module.Core.MainUI
         private void BindNav(Component target, string routerKey)
         {
             if (target == null) return;
-            Image img = target as Image;
-            if (img == null) img = target.GetComponentInChildren<Image>(true);
-            if (img == null) return;
-            img.raycastTarget = true;
-            UIUtil.AddClick(img, () => MainUIRouter.Open(routerKey));
+            UIUtil.AddClick(target, () => MainUIRouter.Open(routerKey));
         }
 
         protected override void OnShow(object args)
