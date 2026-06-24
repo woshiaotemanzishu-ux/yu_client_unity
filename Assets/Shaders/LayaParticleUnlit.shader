@@ -2,8 +2,8 @@ Shader "Shenxiao/Effect/LayaParticleUnlit"
 {
     Properties
     {
-        _BaseMap ("Texture", 2D) = "white" {}
         _MainTex ("Texture", 2D) = "white" {}
+        _BaseMap ("Base Map", 2D) = "white" {}
         _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
         _Color ("Color", Color) = (1, 1, 1, 1)
         _SrcBlend ("Src Blend", Float) = 5
@@ -31,7 +31,7 @@ Shader "Shenxiao/Effect/LayaParticleUnlit"
             Tags { "LightMode" = "UniversalForward" }
 
             BlendOp [_BlendOp]
-            Blend [_SrcBlend] [_DstBlend], [_SrcBlendAlpha] [_DstBlendAlpha]
+            Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
             Cull [_Cull]
             ZTest LEqual
@@ -43,11 +43,10 @@ Shader "Shenxiao/Effect/LayaParticleUnlit"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            TEXTURE2D(_BaseMap);
-            SAMPLER(sampler_BaseMap);
+            sampler2D _MainTex;
 
             CBUFFER_START(UnityPerMaterial)
-                float4 _BaseMap_ST;
+                float4 _MainTex_ST;
                 half4 _BaseColor;
                 half4 _Color;
             CBUFFER_END
@@ -70,17 +69,15 @@ Shader "Shenxiao/Effect/LayaParticleUnlit"
             {
                 Varyings output;
                 output.positionHCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+                output.uv = input.uv * _MainTex_ST.xy + _MainTex_ST.zw;
                 output.color = input.color;
                 return output;
             }
 
             half4 Frag(Varyings input) : SV_Target
             {
-                // 对标 Laya 原生粒子 shader:gl_FragColor = texture * u_Tintcolor * 2.0 * v_Color。
-                // ×2 无条件作用于每个粒子(含默认白 tint),这一步必须在 shader 里做——
-                // 放 C# 只在材质有显式 tint 时生效,导致无 tint 材质半亮(暗淡根因)。
-                half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv) * _BaseColor * input.color;
+                half4 color = tex2D(_MainTex, input.uv) * _BaseColor * input.color;
+                clip(color.a - 0.001h);
                 return color * 2.0h;
             }
             ENDHLSL

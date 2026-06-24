@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Text.RegularExpressions;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Module.Core.Tasks;
@@ -12,6 +13,9 @@ namespace Shenxiao.Module.Core.MainUI
     /// </summary>
     public sealed class ArrowComponent : ArrowComponentBind
     {
+        private static readonly Regex FontColorStart = new Regex("<font\\s+color=['\"]?(#[0-9a-fA-F]{3,8})['\"]?>", RegexOptions.IgnoreCase);
+        private static readonly Regex BreakTag = new Regex("<br\\s*/?>", RegexOptions.IgnoreCase);
+
         public const int DIR_DOWN = 2;
         public const int DIR_LEFT = 4;
         public const int DIR_UP = 8;
@@ -63,7 +67,7 @@ namespace Shenxiao.Module.Core.MainUI
             {
                 content.gameObject.SetActive(true);
                 content.richText = true;
-                content.text = data.Content ?? "";
+                content.text = ToTmpRichText(data.Content);
             }
             if (content3 != null)
             {
@@ -79,8 +83,8 @@ namespace Shenxiao.Module.Core.MainUI
             ShowEffect(data.Direction);
             StartBob(data.Direction);
 
-            if (data.AutoCountdown && autoAction != null && TaskModel.Instance.GetAutoTaskSetting())
-                StartAutoCountdown(data.CloseTime <= 0 ? 10 : data.CloseTime, autoAction);
+            if (data.AutoCountdown && data.CloseTime > 0 && autoAction != null && TaskModel.Instance.GetAutoTaskSetting())
+                StartAutoCountdown(data.CloseTime, autoAction);
             else
                 HideAutoCountdown();
 
@@ -248,6 +252,14 @@ namespace Shenxiao.Module.Core.MainUI
             rt.localPosition = new Vector3(rootPos.x, rootPos.y, 0f);
         }
 
+        private static string ToTmpRichText(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return "";
+            string result = BreakTag.Replace(text, "\n");
+            result = FontColorStart.Replace(result, "<color=$1>");
+            return result.Replace("</font>", "</color>");
+        }
+
         private static Vector3 GetTopLeftInParent(RectTransform source, RectTransform parent)
         {
             if (source == null || parent == null) return Vector3.zero;
@@ -262,8 +274,9 @@ namespace Shenxiao.Module.Core.MainUI
         public string Content;
         public string ContentPlain;
         public int Direction = ArrowComponent.DIR_DOWN;
-        public int CloseTime = 10;
-        public bool AutoCountdown = true;
+        public int CloseTime;
+        public bool AutoCountdown;
+        public bool NotEffect;
         public RectTransform Target;
         public Vector2 Offset;
     }

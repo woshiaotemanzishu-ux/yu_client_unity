@@ -106,6 +106,7 @@ namespace Shenxiao.Module.Core.MainUI
             if (!TaskModel.Instance.MainLineTaskNeedShowArrow()) return false;
             TaskModel.TaskGuideStep step = TaskModel.Instance.GetNowGuideCfg(true, task);
             if (step == null) return false;
+            if (step.NotShowInTaskItem) return false;
 
             data = new ArrowData
             {
@@ -113,6 +114,8 @@ namespace Shenxiao.Module.Core.MainUI
                 Direction = step.Direction,
                 CloseTime = step.CloseTime,
                 AutoCountdown = step.AutoCountdown,
+                NotEffect = step.NotEffect,
+                Offset = new Vector2(step.OffsetX, step.OffsetY),
                 Target = _box_finger_con,
             };
             return true;

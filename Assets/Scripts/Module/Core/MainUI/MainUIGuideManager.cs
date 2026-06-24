@@ -9,8 +9,8 @@ namespace Shenxiao.Module.Core.MainUI
 {
     public sealed class MainUIGuideManager
     {
-        private const string GUIDE_SELECT_EFFECT = "ui_yindaoxiaoguo";
-        private const string GUIDE_FINGER_EFFECT = "ui_dianjizhiyin";
+        private const string GUIDE_SELECT_SLOT = "main_ui_guide_select";
+        private const string GUIDE_FINGER_SLOT = "main_ui_guide_finger";
 
         public static readonly MainUIGuideManager Instance = new MainUIGuideManager();
 
@@ -91,7 +91,8 @@ namespace Shenxiao.Module.Core.MainUI
                 }
             }
 
-            await EnsureEffectsAsync(version, isTaskItem);
+            if (data.NotEffect) ClearEffects();
+            else await EnsureEffectsAsync(version, isTaskItem);
             if (!IsCurrent(version)) return;
 
             _arrow.Show();
@@ -115,8 +116,17 @@ namespace Shenxiao.Module.Core.MainUI
                 if (_selectEffect == null)
                 {
                     _selectHolder = EnsureEffectHolder(_selectHolder, "__main_ui_guide_select_holder");
-                    _selectEffect = await UIEffectStage.AddAsync(GUIDE_SELECT_EFFECT,
-                        _selectHolder, Vector2.zero, GetSelectEffectScale(isTaskItem));
+                    UIEffectSlot slot = FindEffectSlot(GUIDE_SELECT_SLOT);
+                    if (slot == null)
+                    {
+                        GameLog.Warn("MainUI", "Guide select effect slot missing: {0}", GUIDE_SELECT_SLOT);
+                    }
+                    else
+                    {
+                        _selectEffect = await UIEffectStage.AddByKeyAsync(slot.EffectName, slot.AddressKey,
+                            _selectHolder, slot.Position, ScaleSlot(slot, GetSelectEffectScale(isTaskItem)),
+                            slot.RotationY);
+                    }
                     if (!IsCurrent(version))
                     {
                         ClearEffects();
@@ -127,8 +137,15 @@ namespace Shenxiao.Module.Core.MainUI
                 if (_fingerEffect == null)
                 {
                     _fingerHolder = EnsureEffectHolder(_fingerHolder, "__main_ui_guide_finger_holder");
-                    _fingerEffect = await UIEffectStage.AddAsync(GUIDE_FINGER_EFFECT,
-                        _fingerHolder, Vector2.zero, Vector3.one);
+                    UIEffectSlot slot = FindEffectSlot(GUIDE_FINGER_SLOT);
+                    if (slot == null)
+                    {
+                        GameLog.Warn("MainUI", "Guide finger effect slot missing: {0}", GUIDE_FINGER_SLOT);
+                    }
+                    else
+                    {
+                        _fingerEffect = await UIEffectStage.AddAsync(slot, _fingerHolder);
+                    }
                     if (!IsCurrent(version))
                     {
                         ClearEffects();
@@ -169,6 +186,23 @@ namespace Shenxiao.Module.Core.MainUI
             return _target.rect.height <= 55f
                 ? Vector3.one
                 : new Vector3(1.02f, 1.4f, 1f);
+        }
+
+        private UIEffectSlot FindEffectSlot(string slotId)
+        {
+            if (_target == null || string.IsNullOrEmpty(slotId)) return null;
+            UIEffectSlot[] slots = _target.GetComponentsInChildren<UIEffectSlot>(true);
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (slots[i] != null && slots[i].SlotId == slotId) return slots[i];
+            }
+            return null;
+        }
+
+        private static Vector3 ScaleSlot(UIEffectSlot slot, Vector3 multiplier)
+        {
+            Vector3 baseScale = slot != null ? slot.Scale : Vector3.one;
+            return new Vector3(baseScale.x * multiplier.x, baseScale.y * multiplier.y, baseScale.z * multiplier.z);
         }
 
         private void ClearVisuals()

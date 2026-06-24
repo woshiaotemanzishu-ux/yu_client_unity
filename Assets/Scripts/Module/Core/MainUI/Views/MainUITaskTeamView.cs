@@ -380,6 +380,7 @@ namespace Shenxiao.Module.Core.MainUI
 
             TaskVo task = TaskModel.Instance.MainLineTaskVo;
             if (task == null) return;
+            if (TaskModel.Instance.ShouldHoldAutoTaskForMainLineGuide(task)) return;
 
             if (DialogueModel.Instance.DialogIsOpen && task.Id > 0 && DialogueModel.Instance.CurrentNpcId == task.Id)
             {

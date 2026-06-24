@@ -46,6 +46,7 @@ namespace Shenxiao.Module.Core.Tasks
         private async void OnGameStart()
         {
             await TaskConfigs.EnsureLoaded();
+            await TaskGuideConfigs.EnsureLoaded();
             // 奖励真实物品名/图标需 config_goods(对话奖励摘要、完成弹层、BaseAwardItem 共用 GoodsModel)。
             await GoodsModel.EnsureLoaded();
             // 任务条"与<NPC名>交谈"文案需 config_npc(对标老端 GetTaskTipsMsgByMainUITaskItem 取 config_npc.name)。

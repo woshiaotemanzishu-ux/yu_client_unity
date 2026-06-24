@@ -129,10 +129,32 @@ scene 里大量 `_img_bg` 等节点 skin 为空,图是 TS 运行时赋的。分�
 转换时烘焙回 prefab 并在报告标注「真实运行可能换图」。
 动态的(模板串 `${id}`、平台 logo、随机背景列表)烘焙不了,仍是透明占位 + 报告。
 
+## 动态资源开发期可见化(2026-06-24 加)
+
+详见 [Unity动态资源开发期可见化规范](Unity动态资源开发期可见化规范.md)。
+
+Laya 的运行时动态加载要保留,但 Unity 开发期不能变成黑盒。LayaUI 转换流水线必须把能静态识别的动态资源写回宿主 UI prefab 的 slot/profile。slot/profile 必须是宿主节点下 `__DynamicResources` 里的显式子节点,不能只作为宿主节点上的隐藏组件存在:
+
+- 动态图片:生成图片 slot,保存 `GameResPath` 推导出的 key 或配置引用。
+- UI 特效:生成 `UIEffectSlot`,保存 `effect/objs/...` runtime prefab key。
+- 动态子 prefab / 模板:生成 prefab slot 或模板引用,能跳转到实际 runtime asset。
+- 无法静态识别的动态资源:继续写入报告,不得静默丢失,也不得由业务代码硬编码兜底。
+
+资源产物必须分层:
+
+```text
+Laya Source
+  -> Generated Base Asset      # 转换器覆盖
+  -> Runtime Editable Asset    # Addressables 加载,开发者可改
+  -> UI Dynamic Resource Slot  # UI prefab 上可见、可预览、可校验
+```
+
+转换器默认只覆盖 Generated Base Asset。Runtime Editable Asset 已存在时必须保留人工修改,除非用户明确选择覆盖。Addressables 自动分组必须以 Runtime Editable Asset 为运行时入口。
+
 ## 已知边界(转出来 ≈ 静态初始态,预期 85~95% 还原)
 
-- View.ts 运行时赋的图/文本:字面量已烘焙(见上),动态的不在 prefab 里
-  (报告里有「运行时赋值」清单,无 skin 的 Image 转成 `enabled=false` 占位)。
+- View.ts 运行时赋的图/文本:字面量已烘焙(见上),能静态识别的动态资源必须进入 slot/profile;
+  无法静态识别的才留在报告里(无 skin 的 Image 转成 `enabled=false` 占位并标记来源)。
 - `animations` 时间轴、Laya 内置 `comp/` 皮肤组件交互(CheckBox 等)需手工补。
 - Bind 脚本两步走:转换生成 cs → Unity 编译 → 回填引用(新脚本编译前无法 AddComponent)。
 

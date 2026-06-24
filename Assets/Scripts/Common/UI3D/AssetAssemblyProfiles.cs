@@ -48,7 +48,7 @@ namespace Shenxiao.Common.UI3D
         {
             if (!string.IsNullOrEmpty(Effect)) return ResourcePath.Normalize(Effect);
             if (string.IsNullOrEmpty(EffectDir) || string.IsNullOrEmpty(EffectName)) return string.Empty;
-            return ResourcePath.Normalize("effect/objs/" + EffectDir + "/" + EffectName + "/" + EffectName);
+            return ResourcePath.Normalize(GameResPath.GetEffectPrefabPath(EffectDir, EffectName));
         }
 
         public Vector3 ResolvePosition()

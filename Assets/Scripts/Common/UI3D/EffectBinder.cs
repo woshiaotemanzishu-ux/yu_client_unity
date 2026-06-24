@@ -93,7 +93,7 @@ namespace Shenxiao.Common.UI3D
         public static async Task<GameObject> AttachOne(GameObject host, string boneName, string effectDir,
             string effectName, string tag = "always", bool playOnAttach = true)
         {
-            string key = $"effect/objs/{effectDir}/{effectName}/{effectName}";
+            string key = GameResPath.GetEffectPrefabPath(effectDir, effectName);
             return await AttachOneByKey(host, boneName, key, tag, playOnAttach);
         }
 

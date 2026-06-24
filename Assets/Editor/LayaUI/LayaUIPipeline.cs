@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using Shenxiao.Editor.DynamicResources;
 using Shenxiao.EditorTools.AddrSetup;
 using UnityEditor;
 using UnityEngine;
@@ -254,11 +255,14 @@ namespace Shenxiao.Editor.LayaUI
                 LayaBindFiller.FillModule(module);
             }
 
+            int slotCount = UIDynamicResourceSlotFiller.FillModules(modules);
+
             if (LayaUISettings.AutoGroupAfterConvert)
             {
                 AddressableSetup.AutoGroupAll();
             }
             GameLog("模块 " + string.Join(", ", modules) + " 流水线完成 ✅(转换 → 回填" +
+                    (slotCount > 0 ? " → 动态资源Slot " + slotCount : "") +
                     (LayaUISettings.AutoGroupAfterConvert ? " → Addressable 分组" : "") + ")");
         }
 

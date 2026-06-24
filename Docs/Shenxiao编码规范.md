@@ -159,6 +159,16 @@ var go = Object.Instantiate(prefab); // 来源不是 ResManager 的禁止
 - `Release` / `ReleaseInstance` 必须配对调用，View 在 `OnDispose` 里释放
 - Editor 同步加载只能写在 `#if UNITY_EDITOR` 块里
 
+### 3.1.1 动态资源开发期可见化硬规则
+
+详见 [Unity动态资源开发期可见化规范](Unity动态资源开发期可见化规范.md)。
+
+- 运行时动态加载不等于开发期不可见。所有动态图片、UI 特效、3D 模型展示、动态子 prefab 都必须在宿主 UI prefab 上有可见 slot/profile;可见的最低标准是 Hierarchy 里有 `__DynamicResources/{slotId}` 子节点。
+- slot/profile 保存运行时 Addressable key 或配置引用,开发期可预览、可校验、可跳转到实际 runtime prefab。
+- 开发期修改的资源必须就是运行时 Addressables 加载的同一份 Runtime Editable Asset;禁止改临时对象后让运行时加载另一份资源。
+- 转换器只允许默认覆盖 Generated Base Asset;Runtime Editable Asset 已存在时必须保留人工修改,除非用户明确选择覆盖。
+- 禁止业务代码散落动态资源名常量或资源专用补丁。资源名来自配置、转换产物或 slot/profile;缺配置时暴露问题,不要硬编码兜底。
+
 ### 3.2 UI（BaseView / ViewManager / LayaUI 转换产物）
 
 - View 必须继承 `BaseView`（业务类继承 LayaUI 转换器生成的 `{Name}Bind`）

@@ -297,15 +297,40 @@ namespace Shenxiao.Editor.AssetHub
             string prefabAbs = AssetPathToAbs(e.PrefabPath);
             if (!File.Exists(prefabAbs)) return EntryStatus.NotConverted;
             if (ImportedToolVersion(e) != e.ExpectedToolVersion) return EntryStatus.Stale;
-            return SourceMTime(e) > File.GetLastWriteTimeUtc(prefabAbs)
+            string stampPrefabAbs = AssetPathToAbs(StatusStampPrefabPath(e));
+            return SourceMTime(e) > (File.Exists(stampPrefabAbs) ? File.GetLastWriteTimeUtc(stampPrefabAbs) : DateTime.MinValue)
                 ? EntryStatus.Stale
                 : EntryStatus.Converted;
         }
 
         /// <summary>产物旁的 {model}.import.json 版本戳;旧产物(无戳/旧戳)= 转换器升级过,需重转。</summary>
+        public static string StatusDetail(AssetEntry e, EntryStatus status)
+        {
+            if (status == EntryStatus.SourceMissing) return "源 .lh 不存在: " + e.LhPath;
+            if (status == EntryStatus.SourceLfs) return "源 .lh 是 Git LFS 占位文件,需要先执行 git lfs pull。";
+            if (status == EntryStatus.NotConverted) return "产物 prefab 不存在: " + e.PrefabPath;
+            if (status != EntryStatus.Stale) return "";
+
+            int imported = ImportedToolVersion(e);
+            if (imported != e.ExpectedToolVersion)
+                return $"转换器版本不一致: 产物 tool={imported}, 当前需要 tool={e.ExpectedToolVersion}。需要重转该资源。";
+
+            DateTime sourceTime = SourceMTime(e);
+            string stampPrefab = StatusStampPrefabPath(e);
+            string stampPrefabAbs = AssetPathToAbs(stampPrefab);
+            DateTime prefabTime = File.Exists(stampPrefabAbs) ? File.GetLastWriteTimeUtc(stampPrefabAbs) : DateTime.MinValue;
+            if (sourceTime > prefabTime)
+                return $"源文件比转换基底更新: 源 {sourceTime:yyyy-MM-dd HH:mm:ss} UTC, 基底 {prefabTime:yyyy-MM-dd HH:mm:ss} UTC。需要重转该资源。运行时 prefab 会保留人工修改: {e.PrefabPath}";
+
+            return "状态为过期,但未定位到明确原因。请刷新资源管理窗口后再看。";
+        }
+
         private static int ImportedToolVersion(AssetEntry e)
         {
-            string metaAbs = AssetPathToAbs(e.OutDir + "/" + Path.GetFileNameWithoutExtension(e.LhPath) + ".import.json");
+            string metaPath = e.Kind == AssetKind.Effect
+                ? Laya3D.LayaEffectImporter.GetGeneratedMetaPath(e.LhPath)
+                : e.OutDir + "/" + Path.GetFileNameWithoutExtension(e.LhPath) + ".import.json";
+            string metaAbs = AssetPathToAbs(metaPath);
             if (!File.Exists(metaAbs)) return 0;
             try
             {
@@ -313,6 +338,13 @@ namespace Shenxiao.Editor.AssetHub
                 return meta.Value<int>("tool");
             }
             catch { return 0; }
+        }
+
+        private static string StatusStampPrefabPath(AssetEntry e)
+        {
+            return e.Kind == AssetKind.Effect
+                ? Laya3D.LayaEffectImporter.GetGeneratedPrefabPath(e.LhPath)
+                : e.PrefabPath;
         }
 
         /// <summary>源最新改动时间:objs 下同 model 前缀的所有文件(.lh/.lm/.lmat/贴图)取最大。</summary>

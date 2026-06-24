@@ -7,6 +7,7 @@ using Shenxiao.Editor.LayaUI;
 using Shenxiao.EditorTools.AddrSetup;
 using Shenxiao.Framework.Res;
 using UnityEditor;
+using UnityEditor.AddressableAssets;
 using UnityEngine;
 
 namespace Shenxiao.Editor.AssetHub
@@ -165,6 +166,7 @@ namespace Shenxiao.Editor.AssetHub
         private void ConvertEntries(List<AssetEntry> targets)
         {
             if (targets.Count == 0) return;
+            if (!EnsureConvertCanBeVerified("Laya3D 资源转换")) return;
             var failed = new List<string>();
             try
             {
@@ -206,6 +208,33 @@ namespace Shenxiao.Editor.AssetHub
                 ? $"完成 {targets.Count} 个。"
                 : $"完成 {targets.Count - failed.Count}/{targets.Count},失败(看 Console):\n" + string.Join("\n", failed);
             EditorUtility.DisplayDialog("转换结果", msg, "好");
+        }
+
+        private static bool EnsureConvertCanBeVerified(string title)
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                EditorUtility.DisplayDialog(title,
+                    "请先停止 Play Mode 再转换资源。运行时已经加载的 Addressables 资产和材质实例不会被 AssetDatabase.Refresh 刷新。",
+                    "OK");
+                return false;
+            }
+
+            var settings = AddressableAssetSettingsDefaultObject.Settings;
+            if (settings == null) return true;
+
+            int index = settings.ActivePlayModeDataBuilderIndex;
+            var builder = settings.GetDataBuilder(index);
+            string builderName = builder != null ? builder.Name : "<none>";
+            string builderType = builder != null ? builder.GetType().Name : "<none>";
+            if (builderType == "BuildScriptFastMode") return true;
+
+            string message =
+                "当前 Addressables Play Mode 是 '" + builderName + "'。\n\n" +
+                "转换/分组后如果要立刻在 Editor 里看效果，请切到 'Use Asset Database (fastest)'；" +
+                "如果继续使用当前模式，必须重新 Build Addressables，否则运行时会继续加载旧 bundle。\n\n" +
+                "是否继续转换？";
+            return EditorUtility.DisplayDialog(title, message, "继续转换", "取消");
         }
 
         // ================= UI =================
@@ -1000,6 +1029,8 @@ namespace Shenxiao.Editor.AssetHub
                 List<AssetEntry> shown = string.IsNullOrEmpty(_search)
                     ? _entries
                     : _entries.Where(e => e.SearchText.Contains(_search.ToLowerInvariant())).ToList();
+                var shownPending = shown.Where(e =>
+                    StatusOf(e) == EntryStatus.NotConverted || StatusOf(e) == EntryStatus.Stale).ToList();
 
                 int converted = _entries.Count(e => StatusOf(e) == EntryStatus.Converted);
                 var pending = _entries.Where(e =>
@@ -1016,8 +1047,16 @@ namespace Shenxiao.Editor.AssetHub
                     var all = _entries.Where(e =>
                         StatusOf(e) != EntryStatus.SourceMissing && StatusOf(e) != EntryStatus.SourceLfs).ToList();
                     if (GUILayout.Button($"全部重转({all.Count})", GUILayout.Height(24f))
-                        && EditorUtility.DisplayDialog("全部重转", $"重转 {all.Count} 个模型,产物覆盖。继续?", "转", "算了"))
+                        && EditorUtility.DisplayDialog("全部重转", $"重转 {all.Count} 个资源,产物覆盖。继续?", "转", "算了"))
                         ConvertEntries(all);
+                }
+                if (!string.IsNullOrWhiteSpace(_search))
+                {
+                    using (new EditorGUI.DisabledScope(shownPending.Count == 0))
+                    {
+                        if (GUILayout.Button($"转换当前筛选缺失+过期({shownPending.Count})", GUILayout.Height(22f)))
+                            ConvertEntries(shownPending);
+                    }
                 }
 
                 _listScroll = EditorGUILayout.BeginScrollView(_listScroll);
@@ -1058,6 +1097,9 @@ namespace Shenxiao.Editor.AssetHub
                 _detailScroll = EditorGUILayout.BeginScrollView(_detailScroll);
                 EditorGUILayout.LabelField($"{Path.GetFileNameWithoutExtension(e.LhPath)}  {e.DisplayName}", EditorStyles.boldLabel);
                 EditorGUILayout.LabelField("状态", $"{AssetHubDomains.StatusIcon(s)} {AssetHubDomains.StatusText(s)}");
+                string statusDetail = AssetHubDomains.StatusDetail(e, s);
+                if (!string.IsNullOrEmpty(statusDetail))
+                    EditorGUILayout.HelpBox(statusDetail, s == EntryStatus.Converted ? MessageType.Info : MessageType.Warning);
                 if (e.Career > 0)
                     EditorGUILayout.LabelField("职业/性别",
                         $"{AssetHubDomains.CAREER_NAMES[Mathf.Clamp(e.Career, 0, 4)]} / {(e.Sex == 2 ? "女" : "男")}");

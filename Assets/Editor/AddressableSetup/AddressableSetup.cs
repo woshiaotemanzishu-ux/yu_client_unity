@@ -53,6 +53,7 @@ namespace Shenxiao.EditorTools.AddrSetup
                 foreach (var sub in AssetDatabase.GetSubFolders(remoteRoot))
                 {
                     var subName = Path.GetFileName(sub);
+                    if (ShouldSkipAddressablePath(sub)) continue;
                     var groupName = RemoteGroupPrefix + subName;
                     var group = EnsureRemoteGroup(settings, groupName);
                     countRemote += AssignFolderToGroup(settings, sub, group);
@@ -107,6 +108,7 @@ namespace Shenxiao.EditorTools.AddrSetup
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 if (AssetDatabase.IsValidFolder(path)) continue;
+                if (ShouldSkipAddressablePath(path)) continue;
                 if (path.EndsWith(".meta") || path.EndsWith(".cs") || path.EndsWith(".asmdef")) continue;
                 if (path.EndsWith(".import.json")) continue; // Laya3D 转换元数据,仅编辑器用
 
@@ -120,6 +122,13 @@ namespace Shenxiao.EditorTools.AddrSetup
             }
             settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, null, true, true);
             return count;
+        }
+
+        private static bool ShouldSkipAddressablePath(string path)
+        {
+            string normalized = path.Replace('\\', '/');
+            return normalized == "Assets/GameRes/_Generated"
+                || normalized.StartsWith("Assets/GameRes/_Generated/", System.StringComparison.Ordinal);
         }
 
         /// <summary>

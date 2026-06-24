@@ -20,7 +20,6 @@ namespace Shenxiao.Module.Core.Tasks
         public const int NORMAL_DAILY = 8;
         public const int EUDAEMON_TASK = 9;
         public const int KFHOLYAREA_TASK = 10;
-        public const int FIRST_TASK_ID = 100010;
         public const int GUIDE_TASK = 101870;
         // —— task_tips_type(服务端 pt_300 下发的提示类型;对标老端 TaskTipType,yu_client TaskModel.ts:52-243)——
         public const int TIP_KILL = 1;
@@ -283,17 +282,16 @@ namespace Shenxiao.Module.Core.Tasks
             task ??= MainLineTaskVo;
             if (task == null) return null;
 
-            if (task.TaskId == FIRST_TASK_ID)
-            {
-                return new TaskGuideStep
-                {
-                    Direction = 4,
-                    Text = "点击此处完成任务吧",
-                    CloseTime = 10
-                };
-            }
+            return TaskGuideConfigs.GetNowGuideCfg(isMainUiArrow, task);
+        }
 
-            return null;
+        public bool ShouldHoldAutoTaskForMainLineGuide(TaskVo task = null)
+        {
+            task ??= MainLineTaskVo;
+            return task != null
+                && task.TaskType == MAIN_LINE
+                && task.TaskId <= GUIDE_TASK
+                && TaskGuideConfigs.HasVisibleMainUiTaskGuide(task);
         }
 
         public (int sortIndex, int sortSubIndex, int sameTypeOrderIndex) GetSortIndex(int taskId)
@@ -603,8 +601,12 @@ namespace Shenxiao.Module.Core.Tasks
         {
             public int Direction;
             public string Text;
-            public int CloseTime = 10;
-            public bool AutoCountdown = true;
+            public int CloseTime;
+            public bool AutoCountdown;
+            public bool NotShowInTaskItem;
+            public bool NotEffect;
+            public float OffsetX;
+            public float OffsetY;
         }
     }
 }

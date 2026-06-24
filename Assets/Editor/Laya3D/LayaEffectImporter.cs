@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using UnityEditor;
@@ -14,13 +15,18 @@ namespace Shenxiao.Editor.Laya3D
     /// TrailSprite3D._parse / Material._parse(LAYAMATERIAL:01/02)——逐字段对标引擎解析,
     /// 模块数据布局:bases(标量)/vector2s/vector3s/vector4s(命名数组)/resources/bursts/
     /// gradientDataNumbers;渐变 {key,value} 点列;角度量一律弧度(Unity shape 角度需转度)。
-    /// 产物:Assets/GameRes/effect/objs/{类型目录}/{名字}/{名字}.prefab;
+    /// 产物:
+    /// - Generated Base:Assets/GameRes/_Generated/effect/objs/{类型目录}/{名字}/{名字}.prefab;
+    /// - Runtime Editable:Assets/GameRes/effect/objs/{类型目录}/{名字}/{名字}.prefab。
     /// 贴图按 cdn 相对路径镜像进 GameRes(多特效共享)。
     /// </summary>
     public static class LayaEffectImporter
     {
         /// <summary>特效转换逻辑版本(独立于模型线 Laya3DImporter.TOOL_VERSION)。</summary>
-        public const int TOOL_VERSION = 16; // v16: effect texture 输出改到 Assets/GameRes/effect/textures,避免被 GameRes/resource ignore 掉
+        public const int TOOL_VERSION = 22; // v22: split generated base and runtime editable effect prefabs.
+
+        private const string RuntimeEffectRoot = "Assets/GameRes/effect/objs";
+        private const string GeneratedEffectRoot = "Assets/GameRes/_Generated/effect/objs";
 
         public sealed class Result
         {
@@ -78,13 +84,73 @@ namespace Shenxiao.Editor.Laya3D
         {
             string name = Path.GetFileNameWithoutExtension(lhPath);
             string dirName = Path.GetFileName(Path.GetDirectoryName(lhPath)); // skills_effect 等
-            string outDir = $"Assets/GameRes/effect/objs/{dirName}/{name}";
-            Directory.CreateDirectory(outDir);
+            string runtimeOutDir = GetRuntimeOutDir(lhPath);
+            string generatedOutDir = GetGeneratedOutDir(lhPath);
+            Directory.CreateDirectory(generatedOutDir);
 
             JObject doc = JObject.Parse(File.ReadAllText(lhPath));
             JObject rootNode = doc["data"] as JObject ?? doc; // 兼容 {data:{...}} 包装
             r.Log.AppendLine($"① .lh 解析: {name}(目录 {dirName})");
 
+            Context generated = BuildAndSave(rootNode, lhPath, generatedOutDir, name, r);
+            string generatedPrefabPath = GetGeneratedPrefabPath(lhPath);
+            string runtimePrefabPath = GetRuntimePrefabPath(lhPath);
+            WriteImportMeta(generatedOutDir, name, "effect-generated-base", lhPath, generatedPrefabPath, runtimePrefabPath);
+
+            bool runtimeExists = File.Exists(AssetPathToAbs(runtimePrefabPath));
+            if (!runtimeExists)
+            {
+                Directory.CreateDirectory(runtimeOutDir);
+                Context runtime = BuildAndSave(rootNode, lhPath, runtimeOutDir, name, r);
+                WriteImportMeta(runtimeOutDir, name, "effect-runtime-initial", lhPath, generatedPrefabPath, runtimePrefabPath);
+                r.Log.AppendLine($"   Runtime Editable 初始化: {runtimePrefabPath}(粒子 {runtime.ParticleCount} / 网格 {runtime.MeshCount} / 拖尾 {runtime.TrailCount})");
+            }
+            else
+            {
+                r.Log.AppendLine($"   Runtime Editable 已存在,保留人工修改: {runtimePrefabPath}");
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            r.PrefabPath = runtimePrefabPath;
+            r.Log.AppendLine($"✅ 完成: base={generatedPrefabPath} runtime={runtimePrefabPath}(粒子 {generated.ParticleCount} / 网格 {generated.MeshCount} / 拖尾 {generated.TrailCount})");
+        }
+
+        public static string GetRuntimeOutDir(string lhPath)
+        {
+            string name = Path.GetFileNameWithoutExtension(lhPath);
+            string dirName = Path.GetFileName(Path.GetDirectoryName(lhPath));
+            return $"{RuntimeEffectRoot}/{dirName}/{name}";
+        }
+
+        public static string GetGeneratedOutDir(string lhPath)
+        {
+            string name = Path.GetFileNameWithoutExtension(lhPath);
+            string dirName = Path.GetFileName(Path.GetDirectoryName(lhPath));
+            return $"{GeneratedEffectRoot}/{dirName}/{name}";
+        }
+
+        public static string GetRuntimePrefabPath(string lhPath)
+        {
+            string name = Path.GetFileNameWithoutExtension(lhPath);
+            return $"{GetRuntimeOutDir(lhPath)}/{name}.prefab";
+        }
+
+        public static string GetGeneratedPrefabPath(string lhPath)
+        {
+            string name = Path.GetFileNameWithoutExtension(lhPath);
+            return $"{GetGeneratedOutDir(lhPath)}/{name}.prefab";
+        }
+
+        public static string GetGeneratedMetaPath(string lhPath)
+        {
+            string name = Path.GetFileNameWithoutExtension(lhPath);
+            return $"{GetGeneratedOutDir(lhPath)}/{name}.import.json";
+        }
+
+        private static Context BuildAndSave(JObject rootNode, string lhPath, string outDir, string name, Result r)
+        {
+            Directory.CreateDirectory(outDir);
             var ctx = new Context
             {
                 LhDir = Path.GetDirectoryName(lhPath),
@@ -92,22 +158,33 @@ namespace Shenxiao.Editor.Laya3D
                 Report = r,
             };
 
-            GameObject rootGo = BuildNode(rootNode, null, ctx);
+            GameObject rootGo = BuildNode((JObject)rootNode.DeepClone(), null, ctx);
             if (rootGo == null) throw new Exception(".lh 根节点构建失败");
             rootGo.name = name;
 
             string prefabPath = outDir + "/" + name + ".prefab";
             PrefabUtility.SaveAsPrefabAsset(rootGo, prefabPath);
             UnityEngine.Object.DestroyImmediate(rootGo);
+            return ctx;
+        }
 
-            var meta = new JObject { ["tool"] = TOOL_VERSION, ["kind"] = "effect" };
-            File.WriteAllText(Path.GetFullPath(Path.Combine(Application.dataPath, "..", outDir, name + ".import.json")),
-                meta.ToString());
+        private static void WriteImportMeta(string outDir, string name, string kind, string sourcePath,
+            string generatedPrefabPath, string runtimePrefabPath)
+        {
+            var meta = new JObject
+            {
+                ["tool"] = TOOL_VERSION,
+                ["kind"] = kind,
+                ["source"] = sourcePath.Replace('\\', '/'),
+                ["generatedPrefab"] = generatedPrefabPath,
+                ["runtimePrefab"] = runtimePrefabPath,
+            };
+            File.WriteAllText(AssetPathToAbs(outDir + "/" + name + ".import.json"), meta.ToString());
+        }
 
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            r.PrefabPath = prefabPath;
-            r.Log.AppendLine($"✅ 完成: {prefabPath}(粒子 {ctx.ParticleCount} / 网格 {ctx.MeshCount} / 拖尾 {ctx.TrailCount})");
+        private static string AssetPathToAbs(string assetPath)
+        {
+            return Path.GetFullPath(Path.Combine(Application.dataPath, "..", assetPath));
         }
 
         private sealed class Context
@@ -118,6 +195,7 @@ namespace Shenxiao.Editor.Laya3D
             public int ParticleCount, MeshCount, TrailCount;
             public readonly Dictionary<string, Material> MaterialCache = new Dictionary<string, Material>();
             public readonly Dictionary<string, Mesh> MeshCache = new Dictionary<string, Mesh>();
+            public readonly Dictionary<string, AnimationClip> ClipCache = new Dictionary<string, AnimationClip>();
         }
 
         // ================= 节点树 =================
@@ -219,6 +297,9 @@ namespace Shenxiao.Editor.Laya3D
         /// localRotationEuler(欧拉,度;烘成四元数轨以兼容传统动画)。</summary>
         private static AnimationClip BuildEffectClip(string laniAbs, string clipName, Context ctx)
         {
+            string clipAsset = ctx.OutDir + "/" + clipName + ".anim";
+            if (ctx.ClipCache.TryGetValue(clipAsset, out AnimationClip cached)) return cached;
+
             LaniClip lani;
             try { lani = LaniParser.Parse(File.ReadAllBytes(laniAbs)); }
             catch (Exception e) { ctx.Report.Log.AppendLine($"   ⚠ .lani 解析失败 {clipName}: {e.Message}"); return null; }
@@ -250,10 +331,20 @@ namespace Shenxiao.Editor.Laya3D
             }
             clip.EnsureQuaternionContinuity();
 
-            string clipAsset = ctx.OutDir + "/" + clipName + ".anim";
-            AssetDatabase.CreateAsset(clip, clipAsset);
+            AnimationClip loaded = AssetDatabase.LoadAssetAtPath<AnimationClip>(clipAsset);
+            if (loaded != null)
+            {
+                EditorUtility.CopySerialized(clip, loaded);
+                UnityEngine.Object.DestroyImmediate(clip);
+            }
+            else
+            {
+                AssetDatabase.CreateAsset(clip, clipAsset);
+                loaded = AssetDatabase.LoadAssetAtPath<AnimationClip>(clipAsset);
+            }
             ctx.Report.Log.AppendLine($"   动画 {clipName}: {lani.Duration:0.##}s 轨{lani.Nodes.Count} loop={lani.IsLooping}");
-            return AssetDatabase.LoadAssetAtPath<AnimationClip>(clipAsset);
+            ctx.ClipCache[clipAsset] = loaded;
+            return loaded;
         }
 
         private static readonly string[] AXIS = { "x", "y", "z", "w" };
@@ -282,14 +373,17 @@ namespace Shenxiao.Editor.Laya3D
             string layaProp = node.Properties[1];
             string comp = node.Properties[2];
             string unityProp, unityComp;
+            string mirrorProp = null;
             if (IsLayaColorComponent(layaProp))
             {
                 unityProp = "_BaseColor";
+                mirrorProp = "_Color";
                 unityComp = comp == "x" ? "r" : comp == "y" ? "g" : comp == "z" ? "b" : "a";
             }
             else if (layaProp == "_MainTex_ST" || layaProp == "tilingOffset")
             {
-                unityProp = "_BaseMap_ST";
+                unityProp = "_MainTex_ST";
+                mirrorProp = "_BaseMap_ST";
                 unityComp = comp; // x/y/z/w 同布局(tiling.xy / offset.zw)
             }
             else { ctx.Report.Log.AppendLine($"   ⚠ 跳过材质轨 {layaProp}.{comp}"); return; }
@@ -303,6 +397,8 @@ namespace Shenxiao.Editor.Laya3D
                     kf.InTangent[0] * multiplier, kf.OutTangent[0] * multiplier);
             }
             clip.SetCurve(path, typeof(MeshRenderer), "material." + unityProp + "." + unityComp, new AnimationCurve(keys));
+            if (!string.IsNullOrEmpty(mirrorProp))
+                clip.SetCurve(path, typeof(MeshRenderer), "material." + mirrorProp + "." + unityComp, new AnimationCurve(keys));
         }
 
         /// <summary>欧拉角轨(Laya 度)烘成四元数 localRotation 轨(传统动画不认 localEulerAngles)。
@@ -382,34 +478,37 @@ namespace Shenxiao.Editor.Laya3D
                 null, null, null, 5f, ctx);
 
             // 尺寸(支持 3D 分轴)
+            int sizeType = (int)F(bases, "startSizeType", 0f);
             bool threeDSize = B(bases, "threeDStartSize", false);
             if (threeDSize && vec3s?["startSizeConstantSeparate"] is JArray sizeSep)
             {
+                JArray sizeMaxSep = vec3s["startSizeConstantMaxSeparate"] as JArray;
                 main.startSize3D = true;
-                main.startSizeX = new ParticleSystem.MinMaxCurve((float)sizeSep[0]);
-                main.startSizeY = new ParticleSystem.MinMaxCurve((float)sizeSep[1]);
-                main.startSizeZ = new ParticleSystem.MinMaxCurve((float)sizeSep[2]);
+                main.startSizeX = SeparateCurve(sizeSep, sizeMaxSep, 0, sizeType);
+                main.startSizeY = SeparateCurve(sizeSep, sizeMaxSep, 1, sizeType);
+                main.startSizeZ = SeparateCurve(sizeSep, sizeMaxSep, 2, sizeType);
             }
             else
             {
                 main.startSize = NumberMinMax(bases, mainData,
-                    (int)F(bases, "startSizeType", 0f),
+                    sizeType,
                     "startSizeConstant", "startSizeConstantMin", "startSizeConstantMax",
                     null, null, null, 1f, ctx);
             }
 
             // 旋转(Laya 弧度;Unity MinMaxCurve 同为弧度)
+            int rotType = (int)F(bases, "startRotationType", 0f);
             bool threeDRot = B(bases, "threeDStartRotation", false);
             if (threeDRot && vec3s?["startRotationConstantSeparate"] is JArray rotSep)
             {
+                JArray rotMaxSep = vec3s["startRotationConstantMaxSeparate"] as JArray;
                 main.startRotation3D = true;
-                main.startRotationX = new ParticleSystem.MinMaxCurve((float)rotSep[0]);
-                main.startRotationY = new ParticleSystem.MinMaxCurve((float)rotSep[1]);
-                main.startRotationZ = new ParticleSystem.MinMaxCurve((float)rotSep[2]);
+                main.startRotationX = SeparateCurve(rotSep, rotMaxSep, 0, rotType);
+                main.startRotationY = SeparateCurve(rotSep, rotMaxSep, 1, rotType);
+                main.startRotationZ = SeparateCurve(rotSep, rotMaxSep, 2, rotType);
             }
             else
             {
-                int rotType = (int)F(bases, "startRotationType", 0f);
                 main.startRotation = rotType == 2
                     ? new ParticleSystem.MinMaxCurve(F(bases, "startRotationConstantMin", 0f), F(bases, "startRotationConstantMax", 0f))
                     : new ParticleSystem.MinMaxCurve(F(bases, "startRotationConstant", 0f));
@@ -740,7 +839,16 @@ namespace Shenxiao.Editor.Laya3D
             LmMesh lm = LmParser.Parse(File.ReadAllBytes(lmAbs));
             Mesh mesh = Laya3DImporter.BuildMeshForEffect(lm, new Laya3DImporter.Result());
             string meshAsset = ctx.OutDir + "/" + go.name + "_mesh.asset";
-            AssetDatabase.CreateAsset(mesh, meshAsset);
+            Mesh existing = AssetDatabase.LoadAssetAtPath<Mesh>(meshAsset);
+            if (existing != null)
+            {
+                EditorUtility.CopySerialized(mesh, existing);
+                UnityEngine.Object.DestroyImmediate(mesh);
+            }
+            else
+            {
+                AssetDatabase.CreateAsset(mesh, meshAsset);
+            }
             go.AddComponent<MeshFilter>().sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshAsset);
 
             Material mat = null;
@@ -861,6 +969,7 @@ namespace Shenxiao.Editor.Laya3D
             ctx.Report.Log.AppendLine($"   材质 {Path.GetFileName(lmatAbs)}: type={type} src={srcBlend} dst={dstBlend} 混合={(additive ? "加色Additive" : "普通Alpha")}");
 
             var mat = CreateParticleMaterial();
+            mat.name = Path.GetFileNameWithoutExtension(lmatAbs);
             SetupTransparent(mat, srcBlend, dstBlend, additive, depthWrite);
 
             // vectors:color/_TintColor/albedoColor → _BaseColor;tilingOffset → _BaseMap_ST
@@ -891,7 +1000,10 @@ namespace Shenxiao.Editor.Laya3D
                     string texRel = (string)t["path"];
                     if (string.IsNullOrEmpty(texRel)) continue;
                     texDeclared++;
-                    Texture2D tex = ImportTexture(texRel, lmatAbs, ctx);
+                    Texture2D tex = ImportTexture(texRel, lmatAbs,
+                        t["propertyParams"] as JObject,
+                        t["constructParams"] as JArray,
+                        ctx);
                     if (tex != null)
                     {
                         mat.SetTexture("_BaseMap", tex);
@@ -912,8 +1024,17 @@ namespace Shenxiao.Editor.Laya3D
                 ctx.Report.Log.AppendLine($"   ⚠贴图缺失 {Path.GetFileName(lmatAbs)}: 声明 {texDeclared} 张但全部导入失败(LFS 占位?)");
 
             string matAsset = ctx.OutDir + "/" + Path.GetFileNameWithoutExtension(lmatAbs) + ".mat";
-            AssetDatabase.CreateAsset(mat, matAsset);
             Material loaded = AssetDatabase.LoadAssetAtPath<Material>(matAsset);
+            if (loaded != null)
+            {
+                EditorUtility.CopySerialized(mat, loaded);
+                UnityEngine.Object.DestroyImmediate(mat);
+            }
+            else
+            {
+                AssetDatabase.CreateAsset(mat, matAsset);
+                loaded = AssetDatabase.LoadAssetAtPath<Material>(matAsset);
+            }
             ctx.MaterialCache[lmatAbs] = loaded;
             return loaded;
         }
@@ -974,6 +1095,17 @@ namespace Shenxiao.Editor.Laya3D
             return new ParticleSystem.Burst(time, (short)min, (short)max);
         }
 
+        private static ParticleSystem.MinMaxCurve SeparateCurve(JArray minValues, JArray maxValues, int axis, int type)
+        {
+            float min = minValues != null && minValues.Count > axis ? (float)minValues[axis] : 1f;
+            if (type == 2 && maxValues != null && maxValues.Count > axis)
+            {
+                float max = (float)maxValues[axis];
+                return new ParticleSystem.MinMaxCurve(min, max);
+            }
+            return new ParticleSystem.MinMaxCurve(min);
+        }
+
         private static bool IsMultiplyBlend(UnityEngine.Rendering.BlendMode src, UnityEngine.Rendering.BlendMode dst)
         {
             return src == UnityEngine.Rendering.BlendMode.DstColor ||
@@ -986,16 +1118,64 @@ namespace Shenxiao.Editor.Laya3D
         {
             const string customShaderPath = "Assets/Shaders/LayaParticleUnlit.shader";
             Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(customShaderPath);
-            if (shader != null) return shader;
+            if (IsUsableShader(shader)) return shader;
             shader = Shader.Find("Shenxiao/Effect/LayaParticleUnlit");
-            if (shader != null) return shader;
+            if (IsUsableShader(shader)) return shader;
             shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-            if (shader != null) return shader;
+            if (IsUsableShader(shader)) return shader;
             shader = Shader.Find("Particles/Standard Unlit");
-            if (shader != null) return shader;
+            if (IsUsableShader(shader)) return shader;
             shader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (shader != null) return shader;
+            if (IsUsableShader(shader)) return shader;
             throw new InvalidOperationException("找不到可用的粒子透明 Shader。请确认 URP 包已导入。");
+        }
+
+        private static bool IsUsableShader(Shader shader)
+        {
+            return shader != null
+                && shader.isSupported
+                && shader.name != "Hidden/InternalErrorShader"
+                && !ShaderHasCompileErrors(shader);
+        }
+
+        private static bool ShaderHasCompileErrors(Shader shader)
+        {
+            try
+            {
+                const BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+                Type shaderUtil = typeof(ShaderUtil);
+                MethodInfo hasError = shaderUtil.GetMethod("ShaderHasError", flags, null,
+                    new[] { typeof(Shader) }, null);
+                if (hasError != null && hasError.ReturnType == typeof(bool))
+                    return (bool)hasError.Invoke(null, new object[] { shader });
+
+                MethodInfo getMessages = shaderUtil.GetMethod("GetShaderMessages", flags, null,
+                    new[] { typeof(Shader) }, null);
+                if (getMessages == null) return false;
+
+                var messages = getMessages.Invoke(null, new object[] { shader }) as Array;
+                if (messages == null) return false;
+
+                foreach (object message in messages)
+                {
+                    Type messageType = message.GetType();
+                    object severity = messageType.GetProperty("severity", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                        ?.GetValue(message);
+                    if (severity == null)
+                    {
+                        severity = messageType.GetField("severity", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                            ?.GetValue(message);
+                    }
+                    if (severity != null && severity.ToString().IndexOf("error", StringComparison.OrdinalIgnoreCase) >= 0)
+                        return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+
+            return false;
         }
 
         private static Material CreateParticleMaterial()
@@ -1064,7 +1244,8 @@ namespace Shenxiao.Editor.Laya3D
         }
 
         /// <summary>贴图镜像进 GameRes(特效贴图放 effect/textures,跨特效共享且可进 LFS)。</summary>
-        private static Texture2D ImportTexture(string texRel, string lmatAbs, Context ctx)
+        private static Texture2D ImportTexture(string texRel, string lmatAbs, JObject propertyParams,
+            JArray constructParams, Context ctx)
         {
             string texAbs = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(lmatAbs), texRel));
             if (!File.Exists(texAbs))
@@ -1097,13 +1278,121 @@ namespace Shenxiao.Editor.Laya3D
                     : ctx.OutDir + "/" + Path.GetFileName(texAbs);
             }
             string assetAbs = Path.GetFullPath(Path.Combine(Application.dataPath, "..", assetPath));
+            bool copied = false;
             if (!File.Exists(assetAbs))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(assetAbs));
                 File.Copy(texAbs, assetAbs, true);
+                copied = true;
+            }
+
+            Texture2D loaded = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
+            if (copied || loaded == null)
+            {
                 AssetDatabase.ImportAsset(assetPath);
             }
-            return AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
+            ConfigureEffectTextureImporter(assetPath, propertyParams, constructParams);
+            loaded = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
+            return loaded;
+        }
+
+        private static void ConfigureEffectTextureImporter(string assetPath, JObject propertyParams, JArray constructParams)
+        {
+            TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+            if (importer == null) return;
+
+            bool dirty = false;
+            if (importer.textureType != TextureImporterType.Default)
+            {
+                importer.textureType = TextureImporterType.Default;
+                dirty = true;
+            }
+            if (!importer.alphaIsTransparency)
+            {
+                importer.alphaIsTransparency = true;
+                dirty = true;
+            }
+            if (!importer.sRGBTexture)
+            {
+                importer.sRGBTexture = true;
+                dirty = true;
+            }
+            if (importer.npotScale != TextureImporterNPOTScale.None)
+            {
+                importer.npotScale = TextureImporterNPOTScale.None;
+                dirty = true;
+            }
+            if (constructParams != null && constructParams.Count >= 4 && constructParams[3].Type != JTokenType.Null)
+            {
+                bool mipmap = (bool)constructParams[3];
+                if (importer.mipmapEnabled != mipmap)
+                {
+                    importer.mipmapEnabled = mipmap;
+                    dirty = true;
+                }
+            }
+            if (propertyParams != null)
+            {
+                if (propertyParams["filterMode"] != null)
+                {
+                    FilterMode filter = MapLayaFilterMode((int)(float)propertyParams["filterMode"], importer.filterMode);
+                    if (importer.filterMode != filter)
+                    {
+                        importer.filterMode = filter;
+                        dirty = true;
+                    }
+                }
+                if (propertyParams["wrapModeU"] != null)
+                {
+                    TextureWrapMode wrap = MapLayaWrapMode((int)(float)propertyParams["wrapModeU"], importer.wrapModeU);
+                    if (importer.wrapModeU != wrap)
+                    {
+                        importer.wrapModeU = wrap;
+                        dirty = true;
+                    }
+                }
+                if (propertyParams["wrapModeV"] != null)
+                {
+                    TextureWrapMode wrap = MapLayaWrapMode((int)(float)propertyParams["wrapModeV"], importer.wrapModeV);
+                    if (importer.wrapModeV != wrap)
+                    {
+                        importer.wrapModeV = wrap;
+                        dirty = true;
+                    }
+                }
+                if (propertyParams["anisoLevel"] != null)
+                {
+                    int aniso = Mathf.Clamp((int)(float)propertyParams["anisoLevel"], 0, 16);
+                    if (importer.anisoLevel != aniso)
+                    {
+                        importer.anisoLevel = aniso;
+                        dirty = true;
+                    }
+                }
+            }
+
+            if (dirty) importer.SaveAndReimport();
+        }
+
+        private static FilterMode MapLayaFilterMode(int laya, FilterMode fallback)
+        {
+            switch (laya)
+            {
+                case 0: return FilterMode.Point;
+                case 1: return FilterMode.Bilinear;
+                case 2: return FilterMode.Trilinear;
+                default: return fallback;
+            }
+        }
+
+        private static TextureWrapMode MapLayaWrapMode(int laya, TextureWrapMode fallback)
+        {
+            switch (laya)
+            {
+                case 0: return TextureWrapMode.Repeat;
+                case 1: return TextureWrapMode.Clamp;
+                default: return fallback;
+            }
         }
 
         private static Material DefaultParticleMaterial(Context ctx)

@@ -1,0 +1,27 @@
+{
+  "entries": [
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/MainUIModule.prefab",
+      "hostName": "_box_finger_con",
+      "ancestorName": "MainUITaskItem",
+      "source": "yu_client StoryModel.CreateFinger / MainUITaskItem guide",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "main_ui_guide_select",
+          "effectName": "ui_yindaoxiaoguo",
+          "addressKey": "effect/objs/ui_effect/ui_yindaoxiaoguo/ui_yindaoxiaoguo",
+          "note": "任务框四角选中特效"
+        },
+        {
+          "type": "ui_effect",
+          "slotId": "main_ui_guide_finger",
+          "effectName": "ui_dianjizhiyin",
+          "addressKey": "effect/objs/ui_effect/ui_dianjizhiyin/ui_dianjizhiyin",
+          "note": "点击手指和光点特效"
+        }
+      ]
+    }
+  ]
+}

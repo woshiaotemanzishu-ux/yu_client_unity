@@ -296,6 +296,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3818637710573972790}
+  - component: {fileID: 6913331876033995252}
   m_Layer: 0
   m_Name: GiftPushIcon
   m_TagString: Untagged
@@ -326,6 +327,22 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 72, y: 72}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &6913331876033995252
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2655735731557689714}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc8898ca90d50fb4e8b0e44648ceb122, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.MainUI.GiftPushIconBind
+  _gp_effect: {fileID: 233473283684646522}
+  _img_icon: {fileID: 7687959127738807202}
+  _img_desc_bg: {fileID: 4109434896413115219}
+  _lb_desc: {fileID: 8783328516559634980}
 --- !u!1 &4360380294942886468
 GameObject:
   m_ObjectHideFlags: 0

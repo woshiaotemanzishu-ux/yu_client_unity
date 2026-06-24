@@ -44,8 +44,14 @@ namespace Shenxiao.Framework.Res
         public static string GetEffectPath(string effectType, string resName)
             => "resource/effect/objs/" + effectType + "/" + resName + ".lh";
 
+        public static string GetEffectPrefabPath(string effectType, string resName)
+            => "effect/objs/" + effectType + "/" + resName + "/" + resName;
+
         public static string GetUIEffectPath(string resName)
             => "effect/objs/ui_effect/" + resName + "/" + resName + ".lh";
+
+        public static string GetUIEffectPrefabPath(string resName)
+            => GetEffectPrefabPath("ui_effect", resName);
 
         // ---------- Fonts ----------
 

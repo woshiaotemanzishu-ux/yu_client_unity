@@ -210,6 +210,18 @@ namespace Shenxiao.Editor.Laya3D
                 mesh.uv = uvs;
             }
 
+            Vector4[] colorVecs = LmParser.GetVec4(lm, "COLOR");
+            if (colorVecs != null)
+            {
+                var colors = new Color[colorVecs.Length];
+                for (int i = 0; i < colorVecs.Length; i++)
+                {
+                    Vector4 c = colorVecs[i];
+                    colors[i] = new Color(c.x, c.y, c.z, c.w);
+                }
+                mesh.colors = colors;
+            }
+
             int[] indices = (int[])lm.IndexData.Clone();
             if (mirrorX)
             {

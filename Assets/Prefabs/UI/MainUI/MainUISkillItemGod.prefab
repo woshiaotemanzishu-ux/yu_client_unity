@@ -249,6 +249,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8906996978588826203}
+  - component: {fileID: 5619388781865807715}
   m_Layer: 0
   m_Name: MainUISkillItemGod
   m_TagString: Untagged
@@ -276,6 +277,26 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 90, y: 90}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &5619388781865807715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4589439300217658117}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98686541de04c3043b9dfd7b32570155, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.MainUI.MainUISkillItemGod
+  con: {fileID: 7981778739837278104}
+  bg: {fileID: 7328224964470458197}
+  icon: {fileID: 8842309976844133403}
+  _Image1: {fileID: 3994462810210742454}
+  _img_keep: {fileID: 964554604798713540}
+  _img_mask: {fileID: 1011268778147234722}
+  _lb_cd: {fileID: 1884435623224948201}
+  _gp_eff: {fileID: 8124069746678089959}
 --- !u!1 &4591653878416251051
 GameObject:
   m_ObjectHideFlags: 0

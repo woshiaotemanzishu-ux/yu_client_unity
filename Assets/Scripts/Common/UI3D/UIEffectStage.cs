@@ -58,23 +58,31 @@ namespace Shenxiao.Common.UI3D
             Vector2 position = default, Vector3 scale = default, float rotationY = 0f)
         {
             if (string.IsNullOrEmpty(effectName) || parent == null) return null;
+            return await AddByKeyAsync(effectName, GameResPath.GetUIEffectPrefabPath(effectName),
+                parent, position, scale, rotationY);
+        }
+
+        public static async Task<Handle> AddByKeyAsync(string label, string effectKey, RectTransform parent,
+            Vector2 position = default, Vector3 scale = default, float rotationY = 0f)
+        {
+            if (string.IsNullOrEmpty(effectKey) || parent == null) return null;
+            if (string.IsNullOrEmpty(label)) label = effectKey;
             if (scale == default) scale = Vector3.one;
 
-            Handle handle = CreateHandle(effectName, parent);
+            Handle handle = CreateHandle(SafeName(label), parent);
             if (handle == null) return null;
 
-            string effectKey = GameResPath.GetUIEffectPath(effectName);
             GameObject effect = await ResManager.InstantiateAsync(effectKey, handle.EffectRoot);
             if (effect == null || parent == null)
             {
-                if (effect == null) GameLog.Warn("UIEffect", "load ui effect failed: name={0} key={1}", effectName, effectKey);
+                if (effect == null) GameLog.Warn("UIEffect", "load ui effect failed: label={0} key={1}", label, effectKey);
                 if (effect != null) ResManager.ReleaseInstance(effect);
                 handle.Dispose();
                 return null;
             }
 
             handle.Effect = effect;
-            effect.name = "__ui_effect_" + effectName;
+            effect.name = "__ui_effect_" + SafeName(label);
             Transform t = effect.transform;
             t.localPosition = new Vector3(-position.x, -position.y, 0f);
             t.localRotation = Quaternion.Euler(0f, rotationY, 0f);
@@ -84,6 +92,13 @@ namespace Shenxiao.Common.UI3D
             Play(effect);
             effect.SetActive(true);
             return handle;
+        }
+
+        public static Task<Handle> AddAsync(UIEffectSlot slot, RectTransform parent)
+        {
+            if (slot == null) return Task.FromResult<Handle>(null);
+            return AddByKeyAsync(slot.EffectName, slot.AddressKey, parent,
+                slot.Position, slot.Scale, slot.RotationY);
         }
 
         private static Handle CreateHandle(string effectName, RectTransform parent)
@@ -194,6 +209,12 @@ namespace Shenxiao.Common.UI3D
             if (obj == null) return;
             if (Application.isPlaying) Object.Destroy(obj);
             else Object.DestroyImmediate(obj);
+        }
+
+        private static string SafeName(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return "effect";
+            return value.Replace('\\', '_').Replace('/', '_').Replace('.', '_');
         }
     }
 }

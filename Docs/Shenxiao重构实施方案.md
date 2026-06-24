@@ -67,7 +67,28 @@ LayaAir 源资源              Unity 工程               运行时
 包体只含：代码 + 启动场景 + 极简 Loading + AppConfig。
 Login UI、业务 UI、模型、特效、音频、配置表全部走 Remote/API 加载，不进入包体。
 
-### 2.1 系统级工程记忆（配置驱动 + 工具链先行）
+### 2.1 动态资源开发期可见化架构
+
+详见 [Unity动态资源开发期可见化规范](Unity动态资源开发期可见化规范.md)。
+
+Shenxiao 保留运行时远程动态加载,但 Unity 开发期必须能看见并编辑同一份运行时资源。动态图片、UI 特效、3D 模型展示、动态子 prefab 等资源统一按以下分层:
+
+```text
+Laya Source
+  -> Generated Base Asset      # 转换器覆盖,不人工编辑,不作为运行时 Addressable 入口
+  -> Runtime Editable Asset    # 开发者编辑和验收,Addressables 真正加载这一层
+  -> UI Dynamic Resource Slot  # 宿主 UI prefab 上的可见绑定/预览/校验入口
+```
+
+硬规则:
+
+- 运行时加载仍走 `ResManager + GameResPath/ResourcePath + Addressables Remote`。
+- Addressables 指向 Runtime Editable Asset,不是 Generated Base Asset。
+- 转换器重跑默认只刷新 Generated Base Asset;Runtime Editable Asset 已存在时保留人工修改。
+- 宿主 UI prefab 必须有 slot/profile 标明运行时会加载哪些动态资源,并能跳转到实际 runtime prefab。
+- 资源名、路径、特效名来自配置、转换产物或 slot/profile,禁止在业务代码里随手硬编码。
+
+### 2.2 系统级工程记忆（配置驱动 + 工具链先行）
 
 这是本项目推进任何大功能前必须默认采用的工程方式：
 
