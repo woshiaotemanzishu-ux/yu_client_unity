@@ -38,6 +38,7 @@ namespace Shenxiao.Module.Core.Scene
         private const string ActionIdle = "idle";
         private const string ActionRun = "run";
         private const string ActionJump = "jump";
+        private const float TaskJumpReportDistance = 300f;
 
         /// <summary>当前主角驱动(MainRoleFlow 装配后唯一存在;清主角时置空)。任务/对话用它让主角朝 NPC 转向。</summary>
         public static MainRoleAgent Current { get; private set; }
@@ -68,6 +69,7 @@ namespace Shenxiao.Module.Core.Scene
         private float _autoStuckTime;
         private float _autoLastX;
         private float _autoLastY;
+        private bool _autoInvokeOnFail = true;
 
         /// <summary>由 MainRoleFlow 在装配完成后初始化:传入模型子节点与出生坐标。</summary>
         public void Init(GameObject model, int spawnX, int spawnY, int career, int sex, int clotheRes)
@@ -270,9 +272,20 @@ namespace Shenxiao.Module.Core.Scene
         /// <param name="onArrive">到达或兜底后回调(对话入口 ShowTask)。</param>
         public void MoveToNpc(float targetX, float targetY, float arriveLogicDist, Action onArrive)
         {
+            MoveToNpcInternal(targetX, targetY, arriveLogicDist, onArrive, true);
+        }
+
+        public void MoveToNpcStrict(float targetX, float targetY, float arriveLogicDist, Action onArrive)
+        {
+            MoveToNpcInternal(targetX, targetY, arriveLogicDist, onArrive, false);
+        }
+
+        private void MoveToNpcInternal(float targetX, float targetY, float arriveLogicDist, Action onArrive, bool invokeOnFail)
+        {
             _autoTargetX = targetX;
             _autoTargetY = targetY;
             _autoArriveLogic = arriveLogicDist > 0f ? arriveLogicDist : ArrivalLogicDist;
+            _autoInvokeOnFail = invokeOnFail;
 
             // 已在范围内:不移动,直接转身 + 触发(对标 MainRoleToNpc 的 GetDistance<=dist+1 早退分支)。
             if (ReachedTarget())
@@ -334,23 +347,48 @@ namespace Shenxiao.Module.Core.Scene
             return lx * lx + ly * ly <= _autoArriveLogic * _autoArriveLogic;
         }
 
+        public bool IsDirectPathBlockedTo(float targetX, float targetY)
+        {
+            SceneMapData map = SceneMapLoader.Current;
+            if (map == null) return false;
+
+            float dx = targetX - _posX;
+            float dy = targetY - _posY;
+            float distance = Mathf.Sqrt(dx * dx + dy * dy);
+            if (distance < 1f) return false;
+
+            int samples = Mathf.Max(1, Mathf.CeilToInt(distance / 20f));
+            for (int i = 1; i <= samples; i++)
+            {
+                float t = i / (float)samples;
+                if (map.IsBlockPixel(_posX + dx * t, _posY + dy * t)) return true;
+            }
+
+            return false;
+        }
+
         // 自动接近收尾:停步(idle + 补发最终坐标)→ 面向 NPC → 触发回调(对标到达 DoStand + SetDirection + SHOW_TASK)。
         private void FinishAutoMove(bool arrived, string reason)
         {
             _autoMoving = false;
             Action cb = _onArrive;
+            bool invokeOnFail = _autoInvokeOnFail;
             _onArrive = null;
+            _autoInvokeOnFail = true;
 
             StopMove();
             FaceTowardPixel(_autoTargetX, _autoTargetY);
 
             if (arrived)
                 GameLog.Info("Scene", "MoveToNpc 到达 NPC 附近 → 触发到达回调(开对话)");
+            else if (invokeOnFail)
+                GameLog.Warn("Scene", "MoveToNpc 未抵达[{0}] → 使用非严格兜底回调(target=({1:F0},{2:F0}))",
+                    reason, _autoTargetX, _autoTargetY);
             else
-                GameLog.Warn("Scene", "MoveToNpc 未抵达[{0}] → 直线接近无 A* 寻路,仍触发回调避免软锁(target=({1:F0},{2:F0}))",
+                GameLog.Warn("Scene", "MoveToNpc 未抵达[{0}] → 严格模式不触发到达回调(target=({1:F0},{2:F0}))",
                     reason, _autoTargetX, _autoTargetY);
 
-            cb?.Invoke();
+            if (arrived || invokeOnFail) cb?.Invoke();
         }
 
         // 玩家手动介入:取消自动接近(丢弃到达回调,让位手动驱动;玩家可重新点任务再次自动接近)。
@@ -359,6 +397,7 @@ namespace Shenxiao.Module.Core.Scene
             if (!_autoMoving) return;
             _autoMoving = false;
             _onArrive = null;
+            _autoInvokeOnFail = true;
             GameLog.Info("Scene", "MoveToNpc 取消:{0}", why);
         }
 
@@ -377,7 +416,7 @@ namespace Shenxiao.Module.Core.Scene
         {
             if (jumpType <= 0)
             {
-                MoveToNpc(targetX, targetY, ArrivalLogicDist, onArrive);
+                MoveToNpcStrict(targetX, targetY, ArrivalLogicDist, onArrive);
                 return;
             }
             _ = TaskJumpToAsync(jumpType, targetX, targetY, onArrive);
@@ -389,8 +428,7 @@ namespace Shenxiao.Module.Core.Scene
             {
                 if (_model == null || _anim == null)
                 {
-                    ApplyServerPosition(targetX, targetY);
-                    onArrive?.Invoke();
+                    MoveToNpcStrict(targetX, targetY, ArrivalLogicDist, onArrive);
                     return;
                 }
 
@@ -405,14 +443,25 @@ namespace Shenxiao.Module.Core.Scene
 
                 int startX = Mathf.RoundToInt(_posX);
                 int startY = Mathf.RoundToInt(_posY);
-                SceneController.Instance.SendMoveRequest(startX, startY, MoveType.TaskJump, targetX, targetY, startX, startY);
+
+                if (!OtherFightConfigs.TryGetJumpMotion(jumpType, _career,
+                    out float hspeed, out float vspeed, out float gravity, out float fallStay))
+                {
+                    GameLog.Warn("Scene", "task jump motion config missing jumpType={0} career={1}", jumpType, _career);
+                    MoveToNpcStrict(targetX, targetY, ArrivalLogicDist, onArrive);
+                    return;
+                }
 
                 string playedAction = null;
-                foreach (string candidate in MoveAnimCandidates(jumpType))
+                IReadOnlyList<string> configuredActions = OtherFightConfigs.GetJumpActionList(_career, _sex);
+                int actionStart = configuredActions.Count > 0 ? _jumpActionCursor % configuredActions.Count : 0;
+                _jumpActionCursor++;
+                for (int i = 0; i < configuredActions.Count; i++)
                 {
+                    string candidate = configuredActions[(actionStart + i) % configuredActions.Count];
                     await RoleModelAssembler.PrepareRoleActions(_model, _career, _clotheRes, new[] { candidate });
                     if (version != _actionVersion || _model == null) return;
-                    if (TryPlayAction(candidate, 0.08f, true))
+                    if (HasActionClip(candidate))
                     {
                         playedAction = candidate;
                         break;
@@ -421,14 +470,27 @@ namespace Shenxiao.Module.Core.Scene
 
                 if (playedAction == null)
                 {
-                    GameLog.Warn("Scene", "task jump action missing jumpType={0}", jumpType);
-                    ApplyServerPosition(targetX, targetY);
-                    onArrive?.Invoke();
+                    GameLog.Warn("Scene", "task jump action config/clip missing jumpType={0} career={1} sex={2}",
+                        jumpType, _career, _sex);
+                    MoveToNpcStrict(targetX, targetY, ArrivalLogicDist, onArrive);
                     return;
                 }
 
-                await RunConfiguredJumpToAsync(jumpType, targetX, targetY, version);
-                if (version != _actionVersion || _model == null) return;
+                float movieSpeedOff = OtherFightConfigs.GetTaskJumpMovieSpeedOff(_career, _sex, playedAction);
+                SceneController.Instance.SendMoveRequest(startX, startY, MoveType.TaskJump, targetX, targetY, startX, startY);
+                List<Vector2Int> jumpTargets = BuildTaskJumpTargets(jumpType, startX, startY, targetX, targetY);
+                for (int i = 0; i < jumpTargets.Count; i++)
+                {
+                    Vector2Int jumpTarget = jumpTargets[i];
+                    bool isLastSegment = i == jumpTargets.Count - 1;
+                    float segmentFallStay = isLastSegment ? fallStay : 0f;
+                    float segmentDuration = GetTaskJumpDuration(vspeed, gravity, segmentFallStay);
+                    float actionSpeed = GetActionPlaybackSpeed(playedAction, segmentDuration, movieSpeedOff);
+                    TryPlayAction(playedAction, i == 0 ? 0.08f : 0.02f, true, actionSpeed);
+                    await RunConfiguredJumpToAsync(jumpType, jumpTarget.x, jumpTarget.y, version, true, startX, startY,
+                        hspeed, vspeed, gravity, segmentFallStay, true);
+                    if (version != _actionVersion || _model == null) return;
+                }
 
                 ResetModelVisualOffset();
                 PlayAction(ActionIdle);
@@ -438,9 +500,28 @@ namespace Shenxiao.Module.Core.Scene
             {
                 GameLog.Warn("Scene", "task jump failed jumpType={0}: {1}", jumpType, ex.Message);
                 ResetModelVisualOffset();
-                ApplyServerPosition(targetX, targetY);
-                onArrive?.Invoke();
+                MoveToNpcStrict(targetX, targetY, ArrivalLogicDist, onArrive);
             }
+        }
+
+        private static List<Vector2Int> BuildTaskJumpTargets(int jumpType, int startX, int startY, int targetX, int targetY)
+        {
+            List<Vector2Int> result = new List<Vector2Int>();
+            if (jumpType == 4)
+            {
+                result.Add(new Vector2Int(Mathf.RoundToInt((startX + targetX) * 0.5f),
+                    Mathf.RoundToInt((startY + targetY) * 0.5f)));
+            }
+            else if (jumpType == 5)
+            {
+                result.Add(new Vector2Int(Mathf.RoundToInt(startX + (targetX - startX) / 3f),
+                    Mathf.RoundToInt(startY + (targetY - startY) / 3f)));
+                result.Add(new Vector2Int(Mathf.RoundToInt(startX + (targetX - startX) * 2f / 3f),
+                    Mathf.RoundToInt(startY + (targetY - startY) * 2f / 3f)));
+            }
+
+            result.Add(new Vector2Int(targetX, targetY));
+            return result;
         }
 
         private async Task PlaySkillAsync(int skillId)
@@ -633,7 +714,10 @@ namespace Shenxiao.Module.Core.Scene
             return transform;
         }
 
-        private async Task RunConfiguredJumpToAsync(int moveAnim, int targetX, int targetY, int version)
+        private async Task RunConfiguredJumpToAsync(int moveAnim, int targetX, int targetY, int version,
+            bool reportTaskJump = false, int taskStartX = 0, int taskStartY = 0,
+            float configuredHSpeed = 0f, float configuredVSpeed = 0f, float configuredGravity = 0f,
+            float configuredFallStay = -1f, bool useTaskJumpDuration = false)
         {
             float startX = _posX;
             float startY = _posY;
@@ -641,16 +725,21 @@ namespace Shenxiao.Module.Core.Scene
             float dy = targetY - startY;
             float distance = Mathf.Sqrt(dx * dx + dy * dy);
             int jumpType = NormalizeJumpType(moveAnim);
-            float hspeed = OtherFightConfigs.GetJumpHSpeed(jumpType, 900f);
-            float moveTime = hspeed > 0f ? distance / hspeed : GetActionLength(ActionJump);
+            float hspeed = configuredHSpeed > 0f ? configuredHSpeed : OtherFightConfigs.GetJumpHSpeed(jumpType, 900f);
+            float vspeed = configuredVSpeed > 0f ? configuredVSpeed : OtherFightConfigs.GetJumpVSpeed(jumpType, 1200f);
+            float gravity = configuredGravity > 0f ? configuredGravity : OtherFightConfigs.GetJumpGravitySpeed(jumpType, 2500f);
+            float moveTime = useTaskJumpDuration
+                ? GetTaskJumpMoveTime(vspeed, gravity)
+                : (hspeed > 0f ? distance / hspeed : GetActionLength(ActionJump));
             moveTime = Mathf.Max(0.05f, moveTime);
 
-            float vspeed = OtherFightConfigs.GetJumpVSpeed(jumpType, 1200f);
-            float gravity = OtherFightConfigs.GetJumpGravitySpeed(jumpType, 2500f);
             float upTime = gravity > 0f ? vspeed / gravity : 0f;
             float maxHeight = gravity > 0f ? 0.5f * gravity * upTime * upTime : 0f;
 
             float elapsed = 0f;
+            float pendingReportDistance = 0f;
+            float lastFrameX = startX;
+            float lastFrameY = startY;
             while (elapsed < moveTime)
             {
                 await Task.Yield();
@@ -662,13 +751,55 @@ namespace Shenxiao.Module.Core.Scene
                 int y = Mathf.RoundToInt(Mathf.Lerp(startY, targetY, t));
                 ApplyServerPosition(x, y);
                 ApplyJumpVisualHeight(4f * maxHeight * t * (1f - t));
+
+                if (reportTaskJump)
+                {
+                    float stepX = x - lastFrameX;
+                    float stepY = y - lastFrameY;
+                    pendingReportDistance += Mathf.Sqrt(stepX * stepX + stepY * stepY);
+                    lastFrameX = x;
+                    lastFrameY = y;
+                    if (pendingReportDistance >= TaskJumpReportDistance)
+                    {
+                        SceneController.Instance.SendMoveRequest(x, y, MoveType.TaskJumpUpdatePos,
+                            targetX, targetY, taskStartX, taskStartY);
+                        pendingReportDistance = 0f;
+                    }
+                }
             }
 
             ApplyServerPosition(targetX, targetY);
+            if (reportTaskJump)
+            {
+                SceneController.Instance.SendMoveRequest(targetX, targetY, MoveType.TaskJumpUpdatePos,
+                    targetX, targetY, taskStartX, taskStartY);
+            }
             ResetModelVisualOffset();
 
-            float stay = OtherFightConfigs.GetJumpFallStayTime(jumpType, _career, 0.1f);
+            float stay = configuredFallStay >= 0f ? configuredFallStay : OtherFightConfigs.GetJumpFallStayTime(jumpType, _career, 0.1f);
             if (stay > 0f) await Task.Delay(Mathf.RoundToInt(stay * 1000f));
+        }
+
+        private static float GetTaskJumpDuration(float vspeed, float gravity, float fallStay)
+        {
+            return GetTaskJumpMoveTime(vspeed, gravity) + Mathf.Max(0f, fallStay);
+        }
+
+        private static float GetTaskJumpMoveTime(float vspeed, float gravity)
+        {
+            if (vspeed <= 0f || gravity <= 0f) return 0.05f;
+            float upTime = vspeed / gravity;
+            float maxHeight = 0.5f * gravity * upTime * upTime;
+            float downTime = Mathf.Sqrt(2f * maxHeight / gravity);
+            return Mathf.Max(0.05f, upTime + downTime);
+        }
+
+        private float GetActionPlaybackSpeed(string action, float duration, float movieSpeedOff)
+        {
+            float clipLength = GetActionLength(action);
+            float ratio = Mathf.Max(0.01f, 1f + movieSpeedOff);
+            if (clipLength <= 0f || duration <= 0f) return ratio;
+            return Mathf.Max(0.01f, clipLength / duration * ratio);
         }
 
         private IEnumerable<string> MoveAnimCandidates(int moveAnim)
@@ -682,9 +813,6 @@ namespace Shenxiao.Module.Core.Scene
                     yield return configured[(start + i) % configured.Count];
             }
 
-            if (moveAnim > 1) yield return ActionJump + moveAnim;
-            yield return ActionJump;
-            yield return ActionRun;
         }
 
         private static int NormalizeJumpType(int moveAnim)
@@ -739,12 +867,19 @@ namespace Shenxiao.Module.Core.Scene
             TryPlayAction(action, 0.15f, false);
         }
 
-        private bool TryPlayAction(string action, float fade, bool restart)
+        private bool HasActionClip(string action)
+        {
+            return _anim != null && !string.IsNullOrEmpty(action) && _anim.GetClip(action) != null;
+        }
+
+        private bool TryPlayAction(string action, float fade, bool restart, float speed = 1f)
         {
             if (_anim == null || string.IsNullOrEmpty(action)) return false;
             if (_anim.GetClip(action) == null) return false; // 未转换的动作静默跳过,不影响移动
             if (!restart && _anim.IsPlaying(action)) return true;
             if (restart) _anim.Stop(action);
+            AnimationState state = _anim[action];
+            if (state != null) state.speed = Mathf.Max(0.01f, speed);
             _anim.CrossFade(action, fade);
             return true;
         }

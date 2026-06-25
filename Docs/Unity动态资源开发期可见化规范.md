@@ -107,6 +107,7 @@ MainUITaskItem
 - Editor 预览可以实例化本地资源,但运行时仍走 `ResManager`。
 - UI 代码优先读取 slot/profile 或配置,不直接散落资源名常量。
 - UIEffect 的离屏 3D stage 必须使用独立渲染隔离层;stage 里的 mesh/particle 只能被对应的 RenderTexture 相机渲染,不得同时被主场景相机直接拍进 Game 画面。
+- UIEffect 的渲染画布尺寸与 UI 显示区域尺寸必须分离。Laya 旧端常用 720x1280 容器保持 3D 特效比例,但 Unity 侧可以只在目标 UI 周围裁剪显示;不要为了裁剪显示区域而缩小 RenderTexture 渲染画布,否则会改变粒子/网格的世界到 UI 像素比例。
 
 ## Addressables 规则
 

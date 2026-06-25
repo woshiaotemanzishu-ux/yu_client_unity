@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Shenxiao.Common.Loading;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Preload;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
 
@@ -24,6 +27,7 @@ namespace Shenxiao.Module.Core.Game
         private static readonly HashSet<string> _receivedStartFlags = new HashSet<string>();
         private static bool _waitingGameStart;
         private static bool _installed;
+        private static int _gameStartSerial;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
@@ -74,8 +78,8 @@ namespace Shenxiao.Module.Core.Game
             if (_receivedStartFlags.Count < RequiredStartFlags.Length) return;
 
             _waitingGameStart = false;
-            GameLog.Info("Game", "GAME_START ready: startup protocol gate complete");
-            EventDispatcher.Emit(GlobalEvent.EVT_GAME_START);
+            int serial = ++_gameStartSerial;
+            _ = CompleteGameStartAsync(serial);
         }
 
         private static void ResetGameStartGate()
@@ -84,8 +88,21 @@ namespace Shenxiao.Module.Core.Game
             _waitingGameStart = true;
         }
 
+        private static async Task CompleteGameStartAsync(int serial)
+        {
+            GameLog.Info("Game", "GAME_START gate complete: preload game resources");
+            LoadingManager.Show("加载游戏资源");
+            await LegacyPreloadService.PreloadGameStartAsync((p, hint) => LoadingManager.SetProgress(p, hint));
+            if (serial != _gameStartSerial) return;
+
+            LoadingManager.Hide();
+            GameLog.Info("Game", "GAME_START ready: startup protocol gate complete");
+            EventDispatcher.Emit(GlobalEvent.EVT_GAME_START);
+        }
+
         private static void OnDisconnected()
         {
+            ++_gameStartSerial;
             _waitingGameStart = false;
             _receivedStartFlags.Clear();
             if (!ControllerHub.Initialized) return;

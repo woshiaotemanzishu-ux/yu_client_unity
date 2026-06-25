@@ -63,6 +63,17 @@ namespace Shenxiao.Module.Core.Scene
             return true;
         }
 
+        public bool TrySetNearestAttackableMonster(int centerX, int centerY)
+        {
+            MonsterVo target = FindNearestAttackableMonster(0, centerX, centerY);
+            if (target == null) return false;
+
+            SetClickTarget(target.InstanceId);
+            GameLog.Info("Combat", "auto-brush target locked ins={0} type={1} pos=({2},{3})",
+                target.InstanceId, target.TypeId, target.X, target.Y);
+            return true;
+        }
+
         /// <summary>Scene object click entry: lock a real monster instance and release a learned combat skill.</summary>
         public bool MainRoleAttackMonster(int monsterInstanceId, int skillId = 0, int attackType = SkillManager.ONLY_FIRE_ATTACK)
         {

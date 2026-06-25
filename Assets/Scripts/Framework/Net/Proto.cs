@@ -135,6 +135,12 @@ namespace Shenxiao.Framework.Net
         /// <summary>Auto-brush rank/basic level info. Send empty; reply starts "cii" + rank list.</summary>
         public const int AUTOBRUSH_RANK = 13301;
 
+        /// <summary>Enter/exit main-line auto-brush dungeon. Send "c"; reply "i".</summary>
+        public const int AUTOBRUSH_ENTER_EXIT = 13305;
+
+        /// <summary>Main-line auto-brush pass result. Reply "icii" + reward_array.</summary>
+        public const int AUTOBRUSH_RESULT = 13306;
+
         /// <summary>Toggle auto-brush. Send "c"; reply "ic".</summary>
         public const int AUTOBRUSH_TOGGLE = 13307;
 

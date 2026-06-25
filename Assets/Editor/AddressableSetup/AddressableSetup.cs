@@ -19,6 +19,7 @@ namespace Shenxiao.EditorTools.AddrSetup
     {
         private const string LocalGroupName = "App_Local";
         private const string RemoteGroupPrefix = "Remote_";
+        private const string RemoteLoadPathDefault = AddressableAssetSettings.kRemoteBuildPathValue;
 
         [MenuItem("神霄/资源/Addressable 自动分组", priority = 20)]
         public static void AutoGroupAll()
@@ -37,6 +38,7 @@ namespace Shenxiao.EditorTools.AddrSetup
 
             // Build sprite atlases first so they get registered as Addressable entries too.
             AutoSpriteAtlas.Build();
+            EnsureRemoteProfileDefaults(settings);
 
             int countLocal = AssignFolderToGroup(settings, "Assets/_App", EnsureLocalGroup(settings));
 
@@ -75,10 +77,13 @@ namespace Shenxiao.EditorTools.AddrSetup
         private static AddressableAssetGroup EnsureLocalGroup(AddressableAssetSettings settings)
         {
             var g = settings.FindGroup(LocalGroupName);
-            if (g != null) return g;
-            g = settings.CreateGroup(LocalGroupName, false, false, true, null,
-                typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
-            var schema = g.GetSchema<BundledAssetGroupSchema>();
+            if (g == null)
+            {
+                g = settings.CreateGroup(LocalGroupName, false, false, true, null,
+                    typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
+            }
+
+            var schema = g.GetSchema<BundledAssetGroupSchema>() ?? g.AddSchema<BundledAssetGroupSchema>();
             schema.BuildPath.SetVariableByName(settings, AddressableAssetSettings.kLocalBuildPath);
             schema.LoadPath.SetVariableByName(settings, AddressableAssetSettings.kLocalLoadPath);
             schema.IncludeInBuild = true;
@@ -88,14 +93,37 @@ namespace Shenxiao.EditorTools.AddrSetup
         private static AddressableAssetGroup EnsureRemoteGroup(AddressableAssetSettings settings, string name)
         {
             var g = settings.FindGroup(name);
-            if (g != null) return g;
-            g = settings.CreateGroup(name, false, false, true, null,
-                typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
-            var schema = g.GetSchema<BundledAssetGroupSchema>();
+            if (g == null)
+            {
+                g = settings.CreateGroup(name, false, false, true, null,
+                    typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
+            }
+
+            var schema = g.GetSchema<BundledAssetGroupSchema>() ?? g.AddSchema<BundledAssetGroupSchema>();
             schema.BuildPath.SetVariableByName(settings, AddressableAssetSettings.kRemoteBuildPath);
             schema.LoadPath.SetVariableByName(settings, AddressableAssetSettings.kRemoteLoadPath);
             schema.IncludeInBuild = true;
             return g;
+        }
+
+        private static void EnsureRemoteProfileDefaults(AddressableAssetSettings settings)
+        {
+            var profiles = settings.profileSettings;
+            var profileId = settings.activeProfileId;
+            if (profiles == null || string.IsNullOrEmpty(profileId)) return;
+
+            var remoteBuildPath = profiles.GetValueByName(profileId, AddressableAssetSettings.kRemoteBuildPath);
+            if (string.IsNullOrWhiteSpace(remoteBuildPath))
+            {
+                profiles.SetValue(profileId, AddressableAssetSettings.kRemoteBuildPath, AddressableAssetSettings.kRemoteBuildPathValue);
+            }
+
+            var remoteLoadPath = profiles.GetValueByName(profileId, AddressableAssetSettings.kRemoteLoadPath);
+            if (string.IsNullOrWhiteSpace(remoteLoadPath)
+                || remoteLoadPath == AddressableAssetProfileSettings.undefinedEntryValue)
+            {
+                profiles.SetValue(profileId, AddressableAssetSettings.kRemoteLoadPath, RemoteLoadPathDefault);
+            }
         }
 
         private static int AssignFolderToGroup(AddressableAssetSettings settings, string folder, AddressableAssetGroup group)

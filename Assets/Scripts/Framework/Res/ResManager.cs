@@ -81,6 +81,31 @@ namespace Shenxiao.Framework.Res
         }
 
         /// <summary>
+        /// Try loading an optional asset without logging missing/unconverted keys.
+        /// </summary>
+        public static async Task<T> LoadOptionalAsync<T>(string addrKey) where T : UnityEngine.Object
+        {
+            string key = ResourcePath.Normalize(addrKey);
+#if UNITY_EDITOR
+            T convertedEffect = LoadEditorConvertedEffectSource<T>(key);
+            if (convertedEffect != null) return convertedEffect;
+#endif
+            if (!await KeyExists(key, typeof(T))) return null;
+
+            var handle = Addressables.LoadAssetAsync<T>(key);
+            await AddressablesAwaiter.Wait(handle);
+            if (handle.Status != AsyncOperationStatus.Succeeded)
+            {
+                Addressables.Release(handle);
+                return null;
+            }
+
+            T asset = handle.Result;
+            if (asset != null) _assetHandles[asset] = handle;
+            return asset;
+        }
+
+        /// <summary>
         /// Instantiate a prefab asynchronously by Addressable key.
         /// </summary>
         public static async Task<GameObject> InstantiateAsync(string addrKey, Transform parent = null)
@@ -147,9 +172,34 @@ namespace Shenxiao.Framework.Res
         }
 
         /// <summary>key 是否已登记进 Addressables(查 location,不触发加载、不抛异常)。</summary>
+        public static Task<bool> KeyExistsAsync(string addrKey)
+        {
+            return KeyExists(ResourcePath.Normalize(addrKey));
+        }
+
+        /// <summary>key exists in Addressables with an asset type assignable to T.</summary>
+        public static Task<bool> KeyExistsAsync<T>(string addrKey) where T : UnityEngine.Object
+        {
+            return KeyExists(ResourcePath.Normalize(addrKey), typeof(T));
+        }
+
+        /// <summary>key 是否已登记进 Addressables(查 location,不触发加载、不抛异常)。</summary>
         private static async Task<bool> KeyExists(string key)
         {
-            var locHandle = Addressables.LoadResourceLocationsAsync(key);
+            return await KeyExists(key, null);
+        }
+
+        private static async Task<bool> KeyExists(string key, Type type)
+        {
+#if UNITY_EDITOR
+            if (type != null)
+            {
+                return await KeyExists(key, null);
+            }
+#endif
+            var locHandle = type == null
+                ? Addressables.LoadResourceLocationsAsync(key)
+                : Addressables.LoadResourceLocationsAsync(key, type);
             await AddressablesAwaiter.Wait(locHandle);
             bool exists = locHandle.Status == AsyncOperationStatus.Succeeded
                           && locHandle.Result != null && locHandle.Result.Count > 0;

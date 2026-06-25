@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.AutoBrush;
 using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.Role;
@@ -28,6 +29,7 @@ namespace Shenxiao.Module.Core.Tasks
         public const int TIP_TALK = 5;        // 与 NPC 对话(可选)
         public const int TIP_START_TALK = 6;  // 开始对话(不可选)
         public const int TIP_END_TALK = 7;    // 结束对话(不可选)
+        public const int TIP_PASS_MAIN_DUNGEON = 10;
         public const int TIP_COIN = 80;       // 上交铜钱
 
         // 自动寻路到任务点的到达半径(逻辑格;复用老端接近 NPC 的 dist=2.5,到点后怪已在九宫格视野内)。
@@ -91,6 +93,26 @@ namespace Shenxiao.Module.Core.Tasks
 
             GameLog.Info("Task", "FindNextAutoFightTask: task={0} tipsType={1}", task.TaskId, task.TaskTipsType);
             DoTask(task);
+        }
+
+        public bool ResumeCurrentTaskAutoFight()
+        {
+            TaskVo task = MainLineTaskVo;
+            if (task == null) return false;
+            if (IsAllStepFinish(task.TaskId)) return false;
+            if (task.TaskTipsType != TIP_KILL
+                && task.TaskTipsType != TIP_ITEM
+                && task.TaskTipsType != TIP_PASS_MAIN_DUNGEON) return false;
+
+            if (task.TaskTipsType == TIP_PASS_MAIN_DUNGEON)
+            {
+                StartPassMainDungeon(task);
+                return true;
+            }
+
+            if (TryStartTaskAutoFight(task)) return true;
+            WaitTaskMonster(task);
+            return false;
         }
 
         public void ClearData()
@@ -358,7 +380,8 @@ namespace Shenxiao.Module.Core.Tasks
             if (IsFindNpcTask(task.TaskTipsType)) return true;
             return task.TaskTipsType == TIP_KILL
                 || task.TaskTipsType == TIP_ITEM
-                || task.TaskTipsType == TIP_COLLECT;
+                || task.TaskTipsType == TIP_COLLECT
+                || task.TaskTipsType == TIP_PASS_MAIN_DUNGEON;
         }
 
         /// <summary>
@@ -383,6 +406,8 @@ namespace Shenxiao.Module.Core.Tasks
 
             // 2) 全部完成且非对话 → 打开完成弹层真实入口(对标 ts:2385 TASK_OPEN_VIEW 'TaskFinishView')。
             if (IsAllStepFinish(task.TaskId)) { DoFinishTask(task); return; }
+
+            if (task.TaskTipsType == TIP_PASS_MAIN_DUNGEON) { DoPassMainDungeonTask(task); return; }
 
             // 3) 带场景坐标 → 寻路/切场景(对标 Kill/Collect/Item 等 case 的 pathfind / USE_FLY_SHOE)。
             if (task.SceneId > 0 && (task.SceneX > 0 || task.SceneY > 0)) { DoGotoSceneTask(task); return; }
@@ -430,9 +455,16 @@ namespace Shenxiao.Module.Core.Tasks
             }
 
             // 对标 Scene.MainRoleToNpc:主角走到 NPC 身边(dist≤2.5 逻辑格)、停下转身后才打开对话(发 12101)。
-            // 已在范围内则 MoveToNpc 内部立即触发;直线接近无 A* 但有卡死/超时兜底,到不了也会把对话开出来。
             GameLog.Info("Task", "DoTask 找 NPC: NPC {0} 在场景 pos=({1},{2}),主角走过去,到达后开对话(12101)", npcId, npc.X, npc.Y);
-            agent.MoveToNpc(npc.X, npc.Y, 0f, () => DialogueController.Instance.ShowTask(npcId));
+            if (agent.IsDirectPathBlockedTo(npc.X, npc.Y))
+            {
+                GameLog.Info("Task", "DoTask 找 NPC: 直线路径被阻挡,使用任务跳跃跨越地形 npc={0} target=({1},{2})",
+                    npcId, npc.X, npc.Y);
+                agent.TaskJumpTo(npc.X, npc.Y, TaskJumpTwoType, () => DialogueController.Instance.ShowTask(npcId));
+                return;
+            }
+
+            agent.MoveToNpcStrict(npc.X, npc.Y, 0f, () => DialogueController.Instance.ShowTask(npcId));
         }
 
         /// <summary>完成提交(对标 ts:2385:TaskFinishView/TaskCircleFinishView + 协议 30004)。</summary>
@@ -478,18 +510,82 @@ namespace Shenxiao.Module.Core.Tasks
                 "途中目标点附近怪物由九宫格(12012/12007)真实下发到 SceneManager,命中走技能点击(SceneCombat)。",
                 task.TaskId, task.SceneX, task.SceneY);
             if (TryStartTaskJumpToPoint(agent, task)) return;
-            agent.MoveToNpc(task.SceneX, task.SceneY, TaskPointArriveLogicDist, () => OnArriveTaskPoint(task));
+            agent.MoveToNpcStrict(task.SceneX, task.SceneY, TaskPointArriveLogicDist, () => OnArriveTaskPoint(task));
+        }
+
+        private void DoPassMainDungeonTask(TaskVo task)
+        {
+            if (task == null) return;
+
+            if (task.SceneId > 0 && (task.SceneX > 0 || task.SceneY > 0))
+            {
+                int curScene = RoleModel.Instance.SceneId;
+                if (task.SceneId != 0 && task.SceneId != curScene)
+                {
+                    GameLog.Warn("Task",
+                        "PassMainDungeon blocker: task={0} target scene={1} current={2}; cross-scene fly/change path not migrated yet",
+                        task.TaskId, task.SceneId, curScene);
+                    return;
+                }
+
+                MainRoleAgent agent = MainRoleAgent.Current;
+                if (agent == null)
+                {
+                    GameLog.Warn("Task", "PassMainDungeon blocker: task={0} has no MainRoleAgent", task.TaskId);
+                    return;
+                }
+
+                GameLog.Info("Task", "PassMainDungeon move to entry: task={0} pos=({1},{2})",
+                    task.TaskId, task.SceneX, task.SceneY);
+                if (TryStartTaskJumpToPoint(agent, task)) return;
+                agent.MoveToNpcStrict(task.SceneX, task.SceneY, TaskPointArriveLogicDist, () => StartPassMainDungeon(task));
+                return;
+            }
+
+            StartPassMainDungeon(task);
+        }
+
+        private void StartPassMainDungeon(TaskVo task)
+        {
+            if (task == null) return;
+
+            if (IsAutoBrushProgressReady())
+            {
+                GameLog.Info("Task", "PassMainDungeon request dungeon enter: task={0} proto=13305 type=0", task.TaskId);
+                AutoBrushController.Instance.RequestEnterOrExit(0);
+                return;
+            }
+
+            if (!AutoBrushModel.Instance.AutoBrushState)
+            {
+                GameLog.Info("Task", "PassMainDungeon request auto-brush open: task={0} proto=13307 type=0", task.TaskId);
+                AutoBrushController.Instance.RequestAutoBrushState(true);
+                return;
+            }
+
+            if (!TryStartTaskAutoFight(task))
+            {
+                WaitTaskMonster(task);
+            }
+        }
+
+        private static bool IsAutoBrushProgressReady()
+        {
+            AutoBrushModel.BrushStrangeInfo info = AutoBrushModel.Instance.BrushInfo;
+            return info != null && info.NeedTimes > 0 && info.CurrentTimes >= info.NeedTimes;
         }
 
         private bool TryStartTaskJumpToPoint(MainRoleAgent agent, TaskVo task)
         {
             if (agent == null || task == null) return false;
 
+            bool blocked = agent.IsDirectPathBlockedTo(task.SceneX, task.SceneY);
             int jumpType = ResolveTaskJumpType(task.SceneX, task.SceneY);
+            if (jumpType == 0 && blocked) jumpType = TaskJumpTwoType;
             if (jumpType == 0) return false;
 
-            GameLog.Info("Task", "DoTask task jump: task={0} jumpType={1} target=({2},{3})",
-                task.TaskId, jumpType, task.SceneX, task.SceneY);
+            GameLog.Info("Task", "DoTask task jump: task={0} jumpType={1} blocked={2} target=({3},{4})",
+                task.TaskId, jumpType, blocked, task.SceneX, task.SceneY);
             agent.TaskJumpTo(task.SceneX, task.SceneY, jumpType, () => OnArriveTaskPoint(task));
             return true;
         }
@@ -511,9 +607,15 @@ namespace Shenxiao.Module.Core.Tasks
         {
             if (task == null) return;
 
-            if (task.TaskTipsType == TIP_KILL || task.TaskTipsType == TIP_ITEM)
+            if (task.TaskTipsType == TIP_KILL
+                || task.TaskTipsType == TIP_ITEM
+                || task.TaskTipsType == TIP_PASS_MAIN_DUNGEON)
             {
-                if (!TryStartTaskAutoFight(task))
+                if (task.TaskTipsType == TIP_PASS_MAIN_DUNGEON && !AutoBrushModel.Instance.AutoBrushState)
+                {
+                    StartPassMainDungeon(task);
+                }
+                else if (!TryStartTaskAutoFight(task))
                 {
                     WaitTaskMonster(task);
                 }
@@ -535,8 +637,12 @@ namespace Shenxiao.Module.Core.Tasks
 
         private bool TryStartTaskAutoFight(TaskVo task)
         {
-            if (task == null || task.Id <= 0) return false;
-            bool locked = SceneCombat.Instance.TrySetNearestMonsterByType(task.Id, task.SceneX, task.SceneY);
+            if (task == null) return false;
+            if (task.TaskTipsType != TIP_PASS_MAIN_DUNGEON && task.Id <= 0) return false;
+
+            bool locked = task.Id > 0
+                ? SceneCombat.Instance.TrySetNearestMonsterByType(task.Id, task.SceneX, task.SceneY)
+                : SceneCombat.Instance.TrySetNearestAttackableMonster(task.SceneX, task.SceneY);
             if (!locked)
             {
                 GameLog.Warn("Task", "auto task kill waiting: task={0} monsterType={1} no attackable monster yet, monsterCount={2}",
@@ -552,7 +658,8 @@ namespace Shenxiao.Module.Core.Tasks
 
         private void WaitTaskMonster(TaskVo task)
         {
-            if (task == null || task.Id <= 0) return;
+            if (task == null) return;
+            if (task.Id <= 0 && task.TaskTipsType != TIP_PASS_MAIN_DUNGEON) return;
             if (_pendingAutoFightTaskId == task.TaskId && _pendingAutoFightMonsterTypeId == task.Id) return;
 
             StopWaitingTaskMonster();
@@ -566,7 +673,8 @@ namespace Shenxiao.Module.Core.Tasks
         private void OnTaskMonsterAdded(MonsterVo vo)
         {
             if (_pendingAutoFightTaskId == 0 || vo == null) return;
-            if (vo.TypeId != _pendingAutoFightMonsterTypeId || vo.IsCollect || vo.CanAttack != 1 || vo.Hp <= 0) return;
+            if (_pendingAutoFightMonsterTypeId > 0 && vo.TypeId != _pendingAutoFightMonsterTypeId) return;
+            if (vo.IsCollect || vo.CanAttack != 1 || vo.Hp <= 0) return;
 
             TaskVo task = MainLineTaskVo;
             if (task == null || task.TaskId != _pendingAutoFightTaskId || task.Id != _pendingAutoFightMonsterTypeId)

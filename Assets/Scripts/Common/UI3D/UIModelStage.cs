@@ -39,15 +39,15 @@ namespace Shenxiao.Common.UI3D
         /// position=ConfigLogin 的 ModelPos+PosOffset(x 右正,y 上正,单位=世界单位)。
         /// </summary>
         public static void Show(RectTransform container, GameObject modelPrefab,
-            float scale = 1f, Vector2 position = default)
+            float scale = 1f, Vector2 position = default, float yaw = MODEL_YAW)
         {
             if (modelPrefab == null) return;
-            ShowInstance(container, Object.Instantiate(modelPrefab), scale, position);
+            ShowInstance(container, Object.Instantiate(modelPrefab), scale, position, yaw);
         }
 
         /// <summary>已组装好的实例(RoleModelAssembler 产物)上台,所有权交给舞台。</summary>
         public static void ShowInstance(RectTransform container, GameObject modelInstance,
-            float scale = 1f, Vector2 position = default)
+            float scale = 1f, Vector2 position = default, float yaw = MODEL_YAW)
         {
             if (container == null || modelInstance == null)
             {
@@ -59,6 +59,7 @@ namespace Shenxiao.Common.UI3D
 
             if (_model != null) Object.Destroy(_model);
             _modelRoot.localPosition = new Vector3(position.x, position.y + BASE_Y, 0f);
+            _modelYaw.localRotation = Quaternion.Euler(0f, yaw, 0f);
             _model = modelInstance;
             _model.transform.SetParent(_modelYaw, false);
             _model.transform.localPosition = Vector3.zero;

@@ -210,6 +210,46 @@ namespace Shenxiao.Editor.AssetHub
             EditorUtility.DisplayDialog("转换结果", msg, "好");
         }
 
+        private void ResetRuntimeEditableEntries(List<AssetEntry> targets)
+        {
+            targets = targets.Where(e => e.Kind == AssetKind.Effect).ToList();
+            if (targets.Count == 0) return;
+            if (!EnsureConvertCanBeVerified("重置 Runtime Editable")) return;
+
+            var failed = new List<string>();
+            try
+            {
+                for (int i = 0; i < targets.Count; i++)
+                {
+                    AssetEntry e = targets[i];
+                    if (EditorUtility.DisplayCancelableProgressBar("重置 Runtime Editable",
+                            $"({i + 1}/{targets.Count}) {System.IO.Path.GetFileNameWithoutExtension(e.LhPath)} {e.DisplayName}",
+                            (float)i / targets.Count))
+                        break;
+
+                    if (!LayaEffectImporter.ResetRuntimeEditable(e.LhPath).Ok)
+                        failed.Add($"{e.Id} {e.DisplayName}");
+                }
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+
+            if (LayaUISettings.AutoGroupAfterConvert)
+            {
+                try { AddressableSetup.AutoGroupAll(); }
+                catch (System.Exception e) { Debug.LogWarning("[AssetHub] Addressable 分组失败: " + e.Message); }
+            }
+            RefreshStatus();
+            _preview.SetPrefab(null);
+
+            string msg = failed.Count == 0
+                ? $"完成 {targets.Count} 个 Runtime Editable 重置。"
+                : $"完成 {targets.Count - failed.Count}/{targets.Count},失败(看 Console):\n" + string.Join("\n", failed);
+            EditorUtility.DisplayDialog("Runtime Editable 重置结果", msg, "好");
+        }
+
         private static bool EnsureConvertCanBeVerified(string title)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
@@ -1031,6 +1071,8 @@ namespace Shenxiao.Editor.AssetHub
                     : _entries.Where(e => e.SearchText.Contains(_search.ToLowerInvariant())).ToList();
                 var shownPending = shown.Where(e =>
                     StatusOf(e) == EntryStatus.NotConverted || StatusOf(e) == EntryStatus.Stale).ToList();
+                var shownResettableEffects = shown.Where(e => e.Kind == AssetKind.Effect
+                    && (StatusOf(e) == EntryStatus.Converted || StatusOf(e) == EntryStatus.Stale)).ToList();
 
                 int converted = _entries.Count(e => StatusOf(e) == EntryStatus.Converted);
                 var pending = _entries.Where(e =>
@@ -1056,6 +1098,14 @@ namespace Shenxiao.Editor.AssetHub
                     {
                         if (GUILayout.Button($"转换当前筛选缺失+过期({shownPending.Count})", GUILayout.Height(22f)))
                             ConvertEntries(shownPending);
+                    }
+                    using (new EditorGUI.DisabledScope(shownResettableEffects.Count == 0))
+                    {
+                        if (GUILayout.Button($"重置当前筛选Runtime({shownResettableEffects.Count})", GUILayout.Height(22f))
+                            && EditorUtility.DisplayDialog("重置当前筛选 Runtime Editable",
+                                $"将覆盖当前筛选的 {shownResettableEffects.Count} 个特效运行时可编辑层。继续?",
+                                "重置", "取消"))
+                            ResetRuntimeEditableEntries(shownResettableEffects);
                     }
                 }
 
@@ -1134,6 +1184,11 @@ namespace Shenxiao.Editor.AssetHub
                     {
                         if (GUILayout.Button(s == EntryStatus.Converted || s == EntryStatus.Stale ? "重转" : "转换", GUILayout.Height(26f)))
                             ConvertEntries(new List<AssetEntry> { e });
+                        if (e.Kind == AssetKind.Effect
+                            && GUILayout.Button("重置Runtime", GUILayout.Height(26f))
+                            && EditorUtility.DisplayDialog("重置 Runtime Editable",
+                                e.PrefabPath + "\n\n将覆盖该特效的运行时可编辑层。继续?", "重置", "取消"))
+                            ResetRuntimeEditableEntries(new List<AssetEntry> { e });
                     }
                     using (new EditorGUI.DisabledScope(s != EntryStatus.Converted && s != EntryStatus.Stale))
                     {

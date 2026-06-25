@@ -23,7 +23,7 @@ namespace Shenxiao.Editor.Laya3D
     public static class LayaEffectImporter
     {
         /// <summary>特效转换逻辑版本(独立于模型线 Laya3DImporter.TOOL_VERSION)。</summary>
-        public const int TOOL_VERSION = 23; // v23: map ShuriKen 3D separate min/max start size/rotation.
+        public const int TOOL_VERSION = 25; // v25: normalize Laya random min/max ranges before writing Unity ParticleSystem curves.
 
         private const string RuntimeEffectRoot = "Assets/GameRes/effect/objs";
         private const string GeneratedEffectRoot = "Assets/GameRes/_Generated/effect/objs";
@@ -486,7 +486,7 @@ namespace Shenxiao.Editor.Laya3D
             main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
 
             main.startDelay = (int)F(bases, "startDelayType", 0f) == 1
-                ? new ParticleSystem.MinMaxCurve(F(bases, "startDelayMin", 0f), F(bases, "startDelayMax", 0f))
+                ? RandomRangeCurve(F(bases, "startDelayMin", 0f), F(bases, "startDelayMax", 0f))
                 : new ParticleSystem.MinMaxCurve(F(bases, "startDelay", 0f));
 
             main.startLifetime = NumberMinMax(bases, mainData,
@@ -534,7 +534,7 @@ namespace Shenxiao.Editor.Laya3D
             else
             {
                 main.startRotation = rotType == 2
-                    ? new ParticleSystem.MinMaxCurve(F(bases, "startRotationConstantMin", 0f), F(bases, "startRotationConstantMax", 0f))
+                    ? RandomRangeCurve(F(bases, "startRotationConstantMin", 0f), F(bases, "startRotationConstantMax", 0f))
                     : new ParticleSystem.MinMaxCurve(F(bases, "startRotationConstant", 0f));
             }
             float flip = F(bases, "randomizeRotationDirection", 0f);
@@ -688,9 +688,9 @@ namespace Shenxiao.Editor.Laya3D
                 case 2:
                     Vector3 mn = V3(v["constantMin"] as JArray, Vector3.zero);
                     Vector3 mx = V3(v["constantMax"] as JArray, Vector3.zero);
-                    vol.x = new ParticleSystem.MinMaxCurve(mn.x, mx.x);
-                    vol.y = new ParticleSystem.MinMaxCurve(mn.y, mx.y);
-                    vol.z = new ParticleSystem.MinMaxCurve(mn.z, mx.z);
+                    vol.x = RandomRangeCurve(mn.x, mx.x);
+                    vol.y = RandomRangeCurve(mn.y, mx.y);
+                    vol.z = RandomRangeCurve(mn.z, mx.z);
                     break;
                 case 3:
                     vol.x = TwoCurves(v["gradientXMin"], v["gradientXMax"], "velocitys", 1f);
@@ -750,7 +750,7 @@ namespace Shenxiao.Editor.Laya3D
                     else sol.size = CurveOf(sz["gradient"], "sizes", 1f);
                     break;
                 case 1:
-                    sol.size = new ParticleSystem.MinMaxCurve(
+                    sol.size = RandomRangeCurve(
                         sz.Value<float?>("constantMin") ?? 0f, sz.Value<float?>("constantMax") ?? 0f);
                     break;
                 case 2:
@@ -786,7 +786,7 @@ namespace Shenxiao.Editor.Laya3D
                     rol.z = CurveOf(av["gradient"], "angularVelocitys", 1f);
                     break;
                 case 2:
-                    rol.z = new ParticleSystem.MinMaxCurve(
+                    rol.z = RandomRangeCurve(
                         av.Value<float?>("constantMin") ?? 0f, av.Value<float?>("constantMax") ?? Mathf.PI / 4);
                     break;
                 case 3:
@@ -822,7 +822,7 @@ namespace Shenxiao.Editor.Laya3D
                         tsa.frameOverTime = CurveOf(frame["overTime"], "frames", 1f / totalFrames);
                         break;
                     case 2:
-                        tsa.frameOverTime = new ParticleSystem.MinMaxCurve(
+                        tsa.frameOverTime = RandomRangeCurve(
                             (frame.Value<float?>("constantMin") ?? 0f) / totalFrames,
                             (frame.Value<float?>("constantMax") ?? 0f) / totalFrames);
                         break;
@@ -836,7 +836,7 @@ namespace Shenxiao.Editor.Laya3D
             {
                 int type = startFrame["type"] != null ? (int)startFrame["type"] : 0;
                 tsa.startFrame = type == 1
-                    ? new ParticleSystem.MinMaxCurve(
+                    ? RandomRangeCurve(
                         (startFrame.Value<float?>("constantMin") ?? 0f) / totalFrames,
                         (startFrame.Value<float?>("constantMax") ?? 0f) / totalFrames)
                     : new ParticleSystem.MinMaxCurve((startFrame.Value<float?>("constant") ?? 0f) / totalFrames);
@@ -1047,7 +1047,7 @@ namespace Shenxiao.Editor.Laya3D
             if (texDeclared > 0 && !hasTexture)
                 ctx.Report.Log.AppendLine($"   ⚠贴图缺失 {Path.GetFileName(lmatAbs)}: 声明 {texDeclared} 张但全部导入失败(LFS 占位?)");
 
-            string matAsset = ctx.OutDir + "/" + Path.GetFileNameWithoutExtension(lmatAbs) + ".mat";
+            string matAsset = ctx.OutDir + "/" + UniqueLmatAssetStem(lmatAbs) + ".mat";
             Material loaded = AssetDatabase.LoadAssetAtPath<Material>(matAsset);
             if (loaded != null)
             {
@@ -1126,9 +1126,15 @@ namespace Shenxiao.Editor.Laya3D
             {
                 float min = minValues != null && minValues.Count > axis ? (float)minValues[axis] : constant;
                 float max = (float)maxValues[axis];
-                return new ParticleSystem.MinMaxCurve(min, max);
+                return RandomRangeCurve(min, max);
             }
             return new ParticleSystem.MinMaxCurve(constant);
+        }
+
+        private static ParticleSystem.MinMaxCurve RandomRangeCurve(float a, float b)
+        {
+            if (a <= b) return new ParticleSystem.MinMaxCurve(a, b);
+            return new ParticleSystem.MinMaxCurve(b, a);
         }
 
         private static bool IsMultiplyBlend(UnityEngine.Rendering.BlendMode src, UnityEngine.Rendering.BlendMode dst)
@@ -1226,6 +1232,27 @@ namespace Shenxiao.Editor.Laya3D
             foreach (char c in Path.GetInvalidFileNameChars())
                 name = name.Replace(c, '_');
             return name;
+        }
+
+        private static string UniqueLmatAssetStem(string lmatAbs)
+        {
+            string norm = lmatAbs.Replace('\\', '/');
+            const string resourceSegment = "/resource/";
+            int idx = norm.IndexOf(resourceSegment, StringComparison.OrdinalIgnoreCase);
+            string rel = idx >= 0 ? norm.Substring(idx + resourceSegment.Length) : norm;
+            rel = Path.ChangeExtension(rel, null);
+
+            var sb = new StringBuilder(rel.Length);
+            foreach (char c in rel)
+            {
+                if (char.IsLetterOrDigit(c) || c == '_' || c == '-')
+                    sb.Append(c);
+                else
+                    sb.Append('_');
+            }
+
+            string stem = sb.ToString().Trim('_');
+            return string.IsNullOrEmpty(stem) ? Path.GetFileNameWithoutExtension(lmatAbs) : stem;
         }
 
         /// <summary>renderStates[0] 优先、退化到 props 的 int 取值(混合因子/枚举用)。</summary>
@@ -1529,7 +1556,7 @@ namespace Shenxiao.Editor.Laya3D
             switch (type)
             {
                 case 2:
-                    return new ParticleSystem.MinMaxCurve(F(bases, minKey, def), F(bases, maxKey, def));
+                    return RandomRangeCurve(F(bases, minKey, def), F(bases, maxKey, def));
                 case 1:
                 case 3:
                     if (gradKey != null)

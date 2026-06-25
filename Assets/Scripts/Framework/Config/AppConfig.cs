@@ -20,8 +20,17 @@ namespace Shenxiao.Framework.Config
         public string appVersion = "1.0.0";
 
         [Header("Resource Version API")]
-        [Tooltip("Full URL of the resource version API. See ResVersionManager.")]
-        public string resourceVersionApiUrl = "http://127.0.0.1:8090/api/resource_version";
+        [Tooltip("Full URL of the Unity Addressables resource version API. Empty = use the built-in/local catalog.")]
+        public string resourceVersionApiUrl = "";
+
+        [Tooltip("Unity Addressables CDN base URL. This is not the old Laya raw resource CDN.")]
+        public string addressablesCdnBaseUrl = "";
+
+        [Tooltip("Optional Unity Addressables remote catalog URL. Empty = use the built-in/local catalog.")]
+        public string addressablesCatalogUrl = "";
+
+        [Tooltip("Old-client raw resource CDN imported from yu_client platform cfg. Kept for comparison/tools, not used as Unity Addressables CDN.")]
+        public string legacyResourceCdnBaseUrl = "";
 
         [Header("Game Server")]
         [Tooltip("Login / lobby server endpoint host (overridden by API in production).")]

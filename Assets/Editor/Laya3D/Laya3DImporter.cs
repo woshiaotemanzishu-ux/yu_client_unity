@@ -25,7 +25,7 @@ namespace Shenxiao.Editor.Laya3D
         ///      (与老客户端同向,见 UIModelStage.FLIP_HORIZONTAL;几何镜像留给场景线用真实样本再攻)。
         /// v5 = 角色动作目录公式修正:1000+career*100(此前 career*1000+100 只剑士碰巧对,
         ///      武姬/枪使/弓手转出无动作,需重转补动作)。</summary>
-        public const int TOOL_VERSION = 5;
+        public const int TOOL_VERSION = 6;
         /// <summary>材质模式:Unlit=贴图直出,对标老客户端(UIModelClass3D.ts 把角色材质按
         /// Laya.UnlitMaterial 处理,electron 工具 .lmat 也写 Laya.UnlitMaterial),不吃光照不会发黑;
         /// Lit=URP SimpleLit,受场景光照(留给后续真需要光照的资产)。
@@ -44,7 +44,7 @@ namespace Shenxiao.Editor.Laya3D
             var r = new Result();
             try
             {
-                ConvertInner(lhPath, laniPaths ?? new List<string>(), mirrorX, materialMode, r);
+                ConvertInnerMultiMesh(lhPath, laniPaths ?? new List<string>(), mirrorX, materialMode, r);
                 r.Ok = true;
             }
             catch (Exception e)
@@ -55,6 +55,186 @@ namespace Shenxiao.Editor.Laya3D
             }
             Debug.Log("[Laya3D] 转换日志\n" + r.Log);
             return r;
+        }
+
+        public static void ConvertFromEnvironment()
+        {
+            string lhPath = Environment.GetEnvironmentVariable("SHENXIAO_LAYA3D_LH");
+            if (string.IsNullOrWhiteSpace(lhPath))
+            {
+                throw new Exception("Missing SHENXIAO_LAYA3D_LH");
+            }
+
+            string laniList = Environment.GetEnvironmentVariable("SHENXIAO_LAYA3D_LANIS") ?? "";
+            var laniPaths = new List<string>();
+            foreach (string part in laniList.Split(new[] { ';', '|' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                laniPaths.Add(part.Trim());
+            }
+
+            bool mirrorX = string.Equals(Environment.GetEnvironmentVariable("SHENXIAO_LAYA3D_MIRROR_X"), "true", StringComparison.OrdinalIgnoreCase);
+            MaterialMode materialMode = MaterialMode.Unlit;
+            string materialModeText = Environment.GetEnvironmentVariable("SHENXIAO_LAYA3D_MATERIAL");
+            if (!string.IsNullOrWhiteSpace(materialModeText) && Enum.TryParse(materialModeText, true, out MaterialMode parsedMode))
+            {
+                materialMode = parsedMode;
+            }
+
+            Result result = Convert(lhPath, laniPaths, mirrorX, materialMode);
+            if (!result.Ok)
+            {
+                throw new Exception(result.Log.ToString());
+            }
+        }
+
+        private static void ConvertInnerMultiMesh(string lhPath, List<string> laniPaths, bool mirrorX, MaterialMode materialMode, Result r)
+        {
+            string modelName = Path.GetFileNameWithoutExtension(lhPath);
+            string module = DeriveModule(lhPath);
+            string outDir = $"Assets/GameRes/object/{module}/{modelName}";
+            Directory.CreateDirectory(outDir);
+
+            LhDocument lh = LhDocument.Load(lhPath);
+            r.Log.AppendLine($".lh parsed: root={lh.RootName} bones={lh.Bones.Count} meshNodes={lh.MeshNodes.Count}");
+            if (lh.MeshNodes.Count == 0) throw new Exception(".lh has no SkinnedMeshSprite3D/MeshSprite3D meshPath");
+
+            var rootGo = new GameObject(modelName);
+            var boneTransforms = new Transform[lh.Bones.Count];
+            for (int i = 0; i < lh.Bones.Count; i++)
+            {
+                LhBone b = lh.Bones[i];
+                var go = new GameObject(b.Name);
+                Transform parent = b.ParentIndex >= 0 ? boneTransforms[b.ParentIndex] : rootGo.transform;
+                go.transform.SetParent(parent, false);
+                go.transform.localPosition = Pos(b.Position, mirrorX);
+                go.transform.localRotation = Rot(b.Rotation, mirrorX);
+                go.transform.localScale = new Vector3(b.Scale[0], b.Scale[1], b.Scale[2]);
+                boneTransforms[i] = go.transform;
+            }
+
+            int convertedMeshes = 0;
+            for (int meshIndex = 0; meshIndex < lh.MeshNodes.Count; meshIndex++)
+            {
+                LhMeshNode meshNode = lh.MeshNodes[meshIndex];
+                if (string.IsNullOrEmpty(meshNode.MeshPath))
+                {
+                    r.Log.AppendLine($"   skipped mesh node {meshNode.Name}: empty meshPath");
+                    continue;
+                }
+
+                string lmPath = lh.ResolveAssetPath(meshNode.MeshPath);
+                if (lmPath == null) throw new Exception("Missing .lm file: " + meshNode.MeshPath);
+                r.Log.AppendLine($"Mesh {meshIndex + 1}/{lh.MeshNodes.Count}: node={meshNode.Name} lm={lmPath}");
+
+                LmMesh lm = LmParser.Parse(File.ReadAllBytes(lmPath));
+                r.Log.AppendLine($"   .lm parsed: name={lm.Name} vertices={lm.VertexCount} indices={lm.IndexData.Length} flag={lm.VertexFlag}");
+                r.Log.AppendLine($"   bones={lm.BoneNames.Count} bindposes={lm.InverseBindPoses.Count} subMeshes={lm.SubMeshes.Count}");
+                if (lm.BoundsMin.HasValue) r.Log.AppendLine($"   bounds {lm.BoundsMin} ~ {lm.BoundsMax}");
+
+                var missingBones = new List<string>();
+                foreach (string b in lm.BoneNames)
+                {
+                    if (!lh.BoneNameToIndex.ContainsKey(b)) missingBones.Add(b);
+                }
+                if (missingBones.Count > 0)
+                {
+                    r.Log.AppendLine("   missing bones in .lh: " + string.Join(",", missingBones));
+                }
+
+                Mesh mesh = BuildMesh(lm, mirrorX, r);
+                string assetName = MeshAssetName(modelName, meshNode, lm, meshIndex);
+                string meshAsset = outDir + "/" + assetName + "_mesh.asset";
+                DeleteAssetIfExists(meshAsset);
+                AssetDatabase.CreateAsset(mesh, meshAsset);
+
+                Material mat = BuildMaterial(lh, meshNode.MaterialPaths, assetName, outDir, materialMode, r);
+
+                string goName = !string.IsNullOrEmpty(meshNode.Name)
+                    ? meshNode.Name
+                    : (!string.IsNullOrEmpty(lm.Name) ? lm.Name : "mesh");
+                var meshGo = new GameObject(goName);
+                meshGo.transform.SetParent(rootGo.transform, false);
+                meshGo.transform.localPosition = Pos(meshNode.Position, mirrorX);
+                meshGo.transform.localRotation = Rot(meshNode.Rotation, mirrorX);
+                meshGo.transform.localScale = new Vector3(meshNode.Scale[0], meshNode.Scale[1], meshNode.Scale[2]);
+
+                if (lm.BoneNames.Count > 0)
+                {
+                    var smr = meshGo.AddComponent<SkinnedMeshRenderer>();
+                    smr.sharedMesh = mesh;
+                    smr.sharedMaterial = mat;
+
+                    var bones = new Transform[lm.BoneNames.Count];
+                    Transform firstBone = null;
+                    for (int i = 0; i < lm.BoneNames.Count; i++)
+                    {
+                        if (lh.BoneNameToIndex.TryGetValue(lm.BoneNames[i], out int bi))
+                        {
+                            bones[i] = boneTransforms[bi];
+                            firstBone ??= boneTransforms[bi];
+                        }
+                        else
+                        {
+                            bones[i] = rootGo.transform;
+                        }
+                    }
+
+                    smr.bones = bones;
+                    if (meshNode.RootBoneInstanceId >= 0 && lh.BoneInstanceIdToIndex.TryGetValue(meshNode.RootBoneInstanceId, out int rootBoneIndex))
+                    {
+                        smr.rootBone = boneTransforms[rootBoneIndex];
+                    }
+                    else
+                    {
+                        smr.rootBone = firstBone ?? (lh.Bones.Count > 0 ? boneTransforms[0] : rootGo.transform);
+                    }
+                    smr.updateWhenOffscreen = true;
+                }
+                else
+                {
+                    meshGo.AddComponent<MeshFilter>().sharedMesh = mesh;
+                    meshGo.AddComponent<MeshRenderer>().sharedMaterial = mat;
+                    r.Log.AppendLine("   static mesh without bones");
+                }
+
+                convertedMeshes++;
+            }
+
+            if (convertedMeshes == 0) throw new Exception(".lh mesh nodes did not produce any mesh assets");
+
+            var clips = new List<AnimationClip>();
+            foreach (string laniPath in laniPaths)
+            {
+                AnimationClip clip = BuildOrReuseClip(laniPath, mirrorX, module, rootGo.transform, r);
+                if (clip != null) clips.Add(clip);
+            }
+            if (clips.Count > 0)
+            {
+                var anim = rootGo.AddComponent<Animation>();
+                AnimationUtility.SetAnimationClips(anim, clips.ToArray());
+                anim.clip = clips.Find(c => c.name == "stand") ?? clips.Find(c => c.name == "idle") ?? clips[0];
+                anim.playAutomatically = true;
+                r.Log.AppendLine($"Animations {clips.Count}, default={anim.clip.name}");
+            }
+
+            string prefabPath = outDir + "/" + modelName + ".prefab";
+            PrefabUtility.SaveAsPrefabAsset(rootGo, prefabPath);
+            UnityEngine.Object.DestroyImmediate(rootGo);
+
+            var meta = new JObject
+            {
+                ["tool"] = TOOL_VERSION,
+                ["material"] = materialMode.ToString(),
+                ["meshNodes"] = convertedMeshes,
+                ["clips"] = new JArray(clips.ConvertAll(c => c.name)),
+            };
+            File.WriteAllText(Path.GetFullPath(Path.Combine(Application.dataPath, "..", outDir, modelName + ".import.json")),
+                meta.ToString());
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            r.PrefabPath = prefabPath;
+            r.Log.AppendLine("Done: " + prefabPath);
         }
 
         private static void ConvertInner(string lhPath, List<string> laniPaths, bool mirrorX, MaterialMode materialMode, Result r)
@@ -291,6 +471,75 @@ namespace Shenxiao.Editor.Laya3D
             if (normals == null) mesh.RecalculateNormals();
             mesh.RecalculateBounds();
             return mesh;
+        }
+
+        private static string MeshAssetName(string modelName, LhMeshNode meshNode, LmMesh lm, int index)
+        {
+            string raw = !string.IsNullOrEmpty(meshNode.Name)
+                ? meshNode.Name
+                : (!string.IsNullOrEmpty(lm.Name) ? lm.Name : modelName);
+            string safe = SanitizeAssetName(raw);
+            if (string.IsNullOrEmpty(safe)) safe = modelName + "_mesh" + index;
+            if (index == 0 && safe == "mesh") return modelName;
+            return safe;
+        }
+
+        private static string SanitizeAssetName(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return "";
+            foreach (char c in Path.GetInvalidFileNameChars())
+            {
+                name = name.Replace(c, '_');
+            }
+            return name.Trim();
+        }
+
+        private static void DeleteAssetIfExists(string assetPath)
+        {
+            if (!string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(assetPath)))
+            {
+                AssetDatabase.DeleteAsset(assetPath);
+            }
+        }
+
+        private static Material BuildMaterial(LhDocument lh, IReadOnlyList<string> materialPaths, string materialName, string outDir,
+            MaterialMode materialMode, Result r)
+        {
+            Shader shader = materialMode == MaterialMode.Unlit
+                ? Shader.Find("Universal Render Pipeline/Unlit")
+                : (Shader.Find("Universal Render Pipeline/Simple Lit") ?? Shader.Find("Universal Render Pipeline/Lit"));
+            var mat = new Material(shader) { name = materialName + "_mat" };
+            mat.SetFloat("_Cull", (float)UnityEngine.Rendering.CullMode.Off);
+            mat.doubleSidedGI = true;
+            r.Log.AppendLine("Material: " + (materialMode == MaterialMode.Unlit ? "URP Unlit" : "URP SimpleLit"));
+
+            if (materialPaths != null && materialPaths.Count > 0)
+            {
+                string lmatPath = lh.ResolveAssetPath(materialPaths[0]);
+                if (lmatPath != null)
+                {
+                    List<string> textures = LhDocument.ExtractTextures(lmatPath);
+                    r.Log.AppendLine($"   {Path.GetFileName(lmatPath)} textures={textures.Count}");
+                    if (textures.Count > 0)
+                    {
+                        string texSrc = textures[0];
+                        string texDst = outDir + "/" + Path.GetFileName(texSrc);
+                        File.Copy(texSrc, texDst, true);
+                        AssetDatabase.ImportAsset(texDst);
+                        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(texDst);
+                        mat.SetTexture("_BaseMap", tex);
+                    }
+                }
+                else
+                {
+                    r.Log.AppendLine("   missing .lmat: " + materialPaths[0]);
+                }
+            }
+
+            string matAsset = outDir + "/" + materialName + ".mat";
+            DeleteAssetIfExists(matAsset);
+            AssetDatabase.CreateAsset(mat, matAsset);
+            return AssetDatabase.LoadAssetAtPath<Material>(matAsset);
         }
 
         private static Material BuildMaterial(LhDocument lh, string modelName, string outDir,

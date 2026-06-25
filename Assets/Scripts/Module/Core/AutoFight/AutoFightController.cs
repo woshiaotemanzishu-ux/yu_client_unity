@@ -131,7 +131,18 @@ namespace Shenxiao.Module.Core.AutoFight
             if (AutoFightModel.Instance.AutoFightWeight != AutoFightModel.AUTO_WEIGHT_TASK) return true;
 
             TaskVo task = TaskModel.Instance.MainLineTaskVo;
-            if (task == null || (task.TaskTipsType != TaskModel.TIP_KILL && task.TaskTipsType != TaskModel.TIP_ITEM)) return true;
+            if (task == null) return true;
+
+            if (task.TaskTipsType == TaskModel.TIP_PASS_MAIN_DUNGEON)
+            {
+                MonsterVo autoBrushTarget = SceneCombat.Instance.GetClickTarget();
+                if (autoBrushTarget != null && autoBrushTarget.CanAttack == 1 && autoBrushTarget.Hp > 0) return true;
+
+                if (task.Id > 0 && SceneCombat.Instance.TrySetNearestMonsterByType(task.Id, task.SceneX, task.SceneY)) return true;
+                return SceneCombat.Instance.TrySetNearestAttackableMonster(task.SceneX, task.SceneY);
+            }
+
+            if (task.TaskTipsType != TaskModel.TIP_KILL && task.TaskTipsType != TaskModel.TIP_ITEM) return true;
 
             MonsterVo current = SceneCombat.Instance.GetClickTarget();
             if (current != null && current.TypeId == task.Id) return true;

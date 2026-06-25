@@ -39,7 +39,8 @@ namespace Shenxiao.Module.Core.Dialogue
         private bool _windowLayerWasActive;
 
         private const float MODEL_BASE_SCALE = 0.675f;
-        private static readonly Vector2 MODEL_POS = new Vector2(0f, 0.25f);
+        private const float MODEL_YAW = 175f;
+        private static readonly Vector2 MODEL_POS = new Vector2(0.5f, 0.25f);
 
         public void Open(NpcDialogVo vo)
         {
@@ -149,26 +150,29 @@ namespace Shenxiao.Module.Core.Dialogue
                 ? string.Join("\n", lines)
                 : (_vo.TalkCfg == null ? "(talk_id=" + _vo.TalkId + " has no config text)" : "");
             if (_bind._lb_content != null) _bind._lb_content.text = body;
+            if (_bind._lb_award != null) _bind._lb_award.text = "";
 
             bool hasReward = _vo.Rewards != null && _vo.Rewards.Count > 0;
             SetActive(_bind._box_award_con, hasReward);
-            if (_bind._lb_award != null) _bind._lb_award.text = hasReward ? "奖励:" + _vo.RewardSummary.Replace("\n", "  ") : "";
             _ = BuildRewardCells(_vo.Rewards);
 
             if (actionNodes.Count > 0)
             {
                 DialogueNodeVo node = actionNodes[0];
+                bool useRewardPanel = UseRewardGetPanel(node.Type);
+                if (useRewardPanel && _bind._lb_award != null) _bind._lb_award.text = body;
                 ShowGetButton(ActionDefaultText(node.Type), () =>
                 {
                     DialogueController.Instance.ClickAnswerHandler(_vo, node);
                     Close();
-                }, UseRewardGetPanel(node.Type));
+                }, useRewardPanel);
                 return;
             }
 
             if (_vo.TaskList.Count > 0)
             {
                 DialogueTaskEntry task = _vo.TaskList[0];
+                if (_bind._lb_award != null) _bind._lb_award.text = body;
                 ShowGetButton(TaskActionText(task.TaskState), () =>
                 {
                     DialogueController.Instance.SelectTask(_vo.NpcId, task.TaskId, task.TaskState);
@@ -372,7 +376,7 @@ namespace Shenxiao.Module.Core.Dialogue
 
             GameObject instance = UnityEngine.Object.Instantiate(prefab);
             float talkScale = cfg != null && cfg.TalkScale > 0f ? cfg.TalkScale : 1f;
-            UIModelStage.ShowInstance(_bind._box_model, instance, MODEL_BASE_SCALE * talkScale, MODEL_POS);
+            UIModelStage.ShowInstance(_bind._box_model, instance, MODEL_BASE_SCALE * talkScale, MODEL_POS, MODEL_YAW);
             await PlayNpcIdle(instance, modelModule, modelResId);
         }
 

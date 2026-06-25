@@ -4,13 +4,14 @@ using UnityEngine;
 namespace Shenxiao.Module.Core.AutoBrush
 {
     /// <summary>
-    /// Auto-brush HUD toggle wiring. The main page route remains unregistered until AutoBrushBaseView is ported.
+    /// Auto-brush HUD and main entry wiring.
     /// </summary>
     public static class AutoBrushBootstrap
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
         {
+            MainUIRouter.Register("autobrush", AutoBrushFlow.OpenMain);
             MainUIRouter.Register("autobrush_toggle", AutoBrushController.Instance.RequestToggle);
         }
     }

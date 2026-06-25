@@ -61,9 +61,24 @@ namespace Shenxiao.Editor.PlatformCfg
             }
             appConfig.platName = platName;
 
+            string resUrl = (string)cfg["ResUrl"] ?? "";
+            string alphaCdnUrl = (string)cfg["AlphaCdnUrl"] ?? "";
+            appConfig.legacyResourceCdnBaseUrl = NormalizeUrl(string.IsNullOrEmpty(alphaCdnUrl) ? resUrl : alphaCdnUrl);
+            if (!string.IsNullOrEmpty(appConfig.resourceVersionApiUrl)
+                && appConfig.resourceVersionApiUrl.Contains("127.0.0.1:8090"))
+            {
+                appConfig.resourceVersionApiUrl = "";
+            }
+
             EditorUtility.SetDirty(appConfig);
             AssetDatabase.SaveAssets();
             Debug.Log($"[PlatformCfg] 已导入: gmApiUrl={appConfig.gmApiUrl} platName={appConfig.platName}(来源 {Path.GetFileName(path)})");
+        }
+
+        private static string NormalizeUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return "";
+            return url.Trim().TrimEnd('/') + "/";
         }
     }
 }

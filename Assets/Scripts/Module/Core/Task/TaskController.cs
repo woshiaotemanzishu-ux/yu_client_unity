@@ -152,10 +152,14 @@ namespace Shenxiao.Module.Core.Tasks
         private void TryContinueAutoTaskAfterOne(int taskId)
         {
             if (!TaskModel.Instance.GetAutoTaskSetting()) return;
-            if (!TaskModel.Instance.IsAllStepFinish(taskId)) return;
 
             TaskVo task = TaskModel.Instance.MainLineTaskVo;
             if (task == null || task.TaskId != taskId) return;
+            if (!TaskModel.Instance.IsAllStepFinish(taskId))
+            {
+                TryResumeAutoFightAfterProgress(taskId, task);
+                return;
+            }
 
             if (AutoFightModel.Instance.AutoFightWeight == AutoFightModel.AUTO_WEIGHT_TASK)
             {
@@ -165,6 +169,17 @@ namespace Shenxiao.Module.Core.Tasks
 
             int epoch = ++_taskOneAutoEpoch;
             _ = ContinueAutoTaskAfterOneAsync(taskId, epoch);
+        }
+
+        private void TryResumeAutoFightAfterProgress(int taskId, TaskVo task)
+        {
+            if (task == null
+                || (task.TaskTipsType != TaskModel.TIP_KILL
+                    && task.TaskTipsType != TaskModel.TIP_ITEM
+                    && task.TaskTipsType != TaskModel.TIP_PASS_MAIN_DUNGEON)) return;
+
+            int epoch = ++_taskOneAutoEpoch;
+            _ = ResumeAutoFightAfterProgressAsync(taskId, epoch);
         }
 
         private async Task ContinueAutoTaskAfterOneAsync(int taskId, int epoch)
@@ -179,6 +194,20 @@ namespace Shenxiao.Module.Core.Tasks
 
             GameLog.Info("Task", "30001 task={0} finished -> continue auto task (open finish countdown)", taskId);
             TaskModel.Instance.FindNextAutoFightTask();
+        }
+
+        private async Task ResumeAutoFightAfterProgressAsync(int taskId, int epoch)
+        {
+            await Task.Delay(250);
+            if (epoch != _taskOneAutoEpoch) return;
+            if (!TaskModel.Instance.GetAutoTaskSetting()) return;
+
+            TaskVo task = TaskModel.Instance.MainLineTaskVo;
+            if (task == null || task.TaskId != taskId) return;
+            if (TaskModel.Instance.IsAllStepFinish(taskId)) return;
+
+            bool resumed = TaskModel.Instance.ResumeCurrentTaskAutoFight();
+            GameLog.Info("Task", "30001 task={0} progress -> resume task auto fight resumed={1}", taskId, resumed);
         }
 
         private static void ReadTaskVo(NetReader r, out int taskId, out List<TaskVo> tips, bool setNewFinishFlag = false)

@@ -121,7 +121,7 @@ namespace Shenxiao.Module.Core.Scene
             }
 
             GameLog.Info("Scene", "click npc {0} pos=({1},{2}) -> move and open dialogue", npc.NpcId, npc.X, npc.Y);
-            agent.MoveToNpc(npc.X, npc.Y, 0f, () => DialogueController.Instance.ShowTask(npc.NpcId));
+            agent.MoveToNpcStrict(npc.X, npc.Y, 0f, () => DialogueController.Instance.ShowTask(npc.NpcId));
             return true;
         }
 

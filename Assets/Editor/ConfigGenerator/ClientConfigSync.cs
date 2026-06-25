@@ -19,6 +19,7 @@ namespace Shenxiao.EditorTools.ConfigGen
             "ConfigLogin",
             "ConfigModelAni",
             "ConfigRandomName",
+            "ConfigPreloadResList",
             "UIModelParameter",
             "SceneObjectParticle",
             "ConfigFunctionIcon",
@@ -33,11 +34,14 @@ namespace Shenxiao.EditorTools.ConfigGen
             "ConfigCustomActivity",
             "ConfigCustomActivityShow",
             "ConfigCustomActivityView",
+            "ConfigAutoBrush",
         };
 
         // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)
         private static readonly string[] SYNC_LIST_SERVER =
         {
+            "config_enchantment_guard_boss",
+            "config_enchantment_guard_stage_reward",
             "config_dress_up_cfg",
             "config_task",
             "config_scene",

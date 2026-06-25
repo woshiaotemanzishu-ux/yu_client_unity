@@ -60,21 +60,23 @@ namespace Shenxiao.Common.UI3D
         }
 
         public static async Task<Handle> AddAsync(string effectName, RectTransform parent,
-            Vector2 position = default, Vector3 scale = default, float rotationY = 0f)
+            Vector2 position = default, Vector3 scale = default, float rotationY = 0f,
+            Vector2 renderSize = default)
         {
             if (string.IsNullOrEmpty(effectName) || parent == null) return null;
             return await AddByKeyAsync(effectName, GameResPath.GetUIEffectPrefabPath(effectName),
-                parent, position, scale, rotationY);
+                parent, position, scale, rotationY, renderSize);
         }
 
         public static async Task<Handle> AddByKeyAsync(string label, string effectKey, RectTransform parent,
-            Vector2 position = default, Vector3 scale = default, float rotationY = 0f)
+            Vector2 position = default, Vector3 scale = default, float rotationY = 0f,
+            Vector2 renderSize = default)
         {
             if (string.IsNullOrEmpty(effectKey) || parent == null) return null;
             if (string.IsNullOrEmpty(label)) label = effectKey;
             if (scale == default) scale = Vector3.one;
 
-            Handle handle = CreateHandle(SafeName(label), parent);
+            Handle handle = CreateHandle(SafeName(label), parent, renderSize);
             if (handle == null) return null;
 
             GameObject effect = await ResManager.InstantiateAsync(effectKey, handle.EffectRoot);
@@ -107,13 +109,16 @@ namespace Shenxiao.Common.UI3D
                 slot.Position, slot.Scale, slot.RotationY);
         }
 
-        private static Handle CreateHandle(string effectName, RectTransform parent)
+        private static Handle CreateHandle(string effectName, RectTransform parent, Vector2 renderSize)
         {
-            Rect rect = parent.rect;
+            Vector2 displaySize = GetPositiveSize(parent.rect.size);
+            Vector2 sourceSize = GetPositiveSize(renderSize);
+            if (sourceSize == default) sourceSize = displaySize;
+
             float stageHeight = GetStageHeight(parent);
             float renderScale = Mathf.Max(0.01f, stageHeight / REFERENCE_STAGE_HEIGHT);
-            int width = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(1f, rect.width * renderScale)), MIN_RT_SIZE, MAX_RT_SIZE);
-            int height = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(1f, rect.height * renderScale)), MIN_RT_SIZE, MAX_RT_SIZE);
+            int width = Mathf.Clamp(Mathf.CeilToInt(sourceSize.x * renderScale), MIN_RT_SIZE, MAX_RT_SIZE);
+            int height = Mathf.Clamp(Mathf.CeilToInt(sourceSize.y * renderScale), MIN_RT_SIZE, MAX_RT_SIZE);
 
             int index = ++_stageIndex;
             var stageRoot = new GameObject("__UIEffectStage_" + effectName);
@@ -163,6 +168,7 @@ namespace Shenxiao.Common.UI3D
             RawImage image = imageGo.GetComponent<RawImage>();
             image.raycastTarget = false;
             image.texture = rt;
+            image.uvRect = CreateCenteredUvRect(displaySize, sourceSize);
 
             return new Handle
             {
@@ -172,6 +178,22 @@ namespace Shenxiao.Common.UI3D
                 Texture = rt,
                 Image = image
             };
+        }
+
+        private static Vector2 GetPositiveSize(Vector2 size)
+        {
+            if (size.x <= 1f || size.y <= 1f) return default;
+            return new Vector2(Mathf.Max(1f, size.x), Mathf.Max(1f, size.y));
+        }
+
+        private static Rect CreateCenteredUvRect(Vector2 displaySize, Vector2 sourceSize)
+        {
+            if (sourceSize.x <= displaySize.x + 0.01f && sourceSize.y <= displaySize.y + 0.01f)
+                return new Rect(0f, 0f, 1f, 1f);
+
+            float width = Mathf.Clamp01(displaySize.x / Mathf.Max(1f, sourceSize.x));
+            float height = Mathf.Clamp01(displaySize.y / Mathf.Max(1f, sourceSize.y));
+            return new Rect((1f - width) * 0.5f, (1f - height) * 0.5f, width, height);
         }
 
         private static float GetStageHeight(RectTransform parent)
@@ -218,6 +240,8 @@ namespace Shenxiao.Common.UI3D
             {
                 Camera cam = _cameraBuffer[i];
                 if (cam == null || cam == owner) continue;
+                // UIEffectStage cameras share the reserved layer; only strip real scene/UI cameras.
+                if (cam.GetComponentInParent<UIEffectStageCameraGuard>() != null) continue;
                 if ((cam.cullingMask & EffectLayerMask) != 0)
                     cam.cullingMask &= ~EffectLayerMask;
             }

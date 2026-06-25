@@ -4,6 +4,7 @@ using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.MainUI
 {
@@ -47,6 +48,7 @@ namespace Shenxiao.Module.Core.MainUI
             data.Target = target;
 
             if (target.gameObject != null) target.gameObject.SetActive(true);
+            target.SetAsLastSibling();
             _version++;
             int version = _version;
             _ = ShowMainUiFingerAsync(version, data, autoAction, isTaskItem);
@@ -128,9 +130,11 @@ namespace Shenxiao.Module.Core.MainUI
             _effectLoading = true;
             try
             {
+                Vector2 guideRenderSize = GetGuideEffectHolderSize();
                 if (_selectEffect == null)
                 {
-                    _selectHolder = EnsureEffectHolder(_selectHolder, "__main_ui_guide_select_holder", Vector2.zero);
+                    _selectHolder = EnsureEffectHolder(_selectHolder, "__main_ui_guide_select_holder",
+                        Vector2.zero, GetSelectEffectHolderSize());
                     UIEffectSlot slot = FindEffectSlot(GUIDE_SELECT_SLOT);
                     if (slot == null)
                     {
@@ -140,7 +144,7 @@ namespace Shenxiao.Module.Core.MainUI
                     {
                         _selectEffect = await UIEffectStage.AddByKeyAsync(slot.EffectName, slot.AddressKey,
                             _selectHolder, slot.Position, ScaleSlot(slot, GetSelectEffectScale(data, isTaskItem)),
-                            slot.RotationY);
+                            slot.RotationY, guideRenderSize);
                     }
                     if (!IsCurrent(version))
                     {
@@ -152,7 +156,7 @@ namespace Shenxiao.Module.Core.MainUI
                 if (_fingerEffect == null)
                 {
                     _fingerHolder = EnsureEffectHolder(_fingerHolder, "__main_ui_guide_finger_holder",
-                        data.FingerEffectOffset);
+                        data.FingerEffectOffset, guideRenderSize);
                     UIEffectSlot slot = FindEffectSlot(GUIDE_FINGER_SLOT);
                     if (slot == null)
                     {
@@ -181,7 +185,7 @@ namespace Shenxiao.Module.Core.MainUI
                 && _target.gameObject.activeInHierarchy;
         }
 
-        private RectTransform EnsureEffectHolder(RectTransform holder, string name, Vector2 offset)
+        private RectTransform EnsureEffectHolder(RectTransform holder, string name, Vector2 offset, Vector2 size)
         {
             RectTransform rt = holder;
             if (rt == null)
@@ -190,14 +194,35 @@ namespace Shenxiao.Module.Core.MainUI
                 rt = (RectTransform)go.transform;
                 rt.SetParent(_target, false);
             }
+            else if (rt.parent != _target)
+            {
+                rt.SetParent(_target, false);
+            }
             rt.anchorMin = new Vector2(0.5f, 0.5f);
             rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = offset;
-            rt.sizeDelta = new Vector2(720f, 1280f);
+            rt.sizeDelta = size;
             rt.localScale = Vector3.one;
             rt.SetAsLastSibling();
             return rt;
+        }
+
+        private Vector2 GetSelectEffectHolderSize()
+        {
+            Rect targetRect = _target != null ? _target.rect : default;
+            float targetWidth = Mathf.Max(1f, targetRect.width);
+            float targetHeight = Mathf.Max(1f, targetRect.height);
+            return new Vector2(targetWidth + targetHeight * 1.2f, targetHeight * 2.4f);
+        }
+
+        private Vector2 GetGuideEffectHolderSize()
+        {
+            Canvas canvas = _target != null ? _target.GetComponentInParent<Canvas>() : null;
+            CanvasScaler scaler = canvas != null ? canvas.GetComponent<CanvasScaler>() : null;
+            if (scaler != null && scaler.referenceResolution.x > 1f && scaler.referenceResolution.y > 1f)
+                return scaler.referenceResolution;
+            return new Vector2(720f, 1280f);
         }
 
         private Vector3 GetSelectEffectScale(ArrowData data, bool isTaskItem)
@@ -216,8 +241,10 @@ namespace Shenxiao.Module.Core.MainUI
             Vector3 selectScale = GetSelectEffectScale(data, isTaskItem);
             Vector2 fingerOffset = data != null ? data.FingerEffectOffset : Vector2.zero;
             int targetId = _target != null ? _target.GetInstanceID() : 0;
-            return string.Format("{0}:{1:F3},{2:F3},{3:F3}:{4:F3},{5:F3}",
-                targetId, selectScale.x, selectScale.y, selectScale.z, fingerOffset.x, fingerOffset.y);
+            Rect targetRect = _target != null ? _target.rect : default;
+            return string.Format("{0}:{1:F3},{2:F3},{3:F3}:{4:F3},{5:F3}:{6:F1},{7:F1}",
+                targetId, selectScale.x, selectScale.y, selectScale.z, fingerOffset.x, fingerOffset.y,
+                targetRect.width, targetRect.height);
         }
 
         private UIEffectSlot FindEffectSlot(string slotId)

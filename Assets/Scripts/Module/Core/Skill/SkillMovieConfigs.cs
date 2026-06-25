@@ -150,10 +150,47 @@ namespace Shenxiao.Module.Core.Skill
         public static float GetJumpFallStayTime(int jumpType, int career, float fallback)
             => GetFloat("jump_fall_stay_time", jumpType + "@" + career, fallback);
 
+        public static bool TryGetJumpMotion(int jumpType, int career,
+            out float hspeed, out float vspeed, out float gravity, out float fallStay)
+        {
+            hspeed = 0f;
+            vspeed = 0f;
+            gravity = 0f;
+            fallStay = 0f;
+
+            string key = jumpType.ToString();
+            if (!TryGetFloat("jump_hspeed", key, out hspeed)) return false;
+            if (!TryGetFloat("jump_vspeed", key, out vspeed)) return false;
+            if (!TryGetFloat("jump_gravity_speed", key, out gravity)) return false;
+            if (!TryGetFloat("jump_fall_stay_time", jumpType + "@" + career, out fallStay)) return false;
+            return true;
+        }
+
+        public static float GetTaskJumpMovieSpeedOff(int career, int sex, string action)
+        {
+            if (string.IsNullOrEmpty(action)) return 0f;
+            string actorKey = career + "@" + sex;
+            JToken token = _cfg?["task_jump_move_movie_speed_off"]?[actorKey]?[action];
+            return token != null ? token.Value<float>() : 0f;
+        }
+
         private static float GetFloat(string section, string key, float fallback)
         {
             if (_cfg?[section]?[key] == null) return fallback;
             return _cfg[section][key].Value<float>();
+        }
+
+        private static bool TryGetFloat(string section, string key, out float value)
+        {
+            JToken token = _cfg?[section]?[key];
+            if (token == null)
+            {
+                value = 0f;
+                return false;
+            }
+
+            value = token.Value<float>();
+            return true;
         }
     }
 

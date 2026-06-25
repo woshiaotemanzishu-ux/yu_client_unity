@@ -11,10 +11,24 @@ namespace Shenxiao.Editor.Laya3D
     public sealed class LhBone
     {
         public string Name = "";
+        public int InstanceId = -1;
         public int ParentIndex = -1;
         public float[] Position = { 0, 0, 0 };
         public float[] Rotation = { 0, 0, 0, 1 };
         public float[] Scale = { 1, 1, 1 };
+    }
+
+    public sealed class LhMeshNode
+    {
+        public string Name = "";
+        public string Type = "";
+        public string MeshPath = "";
+        public int RootBoneInstanceId = -1;
+        public readonly List<string> MaterialPaths = new List<string>();
+        public float[] Position = { 0, 0, 0 };
+        public float[] Rotation = { 0, 0, 0, 1 };
+        public float[] Scale = { 1, 1, 1 };
+        public bool IsSkinned => Type == "SkinnedMeshSprite3D";
     }
 
     public sealed class LhDocument
@@ -24,8 +38,10 @@ namespace Shenxiao.Editor.Laya3D
         public string MeshPath = "";                       // .lm 相对路径
         public readonly List<string> MaterialPaths = new List<string>();   // .lmat 相对路径
         public float[] MeshNodeRotation;                   // 网格节点旋转(可空)
+        public readonly List<LhMeshNode> MeshNodes = new List<LhMeshNode>();
         public readonly List<LhBone> Bones = new List<LhBone>();
         public readonly Dictionary<string, int> BoneNameToIndex = new Dictionary<string, int>();
+        public readonly Dictionary<int, int> BoneInstanceIdToIndex = new Dictionary<int, int>();
 
         public static LhDocument Load(string lhPath)
         {
@@ -41,36 +57,53 @@ namespace Shenxiao.Editor.Laya3D
 
         private static void ExtractMeshInfo(JObject data, LhDocument doc)
         {
-            bool found = false;
             void Walk(JObject node)
             {
-                if (found) return;
                 string type = (string)node["type"] ?? "";
                 var props = node["props"] as JObject;
                 if (type == "SkinnedMeshSprite3D" || type == "MeshSprite3D")
                 {
-                    doc.MeshPath = (string)props?["meshPath"] ?? "";
+                    var mesh = new LhMeshNode
+                    {
+                        Name = (string)props?["name"] ?? "",
+                        Type = type,
+                        MeshPath = (string)props?["meshPath"] ?? "",
+                        RootBoneInstanceId = props?["rootBone"] != null ? (int)props["rootBone"] : -1,
+                    };
                     if (props?["materials"] is JArray mats)
                     {
                         foreach (JToken m in mats)
                         {
                             string p = (string)m["path"];
-                            if (!string.IsNullOrEmpty(p)) doc.MaterialPaths.Add(p);
+                            if (!string.IsNullOrEmpty(p)) mesh.MaterialPaths.Add(p);
                         }
+                    }
+                    if (props?["position"] is JArray pos && pos.Count == 3)
+                    {
+                        mesh.Position = new[] { (float)pos[0], (float)pos[1], (float)pos[2] };
                     }
                     if (props?["rotation"] is JArray rot && rot.Count == 4)
                     {
-                        doc.MeshNodeRotation = new[] { (float)rot[0], (float)rot[1], (float)rot[2], (float)rot[3] };
+                        mesh.Rotation = new[] { (float)rot[0], (float)rot[1], (float)rot[2], (float)rot[3] };
                     }
-                    found = true;
-                    return;
+                    if (props?["scale"] is JArray scale && scale.Count == 3)
+                    {
+                        mesh.Scale = new[] { (float)scale[0], (float)scale[1], (float)scale[2] };
+                    }
+
+                    doc.MeshNodes.Add(mesh);
+                    if (doc.MeshNodes.Count == 1)
+                    {
+                        doc.MeshPath = mesh.MeshPath;
+                        doc.MaterialPaths.AddRange(mesh.MaterialPaths);
+                        doc.MeshNodeRotation = mesh.Rotation;
+                    }
                 }
                 if (node["child"] is JArray children)
                 {
                     foreach (JToken c in children)
                     {
                         Walk((JObject)c);
-                        if (found) return;
                     }
                 }
             }
@@ -88,6 +121,7 @@ namespace Shenxiao.Editor.Laya3D
                 var bone = new LhBone
                 {
                     Name = (string)props?["name"] ?? "",
+                    InstanceId = node["instanceID"] != null ? (int)node["instanceID"] : -1,
                     ParentIndex = parentIdx,
                 };
                 if (props?["position"] is JArray p && p.Count == 3)
@@ -99,6 +133,7 @@ namespace Shenxiao.Editor.Laya3D
 
                 int idx = doc.Bones.Count;
                 if (!doc.BoneNameToIndex.ContainsKey(bone.Name)) doc.BoneNameToIndex[bone.Name] = idx;
+                if (bone.InstanceId >= 0 && !doc.BoneInstanceIdToIndex.ContainsKey(bone.InstanceId)) doc.BoneInstanceIdToIndex[bone.InstanceId] = idx;
                 doc.Bones.Add(bone);
 
                 if (node["child"] is JArray children)

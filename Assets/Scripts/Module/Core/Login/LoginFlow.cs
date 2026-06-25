@@ -4,6 +4,7 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Preload;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Login
@@ -79,6 +80,8 @@ namespace Shenxiao.Module.Core.Login
 
             EventDispatcher.On<int>(GlobalEvent.EVT_GAME_ROLE_LIST, OnRoleList);
             EventDispatcher.On(GlobalEvent.EVT_GAME_ENTERED, OnGameEntered);
+            EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
+            LegacyPreloadService.ProgressChanged += OnPreloadProgress;
 
             // 确定性层级:背景永远垫底;其余窗口靠 BaseView.Show() 置顶,
             // 弹出顺序即渲染顺序(Hierarchy 里可见:Show 的窗口跳到最后一位)
@@ -99,24 +102,8 @@ namespace Shenxiao.Module.Core.Login
 
         private static async Task PreloadAsync()
         {
-            string[] keys = _config.preloadKeys;
-            if (keys == null || keys.Length == 0)
-            {
-                return;
-            }
-            try
-            {
-                long size = await ResManager.GetDownloadSize(keys);
-                if (size > 0)
-                {
-                    GameLog.Info("Login", "预下载 {0} 项,共 {1} KB", keys.Length, size / 1024);
-                    await ResManager.DownloadAsync(keys, p => _loading.SetProgress(p));
-                }
-            }
-            catch (System.Exception e)
-            {
-                GameLog.Warn("Login", "预下载跳过: {0}", e.Message);
-            }
+            await LegacyPreloadService.PreloadBootAsync(_config.preloadKeys,
+                (p, label) => _loading.SetProgress(p, label));
         }
 
         // ---------------------------------------------------------------- ② 登录/注册
@@ -305,7 +292,17 @@ namespace Shenxiao.Module.Core.Login
         /// <summary>角色列表到达 → 有角色进选角页,无角色进创角页(对标老客户端 On10000 分流)。</summary>
         private static void OnRoleList(int roleCount)
         {
+            _ = OnRoleListAsync(roleCount);
+        }
+
+        private static async Task OnRoleListAsync(int roleCount)
+        {
             GameLog.Info("Login", "角色列表到达(角色数={0})→ {1}", roleCount, roleCount > 0 ? "选角页" : "创角页");
+            _loading.Show();
+            _loading.SetProgress(0f, "加载角色资源");
+            await LegacyPreloadService.PreloadRoleSelectionAsync((p, label) => _loading.SetProgress(p, label));
+            _loading.Hide();
+
             _enter.RefreshServer();
             _enter.Hide();
             _selectRole.Hide();
@@ -347,11 +344,32 @@ namespace Shenxiao.Module.Core.Login
 
         private static void OnGameEntered()
         {
-            // 清场:登录模块全部窗口退下,等主城/场景接管(背景暂留;创角/选角的
-            // 樱花舞台是 Laya 3D 场景,归 .lh 转换线)
+            // 10004 成功后对齐老端 LoginLoadingView:交给 GAME_START 门闩和资源预热,
+            // 完成后再整体退下登录模块。
+            HideView(_login);
+            HideView(_register);
+            HideView(_enter);
+            HideView(_select);
+            HideView(_alert);
+            HideView(_selectRole);
+            HideView(_createRole);
+            HideView(_bg);
+            _loading.Show();
+            _loading.SetProgress(0f, "加载游戏资源");
+            GameLog.Info("Login", "进入游戏成功,等待 GAME_START 资源接管完成");
+        }
+
+        private static void OnGameStart()
+        {
             HideAllViews();
             if (_moduleRoot != null) _moduleRoot.SetActive(false);
-            GameLog.Info("Login", "—— 🎉 全链路终点:已进入游戏,登录模块使命完成,主城/场景接管(待接)——");
+            GameLog.Info("Login", "—— 🎉 GAME_START:登录模块退下,主城/场景接管 ——");
+        }
+
+        private static void OnPreloadProgress(LegacyPreloadStage stage, float progress, string hint)
+        {
+            if (_loading == null || !_loading.gameObject.activeInHierarchy) return;
+            _loading.SetProgress(progress, hint);
         }
 
         private static void HideAllViews()

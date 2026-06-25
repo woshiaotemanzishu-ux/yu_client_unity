@@ -40,17 +40,7 @@ namespace Shenxiao.Framework.Res
             {
                 Addressables.InternalIdTransformFunc = location =>
                 {
-                    string id = location.InternalId;
-                    if (id.StartsWith("http://", StringComparison.Ordinal) ||
-                        id.StartsWith("https://", StringComparison.Ordinal))
-                    {
-                        // Replace existing host with current cdnBaseUrl.
-                        int schemeEnd = id.IndexOf("://", StringComparison.Ordinal) + 3;
-                        int firstSlash = id.IndexOf('/', schemeEnd);
-                        string tail = firstSlash >= 0 ? id.Substring(firstSlash + 1) : string.Empty;
-                        return baseUrl.TrimEnd('/') + "/" + tail;
-                    }
-                    return id;
+                    return RewriteAddressableInternalId(location.InternalId, baseUrl);
                 };
             }
 
@@ -60,6 +50,29 @@ namespace Shenxiao.Framework.Res
                 await AddressablesAwaiter.Wait(loadHandle);
                 GameLog.Info("Res", "catalog loaded version={0}", info.resourceVersion);
             }
+        }
+
+        private static string RewriteAddressableInternalId(string id, string baseUrl)
+        {
+            if (id.StartsWith("http://", StringComparison.Ordinal) ||
+                id.StartsWith("https://", StringComparison.Ordinal))
+            {
+                int schemeEnd = id.IndexOf("://", StringComparison.Ordinal) + 3;
+                int firstSlash = id.IndexOf('/', schemeEnd);
+                string tail = firstSlash >= 0 ? id.Substring(firstSlash + 1) : string.Empty;
+                return baseUrl.TrimEnd('/') + "/" + tail;
+            }
+
+            const string serverDataSegment = "ServerData/";
+            string normalizedId = id.Replace('\\', '/');
+            int serverDataIndex = normalizedId.IndexOf(serverDataSegment, StringComparison.OrdinalIgnoreCase);
+            if (serverDataIndex >= 0)
+            {
+                string tail = normalizedId.Substring(serverDataIndex + serverDataSegment.Length);
+                return baseUrl.TrimEnd('/') + "/" + tail;
+            }
+
+            return id;
         }
     }
 }

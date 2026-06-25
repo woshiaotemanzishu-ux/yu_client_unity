@@ -6,6 +6,7 @@ using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Scene3D.Map;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Login;
+using Shenxiao.Module.Core.Preload;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene.Vo;
 
@@ -223,10 +224,11 @@ namespace Shenxiao.Module.Core.Scene
                 return;
             }
 #endif
+            RoleModel role = RoleModel.Instance;
+            await LegacyPreloadService.PreloadSceneMapAsync(sceneId, role.X, role.Y);
             SceneMapData data = await SceneMapLoader.LoadAsync(sceneId);
             if (version != _loadVersion || data == null) return;
 
-            RoleModel role = RoleModel.Instance;
             await SceneMapView.ShowAsync(data, role.X, role.Y);
             if (version != _loadVersion) return;
 

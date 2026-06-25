@@ -39,6 +39,19 @@ namespace Shenxiao.Framework
             ViewManager.Init(_layers);
 
             // 2. Resource version handshake (skipped if URL empty)
+            if (!string.IsNullOrEmpty(appConfig.addressablesCdnBaseUrl)
+                || !string.IsNullOrEmpty(appConfig.addressablesCatalogUrl))
+            {
+                await ApplyResourceVersion(new ResourceVersionInfo
+                {
+                    env = appConfig.env,
+                    platform = Application.platform.ToString(),
+                    resourceVersion = appConfig.appVersion,
+                    cdnBaseUrl = appConfig.addressablesCdnBaseUrl,
+                    catalogUrl = appConfig.addressablesCatalogUrl,
+                });
+            }
+
             if (!string.IsNullOrEmpty(appConfig.resourceVersionApiUrl))
             {
                 await TryApplyResourceVersion();
@@ -71,7 +84,7 @@ namespace Shenxiao.Framework
             try
             {
                 var wrapper = JsonConvert.DeserializeObject<ApiWrapper<ResourceVersionInfo>>(body);
-                if (wrapper?.data != null) await ResVersionManager.ApplyAsync(wrapper.data);
+                if (wrapper?.data != null) await ApplyResourceVersion(wrapper.data);
             }
             catch (System.Exception e)
             {
@@ -79,12 +92,41 @@ namespace Shenxiao.Framework
             }
         }
 
+        private async Task ApplyResourceVersion(ResourceVersionInfo info)
+        {
+            if (info == null) return;
+
+            if (IsLegacyRawCdn(info.cdnBaseUrl) || IsLegacyRawCdn(info.catalogUrl))
+            {
+                GameLog.Error("App", "reject legacy raw CDN for Unity Addressables: cdn={0} catalog={1}", info.cdnBaseUrl, info.catalogUrl);
+                return;
+            }
+
+            await ResVersionManager.ApplyAsync(info);
+        }
+
+        private bool IsLegacyRawCdn(string url)
+        {
+            string legacy = NormalizeUrl(appConfig.legacyResourceCdnBaseUrl);
+            if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(legacy)) return false;
+
+            string normalized = NormalizeUrl(url);
+            return string.Equals(normalized, legacy, System.StringComparison.OrdinalIgnoreCase)
+                || normalized.StartsWith(legacy, System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string NormalizeUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return "";
+            return url.Trim().TrimEnd('/') + "/";
+        }
+
         [System.Serializable]
         private class ApiWrapper<T>
         {
-            public int code;
-            public string msg;
-            public T data;
+            public int code { get; set; }
+            public string msg { get; set; }
+            public T data { get; set; }
         }
     }
 }
