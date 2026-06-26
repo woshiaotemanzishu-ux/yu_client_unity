@@ -1,0 +1,2815 @@
+{
+  "version": "2026-06-09.3",
+  "timestamp": "2026-06-25T12:00:48.767Z",
+  "url": "http://127.0.0.1:8090/index.html",
+  "stage": {
+    "width": 1207,
+    "height": 1280,
+    "childCount": 3
+  },
+  "views": [
+    {
+      "meta": {
+        "name": "LoginBgView",
+        "rawName": "LoginBgView",
+        "source": "StageScan",
+        "baseFile": "login",
+        "layoutFile": "LoginBgView",
+        "sceneUrl": "resource/game/login/LoginBgView.json",
+        "loaded": true,
+        "loading": false,
+        "open": true,
+        "visible": true,
+        "nodeCount": 8,
+        "resourceCount": 2,
+        "childCount": 4,
+        "width": 1207,
+        "height": 1280,
+        "stagePath": [
+          2,
+          3,
+          2
+        ]
+      },
+      "nodeCount": 8,
+      "resourceCount": 2,
+      "resources": [
+        {
+          "type": "url",
+          "url": "resource/game/login/LoginBgView.json"
+        },
+        {
+          "type": "draw",
+          "url": "resource/game/login/other/ui_Login_bg2.jpg"
+        }
+      ],
+      "nodeTree": {
+        "name": "LoginBgView",
+        "type": "Sprite",
+        "path": [
+          2,
+          3,
+          2
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 1207,
+        "height": 1280,
+        "zOrder": 0,
+        "visible": true,
+        "effectiveVisible": true,
+        "alpha": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "rotation": 0,
+        "anchorX": 0,
+        "anchorY": 0,
+        "pivotX": 0,
+        "pivotY": 0,
+        "mouseEnabled": true,
+        "mouseThrough": false,
+        "globalBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1207,
+          "height": 1280
+        },
+        "resources": [
+          {
+            "type": "url",
+            "url": "resource/game/login/LoginBgView.json"
+          }
+        ],
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0,
+        "children": [
+          {
+            "name": "_img_bg",
+            "type": "Image",
+            "path": [
+              2,
+              3,
+              2,
+              0
+            ],
+            "x": 604,
+            "y": 0,
+            "width": 870,
+            "height": 1560,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0.5,
+            "anchorY": 0,
+            "pivotX": 435,
+            "pivotY": 0,
+            "mouseEnabled": true,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 169,
+              "y": 0,
+              "width": 870,
+              "height": 1560
+            },
+            "resources": [
+              {
+                "type": "draw",
+                "url": "resource/game/login/other/ui_Login_bg2.jpg"
+              }
+            ],
+            "top": 0,
+            "centerX": 0
+          },
+          {
+            "name": "_lb_version",
+            "type": "Label",
+            "path": [
+              2,
+              3,
+              2,
+              1
+            ],
+            "x": 26,
+            "y": 16,
+            "width": 104,
+            "height": 16,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": false,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 26,
+              "y": 16,
+              "width": 104,
+              "height": 16
+            },
+            "resources": [],
+            "left": 26,
+            "centerY": -616,
+            "textProps": {
+              "text": "",
+              "innerHTML": "",
+              "color": "#ffffff",
+              "fontSize": 20,
+              "font": "FZKTJW",
+              "bold": false,
+              "italic": false,
+              "stroke": 0,
+              "strokeColor": "#000000",
+              "align": "left",
+              "valign": "top",
+              "leading": 0,
+              "wordWrap": false,
+              "overflow": "visible"
+            },
+            "children": [
+              {
+                "name": "",
+                "type": "Text",
+                "path": [
+                  2,
+                  3,
+                  2,
+                  1,
+                  0
+                ],
+                "x": 0,
+                "y": 0,
+                "width": 104,
+                "height": 16,
+                "zOrder": 0,
+                "visible": true,
+                "effectiveVisible": true,
+                "alpha": 1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0,
+                "anchorX": 0,
+                "anchorY": 0,
+                "pivotX": 0,
+                "pivotY": 0,
+                "mouseEnabled": false,
+                "mouseThrough": false,
+                "globalBounds": {
+                  "x": 26,
+                  "y": 16,
+                  "width": 104,
+                  "height": 16
+                },
+                "resources": [],
+                "textProps": {
+                  "text": "",
+                  "innerHTML": "",
+                  "color": "#ffffff",
+                  "fontSize": 20,
+                  "font": "FZKTJW",
+                  "bold": false,
+                  "italic": false,
+                  "stroke": 0,
+                  "strokeColor": "#000000",
+                  "align": "left",
+                  "valign": "top",
+                  "leading": 0,
+                  "wordWrap": false,
+                  "overflow": "visible"
+                }
+              }
+            ]
+          },
+          {
+            "name": "_lb_down",
+            "type": "Label",
+            "path": [
+              2,
+              3,
+              2,
+              2
+            ],
+            "x": 0,
+            "y": 1228,
+            "width": 1207,
+            "height": 52,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": false,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 0,
+              "y": 1228,
+              "width": 1207,
+              "height": 52
+            },
+            "resources": [],
+            "left": 0,
+            "right": 0,
+            "bottom": 0,
+            "textProps": {
+              "text": " 抵制不良游戏    拒绝盗版游戏    注意自我保护    谨防受骗上当\n 适度游戏益脑    沉迷游戏伤身    合理安排时间    享受健康生活",
+              "innerHTML": "",
+              "color": "#ffffff",
+              "fontSize": 22,
+              "font": "FZKTJW",
+              "bold": false,
+              "italic": false,
+              "stroke": 0,
+              "strokeColor": "#000000",
+              "align": "center",
+              "valign": "middle",
+              "leading": 8,
+              "wordWrap": false,
+              "overflow": "visible"
+            },
+            "children": [
+              {
+                "name": "",
+                "type": "Text",
+                "path": [
+                  2,
+                  3,
+                  2,
+                  2,
+                  0
+                ],
+                "x": 0,
+                "y": 0,
+                "width": 1207,
+                "height": 52,
+                "zOrder": 0,
+                "visible": true,
+                "effectiveVisible": true,
+                "alpha": 1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0,
+                "anchorX": 0,
+                "anchorY": 0,
+                "pivotX": 0,
+                "pivotY": 0,
+                "mouseEnabled": false,
+                "mouseThrough": false,
+                "globalBounds": {
+                  "x": 0,
+                  "y": 1228,
+                  "width": 1207,
+                  "height": 52
+                },
+                "resources": [],
+                "textProps": {
+                  "text": " 抵制不良游戏    拒绝盗版游戏    注意自我保护    谨防受骗上当\n 适度游戏益脑    沉迷游戏伤身    合理安排时间    享受健康生活",
+                  "innerHTML": "",
+                  "color": "#ffffff",
+                  "fontSize": 22,
+                  "font": "FZKTJW",
+                  "bold": false,
+                  "italic": false,
+                  "stroke": 0,
+                  "strokeColor": "#000000",
+                  "align": "center",
+                  "valign": "middle",
+                  "leading": 8,
+                  "wordWrap": false,
+                  "overflow": "visible"
+                }
+              }
+            ]
+          },
+          {
+            "name": "_lb_copy_right",
+            "type": "Label",
+            "path": [
+              2,
+              3,
+              2,
+              3
+            ],
+            "x": 224,
+            "y": 1106,
+            "width": 760,
+            "height": 104,
+            "zOrder": 0,
+            "visible": false,
+            "effectiveVisible": false,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": false,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 224,
+              "y": 1106,
+              "width": 760,
+              "height": 104
+            },
+            "resources": [],
+            "bottom": 70,
+            "centerX": 0,
+            "textProps": {
+              "text": "著作权人：上海子速网络科技有限公司  著作登记号：2018SR942787 \n出版单位：上海同济大学电子音像出版社有限公司\n运营单位：上海子速网络科技有限公司 \n出版物号：ISBN 978-7-498-07115-6 审批文号：国新出审[2019]3512号",
+              "innerHTML": "",
+              "color": "#ffffff",
+              "fontSize": 20,
+              "font": "FZKTJW",
+              "bold": false,
+              "italic": false,
+              "stroke": 0,
+              "strokeColor": "#000000",
+              "align": "center",
+              "valign": "top",
+              "leading": 8,
+              "wordWrap": false,
+              "overflow": "visible"
+            },
+            "children": [
+              {
+                "name": "",
+                "type": "Text",
+                "path": [
+                  2,
+                  3,
+                  2,
+                  3,
+                  0
+                ],
+                "x": 0,
+                "y": 0,
+                "width": 760,
+                "height": 104,
+                "zOrder": 0,
+                "visible": true,
+                "effectiveVisible": false,
+                "alpha": 1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0,
+                "anchorX": 0,
+                "anchorY": 0,
+                "pivotX": 0,
+                "pivotY": 0,
+                "mouseEnabled": false,
+                "mouseThrough": false,
+                "globalBounds": {
+                  "x": 224,
+                  "y": 1106,
+                  "width": 760,
+                  "height": 104
+                },
+                "resources": [],
+                "textProps": {
+                  "text": "著作权人：上海子速网络科技有限公司  著作登记号：2018SR942787 \n出版单位：上海同济大学电子音像出版社有限公司\n运营单位：上海子速网络科技有限公司 \n出版物号：ISBN 978-7-498-07115-6 审批文号：国新出审[2019]3512号",
+                  "innerHTML": "",
+                  "color": "#ffffff",
+                  "fontSize": 20,
+                  "font": "FZKTJW",
+                  "bold": false,
+                  "italic": false,
+                  "stroke": 0,
+                  "strokeColor": "#000000",
+                  "align": "center",
+                  "valign": "top",
+                  "leading": 8,
+                  "wordWrap": false,
+                  "overflow": "visible"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "meta": {
+        "name": "LoginCreateRoleView",
+        "rawName": "LoginCreateRoleView",
+        "source": "StageScan",
+        "baseFile": "login",
+        "layoutFile": "LoginCreateRoleView",
+        "sceneUrl": "resource/game/login/LoginCreateRoleView.json",
+        "loaded": true,
+        "loading": false,
+        "open": true,
+        "visible": true,
+        "nodeCount": 40,
+        "resourceCount": 17,
+        "childCount": 12,
+        "width": 1207,
+        "height": 1280,
+        "stagePath": [
+          2,
+          3,
+          3
+        ]
+      },
+      "nodeCount": 40,
+      "resourceCount": 17,
+      "resources": [
+        {
+          "type": "url",
+          "url": "resource/game/login/LoginCreateRoleView.json"
+        },
+        {
+          "type": "draw",
+          "url": "resource/game/login/other/ui_Login_bg2.jpg"
+        },
+        {
+          "type": "skin",
+          "url": "resource/game/login/other/ui_role_01.png"
+        },
+        {
+          "type": "url",
+          "url": "resource/game/login/LoginCreateRoleItem.json"
+        },
+        {
+          "type": "skin",
+          "url": "resource/game/login/texture/ui_Login_02.png"
+        },
+        {
+          "type": "skin",
+          "url": "resource/game/login/texture/ui_Login_10.png"
+        },
+        {
+          "type": "skin",
+          "url": "resource/game/login/texture/ui_Login_03.png"
+        },
+        {
+          "type": "skin",
+          "url": "resource/game/login/texture/ui_Login_12a.png"
+        },
+        {
+          "type": "skin",
+          "url": "resource/game/login/texture/ui_Login_11a.png"
+        },
+        {
+          "type": "skin",
+          "url": "resource/game/login/texture/ui_Login_13a.png"
+        },
+        {
+          "type": "skin",
+          "url": "resource/game/login/texture/ui_Login_08.png"
+        },
+        {
+          "type": "skin",
+          "url": "resource/game/login/texture/ui_Login_09.png"
+        },
+        {
+          "type": "skin",
+          "url": "resource/game/login/texture/ui_Login_01.png"
+        },
+        {
+          "type": "draw",
+          "url": "resource/game/login/other/ui_Login_14.png"
+        },
+        {
+          "type": "draw",
+          "url": "resource/game/login/other/ui_Login_14a.png"
+        },
+        {
+          "type": "draw",
+          "url": "resource/game/login/other/ui_Login_14b.png"
+        },
+        {
+          "type": "skin",
+          "url": "resource/game/login/texture/ui_Login_07.png"
+        }
+      ],
+      "nodeTree": {
+        "name": "LoginCreateRoleView",
+        "type": "Sprite",
+        "path": [
+          2,
+          3,
+          3
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 1207,
+        "height": 1280,
+        "zOrder": 0,
+        "visible": true,
+        "effectiveVisible": true,
+        "alpha": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "rotation": 0,
+        "anchorX": 0,
+        "anchorY": 0,
+        "pivotX": 0,
+        "pivotY": 0,
+        "mouseEnabled": true,
+        "mouseThrough": false,
+        "globalBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1207,
+          "height": 1280
+        },
+        "resources": [
+          {
+            "type": "url",
+            "url": "resource/game/login/LoginCreateRoleView.json"
+          }
+        ],
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0,
+        "children": [
+          {
+            "name": "ui_Login_bg2_create",
+            "type": "Image",
+            "path": [
+              2,
+              3,
+              3,
+              0
+            ],
+            "x": 604,
+            "y": 0,
+            "width": 870,
+            "height": 1560,
+            "zOrder": -1000,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0.5,
+            "anchorY": 0,
+            "pivotX": 435,
+            "pivotY": 0,
+            "mouseEnabled": false,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 169,
+              "y": 0,
+              "width": 870,
+              "height": 1560
+            },
+            "resources": [
+              {
+                "type": "draw",
+                "url": "resource/game/login/other/ui_Login_bg2.jpg"
+              }
+            ],
+            "top": 0,
+            "centerX": 0
+          },
+          {
+            "name": "_gp_model_con",
+            "type": "Sprite",
+            "path": [
+              2,
+              3,
+              3,
+              1
+            ],
+            "x": 604,
+            "y": 640,
+            "width": 721,
+            "height": 1280,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0.5,
+            "anchorY": 0.5,
+            "pivotX": 360.5,
+            "pivotY": 640,
+            "mouseEnabled": true,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 244,
+              "y": 0,
+              "width": 721,
+              "height": 1280
+            },
+            "resources": [],
+            "centerX": 0,
+            "centerY": 0,
+            "children": [
+              {
+                "name": "",
+                "type": "Image",
+                "path": [
+                  2,
+                  3,
+                  3,
+                  1,
+                  0
+                ],
+                "x": 0,
+                "y": 0,
+                "width": 721,
+                "height": 1280,
+                "zOrder": 0,
+                "visible": true,
+                "effectiveVisible": true,
+                "alpha": 1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0,
+                "anchorX": 0,
+                "anchorY": 0,
+                "pivotX": 0,
+                "pivotY": 0,
+                "mouseEnabled": false,
+                "mouseThrough": false,
+                "globalBounds": {
+                  "x": 244,
+                  "y": 0,
+                  "width": 721,
+                  "height": 1280
+                },
+                "resources": []
+              }
+            ]
+          },
+          {
+            "name": "_gp_head_con",
+            "type": "Sprite",
+            "path": [
+              2,
+              3,
+              3,
+              2
+            ],
+            "x": 244,
+            "y": 0,
+            "width": 720,
+            "height": 330,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": true,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 244,
+              "y": 0,
+              "width": 720,
+              "height": 330
+            },
+            "resources": [],
+            "centerX": 0,
+            "children": [
+              {
+                "name": "ui_role_01",
+                "type": "Image",
+                "path": [
+                  2,
+                  3,
+                  3,
+                  2,
+                  0
+                ],
+                "x": 360,
+                "y": 115,
+                "width": 226,
+                "height": 683,
+                "zOrder": 0,
+                "visible": true,
+                "effectiveVisible": true,
+                "alpha": 1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 90,
+                "anchorX": 0.5,
+                "anchorY": 0.5,
+                "pivotX": 113,
+                "pivotY": 341.5,
+                "mouseEnabled": false,
+                "mouseThrough": false,
+                "globalBounds": {
+                  "x": 262,
+                  "y": 2,
+                  "width": 683,
+                  "height": 226
+                },
+                "resources": [
+                  {
+                    "type": "skin",
+                    "url": "resource/game/login/other/ui_role_01.png"
+                  }
+                ],
+                "skin": "resource/game/login/other/ui_role_01.png"
+              },
+              {
+                "name": "LoginCreateRoleItem",
+                "type": "Sprite",
+                "path": [
+                  2,
+                  3,
+                  3,
+                  2,
+                  1
+                ],
+                "x": 576,
+                "y": 20,
+                "width": 102,
+                "height": 113,
+                "zOrder": 0,
+                "visible": true,
+                "effectiveVisible": true,
+                "alpha": 1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0,
+                "anchorX": 0,
+                "anchorY": 0,
+                "pivotX": 0,
+                "pivotY": 0,
+                "mouseEnabled": true,
+                "mouseThrough": false,
+                "globalBounds": {
+                  "x": 820,
+                  "y": 20,
+                  "width": 102,
+                  "height": 113
+                },
+                "resources": [
+                  {
+                    "type": "url",
+                    "url": "resource/game/login/LoginCreateRoleItem.json"
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "_box_head",
+                    "type": "Sprite",
+                    "path": [
+                      2,
+                      3,
+                      3,
+                      2,
+                      1,
+                      0
+                    ],
+                    "x": 0,
+                    "y": 0,
+                    "width": 102,
+                    "height": 113,
+                    "zOrder": 0,
+                    "visible": true,
+                    "effectiveVisible": true,
+                    "alpha": 1,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0,
+                    "anchorX": 0,
+                    "anchorY": 0,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "mouseEnabled": true,
+                    "mouseThrough": false,
+                    "globalBounds": {
+                      "x": 820,
+                      "y": 20,
+                      "width": 102,
+                      "height": 113
+                    },
+                    "resources": [],
+                    "children": [
+                      {
+                        "name": "_img_bg",
+                        "type": "Image",
+                        "path": [
+                          2,
+                          3,
+                          3,
+                          2,
+                          1,
+                          0,
+                          0
+                        ],
+                        "x": 0,
+                        "y": 0,
+                        "width": 102,
+                        "height": 102,
+                        "zOrder": 0,
+                        "visible": true,
+                        "effectiveVisible": true,
+                        "alpha": 1,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0,
+                        "anchorX": 0,
+                        "anchorY": 0,
+                        "pivotX": 0,
+                        "pivotY": 0,
+                        "mouseEnabled": false,
+                        "mouseThrough": false,
+                        "globalBounds": {
+                          "x": 820,
+                          "y": 20,
+                          "width": 102,
+                          "height": 102
+                        },
+                        "resources": [
+                          {
+                            "type": "skin",
+                            "url": "resource/game/login/texture/ui_Login_02.png"
+                          }
+                        ],
+                        "skin": "resource/game/login/texture/ui_Login_02.png"
+                      },
+                      {
+                        "name": "_img_icon",
+                        "type": "Image",
+                        "path": [
+                          2,
+                          3,
+                          3,
+                          2,
+                          1,
+                          0,
+                          1
+                        ],
+                        "x": 13,
+                        "y": 13,
+                        "width": 76,
+                        "height": 76,
+                        "zOrder": 0,
+                        "visible": true,
+                        "effectiveVisible": true,
+                        "alpha": 1,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0,
+                        "anchorX": 0,
+                        "anchorY": 0,
+                        "pivotX": 0,
+                        "pivotY": 0,
+                        "mouseEnabled": false,
+                        "mouseThrough": false,
+                        "globalBounds": {
+                          "x": 833,
+                          "y": 33,
+                          "width": 76,
+                          "height": 76
+                        },
+                        "resources": [
+                          {
+                            "type": "skin",
+                            "url": "resource/game/login/texture/ui_Login_10.png"
+                          }
+                        ],
+                        "skin": "resource/game/login/texture/ui_Login_10.png"
+                      },
+                      {
+                        "name": "_lb_career",
+                        "type": "Label",
+                        "path": [
+                          2,
+                          3,
+                          3,
+                          2,
+                          1,
+                          0,
+                          2
+                        ],
+                        "x": 51,
+                        "y": 89,
+                        "width": 96,
+                        "height": 48,
+                        "zOrder": 0,
+                        "visible": true,
+                        "effectiveVisible": true,
+                        "alpha": 1,
+                        "scaleX": 0.5,
+                        "scaleY": 0.5,
+                        "rotation": 0,
+                        "anchorX": 0.5,
+                        "anchorY": 0,
+                        "pivotX": 48,
+                        "pivotY": 0,
+                        "mouseEnabled": false,
+                        "mouseThrough": false,
+                        "globalBounds": {
+                          "x": 847,
+                          "y": 109,
+                          "width": 48,
+                          "height": 24
+                        },
+                        "resources": [],
+                        "textProps": {
+                          "text": "剑士",
+                          "innerHTML": "",
+                          "color": "#fff2c3",
+                          "fontSize": 48,
+                          "font": "FZKTJW",
+                          "bold": true,
+                          "italic": false,
+                          "stroke": 2,
+                          "strokeColor": "#c35011",
+                          "align": "left",
+                          "valign": "top",
+                          "leading": 0,
+                          "wordWrap": false,
+                          "overflow": "visible"
+                        },
+                        "children": [
+                          {
+                            "name": "",
+                            "type": "Text",
+                            "path": [
+                              2,
+                              3,
+                              3,
+                              2,
+                              1,
+                              0,
+                              2,
+                              0
+                            ],
+                            "x": 0,
+                            "y": 0,
+                            "width": 96,
+                            "height": 48,
+                            "zOrder": 0,
+                            "visible": true,
+                            "effectiveVisible": true,
+                            "alpha": 1,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0,
+                            "anchorX": 0,
+                            "anchorY": 0,
+                            "pivotX": 0,
+                            "pivotY": 0,
+                            "mouseEnabled": false,
+                            "mouseThrough": false,
+                            "globalBounds": {
+                              "x": 847,
+                              "y": 109,
+                              "width": 48,
+                              "height": 24
+                            },
+                            "resources": [],
+                            "textProps": {
+                              "text": "剑士",
+                              "innerHTML": "",
+                              "color": "#fff2c3",
+                              "fontSize": 48,
+                              "font": "FZKTJW",
+                              "bold": true,
+                              "italic": false,
+                              "stroke": 2,
+                              "strokeColor": "#c35011",
+                              "align": "left",
+                              "valign": "top",
+                              "leading": 0,
+                              "wordWrap": false,
+                              "overflow": "visible"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "LoginCreateRoleItem",
+                "type": "Sprite",
+                "path": [
+                  2,
+                  3,
+                  3,
+                  2,
+                  2
+                ],
+                "x": 407,
+                "y": 128,
+                "width": 102,
+                "height": 113,
+                "zOrder": 0,
+                "visible": true,
+                "effectiveVisible": true,
+                "alpha": 1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0,
+                "anchorX": 0,
+                "anchorY": 0,
+                "pivotX": 0,
+                "pivotY": 0,
+                "mouseEnabled": true,
+                "mouseThrough": false,
+                "globalBounds": {
+                  "x": 651,
+                  "y": 128,
+                  "width": 102,
+                  "height": 113
+                },
+                "resources": [
+                  {
+                    "type": "url",
+                    "url": "resource/game/login/LoginCreateRoleItem.json"
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "_box_head",
+                    "type": "Sprite",
+                    "path": [
+                      2,
+                      3,
+                      3,
+                      2,
+                      2,
+                      0
+                    ],
+                    "x": 0,
+                    "y": 0,
+                    "width": 102,
+                    "height": 113,
+                    "zOrder": 0,
+                    "visible": true,
+                    "effectiveVisible": true,
+                    "alpha": 1,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0,
+                    "anchorX": 0,
+                    "anchorY": 0,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "mouseEnabled": true,
+                    "mouseThrough": false,
+                    "globalBounds": {
+                      "x": 651,
+                      "y": 128,
+                      "width": 102,
+                      "height": 113
+                    },
+                    "resources": [],
+                    "children": [
+                      {
+                        "name": "_img_bg",
+                        "type": "Image",
+                        "path": [
+                          2,
+                          3,
+                          3,
+                          2,
+                          2,
+                          0,
+                          0
+                        ],
+                        "x": 0,
+                        "y": 0,
+                        "width": 102,
+                        "height": 102,
+                        "zOrder": 0,
+                        "visible": true,
+                        "effectiveVisible": true,
+                        "alpha": 1,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0,
+                        "anchorX": 0,
+                        "anchorY": 0,
+                        "pivotX": 0,
+                        "pivotY": 0,
+                        "mouseEnabled": false,
+                        "mouseThrough": false,
+                        "globalBounds": {
+                          "x": 651,
+                          "y": 128,
+                          "width": 102,
+                          "height": 102
+                        },
+                        "resources": [
+                          {
+                            "type": "skin",
+                            "url": "resource/game/login/texture/ui_Login_03.png"
+                          }
+                        ],
+                        "skin": "resource/game/login/texture/ui_Login_03.png"
+                      },
+                      {
+                        "name": "_img_icon",
+                        "type": "Image",
+                        "path": [
+                          2,
+                          3,
+                          3,
+                          2,
+                          2,
+                          0,
+                          1
+                        ],
+                        "x": 13,
+                        "y": 13,
+                        "width": 76,
+                        "height": 76,
+                        "zOrder": 0,
+                        "visible": true,
+                        "effectiveVisible": true,
+                        "alpha": 1,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0,
+                        "anchorX": 0,
+                        "anchorY": 0,
+                        "pivotX": 0,
+                        "pivotY": 0,
+                        "mouseEnabled": false,
+                        "mouseThrough": false,
+                        "globalBounds": {
+                          "x": 664,
+                          "y": 141,
+                          "width": 76,
+                          "height": 76
+                        },
+                        "resources": [
+                          {
+                            "type": "skin",
+                            "url": "resource/game/login/texture/ui_Login_12a.png"
+                          }
+                        ],
+                        "skin": "resource/game/login/texture/ui_Login_12a.png"
+                      },
+                      {
+                        "name": "_lb_career",
+                        "type": "Label",
+                        "path": [
+                          2,
+                          3,
+                          3,
+                          2,
+                          2,
+                          0,
+                          2
+                        ],
+                        "x": 51,
+                        "y": 89,
+                        "width": 96,
+                        "height": 48,
+                        "zOrder": 0,
+                        "visible": true,
+                        "effectiveVisible": true,
+                        "alpha": 1,
+                        "scaleX": 0.5,
+                        "scaleY": 0.5,
+                        "rotation": 0,
+                        "anchorX": 0.5,
+                        "anchorY": 0,
+                        "pivotX": 48,
+                        "pivotY": 0,
+                        "mouseEnabled": false,
+                        "mouseThrough": false,
+                        "globalBounds": {
+                          "x": 678,
+                          "y": 217,
+                          "width": 48,
+                          "height": 24
+                        },
+                        "resources": [],
+                        "textProps": {
+                          "text": "武姬",
+                          "innerHTML": "",
+                          "color": "#ffffff",
+                          "fontSize": 48,
+                          "font": "FZKTJW",
+                          "bold": true,
+                          "italic": false,
+                          "stroke": 2,
+                          "strokeColor": "#8f284b",
+                          "align": "left",
+                          "valign": "top",
+                          "leading": 0,
+                          "wordWrap": false,
+                          "overflow": "visible"
+                        },
+                        "children": [
+                          {
+                            "name": "",
+                            "type": "Text",
+                            "path": [
+                              2,
+                              3,
+                              3,
+                              2,
+                              2,
+                              0,
+                              2,
+                              0
+                            ],
+                            "x": 0,
+                            "y": 0,
+                            "width": 96,
+                            "height": 48,
+                            "zOrder": 0,
+                            "visible": true,
+                            "effectiveVisible": true,
+                            "alpha": 1,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0,
+                            "anchorX": 0,
+                            "anchorY": 0,
+                            "pivotX": 0,
+                            "pivotY": 0,
+                            "mouseEnabled": false,
+                            "mouseThrough": false,
+                            "globalBounds": {
+                              "x": 678,
+                              "y": 217,
+                              "width": 48,
+                              "height": 24
+                            },
+                            "resources": [],
+                            "textProps": {
+                              "text": "武姬",
+                              "innerHTML": "",
+                              "color": "#ffffff",
+                              "fontSize": 48,
+                              "font": "FZKTJW",
+                              "bold": true,
+                              "italic": false,
+                              "stroke": 2,
+                              "strokeColor": "#8f284b",
+                              "align": "left",
+                              "valign": "top",
+                              "leading": 0,
+                              "wordWrap": false,
+                              "overflow": "visible"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "LoginCreateRoleItem",
+                "type": "Sprite",
+                "path": [
+                  2,
+                  3,
+                  3,
+                  2,
+                  3
+                ],
+                "x": 231,
+                "y": 128,
+                "width": 102,
+                "height": 113,
+                "zOrder": 0,
+                "visible": true,
+                "effectiveVisible": true,
+                "alpha": 1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0,
+                "anchorX": 0,
+                "anchorY": 0,
+                "pivotX": 0,
+                "pivotY": 0,
+                "mouseEnabled": true,
+                "mouseThrough": false,
+                "globalBounds": {
+                  "x": 475,
+                  "y": 128,
+                  "width": 102,
+                  "height": 113
+                },
+                "resources": [
+                  {
+                    "type": "url",
+                    "url": "resource/game/login/LoginCreateRoleItem.json"
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "_box_head",
+                    "type": "Sprite",
+                    "path": [
+                      2,
+                      3,
+                      3,
+                      2,
+                      3,
+                      0
+                    ],
+                    "x": 0,
+                    "y": 0,
+                    "width": 102,
+                    "height": 113,
+                    "zOrder": 0,
+                    "visible": true,
+                    "effectiveVisible": true,
+                    "alpha": 1,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0,
+                    "anchorX": 0,
+                    "anchorY": 0,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "mouseEnabled": true,
+                    "mouseThrough": false,
+                    "globalBounds": {
+                      "x": 475,
+                      "y": 128,
+                      "width": 102,
+                      "height": 113
+                    },
+                    "resources": [],
+                    "children": [
+                      {
+                        "name": "_img_bg",
+                        "type": "Image",
+                        "path": [
+                          2,
+                          3,
+                          3,
+                          2,
+                          3,
+                          0,
+                          0
+                        ],
+                        "x": 0,
+                        "y": 0,
+                        "width": 102,
+                        "height": 102,
+                        "zOrder": 0,
+                        "visible": true,
+                        "effectiveVisible": true,
+                        "alpha": 1,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0,
+                        "anchorX": 0,
+                        "anchorY": 0,
+                        "pivotX": 0,
+                        "pivotY": 0,
+                        "mouseEnabled": false,
+                        "mouseThrough": false,
+                        "globalBounds": {
+                          "x": 475,
+                          "y": 128,
+                          "width": 102,
+                          "height": 102
+                        },
+                        "resources": [
+                          {
+                            "type": "skin",
+                            "url": "resource/game/login/texture/ui_Login_03.png"
+                          }
+                        ],
+                        "skin": "resource/game/login/texture/ui_Login_03.png"
+                      },
+                      {
+                        "name": "_img_icon",
+                        "type": "Image",
+                        "path": [
+                          2,
+                          3,
+                          3,
+                          2,
+                          3,
+                          0,
+                          1
+                        ],
+                        "x": 13,
+                        "y": 13,
+                        "width": 76,
+                        "height": 76,
+                        "zOrder": 0,
+                        "visible": true,
+                        "effectiveVisible": true,
+                        "alpha": 1,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0,
+                        "anchorX": 0,
+                        "anchorY": 0,
+                        "pivotX": 0,
+                        "pivotY": 0,
+                        "mouseEnabled": false,
+                        "mouseThrough": false,
+                        "globalBounds": {
+                          "x": 488,
+                          "y": 141,
+                          "width": 76,
+                          "height": 76
+                        },
+                        "resources": [
+                          {
+                            "type": "skin",
+                            "url": "resource/game/login/texture/ui_Login_11a.png"
+                          }
+                        ],
+                        "skin": "resource/game/login/texture/ui_Login_11a.png"
+                      },
+                      {
+                        "name": "_lb_career",
+                        "type": "Label",
+                        "path": [
+                          2,
+                          3,
+                          3,
+                          2,
+                          3,
+                          0,
+                          2
+                        ],
+                        "x": 51,
+                        "y": 89,
+                        "width": 96,
+                        "height": 48,
+                        "zOrder": 0,
+                        "visible": true,
+                        "effectiveVisible": true,
+                        "alpha": 1,
+                        "scaleX": 0.5,
+                        "scaleY": 0.5,
+                        "rotation": 0,
+                        "anchorX": 0.5,
+                        "anchorY": 0,
+                        "pivotX": 48,
+                        "pivotY": 0,
+                        "mouseEnabled": false,
+                        "mouseThrough": false,
+                        "globalBounds": {
+                          "x": 502,
+                          "y": 217,
+                          "width": 48,
+                          "height": 24
+                        },
+                        "resources": [],
+                        "textProps": {
+                          "text": "枪使",
+                          "innerHTML": "",
+                          "color": "#ffffff",
+                          "fontSize": 48,
+                          "font": "FZKTJW",
+                          "bold": true,
+                          "italic": false,
+                          "stroke": 2,
+                          "strokeColor": "#8f284b",
+                          "align": "left",
+                          "valign": "top",
+                          "leading": 0,
+                          "wordWrap": false,
+                          "overflow": "visible"
+                        },
+                        "children": [
+                          {
+                            "name": "",
+                            "type": "Text",
+                            "path": [
+                              2,
+                              3,
+                              3,
+                              2,
+                              3,
+                              0,
+                              2,
+                              0
+                            ],
+                            "x": 0,
+                            "y": 0,
+                            "width": 96,
+                            "height": 48,
+                            "zOrder": 0,
+                            "visible": true,
+                            "effectiveVisible": true,
+                            "alpha": 1,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0,
+                            "anchorX": 0,
+                            "anchorY": 0,
+                            "pivotX": 0,
+                            "pivotY": 0,
+                            "mouseEnabled": false,
+                            "mouseThrough": false,
+                            "globalBounds": {
+                              "x": 502,
+                              "y": 217,
+                              "width": 48,
+                              "height": 24
+                            },
+                            "resources": [],
+                            "textProps": {
+                              "text": "枪使",
+                              "innerHTML": "",
+                              "color": "#ffffff",
+                              "fontSize": 48,
+                              "font": "FZKTJW",
+                              "bold": true,
+                              "italic": false,
+                              "stroke": 2,
+                              "strokeColor": "#8f284b",
+                              "align": "left",
+                              "valign": "top",
+                              "leading": 0,
+                              "wordWrap": false,
+                              "overflow": "visible"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "LoginCreateRoleItem",
+                "type": "Sprite",
+                "path": [
+                  2,
+                  3,
+                  3,
+                  2,
+                  4
+                ],
+                "x": 62,
+                "y": 20,
+                "width": 102,
+                "height": 113,
+                "zOrder": 0,
+                "visible": true,
+                "effectiveVisible": true,
+                "alpha": 1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0,
+                "anchorX": 0,
+                "anchorY": 0,
+                "pivotX": 0,
+                "pivotY": 0,
+                "mouseEnabled": true,
+                "mouseThrough": false,
+                "globalBounds": {
+                  "x": 306,
+                  "y": 20,
+                  "width": 102,
+                  "height": 113
+                },
+                "resources": [
+                  {
+                    "type": "url",
+                    "url": "resource/game/login/LoginCreateRoleItem.json"
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "_box_head",
+                    "type": "Sprite",
+                    "path": [
+                      2,
+                      3,
+                      3,
+                      2,
+                      4,
+                      0
+                    ],
+                    "x": 0,
+                    "y": 0,
+                    "width": 102,
+                    "height": 113,
+                    "zOrder": 0,
+                    "visible": true,
+                    "effectiveVisible": true,
+                    "alpha": 1,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0,
+                    "anchorX": 0,
+                    "anchorY": 0,
+                    "pivotX": 0,
+                    "pivotY": 0,
+                    "mouseEnabled": true,
+                    "mouseThrough": false,
+                    "globalBounds": {
+                      "x": 306,
+                      "y": 20,
+                      "width": 102,
+                      "height": 113
+                    },
+                    "resources": [],
+                    "children": [
+                      {
+                        "name": "_img_bg",
+                        "type": "Image",
+                        "path": [
+                          2,
+                          3,
+                          3,
+                          2,
+                          4,
+                          0,
+                          0
+                        ],
+                        "x": 0,
+                        "y": 0,
+                        "width": 102,
+                        "height": 102,
+                        "zOrder": 0,
+                        "visible": true,
+                        "effectiveVisible": true,
+                        "alpha": 1,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0,
+                        "anchorX": 0,
+                        "anchorY": 0,
+                        "pivotX": 0,
+                        "pivotY": 0,
+                        "mouseEnabled": false,
+                        "mouseThrough": false,
+                        "globalBounds": {
+                          "x": 306,
+                          "y": 20,
+                          "width": 102,
+                          "height": 102
+                        },
+                        "resources": [
+                          {
+                            "type": "skin",
+                            "url": "resource/game/login/texture/ui_Login_03.png"
+                          }
+                        ],
+                        "skin": "resource/game/login/texture/ui_Login_03.png"
+                      },
+                      {
+                        "name": "_img_icon",
+                        "type": "Image",
+                        "path": [
+                          2,
+                          3,
+                          3,
+                          2,
+                          4,
+                          0,
+                          1
+                        ],
+                        "x": 13,
+                        "y": 13,
+                        "width": 76,
+                        "height": 76,
+                        "zOrder": 0,
+                        "visible": true,
+                        "effectiveVisible": true,
+                        "alpha": 1,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0,
+                        "anchorX": 0,
+                        "anchorY": 0,
+                        "pivotX": 0,
+                        "pivotY": 0,
+                        "mouseEnabled": false,
+                        "mouseThrough": false,
+                        "globalBounds": {
+                          "x": 319,
+                          "y": 33,
+                          "width": 76,
+                          "height": 76
+                        },
+                        "resources": [
+                          {
+                            "type": "skin",
+                            "url": "resource/game/login/texture/ui_Login_13a.png"
+                          }
+                        ],
+                        "skin": "resource/game/login/texture/ui_Login_13a.png"
+                      },
+                      {
+                        "name": "_lb_career",
+                        "type": "Label",
+                        "path": [
+                          2,
+                          3,
+                          3,
+                          2,
+                          4,
+                          0,
+                          2
+                        ],
+                        "x": 51,
+                        "y": 89,
+                        "width": 96,
+                        "height": 48,
+                        "zOrder": 0,
+                        "visible": true,
+                        "effectiveVisible": true,
+                        "alpha": 1,
+                        "scaleX": 0.5,
+                        "scaleY": 0.5,
+                        "rotation": 0,
+                        "anchorX": 0.5,
+                        "anchorY": 0,
+                        "pivotX": 48,
+                        "pivotY": 0,
+                        "mouseEnabled": false,
+                        "mouseThrough": false,
+                        "globalBounds": {
+                          "x": 333,
+                          "y": 109,
+                          "width": 48,
+                          "height": 24
+                        },
+                        "resources": [],
+                        "textProps": {
+                          "text": "弓手",
+                          "innerHTML": "",
+                          "color": "#ffffff",
+                          "fontSize": 48,
+                          "font": "FZKTJW",
+                          "bold": true,
+                          "italic": false,
+                          "stroke": 2,
+                          "strokeColor": "#8f284b",
+                          "align": "left",
+                          "valign": "top",
+                          "leading": 0,
+                          "wordWrap": false,
+                          "overflow": "visible"
+                        },
+                        "children": [
+                          {
+                            "name": "",
+                            "type": "Text",
+                            "path": [
+                              2,
+                              3,
+                              3,
+                              2,
+                              4,
+                              0,
+                              2,
+                              0
+                            ],
+                            "x": 0,
+                            "y": 0,
+                            "width": 96,
+                            "height": 48,
+                            "zOrder": 0,
+                            "visible": true,
+                            "effectiveVisible": true,
+                            "alpha": 1,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0,
+                            "anchorX": 0,
+                            "anchorY": 0,
+                            "pivotX": 0,
+                            "pivotY": 0,
+                            "mouseEnabled": false,
+                            "mouseThrough": false,
+                            "globalBounds": {
+                              "x": 333,
+                              "y": 109,
+                              "width": 48,
+                              "height": 24
+                            },
+                            "resources": [],
+                            "textProps": {
+                              "text": "弓手",
+                              "innerHTML": "",
+                              "color": "#ffffff",
+                              "fontSize": 48,
+                              "font": "FZKTJW",
+                              "bold": true,
+                              "italic": false,
+                              "stroke": 2,
+                              "strokeColor": "#8f284b",
+                              "align": "left",
+                              "valign": "top",
+                              "leading": 0,
+                              "wordWrap": false,
+                              "overflow": "visible"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "_img_bg",
+            "type": "Image",
+            "path": [
+              2,
+              3,
+              3,
+              3
+            ],
+            "x": 487,
+            "y": 981,
+            "width": 216,
+            "height": 44,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": false,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 487,
+              "y": 981,
+              "width": 216,
+              "height": 44
+            },
+            "resources": [
+              {
+                "type": "skin",
+                "url": "resource/game/login/texture/ui_Login_08.png"
+              }
+            ],
+            "centerX": -9,
+            "centerY": 363,
+            "skin": "resource/game/login/texture/ui_Login_08.png"
+          },
+          {
+            "name": "_img_random",
+            "type": "Image",
+            "path": [
+              2,
+              3,
+              3,
+              4
+            ],
+            "x": 670,
+            "y": 951,
+            "width": 53,
+            "height": 83,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": true,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 670,
+              "y": 951,
+              "width": 53,
+              "height": 83
+            },
+            "resources": [
+              {
+                "type": "skin",
+                "url": "resource/game/login/texture/ui_Login_09.png"
+              }
+            ],
+            "centerX": 93,
+            "centerY": 352,
+            "skin": "resource/game/login/texture/ui_Login_09.png"
+          },
+          {
+            "name": "_img_return",
+            "type": "Image",
+            "path": [
+              2,
+              3,
+              3,
+              5
+            ],
+            "x": 167,
+            "y": 0,
+            "width": 124,
+            "height": 91,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": true,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 167,
+              "y": 0,
+              "width": 124,
+              "height": 91
+            },
+            "resources": [
+              {
+                "type": "skin",
+                "url": "resource/game/login/texture/ui_Login_01.png"
+              }
+            ],
+            "top": 0,
+            "centerX": -375,
+            "skin": "resource/game/login/texture/ui_Login_01.png"
+          },
+          {
+            "name": "_img_tips",
+            "type": "Image",
+            "path": [
+              2,
+              3,
+              3,
+              6
+            ],
+            "x": 864,
+            "y": 141,
+            "width": 160,
+            "height": 238,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": false,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 864,
+              "y": 141,
+              "width": 160,
+              "height": 238
+            },
+            "resources": [
+              {
+                "type": "draw",
+                "url": "resource/game/login/other/ui_Login_14.png"
+              }
+            ],
+            "centerX": 340,
+            "centerY": -380
+          },
+          {
+            "name": "_img_tips2",
+            "type": "Image",
+            "path": [
+              2,
+              3,
+              3,
+              7
+            ],
+            "x": 858,
+            "y": 288,
+            "width": 52,
+            "height": 164,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": false,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 858,
+              "y": 288,
+              "width": 52,
+              "height": 164
+            },
+            "resources": [
+              {
+                "type": "draw",
+                "url": "resource/game/login/other/ui_Login_14a.png"
+              }
+            ],
+            "centerX": 280,
+            "centerY": -270
+          },
+          {
+            "name": "_img_tips3",
+            "type": "Image",
+            "path": [
+              2,
+              3,
+              3,
+              8
+            ],
+            "x": 884,
+            "y": 366,
+            "width": 110,
+            "height": 449,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": false,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 884,
+              "y": 366,
+              "width": 110,
+              "height": 449
+            },
+            "resources": [
+              {
+                "type": "draw",
+                "url": "resource/game/login/other/ui_Login_14b.png"
+              }
+            ],
+            "centerX": 335,
+            "centerY": -50
+          },
+          {
+            "name": "_img_enter",
+            "type": "Image",
+            "path": [
+              2,
+              3,
+              3,
+              9
+            ],
+            "x": 415,
+            "y": 1020,
+            "width": 378,
+            "height": 140,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": true,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 415,
+              "y": 1020,
+              "width": 378,
+              "height": 140
+            },
+            "resources": [
+              {
+                "type": "skin",
+                "url": "resource/game/login/texture/ui_Login_07.png"
+              }
+            ],
+            "bottom": 120,
+            "centerX": 0,
+            "skin": "resource/game/login/texture/ui_Login_07.png"
+          },
+          {
+            "name": "_img_16",
+            "type": "Image",
+            "path": [
+              2,
+              3,
+              3,
+              10
+            ],
+            "x": 529,
+            "y": 1,
+            "width": 150,
+            "height": 150,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": false,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 529,
+              "y": 1,
+              "width": 150,
+              "height": 150
+            },
+            "resources": [],
+            "top": 1,
+            "centerX": 0
+          },
+          {
+            "name": "_lb_random_name",
+            "type": "TextInput",
+            "path": [
+              2,
+              3,
+              3,
+              11
+            ],
+            "x": 489,
+            "y": 981,
+            "width": 190,
+            "height": 44,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": true,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": true,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 489,
+              "y": 981,
+              "width": 190,
+              "height": 44
+            },
+            "resources": [],
+            "centerX": -20,
+            "centerY": 363,
+            "textProps": {
+              "text": "逯大振",
+              "innerHTML": "",
+              "color": "#ffffff",
+              "fontSize": 20,
+              "font": "FZKTJW",
+              "bold": false,
+              "italic": false,
+              "stroke": 0,
+              "strokeColor": "#000000",
+              "align": "center",
+              "valign": "middle",
+              "leading": 0,
+              "wordWrap": false,
+              "overflow": "scroll"
+            },
+            "children": [
+              {
+                "name": "",
+                "type": "Text",
+                "path": [
+                  2,
+                  3,
+                  3,
+                  11,
+                  0
+                ],
+                "x": 0,
+                "y": 0,
+                "width": 190,
+                "height": 44,
+                "zOrder": 0,
+                "visible": true,
+                "effectiveVisible": true,
+                "alpha": 1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0,
+                "anchorX": 0,
+                "anchorY": 0,
+                "pivotX": 0,
+                "pivotY": 0,
+                "mouseEnabled": true,
+                "mouseThrough": false,
+                "globalBounds": {
+                  "x": 489,
+                  "y": 981,
+                  "width": 190,
+                  "height": 44
+                },
+                "resources": [],
+                "textProps": {
+                  "text": "逯大振",
+                  "innerHTML": "",
+                  "color": "#ffffff",
+                  "fontSize": 20,
+                  "font": "FZKTJW",
+                  "bold": false,
+                  "italic": false,
+                  "stroke": 0,
+                  "strokeColor": "#000000",
+                  "align": "center",
+                  "valign": "middle",
+                  "leading": 0,
+                  "wordWrap": false,
+                  "overflow": "scroll"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "meta": {
+        "name": "MessageItem",
+        "rawName": "MessageItem",
+        "source": "StageScan",
+        "baseFile": "sysInfo",
+        "layoutFile": "MessageItem",
+        "sceneUrl": "resource/game/sysInfo/MessageItem.json",
+        "loaded": true,
+        "loading": false,
+        "open": false,
+        "visible": false,
+        "nodeCount": 5,
+        "resourceCount": 2,
+        "childCount": 3,
+        "width": 280,
+        "height": 30,
+        "stagePath": [
+          2,
+          4,
+          0,
+          0
+        ]
+      },
+      "nodeCount": 5,
+      "resourceCount": 2,
+      "resources": [
+        {
+          "type": "url",
+          "url": "resource/game/sysInfo/MessageItem.json"
+        },
+        {
+          "type": "skin",
+          "url": "resource/game/sysInfo/texture/mainui_ui_45.png"
+        }
+      ],
+      "nodeTree": {
+        "name": "MessageItem",
+        "type": "Sprite",
+        "path": [
+          2,
+          4,
+          0,
+          0
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 280,
+        "height": 30,
+        "zOrder": 0,
+        "visible": false,
+        "effectiveVisible": false,
+        "alpha": 0,
+        "scaleX": 0.3,
+        "scaleY": 0.3,
+        "rotation": 0,
+        "anchorX": 0.5,
+        "anchorY": 1,
+        "pivotX": 140,
+        "pivotY": 30,
+        "mouseEnabled": false,
+        "mouseThrough": false,
+        "globalBounds": {
+          "x": 562,
+          "y": 591,
+          "width": 84,
+          "height": 9
+        },
+        "resources": [
+          {
+            "type": "url",
+            "url": "resource/game/sysInfo/MessageItem.json"
+          }
+        ],
+        "children": [
+          {
+            "name": "_img_tips",
+            "type": "Image",
+            "path": [
+              2,
+              4,
+              0,
+              0,
+              0
+            ],
+            "x": 29,
+            "y": 2,
+            "width": 222,
+            "height": 26,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": false,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": false,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 570,
+              "y": 592,
+              "width": 67,
+              "height": 8
+            },
+            "resources": [
+              {
+                "type": "skin",
+                "url": "resource/game/sysInfo/texture/mainui_ui_45.png"
+              }
+            ],
+            "centerX": 0,
+            "centerY": 0,
+            "skin": "resource/game/sysInfo/texture/mainui_ui_45.png",
+            "sizeGrid": "10,10,10,10,0"
+          },
+          {
+            "name": "_lb_content_html",
+            "type": "HTMLDivElement",
+            "path": [
+              2,
+              4,
+              0,
+              0,
+              1
+            ],
+            "x": 92,
+            "y": 7,
+            "width": 192,
+            "height": 32,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": false,
+            "alpha": 1,
+            "scaleX": 0.5,
+            "scaleY": 0.5,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": true,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 589,
+              "y": 593,
+              "width": 29,
+              "height": 5
+            },
+            "resources": [],
+            "textProps": {
+              "text": "恭喜登录成功",
+              "innerHTML": "恭喜登录成功",
+              "color": "",
+              "fontSize": 0,
+              "font": "",
+              "bold": false,
+              "italic": false,
+              "stroke": 0,
+              "strokeColor": "",
+              "align": "left",
+              "valign": "top",
+              "leading": 0,
+              "wordWrap": false,
+              "overflow": ""
+            }
+          },
+          {
+            "name": "_lb_content",
+            "type": "Label",
+            "path": [
+              2,
+              4,
+              0,
+              0,
+              2
+            ],
+            "x": 140,
+            "y": 15,
+            "width": 0,
+            "height": 0,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": false,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": false,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 604,
+              "y": 596,
+              "width": 0,
+              "height": 0
+            },
+            "resources": [],
+            "centerX": 0,
+            "centerY": 0,
+            "textProps": {
+              "text": "",
+              "innerHTML": "",
+              "color": "#000000",
+              "fontSize": 12,
+              "font": "FZKTJW",
+              "bold": false,
+              "italic": false,
+              "stroke": 0,
+              "strokeColor": "#000000",
+              "align": "left",
+              "valign": "top",
+              "leading": 0,
+              "wordWrap": false,
+              "overflow": "visible"
+            },
+            "children": [
+              {
+                "name": "",
+                "type": "Text",
+                "path": [
+                  2,
+                  4,
+                  0,
+                  0,
+                  2,
+                  0
+                ],
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "zOrder": 0,
+                "visible": true,
+                "effectiveVisible": false,
+                "alpha": 1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0,
+                "anchorX": 0,
+                "anchorY": 0,
+                "pivotX": 0,
+                "pivotY": 0,
+                "mouseEnabled": false,
+                "mouseThrough": false,
+                "globalBounds": {
+                  "x": 604,
+                  "y": 596,
+                  "width": 0,
+                  "height": 0
+                },
+                "resources": [],
+                "textProps": {
+                  "text": "",
+                  "innerHTML": "",
+                  "color": "#000000",
+                  "fontSize": 12,
+                  "font": "FZKTJW",
+                  "bold": false,
+                  "italic": false,
+                  "stroke": 0,
+                  "strokeColor": "#000000",
+                  "align": "left",
+                  "valign": "top",
+                  "leading": 0,
+                  "wordWrap": false,
+                  "overflow": "visible"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "meta": {
+        "name": "WaitforOpenViewLoading",
+        "rawName": "WaitforOpenViewLoading",
+        "source": "StageScan",
+        "baseFile": "login",
+        "layoutFile": "WaitforOpenViewLoading",
+        "sceneUrl": "resource/game/login/WaitforOpenViewLoading.json",
+        "loaded": true,
+        "loading": false,
+        "open": false,
+        "visible": false,
+        "nodeCount": 4,
+        "resourceCount": 2,
+        "childCount": 2,
+        "width": 123,
+        "height": 123,
+        "stagePath": [
+          2,
+          4,
+          2
+        ]
+      },
+      "nodeCount": 4,
+      "resourceCount": 2,
+      "resources": [
+        {
+          "type": "url",
+          "url": "resource/game/login/WaitforOpenViewLoading.json"
+        },
+        {
+          "type": "skin",
+          "url": "resource/game/login/texture/common_loading_circle.png"
+        }
+      ],
+      "nodeTree": {
+        "name": "WaitforOpenViewLoading",
+        "type": "Sprite",
+        "path": [
+          2,
+          4,
+          2
+        ],
+        "x": 542,
+        "y": 579,
+        "width": 123,
+        "height": 123,
+        "zOrder": 0,
+        "visible": false,
+        "effectiveVisible": false,
+        "alpha": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "rotation": 0,
+        "anchorX": 0,
+        "anchorY": 0,
+        "pivotX": 0,
+        "pivotY": 0,
+        "mouseEnabled": false,
+        "mouseThrough": false,
+        "globalBounds": {
+          "x": 542,
+          "y": 579,
+          "width": 123,
+          "height": 123
+        },
+        "resources": [
+          {
+            "type": "url",
+            "url": "resource/game/login/WaitforOpenViewLoading.json"
+          }
+        ],
+        "centerX": 0,
+        "centerY": 0,
+        "children": [
+          {
+            "name": "_img_circle",
+            "type": "Image",
+            "path": [
+              2,
+              4,
+              2,
+              0
+            ],
+            "x": 62,
+            "y": 62,
+            "width": 123,
+            "height": 123,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": false,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0.5,
+            "anchorY": 0.5,
+            "pivotX": 61.5,
+            "pivotY": 61.5,
+            "mouseEnabled": false,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 542,
+              "y": 579,
+              "width": 123,
+              "height": 123
+            },
+            "resources": [
+              {
+                "type": "skin",
+                "url": "resource/game/login/texture/common_loading_circle.png"
+              }
+            ],
+            "skin": "resource/game/login/texture/common_loading_circle.png"
+          },
+          {
+            "name": "_lb_loading",
+            "type": "Label",
+            "path": [
+              2,
+              4,
+              2,
+              1
+            ],
+            "x": 26,
+            "y": 49,
+            "width": 72,
+            "height": 24,
+            "zOrder": 0,
+            "visible": true,
+            "effectiveVisible": false,
+            "alpha": 1,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "anchorX": 0,
+            "anchorY": 0,
+            "pivotX": 0,
+            "pivotY": 0,
+            "mouseEnabled": false,
+            "mouseThrough": false,
+            "globalBounds": {
+              "x": 568,
+              "y": 628,
+              "width": 72,
+              "height": 24
+            },
+            "resources": [],
+            "textProps": {
+              "text": "加载中",
+              "innerHTML": "",
+              "color": "#f7d16a",
+              "fontSize": 24,
+              "font": "FZKTJW",
+              "bold": false,
+              "italic": false,
+              "stroke": 0,
+              "strokeColor": "#f7d16a",
+              "align": "left",
+              "valign": "top",
+              "leading": 0,
+              "wordWrap": false,
+              "overflow": "visible"
+            },
+            "children": [
+              {
+                "name": "",
+                "type": "Text",
+                "path": [
+                  2,
+                  4,
+                  2,
+                  1,
+                  0
+                ],
+                "x": 0,
+                "y": 0,
+                "width": 72,
+                "height": 24,
+                "zOrder": 0,
+                "visible": true,
+                "effectiveVisible": false,
+                "alpha": 1,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0,
+                "anchorX": 0,
+                "anchorY": 0,
+                "pivotX": 0,
+                "pivotY": 0,
+                "mouseEnabled": false,
+                "mouseThrough": false,
+                "globalBounds": {
+                  "x": 568,
+                  "y": 628,
+                  "width": 72,
+                  "height": 24
+                },
+                "resources": [],
+                "textProps": {
+                  "text": "加载中",
+                  "innerHTML": "",
+                  "color": "#f7d16a",
+                  "fontSize": 24,
+                  "font": "FZKTJW",
+                  "bold": false,
+                  "italic": false,
+                  "stroke": 0,
+                  "strokeColor": "#f7d16a",
+                  "align": "left",
+                  "valign": "top",
+                  "leading": 0,
+                  "wordWrap": false,
+                  "overflow": "visible"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "missing": []
+}

@@ -32,6 +32,7 @@ namespace Shenxiao.Module.Core.Preload
         public delegate void ProgressHandler(LegacyPreloadStage stage, float progress, string hint);
 
         private const string PRELOAD_CONFIG = "configpreloadreslist";
+        private const int WarmConcurrency = 8;
         private static readonly Dictionary<string, UnityEngine.Object> _retained =
             new Dictionary<string, UnityEngine.Object>();
         private static readonly Dictionary<string, bool> _keyExists =
@@ -194,19 +195,31 @@ namespace Shenxiao.Module.Core.Preload
 
         private static async Task<List<PreloadEntry>> FilterExistingAsync(IEnumerable<PreloadEntry> entries)
         {
-            var valid = new List<PreloadEntry>();
-            int missing = 0;
+            // 并发探测存在性:几百个 key 一个个 await 会卡几百帧(每次 LoadResourceLocationsAsync 都按帧推进,
+            // 这正是启动慢的根因)。一次性并发发起、统一 await,Addressables 在少数几帧内全处理完;
+            // 已缓存的直接取值、不发起异步。所有续体都在主线程协作执行,字典读写无需加锁。
+            var list = new List<PreloadEntry>();
             foreach (PreloadEntry entry in entries)
             {
-                if (entry == null || string.IsNullOrEmpty(entry.Key)) continue;
-                bool exists;
-                string cacheKey = entry.Kind + ":" + entry.Key;
-                if (!_keyExists.TryGetValue(cacheKey, out exists))
-                {
-                    exists = await EntryExistsAsync(entry);
-                    _keyExists[cacheKey] = exists;
-                }
-                if (exists) valid.Add(entry);
+                if (entry != null && !string.IsNullOrEmpty(entry.Key)) list.Add(entry);
+            }
+
+            var checks = new Task<bool>[list.Count];
+            for (int i = 0; i < list.Count; i++)
+            {
+                string cacheKey = list[i].Kind + ":" + list[i].Key;
+                checks[i] = _keyExists.TryGetValue(cacheKey, out bool known)
+                    ? Task.FromResult(known)
+                    : EntryExistsAsync(list[i]);
+            }
+            bool[] results = await Task.WhenAll(checks);
+
+            var valid = new List<PreloadEntry>();
+            int missing = 0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                _keyExists[list[i].Kind + ":" + list[i].Key] = results[i];
+                if (results[i]) valid.Add(list[i]);
                 else missing++;
             }
             if (missing > 0)
@@ -236,27 +249,39 @@ namespace Shenxiao.Module.Core.Preload
         private static async Task WarmAsync(LegacyPreloadStage stage, List<PreloadEntry> entries,
             Action<float, string> progress, float start, float end)
         {
-            int warmCount = 0;
+            var toWarm = new List<PreloadEntry>();
             for (int i = 0; i < entries.Count; i++)
             {
-                if (ShouldWarm(stage, entries[i])) warmCount++;
+                if (ShouldWarm(stage, entries[i])) toWarm.Add(entries[i]);
             }
-            if (warmCount == 0)
+            if (toWarm.Count == 0)
             {
                 Report(stage, progress, end, "依赖已就绪");
                 return;
             }
 
+            // 有界并发预热:逐个串行 await 同样会卡上百帧;并发上限封顶,避免一帧涌入太多真实资源加载/解码尖刺。
+            // next/done 的自增都在 await 之间的同步段完成,主线程协作调度下天然原子,无需加锁。
             int done = 0;
-            for (int i = 0; i < entries.Count; i++)
+            int next = 0;
+
+            async Task WarmWorkerAsync()
             {
-                PreloadEntry entry = entries[i];
-                if (!ShouldWarm(stage, entry)) continue;
-                await WarmOneAsync(entry);
-                done++;
-                float p = start + (end - start) * done / warmCount;
-                Report(stage, progress, p, "预热资源");
+                while (true)
+                {
+                    int i = next++;
+                    if (i >= toWarm.Count) return;
+                    await WarmOneAsync(toWarm[i]);
+                    done++;
+                    float p = start + (end - start) * done / toWarm.Count;
+                    Report(stage, progress, p, "预热资源");
+                }
             }
+
+            int concurrency = Mathf.Min(WarmConcurrency, toWarm.Count);
+            var workers = new Task[concurrency];
+            for (int w = 0; w < concurrency; w++) workers[w] = WarmWorkerAsync();
+            await Task.WhenAll(workers);
         }
 
         private static bool ShouldWarm(LegacyPreloadStage stage, PreloadEntry entry)

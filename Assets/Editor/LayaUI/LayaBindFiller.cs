@@ -37,6 +37,14 @@ namespace Shenxiao.Editor.LayaUI
             Debug.Log("[LayaUI] 回填完成: 成功 " + ok + ",缺 Bind 类 " + miss + "(缺的看 Console 前面的警告)");
         }
 
+        /// <summary>给单个 prefab 挂 Bind 组件并回填字段(烤制器/单页验证用,复用 FillOne)。</summary>
+        public static bool FillPrefab(string prefabPath)
+        {
+            LayaUIManifest manifest = LayaUIManifest.Load(true);
+            if (manifest == null) { Debug.LogError("[LayaUI] manifest 缺失,无法回填"); return false; }
+            return FillOne(prefabPath, ModuleDirFromPath(prefabPath), manifest);
+        }
+
         private static bool FillOne(string prefabPath, string moduleDir, LayaUIManifest manifest)
         {
             GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);
@@ -51,6 +59,11 @@ namespace Shenxiao.Editor.LayaUI
                     if (child.name == "__Templates") continue;
                     if (FillWindow(child, child.name, moduleDir, manifest)) filled++;
                 }
+                // 烤制器把重复列表项(LoginSelectRoleItem 等)直接烤进容器(不是 __Templates),
+                // 上面 FillWindow 只处理窗口根/模板;这里全树递归,给任何"名字匹配 {Name}Bind 类"的
+                // 内嵌节点补挂 + 回填(字段相对该 item 根)。item 的 View 靠 GetComponent<{Item}Bind>()
+                // 取字段,漏挂会被当 null 跳过 → 烤制快照文字漏出(选角"1 个角色却显示 3 个"的根因)。
+                filled += FillNestedItemBinds(root.transform, moduleDir, manifest);
                 if (filled == 0)
                 {
                     Debug.LogWarning("[LayaUI] " + prefabPath + " 没匹配到任何 Bind 类(还没编译?)");
@@ -63,6 +76,27 @@ namespace Shenxiao.Editor.LayaUI
             {
                 PrefabUtility.UnloadPrefabContents(root);
             }
+        }
+
+        /// <summary>
+        /// 全树递归:给名字匹配 {Name}Bind 类的内嵌节点(烤进容器的重复列表项,如 LoginSelectRoleItem)
+        /// 补挂业务 Bind + 回填字段(字段相对该 item 根)。窗口根/直接子窗口已由 FillWindow 处理,这里
+        /// 补的是更深层、烤进容器的 item 节点。EnsureBindOnWindow 名字不匹配时返回 false(纯结构节点跳过)。
+        /// 嵌套 prefab 实例从源继承组件,跳过其子树避免在宿主上产生组件覆盖(与 FillAll 同策略)。
+        /// </summary>
+        private static int FillNestedItemBinds(Transform node, string moduleDir, LayaUIManifest manifest)
+        {
+            int count = 0;
+            for (int i = 0; i < node.childCount; i++)
+            {
+                Transform c = node.GetChild(i);
+                if (c.name == "__Templates") continue;
+                if (PrefabUtility.GetCorrespondingObjectFromSource(c.gameObject) != null) continue;
+                string discard;
+                if (EnsureBindOnWindow(c, c.name, moduleDir, manifest, null, out discard)) count++;
+                count += FillNestedItemBinds(c, moduleDir, manifest);
+            }
+            return count;
         }
 
         /// <summary>
@@ -142,7 +176,10 @@ namespace Shenxiao.Editor.LayaUI
                 if (prop == null) continue;
                 Transform t = windowRoot.Find(f.NodePath);
                 if (t == null) continue;
-                UnityEngine.Object newRef = ResolveRef(t, f.TypeName);
+                // 用字段【声明类型】解析,而非节点当前组件:烤制后 Box 节点常多挂了 Image
+                // (Laya 带 graphics 的 Box→Image),按 f.TypeName(=Image)会把 Image 塞进
+                // RectTransform 字段→类型不匹配置空(_box_con/checkBtn 等容器字段漏绑的根因)。
+                UnityEngine.Object newRef = ResolveRef(t, TypeFromProp(prop, f.TypeName));
                 if (prop.objectReferenceValue != newRef)
                 {
                     prop.objectReferenceValue = newRef;
@@ -190,6 +227,16 @@ namespace Shenxiao.Editor.LayaUI
         private static bool IsReusableTemplate(LayaUIManifest.SceneEntry entry)
         {
             return entry.Decision == "inline" || entry.Decision == "shared-prefab";
+        }
+
+        /// <summary>从序列化属性类型 "PPtr&lt;$RectTransform&gt;" 提取声明类型名 RectTransform;失败回退采集类型。</summary>
+        private static string TypeFromProp(SerializedProperty prop, string fallback)
+        {
+            string t = prop != null ? prop.type : null;
+            if (string.IsNullOrEmpty(t)) return fallback;
+            int s = t.IndexOf('$');
+            int e = t.LastIndexOf('>');
+            return (s >= 0 && e > s) ? t.Substring(s + 1, e - s - 1) : fallback;
         }
 
         private static UnityEngine.Object ResolveRef(Transform t, string typeName)

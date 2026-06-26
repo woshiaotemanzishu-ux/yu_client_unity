@@ -20,7 +20,7 @@ namespace Shenxiao.Editor.LayaUI
     /// 列表项按 manifest 决策内联进窗口的 __Templates(禁用)节点;
     /// 布局换算全部走 LayaRectMath,皮肤全部走 LayaSpriteImporter。
     /// </summary>
-    public static class LayaSceneConverter
+    public static partial class LayaSceneConverter
     {
         private const string ROOT_LAYOUT_CONFIG_PATH = "Schemas/LayaUI/ui_root_layouts.json";
 

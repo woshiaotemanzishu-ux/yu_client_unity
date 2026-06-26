@@ -1,0 +1,139 @@
+{
+  "//": "分组方案(AI 产出,已人工审阅通过 2026-06-25)。规则:一个『运行时受管视图』= 一个 prefab;",
+  "//2": "粒度信号取自老端 BaseView1 的 layer_value / use_background / is_center / 根节点是否拉伸 / 打开方式,",
+  "//3": "不是 .scene 文件粒度(太碎)也不是 LoginModule 大坨(太粗)。item 模板默认嵌在所属屏内,共享的抽成独立 prefab。",
+  "module": "login",
+  "source_prefab": "Assets/Prefabs/UI/Login/LoginModule.prefab",
+  "item_policy": "单一属主的 item 模板嵌在所属 prefab 的 __Templates 内;被多处复用的抽成独立 prefab",
+  "prefabs": [
+    {
+      "name": "LoginView", "kind": "screen", "label": "登录",
+      "view_roots": ["LoginView"], "source": "login/LoginView.json",
+      "open": "OPEN_VIEW; layer Top; use_background+is_center(带遮罩的居中登录面板)",
+      "owns_items": [], "references": [],
+      "rationale": "账号/密码登录页;与 RegisterView 互相切换(点注册→Close 自身+开 Register),是独立页不嵌套。"
+    },
+    {
+      "name": "RegisterView", "kind": "screen", "label": "注册",
+      "view_roots": ["RegisterView"], "source": "login/RegisterView.json",
+      "open": "OPEN_VIEW; layer Top; use_background+is_center",
+      "owns_items": [], "references": [],
+      "rationale": "LoginView 的兄弟页,镜像结构;返回→回登录态。独立 prefab。"
+    },
+    {
+      "name": "LoginEnterView", "kind": "screen", "label": "选服主界面(进入大厅)",
+      "view_roots": ["LoginEnterView"], "source": "login/LoginEnterView.json",
+      "open": "OPEN_VIEW; layer Top; is_center; 根节点拉伸全屏(left=right=top=bottom)",
+      "owns_items": [], "references": ["EyouThAdultItem", "LoginUserAgreementView"],
+      "rationale": "登录后的中枢全屏页:显示当前服/进入按钮/协议勾选;它『打开』SelectServer/Alert/Notice/Tips(都是 launch 不是 embed),内嵌 EyouThAdultItem、new 出 UserAgreement。"
+    },
+    {
+      "name": "LoginSelectServerView", "kind": "screen", "label": "选服列表",
+      "view_roots": ["LoginSelectServerView"], "source": "login/LoginSelectServerView.json",
+      "open": "OPEN_VIEW; layer Top; use_background(alpha=0)+click_bg_toClose+is_center",
+      "owns_items": ["LoginSelectServerTabItem", "LoginSelectServerItem", "LoginSelectServerLocationItem"],
+      "references": ["EyouThAdultItem"],
+      "rationale": "由 EnterView 打开的服务器选择页。带透明遮罩+点外关闭(像 dialog),但功能上是整页服务器选择→判为 screen(带模态外壳)。三个列表 item 都是它私有。",
+      "flags": ["borderline:screen-vs-dialog", "LoginSelectServerLocationItem 有 bind+模板但 Unity 视图尚未实例化(运行时缺口)"]
+    },
+    {
+      "name": "LoginCreateRoleView", "kind": "screen", "label": "创角",
+      "view_roots": ["LoginCreateRoleView"], "source": "login/LoginCreateRoleView.json",
+      "open": "OPEN_VIEW; layer Top; 全屏;role_num==0 时打开",
+      "owns_items": ["LoginCreateRoleItem"], "references": ["EyouThAdultItem", "LoginUserAgreementView"],
+      "rationale": "全屏创角页,私有职业项 LoginCreateRoleItem(+HeadItem skin)。可触发 LoginCreatRoleVideoView。"
+    },
+    {
+      "name": "LoginSelectRoleView", "kind": "screen", "label": "选角",
+      "view_roots": ["LoginSelectRoleView"], "source": "login/LoginSelectRoleView.json",
+      "open": "OPEN_VIEW; layer Top; back_login_toClose; 全屏(top=bottom=0)",
+      "owns_items": ["LoginSelectRoleItem"], "references": ["EyouThAdultItem"],
+      "rationale": "全屏角色画廊,私有 LoginSelectRoleItem(+Skin),含 3D 模型。返回→重开 EnterView/AccountView。"
+    },
+    {
+      "name": "AccountView", "kind": "screen", "label": "调试账号入口",
+      "view_roots": ["AccountView"], "source": "login/AccountView.json",
+      "open": "OPEN_VIEW; layer Top; not_close_by_android_back_key",
+      "owns_items": ["AccountItem"], "references": [],
+      "rationale": "开发/调试用的账号入口面板,私有 AccountItem(+内联 AccountIpItem)。",
+      "flags": ["可能仅开发期使用,是否进生产构建?要你确认"]
+    },
+
+    {
+      "name": "LoginAlertView", "kind": "dialog", "label": "协议确认弹窗",
+      "view_roots": ["LoginAlertView"], "source": "login/LoginAlertView.json",
+      "open": "由 EnterView 打开; layer Top; use_background+is_center(模态)",
+      "owns_items": [], "references": ["LoginUserAgreementView"],
+      "rationale": "居中模态确认框;内部 new 出 UserAgreement。独立 dialog prefab。"
+    },
+    {
+      "name": "LoginNoticeView", "kind": "dialog", "label": "公告弹窗",
+      "view_roots": ["LoginNoticeView"], "source": "login/LoginNoticeView.json",
+      "open": "由 EnterView 打开; layer Message(更高); use_background+click_bg_toClose+is_center",
+      "owns_items": ["LoginNoticeBtnItem", "LoginNoticeItem"], "references": [],
+      "rationale": "公告模态,私有 tab(BtnItem)+内容(Item)两种列表项。"
+    },
+    {
+      "name": "LoginTipsView", "kind": "dialog", "label": "健康/年龄提示弹窗",
+      "view_roots": ["LoginTipsView"], "source": "login/LoginTipsView.json",
+      "open": "由 EnterView 打开(EventName.OPEN_VIEW); layer Top; use_background+click_bg_toClose+is_center",
+      "owns_items": ["LoginTipsItem"], "references": [],
+      "rationale": "提示模态,私有 LoginTipsItem。"
+    },
+    {
+      "name": "LoginUserAgreementView", "kind": "dialog(shared)", "label": "用户协议弹窗(共享)",
+      "view_roots": ["LoginUserAgreementView"], "source": "login/LoginUserAgreementView.json",
+      "open": "由 EnterView/AlertView/CreateRoleView 直接 new().Open() — 不走 OPEN_VIEW 事件",
+      "owns_items": [], "references": [],
+      "rationale": "被 3 个父级复用的协议正文模态 → 必须独立可复用 prefab,不能并进任一父级。",
+      "flags": ["有两个源:LoginUserAgreementView.scene + ...Exml.scene"]
+    },
+
+    {
+      "name": "LoginLoadingView", "kind": "overlay", "label": "进游戏加载页",
+      "view_roots": ["LoginLoadingView"], "source": "login/LoginLoadingView.json",
+      "open": "由 Controller/video 结束后打开; layer Top; use_background+is_center",
+      "owns_items": [], "references": ["EyouThAdultItem"],
+      "rationale": "选完角色进世界前的加载过渡页。独立 overlay。"
+    },
+    {
+      "name": "LoginCreatRoleVideoView", "kind": "overlay", "label": "创角过场视频",
+      "view_roots": ["LoginCreatRoleVideoView"], "source": "login/LoginCreatRoleVideoView.json",
+      "open": "Controller 打开; layer FightingUp(最顶); use_background; 可跳过",
+      "owns_items": [], "references": [],
+      "rationale": "创角与加载之间的过场,最顶层非模态。独立 overlay。"
+    },
+    {
+      "name": "WaitforOpenViewLoading", "kind": "overlay(global)", "label": "全局加载转圈",
+      "view_roots": ["WaitforOpenViewLoading"], "source": "login/WaitforOpenViewLoading.json",
+      "open": "ViewManager 预加载到 Message 层,SHOW/HIDE 事件控制;extends BaseItem1(非 BaseView1)",
+      "owns_items": [], "references": [],
+      "rationale": "任意视图异步加载时显示的全局单例转圈,从不独立打开。独立 overlay,可能该归到通用/framework 层而非 login。",
+      "flags": ["严格说是全局组件,不只属于 login;是否移出 login 模块?"]
+    },
+
+    {
+      "name": "LoginBgView", "kind": "backdrop", "label": "登录共享背景",
+      "view_roots": ["LoginBgView"], "source": "login/LoginBgView.json",
+      "open": "LoginManager 最先打开; layer Top; use_background; 整个登录会话常驻",
+      "owns_items": [], "references": [],
+      "rationale": "所有登录屏共同的背景层,常驻整个登录流程并随状态切贴图。独立 backdrop prefab,别并进任何屏。"
+    }
+  ],
+  "shared_external": [
+    {
+      "name": "EyouThAdultItem", "kind": "item(shared)",
+      "guid": "5d5c689020f93094290fb4aa32fab306",
+      "owner": "mainUI 模块(非 login)",
+      "used_by": ["LoginEnterView", "LoginSelectServerView", "LoginSelectRoleView", "LoginCreateRoleView", "LoginLoadingView"],
+      "rationale": "防沉迷成人验证项,已是 mainUI 下的独立 prefab,被 5 个登录屏的 __Templates 引用。保持独立,各屏引用同一 guid。"
+    }
+  ],
+  "open_questions": [
+    "1. item 模板:默认嵌在所属屏(__Templates 内,共 15 个 prefab)。要不要把 item 也抽成独立小 prefab(更符合 UGUI 习惯但 prefab 数翻倍)?这是你的选择。",
+    "2. AccountView 是否生产构建需要?若仅开发期,单独标 dev 或排除。",
+    "3. WaitforOpenViewLoading 是全局组件,要不要移出 login、归到通用/framework?",
+    "4. LoginSelectServerView 的 screen/dialog 边界:我判为 screen(带模态外壳),认可吗?",
+    "5. 这是 15 个 prefab(= 15 个运行时受管视图),不是你说的 6 个——因为弹窗/过场/背景也是独立受管视图,合进屏里就又变回大坨了。你要的 6 个屏在这里都有,额外的 dialog/overlay/backdrop 是必须分开的。粒度规则认可吗?"
+  ]
+}

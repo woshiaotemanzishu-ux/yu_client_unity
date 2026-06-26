@@ -1,0 +1,45 @@
+{
+  "timestamp": "selftest",
+  "isPlaying": true,
+  "screen": [720, 1280],
+  "rootCanvases": [
+    {
+      "name": "UIRoot", "screenRect": [0, 0, 720, 1280], "activeInHierarchy": true,
+      "children": [
+        {
+          "name": "LoginCreateRoleView", "screenRect": [0, 0, 720, 1280], "activeInHierarchy": true,
+          "children": [
+            { "name": "_gp_model_con", "screenRect": [0, 0, 720, 1280], "activeInHierarchy": true },
+            { "name": "_gp_head_con", "screenRect": [-71, 243, 226, 683], "activeInHierarchy": true },
+
+            { "name": "_img_bg", "screenRect": [243, 981, 216, 44], "activeInHierarchy": true,
+              "graphic": { "type": "Image", "sprite": "ui_WRONG_99" } },
+
+            { "name": "_img_return", "screenRect": [-77, 0, 124, 91], "activeInHierarchy": true,
+              "graphic": { "type": "Image", "sprite": "ui_Login_01" } },
+
+            { "name": "_img_tips", "screenRect": [563, 6, 196, 309], "activeInHierarchy": true,
+              "graphic": { "type": "Image", "sprite": "ui_tips_a" } },
+
+            { "name": "_img_enter", "screenRect": [211, 1020, 378, 140], "activeInHierarchy": true,
+              "graphic": { "type": "Image", "sprite": "ui_Login_07" } },
+
+            { "name": "_lb_random_name", "screenRect": [245, 981, 190, 44], "activeInHierarchy": true,
+              "graphic": { "type": "TextMeshProUGUI", "text": "" } },
+
+            { "name": "_sub_a", "screenRect": [0, 0, 200, 200], "activeInHierarchy": true,
+              "children": [
+                { "name": "_lab", "screenRect": [100, 100, 60, 30], "activeInHierarchy": true,
+                  "graphic": { "type": "TextMeshProUGUI", "text": "AA" } }
+              ] },
+            { "name": "_sub_b", "screenRect": [0, 0, 200, 200], "activeInHierarchy": true,
+              "children": [
+                { "name": "_lab", "screenRect": [600, 100, 60, 30], "activeInHierarchy": true,
+                  "graphic": { "type": "TextMeshProUGUI", "text": "BB" } }
+              ] }
+          ]
+        }
+      ]
+    }
+  ]
+}

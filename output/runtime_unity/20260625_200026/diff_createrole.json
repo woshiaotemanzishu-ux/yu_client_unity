@@ -1,0 +1,457 @@
+{
+  "view": "LoginCreateRoleView",
+  "findings": [
+    {
+      "severity": "MISSING",
+      "node": "ui_Login_bg2_create",
+      "type": "Image",
+      "path": "LoginCreateRoleView/ui_Login_bg2_create",
+      "res": "ui_login_bg2",
+      "detail": "老端可见但 Unity 树里没有对应节点  贴图=ui_login_bg2"
+    },
+    {
+      "severity": "MISSING",
+      "node": "ui_role_01",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/ui_role_01",
+      "res": "",
+      "detail": "老端可见但 Unity 树里没有对应节点"
+    },
+    {
+      "severity": "MISSING",
+      "node": "LoginCreateRoleItem",
+      "type": "Sprite",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem",
+      "res": "",
+      "detail": "老端可见但 Unity 树里没有对应节点"
+    },
+    {
+      "severity": "MISSING",
+      "node": "LoginCreateRoleItem",
+      "type": "Sprite",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem",
+      "res": "",
+      "detail": "老端可见但 Unity 树里没有对应节点"
+    },
+    {
+      "severity": "MISSING",
+      "node": "LoginCreateRoleItem",
+      "type": "Sprite",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem",
+      "res": "",
+      "detail": "老端可见但 Unity 树里没有对应节点"
+    },
+    {
+      "severity": "MISSING",
+      "node": "(无名)",
+      "type": "Text",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_lb_career",
+      "res": "",
+      "detail": "老端无名但有视觉内容(疑似特效),Unity 无对应节点"
+    },
+    {
+      "severity": "MISSING",
+      "node": "(无名)",
+      "type": "Text",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_lb_career",
+      "res": "",
+      "detail": "老端无名但有视觉内容(疑似特效),Unity 无对应节点"
+    },
+    {
+      "severity": "MISSING",
+      "node": "(无名)",
+      "type": "Text",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_lb_career",
+      "res": "",
+      "detail": "老端无名但有视觉内容(疑似特效),Unity 无对应节点"
+    },
+    {
+      "severity": "MISSING",
+      "node": "(无名)",
+      "type": "Text",
+      "path": "LoginCreateRoleView/_lb_random_name",
+      "res": "",
+      "detail": "老端无名但有视觉内容(疑似特效),Unity 无对应节点"
+    },
+    {
+      "severity": "RESOURCE",
+      "node": "_img_bg",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_bg",
+      "detail": "贴图对不上  laya=ui_login_02  unity=ui_login_03"
+    },
+    {
+      "severity": "RESOURCE",
+      "node": "_img_icon",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_icon",
+      "detail": "老端有贴图 ui_login_10,Unity 节点没有 sprite"
+    },
+    {
+      "severity": "RESOURCE",
+      "node": "_img_bg",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_bg",
+      "detail": "贴图对不上  laya=ui_login_03  unity=ui_login_02"
+    },
+    {
+      "severity": "RESOURCE",
+      "node": "_img_icon",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_icon",
+      "detail": "贴图对不上  laya=ui_login_12a  unity=ui_login_10"
+    },
+    {
+      "severity": "RESOURCE",
+      "node": "_img_icon",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_icon",
+      "detail": "贴图对不上  laya=ui_login_11a  unity=ui_login_12a"
+    },
+    {
+      "severity": "RESOURCE",
+      "node": "_img_icon",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_icon",
+      "detail": "贴图对不上  laya=ui_login_13a  unity=ui_login_11a"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_lb_career",
+      "type": "Label",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_lb_career",
+      "norm_dist": 0.5806,
+      "detail": "偏移 ~(-266, +572)px(老端设计像素)  (归一化 0.581)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "LoginCreateRoleItem",
+      "type": "Sprite",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem",
+      "norm_dist": 0.5791,
+      "detail": "偏移 ~(-266, +570)px(老端设计像素)  (归一化 0.579)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_box_head",
+      "type": "Sprite",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head",
+      "norm_dist": 0.5791,
+      "detail": "偏移 ~(-266, +570)px(老端设计像素)  (归一化 0.579)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_img_bg",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_bg",
+      "norm_dist": 0.5791,
+      "detail": "偏移 ~(-266, +570)px(老端设计像素)  (归一化 0.579)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_img_icon",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_icon",
+      "norm_dist": 0.5791,
+      "detail": "偏移 ~(-266, +570)px(老端设计像素)  (归一化 0.579)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "",
+      "type": "Text",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_lb_career",
+      "norm_dist": 0.5095,
+      "detail": "偏移 ~(+6, +652)px(老端设计像素)  (归一化 0.509)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_lb_career",
+      "type": "Label",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_lb_career",
+      "norm_dist": 0.4836,
+      "detail": "偏移 ~(-338, +145)px(老端设计像素)  (归一化 0.484)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_box_head",
+      "type": "Sprite",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head",
+      "norm_dist": 0.4831,
+      "detail": "偏移 ~(-338, +143)px(老端设计像素)  (归一化 0.483)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_img_bg",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_bg",
+      "norm_dist": 0.4831,
+      "detail": "偏移 ~(-338, +142)px(老端设计像素)  (归一化 0.483)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_img_icon",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_icon",
+      "norm_dist": 0.4831,
+      "detail": "偏移 ~(-338, +142)px(老端设计像素)  (归一化 0.483)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_lb_career",
+      "type": "Label",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_lb_career",
+      "norm_dist": 0.4056,
+      "detail": "偏移 ~(+6, +519)px(老端设计像素)  (归一化 0.406)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_box_head",
+      "type": "Sprite",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head",
+      "norm_dist": 0.4036,
+      "detail": "偏移 ~(+6, +516)px(老端设计像素)  (归一化 0.404)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_img_bg",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_bg",
+      "norm_dist": 0.4036,
+      "detail": "偏移 ~(+6, +516)px(老端设计像素)  (归一化 0.404)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_img_icon",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_icon",
+      "norm_dist": 0.4036,
+      "detail": "偏移 ~(+6, +516)px(老端设计像素)  (归一化 0.404)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_gp_head_con",
+      "type": "Sprite",
+      "path": "LoginCreateRoleView/_gp_head_con",
+      "norm_dist": 0.3347,
+      "detail": "偏移 ~(-241, -27)px(老端设计像素)  (归一化 0.335)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_lb_career",
+      "type": "Label",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_lb_career",
+      "norm_dist": 0.3132,
+      "detail": "偏移 ~(-162, +278)px(老端设计像素)  (归一化 0.313)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_box_head",
+      "type": "Sprite",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head",
+      "norm_dist": 0.3119,
+      "detail": "偏移 ~(-162, +276)px(老端设计像素)  (归一化 0.312)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_img_bg",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_bg",
+      "norm_dist": 0.3119,
+      "detail": "偏移 ~(-162, +276)px(老端设计像素)  (归一化 0.312)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_img_icon",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_icon",
+      "norm_dist": 0.3119,
+      "detail": "偏移 ~(-162, +276)px(老端设计像素)  (归一化 0.312)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_img_tips2",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_img_tips2",
+      "norm_dist": 0.2232,
+      "detail": "偏移 ~(+53, -270)px(老端设计像素)  (归一化 0.223)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_img_tips3",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_img_tips3",
+      "norm_dist": 0.2065,
+      "detail": "偏移 ~(-101, -194)px(老端设计像素)  (归一化 0.207)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_img_tips",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_img_tips",
+      "norm_dist": 0.1523,
+      "detail": "偏移 ~(-86, -122)px(老端设计像素)  (归一化 0.152)"
+    },
+    {
+      "severity": "OFFSET",
+      "node": "_img_return",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_img_return",
+      "norm_dist": 0.0924,
+      "detail": "偏移 ~(+66, +0)px(老端设计像素)  (归一化 0.092)"
+    },
+    {
+      "severity": "SIZE",
+      "node": "_gp_head_con",
+      "type": "Sprite",
+      "path": "LoginCreateRoleView/_gp_head_con",
+      "detail": "尺寸比例  w×0.14  h×0.00"
+    },
+    {
+      "severity": "SIZE",
+      "node": "_lb_career",
+      "type": "Label",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_lb_career",
+      "detail": "尺寸比例  w×0.52  h×1.21"
+    },
+    {
+      "severity": "SIZE",
+      "node": "_lb_career",
+      "type": "Label",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_lb_career",
+      "detail": "尺寸比例  w×0.52  h×1.21"
+    },
+    {
+      "severity": "SIZE",
+      "node": "_lb_career",
+      "type": "Label",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_lb_career",
+      "detail": "尺寸比例  w×0.52  h×1.21"
+    },
+    {
+      "severity": "SIZE",
+      "node": "_lb_career",
+      "type": "Label",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_lb_career",
+      "detail": "尺寸比例  w×0.52  h×1.21"
+    },
+    {
+      "severity": "SIZE",
+      "node": "_img_tips2",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_img_tips2",
+      "detail": "尺寸比例  w×1.33  h×1.00"
+    },
+    {
+      "severity": "SIZE",
+      "node": "_img_tips3",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_img_tips3",
+      "detail": "尺寸比例  w×2.28  h×0.61"
+    },
+    {
+      "severity": "SIZE",
+      "node": "",
+      "type": "Text",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_lb_career",
+      "detail": "尺寸比例  w×0.52  h×1.21"
+    },
+    {
+      "severity": "HIDDEN",
+      "node": "LoginCreateRoleItem",
+      "type": "Sprite",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem",
+      "detail": "老端可见,Unity 对应节点 inactive"
+    },
+    {
+      "severity": "HIDDEN",
+      "node": "_box_head",
+      "type": "Sprite",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head",
+      "detail": "老端可见,Unity 对应节点 inactive"
+    },
+    {
+      "severity": "HIDDEN",
+      "node": "_img_bg",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_bg",
+      "detail": "老端可见,Unity 对应节点 inactive"
+    },
+    {
+      "severity": "HIDDEN",
+      "node": "_img_icon",
+      "type": "Image",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_img_icon",
+      "detail": "老端可见,Unity 对应节点 inactive"
+    },
+    {
+      "severity": "HIDDEN",
+      "node": "_lb_career",
+      "type": "Label",
+      "path": "LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem/_box_head/_lb_career",
+      "detail": "老端可见,Unity 对应节点 inactive"
+    },
+    {
+      "severity": "EXTRA",
+      "node": "__ModelView",
+      "type": "RawImage",
+      "path": "UIRoot/Window/LoginModule(Clone)/LoginCreateRoleView/_gp_model_con/__ModelView",
+      "detail": "Unity 独有(老端无同名节点)"
+    },
+    {
+      "severity": "EXTRA",
+      "node": "_box_head",
+      "type": "",
+      "path": "UIRoot/Window/LoginModule(Clone)/LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem(Clone)/_box_head",
+      "detail": "Unity 独有,且与已匹配节点重名(疑似重复/错位节点)"
+    },
+    {
+      "severity": "EXTRA",
+      "node": "_img_bg",
+      "type": "Image",
+      "path": "UIRoot/Window/LoginModule(Clone)/LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem(Clone)/_box_head/_img_bg",
+      "detail": "Unity 独有,且与已匹配节点重名(疑似重复/错位节点)"
+    },
+    {
+      "severity": "EXTRA",
+      "node": "_img_icon",
+      "type": "Image",
+      "path": "UIRoot/Window/LoginModule(Clone)/LoginCreateRoleView/_gp_head_con/LoginCreateRoleItem(Clone)/_box_head/_img_icon",
+      "detail": "Unity 独有,且与已匹配节点重名(疑似重复/错位节点)"
+    },
+    {
+      "severity": "EXTRA",
+      "node": "Placeholder",
+      "type": "TextMeshProUGUI",
+      "path": "UIRoot/Window/LoginModule(Clone)/LoginCreateRoleView/_lb_random_name/Text Area/Placeholder",
+      "detail": "Unity 独有(老端无同名节点)"
+    },
+    {
+      "severity": "EXTRA",
+      "node": "Text",
+      "type": "TextMeshProUGUI",
+      "path": "UIRoot/Window/LoginModule(Clone)/LoginCreateRoleView/_lb_random_name/Text Area/Text",
+      "detail": "Unity 独有(老端无同名节点)"
+    },
+    {
+      "severity": "EXTRA",
+      "node": "_box_arrow",
+      "type": "Image",
+      "path": "UIRoot/Window/LoginModule(Clone)/LoginCreateRoleView/__Templates/EyouThAdultItem/_box_arrow",
+      "detail": "Unity 独有(老端无同名节点)"
+    },
+    {
+      "severity": "EXTRA",
+      "node": "_img_red",
+      "type": "Image",
+      "path": "UIRoot/Window/LoginModule(Clone)/LoginCreateRoleView/__Templates/EyouThAdultItem/_img_red",
+      "detail": "Unity 独有(老端无同名节点)"
+    },
+    {
+      "severity": "EXTRA",
+      "node": "_img_icon",
+      "type": "Image",
+      "path": "UIRoot/Window/LoginModule(Clone)/LoginCreateRoleView/__Templates/EyouThAdultItem/_img_icon",
+      "detail": "Unity 独有,且与已匹配节点重名(疑似重复/错位节点)"
+    }
+  ]
+}

@@ -533,7 +533,8 @@ namespace Shenxiao.Editor.RuntimeCapture
             var trees = new List<object>(canvases.Count);
             foreach (Canvas canvas in canvases)
             {
-                trees.Add(BuildNodeModel(canvas.transform, null));
+                // 每个节点的有效相机在 BuildNodeModel 里按其所属 Canvas 重新求值,这里传 null 即可。
+                trees.Add(BuildNodeModel(canvas.transform, null, null));
             }
 
             var root = new Dictionary<string, object>
@@ -557,10 +558,20 @@ namespace Shenxiao.Editor.RuntimeCapture
             return JsonConvert.SerializeObject(root, settings);
         }
 
-        private static Dictionary<string, object> BuildNodeModel(Transform transform, string parentPath)
+        private static Dictionary<string, object> BuildNodeModel(Transform transform, string parentPath, Camera cam)
         {
             GameObject go = transform.gameObject;
             string path = string.IsNullOrEmpty(parentPath) ? transform.name : parentPath + "/" + transform.name;
+
+            // 节点自带 Canvas 时,其及子树用该 Canvas 的相机投影
+            // (嵌套 3D / ScreenSpaceCamera / overrideSorting 子画布与根画布相机可能不同)。
+            Canvas selfCanvas = transform.GetComponent<Canvas>();
+            if (selfCanvas != null)
+            {
+                cam = selfCanvas.renderMode == RenderMode.ScreenSpaceOverlay
+                    ? null
+                    : (selfCanvas.worldCamera != null ? selfCanvas.worldCamera : Camera.main);
+            }
 
             var node = new Dictionary<string, object>
             {
@@ -583,9 +594,20 @@ namespace Shenxiao.Editor.RuntimeCapture
                     ["pivot"] = V2(rect.pivot),
                     ["localScale"] = V3(rect.localScale),
                 };
+
+                // 仅 Play 模式下 Screen.height 才等于 GameView 渲染目标,Y 翻转才正确;
+                // 非 Play 的编辑态 dump 不输出 screenRect,避免注入一个恒定竖直偏移。
+                if (Application.isPlaying)
+                {
+                    float[] screenRect = ScreenRectTopLeft(rect, cam);
+                    if (screenRect != null)
+                    {
+                        node["screenRect"] = screenRect;
+                    }
+                }
             }
 
-            Canvas canvas = transform.GetComponent<Canvas>();
+            Canvas canvas = selfCanvas;
             if (canvas != null)
             {
                 node["canvas"] = new Dictionary<string, object>
@@ -653,7 +675,7 @@ namespace Shenxiao.Editor.RuntimeCapture
                 var children = new List<object>(childCount);
                 for (int i = 0; i < childCount; i++)
                 {
-                    children.Add(BuildNodeModel(transform.GetChild(i), path));
+                    children.Add(BuildNodeModel(transform.GetChild(i), path, cam));
                 }
 
                 node["children"] = children;
@@ -670,6 +692,38 @@ namespace Shenxiao.Editor.RuntimeCapture
         private static float[] V3(Vector3 value)
         {
             return new[] { value.x, value.y, value.z };
+        }
+
+        /// <summary>
+        /// 节点在屏幕空间的轴对齐矩形:左上角原点、Y 向下、单位像素。
+        /// 与 Laya 运行时快照的 globalBounds 同坐标系,供 ui_runtime_diff.py 跨端比对。
+        /// </summary>
+        private static float[] ScreenRectTopLeft(RectTransform rect, Camera cam)
+        {
+            var corners = new Vector3[4];
+            rect.GetWorldCorners(corners);
+
+            float minX = float.MaxValue;
+            float maxX = float.MinValue;
+            float minY = float.MaxValue;
+            float maxY = float.MinValue;
+            for (int i = 0; i < 4; i++)
+            {
+                Vector2 sp = RectTransformUtility.WorldToScreenPoint(cam, corners[i]);
+                if (sp.x < minX) minX = sp.x;
+                if (sp.x > maxX) maxX = sp.x;
+                if (sp.y < minY) minY = sp.y;
+                if (sp.y > maxY) maxY = sp.y;
+            }
+
+            if (minX > maxX || minY > maxY)
+            {
+                return null;
+            }
+
+            // Unity 屏幕原点在左下角、Y 向上;翻成左上角原点、Y 向下,对齐 Laya globalBounds。
+            float topLeftY = Screen.height - maxY;
+            return new[] { minX, topLeftY, maxX - minX, maxY - minY };
         }
 
         private static float[] Col(Color value)

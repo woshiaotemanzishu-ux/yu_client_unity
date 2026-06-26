@@ -1,26 +1,38 @@
 using System.Collections.Generic;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.Login;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Login
 {
     /// <summary>
-    /// 创角页(对标老客户端 LoginCreateRoleView.ts):
-    /// 职业列表/图标/介绍图/随机名/默认装模型全部来自 ConfigLogin+ConfigModelAni+ConfigRandomName
-    /// (LoginConfigs 运行时读 JSON,无硬编码镜像)。
-    /// 进入时按 random_weight 加权随机预选职业;返回:有角色回选角页,无角色断线回踏入仙界页。
+    /// 创角页(对标老客户端 LoginCreateRoleView.ts)。
+    ///
+    /// Phase 2:结构(背景/飘带/职业项/tips 布局)由快照烤进 prefab,这里【只绑数据】——
+    /// 不再运行时 new 节点、不再摆位置(老的 ApplyRuntimeLayout/EnsureCreateBg/BuildCareers 已删)。
+    /// 职业列表/图标/介绍图/随机名/默认装模型来自 ConfigLogin+ConfigModelAni+ConfigRandomName。
+    /// 进入按 random_weight 加权随机预选;返回:有角色回选角,无角色断线回踏入仙界。
     /// </summary>
     public sealed class LoginCreateRoleView : LoginCreateRoleViewBind
     {
-        // 老客户端视图代码字面量(非配置):item.SetPosition(0, career*133)、show_model_data.scale=0.5
-        private const float ITEM_STEP_Y = 133f;
-        private const float MODEL_SCALE = 0.5f;
+        private const float MODEL_SCALE = 0.5f; // 老客户端字面量 show_model_data.scale
 
-        private readonly List<GameObject> _items = new List<GameObject>();
+        /// <summary>烤进 prefab 的职业项:绑数据时缓存它内部的底图/图标/名字。</summary>
+        private struct CareerSlot
+        {
+            public GameObject root;
+            public Image bg;
+            public Image icon;
+            public TMP_Text label;
+        }
+
+        private readonly List<CareerSlot> _slots = new List<CareerSlot>();
         private List<LoginConfigs.CareerOption> _options = new List<LoginConfigs.CareerOption>();
         private int _selectedIndex;
         private bool _creating;
@@ -58,34 +70,57 @@ namespace Shenxiao.Module.Core.Login
                 GameLog.Error("Login", "ConfigLogin.CreateRole.UI 为空(配置未同步?)");
                 return;
             }
-            BuildCareers();
+            BindBakedCareers();
             SelectCareer(WeightedRandomIndex()); // 老客户端 GetRandomIndex:按 random_weight 加权
             OnClickRandomName();
         }
 
-        private void BuildCareers()
+        /// <summary>把数据绑到烤进 prefab 的职业项上(不再 Instantiate 模板)。</summary>
+        private void BindBakedCareers()
         {
-            foreach (GameObject go in _items) Destroy(go);
-            _items.Clear();
-
-            for (int i = 0; i < _options.Count; i++)
+            _slots.Clear();
+            RectTransform head = HeadCon();
+            if (head == null)
             {
-                GameObject item = Instantiate(_tpl_LoginCreateRoleItem, _gp_head_con);
-                item.SetActive(true);
-                // y = career*133(Laya y 向下 → Unity 取负)
-                ((RectTransform)item.transform).anchoredPosition =
-                    new Vector2(0f, -_options[i].Career * ITEM_STEP_Y);
+                GameLog.Error("Login", "创角缺 _gp_head_con(烤制 prefab 结构异常?)");
+                return;
+            }
 
-                var bind = item.GetComponent<LoginCreateRoleItemBind>();
-                if (bind == null)
+            // 收集烤进 _gp_head_con 的职业项(节点名 LoginCreateRoleItem),按层级序
+            var items = new List<Transform>();
+            for (int i = 0; i < head.childCount; i++)
+            {
+                Transform c = head.GetChild(i);
+                if (c.name.StartsWith("LoginCreateRoleItem")) items.Add(c);
+            }
+            if (items.Count < _options.Count)
+            {
+                GameLog.Warn("Login", "烤制职业项 {0} 少于配置职业 {1}(配置变了需重烤)", items.Count, _options.Count);
+            }
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                Transform item = items[i];
+                bool used = i < _options.Count;
+                item.gameObject.SetActive(used);
+                if (!used) continue;
+
+                var slot = new CareerSlot
                 {
-                    GameLog.Error("Login", "职业项缺 LoginCreateRoleItemBind,重跑回填");
-                    continue;
-                }
-                bind._lb_career.text = _options[i].Name;
+                    root = item.gameObject,
+                    bg = FindImage(item, "_box_head/_img_bg"),
+                    icon = FindImage(item, "_box_head/_img_icon"),
+                    label = FindText(item, "_box_head/_lb_career"),
+                };
+                if (slot.label != null) slot.label.text = _options[i].Name;
                 int captured = i;
-                UIUtil.AddClick(bind._img_bg, () => SelectCareer(captured));
-                _items.Add(item);
+                if (slot.bg != null)
+                {
+                    slot.bg.raycastTarget = true;
+                    UIUtil.ClearClicks(slot.bg); // BindBakedCareers 每次 OnShow 重跑,先清再加防监听叠加
+                    UIUtil.AddClick(slot.bg, () => SelectCareer(captured));
+                }
+                _slots.Add(slot);
             }
         }
 
@@ -105,7 +140,8 @@ namespace Shenxiao.Module.Core.Login
 
         private void SelectCareer(int index)
         {
-            _selectedIndex = Mathf.Clamp(index, 0, _options.Count - 1);
+            int max = Mathf.Min(_options.Count, Mathf.Max(_slots.Count, 1)) - 1;
+            _selectedIndex = Mathf.Clamp(index, 0, Mathf.Max(max, 0));
             RefreshCareerStates();
             RefreshTips();
             ShowCareerModel();
@@ -113,32 +149,35 @@ namespace Shenxiao.Module.Core.Login
 
         private void RefreshCareerStates()
         {
-            for (int i = 0; i < _items.Count; i++)
+            for (int i = 0; i < _slots.Count; i++)
             {
-                var bind = _items[i].GetComponent<LoginCreateRoleItemBind>();
-                if (bind == null) continue;
                 bool selected = i == _selectedIndex;
                 // 对标 LoginCreateRoleItem.ts:选中底图 ui_Login_02,未选 ui_Login_03;头像换 a 版。
-                // 换肤 nativeSize:false 保留场景尺寸(对标 Laya skin=)
                 string bg = selected ? "ui_Login_02" : "ui_Login_03";
                 string icon = selected ? _options[i].SelectIcon : _options[i].UnselectIcon;
-                _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_bg,
-                        $"resource/game/login/texture/{bg}.png", nativeSize: false);
-                _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(bind._img_icon,
-                        $"resource/game/login/texture/{icon}.png", nativeSize: false);
+                if (_slots[i].bg != null)
+                    _ = ResManager.SetImageAsync(_slots[i].bg, $"resource/game/login/texture/{bg}.png", nativeSize: false);
+                if (_slots[i].icon != null)
+                    _ = ResManager.SetImageAsync(_slots[i].icon, $"resource/game/login/texture/{icon}.png", nativeSize: false);
             }
         }
 
-        /// <summary>右侧职业介绍三连图(老客户端 SetOutsideImageSprite(GetIconOtherPath)),保留场景尺寸。</summary>
+        /// <summary>右侧职业介绍三连图:换图 + tips2/3 的 centerY 随职业微调(诗句错位,对标 SelectCareer)。</summary>
         private void RefreshTips()
         {
             var o = _options[_selectedIndex];
-            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(_img_tips, $"resource/game/login/other/{o.Img1}.png", nativeSize: false);
-            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(_img_tips2, $"resource/game/login/other/{o.Img2}.png", nativeSize: false);
-            _ = Shenxiao.Framework.Res.ResManager.SetImageAsync(_img_tips3, $"resource/game/login/other/{o.Img3}.png", nativeSize: false);
+            int career = o.Career;
+            float poemA = career == 2 ? 20f : 0f;
+            float poemBbase = (career == 2 || career == 4) ? -30f : -50f;
+            float poemBoff = career == 2 ? 60f : 0f;
+            SetCenter(_img_tips2.rectTransform, 280f, -270f + poemA);
+            SetCenter(_img_tips3.rectTransform, 335f, poemBbase + poemBoff);
+            _ = ResManager.SetImageAsync(_img_tips, $"resource/game/login/other/{o.Img1}.png", nativeSize: false);
+            _ = ResManager.SetImageAsync(_img_tips2, $"resource/game/login/other/{o.Img2}.png", nativeSize: false);
+            _ = ResManager.SetImageAsync(_img_tips3, $"resource/game/login/other/{o.Img3}.png", nativeSize: false);
         }
 
-        /// <summary>中央 3D 模型:默认装(衣+头饰+武器)+ ConfigModelAni 的 create 动作序列。</summary>
+        /// <summary>中央 3D 模型:默认装(衣+头饰+武器)+ ConfigModelAni 的 create 动作序列(真·运行时)。</summary>
         private async void ShowCareerModel()
         {
             var o = _options[_selectedIndex];
@@ -165,7 +204,6 @@ namespace Shenxiao.Module.Core.Login
                 Destroy(model); // 加载期间切了职业/关了页:丢弃过期结果
                 return;
             }
-            // 创角骨骼特效(ConfigLogin.CreateRole.Effect,如 cj_1100 脚下漩涡,skills_effect 目录)
             var createEffects = new List<GameObject>();
             foreach ((string bone, string fx) in LoginConfigs.CreateRoleEffects(o.Career, o.Sex))
             {
@@ -178,7 +216,7 @@ namespace Shenxiao.Module.Core.Login
                 Destroy(model);
                 return;
             }
-            UIModelStage.ShowInstance(_gp_model_con, model,
+            UIModelStage.ShowInstance(ModelCon(), model,
                 MODEL_SCALE, LoginConfigs.GetModelPos("CreateRole", o.Career, o.Sex));
             RoleModelAssembler.PlayActions(model, actions);
             foreach (GameObject effect in createEffects)
@@ -225,6 +263,32 @@ namespace Shenxiao.Module.Core.Login
         {
             if (LoginModel.Instance.Roles.Count > 0) LoginFlow.ShowSelectRole();
             else LoginFlow.BackToEnter();
+        }
+
+        // ——— 容器字段没绑上时按名兜底(烤制 prefab 里容器节点名与老端一致)———
+        private RectTransform HeadCon() => _gp_head_con != null ? _gp_head_con : transform.Find("_gp_head_con") as RectTransform;
+        private RectTransform ModelCon() => _gp_model_con != null ? _gp_model_con : transform.Find("_gp_model_con") as RectTransform;
+
+        private static Image FindImage(Transform root, string path)
+        {
+            Transform t = root.Find(path);
+            return t != null ? t.GetComponent<Image>() : null;
+        }
+
+        private static TMP_Text FindText(Transform root, string path)
+        {
+            Transform t = root.Find(path);
+            if (t == null) return null;
+            TMP_Text self = t.GetComponent<TMP_Text>();
+            return self != null ? self : t.GetComponentInChildren<TMP_Text>(true);
+        }
+
+        /// <summary>tips 的每职业 centerY 微调用(数据驱动的小位移,非静态布局)。</summary>
+        private static void SetCenter(RectTransform rt, float centerX, float centerY)
+        {
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = new Vector2(centerX, -centerY);
         }
     }
 }

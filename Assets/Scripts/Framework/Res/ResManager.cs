@@ -24,8 +24,18 @@ namespace Shenxiao.Framework.Res
         private static readonly Dictionary<GameObject, AsyncOperationHandle<GameObject>> _instanceHandles
             = new Dictionary<GameObject, AsyncOperationHandle<GameObject>>();
 
+        // key 存在性缓存:同一 catalog 版本内 key→location 映射是固定的,所以一次查到就缓存,
+        // 避免每次加载都额外多跑一次 LoadResourceLocationsAsync(那是一整次按帧推进的异步往返)。
+        // catalog 重载会改变映射,届时由 ResVersionManager 调 InvalidateKeyCache() 清空。
+        private static readonly Dictionary<string, bool> _keyExistsCache = new Dictionary<string, bool>();
+
 #if UNITY_EDITOR
         private static readonly HashSet<GameObject> _editorFallbackInstances = new HashSet<GameObject>();
+
+        // 编辑器兜底的「key→工程内资产路径」缓存:命中即免去一次 AssetDatabase.FindAssets 全工程扫描。
+        // 只缓存命中(路径非空);未命中不缓存——同一会话里 TryImport* 可能稍后把散图补进来。
+        private static readonly Dictionary<string, string> _editorAssetPathCache = new Dictionary<string, string>();
+        private static readonly Dictionary<string, string> _editorPrefabPathCache = new Dictionary<string, string>();
 #endif
 
         /// <summary>
@@ -194,9 +204,13 @@ namespace Shenxiao.Framework.Res
 #if UNITY_EDITOR
             if (type != null)
             {
+                // 编辑器下类型化存在性退化为无类型查询,统一走无类型缓存项,避免重复往返。
                 return await KeyExists(key, null);
             }
 #endif
+            string cacheKey = type == null ? key : key + "|" + type.FullName;
+            if (_keyExistsCache.TryGetValue(cacheKey, out bool cached)) return cached;
+
             var locHandle = type == null
                 ? Addressables.LoadResourceLocationsAsync(key)
                 : Addressables.LoadResourceLocationsAsync(key, type);
@@ -204,7 +218,16 @@ namespace Shenxiao.Framework.Res
             bool exists = locHandle.Status == AsyncOperationStatus.Succeeded
                           && locHandle.Result != null && locHandle.Result.Count > 0;
             Addressables.Release(locHandle);
+            _keyExistsCache[cacheKey] = exists;
             return exists;
+        }
+
+        /// <summary>
+        /// catalog 重载后调用:key→location 映射可能整体变化,清空存在性缓存以免读到旧版本结果。
+        /// </summary>
+        public static void InvalidateKeyCache()
+        {
+            _keyExistsCache.Clear();
         }
 
         /// <summary>
@@ -291,11 +314,18 @@ namespace Shenxiao.Framework.Res
         {
             var valid = new List<string>();
             if (keys == null) return valid;
-            foreach (string raw in keys)
+
+            // 并发探测:串行 await 每个 key 会按帧逐个推进;并发发起后统一 await,几帧内全处理完。
+            var normalized = new List<string>();
+            foreach (string raw in keys) normalized.Add(ResourcePath.Normalize(raw));
+            var checks = new Task<bool>[normalized.Count];
+            for (int i = 0; i < normalized.Count; i++) checks[i] = KeyExists(normalized[i]);
+            bool[] results = await Task.WhenAll(checks);
+
+            for (int i = 0; i < normalized.Count; i++)
             {
-                string key = ResourcePath.Normalize(raw);
-                if (await KeyExists(key)) valid.Add(key);
-                else GameLog.Warn("Res", "预下载 key 未登记,跳过: {0}", key);
+                if (results[i]) valid.Add(normalized[i]);
+                else GameLog.Warn("Res", "预下载 key 未登记,跳过: {0}", normalized[i]);
             }
             return valid;
         }
@@ -370,12 +400,21 @@ namespace Shenxiao.Framework.Res
             string fileName = Path.GetFileName(key);
             if (string.IsNullOrEmpty(fileName)) return null;
 
+            if (_editorPrefabPathCache.TryGetValue(key, out string cachedPath))
+            {
+                GameObject cachedAsset = string.IsNullOrEmpty(cachedPath)
+                    ? null : AssetDatabase.LoadAssetAtPath<GameObject>(cachedPath);
+                if (cachedAsset != null) return cachedAsset;
+                _editorPrefabPathCache.Remove(key); // 路径失效(资产被移动/删除/重导):清掉并重扫
+            }
+
             string[] searchFolders = { "Assets/GameRes", "Assets/Prefabs", "Assets/_App" };
             string[] guids = AssetDatabase.FindAssets(fileName + " t:Prefab", searchFolders);
             for (int i = 0; i < guids.Length; i++)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guids[i]);
                 if (ResourcePath.Normalize(MakeEditorAddress(path)) != key) continue;
+                _editorPrefabPathCache[key] = path;
                 return AssetDatabase.LoadAssetAtPath<GameObject>(path);
             }
             return null;
@@ -496,6 +535,13 @@ namespace Shenxiao.Framework.Res
             string fileName = Path.GetFileName(key);
             if (string.IsNullOrEmpty(fileName)) return null;
 
+            if (_editorAssetPathCache.TryGetValue(key, out string cachedPath))
+            {
+                T cachedAsset = string.IsNullOrEmpty(cachedPath) ? null : AssetDatabase.LoadAssetAtPath<T>(cachedPath);
+                if (cachedAsset != null) return cachedAsset;
+                _editorAssetPathCache.Remove(key); // 路径失效(资产被移动/删除/重导):清掉并重扫
+            }
+
             string[] searchFolders = { "Assets/GameRes", "Assets/_App" };
             string[] guids = AssetDatabase.FindAssets(fileName, searchFolders);
             for (int i = 0; i < guids.Length; i++)
@@ -503,7 +549,12 @@ namespace Shenxiao.Framework.Res
                 string path = AssetDatabase.GUIDToAssetPath(guids[i]);
                 if (ResourcePath.Normalize(MakeEditorAddress(path)) != key) continue;
                 T asset = AssetDatabase.LoadAssetAtPath<T>(path);
-                if (asset != null) return asset;
+                if (asset != null)
+                {
+                    // 缓存 key→路径(类型无关:路径只按 文件名+规范化地址 解析,类型在 LoadAssetAtPath<T> 处再应用)。
+                    _editorAssetPathCache[key] = path;
+                    return asset;
+                }
             }
             return null;
         }

@@ -48,6 +48,7 @@ namespace Shenxiao.Framework.Res
             {
                 var loadHandle = Addressables.LoadContentCatalogAsync(info.catalogUrl, true);
                 await AddressablesAwaiter.Wait(loadHandle);
+                ResManager.InvalidateKeyCache(); // 新 catalog 的 key→location 映射变了,清掉旧版本的存在性缓存
                 GameLog.Info("Res", "catalog loaded version={0}", info.resourceVersion);
             }
         }

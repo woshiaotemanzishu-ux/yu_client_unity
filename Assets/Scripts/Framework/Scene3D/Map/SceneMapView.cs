@@ -52,9 +52,20 @@ namespace Shenxiao.Framework.Scene3D.Map
         private static int _lastStartCol = int.MinValue;
         private static int _lastStartRow = int.MinValue;
 
-        // —— 加载泵(单飞顺序加载,分摊到多帧)——
+        // —— 加载泵(小并发顺序加载,分摊到多帧)——
+        // 老实现是单飞(一次只加载一块),首屏要把近百块串成近百帧 → 几秒才铺满,即使全是本地图。
+        // 改成有界并发:同时最多 MaxConcurrentTileLoads 块在飞,首屏铺满时间≈除以并发数;
+        // 并发数不取太大,避免编辑器现导/解码在一帧内涌入造成尖刺(对标老客户端"分摊到多帧"的初衷)。
+        private const int MaxConcurrentTileLoads = 6;
         private static readonly Queue<TileLoadRequest> _loadQueue = new Queue<TileLoadRequest>();
-        private static bool _pumping;
+        private static int _activeTileLoads;
+        private static bool _pumpDispatching;
+
+        // 正在加载中的瓦片(键=格,值=发起时地图版本):同一格只允许一个在飞的 LoadAsync。
+        // 不去重的话,并发下同一格可能被两个 worker 同时 LoadAsync——Addressables 对同 key 返回同一
+        // Sprite 但两个不同 handle,而 ResManager 以 asset 为键记 handle、后者覆盖前者 → 前一个 handle
+        // 永远收不回 → 句柄泄漏、纹理整局常驻。落地后按"当前哪个槽要这格"上色,故无需记 slot/token。
+        private static readonly Dictionary<long, int> _inFlightTiles = new Dictionary<long, int>();
 
         // —— 瓦片 sprite 缓存(键=格 (row,col)):滚出视野的瓦片图保留在缓存里,走回原区域直接同步复用,
         //    不再变模糊重新加载(解决"跑出一个屏再回来,地块重新加载"的问题)。LRU 上限封顶内存,
@@ -359,7 +370,6 @@ namespace Shenxiao.Framework.Scene3D.Map
         {
             slot.Row = row;
             slot.Col = col;
-            int token = ++slot.Token;
 
             slot.Sprite = null; // 不 Release:sprite 归缓存所有,本槽只是换引用
             if (slot.Image != null) { slot.Image.sprite = null; slot.Image.enabled = false; }
@@ -380,56 +390,89 @@ namespace Shenxiao.Framework.Scene3D.Map
                 return;
             }
 
-            _loadQueue.Enqueue(new TileLoadRequest(slot, row, col, token, _version));
+            // 该格已在加载(本版本):不再重复 LoadAsync,落地后由 PaintSlotsWantingTile 给当前持有该格的槽上色。
+            long key = TileKey(row, col);
+            if (_inFlightTiles.TryGetValue(key, out int inflightVersion) && inflightVersion == _version) return;
+
+            _inFlightTiles[key] = _version;
+            _loadQueue.Enqueue(new TileLoadRequest(row, col, _version));
             PumpLoads();
         }
 
-        /// <summary>单飞加载泵:一次只加载一块,把加载/编辑器现导分摊到多帧,避免一帧尖刺。</summary>
-        private static async void PumpLoads()
+        /// <summary>
+        /// 加载泵的调度器:在并发上限内从队列拉起瓦片加载 worker。同步派发(无 await),
+        /// _pumpDispatching 防止 worker 在 finally 里同步回调造成递归重入。
+        /// 所有 worker 的续体都在 Unity 主线程上协作执行,故共享状态(队列/缓存/计数)无需加锁。
+        /// </summary>
+        private static void PumpLoads()
         {
-            if (_pumping) return;
-            _pumping = true;
+            if (_pumpDispatching) return;
+            _pumpDispatching = true;
             try
             {
-                while (_loadQueue.Count > 0)
+                while (_activeTileLoads < MaxConcurrentTileLoads && _loadQueue.Count > 0)
                 {
-                    if (_data == null) break;
                     TileLoadRequest req = _loadQueue.Dequeue();
-                    if (req.Version != _version) continue;            // 换图/清图:整批作废
-                    if (req.Slot.Token != req.Token) continue;        // 槽已被复用:无需再加载(命中时会走缓存)
-
-                    // 入队到处理之间可能已被缓存(快速来回):命中即同步贴,免一次异步加载。
-                    Sprite cached = TileCacheGet(req.Row, req.Col);
-                    if (cached != null)
-                    {
-                        req.Slot.Sprite = cached;
-                        req.Slot.Image.sprite = cached;
-                        req.Slot.Image.enabled = true;
-                        continue;
-                    }
-
-                    Sprite sprite = await ResManager.LoadAsync<Sprite>(
-                        GameResPath.GetSceneMapTile(_data.MapResId, req.Row, req.Col, ".jxr"));
-
-                    if (req.Version != _version) // 加载期间换了图:这块属旧图,别污染缓存
-                    {
-                        if (sprite != null) ResManager.Release(sprite);
-                        continue;
-                    }
-                    if (sprite == null) continue; // 缺图:保持隐藏,低清底图透出
-
-                    Sprite owned = TileCachePut(req.Row, req.Col, sprite); // 进缓存(归缓存所有)
-
-                    // 槽可能已被复用(token 变):图已入缓存留待复用,只是不贴这个槽。
-                    if (req.Slot.Token != req.Token) continue;
-                    req.Slot.Sprite = owned;
-                    req.Slot.Image.sprite = owned;
-                    req.Slot.Image.enabled = true;
+                    _activeTileLoads++;
+                    _ = LoadOneTileAsync(req); // fire-and-forget;finally 里自减并补位
                 }
             }
             finally
             {
-                _pumping = false;
+                _pumpDispatching = false;
+            }
+        }
+
+        /// <summary>加载单块瓦片(把加载/编辑器现导分摊到多帧)。完成后自减并发计数并补位下一块。</summary>
+        private static async Task LoadOneTileAsync(TileLoadRequest req)
+        {
+            long key = TileKey(req.Row, req.Col);
+            try
+            {
+                if (_data == null) return;
+                if (req.Version != _version) return;            // 换图/清图:整批作废
+
+                // 入队到处理之间可能已被缓存(快速来回):命中即同步贴,免一次异步加载。
+                Sprite cached = TileCacheGet(req.Row, req.Col);
+                if (cached != null)
+                {
+                    PaintSlotsWantingTile(req.Row, req.Col, cached);
+                    return;
+                }
+
+                Sprite sprite = await ResManager.LoadAsync<Sprite>(
+                    GameResPath.GetSceneMapTile(_data.MapResId, req.Row, req.Col, ".jxr"));
+
+                if (req.Version != _version) // 加载期间换了图:这块属旧图,别污染缓存
+                {
+                    if (sprite != null) ResManager.Release(sprite);
+                    return;
+                }
+                if (sprite == null) return; // 缺图:保持隐藏,低清底图透出
+
+                Sprite owned = TileCachePut(req.Row, req.Col, sprite); // 进缓存(归缓存所有)
+                // 给"当前持有该格"的槽上色:可能不是发起加载时的那个槽(中途滚动复用过)。
+                // 与 TileCachePut 之间无 await,LRU 淘汰不会在此夹缝释放本块。
+                PaintSlotsWantingTile(req.Row, req.Col, owned);
+            }
+            finally
+            {
+                // 仅当 in-flight 标记仍属本版本时清除(换图后该格可能已被新版本重新登记,勿误删)。
+                if (_inFlightTiles.TryGetValue(key, out int v) && v == req.Version) _inFlightTiles.Remove(key);
+                _activeTileLoads--;
+                if (_loadQueue.Count > 0) PumpLoads(); // 还有排队的就补位,保持并发饱和
+            }
+        }
+
+        /// <summary>把 sprite 贴到当前正持有 (row,col) 这格的池槽(通常恰好一个)。</summary>
+        private static void PaintSlotsWantingTile(int row, int col, Sprite sprite)
+        {
+            if (_tilePool == null || sprite == null) return;
+            foreach (TileSlot t in _tilePool)
+            {
+                if (t == null || t.Row != row || t.Col != col) continue;
+                t.Sprite = sprite;
+                if (t.Image != null) { t.Image.sprite = sprite; t.Image.enabled = true; }
             }
         }
 
@@ -511,13 +554,13 @@ namespace Shenxiao.Framework.Scene3D.Map
         private static void ResetPool()
         {
             _loadQueue.Clear();
+            _inFlightTiles.Clear(); // 旧版本在飞的加载作废(版本号已变,worker 会自行 early-out)
             ClearTileCache(); // 换的是另一张图,旧缓存作废
             if (_tilePool != null)
             {
                 foreach (TileSlot t in _tilePool)
                 {
                     if (t == null) continue;
-                    t.Token++;
                     t.Sprite = null; // 不 Release(已由 ClearTileCache 统一释放)
                     if (t.Image != null) { t.Image.sprite = null; t.Image.enabled = false; }
                     t.Row = int.MinValue;
@@ -531,6 +574,7 @@ namespace Shenxiao.Framework.Scene3D.Map
         private static void ClearPool()
         {
             _loadQueue.Clear();
+            _inFlightTiles.Clear();
             ClearTileCache(); // sprite 归缓存,统一在此释放
             if (_tilePool != null)
             {
@@ -580,24 +624,19 @@ namespace Shenxiao.Framework.Scene3D.Map
             public RectTransform Rt;
             public int Row = int.MinValue;
             public int Col = int.MinValue;
-            public int Token;     // 每次复用 +1,过期加载据此丢弃
-            public Sprite Sprite; // 当前贴图(换图前 Release)
+            public Sprite Sprite; // 当前贴图
         }
 
         private readonly struct TileLoadRequest
         {
-            public readonly TileSlot Slot;
             public readonly int Row;
             public readonly int Col;
-            public readonly int Token;
             public readonly int Version;
 
-            public TileLoadRequest(TileSlot slot, int row, int col, int token, int version)
+            public TileLoadRequest(int row, int col, int version)
             {
-                Slot = slot;
                 Row = row;
                 Col = col;
-                Token = token;
                 Version = version;
             }
         }
