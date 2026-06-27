@@ -164,6 +164,9 @@ namespace Shenxiao.Framework.Net
         public const int ROLE_LEVEL = 13003;
         /// <summary>货币。回包 "liii"(铜币 coin, 元宝 gold, 绑元 bgold, 帮贡 gcoin)。</summary>
         public const int ROLE_CURRENCY = 13006;
+        /// <summary>战斗属性/战力更新(攻防血等重算后服务端推,对标老端 RoleController.On13033 → ReadFrom13033)。
+        /// 回包首 "l"=战力,后接战斗属性块;本端目前只取战力驱动「战力提升」弹层(后续属性块按需扩展)。</summary>
+        public const int ROLE_BATTLE_UPDATE = 13033;
         public const int ROLE_LIFELONG_COUNT = 13088;
 
         // ----- Login/common kick notice (590xx, yu_server pt_590.erl) -----

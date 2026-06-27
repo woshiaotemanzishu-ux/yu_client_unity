@@ -49,6 +49,7 @@ namespace Shenxiao.Module.Core.MainUI
         {
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.On(GlobalEvent.EVT_NET_DISCONNECTED, OnDisconnected);
+            EventDispatcher.On<long, long>(GlobalEvent.EVT_COMBAT_POWER_UP, OnCombatPowerUp);
         }
 
         private static void OnGameStart()
@@ -142,9 +143,86 @@ namespace Shenxiao.Module.Core.MainUI
             ++_requestToken;
             _loading = false;
 
+            ReleaseFightingUp();
+
             if (_moduleRoot == null) return;
             ResManager.ReleaseInstance(_moduleRoot);
             _moduleRoot = null;
+        }
+
+        // ---------- 战力提升弹层(对标老端 MainUIController 绑 mainRoleVo "fighting" 变化 → FightingUpView.Open) ----------
+        // FightingUpView 是独立 prefab(不在 MainUIModule 内、不进 FirstPass),首次需要时按需实例化并缓存复用。
+
+        private static FightingUpView _fightingUpView;
+        private static bool _fightingUpLoading;
+        private static long _pendingOldFight;
+        private static long _pendingNewFight;
+        private static bool _hasPendingFight;
+
+        /// <summary>收到战力上升事件:弹/刷新「战力提升」窗(对标老端 change_fighting_func)。</summary>
+        private static void OnCombatPowerUp(long oldFight, long newFight)
+        {
+            _ = ShowFightingUpAsync(oldFight, newFight);
+        }
+
+        private static async Task ShowFightingUpAsync(long oldFight, long newFight)
+        {
+            if (oldFight <= 0 || newFight <= oldFight) return;   // 对标老端 old_fight != 0 && new > old
+
+            if (_fightingUpView != null)
+            {
+                ShowFightingUpInstance(oldFight, newFight);
+                return;
+            }
+
+            // 加载期间又来新的战力变化:保留最早的旧值、取最新的新值,加载完成后一次性刷新(简化老端的逐次累加)。
+            _pendingOldFight = _hasPendingFight ? _pendingOldFight : oldFight;
+            _pendingNewFight = newFight;
+            _hasPendingFight = true;
+            if (_fightingUpLoading) return;
+
+            _fightingUpLoading = true;
+            string key = GameResPath.GetUIPrefab(MODULE, "FightingUpView");
+            GameObject go = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+            _fightingUpLoading = false;
+
+            if (go == null)
+            {
+                GameLog.Warn("MainUI", "FightingUpView 预制加载失败: {0}(检查 addressable/转换)", key);
+                _hasPendingFight = false;
+                return;
+            }
+
+            _fightingUpView = go.GetComponent<FightingUpView>();
+            if (_fightingUpView == null)
+            {
+                GameLog.Warn("MainUI", "FightingUpView 预制缺 FightingUpView 组件(重跑 mainUI 回填)");
+                ResManager.ReleaseInstance(go);
+                _hasPendingFight = false;
+                return;
+            }
+
+            long o = _pendingOldFight, n = _pendingNewFight;
+            _hasPendingFight = false;
+            ShowFightingUpInstance(o, n);
+        }
+
+        private static void ShowFightingUpInstance(long oldFight, long newFight)
+        {
+            if (_fightingUpView == null) return;
+            if (_fightingUpView.IsShown)
+                _fightingUpView.SetData(oldFight, newFight);   // 已开:刷新数值(对标 SetAnimation)
+            else
+                _fightingUpView.Show(new FightUpData { OldFight = oldFight, NewFight = newFight });
+        }
+
+        private static void ReleaseFightingUp()
+        {
+            _hasPendingFight = false;
+            if (_fightingUpView == null) return;
+            GameObject go = _fightingUpView.gameObject;
+            _fightingUpView = null;
+            if (go != null) ResManager.ReleaseInstance(go);
         }
     }
 }

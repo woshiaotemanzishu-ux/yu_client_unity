@@ -6,29 +6,27 @@ using Shenxiao.Module.Core.Common;
 namespace Shenxiao.Module.Core.Tasks
 {
     /// <summary>
-    /// 任务奖励解析(对话弹层与完成弹层共用,对标老端 DialogueController.On12102 + TaskFinishView.SetTaskReward
-    /// 的 special_goods_list / award_list 装配)。奖励来自 config_task 的 special_goods_list(字段 23)与
-    /// award_list(字段 24)——均为 config_task 配表里的 Erlang 文本(老端也是按 task_id 查 task_vo.special_goods_list,
-    /// 不是 12102 实包字段),经 <see cref="ErlangParser"/> 解析。
+    /// 任务奖励解析(对话弹层与完成弹层共用,对标老端 DialogueController.On12102 + TaskFinishView.SetTaskReward)。
+    /// 奖励来自 config_task 两列 Erlang 文本,经 <see cref="ErlangParser"/> 解析。
+    /// 【权威字段序】config_table_default.json 的 config_task 列名:下标 23 = award_list、24 = special_goods_list。
+    ///   注意:本类 Build 的形参名 specialGoodsList / awardList 与配表名【互换】——因 TaskConfigs 把字段 23 读进
+    ///   SpecialGoodsList、字段 24 读进 AwardList(变量名与配表名错位,但解析逻辑已各自对齐到正确的数据形态)。
     ///
-    /// special_goods_list 元组语义【已用现网 config_task 全量分布实证 = {type, type_id, count}】:
-    ///   首元 type 是 ConfigNotNormalGoods 的类型键(不是职业!实证首元分布 {0:86,2:32,3:542,5:501,10:1,255:32}
-    ///   全是货币类型键——0/10/255 不可能是职业,货币恒 {type,0,count} 次元为 0)。经
-    ///   <see cref="GoodsModel.GetMappingTypeId"/> 还原真实 goods_id:
-    ///     · {0, goods_id, n}       → 真实物品(type=0,type_id 即 goods_id),如 {0,17020001,2}
-    ///     · {3,0,n}/{5,0,n}/{2,0,n}→ 货币:金币(ConfigNotNormalGoods[3]=31)/经验(=32)/绑定灵玉(=35)…
-    ///     · {255,k,n} / {-1,k,n}   → 货币键在 type_id(k),查 ConfigNotNormalGoods[k]
-    ///   flat 3 元组是通用奖励(所有职业都给),无职业过滤,全部计入。
-    ///   另有嵌套 {career, [{type,type_id,count},...]} 职业定制礼包(circle/循环任务):按当前职业过滤后解析子列表
-    ///   (实证样本 config_task:[{1,[{0,39510031,2}]},{2,[{0,39510032,2}]},{3,[{0,39510033,2}]}],career→子奖励列表)。
+    /// 形参 specialGoodsList(= 配表字段 23 award_list,通用/货币奖励)经 <see cref="AppendSpecialGoods"/> 解析:
+    ///   · flat 3 元组 {type, type_id, count}:首元 type 是 ConfigNotNormalGoods 类型键(非职业!现网分布
+    ///     {0:65,2:32,3:542,5:501,10:1,255:32} 全是货币类型键)。经 <see cref="GoodsModel.GetMappingTypeId"/> 还原:
+    ///       {0,goods_id,n}=真实物品;{3,0,n}/{5,0,n}/{2,0,n}=金币/经验/绑定灵玉;{255,k,n}/{-1,k,n}=货币键在 type_id。
+    ///     通用奖励(所有职业都给),无职业过滤,全部计入。
+    ///   · 嵌套 {career, [{type,type_id,count},...]} 职业定制礼包(现网 18 个 circle/循环任务):按当前职业过滤后解析子列表。
     ///
-    /// award_list:形如 [{a,b,type_id,count}],4 元组,取索引 2/3 为真实物品 type_id/count(无歧义),全部计入。
+    /// 形参 awardList(= 配表字段 24 special_goods_list,职业专属奖励)经 <see cref="AppendAward"/> 解析:
+    ///   形如 [{career,?,type_id,count}] 4 元组,首元 career∈{1,2,3,4}。现网 26 个任务全部 arity-4、首元分布恰
+    ///   {1:26,2:26,3:26,4:26}——每个任务给全部 4 职业各一件武器,故【必须按当前职业过滤】只展示本职业那一件
+    ///   (对标老端 special_goods_list 的 vo[0]==career 过滤);漏过滤即把 4 职业武器全展示("一堆东西")。取索引 2/3 为 type_id/count。
     ///
-    /// 为何不照抄老端 special_goods 解析:老端 TaskFinishView(vo[1] 当职业)/DialogueController(vo[0] 当职业)把它当
-    /// 早期 4 元组 {career,?,type_id,count} 读、再 push 成真实物品——两处索引互相矛盾,且对现网 3 元组数据已失配
-    /// (career 索引落到货币类型/数量上)。故以现网数据全量分布 + 引擎 GetMappingTypeId 契约为权威,不照抄残留静态码。
     /// 名称:config_goods 真名优先(<see cref="GoodsModel.GetGoodsName"/>);货币缺名退回 ConfigNotNormalGoods.desc
     /// (经验/金币…),再缺退 "物品 {id}"。真实图标由 <see cref="BaseAwardItem"/> 经 goods_id 显示。
+    /// 数量缩写由格子件(<see cref="Shenxiao.Module.Core.Common.EquipmentItem"/> / BaseAwardItem)经 FormatCountNum 处理。
     /// </summary>
     public static class TaskReward
     {
@@ -56,7 +54,7 @@ namespace Shenxiao.Module.Core.Tasks
         {
             var result = new List<Entry>();
             AppendSpecialGoods(result, specialGoodsList, career);
-            AppendAward(result, awardList);
+            AppendAward(result, awardList, career);
             return result;
         }
 
@@ -110,14 +108,20 @@ namespace Shenxiao.Module.Core.Tasks
             result.Add(new Entry(goodsId, count, isCurrency, ResolveName(goodsId, type, typeId, isCurrency)));
         }
 
-        // award_list:{a, b, type_id, count},真实物品(取索引 2/3)。
-        private static void AppendAward(List<Entry> result, string text)
+        // 此列对标 config_task 字段 24 = special_goods_list(职业专属奖励),每行 4 元组 {career, ?, type_id, count}。
+        // 【现网全量实证】字段 24 共 26 个任务、全部 arity-4,首元(career)分布恰为 {1:26,2:26,3:26,4:26}——
+        //   即每个任务都给全部 4 职业各一件武器,必须按当前职业过滤,只展示本职业那一件(对标老端
+        //   DialogueController.On12102 对 special_goods_list 的 vo[0]==career 过滤)。漏过滤会把 4 职业武器全展示。
+        // 注:Unity TaskConfigs 把字段 23/24 读进的变量名与配表名互换(23→SpecialGoodsList、24→AwardList),
+        //   故这里收到的 awardList 实为配表 special_goods_list(职业专属),职业过滤落在本方法。
+        private static void AppendAward(List<Entry> result, string text, int career)
         {
             ErlangTerm root = ErlangParser.Parse(text);
             if (root?.Items == null) return;
             foreach (ErlangTerm t in root.Items)
             {
                 if (t?.Items == null || t.Items.Count < 4) continue;
+                if (t.Get<int>(0) != career) continue;   // 只取当前职业那一行(career 在索引 0)
                 int typeId = t.Get<int>(2);
                 long count = t.Get<long>(3);
                 result.Add(new Entry(typeId, count, false, ResolveName(typeId, 0, typeId, false)));

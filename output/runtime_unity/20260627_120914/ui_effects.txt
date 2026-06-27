@@ -1,0 +1,42 @@
+﻿# UIEffectStage diagnostics
+isPlaying    : True
+liveEffects  : 2
+recentFails  : 0
+notes        : 17
+
+NOTE  ActivityIcon[331@73@1] cfgFound=True effectName='' box2=False
+NOTE  ActivityIcon[331@69@0] cfgFound=True effectName='' box2=False
+NOTE  ActivityIcon[331@3] cfgFound=True effectName='' box2=False
+NOTE  ActivityIcon[331@120@0] cfgFound=True effectName='ui_zhujiemianzhuanquan' box2=False
+NOTE  ActivityIcon[331@120@0] SPAWN eff='ui_zhujiemianzhuanquan' boxH=100 scale=12.29
+NOTE  ActivityIcon[331@120@0] FORCE-SHOWN (effect attached, overriding fold/baked hide)
+NOTE  ActivityIcon[331@73@0] cfgFound=True effectName='' box2=False
+NOTE  ActivityIcon[331@73@1] cfgFound=True effectName='' box2=False
+NOTE  ActivityIcon[331@69@0] cfgFound=True effectName='' box2=False
+NOTE  ActivityIcon[331@3] cfgFound=True effectName='' box2=False
+NOTE  ActivityIcon[331@120@0] cfgFound=True effectName='ui_zhujiemianzhuanquan' box2=True
+NOTE  ActivityIcon[331@73@0] cfgFound=True effectName='' box2=False
+NOTE  ActivityIcon[331@73@1] cfgFound=True effectName='' box2=False
+NOTE  ActivityIcon[331@69@0] cfgFound=True effectName='' box2=False
+NOTE  ActivityIcon[331@3] cfgFound=True effectName='' box2=False
+NOTE  ActivityIcon[331@120@0] cfgFound=True effectName='ui_zhujiemianzhuanquan' box2=True
+NOTE  ActivityIcon[331@73@0] cfgFound=True effectName='' box2=False
+
+[0] ui_zhujiemianzhuanquan  key=effect/objs/ui_effect/ui_zhujiemianzhuanquan/ui_zhujiemianzhuanquan
+    effectAlive=True activeInHierarchy=True localScale=(12.288,12.288,12.288)
+    particleSystems=1 aliveParticles=5 anyPlaying=True
+    renderers=2 anyVisible=True shader=Shenxiao/Effect/LayaParticleUnlit worldBoundsSize=(21.383,21.383,18.373)
+    parent=_box_effect2 parentActive=False parentRect=(100,100)
+    rt=100x100 cameraEnabled=True cameraOrtho=6.4 cameraPos=(6020,-6000,5990)
+    image=True imageActive=False imageRect=(100,100) imageColor=(1,1,1,1) imageHasTexture=True
+    rtPng=effect_0.png
+
+[1] ui_expbar  key=effect/objs/ui_effect/ui_expbar/ui_expbar
+    effectAlive=True activeInHierarchy=True localScale=(15,15,15)
+    particleSystems=6 aliveParticles=15 anyPlaying=True
+    renderers=6 anyVisible=True shader=Shenxiao/Effect/LayaParticleUnlit worldBoundsSize=(89.349,71.784,71.784)
+    parent=_box_exp_effect parentActive=True parentRect=(50,50)
+    rt=50x50 cameraEnabled=True cameraOrtho=6.4 cameraPos=(6040,-6000,5990)
+    image=True imageActive=True imageRect=(50,50) imageColor=(1,1,1,1) imageHasTexture=True
+    rtPng=effect_1.png
+

@@ -42,13 +42,13 @@ namespace Shenxiao.Module.Core.Common
             RefreshIcon();
         }
 
-        /// <summary>数量(>1 才显示)。</summary>
+        /// <summary>数量(>1 才显示)。大数缩写对标 BaseAwardItem/老端 FormatNumber2(20000→"2W"),避免长数字溢出格子。</summary>
         public void SetCount(long num)
         {
             if (num_text == null) return;
             bool show = num > 1;
             num_text.gameObject.SetActive(show);
-            if (show) num_text.text = num.ToString();
+            if (show) num_text.text = GoodsModel.FormatCountNum(num);
         }
 
         /// <summary>选中态。</summary>

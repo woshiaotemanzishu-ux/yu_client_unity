@@ -1,0 +1,620 @@
+{
+  "//": "分组方案(AI 产出,待人工审阅)。规则:一个『运行时受管视图』(BaseView1)= 一个 prefab;",
+  "//2": "粒度信号取自老端 BaseView1 的 layer_value / use_background / is_center / 根节点是否拉伸 / 打开方式(first-pass vs 事件驱动),",
+  "//3": "不是 .scene 文件粒度(太碎)也不是 MainUIModule 大坨(太粗)。item 模板默认嵌在所属屏的 __Templates 内,被多处复用的抽成独立 prefab(见 shared_external)。",
+  "module": "mainUI",
+  "source_prefab": "Assets/Prefabs/UI/MainUI/MainUIModule.prefab",
+  "item_policy": "单一属主的 item 模板嵌在所属 prefab 的 __Templates 内;被多个视图复用的 item(ActivityIcon 等)抽成独立 prefab 并由各视图按 guid 引用",
+  "prefabs": [
+    {
+      "name": "MainUITopView",
+      "kind": "hud",
+      "label": "顶部状态栏",
+      "view_roots": [
+        "MainUITopView"
+      ],
+      "source": "mainUI/MainUITopView.json",
+      "open": "InitMainUI 首批常驻 HUD;layer Enum_UILayer.Main;LoadSuccess 设 centerX=0/top=0(+刘海偏移)→顶部居中横条,非居中模态;LoadSuccess 触发 MAINUI_TOP_LOAD_SUCCEED",
+      "owns_items": [
+        "MainUIMoneyItem",
+        "MainUITopBuffItem"
+      ],
+      "references": [
+        "HaloMainView",
+        "MainUIFightModeView",
+        "MainUIBuffView",
+        "SettingView",
+        "RechargeView",
+        "MapEnterView"
+      ],
+      "rationale": "持久顶部状态栏:角色头像/血条/等级/战斗态、时钟、ping/wifi、场景名、货币 HBox、右侧图标列(vip/充值/光环/客服)、buff 图标、地图按钮。私有两类克隆模板:MainUIMoneyItem(SetMoneyType 默认 [0,1,2])与 MainUITopBuffItem(RefreshBuff 最多 4 个)。各按钮经 OPEN_VIEW/Model.Fire 打开兄弟屏(光环/战斗模式/Buff/设置/充值/地图),均为 launch 非 embed,故列 references。无 use_background/is_center/click_bg_toClose,根 width=720/height=1 为顶部满宽 1px 条(非 top=bottom 全屏拉伸)→ root_stretch=false,判 hud。",
+      "flags": [
+        "VIP 经 GlobalEventSystem.Fire(OPEN_VIP_VIEW) 无字面 view 名,具体 VIP 屏类名未捕获,需确认其路由到哪个 BaseView1。",
+        "_box_recharge 经 VipModel.OPEN_VIEW 'RechargeView' 路由(model-routed,非通用 OPEN_VIEW);确认 RechargeView 为实际 BaseView1 类名。",
+        "地图经 EventName.OPEN_MAP_VIEW 参 'MapEnterView'(地图专用通道),作 reference 但路由不同。",
+        "现有 Bind 还暴露 _tpl_CustomHeadItem / _tpl_ActivityIcon 模板,但本 TS 未实例化二者,疑似静态转换过度绑定(属兄弟视图),先不计入 owns_items,需核实。",
+        "现有静态 Unity MainUITopView.cs 把顶部按钮全走 MainUIRouter.Open(key) 占位(buff/fightmode/vip/recharge/halo/customerservice);按记忆这是未移植面板的故意降级占位,非最终 opener。",
+        "_lb_role_pos / RefreshMainRolePos 已注释为死代码,节点在 scene 但不被驱动,转换时携带但预期空白。"
+      ]
+    },
+    {
+      "name": "MainUIActivityView",
+      "kind": "hud",
+      "label": "左侧活动图标列",
+      "view_roots": [
+        "MainUIActivityView"
+      ],
+      "source": "mainUI/MainUIActivityView.json",
+      "open": "InitMainUI 首批常驻 HUD;layer Enum_UILayer.Main;LoadSuccess 经 SetMainuiLoadedFlag 注册为持久 MainUI 区域,固定 x=10/y=128+刘海",
+      "owns_items": [
+        "ActivityIcon",
+        "EquipmentItem",
+        "TopPlayerTipItem"
+      ],
+      "references": [],
+      "rationale": "左侧活动图标列 + 排行/榜首玩家小部件,持久 HUD 区域。私有实例化模板:ActivityIcon(每个活动图标)、EquipmentItem(榜首奖励 into icon_box)、TopPlayerTipItem(Bind 暴露 _tpl_TopPlayerTipItem)。不直接 OPEN_VIEW/new XView().Open() 任何 BaseView1,导航经 OPEN_ACT_VIEW 事件(Unity 镜像 MainUIRouter.Open('activity_rank'))间接进行,故 references 为空。根 width/height=1 为逻辑占位,实际尺寸代码驱动 → root_stretch=false。",
+      "flags": [
+        "TopPlayerTipItem 顶部 import 但 TS 可见代码无显式 new,Bind 以 _tpl_TopPlayerTipItem 暴露,列入 owns_items 为『可能但未确认』;需核实其真实实例化点(或在 ActivityIcon/榜首流程内)。",
+        "对其它屏的引用经 OPEN_ACT_VIEW('331@110'/'331@100'/'331@10@0')事件而非直接 Open(),按『仅直接 OPEN_VIEW/new XView().Open() 才算 reference』规则留空;若需捕获事件目标,真实目标为 activity_rank/开服活动面板。",
+        "icon_box 内有 3D 角色模型(SetRoleModel)与 UI 特效(AddUIEffect 'ui_cb01')→ 运行时生成的模型/特效,非 item 模板,经运行时 API 重建。",
+        "ActivityIcon 为多视图复用模板,已抽 shared_external(见下);本视图按 guid 引用。"
+      ]
+    },
+    {
+      "name": "MainUISkillView",
+      "kind": "hud",
+      "label": "底部技能条",
+      "view_roots": [
+        "MainUISkillView"
+      ],
+      "source": "mainUI/MainUISkillView.json",
+      "open": "InitMainUI 首批常驻 HUD;layer Enum_UILayer.Main;SetMainuiLoadedFlag 注册为持久 MainUI 区域;centerX=0/bottom=254 锚定,非拉伸",
+      "owns_items": [
+        "MainUISkillItem"
+      ],
+      "references": [
+        "PartnerAwakeShowView"
+      ],
+      "rationale": "底部居中技能条:固定小尺寸 187x94,无 use_background/is_center/CloseDestroy/click_bg_toClose → 是 HUD 区域非模态。私有 MainUISkillItem 模板,反复克隆进 _box_skill_con(4 个技能槽)与单个进 _box_partner_skill(伙伴技能)。点 _img_partner_lock 经 ViewPopLevelModel.SetViewPop('PartnerAwakeShowView',2) 按需打开 PartnerAwakeShowView,是唯一触达的兄弟屏。子节点 _img_bg/_box_skill_con/_img_auto_fight/_box_partner_skill。",
+      "flags": [
+        "MainUISkillItem 在两个容器各克隆:_box_skill_con 4 个 + _box_partner_skill 1 个;Unity prefab/bind 须在两个父下都挂模板。",
+        "自动战斗按钮(_img_auto_fight)按状态换皮(uizjmgj_003a 关/001b 开/001a1 临时);命名陷阱:这是 AutoFight 自动战斗,非 AutoBrush 自动闯关(另有 MainUIAutoBrushView)。",
+        "PartnerAwakeShowView 经 SetViewPop 弹层队列打开(非 OPEN_VIEW),Bind 映射 MainUIRouter.Open('partnerawake');Partner 系统未移植,伙伴技能槽/锁可见性为占位,需对运行时核实。",
+        "_img_auto_fight 在 scene 默认皮 uizjmgj_001a1 是临时模式皮,运行时 UpdateAutoFightState 覆盖;静态转换会冻结错误默认皮。",
+        "UpdateView 用 fixedPositions [4,99][39,64][96,63][132,101](Laya 坐标)覆盖旧 pos_list;仅 fixedPositions 生效,Laya y 须翻转。",
+        "_box_skill_con scene 尺寸 0x0 为定位锚点,非缺失/损坏节点。"
+      ]
+    },
+    {
+      "name": "MainUIChatView",
+      "kind": "hud",
+      "label": "底部聊天/系统消息条",
+      "view_roots": [
+        "MainUIChatView"
+      ],
+      "source": "mainUI/MainUIChatView.json",
+      "open": "InitMainUI 首批常驻 HUD;layer Enum_UILayer.Main;LoadSuccess 设 centerX=0/bottom=0(底部居中横条);响应 GAME_START/CHAT_MSG_CHANGE/红点等事件",
+      "owns_items": [
+        "MainUIChatItem",
+        "ActivityIcon"
+      ],
+      "references": [
+        "SettingView",
+        "FriendView",
+        "ShopMainView",
+        "ChatView"
+      ],
+      "rationale": "底部聊天/系统消息条 + 左侧入口按钮(设置/好友/商店)+ 强化活动图标挂点。根 720x254 无拉伸锚点、cacheAs:bitmap,非模态。私有两类克隆:MainUIChatItem(InitChat/InitSys/UpdateChat/UpdateSys 反复 new 进 _box_chat_con/_box_sys_con)与 ActivityIcon(CreateStrengthenIcon → new into _box_strengthen,SetIconType '158')。作为 HUD 不直接 Open() 子屏,经事件让其它视图处理:SETTING_OPEN_VIEW 'SettingView'、OPEN_FRIEND_VIEW(FriendView)、OPEN_SHOP_MAIN_VIEW(ShopMainView)、OPEN_CHAT_VIEW(ChatView)。",
+      "flags": [
+        "references 为事件/路由目标非直接 new XView().Open();SETTING_OPEN_VIEW 带字面 'SettingView',其余经 EventName→view 解析得 FriendView/ShopMainView/ChatView,屏名为推断需对照映射确认。",
+        "市场入口(_box_market/MarketBaseView/_img_market*)在 TS 与 scene 均已注释,不迁移。",
+        "ActivityIcon('158') 依赖 ActivityIconManager(此处未建模);_box_strengthen/_box_shop_effect 为运行时挂点,但 TS 声明的 _img_shop/_box_shop/_box_shop_effect/_box_strengthen 未现于已读 scene 子节点,scene 可能不全/过期,烤 prefab 前确认完整 scene。",
+        "MainUIChatItem 为列表项模板(类 BaseItem),是 owned 非 reference。",
+        "Bind 在 GAME_START 注入仅客户端的欢迎系统消息作首条系统行 —— data-only 行为,快照 diff 时留意。",
+        "ActivityIcon 为多视图复用模板,已抽 shared_external,本视图按 guid 引用。"
+      ]
+    },
+    {
+      "name": "MainUISecondaryView",
+      "kind": "hud",
+      "label": "次级外围入口环",
+      "view_roots": [
+        "MainUISecondaryView"
+      ],
+      "source": "mainUI/MainUISecondaryView.json",
+      "open": "InitMainUI 首批常驻 HUD;layer Enum_UILayer.Main;LoadSuccess 经 SetMainuiLoadedFlag 注册,设 left=0/right=0/bottom=290,并把 _box_right reparent 到 Main 层(right=0/centerY=250)",
+      "owns_items": [
+        "ActivityIcon",
+        "MainUISkillItemGod",
+        "FirstRechargeNewTipsView"
+      ],
+      "references": [
+        "RedPacketMainView",
+        "GuildHelpView",
+        "DailyView",
+        "MarriageGiftTipsView",
+        "RPRShowView",
+        "TeamBeInvitedView",
+        "PushGiftEntView",
+        "OnHookMainView",
+        "OnHookAdditionView",
+        "FriendView",
+        "MainUIMarriageItem"
+      ],
+      "rationale": "主 UI 的次级/外围入口环(邮件/聊天/红包/帮派援助/明海/组队/首杀/每日寻宝/等级奖励/推送礼包/挂机经验/RPR/抖音记录),可见性 data/event 驱动,是 HUD 状态非弹窗外壳。无 use_background/is_center/click_bg_toClose,根节点仅 {name,hitTestPrior,height:1} → root_stretch=false。私有多模板:ActivityIcon(克隆进 left/right/notice 轨)、MainUISkillItemGod(into _box_god)、MainUIMarriageItem(婚恋预览,window 取)、FirstRechargeNewTipsView(into _box_left)。经 OPEN_VIEW/model Fire/OpenFun 打开众多兄弟屏。",
+      "flags": [
+        "MainUIMarriageItem 仅经 window['MainUIMarriageItem'] 动态引用,具体类/scene 名待确认;此处当 owned item(婚恋预览图标),但它有 Open/Close/HasOpen 像 BaseView1,横跨 owns_items 与 references;另在 hud-popup 段有其独立分类条目(命名陷阱),见 open_questions。",
+        "FirstRechargeNewTipsView 直接 new 进 _box_left 作 per-item 子视图(非按层 Open),归 owned item,但类名带 *View,边界 owns_items vs references。",
+        "ActivityIcon 为主复用模板(left/right/notice),已抽 shared_external,本视图按 guid 引用。",
+        "references 混直接与间接:'FriendView' 由 OPEN_FRIEND_VIEW{index 0/1/2}(好友/聊天/邮件 tab)推断,可能映射多个 Unity 面板;OpenFun(200)/(188) 按 funcId 打开等级奖励/首杀,无字面 view 名。",
+        "Bind 经 MainUIRouter.Open(key)(email/chat/redpacket/levelreward/firstblood/dailyfind/guildhelp/brightsea/team_invite/pushgift/onhook/onhook_addition/marriage_gift_tips/'232'/redpacket_rain/tt_record);部分 key('232'/redpacket_rain/tt_record)是占位/funcId,非 1:1 对应 TS OPEN_VIEW 名,需调和。",
+        "_box_right 运行时被 reparent 出本视图到 Main 层,部分内容活在自身子树外 —— prefab/层级保真需注意。",
+        "TT/抖音记录 + 客服按钮代码受 IsTTGame 平台门控并建原生联系按钮,非 Laya/Unity 节点,转换结构忽略但影响 _img_tt_record 可见性。",
+        "大量 tween/特效(摇动、经验旋转、AddUIEffect 'ui_zidongxunluzhong' 等)是行为非结构,运行时挂在既有 box 上,非独立 overlay-effect 视图。",
+        "修正(verify):MainUIMarriageItem 是 SecondaryView new().Open() 的 BaseView1 子视图(独立 hud-popup prefab),已从 owns_items 移到 references。"
+      ]
+    },
+    {
+      "name": "MainUITaskTeamView",
+      "kind": "hud",
+      "label": "左侧任务/组队面板",
+      "view_roots": [
+        "MainUITaskTeamView"
+      ],
+      "source": "mainUI/MainUITaskTeamView.json",
+      "open": "InitMainUI 首批常驻 HUD;layer Enum_UILayer.Main;LoadSuccess 用 MainUIManager move 组件注册,SwitchView(Task) 常驻;left=10/bottom=380,根固定 224x314(非全屏)",
+      "owns_items": [
+        "MainUITaskItem",
+        "MainUITaskMainLineItem",
+        "TeamMainRoleItem",
+        "FuncBoardView"
+      ],
+      "references": [
+        "TaskView",
+        "TeamView",
+        "TempleAwakenBaseView",
+        "TempleAwakenEnterView",
+        "FuncBoardView"
+      ],
+      "rationale": "左侧任务/组队面板:tab 对(任务/组队)、任务滚动面板、主线任务槽、组队列表、无队入口块、剑魄同修盒、折叠箭头。无背景外壳/is_center/click-bg-to-close → HUD 区域非模态。克隆 MainUITaskItem(into _panel_task)、MainUITaskMainLineItem(into _box_main_line)、TeamMainRoleItem(经 LoopScrowViewMgr on _list_team),并 new FuncBoardView 弹出器。经 TASK_OPEN_VIEW 'TaskView'/TEAM_OPEN_VIEW 'TeamView'/OPEN_VIEW 'TempleAwakenBaseView'/'TempleAwakenEnterView' 打开兄弟屏。",
+      "flags": [
+        "命名陷阱:虽带 'View' 后缀且引用 TaskView/TeamView,本体是常驻 HUD 区域非弹窗;tab 仅切内部 _box_task/_box_team 可见性,二次点击才 Open 真正的 TaskView/TeamView 弹窗。",
+        "FuncBoardView 直接 new(new FuncBoardView(this._box_temple_awaken))作锚定子弹出器,非经 OPEN_VIEW;同列 owns_items(实例化+管理生命周期/DeleteMe)与 references,需单独裁定它是 owned 子项还是独立视图;现有独立 FuncBoardView.prefab 存在,按 owned 嵌入 + reference 双标。",
+        "TempleAwakenBaseView/TempleAwakenEnterView 经 OPEN_VIEW 字符串 id 打开,确认 router 映射到真实 BaseView1。",
+        "Bind 注:剑魄同修盒(_box_temple_awaken)与 TeamView 未移植,_box_temple_awaken 强隐藏,组队 tab 仅显无队入口;prefab 烤入占位文本('剑魄同修提升 10/35')须保持隐藏。覆盖度上 temple-awaken+组队列表不完整。",
+        "TeamMainRoleItem 经 LoopScrowViewMgr(Vertical)虚拟化,非裸 Laya.List itemRenderer。",
+        "MainUITaskMainLineItem 无 Unity 转换,Bind 复用 MainUITaskItem 渲染主线槽,可能不需独立 prefab,但仍是老端模板,映射前核实。",
+        "根 cacheAs='bitmap' 为性能提示非渲染纹理/背景。",
+        "FuncBoardView 构造取父 Box(parented 弹出器),非 stage 级模态,勿因名字带 'View' 误判为居中模态。"
+      ]
+    },
+    {
+      "name": "MainUIDownView",
+      "kind": "hud",
+      "label": "底部功能图标+经验条",
+      "view_roots": [
+        "MainUIDownView"
+      ],
+      "source": "mainUI/MainUIDownView.json",
+      "open": "InitMainUI 首批常驻 HUD;layer Enum_UILayer.Activity;LoadSuccess 经 SetMainuiLoadedFlag 注册;centerX=0/bottom=0 底部居中,根 870x1,非全屏拉伸",
+      "owns_items": [
+        "MainFuncIconItem"
+      ],
+      "references": [],
+      "rationale": "底部功能图标 + 经验条横条:UpdateIconItem 克隆 MainFuncIconItem(new into _gp_icon_con,池化 icon_item_list),私有该模板(Bind 经 _tpl_MainFuncIconItem 确认)。无 use_background/is_center/click_bg_toClose → 非模态。references 为空:_gp_turn 点击只跑 turn_btn_fun + task_model.DoTask,仅 Fire 全局事件名(CLOSE_ICON_BOX_VIEW/SELECT_STORY_TARGET),从不 OPEN_VIEW/new XView().Open()。AddUIEffect('ui_expbar',_box_exp_effect) 是附着粒子特效非独立视图。",
+      "flags": [
+        "逐项导航实际发生在 MainFuncIconItem 内(点功能图标开对应面板),非本视图;Bind 注点击经 MainUIRouter 用 MainFuncIcon.Res 路由。真正 OPEN_VIEW 引用在 item 内,本类 references 为空但本条功能上是启动器。",
+        "AddUIEffect('ui_expbar',_box_exp_effect) 是经验条流光附着特效,作本 HUD 内附着 overlay,非独立 overlay-effect 视图。",
+        "_box_exp_effect/_img_red 在 Bind 中隐藏(MainUIModel/特效依赖未移植 HideUnbackedIndicators)—— 可见态不全,非分类问题。",
+        "根 width 870(>720)但子 _box_con/_img_bg 为 720 centerX 锚定,判底部居中条非全屏拉伸。",
+        "layer 为 Enum_UILayer.Activity(非 Main),仍是首批常驻 HUD。"
+      ]
+    },
+    {
+      "name": "MainUIAutoBrushView",
+      "kind": "hud",
+      "label": "自动闯关/斩秽巡行入口",
+      "view_roots": [
+        "MainUIAutoBrushView"
+      ],
+      "source": "mainUI/MainUIAutoBrushView.json",
+      "open": "InitMainUI 首批构建(layer Enum_UILayer.Main);运行时由 UpdateOpenState→CheckFuncOpenState('AutoBrush')&&IsFieldScene() 控制 Hide/CancelHide;视图本身首批创建,x=26/bottom=262/scale0.9 角落小部件",
+      "owns_items": [],
+      "references": [
+        "AutoBrushBaseView"
+      ],
+      "rationale": "自动闯关/斩秽巡行入口小部件,常驻主 HUD。extends BaseView1,layer Main,首批创建。无 use_background/is_center/click_bg_toClose,根固定 90x136 无全屏拉伸 → hud。显示进度条/关卡标签/自动闯关切换/两个红点。click_gp 经 OPEN_VIEW 'AutoBrushBaseView'(h5/src/autoBrush 下确证的真实 BaseView1)按需打开,是唯一 opened 屏 → references=[AutoBrushBaseView]。_box_auto_level 只发 REQUEST_PROTO_EVENT 不开屏。无 item 克隆;InitChallengeEffect 建运行时 Laya.Box + AddUIEffect('ui_mainDungeon') 是内联特效非模板 → owns_items 空。",
+      "flags": [
+        "UpdateOpenState 按 CheckFuncOpenState('AutoBrush')&&IsFieldScene() 动态 Hide/CancelHide;首批创建但非恒可见(非野外场景/功能锁时隐藏)。归 hud(init 创建)但审阅者可能预期默认隐藏。",
+        "InitChallengeEffect 代码建运行时 Box(_box_challenge_effect 128x128)+ AddUIEffect('ui_mainDungeon');该特效 scene 内无,静态转换会漏,ui_mainDungeon 作引用特效资源,非 owned item。",
+        "命名陷阱:scene 有 _box_effect(compId 13)与代码建的 _box_challenge_effect,二者不同;TS 绑 _box_effect,挑战特效用运行时 _box_challenge_effect;Bind 复用 _box_effect 作完成特效切换,可能与旧行为不完全一致。",
+        "经通用 OPEN_VIEW 字符串事件开 AutoBrushBaseView,非直接 new XView().Open()。",
+        "_box_auto_level 点击不开屏(仅发 13307 切自动态);Bind 却路由 _box_auto_level→MainUIRouter.Open('autobrush_toggle'),行为分歧待核。",
+        "重度依赖未移植 model(AutoBrushModel/MonsterModel/TaskModel/StoryModel)与手指/箭头引导;红点与特效盒在那些数据存在前隐藏。"
+      ]
+    },
+    {
+      "name": "UIJoyStick",
+      "kind": "hud",
+      "label": "虚拟摇杆",
+      "view_roots": [
+        "UIJoyStick"
+      ],
+      "source": "mainUI/UIJoyStick.json",
+      "open": "InitMainUI:作为常驻 Main HUD new+Open;open_callback 立即 Hide(),由 SceneManager 输入触发 ShowJoyStick(CancelHide+UpdatePos)/HideJoyStick",
+      "owns_items": [],
+      "references": [],
+      "rationale": "虚拟摇杆,常驻 Main HUD 层(首批 InitMainUI)→ hud。open_callback 即 Hide(),对象常驻且事件绑定但视觉隐藏到触摸触发。UpdatePos 把 _gp_root 移到触点并沿方向偏移/旋转 _img_middle_circle —— 纯 HUD 交互非模态:无 use_background/is_center/click_bg_toClose,根固定 200x200 不拉伸 → root_stretch=false。GetComponents 仅绑 4 个叶节点,无克隆/ListView/AddItem → owns_items 空;不开任何兄弟屏 → references 空。",
+      "flags": [
+        "_img_arrow 在 TS 声明/绑定且 scene 存在(visible:false)但 UpdatePos 从不用,箭头旋转逻辑注释 → 实为死/装饰节点。",
+        "open_callback 在 Open 后立即 Hide(),首批常驻但默认视觉隐藏,可见性由 SceneManager(Show/HideJoyStick)外部驱动。",
+        "_img_bg scene 皮为占位 com_empty.png;真图 mainui_base_bg 运行时 LoadSuccess 经 SetImageSprite 赋,静态转换会漏。",
+        "根 200x200 锚定非 stage 拉伸,_gp_root 最终位置由触点动态算,静态布局位置无意义。"
+      ]
+    },
+    {
+      "name": "MainUIBuffView",
+      "kind": "hud-popup",
+      "label": "Buff 详情弹窗",
+      "view_roots": [
+        "MainUIBuffView"
+      ],
+      "source": "mainUI/MainUIBuffView.json",
+      "open": "事件驱动(点主 HUD 上 Buff 图标);layer Enum_UILayer.Activity;use_background+click_bg_toClose(background_alpha=0 透明拦截)+destroy_imm;LoadSuccess 经 GET_GOODS_BUFF_LIST 取数;buff 空时自 Close",
+      "owns_items": [
+        "MainUIBuffItem"
+      ],
+      "references": [],
+      "rationale": "extends BaseView1,ctor 设 layer Activity、use_background=true、click_bg_toClose=true、background_alpha=0、destroy_imm=true —— 经典模态/弹窗外壳(scene 还有 '点击空白处关闭' 提示)。非首批,按需打开并经 UPDATE_BUFF_DATA→UpdateView 自刷新,buff_list 空自 Close → Activity 层弹窗 hud-popup。根固定 358x180(非全屏,root_stretch=false),经 UpdatePos(x=stageWidth/2-360+90)/y=115+刘海 手动定位而非 is_center → is_center=false。经 LoopScrowViewMgr.SetData 克隆 MainUIBuffItem 进 _list_buff_con。不开兄弟屏 → references 空。",
+      "flags": [
+        "is_center=false:无显式 center 标记,由 UpdatePos 数学定位(近似水平居中),manifest 若按视觉居中预期 is_center 需留意。",
+        "background_alpha=0:遮罩全透明(隐形点击拦截器),use_background 为真但无可见变暗;转换须保留透明全屏 click-to-close 拦截层。",
+        "root_stretch=false 但内层 image1 在 358x180 根内 top/right/bottom/left=0,易误判为全屏拉伸(仅在小面板内拉伸)。",
+        "命名陷阱:layer 为 Activity 非 Main,勿当 Main HUD 区域。",
+        "owns_items 含逻辑列表节点 _list_buff_con(原分类把它与模板并列);此处规范为模板 MainUIBuffItem,_list_buff_con 是容器节点不单列。",
+        "兄弟 MainUIBuffItem.ts/scene 此处未读,移植 owns_items 时单独核实其克隆/子引用。"
+      ]
+    },
+    {
+      "name": "MainUIFightModeView",
+      "kind": "hud-popup",
+      "label": "战斗模式(PK)弹窗",
+      "view_roots": [
+        "MainUIFightModeView"
+      ],
+      "source": "mainUI/MainUIFightModeView.json",
+      "open": "事件驱动(点 PK/战斗模式图标按需 Open);layer Activity;use_background+is_center+click_bg_toClose(background_alpha=0 透明遮罩);切换成功或 CD 归零自 Close",
+      "owns_items": [
+        "MainUIFightModeItem"
+      ],
+      "references": [],
+      "rationale": "extends BaseView1,ctor 明设 use_background=true/click_bg_toClose=true/background_alpha=0 —— 典型模态弹窗外壳,即便在 Activity 层也是按需弹层非常驻 → hud-popup。scene 固定 350x216 根不拉伸(root_stretch=false);经 UpdatePos 水平居中 +90 偏移、y 手动定位 → is_center=true(近似)。克隆 MainUIFightModeItem 进 _gp_item(VBox)铺 PK 模式列表。全程不开其它 BaseView1,仅 Fire PkStatusModel.CHANGE_PK_STATUS、Message.show、this.Close() → references 空。",
+      "flags": [
+        "背景遮罩 background_alpha=0(全透明)模态拦截层视觉不可见,Unity 须保留透明可点遮罩 + 点击关闭,勿因 alpha=0 省掉。",
+        "layer=Activity 但行为是弹层(use_background/click_bg_toClose);若按层硬分组注意它不是常驻 HUD。",
+        "根 View 350x216 不拉伸,内层 image1(left/right/top/bottom=0)拉满父盒;root_stretch 按根判 false。",
+        "is_center=true 是近似:实为水平居中 +90 偏移、y 用刘海高手动算,Unity 定位需照搬偏移非标准对称居中。",
+        "已存在 MainUIFightModeView.cs/MainUIFightModeItem.cs;PkStatusModel/pkstate_list/和平 CD 未移植(降级:列表暂空、点击只打日志)。",
+        "MainUIFightModeItem 是 BaseItem 模板项,不单独成屏 prefab,按列表项模板处理。",
+        "修正(verify):构造未设 is_center(只有 use_background+click_bg_toClose);kind=hud-popup 不变,但 is_center 视为 false。"
+      ]
+    },
+    {
+      "name": "MainUIHiterBigBloodView",
+      "kind": "hud-popup",
+      "label": "BOSS/大血条",
+      "view_roots": [
+        "MainUIHiterBigBloodView"
+      ],
+      "source": "mainUI/MainUIHiterBigBloodView.json",
+      "open": "事件驱动:攻击 BOSS/大怪/玩家时外部 SetDate(vo,hp_strip_count,autoClose)+Open();StartDelayCloseTime(3) 3s 自闭(除非 autoClose=false),或 REMOVE_SCENE_OBJECT 时闭;layer Enum_UILayer.Main",
+      "owns_items": [
+        "CustomHeadItem"
+      ],
+      "references": [],
+      "rationale": "extends BaseView1,layer Main,事件驱动非首批。右上角功能 HUD 区域非模态:load_callback 定位 x=stageWidth-width-Offset_X,根小盒 327x78(无 use_background/is_center/click_bg_toClose/全屏拉伸)。显示怪/角色名、HP 文本、10 段明暗血条(Runner tween)、怒气/活力、BOSS 伤害掉落面板(ADD/REMOVE/UPDATE_BOSS_DAMAGE_DATA)。Role 目标时懒 new CustomHeadItem 进 _box_head。不开兄弟屏 → references 空。判 hud-popup(按需 Main 层 HUD 区域)非 overlay-effect:虽名 'big blood' 但是 data-bound 交互 HUD,非纯粒子。",
+      "flags": [
+        "命名陷阱:规则把 'big blood' 归 overlay-effect,但这是功能性 data-bound HUD(名/HP 标签、10 段血条、BOSS 掉落面板、懒实例 CustomHeadItem 头像),非纯视觉/粒子。判 hud-popup,若 manifest 坚持 big-blood→overlay-effect 需人工确认。",
+        "owns_items CustomHeadItem extends BaseItem1(头像模板非 BaseView1),仅 Role 目标时 new into _box_head,非 scene 内嵌,不现于 scene 树。",
+        "drop_lb 是 Laya.HTMLDivElement(innerHTML 富文本含 <font>)—— 无 Unity 直接等价,掉落面板渲染需特殊处理。",
+        "_img_bg 用 scaleX:-1+anchorX:1(水平镜像),血条用 anchorX:1 运行时改 width 填充 —— pivot/anchor 方向须保留否则血条反向生长。",
+        "现有 Bind 是重度降级:单段比例条、无 10 段、无 tween、头像/掉落/怒气/活力隐藏、无伤害事件接线 —— 临时件非保真转换。",
+        "_lb_vit/ShowVit 为死代码(BossModel 逻辑注释),_lb_vit 隐藏。",
+        "方法名 SetDate(SetData 笔误),接 opener 时勿盲目改名。",
+        "kind 待裁定(open_questions#9):无模态信号、Main 层、事件驱动 → 与 CollectBarView/DropProgress 同属\"按需 HUD\";暂记 hud-popup,可改为 hud(on-demand)。"
+      ]
+    },
+    {
+      "name": "MainUIIconBoxView",
+      "kind": "hud-popup",
+      "label": "聚合图标弹出框",
+      "view_roots": [
+        "MainUIIconBoxView"
+      ],
+      "source": "mainUI/MainUIIconBoxView.json",
+      "open": "事件驱动:Open(icon_type,pos,offset,direction)→Local_Open→super.Open()(icon_type 与 pos 非空才开);close_time 计时器(~10 tick)+换场景自闭;layer Enum_UILayer.UI",
+      "owns_items": [
+        "ActivityIcon"
+      ],
+      "references": [],
+      "rationale": "extends BaseView1,layer Enum_UILayer.UI(非 Main)→ 非 HUD 区域。事件驱动:点聚合/'更多'功能图标时按需开,close_time 计时器 + change_scene_close 自闭,从不首批。弹窗外壳:use_background=true/click_bg_toClose=true(background_alpha=0 隐形拦截),is_center 不设(SetPos 绝对定位到源图标旁带方向箭头)。根小盒 189x128 非全屏拉伸。克隆 ActivityIcon:CreateItem→new local_ActivityIcon(this.icon_con) 6 列网格(Bind 经 _tpl_ActivityIcon+icon_con 反映)。不开兄弟屏 → references 空。判 hud-popup(按需弹窗带背景+点击关闭外壳)。",
+      "flags": [
+        "边界 kind:use_background+click_bg_toClose 标弹窗外壳但 is_center 不设、background_alpha=0(隐形拦截非变暗中央模态),是锚定到点击图标旁的 tooltip/flyout 非居中模态 —— 归 hud-popup 作最近的按需弹窗桶。",
+        "ActivityIcon 经 'new local_ActivityIcon(this.icon_con)'(代码侧渲染包装)非 ListView itemRenderer/scene 克隆,模板活在本 scene 外;已抽 shared_external 按 guid 引用。",
+        "layer 为 Enum_UILayer.UI(非 Main),虽是 MainUI* 类但非常驻 HUD 区域。",
+        "现有 Bind 是部分降级:数据源(ConfigBoxIcon/ActivityIconManager/CustomActivityModel 开放态)与 pos/offset/direction 锚定未移植(RefreshIcons 空 + 日志),仅自闭计时器与网格在。",
+        "hide_maincancas=false 且 use_background=true:背景不隐藏主画布,强化它是活 HUD 上的轻量 flyout 非全模态。"
+      ]
+    },
+    {
+      "name": "MainUIMarriageItem",
+      "kind": "hud-popup",
+      "label": "婚恋新手预览图标(右侧滑入)",
+      "view_roots": [
+        "MainUIMarriageItem"
+      ],
+      "source": "mainUI/MainUIMarriageItem.json",
+      "open": "事件驱动:按需 Open(icon)(super.Open of BaseView1);右边缘滑入 HUD 小部件(MainUIManager.AddMoveComponent MOVE_TYPE.Right);right=-10/y=478+刘海;layer Enum_UILayer.Main",
+      "owns_items": [],
+      "references": [
+        "MarriageForeShowView",
+        "MarriageFlowView"
+      ],
+      "rationale": "婚恋新手预览 HUD 小部件。类 extends BaseView1(非 BaseItem1!),layer Main → Main HUD 层。事件驱动非首批:Open(icon) 按需显示(婚恋预览对角色等级解锁时)。scene 小根 178x71 含单 Image '_img'(占位 com_empty.png),无全屏拉伸/背景/居中/click-bg-to-close → 非模态。右边缘锚定 + MainUIManager 滑入组件 → 常驻屏滑入图标非 overlay 特效。无模板克隆 → owns_items 空。点 _img 经 MarriageModel.ClickForeShowFunc() 间接(按等级)开 MarriageForeShowView 或 MarriageFlowView,非本 TS 直接 OPEN_VIEW → references(软/间接)。判 hud-popup(Main 层但按需 Open)。",
+      "flags": [
+        "命名陷阱:名以 'Item' 结尾但 extends BaseView1 非 BaseItem1 —— 是按需 HUD 小部件(单个滑入婚恋图标),非列表项/模板,勿误归 kind 'item'。它在 MainUISecondaryView.owns_items 中也被列为 owned item,实则二处定位冲突,见 open_questions。",
+        "references(MarriageForeShowView/MarriageFlowView)经 MarriageModel.ClickForeShowFunc()(按等级 Fire OPEN_VIEW/SetView)间接打开,非本视图直接 OPEN_VIEW/new XView().Open(),作软/间接引用。",
+        "hud vs hud-popup 边界:layer Main(常驻 HUD)且用 MainUIManager 滑入组件像常驻 HUD 图标,但 first-pass=否,故归 hud-popup(按需 Open),功能上是事件驱动 HUD 图标非带背景外壳的模态。",
+        "定位在代码(right=-10/y=478+刘海/AddMoveComponent)非 scene;Bind 注布局/位置应进 prefab,转换核实右边缘锚定与刘海偏移。",
+        "scene 图皮为占位 com_empty.png,真图标运行时经 SetIcon/Open(icon) 从 mainUI 图集赋,prefab 勿烤死。",
+        "MainUIManager.AddMoveComponent/ClickForeShowFunc 在现有 Bind 未移植(OnClick 仅日志)—— 运行时行为不全。"
+      ]
+    },
+    {
+      "name": "MainUIReliveView",
+      "kind": "hud-popup",
+      "label": "复活倒计时弹窗",
+      "view_roots": [
+        "MainUIReliveView"
+      ],
+      "source": "mainUI/MainUIReliveView.json",
+      "open": "事件驱动:本地玩家死亡时打开(死亡/复活链);订阅 UPDATE_RELIVE_INFO 刷新,每秒倒计时,left_time<0 自 Close(非服务器控制分支 Fire RELIVE_BY_TYPE);layer Enum_UILayer.Activity;use_background(alpha=0.5)+is_center",
+      "owns_items": [],
+      "references": [],
+      "rationale": "ctor 设 use_background=true/background_alpha=0.5 + horizontalCenter=0/verticalCenter=0 —— 标准模态弹窗外壳,虽在 Activity 层仍是 hud-popup 非 HUD 区域。事件驱动非首批:无 InitMainUI/FirstPass 路径,角色死亡时显示,倒计时到自 Close,经 UPDATE_RELIVE_INFO 驱动。scene 根 720x600 居中(非全屏拉伸,root_stretch=false),全屏变暗来自 use_background 非 scene 根。不克隆 item(仅固定节点)→ owns_items 空;不开兄弟屏 → references 空。not_close_by_android_back_key=true + change_scene_close=true 强化它是不可随意关的瞬态模态。",
+      "flags": [
+        "click_bg_toClose 未显式设(默认 false);use_background+alpha=0.5 是变暗模态,点背景是否关取决于 BaseView1 默认背景行为(此处未读)。",
+        "layer=Activity(非 Main)但语义是居中模态弹窗,按 use_background+is_center 规则归 hud-popup,确认 manifest 同等对待 Activity 层模态。",
+        "scene 根 720x600 居中,非全屏视图;可见全屏变暗由 BaseView1 use_background 背景提供,转换须单独加该背景否则弹窗浮在透明 stage 上。",
+        "现有 Bind 是故意降级:ReliveModel/next_relive_time/服务器时间与 UPDATE_RELIVE_INFO+RELIVE_BY_TYPE 未移植,硬编非服务器控制 5s 本地倒计时并 Hide()+日志代替 Fire;真实死亡/复活触发(谁 Show)仍 TODO。",
+        "_img_bg 用 sizeGrid 233,0,0,0(9 宫格),_img_bg/_img_bg2 scene 占位 com_empty.png,真皮运行时经 ResManager 取(boss/com_up_bg2、boss/up_title_3),sprite/9 宫格须来自这些 boss 图非占位。"
+      ]
+    },
+    {
+      "name": "MainUIStrongerView",
+      "kind": "hud-popup",
+      "label": "变强指引弹窗",
+      "view_roots": [
+        "MainUIStrongerView"
+      ],
+      "source": "mainUI/MainUIStrongerView.json",
+      "open": "事件驱动:Open(clickPos) 点击锚定的'变强'指引弹窗;layer Enum_UILayer.Activity;use_background+click_bg_toClose(background_alpha=0;is_center 注释→false)",
+      "owns_items": [
+        "MainUIStrongerBtn"
+      ],
+      "references": [],
+      "rationale": "extends BaseView1。ctor 设 layer Activity、use_background=true、background_alpha=0、click_bg_toClose=true(is_center 注释→false)—— 模态弹窗外壳(透明 click-to-close 背景包面板)→ hud-popup。事件驱动:Open(...args) 取 clickPos 经 pos(x-width,y-height) 相对点击定位,非首批。scene 根小盒 194x308,代码定位非 stage 拉伸 → root_stretch=false。经 LoopScrowViewMgr.SetData 克隆 MainUIStrongerBtn(BaseItemRenderer)进 listStrongBtn;另运行时 new Laya.Image() 建 banner 切换点(非 scene 模板,不列 owned)。不直接开兄弟屏 —— 经 OpenFun.OpenFunHandler(skip_id)+Fire(OPEN_ACT_VIEW) 间接导航 → references 空。",
+      "flags": [
+        "实际 Unity Bind/View 在 Assets/Scripts/Module/Core/MainStronger/Views/(非 prompt 给的 MainUI 路径),Generated 在 Assets/Scripts/Generated/UI/MainStronger/;模块桶是 'MainStronger' 非 'MainUI',注意路径/桶错配。",
+        "命名陷阱:layer 是 Activity(非 Main HUD 层),虽类名带 'MainUI' 前缀,是 Activity 层按需弹窗非常驻 Main HUD 区域。",
+        "is_center 源码注释 → false;配 use_background+click_bg_toClose 仍是模态外壳,但是 click-anchored(定位到 clickPos)非屏幕居中,是上下文弹窗,定位处理与普通居中 hud-popup 不同。",
+        "owns_items 还含运行时生成的 banner 切换点(new Laya.Image() in _panel_toggle,无 scene/类模板)与手势滑动 3 图 banner 轮播(_img_left/center/right,Runner 逻辑)—— 非标准 ListView;现有 stub 标 banner 轮播 + LoopScrowViewMgr 未移植(TODO)。",
+        "3 张 banner 经 resMgr.SetOutsideImageSprite(mainStronger 远程图)加载,是动态图标非烤进 prefab 的静态皮。",
+        "scene 含额外节点 imgFirstChargeAd(compId 18)与两个未被 GetComponents/逻辑引用的装饰 Sprite(test() 注释)—— 疑似死/装饰节点。"
+      ]
+    },
+    {
+      "name": "OpenDestinyView",
+      "kind": "hud-popup",
+      "label": "神创系统解锁庆祝弹窗",
+      "view_roots": [
+        "OpenDestinyView"
+      ],
+      "source": "mainUI/OpenDestinyView.json",
+      "open": "事件驱动:神创/命运系统解锁时按需打开(庆祝弹窗),非首批;本 TS 内无 OPEN_VIEW caller,外部触发;layer Enum_UILayer.Activity;use_background+is_center+click_bg_toClose(click_bg_can_close_time=3)+destroy_imm",
+      "owns_items": [],
+      "references": [],
+      "rationale": "extends BaseView1,ctor 设 use_background=true/is_center=true/click_bg_toClose=true(can_close_time=3)/destroy_imm=true/layer Activity —— 教科书模态弹窗外壳 → hud-popup。神创解锁庆祝窗:bg(uisc_002)+静态标题/图标+4 细节标签+'点击空白位置关闭'提示,全屏 _img_click(869x1335)overlay 接 Close()。事件驱动非首批,点击自闭。scene 根 867x1321 居中(is_center 处理定位)→ root_stretch=false,仅 click 拦截 overlay 拉伸非面板根。owns_items 空(GetChildrenByNames 仅取固定节点,无克隆/ListView/AddItem);references 空(不开兄弟屏)。注:几乎所有动画(PlayAni tween、AddUIEffect、alpha 淡入)与图标/标题加载在源码注释,运行时实为 bg+静态文本+点击关闭,与现有 Bind 一致。",
+      "flags": [
+        "effect_gp 是粒子/UI 特效容器但 AddUIEffect('UI_1130'/'ui_newlevel_glow')在源码注释 → 运行时不播特效;Bind 留空(本视图非 overlay-effect,仅在启用时托管一个)。",
+        "PlayAni 多数(circule 旋转、bg/icon tween、title/detail 淡入)+icon_img/title_img 图加载在 TS 注释,实际视图远比 scene 字段列表简单 —— 标题/图标/标签是静态 prefab 内容。",
+        "本文件无 OPEN_VIEW/new XView().Open() 触发,真实打开事件(神创解锁)在别处,open_trigger 由类用途推断非 caller grep 确认。",
+        "root_stretch=false 由 is_center 模态处理推断而非 left=right=top=bottom 锚点;全屏拉伸的是 _img_click 拦截器(869x1335≈stage),易误判为拉伸根。",
+        "scene 两个未命名额外 Image(compId 15 ui_hint.png、16 ui_info.png)不在 GetChildrenByNames —— 纯静态 prefab 装饰,属用户拥有的 prefab 内容。",
+        "click_bg_can_close_time=3:背景点击关闭前有 3s 延迟,保真须保留该计时。"
+      ]
+    },
+    {
+      "name": "CollectBarView",
+      "kind": "hud-popup",
+      "label": "采集进度条",
+      "view_roots": [
+        "CollectBarView"
+      ],
+      "source": "mainUI/CollectBarView.json",
+      "open": "事件驱动:EventName.OPEN_COLLECT_VIEW(MainUIController.ts:531)懒 new+Open(mon_id,type_id,collect_time,...);非 InitMainUI 首批;StartCollect 前 display_obj.visible=false;layer Enum_UILayer.Main",
+      "owns_items": [],
+      "references": [],
+      "rationale": "extends BaseView1,layer Main,但非首批:MainUIController 绑 OPEN_COLLECT_VIEW 懒 new+Open,采集开始才显示 → hud-popup。小固定采集进度条(根 250x104),centerX=0/bottom=700,StartCollect 前隐藏,经 Laya.Sprite mask 覆 _img_progress 动画填充。无模态外壳:无 use_background/is_center/click_bg_toClose,根不全屏拉伸 → 四标皆 false。GetComponents 仅取 5 个静态子节点,无克隆/ListView/AddItem → owns_items 空;从不 OPEN_VIEW,仅 Fire 玩法事件 → references 空。现有 stub 同读:data-only、默认隐藏、mask 逻辑延后。",
+      "flags": [
+        "kind 'hud-popup' 非 'hud':虽在 Main HUD 层但经 OPEN_COLLECT_VIEW 按需开非首批;若 schema 把 hud-popup 严限于模态/BaseView 打开的面板,审阅者或更愿用 'hud(按需)'桶(它无背景/居中/点击关闭)。",
+        "命名陷阱:'Bar'=玩法进度条,非顶/底 UI 工具条。",
+        "_img_num_bg/_txt_progress 仅海上争霸场景可见(visible=is_sea)默认隐藏,转换须保留为存在但隐藏节点。",
+        "进度填充是运行时画的 Laya.Sprite mask(DrawMask/drawRect)覆 _img_progress,非静态资源或 Image.fillAmount;Unity 需等价 mask/fill 机制,stub 已延后。",
+        "_img_state 皮运行时(ui_cj_1001/1002 或 caller show_img)经 SetImageSprite 赋,scene 内无静态皮,sprite 须运行时赋勿烤。",
+        "close_mode=CloseVisible(隐不毁)且实例缓存复用(local_collect_bar_view),生命周期为重开复用,关 Unity 池化/SetActive 语义。",
+        "scene 含空动画 'ani1'(无节点)可忽略。"
+      ]
+    },
+    {
+      "name": "DropProgress",
+      "kind": "hud-popup",
+      "label": "掉落/采集进度条",
+      "view_roots": [
+        "DropProgress"
+      ],
+      "source": "mainUI/DropProgress.json",
+      "open": "事件驱动:掉落/采集开始时按需 Open(end_time)(left_time=end_time-NowTime);非 InitMainUI;tween 结束或 left_time<=0 自闭;layer Enum_UILayer.Main",
+      "owns_items": [],
+      "references": [],
+      "rationale": "extends BaseView1,layer Main,按需 Open(end_time) 而非 InitMainUI → 事件驱动。小居中 HUD 进度条(根 394x32),load_callback 设 anchorX/Y=0.5/centerX=0/bottom=450 —— 不全屏拉伸、非居中模态外壳。无 use_background/is_center/click_bg_toClose → 非模态,是按需 HUD → hud-popup。无 item/list 模板(子节点静态),不引用兄弟屏(仅 this.Close())。经 SYTweenLite(WIDTH on _gp_progress、ANCHORED_POSX on _img)在 left_time 内填充后自闭,是功能性进度 UI 非粒子特效,故非 overlay-effect。",
+      "flags": [
+        "边界 hud vs hud-popup:层是 Main(HUD 层)但事件驱动/默认关、非首批常驻,故归 hud-popup。",
+        "非模态:use_background/is_center/click_bg_toClose 在 TS 未设、scene 缺;定位为居中浮动 HUD(centerX=0/bottom=450)非全屏模态外壳。",
+        "用 SYTweenLite 动画(进度填充+图标滑入)表面像 'effect' 视图,但是功能性进度 UI 非 overlay-effect,留 hud-popup。",
+        "现有 DropProgress.cs:DropProgressBind 经 Show(duration:float 秒)协程重驱 tween,因原触发源(掉落/采集开始+NowTime)未移植;触发链迁移后须下游 caller Show(剩余秒)。",
+        "scene 根 width 394 配 _Image1(394),但 _gp_progress 全宽 347(progress_bar_width 缓存自 _gp_progress.width);Bind 从 prefab 缓 _fullWidth,确认 prefab 的 _gp_progress 宽为 347 使填充终点匹配旧端。"
+      ]
+    },
+    {
+      "name": "FlowerEffectView",
+      "kind": "overlay-effect",
+      "label": "撒花/红包雨特效",
+      "view_roots": [
+        "FlowerEffectView"
+      ],
+      "source": "mainUI/FlowerEffectView.json",
+      "open": "事件驱动:婚礼撒花/红包雨播放时按需 Open()/OPEN_VIEW;CheckToClose() 在 flower_effect_playing && RPR_effect_playing 皆 false 时自闭;非 InitMainUI;layer Enum_UILayer.Top;根 left=right=top=bottom=0(720x1280)全屏",
+      "owns_items": [
+        "Laya.Image(uihby_015) 克隆进 _Group1..14(under _gp_rpr)"
+      ],
+      "references": [
+        "RPRShowView"
+      ],
+      "rationale": "extends BaseView1(View 域非 BaseItem),Top 层纯视觉/粒子特效容器。职责即播瞬态特效:ShowFlowerEffect() 从 MarriageModel 取婚礼撒花经 AddUIEffect 播,CreateRPREffect() 把红包图(uihby_015)生成进 _gp_rpr 下 14 个 _GroupN 落点并经 SYTweenLite 下落。CheckToClose() 无播放时自闭,无面板 chrome。is_center 是字段但 ctor 内 //this.is_center=true 注释 → false;无 use_background/click_bg_toClose。根与 load_callback 设 left/right/top/bottom=0 → 全屏拉伸 root_stretch=true。红包点击 Fire OPEN_VIEW 'RPRShowView'。符合撒花/特效→overlay-effect 规则。",
+      "flags": [
+        "is_center 是类字段且 ctor 内 //this.is_center=true 注释,作 false,但防转换器从字段声明自动启用居中。",
+        "owns_items 非可复用列表项/XItem 模板:运行时把裸 Laya.Image(uihby_015)克隆进 14 个预排 _GroupN 盒,不应拆出 item prefab。",
+        "_group_eff 是 AddUIEffect 锚点但 ShowFlowerEffect 实传 this.display_obj(非 _group_eff)作特效父;STOP_FLOWER_EFFECT 清 _group_eff,移植时保留该小不一致。",
+        "根 mouseThrough:true、子盒 mouseEnabled:false(仅 _gp_rpr/红包图运行时可点)—— 不可挡下层 HUD 触摸,raycast/hit-test 须镜像。",
+        "现有 FlowerEffectView.cs:FlowerEffectViewBind 是 stub:ShowFlowerEffect/CreateRPREffect 仅日志'待对接'(MarriageModel/CustomActivityModel/RPRShowView/AddUIEffect/SYTweenLite 皆未移植)。",
+        "RPRShowView 引用本身可能未移植(占位),接 opener 前核实。"
+      ]
+    },
+    {
+      "name": "FightingUpView",
+      "kind": "overlay-effect",
+      "label": "战力提升特效",
+      "view_roots": [
+        "FightingUpView"
+      ],
+      "source": "mainUI/FightingUpView.json",
+      "open": "事件驱动:玩家战力提升时打开,经 SetData(old_fight,new_fight)/SetAnimation 驱动逐帧数字滚动 + ui_zhanli 特效,wait_time(1.8s)后自闭;非 InitMainUI;layer FightingUp",
+      "owns_items": [],
+      "references": [],
+      "rationale": "纯视觉:战力提升时播逐帧数字滚动 + ui_zhanli 特效后自闭。_box_effect 运行时放大到全屏盖屏,但视图根仅 385x115 底部/居中锚定 → root_stretch=false。无 use_background/is_center/click_bg_toClose。无 item 克隆、不开兄弟屏。判 overlay-effect。",
+      "flags": [
+        "import WingsComponentView(及 MountPetView/RoleView/HorseComponentView 等仅作 need_offset_base_window_dic 的字符串 key 查垂直偏移)但不 open/实例化它们 —— 是定位数据非 references/owns_items。命名陷阱:勿当 opened 视图。",
+        "_box_effect 运行时缩到 stageWidth x stageHeight 让特效盖屏,但视图 scene 根仅 385x115 底/中锚定 → root_stretch=false 尽管特效盒全屏。",
+        "_lb_add_fight scene 用字体 'scene_exp' 但 TS LoadSuccess 覆为位图字体 'fight_up2'(size 50);_lb_fight 用 'fight_up'。fight_up/fight_up2 位图/SDF 字体转换时需映射。",
+        "_img_bg scene 无源,bg 图 'manui_ui_fighting_bg' 运行时经 SetOutsideImageSprite 在 LoadSuccess 赋,转换须接线否则空白。",
+        "现有 FightingUpView.cs 是故意降级(无逐帧滚动、无 ui_zhanli、无 fight_up 位图字体),触发源(战力变化事件)未移植,需人工跟进恢复动画/特效保真。"
+      ]
+    },
+    {
+      "name": "MainUIEffectView",
+      "kind": "overlay-effect",
+      "label": "通用 UI 特效宿主",
+      "view_roots": [
+        "MainUIEffectView"
+      ],
+      "source": "mainUI/MainUIEffectView.json",
+      "open": "事件驱动:需在主 UI 上播 UI 特效时 new MainUIEffectView().SetData({name,pos,scale}),AddUIEffect 挂进 _box_eff,SetCountDown 15s 后 Close;非 InitMainUI;layer FightingUp",
+      "owns_items": [],
+      "references": [],
+      "rationale": "extends BaseView1,只做一件事:SetData 时 ClearUIEffect/AddUIEffect 把命名 UI 特效挂进单子 Box '_box_eff'(pos/scale),再 15s 自闭(SetCountDown→Close)防滞留。无 list/item 克隆、不开他屏、无背景/居中模态/点击关闭。scene 根 width:1 height:1 mouseEnabled:false(非拉伸),单居中子 Box _box_eff(2000x1280,scene 内空,运行时加特效)。load_callback 仅设 centerX/centerY=0(自居中非全屏拉伸)。在 FightingUp 层、按需开、纯视觉粒子负载 + 自清 → overlay-effect。现有 Bind 同读:降级特效宿主,记 name/pos/scale,仅留 15s 自闭。",
+      "flags": [
+        "现有 MainUIEffectView.cs 是故意降级 stub:UI 特效系统(AddUIEffect/ClearUIEffect)未移植,SetData 仅日志 + 留 15s 自闭,_box_eff 空到特效系统迁移;确认是故意非回归。",
+        "命名陷阱:MainUIEffectView 是通用特效宿主/容器;兄弟 MainUIEffectGodSkillView/MainUIEffectPartnerSkillView/FlowerEffectView/FightingUpView 是同/邻层独立类,勿混。",
+        "_box_eff 2000x1280(宽于 720)居中,可见特效边界全由运行时加的特效定,烤 prefab 在编辑器看空/过大 —— overlay-effect 预期如此。",
+        "owns_items/references 静态读为空,但实际挂的特效资源由 caller 数据(obj.name)驱动,无法从本视图单独定。"
+      ]
+    },
+    {
+      "name": "MainUIEffectGodSkillView",
+      "kind": "overlay-effect",
+      "label": "降神技能大特效",
+      "view_roots": [
+        "MainUIEffectGodSkillView"
+      ],
+      "source": "mainUI/MainUIEffectView.json",
+      "open": "事件驱动:EventName.PLAY_BIG_EFFECT 且 type==1(MainUIController.play_big_eff)懒 new+Open;80s 倒计时后自闭;非 InitMainUI;layer Enum_UILayer.Main",
+      "owns_items": [],
+      "references": [],
+      "rationale": "extends BaseView1,降神技能(降神技能)大特效播放器。不用自己的 scene:base_file='mainUI'/layout_file='MainUIEffectView' —— 复用 MainUIEffectView.scene(裸 View width=1/height=1/mouseEnabled=false,单 2000x1280 居中 Box '_box_eff')。职责纯视觉:SetData() ClearUIEffect/AddUIEffect 把命名 UI 粒子挂进 _box_eff(obj.pos/scale)+80s GlobalTimerQuest 倒计时自闭使特效不滞留。在 Main 层但真事件驱动(PLAY_BIG_EFFECT type==1 才懒开)非首批。use_background/is_center/click_bg_toClose 皆 BaseView1 默认 false 未覆盖;centerX=0+top=刘海+625 HUD 锚定非居中模态,根 1x1 不拉伸。无克隆/ListView/OPEN_VIEW → owns_items/references 空。纯粒子/技能特效 → overlay-effect。",
+      "flags": [
+        "本视图无自己的 .scene,复用 layout_file='MainUIEffectView'(与基础 MainUIEffectView 及 type==2 的 PartnerSkill 共享);manifest/prefab 须映射 MainUIEffectView.scene 的 _box_eff,而非唯一命名 scene。source 字段因此指向 mainUI/MainUIEffectView.json(共享 scene),view_roots 仍记本类名。",
+        "无 Unity Bind 文件(Assets/Scripts/Module/Core/MainUI/Views/MainUIEffectGodSkillView.cs 不存在,glob 无)—— 旧静态转换未产此类。",
+        "在 Main HUD 层但归 overlay-effect(非 hud-popup):唯一职责是托管带自闭计时的瞬态 AddUIEffect 粒子,按规则 skill/god 特效→overlay-effect 覆盖层默认。",
+        "可见内容(特效 prefab 名)全由运行时 obj.name/pos/scale 经 PLAY_BIG_EFFECT 数据驱动,除空 _box_eff 宿主外无静态可烤。",
+        "三个兄弟特效播放器共享同 pattern/scene(MainUIEffectView=默认、本类=type1、PartnerSkill=type2),分组时易混。"
+      ]
+    },
+    {
+      "name": "MainUIEffectPartnerSkillView",
+      "kind": "overlay-effect",
+      "label": "伙伴技能特效",
+      "view_roots": [
+        "MainUIEffectPartnerSkillView"
+      ],
+      "source": "mainUI/MainUIEffectPartnerSkillView.json",
+      "open": "事件驱动:伙伴技能特效需播时按需开,SetData(obj)(name/pos/scale)后 50s 计时自闭;非 InitMainUI 首批;layer Enum_UILayer.Main",
+      "owns_items": [],
+      "references": [],
+      "rationale": "extends BaseView1,Main 层,唯一职责托管伙伴技能视觉特效:SetData() 对单 _box_eff 容器 ClearUIEffect/AddUIEffect(obj.name/pos/scale),SetCountDown() 50s 计时 Close 使不滞留。无背景图/居中标/点击关闭/list-item 克隆,不开兄弟屏。scene:View 根(top=300/left=10/width=height=1/mouseEnabled=false)单居中子 Box _box_eff(1000x400,centerX/centerY=0)。按规则纯伙伴/技能特效 → overlay-effect。现有 Bind 同读:事件驱动默认关特效宿主(AddUIEffect 降为日志 stub),复用 EffectMountData。",
+      "flags": [
+        "root_stretch=false:scene 根 width/height=1、top=300/left=10、mouseEnabled=false —— 非拉伸锚定宿主非全屏背景;被居中的是特效 Box(_box_eff)非视图根。",
+        "名 '...Effect...SkillView' 按规则归 overlay-effect,但技术上 extends BaseView1(非特效基类)且在 Main 层;若 manifest 期望特效视图为独立基类则是命名/语义边界。",
+        "Bind 注 UI 特效系统(AddUIEffect/ClearUIEffect)未移植,SetData 仅日志;owns_items 空,实际挂的特效 prefab/粒子由 obj.name 数据驱动不现于 TS/scene,需另行确认特效资源已迁移。",
+        "open_trigger 推断:本文件无 OPEN_VIEW caller,真实 opener(触发伙伴技能特效并调 SetData)在别处未搜。"
+      ]
+    }
+  ],
+  "shared_external": [
+    {
+      "name": "ActivityIcon",
+      "kind": "item(shared)",
+      "guid": "5b560bc84fc9c6b4fbcf041f378eb7e6",
+      "owner": "mainUI 模块(本模块内独立 prefab)",
+      "used_by": [
+        "MainUIActivityView",
+        "MainUIChatView",
+        "MainUISecondaryView",
+        "MainUIIconBoxView"
+      ],
+      "rationale": "活动图标项,被 4 个 mainUI 视图(活动列/聊天条强化图标/次级环 left·right·notice 轨/聚合弹出框网格)的 __Templates 复用,已是 mainUI 下独立 prefab。保持独立,各视图引用同一 guid。"
+    },
+    {
+      "name": "TopPlayerTipItem",
+      "kind": "item(shared?)",
+      "guid": "82ded7cf0c5b1dc4a8aa8292ebc51560",
+      "owner": "mainUI 模块",
+      "used_by": [
+        "MainUIActivityView"
+      ],
+      "rationale": "榜首玩家提示项,已是独立 prefab。当前仅 MainUIActivityView 引用(且 TS 内未见显式 new,Bind 以 _tpl_TopPlayerTipItem 暴露),先列为该视图 owned;若确为单一属主可下沉嵌入 MainUIActivityView,见 open_questions。",
+      "flags": [
+        "实例化点未确认(可能在 ActivityIcon/榜首流程内);单属主则不必独立。"
+      ]
+    }
+  ],
+  "open_questions": [
+    "1. MainUIMarriageItem 命名陷阱:它名以 'Item' 结尾但 extends BaseView1(自带 Open/Close/HasOpen),被我作为独立 hud-popup prefab 收录(view_roots=[MainUIMarriageItem]);同时 MainUISecondaryView 的 owns_items 又把它列为 owned 子项。二者定位冲突 —— 它到底是『右侧滑入的按需 HUD 视图』(独立 prefab)还是『嵌在次级环里的 item 模板』?需你裁定;已有独立 MainUIMarriageItem.prefab(guid 5b0163b5a8ba5d843aa292e9bf11d5f2)。",
+    "2. item/模板类不单独成 prefab,默认嵌在所属屏 __Templates。本 manifest 涉及的 owned 模板:MainUIMoneyItem、MainUITopBuffItem(TopView)、EquipmentItem(ActivityView)、MainUISkillItem(SkillView)、MainUIChatItem(ChatView)、MainUISkillItemGod·FirstRechargeNewTipsView(SecondaryView)、MainUITaskItem·MainUITaskMainLineItem·TeamMainRoleItem(TaskTeamView)、MainFuncIconItem(DownView)、MainUIBuffItem(BuffView)、MainUIFightModeItem(FightModeView)、CustomHeadItem(HiterBigBloodView)、MainUIStrongerBtn(StrongerView)。要不要把这些也抽成独立小 prefab(更合 UGUI 习惯但 prefab 数翻倍)?这是你的选择。",
+    "3. MainUIEffectGodSkillView 共用 MainUIEffectView.scene(layout_file='MainUIEffectView'),自身无独立 scene 且无 Unity Bind 类。它是否需独立 prefab/受管视图条目,还是仅作 MainUIEffectView 的一个『type==1』运行时变体?我暂收为独立条目但 source 指向共享 scene,请确认粒度。",
+    "4. MainUIStrongerView 实际转换落在 'MainStronger' 模块桶(Assets/Scripts/Module/Core/MainStronger/Views/ + Generated/UI/MainStronger/),非 'MainUI'。它该留在 mainUI manifest 还是移到 MainStronger 模块清单?路径/桶错配需确认。",
+    "5. FuncBoardView 在 MainUITaskTeamView 中既被 new(owned 弹出器)又作 reference,且已有独立 FuncBoardView.prefab(guid 0060cee698b114341adf54c10df4f6e2)。它是 TaskTeamView 私有 owned 子视图,还是应作 shared_external/独立受管视图?当前按 owned+reference 双标,未单列 prefab 条目,需裁定。",
+    "6. 多个 references 是事件/router 间接目标(OPEN_FRIEND_VIEW/OPEN_SHOP_MAIN_VIEW/OPEN_ACT_VIEW/OpenFun funcId/MainUIRouter.Open(key) 占位)而非字面 view 名;按记忆 MainUIRouter placeholder 是故意降级标记。references 中的屏名(FriendView/ShopMainView/RechargeView/RPRShowView 等)多为推断,接 opener 前需对照 EventName→view 映射核实,且部分目标面板(temple-awaken/Team/Partner/RPR/婚恋)尚未移植。",
+    "7. 9 个首批 HUD 视图(TopView/ActivityView/SkillView/ChatView/SecondaryView/TaskTeamView/DownView/AutoBrushView/UIJoyStick)已全部收录并在 open 字段标注 InitMainUI 首批。其中 DownView 在 Activity 层、AutoBrushView 运行时按场景 Hide/CancelHide、UIJoyStick open 后即 Hide —— 均仍属首批构建,认可此 9 个粒度吗?"
+  ]
+}

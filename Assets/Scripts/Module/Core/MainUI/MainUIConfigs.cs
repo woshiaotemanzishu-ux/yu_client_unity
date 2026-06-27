@@ -27,6 +27,7 @@ namespace Shenxiao.Module.Core.MainUI
             public int OpenTaskId;
             public bool NotIndent;
             public string EffectName;
+            public float EffectScale;
             public bool EffectNeedDelete;
             public bool ControllByOwnFun;
             public bool NotDelete;
@@ -139,6 +140,7 @@ namespace Shenxiao.Module.Core.MainUI
                 OpenTaskId = ReadInt(obj, "open_task_id"),
                 NotIndent = ReadBool(obj, "not_indent"),
                 EffectName = ReadString(obj, "effect_name"),
+                EffectScale = ReadFloat(obj, "effect_scale", 1f),
                 EffectNeedDelete = ReadBool(obj, "effect_need_delete", true),
                 ControllByOwnFun = ReadBool(obj, "controll_by_own_fun"),
                 NotDelete = ReadBool(obj, "not_delete"),
@@ -181,6 +183,16 @@ namespace Shenxiao.Module.Core.MainUI
                 return (int)floatValue;
             }
             return fallback;
+        }
+
+        private static float ReadFloat(JObject obj, string key, float fallback = 0f)
+        {
+            JToken token = obj[key];
+            if (token == null || token.Type == JTokenType.Null) return fallback;
+            if (token.Type == JTokenType.Float || token.Type == JTokenType.Integer) return token.Value<float>();
+            string value = token.Value<string>();
+            if (string.IsNullOrWhiteSpace(value)) return fallback;
+            return float.TryParse(value.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out float f) ? f : fallback;
         }
 
         private static bool ReadBool(JObject obj, string key, bool fallback = false)

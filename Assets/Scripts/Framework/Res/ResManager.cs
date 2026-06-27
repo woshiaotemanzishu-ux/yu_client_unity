@@ -347,6 +347,8 @@ namespace Shenxiao.Framework.Res
             if (sprite == null || image == null) return false;
             image.sprite = sprite;
             image.enabled = true;
+            // 运行时赋图必可见:占位容器/可点击图标在 prefab 里被设为透明(alpha0,不画白块),赋图后须复位 alpha。
+            if (image.color.a < 1f) { Color ic = image.color; ic.a = 1f; image.color = ic; }
             if (!coverScreen && !nativeSize) return true; // 保留场景尺寸,只换图
             if (coverScreen)
             {

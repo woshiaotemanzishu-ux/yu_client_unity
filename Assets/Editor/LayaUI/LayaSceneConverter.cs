@@ -703,6 +703,7 @@ namespace Shenxiao.Editor.LayaUI
             else
             {
                 img.enabled = false; // 占位:不画白块
+                Color c = img.color; c.a = 0f; img.color = c; // 即便点击区运行时把它 enable(无图),也保持透明不画白块
             }
             img.raycastTarget = IsTrue(p, "mouseEnabled");
 

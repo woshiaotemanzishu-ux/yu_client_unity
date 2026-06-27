@@ -5,6 +5,7 @@ using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
+using Shenxiao.Common.UI3D;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
@@ -39,6 +40,10 @@ namespace Shenxiao.Module.Core.MainUI
         private readonly List<MainFuncIconItemBind> _funcIconItems = new List<MainFuncIconItemBind>();
         private int _showType;
 
+        // 经验条闪光特效(对标 MainUIDownView.ts:395 AddUIEffect("ui_expbar", _box_exp_effect, null, 15, null))。
+        private UIEffectStage.Handle _expEffect;
+        private bool _expEffectAdding;
+
         protected override void OnInit()
         {
             // LoadSuccess uses ResManager.SetTexture, whose old-client path rule maps /texture/ to /other/.
@@ -46,6 +51,7 @@ namespace Shenxiao.Module.Core.MainUI
 
             HideUnbackedIndicators();
             HideTemplates();
+            _ = AddExpEffectAsync();
 
             // 翻面按钮点击(对标 _gp_turn 的 turn_btn_fun);_gp_turn 是 Box 无 Graphic,点在可见的 _img_turn 上。
             if (_img_turn != null)
@@ -81,6 +87,11 @@ namespace Shenxiao.Module.Core.MainUI
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskListUpdate);
+            if (_expEffect != null)
+            {
+                _expEffect.Dispose();
+                _expEffect = null;
+            }
         }
 
         private void OnRoleInfoUpdate()
@@ -149,7 +160,23 @@ namespace Shenxiao.Module.Core.MainUI
         private void HideUnbackedIndicators()
         {
             _img_red.gameObject.SetActive(false);
-            _box_exp_effect.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// 还原经验条闪光特效。对标老端 MainUIDownView.ts:395 AddUIEffect("ui_expbar", _box_exp_effect, null, 15, null)。
+        /// 老端在经验条动画时 show + 1s 后 hide;Unity 无补间,先常驻挂一次让经验条不死板(后续可按经验变化脉冲)。
+        /// scale 用老端原值 15(UIEffectStage 把 Laya scale 当 effect localScale);如显示偏大/偏小,这是全局校准点。
+        /// </summary>
+        private async Task AddExpEffectAsync()
+        {
+            if (_box_exp_effect == null || _expEffect != null || _expEffectAdding) return;
+            _expEffectAdding = true;
+            _box_exp_effect.gameObject.SetActive(true);
+            UIEffectStage.Handle handle = await UIEffectStage.AddAsync(
+                "ui_expbar", _box_exp_effect.transform as RectTransform, Vector2.zero, new Vector3(15f, 15f, 15f));
+            _expEffectAdding = false;
+            if (this == null || _box_exp_effect == null) { handle?.Dispose(); return; }
+            _expEffect = handle;
         }
 
         private void HideTemplates()

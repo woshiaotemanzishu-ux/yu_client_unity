@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
@@ -24,6 +25,13 @@ namespace Shenxiao.Common.UI3D
         private static readonly int EffectLayerMask = 1 << EFFECT_LAYER;
         private static int _stageIndex;
         private static Camera[] _cameraBuffer = new Camera[16];
+        // 诊断用:所有存活的离屏特效句柄,供 RuntimeUiCaptureTool 在 Play 态导出每个 RT 内容 + 运行态指标。
+        private static readonly List<Handle> s_live = new List<Handle>();
+        // 最近的加载失败(key 不在 Addressables / parent 已销毁等),让「为何没出特效」在 dump 里一目了然。
+        private static readonly List<string> s_recentFailures = new List<string>();
+        // RT 贴回屏幕用的加色材质(惰性创建,全特效共用)。
+        private static Material s_additiveImageMaterial;
+        private static bool s_additiveShaderMissingLogged;
 
         public sealed class Handle
         {
@@ -33,12 +41,17 @@ namespace Shenxiao.Common.UI3D
             internal RenderTexture Texture;
             internal RawImage Image;
             internal GameObject Effect;
+            internal string Label;
+            internal string Key;
+            internal RectTransform Parent;
+            internal Vector3 Scale;
             private bool _disposed;
 
             public void Dispose()
             {
                 if (_disposed) return;
                 _disposed = true;
+                s_live.Remove(this);
 
                 if (Image != null) DestroyObject(Image.gameObject);
                 if (Effect != null) ResManager.ReleaseInstance(Effect);
@@ -78,11 +91,23 @@ namespace Shenxiao.Common.UI3D
 
             Handle handle = CreateHandle(SafeName(label), parent, renderSize);
             if (handle == null) return null;
+            handle.Label = label;
+            handle.Key = effectKey;
+            handle.Parent = parent;
+            handle.Scale = scale;
 
             GameObject effect = await ResManager.InstantiateAsync(effectKey, handle.EffectRoot);
             if (effect == null || parent == null)
             {
-                if (effect == null) GameLog.Warn("UIEffect", "load ui effect failed: label={0} key={1}", label, effectKey);
+                if (effect == null)
+                {
+                    GameLog.Warn("UIEffect", "load ui effect failed: label={0} key={1}", label, effectKey);
+                    RecordFailure(label, effectKey, "ResManager.InstantiateAsync returned null (key not loadable)");
+                }
+                else
+                {
+                    RecordFailure(label, effectKey, "parent destroyed before effect ready");
+                }
                 if (effect != null) ResManager.ReleaseInstance(effect);
                 handle.Dispose();
                 return null;
@@ -99,6 +124,7 @@ namespace Shenxiao.Common.UI3D
             ApplyRenderDefaults(effect);
             Play(effect);
             effect.SetActive(true);
+            s_live.Add(handle);
             return handle;
         }
 
@@ -169,6 +195,10 @@ namespace Shenxiao.Common.UI3D
             image.raycastTarget = false;
             image.texture = rt;
             image.uvRect = CreateCenteredUvRect(displaySize, sourceSize);
+            // 关键:加色材质把 RT 的亮 RGB 直接叠到屏幕。否则加色粒子的 RT alpha≈0,标准 alpha 混合下屏幕全黑
+            // (但 RT dump 强制不透明就能看到)——这正是「dump 正常、屏幕没特效」的根因。
+            Material additive = GetAdditiveImageMaterial();
+            if (additive != null) image.material = additive;
 
             return new Handle
             {
@@ -260,6 +290,7 @@ namespace Shenxiao.Common.UI3D
             for (int i = 0; i < animations.Length; i++)
             {
                 Animation anim = animations[i];
+                if (!anim.enabled) continue; // 被 EffectRotationRepair 停用的退化旋转动画:别播,交给 UIEffectSpin 自转
                 if (anim.clip != null)
                 {
                     anim.Play();
@@ -293,6 +324,180 @@ namespace Shenxiao.Common.UI3D
         {
             if (string.IsNullOrEmpty(value)) return "effect";
             return value.Replace('\\', '_').Replace('/', '_').Replace('.', '_');
+        }
+
+        private static void RecordFailure(string label, string key, string reason)
+        {
+            s_recentFailures.Add(string.Format("{0} | key={1} | {2}", label, key, reason));
+            const int keep = 32;
+            if (s_recentFailures.Count > keep) s_recentFailures.RemoveRange(0, s_recentFailures.Count - keep);
+        }
+
+        private static Material GetAdditiveImageMaterial()
+        {
+            if (s_additiveImageMaterial != null) return s_additiveImageMaterial;
+            Shader shader = Shader.Find("Shenxiao/UI/UIEffectAdditive");
+            if (shader == null)
+            {
+                if (!s_additiveShaderMissingLogged)
+                {
+                    s_additiveShaderMissingLogged = true;
+                    GameLog.Warn("UIEffect", "additive UI shader missing (Shenxiao/UI/UIEffectAdditive); RT alpha-blends and likely stays invisible");
+                    Note("additive UI shader missing -> standard alpha blend (effects may be invisible)");
+                }
+                return null;
+            }
+            s_additiveImageMaterial = new Material(shader) { name = "UIEffectAdditive(Runtime)" };
+            return s_additiveImageMaterial;
+        }
+
+        // ===================== 运行态诊断(编辑器抓证据用)=====================
+        // 静态分析已排除「盒子0尺寸/层31不渲染/缩放语义/Addressables加载」四类结构性原因,
+        // 余下只能是运行态:粒子有没有渲进 RT、RawImage 有没有贴到屏幕。下面把这些一次性吐出来。
+
+        public struct EffectDiagnostic
+        {
+            public string Label;
+            public string Key;
+            public bool EffectAlive;
+            public bool EffectActiveInHierarchy;
+            public Vector3 LocalScale;
+            public int ParticleSystemCount;
+            public int AliveParticleCount;
+            public bool AnyParticlePlaying;
+            public int RendererCount;
+            public bool AnyRendererVisible;
+            public string FirstShader;
+            public Vector3 WorldBoundsSize;
+            public string ParentName;
+            public bool ParentActiveInHierarchy;
+            public Vector2 ParentRectSize;
+            public int RtWidth;
+            public int RtHeight;
+            public bool CameraEnabled;
+            public float CameraOrthoSize;
+            public Vector3 CameraWorldPos;
+            public bool ImageAlive;
+            public bool ImageActiveInHierarchy;
+            public Vector2 ImageRectSize;
+            public Color ImageColor;
+            public bool ImageHasTexture;
+            // 编辑器侧据此把 RT 内容 blit 成 PNG(空 RT = 相机没渲染到东西 → 渲染端问题)。
+            public RenderTexture Texture;
+        }
+
+        public static int LiveCount => s_live.Count;
+
+        public static List<string> CollectRecentFailures()
+        {
+            return new List<string>(s_recentFailures);
+        }
+
+        // 调用方追踪用:让「为什么这个特效没挂上」的判定一并落进抓图证据(如 ActivityIcon 每图标的 cfg/effectName/box 状态)。
+        private static readonly List<string> s_notes = new List<string>();
+
+        public static void Note(string message)
+        {
+            s_notes.Add(message);
+            const int keep = 256;
+            if (s_notes.Count > keep) s_notes.RemoveRange(0, s_notes.Count - keep);
+        }
+
+        public static List<string> CollectNotes()
+        {
+            return new List<string>(s_notes);
+        }
+
+        public static void ClearNotes()
+        {
+            s_notes.Clear();
+        }
+
+        public static List<EffectDiagnostic> CollectDiagnostics()
+        {
+            var list = new List<EffectDiagnostic>(s_live.Count);
+            for (int i = 0; i < s_live.Count; i++)
+            {
+                Handle h = s_live[i];
+                if (h == null) continue;
+
+                var d = new EffectDiagnostic { Label = h.Label, Key = h.Key };
+                d.LocalScale = h.Scale; // 兜底:未加载到 effect 时至少报传入 scale
+
+                GameObject eff = h.Effect;
+                d.EffectAlive = eff != null;
+                if (eff != null)
+                {
+                    d.EffectActiveInHierarchy = eff.activeInHierarchy;
+                    d.LocalScale = eff.transform.localScale;
+
+                    ParticleSystem[] systems = eff.GetComponentsInChildren<ParticleSystem>(true);
+                    d.ParticleSystemCount = systems.Length;
+                    int alive = 0;
+                    bool playing = false;
+                    for (int p = 0; p < systems.Length; p++)
+                    {
+                        if (systems[p] == null) continue;
+                        alive += systems[p].particleCount;
+                        if (systems[p].isPlaying) playing = true;
+                    }
+                    d.AliveParticleCount = alive;
+                    d.AnyParticlePlaying = playing;
+
+                    Renderer[] renderers = eff.GetComponentsInChildren<Renderer>(true);
+                    d.RendererCount = renderers.Length;
+                    bool visible = false;
+                    string shader = null;
+                    Bounds bounds = default;
+                    bool hasBounds = false;
+                    for (int r = 0; r < renderers.Length; r++)
+                    {
+                        Renderer rend = renderers[r];
+                        if (rend == null) continue;
+                        if (rend.isVisible) visible = true;
+                        if (shader == null && rend.sharedMaterial != null && rend.sharedMaterial.shader != null)
+                            shader = rend.sharedMaterial.shader.name;
+                        if (!hasBounds) { bounds = rend.bounds; hasBounds = true; }
+                        else bounds.Encapsulate(rend.bounds);
+                    }
+                    d.AnyRendererVisible = visible;
+                    d.FirstShader = shader;
+                    d.WorldBoundsSize = hasBounds ? bounds.size : Vector3.zero;
+                }
+
+                if (h.Parent != null)
+                {
+                    d.ParentName = h.Parent.name;
+                    d.ParentActiveInHierarchy = h.Parent.gameObject.activeInHierarchy;
+                    d.ParentRectSize = h.Parent.rect.size;
+                }
+
+                if (h.Texture != null)
+                {
+                    d.RtWidth = h.Texture.width;
+                    d.RtHeight = h.Texture.height;
+                    d.Texture = h.Texture;
+                }
+
+                if (h.Camera != null)
+                {
+                    d.CameraEnabled = h.Camera.enabled;
+                    d.CameraOrthoSize = h.Camera.orthographicSize;
+                    d.CameraWorldPos = h.Camera.transform.position;
+                }
+
+                if (h.Image != null)
+                {
+                    d.ImageAlive = true;
+                    d.ImageActiveInHierarchy = h.Image.gameObject.activeInHierarchy;
+                    d.ImageRectSize = h.Image.rectTransform.rect.size;
+                    d.ImageColor = h.Image.color;
+                    d.ImageHasTexture = h.Image.texture != null;
+                }
+
+                list.Add(d);
+            }
+            return list;
         }
     }
 }

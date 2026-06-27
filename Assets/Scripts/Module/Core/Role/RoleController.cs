@@ -23,6 +23,7 @@ namespace Shenxiao.Module.Core.Role
             RegisterProtocal(Proto.ROLE_EXP, On13002);
             RegisterProtocal(Proto.ROLE_LEVEL, On13003);
             RegisterProtocal(Proto.ROLE_CURRENCY, On13006);
+            RegisterProtocal(Proto.ROLE_BATTLE_UPDATE, On13033);
         }
 
         /// <summary>13001 主角全量(字段顺序严格对标 pt_130 write(13001))。</summary>
@@ -84,6 +85,24 @@ namespace Shenxiao.Module.Core.Role
             if (oldLevel > 0 && m.Level > oldLevel)
             {
                 MainRoleAgent.Current?.PlayLevelUpEffect();
+            }
+            EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
+        }
+
+        /// <summary>13033 战斗属性/战力更新(对标老端 ReadFrom13033:首 "l"=战力,后接战斗属性块)。
+        /// 本端只取战力:更新 RoleModel.CombatPower;战力上升(且已有过非零旧值,排除进场首推)时发
+        /// EVT_COMBAT_POWER_UP,由 MainUIFlow 弹「战力提升」窗(对标老端 MainUIController 绑 "fighting" 变化)。
+        /// 包内战力之后的战斗属性块本端暂不解析——每条协议各拿独立 NetReader,读完即弃,部分读取安全。</summary>
+        private void On13033(NetReader r)
+        {
+            RoleModel m = RoleModel.Instance;
+            long oldPower = m.CombatPower;
+            long newPower = r.ReadU64();        // 战力 "l"
+            m.CombatPower = newPower;
+            GameLog.Info("Role", "13033 战力 {0} -> {1}", oldPower, newPower);
+            if (oldPower > 0 && newPower > oldPower)
+            {
+                EventDispatcher.Emit(GlobalEvent.EVT_COMBAT_POWER_UP, oldPower, newPower);
             }
             EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
         }

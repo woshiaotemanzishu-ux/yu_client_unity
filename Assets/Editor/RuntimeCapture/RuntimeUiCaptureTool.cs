@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json;
+using Shenxiao.Common.UI3D;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -190,11 +191,120 @@ namespace Shenxiao.Editor.RuntimeCapture
             File.WriteAllText(jsonPath, json, Encoding.UTF8);
             File.WriteAllText(statusPath, status, Encoding.UTF8);
 
+            WriteEffectDiagnostics(sessionDir, isPlaying);
+
             Debug.Log(
                 "[RuntimeUiCapture] Completed. canvas=" + canvases.Count +
                 " nodes=" + nodeCount +
                 " dir=" + sessionDir +
                 (isPlaying ? " screenshot will be written at frame end." : " screenshot skipped because Unity is not in Play Mode."));
+        }
+
+        /// <summary>
+        /// 把 UIEffectStage 的每个存活离屏特效的运行态指标 + RT 内容导出。
+        /// effect_&lt;i&gt;.png 是该特效相机渲到 RenderTexture 的真实内容(已强制不透明:纯黑=相机没渲染到任何东西)。
+        /// 这样一次截图就能区分:特效根本没 spawn(liveEffects=0 + recentFailures)/ spawn 了但 RT 空(渲染端问题)
+        /// / RT 有内容但屏幕上看不到(RawImage 摆位/排序/父级未激活问题)。
+        /// </summary>
+        private static void WriteEffectDiagnostics(string sessionDir, bool isPlaying)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("# UIEffectStage diagnostics");
+            sb.AppendLine("isPlaying    : " + isPlaying);
+
+            if (!isPlaying)
+            {
+                sb.AppendLine("(not in Play Mode; UIEffectStage holds no live handles)");
+                File.WriteAllText(Path.Combine(sessionDir, "ui_effects.txt"), sb.ToString(), Encoding.UTF8);
+                return;
+            }
+
+            List<UIEffectStage.EffectDiagnostic> diags = UIEffectStage.CollectDiagnostics();
+            List<string> failures = UIEffectStage.CollectRecentFailures();
+            List<string> notes = UIEffectStage.CollectNotes();
+            sb.AppendLine("liveEffects  : " + diags.Count);
+            sb.AppendLine("recentFails  : " + failures.Count);
+            sb.AppendLine("notes        : " + notes.Count);
+            sb.AppendLine();
+
+            for (int i = 0; i < failures.Count; i++)
+            {
+                sb.AppendLine("FAIL  " + failures[i]);
+            }
+            if (failures.Count > 0)
+            {
+                sb.AppendLine();
+            }
+
+            for (int i = 0; i < notes.Count; i++)
+            {
+                sb.AppendLine("NOTE  " + notes[i]);
+            }
+            if (notes.Count > 0)
+            {
+                sb.AppendLine();
+            }
+
+            for (int i = 0; i < diags.Count; i++)
+            {
+                UIEffectStage.EffectDiagnostic d = diags[i];
+                sb.AppendLine("[" + i + "] " + d.Label + "  key=" + d.Key);
+                sb.AppendLine("    effectAlive=" + d.EffectAlive + " activeInHierarchy=" + d.EffectActiveInHierarchy + " localScale=" + F3(d.LocalScale));
+                sb.AppendLine("    particleSystems=" + d.ParticleSystemCount + " aliveParticles=" + d.AliveParticleCount + " anyPlaying=" + d.AnyParticlePlaying);
+                sb.AppendLine("    renderers=" + d.RendererCount + " anyVisible=" + d.AnyRendererVisible + " shader=" + (string.IsNullOrEmpty(d.FirstShader) ? "<none>" : d.FirstShader) + " worldBoundsSize=" + F3(d.WorldBoundsSize));
+                sb.AppendLine("    parent=" + (string.IsNullOrEmpty(d.ParentName) ? "<null>" : d.ParentName) + " parentActive=" + d.ParentActiveInHierarchy + " parentRect=" + F2(d.ParentRectSize));
+                sb.AppendLine("    rt=" + d.RtWidth + "x" + d.RtHeight + " cameraEnabled=" + d.CameraEnabled + " cameraOrtho=" + F(d.CameraOrthoSize) + " cameraPos=" + F3(d.CameraWorldPos));
+                sb.AppendLine("    image=" + d.ImageAlive + " imageActive=" + d.ImageActiveInHierarchy + " imageRect=" + F2(d.ImageRectSize) + " imageColor=" + F4(d.ImageColor) + " imageHasTexture=" + d.ImageHasTexture);
+
+                if (d.Texture != null)
+                {
+                    string png = Path.Combine(sessionDir, "effect_" + i + ".png");
+                    SaveRenderTextureOpaque(d.Texture, png);
+                    sb.AppendLine("    rtPng=effect_" + i + ".png");
+                }
+                sb.AppendLine();
+            }
+
+            File.WriteAllText(Path.Combine(sessionDir, "ui_effects.txt"), sb.ToString(), Encoding.UTF8);
+            Debug.Log("[RuntimeUiCapture] UIEffect diagnostics: live=" + diags.Count + " failures=" + failures.Count + ".");
+        }
+
+        /// <summary>把 RenderTexture 读成 PNG,强制 alpha=255:粒子(多为加色)落在黑底上清晰可见,空 RT 即纯黑方块,判读零歧义。</summary>
+        private static void SaveRenderTextureOpaque(RenderTexture rt, string path)
+        {
+            if (rt == null)
+            {
+                return;
+            }
+
+            RenderTexture prev = RenderTexture.active;
+            Texture2D tex = null;
+            try
+            {
+                RenderTexture.active = rt;
+                tex = new Texture2D(rt.width, rt.height, TextureFormat.RGBA32, false);
+                tex.ReadPixels(new Rect(0f, 0f, rt.width, rt.height), 0, 0);
+                Color32[] pixels = tex.GetPixels32();
+                for (int i = 0; i < pixels.Length; i++)
+                {
+                    pixels[i].a = 255;
+                }
+                tex.SetPixels32(pixels);
+                tex.Apply(false);
+                File.WriteAllBytes(path, tex.EncodeToPNG());
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[RuntimeUiCapture] save RT failed: " + e.Message);
+            }
+            finally
+            {
+                RenderTexture.active = prev;
+                if (tex != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(tex);
+                }
+            }
         }
 
         private static int CompareCanvas(Canvas left, Canvas right)

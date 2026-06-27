@@ -159,7 +159,7 @@ namespace Shenxiao.Module.Core.MainUI
             if (_activityFolded)
             {
                 HideAllIcons();
-                UpdateTurnBtnPos(first, second, other);
+                if (_img_turn != null) _img_turn.transform.SetAsLastSibling();
                 return;
             }
 
@@ -168,7 +168,9 @@ namespace Shenxiao.Module.Core.MainUI
             RefreshIconPos(other, 3, first, second, null);
             RefreshIconPos(fourth, 4, first, second, other);
             RefreshIconPos(rightMiddle, 9, null, null, null);
-            UpdateTurnBtnPos(first, second, other);
+            // 折叠箭头【固定在 prefab 里烤出的位置】(对标老端:它占第四排第一格,从不被图标布局重定位)。
+            // 只保证它画在图标之上(后置兄弟),不再用 UpdateTurnBtnPos 移动它——那正是它"越点越往上跑"的根因。
+            if (_img_turn != null) _img_turn.transform.SetAsLastSibling();
         }
 
         private void HideAllIcons()
@@ -185,6 +187,7 @@ namespace Shenxiao.Module.Core.MainUI
             if (_clickBound) return;
             if (_img_turn != null)
             {
+                _img_turn.raycastTarget = true; // 收放箭头要能接收点击(老端 mouseEnabled);不设则 ToggleActivityFold 永不触发
                 UIUtil.AddClick(_img_turn, ToggleActivityFold);
             }
             RouteClick(_box_rank, "activity_rank");
@@ -200,7 +203,11 @@ namespace Shenxiao.Module.Core.MainUI
         private void ToggleActivityFold()
         {
             _activityFolded = !_activityFolded;
-            RefreshIcon();
+            // 对标老端 ShowAnimation:收起/展开「其他模块」(活动功能图标),箭头【原地旋转】不移动(老端只改 rotation)。
+            foreach (ActivityIcon item in _iconByType.Values)
+                if (item != null) item.SetVisible(!_activityFolded);
+            if (_img_turn != null)
+                _img_turn.rectTransform.localEulerAngles = new Vector3(0f, 0f, _activityFolded ? 45f : 0f);
         }
 
         private void RefreshIconPos(List<ActivityIcon> list, int lineNo, List<ActivityIcon> first,
@@ -253,19 +260,31 @@ namespace Shenxiao.Module.Core.MainUI
             }
         }
 
-        private void UpdateTurnBtnPos(List<ActivityIcon> first, List<ActivityIcon> second, List<ActivityIcon> other)
+        private void UpdateTurnBtnPos(List<ActivityIcon> first, List<ActivityIcon> second, List<ActivityIcon> other,
+            List<ActivityIcon> fourth = null)
         {
             if (_img_turn == null) return;
 
-            const float vgap = 20f;
-            float initY = 0f;
-            if (first != null && first.Count > 0) initY = ActivityIcon.HEIGHT + vgap;
-            if (second != null && second.Count > 0) initY += ActivityIcon.HEIGHT + vgap;
-            if (other != null && other.Count > 0) initY += ActivityIcon.HEIGHT + vgap + 10f;
+            // 按【左侧网格实际最低图标】定位收放箭头:不靠分组计数(组内换行也会漏算),取所有左侧图标的最低 anchoredPos.y,
+            // 把箭头放到最低一行同高、其左侧(对齐老端 y≈410)。展开态有图标才算;无图标则保持 prefab 默认位。
+            float lowestY = 0f; // anchoredPosition.y 越负越低
+            bool any = false;
+            foreach (List<ActivityIcon> list in new[] { first, second, other, fourth })
+            {
+                if (list == null) continue;
+                foreach (ActivityIcon item in list)
+                {
+                    if (item == null) continue;
+                    float y = ((RectTransform)item.transform).anchoredPosition.y;
+                    if (y < lowestY) lowestY = y;
+                    any = true;
+                }
+            }
+            if (!any) return; // 无受管图标(如被收起/未建)→ 不动,保留 prefab 位
 
             Vector2 pos = _img_turn.rectTransform.anchoredPosition;
             pos.x = 35f;
-            pos.y = -(initY + ActivityIcon.HEIGHT / 2f);
+            pos.y = lowestY; // 与最低一行图标同高,在其左侧
             _img_turn.rectTransform.anchoredPosition = pos;
         }
 
