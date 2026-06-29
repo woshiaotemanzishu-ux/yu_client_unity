@@ -5,6 +5,7 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
+using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,6 +25,9 @@ namespace Shenxiao.Module.Core.MainUI
         // 老客户端 default_money_list = [0, 1, 2](MainUITopView.ts:40)
         private static readonly int[] DEFAULT_MONEY_LIST = { 0, 1, 2 };
         private const float HP_BAR_WIDTH = 182f;
+        // _box_icon 下图标排布:对标老端 RefBoxChildsLayout(_box_icon, 12, 72, "left") —— 72 宽 + 12 间距。
+        private const float ICON_CELL_WIDTH = 72f;
+        private const float ICON_GAP = 12f;
 
         private readonly List<MainUIMoneyItem> _moneyItems = new List<MainUIMoneyItem>();
         private int _sceneNameRequestId;
@@ -34,9 +38,14 @@ namespace Shenxiao.Module.Core.MainUI
             BuildMoneyItems(DEFAULT_MONEY_LIST);
             HideUnbackedIndicators();
             WireTopButtons();
+            // 主角光环默认隐藏(对标老端门禁:未达开放条件不显示),避免新号开局闪现按钮;
+            // 隐藏后先把图标行左对齐紧排,RefreshHaloIconAsync 取配置就绪后再按开放条件复检。
+            SetNodeVisible(_box_halo, false);
+            ReflowIconBox();
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             RefreshRole();
             RefreshClock();
+            _ = RefreshHaloIconAsync();
         }
 
         /// <summary>顶部状态条按钮 → 经 MainUIRouter 解耦打开对应面板(对标老端 MainUITopView 各 AddClickEvent)。
@@ -101,6 +110,8 @@ namespace Shenxiao.Module.Core.MainUI
         private void OnRoleInfoUpdate()
         {
             RefreshRole();
+            // 等级变化可能跨过光环开放门槛(open_lv=100),复检显隐(对标老端 CHANGE_LEVEL → UpdateHaloIcon)。
+            _ = RefreshHaloIconAsync();
         }
 
         private void Update()
@@ -199,6 +210,40 @@ namespace Shenxiao.Module.Core.MainUI
             DateTime utc = TimeUtil.NowUtc();
             if (utc.Year < 2020) utc = DateTime.UtcNow;
             _lb_time.text = utc.ToLocalTime().ToString("HH:mm");
+        }
+
+        /// <summary>
+        /// 主角光环按钮(_box_halo)开放门禁:对标老端 MainUITopView.UpdateHaloIcon →
+        /// HaloModel.GetOpenState → CheckFuncOpenState("HaloMainView")(开服≥6 天 且 等级≥100)。
+        /// 未达条件隐藏(新号创建即满足隐藏),达成后随等级变化(EVT_ROLE_INFO_UPDATE)复检显示;
+        /// 显隐后按老端 RefBoxChildsLayout(_box_icon,12,72,"left") 把可见图标左对齐重排,消除空位。
+        /// 注:老端 GetOpenState 还含 is_(wx_)alpha 平台分支与 DAY_CHANGE 单独触发,本端未移植平台变体;
+        ///     「已满级但尚未到第6天」这一开服天达标转换当前无日切事件驱动,等级门(100)为实际主门。
+        /// </summary>
+        private async Task RefreshHaloIconAsync()
+        {
+            await FuncOpenConfig.EnsureLoaded();
+            if (this == null || _box_halo == null) return; // view destroyed during await
+
+            SetNodeVisible(_box_halo, FuncOpenConfig.CheckFuncOpenState("HaloMainView"));
+            ReflowIconBox();
+        }
+
+        /// <summary>对标 RefBoxChildsLayout(_box_icon, 12, 72, true, "left"):_box_icon 下可见子项按
+        /// 72 宽 + 12 间距从左到右紧排(隐藏项不占位),保留各自 y。子项 anchorMin/Max=(0,1)、pivot.x=0,
+        /// 故 anchoredPosition.x 即左边距,直接对应老端 cell.x。</summary>
+        private void ReflowIconBox()
+        {
+            if (_box_icon == null) return;
+            float x = 0f;
+            for (int i = 0; i < _box_icon.childCount; i++)
+            {
+                if (!(_box_icon.GetChild(i) is RectTransform child)) continue;
+                if (!child.gameObject.activeSelf) continue;
+                Vector2 pos = child.anchoredPosition;
+                child.anchoredPosition = new Vector2(x, pos.y);
+                x += ICON_CELL_WIDTH + ICON_GAP;
+            }
         }
 
         /// <summary>

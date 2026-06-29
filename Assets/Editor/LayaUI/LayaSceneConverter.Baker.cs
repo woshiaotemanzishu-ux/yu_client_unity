@@ -136,16 +136,93 @@ namespace Shenxiao.Editor.LayaUI
                    + sb;
         }
 
-        /// <summary>一键重烤 MainUIActivityView(去影子+共享 ActivityIcon 模板),验证通用转换工具修复。只重这一个,不动其它视图。</summary>
-        [MenuItem("神霄/LayaUI/重烤 MainUIActivityView(去影子+共享模板)", priority = 200)]
-        public static void RebakeMainUIActivityView()
+        // ===== Phase 2 快照烤制:通用重烤(从 manifest 自动派生快照/模块目录)=====
+        // UI 在「神霄/LayaUI/转换器」窗口的『快照烤制』折叠区;以下是给窗口/脚本调的纯逻辑,
+        // 取代原来写死的「重烤 MainUIActivityView/DownView/脏HUD」单视图菜单。
+
+        private const string ManifestRoot = "Tools/ModuleManifest";
+
+        /// <summary>Tools/ModuleManifest 下所有 *.manifest.json(快照烤制可选的模块清单)。</summary>
+        public static string[] ListBakeManifests()
         {
-            string log = BakeModuleFromManifest(
-                "Tools/ModuleManifest/mainui.manifest.json",
-                "Tools/ModuleManifest/snapshots/mainui",
-                "MainUI",
-                "MainUIActivityView");
-            Debug.Log("[Bake] " + log + "\n报告见 Reports/LayaUI/bake_MainUIActivityView_report.md");
+            if (!Directory.Exists(ManifestRoot)) return new string[0];
+            string[] files = Directory.GetFiles(ManifestRoot, "*.manifest.json", SearchOption.TopDirectoryOnly);
+            for (int i = 0; i < files.Length; i++) files[i] = files[i].Replace('\\', '/');
+            return files;
+        }
+
+        /// <summary>该 manifest 的视图名清单(= prefabs[].name),给烤制下拉用。</summary>
+        public static string[] ListManifestViews(string manifestPath)
+        {
+            var list = new List<string>();
+            if (!File.Exists(manifestPath)) return list.ToArray();
+            JObject m = JObject.Parse(File.ReadAllText(manifestPath));
+            foreach (JToken pt in m["prefabs"] as JArray ?? new JArray())
+            {
+                string nm = (pt as JObject)?["name"]?.ToString();
+                if (!string.IsNullOrEmpty(nm)) list.Add(nm);
+            }
+            return list.ToArray();
+        }
+
+        /// <summary>
+        /// 通用重烤:从 manifest 派生快照目录(snapshots/&lt;manifest基名&gt;)与模块目录(source_prefab 所在文件夹),
+        /// 重烤指定视图(viewName=null → 整模块),可选把烤出的视图重嵌回 monolith(source_prefab)。返回状态文本。
+        /// </summary>
+        public static string RebakeFromManifest(string manifestPath, string viewName, bool reembed)
+        {
+            if (!File.Exists(manifestPath)) return "[Bake] manifest 不存在: " + manifestPath;
+            JObject manifest = JObject.Parse(File.ReadAllText(manifestPath));
+            string snapshotDir = SnapshotDirFor(manifestPath);
+            string moduleDir = ModuleDirFor(manifest);
+
+            var sb = new StringBuilder();
+            sb.Append(BakeModuleFromManifest(manifestPath, snapshotDir, moduleDir, viewName));
+
+            if (reembed)
+            {
+                string monolith = manifest["source_prefab"]?.ToString();
+                if (string.IsNullOrEmpty(monolith) || !File.Exists(monolith))
+                {
+                    sb.AppendLine("[Bake] 跳过重嵌:manifest 无 source_prefab 或文件不存在。");
+                }
+                else
+                {
+                    string prefabRoot = LayaUISettings.PREFAB_ROOT + "/" + moduleDir;
+                    string[] views = viewName != null ? new[] { viewName } : ListManifestViews(manifestPath);
+                    foreach (string v in views)
+                    {
+                        string baked = prefabRoot + "/" + v + ".prefab";
+                        if (File.Exists(baked)) sb.AppendLine(ReplaceModuleSubviewWithBaked(monolith, v, baked));
+                    }
+                }
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            return sb.ToString();
+        }
+
+        /// <summary>mainui.manifest.json → Tools/ModuleManifest/snapshots/mainui。</summary>
+        private static string SnapshotDirFor(string manifestPath)
+        {
+            string dir = (Path.GetDirectoryName(manifestPath) ?? ManifestRoot).Replace('\\', '/');
+            string baseName = Path.GetFileName(manifestPath);
+            int dot = baseName.IndexOf('.');
+            if (dot > 0) baseName = baseName.Substring(0, dot);
+            return dir + "/snapshots/" + baseName;
+        }
+
+        /// <summary>模块目录(PREFAB_ROOT 下,如 MainUI)= source_prefab 所在文件夹名;回退 manifest.module。</summary>
+        private static string ModuleDirFor(JObject manifest)
+        {
+            string src = manifest["source_prefab"]?.ToString();
+            if (!string.IsNullOrEmpty(src))
+            {
+                string folder = Path.GetFileName(Path.GetDirectoryName(src));
+                if (!string.IsNullOrEmpty(folder)) return folder;
+            }
+            return manifest["module"]?.ToString() ?? "";
         }
 
         // ——— 内部 ———
@@ -169,16 +246,19 @@ namespace Shenxiao.Editor.LayaUI
 
             // 数据驱动容器去影子:把运行时克隆的重复子节点(活动图标等)从快照里折叠掉,
             // 否则烤成一堆静态影子,盖住业务 View 运行时实例化的动态项(特效就挂在动态项上)。
+            // shared_external 项整组丢弃(由完整共享 prefab 当模板);inline-owned 项【留一份】当模板,免 _tpl_X 变 null。
             HashSet<string> known = BuildKnownItemNames(prefabEntry, moduleManifest);
-            int dropped = CollapseClonedItems(root, known, report);
+            HashSet<string> sharedNames = BuildSharedNames(moduleManifest);
+            int dropped = CollapseClonedItems(root, known, sharedNames, report);
 
             var manifest = new LayaUIManifest();      // DesignWidth/Height 默认 720×1280
             _bakedSkins = null;                        // 快照已带运行时解析后的 skin
             GameObject go = BuildRoot(name, root, manifest, report);
 
-            // 共享 item 模板:把 owns_items 里属 shared_external 的项,按 guid 嵌一份禁用实例进 __Templates,
-            // 让 LayaBindFiller 把 _tpl_{Name} 绑到【完整】共享 prefab(而非快照里残缺的 husk 克隆)。
-            int nested = NestSharedTemplates(go, prefabEntry, moduleManifest, report);
+            // item 模板进 __Templates(禁用),供 LayaBindFiller 绑 _tpl_{Name}:
+            //  · shared_external:按 guid 嵌一份【完整】共享 prefab 实例;
+            //  · inline-owned:把 CollapseClonedItems 留下的那份克隆挪进来(快照 husk,够 _tpl 绑,免重烤丢模板)。
+            int nested = BuildItemTemplates(go, prefabEntry, moduleManifest, report);
 
             Directory.CreateDirectory(Path.GetDirectoryName(outPrefabPath));
             PrefabUtility.SaveAsPrefabAsset(go, outPrefabPath);
@@ -229,14 +309,14 @@ namespace Shenxiao.Editor.LayaUI
             return false;
         }
 
-        /// <summary>把运行时克隆的重复子节点折叠掉(丢弃)。返回丢弃总数。</summary>
-        private static int CollapseClonedItems(JObject root, HashSet<string> known, LayaUIReport report)
+        /// <summary>把运行时克隆的重复子节点折叠掉。shared/启发式整组丢弃;inline-owned(known 但非 shared)留首份当模板。返回丢弃总数。</summary>
+        private static int CollapseClonedItems(JObject root, HashSet<string> known, HashSet<string> sharedNames, LayaUIReport report)
         {
             string rootPath = root["props"]?["name"]?.ToString() ?? root["type"]?.ToString() ?? "root";
-            return CollapseRec(root, known, report, rootPath);
+            return CollapseRec(root, known, sharedNames, report, rootPath);
         }
 
-        private static int CollapseRec(JObject node, HashSet<string> known, LayaUIReport report, string path)
+        private static int CollapseRec(JObject node, HashSet<string> known, HashSet<string> sharedNames, LayaUIReport report, string path)
         {
             JArray children = node["child"] as JArray;
             if (children == null || children.Count == 0) return 0;
@@ -266,13 +346,25 @@ namespace Shenxiao.Editor.LayaUI
             int dropped = 0;
             if (cloneNames.Count > 0)
             {
-                for (int i = children.Count - 1; i >= 0; i--)
+                // inline-owned(known 但不在 shared_external):留【首份】当模板(BuildItemTemplates 挪进 __Templates);shared/启发式整组丢。
+                var keepFirst = new HashSet<string>();
+                foreach (string nm in cloneNames)
+                    if (known.Contains(nm) && (sharedNames == null || !sharedNames.Contains(nm))) keepFirst.Add(nm);
+
+                var seenKept = new HashSet<string>(); // 已为该名留过首份
+                for (int i = 0; i < children.Count; i++)
                 {
                     string nm = (children[i] as JObject)?["props"]?["name"]?.ToString();
-                    if (nm != null && cloneNames.Contains(nm)) { children[i].Remove(); dropped++; }
+                    if (nm == null || !cloneNames.Contains(nm)) continue;
+                    if (keepFirst.Contains(nm) && seenKept.Add(nm)) continue; // 该名首次遇到=首份,留
+                    children[i].Remove();
+                    dropped++;
+                    i--; // 删了一个,索引补偿
                 }
+
                 foreach (string nm in cloneNames)
-                    report.Note(path + ": 折叠运行时克隆 '" + nm + "' ×" + counts[nm] + " → 丢弃(运行时动态填充)");
+                    report.Note(path + ": 折叠运行时克隆 '" + nm + "' ×" + counts[nm] +
+                                (keepFirst.Contains(nm) ? " → 留1份当模板、其余丢" : " → 整组丢弃(运行时动态填充)"));
                 if (autoSized)
                     report.Approx(path + " 是自适应容器;烤出尺寸只含留存子节点,需核对 anchor/size");
             }
@@ -282,14 +374,32 @@ namespace Shenxiao.Editor.LayaUI
                 if (ct is JObject co)
                 {
                     string nm = co["props"]?["name"]?.ToString() ?? co["type"]?.ToString();
-                    dropped += CollapseRec(co, known, report, path + "/" + nm);
+                    dropped += CollapseRec(co, known, sharedNames, report, path + "/" + nm);
                 }
             }
             return dropped;
         }
 
-        /// <summary>owns_items 里属 shared_external 的项:按 guid 嵌一份禁用实例进 __Templates,供 _tpl_{Name} 绑定。</summary>
-        private static int NestSharedTemplates(GameObject root, JObject prefabEntry, JObject moduleManifest, LayaUIReport report)
+        /// <summary>全模块 shared_external 的 item 名集合(这些项整组丢、由完整共享 prefab 当模板)。</summary>
+        private static HashSet<string> BuildSharedNames(JObject moduleManifest)
+        {
+            var set = new HashSet<string>();
+            if (moduleManifest?["shared_external"] is JArray se)
+                foreach (JToken t in se)
+                {
+                    string s = (t as JObject)?["name"]?.ToString();
+                    if (!string.IsNullOrEmpty(s)) set.Add(s);
+                }
+            return set;
+        }
+
+        /// <summary>
+        /// 把 owns_items 的模板收进禁用的 __Templates,供 LayaBindFiller 绑 _tpl_{Name}:
+        ///  · shared_external:按 guid 嵌一份【完整】共享 prefab 实例;
+        ///  · inline-owned:把 CollapseClonedItems 留下的那份克隆(快照 husk)挪进来。
+        /// 返回收纳的模板数。
+        /// </summary>
+        private static int BuildItemTemplates(GameObject root, JObject prefabEntry, JObject moduleManifest, LayaUIReport report)
         {
             if (prefabEntry == null || moduleManifest == null) return 0;
             if (!(prefabEntry["owns_items"] is JArray oi)) return 0;
@@ -303,31 +413,63 @@ namespace Shenxiao.Editor.LayaUI
                     string guid = o?["guid"]?.ToString();
                     if (!string.IsNullOrEmpty(nm) && !string.IsNullOrEmpty(guid)) sharedGuid[nm] = guid;
                 }
-            if (sharedGuid.Count == 0) return 0;
 
             GameObject tplRoot = null;
-            int nested = 0;
+            int built = 0;
             foreach (JToken t in oi)
             {
                 string nm = t?.ToString();
-                if (string.IsNullOrEmpty(nm) || !sharedGuid.TryGetValue(nm, out string guid)) continue;
-                string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                GameObject shared = string.IsNullOrEmpty(assetPath) ? null : AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
-                if (shared == null) { report.Note("shared item 找不到 prefab: " + nm + " guid=" + guid); continue; }
+                if (string.IsNullOrEmpty(nm)) continue;
 
-                if (tplRoot == null)
+                if (sharedGuid.TryGetValue(nm, out string guid))
                 {
-                    tplRoot = new GameObject("__Templates", typeof(RectTransform));
-                    tplRoot.transform.SetParent(root.transform, false);
-                    tplRoot.SetActive(false);
+                    string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                    GameObject shared = string.IsNullOrEmpty(assetPath) ? null : AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+                    if (shared == null) { report.Note("shared item 找不到 prefab: " + nm + " guid=" + guid); continue; }
+                    EnsureTplRoot(root, ref tplRoot);
+                    GameObject inst = (GameObject)PrefabUtility.InstantiatePrefab(shared, tplRoot.transform);
+                    inst.name = nm;               // 名字须等于 item 名,_tpl_{nm} 才绑得上
+                    inst.SetActive(false);
+                    built++;
+                    report.Note("__Templates 嵌入共享 item: " + nm + " ← " + assetPath);
                 }
-                GameObject inst = (GameObject)PrefabUtility.InstantiatePrefab(shared, tplRoot.transform);
-                inst.name = nm;               // 名字须等于 item 名,_tpl_{nm} 才绑得上
-                inst.SetActive(false);
-                nested++;
-                report.Note("__Templates 嵌入共享 item: " + nm + " ← " + assetPath);
+                else
+                {
+                    // inline-owned:CollapseClonedItems 留了首份在容器里,挪进 __Templates(禁用)。
+                    Transform kept = FindByNameOutsideTemplates(root.transform, nm);
+                    if (kept == null) { report.Note("inline item 没留下克隆(本视图未实例化它,跳过): " + nm); continue; }
+                    EnsureTplRoot(root, ref tplRoot);
+                    kept.SetParent(tplRoot.transform, false);
+                    kept.gameObject.SetActive(false);
+                    built++;
+                    report.Note("__Templates 收纳 inline item 模板: " + nm + "(快照 husk,够 _tpl 绑;完整结构待该 item 自身 prefab 化)");
+                }
             }
-            return nested;
+            return built;
+        }
+
+        private static void EnsureTplRoot(GameObject root, ref GameObject tplRoot)
+        {
+            if (tplRoot != null) return;
+            Transform existing = root.transform.Find("__Templates");
+            if (existing != null) { tplRoot = existing.gameObject; tplRoot.SetActive(false); return; }
+            tplRoot = new GameObject("__Templates", typeof(RectTransform));
+            tplRoot.transform.SetParent(root.transform, false);
+            tplRoot.SetActive(false);
+        }
+
+        /// <summary>在树里找第一个叫 name、且不在 __Templates 子树下的节点(取留存的 inline 克隆)。</summary>
+        private static Transform FindByNameOutsideTemplates(Transform root, string name)
+        {
+            foreach (Transform c in root.GetComponentsInChildren<Transform>(true))
+            {
+                if (c.name != name) continue;
+                bool underTpl = false;
+                for (Transform p = c.parent; p != null; p = p.parent)
+                    if (p.name == "__Templates") { underTpl = true; break; }
+                if (!underTpl) return c;
+            }
+            return null;
         }
 
         /// <summary>快照节点 → 转换器的 {type, props, child}。props 透传布局属性 + 展平 textProps。</summary>

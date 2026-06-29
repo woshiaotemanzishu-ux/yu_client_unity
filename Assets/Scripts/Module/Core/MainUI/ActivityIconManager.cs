@@ -113,6 +113,39 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_ADD, iconType, cfg.LocationType);
         }
 
+        /// <summary>
+        /// 强加「自管理」图标(controll_by_own_fun=true,如 331@10@0 头号玩家):绕过 FunIsOpenByIconType
+        /// (其 open_lv=999/max_open_day 会拦掉),由调用方(各自功能控制器)负责门判。
+        /// 仅供 TopPlayerController 等专属流程使用,不要在 RefreshDefaultIconsCoreAsync 通用扫描里调。
+        /// </summary>
+        public void AddOwnerIcon(string iconType, int time = 0, string iconTxt = "", string iconImg = null)
+        {
+            if (string.IsNullOrEmpty(iconType)) return;
+
+            MainUIConfigs.FunctionIconCfg cfg = MainUIConfigs.GetFunctionIconCfg(iconType);
+            if (cfg == null) return;
+
+            if (_iconInfoByType.TryGetValue(iconType, out IconInfo existing))
+            {
+                existing.Time = time;
+                existing.IconTxt = iconTxt ?? "";
+                existing.IconImg = iconImg;
+                existing.Data = cfg;
+                EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, iconType);
+                return;
+            }
+
+            _iconInfoByType[iconType] = new IconInfo
+            {
+                IconType = iconType,
+                Time = time,
+                IconTxt = iconTxt ?? "",
+                IconImg = iconImg,
+                Data = cfg,
+            };
+            EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_ADD, iconType, cfg.LocationType);
+        }
+
         public async Task AddIconAsync(string iconType, int time = 0, string iconTxt = "", string iconImg = null)
         {
             await MainUIConfigs.EnsureLoaded();
@@ -152,6 +185,10 @@ namespace Shenxiao.Module.Core.MainUI
 
         private static bool FunIsOpenByIconType(MainUIConfigs.FunctionIconCfg cfg)
         {
+            // 审核服下,need_hide_in_alpha 的图标不显示(对标老端 ActivityIconManager.addIcon:
+            // is_alpha && cfg.need_hide_in_alpha → return)。默认 PlatformModel.IsAlpha=false,非审核包行为不变。
+            if (PlatformModel.IsAlpha && cfg.NeedHideInAlpha) return false;
+
             RoleModel role = RoleModel.Instance;
             int level = role.HasBaseInfo ? role.Level : 0;
             int openDay = ServerTimeModel.GetOpenServerDay();

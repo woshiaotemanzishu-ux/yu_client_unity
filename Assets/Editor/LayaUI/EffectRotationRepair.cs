@@ -7,10 +7,11 @@ using UnityEngine;
 namespace Shenxiao.Editor.LayaUI
 {
     /// <summary>
-    /// 修复【转换器产出的退化旋转动画】:老端 360°/循环自转被转成「2 帧四元数曲线,起末都≈identity」
-    /// (0°≡360° 是同一旋转,legacy Animation 播了不转)。表现:特效该转的部分(如活动图标的旋转圆弧)静止不动。
-    /// 退化曲线里仍留着 ε(≈sin(180°) 的浮点残值,8.7e-8)在某个轴上,据此推断【旋转轴】;转速取 360/clip 时长。
-    /// 修法:给被动画的节点挂 UIEffectSpin(恒速自转,轴+转速烤进 prefab),并停用那条坏 Animation。
+    /// 【过渡性一次性补丁——源头已修】退化旋转动画来自 LayaEffectImporter.SetEulerAsQuaternion 把整圈旋转的
+    /// 首尾两帧转成同一个四元数(0°≡360°)→ 烤出 identity→identity 的「死」clip,legacy Animation 播了不转。
+    /// **源头已修**(SetEulerAsQuaternion 现在按 ≤90° 细分再转),所以【重转任一特效即得正确旋转 clip,Animation
+    /// 原生就转,无需本工具;重转会覆盖掉本补丁】。本工具只用于【暂不重转的已转旧资产(全特效约 1/4 的 .anim)】:
+    /// 按退化曲线的 ε 轴/360÷时长 给节点挂 UIEffectSpin 恒速自转 + 停用坏 Animation。重转后请删掉对应 UIEffectSpin。
     /// </summary>
     public static class EffectRotationRepair
     {
@@ -34,17 +35,6 @@ namespace Shenxiao.Editor.LayaUI
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("[RotRepair] 扫描 " + scanned + " 个特效 prefab,修复 " + repaired + " 处退化旋转。\n" + sb);
-        }
-
-        [MenuItem("神霄/特效/修复退化旋转动画(仅 ui_zhujiemianzhuanquan)", priority = 211)]
-        public static void RepairSuperGiftRing()
-        {
-            var sb = new StringBuilder();
-            int n = RepairPrefab(
-                "Assets/GameRes/effect/objs/ui_effect/ui_zhujiemianzhuanquan/ui_zhujiemianzhuanquan.prefab", sb);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            Debug.Log("[RotRepair] ui_zhujiemianzhuanquan 修复 " + n + " 处。\n" + sb);
         }
 
         private static int RepairPrefab(string prefabPath, StringBuilder log)

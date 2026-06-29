@@ -216,6 +216,20 @@ namespace Shenxiao.Framework.Net
         /// <summary>Open custom activity list. Send empty; reply h + {base_type:h, sub_type:h, act_type:c, show_id:h, wlv:h, name:s, desc:s, condition:s, stime:i, etime:i}.</summary>
         public const int CUSTOM_ACTIVITY_LIST = 33101;
 
+        // ----- 头号玩家 / 冲榜 (225xx, yu_client CustomActivityController On22501/On22502) -----
+        /// <summary>头号玩家某榜单信息。发 "ih"(rank_type, sub_type=1);回包
+        /// rank_type:i, sel_rank:i, sel_val:l, sum:i, max_len:h, rank_limit:i, status:c, end_time:l, is_combat:c,
+        /// rank_list[u16×{player_id:l, name:s, first_value:l, rank:i}]。</summary>
+        public const int TOP_PLAYER_RANK_INFO = 22501;
+        /// <summary>头号玩家目标奖励信息(红点用)。发 "h"(sub_type);回包
+        /// goal_list[u16×{rank_type:i, goal[u16×{goalId:l, status:c}]}]。</summary>
+        public const int TOP_PLAYER_GOAL_INFO = 22502;
+
+        // ----- 至尊VIP / SVIP (45120, yu_client SvipMainController) -----
+        /// <summary>SVIP 信息。请求无参;回包 open_act_id:c, list[u16×{type:h, content_list[u16×{content_id:c}]}]。
+        /// open_act_id>0 显示主界面图标(45120),=0 删除。</summary>
+        public const int SVIP_INFO = 45120;
+
         // ----- 周卡(452xx,yu_server pt_452.erl) -----
         /// <summary>周卡信息。请求无参;回包 Lv:h, Exp:i, IsActivity:c, GiftBagNum:h, CanReceiveGift:h, ExpiredTime:i。</summary>
         public const int WEEK_CARD_INFO = 45201;

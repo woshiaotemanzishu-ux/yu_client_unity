@@ -3,7 +3,9 @@ using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.CustomActivity;
 using Shenxiao.Module.Core.FirstRecharge;
+using Shenxiao.Module.Core.Svip;
 using Shenxiao.Module.Core.Vip;
+using Shenxiao.Module.Core.WeekCard;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -38,7 +40,9 @@ namespace Shenxiao.Module.Core.Game
             VipController.Instance.RequestRechargeProducts();
             FirstRechargeController.Instance.RequestStartupState();
             CustomActivityController.Instance.RequestActivityList();
-            GameLog.Info("Game", "requested startup packets: 13001,10201,30005,13088,10202,15800,15905,15908,33101");
+            SvipController.Instance.RequestSvipInfo();
+            WeekCardController.Instance.RequestStartup();
+            GameLog.Info("Game", "requested startup packets: 13001,10201,30005,13088,10202,15800,15905,15908,33101,45120");
         }
 
         private void SendFirstOpenStateRequest()

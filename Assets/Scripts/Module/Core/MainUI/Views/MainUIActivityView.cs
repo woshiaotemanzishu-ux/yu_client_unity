@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
+using Shenxiao.Module.Core.CustomActivity;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,9 +16,12 @@ namespace Shenxiao.Module.Core.MainUI
     /// </summary>
     public sealed class MainUIActivityView : MainUIActivityViewBind
     {
+        private const string TopPlayerIconType = "331@10@0";
+
         private readonly Dictionary<string, ActivityIcon> _iconByType = new Dictionary<string, ActivityIcon>();
         private bool _activityFolded;
         private bool _clickBound;
+        private UIEffectStage.Handle _topPlayerEffect;
 
         protected override void OnInit()
         {
@@ -46,6 +51,7 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.On<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, OnActivityIconUpdate);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
             EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
+            EventDispatcher.On<int>(GlobalEvent.EVT_TOPPLAYER_MAIN_DATA, OnTopPlayerMainData);
             RefreshActivityIconAsync();
         }
 
@@ -56,6 +62,8 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, OnActivityIconUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
+            EventDispatcher.Off<int>(GlobalEvent.EVT_TOPPLAYER_MAIN_DATA, OnTopPlayerMainData);
+            ClearTopPlayerEffect();
         }
 
         private void OnOpenConditionChanged()
@@ -99,6 +107,38 @@ namespace Shenxiao.Module.Core.MainUI
             RefreshIcon();
         }
 
+        // 对标老端 UPDATE_TOP_PLAYER_MAIN_DATA:清旧特效、在全屏 effect 盒挂 ui_cb01 循环;填榜首/活动名文案。
+        // 数据不达门(等级<130 或开服>8 天)则清掉特效。倒计时/奖励 item/3D 模型为后续切片,这里先静态文案。
+        private async void OnTopPlayerMainData(int rankType)
+        {
+            if (this == null || effect == null) return;
+            if (!TopPlayerController.GatePasses())
+            {
+                ClearTopPlayerEffect();
+                return;
+            }
+
+            // effect 盒在 OnInit 里被 SetActive(false),挂特效前需打开(对标老端 effect 常驻)。
+            effect.gameObject.SetActive(true);
+
+            ClearTopPlayerEffect();
+            _topPlayerEffect = await UIEffectStage.AddAsync("ui_cb01", effect, Vector2.zero, new Vector3(1.1f, 1.1f, 1.1f));
+            if (this == null) { _topPlayerEffect?.Dispose(); _topPlayerEffect = null; return; }
+
+            TopPlayerModel.RankInfo info = TopPlayerModel.Instance.GetRankInfo(rankType);
+            if (info != null)
+            {
+                if (player_name != null) player_name.text = info.FirstName() ?? "榜单虚位以待";
+                RushRankConfigs.RushRankCfg cfg = RushRankConfigs.Get(rankType);
+                if (name != null && cfg != null) name.text = cfg.Name;
+            }
+        }
+
+        private void ClearTopPlayerEffect()
+        {
+            if (_topPlayerEffect != null) { _topPlayerEffect.Dispose(); _topPlayerEffect = null; }
+        }
+
         private void CreateActivityIcon(string iconType)
         {
             if (string.IsNullOrEmpty(iconType) || iconType == "153") return;
@@ -139,10 +179,13 @@ namespace Shenxiao.Module.Core.MainUI
             List<ActivityIcon> fourth = new List<ActivityIcon>();
             List<ActivityIcon> rightMiddle = new List<ActivityIcon>();
 
+            ActivityIcon topPlayer = null;
             foreach (ActivityIcon item in _iconByType.Values)
             {
                 MainUIConfigs.FunctionIconCfg cfg = item.Cfg ?? MainUIConfigs.GetFunctionIconCfg(item.IconType);
                 if (cfg == null) continue;
+                // 头号玩家:不进通用桶,固定第二排第二格(对标老端 FormatIconList 的 top_player_obj 特判)。
+                if (cfg.IconType == TopPlayerIconType) { topPlayer = item; continue; }
                 if (cfg.LocationType == ActivityIconManager.LocationType.ActivityOne) first.Add(item);
                 else if (cfg.LocationType == ActivityIconManager.LocationType.ActivityTwo) second.Add(item);
                 else if (cfg.LocationType == ActivityIconManager.LocationType.ActivityOther) other.Add(item);
@@ -155,6 +198,13 @@ namespace Shenxiao.Module.Core.MainUI
             SortIcons(other);
             SortIcons(fourth);
             SortIcons(rightMiddle);
+
+            // 头号玩家固定第二排第二格:插到 second 的 index 1(老端 second_arr = [secondFirst, topPlayer, ...rest])。
+            if (topPlayer != null)
+            {
+                int insertAt = second.Count >= 1 ? 1 : second.Count;
+                second.Insert(insertAt, topPlayer);
+            }
 
             if (_activityFolded)
             {
@@ -208,6 +258,9 @@ namespace Shenxiao.Module.Core.MainUI
                 if (item != null) item.SetVisible(!_activityFolded);
             if (_img_turn != null)
                 _img_turn.rectTransform.localEulerAngles = new Vector3(0f, 0f, _activityFolded ? 45f : 0f);
+            // 对标老端:太极是单按钮但事件驱动两个视图。广播给 MainUISecondaryView 同步收放它的 left/right/notice 簇
+            // (超值礼包等就在 Secondary 簇里;本视图只管自己的 _iconByType)。
+            EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, _activityFolded);
         }
 
         private void RefreshIconPos(List<ActivityIcon> list, int lineNo, List<ActivityIcon> first,

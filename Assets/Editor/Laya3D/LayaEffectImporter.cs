@@ -424,23 +424,52 @@ namespace Shenxiao.Editor.Laya3D
         }
 
         /// <summary>欧拉角轨(Laya 度)烘成四元数 localRotation 轨(传统动画不认 localEulerAngles)。
-        /// 关键帧少、按时间线性插值即可;切线交给 EnsureQuaternionContinuity 平滑。</summary>
+        /// 【关键】相邻关键帧角度跨度大时必须先细分再转四元数:否则整圈/半圈旋转(尤其只有首尾两帧的循环自转)
+        /// 会把 0°≡360°(或 180° 的等价四元数)塌成同一个值 → 烤出 identity→identity 的「死」clip,根本不转
+        /// ——这是转换器历史 bug,全特效约 1/4 的 .anim 中招(EffectRotationRepair 是它的事后补丁)。
+        /// 这里把每段按 ≤90° 细分采样,保证四元数曲线真的走完旋转;半球连续性交给调用处的 EnsureQuaternionContinuity。</summary>
         private static void SetEulerAsQuaternion(AnimationClip clip, string path, LaniNode node)
         {
             int n = node.Keyframes.Count;
             if (n == 0) return;
-            var kx = new Keyframe[n]; var ky = new Keyframe[n]; var kz = new Keyframe[n]; var kw = new Keyframe[n];
-            for (int k = 0; k < n; k++)
+
+            const float MAX_STEP_DEG = 90f; // 单段四元数跨度上限,保证插值不抄近路、真的转过去
+            var times = new List<float>(n);
+            var eulers = new List<Vector3>(n);
+            times.Add(node.Keyframes[0].Time);
+            eulers.Add(EulerOf(node.Keyframes[0]));
+            for (int k = 1; k < n; k++)
             {
-                LaniKeyframe kf = node.Keyframes[k];
-                Quaternion q = Quaternion.Euler(kf.Value[0], kf.Value[1], kf.Value[2]);
-                kx[k] = new Keyframe(kf.Time, q.x); ky[k] = new Keyframe(kf.Time, q.y);
-                kz[k] = new Keyframe(kf.Time, q.z); kw[k] = new Keyframe(kf.Time, q.w);
+                LaniKeyframe a = node.Keyframes[k - 1];
+                LaniKeyframe b = node.Keyframes[k];
+                Vector3 ea = EulerOf(a), eb = EulerOf(b);
+                float maxDelta = Mathf.Max(Mathf.Abs(eb.x - ea.x), Mathf.Max(Mathf.Abs(eb.y - ea.y), Mathf.Abs(eb.z - ea.z)));
+                int sub = Mathf.Max(1, Mathf.CeilToInt(maxDelta / MAX_STEP_DEG));
+                for (int s = 1; s <= sub; s++)
+                {
+                    float t = s / (float)sub;
+                    times.Add(Mathf.Lerp(a.Time, b.Time, t));
+                    eulers.Add(Vector3.Lerp(ea, eb, t)); // 源段内欧拉线性 → 细分采样
+                }
+            }
+
+            int m = times.Count;
+            var kx = new Keyframe[m]; var ky = new Keyframe[m]; var kz = new Keyframe[m]; var kw = new Keyframe[m];
+            for (int k = 0; k < m; k++)
+            {
+                Quaternion q = Quaternion.Euler(eulers[k].x, eulers[k].y, eulers[k].z);
+                kx[k] = new Keyframe(times[k], q.x); ky[k] = new Keyframe(times[k], q.y);
+                kz[k] = new Keyframe(times[k], q.z); kw[k] = new Keyframe(times[k], q.w);
             }
             clip.SetCurve(path, typeof(Transform), "localRotation.x", new AnimationCurve(kx));
             clip.SetCurve(path, typeof(Transform), "localRotation.y", new AnimationCurve(ky));
             clip.SetCurve(path, typeof(Transform), "localRotation.z", new AnimationCurve(kz));
             clip.SetCurve(path, typeof(Transform), "localRotation.w", new AnimationCurve(kw));
+        }
+
+        private static Vector3 EulerOf(LaniKeyframe kf)
+        {
+            return new Vector3(kf.Value[0], kf.Value[1], kf.Value[2]);
         }
 
         /// <summary>Sprite3D._parse:position/rotationEuler/rotation/scale(数组)。</summary>

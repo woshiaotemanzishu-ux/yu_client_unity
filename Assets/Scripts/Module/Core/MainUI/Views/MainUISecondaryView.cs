@@ -25,6 +25,9 @@ namespace Shenxiao.Module.Core.MainUI
         private readonly Dictionary<string, ActivityIcon> _leftIcons = new Dictionary<string, ActivityIcon>();
         private readonly Dictionary<string, ActivityIcon> _rightIcons = new Dictionary<string, ActivityIcon>();
         private readonly Dictionary<string, ActivityIcon> _noticeIcons = new Dictionary<string, ActivityIcon>();
+        // 太极收起态(对标老端 SecondaryView 也消费 CHANGE_ACTIVITY_STATE):折叠时本视图三簇全收,
+        // 且周期刷新不得把它们弹回(见 RefreshIconPos 守卫)。
+        private bool _activityFolded;
 
         protected override void OnInit()
         {
@@ -83,6 +86,7 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.On<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, OnActivityIconUpdate);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
             EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
+            EventDispatcher.On<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
             RefreshActivityIconAsync();
         }
 
@@ -93,11 +97,34 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, OnActivityIconUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
+            EventDispatcher.Off<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
         }
 
         private void OnOpenConditionChanged()
         {
             RefreshActivityIconAsync();
+        }
+
+        /// <summary>太极收起/展开:本视图 left/right/notice 三簇随之收放(对标老端 SecondaryView.ShowAnimation)。
+        /// 折叠态由 RefreshIconPos 守卫保持(防周期刷新弹回)。</summary>
+        private void OnActivityFold(bool folded)
+        {
+            _activityFolded = folded;
+            if (folded)
+            {
+                SetSecondaryIconsVisible(false);
+            }
+            else
+            {
+                RefreshAllIcons(); // 展开:按常规重新布局并显示
+            }
+        }
+
+        private void SetSecondaryIconsVisible(bool visible)
+        {
+            foreach (ActivityIcon item in _leftIcons.Values) if (item != null) item.SetVisible(visible);
+            foreach (ActivityIcon item in _rightIcons.Values) if (item != null) item.SetVisible(visible);
+            foreach (ActivityIcon item in _noticeIcons.Values) if (item != null) item.SetVisible(visible);
         }
 
         private async void RefreshActivityIconAsync()
@@ -173,6 +200,12 @@ namespace Shenxiao.Module.Core.MainUI
 
         private void RefreshAllIcons()
         {
+            // 太极收起态:三簇保持隐藏,周期刷新不得弹回(对标 MainUIActivityView.RefreshIcon 的折叠早退)。
+            if (_activityFolded)
+            {
+                SetSecondaryIconsVisible(false);
+                return;
+            }
             RefreshIcon(_leftIcons, ActivityIconManager.LocationType.Left);
             RefreshIcon(_rightIcons, ActivityIconManager.LocationType.Right);
             RefreshIcon(_noticeIcons, ActivityIconManager.LocationType.Notice);

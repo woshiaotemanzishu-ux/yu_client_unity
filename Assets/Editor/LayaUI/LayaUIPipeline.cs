@@ -50,7 +50,7 @@ namespace Shenxiao.Editor.LayaUI
             RunModule("mainUI");
         }
 
-        [MenuItem("Shenxiao/LayaUI/Rebuild MainUI Entry Modules", priority = 22)]
+        [MenuItem("神霄/LayaUI/重转主界面入口模块", priority = 22)]
         public static void RunMainUIEntryModules()
         {
             RunModules(MainUIEntryModules, MainUIEntryTitle, true);

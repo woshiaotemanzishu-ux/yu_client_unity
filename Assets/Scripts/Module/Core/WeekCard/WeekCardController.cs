@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.FirstRecharge;
+using Shenxiao.Module.Core.MainUI;
 
 namespace Shenxiao.Module.Core.WeekCard
 {
@@ -17,15 +19,54 @@ namespace Shenxiao.Module.Core.WeekCard
         public static readonly WeekCardController Instance = new WeekCardController();
         private WeekCardController() { }
 
+        // 周卡主界面图标(对标老端 WeekCardController:452,open_lv=9999 默认扫描不加→自管理 AddOwnerIcon)。
+        private const string ICON_TYPE = "452";
+
         protected override void Register()
         {
             RegisterProtocal(Proto.WEEK_CARD_INFO, On45201);
             RegisterProtocal(Proto.WEEK_CARD_CLAIM, On45202);
             RegisterProtocal(Proto.WEEK_CARD_REWARD, On45203);
+            // 对标老端:CHANGE_LEVEL→复检图标;首充图标 159 被删(首充完成)→显示周卡。
+            EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, RefreshIcon);
+            EventDispatcher.On<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_DELETE, OnIconDeleted);
+        }
+
+        public override void Dispose()
+        {
+            EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, RefreshIcon);
+            EventDispatcher.Off<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_DELETE, OnIconDeleted);
+            ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
+            base.Dispose();
         }
 
         public void RequestInfo() => SendFmt(Proto.WEEK_CARD_INFO);
         public void Claim() => SendFmt(Proto.WEEK_CARD_CLAIM);
+
+        /// <summary>进游戏请求(对标老端 GAME_START 发 45201+45203)。</summary>
+        public void RequestStartup()
+        {
+            SendFmt(Proto.WEEK_CARD_INFO);
+            SendFmt(Proto.WEEK_CARD_REWARD);
+        }
+
+        // 对标老端 UPDATE_ICON:首充已完成(!IsNoFirstRecharge)→显示周卡图标(452),否则删除。
+        private async void RefreshIcon()
+        {
+            await MainUIConfigs.EnsureLoaded();
+            if (!FirstRechargeModel.Instance.IsNoFirstRecharge())
+                ActivityIconManager.Instance.AddOwnerIcon(ICON_TYPE);
+            else
+                ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
+        }
+
+        // 对标老端:首充图标 159 被删(首充完成)→显示周卡。
+        private async void OnIconDeleted(string iconType)
+        {
+            if (iconType != "159") return;
+            await MainUIConfigs.EnsureLoaded();
+            ActivityIconManager.Instance.AddOwnerIcon(ICON_TYPE);
+        }
 
         private void On45201(NetReader r)
         {

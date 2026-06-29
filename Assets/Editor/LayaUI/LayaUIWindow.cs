@@ -34,6 +34,15 @@ namespace Shenxiao.Editor.LayaUI
         private TMP_FontAsset _font;
         private string _singleKey = "login/LoginView";
 
+        // 快照烤制(Phase 2)折叠区状态
+        private bool _showBake;
+        private string[] _bakeManifests;
+        private string[] _bakeManifestNames;
+        private int _bakeManifestIndex;
+        private string[] _bakeViewOptions;   // [0]=「（整模块）」,其余为视图名
+        private int _bakeViewIndex;
+        private bool _bakeReembed = true;
+
         [MenuItem("神霄/LayaUI/转换器", priority = 0)]
         public static void Open()
         {
@@ -126,6 +135,7 @@ namespace Shenxiao.Editor.LayaUI
             EditorGUILayout.EndScrollView();
 
             DrawAdvanced();
+            DrawSnapshotBake();
         }
 
         private void DrawModuleRow(ModuleEntry e)
@@ -212,6 +222,74 @@ namespace Shenxiao.Editor.LayaUI
                     LayaBindFiller.FillModule(module.Trim());
                 }
             }
+        }
+
+        /// <summary>
+        /// 快照烤制(Phase 2):选 manifest + 视图(或整模块)→ 从运行时快照重烤成可编辑 prefab
+        /// (去运行时影子 + 按 manifest 收 __Templates 模板),可选重嵌回 monolith。通用,取代写死的单视图菜单。
+        /// </summary>
+        private void DrawSnapshotBake()
+        {
+            _showBake = EditorGUILayout.Foldout(_showBake, "快照烤制(Phase 2:运行时快照 → 可编辑 prefab)", true);
+            if (!_showBake) return;
+
+            if (_bakeManifests == null) ReloadBakeManifests();
+            if (_bakeManifests.Length == 0)
+            {
+                EditorGUILayout.HelpBox("Tools/ModuleManifest 下没有 *.manifest.json", MessageType.Info);
+                return;
+            }
+
+            int newM = EditorGUILayout.Popup("manifest", _bakeManifestIndex, _bakeManifestNames);
+            if (newM != _bakeManifestIndex || _bakeViewOptions == null)
+            {
+                _bakeManifestIndex = Mathf.Clamp(newM, 0, _bakeManifests.Length - 1);
+                ReloadBakeViews();
+            }
+
+            _bakeViewIndex = EditorGUILayout.Popup("视图",
+                Mathf.Clamp(_bakeViewIndex, 0, _bakeViewOptions.Length - 1), _bakeViewOptions);
+            _bakeReembed = EditorGUILayout.ToggleLeft("重烤后重嵌入 monolith(source_prefab)", _bakeReembed);
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button(_bakeViewIndex == 0 ? "重烤整模块" : "重烤该视图", GUILayout.Height(22f)))
+                {
+                    string view = _bakeViewIndex == 0 ? null : _bakeViewOptions[_bakeViewIndex];
+                    Debug.Log("[Bake] " + LayaSceneConverter.RebakeFromManifest(
+                        _bakeManifests[_bakeManifestIndex], view, _bakeReembed));
+                    ReloadBakeViews();
+                }
+                if (GUILayout.Button("刷新", GUILayout.Width(44f))) ReloadBakeManifests();
+            }
+            EditorGUILayout.HelpBox(
+                "快照源:Tools/ModuleManifest/snapshots/<模块>。重烤=去运行时影子 + 按 manifest 收 __Templates 模板;" +
+                "勾「重嵌」会把烤出的视图替换进 monolith 的嵌套实例。", MessageType.None);
+        }
+
+        private void ReloadBakeManifests()
+        {
+            _bakeManifests = LayaSceneConverter.ListBakeManifests();
+            _bakeManifestNames = new string[_bakeManifests.Length];
+            for (int i = 0; i < _bakeManifests.Length; i++)
+                _bakeManifestNames[i] = Path.GetFileName(_bakeManifests[i]);
+            _bakeManifestIndex = Mathf.Clamp(_bakeManifestIndex, 0, Mathf.Max(0, _bakeManifests.Length - 1));
+            ReloadBakeViews();
+        }
+
+        private void ReloadBakeViews()
+        {
+            if (_bakeManifests == null || _bakeManifests.Length == 0)
+            {
+                _bakeViewOptions = new[] { "（整模块）" };
+                _bakeViewIndex = 0;
+                return;
+            }
+            string[] views = LayaSceneConverter.ListManifestViews(_bakeManifests[_bakeManifestIndex]);
+            _bakeViewOptions = new string[views.Length + 1];
+            _bakeViewOptions[0] = "（整模块）";
+            for (int i = 0; i < views.Length; i++) _bakeViewOptions[i + 1] = views[i];
+            _bakeViewIndex = Mathf.Clamp(_bakeViewIndex, 0, _bakeViewOptions.Length - 1);
         }
     }
 }

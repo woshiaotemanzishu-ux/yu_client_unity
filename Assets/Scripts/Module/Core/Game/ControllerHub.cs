@@ -16,6 +16,7 @@ using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene;
 using Shenxiao.Module.Core.Skill;
 using Shenxiao.Module.Core.SurpriseGift;
+using Shenxiao.Module.Core.Svip;
 using Shenxiao.Module.Core.Tasks;
 using Shenxiao.Module.Core.Vip;
 using Shenxiao.Module.Core.WeekCard;
@@ -51,6 +52,8 @@ namespace Shenxiao.Module.Core.Game
             FightController.Instance,
             ChatController.Instance,
             CustomActivityController.Instance,
+            TopPlayerController.Instance,
+            SvipController.Instance,
             // 后续:EquipController ...
         };
 
