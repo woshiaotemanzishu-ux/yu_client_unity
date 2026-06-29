@@ -41,6 +41,7 @@ namespace Shenxiao.Module.Core.Role
         /// <summary>展示名:figure.name(13001 携带)。</summary>
         public string Name => Figure != null && !string.IsNullOrEmpty(Figure.name) ? Figure.name : "角色" + RoleId;
         public int Career => Figure?.career ?? 0;
+        public int Sex => Figure?.sex ?? 0;
 
         public void Reset()
         {

@@ -1,11 +1,14 @@
+using System.Collections;
 using System.Collections.Generic;
-using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
+using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.CustomActivity;
+using Shenxiao.Module.Core.Game;
+using Shenxiao.Module.Core.Role;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,11 +24,32 @@ namespace Shenxiao.Module.Core.MainUI
         private readonly Dictionary<string, ActivityIcon> _iconByType = new Dictionary<string, ActivityIcon>();
         private bool _activityFolded;
         private bool _clickBound;
-        private UIEffectStage.Handle _topPlayerEffect;
+
+        // 头号玩家榜面板(_box_rank):奖励道具 + 逐秒倒计时。
+        private EquipmentItem _topPlayerReward;
+        private bool _rewardBuilding;       // 奖励 item 异步实例化中(防多 rank_type 事件并发重复创建)
+        private int _pendingRewardTypeId;   // 最新待应用的奖励 type_id(建好后统一 SetData)
+        private Coroutine _topPlayerTimer;
+        private long _topPlayerEndTimeSec;
+
+        private static readonly Color TimeRunColor = new Color(0x88 / 255f, 1f, 0x43 / 255f); // #88ff43 绿(倒计时)
+        private static readonly Color TimeEndColor = new Color(1f, 0x47 / 255f, 0x15 / 255f); // #ff4715 红(已结束/结算中)
+
+        // 老端 MainUIActivityView.icon_dir(MainUIActivityView.ts:71-90):rank_type_(sex|career) → 头号玩家榜奖励道具 type_id。
+        private static readonly Dictionary<string, int> TopPlayerRewardTypeId = new Dictionary<string, int>
+        {
+            { "1_1", 101046074 }, { "2_1", 101066074 }, { "3_1", 101026074 }, { "4_1", 101106074 }, { "5_1", 101086074 }, { "6_1", 101016074 },
+            { "1_2", 102046074 }, { "2_2", 102066074 }, { "3_2", 102026074 }, { "4_2", 102106074 }, { "5_2", 102086074 }, { "6_2", 102016074 },
+            { "6_3", 103016074 }, { "6_4", 104016074 },
+            { "13_1", 101106074 }, { "13_2", 102106074 }, { "14_1", 101086074 }, { "14_2", 102086074 },
+        };
 
         protected override void OnInit()
         {
             _ = ResManager.SetLayaTextureAsync(bg1, GameResPath.GetIcon("mainUI", "mainui_ui_38"), nativeSize: false);
+            // _box_rank 面板边框(老端 _box_rank/_img_bg.skin = mainui_ui_37);保留 prefab 尺寸(154×157)只换图。
+            // 用 SetImageAsync:不做 texture→other 路径重写(SetLayaTextureAsync 会重写,而 mainui_ui_37 只在 texture/ 下,重写后找不到)。
+            if (_img_bg != null) _ = ResManager.SetImageAsync(_img_bg, GameResPath.GetIcon("mainUI", "mainui_ui_37"), false, false);
             effect.sizeDelta = new Vector2(720f, 1280f);
 
             Vector2 redPos = _img_red.rectTransform.anchoredPosition;
@@ -63,7 +87,7 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
             EventDispatcher.Off<int>(GlobalEvent.EVT_TOPPLAYER_MAIN_DATA, OnTopPlayerMainData);
-            ClearTopPlayerEffect();
+            StopTopPlayerTimer();
         }
 
         private void OnOpenConditionChanged()
@@ -107,36 +131,124 @@ namespace Shenxiao.Module.Core.MainUI
             RefreshIcon();
         }
 
-        // 对标老端 UPDATE_TOP_PLAYER_MAIN_DATA:清旧特效、在全屏 effect 盒挂 ui_cb01 循环;填榜首/活动名文案。
-        // 数据不达门(等级<130 或开服>8 天)则清掉特效。倒计时/奖励 item/3D 模型为后续切片,这里先静态文案。
-        private async void OnTopPlayerMainData(int rankType)
+        // 对标老端 UPDATE_TOP_PLAYER_MAIN_DATA / UpdateTopPlayerData:面板现身 + 奖励道具 + 榜首名/活动名 + 倒计时。
+        // 头号玩家路用 2D 奖励(icon_box),隐 3D 模型(model_gp 是循环冲榜 22702 路才用,未移植)。
+        private void OnTopPlayerMainData(int rankType)
         {
-            if (this == null || effect == null) return;
+            if (this == null || _box_rank == null) return;
             if (!TopPlayerController.GatePasses())
             {
-                ClearTopPlayerEffect();
+                _box_rank.gameObject.SetActive(false);
+                StopTopPlayerTimer();
                 return;
             }
 
-            // effect 盒在 OnInit 里被 SetActive(false),挂特效前需打开(对标老端 effect 常驻)。
-            effect.gameObject.SetActive(true);
-
-            ClearTopPlayerEffect();
-            _topPlayerEffect = await UIEffectStage.AddAsync("ui_cb01", effect, Vector2.zero, new Vector3(1.1f, 1.1f, 1.1f));
-            if (this == null) { _topPlayerEffect?.Dispose(); _topPlayerEffect = null; return; }
-
             TopPlayerModel.RankInfo info = TopPlayerModel.Instance.GetRankInfo(rankType);
-            if (info != null)
+            if (info == null) return;
+
+            // 面板现身:OnInit 里 _box_rank 被 SetActive(false),老端靠 ShowAnimation 切 visible,这里在拿到数据时打开。
+            _box_rank.gameObject.SetActive(true);
+            if (icon_box != null) icon_box.gameObject.SetActive(true);
+            if (model_gp != null) model_gp.gameObject.SetActive(false); // 3D 模型路(循环冲榜)未移植,头号玩家路不用
+
+            // 活动名 + 榜首名(无人则“榜单虚位以待”)。
+            RushRankConfigs.RushRankCfg cfg = RushRankConfigs.Get(rankType);
+            if (name != null && cfg != null) name.text = cfg.Name;
+            if (player_name != null) player_name.text = info.FirstName() ?? "榜单虚位以待";
+
+            // 奖励道具(对标老端 icon_dir[now_key] → EquipmentItem.SetData)。
+            BuildTopPlayerReward(rankType);
+
+            // 倒计时(对标老端 StartTimer/OnTime + open_day>7 的“已结束”终态)。
+            RefreshTopPlayerCountdown(info.EndTime);
+
+            // 注:老端 effect 节点在本端被 OnInit 设成 720×1280 全屏盒,而 _box_rank 一直隐藏从没验证过此特效;
+            // 现在面板现身,贸然挂全屏 ui_cb01 会盖屏,故先不挂(待确认特效挂点/尺寸后再补)。
+        }
+
+        // 头号玩家榜奖励道具:icon_dir[now_key] → type_id → EquipmentItem.SetData(对标老端 reward = new EquipmentItem)。
+        // 注:本 prefab 的 _tpl_EquipmentItem 没烤进模板(fileID:0),故直接按 key 加载 EquipmentItem.prefab 实例化(同 ItemTipsView 套路)。
+        private async void BuildTopPlayerReward(int rankType)
+        {
+            if (icon_box == null) return;
+
+            // now_key = rank_type==6 ? rank_type_career : rank_type_sex(老端 UpdateTopPlayerData)。
+            int key2 = rankType == 6 ? RoleModel.Instance.Career : RoleModel.Instance.Sex;
+            string key = rankType + "_" + key2;
+            if (!TopPlayerRewardTypeId.TryGetValue(key, out int typeId)) return;
+            _pendingRewardTypeId = typeId; // 记最新;建好后统一应用,避免并发事件丢更新
+
+            if (_topPlayerReward == null && !_rewardBuilding)
             {
-                if (player_name != null) player_name.text = info.FirstName() ?? "榜单虚位以待";
-                RushRankConfigs.RushRankCfg cfg = RushRankConfigs.Get(rankType);
-                if (name != null && cfg != null) name.text = cfg.Name;
+                _rewardBuilding = true;
+                GameObject go = await ResManager.InstantiateAsync(GameResPath.GetUIPrefab("common", "EquipmentItem"), icon_box);
+                _rewardBuilding = false;
+                if (this == null) { if (go != null) Destroy(go); return; }
+                if (go == null) return;
+                go.SetActive(true);
+                _topPlayerReward = go.GetComponent<EquipmentItem>();
+                if (_topPlayerReward == null) { Destroy(go); return; }
+                _topPlayerReward.Show();
+                ((RectTransform)_topPlayerReward.transform).anchoredPosition = Vector2.zero; // 居中于 icon_box(老端 SetItemSize(80,80))
+            }
+            if (_topPlayerReward != null) _topPlayerReward.SetData(_pendingRewardTypeId, 0);
+        }
+
+        // 倒计时(对标老端 OnTime):剩余>0 显示“h小时m分s秒”绿色;≤0 或开服>7 显示终态(已结束/结算中)红色。
+        private void RefreshTopPlayerCountdown(long endTimeSec)
+        {
+            _topPlayerEndTimeSec = endTimeSec;
+            StopTopPlayerTimer();
+
+            // 老端 UpdateTopPlayerData:open_day>7 直接“已结束”,不跑计时。
+            if (ServerTimeModel.GetOpenServerDay() > 7) { SetTimeText("已结束", TimeEndColor); return; }
+            if (endTimeSec <= 0) { SetTimeText("", TimeRunColor); return; }
+            TickTopPlayerTime();
+            _topPlayerTimer = StartCoroutine(TopPlayerTimerRoutine()); // 前面 StopTopPlayerTimer 已置空,这里直接起
+        }
+
+        private IEnumerator TopPlayerTimerRoutine()
+        {
+            var wait = new WaitForSeconds(1f);
+            while (true)
+            {
+                yield return wait;
+                TickTopPlayerTime();
             }
         }
 
-        private void ClearTopPlayerEffect()
+        private void TickTopPlayerTime()
         {
-            if (_topPlayerEffect != null) { _topPlayerEffect.Dispose(); _topPlayerEffect = null; }
+            long left = _topPlayerEndTimeSec - TimeUtil.NowSec();
+            if (left <= 0)
+            {
+                SetTimeText(ServerTimeModel.GetOpenServerDay() >= 8 ? "结算中" : "已结束", TimeEndColor);
+                StopTopPlayerTimer();
+                return;
+            }
+            SetTimeText(FormatRemain(left), TimeRunColor);
+        }
+
+        private void SetTimeText(string text, Color color)
+        {
+            if (time == null) return;
+            time.text = text;
+            time.color = color;
+        }
+
+        private void StopTopPlayerTimer()
+        {
+            if (_topPlayerTimer != null) { StopCoroutine(_topPlayerTimer); _topPlayerTimer = null; }
+        }
+
+        // 对标老端 timeConvert(left, "hh-mm-ss"):有天数 → “D天h小时m分”(丢秒,h 取模 24);否则 “h小时m分s秒”。
+        private static string FormatRemain(long sec)
+        {
+            long d = sec / 86400;
+            long h = sec / 3600 % 24;
+            long m = sec / 60 % 60;
+            long s = sec % 60;
+            return d > 0 ? d + "天" + h + "小时" + m + "分" : h + "小时" + m + "分" + s + "秒";
         }
 
         private void CreateActivityIcon(string iconType)
