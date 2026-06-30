@@ -18,6 +18,14 @@ namespace Shenxiao.Module.Core.AutoBrush
             public string OtherGoodsPool = "";
         }
 
+        /// <summary>主线副本大妖的客户端模型覆盖(对标老端 Monster.InitAutoBrushMoster:res/name/scene_scale)。</summary>
+        public sealed class BrushBossModel
+        {
+            public int Res;
+            public string Name = "";
+            public float SceneScale;
+        }
+
         private static JObject _boss;
         private static JObject _client;
         private static readonly Dictionary<int, BossCfg> _bossCache = new Dictionary<int, BossCfg>();
@@ -53,6 +61,36 @@ namespace Shenxiao.Module.Core.AutoBrush
             };
             _bossCache[level] = cfg;
             return cfg;
+        }
+
+        /// <summary>
+        /// 主线副本大妖(怪 type=<see cref="AutoBrushModel.AutoBrushMonsterId"/>=7001,服务端只下发占位 "主线副本")
+        /// 的真实模型/名字/缩放,由客户端按当前挂机层级从 ConfigAutoBrush 决定(对标老端
+        /// Monster.InitAutoBrushMoster,yu_client/h5/src/scene/sceneobj/Monster.ts:685-709)。
+        /// next_level = 当前层 + 1;优先 level_boss_cfg[next_level],否则 turn_boss_cfg[next_level % 10]。
+        /// </summary>
+        public static BrushBossModel GetBrushBossModel(int nextLevel)
+        {
+            if (_client == null || nextLevel <= 0) return null;
+
+            JObject cfg = null;
+            if (_client["level_boss_cfg"] is JObject levelCfg && levelCfg[nextLevel.ToString()] is JObject byLevel)
+            {
+                cfg = byLevel;
+            }
+            if (cfg == null && _client["turn_boss_cfg"] is JObject turnCfg)
+            {
+                int index = nextLevel % 10;
+                if (turnCfg[index.ToString()] is JObject byTurn) cfg = byTurn;
+            }
+            if (cfg == null) return null;
+
+            return new BrushBossModel
+            {
+                Res = ReadInt(cfg, "res"),
+                Name = ReadString(cfg, "name"),
+                SceneScale = ReadFloat(cfg, "scene_scale", 0f),
+            };
         }
 
         public static List<AutoBrushModel.RewardEntry> BuildBossRewards(int level, int career)
@@ -167,6 +205,15 @@ namespace Shenxiao.Module.Core.AutoBrush
             if (token == null) return 0;
             if (token.Type == JTokenType.Integer) return token.Value<int>();
             return int.TryParse(token.ToString(), out int value) ? value : 0;
+        }
+
+        private static float ReadFloat(JObject obj, string key, float fallback)
+        {
+            JToken token = obj?[key];
+            if (token == null || token.Type == JTokenType.Null) return fallback;
+            if (token.Type == JTokenType.Float || token.Type == JTokenType.Integer) return token.Value<float>();
+            return float.TryParse(token.ToString(), System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture, out float value) ? value : fallback;
         }
 
         private static long ReadLong(JToken token)

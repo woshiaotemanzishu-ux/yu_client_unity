@@ -6,6 +6,7 @@ using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Scene3D.Map;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.AutoBrush;
 using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene.Vo;
@@ -91,6 +92,13 @@ namespace Shenxiao.Module.Core.Scene
         {
             if (vo == null) return;
 
+            // 主线副本大妖:服务端只下发占位(type=7001 "主线副本"),真实 模型/名字/缩放 由客户端按挂机层级覆盖
+            // (对标老端 Monster.InitAutoBrushMoster)。须在去重/建视图/加载模型前改 vo,后续才读到正确 res/name/scale。
+            float autoBrushScale = await ApplyAutoBrushBossOverrideAsync(vo);
+
+            // 大妖(副本 BOSS)入场「大妖来袭」表现(对标老端 ShowBossBornEffect;内部按 IsBoss + 在副本内 + 去重判)。
+            BossBornEffectFlow.NotifyMonsterAdded(vo);
+
             // 重复推送(同实例 id 再来,如九宫格 12012 刷新):资源未变就地更新 vo + 血条,避免模型重载闪烁;
             // 资源变了(极少)才撤旧重建。
             if (_views.TryGetValue(vo.InstanceId, out MonView exist))
@@ -141,7 +149,9 @@ namespace Shenxiao.Module.Core.Scene
             }
 
             GameObject model = Object.Instantiate(prefab);
-            float iconScale = cfg != null && cfg.IconScale > 0f ? cfg.IconScale : -1f;
+            // 大妖优先用 ConfigAutoBrush 的 scene_scale(对标老端 vo.icon_scale=cfg.scene_scale);否则 config_mon icon_scale。
+            float iconScale = autoBrushScale > 0f ? autoBrushScale
+                : (cfg != null && cfg.IconScale > 0f ? cfg.IconScale : -1f);
             Transform tilt = iconScale > 0f
                 ? SceneCharacterStage.AddSceneCharacter(model, iconScale)
                 : SceneCharacterStage.AddSceneCharacter(model);
@@ -150,12 +160,41 @@ namespace Shenxiao.Module.Core.Scene
             view.Loaded = true;
             CreateNameplate(view, cfg); // 名字(config/vo)+ 血条(非采集);无可显内容则跳过
             UpdateViewPosition(view);    // 立即摆一次位(含名牌),driver 之后每帧维持
+            // BOSS(大妖)一进场就面向玩家(横幅停顿期间也正对玩家,对标老端 birth 朝向 + 战斗 SetDirection)。
+            if (vo.IsBoss) FaceMonster(vo.InstanceId, RoleModel.Instance.X, RoleModel.Instance.Y);
 
             await PlayIdle(model, vo.MonsterRes);
             if (IsStale(view)) return; // PlayIdle 期间被清场:模型已随 tilt 销毁,放弃后续
 
             GameLog.Info("Scene", "monster visible: ins={0} type={1} model={2} pos=({3},{4})",
                 vo.InstanceId, vo.TypeId, modelKey, vo.X, vo.Y);
+        }
+
+        /// <summary>
+        /// 主线副本大妖模型覆盖(对标老端 Monster.InitAutoBrushMoster,Monster.ts:685-709):服务端只下发占位
+        /// 怪 type=<see cref="AutoBrushModel.AutoBrushMonsterId"/>=7001("主线副本"),真实 模型/名字/缩放 由客户端
+        /// 按当前挂机层级从 ConfigAutoBrush 决定。原地改 vo(MonsterRes/Name)并返回 scene_scale(>0 时覆盖 icon_scale);
+        /// 非大妖或无命中配置则返回 0(走原 config_mon icon_scale)。
+        /// </summary>
+        private static async Task<float> ApplyAutoBrushBossOverrideAsync(MonsterVo vo)
+        {
+            if (vo.TypeId != AutoBrushModel.AutoBrushMonsterId) return 0f;
+
+            await AutoBrushConfigs.EnsureLoaded();
+            int nextLevel = AutoBrushModel.Instance.Level + 1;
+            AutoBrushConfigs.BrushBossModel boss = AutoBrushConfigs.GetBrushBossModel(nextLevel);
+            if (boss == null)
+            {
+                GameLog.Warn("Scene", "大妖模型覆盖缺配置:nextLevel={0} ins={1}(ConfigAutoBrush level/turn_boss_cfg 未命中,沿用占位)",
+                    nextLevel, vo.InstanceId);
+                return 0f;
+            }
+
+            if (boss.Res > 0) vo.MonsterRes = boss.Res;
+            if (!string.IsNullOrEmpty(boss.Name)) vo.Name = boss.Name;
+            GameLog.Info("Scene", "大妖模型覆盖:nextLevel={0} res→{1} name→\"{2}\" sceneScale={3}",
+                nextLevel, vo.MonsterRes, vo.Name, boss.SceneScale);
+            return boss.SceneScale;
         }
 
         private static void OnMonsterRemoved(int instanceId)
@@ -260,6 +299,24 @@ namespace Shenxiao.Module.Core.Scene
         {
             if (!_views.TryGetValue(instanceId, out MonView view) || !view.Loaded || view.Model == null) return;
             _ = PlaySimpleActionAsync(view, "behit", true);
+        }
+
+        /// <summary>
+        /// 让怪面向某像素点(战斗时面向玩家,对标老端 FightController 攻击帧 attacker.SetDirection(target-attacker))。
+        /// yaw 口径与 <see cref="MainRoleAgent.Face"/> 一致(舞台坐标 x右/y下,Atan2(dx,-dy)):怪与主角共用同一
+        /// 2.5D 后倾父容器(tilt),故只改模型自身 yaw、不动 tilt。由 <see cref="SceneCombat"/> 在发起攻击时调用
+        /// (玩家移动后下次攻击会重新对正,无逐帧开销)。
+        /// </summary>
+        public static void FaceMonster(int instanceId, int targetX, int targetY)
+        {
+            if (!_views.TryGetValue(instanceId, out MonView view) || !view.Loaded || view.Model == null) return;
+            float dx = targetX - view.Vo.X;   // 怪 → 目标(玩家)
+            float dy = targetY - view.Vo.Y;
+            if (dx * dx + dy * dy < 0.0001f) return; // 与目标同格:保持当前朝向
+            float yaw = Mathf.Atan2(dx, -dy) * Mathf.Rad2Deg; // 与 MainRoleAgent.Face 同式(若实跑朝向反,整体 +180 或翻符号)
+            Transform mt = view.Model.transform;
+            Vector3 e = mt.localEulerAngles;
+            mt.localEulerAngles = new Vector3(e.x, yaw, e.z); // 只改 yaw,保留美术 x/z
         }
 
         private static async Task PlaySkillAsync(MonView view, int skillId)

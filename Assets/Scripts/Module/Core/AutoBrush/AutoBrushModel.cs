@@ -10,6 +10,10 @@ namespace Shenxiao.Module.Core.AutoBrush
     {
         public static readonly AutoBrushModel Instance = new AutoBrushModel();
 
+        /// <summary>主线副本大妖怪的占位 type_id(对标老端 AutoBrushModel.AutoBrushMonsterId=7001);
+        /// 服务端只下发该占位,真实模型/名字/缩放由客户端按层级覆盖,见 <see cref="AutoBrushConfigs.GetBrushBossModel"/>。</summary>
+        public const int AutoBrushMonsterId = 7001;
+
         private AutoBrushModel() { }
 
         public sealed class BrushStrangeInfo

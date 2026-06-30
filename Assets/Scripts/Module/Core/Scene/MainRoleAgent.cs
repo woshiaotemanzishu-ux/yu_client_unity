@@ -5,6 +5,7 @@ using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Scene3D.Map;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Skill;
 using UnityEngine;
@@ -108,6 +109,15 @@ namespace Shenxiao.Module.Core.Scene
         {
             SceneMapData map = SceneMapLoader.Current;
             if (map == null) return;
+
+            // 战斗演出冻结(大妖来袭横幅期间):停下并锁住一切移动/寻路,玩家停在战斗前的位置(对标老端
+            // ShowBossBornEffect 期间 STOPAUTOFIGHT 连移动一并停)。一处早退同时挡住手动摇杆 StepMove 与自动接近 AutoStep。
+            if (AutoFightModel.Instance.CombatFreeze)
+            {
+                if (_moving) StopMove();              // 立即收脚 → idle + 补发最终坐标,钉在原地
+                _autoMoving = false; _onArrive = null; // 放弃在途自动接近(解冻后由战斗循环按正面站位重新接近)
+                return;
+            }
 
             bool hasManual = SceneInput.Active && SceneInput.HasDirection;
 

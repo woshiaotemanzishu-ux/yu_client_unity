@@ -165,8 +165,9 @@ namespace Shenxiao.Module.Core.Scene
 
             if (dist2 <= range * range)
             {
-                // 命中范围:朝向目标(对标 main_role.SetDirection + DoStand)→ 释放边界。
+                // 命中范围:朝向目标(对标 main_role.SetDirection + DoStand)→ 怪回头面向玩家 → 释放边界。
                 FaceTarget(mon);
+                MonsterRenderer.FaceMonster(mon.InstanceId, role.X, role.Y); // BOSS 面向玩家(对标老端攻击帧 SetDirection)
                 GameLog.Info("Combat",
                     "MainRoleAttackMonster skill={0} 目标怪 ins={1} type_id={2} 距离={3:F0}px ≤ range={4:F0}px → 朝向 + 释放边界",
                     skillId, mon.InstanceId, mon.TypeId, Math.Sqrt(dist2), range);
@@ -232,13 +233,30 @@ namespace Shenxiao.Module.Core.Scene
                 return;
             }
 
-            // 攻击范围(像素)换算到 MoveToNpc 的逻辑格到达半径(近似:像素/逻辑比 X)。MoveToNpc 自带卡死/超时兜底。
-            float arriveLogic = range / SceneMapData.LogicRatioX;
-            GameLog.Info("Combat",
-                "MainRoleAttackMonster skill={0} 目标怪 ins={1} 距离={2:F0}px > range={3:F0}px → 自动接近(MoveToNpc)到攻击范围后释放(对标 StartTargetAction)",
-                skillId, mon.InstanceId, Math.Sqrt(dist2), range);
+            // 站位修正(对标老端 StartTargetAction:停在玩家"接近方向"那一侧的攻击距离处,而非走到 BOSS 中心):
+            // 原来 MoveToNpc(BOSS 中心, 半径=range/LogicRatioX) 是各向同性大圆,玩家从哪边进圆就停哪边 → 可能停到 BOSS 背后。
+            // 改为:沿"玩家→BOSS"方向,停在距 BOSS 中心 stopDist 像素处的【BOSS 正前方站位点】,到达半径收紧。
+            RoleModel role = RoleModel.Instance;
+            float dx = mon.X - role.X;
+            float dy = mon.Y - role.Y;
+            float dist = (float)Math.Sqrt(dx * dx + dy * dy);
 
-            agent.MoveToNpc(mon.X, mon.Y, arriveLogic, () =>
+            float stopDist = range * 0.85f;          // 留余量,停下后仍在攻击范围内(下轮 dist2<=range² 成立)
+            if (stopDist < 60f) stopDist = 60f;      // 下限:防贴脸/穿模
+            if (stopDist > range) stopDist = range;
+            float approachX = mon.X, approachY = mon.Y;
+            if (dist > 0.01f)
+            {
+                approachX = mon.X - dx / dist * stopDist; // BOSS 正前方(玩家这一侧)
+                approachY = mon.Y - dy / dist * stopDist;
+            }
+
+            const float arriveLogic = 0.6f;          // 逻辑格,收紧到达半径(只判到没到站位点)
+            GameLog.Info("Combat",
+                "MainRoleAttackMonster skill={0} ins={1} dist={2:F0}px > range={3:F0}px → 接近 BOSS 正面站位点({4:F0},{5:F0}) stopDist={6:F0}",
+                skillId, mon.InstanceId, dist, range, approachX, approachY, stopDist);
+
+            agent.MoveToNpc(approachX, approachY, arriveLogic, () =>
             {
                 MonsterVo cur = SceneManager.Instance.GetMonster(mon.InstanceId);
                 if (cur == null || cur.Hp <= 0)
@@ -248,6 +266,7 @@ namespace Shenxiao.Module.Core.Scene
                     return;
                 }
                 FaceTarget(cur);
+                MonsterRenderer.FaceMonster(cur.InstanceId, role.X, role.Y); // BOSS 面向玩家
                 ReleaseMainSkill(skillId, cur, attackType);
             });
         }

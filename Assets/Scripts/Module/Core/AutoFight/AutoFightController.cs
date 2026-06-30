@@ -112,7 +112,8 @@ namespace Shenxiao.Module.Core.AutoFight
         private void TryAutoAttack()
         {
             AutoFightModel model = AutoFightModel.Instance;
-            if (!model.AutoFightState || model.TempMode || !NetManager.IsConnected) return;
+            // CombatFreeze:大妖来袭横幅等演出期间冻结自动攻击(横幅结束才开打,对标老端 STOPAUTOFIGHT)。
+            if (!model.AutoFightState || model.TempMode || model.CombatFreeze || !NetManager.IsConnected) return;
 
             SkillVo skill = SkillManager.Instance.GetNextCombatSkill();
             if (skill == null)

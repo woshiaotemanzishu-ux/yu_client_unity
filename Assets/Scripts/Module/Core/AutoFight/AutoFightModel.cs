@@ -58,6 +58,13 @@ namespace Shenxiao.Module.Core.AutoFight
             AutoFindWayWeight = next ? weight : AUTO_WEIGHT_CLOSE;
         }
 
+        /// <summary>战斗演出冻结闸:BOSS 入场「大妖来袭」横幅等演出期间,玩家与怪物的移动/寻路/自动攻击/朝向全部冻结。
+        /// 与 <see cref="TempMode"/>(老端三态皮肤语义)区分——只服务于演出停顿,不发皮肤事件(故横幅期间自动战斗按钮不会闪成手动态)。
+        /// 单一开关,多处读它:MainRoleAgent.Update(玩家移动)、AutoFightController.TryAutoAttack(自动攻击)、MonsterRenderer.UpdateViewPosition(怪跟位/朝向)。</summary>
+        public bool CombatFreeze { get; private set; }
+
+        public void SetCombatFreeze(bool on) => CombatFreeze = on;
+
         /// <summary>对标老端 AutoFightManager.SetTempMode:临时手动模式变化才发事件 EVT_AUTO_FIGHT_TEMP_MODE。
         /// 只在自动战斗中有意义(老端由场景拖拽计时进/退);本轮暴露入口供未来场景层调用,触发计时未移植(差异记录)。</summary>
         public void SetTempMode(bool on)
@@ -81,6 +88,7 @@ namespace Shenxiao.Module.Core.AutoFight
             AutoFindWayState = false;
             AutoFindWayWeight = AUTO_WEIGHT_CLOSE;
             TempMode = false;
+            CombatFreeze = false;
         }
     }
 }
