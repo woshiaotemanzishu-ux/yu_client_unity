@@ -5,6 +5,7 @@ using Shenxiao.Module.Core.AutoBrush;
 using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Chat;
+using Shenxiao.Module.Core.CycleimpActlist;
 using Shenxiao.Module.Core.CustomActivity;
 using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.FirstRecharge;
@@ -53,6 +54,7 @@ namespace Shenxiao.Module.Core.Game
             ChatController.Instance,
             CustomActivityController.Instance,
             TopPlayerController.Instance,
+            CycleimpActlistController.Instance,
             SvipController.Instance,
             // 后续:EquipController ...
         };

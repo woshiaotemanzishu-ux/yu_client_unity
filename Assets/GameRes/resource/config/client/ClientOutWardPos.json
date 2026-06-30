@@ -1,0 +1,1447 @@
+{
+    "default_wing": {
+        "desc": "角色——翅膀",
+        "scale": 0.8,
+        "position": {
+            "x": 0,
+            "y": 3.00
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 0,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0,
+        "playermessage_scale":0.8,
+        "playermessage_rotate":0.6,
+        "palyermessage_position": {
+            "y": 5,
+            "x": 0
+        }
+    },
+    "default_artifact": {
+        "desc": "角色——圣器",
+        "scale": 1.5,
+        "position": {
+            "x": 0,
+            "y": 3.00
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 0,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0,
+        "playermessage_scale":1.5,
+        "playermessage_rotate":0,
+        "palyermessage_position": {
+            "y": 3,
+            "x": 0
+        }
+    },
+    "default_weapon": {
+        "desc": "角色——殒锋天刃",
+        "scale": 0.8,
+        "position": {
+            "x": 0,
+            "y": 3.00
+        },
+        "rotate": 180,
+        "change_position": {
+            "y": 0,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0,
+        "playermessage_scale":0.8,
+        "playermessage_rotate":0,
+        "palyermessage_position": {
+            "y": 3,
+            "x": 0
+        }
+    },
+    "default_horse": {
+        "desc": "骑宠——御风云骑",
+        "scale": 0.6,
+        "position": {
+            "x": 0.5,
+            "y": 1.6
+        },
+        "rotate": 135,
+        "change_position": {
+            "y": 0,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0,
+        "playermessage_scale":0.8,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "default_sprite": {
+        "desc": "骑宠——精灵",
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 1.8
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 0,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0,
+        "playermessage_scale":1,
+        "playermessage_rotate":180,
+        "palyermessage_position": {
+            "y": 3,
+            "x": 0
+        }
+    },
+    "default_back_ornament": {
+        "desc": "角色——玄穹云披",
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 3
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0,
+        "playermessage_scale":1,
+        "playermessage_rotate":0,
+        "palyermessage_position": {
+            "y": 3,
+            "x": 0
+        }
+    },
+    "ill_wing": {
+        "desc": "幻化-翅膀 change激活界面的默认数值 id前缀为w_",
+        "scale": 0.8,
+        "position": {
+            "x": 0.3,
+            "y": 5
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 2,
+            "x": 0.7
+        },
+        "change_scale": 0.7,
+        "change_rotate": 0
+    },
+    "ill_artifact": {
+        "desc": "幻化-圣器 change激活界面的默认数值 id前缀为a_",
+        "scale": 1.7,
+        "position": {
+            "x": 0.3,
+            "y": 3
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 1.5,
+            "x": 0
+        },
+        "change_scale": 1.7,
+        "change_rotate": 0
+    },
+    "ill_weapon": {
+        "desc": "幻化-殒锋天刃 change激活界面的默认数值 id前缀为d_",
+        "scale": 0.8,
+        "position": {
+            "x": 0.5,
+            "y": 2
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 1,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "ill_horse": {
+        "desc": "幻化-御风云骑 change激活界面的默认数值 id前缀为h_",
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150
+    },
+    "ill_sprite": {
+        "desc": "幻化-精灵 change激活界面的默认数值 id前缀为s_",
+        "scale": 0.8,
+        "position": {
+            "x": 0.3,
+            "y": 2.5
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 2,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "ill_backornament": {
+        "desc": "幻化-玄穹云披 change激活界面的默认数值 id前缀为a_",
+        "scale": 1,
+        "position": {
+            "x": 0.5,
+            "y": 3
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 1.8,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0
+    },
+    "default_partner": {
+        "desc": "骑宠——契灵 id前缀为p_",
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 0.8,
+            "x": 0.6
+        },
+        "change_scale": 0.8,
+        "change_rotate": 0
+    },
+    "default_gubao": {
+        "desc": "古宝——激活 id前缀为g_",
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 0.8,
+            "x": 0.6
+        },
+        "change_scale": 0.8,
+        "change_rotate": 0
+    },
+    "w_1004": {
+        "scale": 0.6,
+        "position": {
+            "x": 0.3,
+            "y": 4.75
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1005": {
+        "scale": 0.6,
+        "position": {
+            "x": 0.3,
+            "y": 4.75
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1006": {
+        "scale": 0.6,
+        "position": {
+            "x": 0.3,
+            "y": 4.75
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1008": {
+        "scale": 0.6,
+        "position": {
+            "x": 0.3,
+            "y": 4.75
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1012": {
+        "scale": 0.6,
+        "position": {
+            "x": 0.3,
+            "y": 4.75
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1013": {
+        "scale": 0.6,
+        "position": {
+            "x": 0.3,
+            "y": 4.75
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1015": {
+        "scale": 0.8,
+        "position": {
+            "x": 0.3,
+            "y": 4.75
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1016": {
+        "scale": 0.6,
+        "position": {
+            "x": 0.3,
+            "y": 4.75
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1017": {
+        "scale": 0.8,
+        "position": {
+            "x": 0.3,
+            "y": 4.75
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1018": {
+        "scale": 0.6,
+        "position": {
+            "x": 0.3,
+            "y": 5
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1019": {
+        "scale": 0.8,
+        "position": {
+            "x": 0.3,
+            "y": 4.75
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1020": {
+        "scale": 0.6,
+        "position": {
+            "x": 0.3,
+            "y": 5
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1022": {
+        "scale": 0.7,
+        "position": {
+            "x": 0.3,
+            "y": 6
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1023": {
+        "scale": 0.8,
+        "position": {
+            "x": 0.3,
+            "y": 6.5
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1024": {
+        "scale": 0.7,
+        "position": {
+            "x": 0.3,
+            "y": 6.5
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1025": {
+        "scale": 0.8,
+        "position": {
+            "x": 0.3,
+            "y": 6
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1026": {
+        "scale": 0.9,
+        "position": {
+            "x": 0.5,
+            "y": 6
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 4,
+            "x": 0
+        },
+        "change_scale": 0.85,
+        "change_rotate": 0
+    },
+    "w_1027": {
+        "scale": 0.8,
+        "position": {
+            "x": 0.3,
+            "y": 6
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1028": {
+        "scale": 1,
+        "position": {
+            "x": 0.3,
+            "y": 6
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "w_1050": {
+        "scale": 0.8,
+        "position": {
+            "x": 0.3,
+            "y": 4.75
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "h_1011": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.6,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "h_1012": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.6,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "h_1015": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.6,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "h_1016": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.6,
+        "playermessage_rotate":180,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "h_1017": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.6,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "h_1018": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.6,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": -1,
+            "x": 0
+        }
+    },
+    "h_1019": {
+        "scale": 0.6,
+        "position": {
+            "x": 0.3,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0
+        },
+        "change_scale": 0.4,
+        "change_rotate": 0,
+        "playermessage_scale":0.9,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 1,
+            "x": 0
+        }
+    },
+    "h_1020": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.6,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "h_1022": {
+        "scale": 0.3,
+        "position": {
+            "x": 0,
+            "y": 3
+        },
+        "x_offset": 0,
+        "rotate": 150,
+        "change_position": {
+            "y": 1,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.6,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "h_1023": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.6,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "h_1024": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.7,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "h_1025": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.6,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 1,
+            "x": 0
+        }
+    },
+    "h_1026": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.6,
+        "playermessage_rotate":90,
+        "palyermessage_position": {
+            "y": 1,
+            "x": 0
+        }
+    },
+    "h_1027": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.5,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "h_1028": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.6,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "h_1029": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.6,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "h_1030": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.65,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "h_1032": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.65,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 0,
+            "x": 0
+        }
+    },
+    "h_1038": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.65,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 1,
+            "x": 0
+        }
+    },
+    "h_1036": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.65,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 1,
+            "x": 0
+        }
+    },
+    "h_1037": {
+        "scale": 0.4,
+        "position": {
+            "x": 0.5,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0.5
+        },
+        "change_scale": 0.3,
+        "change_rotate": 150,
+        "playermessage_scale":0.65,
+        "playermessage_rotate":150,
+        "palyermessage_position": {
+            "y": 1,
+            "x": 0
+        }
+    },
+    "s_1016": {
+        "scale": 1,
+        "position": {
+            "x": -1.6,
+            "y": 2.5
+        },
+        "rotate": 180,
+        "change_position": {
+            "y": 1.5,
+            "x": -1.9
+        },
+        "change_scale": 0.8,
+        "change_rotate": 180
+    },
+    "s_1017": {
+        "scale": 1,
+        "position": {
+            "x": 1.8,
+            "y": 2.5
+        },
+        "rotate": 180,
+        "change_position": {
+            "y": 0.5,
+            "x": 1.8
+        },
+        "change_scale": 1,
+        "change_rotate": 180
+    },
+    "s_1035": {
+        "scale": 0.8,
+        "position": {
+            "x": 0.5,
+            "y": 0
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 0,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 180
+    },
+    "s_1039": {
+        "scale": 0.8,
+        "position": {
+            "x": 0.3,
+            "y": 2.5
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 0,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 150
+    },
+    "p_1004": {
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 2,
+            "x": 0
+        },
+        "change_scale": 0.5,
+        "change_rotate": 0
+    },
+    "p_1006": {
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 2,
+            "x": 0
+        },
+        "change_scale": 0.5,
+        "change_rotate": 0
+    },
+    "p_1008": {
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 2,
+            "x": 0
+        },
+        "change_scale": 0.5,
+        "change_rotate": 0
+    },
+    "p_1009": {
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 2,
+            "x": 0
+        },
+        "change_scale": 0.5,
+        "change_rotate": 0
+    },
+    "p_1018": {
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 2,
+            "x": 0
+        },
+        "change_scale": 0.5,
+        "change_rotate": 0
+    },
+    "p_1019": {
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 1.8,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "p_1022": {
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 2,
+            "x": 0
+        },
+        "change_scale": 0.5,
+        "change_rotate": 0
+    },
+    "p_1023": {
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 2,
+            "x": 0
+        },
+        "change_scale": 0.5,
+        "change_rotate": 0
+    },
+    "p_1024": {
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 2,
+            "x": 0
+        },
+        "change_scale": 0.5,
+        "change_rotate": 0
+    },
+    "p_1029": {
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 2,
+            "x": 0
+        },
+        "change_scale": 0.5,
+        "change_rotate": 0
+    },
+    "p_1033": {
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 2,
+            "x": 0
+        },
+        "change_scale": 0.5,
+        "change_rotate": 0
+    },
+    "p_1060": {
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 2,
+            "x": 0
+        },
+        "change_scale": 0.5,
+        "change_rotate": 0
+    },
+    "d_1302": {
+        "scale": 1,
+        "position": {
+            "x": 0.5,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 1,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "d_1305": {
+        "scale": 0.8,
+        "position": {
+            "x": 0.5,
+            "y": 2
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 1,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "d_1306": {
+        "scale": 0.8,
+        "position": {
+            "x": 0.5,
+            "y": 2
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 1,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "d_1307": {
+        "scale": 0.8,
+        "position": {
+            "x": 0.5,
+            "y": 2
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 1,
+            "x": 0
+        },
+        "change_scale": 0.6,
+        "change_rotate": 0
+    },
+    "h_1000": {
+        "scale": 0.6,
+        "position": {
+            "x": 0.3,
+            "y": 1.6
+        },
+        "rotate": 150,
+        "change_position": {
+            "y": 2,
+            "x": 0
+        },
+        "change_scale": 0.4,
+        "change_rotate": 150
+    },
+    "w_1002": {
+        "scale": 0.8,
+        "position": {
+            "x": 0,
+            "y": 5
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.7,
+        "change_rotate": 0
+    },
+    "g_1": {
+        "scale": 0.8,
+        "position": {
+            "x": 0,
+            "y": 5
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3,
+            "x": 0
+        },
+        "change_scale": 0.7,
+        "change_rotate": 0
+    },
+    "b_1011": {
+        "scale": 1,
+        "position": {
+            "x": 0.3,
+            "y": 3
+        },
+        "rotate": 0.3,
+        "change_position": {
+            "y": 2.5,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0.3
+    },
+    "b_1012": {
+        "scale": 1,
+        "position": {
+            "x": 0.3,
+            "y": 6
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 4,
+            "x": 0
+        },
+        "change_scale": 0.7,
+        "change_rotate": 0
+    },
+    "b_1013": {
+        "scale": 1,
+        "position": {
+            "x": 0.3,
+            "y": 5
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3.3,
+            "x": 0
+        },
+        "change_scale": 0.7,
+        "change_rotate": 0
+    },
+    "b_1014": {
+        "scale": 1,
+        "position": {
+            "x": 0.3,
+            "y": 4
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 3.2,
+            "x": 0
+        },
+        "change_scale": 0.7,
+        "change_rotate": 0
+    },
+	 "FunctionOpenIcon_a_1000": {
+        "desc": "预告图标——古法符相",
+        "scale": 2.5,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 0.5,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0
+    },
+	 "FunctionOpenIcon_d_1101": {
+        "desc": "预告图标——殒锋天刃",
+        "scale": 1,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 0.5,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0
+    },
+	 "FunctionOpenIcon_w_1002": {
+        "desc": "预告图标——垂神翼影",
+        "scale": 0.8,
+        "position": {
+            "x": 0,
+            "y": 2
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 0.5,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0
+    },
+	"FunctionOpenIcon_s_1000": {
+        "desc": "预告图标——御风云骑",
+        "scale": 0.8,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 0.5,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0
+    },
+	"FunctionOpenIcon_p_1001": {
+        "desc": "预告图标——灵兽",
+        "scale": 1.4,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 0.5,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0
+    },
+	"FunctionOpenIcon_js_1000": {
+        "desc": "预告图标——谪仙临凡",
+        "scale": 0.5,
+        "position": {
+            "x": 0,
+            "y": -0.5
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 0.5,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0
+    },
+	"FunctionOpenIcon_yl_1000": {
+        "desc": "预告图标——妖灵",
+        "scale": 1.35,
+        "position": {
+            "x": 0,
+            "y": -0.2
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 0.5,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0
+    },
+	"FunctionOpenIcon_bb_1011": {
+        "desc": "预告图标——宝宝",
+        "scale": 1.8,
+        "position": {
+            "x": 0,
+            "y": 0
+        },
+        "rotate": 0,
+        "change_position": {
+            "y": 0.5,
+            "x": 0
+        },
+        "change_scale": 1,
+        "change_rotate": 0
+    }
+}

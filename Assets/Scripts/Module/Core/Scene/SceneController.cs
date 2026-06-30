@@ -77,6 +77,19 @@ namespace Shenxiao.Module.Core.Scene
         }
 
         /// <summary>
+        /// 跨场景切换请求(对标老端 SceneController.ts:1066 onRequestChangeScene → REQUEST_CHANGE_SCENE
+        /// → SendFmtToGame(12005,"iicchh", 0, scene_id, 0, send_type, pos_x, pos_y))。飞鞋/任务跨场景走此路:
+        /// dun_id=0、send_type=1(飞鞋)、带目标落点 pos。服务端回 12005 由既有 <see cref="On12005"/> 加载新场景
+        /// (落点最终由服务端 12005 回包给定);任务流的"到达后续接"由 TaskModel 监听场景就绪事件重跑 DoTask 完成。
+        /// </summary>
+        public void RequestChangeScene(int sceneId, int x, int y, int sendType = 1)
+        {
+            if (sceneId <= 0) { GameLog.Warn("Scene", "RequestChangeScene 非法 sceneId={0}", sceneId); return; }
+            SendFmt(Proto.SC_CHANGE_SCENE, "iicchh", 0, sceneId, 0, sendType, Floor0(x), Floor0(y));
+            GameLog.Info("Scene", "request 12005 跨场景: sceneId={0} pos=({1},{2}) sendType={3}", sceneId, x, y, sendType);
+        }
+
+        /// <summary>
         /// 主角移动上报(对标 SceneController.ts:1042 moveRequestHandler → SendFmtToGame(12001,"ihhchhhh"))。
         /// </summary>
         public void SendMoveRequest(int curX, int curY, int moveType, int targetX, int targetY, int startX = 0, int startY = 0)

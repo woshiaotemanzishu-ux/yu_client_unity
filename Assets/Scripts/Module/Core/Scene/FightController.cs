@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Role;
@@ -39,6 +40,21 @@ namespace Shenxiao.Module.Core.Scene
         /// <summary>本段战斗是否已发过 20024 "c" 1(对标老端 is_fighting_state;每段战斗只发一次进战斗态)。</summary>
         private bool _fighting;
 
+        // ── 20001 发送节流(对齐老端 fight-movie 动作帧门控)──────────────────────────────────────
+        // 老端真实 20001 由 FightMovieInfo 在动画 skill_damage_time 帧触发(FightMovieInfo.ts:490 +
+        // past_time>=skill_damage_time),连招走同一动画/buff 系统,发包率被动画播放天然串行限速,物理上发不快。
+        // 本端无动作帧系统:engage 在释放边界即发 + 连招 fire-and-forget Task.Delay 补发(SceneCombat)。
+        // 主线程一卡顿(boss 渲染/特效),堆积的 Task.Delay 续体会在 resume 时同帧一次性 flush 出突发 20001,
+        // 被服务端判为异常并 force-close 连接(实测断线签名 "remote closed without close handshake",见 reconnect 排查)。
+        // 这里在唯一 20001 出口做 FIFO 节流:相邻两包间隔不低于 MIN_ATTACK_SEND_INTERVAL_SEC(对齐服务端 ~200ms
+        // 处理节流线),承载真实伤害的连招不丢、只把突发摊匀。稳态 AutoFight 节奏(500ms 循环,engage→combo 间隔
+        // ≥200ms)本就不触发节流;只有续体堆积时才生效。队列上限兜底极端卡顿,溢出丢最早请求并告警。
+        private const float MIN_ATTACK_SEND_INTERVAL_SEC = 0.2f;
+        private const int MAX_PENDING_ATTACK_SENDS = 16;
+        private readonly Queue<Action> _attackSendQueue = new Queue<Action>();
+        private float _nextAttackSendAllowedAt;
+        private bool _drainingAttackQueue;
+
         // 老端 SceneBaseType(SceneConfig.ts:31)中本端 20001 defense_list 需路由的子集(协议枚举,非业务魔数)。
         private const int OBJ_MONSTER = 1;   // 怪 / 采集物
         private const int OBJ_ROLE = 2;      // 玩家
@@ -54,6 +70,8 @@ namespace Shenxiao.Module.Core.Scene
         public override void Dispose()
         {
             _fighting = false; // 断线/登出:战斗态复位(重连后重新进战斗态再发 20024 "c" 1)
+            _attackSendQueue.Clear(); // 丢弃未发的 20001(断线后不再补发,drainer 见空队列自然退出)
+            _nextAttackSendAllowedAt = 0f;
             base.Dispose();
         }
 
@@ -113,10 +131,70 @@ namespace Shenxiao.Module.Core.Scene
             args.Add(cy);
             args.Add(ca);
 
-            SendFmt(Proto.CS_FIGHT_ATTACK, fmt.ToString(), args.ToArray());
-            GameLog.Info("Fight",
-                "send 20001 攻击请求: skill={0} 怪列表=[{1}] 人列表=[{2}] x={3} y={4} angle={5} fmt=\"{6}\"",
-                skillId, string.Join(",", monsterIds), string.Join(",", roleIds), cx, cy, ca, fmt);
+            // 编码所需的值已快照进 fmtStr/argArr;日志字段同步快照,避免闭包持有可变列表引用。
+            string fmtStr = fmt.ToString();
+            object[] argArr = args.ToArray();
+            string monStr = string.Join(",", monsterIds);
+            string roleStr = string.Join(",", roleIds);
+
+            // 不直接发:经 20001 节流出口(对齐老端动作帧门控,防主线程卡顿后续体堆积同帧 flush 触发服务端 force-close)。
+            EnqueueAttackSend(() =>
+            {
+                SendFmt(Proto.CS_FIGHT_ATTACK, fmtStr, argArr);
+                GameLog.Info("Fight",
+                    "send 20001 攻击请求: skill={0} 怪列表=[{1}] 人列表=[{2}] x={3} y={4} angle={5} fmt=\"{6}\"",
+                    skillId, monStr, roleStr, cx, cy, ca, fmtStr);
+            });
+        }
+
+        /// <summary>
+        /// 把一个 20001 发送动作压入节流队列并确保 drainer 在跑。全程主线程(SceneCombat 战斗逻辑 / 连招
+        /// Task.Delay 续体都在 UnitySynchronizationContext),无需加锁。队列满则丢最早请求兜底极端卡顿。
+        /// </summary>
+        private void EnqueueAttackSend(Action send)
+        {
+            if (send == null) return;
+            if (_attackSendQueue.Count >= MAX_PENDING_ATTACK_SENDS)
+            {
+                _attackSendQueue.Dequeue();
+                GameLog.Warn("Fight",
+                    "20001 发送队列已满({0}),丢弃最早请求防积压(主线程严重卡顿?)", MAX_PENDING_ATTACK_SENDS);
+            }
+            _attackSendQueue.Enqueue(send);
+            if (!_drainingAttackQueue)
+            {
+                _drainingAttackQueue = true;
+                _ = DrainAttackQueueAsync();
+            }
+        }
+
+        /// <summary>
+        /// 单 drainer 按 MIN_ATTACK_SEND_INTERVAL_SEC 节流出队发送。续体堆积时每次 await 后重判时间(continue),
+        /// 自纠正为逐个间隔发送,绝不同帧一次性 flush。稳态(包间隔本就 ≥ 阈值)队列为空、立即放行、无漂移。
+        /// </summary>
+        private async Task DrainAttackQueueAsync()
+        {
+            try
+            {
+                while (_attackSendQueue.Count > 0)
+                {
+                    float now = UnityEngine.Time.realtimeSinceStartup;
+                    if (now < _nextAttackSendAllowedAt)
+                    {
+                        int waitMs = (int)Math.Ceiling((_nextAttackSendAllowedAt - now) * 1000f);
+                        if (waitMs > 0) await Task.Delay(waitMs);
+                        continue; // await 后重判:多个续体同帧醒来也只放行到时的那个,其余继续等
+                    }
+                    Action send = _attackSendQueue.Dequeue();
+                    _nextAttackSendAllowedAt = UnityEngine.Time.realtimeSinceStartup + MIN_ATTACK_SEND_INTERVAL_SEC;
+                    try { send(); }
+                    catch (Exception e) { GameLog.Warn("Fight", "20001 节流发送异常: {0}", e.Message); }
+                }
+            }
+            finally
+            {
+                _drainingAttackQueue = false;
+            }
         }
 
         // S2C 20001:攻击结果广播(攻击者头 + 防御者列表 + 伤害,FightVo)。第10轮起真实解析:

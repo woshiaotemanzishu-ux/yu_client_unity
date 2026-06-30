@@ -577,9 +577,13 @@ namespace Shenxiao.Module.Core.Login
         private void CancelAutoReconnect()
         {
             if (_autoReconnectCts == null) return;
-            _autoReconnectCts.Cancel();
-            _autoReconnectCts.Dispose();
+            // 先取局部 + 先置 null,再 Cancel/Dispose:Cancel() 会同步唤起 ReconnectInGameAfterDelayAsync 的 finally
+            // (`if (_autoReconnectCts == cts) { _autoReconnectCts = null; cts.Dispose(); }`),若不先置 null,
+            // 字段会在 Cancel 内被清空,回到这里再 Dispose 就对 null 触发 NRE(与 AutoFightController.StopLoop 同类 bug)。
+            CancellationTokenSource cts = _autoReconnectCts;
             _autoReconnectCts = null;
+            cts.Cancel();
+            cts.Dispose();
         }
 
         private void OnNameVerify(NetReader reader)

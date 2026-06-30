@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Tasks;
 
 namespace Shenxiao.Module.Core.AutoBrush
@@ -24,6 +27,7 @@ namespace Shenxiao.Module.Core.AutoBrush
             RegisterProtocal(Proto.AUTOBRUSH_ENTER_EXIT, On13305);
             RegisterProtocal(Proto.AUTOBRUSH_RESULT, On13306);
             RegisterProtocal(Proto.AUTOBRUSH_TOGGLE, On13307);
+            RegisterProtocal(Proto.DUNGEON_EXIT, On61002);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
@@ -142,6 +146,14 @@ namespace Shenxiao.Module.Core.AutoBrush
                 return;
             }
 
+            // 主线"过副本"任务:无论通关(state==0)还是失败(state==1),服务端都不会自动把玩家踢回野外
+            // (实测 13306 后无 12005 回场景);必须客户端主动发 61002 退副本(对标老端 AutoBrushResultView /
+            // DungeonFailureView 关闭时 Fire 61002),否则卡在副本(dunId!=0)→ 后续跨场景任务全被服务端拒
+            // (errorCode=1200001 当前场景不能进入)。
+            // ★门禁按"当前是否在副本(DunId!=0)"判,而非按当前主线任务类型——对标老端 IsMainLineDungeonScene
+            //   (看场景而非任务):实测玩家通关过副本任务后,主线任务已推进到找NPC,但 auto-brush 又farm了下一关
+            //   并失败,此时若按任务类型 gate(已非过副本)就不会退→卡死。AutoExitDungeonAfterResultAsync 内部
+            //   再按 DunId!=0 复判,不在副本则跳过,安全。
             if (state == 0)
             {
                 AutoBrushModel.Instance.SetFailureState(false);
@@ -151,6 +163,7 @@ namespace Shenxiao.Module.Core.AutoBrush
                 AutoBrushFlow.OpenResult(rewards, coin, exp);
                 GameLog.Info("AutoBrush", "13306 pass success level={0} rewards={1} coin={2} exp={3}",
                     AutoBrushModel.Instance.Level, rewards.Count, coin, exp);
+                _ = AutoExitDungeonAfterResultAsync(true);
                 return;
             }
 
@@ -158,10 +171,63 @@ namespace Shenxiao.Module.Core.AutoBrush
             {
                 AutoBrushModel.Instance.SetFailureState(true, AutoBrushModel.Instance.Level + 1);
                 GameLog.Warn("AutoBrush", "13306 pass failed nextLevel={0}", AutoBrushModel.Instance.LastFailureLevel);
+                _ = AutoExitDungeonAfterResultAsync(false);
                 return;
             }
 
             GameLog.Warn("AutoBrush", "13306 unknown result state={0}", state);
+        }
+
+        /// <summary>
+        /// 主线过副本结算(成功/失败)后自动退出副本,发 **61002**(对标老端 AutoBrushResultView/DungeonFailureView
+        /// 关闭时 Fire(SCMD_REQUEST,61002),而非 13305——13305 在老端只用于"进"副本)。给结算/失败一个短暂展示窗口后
+        /// 再退;退出前若已不在副本(已退/重连)则跳过。服务端收 61002 后用 12005 把玩家切回野外(dunId=0)。
+        /// fire-and-forget,异常只记录。
+        /// </summary>
+        private async Task AutoExitDungeonAfterResultAsync(bool success)
+        {
+            try
+            {
+                await Task.Delay(2000);
+                if (RoleModel.Instance.DunId == 0)
+                {
+                    GameLog.Info("AutoBrush", "auto exit dungeon skip: 已不在副本(dunId=0)");
+                    return;
+                }
+                GameLog.Info("AutoBrush", "主线过副本{0} → 发 61002 退出副本(dunId={1}),等服务端 12005 切回野外",
+                    success ? "通关" : "失败", RoleModel.Instance.DunId);
+                SendFmt(Proto.DUNGEON_EXIT);
+
+                // 退副本后关掉挂机(13307 "c" 1),除非当前主线任务是"过副本"且**尚未完成**(还需继续 farm 该任务下一关)。
+                // 否则 auto-brush 一直 on,服务端会**无声地**把玩家再循环拉进副本(实测:退大妖副本→回野外打小怪后,
+                // 被服务端拉回副本,因副本复用野外同地图→画面看着还在主场景,但野外 NPC 被 SceneManager.Clear 清掉
+                // ="NPC消失";且常打不过失败又卡死)。下次真有未完成的过副本任务时 DoPassMainDungeonTask 会重发 13307"c"0 重开。
+                // ★必须按 HasFinish==0 判,不能只按"任务类型!=过副本":退副本那刻过副本任务可能已 finish=1 但
+                //   MainLineTaskVo 还没翻篇到下一个,只按类型判会漏关→仍被服务端再拉回(本次实测就是漏关导致再进副本)。
+                TaskVo curTask = TaskModel.Instance.MainLineTaskVo;
+                bool needDungeonFarm = curTask != null
+                    && curTask.TaskTipsType == TaskModel.TIP_PASS_MAIN_DUNGEON
+                    && curTask.HasFinish == 0;
+                if (!needDungeonFarm)
+                {
+                    RequestAutoBrushState(false);
+                    GameLog.Info("AutoBrush", "退副本后无未完成的过副本任务 → 关挂机(13307 c1),防服务端自动循环再拉回副本");
+                }
+            }
+            catch (Exception e)
+            {
+                GameLog.Warn("AutoBrush", "auto exit dungeon 异常: {0}", e.Message);
+            }
+        }
+
+        /// <summary>61002 退副本回包:error_code==1 成功(服务端随后推 12005 切回野外);否则记告警。</summary>
+        private void On61002(NetReader r)
+        {
+            int errorCode = r.Remaining >= 4 ? r.ReadI32() : -1;
+            if (errorCode == 1)
+                GameLog.Info("AutoBrush", "61002 退副本成功,等服务端 12005 切回野外");
+            else
+                GameLog.Warn("AutoBrush", "61002 退副本失败 errorCode={0}", errorCode);
         }
 
         private static List<AutoBrushModel.RewardEntry> ReadResultRewards(NetReader r)

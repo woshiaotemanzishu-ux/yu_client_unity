@@ -119,6 +119,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6770569856114640329}
+  - component: {fileID: 3502750178442906842}
   m_Layer: 0
   m_Name: PetEquipOutItem
   m_TagString: Untagged
@@ -149,6 +150,26 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 87, y: 87}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &3502750178442906842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2449467850724403338}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac6730b0ad9bc324c9fdb8152f4b663b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.PetEquip.PetEquipOutItemBind
+  _group_data: {fileID: 4417221645182145987}
+  _group_item: {fileID: 1170961707881859390}
+  _group_empty: {fileID: 4273856992870109156}
+  _Image1: {fileID: 2529629963445165980}
+  _img_icon: {fileID: 3941082188328528858}
+  _reddot: {fileID: 8809266416109060363}
+  _tpl_EquipmentItem: {fileID: 5752045465962231651}
+  _tpl_PetEquipItem: {fileID: 8462270511930981038}
 --- !u!1 &3459805219629969604
 GameObject:
   m_ObjectHideFlags: 0
@@ -511,6 +532,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6259585613194349608, guid: 4b61db156a07d9c4182c38b719828178, type: 3}
   m_PrefabInstance: {fileID: 5268619155302779259}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &5752045465962231651 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 490535933774872088, guid: 4b61db156a07d9c4182c38b719828178, type: 3}
+  m_PrefabInstance: {fileID: 5268619155302779259}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &6800421025379113042
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -608,6 +634,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 882e182cc2b3e2140af3c87ffdf6ff16, type: 3}
+--- !u!1 &8462270511930981038 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3111975069177963260, guid: 882e182cc2b3e2140af3c87ffdf6ff16, type: 3}
+  m_PrefabInstance: {fileID: 6800421025379113042}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &9087299070973982545 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2324808209094012675, guid: 882e182cc2b3e2140af3c87ffdf6ff16, type: 3}

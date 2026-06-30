@@ -438,9 +438,10 @@ namespace Shenxiao.Module.Core.Tasks
                     DialogueController.Instance.ShowTask(task.Id);
                     return;
                 }
-                GameLog.Warn("Task",
-                    "DoTask 找 NPC blocker: 目标 NPC {0} 在其他场景(任务场景={1},当前={2})→ 跨场景切换" +
-                    "(老端 USE_FLY_SHOE/飞鞋协议)未移植 → blocker。", task.Id, task.SceneId, curScene);
+                GameLog.Info("Task",
+                    "DoTask 找 NPC {0}: 在其他场景(任务场景={1},当前={2})→ 飞鞋跨场景,到达后续接对话",
+                    task.Id, task.SceneId, curScene);
+                RequestCrossSceneThenRetry(task);
                 return;
             }
 
@@ -489,9 +490,10 @@ namespace Shenxiao.Module.Core.Tasks
             int curScene = RoleModel.Instance.SceneId;
             if (task.SceneId != 0 && task.SceneId != curScene)
             {
-                GameLog.Warn("Task",
-                    "DoTask 切场景 blocker: 任务 {0} 目标在场景 {1}(当前 {2}),跨场景切换(老端 USE_FLY_SHOE/飞鞋)" +
-                    "未移植 → blocker。目标坐标 ({3},{4}) 已就绪。", task.TaskId, task.SceneId, curScene, task.SceneX, task.SceneY);
+                GameLog.Info("Task",
+                    "DoTask 切场景: 任务 {0} 目标在场景 {1}(当前 {2}) → 飞鞋跨场景,到达后续接寻路。目标坐标 ({3},{4})。",
+                    task.TaskId, task.SceneId, curScene, task.SceneX, task.SceneY);
+                RequestCrossSceneThenRetry(task);
                 return;
             }
 
@@ -513,6 +515,71 @@ namespace Shenxiao.Module.Core.Tasks
             agent.MoveToNpcStrict(task.SceneX, task.SceneY, TaskPointArriveLogicDist, () => OnArriveTaskPoint(task));
         }
 
+        /// <summary>正在等待跨场景落地后续接的任务(对标老端 fly_data.callback);null=无。</summary>
+        private TaskVo _pendingCrossSceneTask;
+
+        /// <summary>上次发跨场景请求的时间戳(realtimeSinceStartup),用于冷却防刷。</summary>
+        private float _lastCrossSceneRequestAt;
+
+        /// <summary>跨场景请求冷却(秒):同窗口内不重复发,防用户狂点 → 失败 12005 flood → 服务端 force-close。</summary>
+        private const float CROSS_SCENE_COOLDOWN_SEC = 3f;
+
+        /// <summary>
+        /// 跨场景任务:发飞鞋切场景请求(<see cref="SceneController.RequestChangeScene"/>),落地后(新场景快照就绪
+        /// EVT_SCENE_SNAPSHOT_READY)重跑 <see cref="DoTask"/> —— 此时 NPC/坐标已在当前场景,DoTask 自动走同场景
+        /// 分支(走近 NPC/寻路)。对标老端 USE_FLY_SHOE → REQUEST_CHANGE_SCENE → 新场景 onSceneStart 续接回调。
+        /// 仅重试一次,且续接前校验确实到达目标场景(防失败/错场景时死循环)。
+        ///
+        /// 两道门禁(防我此前引入的 flood 回归:玩家卡副本里狂点 → 失败 12005 把服务端刷到 force-close):
+        ///   ① 副本内(DunId!=0)禁飞鞋(对标老端 IsCanUseFlyShoeScene 仅主城/野外安全区可飞;服务端会回
+        ///      errorCode=1200001 拒,客户端先拦不发);② 冷却 CROSS_SCENE_COOLDOWN_SEC 内不重复发。
+        /// </summary>
+        private void RequestCrossSceneThenRetry(TaskVo task)
+        {
+            if (task == null || task.SceneId <= 0) return;
+
+            if (RoleModel.Instance.DunId != 0)
+            {
+                GameLog.Warn("Task",
+                    "跨场景任务 {0}: 当前在副本(dunId={1})内,不能飞鞋切场景(服务端会拒 errorCode=1200001)→ 需先退出副本。",
+                    task.TaskId, RoleModel.Instance.DunId);
+                return;
+            }
+
+            float now = UnityEngine.Time.realtimeSinceStartup;
+            if (now - _lastCrossSceneRequestAt < CROSS_SCENE_COOLDOWN_SEC)
+            {
+                GameLog.Info("Task", "跨场景任务 {0}: 切场景冷却中(<{1:0.#}s),忽略重复触发(防刷)。", task.TaskId, CROSS_SCENE_COOLDOWN_SEC);
+                return;
+            }
+            _lastCrossSceneRequestAt = now;
+
+            _pendingCrossSceneTask = task;
+            EventDispatcher.Off(GlobalEvent.EVT_SCENE_SNAPSHOT_READY, OnCrossSceneArrived);
+            EventDispatcher.On(GlobalEvent.EVT_SCENE_SNAPSHOT_READY, OnCrossSceneArrived);
+            GameLog.Info("Task", "跨场景任务 {0}: 请求切到场景 {1} 落点({2},{3}),到达后续接任务",
+                task.TaskId, task.SceneId, task.SceneX, task.SceneY);
+            SceneController.Instance.RequestChangeScene(task.SceneId, task.SceneX, task.SceneY);
+        }
+
+        private void OnCrossSceneArrived()
+        {
+            TaskVo task = _pendingCrossSceneTask;
+            _pendingCrossSceneTask = null;
+            EventDispatcher.Off(GlobalEvent.EVT_SCENE_SNAPSHOT_READY, OnCrossSceneArrived);
+            if (task == null) return;
+
+            int curScene = RoleModel.Instance.SceneId;
+            if (curScene != task.SceneId)
+            {
+                // 落地场景与目标不符(切场景失败/收到的是别的快照)→ 不续接,避免反复飞鞋死循环。
+                GameLog.Warn("Task", "跨场景任务 {0}: 落地场景={1} 与目标={2} 不符,不续接", task.TaskId, curScene, task.SceneId);
+                return;
+            }
+            GameLog.Info("Task", "跨场景任务 {0}: 已到达场景 {1},续接任务流(走近/寻路)", task.TaskId, curScene);
+            DoTask(task);
+        }
+
         private void DoPassMainDungeonTask(TaskVo task)
         {
             if (task == null) return;
@@ -522,9 +589,10 @@ namespace Shenxiao.Module.Core.Tasks
                 int curScene = RoleModel.Instance.SceneId;
                 if (task.SceneId != 0 && task.SceneId != curScene)
                 {
-                    GameLog.Warn("Task",
-                        "PassMainDungeon blocker: task={0} target scene={1} current={2}; cross-scene fly/change path not migrated yet",
+                    GameLog.Info("Task",
+                        "PassMainDungeon 跨场景: task={0} target scene={1} current={2} → 飞鞋跨场景,到达后续接",
                         task.TaskId, task.SceneId, curScene);
+                    RequestCrossSceneThenRetry(task);
                     return;
                 }
 

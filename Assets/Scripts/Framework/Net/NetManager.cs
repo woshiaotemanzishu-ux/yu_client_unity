@@ -67,6 +67,15 @@ namespace Shenxiao.Framework.Net
             await DisconnectAsync();
             ClearRemoteCloseState();
             _ws = new ClientWebSocket();
+            // ★禁用 .NET ClientWebSocket 的自动 keepalive PING 帧(默认 KeepAliveInterval=30s,运行时会定时发
+            // 一个 opcode=9 的 WebSocket Ping 控制帧)。本服务端 WS 解帧器(gsrv_ws:parse_payload)只认 binary/close
+            // 帧,收到 ping 帧返回 error → reader_ws 立刻 websocket_close(发完1000关闭帧裸关TCP、不等握手)→ 客户端
+            // 报 'without completing the close handshake',表现为进游戏 ~30-36s(首个 keepalive 周期)莫名 force-close。
+            // 老 Laya 跑浏览器、浏览器 WS 永不主动发 ping 故不触发;保活由应用层 10006 心跳负责,无需 WS 层 ping。
+            // 复现根因见 yu_server reader_ws.beam/gsrv_ws.beam(parse_payload 只处理 binary/close)。
+            // 用 Timeout.InfiniteTimeSpan(而非 TimeSpan.Zero):它在各 .NET/Mono 实现里都是公认的"禁用"哨兵
+            // (无论内部按 >TimeSpan.Zero 还是 !=InfiniteTimeSpan 判断都禁用),最稳。
+            _ws.Options.KeepAliveInterval = System.Threading.Timeout.InfiniteTimeSpan;
             _cts = new CancellationTokenSource();
             GameLog.Info("Net", "connecting {0}", url);
             await _ws.ConnectAsync(new Uri(url), _cts.Token);
@@ -163,17 +172,28 @@ namespace Shenxiao.Framework.Net
 
         private static async Task ReceiveLoop()
         {
+            // 捕获本次连接的 ws/token 局部引用:整个收包循环跑在后台线程(下面 ReceiveAsync 用 ConfigureAwait(false)),
+            // 期间主线程可能 DisconnectAsync 把静态 _ws/_cts 置空;用局部引用避免读到 null 触发 NRE/竞态。
+            ClientWebSocket ws = _ws;
+            CancellationTokenSource cts = _cts;
+            if (ws == null || cts == null) return;
+            CancellationToken token = cts.Token;
+
             var buf = new byte[16384];
             var message = new MemoryStream();
             try
             {
-                while (_ws != null && _ws.State == WebSocketState.Open && !_cts.IsCancellationRequested)
+                // ★ ConfigureAwait(false):把 socket 读取 + WS 协议层 PING/PONG 自动应答 + 拆帧入队全部移出 Unity 主线程。
+                // 这样主线程被重活(进副本重载地图、刷一屏 NPC 图标等)钉死时,网络层仍持续收发、自动回 PONG,
+                // 不会因 keepalive 被饿死而被服务端 force-close(对标老端浏览器 WS 走独立事件循环、不与渲染抢线程)。
+                // 帧只入 _inbox 线程安全队列;真正派发(handler 碰 Unity 对象)仍在主线程 Pump() 里做,语义不变。
+                while (ws.State == WebSocketState.Open && !token.IsCancellationRequested)
                 {
                     message.SetLength(0);
                     WebSocketReceiveResult r;
                     do
                     {
-                        r = await _ws.ReceiveAsync(new ArraySegment<byte>(buf), _cts.Token);
+                        r = await ws.ReceiveAsync(new ArraySegment<byte>(buf), token).ConfigureAwait(false);
                         if (r.MessageType == WebSocketMessageType.Close)
                         {
                             MarkRemoteClose(r.CloseStatus, r.CloseStatusDescription);
@@ -195,13 +215,16 @@ namespace Shenxiao.Framework.Net
             }
             catch (OperationCanceledException)
             {
-                // 主动断开
+                // 主动断开(DisconnectAsync 取消 token),正常退出。
             }
             catch (Exception e)
             {
+                // 收包异常(服务端 force-close / 网络断)。★不在此后台线程发事件或调 DisconnectAsync★——
+                // 那会让 EVT_NET_DISCONNECTED 等在非主线程触发,handler 碰 Unity 对象会崩。改为置远端关闭标志,
+                // 由主线程 Pump() 走与 Close 帧同一路径统一收尾(TryConsumeRemoteClose → DisconnectAsync)。
+                if (token.IsCancellationRequested) return; // 主动断开过程中的异常,不当远端关闭处理
                 GameLog.Error("Net", "recv loop fail: {0}", e.Message);
-                EventDispatcher.Emit(GlobalEvent.EVT_NET_ERROR);
-                await DisconnectAsync();
+                MarkRemoteClose(null, "recv loop fail: " + e.Message);
             }
         }
 

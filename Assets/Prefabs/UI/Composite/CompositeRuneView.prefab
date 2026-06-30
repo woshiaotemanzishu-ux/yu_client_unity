@@ -1196,6 +1196,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8258861114429453888}
+  - component: {fileID: 5252250710531111817}
   m_Layer: 0
   m_Name: RuneComposeCostItem
   m_TagString: Untagged
@@ -1228,6 +1229,24 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &5252250710531111817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3308346002481165533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82c6ee71925f895458c7987db940b1ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Composite.RuneComposeCostItemBind
+  conta: {fileID: 91358336509239090}
+  num: {fileID: 6908432969561759875}
+  click_bg: {fileID: 751365974129659369}
+  _img_awaken: {fileID: 5663288471446995568}
+  _img_wear: {fileID: 401175167853774622}
+  _lb_name: {fileID: 1497937539530506377}
 --- !u!1 &3799247490184614756
 GameObject:
   m_ObjectHideFlags: 0
@@ -2943,6 +2962,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 328934925476969780}
+  - component: {fileID: 4558904227168728138}
   m_Layer: 0
   m_Name: CompositeRuneView
   m_TagString: Untagged
@@ -2997,6 +3017,57 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 720, y: 992}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &4558904227168728138
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7645325174708632154}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85fb5cd3a49247243acd20874392674d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Composite.CompositeRuneViewBind
+  _img_1: {fileID: 1361461724573957440}
+  _img_center: {fileID: 7405371372307902691}
+  _img_center1: {fileID: 5540628360774045019}
+  _img_center2: {fileID: 9047940406923482387}
+  _img_left: {fileID: 6723049329353305250}
+  _Image1: {fileID: 7459468670836336263}
+  _Image3: {fileID: 4445093913478768363}
+  _img_2: {fileID: 5873556011301811704}
+  rune_name: {fileID: 6408119079780623274}
+  _Label1: {fileID: 2997690133547910730}
+  target_pro: {fileID: 2904612469134542401}
+  item_conta0: {fileID: 8538964318013092625}
+  item_conta1: {fileID: 651668769177281537}
+  target_conta: {fileID: 6516253499926930024}
+  scroll_group: {fileID: 4599447472434522539}
+  composeBtn: {fileID: 579548635223315122}
+  _Image11: {fileID: 966414105747498222}
+  labelDisplay: {fileID: 7085460829793313950}
+  tips_icon: {fileID: 208993330360830074}
+  tip_text: {fileID: 508797195623503606}
+  _Image4: {fileID: 365962549637150852}
+  gp_condition: {fileID: 7706019622264339974}
+  condition: {fileID: 3188123557771730423}
+  cost_conta: {fileID: 2831509371205324222}
+  _Label2: {fileID: 8446052790187966746}
+  cost_num: {fileID: 3204293755248992122}
+  cost_icon: {fileID: 2408109149134105691}
+  red_dot: {fileID: 2701252923548987433}
+  _Image23: {fileID: 8482184785650381484}
+  _Label21: {fileID: 1129828184071572481}
+  img_arrow: {fileID: 1395152715179726127}
+  _gp_effect: {fileID: 75103307920651244}
+  _gp_check: {fileID: 7778182783938546443}
+  _img_check: {fileID: 2965509012056078294}
+  _lb_check: {fileID: 5830408788993776090}
+  _tpl_RuneComposeCostItem: {fileID: 3308346002481165533}
+  _tpl_BaseAwardItem: {fileID: 1229962844493958763}
+  _tpl_EquipmentItem: {fileID: 4266615595559059582}
+  _tpl_UIVerTabBar: {fileID: 4402643809257309858}
 --- !u!1 &8068814808450042221
 GameObject:
   m_ObjectHideFlags: 0
@@ -3654,6 +3725,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 620e3a9b175b4254687becd51658682e, type: 3}
+--- !u!1 &4402643809257309858 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 900583501881556614, guid: 620e3a9b175b4254687becd51658682e, type: 3}
+  m_PrefabInstance: {fileID: 3559768793907525668}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &4866547330237038608 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8282020590345746484, guid: 620e3a9b175b4254687becd51658682e, type: 3}
@@ -3756,6 +3832,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4b61db156a07d9c4182c38b719828178, type: 3}
+--- !u!1 &4266615595559059582 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 490535933774872088, guid: 4b61db156a07d9c4182c38b719828178, type: 3}
+  m_PrefabInstance: {fileID: 4465507675773845094}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &7720903009187656270 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6259585613194349608, guid: 4b61db156a07d9c4182c38b719828178, type: 3}
@@ -3858,6 +3939,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 39fc659b34b1fb646b7cbed26e2442d2, type: 3}
+--- !u!1 &1229962844493958763 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7900594220294169132, guid: 39fc659b34b1fb646b7cbed26e2442d2, type: 3}
+  m_PrefabInstance: {fileID: 8986150364392631367}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &3159752512708450474 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6299561772021724397, guid: 39fc659b34b1fb646b7cbed26e2442d2, type: 3}

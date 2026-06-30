@@ -71,9 +71,13 @@ namespace Shenxiao.Module.Core.AutoFight
         private void StopLoop()
         {
             if (_loopCts == null) return;
-            _loopCts.Cancel();
-            _loopCts.Dispose();
+            // 先取局部 + 先置 null,再 Cancel/Dispose:Cancel() 会**同步**唤起 RunLoopAsync 的 finally,
+            // 那里 `if (_loopCts == cts) _loopCts = null`——若不先置 null,finally 会把字段清空,回到这里
+            // _loopCts.Dispose() 就对 null 触发 NRE(实测 30001 → SetAutoFightWeight → OnAutoFightState 路径崩)。
+            CancellationTokenSource cts = _loopCts;
             _loopCts = null;
+            cts.Cancel();
+            cts.Dispose();
             SceneCombat.Instance.SetClickTarget(0);
             GameLog.Info("AutoFight", "auto-fight loop stopped");
         }

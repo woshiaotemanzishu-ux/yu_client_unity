@@ -120,6 +120,10 @@ namespace Shenxiao.Framework.Event
         public const string EVT_MAINUI_ACTIVITY_ICON_UPDATE = "EVT_MAINUI_ACTIVITY_ICON_UPDATE";
         // 头号玩家主界面数据就绪(对标老端 EventName.UPDATE_TOP_PLAYER_MAIN_DATA),参数:rank_type:int。
         public const string EVT_TOPPLAYER_MAIN_DATA = "EVT_TOPPLAYER_MAIN_DATA";
+        // 循环冲榜数据更新(22700 有活动 / 22702 榜单 / 22706 榜首变更)→ 活动视图刷 _box_rank 竞榜展示(3D模型+名次+倒计时)。无参。
+        public const string EVT_CYCLEIMP_DATA = "EVT_CYCLEIMP_DATA";
+        // 循环冲榜关闭(22700 type/subtype=0)→ 活动视图收起 _box_rank 竞榜展示,放行头号玩家分支。无参。
+        public const string EVT_CYCLEIMP_CLOSE = "EVT_CYCLEIMP_CLOSE";
         // 太极收起/展开活动图标(对标老端 MainUIModel.CHANGE_ACTIVITY_STATE):单按钮同时驱动 ActivityView 与
         // SecondaryView 两簇图标收放。参数:bool folded(true=已收起)。
         public const string EVT_MAINUI_ACTIVITY_FOLD = "EVT_MAINUI_ACTIVITY_FOLD";

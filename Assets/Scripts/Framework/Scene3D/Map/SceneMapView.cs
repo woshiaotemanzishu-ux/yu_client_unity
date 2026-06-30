@@ -176,13 +176,19 @@ namespace Shenxiao.Framework.Scene3D.Map
             ResetSceneLayer();
         }
 
-        /// <summary>当前是否已在显示同一张图(身份 + 尺寸都一致,且视图/瓦片池已建好)。</summary>
+        /// <summary>
+        /// 当前是否已在显示同一张图。判等只看**地图资源 id(MapResId)+ 尺寸**,**不看 SceneId**——
+        /// 对标老端 MapManager 的 is_same_res_id(只比 .bytes 尾部的 resId,完全不看场景实例 id)。
+        /// 关键:主线副本(如大妖 sceneId=10200,dunId=50000)复用野外(sceneId=10000)的同一地图资源(mapResId 同为 10000),
+        /// 若把 SceneId 也算进判等,野外→副本因 SceneId 变了会被判"不同图"→整屏重载 1548 瓦片(主线程卡顿,
+        /// 实测进副本时把网络 keepalive 饿死触发 force-close)。去掉 SceneId 比较后:同 mapResId+同尺寸 → 命中复用,
+        /// 不重载、不卡顿、无黑屏,实现"同地图只换实例名"的无缝切换。
+        /// </summary>
         private static bool IsSameMapShown(SceneMapData data)
         {
             return _data != null
                 && _root != null && _preview != null && _previewSprite != null && _preview.enabled
                 && _tilePool != null
-                && _data.SceneId == data.SceneId
                 && _data.MapResId == data.MapResId
                 && _data.MapWidth == data.MapWidth
                 && _data.MapHeight == data.MapHeight

@@ -144,6 +144,10 @@ namespace Shenxiao.Framework.Net
         /// <summary>Toggle auto-brush. Send "c"; reply "ic".</summary>
         public const int AUTOBRUSH_TOGGLE = 13307;
 
+        /// <summary>退出副本(通用,对标老端 BaseDungeonController 61002)。发空;回包 error_code:i(==1 成功)。
+        /// 主线副本(AutoBrush)结算/失败后由客户端主动发此包退副本,服务端再用 12005 把玩家切回野外野场景。</summary>
+        public const int DUNGEON_EXIT = 61002;
+
         // ----- 功能开放达成奖励(138xx,yu_server pt_138.erl) -----
         /// <summary>已完成功能列表。请求无参;回包 h + {Id:h, State:c}×N。</summary>
         public const int FUNC_OPEN_LIST = 13800;
@@ -224,6 +228,23 @@ namespace Shenxiao.Framework.Net
         /// <summary>头号玩家目标奖励信息(红点用)。发 "h"(sub_type);回包
         /// goal_list[u16×{rank_type:i, goal[u16×{goalId:l, status:c}]}]。</summary>
         public const int TOP_PLAYER_GOAL_INFO = 22502;
+
+        // ----- 循环冲榜 / 竞榜 (227xx, yu_server pt_227, yu_client CycleimpActlistController) -----
+        /// <summary>获取正在开启的竞榜活动(GAME_START 拉一次)。发无参;回包
+        /// type:h, subtype:h, start_time:i, end_time:i, upon_end_time:i。type&&subtype 非0=有活动开启。</summary>
+        public const int CYCLE_RANK_OPENING = 22700;
+        /// <summary>竞榜界面信息(个人)。发 "hh"(type,subtype);回包
+        /// type:h, subtype:h, is_open:c, score:i, rank:h, id:h, got_type:c。</summary>
+        public const int CYCLE_RANK_PANEL = 22701;
+        /// <summary>竞榜榜单(主面板榜首取这里)。发 "hh"(type,subtype);回包
+        /// type:h, subtype:h, score:i, rank:h, reward_id:h, rank_list[u16×{rank:h, server_id:i, role_id:l, role_name:s, role_score:i}]。</summary>
+        public const int CYCLE_RANK_LIST = 22702;
+        /// <summary>昨日竞榜榜单。发无参;回包
+        /// type:h, subtype:h, score:i, rank:h, push_type:c, rank_list[u16×{rank:h, server_id:i, role_id:l, role_name:s, role_score:i}]。</summary>
+        public const int CYCLE_RANK_YESTERDAY = 22703;
+        /// <summary>竞榜第一名变化服务端主动推送。回包
+        /// rank_type:h, rank_subtype:h, server_id:i, role_id:l, role_name:s, role_score:i。</summary>
+        public const int CYCLE_RANK_FIRST_CHANGE = 22706;
 
         // ----- 至尊VIP / SVIP (45120, yu_client SvipMainController) -----
         /// <summary>SVIP 信息。请求无参;回包 open_act_id:c, list[u16×{type:h, content_list[u16×{content_id:c}]}]。

@@ -1,11 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.CycleimpActlist;
 using Shenxiao.Module.Core.CustomActivity;
 using Shenxiao.Module.Core.Game;
 using Shenxiao.Module.Core.Role;
@@ -31,6 +35,11 @@ namespace Shenxiao.Module.Core.MainUI
         private int _pendingRewardTypeId;   // 最新待应用的奖励 type_id(建好后统一 SetData)
         private Coroutine _topPlayerTimer;
         private long _topPlayerEndTimeSec;
+
+        // 循环冲榜分支:当前有冲榜活动时,_box_rank 走竞榜展示(3D模型+竞榜名+榜首),并压制头号玩家分支(对标老端 MainUIActivityView.ts:234)。
+        private bool _cycleActive;
+        private string _cycleModelShowId;       // 已展示的 3D 模型 show_id;相同则不重载
+        private UIModelStage _cycleModelStage;  // 循环冲榜【独立】模型台(常驻主界面,不被背包/角色等抢占)
 
         private static readonly Color TimeRunColor = new Color(0x88 / 255f, 1f, 0x43 / 255f); // #88ff43 绿(倒计时)
         private static readonly Color TimeEndColor = new Color(1f, 0x47 / 255f, 0x15 / 255f); // #ff4715 红(已结束/结算中)
@@ -76,7 +85,10 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
             EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
             EventDispatcher.On<int>(GlobalEvent.EVT_TOPPLAYER_MAIN_DATA, OnTopPlayerMainData);
+            EventDispatcher.On(GlobalEvent.EVT_CYCLEIMP_DATA, OnCycleData);
+            EventDispatcher.On(GlobalEvent.EVT_CYCLEIMP_CLOSE, OnCycleClose);
             RefreshActivityIconAsync();
+            OnCycleData(); // OnShow 时若冲榜数据已到(先于本视图创建),补刷一次
         }
 
         protected override void OnHide()
@@ -87,6 +99,8 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
             EventDispatcher.Off<int>(GlobalEvent.EVT_TOPPLAYER_MAIN_DATA, OnTopPlayerMainData);
+            EventDispatcher.Off(GlobalEvent.EVT_CYCLEIMP_DATA, OnCycleData);
+            EventDispatcher.Off(GlobalEvent.EVT_CYCLEIMP_CLOSE, OnCycleClose);
             StopTopPlayerTimer();
         }
 
@@ -136,6 +150,8 @@ namespace Shenxiao.Module.Core.MainUI
         private void OnTopPlayerMainData(int rankType)
         {
             if (this == null || _box_rank == null) return;
+            // 有循环冲榜活动时 _box_rank 归竞榜分支,头号玩家让位(对标老端 MainUIActivityView.ts:234 cycle.type!=0 压制 topplayer)。
+            if (_cycleActive || CycleimpActlistModel.Instance.HasActivity) return;
             if (!TopPlayerController.GatePasses())
             {
                 _box_rank.gameObject.SetActive(false);
@@ -159,11 +175,161 @@ namespace Shenxiao.Module.Core.MainUI
             // 奖励道具(对标老端 icon_dir[now_key] → EquipmentItem.SetData)。
             BuildTopPlayerReward(rankType);
 
-            // 倒计时(对标老端 StartTimer/OnTime + open_day>7 的“已结束”终态)。
-            RefreshTopPlayerCountdown(info.EndTime);
+            // 倒计时:头号玩家是开服≤8活动,开服>7直接“已结束”不跑计时(老端 UpdateTopPlayerData:344);否则正常倒计时。
+            if (ServerTimeModel.GetOpenServerDay() > 7) { StopTopPlayerTimer(); SetTimeText("已结束", TimeEndColor); }
+            else RefreshRankCountdown(info.EndTime);
 
             // 注:老端 effect 节点在本端被 OnInit 设成 720×1280 全屏盒,而 _box_rank 一直隐藏从没验证过此特效;
             // 现在面板现身,贸然挂全屏 ui_cb01 会盖屏,故先不挂(待确认特效挂点/尺寸后再补)。
+        }
+
+        // 循环冲榜数据更新(EVT_CYCLEIMP_DATA):_box_rank 走竞榜展示——竞榜名 + 榜首(或虚位以待)+ 倒计时(upon_end)+ 3D 展示模型。
+        private void OnCycleData()
+        {
+            if (this == null || _box_rank == null) return;
+            CycleimpActlistModel m = CycleimpActlistModel.Instance;
+            if (!m.HasActivity) return;
+
+            _cycleActive = true;
+            _box_rank.gameObject.SetActive(true);
+            if (icon_box != null) icon_box.gameObject.SetActive(false); // 竞榜路不显 2D 奖励
+            _ = LoadCycleModelAsync();                                   // 3D 展示模型(坐骑/翅膀/武器…)挂上 UIModelStage
+
+            if (name != null) name.text = CycleRankName(m.Type);
+            CycleimpActlistModel.RankRoleVo first = m.GetFirstHolder();
+            if (player_name != null)
+                player_name.text = first != null ? "S" + first.ServerId + "." + first.RoleName : "虚位以待";
+
+            // 上榜截止(upon_end)优先(老端 StartTimer 用它);某些活动可能不传(=0),回退活动结束时间 end,保证倒计时有数据。
+            long endSec = m.UponEndTime > 0 ? m.UponEndTime : m.EndTime;
+            RefreshRankCountdown(endSec); // 复用同一 time 标签 + 倒计时协程(循环冲榜无“开服>7提前结束”)
+        }
+
+        // 循环冲榜关闭(EVT_CYCLEIMP_CLOSE):收起竞榜展示。头号玩家分支下次 EVT_TOPPLAYER_MAIN_DATA 时再接管。
+        private void OnCycleClose()
+        {
+            if (this == null) return;
+            _cycleActive = false;
+            _cycleModelShowId = null;
+            StopTopPlayerTimer();
+            _cycleModelStage?.ClearStage(); // 清自己台子的模型(不动别人共享的默认台)
+            if (_box_rank != null) _box_rank.gameObject.SetActive(false);
+        }
+
+        private void OnDestroy()
+        {
+            _cycleModelStage?.Dispose(); // 释放独立模型台的相机/RT/RawImage
+            _cycleModelStage = null;
+        }
+
+        // 竞榜名(对标老端 MainUIActivityView.ts:417-435 按 type 硬编码的「X竞榜」短名)。
+        private static string CycleRankName(int type)
+        {
+            switch (type)
+            {
+                case 1: return "坐骑竞榜";
+                case 2: return "剑魄同修竞榜";
+                case 3: return "垂神翼影竞榜";
+                case 4: return "古法符相竞榜";
+                case 5: return "殒锋天刃竞榜";
+                case 6: return "玄穹云披竞榜";
+                default: return "竞榜";
+            }
+        }
+
+        // 加载并展示循环冲榜 3D 模型(对标老端 SetRoleModel):show_id→模块→prefab 挂 UIModelStage,再播 idle/show 动画。
+        // 沿用 DialogueView.ShowNpcModel 套路(独立展示模型,非角色装备);取景参数取 uimodelparameter["MainUIActivityView"][show_id]。
+        private async Task LoadCycleModelAsync()
+        {
+            if (model_gp == null) return;
+            CycleimpActlistModel m = CycleimpActlistModel.Instance;
+            await CycleimpActlistConfigs.EnsureLoaded();
+            if (this == null || !_cycleActive || !m.HasActivity) return;
+
+            CycleimpActlistConfigs.Cfg cfg = CycleimpActlistConfigs.Get(m.Type, m.Subtype);
+            string module = cfg != null ? ModuleOf(cfg.ShowType) : null;
+            // 神兵(活动 type==5):show_id 是按职业的 JSON 数组,取 career-1;其余直接用 show_id。
+            string showId = cfg == null ? null
+                : (m.Type == 5 ? CareerShowId(cfg.ShowId, RoleModel.Instance.Career) : cfg.ShowId);
+            GameLog.Info("CycleModel", "准备模型: type={0} sub={1} cfgFound={2} showType={3} module={4} showId={5}",
+                m.Type, m.Subtype, cfg != null, cfg?.ShowType ?? -1, module ?? "<null>", showId ?? "<null>");
+            if (cfg == null || string.IsNullOrEmpty(showId) || module == null)
+            {
+                model_gp.gameObject.SetActive(false);
+                return;
+            }
+            if (_cycleModelShowId == showId) return; // 已展示该模型,避免 22700/22702 重复加载
+            _cycleModelShowId = showId;              // 乐观占位,防并发重复加载;失败再清
+
+            string key = CycleModelKey(module, showId);
+            GameObject prefab = await ResManager.LoadAsync<GameObject>(key);
+            if (this == null || !_cycleActive || model_gp == null) return;
+            if (prefab == null)
+            {
+                GameLog.Warn("CycleModel", "模型 prefab 加载失败 key={0}", key);
+                _cycleModelShowId = null; // 允许重试
+                model_gp.gameObject.SetActive(false);
+                return;
+            }
+
+            await UiModelParameterConfigs.EnsureLoaded();
+            if (this == null || !_cycleActive || model_gp == null) return;
+            UiModelParameterConfigs.ModelParam mp = UiModelParameterConfigs.Get("MainUIActivityView", showId);
+
+            if (_cycleModelStage == null) _cycleModelStage = new UIModelStage(); // 独立台,不被背包/角色等抢占
+            model_gp.gameObject.SetActive(true);
+            GameObject inst = Instantiate(prefab);
+            _cycleModelStage.PlaceInstance(model_gp, inst, mp.Scale, mp.Position, mp.Rotate);
+            _ = PlayModelAction(inst, module, showId, mp.Action);
+            GameLog.Info("CycleModel", "模型上台 key={0} scale={1} action={2}", key, mp.Scale, mp.Action);
+        }
+
+        // 播放展示模型动画(对标 DialogueView.PlayNpcIdle):object/{module}/action/{id}/{action}(idle 或神兵的 show)。
+        private static async Task PlayModelAction(GameObject model, string module, string id, string action)
+        {
+            if (model == null) return;
+            if (string.IsNullOrEmpty(action)) action = "idle";
+            AnimationClip clip = await ResManager.LoadAsync<AnimationClip>("object/" + module + "/action/" + id + "/" + action);
+            if (model == null || clip == null) return;
+            Animation anim = model.GetComponent<Animation>();
+            if (anim == null) anim = model.AddComponent<Animation>();
+            if (anim.GetClip(action) == null) anim.AddClip(clip, action);
+            anim.Play(action);
+        }
+
+        // show_type → 对象模块(对标老端 GameResPath.GetUITypeModuleName)。
+        private static string ModuleOf(int showType)
+        {
+            switch (showType)
+            {
+                case 2: return "mount";
+                case 3: return "wing";
+                case 4: return "weapon";
+                case 5: return "fabao";
+                case 7: return "spirit";
+                case 20: return "back";
+                default: return null;
+            }
+        }
+
+        // 展示模型 prefab key(转换产物:object/{module}/model_{module}_{id}/model_{module}_{id};武器是 model_weapon_r_{id})。
+        private static string CycleModelKey(string module, string id)
+        {
+            string resName = module == "weapon" ? "model_weapon_r_" + id : "model_" + module + "_" + id;
+            return "object/" + module + "/" + resName + "/" + resName;
+        }
+
+        // 神兵 show_id 是按职业的 JSON 数组字符串 "[1107,1107,1307,1407]",取 career-1(career 1~4)。
+        private static string CareerShowId(string jsonArr, int career)
+        {
+            try
+            {
+                JArray arr = JArray.Parse(jsonArr);
+                if (arr.Count == 0) return jsonArr;
+                int idx = Mathf.Clamp(career - 1, 0, arr.Count - 1);
+                return arr[idx]?.ToString() ?? jsonArr;
+            }
+            catch { return jsonArr; }
         }
 
         // 头号玩家榜奖励道具:icon_dir[now_key] → type_id → EquipmentItem.SetData(对标老端 reward = new EquipmentItem)。
@@ -194,14 +360,12 @@ namespace Shenxiao.Module.Core.MainUI
             if (_topPlayerReward != null) _topPlayerReward.SetData(_pendingRewardTypeId, 0);
         }
 
-        // 倒计时(对标老端 OnTime):剩余>0 显示“h小时m分s秒”绿色;≤0 或开服>7 显示终态(已结束/结算中)红色。
-        private void RefreshTopPlayerCountdown(long endTimeSec)
+        // 通用倒计时(对标老端 OnTime,头号玩家/循环冲榜共用):endTime≤0 不跑;剩余>0 显示“h小时m分s秒”绿,≤0 显示终态(结算中/已结束)红。
+        // 注:头号玩家专属的“开服>7直接已结束”不在这里(那是 UpdateTopPlayerData 的判断),否则会误伤开服≥8才开的循环冲榜。
+        private void RefreshRankCountdown(long endTimeSec)
         {
             _topPlayerEndTimeSec = endTimeSec;
             StopTopPlayerTimer();
-
-            // 老端 UpdateTopPlayerData:open_day>7 直接“已结束”,不跑计时。
-            if (ServerTimeModel.GetOpenServerDay() > 7) { SetTimeText("已结束", TimeEndColor); return; }
             if (endTimeSec <= 0) { SetTimeText("", TimeRunColor); return; }
             TickTopPlayerTime();
             _topPlayerTimer = StartCoroutine(TopPlayerTimerRoutine()); // 前面 StopTopPlayerTimer 已置空,这里直接起

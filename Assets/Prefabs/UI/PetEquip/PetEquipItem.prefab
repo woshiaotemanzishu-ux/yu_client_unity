@@ -419,6 +419,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2324808209094012675}
+  - component: {fileID: 4929862955101433772}
   m_Layer: 0
   m_Name: PetEquipItem
   m_TagString: Untagged
@@ -447,6 +448,30 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 127, y: 127}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &4929862955101433772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3111975069177963260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dfdb1448e2928494190bfe5f3fe57b41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.PetEquip.PetEquipItemBind
+  _click: {fileID: 8202272108450359240}
+  _group_data: {fileID: 2233058325678946247}
+  _group_item: {fileID: 6546387990798555618}
+  _group_left: {fileID: 4522135584387577129}
+  _img_color: {fileID: 8746373233639320408}
+  _lb_star: {fileID: 8195300542396495413}
+  _Image1: {fileID: 4381676740008316595}
+  _img_icon: {fileID: 132270275913619470}
+  _group_empty: {fileID: 26671552001791311}
+  _Image2: {fileID: 8354472084654469059}
+  _reddot: {fileID: 1616119833881910021}
+  _tpl_EquipmentItem: {fileID: 913437558016871211}
 --- !u!1 &4762662068434769996
 GameObject:
   m_ObjectHideFlags: 0
@@ -867,6 +892,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4b61db156a07d9c4182c38b719828178, type: 3}
+--- !u!1 &913437558016871211 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 490535933774872088, guid: 4b61db156a07d9c4182c38b719828178, type: 3}
+  m_PrefabInstance: {fileID: 748606115116201267}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &6682522405706397979 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6259585613194349608, guid: 4b61db156a07d9c4182c38b719828178, type: 3}
