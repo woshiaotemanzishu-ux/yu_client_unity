@@ -55,6 +55,15 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_companion",       // 剑魄同修本体(id→名/形象/解锁),PartnerModel 用(主线 100190 培养任务;对标老端 PartnerModel cfg)
             "config_companion_stage", // 同修阶星配置(培养消耗/属性成长;对标 PartnerModel config_companion_stage)
             "config_companion_kv",    // 同修杂项 kv(对标 PartnerModel cfg_kv)
+            "config_suit_clt",        // 套装收集(主键 {suit_id}@{career},具名键;主线 100391;⚠不在列序表内,按字段名直读)
+            "config_suit_clt_process",// 套装阶段属性(主键 {suit_id}@{suit_stage},具名键)
+            "config_rush_giftbag",    // 冲级豪礼(主键 bag_lv,具名键;主线 100420 领 35 级)
+            "config_mount_constant",  // OutWard 常量(开放等级等,具名键)
+            "config_mount_stage",     // 坐骑/外观阶配置(具名键,含 max_star;系统A)
+            "config_mount_star",      // 星配置(⚠数字键,列序 config_table_default: type_id/stage/star/max_blessing/attr/combat/clear_status)
+            "config_mount_level",     // 系统B等级经验表(具名键,~12000 行)
+            "config_mount_goods",     // 培养道具(具名键)
+            "config_mount_prop",      // 道具经验换算(具名键)
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

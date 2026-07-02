@@ -303,6 +303,38 @@ namespace Shenxiao.Framework.Net
         /// res==1 使用成功(type==35 冷却物不弹「使用成功」);show_goods=礼包开出物品(经 GetMappingTypeId 还原展示)。</summary>
         public const int USE_GOODS = 15050;
 
+        // ----- 套装收集(pt_152 段内 15256-15259,yu_server goods/suit_collect;老端 SuitActivityController.ts) -----
+        /// <summary>套装收集全量(请求无参,老端 GAME_START 发;回包:clt_list[u16×{suit_id:c, cur_stage:c,
+        /// cur_pos_list[u16×{equip_type:c}]}] + suit_id:c 当前时装)。主线 100391=套装1 cur_stage≥4。</summary>
+        public const int SUIT_CLT_INFO = 15256;
+        /// <summary>激活套装阶段(发 "cc" suit_id,stage;回包:code:i, suit_id:c, cur_stage:c,
+        /// cur_pos_list[u16×{equip_type:c}];code==1 成功——服务端需背包有对应部位装备)。</summary>
+        public const int SUIT_CLT_ACTIVE = 15257;
+
+        // ----- 冲级豪礼/等级礼包(pt_417,yu_server welfare/pp_welfare;老端 WelfareController.ts) -----
+        /// <summary>礼包状态列表(请求无参;回包:giftbag_state[u16×{lv:h, received:c, end_time:l, remain_num:i}];
+        /// received 0未达/1可领/2已领/4被领完)。主线 100420=领取 lv35。</summary>
+        public const int RUSH_GIFT_STATE = 41700;
+        /// <summary>领取礼包(发 "h" lv;回包:lv:h, code:i, rewards[u16×{type:c, type_id:i, num:i}](ObjectList);
+        /// code==1 成功后老端再发 41700 刷新)。</summary>
+        public const int RUSH_GIFT_RECEIVE = 41701;
+
+        // ----- 幻化外观 OutWard(pt_160,yu_server mount/;老端 OutWardController.ts。type_id:1=坐骑 2=剑魄同修 3/4/5=翼影/圣器/神兵) -----
+        /// <summary>外观对象信息·系统A阶星(发 "c" type_id;回包:type_id:c, stage:c, star:h, blessing:i,
+        /// figure_stage:c, combat:i, etime:l, auto_buy:c, attr_list[u16×{attr_id:c,attr_val:i}], skill_list[u16×{skill_id:i}])。</summary>
+        public const int OUTWARD_INFO = 16002;
+        /// <summary>坐骑/同修专用一键升星·系统A(发 "ccc" type_id,auto_buy,gold_type;回包:errcode:i, type_id:c,
+        /// stage:c, star:h, blessing:i, blessing_plus:i, etime:l, auto_buy:c, ratio_list[u16×{rate:c,rate_num:h}])。
+        /// 主线 100330=坐骑(type_id=1)1阶2星(ctype23:id=阶/need=星,Stage&gt;Id 或同阶 Star&gt;=Need 即完成)。</summary>
+        public const int OUTWARD_STAR_UP = 16023;
+        /// <summary>外观等级线·系统B面板(发 "c" type_id;回包:type_id:c, level:h, cur_exp:i, combat:i,
+        /// attr_list[u16×{attr_id:c,attr_val:i}], skill_list[u16×{skill_id:i,skill_level:c}])。</summary>
+        public const int OUTWARD_LV_PANEL = 16028;
+        /// <summary>外观等级线·系统B升级(发 "c" type_id;回包:errcode:i, type_id:c, level:h, cur_exp:i,
+        /// add_exp:i, combat:i, skill_list[u16×{skill_id:i,skill_level:c}], ratio_list[u16×{rate:c,rate_num:h}])。
+        /// 主线 100521=同修(type_id=2)到2级、100901=坐骑(type_id=1)到2级(ctype90:id=type_id/need=等级)。</summary>
+        public const int OUTWARD_LV_UP = 16029;
+
         // ----- 剑魄同修(142xx,yu_server pt_142.erl + pp_partner;老端 PartnerController.ts) -----
         /// <summary>同修单个信息(请求发 "i" companion_id;推送/回包:sum_attr[u16×{attr_id:c,attr_val:i}],
         /// companion_id:i, stage:h, star:h, is_active:c, blessing:i, train_num:i, attr[同上], combat:l, fight_id:i)。</summary>

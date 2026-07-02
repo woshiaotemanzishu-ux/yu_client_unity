@@ -443,7 +443,7 @@ namespace Shenxiao.EditorTools
         }
 
         /// <summary>大端手工组包(与 NetReader 字节序一致:h=u16, i=u32, l=两个 u32 拼 64, c=u8)。</summary>
-        private sealed class Pkt
+        public sealed class Pkt
         {
             private readonly List<byte> _b = new List<byte>();
             public Pkt C(int v) { _b.Add((byte)v); return this; }
@@ -453,14 +453,14 @@ namespace Shenxiao.EditorTools
             public byte[] Bytes() { return _b.ToArray(); }
         }
 
-        private static Transform FindDeep(Transform root, string name)
+        public static Transform FindDeep(Transform root, string name)
         {
             foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
                 if (t.name == name) return t;
             return null;
         }
 
-        private static string HierarchyPath(Transform t)
+        public static string HierarchyPath(Transform t)
         {
             var sb = new System.Text.StringBuilder(t.name);
             while (t.parent != null) { t = t.parent; sb.Insert(0, t.name + "/"); }
@@ -529,7 +529,7 @@ namespace Shenxiao.EditorTools
         }
 
         /// <summary>临时渲染舞台(空场景 + 720×1280 RenderTexture 相机 + ScreenSpaceCamera Canvas + 层/视图管理器)。</summary>
-        private sealed class Stage : IDisposable
+        public sealed class Stage : IDisposable
         {
             public Transform CanvasRoot => _canvas.transform;
 

@@ -48,6 +48,14 @@ namespace Shenxiao.Framework.Event
         /// <summary>同修数据变动(14202 全量/14201 单个/14205 培养/14204 激活后)。对标老端 PartnerModel.UPDATE_VIEW。</summary>
         public const string EVT_PARTNER_UPDATE = "EVT_PARTNER_UPDATE";
 
+        // ----- SuitCollect(套装收集)/ RushGift(冲级豪礼)/ OutWard(幻化外观) -----
+        /// <summary>套装收集数据变动(15256 全量/15257 激活后)。</summary>
+        public const string EVT_SUIT_CLT_UPDATE = "EVT_SUIT_CLT_UPDATE";
+        /// <summary>冲级豪礼状态变动(41700 列表/41701 领取后)。</summary>
+        public const string EVT_RUSH_GIFT_UPDATE = "EVT_RUSH_GIFT_UPDATE";
+        /// <summary>幻化外观数据变动(参数: int type_id;16002 阶星/16023 升星/16028 等级面板/16029 升级后)。</summary>
+        public const string EVT_OUTWARD_UPDATE = "EVT_OUTWARD_UPDATE";
+
         // ----- Role -----
         public const string EVT_ROLE_INFO_UPDATE = "EVT_ROLE_INFO_UPDATE";
         /// <summary>主角全量(13001)到齐,可进主城/场景。GameEntryFlow 发。</summary>
