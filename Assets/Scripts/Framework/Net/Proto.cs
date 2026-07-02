@@ -380,6 +380,27 @@ namespace Shenxiao.Framework.Net
         /// <summary>任务系统补触发加入结社判定(C2S 无参,对标老端 GuildJoinView 打开时发 30008)。</summary>
         public const int CC_TASK_JOIN_GUILD = 30008;
 
+        // ----- 薄增量六件套(第20轮工单;详见 Docs/工单-薄增量六件套.md) -----
+        /// <summary>OutWard 通用一键升星(type_id∉{1,2}:3翼影/4圣器/5神兵;发 "c" type_id;
+        /// 回包=16023 少 etime/auto_buy:errcode:i, type_id:c, stage:c, star:h, blessing:i, blessing_plus:i,
+        /// ratio_list[u16×{rate:c,rate_num:h}])。解主线 100665/101045/101345(ctype24/92/41)。</summary>
+        public const int OUTWARD_STAR_UP_GENERIC = 16005;
+        /// <summary>宝石镶嵌(发 "ccl" equipPos,stonePos,goodsId;回包 res:i, equip_type:c, pos:c, type_id:i)。主线 101175(ctype48)。</summary>
+        public const int EQUIP_STONE_SET = 15208;
+        /// <summary>宝石拆除(发 "cc";回包 res:i, equip_type:c, pos:c)。</summary>
+        public const int EQUIP_STONE_UNSET = 15209;
+        /// <summary>领取挂机收益(C2S 无参;回包 code:i + exp_list 按 ClientProtocol "13216" 读完)。
+        /// 主线 101211(ctype91,唯一事件计数型:领一次即完成)。</summary>
+        public const int ONHOOK_RECEIVE = 13216;
+        /// <summary>穿戴装备(发 "l" goods_id 实例id;回包 res:i, goods_id:l, old_goods_id:l, type_id:i, cell_pos:c)。
+        /// 主线 101205(ctype93 穿3件3阶橙装,状态快照自动判定)。</summary>
+        public const int EQUIP_WEAR = 15201;
+        /// <summary>背包熔炼信息(无参;回包 level:h, exp:i)。</summary>
+        public const int BAG_FUSION_INFO = 15024;
+        /// <summary>背包熔炼(发 h count + 逐项 l goods_id/i num,对标 OnDevourEquipment WriteBegin(15025);
+        /// 回包 code:i + exp_list[u16×{add_exp:h, ratio:c}],随后服务端另推 15024)。主线 101285(ctype18)。</summary>
+        public const int BAG_FUSION = 15025;
+
         // ----- 天命觉醒(pt_429,yu_server temple_awaken;老端 TempleAwakenEnterView.ts) -----
         /// <summary>完成觉醒之路初始任务(C2S 无参;回包 error_code:i,==1 成功 → 服务端 open_temple_awaken 推进
         /// 主线 100590(ctype81);前置=任务 100580 完成,KV(6) 等级门槛服务端校验)。</summary>
