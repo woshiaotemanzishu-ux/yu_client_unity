@@ -237,6 +237,14 @@ namespace Shenxiao.Module.Core.Bag
                     cellNum, maxCell, list.Count, withInstAttr, r.Remaining);
                 EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
             }
+            else if (pos == Rune.RuneController.RUNE_BAG_POS)
+            {
+                // 例外(第19轮工单-灵魄镶嵌):15010 单 handler 已被本控制器独占注册,符文背包(rune_bag pos)
+                // 只能在此顺路接住、转存到 Rune.RuneModel,不新开协议注册。≤10 行,不改其余分支行为。
+                var runeBag = list.ConvertAll(g => new Rune.RuneModel.BagGoodsVo(g.GoodsId, g.TypeId, g.GoodsNum));
+                Rune.RuneModel.Instance.SetRuneBag(runeBag);
+                GameLog.Info("Bag", "15010 rune_bag: goods={0} remaining={1}B", list.Count, r.Remaining);
+            }
             else
             {
                 GameLog.Debug("Bag", "15010 pos={0}(非背包,本轮暂不接) goods={1} remaining={2}B", pos, list.Count, r.Remaining);
