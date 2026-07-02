@@ -1,0 +1,326 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Shenxiao.Framework.UI;
+using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Tasks;
+using TMPro;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace Shenxiao.EditorTools
+{
+    /// <summary>
+    /// 批处理 CLI 验证通道:无需 Unity MCP,用
+    ///   Unity.exe -batchmode -projectPath . -executeMethod Shenxiao.EditorTools.CliVerify.XXX -logFile Temp/cliverify.log
+    /// 驱动「编辑期真机渲染截图法」(同第 8~10 轮 RunCommand harness:临时 Canvas(ScreenSpaceCamera)+RenderTexture
+    /// +LayerManager/ViewManager 初始化+CJK 字体强挂),把断言与截图写进 Temp/ 供外部核对。
+    /// 结果行统一以 "CLIVERIFY" 前缀写日志;结束经 EditorApplication.Exit 返回进程码(0 过 / 1 异常 / 2 超时 / 3 断言失败)。
+    /// 注意:-batchmode 不能加 -nographics(渲染需要 GPU 设备),不加 -quit(由 Exit 收尾)。
+    /// </summary>
+    public static class CliVerify
+    {
+        private const string FontPath = "Assets/_App/Fonts/FZYHJW SDF.asset";
+
+        /// <summary>编译探针:域加载成功即 0(编译错时 executeMethod 根本不会被调用)。</summary>
+        public static void CompileCheck()
+        {
+            Debug.Log("CLIVERIFY COMPILE OK");
+            EditorApplication.Exit(0);
+        }
+
+        /// <summary>P2a 实证:TaskFinishView 用真实 config_task 货币+物品奖励任务渲染,验货币走图标格(非文本)。</summary>
+        public static void RenderTaskFinish()
+        {
+            Run(RenderTaskFinishAsync, 240.0);
+        }
+
+        /// <summary>P2b 实证:ItemTipsView 带背包实例渲染,验「使用」按钮按 config use 字段显隐。</summary>
+        public static void RenderItemTips()
+        {
+            Run(RenderItemTipsAsync, 240.0);
+        }
+
+        /// <summary>全部渲染用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
+        public static void RenderAll()
+        {
+            Run(async () =>
+            {
+                int a = await RenderTaskFinishAsync();
+                int b = await RenderItemTipsAsync();
+                Debug.Log("CLIVERIFY ALL taskfinish=" + a + " itemtips=" + b);
+                return a != 0 ? a : b;
+            }, 420.0);
+        }
+
+        // ---- 渲染用例 ----
+
+        private static async Task<int> RenderTaskFinishAsync()
+        {
+            Stage stage = Stage.Create();
+            try
+            {
+                await TaskConfigs.EnsureLoaded();
+                await GoodsModel.EnsureLoaded();
+                if (!TaskConfigs.IsLoaded || !GoodsModel.IsLoaded)
+                {
+                    Debug.LogError("CLIVERIFY FAIL config not loaded: task=" + TaskConfigs.IsLoaded + " goods=" + GoodsModel.IsLoaded);
+                    return 3;
+                }
+
+                // 真实任务 100520:award_list=[{5,0,2500000},{3,0,10000},{0,17020001,1},{0,17020004,1}]
+                //  → 经验(5→32)/金币(3→31)两个货币 + 两件真实物品,共 4 格。
+                const int taskId = 100520;
+                TaskConfigs.TaskCfg cfg = TaskConfigs.Get(taskId);
+                if (cfg == null)
+                {
+                    Debug.LogError("CLIVERIFY FAIL config_task missing " + taskId);
+                    return 3;
+                }
+
+                var vo = new TaskVo(taskId, 0, "", 1, 0, 1, 1, 1, 0, 0, 0, 0);
+                vo.ApplyConfig(cfg);
+                List<TaskReward.Entry> rewards = TaskReward.Build(vo.SpecialGoodsList, vo.AwardList, 1);
+                Debug.Log("CLIVERIFY rewards=" + rewards.Count + " -> " + TaskReward.ToText(rewards, " / "));
+
+                var view = new TaskFinishView();
+                view.Open(vo);
+
+                // 等 prefab 实例化 + 奖励格生成 + 图标异步加载(编辑期兜底导入可能较慢)。
+                EquipmentItem[] cells = await WaitCells(stage.CanvasRoot, rewards.Count, 90.0);
+                await Task.Delay(3000);   // 再等几拍:逐帧实例化的尾部格子/迟到图标(排除截图早于建格的竞态)
+                cells = stage.CanvasRoot.GetComponentsInChildren<EquipmentItem>(false);
+                // 按格子 GameObject 去重断言:格数 == 奖励数,且每格恰 1 个 EquipmentItem
+                // (>1 = 嵌套 prefab 自带 + 回填 added-override 历史重复件,BindClick 双注册回归)。
+                var roots = new Dictionary<GameObject, int>();
+                foreach (EquipmentItem c in cells)
+                    roots[c.gameObject] = roots.TryGetValue(c.gameObject, out int n) ? n + 1 : 1;
+                int dupCells = 0, iconOk = 0;
+                foreach (KeyValuePair<GameObject, int> kv in roots)
+                {
+                    if (kv.Value > 1) dupCells++;
+                    var bind = (Shenxiao.Generated.UI.Common.EquipmentItemBind)kv.Key.GetComponent<EquipmentItem>();
+                    bool ok = bind.icon != null && bind.icon.enabled && bind.icon.sprite != null;
+                    if (ok) iconOk++;
+                    Debug.Log("CLIVERIFY cell path=" + HierarchyPath(kv.Key.transform) + " comps=" + kv.Value
+                        + " icon=" + (ok ? bind.icon.sprite.name : "<none>")
+                        + " count=" + (bind.num_text != null && bind.num_text.gameObject.activeSelf ? bind.num_text.text : "-"));
+                }
+
+                stage.ForceCjkFont();
+                string png = stage.Capture("Temp/round11_taskfinish_currency.png");
+                Debug.Log("CLIVERIFY shot=" + png);
+
+                bool pass = roots.Count == rewards.Count && rewards.Count >= 4 && iconOk == roots.Count && dupCells == 0;
+                Debug.Log("CLIVERIFY VERDICT cells=" + roots.Count + "/" + rewards.Count + " iconOk=" + iconOk
+                    + " dupCompCells=" + dupCells + " pass=" + pass);
+                return pass ? 0 : 3;
+            }
+            finally
+            {
+                stage.Dispose();
+            }
+        }
+
+        private static async Task<int> RenderItemTipsAsync()
+        {
+            Stage stage = Stage.Create();
+            try
+            {
+                await GoodsModel.EnsureLoaded();
+                if (!GoodsModel.IsLoaded)
+                {
+                    Debug.LogError("CLIVERIFY FAIL config_goods not loaded");
+                    return 3;
+                }
+
+                // 真实 config 物品 520100(type 52 / use=1 → 走默认 15050 分支,使用按钮应显示)。
+                const int typeId = 520100;
+                GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(typeId);
+                if (basic == null || basic.Use == 0)
+                {
+                    Debug.LogError("CLIVERIFY FAIL 520100 缺失或 use==0: " + (basic == null ? "null" : basic.Use.ToString()));
+                    return 3;
+                }
+
+                // 合成背包实例仅供渲染断言(GoodsId 非服务端真值,不点使用、不发协议);typeId/数量走真实 config 展示链路。
+                var goods = new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 1, TypeId = typeId, GoodsNum = 3, Color = basic.Color };
+                ItemTipsView.Show(goods);
+                await Task.Delay(1500);   // 图标/底板异步加载
+
+                Transform useBtn = FindDeep(stage.CanvasRoot, "Use");
+                bool useVisible = useBtn != null && useBtn.gameObject.activeInHierarchy;
+                stage.ForceCjkFont();
+                string png = stage.Capture("Temp/round11_itemtips_use.png");
+                Debug.Log("CLIVERIFY tips item=" + basic.Name + " useBtnVisible=" + useVisible + " shot=" + png);
+
+                ItemTipsView.Close();
+                return useVisible ? 0 : 3;
+            }
+            finally
+            {
+                stage.Dispose();
+            }
+        }
+
+        private static Transform FindDeep(Transform root, string name)
+        {
+            foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+                if (t.name == name) return t;
+            return null;
+        }
+
+        private static string HierarchyPath(Transform t)
+        {
+            var sb = new System.Text.StringBuilder(t.name);
+            while (t.parent != null) { t = t.parent; sb.Insert(0, t.name + "/"); }
+            return sb.ToString();
+        }
+
+        /// <summary>轮询场景中激活的奖励格(TaskFinishView 内部逐帧实例化+异步图标)。</summary>
+        private static async Task<EquipmentItem[]> WaitCells(Transform root, int expect, double timeoutSec)
+        {
+            double deadline = EditorApplication.timeSinceStartup + timeoutSec;
+            EquipmentItem[] found = Array.Empty<EquipmentItem>();
+            while (EditorApplication.timeSinceStartup < deadline)
+            {
+                found = root.GetComponentsInChildren<EquipmentItem>(false);
+                if (found.Length >= expect)
+                {
+                    bool allIcons = true;
+                    foreach (EquipmentItem c in found)
+                    {
+                        var bind = (Shenxiao.Generated.UI.Common.EquipmentItemBind)c;
+                        if (bind.icon == null || !bind.icon.enabled || bind.icon.sprite == null) { allIcons = false; break; }
+                    }
+                    if (allIcons) return found;
+                }
+                await Task.Delay(200);
+            }
+            return found;
+        }
+
+        // ---- 驱动与舞台 ----
+
+        /// <summary>batch 模式 async 驱动:EditorApplication.update 泵到任务完成/超时,经 Exit 返回进程码。</summary>
+        private static void Run(Func<Task<int>> body, double timeoutSec)
+        {
+            Task<int> task = null;
+            double deadline = EditorApplication.timeSinceStartup + timeoutSec;
+            EditorApplication.CallbackFunction tick = null;
+            tick = () =>
+            {
+                try
+                {
+                    if (task == null) task = body();
+                    if (task.IsCompleted)
+                    {
+                        EditorApplication.update -= tick;
+                        int code = task.IsFaulted ? 1 : task.Result;
+                        if (task.IsFaulted) Debug.LogError("CLIVERIFY EXCEPTION " + task.Exception);
+                        Debug.Log("CLIVERIFY EXIT " + code);
+                        EditorApplication.Exit(code);
+                    }
+                    else if (EditorApplication.timeSinceStartup > deadline)
+                    {
+                        EditorApplication.update -= tick;
+                        Debug.LogError("CLIVERIFY TIMEOUT");
+                        EditorApplication.Exit(2);
+                    }
+                }
+                catch (Exception e)
+                {
+                    EditorApplication.update -= tick;
+                    Debug.LogError("CLIVERIFY EXCEPTION " + e);
+                    EditorApplication.Exit(1);
+                }
+            };
+            EditorApplication.update += tick;
+        }
+
+        /// <summary>临时渲染舞台(空场景 + 720×1280 RenderTexture 相机 + ScreenSpaceCamera Canvas + 层/视图管理器)。</summary>
+        private sealed class Stage : IDisposable
+        {
+            public Transform CanvasRoot => _canvas.transform;
+
+            private Camera _cam;
+            private Canvas _canvas;
+            private RenderTexture _rt;
+
+            public static Stage Create()
+            {
+                // batch 域 Addressables 操作不推进(KeyExists 挂死)→ 兜底优先(AssetDatabase 同步命中)。
+                Shenxiao.Framework.Res.ResManager.EditorPreferFallback = true;
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var s = new Stage();
+                s._rt = new RenderTexture(720, 1280, 24);
+
+                var camGo = new GameObject("CliVerifyCam");
+                s._cam = camGo.AddComponent<Camera>();
+                s._cam.clearFlags = CameraClearFlags.SolidColor;
+                s._cam.backgroundColor = new Color(0.08f, 0.08f, 0.1f, 1f);
+                s._cam.targetTexture = s._rt;
+
+                var canvasGo = new GameObject("CliVerifyCanvas");
+                s._canvas = canvasGo.AddComponent<Canvas>();
+                s._canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                s._canvas.worldCamera = s._cam;
+                s._canvas.planeDistance = 1f;
+                var scaler = canvasGo.AddComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(720, 1280);
+                canvasGo.AddComponent<GraphicRaycaster>();
+
+                var lm = new LayerManager();
+                lm.Init(s._canvas);
+                ViewManager.Init(lm);
+                return s;
+            }
+
+            /// <summary>batch 域没有场景字体环境,渲染前把 CJK SDF 强挂到全部 TMP 文本(同第 8~10 轮做法)。</summary>
+            public void ForceCjkFont()
+            {
+                var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+                if (font == null)
+                {
+                    Debug.LogWarning("CLIVERIFY font missing: " + FontPath);
+                    return;
+                }
+                foreach (TMP_Text t in _canvas.GetComponentsInChildren<TMP_Text>(true))
+                {
+                    t.font = font;
+                    t.ForceMeshUpdate();
+                }
+            }
+
+            public string Capture(string projectRelativePng)
+            {
+                Canvas.ForceUpdateCanvases();
+                _cam.Render();
+                RenderTexture prev = RenderTexture.active;
+                RenderTexture.active = _rt;
+                var tex = new Texture2D(_rt.width, _rt.height, TextureFormat.RGBA32, false);
+                tex.ReadPixels(new Rect(0, 0, _rt.width, _rt.height), 0, 0);
+                tex.Apply();
+                RenderTexture.active = prev;
+
+                string full = Path.GetFullPath(projectRelativePng);
+                Directory.CreateDirectory(Path.GetDirectoryName(full));
+                File.WriteAllBytes(full, tex.EncodeToPNG());
+                UnityEngine.Object.DestroyImmediate(tex);
+                return full;
+            }
+
+            public void Dispose()
+            {
+                ViewManager.Init(null);
+                if (_cam != null) { _cam.targetTexture = null; UnityEngine.Object.DestroyImmediate(_cam.gameObject); }
+                if (_canvas != null) UnityEngine.Object.DestroyImmediate(_canvas.gameObject);
+                if (_rt != null) UnityEngine.Object.DestroyImmediate(_rt);
+            }
+        }
+    }
+}

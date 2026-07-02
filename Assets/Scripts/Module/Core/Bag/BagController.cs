@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -20,9 +21,13 @@ namespace Shenxiao.Module.Core.Bag
 
         private BagController() { }
 
+        // 使用中防重(对标老端 goodsModel.goods_use_dic:发 15050 置位,回包清位;置位期间忽略重复点击)。
+        private readonly HashSet<long> _pendingUse = new HashSet<long>();
+
         protected override void Register()
         {
             RegisterProtocal(Proto.GOODS_CONTAINER_INFO, On15010);
+            RegisterProtocal(Proto.USE_GOODS, On15050);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
@@ -39,6 +44,78 @@ namespace Shenxiao.Module.Core.Bag
             await GoodsModel.EnsureLoaded();
             SendFmt(Proto.GOODS_CONTAINER_INFO, "h", BagModel.POS_BAG);
             GameLog.Info("Bag", "request 15010 bag pos={0}(对标 GoodsController GAME_START SendFmtToGame(15010,h,bag))", BagModel.POS_BAG);
+        }
+
+        /// <summary>使用背包物品(对标 GoodsController.ts UseHandler:USE_BAG_GOODS → SendFmtToGame(15050,"li"))。
+        /// 使用中防重;结果经 <see cref="On15050"/> 回包处理(成功 toast + EVT_GOODS_USE_SUCCESS + 礼包开出物 toast)。</summary>
+        public void UseGoods(long goodsId, int num)
+        {
+            if (goodsId <= 0 || num <= 0) return;
+            if (_pendingUse.Contains(goodsId))
+            {
+                GameLog.Info("Bag", "use 15050 goods_id={0} 使用中防重跳过(对标 goods_use_dic)", goodsId);
+                return;
+            }
+            _pendingUse.Add(goodsId);
+            SendFmt(Proto.USE_GOODS, "li", goodsId, num);
+            GameLog.Info("Bag", "use 15050 goods_id={0} num={1}", goodsId, num);
+        }
+
+        /// <summary>
+        /// 15050 使用物品结果(对标 GoodsController.ts On15050)。res==1 → 「使用成功」toast(type==35 冷却物不弹)+
+        /// EVT_GOODS_USE_SUCCESS(goods_type_id);礼包类(type 32/33/35/84)开出物 show_goods 逐项「获得X」toast
+        /// (老端 config_gift_box.show==1 走 CongratulationView,该视图/配表未移植 → 统一 toast,数据全为服务端真值)。
+        /// 背包数量变化由服务端随后推送的容器/增量包刷新,不在本地臆改。
+        /// </summary>
+        private void On15050(NetReader r)
+        {
+            int res = (int)r.ReadU32();          // res:i
+            r.ReadString();                      // args:s(老端未消费)
+            long goodsId = r.ReadU64();          // goods_id:l
+            int goodsTypeId = (int)r.ReadU32();  // goods_type_id:i
+            r.ReadU32();                         // goods_num:i(老端未消费)
+            r.ReadU32();                         // hp:i(老端未消费)
+            r.ReadU32();                         // num:i(老端未消费)
+            var shows = r.ReadArray(rr => new ShowGoods
+            {
+                Gid = rr.ReadU64(),              // gid:l
+                Type = rr.ReadU8(),              // type:c
+                GoodId = (int)rr.ReadU32(),      // goodid:i
+                Num = (int)rr.ReadU32(),         // gnum:i
+            });
+
+            _pendingUse.Remove(goodsId);
+            GameLog.Info("Bag", "15050 res={0} goods_id={1} type_id={2} show_goods={3} remaining={4}B",
+                res, goodsId, goodsTypeId, shows.Count, r.Remaining);
+            if (res != 1) return;   // 失败文案走服务端通用错误推送,老端 On15050 亦不处理
+
+            GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(goodsTypeId);
+            int type = basic?.Type ?? 0;
+            bool cooling = type == 35;
+            if (!cooling) TipsManager.Toast("使用成功");
+            EventDispatcher.Emit(GlobalEvent.EVT_GOODS_USE_SUCCESS, goodsTypeId);
+
+            // 礼包开出物展示(对标 On15050 type 32/33/84/冷却 35 分支的 show_goods 文案路径;
+            // CongratulationView(config_gift_box.show==1)未移植 → 统一走「获得X」toast,不画假数据)。
+            if (type == 32 || type == 33 || type == 84 || cooling)
+            {
+                foreach (ShowGoods s in shows)
+                {
+                    (int mappedId, int _) = GoodsModel.GetMappingTypeId(s.Type, s.GoodId);
+                    GoodsModel.GoodsBasic sb = GoodsModel.GetGoodsBasicByTypeId(mappedId);
+                    if (sb == null) continue;   // 表里没有的开出物不臆造名称
+                    long shownNum = s.Num != 0 ? s.Num : s.GoodId;
+                    TipsManager.Toast("获得" + sb.Name + "x" + shownNum);
+                }
+            }
+        }
+
+        private struct ShowGoods
+        {
+            public long Gid;
+            public int Type;
+            public int GoodId;
+            public int Num;
         }
 
         /// <summary>

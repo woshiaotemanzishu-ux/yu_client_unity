@@ -20255,144 +20255,19 @@ PrefabInstance:
       propertyPath: m_Name
       value: DungeonPolarRwRenderItem
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 8407984334037894400, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4970343849073016555, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7987088657630606765}
-    - targetCorrespondingSourceObject: {fileID: 6398144573184364857, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6364649668859106239}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
---- !u!114 &942626904999834396 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8753915891553748274, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
-  m_PrefabInstance: {fileID: 8388176624247961134}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!114 &1345162456184073171 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7404533595504893437, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
-  m_PrefabInstance: {fileID: 8388176624247961134}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!114 &2143940500527078495 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7613340342031854193, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
-  m_PrefabInstance: {fileID: 8388176624247961134}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
---- !u!1 &3216146989586032407 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6398144573184364857, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
-  m_PrefabInstance: {fileID: 8388176624247961134}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &6364649668859106239
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3216146989586032407}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cfc50c26486fe9149afa658397ac2193, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Common.BaseAwardItem
-  click_group: {fileID: 3628414337614347084}
-  item_bg: {fileID: 942626904999834396}
-  icon: {fileID: 5415739489260202143}
-  num_text: {fileID: 2143940500527078495}
-  lock: {fileID: 1345162456184073171}
-  select_image: {fileID: 8076121691710299429}
-  effect_con: {fileID: 5115420775980245461}
-  time_limit: {fileID: 7710002770423804861}
 --- !u!1 &3500140609782646981 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4970343849073016555, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
   m_PrefabInstance: {fileID: 8388176624247961134}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &7987088657630606765
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3500140609782646981}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1a10b55547526a4b9f7d6fb255618a5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.DungeonPolar.DungeonPolarRwRenderItemBind
-  _box_item: {fileID: 7210493701889178806}
-  _tpl_BaseAwardItem: {fileID: 3216146989586032407}
---- !u!224 &3628414337614347084 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 5058243522783022434, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
-  m_PrefabInstance: {fileID: 8388176624247961134}
-  m_PrefabAsset: {fileID: 0}
---- !u!224 &5115420775980245461 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 3644936182006831099, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
-  m_PrefabInstance: {fileID: 8388176624247961134}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &5415739489260202143 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4557740050839772849, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
-  m_PrefabInstance: {fileID: 8388176624247961134}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!224 &5438485463145065359 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4544602084085587361, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
   m_PrefabInstance: {fileID: 8388176624247961134}
   m_PrefabAsset: {fileID: 0}
---- !u!224 &7210493701889178806 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 1186729164351425176, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
-  m_PrefabInstance: {fileID: 8388176624247961134}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &7710002770423804861 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2204411520160073107, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
-  m_PrefabInstance: {fileID: 8388176624247961134}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!114 &8076121691710299429 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 323396955075046155, guid: 7bdeacf0cff998e449593462ae15d323, type: 3}
-  m_PrefabInstance: {fileID: 8388176624247961134}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image

@@ -37,6 +37,9 @@ namespace Shenxiao.Framework.Event
 
         // ----- Bag -----
         public const string EVT_BAG_UPDATE = "EVT_BAG_UPDATE";
+        /// <summary>使用物品成功(参数: int goods_type_id)。对标老端 GoodsModel.USE_BAG_GOODS_SUCCESS
+        /// (On15050 res==1 时 Fire;CongratulationObtainView 等据此刷新)。BagController.On15050 发。</summary>
+        public const string EVT_GOODS_USE_SUCCESS = "EVT_GOODS_USE_SUCCESS";
 
         // ----- Role -----
         public const string EVT_ROLE_INFO_UPDATE = "EVT_ROLE_INFO_UPDATE";

@@ -1180,123 +1180,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 3396064174992209358, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 8320268204192233123}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
---- !u!114 &419475749258574316 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3635452412670897200, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
-  m_PrefabInstance: {fileID: 4008764752240530908}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!114 &786738711597402789 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4416607354521952121, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
-  m_PrefabInstance: {fileID: 4008764752240530908}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!1 &1765622238640365586 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3396064174992209358, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
-  m_PrefabInstance: {fileID: 4008764752240530908}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &8320268204192233123
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1765622238640365586}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 313b5bd3d33cf0040b9005ed9dea24af, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Common.CustomHeadItem
-  click_group: {fileID: 3359084891514779989}
-  team_bg: {fileID: 786738711597402789}
-  frame: {fileID: 4501786882180448721}
-  bg: {fileID: 1789981879558118837}
-  bg2: {fileID: 2257448014747576089}
-  icon: {fileID: 4580176649533749344}
-  icon_sys_head: {fileID: 8499810661064788505}
-  _level_gp: {fileID: 5272492355450214105}
-  lv_img: {fileID: 419475749258574316}
-  _lev_: {fileID: 3912172080642933101}
---- !u!114 &1789981879558118837 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3420120273382656105, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
-  m_PrefabInstance: {fileID: 4008764752240530908}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!114 &2257448014747576089 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2951528256825193157, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
-  m_PrefabInstance: {fileID: 4008764752240530908}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!224 &3359084891514779989 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 1818367540665642121, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
-  m_PrefabInstance: {fileID: 4008764752240530908}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &3912172080642933101 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 138254284755768497, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
-  m_PrefabInstance: {fileID: 4008764752240530908}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
---- !u!114 &4501786882180448721 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 709441310066889741, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
-  m_PrefabInstance: {fileID: 4008764752240530908}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!114 &4580176649533749344 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 590517084486118844, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
-  m_PrefabInstance: {fileID: 4008764752240530908}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!224 &5272492355450214105 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 9118198875993522949, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
   m_PrefabInstance: {fileID: 4008764752240530908}
   m_PrefabAsset: {fileID: 0}
 --- !u!224 &7482473661131968930 stripped
@@ -1304,14 +1192,3 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5798077117109077118, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
   m_PrefabInstance: {fileID: 4008764752240530908}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &8499810661064788505 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4779615041970184133, guid: 3096f35376e9ae042999e3bd5c8738cf, type: 3}
-  m_PrefabInstance: {fileID: 4008764752240530908}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image

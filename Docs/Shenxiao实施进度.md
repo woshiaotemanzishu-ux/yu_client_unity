@@ -919,3 +919,52 @@ commit `51dc670e2`(P1 背包 15010 + P2 物品 tips)。第 7 轮定位的「活�
 - **P3 未触发**:P1/P2 未被卡 >15min,故货币图标真机截图(第 7~9 轮 P3 顺延)/数值红字/Addressables 分组 留第 11 轮。
 
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第11轮.md`。
+## 主线竖切 第 11 轮(2026-07-02):批处理 CLI 验证通道 + 使用物品 15050 全链 + 全项目重复 Bind 治理(1114 件)
+
+本轮起改为**自调度循环**推进(用户授权:主线竖切延续、主线全程可推为终点、每轮验收过本地 commit)。
+本会话无交互 Unity/无 MCP → 自建**批处理 CLI 渲染验证通道**,不再依赖 MCP RunCommand;顺藤摸出并治理了全项目性的重复 Bind 存量 bug。
+
+**P0 基线**:基线 commit `0e605f97e`(login 重构清理收尾等 237 文件);第 10 轮锚点 rg 命中;dotnet 0 错(8 既有警告)。
+
+**CLI 验证通道(工具,惠及后续所有轮)**:`Assets/Editor/CliVerify/CliVerify.cs` —— `Unity.exe -batchmode -executeMethod
+Shenxiao.EditorTools.CliVerify.RenderAll -logFile Temp/x.log`(勿加 -nographics/-quit);断言行前缀 CLIVERIFY,截图落 Temp/,
+进程码 0过/2超时/3断言败。async 由 EditorApplication.update 泵。
+**坑与修**:batch 域 Addressables 操作永不完成 → `ResManager.KeyExists` 挂死(首跑 TIMEOUT 根因)→ 加
+`ResManager.EditorPreferFallback`(编辑器专用:兜底 AssetDatabase 优先,不触 Addressables;交互编辑器/运行时默认 false 不受影响)。
+
+**P2a 完成弹层货币图标(第 7~10 轮顺延的 render 实证,已验)**:真实任务 100520(采集1个物资,award=[{5,0,2500000},{3,0,10000},
+{0,17020001,1},{0,17020004,1}])→ `Temp/round11_taskfinish_currency.png`:经验(icon 22,"250W" 缩写)/九洲灵钱(icon 31,"10000")
+以**真实图标格**显示(非文本),TaskModule 真皮渲染。断言:格数==奖励数 && 每格图标已载 && 每格恰 1 个 EquipmentItem(防回归)。
+
+**★全项目重复 Bind 治理(本轮最大意外收获)**:插桩发现每个奖励格 2 个 EquipmentItem 组件(8 comps/4 cells,instanceID 成对)——
+根因=嵌套标准 prefab(EquipmentItem.prefab)自带 Bind,**旧版回填(嵌套跳过 guard 加入前)又在实例根上 AddComponent 了 added-override 重复件**
+→ OnInit/BindClick 双跑,点击回调触发两次(全项目列表项/奖励格潜在双击 bug)。修(修工具不手改 prefab):
+① `LayaBindFiller.EnsureBindOnWindow` 加同类型重复清理(保非 override 件)+ 嵌套实例升级守卫(不再 DestroyImmediate 嵌套件——历史重复正是它炸掉后 AddComponent 产生的);
+② 新增全量清扫 `RemoveDuplicateBinds`(菜单 神霄/UI/清理重复 Bind 组件;CLI `LayaBindFiller.RemoveDuplicateBindsCli`)——
+**清理 145 个 prefab、移除 1114 个重复组件**(Achv/Activity/Bag/Boss/… 全模块波及)。
+
+**P2b 使用物品 15050 全链(协议+逻辑,对标老端逐行)**:
+- 任务包原命题「tips 数量走 ConvertNum 万/亿」被老端源码**推翻**(GoodsTooltips.ts:503 数量行显原始数字)→ 不加,记录更正。真正缺口=使用/出售按钮区。
+- `Proto.USE_GOODS=15050`(发 "li";回包 schema 逐字段照 ClientProtocol.json;服务端 pt_150 read/write 已核实存在)。
+- `BagController.UseGoods`(_pendingUse 防重对标 goods_use_dic)+ `On15050`:res==1 →「使用成功」toast(type 35 冷却物不弹,对标)
+  + `EVT_GOODS_USE_SUCCESS`(GlobalEvent 新增,对标 USE_BAG_GOODS_SUCCESS);礼包 type 32/33/84/35 → show_goods 逐项
+  「获得X」toast(GetMappingTypeId 还原;CongratulationView+config_gift_box 未移植 → toast 降级,服务端真值不臆造)。
+- `GoodsModel.GoodsBasic.Use`(config_goods key"22",权威列序核对 config_table_default.json)。
+- `ItemTipsView` 使用按钮:仅背包实例 + use!=0 显示(对标 useBtn 隐藏条件);点击走 `UseBranchBlocker` 分支表
+  (对标 CheckSecondView:type 34 礼包选择/37·2 经验符/38·6·10·36·39·42/75 藏宝图/59 装扮/83·1/14·12/22·1/37090001 直升丹
+  → 专属界面未移植,明确提示**不发协议**,老端也不直发);默认分支 num<=1 直发 15050+Close,num>1 Confirm 先用 1 个(BatchUseView 未移植)。
+- 渲染实证 `Temp/round11_itemtips_use.png`:V1体验卡(520100,真实 config)金名+真图标+品质底板+类型 VIP+数量 3+真实 intro+
+  **使用/关闭双按钮**(使用按 config 显隐,关闭右移让位)。断言 useBtnVisible=True。
+
+**P1 活服整合往返(诚实 blocker,第 12 轮条件许可再推)**:GM API(223.109.142.26:88)可达、服务端在线;但本会话无交互 Unity/无 MCP
+(仅 Unity Hub 进程;3 个僵尸 relay_win 已清)。批处理 Play 未验,不冒进。
+
+**验证**:dotnet build 0 错 ×4 次;批处理 CLIVERIFY RenderAll 终验退出码 0(两用例断言过,截图重新生成);git 本轮源文件 + 145 个 prefab(工具清理产物,非手改)。
+
+**本轮 blocker(诚实声明)**:
+- 活服往返:同上,缺交互 Unity/MCP。
+- TipsManager.Toast 仍是 log-only 壳 → 使用成功/获得物品玩家不可见(第 12 轮 P3 视觉化)。
+- 背包增量协议(15000/15008/15009)未接 → 用完物品背包/货币不刷新(第 12 轮 P1)。
+- CongratulationView/config_gift_box、BatchUseView 未移植(降级路径已明示)。
+
+**下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第12轮.md`。

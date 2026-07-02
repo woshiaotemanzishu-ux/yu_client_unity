@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
@@ -38,6 +39,9 @@ namespace Shenxiao.Module.Core.Common
         private static TextMeshProUGUI _bodyText;
         private static RectTransform _iconSlot;
         private static GameObject _iconCell;
+        private static GameObject _useBtn;
+        private static RectTransform _closeRt;
+        private static Bag.BagGoods _goods;   // 当前实例(使用按钮用;无实例=纯 config 展示,无按钮)
         private static int _epoch;
 
         private static TMP_FontAsset _font;
@@ -69,6 +73,13 @@ namespace Shenxiao.Module.Core.Common
             _root.SetActive(true);
             _root.transform.SetAsLastSibling();
 
+            _goods = goods;
+            // 使用按钮:仅背包实例 + config use!=0(对标 GoodsTooltips useBtn 隐藏条件 basic.use==0;
+            // isTreasure/takeout/deposite/put/isSoul 等特殊容器态未移植,普通背包物品恒 false)。
+            bool useVisible = goods != null && basic.Use != 0;
+            if (_useBtn != null) _useBtn.SetActive(useVisible);
+            if (_closeRt != null) _closeRt.anchoredPosition = new Vector2(useVisible ? 110f : 0f, 18f);
+
             _nameText.text = string.IsNullOrEmpty(basic.Name) ? ("#" + typeId) : basic.Name;
             _bodyText.text = BuildBody(typeId, num, basic, goods);
 
@@ -81,8 +92,66 @@ namespace Shenxiao.Module.Core.Common
         public static void Close()
         {
             _epoch++;
+            _goods = null;
             if (_iconCell != null) { ResManager.ReleaseInstance(_iconCell); _iconCell = null; }
             if (_root != null) _root.SetActive(false);
+        }
+
+        /// <summary>
+        /// 使用按钮点击(对标 GoodsTooltips useBtn_fun → CheckSecondView() + Close):
+        /// 老端按 type/subtype 分流到各专属界面(礼包选择/经验符比较/藏宝图…),这些界面未移植 → 明确提示不移植假发协议;
+        /// 普通可用物品走默认分支:数量 1 直接发 15050,多个则确认后先用 1 个(BatchUseView 未移植)。
+        /// </summary>
+        private static void OnUseClick()
+        {
+            Bag.BagGoods goods = _goods;
+            if (goods == null) return;
+            GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(goods.TypeId);
+            if (basic == null) return;
+
+            // 老端 CheckSecondView 的专属界面分流(SelectGiftView/经验符/藏宝图/装扮…未移植):不发 15050(老端也不直发),明确降级。
+            string blocked = UseBranchBlocker(basic);
+            if (blocked != null)
+            {
+                TipsManager.Toast("该物品需专属界面(未移植:" + blocked + ")");
+                GameLog.Info("Common", "ItemTips 使用分流未移植: typeId={0} type={1}/{2} → {3}(对标 CheckSecondView)",
+                    goods.TypeId, basic.Type, basic.Subtype, blocked);
+                return;
+            }
+
+            if (goods.GoodsNum <= 1)
+            {
+                Bag.BagController.Instance.UseGoods(goods.GoodsId, 1);
+                Close();   // 对标老端 useBtn_fun:CheckSecondView 后 Close
+            }
+            else
+            {
+                // 老端多个走 BatchUseView(批量选数界面,未移植)→ 确认后先用 1 个,不臆造批量行为。
+                TipsManager.Confirm("批量使用界面未移植,先使用 1 个?", () =>
+                {
+                    Bag.BagController.Instance.UseGoods(goods.GoodsId, 1);
+                    Close();
+                });
+            }
+        }
+
+        /// <summary>老端 CheckSecondView 专属界面分支表:命中返回目标界面名(未移植),null=可走默认 15050 分支。</summary>
+        private static string UseBranchBlocker(GoodsModel.GoodsBasic b)
+        {
+            if (b.Type == 34) return "SelectGiftView(礼包选择)";
+            if (b.Type == 37 && b.Subtype == 2) return "经验符 buff 比较流程";
+            if (b.Type == 38 && b.Subtype == 6) return "OpenFun 35(定时宝箱)";
+            if (b.Type == 38 && b.Subtype == 10) return "MarriageFlowerView(婚礼鲜花)";
+            if (b.Type == 38 && b.Subtype == 36) return "MaskUseView(蒙面人道具)";
+            if (b.Type == 38 && b.Subtype == 39) return "TransferJobCardView(转职卡)";
+            if (b.Type == 38 && b.Subtype == 42) return "OpenFun 18(转生界面)";
+            if (b.Type == 75) return "藏宝图(野外场景使用)";
+            if (b.Type == 59) return "OpenFun 203(装扮)";
+            if (b.Type == 83 && b.Subtype == 1) return "OpenFun 240(古宝)";
+            if (b.Type == 14 && b.Subtype == 12) return "OpenFun 11(宝石直升)";
+            if (b.Type == 22 && b.Subtype == 1) return "OpenFun 16(伙伴魂珠)";
+            if (b.TypeId == 37090001) return "人物直升丹确认流程";
+            return null;
         }
 
         /// <summary>
@@ -303,12 +372,28 @@ namespace Shenxiao.Module.Core.Common
             _bodyText.textWrappingMode = TextWrappingModes.Normal;
             _bodyText.color = new Color(0.86f, 0.91f, 1f);
 
-            // 关闭按钮(底部居中)
+            // 使用按钮(底部左;仅背包实例且 config use!=0 时显示,对标 GoodsTooltips useBtn)
+            _useBtn = NewRect("Use", panel.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
+            var useRt = (RectTransform)_useBtn.transform;
+            useRt.pivot = new Vector2(0.5f, 0f);
+            useRt.sizeDelta = new Vector2(200f, 56f);
+            useRt.anchoredPosition = new Vector2(-110f, 18f);
+            Image useImg = _useBtn.AddComponent<Image>();
+            useImg.color = new Color(0.22f, 0.42f, 0.24f, 1f);
+            TextMeshProUGUI useLbl = NewText("Label", _useBtn.transform, 26, TextAlignmentOptions.Center);
+            var ulRt = useLbl.rectTransform;
+            ulRt.anchorMin = Vector2.zero; ulRt.anchorMax = Vector2.one; ulRt.offsetMin = Vector2.zero; ulRt.offsetMax = Vector2.zero;
+            useLbl.text = "使用";
+            useLbl.color = Color.white;
+            UIUtil.AddClick(useImg, OnUseClick);
+            _useBtn.SetActive(false);
+
+            // 关闭按钮(底部;使用按钮可见时右移让位)
             GameObject closeBtn = NewRect("Close", panel.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
-            var closeRt = (RectTransform)closeBtn.transform;
-            closeRt.pivot = new Vector2(0.5f, 0f);
-            closeRt.sizeDelta = new Vector2(200f, 56f);
-            closeRt.anchoredPosition = new Vector2(0f, 18f);
+            _closeRt = (RectTransform)closeBtn.transform;
+            _closeRt.pivot = new Vector2(0.5f, 0f);
+            _closeRt.sizeDelta = new Vector2(200f, 56f);
+            _closeRt.anchoredPosition = new Vector2(0f, 18f);
             Image closeImg = closeBtn.AddComponent<Image>();
             closeImg.color = new Color(0.20f, 0.30f, 0.48f, 1f);
             TextMeshProUGUI closeLbl = NewText("Label", closeBtn.transform, 26, TextAlignmentOptions.Center);

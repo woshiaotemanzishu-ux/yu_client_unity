@@ -275,6 +275,12 @@ namespace Shenxiao.Framework.Net
         /// 显示只取 type_id/goods_num/color/cell,但每项须按序读完(含 3 嵌套数组)否则错位。每个回包对应一个 pos。</summary>
         public const int GOODS_CONTAINER_INFO = 15010;
 
+        /// <summary>使用背包物品(GoodsController.ts UseHandler:USE_BAG_GOODS → SendFmtToGame(15050,"li",goods_id,number))。
+        /// 发 "li"(goods_id:l, num:i);回包(ClientProtocol.json "15050"):res:i, args:s, goods_id:l, goods_type_id:i,
+        /// goods_num:i, hp:i, num:i, show_goods[u16 × {gid:l, type:c, goodid:i, gnum:i}]。
+        /// res==1 使用成功(type==35 冷却物不弹「使用成功」);show_goods=礼包开出物品(经 GetMappingTypeId 还原展示)。</summary>
+        public const int USE_GOODS = 15050;
+
         // ----- 惊喜礼包(490xx,yu_server pt_490.erl) -----
         /// <summary>惊喜礼包信息。请求无参;回包见 pt_490 write(49000)。</summary>
         public const int SURPRISE_GIFT_INFO = 49000;

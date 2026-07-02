@@ -30,6 +30,11 @@ namespace Shenxiao.Framework.Res
         private static readonly Dictionary<string, bool> _keyExistsCache = new Dictionary<string, bool>();
 
 #if UNITY_EDITOR
+        /// <summary>批处理 CLI 验证(-batchmode -executeMethod)专用:Addressables 的操作系统在 batch 域不推进,
+        /// LoadResourceLocationsAsync 永不完成 → KeyExists 挂死。置 true 让 LoadAsync/LoadOptionalAsync 先走
+        /// AssetDatabase 编辑器兜底(命中即返回,不触 Addressables);运行时/交互编辑器默认 false,行为不变。</summary>
+        public static bool EditorPreferFallback;
+
         private static readonly HashSet<GameObject> _editorFallbackInstances = new HashSet<GameObject>();
 
         // 编辑器兜底的「key→工程内资产路径」缓存:命中即免去一次 AssetDatabase.FindAssets 全工程扫描。
@@ -47,6 +52,16 @@ namespace Shenxiao.Framework.Res
 #if UNITY_EDITOR
             T convertedEffect = LoadEditorConvertedEffectSource<T>(key);
             if (convertedEffect != null) return convertedEffect;
+            if (EditorPreferFallback)
+            {
+                T pre = LoadEditorAssetFallback<T>(key);
+                if (pre == null && (typeof(T) == typeof(Sprite) || typeof(T) == typeof(Texture2D))
+                    && TryImportLooseImageFromClient(key))
+                {
+                    pre = LoadEditorAssetFallback<T>(key);
+                }
+                if (pre != null) return pre;
+            }
 #endif
             if (!await KeyExists(key))
             {
@@ -99,6 +114,11 @@ namespace Shenxiao.Framework.Res
 #if UNITY_EDITOR
             T convertedEffect = LoadEditorConvertedEffectSource<T>(key);
             if (convertedEffect != null) return convertedEffect;
+            if (EditorPreferFallback)
+            {
+                T pre = LoadEditorAssetFallback<T>(key);
+                if (pre != null) return pre;
+            }
 #endif
             if (!await KeyExists(key, typeof(T))) return null;
 

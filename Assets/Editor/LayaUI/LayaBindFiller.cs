@@ -37,6 +37,80 @@ namespace Shenxiao.Editor.LayaUI
             Debug.Log("[LayaUI] 回填完成: 成功 " + ok + ",缺 Bind 类 " + miss + "(缺的看 Console 前面的警告)");
         }
 
+        /// <summary>
+        /// 清理历史重复 Bind 存量:同一 GameObject 上同一 Shenxiao 业务组件类型出现多个
+        /// (嵌套标准 prefab 自带 + 旧版回填加的 added-override,如 TaskModule 的 _tpl_EquipmentItem →
+        /// 每个奖励格 2 个 EquipmentItem → OnInit/BindClick 双跑、点击回调触发两次)。
+        /// 保留非 override 件(字段在其源 prefab 已回填),删多余;逐 prefab 保存并报告。
+        /// 现版 FillNestedItemBinds 已有嵌套跳过 guard,本方法只清存量。
+        /// </summary>
+        [MenuItem("神霄/UI/清理重复 Bind 组件(全部 prefab)")]
+        public static void RemoveDuplicateBindsMenu()
+        {
+            RemoveDuplicateBinds();
+        }
+
+        /// <summary>批处理入口:Unity.exe -batchmode -executeMethod Shenxiao.Editor.LayaUI.LayaBindFiller.RemoveDuplicateBindsCli</summary>
+        public static void RemoveDuplicateBindsCli()
+        {
+            int removed = RemoveDuplicateBinds();
+            Debug.Log("CLIVERIFY dedupe removed=" + removed);
+            EditorApplication.Exit(0);
+        }
+
+        public static int RemoveDuplicateBinds()
+        {
+            int removedTotal = 0, prefabsChanged = 0;
+            string[] files = Directory.GetFiles(LayaUISettings.PREFAB_ROOT, "*.prefab", SearchOption.AllDirectories);
+            foreach (string file in files)
+            {
+                string path = file.Replace('\\', '/');
+                GameObject root = PrefabUtility.LoadPrefabContents(path);
+                try
+                {
+                    int removed = 0;
+                    foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+                    {
+                        MonoBehaviour[] comps = t.GetComponents<MonoBehaviour>();
+                        var byType = new Dictionary<Type, List<MonoBehaviour>>();
+                        foreach (MonoBehaviour m in comps)
+                        {
+                            if (m == null) continue;   // missing script 槽位不动
+                            Type ty = m.GetType();
+                            if (ty.Namespace == null || !ty.Namespace.StartsWith("Shenxiao", StringComparison.Ordinal)) continue;
+                            if (!byType.TryGetValue(ty, out List<MonoBehaviour> list)) byType[ty] = list = new List<MonoBehaviour>();
+                            list.Add(m);
+                        }
+                        foreach (KeyValuePair<Type, List<MonoBehaviour>> kv in byType)
+                        {
+                            if (kv.Value.Count <= 1) continue;
+                            kv.Value.Sort((a, b) =>
+                                PrefabUtility.IsAddedComponentOverride(a).CompareTo(PrefabUtility.IsAddedComponentOverride(b)));
+                            for (int i = 1; i < kv.Value.Count; i++)
+                            {
+                                UnityEngine.Object.DestroyImmediate(kv.Value[i], true);
+                                removed++;
+                            }
+                            Debug.Log("[LayaUI] 重复清理 " + path + " :: " + t.name + " " + kv.Key.Name + " ×" + (kv.Value.Count - 1));
+                        }
+                    }
+                    if (removed > 0)
+                    {
+                        PrefabUtility.SaveAsPrefabAsset(root, path);
+                        removedTotal += removed;
+                        prefabsChanged++;
+                    }
+                }
+                finally
+                {
+                    PrefabUtility.UnloadPrefabContents(root);
+                }
+            }
+            AssetDatabase.SaveAssets();
+            Debug.Log("[LayaUI] 重复 Bind 清理完成: prefab " + prefabsChanged + " 个,移除组件 " + removedTotal + " 个");
+            return removedTotal;
+        }
+
         /// <summary>给单个 prefab 挂 Bind 组件并回填字段(烤制器/单页验证用,复用 FillOne)。</summary>
         public static bool FillPrefab(string prefabPath)
         {
@@ -137,9 +211,33 @@ namespace Shenxiao.Editor.LayaUI
             if (bindType == null) return false;
             Type concreteType = FindSingleSubclass(bindType) ?? bindType;
 
+            // 历史重复件清理:嵌套标准 prefab(如 EquipmentItem)自带 Bind,旧版回填(嵌套跳过 guard 之前)
+            // 曾在实例根上再 Add 同类型 override → 同一格子 OnInit/BindClick 跑两遍(点击回调触发两次)。
+            // 保留非 override(嵌套资产自带、字段在其源 prefab 已回填),删 added-override 重复件。
+            Component[] dupBinds = windowRoot.GetComponents(bindType);
+            if (dupBinds.Length > 1)
+            {
+                Array.Sort(dupBinds, (a, b) =>
+                    PrefabUtility.IsAddedComponentOverride(a).CompareTo(PrefabUtility.IsAddedComponentOverride(b)));
+                for (int i = 1; i < dupBinds.Length; i++)
+                {
+                    UnityEngine.Object.DestroyImmediate(dupBinds[i], true);
+                    if (stats != null) { stats.CurrentChanged = true; }
+                }
+                Debug.Log("[LayaUI] " + windowName + " 清理重复 " + bindType.Name + " ×" + (dupBinds.Length - 1));
+            }
+
             Component bind = windowRoot.GetComponent(bindType);
             if (bind != null && concreteType != bind.GetType())
             {
+                if (PrefabUtility.IsPartOfPrefabInstance(bind) && !PrefabUtility.IsAddedComponentOverride(bind))
+                {
+                    // 嵌套 prefab 实例自带的基类 Bind 不能在宿主里 DestroyImmediate(会抛异常;历史正是在这
+                    // 之后走 AddComponent 才产生 override 重复件)。升级应去其源 prefab 做,宿主侧跳过。
+                    Debug.LogWarning("[LayaUI] " + windowName + " 的 " + bind.GetType().Name +
+                        " 属嵌套 prefab 实例,宿主内跳过升级/回填(去源 prefab 跑回填)");
+                    return true;
+                }
                 UnityEngine.Object.DestroyImmediate(bind, true); // 升级成业务子类
                 bind = null;
                 if (stats != null) { stats.ComponentsUpgraded++; stats.CurrentChanged = true; }
