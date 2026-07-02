@@ -55,6 +55,12 @@ namespace Shenxiao.Framework.Event
         public const string EVT_RUSH_GIFT_UPDATE = "EVT_RUSH_GIFT_UPDATE";
         /// <summary>幻化外观数据变动(参数: int type_id;16002 阶星/16023 升星/16028 等级面板/16029 升级后)。</summary>
         public const string EVT_OUTWARD_UPDATE = "EVT_OUTWARD_UPDATE";
+        /// <summary>天命觉醒状态变动(42909 前置态/42900 完成后)。</summary>
+        public const string EVT_TEMPLE_AWAKEN_UPDATE = "EVT_TEMPLE_AWAKEN_UPDATE";
+        /// <summary>装备强化数据变动(15204 查询/15205 强化后)。</summary>
+        public const string EVT_EQUIP_STREN_UPDATE = "EVT_EQUIP_STREN_UPDATE";
+        /// <summary>古宝数据变动(13320 全量/13321 激活后)。</summary>
+        public const string EVT_GUBAO_UPDATE = "EVT_GUBAO_UPDATE";
 
         // ----- Role -----
         public const string EVT_ROLE_INFO_UPDATE = "EVT_ROLE_INFO_UPDATE";

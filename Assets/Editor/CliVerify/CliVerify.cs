@@ -77,14 +77,19 @@ namespace Shenxiao.EditorTools
                 int p = ProtoDeltaCase();
                 int d = await DoTaskCoverageAsync();
                 int e = await PartnerCaseAsync();
+                int s = await SuitCollectCase.Run();
+                int g = await RushGiftCase.Run();
+                int o = await OutWardCase.Run();
                 int a = await RenderTaskFinishAsync();
                 int b = await RenderItemTipsAsync();
                 int c = await RenderToastAsync();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
+                    + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c);
-                int first = p != 0 ? p : (d != 0 ? d : (e != 0 ? e : (a != 0 ? a : (b != 0 ? b : c))));
-                return first;
-            }, 600.0);
+                foreach (int r in new[] { p, d, e, s, g, o, a, b, c })
+                    if (r != 0) return r;
+                return 0;
+            }, 900.0);
         }
 
         private static async Task<int> DoTaskCoverageAsync()
@@ -100,7 +105,7 @@ namespace Shenxiao.EditorTools
                 {
                     (100940, 27, "DoTask degrade"),   // LV 到达等级 → 升级提醒未移植降级
                     (100980, 9,  "DoTask degrade"),   // FinDunType → 副本入口未移植降级
-                    (100330, 23, "DoTask degrade"),   // TrainMount → 坐骑培养未移植降级
+                    (100330, 23, "OutWardShellView"), // TrainMount → 已接真实入口(第17轮;编辑期无层时打「无法构建」同样含类名)
                     (100010, 37, "Welcome(37) 无动作"), // 对标老端空 case
                     (999999, 99, "未知类型"),          // 不在主线清单 → 未知 blocker
                 };

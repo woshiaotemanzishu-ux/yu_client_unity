@@ -32,7 +32,11 @@ namespace Shenxiao.Module.Core.Tasks
         public const int TIP_START_TALK = 6;  // 开始对话(不可选)
         public const int TIP_END_TALK = 7;    // 结束对话(不可选)
         public const int TIP_PASS_MAIN_DUNGEON = 10;
+        public const int TIP_TRAIN_MOUNT = 23;   // 培养坐骑·阶星(id=阶,need=星;主线 100330「1阶2星」→ OutWardShellView)
         public const int TIP_TRAIN_PARTNER = 25; // 培养同修(id=阶,need_num=星;主线首闸 100190「1阶2星」→ PartnerShellView)
+        public const int TIP_AWARD_LV_GIFT = 54; // 领取等级礼包(id=礼包lv;主线 100420「领35级」→ RushGiftShellView)
+        public const int TIP_SUIT_CLT = 84;      // 套装收集(id=suit_id,need=阶数;主线 100391「套装1到4」→ SuitCollectShellView)
+        public const int TIP_MOUNT_LEVEL = 90;   // 外观等级线(id=type_id 1坐骑/2同修,need=等级;主线 100521/100901 → OutWardShellView)
         public const int TIP_LV = 27;         // 到达等级(老端开 UpAlertView 升级提醒)
         public const int TIP_WELCOME = 37;    // 进游戏欢迎(老端 case 为空 break,无动作)
         public const int TIP_COIN = 80;       // 上交铜钱
@@ -48,7 +52,7 @@ namespace Shenxiao.Module.Core.Tasks
             { 11, "副本入口(DungeonEnterView)" },  // FinDungeon
             { 14, "结社加入" },                    // JoinGuild ×1
             { 18, "装备熔炼" },                    // FusionEquip ×1
-            { 23, "坐骑培养" },                    // TrainMount ×3
+            // 23 TrainMount 已接真实入口(第 17 轮:DoTask → OutWardShellView,协议 16002/16023)
             { 24, "翼影培养" },                    // TrainWing ×1
             // 25 TrainPartner 已接真实入口(第 15 轮:DoTask → PartnerShellView,协议 14202/14205)
             { TIP_LV, "升级提醒(UpAlertView)" },   // LV ×57,老端 Fire(OPEN_UPALERT_VIEW);升级后服务端自动完成
@@ -58,14 +62,14 @@ namespace Shenxiao.Module.Core.Tasks
             { 41, "神兵培养" },                    // TrainArtifact ×2
             { 48, "宝石强化" },                    // EquipStoneNum ×2
             { 50, "灵魄强化" },                    // RuneLvSum ×1
-            { 54, "等级礼包领取" },                // Award_lv_gift ×1
+            // 54 Award_lv_gift 已接真实入口(第 17 轮:DoTask → RushGiftShellView,协议 41700/41701)
             { 57, "副本关卡" },                    // Dungeon_level ×1
             { 63, "大妖挑战" },                    // Kill_boss_id ×3
             { 73, "神装合成" },                    // Red_equip_combine ×1
             { 81, "功能模块开启" },                // Open_function ×1
-            { 84, "套装收集" },                    // Suit_clt ×2
+            // 84 Suit_clt 已接真实入口(第 17 轮:DoTask → SuitCollectShellView,协议 15256/15257)
             { 89, "妖物激活" },                    // ActiveSoap ×2
-            { 90, "坐骑系统培养" },                // MountLevel ×5
+            // 90 MountLevel 已接真实入口(第 17 轮:DoTask → OutWardShellView,协议 16028/16029)
             { 91, "挂机奖励领取" },                // AfkReceiveTimes ×1
             { 92, "圣器培养" },                    // ArtifactLevel ×1
             { 93, "橙装穿戴" },                    // DressOrangeEquip ×2
@@ -469,12 +473,14 @@ namespace Shenxiao.Module.Core.Tasks
                 return;
             }
 
-            // 3.5) 培养同修(主线首闸 100190「1阶2星」)→ 同修壳(真实 14202 数据 + 培养 14205;对标老端开 Partner 面板)。
-            if (task.TaskTipsType == TIP_TRAIN_PARTNER)
+            // 3.5) 已接真实入口的「开系统面板」类(对标老端各 case 开对应面板;壳=TEMP,数据全真):
+            if (task.TaskTipsType == TIP_TRAIN_PARTNER) { Partner.PartnerShellView.Show(); return; }             // 100190 同修阶星(pt_142)
+            if (task.TaskTipsType == TIP_TRAIN_MOUNT || task.TaskTipsType == TIP_MOUNT_LEVEL)
             {
-                Partner.PartnerShellView.Show();
-                return;
+                OutWard.OutWardShellView.Show(); return;                                                          // 100330 坐骑阶星 / 100521·100901 等级线(pt_160)
             }
+            if (task.TaskTipsType == TIP_SUIT_CLT) { SuitCollect.SuitCollectShellView.Show(); return; }           // 100391 套装收集(15256/57)
+            if (task.TaskTipsType == TIP_AWARD_LV_GIFT) { RushGift.RushGiftShellView.Show(); return; }            // 100420 冲级豪礼(41700/01)
 
             // 4) 主线出现的「开系统面板」类(面板未移植)→ 结构化降级,先于通用寻路
             //(老端这些 case 不走坐标寻路:LV 开升级提醒、FinDunType 开副本入口等)。

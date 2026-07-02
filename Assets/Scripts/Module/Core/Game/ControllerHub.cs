@@ -13,8 +13,11 @@ using Shenxiao.Module.Core.FunctionOpen;
 using Shenxiao.Module.Core.Gm;
 using Shenxiao.Module.Core.Mail;
 using Shenxiao.Module.Core.Notice;
+using Shenxiao.Module.Core.OutWard;
 using Shenxiao.Module.Core.Partner;
 using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.RushGift;
+using Shenxiao.Module.Core.SuitCollect;
 using Shenxiao.Module.Core.Scene;
 using Shenxiao.Module.Core.Skill;
 using Shenxiao.Module.Core.SurpriseGift;
@@ -59,6 +62,9 @@ namespace Shenxiao.Module.Core.Game
             CycleimpActlistController.Instance,
             SvipController.Instance,
             PartnerController.Instance,
+            SuitCollectController.Instance,
+            RushGiftController.Instance,
+            OutWardController.Instance,
             // 后续:EquipController ...
         };
 

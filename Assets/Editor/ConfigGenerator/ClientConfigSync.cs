@@ -64,6 +64,12 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_mount_level",     // 系统B等级经验表(具名键,~12000 行)
             "config_mount_goods",     // 培养道具(具名键)
             "config_mount_prop",      // 道具经验换算(具名键)
+            "config_temple_awaken_kv",        // 天命觉醒 KV(前置任务/等级门槛;主线 100590)
+            "config_equip_stren_lv",          // 强化消耗+属性(⚠数字键,列序 part/stren/object_list/attr_list,主键 "part@stren")
+            "config_equip_stren_lv_key",      // 强化等级索引
+            "config_equip_strengthen_max",    // 强化上限(主键 "stage@color@pos")
+            "config_enchantment_guard_soap",        // 古宝本体(soap_id/soap_name/condition;主线 100811 幽瞳)
+            "config_enchantment_guard_soap_debris", // 古宝碎片(主键 "soap@debris":cost/attr)
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

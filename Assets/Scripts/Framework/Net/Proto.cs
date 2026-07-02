@@ -335,6 +335,27 @@ namespace Shenxiao.Framework.Net
         /// 主线 100521=同修(type_id=2)到2级、100901=坐骑(type_id=1)到2级(ctype90:id=type_id/need=等级)。</summary>
         public const int OUTWARD_LV_UP = 16029;
 
+        // ----- 天命觉醒(pt_429,yu_server temple_awaken;老端 TempleAwakenEnterView.ts) -----
+        /// <summary>完成觉醒之路初始任务(C2S 无参;回包 error_code:i,==1 成功 → 服务端 open_temple_awaken 推进
+        /// 主线 100590(ctype81);前置=任务 100580 完成,KV(6) 等级门槛服务端校验)。</summary>
+        public const int TEMPLE_AWAKEN_FINISH_INITIAL = 42900;
+        /// <summary>觉醒之路前置任务完成态推送(is_finish:c)。</summary>
+        public const int TEMPLE_AWAKEN_PRE_STATE = 42909;
+
+        // ----- 装备强化(pt_152 段内 15204/15205;老端 EquipController.ts + EquipStrenView.ts) -----
+        /// <summary>查询槽位强化信息(发 "c" equip_type;回包 res:i, equip_type:c, stren:h)。</summary>
+        public const int EQUIP_STREN_INFO = 15204;
+        /// <summary>执行强化(发 "cc" equip_type,type[1单次/2一键(equip_type 传 0)];回包 res:i, res1:c, type:c,
+        /// stren_info[u16×{equip_type:c, stren:h}])。主线 100720(ctype31)=全身强化总和≥8,服务端 equip_sum 事件推进。</summary>
+        public const int EQUIP_STREN_DO = 15205;
+
+        // ----- 古宝/妖物(pt_133 段内 13320/13321,yu_server enchantment_guard soap;老端 MonsterController.ts/guBao) -----
+        /// <summary>古宝全量状态(请求无参;回包 combat:l + soap_list[u16×{soap_id:h, debris_list[u16×{debris_id:h}]}])。</summary>
+        public const int GUBAO_INFO = 13320;
+        /// <summary>激活古宝碎片(发 "hh" soap_id,debris_id;回包 errcode:i, soap_id:h, debris_list[u16×{debris_id:h}], combat:l)。
+        /// 主线 100811(ctype89)=soap 10001 幽瞳 2 碎片全激活(消耗 1105010011/12,刷图掉落)。</summary>
+        public const int GUBAO_ACTIVE = 13321;
+
         // ----- 剑魄同修(142xx,yu_server pt_142.erl + pp_partner;老端 PartnerController.ts) -----
         /// <summary>同修单个信息(请求发 "i" companion_id;推送/回包:sum_attr[u16×{attr_id:c,attr_val:i}],
         /// companion_id:i, stage:h, star:h, is_active:c, blessing:i, train_num:i, attr[同上], combat:l, fight_id:i)。</summary>

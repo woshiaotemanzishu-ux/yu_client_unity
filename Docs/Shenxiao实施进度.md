@@ -1055,3 +1055,34 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 第 15 轮起:同修 → 坐骑 → 套装收集 → …);LV 类的 UpAlertView、FinDunType 的 DungeonEnterView 未移植。
 
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第15轮.md`(P1=链序第一闸「剑魄同修」最小闭环)。
+
+## 主线竖切 第 16~17 轮(2026-07-02):大脑+Sonnet子代理模式落地——同修验收+三系统并行移植(套装/礼包/OutWard)
+
+**模式切换(用户指示)**:主模型只做 工单/审查/共享接线/串行验证/提交;确定性工作派 Sonnet 子代理并行
+(侦察=只读 Explore,实现=general-purpose+worktree 隔离);见记忆 orchestrator-loop-mode。
+
+**第 16 轮**:①实现代理收尾同修(PartnerCase 用例+3 配表,5e10f09d2,七用例全绿,round15_partner_shell.png:
+「星御·璇玑」1阶2星+培养按钮+失败toast同框);②侦察代理×2 产出 坐骑/套装+礼包 工单级报告
+(**重大修正:100521(链序#57)=剑魄同修等级线(OutWard type_id=2)非坐骑;OutWard 协议按 type_id 参数化,
+一套解 100330/100521/100901 三卡点**);③共享准备(f8f656486):Proto/GlobalEvent 预置+CliVerify 工具 public
++SYNC_LIST 扩 9 表+工单×2;④第三份侦察(天命觉醒/强化/古宝)→ 工单-天命觉醒与强化与古宝.md
+(**修正:ctype81「功能开启」=天命觉醒 pt_429 专属,与 FunctionOpenController(pt_138)无关**)。
+
+**第 17 轮(三实现代理并行,worktree 隔离,git core.longpaths 修复了长路径)**:
+- 套装收集(99ba9ad84):15256/15257 + SuitCollectModel/Controller/ShellView + config_suit_clt×2 + 用例。
+- 冲级豪礼(7a134bfd4):41700/41701(rewards=ObjectList 经 GetMappingTypeId toast)+ RushGift 三件套 +
+  领取成功且主线==100420 自动关壳(对标 LevelRewardItem.ts:106)+ config_rush_giftbag + 用例。
+- OutWard(1b86a1a22):16002/16023/16028/16029(阶星+等级双线,type_id 参数化)+ OutWard 三件套 +
+  6 张 config_mount_* + 用例(八断言)。
+- 主控:cherry-pick 三分支(唯一冲突=Cases.meta 文件夹 GUID,保先入)→ 接线(ControllerHub+3、
+  DoTask 新增 TIP_TRAIN_MOUNT/TIP_AWARD_LV_GIFT/TIP_SUIT_CLT/TIP_MOUNT_LEVEL 分支并从降级表移除 23/54/84/90、
+  RenderAll 挂 3 用例)→ csproj 补 12 行 → DoTaskCoverage 期望更新(tips23 → OutWardShellView)。
+- **验证:十用例全绿 EXIT 0**(protoDelta/dotask/partner/suitclt/rushgift/outward/taskfinish/itemtips/toast);
+  三张壳截图:round16_suitclt_shell.png / round16_rushgift_shell.png / round16_outward_shell.png。
+
+**主线卡点路线图进展**:已解 #20 同修(100190)/#34 坐骑(100330)/#42 套装(100391)/#46 礼包(100420)/
+#57 同修等级(100521)+100901;剩余最近卡点:#64 天命觉醒(100590)/#72 翼影(100665,OutWard type3 候选)/
+#80 全身强化(100720)/#92 古宝(100811)——前三已有工单,第三波实现代理在派。
+
+**blocker(诚实)**:活服整合往返(全部壳的真实往返仍需交互 Unity+MCP);翼影(24)是否 OutWard type3 待侦察确认;
+壳均为 TEMP(用户后续重做 UI);错误码表未移植(显码降级)。
