@@ -63,6 +63,12 @@ namespace Shenxiao.EditorTools
             Run(DoTaskCoverageAsync, 120.0);
         }
 
+        /// <summary>剑魄同修实证:config_companion 同步 + 14202/14205 合成包驱动 PartnerModel + PartnerShellView 渲染。</summary>
+        public static void PartnerCase()
+        {
+            Run(PartnerCaseAsync, 240.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -70,11 +76,13 @@ namespace Shenxiao.EditorTools
             {
                 int p = ProtoDeltaCase();
                 int d = await DoTaskCoverageAsync();
+                int e = await PartnerCaseAsync();
                 int a = await RenderTaskFinishAsync();
                 int b = await RenderItemTipsAsync();
                 int c = await RenderToastAsync();
-                Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " taskfinish=" + a + " itemtips=" + b + " toast=" + c);
-                int first = p != 0 ? p : (d != 0 ? d : (a != 0 ? a : (b != 0 ? b : c)));
+                Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
+                    + " taskfinish=" + a + " itemtips=" + b + " toast=" + c);
+                int first = p != 0 ? p : (d != 0 ? d : (e != 0 ? e : (a != 0 ? a : (b != 0 ? b : c))));
                 return first;
             }, 600.0);
         }
@@ -112,6 +120,100 @@ namespace Shenxiao.EditorTools
             finally
             {
                 Application.logMessageReceived -= cb;
+            }
+        }
+
+        /// <summary>剑魄同修实证:config_companion 同步 + 14202(全量列表)/14205(培养成功/失败)合成包
+        /// 反射喂 PartnerController 私有 handler,断言 PartnerModel 数据;再拉起 PartnerShellView 渲染断言
+        /// 培养按钮显隐 + 行文案含真实"N阶M星"。</summary>
+        private static async Task<int> PartnerCaseAsync()
+        {
+            Stage stage = Stage.Create();
+            try
+            {
+                Shenxiao.EditorTools.ConfigGen.ClientConfigSync.SyncIfStale(true);
+                await Shenxiao.Module.Core.Partner.PartnerConfigs.EnsureLoaded();
+                if (!Shenxiao.Module.Core.Partner.PartnerConfigs.IsLoaded)
+                {
+                    Debug.LogError("CLIVERIFY FAIL config_companion not loaded");
+                    return 3;
+                }
+
+                object ctrl = Shenxiao.Module.Core.Partner.PartnerController.Instance;
+                const System.Reflection.BindingFlags F =
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+                System.Reflection.MethodInfo m14202 = ctrl.GetType().GetMethod("On14202", F);
+                System.Reflection.MethodInfo m14205 = ctrl.GetType().GetMethod("On14205", F);
+                if (m14202 == null || m14205 == null)
+                {
+                    Debug.LogError("CLIVERIFY partner handlers missing (reflection)");
+                    return 3;
+                }
+                void Feed(System.Reflection.MethodInfo m, byte[] pkt) =>
+                    m.Invoke(ctrl, new object[] { new Shenxiao.Framework.Net.NetReader(pkt, 0, pkt.Length) });
+
+                Shenxiao.Module.Core.Partner.PartnerModel model = Shenxiao.Module.Core.Partner.PartnerModel.Instance;
+
+                // 14202 全量:fight_id + sum_attr[] + companion_list[单项]
+                byte[] p14202 = new Pkt()
+                    .I(0)      // fight_id
+                    .H(0)      // sum_attr 计数
+                    .H(1)      // companion_list 计数
+                        .I(1)      // companion_id
+                        .H(1)      // stage
+                        .H(1)      // star
+                        .H(0)      // biog_list 计数
+                        .C(1)      // is_active
+                        .C(0)      // is_fight
+                        .I(1018)   // figure_id
+                        .I(0)      // blessing
+                        .I(0)      // train_num
+                        .H(0)      // attr 计数
+                        .L(100)    // combat
+                    .Bytes();
+                Feed(m14202, p14202);
+                bool listOk = model.HasData && model.Companions.Count == 1
+                    && model.Get(1) != null && model.Get(1).Star == 1 && model.Get(1).Combat == 100;
+                Debug.Log("CLIVERIFY partner 14202 hasData=" + model.HasData + " count=" + model.Companions.Count
+                    + " star=" + (model.Get(1)?.Star ?? -1) + " combat=" + (model.Get(1)?.Combat ?? -1) + " ok=" + listOk);
+
+                // 14205 培养成功:errcode=1 + companion_id + stage + star=2 + blessing=10(升星→内部会 SendFmt 14201,未连接只 warn,无害)
+                byte[] p14205Ok = new Pkt().I(1).I(1).H(1).H(2).I(10).Bytes();
+                Feed(m14205, p14205Ok);
+                bool trainOk = model.Get(1) != null && model.Get(1).Star == 2 && model.Get(1).Blessing == 10;
+                Debug.Log("CLIVERIFY partner 14205 ok star=" + (model.Get(1)?.Star ?? -1)
+                    + " blessing=" + (model.Get(1)?.Blessing ?? -1) + " ok=" + trainOk);
+
+                // 14205 培养失败:errcode=5,只要不抛异常(走 toast log 分支)即过
+                byte[] p14205Fail = new Pkt().I(5).I(1).H(1).H(2).I(0).Bytes();
+                bool failNoThrow = true;
+                try { Feed(m14205, p14205Fail); }
+                catch (System.Exception e) { failNoThrow = false; Debug.LogError("CLIVERIFY partner 14205 fail threw: " + e); }
+                Debug.Log("CLIVERIFY partner 14205 fail noThrow=" + failNoThrow);
+
+                Shenxiao.Module.Core.Partner.PartnerShellView.Show();
+                await Task.Delay(400);
+                stage.ForceCjkFont();
+                string png = stage.Capture("Temp/round15_partner_shell.png");
+
+                Transform trainBtn = FindDeep(stage.CanvasRoot, "Btn培养");
+                bool trainBtnOk = trainBtn != null && trainBtn.gameObject.activeInHierarchy;
+                Transform row0 = FindDeep(stage.CanvasRoot, "Row0");
+                TMP_Text rowLabel = row0 != null ? row0.GetComponentInChildren<TMP_Text>(true) : null;
+                bool rowOk = rowLabel != null && !string.IsNullOrEmpty(rowLabel.text) && rowLabel.text.Contains("1阶2星");
+                Debug.Log("CLIVERIFY partner shell rowOk=" + rowOk + " trainBtn=" + trainBtnOk + " shot=" + png);
+
+                bool pass = listOk && trainOk && failNoThrow && trainBtnOk && rowOk;
+                Debug.Log("CLIVERIFY partner VERDICT listOk=" + listOk + " trainOk=" + trainOk
+                    + " failNoThrow=" + failNoThrow + " trainBtnOk=" + trainBtnOk + " rowOk=" + rowOk + " pass=" + pass);
+
+                Shenxiao.Module.Core.Partner.PartnerShellView.Close();
+                Shenxiao.Module.Core.Partner.PartnerModel.Instance.Clear();
+                return pass ? 0 : 3;
+            }
+            finally
+            {
+                stage.Dispose();
             }
         }
 
