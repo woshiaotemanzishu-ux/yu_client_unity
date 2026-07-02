@@ -83,17 +83,21 @@ namespace Shenxiao.EditorTools
                 int t = await TempleAwakenCase.Run();
                 int q = await EquipStrenCase.Run();
                 int u = await GuBaoCase.Run();
+                int j = await GuildJoinCase.Run();
+                int n = await RuneCase.Run();
+                int v = await DungeonCase.Run();
                 int a = await RenderTaskFinishAsync();
                 int b = await RenderItemTipsAsync();
                 int c = await RenderToastAsync();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
+                    + " guildjoin=" + j + " rune=" + n + " dungeon=" + v
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, a, b, c })
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, a, b, c })
                     if (r != 0) return r;
                 return 0;
-            }, 1200.0);
+            }, 1500.0);
         }
 
         private static async Task<int> DoTaskCoverageAsync()
@@ -108,7 +112,7 @@ namespace Shenxiao.EditorTools
                 (int taskId, int tips, string expect)[] cases =
                 {
                     (100940, 27, "DoTask degrade"),   // LV 到达等级 → 升级提醒未移植降级
-                    (100980, 9,  "DoTask degrade"),   // FinDunType → 副本入口未移植降级
+                    (100980, 9,  "DungeonRuneShellView"), // FinDunType → 已接真实入口(第19轮;编辑期无层时「无法构建」同含类名)
                     (100330, 23, "OutWardShellView"), // TrainMount → 已接真实入口(第17轮;编辑期无层时打「无法构建」同样含类名)
                     (100010, 37, "Welcome(37) 无动作"), // 对标老端空 case
                     (999999, 99, "未知类型"),          // 不在主线清单 → 未知 blocker

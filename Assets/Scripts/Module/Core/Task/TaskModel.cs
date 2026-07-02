@@ -33,6 +33,10 @@ namespace Shenxiao.Module.Core.Tasks
         public const int TIP_END_TALK = 7;    // 结束对话(不可选)
         public const int TIP_PASS_MAIN_DUNGEON = 10;
         public const int TIP_STREN_EQUIP = 8;    // 单件强化(id=+N,need=件数;→ EquipFlow 强化页)
+        public const int TIP_FIN_DUN_TYPE = 9;   // 完成某类副本(id=DUN_TYPE;主线 100980 御魂本 type12 → DungeonRuneShellView)
+        public const int TIP_JOIN_GUILD = 14;    // 加入结社(主线 101080 → GuildJoinShellView,40004 建社最短路径)
+        public const int TIP_RUNE_NUM = 33;      // 灵魄镶嵌数(主线 100990 镶1次 → RuneWearShellView,16701)
+        public const int TIP_DUNGEON_LEVEL = 57; // 副本关卡(id=DUN_TYPE,need=层;主线 101522 御魂本3层 → DungeonRuneShellView)
         public const int TIP_TRAIN_MOUNT = 23;   // 培养坐骑·阶星(id=阶,need=星;主线 100330「1阶2星」→ OutWardShellView)
         public const int TIP_STREN_SUM = 31;     // 全身强化总和(need=总等级;主线 100720「达8」→ EquipFlow 强化页)
         public const int TIP_OPEN_FUNCTION = 81; // 开启功能=天命觉醒专属(主线 100590 → TempleAwakenShellView,发 42900)
@@ -52,22 +56,22 @@ namespace Shenxiao.Module.Core.Tasks
         private static readonly Dictionary<int, string> UNPORTED_TIP_SYSTEM = new Dictionary<int, string>
         {
             // 8 StrenEquip 已接真实入口(第 18 轮:DoTask → EquipFlow.OpenSub 强化页,协议 15204/15205)
-            { 9,  "副本入口(DungeonEnterView)" },  // FinDunType ×9,老端 OPEN_VIEW DungeonEnterView/OpenFun 26
-            { 11, "副本入口(DungeonEnterView)" },  // FinDungeon
-            { 14, "结社加入" },                    // JoinGuild ×1
+            // 9 FinDunType 已接真实入口(第 19 轮:DoTask → DungeonRuneShellView,协议 61001/61003/61020)
+            { 11, "副本入口(具体副本id)" },        // FinDungeon(主线未出现,留降级)
+            // 14 JoinGuild 已接真实入口(第 19 轮:DoTask → GuildJoinShellView,协议 40001/40003/40004)
             { 18, "装备熔炼" },                    // FusionEquip ×1
             // 23 TrainMount 已接真实入口(第 17 轮:DoTask → OutWardShellView,协议 16002/16023)
             { 24, "翼影培养" },                    // TrainWing ×1
             // 25 TrainPartner 已接真实入口(第 15 轮:DoTask → PartnerShellView,协议 14202/14205)
             { TIP_LV, "升级提醒(UpAlertView)" },   // LV ×57,老端 Fire(OPEN_UPALERT_VIEW);升级后服务端自动完成
             // 31 StrenSum 已接真实入口(第 18 轮:同 8 → EquipFlow 强化页)
-            { 33, "灵魄镶嵌" },                    // RuneNum ×1
+            // 33 RuneNum 已接真实入口(第 19 轮:DoTask → RuneWearShellView,协议 16700/16701)
             { 35, "排位赛" },                      // JoinJcc ×1
             { 41, "神兵培养" },                    // TrainArtifact ×2
             { 48, "宝石强化" },                    // EquipStoneNum ×2
             { 50, "灵魄强化" },                    // RuneLvSum ×1
             // 54 Award_lv_gift 已接真实入口(第 17 轮:DoTask → RushGiftShellView,协议 41700/41701)
-            { 57, "副本关卡" },                    // Dungeon_level ×1
+            // 57 Dungeon_level 已接真实入口(第 19 轮:同 9 → DungeonRuneShellView)
             { 63, "大妖挑战" },                    // Kill_boss_id ×3
             { 73, "神装合成" },                    // Red_equip_combine ×1
             // 81 Open_function 已接真实入口(第 18 轮:DoTask → TempleAwakenShellView,协议 42900)
@@ -491,6 +495,12 @@ namespace Shenxiao.Module.Core.Tasks
             }
             if (task.TaskTipsType == TIP_OPEN_FUNCTION) { TempleAwaken.TempleAwakenShellView.Show(); return; }    // 100590 觉醒之路(42900)
             if (task.TaskTipsType == TIP_ACTIVE_SOAP) { GuBao.GuBaoShellView.Show(); return; }                    // 100811 古宝幽瞳(13320/21)
+            if (task.TaskTipsType == TIP_FIN_DUN_TYPE || task.TaskTipsType == TIP_DUNGEON_LEVEL)
+            {
+                Dungeon.DungeonRuneShellView.Show(); return;                                                      // 100980/101522 御魂本(61001/03/20)
+            }
+            if (task.TaskTipsType == TIP_JOIN_GUILD) { Guild.GuildJoinShellView.Show(); return; }                 // 101080 结社(40001/03/04)
+            if (task.TaskTipsType == TIP_RUNE_NUM) { Rune.RuneWearShellView.Show(); return; }                     // 100990 灵魄镶嵌(16700/01)
 
             // 4) 主线出现的「开系统面板」类(面板未移植)→ 结构化降级,先于通用寻路
             //(老端这些 case 不走坐标寻路:LV 开升级提醒、FinDunType 开副本入口等)。

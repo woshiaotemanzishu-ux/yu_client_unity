@@ -12,12 +12,15 @@ using Shenxiao.Module.Core.FirstRecharge;
 using Shenxiao.Module.Core.FunctionOpen;
 using Shenxiao.Module.Core.Gm;
 using Shenxiao.Module.Core.Mail;
+using Shenxiao.Module.Core.Dungeon;
 using Shenxiao.Module.Core.Equip;
 using Shenxiao.Module.Core.GuBao;
+using Shenxiao.Module.Core.Guild;
 using Shenxiao.Module.Core.Notice;
 using Shenxiao.Module.Core.OutWard;
 using Shenxiao.Module.Core.Partner;
 using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.Rune;
 using Shenxiao.Module.Core.RushGift;
 using Shenxiao.Module.Core.SuitCollect;
 using Shenxiao.Module.Core.Scene;
@@ -71,6 +74,9 @@ namespace Shenxiao.Module.Core.Game
             TempleAwakenController.Instance,
             EquipStrenController.Instance,
             GuBaoController.Instance,
+            GuildJoinController.Instance,
+            RuneController.Instance,
+            DungeonController.Instance,
             // 后续:EquipController ...
         };
 
