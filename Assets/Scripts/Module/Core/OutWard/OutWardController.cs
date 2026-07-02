@@ -12,6 +12,9 @@ namespace Shenxiao.Module.Core.OutWard
     /// 16023 一键升星(坐骑/同修专线,发 "ccc" type_id,auto_buy=0,gold_type=0):errcode==1 成功后老端另拉一次 16002
     /// 联动刷同修属性(照做);16029 升级(发 "c" type_id)同理成功后拉 16002。
     /// 老端锚点:OutWardController.ts:265-275(On16023)、:302-315(On16029)、:436-443(升星发包)、:475-478(升级发包)。
+    /// 薄增量六件套(第20轮工单):16005 通用一键升星(type_id∉{1,2}:3翼影/4圣器/5神兵),回包=16023 少 etime/auto_buy 两字段;
+    /// GameStart 对 3/4/5 也各发一次 16002(16028 等级线与这三个任务无关,不扩)。
+    /// 老端枚举注释警示:Artifact=4=古法符相线,HolyDevice=5=殒锋天刃线(曾错位,以 mount.hrl ARTIFACT_ID=4/HOLYORGAN_ID=5 为准)。
     /// </summary>
     public sealed class OutWardController : BaseController
     {
@@ -25,6 +28,7 @@ namespace Shenxiao.Module.Core.OutWard
             RegisterProtocal(Proto.OUTWARD_STAR_UP, On16023);
             RegisterProtocal(Proto.OUTWARD_LV_PANEL, On16028);
             RegisterProtocal(Proto.OUTWARD_LV_UP, On16029);
+            RegisterProtocal(Proto.OUTWARD_STAR_UP_GENERIC, On16005);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
@@ -35,7 +39,8 @@ namespace Shenxiao.Module.Core.OutWard
             base.Dispose();
         }
 
-        /// <summary>对标老端登录拉取:type_id 1(坐骑)、2(剑魄同修)各发 16002+16028,共 4 包。</summary>
+        /// <summary>对标老端登录拉取:type_id 1(坐骑)、2(剑魄同修)各发 16002+16028,共 4 包;
+        /// 3(翼影)/4(圣器古法符相)/5(神兵殒锋天刃)只有系统A阶星线,只发 16002(薄增量六件套第20轮)。</summary>
         private async void OnGameStart()
         {
             await OutWardConfigs.EnsureLoaded();
@@ -44,7 +49,11 @@ namespace Shenxiao.Module.Core.OutWard
                 RequestInfo(typeId);
                 RequestLvPanel(typeId);
             }
-            GameLog.Info("OutWard", "GameStart request 16002+16028 for type_id 1,2(对标 OutWardController 登录拉取)");
+            foreach (int typeId in new[] { 3, 4, 5 })
+            {
+                RequestInfo(typeId);
+            }
+            GameLog.Info("OutWard", "GameStart request 16002+16028 for type_id 1,2; 16002 for type_id 3,4,5(对标 OutWardController 登录拉取)");
         }
 
         /// <summary>16002 外观对象信息(系统A阶星)请求。</summary>
@@ -75,6 +84,15 @@ namespace Shenxiao.Module.Core.OutWard
             if (typeId <= 0) return;
             SendFmt(Proto.OUTWARD_LV_UP, "c", typeId);
             GameLog.Info("OutWard", "lvUp 16029 type_id={0}", typeId);
+        }
+
+        /// <summary>16005 通用一键升星(type_id∉{1,2}:3翼影/4圣器/5神兵;发 "c" type_id,无 autoBuy/goldType,
+        /// 对标服务端 guard type_id∈{1,2}→16023,其它→16005)。薄增量六件套第20轮。</summary>
+        public void StarUpGeneric(int typeId)
+        {
+            if (typeId <= 0) return;
+            SendFmt(Proto.OUTWARD_STAR_UP_GENERIC, "c", typeId);
+            GameLog.Info("OutWard", "starUpGeneric 16005 type_id={0}", typeId);
         }
 
         /// <summary>16002 回包:type_id:c, stage:c, star:h, blessing:i, figure_stage:c, combat:i, etime:l,
@@ -162,6 +180,31 @@ namespace Shenxiao.Module.Core.OutWard
             GameLog.Info("OutWard", "16029 lvUp ok type_id={0} → level={1} curExp={2}(+{3}) combat={4} ratios={5} remaining={6}B",
                 typeId, level, curExp, addExp, combat, ratios.Count, r.Remaining);
             RequestInfo(typeId);   // 对标老端成功后 REQUEST_PROTO 16002 联动刷新
+            EventDispatcher.Emit(GlobalEvent.EVT_OUTWARD_UPDATE);
+        }
+
+        /// <summary>16005 通用升星结果:errcode:i, type_id:c, stage:c, star:h, blessing:i, blessing_plus:i,
+        /// ratio_list[u16×{rate:c,rate_num:h}]。=16023 少 etime/auto_buy 两字段。errcode!=1 显码降级;
+        /// 成功后另拉 16002 联动刷新(对标 On16023 同构)。薄增量六件套第20轮。</summary>
+        private void On16005(NetReader r)
+        {
+            int errcode = (int)r.ReadU32();
+            int typeId = r.ReadU8();
+            int stage = r.ReadU8();
+            int star = r.ReadU16();
+            long blessing = r.ReadU32();
+            long blessingPlus = r.ReadU32();
+            List<(int rate, int rateNum)> ratios = r.ReadArray(ReadRatio);
+            if (errcode != 1)
+            {
+                TipsManager.Toast("提升失败(" + errcode + ")");   // 错误码表未移植,显码降级
+                GameLog.Info("OutWard", "16005 starUpGeneric fail errcode={0} type_id={1}", errcode, typeId);
+                return;
+            }
+            OutWardModel.Instance.Apply16005(typeId, stage, star, blessing);
+            GameLog.Info("OutWard", "16005 starUpGeneric ok type_id={0} → {1}阶{2}星 blessing={3}(+{4}) ratios={5} remaining={6}B",
+                typeId, stage, star, blessing, blessingPlus, ratios.Count, r.Remaining);
+            RequestInfo(typeId);   // 对标老端成功后 REQUEST_PROTO 16002 联动刷属性
             EventDispatcher.Emit(GlobalEvent.EVT_OUTWARD_UPDATE);
         }
 

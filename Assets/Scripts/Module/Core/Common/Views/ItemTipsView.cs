@@ -40,6 +40,7 @@ namespace Shenxiao.Module.Core.Common
         private static RectTransform _iconSlot;
         private static GameObject _iconCell;
         private static GameObject _useBtn;
+        private static GameObject _wearBtn;
         private static RectTransform _closeRt;
         private static Bag.BagGoods _goods;   // 当前实例(使用按钮用;无实例=纯 config 展示,无按钮)
         private static int _epoch;
@@ -77,8 +78,11 @@ namespace Shenxiao.Module.Core.Common
             // 使用按钮:仅背包实例 + config use!=0(对标 GoodsTooltips useBtn 隐藏条件 basic.use==0;
             // isTreasure/takeout/deposite/put/isSoul 等特殊容器态未移植,普通背包物品恒 false)。
             bool useVisible = goods != null && basic.Use != 0;
+            // 穿戴按钮(薄增量六件套第20轮):仅背包实例 + 装备类物品(IsEquip),发 15201。
+            bool wearVisible = goods != null && GoodsModel.IsEquip(typeId);
             if (_useBtn != null) _useBtn.SetActive(useVisible);
-            if (_closeRt != null) _closeRt.anchoredPosition = new Vector2(useVisible ? 110f : 0f, 18f);
+            if (_wearBtn != null) _wearBtn.SetActive(wearVisible);
+            LayoutButtons(useVisible, wearVisible);
 
             _nameText.text = string.IsNullOrEmpty(basic.Name) ? ("#" + typeId) : basic.Name;
             _bodyText.text = BuildBody(typeId, num, basic, goods);
@@ -133,6 +137,56 @@ namespace Shenxiao.Module.Core.Common
                     Close();
                 });
             }
+        }
+
+        /// <summary>穿戴按钮点击(薄增量六件套第20轮):发 15201,回包 res==1 由 EquipWearController 弹 toast「穿戴成功」;
+        /// 此处仅发包 + 关闭详情(对标 ItemTips 点击后收起,不等待回包结果)。</summary>
+        private static void OnWearClick()
+        {
+            Bag.BagGoods goods = _goods;
+            if (goods == null) return;
+            Equip.EquipWearController.Instance.Wear(goods.GoodsId);
+            Close();
+        }
+
+        /// <summary>按钮布局(使用/穿戴/关闭 最多三按钮一排;仅关闭时居中,二按钮双档位(200 宽),
+        /// 三按钮收窄间距均分(140 宽,避免 480 宽面板溢出)。</summary>
+        private static void LayoutButtons(bool useVisible, bool wearVisible)
+        {
+            int visibleCount = (useVisible ? 1 : 0) + (wearVisible ? 1 : 0) + 1;   // +1 = 关闭恒显示
+            if (visibleCount >= 3)
+            {
+                // 三按钮:收窄宽度 + 收窄间距均分(使用 / 穿戴 / 关闭,从左到右)。
+                SetBtnRect(_useBtn, -150f, 140f);
+                SetBtnRect(_wearBtn, 0f, 140f);
+                SetBtnRect(_closeRt, 150f, 140f);
+            }
+            else if (visibleCount == 2)
+            {
+                // 双按钮:使用/穿戴其一 + 关闭,原有使用/关闭双档位布局(200 宽)。
+                float otherX = -110f;
+                SetBtnRect(_useBtn, otherX, 200f);
+                SetBtnRect(_wearBtn, otherX, 200f);
+                SetBtnRect(_closeRt, 110f, 200f);
+            }
+            else
+            {
+                // 仅关闭:居中(200 宽)。
+                SetBtnRect(_closeRt, 0f, 200f);
+            }
+        }
+
+        private static void SetBtnRect(GameObject go, float x, float width)
+        {
+            if (go == null) return;
+            SetBtnRect((RectTransform)go.transform, x, width);
+        }
+
+        private static void SetBtnRect(RectTransform rt, float x, float width)
+        {
+            if (rt == null) return;
+            rt.anchoredPosition = new Vector2(x, 18f);
+            rt.sizeDelta = new Vector2(width, rt.sizeDelta.y);
         }
 
         /// <summary>老端 CheckSecondView 专属界面分支表:命中返回目标界面名(未移植),null=可走默认 15050 分支。</summary>
@@ -388,7 +442,23 @@ namespace Shenxiao.Module.Core.Common
             UIUtil.AddClick(useImg, OnUseClick);
             _useBtn.SetActive(false);
 
-            // 关闭按钮(底部;使用按钮可见时右移让位)
+            // 穿戴按钮(薄增量六件套第20轮;仅背包实例且装备类物品时显示,对标使用按钮同款布局)
+            _wearBtn = NewRect("Wear", panel.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
+            var wearRt = (RectTransform)_wearBtn.transform;
+            wearRt.pivot = new Vector2(0.5f, 0f);
+            wearRt.sizeDelta = new Vector2(200f, 56f);
+            wearRt.anchoredPosition = new Vector2(-110f, 18f);
+            Image wearImg = _wearBtn.AddComponent<Image>();
+            wearImg.color = new Color(0.42f, 0.33f, 0.18f, 1f);
+            TextMeshProUGUI wearLbl = NewText("Label", _wearBtn.transform, 26, TextAlignmentOptions.Center);
+            var wlRt = wearLbl.rectTransform;
+            wlRt.anchorMin = Vector2.zero; wlRt.anchorMax = Vector2.one; wlRt.offsetMin = Vector2.zero; wlRt.offsetMax = Vector2.zero;
+            wearLbl.text = "穿戴";
+            wearLbl.color = Color.white;
+            UIUtil.AddClick(wearImg, OnWearClick);
+            _wearBtn.SetActive(false);
+
+            // 关闭按钮(底部;使用/穿戴按钮可见时让位,三按钮同显时收窄间距,见 LayoutButtons)
             GameObject closeBtn = NewRect("Close", panel.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
             _closeRt = (RectTransform)closeBtn.transform;
             _closeRt.pivot = new Vector2(0.5f, 0f);

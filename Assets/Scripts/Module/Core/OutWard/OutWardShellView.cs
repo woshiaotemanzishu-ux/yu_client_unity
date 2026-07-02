@@ -14,6 +14,10 @@ namespace Shenxiao.Module.Core.OutWard
     ///   名字 + 「N阶M星 祝福X/Y」(系统A,16002/16023 真实回包) + 「等级L(经验E)」(系统B,16028/16029 真实回包)
     ///   + 按钮[升星](StarUp)与[升级](LvUp)。无数据时如实显示等待 16002/16028,不造假。
     /// DoTask ctype23(100330)/ctype90(100521/100901)由此进入。
+    /// 薄增量六件套(第20轮工单)加三行(翼影 type_id=3 / 古法符相 type_id=4 / 殒锋天刃 type_id=5):只有系统A阶星线
+    /// (16002/16005),无系统B等级线 → 只显[升星](StarUpGeneric),不显[升级]。
+    /// 老端枚举注释警示:Artifact=4=古法符相线,HolyDevice=5=殒锋天刃线(以 mount.hrl ARTIFACT_ID=4/HOLYORGAN_ID=5 为准)。
+    /// DoTask ctype24(100665)/ctype92(101045)/ctype41(101345)由此进入。
     /// </summary>
     public static class OutWardShellView
     {
@@ -21,7 +25,13 @@ namespace Shenxiao.Module.Core.OutWard
         {
             (1, "坐骑"),
             (2, "剑魄同修"),
+            (3, "翼影"),
+            (4, "古法符相"),
+            (5, "殒锋天刃"),
         };
+
+        // type_id∈{1,2}=坐骑/同修专线(16023 StarUp);其它(3/4/5)=通用线(16005 StarUpGeneric)。
+        private static bool IsGenericLine(int typeId) => typeId != 1 && typeId != 2;
 
         private static GameObject _root;
         private static Transform _rowsParent;
@@ -72,26 +82,35 @@ namespace Shenxiao.Module.Core.OutWard
                 var lrt = label.rectTransform;
                 lrt.anchorMin = new Vector2(0f, 0f); lrt.anchorMax = new Vector2(1f, 1f);
                 lrt.offsetMin = new Vector2(16f, 0f); lrt.offsetMax = new Vector2(-240f, 0f);
-                label.text = BuildRowText(name, vo);
+                bool generic = IsGenericLine(typeId);
+                label.text = BuildRowText(name, vo, generic);
 
                 bool canStarUp = vo != null;
-                bool canLvUp = vo != null && vo.HasLv;
+                System.Action starUpAction = generic
+                    ? () => OutWardController.Instance.StarUpGeneric(typeId)
+                    : () => OutWardController.Instance.StarUp(typeId);
                 NewButton(row.transform, "升星", -180f, canStarUp,
-                    new Color(0.22f, 0.42f, 0.24f), () => OutWardController.Instance.StarUp(typeId));
-                NewButton(row.transform, "升级", -70f, canLvUp,
-                    new Color(0.20f, 0.30f, 0.48f), () => OutWardController.Instance.LvUp(typeId));
+                    new Color(0.22f, 0.42f, 0.24f), starUpAction);
+                if (!generic)
+                {
+                    bool canLvUp = vo != null && vo.HasLv;
+                    NewButton(row.transform, "升级", -70f, canLvUp,
+                        new Color(0.20f, 0.30f, 0.48f), () => OutWardController.Instance.LvUp(typeId));
+                }
             }
         }
 
-        private static string BuildRowText(string name, OutWardModel.OutWardVo vo)
+        private static string BuildRowText(string name, OutWardModel.OutWardVo vo, bool generic)
         {
             if (vo == null)
             {
-                return name + "　<color=#8893a6>等待 16002/16028(需活服)</color>";
+                return name + "　<color=#8893a6>等待 16002" + (generic ? "" : "/16028") + "(需活服)</color>";
             }
             long maxBlessing = OutWardConfigs.GetMaxBlessing(vo.TypeId, vo.Stage, vo.Star);
             string stageStar = "<color=#ffe222>" + vo.Stage + "阶" + vo.Star + "星</color>"
                 + "　祝福 " + vo.Blessing + (maxBlessing > 0 ? "/" + maxBlessing : "");
+            // 3翼影/4圣器/5神兵只有系统A阶星线,无系统B等级线(不发 16028)→ 不显示等级文案。
+            if (generic) return name + "　" + stageStar;
             string lvText = vo.HasLv
                 ? "　等级 " + vo.Level + "(经验 " + vo.CurExp + ")"
                 : "　<color=#8893a6>等待 16028</color>";
@@ -121,7 +140,7 @@ namespace Shenxiao.Module.Core.OutWard
             GameObject panel = NewRect("Panel", _root.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
             var panelRt = (RectTransform)panel.transform;
             panelRt.pivot = new Vector2(0.5f, 0.5f);
-            panelRt.sizeDelta = new Vector2(620f, 420f);
+            panelRt.sizeDelta = new Vector2(620f, 650f);
             Image panelImg = panel.AddComponent<Image>();
             panelImg.color = new Color(0.07f, 0.09f, 0.14f, 0.97f);
 
@@ -129,7 +148,7 @@ namespace Shenxiao.Module.Core.OutWard
             var trt = title.rectTransform;
             trt.anchorMin = new Vector2(0f, 1f); trt.anchorMax = new Vector2(1f, 1f); trt.pivot = new Vector2(0.5f, 1f);
             trt.anchoredPosition = new Vector2(0f, -20f); trt.sizeDelta = new Vector2(-40f, 44f);
-            title.text = "坐骑/同修培养";
+            title.text = "幻化外观培养";
             title.color = new Color(1f, 0.86f, 0.45f);
             title.fontStyle = FontStyles.Bold;
 

@@ -89,6 +89,16 @@ namespace Shenxiao.Module.Core.OutWard
             vo.AutoBuy = autoBuy;
         }
 
+        /// <summary>16005 通用升星成功套值(≈Apply16023 少 etime/auto_buy 两字段;3翼影/4圣器/5神兵无系统B等级线)。
+        /// 薄增量六件套第20轮。</summary>
+        public void Apply16005(int typeId, int stage, int star, long blessing)
+        {
+            OutWardVo vo = GetOrCreate(typeId);
+            vo.Stage = stage;
+            vo.Star = star;
+            vo.Blessing = blessing;
+        }
+
         /// <summary>16028 面板回包套值(系统B全字段)。</summary>
         public void Apply16028(int typeId, int level, long curExp, long combat,
             List<(int attrId, long val)> attrs, List<(int skillId, int skillLevel)> skills)
