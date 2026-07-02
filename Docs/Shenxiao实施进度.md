@@ -1113,3 +1113,17 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
   DoTaskCoverage 期望更新(tips9→DungeonRuneShellView)、csproj+12。
 - **验证:15 用例全绿 EXIT 0**。路线图已解:#20/#34/#42/#46/#57/#64/#80/#92/#112/#113/#123 + ctype8。
 - blocker:大妖63(服务端);副本真实进出需活服;各壳 TEMP 待用户重做 UI。
+
+## 主线竖切 第 20 轮(2026-07-02):薄增量六件套 + 主线 ctype 全集复核,十六用例全绿
+
+- 实现代理(worktree):OutWard 16005 通用升星(一条解 翼影24/圣器92/神兵41,壳加 type3/4/5 三行)、
+  宝石 15208/09、挂机 13216(真实 schema:errcode/old_lv/old_lv_ratio/goods_list,壳+领取按钮)、
+  穿戴 15201(ItemTipsView 加[穿戴]按钮三按钮布局)、熔炼 15024/25(BagSmeltView 无选择列表 → useBtn 不接线,诚实标注)。
+- 侦察代理(收尾):灵魄强化 16702(判定无缺口)/神装合成=通用合成 15020 type=2 规则/排位赛 28001-28003
+  (**⚠服务端断链 #2:?JJC_USE_NUM increment 被注释 mod_jjc_cast.erl:87,任务 101465 无法自然完成,需人工恢复**)/
+  LV27 决策=UpAlertView 为独立活动导览不做,维持降级 toast。
+- **主线链复核(权威):type=1 共 543 任务、链 100010→104560 无分叉无遗漏;ctype 全集 27 项全部盘点覆盖**。
+- 接线:DoTask 24/92/41→OutWard 壳、91→挂机壳(降级表移除;35 标注服务端断链);RenderAll 16 用例;csproj+6。
+- **验证:16 用例全绿 EXIT 0**。工单-收尾三件套.md 已备(16702/15020/排位壳=主线 ctype 收官)。
+- **服务端工单(需人工)**:①大妖63 计数 guard(lib_special_boss_mod.erl:516,只认 402/403);
+  ②排位35 计数 increment(mod_jjc_cast.erl:87 被注释)。

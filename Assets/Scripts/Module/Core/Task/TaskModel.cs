@@ -61,13 +61,13 @@ namespace Shenxiao.Module.Core.Tasks
             // 14 JoinGuild 已接真实入口(第 19 轮:DoTask → GuildJoinShellView,协议 40001/40003/40004)
             { 18, "装备熔炼" },                    // FusionEquip ×1
             // 23 TrainMount 已接真实入口(第 17 轮:DoTask → OutWardShellView,协议 16002/16023)
-            { 24, "翼影培养" },                    // TrainWing ×1
+            // 24 TrainWing 已接真实入口(第 20 轮:DoTask → OutWardShellView type3,协议 16005)
             // 25 TrainPartner 已接真实入口(第 15 轮:DoTask → PartnerShellView,协议 14202/14205)
             { TIP_LV, "升级提醒(UpAlertView)" },   // LV ×57,老端 Fire(OPEN_UPALERT_VIEW);升级后服务端自动完成
             // 31 StrenSum 已接真实入口(第 18 轮:同 8 → EquipFlow 强化页)
             // 33 RuneNum 已接真实入口(第 19 轮:DoTask → RuneWearShellView,协议 16700/16701)
-            { 35, "排位赛" },                      // JoinJcc ×1
-            { 41, "神兵培养" },                    // TrainArtifact ×2
+            { 35, "排位赛(⚠服务端计数断链 mod_jjc_cast.erl:87)" }, // JoinJcc ×1
+            // 41 TrainHolyorgan 已接真实入口(第 20 轮:DoTask → OutWardShellView type5,协议 16005)
             { 48, "宝石强化" },                    // EquipStoneNum ×2
             { 50, "灵魄强化" },                    // RuneLvSum ×1
             // 54 Award_lv_gift 已接真实入口(第 17 轮:DoTask → RushGiftShellView,协议 41700/41701)
@@ -78,8 +78,8 @@ namespace Shenxiao.Module.Core.Tasks
             // 84 Suit_clt 已接真实入口(第 17 轮:DoTask → SuitCollectShellView,协议 15256/15257)
             // 89 ActiveSoap 已接真实入口(第 18 轮:DoTask → GuBaoShellView,协议 13320/13321)
             // 90 MountLevel 已接真实入口(第 17 轮:DoTask → OutWardShellView,协议 16028/16029)
-            { 91, "挂机奖励领取" },                // AfkReceiveTimes ×1
-            { 92, "圣器培养" },                    // ArtifactLevel ×1
+            // 91 AfkReceiveTimes 已接真实入口(第 20 轮:DoTask → OnHookShellView,协议 13216)
+            // 92 TrainArtifact(古法符相)已接真实入口(第 20 轮:DoTask → OutWardShellView type4,协议 16005)
             { 93, "橙装穿戴" },                    // DressOrangeEquip ×2
         };
 
@@ -483,10 +483,12 @@ namespace Shenxiao.Module.Core.Tasks
 
             // 3.5) 已接真实入口的「开系统面板」类(对标老端各 case 开对应面板;壳=TEMP,数据全真):
             if (task.TaskTipsType == TIP_TRAIN_PARTNER) { Partner.PartnerShellView.Show(); return; }             // 100190 同修阶星(pt_142)
-            if (task.TaskTipsType == TIP_TRAIN_MOUNT || task.TaskTipsType == TIP_MOUNT_LEVEL)
+            if (task.TaskTipsType == TIP_TRAIN_MOUNT || task.TaskTipsType == TIP_MOUNT_LEVEL
+                || task.TaskTipsType == 24 || task.TaskTipsType == 92 || task.TaskTipsType == 41)
             {
-                OutWard.OutWardShellView.Show(); return;                                                          // 100330 坐骑阶星 / 100521·100901 等级线(pt_160)
+                OutWard.OutWardShellView.Show(); return;   // 坐骑/同修阶星·等级 + 翼影24/圣器92/神兵41(16005 通用升星,第20轮)
             }
+            if (task.TaskTipsType == 91) { OnHook.OnHookShellView.Show(); return; }                               // 101211 挂机收益(13216)
             if (task.TaskTipsType == TIP_SUIT_CLT) { SuitCollect.SuitCollectShellView.Show(); return; }           // 100391 套装收集(15256/57)
             if (task.TaskTipsType == TIP_AWARD_LV_GIFT) { RushGift.RushGiftShellView.Show(); return; }            // 100420 冲级豪礼(41700/01)
             if (task.TaskTipsType == TIP_STREN_EQUIP || task.TaskTipsType == TIP_STREN_SUM)
