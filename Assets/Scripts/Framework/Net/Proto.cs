@@ -292,6 +292,11 @@ namespace Shenxiao.Framework.Net
         /// 获得展示 flow 未移植)。回包:pos:h + goods_list[u16 × {goods_id:l, goods_num:i, type_id:i}]。</summary>
         public const int GOODS_NUM_UPDATE = 15018;
 
+        /// <summary>出售物品(对标 GoodsController.OnSellGoodsHandler:WriteBegin(15021) + h count + 逐项 l goods_id/i num)。
+        /// 回包(ClientProtocol.json "15021"):res:i + type_id_list[u16 × {type_id:i, num:i}];res==1「出售成功」,
+        /// 否则老端走 Util.ErrorCodeShow 错误码表(未移植 → 显码降级)。数量变化随 15018 推送。</summary>
+        public const int SELL_GOODS = 15021;
+
         /// <summary>使用背包物品(GoodsController.ts UseHandler:USE_BAG_GOODS → SendFmtToGame(15050,"li",goods_id,number))。
         /// 发 "li"(goods_id:l, num:i);回包(ClientProtocol.json "15050"):res:i, args:s, goods_id:l, goods_type_id:i,
         /// goods_num:i, hp:i, num:i, show_goods[u16 × {gid:l, type:c, goodid:i, gnum:i}]。

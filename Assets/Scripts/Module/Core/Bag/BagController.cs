@@ -32,6 +32,7 @@ namespace Shenxiao.Module.Core.Bag
             RegisterProtocal(Proto.SPECIAL_SCORE_UPDATE, On15008);
             RegisterProtocal(Proto.SPECIAL_SCORE_LIST, On15009);
             RegisterProtocal(Proto.USE_GOODS, On15050);
+            RegisterProtocal(Proto.SELL_GOODS, On15021);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
@@ -90,6 +91,34 @@ namespace Shenxiao.Module.Core.Bag
             GameLog.Info("Bag", "15018 bag num delta: goods={0} bagCount={1} remaining={2}B",
                 list.Count, BagModel.Instance.BagGoodsList.Count, r.Remaining);
             EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
+        }
+
+        /// <summary>出售物品(对标 OnSellGoodsHandler:15021 = h count + 逐项 l goods_id/i num)。
+        /// 协议备货:SellView 未移植,暂无 UI 入口(老端出售按钮开 SellView 选量,不直发);数量变化由 15018 推送刷新。</summary>
+        public void SellGoods(IReadOnlyList<(long goodsId, int num)> list)
+        {
+            if (list == null || list.Count == 0) return;
+            var fmt = new System.Text.StringBuilder("h");
+            var args = new List<object>(1 + list.Count * 2) { list.Count };
+            foreach ((long goodsId, int num) it in list)
+            {
+                fmt.Append("li");
+                args.Add(it.goodsId);
+                args.Add(it.num);
+            }
+            SendFmt(Proto.SELL_GOODS, fmt.ToString(), args.ToArray());
+            GameLog.Info("Bag", "sell 15021 items={0}", list.Count);
+        }
+
+        /// <summary>15021 出售结果(对标 On15021:res==1「出售成功」;失败老端 Util.ErrorCodeShow 错误码表未移植 → 显码)。
+        /// type_id_list(出售所得预览)老端未消费,按序读完。</summary>
+        private void On15021(NetReader r)
+        {
+            int res = (int)r.ReadU32();
+            List<(int typeId, long num)> gains = r.ReadArray(rr => ((int)rr.ReadU32(), (long)rr.ReadU32()));
+            GameLog.Info("Bag", "15021 res={0} gains={1} remaining={2}B", res, gains.Count, r.Remaining);
+            if (res == 1) TipsManager.Toast("出售成功");
+            else TipsManager.Toast("出售失败(" + res + ")");   // 错误码表(Util.ErrorCodeShow)未移植,显码降级
         }
 
         /// <summary>15008 特殊积分单条(对标 On15008 → UpdateSpecialScore + UPDATE_SPECIAL_SCORE 事件)。</summary>

@@ -51,6 +51,12 @@ namespace Shenxiao.EditorTools
             Run(() => Task.FromResult(ProtoDeltaCase()), 60.0);
         }
 
+        /// <summary>P1(13轮)实证:TipsManager.Toast 浮动条渲染(多条顶推)+ 生命周期消亡。</summary>
+        public static void RenderToast()
+        {
+            Run(RenderToastAsync, 240.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -59,9 +65,10 @@ namespace Shenxiao.EditorTools
                 int p = ProtoDeltaCase();
                 int a = await RenderTaskFinishAsync();
                 int b = await RenderItemTipsAsync();
-                Debug.Log("CLIVERIFY ALL protoDelta=" + p + " taskfinish=" + a + " itemtips=" + b);
-                return p != 0 ? p : (a != 0 ? a : b);
-            }, 480.0);
+                int c = await RenderToastAsync();
+                Debug.Log("CLIVERIFY ALL protoDelta=" + p + " taskfinish=" + a + " itemtips=" + b + " toast=" + c);
+                return p != 0 ? p : (a != 0 ? a : (b != 0 ? b : c));
+            }, 540.0);
         }
 
         // ---- 渲染用例 ----
@@ -174,6 +181,49 @@ namespace Shenxiao.EditorTools
             }
         }
 
+        private static async Task<int> RenderToastAsync()
+        {
+            Stage stage = Stage.Create();
+            try
+            {
+                Shenxiao.Common.Tips.TipsManager.Toast("使用成功");
+                Shenxiao.Common.Tips.TipsManager.Toast("获得V1体验卡x1");
+                await Task.Delay(400);   // 两条均已入场、未淡出
+
+                int live = 0;
+                bool textOk = true;
+                foreach (TMP_Text t in stage.CanvasRoot.GetComponentsInChildren<TMP_Text>(false))
+                {
+                    if (t.gameObject.name != "Toast") continue;
+                    live++;
+                    if (string.IsNullOrEmpty(t.text)) textOk = false;
+                }
+                stage.ForceCjkFont();
+                string png = stage.Capture("Temp/round13_toast.png");
+                Debug.Log("CLIVERIFY toast live=" + live + " textOk=" + textOk + " shot=" + png);
+
+                // 生命周期:轮询到全部消亡(编辑期 tick 慢,给足余量)
+                double deadline = EditorApplication.timeSinceStartup + 30.0;
+                int remain = live;
+                while (EditorApplication.timeSinceStartup < deadline)
+                {
+                    remain = 0;
+                    foreach (TMP_Text t in stage.CanvasRoot.GetComponentsInChildren<TMP_Text>(false))
+                        if (t.gameObject.name == "Toast") remain++;
+                    if (remain == 0) break;
+                    await Task.Delay(300);
+                }
+                Debug.Log("CLIVERIFY toast expiredRemain=" + remain);
+
+                bool pass = live == 2 && textOk && remain == 0;
+                return pass ? 0 : 3;
+            }
+            finally
+            {
+                stage.Dispose();
+            }
+        }
+
         // ---- 协议增量用例(合成包驱动) ----
 
         private static int ProtoDeltaCase()
@@ -215,10 +265,15 @@ namespace Shenxiao.EditorTools
             Feed(m17, Goods17(1, 9002, 520100, 3));
             bool skip = bag.BagGoodsList.Count == 0;
 
+            // 15021 出售回包读序烟测(res=1 + 1 项所得;UI 层未起 → toast 走 log-only,不炸即过)
+            System.Reflection.MethodInfo m21 = ctrl.GetType().GetMethod("On15021", F);
+            bool sell = m21 != null;
+            if (sell) Feed(m21, new Pkt().I(1).H(1).I(520100).I(3).Bytes());
+
             Debug.Log("CLIVERIFY proto delta add=" + add + " chg=" + chg + " del=" + del
-                + " score=" + score + " scoreList=" + scoreList + " skipPos=" + skip);
+                + " score=" + score + " scoreList=" + scoreList + " skipPos=" + skip + " sell21=" + sell);
             bag.Clear();
-            return (add && chg && del && score && scoreList && skip) ? 0 : 3;
+            return (add && chg && del && score && scoreList && skip && sell) ? 0 : 3;
         }
 
         /// <summary>15017 包:pos:h + 1 项全字段(字段序照 ClientProtocol.json "15010"/"15017",嵌套数组计数 0)。</summary>

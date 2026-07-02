@@ -997,3 +997,32 @@ Shenxiao.EditorTools.CliVerify.RenderAll -logFile Temp/x.log`(勿加 -nographics
 CongratulationView/config_gift_box、BatchUseView、SellView(15021 协议未备)未移植。
 
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第13轮.md`。
+
+## 主线竖切 第 13 轮(2026-07-02):Toast 视觉化(玩家可见反馈闭环)+ 出售 15021 协议备货
+
+**P0 基线**:worktree 干净;第 12 轮锚点在;dotnet 0 错;无交互 Unity/MCP(活服往返继续 blocker)。
+
+**P1 Toast 视觉化(对标老端 sysInfo 链:Message.show → APPEND_MSG → SysInfoType.MINI → SysInfoMiniMgr 滚动条)**:
+- `TipsManager`(Common 层,已依赖 Framework)从 log-only 升级:Toast/Float → `UILayer.Tip` 层浮动文字条,
+  多条向上顶推(LineGap 46px)、同屏上限 5(超出顶掉最旧)、~2.2s 上浮渐隐(后 40% 淡出);
+  UI 层未 Init(headless/启动早期)自动退回 log-only,且始终写 GameLog(供 CLI 断言)。
+- 字体复用场景已开文本的 TMP 字体(同 ItemTipsView.ApplyFont 约定);编辑期 deltaTime==0 按 tick 兜底、
+  编辑期销毁走 DestroyImmediate(同 ResManager 修法)。样式从简(红线:逻辑代码不精修样式)。
+- **Confirm 仍是 Phase 0 壳(log + 直接 onYes)**——老端 Alert.Show 双按钮未移植;tips「批量使用先用 1 个」
+  的 Confirm 因此当前=自动确认,已在注释/文档明示(候选下轮)。
+- 至此第 11 轮使用物品链的「使用成功」「获得X」toast 玩家可见。
+
+**P3 出售 15021 协议备货(对标 OnSellGoodsHandler/On15021)**:
+- `Proto.SELL_GOODS=15021`;`BagController.SellGoods(list)`(动态 fmt "h"+n×"li",对标 WriteBegin+WriteFMT 循环);
+  `On15021`(res:i + type_id_list[u16×{type_id:i,num:i}] 按序读完;res==1「出售成功」toast,
+  失败显码降级——老端 Util.ErrorCodeShow 错误码表未移植,候选后轮)。
+- SellView 未移植 → 无 UI 入口(老端出售按钮开 SellView 选量,不直发),纯协议层备货;数量变化由 15018 刷新。
+
+**验证**:dotnet 0 错;CLI RenderAll 四用例全绿(EXIT 0):protoDelta(新增 15021 回包读序烟测)+
+货币图标格 4/4 回归 + tips 使用按钮回归 + **toast 用例**(2 条入场 live=2/textOk → 生命周期后 expiredRemain=0),
+截图 `Temp/round13_toast.png`(「使用成功」/「获得V1体验卡x1」纵排,CJK 正常)。
+
+**本轮 blocker(诚实声明)**:活服往返(无交互 Unity/MCP);Confirm 视觉确认框未移植(自动 onYes 语义);
+错误码表未移植(失败显码);CongratulationView/config_gift_box、BatchUseView、SellView 未移植。
+
+**下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第14轮.md`(回归主线本体:DoTask 类型覆盖)。
