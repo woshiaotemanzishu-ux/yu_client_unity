@@ -66,6 +66,12 @@ namespace Shenxiao.Module.Core.Rune
             slot.GoodsTypeId = newGoodsTypeId;
         }
 
+        /// <summary>16702 强化成功回包套值(对标 On16702 code==1 分支):消耗后的 rune_point(符文经验)。</summary>
+        public void ApplyRunePoint(int runePoint)
+        {
+            RunePoint = runePoint;
+        }
+
         /// <summary>符文背包落库(15010 pos==rune_bag 的 goods_list;经 BagController 例外分支转存,见该文件第19轮工单注释)。</summary>
         public void SetRuneBag(List<BagGoodsVo> list)
         {

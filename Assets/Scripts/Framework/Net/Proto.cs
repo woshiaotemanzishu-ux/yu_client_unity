@@ -447,5 +447,25 @@ namespace Shenxiao.Framework.Net
         public const int SURPRISE_GIFT_BUY = 49003;
         /// <summary>刷新推送(S2C)。次数:i×3 + DayTaskList[h+{TaskId:c,State:c}×N]。</summary>
         public const int SURPRISE_GIFT_REFRESH = 49004;
+
+        // ----- 收尾三件套(第20轮工单;详见 Docs/工单-收尾三件套.md) -----
+        /// <summary>灵魄强化(发 "l" goods_id 已穿戴符文实例;回包 code:i, rune_point:i, goods_id:l;
+        /// code==1 成功 → 消耗 rune_point 更新,随后再拉一次 16700 刷新)。解主线 101525(ctype50)。</summary>
+        public const int RUNE_UPGRADE = 16702;
+        /// <summary>神装合成(通用装备合成 COMPOSE_EQUIP type=2;对标 CompositeController.ts:107 WriteBegin(15020):
+        /// 发 "i" rule_id + "h"+n×"l" regular_glist(固定材料) + "h"+m×"l" specify_glist(指定材料);
+        /// 回包 code:i, compose_type:c, rule_id:i, goods_id:l;code==1 成功)。解主线 101725(ctype73)。</summary>
+        public const int GOODS_COMPOSE = 15020;
+        /// <summary>排位赛(竞技场)页面信息(请求无参;回包 rank:i, history_rank:i, reward_rank:i, combat:l, hp:i,
+        /// num:h, num_refresh:i, honour:i, is_reward:c, pet_id:i, break_id_list[u16×{break_id:i}])。
+        /// ⚠服务端计数断链(mod_jjc_cast.erl:87),挑战不推进主线 101465(ctype35)任务,待服务端修复。</summary>
+        public const int JJC_INFO = 28001;
+        /// <summary>排位赛随机对手(请求无参;回包 role_list[u16×{rank:i, role_id:l, combat:l, hp:i, pet_id:i,
+        /// figure:RecFigure}])。</summary>
+        public const int JJC_RIVALS = 28002;
+        /// <summary>排位赛挑战(发 "ilic" selfRank, rivalId, rivalRank, challengeType=0;回包
+        /// role_list[u16×{role_id:l, figure:RecFigure, before_rank:h, rank:h, combat:l}], result:c,
+        /// reward_list[u16×{type:c, type_id:i, num:l}], break_reward_list:ObjectList)。</summary>
+        public const int JJC_CHALLENGE = 28003;
     }
 }

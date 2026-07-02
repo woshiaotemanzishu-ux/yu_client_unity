@@ -68,23 +68,30 @@ namespace Shenxiao.Module.Core.Rune
             TextMeshProUGUI slotLabel = NewText("Label", slotRow.transform, 24, TextAlignmentOptions.MidlineLeft);
             var slotLrt = slotLabel.rectTransform;
             slotLrt.anchorMin = new Vector2(0f, 0f); slotLrt.anchorMax = new Vector2(1f, 1f);
-            slotLrt.offsetMin = new Vector2(16f, 0f); slotLrt.offsetMax = new Vector2(-16f, 0f);
 
             RuneModel.SlotVo slot1 = model.HasData ? model.GetSlot(WEAR_POS) : null;
             if (!model.HasData)
             {
+                slotLrt.offsetMin = new Vector2(16f, 0f); slotLrt.offsetMax = new Vector2(-16f, 0f);
                 slotLabel.text = "等待 16700/15010(需活服)";
                 slotLabel.color = new Color(0.65f, 0.72f, 0.85f);
             }
             else if (slot1 == null || !slot1.IsWorn)
             {
+                slotLrt.offsetMin = new Vector2(16f, 0f); slotLrt.offsetMax = new Vector2(-16f, 0f);
                 slotLabel.text = "槽位1:<color=#8893a6>未镶嵌</color>" + (slot1 != null && !slot1.IfOpen ? "(未开放)" : "");
                 slotLabel.color = Color.white;
             }
             else
             {
+                // 已镶嵌:让出右侧空间挂[强化]按钮(对标工单「已镶嵌槽位行加[强化]按钮」)。
+                slotLrt.offsetMin = new Vector2(16f, 0f); slotLrt.offsetMax = new Vector2(-160f, 0f);
                 slotLabel.text = "槽位1:<color=#ffe222>已镶嵌 " + GoodsModel.GetGoodsName(slot1.GoodsTypeId) + "</color>";
                 slotLabel.color = Color.white;
+
+                long wornGoodsId = slot1.GoodsId;
+                NewButton(slotRow.transform, "强化", -80f, new Color(0.42f, 0.33f, 0.18f),
+                    () => RuneController.Instance.Upgrade(wornGoodsId));
             }
 
             // 符文背包列表前 6 件

@@ -67,6 +67,10 @@ namespace Shenxiao.Framework.Event
         public const string EVT_RUNE_UPDATE = "EVT_RUNE_UPDATE";
         /// <summary>结社数据变动(40001 列表/40003 申请/40004 创建回包)。</summary>
         public const string EVT_GUILD_UPDATE = "EVT_GUILD_UPDATE";
+        /// <summary>神装合成数据变动(15020 合成回包后)。收尾三件套(第20轮工单)。</summary>
+        public const string EVT_COMPOSE_UPDATE = "EVT_COMPOSE_UPDATE";
+        /// <summary>排位赛数据变动(28001 页面信息/28002 随机对手/28003 挑战回包后)。收尾三件套(第20轮工单)。</summary>
+        public const string EVT_JJC_UPDATE = "EVT_JJC_UPDATE";
 
         // ----- Role -----
         public const string EVT_ROLE_INFO_UPDATE = "EVT_ROLE_INFO_UPDATE";

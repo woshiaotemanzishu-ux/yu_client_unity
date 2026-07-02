@@ -28,6 +28,7 @@ namespace Shenxiao.Module.Core.Rune
         {
             RegisterProtocal(Proto.RUNE_INFO, On16700);
             RegisterProtocal(Proto.RUNE_WEAR, On16701);
+            RegisterProtocal(Proto.RUNE_UPGRADE, On16702);
         }
 
         public override void Dispose()
@@ -56,6 +57,14 @@ namespace Shenxiao.Module.Core.Rune
             if (posId <= 0 || goodsId <= 0) return;
             SendFmt(Proto.RUNE_WEAR, "cl", posId, goodsId);
             GameLog.Info("Rune", "wear 16701 pos_id={0} goods_id={1}", posId, goodsId);
+        }
+
+        /// <summary>灵魄强化(发 "l" goods_id 已穿戴符文实例;解主线 101525 ctype50「御魂总等级达3」)。</summary>
+        public void Upgrade(long goodsId)
+        {
+            if (goodsId <= 0) return;
+            SendFmt(Proto.RUNE_UPGRADE, "l", goodsId);
+            GameLog.Info("Rune", "upgrade 16702 goods_id={0}", goodsId);
         }
 
         /// <summary>16700 全量:rune_point:i, rune_chip:i, skill_lv:h, rune_list[u16×单项], rune_sum_power:l。</summary>
@@ -96,6 +105,30 @@ namespace Shenxiao.Module.Core.Rune
             EventDispatcher.Emit(GlobalEvent.EVT_RUNE_UPDATE);
 
             RequestInfo();   // 镶嵌后再拉一次全量刷新(对标老端镶嵌成功后刷面板)
+        }
+
+        /// <summary>16702 强化结果:code:i, rune_point:i, goods_id:l。code==1 成功 → 更新 RunePoint(符文经验,
+        /// 镶嵌溢出自然产生)+ 再拉一次 16700 刷新(服务端随后自动触发 rune_lv 事件驱动 ctype49/50 判定)。
+        /// code!=1(常见=经验不足)显码降级(err167,Util.ErrorCodeShow 未移植)。</summary>
+        private void On16702(NetReader r)
+        {
+            int code = (int)r.ReadU32();       // code:i
+            int runePoint = (int)r.ReadU32();  // rune_point:i
+            long goodsId = r.ReadU64();        // goods_id:l
+
+            if (code != 1)
+            {
+                TipsManager.Toast("强化失败(" + code + ")");   // 错误码表(Util.ErrorCodeShow)未移植,显码降级(常见:经验不足 err167)
+                GameLog.Info("Rune", "16702 upgrade fail code={0} goods_id={1}", code, goodsId);
+                return;
+            }
+
+            RuneModel.Instance.ApplyRunePoint(runePoint);
+            TipsManager.Toast("强化成功");
+            GameLog.Info("Rune", "16702 upgrade ok rune_point={0} goods_id={1} remaining={2}B", runePoint, goodsId, r.Remaining);
+            EventDispatcher.Emit(GlobalEvent.EVT_RUNE_UPDATE);
+
+            RequestInfo();   // 强化后再拉一次全量刷新(对标既有镶嵌成功后刷面板约定)
         }
 
         /// <summary>读 16700 rune_list 单项:pos_id:c, if_open:c, goods_id:l, goods_type_id:i, color:c, lv:h, attr_list[u16×6项]。</summary>
