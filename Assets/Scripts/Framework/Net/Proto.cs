@@ -275,6 +275,23 @@ namespace Shenxiao.Framework.Net
         /// 显示只取 type_id/goods_num/color/cell,但每项须按序读完(含 3 嵌套数组)否则错位。每个回包对应一个 pos。</summary>
         public const int GOODS_CONTAINER_INFO = 15010;
 
+        /// <summary>特殊积分单条变动(对标 GoodsController.On15008 → GoodsModel.UpdateSpecialScore)。
+        /// 回包:currency_id:i, num:i。主货币金/铜走 13xxx,不在此。</summary>
+        public const int SPECIAL_SCORE_UPDATE = 15008;
+
+        /// <summary>特殊积分全量(对标 On15009 → CreateSpecialScoreList 清空重建)。
+        /// 回包:currency_list[u16 × {currency_id:i, num:i}]。</summary>
+        public const int SPECIAL_SCORE_LIST = 15009;
+
+        /// <summary>物品容器增量·全字段(对标 GoodsController.On15017:pos==bag → 逐项 UpdateBagGoods
+        /// num&lt;=0 删/有则替换/新增;pos==equip → UpdateEquipGoods 未移植)。
+        /// 回包:pos:h + goods_list[u16 × 同 15010 单项 schema(含 3 嵌套数组)]。</summary>
+        public const int GOODS_LIST_UPDATE = 15017;
+
+        /// <summary>物品容器增量·数量(使用/出售等数量变化;对标 On15018,另有 TRY_SHOW_ITEM_USE_VIEW
+        /// 获得展示 flow 未移植)。回包:pos:h + goods_list[u16 × {goods_id:l, goods_num:i, type_id:i}]。</summary>
+        public const int GOODS_NUM_UPDATE = 15018;
+
         /// <summary>使用背包物品(GoodsController.ts UseHandler:USE_BAG_GOODS → SendFmtToGame(15050,"li",goods_id,number))。
         /// 发 "li"(goods_id:l, num:i);回包(ClientProtocol.json "15050"):res:i, args:s, goods_id:l, goods_type_id:i,
         /// goods_num:i, hp:i, num:i, show_goods[u16 × {gid:l, type:c, goodid:i, gnum:i}]。

@@ -31,6 +31,10 @@ namespace Shenxiao.Module.Core.Bag
         /// <summary>是否已收到过满背包 15010(未收到 = 无真实数据,只能空铺或显 blocker)。</summary>
         public bool HasData { get; private set; }
 
+        /// <summary>特殊积分/代币(15008/15009,对标 GoodsModel.special_score_dic_:currency_id → num;
+        /// 主货币 金/铜 走 13xxx 落 RoleModel,不在此)。</summary>
+        public readonly Dictionary<int, long> SpecialScores = new Dictionary<int, long>();
+
         /// <summary>满背包全量(对标 GoodsModel.CreateBagList:ResetBagData 清空 + 逐项装入)。</summary>
         public void SetBagFull(int cellNum, int maxCell, List<BagGoods> goods)
         {
@@ -41,10 +45,54 @@ namespace Shenxiao.Module.Core.Bag
             HasData = true;
         }
 
+        /// <summary>
+        /// 单件全字段增量(15017,对标 GoodsModel.UpdateBagGoods):已有 → num&lt;=0 删、否则整项替换
+        /// (对标 CopyGoodsVo,15017 项为全字段);没有且 num&gt;0 → 追加(对标 AddGoodsToBag)。
+        /// </summary>
+        public void Upsert(BagGoods vo)
+        {
+            if (vo == null) return;
+            int idx = BagGoodsList.FindIndex(g => g.GoodsId == vo.GoodsId);
+            if (idx >= 0)
+            {
+                if (vo.GoodsNum <= 0) BagGoodsList.RemoveAt(idx);
+                else BagGoodsList[idx] = vo;
+            }
+            else if (vo.GoodsNum > 0)
+            {
+                BagGoodsList.Add(vo);
+            }
+        }
+
+        /// <summary>
+        /// 数量增量(15018 {goods_id,goods_num,type_id},对标 UpdateBagGoods 的最小面):已有 → num&lt;=0 删、
+        /// 否则仅改数量;没有且 num&gt;0 → 以最小字段新建兜底(新物品正常走 15017 全字段)。
+        /// </summary>
+        public void UpdateNum(long goodsId, int typeId, long num)
+        {
+            int idx = BagGoodsList.FindIndex(g => g.GoodsId == goodsId);
+            if (idx >= 0)
+            {
+                if (num <= 0) BagGoodsList.RemoveAt(idx);
+                else BagGoodsList[idx].GoodsNum = num;
+            }
+            else if (num > 0)
+            {
+                BagGoodsList.Add(new BagGoods { GoodsId = goodsId, TypeId = typeId, GoodsNum = num });
+            }
+        }
+
+        /// <summary>取特殊积分(对标 GoodsModel.GetSpecialScore;无则 0)。</summary>
+        public long GetSpecialScore(int currencyId)
+        {
+            return SpecialScores.TryGetValue(currencyId, out long v) ? v : 0;
+        }
+
         /// <summary>断线/登出清空(对标 ResetBagData)。</summary>
         public void Clear()
         {
             BagGoodsList.Clear();
+            SpecialScores.Clear();
             MaxCell = 0;
             CellNum = 0;
             HasData = false;

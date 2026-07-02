@@ -40,6 +40,9 @@ namespace Shenxiao.Framework.Event
         /// <summary>使用物品成功(参数: int goods_type_id)。对标老端 GoodsModel.USE_BAG_GOODS_SUCCESS
         /// (On15050 res==1 时 Fire;CongratulationObtainView 等据此刷新)。BagController.On15050 发。</summary>
         public const string EVT_GOODS_USE_SUCCESS = "EVT_GOODS_USE_SUCCESS";
+        /// <summary>特殊积分变动(参数: int currency_id;15009 全量重建时为 0)。对标老端
+        /// UPDATE_SPECIAL_SCORE / CREATE_SPECIAL_SCORE_FINISH。BagController.On15008/On15009 发。</summary>
+        public const string EVT_SPECIAL_SCORE_UPDATE = "EVT_SPECIAL_SCORE_UPDATE";
 
         // ----- Role -----
         public const string EVT_ROLE_INFO_UPDATE = "EVT_ROLE_INFO_UPDATE";

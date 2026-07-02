@@ -44,16 +44,24 @@ namespace Shenxiao.EditorTools
             Run(RenderItemTipsAsync, 240.0);
         }
 
-        /// <summary>全部渲染用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
+        /// <summary>P1 实证:背包增量协议 15017/15018/15008/15009 —— 按 ClientProtocol.json 手工组大端合成包,
+        /// 反射调 BagController 私有 handler,断言 BagModel 增/改/删/积分语义(纯逻辑,不渲染)。</summary>
+        public static void ProtoDelta()
+        {
+            Run(() => Task.FromResult(ProtoDeltaCase()), 60.0);
+        }
+
+        /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
             Run(async () =>
             {
+                int p = ProtoDeltaCase();
                 int a = await RenderTaskFinishAsync();
                 int b = await RenderItemTipsAsync();
-                Debug.Log("CLIVERIFY ALL taskfinish=" + a + " itemtips=" + b);
-                return a != 0 ? a : b;
-            }, 420.0);
+                Debug.Log("CLIVERIFY ALL protoDelta=" + p + " taskfinish=" + a + " itemtips=" + b);
+                return p != 0 ? p : (a != 0 ? a : b);
+            }, 480.0);
         }
 
         // ---- 渲染用例 ----
@@ -164,6 +172,84 @@ namespace Shenxiao.EditorTools
             {
                 stage.Dispose();
             }
+        }
+
+        // ---- 协议增量用例(合成包驱动) ----
+
+        private static int ProtoDeltaCase()
+        {
+            var bag = Shenxiao.Module.Core.Bag.BagModel.Instance;
+            bag.Clear();
+            object ctrl = Shenxiao.Module.Core.Bag.BagController.Instance;
+            const System.Reflection.BindingFlags F =
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            System.Reflection.MethodInfo m17 = ctrl.GetType().GetMethod("On15017", F);
+            System.Reflection.MethodInfo m18 = ctrl.GetType().GetMethod("On15018", F);
+            System.Reflection.MethodInfo m08 = ctrl.GetType().GetMethod("On15008", F);
+            System.Reflection.MethodInfo m09 = ctrl.GetType().GetMethod("On15009", F);
+            if (m17 == null || m18 == null || m08 == null || m09 == null)
+            {
+                Debug.LogError("CLIVERIFY proto handlers missing (reflection)");
+                return 3;
+            }
+            void Feed(System.Reflection.MethodInfo m, byte[] pkt) =>
+                m.Invoke(ctrl, new object[] { new Shenxiao.Framework.Net.NetReader(pkt, 0, pkt.Length) });
+
+            // 15017 新增(全字段项,嵌套数组空)
+            Feed(m17, Goods17(4, 9001, 520100, 5));
+            bool add = bag.BagGoodsList.Count == 1 && bag.BagGoodsList[0].GoodsNum == 5
+                       && bag.BagGoodsList[0].TypeId == 520100 && bag.BagGoodsList[0].Cell == 7;
+            // 15018 数量 5→2
+            Feed(m18, Num18(4, 9001, 2, 520100));
+            bool chg = bag.BagGoodsList.Count == 1 && bag.BagGoodsList[0].GoodsNum == 2;
+            // 15018 num=0 删除
+            Feed(m18, Num18(4, 9001, 0, 520100));
+            bool del = bag.BagGoodsList.Count == 0;
+            // 15008 特殊积分单条
+            Feed(m08, new Pkt().I(1001).I(777).Bytes());
+            bool score = bag.GetSpecialScore(1001) == 777;
+            // 15009 全量重建(旧 777 应被清)
+            Feed(m09, new Pkt().H(2).I(1001).I(5).I(2002).I(9).Bytes());
+            bool scoreList = bag.SpecialScores.Count == 2 && bag.GetSpecialScore(1001) == 5 && bag.GetSpecialScore(2002) == 9;
+            // 15017 非背包 pos → 跳过不落
+            Feed(m17, Goods17(1, 9002, 520100, 3));
+            bool skip = bag.BagGoodsList.Count == 0;
+
+            Debug.Log("CLIVERIFY proto delta add=" + add + " chg=" + chg + " del=" + del
+                + " score=" + score + " scoreList=" + scoreList + " skipPos=" + skip);
+            bag.Clear();
+            return (add && chg && del && score && scoreList && skip) ? 0 : 3;
+        }
+
+        /// <summary>15017 包:pos:h + 1 项全字段(字段序照 ClientProtocol.json "15010"/"15017",嵌套数组计数 0)。</summary>
+        private static byte[] Goods17(int pos, long gid, int typeId, long num)
+        {
+            return new Pkt().H(pos).H(1)
+                .L(gid).I(typeId).C(0).H(7).I(num)      // goods_id/type_id/sub_pos/cell=7/goods_num
+                .C(0).C(0).C(0).C(0).C(3)               // bind/trade/sell/is_drop/color
+                .I(0).I(0).H(0).H(0).I(0).I(0)          // expire/combat/stren/level/rating/overall
+                .H(0)                                   // addition_attrlist[]
+                .H(0)                                   // equip_extra_attr[]
+                .C(0).C(0).I(0).C(0)                    // equipStage/equipStar/skill_id/skill_lv
+                .H(0)                                   // awake_list[]
+                .Bytes();
+        }
+
+        /// <summary>15018 包:pos:h + 1 项 {goods_id:l, goods_num:i, type_id:i}。</summary>
+        private static byte[] Num18(int pos, long gid, long num, int typeId)
+        {
+            return new Pkt().H(pos).H(1).L(gid).I(num).I(typeId).Bytes();
+        }
+
+        /// <summary>大端手工组包(与 NetReader 字节序一致:h=u16, i=u32, l=两个 u32 拼 64, c=u8)。</summary>
+        private sealed class Pkt
+        {
+            private readonly List<byte> _b = new List<byte>();
+            public Pkt C(int v) { _b.Add((byte)v); return this; }
+            public Pkt H(int v) { _b.Add((byte)(v >> 8)); _b.Add((byte)v); return this; }
+            public Pkt I(long v) { _b.Add((byte)(v >> 24)); _b.Add((byte)(v >> 16)); _b.Add((byte)(v >> 8)); _b.Add((byte)v); return this; }
+            public Pkt L(long v) { I((v >> 32) & 0xFFFFFFFF); I(v & 0xFFFFFFFF); return this; }
+            public byte[] Bytes() { return _b.ToArray(); }
         }
 
         private static Transform FindDeep(Transform root, string name)

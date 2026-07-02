@@ -27,6 +27,10 @@ namespace Shenxiao.Module.Core.Bag
         protected override void Register()
         {
             RegisterProtocal(Proto.GOODS_CONTAINER_INFO, On15010);
+            RegisterProtocal(Proto.GOODS_LIST_UPDATE, On15017);
+            RegisterProtocal(Proto.GOODS_NUM_UPDATE, On15018);
+            RegisterProtocal(Proto.SPECIAL_SCORE_UPDATE, On15008);
+            RegisterProtocal(Proto.SPECIAL_SCORE_LIST, On15009);
             RegisterProtocal(Proto.USE_GOODS, On15050);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
@@ -44,6 +48,69 @@ namespace Shenxiao.Module.Core.Bag
             await GoodsModel.EnsureLoaded();
             SendFmt(Proto.GOODS_CONTAINER_INFO, "h", BagModel.POS_BAG);
             GameLog.Info("Bag", "request 15010 bag pos={0}(对标 GoodsController GAME_START SendFmtToGame(15010,h,bag))", BagModel.POS_BAG);
+        }
+
+        /// <summary>
+        /// 15017 物品容器增量·全字段(对标 GoodsController.On15017)。pos:h + goods_list[u16 × 同 15010 单项 schema,
+        /// 复用 <see cref="ReadGoods"/>]。仅背包 pos 落 <see cref="BagModel.Upsert"/>(num&lt;=0 删/有则替换/新增);
+        /// equip 等其它 pos 老端走 UpdateEquipGoods(未移植)→ 按序读完跳过。
+        /// </summary>
+        private void On15017(NetReader r)
+        {
+            int pos = r.ReadU16();
+            List<BagGoods> list = r.ReadArray(ReadGoods);
+            if (pos != BagModel.POS_BAG)
+            {
+                GameLog.Debug("Bag", "15017 pos={0}(非背包,暂不接) goods={1} remaining={2}B", pos, list.Count, r.Remaining);
+                return;
+            }
+            foreach (BagGoods g in list) BagModel.Instance.Upsert(g);
+            GameLog.Info("Bag", "15017 bag delta: goods={0} bagCount={1} remaining={2}B",
+                list.Count, BagModel.Instance.BagGoodsList.Count, r.Remaining);
+            EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
+        }
+
+        /// <summary>
+        /// 15018 物品容器增量·数量(对标 GoodsController.On15018:使用/出售后数量变化)。
+        /// pos:h + goods_list[u16 × {goods_id:l, goods_num:i, type_id:i}] → <see cref="BagModel.UpdateNum"/>。
+        /// 老端此包还触发 TRY_SHOW_ITEM_USE_VIEW(获得物品展示 flow)——未移植,先只落数据 + EVT_BAG_UPDATE。
+        /// </summary>
+        private void On15018(NetReader r)
+        {
+            int pos = r.ReadU16();
+            List<(long goodsId, long num, int typeId)> list = r.ReadArray(rr =>
+                (rr.ReadU64(), (long)rr.ReadU32(), (int)rr.ReadU32()));
+            if (pos != BagModel.POS_BAG)
+            {
+                GameLog.Debug("Bag", "15018 pos={0}(非背包,暂不接) goods={1} remaining={2}B", pos, list.Count, r.Remaining);
+                return;
+            }
+            foreach ((long goodsId, long num, int typeId) it in list)
+                BagModel.Instance.UpdateNum(it.goodsId, it.typeId, it.num);
+            GameLog.Info("Bag", "15018 bag num delta: goods={0} bagCount={1} remaining={2}B",
+                list.Count, BagModel.Instance.BagGoodsList.Count, r.Remaining);
+            EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
+        }
+
+        /// <summary>15008 特殊积分单条(对标 On15008 → UpdateSpecialScore + UPDATE_SPECIAL_SCORE 事件)。</summary>
+        private void On15008(NetReader r)
+        {
+            int currencyId = (int)r.ReadU32();
+            long num = r.ReadU32();
+            long old = BagModel.Instance.GetSpecialScore(currencyId);
+            BagModel.Instance.SpecialScores[currencyId] = num;
+            GameLog.Info("Bag", "15008 special score: id={0} {1}→{2}", currencyId, old, num);
+            EventDispatcher.Emit(GlobalEvent.EVT_SPECIAL_SCORE_UPDATE, currencyId);
+        }
+
+        /// <summary>15009 特殊积分全量(对标 On15009 → CreateSpecialScoreList 清空重建 + CREATE_SPECIAL_SCORE_FINISH)。</summary>
+        private void On15009(NetReader r)
+        {
+            List<(int id, long num)> list = r.ReadArray(rr => ((int)rr.ReadU32(), (long)rr.ReadU32()));
+            BagModel.Instance.SpecialScores.Clear();
+            foreach ((int id, long num) it in list) BagModel.Instance.SpecialScores[it.id] = it.num;
+            GameLog.Info("Bag", "15009 special score list: {0} 条 remaining={1}B", list.Count, r.Remaining);
+            EventDispatcher.Emit(GlobalEvent.EVT_SPECIAL_SCORE_UPDATE, 0);
         }
 
         /// <summary>使用背包物品(对标 GoodsController.ts UseHandler:USE_BAG_GOODS → SendFmtToGame(15050,"li"))。

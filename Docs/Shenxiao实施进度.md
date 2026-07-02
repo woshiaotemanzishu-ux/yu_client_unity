@@ -968,3 +968,32 @@ Shenxiao.EditorTools.CliVerify.RenderAll -logFile Temp/x.log`(勿加 -nographics
 - CongratulationView/config_gift_box、BatchUseView 未移植(降级路径已明示)。
 
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第12轮.md`。
+
+## 主线竖切 第 12 轮(2026-07-02):背包增量协议闭环(15017/15018/15008/15009)+ 合成包实证
+
+**P0 基线**:worktree 干净;第 11 轮锚点 rg 命中;dotnet 0 错;无交互 Unity/MCP(活服往返 P2 继续 blocker)。
+
+**★任务包纠错(红线「以老端源码为准」的实证)**:第 12 轮任务包原写「15000 单件物品推送」——读老端源码后推翻:
+`On15000 → goodsModel.AddDynamic` 是**装备动态属性缓存**(dynamic_goods_dic_,洗炼评分等,供 GetDynamic/tips),不是背包内容;
+真正的背包增量是 **15017(全字段)/15018(数量)**(`On15017/On15018 → UpdateBagGoods`:num<=0 删/已有 CopyGoodsVo 替换/新增 AddGoodsToBag)。
+15008/15009 是**特殊积分**(special_score_dic_,currency_id→num;主货币金/铜走 13xxx)。
+
+**P1 背包增量协议(对标老端逐行)**:
+- `Proto`:GOODS_LIST_UPDATE=15017(pos:h + goods_list[u16×同 15010 单项 schema] → 复用 `BagController.ReadGoods`)、
+  GOODS_NUM_UPDATE=15018({goods_id:l,goods_num:i,type_id:i})、SPECIAL_SCORE_UPDATE=15008、SPECIAL_SCORE_LIST=15009。
+- `BagModel`:`Upsert`(对标 UpdateBagGoods:num<=0 删/有则整项替换/新增且 num>0 加)、`UpdateNum`(15018 最小面:仅改数量/删;
+  不存在且 num>0 以最小字段兜底新建)、`SpecialScores` 字典 + `GetSpecialScore`(Clear 时一并清)。
+- `BagController`:On15017/On15018(仅 pos==bag 落;equip 等其它 pos 按序读完跳过,老端 UpdateEquipGoods 未移植)
+  → EVT_BAG_UPDATE;On15008/On15009 → EVT_SPECIAL_SCORE_UPDATE(GlobalEvent 新增)。
+  15018 的 TRY_SHOW_ITEM_USE_VIEW(获得物品展示 flow)未移植,注释明示。
+- 至此「使用物品」闭环:15050 使用 → 服务端推 15017/15018 → BagModel 增删改 → EVT_BAG_UPDATE → 背包格刷新(待活服实跑验证)。
+
+**验证(CLI 合成包实证,新增 `CliVerify.ProtoDelta` 已入 RenderAll)**:按 ClientProtocol.json 手工组**大端**合成包 →
+反射调 BagController 私有 handler → 断言:15017 新增(cell=7/num=5 落位)、15018 改数量(5→2)、15018 num=0 删除、
+15008 单积分(1001→777)、15009 全量重建(清旧建 2 条)、15017 非背包 pos 跳过 —— 六项全 True。
+两渲染用例回归通过(货币图标格 4/4 + tips 使用按钮),CLIVERIFY EXIT 0。dotnet 0 错。
+
+**本轮 blocker(诚实声明)**:活服往返(无交互 Unity/MCP);Toast 仍 log-only(第 13 轮 P1);
+CongratulationView/config_gift_box、BatchUseView、SellView(15021 协议未备)未移植。
+
+**下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第13轮.md`。
