@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoBrush;
@@ -31,7 +32,43 @@ namespace Shenxiao.Module.Core.Tasks
         public const int TIP_START_TALK = 6;  // 开始对话(不可选)
         public const int TIP_END_TALK = 7;    // 结束对话(不可选)
         public const int TIP_PASS_MAIN_DUNGEON = 10;
+        public const int TIP_LV = 27;         // 到达等级(老端开 UpAlertView 升级提醒)
+        public const int TIP_WELCOME = 37;    // 进游戏欢迎(老端 case 为空 break,无动作)
         public const int TIP_COIN = 80;       // 上交铜钱
+
+        // —— 主线链实际出现、老端 DoTask 走「开对应系统面板/引导」而该面板未移植的类型 → 结构化降级
+        //(真实任务文案 toast + 精确 blocker 日志,不静默、不硬开空面板)。
+        // 权威来源:yu_server data_task.erl get_content 全量统计(主线 type=1,543 任务/606 显式步骤),
+        // 名称对照老端 TaskTipType 枚举(TaskModel.ts:52-243)。老端各 case 行为见 TaskModel.ts:797 switch。
+        private static readonly Dictionary<int, string> UNPORTED_TIP_SYSTEM = new Dictionary<int, string>
+        {
+            { 8,  "装备强化" },                    // StrenEquip
+            { 9,  "副本入口(DungeonEnterView)" },  // FinDunType ×9,老端 OPEN_VIEW DungeonEnterView/OpenFun 26
+            { 11, "副本入口(DungeonEnterView)" },  // FinDungeon
+            { 14, "结社加入" },                    // JoinGuild ×1
+            { 18, "装备熔炼" },                    // FusionEquip ×1
+            { 23, "坐骑培养" },                    // TrainMount ×3
+            { 24, "翼影培养" },                    // TrainWing ×1
+            { 25, "同修培养" },                    // TrainPartner ×2
+            { TIP_LV, "升级提醒(UpAlertView)" },   // LV ×57,老端 Fire(OPEN_UPALERT_VIEW);升级后服务端自动完成
+            { 31, "全身强化" },                    // StrenSum ×5
+            { 33, "灵魄镶嵌" },                    // RuneNum ×1
+            { 35, "排位赛" },                      // JoinJcc ×1
+            { 41, "神兵培养" },                    // TrainArtifact ×2
+            { 48, "宝石强化" },                    // EquipStoneNum ×2
+            { 50, "灵魄强化" },                    // RuneLvSum ×1
+            { 54, "等级礼包领取" },                // Award_lv_gift ×1
+            { 57, "副本关卡" },                    // Dungeon_level ×1
+            { 63, "大妖挑战" },                    // Kill_boss_id ×3
+            { 73, "神装合成" },                    // Red_equip_combine ×1
+            { 81, "功能模块开启" },                // Open_function ×1
+            { 84, "套装收集" },                    // Suit_clt ×2
+            { 89, "妖物激活" },                    // ActiveSoap ×2
+            { 90, "坐骑系统培养" },                // MountLevel ×5
+            { 91, "挂机奖励领取" },                // AfkReceiveTimes ×1
+            { 92, "圣器培养" },                    // ArtifactLevel ×1
+            { 93, "橙装穿戴" },                    // DressOrangeEquip ×2
+        };
 
         // 自动寻路到任务点的到达半径(逻辑格;复用老端接近 NPC 的 dist=2.5,到点后怪已在九宫格视野内)。
         private const float TaskPointArriveLogicDist = 2.5f;
@@ -424,11 +461,35 @@ namespace Shenxiao.Module.Core.Tasks
 
             if (task.TaskTipsType == TIP_PASS_MAIN_DUNGEON) { DoPassMainDungeonTask(task); return; }
 
-            // 3) 带场景坐标 → 寻路/切场景(对标 Kill/Collect/Item 等 case 的 pathfind / USE_FLY_SHOE)。
+            // 3) 欢迎类:老端 case Welcome 为空 break(无动作)。
+            if (task.TaskTipsType == TIP_WELCOME)
+            {
+                GameLog.Info("Task", "DoTask: Welcome(37) 无动作(对标老端空 case)");
+                return;
+            }
+
+            // 4) 主线出现的「开系统面板」类(面板未移植)→ 结构化降级,先于通用寻路
+            //(老端这些 case 不走坐标寻路:LV 开升级提醒、FinDunType 开副本入口等)。
+            if (UNPORTED_TIP_SYSTEM.ContainsKey(task.TaskTipsType)) { DoDegradeTask(task); return; }
+
+            // 5) 带场景坐标 → 寻路/切场景(对标 Kill/Collect/Item 等 case 的 pathfind / USE_FLY_SHOE)。
             if (task.SceneId > 0 && (task.SceneX > 0 || task.SceneY > 0)) { DoGotoSceneTask(task); return; }
 
-            GameLog.Warn("Task", "DoTask blocker: tipsType={0} 其余 case 未移植(对标 TaskModel.ts:797 switch 的 60+ case)。" +
-                "当前最小入口只覆盖 对话/完成/场景坐标 三类;其余(开背包/锻造/进副本等)按需逐 case 补。", task.TaskTipsType);
+            GameLog.Warn("Task", "DoTask blocker: tipsType={0} 未知类型(不在主线统计清单;对标 TaskModel.ts:797 switch 查行为后补)", task.TaskTipsType);
+        }
+
+        /// <summary>
+        /// 「开系统面板」类任务的结构化降级:目标面板/系统未移植 → 真实任务文案(config tips/name)+ 系统名 toast,
+        /// 精确 blocker 日志。玩家不落静默死路;等对应系统移植后逐个替换为真实入口(老端行为见 TaskModel.ts:797 对应 case)。
+        /// 注:此类任务多为「达成条件服务端自动完成」(升级/培养/穿戴),点击仅是引导入口,降级不阻断主线数据推进。
+        /// </summary>
+        private void DoDegradeTask(TaskVo task)
+        {
+            string sys = UNPORTED_TIP_SYSTEM[task.TaskTipsType];
+            string goal = string.IsNullOrEmpty(task.Tips) ? task.TaskName : task.Tips;
+            TipsManager.Toast(goal + "(" + sys + " 未移植)");
+            GameLog.Warn("Task", "DoTask degrade: id={0} tipsType={1} → {2} 未移植;老端行为=开对应面板/引导(TaskModel.ts:797)",
+                task.TaskId, task.TaskTipsType, sys);
         }
 
         /// <summary>

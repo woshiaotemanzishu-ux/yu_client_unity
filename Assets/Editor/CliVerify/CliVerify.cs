@@ -57,18 +57,62 @@ namespace Shenxiao.EditorTools
             Run(RenderToastAsync, 240.0);
         }
 
+        /// <summary>P1(14轮)实证:DoTask 主线类型覆盖——真实主线任务 + 服务端权威 tipsType,断言各分支日志走向。</summary>
+        public static void DoTaskCoverage()
+        {
+            Run(DoTaskCoverageAsync, 120.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
             Run(async () =>
             {
                 int p = ProtoDeltaCase();
+                int d = await DoTaskCoverageAsync();
                 int a = await RenderTaskFinishAsync();
                 int b = await RenderItemTipsAsync();
                 int c = await RenderToastAsync();
-                Debug.Log("CLIVERIFY ALL protoDelta=" + p + " taskfinish=" + a + " itemtips=" + b + " toast=" + c);
-                return p != 0 ? p : (a != 0 ? a : (b != 0 ? b : c));
-            }, 540.0);
+                Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " taskfinish=" + a + " itemtips=" + b + " toast=" + c);
+                int first = p != 0 ? p : (d != 0 ? d : (a != 0 ? a : (b != 0 ? b : c)));
+                return first;
+            }, 600.0);
+        }
+
+        private static async Task<int> DoTaskCoverageAsync()
+        {
+            await TaskConfigs.EnsureLoaded();
+            var logs = new List<string>();
+            Application.LogCallback cb = (msg, stack, type) => logs.Add(msg);
+            Application.logMessageReceived += cb;
+            try
+            {
+                // (真实主线任务 id, 服务端权威 tipsType(data_task.erl get_content), 期望分支日志)
+                (int taskId, int tips, string expect)[] cases =
+                {
+                    (100940, 27, "DoTask degrade"),   // LV 到达等级 → 升级提醒未移植降级
+                    (100980, 9,  "DoTask degrade"),   // FinDunType → 副本入口未移植降级
+                    (100330, 23, "DoTask degrade"),   // TrainMount → 坐骑培养未移植降级
+                    (100010, 37, "Welcome(37) 无动作"), // 对标老端空 case
+                    (999999, 99, "未知类型"),          // 不在主线清单 → 未知 blocker
+                };
+                bool all = true;
+                foreach ((int taskId, int tips, string expect) c in cases)
+                {
+                    logs.Clear();
+                    var vo = new TaskVo(c.taskId, c.tips, "", 0, 0, 1, 0, 1, 0, 0, 0, 0);
+                    vo.ApplyConfig(TaskConfigs.Get(c.taskId));
+                    TaskModel.Instance.DoTask(vo);
+                    bool hit = logs.Exists(l => l.Contains(c.expect));
+                    Debug.Log("CLIVERIFY dotask task=" + c.taskId + " tips=" + c.tips + " expect=[" + c.expect + "] hit=" + hit);
+                    if (!hit) all = false;
+                }
+                return all ? 0 : 3;
+            }
+            finally
+            {
+                Application.logMessageReceived -= cb;
+            }
         }
 
         // ---- 渲染用例 ----

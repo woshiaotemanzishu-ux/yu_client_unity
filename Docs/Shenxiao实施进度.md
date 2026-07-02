@@ -1026,3 +1026,32 @@ CongratulationView/config_gift_box、BatchUseView、SellView(15021 协议未备)
 错误码表未移植(失败显码);CongratulationView/config_gift_box、BatchUseView、SellView 未移植。
 
 **下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第14轮.md`(回归主线本体:DoTask 类型覆盖)。
+
+## 主线竖切 第 14 轮(2026-07-02):主线 DoTask 全类型覆盖 + 主线卡点路线图(24 系统按链序)
+
+**P0 基线**:worktree 干净;dotnet 0 错;无交互 Unity/MCP(活服往返继续 blocker)。
+
+**★侦察(本轮核心产出之一):tips_type 权威来源与主线分布**
+- `task_tips_type` 不在 config_task(35 列无此字段),由服务端按任务步骤下发:`pt_300.erl write(30001)` →
+  `pack_task_tip(#task_content.ctype)`;步骤模板在 **`data_task.erl get_content(TaskId,Stage,Cid)`**
+  (data_task.content=[{Stage,Cid}] 只是索引;玩家实例存 MySQL task_bag_content)。
+- 主线(type=1)543 任务/606 显式步骤 + 261 纯对话任务的 ctype 全量统计:骨干=Kill(1)×79/Collect(4)×45/
+  PassMainDungeon(10)×52(已接)+ **LV(27)×57、FinDunType(9)×9 未接** + 22 个低频未接类型(14/18/23/24/25/31/33/35/41/48/50/54/57/63/73/81/84/89/90/91/92/93)。
+- **`Docs/主线卡点路线图.md`(新)**:沿 prev/next 链自 100010 走 543 任务,列出 24 个未移植系统的首个卡点:
+  链序 #20 同修(100190)→ #34 坐骑(100330)→ #42 套装收集 → #46 等级礼包 → #64 功能开启 → #72 翼影 → #80 全身强化 → …
+  这即后续轮次的攻坚顺序(此类步骤条件依赖系统玩法,系统未移植新号会真实卡住)。
+
+**P1 DoTask 全类型覆盖(TaskModel)**:
+- 常量 TIP_LV=27/TIP_WELCOME=37 + `UNPORTED_TIP_SYSTEM` 26 系统映射(每项注老端枚举名/主线频次/老端 case 行为出处)。
+- DoTask 结构:对话/完成/主线副本(已有)→ Welcome no-op(对标老端空 case)→ **结构化降级**(先于通用寻路——
+  老端这些 case 不走坐标:LV 开升级提醒、FinDunType 开副本入口)→ 坐标寻路 → 未知类型兜底 Warn。
+- `DoDegradeTask`:真实任务文案(config tips/name)+ 系统名 toast + 精确 blocker 日志——玩家不落静默死路,
+  等对应系统移植后逐个替换真实入口。此类任务多为服务端条件自动完成,降级不阻断数据推进。
+
+**验证**:dotnet 0 错;CLI 新增 `DoTaskCoverage`(真实主线任务 id + 服务端权威 tipsType → 断言分支日志:
+LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);RenderAll 六用例 EXIT 0(其余回归无损)。
+
+**本轮 blocker(诚实声明)**:活服往返(无交互 Unity/MCP);降级映射的 26 个系统本体未移植(按路线图逐轮攻坚,
+第 15 轮起:同修 → 坐骑 → 套装收集 → …);LV 类的 UpAlertView、FinDunType 的 DungeonEnterView 未移植。
+
+**下一步价值最高**:见 `Docs/Claude任务包-主线竖切-第15轮.md`(P1=链序第一闸「剑魄同修」最小闭环)。
