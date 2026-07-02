@@ -44,6 +44,10 @@ namespace Shenxiao.Framework.Event
         /// UPDATE_SPECIAL_SCORE / CREATE_SPECIAL_SCORE_FINISH。BagController.On15008/On15009 发。</summary>
         public const string EVT_SPECIAL_SCORE_UPDATE = "EVT_SPECIAL_SCORE_UPDATE";
 
+        // ----- Partner(剑魄同修) -----
+        /// <summary>同修数据变动(14202 全量/14201 单个/14205 培养/14204 激活后)。对标老端 PartnerModel.UPDATE_VIEW。</summary>
+        public const string EVT_PARTNER_UPDATE = "EVT_PARTNER_UPDATE";
+
         // ----- Role -----
         public const string EVT_ROLE_INFO_UPDATE = "EVT_ROLE_INFO_UPDATE";
         /// <summary>主角全量(13001)到齐,可进主城/场景。GameEntryFlow 发。</summary>

@@ -32,6 +32,7 @@ namespace Shenxiao.Module.Core.Tasks
         public const int TIP_START_TALK = 6;  // 开始对话(不可选)
         public const int TIP_END_TALK = 7;    // 结束对话(不可选)
         public const int TIP_PASS_MAIN_DUNGEON = 10;
+        public const int TIP_TRAIN_PARTNER = 25; // 培养同修(id=阶,need_num=星;主线首闸 100190「1阶2星」→ PartnerShellView)
         public const int TIP_LV = 27;         // 到达等级(老端开 UpAlertView 升级提醒)
         public const int TIP_WELCOME = 37;    // 进游戏欢迎(老端 case 为空 break,无动作)
         public const int TIP_COIN = 80;       // 上交铜钱
@@ -49,7 +50,7 @@ namespace Shenxiao.Module.Core.Tasks
             { 18, "装备熔炼" },                    // FusionEquip ×1
             { 23, "坐骑培养" },                    // TrainMount ×3
             { 24, "翼影培养" },                    // TrainWing ×1
-            { 25, "同修培养" },                    // TrainPartner ×2
+            // 25 TrainPartner 已接真实入口(第 15 轮:DoTask → PartnerShellView,协议 14202/14205)
             { TIP_LV, "升级提醒(UpAlertView)" },   // LV ×57,老端 Fire(OPEN_UPALERT_VIEW);升级后服务端自动完成
             { 31, "全身强化" },                    // StrenSum ×5
             { 33, "灵魄镶嵌" },                    // RuneNum ×1
@@ -465,6 +466,13 @@ namespace Shenxiao.Module.Core.Tasks
             if (task.TaskTipsType == TIP_WELCOME)
             {
                 GameLog.Info("Task", "DoTask: Welcome(37) 无动作(对标老端空 case)");
+                return;
+            }
+
+            // 3.5) 培养同修(主线首闸 100190「1阶2星」)→ 同修壳(真实 14202 数据 + 培养 14205;对标老端开 Partner 面板)。
+            if (task.TaskTipsType == TIP_TRAIN_PARTNER)
+            {
+                Partner.PartnerShellView.Show();
                 return;
             }
 

@@ -303,6 +303,20 @@ namespace Shenxiao.Framework.Net
         /// res==1 使用成功(type==35 冷却物不弹「使用成功」);show_goods=礼包开出物品(经 GetMappingTypeId 还原展示)。</summary>
         public const int USE_GOODS = 15050;
 
+        // ----- 剑魄同修(142xx,yu_server pt_142.erl + pp_partner;老端 PartnerController.ts) -----
+        /// <summary>同修单个信息(请求发 "i" companion_id;推送/回包:sum_attr[u16×{attr_id:c,attr_val:i}],
+        /// companion_id:i, stage:h, star:h, is_active:c, blessing:i, train_num:i, attr[同上], combat:l, fight_id:i)。</summary>
+        public const int PARTNER_INFO = 14201;
+        /// <summary>同修全量列表(请求无参;回包:fight_id:i + sum_attr[] + companion_list[u16×{companion_id:i,
+        /// stage:h, star:h, biog_list[u16×{lv:c}], is_active:c, is_fight:c, figure_id:i, blessing:i, train_num:i,
+        /// attr[], combat:l}])。进游戏(EVT_GAME_START)请求。</summary>
+        public const int PARTNER_LIST = 14202;
+        /// <summary>激活同修(发 "i";回包 errcode:i, companion_id:i, combat:l;errcode==1 置激活)。</summary>
+        public const int PARTNER_ACTIVE = 14204;
+        /// <summary>培养同修(发 "i";回包 errcode:i, companion_id:i, stage:h, star:h, blessing:i;
+        /// 主线 100190 要求 1阶2星;消耗服务端结算,背包变化走 15017/15018)。</summary>
+        public const int PARTNER_TRAIN = 14205;
+
         // ----- 惊喜礼包(490xx,yu_server pt_490.erl) -----
         /// <summary>惊喜礼包信息。请求无参;回包见 pt_490 write(49000)。</summary>
         public const int SURPRISE_GIFT_INFO = 49000;

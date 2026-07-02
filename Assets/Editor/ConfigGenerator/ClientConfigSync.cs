@@ -52,6 +52,9 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_equip_attr", // 装备配置(type_id→{stage 阶/star 星/base_rating 评分/recommend_attr/other_attr}),装备 tips 基础属性用
             "config_skill",     // 技能总表(skill_id→{name/career/type/is_normal/lv_data});SkillConfigs 取技能名/等级图标(lv_data[lv-1].icon),21002 过滤合法技能
             "config_mon",       // 怪物配置(数字索引键 "1"=名/"10"=monster_res 模型资源/"11"=icon_scale 缩放),MonsterConfigs 取场景怪名牌/缩放(对标老端 Config.config_mon)
+            "config_companion",       // 剑魄同修本体(id→名/形象/解锁),PartnerModel 用(主线 100190 培养任务;对标老端 PartnerModel cfg)
+            "config_companion_stage", // 同修阶星配置(培养消耗/属性成长;对标 PartnerModel config_companion_stage)
+            "config_companion_kv",    // 同修杂项 kv(对标 PartnerModel cfg_kv)
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]
