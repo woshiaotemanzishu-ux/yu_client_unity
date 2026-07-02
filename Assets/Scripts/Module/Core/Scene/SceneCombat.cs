@@ -210,6 +210,31 @@ namespace Shenxiao.Module.Core.Scene
             return best;
         }
 
+        /// <summary>
+        /// 寻最近采集物(对标老端 Scene.GetNearestMonsterByTypeId,采集任务分支):IsCollect + 指定 type_id,
+        /// 按中心点像素距离平方取最近。可采性(CanCollect 冷却 / 占用)由服务端在 20008 回包校验,这里不预过滤
+        /// (与老端 GetNearestMonsterByTypeId 一致:先取怪,采集时服务端再裁决)。typeId&lt;=0 表示任意采集物。
+        /// </summary>
+        public MonsterVo FindNearestCollectMonster(int monsterTypeId, int centerX, int centerY)
+        {
+            MonsterVo best = null;
+            float bestDist2 = float.MaxValue;
+            foreach (MonsterVo vo in SceneManager.Instance.AllMonsters)
+            {
+                if (!vo.IsCollect) continue;
+                if (monsterTypeId > 0 && vo.TypeId != monsterTypeId) continue;
+                float dx = vo.X - centerX;
+                float dy = vo.Y - centerY;
+                float d2 = dx * dx + dy * dy;
+                if (d2 < bestDist2)
+                {
+                    bestDist2 = d2;
+                    best = vo;
+                }
+            }
+            return best;
+        }
+
         /// <summary>朝向目标怪(对标老端 main_role.SetDirection)。无 3D 主角(headless/未装配)则跳过,不报错。</summary>
         private static void FaceTarget(MonsterVo mon)
         {

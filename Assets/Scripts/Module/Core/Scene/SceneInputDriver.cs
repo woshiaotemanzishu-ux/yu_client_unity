@@ -131,8 +131,10 @@ namespace Shenxiao.Module.Core.Scene
 
             if (monster.IsCollect)
             {
-                GameLog.Warn("Scene", "click collect target ins={0} type={1}: collect protocol is not migrated yet",
-                    monster.InstanceId, monster.TypeId);
+                // 点采集物 → 接近并采集(对标老端 Scene.MainRoleAttackMonster 采集物分支 → OPEN_COLLECT_VIEW)。
+                GameLog.Info("Scene", "click collect target ins={0} type={1} → 接近并采集", monster.InstanceId, monster.TypeId);
+                SceneCombat.Instance.SetClickTarget(monster.InstanceId);
+                CollectController.Instance.CollectMonster(monster);
                 return true;
             }
 

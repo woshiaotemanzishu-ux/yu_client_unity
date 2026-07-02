@@ -302,7 +302,7 @@ namespace Shenxiao.Module.Core.Login
         public void EnterGameWithRole(long roleId, bool isNewCareer = false)
         {
             // 对标老客户端 cookie LAST_LOGIN_ROLE_ID:选角页下次默认选中它
-            Shenxiao.Common.Prefs.PrefsManager.SetString(LoginSelectRoleView.PREF_LAST_ROLE_ID, roleId.ToString());
+            Shenxiao.Common.Prefs.PrefsManager.SetString(RoleSelectView.PREF_LAST_ROLE_ID, roleId.ToString());
             Model.SetNewCareer(isNewCareer);
             _activeRoleId = roleId;
             if (!NetManager.IsConnected)

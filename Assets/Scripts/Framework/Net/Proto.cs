@@ -99,6 +99,10 @@ namespace Shenxiao.Framework.Net
         /// <summary>进/出战斗态(C2S)。对标 FightController.ts:889 SendFmtToGame(20024,"c",1/2):1=进战斗态 2=出战斗态。
         /// 老端由 CHANGE_FIGHTING_STATE 驱动(受 ConfigClientScene.fighting_state_invalidate 限制)。</summary>
         public const int CS_FIGHTING_STATE = 20024;
+        /// <summary>采集请求/回包(同号 C2S+S2C)。对标 FightController.ts:867 SendFmtToGame(20008,"iic",ins_id,type_id,flag)
+        /// + handler20008(ts:583)。发 "iic"(采集物实例 id, 采集物 type_id, flag:1=请求开始/2=请求完成/3=取消);
+        /// 回包 "c"(flag:1=开始成功 START→播蹲下采集动作+进度条、2=完成成功 COMPLETE→收尾删采集物、≥3=各类失败/取消)。</summary>
+        public const int CS_COLLECT = 20008;
 
         // ----- Task (300xx, yu_client h5/src/commonController/TaskController.ts) -----
         /// <summary>Task full list. Send empty; reply h + task list, then h + received task list.

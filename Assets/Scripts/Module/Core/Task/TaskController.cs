@@ -27,13 +27,18 @@ namespace Shenxiao.Module.Core.Tasks
             RegisterProtocal(Proto.CC_TASK_FINISH, On30004);
             RegisterProtocal(Proto.TASK_LATEST_FINISHED, On30005);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
+            EventDispatcher.On(GlobalEvent.EVT_COLLECT_ENDED, OnCollectEnded);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
+            EventDispatcher.Off(GlobalEvent.EVT_COLLECT_ENDED, OnCollectEnded);
             base.Dispose();
         }
+
+        // 采集非成功终止 → 让任务模型延时重试当前采集任务(对标老端 FindNextOne)。
+        private void OnCollectEnded() => TaskModel.Instance.OnCollectEnded();
 
         /// <summary>
         /// 提交完成任务(发 30004)。对标老端 TaskFinishView 的 Fire(REQUEST_CCMD_EVENT, 30004, task_id):
@@ -176,6 +181,7 @@ namespace Shenxiao.Module.Core.Tasks
             if (task == null
                 || (task.TaskTipsType != TaskModel.TIP_KILL
                     && task.TaskTipsType != TaskModel.TIP_ITEM
+                    && task.TaskTipsType != TaskModel.TIP_COLLECT
                     && task.TaskTipsType != TaskModel.TIP_PASS_MAIN_DUNGEON)) return;
 
             int epoch = ++_taskOneAutoEpoch;

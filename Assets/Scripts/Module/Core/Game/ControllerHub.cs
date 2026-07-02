@@ -51,6 +51,7 @@ namespace Shenxiao.Module.Core.Game
             BagController.Instance,
             SkillController.Instance,
             FightController.Instance,
+            CollectController.Instance,
             ChatController.Instance,
             CustomActivityController.Instance,
             TopPlayerController.Instance,

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoBrush;
@@ -51,6 +52,11 @@ namespace Shenxiao.Module.Core.Tasks
         private int _pendingAutoFightTaskId;
         private int _pendingAutoFightMonsterTypeId;
 
+        // 采集任务:采集物未在视野时,等其经九宫格(12007/12012)下发后再发起采集(对标击杀任务的 WaitTaskMonster)。
+        private int _pendingCollectTaskId;
+        private int _pendingCollectMonsterTypeId;
+        private int _collectRetryToken; // 采集非成功终止后的延时重试令牌(防叠加多个重试)
+
         private TaskModel() { }
 
         public int NowSelectTaskId { get; set; }
@@ -102,11 +108,19 @@ namespace Shenxiao.Module.Core.Tasks
             if (IsAllStepFinish(task.TaskId)) return false;
             if (task.TaskTipsType != TIP_KILL
                 && task.TaskTipsType != TIP_ITEM
+                && task.TaskTipsType != TIP_COLLECT
                 && task.TaskTipsType != TIP_PASS_MAIN_DUNGEON) return false;
 
             if (task.TaskTipsType == TIP_PASS_MAIN_DUNGEON)
             {
                 StartPassMainDungeon(task);
+                return true;
+            }
+
+            // 采集任务进度未满(多次采集):接着采下一个采集物(对标老端 CollectBarView 完成后 FindNextOne)。
+            if (task.TaskTipsType == TIP_COLLECT)
+            {
+                StartTaskCollect(task);
                 return true;
             }
 
@@ -118,6 +132,7 @@ namespace Shenxiao.Module.Core.Tasks
         public void ClearData()
         {
             StopWaitingTaskMonster();
+            StopWaitingCollectMonster();
             _hasReceiveTaskList.Clear();
             _canTaskList.Clear();
             _allTaskList.Clear();
@@ -692,8 +707,7 @@ namespace Shenxiao.Module.Core.Tasks
 
             if (task.TaskTipsType == TIP_COLLECT)
             {
-                GameLog.Warn("Task", "auto task collect blocked: task={0} collect target={1}, collect protocol not migrated yet",
-                    task.TaskId, task.Id);
+                StartTaskCollect(task);
                 return;
             }
 
@@ -760,6 +774,105 @@ namespace Shenxiao.Module.Core.Tasks
             SceneManager.Instance.MonsterAdded -= OnTaskMonsterAdded;
             _pendingAutoFightTaskId = 0;
             _pendingAutoFightMonsterTypeId = 0;
+        }
+
+        // ===================== 采集任务(TIP_COLLECT)=====================
+
+        /// <summary>
+        /// 采集任务:到任务点后找最近采集物(type=task.Id)→ 交 <see cref="CollectController.CollectMonster"/> 接近并采集
+        /// (对标老端 Collect case → MainRoleAttackMonster 采集物分支 → OPEN_COLLECT_VIEW → RequestToCollect)。
+        /// 采集物未在视野则挂 MonsterAdded 等其下发(对标击杀任务 WaitTaskMonster)。采集中则不重复驱动。
+        /// </summary>
+        private void StartTaskCollect(TaskVo task)
+        {
+            if (task == null) return;
+            if (CollectController.Instance.IsCollecting)
+            {
+                GameLog.Info("Task", "collect 已在进行,跳过重复驱动 task={0}", task.TaskId);
+                return;
+            }
+            if (task.Id <= 0)
+            {
+                GameLog.Warn("Task", "collect 任务 {0} 无采集物 type(task.Id=0),无法定位采集物", task.TaskId);
+                return;
+            }
+
+            // 以主角当前位置为中心找最近采集物(对标老端 GetNearestMonsterByTypeId 取离玩家最近;重试时玩家可能已移动)。
+            MonsterVo mon = SceneCombat.Instance.FindNearestCollectMonster(task.Id, RoleModel.Instance.X, RoleModel.Instance.Y);
+            if (mon == null)
+            {
+                GameLog.Info("Task", "collect 任务 {0}: 采集物 type={1} 暂未在视野,等九宫格下发(monsterCount={2})",
+                    task.TaskId, task.Id, SceneManager.Instance.MonsterCount);
+                WaitCollectMonster(task);
+                return;
+            }
+
+            StopWaitingCollectMonster();
+            GameLog.Info("Task", "collect 任务 {0}: 采集物 ins={1} type={2} pos=({3},{4}) → 接近并采集",
+                task.TaskId, mon.InstanceId, mon.TypeId, mon.X, mon.Y);
+            CollectController.Instance.CollectMonster(mon);
+        }
+
+        private void WaitCollectMonster(TaskVo task)
+        {
+            if (task == null || task.Id <= 0) return;
+            if (_pendingCollectTaskId == task.TaskId && _pendingCollectMonsterTypeId == task.Id) return;
+
+            StopWaitingCollectMonster();
+            _pendingCollectTaskId = task.TaskId;
+            _pendingCollectMonsterTypeId = task.Id;
+            SceneManager.Instance.MonsterAdded += OnCollectMonsterAdded;
+            GameLog.Info("Task", "collect 任务 {0}: 挂 MonsterAdded 等采集物 type={1} 下发", task.TaskId, task.Id);
+        }
+
+        private void OnCollectMonsterAdded(MonsterVo vo)
+        {
+            if (_pendingCollectTaskId == 0 || vo == null) return;
+            if (!vo.IsCollect) return;
+            if (_pendingCollectMonsterTypeId > 0 && vo.TypeId != _pendingCollectMonsterTypeId) return;
+
+            TaskVo task = MainLineTaskVo;
+            if (task == null || task.TaskId != _pendingCollectTaskId || task.Id != _pendingCollectMonsterTypeId)
+            {
+                StopWaitingCollectMonster();
+                return;
+            }
+
+            StopWaitingCollectMonster();
+            StartTaskCollect(task);
+        }
+
+        private void StopWaitingCollectMonster()
+        {
+            if (_pendingCollectTaskId == 0) return;
+            SceneManager.Instance.MonsterAdded -= OnCollectMonsterAdded;
+            _pendingCollectTaskId = 0;
+            _pendingCollectMonsterTypeId = 0;
+        }
+
+        /// <summary>
+        /// 一次采集非成功终止(失败/取消/采集物被移除/START 超时,经 EVT_COLLECT_ENDED)→ 延时重试当前采集任务
+        /// (对标老端 CollectBarView 失败后 1s FindNextOne)。采集成功走服务端 30001 推进,不经此路径(避免双重驱动)。
+        /// 慢轮询(1.5s)而非紧打循环:争用(他人采集)/暂时不可采时定期重试,等可采或任务推进后自然收敛。
+        /// </summary>
+        public void OnCollectEnded()
+        {
+            if (!AutoTaskEnabled) return;
+            TaskVo task = MainLineTaskVo;
+            if (task == null || task.TaskTipsType != TIP_COLLECT || IsAllStepFinish(task.TaskId)) return;
+            int token = ++_collectRetryToken;
+            _ = RetryCollectAfterDelayAsync(task.TaskId, token);
+        }
+
+        private async Task RetryCollectAfterDelayAsync(int taskId, int token)
+        {
+            await Task.Delay(1500);
+            if (token != _collectRetryToken || !AutoTaskEnabled) return;
+            TaskVo task = MainLineTaskVo;
+            if (task == null || task.TaskId != taskId || task.TaskTipsType != TIP_COLLECT || IsAllStepFinish(taskId)) return;
+            if (CollectController.Instance.IsCollecting) return; // 期间已重新开始采集
+            GameLog.Info("Task", "collect 任务 {0} 上次采集未成功 → 重试", taskId);
+            StartTaskCollect(task);
         }
 
         private void StopWaitingIfMainTaskChanged()

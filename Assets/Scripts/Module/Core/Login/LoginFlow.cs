@@ -10,34 +10,29 @@ using UnityEngine;
 namespace Shenxiao.Module.Core.Login
 {
     /// <summary>
-    /// 登录模块 UI 流程编排,严格对齐老客户端链路:
-    ///
-    ///   ① 加载页 LoginLoadingView(真实资源下载进度)
-    ///   ② 登录/注册页 LoginView ⇄ RegisterView(输入账号密码,背景 LoginBgView)
-    ///   ③ 登录成功 → LoginEnterView(显示当前服,踏入仙界)
-    ///   ④ 点服务器名 → LoginSelectServerView 列表选服
-    ///   ⑤ 踏入仙界 → get_server_info → WebSocket → 10000 → 选角/创角(待接)→ 进游戏
+    /// 登录模块 UI 流程编排(重构版:6 个自包含独立 prefab,不再用老 LoginModule 大合并 prefab)。
+    /// 链路严格对齐老客户端:
+    ///   ① 加载页 LoadingView(真实资源下载进度)
+    ///   ② 登录/注册页 LoginPanelView(登录⇄注册子面板)
+    ///   ③ 登录成功 → ServerEnterView(显示当前服 + 踏入仙界 + 用户协议弹层)
+    ///   ④ 点服务器名 → ServerSelectView 列表选服
+    ///   ⑤ 踏入仙界 → get_server_info → WebSocket → 10000 → 选角 RoleSelectView / 创角 RoleCreateView → 进游戏
+    /// 每个页面背景自含,不再有独立 LoginBgView;协议弹层并进 ServerEnterView。
     /// </summary>
     public static class LoginFlow
     {
         private static AppConfig _config;
-        private static GameObject _moduleRoot;
-        private static LoginBgView _bg;
-        private static LoginLoadingView _loading;
-        private static LoginView _login;
-        private static RegisterView _register;
-        private static LoginEnterView _enter;
-        private static LoginSelectServerView _select;
-        private static LoginAlertView _alert;
-        private static LoginSelectRoleView _selectRole;
-        private static LoginCreateRoleView _createRole;
+        private static LoginPanelView _loginPanel;     // ② 登录 + 注册
+        private static LoadingView _loadingView;       // ① 加载
+        private static ServerEnterView _enterView;     // ③ 踏入仙界 + 协议弹层
+        private static ServerSelectView _selectView;   // ④ 选服
+        private static RoleSelectView _selectRoleView; // ⑤ 选角
+        private static RoleCreateView _createRoleView; // ⑤ 创角
         private static bool _busy;
 
         /// <summary>
-        /// 用户协议勾选状态(会话内)。持久化按账号记录,对标老客户端
-        /// LoginEnterView.InitAgreementAgreeState 的 cookie LOCAL_ACCOUNT_INFO:
-        /// 进入踏入仙界页瞬间,该账号同意过 → 自动勾选;否则立即弹 LoginAlertView;
-        /// 弹层点同意 → 勾选 + 记录账号 + 直接进入游戏;拒绝 → 仅关闭。
+        /// 用户协议勾选状态(会话内)。持久化按账号记录,对标老客户端:进入踏入仙界页瞬间,该账号同意过 →
+        /// 自动勾选;否则立即弹协议层;弹层点同意 → 勾选 + 记录账号 + 直接进入游戏;拒绝 → 仅关闭。
         /// </summary>
         public static bool AgreementAgreed { get; private set; }
 
@@ -46,85 +41,81 @@ namespace Shenxiao.Module.Core.Login
         public static async Task StartAsync(AppConfig config)
         {
             _config = config;
-            string key = GameResPath.GetUIPrefab("login", "LoginModule");
-            _moduleRoot = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
-            if (_moduleRoot == null)
+
+            // 6 个独立 prefab 加载到 Window 层(键 prefabs/ui/login/<view>,编辑器有 prefab 兜底)。
+            _loginPanel = await LoadViewAsync<LoginPanelView>("LoginPanel");
+            _loadingView = await LoadViewAsync<LoadingView>("LoadingView");
+            _enterView = await LoadViewAsync<ServerEnterView>("ServerEnterView");
+            _selectView = await LoadViewAsync<ServerSelectView>("ServerSelectView");
+            _selectRoleView = await LoadViewAsync<RoleSelectView>("RoleSelectView");
+            _createRoleView = await LoadViewAsync<RoleCreateView>("RoleCreateView");
+            if (_loginPanel == null || _loadingView == null || _enterView == null
+                || _selectView == null || _selectRoleView == null || _createRoleView == null)
             {
-                GameLog.Error("Login", "LoginModule prefab 加载失败(key={0})。先跑 LayaUI 转换 + 回填", key);
+                GameLog.Error("Login", "登录页 prefab 缺失——在「神霄/重构UI 生成器」面板里把 Login 各页都生成一遍");
                 return;
             }
 
-            BaseView[] views = _moduleRoot.GetComponentsInChildren<BaseView>(true);
-            foreach (BaseView v in views)
-            {
-                v.gameObject.SetActive(false);
-                if (v is LoginBgView bg) _bg = bg;
-                else if (v is LoginLoadingView loading) _loading = loading;
-                else if (v is LoginView login) _login = login;
-                else if (v is RegisterView register) _register = register;
-                else if (v is LoginEnterView enter) _enter = enter;
-                else if (v is LoginSelectServerView select) _select = select;
-                else if (v is LoginAlertView alert) _alert = alert;
-                else if (v is LoginSelectRoleView selectRole) _selectRole = selectRole;
-                else if (v is LoginCreateRoleView createRole) _createRole = createRole;
-            }
-            if (_bg == null || _loading == null || _login == null || _register == null || _enter == null
-                || _select == null || _alert == null || _selectRole == null || _createRole == null)
-            {
-                GameLog.Error("Login",
-                    "LoginModule 缺业务窗口(bg={0} loading={1} login={2} register={3} enter={4} select={5} alert={6} selectRole={7} createRole={8})——重跑 login 流水线(转换+回填)",
-                    _bg != null, _loading != null, _login != null, _register != null, _enter != null,
-                    _select != null, _alert != null, _selectRole != null, _createRole != null);
-                return;
-            }
+            _loginPanel.LoginSubmit = (a, p, r) => SubmitLoginAsync(a, p, r);
+            _loginPanel.RegisterSubmit = (a, p) => SubmitRegisterAsync(a, p);
 
             EventDispatcher.On<int>(GlobalEvent.EVT_GAME_ROLE_LIST, OnRoleList);
             EventDispatcher.On(GlobalEvent.EVT_GAME_ENTERED, OnGameEntered);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
             LegacyPreloadService.ProgressChanged += OnPreloadProgress;
 
-            // 确定性层级:背景永远垫底;其余窗口靠 BaseView.Show() 置顶,
-            // 弹出顺序即渲染顺序(Hierarchy 里可见:Show 的窗口跳到最后一位)
-            _bg.transform.SetAsFirstSibling();
-
             // ---------- ① 加载页 ----------
-            _loading.Show();
-            _loading.SetProgress(0f);
+            _loadingView.Show();
+            _loadingView.SetProgress(0f);
             await PreloadAsync();
-            _loading.SetProgress(1f);
+            _loadingView.SetProgress(1f);
             await Task.Yield();
-            _loading.Hide();
+            _loadingView.Hide();
 
             // ---------- ② 登录页 ----------
-            _bg.Show();
             ShowLogin();
+        }
+
+        /// <summary>按视图名实例化对应独立 prefab 并取组件(失败返回 null)。</summary>
+        private static async Task<T> LoadViewAsync<T>(string viewName) where T : BaseView
+        {
+            string key = GameResPath.GetUIPrefab("login", viewName);
+            GameObject go = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+            T view = go != null ? go.GetComponent<T>() : null;
+            if (view == null)
+            {
+                GameLog.Error("Login", "{0} prefab 加载失败(key={1})。先在「神霄/重构UI 生成器」里生成它", viewName, key);
+                return null;
+            }
+            view.gameObject.SetActive(false);
+            return view;
         }
 
         private static async Task PreloadAsync()
         {
             await LegacyPreloadService.PreloadBootAsync(_config.preloadKeys,
-                (p, label) => _loading.SetProgress(p, label));
+                (p, label) => _loadingView.SetProgress(p, label));
         }
 
         // ---------------------------------------------------------------- ② 登录/注册
 
         public static void ShowLogin()
         {
-            _register.Hide();
-            _login.Show();
+            if (_loginPanel == null) return;
+            _loginPanel.Show();        // 显示登录面板并置顶
+            _loginPanel.ShowLogin();   // 切登录子面板
         }
 
         public static void ShowRegister()
         {
-            _login.Hide();
-            _register.Show();
+            _loginPanel?.ShowRegister();
         }
 
         public static async Task SubmitLoginAsync(string account, string password, bool remember)
         {
             if (_busy) return;
             _busy = true;
-            _login.SetBusy(true);
+            _loginPanel.SetBusy(true);
             try
             {
                 Task<LoginRequestResult> task = LoginController.Instance.LoginAsync(account, password, remember);
@@ -140,7 +131,7 @@ namespace Shenxiao.Module.Core.Login
             finally
             {
                 _busy = false;
-                _login.SetBusy(false);
+                _loginPanel.SetBusy(false);
             }
         }
 
@@ -148,6 +139,7 @@ namespace Shenxiao.Module.Core.Login
         {
             if (_busy) return;
             _busy = true;
+            _loginPanel.SetBusy(true);   // 与登录一致:置 View._busy,让 OnClickConfirm 的防重入生效
             try
             {
                 Task<LoginRequestResult> task = LoginController.Instance.RegisterAsync(account, password, true);
@@ -163,64 +155,41 @@ namespace Shenxiao.Module.Core.Login
             finally
             {
                 _busy = false;
+                _loginPanel.SetBusy(false);
             }
         }
 
-        /// <summary>登录/注册成功 → ③ 踏入仙界页;进入瞬间按账号决定协议弹层(对标老客户端)。</summary>
+        /// <summary>登录/注册成功 → ③ 踏入仙界页;协议勾选态按账号回读,未同意则由 OnShow 自动弹协议层。</summary>
         private static void EnterLobby()
         {
             GameLog.Info("Login", "账号就绪 player_id={0} 服务器数={1} 大区数={2}",
                 LoginController.Instance.Model.PlayerId, LoginController.Instance.Model.Servers.Count,
                 LoginController.Instance.Model.Areas.Count);
-            _login.Hide();
-            _register.Hide();
-            _enter.Show();
-
-            if (Shenxiao.Common.Prefs.PrefsManager.GetBool(AgreedPrefKey, false))
-            {
-                AgreementAgreed = true;   // 该账号同意过:自动勾选,不弹
-                _enter.RefreshAgreement();
-            }
-            else
-            {
-                AgreementAgreed = false;  // 新账号:进入瞬间弹协议层
-                _enter.RefreshAgreement();
-                ShowAgreement();
-            }
+            _loginPanel.Hide();
+            // 该账号是否同意过协议(持久化,对标老客户端):同意过→自动勾选;否则进入页 OnShow 自动弹协议层。
+            AgreementAgreed = Shenxiao.Common.Prefs.PrefsManager.GetBool(AgreedPrefKey, false);
+            _enterView.Show();   // OnShow 会 RefreshAgreement + 未同意时自动弹协议弹层
         }
 
         public static void ShowAgreement()
         {
-            GameLog.Info("Login", "弹出用户协议弹层(LoginAlertView 激活并置顶)");
-            _alert.ShowWith(
-                onOk: OnAgreementOk,
-                onCancel: OnAgreementCancel);
+            GameLog.Info("Login", "弹出用户协议弹层(ServerEnterView 内置)");
+            _enterView?.ShowAgreementAlert();
         }
 
-        private static void OnAgreementOk()
+        /// <summary>协议弹层 同意/不同意 的结果:同意→勾选 + 按账号持久化;不同意→不勾选。不勾选无法踏入仙界。</summary>
+        public static void SetAgreement(bool agreed)
         {
-            // 老客户端 AGREE_LOGIN_ALERT:勾选 + 记录该账号 + 直接进入游戏
-            AgreementAgreed = true;
-            Shenxiao.Common.Prefs.PrefsManager.SetBool(AgreedPrefKey, true);
-            _enter.RefreshAgreement();
-            _ = EnterGameAsync();
-        }
-
-        private static void OnAgreementCancel()
-        {
-            AgreementAgreed = false;
-            _enter.RefreshAgreement();
-        }
-
-        public static void ToggleAgreement()
-        {
-            AgreementAgreed = !AgreementAgreed;
-            _enter.RefreshAgreement();
+            AgreementAgreed = agreed;
+            // 仅正式流程(_enterView 已就绪)按账号落库;编辑器预览态不写。
+            if (agreed && _enterView != null)
+                Shenxiao.Common.Prefs.PrefsManager.SetBool(AgreedPrefKey, true);
+            _enterView?.RefreshAgreement();
         }
 
         private static void TipsToLoginPage(string message)
         {
-            // TODO:接 TipsSystem 的 Toast;现阶段用日志 + 标题文案
+            // TODO:接 TipsSystem 的 Toast;现阶段用日志。
             GameLog.Warn("Login", "提示: {0}", message);
         }
 
@@ -239,7 +208,7 @@ namespace Shenxiao.Module.Core.Login
 
         public static void OpenServerSelect()
         {
-            if (_select != null) _select.Show();
+            _selectView?.Show();   // ServerSelectView.OnShow 会自动 Refresh
         }
 
         public static async Task SelectServerAsync(LoginServerInfo server)
@@ -250,8 +219,8 @@ namespace Shenxiao.Module.Core.Login
                 GameLog.Warn("Login", "选服失败: {0}", result.message);
                 return;
             }
-            _select.Hide();
-            _enter.RefreshServer();
+            _selectView.Hide();
+            _enterView.RefreshServer();
         }
 
         public static async Task EnterGameAsync()
@@ -266,22 +235,22 @@ namespace Shenxiao.Module.Core.Login
             _busy = true;
             try
             {
-                _enter.SetTip("解析服务器入口 ...");
+                _enterView.SetTip("解析服务器入口 ...");
                 LoginRequestResult result = await LoginController.Instance.ResolveSelectedServerEndpointAsync();
                 if (!result.success)
                 {
-                    _enter.SetTip("入口解析失败: " + result.message);
+                    _enterView.SetTip("入口解析失败: " + result.message);
                     return;
                 }
 
-                _enter.SetTip("连接游戏服 ...");
+                _enterView.SetTip("连接游戏服 ...");
                 result = await LoginController.Instance.ConnectGameAsync();
                 if (!result.success)
                 {
-                    _enter.SetTip("连接失败: " + result.message);
+                    _enterView.SetTip("连接失败: " + result.message);
                     return;
                 }
-                _enter.SetTip("已连接,等待角色数据 ...");
+                _enterView.SetTip("已连接,等待角色数据 ...");
             }
             finally
             {
@@ -298,43 +267,41 @@ namespace Shenxiao.Module.Core.Login
         private static async Task OnRoleListAsync(int roleCount)
         {
             GameLog.Info("Login", "角色列表到达(角色数={0})→ {1}", roleCount, roleCount > 0 ? "选角页" : "创角页");
-            _loading.Show();
-            _loading.SetProgress(0f, "加载角色资源");
-            await LegacyPreloadService.PreloadRoleSelectionAsync((p, label) => _loading.SetProgress(p, label));
-            _loading.Hide();
+            _loadingView.Show();
+            _loadingView.SetProgress(0f, "加载角色资源");
+            await LegacyPreloadService.PreloadRoleSelectionAsync((p, label) => _loadingView.SetProgress(p, label));
+            _loadingView.Hide();
 
-            _enter.RefreshServer();
-            _enter.Hide();
-            _selectRole.Hide();
-            _createRole.Hide();
-            _bg.ChangeRoleStatus(); // 对标老客户端:创角/选角阶段隐藏版权+换樱花底图
-            if (roleCount > 0) _selectRole.Show();
-            else _createRole.Show();
+            _enterView.RefreshServer();
+            _enterView.Hide();
+            _selectRoleView.Hide();
+            _createRoleView.Hide();
+            if (roleCount > 0) _selectRoleView.Show();  // OnShow 自动 Refresh
+            else _createRoleView.Show();                // OnShow 自动 Refresh
         }
 
         /// <summary>选角页空槽的「创建角色」入口。</summary>
         public static void ShowCreateRole()
         {
-            _selectRole.Hide();
-            _createRole.Show();
+            _selectRoleView.Hide();
+            _createRoleView.Show();
         }
 
         /// <summary>创角页返回(有角色时):回选角页(对标老客户端 _img_return 分支)。</summary>
         public static void ShowSelectRole()
         {
-            _createRole.Hide();
-            _selectRole.Show();
+            _createRoleView.Hide();
+            _selectRoleView.Show();
         }
 
         /// <summary>选角/创角页的返回:回到踏入仙界页(断开游戏服重选)。</summary>
         public static void BackToEnter()
         {
-            _selectRole.Hide();
-            _createRole.Hide();
-            _bg.RestoreLoginStatus();
+            _selectRoleView.Hide();
+            _createRoleView.Hide();
             LoginController.Instance.ClearInGameReconnectState();
             _ = NetManagerDisconnect();
-            _enter.Show();
+            _enterView.Show();
         }
 
         private static async Task NetManagerDisconnect()
@@ -344,45 +311,37 @@ namespace Shenxiao.Module.Core.Login
 
         private static void OnGameEntered()
         {
-            // 10004 成功后对齐老端 LoginLoadingView:交给 GAME_START 门闩和资源预热,
-            // 完成后再整体退下登录模块。
-            HideView(_login);
-            HideView(_register);
-            HideView(_enter);
-            HideView(_select);
-            HideView(_alert);
-            HideView(_selectRole);
-            HideView(_createRole);
-            HideView(_bg);
-            _loading.Show();
-            _loading.SetProgress(0f, "加载游戏资源");
+            // 10004 成功后:隐藏所有登录页,起加载页等 GAME_START 资源接管完成。
+            HideView(_loginPanel);
+            HideView(_enterView);
+            HideView(_selectView);
+            HideView(_selectRoleView);
+            HideView(_createRoleView);
+            _loadingView.Show();
+            _loadingView.SetProgress(0f, "加载游戏资源");
             GameLog.Info("Login", "进入游戏成功,等待 GAME_START 资源接管完成");
         }
 
         private static void OnGameStart()
         {
             HideAllViews();
-            if (_moduleRoot != null) _moduleRoot.SetActive(false);
             GameLog.Info("Login", "—— 🎉 GAME_START:登录模块退下,主城/场景接管 ——");
         }
 
         private static void OnPreloadProgress(LegacyPreloadStage stage, float progress, string hint)
         {
-            if (_loading == null || !_loading.gameObject.activeInHierarchy) return;
-            _loading.SetProgress(progress, hint);
+            if (_loadingView == null || !_loadingView.gameObject.activeInHierarchy) return;
+            _loadingView.SetProgress(progress, hint);
         }
 
         private static void HideAllViews()
         {
-            HideView(_loading);
-            HideView(_login);
-            HideView(_register);
-            HideView(_enter);
-            HideView(_select);
-            HideView(_alert);
-            HideView(_selectRole);
-            HideView(_createRole);
-            HideView(_bg);
+            HideView(_loadingView);
+            HideView(_loginPanel);
+            HideView(_enterView);
+            HideView(_selectView);
+            HideView(_selectRoleView);
+            HideView(_createRoleView);
         }
 
         private static void HideView(BaseView view)

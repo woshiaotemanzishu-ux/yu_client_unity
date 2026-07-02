@@ -144,10 +144,66 @@ namespace Shenxiao.Module.Core.MainUI
             _loading = false;
 
             ReleaseFightingUp();
+            ReleaseCollectBarView();
 
             if (_moduleRoot == null) return;
             ResManager.ReleaseInstance(_moduleRoot);
             _moduleRoot = null;
+        }
+
+        // ---------- 采集进度条(独立 prefab mainUI/CollectBarView,不在 MainUIModule 内,采集事件触发时按需加载缓存) ----------
+        // 对标老端 CollectBarView 由采集事件 new+Open;Unity 转换产物是独立 prefab(同 FightingUpView),挂 Main 层。
+
+        private static CollectBarView _collectBarView;
+        private static bool _collectBarLoading;
+
+        /// <summary>取采集进度条实例(独立 prefab mainUI/CollectBarView,首次按需加载缓存,默认隐藏)。加载中/失败返回 null。</summary>
+        public static async Task<CollectBarView> EnsureCollectBarViewAsync()
+        {
+            if (_collectBarView != null) return _collectBarView;
+            if (_collectBarLoading) return null;
+
+            _collectBarLoading = true;
+            int token = _requestToken; // 加载在途遇断线/teardown(OnDisconnected ++_requestToken)→ 弃用本次结果
+            string key = GameResPath.GetUIPrefab(MODULE, "CollectBarView");
+            GameObject go = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Main));
+            _collectBarLoading = false;
+
+            if (token != _requestToken)
+            {
+                // 加载期间断线:释放刚实例化的对象,不缓存陈旧实例(否则会跨重连存活、泄漏)。
+                if (go != null) ResManager.ReleaseInstance(go);
+                return null;
+            }
+
+            if (go == null)
+            {
+                GameLog.Warn("MainUI", "CollectBarView 预制加载失败: {0}(检查 addressable/转换)", key);
+                return null;
+            }
+
+            _collectBarView = go.GetComponent<CollectBarView>();
+            if (_collectBarView == null)
+            {
+                GameLog.Warn("MainUI", "CollectBarView 预制缺 CollectBarView 组件(重跑 mainUI 回填)");
+                ResManager.ReleaseInstance(go);
+                return null;
+            }
+
+            go.SetActive(false); // 默认隐藏,等采集 START 再 Show(对标老端 display_obj.visible=false)
+            return _collectBarView;
+        }
+
+        /// <summary>已加载的采集进度条(未加载返回 null),供采集取消/完成时同步隐藏,不触发加载。</summary>
+        public static CollectBarView CollectBarViewOrNull => _collectBarView;
+
+        private static void ReleaseCollectBarView()
+        {
+            _collectBarLoading = false;
+            if (_collectBarView == null) return;
+            GameObject go = _collectBarView.gameObject;
+            _collectBarView = null;
+            if (go != null) ResManager.ReleaseInstance(go);
         }
 
         // ---------- 战力提升弹层(对标老端 MainUIController 绑 mainRoleVo "fighting" 变化 → FightingUpView.Open) ----------

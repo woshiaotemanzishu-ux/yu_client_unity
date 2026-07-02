@@ -128,6 +128,14 @@ namespace Shenxiao.Framework.Event
         // SecondaryView 两簇图标收放。参数:bool folded(true=已收起)。
         public const string EVT_MAINUI_ACTIVITY_FOLD = "EVT_MAINUI_ACTIVITY_FOLD";
 
+        // ----- Collect / 采集 -----
+        /// <summary>主角在采集中开始移动 → 取消采集(对标老端 CollectBarView 监听 MAINROLE_MOVE_EVENT_IMME →
+        /// REQUEST_TO_COLLECT flag=3)。MainRoleAgent 起步时若处于采集态发此事件,CollectController 据此向服务端发取消。无参。</summary>
+        public const string EVT_COLLECT_MOVE_CANCEL = "EVT_COLLECT_MOVE_CANCEL";
+        /// <summary>一次采集非成功终止(失败/取消/采集物被移除/START 超时)。CollectController 发,TaskModel 据此延时重试
+        /// 当前采集任务(对标老端 FindNextOne)。采集成功(flag=2)不发此事件——由服务端 30001 推进任务驱动。无参。</summary>
+        public const string EVT_COLLECT_ENDED = "EVT_COLLECT_ENDED";
+
         // ----- Res -----
         public const string EVT_RES_UPDATE_PROGRESS = "EVT_RES_UPDATE_PROGRESS";
         public const string EVT_RES_UPDATE_DONE = "EVT_RES_UPDATE_DONE";

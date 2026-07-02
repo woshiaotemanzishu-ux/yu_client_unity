@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shenxiao.Common.UI3D;
+using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Scene3D.Map;
 using Shenxiao.Framework.Util;
@@ -39,6 +40,7 @@ namespace Shenxiao.Module.Core.Scene
         private const string ActionIdle = "idle";
         private const string ActionRun = "run";
         private const string ActionJump = "jump";
+        private const string ActionCollect = "collect"; // 蹲下采集动作(对标老端 Role.EnterStateCollect 的 PlayAction("collect"))
         private const float TaskJumpReportDistance = 300f;
 
         /// <summary>当前主角驱动(MainRoleFlow 装配后唯一存在;清主角时置空)。任务/对话用它让主角朝 NPC 转向。</summary>
@@ -59,6 +61,7 @@ namespace Shenxiao.Module.Core.Scene
         private float _posY;            // 真实像素 Y(real_pos.y)
         private float _sendTimer;
         private bool _moving;
+        private bool _collecting;       // 采集态(对标老端 PoseState.COLLECT):蹲下采集动作进行中,直到 QuitCollect/起步打断
 
         // —— 自动接近目标(直线 + 分轴滑行,无 A*;对标 MainRoleToNpc 走到 NPC 身边再触发)——
         private bool _autoMoving;
@@ -190,6 +193,13 @@ namespace Shenxiao.Module.Core.Scene
         // 进入跑动态:切 run 动作 + 起步立即上报一次(对标手动起步)。已在跑动则不重复。
         private void BeginMoveAnim()
         {
+            // 采集中起步 → 打断采集(对标老端 CollectBarView 监听 MAINROLE_MOVE_EVENT_IMME 取消采集)。
+            // 仅置态 + 发事件由 CollectController 向服务端发取消;动作随即被下面的 run 覆盖,无需先回 idle。
+            if (_collecting)
+            {
+                _collecting = false;
+                EventDispatcher.Emit(GlobalEvent.EVT_COLLECT_MOVE_CANCEL);
+            }
             if (_moving) return;
             _moving = true;
             _actionVersion++;
@@ -409,6 +419,57 @@ namespace Shenxiao.Module.Core.Scene
             _onArrive = null;
             _autoInvokeOnFail = true;
             GameLog.Info("Scene", "MoveToNpc 取消:{0}", why);
+        }
+
+        /// <summary>主角是否处于采集态(蹲下采集动作进行中)。</summary>
+        public bool IsCollecting => _collecting;
+
+        /// <summary>
+        /// 进入采集态、循环播放蹲下采集动作(对标老端 Scene.MainRoleDoCollect → Role.DoCollect →
+        /// EnterStateCollect 的 PlayAction("collect"))。由 <see cref="CollectController"/> 在服务端回 20008 flag=1
+        /// (START)时调用。停下任何在途移动/自动接近;玩家起步会经 <see cref="BeginMoveAnim"/> 自动打断采集。
+        /// </summary>
+        public void DoCollect()
+        {
+            _autoMoving = false;
+            _onArrive = null;
+            _moving = false;
+            _collecting = true;
+            _ = PlayCollectAsync();
+        }
+
+        /// <summary>退出采集态、回到待机(对标老端 Scene.MainRoleQuitCollect → Role.QuitCollect → DoStand)。
+        /// 由 <see cref="CollectController"/> 在采集完成/取消时调用;非采集态调用无副作用(不强行打断跑动)。</summary>
+        public void QuitCollect()
+        {
+            if (!_collecting) return;
+            _collecting = false;
+            _actionVersion++;            // 让在途 PlayCollectAsync 续体过期,避免再覆盖 idle
+            if (!_moving) PlayAction(ActionIdle);
+        }
+
+        private async Task PlayCollectAsync()
+        {
+            try
+            {
+                if (_model == null || _anim == null) return;
+                int version = ++_actionVersion;
+                EffectBinder.ClearTag(_model, "action");
+                ResetModelVisualOffset();
+
+                await RoleModelAssembler.PrepareRoleActions(_model, _career, _clotheRes, new[] { ActionCollect });
+                if (version != _actionVersion || _model == null || !_collecting) return;
+
+                if (!TryPlayActionLoop(ActionCollect, 0.12f))
+                {
+                    // 采集动作未转换/缺片段:不影响采集协议链,仅蹲下表现缺失(优雅降级,不报错刷屏)。
+                    GameLog.Warn("Scene", "collect 动作缺失或未转换(蹲下表现降级),采集逻辑继续: action={0}", ActionCollect);
+                }
+            }
+            catch (Exception ex)
+            {
+                GameLog.Warn("Scene", "play collect action failed: {0}", ex.Message);
+            }
         }
 
         public void PlaySkill(int skillId)
@@ -890,6 +951,17 @@ namespace Shenxiao.Module.Core.Scene
             if (restart) _anim.Stop(action);
             AnimationState state = _anim[action];
             if (state != null) state.speed = Mathf.Max(0.01f, speed);
+            _anim.CrossFade(action, fade);
+            return true;
+        }
+
+        /// <summary>循环播放动作(采集等需持续到外部停止的动作)。设 WrapMode.Loop 后 CrossFade。</summary>
+        private bool TryPlayActionLoop(string action, float fade)
+        {
+            if (_anim == null || string.IsNullOrEmpty(action)) return false;
+            if (_anim.GetClip(action) == null) return false;
+            AnimationState state = _anim[action];
+            if (state != null) state.wrapMode = WrapMode.Loop;
             _anim.CrossFade(action, fade);
             return true;
         }
