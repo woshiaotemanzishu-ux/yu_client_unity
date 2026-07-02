@@ -12,8 +12,11 @@ using Shenxiao.Module.Core.FirstRecharge;
 using Shenxiao.Module.Core.FunctionOpen;
 using Shenxiao.Module.Core.Gm;
 using Shenxiao.Module.Core.Mail;
+using Shenxiao.Module.Core.Compose;
 using Shenxiao.Module.Core.Dungeon;
 using Shenxiao.Module.Core.Equip;
+using Shenxiao.Module.Core.Jjc;
+using Shenxiao.Module.Core.OnHook;
 using Shenxiao.Module.Core.GuBao;
 using Shenxiao.Module.Core.Guild;
 using Shenxiao.Module.Core.Notice;
@@ -77,6 +80,12 @@ namespace Shenxiao.Module.Core.Game
             GuildJoinController.Instance,
             RuneController.Instance,
             DungeonController.Instance,
+            EquipStoneController.Instance,
+            EquipWearController.Instance,
+            OnHookController.Instance,
+            BagFusionController.Instance,
+            ComposeController.Instance,
+            JjcController.Instance,
             // 后续:EquipController ...
         };
 

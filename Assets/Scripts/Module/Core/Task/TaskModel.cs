@@ -66,14 +66,14 @@ namespace Shenxiao.Module.Core.Tasks
             { TIP_LV, "升级提醒(UpAlertView)" },   // LV ×57,老端 Fire(OPEN_UPALERT_VIEW);升级后服务端自动完成
             // 31 StrenSum 已接真实入口(第 18 轮:同 8 → EquipFlow 强化页)
             // 33 RuneNum 已接真实入口(第 19 轮:DoTask → RuneWearShellView,协议 16700/16701)
-            { 35, "排位赛(⚠服务端计数断链 mod_jjc_cast.erl:87)" }, // JoinJcc ×1
+            // 35 JoinJcc 已接壳入口(第 21 轮:DoTask → JjcShellView,28001/02/03;壳内警示服务端计数断链 mod_jjc_cast.erl:87)
             // 41 TrainHolyorgan 已接真实入口(第 20 轮:DoTask → OutWardShellView type5,协议 16005)
             { 48, "宝石强化" },                    // EquipStoneNum ×2
-            { 50, "灵魄强化" },                    // RuneLvSum ×1
+            // 50 RuneLvSum 已接真实入口(第 21 轮:DoTask → RuneWearShellView 强化按钮,协议 16702)
             // 54 Award_lv_gift 已接真实入口(第 17 轮:DoTask → RushGiftShellView,协议 41700/41701)
             // 57 Dungeon_level 已接真实入口(第 19 轮:同 9 → DungeonRuneShellView)
             { 63, "大妖挑战" },                    // Kill_boss_id ×3
-            { 73, "神装合成" },                    // Red_equip_combine ×1
+            // 73 Red_equip_combine 已接真实入口(第 21 轮:DoTask → ComposeShellView,通用合成 15020 type=2)
             // 81 Open_function 已接真实入口(第 18 轮:DoTask → TempleAwakenShellView,协议 42900)
             // 84 Suit_clt 已接真实入口(第 17 轮:DoTask → SuitCollectShellView,协议 15256/15257)
             // 89 ActiveSoap 已接真实入口(第 18 轮:DoTask → GuBaoShellView,协议 13320/13321)
@@ -489,6 +489,9 @@ namespace Shenxiao.Module.Core.Tasks
                 OutWard.OutWardShellView.Show(); return;   // 坐骑/同修阶星·等级 + 翼影24/圣器92/神兵41(16005 通用升星,第20轮)
             }
             if (task.TaskTipsType == 91) { OnHook.OnHookShellView.Show(); return; }                               // 101211 挂机收益(13216)
+            if (task.TaskTipsType == 50) { Rune.RuneWearShellView.Show(); return; }                               // 101525 御魂强化(16702)
+            if (task.TaskTipsType == 73) { Compose.ComposeShellView.Show(); return; }                             // 101725 神装合成(15020)
+            if (task.TaskTipsType == 35) { Jjc.JjcShellView.Show(); return; }                                     // 101465 排位(28001-03;壳警示服务端断链)
             if (task.TaskTipsType == TIP_SUIT_CLT) { SuitCollect.SuitCollectShellView.Show(); return; }           // 100391 套装收集(15256/57)
             if (task.TaskTipsType == TIP_AWARD_LV_GIFT) { RushGift.RushGiftShellView.Show(); return; }            // 100420 冲级豪礼(41700/01)
             if (task.TaskTipsType == TIP_STREN_EQUIP || task.TaskTipsType == TIP_STREN_SUM)

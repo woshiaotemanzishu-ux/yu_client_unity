@@ -87,15 +87,16 @@ namespace Shenxiao.EditorTools
                 int n = await RuneCase.Run();
                 int v = await DungeonCase.Run();
                 int w = await ThinSliceCase.Run();
+                int f = await FinalSliceCase.Run();
                 int a = await RenderTaskFinishAsync();
                 int b = await RenderItemTipsAsync();
                 int c = await RenderToastAsync();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
-                    + " guildjoin=" + j + " rune=" + n + " dungeon=" + v + " thinslice=" + w
+                    + " guildjoin=" + j + " rune=" + n + " dungeon=" + v + " thinslice=" + w + " finalslice=" + f
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, a, b, c })
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);
