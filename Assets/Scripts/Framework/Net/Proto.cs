@@ -339,11 +339,23 @@ namespace Shenxiao.Framework.Net
         /// <summary>进入副本(发 "i" dun_id;回包 dun_id:i, scene_id:i, error_code:i, error_code_args:s)。
         /// 主线 100980(ctype9 id=12)=通关御魂本1层一次、101522(ctype57)=到3层。</summary>
         public const int DUNGEON_ENTER = 61001;
-        /// <summary>副本结算(推送:result:c, help_type:c, score:h, pass_time:h, rela_list[…按 ClientProtocol 序读完],
-        /// drop_reward:ObjectList, reward_list:ObjectList)。</summary>
+        /// <summary>副本结算 UI 推送——实证真正的"通用结算界面"(对标老端 BaseDungeonController.ts:767 起注册,
+        /// 御魂本 dun_type=Rune 走第 911/976 行分支)。字段(ClientProtocol.json "61003"):
+        /// result:c, result_subtype:c, dun_id:i, grade:c, scene_id:i,
+        /// reward_list[u16×{style:c,typeId:i,count:l,goods_id:l}],
+        /// other_reward[u16×{reward_type:c, other_reward_list[u16×{style1:c,type_id1:i,count1:l,goods_id1:l}]}],
+        /// ex_data[u16×{key:h,val:i}], count:c。result==1 成功(同 61001/61002"1=成功"约定)。</summary>
+        public const int DUNGEON_SETTLE_UI = 61003;
+        /// <summary>⚠侦察实证(第18轮 A1 票):字段声明存在(result:c, help_type:c, score:h, pass_time:h,
+        /// rela_list[u16×{role_id:l,rela_type:c,intimacy:i,is_ask_add:c,guild_id:l}], drop_reward:ObjectList,
+        /// reward_list:ObjectList),但老端 h5/src 源码树里从未注册任何处理器;proto610.d.ts 类型声明写明
+        /// desc="结算界面加好友,邀请加入公会,积分展示"——是结算面板的社交附加协议(好友/公会邀请,配合
+        /// help_type 标志"助战类"副本),不是副本结算本体。御魂本结算实际走 <see cref="DUNGEON_SETTLE_UI"/>(61003)。
+        /// 常量保留供后续如实测服务端确有下发再接;当前 DungeonController 不注册。</summary>
         public const int DUNGEON_SETTLE = 61013;
-        /// <summary>副本状态/次数(回包:dun_type:c + dun_list[u16×{dun_id:i, daily_count:h, weekly_count:h,
-        /// permanent_count:h, reset_count:h, vip_count:h, add_count:h, is_sweep:c, rec_data[…]}])。</summary>
+        /// <summary>副本状态/次数(请求体仅 dun_type:c 一个字段,对标 pt_610 read(61020);回包:dun_type:c +
+        /// dun_list[u16×{dun_id:i, daily_count:h, weekly_count:h, permanent_count:h, reset_count:h, vip_count:h,
+        /// add_count:h, is_sweep:c, rec_data[u16×{key:h,val:i}]}])。</summary>
         public const int DUNGEON_STATE = 61020;
 
         // ----- 灵魄/符文(pt_167,yu_server rune;老端 RuneBagItem.ts/SecretTreasureMainView) -----
