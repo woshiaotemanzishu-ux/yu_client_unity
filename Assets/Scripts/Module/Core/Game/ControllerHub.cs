@@ -12,6 +12,8 @@ using Shenxiao.Module.Core.FirstRecharge;
 using Shenxiao.Module.Core.FunctionOpen;
 using Shenxiao.Module.Core.Gm;
 using Shenxiao.Module.Core.Mail;
+using Shenxiao.Module.Core.Equip;
+using Shenxiao.Module.Core.GuBao;
 using Shenxiao.Module.Core.Notice;
 using Shenxiao.Module.Core.OutWard;
 using Shenxiao.Module.Core.Partner;
@@ -22,6 +24,7 @@ using Shenxiao.Module.Core.Scene;
 using Shenxiao.Module.Core.Skill;
 using Shenxiao.Module.Core.SurpriseGift;
 using Shenxiao.Module.Core.Svip;
+using Shenxiao.Module.Core.TempleAwaken;
 using Shenxiao.Module.Core.Tasks;
 using Shenxiao.Module.Core.Vip;
 using Shenxiao.Module.Core.WeekCard;
@@ -65,6 +68,9 @@ namespace Shenxiao.Module.Core.Game
             SuitCollectController.Instance,
             RushGiftController.Instance,
             OutWardController.Instance,
+            TempleAwakenController.Instance,
+            EquipStrenController.Instance,
+            GuBaoController.Instance,
             // 后续:EquipController ...
         };
 

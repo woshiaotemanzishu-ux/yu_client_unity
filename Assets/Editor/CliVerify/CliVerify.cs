@@ -80,16 +80,20 @@ namespace Shenxiao.EditorTools
                 int s = await SuitCollectCase.Run();
                 int g = await RushGiftCase.Run();
                 int o = await OutWardCase.Run();
+                int t = await TempleAwakenCase.Run();
+                int q = await EquipStrenCase.Run();
+                int u = await GuBaoCase.Run();
                 int a = await RenderTaskFinishAsync();
                 int b = await RenderItemTipsAsync();
                 int c = await RenderToastAsync();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
+                    + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c);
-                foreach (int r in new[] { p, d, e, s, g, o, a, b, c })
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, a, b, c })
                     if (r != 0) return r;
                 return 0;
-            }, 900.0);
+            }, 1200.0);
         }
 
         private static async Task<int> DoTaskCoverageAsync()

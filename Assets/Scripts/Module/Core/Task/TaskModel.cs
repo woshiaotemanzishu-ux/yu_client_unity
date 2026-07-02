@@ -32,7 +32,11 @@ namespace Shenxiao.Module.Core.Tasks
         public const int TIP_START_TALK = 6;  // 开始对话(不可选)
         public const int TIP_END_TALK = 7;    // 结束对话(不可选)
         public const int TIP_PASS_MAIN_DUNGEON = 10;
+        public const int TIP_STREN_EQUIP = 8;    // 单件强化(id=+N,need=件数;→ EquipFlow 强化页)
         public const int TIP_TRAIN_MOUNT = 23;   // 培养坐骑·阶星(id=阶,need=星;主线 100330「1阶2星」→ OutWardShellView)
+        public const int TIP_STREN_SUM = 31;     // 全身强化总和(need=总等级;主线 100720「达8」→ EquipFlow 强化页)
+        public const int TIP_OPEN_FUNCTION = 81; // 开启功能=天命觉醒专属(主线 100590 → TempleAwakenShellView,发 42900)
+        public const int TIP_ACTIVE_SOAP = 89;   // 古宝激活(id=soap_id;主线 100811 幽瞳 → GuBaoShellView)
         public const int TIP_TRAIN_PARTNER = 25; // 培养同修(id=阶,need_num=星;主线首闸 100190「1阶2星」→ PartnerShellView)
         public const int TIP_AWARD_LV_GIFT = 54; // 领取等级礼包(id=礼包lv;主线 100420「领35级」→ RushGiftShellView)
         public const int TIP_SUIT_CLT = 84;      // 套装收集(id=suit_id,need=阶数;主线 100391「套装1到4」→ SuitCollectShellView)
@@ -47,7 +51,7 @@ namespace Shenxiao.Module.Core.Tasks
         // 名称对照老端 TaskTipType 枚举(TaskModel.ts:52-243)。老端各 case 行为见 TaskModel.ts:797 switch。
         private static readonly Dictionary<int, string> UNPORTED_TIP_SYSTEM = new Dictionary<int, string>
         {
-            { 8,  "装备强化" },                    // StrenEquip
+            // 8 StrenEquip 已接真实入口(第 18 轮:DoTask → EquipFlow.OpenSub 强化页,协议 15204/15205)
             { 9,  "副本入口(DungeonEnterView)" },  // FinDunType ×9,老端 OPEN_VIEW DungeonEnterView/OpenFun 26
             { 11, "副本入口(DungeonEnterView)" },  // FinDungeon
             { 14, "结社加入" },                    // JoinGuild ×1
@@ -56,7 +60,7 @@ namespace Shenxiao.Module.Core.Tasks
             { 24, "翼影培养" },                    // TrainWing ×1
             // 25 TrainPartner 已接真实入口(第 15 轮:DoTask → PartnerShellView,协议 14202/14205)
             { TIP_LV, "升级提醒(UpAlertView)" },   // LV ×57,老端 Fire(OPEN_UPALERT_VIEW);升级后服务端自动完成
-            { 31, "全身强化" },                    // StrenSum ×5
+            // 31 StrenSum 已接真实入口(第 18 轮:同 8 → EquipFlow 强化页)
             { 33, "灵魄镶嵌" },                    // RuneNum ×1
             { 35, "排位赛" },                      // JoinJcc ×1
             { 41, "神兵培养" },                    // TrainArtifact ×2
@@ -66,9 +70,9 @@ namespace Shenxiao.Module.Core.Tasks
             { 57, "副本关卡" },                    // Dungeon_level ×1
             { 63, "大妖挑战" },                    // Kill_boss_id ×3
             { 73, "神装合成" },                    // Red_equip_combine ×1
-            { 81, "功能模块开启" },                // Open_function ×1
+            // 81 Open_function 已接真实入口(第 18 轮:DoTask → TempleAwakenShellView,协议 42900)
             // 84 Suit_clt 已接真实入口(第 17 轮:DoTask → SuitCollectShellView,协议 15256/15257)
-            { 89, "妖物激活" },                    // ActiveSoap ×2
+            // 89 ActiveSoap 已接真实入口(第 18 轮:DoTask → GuBaoShellView,协议 13320/13321)
             // 90 MountLevel 已接真实入口(第 17 轮:DoTask → OutWardShellView,协议 16028/16029)
             { 91, "挂机奖励领取" },                // AfkReceiveTimes ×1
             { 92, "圣器培养" },                    // ArtifactLevel ×1
@@ -481,6 +485,12 @@ namespace Shenxiao.Module.Core.Tasks
             }
             if (task.TaskTipsType == TIP_SUIT_CLT) { SuitCollect.SuitCollectShellView.Show(); return; }           // 100391 套装收集(15256/57)
             if (task.TaskTipsType == TIP_AWARD_LV_GIFT) { RushGift.RushGiftShellView.Show(); return; }            // 100420 冲级豪礼(41700/01)
+            if (task.TaskTipsType == TIP_STREN_EQUIP || task.TaskTipsType == TIP_STREN_SUM)
+            {
+                Equip.EquipFlow.OpenSub("EquipStrenView"); return;                                                // 100720 强化(15204/05;对标老端开锻造强化页)
+            }
+            if (task.TaskTipsType == TIP_OPEN_FUNCTION) { TempleAwaken.TempleAwakenShellView.Show(); return; }    // 100590 觉醒之路(42900)
+            if (task.TaskTipsType == TIP_ACTIVE_SOAP) { GuBao.GuBaoShellView.Show(); return; }                    // 100811 古宝幽瞳(13320/21)
 
             // 4) 主线出现的「开系统面板」类(面板未移植)→ 结构化降级,先于通用寻路
             //(老端这些 case 不走坐标寻路:LV 开升级提醒、FinDunType 开副本入口等)。

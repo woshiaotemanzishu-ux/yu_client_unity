@@ -1086,3 +1086,16 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 
 **blocker(诚实)**:活服整合往返(全部壳的真实往返仍需交互 Unity+MCP);翼影(24)是否 OutWard type3 待侦察确认;
 壳均为 TEMP(用户后续重做 UI);错误码表未移植(显码降级)。
+
+## 主线竖切 第 18 轮(2026-07-02):天命觉醒+装备强化+古宝 三系统并行,十二用例全绿
+
+- 三实现代理(worktree):天命觉醒(f984ce3c5,42900/42909;⚠ctype81「功能开启」=TempleAwaken 专属,
+  与 FunctionOpenController pt_138 无关)、装备强化(c3ddc1261,15204/15205+EquipStrenView 按钮接真调用+3 配表)、
+  古宝(1c70346c0,13320/13321,soap 10001 幽瞳 2 碎片)。
+- 侦察代理:副本入口(61001/61013/61020,御魂本 type12=100980/101522;澄清 AutoBrush 133xx 与 61xxx 是两套)、
+  灵魄镶嵌(16700/16701,孔位1无条件)、结社加入(40004 建社=空服最短路径)→ 工单-副本灵魄结社.md。
+- 主控接线:Hub+3、DoTask ctype8/31→EquipFlow.OpenSub("EquipStrenView")、81→TempleAwakenShellView、
+  89→GuBaoShellView(降级表移除 8/31/81/89)、RenderAll 12 用例、csproj+11、第 19 波共享常量预置
+  (61001/61013/61020、16700/16701、40001/40003/40004/30008 + 事件 + config_dungeon 入 SYNC_LIST)。
+- **验证:12 用例全绿 EXIT 0**(新增 templeawaken/equipstren/gubao;含 round17_templeawaken_shell.png/round17_gubao_shell.png)。
+- 路线图已解:#20/#34/#42/#46/#57/#64/#80/#92 + ctype8;第 19 波=结社(#123)/灵魄(#113)/副本(#112)实现中。

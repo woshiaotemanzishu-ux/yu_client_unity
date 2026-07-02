@@ -61,6 +61,12 @@ namespace Shenxiao.Framework.Event
         public const string EVT_EQUIP_STREN_UPDATE = "EVT_EQUIP_STREN_UPDATE";
         /// <summary>古宝数据变动(13320 全量/13321 激活后)。</summary>
         public const string EVT_GUBAO_UPDATE = "EVT_GUBAO_UPDATE";
+        /// <summary>副本状态变动(61020 状态/61001 进入回包/61013 结算)。</summary>
+        public const string EVT_DUNGEON_UPDATE = "EVT_DUNGEON_UPDATE";
+        /// <summary>符文数据变动(16700 全量/16701 镶嵌后)。</summary>
+        public const string EVT_RUNE_UPDATE = "EVT_RUNE_UPDATE";
+        /// <summary>结社数据变动(40001 列表/40003 申请/40004 创建回包)。</summary>
+        public const string EVT_GUILD_UPDATE = "EVT_GUILD_UPDATE";
 
         // ----- Role -----
         public const string EVT_ROLE_INFO_UPDATE = "EVT_ROLE_INFO_UPDATE";

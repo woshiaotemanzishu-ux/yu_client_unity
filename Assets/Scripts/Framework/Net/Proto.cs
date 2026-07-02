@@ -335,6 +335,39 @@ namespace Shenxiao.Framework.Net
         /// 主线 100521=同修(type_id=2)到2级、100901=坐骑(type_id=1)到2级(ctype90:id=type_id/need=等级)。</summary>
         public const int OUTWARD_LV_UP = 16029;
 
+        // ----- 通用副本(pt_610,yu_server dungeon;老端 BaseDungeonController.ts。御魂本 type=12,dun_id 12001~) -----
+        /// <summary>进入副本(发 "i" dun_id;回包 dun_id:i, scene_id:i, error_code:i, error_code_args:s)。
+        /// 主线 100980(ctype9 id=12)=通关御魂本1层一次、101522(ctype57)=到3层。</summary>
+        public const int DUNGEON_ENTER = 61001;
+        /// <summary>副本结算(推送:result:c, help_type:c, score:h, pass_time:h, rela_list[…按 ClientProtocol 序读完],
+        /// drop_reward:ObjectList, reward_list:ObjectList)。</summary>
+        public const int DUNGEON_SETTLE = 61013;
+        /// <summary>副本状态/次数(回包:dun_type:c + dun_list[u16×{dun_id:i, daily_count:h, weekly_count:h,
+        /// permanent_count:h, reset_count:h, vip_count:h, add_count:h, is_sweep:c, rec_data[…]}])。</summary>
+        public const int DUNGEON_STATE = 61020;
+
+        // ----- 灵魄/符文(pt_167,yu_server rune;老端 RuneBagItem.ts/SecretTreasureMainView) -----
+        /// <summary>符文全量(请求无参;回包 rune_point:i, rune_chip:i, skill_lv:h, rune_list[u16×{pos_id:c, if_open:c,
+        /// goods_id:l, goods_type_id:i, color:c, lv:h, attr_list[u16×{attr_id:i, attr_num:i, awake_lv:i, awake_exp:i,
+        /// next_power:l, cur_power:l}]}], rune_sum_power:l)。</summary>
+        public const int RUNE_INFO = 16700;
+        /// <summary>镶嵌符文(发 "cl" pos_id, goods_id;回包 code:i, pos_id:c, new_goods_id:l, old_goods_id:l,
+        /// new_goods_type_id:i)。主线 100990(ctype33)=镶嵌一次(孔位1无条件开放)。</summary>
+        public const int RUNE_WEAR = 16701;
+
+        // ----- 结社/公会(pt_400,yu_server guild;老端 GuildJoinView.ts/GuildBuildView.ts) -----
+        /// <summary>结社列表(发 "shh" name,pageSize,pageNo;回包 page_total:h, page_no:h, guild_list[u16×{guild_id:l,
+        /// guild_name:s, guild_lv:h, guild_exp:i, chief_id:l, chief_name:s, member_num:h, member_capacity:h,
+        /// is_apply:c, auto_approve_power:i, combat_power:l, merge_status:c, is_master:c}])。</summary>
+        public const int GUILD_LIST = 40001;
+        /// <summary>一键批量申请加入(无参;回包 error_code:i, guild_id:l, apply_type:c)。</summary>
+        public const int GUILD_APPLY_ALL = 40003;
+        /// <summary>创建结社(发 "ls" cfgId=2, name;回包 error_code:i, guild_id:l)。空服最短路径:建社成功即
+        /// join_guild 事件 → 主线 101080(ctype14)完成。</summary>
+        public const int GUILD_CREATE = 40004;
+        /// <summary>任务系统补触发加入结社判定(C2S 无参,对标老端 GuildJoinView 打开时发 30008)。</summary>
+        public const int CC_TASK_JOIN_GUILD = 30008;
+
         // ----- 天命觉醒(pt_429,yu_server temple_awaken;老端 TempleAwakenEnterView.ts) -----
         /// <summary>完成觉醒之路初始任务(C2S 无参;回包 error_code:i,==1 成功 → 服务端 open_temple_awaken 推进
         /// 主线 100590(ctype81);前置=任务 100580 完成,KV(6) 等级门槛服务端校验)。</summary>
