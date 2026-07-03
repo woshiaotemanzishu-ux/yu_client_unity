@@ -32,6 +32,13 @@ namespace Shenxiao.EditorTools
         // 标志「冒烟进行中」,配合 [InitializeOnLoadMethod] 在新域自动重挂钩子。
         private const string SsRunning = "PlaySmoke.Running";
         private const string SsDeadline = "PlaySmoke.Deadline";
+        private const string SsWatchUntil = "PlaySmoke.WatchUntil";   // 观察模式截止(0=未启用)
+
+        // 观察模式:五门闩全中后不立即退出,继续观察主线推进(-smokeWatchMin N 分钟),
+        // 统计 30001 finished 的最大任务 id 与最后一次 DoTask 的任务 id,期满输出后退出。
+        private static double _watchUntil;
+        private static int _maxFinishedTask;
+        private static int _lastDoTask;
 
         /// <summary>每次域加载自动执行:若冒烟进行中(刚经历进 Play 的 reload),在新域重挂 OnLog/OnTick。</summary>
         [InitializeOnLoadMethod]
@@ -40,6 +47,7 @@ namespace Shenxiao.EditorTools
             if (!SessionState.GetBool(SsRunning, false)) return;
             _running = true;
             _deadline = SessionState.GetFloat(SsDeadline, (float)(EditorApplication.timeSinceStartup + TimeoutSeconds));
+            _watchUntil = SessionState.GetFloat(SsWatchUntil, 0f);
             _nextHeartbeatAt = EditorApplication.timeSinceStartup + HeartbeatIntervalSeconds;
             Application.logMessageReceived -= OnLog;
             Application.logMessageReceived += OnLog;
@@ -75,8 +83,19 @@ namespace Shenxiao.EditorTools
             _deadline = EditorApplication.timeSinceStartup + TimeoutSeconds;
             _nextHeartbeatAt = EditorApplication.timeSinceStartup + HeartbeatIntervalSeconds;
             _running = true;
+
+            // -smokeWatchMin N:五门闩后继续观察主线推进 N 分钟(默认 0=命中即退)。
+            double watchMin = 0;
+            string[] args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length - 1; i++)
+                if (args[i] == "-smokeWatchMin" && double.TryParse(args[i + 1], NumberStyles.Any, CultureInfo.InvariantCulture, out double m))
+                    watchMin = m;
+            _watchUntil = watchMin > 0 ? EditorApplication.timeSinceStartup + watchMin * 60d : 0d;
+            if (watchMin > 0) _deadline = _watchUntil + 120d;      // 观察模式下总超时=观察期+余量
+
             SessionState.SetBool(SsRunning, true);                 // 跨 reload:新域 AutoRearm 依此重挂
             SessionState.SetFloat(SsDeadline, (float)_deadline);   // timeSinceStartup 跨 reload 连续,可存绝对值
+            SessionState.SetFloat(SsWatchUntil, (float)_watchUntil);
 
             EditorApplication.playModeStateChanged -= OnState;
             EditorApplication.playModeStateChanged += OnState;     // 双保险(若某配置下订阅存活,亦幂等)
@@ -141,6 +160,29 @@ namespace Shenxiao.EditorTools
                 _taskOk = true;
                 Debug.Log("CLIVERIFY PLAYSMOKE gate task=OK");
             }
+
+            // 观察模式:统计主线推进深度(30001 finished 的任务 id / 最近 DoTask 的任务 id)。
+            if (_watchUntil > 0)
+            {
+                int idx = condition.IndexOf("30001 task=", StringComparison.Ordinal);
+                if (idx >= 0 && condition.Contains("finished"))
+                {
+                    if (int.TryParse(TakeDigits(condition, idx + 11), out int tid) && tid > _maxFinishedTask)
+                    {
+                        _maxFinishedTask = tid;
+                        Debug.Log("CLIVERIFY PLAYSMOKE mainline finished task=" + tid);
+                    }
+                }
+                idx = condition.IndexOf("DoTask: id=", StringComparison.Ordinal);
+                if (idx >= 0 && int.TryParse(TakeDigits(condition, idx + 11), out int did)) _lastDoTask = did;
+            }
+        }
+
+        private static string TakeDigits(string s, int start)
+        {
+            int end = start;
+            while (end < s.Length && char.IsDigit(s[end])) end++;
+            return s.Substring(start, end - start);
         }
 
         private static void OnTick()
@@ -152,8 +194,13 @@ namespace Shenxiao.EditorTools
 
             if (_loginOk && _enterOk && _gameStartOk && _sceneOk && _taskOk)
             {
-                Finish(0);
-                return;
+                if (_watchUntil <= 0) { Finish(0); return; }                       // 原行为:命中即退
+                if (EditorApplication.timeSinceStartup >= _watchUntil)             // 观察期满
+                {
+                    Debug.Log("CLIVERIFY PLAYSMOKE watch done maxFinishedTask=" + _maxFinishedTask + " lastDoTask=" + _lastDoTask);
+                    Finish(0);
+                    return;
+                }
             }
 
             double now = EditorApplication.timeSinceStartup;
@@ -180,6 +227,7 @@ namespace Shenxiao.EditorTools
             _running = false;
             SessionState.EraseBool(SsRunning);
             SessionState.EraseFloat(SsDeadline);
+            SessionState.EraseFloat(SsWatchUntil);
             EditorApplication.update -= OnTick;
             Application.logMessageReceived -= OnLog;
             EditorApplication.playModeStateChanged -= OnState;

@@ -185,6 +185,8 @@ namespace Shenxiao.Module.Core.AutoBrush
                 return;
             }
 
+            // ★同 TaskModel.StartPassMainDungeon 的活服实证修复:进副本前武装自动战斗,否则副本内无人输出 20s 超时判负。
+            AutoFightModel.Instance.SetAutoFightWeight(AutoFightModel.AUTO_WEIGHT_TASK);
             AutoBrushController.Instance.RequestEnterOrExit(0);
             Hide();
         }
