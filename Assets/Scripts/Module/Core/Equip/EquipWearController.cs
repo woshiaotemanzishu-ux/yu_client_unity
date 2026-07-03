@@ -19,6 +19,25 @@ namespace Shenxiao.Module.Core.Equip
         protected override void Register()
         {
             RegisterProtocal(Proto.EQUIP_WEAR, On15201);
+            // 自动穿戴(对标老端一键穿戴,自动任务模式代行;见 EquipAutoWear 头注释):
+            // 背包变化防抖触发;进游戏后请求装备通道(15010 pos=1)供 rating 比较。
+            EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, EquipAutoWear.OnBagUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_GAME_START, RequestWornList);
+        }
+
+        public override void Dispose()
+        {
+            EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, EquipAutoWear.OnBagUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_GAME_START, RequestWornList);
+            EquipAutoWear.Clear();
+            base.Dispose();
+        }
+
+        /// <summary>请求已穿戴装备全量(15010 pos=equip=1;回包经 BagController.On15010 转存 EquipAutoWear)。</summary>
+        public void RequestWornList()
+        {
+            SendFmt(Proto.GOODS_CONTAINER_INFO, "h", EquipAutoWear.POS_EQUIP);
+            GameLog.Info("Equip", "request 15010 equip pos={0}(自动穿戴 rating 比较用)", EquipAutoWear.POS_EQUIP);
         }
 
         /// <summary>15201 穿戴(发 "l" goodsId 实例id)。</summary>
@@ -46,6 +65,7 @@ namespace Shenxiao.Module.Core.Equip
             TipsManager.Toast("穿戴成功");
             GameLog.Info("Equip", "15201 ok goods_id={0} old_goods_id={1} type_id={2} cell_pos={3} remaining={4}B",
                 goodsId, oldGoodsId, typeId, cellPos, r.Remaining);
+            RequestWornList();   // 穿戴成功后刷新装备通道(对标老端 on15201 连锁刷新)
             EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
         }
     }

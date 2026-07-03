@@ -245,6 +245,12 @@ namespace Shenxiao.Module.Core.Bag
                 Rune.RuneModel.Instance.SetRuneBag(runeBag);
                 GameLog.Info("Bag", "15010 rune_bag: goods={0} remaining={1}B", list.Count, r.Remaining);
             }
+            else if (pos == Equip.EquipAutoWear.POS_EQUIP)
+            {
+                // 例外(活服实证-自动穿戴):已穿戴装备通道(pos=equip=1)转存 EquipAutoWear 供 rating 比较(同 rune_bag 模式)。
+                Equip.EquipAutoWear.SetWornList(list);
+                GameLog.Info("Bag", "15010 equip: goods={0} remaining={1}B", list.Count, r.Remaining);
+            }
             else
             {
                 GameLog.Debug("Bag", "15010 pos={0}(非背包,本轮暂不接) goods={1} remaining={2}B", pos, list.Count, r.Remaining);
