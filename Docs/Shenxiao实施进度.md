@@ -1143,3 +1143,15 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
   · **服务端断链 ×2(需人工)**:63 大妖(lib_special_boss_mod.erl:516 guard 只认 402/403)、
     35 排位(mod_jjc_cast.erl:87 ?JJC_USE_NUM increment 被注释)——客户端壳已备,服务端修复即通。
 - **下一阶段=活服整合实跑验证**(登录→主线逐任务推进→各壳真实往返),需交互 Unity+MCP 或批处理 Play 实验。
+
+## 活服整合阶段 第 1~2 轮(2026-07-03):PlaySmoke 批处理活服冒烟通道打通 + 主线实跑首证
+
+- **PlaySmoke 通道**(Assets/Editor/CliVerify/PlaySmoke.cs + LoginBootstrap -shenxiaoPlaySmoke 开关/0角色自动创角):
+  批处理真正 EnterPlaymode 连活服;首跑实证 domain reload 会吞 playModeStateChanged 静态订阅
+  (RuntimeUiCaptureTool 范式不成立)→ 修=SessionState+[InitializeOnLoadMethod] 自愈重挂(b35b80239)。
+  复跑:五门闩(登录链全通/进入游戏/GAME_START/12002/30000)全 OK,EXIT 0,6 分钟自动退出。
+  跑法:Unity.exe -batchmode -executeMethod Shenxiao.EditorTools.PlaySmoke.Run -shenxiaoPlaySmoke -logFile。
+- **★主线活服实跑首证(首跑 14h 日志取证)**:登录→创角→进游戏→主线 100030→100160 共 16 任务
+  全自动推进(FindNextAutoFightTask→DoTask 寻路→打怪→30004 提交→下一个,真实服务器闭环)。
+- **新卡点=100170 主线副本(tipsType10)**:13305 进副本成功,副本内打不过 → 13306 pass failed nextLevel=2
+  → 61002 退出 → 无限重试。下一攻坚=副本内战斗链(伤害/技能/怪物击杀)。
