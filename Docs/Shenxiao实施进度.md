@@ -1155,3 +1155,16 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
   全自动推进(FindNextAutoFightTask→DoTask 寻路→打怪→30004 提交→下一个,真实服务器闭环)。
 - **新卡点=100170 主线副本(tipsType10)**:13305 进副本成功,副本内打不过 → 13306 pass failed nextLevel=2
   → 61002 退出 → 无限重试。下一攻坚=副本内战斗链(伤害/技能/怪物击杀)。
+
+## 活服整合阶段 第 3~6 轮(2026-07-03):100170 主线副本攻坚(五层修复)+ 自动穿戴——战力 1760→8170,副本通关
+
+「实跑→定位→修复→重跑」逐层剥洋葱(每层都有活服日志实证):
+1. 进副本前武装 AutoFightModel(老端靠全局挂机常开的隐含状态,Unity 自动链没搬)——d59c0986f
+2. 登录冷启动点火(半途任务登录后无 30001 增量,两个续跑入口都不触发→首个 30000 后 kickoff)
+3. 点火等 MainRoleAgent 就绪(30000 早于主角渲染,过早点火被 no MainRoleAgent 早退)
+4. 攻击节奏对齐老端(僵直门禁 skill_rigidity/100ms tick/400ms 接近节流;代理侦察:老端 20s 理论 20-24 次 vs Unity 8 次)——55a3e18d3
+5. **自动穿戴**(根因:主线奖励装备躺背包,裸装战力 1760 vs 副本推荐 15000):侦察实证老端=一键穿戴按钮
+   (GetStrongestEquips:职业/部位/等级过滤+唯一 rating 比较,空槽直接穿/严格大于才换;15201 只发 goods_id);
+   Unity=EquipAutoWear 自动任务模式代行 + 装备通道(15010 pos=1)转存比较 + EVT_BAG_UPDATE 防抖触发。
+**playsmoke7 实证:auto-wear 逐件穿 6 件,战力 1760→8170;maxFinishedTask=100170(副本通关!),lastDoTask=100180 继续推进。**
+教训沉淀:playsmoke1.log(14h 取证)被 Unity 重启清掉——取证日志放 Logs/ 不放 Temp/(Unity 管辖)。
