@@ -62,9 +62,25 @@ namespace Shenxiao.Module.Core.Tasks
             await NpcConfigs.EnsureLoaded();
             _taskFinishPendingAuto = false;
             _taskOneAutoEpoch++;
+            _loginKickoffDone = false;
             TaskModel.Instance.ClearData();
             SendFmt(Proto.TASK_LIST);
             GameLog.Info("Task", "request task list proto={0}", Proto.TASK_LIST);
+        }
+
+        // 冷启动点火(活服实证修复):登录后 30000 全量到达时,若开着自动任务且当前主线任务半途(如上次
+        // 会话卡在副本/杀怪),没有任何 30001 增量来「点火」→ FindNextAutoFightTask 永不启动
+        // (既有两个续跑入口都依赖任务完成事件)。对标老端登录 loading 关闭后的自动任务恢复;
+        // 每次进游戏后的首个 30000 只触发一次。
+        private bool _loginKickoffDone;
+
+        private void TryKickoffAutoTaskOnLogin()
+        {
+            if (_loginKickoffDone) return;
+            _loginKickoffDone = true;
+            if (!TaskModel.Instance.GetAutoTaskSetting()) return;
+            GameLog.Info("Task", "login kickoff: auto task resume after first 30000");
+            TaskModel.Instance.FindNextAutoFightTask();
         }
 
         private void On30000(NetReader r)
@@ -93,6 +109,7 @@ namespace Shenxiao.Module.Core.Tasks
             GameLog.Info("Task", "30000 tasks can={0} receive={1} all={2}", canCount, receiveCount, allTaskList.Count);
             EventDispatcher.Emit(GlobalEvent.EVT_TASK_LIST_UPDATED);
             TryContinueAutoTaskAfterList();
+            TryKickoffAutoTaskOnLogin();
         }
 
         private void On30001(NetReader r)
