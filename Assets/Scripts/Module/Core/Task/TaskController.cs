@@ -28,12 +28,14 @@ namespace Shenxiao.Module.Core.Tasks
             RegisterProtocal(Proto.TASK_LATEST_FINISHED, On30005);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.On(GlobalEvent.EVT_COLLECT_ENDED, OnCollectEnded);
+            TaskSystemAutoPilot.Init(); // 测试专用代行器(-shenxiaoPlaySmoke 门控),见该类头注释
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.Off(GlobalEvent.EVT_COLLECT_ENDED, OnCollectEnded);
+            TaskSystemAutoPilot.Shutdown();
             base.Dispose();
         }
 
