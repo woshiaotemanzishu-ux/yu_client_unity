@@ -27,6 +27,27 @@ namespace Shenxiao.EditorTools
         private const double TimeoutSeconds = 600d;
         private const double HeartbeatIntervalSeconds = 30d;
 
+        // 跨 domain reload 状态(首跑实证:EnterPlaymode 的 reload 会吞掉 playModeStateChanged 的静态订阅,
+        // RuntimeUiCaptureTool 范式在本项目配置下不成立)→ 改用 SessionState(编辑器会话内跨 reload 保留)
+        // 标志「冒烟进行中」,配合 [InitializeOnLoadMethod] 在新域自动重挂钩子。
+        private const string SsRunning = "PlaySmoke.Running";
+        private const string SsDeadline = "PlaySmoke.Deadline";
+
+        /// <summary>每次域加载自动执行:若冒烟进行中(刚经历进 Play 的 reload),在新域重挂 OnLog/OnTick。</summary>
+        [InitializeOnLoadMethod]
+        private static void AutoRearm()
+        {
+            if (!SessionState.GetBool(SsRunning, false)) return;
+            _running = true;
+            _deadline = SessionState.GetFloat(SsDeadline, (float)(EditorApplication.timeSinceStartup + TimeoutSeconds));
+            _nextHeartbeatAt = EditorApplication.timeSinceStartup + HeartbeatIntervalSeconds;
+            Application.logMessageReceived -= OnLog;
+            Application.logMessageReceived += OnLog;
+            EditorApplication.update -= OnTick;
+            EditorApplication.update += OnTick;
+            Debug.Log("CLIVERIFY PLAYSMOKE rearmed after domain reload, watching log gates ...");
+        }
+
         private static double _deadline;
         private static double _nextHeartbeatAt;
         private static bool _running;
@@ -54,9 +75,11 @@ namespace Shenxiao.EditorTools
             _deadline = EditorApplication.timeSinceStartup + TimeoutSeconds;
             _nextHeartbeatAt = EditorApplication.timeSinceStartup + HeartbeatIntervalSeconds;
             _running = true;
+            SessionState.SetBool(SsRunning, true);                 // 跨 reload:新域 AutoRearm 依此重挂
+            SessionState.SetFloat(SsDeadline, (float)_deadline);   // timeSinceStartup 跨 reload 连续,可存绝对值
 
             EditorApplication.playModeStateChanged -= OnState;
-            EditorApplication.playModeStateChanged += OnState;
+            EditorApplication.playModeStateChanged += OnState;     // 双保险(若某配置下订阅存活,亦幂等)
 
             Debug.Log("CLIVERIFY PLAYSMOKE ENTER launchScene=" + LaunchScenePath + " timeoutSec=" + TimeoutSeconds.ToString("0", CultureInfo.InvariantCulture));
             EditorApplication.isPlaying = true;
@@ -155,6 +178,8 @@ namespace Shenxiao.EditorTools
         private static void Finish(int code)
         {
             _running = false;
+            SessionState.EraseBool(SsRunning);
+            SessionState.EraseFloat(SsDeadline);
             EditorApplication.update -= OnTick;
             Application.logMessageReceived -= OnLog;
             EditorApplication.playModeStateChanged -= OnState;
