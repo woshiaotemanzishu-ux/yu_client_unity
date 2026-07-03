@@ -79,8 +79,24 @@ namespace Shenxiao.Module.Core.Tasks
             if (_loginKickoffDone) return;
             _loginKickoffDone = true;
             if (!TaskModel.Instance.GetAutoTaskSetting()) return;
-            GameLog.Info("Task", "login kickoff: auto task resume after first 30000");
-            TaskModel.Instance.FindNextAutoFightTask();
+            _ = KickoffWhenMainRoleReadyAsync();
+        }
+
+        /// <summary>点火须等主角渲染就绪(活服实证:30000 到达早于 MainRoleAgent 创建,过早点火会在
+        /// DoPassMainDungeonTask 等分支「no MainRoleAgent」早退且不再重试)。轮询最多 60s。</summary>
+        private async Task KickoffWhenMainRoleReadyAsync()
+        {
+            for (int i = 0; i < 120; i++)
+            {
+                if (MainRoleAgent.Current != null)
+                {
+                    GameLog.Info("Task", "login kickoff: auto task resume (main role ready after {0}ms)", i * 500);
+                    TaskModel.Instance.FindNextAutoFightTask();
+                    return;
+                }
+                await Task.Delay(500);
+            }
+            GameLog.Warn("Task", "login kickoff abandoned: MainRoleAgent not ready in 60s");
         }
 
         private void On30000(NetReader r)
