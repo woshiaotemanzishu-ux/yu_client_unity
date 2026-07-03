@@ -482,11 +482,16 @@ namespace Shenxiao.Module.Core.Tasks
             }
 
             // 3.5) 已接真实入口的「开系统面板」类(对标老端各 case 开对应面板;壳=TEMP,数据全真):
-            if (task.TaskTipsType == TIP_TRAIN_PARTNER) { Partner.PartnerShellView.Show(); return; }             // 100190 同修阶星(pt_142)
-            if (task.TaskTipsType == TIP_TRAIN_MOUNT || task.TaskTipsType == TIP_MOUNT_LEVEL
+            // ★活服实证纠正(2026-07-03):TIP_TRAIN_PARTNER(25「剑魄同修培养」)判定走 pt_160 OutWard 的
+            // type_id=2(?MATE_ID),与 TIP_TRAIN_MOUNT(23,type_id=1)同族——服务端 lib_task.erl TRAIN_PARTNER
+            // 读 status_mount(mount 模块)的 type_id=2 阶星,靠 16023 一键升星推进。此前误路由到 pt_142
+            // 神巫/companion 系统(PartnerShellView)——那套永不触发 lib_task_api,任务永远无法完成。
+            // pt_142(config_companion/14204/14205)是另一独立系统,与 100190 无关。
+            if (task.TaskTipsType == TIP_TRAIN_MOUNT || task.TaskTipsType == TIP_TRAIN_PARTNER
+                || task.TaskTipsType == TIP_MOUNT_LEVEL
                 || task.TaskTipsType == 24 || task.TaskTipsType == 92 || task.TaskTipsType == 41)
             {
-                OutWard.OutWardShellView.Show(); return;   // 坐骑/同修阶星·等级 + 翼影24/圣器92/神兵41(16005 通用升星,第20轮)
+                OutWard.OutWardShellView.Show(); return;   // 坐骑(23)/同修(25)阶星·等级(90) + 翼影24/圣器92/神兵41(16005 通用升星)
             }
             if (task.TaskTipsType == 91) { OnHook.OnHookShellView.Show(); return; }                               // 101211 挂机收益(13216)
             if (task.TaskTipsType == 50) { Rune.RuneWearShellView.Show(); return; }                               // 101525 御魂强化(16702)

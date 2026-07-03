@@ -12,7 +12,6 @@ using Shenxiao.Module.Core.GuBao;
 using Shenxiao.Module.Core.Guild;
 using Shenxiao.Module.Core.OnHook;
 using Shenxiao.Module.Core.OutWard;
-using Shenxiao.Module.Core.Partner;
 using Shenxiao.Module.Core.Rune;
 using Shenxiao.Module.Core.RushGift;
 using Shenxiao.Module.Core.SuitCollect;
@@ -221,18 +220,13 @@ namespace Shenxiao.Module.Core.Tasks
 
         private static void DoTrainPartner(TaskVo task)
         {
-            List<PartnerModel.CompanionVo> companions = PartnerModel.Instance.Companions;
-            if (companions == null || companions.Count == 0)
-            {
-                // PartnerController 无公开的"请求 14202 列表"方法(仅在其私有 OnGameStart 里发一次,
-                // 进游戏时已发过);此处不越权改 PartnerController,如实记录 blocker 并跳过等下一 tick。
-                GameLog.Warn("Task", "autopilot: task={0} tips=25 Companions 为空且无公开的 14202 请求方法(PartnerController.OnGameStart 已发过一次),跳过等待", task.TaskId);
-                return;
-            }
-
-            PartnerModel.CompanionVo first = companions[0];
-            PartnerController.Instance.Train(first.CompanionId);
-            GameLog.Info("Task", "autopilot: task={0} tips=25 action=Partner.Train({1})", task.TaskId, first.CompanionId);
+            // ★活服实证纠正(2026-07-03):TIP_TRAIN_PARTNER(25「剑魄同修培养」)判定走 pt_160 OutWard 的
+            // type_id=2(?MATE_ID),与 tips=23 坐骑(type_id=1)同族——服务端读 status_mount type_id=2 阶星,
+            // 靠 16023 一键升星推进。不是 pt_142 神巫/companion:那套永不触发 lib_task_api,且 14205 对未激活
+            // companion 报 errcode 1420001「未激活当前神巫」(实测死循环根因)。type_id=2 等级到 10 自动解锁初始 1阶1星。
+            const int MateTypeId = 2;
+            OutWardController.Instance.StarUp(MateTypeId);
+            GameLog.Info("Task", "autopilot: task={0} tips=25 action=OutWard.StarUp(2)(剑魄同修 pt_160 type_id=2,非 pt_142)", task.TaskId);
         }
 
         private static void DoSuitCollect(TaskVo task)
