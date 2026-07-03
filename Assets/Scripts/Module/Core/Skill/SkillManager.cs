@@ -32,8 +32,18 @@ namespace Shenxiao.Module.Core.Skill
             public int IsAuto;
         }
 
+        /// <summary>
+        /// 普攻均值僵直兜底(毫秒)。对标老端 career1 普攻链 59100001/3/5/8 的 config_skill.time=567/433/1133/1267
+        /// 均值≈850ms(见 SkillConfigs.GetAnimTimeMs 注释的数据锚点)。仅当 config_skill 缺 time 字段
+        /// (理论上不会发生,真实表都有)时兜底,不凭空造更快的数字。
+        /// </summary>
+        private const int DefaultRigidityMs = 850;
+
         private readonly Dictionary<int, SkillVo> _mySkillList = new Dictionary<int, SkillVo>();
         private int _autoFightShortcutIndex;
+
+        /// <summary>技能僵直结束时间(Environment.TickCount 毫秒,对标老端 SkillManager.skill_rigidity)。</summary>
+        private int _rigidityEndTick;
 
         /// <summary>首屏技能槽(去普攻、按 id 升序)。视图据此铺 4 槽。</summary>
         public List<SkillVo> ShortcutList { get; private set; } = new List<SkillVo>();
@@ -112,6 +122,27 @@ namespace Shenxiao.Module.Core.Skill
 
         public SkillVo GetSkill(int skillId)
             => _mySkillList.TryGetValue(skillId, out SkillVo v) ? v : null;
+
+        /// <summary>
+        /// 释放技能后设置僵直(对标老端 SkillManager.SetSkillRigidity,调用点对标 FightMovieInfo.ts:191
+        /// local_SkillManager.SetSkillRigidity(rigidity_time),rigidity_time=pre_swing+spell_time+back_swing)。
+        /// 本端无逐帧动作演出系统,在释放边界(SceneCombat.ReleaseMainSkill)直接用 config_skill.time 作僵直时长
+        /// (同一数值来源,见 SkillConfigs.GetAnimTimeMs)。取更长值不缩短(对标老端"僵直只能变长不能被新请求缩短")。
+        /// </summary>
+        public void SetSkillRigidity(int durationMs)
+        {
+            if (durationMs <= 0) durationMs = DefaultRigidityMs;
+            int end = System.Environment.TickCount + durationMs;
+            if (_rigidityEndTick != 0 && end < _rigidityEndTick) return; // 对标老端: rigidity_end_time < this.skill_rigidity 则不覆盖
+            _rigidityEndTick = end;
+        }
+
+        /// <summary>是否仍在攻击僵直中(对标老端 SkillManager.IsInRigidity)。AutoFightController 用它替代固定 tick 间隔节流攻击。</summary>
+        public bool IsInRigidity() => _rigidityEndTick != 0 && Environment_TickDiff(_rigidityEndTick) > 0;
+
+        // TickCount 会在约 24.9 天回绕;用差值判断而非直接比较,避免回绕瞬间误判(老端 Status.NowTime 是秒级浮点无此问题,
+        // 这里补一个防回绕的差值封装,仍是"未到点=true"的同一语义)。
+        private static int Environment_TickDiff(int endTick) => endTick - System.Environment.TickCount;
 
         public SkillVo GetNextAutoFightSkill()
         {

@@ -170,6 +170,16 @@ namespace Shenxiao.Module.Core.Skill
             return (0, 0);
         }
 
+        /// <summary>
+        /// 技能动作/僵直时长,毫秒(config_skill[id].time)。对标老端 FightMovieInfo.ts:182-184 的
+        /// rigidity_time = pre_swing+spell_time+back_swing——config_skill.time 是同一份数值的服务端镜像
+        /// (实测 59100001~59100008 的 time=567/433/1133/1267 与 ConfigCareerSkillMovies.json 的
+        /// back_swing*1000 逐一相等)。用于 <see cref="SceneCombat"/> 给 AutoFightController 的攻击节奏计时,
+        /// 不需要额外加载 ConfigCareerSkillMovies 客户端表。缺省 0(链尾/无表项)时调用方回落到普攻均值。
+        /// </summary>
+        public static int GetAnimTimeMs(int skillId)
+            => _skill?[skillId.ToString()] is JObject o ? (o.Value<int?>("time") ?? 0) : 0;
+
         /// <summary>取某级图标资源名(对标 SkillVo.GetIcon:lv_data[level-1].icon,缺省回落技能 id)。</summary>
         public static string GetIconForLevel(int skillId, int level)
         {

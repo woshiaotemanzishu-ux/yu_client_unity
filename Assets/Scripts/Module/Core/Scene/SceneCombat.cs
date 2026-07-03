@@ -45,6 +45,18 @@ namespace Shenxiao.Module.Core.Scene
         /// distance 取自 config_skill lv_data[level-1].distance(缺省 50,对标 SkillVo.GetDistance)。</summary>
         private const float AttackRangeFloor = 100f;
 
+        /// <summary>
+        /// 寻怪/发起接近的最小间隔,毫秒(对标老端 Scene.ts:142 auto_find_and_attack_interval=0.4,
+        /// 用于 Scene.ts:1744 `NowTime - last_find_target_time < 0.4` 节流)。AutoFightController 的 tick
+        /// 从 500ms 提到 100ms 后(对齐老端 UpdateAutoFight 轮询频率),若不加这道闸,接近中的目标每 100ms
+        /// 就会被 <see cref="ApproachThenRelease"/> 重新 MoveToNpc 一次,把 MainRoleAgent 的卡死/超时兜底计时
+        /// (AutoStuckSeconds/AutoMoveTimeout)反复清零而不到点——变相软锁,比原先 500ms 版更容易触发。
+        /// </summary>
+        private const int FindAndAttackIntervalMs = 400;
+
+        /// <summary>上次发起"寻怪后接近"的时间(Environment.TickCount 毫秒;对标老端 last_find_target_time)。</summary>
+        private int _lastFindTargetTick;
+
         /// <summary>当前点击/锁定目标实例 id(对标老端 Scene.curr_click_target;0=无)。</summary>
         public int CurrentTargetId { get; private set; }
 
@@ -258,6 +270,13 @@ namespace Shenxiao.Module.Core.Scene
                 return;
             }
 
+            // 节流(对标老端 Scene.ts:1744 `NowTime - last_find_target_time < auto_find_and_attack_interval` return):
+            // 接近尚在进行时,不用每个 100ms tick 都重新 MoveToNpc 一次(MainRoleAgent 的移动本身按 Update() 逐帧推进,
+            // 不需要这里反复驱动;重复调用只会清零卡死/超时计时器)。已到点才允许重发一次接近指令。
+            int nowTick = Environment.TickCount;
+            if (_lastFindTargetTick != 0 && nowTick - _lastFindTargetTick < FindAndAttackIntervalMs) return;
+            _lastFindTargetTick = nowTick;
+
             // 站位修正(对标老端 StartTargetAction:停在玩家"接近方向"那一侧的攻击距离处,而非走到 BOSS 中心):
             // 原来 MoveToNpc(BOSS 中心, 半径=range/LogicRatioX) 是各向同性大圆,玩家从哪边进圆就停哪边 → 可能停到 BOSS 背后。
             // 改为:沿"玩家→BOSS"方向,停在距 BOSS 中心 stopDist 像素处的【BOSS 正前方站位点】,到达半径收紧。
@@ -301,9 +320,15 @@ namespace Shenxiao.Module.Core.Scene
         /// Fire(FightEvent.RELEASE_MAIN_SKILL, ..., monster.compress_id),供 UI/表现订阅,保留不动);
         /// ② 真实服务端攻击请求(单体 20001/进战斗态 20024,经 <see cref="FightController"/>,见 <see cref="SendRealAttackOrBlock"/>)。
         /// 老端真实 20001 在技能动作帧 skill_damage_time 由 fight-movie 触发;本端无动作帧系统,在释放边界即发(时序差异,非字段差异)。
+        ///
+        /// 僵直(对标老端 FightMovieInfo.ts:190-191 is_main_role_attack 分支 SetSkillRigidity(rigidity_time),
+        /// rigidity_time=pre_swing+spell_time+back_swing):此处用 config_skill.time 同值(见 SkillConfigs.GetAnimTimeMs
+        /// 注释的数据锚点)设僵直,AutoFightController 下一轮 tick 靠 SkillManager.IsInRigidity() 决定要不要再攻,
+        /// 不再单纯依赖固定 tick 间隔——对齐老端"打得快慢由动作时长决定,不是由轮询间隔决定"。
         /// </summary>
         private static void ReleaseMainSkill(int skillId, MonsterVo mon, int attackType)
         {
+            SkillManager.Instance.SetSkillRigidity(SkillConfigs.GetAnimTimeMs(skillId));
             MainRoleAgent.Current?.PlaySkill(skillId);
             EventDispatcher.Emit(GlobalEvent.EVT_RELEASE_MAIN_SKILL, skillId, mon.InstanceId);
             GameLog.Info("Combat",

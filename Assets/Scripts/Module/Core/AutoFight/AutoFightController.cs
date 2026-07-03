@@ -20,7 +20,12 @@ namespace Shenxiao.Module.Core.AutoFight
     {
         public static readonly AutoFightController Instance = new AutoFightController();
 
-        private const int LOOP_DELAY_MS = 500;
+        // 对标老端 Scene.ts:1136/1642 UpdateAutoFight 轮询节奏:GlobalTimerQuest.AddPeriodQuest 挂在
+        // Scene.Update 上,每 6 帧跑一次;Runner.ts:43 real_frameRate=60 → 6/60=0.1s=100ms。
+        // 旧值 500ms 是这里的 5 倍,tick 频率本身就比老端慢,叠加"无僵直门禁"(见下)导致 20 秒内决策次数不够、
+        // 攻击稀疏。实际输出节奏现在由 SkillManager.IsInRigidity()(config_skill.time)兜底,
+        // 这个常量只负责"多久检查一次能不能打",对齐老端轮询频率即可。
+        private const int LOOP_DELAY_MS = 100;
 
         private CancellationTokenSource _loopCts;
         private bool _warnedNoSkill;
@@ -114,6 +119,11 @@ namespace Shenxiao.Module.Core.AutoFight
             AutoFightModel model = AutoFightModel.Instance;
             // CombatFreeze:大妖来袭横幅等演出期间冻结自动攻击(横幅结束才开打,对标老端 STOPAUTOFIGHT)。
             if (!model.AutoFightState || model.TempMode || model.CombatFreeze || !NetManager.IsConnected) return;
+
+            // 对标老端 Scene.ts:1760 `if (skill_mgr.IsInRigidity()) return`:动作僵直没结束前不再发起下一次攻击。
+            // 这是老端真正的攻击节奏闸门(100ms 只是"多久看一眼",不是"多久打一下");之前这里没有任何节奏门禁,
+            // 相当于每 500ms 无条件请求一次攻击,和老端"打完一下动作(约 0.4~1.3s)才能打下一下"不对标。
+            if (SkillManager.Instance.IsInRigidity()) return;
 
             SkillVo skill = SkillManager.Instance.GetNextCombatSkill();
             if (skill == null)
