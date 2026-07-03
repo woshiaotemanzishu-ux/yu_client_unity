@@ -35,14 +35,13 @@ namespace Shenxiao.Module.Core.Login
         // 模板项内部子节点名(由 ServerSelectCreator 按这些名字建树;运行时按名取,保持 data-only)
         private const string TAB_BG = "_img_bg";
         private const string TAB_NAME = "_lb_name";
-        private const string ITEM_BG = "_img_bg";
         private const string ITEM_NAME = "_lb_server_name";
         private const string ITEM_LEVEL = "_lb_level";
         private const string ITEM_CAREER = "_img_career";
         private const string ITEM_TIPS = "_img_tips";
 
-        private const float TAB_SPACING = 4f;   // 老 scene _list_tab.spaceY
-        private const float ITEM_SPACING = 26f;  // 老 LoginSelectServerView.ITEM_SPACING
+        // 排版(间距/对齐/位置)全由 prefab 上 TabContainer/ItemContainer 的 VerticalLayoutGroup 负责,
+        // 本类不写 anchoredPosition / sizeDelta,避免覆盖编辑器里手调的布局。
 
         private static readonly Color TAB_SELECTED = ParseColor("#FFEEE4");
         private static readonly Color TAB_NORMAL = ParseColor("#81452B");
@@ -113,14 +112,12 @@ namespace Shenxiao.Module.Core.Login
                 _selectedArea = tabs[1].area;
             }
 
-            float tabHeight = ((RectTransform)tabTemplate.transform).sizeDelta.y;
-
             for (int i = 0; i < tabs.Count; i++)
             {
                 (int area, string label) = tabs[i];
                 GameObject tab = Instantiate(tabTemplate, tabContainer);
                 tab.SetActive(true);
-                ((RectTransform)tab.transform).anchoredPosition = new Vector2(0f, -i * (tabHeight + TAB_SPACING));
+                // 位置交给 tabContainer 的 VerticalLayoutGroup,这里不手动排
 
                 TextMeshProUGUI nameLabel = FindText(tab, TAB_NAME);
                 if (nameLabel != null) nameLabel.text = label;
@@ -132,7 +129,6 @@ namespace Shenxiao.Module.Core.Login
                 _tabs.Add(tab);
                 _tabAreas.Add(area);
             }
-            tabContainer.sizeDelta = new Vector2(tabContainer.sizeDelta.x, tabs.Count * (tabHeight + TAB_SPACING));
             RefreshTabStates();
         }
 
@@ -183,9 +179,6 @@ namespace Shenxiao.Module.Core.Login
                 return;
             }
 
-            float itemHeight = ((RectTransform)itemTemplate.transform).sizeDelta.y;
-
-            int index = 0;
             foreach (LoginServerInfo server in LoginController.Instance.Model.Servers)
             {
                 bool match = _selectedArea == TAB_RECENT
@@ -194,12 +187,10 @@ namespace Shenxiao.Module.Core.Login
                 if (!match) continue;
                 GameObject item = Instantiate(itemTemplate, itemContainer);
                 item.SetActive(true);
-                ((RectTransform)item.transform).anchoredPosition = new Vector2(0f, -index * (itemHeight + ITEM_SPACING));
+                // 位置交给 itemContainer 的 VerticalLayoutGroup,这里不手动排
                 BindItem(item, server);
                 _items.Add(item);
-                index++;
             }
-            itemContainer.sizeDelta = new Vector2(itemContainer.sizeDelta.x, index * (itemHeight + ITEM_SPACING));
         }
 
         private void BindItem(GameObject item, LoginServerInfo server)
@@ -224,8 +215,10 @@ namespace Shenxiao.Module.Core.Login
             Image tips = FindImage(item, ITEM_TIPS);
             if (tips != null) tips.enabled = server.isNew;
 
-            Image bg = FindImage(item, ITEM_BG);
-            if (bg != null) UIUtil.AddClick(bg, () => OnClickItem(server));
+            // 命中体 = 整行根节点(对标老端:整张行底 _img_bg 都可点)。
+            // 不绑 _img_bg 子节点:当前 prefab 里它已被改成行内小图,绑上去只有中间一小块能点。
+            // 子节点(名字/等级等)无自己的点击处理器 → 点击会冒泡到行根这颗 Button 上,整行都能触发。
+            UIUtil.AddClick(item, () => OnClickItem(server));
         }
 
         private void OnClickItem(LoginServerInfo server)

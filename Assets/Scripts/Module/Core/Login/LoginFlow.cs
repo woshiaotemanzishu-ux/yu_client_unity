@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Config;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
@@ -217,10 +218,12 @@ namespace Shenxiao.Module.Core.Login
             if (!result.success)
             {
                 GameLog.Warn("Login", "选服失败: {0}", result.message);
+                TipsManager.Toast(result.message);   // 选到维护服等失败给玩家反馈(老端失败也走 Message)
                 return;
             }
-            _selectView.Hide();
-            _enterView.RefreshServer();
+            TipsManager.Toast("切换成功");   // 对标老 ClickServer:Message.show("切换成功")
+            _selectView.Hide();              // 关闭选服面板(对标 Close)
+            _enterView.RefreshServer();      // 踏入仙界页刷新当前服(对标 CHANGE_CUR_SERVER_ID → UpdateServerName)
         }
 
         public static async Task EnterGameAsync()
