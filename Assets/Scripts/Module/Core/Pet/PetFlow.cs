@@ -32,16 +32,12 @@ namespace Shenxiao.Module.Core.Pet
         private static readonly bool[] TabEnabled = { true, true, false, false };
         // 页签 index → OutWard type_id(0=坐骑1,1=剑魄同修2;神巫/天妖灵魄非 OutWard 家族)
         private static readonly int[] TabTypeId = { 1, 2, 0, 0 };
-        // 每页标题图(对标老端 titleStr="pet.uiwg_001" + titleList[1]="pet.ui_shihun")
-        private static readonly string[] TabTitleImages =
-        {
-            GameResPath.GetIcon("pet", "uiwg_001"),
-            GameResPath.GetIcon("pet", "ui_shihun"),
-            null,
-            null,
-        };
-        // 窗底大图(对标老端 bg_list 0/1 = "uiwg_008a.jpg";Unity 侧同名资源在 pet/other/)
-        private static readonly string WindowBg = GameResPath.GetIconOtherPath("pet", "uiwg_008a");
+        // 每页标题:老端现行为=文字覆盖盖住标题位图(MountPetView.EnsureMountPetModuleTitleOverlay,
+        // titleList 的 uiwg_001/ui_shihun 位图是旧通道,已被覆盖文字取代 → 传 titleTexts 走文字)。
+        private static readonly string[] TabTitleTexts = { "御风云骑", "剑魄同修", "神巫", "天妖灵魄" };
+        // 窗底大图(对标老端 bg_list 0/1 = "uiwg_008a.jpg",BaseWindowComponent.ts:295 走 GetBigBgPath;
+        // ⚠ pet/other/uiwg_008a.png 是模型底座,不是这张全屏水墨图,别混)
+        private static readonly string WindowBg = GameResPath.GetBigBgPath("uiwg_008a.jpg");
 
         private static GameObject _frameRoot;
         private static GameObject _contentRoot;
@@ -137,7 +133,7 @@ namespace Shenxiao.Module.Core.Pet
             _window.Show();
             _window.ConfigureShared(PetTabs.Length, ReparentOutWard, OnPetTab, tabIndex,
                 i => i >= 0 && i < TabEnabled.Length && TabEnabled[i], null,
-                PetTabs, TabTitleImages, WindowBg);
+                PetTabs, null, WindowBg, TabTitleTexts);
             GameLog.Info("Pet", "灵宠四标签窗打开(共享 OutWardBaseView,默认 tab{0} {1})", tabIndex, PetTabs[tabIndex]);
         }
 

@@ -100,15 +100,19 @@ namespace Shenxiao.Module.Core.Common
         private int _sharedCount;
         private string[] _sharedLabels;
         private string[] _sharedTitleImages;
+        private string[] _sharedTitleTexts;
         private string _sharedBackground;
+        private TMPro.TextMeshProUGUI _titleOverlay;
         private Dictionary<int, Func<RectTransform, BaseView>> _overrideFactory;
         private readonly Dictionary<int, BaseView> _overrideCache = new Dictionary<int, BaseView>();
 
         /// <summary>共享内容模式:tabCount 个标签共用一个内容视图(contentFactory 懒建一次入 _gp_item_con),点标签调 onTabSelected(index) 重喂数据。
         /// overrides:个别标签用专属视图(index→工厂),命中时改显该专属视图(不调 onTabSelected)。可选 isEnabled 判定标签可点。
-        /// labels:标签文字(对标老端 tabStrList);titleImages:每页标题图(对标 titleList);backgroundImage:窗底大图(对标 bg_list,null=默认 ui_bg_1)。</summary>
+        /// labels:标签文字(对标老端 tabStrList);titleImages:每页标题图(对标 titleList);
+        /// titleTexts:每页标题文字覆盖(对标老端 EnsureMountPetModuleTitleOverlay,盖住/替代标题位图);
+        /// backgroundImage:窗底大图(对标 bg_list,null=默认 ui_bg_1)。</summary>
         public void ConfigureShared(int tabCount, Func<RectTransform, BaseView> contentFactory, Action<int> onTabSelected, int defaultIndex = 0, Func<int, bool> isEnabled = null, Dictionary<int, Func<RectTransform, BaseView>> overrides = null,
-            string[] labels = null, string[] titleImages = null, string backgroundImage = null)
+            string[] labels = null, string[] titleImages = null, string backgroundImage = null, string[] titleTexts = null)
         {
             _sharedCount = tabCount;
             _sharedFactory = contentFactory;
@@ -117,6 +121,7 @@ namespace Shenxiao.Module.Core.Common
             _overrideFactory = overrides;
             _sharedLabels = labels;
             _sharedTitleImages = titleImages;
+            _sharedTitleTexts = titleTexts;
             _sharedBackground = backgroundImage;
             BuildSharedTabs();
             int def = defaultIndex;
@@ -175,10 +180,57 @@ namespace Shenxiao.Module.Core.Common
                 _onSharedTab?.Invoke(index);
             }
 
-            ApplyTitle(_sharedTitleImages != null && index < _sharedTitleImages.Length ? _sharedTitleImages[index] : null);
+            ApplySharedTitle(index);
             ApplyBackground(_sharedBackground);
             for (int i = 0; i < _tabs.Count; i++) if (_tabs[i] != null) _tabs[i].SetSelected(_tabIndices[i] == index);
             _current = index;
+        }
+
+        /// <summary>共享模式标题:有文字覆盖 → 显覆盖、藏标题位图(对标老端 overlay 压位图);否则回位图通道。</summary>
+        private void ApplySharedTitle(int index)
+        {
+            string text = _sharedTitleTexts != null && index < _sharedTitleTexts.Length ? _sharedTitleTexts[index] : null;
+            string image = _sharedTitleImages != null && index < _sharedTitleImages.Length ? _sharedTitleImages[index] : null;
+            if (!string.IsNullOrEmpty(text))
+            {
+                EnsureTitleOverlay();
+                if (_titleOverlay != null)
+                {
+                    _titleOverlay.gameObject.SetActive(true);
+                    _titleOverlay.text = text;
+                }
+                if (_img_title != null) _img_title.gameObject.SetActive(false);
+                return;
+            }
+            if (_titleOverlay != null) _titleOverlay.gameObject.SetActive(false);
+            if (_img_title != null) _img_title.gameObject.SetActive(true);
+            ApplyTitle(image);
+        }
+
+        /// <summary>标题文字覆盖件(运行时同构,对标老端 MountPetView/RoleView.Ensure*TitleOverlay:
+        /// fontSize34/bold/#fff8e7,centerX 对齐标题位图;描边为 SDF 近似省略)。字体沿用窗内既有 TMP。</summary>
+        private void EnsureTitleOverlay()
+        {
+            if (_titleOverlay != null || _img_title == null) return;
+            var go = new GameObject("_title_text_overlay", typeof(RectTransform));
+            var rt = (RectTransform)go.transform;
+            RectTransform titleRt = _img_title.rectTransform;
+            rt.SetParent(titleRt.parent, false);
+            rt.anchorMin = titleRt.anchorMin;
+            rt.anchorMax = titleRt.anchorMax;
+            rt.pivot = titleRt.pivot;
+            rt.anchoredPosition = titleRt.anchoredPosition;
+            rt.sizeDelta = new Vector2(Mathf.Max(300f, titleRt.rect.width), Mathf.Max(44f, titleRt.rect.height));
+            _titleOverlay = go.AddComponent<TMPro.TextMeshProUGUI>();
+            _titleOverlay.alignment = TMPro.TextAlignmentOptions.Center;
+            _titleOverlay.fontSize = 34f;
+            _titleOverlay.fontStyle = TMPro.FontStyles.Bold;
+            _titleOverlay.color = new Color(1f, 0.972f, 0.906f, 1f);   // #fff8e7
+            _titleOverlay.raycastTarget = false;
+            foreach (TMPro.TextMeshProUGUI t in GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+            {
+                if (t != _titleOverlay) { _titleOverlay.font = t.font; _titleOverlay.fontSharedMaterial = t.fontSharedMaterial; break; }
+            }
         }
 
         /// <summary>设置某标签红点(由各窗的红点逻辑调用)。</summary>
