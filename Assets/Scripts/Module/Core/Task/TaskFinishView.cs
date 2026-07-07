@@ -36,8 +36,24 @@ namespace Shenxiao.Module.Core.Tasks
         public void Open(TaskVo task)
         {
             if (task == null) return;
+
+            // 幂等重开:同一任务且弹层已可见 → 不重开(自动任务 tick 会周期性重进 DoTask→DoFinishTask,
+            // 每次重开都会 Render 重建奖励格并 StartTime 重置 10s 倒计时 → 自动提交永远到不了点,
+            // 弹层反复闪。实测日志:任务 100060 循环重开数十分钟无一次 30004。已开着就让倒计时跑完。
+            if (_task != null && _task.TaskId == task.TaskId && IsShowing())
+            {
+                return;
+            }
+
             _task = task;
             _ = OpenAsync(++_openEpoch);
+        }
+
+        /// <summary>弹层当前真实可见(引用活着且激活;Unity 销毁对象比较 == null 为 true,天然覆盖被外因销毁的情况)。</summary>
+        private bool IsShowing()
+        {
+            return _moduleRoot != null && _bind != null
+                && _moduleRoot.activeSelf && _bind.gameObject.activeSelf;
         }
 
         public void Close()
@@ -52,20 +68,41 @@ namespace Shenxiao.Module.Core.Tasks
 
         private async Task OpenAsync(int epoch)
         {
-            if (!await EnsureLoaded()) return;
-            if (epoch != _openEpoch || _task == null) return;
+            // fire-and-forget 入口必须自兜异常:此前 SetActive/Render 抛错被静默吞掉,表现为"完成弹层
+            // 再也不弹、无任何报错"(实测 100060 卡死循环),必须落日志暴露根因。
+            try
+            {
+                if (!await EnsureLoaded()) return;
+                if (epoch != _openEpoch || _task == null) return;
 
-            _moduleRoot.SetActive(true);
-            _bind.Show();
-            _bind.transform.SetAsLastSibling();
-            Render();
-            StartTime();
-            GameLog.Info("Task", "TaskFinishView opened: task={0} name={1}", _task.TaskId, _task.TaskName);
+                _moduleRoot.SetActive(true);
+                _bind.Show();
+                _bind.transform.SetAsLastSibling();
+                Render();
+                StartTime();
+                GameLog.Info("Task", "TaskFinishView opened: task={0} name={1}", _task.TaskId, _task.TaskName);
+            }
+            catch (System.Exception ex)
+            {
+                GameLog.Error("Task", "TaskFinishView open failed: task={0} err={1}\n{2}",
+                    _task?.TaskId ?? 0, ex.Message, ex.StackTrace);
+            }
         }
 
         private async Task<bool> EnsureLoaded()
         {
             if (_bind != null && _moduleRoot != null) return true;
+
+            // 加载过但引用已失效(场景切换等外因把 TaskModule 销毁,Unity fake-null)→ 丢弃缓存结果重载;
+            // 加载失败的缓存(false)同样借此路径重试。仅在旧任务已完结时重置,在途加载照常等待复用。
+            if (_loadTask != null && _loadTask.IsCompleted)
+            {
+                _loadTask = null;
+                _moduleRoot = null;
+                _bind = null;
+                ClearRewardCells();
+            }
+
             if (_loadTask == null) _loadTask = LoadPrefab();
             return await _loadTask;
         }

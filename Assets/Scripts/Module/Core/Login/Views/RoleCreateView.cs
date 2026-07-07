@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
@@ -6,6 +7,7 @@ using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Playables;
 using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Login
@@ -242,6 +244,10 @@ namespace Shenxiao.Module.Core.Login
                 return;
             }
             int selectedAtRequest = _selectedIndex;
+
+            // 整模优先:ArtImport 导入的创角成品 prefab(特效/动作自带,Timeline 自播),没有再走老拼装链
+            if (await TryShowWholeModel(o, res, selectedAtRequest)) return;
+
             string[] actions = LoginConfigs.RoleUIActions("LoginCreateRoleView");
             GameObject model = await RoleModelAssembler.BuildAsync(new RoleModelSpec
             {
@@ -277,6 +283,120 @@ namespace Shenxiao.Module.Core.Login
             {
                 EffectBinder.PlayOneShot(effect);
             }
+        }
+
+        /// <summary>
+        /// 整模路径(ArtImport 导入的创角成品 prefab):
+        /// `object/role/model_create_{RoleRes}/{RoleRes}@create2`(出场,播完 Hold 停末帧)
+        /// → `{RoleRes}@create3`(待机,循环)。特效/动作全在 prefab 里由 PlayableDirector 自播,
+        /// 不走拼装链、不挂配置骨骼特效。资源不存在返回 false,由调用方走老拼装路径。
+        /// </summary>
+        private async Task<bool> TryShowWholeModel(
+            LoginConfigs.CareerOption o, LoginConfigs.CareerRes res, int selectedAtRequest)
+        {
+            string baseKey = $"object/role/model_create_{res.RoleRes}/{res.RoleRes}";
+            GameObject create2Prefab = await ResManager.LoadOptionalAsync<GameObject>(baseKey + "@create2");
+            if (create2Prefab == null) return false;
+            // 待机 prefab 提前拿:落点(=占位位置)从它的静态包围盒量,完全不碰出场动画的 Director
+            GameObject create3Prefab = await ResManager.LoadOptionalAsync<GameObject>(baseKey + "@create3");
+            // 加载期间切了职业/关了页:丢弃过期结果(新选中职业自会触发自己的 ShowCareerModel)
+            if (selectedAtRequest != _selectedIndex || !gameObject.activeInHierarchy) return true;
+
+            Vector2 modelPos = LoginConfigs.GetModelPos("CreateRole", o.Career, o.Sex);
+            GameObject inst = Instantiate(create2Prefab);
+            PlayableDirector director = inst.GetComponentInChildren<PlayableDirector>(true);
+            if (director != null) director.extrapolationMode = DirectorWrapMode.Hold; // 播完停末帧等切待机
+            UIModelStage.ShowInstance(ModelCon(), StageWrap(inst, create2Prefab), MODEL_SCALE, modelPos);
+
+            // 等出场动画播完(inst 被销毁=页面关了/别人上台了,直接退)
+            if (director != null)
+            {
+                double duration = director.duration;
+                float safety = (float)duration + 5f; // director 意外停住时的兜底,防死循环
+                while (inst != null && director.time + 0.001 < duration && safety > 0f
+                       && selectedAtRequest == _selectedIndex && gameObject.activeInHierarchy)
+                {
+                    await Task.Yield();
+                    safety -= Time.deltaTime;
+                }
+            }
+            if (inst == null || selectedAtRequest != _selectedIndex || !gameObject.activeInHierarchy) return true;
+            if (create3Prefab == null) return true; // 没交付待机就停在出场末帧
+
+            GameObject idle = Instantiate(create3Prefab);
+            PlayableDirector idleDirector = idle.GetComponentInChildren<PlayableDirector>(true);
+            if (idleDirector != null) idleDirector.extrapolationMode = DirectorWrapMode.Loop; // 待机循环
+            // 上台即销毁 create2 实例;两段档案里烤的是同一个落点,切换处位置无缝
+            UIModelStage.ShowInstance(ModelCon(), StageWrap(idle, create3Prefab), MODEL_SCALE, modelPos);
+            return true;
+        }
+
+        /// <summary>
+        /// 落点计算——核心约定(与美术):【出场动画的落点 = 待机位置 = 占位位置】。
+        /// 整模上台包装。落点**不在运行时猜**——导入工具用 SampleAnimation 把 create3 采样到末帧、
+        /// BakeMesh 精确量出脚底中心与身高,烤在 ArtModelRenderProfile 里(静态包围盒是绑定姿势的
+        /// 松盒,和动画停放点不是一回事,1213 曾被它骗成"已归零"导致巨腿怼镜头,实锤教训)。
+        /// 这里只读档案:整体平移把落点对到占位点+体量归一(平移是相对量,不锁动画、不碰 Director,
+        /// 空间位移原样播);create2/create3 档案里烤的是同一个落点,切换无缝。
+        /// 页面级微调走 configlogin 的 CreateRole.ModelPos/PosOffset。
+        /// </summary>
+        private static GameObject StageWrap(GameObject inst, GameObject sourcePrefab)
+        {
+            ArtModelRenderProfile profile = inst.GetComponentInChildren<ArtModelRenderProfile>(true);
+            if (profile == null)
+            {
+                profile = inst.AddComponent<ArtModelRenderProfile>();
+                profile.useDedicatedRenderer = false; // 运行时补的档案不知道独立 renderer 下标:默认 renderer+强制贴图即可
+            }
+            foreach (ParticleSystem ps in inst.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                ParticleSystem.MainModule main = ps.main;
+                main.scalingMode = ParticleSystemScalingMode.Hierarchy;
+            }
+            // 动画是 Generic,根位移依赖这个开关:Timeline 编辑器预览无视它,运行时不开=原地做动作
+            foreach (Animator animator in inst.GetComponentsInChildren<Animator>(true))
+            {
+                animator.applyRootMotion = true;
+            }
+            // 透明镂空:美术把透明遮罩画在贴图 alpha 里(实测服饰.tga 有 3.2% 全透像素),但 FBX
+            // 内嵌材质默认 Opaque 不读 alpha → 该透的地方渲成白块。给身体材质实例统一开
+            // Alpha Clipping——没画 alpha 的贴图全 255,开了也一像素不少,安全;只改实例不动资产。
+            foreach (Renderer r in inst.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r is ParticleSystemRenderer) continue;
+                Material[] mats = r.materials;
+                bool dirty = false;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    Material m = mats[i];
+                    if (m == null || m.shader == null || !m.HasProperty("_AlphaClip")) continue;
+                    m.SetFloat("_AlphaClip", 1f);
+                    m.SetFloat("_Cutoff", 0.5f);
+                    m.EnableKeyword("_ALPHATEST_ON");
+                    m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+                    dirty = true;
+                }
+                if (dirty) r.materials = mats;
+            }
+
+            var pivot = new GameObject(inst.name + "_pivot");
+            inst.transform.SetParent(pivot.transform, false);
+            if (profile.hasLanding)
+            {
+                // 落点是美术场景坐标;换算成"相对本 prefab 根"的位移再缩放,把落点挪到 pivot 原点。
+                // 根自身的缩放要保留相乘(美术可能用根缩放做整体包装),覆盖掉=体量爆炸
+                Vector3 rootPos = sourcePrefab.transform.position;
+                inst.transform.localScale =
+                    sourcePrefab.transform.localScale * profile.landingScale;
+                inst.transform.localPosition = -(profile.landingOffset - rootPos) * profile.landingScale;
+            }
+            else
+            {
+                GameLog.Warn("Login",
+                    "整模 {0} 档案里没有烤落点(旧版导入),按原样上台——用资产管理[替换新模型]重导一次即可",
+                    inst.name);
+            }
+            return pivot;
         }
 
         // ---------------------------------------------------------------- 事件

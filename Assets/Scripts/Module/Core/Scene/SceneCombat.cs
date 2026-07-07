@@ -329,13 +329,51 @@ namespace Shenxiao.Module.Core.Scene
         private static void ReleaseMainSkill(int skillId, MonsterVo mon, int attackType)
         {
             SkillManager.Instance.SetSkillRigidity(SkillConfigs.GetAnimTimeMs(skillId));
-            MainRoleAgent.Current?.PlaySkill(skillId);
+            // CD 起点(对标老端 FightMovieInfo.ts:191-207:预播/托管即 ResetSkill → startCD → START_SKILL_CD 遮罩)。
+            SkillManager.Instance.ResetSkill(skillId);
+
+            // 目标列表先算(与 20001 发包同一份,见 BuildAttackTargets),表现层据此把"受击者/落点"特效落到怪身上。
+            List<int> monsterIds = BuildAttackTargets(skillId, mon, out bool aoeGeometryBlocked);
+            MainRoleAgent.Current?.PlaySkill(skillId, monsterIds);
             EventDispatcher.Emit(GlobalEvent.EVT_RELEASE_MAIN_SKILL, skillId, mon.InstanceId);
             GameLog.Info("Combat",
                 "RELEASE_MAIN_SKILL(本地) skill={0} target ins={1}(compress_id 等价) attackType={2}",
                 skillId, mon.InstanceId, attackType);
 
-            SendRealAttackOrBlock(skillId, mon);
+            SendRealAttackOrBlock(skillId, mon, monsterIds, aoeGeometryBlocked);
+        }
+
+        /// <summary>
+        /// 计算本次攻击的怪物目标列表(20001 发包与技能特效共用同一份,保证"打谁、特效落谁"一致):
+        ///   · 单体(mod==1):[主目标];
+        ///   · 圆形 AOE(aoe_mode==1):center=主目标坐标收集(<see cref="CollectCircleMonsters"/>);
+        ///   · 直线/扇形 AOE(aoe_mode 2/3):几何收集链未移植 → 返回 [主目标] 供表现用,
+        ///     <paramref name="aoeGeometryBlocked"/>=true(发包侧只记 blocker 不发,行为与第 9 轮一致)。
+        /// </summary>
+        private static List<int> BuildAttackTargets(int skillId, MonsterVo primary, out bool aoeGeometryBlocked)
+        {
+            aoeGeometryBlocked = false;
+            if (!SkillConfigs.IsAoe(skillId))
+            {
+                return new List<int> { primary.InstanceId };
+            }
+
+            int aoeMode = SkillConfigs.GetAoeMode(skillId);
+            if (aoeMode != 1)
+            {
+                aoeGeometryBlocked = true;
+                return new List<int> { primary.InstanceId };
+            }
+
+            int level = SkillManager.Instance.GetSkill(skillId)?.Level ?? 0;
+            int area = SkillConfigs.GetAreaForLevel(skillId, level);
+            int maxMon = SkillConfigs.GetAttackNumForLevel(skillId, level)[1];
+            if (maxMon <= 0) maxMon = 99; // 对标老端 att_num==0 → 99(不限)
+            List<int> ids = CollectCircleMonsters(primary, area, maxMon);
+            GameLog.Info("Combat",
+                "圆形 AOE 收集: skill={0} center=主目标({1},{2}) 半径area={3} 上限num={4} → 命中 {5} 只: [{6}]",
+                skillId, primary.X, primary.Y, area, maxMon, ids.Count, string.Join(",", ids));
+            return ids;
         }
 
         /// <summary>
@@ -347,33 +385,14 @@ namespace Shenxiao.Module.Core.Scene
         ///   · 直线/扇形 AOE(aoe_mode 2/3):需主角朝向 + 直线/扇形几何(Scene.FindMonsters 3313-3347),未移植 → 只记 blocker。
         /// x/y=center=主目标坐标;angle=0(FightController.ts:1238);人列表本期空(PvE 首杀无敌方玩家;PvP FindRoles 链下一轮)。
         /// </summary>
-        private static void SendRealAttackOrBlock(int skillId, MonsterVo primary)
+        private static void SendRealAttackOrBlock(int skillId, MonsterVo primary, List<int> monsterIds, bool aoeGeometryBlocked)
         {
-            int level = SkillManager.Instance.GetSkill(skillId)?.Level ?? 0;
-
-            List<int> monsterIds;
-            if (!SkillConfigs.IsAoe(skillId))
+            if (aoeGeometryBlocked)
             {
-                monsterIds = new List<int> { primary.InstanceId }; // 单体:仅主目标
-            }
-            else
-            {
-                int aoeMode = SkillConfigs.GetAoeMode(skillId);
-                if (aoeMode != 1)
-                {
-                    GameLog.Info("Combat",
-                        "20001 未发(AOE blocker): skill={0} aoe_mode={1}(直线/扇形)需主角朝向+直线/扇形几何收集链(未移植),不猜范围。主目标 ins={2} 已锁定。",
-                        skillId, aoeMode, primary.InstanceId);
-                    return;
-                }
-
-                int area = SkillConfigs.GetAreaForLevel(skillId, level);
-                int maxMon = SkillConfigs.GetAttackNumForLevel(skillId, level)[1];
-                if (maxMon <= 0) maxMon = 99; // 对标老端 att_num==0 → 99(不限)
-                monsterIds = CollectCircleMonsters(primary, area, maxMon);
                 GameLog.Info("Combat",
-                    "圆形 AOE 收集: skill={0} center=主目标({1},{2}) 半径area={3} 上限num={4} → 命中 {5} 只: [{6}]",
-                    skillId, primary.X, primary.Y, area, maxMon, monsterIds.Count, string.Join(",", monsterIds));
+                    "20001 未发(AOE blocker): skill={0} aoe_mode={1}(直线/扇形)需主角朝向+直线/扇形几何收集链(未移植),不猜范围。主目标 ins={2} 已锁定。",
+                    skillId, SkillConfigs.GetAoeMode(skillId), primary.InstanceId);
+                return;
             }
 
             // 进战斗态(每段战斗一次)→ 真实攻击请求(经 FightController/NetManager,逐字段对齐老端)。
@@ -425,6 +444,12 @@ namespace Shenxiao.Module.Core.Scene
                 GameLog.Info("Combat",
                     "combo 副技能补发: engage={0} → combo={1} 延迟={2}ms 目标=[{3}](承载真实伤害,对标老端 fight-movie comboSkills 第二次 20001)",
                     engageSkillId, comboSkillId, delayMs, string.Join(",", alive));
+                // combo 段自身的表现(对标老端 comboSkills 走同一 fight-movie 链:连段动作/特效逐段播)。
+                // 无表现配置的连段 id 静默跳过,不刷 "skill movie missing"。
+                if (SkillMovieConfigs.IsLoaded && SkillMovieConfigs.Has(comboSkillId))
+                {
+                    MainRoleAgent.Current?.PlaySkill(comboSkillId, alive);
+                }
                 FightController.Instance.SendMainSkillAttack(comboSkillId, alive, Array.Empty<long>(), x, y, 0);
             }
             catch (Exception e)

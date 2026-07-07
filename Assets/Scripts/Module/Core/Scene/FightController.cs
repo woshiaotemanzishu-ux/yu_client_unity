@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Role;
@@ -29,8 +30,16 @@ namespace Shenxiao.Module.Core.Scene
     /// S2C 20001(攻击结果广播:攻击者头 + 防御者列表 + 伤害,FightVo):第10轮起**真实解析**(见
     /// <see cref="FightVo"/>,逐字节对标老端 FightVo.ReadFromProtocal)。<see cref="On20001Broadcast"/> 解析后把
     /// 每个防御者的服务端**新绝对 hp / 死亡**喂给既有 <see cref="SceneManager"/> 链(hp&gt;0→ApplyHp 刷血条;
-    /// hp==0→DeleteSceneObj 移除可见怪,对标老端 RefreshObjVo:1527 + ForceDoDead),与 12009/12006 同一渲染出口,
-    /// 不开新假血条路径、不伪造伤害。damage/damage_flag(飘字)本期只记录不消费。
+    /// hp==0→NotifyKilled(死亡动作)+DeleteSceneObj,对标老端 RefreshObjVo:1527 + DoDead),与 12009/12006
+    /// 同一渲染出口,不开新假血条路径、不伪造伤害。
+    ///
+    /// 战斗表现消费(本轮接入,全部只吃协议真实字段):
+    ///   · damage/damage_flag → <see cref="DamageFontRenderer"/> 伤害飘字(仅主角攻击/主角被击,对标老端
+    ///     FightDamageManager.ShowFont 前置门槛);
+    ///   · defender 受击动作:damage&gt;0 或 闪避 才播 behit(对标老端 executeHitedAnimation:506 门槛
+    ///     force_hited||damage&gt;0||flag==ShanBi;engage 帧 damage=0 不再空播);
+    ///   · 主角自身 hp(攻击头 hp / defender hp)→ RoleModel.BattleAttr.Hp + EVT_ROLE_INFO_UPDATE
+    ///     (MainUITopView 既有血条链,对标老端 RefreshObjVo 更新 attacker/defender vo.hp)。
     /// </summary>
     public sealed class FightController : BaseController
     {
@@ -59,6 +68,9 @@ namespace Shenxiao.Module.Core.Scene
         private const int OBJ_MONSTER = 1;   // 怪 / 采集物
         private const int OBJ_ROLE = 2;      // 玩家
         private const int OBJ_FAKE_ROLE = 5; // 假人
+
+        // damage_flag 受击门槛用值(全表见 FightVo/DamageFontRenderer;老端 FightDamageFlag.ShanBi=1)。
+        private const int DAMAGE_FLAG_DODGE = 1;
 
         protected override void Register()
         {
@@ -244,6 +256,7 @@ namespace Shenxiao.Module.Core.Scene
         {
             ApplyMonsterFightVisuals(vo);
             ApplyMoveAnimToMainRole(vo);
+            ApplyDamageFontsAndMainRoleHp(vo); // 在血量应用/移除之前:飘字取怪的在场坐标(死怪即将被移除)
 
             SceneManager mgr = SceneManager.Instance;
             int firstMonsterId = 0;
@@ -268,7 +281,8 @@ namespace Shenxiao.Module.Core.Scene
                     if (firstMonsterId == 0) firstMonsterId = ins;
                     if (d.Hp == 0)
                     {
-                        GameLog.Info("Fight", "怪 {0} 服务端判定死亡(hp=0 damage={1}),移除可见模型/名牌/血条", ins, d.Damage);
+                        GameLog.Info("Fight", "怪 {0} 服务端判定死亡(hp=0 damage={1}),播死亡动作后移除(对标老端 DoDead)", ins, d.Damage);
+                        MonsterRenderer.NotifyKilled(ins); // 视图走 death + 尸体停留;数据层照常立即移除
                         mgr.DeleteSceneObj(ins);
                     }
                     else
@@ -283,8 +297,12 @@ namespace Shenxiao.Module.Core.Scene
                     RoleVo r = mgr.GetRole(d.RoleId);
                     if (r == null)
                     {
-                        // 主角自身被击时不在 _roles(主角 hp 在 RoleModel,非场景玩家表)→ 只记录,主角血条属后续。
-                        GameLog.Warn("Fight", "20001 defender 玩家 {0} 不在 SceneManager(主角自身/未在视野),只记录不造假", d.RoleId);
+                        // 主角自身不在 _roles(hp 在 RoleModel,已由 ApplyDamageFontsAndMainRoleHp 同步 HUD);
+                        // 其余未在视野玩家只记录不造假。
+                        if (d.RoleId != RoleModel.Instance.RoleId)
+                        {
+                            GameLog.Warn("Fight", "20001 defender 玩家 {0} 不在 SceneManager(未在视野),只记录不造假", d.RoleId);
+                        }
                         continue;
                     }
                     if (d.Hp == 0)
@@ -312,6 +330,11 @@ namespace Shenxiao.Module.Core.Scene
 
         private static void ApplyMonsterFightVisuals(FightVo vo)
         {
+            // 进场演出(大妖来袭横幅)期间冻结"怪的攻击动作/受击表现"(对标老端:全屏演出视图打开时
+            // fight-movie 跳过播放,观感=怪也等演出结束才开打;数据层 hp/死亡照常应用,不吞协议)。
+            // 演出期怪打主角本就是 damage=0 的空挥(实测 flag=7),只砍表现零风险。
+            if (AutoFight.AutoFightModel.Instance.CombatFreeze) return;
+
             if (vo.Attack.AttackerType == OBJ_MONSTER)
             {
                 if (vo.Attack.RoleId >= 0 && vo.Attack.RoleId <= int.MaxValue)
@@ -331,12 +354,71 @@ namespace Shenxiao.Module.Core.Scene
                 FightVo.DefenseInfo d = vo.DefenseList[i];
                 if (d.TypeFlag != OBJ_MONSTER || d.Hp == 0) continue;
                 if (d.RoleId < 0 || d.RoleId > int.MaxValue) continue;
+                // 受击门槛(对标老端 FightMovieInfo.executeHitedAnimation:506 force_hited||damage>0||flag==ShanBi):
+                // engage 帧(damage=0 flag=0)不播受击,免得普攻进战斗帧也让怪抽搐一下。
+                if (d.Damage <= 0 && d.DamageFlag != DAMAGE_FLAG_DODGE) continue;
                 MonsterRenderer.PlayBeHit((int)d.RoleId);
             }
         }
 
+        /// <summary>
+        /// 伤害飘字 + 主角自身 hp 同步(对标老端 FightDamageManager.ShowFont + RefreshObjVo 的 hp 写入):
+        ///   · 飘字门槛 = 攻击者是主角 或 受击者是主角(其余玩家/怪互殴不飘,对标 ShowFont:426-440);
+        ///   · 飘字位置 = 受击者头顶:怪取场景 vo 实时坐标(不在场退回协议坐标),主角取 RoleModel;
+        ///   · 主角 hp:攻击头 hp(主角出手)/ defender hp(主角被击)都是服务端新绝对值 → BattleAttr.Hp
+        ///     + EVT_ROLE_INFO_UPDATE,走 MainUITopView 既有血条/血字链,不开新路径。
+        /// </summary>
+        private static void ApplyDamageFontsAndMainRoleHp(FightVo vo)
+        {
+            long mainRoleId = RoleModel.Instance.RoleId;
+            if (mainRoleId <= 0) return;
+
+            bool attackerIsMainRole = vo.Attack.AttackerType == OBJ_ROLE && vo.Attack.RoleId == mainRoleId;
+            if (attackerIsMainRole) ApplyMainRoleHp(vo.Attack.Hp);
+
+            SceneManager mgr = SceneManager.Instance;
+            for (int i = 0; i < vo.DefenseList.Count; i++)
+            {
+                FightVo.DefenseInfo d = vo.DefenseList[i];
+                bool defenderIsMainRole = (d.TypeFlag == OBJ_ROLE || d.TypeFlag == OBJ_FAKE_ROLE) && d.RoleId == mainRoleId;
+                if (defenderIsMainRole) ApplyMainRoleHp(d.Hp);
+
+                if (!attackerIsMainRole && !defenderIsMainRole) continue;
+
+                int wx, wy;
+                if (defenderIsMainRole)
+                {
+                    wx = RoleModel.Instance.X;
+                    wy = RoleModel.Instance.Y;
+                }
+                else if (d.TypeFlag == OBJ_MONSTER && d.RoleId >= 0 && d.RoleId <= int.MaxValue
+                         && mgr.GetMonster((int)d.RoleId) != null)
+                {
+                    MonsterVo m = mgr.GetMonster((int)d.RoleId);
+                    wx = m.X;
+                    wy = m.Y;
+                }
+                else
+                {
+                    wx = d.PosX; // 不在场(已出九宫格等):退回协议里的受击坐标,不猜
+                    wy = d.PosY;
+                }
+                DamageFontRenderer.ShowDamage(wx, wy, d.Damage, d.DamageFlag, defenderIsMainRole);
+            }
+        }
+
+        /// <summary>主角服务端新绝对 hp → RoleModel.BattleAttr + 既有 EVT_ROLE_INFO_UPDATE 刷 HUD(值没变不发,防事件风暴)。</summary>
+        private static void ApplyMainRoleHp(long newHp)
+        {
+            Shenxiao.Common.Proto.BattleAttrProto attr = RoleModel.Instance.BattleAttr;
+            if (attr == null || newHp < 0 || attr.Hp == newHp) return;
+            attr.Hp = newHp;
+            EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
+        }
+
         private static void ApplyMoveAnimToMainRole(FightVo vo)
         {
+            if (AutoFight.AutoFightModel.Instance.CombatFreeze) return; // 演出期间不播位移表现(同上)
             MainRoleAgent agent = MainRoleAgent.Current;
             if (agent == null) return;
 

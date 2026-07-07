@@ -54,10 +54,20 @@ namespace Shenxiao.Framework.Res
 
         private static readonly HashSet<GameObject> _editorFallbackInstances = new HashSet<GameObject>();
 
-        // 编辑器兜底的「key→工程内资产路径」缓存:命中即免去一次 AssetDatabase.FindAssets 全工程扫描。
-        // 只缓存命中(路径非空);未命中不缓存——同一会话里 TryImport* 可能稍后把散图补进来。
+        // 编辑器兜底的「key→工程内资产路径」缓存:命中即免去一次 AssetDatabase.FindAssets 扫描。
+        // ★未命中也缓存(空串负缓存)★:此前 miss 不缓存,同一缺失 key(如未转换的 idle 动作、未转换特效)每次
+        // 加载都重跑 FindAssets("idle")——按文件名匹配命中数百资产再逐个 GUIDToAssetPath,主线程一卡一卡,
+        // 战斗/采集里每隔几秒复现(实录:助眠草每次刷新都撞 object/monster/action/15010031/idle)。
+        // TryImport* 补进散图后由 InvalidateEditorPathCache(key) 精确失效,负缓存不会挡住"稍后补图"路径。
         private static readonly Dictionary<string, string> _editorAssetPathCache = new Dictionary<string, string>();
         private static readonly Dictionary<string, string> _editorPrefabPathCache = new Dictionary<string, string>();
+
+        /// <summary>TryImport* 把散图/散件补进工程后调:清掉该 key 的负缓存,让下一次兜底重扫。</summary>
+        private static void InvalidateEditorPathCache(string key)
+        {
+            _editorAssetPathCache.Remove(key);
+            _editorPrefabPathCache.Remove(key);
+        }
 #endif
 
         /// <summary>
@@ -498,8 +508,8 @@ namespace Shenxiao.Framework.Res
 
             if (_editorPrefabPathCache.TryGetValue(key, out string cachedPath))
             {
-                GameObject cachedAsset = string.IsNullOrEmpty(cachedPath)
-                    ? null : AssetDatabase.LoadAssetAtPath<GameObject>(cachedPath);
+                if (string.IsNullOrEmpty(cachedPath)) return null; // 负缓存:已确认缺失(同 LoadEditorAssetFallback 约定)
+                GameObject cachedAsset = AssetDatabase.LoadAssetAtPath<GameObject>(cachedPath);
                 if (cachedAsset != null) return cachedAsset;
                 _editorPrefabPathCache.Remove(key); // 路径失效(资产被移动/删除/重导):清掉并重扫
             }
@@ -513,6 +523,7 @@ namespace Shenxiao.Framework.Res
                 _editorPrefabPathCache[key] = path;
                 return AssetDatabase.LoadAssetAtPath<GameObject>(path);
             }
+            _editorPrefabPathCache[key] = ""; // 负缓存 miss:未转换特效/预件每次施放都全扫是主线程卡顿源
             return null;
         }
 
@@ -567,6 +578,7 @@ namespace Shenxiao.Framework.Res
                         ti.SaveAndReimport();
                     }
                     GameLog.Warn("Res", "editor 兜底:已从 yu_client 导入散图 {0}{1}", key, ext);
+                    InvalidateEditorPathCache(key); // 补图成功:清负缓存,随后的兜底重扫能找到
                     return true;
                 }
             }
@@ -589,6 +601,7 @@ namespace Shenxiao.Framework.Res
             File.Copy(src, assetPath, true);
             AssetDatabase.ImportAsset(assetPath);
             GameLog.Warn("Res", "editor fallback imported scene map bytes from yu_client: {0}", key);
+            InvalidateEditorPathCache(key);
             return true;
         }
 
@@ -623,6 +636,7 @@ namespace Shenxiao.Framework.Res
                 ti.SaveAndReimport();
             }
             GameLog.Warn("Res", "editor fallback imported scene map .jxr tile as jpg from yu_client: {0}", key);
+            InvalidateEditorPathCache(key);
             return true;
         }
 
@@ -633,7 +647,8 @@ namespace Shenxiao.Framework.Res
 
             if (_editorAssetPathCache.TryGetValue(key, out string cachedPath))
             {
-                T cachedAsset = string.IsNullOrEmpty(cachedPath) ? null : AssetDatabase.LoadAssetAtPath<T>(cachedPath);
+                if (string.IsNullOrEmpty(cachedPath)) return null; // 负缓存:已确认缺失,不再重扫(TryImport* 补图后会失效之)
+                T cachedAsset = AssetDatabase.LoadAssetAtPath<T>(cachedPath);
                 if (cachedAsset != null) return cachedAsset;
                 _editorAssetPathCache.Remove(key); // 路径失效(资产被移动/删除/重导):清掉并重扫
             }
@@ -652,6 +667,7 @@ namespace Shenxiao.Framework.Res
                     return asset;
                 }
             }
+            _editorAssetPathCache[key] = ""; // 负缓存 miss(见字段注释;防同一缺失 key 反复全扫)
             return null;
         }
 #endif

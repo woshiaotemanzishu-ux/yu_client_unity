@@ -42,11 +42,26 @@ namespace Shenxiao.Framework.Net
         private static int _heartbeatProtoId;
         private static float _heartbeatInterval;
         private static float _nextHeartbeatAt;
+        // 链路活性:最近一次收到任何 ws 数据的 UTC ticks(后台收包线程写,Interlocked 读写)。
+        // 判死链路必须看"整条连接是否有下行",而不能只看 10006 回包——服务端整体停顿时所有协议
+        // 一起延迟,恢复后一起补发;只认 10006 会把可恢复停顿误判成死链。
+        private static long _lastInboundUtcTicks;
         private static bool _remoteClosePending;
         private static WebSocketCloseStatus? _remoteCloseStatus;
         private static string _remoteCloseDescription;
 
         public static bool IsConnected => _ws != null && _ws.State == WebSocketState.Open;
+
+        /// <summary>距最近一次收到任何下行数据的秒数;未连接/无记录时为正无穷。</summary>
+        public static float SecondsSinceLastInbound
+        {
+            get
+            {
+                long ticks = Interlocked.Read(ref _lastInboundUtcTicks);
+                if (ticks == 0) return float.PositiveInfinity;
+                return (float)(DateTime.UtcNow - new DateTime(ticks, DateTimeKind.Utc)).TotalSeconds;
+            }
+        }
 
         public static void RegisterProtocal(int protoId, Handler h) => _handlers[protoId] = h;
         public static void UnregisterProtocal(int protoId) => _handlers.Remove(protoId);
@@ -79,6 +94,7 @@ namespace Shenxiao.Framework.Net
             _cts = new CancellationTokenSource();
             GameLog.Info("Net", "connecting {0}", url);
             await _ws.ConnectAsync(new Uri(url), _cts.Token);
+            Interlocked.Exchange(ref _lastInboundUtcTicks, DateTime.UtcNow.Ticks);
             GameLog.Info("Net", "connected {0}", url);
             EventDispatcher.Emit(GlobalEvent.EVT_NET_CONNECTED);
             _ = ReceiveLoop();
@@ -88,6 +104,7 @@ namespace Shenxiao.Framework.Net
         {
             ConfigureHeartbeat(0, 0f);
             ClearRemoteCloseState();
+            Interlocked.Exchange(ref _lastInboundUtcTicks, 0L);
             if (_cts != null) { _cts.Cancel(); _cts = null; }
             if (_ws != null)
             {
@@ -194,6 +211,7 @@ namespace Shenxiao.Framework.Net
                     do
                     {
                         r = await ws.ReceiveAsync(new ArraySegment<byte>(buf), token).ConfigureAwait(false);
+                        Interlocked.Exchange(ref _lastInboundUtcTicks, DateTime.UtcNow.Ticks);
                         if (r.MessageType == WebSocketMessageType.Close)
                         {
                             MarkRemoteClose(r.CloseStatus, r.CloseStatusDescription);

@@ -505,9 +505,14 @@ namespace Shenxiao.Module.Core.Scene
             }
         }
 
-        public void PlaySkill(int skillId)
+        /// <summary>
+        /// 播主角技能表现。<paramref name="hitMonsterIds"/> = 本次攻击的真实目标怪实例列表(SceneCombat 发包同源,
+        /// 首个为主目标),供"受击者/落点"类特效(pos_type 1/3/4/6/12/13)落到怪物身上;null/空 = 无目标(施法者
+        /// 特效照播,目标特效跳过,对标老端 PlayParticle 目标循环为空)。
+        /// </summary>
+        public void PlaySkill(int skillId, IReadOnlyList<int> hitMonsterIds = null)
         {
-            _ = PlaySkillAsync(skillId);
+            _ = PlaySkillAsync(skillId, hitMonsterIds);
         }
 
         public void PlayMoveAnim(int moveAnim, int targetX, int targetY)
@@ -628,7 +633,7 @@ namespace Shenxiao.Module.Core.Scene
             return result;
         }
 
-        private async Task PlaySkillAsync(int skillId)
+        private async Task PlaySkillAsync(int skillId, IReadOnlyList<int> hitMonsterIds = null)
         {
             try
             {
@@ -662,7 +667,7 @@ namespace Shenxiao.Module.Core.Scene
                     EffectBinder.ClearTag(_model, "action");
                 }
 
-                PlaySkillParticles(skillId, particles, version);
+                PlaySkillParticles(skillId, particles, version, hitMonsterIds);
 
                 float wait = Mathf.Max(GetActionLength(actionName), SkillMovieConfigs.GetConfiguredDurationSeconds(skillId));
                 if (wait > 0f)
@@ -731,24 +736,59 @@ namespace Shenxiao.Module.Core.Scene
             }
         }
 
-        private void PlaySkillParticles(int skillId, IReadOnlyList<SkillMovieParticle> particles, int version)
+        private void PlaySkillParticles(int skillId, IReadOnlyList<SkillMovieParticle> particles, int version,
+            IReadOnlyList<int> hitMonsterIds)
         {
             if (particles == null || particles.Count == 0) return;
             for (int i = 0; i < particles.Count; i++)
             {
                 SkillMovieParticle particle = particles[i];
                 if (particle == null || string.IsNullOrEmpty(particle.Res)) continue;
-                _ = PlaySkillParticleAsync(skillId, particle, version);
+                _ = PlaySkillParticleAsync(skillId, particle, version, hitMonsterIds);
             }
         }
 
-        private async Task PlaySkillParticleAsync(int skillId, SkillMovieParticle particle, int version)
+        /// <summary>
+        /// 按 pos_type 路由单条技能特效(对标老端 FightMovieInfo.PlayParticle:627-719 分支;此前全部糊在
+        /// 施法者身上 → 职业3/4 的命中/落点特效叠在自己脚下,视觉全乱):
+        ///   · 0(攻击者挂骨骼)/2(攻击者坐标)→ 挂主角模型(pos2 老端定格世界坐标,本端挂模型会短暂跟随,
+        ///     特效寿命 ≤3s 影响很小,记录为已知近似);
+        ///   · 1/3/12(每个受击者身上/坐标/中心)→ 逐个目标怪挂 <see cref="MonsterRenderer.PlayHitParticle"/>;
+        ///   · 4(受击者中心)/6(攻击点)/13(有目标同3)→ 主目标怪(攻击点=主目标坐标,与 20001 发包同源);
+        ///     13 无目标回落攻击者(对标老端 13 的 else→2 分支)。
+        ///   · 其余(5 等)老端 default 不播 → 跳过。
+        /// dir_type(特效朝向)未接,记录为后续。
+        /// </summary>
+        private async Task PlaySkillParticleAsync(int skillId, SkillMovieParticle particle, int version,
+            IReadOnlyList<int> hitMonsterIds)
         {
             try
             {
                 if (particle.StartTime > 0f)
                     await Task.Delay(Mathf.RoundToInt(particle.StartTime * 1000f));
                 if (version != _actionVersion || _model == null) return;
+
+                bool hasTargets = hitMonsterIds != null && hitMonsterIds.Count > 0;
+                switch (particle.PosType)
+                {
+                    case 1:
+                    case 3:
+                    case 12:
+                        if (!hasTargets) return; // 无目标:老端目标循环为空,自然不播
+                        for (int i = 0; i < hitMonsterIds.Count; i++)
+                            MonsterRenderer.PlayHitParticle(hitMonsterIds[i], particle);
+                        return;
+                    case 4:
+                    case 6:
+                        if (!hasTargets) return;
+                        MonsterRenderer.PlayHitParticle(hitMonsterIds[0], particle); // 中心/攻击点=主目标(发包同源)
+                        return;
+                    case 13:
+                        if (hasTargets) { MonsterRenderer.PlayHitParticle(hitMonsterIds[0], particle); return; }
+                        break; // 无目标 → 老端回落 pos2(攻击者),继续走下面
+                    case 5:
+                        return; // 老端 default 分支不播
+                }
 
                 GameObject effect = await EffectBinder.AttachOne(_model, "root", "skills_effect", particle.Res, "action", false);
                 if (effect == null) return;

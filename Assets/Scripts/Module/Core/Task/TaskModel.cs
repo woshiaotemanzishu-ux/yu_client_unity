@@ -176,6 +176,14 @@ namespace Shenxiao.Module.Core.Tasks
 
             if (TryStartTaskAutoFight(task)) return true;
             WaitTaskMonster(task);
+            // 目标怪不在视野:不能只挂 MonsterAdded 干等——怪在任务点附近、当前九宫格不下发,就要等
+            // MainUITaskTeamView 的 10s 兜底轮询才会 DoTask 出发,表现=接完任务原地发愣数秒(用户实感)。
+            // 对标老端:DoTask 接到击杀任务立刻自动寻路到任务点,途中九宫格下发怪 → 锁定开打。
+            // 这里带坐标就立刻走(DoTask → DoGotoSceneTask;到点 OnArriveTaskPoint / 途中 OnTaskMonsterAdded 二保险)。
+            if (task.SceneId > 0 && (task.SceneX > 0 || task.SceneY > 0))
+            {
+                DoTask(task);
+            }
             return false;
         }
 

@@ -1,0 +1,41 @@
+{
+ "in_main_ui": {
+  "not_finish": {
+   "direction": 2,
+   "text": "打开<font color='#0a9f42'>灵兽</font>页面",
+   "front_parent": "MainFuncIconItem",
+   "effect_scaleX": 0.4,
+   "effect_scaleY": 1,
+   "not_show_in_task_item": true
+  },
+  "finish": {
+   "direction": 4,
+   "text": "点击<font color='#0a9f42'>领取奖励</font>~"
+  }
+ },
+ "in_view": [
+  {
+   "step": 1,
+   "direction": 2,
+   "text": "打开<font color='#0a9f42'>剑魄同修</font>页签",
+   "effect_scaleX": 0.7,
+   "effect_scaleY": 0.85
+  },
+  {
+   "step": 2,
+   "direction": 2,
+   "text": "消耗<font color='#0a9f42'>资源</font><br>提升<font color='#0a9f42'>剑魄同修等级</font>升阶~",
+   "effect_scaleX": 0.65,
+   "effect_scaleY": 0.9
+  },
+  {
+   "step": 3,
+   "direction": 6,
+   "text": "点击<font color='#0a9f42'>关闭</font>界面",
+   "effect_scaleX": 0.35,
+   "effect_scaleY": 1
+  }
+ ],
+ "id": 25
+}
+--- 90 keys: ['in_main_ui', 'sub_dun_type', 'in_view', 'id']

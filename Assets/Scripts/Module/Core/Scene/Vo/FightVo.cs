@@ -18,7 +18,9 @@ namespace Shenxiao.Module.Core.Scene.Vo
     ///
     /// 字段语义(对标老端 FightController.ts <c>RefreshObjVo</c>:1527 + <c>ClientFightServer</c>:1000-1002):
     ///   · defender.hp = 服务端给出的**新绝对 hp**(非增量);<c>hp==0 → 死亡</c>(老端 ForceDoDead,本端移除可见对象);
-    ///   · damage / damage_flag(0正常 1躲避 2暴击 3免疫 4会心 5护盾免伤)= 仅飘字用,**不参与 hp 计算**;
+    ///   · damage / damage_flag = 仅飘字用,**不参与 hp 计算**。flag 全表(老端 FightDamageFlag,
+    ///     FightDamageManager.ts:13):0正常 1闪避 2暴击 3免疫 4会心 5护盾免伤 6格挡 7无伤害(实测 engage 帧后
+    ///     怪反击常带 7) 8卓越 9暴击会心 10卓越会心;客户端另有 1001吸血/1002反弹/1003流血(非协议值);
     ///   · type_flag = 老端 <c>SceneBaseType</c>(SceneConfig.ts:31:Monster=1 Role=2 Fake_Role=5 ...)。
     ///
     /// 本类只做解析 + 留数据;buff 字段读出仅为保持多防御者字节对齐(buff 表现/飘字属后续,本轮不消费)。
@@ -63,7 +65,7 @@ namespace Shenxiao.Module.Core.Scene.Vo
             public long Hp;             // l  服务端新绝对 hp(0=死亡)
             public long Anger;          // i
             public long Damage;         // i  本次伤害(飘字用)
-            public int DamageFlag;      // c  0正常 1躲避 2暴击 3免疫 4会心 5护盾免伤
+            public int DamageFlag;      // c  0正常 1闪避 2暴击 3免疫 4会心 5护盾免伤 6格挡 7无伤害 8卓越 9暴击会心 10卓越会心
             public int SecondDamageFlag;// c
             public int PosX;            // h  防御者坐标(随击退更新)
             public int PosY;            // h

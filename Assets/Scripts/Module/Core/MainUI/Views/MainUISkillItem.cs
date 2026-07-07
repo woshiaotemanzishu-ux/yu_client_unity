@@ -5,24 +5,35 @@ using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
 using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Skill;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.MainUI
 {
     /// <summary>
-    /// 技能按钮项(对标老客户端 MainUISkillItem.ts):图标 + 锁定态 + 点击释放技能。
+    /// 技能按钮项(对标老客户端 MainUISkillItem.ts):图标 + 锁定态 + CD 时钟遮罩/倒计时 + 点击释放技能。
     ///
     /// 接真实 <see cref="SkillVo"/>(id/level/图标来自 21002 + config_skill):
     ///   · 图标:show_icon = level==0 ? GetIcon(1) : GetIcon()(对标 UpdateItem),走 ResManager.SetImageAsync + GameResPath.GetSkillIcon。
     ///   · 锁态:level==0 → 显示 lock 遮罩、点击不发事件(对标 UpdateLockState)。
-    ///   · 点击:自动战斗中 → 提示不发;否则发 EVT_SKILL_SHORTCUT_CLICK(skillId, ONLY_FIRE_ATTACK)(对标 InitEvent onBtnClickHandler)。
-    /// 降级(本轮记录,不造假):CirCleCdView 圆形 CD 无真实 CD 数据 → 不显示;提示文案用 GameLog(无 toast 系统),下一轮接。
+    ///   · CD(对标老端 CirCleCdView:MainUISkillItem.ts:93-99 挂 size38/font21):老端是运行时 drawPie 的黑色
+    ///     0.8 透明扇形(clock-wipe,从 12 点顺时针随 CD 消退)+ 白字倒计时(&gt;1s 取整、≤1s 一位小数),帧驱动;
+    ///     数据源 SkillVo.getCd/GetLeftCD。本端等价:Image Filled/Radial360/Top 顺时针 + TMP 文本,Update 轮询
+    ///     <see cref="SkillManager.GetCdLeftMs"/>(CD 起点=SceneCombat.ReleaseMainSkill → ResetSkill,自动/手动同路,
+    ///     对标老端 FightMovieInfo 预播即 ResetSkill)。老端遮罩是圆形 pie、本端是方形图标 radial(图标本就方形,
+    ///     视觉等价);僵直不显遮罩、CD 结束无闪光(老端 ActiveSkill 为空实现)——同老端。
+    ///   · 点击:自动战斗中 → 提示不发;CD 中不发(对标老端 cd_mask 挡点);否则发 EVT_SKILL_SHORTCUT_CLICK。
     /// 克隆件不经 Show→OnInit 不自动跑,Bind 字段序列化即就绪 → 点击绑定在 SetData 内幂等兜底。
     /// </summary>
     public sealed class MainUISkillItem : MainUISkillItemBind
     {
         private SkillVo _vo;
         private bool _clickBound;
+        private Image _cdMask;              // 时钟遮罩(运行时建,对标老端 shape_mask drawPie)
+        private TextMeshProUGUI _cdLabel;   // 倒计时文本(对标 _lb_cd)
+        private static TMP_FontAsset _cdFont;
+        private static Material _cdFontMat;
 
         /// <summary>由父 MainUISkillView 克隆后调用,填真实技能数据(对标 SetData → UpdateItem)。</summary>
         public void SetData(SkillVo vo)
@@ -85,8 +96,100 @@ namespace Shenxiao.Module.Core.MainUI
                 return;
             }
 
-            // 非锁、非 CD(本轮无真实 CD 数据,默认可释放)→ 发 SKILL_SHORTCUT_CLICK(对标 Fire(FightEvent.SKILL_SHORTCUT_CLICK, id, ONLY_FIRE_ATTACK))。
+            // CD 中不发(对标老端 cd_mask 盖住期间点击无效)。
+            if (SkillManager.Instance.GetCdLeftMs(_vo.Id) > 0)
+            {
+                return;
+            }
+
             EventDispatcher.Emit(GlobalEvent.EVT_SKILL_SHORTCUT_CLICK, _vo.Id, SkillManager.ONLY_FIRE_ATTACK);
+        }
+
+        // ── CD 时钟遮罩 + 倒计时(帧驱动轮询,对标老端 CirCleCdView 每 3 帧 Update 重画扇形) ──────────
+
+        private void Update()
+        {
+            RefreshCd();
+        }
+
+        private void RefreshCd()
+        {
+            int left = _vo != null ? SkillManager.Instance.GetCdLeftMs(_vo.Id) : 0;
+            if (left <= 0)
+            {
+                if (_cdMask != null && _cdMask.gameObject.activeSelf)
+                {
+                    _cdMask.gameObject.SetActive(false); // 归零清遮罩+文本(对标 CirCleCdView DrawMaskCircle(0))
+                }
+                return;
+            }
+
+            EnsureCdNodes();
+            if (_cdMask == null) return;
+            if (!_cdMask.gameObject.activeSelf) _cdMask.gameObject.SetActive(true);
+
+            int total = SkillManager.Instance.GetCdTotalMs(_vo.Id);
+            _cdMask.fillAmount = total > 0 ? Mathf.Clamp01((float)left / total) : 0f;
+
+            if (_cdLabel != null)
+            {
+                // 对标老端 _lb_cd:>1s 取整(ceil),≤1s 一位小数。
+                float leftSec = left / 1000f;
+                _cdLabel.text = leftSec > 1f ? Mathf.CeilToInt(leftSec).ToString() : leftSec.ToString("0.0");
+            }
+        }
+
+        /// <summary>运行时搭 CD 遮罩/文本(老端同样是运行时 drawPie,布局里的 _img_mask 也被隐藏,无独立遮罩贴图)。</summary>
+        private void EnsureCdNodes()
+        {
+            if (_cdMask != null || icon == null) return;
+
+            var maskGo = new GameObject("CdMask", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            maskGo.transform.SetParent(icon.rectTransform, false);
+            var maskRt = (RectTransform)maskGo.transform;
+            maskRt.anchorMin = Vector2.zero;
+            maskRt.anchorMax = Vector2.one;
+            maskRt.offsetMin = Vector2.zero;
+            maskRt.offsetMax = Vector2.zero; // 精确盖住图标(老端 SetPosition(3.5,4.5) 同位)
+
+            _cdMask = maskGo.GetComponent<Image>();
+            _cdMask.sprite = Sprite.Create(Texture2D.whiteTexture,
+                new Rect(0f, 0f, Texture2D.whiteTexture.width, Texture2D.whiteTexture.height),
+                new Vector2(0.5f, 0.5f), 100f);
+            _cdMask.color = new Color(0f, 0f, 0f, 0.8f);        // 对标老端 shape_mask 黑色 alpha=0.8
+            _cdMask.type = Image.Type.Filled;
+            _cdMask.fillMethod = Image.FillMethod.Radial360;    // 对标 drawPie:12 点起顺时针 clock-wipe
+            _cdMask.fillOrigin = (int)Image.Origin360.Top;
+            _cdMask.fillClockwise = true;
+            _cdMask.raycastTarget = false;
+
+            var labelGo = new GameObject("CdLabel", typeof(RectTransform));
+            labelGo.transform.SetParent(maskRt, false);
+            var labelRt = (RectTransform)labelGo.transform;
+            labelRt.anchorMin = Vector2.zero;
+            labelRt.anchorMax = Vector2.one;
+            labelRt.offsetMin = Vector2.zero;
+            labelRt.offsetMax = Vector2.zero;
+
+            _cdLabel = labelGo.AddComponent<TextMeshProUGUI>();
+            _cdLabel.alignment = TextAlignmentOptions.Center;
+            _cdLabel.fontSize = 21f;                             // 对标老端 SetData(..., 38, 21) 的字号
+            _cdLabel.color = Color.white;
+            _cdLabel.raycastTarget = false;
+            _cdLabel.textWrappingMode = TextWrappingModes.NoWrap;
+            ApplyCdFont(_cdLabel);
+        }
+
+        // 复用场景已有 TMP 字体(同 MonsterRenderer 名牌约定,避免豆腐块;数字字形任何字体都有)。
+        private static void ApplyCdFont(TextMeshProUGUI t)
+        {
+            if (_cdFont == null)
+            {
+                TextMeshProUGUI src = Object.FindAnyObjectByType<TextMeshProUGUI>();
+                if (src != null) { _cdFont = src.font; _cdFontMat = src.fontSharedMaterial; }
+            }
+            if (_cdFont != null) t.font = _cdFont;
+            if (_cdFontMat != null) t.fontSharedMaterial = _cdFontMat;
         }
     }
 }

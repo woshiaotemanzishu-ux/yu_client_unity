@@ -20,27 +20,45 @@ namespace Shenxiao.Module.Core.Login
         private const string PREF_PASSWORD = "login.password";
         private const string PREF_REMEMBER = "login.remember";
         private const string PREF_DEVICE_ID = "login.device_id";
-        private const int MAX_IN_GAME_AUTO_RECONNECT = 2;
-        private const float IN_GAME_AUTO_RECONNECT_DELAY_SEC = 2f;
+        private const float RECONNECT_BASE_DELAY_SEC = 2f;
+        private const float RECONNECT_MAX_DELAY_SEC = 15f;
+        /// <summary>
+        /// 链路判死窗口(秒):整条连接连续无【任何】下行数据才判死,不只看 10006。
+        /// 实测本服务端会整体静默 30~60s 后自行恢复(恢复首包 rtt 8s+),这类可恢复停顿必须扛住不断线
+        /// (对标老端:心跳超时只显示"无信号"图标、从不主动断开);而彻底死链(实录 48 连超时零回包)
+        /// 要能自愈,所以保留一个宽松的静默 watchdog。
+        /// </summary>
+        private const float DEAD_LINK_SILENCE_SEC = 120f;
+        /// <summary>连接建立后到进入游戏前(10000/10004 无回包)的判死窗口:此阶段服务端应秒回,给短些。</summary>
+        private const float ENTERING_SILENCE_SEC = 45f;
+        /// <summary>
+        /// 链路整体静默期间心跳探测的最小间距(秒)。不能按 12s 超时密集补发:停顿期的心跳会在服务端
+        /// 邮箱里积压,恢复瞬间被一次性处理,而 yu_server pp_login.erl handle(10006) 有反外挂检测——
+        /// 连续 10 次到包间隔 &lt;4.8s 直接按外挂踢线(LOGOUT_LOG_WAIGUA)。30s 间距下 120s 停顿最多积压
+        /// 4~5 个,安全。
+        /// </summary>
+        private const float STALL_PROBE_SPACING_SEC = 30f;
         private static readonly LoginController _instance = new LoginController();
 
         private AppConfig _config;
         private long _pendingEnterRoleId;
         private long _activeRoleId;
-        private int _inGameAutoReconnectLeft;
         private bool _connectingGame;
-        private bool _enteringFromInGameReconnect;
+        private bool _inGameEntered;
+        private int _reconnectAttempt;
         private CancellationTokenSource _heartbeatDelayCts;
         private CancellationTokenSource _heartbeatTimeoutCts;
+        private CancellationTokenSource _linkWatchdogCts;
         private int _heartbeatSerial;
         private bool _heartbeatWaitingResponse;
+        private bool _stallNotified;
         private DateTime _lastHeartbeatSentAt;
         private DateTime _lastHeartbeatResponseAt;
         private CancellationTokenSource _autoReconnectCts;
 
         public static LoginController Instance => _instance;
         public LoginModel Model => LoginModel.Instance;
-        public bool CanAutoReconnectInGame => _activeRoleId > 0 && _inGameAutoReconnectLeft > 0;
+        public bool CanAutoReconnectInGame => _activeRoleId > 0;
 
         private LoginController()
         {
@@ -185,6 +203,8 @@ namespace Shenxiao.Module.Core.Login
             // then schedule the next heartbeat only after receiving a 10006 reply.
             NetManager.ConfigureHeartbeat(0, 0f);
             ResetHeartbeatState();
+            _inGameEntered = false;
+            StartLinkWatchdog();
 
             // 对标 Laya GAME_CONNECT:SendFmtToGame(10000, "iiss", pid, time_stamp, account_id, plat_name)。
             // 关键:account_id = get_server_info 的 accname(游戏服按它认账号,发 player_id 会被当成
@@ -236,6 +256,7 @@ namespace Shenxiao.Module.Core.Login
         {
             EventDispatcher.Off(GlobalEvent.EVT_NET_DISCONNECTED, OnNetDisconnected);
             ResetHeartbeatState();
+            StopLinkWatchdog();
             CancelAutoReconnect();
             base.Dispose();
         }
@@ -361,20 +382,15 @@ namespace Shenxiao.Module.Core.Login
             int result = reader.ReadU8();
             if (result == 1)
             {
-                if (_enteringFromInGameReconnect)
-                {
-                    _enteringFromInGameReconnect = false;
-                }
-                else
-                {
-                    _inGameAutoReconnectLeft = MAX_IN_GAME_AUTO_RECONNECT;
-                }
+                _inGameEntered = true;
+                bool wasReconnect = _reconnectAttempt > 0;
+                _reconnectAttempt = 0;
+                if (wasReconnect) TipsManager.Toast("重连成功");
                 GameLog.Info("Login", "🎉 进入游戏成功(10004),主城/场景流程待接");
                 EventDispatcher.Emit(GlobalEvent.EVT_GAME_ENTERED);
             }
             else
             {
-                _enteringFromInGameReconnect = false;
                 GameLog.Warn("Login", "进入游戏失败 result={0}", result);
                 TipsManager.Toast("进入游戏失败(" + result + ")");   // 错误码表(Util.ErrorCodeShow)未移植,显码降级
             }
@@ -383,6 +399,11 @@ namespace Shenxiao.Module.Core.Login
         private void OnHeartbeat(NetReader reader)
         {
             _heartbeatWaitingResponse = false;
+            if (_stallNotified)
+            {
+                _stallNotified = false;
+                TipsManager.Toast("网络已恢复");
+            }
             _lastHeartbeatResponseAt = DateTime.UtcNow;
             CancelHeartbeatTimeout();
             ScheduleNextHeartbeat();
@@ -473,8 +494,38 @@ namespace Shenxiao.Module.Core.Login
             if (serial != _heartbeatSerial || !_heartbeatWaitingResponse || !NetManager.IsConnected) return;
 
             double sinceMs = (DateTime.UtcNow - _lastHeartbeatSentAt).TotalMilliseconds;
-            GameLog.Warn("Login", "10006 heartbeat timeout serial={0} elapsed={1:0}ms, resend once", serial, sinceMs);
-            SendHeartbeatNow();
+            float silenceSec = NetManager.SecondsSinceLastInbound;
+
+            // 超时分两种,处置完全不同:
+            // ① 链路有下行、只是 10006 回包丢/慢 → 立即补发一次(12s 间距,不触发服务端反外挂)。
+            // ② 整条链路静默(服务端停顿/网络抖动)→ 不密集补发,改 30s 间距稀疏探测;
+            //    判死不在这里做——交给链路静默 watchdog(RunLinkWatchdogAsync,看任意下行、窗口 120s),
+            //    可恢复停顿(实测 30~60s)扛住不断线,对标老端"心跳超时只亮无信号图标、从不主动断"。
+            if (silenceSec < timeoutSec)
+            {
+                GameLog.Warn("Login", "10006 heartbeat timeout serial={0} elapsed={1:0}ms,但链路 {2:0.#}s 内有下行(回包丢/慢)→ 立即补发",
+                    serial, sinceMs, silenceSec);
+                SendHeartbeatNow();
+                return;
+            }
+
+            if (!_stallNotified)
+            {
+                _stallNotified = true;
+                if (_inGameEntered) TipsManager.Toast("网络波动,等待服务器响应…");
+            }
+            GameLog.Warn("Login", "10006 heartbeat timeout serial={0} elapsed={1:0}ms,链路已整体静默 {2:0.#}s → {3:0}s 后稀疏探测(判死由静默 watchdog 负责,窗口 {4:0}s)",
+                serial, sinceMs, silenceSec, STALL_PROBE_SPACING_SEC, _inGameEntered ? DEAD_LINK_SILENCE_SEC : ENTERING_SILENCE_SEC);
+            _heartbeatWaitingResponse = false;
+            ScheduleProbeAfter(STALL_PROBE_SPACING_SEC);
+        }
+
+        /// <summary>链路静默期的稀疏心跳探测(间距见 <see cref="STALL_PROBE_SPACING_SEC"/>)。</summary>
+        private void ScheduleProbeAfter(float delaySec)
+        {
+            CancelHeartbeatDelay();
+            _heartbeatDelayCts = new CancellationTokenSource();
+            _ = SendHeartbeatAfterDelayAsync(delaySec, _heartbeatDelayCts.Token);
         }
 
         private float GetHeartbeatIntervalSec()
@@ -505,14 +556,74 @@ namespace Shenxiao.Module.Core.Login
             CancelHeartbeatDelay();
             CancelHeartbeatTimeout();
             _heartbeatWaitingResponse = false;
+            _stallNotified = false;
             _lastHeartbeatSentAt = default(DateTime);
             _lastHeartbeatResponseAt = default(DateTime);
+        }
+
+        /// <summary>
+        /// 链路静默 watchdog:唯一的"判死链路"出口。看的是整条连接最近一次任意下行(NetManager
+        /// 收包线程记录),进游戏后窗口 <see cref="DEAD_LINK_SILENCE_SEC"/>,进游戏前(等 10000/10004
+        /// 回包)窗口 <see cref="ENTERING_SILENCE_SEC"/>——重连到仍在停顿的服务端时,10000 可能永远
+        /// 不回,没有这个短窗口整条重连链会僵死。
+        /// </summary>
+        private void StartLinkWatchdog()
+        {
+            StopLinkWatchdog();
+            _linkWatchdogCts = new CancellationTokenSource();
+            _ = RunLinkWatchdogAsync(_linkWatchdogCts);
+        }
+
+        private async Task RunLinkWatchdogAsync(CancellationTokenSource cts)
+        {
+            try
+            {
+                while (!cts.Token.IsCancellationRequested && NetManager.IsConnected)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(5), cts.Token);
+                    if (cts.Token.IsCancellationRequested || !NetManager.IsConnected) break;
+
+                    float silenceSec = NetManager.SecondsSinceLastInbound;
+                    float limitSec = _inGameEntered ? DEAD_LINK_SILENCE_SEC : ENTERING_SILENCE_SEC;
+                    if (silenceSec < limitSec) continue;
+
+                    GameLog.Warn("Login", "链路连续 {0:0}s 无任何下行(≥{1:0}s,阶段={2})→ 判定链路已死,主动断开走自动重连",
+                        silenceSec, limitSec, _inGameEntered ? "in-game" : "entering");
+                    if (_activeRoleId > 0) TipsManager.Toast("连接中断,正在自动重连…");
+                    _ = NetManager.DisconnectAsync();
+                    return;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Connection lifecycle reset.
+            }
+            finally
+            {
+                if (_linkWatchdogCts == cts)
+                {
+                    _linkWatchdogCts = null;
+                    cts.Dispose();
+                }
+            }
+        }
+
+        private void StopLinkWatchdog()
+        {
+            if (_linkWatchdogCts == null) return;
+            // 同 CancelAutoReconnect:先置 null 再 Cancel,避免 Cancel 同步唤起 finally 后二次 Dispose。
+            CancellationTokenSource cts = _linkWatchdogCts;
+            _linkWatchdogCts = null;
+            cts.Cancel();
+            cts.Dispose();
         }
 
         private void OnNetDisconnected()
         {
             ResetHeartbeatState();
-            if (_connectingGame || _activeRoleId <= 0 || _inGameAutoReconnectLeft <= 0)
+            StopLinkWatchdog();
+            _inGameEntered = false;
+            if (_connectingGame || _activeRoleId <= 0)
             {
                 return;
             }
@@ -520,32 +631,42 @@ namespace Shenxiao.Module.Core.Login
             ScheduleInGameAutoReconnect();
         }
 
-        /// <summary>10007 回包 "c":角色名验证结果(对标老客户端 On10007;此前误标为踢线)。</summary>
+        /// <summary>玩家主动登出/回登录页时清空游戏内重连状态,停掉重连与链路 watchdog。</summary>
         public void ClearInGameReconnectState()
         {
             _activeRoleId = 0;
             _pendingEnterRoleId = 0;
-            _inGameAutoReconnectLeft = 0;
-            _enteringFromInGameReconnect = false;
+            _reconnectAttempt = 0;
+            _inGameEntered = false;
             CancelAutoReconnect();
+            StopLinkWatchdog();
         }
 
+        /// <summary>
+        /// 游戏内自动重连:不限次数、指数退避(2s→4s→…→15s 封顶),进入游戏成功(10004)才清零计数。
+        /// 此前只给 2 次额度且重连成功不补——跨多次网络停顿的长会话必然耗尽额度,之后再断线连尝试都
+        /// 不尝试,玩家看到的就是"突然断线后永远愣住"。服务端停顿期间重连本身也会失败(消耗额度),
+        /// 所以额度制在这个服务器环境下不成立,改为持续退避重试直到成功或玩家主动退出。
+        /// </summary>
         private void ScheduleInGameAutoReconnect()
         {
-            if (_autoReconnectCts != null || _activeRoleId <= 0 || _inGameAutoReconnectLeft <= 0) return;
+            if (_autoReconnectCts != null || _activeRoleId <= 0) return;
             long roleId = _activeRoleId;
-            _inGameAutoReconnectLeft--;
+            _reconnectAttempt++;
+            float delaySec = Math.Min(
+                RECONNECT_BASE_DELAY_SEC * (float)Math.Pow(2, _reconnectAttempt - 1),
+                RECONNECT_MAX_DELAY_SEC);
             _autoReconnectCts = new CancellationTokenSource();
-            GameLog.Warn("Login", "game socket disconnected, auto reconnect in {0:0.#}s role_id={1} left={2}",
-                IN_GAME_AUTO_RECONNECT_DELAY_SEC, roleId, _inGameAutoReconnectLeft);
-            _ = ReconnectInGameAfterDelayAsync(roleId, _autoReconnectCts);
+            GameLog.Warn("Login", "game socket disconnected, auto reconnect #{0} in {1:0.#}s role_id={2}",
+                _reconnectAttempt, delaySec, roleId);
+            _ = ReconnectInGameAfterDelayAsync(roleId, delaySec, _autoReconnectCts);
         }
 
-        private async Task ReconnectInGameAfterDelayAsync(long roleId, CancellationTokenSource cts)
+        private async Task ReconnectInGameAfterDelayAsync(long roleId, float delaySec, CancellationTokenSource cts)
         {
             try
             {
-                await Task.Delay(TimeSpan.FromSeconds(IN_GAME_AUTO_RECONNECT_DELAY_SEC), cts.Token);
+                await Task.Delay(TimeSpan.FromSeconds(delaySec), cts.Token);
                 if (cts.Token.IsCancellationRequested || roleId <= 0 || roleId != _activeRoleId) return;
 
                 if (_autoReconnectCts == cts)
@@ -554,15 +675,15 @@ namespace Shenxiao.Module.Core.Login
                 }
                 cts.Dispose();
 
-                _enteringFromInGameReconnect = true;
                 _pendingEnterRoleId = roleId;
                 LoginRequestResult result = await ConnectGameAsync();
                 if (!result.success)
                 {
-                    _enteringFromInGameReconnect = false;
-                    GameLog.Warn("Login", "in-game auto reconnect failed: {0}", result.message);
+                    GameLog.Warn("Login", "in-game auto reconnect #{0} failed: {1}", _reconnectAttempt, result.message);
                     ScheduleInGameAutoReconnect();
                 }
+                // 连接成功但服务端仍停顿(10000/10004 不回)的情况由 entering 阶段静默 watchdog 兜底:
+                // 45s 无下行 → 断开 → OnNetDisconnected → 下一轮重连。
             }
             catch (OperationCanceledException)
             {

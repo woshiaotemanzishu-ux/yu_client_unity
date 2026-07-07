@@ -56,6 +56,7 @@ namespace Shenxiao.Module.Core.Tasks
 
         private async void OnGameStart()
         {
+            _startupTaskListRequested = false;   // 配置加载期间到达的 30000 不点火(见 TryKickoffAutoTaskOnLogin)
             await TaskConfigs.EnsureLoaded();
             await TaskGuideConfigs.EnsureLoaded();
             // 奖励真实物品名/图标需 config_goods(对话奖励摘要、完成弹层、BaseAwardItem 共用 GoodsModel)。
@@ -65,6 +66,7 @@ namespace Shenxiao.Module.Core.Tasks
             _taskFinishPendingAuto = false;
             _taskOneAutoEpoch++;
             _loginKickoffDone = false;
+            _startupTaskListRequested = true;   // 从这个请求之后的首个 30000 才允许点火
             TaskModel.Instance.ClearData();
             SendFmt(Proto.TASK_LIST);
             GameLog.Info("Task", "request task list proto={0}", Proto.TASK_LIST);
@@ -74,11 +76,15 @@ namespace Shenxiao.Module.Core.Tasks
         // 会话卡在副本/杀怪),没有任何 30001 增量来「点火」→ FindNextAutoFightTask 永不启动
         // (既有两个续跑入口都依赖任务完成事件)。对标老端登录 loading 关闭后的自动任务恢复;
         // 每次进游戏后的首个 30000 只触发一次。
+        // 门禁 _startupTaskListRequested:服务端在登录早期(10004 前)就会推一版 30000,那时配置未加载、
+        // OnGameStart 也未跑,点火只会空跑;且旧逻辑里这个早推包消耗掉 _loginKickoffDone 后又被
+        // OnGameStart 重置,造成一次登录点火两遍(test.log 831/1003 行双 kickoff 实证)。
         private bool _loginKickoffDone;
+        private bool _startupTaskListRequested;
 
         private void TryKickoffAutoTaskOnLogin()
         {
-            if (_loginKickoffDone) return;
+            if (!_startupTaskListRequested || _loginKickoffDone) return;
             _loginKickoffDone = true;
             if (!TaskModel.Instance.GetAutoTaskSetting()) return;
             _ = KickoffWhenMainRoleReadyAsync();
@@ -225,7 +231,10 @@ namespace Shenxiao.Module.Core.Tasks
 
         private async Task ContinueAutoTaskAfterOneAsync(int taskId, int epoch)
         {
-            await Task.Delay(350);
+            // 老端主线任务 30001 后 DoTask 是立即执行(TaskModel.ts:2226-2234,仅帮派/日常 setTimeout 700ms);
+            // 这里只留一小拍去重窗(同一完成常连发多条 30001,epoch 取最后一条),不再人为停 350ms——
+            // 那是"任务推进后角色愣一下才动"的直接来源之一(用户实感,以老端节奏为准)。
+            await Task.Delay(100);
             if (epoch != _taskOneAutoEpoch) return;
             if (!TaskModel.Instance.GetAutoTaskSetting()) return;
 
@@ -239,7 +248,7 @@ namespace Shenxiao.Module.Core.Tasks
 
         private async Task ResumeAutoFightAfterProgressAsync(int taskId, int epoch)
         {
-            await Task.Delay(250);
+            await Task.Delay(100); // 同上:老端进度更新即续跑,只留去重窗(原 250ms 是可感知的停顿)
             if (epoch != _taskOneAutoEpoch) return;
             if (!TaskModel.Instance.GetAutoTaskSetting()) return;
 

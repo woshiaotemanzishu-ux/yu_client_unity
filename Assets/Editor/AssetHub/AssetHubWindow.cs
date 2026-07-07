@@ -1130,6 +1130,60 @@ namespace Shenxiao.Editor.AssetHub
             }
         }
 
+        // 美术工程交付状态缓存(GetArtStatus 要给几 MB 的 prefab 算 MD5,不能每帧调)
+        private readonly Dictionary<int, string> _wholeModelArtStatus = new Dictionary<int, string>();
+        private bool _previewWholeModel; // 预览窗显示新整模(而不是老转换产物)
+
+        /// <summary>
+        /// 新整模(创角成品 prefab)对照区:老拼装条目下直接显示"工程内/美术工程"两侧状态,
+        /// 一键从美术工程导入/替换。运行时规则:创角页有新整模用新,没有回落老拼装,互不影响。
+        /// </summary>
+        private void DrawWholeModelSection(AssetEntry e)
+        {
+            if (!int.TryParse(e.Id, out int res)) return;
+
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("新整模(美术成品,创角页优先使用)", EditorStyles.boldLabel);
+            string folder = $"Assets/GameRes/object/role/model_create_{res}";
+            bool c2 = File.Exists($"{folder}/{res}@create2.prefab");
+            bool c3 = File.Exists($"{folder}/{res}@create3.prefab");
+            string inGame = c2 ? (c3 ? "已导入(create2+3)" : "仅create2") : "未导入";
+            if (!_wholeModelArtStatus.TryGetValue(res, out string artStatus))
+            {
+                artStatus = EditorTools.ArtImport.ArtPrefabImporter.GetArtStatus(res);
+                _wholeModelArtStatus[res] = artStatus;
+            }
+            EditorGUILayout.LabelField("状态", $"工程内:{inGame}    美术工程:{artStatus}");
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUI.enabled = artStatus != "未交付";
+                string btn = c2 ? "替换新模型(从美术工程更新)" : "导入新模型(从美术工程)";
+                if (GUILayout.Button(btn, GUILayout.Height(24f)))
+                {
+                    bool ok = EditorTools.ArtImport.ArtPrefabImporter.ImportRole(res, out string summary);
+                    _wholeModelArtStatus.Remove(res);
+                    if (ok) ShowNotification(new GUIContent(summary));
+                    else EditorUtility.DisplayDialog("导入失败", summary, "好");
+                    GUIUtility.ExitGUI();
+                }
+                GUI.enabled = true;
+                if (GUILayout.Button("刷新状态", GUILayout.Width(70f), GUILayout.Height(24f)))
+                    _wholeModelArtStatus.Remove(res);
+                GUI.enabled = c2;
+                if (GUILayout.Button("定位", GUILayout.Width(50f), GUILayout.Height(24f)))
+                {
+                    var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>($"{folder}/{res}@create2.prefab");
+                    if (obj != null) EditorGUIUtility.PingObject(obj);
+                }
+                GUI.enabled = true;
+            }
+            GUI.enabled = c2;
+            _previewWholeModel = EditorGUILayout.ToggleLeft(
+                "预览新整模(下方预览窗换成新模型;老模型的动作列表不适用它)", _previewWholeModel && c2);
+            GUI.enabled = true;
+        }
+
         private void DrawDetailPane()
         {
             using (new EditorGUILayout.VerticalScope())
@@ -1141,8 +1195,16 @@ namespace Shenxiao.Editor.AssetHub
                 }
                 AssetEntry e = _selected;
                 EntryStatus s = StatusOf(e);
-                // 先装载预览实例:动作列表(DrawClipsSection)读 _preview.Clips,需与当前条目同步
-                _preview.SetPrefab(s == EntryStatus.Converted || s == EntryStatus.Stale ? e.PrefabPath : null);
+                // 先装载预览实例:动作列表(DrawClipsSection)读 _preview.Clips,需与当前条目同步。
+                // 勾了[预览新整模]则加载新美术成品(Timeline 驱动,此预览窗不播动作,可看模型/粒子)
+                string previewPath = s == EntryStatus.Converted || s == EntryStatus.Stale ? e.PrefabPath : null;
+                if (_previewWholeModel && e.Note != null && e.Note.Contains("CreateRole")
+                    && int.TryParse(e.Id, out int wmRes))
+                {
+                    string wm = $"Assets/GameRes/object/role/model_create_{wmRes}/{wmRes}@create2.prefab";
+                    if (File.Exists(wm)) previewPath = wm;
+                }
+                _preview.SetPrefab(previewPath);
 
                 _detailScroll = EditorGUILayout.BeginScrollView(_detailScroll);
                 EditorGUILayout.LabelField($"{Path.GetFileNameWithoutExtension(e.LhPath)}  {e.DisplayName}", EditorStyles.boldLabel);
@@ -1157,6 +1219,10 @@ namespace Shenxiao.Editor.AssetHub
                     EditorGUILayout.LabelField("配置来源", e.Note, EditorStyles.wordWrappedLabel);
                 EditorGUILayout.LabelField("源", e.LhPath, EditorStyles.wordWrappedMiniLabel);
                 EditorGUILayout.LabelField("产物", e.PrefabPath, EditorStyles.wordWrappedMiniLabel);
+
+                // 创角默认装:新整模(美术成品)对照替换——有新用新、无新用老(运行时自动)
+                if (e.Note != null && e.Note.Contains("CreateRole"))
+                    DrawWholeModelSection(e);
 
                 if (e.Kind == AssetKind.Model)
                 {

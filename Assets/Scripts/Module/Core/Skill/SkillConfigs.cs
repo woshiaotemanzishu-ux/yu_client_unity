@@ -180,6 +180,19 @@ namespace Shenxiao.Module.Core.Skill
         public static int GetAnimTimeMs(int skillId)
             => _skill?[skillId.ToString()] is JObject o ? (o.Value<int?>("time") ?? 0) : 0;
 
+        /// <summary>
+        /// 技能 CD 毫秒(对标老端 SkillVo.getCd:lv_data[level-1].cd,毫秒;实测 御剑二式 59x00010 cd=3000,
+        /// 普攻 59x00001 cd=0)。缺省/无表项 0 = 无 CD。技能栏时钟遮罩与自动战斗选技都用它。
+        /// </summary>
+        public static int GetCdMsForLevel(int skillId, int level)
+        {
+            JArray lv = GetLvData(skillId);
+            int idx = (level > 0 ? level : 1) - 1;
+            if (lv != null && idx >= 0 && idx < lv.Count && lv[idx] is JObject lvo)
+                return lvo.Value<int?>("cd") ?? 0;
+            return 0;
+        }
+
         /// <summary>取某级图标资源名(对标 SkillVo.GetIcon:lv_data[level-1].icon,缺省回落技能 id)。</summary>
         public static string GetIconForLevel(int skillId, int level)
         {

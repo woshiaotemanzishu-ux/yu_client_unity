@@ -99,9 +99,15 @@ namespace Shenxiao.Module.Core.Dungeon
             int sceneId = (int)r.ReadU32();
 
             var rewards = new List<(int typeId, long num)>();
+            // 结算界面展示用:经 GoodsModel.GetMappingTypeId 还原真实 goods_id(style 即 GetMappingTypeId 的 type)。
+            var displayRewards = new List<(int goodsId, long count)>();
             List<(int style, int typeId, long count, long goodsId)> rewardList = r.ReadArray(ReadRewardItem);
             foreach ((int style, int typeId, long count, long goodsId) item in rewardList)
+            {
                 rewards.Add((item.typeId, item.count));
+                (int mappedId, int _) = GoodsModel.GetMappingTypeId(item.style, item.typeId);
+                displayRewards.Add((mappedId, item.count));
+            }
 
             List<(int rewardType, List<(int style1, int typeId1, long count1, long goodsId1)> list)> otherReward =
                 r.ReadArray(ReadOtherReward);
@@ -109,7 +115,11 @@ namespace Shenxiao.Module.Core.Dungeon
             {
                 if (group.list == null) continue;
                 foreach ((int style1, int typeId1, long count1, long goodsId1) item in group.list)
+                {
                     rewards.Add((item.typeId1, item.count1));
+                    (int mappedId, int _) = GoodsModel.GetMappingTypeId(item.style1, item.typeId1);
+                    displayRewards.Add((mappedId, item.count1));
+                }
             }
 
             r.ReadArray(ReadExData);   // ex_data(附加键值,本轮只按序读完,不用于展示)
@@ -117,21 +127,9 @@ namespace Shenxiao.Module.Core.Dungeon
 
             DungeonModel.Instance.ApplySettle(result, rewards);
 
-            // toast 前 3 件(经 GoodsModel.GetMappingTypeId 映射成真实 goods_id,style 沿用 reward_list 的 style 作为 GetMappingTypeId 的 type)
-            var summary = new System.Text.StringBuilder();
-            int shown = 0;
-            for (int i = 0; i < rewardList.Count && shown < 3; i++)
-            {
-                (int style, int typeId, long count, long goodsId) item = rewardList[i];
-                (int goodsId2, int _) = GoodsModel.GetMappingTypeId(item.style, item.typeId);
-                if (shown > 0) summary.Append("、");
-                summary.Append(GoodsModel.GetGoodsBasicByTypeId(goodsId2)?.Name ?? ("物品" + goodsId2));
-                summary.Append("x").Append(item.count);
-                shown++;
-            }
-
-            TipsManager.Toast(result == 1 ? "副本通关" : "副本失败(result=" + result + ")");
-            if (shown > 0) TipsManager.Toast("获得:" + summary);
+            // 结算界面(对标老端 OPEN_DENGEON_RESULT_VIEW → DungeonVictoryView/DungeonFailureView;
+            // 加载失败时 DungeonResultView 内部自回退 Toast,不落静默)。
+            DungeonResultView.Instance.Show(result == 1, grade, displayRewards);
 
             GameLog.Info("Dungeon", "61003 settle dun_id={0} result={1} subtype={2} grade={3} scene={4} rewards={5} other={6} count={7}",
                 dunId, result, resultSubtype, grade, sceneId, rewardList.Count, otherReward.Count, count);

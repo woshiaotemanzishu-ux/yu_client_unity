@@ -42,14 +42,22 @@ namespace Shenxiao.Module.Core.Scene
     ///         老端 NameBoard.lh 的 Unity 转换产物名字节点缺失,合成台 RT 也无法直接叠 2D 名牌)。
     ///   缩放 = config_mon["11"] icon_scale(对标 Monster.ts SetScale(vo.icon_scale)),缺表用合成台默认。
     ///
+    /// 动作:待机 idle 常驻;受击 <see cref="PlayBeHit"/>(behit)、攻击 <see cref="PlaySkill"/>(SkillMovieConfigs
+    /// anim+particles)、死亡 <see cref="NotifyKilled"/>(death + 尸体停留 2s,对标老端 Monster.UpdateStateDead
+    /// fade_time=2.0)均由 <see cref="FightController"/> 按 20001 S2C 驱动。
+    ///
     /// 已知 blocker / 后续(精确写明,不臆造):
     ///   - 怪物朝向(config_mon brith_rot / 移动方向)本轮不接,用合成台默认朝向。
     ///   - 移动插值:本轮按 vo 当前坐标每帧贴位(无插值),九宫格 12008/12012 改坐标即跟随。
-    ///   - 受击/死亡/攻击动作、任务怪头顶标:本轮只待机 idle,记录为后续。
+    ///   - 受击击退位移(老端 DoBeAttacked end_pos 0.1s 插值)、尸体透明淡出(合成台 RT 3D 模型无统一
+    ///     alpha 通道)未接:死亡=death 动作 + 原地停留后移除;任务怪头顶标:后续。
     /// </summary>
     public static class MonsterRenderer
     {
         private const string ACTION_IDLE = "idle";
+        private const string ACTION_DEATH = "death"; // 老端死亡动作名(Character.ts:562 PlayAction("death"))
+        /// <summary>尸体停留秒数(对标老端 Monster.UpdateStateDead fade_time=2.0,到点 OBJ_DEADBODY_FADE_END 回收)。</summary>
+        private const float DEAD_BODY_LINGER_SECONDS = 2.0f;
 
         private sealed class MonView
         {
@@ -65,7 +73,19 @@ namespace Shenxiao.Module.Core.Scene
             public int ActionVersion;
         }
 
+        /// <summary>死亡尸体(已出 _views,模型保留播 death + 停留):随主角移动仍需每帧贴位,世界坐标出生定格。</summary>
+        private sealed class DyingCorpse
+        {
+            public Transform Tilt;
+            public GameObject Model;
+            public int WorldX, WorldY; // 死亡时的世界像素(vo 已被移除,快照定格)
+            public bool Done;          // 清场/到点后置位,晚到的异步续体据此跳过重复回收
+        }
+
         private static readonly Dictionary<int, MonView> _views = new Dictionary<int, MonView>();
+        /// <summary>战斗层预告"该实例是被打死的"(20001 hp==0),下一次 MonsterRemoved 走死亡动画而非瞬删。</summary>
+        private static readonly HashSet<int> _killedPending = new HashSet<int>();
+        private static readonly List<DyingCorpse> _dying = new List<DyingCorpse>();
         private static GameObject _driverGo;
         private static int _epoch;
 
@@ -201,9 +221,93 @@ namespace Shenxiao.Module.Core.Scene
             return boss.SceneScale;
         }
 
+        /// <summary>
+        /// 标记实例为"被打死"(由 <see cref="FightController"/> 在 20001 defender hp==0、DeleteSceneObj 之前调):
+        /// 数据层照常立即移除(目标选择/寻怪马上看不到它),仅视图层走 死亡动作 + 尸体停留(对标老端 DoDead:
+        /// ChangeState(DEAD) → PlayAction("death") → fade_time 后回收)。非击杀性移除(出九宫格 12006 等)不受影响。
+        /// </summary>
+        public static void NotifyKilled(int instanceId) => _killedPending.Add(instanceId);
+
         private static void OnMonsterRemoved(int instanceId)
         {
-            if (_views.TryGetValue(instanceId, out MonView view)) RemoveView(view);
+            bool killed = _killedPending.Remove(instanceId);
+            if (!_views.TryGetValue(instanceId, out MonView view)) return;
+            if (killed && view.Loaded && view.Model != null)
+            {
+                StartDeath(view);
+                return;
+            }
+            RemoveView(view);
+        }
+
+        /// <summary>
+        /// 把视图转成"死亡尸体":出 _views(同实例重刷/重加不冲突)、名牌立即销毁(老端死亡即收名板),
+        /// 模型保留播 death,停留 <see cref="DEAD_BODY_LINGER_SECONDS"/> 后回收。
+        /// </summary>
+        private static void StartDeath(MonView view)
+        {
+            _views.Remove(view.InstanceId);
+            DestroyNameplate(view);
+            view.ActionVersion++; // 作废在途的 behit/skill 回 idle 续体(它们按 version 自检)
+            view.Loaded = false;
+
+            var corpse = new DyingCorpse
+            {
+                Tilt = view.Tilt,
+                Model = view.Model,
+                WorldX = view.Vo.X,
+                WorldY = view.Vo.Y,
+            };
+            _dying.Add(corpse);
+            _ = PlayDeathThenRecycleAsync(corpse, view.MonsterRes);
+        }
+
+        private static async Task PlayDeathThenRecycleAsync(DyingCorpse corpse, int monsterRes)
+        {
+            try
+            {
+                if (corpse.Model != null)
+                {
+                    Animation anim = corpse.Model.GetComponent<Animation>();
+                    if (anim == null) anim = corpse.Model.AddComponent<Animation>();
+                    if (anim.GetClip(ACTION_DEATH) == null)
+                    {
+                        string key = $"object/monster/action/{monsterRes}/{ACTION_DEATH}";
+                        AnimationClip clip = await ResManager.LoadAsync<AnimationClip>(key);
+                        if (corpse.Model != null && clip != null && clip.legacy)
+                        {
+                            anim.AddClip(clip, ACTION_DEATH);
+                        }
+                        else if (clip == null)
+                        {
+                            GameLog.Warn("Scene", "monster death 动作缺失,尸体静止停留:res={0} key={1}", monsterRes, key);
+                        }
+                    }
+                    if (!corpse.Done && corpse.Model != null && anim.GetClip(ACTION_DEATH) != null)
+                    {
+                        anim.Stop();
+                        anim.CrossFade(ACTION_DEATH, 0.06f);
+                        // death 多为非循环片段,播完自然停在末帧(倒地),停留期内即尸体姿态。
+                    }
+                }
+                await Task.Delay(Mathf.RoundToInt(DEAD_BODY_LINGER_SECONDS * 1000f));
+            }
+            catch (System.Exception ex)
+            {
+                GameLog.Warn("Scene", "monster death 表现异常 res={0}: {1}", monsterRes, ex.Message);
+            }
+            finally
+            {
+                RecycleCorpse(corpse);
+            }
+        }
+
+        private static void RecycleCorpse(DyingCorpse corpse)
+        {
+            if (corpse == null || corpse.Done) return;
+            corpse.Done = true;
+            _dying.Remove(corpse);
+            SceneCharacterStage.RemoveSceneCharacter(corpse.Tilt);
         }
 
         private static void OnMonsterMoved(MonsterVo vo)
@@ -226,6 +330,13 @@ namespace Shenxiao.Module.Core.Scene
         private static void ClearAll()
         {
             _epoch++; // 让在途加载全部过期
+            _killedPending.Clear();
+            if (_dying.Count > 0)
+            {
+                // 死亡尸体立即回收(切场景/断线不留跨场景尸体);Done 置位后停留计时的续体自跳过。
+                var corpses = new List<DyingCorpse>(_dying);
+                foreach (DyingCorpse c in corpses) RecycleCorpse(c);
+            }
             if (_views.Count == 0) return;
             var doomed = new List<MonView>(_views.Values);
             _views.Clear();
@@ -275,10 +386,22 @@ namespace Shenxiao.Module.Core.Scene
         /// <summary>每帧由 driver 调:怪随主角移动重摆相对位(锚在地图上);怪自身移动经 MonsterMoved 改 vo 坐标。</summary>
         internal static void TickPositions()
         {
-            if (_views.Count == 0) return;
+            if (_views.Count == 0 && _dying.Count == 0) return;
             foreach (MonView v in _views.Values)
             {
                 UpdateViewPosition(v);
+            }
+            if (_dying.Count > 0)
+            {
+                RoleModel role = RoleModel.Instance;
+                for (int i = 0; i < _dying.Count; i++)
+                {
+                    DyingCorpse c = _dying[i];
+                    if (c.Done || c.Tilt == null) continue;
+                    // 尸体锚在死亡点世界像素(主角继续移动时尸体不跟人走)。
+                    SceneCharacterStage.SetSceneCharacterPixelOffset(c.Tilt,
+                        new Vector2(c.WorldX - role.X, c.WorldY - role.Y));
+                }
             }
         }
 
@@ -324,6 +447,46 @@ namespace Shenxiao.Module.Core.Scene
         {
             if (!_views.TryGetValue(instanceId, out MonView view) || !view.Loaded || view.Model == null) return;
             _ = PlaySimpleActionAsync(view, "behit", true);
+        }
+
+        /// <summary>
+        /// 主角技能"受击者/落点"特效落到怪物身上(对标老端 FightMovieInfo.PlayParticle 的 pos_type 1/3/4/6/12/13
+        /// 分支 AddTargetEffect(defender)/AddPosEffect(受击者坐标);本端怪物与落点同格,统一挂目标怪 root)。
+        /// start_time 延迟由调用方(MainRoleAgent.PlaySkillParticleAsync)统一处理;不参与 ActionVersion 门控
+        /// (命中特效独立于 behit/攻击动作,不因动作切换被砍)。怪不在场(已死/出视野)静默跳过,不造锚点。
+        /// </summary>
+        public static void PlayHitParticle(int instanceId, SkillMovieParticle particle)
+        {
+            if (particle == null || string.IsNullOrEmpty(particle.Res)) return;
+            if (!_views.TryGetValue(instanceId, out MonView view) || !view.Loaded || view.Model == null) return;
+            _ = PlayHitParticleAsync(view, particle);
+        }
+
+        private static async Task PlayHitParticleAsync(MonView view, SkillMovieParticle particle)
+        {
+            try
+            {
+                GameObject effect = await EffectBinder.AttachOne(view.Model, "root", "skills_effect",
+                    particle.Res, "hit", false);
+                if (effect == null) return;
+                if (particle.Scale > 0f && Mathf.Abs(particle.Scale - 1f) > 0.001f)
+                    effect.transform.localScale = Vector3.one * particle.Scale;
+
+                if (particle.PlayTimeLen > 0f)
+                {
+                    EffectBinder.PlayEffect(effect);
+                    Object.Destroy(effect, particle.PlayTimeLen);
+                }
+                else
+                {
+                    EffectBinder.PlayOneShot(effect);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                GameLog.Warn("Scene", "play hit particle failed ins={0} res={1}: {2}",
+                    view?.InstanceId ?? 0, particle.Res, ex.Message);
+            }
         }
 
         /// <summary>

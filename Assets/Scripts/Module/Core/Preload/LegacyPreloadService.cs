@@ -73,11 +73,11 @@ namespace Shenxiao.Module.Core.Preload
                 LoginConfigs.CareerRes res = LoginConfigs.GetCreateRes(option.Career, option.Sex);
                 if (res != null)
                 {
-                    // 创角页优先加载整模 model_create_{RoleRes}(+_fx),与 RoleCreateView.ShowCareerModel 的实际 key 对齐;
-                    // 不加这两条则预热只热了旧拼装路径,创角模型必然冷加载(=切职业慢半拍)。fx 不存在会被存在性过滤掉。
-                    string wholeModelKey = $"object/role/model_create_{res.RoleRes}/model_create_{res.RoleRes}";
-                    AddEntry(entries, wholeModelKey, PreloadAssetKind.Prefab);
-                    AddEntry(entries, wholeModelKey + "_fx", PreloadAssetKind.Prefab);
+                    // 创角页优先加载整模(ArtImport 导入的成品 prefab),与 RoleCreateView.TryShowWholeModel 的实际 key 对齐;
+                    // 不加这两条则预热只热了旧拼装路径,创角模型必然冷加载(=切职业慢半拍)。不存在会被存在性过滤掉。
+                    string wholeModelBase = $"object/role/model_create_{res.RoleRes}/{res.RoleRes}";
+                    AddEntry(entries, wholeModelBase + "@create2", PreloadAssetKind.Prefab);
+                    AddEntry(entries, wholeModelBase + "@create3", PreloadAssetKind.Prefab);
 
                     await AddRoleModelSpecAsync(entries, new RoleModelSpec
                     {

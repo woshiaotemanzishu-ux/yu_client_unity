@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 namespace Shenxiao.Common.UI3D
@@ -19,6 +20,11 @@ namespace Shenxiao.Common.UI3D
         // —— 老客户端 UIModelClass3D.ts 固定参数(逐行对标)——
         private const float ORTHO_FULL_HEIGHT = 12.8f; // camera.orthographicVerticalSize = 12.8(全高;Unity orthographicSize 是半高)
         private const float CAMERA_Z = -20f;           // Set3DLocalPosition(camera, ..., -20)
+
+        // 整模用透视相机(美术工程 Main.unity 同款 FOV):新美术出场动画的位移大量沿 Z(镜头深度),
+        // 正交投影下深度移动不可见(=看着原地做动作,实锤);透视才能还原"从远处飞过来"。
+        // 距离按"落点平面(z=0)取景高度仍=12.8"反算,页面构图与正交时代一致。
+        private const float ART_FOV = 60f;
         private const float ROOT_SCALE = 1.1f;         // default_model_scale = 1.1
         private const float BODY_SCALE_MUL = 5f;       // Set3DLocalScale(transform, 5 * data.scale, ...)
         private const float BASE_Y = -5f;              // pos_y = ... - 5(模型根在相机中心下方 5,再加 position.y 配置)
@@ -90,6 +96,8 @@ namespace Shenxiao.Common.UI3D
             _model.transform.localPosition = Vector3.zero;
             _model.transform.localRotation = Quaternion.identity;
             _model.transform.localScale = Vector3.one * (BODY_SCALE_MUL * scale);
+            bool isArtModel = ApplyRenderProfile(_model);
+            SetArtAmbient(isArtModel);
 
             if (_img == null || _img.transform.parent != container)
             {
@@ -106,13 +114,75 @@ namespace Shenxiao.Common.UI3D
                 _img.uvRect = FLIP_HORIZONTAL;
             }
             _img.texture = _rt;
+            // 整模(带渲染档案)换预乘合成材质:加法特效渲到透明 RT 再按默认 SrcAlpha 贴 UI 会洗成白块;
+            // 老模型 material=null 走 UI 默认材质,行为与从前一致
+            _img.material = isArtModel ? CompositeMaterial() : null;
+            // 水平翻转只给 Laya 转换的老模型(它们的几何本来就是镜像的,翻一次才正);
+            // 新美术成品是原生 Unity 朝向,再翻=镜像(武器换手)
+            _img.uvRect = isArtModel ? new Rect(0f, 0f, 1f, 1f) : FLIP_HORIZONTAL;
             _img.gameObject.SetActive(true);
+        }
+
+        private static Material _compositeMat;
+
+        private static Material CompositeMaterial()
+        {
+            if (_compositeMat == null)
+            {
+                Shader shader = Shader.Find("Shenxiao/UI/StageComposite");
+                if (shader == null)
+                {
+                    Debug.LogWarning("[UIModelStage] 找不到 Shenxiao/UI/StageComposite,整模特效在 UI 上可能发白");
+                    return null;
+                }
+                _compositeMat = new Material(shader);
+            }
+            return _compositeMat;
+        }
+
+        /// <summary>
+        /// 按模型自带的渲染档案配置本台相机(ArtImport 导入的成品模型:独立 renderer + 强制
+        /// Depth/Opaque Texture,PandaShader 软粒子/扭曲依赖);不带档案(所有老模型)则还原
+        /// 默认——相机行为与从前完全一致,老模型渲染路径零改动。返回是否带档案(决定合成材质)。
+        /// </summary>
+        private bool ApplyRenderProfile(GameObject model)
+        {
+            if (_cam == null) return false;
+            UniversalAdditionalCameraData camData = _cam.GetUniversalAdditionalCameraData();
+            if (camData == null) return false;
+
+            ArtModelRenderProfile profile =
+                model != null ? model.GetComponentInChildren<ArtModelRenderProfile>(true) : null;
+            if (profile != null)
+            {
+                camData.SetRenderer(profile.useDedicatedRenderer && profile.rendererIndex >= 0
+                    ? profile.rendererIndex : -1); // -1 = RP Asset 默认 renderer
+                camData.requiresDepthOption = profile.forceDepthTexture
+                    ? CameraOverrideOption.On : CameraOverrideOption.UsePipelineSettings;
+                camData.requiresColorOption = profile.forceOpaqueTexture
+                    ? CameraOverrideOption.On : CameraOverrideOption.UsePipelineSettings;
+                // 透视相机:深度方向的出场位移才看得见;距离保证 z=0(落点)平面取景高度不变
+                _cam.orthographic = false;
+                _cam.fieldOfView = ART_FOV;
+                _cam.transform.localPosition = new Vector3(0f, 0f,
+                    -(ORTHO_FULL_HEIGHT * 0.5f) / Mathf.Tan(ART_FOV * 0.5f * Mathf.Deg2Rad));
+                return true;
+            }
+
+            camData.SetRenderer(-1);
+            camData.requiresDepthOption = CameraOverrideOption.UsePipelineSettings;
+            camData.requiresColorOption = CameraOverrideOption.UsePipelineSettings;
+            _cam.orthographic = true;
+            _cam.orthographicSize = ORTHO_FULL_HEIGHT * 0.5f;
+            _cam.transform.localPosition = new Vector3(0f, 0f, CAMERA_Z);
+            return false;
         }
 
         /// <summary>清掉当前模型并隐藏贴图(台子/相机/RT 保留,可再 Place)。</summary>
         public void ClearStage()
         {
             if (_model != null) { Object.Destroy(_model); _model = null; }
+            SetArtAmbient(false);
             if (_img != null) _img.gameObject.SetActive(false);
         }
 
@@ -120,6 +190,7 @@ namespace Shenxiao.Common.UI3D
         public void Dispose()
         {
             ClearStage();
+            SetArtAmbient(false);
             if (_img != null) { Object.Destroy(_img.gameObject); _img = null; }
             if (_rt != null)
             {
@@ -158,6 +229,33 @@ namespace Shenxiao.Common.UI3D
             yawGo.transform.SetParent(_modelRoot, false);
             yawGo.transform.localRotation = Quaternion.Euler(0f, MODEL_YAW, 0f);
             _modelYaw = yawGo.transform;
+        }
+
+        // —— 整模环境光(定案:用环境光,不用平行光)——
+        // 新美术整模是 Lit 材质,登录场景没有灯、环境光又暗,不提亮=整体偏黑。
+        // 整模上台期间把场景环境光切成亮平光,下台立刻恢复;老模型/场景全是不吃光照的
+        // unlit shader,切环境光对它们无影响——真正吃光的只有台上的整模。
+        private static readonly Color ART_AMBIENT = Color.white;
+        private static bool _ambientApplied;
+        private static UnityEngine.Rendering.AmbientMode _savedAmbientMode;
+        private static Color _savedAmbientLight;
+
+        private static void SetArtAmbient(bool on)
+        {
+            if (on && !_ambientApplied)
+            {
+                _savedAmbientMode = RenderSettings.ambientMode;
+                _savedAmbientLight = RenderSettings.ambientLight;
+                RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+                RenderSettings.ambientLight = ART_AMBIENT;
+                _ambientApplied = true;
+            }
+            else if (!on && _ambientApplied)
+            {
+                RenderSettings.ambientMode = _savedAmbientMode;
+                RenderSettings.ambientLight = _savedAmbientLight;
+                _ambientApplied = false;
+            }
         }
 
         /// <summary>RT 尺寸跟随容器(老客户端 createFromPool(parent.width, parent.height)),保证不拉伸变形。</summary>

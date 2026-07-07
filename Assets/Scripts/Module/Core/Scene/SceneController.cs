@@ -210,10 +210,19 @@ namespace Shenxiao.Module.Core.Scene
             }
 
             RoleModel role = RoleModel.Instance;
+            int prevSceneId = role.SceneId;
+            int prevDunId = role.DunId;
             role.SceneId = instanceId;
             role.X = x;
             role.Y = y;
             role.DunId = dunId;
+
+            // 真正换场景(场景实例或副本状态变化)才压黑幕过渡;同场景位置校正类 12005 不闪屏。
+            // 没有过渡时"角色瞬移+全场实体重刷"会被玩家误读成断线重连(第24轮 test.log 实证)。
+            bool sceneChanged = prevSceneId != instanceId || prevDunId != dunId;
+            if (sceneChanged) SceneTransitionMask.Show();
+            // 退副本回野外给个明确提示,否则任务自动流(通关→61002→12005)的切换毫无预兆。
+            if (prevDunId != 0 && dunId == 0) Shenxiao.Common.Tips.TipsManager.Toast("副本结束,返回野外");
 
             // 进入新场景:清空上一场景的对象表(对标老客户端 ClearAllVo),再由 12100/12002 重新填充。
             SceneManager.Instance.Clear();
@@ -240,7 +249,12 @@ namespace Shenxiao.Module.Core.Scene
             RoleModel role = RoleModel.Instance;
             await LegacyPreloadService.PreloadSceneMapAsync(sceneId, role.X, role.Y);
             SceneMapData data = await SceneMapLoader.LoadAsync(sceneId);
-            if (version != _loadVersion || data == null) return;
+            if (version != _loadVersion) return;   // 更新的加载已接管(含黑幕的隐藏权)
+            if (data == null)
+            {
+                SceneTransitionMask.Hide();   // 地图加载失败别黑屏卡死(另有 8s 自动兜底)
+                return;
+            }
 
             await SceneMapView.ShowAsync(data, role.X, role.Y);
             if (version != _loadVersion) return;
@@ -248,6 +262,7 @@ namespace Shenxiao.Module.Core.Scene
             SendFmt(Proto.SC_NPC_LIST, "i", sceneId);
             GameLog.Info("Scene", "request 12100: local map loaded sceneId={0}", sceneId);
             EventDispatcher.Emit(GlobalEvent.EVT_SCENE_MAP_READY);
+            SceneTransitionMask.Hide();   // 地图+主角就绪(MainRoleFlow 在 MAP_READY 同帧重建)→ 渐隐揭幕
         }
 
         // ===================== 12002 场景快照 =====================
