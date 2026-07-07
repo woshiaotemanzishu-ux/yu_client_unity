@@ -69,6 +69,35 @@ namespace Shenxiao.Module.Core.Tasks
             return step != null && !step.NotShowInTaskItem;
         }
 
+        /// <summary>
+        /// 页内步骤引导(对标老端 GetNowGuideCfgByTaskTipsype 的 in_view 分支;step 从 1 起)。
+        /// 90/23 这类带 sub_dun_type 细分的,先按 task.Id(=type_id/阶参数)取 sub_dun_type[id].in_view,
+        /// 缺失回退顶层 in_view;都没有 = 无页内引导(不臆造)。
+        /// </summary>
+        public static TaskModel.TaskGuideStep GetInViewGuideCfg(TaskVo task, int step)
+        {
+            if (task == null || _root == null || step <= 0) return null;
+            JObject nowCfg = ReadObj(_root[task.TaskTipsType.ToString(CultureInfo.InvariantCulture)]);
+            if (nowCfg == null) return null;
+
+            JArray steps = null;
+            JObject sub = ReadObj(nowCfg["sub_dun_type"]);
+            if (sub != null)
+            {
+                JObject byId = ReadObj(sub[task.Id.ToString(CultureInfo.InvariantCulture)]);
+                if (byId != null && byId["in_view"] is JArray subSteps) steps = subSteps;
+            }
+            if (steps == null && nowCfg["in_view"] is JArray topSteps) steps = topSteps;
+            if (steps == null) return null;
+
+            foreach (JToken t in steps)
+            {
+                JObject o = ReadObj(t);
+                if (o != null && ReadInt(o, "step") == step) return ReadStep(o);
+            }
+            return null;
+        }
+
         private static TaskModel.TaskGuideStep ReadMainUiGuide(JObject nowCfg, TaskVo task)
         {
             JObject mainUiCfg = ReadObj(nowCfg["in_main_ui"]);

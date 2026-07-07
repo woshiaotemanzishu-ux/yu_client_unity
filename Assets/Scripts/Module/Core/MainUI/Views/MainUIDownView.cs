@@ -39,6 +39,8 @@ namespace Shenxiao.Module.Core.MainUI
 
         private readonly List<MainFuncIconItemBind> _funcIconItems = new List<MainFuncIconItemBind>();
         private int _showType;
+        // 开着的 BaseWindowSkin 大窗计数(窗开着时功能图标手指让位给页内引导)
+        private int _openWindowCount;
 
         // 经验条闪光特效(对标 MainUIDownView.ts:395 AddUIEffect("ui_expbar", _box_exp_effect, null, 15, null))。
         private UIEffectStage.Handle _expEffect;
@@ -62,6 +64,9 @@ namespace Shenxiao.Module.Core.MainUI
 
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskListUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_TASK_ONE_UPDATED, OnTaskOneUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_BASE_WINDOW_OPENED, OnBaseWindowOpened);
+            EventDispatcher.On(GlobalEvent.EVT_BASE_WINDOW_CLOSED, OnBaseWindowClosed);
 
             RefreshExp();
             _ = RefreshFuncIconsAsync();
@@ -87,6 +92,10 @@ namespace Shenxiao.Module.Core.MainUI
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskListUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_TASK_ONE_UPDATED, OnTaskOneUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_BASE_WINDOW_OPENED, OnBaseWindowOpened);
+            EventDispatcher.Off(GlobalEvent.EVT_BASE_WINDOW_CLOSED, OnBaseWindowClosed);
+            MainUIGuideManager.Instance.HideMainUiFinger(this);
             if (_expEffect != null)
             {
                 _expEffect.Dispose();
@@ -105,6 +114,83 @@ namespace Shenxiao.Module.Core.MainUI
         {
             // 最新完成任务变化可能解锁图标(对标 UPDATE_NEWEST_TASK_ID_NOT_DELAY → TryRefreshItem)。
             _ = RefreshFuncIconsAsync();
+        }
+
+        private void OnTaskOneUpdate()
+        {
+            RefreshIconGuide();
+        }
+
+        private void OnBaseWindowOpened()
+        {
+            _openWindowCount++;
+            RefreshIconGuide();
+        }
+
+        private void OnBaseWindowClosed()
+        {
+            _openWindowCount = Mathf.Max(0, _openWindowCount - 1);
+            RefreshIconGuide();
+        }
+
+        /// <summary>
+        /// 主线任务的功能图标手指(对标老端 DoTask 的 SELECT_STORY_TARGET → MainUIDownView 挂 SHOW_FINGER):
+        /// 当前主线任务是"开系统面板培养"类(ConfigTaskArrow in_main_ui 配 not_show_in_task_item,箭头归功能图标)
+        /// 且未完成、系统窗没开着 → 手指指向对应功能图标;达成后箭头回任务项(领奖指引),此处隐藏。
+        /// </summary>
+        private void RefreshIconGuide()
+        {
+            Tasks.TaskModel taskModel = Tasks.TaskModel.Instance;
+            Tasks.TaskVo task = taskModel.MainLineTaskVo;
+            if (task == null || !taskModel.MainLineTaskNeedShowArrow() || _openWindowCount > 0
+                || taskModel.IsAllStepFinish(task.TaskId))
+            {
+                MainUIGuideManager.Instance.HideMainUiFinger(this);
+                return;
+            }
+
+            string iconRes = MainUIModel.GetGuideIconRes(task.TaskTipsType);
+            Tasks.TaskModel.TaskGuideStep step = taskModel.GetNowGuideCfg(true, task);
+            if (iconRes == null || step == null || !step.NotShowInTaskItem)
+            {
+                MainUIGuideManager.Instance.HideMainUiFinger(this);
+                return;
+            }
+
+            RectTransform target = FindFuncIconRect(iconRes);
+            if (target == null)
+            {
+                MainUIGuideManager.Instance.HideMainUiFinger(this);
+                return;
+            }
+
+            var data = new ArrowData
+            {
+                Content = step.Text,
+                Direction = step.Direction,
+                CloseTime = step.CloseTime,
+                AutoCountdown = step.AutoCountdown,
+                NotEffect = step.NotEffect,
+                SelectEffectScale = new Vector3(step.EffectScaleX, step.EffectScaleY, step.EffectScaleZ),
+                FingerEffectOffset = new Vector2(step.FingerOffsetX, step.FingerOffsetY),
+                Offset = new Vector2(step.OffsetX, step.OffsetY),
+                Target = target,
+            };
+            MainUIGuideManager.Instance.ShowMainUiFinger(this, target, data, () => taskModel.DoTask(task));
+        }
+
+        /// <summary>按路由键找当前铺出的功能图标(引导手指目标;不在当前行/未开放 → null)。</summary>
+        private RectTransform FindFuncIconRect(string res)
+        {
+            for (int i = 0; i < _funcIconItems.Count; i++)
+            {
+                MainFuncIconItem item = _funcIconItems[i] as MainFuncIconItem;
+                if (item != null && item.gameObject.activeSelf && item.Res == res)
+                {
+                    return (RectTransform)item.transform;
+                }
+            }
+            return null;
         }
 
         /// <summary>
@@ -241,6 +327,9 @@ namespace Shenxiao.Module.Core.MainUI
                     _funcIconItems[i].gameObject.SetActive(false);
                 }
             }
+
+            // 图标重铺后手指目标可能重建/换行,重挂引导。
+            RefreshIconGuide();
         }
 
         /// <summary>对标 turn_btn_fun:可翻面时 show_type 在各行间循环,刷新按钮态与图标行。</summary>

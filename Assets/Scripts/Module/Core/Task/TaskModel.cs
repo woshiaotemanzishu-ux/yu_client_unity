@@ -377,6 +377,23 @@ namespace Shenxiao.Module.Core.Tasks
             return TaskGuideConfigs.GetNowGuideCfg(isMainUiArrow, task);
         }
 
+        /// <summary>页内步骤引导配置(ConfigTaskArrow in_view,step 从 1 起;对标老端 story_obj_list 步骤链)。</summary>
+        public TaskGuideStep GetInViewGuideCfg(int step, TaskVo task = null)
+        {
+            task ??= MainLineTaskVo;
+            if (task == null) return null;
+
+            return TaskGuideConfigs.GetInViewGuideCfg(task, step);
+        }
+
+        /// <summary>
+        /// 当前主线任务是否该类型(对标老端 IsCurrMainLineTaskTipType):页内引导/图标手指的触发判定。
+        /// </summary>
+        public bool IsCurrMainLineTaskTipType(int tipsType)
+        {
+            return MainLineTaskVo != null && MainLineTaskVo.TaskTipsType == tipsType;
+        }
+
         public bool ShouldHoldAutoTaskForMainLineGuide(TaskVo task = null)
         {
             task ??= MainLineTaskVo;
@@ -488,10 +505,22 @@ namespace Shenxiao.Module.Core.Tasks
             // 神巫/companion 系统(PartnerShellView)——那套永不触发 lib_task_api,任务永远无法完成。
             // pt_142(config_companion/14204/14205)是另一独立系统,与 100190 无关。
             if (task.TaskTipsType == TIP_TRAIN_MOUNT || task.TaskTipsType == TIP_TRAIN_PARTNER
-                || task.TaskTipsType == TIP_MOUNT_LEVEL
-                || task.TaskTipsType == 24 || task.TaskTipsType == 92 || task.TaskTipsType == 41)
+                || task.TaskTipsType == TIP_MOUNT_LEVEL)
             {
-                OutWard.OutWardShellView.Show(); return;   // 坐骑(23)/同修(25)阶星·等级(90) + 翼影24/圣器92/神兵41(16005 通用升星)
+                // 坐骑(23,type_id=1)/同修(25,type_id=2)/等级线(90,task.Id=type_id):打开真页 MountPet 页签窗
+                // (对标老端 case TrainMount/TrainPartner:SELECT_STORY_TARGET PetIcon + SWITCH_MAIN_FUNC_VIEW Pet,idx;
+                // 图标手指由 MainUIDownView 按 in_main_ui 配置常驻,此处只负责开页)。
+                int typeId = task.TaskTipsType == TIP_TRAIN_MOUNT ? 1
+                    : task.TaskTipsType == TIP_TRAIN_PARTNER ? 2
+                    : task.Id == 2 ? 2 : 1;
+                GameLog.Info("Task", "DoTask: 培养任务 tipsType={0} → PetFlow tab{1}(type_id={2})",
+                    task.TaskTipsType, typeId == 2 ? 1 : 0, typeId);
+                Pet.PetFlow.Open(typeId == 2 ? 1 : 0);
+                return;
+            }
+            if (task.TaskTipsType == 24 || task.TaskTipsType == 92 || task.TaskTipsType == 41)
+            {
+                OutWard.OutWardShellView.Show(); return;   // 翼影24/圣器92/神兵41:RoleView 页签未移植,先走壳(16005 通用升星)
             }
             if (task.TaskTipsType == 91) { OnHook.OnHookShellView.Show(); return; }                               // 101211 挂机收益(13216)
             if (task.TaskTipsType == 50) { Rune.RuneWearShellView.Show(); return; }                               // 101525 御魂强化(16702)

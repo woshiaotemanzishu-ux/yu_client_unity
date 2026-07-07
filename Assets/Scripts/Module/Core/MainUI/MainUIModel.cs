@@ -83,6 +83,26 @@ namespace Shenxiao.Module.Core.MainUI
         };
 
         /// <summary>
+        /// 任务引导手指的功能图标锚点(对标老端 DoTask 各 case 的 SELECT_STORY_TARGET → StoryTargetName):
+        /// task_tips_type → 功能图标路由键(<see cref="MainFuncIcon.Res"/>)。配套 ConfigTaskArrow in_main_ui 的
+        /// not_show_in_task_item/front_parent=MainFuncIconItem——箭头挂功能图标而非任务项。
+        /// 老端映射:TrainMount(23)/TrainPartner(25)/MountLevel(90) → PetIcon;其余系统页面接入后逐个补
+        /// (TrainWing24/TrainArtifact41/ArtifactLevel92 → RoleIcon 等)。
+        /// </summary>
+        public static string GetGuideIconRes(int taskTipsType)
+        {
+            switch (taskTipsType)
+            {
+                case 23:
+                case 25:
+                case 90:
+                    return "pet";
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
         /// 单功能开放判定(对标 MainUIModel.GetMainFuncOpenCond):
         /// Role/Bag 恒开;其余委托 <see cref="FuncOpenConfig.CheckFuncOpenState"/> 查对应功能视图的
         /// 开服天/等级/前置任务门槛。view 类名逐项对齐老端 GetMainFuncOpenCond 里的 CheckFuncOpenState 参数。

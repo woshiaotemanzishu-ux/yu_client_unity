@@ -137,23 +137,66 @@ namespace Shenxiao.Module.Core.OutWard
     public static class OutWardConfigs
     {
         private static JObject _mountStar;
+        private static JObject _mountStage;
 
         public static bool IsLoaded => _mountStar != null;
 
         public static async Task EnsureLoaded()
         {
-            if (_mountStar != null) return;
-            string key = GameResPath.GetServerConfigPath("config_mount_star");
-            UnityEngine.TextAsset asset = await ResManager.LoadAsync<UnityEngine.TextAsset>(key);
-            if (asset == null)
+            if (_mountStar == null)
             {
-                GameLog.Error("OutWard", "missing config_mount_star: {0}(未同步?跑 神霄/配表/同步客户端配置)", key);
-                _mountStar = new JObject();
-                return;
+                string key = GameResPath.GetServerConfigPath("config_mount_star");
+                UnityEngine.TextAsset asset = await ResManager.LoadAsync<UnityEngine.TextAsset>(key);
+                if (asset == null)
+                {
+                    GameLog.Error("OutWard", "missing config_mount_star: {0}(未同步?跑 神霄/配表/同步客户端配置)", key);
+                    _mountStar = new JObject();
+                }
+                else
+                {
+                    _mountStar = JObject.Parse(asset.text);
+                    ResManager.Release(asset);
+                    GameLog.Info("OutWard", "config_mount_star={0}", _mountStar.Count);
+                }
             }
-            _mountStar = JObject.Parse(asset.text);
-            ResManager.Release(asset);
-            GameLog.Info("OutWard", "config_mount_star={0}", _mountStar.Count);
+            if (_mountStage == null)
+            {
+                string key = GameResPath.GetServerConfigPath("config_mount_stage");
+                UnityEngine.TextAsset asset = await ResManager.LoadAsync<UnityEngine.TextAsset>(key);
+                if (asset == null)
+                {
+                    GameLog.Error("OutWard", "missing config_mount_stage: {0}(未同步?跑 神霄/配表/同步客户端配置)", key);
+                    _mountStage = new JObject();
+                }
+                else
+                {
+                    _mountStage = JObject.Parse(asset.text);
+                    ResManager.Release(asset);
+                    GameLog.Info("OutWard", "config_mount_stage={0}", _mountStage.Count);
+                }
+            }
+        }
+
+        /// <summary>阶名(config_mount_stage["type@stage@career"].name;缺表/缺项降级 "")。</summary>
+        public static string GetStageName(int typeId, int stage, int career)
+        {
+            JObject obj = GetStageObj(typeId, stage, career);
+            return obj?.Value<string>("name") ?? "";
+        }
+
+        /// <summary>本阶满星数(config_mount_stage["type@stage@career"].max_star;缺表/缺项降级 0)。</summary>
+        public static int GetMaxStar(int typeId, int stage, int career)
+        {
+            JObject obj = GetStageObj(typeId, stage, career);
+            return obj == null ? 0 : (int)ReadLong(obj, "max_star");
+        }
+
+        private static JObject GetStageObj(int typeId, int stage, int career)
+        {
+            if (_mountStage == null) return null;
+            // 表按职业细分;缺当前职业条目回退职业 1(同名不同 figure,显示用名字/星数一致)。
+            return _mountStage[typeId + "@" + stage + "@" + career] as JObject
+                ?? _mountStage[typeId + "@" + stage + "@1"] as JObject;
         }
 
         /// <summary>祝福上限(config_mount_star["type@stage@star"]["3"]);缺表/缺项降级 0(标出而非臆造)。</summary>

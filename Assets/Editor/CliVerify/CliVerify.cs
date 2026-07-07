@@ -75,6 +75,12 @@ namespace Shenxiao.EditorTools
             Run(SettingPkCase.Run, 300.0);
         }
 
+        /// <summary>灵宠培养页链路实证(PetCreator 快照重建 + 16002/16023 合成包 + 渲染断言)。</summary>
+        public static void PetTrain()
+        {
+            Run(PetTrainCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -98,12 +104,13 @@ namespace Shenxiao.EditorTools
                 int b = await RenderItemTipsAsync();
                 int c = await RenderToastAsync();
                 int k = await SettingPkCase.Run();
+                int m = await PetTrainCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
                     + " guildjoin=" + j + " rune=" + n + " dungeon=" + v + " thinslice=" + w + " finalslice=" + f
-                    + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k })
+                    + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);
@@ -122,7 +129,7 @@ namespace Shenxiao.EditorTools
                 {
                     (100940, 27, "DoTask degrade"),   // LV 到达等级 → 升级提醒未移植降级
                     (100980, 9,  "DungeonRuneShellView"), // FinDunType → 已接真实入口(第19轮;编辑期无层时「无法构建」同含类名)
-                    (100330, 23, "OutWardShellView"), // TrainMount → 已接真实入口(第17轮;编辑期无层时打「无法构建」同样含类名)
+                    (100330, 23, "PetFlow"), // TrainMount → 真页 MountPet 页签窗(本轮起 23/25/90 → PetFlow,壳仅剩 24/92/41)
                     (100010, 37, "Welcome(37) 无动作"), // 对标老端空 case
                     (999999, 99, "未知类型"),          // 不在主线清单 → 未知 blocker
                 };
