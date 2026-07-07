@@ -79,6 +79,12 @@ namespace Shenxiao.Framework.Event
         /// <summary>主角战力上升(参数: long 旧战力, long 新战力)。对标老端 mainRoleVo "fighting" 变化 → FightingUpView 弹层。
         /// 由 RoleController.On13033 发,MainUIFlow 监听后弹「战力提升」窗。</summary>
         public const string EVT_COMBAT_POWER_UP = "EVT_COMBAT_POWER_UP";
+        /// <summary>主角 PK(战斗)模式变化(进场自块同步/12074 主角广播/13012 切换成功)。读 RoleModel.PkStatus。
+        /// 对标老端 mainRoleVo "pk_status" 变化 → MainUITopView.RefreshPkStatus。</summary>
+        public const string EVT_PK_STATUS_CHANGED = "EVT_PK_STATUS_CHANGED";
+        /// <summary>13012 主动切换成功(区别于被动同步)。FightMode 弹窗据此提示「切换成功」并关闭
+        /// (对标老端 PkStatusModel.CHANGE_SUCCESS)。</summary>
+        public const string EVT_PK_CHANGE_SUCCESS = "EVT_PK_CHANGE_SUCCESS";
 
         // ----- Scene -----
         public const string EVT_SCENE_MAP_READY = "EVT_SCENE_MAP_READY";
@@ -169,6 +175,11 @@ namespace Shenxiao.Framework.Event
         /// <summary>一次采集非成功终止(失败/取消/采集物被移除/START 超时)。CollectController 发,TaskModel 据此延时重试
         /// 当前采集任务(对标老端 FindNextOne)。采集成功(flag=2)不发此事件——由服务端 30001 推进任务驱动。无参。</summary>
         public const string EVT_COLLECT_ENDED = "EVT_COLLECT_ENDED";
+
+        // ----- Setting / 设置 -----
+        /// <summary>设置数据变化(10202 全量到达 / 10203 写回成功落地),读 SettingModel。
+        /// 对标老端 SettingModel.UPDATE_SETTING_INFO / UPDATE_CONTENT。</summary>
+        public const string EVT_SETTING_UPDATED = "EVT_SETTING_UPDATED";
 
         // ----- Res -----
         public const string EVT_RES_UPDATE_PROGRESS = "EVT_RES_UPDATE_PROGRESS";

@@ -20,8 +20,8 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const PLAYWRIGHT = 'd:/git_res/yu_client_unity/output/node_modules/playwright';
-const TOOL_SNAPSHOT_JS = 'd:/git_res/yu_client/tools/yu-resource-tool/frontend/src/utils/pageSnapshot.js';
+const PLAYWRIGHT = 'e:/GitProject/yu_client_unity/output/node_modules/playwright';
+const TOOL_SNAPSHOT_JS = 'e:/GitProject/yu_client/tools/yu-resource-tool/frontend/src/utils/pageSnapshot.js';
 
 function arg(name, def) {
   const i = process.argv.indexOf('--' + name);

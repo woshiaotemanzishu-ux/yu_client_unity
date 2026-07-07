@@ -13,10 +13,10 @@ namespace Shenxiao.Module.Core.Login
     /// <summary>
     /// 创角页(重构版,自包含独立 prefab)——取代老端碎片化的 LoginCreateRoleView + LoginCreateRoleItem。
     ///
-    /// 结构(对标截图 5/6):全屏背景 + 左侧职业选择列(图标环) + 中央 3D 角色模型(_gp_model_con)
+    /// 结构(对标截图 5/6):全屏背景 + 左侧职业选择列(4 张固定职业卡 careerItems) + 中央 3D 角色模型(ModelCon)
     /// + 职业名 + 职业描述三连图(诗句)+ 随机名(名字输入 + ⟳ 随机)+ 底部「踏入仙界」+ 返回。
-    /// prefab 由 RoleCreateCreator 纯代码建树生成并回填下列 public 引用;职业项模板(careerItemTemplate)
-    /// 在 prefab 内默认隐藏,运行时按职业数克隆。
+    /// prefab 由 RoleCreateCreator 纯代码建树生成并回填下列 public 引用;职业卡固定 4 张(不用模板克隆),
+    /// 每张卡内直接持有 bg/icon/label 引用,位置各自手调;职业数不足则运行时隐藏多余卡。
     ///
     /// 本类只做:① 数据绑定(职业列表/3D 模型/随机名,逻辑原样搬自旧 LoginCreateRoleView.cs)
     ///          ② 功能性状态切换(选中职业换底图/头像、SetActive)。不写颜色/字号/尺寸等样式。
@@ -43,9 +43,10 @@ namespace Shenxiao.Module.Core.Login
 
         [Header("背景 / 容器")]
         public Image bgImg;
-        public RectTransform careerCon;          // 职业项的父容器(对标老 _gp_head_con)
-        public GameObject careerItemTemplate;    // 职业项模板(prefab 内默认隐,克隆源)
         public RectTransform modelCon;           // 3D 模型容器(对标老 _gp_model_con)
+
+        [Header("职业卡(固定 4 张,位置各自手调)")]
+        public CareerItem[] careerItems;
 
         [Header("职业信息")]
         public TextMeshProUGUI careerNameLabel;  // 职业名("剑主"…)
@@ -61,16 +62,16 @@ namespace Shenxiao.Module.Core.Login
         public Image enterBtn;                   // 踏入仙界(创建)按钮(对标老 _img_enter)
         public Image returnBtn;                  // 返回按钮(对标老 _img_return)
 
-        /// <summary>运行时克隆出的职业项(缓存内部底图/图标/名字,对标老 CareerSlot)。</summary>
-        private struct CareerSlot
+        /// <summary>一张固定职业卡的子控件引用(Creator 建树时回填;对标老 CareerSlot)。</summary>
+        [System.Serializable]
+        public class CareerItem
         {
-            public GameObject root;
-            public Image bg;
-            public Image icon;
-            public TMP_Text label;
+            public GameObject root;   // 卡根节点(职业数不足时隐藏多余卡)
+            public Image bg;          // 命中体 + 选中/未选底图
+            public Image icon;        // 职业图标(选中/未选换图)
+            public TMP_Text label;    // 职业名
         }
 
-        private readonly List<CareerSlot> _slots = new List<CareerSlot>();
         private List<LoginConfigs.CareerOption> _options = new List<LoginConfigs.CareerOption>();
         private int _selectedIndex;
         private bool _creating;
@@ -135,46 +136,43 @@ namespace Shenxiao.Module.Core.Login
             OnClickRandomName();
         }
 
-        /// <summary>按职业数克隆模板项,缓存内部底图/图标/名字并绑点击(对标老 BindBakedCareers,改成克隆模板)。</summary>
+        /// <summary>把职业数据填进固定职业卡:填名字 + 绑点击;职业数不足则隐藏多余卡(对标老 BindBakedCareers)。</summary>
         private void BuildCareers()
         {
-            // 清掉上次克隆(模板本身保留并隐藏)
-            for (int i = 0; i < _slots.Count; i++)
+            if (careerItems == null || careerItems.Length == 0)
             {
-                if (_slots[i].root != null) Destroy(_slots[i].root);
-            }
-            _slots.Clear();
-
-            if (careerItemTemplate == null || careerCon == null)
-            {
-                GameLog.Error("Login", "创角缺 careerItemTemplate / careerCon(建树异常?)");
+                GameLog.Error("Login", "创角缺 careerItems(未绑,重新生成 prefab)");
                 return;
             }
-            careerItemTemplate.SetActive(false);
-
-            for (int i = 0; i < _options.Count; i++)
+            if (careerItems.Length < _options.Count)
             {
-                GameObject item = Instantiate(careerItemTemplate, careerCon);
-                item.name = "CareerItem_" + i;
-                item.SetActive(true);
-
-                var slot = new CareerSlot
-                {
-                    root = item,
-                    bg = FindImage(item.transform, "Bg"),
-                    icon = FindImage(item.transform, "Icon"),
-                    label = FindText(item.transform, "Label"),
-                };
-                if (slot.label != null) slot.label.text = _options[i].Name;
-                int captured = i;
-                if (slot.bg != null)
-                {
-                    slot.bg.raycastTarget = true;
-                    UIUtil.ClearClicks(slot.bg);
-                    UIUtil.AddClick(slot.bg, () => SelectCareer(captured));
-                }
-                _slots.Add(slot);
+                GameLog.Warn("Login", "职业数 {0} 超过职业卡数 {1},多出的职业不显示(prefab 加卡或改 Creator)",
+                    _options.Count, careerItems.Length);
             }
+
+            for (int i = 0; i < careerItems.Length; i++)
+            {
+                CareerItem item = careerItems[i];
+                if (item == null) continue;
+                bool used = i < _options.Count;
+                if (item.root != null) item.root.SetActive(used);
+                if (!used) continue;
+
+                if (item.label != null) item.label.text = _options[i].Name;
+                if (item.bg != null)
+                {
+                    item.bg.raycastTarget = true;
+                    int captured = i;
+                    UIUtil.ClearClicks(item.bg);
+                    UIUtil.AddClick(item.bg, () => SelectCareer(captured));
+                }
+            }
+        }
+
+        /// <summary>当前可选职业数(职业卡数与配置职业数取小)。</summary>
+        private int ActiveCareerCount()
+        {
+            return Mathf.Min(careerItems?.Length ?? 0, _options.Count);
         }
 
         private int WeightedRandomIndex()
@@ -193,8 +191,9 @@ namespace Shenxiao.Module.Core.Login
 
         private void SelectCareer(int index)
         {
-            int max = Mathf.Min(_options.Count, Mathf.Max(_slots.Count, 1)) - 1;
-            _selectedIndex = Mathf.Clamp(index, 0, Mathf.Max(max, 0));
+            int count = ActiveCareerCount();
+            if (count <= 0) return;
+            _selectedIndex = Mathf.Clamp(index, 0, count - 1);
             RefreshCareerStates();
             RefreshInfo();
             ShowCareerModel();
@@ -203,30 +202,26 @@ namespace Shenxiao.Module.Core.Login
         /// <summary>选中态:选中底图 ui_Login_02,未选 ui_Login_03;头像换 a/b 版(对标 LoginCreateRoleItem.ts)。</summary>
         private void RefreshCareerStates()
         {
-            for (int i = 0; i < _slots.Count; i++)
+            int count = ActiveCareerCount();
+            for (int i = 0; i < count; i++)
             {
+                CareerItem item = careerItems[i];
+                if (item == null) continue;
                 bool selected = i == _selectedIndex;
                 string bg = selected ? "ui_Login_02" : "ui_Login_03";
                 string icon = selected ? _options[i].SelectIcon : _options[i].UnselectIcon;
-                if (_slots[i].bg != null)
-                    _ = ResManager.SetImageAsync(_slots[i].bg, $"resource/game/login/texture/{bg}.png", nativeSize: false);
-                if (_slots[i].icon != null)
-                    _ = ResManager.SetImageAsync(_slots[i].icon, $"resource/game/login/texture/{icon}.png", nativeSize: false);
+                if (item.bg != null)
+                    _ = ResManager.SetImageAsync(item.bg, $"resource/game/login/texture/{bg}.png", nativeSize: false);
+                if (item.icon != null)
+                    _ = ResManager.SetImageAsync(item.icon, $"resource/game/login/texture/{icon}.png", nativeSize: false);
             }
         }
 
-        /// <summary>职业名 + 右侧介绍三连图:换图 + tips2/3 的 centerY 随职业微调(诗句错位,对标老 SelectCareer)。</summary>
+        /// <summary>职业名 + 右侧介绍三连图换图。位置/尺寸一律以 prefab 为准,不在代码里摆位。</summary>
         private void RefreshInfo()
         {
             var o = _options[_selectedIndex];
             if (careerNameLabel != null) careerNameLabel.text = o.Name;
-
-            int career = o.Career;
-            float poemA = career == 2 ? 20f : 0f;
-            float poemBbase = (career == 2 || career == 4) ? -30f : -50f;
-            float poemBoff = career == 2 ? 60f : 0f;
-            if (tipsImg2 != null) SetCenter(tipsImg2.rectTransform, 280f, -270f + poemA);
-            if (tipsImg3 != null) SetCenter(tipsImg3.rectTransform, 335f, poemBbase + poemBoff);
 
             if (tipsImg != null)
                 _ = ResManager.SetImageAsync(tipsImg, $"resource/game/login/other/{o.Img1}.png", nativeSize: false);
@@ -328,28 +323,6 @@ namespace Shenxiao.Module.Core.Login
         }
 
         // ——— 容器字段没绑上时按名兜底 ———
-        private RectTransform ModelCon() => modelCon != null ? modelCon : transform.Find("_gp_model_con") as RectTransform;
-
-        private static Image FindImage(Transform root, string path)
-        {
-            Transform t = root.Find(path);
-            return t != null ? t.GetComponent<Image>() : null;
-        }
-
-        private static TMP_Text FindText(Transform root, string path)
-        {
-            Transform t = root.Find(path);
-            if (t == null) return null;
-            TMP_Text self = t.GetComponent<TMP_Text>();
-            return self != null ? self : t.GetComponentInChildren<TMP_Text>(true);
-        }
-
-        /// <summary>tips 的每职业 centerY 微调用(数据驱动的小位移,非静态布局)。</summary>
-        private static void SetCenter(RectTransform rt, float centerX, float centerY)
-        {
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = new Vector2(centerX, -centerY);
-        }
+        private RectTransform ModelCon() => modelCon != null ? modelCon : transform.Find("ModelCon") as RectTransform;
     }
 }

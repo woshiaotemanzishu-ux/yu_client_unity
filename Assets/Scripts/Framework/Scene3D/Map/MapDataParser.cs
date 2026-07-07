@@ -13,10 +13,37 @@ namespace Shenxiao.Framework.Scene3D.Map
         private const int LOGIC_RATIO_X = 60;
         private const int LOGIC_RATIO_Y = 30;
 
+        // 解析结果缓存:一次切图会解析两遍(LegacyPreloadService 预热 + SceneMapLoader),大图上万格的
+        // 双重循环 + 大数组分配没必要重复跑,主线程同步解析是切图帧的尖刺之一。
+        // TextAsset.bytes 每次访问都返回新副本,不能按数组引用判同 → 按 sceneId+字节长度 记最近几张。
+        private const int CACHE_MAX = 4;
+        private static readonly List<(int sceneId, int byteLen, SceneMapData data)> _recent
+            = new List<(int, int, SceneMapData)>();
+
         public static SceneMapData Parse(int sceneId, byte[] bytes)
         {
             if (bytes == null) throw new ArgumentNullException(nameof(bytes));
 
+            for (int i = 0; i < _recent.Count; i++)
+            {
+                if (_recent[i].sceneId != sceneId || _recent[i].byteLen != bytes.Length) continue;
+                var hit = _recent[i];
+                if (i > 0)
+                {
+                    _recent.RemoveAt(i);
+                    _recent.Insert(0, hit);
+                }
+                return hit.data;
+            }
+
+            SceneMapData parsed = ParseCore(sceneId, bytes);
+            _recent.Insert(0, (sceneId, bytes.Length, parsed));
+            if (_recent.Count > CACHE_MAX) _recent.RemoveAt(_recent.Count - 1);
+            return parsed;
+        }
+
+        private static SceneMapData ParseCore(int sceneId, byte[] bytes)
+        {
             using (MemoryStream stream = new MemoryStream(bytes, false))
             using (BinaryReader reader = new BinaryReader(stream))
             {

@@ -214,7 +214,8 @@ namespace Shenxiao.Editor.DynamicResources
                     slot.Value<string>("note") ?? "",
                     position,
                     ReadVector3(slot["scale"] as JArray, Vector3.one),
-                    slot.Value<float?>("rotationY") ?? 0f);
+                    slot.Value<float?>("rotationY") ?? 0f,
+                    slot.Value<bool?>("autoPlay") ?? false);
                 ConfigureSlotTransform(effectSlot.transform as RectTransform, position);
                 EditorUtility.SetDirty(effectSlot);
                 count++;

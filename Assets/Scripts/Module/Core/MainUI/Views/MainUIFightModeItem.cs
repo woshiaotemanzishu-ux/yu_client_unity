@@ -53,12 +53,14 @@ namespace Shenxiao.Module.Core.MainUI
         }
     }
 
-    /// <summary>PK 模式项数据(对标 PkStatusModel.FightModeInfo[pk_state];待该 Model 移植后填充)。</summary>
+    /// <summary>PK 模式项数据(对标老端 PkStatusModel.FightModeInfo 单条;静态表见 PkStatusModel.FightModeInfo)。</summary>
     public sealed class FightModeInfoData
     {
         public int PkStatus;
+        public string StatusName;   // 老端 info.status_name(和平/全体/…)
         public string Desc;
-        public string StatusIcon;   // 老端 info.source
-        public string BgIcon;       // 老端 info.bg_source
+        public string StatusIcon;   // 老端 info.source(弹窗列表项图标)
+        public string MainIcon;     // 老端 info.main_source(HudTop 战斗模式角标)
+        public string BgIcon;       // 老端 info.bg_source(列表项底图)
     }
 }

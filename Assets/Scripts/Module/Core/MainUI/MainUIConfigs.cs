@@ -40,6 +40,11 @@ namespace Shenxiao.Module.Core.MainUI
         {
             public int Id;
             public string Name;
+            public int Subtype;   // 1=安全场景(整场安全、禁释放技能;对标老端 SceneManager.IsSafeScene)
+
+            /// <summary>本场景可切换的 PK 模式列表(requirement 里 type=="pkstate_list" 的 attr;
+            /// 空数组=不可切换)。对标老端 MainUIFightModeView.LoadSuccess 的取法。</summary>
+            public int[] PkStateList = System.Array.Empty<int>();
         }
 
         private static JObject _functionIcon;
@@ -103,9 +108,41 @@ namespace Shenxiao.Module.Core.MainUI
             {
                 Id = ReadInt(obj, "id", sceneId),
                 Name = ReadString(obj, "name").Trim(),
+                Subtype = ReadInt(obj, "subtype"),
+                PkStateList = ReadPkStateList(obj, sceneId),
             };
             _sceneCache[sceneId] = cfg;
             return cfg;
+        }
+
+        /// <summary>requirement 是"转义 JSON 字符串"(数组,元素 {attr,type}),二次解析取 pkstate_list 的 attr。
+        /// 解析失败按"不可切换"处理(空数组)并告警,不让脏配置炸场景加载。</summary>
+        private static int[] ReadPkStateList(JObject obj, int sceneId)
+        {
+            string requirement = ReadString(obj, "requirement");
+            if (string.IsNullOrWhiteSpace(requirement)) return System.Array.Empty<int>();
+            try
+            {
+                if (!(JToken.Parse(requirement) is JArray conds)) return System.Array.Empty<int>();
+                foreach (JToken cond in conds)
+                {
+                    if (!(cond is JObject o)) continue;
+                    if (ReadString(o, "type") != "pkstate_list") continue;
+                    if (!(o["attr"] is JArray attr)) return System.Array.Empty<int>();
+
+                    var list = new List<int>(attr.Count);
+                    foreach (JToken t in attr)
+                    {
+                        if (t.Type == JTokenType.Integer) list.Add(t.Value<int>());
+                    }
+                    return list.ToArray();
+                }
+            }
+            catch (System.Exception e)
+            {
+                GameLog.Warn("Config", "config_scene[{0}].requirement 解析失败: {1}", sceneId, e.Message);
+            }
+            return System.Array.Empty<int>();
         }
 
         private static async Task<JObject> LoadJson(string key)

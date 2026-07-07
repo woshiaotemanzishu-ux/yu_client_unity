@@ -69,6 +69,12 @@ namespace Shenxiao.EditorTools
             Run(PartnerCaseAsync, 240.0);
         }
 
+        /// <summary>设置面板 + PK 模式链路实证(SettingCreator 重建 + 10202/13012 合成包 + 双视图渲染断言)。</summary>
+        public static void SettingPk()
+        {
+            Run(SettingPkCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -91,12 +97,13 @@ namespace Shenxiao.EditorTools
                 int a = await RenderTaskFinishAsync();
                 int b = await RenderItemTipsAsync();
                 int c = await RenderToastAsync();
+                int k = await SettingPkCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
                     + " guildjoin=" + j + " rune=" + n + " dungeon=" + v + " thinslice=" + w + " finalslice=" + f
-                    + " taskfinish=" + a + " itemtips=" + b + " toast=" + c);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c })
+                    + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

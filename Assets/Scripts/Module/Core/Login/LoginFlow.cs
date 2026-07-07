@@ -127,6 +127,7 @@ namespace Shenxiao.Module.Core.Login
                     TipsToLoginPage(result.message);
                     return;
                 }
+                TipsManager.Toast("恭喜登录成功");   // 对标老端 LoginState:321
                 EnterLobby();
             }
             finally
@@ -151,6 +152,7 @@ namespace Shenxiao.Module.Core.Login
                     TipsToLoginPage(result.message);
                     return;
                 }
+                TipsManager.Toast("恭喜注册成功");   // 对标老端 RegisterState:105
                 EnterLobby();
             }
             finally
@@ -190,8 +192,7 @@ namespace Shenxiao.Module.Core.Login
 
         private static void TipsToLoginPage(string message)
         {
-            // TODO:接 TipsSystem 的 Toast;现阶段用日志。
-            GameLog.Warn("Login", "提示: {0}", message);
+            TipsManager.Toast(message);   // 对标老端 Message.show(err_msg);Toast 内部自带 GameLog
         }
 
         private static async Task<LoginRequestResult> WithTimeout(Task<LoginRequestResult> task, string what)

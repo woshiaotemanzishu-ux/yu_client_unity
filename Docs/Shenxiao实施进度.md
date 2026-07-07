@@ -1168,3 +1168,21 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
    Unity=EquipAutoWear 自动任务模式代行 + 装备通道(15010 pos=1)转存比较 + EVT_BAG_UPDATE 防抖触发。
 **playsmoke7 实证:auto-wear 逐件穿 6 件,战力 1760→8170;maxFinishedTask=100170(副本通关!),lastDoTask=100180 继续推进。**
 教训沉淀:playsmoke1.log(14h 取证)被 Unity 重启清掉——取证日志放 Logs/ 不放 Temp/(Unity 管辖)。
+
+## 通用飘字提示 TipToast(2026-07-06):prefab 化 + 登录链接入
+
+- 对标老端 sysInfo 链(Message.show → SysInfoMiniMgr → MessageItem Type One):底图 mainui_ui_45.png
+  (222×26 九宫格 10,10,10,10)从 yu_client 拷入 GameRes/resource/game/sysInfo/texture/;
+  动画=缩放0.3→1+淡入0.3s → 停2s(新条来时旧条上顶30px) → 直接消失;同刻仅一条 Born,排队缓存200。
+- 新增:TipToastCreator(面板 Common/TipToast,生成 Prefabs/UI/Common/TipToastView.prefab,样式手调)、
+  TipToastView/TipToastItem(动画参数在组件上可调);TipsManager.Toast 改为首选 prefab 版,
+  prefab 缺失降级代码建树、UI 层未起 log-only(无头断言不受影响)。
+- 登录链补接入:LoginFlow(TipsToLoginPage TODO 落地 + 恭喜登录/注册成功)、RoleCreateView(创角错误码
+  文案对标老端)、RoleSelectView(未选角色)、LoginController(10007 名字验证/10004 失败/59004 踢线)、
+  LoginPanelView(请输入账号密码 + 预览兜底)。dotnet 编译 0 错误;prefab 待「重构UI 生成器」生成后手调样式。
+- **二轮修正(同日,用户实测反馈)**:①「弹出后不动、不消失」根因=调样式时模板节点激活态存盘→静态常驻,
+  修=OnInit 强制隐藏模板;动画改为 Born 弹出后持续上浮(riseSpeed 45px/s)+到寿淡出(fadeOutDuration 0.35s),
+  参数字段更名使已手调 prefab 无需重生成即吃新默认值。②进游戏窗口缺「走出/进入安全区」:老端=客户端自查
+  (MainRole.CheckIsCrossSafeArea:场景表 subtype==1 整场安全不飘 + 地图格 SafeType=4 位),Unity 数据现成
+  (WalkGrid 即同一区域字节)→ SceneMapData.IsSafePixel + MainUIConfigs.SceneCfg.Subtype +
+  MainRoleAgent 每帧 CheckCrossSafeArea(静态 state 跨场景不复位,翻转才飘)。老端该窗口无其它无条件飘字。

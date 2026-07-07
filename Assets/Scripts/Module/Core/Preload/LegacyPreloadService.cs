@@ -73,6 +73,12 @@ namespace Shenxiao.Module.Core.Preload
                 LoginConfigs.CareerRes res = LoginConfigs.GetCreateRes(option.Career, option.Sex);
                 if (res != null)
                 {
+                    // 创角页优先加载整模 model_create_{RoleRes}(+_fx),与 RoleCreateView.ShowCareerModel 的实际 key 对齐;
+                    // 不加这两条则预热只热了旧拼装路径,创角模型必然冷加载(=切职业慢半拍)。fx 不存在会被存在性过滤掉。
+                    string wholeModelKey = $"object/role/model_create_{res.RoleRes}/model_create_{res.RoleRes}";
+                    AddEntry(entries, wholeModelKey, PreloadAssetKind.Prefab);
+                    AddEntry(entries, wholeModelKey + "_fx", PreloadAssetKind.Prefab);
+
                     await AddRoleModelSpecAsync(entries, new RoleModelSpec
                     {
                         Career = option.Career,
@@ -287,8 +293,12 @@ namespace Shenxiao.Module.Core.Preload
         private static bool ShouldWarm(LegacyPreloadStage stage, PreloadEntry entry)
         {
             if (entry == null || entry.Kind == PreloadAssetKind.DependencyOnly) return false;
-            if (entry.Kind == PreloadAssetKind.Animation) return false;
-            if (entry.Kind == PreloadAssetKind.Prefab && IsRuntime3DKey(entry.Key)) return false;
+            // 3D 模型/动作原先被无差别拦掉 → 预热对它们等于 no-op,创角/选角/进场模型必然冷加载
+            // (="模型慢半拍"的根因)。RoleSelection/GameStart 阶段的 3D 条目正是下一屏要展示的模型,
+            // 放行真正 LoadOptionalAsync 进内存(ResManager 资产缓存接住,视图侧加载时同步命中)。
+            bool warm3D = stage == LegacyPreloadStage.RoleSelection || stage == LegacyPreloadStage.GameStart;
+            if (entry.Kind == PreloadAssetKind.Animation) return warm3D;
+            if (entry.Kind == PreloadAssetKind.Prefab && IsRuntime3DKey(entry.Key)) return warm3D;
             if (stage == LegacyPreloadStage.Boot
                 && entry.Key.StartsWith("resource/game/scene/map/", StringComparison.Ordinal))
             {

@@ -1,8 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
+using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Login;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Setting
@@ -134,6 +137,51 @@ namespace Shenxiao.Module.Core.Setting
 
             _mainView.Show();
             GameLog.Info("Setting", "设置面板打开: {0}", key);
+        }
+
+        // ---------------------------------------------------------------- 底部按钮流程(换角色/返回登录/修复异常)
+
+        /// <summary>换角色(对标老端 CHANGE_ROLE):禁自动重连 → 断线(触发全模块 teardown)→ 重连发 10000,
+        /// 角色列表到达后 LoginFlow.OnRoleList 自动进选角页。</summary>
+        public static void BackToRoleSelect()
+        {
+            _ = BackToRoleSelectAsync();
+        }
+
+        private static async Task BackToRoleSelectAsync()
+        {
+            Close();
+            LoginController.Instance.ClearInGameReconnectState();
+            await NetManager.DisconnectAsync();
+            LoginRequestResult result = await LoginController.Instance.ConnectGameAsync();
+            if (!result.success)
+            {
+                TipsManager.Toast("连接失败: " + result.message);
+                LoginFlow.ShowLogin();
+            }
+        }
+
+        /// <summary>返回登录(对标老端 CHANGE_ACCOUNT):禁自动重连 → 断线 → 回账号登录页。</summary>
+        public static void BackToLogin()
+        {
+            _ = BackToLoginAsync();
+        }
+
+        private static async Task BackToLoginAsync()
+        {
+            Close();
+            LoginController.Instance.ClearInGameReconnectState();
+            await NetManager.DisconnectAsync();
+            LoginFlow.ShowLogin();
+        }
+
+        /// <summary>修复异常(老端 = window.location.reload):保留游戏内自动重连状态直接断线,
+        /// LoginController 2s 后自动重连并以原角色续接(等价"重启修复")。</summary>
+        public static void ReconnectRepair()
+        {
+            Close();
+            GameLog.Info("Setting", "修复异常 → 主动断线走游戏内自动重连");
+            _ = NetManager.DisconnectAsync();
         }
 
         internal static void Reset()

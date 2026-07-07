@@ -36,6 +36,17 @@ namespace Shenxiao.Module.Core.MainUI
             _gp_t_map.gameObject.SetActive(false);
             _box_team.gameObject.SetActive(false);
 
+            // TODO(经验丸/挂机经验胶囊): 对标老端 MainUISecondaryView.RefOutlineExp。三条件同时满足
+            // 才显示 _box_outline_exp:OnHookModel.exp_effect>0(有挂机经验数据) &&
+            // SceneManager.IsFieldScene()(野外场景) &&
+            // task_model.newest_finish_task_id >= TaskModel.AfkReceiveTimesTaskId(已完成领取离线经验任务);
+            // 不满足时 _box_outline_exp 与 _box_old_outline_exp 都应隐藏(两者互斥,新号/主城初期都不显示)。
+            // OnHookModel/TaskModel 移植到位后,在此按上述条件订阅刷新并点亮对应的丸子。
+            // 兜底:数据未接入前默认全部隐藏,防止(不管 prefab 是否已按此重新生成)新号一进城就露出
+            // 占位的"0经验/分"文本。
+            _box_outline_exp.gameObject.SetActive(false);
+            _box_old_outline_exp.gameObject.SetActive(false);
+
             // 二级 HUD 常显入口按钮 → 经 MainUIRouter 解耦打开对应面板(各模块 Bootstrap 注册 key)。
             // 邮件 _box_email → "email"(FriendModule.EmailView);聊天 _box_chat → "chat"(ChatParentView);红包 _box_red_packet → "redpacket"(RedPacketMainView)。
             RouteClick(_box_email, "email");

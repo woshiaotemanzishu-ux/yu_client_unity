@@ -26,6 +26,11 @@ namespace Shenxiao.Framework.Net
         public const int NAME_VERIFY = 10007;
         public const int SERVER_TIME = 10201;
         public const int SETTING_LIST = 10202;
+        /// <summary>批量写设置(对标老端 SETTING_REQUEST_PROTO_10203):发 h 条数 + 每条 c type/c subtype/c is_open;
+        /// 回包 error_code:i(==1 成功后客户端把缓存列表落地 SettingModel)。</summary>
+        public const int SETTING_WRITE = 10203;
+        /// <summary>脱离卡死(对标老端 confirm_flee):发 "i"(scene_id);回包 code:i(!=1 显错误码,==1 服务端拉人切场景)。</summary>
+        public const int SETTING_FLEE = 10210;
         public const int CHAT_MESSAGE = 11001;
         public const int CHAT_CACHE = 11010;
 
@@ -175,6 +180,10 @@ namespace Shenxiao.Framework.Net
         /// <summary>战斗属性/战力更新(攻防血等重算后服务端推,对标老端 RoleController.On13033 → ReadFrom13033)。
         /// 回包首 "l"=战力,后接战斗属性块;本端目前只取战力驱动「战力提升」弹层(后续属性块按需扩展)。</summary>
         public const int ROLE_BATTLE_UPDATE = 13033;
+        /// <summary>切换 PK(战斗)模式(对标老端 PkStatusController.ts:29 SendFmtToGame(13012,"c",type))。
+        /// 发 "c"(目标 pk_status);回包 "ici"(error_code, pk_status, remain_time):
+        /// code==1 且 remain==0 → 切换成功;code==1 且 remain>0 → 进入和平切换冷却(peace_cd_time);其余为错误码。</summary>
+        public const int PK_STATUS_CHANGE = 13012;
         public const int ROLE_LIFELONG_COUNT = 13088;
 
         // ----- Login/common kick notice (590xx, yu_server pt_590.erl) -----

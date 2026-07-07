@@ -10,10 +10,10 @@ namespace Shenxiao.Editor.UiCreator.Login
     /// <summary>
     /// 创角页(重构版)纯代码建树生成器。
     ///
-    /// 结构对标截图 5/6:全屏背景 + 左侧职业选择列(图标环) + 中央 3D 角色模型容器(_gp_model_con)
+    /// 结构对标截图 5/6:全屏背景 + 左侧职业选择列(4 张固定职业卡) + 中央 3D 角色模型容器(ModelCon)
     /// + 职业名 + 职业描述三连诗句图 + 名字框(输入 + ⟳ 随机) + 底部「踏入仙界」+ 返回。
-    /// 职业项做成一个【模板节点 CareerItemTemplate】(Bg/Icon/Label 三件套),prefab 内默认隐藏,
-    /// 运行时由 RoleCreateView 按职业数克隆。挂 RoleCreateView 并回填全部 public 引用,
+    /// 职业卡做成 4 张固定卡 CareerItem_0..3(Bg 命中体 / Icon / Label),各自手调位置,不用模板克隆;
+    /// 每张卡把 bg/icon/label 直接回填进 view.careerItems。挂 RoleCreateView 并回填全部 public 引用,
     /// 存 Assets/Prefabs/UI/Login/RoleCreateView.prefab。元素已贴老端真实源图,贴不到回退占位色。
     /// 尺寸/位置为 720×1280 起步值,自行在编辑器调。入口在「神霄/重构UI 生成器」面板。
     /// </summary>
@@ -63,31 +63,20 @@ namespace Shenxiao.Editor.UiCreator.Login
             view.bgImg = bg;
 
             // ---------- 中央 3D 模型容器(对标老 _gp_model_con,纯布局盒) ----------
-            RectTransform modelCon = UiCreatorKit.NewNode("_gp_model_con", root);
+            RectTransform modelCon = UiCreatorKit.NewNode("ModelCon", root);
             UiCreatorKit.Place(modelCon, 0f, 0f, 720f, 1280f);
             view.modelCon = modelCon;
 
-            // ---------- 左侧职业选择列(容器) ----------
+            // ---------- 左侧职业选择列(4 张固定职业卡,竖排起步,位置各自手调) ----------
             RectTransform careerCon = UiCreatorKit.NewNode("CareerCon", root);
             UiCreatorKit.Place(careerCon, CareerColX, 0f, 226f, 1000f);
-            view.careerCon = careerCon;
-
-            // 职业项模板(默认隐藏,运行时克隆):Bg(命中体) + Icon + Label
-            RectTransform tpl = UiCreatorKit.NewNode("CareerItemTemplate", careerCon);
-            UiCreatorKit.Place(tpl, 0f, CareerColTopY, ItemW, ItemH);
-            Image itemBg = UiCreatorKit.NewImage("Bg", tpl);
-            UiCreatorKit.Place(itemBg.rectTransform, 0f, 0f, ItemW, ItemW);
-            itemBg.raycastTarget = true;
-            UiCreatorKit.TrySetSprite(itemBg, IMG_ITEM_BG, UiCreatorKit.Palette.Panel);
-            Image itemIcon = UiCreatorKit.NewImage("Icon", tpl);
-            UiCreatorKit.Place(itemIcon.rectTransform, 0f, 0f, ItemIconW, ItemIconH);
-            itemIcon.raycastTarget = false;
-            itemIcon.color = Color.white;          // 图标运行时换肤,起步留白色不挡(贴不到时仍可见模板)
-            TextMeshProUGUI itemLabel = UiCreatorKit.NewText("Label", tpl, "职业");
-            UiCreatorKit.Place(itemLabel.rectTransform, 0f, -ItemH * 0.5f + 12f, ItemW, 30f);
-            itemLabel.fontSize = 24f;
-            tpl.gameObject.SetActive(false);
-            view.careerItemTemplate = tpl.gameObject;
+            // 职业数当前固定 4(configlogin.CreateRole.UI);要增减就改这里 + 在 prefab 加/删卡。
+            const int careerCount = 4;
+            view.careerItems = new RoleCreateView.CareerItem[careerCount];
+            for (int i = 0; i < careerCount; i++)
+            {
+                view.careerItems[i] = BuildCareerItem(careerCon, i, CareerColTopY + i * CareerStepY);
+            }
 
             // ---------- 职业名 + 描述占位 ----------
             TextMeshProUGUI careerName = UiCreatorKit.NewText("CareerName", root, "剑主");
@@ -160,6 +149,35 @@ namespace Shenxiao.Editor.UiCreator.Login
             EditorGUIUtility.PingObject(saved);
             Debug.Log("[UiCreator] RoleCreateView.prefab 已生成: " + PrefabPath +
                       "(可经 ViewManager.Open<RoleCreateView>() 加载;真机包前记得跑 Addressable 自动分组)");
+        }
+
+        /// <summary>建一张固定职业卡(各自手调位置),回填 RoleCreateView.CareerItem 直接引用(不再按名查找)。</summary>
+        private static RoleCreateView.CareerItem BuildCareerItem(Transform parent, int index, float localY)
+        {
+            RectTransform item = UiCreatorKit.NewNode("CareerItem_" + index, parent);
+            UiCreatorKit.Place(item, 0f, localY, ItemW, ItemH);
+
+            Image bg = UiCreatorKit.NewImage("Bg", item);
+            UiCreatorKit.Place(bg.rectTransform, 0f, 0f, ItemW, ItemW);
+            bg.raycastTarget = true;   // 命中体
+            UiCreatorKit.TrySetSprite(bg, IMG_ITEM_BG, UiCreatorKit.Palette.Panel);
+
+            Image icon = UiCreatorKit.NewImage("Icon", item);
+            UiCreatorKit.Place(icon.rectTransform, 0f, 0f, ItemIconW, ItemIconH);
+            icon.raycastTarget = false;
+            icon.color = Color.white;   // 图标运行时换肤,起步留白色不挡
+
+            TextMeshProUGUI label = UiCreatorKit.NewText("Label", item, "职业");
+            UiCreatorKit.Place(label.rectTransform, 0f, -ItemH * 0.5f + 12f, ItemW, 30f);
+            label.fontSize = 24f;
+
+            return new RoleCreateView.CareerItem
+            {
+                root = item.gameObject,
+                bg = bg,
+                icon = icon,
+                label = label,
+            };
         }
 
         public static void Preview()

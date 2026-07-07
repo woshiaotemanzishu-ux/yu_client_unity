@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Scene3D.Map;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoFight;
+using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Skill;
 using UnityEngine;
@@ -113,6 +115,8 @@ namespace Shenxiao.Module.Core.Scene
             SceneMapData map = SceneMapLoader.Current;
             if (map == null) return;
 
+            CheckCrossSafeArea(map);
+
             // 战斗演出冻结(大妖来袭横幅期间):停下并锁住一切移动/寻路,玩家停在战斗前的位置(对标老端
             // ShowBossBornEffect 期间 STOPAUTOFIGHT 连移动一并停)。一处早退同时挡住手动摇杆 StepMove 与自动接近 AutoStep。
             if (AutoFightModel.Instance.CombatFreeze)
@@ -138,6 +142,35 @@ namespace Shenxiao.Module.Core.Scene
             else if (_moving)
             {
                 StopMove();
+            }
+        }
+
+        // —— 安全区进出检测(对标老端 MainRole.CheckIsCrossSafeArea + RoleVo.safe_area_state)——
+        // 1=非安全场景内的安全区格 2=非安全区格 3=安全场景(整场安全,老端此分支不飘字)。
+        // 静态:跨场景/换模型不复位(对标 vo 挂账号),只有状态翻转才飘字;登录后首帧从 0 出发必飘一次。
+        private static int _safeAreaState;
+
+        private void CheckCrossSafeArea(SceneMapData map)
+        {
+            if (!MainUIConfigs.IsSceneLoaded) return;   // 场景表未就绪不判定(启动预加载已含,正常必就绪)
+
+            MainUIConfigs.SceneCfg cfg = MainUIConfigs.GetSceneCfg(map.SceneId);
+            if (cfg != null && cfg.Subtype == 1)
+            {
+                _safeAreaState = 3;
+                return;
+            }
+            if (map.IsSafePixel(_posX, _posY))
+            {
+                if (_safeAreaState == 1) return;
+                _safeAreaState = 1;
+                TipsManager.Toast("进入安全区");
+            }
+            else
+            {
+                if (_safeAreaState == 2) return;
+                _safeAreaState = 2;
+                TipsManager.Toast("走出安全区");
             }
         }
 

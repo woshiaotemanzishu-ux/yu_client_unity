@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using UnityEngine;
+using Shenxiao.Common.Prefs;
 using Shenxiao.Framework.Res;
 
 namespace Shenxiao.Common.Audio
@@ -25,6 +26,9 @@ namespace Shenxiao.Common.Audio
             _music.loop = true;
             _sfx = go.AddComponent<AudioSource>();
             _voice = go.AddComponent<AudioSource>();
+            // 本地音量镜像(设置面板滑条写入,服务器 10202 到达后会再覆盖同步)。无镜像时保持满音量。
+            _musicVol = PrefsManager.GetFloat("setting.musicVolume", 1f);
+            _sfxVol = PrefsManager.GetFloat("setting.sfxVolume", 1f);
             ApplyVolume();
         }
 

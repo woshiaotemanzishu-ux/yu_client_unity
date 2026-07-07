@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Shenxiao.Common.Prefs;
 using Shenxiao.Common.Proto;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Config;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
@@ -375,6 +376,7 @@ namespace Shenxiao.Module.Core.Login
             {
                 _enteringFromInGameReconnect = false;
                 GameLog.Warn("Login", "进入游戏失败 result={0}", result);
+                TipsManager.Toast("进入游戏失败(" + result + ")");   // 错误码表(Util.ErrorCodeShow)未移植,显码降级
             }
         }
 
@@ -390,6 +392,7 @@ namespace Shenxiao.Module.Core.Login
         {
             int code = reader.Remaining >= 2 ? reader.ReadU16() : -1;
             GameLog.Warn("Login", "59004 server kick reason code={0}", code);
+            TipsManager.Toast("已被服务器断开(" + code + ")");   // 踢线原因文案表未移植,显码降级
         }
 
         private void SendHeartbeatNow()
@@ -599,6 +602,7 @@ namespace Shenxiao.Module.Core.Login
                 _ => "未知结果 " + code,
             };
             GameLog.Info("Login", "角色名验证(10007): {0}", msg);
+            if (code != 1) TipsManager.Toast(msg);   // 失败码给玩家提示(文案对标老端)
         }
 
         private async Task<LoginRequestResult> PlayerLoginAsync(string account, string token)

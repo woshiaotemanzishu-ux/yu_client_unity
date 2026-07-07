@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
 using UnityEngine.UI;
@@ -43,24 +46,48 @@ namespace Shenxiao.Module.Core.MainUI
             SetNodeVisible(_box_halo, false);
             ReflowIconBox();
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_PK_STATUS_CHANGED, RefreshPkStatus);
             RefreshRole();
+            RefreshPkStatus();
             RefreshClock();
             _ = RefreshHaloIconAsync();
         }
 
         /// <summary>顶部状态条按钮 → 经 MainUIRouter 解耦打开对应面板(对标老端 MainUITopView 各 AddClickEvent)。
-        /// 已可达目标:地图 _box_map→"map"(MapFlow,世界地图);头像 _img_head→"setting"(SettingView,老端头像开设置)。
-        /// VIP/充值/光环/客服/buff/战斗模式 等待对应模块移植后补 key。</summary>
+        /// 已可达目标:地图 _box_map→"map";头像 _img_head/等级 _box_lv→"setting"(老端仅头像可点,本端按需求
+        /// 等级同开设置);buff→"buff";战斗模式 _box_fight_mode 带场景门禁(见 OnClickFightMode)。
+        /// VIP/充值/光环/客服 等待对应模块移植后补 key。</summary>
         private void WireTopButtons()
         {
             BindNav(_box_map, "map");
             BindNav(_img_head, "setting");
+            BindNav(_box_lv, "setting");
             BindNav(_box_buff, "buff");
-            BindNav(_box_fight_mode, "fightmode");
+            UIUtil.AddClick(_box_fight_mode, OnClickFightMode);
             BindNav(_box_vip, "vip");
             BindNav(_box_recharge, "recharge");
             BindNav(_box_halo, "halo");
             BindNav(_box_cs, "customerservice");
+        }
+
+        /// <summary>战斗模式角标点击(对标老端 MainUITopView.ts:165):先查当前场景 subtype,
+        /// 0/1/2(城镇/安全类)提示「当前场景不允许切换PK状态」,否则打开模式选择弹窗(MainUIFightModeView)。</summary>
+        private void OnClickFightMode()
+        {
+            _ = OpenFightModeGatedAsync();
+        }
+
+        private async Task OpenFightModeGatedAsync()
+        {
+            await MainUIConfigs.EnsureSceneLoaded();
+            MainUIConfigs.SceneCfg cfg = MainUIConfigs.GetSceneCfg(RoleModel.Instance.SceneId);
+            if (cfg == null) return; // 老端 scene_info 为空时不响应
+            if (cfg.Subtype == 0 || cfg.Subtype == 1 || cfg.Subtype == 2)
+            {
+                TipsManager.Toast("当前场景不允许切换PK状态");
+                return;
+            }
+            MainUIRouter.Open("fightmode");
         }
 
         private void BindNav(Component target, string routerKey)
@@ -72,7 +99,22 @@ namespace Shenxiao.Module.Core.MainUI
         protected override void OnShow(object args)
         {
             RefreshRole();
+            RefreshPkStatus();
             RefreshClock();
+        }
+
+        private int _loadedPkIcon = int.MinValue;
+
+        /// <summary>战斗模式角标随主角 pk_status 换图(对标老端 RefreshPkStatus:FightModeInfo[pk_status].main_source)。</summary>
+        private void RefreshPkStatus()
+        {
+            if (_img_fight_mode == null) return;
+            int pk = RoleModel.Instance.PkStatus;
+            if (pk == _loadedPkIcon) return;
+            FightModeInfoData info = PkStatusModel.Get(pk);
+            if (info == null || string.IsNullOrEmpty(info.MainIcon)) return;
+            _loadedPkIcon = pk;
+            _ = ResManager.SetImageAsync(_img_fight_mode, GameResPath.GetIcon("mainUI", info.MainIcon), nativeSize: false);
         }
 
         public bool HeadVisible => IsNodeVisible(_box_head);
@@ -100,11 +142,13 @@ namespace Shenxiao.Module.Core.MainUI
         protected override void OnDispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_PK_STATUS_CHANGED, RefreshPkStatus);
         }
 
         private void OnDestroy()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_PK_STATUS_CHANGED, RefreshPkStatus);
         }
 
         private void OnRoleInfoUpdate()
@@ -145,9 +189,30 @@ namespace Shenxiao.Module.Core.MainUI
         }
 
         /// <summary>对标 InitView:战力/血量/等级/场景名/坐标 + 货币值,全部读 RoleModel。</summary>
+        private int _headLoadedCareer = -1;
+
+        /// <summary>头像:对标老端 RefreshHead(picture→DressModel.getHeadICon)。DressModel 未移植,
+        /// 先降级为职业默认头像(同 CustomHeadItem.SetDefaultHead 套路);TODO 接 DressModel 自定义头像+头像框。</summary>
+        private void RefreshHead(int career)
+        {
+            if (_img_head == null || career <= 0 || career == _headLoadedCareer) return;
+            _headLoadedCareer = career;
+            _ = LoadHeadAsync(career);
+        }
+
+        private async Task LoadHeadAsync(int career)
+        {
+            await LoginConfigs.EnsureLoaded();
+            string path = LoginConfigs.HeadIconPath(career, 0);
+            if (string.IsNullOrEmpty(path) || _img_head == null) return;
+            _img_head.preserveAspect = true;
+            await ResManager.SetImageAsync(_img_head, path, nativeSize: false);
+        }
+
         private void RefreshRole()
         {
             RoleModel m = RoleModel.Instance;
+            RefreshHead(m.Career);
 
             _lb_fighting.text = m.CombatPower.ToString();
             _lb_lv.text = m.Level.ToString();

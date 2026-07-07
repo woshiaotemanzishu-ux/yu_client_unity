@@ -1,0 +1,49 @@
+MainUISkillView <Sprite> pos=(-11,919) size=(742x107) vis=True [url:resource/game/mainUI/MainUISkillView.json]
+  _box_partner_skill <Sprite> pos=(497,48) size=(57x59) vis=True
+    _img_partner_lock <Image> pos=(0,0) size=(57x59) vis=True [skin:resource/game/mainUI/texture/uiqlhx_017.png]
+  auto_box <Sprite> pos=(605,0) size=(137x107) vis=True
+    auto_bg <Image> pos=(13,0) size=(111x107) vis=True [skin:resource/game/mainUI/texture/auto_bg.png]
+    _img_auto_fight <Image> pos=(5,16) size=(132x65) vis=True [skin:resource/game/mainUI/texture/uizjmgj_003a.png]
+  skill_box <Sprite> pos=(282,22) size=(179x85) vis=True
+    _img_bg <Image> pos=(0,0) size=(179x85) vis=True [skin:resource/game/mainUI/other/uizjmgj_002.png]
+    _box_skill_con <Sprite> pos=(0,-59) size=(179x144) vis=True
+      MainUISkillItem <Sprite> pos=(4,99) size=(45x47) vis=True [url:resource/game/mainUI/MainUISkillItem.json]
+        con <Sprite> pos=(0,0) size=(45x47) vis=True
+          bg <Image> pos=(-9,-8) size=(63x63) vis=True [skin:resource/game/mainUI/texture/uiqlhx_018.png]
+          icon <Image> pos=(4,5) size=(38x38) vis=True [draw:resource/game/skillIcon/402012.png]
+        lock <Image> pos=(4,5) size=(38x38) vis=False [skin:resource/game/mainUI/texture/uirw_045cc.png]
+        CirCleCdView <Sprite> pos=(4,5) size=(38x38) vis=True [url:resource/game/uiComponent/CirCleCdView.json]
+          _img_mask <Image> pos=(0,0) size=(38x38) vis=False [skin:resource/game/common/texture/ui_11.png]
+           <Sprite> pos=(19,19) size=(0x0) vis=True
+          _lb_cd <Label> pos=(-31,-1) size=(100x40) vis=True
+             <Text> pos=(0,0) size=(100x40) vis=True
+      MainUISkillItem <Sprite> pos=(39,64) size=(45x47) vis=True [url:resource/game/mainUI/MainUISkillItem.json]
+        con <Sprite> pos=(0,0) size=(45x47) vis=True
+          bg <Image> pos=(-9,-8) size=(63x63) vis=True [skin:resource/game/mainUI/texture/uiqlhx_018.png]
+          icon <Image> pos=(4,5) size=(38x38) vis=True [draw:resource/game/skillIcon/402022.png]
+        lock <Image> pos=(4,5) size=(38x38) vis=False [skin:resource/game/mainUI/texture/uirw_045cc.png]
+        CirCleCdView <Sprite> pos=(4,5) size=(38x38) vis=True [url:resource/game/uiComponent/CirCleCdView.json]
+          _img_mask <Image> pos=(0,0) size=(38x38) vis=False [skin:resource/game/common/texture/ui_11.png]
+           <Sprite> pos=(19,19) size=(0x0) vis=True
+          _lb_cd <Label> pos=(-31,-1) size=(100x40) vis=True
+             <Text> pos=(0,0) size=(100x40) vis=True
+      MainUISkillItem <Sprite> pos=(96,63) size=(45x47) vis=True [url:resource/game/mainUI/MainUISkillItem.json]
+        con <Sprite> pos=(0,0) size=(45x47) vis=True
+          bg <Image> pos=(-9,-8) size=(63x63) vis=True [skin:resource/game/mainUI/texture/uiqlhx_018.png]
+          icon <Image> pos=(4,5) size=(38x38) vis=True [draw:resource/game/skillIcon/402032.png]
+        lock <Image> pos=(4,5) size=(38x38) vis=False [skin:resource/game/mainUI/texture/uirw_045cc.png]
+        CirCleCdView <Sprite> pos=(4,5) size=(38x38) vis=True [url:resource/game/uiComponent/CirCleCdView.json]
+          _img_mask <Image> pos=(0,0) size=(38x38) vis=False [skin:resource/game/common/texture/ui_11.png]
+           <Sprite> pos=(19,19) size=(0x0) vis=True
+          _lb_cd <Label> pos=(-31,-1) size=(100x40) vis=True
+             <Text> pos=(0,0) size=(100x40) vis=True
+      MainUISkillItem <Sprite> pos=(132,101) size=(45x47) vis=True [url:resource/game/mainUI/MainUISkillItem.json]
+        con <Sprite> pos=(0,0) size=(45x47) vis=True
+          bg <Image> pos=(-9,-8) size=(63x63) vis=True [skin:resource/game/mainUI/texture/uiqlhx_018.png]
+          icon <Image> pos=(4,5) size=(38x38) vis=True [draw:resource/game/skillIcon/402042.png]
+        lock <Image> pos=(4,5) size=(38x38) vis=False [skin:resource/game/mainUI/texture/uirw_045cc.png]
+        CirCleCdView <Sprite> pos=(4,5) size=(38x38) vis=True [url:resource/game/uiComponent/CirCleCdView.json]
+          _img_mask <Image> pos=(0,0) size=(38x38) vis=False [skin:resource/game/common/texture/ui_11.png]
+           <Sprite> pos=(19,19) size=(0x0) vis=True
+          _lb_cd <Label> pos=(-31,-1) size=(100x40) vis=True
+             <Text> pos=(0,0) size=(100x40) vis=True

@@ -177,7 +177,7 @@ namespace Shenxiao.Module.Core.Scene
         private void On12070(NetReader r) { r.ReadU8(); long id = r.ReadU64(); int v = r.ReadU8(); SetRoleField(id, vo => vo.Hide = v); }      // 隐身
         private void On12071(NetReader r) { r.ReadU8(); long id = r.ReadU64(); int v = r.ReadU8(); SetRoleField(id, vo => vo.Ghost = v); }     // 幽灵
         private void On12072(NetReader r) { r.ReadU8(); long id = r.ReadU64(); long g = r.ReadU64(); SetRoleField(id, vo => vo.Group = g); }   // 分组
-        private void On12074(NetReader r) { r.ReadU8(); long id = r.ReadU64(); int v = r.ReadU8(); SetRoleField(id, vo => vo.PkStatus = v); }  // PK 状态
+        private void On12074(NetReader r) { r.ReadU8(); long id = r.ReadU64(); int v = r.ReadU8(); if (id == RoleModel.Instance.RoleId) { SetMainRolePkStatus(v); return; } SetRoleField(id, vo => vo.PkStatus = v); }  // PK 状态(主角走 RoleModel)
         private void On12075(NetReader r) { r.ReadU8(); long id = r.ReadU64(); int v = r.ReadU8(); SetRoleField(id, vo => vo.Show = v); }      // 展示状态
         private void On12082(NetReader r) { r.ReadU8(); long id = r.ReadU64(); int spd = r.ReadU16(); SetRoleField(id, vo => vo.Speed = spd); } // 移动速度
         private void On12086(NetReader r) { long id = r.ReadU64(); string name = r.ReadString(); SetRoleField(id, vo => { if (vo.Figure != null) vo.Figure.name = name; }); } // 改名(无 sign 前缀)
@@ -524,7 +524,21 @@ namespace Shenxiao.Module.Core.Scene
         {
             var vo = new RoleVo();
             vo.ReadFromProtocal(reader);
+            // 主角自块:老端 SceneManager.CreateRole 里 roleId==自己 → mainrole_vo.ChangeFromVo(同步 pk_status 等)。
+            // 本端主角状态在 RoleModel,此处只取 PK 模式(HudTop 战斗模式图标/切换弹窗高亮依赖它)。
+            if (vo.RoleId == RoleModel.Instance.RoleId)
+            {
+                SetMainRolePkStatus(vo.PkStatus);
+            }
             SceneManager.Instance.AddRole(vo);
+        }
+
+        /// <summary>主角 PK 模式落 RoleModel 并广播(仅在值变化时);对标老端 ChangeVar("pk_status")。</summary>
+        private static void SetMainRolePkStatus(int pkStatus)
+        {
+            if (RoleModel.Instance.PkStatus == pkStatus) return;
+            RoleModel.Instance.PkStatus = pkStatus;
+            EventDispatcher.Emit(GlobalEvent.EVT_PK_STATUS_CHANGED);
         }
 
         private static void ParseMonster(NetReader reader)

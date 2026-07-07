@@ -1,17 +1,19 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
+using Shenxiao.Framework.Event;
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Role;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.MainUI
 {
     /// <summary>
-    /// 战斗(PK)模式选择弹窗(对标老客户端 MainUIFightModeView.ts):按当前场景可用的 PK 状态列出模式项,
-    /// 点击切换、高亮当前模式;切换成功提示并关闭;和平 CD 中点击提示「冷却中」。
-    ///
-    /// 降级:PkStatusModel(FightModeInfo 配置 + CHANGE_PK_STATUS/CHANGE_SUCCESS 协议)、场景
-    /// requirement 的 pkstate_list、和平CD(peace_cd_time)均未移植 → 列表暂空 + 日志「待对接」;
-    /// 点击只打日志、不发协议。事件驱动弹层(点 PK 图标打开),默认关闭、不进 FirstPass。
+    /// 战斗(PK)模式选择弹窗(对标老客户端 MainUIFightModeView.ts):按当前场景 requirement 的
+    /// pkstate_list 列出可选模式(PkStatusModel.FightModeInfo),高亮主角当前 pk_status;
+    /// 点击项发 13012 切换(PkStatusController),成功(EVT_PK_CHANGE_SUCCESS)提示「切换成功」并关闭;
+    /// 和平切换冷却中(RoleModel.PeaceCdActive)点击提示「冷却中」,冷却结束自动关闭(对标老端 OnTime)。
     /// 列表项克隆走 MainUIDownView 同款模板模式(_tpl 隐藏 + Instantiate 到 _gp_item)。
     /// </summary>
     public sealed class MainUIFightModeView : MainUIFightModeViewBind
@@ -22,17 +24,51 @@ namespace Shenxiao.Module.Core.MainUI
         private readonly List<MainUIFightModeItem> _items = new List<MainUIFightModeItem>();
         private readonly Dictionary<int, int> _pkStateToIndex = new Dictionary<int, int>();
         private int _curPkStatus = int.MinValue;
+        private int _refreshVersion;
+        private bool _peaceCdWasActive;
 
         protected override void OnInit()
         {
             if (_tpl_MainUIFightModeItem != null) _tpl_MainUIFightModeItem.SetActive(false);
-            // TODO 待接:PkStatusModel.CHANGE_SUCCESS → 提示「切换成功」+关闭;RoleVo.peace_cd_time → CD 倒计时自动关。
+            EventDispatcher.On(GlobalEvent.EVT_PK_CHANGE_SUCCESS, OnChangeSuccess);
+            EventDispatcher.On(GlobalEvent.EVT_PK_STATUS_CHANGED, OnPkStatusChanged);
+        }
+
+        protected override void OnDispose()
+        {
+            EventDispatcher.Off(GlobalEvent.EVT_PK_CHANGE_SUCCESS, OnChangeSuccess);
+            EventDispatcher.Off(GlobalEvent.EVT_PK_STATUS_CHANGED, OnPkStatusChanged);
+        }
+
+        private void OnDestroy()
+        {
+            EventDispatcher.Off(GlobalEvent.EVT_PK_CHANGE_SUCCESS, OnChangeSuccess);
+            EventDispatcher.Off(GlobalEvent.EVT_PK_STATUS_CHANGED, OnPkStatusChanged);
         }
 
         protected override void OnShow(object args)
         {
-            // 老端 LoadSuccess 从场景 requirement.pkstate_list 建项 + 高亮当前 pk_status;数据源未移植 → 空列表。
-            RefreshModes(null, int.MinValue);
+            _peaceCdWasActive = false;
+            _ = RefreshFromSceneAsync();
+        }
+
+        /// <summary>对标老端 LoadSuccess:场景 requirement.pkstate_list → 建项 + 高亮当前 pk_status。</summary>
+        private async Task RefreshFromSceneAsync()
+        {
+            int version = ++_refreshVersion;
+            await MainUIConfigs.EnsureSceneLoaded();
+            if (this == null || version != _refreshVersion || !IsShown) return;
+
+            MainUIConfigs.SceneCfg cfg = MainUIConfigs.GetSceneCfg(RoleModel.Instance.SceneId);
+            int[] states = cfg != null ? cfg.PkStateList : System.Array.Empty<int>();
+
+            var modes = new List<FightModeInfoData>(states.Length);
+            foreach (int pkState in states)
+            {
+                FightModeInfoData info = PkStatusModel.Get(pkState);
+                if (info != null) modes.Add(info);
+            }
+            RefreshModes(modes, RoleModel.Instance.PkStatus);
         }
 
         /// <summary>按可用 PK 模式列表铺项(对标 LoadSuccess 建项循环 + SetPkState);null/空=清空。</summary>
@@ -60,7 +96,7 @@ namespace Shenxiao.Module.Core.MainUI
 
             if (count == 0)
             {
-                GameLog.Info("MainUI", "PK 模式列表为空 → 待对接 PK 模式数据(PkStatusModel.FightModeInfo / 场景 pkstate_list)");
+                GameLog.Info("MainUI", "PK 模式列表为空(场景 {0} 无 pkstate_list)", RoleModel.Instance.SceneId);
             }
         }
 
@@ -75,11 +111,46 @@ namespace Shenxiao.Module.Core.MainUI
             _curPkStatus = pkStatus;
         }
 
-        /// <summary>对标 click_func:和平CD 中提示「冷却中」,否则发切换协议。降级:协议未移植 → 打日志。</summary>
+        /// <summary>对标 click_func:和平CD 中提示「冷却中」,否则发 13012 切换。</summary>
         private void OnClickMode(int pkStatus)
         {
-            // TODO 待接:peace_cd_is_playing → 提示「冷却中」;否则 PkStatusModel.Fire(CHANGE_PK_STATUS, pkStatus)。
-            GameLog.Info("MainUI", "点击切换 PK 模式 pk_status={0} → 待对接切换协议 CHANGE_PK_STATUS", pkStatus);
+            if (RoleModel.Instance.PeaceCdActive)
+            {
+                TipsManager.Toast("冷却中");
+                return;
+            }
+            PkStatusController.Instance.SendChangePkStatus(pkStatus);
+        }
+
+        /// <summary>13012 切换成功 → 提示并关闭(对标老端 CHANGE_SUCCESS 绑定)。</summary>
+        private void OnChangeSuccess()
+        {
+            if (!IsShown) return;
+            TipsManager.Toast("切换成功");
+            Hide();
+        }
+
+        /// <summary>主角 pk_status 被动变化(广播/自块同步)时,弹窗开着就刷新高亮。</summary>
+        private void OnPkStatusChanged()
+        {
+            if (!IsShown) return;
+            SetPkState(RoleModel.Instance.PkStatus);
+        }
+
+        /// <summary>冷却结束自动关闭(对标老端 StartTime/OnTime:left_time<0 → Close)。</summary>
+        private void Update()
+        {
+            if (!IsShown) return;
+            if (RoleModel.Instance.PeaceCdActive)
+            {
+                _peaceCdWasActive = true;
+                return;
+            }
+            if (_peaceCdWasActive)
+            {
+                _peaceCdWasActive = false;
+                Hide();
+            }
         }
 
         private MainUIFightModeItem GetOrCreateItem(int index)

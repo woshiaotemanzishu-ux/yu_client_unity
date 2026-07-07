@@ -115,6 +115,10 @@ namespace Shenxiao.Module.Core.Scene
                 return;
             }
 
+            // 帧预算:prefab 命中缓存时全场 NPC 的 await 同帧返回,Instantiate+名牌会挤在一帧 → 排队限流。
+            await SceneSpawnBudget.WaitTurnAsync();
+            if (IsStale(view)) return;
+
             GameObject model = Object.Instantiate(prefab);
             // 缩放:config_npc.icon_scale(对标 Npc.ts:109-110 this.scale = icon_scale);缺/<=0 用合成台默认 MODEL_SCALE。
             float iconScale = cfg != null && cfg.IconScale > 0f ? cfg.IconScale : -1f;
@@ -149,16 +153,36 @@ namespace Shenxiao.Module.Core.Scene
                 vo.NpcId, vo.TaskIcon);
         }
 
-        /// <summary>切场景/真正断线:清掉所有 NPC 视图(SceneManager.Clear 不逐个发 NpcRemoved,故这里整清)。</summary>
+        /// <summary>切场景/真正断线:清掉所有 NPC 视图(SceneManager.Clear 不逐个发 NpcRemoved,故这里整清)。
+        /// 当帧只做隐藏(便宜),真正的 Destroy 分帧摊开,避免与怪物清场/新场景加载挤在切图那一帧(同 MonsterRenderer)。</summary>
         private static void ClearAll()
         {
             _epoch++; // 让在途加载全部过期
-            foreach (NpcView v in _views.Values)
+            if (_views.Count == 0) return;
+            var doomed = new List<NpcView>(_views.Values);
+            _views.Clear();
+            _ = DestroyViewsSlicedAsync(doomed);
+        }
+
+        private static async Task DestroyViewsSlicedAsync(List<NpcView> doomed)
+        {
+            const int DestroysPerFrame = 8;
+            for (int i = 0; i < doomed.Count; i++)
             {
+                NpcView v = doomed[i];
+                if (v == null) continue;
+                if (v.Tilt != null) v.Tilt.gameObject.SetActive(false);
+                if (v.NameplateRt != null) v.NameplateRt.gameObject.SetActive(false);
+            }
+            int done = 0;
+            for (int i = 0; i < doomed.Count; i++)
+            {
+                NpcView v = doomed[i];
+                if (v == null) continue;
                 SceneCharacterStage.RemoveSceneCharacter(v.Tilt);
                 DestroyNameplate(v);
+                if (++done % DestroysPerFrame == 0) await Task.Yield();
             }
-            _views.Clear();
         }
 
         private static void RemoveView(NpcView view)

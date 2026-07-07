@@ -2,7 +2,7 @@
   "entries": [
     {
       "module": "mainUI",
-      "prefab": "Assets/Prefabs/UI/MainUI/MainUIModule.prefab",
+      "prefab": "Assets/Prefabs/UI/MainUI/Regions/HudTaskTeam.prefab",
       "ownerComponent": "Shenxiao.Module.Core.MainUI.MainUITaskItem",
       "bindField": "_box_finger_con",
       "hostName": "_box_finger_con",
@@ -14,20 +14,22 @@
           "slotId": "main_ui_guide_select",
           "effectName": "ui_yindaoxiaoguo",
           "addressKey": "effect/objs/ui_effect/ui_yindaoxiaoguo/ui_yindaoxiaoguo",
-          "note": "任务框四角选中特效"
+          "autoPlay": false,
+          "note": "任务框四角选中特效;MainUIGuideManager.EnsureEffectsAsync 手动按 slotId 查找消费,autoPlay 必须保持 false 防双挂"
         },
         {
           "type": "ui_effect",
           "slotId": "main_ui_guide_finger",
           "effectName": "ui_dianjizhiyin",
           "addressKey": "effect/objs/ui_effect/ui_dianjizhiyin/ui_dianjizhiyin",
-          "note": "点击手指和光点特效"
+          "autoPlay": false,
+          "note": "点击手指和光点特效;MainUIGuideManager.EnsureEffectsAsync 手动按 slotId 查找消费,autoPlay 必须保持 false 防双挂"
         }
       ]
     },
     {
       "module": "mainUI",
-      "prefab": "Assets/Prefabs/UI/MainUI/MainUIModule.prefab",
+      "prefab": "Assets/Prefabs/UI/MainUI/Regions/HudTaskTeam.prefab",
       "ownerComponent": "Shenxiao.Module.Core.MainUI.MainUITaskItem",
       "bindField": "_box_effect",
       "hostName": "_box_effect",
@@ -39,7 +41,311 @@
           "slotId": "main_ui_task_finish_frame",
           "effectName": "ui_renwulan",
           "addressKey": "effect/objs/ui_effect/ui_renwulan/ui_renwulan",
-          "note": "任务完成时任务框外层流光和粒子特效"
+          "autoPlay": false,
+          "note": "任务完成时任务框外层流光和粒子特效;MainUITaskItem.LoadFinishEffectAsync 手动按 slotId 查找消费(带按框高换算的自定义 scale),autoPlay 必须保持 false 防双挂"
+        }
+      ]
+    },
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/Regions/HudSkill.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.MainUIAutoBrushView",
+      "bindField": "_box_effect",
+      "hostName": "CompletionEffectSlot",
+      "ancestorName": "MainUIAutoBrushView",
+      "source": "yu_client mainUI/MainUIAutoBrushView.ts:62-72,82-87,156-169 (InitChallengeEffect/StartMainLineTween)",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_autobrush_challenge_complete",
+          "effectName": "ui_mainDungeon",
+          "addressKey": "effect/objs/ui_effect/ui_mainDungeon/ui_mainDungeon",
+          "autoPlay": true,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "自动闯关挑战达成常驻光效。MainUIAutoBrushView.RefreshBrushInfo 已经用 _box_effect.gameObject.SetActive(CurrentTimes==NeedTimes) 精确表达老端触发条件,autoPlay=true 正好借这个既有 active 开关自动挂/收,业务代码零改动。position/scale 未取到老端真实值,先占位,待手调。"
+        }
+      ]
+    },
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/FightingUpView.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.FightingUpView",
+      "bindField": "_box_effect",
+      "hostName": "_box_effect",
+      "ancestorName": "FightingUpView",
+      "source": "yu_client mainUI/FightingUpView.ts:256-267",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_fightingup_flash",
+          "effectName": "ui_zhanli",
+          "addressKey": "effect/objs/ui_effect/ui_zhanli/ui_zhanli",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "trigger=condition:老端在战力数字滚动到达阈值帧时播一次、3秒后自动清除。Unity 版 FightingUpView.PlayFightEffectAsync 已在代码里按帧驱动手动调用 UIEffectStage.AddAsync(ui_zhanli, _box_effect, ...)接线(对标 has_set_effect/can_replay_fight_effect 的节流语义);autoPlay 继续保持 false,避免槽的 OnEnable 自动挂载和代码里的手动时序播放重复触发。position/scale 沿用这里的占位值,代码里另按 EffectScale=12.8(UIEffectStage 相机固定取景换算基准)传参,不读这条 JSON。"
+        }
+      ]
+    },
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/Overlays/HudOverlayCombat.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.FlowerEffectView",
+      "bindField": "_group_eff",
+      "hostName": "EffectAnchorGroup",
+      "ancestorName": "FlowerEffectView",
+      "source": "yu_client mainUI/FlowerEffectView.ts:107-131; marriage2/BanquetSceneView.ts:732",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_flowereffect_giftlv3",
+          "effectName": "uifx_giftlv3",
+          "addressKey": "effect/objs/ui_effect/uifx_giftlv3/uifx_giftlv3",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "trigger=event MarriageModel.SHOW_FLOWER_EFFECT(婚宴送礼3级撒花)。老端实际把特效挂在 view 根 display_obj 而不是某个子节点;这里改挂 _group_eff(EffectAnchorGroup,同样全屏拉伸的效果分组容器,语义等价)以便走 bindField 机制。FlowerEffectView.ShowFlowerEffect 当前只打日志未接线,autoPlay 保持 false。position/scale 待手调。"
+        }
+      ]
+    },
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/Regions/HudActivity.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.MainUIActivityView",
+      "bindField": "effect",
+      "hostName": "RankFullscreenEffectSlot",
+      "ancestorName": "MainUIActivityView",
+      "source": "yu_client mainUI/MainUIActivityView.ts:231-244",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_activity_rank_glow",
+          "effectName": "ui_cb01",
+          "addressKey": "effect/objs/ui_effect/ui_cb01/ui_cb01",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "trigger=event UPDATE_TOP_PLAYER_MAIN_DATA(开服<=8天且等级>=130且风云榜达标时,头号玩家榜入口常驻光效)。MainUIActivityView.OnInit 已把 effect 设成 720x1280 全屏盒并强制 inactive;OnTopPlayerMainData 尾部注释明确写了'贸然挂全屏 ui_cb01 会盖屏,故先不挂'——这是刻意留白,不是遗漏。先注册槽存档映射关系,autoPlay 必须保持 false。position/scale 待手调。"
+        }
+      ]
+    },
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/Regions/HudActivity.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.ActivityIcon",
+      "bindField": "_box_effect",
+      "hostName": "CompletionEffectSlot",
+      "ancestorName": "ActivityIcon",
+      "source": "yu_client mainUI/ActivityIcon.ts:1816-1822",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_activityicon_sacred_day2",
+          "effectName": "UI_1303c",
+          "addressKey": "effect/objs/ui_effect/UI_1303c/UI_1303c",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "trigger=硬编码条件(icon_type==283『圣地』且开服第2天播放),与 SetIconEffect/_box_effect2 的常规 cfg.effect_name 系统无关,是独立的一段死代码外老端特判。Unity 版未实现该判断,HideOptionalState 每次刷新都强制把 _box_effect 隐藏;先注册槽不自动播放。ActivityIcon 模板在本 prefab(HudActivity 内嵌副本)与独立 Assets/Prefabs/UI/MainUI/ActivityIcon.prefab(被 HudSecondary._tpl_ActivityIcon 引用)各有一份,两处结构不共享,故分别登记两条 entry。position/scale 待手调。"
+        }
+      ]
+    },
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/ActivityIcon.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.ActivityIcon",
+      "bindField": "_box_effect",
+      "hostName": "_box_effect",
+      "ancestorName": "ActivityIcon",
+      "source": "yu_client mainUI/ActivityIcon.ts:1816-1822",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_activityicon_sacred_day2",
+          "effectName": "UI_1303c",
+          "addressKey": "effect/objs/ui_effect/UI_1303c/UI_1303c",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "同 HudActivity.prefab 内嵌 ActivityIcon 副本的同名槽(见上一条 entry 的完整说明)。本 prefab 是 MainUISecondaryView._tpl_ActivityIcon(经 HudSecondaryCreator 按路径引用)克隆的源对象,单独回填一份。position/scale 待手调。"
+        }
+      ]
+    },
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/Regions/HudTop.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.MainUIMoneyItem",
+      "bindField": "_box_effect",
+      "hostName": "CurrencyChangeEffectSlot",
+      "ancestorName": "MainUIMoneyItem",
+      "source": "yu_client mainUI/MainUIMoneyItem.ts:98-113",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_moneyitem_income_glow",
+          "effectName": "ui_bangyu_3",
+          "addressKey": "effect/objs/ui_effect/ui_bangyu_3/ui_bangyu_3",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "trigger=event UPDATE_MAINUI_MONEY(type, show_effect=true),顶部货币(钻石/绑钻/金币)数值增加时的进账光效。MainUIMoneyItem.cs 目前完全不引用 _box_effect(无 SetActive/加载逻辑);若设 autoPlay=true 会导致常驻显示,先保持 false。position/scale 待手调。"
+        }
+      ]
+    },
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/Regions/HudSecondary.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.MainUISecondaryView",
+      "bindField": "_gp_t_map",
+      "hostName": "TreasureMapEffectSlot",
+      "ancestorName": "MainUISecondaryView",
+      "source": "yu_client mainUI/MainUISecondaryView.ts:399-409",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_secondary_treasuremap_finding",
+          "effectName": "ui_2114_01",
+          "addressKey": "effect/objs/ui_effect/ui_2114_01/ui_2114_01",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "trigger=event TreasureMapModel.TM_FINDING_WAY(bool),藏宝图寻路中的持续光效。MainUISecondaryView.OnInit 已把 _gp_t_map 强制 SetActive(false)且 TreasureMapModel 未移植;先注册槽不自动播放。position/scale 待手调。"
+        }
+      ]
+    },
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/Regions/HudSecondary.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.MainUISecondaryView",
+      "bindField": "add",
+      "hostName": "ExpBoostEffectAnchor",
+      "ancestorName": "MainUISecondaryView",
+      "source": "yu_client mainUI/MainUISecondaryView.ts:1698-1706,1723-1752",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_secondary_onhook_boost_hint",
+          "effectName": "UI_tisheng",
+          "addressKey": "effect/objs/ui_effect/UI_tisheng/UI_tisheng",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "trigger=condition:RefOutlineExp() 挂机经验加成未点满时,add_btn 上的持续提示光效。RefOutlineExp 未移植,add 节点当前无业务逻辑触碰;先注册槽不自动播放。position/scale 待手调。"
+        }
+      ]
+    },
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/Regions/HudSecondary.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.MainUISecondaryView",
+      "bindField": "exp_show",
+      "hostName": "ExpRewardEffectSlot",
+      "ancestorName": "MainUISecondaryView",
+      "source": "yu_client mainUI/MainUISecondaryView.ts:1698-1811",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_secondary_onhook_reward_2to4h",
+          "effectName": "UI_guajijiangli_3",
+          "addressKey": "effect/objs/ui_effect/UI_guajijiangli_3/UI_guajijiangli_3",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "trigger=condition:离线时长 2~4 小时档的挂机奖励等级光效。与 4-6h/>=6h 两档互斥,同挂 exp_show 节点——三个槽不可同时 autoPlay,需业务代码按离线时长查表后仿照 MainUITaskItem.FindFinishEffectSlot 按 slotId 手动取用。position/scale 待手调。"
+        },
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_secondary_onhook_reward_4to6h",
+          "effectName": "UI_guajijiangli_2",
+          "addressKey": "effect/objs/ui_effect/UI_guajijiangli_2/UI_guajijiangli_2",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "trigger=condition:离线时长 4~6 小时档,与 2-4h/>=6h 两档互斥,同挂 exp_show,按 slotId 手动选用,见同组 2to4h 槽备注。position/scale 待手调。"
+        },
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_secondary_onhook_reward_6hplus",
+          "effectName": "UI_guajijiangli_1",
+          "addressKey": "effect/objs/ui_effect/UI_guajijiangli_1/UI_guajijiangli_1",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "trigger=condition:离线时长 >=6 小时档(等级最高),与 2-4h/4-6h 两档互斥,同挂 exp_show,按 slotId 手动选用,见同组 2to4h 槽备注。position/scale 待手调。"
+        }
+      ]
+    },
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/Regions/HudSecondary.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.MainUISecondaryView",
+      "bindField": "_box_auto_effect",
+      "hostName": "AutoStateEffectSlot",
+      "ancestorName": "MainUISecondaryView",
+      "source": "yu_client mainUI/MainUISecondaryView.ts:1943-1969",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_secondary_auto_pathing",
+          "effectName": "ui_zidongxunluzhong",
+          "addressKey": "effect/objs/ui_effect/ui_zidongxunluzhong/ui_zidongxunluzhong",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "trigger=condition:存在寻路且未完成时优先显示(海外服屏蔽)。与自动战斗态互斥,同挂 _box_auto_effect——两个槽不可同时 autoPlay,需业务代码按 UpdateAutoStateEffect 的优先级判断按 slotId 手动选用。position/scale 待手调。"
+        },
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_secondary_auto_fighting",
+          "effectName": "ui_zidongzhandouzhong",
+          "addressKey": "effect/objs/ui_effect/ui_zidongzhandouzhong/ui_zidongzhandouzhong",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "trigger=condition:无寻路时若自动战斗开启则显示。与寻路态互斥,同挂 _box_auto_effect,按 slotId 手动选用,见同组 auto_pathing 槽备注。position/scale 待手调。"
+        }
+      ]
+    },
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/Regions/HudSkill.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.MainUISkillItemGod",
+      "bindField": "_gp_eff",
+      "hostName": "TransformEffectSlot",
+      "ancestorName": "MainUISkillItemGod",
+      "source": "yu_client mainUI/MainUISkillItemGod.ts:150,272,306-310",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_skillitemgod_ready_glow",
+          "effectName": "UI_2049",
+          "addressKey": "effect/objs/ui_effect/UI_2049/UI_2049",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [1, 1, 1],
+          "note": "trigger=condition:降神技能 CD/保持时间检查通过且当前无子节点时播放循环光效,标记技能可用。GodBefallModel 与该判定逻辑均未移植,MainUISkillItemGod 模板挂在 __Templates 下默认禁用、无任何 Bind 字段引用、无实例化调用点;先注册槽不自动播放。position/scale 待手调。"
+        }
+      ]
+    },
+    {
+      "module": "mainUI",
+      "prefab": "Assets/Prefabs/UI/MainUI/Regions/HudBottomBar.prefab",
+      "ownerComponent": "Shenxiao.Module.Core.MainUI.MainUIDownView",
+      "bindField": "_box_exp_effect",
+      "hostName": "ExpBarSparkleSlot",
+      "ancestorName": "MainUIDownView",
+      "source": "yu_client mainUI/MainUIDownView.ts:384-397",
+      "slots": [
+        {
+          "type": "ui_effect",
+          "slotId": "mainui_down_exp_bar_glow",
+          "effectName": "ui_expbar",
+          "addressKey": "effect/objs/ui_effect/ui_expbar/ui_expbar",
+          "autoPlay": false,
+          "position": [0, 0],
+          "scale": [15, 15, 15],
+          "note": "双挂风险,autoPlay 必须保持 false:MainUIDownView.AddExpEffectAsync 已在 OnInit 里硬编码调用 UIEffectStage.AddAsync(\"ui_expbar\", _box_exp_effect, Vector2.zero, (15,15,15)) 常驻挂一次(scale=15 抄的就是这里的老端原值)。本槽只是把映射关系登记进清单,若未来要切到槽驱动,需同时把 MainUIDownView 改造成读取本槽(仿 MainUITaskItem.FindFinishEffectSlot 的按 slotId 查找写法)并删掉硬编码调用,再考虑开 autoPlay,否则会同一个位置挂两份特效。"
         }
       ]
     }

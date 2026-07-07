@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -5,6 +6,7 @@ using Shenxiao.Module.Core.CustomActivity;
 using Shenxiao.Module.Core.CycleimpActlist;
 using Shenxiao.Module.Core.FirstRecharge;
 using Shenxiao.Module.Core.FunctionOpen;
+using Shenxiao.Module.Core.Setting;
 using Shenxiao.Module.Core.Svip;
 using Shenxiao.Module.Core.Vip;
 using Shenxiao.Module.Core.WeekCard;
@@ -82,11 +84,16 @@ namespace Shenxiao.Module.Core.Game
         {
             int type = reader.ReadU8();
             int count = reader.ReadU16();
+            var entries = new List<KeyValuePair<int, int>>(count);
             for (int i = 0; i < count; i++)
             {
-                reader.ReadU8();
-                reader.ReadU8();
+                // 严格对标 yu_server pt_102.erl item_to_bin_4:Subtype:16, IsOpen:8。
+                // (2026-07-06 修:此前按 {c,c} 读导致整包错位,SettingModel 全是乱数据。)
+                int subtype = reader.ReadU16();
+                int isOpen = reader.ReadU8();
+                entries.Add(new KeyValuePair<int, int>(subtype, isOpen));
             }
+            SettingModel.Apply10202(type, entries); // 落设置模型(音量项顺带同步 AudioManager,对标老端 onBlockSettingChange)
 
             GameLog.Info("Game", "10202 settings ready: type={0} count={1}", type, count);
             if (type == SYS_SETTING)

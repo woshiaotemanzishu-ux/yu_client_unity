@@ -1,5 +1,10 @@
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Common.Prefs;
+using Shenxiao.Common.Audio;
+using Shenxiao.Common.Tips;
+using Shenxiao.Framework.Event;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.Role;
@@ -14,19 +19,15 @@ using UnityEngine.UI;
 namespace Shenxiao.Module.Core.Setting
 {
     /// <summary>
-    /// 设置主界面(大)(对标老客户端 setting/SettingView.ts):顶部头像(_role_head/change_head_btn 改头像)+ 角色信息
-    /// (_lb_name 名/_btn_changename 改名/id_number 玩家ID/_btn_copy 复制/id_ser_name 区服)+ 底部操作
-    /// (change_role 换角色/return_login 返回登录/simple_mode_btn 简洁模式/confirm_flee 确认逃跑(脱离卡死)/confirm_res 复活(修复))+
-    /// 双页签(_box_tab_base_setting 基础设置 / _box_tab_shield_setting 屏蔽列表)+
-    /// 基础设置页(_box_base_setting):音/效/屏 滑条(slider_audio/slider_music/slider_conta2/slider_conta1,克隆 _tpl_WithBtnHSlider)、
-    /// 自动拾取(_list_pick)、御风云骑(_box_horse/_img_horse_check)、神祭(_box_god/_img_god_check)、自动任务(_box_task/_img_task_check1-2)+
-    /// 屏蔽列表页(_box_shield_setting/_list_shield 克隆 _tpl_SettingShieldItem)+ 关闭(_img_close/_img_empty)。
+    /// 设置主界面(对标老客户端 setting/SettingView.ts):顶部头像+角色信息(改头像/改名/复制ID)、
+    /// 双页签(基础设置/屏蔽列表)、四滑条(同屏人数/特效数量/音乐/音效)、自动拾取(17/18/19)、
+    /// 御风云骑(202)/降神(201)/自动任务(21) 勾选、底部五钮(换角色/返回登录/还原默认/脱离卡死/修复异常)。
     ///
-    /// 降级:SettingModel/RoleManager/SoundManager/各协议(10203/10210/42602)、WithBtnHSlider 滑条组件、
-    /// CustomHeadItem 头像、LoopScrowViewMgr 列表(SettingShieldItem/SettingSubscriptionItem)、OpenFun(203 改头像)、
-    /// Alert 二次确认 均未移植 → 所有 _tpl_* 模板隐藏、屏蔽/拾取列表空、滑条无数值;头像/改名/换角色/返回登录/简洁模式/
-    /// 确认逃跑/复活/页签 等按钮点击仅打日志「待对接」;change_head_btn / _btn_changename 暂打日志(父级后续接 OpenSub);
-    /// _img_close / _img_empty 关闭可用。事件驱动窗口,默认关闭、不进 FirstPass。数据/列表后续 tick 补。
+    /// 数据面:服务器权威 —— 值读 SettingModel(10202 全量),写走 SettingController(10203);
+    /// 音量滑条实时改 AudioManager,数值在面板关闭时统一上报(对标老端 close_callback → SendSetSliderNum);
+    /// 勾选项点击即单条上报(对标 SendProtocal)。文案/默认值读 SettingConfigs(config_setting.json)。
+    /// 拾取项 150 级前禁取消(对标 CheckClickFun);极简模式下改屏蔽项先确认退出(对标老端 Alert)。
+    /// 改头像/改名子窗仍为壳(13080/13083/42601 未移植),经 SettingFlow.OpenSub 打开。
     /// </summary>
     public sealed class SettingView : SettingViewBind
     {
@@ -35,16 +36,24 @@ namespace Shenxiao.Module.Core.Setting
         private const float DefaultEffectCount = 8f;
         private const float DefaultSoundVolume = 50f;
         private const float DefaultMusicVolume = 50f;
-        private const float MaxSameScreenRoleCount = 20f;
-        private const float MaxEffectCount = 20f;
         private const float SettingShieldItemWidth = 250f;
         private const float SettingShieldItemHeight = 50f;
         private const string PrefLastRoleId = "login.lastRoleId";
-        private static readonly string[] AutoPickLabels =
+        private const string CheckedSkin = "resource/game/common/texture/com_ui_gx1.png";
+        private const string UncheckedSkin = "resource/game/common/texture/com_ui_gx.png";
+
+        // 对标老端 ShowInShieldDic(SettingView.ts:44;顺序即展示顺序;微信推送 24 仅微信端,本端跳过)。
+        private static readonly int[] ShieldSubtypes =
         {
-            "\u84DD\u8272\u53CA\u4EE5\u4E0B\u88C5\u5907",
-            "\u7D2B\u8272\u88C5\u5907",
-            "\u6A59\u8272\u53CA\u4EE5\u4E0A\u7684\u4E00\u661F\u88C5\u5907",
+            SettingModel.SUB_SPRITE, SettingModel.SUB_WING, SettingModel.SUB_SHENGQI,
+            SettingModel.SUB_WEAPON, SettingModel.SUB_DEMON, SettingModel.SUB_PARTNER,
+            SettingModel.SUB_SHIELD_CHANNEL, SettingModel.SUB_BACK,
+            SettingModel.SUB_LIVENESS, SettingModel.SUB_SHOCK_SCREEN,
+        };
+
+        private static readonly int[] AutoPickSubtypes =
+        {
+            SettingModel.SUB_AUTO_BLUE, SettingModel.SUB_AUTO_PURPLE, SettingModel.SUB_AUTO_ORANGE,
         };
 
         private WithBtnHSlider _sameScreenSlider;
@@ -54,14 +63,29 @@ namespace Shenxiao.Module.Core.Setting
         private bool _showingBaseTab = true;
         private CustomHeadItem _roleHeadItem;
         private bool _loadingRoleHead;
-        private readonly List<GameObject> _autoPickItems = new List<GameObject>();
+        private readonly List<SettingShieldItem> _autoPickItems = new List<SettingShieldItem>();
+        private readonly List<SettingShieldItem> _shieldItems = new List<SettingShieldItem>();
 
         protected override void OnInit()
         {
             HideTemplates();
             BindClose(_img_close);
             BindClose(_img_empty);
+            // 模态底点击关闭(对标老端 click_bg_toClose;SettingCreator 按名约定生成 ModalDim,旧转换 prefab 无此节点则跳过)。
+            Transform dim = transform.Find("ModalDim");
+            if (dim != null) BindClose(dim);
             BindButtons();
+            EventDispatcher.On(GlobalEvent.EVT_SETTING_UPDATED, OnSettingUpdated);
+        }
+
+        protected override void OnDispose()
+        {
+            EventDispatcher.Off(GlobalEvent.EVT_SETTING_UPDATED, OnSettingUpdated);
+        }
+
+        private void OnDestroy()
+        {
+            EventDispatcher.Off(GlobalEvent.EVT_SETTING_UPDATED, OnSettingUpdated);
         }
 
         protected override void OnShow(object args)
@@ -69,22 +93,50 @@ namespace Shenxiao.Module.Core.Setting
             BackfillRuntimeSkins();
             PopulateRoleInfo();
             RefreshHeadIcon();
-            BuildSliders();
-            BuildAutoPickList();
-            HideUnmigratedBaseBlocks();
             SelectTab(_showingBaseTab);
-            // 老端 OpenCallback → SettingModel/RoleManager 铺角色信息 + 滑条/列表/页签。均未移植 → 列表空/默认降级。
-            GameLog.Info("Setting", "SettingView 打开 → 待对接 SettingModel(列表空/默认降级)");
+            _ = RefreshAsync();
         }
 
-        /// <summary>克隆模板节点(滑条/屏蔽项/拾取项/自定义头像/神祭)在运行时由列表/容器复制,先全部隐藏。</summary>
+        /// <summary>面板关闭时统一上报四滑条(对标老端 close_callback → SendSetSliderNum)。</summary>
+        protected override void OnHide()
+        {
+            SendSliderValues();
+        }
+
+        private async Task RefreshAsync()
+        {
+            await SettingConfigs.EnsureLoaded();
+            await FuncOpenConfig.EnsureLoaded();
+            if (this == null || !IsShown) return;
+
+            BuildSliders();
+            BuildAutoPickList();
+            BuildShieldList();
+            RefreshToggleBlocks();
+        }
+
+        /// <summary>设置数据变化(10202 到达/10203 写回成功)→ 刷新滑条值+勾选态+列表
+        /// (对标老端 UPDATE_SETTING_INFO → OpenCallback 全量重铺;「还原默认设置」后滑条必须回位,
+        /// 否则关面板时会把旧滑条值再写回去覆盖默认)。</summary>
+        private void OnSettingUpdated()
+        {
+            if (!IsShown || !SettingConfigs.IsLoaded) return;
+            BuildSliders();
+            BuildAutoPickList();
+            BuildShieldList();
+            RefreshToggleBlocks();
+        }
+
+        // ---------------------------------------------------------------- 皮肤回填
+
+        /// <summary>克隆模板节点(滑条/屏蔽项/拾取项/自定义头像)在运行时由列表/容器复制,先全部隐藏。</summary>
         private void BackfillRuntimeSkins()
         {
             SetSkin(_img_bg, "resource/game/setting/other/bg_03.png");
             SetSkin(_Image1, "resource/game/setting/texture/com_title_bg_1_.png");
             SetSkin(_Image4, "resource/game/setting/texture/ui_button_rect8.png");
             SetSkin(_Image6, "resource/game/setting/texture/ui_button_rect9.png");
-            SetSkin(_btn_changename, "resource/game/setting/texture/ui_Guild_07.png");
+            SetSkin(_btn_changename, "resource/game/setting/texture/ui_guild_07.png");
             SetSkin(_Image15, "resource/game/setting/texture/uixxsz_006.png");
             SetSkin(_Image16, "resource/game/setting/texture/uixxsz_007.png");
             SetSkin(simple_mode_bg, "resource/game/setting/texture/uixxsz_005.png");
@@ -93,10 +145,6 @@ namespace Shenxiao.Module.Core.Setting
             SetSkin(_img_tab_setting, "resource/game/setting/texture/ui_button_rect5.png");
             SetSkin(_img_tab_shield, "resource/game/setting/texture/ui_button_mid_1.png");
             SetSkin(_img_close, "resource/game/common/texture/uity_016k.png");
-            SetSkin(_img_horse_check, "resource/game/common/texture/uity_045d.png");
-            SetSkin(_img_god_check, "resource/game/common/texture/com_ui_gx.png");
-            SetSkin(_img_task_check1, "resource/game/common/texture/com_ui_gx.png");
-            SetSkin(_img_task_check2, "resource/game/common/texture/com_ui_gx.png");
         }
 
         private static void SetSkin(Image target, string path)
@@ -114,81 +162,113 @@ namespace Shenxiao.Module.Core.Setting
             if (_tpl_GodBefallMainView != null) _tpl_GodBefallMainView.SetActive(false);
         }
 
+        // ---------------------------------------------------------------- 按钮接线
+
         private void BindButtons()
         {
             BindTab(_box_tab_base_setting, true);
             BindTab(_box_tab_shield_setting, false);
-            // 顶部头像/角色信息:改头像/改名 → 真打开子窗(经 SettingFlow.OpenSub 叠在主面板上,各子窗 _close_btn 返回)。
+
+            // 顶部头像/角色信息:改头像/改名 → 打开子窗(SettingFlow.OpenSub 叠在主面板上);复制ID → 系统剪贴板。
             BindOpen(change_head_btn, "SettingChangeHeadView", "更换头像");
             BindOpen(_btn_changename, "SettingChangeNameView", "修改名字");
-            BindBtn(_btn_copy, "复制玩家ID");
-            // 页签切换(基础设置 / 屏蔽列表)。
-            BindBtn(_box_tab_base_setting, "页签-基础设置");
-            BindBtn(_box_tab_shield_setting, "页签-屏蔽列表");
-            // 屏蔽/勾选项(神祭 / 御风云骑 / 自动任务开关)。
-            BindBtn(_img_god_check, "神祭开关");
-            BindBtn(_img_horse_check, "御风云骑开关");
-            BindBtn(_img_task_check1, "自动任务-开");
-            BindBtn(_img_task_check2, "自动任务-关");
-            // 底部操作(换角色 / 返回登录 / 简洁模式 / 确认逃跑 / 复活)。
-            BindBtn(change_role, "更换角色");
-            BindBtn(return_login, "返回登录");
-            BindBtn(simple_mode_btn, "简洁模式");
-            BindBtn(confirm_flee, "确认逃跑(脱离卡死)");
-            BindBtn(confirm_res, "复活(修复异常)");
+            BindClick(_btn_copy, CopyRoleId);
+
+            // 勾选项(降神/御风云骑/自动任务;对标老端 change_god_box/change_horse_box/task_check 点击)。
+            BindClick(_img_god_check, () => ToggleSysSetting(SettingModel.SUB_GODBEFALL));
+            BindClick(_img_horse_check, OnToggleHorse);
+            BindClick(_img_task_check1, () => SetAutoTask(1));
+            BindClick(_img_task_check2, () => SetAutoTask(0));
+
+            // 底部操作(对标老端 SettingView.ts:288-346,均带二次确认)。
+            BindClick(change_role, () => TipsManager.Confirm("是否返回角色选择界面？", SettingFlow.BackToRoleSelect));
+            BindClick(return_login, () => TipsManager.Confirm("是否返回登录界面？", SettingFlow.BackToLogin));
+            BindClick(simple_mode_btn, () => TipsManager.Confirm("是否还原默认设置", SendDefaultMode));
+            BindClick(confirm_flee, () => TipsManager.Confirm("是否脱离卡死？", () =>
+                SettingController.Instance.SendFlee(RoleModel.Instance.SceneId)));
+            BindClick(confirm_res, () => TipsManager.Confirm("修复异常后，需要重新连接游戏", SettingFlow.ReconnectRepair));
         }
 
-        /// <summary>按钮 → 打开设置模块内子窗(SettingFlow.OpenSub 按 View 子类名查找并叠在主面板上)。</summary>
-        private void BindOpen(Component target, string viewType, string label)
+        private void CopyRoleId()
         {
-            if (target == null) return;
-            Image img = target as Image;
-            if (img == null) img = target.GetComponentInChildren<Image>(true);
-            if (img == null) return;
-            img.raycastTarget = true;
-            UIUtil.AddClick(img, () =>
+            long roleId = RoleModel.Instance.RoleId;
+            if (roleId <= 0 && id_number != null) long.TryParse(id_number.text, out roleId);
+            if (roleId <= 0) return;
+            GUIUtility.systemCopyBuffer = roleId.ToString();
+            TipsManager.Toast("已复制");
+        }
+
+        /// <summary>「还原默认设置」(对标老端 SimpleModeFun):按 ClientBlockConfig.DefaultMode 批量下发 10203。</summary>
+        private void SendDefaultMode()
+        {
+            List<KeyValuePair<int, int>> defaults = SettingConfigs.GetDefaultModeList();
+            if (defaults.Count == 0)
             {
-                GameLog.Info("Setting", "点击[{0}] → 打开 {1}", label, viewType);
-                SettingFlow.OpenSub(viewType);
-            });
+                GameLog.Warn("Setting", "ClientBlockConfig.DefaultMode 为空,还原默认设置未发送");
+                return;
+            }
+            SettingController.Instance.SendSettingList(SettingModel.TYPE_SYS_SETTING, defaults);
         }
 
-        /// <summary>关闭按钮(Image 或含 Image 容器)→ Hide(关闭本窗)。</summary>
-        private void BindClose(Component target)
-        {
-            if (target == null) return;
-            Image img = target as Image;
-            if (img == null) img = target.GetComponentInChildren<Image>(true);
-            if (img == null) return;
-            img.raycastTarget = true;
-            UIUtil.AddClick(img, Hide);
-        }
-
-        /// <summary>给按钮(Image 或含 Image 子节点的容器)挂点击 → 打日志(降级:协议/子面板待对接)。</summary>
-        private void BindBtn(Component target, string label)
-        {
-            if (target == null) return;
-            Image img = target as Image;
-            if (img == null) img = target.GetComponentInChildren<Image>(true);
-            if (img == null) return;
-            img.raycastTarget = true;
-            UIUtil.AddClick(img, () => GameLog.Info("Setting", "点击[{0}] → 待对接", label));
-        }
+        // ---------------------------------------------------------------- 滑条(同屏/特效/音乐/音效)
 
         private void BuildSliders()
         {
-            EnsureSlider(ref _sameScreenSlider, slider_conta1, DefaultSameScreenRoleCount, 0f, MaxSameScreenRoleCount, _screen_value);
-            EnsureSlider(ref _effectSlider, slider_conta2, DefaultEffectCount, 0f, MaxEffectCount, _effect_value);
-            EnsureSlider(ref _soundSlider, slider_audio, DefaultSoundVolume, 0f, 100f, _sound_value);
-            EnsureSlider(ref _musicSlider, slider_music, DefaultMusicVolume, 0f, 100f, _music_value);
+            float maxNum = SettingConfigs.MaxRoleNum;
+            float same = SettingModel.Get(SettingModel.TYPE_SYS_SETTING, SettingModel.SUB_SAME_SCREEN_ROLE_NUM, (int)DefaultSameScreenRoleCount);
+            float effect = SettingModel.Get(SettingModel.TYPE_SYS_SETTING, SettingModel.SUB_EFFECT_NUM, (int)DefaultEffectCount);
+            float sound = SettingModel.Get(SettingModel.TYPE_SYS_SETTING, SettingModel.SUB_SOUND_OPEN, (int)DefaultSoundVolume);
+            float music = SettingModel.Get(SettingModel.TYPE_SYS_SETTING, SettingModel.SUB_SOUND_EFFECT_OPEN, (int)DefaultMusicVolume);
+
+            EnsureSlider(ref _sameScreenSlider, slider_conta1, same, 0f, maxNum, v => SetNumber(_screen_value, v));
+            EnsureSlider(ref _effectSlider, slider_conta2, effect, 0f, maxNum, v => SetNumber(_effect_value, v));
+            EnsureSlider(ref _soundSlider, slider_audio, sound, 0f, 100f, v =>
+            {
+                SetNumber(_sound_value, v);
+                AudioManager.SetVolume(AudioManager.Category.Sfx, v / 100f); // 「音效」滑条(subtype 9,老端 ChangeVolumeEffect)
+            });
+            EnsureSlider(ref _musicSlider, slider_music, music, 0f, 100f, v =>
+            {
+                SetNumber(_music_value, v);
+                AudioManager.SetVolume(AudioManager.Category.Music, v / 100f); // 「音乐」滑条(subtype 12,老端 ChangeVolume)
+            });
         }
 
-        private void EnsureSlider(ref WithBtnHSlider slider, RectTransform parent, float value, float min, float max, TextMeshProUGUI valueLabel)
+        /// <summary>关闭时把四滑条当前值批量写回服务器(subtype 6/7/9/12,对标 SendSetSliderNum)。</summary>
+        private void SendSliderValues()
         {
-            SetNumber(valueLabel, value);
+            if (_sameScreenSlider == null && _effectSlider == null && _soundSlider == null && _musicSlider == null) return;
+
+            var list = new List<KeyValuePair<int, int>>(4);
+            AppendSlider(list, SettingModel.SUB_SAME_SCREEN_ROLE_NUM, _sameScreenSlider);
+            AppendSlider(list, SettingModel.SUB_EFFECT_NUM, _effectSlider);
+            AppendSlider(list, SettingModel.SUB_SOUND_OPEN, _soundSlider);
+            AppendSlider(list, SettingModel.SUB_SOUND_EFFECT_OPEN, _musicSlider);
+            if (list.Count > 0)
+            {
+                SettingController.Instance.SendSettingList(SettingModel.TYPE_SYS_SETTING, list);
+            }
+        }
+
+        private static void AppendSlider(List<KeyValuePair<int, int>> list, int subtype, WithBtnHSlider slider)
+        {
+            if (slider == null) return;
+            list.Add(new KeyValuePair<int, int>(subtype, Mathf.RoundToInt(slider.GetValue())));
+        }
+
+        private void EnsureSlider(ref WithBtnHSlider slider, RectTransform parent, float value, float min, float max, Action<float> onChange)
+        {
+            onChange?.Invoke(value);
             if (slider == null)
             {
                 if (_tpl_WithBtnHSlider == null || parent == null) return;
+                // SettingCreator 烤的静态预览滑条(纯视觉件)在真滑条就位时移除(编辑期 harness 无 Play 态,走 Immediate)。
+                Transform preview = parent.Find("__PreviewSlider");
+                if (preview != null)
+                {
+                    if (Application.isPlaying) Destroy(preview.gameObject);
+                    else DestroyImmediate(preview.gameObject);
+                }
                 GameObject go = Instantiate(_tpl_WithBtnHSlider, parent);
                 go.name = _tpl_WithBtnHSlider.name + "_" + parent.name;
                 go.SetActive(true);
@@ -196,9 +276,10 @@ namespace Shenxiao.Module.Core.Setting
                 RectTransform rt = go.transform as RectTransform;
                 if (rt != null)
                 {
-                    rt.anchorMin = new Vector2(0f, 0.5f);
-                    rt.anchorMax = new Vector2(0f, 0.5f);
-                    rt.pivot = new Vector2(0f, 0.5f);
+                    // 老端 new WithBtnHSlider(parent) 落在容器 (0,0):左上锚+左上枢轴(快照里滑条克隆即容器左上角)。
+                    rt.anchorMin = new Vector2(0f, 1f);
+                    rt.anchorMax = new Vector2(0f, 1f);
+                    rt.pivot = new Vector2(0f, 1f);
                     rt.anchoredPosition = Vector2.zero;
                     rt.localScale = Vector3.one;
                 }
@@ -214,7 +295,7 @@ namespace Shenxiao.Module.Core.Setting
 
             if (slider != null)
             {
-                slider.SetData(value, 1f, min, max, v => SetNumber(valueLabel, v));
+                slider.SetData(value, 1f, min, max, v => onChange?.Invoke(v));
             }
         }
 
@@ -222,6 +303,8 @@ namespace Shenxiao.Module.Core.Setting
         {
             if (label != null) label.text = Mathf.RoundToInt(value).ToString();
         }
+
+        // ---------------------------------------------------------------- 角色信息/头像
 
         private void PopulateRoleInfo()
         {
@@ -266,30 +349,36 @@ namespace Shenxiao.Module.Core.Setting
 
             if (_roleHeadItem == null)
             {
-                if (_loadingRoleHead) return;
-                _loadingRoleHead = true;
-                GameObject go = _tpl_CustomHeadItem != null
-                    ? Instantiate(_tpl_CustomHeadItem, _role_head, false)
-                    : await ResManager.InstantiateAsync(GameResPath.GetUIPrefab("common", "CustomHeadItem"), _role_head);
-                _loadingRoleHead = false;
-                if (go == null) return;
-
-                go.name = "CustomHeadItem";
-                go.SetActive(true);
-                RectTransform rt = go.transform as RectTransform;
-                if (rt != null)
+                // 优先收编 SettingCreator 烤进 prefab 的 CustomHeadItem 静态预览实例。
+                _roleHeadItem = _role_head.GetComponentInChildren<CustomHeadItem>(true);
+                if (_roleHeadItem == null)
                 {
-                    rt.anchorMin = new Vector2(0.5f, 0.5f);
-                    rt.anchorMax = new Vector2(0.5f, 0.5f);
-                    rt.pivot = new Vector2(0.5f, 0.5f);
-                    rt.anchoredPosition = Vector2.zero;
-                    rt.localScale = Vector3.one;
+                    if (_loadingRoleHead) return;
+                    _loadingRoleHead = true;
+                    GameObject go = _tpl_CustomHeadItem != null
+                        ? Instantiate(_tpl_CustomHeadItem, _role_head, false)
+                        : await ResManager.InstantiateAsync(GameResPath.GetUIPrefab("common", "CustomHeadItem"), _role_head);
+                    _loadingRoleHead = false;
+                    if (go == null) return;
+
+                    go.name = "CustomHeadItem";
+                    go.SetActive(true);
+                    RectTransform rt = go.transform as RectTransform;
+                    if (rt != null)
+                    {
+                        rt.anchorMin = new Vector2(0.5f, 0.5f);
+                        rt.anchorMax = new Vector2(0.5f, 0.5f);
+                        rt.pivot = new Vector2(0.5f, 0.5f);
+                        rt.anchoredPosition = Vector2.zero;
+                        rt.localScale = Vector3.one;
+                    }
+
+                    _roleHeadItem = go.GetComponent<CustomHeadItem>();
+                    if (_roleHeadItem == null) _roleHeadItem = go.GetComponentInChildren<CustomHeadItem>(true);
+                    if (_roleHeadItem == null) return;
                 }
 
-                _roleHeadItem = go.GetComponent<CustomHeadItem>();
-                if (_roleHeadItem == null) _roleHeadItem = go.GetComponentInChildren<CustomHeadItem>(true);
-                if (_roleHeadItem == null) return;
-
+                _roleHeadItem.gameObject.SetActive(true);
                 _roleHeadItem.Show();
                 _roleHeadItem.SetActiveFrame(false);
                 _roleHeadItem.SetActiveLevel(false);
@@ -324,60 +413,248 @@ namespace Shenxiao.Module.Core.Setting
             if (level <= 0) level = loginRole.Level;
         }
 
+        // ---------------------------------------------------------------- 自动拾取 / 屏蔽列表
+
+        /// <summary>自动拾取三项(17/18/19,对标 UpdateAutoPickBlockCheck):服务器有数据且配置有文案才显示。</summary>
         private void BuildAutoPickList()
         {
-            ClearRuntimeItems(_autoPickItems);
-            if (_tpl_SettingShieldItem == null || _list_pick == null) return;
+            RebuildShieldItems(_autoPickItems, _list_pick, AutoPickSubtypes, OnToggleAutoPick);
+        }
 
-            RectTransform parent = _list_pick.content;
-            if (parent == null) parent = _list_pick.transform as RectTransform;
+        /// <summary>屏蔽列表页(对标 SetBlockCheck + ShowInShieldDic)。</summary>
+        private void BuildShieldList()
+        {
+            RebuildShieldItems(_shieldItems, _list_shield, ShieldSubtypes, OnToggleShield);
+        }
+
+        private void RebuildShieldItems(List<SettingShieldItem> items, ScrollRect listRoot, int[] subtypes, Action<int> onToggle)
+        {
+            if (_tpl_SettingShieldItem == null || listRoot == null) return;
+
+            RectTransform parent = listRoot.content;
+            if (parent == null) parent = listRoot.transform as RectTransform;
             if (parent == null) return;
 
-            for (int i = 0; i < AutoPickLabels.Length; i++)
+            // 收编 SettingCreator 烤进 prefab 的静态预览项(同顺序),避免克隆一份重复的。
+            if (items.Count == 0)
             {
-                GameObject go = Instantiate(_tpl_SettingShieldItem, parent, false);
-                go.name = "SettingAutoPickItem_" + i;
-                go.SetActive(true);
-                _autoPickItems.Add(go);
-
-                RectTransform rt = go.transform as RectTransform;
-                if (rt != null)
+                foreach (SettingShieldItem baked in parent.GetComponentsInChildren<SettingShieldItem>(true))
                 {
-                    rt.anchorMin = new Vector2(0f, 1f);
-                    rt.anchorMax = new Vector2(0f, 1f);
-                    rt.pivot = new Vector2(0f, 1f);
-                    rt.anchoredPosition = new Vector2((i % 2) * SettingShieldItemWidth, -(i / 2) * SettingShieldItemHeight);
-                    rt.sizeDelta = new Vector2(SettingShieldItemWidth, SettingShieldItemHeight);
-                    rt.localScale = Vector3.one;
+                    baked.Show();
+                    items.Add(baked);
                 }
+            }
 
-                SettingShieldItem item = go.GetComponent<SettingShieldItem>();
-                if (item == null) item = go.GetComponentInChildren<SettingShieldItem>(true);
+            int used = 0;
+            foreach (int subtype in subtypes)
+            {
+                // 老端容错:配置表查不到不显示;服务器行缺失时退配置默认值(点击切换会经 10203 建行)。
+                SettingConfigs.ItemCfg cfg = SettingConfigs.GetItem(SettingModel.TYPE_SYS_SETTING, subtype);
+                if (cfg == null || string.IsNullOrEmpty(cfg.Name)) continue;
+                int isOpen = SettingModel.Get(SettingModel.TYPE_SYS_SETTING, subtype, cfg.DefaultOpen);
+
+                SettingShieldItem item = GetOrCreateShieldItem(items, parent, used);
                 if (item == null) continue;
-                item.Show();
-                item.SetData(AutoPickLabels[i], true);
+
+                item.gameObject.SetActive(true);
+                PlaceShieldItem(item, used);
+                int captured = subtype;
+                item.SetData(cfg.Name, isOpen == 1, () => onToggle(captured));
+                used++;
+            }
+            for (int i = used; i < items.Count; i++)
+            {
+                if (items[i] != null) items[i].gameObject.SetActive(false);
             }
 
             parent.sizeDelta = new Vector2(
                 Mathf.Max(parent.sizeDelta.x, SettingShieldItemWidth * 2f),
-                Mathf.Max(parent.sizeDelta.y, SettingShieldItemHeight * 2f));
+                Mathf.Max((used + 1) / 2 * SettingShieldItemHeight, SettingShieldItemHeight));
         }
 
-        private void HideUnmigratedBaseBlocks()
+        private SettingShieldItem GetOrCreateShieldItem(List<SettingShieldItem> items, RectTransform parent, int index)
         {
-            HideNode(_box_horse);
-            HideNode(_box_god);
-            HideNode(_box_task);
+            while (items.Count <= index) items.Add(null);
+            if (items[index] != null) return items[index];
+
+            GameObject go = Instantiate(_tpl_SettingShieldItem, parent, false);
+            go.name = "SettingShieldItem_" + parent.name + "_" + index;
+            SettingShieldItem item = go.GetComponent<SettingShieldItem>();
+            if (item == null) item = go.GetComponentInChildren<SettingShieldItem>(true);
+            if (item == null)
+            {
+                Destroy(go);
+                return null;
+            }
+            item.Show();
+            items[index] = item;
+            return item;
         }
 
-        private void BindTab(Component target, bool baseTab)
+        private static void PlaceShieldItem(SettingShieldItem item, int index)
         {
-            if (target == null) return;
+            RectTransform rt = item.transform as RectTransform;
+            if (rt == null) return;
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.anchoredPosition = new Vector2(index % 2 * SettingShieldItemWidth, -(index / 2) * SettingShieldItemHeight);
+            rt.sizeDelta = new Vector2(SettingShieldItemWidth, SettingShieldItemHeight);
+            rt.localScale = Vector3.one;
+        }
+
+        /// <summary>自动拾取项点击:150 级前禁取消(对标老端 CheckClickFun 的等级闸),其余走通用切换。</summary>
+        private void OnToggleAutoPick(int subtype)
+        {
+            if (SettingModel.Get(SettingModel.TYPE_SYS_SETTING, subtype, 1) == 1 && RoleModel.Instance.Level < 150)
+            {
+                TipsManager.Toast("150级后可取消选项");
+                return;
+            }
+            ToggleWithSimpleModeGuard(subtype);
+        }
+
+        private void OnToggleShield(int subtype)
+        {
+            ToggleWithSimpleModeGuard(subtype);
+        }
+
+        /// <summary>极简模式下改屏蔽项先确认退出该模式(对标老端 CheckClickFun 的 simple_mode 分支)。</summary>
+        private void ToggleWithSimpleModeGuard(int subtype)
+        {
+            bool inSimpleMode = SettingModel.Get(SettingModel.TYPE_SYS_SETTING, SettingModel.SUB_SIMPLE_MODE, 0) == 1;
+            if (inSimpleMode && subtype != SettingModel.SUB_GODBEFALL)
+            {
+                TipsManager.Confirm("您当前处于极简模式，是否确定退出该模式？", () =>
+                {
+                    SettingController.Instance.SendSetting(SettingModel.TYPE_SYS_SETTING, SettingModel.SUB_SIMPLE_MODE, 0);
+                    ToggleSysSetting(subtype);
+                });
+                return;
+            }
+            ToggleSysSetting(subtype);
+        }
+
+        /// <summary>读设置值:服务器行缺失退配置默认(config_setting.json is_open),再缺退 1。</summary>
+        private static int GetSettingValue(int subtype)
+        {
+            SettingConfigs.ItemCfg cfg = SettingConfigs.GetItem(SettingModel.TYPE_SYS_SETTING, subtype);
+            return SettingModel.Get(SettingModel.TYPE_SYS_SETTING, subtype, cfg?.DefaultOpen ?? 1);
+        }
+
+        /// <summary>通用切换:取反当前值发 10203(对标老端 SendProtocal(subtype, open))。</summary>
+        private void ToggleSysSetting(int subtype)
+        {
+            SettingController.Instance.SendSetting(SettingModel.TYPE_SYS_SETTING, subtype, GetSettingValue(subtype) == 1 ? 0 : 1);
+        }
+
+        // ---------------------------------------------------------------- 御风云骑/降神/自动任务
+
+        private void OnToggleHorse()
+        {
+            int open = GetSettingValue(SettingModel.SUB_AUTO_HORSE) == 1 ? 0 : 1;
+            SettingController.Instance.SendSetting(SettingModel.TYPE_SYS_SETTING, SettingModel.SUB_AUTO_HORSE, open);
+            if (open == 0)
+            {
+                TipsManager.Toast("场景中上下轻滑即可上下御风云骑~"); // 对标老端 change_horse_box
+            }
+        }
+
+        /// <summary>自动任务双勾:check1=自动(1)/check2=手动(0),点已选中的一侧不重发(对标老端 task_check 点击)。</summary>
+        private void SetAutoTask(int open)
+        {
+            if (GetSettingValue(SettingModel.SUB_AUTO_TASK) == open) return;
+            SettingController.Instance.SendSetting(SettingModel.TYPE_SYS_SETTING, SettingModel.SUB_AUTO_TASK, open);
+        }
+
+        /// <summary>三块勾选区显隐 + 勾选态(对标 UpdateGodSetting/UpdateHorseSetting/UpdateTaskSetting):
+        /// 降神/坐骑走功能开放门禁,自动任务看服务器是否下发;隐藏项之后做纵向紧排消空位。</summary>
+        private void RefreshToggleBlocks()
+        {
+            bool hasHorse = SettingConfigs.GetItem(SettingModel.TYPE_SYS_SETTING, SettingModel.SUB_AUTO_HORSE) != null;
+            bool hasGod = SettingConfigs.GetItem(SettingModel.TYPE_SYS_SETTING, SettingModel.SUB_GODBEFALL) != null;
+            bool hasTask = SettingConfigs.GetItem(SettingModel.TYPE_SYS_SETTING, SettingModel.SUB_AUTO_TASK) != null;
+            int horseOpen = GetSettingValue(SettingModel.SUB_AUTO_HORSE);
+            int godOpen = GetSettingValue(SettingModel.SUB_GODBEFALL);
+            int taskOpen = GetSettingValue(SettingModel.SUB_AUTO_TASK);
+
+            bool showHorse = hasHorse && FuncOpenConfig.CheckFuncOpenState("HorseComponentView");
+            bool showGod = hasGod && FuncOpenConfig.CheckFuncOpenState("GodBefallMainView");
+            bool showTask = hasTask;
+
+            SetNodeVisible(_box_horse, showHorse);
+            SetNodeVisible(_box_god, showGod);
+            SetNodeVisible(_box_task, showTask);
+
+            if (showHorse) SetCheckSkin(_img_horse_check, horseOpen == 1);
+            if (showGod) SetCheckSkin(_img_god_check, godOpen == 1);
+            if (showTask)
+            {
+                SetCheckSkin(_img_task_check1, taskOpen == 1);
+                SetCheckSkin(_img_task_check2, taskOpen != 1);
+            }
+
+            ReflowBaseBlocks();
+        }
+
+        /// <summary>基础设置页各块纵向紧排(对标老端 UpdateBaseSettingPanelHeight):隐藏块不占位。
+        /// 依赖各块 anchor(0,1)/pivot(0,1)(SettingCreator 保证),只改 y、保留各自 x。</summary>
+        private void ReflowBaseBlocks()
+        {
+            float y = 10f;
+            ReflowBlock(_box_slider, ref y);
+            ReflowBlock(_box_pick, ref y);
+            ReflowBlock(_box_horse, ref y);
+            ReflowBlock(_box_god, ref y);
+            ReflowBlock(_box_task, ref y);
+        }
+
+        private static void ReflowBlock(RectTransform block, ref float y)
+        {
+            if (block == null || !block.gameObject.activeSelf) return;
+            block.anchoredPosition = new Vector2(block.anchoredPosition.x, -y);
+            y += block.sizeDelta.y + 10f;
+        }
+
+        private static void SetCheckSkin(Image img, bool isChecked)
+        {
+            if (img == null) return;
+            img.raycastTarget = true;
+            _ = ResManager.SetImageAsync(img, isChecked ? CheckedSkin : UncheckedSkin, nativeSize: false);
+        }
+
+        // ---------------------------------------------------------------- 通用绑定/页签
+
+        /// <summary>按钮 → 打开设置模块内子窗(SettingFlow.OpenSub 按 View 子类名查找并叠在主面板上)。</summary>
+        private void BindOpen(Component target, string viewType, string label)
+        {
+            BindClick(target, () =>
+            {
+                GameLog.Info("Setting", "点击[{0}] → 打开 {1}", label, viewType);
+                SettingFlow.OpenSub(viewType);
+            });
+        }
+
+        /// <summary>关闭按钮(Image 或含 Image 容器)→ Hide(关闭本窗)。</summary>
+        private void BindClose(Component target)
+        {
+            BindClick(target, Hide);
+        }
+
+        /// <summary>给按钮(Image 或含 Image 子节点的容器)挂点击。</summary>
+        private static void BindClick(Component target, Action onClick)
+        {
+            if (target == null || onClick == null) return;
             Image img = target as Image;
             if (img == null) img = target.GetComponentInChildren<Image>(true);
             if (img == null) return;
             img.raycastTarget = true;
-            UIUtil.AddClick(img, () => SelectTab(baseTab));
+            UIUtil.AddClick(img, onClick);
+        }
+
+        private void BindTab(Component target, bool baseTab)
+        {
+            BindClick(target, () => SelectTab(baseTab));
         }
 
         private void SelectTab(bool baseTab)
@@ -389,20 +666,9 @@ namespace Shenxiao.Module.Core.Setting
             if (_lb_tab_shield != null) _lb_tab_shield.color = !baseTab ? Color.white : new Color(0.58f, 0.36f, 0.25f);
         }
 
-        private static void HideNode(Component c)
+        private static void SetNodeVisible(Component c, bool visible)
         {
-            if (c != null) c.gameObject.SetActive(false);
-        }
-
-        private static void ClearRuntimeItems(List<GameObject> items)
-        {
-            if (items == null) return;
-            for (int i = 0; i < items.Count; i++)
-            {
-                if (items[i] == null) continue;
-                Destroy(items[i]);
-            }
-            items.Clear();
+            if (c != null) c.gameObject.SetActive(visible);
         }
     }
 }

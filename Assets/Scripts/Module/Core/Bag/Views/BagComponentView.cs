@@ -29,7 +29,14 @@ namespace Shenxiao.Module.Core.Bag
         private const float ModelScale = 0.78f;
 
         private BagItemRenderer _itemTemplate;
-        private readonly List<GameObject> _cells = new List<GameObject>();
+        // 虚拟化格子池:只实例化「可视行数 + 缓冲」个 cell,滚动/数据更新时原地重绑数据,
+        // 不再按背包容量整表 Instantiate(200 格背包一帧 400 次实例化 = 打开即卡死的元凶)。
+        private readonly List<BagItemRenderer> _cellPool = new List<BagItemRenderer>();
+        private BagGoods[] _slots = System.Array.Empty<BagGoods>();
+        private int _slotCount;
+        private int _cols = 1;
+        private int _firstVisibleRow = -1;
+        private bool _scrollHooked;
         private readonly List<BagEquipmentIcon> _equipmentSlots = new List<BagEquipmentIcon>();
         private FightingShowSmallItem _fightingItem;
         private bool _subscribed;
@@ -181,8 +188,6 @@ namespace Shenxiao.Module.Core.Bag
 
         private void BuildGrid()
         {
-            ClearCells();
-
             if (_itemTemplate == null)
             {
                 GameLog.Warn("Bag", "Bag item template was not injected by BagFlow; grid cannot render.");
@@ -199,36 +204,81 @@ namespace Shenxiao.Module.Core.Bag
             float viewW = bag_con.viewport != null ? bag_con.viewport.rect.width : 580f;
             if (viewW <= 1f) viewW = 580f;
 
-            int cols = Mathf.Max(1, Mathf.FloorToInt((viewW + Gap) / (Cell + Gap)));
-            int slotCount = ResolveSlotCount(goods);
-            BagGoods[] slots = BuildSlots(goods, slotCount);
+            _cols = Mathf.Max(1, Mathf.FloorToInt((viewW + Gap) / (Cell + Gap)));
+            _slotCount = ResolveSlotCount(goods);
+            _slots = BuildSlots(goods, _slotCount);
 
-            for (int i = 0; i < slotCount; i++)
+            int rows = Mathf.CeilToInt(_slotCount / (float)_cols);
+            content.sizeDelta = new Vector2(content.sizeDelta.x, rows * (Cell + Gap) + Gap);
+
+            EnsureCellPool();
+            HookScroll();
+            RefreshVisibleCells(force: true);
+
+            GameLog.Info("Bag", "grid slots={0} goods={1} cols={2} rows={3} pool={4} hasData={5}",
+                _slotCount, goods.Count, _cols, rows, _cellPool.Count, BagModel.Instance.HasData);
+        }
+
+        /// <summary>池容量 = 可视行数 + 2 行缓冲(只增不减;视口尺寸未就绪时按 640 兜底)。</summary>
+        private void EnsureCellPool()
+        {
+            float viewH = bag_con.viewport != null ? bag_con.viewport.rect.height : 0f;
+            if (viewH <= 1f) viewH = 640f;
+            int poolRows = Mathf.CeilToInt(viewH / (Cell + Gap)) + 2;
+            int need = poolRows * _cols;
+
+            RectTransform content = bag_con.content;
+            while (_cellPool.Count < need)
             {
                 GameObject cellGo = Instantiate(_itemTemplate.gameObject, content);
-                cellGo.SetActive(true);
-
+                cellGo.name = "BagCell_" + _cellPool.Count;
                 var rt = (RectTransform)cellGo.transform;
                 rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
                 rt.pivot = new Vector2(0f, 1f);
                 ApplyCellScale(rt);
-                int col = i % cols;
-                int row = i / cols;
-                rt.anchoredPosition = new Vector2(col * (Cell + Gap), -row * (Cell + Gap));
-
-                BagGoods vo = slots[i];
-                var renderer = cellGo.GetComponent<BagItemRenderer>();
-                if (renderer != null)
-                {
-                    renderer.SetData(vo != null ? new BagItemData { TypeId = vo.TypeId, Count = vo.GoodsNum, Goods = vo } : null);
-                }
-                _cells.Add(cellGo);
+                _cellPool.Add(cellGo.GetComponent<BagItemRenderer>());
             }
+        }
 
-            int rows = Mathf.CeilToInt(slotCount / (float)cols);
-            content.sizeDelta = new Vector2(content.sizeDelta.x, rows * (Cell + Gap) + Gap);
-            GameLog.Info("Bag", "grid slots={0} goods={1} cols={2} rows={3} hasData={4}",
-                slotCount, goods.Count, cols, rows, BagModel.Instance.HasData);
+        private void HookScroll()
+        {
+            if (_scrollHooked || bag_con == null) return;
+            _scrollHooked = true;
+            bag_con.onValueChanged.AddListener(_ => RefreshVisibleCells(force: false));
+        }
+
+        /// <summary>把池内 cell 绑到当前可视窗口对应的槽位;首行未变时整帧 early-out(对齐 SceneMapView 瓦片池思路)。</summary>
+        private void RefreshVisibleCells(bool force)
+        {
+            if (bag_con == null || bag_con.content == null || _cellPool.Count == 0) return;
+
+            float scrollY = Mathf.Max(0f, bag_con.content.anchoredPosition.y);
+            int totalRows = Mathf.CeilToInt(_slotCount / (float)_cols);
+            int poolRows = _cellPool.Count / Mathf.Max(1, _cols);
+            int firstRow = Mathf.FloorToInt(scrollY / (Cell + Gap));
+            firstRow = Mathf.Clamp(firstRow, 0, Mathf.Max(0, totalRows - poolRows));
+            if (!force && firstRow == _firstVisibleRow) return;
+            _firstVisibleRow = firstRow;
+
+            for (int i = 0; i < _cellPool.Count; i++)
+            {
+                BagItemRenderer cell = _cellPool[i];
+                if (cell == null) continue;
+                int col = i % _cols;
+                int rowOffset = i / _cols;
+                int slotIndex = (firstRow + rowOffset) * _cols + col;
+                if (slotIndex >= _slotCount)
+                {
+                    cell.gameObject.SetActive(false);
+                    continue;
+                }
+
+                var rt = (RectTransform)cell.transform;
+                rt.anchoredPosition = new Vector2(col * (Cell + Gap), -(firstRow + rowOffset) * (Cell + Gap));
+                cell.gameObject.SetActive(true);
+                BagGoods vo = _slots[slotIndex];
+                cell.SetData(vo != null ? new BagItemData { TypeId = vo.TypeId, Count = vo.GoodsNum, Goods = vo } : null);
+            }
         }
 
         private static void ApplyCellScale(RectTransform rt)
@@ -285,15 +335,6 @@ namespace Shenxiao.Module.Core.Bag
                 slots[cursor] = overflow[i];
             }
             return slots;
-        }
-
-        private void ClearCells()
-        {
-            for (int i = 0; i < _cells.Count; i++)
-            {
-                if (_cells[i] != null) Destroy(_cells[i]);
-            }
-            _cells.Clear();
         }
 
         private void BuildEquipmentSlots()

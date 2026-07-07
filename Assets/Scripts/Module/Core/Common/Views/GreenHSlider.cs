@@ -33,6 +33,10 @@ namespace Shenxiao.Module.Core.Common
         protected override void OnInit()
         {
             if (_tpl_GoodsItem != null) _tpl_GoodsItem.SetActive(false);
+            // 转换器产物 raycastTarget 全为 0(Laya mouseEnabled 未映射)→ 滑条吃不到射线,
+            // OnPointerDown/OnDrag 永不触发。自愈:轨道+滑块开命中(对标老端整条轨道可点跳值、可拖)。
+            if (track != null) track.raycastTarget = true;
+            if (thumb != null) thumb.raycastTarget = true;
             Refresh();
         }
 
@@ -83,8 +87,20 @@ namespace Shenxiao.Module.Core.Common
         {
             float t = Normalized();
             if (value_text != null) value_text.text = Mathf.RoundToInt(_value).ToString();
-            if (trackHighlight != null && trackHighlight.type == Image.Type.Filled)
-                trackHighlight.fillAmount = t;
+            if (trackHighlight != null)
+            {
+                if (trackHighlight.type == Image.Type.Filled)
+                {
+                    trackHighlight.fillAmount = t;
+                }
+                else if (track != null)
+                {
+                    // 转换产物是 Simple 类型:按老端做法改宽度跟随(pivot.x=0 → 左边固定右边收缩,
+                    // 对标快照 trackHighlight w=225×比例)。
+                    trackHighlight.rectTransform.SetSizeWithCurrentAnchors(
+                        RectTransform.Axis.Horizontal, track.rectTransform.rect.width * t);
+                }
+            }
             if (thumb != null && track != null)
             {
                 RectTransform tr = track.rectTransform;

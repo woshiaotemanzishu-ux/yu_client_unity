@@ -21,6 +21,23 @@ namespace Shenxiao.Framework.Res
         private static readonly Dictionary<UnityEngine.Object, AsyncOperationHandle> _assetHandles
             = new Dictionary<UnityEngine.Object, AsyncOperationHandle>();
 
+        // 按 key 的资产缓存 + in-flight 去重:同一资源(UI 图标/品质底板/动作 clip 等)被反复 LoadAsync 时,
+        // 命中直接同步返回,不再每次走一遍 Addressables 异步往返(AddressablesAwaiter 每次至少 1~2 帧)。
+        // RefCount 配合 Release():计数归零才真正释放句柄——地图瓦片 LRU 的加载/释放语义依赖这一点。
+        private sealed class AssetCacheEntry
+        {
+            public AsyncOperationHandle Handle;
+            public UnityEngine.Object Asset;
+            public int RefCount;
+        }
+
+        private static readonly Dictionary<string, AssetCacheEntry> _assetCache
+            = new Dictionary<string, AssetCacheEntry>();
+        private static readonly Dictionary<UnityEngine.Object, string> _assetCacheKeyOf
+            = new Dictionary<UnityEngine.Object, string>();
+        private static readonly Dictionary<string, Task> _assetLoadsInFlight
+            = new Dictionary<string, Task>();
+
         private static readonly Dictionary<GameObject, AsyncOperationHandle<GameObject>> _instanceHandles
             = new Dictionary<GameObject, AsyncOperationHandle<GameObject>>();
 
@@ -91,18 +108,7 @@ namespace Shenxiao.Framework.Res
                 GameLog.Error("Res", "load failed key={0} type={1}(key 不在 Addressables,跑 神霄/资源/Addressable 自动分组)", key, typeof(T).Name);
                 return null;
             }
-            var handle = Addressables.LoadAssetAsync<T>(key);
-            await AddressablesAwaiter.Wait(handle);
-
-            if (handle.Status != AsyncOperationStatus.Succeeded)
-            {
-                GameLog.Error("Res", "load failed key={0} type={1}", key, typeof(T).Name);
-                return null;
-            }
-
-            T asset = handle.Result;
-            if (asset != null) _assetHandles[asset] = handle;
-            return asset;
+            return await LoadThroughCacheAsync<T>(key, optional: false);
         }
 
         /// <summary>
@@ -122,16 +128,64 @@ namespace Shenxiao.Framework.Res
 #endif
             if (!await KeyExists(key, typeof(T))) return null;
 
+            return await LoadThroughCacheAsync<T>(key, optional: true);
+        }
+
+        /// <summary>
+        /// 缓存/去重的加载核心:命中缓存同步返回并 RefCount++;同 key 并发只发一次真实加载。
+        /// </summary>
+        private static async Task<T> LoadThroughCacheAsync<T>(string key, bool optional) where T : UnityEngine.Object
+        {
+            // 缓存 key 带类型:同一地址按 Sprite / Texture2D 加载返回的是不同对象
+            string cacheKey = key + "|" + typeof(T).Name;
+            if (_assetCache.TryGetValue(cacheKey, out AssetCacheEntry hit))
+            {
+                if (hit.Asset != null)
+                {
+                    hit.RefCount++;
+                    return (T)hit.Asset;
+                }
+                // Unity 对象已被销毁(句柄被外部释放/域重载):清掉重新加载
+                if (!ReferenceEquals(hit.Asset, null)) _assetCacheKeyOf.Remove(hit.Asset);
+                _assetCache.Remove(cacheKey);
+            }
+
+            if (_assetLoadsInFlight.TryGetValue(cacheKey, out Task pending))
+            {
+                await (Task<T>)pending;
+                if (_assetCache.TryGetValue(cacheKey, out AssetCacheEntry after) && after.Asset != null)
+                {
+                    after.RefCount++;
+                    return (T)after.Asset;
+                }
+                return null;
+            }
+
+            Task<T> load = LoadFreshAsync<T>(key, cacheKey, optional);
+            _assetLoadsInFlight[cacheKey] = load;
+            try { return await load; }
+            finally { _assetLoadsInFlight.Remove(cacheKey); }
+        }
+
+        private static async Task<T> LoadFreshAsync<T>(string key, string cacheKey, bool optional) where T : UnityEngine.Object
+        {
             var handle = Addressables.LoadAssetAsync<T>(key);
             await AddressablesAwaiter.Wait(handle);
             if (handle.Status != AsyncOperationStatus.Succeeded)
             {
                 Addressables.Release(handle);
+                if (!optional) GameLog.Error("Res", "load failed key={0} type={1}", key, typeof(T).Name);
                 return null;
             }
 
             T asset = handle.Result;
-            if (asset != null) _assetHandles[asset] = handle;
+            if (asset == null)
+            {
+                Addressables.Release(handle);
+                return null;
+            }
+            _assetCache[cacheKey] = new AssetCacheEntry { Handle = handle, Asset = asset, RefCount = 1 };
+            _assetCacheKeyOf[asset] = cacheKey;
             return asset;
         }
 
@@ -248,6 +302,14 @@ namespace Shenxiao.Framework.Res
         public static void InvalidateKeyCache()
         {
             _keyExistsCache.Clear();
+            // catalog 变更后 key→资产映射可能整体更新:把缓存条目降级为一次性句柄,
+            // 旧引用照常使用/可释放(Release 走 _assetHandles 兜底),新的 LoadAsync 按新 catalog 重新加载。
+            foreach (var kv in _assetCache)
+            {
+                if (!ReferenceEquals(kv.Value.Asset, null)) _assetHandles[kv.Value.Asset] = kv.Value.Handle;
+            }
+            _assetCache.Clear();
+            _assetCacheKeyOf.Clear();
         }
 
         /// <summary>
@@ -256,6 +318,18 @@ namespace Shenxiao.Framework.Res
         public static void Release(UnityEngine.Object asset)
         {
             if (asset == null) return;
+            if (_assetCacheKeyOf.TryGetValue(asset, out string cacheKey)
+                && _assetCache.TryGetValue(cacheKey, out AssetCacheEntry entry))
+            {
+                entry.RefCount--;
+                if (entry.RefCount <= 0)
+                {
+                    _assetCache.Remove(cacheKey);
+                    _assetCacheKeyOf.Remove(asset);
+                    Addressables.Release(entry.Handle);
+                }
+                return;
+            }
             if (_assetHandles.TryGetValue(asset, out var handle))
             {
                 _assetHandles.Remove(asset);

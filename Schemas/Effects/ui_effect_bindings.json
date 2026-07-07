@@ -1,0 +1,3227 @@
+{
+ "note": "老端(yu_client, Laya H5) UI→特效 挂点登记表；由 TS 源码静态挖掘 (h5/src) + cdn/resource/config 配置表交叉解析生成。mainUI 与 login 模块为逐行人工核对(含 PlayBigEffect() 间接路由到 MainUIEffectView/GodSkillView/PartnerSkillView 三个转发视图)；其余~130个模块为脚本对 this.AddUIEffect(...) 调用点做括号平衡解析+字面量解析的自动抽取结果，人工抽样校验。已排除约 365(AddUIEffect)+6(PlayBigEffect) 处被注释掉的死代码调用。cdnMissing=true 表示该 .lh 连老端 cdn 资源目录里都不存在(陈旧引用，和 Unity 转换无关)；prefabMissing=true 才代表老端资源存在但 Unity 尚未转换(实测全表 0 条)。",
+ "loaders": [
+  {
+   "api": "AddUIEffect(res_name, parent: Laya.Sprite, position?, scale?, is_loop?, last_time?, playend_call_back_func?, load_finish_func?, hash_target?, multi_children?, rotation?, load_queue?, use_cache?, effect_res_type?, scene?)",
+   "file": "h5/src/common/UIEffect.ts:125",
+   "desc": "老端唯一的 UI 特效统一入口。UIEffect 类被 common/BaseView1.ts 和 common/BaseItem1.ts 继承，几乎所有 View/Item 都能直接调用 this.AddUIEffect(...)。内部用 res_name 拼 GameResPath.GetEffectPath(effect_res_type||EffectResType.UI, res_name) => resource/effect/objs/{category}/{res_name}.lh，创建一个 UIScene3D+Camera，把加载出来的 Laya.Sprite3D 渲染到 RenderTexture 再贴到 parent 容器上一张 Image。同 key（res_name+pos+scale+parent尺寸）默认走缓存(use_cache=true)。全仓库 665 处调用（其中约 365 处是被注释掉的死代码，199 处/剩余为按模块自动抽取的活跃调用，见下）。"
+  },
+  {
+   "api": "ClearUIEffect(parent_con: Laya.Sprite)",
+   "file": "h5/src/common/UIEffect.ts:85",
+   "desc": "AddUIEffect 的配套清理函数：removeChildren() 并派发 MANUL_REMOVED 事件让 UIEffectInfo 回收/引用计数递减。几乎所有 AddUIEffect 调用点都有对应的 ClearUIEffect(同一个 node) 用于状态切换时先清后加。"
+  },
+  {
+   "api": "PlayBigEffect(effName?, pos?, scale?, type?)",
+   "file": "h5/src/util/Util.ts:2487",
+   "desc": "全局便捷包装：Fire(EventName.PLAY_BIG_EFFECT, {name:effName,pos,scale}, type)。commonController/MainUIController.ts(~369-406) 监听该事件：type 为空/0 -> 打开 mainUI/MainUIEffectView（node _box_eff）；type==1 -> mainUI/MainUIEffectGodSkillView（node _box_eff，降神技能大招提示，80s自动关闭）；type==2 -> mainUI/MainUIEffectPartnerSkillView（node _box_eff，伙伴技能提示）。三个 View 内部都是 this.AddUIEffect(this._obj.name, this._box_eff, ...)，layout_file 都复用 'MainUIEffectView' 布局。全仓库约 68 处调用（其中 6 处被注释禁用），横跨 achv/baby/bag/brightSea/chc/common/commonController/commonModel/composite/demon/equipArmor/equipRefinement/fashion/godBeast/innateSkill/jewel/longlanguage/lung/marriage/monBook/partner/redEquip/rune/suit/title 等约25个模块，是'升级/激活/合成成功'类全屏大特效的统一触发方式。"
+  },
+  {
+   "api": "GameResPath.GetEffectPath(effect_type, res_name) / GetUIEffectPath(res_name)",
+   "file": "h5/src/util/GameResPath.ts:49-54",
+   "desc": "路径拼接函数：`resource/effect/objs/${effect_type}/${res_name}.lh`。effect_type 取自 scene/SceneConfig.ts 的 EffectResType 枚举（UI/Skill/ShengQi/God/Demon/Monster/Horse/Pet/Sprite/Weapon/Wing/Other/Buff/BackOrnament/Ghost/Role/XingHe，映射到 ui_effect/skills_effect/fabao_effect/god_effect/littlepet_effect/monster_effect/mount_effect/pet_effect/spirit_effect/weapon_effect/wing_effect/other_effect/buff_effect/back_effect/ghost_effect/role_effect/xinghe_effect 17个目录），AddUIEffect 不传时默认 EffectResType.UI。"
+  },
+  {
+   "api": "(区别于UI特效) SetRoleModel(this, parent, {..., bone_effect}) -> RoleModel.PlayBoneparticle()",
+   "file": "h5/src/login/LoginCreateRoleView.ts:569 附近; common/SkillParticalUIModelEffect.ts; particalEffect/ParticleEffect.ts; scene/sceneobj/SceneEffect.ts",
+   "desc": "3D场景角色模型的骨骼挂点特效系统，和 AddUIEffect 是两条完全不同的管线：不经过 UIScene3D+RenderTexture 贴图，而是直接把 Laya.Sprite3D 特效挂到角色模型骨骼节点上一起渲染。用于战斗技能特效(SkillParticalUIModelEffect/ParticleEffect, attach_type=挂点)和创角/选角的角色预览模型特效(LoginCreateRoleView 的 bone_effect.clothe.root)。本登记表只按需求收录 LoginCreateRoleView 这一样例，不深挖战斗技能特效全集。"
+  }
+ ],
+ "bindings": [
+  {
+   "module": "mainUI",
+   "view": "ActivityIcon",
+   "node": "_box_effect2",
+   "effect": "resource/effect/objs/ui_effect/ui_zhujiemianzhuanquan.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_zhujiemianzhuanquan/ui_zhujiemianzhuanquan.prefab",
+   "trigger": "always (SetIconType()->SetIconEffect(), icon_type in {331@120@0, 331@120@1, 113113113, 158} 时 ConfigFunctionIcon.effect_name 非空，播放持续旋转光环)",
+   "source": "mainUI/ActivityIcon.ts:790-812; config: cdn/resource/config/client/ConfigFunctionIcon.json (icon_type 331@120@0/1, 113113113, 158)"
+  },
+  {
+   "module": "mainUI",
+   "view": "ActivityIcon",
+   "node": "_box_effect2",
+   "effect": "resource/effect/objs/ui_effect/UI_1001.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1001/UI_1001.prefab",
+   "trigger": "condition (icon_type==331@111@0 时 ConfigFunctionIcon.effect_name='UI_1001')",
+   "source": "mainUI/ActivityIcon.ts:790-812; config: ConfigFunctionIcon.json (icon_type 331@111@0)",
+   "cdnMissing": true
+  },
+  {
+   "module": "mainUI",
+   "view": "ActivityIcon",
+   "node": "_box_effect2",
+   "effect": "resource/effect/objs/ui_effect/ui_zhujiemianzhuanquan.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_zhujiemianzhuanquan/ui_zhujiemianzhuanquan.prefab",
+   "trigger": "event: ActivityIconManager.UPDATE_EFFECT (由 commonController/EyouManager.ts:117 对 icon_type=666(易游转盘图标) 触发, scale=12.8)",
+   "source": "mainUI/ActivityIcon.ts:491-503 (SetIconEffect(effect_name,bool,pos,scale)); commonController/EyouManager.ts:117"
+  },
+  {
+   "module": "mainUI",
+   "view": "ActivityIcon",
+   "node": "_box_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_1303c.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1303c/UI_1303c.prefab",
+   "trigger": "condition (icon_type==283(圣地) 且开服第2天时，硬编码播放)",
+   "source": "mainUI/ActivityIcon.ts:1816-1822"
+  },
+  {
+   "module": "mainUI",
+   "view": "FightingUpView",
+   "node": "_box_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_zhanli.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_zhanli/ui_zhanli.prefab",
+   "trigger": "condition (per-frame Update(): now_frame>=play_effect_frame && !has_set_effect 时播放一次，3秒后自动清除；战力提升数值滚动完成的爆闪)",
+   "source": "mainUI/FightingUpView.ts:256-267"
+  },
+  {
+   "module": "mainUI",
+   "view": "FlowerEffectView",
+   "node": "display_obj",
+   "effect": "resource/effect/objs/ui_effect/uifx_giftlv3.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/uifx_giftlv3/uifx_giftlv3.prefab",
+   "trigger": "event: MarriageModel.SHOW_FLOWER_EFFECT (婚宴场景 marriage2/BanquetSceneView.ts:732 送礼3级时调用 PlayFlowerEffectByName('uifx_giftlv3') 入队播放；注意 AddUIEffect 的 parent 传的是 this.display_obj 整个视图根节点而不是 _group_eff)",
+   "source": "mainUI/FlowerEffectView.ts:107-131; marriage2/BanquetSceneView.ts:732"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUIActivityView",
+   "node": "effect",
+   "effect": "resource/effect/objs/ui_effect/ui_cb01.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_cb01/ui_cb01.prefab",
+   "trigger": "event: EventName.UPDATE_TOP_PLAYER_MAIN_DATA (开服<=8天且等级>=130且风云榜活动类型符合条件时，风云榜/顶级玩家入口图标常驻光效)",
+   "source": "mainUI/MainUIActivityView.ts:231-244"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUIAutoBrushView",
+   "node": "_box_challenge_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_mainDungeon.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_mainDungeon/ui_mainDungeon.prefab",
+   "trigger": "always (LoadSuccess()->InitChallengeEffect() 首次懒创建一个名为 _box_challenge_effect 的 Box 并常驻挂载；StartMainLineTween() 时显示，用于主线挑战/自动刷图按钮的持续光效)",
+   "source": "mainUI/MainUIAutoBrushView.ts:62-72, 82-87, 156-169"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUIDownView",
+   "node": "_box_exp_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_expbar.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_expbar/ui_expbar.prefab",
+   "trigger": "always-once (PlayAnim() 首次经验条动画播放时懒加载, has_set_exp_effect 保证只加一次；即用户点名的'经验条闪烁')",
+   "source": "mainUI/MainUIDownView.ts:384-397"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "<runtime: obj.name，由 PlayBigEffect()/util/Util.ts:2487 或直接 new MainUIEffectView().SetData({name,...}) 传入，具体资源名见各调用方(achv/baby/bag/... 等25个模块，全集见 loaders[2].desc)>",
+   "unityPrefab": null,
+   "trigger": "event: EventName.PLAY_BIG_EFFECT (type 为空/0) -> commonController/MainUIController.ts:369-380 打开该 View；15秒后自动关闭",
+   "source": "mainUI/MainUIEffectView.ts:39-62"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUIEffectGodSkillView",
+   "node": "_box_eff",
+   "effect": "<runtime: obj.name，见下方 ConfigUISkillEffectShow#god 已解析条目>",
+   "unityPrefab": null,
+   "trigger": "event: EventName.PLAY_BIG_EFFECT type==1（降神技能提示，80秒自动关闭）",
+   "source": "mainUI/MainUIEffectGodSkillView.ts:40-63"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUIEffectPartnerSkillView",
+   "node": "_box_eff",
+   "effect": "<runtime: obj.name，见下方 ConfigUISkillEffectShow#partner 已解析条目>",
+   "unityPrefab": null,
+   "trigger": "event: EventName.PLAY_BIG_EFFECT type==2（伙伴技能提示）",
+   "source": "mainUI/MainUIEffectPartnerSkillView.ts:38-59"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUIEffectGodSkillView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_effect_zhandou_13.lh ~ ui_effect_zhandou_22.lh (10个, 按 god_id 索引)",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_effect_zhandou_{13..22}/ui_effect_zhandou_{13..22}.prefab (10个均存在)",
+   "trigger": "event: SkillUIModel.ReleaseGodBefallSkillTip(god_id) -> PlayBigEffect(cfg[god_id], {x:0,y:1}, null, 1)",
+   "source": "commonModel/SkillUIModel.ts:1216-1221; config: cdn/resource/config/client/ConfigUISkillEffectShow.json#god (10条 god_id->ui_effect_zhandou_NN)"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUIEffectPartnerSkillView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_effect_zhandou_01.lh ~ ui_effect_zhandou_12.lh (12个, 按 skill_id 索引)",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_effect_zhandou_{01..12}/ui_effect_zhandou_{01..12}.prefab (12个均存在)",
+   "trigger": "event: SkillUIModel.ReleasePartnerSkillTip(skill_id) -> PlayBigEffect(cfg[skill_id], {x:-8,y:0}, 3.5, 2) (仅 career==52 且非被动/非普攻技能)",
+   "source": "commonModel/SkillUIModel.ts:1223-1235; config: ConfigUISkillEffectShow.json#partner (12条 skill_id->ui_effect_zhandou_NN)"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUIMoneyItem",
+   "node": "_box_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_bangyu_3.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_bangyu_3/ui_bangyu_3.prefab",
+   "trigger": "event: EventName.UPDATE_MAINUI_MONEY(type, show_effect=true) (顶部货币(钻石/绑钻/金币)数值增加时的进账光效，懒加载后仅 toggle active)",
+   "source": "mainUI/MainUIMoneyItem.ts:98-113"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUISecondaryView",
+   "node": "_gp_t_map",
+   "effect": "resource/effect/objs/ui_effect/ui_2114_01.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_2114_01/ui_2114_01.prefab",
+   "trigger": "event: TreasureMapModel.TM_FINDING_WAY(bool) (藏宝图寻路中的持续光效)",
+   "source": "mainUI/MainUISecondaryView.ts:399-409"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUISecondaryView",
+   "node": "add",
+   "effect": "resource/effect/objs/ui_effect/UI_tisheng.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_tisheng/UI_tisheng.prefab",
+   "trigger": "condition (RefOutlineExp(): 挂机经验加成未点满时 add_btn 上的持续提示光效)",
+   "source": "mainUI/MainUISecondaryView.ts:1698-1706, 1723-1752"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUISecondaryView",
+   "node": "exp_show",
+   "effect": "resource/effect/objs/ui_effect/UI_guajijiangli_3.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_guajijiangli_3/UI_guajijiangli_3.prefab",
+   "trigger": "condition (RefOutlineExp(): 离线时长 2~4小时档，即用户点名的'经验条闪烁'之一——挂机奖励等级光效)",
+   "source": "mainUI/MainUISecondaryView.ts:1698-1811"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUISecondaryView",
+   "node": "exp_show",
+   "effect": "resource/effect/objs/ui_effect/UI_guajijiangli_2.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_guajijiangli_2/UI_guajijiangli_2.prefab",
+   "trigger": "condition (RefOutlineExp(): 离线时长 4~6小时档)",
+   "source": "mainUI/MainUISecondaryView.ts:1698-1811"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUISecondaryView",
+   "node": "exp_show",
+   "effect": "resource/effect/objs/ui_effect/UI_guajijiangli_1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_guajijiangli_1/UI_guajijiangli_1.prefab",
+   "trigger": "condition (RefOutlineExp(): 离线时长 >=6小时档，等级最高)",
+   "source": "mainUI/MainUISecondaryView.ts:1698-1811"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUISecondaryView",
+   "node": "_box_auto_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_zidongxunluzhong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_zidongxunluzhong/ui_zidongxunluzhong.prefab",
+   "trigger": "condition (UpdateAutoStateEffect(): 当前存在寻路且未完成时优先显示；海外服屏蔽)",
+   "source": "mainUI/MainUISecondaryView.ts:1943-1969"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUISecondaryView",
+   "node": "_box_auto_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_zidongzhandouzhong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_zidongzhandouzhong/ui_zidongzhandouzhong.prefab",
+   "trigger": "condition (UpdateAutoStateEffect(): 无寻路时若自动战斗开启则显示)",
+   "source": "mainUI/MainUISecondaryView.ts:1943-1969"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUISkillItemGod",
+   "node": "_gp_eff",
+   "effect": "resource/effect/objs/ui_effect/UI_2049.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2049/UI_2049.prefab",
+   "trigger": "condition (AddEffect(): 降神技能CD/保持时间检查通过、且当前无子节点时播放循环光效，标记技能可用)",
+   "source": "mainUI/MainUISkillItemGod.ts:150,272,306-310"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUITaskItem",
+   "node": "_box_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_renwulan.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_renwulan/ui_renwulan.prefab",
+   "trigger": "condition (UpdateFinishEffect(task): 任务全部步骤完成/可交任务时任务栏项的高亮光带)",
+   "source": "mainUI/MainUITaskItem.ts:342-377"
+  },
+  {
+   "module": "login",
+   "view": "LoginController",
+   "node": "click_effect_gp (运行时 new Laya.Sprite() 动态创建，非场景节点)",
+   "effect": "resource/effect/objs/ui_effect/ui_click_1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_click_1/ui_click_1.prefab",
+   "trigger": "event: EventName.CLICK_EFFECT (全局点击/敲击特效，挂在 Enum_UILayer.ClickEffect 层，覆盖全部界面而非某个特定 view；LoginController 只是该全局功能的初始化位置)",
+   "source": "login/LoginController.ts:227-264"
+  },
+  {
+   "module": "login",
+   "view": "LoginCreateRoleView",
+   "node": "_gp_model_con",
+   "effect": "resource/effect/objs/skills_effect/cj_1{career}00.lh (career=1..4，共4个：cj_1100/cj_1200/cj_1300/cj_1400)",
+   "unityPrefab": "Assets/GameRes/effect/objs/skills_effect/cj_1{100,200,300,400}/cj_1{100,200,300,400}.prefab (4个均存在)",
+   "trigger": "event: 切换职业头像 SelectCareer(index) 时构造 bone_effect={clothe:{root:{name:'cj_1'+career+'00', type:EffectResType.Skill}}} 传给 SetRoleModel()，加载完成回调里 role_model.PlayBoneparticle() 播放。",
+   "source": "login/LoginCreateRoleView.ts:559-622",
+   "note": "机制与 UI 特效(AddUIEffect/_box_effect)完全不同：不经过 UIScene3D+RenderTexture 贴图，而是把特效直接挂到3D角色模型的骨骼节点(clothe.root)上跟随模型一起渲染，用于创角界面'新角色出场自带光效'。"
+  },
+  {
+   "module": "achv",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "achv/achvView.ts:237",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "baby",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "baby/BabyCultivateView.ts:299",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "baby",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_ShengJie.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_ShengJie/ui_ZiTi_ShengJie.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "baby/BabyCultivateView.ts:624",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "bag",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_tunshichenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_tunshichenggong/ui_tunshichenggong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "bag/BagSmeltView.ts:291",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "brightSea",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "brightSea/BrightSeaCruiseItem.ts:152",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "chc",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_juexingtexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_juexingtexiao/ui_juexingtexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "chc/chcMagicView.ts:137",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "chc",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_qianghuachenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_qianghuachenggong/ui_qianghuachenggong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "chc/chcStrenView.ts:137",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "common",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_tunshichenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_tunshichenggong/ui_tunshichenggong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "common/CongratulationObtainView.ts:705",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Jihuo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Jihuo/ui_ZiTi_Jihuo.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/BabyController.ts:360",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengxingchengong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengxingchengong/ui_shengxingchengong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/BabyController.ts:363",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Jihuo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Jihuo/ui_ZiTi_Jihuo.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/DemonController.ts:369",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Jihuo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Jihuo/ui_ZiTi_Jihuo.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/DemonController.ts:427",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Jihuo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Jihuo/ui_ZiTi_Jihuo.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/DragonBallController.ts:135",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/DragonBallController.ts:163",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Jihuo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Jihuo/ui_ZiTi_Jihuo.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/DragonBallController.ts:217",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/DragonBallController.ts:229",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Jihuo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Jihuo/ui_ZiTi_Jihuo.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/DragonBallController.ts:256",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_baoshi_02.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_baoshi_02/ui_baoshi_02.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/EquipController.ts:385",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_baoshi_02.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_baoshi_02/ui_baoshi_02.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/EquipController.ts:391",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Jihuo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Jihuo/ui_ZiTi_Jihuo.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/GodBeastController.ts:216",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_qianghuachenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_qianghuachenggong/ui_qianghuachenggong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/GodBeastController.ts:283",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Jihuo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Jihuo/ui_ZiTi_Jihuo.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/GodBefallController.ts:210",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/GodBefallController.ts:222",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Jihuo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Jihuo/ui_ZiTi_Jihuo.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/GuardController.ts:204",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_fenjietexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_fenjietexiao/ui_fenjietexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/LungController.ts:96",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengxingchengong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengxingchengong/ui_shengxingchengong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/OutWardController.ts:186",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_juexingtexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_juexingtexiao/ui_juexingtexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/RuneController.ts:247",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_chaifenchenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_chaifenchenggong/ui_chaifenchenggong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/RuneController.ts:258",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Jihuo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Jihuo/ui_ZiTi_Jihuo.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/RuneController.ts:283",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_ShengJie.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_ShengJie/ui_ZiTi_ShengJie.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/UnrealController.ts:105",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_qianghuachenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_qianghuachenggong/ui_qianghuachenggong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonController/UnrealController.ts:125",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonModel",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengxingchengong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengxingchengong/ui_shengxingchengong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonModel/OutWardBaseModel.ts:335",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "commonModel",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "commonModel/OutWardBaseModel.ts:339",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "composite",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/effect_hechengshibai.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_hechengshibai/effect_hechengshibai.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "composite/CompositeUnrealView.ts:295",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "composite",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/effect_hechengshibai.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_hechengshibai/effect_hechengshibai.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "composite/GodBeastCompositeView.ts:252",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "composite",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/effect_hechengshibai.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_hechengshibai/effect_hechengshibai.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "composite/GodBefallCompositeView.ts:239",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "demon",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "demon/DemonMainView.ts:319",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "equipArmor",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_dazaochengong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_dazaochengong/ui_dazaochengong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "equipArmor/EquipArmorView.ts:209",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "equipRefinement",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shenlianchenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shenlianchenggong/ui_shenlianchenggong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "equipRefinement/EquipRefinementView.ts:124",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "fashion",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "fashion/FashionMainView.ts:169",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "fashion",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "fashion/FashionMainView.ts:171",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "innateSkill",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "innateSkill/InnateSkillView.ts:150",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "jewel",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "jewel/EquipJewelView.ts:539",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "jewel",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "jewel/EquipJewelView.ts:569",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "longlanguage",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "longlanguage/longlangStrView.ts:127",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "marriage",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Jihuo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Jihuo/ui_ZiTi_Jihuo.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "marriage/MarriageRingView.ts:201",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "marriage",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_ShengJie.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_ShengJie/ui_ZiTi_ShengJie.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "marriage/MarriageRingView.ts:493",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "marriage",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "marriage/MarriageRingView.ts:496",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "monBook",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "monBook/MonBookMainView.ts:283",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "monBook",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Jihuo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Jihuo/ui_ZiTi_Jihuo.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "monBook/MonBookMainView.ts:283",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "partner",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengxingchengong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengxingchengong/ui_shengxingchengong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "partner/PartnerDetailsView.ts:197",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "redEquip",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/effect_hechengshibai.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_hechengshibai/effect_hechengshibai.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "redEquip/CompositeEquipView.ts:367",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "redEquip",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_dazaochengong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_dazaochengong/ui_dazaochengong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "redEquip/GodEquipBuildView.ts:416",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "rune",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_fenjietexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_fenjietexiao/ui_fenjietexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "rune/RuneDecomposeView.ts:156",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "rune",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "rune/RuneMainUIView.ts:438",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "rune",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "rune/RuneMainUIView.ts:467",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "suit",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_gongmingchenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_gongmingchenggong/ui_gongmingchenggong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "suit/EquipSuitMianView.ts:175",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "title",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Jihuo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Jihuo/ui_ZiTi_Jihuo.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "title/TitleMainView.ts:103",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "title",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengxingchengong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengxingchengong/ui_shengxingchengong.prefab",
+   "trigger": "event: PlayBigEffect() 调用 (always type=null/0)",
+   "source": "title/TitleMainView.ts:106",
+   "via": "PlayBigEffect"
+  },
+  {
+   "module": "activity",
+   "view": "ConRechargeGradeItem",
+   "node": "effect",
+   "effect": "resource/effect/objs/ui_effect/ui_anniu_8.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_anniu_8/ui_anniu_8.prefab",
+   "trigger": "event: CustomActivityDefine.EVENT.UPDATE_RECHARGE_ITEM",
+   "source": "activity/ConRechargeGradeItem.ts:87"
+  },
+  {
+   "module": "activity",
+   "view": "CreatRoleGiftView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_anniu_6.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_anniu_6/ui_anniu_6.prefab",
+   "trigger": "condition (in AddEff()) - see source",
+   "source": "activity/CreatRoleGiftView.ts:280"
+  },
+  {
+   "module": "adventure",
+   "view": "AdventureItem",
+   "node": "_gp_crit",
+   "effect": "resource/effect/objs/ui_effect/UI_yjtb_01.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_yjtb_01/UI_yjtb_01.prefab",
+   "trigger": "condition (in InitEvent()) - see source",
+   "source": "adventure/AdventureItem.ts:59"
+  },
+  {
+   "module": "adventure",
+   "view": "AdventureMainView",
+   "node": "_gp_num",
+   "effect": "resource/effect/objs/ui_effect/UI_2001.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2001/UI_2001.prefab",
+   "trigger": "condition (in call_back_func()) - see source",
+   "source": "adventure/AdventureMainView.ts:346"
+  },
+  {
+   "module": "adventure",
+   "view": "AdventureShopItem",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_yjtb_02.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_yjtb_02/UI_yjtb_02.prefab",
+   "trigger": "always (in InitView())",
+   "source": "adventure/AdventureShopItem.ts:165"
+  },
+  {
+   "module": "adventure",
+   "view": "AdventureShopItem",
+   "node": "_gp_buy_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_anniu_5.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_anniu_5/ui_anniu_5.prefab",
+   "trigger": "condition (in RefStatus()) - see source",
+   "source": "adventure/AdventureShopItem.ts:203"
+  },
+  {
+   "module": "arena",
+   "view": "ArenaEnterView",
+   "node": "_box_time_effect",
+   "effect": "resource/effect/objs/ui_effect/ZengJia.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ZengJia/ZengJia.prefab",
+   "trigger": "always (in load_callback())",
+   "source": "arena/ArenaEnterView.ts:78"
+  },
+  {
+   "module": "arena",
+   "view": "ArenaFightSceneView",
+   "node": "_gp_fight_effect_con",
+   "effect": "resource/effect/objs/ui_effect/effect_daojishi_01.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_daojishi_01/effect_daojishi_01.prefab",
+   "trigger": "always (in LoadSuccess())",
+   "source": "arena/ArenaFightSceneView.ts:131"
+  },
+  {
+   "module": "attributePotion",
+   "view": "attributePotionItem",
+   "node": "effBox",
+   "effect": "resource/effect/objs/ui_effect/QiangHua.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/QiangHua/QiangHua.prefab",
+   "trigger": "event: attributePotionModel.REQUEST_USE",
+   "source": "attributePotion/attributePotionItem.ts:115"
+  },
+  {
+   "module": "autoBrush",
+   "view": "AutoBrushMainView",
+   "node": "_box_show_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_partner_skillicon_01.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_partner_skillicon_01/UI_partner_skillicon_01.prefab",
+   "trigger": "condition (in UpdateStageRed()) - see source",
+   "source": "autoBrush/AutoBrushMainView.ts:629"
+  },
+  {
+   "module": "baby",
+   "view": "BabyCultivateView",
+   "node": "teaseEffectGp",
+   "effect": "resource/effect/objs/ui_effect/ui_baby_click.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_baby_click/ui_baby_click.prefab",
+   "trigger": "see source (in PlayAni())",
+   "source": "baby/BabyCultivateView.ts:505",
+   "cdnMissing": true
+  },
+  {
+   "module": "baby",
+   "view": "BabyCultivateView",
+   "node": "stage_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_jinjiechenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_jinjiechenggong/ui_jinjiechenggong.prefab",
+   "trigger": "condition (in PlayExpAni()) - see source",
+   "source": "baby/BabyCultivateView.ts:578"
+  },
+  {
+   "module": "baby",
+   "view": "BabyIllusionView",
+   "node": "self.starEffect",
+   "effect": "resource/effect/objs/ui_effect/ui_degree_moon.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_degree_moon/ui_degree_moon.prefab",
+   "trigger": "event: local_BabyEvent.BABY_ILLUSION_DATA",
+   "source": "baby/BabyIllusionView.ts:131",
+   "cdnMissing": true
+  },
+  {
+   "module": "baby",
+   "view": "BabyIllusionView",
+   "node": "self.starEffect",
+   "effect": "resource/effect/objs/ui_effect/ui_star.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_star/ui_star.prefab",
+   "trigger": "event: local_BabyEvent.BABY_ILLUSION_DATA",
+   "source": "baby/BabyIllusionView.ts:133",
+   "cdnMissing": true
+  },
+  {
+   "module": "baby",
+   "view": "BabyIllusionView",
+   "node": "teaseEffectGp",
+   "effect": "resource/effect/objs/ui_effect/ui_jinshengchenggong_glow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_jinshengchenggong_glow/ui_jinshengchenggong_glow.prefab",
+   "trigger": "see source (in PlayAni())",
+   "source": "baby/BabyIllusionView.ts:546",
+   "cdnMissing": true
+  },
+  {
+   "module": "boss",
+   "view": "BossTargetPanelItem",
+   "node": "_attack_effect_gp",
+   "effect": "resource/effect/objs/ui_effect/UI_2017.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2017/UI_2017.prefab",
+   "trigger": "condition (in ShowAttackEffect()) - see source",
+   "source": "boss/BossTargetPanelItem.ts:303"
+  },
+  {
+   "module": "boss",
+   "view": "BossTargetSubItem",
+   "node": "_box_attack_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_2017.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2017/UI_2017.prefab",
+   "trigger": "condition (in ShowAttackEffect()) - see source",
+   "source": "boss/BossTargetSubItem.ts:268"
+  },
+  {
+   "module": "bossDomain",
+   "view": "BossDomainResultView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Huode.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Huode/ui_ZiTi_Huode.prefab",
+   "trigger": "always (in load_callback())",
+   "source": "bossDomain/BossDomainResultView.ts:70"
+  },
+  {
+   "module": "bossDomain",
+   "view": "BossDomainView",
+   "node": "_box_time_effect",
+   "effect": "resource/effect/objs/ui_effect/ZengJia.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ZengJia/ZengJia.prefab",
+   "trigger": "always (in load_callback())",
+   "source": "bossDomain/BossDomainView.ts:87"
+  },
+  {
+   "module": "bossDomain",
+   "view": "BossDomainView",
+   "node": "_box_time_effect",
+   "effect": "resource/effect/objs/ui_effect/ZengJia.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ZengJia/ZengJia.prefab",
+   "trigger": "condition (in ReOpen_callback()) - see source",
+   "source": "bossDomain/BossDomainView.ts:100"
+  },
+  {
+   "module": "bossField",
+   "view": "BossFieldRoomItem",
+   "node": "_box_time_effect",
+   "effect": "resource/effect/objs/ui_effect/ZengJia.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ZengJia/ZengJia.prefab",
+   "trigger": "condition (in RefBoxChildsLayout()) - see source",
+   "source": "bossField/BossFieldRoomItem.ts:548"
+  },
+  {
+   "module": "bossPersonal",
+   "view": "BossPersonalEnterView",
+   "node": "_box_time_effect",
+   "effect": "resource/effect/objs/ui_effect/ZengJia.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ZengJia/ZengJia.prefab",
+   "trigger": "condition (in InitView()) - see source",
+   "source": "bossPersonal/BossPersonalEnterView.ts:437"
+  },
+  {
+   "module": "brightSea",
+   "view": "BrightSeaEnterView",
+   "node": "this[\"_eff\" + index]",
+   "effect": "resource/effect/objs/ui_effect/ui_diamondsea_3.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_diamondsea_3/ui_diamondsea_3.prefab",
+   "trigger": "always (in LoadDefaultEffects())",
+   "source": "brightSea/BrightSeaEnterView.ts:350"
+  },
+  {
+   "module": "brightSea",
+   "view": "BrightSeaRoleItem",
+   "node": "_con_eff2",
+   "effect": "resource/effect/objs/ui_effect/ui_diamondsea_2.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_diamondsea_2/ui_diamondsea_2.prefab",
+   "trigger": "always (in LoadDiamondSeaEffect())",
+   "source": "brightSea/BrightSeaRoleItem.ts:55"
+  },
+  {
+   "module": "brightSea",
+   "view": "BrightSeaRoleItem",
+   "node": "_con_eff2",
+   "effect": "resource/effect/objs/ui_effect/ui_diamondsea_2.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_diamondsea_2/ui_diamondsea_2.prefab",
+   "trigger": "event: BrightSeaEvent.CRUISE_CALLBACK",
+   "source": "brightSea/BrightSeaRoleItem.ts:94"
+  },
+  {
+   "module": "brightSea",
+   "view": "BrightSeaRoleItem",
+   "node": "_con_eff1",
+   "effect": "resource/effect/objs/ui_effect/ui_diamondsea_1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_diamondsea_1/ui_diamondsea_1.prefab",
+   "trigger": "event: BrightSeaEvent.CRUISE_CALLBACK",
+   "source": "brightSea/BrightSeaRoleItem.ts:95"
+  },
+  {
+   "module": "common",
+   "view": "CongratulationObtainAutoView",
+   "node": "_gp_blackline_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Huode.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Huode/ui_ZiTi_Huode.prefab",
+   "trigger": "see source (in Open_Callback())",
+   "source": "common/CongratulationObtainAutoView.ts:106"
+  },
+  {
+   "module": "common",
+   "view": "CongratulationObtainItemVo",
+   "node": "gp_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_partner_skillicon_02.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_partner_skillicon_02/UI_partner_skillicon_02.prefab",
+   "trigger": "condition (in PlayAnima()) - see source",
+   "source": "common/CongratulationObtainItem.ts:135"
+  },
+  {
+   "module": "common",
+   "view": "CongratulationObtainItemVo",
+   "node": "gp_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_exposure_glow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_exposure_glow/ui_exposure_glow.prefab",
+   "trigger": "condition (in AddEffect()) - see source",
+   "source": "common/CongratulationObtainItem.ts:237",
+   "cdnMissing": true
+  },
+  {
+   "module": "common",
+   "view": "CongratulationObtainItem2",
+   "node": "gp_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_exposure_glow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_exposure_glow/ui_exposure_glow.prefab",
+   "trigger": "condition (in AddEffect()) - see source",
+   "source": "common/CongratulationObtainItem2.ts:155",
+   "cdnMissing": true
+  },
+  {
+   "module": "common",
+   "view": "CongratulationObtainView",
+   "node": "_gp_blackline_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Huode.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Huode/ui_ZiTi_Huode.prefab",
+   "trigger": "condition (in OpenAnimation()) - see source",
+   "source": "common/CongratulationObtainView.ts:649"
+  },
+  {
+   "module": "common",
+   "view": "CongratulationRareView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_2106.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2106/UI_2106.prefab",
+   "trigger": "condition (in InitView()) - see source",
+   "source": "common/CongratulationRareView.ts:78"
+  },
+  {
+   "module": "common",
+   "view": "EquipmentItem",
+   "node": "effect_con",
+   "effect": "resource/effect/objs/ui_effect/ui_goods_orange_plus.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_goods_orange_plus/ui_goods_orange_plus.prefab",
+   "trigger": "condition (in SetRedDot()) - see source",
+   "source": "common/EquipmentItem.ts:457"
+  },
+  {
+   "module": "common",
+   "view": "FairyWishEnterBtn",
+   "node": "effect_con",
+   "effect": "resource/effect/objs/ui_effect/UI_1303c.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1303c/UI_1303c.prefab",
+   "trigger": "condition (in updatePopoVisible()) - see source",
+   "source": "common/FairyWishEnterBtn.ts:94"
+  },
+  {
+   "module": "commonModel",
+   "view": "StoryModel",
+   "node": "effect_gp",
+   "effect": "resource/effect/objs/ui_effect/ui_yindaoxiaoguo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_yindaoxiaoguo/ui_yindaoxiaoguo.prefab",
+   "trigger": "condition (in onDelay()) - see source",
+   "source": "commonModel/StoryModel.ts:345"
+  },
+  {
+   "module": "commonModel",
+   "view": "StoryModel",
+   "node": "finger_gp",
+   "effect": "resource/effect/objs/ui_effect/ui_dianjizhiyin.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_dianjizhiyin/ui_dianjizhiyin.prefab",
+   "trigger": "condition (in onDelay()) - see source",
+   "source": "commonModel/StoryModel.ts:346"
+  },
+  {
+   "module": "composite",
+   "view": "CompositeGoodsView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/effect_hechengshibai.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_hechengshibai/effect_hechengshibai.prefab",
+   "trigger": "event: local_CompositeEvent.COMPOSE_F",
+   "source": "composite/CompositeGoodsView.ts:192"
+  },
+  {
+   "module": "composite",
+   "view": "CompositeGuardView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/effect_hechengshibai.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_hechengshibai/effect_hechengshibai.prefab",
+   "trigger": "event: local_CompositeEvent.COMPOSE_F",
+   "source": "composite/CompositeGuardView.ts:179"
+  },
+  {
+   "module": "composite",
+   "view": "CompositeHolySealView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/effect_hechengshibai.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_hechengshibai/effect_hechengshibai.prefab",
+   "trigger": "event: CompositeEvent.COMPOSE_SUCCESS",
+   "source": "composite/CompositeHolySealView.ts:179"
+  },
+  {
+   "module": "composite",
+   "view": "CompositeLonglangView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/effect_hechengshibai.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_hechengshibai/effect_hechengshibai.prefab",
+   "trigger": "event: local_CompositeEvent.COMPOSE_SUCCESS",
+   "source": "composite/CompositeLonglangView.ts:184"
+  },
+  {
+   "module": "daily",
+   "view": "DailyLivenessRewardItem",
+   "node": "effect_conta",
+   "effect": "resource/effect/objs/ui_effect/UI_1303c.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1303c/UI_1303c.prefab",
+   "trigger": "condition (in call_fun()) - see source",
+   "source": "daily/DailyLivenessRewardItem.ts:86"
+  },
+  {
+   "module": "dailyRecharge",
+   "view": "DailyFirstRewardItem",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_2004_1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2004_1/UI_2004_1.prefab",
+   "trigger": "condition (in SetAction()) - see source",
+   "source": "dailyRecharge/DailyFirstRewardItem.ts:126"
+  },
+  {
+   "module": "dailySign",
+   "view": "DailySignTotalItem",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_2037_1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2037_1/UI_2037_1.prefab",
+   "trigger": "condition (in RefreshView()) - see source",
+   "source": "dailySign/DailySignTotalItem.ts:111"
+  },
+  {
+   "module": "dragonBall",
+   "view": "DragonBallItem",
+   "node": "_box_effect",
+   "effect": "resource/effect/objs/xinghe_effect/ui_xinghe_1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/xinghe_effect/ui_xinghe_1/ui_xinghe_1.prefab",
+   "trigger": "condition (in UpdateLock()) - see source",
+   "source": "dragonBall/DragonBallItem.ts:73"
+  },
+  {
+   "module": "dragonBall",
+   "view": "DragonBallTipsView",
+   "node": "_box_icon_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_goods_red.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_goods_red/ui_goods_red.prefab",
+   "trigger": "condition (in UpdateView()) - see source",
+   "source": "dragonBall/DragonBallTipsView.ts:104"
+  },
+  {
+   "module": "dragonBall",
+   "view": "DragonBallView",
+   "node": "_box_body_effect",
+   "effect": "resource/effect/objs/xinghe_effect/ui_xinghe_2.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/xinghe_effect/ui_xinghe_2/ui_xinghe_2.prefab",
+   "trigger": "condition (in UpdateDragonImg()) - see source",
+   "source": "dragonBall/DragonBallView.ts:853"
+  },
+  {
+   "module": "dragonBall",
+   "view": "DragonBallView",
+   "node": "_box_body_effect",
+   "effect": "resource/effect/objs/xinghe_effect/ui_xinghe_2.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/xinghe_effect/ui_xinghe_2/ui_xinghe_2.prefab",
+   "trigger": "condition (in UpdateDragonImg()) - see source",
+   "source": "dragonBall/DragonBallView.ts:872"
+  },
+  {
+   "module": "dungeon",
+   "view": "DungeonFightSceneMaskView",
+   "node": "_gp_born_effect",
+   "effect": "resource/effect/objs/ui_effect/effect_ui_dayaolaixi.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_ui_dayaolaixi/effect_ui_dayaolaixi.prefab",
+   "trigger": "see source (in call_back_func())",
+   "source": "dungeon/DungeonFightSceneMaskView.ts:93"
+  },
+  {
+   "module": "dungeonExp",
+   "view": "DungeonExpEnterView",
+   "node": "_box_time_effect",
+   "effect": "resource/effect/objs/ui_effect/ZengJia.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ZengJia/ZengJia.prefab",
+   "trigger": "always (in LoadSuccess())",
+   "source": "dungeonExp/DungeonExpEnterView.ts:109"
+  },
+  {
+   "module": "dungeonExp",
+   "view": "DungeonExpInspriteView",
+   "node": "_box_coin_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_dungeon_inspire.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_dungeon_inspire/ui_dungeon_inspire.prefab",
+   "trigger": "condition (in ShowEffect()) - see source",
+   "source": "dungeonExp/DungeonExpInspriteView.ts:351"
+  },
+  {
+   "module": "dungeonExp",
+   "view": "DungeonExpInspriteView",
+   "node": "_box_diamond_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_dungeon_inspire.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_dungeon_inspire/ui_dungeon_inspire.prefab",
+   "trigger": "condition (in ShowEffect()) - see source",
+   "source": "dungeonExp/DungeonExpInspriteView.ts:354"
+  },
+  {
+   "module": "dungeonHeart",
+   "view": "DungeonHeartEnterView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_anniu_6.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_anniu_6/ui_anniu_6.prefab",
+   "trigger": "condition (in SetHtmlCenter()) - see source",
+   "source": "dungeonHeart/DungeonHeartEnterView.ts:138"
+  },
+  {
+   "module": "dungeonMaterial",
+   "view": "DungeonMaterialNewEnterItem",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_anniu_5.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_anniu_5/ui_anniu_5.prefab",
+   "trigger": "condition (in SetHtmlStyle()) - see source",
+   "source": "dungeonMaterial/DungeonMaterialNewEnterItem.ts:84"
+  },
+  {
+   "module": "dungeonMaterial",
+   "view": "DungeonMaterialNewEnterView",
+   "node": "_box_eff_1",
+   "effect": "resource/effect/objs/ui_effect/ui_anniu_6.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_anniu_6/ui_anniu_6.prefab",
+   "trigger": "see source (in SetHtmlStyle())",
+   "source": "dungeonMaterial/DungeonMaterialNewEnterView.ts:60"
+  },
+  {
+   "module": "dungeonMaterial",
+   "view": "DungeonMaterialNewEnterView",
+   "node": "_box_eff_2",
+   "effect": "resource/effect/objs/ui_effect/ui_anniu_6.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_anniu_6/ui_anniu_6.prefab",
+   "trigger": "see source (in SetHtmlStyle())",
+   "source": "dungeonMaterial/DungeonMaterialNewEnterView.ts:61"
+  },
+  {
+   "module": "dungeonRune",
+   "view": "DungeonRuneEnterView",
+   "node": "_box_unlock_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_1601_03.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1601_03/UI_1601_03.prefab",
+   "trigger": "condition (in UpdateUnLockState()) - see source",
+   "source": "dungeonRune/DungeonRuneEnterView.ts:424"
+  },
+  {
+   "module": "elim",
+   "view": "ElimBlockDisplay",
+   "node": "effect_gp",
+   "effect": "resource/effect/objs/ui_effect/effect_popgame_spark.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_popgame_spark/effect_popgame_spark.prefab",
+   "trigger": "see source (in RemoveChess())",
+   "source": "elim/ElimBlockDisplay.ts:129"
+  },
+  {
+   "module": "elim",
+   "view": "ElimMainView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_renwuwancheng.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_renwuwancheng/ui_renwuwancheng.prefab",
+   "trigger": "condition (in clearTimeout()) - see source",
+   "source": "elim/ElimMainView.ts:162"
+  },
+  {
+   "module": "elim",
+   "view": "ElimMainView",
+   "node": "_box_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_renwuwancheng.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_renwuwancheng/ui_renwuwancheng.prefab",
+   "trigger": "condition (in clearTimeout()) - see source",
+   "source": "elim/ElimMainView.ts:197"
+  },
+  {
+   "module": "equip",
+   "view": "EquipSmeltItem",
+   "node": "group_eff",
+   "effect": "resource/effect/objs/ui_effect/QiangHua.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/QiangHua/QiangHua.prefab",
+   "trigger": "condition (in LoadSuccess()) - see source",
+   "source": "equip/EquipSmeltItem.ts:55"
+  },
+  {
+   "module": "equip",
+   "view": "EquipSmeltView",
+   "node": "gp_effect",
+   "effect": "resource/effect/objs/ui_effect/QiangHua.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/QiangHua/QiangHua.prefab",
+   "trigger": "condition (in LoadSuccess()) - see source",
+   "source": "equip/EquipSmeltView.ts:134"
+  },
+  {
+   "module": "equip",
+   "view": "EquipSmeltView",
+   "node": "_group_eff_3",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_JingLian.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_JingLian/ui_ZiTi_JingLian.prefab",
+   "trigger": "condition (in AddEffect()) - see source",
+   "source": "equip/EquipSmeltView.ts:741"
+  },
+  {
+   "module": "equip",
+   "view": "EquipSmeltView",
+   "node": "effect_box",
+   "effect": "resource/effect/objs/ui_effect/TuoW.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/TuoW/TuoW.prefab",
+   "trigger": "condition (in play_anim()) - see source",
+   "source": "equip/EquipSmeltView.ts:803"
+  },
+  {
+   "module": "equip",
+   "view": "EquipSmeltView",
+   "node": "effect_box",
+   "effect": "resource/effect/objs/ui_effect/TuoW.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/TuoW/TuoW.prefab",
+   "trigger": "always (in InitEffectBox())",
+   "source": "equip/EquipSmeltView.ts:831"
+  },
+  {
+   "module": "equip",
+   "view": "EquipStrenItem",
+   "node": "group_eff",
+   "effect": "resource/effect/objs/ui_effect/QiangHua.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/QiangHua/QiangHua.prefab",
+   "trigger": "condition (in LoadSuccess()) - see source",
+   "source": "equip/EquipStrenItem.ts:65"
+  },
+  {
+   "module": "equip",
+   "view": "EquipStrenView",
+   "node": "gp_effect",
+   "effect": "resource/effect/objs/ui_effect/QiangHua.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/QiangHua/QiangHua.prefab",
+   "trigger": "condition (in LoadSuccess()) - see source",
+   "source": "equip/EquipStrenView.ts:152"
+  },
+  {
+   "module": "equip",
+   "view": "EquipStrenView",
+   "node": "\"UI\"",
+   "effect": "resource/effect/objs/ui_effect/UI_1102_qianghuachenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1102_qianghuachenggong/UI_1102_qianghuachenggong.prefab",
+   "trigger": "condition (in SetGradeData()) - see source",
+   "source": "equip/EquipStrenView.ts:581",
+   "cdnMissing": true
+  },
+  {
+   "module": "equip",
+   "view": "EquipStrenView",
+   "node": "effect_box",
+   "effect": "resource/effect/objs/ui_effect/TuoW.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/TuoW/TuoW.prefab",
+   "trigger": "condition (in play_anim()) - see source",
+   "source": "equip/EquipStrenView.ts:773"
+  },
+  {
+   "module": "equip",
+   "view": "EquipStrenView",
+   "node": "effect_box",
+   "effect": "resource/effect/objs/ui_effect/TuoW.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/TuoW/TuoW.prefab",
+   "trigger": "always (in InitEffectBox())",
+   "source": "equip/EquipStrenView.ts:801"
+  },
+  {
+   "module": "equipRefinement",
+   "view": "EquipRefinementView",
+   "node": "_gp_huanrao",
+   "effect": "resource/effect/objs/ui_effect/UI_1505.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1505/UI_1505.prefab",
+   "trigger": "always (in LoadCallback())",
+   "source": "equipRefinement/EquipRefinementView.ts:76"
+  },
+  {
+   "module": "equipRefinement",
+   "view": "EquipRefinementView",
+   "node": "_gp_dazao",
+   "effect": "resource/effect/objs/ui_effect/UI_1506.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1506/UI_1506.prefab",
+   "trigger": "condition (in InitEvent()) - see source",
+   "source": "equipRefinement/EquipRefinementView.ts:123",
+   "cdnMissing": true
+  },
+  {
+   "module": "equipRefinement",
+   "view": "EquipRefinementView",
+   "node": "\"UI\"",
+   "effect": "resource/effect/objs/ui_effect/UI_1505.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1505/UI_1505.prefab",
+   "trigger": "see source (in ReOpen_callback())",
+   "source": "equipRefinement/EquipRefinementView.ts:399"
+  },
+  {
+   "module": "equipRefinement",
+   "view": "EquipRefiUpLvView",
+   "node": "\"Activity\"",
+   "effect": "resource/effect/objs/ui_effect/UI_1103_shenliantisheng.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1103_shenliantisheng/UI_1103_shenliantisheng.prefab",
+   "trigger": "condition (in InitView()) - see source",
+   "source": "equipRefinement/EquipRefiUpLvView.ts:108",
+   "cdnMissing": true
+  },
+  {
+   "module": "equipWash",
+   "view": "EquipWashView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/effect_ui_forge_1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_ui_forge_1/effect_ui_forge_1.prefab",
+   "trigger": "always (in LoadSuccess())",
+   "source": "equipWash/EquipWashView.ts:155"
+  },
+  {
+   "module": "equipWash",
+   "view": "EquipWashView",
+   "node": "_gp_eff_040",
+   "effect": "resource/effect/objs/ui_effect/effect_ui_forge_2.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_ui_forge_2/effect_ui_forge_2.prefab",
+   "trigger": "condition (in LoadSuccess()) - see source",
+   "source": "equipWash/EquipWashView.ts:168"
+  },
+  {
+   "module": "festival",
+   "view": "FestivalLevelAwardView",
+   "node": "effectBox",
+   "effect": "resource/effect/objs/ui_effect/ui_anniu_8.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_anniu_8/ui_anniu_8.prefab",
+   "trigger": "always (in LoadSuccess())",
+   "source": "festival/FestivalLevelAwardView.ts:58"
+  },
+  {
+   "module": "firstBlood",
+   "view": "FirstBloodMainView",
+   "node": "all_reward_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_1601_03.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1601_03/UI_1601_03.prefab",
+   "trigger": "always (in LoadSuccess())",
+   "source": "firstBlood/FirstBloodMainView.ts:213"
+  },
+  {
+   "module": "ftvInvest",
+   "view": "FtvInvestView",
+   "node": "_gp_bottom",
+   "effect": "resource/effect/objs/ui_effect/ui_fazhen_03.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_fazhen_03/ui_fazhen_03.prefab",
+   "trigger": "condition (in LoadCallback()) - see source",
+   "source": "ftvInvest/FtvInvestView.ts:103"
+  },
+  {
+   "module": "gashapon",
+   "view": "GashaponMainView",
+   "node": "_con_effect2",
+   "effect": "resource/effect/objs/ui_effect/UI_2036.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2036/UI_2036.prefab",
+   "trigger": "condition (in PlayGashaponAnimation()) - see source",
+   "source": "gashapon/GashaponMainView.ts:810"
+  },
+  {
+   "module": "godBeast",
+   "view": "GodBeastComView",
+   "node": "_box_com_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_shenyaohecheng.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shenyaohecheng/ui_shenyaohecheng.prefab",
+   "trigger": "condition (in InitEvent()) - see source",
+   "source": "godBeast/GodBeastComView.ts:303"
+  },
+  {
+   "module": "godBeast",
+   "view": "GodBeastComView",
+   "node": "_box_com_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_shenyaohecheng.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shenyaohecheng/ui_shenyaohecheng.prefab",
+   "trigger": "condition (in InitEvent()) - see source",
+   "source": "godBeast/GodBeastComView.ts:342"
+  },
+  {
+   "module": "godCourt",
+   "view": "GodCourtComView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/effect_hechengshibai.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_hechengshibai/effect_hechengshibai.prefab",
+   "trigger": "event: CompositeEvent.COMPOSE_F",
+   "source": "godCourt/GodCourtComView.ts:196"
+  },
+  {
+   "module": "guard",
+   "view": "GuardMainView",
+   "node": "layer_value",
+   "effect": "resource/effect/objs/ui_effect/ui_1115.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_1115/ui_1115.prefab",
+   "trigger": "condition (in InitView()) - see source",
+   "source": "guard/GuardMainView.ts:229",
+   "cdnMissing": true
+  },
+  {
+   "module": "guildFight",
+   "view": "GuildFightMapItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/ui_swordglow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_swordglow/ui_swordglow.prefab",
+   "trigger": "condition (in SetHtmlCenter()) - see source",
+   "source": "guildFight/GuildFightMapItem.ts:121",
+   "cdnMissing": true
+  },
+  {
+   "module": "guildFight",
+   "view": "GuildFightMapView",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/ui_swordglow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_swordglow/ui_swordglow.prefab",
+   "trigger": "condition (in SetSizeDeltaY()) - see source",
+   "source": "guildFight/GuildFightMapView.ts:504",
+   "cdnMissing": true
+  },
+  {
+   "module": "guildFight",
+   "view": "GuildFightMapView",
+   "node": "btnEffectGp",
+   "effect": "resource/effect/objs/ui_effect/ui_awaken_buttonglow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_awaken_buttonglow/ui_awaken_buttonglow.prefab",
+   "trigger": "condition (in UpateBtn()) - see source",
+   "source": "guildFight/GuildFightMapView.ts:601",
+   "cdnMissing": true
+  },
+  {
+   "module": "guildIdol",
+   "view": "GuildIdolMainAct",
+   "node": "layer_value",
+   "effect": "resource/effect/objs/ui_effect/UI_1102_jihuochenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1102_jihuochenggong/UI_1102_jihuochenggong.prefab",
+   "trigger": "see source (in actEffect())",
+   "source": "guildIdol/GuildIdolMainAct.ts:402",
+   "cdnMissing": true
+  },
+  {
+   "module": "guildIdol",
+   "view": "GuildIdolMainAct",
+   "node": "layer_value",
+   "effect": "resource/effect/objs/ui_effect/UI_1102_jinshengchenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1102_jinshengchenggong/UI_1102_jinshengchenggong.prefab",
+   "trigger": "condition (in upEffect()) - see source",
+   "source": "guildIdol/GuildIdolMainAct.ts:429",
+   "cdnMissing": true
+  },
+  {
+   "module": "guildIdol",
+   "view": "GuildIdolMainAct",
+   "node": "layer_value",
+   "effect": "resource/effect/objs/ui_effect/UI_1102_jinshengchenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1102_jinshengchenggong/UI_1102_jinshengchenggong.prefab",
+   "trigger": "condition (in upEffect()) - see source",
+   "source": "guildIdol/GuildIdolMainAct.ts:439",
+   "cdnMissing": true
+  },
+  {
+   "module": "guildIdol",
+   "view": "GuildIdolMainAwaken",
+   "node": "layer_value",
+   "effect": "resource/effect/objs/ui_effect/UI_1102_jihuochenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1102_jihuochenggong/UI_1102_jihuochenggong.prefab",
+   "trigger": "condition (in upEffect()) - see source",
+   "source": "guildIdol/GuildIdolMainAwaken.ts:366",
+   "cdnMissing": true
+  },
+  {
+   "module": "holyBattle",
+   "view": "HolyBattleTargetItem",
+   "node": "_attack_effect_gp",
+   "effect": "resource/effect/objs/ui_effect/UI_2017.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2017/UI_2017.prefab",
+   "trigger": "condition (in showAttackEffect()) - see source",
+   "source": "holyBattle/HolyBattleTargetItem.ts:339"
+  },
+  {
+   "module": "holyBattle",
+   "view": "HolyBattleTargetItem",
+   "node": "_suffer_effect_gp",
+   "effect": "resource/effect/objs/ui_effect/border_redglow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/border_redglow/border_redglow.prefab",
+   "trigger": "condition (in showSufferedEffect()) - see source",
+   "source": "holyBattle/HolyBattleTargetItem.ts:366",
+   "cdnMissing": true
+  },
+  {
+   "module": "holySeal",
+   "view": "HolySealStrenEquipItem",
+   "node": "group_eff",
+   "effect": "resource/effect/objs/ui_effect/QiangHua.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/QiangHua/QiangHua.prefab",
+   "trigger": "condition (in LoadSuccess()) - see source",
+   "source": "holySeal/HolySealStrenEquipItem.ts:45"
+  },
+  {
+   "module": "holySeal",
+   "view": "HolySealStrenView",
+   "node": "effect_box",
+   "effect": "resource/effect/objs/ui_effect/TuoW.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/TuoW/TuoW.prefab",
+   "trigger": "condition (in play_anim()) - see source",
+   "source": "holySeal/HolySealStrenView.ts:567"
+  },
+  {
+   "module": "holySeal",
+   "view": "HolySealStrenView",
+   "node": "effect_box",
+   "effect": "resource/effect/objs/ui_effect/TuoW.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/TuoW/TuoW.prefab",
+   "trigger": "always (in InitEffectBox())",
+   "source": "holySeal/HolySealStrenView.ts:597"
+  },
+  {
+   "module": "jewel",
+   "view": "EquipJewelItem",
+   "node": "_gp_eff",
+   "effect": "resource/effect/objs/ui_effect/QiangHua.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/QiangHua/QiangHua.prefab",
+   "trigger": "event: EquipEvent.UPGRADE_JEWEL",
+   "source": "jewel/EquipJewelItem.ts:94"
+  },
+  {
+   "module": "kfHolyArea",
+   "view": "KfHolyAreaBuildItem",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_2017.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2017/UI_2017.prefab",
+   "trigger": "condition (in UpdateEffect()) - see source",
+   "source": "kfHolyArea/KfHolyAreaBuildItem.ts:328"
+  },
+  {
+   "module": "kfHolyArea",
+   "view": "KfHolyAreaMainView",
+   "node": "_box_lock_bg_effect",
+   "effect": "resource/effect/objs/ui_effect/ZengJia2.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ZengJia2/ZengJia2.prefab",
+   "trigger": "condition (in showBtnEff()) - see source",
+   "source": "kfHolyArea/KfHolyAreaMainView.ts:835"
+  },
+  {
+   "module": "ListDuobao",
+   "view": "ListDuobaoView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_1003.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1003/UI_1003.prefab",
+   "trigger": "always (in LoadSuccess())",
+   "source": "ListDuobao/ListDuobaoView.ts:105"
+  },
+  {
+   "module": "lung",
+   "view": "LungMainView",
+   "node": "stove_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_zhujiemianzhuanquan.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_zhujiemianzhuanquan/ui_zhujiemianzhuanquan.prefab",
+   "trigger": "condition (in SetStoveBtnImg()) - see source",
+   "source": "lung/LungMainView.ts:946"
+  },
+  {
+   "module": "lung",
+   "view": "LungResolveView",
+   "node": "group",
+   "effect": "resource/effect/objs/ui_effect/ui_resolve_glowbloom.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_resolve_glowbloom/ui_resolve_glowbloom.prefab",
+   "trigger": "see source (in update_fun())",
+   "source": "lung/LungResolveView.ts:185",
+   "cdnMissing": true
+  },
+  {
+   "module": "lung",
+   "view": "LungStoveMainView",
+   "node": "effBox",
+   "effect": "resource/effect/objs/ui_effect/ui_shenwen1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shenwen1/ui_shenwen1.prefab",
+   "trigger": "condition (in SetData()) - see source",
+   "source": "lung/LungStoveMainView.ts:248"
+  },
+  {
+   "module": "lung",
+   "view": "LungStoveStageItem",
+   "node": "self.front_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_giftglow_front.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_giftglow_front/ui_giftglow_front.prefab",
+   "trigger": "condition (in SetData()) - see source",
+   "source": "lung/LungStoveStageItem.ts:85",
+   "cdnMissing": true
+  },
+  {
+   "module": "lung",
+   "view": "LungStoveStageItem",
+   "node": "self.under_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_activity_glow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_activity_glow/ui_activity_glow.prefab",
+   "trigger": "condition (in SetData()) - see source",
+   "source": "lung/LungStoveStageItem.ts:86",
+   "cdnMissing": true
+  },
+  {
+   "module": "lung",
+   "view": "LungStoveView",
+   "node": "left_btn_effect",
+   "effect": "resource/effect/objs/ui_effect/output_04.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/output_04/output_04.prefab",
+   "trigger": "condition (in SetBtnStateAndFreeTimes()) - see source",
+   "source": "lung/LungStoveView.ts:490",
+   "cdnMissing": true
+  },
+  {
+   "module": "marriage",
+   "view": "MarriageRingView",
+   "node": "stage_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_jinjiechenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_jinjiechenggong/ui_jinjiechenggong.prefab",
+   "trigger": "condition (in PlayBigEffect()) - see source",
+   "source": "marriage/MarriageRingView.ts:494"
+  },
+  {
+   "module": "monBook",
+   "view": "MonBookGroupItem",
+   "node": "_gp_start_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_star.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_star/ui_star.prefab",
+   "trigger": "condition (in SetStars()) - see source",
+   "source": "monBook/MonBookGroupItem.ts:141",
+   "cdnMissing": true
+  },
+  {
+   "module": "monBook",
+   "view": "MonBookItem",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_1404.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1404/UI_1404.prefab",
+   "trigger": "event: GoodsModel.UPDATE_GOODS_NUM",
+   "source": "monBook/MonBookItem.ts:61"
+  },
+  {
+   "module": "monBook",
+   "view": "MonBookTipsView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_jihuochenggong_glow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_jihuochenggong_glow/ui_jihuochenggong_glow.prefab",
+   "trigger": "event: local_MonBookModel.LEVEL_SUCCESS",
+   "source": "monBook/MonBookTipsView.ts:147",
+   "cdnMissing": true
+  },
+  {
+   "module": "monBook",
+   "view": "MonBookTipsView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjichenggong_glow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjichenggong_glow/ui_shengjichenggong_glow.prefab",
+   "trigger": "event: local_MonBookModel.LEVEL_SUCCESS",
+   "source": "monBook/MonBookTipsView.ts:150",
+   "cdnMissing": true
+  },
+  {
+   "module": "nineSky",
+   "view": "NineSkyFightHeadItem",
+   "node": "_box_attack_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_2017.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2017/UI_2017.prefab",
+   "trigger": "condition (in ShowAttackEffect()) - see source",
+   "source": "nineSky/NineSkyFightHeadItem.ts:111"
+  },
+  {
+   "module": "oneDollarSpike",
+   "view": "OneDollarSpikeView",
+   "node": "effectBox",
+   "effect": "resource/effect/objs/ui_effect/ui_anniu_6.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_anniu_6/ui_anniu_6.prefab",
+   "trigger": "always (in LoadSuccess())",
+   "source": "oneDollarSpike/OneDollarSpikeView.ts:90"
+  },
+  {
+   "module": "online",
+   "view": "OnlineItem",
+   "node": "_group_eff",
+   "effect": "resource/effect/objs/ui_effect/UI_1601_03.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1601_03/UI_1601_03.prefab",
+   "trigger": "condition (in SetGetStatus()) - see source",
+   "source": "online/OnlineItem.ts:183"
+  },
+  {
+   "module": "partner",
+   "view": "PartnerBaseView",
+   "node": "_box_biog_eff",
+   "effect": "resource/effect/objs/ui_effect/effect_ui_shuxing.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_ui_shuxing/effect_ui_shuxing.prefab",
+   "trigger": "always (in Load_callback())",
+   "source": "partner/PartnerBaseView.ts:82"
+  },
+  {
+   "module": "partner",
+   "view": "PartnerBaseView",
+   "node": "_box_att_eff",
+   "effect": "resource/effect/objs/ui_effect/effect_ui_zhuanji.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_ui_zhuanji/effect_ui_zhuanji.prefab",
+   "trigger": "always (in Load_callback())",
+   "source": "partner/PartnerBaseView.ts:83"
+  },
+  {
+   "module": "partner",
+   "view": "PartnerDetailsView",
+   "node": "_box_biog_eff",
+   "effect": "resource/effect/objs/ui_effect/effect_ui_fengyinjiechu_01.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_ui_fengyinjiechu_01/effect_ui_fengyinjiechu_01.prefab",
+   "trigger": "condition (in UpdateBiogTab()) - see source",
+   "source": "partner/PartnerDetailsView.ts:779"
+  },
+  {
+   "module": "partner",
+   "view": "PartnerItem",
+   "node": "layer_value",
+   "effect": "resource/effect/objs/ui_effect/UI_partner_card.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_partner_card/UI_partner_card.prefab",
+   "trigger": "condition (in dataChanged()) - see source",
+   "source": "partner/PartnerItem.ts:137"
+  },
+  {
+   "module": "partner",
+   "view": "PartnerNucleusItem",
+   "node": "effect",
+   "effect": "resource/effect/objs/ui_effect/UI_1404.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1404/UI_1404.prefab",
+   "trigger": "event: PartnerModel.UPDATE_NUCLEUS",
+   "source": "partner/PartnerNucleusItem.ts:74"
+  },
+  {
+   "module": "partner",
+   "view": "PartnerSkillItem",
+   "node": "activeEffect",
+   "effect": "resource/effect/objs/ui_effect/UI_partner_skillicon_02.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_partner_skillicon_02/UI_partner_skillicon_02.prefab",
+   "trigger": "condition (in InitView()) - see source",
+   "source": "partner/PartnerSkillItem.ts:85"
+  },
+  {
+   "module": "partnerAwake",
+   "view": "PartnerAwakeSkillItem",
+   "node": "effect2",
+   "effect": "resource/effect/objs/ui_effect/UI_partner_skillicon_02.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_partner_skillicon_02/UI_partner_skillicon_02.prefab",
+   "trigger": "condition (in complete_fun()) - see source",
+   "source": "partnerAwake/PartnerAwakeSkillItem.ts:62"
+  },
+  {
+   "module": "partnerAwake",
+   "view": "PartnerAwakeSkillItem",
+   "node": "effect",
+   "effect": "resource/effect/objs/ui_effect/UI_partner_skillicon_01.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_partner_skillicon_01/UI_partner_skillicon_01.prefab",
+   "trigger": "condition (in complete_fun()) - see source",
+   "source": "partnerAwake/PartnerAwakeSkillItem.ts:63"
+  },
+  {
+   "module": "partnerAwake",
+   "view": "PartnerAwakeTaskItem",
+   "node": "effect_con",
+   "effect": "resource/effect/objs/ui_effect/UI_1121.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1121/UI_1121.prefab",
+   "trigger": "see source (in ShowFinishEffect())",
+   "source": "partnerAwake/PartnerAwakeTaskItem.ts:271",
+   "cdnMissing": true
+  },
+  {
+   "module": "pet",
+   "view": "OutWardBaseView",
+   "node": "critEffectGroup",
+   "effect": "resource/effect/objs/ui_effect/ui_strike.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_strike/ui_strike.prefab",
+   "trigger": "see source (in ShowCritEffect())",
+   "source": "pet/OutWardBaseView.ts:1378",
+   "cdnMissing": true
+  },
+  {
+   "module": "pet",
+   "view": "OutwardChangedView",
+   "node": "image_bigglow_group",
+   "effect": "resource/effect/objs/ui_effect/UI_1402.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1402/UI_1402.prefab",
+   "trigger": "condition (in InitView()) - see source",
+   "source": "pet/OutwardChangedView.ts:355"
+  },
+  {
+   "module": "pet",
+   "view": "OutwardChangedView",
+   "node": "image_text_group",
+   "effect": "resource/effect/objs/ui_effect/UI_1128.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1128/UI_1128.prefab",
+   "trigger": "condition (in InitView()) - see source",
+   "source": "pet/OutwardChangedView.ts:356",
+   "cdnMissing": true
+  },
+  {
+   "module": "pet",
+   "view": "OutWardExpGoods",
+   "node": "effect_gp",
+   "effect": "resource/effect/objs/ui_effect/UI_1138.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1138/UI_1138.prefab",
+   "trigger": "condition (in RefEffect()) - see source",
+   "source": "pet/OutWardExpGoods.ts:96"
+  },
+  {
+   "module": "pet",
+   "view": "OutwardLvSystem",
+   "node": "glassGp",
+   "effect": "resource/effect/objs/ui_effect/ui_duobao_01_01.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_duobao_01_01/ui_duobao_01_01.prefab",
+   "trigger": "always (in InitLvSystem())",
+   "source": "pet/OutwardLvSystem.ts:267"
+  },
+  {
+   "module": "pet",
+   "view": "OutwardLvSystem",
+   "node": "runeGp",
+   "effect": "resource/effect/objs/ui_effect/ui_duobao_01_02.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_duobao_01_02/ui_duobao_01_02.prefab",
+   "trigger": "always (in InitLvSystem())",
+   "source": "pet/OutwardLvSystem.ts:268"
+  },
+  {
+   "module": "pet",
+   "view": "OutwardLvSystem",
+   "node": "waterGp",
+   "effect": "resource/effect/objs/ui_effect/ui_duobao_01_03.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_duobao_01_03/ui_duobao_01_03.prefab",
+   "trigger": "always (in InitLvSystem())",
+   "source": "pet/OutwardLvSystem.ts:269"
+  },
+  {
+   "module": "playerMessage",
+   "view": "PlayerMessageDragonBall",
+   "node": "_box_body_effect",
+   "effect": "resource/effect/objs/xinghe_effect/ui_xinghe_2.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/xinghe_effect/ui_xinghe_2/ui_xinghe_2.prefab",
+   "trigger": "condition (in UpdateDragonImg()) - see source",
+   "source": "playerMessage/PlayerMessageDragonBall.ts:290"
+  },
+  {
+   "module": "playerMessage",
+   "view": "PlayerMessageDragonBallItem",
+   "node": "_box_effect",
+   "effect": "resource/effect/objs/xinghe_effect/ui_xinghe_1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/xinghe_effect/ui_xinghe_1/ui_xinghe_1.prefab",
+   "trigger": "condition (in UpdateData()) - see source",
+   "source": "playerMessage/PlayerMessageDragonBallItem.ts:73"
+  },
+  {
+   "module": "questionNaire",
+   "view": "QuestionNaireMainView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_goods_orange_plus.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_goods_orange_plus/ui_goods_orange_plus.prefab",
+   "trigger": "condition (in AddEffect()) - see source",
+   "source": "questionNaire/QuestionNaireMainView.ts:147"
+  },
+  {
+   "module": "recharge",
+   "view": "FirstRechargeView",
+   "node": "_bg_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_shouchong_01.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shouchong_01/ui_shouchong_01.prefab",
+   "trigger": "always (in LoadSuccess())",
+   "source": "recharge/FirstRechargeView.ts:232"
+  },
+  {
+   "module": "redEquip",
+   "view": "RingCompositeView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/effect_hechengshibai.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_hechengshibai/effect_hechengshibai.prefab",
+   "trigger": "event: local_comEvent.COMPOSE_F",
+   "source": "redEquip/RingCompositeView.ts:361"
+  },
+  {
+   "module": "redEquip",
+   "view": "RingCompositeView",
+   "node": "\"UI\"",
+   "effect": "resource/effect/objs/ui_effect/UI_1704.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1704/UI_1704.prefab",
+   "trigger": "condition (in call_back()) - see source",
+   "source": "redEquip/RingCompositeView.ts:892",
+   "cdnMissing": true
+  },
+  {
+   "module": "redEquip",
+   "view": "RingUpgradeView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/effect_hechengshibai.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/effect_hechengshibai/effect_hechengshibai.prefab",
+   "trigger": "event: local_comEvent.COMPOSE_F",
+   "source": "redEquip/RingUpgradeView.ts:359"
+  },
+  {
+   "module": "redEquip",
+   "view": "RingUpgradeView",
+   "node": "\"UI\"",
+   "effect": "resource/effect/objs/ui_effect/UI_1704.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1704/UI_1704.prefab",
+   "trigger": "condition (in call_back()) - see source",
+   "source": "redEquip/RingUpgradeView.ts:895",
+   "cdnMissing": true
+  },
+  {
+   "module": "reincarnation",
+   "view": "ReincarnationFiveItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1127_02.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1127_02/UI_1127_02.prefab",
+   "trigger": "condition (in SetState()) - see source",
+   "source": "reincarnation/ReincarnationFiveItem.ts:78"
+  },
+  {
+   "module": "reincarnation",
+   "view": "ReincarnationFiveItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1127_02.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1127_02/UI_1127_02.prefab",
+   "trigger": "condition (in SetRedDot()) - see source",
+   "source": "reincarnation/ReincarnationFiveItem.ts:114"
+  },
+  {
+   "module": "reincarnation",
+   "view": "ReincarnationFiveItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1127_02.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1127_02/UI_1127_02.prefab",
+   "trigger": "condition (in ReOpen_callback()) - see source",
+   "source": "reincarnation/ReincarnationFiveItem.ts:132"
+  },
+  {
+   "module": "reincarnation",
+   "view": "ReincarnationFourItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1127_04.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1127_04/UI_1127_04.prefab",
+   "trigger": "condition (in SetState()) - see source",
+   "source": "reincarnation/ReincarnationFourItem.ts:77"
+  },
+  {
+   "module": "reincarnation",
+   "view": "ReincarnationFourItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1127_04.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1127_04/UI_1127_04.prefab",
+   "trigger": "condition (in SetRedDot()) - see source",
+   "source": "reincarnation/ReincarnationFourItem.ts:116"
+  },
+  {
+   "module": "reincarnation",
+   "view": "ReincarnationFourItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1127_04.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1127_04/UI_1127_04.prefab",
+   "trigger": "condition (in ReOpen_callback()) - see source",
+   "source": "reincarnation/ReincarnationFourItem.ts:135"
+  },
+  {
+   "module": "reincarnation",
+   "view": "ReincarnationSevenItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1127_01.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1127_01/UI_1127_01.prefab",
+   "trigger": "condition (in SetState()) - see source",
+   "source": "reincarnation/ReincarnationSevenItem.ts:86"
+  },
+  {
+   "module": "reincarnation",
+   "view": "ReincarnationSevenItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1127_01.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1127_01/UI_1127_01.prefab",
+   "trigger": "condition (in SetRedDot()) - see source",
+   "source": "reincarnation/ReincarnationSevenItem.ts:123"
+  },
+  {
+   "module": "reincarnation",
+   "view": "ReincarnationSevenItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1127_03.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1127_03/UI_1127_03.prefab",
+   "trigger": "condition (in ReOpen_callback()) - see source",
+   "source": "reincarnation/ReincarnationSevenItem.ts:143"
+  },
+  {
+   "module": "reincarnation",
+   "view": "ReincarnationSixItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1127_03.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1127_03/UI_1127_03.prefab",
+   "trigger": "condition (in SetState()) - see source",
+   "source": "reincarnation/ReincarnationSixItem.ts:85"
+  },
+  {
+   "module": "reincarnation",
+   "view": "ReincarnationSixItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1127_03.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1127_03/UI_1127_03.prefab",
+   "trigger": "condition (in SetRedDot()) - see source",
+   "source": "reincarnation/ReincarnationSixItem.ts:121"
+  },
+  {
+   "module": "reincarnation",
+   "view": "ReincarnationSixItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1127_03.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1127_03/UI_1127_03.prefab",
+   "trigger": "condition (in ReOpen_callback()) - see source",
+   "source": "reincarnation/ReincarnationSixItem.ts:140"
+  },
+  {
+   "module": "revelation",
+   "view": "Revelation1EquipItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1609_01.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1609_01/UI_1609_01.prefab",
+   "trigger": "condition (in UpdateView()) - see source",
+   "source": "revelation/Revelation1EquipItem.ts:93"
+  },
+  {
+   "module": "revelation",
+   "view": "RevelationBagItem",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_1138.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1138/UI_1138.prefab",
+   "trigger": "condition (in dataChanged()) - see source",
+   "source": "revelation/RevelationBagItem.ts:103"
+  },
+  {
+   "module": "revelation",
+   "view": "RevelationBagItem",
+   "node": "\"UI\"",
+   "effect": "resource/effect/objs/ui_effect/UI_1305_1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1305_1/UI_1305_1.prefab",
+   "trigger": "condition (in dataChanged()) - see source",
+   "source": "revelation/RevelationBagItem.ts:116",
+   "cdnMissing": true
+  },
+  {
+   "module": "revelation",
+   "view": "RevelationDevourView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjitexiao.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjitexiao/ui_shengjitexiao.prefab",
+   "trigger": "event: RevelationEvent.UPDATE_EQUIP_DATA",
+   "source": "revelation/RevelationDevourView.ts:138"
+  },
+  {
+   "module": "revelation",
+   "view": "RevelationEquipView",
+   "node": "\"UI\"",
+   "effect": "resource/effect/objs/ui_effect/UI_1302b.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1302b/UI_1302b.prefab",
+   "trigger": "event: RevelationEvent.UPDATE_POWER",
+   "source": "revelation/RevelationEquipView.ts:244",
+   "cdnMissing": true
+  },
+  {
+   "module": "rune",
+   "view": "RuneAwakenView",
+   "node": "item.awakeExpGp",
+   "effect": "resource/effect/objs/ui_effect/ui_achievementglow1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_achievementglow1/ui_achievementglow1.prefab",
+   "trigger": "condition (in InitEvent()) - see source",
+   "source": "rune/RuneAwakenView.ts:181",
+   "cdnMissing": true
+  },
+  {
+   "module": "rune",
+   "view": "RuneAwakenView",
+   "node": "_group_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjichenggong_glow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjichenggong_glow/ui_shengjichenggong_glow.prefab",
+   "trigger": "condition (per-frame Update in UpdateEffecet())",
+   "source": "rune/RuneAwakenView.ts:481",
+   "cdnMissing": true
+  },
+  {
+   "module": "rune",
+   "view": "RuneDecomposeView",
+   "node": "group",
+   "effect": "resource/effect/objs/ui_effect/ui_achievementglow2.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_achievementglow2/ui_achievementglow2.prefab",
+   "trigger": "condition (in call_back()) - see source",
+   "source": "rune/RuneDecomposeView.ts:193",
+   "cdnMissing": true
+  },
+  {
+   "module": "rune",
+   "view": "RuneDecomposeView",
+   "node": "group",
+   "effect": "resource/effect/objs/ui_effect/ui_achievementglow3.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_achievementglow3/ui_achievementglow3.prefab",
+   "trigger": "see source (in end_call())",
+   "source": "rune/RuneDecomposeView.ts:201",
+   "cdnMissing": true
+  },
+  {
+   "module": "rune",
+   "view": "RuneDecomposeView",
+   "node": "group",
+   "effect": "resource/effect/objs/ui_effect/ui_achievementglow1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_achievementglow1/ui_achievementglow1.prefab",
+   "trigger": "see source (in end_call())",
+   "source": "rune/RuneDecomposeView.ts:204",
+   "cdnMissing": true
+  },
+  {
+   "module": "rune",
+   "view": "RuneMainUIView",
+   "node": "skill_effect_gp",
+   "effect": "resource/effect/objs/ui_effect/ui_yuhuntaozhuang.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_yuhuntaozhuang/ui_yuhuntaozhuang.prefab",
+   "trigger": "condition (in LoadSuccess()) - see source",
+   "source": "rune/RuneMainUIView.ts:172"
+  },
+  {
+   "module": "rune",
+   "view": "RuneResolutionView",
+   "node": "group",
+   "effect": "resource/effect/objs/ui_effect/ui_achievementglow1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_achievementglow1/ui_achievementglow1.prefab",
+   "trigger": "condition (in InitEvent()) - see source",
+   "source": "rune/RuneResolutionView.ts:106",
+   "cdnMissing": true
+  },
+  {
+   "module": "rune",
+   "view": "RuneSkillItem",
+   "node": "effectGp",
+   "effect": "resource/effect/objs/ui_effect/ui_Runeskills_glow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_Runeskills_glow/ui_Runeskills_glow.prefab",
+   "trigger": "condition (in SetLast()) - see source",
+   "source": "rune/RuneSkillItem.ts:76",
+   "cdnMissing": true
+  },
+  {
+   "module": "runeTreasure",
+   "view": "ATreasureBaseView",
+   "node": "maxGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1609_04.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1609_04/UI_1609_04.prefab",
+   "trigger": "condition (in LoadSuccess()) - see source",
+   "source": "runeTreasure/ATreasureBaseView.ts:280"
+  },
+  {
+   "module": "runeTreasure",
+   "view": "ATreasureBaseView",
+   "node": "maxGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1609_02.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1609_02/UI_1609_02.prefab",
+   "trigger": "condition (in LoadSuccess()) - see source",
+   "source": "runeTreasure/ATreasureBaseView.ts:284"
+  },
+  {
+   "module": "runeTreasure",
+   "view": "ATreasureBaseView",
+   "node": "maxGp",
+   "effect": "resource/effect/objs/ui_effect/UI_1609_01.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1609_01/UI_1609_01.prefab",
+   "trigger": "condition (in LoadSuccess()) - see source",
+   "source": "runeTreasure/ATreasureBaseView.ts:288"
+  },
+  {
+   "module": "runeTreasure",
+   "view": "RuneResultItem",
+   "node": "_gp_anieff",
+   "effect": "resource/effect/objs/ui_effect/ui_fanpai_01.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_fanpai_01/ui_fanpai_01.prefab",
+   "trigger": "see source (in PlayAnim())",
+   "source": "runeTreasure/RuneResultItem.ts:152"
+  },
+  {
+   "module": "runeTreasure",
+   "view": "RuneTreasureMainView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_duobao_05.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_duobao_05/ui_duobao_05.prefab",
+   "trigger": "always (in LoadSuccess())",
+   "source": "runeTreasure/RuneTreasureMainView.ts:168"
+  },
+  {
+   "module": "runeTreasure",
+   "view": "RuneTreasureMainView",
+   "node": "_luck_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_duobao_04.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_duobao_04/ui_duobao_04.prefab",
+   "trigger": "always (in LoadSuccess())",
+   "source": "runeTreasure/RuneTreasureMainView.ts:169"
+  },
+  {
+   "module": "runeTreasure",
+   "view": "RuneTreasureRewadItem",
+   "node": "self.gp_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_exposure_glow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_exposure_glow/ui_exposure_glow.prefab",
+   "trigger": "see source (in AddEffect())",
+   "source": "runeTreasure/RuneTreasureRewadItem.ts:48",
+   "cdnMissing": true
+  },
+  {
+   "module": "runeTreasure",
+   "view": "RuneTreasureStageRewardItem",
+   "node": "effect_group",
+   "effect": "resource/effect/objs/ui_effect/UI_2033_1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2033_1/UI_2033_1.prefab",
+   "trigger": "condition (in SetData()) - see source",
+   "source": "runeTreasure/RuneTreasureStageRewardItem.ts:77"
+  },
+  {
+   "module": "saiboTreasure",
+   "view": "SaiboPreviewItem",
+   "node": "_gp_effect_1",
+   "effect": "resource/effect/objs/ui_effect/UI_2002_2_cheng.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2002_2_cheng/UI_2002_2_cheng.prefab",
+   "trigger": "condition (in InitView()) - see source",
+   "source": "saiboTreasure/SaiboPreviewItem.ts:88"
+  },
+  {
+   "module": "saiboTreasure",
+   "view": "SaiboTotalItem",
+   "node": "_gp_effect_1",
+   "effect": "resource/effect/objs/ui_effect/UI_2003_1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2003_1/UI_2003_1.prefab",
+   "trigger": "condition (in SetSizeDelta()) - see source",
+   "source": "saiboTreasure/SaiboTotalItem.ts:210"
+  },
+  {
+   "module": "saiboTreasure",
+   "view": "SaiboTotalItem",
+   "node": "_gp_effect_1",
+   "effect": "resource/effect/objs/ui_effect/UI_2003_1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2003_1/UI_2003_1.prefab",
+   "trigger": "condition (in SetAnchoredPosition()) - see source",
+   "source": "saiboTreasure/SaiboTotalItem.ts:218"
+  },
+  {
+   "module": "saiboTreasure",
+   "view": "SaiboTotalItem",
+   "node": "_gp_effect_1",
+   "effect": "resource/effect/objs/ui_effect/UI_2002_2_cheng.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2002_2_cheng/UI_2002_2_cheng.prefab",
+   "trigger": "condition (in SetAnchoredPosition()) - see source",
+   "source": "saiboTreasure/SaiboTotalItem.ts:223"
+  },
+  {
+   "module": "seaHegemony",
+   "view": "SeaTargetItem",
+   "node": "_attack_effect_gp",
+   "effect": "resource/effect/objs/ui_effect/UI_2017.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2017/UI_2017.prefab",
+   "trigger": "condition (in ShowAttackEffect()) - see source",
+   "source": "seaHegemony/SeaTargetItem.ts:102"
+  },
+  {
+   "module": "sevenDay",
+   "view": "SevenDayView",
+   "node": "_gp_effect2",
+   "effect": "resource/effect/objs/ui_effect/ui_fazhen_05.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_fazhen_05/ui_fazhen_05.prefab",
+   "trigger": "condition (in InitView()) - see source",
+   "source": "sevenDay/SevenDayView.ts:174"
+  },
+  {
+   "module": "suit",
+   "view": "EquipSuitView",
+   "node": "_group_eff",
+   "effect": "resource/effect/objs/ui_effect/ui_gongmingchenggong.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_gongmingchenggong/ui_gongmingchenggong.prefab",
+   "trigger": "event: local_EquipEvent.BUILD_SUIT_SUCCESS",
+   "source": "suit/EquipSuitView.ts:196"
+  },
+  {
+   "module": "suit",
+   "view": "EquipSuitView",
+   "node": "_group_eff1",
+   "effect": "resource/effect/objs/ui_effect/QiangHua.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/QiangHua/QiangHua.prefab",
+   "trigger": "event: local_EquipEvent.BUILD_SUIT_SUCCESS",
+   "source": "suit/EquipSuitView.ts:199"
+  },
+  {
+   "module": "suit",
+   "view": "JewelrySuitView",
+   "node": "_group_eff",
+   "effect": "resource/effect/objs/ui_effect/QiangHua.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/QiangHua/QiangHua.prefab",
+   "trigger": "event: local_EquipEvent.BUILD_SUIT_SUCCESS",
+   "source": "suit/JewelrySuitView.ts:178"
+  },
+  {
+   "module": "suitActivity",
+   "view": "SuitActivityView",
+   "node": "effectCon",
+   "effect": "resource/effect/objs/ui_effect/ui_ZiTi_Jihuo.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_ZiTi_Jihuo/ui_ZiTi_Jihuo.prefab",
+   "trigger": "event: SuitActivityModel.UPDATE_ONE_SUIT",
+   "source": "suitActivity/SuitActivityView.ts:119"
+  },
+  {
+   "module": "suitActivity",
+   "view": "SuitActivityView",
+   "node": "\"UI\"",
+   "effect": "resource/effect/objs/ui_effect/UI_1157.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1157/UI_1157.prefab",
+   "trigger": "condition (in AddExpEffect()) - see source",
+   "source": "suitActivity/SuitActivityView.ts:405",
+   "cdnMissing": true
+  },
+  {
+   "module": "surpriseGift",
+   "view": "GiftView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_tianshihusongjiemian.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_tianshihusongjiemian/ui_tianshihusongjiemian.prefab",
+   "trigger": "condition (in load_callback()) - see source",
+   "source": "surpriseGift/GiftView.ts:109"
+  },
+  {
+   "module": "sysInfo",
+   "view": "ChuanwenSpecItem",
+   "node": "_gp_fire1",
+   "effect": "resource/effect/objs/ui_effect/ui_hearsay_fireworks1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_hearsay_fireworks1/ui_hearsay_fireworks1.prefab",
+   "trigger": "condition (in AddEff()) - see source",
+   "source": "sysInfo/ChuanwenSpecItem.ts:127",
+   "cdnMissing": true
+  },
+  {
+   "module": "sysInfo",
+   "view": "ChuanwenSpecItem",
+   "node": "_gp_fire2",
+   "effect": "resource/effect/objs/ui_effect/ui_hearsay_fireworks2.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_hearsay_fireworks2/ui_hearsay_fireworks2.prefab",
+   "trigger": "condition (in AddEff()) - see source",
+   "source": "sysInfo/ChuanwenSpecItem.ts:128",
+   "cdnMissing": true
+  },
+  {
+   "module": "sysInfo",
+   "view": "ChuanwenSpecItem",
+   "node": "_gp_fire3",
+   "effect": "resource/effect/objs/ui_effect/ui_hearsay_fireworks3.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_hearsay_fireworks3/ui_hearsay_fireworks3.prefab",
+   "trigger": "condition (in AddEff()) - see source",
+   "source": "sysInfo/ChuanwenSpecItem.ts:129",
+   "cdnMissing": true
+  },
+  {
+   "module": "sysInfo",
+   "view": "ChuanwenSpecItem",
+   "node": "_gp_glow",
+   "effect": "resource/effect/objs/ui_effect/ui_hearsay_glow1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_hearsay_glow1/ui_hearsay_glow1.prefab",
+   "trigger": "condition (in AddEff()) - see source",
+   "source": "sysInfo/ChuanwenSpecItem.ts:130",
+   "cdnMissing": true
+  },
+  {
+   "module": "sysInfo",
+   "view": "TrumpetItem",
+   "node": "layer_value",
+   "effect": "resource/effect/objs/ui_effect/ui_1109_1.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_1109_1/ui_1109_1.prefab",
+   "trigger": "condition (in showEffect()) - see source",
+   "source": "sysInfo/TrumpetItem.ts:260"
+  },
+  {
+   "module": "sysInfo",
+   "view": "TrumpetItem",
+   "node": "layer_value",
+   "effect": "resource/effect/objs/ui_effect/ui_1109_2.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_1109_2/ui_1109_2.prefab",
+   "trigger": "condition (in showEffect()) - see source",
+   "source": "sysInfo/TrumpetItem.ts:264"
+  },
+  {
+   "module": "sysInfo",
+   "view": "TrumpetItem",
+   "node": "layer_value",
+   "effect": "resource/effect/objs/ui_effect/ui_1109_2.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_1109_2/ui_1109_2.prefab",
+   "trigger": "condition (in showEffect()) - see source",
+   "source": "sysInfo/TrumpetItem.ts:268"
+  },
+  {
+   "module": "sysInfo",
+   "view": "TrumpetItem",
+   "node": "layer_value",
+   "effect": "resource/effect/objs/ui_effect/ui_1109_2.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_1109_2/ui_1109_2.prefab",
+   "trigger": "condition (in showEffect()) - see source",
+   "source": "sysInfo/TrumpetItem.ts:273"
+  },
+  {
+   "module": "task",
+   "view": "TaskUpAlertItem",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_renwulan.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_renwulan/ui_renwulan.prefab",
+   "trigger": "condition (in InitView()) - see source",
+   "source": "task/TaskUpAlertItem.ts:69"
+  },
+  {
+   "module": "topPk",
+   "view": "TopPkEnterView",
+   "node": "this[\"effect_con\" + key]",
+   "effect": "resource/effect/objs/ui_effect/UI_1303c.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1303c/UI_1303c.prefab",
+   "trigger": "condition (in UpdateBoxs()) - see source",
+   "source": "topPk/TopPkEnterView.ts:415"
+  },
+  {
+   "module": "topVip",
+   "view": "TopVipSkillView",
+   "node": "this[\"fire_effect_gp_\" + index]",
+   "effect": "resource/effect/objs/ui_effect/UI_2011.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2011/UI_2011.prefab",
+   "trigger": "event: local_TopVipEvent.UPDATE_TOP_VIP_SKILL_VIEW",
+   "source": "topVip/TopVipSkillView.ts:237"
+  },
+  {
+   "module": "topVip",
+   "view": "TopVipSkillView",
+   "node": "this[\"fire_effect_gp_\" + i]",
+   "effect": "resource/effect/objs/ui_effect/UI_2011.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_2011/UI_2011.prefab",
+   "trigger": "condition (in ChangeTaskFire()) - see source",
+   "source": "topVip/TopVipSkillView.ts:295"
+  },
+  {
+   "module": "tsCrack",
+   "view": "TSCrackTeleportView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/UI_caijiglow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_caijiglow/UI_caijiglow.prefab",
+   "trigger": "see source (in open_callback())",
+   "source": "tsCrack/TSCrackTeleportView.ts:63"
+  },
+  {
+   "module": "unreal",
+   "view": "UnrealStrengthenView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_shengjiechenggong_glow.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_shengjiechenggong_glow/ui_shengjiechenggong_glow.prefab",
+   "trigger": "event: local_GoodsModel.CHANGE_UNREAL_LIST",
+   "source": "unreal/UnrealStrengthenView.ts:163",
+   "cdnMissing": true
+  },
+  {
+   "module": "vipGift",
+   "view": "vipGiftView",
+   "node": "layer_value",
+   "effect": "resource/effect/objs/ui_effect/UI_1201.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1201/UI_1201.prefab",
+   "trigger": "always (in InitView())",
+   "source": "vipGift/vipGiftView.ts:426",
+   "cdnMissing": true
+  },
+  {
+   "module": "welfare",
+   "view": "WelfareWelcomeView",
+   "node": "display_obj",
+   "effect": "resource/effect/objs/ui_effect/UI_1140.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/UI_1140/UI_1140.prefab",
+   "trigger": "condition (in ShowCircleEffect()) - see source",
+   "source": "welfare/WelfareWelcomeView.ts:157",
+   "cdnMissing": true
+  },
+  {
+   "module": "wxOneMoney",
+   "view": "WXOneMoneyView",
+   "node": "_gp_effect",
+   "effect": "resource/effect/objs/ui_effect/ui_fazhen_03.lh",
+   "unityPrefab": "Assets/GameRes/effect/objs/ui_effect/ui_fazhen_03/ui_fazhen_03.prefab",
+   "trigger": "always (in InitView())",
+   "source": "wxOneMoney/WXOneMoneyView.ts:113"
+  }
+ ],
+ "unresolved": [
+  {
+   "module": "mainUI",
+   "view": "ActivityIcon",
+   "node": "_box_effect2",
+   "reason": "612xx(超值礼包/限购商城) 全部行 ConfigFunctionIcon.effect_name 当前均为空字符串——见【摘要样例1】结论：该挂点默认不播粒子，只是预留能力"
+  },
+  {
+   "module": "mainUI",
+   "view": "ActivityIcon",
+   "node": "_box_effect2",
+   "reason": "SetEffect(effect_name,...) 方法体保留但所有调用点均被注释禁用，属死代码路径 (ActivityIcon.ts:1663-1676, 调用点见 line 558/717/720/723)"
+  },
+  {
+   "module": "mainUI",
+   "view": "FlowerEffectView",
+   "node": "display_obj",
+   "reason": "MarriageModel.PlayFlowerEffectByName/PlayFlowerEffect 入队的 eff_name 多数来自服务器协议(ChatController.ts:624 的 scmd 整包 / BanquetController.ts:245 的 fire.charact 字段)，运行时动态，无法静态穷举"
+  },
+  {
+   "module": "mainUI",
+   "view": "FightingUpView",
+   "node": "_box_effect",
+   "reason": "旧循环播放写法 this.AddUIEffect(\"ui_zhanli\",...,is_loop=false,-1) 已整行注释禁用 (FightingUpView.ts:364)，当前只用 Update() 里的单次播放版本"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUISkillItem",
+   "node": "\"Main\"",
+   "reason": "调用已整行注释禁用且参数本身就传了字符串\"Main\"作parent(类型不匹配)，判定为废弃死代码 (MainUISkillItem.ts:64)"
+  },
+  {
+   "module": "mainUI",
+   "view": "MainUITaskTeamView",
+   "node": "_box_awaken_effect",
+   "reason": "this.AddUIEffect(\"ui_shendianjuexing\", this._box_awaken_effect, ...) 整行注释禁用 (MainUITaskTeamView.ts:1049)，神殿觉醒相关效果当前未启用"
+  },
+  {
+   "module": "mainUI",
+   "view": "OpenDestinyView",
+   "node": "effect_gp",
+   "reason": "this.AddUIEffect(\"UI_1130\",\"Activity\",...) 整行注释禁用且参数顺序本身就是错的(第二参传了字符串) (OpenDestinyView.ts:93)，判定为废弃死代码"
+  },
+  {
+   "module": "login",
+   "view": "AccountView",
+   "node": "box (调试代码里临时 new 出的 150 个 Box)",
+   "reason": "整段是被注释掉的压力测试/调试代码 (this.AddUIEffect(\"UI_1303a\", box, null, 1, true))，非线上逻辑 (AccountView.ts:69-79)"
+  },
+  {
+   "module": "login",
+   "view": "LoginSelectRoleView",
+   "node": "_gp_model",
+   "reason": "SetRoleModel(show_model_data) 未传 bone_effect，选角界面模型只按已装备的 clothe_id/fashion_model_id/head_clothe_id/back_ornament_id 走常规装备渲染，没有创角界面那种额外挂点特效"
+  },
+  {
+   "module": "commonModel",
+   "view": "MainUIEffectGodSkillView",
+   "node": "_box_eff",
+   "reason": "PlayBigEffect() 的特效名是动态表达式 `cfg[god_id]` (source: commonModel/SkillUIModel.ts:1220)"
+  },
+  {
+   "module": "commonModel",
+   "view": "MainUIEffectPartnerSkillView",
+   "node": "_box_eff",
+   "reason": "PlayBigEffect() 的特效名是动态表达式 `cfg[skill_id]` (source: commonModel/SkillUIModel.ts:1232)"
+  },
+  {
+   "module": "lung",
+   "view": "MainUIEffectView",
+   "node": "_box_eff",
+   "reason": "PlayBigEffect() 的特效名是动态表达式 `str` (source: lung/LungMainView.ts:409)"
+  },
+  {
+   "module": "chat",
+   "view": "ChatItem",
+   "node": "effect_touxian1",
+   "reason": "res_name is a dynamic expression `eff_url` (source: chat/ChatItem.ts:566)"
+  },
+  {
+   "module": "chat",
+   "view": "ChatItem",
+   "node": "effect_touxian",
+   "reason": "res_name is a dynamic expression `eff_url` (source: chat/ChatItem.ts:569)"
+  },
+  {
+   "module": "common",
+   "view": "BaseAwardItem",
+   "node": "effect_con",
+   "reason": "res_name is a dynamic expression `effect_str` (source: common/BaseAwardItem.ts:485)"
+  },
+  {
+   "module": "common",
+   "view": "BaseAwardItem",
+   "node": "effect_award",
+   "reason": "res_name is a dynamic expression `effect_res` (source: common/BaseAwardItem.ts:529)"
+  },
+  {
+   "module": "common",
+   "view": "BaseWindowComponent",
+   "node": "_gp_effect",
+   "reason": "res_name is a dynamic expression `source` (source: common/BaseWindowComponent.ts:848)"
+  },
+  {
+   "module": "common",
+   "view": "CongratulationObtainView",
+   "node": "effect_group",
+   "reason": "res_name is a dynamic expression `_effect_str` (source: common/CongratulationObtainView.ts:168)"
+  },
+  {
+   "module": "common",
+   "view": "EquipmentItem",
+   "node": "box",
+   "reason": "res_name is a dynamic expression `aniName` (source: common/EquipmentItem.ts:699)"
+  },
+  {
+   "module": "common",
+   "view": "IllusionTips",
+   "node": "_gp_dsgt_effect",
+   "reason": "res_name is a dynamic expression `Trim(cfg.resource_id)` (source: common/IllusionTips.ts:666)"
+  },
+  {
+   "module": "common",
+   "view": "IllusionTips",
+   "node": "_gp_dsgt_effect",
+   "reason": "res_name is a dynamic expression `Trim(cfg.resource_id)` (source: common/IllusionTips.ts:671)"
+  },
+  {
+   "module": "common",
+   "view": "IllusionTips",
+   "node": "_gp_dsgt_effect",
+   "reason": "res_name is a dynamic expression `res_name` (source: common/IllusionTips.ts:701)"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIController",
+   "node": "effect_group",
+   "reason": "res_name is a dynamic expression `effect_name`; effect_res_type is dynamic `effect_res_type` (source: commonController/MainUIController.ts:584)"
+  },
+  {
+   "module": "commonController",
+   "view": "MainUIController",
+   "node": "effect_box",
+   "reason": "res_name is a dynamic expression `effect_name` (source: commonController/MainUIController.ts:1007)"
+  },
+  {
+   "module": "dsgt",
+   "view": "DsgtDetailsItem",
+   "node": "_gp_effect_icon",
+   "reason": "res_name is a dynamic expression `Trim(dsgt.resource_id)` (source: dsgt/DsgtDetailsItem.ts:164)"
+  },
+  {
+   "module": "dsgt",
+   "view": "DsgtItemRenderer",
+   "node": "_gp_dsgt_effect",
+   "reason": "res_name is a dynamic expression `Trim(dsgt.resource_id)` (source: dsgt/DsgtItemRenderer.ts:113)"
+  },
+  {
+   "module": "dsgt",
+   "view": "GetDsgtView",
+   "node": "_gp_dsgt",
+   "reason": "res_name is a dynamic expression `Trim(dsgt.resource_id)` (source: dsgt/GetDsgtView.ts:139)"
+  },
+  {
+   "module": "dungeon",
+   "view": "DungeonResultEffectView",
+   "node": "effect_gp",
+   "reason": "res_name is a dynamic expression `effect_name` (source: dungeon/DungeonResultEffectView.ts:34)"
+  },
+  {
+   "module": "elim",
+   "view": "ElimChessDisplay",
+   "node": "effect_gp_1",
+   "reason": "res_name is a dynamic expression `eff_name` (source: elim/ElimChessDisplay.ts:178)"
+  },
+  {
+   "module": "elim",
+   "view": "ElimMainView",
+   "node": "eff_box_temp",
+   "reason": "res_name is a dynamic expression `eff_name` (source: elim/ElimMainView.ts:387)"
+  },
+  {
+   "module": "elim",
+   "view": "ElimMainViewItem",
+   "node": "eff_box_temp",
+   "reason": "res_name is a dynamic expression `eff_name` (source: elim/ElimMainViewItem.ts:306)"
+  },
+  {
+   "module": "festival",
+   "view": "FestivalCommodityView",
+   "node": "effectBox",
+   "reason": "res_name is a dynamic expression `Trim(confChild.resource_id)` (source: festival/FestivalCommodityView.ts:325)"
+  },
+  {
+   "module": "festival",
+   "view": "FestivalGoToAscendingOrderView",
+   "node": "effectBox",
+   "reason": "res_name is a dynamic expression `Trim(confChild.resource_id)` (source: festival/FestivalGoToAscendingOrderView.ts:127)"
+  },
+  {
+   "module": "flowerRank",
+   "view": "FlowerTopRankItem",
+   "node": "box_top_effect",
+   "reason": "res_name is a dynamic expression `cfg.resource_id` (source: flowerRank/FlowerTopRankItem.ts:179)"
+  },
+  {
+   "module": "ftvInvest",
+   "view": "FtvInvestView",
+   "node": "_gp_model",
+   "reason": "res_name is a dynamic expression `rew_cond.show_effect[0][1]` (source: ftvInvest/FtvInvestView.ts:285)"
+  },
+  {
+   "module": "godCourt",
+   "view": "GCCryItem",
+   "node": "effectGp",
+   "reason": "res_name is a dynamic expression `res` (source: godCourt/GCCryItem.ts:61)"
+  },
+  {
+   "module": "godCourt",
+   "view": "GodCourtEquipItem",
+   "node": "_gp_effect",
+   "reason": "res_name is a dynamic expression `effect` (source: godCourt/GodCourtEquipItem.ts:105)"
+  },
+  {
+   "module": "godCourt",
+   "view": "GodHouseView",
+   "node": "colorEffectGp",
+   "reason": "res_name is a dynamic expression `res` (source: godCourt/GodHouseView.ts:319)"
+  },
+  {
+   "module": "guildList",
+   "view": "GuildListView",
+   "node": "this[\"dsgt\" + i]",
+   "reason": "res_name is a dynamic expression `dsgt.resource_id` (source: guildList/GuildListView.ts:196)"
+  },
+  {
+   "module": "halo",
+   "view": "HaloMainView",
+   "node": "box_effect",
+   "reason": "res_name is a dynamic expression `HaloModel.EFFECT_ID` (source: halo/HaloMainView.ts:86)"
+  },
+  {
+   "module": "holyTerritory",
+   "view": "HolyTerritoryDsgtView",
+   "node": "this[\"dsgt\" + i]",
+   "reason": "res_name is a dynamic expression `dsgt.resource_id` (source: holyTerritory/HolyTerritoryDsgtView.ts:373)"
+  },
+  {
+   "module": "holyTerritory",
+   "view": "HolyTerritoryDsgtView",
+   "node": "this[\"dsgt\" + i]",
+   "reason": "res_name is a dynamic expression `dsgt.resource_id` (source: holyTerritory/HolyTerritoryDsgtView.ts:452)"
+  },
+  {
+   "module": "holyTerritory",
+   "view": "HolyTerritoryGuildView",
+   "node": "this[\"dsgt\" + i]",
+   "reason": "res_name is a dynamic expression `dsgt.resource_id` (source: holyTerritory/HolyTerritoryGuildView.ts:97)"
+  },
+  {
+   "module": "holyTerritory",
+   "view": "HTTopItem",
+   "node": "dsgt",
+   "reason": "res_name is a dynamic expression `dsgt.resource_id` (source: holyTerritory/HTTopItem.ts:85)"
+  },
+  {
+   "module": "kf1vn",
+   "view": "Kf1vnRewardView",
+   "node": "this[\"_gp_dsgt_effect\" + i]",
+   "reason": "res_name is a dynamic expression `dsgt_cfg.resource_id` (source: kf1vn/Kf1vnRewardView.ts:258)"
+  },
+  {
+   "module": "limitLevelShop",
+   "view": "LimitLevelShopView",
+   "node": "_gp_effect",
+   "reason": "res_name is a dynamic expression `data` (source: limitLevelShop/LimitLevelShopView.ts:418)"
+  },
+  {
+   "module": "limitLevelShop",
+   "view": "LimitLevelShopView",
+   "node": "_gp_rune",
+   "reason": "res_name is a dynamic expression `effect` (source: limitLevelShop/LimitLevelShopView.ts:427)"
+  },
+  {
+   "module": "longlanguage",
+   "view": "longlangEquipItem",
+   "node": "effectGp",
+   "reason": "res_name is a dynamic expression `effectName` (source: longlanguage/longlangEquipItem.ts:154)"
+  },
+  {
+   "module": "longlanguage",
+   "view": "longlangStrItem",
+   "node": "effectGp",
+   "reason": "res_name is a dynamic expression `effectName` (source: longlanguage/longlangStrItem.ts:131)"
+  },
+  {
+   "module": "lung",
+   "view": "LungGridItem",
+   "node": "_box_eff",
+   "reason": "res_name is a dynamic expression `effect` (source: lung/LungGridItem.ts:146)"
+  },
+  {
+   "module": "lung",
+   "view": "LungSkillItem",
+   "node": "effBox",
+   "reason": "res_name is a dynamic expression `effect_str` (source: lung/LungSkillItem.ts:57)"
+  },
+  {
+   "module": "marriage",
+   "view": "MarriageAskItem",
+   "node": "_group_dsgt",
+   "reason": "res_name is a dynamic expression `dsgt.resource_id` (source: marriage/MarriageAskItem.ts:72)"
+  },
+  {
+   "module": "marriage",
+   "view": "MarriageDsgtItem",
+   "node": "_group_dsgt",
+   "reason": "res_name is a dynamic expression `dsgt.resource_id` (source: marriage/MarriageDsgtItem.ts:54)"
+  },
+  {
+   "module": "pet",
+   "view": "OutwardChangedView",
+   "node": "_gp_effect_icon",
+   "reason": "res_name is a dynamic expression `Trim(conf.resource_id)` (source: pet/OutwardChangedView.ts:326)"
+  },
+  {
+   "module": "pet",
+   "view": "PetRoundItem",
+   "node": "effBox",
+   "reason": "res_name is a dynamic expression `effect_str` (source: pet/PetRoundItem.ts:279)"
+  },
+  {
+   "module": "playerMessage",
+   "view": "PlayerMessageView",
+   "node": "_gp_title",
+   "reason": "res_name is a dynamic expression `dsgt.resource_id` (source: playerMessage/PlayerMessageView.ts:514)"
+  },
+  {
+   "module": "pray",
+   "view": "PrayBaseView",
+   "node": "effect",
+   "reason": "res_name is a dynamic expression `url` (source: pray/PrayBaseView.ts:72)"
+  },
+  {
+   "module": "pray",
+   "view": "PrayBaseView",
+   "node": "effect",
+   "reason": "res_name is a dynamic expression `url` (source: pray/PrayBaseView.ts:82)"
+  },
+  {
+   "module": "pray",
+   "view": "PrayItemView",
+   "node": "_gp_effect",
+   "reason": "res_name is a dynamic expression `_effect_url` (source: pray/PrayItemView.ts:221)"
+  },
+  {
+   "module": "rank",
+   "view": "RankItem",
+   "node": "title_gp",
+   "reason": "res_name is a dynamic expression `eff_url` (source: rank/RankItem.ts:176)"
+  },
+  {
+   "module": "rank",
+   "view": "RankView",
+   "node": "title_effect_gp",
+   "reason": "res_name is a dynamic expression `eff_url` (source: rank/RankView.ts:184)"
+  },
+  {
+   "module": "rareSurface",
+   "view": "RareSurfaceView",
+   "node": "_gp_effect",
+   "reason": "res_name is a dynamic expression `cur_cond.effect[0][1]` (source: rareSurface/RareSurfaceView.ts:452)"
+  },
+  {
+   "module": "reincarnation",
+   "view": "ReincarnationSuccessView",
+   "node": "rebirth_effect_gp",
+   "reason": "res_name is a dynamic expression `effect1_` (source: reincarnation/ReincarnationSuccessView.ts:308)"
+  },
+  {
+   "module": "rune",
+   "view": "RuneIcon",
+   "node": "special_effect",
+   "reason": "res_name is a dynamic expression `effect` (source: rune/RuneIcon.ts:195)"
+  },
+  {
+   "module": "runeTreasure",
+   "view": "ATreasureBaseView",
+   "node": "glassGp",
+   "reason": "res_name is a dynamic expression ``ui_duobao_0${treType}_01`` (source: runeTreasure/ATreasureBaseView.ts:310)"
+  },
+  {
+   "module": "runeTreasure",
+   "view": "ATreasureBaseView",
+   "node": "runeGp",
+   "reason": "res_name is a dynamic expression ``ui_duobao_0${treType}_02`` (source: runeTreasure/ATreasureBaseView.ts:312)"
+  },
+  {
+   "module": "runeTreasure",
+   "view": "ATreasureBaseView",
+   "node": "waterGp",
+   "reason": "res_name is a dynamic expression ``ui_duobao_0${treType}_03`` (source: runeTreasure/ATreasureBaseView.ts:316)"
+  },
+  {
+   "module": "runeTreasure",
+   "view": "EquipTreasureItem",
+   "node": "self.effect_group",
+   "reason": "res_name is a dynamic expression ``ui_duobao_0${type}_01`` (source: runeTreasure/EquipTreasureItem.ts:113)"
+  },
+  {
+   "module": "runeTreasure",
+   "view": "RuneResultItem",
+   "node": "_gp_effect",
+   "reason": "res_name is a dynamic expression `effect` (source: runeTreasure/RuneResultItem.ts:107)"
+  },
+  {
+   "module": "runeTreasure",
+   "view": "RuneTreasureResultView",
+   "node": "_gp_effect",
+   "reason": "res_name is a dynamic expression `effect` (source: runeTreasure/RuneTreasureResultView.ts:119)"
+  },
+  {
+   "module": "saiboTreasure",
+   "view": "SaiboMainView",
+   "node": "args[1]",
+   "reason": "res_name is a dynamic expression `args[0]` (source: saiboTreasure/SaiboMainView.ts:92)"
+  },
+  {
+   "module": "saiboTreasure",
+   "view": "SaiboPreviewItem",
+   "node": "_gp_effect",
+   "reason": "res_name is a dynamic expression `show[1][0][1]` (source: saiboTreasure/SaiboPreviewItem.ts:173)"
+  },
+  {
+   "module": "saiboTreasure",
+   "view": "SaiboTotalItem",
+   "node": "_gp_effect",
+   "reason": "res_name is a dynamic expression `url` (source: saiboTreasure/SaiboTotalItem.ts:258)"
+  },
+  {
+   "module": "scene",
+   "view": "NameBoard",
+   "node": "_gp_touxian",
+   "reason": "res_name is a dynamic expression `res` (source: scene/sceneboard/NameBoard.ts:544)"
+  },
+  {
+   "module": "scene",
+   "view": "NameBoard",
+   "node": "_gp_title",
+   "reason": "res_name is a dynamic expression `eff_name` (source: scene/sceneboard/NameBoard.ts:623)"
+  },
+  {
+   "module": "scene",
+   "view": "NameBoard",
+   "node": "_gp_dsgt_effect",
+   "reason": "res_name is a dynamic expression `Trim(cfg.resource_id)` (source: scene/sceneboard/NameBoard.ts:764)"
+  },
+  {
+   "module": "scene",
+   "view": "NameBoard",
+   "node": "_gp_title",
+   "reason": "res_name is a dynamic expression `res` (source: scene/sceneboard/NameBoard.ts:1009)"
+  },
+  {
+   "module": "sevenDay",
+   "view": "SevenDayView",
+   "node": "_gp_model_effect",
+   "reason": "res_name is a dynamic expression `Trim(cur_day_cfg.resource_id)` (source: sevenDay/SevenDayView.ts:431)"
+  },
+  {
+   "module": "suit",
+   "view": "EquipSuitMianView",
+   "node": "box",
+   "reason": "res_name is a dynamic expression `effName` (source: suit/EquipSuitMianView.ts:478)"
+  },
+  {
+   "module": "suit",
+   "view": "EquipSuitPreviewTips",
+   "node": "effBox",
+   "reason": "res_name is a dynamic expression `effName` (source: suit/EquipSuitPreviewTips.ts:118)"
+  },
+  {
+   "module": "surpriseGift",
+   "view": "GiftView",
+   "node": "_gp_foot",
+   "reason": "res_name is a dynamic expression `\"footprint_\" + model_id` (source: surpriseGift/GiftView.ts:405)"
+  },
+  {
+   "module": "title",
+   "view": "TitleItem",
+   "node": "title_gp",
+   "reason": "res_name is a dynamic expression `res` (source: title/TitleItem.ts:56)"
+  },
+  {
+   "module": "title",
+   "view": "TitleMainView",
+   "node": "title_effect_gp",
+   "reason": "res_name is a dynamic expression `res` (source: title/TitleMainView.ts:232)"
+  },
+  {
+   "module": "vipActive",
+   "view": "VipActiveView",
+   "node": "effectGroup",
+   "reason": "res_name is a dynamic expression `res_name` (source: vipActive/VipActiveView.ts:304)"
+  },
+  {
+   "module": "vipGift",
+   "view": "vipGiftView",
+   "node": "layer_value",
+   "reason": "res_name is a dynamic expression `cond.show_effect[0][1]` (source: vipGift/vipGiftView.ts:488)"
+  },
+  {
+   "module": "wxOneMoney",
+   "view": "WXOneMoneyView",
+   "node": "parent",
+   "reason": "res_name is a dynamic expression `item_data[1][0][1]` (source: wxOneMoney/WXOneMoneyView.ts:332)"
+  },
+  {
+   "module": "zeroMoney",
+   "view": "ZeroMoneyBaseViewNew",
+   "node": "effect",
+   "reason": "res_name is a dynamic expression `res_id` (source: zeroMoney/ZeroMoneyBaseViewNew.ts:605)"
+  },
+  {
+   "module": "zeroMoney",
+   "view": "ZeroMoneyBaseViewTwo",
+   "node": "effect",
+   "reason": "res_name is a dynamic expression `res_id` (source: zeroMoney/ZeroMoneyBaseViewTwo.ts:559)"
+  }
+ ]
+}

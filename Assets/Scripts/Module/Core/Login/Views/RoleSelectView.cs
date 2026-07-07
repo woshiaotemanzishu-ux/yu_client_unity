@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Shenxiao.Common.Prefs;
+using Shenxiao.Common.Tips;
 using Shenxiao.Common.Proto;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Res;
@@ -15,13 +16,14 @@ namespace Shenxiao.Module.Core.Login
     /// <summary>
     /// 选角页(重构版,自包含独立 prefab)——取代老端碎片化的 LoginSelectRoleView + LoginSelectRoleItem。
     ///
-    /// 结构(由 RoleSelectCreator 纯代码建树):全屏背景 / 角色卡容器 _box_items + 一张隐藏模板卡 _tpl_item
-    /// (内部:底图 _img_bg / 选中胶囊 _img_bg2 / 名字 _lb_name / 转生 _lb_turn / 等级 _lb_lv / 升仙角标 _img_sc /
-    /// 头像位 _img_head)/ 3D 模型容器 _gp_model / 踏入仙界按钮 _img_enter / 返回按钮 _img_return。
+    /// 结构(由 RoleSelectCreator 纯代码建树):全屏背景 / 3D 模型容器 modelCon(内含编辑器占位 modelPlaceholder)/
+    /// 4 张固定角色卡 roleCards(每张位置各自手调,不再用模板克隆)/ 踏入仙界 enterBtn / 返回 returnBtn。
+    /// 每张卡内直接持有子控件引用(bg 底图 / selectedFrame 选中胶囊 / head 头像 / nameLabel / turnLabel /
+    /// ascendMark 升仙角标 / levelLabel),由 Creator 建树时回填,运行时不再按名查找。
     ///
-    /// 本类只做:① 数据绑定(克隆模板卡填角色数据、空槽=创建入口) ② 功能性状态切换(选中态换图 / 显示 3D 模型)。
+    /// 本类只做:① 数据绑定(把角色数据填进 4 张卡,空卡=创建入口) ② 功能性状态切换(选中态换图 / 显示 3D 模型)。
     /// 不写颜色/字号/尺寸样式(建树期 Creator + 用户手调的事)。
-    /// 列表/模型/头像逻辑从老 LoginSelectRoleView.cs 原样搬,只把"取烤进节点"换成"克隆代码模板卡 + 按名找子节点"。
+    /// 卡片数量现由 prefab 上的 roleCards 决定(默认 4);要增减槽位就在 prefab 上加/删卡(或改 Creator 重生成)。
     ///
     /// ── 对接(供主控改写 LoginFlow 时对照)─────────────────────────────────────────────
     /// 暴露给 LoginFlow 回调的 public 方法:
@@ -45,37 +47,44 @@ namespace Shenxiao.Module.Core.Login
         private const int SC_LEVEL = 370;
         private const float MODEL_SCALE = 0.5f;
 
-        [Header("3D 模型容器")]
-        public RectTransform _gp_model;
-
-        [Header("角色卡列表")]
-        public RectTransform _box_items;   // 角色卡父容器(克隆模板填进这里)
-        public RectTransform _tpl_item;    // 模板卡(prefab 内默认隐藏,作克隆源)
-
-        [Header("按钮")]
-        public Image _img_enter;           // 踏入仙界
-        public Image _img_return;          // 返回
-
-        /// <summary>克隆出来的角色卡:缓存它内部的底图/胶囊/头像/文字(对标老 LoginSelectRoleItemBind)。</summary>
-        private struct RoleSlot
+        /// <summary>一张固定角色卡的子控件引用(Creator 建树时回填;对标老 LoginSelectRoleItemBind)。</summary>
+        [System.Serializable]
+        public class RoleCard
         {
-            public GameObject root;
-            public Image bg;       // _img_bg:底图(选中/未选 + 空槽创建图;点击命中体)
-            public Image bg2;      // _img_bg2:选中胶囊
-            public Image sc;       // _img_sc:升仙角标
-            public Image head;     // _img_head:头像
-            public TextMeshProUGUI name;   // _lb_name
-            public TextMeshProUGUI turn;   // _lb_turn
-            public TextMeshProUGUI lv;     // _lb_lv
+            public Image bg;              // 底图:未选/选中/空槽创建图;点击命中体
+            public Image selectedFrame;   // 选中胶囊 / 名牌底
+            public Image ascendMark;      // 升仙角标
+            public Image head;            // 头像
+            public TextMeshProUGUI nameLabel;
+            public TextMeshProUGUI turnLabel;
+            public TextMeshProUGUI levelLabel;
         }
 
-        private readonly List<RoleSlot> _slots = new List<RoleSlot>();
+        [Header("3D 模型容器")]
+        public RectTransform modelCon;
+        // 编辑器占位色块(建树期可见,便于直接调 modelCon 的位置/大小);运行时隐藏,不遮真模型。
+        public Image modelPlaceholder;
+
+        [Header("角色卡(固定 4 张,位置各自手调)")]
+        public RoleCard[] roleCards;
+
+        [Header("按钮")]
+        public Image enterBtn;            // 踏入仙界
+        public Image returnBtn;           // 返回
+
         private List<GameRoleInfo> _roles = new List<GameRoleInfo>();
         private int _selectedIndex = -1;
 
-        protected override void OnShow(object args)
+        protected override void OnInit()
         {
             BindStaticClicks();
+            BindCardClicks();
+        }
+
+        protected override void OnShow(object args)
+        {
+            // 隐藏编辑器占位:真模型由 UIModelStage 贴进 modelCon,占位只是编辑期看位置/大小用。
+            if (modelPlaceholder != null) modelPlaceholder.gameObject.SetActive(false);
             Refresh();
         }
 
@@ -86,120 +95,96 @@ namespace Shenxiao.Module.Core.Login
 
         protected override void OnDispose()
         {
-            ClearSlots();
             _roles.Clear();
             _selectedIndex = -1;
         }
 
         private void BindStaticClicks()
         {
-            ClearAndAddClick(_img_enter, OnClickEnter);
-            ClearAndAddClick(_img_return, OnClickReturn);
+            ClearAndAddClick(enterBtn, OnClickEnter);
+            ClearAndAddClick(returnBtn, OnClickReturn);
+        }
+
+        /// <summary>给每张卡的底图绑点击(捕获卡下标;固定卡只需绑一次)。</summary>
+        private void BindCardClicks()
+        {
+            if (roleCards == null) return;
+            for (int i = 0; i < roleCards.Length; i++)
+            {
+                RoleCard card = roleCards[i];
+                if (card?.bg == null) continue;
+                card.bg.raycastTarget = true;
+                int captured = i;
+                UIUtil.ClearClicks(card.bg);
+                UIUtil.AddClick(card.bg, () => OnClickSlot(captured));
+            }
         }
 
         // ---------------------------------------------------------------- 数据绑定(主入口)
 
-        /// <summary>从角色列表建角色卡、默认选中上次登录角色、显示其 3D 模型(供 LoginFlow 调)。</summary>
+        /// <summary>从角色列表填 4 张卡、默认选中上次登录角色、显示其 3D 模型(供 LoginFlow 调)。</summary>
         public async void Refresh()
         {
             await LoginConfigs.EnsureLoaded();
             _roles = LoginModel.Instance.Roles.OrderBy(r => r.roleId).ToList();
-            RebuildSlots();
+
+            if (roleCards == null || roleCards.Length == 0)
+            {
+                GameLog.Error("Login", "选角缺角色卡(roleCards 未绑,重新生成 prefab)");
+                return;
+            }
+
+            // 先全部按未选态填一遍(超出角色数的卡=空槽创建入口),选中态由 SelectSlot 触发。
+            for (int i = 0; i < roleCards.Length; i++) FillCard(roleCards[i], i, selected: false);
 
             // 默认选中上次登录角色,找不到选第一个(对标老端 UpdateView 的 select_index)
             long lastRoleId = long.TryParse(PrefsManager.GetString(PREF_LAST_ROLE_ID, ""), out long v) ? v : 0;
             int selectIndex = 0;
-            for (int i = 0; i < _roles.Count; i++)
+            for (int i = 0; i < _roles.Count && i < roleCards.Length; i++)
             {
                 if (_roles[i].roleId == lastRoleId) { selectIndex = i; break; }
             }
             _selectedIndex = -1;
-            if (_roles.Count > 0) SelectSlot(selectIndex);
+            if (_roles.Count > 0) SelectSlot(Mathf.Min(selectIndex, roleCards.Length - 1));
         }
 
-        /// <summary>按角色数 + 固定槽位数克隆模板卡(超出角色数=空槽创建入口),全部先按未选态填一遍。</summary>
-        private void RebuildSlots()
+        /// <summary>对标 LoginSelectRoleItem.UpdateItem/UpdateState:空卡=创建入口,角色卡按选中态换图。</summary>
+        private async void FillCard(RoleCard card, int index, bool selected)
         {
-            ClearSlots();
-            if (_box_items == null || _tpl_item == null)
-            {
-                GameLog.Error("Login", "选角缺角色卡容器/模板(_box_items 或 _tpl_item 未绑,重新生成 prefab)");
-                return;
-            }
-
-            int slotCount = Mathf.Max(LoginConfigs.SelectRoleTotalCount(), _roles.Count);
-            for (int i = 0; i < slotCount; i++)
-            {
-                GameObject clone = Instantiate(_tpl_item.gameObject, _box_items);
-                clone.name = "RoleItem_" + i;
-                clone.SetActive(true);
-
-                var slot = new RoleSlot
-                {
-                    root = clone,
-                    bg = FindImage(clone.transform, "_img_bg"),
-                    bg2 = FindImage(clone.transform, "_img_bg2"),
-                    sc = FindImage(clone.transform, "_img_sc"),
-                    head = FindImage(clone.transform, "_img_head"),
-                    name = FindText(clone.transform, "_lb_name"),
-                    turn = FindText(clone.transform, "_lb_turn"),
-                    lv = FindText(clone.transform, "_lb_lv"),
-                };
-
-                // 老客户端点击区是空容器;Unity 射线需要 Graphic,绑在底图上(每次重建先清再加防叠加)。
-                int captured = i;
-                if (slot.bg != null)
-                {
-                    slot.bg.raycastTarget = true;
-                    UIUtil.ClearClicks(slot.bg);
-                    UIUtil.AddClick(slot.bg, () => OnClickSlot(captured));
-                }
-                _slots.Add(slot);
-            }
-
-            // 先全部按未选态填一遍(空槽=创建入口),选中态由 SelectSlot 触发。
-            for (int i = 0; i < _slots.Count; i++)
-            {
-                FillSlot(_slots[i], i, selected: false);
-            }
-        }
-
-        /// <summary>对标 LoginSelectRoleItem.UpdateItem/UpdateState:空槽=创建入口,角色槽按选中态换图。</summary>
-        private async void FillSlot(RoleSlot slot, int index, bool selected)
-        {
+            if (card == null) return;
             bool isRole = index < _roles.Count;
-            if (slot.bg2 != null) slot.bg2.enabled = isRole;
-            if (slot.name != null) slot.name.enabled = isRole;
-            if (slot.lv != null) slot.lv.enabled = isRole;
-            if (slot.turn != null) slot.turn.enabled = isRole;
-            if (slot.sc != null) slot.sc.enabled = false;
-            if (slot.head != null) slot.head.enabled = isRole;
+            if (card.selectedFrame != null) card.selectedFrame.enabled = isRole;
+            if (card.nameLabel != null) card.nameLabel.enabled = isRole;
+            if (card.levelLabel != null) card.levelLabel.enabled = isRole;
+            if (card.turnLabel != null) card.turnLabel.enabled = isRole;
+            if (card.ascendMark != null) card.ascendMark.enabled = false;
+            if (card.head != null) card.head.enabled = isRole;
 
             if (!isRole)
             {
-                // 换肤一律 nativeSize:false:保留模板卡宽高(对标 Laya skin=),否则 SetNativeSize 撑回原图大小。
-                if (slot.bg != null)
-                    _ = ResManager.SetImageAsync(slot.bg,
+                // 换肤一律 nativeSize:false:保留卡片宽高(对标 Laya skin=),否则 SetNativeSize 撑回原图大小。
+                if (card.bg != null)
+                    _ = ResManager.SetImageAsync(card.bg,
                             "resource/game/login/texture/ui_Login_04.png", nativeSize: false);
                 return;
             }
 
             GameRoleInfo role = _roles[index];
-            if (slot.name != null) slot.name.text = role.DisplayName;
-            if (slot.turn != null) slot.turn.text = role.Turn + "转";
+            if (card.nameLabel != null) card.nameLabel.text = role.DisplayName;
+            if (card.turnLabel != null) card.turnLabel.text = role.Turn + "转";
             bool isSc = role.Level > SC_LEVEL;
-            if (slot.sc != null) slot.sc.enabled = isSc;
-            if (slot.lv != null) slot.lv.text = (isSc ? role.Level - SC_LEVEL : role.Level) + "级";
+            if (card.ascendMark != null) card.ascendMark.enabled = isSc;
+            if (card.levelLabel != null) card.levelLabel.text = (isSc ? role.Level - SC_LEVEL : role.Level) + "级";
 
             string bg = selected ? "ui_Login_02" : "ui_Login_03";
             string bg2 = selected ? "ui_Login_05" : "ui_Login_06";
-            if (slot.bg != null)
-                _ = ResManager.SetImageAsync(slot.bg, $"resource/game/login/texture/{bg}.png", nativeSize: false);
-            if (slot.bg2 != null)
-                _ = ResManager.SetImageAsync(slot.bg2, $"resource/game/login/texture/{bg2}.png", nativeSize: false);
+            if (card.bg != null)
+                _ = ResManager.SetImageAsync(card.bg, $"resource/game/login/texture/{bg}.png", nativeSize: false);
+            if (card.selectedFrame != null)
+                _ = ResManager.SetImageAsync(card.selectedFrame, $"resource/game/login/texture/{bg2}.png", nativeSize: false);
 
             // 头像:config_dress_up_cfg(按转生数选装扮,screen 按职业给图标);自定义头像 picture 待头像线。
-            Image head = slot.head;
+            Image head = card.head;
             if (head != null)
             {
                 string headIcon = LoginConfigs.HeadIconPath(role.Career, role.Turn);
@@ -219,7 +204,7 @@ namespace Shenxiao.Module.Core.Login
         {
             if (index >= _roles.Count)
             {
-                LoginFlow.ShowCreateRole(); // 空槽=创建角色入口(对标老客户端 data.none 分支)
+                LoginFlow.ShowCreateRole(); // 空卡=创建角色入口(对标老客户端 data.none 分支)
                 return;
             }
             SelectSlot(index);
@@ -229,9 +214,9 @@ namespace Shenxiao.Module.Core.Login
         {
             if (_selectedIndex == index) return;
             _selectedIndex = index;
-            for (int i = 0; i < _slots.Count; i++)
+            for (int i = 0; i < roleCards.Length; i++)
             {
-                FillSlot(_slots[i], i, selected: i == index);
+                FillCard(roleCards[i], i, selected: i == index);
             }
             ShowRoleModel();
         }
@@ -267,7 +252,7 @@ namespace Shenxiao.Module.Core.Login
                 Destroy(model);
                 return;
             }
-            UIModelStage.ShowInstance(_gp_model, model,
+            UIModelStage.ShowInstance(modelCon, model,
                 MODEL_SCALE, LoginConfigs.GetModelPos("SelectRole", option.Career, option.Sex));
         }
 
@@ -275,7 +260,7 @@ namespace Shenxiao.Module.Core.Login
         {
             if (_selectedIndex < 0 || _selectedIndex >= _roles.Count)
             {
-                GameLog.Warn("Login", "未选择角色");
+                TipsManager.Toast("未选择角色");   // 对标老端 LoginSelectRoleView:183
                 return;
             }
             LoginController.Instance.EnterGameWithRole(_roles[_selectedIndex].roleId);
@@ -288,40 +273,11 @@ namespace Shenxiao.Module.Core.Login
 
         // ---------------------------------------------------------------- 工具
 
-        private void ClearSlots()
-        {
-            for (int i = 0; i < _slots.Count; i++)
-            {
-                if (_slots[i].root != null) Destroy(_slots[i].root);
-            }
-            _slots.Clear();
-        }
-
         private static void ClearAndAddClick(Graphic target, System.Action onClick)
         {
             if (target == null) return;
             UIUtil.ClearClicks(target);
             UIUtil.AddClick(target, onClick);
-        }
-
-        /// <summary>递归按名找子节点(模板卡内部节点名固定,克隆后结构一致)。</summary>
-        private static Transform FindDeep(Transform root, string name)
-        {
-            foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
-                if (t != root && t.name == name) return t;
-            return null;
-        }
-
-        private static Image FindImage(Transform root, string name)
-        {
-            Transform t = FindDeep(root, name);
-            return t != null ? t.GetComponent<Image>() : null;
-        }
-
-        private static TextMeshProUGUI FindText(Transform root, string name)
-        {
-            Transform t = FindDeep(root, name);
-            return t != null ? t.GetComponent<TextMeshProUGUI>() : null;
         }
     }
 }

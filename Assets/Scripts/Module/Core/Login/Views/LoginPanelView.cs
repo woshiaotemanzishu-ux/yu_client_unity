@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using TMPro;
@@ -136,7 +137,7 @@ namespace Shenxiao.Module.Core.Login
             try
             {
                 LoginRequestResult r = await LoginController.Instance.LoginAsync(acc, pwd, _remember);
-                if (!r.success) GameLog.Warn("Login", "登录失败: {0}", r.message);
+                if (!r.success) TipsManager.Toast(r.message);
                 else GameLog.Info("Login", "登录成功(LoginPanelView 独立预览)");
             }
             finally { _busy = false; }
@@ -149,7 +150,7 @@ namespace Shenxiao.Module.Core.Login
             string pwd = (registerPassword != null ? registerPassword.text : string.Empty).Trim();
             if (string.IsNullOrEmpty(acc) || string.IsNullOrEmpty(pwd))
             {
-                GameLog.Warn("Login", "请输入账号密码");
+                TipsManager.Toast("请输入账号密码");   // 对标老端 RegisterView:51(此校验在正式流程也走)
                 return;
             }
 
@@ -163,7 +164,7 @@ namespace Shenxiao.Module.Core.Login
             try
             {
                 LoginRequestResult r = await LoginController.Instance.RegisterAsync(acc, pwd, true);
-                if (!r.success) GameLog.Warn("Login", "注册失败: {0}", r.message);
+                if (!r.success) TipsManager.Toast(r.message);
                 else GameLog.Info("Login", "注册并登录成功(LoginPanelView 独立预览)");
             }
             finally { _busy = false; }

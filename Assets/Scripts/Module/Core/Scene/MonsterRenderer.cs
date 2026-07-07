@@ -148,6 +148,10 @@ namespace Shenxiao.Module.Core.Scene
                 return;
             }
 
+            // 帧预算:prefab 命中缓存时几十只怪的 await 同帧返回,Instantiate+名牌+Animation 会挤在一帧 → 排队限流。
+            await SceneSpawnBudget.WaitTurnAsync();
+            if (IsStale(view)) return;
+
             GameObject model = Object.Instantiate(prefab);
             // 大妖优先用 ConfigAutoBrush 的 scene_scale(对标老端 vo.icon_scale=cfg.scene_scale);否则 config_mon icon_scale。
             float iconScale = autoBrushScale > 0f ? autoBrushScale
@@ -216,16 +220,37 @@ namespace Shenxiao.Module.Core.Scene
             RefreshHp(view);
         }
 
-        /// <summary>切场景/真正断线:清掉所有怪视图(SceneManager.Clear 不逐个发 MonsterRemoved,故整清)。</summary>
+        /// <summary>切场景/真正断线:清掉所有怪视图(SceneManager.Clear 不逐个发 MonsterRemoved,故整清)。
+        /// 当帧只做隐藏(便宜),真正的 Destroy 分帧摊开——每只怪连模型带名牌是两次 Destroy,
+        /// 旧场景几十只挤在切图那一帧就是主线程尖刺。</summary>
         private static void ClearAll()
         {
             _epoch++; // 让在途加载全部过期
-            foreach (MonView v in _views.Values)
+            if (_views.Count == 0) return;
+            var doomed = new List<MonView>(_views.Values);
+            _views.Clear();
+            _ = DestroyViewsSlicedAsync(doomed);
+        }
+
+        private static async Task DestroyViewsSlicedAsync(List<MonView> doomed)
+        {
+            const int DestroysPerFrame = 8;
+            for (int i = 0; i < doomed.Count; i++)
             {
+                MonView v = doomed[i];
+                if (v == null) continue;
+                if (v.Tilt != null) v.Tilt.gameObject.SetActive(false);
+                if (v.NameplateRt != null) v.NameplateRt.gameObject.SetActive(false);
+            }
+            int done = 0;
+            for (int i = 0; i < doomed.Count; i++)
+            {
+                MonView v = doomed[i];
+                if (v == null) continue;
                 SceneCharacterStage.RemoveSceneCharacter(v.Tilt);
                 DestroyNameplate(v);
+                if (++done % DestroysPerFrame == 0) await Task.Yield();
             }
-            _views.Clear();
         }
 
         private static void RemoveView(MonView view)

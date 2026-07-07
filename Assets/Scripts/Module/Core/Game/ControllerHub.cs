@@ -12,6 +12,7 @@ using Shenxiao.Module.Core.FirstRecharge;
 using Shenxiao.Module.Core.FunctionOpen;
 using Shenxiao.Module.Core.Gm;
 using Shenxiao.Module.Core.Mail;
+using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Compose;
 using Shenxiao.Module.Core.Dungeon;
 using Shenxiao.Module.Core.Equip;
@@ -27,6 +28,7 @@ using Shenxiao.Module.Core.Rune;
 using Shenxiao.Module.Core.RushGift;
 using Shenxiao.Module.Core.SuitCollect;
 using Shenxiao.Module.Core.Scene;
+using Shenxiao.Module.Core.Setting;
 using Shenxiao.Module.Core.Skill;
 using Shenxiao.Module.Core.SurpriseGift;
 using Shenxiao.Module.Core.Svip;
@@ -86,6 +88,8 @@ namespace Shenxiao.Module.Core.Game
             BagFusionController.Instance,
             ComposeController.Instance,
             JjcController.Instance,
+            PkStatusController.Instance,
+            SettingController.Instance,
             // 后续:EquipController ...
         };
 

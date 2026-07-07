@@ -51,8 +51,8 @@ namespace Shenxiao.Module.Core.Role
             m.CombatPower = r.ReadU64();
             m.GuildId = r.ReadU64();
             m.GuildName = r.ReadString();
-            r.ReadU16();                     // pk_change_time
-            r.ReadU16();                     // pk_value
+            m.SetPeaceCd(r.ReadU16());       // peace_cd_time(和平切换冷却剩余秒,对标老端 MainRoleVo.ReadFrom13001:276)
+            r.ReadU16();                     // hatred(仇恨值,对标老端 :277;暂不用)
             r.ReadU64();                     // team_id
             r.ReadU64();                     // mate_role_id
             r.ReadString();                  // ip
