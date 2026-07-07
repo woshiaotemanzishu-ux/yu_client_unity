@@ -32,6 +32,16 @@ namespace Shenxiao.Module.Core.Pet
         private static readonly bool[] TabEnabled = { true, true, false, false };
         // 页签 index → OutWard type_id(0=坐骑1,1=剑魄同修2;神巫/天妖灵魄非 OutWard 家族)
         private static readonly int[] TabTypeId = { 1, 2, 0, 0 };
+        // 每页标题图(对标老端 titleStr="pet.uiwg_001" + titleList[1]="pet.ui_shihun")
+        private static readonly string[] TabTitleImages =
+        {
+            GameResPath.GetIcon("pet", "uiwg_001"),
+            GameResPath.GetIcon("pet", "ui_shihun"),
+            null,
+            null,
+        };
+        // 窗底大图(对标老端 bg_list 0/1 = "uiwg_008a.jpg";Unity 侧同名资源在 pet/other/)
+        private static readonly string WindowBg = GameResPath.GetIconOtherPath("pet", "uiwg_008a");
 
         private static GameObject _frameRoot;
         private static GameObject _contentRoot;
@@ -126,7 +136,8 @@ namespace Shenxiao.Module.Core.Pet
 
             _window.Show();
             _window.ConfigureShared(PetTabs.Length, ReparentOutWard, OnPetTab, tabIndex,
-                i => i >= 0 && i < TabEnabled.Length && TabEnabled[i]);
+                i => i >= 0 && i < TabEnabled.Length && TabEnabled[i], null,
+                PetTabs, TabTitleImages, WindowBg);
             GameLog.Info("Pet", "灵宠四标签窗打开(共享 OutWardBaseView,默认 tab{0} {1})", tabIndex, PetTabs[tabIndex]);
         }
 
@@ -163,7 +174,8 @@ namespace Shenxiao.Module.Core.Pet
             return null;
         }
 
-        internal static void Reset()
+        /// <summary>释放窗框与内容实例(重新生成 prefab 后的预览/重载入口;下次 Open 重新实例化)。</summary>
+        public static void Reset()
         {
             if (_frameRoot != null) ResManager.ReleaseInstance(_frameRoot);
             if (_contentRoot != null) ResManager.ReleaseInstance(_contentRoot);

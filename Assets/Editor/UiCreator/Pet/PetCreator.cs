@@ -78,8 +78,6 @@ namespace Shenxiao.Editor.UiCreator.Pet
         private static readonly Color TitleGray = Hex("#525153");
         private static readonly Color IlluBrown = Hex("#7B3434");
 
-        private static GameObject _previewInstance;
-
         [InitializeOnLoadMethod]
         private static void Register()
         {
@@ -598,34 +596,15 @@ namespace Shenxiao.Editor.UiCreator.Pet
             {
                 EditorUtility.DisplayDialog("预览 PetModule",
                     "请先进入 Play 模式(UI 层已初始化)再点预览。\n\n" +
-                    "预览复刻 PetFlow:实例化 BaseWindowSkin 窗框 + PetModule 内容到 Window 层并 Show 培养页。",
+                    "预览走真实 PetFlow:BaseWindowSkin 窗框(标题/页签/背景) + PetModule 内容,直达剑魄同修页签。\n" +
+                    "注意:名字/星级/技能球/材料等数据来自 16002 回包与配置——不连服为空态,这不是布局问题。",
                     "好");
                 return;
             }
 
-            if (_previewInstance != null)
-            {
-                Object.Destroy(_previewInstance);
-                _previewInstance = null;
-            }
-
-            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
-            if (prefab == null)
-            {
-                Debug.LogError("[UiCreator] 预览失败,找不到 " + PrefabPath + "(请先点生成)");
-                return;
-            }
-
-            Transform layer = ViewManager.GetLayer(UILayer.Window);
-            _previewInstance = Object.Instantiate(prefab, layer);
-            var main = _previewInstance.GetComponentInChildren<OutWardBaseView>(true);
-            if (main == null)
-            {
-                Debug.LogError("[UiCreator] 预览失败,prefab 缺 OutWardBaseView 组件");
-                return;
-            }
-            main.Show();
-            Selection.activeObject = _previewInstance;
+            // 走真实运行时装配(窗框+页签+背景与实际游戏完全一致),不再单摆内容裸页。
+            PetFlow.Reset();
+            PetFlow.Open(1);
         }
     }
 }

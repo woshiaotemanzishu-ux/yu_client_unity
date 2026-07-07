@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.Pet;
@@ -52,9 +54,19 @@ namespace Shenxiao.Module.Core.Pet
 
         protected override void OnShow(object args)
         {
-            _ = OutWardConfigs.EnsureLoaded();
+            _ = EnsureConfigsThenRefresh();
             Refresh();
             RefreshGuide();
+        }
+
+        /// <summary>页面依赖的三张配置(阶名/星值/培养材料)+物品表+技能表就绪后再刷一遍(异步补齐首帧空态)。</summary>
+        private async System.Threading.Tasks.Task EnsureConfigsThenRefresh()
+        {
+            await OutWardConfigs.EnsureLoaded();
+            await Common.GoodsModel.EnsureLoaded();
+            await Skill.SkillConfigs.EnsureLoaded();
+            if (this == null || !gameObject.activeInHierarchy) return;
+            Refresh();
         }
 
         protected override void OnHide()
@@ -111,6 +123,8 @@ namespace Shenxiao.Module.Core.Pet
             OutWardModel.OutWardVo vo = OutWardModel.Instance.Get(_typeId);
             int career = RoleModel.Instance.Career;
 
+            SetMaterials();
+
             if (vo == null)
             {
                 // 未收到 16002(冷启动/断链):如实显示空态,不造数(回包到达经 EVT_OUTWARD_UPDATE 刷新)
@@ -119,6 +133,7 @@ namespace Shenxiao.Module.Core.Pet
                 if (level_value != null) level_value.text = "";
                 SetStars(0, 0);
                 SetCombat(0);
+                SetSkills(null);
                 return;
             }
 
@@ -130,6 +145,58 @@ namespace Shenxiao.Module.Core.Pet
             SetCombat(vo.Combat);
             SetBlessing(vo.Blessing, OutWardConfigs.GetMaxBlessing(_typeId, vo.Stage, vo.Star));
             SetAutoBuy(vo.AutoBuy == 1);
+            SetSkills(vo.Skills);
+        }
+
+        /// <summary>技能球(skill_group 烤入的 PetRoundItem 实例,对标老端 SetSkillData):16002 skill_list 有几个填几个,
+        /// 图标经 config_skill lv_data.icon;没有的槽隐藏(不造假)。</summary>
+        private void SetSkills(List<int> skills)
+        {
+            if (skill_group == null) return;
+            PetRoundItemBind[] slots = skill_group.GetComponentsInChildren<PetRoundItemBind>(true);
+            for (int i = 0; i < slots.Length; i++)
+            {
+                bool has = skills != null && i < skills.Count;
+                slots[i].gameObject.SetActive(has);
+                if (!has || slots[i].icon == null) continue;
+                string iconName = Skill.SkillConfigs.GetIconForLevel(skills[i], 1);
+                if (string.IsNullOrEmpty(iconName)) continue;
+                _ = ResManager.SetImageAsync(slots[i].icon, GameResPath.GetSkillIcon(iconName), nativeSize: false);
+                if (slots[i].bottom_text != null) slots[i].bottom_text.text = "";
+            }
+        }
+
+        /// <summary>培养材料(material_group 烤入的 BaseAwardItem 实例,对标老端材料区):config_mount_goods 该 type 的
+        /// 物品按 id 序填前两格(图标 config_goods.goods_icon + 数量=背包持有);配置缺失槽位隐藏。</summary>
+        private void SetMaterials()
+        {
+            if (material_group == null) return;
+            IReadOnlyList<int> goods = OutWardConfigs.GetTrainGoodsIds(_typeId);
+            Generated.UI.Common.BaseAwardItemBind[] slots =
+                material_group.GetComponentsInChildren<Generated.UI.Common.BaseAwardItemBind>(true);
+            for (int i = 0; i < slots.Length; i++)
+            {
+                bool has = i < goods.Count;
+                slots[i].gameObject.SetActive(has);
+                if (!has) continue;
+                int goodsId = goods[i];
+                string iconName = Common.GoodsModel.GetGoodsIcon(goodsId);
+                if (slots[i].icon != null && !string.IsNullOrEmpty(iconName))
+                {
+                    _ = ResManager.SetImageAsync(slots[i].icon, GameResPath.GetGoodsIconPath(iconName), nativeSize: false);
+                }
+                if (slots[i].num_text != null) slots[i].num_text.text = CountInBag(goodsId).ToString();
+            }
+        }
+
+        private static long CountInBag(int goodsTypeId)
+        {
+            long n = 0;
+            foreach (Bag.BagGoods g in Bag.BagModel.Instance.BagGoodsList)
+            {
+                if (g.TypeId == goodsTypeId) n += g.GoodsNum;
+            }
+            return n;
         }
 
         /// <summary>星级条:亮星(shadow*)显示 star 颗,灰底(star*)常显垫底(对标老端 SetStarNum)。</summary>
@@ -188,6 +255,8 @@ namespace Shenxiao.Module.Core.Pet
         {
             HideNode(lv_btn_reddot); HideNode(bag_red); HideNode(illu_red);
             HideNode(btn_group_1_red); HideNode(btn_group_2_red);
+            // 侍魂装备位:数据链(PetEquipModel/pt_14x)未移植 → 整组隐藏(老端坐骑页也不显示;接入后按 type/数据显隐)
+            HideNode(_group_equip);
             if (_tpl_FairyWishEnterBtn != null) _tpl_FairyWishEnterBtn.SetActive(false);
             if (_tpl_BaseAwardItem != null) _tpl_BaseAwardItem.SetActive(false);
             if (_tpl_FightingShowSmallItem != null) _tpl_FightingShowSmallItem.SetActive(false);

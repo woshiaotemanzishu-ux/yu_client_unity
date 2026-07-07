@@ -138,6 +138,8 @@ namespace Shenxiao.Module.Core.OutWard
     {
         private static JObject _mountStar;
         private static JObject _mountStage;
+        private static JObject _mountGoods;
+        private static readonly Dictionary<int, List<int>> _trainGoodsByType = new Dictionary<int, List<int>>();
 
         public static bool IsLoaded => _mountStar != null;
 
@@ -175,6 +177,45 @@ namespace Shenxiao.Module.Core.OutWard
                     GameLog.Info("OutWard", "config_mount_stage={0}", _mountStage.Count);
                 }
             }
+            if (_mountGoods == null)
+            {
+                string key = GameResPath.GetServerConfigPath("config_mount_goods");
+                UnityEngine.TextAsset asset = await ResManager.LoadAsync<UnityEngine.TextAsset>(key);
+                if (asset == null)
+                {
+                    GameLog.Error("OutWard", "missing config_mount_goods: {0}(未同步?跑 神霄/配表/同步客户端配置)", key);
+                    _mountGoods = new JObject();
+                }
+                else
+                {
+                    _mountGoods = JObject.Parse(asset.text);
+                    ResManager.Release(asset);
+                    GameLog.Info("OutWard", "config_mount_goods={0}", _mountGoods.Count);
+                }
+                _trainGoodsByType.Clear();
+            }
+        }
+
+        /// <summary>某培养对象的培养材料物品 id 列表(config_mount_goods 键 "type_id@goods_id",按 goods_id 升序;缺表=空)。</summary>
+        public static IReadOnlyList<int> GetTrainGoodsIds(int typeId)
+        {
+            if (_trainGoodsByType.TryGetValue(typeId, out List<int> cached)) return cached;
+            var list = new List<int>();
+            if (_mountGoods != null)
+            {
+                string prefix = typeId + "@";
+                foreach (KeyValuePair<string, JToken> kv in _mountGoods)
+                {
+                    if (!kv.Key.StartsWith(prefix)) continue;
+                    if (int.TryParse(kv.Key.Substring(prefix.Length), NumberStyles.Integer, CultureInfo.InvariantCulture, out int goodsId))
+                    {
+                        list.Add(goodsId);
+                    }
+                }
+                list.Sort();
+            }
+            _trainGoodsByType[typeId] = list;
+            return list;
         }
 
         /// <summary>阶名(config_mount_stage["type@stage@career"].name;缺表/缺项降级 "")。</summary>
