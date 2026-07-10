@@ -1194,3 +1194,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **存量修复 ×2**:①OutWard 视图订阅泄漏自愈守卫(f2be5e2db)——OnInit 订阅但未激活的实例整树销毁不走 OnDestroy,残留订阅炸 MissingReference;②toast 用例适配 TipToast prefab 化——prefab 版 MonoBehaviour.Update 驱动在编辑期 batchmode 不 tick(卡 Born),用例强制走代码兜底路径。教训:Update 驱动的行为无头断言必须走非 Update 通道。
 - **验证:RenderAll 二十用例全绿 EXIT 0**(新增 goodsproto 七断言,15000 全 schema 尾哨兵验字节游标)。
 - 遗留 TODO:场景掉落实体绑定(15053/15088 只发事件)、自选礼包/兑换码/幻化 tooltip 的 UI 消费方、15027 倒计时确认后弹窗视觉残留。
+
+## 自动循环 轮2(2026-07-11 夜间无人值守):战斗补全+死亡复活闭环,二十一用例全绿
+
+- **死亡→复活链首次贯通**(4b75933c2):20013 死亡广播(击杀者名三级 fallback:MonsterVo.type_id→config_mon,老端根因修复完整保留)→ EVT_ROLE_DEAD → 停挂机+主角 death 动作 → MainUIReliveView(服控走 20009 时间戳/非服控本地 5s 倒计时到点自动请求)→ 20004 复活(15 种 flag 逐字文案;服务端白名单 19 值守门,BOSS/ASHES 成功回 12 也按成功走)→ EVT_RELIVE_SUCCESS 恢复挂机+idle。20017 复活疲劳、20022 模拟死亡、20005(log-only)、20007/14/15/18/27/28 推送、20010/20/21/23 一并接入。
+- **UiCreator 新范式**:MainUIReliveCreator 从 HudOverlayCombat 捆包抽取既有 BuildRelive 子树生成独立 prefab(几何经 .scene 公式独立复核一致),建立批处理入口 GenerateBatch(-executeMethod 可无头生成);Addressable 自动分组待用户回来跑(设置资产与既有暂存合流,未提交)。
+- **协议纠偏**:老端 20005 处理体是死代码且其 ReadFmt 与服务端 pt_200 write 字节序不符——按服务端实序实现;20015=l,h(侦察稿笔误 l,i 已纠)。20003-20028 整段不在 ClientProtocol.json/proto*.d.ts,TS+pt_200.erl 是唯一 schema 源。
+- **验证:ReliveCase 七断言绿 + RenderAll 二十一用例全绿 EXIT 0**。
+- **并行会话卫生披露**:①轮1 提交 Proto.cs 时无意混入前会话在途的活动图标波次常量(~25 条,内容正确、编译+回归全绿,无害但需知情);②ControllerHub/MainUIFlow 在基线即脏(25 控制器注册/FirstPass 绑定清单),轮2 采用「回 HEAD→只重放本轮增量→提交→放回工作区」的 hunk 级拆分,基线残留保持未提交归还原会话。
