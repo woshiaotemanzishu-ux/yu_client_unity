@@ -19,11 +19,59 @@ namespace Shenxiao.Module.Core.Bag
         /// <summary>背包槽位类型(对标 GoodsModel.GOODS_POS_TYPE.bag = 4)。请求满背包 SendFmt(15010,"h",POS_BAG)。</summary>
         public const int POS_BAG = 4;
 
+        // ----- 物品容器槽位全表(Goods 协议扩容轮:抄自老端 GoodsModel.ts:305-343 GOODS_POS_TYPE,原表全量;
+        // 本轮仅登记数值供 15002/15010 等按 pos 分流用,POS_BAG 保持既有兼容不变) -----
+        public const int POS_EQUIP = 1;
+        public const int POS_WAREHOUSE = 5;
+        public const int POS_EQUIP_BAG = 7;
+        public const int POS_ARTIFACT_BAG = 8;
+        public const int POS_TREASURE_BAG = 10;
+        public const int POS_RUNE_BAG = 11;
+        public const int POS_RUNE = 12;
+        public const int POS_SPIRIT = 13;
+        public const int POS_SOUL = 14;
+        public const int POS_SOUL_BAG = 15;
+        public const int POS_BEAST = 16;
+        public const int POS_BEAST_BAG = 17;
+        public const int POS_HORSE = 22;
+        public const int POS_HORSE_BAG = 32;
+        public const int POS_PARTNER = 23;
+        public const int POS_PARTNER_BAG = 33;
+        public const int POS_UNREAL = 28;
+        public const int POS_UNREAL_BAG = 29;
+        public const int POS_HOLY_SEAL_BAG = 30;
+        public const int POS_HOLY_SEAL = 31;
+        public const int POS_LUNG_EQUIP = 34;
+        public const int POS_LUNG_BAG = 35;
+        public const int POS_BABY_EQUIP = 36;
+        public const int POS_BABY_BAG = 37;
+        public const int POS_GOD_EQUIP = 38;
+        public const int POS_GOD_BAG = 39;
+        public const int POS_REVELATION_EQUIP = 40;
+        public const int POS_REVELATION_BAG = 41;
+        public const int POS_DEMON_TALENT_BAG = 42;
+        public const int POS_LONGLANG_BAG = 43;
+        public const int POS_LONGLANG_EQUIP = 44;
+        public const int POS_STAR_EQUIP_BAG = 45;
+        public const int POS_STAR_EQUIP = 46;
+        public const int POS_GOD_COURT_BAG = 47;
+        public const int POS_GOD_COURT = 48;
+        public const int POS_GUILD_RUNE = 49;
+
         /// <summary>背包物品(对标 GoodsModel.bag_goods_list;满包 15010 全量装入,顺序即服务端下发序)。</summary>
         public readonly List<BagGoods> BagGoodsList = new List<BagGoods>();
 
-        /// <summary>背包容量(对标 GoodsModel.bag_goods_max_cell = vo.max_cell)。</summary>
-        public int MaxCell { get; private set; }
+        /// <summary>各槽位容量(对标 GoodsModel.xxx_max_cell 系列字段;15002 扩容成功后按 pos 更新,见 BagController.On15002)。</summary>
+        private readonly Dictionary<int, int> _maxCellByPos = new Dictionary<int, int>();
+
+        /// <summary>背包容量(对标 GoodsModel.bag_goods_max_cell = vo.max_cell);等价 GetMaxCell(POS_BAG),旧字段保留兼容。</summary>
+        public int MaxCell => GetMaxCell(POS_BAG);
+
+        /// <summary>取任意槽位当前容量(未收到过 15010/15002 则 0)。</summary>
+        public int GetMaxCell(int pos) => _maxCellByPos.TryGetValue(pos, out int v) ? v : 0;
+
+        /// <summary>写入某槽位容量(对标 15002 成功回包 cell_num / 15010 max_cell)。</summary>
+        public void SetMaxCell(int pos, int total) => _maxCellByPos[pos] = total;
 
         /// <summary>已用格子数(15010 cell_num)。</summary>
         public int CellNum { get; private set; }
@@ -41,7 +89,7 @@ namespace Shenxiao.Module.Core.Bag
             BagGoodsList.Clear();
             if (goods != null) BagGoodsList.AddRange(goods);
             CellNum = cellNum;
-            MaxCell = maxCell;
+            SetMaxCell(POS_BAG, maxCell);
             HasData = true;
         }
 
@@ -93,7 +141,7 @@ namespace Shenxiao.Module.Core.Bag
         {
             BagGoodsList.Clear();
             SpecialScores.Clear();
-            MaxCell = 0;
+            _maxCellByPos.Clear();
             CellNum = 0;
             HasData = false;
         }

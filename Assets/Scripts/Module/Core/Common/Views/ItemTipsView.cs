@@ -87,10 +87,64 @@ namespace Shenxiao.Module.Core.Common
             _nameText.text = string.IsNullOrEmpty(basic.Name) ? ("#" + typeId) : basic.Name;
             _bodyText.text = BuildBody(typeId, num, basic, goods);
 
-            _ = BuildIcon(typeId);
+            int epoch = ++_epoch;   // 本次打开的竞态令牌:图标异步加载 + 详情回包共用,任何后续 Show/Close 都会使其失效
+            _ = BuildIcon(typeId, epoch);
+            if (goods != null && goods.GoodsId > 0)
+                RequestDetailSection(goods.GoodsId, epoch);
+
             GameLog.Info("Common", "ItemTips 打开: typeId={0} '{1}' type={2}({3}) color={4} num={5} equip={6} inst={7}",
                 typeId, basic.Name, basic.Type, GoodsModel.GetGoodsTypeName(basic.Type), basic.Color, num, GoodsModel.IsEquip(typeId),
                 goods != null && goods.HasInstanceAttr);
+        }
+
+        /// <summary>物品详情接入(Goods 协议扩容轮):Show 装备实例(带 GoodsId)时向 GoodsDynamicModel 要 15000 详情
+        /// (节流内直接回缓存,否则等 On15000 回包);到达经 epoch 防竞态校验后在正文追加"详情段"(洗炼/宝石/附魔,
+        /// 有数据才加,风格照 AppendBestPro 的「&lt;color&gt;【标题】&lt;/color&gt;+逐行」)。首绘不阻塞(BuildBody 已同步显示)。</summary>
+        private static void RequestDetailSection(long goodsId, int epoch)
+        {
+            Bag.GoodsDynamicModel.Instance.RequestDetail(goodsId, detail =>
+            {
+                if (epoch != _epoch || detail == null) return;   // 已关闭/切换到别的物品 → 丢弃
+                string section = BuildDetailSection(detail);
+                if (!string.IsNullOrEmpty(section) && _bodyText != null) _bodyText.text += section;
+            });
+        }
+
+        /// <summary>拼装 15000 详情段(洗炼属性 wash_attr / 宝石 stone_list / 附魔 magic_list;各自有数据才加,不占位)。</summary>
+        private static string BuildDetailSection(Bag.GoodsDetailVo detail)
+        {
+            var sb = new StringBuilder();
+            if (detail.WashAttrs != null && detail.WashAttrs.Count > 0)
+            {
+                sb.Append("\n\n<color=#7fd0ff>【洗炼属性】</color>");
+                foreach (Bag.GoodsWashAttr w in detail.WashAttrs)
+                {
+                    string name = GoodsModel.GetAttrName(w.AttrId);
+                    if (string.IsNullOrEmpty(name)) name = "属性" + w.AttrId;
+                    sb.Append("\n<color=#8be07a>").Append(name).Append("　+").Append(GoodsModel.FormatAttrValue(w.AttrId, w.AttrVal)).Append("</color>");
+                }
+            }
+            if (detail.StoneList != null && detail.StoneList.Count > 0)
+            {
+                sb.Append("\n\n<color=#d19bff>【宝石】</color>");
+                foreach (Bag.GoodsStoneSlot s in detail.StoneList)
+                {
+                    GoodsModel.GoodsBasic stoneBasic = GoodsModel.GetGoodsBasicByTypeId(s.TypeId);
+                    string stoneName = stoneBasic != null ? stoneBasic.Name : ("#" + s.TypeId);
+                    sb.Append("\n孔位").Append(s.Pos).Append("：<color=#d19bff>").Append(stoneName).Append("</color>");
+                }
+            }
+            if (detail.MagicList != null && detail.MagicList.Count > 0)
+            {
+                sb.Append("\n\n<color=#ffb3d9>【附魔】</color>");
+                foreach (Bag.GoodsMagicSlot m in detail.MagicList)
+                {
+                    GoodsModel.GoodsBasic magicBasic = GoodsModel.GetGoodsBasicByTypeId(m.GoodsId);
+                    string magicName = magicBasic != null ? magicBasic.Name : ("#" + m.GoodsId);
+                    sb.Append("\n<color=#ffb3d9>").Append(magicName).Append("</color>");
+                }
+            }
+            return sb.ToString();
         }
 
         public static void Close()
@@ -333,10 +387,10 @@ namespace Shenxiao.Module.Core.Common
                 sb.Append("\n<color=#ffcaa0>").Append(name).Append("：").Append(val).Append("</color>");
         }
 
-        // 图标 + 品质底板:复用 BaseAwardItem.prefab(真实图标 + com_goods_plate_{color}),epoch 防重开/关闭竞态。
-        private static async Task BuildIcon(int typeId)
+        // 图标 + 品质底板:复用 BaseAwardItem.prefab(真实图标 + com_goods_plate_{color}),epoch 防重开/关闭竞态
+        // (epoch 由调用方 ShowInternal 统一签发,与详情段请求共用同一令牌,见 RequestDetailSection)。
+        private static async Task BuildIcon(int typeId, int epoch)
         {
-            int epoch = ++_epoch;
             if (_iconCell != null) { ResManager.ReleaseInstance(_iconCell); _iconCell = null; }
             if (_iconSlot == null) return;
 

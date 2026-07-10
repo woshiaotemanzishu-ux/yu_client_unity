@@ -44,6 +44,50 @@ namespace Shenxiao.Framework.Event
         /// UPDATE_SPECIAL_SCORE / CREATE_SPECIAL_SCORE_FINISH。BagController.On15008/On15009 发。</summary>
         public const string EVT_SPECIAL_SCORE_UPDATE = "EVT_SPECIAL_SCORE_UPDATE";
 
+        // ----- Bag / Goods 协议扩容(自动循环 轮1) -----
+        /// <summary>物品详情到达(参数: long goods_id)。15000(自己)/15001(他人,player_id!=自己才落缓存)回包解析完,
+        /// 读 GoodsDynamicModel.Peek(goods_id)。BagController.On15000/On15001 发。</summary>
+        public const string EVT_GOODS_DETAIL_UPDATE = "EVT_GOODS_DETAIL_UPDATE";
+        /// <summary>背包/仓库等容器扩容成功(参数: int pos, int totalCell)。15002 code==1 时发,
+        /// 读 BagModel.GetMaxCell(pos)。BagController.On15002 发。</summary>
+        public const string EVT_BAG_MAX_CELL = "EVT_BAG_MAX_CELL";
+        /// <summary>物品分解成功(参数: List&lt;(long goodsId,long goodsNum)&gt; rewardList,仅展示不落 BagModel)。
+        /// 15019(主动分解)与 15090(自动分解提示,老端两号共用同一事件)都发此事件。
+        /// BagController.On15019/On15090 发。</summary>
+        public const string EVT_GOODS_DECOMPOSE_SUCCESS = "EVT_GOODS_DECOMPOSE_SUCCESS";
+        /// <summary>兑换列表变动(参数: int exchangeType)。15026 回包解析完,读 GoodsExchangeModel.GetList(type)。
+        /// BagController.On15026 发。</summary>
+        public const string EVT_GOODS_EXCHANGE_LIST = "EVT_GOODS_EXCHANGE_LIST";
+        /// <summary>兑换/购买/合成(15022)成功(参数: long id,即请求时传入的兑换规则 id)。
+        /// BagController.On15022 发。</summary>
+        public const string EVT_GOODS_EXCHANGE_DONE = "EVT_GOODS_EXCHANGE_DONE";
+        /// <summary>过期物品列表到达(15027 opr==1,无参,读 GoodsExpiredModel.List)。BagController.On15027 发。</summary>
+        public const string EVT_GOODS_EXPIRED_LIST = "EVT_GOODS_EXPIRED_LIST";
+        /// <summary>场景掉落拾取成功(参数: BagController.DropPickVo vo,15053 res==1)。BagController.On15053 发。</summary>
+        public const string EVT_DROP_PICK_SUCCESS = "EVT_DROP_PICK_SUCCESS";
+        /// <summary>场景掉落进入拾取计时(参数: BagController.DropPickVo vo,15053 status==1)。BagController.On15053 发。</summary>
+        public const string EVT_DROP_PICK_BEGIN = "EVT_DROP_PICK_BEGIN";
+        /// <summary>场景掉落包已消失(参数: long dropId,15053 res==1500020)。BagController.On15053 发。</summary>
+        public const string EVT_DROP_DISMISS = "EVT_DROP_DISMISS";
+        /// <summary>场景掉落拾取失败/不可拾取(参数: long dropId,15053 其余分支)。BagController.On15053 发。</summary>
+        public const string EVT_DROP_PICK_FAIL = "EVT_DROP_PICK_FAIL";
+        /// <summary>拾取掉落包顺序列表到达(15088,无参,读 DropOrderModel.DropIdList)。BagController.On15088 发。</summary>
+        public const string EVT_DROP_ORDER_LIST = "EVT_DROP_ORDER_LIST";
+        /// <summary>本人物品 buff 列表变动(15055,无参,读 GoodsBuffModel.List;仅 player_id==自己的回包才更新数据,
+        /// 但事件无条件发,对标老端无条件 Fire)。BagController.On15055 发。</summary>
+        public const string EVT_GOODS_BUFF_UPDATE = "EVT_GOODS_BUFF_UPDATE";
+        /// <summary>礼包等级信息到达(参数: GiftLevelInfo vo,15083)。BagController.On15083 发。</summary>
+        public const string EVT_GIFT_LEVEL_INFO = "EVT_GIFT_LEVEL_INFO";
+        /// <summary>次数礼包冷却信息变动(参数: long goodsId,15084;读 GoodsCoolingModel.Get(goodsId))。
+        /// BagController.On15084 发。</summary>
+        public const string EVT_GOODS_COOLING_UPDATE = "EVT_GOODS_COOLING_UPDATE";
+        /// <summary>礼包卡兑换结果(参数: bool success, List&lt;(int style,int typeId,int count)&gt; rewards;
+        /// 失败时 rewards 为 null)。15087,可能异步再推一次。BagController.On15087 发。</summary>
+        public const string EVT_GIFT_CARD_RESULT = "EVT_GIFT_CARD_RESULT";
+        /// <summary>物品预览战力到达(参数: int goodsTypeId, long expectPower,15089;幻化 tooltip 用)。
+        /// BagController.On15089 发。</summary>
+        public const string EVT_GOODS_EXPECT_POWER = "EVT_GOODS_EXPECT_POWER";
+
         // ----- Partner(剑魄同修) -----
         /// <summary>同修数据变动(14202 全量/14201 单个/14205 培养/14204 激活后)。对标老端 PartnerModel.UPDATE_VIEW。</summary>
         public const string EVT_PARTNER_UPDATE = "EVT_PARTNER_UPDATE";

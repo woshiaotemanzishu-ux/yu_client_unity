@@ -1,4 +1,4 @@
-namespace Shenxiao.Framework.Net
+﻿namespace Shenxiao.Framework.Net
 {
     /// <summary>
     /// 协议号常量,与 yu_client/yu_server 一致(请求与回包同号,注册回调即收该号回包)。
@@ -264,6 +264,38 @@ namespace Shenxiao.Framework.Net
         /// open_act_id>0 显示主界面图标(45120),=0 删除。</summary>
         public const int SVIP_INFO = 45120;
 
+        // ----- 祭典/宝录(194xx,yu_server pt_194.erl / 老端 FestivalController) -----
+        /// <summary>宝录基础信息。请求无参;回包 uid:h, act_id:c, type:c, lv:h, exp:i, expired_time:i,
+        /// reward_list[u16×{lv:h, status1:c, status2:c}]。uid>0 显示主界面图标(223),=0 删除。</summary>
+        public const int FESTIVAL_INFO = 19401;
+        public const int CUSTOM_ACTIVITY_FTVINVEST = 33211; // 节日投资(FTVINVEST=62)信息。请求 "hh"(base_type,sub_t
+        public const int CUSTOM_ACTIVITY_RED_ENVELOPE_REBATE = 33255; // 红包返利(RED_ENVELOPE_REBATE=117)信息。请求 "hh"(type
+        public const int COMPETE_ACT_LIST = 33800; // 竞榜/赛事活动正在开启列表(模块338,驱动图标 338@type@subtype 家族
+        public const int MARKET_ICON_INFO = 15121; // 市场跨服开放时间(图标151/151@1切换)。请求无参(read(15121,_)->{ok,
+        public const int LIMITLEVELSHOP_LIST = 61200; // 限时等级抢购礼包列表(模块612,驱动图标61201)。请求无参(read(61200,_)->
+        public const int ACTIVITYFORESHOW_SNATCH_TIME = 65208; // 领地夺宝时间信息(预告图标 652@31@0 用)。请求无字段(read(65208,_)->{
+        public const int BANQUET_WEDDING_STATE = 17249; // 婚礼状态(→172@2 宾客管理图标)。read(17249,_)->{ok,[]} 裸请求;w
+        public const int BANQUET_CALL = 17256; // 婚礼召集/婚礼列表(→172@1 婚礼图标)。read(17256,_)->{ok,[]} 裸请
+        public const int KAIFU_INVEST_OPEN = 42004; // 开服投资活动开启列表(驱动 4205 巅峰投资 / 1112 超值投资图标;裸请求)
+        public const int KAIFU_BOOK_INFO = 42401; // 契约之书章节信息(驱动 424 / 424@1 图标;裸请求)
+        public const int DIAMONDFIGHT_INFO = 13700; // 灵玉/勾玉大战活动状态(war_state 驱动图标137);请求裸发 read(13700,_
+        public const int KF1VN_STAGE_INFO = 62101; // 诸天王者(跨服1vn)活动阶段。请求无字段裸发;回包 stage:c, turn:h, edti
+        public const int SEAHEGEMONY_INFO = 18600; // 四海争霸基础信息(阵营/报名态)。请求无参 read(18600,_)->{ok,[]};回包 
+        public const int SEAHEGEMONY_SIGNUP = 18625; // 四海争霸报名结束时间。请求无参 read(18625,_)->{ok,[]};回包 end_ti
+        public const int KFHOLYAREA_ACT_STATE = 28410; // 神陨禁区(跨服圣域)活动状态/时间窗——驱动主界面图标284。请求裸发 read(28410,_
+        public const int LUNG_STOVE_INFO = 18105; // 神纹熔炉数据(stove_data);回包驱动主界面图标181显隐;请求 read(18105,
+        public const int BASEDUNGEON_TOWER_INFO = 61117; // 限时爬塔状态(round/over_time/reward_mode)——驱动限时塔图标 331
+        public const int GROWTHBENEFITS_INFO = 41720;      // 成长福利信息/任务态
+        public const int GROWTHBENEFITS_TASK_UPDATE = 41721; // 成长福利任务进度推送
+        public const int FRIENDINVITE_INFO = 34001;        // 好友邀请/分享信息
+        public const int TOPVIP_INFO = 45101;              // 至尊VIP基础信息
+        public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)
+        public const int SEVENDAY_OPEN_INFO = 17500;       // 七天登录信息
+        public const int SEVENDAY_MERGE_INFO = 17502;      // 合服七天信息
+        public const int PUSHGIFT_LIST = 19101;            // 礼包推送列表
+        public const int PUSHGIFT_OFFLINE = 19104;         // 礼包推送-离线过期领取
+        public const int ADVENTURE_INFO = 42700;           // 天天冒险活动时间窗
+
         // ----- 周卡(452xx,yu_server pt_452.erl) -----
         /// <summary>周卡信息。请求无参;回包 Lv:h, Exp:i, IsActivity:c, GiftBagNum:h, CanReceiveGift:h, ExpiredTime:i。</summary>
         public const int WEEK_CARD_INFO = 45201;
@@ -311,6 +343,125 @@ namespace Shenxiao.Framework.Net
         /// goods_num:i, hp:i, num:i, show_goods[u16 × {gid:l, type:c, goodid:i, gnum:i}]。
         /// res==1 使用成功(type==35 冷却物不弹「使用成功」);show_goods=礼包开出物品(经 GetMappingTypeId 还原展示)。</summary>
         public const int USE_GOODS = 15050;
+
+        // ----- Goods 协议扩容(自动循环 轮1;老端 GoodsController.ts + commonModel/GoodsModel.ts,
+        //        字段顺序以 ClientProtocol.json "15000"…"15090" 为准) -----
+        /// <summary>物品详情(对标 GoodsController.On15000 → goodsModel.AddDynamic)。发 "l"(goods_id);
+        /// 回包(ClientProtocol.json "15000")全量装备实例字段:goods_id:l, type_id:i, sub_pos:c, cell:h, num:i,
+        /// bind:c, trade:c, sell:c, color:c, expire_time:i, combat_power:i, equip_type:c, price_type:c, sell_price:i,
+        /// stren:h, stren_exp:i, rating:i, overall_rating:i, division:c, wash_rating:i,
+        /// addition_attrlist[u16×{attr_type:c,attr_value:i,color:c,combat_power:i}],
+        /// stone_list[u16×{pos:c,type_id:i}], magic_list[u16×{goods_id:i,end_time:i}],
+        /// equip_extra_attr[u16×{color:c,type_id:c,attr_id:h,attr_val:i,plus_interval:c,plus_unit:i}],
+        /// wash_attr[u16×{index:c,color:c,attr_id:h,attr_val:i}], suit_list[u16×{suit_lv:c,suit_slv:c,suit_count:c}],
+        /// cspirit_stage:h, cspirit_lv:h, awakening_lv:c, equip_skill_id:i, equip_skill_lv:c, mount_equip_skill_id:i,
+        /// mount_equip_skill_lv:c, pet_equip_stage:h, pet_equip_star:h, level:h,
+        /// awake_list[u16×{attr_type:h,awake_lv:i,awake_exp:i}], refinement_lv:h。
+        /// 落 <see cref="Bag.GoodsDynamicModel"/> 缓存(3 秒同 goods_id 节流 + 一次性回调),Emit EVT_GOODS_DETAIL_UPDATE。</summary>
+        public const int GOODS_DETAIL = 15000;
+
+        /// <summary>查看他人物品详情(对标 On15001)。发 "ll"(player_id, goods_id);回包同 <see cref="GOODS_DETAIL"/>
+        /// 但首字段多 player_id:l,且**没有 stren_exp/wash_rating**(逐字段核对 ClientProtocol.json "15001")。
+        /// type_id==0 → toast 错误码 1500001;player_id 不等于自己才落缓存(防串数据,对标老端 If vo.player_id != mainRoleId)。</summary>
+        public const int GOODS_DETAIL_OTHERS = 15001;
+
+        /// <summary>玩家开启背包/仓库格子(对标 On15002 → CHANGE_BAG_MAX_CELL)。发 "hh"(pos, 要开的格数);
+        /// 回包(ClientProtocol.json "15002"):code:i, pos:h, cell_num:h(开启后**总**格数,字段名虽是 cell_num 但语义=总容量)。
+        /// code==1 → toast「扩容成功」+ <see cref="Bag.BagModel.SetMaxCell"/> + Emit EVT_BAG_MAX_CELL(pos,total)。</summary>
+        public const int BAG_EXPAND = 15002;
+
+        /// <summary>物品转移格子位置(对标 On15003)。发 "lhh"(goods_id, from_pos, to_pos);回包 code:i,
+        /// code!=1 显错误码;成功不本地改状态,等 15017 增量推送(对标老端 On15003 只在失败时 ErrorCodeShow)。</summary>
+        public const int GOODS_MOVE_POS = 15003;
+
+        /// <summary>物品分解(对标 On15019 + ResolveGoods 动态发包:WriteBegin(15019)+h 计数+逐项 l goods_id/i num,
+        /// 无固定 sendFmt)。回包(ClientProtocol.json "15019"):code:i, reward_list[u16×{goods_id:l,goods_num:i}]。
+        /// code==1 → toast「分解成功」+ Emit EVT_GOODS_DECOMPOSE_SUCCESS(reward_list);reward_list 只作展示,
+        /// **不写入 BagModel**(数量变化仍走 15017/15018)。</summary>
+        public const int GOODS_DECOMPOSE = 15019;
+
+        /// <summary>物品兑换(购买/兑换/合成共用同号,对标 On15022)。发 "li"(id, num;服务端 guard num&gt;0)。
+        /// 回包(ClientProtocol.json "15022"):errcode:i, id:l, type:c。errcode==1 时按 type 分文案:
+        /// 2/3/4→「购买成功」且自动补发 <see cref="GOODS_EXCHANGE_LIST"/>(type) 刷新列表;5/7→「兑换成功」;6→「合成成功」;
+        /// 随后 Emit EVT_GOODS_EXCHANGE_DONE(id);errcode!=1 显错误码。</summary>
+        public const int GOODS_EXCHANGE = 15022;
+
+        /// <summary>物品兑换列表(对标 On15026)。发 "h"(exchange_type);回包(ClientProtocol.json "15026"):
+        /// type:h, exchange_list[u16×{id:i,count:h,can_exchange:c}]。按 id 升序排序后按 type 分桶存
+        /// <see cref="Bag.GoodsExchangeModel"/> + Emit EVT_GOODS_EXCHANGE_LIST(type)。跨系统共享通道
+        /// (伙伴商店 type=7/龙语/跨服1v1 等均走它),通用存取不绑定具体玩法。</summary>
+        public const int GOODS_EXCHANGE_LIST = 15026;
+
+        /// <summary>过期物品查看/回收(对标 On15027 → GoodsExpiredView)。发 "c"(opr:1查/2回收)。
+        /// 回包(ClientProtocol.json "15027"):opr:c, goods_list[u16×{goods_id:l,type_id:i,goods_num:h}]。
+        /// opr==1 → 存 <see cref="Bag.GoodsExpiredModel"/> + Emit EVT_GOODS_EXPIRED_LIST + 简易确认弹窗
+        /// (对标 GoodsExpiredView.close_time=15,每秒-1,&lt;0 自动确认,共 16 次 tick ≈16 秒;仅 UI 实际弹出时计时);
+        /// 确认/超时 → 发 opr=2;opr==2 回执老端不处理,仅 log。GAME_START 后延时 2.5 秒自动查看一次(对标老端
+        /// setTimeout(delay_fun,2.5) 尾部 SendFmtToGame(15027,"c",1))。</summary>
+        public const int GOODS_EXPIRED = 15027;
+
+        /// <summary>服务端通知客户端重新拉取物品背包数据(对标 On15030,老端空桩 //OnGameStart())。禁止客户端发送,
+        /// 空包(无字段);收到后重新走一次 <see cref="GOODS_CONTAINER_INFO"/>(pos=bag)流程。</summary>
+        public const int GOODS_RELOAD_NOTICE = 15030;
+
+        /// <summary>拾取场景掉落包(对标 On15053;老端注释:无拾取时间的发一次,有拾取时间的发两次)。发 "l"(drop_id);
+        /// 回包(ClientProtocol.json "15053"):res:i, args:s, status:c, drop_id:l。三态状态机(判断顺序照老端):
+        /// res==1→拾取成功;否则 status==1→进入拾取计时;否则 res==1500020→掉落包已消失;否则→失败(toast 错误码,带 args)。</summary>
+        public const int DROP_PICK = 15053;
+
+        /// <summary>获取物品 buff 列表(对标 On15055,无参请求)。回包(ClientProtocol.json "15055"):player_id:l,
+        /// buff_list[u16×{goods_id:i,buff_type:c,effect_list:s,time:i,single_time:i}]。仅 player_id==自己才落
+        /// <see cref="Bag.GoodsBuffModel"/>(对标老端 If scmd.player_id==mainRoleId);无条件 Emit EVT_GOODS_BUFF_UPDATE。</summary>
+        public const int GOODS_BUFF_LIST = 15055;
+
+        /// <summary>礼包等级信息(对标 On15083 + GetGiftBagDynamic 单槽回调)。发 "li"(goods_id, type_id);
+        /// 回包(ClientProtocol.json "15083"):goods_id:l, type_id:i, gift_level:h。广播 Emit EVT_GIFT_LEVEL_INFO(vo)
+        /// + 一次性回调(<see cref="Bag.GoodsDynamicModel.RequestGiftLevel"/> 发起时注册,回包触发后清空)。</summary>
+        public const int GIFT_LEVEL_INFO = 15083;
+
+        /// <summary>次数礼包使用次数/冷却(对标 On15084)。发 "l"(goods_id);回包(ClientProtocol.json "15084"):
+        /// goods_id:l, use_count:c, total_count:c, freeze_endtime:i。⚠老端此链路已断(GoodsModel.setGoodCoolingData
+        /// 函数体整段注释),本轮补齐收发 + <see cref="Bag.GoodsCoolingModel"/> 缓存 + Emit EVT_GOODS_COOLING_UPDATE(goods_id);
+        /// 触发预取(红点系统)暂不做。</summary>
+        public const int GOODS_COOLING_INFO = 15084;
+
+        /// <summary>领取自选礼包物品内容(对标 On15086 + optional_gift 动态发包)。发 "l"+"h"+n×("c"+"i")
+        /// (gift_id, 选项数, {slot序号:u8, num:u32}…;**slot 序号是 1 字节 c,不是 h/i**)。
+        /// 回包(ClientProtocol.json "15086"):code:i。code==1→toast「兑换成功」,否则显错误码。
+        /// UI(SelectGiftView)未接线,本轮只留 <see cref="Bag.BagController.SendOptionalGift"/> 发送封装。</summary>
+        public const int GIFT_OPTIONAL_RECEIVE = 15086;
+
+        /// <summary>领取礼包卡奖励(对标 On15087)。发 "s"(card_no)。回包(ClientProtocol.json "15087"):
+        /// res:i, reward_list:ObjectList(u16×{style:c,typeId:i,count:i},解析先例见 41701/RushGiftController)。
+        /// 服务端有 5 秒中央 CD,结果可能异步再推一次本号。reward_list 非空 → 视为成功,经 GetMappingTypeId
+        /// 逐项还原「获得X」toast + Emit EVT_GIFT_CARD_RESULT(true,list);为空 → 失败,查错误码 toast(res) +
+        /// Emit EVT_GIFT_CARD_RESULT(false,null)。</summary>
+        public const int GIFT_CARD_RECEIVE = 15087;
+
+        /// <summary>拾取掉落包顺序列表(对标 On15088 → Scene.Instance.SetDropIndexList,S2C 推送)。
+        /// 禁止客户端发送;回包 drop_id_list[u16×{drop_id:i}]。存 <see cref="Bag.DropOrderModel"/> +
+        /// Emit EVT_DROP_ORDER_LIST;场景层消费方待补。</summary>
+        public const int DROP_ORDER_LIST = 15088;
+
+        /// <summary>查看物品预览战力(对标 On15089,幻化 tooltip 用)。发 "i"(goods_type_id,**4 字节类型 id,
+        /// 非物品实例 id**)。回包(ClientProtocol.json "15089"):goods_type_id:i, expect_power:i。
+        /// Emit EVT_GOODS_EXPECT_POWER(typeId,power);消费方(幻化 tooltip)待补。</summary>
+        public const int GOODS_EXPECT_POWER = 15089;
+
+        /// <summary>物品自动分解提示(对标 On15090,S2C 推送)。禁止客户端发送;回包(ClientProtocol.json "15090"):
+        /// code:i, reward_list[u16×{goods_id:l,goods_num:i}], goods_bag_type:c(11=符文/15=源力/43=龙语),
+        /// under_color:c(某颜色以下自动分解,2=蓝色/3=紫色/0=无颜色限制)。code==1 → 按 bag_type/under_color 组合
+        /// toast(文案逐字对标老端 GoodsController.ts:1000-1024)+ Emit EVT_GOODS_DECOMPOSE_SUCCESS(复用
+        /// <see cref="GOODS_DECOMPOSE"/> 同一事件,对标老端两号共用 GOODS_DECOMPOSE_SUCCESS);否则显错误码。
+        /// reward_list 同样不写 BagModel。</summary>
+        public const int GOODS_AUTO_DECOMPOSE_NOTICE = 15090;
+
+        // 以下号跳过(仅存说明,不写代码;主控三路侦察定案):
+        // 15004/15005/15006:服务端 pt_150 对应 handle 子句整段注释掉,死号(服务端不会下发,客户端也无对应发送口)。
+        // 15023(更改物品子位置/神装武器放入保护箱):服务端 check_good_change_sub_pos 已硬编码 {fail,?FAIL} 永远失败,
+        //   老端 On15023 回包处理体也是空函数,双端皆废,不移植。
+        // 15085(礼包每天使用次数):老端 h5/src 全仓库零引用(UNUSED,无 SendFmtToGame(15085,...) 调用点),
+        //   且服务端该号缺 count 条件分支时静默不回包,不移植。
 
         // ----- 套装收集(pt_152 段内 15256-15259,yu_server goods/suit_collect;老端 SuitActivityController.ts) -----
         /// <summary>套装收集全量(请求无参,老端 GAME_START 发;回包:clt_list[u16×{suit_id:c, cur_stage:c,

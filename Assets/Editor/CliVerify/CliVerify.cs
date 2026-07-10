@@ -81,6 +81,13 @@ namespace Shenxiao.EditorTools
             Run(PetTrainCase.Run, 300.0);
         }
 
+        /// <summary>Goods 协议扩容(自动循环 轮1)实证:15000/15002/15019/15026/15053/15055/15090 合成包驱动
+        /// BagController 反射喂包,纯逻辑断言(详见 GoodsProtoCase 注释)。</summary>
+        public static void GoodsProto()
+        {
+            Run(GoodsProtoCase.Run, 120.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -105,12 +112,14 @@ namespace Shenxiao.EditorTools
                 int c = await RenderToastAsync();
                 int k = await SettingPkCase.Run();
                 int m = await PetTrainCase.Run();
+                int gp = await GoodsProtoCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
                     + " guildjoin=" + j + " rune=" + n + " dungeon=" + v + " thinslice=" + w + " finalslice=" + f
-                    + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m })
+                    + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m
+                    + " goodsproto=" + gp);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);
@@ -361,17 +370,42 @@ namespace Shenxiao.EditorTools
             Stage stage = Stage.Create();
             try
             {
+                // prefab 版 TipToastView 由 MonoBehaviour.Update 驱动,编辑期 batchmode 无 player loop 不 tick
+                // (实测第一条永卡 Born、队列不放行):本用例强制走代码建树兜底(Task.Yield 驱动,无头可跑);
+                // prefab 路径的动画/排队以 2026-07-06 用户实测手调为准,不在无头断言范围。
+                typeof(Shenxiao.Common.Tips.TipsManager)
+                    .GetField("_prefabMissing", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+                    ?.SetValue(null, true);
+
                 Shenxiao.Common.Tips.TipsManager.Toast("使用成功");
                 Shenxiao.Common.Tips.TipsManager.Toast("获得V1体验卡x1");
-                await Task.Delay(400);   // 两条均已入场、未淡出
+
+                // TipToast prefab 化(2026-07-06)后条目=TipToastItem 克隆挂 ViewManager 层(不在 stage.CanvasRoot 下),
+                // 且排队"同刻仅一条 Born"→第二条晚 ~bornDuration 入场:改为全场景数活动条目,轮询等两条同时在场。
+                // 兼容 prefab 缺失的代码建树兜底(节点名 Toast)。
+                static (int live, bool textOk) CountToasts()
+                {
+                    int n = 0;
+                    bool ok = true;
+                    foreach (var item in UnityEngine.Object.FindObjectsByType<Shenxiao.Common.Tips.TipToastItem>(FindObjectsSortMode.None))
+                    {
+                        n++;
+                        TMP_Text tx = item.GetComponentInChildren<TMP_Text>(false);
+                        if (tx == null || string.IsNullOrEmpty(tx.text)) ok = false;
+                    }
+                    foreach (var t in UnityEngine.Object.FindObjectsByType<TMP_Text>(FindObjectsSortMode.None))
+                        if (t.gameObject.name == "Toast") { n++; if (string.IsNullOrEmpty(t.text)) ok = false; }
+                    return (n, ok);
+                }
 
                 int live = 0;
-                bool textOk = true;
-                foreach (TMP_Text t in stage.CanvasRoot.GetComponentsInChildren<TMP_Text>(false))
+                bool textOk = false;
+                double bothDeadline = EditorApplication.timeSinceStartup + 3.0;
+                while (EditorApplication.timeSinceStartup < bothDeadline)
                 {
-                    if (t.gameObject.name != "Toast") continue;
-                    live++;
-                    if (string.IsNullOrEmpty(t.text)) textOk = false;
+                    (live, textOk) = CountToasts();
+                    if (live >= 2) break;
+                    await Task.Delay(100);
                 }
                 stage.ForceCjkFont();
                 string png = stage.Capture("Temp/round13_toast.png");
@@ -382,9 +416,7 @@ namespace Shenxiao.EditorTools
                 int remain = live;
                 while (EditorApplication.timeSinceStartup < deadline)
                 {
-                    remain = 0;
-                    foreach (TMP_Text t in stage.CanvasRoot.GetComponentsInChildren<TMP_Text>(false))
-                        if (t.gameObject.name == "Toast") remain++;
+                    (remain, _) = CountToasts();
                     if (remain == 0) break;
                     await Task.Delay(300);
                 }
@@ -479,6 +511,14 @@ namespace Shenxiao.EditorTools
             public Pkt H(int v) { _b.Add((byte)(v >> 8)); _b.Add((byte)v); return this; }
             public Pkt I(long v) { _b.Add((byte)(v >> 24)); _b.Add((byte)(v >> 16)); _b.Add((byte)(v >> 8)); _b.Add((byte)v); return this; }
             public Pkt L(long v) { I((v >> 32) & 0xFFFFFFFF); I(v & 0xFFFFFFFF); return this; }
+            /// <summary>'s':u16 字节长 + UTF8(对标 NetReader.ReadString / UserMsgAdapter 's' 格式)。</summary>
+            public Pkt S(string v)
+            {
+                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(v ?? string.Empty);
+                H(bytes.Length);
+                _b.AddRange(bytes);
+                return this;
+            }
             public byte[] Bytes() { return _b.ToArray(); }
         }
 
