@@ -32,7 +32,7 @@ namespace Shenxiao.Module.Core.Role
         {
             "EquipmentView", "WingsComponentView", "ArtifactComponentView",
             "HolyDeviceComponentView", "BackOrnamentComponentView",
-            "SkillInitiativeSubItem", "SkillPassiveItem",
+            "SkillInitiativeSubItem", "SkillPassiveItem", "InnateSkillView",
         };
         private static readonly string[] TabTitles =
         {
@@ -41,15 +41,19 @@ namespace Shenxiao.Module.Core.Role
             GameResPath.GetIcon("pet", "ui_yushou"),
             GameResPath.GetIcon("pet", "ui_shenbin"),
             GameResPath.GetIcon("pet", "ui_beishi"),
-            null, null,
+            null, null, null,
         };
         private static readonly string[] TabLabels =
         {
             "\u4EBA\u7269", string.Empty, string.Empty, string.Empty, string.Empty,
-            "\u4E3B\u52A8\u6280\u80FD", "\u88AB\u52A8\u6280\u80FD",
+            "\u4E3B\u52A8\u6280\u80FD", "\u88AB\u52A8\u6280\u80FD", "\u5929\u8D4B",
         };
         // 该标签内容视图是否已在 Unity 写好(写好才开放;其余 disabled,写完置 true 即开)
-        private static readonly bool[] TabEnabled = { true, false, false, false, false, true, true };
+        private static readonly bool[] TabEnabled = { true, false, false, false, false, true, true, true };
+        // 天赋(index7)按钮恒可见,但需 4 转开启(对标老端 tab_new_cond[2]/SkillUIModel.GetInnateOpenStatus:
+        // turn>=innate_open_turn_cond=4);点击未达标 → toast「【4转开启】」+ 还原选择,不真的切换(见 OpenAsync)。
+        private const int InnateTalentTabIndex = 7;
+        private const int InnateTalentOpenTurn = 4;
         private const int DefaultTab = 0;
 
         private static GameObject _frameRoot;
@@ -124,12 +128,15 @@ namespace Shenxiao.Module.Core.Role
             {
                 string viewName = TabContent[i];
                 bool enabled = TabEnabled[i];
+                bool isInnateTab = i == InnateTalentTabIndex;
                 specs.Add(new TabSpec
                 {
                     Enabled = enabled,
                     Label = TabLabels[i],
                     TitleImagePath = TabTitles[i],
                     ContentFactory = enabled ? (Func<RectTransform, BaseView>)(parent => ReparentContent(viewName, parent)) : null,
+                    OpenCheck = isInnateTab ? (Func<bool>)(() => (RoleModel.Instance.Figure?.turn ?? 0) >= InnateTalentOpenTurn) : null,
+                    LockedToast = isInnateTab ? "【" + InnateTalentOpenTurn + "转开启】" : null, // 【4转开启】
                 });
             }
 

@@ -297,12 +297,13 @@ namespace Shenxiao.Module.Core.Role
         private void HideTemplates()
         {
             HideNode(_tpl_DsgtView);
-            HideNode(_tpl_InnateSkillView);
-            HideNode(_tpl_InnateListItem);
-            HideNode(_tpl_InnateSkillItem);
-            HideNode(_tpl_InnateTypeItemRenderer);
-            HideNode(_tpl_InnateUpInfoItem);
-            HideNode(_tpl_InnateUpCondItem);
+            // _tpl_InnateSkillView/_tpl_InnateListItem/_tpl_InnateSkillItem/_tpl_InnateTypeItemRenderer/
+            // _tpl_InnateUpInfoItem/_tpl_InnateUpCondItem 六个引用已不再是本视图的"死重模板"——技能成长线
+            // 轮3 3b 单里 InnateSkillCreator 把它们从这里的 __Templates 挪去当 RoleModule 顶层
+            // "天赋"tab(InnateSkillView)的常驻/隐藏子节点(见该 Creator 注释),字段引用仍有效(同一 prefab
+            // 内 fileID 未变,只是父级变了),但**不能再在这里 HideNode**——本方法只在 EquipmentView 首次
+            // Show 时跑一次,若还碰它们会把刚被 InnateSkillView 设成"永久可见"的 InnateListItem/InnateUpInfoItem
+            // 误一次性隐藏且此后无人再重新点亮(SetActive(true) 加在父级不会级联子级独立的 active 状态)。
             HideNode(_tpl_MedalView);
             HideNode(_tpl_MedalCostItem);
             HideNode(_tpl_RolePropertyItemRenderer);

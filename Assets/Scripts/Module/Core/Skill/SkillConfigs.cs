@@ -248,7 +248,11 @@ namespace Shenxiao.Module.Core.Skill
             JArray lv = GetLvData(skillId);
             int idx = (level > 0 ? level : 1) - 1;
             if (lv == null || idx < 0 || idx >= lv.Count || !(lv[idx] is JObject lvo)) return null;
-            string raw = lvo.Value<string>("condition");
+            // condition 形态二义:空条件在配置里是 JSON 空数组 [],非空才是 Erlang term 串(如 "[{goods,54010001,1}]")
+            // ——天赋技能低级段常为 [],Value<string> 会对 JArray 抛 InvalidCast,必须先按类型分流。
+            JToken condTok = lvo["condition"];
+            if (condTok == null || condTok.Type == JTokenType.Array) return null;
+            string raw = condTok.Type == JTokenType.String ? (string)condTok : condTok.ToString();
             if (string.IsNullOrEmpty(raw) || raw == "[]") return null;
             try
             {

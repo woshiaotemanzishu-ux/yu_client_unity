@@ -102,6 +102,13 @@ namespace Shenxiao.EditorTools
             Run(SkillGrowthCase.Run, 120.0);
         }
 
+        /// <summary>天赋技能页(技能成长线轮3 3b 单)实证:InnateSkillCreator 装配 + 21010 合成包 + 渲染断言
+        /// (_lb_point 文本/技能树 item 数,详见 InnateViewCase 注释)。</summary>
+        public static void InnateView()
+        {
+            Run(InnateViewCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -129,13 +136,14 @@ namespace Shenxiao.EditorTools
                 int gp = await GoodsProtoCase.Run();
                 int rl = await ReliveCase.Run();
                 int sg = await SkillGrowthCase.Run();
+                int iv = await InnateViewCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
                     + " guildjoin=" + j + " rune=" + n + " dungeon=" + v + " thinslice=" + w + " finalslice=" + f
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m
-                    + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg })
+                    + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

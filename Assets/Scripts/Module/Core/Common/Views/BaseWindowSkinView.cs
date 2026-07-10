@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Generated.UI.Common;
 using Shenxiao.Framework.Res;
@@ -23,6 +24,12 @@ namespace Shenxiao.Module.Core.Common
         public string DownImagePath;
         public Sprite UpSprite;
         public Sprite DownSprite;
+
+        /// <summary>可选的"点击时门控"(对标老端 tab_new_cond):按钮恒可见/可点(与 Enabled=false 的"未移植直接不建按钮"
+        /// 不同),但点击时若该函数返回 false 则不切换、只 toast <see cref="LockedToast"/>(还原选择——本就没切走)。
+        /// 典型用法:角色面板"天赋"tab 需 4转开启,按钮常显,不足转数点了给提示(见 RoleFlow)。</summary>
+        public Func<bool> OpenCheck;
+        public string LockedToast;
     }
 
     /// <summary>
@@ -281,7 +288,7 @@ namespace Shenxiao.Module.Core.Common
                 if (tab == null) { Destroy(go); continue; }
                 tab.SetData(
                     i,
-                    SelectTab,
+                    OnTabClicked,
                     _specs[i].Label,
                     _specs[i].UpImagePath,
                     _specs[i].DownImagePath,
@@ -291,6 +298,23 @@ namespace Shenxiao.Module.Core.Common
                 _tabs.Add(tab);
                 _tabIndices.Add(i);
             }
+        }
+
+        /// <summary>标签点击入口:先过 <see cref="TabSpec.OpenCheck"/>(如有)门控,不过则 toast + 不切换
+        /// (对标老端 tab_new_cond 失败还原选择——因为压根没切,选中态天然保持原样)。</summary>
+        private void OnTabClicked(int index)
+        {
+            if (_specs != null && index >= 0 && index < _specs.Count)
+            {
+                TabSpec spec = _specs[index];
+                if (spec.OpenCheck != null && !spec.OpenCheck())
+                {
+                    if (!string.IsNullOrEmpty(spec.LockedToast)) TipsManager.Toast(spec.LockedToast);
+                    GameLog.Info("Window", "标签[{0}]门控未过,还原选择", index);
+                    return;
+                }
+            }
+            SelectTab(index);
         }
 
         public void SelectTab(int index)
