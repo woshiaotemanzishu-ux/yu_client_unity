@@ -10,12 +10,14 @@ using UnityEngine;
 namespace Shenxiao.Module.Core.Role
 {
     /// <summary>
-    /// 角色模块编排:五标签窗(对标老端 RoleView extends BaseWindowComponent;主界面 MainFunc.Role → OPEN_CHOSE_ROLE_VIEW)。
+    /// 角色模块编排:多标签窗(对标老端 RoleView extends BaseWindowComponent;主界面 MainFunc.Role → OPEN_CHOSE_ROLE_VIEW)。
     /// **第三个走 BaseWindowSkinView 地基的分页大窗**(模板复制自 EquipFlow/DailyFlow,仅改 4 常量 + 内容源)。
     ///
-    /// 打开 = 实例化共享窗框 BaseWindowSkin + 实例化 RoleModule(内容源,先全隐藏)→ Configure(5 标签):点标签把对应内容视图
-    /// reparent 进窗框内容区 _gp_item_con(懒加载缓存)。老端 tabStrList=[人物/垂神翼影/古法符相/殒锋天刃/玄穹云披];
-    /// Unity 已写内容仅 EquipmentView(tab0 人物)→ 仅 tab0 开放(默认页),余 4 标签 disabled(Wings/Artifact/HolyDevice/BackOrnament 未移植,写好置 true 即开)。
+    /// 打开 = 实例化共享窗框 BaseWindowSkin + 实例化 RoleModule(内容源,先全隐藏)→ Configure(N 标签):点标签把对应内容视图
+    /// reparent 进窗框内容区 _gp_item_con(懒加载缓存)。老端 RoleView.tabStrList=[人物/垂神翼影/古法符相/殒锋天刃/玄穹云披]
+    /// (仅 tab0 EquipmentView 已移植开放,余 4 标签 disabled——Wings/Artifact/HolyDevice/BackOrnament 未移植,写好置 true 即开)。
+    /// 技能成长线轮3 追加"主动技能/被动技能"两档(对标老端 SkillSubView,实为独立二级菜单窗口而非 RoleView 自身标签,
+    /// 但 Unity 转换期已把其内容节点扁平并入同一份 RoleModule.prefab,沿用本处 Tab 机制接入;天赋 InnateSkillView 留 3b)。
     /// 入口注册见 <see cref="RoleBootstrap"/>(MainUIRouter "role");子窗(技能详情 SkillShowView…)经 <see cref="OpenSub"/>。再点图标 <see cref="Toggle"/> 关闭。
     /// </summary>
     public static class RoleFlow
@@ -29,7 +31,8 @@ namespace Shenxiao.Module.Core.Role
         private static readonly string[] TabContent =
         {
             "EquipmentView", "WingsComponentView", "ArtifactComponentView",
-            "HolyDeviceComponentView", "BackOrnamentComponentView"
+            "HolyDeviceComponentView", "BackOrnamentComponentView",
+            "SkillInitiativeSubItem", "SkillPassiveItem",
         };
         private static readonly string[] TabTitles =
         {
@@ -37,14 +40,16 @@ namespace Shenxiao.Module.Core.Role
             GameResPath.GetIcon("pet", "ui_yuyi"),
             GameResPath.GetIcon("pet", "ui_yushou"),
             GameResPath.GetIcon("pet", "ui_shenbin"),
-            GameResPath.GetIcon("pet", "ui_beishi")
+            GameResPath.GetIcon("pet", "ui_beishi"),
+            null, null,
         };
         private static readonly string[] TabLabels =
         {
-            "\u4EBA\u7269", string.Empty, string.Empty, string.Empty, string.Empty
+            "\u4EBA\u7269", string.Empty, string.Empty, string.Empty, string.Empty,
+            "\u4E3B\u52A8\u6280\u80FD", "\u88AB\u52A8\u6280\u80FD",
         };
         // 该标签内容视图是否已在 Unity 写好(写好才开放;其余 disabled,写完置 true 即开)
-        private static readonly bool[] TabEnabled = { true, false, false, false, false };
+        private static readonly bool[] TabEnabled = { true, false, false, false, false, true, true };
         private const int DefaultTab = 0;
 
         private static GameObject _frameRoot;

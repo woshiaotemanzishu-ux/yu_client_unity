@@ -124,7 +124,16 @@
         /// 5=技能cd未到(41=移除已死怪物列表/10=怒气不足/30=重置三连击,均系老端死代码注释,未接配置表)。</summary>
         public const int CS_FIGHT_ATTACK_FAIL = 20005;
 
-        // 20006 辅助技能跳过(与伙伴技能系统耦合,归队列#3 技能轮;老端 SendAssistSkill/AssistVo 未在本轮移植)。
+        /// <summary>辅助技能释放(双向,预表现+服务端广播确认的两段式协议,对标 FightController.ts SendAssistSkill/AssistVo)。
+        /// 发 "li"(role_id, skill_id;对标 FightController.ts:1748);回包(pt_200.erl:113-117 write(20006,[Sign,Id,SkillId,SkillLv,_Act,AssList])
+        /// 的 Data1 部分,字段序=<see cref="Scene.Vo.AssistVo"/>.ReadFromProtocal,与老端 AssistVo.ts:19-23 ReadFmt("lcic") 一致):
+        /// RoleId:64(攻击者), AttackerType:8, SkillId:32, SkillLevel:8,
+        /// 随后 DefenseNum:16 + {TypeFlag:8, RoleId:64, Hp:64, BuffNum:16 + {IconType:16,BuffEffectId:16,Id:32,Level:8,Diejia:8,
+        /// Integer:32,Decimals:32,Period:64}×BuffNum}×DefenseNum(对标 pt_200.erl:226-233 assist_list/1,无 anger/damage/pos/moveAnim,
+        /// 比 20001 的 FightVo 精简得多,不要混用 FightVo 的字段表)。两段式表现语义:发送前尽力复用现有攻击表现通道预播出手动作,
+        /// 广播回来后再按真实 defense_list 结算血量——两段都保留,不去重(对标老端 SendAssistSkill 本地 PlayActions 预播 +
+        /// handler20006 广播权威表现)。</summary>
+        public const int CS_ASSIST_SKILL = 20006;
 
         /// <summary>buff 技能清理(S2C 专用推送,客户端严禁发)。对标 pt_200.erl:120-123 write(20007,[Sign,Id,Dels]):
         /// Sign:c, Id:l, Dels[u16×{BuffType:h, BuffSkillId:i}]。服务端强制清 buff 广播(驱散/combo 中断等)。</summary>
@@ -243,6 +252,59 @@
         /// <summary>技能快捷栏。请求无参;回包(on13007):len:h + {pos:c, type:c, skill_id:i, is_auto:c}×len,按 pos 升序。
         /// type==2 的项可覆盖默认 shortcutList 顺序(GetSkillBarAutoFightSkillOrder)。</summary>
         public const int SKILL_SHORTCUT_BAR = 13007;
+
+        // ----- 技能成长线(自动循环 轮3;yu_server src/pt/pt_210.erl 权威字段序,逐条与 yu_client
+        //        h5/src/skill|innateSkill/*.ts 交叉核对;21010/21011/21012 turn&lt;4 静默 skip,非 errcode) -----
+        /// <summary>职业(被动)技能升级。发 "i"(skill_id);回包(pt_210.erl:29-37 write(21001,[Errcode,SkillId])):
+        /// Errcode:32, SkillId:32。发送前材料预校验(config_skill 该级 condition 里的 {goods,TypeId,Count} 项,
+        /// 对标 SkillPassiveSubItem.ts:94 的意图——但老端该处 next_vo.condition.goods 缺 ErlangParser 解析步骤,
+        /// 实测恒 undefined,是死代码;本端按 InnateUpInfoItem.ts:194 的正确用法用 ErlangParser 修正实现,见 SkillConfigs.TryGetGoodsCost)。
+        /// errcode==1 → Emit EVT_SKILL_LEVEL_UP(服务端会自动补推 21002,勿手动重拉);否则显码降级 toast。</summary>
+        public const int SKILL_UPGRADE = 21001;
+        /// <summary>天赋技能面板信息。请求空包(GAME_START 追加发,对标老端无条件;服务端 turn&lt;4 静默不回,非 errcode)。
+        /// 回包(pt_210.erl:104-119 write(21010,[LessPoint,TalentSkills])):
+        /// LessPoint:16, Len:16, {SkillType:8, Point:16, Len:16, {SkillId:32, SkillLv:16}×N}×N。</summary>
+        public const int TALENT_INFO = 21010;
+        /// <summary>学习/加点天赋技能。发 "i"(skill_id);回包(pt_210.erl:121-133 write(21011,[Errcode,SkillId,SkillLv,LessPoint])):
+        /// Errcode:32, SkillId:32, SkillLv:16, LessPoint:16。发送前前置校验(SkillTalentModel.CanLearn,对标
+        /// InnateUpInfoItem.ts:126 满级/less_point/point分支/pre_skill(2));成功→补发 21010 刷全量 + Emit EVT_TALENT_LEARNED。</summary>
+        public const int TALENT_LEARN = 21011;
+        /// <summary>重置天赋技能。请求空包(老端**不做**客户端拦截,道具够不够都发,errcode 兜底,对标
+        /// InnateSkillView.ts:114-135)。回包(pt_210.erl:135-143 write(21012,[Errcode,AllPoint])):Errcode:32, AllPoint:16。
+        /// 成功(==1)→ toast「天赋重置成功」,服务端会主动重放 21010。</summary>
+        public const int TALENT_RESET = 21012;
+
+        /// <summary>保存快捷栏。发 "ccic"(pos,type,skill_id,is_auto);回包(pt_130.erl:199-200 write(13008,State)):
+        /// State:8(1成功/0失败,**非 32 位 errcode 宏**)。==1 → toast「保存成功」+ 重拉 13007。老端/权威协议表均无 UI 触发源
+        /// (13008/13010 在 h5/src 里只有 SkillController 自注册,无任何 View Fire),本轮只提供协议 API,无 UI 触发对标老端现状。</summary>
+        public const int QUICKBAR_SAVE = 13008;
+        /// <summary>替换(交换)快捷栏两个槽位。发 "cc"(pos1,pos2);回包(pt_130.erl:207-208 write(13010,State)):
+        /// State:8(1成功/0失败,非 errcode)。==1 → toast「替换成功」+ 重拉 13007。同上无 UI 触发源。</summary>
+        public const int QUICKBAR_SWAP = 13010;
+
+        /// <summary>职业技能给予的 buff 列表(纯 S→C 异步推送,客户端严禁发;服务端 pp_scene.erl:276-280 cast 到场景进程,
+        /// mod_scene_agent_cast.erl:537-546 异步回,查无用户静默不回)。回包(pt_120.erl:448-451 write(12093,[SkillL])):
+        /// Len:16, {SkillId:32, SkillLv:16}×N。存 SkillTalentModel.CareerSkillBuffList + Emit EVT_CAREER_SKILL_BUFF;
+        /// HUD buff 图标行现成通道 MainUIBuffView.RefreshBuffList 需要 buff_cfgs 等价配置表(未加载)+ 挂载点 MainUIFlow.cs
+        /// 当前基线脏(并行会话在改),本轮只落数据 + log,不接 HUD(见汇报)。</summary>
+        public const int CAREER_SKILL_BUFF = 12093;
+
+        /// <summary>模块加成效果列表(GAME_START 延迟2帧追加发空包,对标老端)。回包(pt_184.erl:12-25 write(18401,[BuffList])):
+        /// Len:16, {Key:32, ValuesStr(pt:write_string)}×N。key==2:Values 是 Erlang term 串(如 "[{onhook_time,N}]"),
+        /// 解出 onhook_time 后 OnhookExtraSec=20*3600+onhook_time(对标老端 OutLineModel.max_outline_time),写入
+        /// OnHookController.MaxOnlineTimeSec(消费方 13216 领取挂机收益处关联);key==6:Values 是裸数字串,
+        /// LifeSkillAdd=Number(values)(对标老端 CompositeModel.lifeSkillAdd,本端未有对应 Compose 模块字段,存 SkillTalentModel 同 dict)。
+        /// 全量存 SkillTalentModel 泛用 dict + Emit EVT_MODULE_BUFF_LIST。</summary>
+        public const int MODULE_BUFF_LIST = 18401;
+
+        // 以下号跳过(仅存说明,不写代码;主控三路侦察定案,详见规格 §0):
+        // 21003/21004/21005(技能强化):双端死——老端 SkillController.ts on21003/on21004/on21005 读了就丢弃/整段函数体空,
+        //   服务端 pp_skill.erl:29-39 对应处理分支被注释,请求落兜底静默(不回包)。config_skill_stren 表配套模型方法
+        //   (SkillUIModel.GetSkillStrenInfo 等)全仓库零调用。不移植。
+        // 21101/21102/21103/21104(远古奥术):老端 tabStrList 第4档"远古奥术"tab 被注释(SkillSubView.ts:43),
+        //   forbbiden_skill_info 恒 null 无赋值语句,ForbiddenSkillView 视图类全仓库不存在;服务端模块
+        //   pp_arcana.erl:7 标 @deprecated(但协议路径本身存活,注意不要被注释误导为服务端死链——纯粹是客户端视图层缺失)。
+        //   GAME_START 也不发 21101(老端那发是空耗,不复刻)。不移植。
 
         // ----- AutoBrush / main-line guard (133xx, yu_client h5/src/commonController/AutoBrushController.ts) -----
         /// <summary>Auto-brush monster progress. Send empty; reply "iiill".</summary>

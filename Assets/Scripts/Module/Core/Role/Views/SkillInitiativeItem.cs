@@ -1,5 +1,6 @@
 using System;
 using Shenxiao.Generated.UI.Role;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,6 +28,14 @@ namespace Shenxiao.Module.Core.Role
         public void SetClick(Action onClick) { _onClick = onClick; }
         public void SetLevel(string level) { if (_lb_level != null) _lb_level.text = level ?? ""; }
         public void SetSelected(bool sel) { if (_img_select != null) _img_select.gameObject.SetActive(sel); }
+
+        /// <summary>技能图标(对标老端 SkillInitiativeItem 图标刷新;技能成长线轮3 补,原骨架没有此 setter)。</summary>
+        public void SetIcon(string skillIcon)
+        {
+            if (_img_icon == null) return;
+            _img_icon.enabled = true;
+            _ = ResManager.SetImageAsync(_img_icon, GameResPath.GetSkillIcon(skillIcon), nativeSize: false);
+        }
 
         public void SetLocked(bool locked)
         {

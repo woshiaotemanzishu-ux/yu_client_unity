@@ -243,6 +243,32 @@ namespace Shenxiao.Framework.Event
         /// 本轮不发(不猜格式),只到本地边界 → 下一轮 blocker。</summary>
         public const string EVT_RELEASE_MAIN_SKILL = "EVT_RELEASE_MAIN_SKILL";
 
+        // ----- 技能成长线(自动循环 轮3;21001/21010-12/13008/13010/12093/18401/20006) -----
+        /// <summary>被动技能升级成功(参数: skillId:int)。21001 errcode==1 时发(服务端会自动补推 21002 刷新列表,
+        /// 不在此处手动重拉)。SkillController.On21001 发。</summary>
+        public const string EVT_SKILL_LEVEL_UP = "EVT_SKILL_LEVEL_UP";
+        /// <summary>天赋技能面板全量到达/刷新(无参,读 SkillTalentModel)。21010 回包解析完发。
+        /// SkillController.On21010 发。</summary>
+        public const string EVT_TALENT_INFO = "EVT_TALENT_INFO";
+        /// <summary>天赋技能学习成功(参数: skillId:int, skillLv:int)。21011 errcode==1 时发(成功后老端补发 21010
+        /// 刷全量,本端同样补发)。SkillController.On21011 发。</summary>
+        public const string EVT_TALENT_LEARNED = "EVT_TALENT_LEARNED";
+        /// <summary>天赋技能重置成功(无参)。21012 errcode==1 时发(服务端会主动重放 21010)。
+        /// SkillController.On21012 发。</summary>
+        public const string EVT_TALENT_RESET = "EVT_TALENT_RESET";
+        /// <summary>职业技能给予的 buff 列表到达(无参,读 SkillTalentModel.CareerSkillBuffList)。12093 回包解析完发
+        /// (纯被动推送,客户端不主动请求)。SkillController.On12093 发。</summary>
+        public const string EVT_CAREER_SKILL_BUFF = "EVT_CAREER_SKILL_BUFF";
+        /// <summary>模块加成效果列表到达(无参,读 SkillTalentModel 的 18401 泛用 dict / OnhookExtraSec / LifeSkillAdd)。
+        /// 18401 回包解析完发。SkillController.On18401 发。</summary>
+        public const string EVT_MODULE_BUFF_LIST = "EVT_MODULE_BUFF_LIST";
+        /// <summary>辅助技能广播到达(参数: Scene.Vo.AssistVo vo)。20006 回包解析完发(两段式表现的"广播权威表现"段)。
+        /// FightController.On20006 发。</summary>
+        public const string EVT_ASSIST_SKILL = "EVT_ASSIST_SKILL";
+        /// <summary>快捷栏保存/替换成功(参数: bool isSwap,true=13010替换/false=13008保存)。State==1 时发,随后重拉 13007。
+        /// SkillController.On13008/On13010 发。</summary>
+        public const string EVT_QUICKBAR_SAVED = "EVT_QUICKBAR_SAVED";
+
         // ----- MainUI -----
         public const string EVT_MAINUI_ACTIVITY_ICON_ADD = "EVT_MAINUI_ACTIVITY_ICON_ADD";
         public const string EVT_MAINUI_ACTIVITY_ICON_DELETE = "EVT_MAINUI_ACTIVITY_ICON_DELETE";

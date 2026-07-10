@@ -8,6 +8,7 @@ using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene.Vo;
+using Shenxiao.Module.Core.Skill;
 
 namespace Shenxiao.Module.Core.Scene
 {
@@ -81,6 +82,7 @@ namespace Shenxiao.Module.Core.Scene
             // ----- Fight 扩容(自动循环 队列#2 轮2;各号 wire 格式/权威源见 Proto.cs 对应常量注释) -----
             RegisterProtocal(Proto.CS_FIGHTING_STATE, On20024);
             RegisterProtocal(Proto.CS_FIGHT_ATTACK_FAIL, On20005);
+            RegisterProtocal(Proto.CS_ASSIST_SKILL, On20006);
             RegisterProtocal(Proto.CS_BUFF_CLEAR, On20007);
             RegisterProtocal(Proto.CS_PICK_MONSTER, On20010);
             RegisterProtocal(Proto.CS_KILLER_INFO, On20013);
@@ -519,6 +521,133 @@ namespace Shenxiao.Module.Core.Scene
             EventDispatcher.Emit(GlobalEvent.EVT_BUFF_CLEARED, typeFlag, roleId, list);
         }
 
+        // ===================== 20006:辅助技能(自动循环 轮3;两段式:预表现 + 广播权威表现) =====================
+
+        /// <summary>发送辅助技能释放(对标 FightController.ts:1733 SendAssistSkill):预表现——攻击者是主角本人时
+        /// 尽力复用既有攻击表现通道(<see cref="MainRoleAgent.PlaySkill"/>)立即播出手动作;非主角发起暂无通用他人攻击
+        /// 表现通道,TODO log(对标老端 fight_info.PlayActions() 本地预播,本端无逐帧 fight-movie 系统等价实现,
+        /// 只搬得动"复用现有通道"这一段)。发送前记 CD(对标老端 skillMgr.AddReleaseMainSkill → SkillManager.ResetSkill,
+        /// 与主动技能同一状态机)。</summary>
+        public void SendAssistSkill(long roleId, int skillId)
+        {
+            if (roleId == RoleModel.Instance.RoleId)
+            {
+                MainRoleAgent agent = MainRoleAgent.Current;
+                if (agent != null)
+                {
+                    agent.PlaySkill(skillId);
+                }
+                else
+                {
+                    GameLog.Info("Fight", "TODO 20006 预表现: MainRoleAgent 不在场景,跳过出手动作 skill={0}", skillId);
+                }
+            }
+            else
+            {
+                GameLog.Info("Fight", "TODO 20006 预表现: 非主角发起(role={0}),暂无通用他人攻击表现通道,跳过", roleId);
+            }
+
+            SkillManager.Instance.ResetSkill(skillId); // 对标老端 AddReleaseMainSkill 记 CD
+            SendFmt(Proto.CS_ASSIST_SKILL, "li", roleId, skillId);
+            GameLog.Info("Fight", "send 20006 辅助技能: role={0} skill={1}", roleId, skillId);
+        }
+
+        /// <summary>20006 广播(对标 handler20006,FightController.ts:461):权威表现段——真实 defense_list hp 同步
+        /// 复用 <see cref="ApplyDefenseListToScene"/> 等价路径(照 On20001 写法:hp&gt;0 刷血条/hp==0 播死亡动作+移除,
+        /// 找不到对应场景对象只记 warning);attacker 不在场只回退血量(跳过攻击者侧表现,defense_list 仍照常同步,
+        /// 对标老端"攻击者已不存在,仅 RefreshObjVo 回退防御方血量后 return")。两段式表现语义:这是广播权威表现段,
+        /// 与 <see cref="SendAssistSkill"/> 的本地预表现段各自独立,不去重。</summary>
+        private void On20006(NetReader r)
+        {
+            var vo = new AssistVo();
+            try
+            {
+                vo.ReadFromProtocal(r);
+            }
+            catch (Exception e)
+            {
+                GameLog.Error("Fight", "20006 解析错位: {0}", e.Message);
+                return;
+            }
+
+            GameLog.Info("Fight",
+                "recv 20006 辅助技能广播: attacker role={0} type={1} skill={2} lv={3} defenders={4} remaining={5}B",
+                vo.RoleId, vo.AttackerType, vo.SkillId, vo.SkillLevel, vo.DefenseList.Count, r.Remaining);
+
+            ApplyAssistToScene(vo);
+            EventDispatcher.Emit(GlobalEvent.EVT_ASSIST_SKILL, vo);
+        }
+
+        /// <summary>攻击者表现(在场才播,对标 ApplyMonsterFightVisuals 的怪物分支;人类/伙伴攻击者本端暂无通用
+        /// 表现通道,同 <see cref="SendAssistSkill"/> 一样 TODO)+ defense_list hp 同步(照 On20001 写法)。</summary>
+        private void ApplyAssistToScene(AssistVo vo)
+        {
+            if (!AutoFight.AutoFightModel.Instance.CombatFreeze && vo.AttackerType == OBJ_MONSTER
+                && vo.RoleId >= 0 && vo.RoleId <= int.MaxValue)
+            {
+                MonsterVo m = SceneManager.Instance.GetMonster((int)vo.RoleId);
+                if (m != null)
+                {
+                    MonsterRenderer.PlaySkill((int)vo.RoleId, vo.SkillId);
+                }
+                else
+                {
+                    GameLog.Info("Fight", "20006 攻击者怪 {0} 不在场(未在视野),仅回退防御方血量,跳过表现", vo.RoleId);
+                }
+            }
+
+            SceneManager mgr = SceneManager.Instance;
+            foreach (AssistVo.DefenseInfo d in vo.DefenseList)
+            {
+                if (d.TypeFlag == OBJ_MONSTER)
+                {
+                    if (d.RoleId < 0 || d.RoleId > int.MaxValue)
+                    {
+                        GameLog.Warn("Fight", "20006 defender 怪实例 id 越界: {0}", d.RoleId);
+                        continue;
+                    }
+                    int ins = (int)d.RoleId;
+                    MonsterVo m = mgr.GetMonster(ins);
+                    if (m == null)
+                    {
+                        GameLog.Warn("Fight", "20006 defender 怪 {0} 不在 SceneManager,只记录不造假", ins);
+                        continue;
+                    }
+                    if (d.Hp == 0)
+                    {
+                        MonsterRenderer.NotifyKilled(ins);
+                        mgr.DeleteSceneObj(ins);
+                    }
+                    else
+                    {
+                        mgr.ApplyHp(ins, d.Hp, m.HpLim);
+                    }
+                }
+                else if (d.TypeFlag == OBJ_ROLE || d.TypeFlag == OBJ_FAKE_ROLE)
+                {
+                    RoleVo role = mgr.GetRole(d.RoleId);
+                    if (role == null)
+                    {
+                        if (d.RoleId == RoleModel.Instance.RoleId)
+                        {
+                            ApplyMainRoleHp(d.Hp);
+                        }
+                        else
+                        {
+                            GameLog.Warn("Fight", "20006 defender 玩家 {0} 不在 SceneManager,只记录不造假", d.RoleId);
+                        }
+                        continue;
+                    }
+                    if (d.Hp == 0) mgr.DeleteSceneObj(d.RoleId);
+                    else mgr.ApplyHp(d.RoleId, d.Hp, role.HpLim);
+                }
+                else
+                {
+                    GameLog.Warn("Fight", "20006 defender 未路由 type_flag={0} id={1}", d.TypeFlag, d.RoleId);
+                }
+            }
+        }
+
         /// <summary>发送拾取怪物请求(对标 FightController.ts:896 onCollideMonsterHandler:动态 fmt "h"+n×"i")。</summary>
         public void PickMonsters(IReadOnlyList<int> instanceIds)
         {
@@ -609,10 +738,13 @@ namespace Shenxiao.Module.Core.Scene
             EventDispatcher.Emit(GlobalEvent.EVT_PK_VALUE_UPDATE, roleId, pkValue);
         }
 
-        /// <summary>20018 清理刚放技能CD(老端无对应 recv 实现,按服务端权威 pt_200.erl:168-169 写序解析)。</summary>
+        /// <summary>20018 清理刚放技能CD(老端无对应 recv 实现,按服务端权威 pt_200.erl:168-169 写序解析)。
+        /// 补齐轮2 与 UI 脱节缺口:调用 SkillManager.ClearCd 与既有 CD 状态机对齐,MainUISkillItem 轮询自然反映
+        /// (此前只 Emit 事件,零消费者,UI 无变化)。</summary>
         private void On20018(NetReader r)
         {
             int skillId = (int)r.ReadU32();
+            SkillManager.Instance.ClearCd(skillId);
             GameLog.Info("Fight", "recv 20018 清理刚放技能CD skill_id={0}", skillId);
             EventDispatcher.Emit(GlobalEvent.EVT_SKILL_CD_CLEAR, skillId);
         }
@@ -728,11 +860,13 @@ namespace Shenxiao.Module.Core.Scene
         }
 
         /// <summary>20027 技能CD结束时间通知(对标 FightController.ts:683-690)。⚠老端读取是**单条**
-        /// (变量名 skill_list 但无 count 前缀/无循环,只 push 一个元素),不要脑补成数组循环。</summary>
+        /// (变量名 skill_list 但无 count 前缀/无循环,只 push 一个元素),不要脑补成数组循环。
+        /// 补齐轮2 与 UI 脱节缺口:调用 SkillManager.SetCdEndTime 与既有 CD 状态机对齐(见该方法注释的近似说明)。</summary>
         private void On20027(NetReader r)
         {
             int skillId = (int)r.ReadU32();
             long endTime = r.ReadU64();
+            SkillManager.Instance.SetCdEndTime(skillId, endTime);
             GameLog.Info("Fight", "recv 20027 技能CD结束 skill_id={0} end_time={1}", skillId, endTime);
             EventDispatcher.Emit(GlobalEvent.EVT_SKILL_CD_END, skillId, endTime);
         }

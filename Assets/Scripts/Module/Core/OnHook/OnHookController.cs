@@ -16,6 +16,13 @@ namespace Shenxiao.Module.Core.OnHook
 
         private OnHookController() { }
 
+        /// <summary>挂机时长上限(秒;对标老端 OutLineModel.max_outline_time = 20*3600+onhook_time)。
+        /// 数据来源 18401(模块加成列表 key==2),由 <see cref="Skill.SkillTalentModel"/> 解析后写入,
+        /// 与本模块 13216(领取挂机收益)配套——领取上限/挂机时长展示可读它,当前 13216 本身不消费,先留字段。</summary>
+        public static long MaxOnlineTimeSec { get; private set; }
+
+        public static void SetMaxOnlineTimeSec(long sec) => MaxOnlineTimeSec = sec;
+
         protected override void Register()
         {
             RegisterProtocal(Proto.ONHOOK_RECEIVE, On13216);

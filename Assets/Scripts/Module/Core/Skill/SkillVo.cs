@@ -34,5 +34,25 @@ namespace Shenxiao.Module.Core.Skill
 
         /// <summary>实际展示图标:level==0 用 1 级图标(对标 MainUISkillItem:show_icon = level==0 && GetIcon(1) || GetIcon())。</summary>
         public string DisplayIcon => Level <= 0 ? GetIcon(1) : GetIcon();
+
+        // ── 技能成长线(自动循环 轮3)追加字段:升级所需(condition:goods/MaxLv/desc),对标老端 SkillVo.getDesc/GetTotalLevel ──
+
+        /// <summary>最大等级(对标 SkillVo.GetTotalLevel)。</summary>
+        public int MaxLevel => SkillConfigs.GetMaxLevel(Id);
+
+        /// <summary>是否已满级(level>=MaxLevel 且 MaxLevel 有效)。</summary>
+        public bool IsMaxLevel => MaxLevel > 0 && Level >= MaxLevel;
+
+        /// <summary>取当前(或指定)等级描述文本(对标 SkillVo.getDesc;level&lt;=0 用当前 Level)。</summary>
+        public string GetDesc(int level = 0) => SkillConfigs.GetDescForLevel(Id, level > 0 ? level : Level);
+
+        /// <summary>下一级升级所需材料(condition 里的 {goods,TypeId,Count} 项;已满级/无材料条件 → false)。</summary>
+        public bool TryGetNextLevelGoodsCost(out int typeId, out int count)
+        {
+            typeId = 0;
+            count = 0;
+            if (IsMaxLevel) return false;
+            return SkillConfigs.TryGetGoodsCost(Id, Level + 1, out typeId, out count);
+        }
     }
 }

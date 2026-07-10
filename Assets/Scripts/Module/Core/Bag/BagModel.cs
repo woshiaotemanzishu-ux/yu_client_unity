@@ -136,6 +136,18 @@ namespace Shenxiao.Module.Core.Bag
             return SpecialScores.TryGetValue(currencyId, out long v) ? v : 0;
         }
 
+        /// <summary>取某 typeId 的背包持有总数(对标老端 GoodsModel.GetTypeGoodsNum;本端只落了满背包(POS_BAG),
+        /// 仓库/其它容器未移植 → 只能统计背包内堆叠,材料预校验等场景够用)。</summary>
+        public long GetTypeGoodsNum(int typeId)
+        {
+            long sum = 0;
+            foreach (BagGoods g in BagGoodsList)
+            {
+                if (g.TypeId == typeId) sum += g.GoodsNum;
+            }
+            return sum;
+        }
+
         /// <summary>断线/登出清空(对标 ResetBagData)。</summary>
         public void Clear()
         {

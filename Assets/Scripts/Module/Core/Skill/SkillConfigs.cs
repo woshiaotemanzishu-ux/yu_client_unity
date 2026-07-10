@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
 using UnityEngine;
@@ -58,9 +59,14 @@ namespace Shenxiao.Module.Core.Skill
         public static int GetSelectType(int skillId)
             => _skill?[skillId.ToString()] is JObject o ? (o.Value<int?>("obj") ?? 0) : 0;
 
-        /// <summary>技能类型(config_skill[id].type,对标 SkillVo.GetSkillType:1主动 2辅助 3被动 4门派)。</summary>
+        /// <summary>技能类型(config_skill[id].type,对标老端 SkillVo.SkillType 枚举:1主动Initiative 2被动Passitive
+        /// 3辅助Assist 4门派Menpai——此前注释误标"2辅助3被动",已按 h5/src/skill/SkillVo.ts:149-154 原枚举纠正)。</summary>
         public static int GetSkillType(int skillId)
             => _skill?[skillId.ToString()] is JObject o ? (o.Value<int?>("type") ?? 0) : 0;
+
+        /// <summary>是否被动技能(type==2,对标 SkillVo.SkillType.Passitive)。角色面板"被动技能"tab 列表过滤用
+        /// (老端 ConfigSkillUI.passitiveSkillList 表在当前客户端配置里已不存在/为空,该表已失效,改走本字段真实过滤)。</summary>
+        public static bool IsPassive(int skillId) => GetSkillType(skillId) == 2;
 
         /// <summary>攻击参照类型(config_skill[id].att_obj,对标 SkillVo.GetSkillAttObj:1自己 2选取对象)。</summary>
         public static int GetAttObj(int skillId)
@@ -204,6 +210,74 @@ namespace Shenxiao.Module.Core.Skill
                 if (!string.IsNullOrEmpty(icon)) return icon;
             }
             return skillId.ToString();
+        }
+
+        /// <summary>技能最大等级(对标老端 SkillVo.GetTotalLevel:lv_data.length,缺省 1)。</summary>
+        public static int GetMaxLevel(int skillId)
+        {
+            JArray lv = GetLvData(skillId);
+            return lv != null && lv.Count > 0 ? lv.Count : 1;
+        }
+
+        /// <summary>取某级描述文本(对标 SkillVo.getDesc:lv_data[level-1].desc)。老端 desc 内嵌 LayaAir 私有富文本标签
+        /// &lt;color@N&gt;...&lt;/color&gt;(经 ChatModel.FormatColorTag 转译上色),本端未接颜色映射表,净化成纯文本
+        /// (不臆造颜色),避免 TMP 把标签当字面量显示。</summary>
+        public static string GetDescForLevel(int skillId, int level)
+        {
+            JArray lv = GetLvData(skillId);
+            int idx = (level > 0 ? level : 1) - 1;
+            if (lv == null || idx < 0 || idx >= lv.Count || !(lv[idx] is JObject lvo)) return "";
+            string desc = lvo.Value<string>("desc") ?? "";
+            return SanitizeDesc(desc);
+        }
+
+        private static string SanitizeDesc(string desc)
+        {
+            if (string.IsNullOrEmpty(desc)) return desc;
+            return System.Text.RegularExpressions.Regex.Replace(desc, "</?color(@\\d+)?>", "");
+        }
+
+        /// <summary>
+        /// 取某级升级条件(config_skill[id].lv_data[level-1].condition)的解析结果(对标老端 InnateUpInfoItem.ts:192-195
+        /// 的正确用法:condition 字段是 Erlang term 串,如 "[{goods,54010001,1}]"/"[{lv,1}]",必须先 ErlangParser.Parse
+        /// 才能取 tuple 字段——role/SkillPassiveSubItem.ts:81 等处直接 next_vo.condition.goods 缺这一步,
+        /// 是死代码/线上 bug,本端不复刻该 bug)。level 越界 / condition 为空("[]")返回 null。
+        /// </summary>
+        public static ErlangTerm GetConditionTerm(int skillId, int level)
+        {
+            JArray lv = GetLvData(skillId);
+            int idx = (level > 0 ? level : 1) - 1;
+            if (lv == null || idx < 0 || idx >= lv.Count || !(lv[idx] is JObject lvo)) return null;
+            string raw = lvo.Value<string>("condition");
+            if (string.IsNullOrEmpty(raw) || raw == "[]") return null;
+            try
+            {
+                return ErlangParser.Parse(raw);
+            }
+            catch (System.Exception ex)
+            {
+                GameLog.Warn("Skill", "parse condition failed skill={0} level={1}: {2}", skillId, level, ex.Message);
+                return null;
+            }
+        }
+
+        /// <summary>取某级升级所需材料(condition 里的 {goods, TypeId, Count} 项;对标 21001 发送前材料预校验)。
+        /// 未找到 goods 条件项(如该级只按铜币/等级/技能点升级)→ 返回 false,typeId/count 置 0。</summary>
+        public static bool TryGetGoodsCost(int skillId, int level, out int typeId, out int count)
+        {
+            typeId = 0;
+            count = 0;
+            ErlangTerm cond = GetConditionTerm(skillId, level);
+            if (cond?.Items == null) return false;
+            foreach (ErlangTerm tuple in cond.Items)
+            {
+                if (!tuple.IsCollection || tuple.Items == null || tuple.Items.Count < 3) continue;
+                if (tuple.Items[0].As<string>() != "goods") continue;
+                typeId = tuple.Items[1].As<int>();
+                count = tuple.Items[2].As<int>();
+                return typeId > 0 && count > 0;
+            }
+            return false;
         }
 
         // lv_data 是字符串里再裹一层 JSON 数组,按技能 id 懒解析 + 缓存。

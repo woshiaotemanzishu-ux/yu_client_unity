@@ -123,6 +123,10 @@ namespace Shenxiao.Module.Core.Skill
         public SkillVo GetSkill(int skillId)
             => _mySkillList.TryGetValue(skillId, out SkillVo v) ? v : null;
 
+        /// <summary>21002 全表只读枚举(对标老端遍历 mySkillList;角色面板技能页按 type 过滤主动/被动用,
+        /// 技能成长线轮3 补,原骨架未暴露)。</summary>
+        public IEnumerable<SkillVo> AllSkills => _mySkillList.Values;
+
         /// <summary>
         /// 释放技能后设置僵直(对标老端 SkillManager.SetSkillRigidity,调用点对标 FightMovieInfo.ts:191
         /// local_SkillManager.SetSkillRigidity(rigidity_time),rigidity_time=pre_swing+spell_time+back_swing)。
@@ -171,6 +175,23 @@ namespace Shenxiao.Module.Core.Skill
         /// <summary>本次 CD 总时长毫秒(遮罩分母);无在途 CD 返回 0。</summary>
         public int GetCdTotalMs(int skillId)
             => _skillCd.TryGetValue(skillId, out (int startTick, int cdMs) cd) ? cd.cdMs : 0;
+
+        /// <summary>服务端主动清 CD(对标 20018,FightController.On20018 调用)。与现有 CD 状态机对齐:直接摘除记录,
+        /// MainUISkillItem 下一帧轮询 GetCdLeftMs 自然归零、遮罩消失,不需要额外事件桥接。</summary>
+        public void ClearCd(int skillId) => _skillCd.Remove(skillId);
+
+        /// <summary>服务端广播的技能 CD 结束时间(对标 20027,FightController.On20027 调用)。serverEndTimeMs 是服务端
+        /// 绝对时间戳(毫秒,对标 lib_battle_util.erl:844 EndTime=NowTime+CD,CD 单位=config_skill.lv_data.cd 毫秒);
+        /// 用 <see cref="TimeUtil.NowMs"/> 换算成本地剩余毫秒接入既有 (startTick,cdMs) 状态机。已过期(剩余&lt;=0)→ 直接清除。
+        /// 注意:总时长(遮罩分母)从"收到本广播的这一刻"起算,不是原始完整 CD——服务端未下发过原始 CD 时长,
+        /// 这是可接受的近似(遮罩会从当前剩余比例=100%起走,而不是技能真实释放时刻的完整比例),非精度回归。</summary>
+        public void SetCdEndTime(int skillId, long serverEndTimeMs)
+        {
+            long leftMs = serverEndTimeMs - TimeUtil.NowMs();
+            if (leftMs <= 0) { _skillCd.Remove(skillId); return; }
+            int cdMs = leftMs > int.MaxValue ? int.MaxValue : (int)leftMs;
+            _skillCd[skillId] = (System.Environment.TickCount, cdMs);
+        }
 
         // TickCount 会在约 24.9 天回绕;用差值判断而非直接比较,避免回绕瞬间误判(老端 Status.NowTime 是秒级浮点无此问题,
         // 这里补一个防回绕的差值封装,仍是"未到点=true"的同一语义)。
