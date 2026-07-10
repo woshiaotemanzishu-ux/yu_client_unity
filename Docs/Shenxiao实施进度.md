@@ -1186,3 +1186,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
   (MainRole.CheckIsCrossSafeArea:场景表 subtype==1 整场安全不飘 + 地图格 SafeType=4 位),Unity 数据现成
   (WalkGrid 即同一区域字节)→ SceneMapData.IsSafePixel + MainUIConfigs.SceneCfg.Subtype +
   MainRoleAgent 每帧 CheckCrossSafeArea(静态 state 跨场景不复位,翻转才飘)。老端该窗口无其它无条件飘字。
+
+## 自动循环 轮1(2026-07-11 夜间无人值守):Goods 协议扩容 18 号,二十用例全绿
+
+- 无人值守自动循环启动(总控 Docs/工单-自动循环-协议与逻辑接入-20260711.md;全量差距分析 Docs/差距分析-协议接入GapMap-20260711.md,四路侦察交叉:老端 2371 cmd vs Unity Proto.cs 169 常量≈7% 覆盖,12 个带验证配方的工作包排队)。
+- **Goods 18 号落地**(04b95d848):15000/01 详情(GoodsDynamicModel 独立缓存+3s 节流+ItemTips 详情段 epoch 防竞态)、15002 扩容、15003 移位、15019 分解、15022/15026 通用兑换通道、15027 过期物品、15053 拾取三态、15055 buff、15083/84 礼包动态(84 补齐老端已断链路)、15086 自选(slot=1字节c)、15087 兑换码(5s 中央CD+结果异步推)、15089 预览战力(4字节typeId)+纯推送 15030(重拉15010)/15088(掉落序)/15090(自动分解toast)。跳过:15004-06 服务端死号、15085 老端零引用、15023 服务端已阉割。BagModel 补 35 个 pos 枚举+per-pos 容量。
+- **存量修复 ×2**:①OutWard 视图订阅泄漏自愈守卫(f2be5e2db)——OnInit 订阅但未激活的实例整树销毁不走 OnDestroy,残留订阅炸 MissingReference;②toast 用例适配 TipToast prefab 化——prefab 版 MonoBehaviour.Update 驱动在编辑期 batchmode 不 tick(卡 Born),用例强制走代码兜底路径。教训:Update 驱动的行为无头断言必须走非 Update 通道。
+- **验证:RenderAll 二十用例全绿 EXIT 0**(新增 goodsproto 七断言,15000 全 schema 尾哨兵验字节游标)。
+- 遗留 TODO:场景掉落实体绑定(15053/15088 只发事件)、自选礼包/兑换码/幻化 tooltip 的 UI 消费方、15027 倒计时确认后弹窗视觉残留。
