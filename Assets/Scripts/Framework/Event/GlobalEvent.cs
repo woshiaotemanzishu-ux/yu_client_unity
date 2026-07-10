@@ -130,6 +130,51 @@ namespace Shenxiao.Framework.Event
         /// (对标老端 PkStatusModel.CHANGE_SUCCESS)。</summary>
         public const string EVT_PK_CHANGE_SUCCESS = "EVT_PK_CHANGE_SUCCESS";
 
+        // ----- Fight 扩容 / Relive(自动循环 队列#2 轮2;200xx,yu_client FightController.ts + commonController/ReliveController.ts) -----
+        /// <summary>主角死亡(参数无;FightController.On20013 死亡广播解析完发,20022 主角死亡分支刻意不发——
+        /// 对标老端弹窗信号只认 Fire(SHOWRELIVEWINDOW,0) 来自 20013)。ReliveController 订阅:停自动战斗+
+        /// 播死亡动作+按场景路由开复活窗。</summary>
+        public const string EVT_ROLE_DEAD = "EVT_ROLE_DEAD";
+        /// <summary>复活成功(参数: int type,即请求时的 relive_mode 回传)。20004 flag==1 或 12(REVIVE_BOSS/ASHES
+        /// 改写)时发。ReliveController.On20004 发,MainUIReliveView 订阅关窗。</summary>
+        public const string EVT_RELIVE_SUCCESS = "EVT_RELIVE_SUCCESS";
+        /// <summary>复活信息到达(参数: long nextReviveTime,服务器时间戳)。20009 回包解析完发,供服务端强控
+        /// 副本(经验本/装备本/龙宫本/心域本)复活面板刷倒计时。ReliveController.On20009 发。</summary>
+        public const string EVT_RELIVE_INFO = "EVT_RELIVE_INFO";
+        /// <summary>5分钟回城复活次数/疲劳信息(参数: int reviveNum, long endTime)。20017 回包/主动推送解析完发。
+        /// ReliveController.On20017 发。</summary>
+        public const string EVT_RELIVE_TIRED = "EVT_RELIVE_TIRED";
+        /// <summary>buff 技能清理广播(参数: int typeFlag, long roleId, List&lt;(int buffType,int buffSkillId)&gt; list)。
+        /// 20007 回包解析完发;消费方(buff UI)未接线,TODO。FightController.On20007 发。</summary>
+        public const string EVT_BUFF_CLEARED = "EVT_BUFF_CLEARED";
+        /// <summary>清理刚放技能CD(参数: int skillId)。20018 回包解析完发。FightController.On20018 发。</summary>
+        public const string EVT_SKILL_CD_CLEAR = "EVT_SKILL_CD_CLEAR";
+        /// <summary>技能CD结束时间通知(参数: int skillId, long endTime)。20027 回包解析完发(老端单条,非数组)。
+        /// FightController.On20027 发。</summary>
+        public const string EVT_SKILL_CD_END = "EVT_SKILL_CD_END";
+        /// <summary>触发技能列表(参数: List&lt;int&gt; skillIds,伙伴/联携技能表现)。20028 回包解析完发。
+        /// FightController.On20028 发。</summary>
+        public const string EVT_TRIGGER_SKILLS = "EVT_TRIGGER_SKILLS";
+        /// <summary>战斗能量更新(参数: int energy)。20023 回包解析完发(老端事件名拼写 UPDATE_FIGHT_ENEERGY
+        /// 少个R,系老端笔误,本事件不沿用错误拼写)。FightController.On20023 发。</summary>
+        public const string EVT_FIGHT_ENERGY = "EVT_FIGHT_ENERGY";
+        /// <summary>怪物归属变化(参数: long monId, long ownerRoleId)。20020 抢夺成功 / 20021 查看归属回包解析完发。
+        /// FightController.On20020/On20021 发。</summary>
+        public const string EVT_MON_OWNER_UPDATE = "EVT_MON_OWNER_UPDATE";
+        /// <summary>拾取怪物结果(参数: List&lt;(int errCode,int monId)&gt; results)。20010 回包解析完发。
+        /// FightController.On20010 发。</summary>
+        public const string EVT_PICK_MON_RESULT = "EVT_PICK_MON_RESULT";
+        /// <summary>击杀信息推送(参数: string name, int isShowPkV, int pkValue)。20014 回包解析完发(老端无对应
+        /// recv 实现,按服务端权威 pt_200.erl:155-157 write 序解析)。FightController.On20014 发。</summary>
+        public const string EVT_KILL_INFO = "EVT_KILL_INFO";
+        /// <summary>广播 PK 值(参数: long roleId, int pkValue)。20015 回包解析完发(老端无对应 recv 实现,
+        /// 按服务端权威 pt_200.erl:160-161 write 序解析;规格草案假设 "l,i" 与服务端源码 PkValue:16 冲突,
+        /// 已按服务端为准改 "l,h",见汇报偏差项)。FightController.On20015 发。</summary>
+        public const string EVT_PK_VALUE_UPDATE = "EVT_PK_VALUE_UPDATE";
+        /// <summary>模拟战斗死亡广播(参数: long killerId, long diedId)。20022 回包解析完发。
+        /// FightController.On20022 发。</summary>
+        public const string EVT_SIMULATE_FIGHT = "EVT_SIMULATE_FIGHT";
+
         // ----- Scene -----
         public const string EVT_SCENE_MAP_READY = "EVT_SCENE_MAP_READY";
         /// <summary>12002 场景快照解析完成、场景对象表(SceneManager)已就绪。携带数据用 SceneManager 的强类型事件。</summary>

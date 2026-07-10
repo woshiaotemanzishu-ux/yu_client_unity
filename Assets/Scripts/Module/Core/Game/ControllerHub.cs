@@ -34,6 +34,7 @@ using Shenxiao.Module.Core.SurpriseGift;
 using Shenxiao.Module.Core.Svip;
 using Shenxiao.Module.Core.TempleAwaken;
 using Shenxiao.Module.Core.Tasks;
+using Shenxiao.Module.Core.Relive;
 using Shenxiao.Module.Core.Vip;
 using Shenxiao.Module.Core.WeekCard;
 
@@ -66,6 +67,7 @@ namespace Shenxiao.Module.Core.Game
             BagController.Instance,
             SkillController.Instance,
             FightController.Instance,
+            ReliveController.Instance,
             CollectController.Instance,
             ChatController.Instance,
             CustomActivityController.Instance,

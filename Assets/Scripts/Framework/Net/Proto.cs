@@ -101,6 +101,10 @@
         /// 单体目标技能:怪列表=[目标实例id],人列表=[],x/y=目标坐标,angle=0(老端硬编码,见 FightController.ts:1238)。
         /// 服务端同号广播(S2C)=攻击结果(攻击者信息+防御者列表+伤害,FightVo),本期只记录原始响应取证(完整解析=P4)。</summary>
         public const int CS_FIGHT_ATTACK = 20001;
+
+        // 20003(怪打玩家广播)跳过:服务端 pt_200.erl/pp_battle.erl 均无对应子句(空号,catch-all no_match);
+        // 老端虽有 handler20003 实现,判定是对旧服务端协议的遗留,当前权威服务端不会下发,客户端严禁发。
+
         /// <summary>进/出战斗态(C2S)。对标 FightController.ts:889 SendFmtToGame(20024,"c",1/2):1=进战斗态 2=出战斗态。
         /// 老端由 CHANGE_FIGHTING_STATE 驱动(受 ConfigClientScene.fighting_state_invalidate 限制)。</summary>
         public const int CS_FIGHTING_STATE = 20024;
@@ -108,6 +112,109 @@
         /// + handler20008(ts:583)。发 "iic"(采集物实例 id, 采集物 type_id, flag:1=请求开始/2=请求完成/3=取消);
         /// 回包 "c"(flag:1=开始成功 START→播蹲下采集动作+进度条、2=完成成功 COMPLETE→收尾删采集物、≥3=各类失败/取消)。</summary>
         public const int CS_COLLECT = 20008;
+
+        // ----- Fight 扩容(自动循环 队列#2 轮2;字段序=服务端 yu_server src/pt/pt_200.erl 权威实测,
+        //        与老端 yu_client FightController.ts ReadFmt 冲突处已在注释标注、以服务端 write 为准) -----
+        /// <summary>攻击失败返回(S2C 专用推送,客户端严禁发)。对标 pt_200.erl:106-110 write(20005,...):
+        /// ErrCode:c, Sign1:c, User1:l(64位), Hp1:l, X1:h, Y1:h, Sign2:c, User2:l, Hp2:l, X2:h, Y2:h,
+        /// InexistenceList[u16×{Id:i}]。⚠与老端 FightController.ts ReadFmt("ccishlhhcishlhh") 冲突
+        /// (老端把 role_id 读成 i 且多读 plat_name/server_id,服务端源码里根本没有这两个字段)——老端该处理体
+        /// 整段是注释掉的死代码,只剩打日志,判定其 ReadFmt 早已与服务端不符;按服务端 write 顺序为准,仅供日志,
+        /// 不做任何状态处理(老端亦然)。error_flag 语义(老端注释):1=对方没血 2=出手太快 3=自己没血 4=距离太远
+        /// 5=技能cd未到(41=移除已死怪物列表/10=怒气不足/30=重置三连击,均系老端死代码注释,未接配置表)。</summary>
+        public const int CS_FIGHT_ATTACK_FAIL = 20005;
+
+        // 20006 辅助技能跳过(与伙伴技能系统耦合,归队列#3 技能轮;老端 SendAssistSkill/AssistVo 未在本轮移植)。
+
+        /// <summary>buff 技能清理(S2C 专用推送,客户端严禁发)。对标 pt_200.erl:120-123 write(20007,[Sign,Id,Dels]):
+        /// Sign:c, Id:l, Dels[u16×{BuffType:h, BuffSkillId:i}]。服务端强制清 buff 广播(驱散/combo 中断等)。</summary>
+        public const int CS_BUFF_CLEAR = 20007;
+
+        /// <summary>拾取怪物(同号 C2S+S2C)。对标 FightController.ts:896 onCollideMonsterHandler:
+        /// 发 "h"+n×"i"(count, 逐个 instance_id,动态 fmt);回包(pt_200.erl:138-143 write(20010,ResList))
+        /// "h"+循环{Res:c, SrcId:i}。Res==1→toast「拾取成功」,其余按老端一律清待拾取标记(失败文案老端已死代码化)。</summary>
+        public const int CS_PICK_MONSTER = 20010;
+
+        // 20011(与赏金怪物对话)跳过:服务端 handle(20011,...) 整段被注释,命中 catch-all,客户端严禁发。
+        // 20012(客户端申请扣血)跳过:仅 ?SCENE_TYPE_KF_TEMPLE(幻兽之域)场景生效,该系统未移植。
+
+        /// <summary>被杀信息(同号 C2S+S2C:主用途是 S2C 死亡广播;C2S 空包查询仅登录死亡恢复用——服务端
+        /// pp_battle.erl:208-220 仅当 hp&lt;=0 且有 LastBeKill 记录才回,其余静默 skip,发了无害)。对标
+        /// FightController.ts:506-541 + pt_200.erl:150-152 write(20013,[AttSign,Name,PkValue,BGold,Lv,Turn,AttId]):
+        /// AttSign:c(killerType,1=怪/2=玩家), Name:s(killerName,可能与 config_mon 不一致),
+        /// PkValue:h(现在的罪恶值,读弃), BGold:c(扣除的元宝,读弃,服务端恒传0), Lv:h(玩家等级,读弃),
+        /// Turn:c(几转,读弃), AttId:l(killerId,怪为 instance_id 非模板 id,需 3 级 fallback 查真名)。
+        /// 死亡→复活弹窗的唯一触发信号(老端 Fire(SHOWRELIVEWINDOW,0))。</summary>
+        public const int CS_KILLER_INFO = 20013;
+
+        /// <summary>击杀信息(S2C 专用推送,客户端严禁发)。老端 FightController.ts 无对应 recv 实现(全仓库搜索
+        /// 20014 零命中),本轮按服务端权威 pt_200.erl:155-157 write(20014,[Name,IsShowPkV,PkValue]) 解析:
+        /// Name:s, IsShowPkV:c, PkValue:h。</summary>
+        public const int CS_KILL_INFO = 20014;
+
+        /// <summary>广播 PK 值(S2C 专用推送,客户端严禁发)。老端无对应 recv 实现,按服务端权威
+        /// pt_200.erl:160-161 write(20015,[RoleId,PkValue]) 解析:RoleId:l, PkValue:h。</summary>
+        public const int CS_PK_VALUE = 20015;
+
+        // 20016 跳过:pt_200.erl/FightController.ts 均无任何相关子句,纯空号。
+
+        /// <summary>清理刚放技能CD(S2C 专用推送,客户端严禁发)。老端无对应 recv 实现,按服务端权威
+        /// pt_200.erl:168-169 write(20018,[SkillId]) 解析:SkillId:i。</summary>
+        public const int CS_SKILL_CD_CLEAR = 20018;
+
+        // 20019(圣灵特殊技能释放通知)跳过:圣灵系统未移植。
+
+        /// <summary>抢夺归属(同号 C2S+S2C)。对标 FightController.ts:875 SendFmtToGame(20020,"i",instance_id);
+        /// 回包(pt_200.erl:175-176 write(20020,[ErrCode,MonId])):ErrCode:i, MonId:i。ErrCode==1→toast「抢夺成功」
+        /// +归属事件;否则错误码。⚠老端触发源(SNATCHING_OWNERSHIP 事件)全仓库无 UI Fire,发送侧当前孤立,
+        /// 本轮只留 API,交互点未来另补。</summary>
+        public const int CS_SNATCH_OWNERSHIP = 20020;
+
+        /// <summary>查看归属(同号 C2S+S2C)。对标 FightController.ts:879 SendFmtToGame(20021,"i",instance_id);
+        /// 回包(pt_200.erl:179-180 write(20021,[MonId,FirstId])):MonId:i, FirstId:l。⚠老端触发源
+        /// (CHECK_OWNERSHIP 事件)同样全仓库无 UI Fire,发送侧孤立,本轮只留 API。</summary>
+        public const int CS_CHECK_OWNERSHIP = 20021;
+
+        /// <summary>模拟战斗结果/强制死亡广播(S2C 专用推送,客户端严禁发)。对标 FightController.ts:556-569
+        /// + pt_200.erl:183-184 write(20022,[KillerId,PlayerId,Hp,HpLim]):KillerId:l, PlayerId:l(即 died_id),
+        /// Hp:l, HpLim:l。died_id==主角时仅记录 killer(不 Fire 复活弹窗信号,老端如此,弹窗只认 20013)。</summary>
+        public const int CS_SIMULATE_FIGHT = 20022;
+
+        /// <summary>战斗能量更新(同号 C2S+S2C)。对标 FightController.ts:570-573;发空查询,
+        /// 回包(pt_200.erl:187-188 write(20023,[Energy])):Energy:h。老端事件名拼写 UPDATE_FIGHT_ENEERGY
+        /// (少个 R,老端本身笔误,Unity 侧不沿用错误拼写,仅在此注释存档)。</summary>
+        public const int CS_FIGHT_ENERGY = 20023;
+
+        /// <summary>技能CD结束时间通知(S2C 专用推送,客户端严禁发)。对标 FightController.ts:683-690
+        /// + pt_200.erl:204-205 write(20027,[SkillId,EndTime]):SkillId:i, EndTime:l(64位)。⚠老端读取是
+        /// **单条**(变量名 skill_list 但无 count 前缀/无循环,只 push 一个元素),不要脑补成数组循环。</summary>
+        public const int CS_SKILL_CD_END = 20027;
+
+        /// <summary>触发技能列表(S2C 专用推送,客户端严禁发,伙伴/联携技能表现)。对标 FightController.ts:692-703
+        /// + pt_200.erl:207-210 write(20028,[SkillIdL]):SkillNum:h + 循环 SkillId:i。</summary>
+        public const int CS_TRIGGER_SKILLS = 20028;
+
+        // 20025/20026(圣域Boss采集/采集被打断)跳过:归 Boss 包(实际归属 BossController.ts,非 FightController)。
+        // 20201-20205(免战保护 pp_protect)跳过:归 Boss 包。
+
+        // ----- Relive / 复活(200xx 续,yu_client h5/src/commonController/ReliveController.ts) -----
+        /// <summary>复活请求/结果(同号 C2S+S2C,一号双向)。对标 ReliveController.ts:66-127(recv)/200-213(send);
+        /// 发 "c"(relive_mode,服务端 guard 见 pt_200.erl:29-30 + pp_battle.erl:82-91 白名单);
+        /// 回包(pt_200.erl:101-103 write(20004,[Type,Res])):Type:c(回传请求方式), Res:c(结果码,全表见
+        /// ReliveController 注释)。⚠REVIVE_BOSS/REVIVE_ASHES 类型复活成功时服务端把 Res 强改成 12
+        /// (pp_battle.erl:102-107),12 按成功路径处理。</summary>
+        public const int RELIVE_REQUEST = 20004;
+
+        /// <summary>复活时间戳查询(同号 C2S+S2C)。对标 ReliveController.ts:60-64 + FightController.ts:870-873
+        /// GAME_START 发空包;回包(pt_200.erl:41-42 读体空 / 134-135 write(20009,[IsRevive,ReviveTime])):
+        /// IsRevive:c(can_relive), ReviveTime:i(next_relive_time,服务器时间戳)。副本内答复来自
+        /// lib_dungeon:send_reveive_info,野外答复来自玩家自身 revive_status,纯查询无副作用。</summary>
+        public const int RELIVE_INFO = 20009;
+
+        /// <summary>5分钟回城复活次数查询(同号 C2S+S2C,亦有服务端主动推送)。对标
+        /// pt_200.erl:62-63(读体空)/164-165 write(20017,[ReviveNum,EndTime]):ReviveNum:h, EndTime:i。
+        /// lib_revive.erl:442-463 add_revive_tired 会在 boss/幻兽boss 场景死亡复活时主动维护并主动推送同号。</summary>
+        public const int RELIVE_TIRED = 20017;
 
         // ----- Task (300xx, yu_client h5/src/commonController/TaskController.ts) -----
         /// <summary>Task full list. Send empty; reply h + task list, then h + received task list.

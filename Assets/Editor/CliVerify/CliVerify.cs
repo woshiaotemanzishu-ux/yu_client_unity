@@ -88,6 +88,13 @@ namespace Shenxiao.EditorTools
             Run(GoodsProtoCase.Run, 120.0);
         }
 
+        /// <summary>复活链(自动循环 队列#2 轮2)实证:20013/20004/20009/20017/20022/20027 合成包驱动
+        /// FightController/ReliveController 反射喂包,纯逻辑断言(详见 ReliveCase 注释)。</summary>
+        public static void Relive()
+        {
+            Run(ReliveCase.Run, 120.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -113,13 +120,14 @@ namespace Shenxiao.EditorTools
                 int k = await SettingPkCase.Run();
                 int m = await PetTrainCase.Run();
                 int gp = await GoodsProtoCase.Run();
+                int rl = await ReliveCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
                     + " guildjoin=" + j + " rune=" + n + " dungeon=" + v + " thinslice=" + w + " finalslice=" + f
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m
-                    + " goodsproto=" + gp);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp })
+                    + " goodsproto=" + gp + " relive=" + rl);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

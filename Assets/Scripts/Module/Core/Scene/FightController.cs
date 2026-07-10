@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -76,6 +77,23 @@ namespace Shenxiao.Module.Core.Scene
         {
             // 同号 S2C 20001 攻击结果广播:真实解析 FightVo,把服务端新 hp/死亡喂既有血量链(第10轮)。
             RegisterProtocal(Proto.CS_FIGHT_ATTACK, On20001Broadcast);
+
+            // ----- Fight 扩容(自动循环 队列#2 轮2;各号 wire 格式/权威源见 Proto.cs 对应常量注释) -----
+            RegisterProtocal(Proto.CS_FIGHTING_STATE, On20024);
+            RegisterProtocal(Proto.CS_FIGHT_ATTACK_FAIL, On20005);
+            RegisterProtocal(Proto.CS_BUFF_CLEAR, On20007);
+            RegisterProtocal(Proto.CS_PICK_MONSTER, On20010);
+            RegisterProtocal(Proto.CS_KILLER_INFO, On20013);
+            RegisterProtocal(Proto.CS_KILL_INFO, On20014);
+            RegisterProtocal(Proto.CS_PK_VALUE, On20015);
+            RegisterProtocal(Proto.CS_SKILL_CD_CLEAR, On20018);
+            RegisterProtocal(Proto.CS_SNATCH_OWNERSHIP, On20020);
+            RegisterProtocal(Proto.CS_CHECK_OWNERSHIP, On20021);
+            RegisterProtocal(Proto.CS_SIMULATE_FIGHT, On20022);
+            RegisterProtocal(Proto.CS_FIGHT_ENERGY, On20023);
+            RegisterProtocal(Proto.CS_SKILL_CD_END, On20027);
+            RegisterProtocal(Proto.CS_TRIGGER_SKILLS, On20028);
+
             _fighting = false;
         }
 
@@ -445,6 +463,286 @@ namespace Shenxiao.Module.Core.Scene
                         d.MoveAnim, d.PosX, d.PosY);
                 }
             }
+        }
+
+        // ===================================================================================
+        // Fight 扩容(自动循环 队列#2 轮2):20005/20007/20010/20013/20014/20015/20018/20020/20021/
+        // 20022/20023/20024补recv/20027/20028。字段序权威源见 Proto.cs 对应常量注释(逐条核对
+        // yu_server pt_200.erl 原文;与老端 ReadFmt 冲突处已按服务端 write 为准并在 Proto.cs 标注)。
+        // ===================================================================================
+
+        /// <summary>20024 战斗态服务端回显(对标规格"补 recv":echo type,与本地 _fighting 对齐)。</summary>
+        private void On20024(NetReader r)
+        {
+            int type = r.ReadU8();
+            bool fighting = type == 1;
+            if (_fighting != fighting)
+            {
+                GameLog.Info("Fight", "recv 20024 战斗态服务端回显 type={0}(本地 {1}→{2},对齐)", type, _fighting, fighting);
+                _fighting = fighting;
+            }
+            else
+            {
+                GameLog.Info("Fight", "recv 20024 战斗态服务端回显 type={0}(与本地一致)", type);
+            }
+        }
+
+        /// <summary>20005 攻击失败返回(仅打日志,老端处理体整段死代码;字段序按服务端权威 pt_200.erl:106-110
+        /// 写序,与老端 ReadFmt 冲突——详见 Proto.CS_FIGHT_ATTACK_FAIL 注释)。error_flag 语义(老端注释):
+        /// 1=对方没血 2=出手太快 3=自己没血 4=距离太远 5=技能cd未到。</summary>
+        private void On20005(NetReader r)
+        {
+            int errCode = r.ReadU8();
+            int sign1 = r.ReadU8();
+            long user1 = r.ReadU64();
+            long hp1 = r.ReadU64();
+            int x1 = r.ReadU16();
+            int y1 = r.ReadU16();
+            int sign2 = r.ReadU8();
+            long user2 = r.ReadU64();
+            long hp2 = r.ReadU64();
+            int x2 = r.ReadU16();
+            int y2 = r.ReadU16();
+            List<long> inexistenceList = r.ReadArray(rr => (long)rr.ReadU32());
+            GameLog.Warn("Fight",
+                "recv 20005 攻击失败(log-only): errCode={0} attacker(sign={1} id={2} hp={3} pos=({4},{5})) defender(sign={6} id={7} hp={8} pos=({9},{10})) inexistence={11}",
+                errCode, sign1, user1, hp1, x1, y1, sign2, user2, hp2, x2, y2, inexistenceList.Count);
+        }
+
+        /// <summary>20007 buff 技能清理广播(纯转发事件,消费方 TODO——buff UI 未移植)。</summary>
+        private void On20007(NetReader r)
+        {
+            int typeFlag = r.ReadU8();
+            long roleId = r.ReadU64();
+            List<(int buffType, int buffSkillId)> list = r.ReadArray(rr => ((int)rr.ReadU16(), (int)rr.ReadU32()));
+            GameLog.Info("Fight", "recv 20007 buff清理: type_flag={0} role_id={1} count={2}", typeFlag, roleId, list.Count);
+            EventDispatcher.Emit(GlobalEvent.EVT_BUFF_CLEARED, typeFlag, roleId, list);
+        }
+
+        /// <summary>发送拾取怪物请求(对标 FightController.ts:896 onCollideMonsterHandler:动态 fmt "h"+n×"i")。</summary>
+        public void PickMonsters(IReadOnlyList<int> instanceIds)
+        {
+            if (instanceIds == null || instanceIds.Count == 0) return;
+            var fmt = new StringBuilder("h");
+            var args = new List<object>(1 + instanceIds.Count) { instanceIds.Count };
+            foreach (int id in instanceIds) { fmt.Append('i'); args.Add(id); }
+            SendFmt(Proto.CS_PICK_MONSTER, fmt.ToString(), args.ToArray());
+            GameLog.Info("Fight", "send 20010 拾取怪物请求 count={0}", instanceIds.Count);
+        }
+
+        /// <summary>20010 拾取怪物结果(对标 FightController.ts:661-682):error_code==1→toast「拾取成功」;
+        /// 一律发事件清待拾取标记(老端失败提示分支已死代码化,仅保留成功提示,对标实测行为)。</summary>
+        private void On20010(NetReader r)
+        {
+            List<(int errCode, int monId)> list = r.ReadArray(rr => ((int)rr.ReadU8(), (int)rr.ReadU32()));
+            foreach ((int errCode, int monId) it in list)
+            {
+                if (it.errCode == 1) TipsManager.Toast("拾取成功");
+            }
+            GameLog.Info("Fight", "recv 20010 拾取结果 count={0}", list.Count);
+            EventDispatcher.Emit(GlobalEvent.EVT_PICK_MON_RESULT, list);
+        }
+
+        /// <summary>查询登录死亡恢复信息(对标 20013 空包查询,pp_battle.erl:208-220 仅 hp&lt;=0 且有 LastBeKill
+        /// 记录才回,其余静默 skip)。老端 GAME_START 不发它(纯登录死亡恢复用场景),本端亦不自动发,
+        /// 只留 API 供未来登录流程按需调用。</summary>
+        public void QueryKillerInfo()
+        {
+            SendFmt(Proto.CS_KILLER_INFO);
+            GameLog.Info("Fight", "send 20013 查询死亡/击杀信息(本端未接自动触发,手动调用)");
+        }
+
+        /// <summary>20013 被杀信息(死亡→复活弹窗的唯一触发信号,对标 FightController.ts:506-541)。
+        /// 中间 4 值(罪恶值/扣除元宝/玩家等级/几转)老端读后即弃,照读弃。killerName 3 级 fallback
+        /// (老端"根因修复"逻辑,完整保留):①SceneManager 怪 vo 的 type_id 查 config_mon 名;
+        /// ②Unity 侧无 BossSceneManager.select_boss_id 等价物(Boss域系统未移植)→ 此级跳过,TODO;
+        /// ③killerId 直接当模板 id 查(老端兜底同款)。</summary>
+        private void On20013(NetReader r)
+        {
+            int killerType = r.ReadU8();
+            string killerName = r.ReadString();
+            r.ReadU16(); // 现在的罪恶值,读弃
+            r.ReadU8();  // 扣除的元宝,读弃(服务端恒传0)
+            r.ReadU16(); // 玩家等级,读弃
+            r.ReadU8();  // 几转,读弃
+            long killerId = r.ReadU64();
+
+            if (killerType == OBJ_MONSTER && killerId > 0)
+            {
+                int templateId = 0;
+                if (killerId <= int.MaxValue)
+                {
+                    MonsterVo mv = SceneManager.Instance.GetMonster((int)killerId);
+                    templateId = mv?.TypeId ?? 0;
+                }
+                // TODO: 老端第二级 fallback 是 BossSceneManager.select_boss_id(Boss域场景当前选中的 boss 模板id),
+                // Unity 侧 Boss域系统未移植、无等价物可退,此级如实跳过,直接落到第三级兜底。
+                if (templateId == 0 && killerId <= int.MaxValue) templateId = (int)killerId;
+
+                MonsterConfigs.MonCfg cfg = templateId > 0 ? MonsterConfigs.Get(templateId) : null;
+                if (cfg != null && !string.IsNullOrEmpty(cfg.Name)) killerName = cfg.Name;
+            }
+
+            Relive.ReliveModel.Instance.SetKiller(killerType, killerId, killerName);
+            GameLog.Info("Fight", "recv 20013 被杀信息: killerType={0} killerName={1} killerId={2}", killerType, killerName, killerId);
+            EventDispatcher.Emit(GlobalEvent.EVT_ROLE_DEAD);
+        }
+
+        /// <summary>20014 击杀信息推送(老端无对应 recv 实现,按服务端权威 pt_200.erl:155-157 写序解析)。</summary>
+        private void On20014(NetReader r)
+        {
+            string name = r.ReadString();
+            int isShowPkV = r.ReadU8();
+            int pkValue = r.ReadU16();
+            GameLog.Info("Fight", "recv 20014 击杀信息推送(老端无 recv 实现,按服务端 write 序解析): name={0} isShowPkV={1} pkValue={2}",
+                name, isShowPkV, pkValue);
+            EventDispatcher.Emit(GlobalEvent.EVT_KILL_INFO, name, isShowPkV, pkValue);
+        }
+
+        /// <summary>20015 广播 PK 值(老端无对应 recv 实现,按服务端权威 pt_200.erl:160-161 写序解析:
+        /// RoleId:l, PkValue:h——与规格草案假设的 "l,i" 冲突,以服务端源码为准,见汇报偏差项)。</summary>
+        private void On20015(NetReader r)
+        {
+            long roleId = r.ReadU64();
+            int pkValue = r.ReadU16();
+            GameLog.Info("Fight", "recv 20015 pk值广播: role_id={0} pk_value={1}", roleId, pkValue);
+            EventDispatcher.Emit(GlobalEvent.EVT_PK_VALUE_UPDATE, roleId, pkValue);
+        }
+
+        /// <summary>20018 清理刚放技能CD(老端无对应 recv 实现,按服务端权威 pt_200.erl:168-169 写序解析)。</summary>
+        private void On20018(NetReader r)
+        {
+            int skillId = (int)r.ReadU32();
+            GameLog.Info("Fight", "recv 20018 清理刚放技能CD skill_id={0}", skillId);
+            EventDispatcher.Emit(GlobalEvent.EVT_SKILL_CD_CLEAR, skillId);
+        }
+
+        /// <summary>发送抢夺归属请求(对标 FightController.ts:875 SendFmtToGame(20020,"i",instance_id))。
+        /// ⚠老端触发源(SNATCHING_OWNERSHIP 事件)全仓库无 UI Fire,发送侧当前孤立,交互点未来另补。</summary>
+        public void SnatchOwnership(int insId)
+        {
+            if (insId <= 0) return;
+            SendFmt(Proto.CS_SNATCH_OWNERSHIP, "i", insId);
+            GameLog.Info("Fight", "send 20020 抢夺归属 ins={0}", insId);
+        }
+
+        /// <summary>20020 抢夺归属结果(对标 FightController.ts:542-551):error_code==1→toast「抢夺成功」+
+        /// 归属事件(归属改为主角);否则错误码(Util.ErrorCodeShow 表未移植,显码降级)。</summary>
+        private void On20020(NetReader r)
+        {
+            int errCode = (int)r.ReadU32();
+            int monId = (int)r.ReadU32();
+            GameLog.Info("Fight", "recv 20020 抢夺归属结果 errCode={0} monId={1}", errCode, monId);
+            if (errCode == 1)
+            {
+                TipsManager.Toast("抢夺成功");
+                EventDispatcher.Emit(GlobalEvent.EVT_MON_OWNER_UPDATE, (long)monId, RoleModel.Instance.RoleId);
+            }
+            else
+            {
+                TipsManager.Toast("抢夺失败(" + errCode + ")");
+            }
+        }
+
+        /// <summary>发送查看归属请求(对标 FightController.ts:879 SendFmtToGame(20021,"i",instance_id))。
+        /// ⚠老端触发源(CHECK_OWNERSHIP 事件)同样全仓库无 UI Fire,发送侧孤立,交互点未来另补。</summary>
+        public void CheckOwnership(int insId)
+        {
+            if (insId <= 0) return;
+            SendFmt(Proto.CS_CHECK_OWNERSHIP, "i", insId);
+            GameLog.Info("Fight", "send 20021 查看归属 ins={0}", insId);
+        }
+
+        /// <summary>20021 查看归属结果(对标 FightController.ts:552-555)。</summary>
+        private void On20021(NetReader r)
+        {
+            int monId = (int)r.ReadU32();
+            long firstId = r.ReadU64();
+            GameLog.Info("Fight", "recv 20021 查看归属 monId={0} firstAttackRoleId={1}", monId, firstId);
+            EventDispatcher.Emit(GlobalEvent.EVT_MON_OWNER_UPDATE, (long)monId, firstId);
+        }
+
+        /// <summary>20022 模拟战斗结果/强制死亡广播(对标 FightController.ts:556-569)。died_id==主角:
+        /// 同 20013 路径记录 killer,但不 Emit EVT_ROLE_DEAD(不开复活窗,对标老端 SetKillerInfo 不 Fire
+        /// SHOWRELIVEWINDOW,弹窗信号只认 20013)。协议本身不带 killerName/killerType,故不触发 3 级 fallback。
+        /// died_id 是他人:同步 hp/死亡到 SceneManager(参照 On20001 defense_list 的写法)。</summary>
+        private void On20022(NetReader r)
+        {
+            long killerId = r.ReadU64();
+            long diedId = r.ReadU64();
+            long hp = r.ReadU64();
+            long hpLim = r.ReadU64();
+
+            long mainRoleId = RoleModel.Instance.RoleId;
+            if (mainRoleId > 0 && diedId == mainRoleId)
+            {
+                Relive.ReliveModel.Instance.SetKiller(OBJ_ROLE, killerId, "");
+                GameLog.Info("Fight", "recv 20022 主角死亡(模拟战斗):killer={0}(不开复活窗,对标老端)", killerId);
+            }
+            else
+            {
+                SceneManager mgr = SceneManager.Instance;
+                RoleVo role = mgr.GetRole(diedId);
+                if (role != null)
+                {
+                    if (hp <= 0) mgr.DeleteSceneObj(diedId);
+                    else mgr.ApplyHp(diedId, hp, hpLim > 0 ? hpLim : role.HpLim);
+                }
+                else if (diedId >= 0 && diedId <= int.MaxValue && mgr.GetMonster((int)diedId) != null)
+                {
+                    int ins = (int)diedId;
+                    if (hp <= 0)
+                    {
+                        MonsterRenderer.NotifyKilled(ins);
+                        mgr.DeleteSceneObj(ins);
+                    }
+                    else
+                    {
+                        MonsterVo m = mgr.GetMonster(ins);
+                        mgr.ApplyHp(ins, hp, hpLim > 0 ? hpLim : m.HpLim);
+                    }
+                }
+                else
+                {
+                    GameLog.Warn("Fight", "recv 20022 died_id={0} 不在 SceneManager(未在视野),只记录不造假", diedId);
+                }
+                GameLog.Info("Fight", "recv 20022 模拟战斗死亡: killer={0} died={1} hp={2}/{3}", killerId, diedId, hp, hpLim);
+            }
+
+            EventDispatcher.Emit(GlobalEvent.EVT_SIMULATE_FIGHT, killerId, diedId);
+        }
+
+        /// <summary>发送战斗能量查询(对标 FightController.ts:570-573,空包)。</summary>
+        public void QueryEnergy()
+        {
+            SendFmt(Proto.CS_FIGHT_ENERGY);
+            GameLog.Info("Fight", "send 20023 查询战斗能量");
+        }
+
+        /// <summary>20023 战斗能量更新。</summary>
+        private void On20023(NetReader r)
+        {
+            int energy = r.ReadU16();
+            GameLog.Info("Fight", "recv 20023 能量值 energy={0}", energy);
+            EventDispatcher.Emit(GlobalEvent.EVT_FIGHT_ENERGY, energy);
+        }
+
+        /// <summary>20027 技能CD结束时间通知(对标 FightController.ts:683-690)。⚠老端读取是**单条**
+        /// (变量名 skill_list 但无 count 前缀/无循环,只 push 一个元素),不要脑补成数组循环。</summary>
+        private void On20027(NetReader r)
+        {
+            int skillId = (int)r.ReadU32();
+            long endTime = r.ReadU64();
+            GameLog.Info("Fight", "recv 20027 技能CD结束 skill_id={0} end_time={1}", skillId, endTime);
+            EventDispatcher.Emit(GlobalEvent.EVT_SKILL_CD_END, skillId, endTime);
+        }
+
+        /// <summary>20028 触发技能列表(对标 FightController.ts:692-703,伙伴/联携技能表现)。</summary>
+        private void On20028(NetReader r)
+        {
+            List<int> skillIds = r.ReadArray(rr => (int)rr.ReadU32());
+            GameLog.Info("Fight", "recv 20028 触发技能列表 count={0}", skillIds.Count);
+            EventDispatcher.Emit(GlobalEvent.EVT_TRIGGER_SKILLS, skillIds);
         }
     }
 }

@@ -145,6 +145,7 @@ namespace Shenxiao.Module.Core.MainUI
 
             ReleaseFightingUp();
             ReleaseCollectBarView();
+            ReleaseReliveView();
 
             if (_moduleRoot == null) return;
             ResManager.ReleaseInstance(_moduleRoot);
@@ -278,6 +279,56 @@ namespace Shenxiao.Module.Core.MainUI
             if (_fightingUpView == null) return;
             GameObject go = _fightingUpView.gameObject;
             _fightingUpView = null;
+            if (go != null) ResManager.ReleaseInstance(go);
+        }
+
+        // ---------- 复活倒计时窗(对标老端 MainUIReliveView;独立 prefab,不在 MainUIModule 内,
+        //            事件驱动按需加载缓存,同 CollectBarView/FightingUpView 既定模式) ----------
+        // prefab 由 Assets/Editor/UiCreator/MainUI/MainUIReliveCreator.cs 生成(从 HudOverlayCombat 捆包
+        // 抽取既有 BuildRelive 子树);真机包前需跑一次「神霄/资源/Addressable 自动分组」注册地址。
+
+        private static MainUIReliveView _reliveView;
+        private static bool _reliveLoading;
+
+        /// <summary>打开复活倒计时窗(ReliveController.OpenReliveWindow 兜底分支调用)。</summary>
+        public static async Task ShowReliveAsync()
+        {
+            if (_reliveView != null) { _reliveView.Show(); return; }
+            if (_reliveLoading) return;
+
+            _reliveLoading = true;
+            int token = _requestToken;
+            string key = GameResPath.GetUIPrefab(MODULE, "MainUIReliveView");
+            GameObject go = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+            _reliveLoading = false;
+
+            if (token != _requestToken)
+            {
+                if (go != null) ResManager.ReleaseInstance(go);
+                return;
+            }
+            if (go == null)
+            {
+                GameLog.Warn("MainUI", "MainUIReliveView 预制加载失败: {0}(检查 Addressable 自动分组是否已跑)", key);
+                return;
+            }
+
+            _reliveView = go.GetComponent<MainUIReliveView>();
+            if (_reliveView == null)
+            {
+                GameLog.Warn("MainUI", "MainUIReliveView 预制缺 MainUIReliveView 组件(重跑 MainUIReliveCreator)");
+                ResManager.ReleaseInstance(go);
+                return;
+            }
+            _reliveView.Show();
+        }
+
+        private static void ReleaseReliveView()
+        {
+            _reliveLoading = false;
+            if (_reliveView == null) return;
+            GameObject go = _reliveView.gameObject;
+            _reliveView = null;
             if (go != null) ResManager.ReleaseInstance(go);
         }
     }

@@ -43,6 +43,8 @@ namespace Shenxiao.Module.Core.Scene
         private const string ActionRun = "run";
         private const string ActionJump = "jump";
         private const string ActionCollect = "collect"; // 蹲下采集动作(对标老端 Role.EnterStateCollect 的 PlayAction("collect"))
+        private const string ActionDeath = "death";     // 死亡动作(对标老端 Character.ts:562 EnterStateDead → PlayAction("death"),
+                                                         // 同名常量已见于 MonsterRenderer.ACTION_DEATH,主角/怪共用同一动作名约定)
         private const float TaskJumpReportDistance = 300f;
 
         /// <summary>当前主角驱动(MainRoleFlow 装配后唯一存在;清主角时置空)。任务/对话用它让主角朝 NPC 转向。</summary>
@@ -1009,6 +1011,20 @@ namespace Shenxiao.Module.Core.Scene
         private void PlayAction(string action)
         {
             TryPlayAction(action, 0.15f, false);
+        }
+
+        /// <summary>播放主角死亡动作(对标老端 MainRole.DoDead → Character.EnterStateDead → PlayAction("death"))。
+        /// ReliveController 收到 EVT_ROLE_DEAD 时调用;没有 death 动作素材时静默跳过(TryPlayAction 门禁一致),
+        /// 返回 false 供调用方按需 log TODO,不硬造动画。</summary>
+        public bool PlayDeadAnim()
+        {
+            return TryPlayAction(ActionDeath, 0.15f, true);
+        }
+
+        /// <summary>复活成功后恢复待机(对标老端 Character.Revived → DoStand)。</summary>
+        public void PlayReviveIdle()
+        {
+            PlayAction(ActionIdle);
         }
 
         private bool HasActionClip(string action)
