@@ -105,6 +105,8 @@ namespace Shenxiao.Module.Core.Pet
 
         private void OnOutWardUpdate()
         {
+            // 宿主可能已被整树销毁而 OnDestroy 未触发(OnInit 订阅但从未激活的实例):就地退订自愈,防 MissingReference
+            if (!this) { Unsubscribe(); return; }
             if (!gameObject.activeInHierarchy) return;
             Refresh();
             RefreshGuide();
@@ -112,6 +114,7 @@ namespace Shenxiao.Module.Core.Pet
 
         private void OnTaskUpdate()
         {
+            if (!this) { Unsubscribe(); return; }
             if (!gameObject.activeInHierarchy) return;
             RefreshGuide();
         }
