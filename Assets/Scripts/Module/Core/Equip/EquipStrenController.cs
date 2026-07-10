@@ -22,11 +22,15 @@ namespace Shenxiao.Module.Core.Equip
         {
             RegisterProtocal(Proto.EQUIP_STREN_INFO, On15204);
             RegisterProtocal(Proto.EQUIP_STREN_DO, On15205);
+            // 全身奖励(自动循环 轮4 队列#4;规格 §0 指定挂本控制器):15260 激活/15261 列表。
+            RegisterProtocal(Proto.EQUIP_WHOLE_ACTIVE, On15260);
+            RegisterProtocal(Proto.EQUIP_WHOLE_LIST, On15261);
         }
 
         public override void Dispose()
         {
             EquipStrenModel.Instance.Clear();
+            EquipWholeAwardModel.Instance.Clear();
             base.Dispose();
         }
 
@@ -90,6 +94,55 @@ namespace Shenxiao.Module.Core.Equip
         private static (int equipType, int stren) ReadStrenInfo(NetReader r)
         {
             return (r.ReadU8(), r.ReadU16());   // {equip_type:c, stren:h}
+        }
+
+        // ----- 全身奖励(自动循环 轮4 队列#4;老端 EquipStrenMasterView.ts/EquipJewelMasterView.ts 共用) -----
+
+        /// <summary>15260 激活全身奖励(发 "c" type;本轮只用 type=1 强化,type=3 宝石留 4b)。</summary>
+        public void ActivateWhole(int type)
+        {
+            SendFmt(Proto.EQUIP_WHOLE_ACTIVE, "c", type);
+            GameLog.Info("Equip", "activateWhole 15260 type={0}", type);
+        }
+
+        /// <summary>15261 查询全身奖励列表(无参)。</summary>
+        public void QueryWholeAward()
+        {
+            SendFmt(Proto.EQUIP_WHOLE_LIST);
+            GameLog.Info("Equip", "request 15261(全身奖励列表)");
+        }
+
+        /// <summary>15260 回包:errcode:i, type:c, whole_lv:h。errcode==1 → 落库 + toast「激活成功」;
+        /// 否则显码降级(常见=等级/阶段未达标,错误码表未移植)。</summary>
+        private void On15260(NetReader r)
+        {
+            int errcode = (int)r.ReadU32();
+            int type = r.ReadU8();
+            int wholeLv = r.ReadU16();
+            if (errcode != 1)
+            {
+                TipsManager.Toast("激活失败(" + errcode + ")");
+                GameLog.Info("Equip", "15260 fail errcode={0} type={1}", errcode, type);
+                return;
+            }
+            EquipWholeAwardModel.Instance.Update(type, wholeLv);
+            TipsManager.Toast("激活成功");
+            GameLog.Info("Equip", "15260 ok type={0} whole_lv={1} remaining={2}B", type, wholeLv, r.Remaining);
+            EventDispatcher.Emit(GlobalEvent.EVT_EQUIP_WHOLE_UPDATE);
+        }
+
+        /// <summary>15261 回包:list[u16×{type:c, whole_lv:h}]。纯查询,无 errcode,直接整表覆盖落库。</summary>
+        private void On15261(NetReader r)
+        {
+            List<(int type, int wholeLv)> list = r.ReadArray(ReadWholeAward);
+            EquipWholeAwardModel.Instance.SetList(list);
+            GameLog.Info("Equip", "15261 count={0} remaining={1}B", list.Count, r.Remaining);
+            EventDispatcher.Emit(GlobalEvent.EVT_EQUIP_WHOLE_UPDATE);
+        }
+
+        private static (int type, int wholeLv) ReadWholeAward(NetReader r)
+        {
+            return (r.ReadU8(), r.ReadU16());   // {type:c, whole_lv:h}
         }
     }
 }

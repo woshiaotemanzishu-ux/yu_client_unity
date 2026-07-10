@@ -162,6 +162,31 @@ namespace Shenxiao.Module.Core.Bag
             }
         }
 
+        /// <summary>
+        /// 补口子(自动循环 轮4 队列#4;装备成长四件套):清缓存 + 绕过节流窗口,强制下次 RequestDetail 真实重拉。
+        /// 用于协议回包"没给出新值,只知道详情变了"的场景(如 15213 洗魄只给变动下标不给新属性值、15252 升段不给
+        /// 新段位),对标老端 GoodsModel.GetDynamic(goodsId, cb, <b>true</b>) 的强制重拉参数。
+        /// </summary>
+        public void Invalidate(long goodsId)
+        {
+            _cache.Remove(goodsId);
+            _lastRequestAt.Remove(goodsId);
+        }
+
+        /// <summary>
+        /// 补口子(自动循环 轮4 队列#4):就地改写已缓存详情的部分字段,不触发网络请求(对标老端 15255 on 成功后
+        /// 直接 <c>vo.refinement_lv = scmd.refine_lv</c>,协议回包本身已带够新值时用这个,比 Invalidate 更快)。
+        /// goodsId 尚未被 15000/15001 缓存过时静默跳过——无本地对象可改,等下次 RequestDetail 会带最新值。
+        /// </summary>
+        public void Patch(long goodsId, Action<GoodsDetailVo> mutate)
+        {
+            if (mutate == null) return;
+            if (_cache.TryGetValue(goodsId, out GoodsDetailVo vo) && vo != null)
+            {
+                mutate(vo);
+            }
+        }
+
         /// <summary>请求礼包等级信息(15083 "li" goodsId,typeId);对标老端 GetGiftBagDynamic 注册单槽回调。</summary>
         public void RequestGiftLevel(long goodsId, int typeId, Action<GiftLevelInfo> callback = null)
         {

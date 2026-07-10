@@ -12,13 +12,20 @@ namespace Shenxiao.Module.Core.Equip
     /// EquipAttrItem)+ 消耗材料(goods_icon/goods_icon_top BaseAwardItem,标题"神兵淬炼消耗")+ 精炼/一键精炼
     /// 按钮(btnStrOne/btnStrAll)+ 红点(_reddot)+ 各特效层(_group_eff*/gp_effect)。
     ///
-    /// 降级:EquipModel/GoodsModel/RedDotManager 协议(15251 精炼请求、UPDATE_*_SMELT 回包、config_equip_refine_*
-    /// 配置)、子项(EquipSmeltItem/EquipAttrItem/BaseAwardItem/FightingShowSmallItem)与淬炼特效均未移植 →
-    /// 红点/模板先隐藏;按钮点击打日志「待对接」;装备列表/属性/消耗为空、战力默认;静态标题文案照搬老端。
+    /// 精炼协议(15250/15251,经 EquipSmeltController,自动循环 轮4 队列#4)已接线:btnStrOne→SmeltOne(固定武器槽,
+    /// 无选中态,同 EquipStrenView 既有先例)、btnStrAll→SmeltAll();EquipSmeltItem 选中态由
+    /// <see cref="SelectEquipType"/> 记录,供后续列表铺格接入。
+    /// 降级:EquipModel/GoodsModel/RedDotManager(UPDATE_*_SMELT 回包展示、config_equip_refine_* 配置)、子项渲染
+    /// (EquipSmeltItem/EquipAttrItem/BaseAwardItem/FightingShowSmallItem)与淬炼特效均未移植 →
+    /// 红点/模板先隐藏;装备列表/属性/消耗为空、战力默认;静态标题文案照搬老端。
     /// 事件驱动窗口,默认关闭、不进 FirstPass。
     /// </summary>
     public sealed class EquipSmeltView : EquipSmeltViewBind
     {
+        /// <summary>当前选中部位(对标老端 SELECT_SMELT_EQUIP)。TODO:装备列表未铺格,暂固定武器槽,
+        /// 同 EquipStrenView.BindStren 既有先例;<see cref="EquipSmeltItem"/> 铺格后经 SelectEquipType 覆盖。</summary>
+        private int _selectedEquipType = 1;
+
         protected override void OnInit()
         {
             HideReds();
@@ -31,6 +38,13 @@ namespace Shenxiao.Module.Core.Equip
         {
             // 老端 LoadSuccess/InitView:铺穿戴装备格 + 默认选中 + 刷消耗/属性/战力/红点。数据未移植 → 列表空、属性默认降级。
             GameLog.Info("Equip", "神兵淬炼界面打开 → 待对接 EquipModel/协议(列表空/属性默认降级)");
+        }
+
+        /// <summary>更新当前选中部位(由 EquipSmeltItem 点击回调驱动,对标 SELECT_SMELT_EQUIP)。</summary>
+        public void SelectEquipType(int equipType)
+        {
+            if (equipType == 0) return;
+            _selectedEquipType = equipType;
         }
 
         private void HideReds()
@@ -57,19 +71,27 @@ namespace Shenxiao.Module.Core.Equip
 
         private void BindButtons()
         {
-            BindBtn(btnStrOne, "精炼");
-            BindBtn(btnStrAll, "一键精炼");
+            BindClick(btnStrOne, () =>
+            {
+                GameLog.Info("Equip", "点击[精炼] → SmeltOne(equip_type={0})", _selectedEquipType);
+                EquipSmeltController.Instance.SmeltOne(_selectedEquipType);
+            });
+            BindClick(btnStrAll, () =>
+            {
+                GameLog.Info("Equip", "点击[一键精炼] → SmeltAll()");
+                EquipSmeltController.Instance.SmeltAll();
+            });
         }
 
-        /// <summary>给按钮(Image 或含 Image 子节点的容器)挂点击 → 打日志(降级:精炼协议待对接)。</summary>
-        private void BindBtn(Component target, string label)
+        /// <summary>给按钮(Image 或含 Image 子节点的容器)挂点击回调。</summary>
+        private void BindClick(Component target, System.Action onClick)
         {
             if (target == null) return;
             Image img = target as Image;
             if (img == null) img = target.GetComponentInChildren<Image>(true);
             if (img == null) return;
             img.raycastTarget = true;
-            UIUtil.AddClick(img, () => GameLog.Info("Equip", "点击[{0}] → 待对接", label));
+            UIUtil.AddClick(img, onClick);
         }
 
         private static void HideNode(Component c)

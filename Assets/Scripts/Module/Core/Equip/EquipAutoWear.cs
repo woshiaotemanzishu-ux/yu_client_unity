@@ -31,6 +31,11 @@ namespace Shenxiao.Module.Core.Equip
         private static readonly Dictionary<long, double> _pendingUntil = new Dictionary<long, double>();
         private static bool _debouncing;
 
+        /// <summary>取指定部位当前穿戴装备实例(15010 pos=equip 通道转存;未穿/通道未到 → null)。
+        /// 补口子(自动循环 轮4 队列#4):精炼/洗魄/神炼等新面板暂无「选中态」数据源,借用「当前穿戴」当占位选中,
+        /// 同 EquipStrenView 既有的 equip_type 固定武器槽先例。</summary>
+        public static BagGoods GetWorn(int equipType) => _worn.TryGetValue(equipType, out BagGoods g) ? g : null;
+
         /// <summary>15010 pos=equip 全量转存(BagController 例外分支调)。</summary>
         public static void SetWornList(List<BagGoods> list)
         {

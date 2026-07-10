@@ -10,17 +10,20 @@ namespace Shenxiao.Module.Core.Equip
     /// 神兵淬炼装备格(对标老客户端 equip/EquipSmeltItem.ts):淬炼面板里的一个部位槽,
     /// 内含装备图标(award_con 克隆 EquipmentItem)、淬炼等级 level(+N)、满阶提示 tips、
     /// 选中高亮 select_img、空位锁图标 lock_icon、强化特效 group_eff、点击背景 click_bg、红点 red_dot。
-    /// 点击 click_bg → 选中该部位淬炼(无装备则提示「穿戴装备后才可以神兵淬炼该部位哦」)。
+    /// 点击 click_bg → 选中该部位淬炼,经 <see cref="SetSelectCallback"/> 回调父面板(对标 SELECT_SMELT_EQUIP;
+    /// 无装备提示「穿戴装备后才可以神兵淬炼该部位哦」这层文案未移植,本轮直接 no-op)。
     ///
     /// 降级:EquipModel(GetSmeltInfo/equip_smelt_info/各 EquipEvent)、EquipmentItem 子件、QiangHua 特效、
     /// UIToolTipMgr 装备 tips、淬炼/精炼配置(limit_cfg/attr_cfg)均未移植 →
-    /// OnInit 隐藏红点 + 选中高亮 + 满阶提示 + 强化特效;SetData 仅做最小渲染(等级文本,无配置则空)、打日志「待对接」;
-    /// 点击仅打日志。列表项,由淬炼面板克隆/铺设。
+    /// OnInit 隐藏红点 + 选中高亮 + 满阶提示 + 强化特效;SetData 仅做最小渲染(等级文本,无配置则空)、打日志「待对接」。
+    /// 列表项,由淬炼面板克隆/铺设(本轮父面板暂未铺格,故本项当前无实例被创建;点击回调已就绪待接)。
     /// </summary>
     public sealed class EquipSmeltItem : EquipSmeltItemBind
     {
         /// <summary>该格对应的装备部位(对标 SetEquipPos 的 equip_type);0 = 未指定。</summary>
         private int _equipType;
+        /// <summary>选中回调(对标 SELECT_SMELT_EQUIP 事件消费方,由 <see cref="EquipSmeltView"/> 铺格时挂)。</summary>
+        private System.Action<int> _onSelect;
 
         protected override void OnInit()
         {
@@ -33,9 +36,18 @@ namespace Shenxiao.Module.Core.Equip
             // 强化特效:对标 QiangHua 特效,特效系统未移植 → 隐藏占位。
             if (group_eff != null) group_eff.gameObject.SetActive(false);
 
-            // 点击背景:对标 click_bg → 选中该部位淬炼(降级:仅打日志)。
-            BindBtn(click_bg, "选中部位淬炼 SELECT_SMELT_EQUIP");
+            // 点击背景:对标 click_bg → 选中该部位淬炼(真调用:回调通知父面板 + 本地高亮,对标 SELECT_SMELT_EQUIP)。
+            BindBtn(click_bg, () =>
+            {
+                if (_equipType == 0) return;
+                SetSelect(true);
+                _onSelect?.Invoke(_equipType);
+                GameLog.Info("Equip", "选中部位淬炼 equip_type={0}(SELECT_SMELT_EQUIP)", _equipType);
+            });
         }
+
+        /// <summary>设置选中回调(由 <see cref="EquipSmeltView"/> 铺格时挂,驱动 SelectEquipType)。</summary>
+        public void SetSelectCallback(System.Action<int> onSelect) => _onSelect = onSelect;
 
         /// <summary>设置该格部位(对标 SetEquipPos)。空位时显锁图标/可点背景。</summary>
         public void SetEquipPos(int equipType)
@@ -63,15 +75,15 @@ namespace Shenxiao.Module.Core.Equip
             if (select_img != null) select_img.gameObject.SetActive(selected);
         }
 
-        /// <summary>给按钮(Image 或含 Image 子节点的容器)挂点击 → 打日志(降级:逻辑/协议待对接)。</summary>
-        private void BindBtn(Component target, string label)
+        /// <summary>给按钮(Image 或含 Image 子节点的容器)挂点击回调。</summary>
+        private void BindBtn(Component target, System.Action onClick)
         {
             if (target == null) return;
             Image img = target as Image;
             if (img == null) img = target.GetComponentInChildren<Image>(true);
             if (img == null) return;
             img.raycastTarget = true;
-            UIUtil.AddClick(img, () => GameLog.Info("Equip", "点击[{0}] → 待对接", label));
+            UIUtil.AddClick(img, onClick);
         }
     }
 }

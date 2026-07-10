@@ -744,6 +744,43 @@
         /// stren_info[u16×{equip_type:c, stren:h}])。主线 100720(ctype31)=全身强化总和≥8,服务端 equip_sum 事件推进。</summary>
         public const int EQUIP_STREN_DO = 15205;
 
+        // ----- 装备成长四件套(自动循环 轮4 队列#4;pt_152 段内 15212/13/14/50/51/52/55/60/61;
+        // 老端 EquipController.ts + EquipSmeltView/EquipWashView/EquipRefinementView/EquipStrenMasterView.ts) -----
+        /// <summary>神兵淬炼(精炼)信息查询(发 "c" equip_type;回包 res:i, equip_type:c, refine:h, refine_high:h)。
+        /// UI 挂 EquipView tab1"神兵淬炼",老端底层变量/事件全叫 Smelt——与 15255"神炼"是两套独立系统,勿混。</summary>
+        public const int EQUIP_SMELT_INFO = 15250;
+        /// <summary>神兵淬炼执行(发 "cc" equip_type,type[1单件/2一键(equip_type 传 0)];回包 res:i, res1:c, type:c,
+        /// refine_info[u16×{equip_type:c, refine_high:h}])。</summary>
+        public const int EQUIP_SMELT_DO = 15251;
+        /// <summary>开启洗魄槽(发 "cc" equip_type, index+1[老端如此];回包 res:i, goods_id:l, index:c)。
+        /// UI 挂 EquipView tab3"吞天洗魄"。</summary>
+        public const int EQUIP_WASH_OPEN_SLOT = 15212;
+        /// <summary>洗魄执行——**手写序列,非简单 fmt**(对标 EquipController.ts:59-71):c(equip_type) + h(锁定槽数量) +
+        /// c[](锁定槽下标+1,变长) + c(ratio_plus);回包 res:i, goods_id:l, attr_list[u16×{index:c}]。</summary>
+        public const int EQUIP_WASH_DO = 15213;
+        /// <summary>洗魄免费次数查询(无参;回包 free_times:c,无 res 字段)。GAME_START 发一次。</summary>
+        public const int EQUIP_WASH_FREE_TIMES = 15214;
+        /// <summary>洗魄升段(发 "cc" equip_type, is_buy[0/1];回包 res:i, goods_id:l;新段位未打包进协议,
+        /// 客户端拿不到新值,只能靠详情重拉间接得知)。</summary>
+        public const int EQUIP_WASH_DIVISION = 15252;
+        /// <summary>神屠九炼(神炼)执行(发 "l" goods_id 装备实例id,不是 equip_type;回包 code:i, goods_id:l,
+        /// refine_lv:i)。UI 挂 EquipView tab4"神屠九炼"。无专用查询协议,展示读 15000/15001 GoodsDetailVo.RefinementLv。</summary>
+        public const int EQUIP_REFINEMENT_DO = 15255;
+        /// <summary>全身奖励激活(发 "c" type[1强化/3宝石,本轮只用1];回包 errcode:i, type:c, whole_lv:h)。
+        /// 淬炉宗师(EquipStrenMasterView,type=1)与骸珀镶嵌大师(type=3,4b 另单)共用基建。</summary>
+        public const int EQUIP_WHOLE_ACTIVE = 15260;
+        /// <summary>全身奖励列表查询(无参;回包 list[u16×{type:c, whole_lv:h}])。</summary>
+        public const int EQUIP_WHOLE_LIST = 15261;
+        // 跳过(规格 §0 本轮不加常量不写代码,只在 Runbook 由主控记队列):
+        // 15202 卸下装备:老端无发送入口(UI 已砍),跳过。
+        // 15206/15207 进阶装备/进阶属性预览:老端零 UI 参照,跳过。
+        // 15242/15243 唤魔信息(旧):pp_equip.erl 整段注释、pt_152 无 read/write,服务端 DEAD,跳过。
+        // 15253 神装升阶重复号:协议 read/write 都在但 pp_equip.erl 无 handle 分支,服务端 DEAD,跳过。
+        // 15210/15211(宝石雕刻)、15215/15216(宝石升级/合成):随 Jewel UI 归 4b 另单,本轮不加常量。
+        // 15217-15219 神装信息/升阶/升阶预览:独立合成窗(RedEnterView 神兵铸造页签),与本模块无关,归后续包。
+        // 15220-15223/15262 共鸣套装:独立窗(EquipSuitBaseView),归后续包。
+        // 15230-15233(铸灵/护灵)、15241/15244/15245(觉醒/唤魔技能):归后续包,本轮不加常量。
+
         // ----- 古宝/妖物(pt_133 段内 13320/13321,yu_server enchantment_guard soap;老端 MonsterController.ts/guBao) -----
         /// <summary>古宝全量状态(请求无参;回包 combat:l + soap_list[u16×{soap_id:h, debris_list[u16×{debris_id:h}]}])。</summary>
         public const int GUBAO_INFO = 13320;

@@ -109,6 +109,15 @@ namespace Shenxiao.EditorTools
             Run(InnateViewCase.Run, 300.0);
         }
 
+        /// <summary>装备成长四件套(自动循环 轮4 队列#4)实证:15250/15251(神兵淬炼)、15212/15213/15214/15252
+        /// (吞天洗魄)、15255(神屠九炼)、15260/15261(淬炉宗师全身奖励)合成包驱动 EquipSmeltController/
+        /// EquipWashController/EquipRefinementController/EquipStrenController 反射喂包,纯逻辑断言
+        /// (详见 EquipGrowthCase 注释)。</summary>
+        public static void EquipGrowth()
+        {
+            Run(EquipGrowthCase.Run, 120.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -137,13 +146,15 @@ namespace Shenxiao.EditorTools
                 int rl = await ReliveCase.Run();
                 int sg = await SkillGrowthCase.Run();
                 int iv = await InnateViewCase.Run();
+                int eg = await EquipGrowthCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
                     + " guildjoin=" + j + " rune=" + n + " dungeon=" + v + " thinslice=" + w + " finalslice=" + f
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m
-                    + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv })
+                    + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
+                    + " equipgrowth=" + eg);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

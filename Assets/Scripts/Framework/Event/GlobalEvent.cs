@@ -103,6 +103,14 @@ namespace Shenxiao.Framework.Event
         public const string EVT_TEMPLE_AWAKEN_UPDATE = "EVT_TEMPLE_AWAKEN_UPDATE";
         /// <summary>装备强化数据变动(15204 查询/15205 强化后)。</summary>
         public const string EVT_EQUIP_STREN_UPDATE = "EVT_EQUIP_STREN_UPDATE";
+        /// <summary>神兵淬炼(精炼)数据变动(15250 查询/15251 精炼后)。自动循环 轮4 队列#4。</summary>
+        public const string EVT_EQUIP_SMELT_UPDATE = "EVT_EQUIP_SMELT_UPDATE";
+        /// <summary>吞天洗魄数据变动(15212 开槽/15213 洗魄/15214 免费次数/15252 升段后)。自动循环 轮4 队列#4。</summary>
+        public const string EVT_EQUIP_WASH_UPDATE = "EVT_EQUIP_WASH_UPDATE";
+        /// <summary>神屠九炼(神炼)数据变动(15255 执行后)。自动循环 轮4 队列#4。</summary>
+        public const string EVT_EQUIP_REFINEMENT_UPDATE = "EVT_EQUIP_REFINEMENT_UPDATE";
+        /// <summary>全身奖励数据变动(15260 激活/15261 列表后;淬炉宗师 type=1 与骸珀镶嵌大师 type=3 共用)。自动循环 轮4 队列#4。</summary>
+        public const string EVT_EQUIP_WHOLE_UPDATE = "EVT_EQUIP_WHOLE_UPDATE";
         /// <summary>古宝数据变动(13320 全量/13321 激活后)。</summary>
         public const string EVT_GUBAO_UPDATE = "EVT_GUBAO_UPDATE";
         /// <summary>副本状态变动(61020 状态/61001 进入回包/61013 结算)。</summary>

@@ -12,9 +12,13 @@ namespace Shenxiao.Module.Core.Equip
     /// 老端 open 后请求协议 15261、监听 UPDATE_MASTER_VIEW 刷新两段属性列表(EquipMasterItem/EquipNextMasterItem),
     /// 激活点 15260;等级取 EquipModel.GetAllStrenLv/GetMasterNextLv,满阶时 cur_tip="已满阶"、按钮置灰。
     ///
-    /// 降级:EquipModel/协议(15260/15261)、WordManager、LoopScrowViewMgr 列表均未移植 →
-    /// 激活红点(img_redAc)隐藏、属性模板(_tpl_EquipMasterItem)隐藏、列表空;激活/关闭按钮点击打日志「待对接」;
-    /// OnShow 打 TODO(列表空、等级/属性默认降级)。事件驱动窗口,默认关闭、不进 FirstPass。
+    /// 全身奖励协议(15260/15261,经 EquipStrenController,自动循环 轮4 队列#4)已接线:OnShow → QueryWholeAward()
+    /// (对标老端 LoadSuccess 发 15261);btn_active → ActivateWhole(type=1)(老端会先本地比较 cur_lv/next_lv 拦截,
+    /// 该比较依赖 EquipModel.GetAllStrenLv/GetMasterNextLv 未移植 → 本轮不拦截,直接发,由服务端 err152_lv_limit
+    /// 兜底);btn_close → 真关闭(Hide())。
+    /// 降级:EquipModel 两段属性列表(EquipMasterItem/EquipNextMasterItem)、WordManager 均未移植 →
+    /// 激活红点(img_redAc)隐藏、属性模板(_tpl_EquipMasterItem)隐藏、列表空、等级进度文本默认降级。
+    /// 事件驱动窗口,默认关闭、不进 FirstPass。
     /// </summary>
     public sealed class EquipStrenMasterView : EquipStrenMasterViewBind
     {
@@ -28,8 +32,9 @@ namespace Shenxiao.Module.Core.Equip
         protected override void OnShow(object args)
         {
             // 老端 LoadSuccess 请求协议 15261,UPDATE_MASTER_VIEW 回包后铺当前/下一阶属性列表 + 刷等级进度。
-            // 数据层未移植 → 列表空、属性/等级默认降级。
-            GameLog.Info("Equip", "EquipStrenMasterView 打开 → 待对接 EquipModel/协议(列表空/属性默认降级)");
+            // 属性列表渲染未移植 → 列表空、等级进度默认降级;协议查询已接真。
+            GameLog.Info("Equip", "EquipStrenMasterView 打开 → 请求 15261(列表渲染/等级进度仍默认降级)");
+            EquipStrenController.Instance.QueryWholeAward();
         }
 
         private void HideReds()
@@ -45,19 +50,27 @@ namespace Shenxiao.Module.Core.Equip
 
         private void BindButtons()
         {
-            BindBtn(btn_active, "激活/全身强化(协议 15260)");
-            BindBtn(btn_close, "关闭");
+            BindClick(btn_active, () =>
+            {
+                GameLog.Info("Equip", "点击[激活] → ActivateWhole(type=1)");
+                EquipStrenController.Instance.ActivateWhole(1);
+            });
+            BindClick(btn_close, () =>
+            {
+                GameLog.Info("Equip", "点击[关闭] → Hide()");
+                Hide();
+            });
         }
 
-        /// <summary>给按钮(Image 或含 Image 子节点的容器)挂点击 → 打日志(降级:逻辑/协议待对接)。</summary>
-        private void BindBtn(Component target, string label)
+        /// <summary>给按钮(Image 或含 Image 子节点的容器)挂点击回调。</summary>
+        private void BindClick(Component target, System.Action onClick)
         {
             if (target == null) return;
             Image img = target as Image;
             if (img == null) img = target.GetComponentInChildren<Image>(true);
             if (img == null) return;
             img.raycastTarget = true;
-            UIUtil.AddClick(img, () => GameLog.Info("Equip", "点击[{0}] → 待对接", label));
+            UIUtil.AddClick(img, onClick);
         }
 
         private static void HideNode(Component c)
