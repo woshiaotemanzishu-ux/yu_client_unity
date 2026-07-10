@@ -1202,3 +1202,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **协议纠偏**:老端 20005 处理体是死代码且其 ReadFmt 与服务端 pt_200 write 字节序不符——按服务端实序实现;20015=l,h(侦察稿笔误 l,i 已纠)。20003-20028 整段不在 ClientProtocol.json/proto*.d.ts,TS+pt_200.erl 是唯一 schema 源。
 - **验证:ReliveCase 七断言绿 + RenderAll 二十一用例全绿 EXIT 0**。
 - **并行会话卫生披露**:①轮1 提交 Proto.cs 时无意混入前会话在途的活动图标波次常量(~25 条,内容正确、编译+回归全绿,无害但需知情);②ControllerHub/MainUIFlow 在基线即脏(25 控制器注册/FirstPass 绑定清单),轮2 采用「回 HEAD→只重放本轮增量→提交→放回工作区」的 hunk 级拆分,基线残留保持未提交归还原会话。
+
+## 自动循环 轮3(2026-07-11 夜间无人值守):技能成长线收官(3a+3b),二十三用例全绿
+
+- **裁决先行**:GapMap #3 包原清单大半是死功能——21003-05 技能强化双端死(老端读弃+服务端 handle 注释)、21101-04 远古奥术(老端视图缺失/模型注释+服务端 @deprecated),全部砍掉且启动不再空发 21101。
+- **3a(84eb195ce)**:21001 被动技能升级(ErlangParser 正解 condition,不复刻老端 .goods 直取死代码)+天赋 21010/11/12(SkillTalentModel)+13008/10 快捷栏+12093/18401 推送+20006 辅助技能(AssistVo 双端交叉核对;两段式表现语义)+20018/27 CD 广播接进 SkillManager(补 HUD 轮询脱节)+角色面板主动/被动技能两页签。
+- **3b(232fe7fec)天赋页真 UI**:发现烤入管线早把天赋六件套烤进 RoleModule.prefab 当死重模板——Creator 走外科装配:提升+m_Script 替换法(Bind→业务子类,保序列化引用/fileID)+修复式幂等+贴图纠偏;RoleFlow 第 8 页签「天赋」带 4 转门控(BaseWindowSkinView 新 OpenCheck/LockedToast)。
+- **三个可复用的坑**:①Bind 子组件是 BaseView,父视图必须先 Show() 触发 EnsureBound/OnInit,否则模板捕获静默为空;②config_skill 的 condition 空时是 JSON 数组、非空才是 Erlang 串,Value<string> 会对 JArray 抛 InvalidCast;③烤入管线不保证 ScrollRect.content 接线,视图查找要留根兜底。
+- **验证:InnateViewCase(装配 prefab 实例化渲染,技能树 10/10 条目+截图)+RenderAll 二十三用例全绿 EXIT 0**。
