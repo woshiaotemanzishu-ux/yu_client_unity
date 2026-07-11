@@ -299,6 +299,48 @@ namespace Shenxiao.Framework.Event
         /// FriendController.On19502 发,消费方(资料卡 UI)本轮未接,TODO。</summary>
         public const string EVT_PLAYER_CARD = "EVT_PLAYER_CARD";
 
+        // ----- Team / 组队(自动循环 轮8;24xxx,yu_server pt_240.erl / pp_team.erl) -----
+        /// <summary>队伍信息变化(创建/加入/退出/成员增删/队长变更/助战广播/场景/在线,统一走这一条,
+        /// 对标老端 TEAM_UPDATE_TERAM_INFO)。无参,读 TeamModel.Instance.Info/HasTeam。
+        /// TeamController 多个 handler(24005/10/14/15/34/51/52 等)发。</summary>
+        public const string EVT_TEAM_INFO_UPDATE = "EVT_TEAM_INFO_UPDATE";
+        /// <summary>组队大厅列表变化(参数: int activityId, int subtype),对标老端 TEAM_UPDATE_TERAM_HALL。
+        /// 读 TeamModel.Instance.Hall(已按人数降序)。TeamController.On24012 发。</summary>
+        public const string EVT_TEAM_HALL_UPDATE = "EVT_TEAM_HALL_UPDATE";
+        /// <summary>申请列表变化(无参),对标老端 TEAM_UPDATE_APPLY_LIST。读 TeamModel.Instance.ApplyList
+        /// (已按本地屏蔽表过滤)。TeamController.On24047 发。</summary>
+        public const string EVT_TEAM_APPLY_LIST_UPDATE = "EVT_TEAM_APPLY_LIST_UPDATE";
+        /// <summary>申请红点变化(无参),对标老端 RedDotManager(ModuleType.TEAM_APPLY)。
+        /// 读 TeamModel.Instance.HaveNewApply。TeamController.On24003 发(非屏蔽状态才点亮)。</summary>
+        public const string EVT_TEAM_APPLY_REDDOT_UPDATE = "EVT_TEAM_APPLY_REDDOT_UPDATE";
+        /// <summary>被邀请列表变化(无参),对标老端 TEAM_UPDATE_BE_INVITED_LIST。读 TeamModel.Instance.BeInvitedList。
+        /// TeamController.On24007/RespondInvite 发;本轮走 headless Confirm 队列消费,TeamBeInvitedView(列表弹窗)
+        /// 待转换,TODO。</summary>
+        public const string EVT_TEAM_BE_INVITED_UPDATE = "EVT_TEAM_BE_INVITED_UPDATE";
+        /// <summary>更改组队目标成功(无参),对标老端 TEAM_CHANGE_TARGET_SUCCESS。TeamController.On24017 发。</summary>
+        public const string EVT_TEAM_CHANGE_TARGET_SUCCESS = "EVT_TEAM_CHANGE_TARGET_SUCCESS";
+        /// <summary>自动同意开关变化(无参),对标老端 TEAM_CHANGE_JOIN_TYPE。TeamController.On24018 发。</summary>
+        public const string EVT_TEAM_JOIN_TYPE_UPDATE = "EVT_TEAM_JOIN_TYPE_UPDATE";
+        /// <summary>投票相关数据变化(无参,读 TeamModel.Instance.CurrentVote/VoteData),对标老端
+        /// TEAM_OPEN_VIEW"TeamVoteView"/TEAM_UPDATE_VOTE_DATA/TEAM_CLOSE_VIEW 三类信号合并。
+        /// TeamController.On24035/36/37/40 发;TeamVoteView 未移植,消费方 TODO。</summary>
+        public const string EVT_TEAM_VOTE_UPDATE = "EVT_TEAM_VOTE_UPDATE";
+        /// <summary>招募列表变化(参数: int type),对标老端 TEAM_UPDATE_ZHAO_MU_DATA。
+        /// TeamController.On24060/On24061 发。</summary>
+        public const string EVT_TEAM_ZHAO_MU_UPDATE = "EVT_TEAM_ZHAO_MU_UPDATE";
+        /// <summary>自动匹配状态变化(参数: bool autoMatch),对标老端 UPDATE_MATCH_STATE。
+        /// TeamModel.SetAutoMatch 发;TeamMatchView(匹配中倒计时浮层)未移植,仅状态存储,消费方 TODO。</summary>
+        public const string EVT_TEAM_MATCH_STATE_UPDATE = "EVT_TEAM_MATCH_STATE_UPDATE";
+        /// <summary>我的助战状态变化(参数: int dunId),对标老端 UPDATE_HELP_STATE。
+        /// TeamController.On24033/On24049 发。</summary>
+        public const string EVT_TEAM_HELP_STATE_UPDATE = "EVT_TEAM_HELP_STATE_UPDATE";
+        /// <summary>附近玩家列表变化(无参),对标老端 TEAM_UPDATE_NEAR_BY_PLAYER。TeamController.On24053 发。</summary>
+        public const string EVT_TEAM_NEARBY_PLAYER_UPDATE = "EVT_TEAM_NEARBY_PLAYER_UPDATE";
+        /// <summary>创建队伍成功(无参),对标老端 TEAM_BUILD_SUCCESS。TeamController.On24000 发。</summary>
+        public const string EVT_TEAM_BUILD_SUCCESS = "EVT_TEAM_BUILD_SUCCESS";
+        /// <summary>世界喊话成功(无参),对标老端 TEAM_WORLD_SHOUT_SUCCESS。TeamController.On24055 发。</summary>
+        public const string EVT_TEAM_WORLD_SHOUT_SUCCESS = "EVT_TEAM_WORLD_SHOUT_SUCCESS";
+
         // ----- FunctionOpen / 功能开放达成奖励 -----
         /// <summary>功能开放达成列表/状态(13800/13801/13802)变化,读 FunctionOpenModel.FinishState。</summary>
         public const string EVT_FUNC_OPEN_UPDATE = "EVT_FUNC_OPEN_UPDATE";

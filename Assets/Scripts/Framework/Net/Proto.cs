@@ -1131,5 +1131,138 @@
         /// role_list[u16×{role_id:l, figure:RecFigure, before_rank:h, rank:h, combat:l}], result:c,
         /// reward_list[u16×{type:c, type_id:i, num:l}], break_reward_list:ObjectList)。</summary>
         public const int JJC_CHALLENGE = 28003;
+
+        // ----- 组队(24xxx,yu_server pt_240.erl / pp_team.erl;老端 commonController/TeamController.ts,
+        // 自动循环 轮8) -----
+        // 范围裁决(按规格§0):桶1核心 25 个(可发起+有实质处理)+ 桶2推送 14 个,共 39 号在此声明常量。
+        // 跳过(不加常量):24011(委任队长,UI 四层链路全断的僵尸协议)/24042(获取活动剩余次数,老端 handler
+        // 函数体为空且从未真发)/proto240 里定义但 h5 全仓库零引用的 16 个 UNUSED 号(24016/22/24/25/26/32/39/
+        // 41/43/44/45/46/50/54/56/58/59)/服务端 DEAD(24022/32/41/45/46,与上重叠)/区间内未分配号
+        // (24001/19/27/28/29/31)。
+        /// <summary>创建队伍。发 "ccihhi"(activity_id,subtype,scene_id,min_lv,max_lv,join_con_value 恒传0);
+        /// 回包 Res:i,ErrCodeArgs:s(仅错误分支有意义,成功不弹本号,队伍数据靠随后的 24010 广播)。
+        /// 预校验:<see cref="Shenxiao.Module.Core.Team.TeamModel.IsOpenTeam"/>(主线 101260 前禁组队)。</summary>
+        public const int TEAM_CREATE = 24000;
+        /// <summary>申请入队(已知 team_id,组队大厅列表场景)。发 "lcc"(team_id,activity_id,subtype);
+        /// 回包 Res:i,ErrCodeArgs:s。</summary>
+        public const int TEAM_APPLY_JOIN = 24002;
+        /// <summary>S2C 推送:队长收到入队申请。回包 ServerId:h,PlayerId:l,Figure。老端行为:非屏蔽状态下点亮
+        /// 申请红点 + 补拉 <see cref="TEAM_APPLY_LIST"/>(24047)。</summary>
+        public const int TEAM_APPLY_PUSH = 24003;
+        /// <summary>队长回应加入队伍请求。**手写自定义序**(非固定 fmt 字符串,照老端 TeamController.ts:452-463
+        /// WriteFMT 实测):h(list.length) + 每项 c(res 0/1) h(server_id) l(player_id);一键清空传空数组
+        /// (list.length=0)。回包仅 Res:i(无 error_code_args,与 24008 不同)。</summary>
+        public const int TEAM_APPLY_RESPONSE = 24004;
+        /// <summary>离开队伍(含队长解散,服务端按角色区分,客户端发送逻辑相同)。发:无参;回包 Res:i。
+        /// 成功连锁(对标老端 Handler24005):清本地队伍信息 + 重拉 <see cref="TEAM_INFO"/>(24010)/
+        /// <see cref="TEAM_HALL"/>(24012,用当前目标)+ 若在自动匹配中追加取消匹配(24048 state=0)。</summary>
+        public const int TEAM_QUIT = 24005;
+        /// <summary>邀请别人加入队伍(同服)。**手写自定义序**(照老端 TeamController.ts:464-477):
+        /// c(activity_id) c(subtype) i(scene_id) h(min_lv) h(max_lv) h(invite_list.length) + 每项 l(role_id)。
+        /// 回包仅 Res:i。分流:server_id 与自己不同服 → 走 <see cref="TEAM_INVITE_CROSS"/>(24057)。</summary>
+        public const int TEAM_INVITE = 24006;
+        /// <summary>S2C 推送:被邀请者收到邀请信息。回包 TeamId:l,Num:c,ActivityId:i,Subtype:c,SceneId:i,
+        /// InviterId:l,Figure,InviteSceneId:i,InviteType:c(0普通/1退副本重邀)。同一 team_id/inviter_id 覆盖去重。</summary>
+        public const int TEAM_INVITE_PUSH = 24007;
+        /// <summary>被邀请者回应邀请请求。**手写自定义序**(照老端 TeamController.ts:488-497 实测;
+        /// ⚠️与 24004 顺序相反——先 team_id 后 res):h(list.length) + 每项 l(team_id) c(agree 0/1)。
+        /// 回包 Res:i,ErrCodeArgs:s;拒绝时本地额外调 DeleteBeInvited。</summary>
+        public const int TEAM_INVITE_RESPONSE = 24008;
+        /// <summary>踢出队伍。发 "l"(kick_id);回包 Res:i。</summary>
+        public const int TEAM_KICK = 24009;
+        /// <summary>队伍信息(团队全量快照,双重触发:推送 + 主动拉,发送本身无参数)。回包
+        /// TeamId:l,ActivityId:c,Subtype:c,SceneId:i,PreNumFull:c,AutoMatching:c,MatchSt:i,MinLv:h,MaxLv:h,
+        /// JoinConValue:i,AutoStart:c,JoinType:c,Members[h+{Id:l,TeamPosition:c,Figure,HelpType:c,SceneId:i,
+        /// JoinTime:i,Power:l,Online:c,ServerId:h,ServerNum:h,JoinValue:i}](按 team_position 升序排序)。
+        /// GAME_START 拉一次;断线清空。</summary>
+        public const int TEAM_INFO = 24010;
+        /// <summary>查看队伍招募面板(组队大厅列表,按目标筛选)。发 "cci"(activity_id,subtype,scene_id);
+        /// 回包 ActivityId:c,Subtype:c,SceneId:i,Teams[h+{TeamId:l,Num:c,JoinConValue:i,Members[h+{Id:l,
+        /// TeamPosition:c,Figure,HelpType:c,SceneId:i,Online:c,ServerId:h,ServerNum:h,JoinValue:i,Power:l}]}]
+        /// (成员项字段序与 <see cref="TEAM_INFO"/> 不同:无 JoinTime,Power 挪到末尾;大厅列表按人数降序排序)。</summary>
+        public const int TEAM_HALL = 24012;
+        /// <summary>S2C 推送:广播场景中玩家的组队属性(驱动场景内头顶队长/队员标记)。回包
+        /// Id:l,TeamId:l,Position:c(0/1/2)。落地到 <see cref="Shenxiao.Module.Core.Scene.Vo.RoleVo"/> 的
+        /// TeamId/TeamPos 字段(场景渲染层本轮未接,数据先备好)。</summary>
+        public const int TEAM_ROLE_SCENE_TAG_PUSH = 24013;
+        /// <summary>S2C 推送:离开队员信息(id==自己表示被踢/解散/退出广播给自己)。回包 Id:l。
+        /// id==自己 → 清空本地队伍;否则从成员列表按 id 移除。</summary>
+        public const int TEAM_MEMBER_LEAVE_PUSH = 24014;
+        /// <summary>S2C 推送:队长变更信息。回包 Id:l(新队长 id)。老端行为:该 id 成员置 team_position=1,
+        /// 其余全部置 0(老端原样如此,会抹掉"假人3"区分,不纠正)。</summary>
+        public const int TEAM_LEADER_CHANGE_PUSH = 24015;
+        /// <summary>更改组队目标。发 "ccihhi"(activity_id,subtype,scene_id,min_lv,max_lv,join_con_value);
+        /// 回包 Res:i,ActivityId:c,Subtype:c,SceneId:i,MinLv:h,MaxLv:h,JoinConValue:i。成功后本端自动
+        /// 重新拉 <see cref="TEAM_HALL"/>(24012,用新 activity/subtype)。</summary>
+        public const int TEAM_CHANGE_TARGET = 24017;
+        /// <summary>更改申请自动进入类型。发 "c"(join_type:1不自动/2自动同意);回包 Res:i,JoinType:c。</summary>
+        public const int TEAM_CHANGE_JOIN_TYPE = 24018;
+        /// <summary>发起投票(仲裁)。发 "ic"(activity_id **32位**,subtype;同模块内位宽不统一,勿假设8位);
+        /// 回包 ErrorCode:i,ErrCodeArgs:s,ActivityId:i,Subtype:c,SceneId:i,ArbitrateId:h。仅处理失败分支,
+        /// 真正打开投票面板靠配套推送 <see cref="TEAM_VOTE_OPEN_PUSH"/>(24035)。服务端 CD 3000ms/1次
+        /// (240 段唯一有 CD 的号)。</summary>
+        public const int TEAM_VOTE_START = 24020;
+        /// <summary>队员投票。发 "hc"(arbitrate_id,res 0反对/1赞同);回包 ErrorCode:i,ErrCodeArgs:s,Res:c。
+        /// 仅处理失败分支。</summary>
+        public const int TEAM_VOTE = 24021;
+        /// <summary>匹配队伍(把自己塞进已有同类队伍/匹配池的信令,非拉列表)。发 "cc"(activity_id,subtype);
+        /// 回包 Res:i,ActivityId:c,Subtype:c。成功无本地状态变更(老端该分支代码已注释掉),真正"匹配中"
+        /// UI 状态由 <see cref="TEAM_AUTO_MATCH"/>(24048)驱动。</summary>
+        public const int TEAM_MATCH_JOIN = 24023;
+        /// <summary>S2C 推送:自身提示类通知(离线/踢出/满员/非队长等自身单播)。回包 Res:i。
+        /// res==2400022 时老端在"当前无大界面打开"情况下自动弹 TeamView(本轮 TeamView 未移植,跳过该分支)。</summary>
+        public const int TEAM_SELF_TIP_PUSH = 24030;
+        /// <summary>助战开关。发 "ic"(dun_id,help_type 0/1);回包 ErrorCode:i,DunId:i,HelpType:c。</summary>
+        public const int TEAM_HELP_TYPE = 24033;
+        /// <summary>S2C 推送:广播助战状态(队友的 help_type 变化)。回包 Members[h+{RoleId:l,HelpType:c}]。</summary>
+        public const int TEAM_HELP_TYPE_PUSH = 24034;
+        /// <summary>S2C 推送:广播发起投票(真正打开 TeamVoteView 的入口,老端同时关闭 TeamMatchView/TeamView;
+        /// 两窗口本轮均未移植,仅存数据)。回包 ActivityId:i,Subtype:c,SceneId:i,ArbitrateId:h,EndTime:i。</summary>
+        public const int TEAM_VOTE_OPEN_PUSH = 24035;
+        /// <summary>S2C 推送:广播队员投票(驱动已投票头像标记)。回包 RoleId:l,ArbitrateId:h,Res:c。</summary>
+        public const int TEAM_VOTE_MEMBER_PUSH = 24036;
+        /// <summary>S2C 推送:广播投票结果(常用于"投票未通过"等提示)。回包 ErrorCode:i,ErrCodeArgs:s。</summary>
+        public const int TEAM_VOTE_RESULT_PUSH = 24037;
+        /// <summary>S2C 推送:给其他队员的通用带参提示(邀请结果/费用错误/仲裁拒绝等,几乎全模块共用信道)。
+        /// 回包 ErrorCode:i,ErrCodeArgs:s。</summary>
+        public const int TEAM_TIP_PUSH = 24038;
+        /// <summary>S2C 推送:取消仲裁(内部流程推送,无字段)。</summary>
+        public const int TEAM_VOTE_CANCEL_PUSH = 24040;
+        /// <summary>查询申请列表(仅队长能拉到有效数据,非队长服务端静默不回)。发:无参;回包
+        /// Applicants[h+{ServerId:h,PlayerId:l,Figure,CombatPower:l,ServerNum:h}]。本地按
+        /// <see cref="Shenxiao.Module.Core.Team.TeamModel.IsInShieldState"/>(10 分钟本地屏蔽表)过滤。</summary>
+        public const int TEAM_APPLY_LIST = 24047;
+        /// <summary>设置队伍自动匹配状态(驱动"匹配中"浮层的核心状态源)。发 "c"(state:0取消/1开始);
+        /// 回包 Res:i,ErrCodeArgs:s,State:c,MatchSt:i,ActivityId:c,Subtype:c,RoleId:l。state==2(匹配成功)
+        /// 老端无专门分支,落入"非1"统一按取消处理(对标保留,不额外精确化)。</summary>
+        public const int TEAM_AUTO_MATCH = 24048;
+        /// <summary>获取我的助战状态。发 "i"(dun_id);回包 DunId:i,State:c(与 24033 落地同一份数据)。</summary>
+        public const int TEAM_HELP_STATE = 24049;
+        /// <summary>S2C 推送:队员切换场景(粗粒度,仅场景号无坐标)。回包 RoleId:l,SceneId:i。</summary>
+        public const int TEAM_MEMBER_SCENE_PUSH = 24051;
+        /// <summary>S2C 推送:队员上下线状态变化。回包 RoleId:l,Online:c。</summary>
+        public const int TEAM_MEMBER_ONLINE_PUSH = 24052;
+        /// <summary>获取附近的玩家(邀请面板"附近玩家"tab 用)。发 "i"(scene_id);回包 SceneId:i,
+        /// Users[h+{RoleId:l,Platform:s,ServNum:h,ServId:h,Figure}](整体替换,非增量)。</summary>
+        public const int TEAM_NEARBY_PLAYERS = 24053;
+        /// <summary>世界喊话(招募喊话)。发:无参;回包:无字段(空包即成功信号)。仅队长可发,客户端本地
+        /// 5 秒冷却(<see cref="Shenxiao.Module.Core.Team.TeamModel.WORLD_SHOUT_COOL_TIME"/>)。</summary>
+        public const int TEAM_WORLD_SHOUT = 24055;
+        /// <summary>邀请别人加入队伍(带服务器 id,跨服邀请)。**手写自定义序**(照老端 TeamController.ts:478-487
+        /// 实测):h(list.length) + 每项 h(server_id) l(role_id)。回包 Res:i——⚠️r8_server 实证该 write 子句
+        /// 全仓库零调用,真实 ack 走 <see cref="TEAM_INVITE"/>(24006);本端仍防御性注册 recv,便于服务端未来改动。</summary>
+        public const int TEAM_INVITE_CROSS = 24057;
+        /// <summary>招募列表(副本专用,带次数信息)。发 "ci"(type:1推荐/2公会/3好友,dun_id);回包
+        /// Type:c,DunId:i,List[h+{RoleId:l,Figure,Count:c,MaxCount:c,CombatPower:l}]。</summary>
+        public const int TEAM_RECRUIT_LIST = 24060;
+        /// <summary>队员招募列表(无队伍限定/在线,通用邀请面板用,无 count 字段区别于 24060)。发 "c"(type:2公会/3好友);
+        /// 回包 Type:c,List[h+{RoleId:l,Figure,CombatPower:l}]。</summary>
+        public const int TEAM_RECRUIT_MEMBER_LIST = 24061;
+        /// <summary>催促开启活动(副本人数不足时"催促队友"按钮)。发:无参;**老端未注册任何 recv handler**,
+        /// 纯 fire-and-forget(服务端只是给队友群发聊天提示),本端也不 RegisterProtocal。</summary>
+        public const int TEAM_URGE = 24062;
+        /// <summary>一键同意入队(sentientAct 专属 UI 共用协议)。发:无参;回包 ErrorCode:i。无论成败都补拉
+        /// <see cref="TEAM_APPLY_LIST"/>(24047)。</summary>
+        public const int TEAM_APPLY_ALL = 24063;
     }
 }

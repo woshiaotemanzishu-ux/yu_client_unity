@@ -151,6 +151,15 @@ namespace Shenxiao.EditorTools
             Run(FriendMailCase.Run, 300.0);
         }
 
+        /// <summary>组队(自动循环 轮8)实证:24010/24012/24013/24014/24015/24007/24003/24005 + 24004/24006/
+        /// 24008 手写编码序 + 失败码分支合成包驱动 TeamController 反射喂包,断言 TeamModel 状态/成员排序/
+        /// 大厅降序/被邀请队列/连锁重拉 + HudTaskTeamCreator 重建渲染断言 HUD 队伍区成员条目
+        /// (详见 TeamCase 注释)。</summary>
+        public static void Team()
+        {
+            Run(TeamCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -184,14 +193,16 @@ namespace Shenxiao.EditorTools
                 int rg = await RoleGrowthCase.Run();
                 int ch = await ChatCase.Run();
                 int fm = await FriendMailCase.Run();
+                int tm = await TeamCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
                     + " guildjoin=" + j + " rune=" + n + " dungeon=" + v + " thinslice=" + w + " finalslice=" + f
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m
                     + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
-                    + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch + " friendmail=" + fm);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm })
+                    + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch + " friendmail=" + fm
+                    + " team=" + tm);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);
