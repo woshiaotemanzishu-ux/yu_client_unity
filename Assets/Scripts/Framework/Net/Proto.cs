@@ -542,15 +542,127 @@
         /// talk_id 查 config_talk 取真实对话内容。</summary>
         public const int CC_NPC_TASK_TALK = 12102;
 
-        // ----- 邮件(190xx,yu_server pt_190.erl) -----
+        // ----- 邮件(190xx,yu_server pt_190.erl / pp_mail.erl) -----
         /// <summary>请求/回:邮件列表。回包 h + {MailId:l,Type:c,State:c,Title:s,IsAttach:c,Time:i,EffectEt:i}×N。</summary>
         public const int MAIL_LIST = 19001;
-        /// <summary>新邮件推送(S2C,单封,同列表项格式)。</summary>
+        /// <summary>详情(自动循环 轮7)。发 "l"(mail_id);回包 MailId:l,Sender:s,Title:s,Content:s,
+        /// Attachment[h+{ObjectType:c,TypeId:i,Num:i,ExtraAttr[h+{Color:c,TypeId:c,AttrId:h,AttrVal:i,PlusInterval:c,PlusUnit:i}]}],
+        /// Time:i,IsReceive:c。老端 request_email_info 先查本地 emailInfoDic 缓存,命中不发协议——MailModel 缓存优先复刻同一行为。</summary>
+        public const int MAIL_DETAIL = 19002;
+        /// <summary>批量删除(自动循环 轮7)。**手写变长包**:WriteBegin+"h"(count)+"l"×count(mail_id 逐个);
+        /// 回包 ErrorCode:i + MailIds[h+{MailId:l}]。服务端对"有未领附件/当日未读"的 id 静默跳过不删(lib_mail.erl:274-287),
+        /// 前端也复刻 GetNoGetRewardEmailList 过滤(只删无附件或已领附件的邮件)。</summary>
+        public const int MAIL_DELETE = 19003;
+        /// <summary>批量领取附件(自动循环 轮7)。**手写变长包**同 <see cref="MAIL_DELETE"/> 结构;
+        /// 回包 ErrorCode:i + MailIds[h+{MailId:l}] + Reward(ObjectList,老端 CongratulationObtainView 展示用)。
+        /// 服务端顺序处理、遇首个失败即整体中止(已成功的 id 仍在 MailIds 里)。前端背包容量预检
+        /// (对标老端 GoodsModel.CheckEquipNum)在此号发送前拦截。</summary>
+        public const int MAIL_RECEIVE = 19005;
+        /// <summary>发公会邮件(自动循环 轮7)。发 "ss"(title,content);回包 ErrorCode:i。
+        /// 服务端 check_send_guild_mail_on_server 当前版本硬编码恒返回 not_open(lib_mail.erl:741-742),
+        /// 功能实际不可用;UI 归属公会模块(GuildMailView),本轮只补 API,TODO 见汇报。</summary>
+        public const int MAIL_GUILD_SEND = 19006;
+        /// <summary>新邮件推送(S2C,单封,同列表项格式)。**既有 handler 保留,行为按老端 On19007 空实现原样**——
+        /// 服务端 19007 实为"取单条邮件基本信息"请求/回(read MailId:l),并非推送;真正的"新邮件到达"推送号是
+        /// <c>19004</c>(pt_190.erl write(19004,MailList),字段同 19001),老端 FriendController.ts 全程未消费 19004,
+        /// 本轮按规格§0"既有 handler 保留、19007 主动发送跳过"维持现状不新增 19004 处理(TODO,见汇报)。</summary>
         public const int MAIL_NEW = 19007;
         /// <summary>是否有未读邮件(S2C "c")。</summary>
         public const int MAIL_UNREAD = 19008;
-        /// <summary>可发邮件剩余次数(S2C "c")。</summary>
+        /// <summary>可发邮件剩余次数(S2C "c")。服务端 pp_mail.erl:98-104 handle(19009,...) 整段被注释——
+        /// **DEAD**:客户端若发送该号会落服务端兜底(无回包),既有 handler 保留但实际收不到回包。</summary>
         public const int MAIL_LEFT_NUM = 19009;
+        /// <summary>意见反馈/工单提交(自动循环 轮7,非"联系客服"聊天)。发 "s"(content,≤400字符);
+        /// 回包 ErrorCode:i(==1 成功清空输入框,老端无论成功失败都先弹 ErrorCodeShow)。
+        /// 服务端 30 秒硬编码 CD(进程字典,非通用 CD 表)。</summary>
+        public const int MAIL_FEEDBACK = 19010;
+
+        // ----- 他人资料卡(195xx,yu_server pt_195.erl / pp_look_over.erl,自动循环 轮7) -----
+        /// <summary>查看资料卡(申请信号,本身不回数据)。发 "hlh"(server_id,role_id,module_id;
+        /// module_id=1 基础装备/2龙珠/3影装/4神祭/5幻化/6天启/7谪仙临凡/8灵饰/9神纹/10蜃妖/11神巫妖灵/12御魂,
+        /// 定义于 goods.hrl LOOK_OVER_MODULE_LIST)。回包仅 Code:i(成功路径不回包,只有失败才回错误码);
+        /// 真正数据由服务器随后经对应 195xx 号推送。自己查自己/role_id=0/module_id 非法 → 服务端静默跳过或回错误码。</summary>
+        public const int LOOKOVER_REQUEST = 19501;
+        /// <summary>module_id=1 基础装备资料卡(本轮唯一完整解析的模块,"完整角色卡"字段)。回包
+        /// ServerId:h,RoleId:l,Combat:l,AchvStage:h,Figure(FigureProto),
+        /// EquipList[h+{GoodsId:l,TypeId:i,Cell:h,Color:c,Stren:h,Star:c,Stage:h,Level:h,GodLevel:h}],
+        /// MagicCircle[h+{Lv:c,IsOpen:c,FreeFlag:c,EndTime:i}],FairyList[h+{Type:h,IsActive:c}]。</summary>
+        public const int LOOKOVER_BASE_EQUIP = 19502;
+        /// <summary>module_id=2 龙珠资料(本轮只加常量,字段:SumPower:l,IsActive:c,BallList[],FigureList[];
+        /// 后续接 UI 时再解析回包)。</summary>
+        public const int LOOKOVER_DRAGONBALL = 19503;
+        /// <summary>module_id=3/4 共用号,靠首字段 SysType 分流(3=影装/4=神祭,两个完全不同 UI)——
+        /// 移植时不能按协议号一一映射 View,必须在回调里按 SysType 再分发。本轮只加常量。</summary>
+        public const int LOOKOVER_SEAL_OR_DRACONIC = 19504;
+        /// <summary>号与 module_id 顺序错位:19505 实为 module_id=6 天启资料(非 5)。本轮只加常量。</summary>
+        public const int LOOKOVER_REVELATION = 19505;
+        /// <summary>号与 module_id 顺序错位:19506 实为 module_id=5 幻化资料(非 6)。本轮只加常量。</summary>
+        public const int LOOKOVER_ILLUSION = 19506;
+        /// <summary>module_id=7 谪仙临凡(降神)资料。本轮只加常量。</summary>
+        public const int LOOKOVER_GODBEFALL = 19507;
+        /// <summary>module_id=8 灵饰资料。本轮只加常量。</summary>
+        public const int LOOKOVER_UNREAL = 19508;
+        /// <summary>module_id=9 神纹资料。本轮只加常量。</summary>
+        public const int LOOKOVER_LUNG = 19509;
+        /// <summary>module_id=10 蜃妖资料(事件名历史上叫 GODBEAST,与"降神"无关,命名易混淆见 r7_oldfriend)。本轮只加常量。</summary>
+        public const int LOOKOVER_GODBEAST = 19510;
+        /// <summary>module_id=11 神巫+妖灵双数据。本轮只加常量。</summary>
+        public const int LOOKOVER_PET = 19511;
+        /// <summary>module_id=12 御魂资料。本轮只加常量。</summary>
+        public const int LOOKOVER_RUNE = 19512;
+
+        // ----- 好友(140xx,yu_server pt_140.erl / pp_relationship.erl,自动循环 轮7) -----
+        // 守卫总门槛(pp_relationship.erl:22-35):除 14000+Data=[3](查黑名单)/14010(查看菜单)/
+        // 14007+Type∈{2,3}(拉黑/取消拉黑)三种特例外,其余 140xx 请求都要求主角等级达到好友模块开放等级,否则服务端静默丢包不回。
+        // 跳过(按规格§0):14011(单点查双方关系,老端未实现)、14012(号未分配,DEAD)、14016/14017(劲敌模块,服务端无 handler 路由)。
+        /// <summary>好友/仇人/黑名单列表分桶。发 "c"(type:1好友/2仇人/3黑名单);回包
+        /// Type:c,RelaList[h+{RoleId:l,Name:s,Career:c,Sex:c,Turn:c,Lv:h,Vip:c,VipHide:c,Picture:s,PicVer:i,
+        /// Combat:l,OnlineFlag:c,Intimacy:i,MarriageType:c,BlockId:i,HouseId:i,HouseLv:h,IsSupvip:c,
+        /// LastChatTime:i,OfflineTime:i,AddTime:i,DressList[h+{DressType:c,DressId:i}]}]。GAME_START 拉 type=1。</summary>
+        public const int FRIEND_LIST = 14000;
+        /// <summary>好友推荐列表。发 "c"(type:0默认/1换一批,服务端 10s CD 手写非通用 CD 表);回包
+        /// Code:i,RecommendedList[h+{RoleId:l,Name:s,Career:c,Sex:c,Turn:c,Lv:h,Vip:c,VipHide:c,Picture:s,PicVer:i,
+        /// Combat:l,OnlineFlag:c,IsSupvip:c}](无 intimacy/dress_list)。</summary>
+        public const int FRIEND_RECOMMEND = 14001;
+        /// <summary>按昵称搜索玩家。发 "s"(role_name);回包 Code:i,RoleId:l,Name:s,Career:c,Sex:c,Turn:c,Lv:h,
+        /// Vip:c,VipHide:c,Picture:s,PicVer:i,Combat:l,OnlineFlag:c(单个对象,非数组;对方不在线仍带资料+err14_not_online)。</summary>
+        public const int FRIEND_SEARCH = 14002;
+        /// <summary>发送加好友申请。发 "l"(be_ask_id;假人推荐位老端强制传0仍照发,服务端按普通 id 处理);
+        /// 回包 Code:i。**无冷却**(服务端 CheckList 不含时间校验)。</summary>
+        public const int FRIEND_ADD_APPLY = 14003;
+        /// <summary>一键处理好友申请(0拒绝/1接受)。发 "c"(response_type);回包 Code:i。
+        /// 老端**无视 code**收到回包即清空整份本地申请列表;accept 时联动重拉好友列表(type=1)。</summary>
+        public const int FRIEND_APPLY_ONE_CLICK = 14004;
+        /// <summary>单条处理好友申请(0拒绝/1接受/2拉黑)。发 "lc"(ask_id,response_type);回包 Code:i。
+        /// 成功后按 ask_id 从本地列表逐条移除;accept 时联动重拉好友列表(type=1)。</summary>
+        public const int FRIEND_APPLY_ONE = 14005;
+        /// <summary>拉取待处理好友申请列表。发 null(无参);回包
+        /// AskList[h+{RoleId:l,Name:s,Career:c,Turn:c,Lv:h,Picture:s,PicVer:i,Combat:l,AddTime:i}](无 sex/vip)。
+        /// GAME_START 拉一次;打开申请弹窗时也会重拉。</summary>
+        public const int FRIEND_APPLY_LIST = 14006;
+        /// <summary>好友关系操作。发 "cl"(type:1删好友/2拉黑/3取消拉黑/4加仇人/5移除仇人,role_id);回包 Type:c,Code:i。
+        /// 服务端"命令+被动刷新"模式:先无条件重拉对应 type 完整列表(flushOperationtView),再按 code 弹提示。
+        /// type=4/5(仇人)前端无 UI,只留 API(照规格保留)。情侣关系保护:对方是配偶时 type=1/2 会报错。</summary>
+        public const int FRIEND_OPERATE = 14007;
+        /// <summary>S2C 推送:收到新的好友申请。回包 RoleId:l,Name:s,Career:c,Turn:c,Lv:h,Picture:s,PicVer:i,
+        /// Combat:l,AddTime:i(单个,无 sex)。去重后插入本地申请列表。</summary>
+        public const int FRIEND_APPLY_PUSH = 14008;
+        /// <summary>S2C 推送:好友/仇人上下线通知。回包 RoleId:l,Name:s,RelaType:c(1好友/2仇人),
+        /// OnlineFlag:c,Timestamp:i(下线时用此时间戳换算 offline_time = 服务器现在时间 - Timestamp)。</summary>
+        public const int FRIEND_ONLINE_PUSH = 14009;
+        /// <summary>查看玩家交互菜单(右键头像)。发 "l"(role_id;role_id==0 或 ==自己本地拦截不发,
+        /// 800ms 内重复请求同一人只更新缓存不重发);回包 Code:i,RoleId:l,Figure(FigureProto),
+        /// Rela:c(0无/1好友/2仇人/3黑名单/4仇人且黑名单/5仇人且好友),TeamId:i。</summary>
+        public const int FRIEND_MENU_DATA = 14010;
+        /// <summary>S2C 推送:社交列表增量新增/更新。回包 UpdateList[h+{Type:c,RoleList[同 <see cref="FRIEND_LIST"/> 单项结构]}]。
+        /// 按 role_id 存在则覆盖、不存在则插入对应 type 桶。</summary>
+        public const int FRIEND_LIST_DELTA_UPSERT = 14013;
+        /// <summary>S2C 推送:社交列表增量移除。回包 UpdateList[h+{Type:c,RoleIds[h+{RoleId:l}]}]。</summary>
+        public const int FRIEND_LIST_DELTA_REMOVE = 14014;
+        /// <summary>S2C 推送:好友亲密度变化。回包 RoleId:l,Intimacy:i。只在好友桶(非仇人/黑名单)命中才更新。</summary>
+        public const int FRIEND_INTIMACY_PUSH = 14015;
+        /// <summary>S2C 推送/兜底:140xx 系列通用错误码。回包 Code:i,非0/真值才弹提示。</summary>
+        public const int FRIEND_ERROR = 14099;
 
         // ----- 首充(159xx 子集,yu_server pt_159.erl) -----
         /// <summary>首充信息。请求无参;回包 h+{Open:c,Index:c}×N + ProductId:i + IsNotify:c。</summary>

@@ -260,6 +260,45 @@ namespace Shenxiao.Framework.Event
         /// <summary>邮件未读标记(19008)变化,读 MailModel.HasUnread。</summary>
         public const string EVT_MAIL_UNREAD_UPDATE = "EVT_MAIL_UNREAD_UPDATE";
 
+        // ----- Mail 邮件详情/删除/领取(自动循环 轮7) -----
+        /// <summary>详情就绪(参数: long mailId),对标老端 OPEN_EMAIL_VIEW——缓存命中或 19002 回包写完缓存后发,
+        /// 供 EmailPopView 打开/刷新读 MailModel.GetDetail(mailId)。MailController.RequestMailDetail/On19002 发。</summary>
+        public const string EVT_MAIL_DETAIL_READY = "EVT_MAIL_DETAIL_READY";
+        /// <summary>批量领取成功(参数: List&lt;(int style,int typeId,int count)&gt; rewards),对标老端 EMAIL_REWARD_UPDATE。
+        /// 供 CongratulationObtain 通道或 toast 降级消费。MailController.On19005 发。</summary>
+        public const string EVT_MAIL_RECEIVE_REWARD = "EVT_MAIL_RECEIVE_REWARD";
+        /// <summary>公会邮件发送结果(参数: bool success),对标老端 On19006。UI 归公会模块消费,TODO。</summary>
+        public const string EVT_MAIL_GUILD_SEND_RESULT = "EVT_MAIL_GUILD_SEND_RESULT";
+        /// <summary>意见反馈提交结果(参数: bool success),success 时对标老端 SUBMIT_SUCCESS 清空输入框。</summary>
+        public const string EVT_MAIL_FEEDBACK_RESULT = "EVT_MAIL_FEEDBACK_RESULT";
+
+        // ----- Friend / 好友(自动循环 轮7;140xx,yu_server pt_140.erl / pp_relationship.erl) -----
+        /// <summary>好友/仇人/黑名单分桶数据变化(参数: int type),对标老端 FRIEND_DATA_UPDATE。
+        /// 读 FriendModel.GetFriendData(type)。FriendController.On14000/On14013/On14014/On14007 发。</summary>
+        public const string EVT_FRIEND_DATA_UPDATE = "EVT_FRIEND_DATA_UPDATE";
+        /// <summary>推荐列表变化(无参),对标老端 RECOMMEND_DATA_UPDATE。读 FriendModel.GetRecommendList()。
+        /// FriendController.On14001/On14002/申请后标记 发。</summary>
+        public const string EVT_FRIEND_RECOMMEND_UPDATE = "EVT_FRIEND_RECOMMEND_UPDATE";
+        /// <summary>好友申请列表变化(无参),对标老端 APPLY_DATA_UPDATE。读 FriendModel.ApplyList。
+        /// FriendController.On14006/On14008/On14004/On14005 发。</summary>
+        public const string EVT_FRIEND_APPLY_UPDATE = "EVT_FRIEND_APPLY_UPDATE";
+        /// <summary>好友红点变化(无参),对标老端 FRIEND_REDDOT_UPDATE。读 FriendModel.HaveNewApply。</summary>
+        public const string EVT_FRIEND_REDDOT_UPDATE = "EVT_FRIEND_REDDOT_UPDATE";
+        /// <summary>好友在线状态变化(参数: FriendModel.FriendVo),对标老端 FRIEND_OLINE_UPDATE。
+        /// FriendController.On14009 发。</summary>
+        public const string EVT_FRIEND_ONLINE_UPDATE = "EVT_FRIEND_ONLINE_UPDATE";
+        /// <summary>亲密度变化(参数: long roleId, int intimacy),对标老端 INTIMACY_UPDATE。
+        /// FriendController.On14015 发,只在好友桶命中才触发。</summary>
+        public const string EVT_FRIEND_INTIMACY_UPDATE = "EVT_FRIEND_INTIMACY_UPDATE";
+        /// <summary>右键菜单数据就绪(参数: long roleId),对标老端 MENU_DATA_UPDTE。读 FriendModel.GetMenuData(roleId)。
+        /// FriendController.On14010 发(800ms 节流缓存命中不重发协议,但仍会发本事件用最新缓存刷新菜单)。</summary>
+        public const string EVT_FRIEND_MENU_UPDATE = "EVT_FRIEND_MENU_UPDATE";
+        /// <summary>140xx 通用错误码兜底(参数: int code),对标老端 On14099。</summary>
+        public const string EVT_FRIEND_ERROR = "EVT_FRIEND_ERROR";
+        /// <summary>他人资料卡就绪(参数: FriendModel.PlayerCard),对标老端 19501→19502(module_id=1 基础装备)。
+        /// FriendController.On19502 发,消费方(资料卡 UI)本轮未接,TODO。</summary>
+        public const string EVT_PLAYER_CARD = "EVT_PLAYER_CARD";
+
         // ----- FunctionOpen / 功能开放达成奖励 -----
         /// <summary>功能开放达成列表/状态(13800/13801/13802)变化,读 FunctionOpenModel.FinishState。</summary>
         public const string EVT_FUNC_OPEN_UPDATE = "EVT_FUNC_OPEN_UPDATE";

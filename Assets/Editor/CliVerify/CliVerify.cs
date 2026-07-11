@@ -143,6 +143,14 @@ namespace Shenxiao.EditorTools
             Run(ChatCase.Run, 200.0);
         }
 
+        /// <summary>好友+邮件+私聊(自动循环 轮7)实证:14000-14015/14099 + 19002/19003/19005/19501/19502
+        /// 合成包驱动 FriendController/MailController 反射喂包,断言分桶/申请去重/在线离线/增量插入移除/亲密度/
+        /// 邮件详情缓存/删除过滤/领取背包预检/资料卡字段 + FriendBindUpgrader 自跑装配渲染断言(详见 FriendMailCase 注释)。</summary>
+        public static void FriendMail()
+        {
+            Run(FriendMailCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -175,14 +183,15 @@ namespace Shenxiao.EditorTools
                 int jw = await JewelCase.Run();
                 int rg = await RoleGrowthCase.Run();
                 int ch = await ChatCase.Run();
+                int fm = await FriendMailCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
                     + " guildjoin=" + j + " rune=" + n + " dungeon=" + v + " thinslice=" + w + " finalslice=" + f
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m
                     + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
-                    + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch })
+                    + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch + " friendmail=" + fm);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

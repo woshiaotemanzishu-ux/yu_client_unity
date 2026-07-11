@@ -1,44 +1,99 @@
+using System.Collections.Generic;
 using Shenxiao.Generated.UI.Friend;
-using Shenxiao.Framework.Util;
+using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
+using Shenxiao.Module.Core.Mail;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Friend
 {
     /// <summary>
-    /// 邮件界面(对标老客户端 friend/EmailView.ts):邮件列表(itemScroller/Content 克隆 _tpl_EmailItem)+ 空态(nullGroup)+
-    /// 删除已读(btnDelet)+ 一键领取(btnGet)。由二级 HUD 邮件按钮打开(FriendModule 内顶层窗,经 FriendFlow.OpenView)。
-    ///
-    /// 降级:MailController/MailModel(19001 列表/19007 读/19008 领取/19009 删除,后端已移植但 EmailItem/列表渲染未接)、
-    /// EmailItem 列表项、LoopScrowViewMgr 均未接 → 列表空(显 nullGroup)、_tpl_EmailItem 模板隐藏;删除/领取按钮打日志降级。
-    /// 无独立关闭按钮 → 由二级 HUD 邮件按钮再点关闭(FriendFlow.ToggleEmail)。事件驱动窗口,默认关闭、不进 FirstPass。
+    /// 邮件界面(对标老客户端 friend/EmailView.ts):邮件列表(itemScroller/Content 克隆 EmailItem)+ 空态(nullGroup)+
+    /// 一键删除(btnDelet,19003,只删无附件/已领取邮件)+ 一键领取(btnGet,19005,背包容量前置校验)。
+    /// 由二级 HUD 邮件按钮打开(FriendModule 内顶层窗,经 FriendFlow.ToggleEmail)。
     /// </summary>
     public sealed class EmailView : EmailViewBind
     {
+        private readonly List<EmailItem> _pool = new List<EmailItem>();
+        private bool _subscribed;
+
         protected override void OnInit()
         {
             if (_tpl_EmailItem != null) _tpl_EmailItem.SetActive(false);
-            BindBtn(btnDelet, "删除已读邮件(协议 19009)");
-            BindBtn(btnGet, "一键领取(协议 19008)");
+            UIUtil.AddClick(btnDelet, () => MailController.Instance.RequestDeleteAll());
+            UIUtil.AddClick(btnGet, () => MailController.Instance.RequestReceiveAll());
+            MailController.Instance.RequestMailList();
         }
 
         protected override void OnShow(object args)
         {
-            // 老端 open → 请求邮件列表(19001)+ UpdateView 铺列表/空态。列表渲染未接 → 列表空、显空态。
-            if (nullGroup != null) nullGroup.gameObject.SetActive(true);
-            GameLog.Info("Friend", "邮件界面打开 → 待对接 MailModel 列表渲染(列表空降级)");
+            Subscribe();
+            RefreshList();
         }
 
-        /// <summary>给按钮(Image 或含 Image 子节点的容器)挂点击 → 打日志(降级:协议/逻辑待对接)。</summary>
-        private void BindBtn(Component target, string label)
+        protected override void OnHide() => Unsubscribe();
+
+        private void Subscribe()
         {
-            if (target == null) return;
-            Image img = target as Image;
-            if (img == null) img = target.GetComponentInChildren<Image>(true);
-            if (img == null) return;
-            img.raycastTarget = true;
-            UIUtil.AddClick(img, () => GameLog.Info("Friend", "点击[{0}] → 待对接", label));
+            if (_subscribed) return;
+            _subscribed = true;
+            EventDispatcher.On(GlobalEvent.EVT_MAIL_LIST_UPDATE, RefreshList);
+            EventDispatcher.On<long>(GlobalEvent.EVT_MAIL_DETAIL_READY, OnDetailReady);
+        }
+
+        private void Unsubscribe()
+        {
+            if (!_subscribed) return;
+            _subscribed = false;
+            EventDispatcher.Off(GlobalEvent.EVT_MAIL_LIST_UPDATE, RefreshList);
+            EventDispatcher.Off<long>(GlobalEvent.EVT_MAIL_DETAIL_READY, OnDetailReady);
+        }
+
+        /// <summary>19002 详情就绪(缓存命中或回包落地都会走这里)→ 打开详情弹窗(对标老端 OPEN_EMAIL_VIEW)。</summary>
+        private void OnDetailReady(long mailId) => FriendFlow.OpenSub("EmailPopView", mailId);
+
+        private void RefreshList()
+        {
+            List<MailVo> list = new List<MailVo>(MailModel.Instance.Mails);
+            list.Sort(CompareMail);
+            EnsurePool(list.Count);
+            for (int i = 0; i < _pool.Count; i++)
+            {
+                bool active = i < list.Count;
+                _pool[i].gameObject.SetActive(active);
+                if (active) _pool[i].SetData(list[i]);
+            }
+            if (nullGroup != null) nullGroup.gameObject.SetActive(list.Count == 0);
+        }
+
+        private void EnsurePool(int count)
+        {
+            if (_tpl_EmailItem == null || Content == null) return;
+            while (_pool.Count < count)
+            {
+                GameObject go = Object.Instantiate(_tpl_EmailItem, Content);
+                go.SetActive(true);
+                _pool.Add(go.GetComponent<EmailItem>());
+            }
+        }
+
+        /// <summary>对标老端 FriendModel.sortEmail(未读优先、新的优先、未领附件优先、已领取靠后)。</summary>
+        private static int CompareMail(MailVo a, MailVo b)
+        {
+            int aIndex = 500, bIndex = 500;
+            if (a.State == 2) aIndex += 100;
+            if (b.State == 2) bIndex += 100;
+            if (a.Time != b.Time)
+            {
+                if (a.Time > b.Time) aIndex += 100; else bIndex += 100;
+            }
+            if (a.State == 1 && a.Time > b.Time) aIndex -= 100;
+            if (b.State == 1 && b.Time > a.Time) bIndex -= 100;
+            if (a.State == 1 && a.IsAttach == 1) aIndex += 50;
+            if (b.State == 1 && b.IsAttach == 1) bIndex += 50;
+            if (a.State == 3) aIndex -= 100;
+            if (b.State == 3) bIndex -= 100;
+            return bIndex.CompareTo(aIndex); // 降序:aIndex 越大越靠前
         }
     }
 }

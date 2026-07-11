@@ -51,7 +51,10 @@ namespace Shenxiao.Module.Core.Friend
         public static void OpenView(string viewTypeName) => _ = OpenViewAsync(viewTypeName);
 
         /// <summary>打开模块内子窗(加好友/申请/黑名单…),叠在当前主窗上(覆盖,不隐藏主窗);按 View 子类名查找。</summary>
-        public static void OpenSub(string viewTypeName)
+        public static void OpenSub(string viewTypeName) => OpenSub(viewTypeName, null);
+
+        /// <summary>打开模块内子窗并带参(对标老端 Fire(OPEN_XXX_VIEW, vo) 携数据打开)。</summary>
+        public static void OpenSub(string viewTypeName, object args)
         {
             if (_moduleRoot == null)
             {
@@ -60,9 +63,28 @@ namespace Shenxiao.Module.Core.Friend
             }
             foreach (BaseView v in _moduleRoot.GetComponentsInChildren<BaseView>(true))
             {
-                if (v.GetType().Name == viewTypeName) { v.Show(); return; }
+                if (v.GetType().Name == viewTypeName) { v.Show(args); return; }
             }
             GameLog.Info("Friend", "好友子窗 [{0}] 未移植 View,待对接", viewTypeName);
+        }
+
+        /// <summary>打开私聊窗口(对标老端 Fire(OPEN_CHAT_VIEW, vo)):FriendChatView.setData 需要的目标好友简要信息。</summary>
+        public static void OpenChat(long roleId, string roleName, int career, int turn, int lv)
+        {
+            OpenSub("FriendChatView", new FriendChatView.OpenArgs
+            {
+                RoleId = roleId,
+                RoleName = roleName,
+                Career = career,
+                Turn = turn,
+                Lv = lv,
+            });
+        }
+
+        /// <summary>打开右键交互菜单(对标老端 Fire(OPEN_FRIEND_MENU, x, y, vo))。</summary>
+        public static void OpenMenu(FriendModel.FriendVo vo, Vector2 screenPos)
+        {
+            OpenSub("FriendMenuView", new FriendMenuView.OpenArgs { Vo = vo, ScreenPos = screenPos });
         }
 
         private static async Task OpenViewAsync(string viewTypeName)

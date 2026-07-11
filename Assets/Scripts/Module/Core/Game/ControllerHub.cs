@@ -9,6 +9,7 @@ using Shenxiao.Module.Core.CycleimpActlist;
 using Shenxiao.Module.Core.CustomActivity;
 using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.FirstRecharge;
+using Shenxiao.Module.Core.Friend;
 using Shenxiao.Module.Core.FunctionOpen;
 using Shenxiao.Module.Core.Gm;
 using Shenxiao.Module.Core.Mail;
@@ -61,6 +62,7 @@ namespace Shenxiao.Module.Core.Game
             GmCheatController.Instance,
             NoticeController.Instance,
             MailController.Instance,
+            FriendController.Instance,
             FunctionOpenController.Instance,
             VipController.Instance,
             FirstRechargeController.Instance,
