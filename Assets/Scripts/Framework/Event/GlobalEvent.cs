@@ -35,6 +35,35 @@ namespace Shenxiao.Framework.Event
         // ----- Chat -----
         public const string EVT_CHAT_MESSAGES_UPDATED = "EVT_CHAT_MESSAGES_UPDATED";
 
+        // ----- Chat 补全(自动循环 轮6;11001私聊/11023/11025/11027/11028/11029/11042/11046/11050) -----
+        /// <summary>私聊桶变化(参数 long targetId,即会话对方 role_id):新消息到达或未读数变化。
+        /// 对标老端 CHAT_MSG_UPDATE/CHAT_MSG_NUM_UPDATE(本端合并为一个事件)。ChatModel.AddPrivateMessage/
+        /// ClearPrivateUnread 发;FriendChatView 等私聊窗口(未移植)消费方 TODO。</summary>
+        public const string EVT_CHAT_PRIVATE_UPDATE = "EVT_CHAT_PRIVATE_UPDATE";
+        /// <summary>11046 清理:私聊桶被整体清空(参数 long roleId)。对标老端 CLEAR_ROLE_PRIVATE。
+        /// ChatModel.ClearRoleChatData 发。</summary>
+        public const string EVT_CHAT_PRIVATE_CLEARED = "EVT_CHAT_PRIVATE_CLEARED";
+        /// <summary>11046 清理:公共频道里含该玩家的消息已删除(参数 long roleId)。对标老端 CLEAR_ROLE_DATA。
+        /// ChatModel.ClearRoleChatData 发(实际刷新走逐频道 <see cref="EVT_CHAT_MESSAGES_UPDATED"/>,此事件仅供
+        /// 断言/统计消费)。</summary>
+        public const string EVT_CHAT_ROLE_DATA_CLEARED = "EVT_CHAT_ROLE_DATA_CLEARED";
+        /// <summary>11028 查看私聊玩家信息到达(参数 ChatModel.PrivatePlayerInfo)。对标老端 PRIVATE_CHAT_PLAYER_INFO。
+        /// ChatController.On11028 发;私聊窗口头部(未移植)消费方 TODO。</summary>
+        public const string EVT_CHAT_PRIVATE_PLAYER_INFO = "EVT_CHAT_PRIVATE_PLAYER_INFO";
+        /// <summary>11029 喇叭广播到达(参数 ChatMessage,已附带写入对应公共频道桶)。ChatController.On11029 发;
+        /// 喇叭横幅/跑马灯 UI(ChatTrumpetMenu 等,r6_unity 现状为死窗口)消费方 TODO。</summary>
+        public const string EVT_CHAT_HORN_RECEIVED = "EVT_CHAT_HORN_RECEIVED";
+        /// <summary>11023 小跨服聊天开关变化(参数 bool isOpen),读 ChatModel.IsZoneOpen。ChatModel.SetZoneOpen 发。</summary>
+        public const string EVT_CHAT_ZONE_OPEN_CHANGED = "EVT_CHAT_ZONE_OPEN_CHANGED";
+        /// <summary>11025 上传跨服频道物品失败(error_code!=1),对标老端 SHOW_SPECIAL_CHANNEL_GOODS
+        /// ("跨服无法查看物品需先上传"提示)。ChatController.On11025 发;提示 UI 消费方 TODO。</summary>
+        public const string EVT_CHAT_SPECIAL_GOODS_BLOCKED = "EVT_CHAT_SPECIAL_GOODS_BLOCKED";
+        /// <summary>11050 公告全量到达/重建(无参,读 ChatModel.Notices)。ChatModel.SetNoticeList 发。</summary>
+        public const string EVT_CHAT_NOTICE_LIST_UPDATED = "EVT_CHAT_NOTICE_LIST_UPDATED";
+        /// <summary>某条公告轮到展示(参数 ChatModel.NoticeEntry),对标老端 CheckGongGaoFunc。
+        /// ChatModel.PumpNotice 发;跑马灯/传闻 UI 消费方 TODO。</summary>
+        public const string EVT_CHAT_NOTICE_TRIGGERED = "EVT_CHAT_NOTICE_TRIGGERED";
+
         // ----- Bag -----
         public const string EVT_BAG_UPDATE = "EVT_BAG_UPDATE";
         /// <summary>使用物品成功(参数: int goods_type_id)。对标老端 GoodsModel.USE_BAG_GOODS_SUCCESS

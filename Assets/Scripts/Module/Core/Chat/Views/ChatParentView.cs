@@ -455,9 +455,9 @@ namespace Shenxiao.Module.Core.Chat
             string content = textDisplay != null ? textDisplay.text : string.Empty;
             if (string.IsNullOrWhiteSpace(content)) return;
 
-            NetManager.SendFmt(Proto.CHAT_MESSAGE, "csslssis", channel, string.Empty, string.Empty, 0L, content, string.Empty, 0, string.Empty);
+            // 预校验(空文本/等级/CD)集中在 ChatController.SendChat,View 层不再手写协议格式串。
+            ChatController.Instance.SendChat(channel, content);
             if (textDisplay != null) textDisplay.text = string.Empty;
-            GameLog.Info("Chat", "send 11001 channel={0} text={1}", channel, content);
         }
 
         private int CurrentChannel()

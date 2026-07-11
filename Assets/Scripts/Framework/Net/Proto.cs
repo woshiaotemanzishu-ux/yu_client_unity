@@ -31,7 +31,16 @@
         public const int SETTING_WRITE = 10203;
         /// <summary>脱离卡死(对标老端 confirm_flee):发 "i"(scene_id);回包 code:i(!=1 显错误码,==1 服务端拉人切场景)。</summary>
         public const int SETTING_FLEE = 10210;
+        /// <summary>发言(各频道通用,含喇叭)。发 "csslssis"(channel, province, city, receive_id, msg, args, tktime=0, ticket="");
+        /// 对标老端 ChatController.ts send_msg,与 pt_110.erl read(11001) 字段序逐一核对一致。receive_id 语义:
+        /// 私聊(channel=6)=对方 role_id;喇叭(channel=2)=范围选择(1本服/2小跨服/3全服,TRUMPET_TYPE);其余频道传0。
+        /// 回包同号 11001 用于世界/公会/队伍等公共频道广播;**私聊(channel=6)真正回包走 11002,喇叭走 11029,
+        /// 不会原样回 11001**(pp_chat.erl handle(11001,...) 内按 Channel 分三路 write(11001/11002/11029,...))。</summary>
         public const int CHAT_MESSAGE = 11001;
+        /// <summary>私聊消息推送(S2C,双方各收一份完全相同的包)。回包(pt_110.erl write(11002,...)):
+        /// Channel:8, ServerNum:16, SerId:16, SerName:s, PlayerList[u16 len]{PlayerId:64, Figure}(固定2项:[发送者,接收者]),
+        /// Msg:s, Args:s, Result:8, Time:32。目标 id 取"非自己"的那个 PlayerList 项(对标老端 setChatData)。</summary>
+        public const int CHAT_PRIVATE_MESSAGE = 11002;
         public const int CHAT_CACHE = 11010;
 
         // ----- 聊天/公告(110xx,yu_server pt_110.erl) -----
@@ -41,6 +50,70 @@
         public const int SC_CHUANWEN_FIGURE = 11018;
         /// <summary>系统公告/提示(跑马灯)。回包 "s"(content)。</summary>
         public const int SC_SYS_NOTICE = 11020;
+
+        // ----- 聊天补全(自动循环 轮6;yu_server pt_110.erl/pp_chat.erl 权威字段序,与 yu_client
+        //        ChatController.ts/ChatModel.ts 交叉核对,冲突处按服务端为准) -----
+        /// <summary>是否开启小跨服聊天(GAME_START 非开服第1天 + 老端另有 DAY_CHANGE 复触发,本端未接日切事件,
+        /// 仅 GAME_START 查一次)。发空;回包 "c"(is_open,0/1)。</summary>
+        public const int CHAT_ZONE_OPEN = 11023;
+        /// <summary>上传跨服频道物品数据(跨服频道发言带物品链接时,先发此包)。发 "c"+"h"+n×"l"(channel, 数量, 逐个 goods_id);
+        /// 回包 "i"(error_code,!=1 → Emit 「跨服无法查看物品需先上传」提示)。</summary>
+        public const int CHAT_UPLOAD_ZONE_GOODS = 11025;
+        /// <summary>跨服查看物品(点击跨服频道物品链接时发)。发 "cl"(channel, goods_id);回包 "i"(error_code)。
+        /// **recv 是空壳,照老端静默丢弃**——真正的物品面板由 mod_kf_chat 异步转发的另一条推送负责,11026 只是查询回执。</summary>
+        public const int CHAT_CHECK_ZONE_GOODS = 11026;
+        /// <summary>点击聊天缓存(消私聊未读红点)。发 "cl"(channel 固定=PRIVATE, role_id);回包 "i"(error_code)。
+        /// 对标老端 FriendChatView:发送同时本地立即清红点(reSetPrivateNum),不等回包。</summary>
+        public const int CHAT_CLICK_CACHE = 11027;
+        /// <summary>查看私聊玩家信息(打开私聊窗口时发一次)。发 "l"(role_id);
+        /// 回包(pt_110.erl write(11028,...)):error_code:32, role_id:64, Figure, combat_power:64, online_flag:8, intimacy:32。</summary>
+        public const int CHAT_PRIVATE_PLAYER_INFO = 11028;
+        /// <summary>喇叭广播推送(S2C 专用,客户端严禁发;真正的喇叭消耗/发送走 <see cref="CHAT_MESSAGE"/> channel=HORN(2))。
+        /// 回包(pt_110.erl write(11029,...)):Channel:8, ServerNum:16, SerId:16, SerName:s, Province:s, City:s,
+        /// HornType:8(1本服/2小跨服/3全服), PlayerId:64, Figure, Msg:s, Args:s, Result:8, Time:32。</summary>
+        public const int CHAT_HORN_PUSH = 11029;
+        /// <summary>被禁言通知(S2C 主动推送,老端漏接,本端补齐)。回包 "i"(距解禁剩余秒数)。
+        /// ⚠r6_server 实证:服务端唯一生产者 lib_chat:be_lim_talk/1 当前全仓库无调用点,是彻底死代码——
+        /// 注册此 handler 纯粹是"对老端遗漏的补齐"以防将来恢复调用,现状永远收不到此包,无害。</summary>
+        public const int CHAT_BANNED_NOTICE = 11042;
+        /// <summary>黑名单/清理玩家消息(S2C 推送)。回包 role_id 列表[u16 len]{role_id:64}。
+        /// 遍历清理该玩家在公共频道的消息 + 私聊 dict 条目,**跳过自己**(role_id==自身时不清理)。
+        /// 不在本轮目标号内,但它是私聊清理(11046)唯一入口,随 11027/11028 一并接。</summary>
+        public const int CHAT_BLACKLIST_CLEAR = 11046;
+        /// <summary>系统公告/跑马灯(GAME_START 空参发一次;服务端后台改公告表时会主动全服重推,幂等重建)。
+        /// 回包 notice_list[u16 len]{Source:s, Type:8, Color:s, Content:s, Url:s, SendCount:32, SendGap:16,
+        /// StartTime:32, EndTime:32, State:8}。⚠与"喇叭"是两套系统(11050 纯只读零消耗,喇叭消耗广播在 11001/11029),
+        /// 客户端收到后自跑本地每秒轮询定时器按 send_gap 循环触发展示(对标老端 StartGongGaoList,定时器实现见
+        /// <see cref="Shenxiao.Module.Core.Chat.ChatModel.PumpNotice"/>,勿用 MonoBehaviour.Update 直接承载判定逻辑)。</summary>
+        public const int CHAT_NOTICE = 11050;
+        /// <summary>假人聊天触发(GAME_START 空参发一次;策划要求仅该账号下第一个角色会收到,服务端 mod_counter 已把关)。
+        /// 回包 "c"(type)。⚠降级:老端据此拼假人击杀/获得道具消息需要 config_jjc_robot + ClientRobotLv 两张配置表
+        /// (伪造角色外观/装备/战力用于营造"新服热闹"假象),两表均未迁移入 Unity——本端只记录收到的 type,
+        /// 不生成任何假人消息(不臆造经济/形象数据),TODO 待配置迁移后补齐。</summary>
+        public const int CHAT_ROBOT = 11064;
+        /// <summary>聊天监控动态包编号(C2S 单向,微信小游戏分包场景专用,回包 ack 可忽略)。发 "s"(package_code)。
+        /// Unity 构建无微信小游戏分包概念,本端无自动触发源,仅留 API(<see cref="Shenxiao.Module.Core.Chat.ChatController.SendMonitorPackageCode"/>)。</summary>
+        public const int CHAT_MONITOR_PKG = 11065;
+
+        // 以下号跳过(仅存说明,不写代码;逐号裁决见规格 §0 及本轮汇报"裁决表"):
+        // 11003/11004/11005/11006(语音聊天全链路):老端录音入口(VoiceChatView.SendVoice 调用被注释)、SDK回调触发
+        //   (ON_RESULT_OF_SPEECH/ON_END_OF_SPEECH 全仓库唯一 Fire 点也被注释)、发送触发三层均不可达(dead);
+        //   11004 点击播放绑定的 REQUEST_CCMD_EVENT 全仓库无存活监听,也是死接线。11005 服务端回包因参数形状 bug
+        //   (mod_chat_voice.erl:138 传裸整数不匹配 write(11005,[ErrorCode]) 子句)恒落兜底发空 cmd0。11006 双端
+        //   UNUSED(客户端零引用,老端未注册 handler)。11010 缓存(CHAT_CACHE)里历史语音条目仍会被现有
+        //   ReadCacheMessage 兼容解析(voice_id/voice_time 字段照读,不崩,只是不再产生新语音)。不移植语音收发。
+        // 11011(世界频道剩余发言次数):双端 UNUSED——客户端不发送、不注册 recv,老端"次数"UI 已移除,
+        //   服务端 lib_chat:send_world_channel_left_count 因无人调用永不触发。
+        // 11022(帮派求助/击杀Boss广播):h5/src 全仓库零引用(仅协议定义),该"一键喊帮派"功能未接入 UI,跳过。
+        // 11024(小跨服聊天状态推送,幻兽区域版):服务端 pp_chat.erl 无 handle 子句、唯一生产者调用点被注释、
+        //   push 逻辑硬编码返回 0——双向彻底死代码,与 11023 是"两套小跨服开关"历史遗留,只用 11023 一套。
+        // 11040/11041(GM禁言/解禁言):服务端仅 figure.gm==1 才生效,h5/src 玩家客户端零引用,纯 GM 工具通道。
+        // 11043(获取禁言信息)/11044(聊天举报)/11045(聊天举报带内容):h5/src 玩家客户端全部零引用——
+        //   11043 虽服务端有越权查询缺口(无需校验目标是否自己)但客户端从不发起;11044/11045 真正的"举报头像"
+        //   入口(ChatMenuView.ts"举报头像"按钮)走的是好友/关系模块另一套协议,不是这两个号。三者均 UNUSED。
+        // 11082/11083(聊天图片,分片实验版):pt_110.erl 全文件无编解码定义,pp_chat.erl 对应 handle 整段注释
+        //   "暂时不开启,开启要测试"——三层(读/处理/写)全死,是被现役图片协议 11007/11008/11009 取代的废弃分支,
+        //   与礼包码 15087(pt_150/goods 模块)毫无关系。彻底不实现。
 
         // ----- GM 秘籍(111xx,yu_server pt_111.erl / pp_gm.erl) -----
         /// <summary>请求 GM 秘籍清单(无字段)。回包:u16 分类数 × { s 分类名,

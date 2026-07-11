@@ -135,6 +135,14 @@ namespace Shenxiao.EditorTools
             Run(RoleGrowthCase.Run, 300.0);
         }
 
+        /// <summary>聊天补全(自动循环 轮6)实证:11001/11002/11023/11027/11028/11029/11042/11046/11050/11064
+        /// 合成包驱动 ChatController 反射喂包,断言 ChatModel 分桶/未读/喇叭队列/公告定时器 + SendChat 发送侧预校验
+        /// (详见 ChatCase 注释)。</summary>
+        public static void Chat()
+        {
+            Run(ChatCase.Run, 200.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -166,14 +174,15 @@ namespace Shenxiao.EditorTools
                 int eg = await EquipGrowthCase.Run();
                 int jw = await JewelCase.Run();
                 int rg = await RoleGrowthCase.Run();
+                int ch = await ChatCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
                     + " guildjoin=" + j + " rune=" + n + " dungeon=" + v + " thinslice=" + w + " finalslice=" + f
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m
                     + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
-                    + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg })
+                    + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);
