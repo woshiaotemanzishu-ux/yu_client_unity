@@ -168,6 +168,13 @@ namespace Shenxiao.EditorTools
             Run(DungeonFamilyCase.Run, 300.0);
         }
 
+        /// <summary>创角「整模→视频」迁移实证:整模资源/条目清净 + 剑士视频在位可加载 +
+        /// RoleCreateView.prefab VideoImage 结构(详见 CreateRoleVideoCase 注释)。</summary>
+        public static void CreateRoleVideo()
+        {
+            Run(CreateRoleVideoCase.Run, 120.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -203,6 +210,7 @@ namespace Shenxiao.EditorTools
                 int fm = await FriendMailCase.Run();
                 int tm = await TeamCase.Run();
                 int df = await DungeonFamilyCase.Run();
+                int cv = await CreateRoleVideoCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -210,8 +218,8 @@ namespace Shenxiao.EditorTools
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m
                     + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
                     + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch + " friendmail=" + fm
-                    + " team=" + tm + " dungeonfam=" + df);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df })
+                    + " team=" + tm + " dungeonfam=" + df + " createvideo=" + cv);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, cv })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

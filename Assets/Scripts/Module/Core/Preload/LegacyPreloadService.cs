@@ -73,11 +73,11 @@ namespace Shenxiao.Module.Core.Preload
                 LoginConfigs.CareerRes res = LoginConfigs.GetCreateRes(option.Career, option.Sex);
                 if (res != null)
                 {
-                    // 创角页优先加载整模(ArtImport 导入的成品 prefab),与 RoleCreateView.TryShowWholeModel 的实际 key 对齐;
-                    // 不加这两条则预热只热了旧拼装路径,创角模型必然冷加载(=切职业慢半拍)。不存在会被存在性过滤掉。
-                    string wholeModelBase = $"object/role/model_create_{res.RoleRes}/{res.RoleRes}";
-                    AddEntry(entries, wholeModelBase + "@create2", PreloadAssetKind.Prefab);
-                    AddEntry(entries, wholeModelBase + "@create3", PreloadAssetKind.Prefab);
+                    // 创角页优先加载展示视频(整模 model_create_* 已废弃删除),与 RoleCreateView.TryShowVideo
+                    // 的实际 key 对齐;不加则选职业时视频冷加载慢半拍。未交付视频的职业会被存在性过滤掉,无害。
+                    string videoBase = $"object/role/video_create/{res.RoleRes}@";
+                    AddEntry(entries, videoBase + "create2", PreloadAssetKind.Video);
+                    AddEntry(entries, videoBase + "create3", PreloadAssetKind.Video);
 
                     await AddRoleModelSpecAsync(entries, new RoleModelSpec
                     {
@@ -247,6 +247,8 @@ namespace Shenxiao.Module.Core.Preload
                     return ResManager.KeyExistsAsync<GameObject>(entry.Key);
                 case PreloadAssetKind.Animation:
                     return ResManager.KeyExistsAsync<AnimationClip>(entry.Key);
+                case PreloadAssetKind.Video:
+                    return ResManager.KeyExistsAsync<UnityEngine.Video.VideoClip>(entry.Key);
                 default:
                     return ResManager.KeyExistsAsync(entry.Key);
             }
@@ -337,6 +339,9 @@ namespace Shenxiao.Module.Core.Preload
                     break;
                 case PreloadAssetKind.Animation:
                     asset = await ResManager.LoadOptionalAsync<AnimationClip>(entry.Key);
+                    break;
+                case PreloadAssetKind.Video:
+                    asset = await ResManager.LoadOptionalAsync<UnityEngine.Video.VideoClip>(entry.Key);
                     break;
             }
 
@@ -790,6 +795,7 @@ namespace Shenxiao.Module.Core.Preload
             Sprite,
             Prefab,
             Animation,
+            Video,
         }
     }
 }

@@ -10,7 +10,8 @@ namespace Shenxiao.Editor.UiCreator.Login
     /// <summary>
     /// 创角页(重构版)纯代码建树生成器。
     ///
-    /// 结构对标截图 5/6:全屏背景 + 左侧职业选择列(4 张固定职业卡) + 中央 3D 角色模型容器(ModelCon)
+    /// 结构对标截图 5/6:全屏背景 + 全屏展示视频(VideoImage,选中职业播 create2/create3 视频)
+    /// + 左侧职业选择列(4 张固定职业卡) + 中央 3D 角色模型容器(ModelCon,无视频职业的拼装链兜底)
     /// + 职业名 + 职业描述三连诗句图 + 名字框(输入 + ⟳ 随机) + 底部「踏入仙界」+ 返回。
     /// 职业卡做成 4 张固定卡 CareerItem_0..3(Bg 命中体 / Icon / Label),各自手调位置,不用模板克隆;
     /// 每张卡把 bg/icon/label 直接回填进 view.careerItems。挂 RoleCreateView 并回填全部 public 引用,
@@ -62,7 +63,17 @@ namespace Shenxiao.Editor.UiCreator.Login
             UiCreatorKit.TrySetSprite(bg, IMG_BG, UiCreatorKit.Palette.Bg);
             view.bgImg = bg;
 
-            // ---------- 中央 3D 模型容器(对标老 _gp_model_con,纯布局盒) ----------
+            // ---------- 创角展示视频画面(全屏 RawImage,盖背景、垫所有 UI 之下) ----------
+            // 运行时 RoleCreateView 喂 VideoPlayer 的 RenderTexture(create2 出场→create3 待机循环);
+            // 默认不亮(enabled=false),视频首帧就绪才点亮;没交付视频的职业保持隐身走 3D 拼装链。
+            RectTransform videoRt = UiCreatorKit.NewNode("VideoImage", root);
+            UiCreatorKit.Stretch(videoRt);
+            RawImage video = videoRt.gameObject.AddComponent<RawImage>();
+            video.raycastTarget = false;
+            video.enabled = false;
+            view.videoImage = video;
+
+            // ---------- 中央 3D 模型容器(对标老 _gp_model_con,纯布局盒;无视频职业的拼装链兜底) ----------
             RectTransform modelCon = UiCreatorKit.NewNode("ModelCon", root);
             UiCreatorKit.Place(modelCon, 0f, 0f, 720f, 1280f);
             view.modelCon = modelCon;

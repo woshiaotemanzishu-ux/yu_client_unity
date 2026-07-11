@@ -7,25 +7,26 @@ using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Playables;
 using UnityEngine.UI;
+using UnityEngine.Video;
 
 namespace Shenxiao.Module.Core.Login
 {
     /// <summary>
     /// 创角页(重构版,自包含独立 prefab)——取代老端碎片化的 LoginCreateRoleView + LoginCreateRoleItem。
     ///
-    /// 结构(对标截图 5/6):全屏背景 + 左侧职业选择列(4 张固定职业卡 careerItems) + 中央 3D 角色模型(ModelCon)
-    /// + 职业名 + 职业描述三连图(诗句)+ 随机名(名字输入 + ⟳ 随机)+ 底部「踏入仙界」+ 返回。
+    /// 结构(对标截图 5/6):全屏背景 + 全屏展示视频(VideoImage) + 左侧职业选择列(4 张固定职业卡 careerItems)
+    /// + 中央 3D 角色模型(ModelCon,无视频职业的拼装链兜底) + 职业名 + 职业描述三连图(诗句)
+    /// + 随机名(名字输入 + ⟳ 随机)+ 底部「踏入仙界」+ 返回。
     /// prefab 由 RoleCreateCreator 纯代码建树生成并回填下列 public 引用;职业卡固定 4 张(不用模板克隆),
     /// 每张卡内直接持有 bg/icon/label 引用,位置各自手调;职业数不足则运行时隐藏多余卡。
     ///
-    /// 本类只做:① 数据绑定(职业列表/3D 模型/随机名,逻辑原样搬自旧 LoginCreateRoleView.cs)
+    /// 本类只做:① 数据绑定(职业列表/展示视频或 3D 模型/随机名,逻辑原样搬自旧 LoginCreateRoleView.cs)
     ///          ② 功能性状态切换(选中职业换底图/头像、SetActive)。不写颜色/字号/尺寸等样式。
     ///
     /// ——— 对接说明(给主控 LoginFlow 接线用)———
     /// 暴露的 public 方法:
-    ///   - void Refresh()                      // 建职业项 + 默认预选 + 显示模型/职业名/描述/随机名(OnShow 自动调一次)
+    ///   - void Refresh()                      // 建职业项 + 默认预选 + 显示视频或模型/职业名/描述/随机名(OnShow 自动调一次)
     /// 调用的 LoginFlow 静态方法(返回按钮):
     ///   - LoginFlow.ShowSelectRole()          // 有角色时回选角页
     ///   - LoginFlow.BackToEnter()             // 无角色时回踏入仙界页
@@ -43,9 +44,15 @@ namespace Shenxiao.Module.Core.Login
     {
         private const float MODEL_SCALE = 0.5f; // 老客户端字面量 show_model_data.scale
 
+        // 创角展示视频:object/role/video_create/{RoleRes}@create2.mp4(出场,播完接待机)
+        // + {RoleRes}@create3.mp4(待机,循环)。对应老整模 prefab 的 create2/create3 两段
+        // (model_create_* 整模资源已废弃删除,改视频交付;720×1280 H.264,Unity 内置 VideoPlayer 直播)。
+        private const string VIDEO_KEY_BASE = "object/role/video_create/";
+
         [Header("背景 / 容器")]
         public Image bgImg;
-        public RectTransform modelCon;           // 3D 模型容器(对标老 _gp_model_con)
+        public RectTransform modelCon;           // 3D 模型容器(对标老 _gp_model_con;无视频职业的拼装链兜底)
+        public RawImage videoImage;              // 全屏展示视频画面(运行时喂 VideoPlayer 的 RenderTexture)
 
         [Header("职业卡(固定 4 张,位置各自手调)")]
         public CareerItem[] careerItems;
@@ -78,6 +85,10 @@ namespace Shenxiao.Module.Core.Login
         private int _selectedIndex;
         private bool _creating;
 
+        private VideoPlayer _videoPlayer;        // 挂在 videoImage 上,懒建,全职业共用
+        private RenderTexture _videoTexture;     // 视频画布,按 clip 尺寸懒建,OnDispose 释放
+        private VideoClip _pendingIdleClip;      // create2 播完要接的待机段(loopPointReached 时切)
+
         protected override void OnInit()
         {
             BindClicks();
@@ -93,11 +104,24 @@ namespace Shenxiao.Module.Core.Login
         protected override void OnHide()
         {
             UIModelStage.Clear();
+            StopVideo();
         }
 
         protected override void OnDispose()
         {
             EventDispatcher.Off<int>(GlobalEvent.EVT_GAME_CREATE_ROLE_RESULT, OnCreateResult);
+            if (_videoPlayer != null)
+            {
+                _videoPlayer.loopPointReached -= OnVideoLoopPoint;
+                _videoPlayer.frameReady -= OnVideoFrameReady;
+                _videoPlayer = null;
+            }
+            if (_videoTexture != null)
+            {
+                _videoTexture.Release();
+                Destroy(_videoTexture);
+                _videoTexture = null;
+            }
         }
 
         // ---------------------------------------------------------------- 点击绑定(功能性,允许)
@@ -233,7 +257,8 @@ namespace Shenxiao.Module.Core.Login
                 _ = ResManager.SetImageAsync(tipsImg3, $"resource/game/login/other/{o.Img3}.png", nativeSize: false);
         }
 
-        /// <summary>中央 3D 模型:默认装(衣+头饰+武器)+ ConfigModelAni 的 create 动作序列(真·运行时,原样搬)。</summary>
+        /// <summary>中央展示:视频优先(选中职业播 create2 出场→create3 待机循环);
+        /// 未交付视频的职业走拼装链 3D 模型(衣+头饰+武器 + ConfigModelAni 的 create 动作序列,原样保留)。</summary>
         private async void ShowCareerModel()
         {
             var o = _options[_selectedIndex];
@@ -245,8 +270,9 @@ namespace Shenxiao.Module.Core.Login
             }
             int selectedAtRequest = _selectedIndex;
 
-            // 整模优先:ArtImport 导入的创角成品 prefab(特效/动作自带,Timeline 自播),没有再走老拼装链
-            if (await TryShowWholeModel(o, res, selectedAtRequest)) return;
+            // 视频优先:职业交付了创角展示视频就播视频(老整模 model_create_* 资源已废弃),没有再走老拼装链
+            if (await TryShowVideo(res, selectedAtRequest)) return;
+            StopVideo(); // 本职业没视频:收掉上个职业可能在播的画面,让位 3D 模型
 
             string[] actions = LoginConfigs.RoleUIActions("LoginCreateRoleView");
             GameObject model = await RoleModelAssembler.BuildAsync(new RoleModelSpec
@@ -286,145 +312,113 @@ namespace Shenxiao.Module.Core.Login
         }
 
         /// <summary>
-        /// 整模路径(ArtImport 导入的创角成品 prefab):
-        /// `object/role/model_create_{RoleRes}/{RoleRes}@create2`(出场,播完 Hold 停末帧)
-        /// → `{RoleRes}@create3`(待机,循环)。特效/动作全在 prefab 里由 PlayableDirector 自播,
-        /// 不走拼装链、不挂配置骨骼特效。资源不存在返回 false,由调用方走老拼装路径。
+        /// 视频路径(美术交付的创角展示视频,取代已废弃的 model_create_* 整模 prefab):
+        /// `object/role/video_create/{RoleRes}@create2`(出场,播一遍)→ `{RoleRes}@create3`(待机,循环)。
+        /// 只交付 create2 → 播完停末帧;只交付 create3 → 直接循环。两段视频都不存在返回 false,
+        /// 由调用方走老拼装路径。
         /// </summary>
-        private async Task<bool> TryShowWholeModel(
-            LoginConfigs.CareerOption o, LoginConfigs.CareerRes res, int selectedAtRequest)
+        private async Task<bool> TryShowVideo(LoginConfigs.CareerRes res, int selectedAtRequest)
         {
-            string baseKey = $"object/role/model_create_{res.RoleRes}/{res.RoleRes}";
-            GameObject create2Prefab = await ResManager.LoadOptionalAsync<GameObject>(baseKey + "@create2");
-            if (create2Prefab == null) return false;
-            // 待机 prefab 提前拿:落点(=占位位置)从它的静态包围盒量,完全不碰出场动画的 Director
-            GameObject create3Prefab = await ResManager.LoadOptionalAsync<GameObject>(baseKey + "@create3");
+            RawImage image = VideoImageOrNull();
+            if (image == null) return false; // 老 prefab 没有 VideoImage 节点:重新生成 prefab 前先走拼装链
+
+            string baseKey = $"{VIDEO_KEY_BASE}{res.RoleRes}@";
+            VideoClip intro = await ResManager.LoadOptionalAsync<VideoClip>(baseKey + "create2");
+            VideoClip idle = await ResManager.LoadOptionalAsync<VideoClip>(baseKey + "create3");
+            if (intro == null && idle == null) return false;
             // 加载期间切了职业/关了页:丢弃过期结果(新选中职业自会触发自己的 ShowCareerModel)
             if (selectedAtRequest != _selectedIndex || !gameObject.activeInHierarchy) return true;
 
-            Vector2 modelPos = LoginConfigs.GetModelPos("CreateRole", o.Career, o.Sex);
-            GameObject inst = Instantiate(create2Prefab);
-            PlayableDirector director = inst.GetComponentInChildren<PlayableDirector>(true);
-            if (director != null) director.extrapolationMode = DirectorWrapMode.Hold; // 播完停末帧等切待机
-            UIModelStage.ShowInstance(ModelCon(), StageWrap(inst, create2Prefab), MODEL_SCALE, modelPos);
-
-            // 等出场动画播完(inst 被销毁=页面关了/别人上台了,直接退)
-            if (director != null)
-            {
-                double duration = director.duration;
-                float safety = (float)duration + 5f; // director 意外停住时的兜底,防死循环
-                while (inst != null && director.time + 0.001 < duration && safety > 0f
-                       && selectedAtRequest == _selectedIndex && gameObject.activeInHierarchy)
-                {
-                    await Task.Yield();
-                    safety -= Time.deltaTime;
-                }
-            }
-            if (inst == null || selectedAtRequest != _selectedIndex || !gameObject.activeInHierarchy) return true;
-            if (create3Prefab == null) return true; // 没交付待机就停在出场末帧
-
-            GameObject idle = Instantiate(create3Prefab);
-            PlayableDirector idleDirector = idle.GetComponentInChildren<PlayableDirector>(true);
-            if (idleDirector != null) idleDirector.extrapolationMode = DirectorWrapMode.Loop; // 待机循环
-            // 上台即销毁 create2 实例;两段档案里烤的是同一个落点,切换处位置无缝
-            UIModelStage.ShowInstance(ModelCon(), StageWrap(idle, create3Prefab), MODEL_SCALE, modelPos);
+            UIModelStage.Clear(); // 换下可能在台上的 3D 模型(其他职业的拼装链兜底)
+            PlayCareerVideo(image, intro, idle);
             return true;
         }
 
         /// <summary>
-        /// 落点计算——核心约定(与美术):【出场动画的落点 = 待机位置 = 占位位置】。
-        /// 整模上台包装。落点**不在运行时猜**——导入工具用 SampleAnimation 把 create3 采样到末帧、
-        /// BakeMesh 精确量出脚底中心与身高,烤在 ArtModelRenderProfile 里(静态包围盒是绑定姿势的
-        /// 松盒,和动画停放点不是一回事,1213 曾被它骗成"已归零"导致巨腿怼镜头,实锤教训)。
-        /// 这里只读档案:整体平移把落点对到占位点+体量归一(平移是相对量,不锁动画、不碰 Director,
-        /// 空间位移原样播);create2/create3 档案里烤的是同一个落点,切换无缝。
-        /// 页面级微调走 configlogin 的 CreateRole.ModelPos/PosOffset。
+        /// 播创角展示视频:create2 出场播一遍 → loopPointReached 接 create3 待机循环。
+        /// 切段/切职业不黑屏:换 clip 期间 RenderTexture 保留上一帧,新段首帧写入后自然覆盖
+        /// (美术保证 create2 末帧 == create3 首帧姿势,切换处无缝)。
         /// </summary>
-        private static GameObject StageWrap(GameObject inst, GameObject sourcePrefab)
+        private void PlayCareerVideo(RawImage image, VideoClip intro, VideoClip idle)
         {
-            ArtModelRenderProfile profile = inst.GetComponentInChildren<ArtModelRenderProfile>(true);
-            if (profile == null)
-            {
-                profile = inst.AddComponent<ArtModelRenderProfile>();
-                profile.useDedicatedRenderer = false; // 运行时补的档案不知道独立 renderer 下标:默认 renderer+强制贴图即可
-            }
-            foreach (ParticleSystem ps in inst.GetComponentsInChildren<ParticleSystem>(true))
-            {
-                ParticleSystem.MainModule main = ps.main;
-                main.scalingMode = ParticleSystemScalingMode.Hierarchy;
-            }
-            // 动画是 Generic,根位移依赖这个开关:Timeline 编辑器预览无视它,运行时不开=原地做动作
-            foreach (Animator animator in inst.GetComponentsInChildren<Animator>(true))
-            {
-                animator.applyRootMotion = true;
-            }
-            // 透明处理:美术把透明信息画在贴图 alpha 里,但 FBX 内嵌材质默认 Opaque 不读 alpha
-            // → 该透的地方渲成白块。按导入时烤好的判定分流(只改实例不动资产):
-            //   缺口/破洞(alpha 二值)→ Alpha Clipping(硬边,无排序问题);
-            //   轻纱/雾状渐变(alpha 有中间值,档案 blendMaterials 点名)→ Transparent 混合 +
-            //   保留 ZWrite(自遮挡不乱)+ 低阈值裁剪(全透像素不写深度残影)。
-            // 美术在 prefab 里已设 Transparent 的材质一律不碰。
-            var blendSet = new HashSet<string>(
-                profile.blendMaterials ?? System.Array.Empty<string>());
-            foreach (Renderer r in inst.GetComponentsInChildren<Renderer>(true))
-            {
-                if (r is ParticleSystemRenderer) continue;
-                Material[] mats = r.materials;
-                bool dirty = false;
-                for (int i = 0; i < mats.Length; i++)
-                {
-                    Material m = mats[i];
-                    if (m == null || m.shader == null || !m.HasProperty("_AlphaClip")) continue;
-                    if (m.HasProperty("_Surface") && m.GetFloat("_Surface") > 0.5f) continue; // 美术自设的透明,不动
+            VideoClip first = intro != null ? intro : idle;
+            VideoPlayer vp = EnsureVideoPlayer(image, first);
 
-                    bool blend = false; // 实例名带"(Instance)"后缀,用 StartsWith 匹配
-                    foreach (string n in blendSet)
-                    {
-                        if (m.name.StartsWith(n)) { blend = true; break; }
-                    }
-                    if (blend)
-                    {
-                        m.SetFloat("_Surface", 1f);
-                        m.SetOverrideTag("RenderType", "Transparent");
-                        m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                        m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                        m.SetFloat("_ZWrite", 1f);
-                        m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                        m.SetFloat("_AlphaClip", 1f);
-                        m.SetFloat("_Cutoff", 0.02f);
-                        m.EnableKeyword("_ALPHATEST_ON");
-                        m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-                    }
-                    else
-                    {
-                        m.SetFloat("_AlphaClip", 1f);
-                        m.SetFloat("_Cutoff", 0.5f);
-                        m.EnableKeyword("_ALPHATEST_ON");
-                        m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
-                    }
-                    dirty = true;
-                }
-                if (dirty) r.materials = mats;
+            _pendingIdleClip = intro != null ? idle : null;
+            vp.Stop();
+            vp.clip = first;
+            vp.isLooping = intro == null; // 上来就是待机段 → 自循环;出场段播完由 OnVideoLoopPoint 接待机
+            if (!image.enabled) vp.sendFrameReadyEvents = true; // 画面还没亮过:首帧就绪再亮,防黑帧
+            vp.Play();
+        }
+
+        /// <summary>视频播放器/画布懒建:RenderTexture 按 clip 尺寸建(当前交付 720×1280),尺寸变了重建。</summary>
+        private VideoPlayer EnsureVideoPlayer(RawImage image, VideoClip sizeRef)
+        {
+            int w = sizeRef.width > 0 ? (int)sizeRef.width : 720;
+            int h = sizeRef.height > 0 ? (int)sizeRef.height : 1280;
+            if (_videoTexture != null && (_videoTexture.width != w || _videoTexture.height != h))
+            {
+                if (_videoPlayer != null) _videoPlayer.targetTexture = null;
+                _videoTexture.Release();
+                Destroy(_videoTexture);
+                _videoTexture = null;
+                image.enabled = false; // 尺寸换了旧帧作废,等新首帧再亮
+            }
+            if (_videoTexture == null)
+            {
+                _videoTexture = new RenderTexture(w, h, 0);
+                _videoTexture.Create();
+                ClearToBlack(_videoTexture); // 未写入前内容未定义,清黑防花屏
             }
 
-            var pivot = new GameObject(inst.name + "_pivot");
-            inst.transform.SetParent(pivot.transform, false);
-            if (profile.hasLanding)
+            if (_videoPlayer == null)
             {
-                // 落点是美术场景坐标;换算成"相对本 prefab 根"的位移再缩放,把落点挪到 pivot 原点。
-                // 根自身的缩放要保留相乘(美术可能用根缩放做整体包装),覆盖掉=体量爆炸
-                Vector3 rootPos = sourcePrefab.transform.position;
-                inst.transform.localScale =
-                    sourcePrefab.transform.localScale * profile.landingScale;
-                inst.transform.localPosition = -(profile.landingOffset - rootPos) * profile.landingScale;
+                _videoPlayer = image.GetComponent<VideoPlayer>();
+                if (_videoPlayer == null) _videoPlayer = image.gameObject.AddComponent<VideoPlayer>();
+                _videoPlayer.playOnAwake = false;
+                _videoPlayer.source = VideoSource.VideoClip;
+                _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
+                _videoPlayer.audioOutputMode = VideoAudioOutputMode.None; // 展示视频无配音,页面音效另走音频系统
+                _videoPlayer.skipOnDrop = true;
+                _videoPlayer.loopPointReached += OnVideoLoopPoint;
+                _videoPlayer.frameReady += OnVideoFrameReady;
             }
-            else
-            {
-                GameLog.Warn("Login",
-                    "整模 {0} 档案里没有烤落点(旧版导入),按原样上台——用资产管理[替换新模型]重导一次即可",
-                    inst.name);
-            }
-            return pivot;
+            _videoPlayer.targetTexture = _videoTexture;
+            image.texture = _videoTexture;
+            return _videoPlayer;
+        }
+
+        /// <summary>出场段播完接待机段;待机段自循环时 _pendingIdleClip 已清,直接忽略。</summary>
+        private void OnVideoLoopPoint(VideoPlayer vp)
+        {
+            if (_pendingIdleClip == null) return; // 无待机段停末帧 / 待机段自循环:都不用管
+            vp.clip = _pendingIdleClip;           // 换段期间 RT 保留出场末帧,画面无缝
+            _pendingIdleClip = null;
+            vp.isLooping = true;
+            vp.Play();
+        }
+
+        /// <summary>首帧就绪才点亮画面(防黑帧/上个尺寸的残帧);之后关掉逐帧回调省开销。</summary>
+        private void OnVideoFrameReady(VideoPlayer vp, long frameIdx)
+        {
+            vp.sendFrameReadyEvents = false;
+            if (videoImage != null) videoImage.enabled = true;
+        }
+
+        private void StopVideo()
+        {
+            _pendingIdleClip = null;
+            if (_videoPlayer != null) _videoPlayer.Stop();
+            if (videoImage != null) videoImage.enabled = false;
+        }
+
+        private static void ClearToBlack(RenderTexture rt)
+        {
+            RenderTexture prev = RenderTexture.active;
+            RenderTexture.active = rt;
+            GL.Clear(true, true, Color.black);
+            RenderTexture.active = prev;
         }
 
         // ---------------------------------------------------------------- 事件
@@ -472,5 +466,14 @@ namespace Shenxiao.Module.Core.Login
 
         // ——— 容器字段没绑上时按名兜底 ———
         private RectTransform ModelCon() => modelCon != null ? modelCon : transform.Find("ModelCon") as RectTransform;
+
+        /// <summary>视频画面字段没绑上时按名兜底;老 prefab 没有此节点则返回 null(重新生成 prefab 即有)。</summary>
+        private RawImage VideoImageOrNull()
+        {
+            if (videoImage != null) return videoImage;
+            Transform t = transform.Find("VideoImage");
+            if (t != null) videoImage = t.GetComponent<RawImage>();
+            return videoImage;
+        }
     }
 }
