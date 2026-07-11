@@ -35,6 +35,10 @@ namespace Shenxiao.Module.Core.FunctionOpen
         private int _showIndex;
         private string _modelShowKey; // 当前已上台的模型 key,防重复加载
 
+        // 太极折叠态 + 数据侧期望可见性:框实际显隐 = _iconsShouldShow && !_folded(见 ApplyVisibility)。
+        private bool _folded;
+        private bool _iconsShouldShow;
+
         protected override void OnInit()
         {
             if (icon != null) icon.gameObject.SetActive(false);
@@ -50,6 +54,7 @@ namespace Shenxiao.Module.Core.FunctionOpen
             GameLog.Info("FuncOpen", "Icon OnShow");
             EventDispatcher.On(GlobalEvent.EVT_FUNC_OPEN_UPDATE, OnDataUpdate);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnDataUpdate);
+            EventDispatcher.On<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
             StartFloat();
             _ = RefreshAsync();
         }
@@ -58,6 +63,7 @@ namespace Shenxiao.Module.Core.FunctionOpen
         {
             EventDispatcher.Off(GlobalEvent.EVT_FUNC_OPEN_UPDATE, OnDataUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnDataUpdate);
+            EventDispatcher.Off<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
             StopFloat();
             StopCarousel();
             _modelStage?.ClearStage();
@@ -71,6 +77,21 @@ namespace Shenxiao.Module.Core.FunctionOpen
         }
 
         private void OnDataUpdate() => _ = RefreshAsync();
+
+        // 太极折叠(对标老端 FunctionOpenIcon 订阅 UPDATE_ACTIVITY_STATE→整框滑出右边+淡出):收放功能预告框。
+        // 折叠态"粘住"——折叠后即便数据刷新(轮播/等级变化)也保持隐藏;展开时按当前是否有预告恢复。
+        private void OnActivityFold(bool folded)
+        {
+            _folded = folded;
+            ApplyVisibility();
+        }
+
+        // 框实际显隐 = 有即将开放功能(_iconsShouldShow)且未折叠(!_folded)。数据侧只改 _iconsShouldShow,
+        // 折叠/展开只改 _folded,统一由此重算(对标 MainUIRankView.ApplyRankVisibility 的守卫)。
+        private void ApplyVisibility()
+        {
+            if (click_box != null) click_box.gameObject.SetActive(_iconsShouldShow && !_folded);
+        }
 
         private void OnClick()
         {
@@ -94,12 +115,14 @@ namespace Shenxiao.Module.Core.FunctionOpen
             if (_icons.Count == 0)
             {
                 // 无即将开放功能:整框隐藏(view 仍在,继续监听数据)。
-                if (click_box != null) click_box.gameObject.SetActive(false);
+                _iconsShouldShow = false;
+                ApplyVisibility();
                 StopCarousel();
                 return;
             }
 
-            if (click_box != null) click_box.gameObject.SetActive(true);
+            _iconsShouldShow = true;
+            ApplyVisibility();
             if (red_dot != null) red_dot.gameObject.SetActive(FunctionOpenModel.Instance.HaveRewardCanGet());
 
             _showIndex = 0;

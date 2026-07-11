@@ -31,12 +31,16 @@ namespace Shenxiao.Module.Core.MainUI
         {
             typeof(MainUITopViewBind),
             typeof(MainUIActivityViewBind),
+            typeof(MainUIRankViewBind),
+            typeof(MainUINoticeViewBind), // 通知位(老端 _box_notice 簇,拆自 Secondary;槽位式独立区域 HudNotice)
+            typeof(Shenxiao.Generated.UI.FunctionOpen.FunctionOpenIconBind), // 功能预告框(HudFuncOpen 区域;原 FunctionOpenFlow 单独挂载已退役)
             typeof(MainUISkillViewBind),
             typeof(MainUIChatViewBind),
             typeof(MainUISecondaryViewBind),
             typeof(MainUITaskTeamViewBind),
             typeof(MainUIDownViewBind),
             typeof(MainUIAutoBrushViewBind),
+            typeof(MainUIFoldViewBind), // 折叠太极协调器(总装层),需 Show 才能绑定点击
             typeof(UIJoyStickBind),
         };
 

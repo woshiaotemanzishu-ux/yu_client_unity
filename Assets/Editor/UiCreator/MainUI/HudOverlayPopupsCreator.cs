@@ -11,14 +11,18 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     /// 主界面「弹窗类弹层组」纯代码建树生成器(对标老端 yu_client/h5/bin/resource/game/mainUI/*.json)。
     ///
     /// 本文件共用注册两个条目:
-    ///  ① HudOverlayPopups(弹窗弹层×6):MainUIBuffView(含 MainUIBuffItem 模板) / MainUIFightModeView
+    ///  ① MainUIPopups(独立弹窗×6):MainUIBuffView(含 MainUIBuffItem 模板) / MainUIFightModeView
     ///     (含 MainUIFightModeItem 模板) / MainUIIconBoxView(含既有 ActivityIcon.prefab 模板,嵌套实例
-    ///     不重建)/ OpenDestinyView / TalkBoard / EyouThAdultItem。6 个子根全部默认 inactive,塞进一个
-    ///     bundle prefab;待后续总装把它们嵌进 MainUIModule 作隐藏子视图(不走 ViewManager.Open&lt;T&gt;)。
+    ///     不重建)/ OpenDestinyView / TalkBoard / EyouThAdultItem。
+    ///     【捆包已取消】:原 HudOverlayPopups.prefab 捆包是运行时死重——Buff/FightMode(MainUIOverlay.Toggle)
+    ///     与 IconBox(MainUIIconBoxView.OpenFor)都按址加载各自的独立 prefab,捆包里的嵌套副本永不激活;
+    ///     OpenDestiny/TalkBoard/EyouThAdultItem 三个业务未接线,同样存成独立 prefab 待接线时按址加载。
+    ///     现在 GenerateOverlays 只产出 6 个独立 prefab,全部不进总装;三个新 prefab
+    ///     (OpenDestinyView/TalkBoard/EyouThAdultItem)打真机包前记得跑一次「Addressable 自动分组」。
     ///  ② ArrowComponent(引导箭头):必须是独立 prefab——MainUIGuideManager.cs 用
     ///     GameResPath.GetUIPrefab("mainUI","ArrowComponent") 按名单独加载,故落在
     ///     Assets/Prefabs/UI/MainUI/ArrowComponent.prefab(Addressable 自动分组后 key 精确等于
-    ///     prefabs/ui/mainui/arrowcomponent),不能并入①。该路径下原有一份旧 LayaSceneConverter
+    ///     prefabs/ui/mainui/arrowcomponent)。该路径下原有一份旧 LayaSceneConverter
     ///     自动烘焙的 prefab,本生成器点击后会覆盖为纯代码建树版本(取代碎片化镜像结构)。
     ///
     /// 这 7 个业务类均没有 [UIView] 特性(不像 Login 系列走 ViewManager.Open&lt;T&gt; 独立寻址),
@@ -57,13 +61,19 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     //     _Image1 -> ArrowHeadImage
     public static class HudOverlayPopupsCreator
     {
-        private const string OverlaysPrefabPath = "Assets/Prefabs/UI/MainUI/Overlays/HudOverlayPopups.prefab";
         private const string ArrowPrefabPath = "Assets/Prefabs/UI/MainUI/ArrowComponent.prefab";
         // buff/fightmode 由 MainUIOverlayBootstrap 经 MainUIOverlay.Toggle("mainUI","MainUIxxxView")
-        // 按地址独立加载 —— 必须存成同名独立 prefab 原地覆盖旧转换器版本(地址/GUID 不变),
-        // bundle 里只放它们的嵌套实例(单一事实源)。
+        // 按地址独立加载 —— 必须存成同名独立 prefab 原地覆盖旧转换器版本(地址/GUID 不变)。
         private const string BuffPrefabPath = "Assets/Prefabs/UI/MainUI/MainUIBuffView.prefab";
         private const string FightModePrefabPath = "Assets/Prefabs/UI/MainUI/MainUIFightModeView.prefab";
+        // 收纳盒弹窗:同 Buff/FightMode——独立 prefab 原地覆盖,运行时 MainUIIconBoxView.OpenFor 按地址
+        // prefabs/ui/mainui/mainuiiconboxview 加载(点活动栏 is_box 图标 100/101 时弹出)。
+        private const string IconBoxPrefabPath = "Assets/Prefabs/UI/MainUI/MainUIIconBoxView.prefab";
+        // 未接线三件套:业务代码尚无加载入口,存成独立 prefab 待接线时按址加载(不进总装;
+        // 打真机包前跑一次「Addressable 自动分组」)。
+        private const string OpenDestinyPrefabPath = "Assets/Prefabs/UI/MainUI/OpenDestinyView.prefab";
+        private const string TalkBoardPrefabPath = "Assets/Prefabs/UI/MainUI/TalkBoard.prefab";
+        private const string EyouThAdultItemPrefabPath = "Assets/Prefabs/UI/MainUI/EyouThAdultItem.prefab";
         private const string ActivityIconPrefabPath = "Assets/Prefabs/UI/MainUI/ActivityIcon.prefab";
 
         // ---- 老端源图(GameRes 相对路径;已用 Glob 逐个确认存在于 Assets/GameRes 下) ----
@@ -96,12 +106,12 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             UiRebuildRegistry.Register(new UiCreatorEntry
             {
                 Module = "MainUI",
-                Name = "HudOverlayPopups(弹窗弹层×6)",
-                Note = "MainUIBuffView/MainUIFightModeView/MainUIIconBoxView/OpenDestinyView/TalkBoard/EyouThAdultItem,全部默认 inactive",
+                Name = "MainUIPopups(独立弹窗×6)",
+                Note = "六个弹窗各自独立 prefab、按需按址加载(buff/fightmode 走 MainUIOverlay.Toggle,收纳盒走 OpenFor,其余三个待接线);不进总装",
                 Order = 80,
                 Generate = GenerateOverlays,
                 Preview = PreviewOverlays,
-                PrefabPath = OverlaysPrefabPath,
+                PrefabPath = BuffPrefabPath, // 状态灯代表件(六件各自独立,取 Buff 当代表)
             });
 
             UiRebuildRegistry.Register(new UiCreatorEntry
@@ -119,7 +129,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             {
                 Module = "MainUI",
                 Name = "MainUIBuffView(buff浮层·独立)",
-                Note = "MainUIOverlayBootstrap 按地址加载,原地覆盖旧版;生成 bundle 时会自动重生成",
+                Note = "MainUIOverlayBootstrap 按地址加载,原地覆盖旧版;生成 MainUIPopups 时会自动重生成",
                 Order = 82,
                 Generate = GenerateBuffView,
                 PrefabPath = BuffPrefabPath,
@@ -129,10 +139,20 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             {
                 Module = "MainUI",
                 Name = "MainUIFightModeView(战斗模式浮层·独立)",
-                Note = "MainUIOverlayBootstrap 按地址加载,原地覆盖旧版;生成 bundle 时会自动重生成",
+                Note = "MainUIOverlayBootstrap 按地址加载,原地覆盖旧版;生成 MainUIPopups 时会自动重生成",
                 Order = 83,
                 Generate = GenerateFightModeView,
                 PrefabPath = FightModePrefabPath,
+            });
+
+            UiRebuildRegistry.Register(new UiCreatorEntry
+            {
+                Module = "MainUI",
+                Name = "MainUIIconBoxView(收纳盒弹窗·独立)",
+                Note = "点活动栏收纳盒图标(100 福利大厅/101 寻宝)弹出;MainUIIconBoxView.OpenFor 按地址加载。生成后跑一次「Addressable 自动分组」",
+                Order = 84,
+                Generate = GenerateIconBoxView,
+                PrefabPath = IconBoxPrefabPath,
             });
         }
 
@@ -148,9 +168,33 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             GenerateStandalone(BuildMainUIFightModeView, FightModePrefabPath, "MainUIFightModeView");
         }
 
+        public static void GenerateIconBoxView()
+        {
+            GenerateStandalone(BuildMainUIIconBoxView, IconBoxPrefabPath, "MainUIIconBoxView");
+        }
+
+        // 未接线三件套:与 Buff/FightMode/IconBox 同一 __StandaloneHolder 套路存独立 prefab
+        // (根同样存为激活态,与既有独立弹窗 prefab 现状统一;显隐由接线后的加载方控制)。
+
+        public static void GenerateOpenDestinyView()
+        {
+            GenerateStandalone(BuildOpenDestinyView, OpenDestinyPrefabPath, "OpenDestinyView");
+        }
+
+        public static void GenerateTalkBoard()
+        {
+            GenerateStandalone(BuildTalkBoard, TalkBoardPrefabPath, "TalkBoard");
+        }
+
+        public static void GenerateEyouThAdultItem()
+        {
+            GenerateStandalone(BuildEyouThAdultItem, EyouThAdultItemPrefabPath, "EyouThAdultItem");
+        }
+
         /// <summary>
-        /// 用 bundle 的建树函数产出【独立浮层 prefab】:根节点即视图本体(运行时 MainUIOverlay
-        /// 按地址实例化后直接取根上的 BaseView)。根保持激活,显隐交给 MainUIOverlay.Toggle。
+        /// 用建树函数产出【独立浮层 prefab】:根节点即视图本体(运行时按地址实例化后直接取根上的
+        /// BaseView)。根保持激活(Build* 尾部的 SetActive(false) 在此被统一覆盖,六件口径一致),
+        /// 显隐交给加载方(MainUIOverlay.Toggle / OpenFor / 待接线入口)。
         /// </summary>
         private static void GenerateStandalone(System.Action<Transform> build, string prefabPath, string viewName)
         {
@@ -166,34 +210,23 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         }
 
         // =====================================================================================
-        // ① HudOverlayPopups
+        // ① MainUIPopups(独立弹窗×6,捆包已取消)
         // =====================================================================================
 
         public static void GenerateOverlays()
         {
-            // buff/fightmode 先产出独立 prefab(原地覆盖运行时地址),bundle 里嵌它们的实例,单一事实源。
+            // 捆包已取消:六个弹窗全部各自存独立 prefab,不再建 HudOverlayPopups.prefab、不进总装——
+            // Buff/FightMode/IconBox 运行时本就按址加载独立 prefab(捆包副本是永不激活的死重);
+            // OpenDestiny/TalkBoard/EyouThAdultItem 未接线,同样存独立 prefab 待接。
             GenerateBuffView();
             GenerateFightModeView();
+            GenerateIconBoxView();
+            GenerateOpenDestinyView();
+            GenerateTalkBoard();
+            GenerateEyouThAdultItem();
 
-            RectTransform root = UiCreatorKit.NewRoot("HudOverlayPopups");
-            root.gameObject.SetActive(false);
-
-            GameObject buff = InstantiateExisting(BuffPrefabPath, root);
-            if (buff != null) buff.SetActive(false);
-            GameObject fightMode = InstantiateExisting(FightModePrefabPath, root);
-            if (fightMode != null) fightMode.SetActive(false);
-            BuildMainUIIconBoxView(root);
-            BuildOpenDestinyView(root);
-            BuildTalkBoard(root);
-            BuildEyouThAdultItem(root);
-
-            root.gameObject.SetActive(true);
-            GameObject saved = UiCreatorKit.SavePrefab(root.gameObject, OverlaysPrefabPath);
-
-            Selection.activeObject = saved;
-            EditorGUIUtility.PingObject(saved);
-            Debug.Log("[UiCreator] HudOverlayPopups.prefab 已生成: " + OverlaysPrefabPath +
-                      "(6 个子根默认 inactive;待总装嵌进 MainUIModule。真机包前记得跑 Addressable 自动分组)");
+            Debug.Log("[UiCreator] MainUIPopups:6 个独立弹窗 prefab 已生成(Buff/FightMode/IconBox 原地覆盖运行时地址;" +
+                      "OpenDestinyView/TalkBoard/EyouThAdultItem 为待接线新件)。真机包前记得跑 Addressable 自动分组。");
         }
 
         // ---------------------------------------------------------------- MainUIBuffView
@@ -307,9 +340,11 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             gpItem.pivot = new Vector2(0.5f, 0.5f);
             gpItem.offsetMin = new Vector2(9f, 9f);
             gpItem.offsetMax = new Vector2(-9f, -36f); // 源 anchor top:36 bottom:9 left:9 right:9
+            // 行距归 prefab,原 index*43 代码排版已删(MainUIFightModeView 只按序克隆,布局组按 sibling 顺序排)。
+            // spacing = 43(老端行距)− 40(MainUIFightModeItem 模板高)= 3,恰好也等于源 VBox space:3。
             VerticalLayoutGroup vlg = gpItem.gameObject.AddComponent<VerticalLayoutGroup>();
-            vlg.spacing = 3f; // 源 VBox space:3
-            vlg.childAlignment = TextAnchor.UpperCenter;
+            vlg.spacing = 3f;
+            vlg.childAlignment = TextAnchor.UpperLeft;
             vlg.childControlWidth = false;
             vlg.childControlHeight = false;
             vlg.childForceExpandWidth = false;
@@ -376,6 +411,15 @@ namespace Shenxiao.Editor.UiCreator.MainUI
 
             RectTransform iconCon = UiCreatorKit.NewNode("icon_con", root);
             UiCreatorKit.Place(iconCon, 1.5f, -16.5f, 172f, 105f);
+            // 网格归 prefab:成员图标由 GridLayoutGroup 排(固定 6 列、格 72×72=ActivityIcon.WIDTH/HEIGHT),
+            // 运行时 MainUIIconBoxView 只按序克隆,原 i%6/floor(i/6) 代码排版已删。
+            GridLayoutGroup grid = iconCon.gameObject.AddComponent<GridLayoutGroup>();
+            grid.cellSize = new Vector2(ActivityIcon.WIDTH, ActivityIcon.HEIGHT);
+            grid.spacing = Vector2.zero;
+            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = 6;
+            grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
+            grid.childAlignment = TextAnchor.UpperLeft;
 
             Image arrow = Img("arrow", root, -69.5f, 19f, 50f, 30f, IMG_ICONBOX_ARROW, UiCreatorKit.Palette.BtnPrimary);
             arrow.rectTransform.localScale = new Vector3(1f, -1f, 1f); // 源 scaleY:-1
@@ -401,7 +445,9 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private static void BuildOpenDestinyView(Transform bundleRoot)
         {
             RectTransform root = UiCreatorKit.NewNode("OpenDestinyView", bundleRoot);
-            UiCreatorKit.Place(root, 0f, 0f, 867f, 1321f); // 源画布本身超出 720x1280(全屏出血图),按原尺寸溢出四边
+            // root 收成实际内容占位(中央横幅 734×394 + 标题/文案/底部提示,含 y-345..+175 的散布件):
+            // 源画布 867×1321 是出血遗留,可见内容根本不是全屏;真正要盖全屏的只有点击关闭捕获层(见下)。
+            UiCreatorKit.Place(root, 0f, 0f, 740f, 700f);
             var view = root.gameObject.AddComponent<OpenDestinyView>();
 
             // bg_img/icon_img/circule_img 无静态皮肤(bg_img 运行时经 SetOutsideImageSprite 换 uisc_002;
@@ -441,9 +487,10 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             Image hintIcon = Img("HintIcon", root, -81f, -255.5f, 40f, 40f, IMG_DESTINY_HINT, UiCreatorKit.Palette.BtnSecond);
             hintIcon.SetNativeSize();
 
-            // _img_click: 全屏点击关闭捕获层,无视觉皮肤,透明但可点击(与 LoginPanel/RoleCreate 里
-            // 透明输入框底图同一套约定:纯命中体,真实视觉由 bg_img/title_img 等承担)。
-            Image imgClick = ImgFull("FullScreenCloseCatcher", root, null, new Color(1f, 1f, 1f, 0f)); // 老端: _img_click
+            // _img_click: 点击关闭捕获层,无视觉皮肤,透明但可点击(纯命中体,真实视觉由 bg_img/title_img 承担)。
+            // 功能上要盖全屏(点空白任意处关闭);root 已收成内容占位 → 不能再 Stretch 跟随 root,
+            // 改绝对 720×1280 中心锚(设计画布即全屏,同 FlowerEffectView 的处理)。
+            Image imgClick = Img("FullScreenCloseCatcher", root, 0f, 0f, UiCreatorKit.DesignWidth, UiCreatorKit.DesignHeight, null, new Color(1f, 1f, 1f, 0f)); // 老端: _img_click
             imgClick.raycastTarget = true;
 
             view.bg_img = bgImg;
@@ -710,38 +757,36 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         {
             if (!Application.isPlaying)
             {
-                EditorUtility.DisplayDialog("预览 HudOverlayPopups",
+                EditorUtility.DisplayDialog("预览 MainUIPopups",
                     "请先进入 Play 模式(主界面已起、UI 层已初始化)再点预览。\n\n" +
-                    "这 6 个视图目前没有 [UIView] 特性(总装前不经 ViewManager.Open<T> 单独寻址)," +
-                    "预览改为直接实例化最新 prefab + 手动 Show() 其下 6 个业务视图。",
+                    "这 6 个视图目前没有 [UIView] 特性(不经 ViewManager.Open<T> 单独寻址;捆包已取消)," +
+                    "预览改为把 6 个独立 prefab 各自实例化到 Popup 层 + 手动 Show()。",
                     "好");
                 return;
             }
 
-            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(OverlaysPrefabPath);
-            if (prefab == null)
-            {
-                EditorUtility.DisplayDialog("预览 HudOverlayPopups", "尚未生成:\n" + OverlaysPrefabPath, "好");
-                return;
-            }
-
             Transform layer = ViewManager.GetLayer(UILayer.Popup);
-            GameObject go = Object.Instantiate(prefab, layer);
-            go.name = "HudOverlayPopups(Preview)";
+            InstantiateAndShow<MainUIBuffView>(BuffPrefabPath, layer);
+            InstantiateAndShow<MainUIFightModeView>(FightModePrefabPath, layer);
+            InstantiateAndShow<MainUIIconBoxView>(IconBoxPrefabPath, layer);
+            InstantiateAndShow<OpenDestinyView>(OpenDestinyPrefabPath, layer);
+            InstantiateAndShow<TalkBoard>(TalkBoardPrefabPath, layer);
+            InstantiateAndShow<EyouThAdultItem>(EyouThAdultItemPrefabPath, layer);
 
-            ShowIfPresent<MainUIBuffView>(go);
-            ShowIfPresent<MainUIFightModeView>(go);
-            ShowIfPresent<MainUIIconBoxView>(go);
-            ShowIfPresent<OpenDestinyView>(go);
-            ShowIfPresent<TalkBoard>(go);
-            ShowIfPresent<EyouThAdultItem>(go);
-
-            Debug.Log("[UiCreator] HudOverlayPopups 预览实例已生成并逐个 Show(),用完手动删除该实例。");
+            Debug.Log("[UiCreator] MainUIPopups 预览:6 个独立弹窗已各自实例化到 Popup 层并 Show(),用完手动删除这些实例。");
         }
 
-        private static void ShowIfPresent<T>(GameObject root) where T : BaseView
+        private static void InstantiateAndShow<T>(string prefabPath, Transform layer) where T : BaseView
         {
-            T view = root.GetComponentInChildren<T>(true);
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null)
+            {
+                Debug.LogWarning("[UiCreator] 预览跳过,尚未生成: " + prefabPath);
+                return;
+            }
+            GameObject go = Object.Instantiate(prefab, layer);
+            go.name = typeof(T).Name + "(Preview)";
+            T view = go.GetComponentInChildren<T>(true);
             if (view != null) view.Show();
         }
 

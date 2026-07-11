@@ -144,6 +144,10 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         {
             // 整棵树在 root 未激活时构建(对标 Login 样板,避免子节点 OnEnable 早于建树完成)。
             RectTransform root = UiCreatorKit.NewRoot("HudOverlayCombat");
+            // root 收成【居中分组把手】(不再全屏,免得编辑器里一个全屏矩形挡操作):六个弹层子根各自有界、
+            // 全部中心锚(=锚屏幕中心),位置不受 root 尺寸影响;拖此根=整组平移。唯一要盖全屏的
+            // FlowerEffectView 改为绝对 720×1280(本工程 UI 全按 720×1280 设计画布绝对值编排,等效全屏)。
+            UiCreatorKit.Place(root, 0f, 0f, 260f, 160f);
             root.gameObject.SetActive(false);
 
             // 六个子视图各自独立 BaseView,建完各自关掉(事件驱动弹层默认不显示),
@@ -370,7 +374,9 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private static RectTransform BuildFlowerEffect(Transform parent)
         {
             RectTransform root = UiCreatorKit.NewNode("FlowerEffectView", parent);
-            UiCreatorKit.Stretch(root); // 老端 top/bottom/left/right=0,mouseThrough,铺满全屏纯特效容器
+            // 老端 top/bottom/left/right=0 铺满全屏纯特效容器;bundle 根已收成居中把手,不能再用 Stretch
+            //(会跟着把手缩小),改绝对 720×1280 中心锚 —— 设计画布即全屏,覆盖范围与原 Stretch 等效。
+            UiCreatorKit.Place(root, 0f, 0f, UiCreatorKit.DesignWidth, UiCreatorKit.DesignHeight);
             var view = root.gameObject.AddComponent<FlowerEffectView>();
 
             RectTransform groupEff = UiCreatorKit.NewNode("EffectAnchorGroup", root); // 老端: _group_eff

@@ -22,18 +22,22 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     /// SecondaryView 的 sizeDelta 缩放),pivot 取自身左上角(对齐老端默认 anchorX=0,anchorY=0),
     /// anchoredPosition = (老端x, -老端y)。SecondaryView 更深的子孙节点则改用常规
     /// UiCreatorKit.Place() 中心锚摆位(老端 x/y/pivot 换算成"相对父矩形中心"的 cx/cy)。
-    /// FuncBoardView / MainUIMarriageItem / GiftPushIcon 三个独立子根本身直接用 Place() 摆在
-    /// 720×1280 设计画布下(它们不受 SecondaryView 的底锚规则约束)。
+    /// root 已收成【底部散布带】(全宽×830,不再全屏);FuncBoardView / MainUIMarriageItem / GiftPushIcon
+    /// 三个独立子根改用 PlaceAboveBottom 锚屏幕底边(屏幕位置与原 720×1280 画布 Place() 完全一致)。
     ///
     /// 数据来源:运行时快照 page_snapshot_MainUISecondaryView_*.json / page_snapshot_FuncBoardView_*.json
-    /// (57/6 节点,含已解析好的 x/y/globalBounds)+ 老端场景 JSON(resource/game/mainUI/*.json,
-    /// 含 MainUISecondaryView 里快照阶段已被业务代码 reparent 掉、快照里看不到的 _box_right 原始位置)。
+    /// (57/6 节点,含已解析好的 x/y/globalBounds)+ 老端场景 JSON(resource/game/mainUI/*.json)。
+    /// _box_right 不再按"reparent 前原始位置"建:老端运行时会把它 reparent 到父层(right=0,centerY=250),
+    /// 现直接按这个【运行时终态】建成 MainUISecondaryView 的兄弟节点(挂 HudSecondary 根下),
+    /// MainUISecondaryView.OnInit 的搬家代码已删。
+    /// 左/右图标簇改【槽位式】(同 HudNoticeCreator):_box_left 下 4 槽、_box_right 下 8 槽,
+    /// 槽位位置=旧运行时 GetVisiblePos 公式的等价终态、全烤 prefab 可拖,运行时按序填。
     /// </summary>
     // 命名对照(Laya风格 -> 语义化英文):
     //   _box_left                -> LeftIconSlot
     //   _box_auto_effect         -> AutoStateEffectSlot
     //   _box_right               -> RightIconSlot
-    //   _box_notice              -> NoticeIconSlot
+    //   _box_notice              -> (已拆到 HudNotice.prefab / HudNoticeCreator,本区不再建)
     //   _box_god                 -> GodSkillIconSlot
     //   _gp_t_map                -> TreasureMapEffectSlot
     //   _img_tt_record           -> TtRecordButton
@@ -127,6 +131,11 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private const string TPL_ITEM_INFO_ITEM = "Assets/Prefabs/UI/Common/ItemInfoItem.prefab";
         private const string TPL_SKILL_ITEM_GOD = "Assets/Prefabs/UI/MainUI/MainUISkillItemGod.prefab";
 
+        // 槽位样例图候选(仅设计期可视,运行时被 ClearDesignTimeSampleIcons 清掉;
+        // 生成时按顺序取第一个存在于 Assets/GameRes/resource/game/icon/texture/ 的)。
+        private static readonly string[] RightSlotSampleCandidates = { "3301.png", "2820.png", "6210.png", "137.png", "621.png" };
+        private static readonly string[] LeftSlotSampleCandidates = { "159.png", "158.png", "151_1.png" };
+
         [InitializeOnLoadMethod]
         private static void Register()
         {
@@ -145,6 +154,13 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         public static void Generate()
         {
             RectTransform hudRoot = UiCreatorKit.NewRoot("HudSecondary");
+            // root 收成【底部散布带】(全宽×830,盖住二级散布件 + 右侧功能列),不再全屏;
+            // 所有子根一律锚屏幕底边/底带,root 高度只是编辑器观感,改它不影响任何子件位置。
+            hudRoot.anchorMin = new Vector2(0f, 0f);
+            hudRoot.anchorMax = new Vector2(1f, 0f);
+            hudRoot.pivot = new Vector2(0.5f, 0f);
+            hudRoot.sizeDelta = new Vector2(0f, 830f);
+            hudRoot.anchoredPosition = Vector2.zero;
             hudRoot.gameObject.SetActive(false);
 
             BuildSecondaryView(hudRoot);
@@ -177,9 +193,17 @@ namespace Shenxiao.Editor.UiCreator.MainUI
 
             // ---------- 直接子节点(child 顺序对标老端 json 的 child 数组 = 渲染顺序)----------
 
+            // 容器收成实际矩形(老端是 0×0 标记点、槽位悬挂在原点外——编辑器里选不中/看不到框):
+            // 4 槽横排(72+5 间距)→ 303×72,屏幕位 (7..310, 498..570),与旧 0×0 悬挂时的槽位完全重合。
             RectTransform boxLeft = UiCreatorKit.NewNode("LeftIconSlot", root); // 老端: _box_left
-            PlaceBottom(boxLeft, 7f, -420f, 0f, 0f);
+            PlaceBottom(boxLeft, 7f, -492f, 303f, 72f);
             view._box_left = boxLeft;
+            // 【槽位基线】左簇 4 个空槽(容器内部坐标,左上锚):横排、间距 72+5。槽位置全在 prefab 可拖,
+            // 运行时 MainUISecondaryView 按序填。
+            for (int i = 0; i < 4; i++)
+            {
+                BuildIconSlot(boxLeft, i, i * (72f + 5f), 0f, new Vector2(0f, 1f), i == 0 ? LeftSlotSampleCandidates : null);
+            }
 
             view._box_help = BuildBoxHelp(root, view);
 
@@ -201,16 +225,35 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             view._box_old_outline_exp = BuildOldOutlineExp(root, view);
             view._box_old_outline_exp.gameObject.SetActive(false); // 老端 json 同样默认 visible:false,且与 _box_outline_exp 互斥(RefOutlineExp 里两者手动同步)
 
-            // _box_right:老端场景里紧跟在 _box_old_outline_exp 后面(right=15,y=-68,0x0 标记点)。
-            // 运行时 MainUISecondaryView.OnInit 会把它整体 reparent 到 SecondaryView 的父层
-            // (right=0,centerY=250),这里只按老端【reparent 前】的原始位置建出来即可。
-            RectTransform boxRight = UiCreatorKit.NewNode("RightIconSlot", root); // 老端: _box_right
-            PlaceBottom(boxRight, 705f, -68f, 0f, 0f);
+            // _box_right:老端场景里是 SecondaryView 的子节点(right=15,y=-68,0x0 标记点),运行时
+            // MainUISecondaryView.OnInit 曾把它整体 reparent 到 SecondaryView 的父层(right=0,centerY=250)。
+            // 现直接按【运行时终态】烤进 prefab:建成 MainUISecondaryView 的兄弟节点(挂 hudRoot 下),
+            // 右缘锚定、centerY-250(Laya centerY 向下为正 → Unity y=-250),运行时不再搬家/改锚;
+            // Bind 字段照常回填(EnsureBound 只查引用非空,不管层级)。
+            RectTransform boxRight = UiCreatorKit.NewNode("RightIconSlot", hudRoot); // 老端: _box_right
+            // 容器收成实际矩形(老端是 0×0 标记点):右列入口图原图是 114×64 横条(大战/副本/竞技…,老端对
+            // 右列专门按原图尺寸显示,一刀切 72×72 会把横条压扁——这就是"进游戏被压缩"的根因),
+            // 槽按真实横条尺寸建:2 列×6 行 = 228×384,右缘锚、底距屏幕底 390(首图标底边=老终态 y890)。
+            boxRight.anchorMin = new Vector2(1f, 0f);
+            boxRight.anchorMax = new Vector2(1f, 0f);
+            boxRight.pivot = new Vector2(1f, 0f);
+            boxRight.sizeDelta = new Vector2(228f, 384f);
+            boxRight.anchoredPosition = new Vector2(0f, 390f);
             view._box_right = boxRight;
+            // 【槽位基线】右簇 8 个 114×64 空槽(容器内部坐标,右下锚):第一列 6 个从容器底往上排,
+            // 第 7、8 个在左边第二列。槽位置/尺寸全在 prefab 可拖(图标克隆体撑满所在槽,槽多大图多大)。
+            for (int i = 0; i < 8; i++)
+            {
+                BuildIconSlot(boxRight, i,
+                    -(Mathf.Floor(i / 6f) * 114f),
+                    (i % 6) * 64f,
+                    new Vector2(1f, 0f),
+                    i == 0 ? RightSlotSampleCandidates : null,
+                    114f, 64f);
+            }
 
-            RectTransform boxNotice = UiCreatorKit.NewNode("NoticeIconSlot", root); // 老端: _box_notice
-            PlaceBottom(boxNotice, 705f, -514f, 0f, 0f);
-            view._box_notice = boxNotice; // 右列 ActivityIcon 容器,运行时由 ActivityIconManager 动态摆放,内容留空
+            // 老端 _box_notice「通知位」图标簇已拆到独立区域 HudNotice.prefab(见 HudNoticeCreator,槽位式),
+            // 本区不再建 NoticeIconSlot 节点。
 
             RectTransform boxGod = UiCreatorKit.NewNode("GodSkillIconSlot", root); // 老端: _box_god
             PlaceBottom(boxGod, 525f, -170f, 80f, 80f);
@@ -239,6 +282,16 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             view._tpl_MainUISkillItemGod = AssetDatabase.LoadAssetAtPath<GameObject>(TPL_SKILL_ITEM_GOD);
         }
 
+        /// <summary>浮层子根专用:锚屏幕底边(=root 底部散布带的底边)、中心轴心摆位——x=相对水平中线的偏移,
+        /// bottomUp=节点中心距底边距离。统一锚底后,root 高度可随意调而不影响任何子件屏幕位置。</summary>
+        private static void PlaceAboveBottom(RectTransform rt, float x, float bottomUp, float w, float h)
+        {
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(w, h);
+            rt.anchoredPosition = new Vector2(x, bottomUp);
+        }
+
         /// <summary>SecondaryView 专用:子节点锚定在父矩形【左下角固定点】(不随父 sizeDelta 缩放),
         /// pivot 取自身左上角(对齐老端默认 anchorX=0,anchorY=0),anchoredPosition=(老端x, -老端y)。</summary>
         private static void PlaceBottom(RectTransform rt, float x, float layaY, float w, float h)
@@ -247,6 +300,30 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             rt.pivot = new Vector2(0f, 1f);
             rt.sizeDelta = new Vector2(w, h);
             rt.anchoredPosition = new Vector2(x, -layaY);
+        }
+
+        /// <summary>建一个 72×72 空槽(左上锚/左上枢轴,anchoredPosition 直接取旧运行时公式的等价终态值;
+        /// 槽位置全在 prefab 可拖,运行时 MainUISecondaryView 按序填)。sampleCandidates 非空时给槽放一个
+        /// Stretch 填满的 Sample 样例图(仅设计期可视,运行时被 ClearDesignTimeSampleIcons 清掉);
+        /// 候选图都不存在则不建 Sample(槽保持空,不影响运行时填充)。</summary>
+        private static void BuildIconSlot(RectTransform parent, int index, float x, float y, Vector2 anchorPivot,
+            string[] sampleCandidates, float w = 72f, float h = 72f)
+        {
+            RectTransform slot = UiCreatorKit.NewNode("Slot_" + index, parent);
+            slot.anchorMin = slot.anchorMax = slot.pivot = anchorPivot; // 左簇左上锚、右簇右下锚(容器内部坐标)
+            slot.sizeDelta = new Vector2(w, h);
+            slot.anchoredPosition = new Vector2(x, y);
+            if (sampleCandidates == null) return;
+
+            foreach (string candidate in sampleCandidates)
+            {
+                string rel = "resource/game/icon/texture/" + candidate;
+                if (!System.IO.File.Exists("Assets/GameRes/" + rel)) continue;
+                Image sample = UiCreatorKit.NewImage("Sample", slot);
+                UiCreatorKit.Stretch(sample.rectTransform);
+                UiCreatorKit.TrySetSprite(sample, rel, UiCreatorKit.Palette.BtnNeutral);
+                return;
+            }
         }
 
         // ---- _box_help(168,-21 55x55): 帮助按钮 + 协助提示气泡(默认隐藏) ----
@@ -517,8 +594,9 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private static void BuildFuncBoardView(Transform hudRoot)
         {
             RectTransform root = UiCreatorKit.NewNode("FuncBoardView", hudRoot);
-            // 老端无固定驻点位置(靠 SetData 时按目标图标屏幕坐标现场摆放),这里给一个居中偏上的起步默认位。
-            UiCreatorKit.Place(root, 0f, 300f, 201f, 59f);
+            // 老端无固定驻点位置(靠 SetData 时按目标图标屏幕坐标现场摆放),这里给一个居中偏上的起步默认位
+            //(root 已收成底部散布带 → 改锚带底,距底 940 = 原屏幕 y340,位置不变)。
+            PlaceAboveBottom(root, 0f, 940f, 201f, 59f);
 
             var view = root.gameObject.AddComponent<FuncBoardView>();
 
@@ -548,8 +626,8 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private static void BuildMarriageItem(Transform hudRoot)
         {
             RectTransform root = UiCreatorKit.NewNode("MainUIMarriageItem", hudRoot);
-            // 运行态参考坐标(老端 root 552,478 178x71,720x1280 舞台换算成中心锚)。
-            UiCreatorKit.Place(root, 281f, 126.5f, 178f, 71f);
+            // 运行态参考坐标(老端 root 552,478 178x71;root 已收成底部散布带 → 锚带底,距底 766.5 = 原屏幕 y513.5)。
+            PlaceAboveBottom(root, 281f, 766.5f, 178f, 71f);
 
             var view = root.gameObject.AddComponent<MainUIMarriageItem>();
 
@@ -567,8 +645,8 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         {
             RectTransform root = UiCreatorKit.NewNode("GiftPushIcon", hudRoot);
             // 老端里这是被其它功能面板(装备洗练/幻兽/秘轮…)各自的 giftIcon 容器复用的挂件,
-            // 本身无固定驻屏坐标;这里放在设计画布中心作为起步默认位,供后续挂到具体面板时再手调。
-            UiCreatorKit.Place(root, 0f, 0f, 72f, 72f);
+            // 本身无固定驻屏坐标;起步默认位=屏幕中心(root 已收成底部散布带 → 锚带底,距底 640)。
+            PlaceAboveBottom(root, 0f, 640f, 72f, 72f);
 
             // GiftPushIcon 没有业务类(纯 Bind);GiftPushIconBind 是具体类、继承自可用的 BaseView,
             // 可以直接挂 Bind 本身做结构承载(runtime 若要用需另写业务子类或直接用 Bind 的 Show()/字段)。

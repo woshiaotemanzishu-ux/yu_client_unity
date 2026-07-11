@@ -6,6 +6,7 @@ using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Dialogue;
+using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Scene;
 
 namespace Shenxiao.Module.Core.Tasks
@@ -130,6 +131,7 @@ namespace Shenxiao.Module.Core.Tasks
             }
 
             TaskModel.Instance.SetTaskLists(canTaskList, hasReceiveTaskList, allTaskList);
+            RefreshReincarnationIcon();
             GameLog.Info("Task", "30000 tasks can={0} receive={1} all={2}", canCount, receiveCount, allTaskList.Count);
             EventDispatcher.Emit(GlobalEvent.EVT_TASK_LIST_UPDATED);
             TryContinueAutoTaskAfterList();
@@ -140,9 +142,20 @@ namespace Shenxiao.Module.Core.Tasks
         {
             ReadTaskVo(r, out int taskId, out List<TaskVo> tips, true);
             TaskModel.Instance.UpdateTask(taskId, tips);
+            if (TaskModel.Instance.IsReincarnationTask(taskId)) RefreshReincarnationIcon();
             EventDispatcher.Emit(GlobalEvent.EVT_TASK_ONE_UPDATED, taskId);
             EventDispatcher.Emit(GlobalEvent.EVT_TASK_LIST_UPDATED);
             TryContinueAutoTaskAfterOne(taskId);
+        }
+
+        /// <summary>转职图标 130 显隐驱动:有转生类任务则显、否则删(对标老端 TaskController 的 SetReincarnationTaskList→addIcon/deleteIcon(130))。
+        /// 仅接显隐;转生面板/玩法未移植,点击 130 走 MainUIRouter 占位(内部内容待后续)。</summary>
+        private void RefreshReincarnationIcon()
+        {
+            if (TaskModel.Instance.HasReincarnationTask())
+                _ = ActivityIconManager.Instance.AddIconAsync("130");
+            else
+                ActivityIconManager.Instance.DeleteIcon("130");
         }
 
         private void On30005(NetReader r)

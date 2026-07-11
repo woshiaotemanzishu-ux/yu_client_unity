@@ -10,23 +10,17 @@ namespace Shenxiao.Module.Core.MainUI
 {
     /// <summary>
     /// Runtime parity for old-client MainUISecondaryView.LoadSuccess.
-    /// Keep dynamic visibility and _box_right reparenting in the View layer,
-    /// not in generated Bind code or prefab pixel edits.
+    /// 「通知位」图标簇(老端 _box_notice,location_type=6)已拆到独立区域 <see cref="MainUINoticeView"/>
+    /// (HudNotice.prefab),本视图只剩 left/right 两簇——现同样改【槽位式】(模式照抄 MainUINoticeView):
+    /// 布局 100% 归 prefab,_box_left/_box_right 下由美术手摆空槽位,本类只按序把图标填进槽,代码不算坐标;
+    /// _box_right 的最终位置也已直接烤在 prefab(HudSecondary 根下右缘 centerY-250),不再运行时 reparent/搬家。
     /// </summary>
     public sealed class MainUISecondaryView : MainUISecondaryViewBind
     {
-        private const float HGap = 5f;
-        private const float VGap = 5f;
-        private static readonly Vector2 LeftHidePos = new Vector2(-20f, 0f);
-        private static readonly Vector2 RightHidePos = new Vector2(-50f, -40f);
-        private static readonly Vector2 NoticeHidePos = new Vector2(-50f, 315f);
-        private static readonly Vector2 StrengthenIconPos = new Vector2(-249f, 6f);
-
         private readonly Dictionary<string, ActivityIcon> _leftIcons = new Dictionary<string, ActivityIcon>();
         private readonly Dictionary<string, ActivityIcon> _rightIcons = new Dictionary<string, ActivityIcon>();
-        private readonly Dictionary<string, ActivityIcon> _noticeIcons = new Dictionary<string, ActivityIcon>();
-        // 太极收起态(对标老端 SecondaryView 也消费 CHANGE_ACTIVITY_STATE):折叠时本视图三簇全收,
-        // 且周期刷新不得把它们弹回(见 RefreshIconPos 守卫)。
+        // 太极收起态(对标老端 SecondaryView 也消费 CHANGE_ACTIVITY_STATE):折叠时两簇容器整体收起,
+        // 且周期刷新不得把它们弹回(见 RefreshSlotsAsync 守卫)。
         private bool _activityFolded;
 
         protected override void OnInit()
@@ -68,18 +62,30 @@ namespace Shenxiao.Module.Core.MainUI
             RouteClick(_img_rpr, "redpacket_rain");
             RouteClick(_img_tt_record, "tt_record");
 
-            // Old client removes _box_right from Secondary, adds it to Main layer,
-            // then applies right=0 and centerY=250.
-            // Laya centerY is positive downward; LayaRectMath maps that to
-            // Unity anchoredPosition.y = -250 when pivot.y is 0.5.
-            if (_box_right != null)
+            // _box_right 最终位置已直接烤在 prefab(HudSecondary 根下右缘 centerY-250),不再运行时搬家/改锚——
+            // 注意它在 prefab 里是 MainUISecondaryView 的兄弟节点,Bind 字段照常引用。
+            ClearDesignTimeSampleIcons();
+        }
+
+        /// <summary>清掉 prefab 里为“设计期可视化”塞进各槽的样例图标(编辑器可见、便于摆槽位;运行时清掉换真图标)。</summary>
+        private void ClearDesignTimeSampleIcons()
+        {
+            ClearSampleIcons(_box_left);
+            ClearSampleIcons(_box_right);
+        }
+
+        private static void ClearSampleIcons(RectTransform container)
+        {
+            if (container == null) return;
+            for (int s = 0; s < container.childCount; s++)
             {
-                _box_right.SetParent(transform.parent, false);
-                _box_right.anchorMin = new Vector2(1f, 0.5f);
-                _box_right.anchorMax = new Vector2(1f, 0.5f);
-                _box_right.pivot = new Vector2(1f, 0.5f);
-                _box_right.anchoredPosition = new Vector2(0f, -250f);
-                _box_right.gameObject.SetActive(true);
+                Transform slot = container.GetChild(s);
+                for (int i = slot.childCount - 1; i >= 0; i--)
+                {
+                    GameObject c = slot.GetChild(i).gameObject;
+                    c.SetActive(false);
+                    Destroy(c);
+                }
             }
         }
 
@@ -98,7 +104,7 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
             EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
             EventDispatcher.On<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
-            RefreshActivityIconAsync();
+            RefreshSlotsAsync();
         }
 
         protected override void OnHide()
@@ -111,255 +117,152 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
         }
 
-        private void OnOpenConditionChanged()
-        {
-            RefreshActivityIconAsync();
-        }
+        // 增/删任一活动图标 → 两簇按顺序整体重填槽位(槽位式无增量,全量重填最简单稳妥,两簇常年个位数开销可忽略)。
+        private void OnActivityIconAdd(string iconType, int locationType) => RefreshSlotsAsync();
+        private void OnActivityIconDelete(string iconType) => RefreshSlotsAsync();
+        private void OnOpenConditionChanged() => RefreshSlotsAsync();
 
-        /// <summary>太极收起/展开:本视图 left/right/notice 三簇随之收放(对标老端 SecondaryView.ShowAnimation)。
-        /// 折叠态由 RefreshIconPos 守卫保持(防周期刷新弹回)。</summary>
-        private void OnActivityFold(bool folded)
-        {
-            _activityFolded = folded;
-            if (folded)
-            {
-                SetSecondaryIconsVisible(false);
-            }
-            else
-            {
-                RefreshAllIcons(); // 展开:按常规重新布局并显示
-            }
-        }
-
-        private void SetSecondaryIconsVisible(bool visible)
-        {
-            foreach (ActivityIcon item in _leftIcons.Values) if (item != null) item.SetVisible(visible);
-            foreach (ActivityIcon item in _rightIcons.Values) if (item != null) item.SetVisible(visible);
-            foreach (ActivityIcon item in _noticeIcons.Values) if (item != null) item.SetVisible(visible);
-        }
-
-        private async void RefreshActivityIconAsync()
-        {
-            await ActivityIconManager.Instance.RefreshDefaultIconsAsync();
-            if (this == null) return;
-            foreach (KeyValuePair<string, ActivityIconManager.IconInfo> kv in ActivityIconManager.Instance.IconInfoByType)
-            {
-                int locationType = kv.Value?.Data?.LocationType ?? 0;
-                if (ShouldOwnSecondaryIcon(kv.Key, locationType))
-                {
-                    CreateSecondaryIcon(kv.Key, locationType);
-                }
-            }
-            RefreshAllIcons();
-        }
-
-        private void OnActivityIconAdd(string iconType, int locationType)
-        {
-            if (!ShouldOwnSecondaryIcon(iconType, locationType)) return;
-            CreateSecondaryIcon(iconType, locationType);
-            RefreshAllIcons();
-        }
-
-        private void OnActivityIconDelete(string iconType)
-        {
-            if (DeleteIcon(_leftIcons, iconType)) { RefreshAllIcons(); return; }
-            if (DeleteIcon(_rightIcons, iconType)) { RefreshAllIcons(); return; }
-            if (DeleteIcon(_noticeIcons, iconType)) RefreshAllIcons();
-        }
-
+        // 图标内容更新(红点/倒计时等):只刷该图标自身,不动槽位排布。
         private void OnActivityIconUpdate(string iconType)
         {
             ActivityIcon icon = GetIcon(iconType);
-            if (icon == null) return;
-            icon.Refresh();
-            RefreshAllIcons();
+            if (icon != null) icon.Refresh();
         }
 
-        private void CreateSecondaryIcon(string iconType, int locationType)
+        /// <summary>太极收起/展开(全局事件,由 MainUIFoldView 广播):容器级收放 left/right 两簇;展开时补填一次
+        /// (对标老端 SecondaryView.ShowAnimation,照 MainUINoticeView.OnActivityFold 同款收法)。</summary>
+        private void OnActivityFold(bool folded)
         {
-            Dictionary<string, ActivityIcon> owner = GetOwnerDictionary(locationType);
-            RectTransform parent = GetOwnerParent(locationType);
-            if (owner == null || parent == null) return;
-            if (owner.TryGetValue(iconType, out ActivityIcon existing))
+            _activityFolded = folded;
+            if (_box_left != null) _box_left.gameObject.SetActive(!folded);
+            if (_box_right != null) _box_right.gameObject.SetActive(!folded);
+            if (!folded) RefreshSlotsAsync();
+        }
+
+        private async void RefreshSlotsAsync()
+        {
+            await ActivityIconManager.Instance.RefreshDefaultIconsAsync();
+            if (this == null || _activityFolded) return;
+            FillSlots(_box_left, _leftIcons, ActivityIconManager.LocationType.Left);
+            FillSlots(_box_right, _rightIcons, ActivityIconManager.LocationType.Right);
+        }
+
+        /// <summary>把该簇该显示的图标按顺序填进容器下的槽位(槽位位置由 prefab 决定,代码不算坐标)。</summary>
+        private void FillSlots(RectTransform container, Dictionary<string, ActivityIcon> iconByType, int locationType)
+        {
+            if (container == null) return;
+
+            List<string> types = CollectOwnedIconTypes(locationType);
+            int slotCount = container.childCount;
+            int shown = Mathf.Min(slotCount, types.Count);
+
+            // 释放不再显示的图标(超出槽位容量的、或已关闭的活动)。
+            var shownSet = new HashSet<string>();
+            for (int i = 0; i < shown; i++) shownSet.Add(types[i]);
+            var toRemove = new List<string>();
+            foreach (KeyValuePair<string, ActivityIcon> kv in iconByType)
+                if (!shownSet.Contains(kv.Key)) toRemove.Add(kv.Key);
+            for (int i = 0; i < toRemove.Count; i++)
             {
-                existing.Refresh();
-                return;
+                if (iconByType[toRemove[i]] != null) Destroy(iconByType[toRemove[i]].gameObject);
+                iconByType.Remove(toRemove[i]);
             }
 
+            // 逐槽填:前 shown 个槽放图标,其余槽隐藏。
+            for (int i = 0; i < slotCount; i++)
+            {
+                RectTransform slot = container.GetChild(i) as RectTransform;
+                if (slot == null) continue;
+                if (i < shown)
+                {
+                    ActivityIcon icon = GetOrCreateIcon(iconByType, container, types[i]);
+                    if (icon != null) PlaceIconInSlot(icon, slot);
+                    slot.gameObject.SetActive(true);
+                }
+                else
+                {
+                    slot.gameObject.SetActive(false); // 空槽隐藏
+                }
+            }
+
+            if (types.Count > slotCount)
+                GameLog.Warn("MainUI", "{0}簇图标 {1} 个 > 槽位 {2} 个,超出的 {3} 个未显示(去 HudSecondary.prefab 里对应容器下多摆几个槽)",
+                    locationType == ActivityIconManager.LocationType.Left ? "左" : "右",
+                    types.Count, slotCount, types.Count - slotCount);
+        }
+
+        // 该簇该认领的图标类型(左簇 loc4 / 右簇 loc5),按 pos_index 稳定排序作为填充顺序。
+        // 排除项:158(变强,归聊天条)、241 族(老端强制搬活动网格,见 MainUIActivityView.IsForcedFourth)、
+        // 612 前缀(限时抢购:老端是"藏到 hide_pos+缩小+透明"的假隐藏,现直接不认领——与 MainUIActivityView/
+        // MainUINoticeView 的 612 处理口径一致,数据仍在 Manager 里供聊天条商城入口用)。
+        private List<string> CollectOwnedIconTypes(int locationType)
+        {
+            var list = new List<string>();
+            foreach (KeyValuePair<string, ActivityIconManager.IconInfo> kv in ActivityIconManager.Instance.IconInfoByType)
+            {
+                if (kv.Value?.Data == null) continue;
+                if (kv.Value.Data.LocationType != locationType) continue;
+                if (kv.Key == "158" || kv.Key == "241" || kv.Key == "241@1@0") continue;
+                if (!string.IsNullOrEmpty(kv.Key) && kv.Key.StartsWith("612")) continue;
+                list.Add(kv.Key);
+            }
+            list.Sort(CompareIconType);
+            return list;
+        }
+
+        private ActivityIcon GetOrCreateIcon(Dictionary<string, ActivityIcon> iconByType, RectTransform container, string iconType)
+        {
+            if (iconByType.TryGetValue(iconType, out ActivityIcon existing) && existing != null)
+            {
+                existing.Refresh();
+                return existing;
+            }
             if (_tpl_ActivityIcon == null)
             {
                 GameLog.Error("MainUI", "Secondary ActivityIcon template missing");
-                return;
+                return null;
             }
 
-            GameObject go = Instantiate(_tpl_ActivityIcon, parent);
+            GameObject go = Instantiate(_tpl_ActivityIcon, container); // 临时父,PlaceIconInSlot 会移进对应槽
             go.SetActive(true);
-
             ActivityIcon item = go.GetComponent<ActivityIcon>();
             if (item == null)
             {
                 GameLog.Error("MainUI", "Secondary ActivityIcon template is not rebound to business script");
                 Destroy(go);
-                return;
+                return null;
             }
-
             item.Show();
             item.SetIconType(iconType);
-            item.SetVisible(false);
-            owner[iconType] = item;
+            item.SetVisible(true);
+            iconByType[iconType] = item;
+            return item;
         }
 
-        private void RefreshAllIcons()
+        // 撑满所在槽:槽多大图多大,显示尺寸完全由 prefab 的槽控制(修复:横条图标被压进方形模板)。
+        private static void PlaceIconInSlot(ActivityIcon icon, RectTransform slot)
         {
-            // 太极收起态:三簇保持隐藏,周期刷新不得弹回(对标 MainUIActivityView.RefreshIcon 的折叠早退)。
-            if (_activityFolded)
-            {
-                SetSecondaryIconsVisible(false);
-                return;
-            }
-            RefreshIcon(_leftIcons, ActivityIconManager.LocationType.Left);
-            RefreshIcon(_rightIcons, ActivityIconManager.LocationType.Right);
-            RefreshIcon(_noticeIcons, ActivityIconManager.LocationType.Notice);
-        }
-
-        private void RefreshIcon(Dictionary<string, ActivityIcon> source, int locationType)
-        {
-            if (source == null || source.Count == 0) return;
-
-            List<ActivityIcon> icons = new List<ActivityIcon>();
-            foreach (ActivityIcon item in source.Values)
-            {
-                if (item != null) icons.Add(item);
-            }
-            SortIcons(icons);
-            RefreshIconPos(icons, locationType);
-        }
-
-        private void RefreshIconPos(List<ActivityIcon> icons, int locationType)
-        {
-            int lineMax = GetLineMaxIconNum(locationType);
-            int layoutIndex = 0;
-            foreach (ActivityIcon item in icons)
-            {
-                if (item == null) continue;
-
-                if (Is612Icon(item.IconType))
-                {
-                    Vector2 hidePos = GetHidePos(locationType);
-                    item.SetPosition(hidePos.x, hidePos.y);
-                    item.SetScale(0.5f);
-                    item.SetAlpha(0f);
-                    item.SetVisible(false);
-                    continue;
-                }
-
-                Vector2 pos = GetVisiblePos(item, locationType, lineMax, layoutIndex);
-                if (!IsStrengthenIcon(item.IconType))
-                {
-                    layoutIndex++;
-                }
-
-                item.SetPosition(pos.x, pos.y);
-                item.SetScale(1f);
-                item.SetAlpha(1f);
-                item.SetVisible(true);
-            }
-        }
-
-        private static Vector2 GetVisiblePos(ActivityIcon item, int locationType, int lineMax, int layoutIndex)
-        {
-            if (locationType == ActivityIconManager.LocationType.Left)
-            {
-                return new Vector2(
-                    Mathf.Floor(layoutIndex / (float)lineMax) * (ActivityIcon.WIDTH + HGap),
-                    -(layoutIndex % lineMax) * (ActivityIcon.HEIGHT + VGap) - ActivityIcon.HEIGHT);
-            }
-
-            if (locationType == ActivityIconManager.LocationType.Right)
-            {
-                if (IsStrengthenIcon(item.IconType)) return StrengthenIconPos;
-                return new Vector2(
-                    -ActivityIcon.WIDTH - Mathf.Floor(layoutIndex / (float)lineMax) * ActivityIcon.WIDTH,
-                    -(layoutIndex % lineMax) * ActivityIcon.HEIGHT - ActivityIcon.HEIGHT);
-            }
-
-            return new Vector2(
-                -Mathf.Floor(layoutIndex / (float)lineMax) * (ActivityIcon.WIDTH + HGap) - ActivityIcon.WIDTH,
-                -(layoutIndex % lineMax) * (ActivityIcon.HEIGHT + VGap) - ActivityIcon.HEIGHT);
-        }
-
-        private static int GetLineMaxIconNum(int locationType)
-        {
-            if (locationType == ActivityIconManager.LocationType.Right) return 6;
-            return 1;
+            var rt = (RectTransform)icon.transform;
+            rt.SetParent(slot, false);
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            icon.gameObject.SetActive(true);
         }
 
         private ActivityIcon GetIcon(string iconType)
         {
             if (_leftIcons.TryGetValue(iconType, out ActivityIcon item)) return item;
-            if (_rightIcons.TryGetValue(iconType, out item)) return item;
-            return _noticeIcons.TryGetValue(iconType, out item) ? item : null;
+            return _rightIcons.TryGetValue(iconType, out item) ? item : null;
         }
 
-        private static bool DeleteIcon(Dictionary<string, ActivityIcon> owner, string iconType)
+        private static int CompareIconType(string a, string b)
         {
-            if (owner == null || !owner.TryGetValue(iconType, out ActivityIcon item)) return false;
-            owner.Remove(iconType);
-            if (item != null) Destroy(item.gameObject);
-            return true;
-        }
-
-        private Dictionary<string, ActivityIcon> GetOwnerDictionary(int locationType)
-        {
-            if (locationType == ActivityIconManager.LocationType.Left) return _leftIcons;
-            if (locationType == ActivityIconManager.LocationType.Right) return _rightIcons;
-            if (locationType == ActivityIconManager.LocationType.Notice) return _noticeIcons;
-            return null;
-        }
-
-        private RectTransform GetOwnerParent(int locationType)
-        {
-            if (locationType == ActivityIconManager.LocationType.Left) return _box_left;
-            if (locationType == ActivityIconManager.LocationType.Right) return _box_right;
-            if (locationType == ActivityIconManager.LocationType.Notice) return _box_notice;
-            return null;
-        }
-
-        private static Vector2 GetHidePos(int locationType)
-        {
-            if (locationType == ActivityIconManager.LocationType.Left) return LeftHidePos;
-            if (locationType == ActivityIconManager.LocationType.Right) return RightHidePos;
-            return NoticeHidePos;
-        }
-
-        private static bool ShouldOwnSecondaryIcon(string iconType, int locationType)
-        {
-            if (iconType == "158") return false;
-            return locationType == ActivityIconManager.LocationType.Left
-                   || locationType == ActivityIconManager.LocationType.Right
-                   || locationType == ActivityIconManager.LocationType.Notice;
-        }
-
-        private static bool IsStrengthenIcon(string iconType)
-        {
-            return iconType == "158";
-        }
-
-        private static bool Is612Icon(string iconType)
-        {
-            return !string.IsNullOrEmpty(iconType) && iconType.StartsWith("612");
-        }
-
-        private static void SortIcons(List<ActivityIcon> icons)
-        {
-            icons.Sort(CompareIcon);
-        }
-
-        private static int CompareIcon(ActivityIcon a, ActivityIcon b)
-        {
-            MainUIConfigs.FunctionIconCfg ca = a.Cfg ?? MainUIConfigs.GetFunctionIconCfg(a.IconType);
-            MainUIConfigs.FunctionIconCfg cb = b.Cfg ?? MainUIConfigs.GetFunctionIconCfg(b.IconType);
-            if (ca == null && cb == null) return 0;
+            MainUIConfigs.FunctionIconCfg ca = MainUIConfigs.GetFunctionIconCfg(a);
+            MainUIConfigs.FunctionIconCfg cb = MainUIConfigs.GetFunctionIconCfg(b);
+            if (ca == null && cb == null) return string.CompareOrdinal(a, b);
             if (ca == null) return 1;
             if (cb == null) return -1;
             return ca.PosIndex.CompareTo(cb.PosIndex);

@@ -15,7 +15,7 @@ namespace Shenxiao.Module.Core.MainUI
     /// <summary>
     /// 底部经验条/功能图标条(对标老客户端 MainUIDownView.ts:LoadSuccess + RefreshExpWithoutLevelUp)。
     /// 只还原源码支持的首屏静态态与经验刷新:
-    /// - _img_bg 换底图 uizjmv3_001(对标 LoadSuccess 的 SetTexture("mainUI","uizjmv3_001"))。
+    /// - _img_bg 底图 uizjmv3_001 已烤进 prefab(HudNavBarCreator),不再运行时换图(原对标 LoadSuccess 的 SetTexture 已删)。
     /// - 经验条宽度按 Exp/ExpLim 比例填充(对标 PlayAnim 的 width = max_len * persent,这里去掉补间直接取终值);
     ///   老客户端 max_len 明确写死为 722,转换产物初始宽度不是运行时满宽,这里按旧端常量走。
     /// - _lb_exp 文案 "exp / exp_lim"(对标 onComleted 的 tb.exp + " / " + tb.exp_lim);ExpLim<=0 时 persent=0、
@@ -31,8 +31,8 @@ namespace Shenxiao.Module.Core.MainUI
     {
         // 老客户端 MainUIDownView.ts 明确写死 max_len = 722,经验条目标宽度按它计算。
         private const float EXP_BAR_MAX_WIDTH = 722f;
-        // 图标中心间距(对标 UpdateIconItem 的 SetPosition((index-1)*105, 0)):属布局,留在 View。
-        private const float FUNC_ICON_GAP = 105f;
+        // 功能图标改【槽位式】(同 MainUINoticeView 已验收模式):105 间距等布局烤在 HudNavBar.prefab 的
+        // FuncIconRow 槽位(Slot_*)里,View 只按顺序把图标填进槽,不再算坐标。
 
         // 功能图标配置(两行图标 / 开放判定 / 翻面等级)集中在 MainUIModel(对标老端 Main_Func_Icons /
         // GetMainFuncOpenCond / Turn_Open_lv),本 View 不再自带硬编码二维数组,只消费模型。
@@ -48,11 +48,11 @@ namespace Shenxiao.Module.Core.MainUI
 
         protected override void OnInit()
         {
-            // LoadSuccess uses ResManager.SetTexture, whose old-client path rule maps /texture/ to /other/.
-            _ = ResManager.SetLayaTextureAsync(_img_bg, GameResPath.GetIcon("mainUI", "uizjmv3_001"), nativeSize: false);
+            // 底图 uizjmv3_001 烤在 prefab(HudNavBarCreator),不再运行时换图。
 
             HideUnbackedIndicators();
             HideTemplates();
+            ClearDesignTimeSampleIcons();
             _ = AddExpEffectAsync();
 
             // 翻面按钮点击(对标 _gp_turn 的 turn_btn_fun);_gp_turn 是 Box 无 Graphic,点在可见的 _img_turn 上。
@@ -273,6 +273,22 @@ namespace Shenxiao.Module.Core.MainUI
             }
         }
 
+        /// <summary>清掉 prefab 里为“设计期可视化”塞进各槽的样例图标(编辑器可见、便于摆槽位;运行时清掉换真图标)。</summary>
+        private void ClearDesignTimeSampleIcons()
+        {
+            if (_gp_icon_con == null) return;
+            for (int s = 0; s < _gp_icon_con.childCount; s++)
+            {
+                Transform slot = _gp_icon_con.GetChild(s);
+                for (int i = slot.childCount - 1; i >= 0; i--)
+                {
+                    GameObject c = slot.GetChild(i).gameObject;
+                    c.SetActive(false);
+                    Destroy(c);
+                }
+            }
+        }
+
         /// <summary>
         /// 先确保功能开放表就绪,再按当前 show_type 行 + 开放条件铺图标(对标 UpdateView → UpdateIconItem)。
         /// 表是异步加载;await 后做存活检查(模块释放/对象销毁则不再操作)。
@@ -286,22 +302,31 @@ namespace Shenxiao.Module.Core.MainUI
             BuildFuncIcons();
         }
 
-        /// <summary>对标 UpdateIconItem:遍历当前行,GetMainFuncOpenCond 过的才显示并按 105 间距排布。</summary>
+        /// <summary>对标 UpdateIconItem:遍历当前行,GetMainFuncOpenCond 过的才显示;【槽位式】按顺序填进
+        /// FuncIconRow(_gp_icon_con)下的空槽(槽位位置由 prefab 决定,代码不算坐标,同 MainUINoticeView.FillSlots)。</summary>
         private void BuildFuncIcons()
         {
             MainUIModel.MainFuncIcon[] line = MainUIModel.MainFuncIcons[_showType];
-            int shown = 0;
+            int slotCount = _gp_icon_con != null ? _gp_icon_con.childCount : 0;
+            int open = 0;  // 通过开放判定的图标数(> 槽数时尾部告警)
+            int shown = 0; // 实际放进槽的图标数
             for (int i = 0; i < line.Length; i++)
             {
                 MainUIModel.MainFuncIcon fi = line[i];
                 // 开放判定集中在 MainUIModel.GetMainFuncOpenCond(Role/Bag 恒开,其余查功能开放表)。
                 if (!MainUIModel.GetMainFuncOpenCond(fi.Func)) continue;
+                open++;
 
                 MainFuncIconItemBind item = GetOrCreateFuncIconItem(shown);
                 if (item == null) continue;
 
+                // 槽位放置:图标进槽、继承槽位置(GetChild 越界=槽不够,跳过,尾部统一告警)。
+                RectTransform slot = shown < slotCount ? _gp_icon_con.GetChild(shown) as RectTransform : null;
+                if (slot == null) continue;
+
                 item.gameObject.SetActive(true);
-                SetFuncIconPosition(item, shown * FUNC_ICON_GAP, 0f);
+                PlaceIconInSlot(item, slot);
+                slot.gameObject.SetActive(true);
 
                 // 走 MainFuncIconItem.SetData:它填图标 + 隐红点 + 一次性绑定点击(_clickBound 守卫,
                 // 防 BuildFuncIcons 多次调用叠加监听),点击经 MainUIRouter 用 MainFuncIcon.Res 打开对应面板。
@@ -326,6 +351,18 @@ namespace Shenxiao.Module.Core.MainUI
                 {
                     _funcIconItems[i].gameObject.SetActive(false);
                 }
+            }
+
+            // 多余空槽隐藏(槽位式:槽比图标多 → 隐藏,同 MainUINoticeView.FillSlots)。
+            for (int i = shown; i < slotCount; i++)
+            {
+                _gp_icon_con.GetChild(i).gameObject.SetActive(false);
+            }
+
+            if (open > slotCount)
+            {
+                GameLog.Warn("MainUI", "功能图标 {0} 个 > 槽位 {1} 个,超出的 {2} 个未显示(去 HudNavBar.prefab 的 FuncIconRow 下加槽)",
+                    open, slotCount, open - slotCount);
             }
 
             // 图标重铺后手指目标可能重建/换行,重挂引导。
@@ -388,12 +425,17 @@ namespace Shenxiao.Module.Core.MainUI
             return item;
         }
 
-        private static void SetFuncIconPosition(MainFuncIconItemBind item, float x, float y)
+        // 撑满所在槽:槽多大图多大,显示尺寸完全由 prefab 的槽控制(修复:横条图标被压进方形模板)。
+        private static void PlaceIconInSlot(MainFuncIconItemBind item, RectTransform slot)
         {
-            RectTransform rt = (RectTransform)item.transform;
-            rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
-            rt.pivot = new Vector2(0f, 1f);
-            rt.anchoredPosition = new Vector2(x, -y);
+            var rt = (RectTransform)item.transform;
+            rt.SetParent(slot, false);
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            item.gameObject.SetActive(true);
         }
     }
 }

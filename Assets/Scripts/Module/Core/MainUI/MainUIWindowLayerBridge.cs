@@ -146,7 +146,7 @@ namespace Shenxiao.Module.Core.MainUI
         {
             if (view == null || windowLayer == null) return;
 
-            Transform t = view.transform;
+            Transform t = ResolveCarrier(view.transform, windowLayer);
             if (!Snapshots.ContainsKey(t))
             {
                 Snapshots[t] = new ParentSnapshot
@@ -161,6 +161,24 @@ namespace Shenxiao.Module.Core.MainUI
                 t.SetParent(windowLayer, false);
             }
             t.SetAsLastSibling();
+        }
+
+        /// <summary>
+        /// 搬运单位解析:主界面区域化(有界 root)后,视图节点(MainUITopView/MainUIDownView)是 Stretch
+        /// 填满各自 Hud* 区域根的——把视图节点【单独】搬进全屏 Window 层会让它撑满全屏,中心锚的子内容
+        /// 全部跑到屏幕中央(人物面板开/关后底部导航条跑到屏中的根因)。故搬运单位=区域根(视图节点的
+        /// 直接父级,自带有界锚定,挂到全屏层位置天然不变,即便还原时序出岔也不会跑位)。
+        /// 兜底:父级缺失/已在目标层/本身是全屏 Stretch 容器(模块根、层根——搬它会把整个 HUD 拎走)时,
+        /// 退回搬视图节点自身(兼容旧的全屏壳结构)。
+        /// </summary>
+        private static Transform ResolveCarrier(Transform viewT, Transform windowLayer)
+        {
+            Transform parent = viewT.parent;
+            if (parent == null || parent == windowLayer) return viewT;
+            var prt = parent as RectTransform;
+            if (prt == null) return viewT;
+            if (prt.anchorMin == Vector2.zero && prt.anchorMax == Vector2.one) return viewT; // 全屏容器,不是有界区域根
+            return parent;
         }
 
         private static void ApplyBaseWindowTopState(MainUITopView top)

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoBrush;
@@ -17,6 +17,7 @@ using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Compose;
 using Shenxiao.Module.Core.Dungeon;
 using Shenxiao.Module.Core.Equip;
+using Shenxiao.Module.Core.Festival;
 using Shenxiao.Module.Core.Jjc;
 using Shenxiao.Module.Core.OnHook;
 using Shenxiao.Module.Core.GuBao;
@@ -37,9 +38,32 @@ using Shenxiao.Module.Core.TempleAwaken;
 using Shenxiao.Module.Core.Tasks;
 using Shenxiao.Module.Core.Team;
 using Shenxiao.Module.Core.TransferJob;
-using Shenxiao.Module.Core.Relive;
 using Shenxiao.Module.Core.Vip;
 using Shenxiao.Module.Core.WeekCard;
+using Shenxiao.Module.Core.Compete;
+using Shenxiao.Module.Core.Attention;
+using Shenxiao.Module.Core.Market;
+using Shenxiao.Module.Core.LimitLevelShop;
+using Shenxiao.Module.Core.Eyou;
+using Shenxiao.Module.Core.Boss;
+using Shenxiao.Module.Core.ActivityForeshow;
+using Shenxiao.Module.Core.Banquet;
+using Shenxiao.Module.Core.Kaifu;
+using Shenxiao.Module.Core.AddVipService;
+using Shenxiao.Module.Core.DiamondFight;
+using Shenxiao.Module.Core.Kf1vn;
+using Shenxiao.Module.Core.SeaHegemony;
+using Shenxiao.Module.Core.KfHolyArea;
+using Shenxiao.Module.Core.Lung;
+using Shenxiao.Module.Core.BaseDungeon;
+using Shenxiao.Module.Core.GrowthBenefits;
+using Shenxiao.Module.Core.FriendInvite;
+using Shenxiao.Module.Core.TopVip;
+using Shenxiao.Module.Core.DragonBall;
+using Shenxiao.Module.Core.SevenDay;
+using Shenxiao.Module.Core.PushGift;
+using Shenxiao.Module.Core.Adventure;
+using Shenxiao.Module.Core.Relive;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -69,7 +93,31 @@ namespace Shenxiao.Module.Core.Game
             VipController.Instance,
             FirstRechargeController.Instance,
             WeekCardController.Instance,
+            FestivalController.Instance,
             SurpriseGiftController.Instance,
+            CompeteController.Instance,
+            AttentionController.Instance,
+            MarketController.Instance,
+            LimitLevelShopController.Instance,
+            EyouController.Instance,
+            BossController.Instance,
+            ActivityForeshowController.Instance,
+            BanquetController.Instance,
+            KaifuController.Instance,
+            AddVipServiceController.Instance,
+            DiamondFightController.Instance,
+            Kf1vnController.Instance,
+            SeaHegemonyController.Instance,
+            KfHolyAreaController.Instance,
+            LungController.Instance,
+            BaseDungeonController.Instance,
+            GrowthBenefitsController.Instance,
+            FriendInviteController.Instance,
+            TopVipController.Instance,
+            DragonBallController.Instance,
+            SevenDayController.Instance,
+            PushGiftController.Instance,
+            AdventureController.Instance,
             BagController.Instance,
             SkillController.Instance,
             FightController.Instance,

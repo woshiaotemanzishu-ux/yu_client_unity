@@ -49,15 +49,35 @@ namespace Shenxiao.Module.Core.FunctionOpen
         }
 
         private static Dictionary<int, Cfg> _byId;
+        private static Task _loading;
         public static bool Loaded => _byId != null;
         public static IReadOnlyDictionary<int, Cfg> All => _byId;
 
-        public static async Task EnsureLoaded()
+        public static Task EnsureLoaded()
         {
-            if (_byId != null) return;
-            TextAsset asset = await ResManager.LoadAsync<TextAsset>(GameResPath.GetServerConfigPath("config_module_open"));
+            if (_byId != null) return Task.CompletedTask;
+            // config_module_open 走 Addressables,启动初期目录/远程未就绪时无重试的 LoadAsync 会拿 null 甚至一直不返回
+            //(configfunctionicon 同款坑,见 MainUIConfigs.LoadFunctionIconWithRetryAsync)——后果是功能预告框整局
+            // 静默无数据、不显示。改为:单飞 + 重试到配置真就绪。
+            if (_loading == null || _loading.IsCompleted) _loading = LoadWithRetryAsync();
+            return _loading;
+        }
+
+        private static async Task LoadWithRetryAsync()
+        {
+            TextAsset asset = null;
+            for (int attempt = 0; attempt < 600 && asset == null; attempt++)
+            {
+                asset = await ResManager.LoadOptionalAsync<TextAsset>(GameResPath.GetServerConfigPath("config_module_open"));
+                if (asset == null) await Task.Yield();
+            }
             var map = new Dictionary<int, Cfg>();
-            if (asset == null) { _byId = map; GameLog.Info("FuncOpen", "config_module_open 未导入,功能预告无数据"); return; }
+            if (asset == null)
+            {
+                _byId = map;
+                GameLog.Error("FuncOpen", "config_module_open 重试 600 帧仍加载失败(Addressables 目录不就绪或未导入),功能预告无数据");
+                return;
+            }
             JObject jo = JObject.Parse(asset.text);
             ResManager.Release(asset);
 

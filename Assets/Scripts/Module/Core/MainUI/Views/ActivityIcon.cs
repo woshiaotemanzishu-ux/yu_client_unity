@@ -111,6 +111,19 @@ namespace Shenxiao.Module.Core.MainUI
             if (_floatEnabled) ((RectTransform)transform).anchoredPosition = _floatBase; // 归位到布局基准位
         }
 
+        // 折叠(_gp_con 失活)时 Unity 会停掉浮动协程,但 _float 引用还在;展开(SetActive true)时若不清引用,
+        // StartFloat 会被 _float!=null 挡住 → 首充气泡(159)折叠一次后就不再浮动。用 OnDisable 清引用、OnEnable 按需重启,
+        // 与"显隐走 SetVisible 还是 SetActive"无关地兜住(槽位式下图标是靠 gameObject.SetActive 复活的)。
+        private void OnEnable()
+        {
+            if (_floatEnabled) StartFloat();
+        }
+
+        private void OnDisable()
+        {
+            _float = null; // 失活时协程已被 Unity 停,只清残留引用(无需 StopCoroutine)
+        }
+
         private IEnumerator FloatRoutine()
         {
             RectTransform rt = (RectTransform)transform;
@@ -362,6 +375,15 @@ namespace Shenxiao.Module.Core.MainUI
 
         private void OnClick()
         {
+            // 盒入口图标(is_box,如 100 福利大厅 / 101 寻宝):点开收纳盒弹窗铺出里面的成员,而非路由到某个功能面板
+            // (对标老端 ActivityIcon.ClickEvent 的 cfg.is_box 分支:OPEN_VIEW 'MainUIIconBoxView', icon_type, global_pos)。
+            if (_cfg != null && _cfg.IsBox)
+            {
+                string boxType = !string.IsNullOrEmpty(_cfg.IconType) ? _cfg.IconType : _iconType;
+                MainUIIconBoxView.OpenFor(boxType, transform.position);
+                return;
+            }
+
             string key = _cfg != null && !string.IsNullOrEmpty(_cfg.IconType) ? _cfg.IconType : _iconType;
             MainUIRouter.Open(key);
         }

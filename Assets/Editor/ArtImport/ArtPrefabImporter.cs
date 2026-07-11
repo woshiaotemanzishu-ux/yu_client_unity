@@ -898,8 +898,9 @@ namespace Shenxiao.EditorTools.ArtImport
                         // create3 的 FBX 导出单位错配(1213 实锤 2.54×),各自归一后都精确落在
                         // 原点、身高 2.33,切换依旧无缝——单位错配被自动中和,不阻塞在美术侧
                         (bool hasLanding, Vector3 landing, float scale) = SamplePrefabLanding(dst, notes);
+                        string[] blendMats = AnalyzeBlendMaterials(dst, notes);
                         InjectProfile(dst, _renderMode == RenderMode.Dedicated, rendererIndex,
-                            hasLanding, landing, scale, notes);
+                            hasLanding, landing, scale, blendMats, notes);
                     }
                 }
 
@@ -953,7 +954,14 @@ namespace Shenxiao.EditorTools.ArtImport
             if (File.Exists(dstAbs)) File.SetAttributes(dstAbs, FileAttributes.Normal);
 
             bool isText = TextExts.Contains(Path.GetExtension(f.Src));
-            if (isText && remap.Count > 0)
+            if (Path.GetFileName(f.Src).StartsWith("Pandavfx", StringComparison.OrdinalIgnoreCase) &&
+                f.Src.EndsWith(".shader", StringComparison.OrdinalIgnoreCase))
+            {
+                // 自愈补丁:美术侧 shader 被换回原版时(实锤发生过,00:35 回滚→01:01 导入把主工程
+                // 补丁覆盖没→特效全线异常),导入时自动补回 alpha 混合控制,永不再被回滚传染
+                File.WriteAllText(dstAbs, EnsurePandaAlphaChannels(File.ReadAllText(f.Src)));
+            }
+            else if (isText && remap.Count > 0)
                 File.WriteAllText(dstAbs, RemapGuids(File.ReadAllText(f.Src), remap));
             else
                 File.Copy(f.Src, dstAbs, true);
@@ -968,6 +976,23 @@ namespace Shenxiao.EditorTools.ArtImport
         {
             foreach (KeyValuePair<string, string> kv in remap)
                 text = text.Replace(kv.Key, kv.Value);
+            return text;
+        }
+
+        /// <summary>
+        /// PandaShader 必须带 alpha 通道混合控制([_ScrA][_DstA],默认 Zero/One=加法族不写 alpha):
+        /// 没有它,特效会把 alpha 写进展示台 RT,预乘合成被污染=特效发白/压黑。
+        /// 美术侧 shader 版本随时可能被换回原版,导入时无条件确保补丁在。
+        /// </summary>
+        private static string EnsurePandaAlphaChannels(string text)
+        {
+            if (text.Contains("_ScrA")) return text; // 已带补丁
+            text = text.Replace(
+                "[Enum(UnityEngine.Rendering.BlendMode)]_Dst(\"Dst\", Float) = 10",
+                "[Enum(UnityEngine.Rendering.BlendMode)]_Dst(\"Dst\", Float) = 10\n" +
+                "\t\t[Enum(UnityEngine.Rendering.BlendMode)]_ScrA(\"ScrA (alpha)\", Float) = 0\n" +
+                "\t\t[Enum(UnityEngine.Rendering.BlendMode)]_DstA(\"DstA (alpha)\", Float) = 1");
+            text = text.Replace("Blend [_Scr] [_Dst]", "Blend [_Scr] [_Dst], [_ScrA] [_DstA]");
             return text;
         }
 
@@ -1200,8 +1225,88 @@ namespace Shenxiao.EditorTools.ArtImport
             }
         }
 
+        /// <summary>
+        /// 分析 prefab 各身体材质贴图的 alpha 直方图,点名需要【半透渐变混合】的材质:
+        /// alpha 有中间值(1~254 占比 >0.2%)=轻纱/雾状渐变 → 运行时设 Transparent;
+        /// 只有 0/255 二值=缺口镂空 → Alpha Clipping 即可。TGA 直接读字节,PNG 走 LoadImage。
+        /// </summary>
+        private static string[] AnalyzeBlendMaterials(string prefabPath, List<string> notes)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null) return new string[0];
+            var result = new HashSet<string>();
+            var cache = new Dictionary<string, float>();
+            foreach (Renderer r in prefab.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r is ParticleSystemRenderer) continue;
+                foreach (Material m in r.sharedMaterials)
+                {
+                    if (m == null) continue;
+                    Texture tex = m.mainTexture;
+                    if (tex == null && m.HasProperty("_BaseMap")) tex = m.GetTexture("_BaseMap");
+                    if (tex == null) continue;
+                    string texPath = AssetDatabase.GetAssetPath(tex);
+                    if (string.IsNullOrEmpty(texPath)) continue;
+                    if (!cache.TryGetValue(texPath, out float gradient))
+                    {
+                        gradient = GradientAlphaFraction(texPath);
+                        cache[texPath] = gradient;
+                    }
+                    if (gradient > 0.002f && result.Add(m.name))
+                        notes.Add($"半透渐变材质 {Path.GetFileName(prefabPath)} → \"{m.name}\"" +
+                                  $"(贴图 {Path.GetFileName(texPath)} 渐变像素 {gradient:P1},运行时走 Transparent)");
+                }
+            }
+            return result.ToArray();
+        }
+
+        /// <summary>贴图 alpha 中间值(1~254)像素占比;-1=格式不支持分析(jpg 无 alpha 等)。</summary>
+        private static float GradientAlphaFraction(string assetPath)
+        {
+            try
+            {
+                string abs = AbsOfProject(assetPath);
+                string ext = Path.GetExtension(assetPath).ToLowerInvariant();
+                if (ext == ".tga")
+                {
+                    byte[] d = File.ReadAllBytes(abs);
+                    if (d.Length < 18 || d[2] != 2 || d[16] != 32) return -1f; // 只认无压缩 32 位
+                    int w = d[12] | d[13] << 8, h = d[14] | d[15] << 8;
+                    int off = 18 + d[0];
+                    long total = 0, mid = 0;
+                    for (long i = 0; i < (long)w * h; i += 64)
+                    {
+                        byte a = d[off + i * 4 + 3];
+                        total++;
+                        if (a > 0 && a < 255) mid++;
+                    }
+                    return total > 0 ? (float)mid / total : -1f;
+                }
+                if (ext == ".png")
+                {
+                    var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                    if (!t.LoadImage(File.ReadAllBytes(abs))) { UnityEngine.Object.DestroyImmediate(t); return -1f; }
+                    Color32[] px = t.GetPixels32();
+                    UnityEngine.Object.DestroyImmediate(t);
+                    long total = 0, mid = 0;
+                    for (int i = 0; i < px.Length; i += 16)
+                    {
+                        byte a = px[i].a;
+                        total++;
+                        if (a > 0 && a < 255) mid++;
+                    }
+                    return total > 0 ? (float)mid / total : -1f;
+                }
+                return -1f; // jpg 等无 alpha
+            }
+            catch
+            {
+                return -1f;
+            }
+        }
+
         private static void InjectProfile(string prefabPath, bool dedicated, int rendererIndex,
-            bool hasLanding, Vector3 landing, float landingScale, List<string> notes)
+            bool hasLanding, Vector3 landing, float landingScale, string[] blendMaterials, List<string> notes)
         {
             GameObject contents = null;
             try
@@ -1216,6 +1321,7 @@ namespace Shenxiao.EditorTools.ArtImport
                 p.hasLanding = hasLanding;
                 p.landingOffset = landing;
                 p.landingScale = landingScale;
+                p.blendMaterials = blendMaterials;
                 PrefabUtility.SaveAsPrefabAsset(contents, prefabPath);
             }
             catch (Exception e)

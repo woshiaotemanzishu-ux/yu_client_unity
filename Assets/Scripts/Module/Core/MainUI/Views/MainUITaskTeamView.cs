@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
@@ -10,6 +11,7 @@ using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Tasks;
+using Shenxiao.Module.Core.Team;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -29,11 +31,13 @@ namespace Shenxiao.Module.Core.MainUI
         private const int AutoTaskPeriodMs = 10000;
 
         private readonly List<MainUITaskItem> _taskItems = new List<MainUITaskItem>();
+        private readonly List<TeamMainRoleItem> _teamItems = new List<TeamMainRoleItem>();
         private CancellationTokenSource _autoTaskCts;
         private CancellationTokenSource _guideCts;
         private MainUITaskItem _mainLineItem; // _box_main_line 内的主线任务条(复用 MainUITaskItem 渲染)
         private bool _clickBound;
         private bool _taskFolded;
+        private bool _teamTabSelected; // 当前是否停在"队伍"页签(对标老端 now_type==Team,决定 _box_team 是否可见)
 
         protected override void OnInit()
         {
@@ -48,8 +52,7 @@ namespace Shenxiao.Module.Core.MainUI
             // 烘焙了占位文案("剑魄同修提升 10/35"),首登(等级低、觉醒未解锁)老端是隐藏的 → 先整体隐藏,
             // 不展示假占位。完整移植(按真实 TempleAwakenModel 显隐/进度)留后续轮。
             _box_temple_awaken.gameObject.SetActive(false);
-            _lb_task_desc.text = "任务";
-            _lb_team_desc.text = "队伍";
+            // 页签文字烤在 prefab 里("任务"/"队伍"),代码不再改写 —— 想改文案去 prefab(所见即所得)。
             _lb_task_desc_en.gameObject.SetActive(false);
             _lb_team_desc_en.gameObject.SetActive(false);
             _img_awaken_red.gameObject.SetActive(false);
@@ -65,7 +68,12 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, RefreshTaskItems);
             EventDispatcher.On<int>(GlobalEvent.EVT_TASK_ONE_UPDATED, OnTaskOneUpdated);
             EventDispatcher.On<int>(GlobalEvent.EVT_TASK_SELECT_CHANGED, OnTaskSelectChanged);
+            EventDispatcher.On<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
+            EventDispatcher.On(GlobalEvent.EVT_TEAM_INFO_UPDATE, RefreshTeamPanel);
+            EventDispatcher.On(GlobalEvent.EVT_TEAM_APPLY_REDDOT_UPDATE, RefreshTeamRedDot);
             RefreshTaskItems();
+            RefreshTeamPanel();
+            RefreshTeamRedDot();
             StartAutoTaskTimer();
         }
 
@@ -74,9 +82,22 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, RefreshTaskItems);
             EventDispatcher.Off<int>(GlobalEvent.EVT_TASK_ONE_UPDATED, OnTaskOneUpdated);
             EventDispatcher.Off<int>(GlobalEvent.EVT_TASK_SELECT_CHANGED, OnTaskSelectChanged);
+            EventDispatcher.Off<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
+            EventDispatcher.Off(GlobalEvent.EVT_TEAM_INFO_UPDATE, RefreshTeamPanel);
+            EventDispatcher.Off(GlobalEvent.EVT_TEAM_APPLY_REDDOT_UPDATE, RefreshTeamRedDot);
             CancelGuideTimer();
             HideMainLineTaskArrow();
             CancelAutoTaskTimer();
+        }
+
+        /// <summary>太极折叠:整块任务/组队面板随太极收放。对标老端 LoadSuccess 里
+        /// MainUIManager.AddMoveComponent(display_obj, MOVE_TYPE.Left)——太极一收就把整个 view 滑出左边,
+        /// 收的是整块(含 _box_con 主体 + _img_arrow 收起箭头)。_img_arrow 是 _box_con 的兄弟、不在主体内,
+        /// 故须单独一起收,否则会残留半折叠(箭头孤零零留在左边)。</summary>
+        private void OnActivityFold(bool folded)
+        {
+            if (_box_con != null) _box_con.gameObject.SetActive(!folded);
+            if (_img_arrow != null) _img_arrow.gameObject.SetActive(!folded);
         }
 
         private void OnTaskOneUpdated(int taskId)
@@ -121,6 +142,8 @@ namespace Shenxiao.Module.Core.MainUI
                 ? TaskModel.Instance.GetMainLineEntry() : null;
             RefreshMainLineItem(mainLine, showMainLineGuide);
 
+            // 排版归 prefab:Content 上的 VerticalLayoutGroup 按 sibling 顺序竖排(间距/对齐去 prefab 调),
+            // 这里只按顺序克隆/填数据/显隐,不再算坐标(原 -i*78 步进已删)。
             Transform parent = _panel_task.content != null ? _panel_task.content : _panel_task.transform;
             for (int i = 0; i < list.Count; i++)
             {
@@ -130,12 +153,6 @@ namespace Shenxiao.Module.Core.MainUI
                 item.gameObject.SetActive(true);
                 item.Show();
                 item.SetData(list[i]);
-
-                RectTransform rt = (RectTransform)item.transform;
-                rt.anchorMin = new Vector2(0f, 1f);
-                rt.anchorMax = new Vector2(0f, 1f);
-                rt.pivot = new Vector2(0f, 1f);
-                rt.anchoredPosition = new Vector2(0f, -i * 78f);
             }
 
             for (int i = list.Count; i < _taskItems.Count; i++)
@@ -308,6 +325,7 @@ namespace Shenxiao.Module.Core.MainUI
 
         private void ShowTaskTab()
         {
+            _teamTabSelected = false;
             _taskFolded = false;
             _box_task.gameObject.SetActive(true);
             _box_team.gameObject.SetActive(false);
@@ -316,13 +334,96 @@ namespace Shenxiao.Module.Core.MainUI
             RefreshTaskItems(false);
         }
 
+        // 对标老端 Util.AddClickEvent(_box_team_tab,...) 先过 IsOpenTeam 门槛(主线101260前禁组队)。
         private void ShowTeamTab()
         {
+            if (!TeamModel.Instance.IsOpenTeam(out string blockReason))
+            {
+                TipsManager.Toast(blockReason);
+                return;
+            }
+            _teamTabSelected = true;
             _box_task.gameObject.SetActive(false);
-            _box_team.gameObject.SetActive(false);
-            _box_non_team.gameObject.SetActive(true);
             ApplyTaskTabState(false);
-            GameLog.Info("MainUI", "队伍页签点击 → TeamView 未移植,显示无队伍入口并保留创建/寻找按钮");
+            RefreshTeamPanel();
+            GameLog.Info("MainUI", "队伍页签点击 → 队伍大厅 TeamView 未移植,HUD 队伍区已接真实 TeamModel 数据");
+        }
+
+        /// <summary>对标老端 UpdateTeamData:有队伍 → 显 _box_team 并克隆 _tpl_TeamMainRoleItem 铺真实成员
+        /// (人数不足 TEAMER_MAX 时补一个邀请空位,不铺满);无队伍 → 显 _box_non_team。
+        /// _img_team_role_count_bg/_lb_team_role_count 无论当前在任务页还是队伍页都同步(对标老端无条件更新)。</summary>
+        private void RefreshTeamPanel()
+        {
+            if (_box_team == null) return; // 断线重连期视图已拆,防御性早退(同 RefreshTaskItems)
+
+            TeamModel model = TeamModel.Instance;
+            bool hasTeam = model.HasTeam;
+            if (_img_team_role_count_bg != null) _img_team_role_count_bg.gameObject.SetActive(hasTeam);
+            if (hasTeam && _lb_team_role_count != null) _lb_team_role_count.text = model.Info.Members.Count.ToString();
+
+            if (!_teamTabSelected) return;
+
+            _box_non_team.gameObject.SetActive(!hasTeam);
+            _box_team.gameObject.SetActive(hasTeam);
+            if (!hasTeam) return;
+
+            List<TeamModel.MemberVo> members = model.Info.Members;
+            Transform parent = _list_team.content != null ? _list_team.content : _list_team.transform;
+            int shown = 0;
+            for (int i = 0; i < members.Count; i++)
+            {
+                TeamMainRoleItem item = GetOrCreateTeamItem(shown++, parent);
+                if (item == null) return;
+                item.gameObject.SetActive(true);
+                item.Show();
+                item.SetData(members[i]);
+            }
+            if (members.Count < TeamModel.TEAMER_MAX)
+            {
+                TeamMainRoleItem slot = GetOrCreateTeamItem(shown++, parent);
+                if (slot != null)
+                {
+                    slot.gameObject.SetActive(true);
+                    slot.Show();
+                    slot.SetData(null); // 空位/邀请占位(对标老端补一个 {} 而非铺满剩余名额)
+                }
+            }
+            for (int i = shown; i < _teamItems.Count; i++)
+            {
+                if (_teamItems[i] == null) continue;
+                _teamItems[i].SetData(null);
+                _teamItems[i].gameObject.SetActive(false);
+            }
+        }
+
+        private TeamMainRoleItem GetOrCreateTeamItem(int index, Transform parent)
+        {
+            if (index < _teamItems.Count && _teamItems[index] != null) return _teamItems[index];
+            if (_tpl_TeamMainRoleItem == null)
+            {
+                GameLog.Error("MainUI", "TeamMainRoleItem template missing");
+                return null;
+            }
+
+            GameObject go = Instantiate(_tpl_TeamMainRoleItem, parent);
+            go.SetActive(true);
+            TeamMainRoleItem item = go.GetComponent<TeamMainRoleItem>();
+            if (item == null)
+            {
+                GameLog.Error("MainUI", "TeamMainRoleItem template is not rebound to business script");
+                Destroy(go);
+                return null;
+            }
+
+            while (_teamItems.Count <= index) _teamItems.Add(null);
+            _teamItems[index] = item;
+            return item;
+        }
+
+        // 对标老端 _img_team_red(RedDotManager.TEAM_APPLY),读 TeamModel.HaveNewApply(24003 推送点亮)。
+        private void RefreshTeamRedDot()
+        {
+            if (_img_team_red != null) _img_team_red.gameObject.SetActive(TeamModel.Instance.HaveNewApply);
         }
 
         private void ToggleTaskPanel()

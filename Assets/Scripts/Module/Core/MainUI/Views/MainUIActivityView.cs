@@ -1,620 +1,211 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
-using Shenxiao.Framework.Res;
-using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
-using Shenxiao.Module.Core.Common;
-using Shenxiao.Module.Core.CycleimpActlist;
-using Shenxiao.Module.Core.CustomActivity;
-using Shenxiao.Module.Core.Game;
-using Shenxiao.Module.Core.Role;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.MainUI
 {
     /// <summary>
-    /// Activity entry view, aligned with yu_client MainUIActivityView LoadSuccess and ADD_ICON flow.
+    /// 活动图标网格视图(对标 yu_client MainUIActivityView 的 ADD_ICON 流)—— 【槽位式】。
+    ///
+    /// 布局 100% 归 prefab、代码绝不算坐标:_gp_con 下由**美术手摆一批空槽位**(想摆几排/每排几个/摆哪都行),
+    /// 本类只做一件事——把"本视图该显示的图标"**按顺序一个个填进这些槽**(自然溢流:填满一个进下一个),
+    /// 图标继承所在槽的位置。槽比图标多 → 多余的槽隐藏;图标比槽多 → 超出的丢弃并告警。
+    /// 【不再按 location_type 分组、不再用 GridLayoutGroup/VerticalLayoutGroup 自动排布】—— 想调布局去 prefab 摆槽位。
+    ///
+    /// 右上「竞榜/头号玩家榜」卡片已拆到 <see cref="MainUIRankView"/>;折叠太极已提到 <see cref="MainUIFoldView"/>(总装层)。
     /// </summary>
     public sealed class MainUIActivityView : MainUIActivityViewBind
     {
-        private const string TopPlayerIconType = "331@10@0";
+        // 诸天玄门族(241/241@1@0):配置里是 loc5/6(本该归 Secondary),老端强制搬进活动网格;这里让活动视图认领
+        // (Secondary 侧 ShouldOwnSecondaryIcon 同步排除)。槽位式下不再有"第四排"概念,只是纳入本视图的顺序流。
+        private static bool IsForcedActivityIcon(string iconType)
+        {
+            return iconType == "241" || iconType == "241@1@0";
+        }
+
+        // 612 前缀 = 限时等级抢购(LimitLevelShop)图标。老端 SHOP_ACTIVITY_ICON_PREFIX="612",
+        // Suppress612ShopActivityIconsForChatBar 把它们从活动区隐藏、挪到聊天条商城入口 → 活动网格不显。
+        // (MainUISecondaryView 早已同样排除;此前 MainUIActivityView 漏了,导致满级号抢购档在活动区平铺过量。)
+        private static bool Is612Icon(string iconType)
+        {
+            return !string.IsNullOrEmpty(iconType) && iconType.StartsWith("612");
+        }
 
         private readonly Dictionary<string, ActivityIcon> _iconByType = new Dictionary<string, ActivityIcon>();
         private bool _activityFolded;
-        private bool _clickBound;
-
-        // 头号玩家榜面板(_box_rank):奖励道具 + 逐秒倒计时。
-        private EquipmentItem _topPlayerReward;
-        private bool _rewardBuilding;       // 奖励 item 异步实例化中(防多 rank_type 事件并发重复创建)
-        private int _pendingRewardTypeId;   // 最新待应用的奖励 type_id(建好后统一 SetData)
-        private Coroutine _topPlayerTimer;
-        private long _topPlayerEndTimeSec;
-
-        // 循环冲榜分支:当前有冲榜活动时,_box_rank 走竞榜展示(3D模型+竞榜名+榜首),并压制头号玩家分支(对标老端 MainUIActivityView.ts:234)。
-        private bool _cycleActive;
-        private string _cycleModelShowId;       // 已展示的 3D 模型 show_id;相同则不重载
-        private UIModelStage _cycleModelStage;  // 循环冲榜【独立】模型台(常驻主界面,不被背包/角色等抢占)
-
-        private static readonly Color TimeRunColor = new Color(0x88 / 255f, 1f, 0x43 / 255f); // #88ff43 绿(倒计时)
-        private static readonly Color TimeEndColor = new Color(1f, 0x47 / 255f, 0x15 / 255f); // #ff4715 红(已结束/结算中)
-
-        // 老端 MainUIActivityView.icon_dir(MainUIActivityView.ts:71-90):rank_type_(sex|career) → 头号玩家榜奖励道具 type_id。
-        private static readonly Dictionary<string, int> TopPlayerRewardTypeId = new Dictionary<string, int>
-        {
-            { "1_1", 101046074 }, { "2_1", 101066074 }, { "3_1", 101026074 }, { "4_1", 101106074 }, { "5_1", 101086074 }, { "6_1", 101016074 },
-            { "1_2", 102046074 }, { "2_2", 102066074 }, { "3_2", 102026074 }, { "4_2", 102106074 }, { "5_2", 102086074 }, { "6_2", 102016074 },
-            { "6_3", 103016074 }, { "6_4", 104016074 },
-            { "13_1", 101106074 }, { "13_2", 102106074 }, { "14_1", 101086074 }, { "14_2", 102086074 },
-        };
 
         protected override void OnInit()
         {
-            _ = ResManager.SetLayaTextureAsync(bg1, GameResPath.GetIcon("mainUI", "mainui_ui_38"), nativeSize: false);
-            // _box_rank 面板边框(老端 _box_rank/_img_bg.skin = mainui_ui_37);保留 prefab 尺寸(154×157)只换图。
-            // 用 SetImageAsync:不做 texture→other 路径重写(SetLayaTextureAsync 会重写,而 mainui_ui_37 只在 texture/ 下,重写后找不到)。
-            if (_img_bg != null) _ = ResManager.SetImageAsync(_img_bg, GameResPath.GetIcon("mainUI", "mainui_ui_37"), false, false);
-            effect.sizeDelta = new Vector2(720f, 1280f);
-
-            Vector2 redPos = _img_red.rectTransform.anchoredPosition;
-            redPos.x = 120f;
-            _img_red.rectTransform.anchoredPosition = redPos;
-
-            player_name.text = "";
-            name.text = "";
-            time.text = "";
-            _box_rank.gameObject.SetActive(false);
-            _img_red.gameObject.SetActive(false);
-            effect.gameObject.SetActive(false);
-            if (_tpl_EquipmentItem != null) _tpl_EquipmentItem.SetActive(false);
             if (_tpl_ActivityIcon != null) _tpl_ActivityIcon.SetActive(false);
-            if (_tpl_TopPlayerTipItem != null) _tpl_TopPlayerTipItem.SetActive(false);
-            BindButtons();
+            ClearDesignTimeSampleIcons();
+        }
+
+        /// <summary>清掉 prefab 里为"设计期可视化"塞进各槽的样例图标(编辑器可见、便于摆槽位;运行时清掉换真图标)。</summary>
+        private void ClearDesignTimeSampleIcons()
+        {
+            if (_gp_con == null) return;
+            for (int s = 0; s < _gp_con.childCount; s++)
+            {
+                Transform slot = _gp_con.GetChild(s);
+                for (int i = slot.childCount - 1; i >= 0; i--)
+                {
+                    GameObject c = slot.GetChild(i).gameObject;
+                    c.SetActive(false);
+                    Destroy(c);
+                }
+            }
         }
 
         protected override void OnShow(object args)
         {
-            EventDispatcher.On<string, int>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_ADD, OnActivityIconAdd);
-            EventDispatcher.On<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_DELETE, OnActivityIconDelete);
-            EventDispatcher.On<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, OnActivityIconUpdate);
+            EventDispatcher.On<string, int>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_ADD, OnActivityIconChanged);
+            EventDispatcher.On<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_DELETE, OnActivityIconChanged);
+            EventDispatcher.On<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, OnActivityIconUpdated);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
             EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
-            EventDispatcher.On<int>(GlobalEvent.EVT_TOPPLAYER_MAIN_DATA, OnTopPlayerMainData);
-            EventDispatcher.On(GlobalEvent.EVT_CYCLEIMP_DATA, OnCycleData);
-            EventDispatcher.On(GlobalEvent.EVT_CYCLEIMP_CLOSE, OnCycleClose);
-            RefreshActivityIconAsync();
-            OnCycleData(); // OnShow 时若冲榜数据已到(先于本视图创建),补刷一次
+            EventDispatcher.On<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
+            RefreshSlotsAsync();
         }
 
         protected override void OnHide()
         {
-            EventDispatcher.Off<string, int>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_ADD, OnActivityIconAdd);
-            EventDispatcher.Off<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_DELETE, OnActivityIconDelete);
-            EventDispatcher.Off<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, OnActivityIconUpdate);
+            EventDispatcher.Off<string, int>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_ADD, OnActivityIconChanged);
+            EventDispatcher.Off<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_DELETE, OnActivityIconChanged);
+            EventDispatcher.Off<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, OnActivityIconUpdated);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
-            EventDispatcher.Off<int>(GlobalEvent.EVT_TOPPLAYER_MAIN_DATA, OnTopPlayerMainData);
-            EventDispatcher.Off(GlobalEvent.EVT_CYCLEIMP_DATA, OnCycleData);
-            EventDispatcher.Off(GlobalEvent.EVT_CYCLEIMP_CLOSE, OnCycleClose);
-            StopTopPlayerTimer();
+            EventDispatcher.Off<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
         }
 
-        private void OnOpenConditionChanged()
+        // 增/删任一活动图标 → 整体按顺序重填槽位(槽位式无增量,全量重填最简单稳妥,~20 个图标开销可忽略)。
+        private void OnActivityIconChanged(string iconType) => RefreshSlotsAsync();
+        private void OnActivityIconChanged(string iconType, int locationType) => RefreshSlotsAsync();
+        private void OnOpenConditionChanged() => RefreshSlotsAsync();
+
+        // 图标内容更新(红点/倒计时等):只刷该图标自身,不动槽位排布。
+        private void OnActivityIconUpdated(string iconType)
         {
-            RefreshActivityIconAsync();
+            if (_iconByType.TryGetValue(iconType, out ActivityIcon item) && item != null) item.Refresh();
         }
 
-        private async void RefreshActivityIconAsync()
+        /// <summary>太极折叠(全局事件,由 MainUIFoldView 广播):收放整片图标网格 _gp_con;展开时补填一次。</summary>
+        private void OnActivityFold(bool folded)
+        {
+            _activityFolded = folded;
+            if (_gp_con != null) _gp_con.gameObject.SetActive(!folded);
+            if (!folded) RefreshSlotsAsync();
+        }
+
+        private async void RefreshSlotsAsync()
         {
             await ActivityIconManager.Instance.RefreshDefaultIconsAsync();
-            if (this == null) return;
-            foreach (KeyValuePair<string, ActivityIconManager.IconInfo> kv in ActivityIconManager.Instance.IconInfoByType)
+            if (this == null || _activityFolded) return;
+            FillSlots();
+        }
+
+        /// <summary>把本视图该显示的图标按顺序填进 _gp_con 下的槽位(槽位位置由 prefab 决定,代码不算坐标)。</summary>
+        private void FillSlots()
+        {
+            if (_gp_con == null) return;
+
+            List<string> types = CollectOwnedIconTypes();
+            int slotCount = _gp_con.childCount;
+            int shown = Mathf.Min(slotCount, types.Count);
+
+            // 释放不再显示的图标(超出槽位容量的、或已关闭的活动)。
+            var shownSet = new HashSet<string>();
+            for (int i = 0; i < shown; i++) shownSet.Add(types[i]);
+            var toRemove = new List<string>();
+            foreach (KeyValuePair<string, ActivityIcon> kv in _iconByType)
+                if (!shownSet.Contains(kv.Key)) toRemove.Add(kv.Key);
+            for (int i = 0; i < toRemove.Count; i++)
             {
-                if (kv.Value?.Data != null && ShouldOwnActivityIcon(kv.Value.Data.LocationType))
+                if (_iconByType[toRemove[i]] != null) Destroy(_iconByType[toRemove[i]].gameObject);
+                _iconByType.Remove(toRemove[i]);
+            }
+
+            // 逐槽填:前 shown 个槽放图标,其余槽隐藏。
+            for (int i = 0; i < slotCount; i++)
+            {
+                RectTransform slot = _gp_con.GetChild(i) as RectTransform;
+                if (slot == null) continue;
+                if (i < shown)
                 {
-                    CreateActivityIcon(kv.Key);
+                    ActivityIcon icon = GetOrCreateIcon(types[i]);
+                    if (icon != null) PlaceIconInSlot(icon, slot);
+                    slot.gameObject.SetActive(true);
+                }
+                else
+                {
+                    slot.gameObject.SetActive(false); // 空槽隐藏
                 }
             }
-            RefreshIcon();
+
+            if (types.Count > slotCount)
+                GameLog.Warn("MainUI", "活动图标 {0} 个 > 槽位 {1} 个,超出的 {2} 个未显示(去 prefab 里 _gp_con 下多摆几个槽)",
+                    types.Count, slotCount, types.Count - slotCount);
         }
 
-        private void OnActivityIconAdd(string iconType, int locationType)
+        // 本视图该认领的图标类型,按 (location_type, pos_index) 稳定排序作为填充顺序(顺序不影响观感,只求确定性)。
+        private List<string> CollectOwnedIconTypes()
         {
-            if (!ShouldOwnActivityIcon(locationType)) return;
-            CreateActivityIcon(iconType);
-            RefreshIcon();
-        }
-
-        private void OnActivityIconDelete(string iconType)
-        {
-            if (!_iconByType.TryGetValue(iconType, out ActivityIcon item)) return;
-            _iconByType.Remove(iconType);
-            Destroy(item.gameObject);
-            RefreshIcon();
-        }
-
-        private void OnActivityIconUpdate(string iconType)
-        {
-            if (!_iconByType.TryGetValue(iconType, out ActivityIcon item)) return;
-            item.Refresh();
-            RefreshIcon();
-        }
-
-        // 对标老端 UPDATE_TOP_PLAYER_MAIN_DATA / UpdateTopPlayerData:面板现身 + 奖励道具 + 榜首名/活动名 + 倒计时。
-        // 头号玩家路用 2D 奖励(icon_box),隐 3D 模型(model_gp 是循环冲榜 22702 路才用,未移植)。
-        private void OnTopPlayerMainData(int rankType)
-        {
-            if (this == null || _box_rank == null) return;
-            // 有循环冲榜活动时 _box_rank 归竞榜分支,头号玩家让位(对标老端 MainUIActivityView.ts:234 cycle.type!=0 压制 topplayer)。
-            if (_cycleActive || CycleimpActlistModel.Instance.HasActivity) return;
-            if (!TopPlayerController.GatePasses())
+            var list = new List<string>();
+            foreach (KeyValuePair<string, ActivityIconManager.IconInfo> kv in ActivityIconManager.Instance.IconInfoByType)
             {
-                _box_rank.gameObject.SetActive(false);
-                StopTopPlayerTimer();
-                return;
+                if (kv.Value?.Data == null) continue;
+                if (kv.Key == "153") continue; // 老端占位/无效图标,不显示
+                // 612 限时抢购图标不进活动区(对标老端 Suppress612ShopActivityIconsForChatBar:活动区抑制、挪聊天条)。
+                // 数据层仍在 ActivityIconManager(LimitLevelShop 变体驱动),只是活动网格不铺它们——否则满级号一堆抢购档会平铺过量。
+                if (Is612Icon(kv.Key)) continue;
+                if (ShouldOwnActivityIcon(kv.Value.Data.LocationType) || IsForcedActivityIcon(kv.Key))
+                    list.Add(kv.Key);
             }
-
-            TopPlayerModel.RankInfo info = TopPlayerModel.Instance.GetRankInfo(rankType);
-            if (info == null) return;
-
-            // 面板现身:OnInit 里 _box_rank 被 SetActive(false),老端靠 ShowAnimation 切 visible,这里在拿到数据时打开。
-            _box_rank.gameObject.SetActive(true);
-            if (icon_box != null) icon_box.gameObject.SetActive(true);
-            if (model_gp != null) model_gp.gameObject.SetActive(false); // 3D 模型路(循环冲榜)未移植,头号玩家路不用
-
-            // 活动名 + 榜首名(无人则“榜单虚位以待”)。
-            RushRankConfigs.RushRankCfg cfg = RushRankConfigs.Get(rankType);
-            if (name != null && cfg != null) name.text = cfg.Name;
-            if (player_name != null) player_name.text = info.FirstName() ?? "榜单虚位以待";
-
-            // 奖励道具(对标老端 icon_dir[now_key] → EquipmentItem.SetData)。
-            BuildTopPlayerReward(rankType);
-
-            // 倒计时:头号玩家是开服≤8活动,开服>7直接“已结束”不跑计时(老端 UpdateTopPlayerData:344);否则正常倒计时。
-            if (ServerTimeModel.GetOpenServerDay() > 7) { StopTopPlayerTimer(); SetTimeText("已结束", TimeEndColor); }
-            else RefreshRankCountdown(info.EndTime);
-
-            // 注:老端 effect 节点在本端被 OnInit 设成 720×1280 全屏盒,而 _box_rank 一直隐藏从没验证过此特效;
-            // 现在面板现身,贸然挂全屏 ui_cb01 会盖屏,故先不挂(待确认特效挂点/尺寸后再补)。
+            list.Sort(CompareIconType);
+            return list;
         }
 
-        // 循环冲榜数据更新(EVT_CYCLEIMP_DATA):_box_rank 走竞榜展示——竞榜名 + 榜首(或虚位以待)+ 倒计时(upon_end)+ 3D 展示模型。
-        private void OnCycleData()
+        private ActivityIcon GetOrCreateIcon(string iconType)
         {
-            if (this == null || _box_rank == null) return;
-            CycleimpActlistModel m = CycleimpActlistModel.Instance;
-            if (!m.HasActivity) return;
-
-            _cycleActive = true;
-            _box_rank.gameObject.SetActive(true);
-            if (icon_box != null) icon_box.gameObject.SetActive(false); // 竞榜路不显 2D 奖励
-            _ = LoadCycleModelAsync();                                   // 3D 展示模型(坐骑/翅膀/武器…)挂上 UIModelStage
-
-            if (name != null) name.text = CycleRankName(m.Type);
-            CycleimpActlistModel.RankRoleVo first = m.GetFirstHolder();
-            if (player_name != null)
-                player_name.text = first != null ? "S" + first.ServerId + "." + first.RoleName : "虚位以待";
-
-            // 上榜截止(upon_end)优先(老端 StartTimer 用它);某些活动可能不传(=0),回退活动结束时间 end,保证倒计时有数据。
-            long endSec = m.UponEndTime > 0 ? m.UponEndTime : m.EndTime;
-            RefreshRankCountdown(endSec); // 复用同一 time 标签 + 倒计时协程(循环冲榜无“开服>7提前结束”)
-        }
-
-        // 循环冲榜关闭(EVT_CYCLEIMP_CLOSE):收起竞榜展示。头号玩家分支下次 EVT_TOPPLAYER_MAIN_DATA 时再接管。
-        private void OnCycleClose()
-        {
-            if (this == null) return;
-            _cycleActive = false;
-            _cycleModelShowId = null;
-            StopTopPlayerTimer();
-            _cycleModelStage?.ClearStage(); // 清自己台子的模型(不动别人共享的默认台)
-            if (_box_rank != null) _box_rank.gameObject.SetActive(false);
-        }
-
-        private void OnDestroy()
-        {
-            _cycleModelStage?.Dispose(); // 释放独立模型台的相机/RT/RawImage
-            _cycleModelStage = null;
-        }
-
-        // 竞榜名(对标老端 MainUIActivityView.ts:417-435 按 type 硬编码的「X竞榜」短名)。
-        private static string CycleRankName(int type)
-        {
-            switch (type)
-            {
-                case 1: return "坐骑竞榜";
-                case 2: return "剑魄同修竞榜";
-                case 3: return "垂神翼影竞榜";
-                case 4: return "古法符相竞榜";
-                case 5: return "殒锋天刃竞榜";
-                case 6: return "玄穹云披竞榜";
-                default: return "竞榜";
-            }
-        }
-
-        // 加载并展示循环冲榜 3D 模型(对标老端 SetRoleModel):show_id→模块→prefab 挂 UIModelStage,再播 idle/show 动画。
-        // 沿用 DialogueView.ShowNpcModel 套路(独立展示模型,非角色装备);取景参数取 uimodelparameter["MainUIActivityView"][show_id]。
-        private async Task LoadCycleModelAsync()
-        {
-            if (model_gp == null) return;
-            CycleimpActlistModel m = CycleimpActlistModel.Instance;
-            await CycleimpActlistConfigs.EnsureLoaded();
-            if (this == null || !_cycleActive || !m.HasActivity) return;
-
-            CycleimpActlistConfigs.Cfg cfg = CycleimpActlistConfigs.Get(m.Type, m.Subtype);
-            string module = cfg != null ? ModuleOf(cfg.ShowType) : null;
-            // 神兵(活动 type==5):show_id 是按职业的 JSON 数组,取 career-1;其余直接用 show_id。
-            string showId = cfg == null ? null
-                : (m.Type == 5 ? CareerShowId(cfg.ShowId, RoleModel.Instance.Career) : cfg.ShowId);
-            GameLog.Info("CycleModel", "准备模型: type={0} sub={1} cfgFound={2} showType={3} module={4} showId={5}",
-                m.Type, m.Subtype, cfg != null, cfg?.ShowType ?? -1, module ?? "<null>", showId ?? "<null>");
-            if (cfg == null || string.IsNullOrEmpty(showId) || module == null)
-            {
-                model_gp.gameObject.SetActive(false);
-                return;
-            }
-            if (_cycleModelShowId == showId) return; // 已展示该模型,避免 22700/22702 重复加载
-            _cycleModelShowId = showId;              // 乐观占位,防并发重复加载;失败再清
-
-            string key = CycleModelKey(module, showId);
-            GameObject prefab = await ResManager.LoadAsync<GameObject>(key);
-            if (this == null || !_cycleActive || model_gp == null) return;
-            if (prefab == null)
-            {
-                GameLog.Warn("CycleModel", "模型 prefab 加载失败 key={0}", key);
-                _cycleModelShowId = null; // 允许重试
-                model_gp.gameObject.SetActive(false);
-                return;
-            }
-
-            await UiModelParameterConfigs.EnsureLoaded();
-            if (this == null || !_cycleActive || model_gp == null) return;
-            UiModelParameterConfigs.ModelParam mp = UiModelParameterConfigs.Get("MainUIActivityView", showId);
-
-            if (_cycleModelStage == null) _cycleModelStage = new UIModelStage(); // 独立台,不被背包/角色等抢占
-            model_gp.gameObject.SetActive(true);
-            GameObject inst = Instantiate(prefab);
-            _cycleModelStage.PlaceInstance(model_gp, inst, mp.Scale, mp.Position, mp.Rotate);
-            _ = PlayModelAction(inst, module, showId, mp.Action);
-            GameLog.Info("CycleModel", "模型上台 key={0} scale={1} action={2}", key, mp.Scale, mp.Action);
-        }
-
-        // 播放展示模型动画(对标 DialogueView.PlayNpcIdle):object/{module}/action/{id}/{action}(idle 或神兵的 show)。
-        private static async Task PlayModelAction(GameObject model, string module, string id, string action)
-        {
-            if (model == null) return;
-            if (string.IsNullOrEmpty(action)) action = "idle";
-            AnimationClip clip = await ResManager.LoadAsync<AnimationClip>("object/" + module + "/action/" + id + "/" + action);
-            if (model == null || clip == null) return;
-            Animation anim = model.GetComponent<Animation>();
-            if (anim == null) anim = model.AddComponent<Animation>();
-            if (anim.GetClip(action) == null) anim.AddClip(clip, action);
-            anim.Play(action);
-        }
-
-        // show_type → 对象模块(对标老端 GameResPath.GetUITypeModuleName)。
-        private static string ModuleOf(int showType)
-        {
-            switch (showType)
-            {
-                case 2: return "mount";
-                case 3: return "wing";
-                case 4: return "weapon";
-                case 5: return "fabao";
-                case 7: return "spirit";
-                case 20: return "back";
-                default: return null;
-            }
-        }
-
-        // 展示模型 prefab key(转换产物:object/{module}/model_{module}_{id}/model_{module}_{id};武器是 model_weapon_r_{id})。
-        private static string CycleModelKey(string module, string id)
-        {
-            string resName = module == "weapon" ? "model_weapon_r_" + id : "model_" + module + "_" + id;
-            return "object/" + module + "/" + resName + "/" + resName;
-        }
-
-        // 神兵 show_id 是按职业的 JSON 数组字符串 "[1107,1107,1307,1407]",取 career-1(career 1~4)。
-        private static string CareerShowId(string jsonArr, int career)
-        {
-            try
-            {
-                JArray arr = JArray.Parse(jsonArr);
-                if (arr.Count == 0) return jsonArr;
-                int idx = Mathf.Clamp(career - 1, 0, arr.Count - 1);
-                return arr[idx]?.ToString() ?? jsonArr;
-            }
-            catch { return jsonArr; }
-        }
-
-        // 头号玩家榜奖励道具:icon_dir[now_key] → type_id → EquipmentItem.SetData(对标老端 reward = new EquipmentItem)。
-        // 注:本 prefab 的 _tpl_EquipmentItem 没烤进模板(fileID:0),故直接按 key 加载 EquipmentItem.prefab 实例化(同 ItemTipsView 套路)。
-        private async void BuildTopPlayerReward(int rankType)
-        {
-            if (icon_box == null) return;
-
-            // now_key = rank_type==6 ? rank_type_career : rank_type_sex(老端 UpdateTopPlayerData)。
-            int key2 = rankType == 6 ? RoleModel.Instance.Career : RoleModel.Instance.Sex;
-            string key = rankType + "_" + key2;
-            if (!TopPlayerRewardTypeId.TryGetValue(key, out int typeId)) return;
-            _pendingRewardTypeId = typeId; // 记最新;建好后统一应用,避免并发事件丢更新
-
-            if (_topPlayerReward == null && !_rewardBuilding)
-            {
-                _rewardBuilding = true;
-                GameObject go = await ResManager.InstantiateAsync(GameResPath.GetUIPrefab("common", "EquipmentItem"), icon_box);
-                _rewardBuilding = false;
-                if (this == null) { if (go != null) Destroy(go); return; }
-                if (go == null) return;
-                go.SetActive(true);
-                _topPlayerReward = go.GetComponent<EquipmentItem>();
-                if (_topPlayerReward == null) { Destroy(go); return; }
-                _topPlayerReward.Show();
-                ((RectTransform)_topPlayerReward.transform).anchoredPosition = Vector2.zero; // 居中于 icon_box(老端 SetItemSize(80,80))
-            }
-            if (_topPlayerReward != null) _topPlayerReward.SetData(_pendingRewardTypeId, 0);
-        }
-
-        // 通用倒计时(对标老端 OnTime,头号玩家/循环冲榜共用):endTime≤0 不跑;剩余>0 显示“h小时m分s秒”绿,≤0 显示终态(结算中/已结束)红。
-        // 注:头号玩家专属的“开服>7直接已结束”不在这里(那是 UpdateTopPlayerData 的判断),否则会误伤开服≥8才开的循环冲榜。
-        private void RefreshRankCountdown(long endTimeSec)
-        {
-            _topPlayerEndTimeSec = endTimeSec;
-            StopTopPlayerTimer();
-            if (endTimeSec <= 0) { SetTimeText("", TimeRunColor); return; }
-            TickTopPlayerTime();
-            _topPlayerTimer = StartCoroutine(TopPlayerTimerRoutine()); // 前面 StopTopPlayerTimer 已置空,这里直接起
-        }
-
-        private IEnumerator TopPlayerTimerRoutine()
-        {
-            var wait = new WaitForSeconds(1f);
-            while (true)
-            {
-                yield return wait;
-                TickTopPlayerTime();
-            }
-        }
-
-        private void TickTopPlayerTime()
-        {
-            long left = _topPlayerEndTimeSec - TimeUtil.NowSec();
-            if (left <= 0)
-            {
-                SetTimeText(ServerTimeModel.GetOpenServerDay() >= 8 ? "结算中" : "已结束", TimeEndColor);
-                StopTopPlayerTimer();
-                return;
-            }
-            SetTimeText(FormatRemain(left), TimeRunColor);
-        }
-
-        private void SetTimeText(string text, Color color)
-        {
-            if (time == null) return;
-            time.text = text;
-            time.color = color;
-        }
-
-        private void StopTopPlayerTimer()
-        {
-            if (_topPlayerTimer != null) { StopCoroutine(_topPlayerTimer); _topPlayerTimer = null; }
-        }
-
-        // 对标老端 timeConvert(left, "hh-mm-ss"):有天数 → “D天h小时m分”(丢秒,h 取模 24);否则 “h小时m分s秒”。
-        private static string FormatRemain(long sec)
-        {
-            long d = sec / 86400;
-            long h = sec / 3600 % 24;
-            long m = sec / 60 % 60;
-            long s = sec % 60;
-            return d > 0 ? d + "天" + h + "小时" + m + "分" : h + "小时" + m + "分" + s + "秒";
-        }
-
-        private void CreateActivityIcon(string iconType)
-        {
-            if (string.IsNullOrEmpty(iconType) || iconType == "153") return;
-            if (_iconByType.TryGetValue(iconType, out ActivityIcon existing))
+            if (_iconByType.TryGetValue(iconType, out ActivityIcon existing) && existing != null)
             {
                 existing.Refresh();
-                return;
+                return existing;
             }
-
-            if (_tpl_ActivityIcon == null || _gp_con == null)
+            if (_tpl_ActivityIcon == null)
             {
                 GameLog.Error("MainUI", "ActivityIcon template missing");
-                return;
+                return null;
             }
 
-            GameObject go = Instantiate(_tpl_ActivityIcon, _gp_con);
+            GameObject go = Instantiate(_tpl_ActivityIcon, _gp_con); // 临时父,PlaceIconInSlot 会移进对应槽
             go.SetActive(true);
-
             ActivityIcon item = go.GetComponent<ActivityIcon>();
             if (item == null)
             {
                 GameLog.Error("MainUI", "ActivityIcon template is not rebound to business script");
                 Destroy(go);
-                return;
+                return null;
             }
-
             item.Show();
             item.SetIconType(iconType);
-            item.SetVisible(false);
+            item.SetVisible(true);
             _iconByType[iconType] = item;
+            return item;
         }
 
-        private void RefreshIcon()
+        // 撑满所在槽:槽多大图多大,显示尺寸完全由 prefab 的槽控制(修复:横条图标被压进方形模板)。
+        private static void PlaceIconInSlot(ActivityIcon icon, RectTransform slot)
         {
-            List<ActivityIcon> first = new List<ActivityIcon>();
-            List<ActivityIcon> second = new List<ActivityIcon>();
-            List<ActivityIcon> other = new List<ActivityIcon>();
-            List<ActivityIcon> fourth = new List<ActivityIcon>();
-            List<ActivityIcon> rightMiddle = new List<ActivityIcon>();
-
-            ActivityIcon topPlayer = null;
-            foreach (ActivityIcon item in _iconByType.Values)
-            {
-                MainUIConfigs.FunctionIconCfg cfg = item.Cfg ?? MainUIConfigs.GetFunctionIconCfg(item.IconType);
-                if (cfg == null) continue;
-                // 头号玩家:不进通用桶,固定第二排第二格(对标老端 FormatIconList 的 top_player_obj 特判)。
-                if (cfg.IconType == TopPlayerIconType) { topPlayer = item; continue; }
-                if (cfg.LocationType == ActivityIconManager.LocationType.ActivityOne) first.Add(item);
-                else if (cfg.LocationType == ActivityIconManager.LocationType.ActivityTwo) second.Add(item);
-                else if (cfg.LocationType == ActivityIconManager.LocationType.ActivityOther) other.Add(item);
-                else if (cfg.LocationType == ActivityIconManager.LocationType.ActivityFourth || cfg.LocationType == 10) fourth.Add(item);
-                else if (cfg.LocationType == ActivityIconManager.LocationType.RightMiddle || cfg.LocationType == 9) rightMiddle.Add(item);
-            }
-
-            SortIcons(first);
-            SortIcons(second);
-            SortIcons(other);
-            SortIcons(fourth);
-            SortIcons(rightMiddle);
-
-            // 头号玩家固定第二排第二格:插到 second 的 index 1(老端 second_arr = [secondFirst, topPlayer, ...rest])。
-            if (topPlayer != null)
-            {
-                int insertAt = second.Count >= 1 ? 1 : second.Count;
-                second.Insert(insertAt, topPlayer);
-            }
-
-            if (_activityFolded)
-            {
-                HideAllIcons();
-                if (_img_turn != null) _img_turn.transform.SetAsLastSibling();
-                return;
-            }
-
-            RefreshIconPos(first, 1, null, null, null);
-            RefreshIconPos(second, 2, first, null, null);
-            RefreshIconPos(other, 3, first, second, null);
-            RefreshIconPos(fourth, 4, first, second, other);
-            RefreshIconPos(rightMiddle, 9, null, null, null);
-            // 折叠箭头【固定在 prefab 里烤出的位置】(对标老端:它占第四排第一格,从不被图标布局重定位)。
-            // 只保证它画在图标之上(后置兄弟),不再用 UpdateTurnBtnPos 移动它——那正是它"越点越往上跑"的根因。
-            if (_img_turn != null) _img_turn.transform.SetAsLastSibling();
-        }
-
-        private void HideAllIcons()
-        {
-            foreach (ActivityIcon item in _iconByType.Values)
-            {
-                if (item == null) continue;
-                item.SetVisible(false);
-            }
-        }
-
-        private void BindButtons()
-        {
-            if (_clickBound) return;
-            if (_img_turn != null)
-            {
-                _img_turn.raycastTarget = true; // 收放箭头要能接收点击(老端 mouseEnabled);不设则 ToggleActivityFold 永不触发
-                UIUtil.AddClick(_img_turn, ToggleActivityFold);
-            }
-            RouteClick(_box_rank, "activity_rank");
-            _clickBound = true;
-        }
-
-        private static void RouteClick(Component target, string viewKey)
-        {
-            if (target == null) return;
-            UIUtil.AddClick(target, () => MainUIRouter.Open(viewKey));
-        }
-
-        private void ToggleActivityFold()
-        {
-            _activityFolded = !_activityFolded;
-            // 对标老端 ShowAnimation:收起/展开「其他模块」(活动功能图标),箭头【原地旋转】不移动(老端只改 rotation)。
-            foreach (ActivityIcon item in _iconByType.Values)
-                if (item != null) item.SetVisible(!_activityFolded);
-            if (_img_turn != null)
-                _img_turn.rectTransform.localEulerAngles = new Vector3(0f, 0f, _activityFolded ? 45f : 0f);
-            // 对标老端:太极是单按钮但事件驱动两个视图。广播给 MainUISecondaryView 同步收放它的 left/right/notice 簇
-            // (超值礼包等就在 Secondary 簇里;本视图只管自己的 _iconByType)。
-            EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, _activityFolded);
-        }
-
-        private void RefreshIconPos(List<ActivityIcon> list, int lineNo, List<ActivityIcon> first,
-            List<ActivityIcon> second, List<ActivityIcon> third)
-        {
-            if (list == null || list.Count == 0) return;
-
-            const float hgap = 5f;
-            const float vgap = 20f;
-            float initX = 0f;
-            float initY = 0f;
-
-            if (lineNo == 2)
-            {
-                if (first != null && first.Count > 0) initY = ActivityIcon.HEIGHT + vgap;
-            }
-            else if (lineNo == 3)
-            {
-                if (first != null && first.Count > 0) initY = ActivityIcon.HEIGHT + vgap;
-                if (second != null && second.Count > 0) initY += ActivityIcon.HEIGHT + vgap;
-            }
-            else if (lineNo == 4)
-            {
-                if (first != null && first.Count > 0) initY = ActivityIcon.HEIGHT + vgap;
-                if (second != null && second.Count > 0) initY += ActivityIcon.HEIGHT + vgap;
-                if (third != null && third.Count > 0) initY += ActivityIcon.HEIGHT + vgap + 10f;
-            }
-            else if (lineNo == 9)
-            {
-                initX = 648f;
-                initY = 280f;
-            }
-
-            int lineMax = lineNo == 9 ? 1 : 7;
-            int count = lineNo == 4 ? 2 : 1;
-            for (int i = 0; i < list.Count; i++)
-            {
-                ActivityIcon item = list[i];
-                int nowLine = Mathf.FloorToInt((count - 1) / (float)lineMax);
-                float x = lineNo == 9 ? initX : ((count - 1) % lineMax) * (ActivityIcon.WIDTH + hgap);
-                float y = lineNo == 9
-                    ? initY + (count - 1) * (ActivityIcon.HEIGHT + vgap)
-                    : initY + nowLine * (ActivityIcon.HEIGHT + vgap);
-
-                item.SetPosition(x, y);
-                item.SetAlpha(1f);
-                item.SetScale(1f);
-                item.SetVisible(true);
-                count++;
-            }
-        }
-
-        private void UpdateTurnBtnPos(List<ActivityIcon> first, List<ActivityIcon> second, List<ActivityIcon> other,
-            List<ActivityIcon> fourth = null)
-        {
-            if (_img_turn == null) return;
-
-            // 按【左侧网格实际最低图标】定位收放箭头:不靠分组计数(组内换行也会漏算),取所有左侧图标的最低 anchoredPos.y,
-            // 把箭头放到最低一行同高、其左侧(对齐老端 y≈410)。展开态有图标才算;无图标则保持 prefab 默认位。
-            float lowestY = 0f; // anchoredPosition.y 越负越低
-            bool any = false;
-            foreach (List<ActivityIcon> list in new[] { first, second, other, fourth })
-            {
-                if (list == null) continue;
-                foreach (ActivityIcon item in list)
-                {
-                    if (item == null) continue;
-                    float y = ((RectTransform)item.transform).anchoredPosition.y;
-                    if (y < lowestY) lowestY = y;
-                    any = true;
-                }
-            }
-            if (!any) return; // 无受管图标(如被收起/未建)→ 不动,保留 prefab 位
-
-            Vector2 pos = _img_turn.rectTransform.anchoredPosition;
-            pos.x = 35f;
-            pos.y = lowestY; // 与最低一行图标同高,在其左侧
-            _img_turn.rectTransform.anchoredPosition = pos;
+            var rt = (RectTransform)icon.transform;
+            rt.SetParent(slot, false);
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            icon.gameObject.SetActive(true);
         }
 
         private static bool ShouldOwnActivityIcon(int locationType)
@@ -628,19 +219,13 @@ namespace Shenxiao.Module.Core.MainUI
                    || locationType == 10;
         }
 
-        private static void SortIcons(List<ActivityIcon> list)
+        private static int CompareIconType(string a, string b)
         {
-            list.Sort(CompareIcon);
-        }
-
-        private static int CompareIcon(ActivityIcon a, ActivityIcon b)
-        {
-            MainUIConfigs.FunctionIconCfg ca = a.Cfg ?? MainUIConfigs.GetFunctionIconCfg(a.IconType);
-            MainUIConfigs.FunctionIconCfg cb = b.Cfg ?? MainUIConfigs.GetFunctionIconCfg(b.IconType);
-            if (ca == null && cb == null) return 0;
+            MainUIConfigs.FunctionIconCfg ca = MainUIConfigs.GetFunctionIconCfg(a);
+            MainUIConfigs.FunctionIconCfg cb = MainUIConfigs.GetFunctionIconCfg(b);
+            if (ca == null && cb == null) return string.CompareOrdinal(a, b);
             if (ca == null) return 1;
             if (cb == null) return -1;
-
             int loc = ca.LocationType.CompareTo(cb.LocationType);
             return loc != 0 ? loc : ca.PosIndex.CompareTo(cb.PosIndex);
         }

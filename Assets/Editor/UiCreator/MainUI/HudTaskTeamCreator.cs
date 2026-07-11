@@ -24,18 +24,21 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     /// 三个内容盒(_box_task/_box_team/_box_non_team)由业务代码 SetActive 互斥切换,对标 Login 的
     /// "两个子面板 SetActive 切换"同一模式;默认只显 _box_task(对齐 MainUITaskTeamView.OnInit)。
     ///
-    /// root="HudTaskTeam"(全屏 Stretch,对标 HudTop/HudActivity 的分组壳);子根 "MainUITaskTeamView"
-    /// 挂业务类,用 AnchorBottomLeft 锚左下(对标老端 view 在主界面里的位置 x=10,y=586,255x314 ——
-    /// 底边距 = 1280-(586+314) = 380,即 prompt 给的 "left=10,bottom=380(区域左中)")。
+    /// root="HudTaskTeam" 收成面板实际占位:AnchorBottomLeft 锚左下(对标老端 view 在主界面里的位置
+    /// x=10,y=586,255x314 —— 底边距 = 1280-(586+314) = 380),不再全屏;子根 "MainUITaskTeamView"
+    /// 挂业务类,Stretch 填满 root。挪整块面板直接拖 root(所见即所得)。
+    /// 任务列表排版归 prefab:TaskScrollView 的 Content 挂 VerticalLayoutGroup(间距 24,步进=老端 78)
+    /// + ContentSizeFitter;MainUITaskItem 模板新增 TaskTipsLabel(任务描述,原为运行时造节点)。
     ///
     /// 两个模板(未激活模板子节点,回填各自 Bind 字段):
     ///   _tpl_MainUITaskItem —— 对标 resource/game/mainUI/MainUITaskItem.json(210x54),挂已写好的业务类
     ///     MainUITaskItem(MainUITaskTeamView.GetOrCreateItem / EnsureMainLineItem 都用它 Instantiate 克隆)。
     ///   _tpl_TeamMainRoleItem —— 对标 resource/game/team/TeamMainRoleItem.json(team 模块,222.74x78.24;
     ///     _list_team 的 itemRender 在老端 TS 里 import 自 "./TeamMainRoleItem",不是 mainUI 模块自己的节点,
-    ///     旧镜像 prefab 里这个字段一直是 fileID: 0 从未绑过)。业务类 TeamMainRoleItem 尚未移植,项目里
-    ///     只有转换器生成的 TeamMainRoleItemBind——参照 HudActivity 对未接线模板的处理口径,先挂 Bind
-    ///     把结构烤出来、回填全部 20 个字段,等真正接手组队列表时再补业务子类(参照 MainUITaskItem 的先例)。
+    ///     旧镜像 prefab 里这个字段一直是 fileID: 0 从未绑过)。自动循环 轮8 起挂已写好的业务类
+    ///     Shenxiao.Module.Core.Team.TeamMainRoleItem(照 MainUITaskItem 先例,直接在 Creator 里
+    ///     AddComponent 业务子类,不走运行时嫁接/回填升级器),MainUITaskTeamView.RefreshTeamPanel
+    ///     用它 Instantiate 克隆喂 TeamModel 真实成员。
     ///
     /// 组队相关另外两个老端场景 MainUITeamView.json(720x229,底部悬浮"小队"按钮部件)与
     /// MainUITeamHeadItem.json(83x93,该部件内的头像子项)经核对与本视图的 42 个 Bind 字段【无任何引用
@@ -95,6 +98,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     //   lblTaskTitle2                  -> TaskSubTitleLabel
     //   _box_finger_con                -> GuideFingerSlot
     //   _box_effect                    -> CompletionEffectSlot
+    //   (新增,无老端对应节点)          -> TaskTipsLabel(任务描述,老端/旧实现为运行时动态造节点)
     //   —— TeamMainRoleItem 模板(根节点名按类名保持不变)——
     //   _Image1                        -> TeamItemBackground
     //   non_role                       -> InviteSlot
@@ -164,7 +168,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             {
                 Module = "MainUI",
                 Name = "HudTaskTeam(任务·组队)",
-                Note = "左缘任务/组队 tab + 任务列表(ScrollRect) + 组队列表/创建查找入口",
+                Note = "左下有界面板(10/380,255×314):任务/队伍 tab + 任务列表(布局组排版) + 组队入口,代码零布局",
                 Order = 30,
                 Generate = Generate,
                 Preview = Preview,
@@ -175,11 +179,14 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         public static void Generate()
         {
             // 整棵树在 root 未激活时构建(与 Login/HudTop/HudActivity 一致的安全写法),建完再统一激活。
+            // root 收成面板实际占位(左下 10/380,255×314),不再全屏 Stretch;并入总装时非全屏锚 → offset
+            // 归零自动跳过,想挪整块面板直接在 prefab 里拖 root(所见即所得)。
             RectTransform root = UiCreatorKit.NewRoot("HudTaskTeam");
+            AnchorBottomLeft(root, RegionLeft, RegionBottom, RegionW, RegionH);
             root.gameObject.SetActive(false);
 
             RectTransform viewRoot = UiCreatorKit.NewNode("MainUITaskTeamView", root);
-            AnchorBottomLeft(viewRoot, RegionLeft, RegionBottom, RegionW, RegionH);
+            UiCreatorKit.Stretch(viewRoot); // 填满有界 root
             var view = viewRoot.gameObject.AddComponent<MainUITaskTeamView>();
 
             RectTransform boxCon = UiCreatorKit.NewNode("MainBody", viewRoot); // 老端: _box_con
@@ -258,7 +265,8 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             UiCreatorKit.TrySetSprite(teamBg, IMG_TAB_BG_NORMAL, UiCreatorKit.Palette.BtnNeutral);
             view._img_team_bg = teamBg;
 
-            TextMeshProUGUI teamDesc = UiCreatorKit.NewText("TeamTabLabel", teamTab, "组队"); // 老端: _lb_team_desc
+            // 文案烤定为"队伍"(运行时实际显示文案;原 OnInit 改写 text 的代码已删,prefab 所见即所得)。
+            TextMeshProUGUI teamDesc = UiCreatorKit.NewText("TeamTabLabel", teamTab, "队伍"); // 老端: _lb_team_desc
             UiCreatorKit.Place(teamDesc.rectTransform, 0f, 0f, 35f, 143f); // centerX=0/centerY=0
             teamDesc.fontSize = 18f;
             teamDesc.fontStyle = FontStyles.Bold;
@@ -413,6 +421,19 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             PlaceLaya((RectTransform)panelTask.transform, 0f, 80f, 210f, 134f, w, h);
             view._panel_task = panelTask;
 
+            // 任务列表排版归 prefab:VerticalLayoutGroup 按 sibling 顺序竖排(步进=老端 78:项高 54+间距 24,
+            // 想改行距在这组件上调)+ ContentSizeFitter 按内容撑高(任务多时可滚动)。
+            // 运行时 MainUITaskTeamView.RefreshTaskItems 只克隆/填数据/显隐,不再算坐标。
+            var taskLayout = panelTaskContent.gameObject.AddComponent<VerticalLayoutGroup>();
+            taskLayout.spacing = 24f;
+            taskLayout.childAlignment = TextAnchor.UpperLeft;
+            taskLayout.childControlWidth = false;
+            taskLayout.childControlHeight = false;
+            taskLayout.childForceExpandWidth = false;
+            taskLayout.childForceExpandHeight = false;
+            var taskFitter = panelTaskContent.gameObject.AddComponent<ContentSizeFitter>();
+            taskFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
             // 未激活模板,挂已写好的业务类 MainUITaskItem;放进本 view 的 __Templates 下(不再混进
             // ScrollRect 的 Content——那里应该只有 MainUITaskTeamView.RefreshTaskItems 克隆出的真实列表项)。
             GameObject tplTaskItem = BuildTaskItemTemplate(templatesRoot);
@@ -563,6 +584,19 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             title2.color = ParseColor("#54d5ff", Color.cyan);
             item.lblTaskTitle2 = title2;
 
+            // 任务描述 tips(原为 MainUITaskItem.SetTips 运行时 new GameObject 造节点+写死几何(6,-32,210×44);
+            // 现烤进模板,位置/尺寸/字号在 prefab 调,运行时只填文本)。
+            TextMeshProUGUI taskTips = UiCreatorKit.NewText("TaskTipsLabel", root, "任务描述内容");
+            taskTips.rectTransform.anchorMin = taskTips.rectTransform.anchorMax = new Vector2(0f, 1f);
+            taskTips.rectTransform.pivot = new Vector2(0f, 1f);
+            taskTips.rectTransform.anchoredPosition = new Vector2(6f, -32f);
+            taskTips.rectTransform.sizeDelta = new Vector2(210f, 44f);
+            taskTips.fontSize = 18f;
+            taskTips.alignment = TextAlignmentOptions.TopLeft;
+            taskTips.textWrappingMode = TextWrappingModes.Normal;
+            taskTips.gameObject.SetActive(false); // 数据到达时 SetTips 现身
+            item.taskTips = taskTips;
+
             RectTransform fingerCon = UiCreatorKit.NewNode("GuideFingerSlot", root); // 老端: _box_finger_con
             UiCreatorKit.Place(fingerCon, 0f, 0f, 197f, 54f); // centerX=0/centerY=0
             fingerCon.gameObject.SetActive(false); // OnInit 强制隐藏
@@ -579,16 +613,16 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         // ---------------------------------------------------------------- TeamMainRoleItem 模板(挂生成的 Bind)
 
         /// <summary>
-        /// 对标 resource/game/team/TeamMainRoleItem.json,画布 222.74x78.24。业务类 TeamMainRoleItem
-        /// 尚未移植(项目里只有转换器生成的 TeamMainRoleItemBind),先挂 Bind 把结构烤出来、回填全部
-        /// 20 个字段;等真正接手组队列表时再补业务子类(参照 MainUITaskItem 的先例)。未激活模板。
+        /// 对标 resource/game/team/TeamMainRoleItem.json,画布 222.74x78.24。挂已写好的业务类
+        /// Shenxiao.Module.Core.Team.TeamMainRoleItem(照 MainUITaskItem 先例),回填全部 20 个 Bind 字段。
+        /// MainUITaskTeamView.RefreshTeamPanel 用它 Instantiate 克隆。未激活模板。
         /// </summary>
         private static GameObject BuildTeamMainRoleItemTemplate(Transform parent)
         {
             const float w = 222.74f, h = 78.24f;
             RectTransform root = UiCreatorKit.NewNode("TeamMainRoleItem", parent);
             UiCreatorKit.Place(root, 0f, 0f, w, h);
-            var bind = root.gameObject.AddComponent<TeamMainRoleItemBind>();
+            var bind = root.gameObject.AddComponent<Shenxiao.Module.Core.Team.TeamMainRoleItem>();
 
             Image image1 = UiCreatorKit.NewImage("TeamItemBackground", root); // 老端: _Image1
             PlaceLaya(image1.rectTransform, 0f, 1f, 222.3f, 77.6f, w, h);

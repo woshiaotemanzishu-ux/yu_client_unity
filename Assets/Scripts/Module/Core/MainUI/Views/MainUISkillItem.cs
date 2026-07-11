@@ -62,12 +62,8 @@ namespace Shenxiao.Module.Core.MainUI
             if (@lock != null) @lock.gameObject.SetActive(locked);
         }
 
-        /// <summary>对标 MainUISkillView.UpdateView 的 item.SetPosition(fixedPos);Laya 坐标→uGUI anchoredPosition=(x,-y)。</summary>
-        public void SetPosition(float x, float y)
-        {
-            RectTransform rt = transform as RectTransform;
-            if (rt != null) rt.anchoredPosition = new Vector2(x, -y);
-        }
+        // SetPosition(Laya 坐标→anchoredPosition 换算)已删:布局改【槽位式】,克隆体由
+        // MainUISkillView.PlaceIconInSlot 撑满所在槽,槽位在 HudSkillBar.prefab 的 SkillIconGrid 下。
 
         // con 是 Box 无 Graphic,点在可见的 bg 上(对标老端 con 点击;Unity 在 bg 接 raycast)。幂等绑一次。
         private void EnsureClickBound()

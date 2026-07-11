@@ -16,6 +16,10 @@ namespace Shenxiao.Module.Core.MainUI
         private const string TASK_FINISH_EFFECT_SLOT = "main_ui_task_finish_frame";
         private static readonly Regex FontColorStart = new Regex("<font\\s+color=['\"]?(#[0-9a-fA-F]{6})['\"]?>", RegexOptions.IgnoreCase);
 
+        /// <summary>任务描述 tips 标签(烤在模板里,位置/尺寸在 prefab 调;由 HudTaskTeamCreator 回填)。
+        /// 老实现是运行时 new GameObject 造节点+写死几何,违背"布局归 prefab"铁律,已改;字段为空时走旧路兜底。</summary>
+        public TextMeshProUGUI taskTips;
+
         private readonly List<TextMeshProUGUI> _tipLabels = new List<TextMeshProUGUI>();
         private TaskModel.TaskEntry _entry;
         private UIEffectStage.Handle _finishEffect;
@@ -211,10 +215,20 @@ namespace Shenxiao.Module.Core.MainUI
 
         private void SetTips(TaskVo task)
         {
-            TextMeshProUGUI tips = CreateTipLabel();
-            tips.text = ToTmpRichText(TaskModel.Instance.BuildMainUITips(task));
-            tips.gameObject.SetActive(true);
+            string text = ToTmpRichText(TaskModel.Instance.BuildMainUITips(task));
 
+            // 布局归 prefab:tips 标签已烤进模板(TaskTipsLabel),这里只填内容。
+            if (taskTips != null)
+            {
+                taskTips.text = text;
+                taskTips.gameObject.SetActive(true);
+                return;
+            }
+
+            // 兜底(旧 prefab 未回填 taskTips):沿用运行时造节点老路,几何与模板一致。
+            TextMeshProUGUI tips = CreateTipLabel();
+            tips.text = text;
+            tips.gameObject.SetActive(true);
             RectTransform rt = tips.rectTransform;
             rt.anchorMin = new Vector2(0f, 1f);
             rt.anchorMax = new Vector2(0f, 1f);
@@ -240,6 +254,11 @@ namespace Shenxiao.Module.Core.MainUI
 
         private void ClearTipLabels()
         {
+            if (taskTips != null)
+            {
+                taskTips.text = "";
+                taskTips.gameObject.SetActive(false);
+            }
             for (int i = 0; i < _tipLabels.Count; i++)
             {
                 if (_tipLabels[i] != null) Destroy(_tipLabels[i].gameObject);

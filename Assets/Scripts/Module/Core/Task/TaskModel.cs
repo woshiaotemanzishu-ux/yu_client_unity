@@ -370,6 +370,22 @@ namespace Shenxiao.Module.Core.Tasks
             return TaskConfigs.Get(taskId)?.Type == KFHOLYAREA_TASK;
         }
 
+        public bool IsReincarnationTask(int taskId)
+        {
+            return TaskConfigs.Get(taskId)?.Type == REINCARNATION;
+        }
+
+        /// <summary>是否有转生类任务(config type==REINCARNATION)。驱动主界面转职图标 130 显隐
+        /// (对标老端 TaskController 处理 REINCARNATION 类任务时 SetReincarnationTaskList→addIcon(130),无则删)。</summary>
+        public bool HasReincarnationTask()
+        {
+            foreach (KeyValuePair<int, List<TaskVo>> kv in _allTaskList)
+            {
+                if (IsReincarnationTask(kv.Key)) return true;
+            }
+            return false;
+        }
+
         public bool MainLineTaskNeedShowArrow()
         {
             return MainLineTaskVo != null

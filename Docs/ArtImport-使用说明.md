@@ -80,7 +80,7 @@
 | 特效在台上洗成白块(场景里正常) | 已修:整模的 RawImage 自动换 `Shenxiao/UI/StageComposite` 预乘合成材质(透明 RT+默认 UI SrcAlpha 混合会把加法特效洗白)。老模型不受影响。若仍有过曝白核=LDR RT 削顶,找程序换 HDR RT |
 | 一直走老模型 | 地址没登记(跑分组)、或 res id 对不上:职业 role_res 见 configlogin.json 的 CreateRole.Res(1111/1213/1300/1400) |
 | 出场动画"原地做动作"(位移不见) | 实锤根因:位移沿 Z(镜头深度),**正交相机下深度移动不可见**;整模已自动切透视 FOV60(照抄美术工程相机,落点平面构图不变)。仍不动→跑诊断菜单看顶层节点(如 ride)逐轴曲线统计,X/Y/Z 全常量=位移根本不在动画里(美术那边看到的是他们场景的相机运动) |
-| 该透明的地方渲成白块 | 美术把镂空遮罩画在贴图 alpha 里,但 FBX 内嵌材质默认 Opaque 不读 alpha。**已自动处理**:整模上台时给身体材质实例统一开 Alpha Clipping(没画 alpha 的贴图全 255,零副作用)。注意 Alpha Clipping 只有"透/不透"——需要**半透渐变**(纱、雾)的部件,美术在 ArtsProject 的 prefab 上给该部件换外置 URP/Lit 材质并把 Surface 设 Transparent,保 GUID 导入会原样带过来 |
+| 该透明的地方渲成白块/半透渐变不对 | 透明信息在贴图 alpha 里,内嵌材质默认 Opaque 不读。**已自动双轨处理**(导入时分析每张贴图的 alpha 直方图并烤进档案,重导生效):二值缺口→Alpha Clipping 镂空;有渐变像素(>0.2%)的材质→Transparent 混合+保深度写(轻纱/飘带柔和渐变)。台账 notes 会点名"半透渐变材质"。美术在 prefab 里自设 Transparent 的材质游戏不碰。若某材质转 Transparent 后出现自身排序瑕疵→把纱类部件拆成独立材质是最优解 |
 
 ## 与美术的约定(违反=游戏里出问题)
 

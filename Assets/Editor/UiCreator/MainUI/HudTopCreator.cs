@@ -15,8 +15,8 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     ///   头像血条战力等级战斗模式(_box_head)/ 货币三连(_box_money,克隆 _tpl_MainUIMoneyItem)/
     ///   vip·充值·光环·客服四宫格(_box_icon)/ 小地图场景名坐标时间wifi电量(_box_map)。
     ///
-    /// root="HudTop"(全屏 Stretch,给后续同类"顶部相关"区域腾位置的分组壳);子根 "MainUITopView"
-    /// 挂业务类 MainUITopView,锚顶部居中(centerX=0/top=0,对标老端 display_obj.centerX/top),宽 720。
+    /// root="HudTop"【只扎顶部这一条】:锚顶部居中、720×130(对标老端 display_obj.centerX=0/top=0 + 内容实际
+    /// 占位高 113),不再全屏 Stretch。子根 "MainUITopView" 挂业务类 MainUITopView,Stretch 填满这条有界 root。
     ///
     /// 布局换算:整棵树统一用 UiCreatorKit 的"父中心锚"摆位(见本文件 PlaceLaya),每层级子节点
     /// 换算时用该层级自己的设计画布宽高(取运行时快照里该容器的已结算 w/h,不是 Laya 编辑期的
@@ -147,10 +147,13 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         {
             // 整棵树在 root 未激活时构建(与 Login 样板一致的防御写法),建完再激活。
             RectTransform root = UiCreatorKit.NewRoot("HudTop");
+            // root 只扎顶部这一条(不再全屏 Stretch):锚顶部居中、宽 720×高 130,与内容实际占位一致。
+            // 并入 MainUIModule 时因锚点非(0,0)-(1,1),总装的 offset 归零会自动跳过它,保持顶部条摆位。
+            AnchorTop(root, TopBarWidth, TopBarHeight);
             root.gameObject.SetActive(false);
 
             RectTransform topViewRt = UiCreatorKit.NewNode("MainUITopView", root);
-            AnchorTop(topViewRt, TopBarWidth, TopBarHeight);
+            UiCreatorKit.Stretch(topViewRt); // 视图填满有界 root(720×130);子节点仍按 720×130 画布换算,坐标不动
             var view = topViewRt.gameObject.AddComponent<MainUITopView>();
 
             RectTransform boxRoot = UiCreatorKit.NewNode("TopBarContentRoot", topViewRt); // 老端: _box_root

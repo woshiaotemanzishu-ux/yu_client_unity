@@ -358,9 +358,14 @@ namespace Shenxiao.Module.Core.Login
             {
                 animator.applyRootMotion = true;
             }
-            // 透明镂空:美术把透明遮罩画在贴图 alpha 里(实测服饰.tga 有 3.2% 全透像素),但 FBX
-            // 内嵌材质默认 Opaque 不读 alpha → 该透的地方渲成白块。给身体材质实例统一开
-            // Alpha Clipping——没画 alpha 的贴图全 255,开了也一像素不少,安全;只改实例不动资产。
+            // 透明处理:美术把透明信息画在贴图 alpha 里,但 FBX 内嵌材质默认 Opaque 不读 alpha
+            // → 该透的地方渲成白块。按导入时烤好的判定分流(只改实例不动资产):
+            //   缺口/破洞(alpha 二值)→ Alpha Clipping(硬边,无排序问题);
+            //   轻纱/雾状渐变(alpha 有中间值,档案 blendMaterials 点名)→ Transparent 混合 +
+            //   保留 ZWrite(自遮挡不乱)+ 低阈值裁剪(全透像素不写深度残影)。
+            // 美术在 prefab 里已设 Transparent 的材质一律不碰。
+            var blendSet = new HashSet<string>(
+                profile.blendMaterials ?? System.Array.Empty<string>());
             foreach (Renderer r in inst.GetComponentsInChildren<Renderer>(true))
             {
                 if (r is ParticleSystemRenderer) continue;
@@ -370,10 +375,33 @@ namespace Shenxiao.Module.Core.Login
                 {
                     Material m = mats[i];
                     if (m == null || m.shader == null || !m.HasProperty("_AlphaClip")) continue;
-                    m.SetFloat("_AlphaClip", 1f);
-                    m.SetFloat("_Cutoff", 0.5f);
-                    m.EnableKeyword("_ALPHATEST_ON");
-                    m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+                    if (m.HasProperty("_Surface") && m.GetFloat("_Surface") > 0.5f) continue; // 美术自设的透明,不动
+
+                    bool blend = false; // 实例名带"(Instance)"后缀,用 StartsWith 匹配
+                    foreach (string n in blendSet)
+                    {
+                        if (m.name.StartsWith(n)) { blend = true; break; }
+                    }
+                    if (blend)
+                    {
+                        m.SetFloat("_Surface", 1f);
+                        m.SetOverrideTag("RenderType", "Transparent");
+                        m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                        m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                        m.SetFloat("_ZWrite", 1f);
+                        m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                        m.SetFloat("_AlphaClip", 1f);
+                        m.SetFloat("_Cutoff", 0.02f);
+                        m.EnableKeyword("_ALPHATEST_ON");
+                        m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                    }
+                    else
+                    {
+                        m.SetFloat("_AlphaClip", 1f);
+                        m.SetFloat("_Cutoff", 0.5f);
+                        m.EnableKeyword("_ALPHATEST_ON");
+                        m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+                    }
                     dirty = true;
                 }
                 if (dirty) r.materials = mats;

@@ -16,7 +16,8 @@ namespace Shenxiao.Module.Core.MainUI
     ///
     /// 数据真源:监听 EVT_SKILL_LIST_UPDATED / EVT_SKILL_BAR_UPDATED → 读 SkillManager.ShortcutList 铺 4 槽
     /// (对标 InitEvent 绑 UPDATE_SKILL_LIST → UpdateView);技能 id/等级/图标来自 21002 + config_skill,不硬编码。
-    /// 4 槽按老端固定坐标 [4,99] [39,64] [96,63] [132,101] 摆放(Laya→uGUI 由 MainUISkillItem.SetPosition 转 y)。
+    /// 4 槽【槽位式】:SkillIconGrid(_box_skill_con)下的空槽由 prefab 摆(HudSkillBarCreator,位置=老端
+    /// fixedPositions 的等价终态),本类只按序把克隆体撑满填进槽,代码不算坐标(原 FixedPositions/SetPosition 已删)。
     ///
     /// 自动战斗按钮:UpdateAutoFightState 据 AutoFightModel 切皮肤(非自动 uizjmgj_003a / 自动 uizjmgj_001b /
     /// 临时模式 uizjmgj_001a1);点击 ResponseAutoBtnClick → AutoFightModel.Toggle(对标 SetAutoFight)。
@@ -27,15 +28,6 @@ namespace Shenxiao.Module.Core.MainUI
     /// </summary>
     public sealed class MainUISkillView : MainUISkillViewBind
     {
-        // 老端固定坐标布局(MainUISkillView.ts UpdateView fixedPositions)。
-        private static readonly Vector2[] FixedPositions =
-        {
-            new Vector2(4, 99),
-            new Vector2(39, 64),
-            new Vector2(96, 63),
-            new Vector2(132, 101),
-        };
-
         private const string AUTO_FIGHT_OFF = "uizjmgj_003a";
         private const string AUTO_FIGHT_ON = "uizjmgj_001b";
         private const string AUTO_FIGHT_TEMP = "uizjmgj_001a1";
@@ -94,34 +86,63 @@ namespace Shenxiao.Module.Core.MainUI
 
         // ===================== 技能 4 槽(对标 UpdateView)=====================
 
-        /// <summary>按 SkillManager.ShortcutList 铺技能槽(对标 UpdateView:固定坐标 + SetData)。</summary>
+        /// <summary>按 SkillManager.ShortcutList 铺技能槽(对标 UpdateView);【槽位式】按顺序填进
+        /// SkillIconGrid(_box_skill_con)下的空槽(槽位位置由 prefab 决定,代码不算坐标,同 MainUINoticeView.FillSlots)。</summary>
         public void RefreshSkills()
         {
             IList<SkillVo> skills = SkillManager.Instance.ShortcutList;
             int count = skills?.Count ?? 0;
-            if (count > FixedPositions.Length)
+            // 槽数=SkillIconGrid 直接子节点数(模板在 __Templates 下、不在本容器里;克隆体入槽后也不是直接子节点)。
+            int slotCount = _box_skill_con != null ? _box_skill_con.childCount : 0;
+            if (count > slotCount)
             {
-                GameLog.Warn("MainUI", "shortcutList={0} 超过固定槽位 {1},只铺前 {1}(差异记录:>4 槽暂不扩)", count, FixedPositions.Length);
-                count = FixedPositions.Length;
+                GameLog.Warn("MainUI", "shortcutList={0} 超过槽位 {1},只铺前 {1}(去 HudSkillBar.prefab 的 SkillIconGrid 下加槽)",
+                    count, slotCount);
+                count = slotCount;
             }
 
+            int shown = 0;
             for (int i = 0; i < count; i++)
             {
-                MainUISkillItem item = GetOrCreateItem(i);
+                MainUISkillItem item = GetOrCreateItem(shown);
                 if (item == null) continue;
+
+                RectTransform slot = _box_skill_con.GetChild(shown) as RectTransform;
+                if (slot == null) continue;
+
                 item.gameObject.SetActive(true);
                 item.SetData(skills[i]);
-                item.SetPosition(FixedPositions[i].x, FixedPositions[i].y);
+                PlaceIconInSlot(item, slot);
+                slot.gameObject.SetActive(true);
+                shown++;
             }
-            for (int i = count; i < _items.Count; i++)
+            for (int i = shown; i < _items.Count; i++)
             {
                 if (_items[i] != null) _items[i].gameObject.SetActive(false);
+            }
+            // 多余空槽隐藏(槽位式:槽比技能多 → 隐藏)。
+            for (int i = shown; i < slotCount; i++)
+            {
+                _box_skill_con.GetChild(i).gameObject.SetActive(false);
             }
 
             if (count == 0)
             {
                 GameLog.Info("MainUI", "技能槽为空(等 21002 回包或 config 未就绪)");
             }
+        }
+
+        // 撑满所在槽:槽多大图多大,显示尺寸完全由 prefab 的槽控制(修复:横条图标被压进方形模板)。
+        private static void PlaceIconInSlot(MainUISkillItem item, RectTransform slot)
+        {
+            var rt = (RectTransform)item.transform;
+            rt.SetParent(slot, false);
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            item.gameObject.SetActive(true);
         }
 
         private MainUISkillItem GetOrCreateItem(int index)
@@ -135,7 +156,7 @@ namespace Shenxiao.Module.Core.MainUI
                 return null;
             }
 
-            GameObject go = Instantiate(_tpl_MainUISkillItem, _box_skill_con);
+            GameObject go = Instantiate(_tpl_MainUISkillItem, _box_skill_con); // 临时父,PlaceIconInSlot 会移进对应槽
             go.SetActive(true);
 
             MainUISkillItem item = go.GetComponent<MainUISkillItem>();

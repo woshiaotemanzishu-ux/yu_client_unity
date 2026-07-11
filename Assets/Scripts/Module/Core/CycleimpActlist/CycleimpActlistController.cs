@@ -9,7 +9,7 @@ namespace Shenxiao.Module.Core.CycleimpActlist
     /// 循环冲榜 / 竞榜协议(对标老端 CycleimpActlistController.On22700/22701/22702/22703,字节格式见 yu_server pt_227)。
     ///   22700 当前开启活动(GAME_START 拉一次):type/subtype 非0 → 拉 22701/22702/22703 并 Emit EVT_CYCLEIMP_DATA;=0 → Clear + EVT_CYCLEIMP_CLOSE。
     ///   22702 榜单 → 落榜首,Emit EVT_CYCLEIMP_DATA。22706 榜首变更推送 → 刷榜首。
-    /// 主界面 _box_rank 的竞榜展示(3D模型+名次+倒计时)由 MainUIActivityView 监听 EVT_CYCLEIMP_DATA 渲染。
+    /// 主界面 _box_rank 的竞榜展示(3D模型+名次+倒计时)由 MainUIRankView 监听 EVT_CYCLEIMP_DATA 渲染。
     /// 22701(个人信息)/22703(昨日榜)先只消费字节防错位,完整活动面板后续切片。
     /// </summary>
     public sealed class CycleimpActlistController : BaseController

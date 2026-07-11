@@ -1,5 +1,7 @@
 // 由 LayaUI 转换器自动生成,不要手改。重转会覆盖。
 // 来源: cdn/resource/game/mainUI/MainUISecondaryView.json
+// ⚠️ 手动裁剪:老端 _box_notice「通知位」图标簇已拆到独立视图 MainUINoticeView(见 MainUINoticeViewBind,
+// HudNotice.prefab 槽位式),本 Bind 已删 _box_notice 字段。若重跑转换器覆盖本文件,记得重新按此裁剪。
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -53,7 +55,6 @@ namespace Shenxiao.Generated.UI.MainUI
         public Image _img_old_outline_exp_bg;
         public TextMeshProUGUI _lb_old_outline_exp;
         public RectTransform _box_right;
-        public RectTransform _box_notice;
         public RectTransform _box_god;
         public RectTransform _box_please;
         public Image _img_please;
@@ -111,7 +112,6 @@ namespace Shenxiao.Generated.UI.MainUI
             EnsureBound(nameof(_img_old_outline_exp_bg), _img_old_outline_exp_bg);
             EnsureBound(nameof(_lb_old_outline_exp), _lb_old_outline_exp);
             EnsureBound(nameof(_box_right), _box_right);
-            EnsureBound(nameof(_box_notice), _box_notice);
             EnsureBound(nameof(_box_god), _box_god);
             EnsureBound(nameof(_box_please), _box_please);
             EnsureBound(nameof(_img_please), _img_please);

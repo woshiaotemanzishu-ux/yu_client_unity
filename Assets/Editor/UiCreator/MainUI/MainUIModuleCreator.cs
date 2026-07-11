@@ -1,12 +1,14 @@
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.MainUI;
+using Shenxiao.Module.Core.MainUI;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Editor.UiCreator.MainUI
 {
     /// <summary>
-    /// 主界面【总装】生成器:把 6 个 Region + 2 个 Overlay bundle(均为重构版 UICreator 产物)
+    /// 主界面【总装】生成器:把 12 个 Region + 1 个 Overlay bundle(均为重构版 UICreator 产物)
     /// 以嵌套 prefab 方式装进一个根节点,覆盖存盘为运行时实际加载的
     /// Assets/Prefabs/UI/MainUI/MainUIModule.prefab(旧 Laya 转换器版本被替换,git 可回退)。
     ///
@@ -21,17 +23,28 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     {
         private const string PrefabPath = "Assets/Prefabs/UI/MainUI/MainUIModule.prefab";
 
+        // 折叠太极(TurnDisk):从 HudActivity 提到总装层(它收放的不止活动区)。老端渲染在屏幕 (6,410)、尺寸 78×78;
+        // 位置可后续在 MainUIModule.prefab 里手调。挂 MainUIFoldView,点击广播折叠事件,各区域视图各自监听收放。
+        private const string IMG_TURN = "resource/game/mainUI/texture/uizjmv3_017b.png";
+        private static readonly Vector2 TurnLocal = new Vector2(6f, 410f);
+        private static readonly Vector2 TurnSize = new Vector2(78f, 78f);
+
         // 子 prefab 路径 + 缺失时的补生成动作;顺序 = prefab 子节点顺序。
         private static readonly (string path, string label, System.Action generate)[] Parts =
         {
             ("Assets/Prefabs/UI/MainUI/Regions/HudTop.prefab", "HudTop", HudTopCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudActivity.prefab", "HudActivity", HudActivityCreator.Generate),
+            ("Assets/Prefabs/UI/MainUI/Regions/HudRank.prefab", "HudRank", HudRankCreator.Generate),
+            ("Assets/Prefabs/UI/MainUI/Regions/HudNotice.prefab", "HudNotice", HudNoticeCreator.Generate),
+            ("Assets/Prefabs/UI/MainUI/Regions/HudFuncOpen.prefab", "HudFuncOpen", HudFuncOpenCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudTaskTeam.prefab", "HudTaskTeam", HudTaskTeamCreator.Generate),
-            ("Assets/Prefabs/UI/MainUI/Regions/HudSkill.prefab", "HudSkill", HudSkillCreator.Generate),
-            ("Assets/Prefabs/UI/MainUI/Regions/HudBottomBar.prefab", "HudBottomBar", HudBottomBarCreator.Generate),
+            ("Assets/Prefabs/UI/MainUI/Regions/HudSkillBar.prefab", "HudSkillBar", HudSkillBarCreator.Generate),
+            ("Assets/Prefabs/UI/MainUI/Regions/HudAutoBrush.prefab", "HudAutoBrush", HudAutoBrushCreator.Generate),
+            ("Assets/Prefabs/UI/MainUI/Regions/HudJoystick.prefab", "HudJoystick", HudJoystickCreator.Generate),
+            ("Assets/Prefabs/UI/MainUI/Regions/HudChatBar.prefab", "HudChatBar", HudChatBarCreator.Generate),
+            ("Assets/Prefabs/UI/MainUI/Regions/HudNavBar.prefab", "HudNavBar", HudNavBarCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudSecondary.prefab", "HudSecondary", HudSecondaryCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Overlays/HudOverlayCombat.prefab", "HudOverlayCombat", HudOverlayCombatCreator.GenerateBundle),
-            ("Assets/Prefabs/UI/MainUI/Overlays/HudOverlayPopups.prefab", "HudOverlayPopups", HudOverlayPopupsCreator.GenerateOverlays),
         };
 
         /// <summary>MainUIFlow.FirstPassViews 同款首批显示顺序(预览用)。</summary>
@@ -39,12 +52,16 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         {
             typeof(MainUITopViewBind),
             typeof(MainUIActivityViewBind),
+            typeof(MainUIRankViewBind),
+            typeof(MainUINoticeViewBind),
+            typeof(Shenxiao.Generated.UI.FunctionOpen.FunctionOpenIconBind), // 功能预告框(HudFuncOpen 区域)
             typeof(MainUISkillViewBind),
             typeof(MainUIChatViewBind),
             typeof(MainUISecondaryViewBind),
             typeof(MainUITaskTeamViewBind),
             typeof(MainUIDownViewBind),
             typeof(MainUIAutoBrushViewBind),
+            typeof(MainUIFoldViewBind),
             typeof(UIJoyStickBind),
         };
 
@@ -57,7 +74,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             {
                 Module = "MainUI",
                 Name = "MainUIModule(总装·覆盖现网)",
-                Note = "嵌套 6 Region + 2 Overlay 存为运行时加载的 MainUIModule.prefab;缺的子件先自动补生成",
+                Note = "嵌套 12 Region + 1 Overlay 存为运行时加载的 MainUIModule.prefab;缺的子件先自动补生成",
                 Order = 90,
                 Generate = Generate,
                 Preview = Preview,
@@ -108,9 +125,29 @@ namespace Shenxiao.Editor.UiCreator.MainUI
                 }
             }
 
+            AddFoldTurnDisk(root); // 折叠太极提到总装层(收放不止活动区)
+
             root.gameObject.SetActive(true);
             UiCreatorKit.SavePrefab(root.gameObject, PrefabPath);
-            Debug.Log("[UiCreator] 总装完成:8 个子模块 → " + PrefabPath + "(已覆盖旧转换器版本,git 可回退)");
+            Debug.Log("[UiCreator] 总装完成:13 个子模块 + 折叠太极 → " + PrefabPath + "(已覆盖旧转换器版本,git 可回退)");
+        }
+
+        /// <summary>在总装根层加折叠太极(TurnDisk)+ 挂 MainUIFoldView(点击广播 EVT_MAINUI_ACTIVITY_FOLD)。
+        /// 放根层、不属任何会折叠的区域 → 折叠时太极自身始终可见、可再展开。位置/大小可在 prefab 里手调。</summary>
+        private static void AddFoldTurnDisk(RectTransform root)
+        {
+            Image imgTurn = UiCreatorKit.NewImage("TurnDisk", root);
+            RectTransform rt = imgTurn.rectTransform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f); // 左上锚(与老端顶左原点一致)
+            rt.pivot = new Vector2(0.5f, 0.5f); // 轴心居中:折叠点击只改 rotation,pivot 在角上会绕角甩出去(看着像挪位),居中才原地转
+            rt.sizeDelta = TurnSize;
+            // TurnLocal 是老端左上原点;pivot 居中后补半个尺寸偏移,静止位置与旧的左上轴心摆放完全一致
+            rt.anchoredPosition = new Vector2(TurnLocal.x + TurnSize.x * 0.5f, -(TurnLocal.y + TurnSize.y * 0.5f)); // Laya 顶左 y 向下 → Unity 取负
+            imgTurn.raycastTarget = true; // 太极要能接收点击
+            UiCreatorKit.TrySetSprite(imgTurn, IMG_TURN, UiCreatorKit.Palette.BtnNeutral);
+
+            MainUIFoldView fold = imgTurn.gameObject.AddComponent<MainUIFoldView>();
+            fold._img_turn = imgTurn;
         }
 
         public static void Preview()

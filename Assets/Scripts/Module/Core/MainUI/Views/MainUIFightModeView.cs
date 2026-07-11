@@ -18,9 +18,8 @@ namespace Shenxiao.Module.Core.MainUI
     /// </summary>
     public sealed class MainUIFightModeView : MainUIFightModeViewBind
     {
-        // 对标老端每项 43px 纵向行距(SetPosition(0,(index-1)*43))。
-        private const float ITEM_GAP = 43f;
-
+        // 行距归 prefab:_gp_item 挂 VerticalLayoutGroup(spacing=43−项高40=3,见 HudOverlayPopupsCreator),
+        // 克隆体按 sibling 顺序自动排,原 index*43 代码排版已删。
         private readonly List<MainUIFightModeItem> _items = new List<MainUIFightModeItem>();
         private readonly Dictionary<int, int> _pkStateToIndex = new Dictionary<int, int>();
         private int _curPkStatus = int.MinValue;
@@ -83,7 +82,8 @@ namespace Shenxiao.Module.Core.MainUI
                 item.gameObject.SetActive(true);
                 FightModeInfoData info = modes[i];
                 item.SetData(info, OnClickMode);
-                SetItemPosition(item, i);
+                // 克隆体只需按序 Instantiate 到 _gp_item(见 GetOrCreateItem),容器上的 VerticalLayoutGroup
+                // 按 sibling 顺序排版,代码不算坐标。
                 if (info != null) _pkStateToIndex[info.PkStatus] = i;
             }
             for (int i = count; i < _items.Count; i++)
@@ -177,15 +177,6 @@ namespace Shenxiao.Module.Core.MainUI
 
             _items[index] = item;
             return item;
-        }
-
-        /// <summary>动态项纵向摆放(对标 SetPosition 的 index*43);容器若已挂布局组件则此偏移被覆盖,无害。</summary>
-        private static void SetItemPosition(MainUIFightModeItem item, int index)
-        {
-            RectTransform rt = (RectTransform)item.transform;
-            rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
-            rt.pivot = new Vector2(0f, 1f);
-            rt.anchoredPosition = new Vector2(0f, -(index * ITEM_GAP));
         }
     }
 }
