@@ -169,9 +169,15 @@ namespace Shenxiao.Module.Core.Setting
             BindTab(_box_tab_base_setting, true);
             BindTab(_box_tab_shield_setting, false);
 
-            // 顶部头像/角色信息:改头像/改名 → 打开子窗(SettingFlow.OpenSub 叠在主面板上);复制ID → 系统剪贴板。
+            // 顶部头像/角色信息:改头像 → 直接打开子窗(SettingFlow.OpenSub 叠在主面板上);
+            // 改名 → 先发 42602 查免费资格,回包到达后由 RoleController.On42602 打开子窗(带 is_free 参数,
+            // 对标老端 _btn_changename 点击 Fire(REQUEST_ROLE_PROTO,42602));复制ID → 系统剪贴板。
             BindOpen(change_head_btn, "SettingChangeHeadView", "更换头像");
-            BindOpen(_btn_changename, "SettingChangeNameView", "修改名字");
+            BindClick(_btn_changename, () =>
+            {
+                GameLog.Info("Setting", "点击[修改名字] → 发 42602 查免费资格");
+                RoleController.Instance.RequestRenameFreeCheck();
+            });
             BindClick(_btn_copy, CopyRoleId);
 
             // 勾选项(降神/御风云骑/自动任务;对标老端 change_god_box/change_horse_box/task_check 点击)。

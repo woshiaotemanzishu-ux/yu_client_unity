@@ -35,6 +35,7 @@ namespace Shenxiao.EditorTools.ConfigGen
             "ConfigCustomActivityShow",
             "ConfigCustomActivityView",
             "ConfigAutoBrush",
+            "ClientTransfer",       // 转职卡展示文案(career→{name,desc1,desc2}),轮5 TransferJobModel 用
         };
 
         // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)
@@ -72,6 +73,7 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_enchantment_guard_soap_debris", // 古宝碎片(主键 "soap@debris":cost/attr)
             "config_dungeon",         // 副本配置(⚠数字键,39 列序在 config_table_default;御魂本 12001~,主线 100980/101522)
             "config_goods_compose",   // 神装合成规则(⚠数字键,列序见 config_table_default;type==2=装备类;主线 101725 ctype73)
+            "config_career",          // 转职合法(career,sex)组合("career@sex" 具名键),轮5 TransferJobModel 用
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

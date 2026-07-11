@@ -123,6 +123,17 @@ namespace Shenxiao.Module.Core.Skill
         public SkillVo GetSkill(int skillId)
             => _mySkillList.TryGetValue(skillId, out SkillVo v) ? v : null;
 
+        /// <summary>13020 被动技能解锁推送并入(对标老端 SkillManager.AddSkillToSkillList):仅
+        /// config_skill[id].type==2(被动)才并入,level 恒置 1(照抄老端行为,不管是否已有更高等级);
+        /// 静默——不刷新 shortcutList、不 Emit 事件、不 toast(对标老端同函数无副作用)。</summary>
+        public void AddPassiveSkillFromPush(int skillId)
+        {
+            if (!SkillConfigs.IsLoaded || !SkillConfigs.Has(skillId) || !SkillConfigs.IsPassive(skillId)) return;
+            SkillVo vo = GetSkill(skillId) ?? new SkillVo(skillId);
+            vo.Level = 1;
+            _mySkillList[skillId] = vo;
+        }
+
         /// <summary>21002 全表只读枚举(对标老端遍历 mySkillList;角色面板技能页按 type 过滤主动/被动用,
         /// 技能成长线轮3 补,原骨架未暴露)。</summary>
         public IEnumerable<SkillVo> AllSkills => _mySkillList.Values;

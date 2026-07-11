@@ -34,6 +34,7 @@ using Shenxiao.Module.Core.SurpriseGift;
 using Shenxiao.Module.Core.Svip;
 using Shenxiao.Module.Core.TempleAwaken;
 using Shenxiao.Module.Core.Tasks;
+using Shenxiao.Module.Core.TransferJob;
 using Shenxiao.Module.Core.Relive;
 using Shenxiao.Module.Core.Vip;
 using Shenxiao.Module.Core.WeekCard;
@@ -51,6 +52,7 @@ namespace Shenxiao.Module.Core.Game
         {
             GameStartController.Instance,
             RoleController.Instance,
+            TransferJobController.Instance,
             SceneController.Instance,
             TaskController.Instance,
             DialogueController.Instance,

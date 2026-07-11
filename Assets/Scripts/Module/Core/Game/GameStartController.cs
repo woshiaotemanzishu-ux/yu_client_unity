@@ -6,6 +6,7 @@ using Shenxiao.Module.Core.CustomActivity;
 using Shenxiao.Module.Core.CycleimpActlist;
 using Shenxiao.Module.Core.FirstRecharge;
 using Shenxiao.Module.Core.FunctionOpen;
+using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Setting;
 using Shenxiao.Module.Core.Svip;
 using Shenxiao.Module.Core.Vip;
@@ -41,6 +42,7 @@ namespace Shenxiao.Module.Core.Game
             SendFmt(Proto.TASK_LATEST_FINISHED);
             SendFirstOpenStateRequest();
             SendFmt(Proto.SETTING_LIST, "c", SYS_SETTING);
+            RoleController.Instance.RequestGrowthPackets(); // 轮5:13011/13017/13046/13080/13086
             VipController.Instance.RequestRechargeProducts();
             FirstRechargeController.Instance.RequestStartupState();
             CustomActivityController.Instance.RequestActivityList();
@@ -48,7 +50,7 @@ namespace Shenxiao.Module.Core.Game
             WeekCardController.Instance.RequestStartup();
             CycleimpActlistController.Instance.RequestStartup();
             FunctionOpenController.Instance.RequestList();
-            GameLog.Info("Game", "requested startup packets: 13001,10201,30005,13088,10202,15800,15905,15908,33101,45120,22700,13800");
+            GameLog.Info("Game", "requested startup packets: 13001,10201,30005,13088,10202,15800,15905,15908,33101,45120,22700,13800,13011,13017,13046,13080,13086");
         }
 
         private void SendFirstOpenStateRequest()
@@ -109,12 +111,15 @@ namespace Shenxiao.Module.Core.Game
             int count = reader.ReadU16();
             for (int i = 0; i < count; i++)
             {
-                reader.ReadU16();
-                reader.ReadU16();
+                // 轮5:补通用存储(此前"读完即弃",角色面板等其余 module_id 的终身次数无处可查)。
+                int type = reader.ReadU16();
+                int val = reader.ReadU16();
+                RoleModel.Instance.SetLifelongCount(moduleId, subModuleId, type, val);
             }
 
             GameLog.Info("Game", "13088 lifelong counts ready: module={0} sub={1} count={2}",
                 moduleId, subModuleId, count);
+            EventDispatcher.Emit(GlobalEvent.EVT_ROLE_LIFELONG_COUNT_UPDATE, moduleId, subModuleId);
             if (moduleId == FIRST_OPEN_MODULE_ID && subModuleId == FIRST_OPEN_SUB_MODULE_ID)
             {
                 EventDispatcher.Emit(GlobalEvent.EVT_GAME_START_FLAG_READY, "13088@300@1");

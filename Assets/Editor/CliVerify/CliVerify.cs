@@ -126,6 +126,15 @@ namespace Shenxiao.EditorTools
             Run(JewelCase.Run, 300.0);
         }
 
+        /// <summary>角色成长补全 + 改名 + 转职(自动循环 轮5)实证:13011/13017/13020/13036/13046/
+        /// 13080/81/83/42601/13045 合成包驱动 RoleController/TransferJobController 反射喂包,断言
+        /// RoleModel/SkillManager 状态 + GlobalEvent;尾段 TransferJobCreator 生成 + 渲染断言卡片数
+        /// (详见 RoleGrowthCase 注释)。</summary>
+        public static void RoleGrowth()
+        {
+            Run(RoleGrowthCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -156,14 +165,15 @@ namespace Shenxiao.EditorTools
                 int iv = await InnateViewCase.Run();
                 int eg = await EquipGrowthCase.Run();
                 int jw = await JewelCase.Run();
+                int rg = await RoleGrowthCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
                     + " guildjoin=" + j + " rune=" + n + " dungeon=" + v + " thinslice=" + w + " finalslice=" + f
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m
                     + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
-                    + " equipgrowth=" + eg + " jewel=" + jw);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw })
+                    + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

@@ -50,8 +50,10 @@ namespace Shenxiao.Module.Core.Setting
             }
         }
 
-        /// <summary>打开设置模块内子窗(改头像/改名),叠在主面板上;按 View 子类名查找。未移植查不到 → 日志降级。</summary>
-        public static void OpenSub(string viewTypeName)
+        /// <summary>打开设置模块内子窗(改头像/改名),叠在主面板上;按 View 子类名查找。未移植查不到 → 日志降级。
+        /// args 透传给 View.Show(object),供需要开窗即带参数的子窗用(如改名窗需要 42602 的 is_free 结果;
+        /// 无参调用方(如改头像)args 缺省 null,子窗 OnShow 忽略即可,向后兼容)。</summary>
+        public static void OpenSub(string viewTypeName, object args = null)
         {
             if (_moduleRoot == null)
             {
@@ -62,7 +64,7 @@ namespace Shenxiao.Module.Core.Setting
             {
                 if (v.GetType().Name == viewTypeName)
                 {
-                    v.Show();
+                    v.Show(args);
                     return;
                 }
             }

@@ -180,7 +180,21 @@ namespace Shenxiao.Module.Core.Scene
         private void On12074(NetReader r) { r.ReadU8(); long id = r.ReadU64(); int v = r.ReadU8(); if (id == RoleModel.Instance.RoleId) { SetMainRolePkStatus(v); return; } SetRoleField(id, vo => vo.PkStatus = v); }  // PK 状态(主角走 RoleModel)
         private void On12075(NetReader r) { r.ReadU8(); long id = r.ReadU64(); int v = r.ReadU8(); SetRoleField(id, vo => vo.Show = v); }      // 展示状态
         private void On12082(NetReader r) { r.ReadU8(); long id = r.ReadU64(); int spd = r.ReadU16(); SetRoleField(id, vo => vo.Speed = spd); } // 移动速度
-        private void On12086(NetReader r) { long id = r.ReadU64(); string name = r.ReadString(); SetRoleField(id, vo => { if (vo.Figure != null) vo.Figure.name = name; }); } // 改名(无 sign 前缀)
+        // 改名(无 sign 前缀)。轮5 修:自己改名分流对标 On12074 —— 自己走 RoleModel(EquipmentView/RoleFlow
+        // 等主角自身 UI 依赖它)+ EVT_ROLE_INFO_UPDATE;42601 提交成功那侧刻意不直接改 Figure.Name,
+        // 就是靠这条既有 12086 广播路径统一落地(见 RoleController.On42601 注释,勿双改)。
+        private void On12086(NetReader r)
+        {
+            long id = r.ReadU64();
+            string name = r.ReadString();
+            if (id == RoleModel.Instance.RoleId)
+            {
+                if (RoleModel.Instance.Figure != null) RoleModel.Instance.Figure.name = name;
+                EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
+                return;
+            }
+            SetRoleField(id, vo => { if (vo.Figure != null) vo.Figure.name = name; });
+        }
 
         private static void SetRoleField(long roleId, System.Action<RoleVo> set)
         {

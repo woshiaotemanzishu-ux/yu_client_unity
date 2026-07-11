@@ -80,6 +80,10 @@ namespace Shenxiao.Module.Core.Skill
                 SkillConfigs.IsLoaded, SkillUIConfigs.IsLoaded, SkillMovieConfigs.IsLoaded, OtherFightConfigs.IsLoaded);
         }
 
+        /// <summary>重拉技能总表(对标老端转职成功后 SkillManager.Fire(REQUEST_CCMD_EVENT,21002))。
+        /// 供 <see cref="Shenxiao.Module.Core.TransferJob.TransferJobController"/> 转职成功级联调用。</summary>
+        public void RequestSkillList() => SendFmt(Proto.SKILL_LIST);
+
         // ===================== 21002:技能总表 =====================
 
         private void On21002(NetReader r)

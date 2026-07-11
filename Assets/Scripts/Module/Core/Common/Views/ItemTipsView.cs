@@ -167,6 +167,22 @@ namespace Shenxiao.Module.Core.Common
             GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(goods.TypeId);
             if (basic == null) return;
 
+            // 转职卡(type38/subtype39,轮5 接线):等级预检(对标 GoodsTooltips.ts:1201-1204/ItemInfoTips.ts:696-698
+            // 两处重复实现 goods_vo.level>角色等级 → 不开窗直接 toast「等级不足」)→ 打开 TransferJobCardView
+            // (对标 Fire(OPEN_VIEW,"TransferJobCardView"))。走专属分支,不落入下面的通用 UseBranchBlocker 降级表。
+            if (basic.Type == 38 && basic.Subtype == 39)
+            {
+                if (basic.Level > 0 && basic.Level > Role.RoleModel.Instance.Level)
+                {
+                    TipsManager.Toast("等级不足");
+                    Close();
+                    return;
+                }
+                TransferJob.TransferJobFlow.Show();
+                Close();
+                return;
+            }
+
             // 老端 CheckSecondView 的专属界面分流(SelectGiftView/经验符/藏宝图/装扮…未移植):不发 15050(老端也不直发),明确降级。
             string blocked = UseBranchBlocker(basic);
             if (blocked != null)
@@ -251,7 +267,7 @@ namespace Shenxiao.Module.Core.Common
             if (b.Type == 38 && b.Subtype == 6) return "OpenFun 35(定时宝箱)";
             if (b.Type == 38 && b.Subtype == 10) return "MarriageFlowerView(婚礼鲜花)";
             if (b.Type == 38 && b.Subtype == 36) return "MaskUseView(蒙面人道具)";
-            if (b.Type == 38 && b.Subtype == 39) return "TransferJobCardView(转职卡)";
+            // type38/subtype39(转职卡)轮5 已接真实 TransferJobCardView,提前在 OnUseClick 里专属分流,不落这张表。
             if (b.Type == 38 && b.Subtype == 42) return "OpenFun 18(转生界面)";
             if (b.Type == 75) return "藏宝图(野外场景使用)";
             if (b.Type == 59) return "OpenFun 203(装扮)";

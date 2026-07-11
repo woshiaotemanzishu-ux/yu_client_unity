@@ -141,6 +141,30 @@ namespace Shenxiao.Framework.Event
         /// (对标老端 PkStatusModel.CHANGE_SUCCESS)。</summary>
         public const string EVT_PK_CHANGE_SUCCESS = "EVT_PK_CHANGE_SUCCESS";
 
+        // ----- Role 成长补全 + 改名 + 转职(自动循环 轮5) -----
+        /// <summary>查看他人 Figure 到达(参数: RoleFigureInfo vo)。13013 回包解析完发。
+        /// RoleController.On13013 发,消费方(排行榜/记录列表"点开看模型")待补。</summary>
+        public const string EVT_ROLE_FIGURE_RETURN = "EVT_ROLE_FIGURE_RETURN";
+        /// <summary>头像激活列表变动(无参,读 RoleModel.HeadIdList)。13080 全量到达 / 13081 激活推送后都发。
+        /// RoleController.On13080/On13081 发。</summary>
+        public const string EVT_ROLE_HEAD_LIST_UPDATE = "EVT_ROLE_HEAD_LIST_UPDATE";
+        /// <summary>设置头像成功(无参,13083 code==1)。对标老端 SettingModel.SELECT_ROLE_HEAD_ICON_SUCCESS,
+        /// SettingChangeHeadView 监听后关闭自己。RoleController.On13083 发。</summary>
+        public const string EVT_ROLE_HEAD_SET_SUCCESS = "EVT_ROLE_HEAD_SET_SUCCESS";
+        /// <summary>角色终身次数变动(参数: int module, int sub)。13088 批次/13089 增量到达都发;
+        /// 目前无 UI 消费方(TODO)。GameStartController.On13088 / RoleController.On13089 发。</summary>
+        public const string EVT_ROLE_LIFELONG_COUNT_UPDATE = "EVT_ROLE_LIFELONG_COUNT_UPDATE";
+        /// <summary>改名校验通过(参数: string name, int type)。42604 result==1 时发,对标老端
+        /// EventName.CAN_USE_THIS_NAME;SettingChangeNameView 监听后弹二次确认,确定才发 42601。
+        /// RoleController.On42604 发。</summary>
+        public const string EVT_ROLE_RENAME_CHECK_PASSED = "EVT_ROLE_RENAME_CHECK_PASSED";
+        /// <summary>改名提交成功(无参)。42601 result==1 时发;Figure.Name 的更新走既有 12086 广播路径
+        /// (SceneController.On12086 自身分流),此事件只负责关窗,勿在此重复改名。RoleController.On42601 发。</summary>
+        public const string EVT_ROLE_RENAME_SUCCESS = "EVT_ROLE_RENAME_SUCCESS";
+        /// <summary>转职成功(参数: int career, int sex)。13045 error_code==1 时发,对标老端
+        /// CHANGE_MAINROLE_CAREER。TransferJobController.On13045 发。</summary>
+        public const string EVT_CAREER_CHANGED = "EVT_CAREER_CHANGED";
+
         // ----- Fight 扩容 / Relive(自动循环 队列#2 轮2;200xx,yu_client FightController.ts + commonController/ReliveController.ts) -----
         /// <summary>主角死亡(参数无;FightController.On20013 死亡广播解析完发,20022 主角死亡分支刻意不发——
         /// 对标老端弹窗信号只认 Fire(SHOWRELIVEWINDOW,0) 来自 20013)。ReliveController 订阅:停自动战斗+

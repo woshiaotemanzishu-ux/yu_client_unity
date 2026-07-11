@@ -355,6 +355,101 @@
         public const int PK_STATUS_CHANGE = 13012;
         public const int ROLE_LIFELONG_COUNT = 13088;
 
+        // ----- 角色成长补全 + 改名 + 转职(自动循环 轮5;yu_server pt_130.erl/pt_426.erl 权威字段序,
+        //        与 yu_client RoleController.ts 交叉核对,冲突处已按服务端为准改正并在注释标注) -----
+        /// <summary>世界等级(GAME_START 裸发 + 服务端同号推送更新)。回包 "Hh"(⚠反直觉,对标 pt_130.erl:211-212
+        /// write(13011,[ExpAdd,ServerLv])→&lt;&lt;ExpAdd:16/signed, ServerLv:16&gt;&gt;):
+        /// worldLvExp:H(16位有符号,经验加成%), worldLv:h(16位无符号,世界等级)。</summary>
+        public const int ROLE_WORLD_LEVEL = 13011;
+        /// <summary>查看他人 Figure(通用"拉人物模型"通道,被排行榜/记录列表等多处复用,非自身面板)。
+        /// 发 "hlh"(server_id, role_id, module_id;module_id 是调用方自定义来源标签)。
+        /// 回包(pt_130.erl:218-221 write(13013,[ServerId,ServerNum,Id,ModId,Power,Figure,ServerName])):
+        /// server_id:h, player_num:h, player_id:l, module_id:h, fighting:l, +FigureProto 块, platform:s
+        /// (服务端字段名 ServerName,老端变量名 platform,同一尾串字段,不是两个字段)。</summary>
+        public const int ROLE_FIGURE_QUERY = 13013;
+        /// <summary>玩家托管(自动战斗)状态(GAME_START 裸发)。回包 "c"(1=托管中)。
+        /// 战斗表现门控用(老端 Scene/FightMovie 多处消费跳过本地预表现/动画插值),本端仅落 RoleModel,
+        /// 门控消费未接(TODO)。</summary>
+        public const int ROLE_DEPOSIT_STATE = 13017;
+        /// <summary>被动技能解锁通知(S2C 专用推送,客户端严禁发;服务端 pt_130.erl 无 read 子句)。
+        /// 回包 len:h + skill_id:i×len。逐个按 config_skill[id].type==2(被动)静默并入
+        /// SkillManager 技能列表(level=1,对标老端 AddSkillToSkillList),无事件Fire、无toast。</summary>
+        public const int ROLE_SKILL_PASSIVE_UNLOCK = 13020;
+        /// <summary>经验获得飘字(S2C 专用推送,客户端严禁发;服务端 pt_130.erl 无 read 子句)。
+        /// 回包 "clh"(expType:c, exp:l, percent:h)。expType 枚举:0无/1GM/2任务/3个人杀怪/4副本/5队伍杀怪/
+        /// 6物品用加经验/7离线经验找回/8帮派宴会/9挂机经验物品找回/14(未注释)。分支对标老端 RoleController.ts:305-367
+        /// (expType==3 副本刷条分支不 return,继续走底部通用飘字;6/8/14 提前 return;"6||8||2"实际只剩2可达)。</summary>
+        public const int ROLE_EXP_FLOAT = 13036;
+        /// <summary>转职确认(道具"转职卡" type38/subtype39 使用触发)。发 "cc"(career, sex)。
+        /// 回包(pt_130.erl:281-283 write(13045,[ErrorCode,ErrorCodeArgs,NewCareer,NewSex])):
+        /// error_code:i, args:s, career:c, sex:c。==1 → Emit EVT_CAREER_CHANGED + 级联重拉 13080/13046/21002
+        /// (对标老端 MainRoleVo.changeCareer);OutwardChangedView(外观变更通用展示窗)未移植,TODO log。
+        /// 挂 <see cref="Shenxiao.Module.Core.TransferJob.TransferJobController"/>(新模块,不归 RoleController)。</summary>
+        public const int TRANSFER_JOB_CHANGE = 13045;
+        /// <summary>转职冷却时间(GAME_START 裸发 + 转职成功后重拉)。回包 "i"=change_career_time,
+        /// **绝对服务器时间戳,不是剩余秒**(与 <see cref="Bag.BagModel"/> 等"剩余秒转绝对时间"存法相反,
+        /// 存 RoleModel.ChangeCareerTime,勿复用同一转换 helper)。消费方(道具tooltip冷却展示)未接,TODO。</summary>
+        public const int TRANSFER_JOB_COOLDOWN = 13046;
+        /// <summary>头像三件套 1/3——激活头像列表(GAME_START + 开窗时拉)。回包 "h"+i×len(head_id 列表)。
+        /// 存 RoleModel.HeadIdList;id==1/3 恒视为已激活(硬编码照抄老端 RoleManager.HaveActiviteThisHead)。</summary>
+        public const int ROLE_HEAD_LIST = 13080;
+        /// <summary>头像三件套 2/3——激活头像(S2C 推送)。⚠字段序按服务端权威改正:pt_130.erl:302-303
+        /// write(13081,[Res,Id]) → &lt;&lt;Res:32, Id:64&gt;&gt;(规格草案假设"recv c,i"抄自老端 TS 形状,
+        /// 但老端客户端请求侧本就是空转 pp_player.erl:331-332 handle(13081,_,[_Id])->{ok,Status},从无真实回包验证过;
+        /// 真正触发源是服务端 use_picture_goods 内部广播,与客户端发送无因果)。code==1 成功/2无此头像/3已激活/
+        /// 4物品不足/5性别不符。请求侧对标老端仅绑在废弃的"自定义头像上传"(13082)成功回调,该半成品不移植,
+        /// 本端只注册 recv,不提供 Send 封装。</summary>
+        public const int ROLE_HEAD_ACTIVATE_PUSH = 13081;
+        /// <summary>头像三件套 3/3——设置玩家头像。发 "l"(head_id)。回包(pt_130.erl:310-312
+        /// write(13083,[Res,PictureVer,String])):code:i, head_ver:i, head_id_str:s。1成功→改
+        /// Figure.Raw["picture"] + Emit EVT_ROLE_HEAD_SET_SUCCESS;2管理员禁止;4无该头像;else 错误码。</summary>
+        public const int ROLE_HEAD_SET = 13083;
+        /// <summary>查看玩家指定数据(GAME_START 裸发;双端语义标签不一致但字节序一致,以服务端权威 byte
+        /// 布局实现——老端 TS 认为是"渠道播放时长统计"埋点(role_platform_times_data[style]=times),
+        /// 服务端 pt_130.erl:388-392 实际取 ExpDunCount/VipBossCount/Gate 三项计数;两者 shape 同为
+        /// len:h+{u8,u32}×len,仅字段命名假设不同)。回包 "h"+{type:c,value:i}×len,落 RoleModel 泛用字典,
+        /// 老端亦仅 console.warn 打日志、无任何消费方,本端同样不 Emit 事件。</summary>
+        public const int ROLE_MISC_COUNTERS = 13086;
+        /// <summary>角色终身次数信息+1(S2C 推送,老端无客户端主动发送观测到;服务端函数头 guard
+        /// 强约束 ModuleId==300&amp;&amp;SubModule==1,其余静默丢弃不回包)。回包 "hhhh"
+        /// (ModuleId, SubModule, Type, Count)。落 RoleModel 通用终身计数字典(与 13088 共用存储,
+        /// 见 <see cref="Role.RoleModel.SetLifelongCount"/>),Emit EVT_ROLE_LIFELONG_COUNT_UPDATE(module,sub),
+        /// 无 UI 消费方(TODO)。</summary>
+        public const int ROLE_LIFELONG_INCREMENT = 13089;
+
+        // 以下号跳过(仅存说明,不写代码;逐号裁决见规格 §0 及本轮汇报"裁决表"):
+        // 13082(校验能否上传头像):服务端 ALIVE(pt_130.erl:106-107 有 guard),但其唯一下游
+        //   SettingUploadHeadView.ts 整个类体被注释成空壳,老端"自定义头像上传"功能半成品未完工,
+        //   不移植(与其绑定的 13081 请求侧同样不建)。
+        // 13084(设置 GPS 经纬度):服务端 ALIVE(pt_130.erl:115-116,guard `is_integer` 对二进制解出的整型
+        //   恒真形同虚设),但老端 h5/src 全仓库找不到任何调用点,且本游戏 Unity 端无地理位置/GPS 功能,
+        //   无触发源可对接,不写代码。
+        // 13085:服务端 pt_130.erl 无 read/write 子句、老端全仓库零引用,双端真实不存在,不写代码。
+        // 13087(挂后台切回游戏通知):服务端 ALIVE 但单向请求无回包(pt_130.erl 无 write(13087,...)子句,
+        //   仅取消复活计时器副作用);老端无调用点,Unity 亦无 App 生命周期(OnApplicationPause/focusChanged)
+        //   钩子系统可挂载,超出本轮"角色面板补全"范围,不写代码(留待后续 App 生命周期专项接入)。
+
+        // ----- 改名(426xx,yu_server pt_426.erl / pp_rename.erl)-----
+        /// <summary>改角色名(提交)。发 "si"(name, type;1免费/2钻石/3改名卡)。回包(pt_426.erl:24-34
+        /// write(42601,[Result,Name])):result:i, name:s。⚠错误码取值以服务端为准:老端 TS On42601
+        /// 硬编码假设 result 2/3/4/5/6 小整数枚举,但服务端 <c>data_error_code</c> 运行期表实际下发
+        /// 1001(勾玉不足)/1008(长度不合法,提示"4-12个字符",非老端假设的"2~6汉字")/1009(重名)/
+        /// 1010(非法字符)/1450002(敏感词)/4260001(今日已改)/4260002(系统升级中),两套编码冲突,
+        /// 本端按服务端实测为准(见 <see cref="Role.RoleController"/> FormatRenameMsg)。成功(result==1)→
+        /// toast「改名成功」+ Emit EVT_ROLE_RENAME_SUCCESS;Figure.Name 更新走既有 12086 广播路径(勿双改)。</summary>
+        public const int RENAME_SUBMIT = 42601;
+        /// <summary>查询是否免费改名(改名入口按钮点击发,裸请求)。回包(pt_426.erl:36-42
+        /// write(42602,[Result])):result:i(1免费/2否)。收到后打开 SettingChangeNameView(result 作为
+        /// is_free 参数),对标老端 SettingModel.Fire(SETTING_OPEN_VIEW,"SettingChangeNameView",scmd.result)。</summary>
+        public const int RENAME_FREE_CHECK = 42602;
+        /// <summary>判断是否满足改名条件(提交前预检,同 42601 消耗/长度/敏感词校验链但**不落库不扣道具**,
+        /// 42601 有 <c>lib_game:is_ban_rename()</c> 系统封禁拦截而 42604 没有)。发 "si"(name, type),
+        /// 回包(pt_426.erl:59-69 write(42604,[Result,Name])):result:i, name:s(格式/错误码表同 42601)。
+        /// result==1 → Emit EVT_ROLE_RENAME_CHECK_PASSED(name,type),供二次确认弹窗后再发 42601。</summary>
+        public const int RENAME_CHECK = 42604;
+        // 42603(查看曾用名):协议契约完整但服务端 handle 子句整段被注释(pp_rename.erl:116-141),
+        //   老端全仓库零 UI 入口/零调用,双端均 DEAD,不写代码(若要做需从零设计 UI,超出本轮范围)。
+
         // ----- Login/common kick notice (590xx, yu_server pt_590.erl) -----
         /// <summary>Server-side forced logout / kick reason. Reply payload: u16 code.</summary>
         public const int LOGIN_KICK_REASON = 59004;
