@@ -1224,3 +1224,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **管线发现**:EquipJewelView 整树被烤进 CommonModule.prefab/__Templates 当死模板(与轮3 天赋同款行为)——JewelBindUpgrader 嫁接进 JewelModule 顶层后复用现成 LayaBindFiller.FillPrefab 回填管线升级 Bind→业务子类(比轮3 手写 m_Script 替换更该用的正道,已沉淀:**烤图缺组件先找 LayaBindFiller,别重写升级器**)。
 - 服务端实证纠偏:15210 refine_lv=1 字节(侦察稿 h 有误)。配置缺口(config_equip_stone_inlay/lv/refine/refine_goods)如实降级留 TODO。
 - **验证:JewelCase(协议+渲染双段)+RenderAll 二十五用例全绿 EXIT 0**。
+
+## 自动循环 轮5(2026-07-11 夜间无人值守):角色面板+改名+转职,二十六用例全绿
+
+- **8d483fd76(46文件+3985行)**:世界等级/他人Figure/托管/被动技能推送/经验飘字分支全表/转职冷却(绝对时间戳)/头像三件套/13088终身计数真存储;改名全链(服务端错误码实测纠老端硬编码假设);转职全链(道具分支解锁+等级预检+二次确认+TransferJobCreator 从老端 json 设计值从零建 prefab——比嫁接更早期的第三种 UI 供给形态)。
+- **真 bug 修复**:12086 改名推送无自分流,自己改名后 RoleModel.Figure.Name 不更新——仿 On12074 补分流。
+- 逐号裁决:13082(老端上传头像半成品,SettingUploadHeadView 整类被注释)/13084(GPS 无触发源)/13085(双端不存在)/13087(App 生命周期)跳过;13081 字段序按服务端 Res:32+Id:64(老端假设从未被真回包验证过)。
+- **验证:RoleGrowthCase 八组断言+渲染段 + RenderAll 二十六用例全绿 EXIT 0**。
