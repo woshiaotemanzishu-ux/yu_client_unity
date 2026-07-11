@@ -147,6 +147,31 @@ namespace Shenxiao.Framework.Event
         public const string EVT_GUBAO_UPDATE = "EVT_GUBAO_UPDATE";
         /// <summary>副本状态变动(61020 状态/61001 进入回包/61013 结算)。</summary>
         public const string EVT_DUNGEON_UPDATE = "EVT_DUNGEON_UPDATE";
+
+        // ----- 副本家族补全一期(自动循环 轮9) -----
+        /// <summary>61004 副本信息推送落地(读 DungeonModel.SceneInfo;对标老端 UPDATE_DUNGEON_INFO)。</summary>
+        public const string EVT_DUNGEON_INFO_UPDATE = "EVT_DUNGEON_INFO_UPDATE";
+        /// <summary>61018 退出倒计时(参数: int end_time;仅 type==1 才发,对标老端 UPDATE_DUNGEON_END_TIME)。</summary>
+        public const string EVT_DUNGEON_END_TIME = "EVT_DUNGEON_END_TIME";
+        /// <summary>61030 下一波怪物时间(参数: int wave_num, int time)。</summary>
+        public const string EVT_DUNGEON_NEXT_WAVE = "EVT_DUNGEON_NEXT_WAVE";
+        /// <summary>61011 助战剩余次数落地(参数: int dun_id;读 DungeonModel.GetHelpCount)。</summary>
+        public const string EVT_DUNGEON_HELP_COUNT = "EVT_DUNGEON_HELP_COUNT";
+        /// <summary>61021 购买次数成功(参数: int dun_id, int dun_type;对标老端 UPDATE_DUNGEON_TIME)。</summary>
+        public const string EVT_DUNGEON_BUY_SUCCESS = "EVT_DUNGEON_BUY_SUCCESS";
+        /// <summary>61023 时间评分状态(读 DungeonModel.ScoreState;对标老端 NOW_TIME_SCORE_STATE)。</summary>
+        public const string EVT_DUNGEON_SCORE_STATE = "EVT_DUNGEON_SCORE_STATE";
+        /// <summary>61025/61026 鼓舞状态变化(参数: bool showToast——61025 成功那侧 true;对标老端 UPDATE_INSPRITE_INFO)。</summary>
+        public const string EVT_DUNGEON_INSPIRIT_UPDATE = "EVT_DUNGEON_INSPIRIT_UPDATE";
+        /// <summary>61121 资源副本次数落地(参数: int dun_type,0=全量;读 DungeonModel.GetResourceCount)。</summary>
+        public const string EVT_DUNGEON_RESOURCE_COUNT = "EVT_DUNGEON_RESOURCE_COUNT";
+        /// <summary>61009 剧情触发推送(参数: int story_id, int sub_story_id;对标老端 STORY_PLAY_TRIGGER,
+        /// 剧情播放系统未移植,先发事件供后续 Story 通道消费)。</summary>
+        public const string EVT_DUNGEON_STORY_TRIGGER = "EVT_DUNGEON_STORY_TRIGGER";
+        /// <summary>50801 周本信息落地(读 PolarModel.WeekInfos;对标老端 POLAR_DATA_RETURN)。</summary>
+        public const string EVT_POLAR_DATA = "EVT_POLAR_DATA";
+        /// <summary>50802 周本榜单落地(参数: int team_dun_id;读 PolarModel.GetRank;对标老端 POLAR_RANK_DATA_RETURN)。</summary>
+        public const string EVT_POLAR_RANK_DATA = "EVT_POLAR_RANK_DATA";
         /// <summary>符文数据变动(16700 全量/16701 镶嵌后)。</summary>
         public const string EVT_RUNE_UPDATE = "EVT_RUNE_UPDATE";
         /// <summary>结社数据变动(40001 列表/40003 申请/40004 创建回包)。</summary>

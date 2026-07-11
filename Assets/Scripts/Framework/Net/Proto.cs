@@ -967,6 +967,95 @@
         /// add_count:h, is_sweep:c, rec_data[u16×{key:h,val:i}]}])。</summary>
         public const int DUNGEON_STATE = 61020;
 
+        // ----- 通用副本扩容(自动循环 轮9;老端同一份 BaseDungeonController.ts/BaseDungeonModel.ts,
+        //        字段序以 r9_server 侦察(pt_610.erl/pt_611.erl bit-width 实测)为准) -----
+        /// <summary>副本信息(当前波次/开始结束时间)。纯推送壳,无 send 字段(read(61004,_)->{ok,[]});
+        /// 回包:start_time:i, start_time_ms:l, end_time:i, level:h, level_end_time:i, owner_id:l, wave_num:i。
+        /// 触发:①IsLoadingDunType 白名单类型(Rune/Partner/Dragon/Heart/Equip/Polar/SingleRank)服务端进副本后主动推;
+        /// ②非白名单类型 61001 成功回调客户端显式补发本号(空参);③进副本场景后固定与 61018/61030 重发三连
+        /// (对标老端 DungeonFightSceneView.LoadCustomLogic)。</summary>
+        public const int DUNGEON_INFO = 61004;
+        /// <summary>副本波次/事件推送(S2C,lib_dungeon_common_event 发)。禁止客户端发送;
+        /// 回包 dun_id:i, scene_id:i, type:h, time:i, wave_num:i(老端存 curr_wave_type/curr_wave_num
+        /// 并驱动 RefreshMonster/寻路——Unity 刷怪渲染由场景协议(12007/12012)承担,本端只落波次数据)。</summary>
+        public const int DUNGEON_WAVE_PUSH = 61005;
+        /// <summary>剧情触发推送(S2C,61010 的"预告"配对号)。禁止客户端发送;
+        /// 回包 story_id:i, sub_sotry_id:i(⚠字段名 sotry 是老端/服务端一致的历史拼写)。</summary>
+        public const int DUNGEON_STORY_PUSH = 61009;
+        /// <summary>坐标事件(对标老端 TriggerFlushMonster,新主线/装备本"走到某坐标刷一批怪"机制)。
+        /// 发 "hh"(x,y);回包原样回显 x:h,y:h,驱动 role_pos_event_list 状态机(命中范围内 trigger_state 置3完成,
+        /// 曾触发中(2)未命中回退1)。</summary>
+        public const int DUNGEON_POS_EVENT = 61007;
+        /// <summary>剧情事件(⚠字段序陷阱,r9 侦察实证):真实发送点是老端 StoryController.ts:600 直发,
+        /// fmt="iic"(story_id:i, sub_story_id:i, is_end:c)——不是 BaseDungeonController.ts 里那个从未被触发的
+        /// "ilc"死分支。服务端(pp_dungeon.erl)本号无 write,纯 ack 无回包,本端不注册接收。</summary>
+        public const int DUNGEON_STORY_EVENT = 61010;
+        /// <summary>助战剩余次数(神纹/装备本"组队助战"型入口用)。发 "i"(dun_id);
+        /// 回包 dun_id:i, left_help_count:c。</summary>
+        public const int DUNGEON_HELP_COUNT = 61011;
+        /// <summary>退出副本时间(副本内倒计时唯一数据源)。无 send 字段,裸发;
+        /// 回包 type:c, end_time:i——仅 type==1 才有意义(0=该副本无倒计时配置)。</summary>
+        public const int DUNGEON_EXIT_TIME = 61018;
+        /// <summary>坐标触发情况表(61007 的断线重连/重进场景对账配对协议)。发 "i"(scene_id),每次进副本场景发一次;
+        /// 回包 xy_list[u16×{x:i,y:i}](⚠与 61007 的 x/y 是 16 位不同,这里是 32 位)——命中的
+        /// role_pos_event_list 项直接置 trigger_state=3,避免重进场景重复触发。</summary>
+        public const int DUNGEON_POS_EVENT_LIST = 61019;
+        /// <summary>下一波怪物生成时间(进副本场景固定三连之一,对标老端 mod_dungeon:get_next_wave_time)。
+        /// 无 send 字段,裸发;回包 wave_num:i, time:i。</summary>
+        public const int DUNGEON_NEXT_WAVE_TIME = 61030;
+        /// <summary>购买副本次数。发 "ih"(dun_id, count;UI 恒传 count=1,无批量购买入口);
+        /// 回包 error_code:i, dun_id:i, buy_count:h。成功后按 dun_type 分支:NEW_*/Material_*/Unreal/Soul/
+        /// AdvancedExp 全组共享一个 vip_count 广播给同 type 所有条目,其余类型仅更新对应 dun_id 那条;
+        /// dun_id==姻缘本(13001)且 error_code==6100043 → 专文案"购买次数已达上限"。</summary>
+        public const int DUNGEON_BUY_COUNT = 61021;
+        /// <summary>扫荡。发 "ih"(dun_id, auto_num);回包 error_code:i, dun_id:i, grade:c, left_count:h,
+        /// auto_num:h, sweep_list[u16×{reward_list[u16×{style:c,typeId:i,count:i,goods_id:l}],
+        /// other_reward[u16×{reward_type:c,other_reward_list[u16×{style1:c,typeId1:i,count1:i,goods_id1:l}]}]}]
+        /// (⚠count 字段是 32 位,不同于 61003 的 64 位)。展示复用既有 DungeonResultView 通道。</summary>
+        public const int DUNGEON_SWEEP = 61022;
+        /// <summary>当前时间评分状态(装备本场景"星级评分随时间变化"倒计时用)。无 send 字段,裸发
+        /// (⚠陷阱:老端调用方传了 dun_id 但该号走 default 分支会被静默丢弃,发送侧不要编码任何参数);
+        /// 回包 cur_score:i, next_score:i, change_time:i。</summary>
+        public const int DUNGEON_SCORE_STATE = 61023;
+        /// <summary>鼓舞(经验副本消费加成)。发 "c"(cost_type;1=铜币,2=元宝);
+        /// 回包 error_code:i, coin_count:c, gold_count:c。</summary>
+        public const int DUNGEON_INSPIRIT = 61025;
+        /// <summary>鼓舞状态数据(进经验本战斗界面/打开鼓舞面板各查一次)。无 send 字段,裸发;
+        /// 回包 coin_count:c, gold_count:c。</summary>
+        public const int DUNGEON_INSPIRIT_STATE = 61026;
+        /// <summary>资源副本一键操作(对标老端 RequestDungeonChallenge;61028"批量扫荡"已死,本号+61121是替代版)。
+        /// 发 "c"(oper_type;1=一键挑战,2=一键扫荡);回包 code:i, oper_type:c,
+        /// sweep_list[u16×{reward_list[...],other_reward[...]}](与 61022 同款 reward item 形状,无 dun_id 逐项)。</summary>
+        public const int DUNGEON_RESOURCE_ONEKEY = 61120;
+        /// <summary>资源副本次数信息(对标老端 RequestDungeonNum;61020 处理完资源副本类型后补发本号)。
+        /// 发 "c"(dun_type;0=查全部资源副本类型);回包 count_list[u16×{dun_type:c,sweep_count:h,challenge_count:h}]。</summary>
+        public const int DUNGEON_RESOURCE_COUNT = 61121;
+
+        // 以下号跳过(仅存说明,不写代码;轮9 双端侦察定案,见 r9_olddungeon/r9_server):
+        // 61006(事件触发)/61014(剧情播放列表)/61016(结算界面2关卡)/61017(跳过副本)/61024(副本可用性)/
+        //   61027(副本重置):服务端全活,但老端 h5/src 全树零引用(无注册无发送),UNUSED 不移植。
+        //   61024 被 61121+61042+前端本地算取代;61014 被单条 61009 取代;61016 配套的 61015 同样零引用。
+        // 61028(按类型批量扫荡):老端 registered 但无任何 UI 触达路径,被 61120+61121 取代的死协议,不移植。
+        // 61012/61029/61057/61060/61099(610段)+61119(611段):服务端 DEAD(write 调用点全被注释/handle 直接 skip,
+        //   照 r9_server §DEAD 清单),双向皆死不移植。
+        // 61031-61041:守卫公会本(GuildGuard)专属(击杀数/伤害榜/怪物血量/波数/摘要),老端注册在
+        //   GuildController.ts 非 BaseDungeonController——归公会包,本轮不碰。
+        // 61112-61116:灵魄本(Rune)专属奖励系统(通用奖励领取/列表 61112-13+符文每日奖励/状态/解锁 61114-16),
+        //   非"塔"——归灵魄奖励包(老端 InitDunData Rune 分支的 61113/61115 触发一并留待该包)。
+        // 61117 已接(BaseDungeonController 限时爬塔图标);61118(限时爬塔大奖领取)塔二期。
+        // 50805(周本专属结算推送,不复用 61003):DungeonPolarBalance 结算面板未移植,周本二期。
+
+        // ----- 周常副本(pt_508,yu_server week_dungeon;老端 DungeonPolarView.ts/DungeonPolarRankView.ts。
+        //        周本(Polar,dun_type=36)是独立于 61xxx 通用副本的数据线,不挂 DungeonModel.DunStatesByType) -----
+        /// <summary>玩家的周常副本信息。无 send 字段,裸发(老端周本大厅加载完成时查一次);
+        /// 回包 dun_list[u16×{week_dun_id:i, dun_score:h, single_succ:c, team_succ:c, help_times:h,
+        /// boss_reward[u16×{boss_id:i, reward_st:c}]}]。</summary>
+        public const int POLAR_WEEK_INFO = 50801;
+        /// <summary>周本榜单。发 "icc"(team_dun_id, rank1, rank2;老端固定查第1~10名);
+        /// 回包 team_dun_id:i, self_rank:c, self_pass_time:h,
+        /// rank_list[u16×{pass_time:h,time:i,rank:c,role_list[u16×{role_id:l,role_name:s,server_id:h,server_num:h}]}]。</summary>
+        public const int POLAR_RANK = 50802;
+
         // ----- 灵魄/符文(pt_167,yu_server rune;老端 RuneBagItem.ts/SecretTreasureMainView) -----
         /// <summary>符文全量(请求无参;回包 rune_point:i, rune_chip:i, skill_lv:h, rune_list[u16×{pos_id:c, if_open:c,
         /// goods_id:l, goods_type_id:i, color:c, lv:h, attr_list[u16×{attr_id:i, attr_num:i, awake_lv:i, awake_exp:i,

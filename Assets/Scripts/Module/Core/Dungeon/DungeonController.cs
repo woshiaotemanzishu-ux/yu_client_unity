@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Role;
 
 namespace Shenxiao.Module.Core.Dungeon
 {
@@ -20,6 +22,21 @@ namespace Shenxiao.Module.Core.Dungeon
     /// 公会,积分展示"——是结算面板上的社交附加协议(好友/公会邀请),配合 61011/61012 服务"助战类"副本,
     /// 并非御魂本会收到的结算本体。本控制器按侦察结论只接 61003;61013 常量保留(Proto.DUNGEON_SETTLE)
     /// 但不注册,如后续实测服务端确有下发再补。
+    ///
+    /// 轮9 副本家族补全一期(逐号裁决见 r9 三份侦察 + 规格§0):
+    ///   接:61004 副本信息(双路:loading 白名单服务端主动推/其余 61001 成功补发)+ 61005·61030 波次 +
+    ///      61007·61019 坐标事件状态机 + 61009 剧情推送→事件 + 61011 助战次数 + 61018 退出倒计时 +
+    ///      61021 购买(全组共享 vip_count 分支+6100043 婚姻本专文案)+ 61022 扫荡 + 61023 时间评分 +
+    ///      61025·61026 鼓舞 + 61120·61121 资源本一键与次数 + 50801·50802 周本(独立 PolarModel 数据线)。
+    ///   发送封装:61010 剧情事件("iic",老端 StoryController 直发序,勿抄 BaseDungeonController 死分支 ilc)。
+    ///   跳过:61006/61014/61015/61016/61017/61024/61027(老端 h5/src 全树零引用 UNUSED)、
+    ///      61028(被 61120+61121 取代的死协议)、61012/61029/61057/61060/61099/61119(服务端 DEAD)、
+    ///      61031-41(守卫公会本,归公会包)、61112-16(灵魄本奖励系统,记灵魄包)、61118(限时爬塔二期)、
+    ///      50805(周本专属结算推送,DungeonPolarBalance 面板未移植,TODO 周本二期)。
+    ///   连锁:61001 成功→按类型乐观计数/Equip·Dragon 补发 61020/非 loading 类型补发 61004;
+    ///      61003·61020 →补发 61121(对标老端 RequestDungeonNum);GAME_START/等级变化/任务推进→
+    ///      500ms 防抖对 InitStateDunTypes 白名单批量 61020(对标 CheckAllDunInitState);
+    ///      进副本场景(EVT_SCENE_MAP_READY 且 DunId≠0)→固定重发 61004/61018/61030 三连+61019 对账。
     /// </summary>
     public sealed class DungeonController : BaseController
     {
@@ -27,18 +44,124 @@ namespace Shenxiao.Module.Core.Dungeon
 
         private DungeonController() { }
 
+        // CheckAllDunInitState 防抖(对标老端 setTimeout 500ms;epoch 自增使旧批次失效)。
+        private int _checkEpoch;
+        // 等级变化门(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,只在等级真变时重查——同 BaseDungeonController 塔图标去抖)。
+        private int _lastLevel = -1;
+
         protected override void Register()
         {
             RegisterProtocal(Proto.DUNGEON_ENTER, On61001);
             RegisterProtocal(Proto.DUNGEON_SETTLE_UI, On61003);
             RegisterProtocal(Proto.DUNGEON_STATE, On61020);
             // 61002(DUNGEON_EXIT)已由 AutoBrushController 注册,红线不可重复注册;Exit() 只发不接。
+            RegisterProtocal(Proto.DUNGEON_INFO, On61004);
+            RegisterProtocal(Proto.DUNGEON_WAVE_PUSH, On61005);
+            RegisterProtocal(Proto.DUNGEON_POS_EVENT, On61007);
+            RegisterProtocal(Proto.DUNGEON_STORY_PUSH, On61009);
+            RegisterProtocal(Proto.DUNGEON_HELP_COUNT, On61011);
+            RegisterProtocal(Proto.DUNGEON_EXIT_TIME, On61018);
+            RegisterProtocal(Proto.DUNGEON_POS_EVENT_LIST, On61019);
+            RegisterProtocal(Proto.DUNGEON_BUY_COUNT, On61021);
+            RegisterProtocal(Proto.DUNGEON_SWEEP, On61022);
+            RegisterProtocal(Proto.DUNGEON_SCORE_STATE, On61023);
+            RegisterProtocal(Proto.DUNGEON_INSPIRIT, On61025);
+            RegisterProtocal(Proto.DUNGEON_INSPIRIT_STATE, On61026);
+            RegisterProtocal(Proto.DUNGEON_NEXT_WAVE_TIME, On61030);
+            RegisterProtocal(Proto.DUNGEON_RESOURCE_ONEKEY, On61120);
+            RegisterProtocal(Proto.DUNGEON_RESOURCE_COUNT, On61121);
+            RegisterProtocal(Proto.POLAR_WEEK_INFO, On50801);
+            RegisterProtocal(Proto.POLAR_RANK, On50802);
+
+            EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
+            EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskListUpdated);
+            EventDispatcher.On(GlobalEvent.EVT_SCENE_MAP_READY, OnSceneMapReady);
         }
 
         public override void Dispose()
         {
+            EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
+            EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskListUpdated);
+            EventDispatcher.Off(GlobalEvent.EVT_SCENE_MAP_READY, OnSceneMapReady);
+            ++_checkEpoch;   // 使在途防抖批次失效
+            _lastLevel = -1;
             DungeonModel.Instance.Clear();
+            PolarModel.Instance.Clear();
             base.Dispose();
+        }
+
+        // =====================================================================================
+        // 61020 触发时机(对标老端 Init() 的 CheckAllDunInitState:GAME_START/等级变化/任务推进 →
+        // 500ms 防抖 → 对白名单里未 init 的类型批量发 61020。DAY_CHANGE/HOUR_REFRESH==4 的重置路老端
+        // 走 ServerTimeModel 事件,Unity 尚无服务器日切事件源,TODO 待 ServerTime 模块接入后补挂)。
+        // =====================================================================================
+
+        private void OnGameStart()
+        {
+            // 对标老端 GAME_START:ResetData(全类型待重拉)后批量补请求。
+            DungeonModel.Instance.ResetDunInitState();
+            CheckAllDunInitState();
+        }
+
+        private void OnRoleInfoUpdate()
+        {
+            RoleModel role = RoleModel.Instance;
+            if (!role.HasBaseInfo) return;
+            if (role.Level == _lastLevel) return;
+            _lastLevel = role.Level;
+            CheckAllDunInitState();   // 对标老端 CHANGE_LEVEL → CheckAllDunInitState
+        }
+
+        private void OnTaskListUpdated()
+        {
+            CheckAllDunInitState();   // 对标老端 UPDATE_NEWEST_TASK_ID → CheckAllDunInitState
+        }
+
+        /// <summary>500ms 防抖批量补 61020(对标 BaseDungeonController.ts:200-212)。
+        /// ⚠老端 CheckDunInitState 还有 CheckDunOpenState(功能开放)门控——功能开放门控数据未接线,
+        /// 本端不拦(多发的 61020 服务端安全回空表);老端 InitDunData 里 Rune 额外发 61113/61115(灵魄
+        /// 奖励包,规格§0 归灵魄包跳过)、Heart 额外发 61101(技能列表,pp_dungeon_sec),均记 TODO 不发。</summary>
+        private void CheckAllDunInitState()
+        {
+            _ = CheckAllDunInitStateAsync(++_checkEpoch);
+        }
+
+        private async Task CheckAllDunInitStateAsync(int epoch)
+        {
+            await Task.Delay(500);
+            if (epoch != _checkEpoch || !IsInitialized) return;
+            DungeonModel model = DungeonModel.Instance;
+            int sent = 0;
+            foreach (int dunType in DungeonModel.InitStateDunTypes)
+            {
+                if (model.GetDunInitState(dunType)) continue;
+                model.SetDunInitState(dunType);
+                RequestState(dunType);
+                sent++;
+            }
+            if (sent > 0) GameLog.Info("Dungeon", "CheckAllDunInitState 批量补 61020 ×{0}", sent);
+        }
+
+        /// <summary>进副本场景固定重发三连+坐标对账(对标老端 DungeonFightSceneView.LoadCustomLogic:337-339
+        /// 发 61004/61018/61030,BaseDungeonController.EnterSceneHandle:2096 发 61019)。离开副本回野外时
+        /// 清副本内临时状态(坐标事件/波次/倒计时,对标老端 ClearDungeonInfo)。</summary>
+        private void OnSceneMapReady()
+        {
+            RoleModel role = RoleModel.Instance;
+            if (role.DunId != 0)
+            {
+                SendFmt(Proto.DUNGEON_INFO);
+                SendFmt(Proto.DUNGEON_EXIT_TIME);
+                SendFmt(Proto.DUNGEON_NEXT_WAVE_TIME);
+                SendFmt(Proto.DUNGEON_POS_EVENT_LIST, "i", role.SceneId);
+                GameLog.Info("Dungeon", "进副本场景重发三连 61004/61018/61030 + 61019(scene={0})", role.SceneId);
+            }
+            else
+            {
+                DungeonModel.Instance.ClearDungeonInfo();
+            }
         }
 
         /// <summary>进入副本(对标老端 675 行 61001 请求;发 "i" dun_id)。</summary>
@@ -63,6 +186,101 @@ namespace Shenxiao.Module.Core.Dungeon
             GameLog.Info("Dungeon", "request 61020 dun_type={0}", dunType);
         }
 
+        /// <summary>请求副本信息 61004(空参;loading 白名单类型服务端主动推,通常不需要手动调)。</summary>
+        public void RequestDungeonInfo() => SendFmt(Proto.DUNGEON_INFO);
+
+        /// <summary>请求退出倒计时 61018(裸发,无参)。</summary>
+        public void RequestExitTime() => SendFmt(Proto.DUNGEON_EXIT_TIME);
+
+        /// <summary>请求下一波怪物时间 61030(裸发,无参)。</summary>
+        public void RequestNextWaveTime() => SendFmt(Proto.DUNGEON_NEXT_WAVE_TIME);
+
+        /// <summary>请求坐标触发情况表 61019(发 "i" scene_id;进副本场景对账用)。</summary>
+        public void RequestPosEventList(int sceneId) => SendFmt(Proto.DUNGEON_POS_EVENT_LIST, "i", sceneId);
+
+        /// <summary>请求助战剩余次数 61011(发 "i" dun_id;神纹/装备本入口用)。</summary>
+        public void RequestHelpCount(int dunId) => SendFmt(Proto.DUNGEON_HELP_COUNT, "i", dunId);
+
+        /// <summary>购买副本次数 61021(发 "ih" dun_id,1——老端 UI 恒传 count=1,无批量购买入口)。
+        /// ⚠老端 DungeonBuyTimeView 有 can_buy_ 预校验(VIP 特权额度算出,不足直接跳 VIP 购买页不发协议)
+        /// ——VIP 特权表未移植,本端直接发,由服务端 check_buy_count 校验(err610_buy_* 系错误码)。</summary>
+        public void BuyCount(int dunId)
+        {
+            SendFmt(Proto.DUNGEON_BUY_COUNT, "ih", dunId, 1);
+            GameLog.Info("Dungeon", "request 61021 buy dun_id={0} count=1", dunId);
+        }
+
+        /// <summary>扫荡 61022(发 "ih" dun_id, auto_num)。老端触发点带 SWEEPING_GOODS_ID(38040001)
+        /// 扫荡券库存预检(不足弹 DungeonMaterialAlertView 购买)——该弹窗未移植,预检留给调用方 UI(TODO)。</summary>
+        public void Sweep(int dunId, int autoNum)
+        {
+            if (autoNum <= 0) return;
+            SendFmt(Proto.DUNGEON_SWEEP, "ih", dunId, autoNum);
+            GameLog.Info("Dungeon", "request 61022 sweep dun_id={0} auto_num={1}", dunId, autoNum);
+        }
+
+        /// <summary>请求当前时间评分状态 61023(⚠裸发无参——老端调用方传的 dun_id 会被 switch default
+        /// 分支静默丢弃,r9 侦察坑位,不要以为要带 dun_id)。</summary>
+        public void RequestScoreState() => SendFmt(Proto.DUNGEON_SCORE_STATE);
+
+        /// <summary>鼓舞 61025(发 "c" cost_type;1=铜币,2=元宝。经验副本"鼓舞"面板用)。</summary>
+        public void Inspirit(int costType)
+        {
+            if (costType != 1 && costType != 2) return;   // 服务端 guard COIN/GOLD
+            SendFmt(Proto.DUNGEON_INSPIRIT, "c", costType);
+        }
+
+        /// <summary>请求鼓舞状态 61026(裸发;进经验本战斗界面/打开鼓舞面板各查一次)。</summary>
+        public void RequestInspiritState() => SendFmt(Proto.DUNGEON_INSPIRIT_STATE);
+
+        /// <summary>资源副本一键操作 61120(发 "c" oper_type;1=一键挑战(无消耗),2=一键扫荡(有消耗)。
+        /// 对标老端 RequestDungeonChallenge;服务端要求周卡激活(err610_no_active_weekly_card)。</summary>
+        public void RequestResourceOneKey(int operType)
+        {
+            if (operType != 1 && operType != 2) return;
+            SendFmt(Proto.DUNGEON_RESOURCE_ONEKEY, "c", operType);
+            GameLog.Info("Dungeon", "request 61120 oper_type={0}", operType);
+        }
+
+        /// <summary>资源副本次数查询 61121(发 "c" dun_type;0=全部资源副本类型,对标老端 RequestDungeonNum:
+        /// dun_type==0 时先清本地表再全量重建;非资源类型服务端静默 skip,老端也是无条件发,行为保留)。</summary>
+        public void RequestDungeonNum(int dunType)
+        {
+            if (dunType == 0) DungeonModel.Instance.ClearResourceCounts();
+            SendFmt(Proto.DUNGEON_RESOURCE_COUNT, "c", dunType);
+        }
+
+        /// <summary>剧情事件 61010 发送封装(发 "iic" story_id, sub_story_id, is_end;is_end 0/1,服务端 guard)。
+        /// ⚠字段序以老端 StoryController.ts:600 直发为准(r9 侦察实证)——BaseDungeonController.ts:347 的
+        /// "ilc"分支是全仓库零触发的死代码,勿抄。服务端无回包(纯 ack),不注册接收。剧情播放系统未移植,
+        /// 本封装供后续 Story/Dialogue 通道调用。</summary>
+        public void SendStoryEvent(int storyId, int subStoryId, int isEnd)
+        {
+            if (isEnd != 0 && isEnd != 1) return;   // 服务端 guard IsEnd==0 orelse IsEnd==1
+            SendFmt(Proto.DUNGEON_STORY_EVENT, "iic", storyId, subStoryId, isEnd);
+            GameLog.Info("Dungeon", "request 61010 story={0} sub={1} isEnd={2}", storyId, subStoryId, isEnd);
+        }
+
+        /// <summary>主角移动检查(对标老端 onMainRoleMoveHandler:进入 trigger_state==1 事件的范围 → 置 2 并发
+        /// 61007,坐标用**事件目标点**而非主角位置——老端 TriggerFlushMonster(tx,ty))。
+        /// TODO:MainRoleAgent 尚无"主角移动"事件广播(老端 MAINROLE_MOVE_EVENT),场景层接线后在移动回调里调本方法;
+        /// 坐标事件表本身也待场景元素配置解析接入(DungeonModel.AddPosEvent)。</summary>
+        public void OnMainRoleMoved(int x, int y)
+        {
+            DungeonModel.PosEventVo hit = DungeonModel.Instance.TryEnterPosEvent(RoleModel.Instance.SceneId, x, y);
+            if (hit == null) return;
+            SendFmt(Proto.DUNGEON_POS_EVENT, "hh", hit.PosX, hit.PosY);
+            GameLog.Info("Dungeon", "request 61007 坐标事件触发 pos=({0},{1})", hit.PosX, hit.PosY);
+        }
+
+        /// <summary>周本信息 50801(裸发;周本大厅加载时查一次)。</summary>
+        public void RequestPolarInfo() => SendFmt(Proto.POLAR_WEEK_INFO);
+
+        /// <summary>周本榜单 50802(发 "icc" team_dun_id, 1, RANK_MAX——老端固定查 1~10 名;
+        /// 服务端 guard Rank1&lt;Rank2 且 Rank1&gt;0 且 Rank2≤30,越界静默无响应)。</summary>
+        public void RequestPolarRank(int teamDunId) =>
+            SendFmt(Proto.POLAR_RANK, "icc", teamDunId, 1, PolarModel.RANK_MAX);
+
         /// <summary>61001 进入回包:dun_id:i, scene_id:i, error_code:i, error_code_args:s。
         /// error_code==1 成功(对标老端 BaseDungeonController.ts:675~681,与 61002 的"1=成功"同一套约定)。</summary>
         private void On61001(NetReader r)
@@ -82,7 +300,51 @@ namespace Shenxiao.Module.Core.Dungeon
             DungeonModel.Instance.Apply61001(dunId);
             TipsManager.Toast("进入副本:" + DungeonConfigs.GetName(dunId));
             GameLog.Info("Dungeon", "61001 enter ok dun_id={0} scene_id={1}", dunId, sceneId);
+
+            // —— 连锁行为(对标老端 61001 成功分支,BaseDungeonController.ts:694-747)——
+            int dunType = DungeonConfigs.GetType(dunId);
+            ApplyEnterSideEffects(dunType, dunId);
+            // loading 白名单类型服务端进副本后主动推 61004;其余类型客户端显式补发空参(:745-747)。
+            if (dunType != 0 && !DungeonModel.IsLoadingDunType(dunType))
+            {
+                SendFmt(Proto.DUNGEON_INFO);
+            }
             EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_UPDATE);
+        }
+
+        /// <summary>61001 成功的按类型副作用(对标老端 switch dun_type):
+        /// Vip_Rerson_Boss →全条目 daily_count+1、命中条目 is_sweep=1(本地乐观更新);
+        /// Exp/AdvancedExp →非帮派经验本那条 daily_count+1(老端合服经验卡 GetMergeExpCount 批量档未移植,按 +1);
+        /// Equip/Dragon →主动补发 61020 刷新状态。SingleRank/SentientAct 的子 Model 转发未移植(TODO 天境/诸天包)。</summary>
+        private void ApplyEnterSideEffects(int dunType, int dunId)
+        {
+            DungeonModel model = DungeonModel.Instance;
+            if (!model.DunStatesByType.TryGetValue(dunType, out List<DungeonModel.DunState> list) || list == null)
+            {
+                if (dunType == DungeonModel.TYPE_EQUIP || dunType == DungeonModel.TYPE_DRAGON) RequestState(dunType);
+                return;
+            }
+            switch (dunType)
+            {
+                case DungeonModel.TYPE_VIP_PERSON_BOSS:
+                    foreach (DungeonModel.DunState vo in list)
+                    {
+                        if (vo.DunId == dunId) vo.IsSweep = true;
+                        vo.DailyCount += 1;
+                    }
+                    break;
+                case DungeonModel.TYPE_EXP:
+                case DungeonModel.TYPE_ADVANCED_EXP:
+                    foreach (DungeonModel.DunState vo in list)
+                    {
+                        if (vo.DunId != DungeonModel.GUILD_EXP_ID) { vo.DailyCount += 1; break; }
+                    }
+                    break;
+                case DungeonModel.TYPE_EQUIP:
+                case DungeonModel.TYPE_DRAGON:
+                    RequestState(dunType);
+                    break;
+            }
         }
 
         /// <summary>61003 结算推送(对标老端"通用结算界面";字段序照 ClientProtocol.json "61003" 逐个读完):
@@ -131,6 +393,11 @@ namespace Shenxiao.Module.Core.Dungeon
             // 加载失败时 DungeonResultView 内部自回退 Toast,不落静默)。
             DungeonResultView.Instance.Show(result == 1, grade, displayRewards);
 
+            // 连锁:结算后补发 61121 刷新资源本次数(对标老端 61003 handler 尾部 RequestDungeonNum(dun_type),
+            // BaseDungeonController.ts:1115;非资源类型服务端静默 skip,老端也是无条件发)。
+            int dunType = DungeonConfigs.GetType(dunId);
+            if (dunType != 0) RequestDungeonNum(dunType);
+
             GameLog.Info("Dungeon", "61003 settle dun_id={0} result={1} subtype={2} grade={3} scene={4} rewards={5} other={6} count={7}",
                 dunId, result, resultSubtype, grade, sceneId, rewardList.Count, otherReward.Count, count);
             EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_UPDATE);
@@ -143,8 +410,393 @@ namespace Shenxiao.Module.Core.Dungeon
             int dunType = r.ReadU8();
             List<DungeonModel.DunState> list = r.ReadArray(ReadDunState);
             DungeonModel.Instance.Apply61020(dunType, list);
+            // 连锁:补发 61121(对标老端 61020 handler 尾部 RequestDungeonNum(dun_type),
+            // BaseDungeonController.ts:1243;非资源类型服务端静默 skip)。老端还有 SetDunBaseInfo
+            // (config_dungeon+config_dungeon_ui_content 联查补 name/recommend_power 等展示字段)——
+            // 展示字段消费方(副本大厅)未移植,联查留 TODO,先只落协议原始字段。
+            RequestDungeonNum(dunType);
             GameLog.Info("Dungeon", "61020 state dun_type={0} count={1}", dunType, list.Count);
             EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_UPDATE);
+        }
+
+        // =====================================================================================
+        // 轮9 新增接收侧
+        // =====================================================================================
+
+        /// <summary>61004 副本信息:start_time:i, start_time_ms:l, end_time:i, level:h, level_end_time:i,
+        /// owner_id:l, wave_num:i(对标老端 SetDungeonSceneMsg → Fire(UPDATE_DUNGEON_INFO))。
+        /// 老端"刚进副本场景"分支(隐藏主 UI 10 号/关活动状态/STARTAUTOFIGHT)依赖场景前后对比与主 UI 分区句柄,
+        /// 未移植,TODO 待副本战斗场景 UI(DungeonFightSceneView)接线时补。</summary>
+        private void On61004(NetReader r)
+        {
+            var vo = new DungeonModel.SceneInfoVo
+            {
+                StartTime = (int)r.ReadU32(),
+                StartTimeMs = (long)r.ReadU64(),
+                EndTime = (int)r.ReadU32(),
+                Level = r.ReadU16(),
+                LevelEndTime = (int)r.ReadU32(),
+                OwnerId = (long)r.ReadU64(),
+                WaveNum = (int)r.ReadU32(),
+            };
+            DungeonModel.Instance.SetSceneInfo(vo);
+            GameLog.Info("Dungeon", "61004 info start={0} end={1} level={2} wave={3}", vo.StartTime, vo.EndTime, vo.Level, vo.WaveNum);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_INFO_UPDATE);
+        }
+
+        /// <summary>61005 波次/事件推送(S2C):dun_id:i, scene_id:i, type:h, time:i, wave_num:i。
+        /// 老端据此 RefreshMonster(刷怪表现)+寻路——Unity 刷怪由场景协议(12007/12012)下发实体承担,
+        /// 副本内自动寻路未移植(TODO),本端只落波次数据。</summary>
+        private void On61005(NetReader r)
+        {
+            int dunId = (int)r.ReadU32();
+            int sceneId = (int)r.ReadU32();
+            int type = r.ReadU16();
+            int time = (int)r.ReadU32();
+            int waveNum = (int)r.ReadU32();
+            DungeonModel.Instance.SetWaveInfo(type, waveNum);
+            GameLog.Info("Dungeon", "61005 wave push dun_id={0} scene={1} type={2} time={3} wave={4}", dunId, sceneId, type, time, waveNum);
+        }
+
+        /// <summary>61007 坐标事件回执(原样回显 x:h,y:h):驱动 role_pos_event_list 状态机
+        /// (命中范围内置 3 完成,曾触发中(2)未命中回退 1——对标老端 SuccessTriggerRolePos)。</summary>
+        private void On61007(NetReader r)
+        {
+            int x = r.ReadU16();
+            int y = r.ReadU16();
+            DungeonModel.Instance.SuccessTriggerRolePos(x, y);
+            GameLog.Info("Dungeon", "61007 坐标事件回执 pos=({0},{1})", x, y);
+        }
+
+        /// <summary>61009 剧情触发推送:story_id:i, sub_sotry_id:i → 事件(对标老端 STORY_PLAY_TRIGGER;
+        /// 剧情播放系统未移植,消费方后续 Story 通道接)。</summary>
+        private void On61009(NetReader r)
+        {
+            int storyId = (int)r.ReadU32();
+            int subStoryId = (int)r.ReadU32();
+            GameLog.Info("Dungeon", "61009 story trigger story={0} sub={1}", storyId, subStoryId);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_STORY_TRIGGER, storyId, subStoryId);
+        }
+
+        /// <summary>61011 助战剩余次数:dun_id:i, left_help_count:c(对标老端 SetDungeonHelpData)。</summary>
+        private void On61011(NetReader r)
+        {
+            int dunId = (int)r.ReadU32();
+            int leftHelpCount = r.ReadU8();
+            DungeonModel.Instance.SetHelpCount(dunId, leftHelpCount);
+            GameLog.Info("Dungeon", "61011 help count dun_id={0} left={1}", dunId, leftHelpCount);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_HELP_COUNT, dunId);
+        }
+
+        /// <summary>61018 退出倒计时:type:c, end_time:i——仅 type==1 才落值发事件
+        /// (type==0 表示该副本无倒计时配置,老端不处理,原样保留)。</summary>
+        private void On61018(NetReader r)
+        {
+            int type = r.ReadU8();
+            int endTime = (int)r.ReadU32();
+            if (type != 1)
+            {
+                GameLog.Info("Dungeon", "61018 exit time type={0}(无倒计时配置,忽略)", type);
+                return;
+            }
+            DungeonModel.Instance.SetExitEndTime(endTime);
+            GameLog.Info("Dungeon", "61018 exit time end={0}", endTime);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_END_TIME, endTime);
+        }
+
+        /// <summary>61019 坐标触发情况表:xy_list[u16×{x:i,y:i}](⚠32 位,与 61007 的 16 位不同)——
+        /// 服务端已记录的触发点逐一对账置 trigger_state=3(对标老端 ResetPosEventList)。</summary>
+        private void On61019(NetReader r)
+        {
+            List<(int x, int y)> list = r.ReadArray(rr => ((int)rr.ReadU32(), (int)rr.ReadU32()));
+            DungeonModel.Instance.ResetPosEventList(list);
+            GameLog.Info("Dungeon", "61019 触发情况表 count={0}", list.Count);
+        }
+
+        /// <summary>61021 购买次数:error_code:i, dun_id:i, buy_count:h。成功按 dun_type 分支
+        /// (NEW_*/Material_*/Unreal/Soul/AdvancedExp 全组共享 vip_count 广播,其余单条,对标老端
+        /// BaseDungeonController.ts:1263-1290);失败姻缘本 6100043 走专文案(:1308-1309)。
+        /// 老端"vip_count 达 total_buy_count 自动关购买弹窗"依赖 VIP 特权表(未移植),由 DungeonBuyTimeView
+        /// 订阅事件自行刷新,TODO 特权额度接入后补自动关。</summary>
+        private void On61021(NetReader r)
+        {
+            int errorCode = (int)r.ReadU32();
+            int dunId = (int)r.ReadU32();
+            int buyCount = r.ReadU16();
+
+            if (errorCode != 1)
+            {
+                if (dunId == DungeonModel.MARRIAGE_DUN_ID && errorCode == 6100043)
+                    TipsManager.Toast("购买次数已达上限");   // 姻缘本专文案(对标老端)
+                else
+                    TipsManager.Toast("购买失败(" + errorCode + ")");   // 错误码表未移植,显码降级
+                GameLog.Warn("Dungeon", "61021 buy fail dun_id={0} code={1}", dunId, errorCode);
+                return;
+            }
+
+            TipsManager.Toast("购买成功");
+            int dunType = DungeonConfigs.GetType(dunId);
+            if (DungeonModel.Instance.DunStatesByType.TryGetValue(dunType, out List<DungeonModel.DunState> list) && list != null)
+            {
+                if (DungeonModel.IsSharedVipCountType(dunType))
+                {
+                    foreach (DungeonModel.DunState vo in list) vo.VipCount = buyCount;   // 全组共享一个 vip_count
+                }
+                else
+                {
+                    foreach (DungeonModel.DunState vo in list)
+                    {
+                        if (vo.DunId == dunId) { vo.VipCount = buyCount; break; }
+                    }
+                }
+            }
+            GameLog.Info("Dungeon", "61021 buy ok dun_id={0} type={1} buy_count={2}", dunId, dunType, buyCount);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_BUY_SUCCESS, dunId, dunType);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_UPDATE);
+        }
+
+        /// <summary>61022 扫荡:error_code:i, dun_id:i, grade:c, left_count:h, auto_num:h,
+        /// sweep_list[u16×{reward_list[u16×{style:c,typeId:i,count:i,goods_id:l}],
+        /// other_reward[u16×{reward_type:c,other_reward_list[...同款 count:i...]}]}]
+        /// (⚠count 是 32 位,与 61003 的 64 位不同——双端交叉核对 pt_610.erl:506-529+ClientProtocol)。
+        /// 成功:拼装奖励开结算(老端新资源本走 DungeonMaterialNewResultView,未移植→统一走既有
+        /// DungeonResultView 通道,TODO);本地乐观计数:新资源组全条目 +auto_num,其余命中条目 +1
+        /// (老端 default 分支有个 return 早退 bug 导致 +1 永不执行——r9 侦察裁决按语义实现,不复刻)。
+        /// 扫荡后的次数同步服务端会自动推 61121(pp_dungeon.erl:253),无需客户端补发。</summary>
+        private void On61022(NetReader r)
+        {
+            int errorCode = (int)r.ReadU32();
+            int dunId = (int)r.ReadU32();
+            int grade = r.ReadU8();
+            int leftCount = r.ReadU16();
+            int autoNum = r.ReadU16();
+            List<(int typeId, long num)> rewards;
+            List<(int goodsId, long count)> displayRewards;
+            ReadSweepRewardList(r, out rewards, out displayRewards);
+
+            if (errorCode != 1)
+            {
+                TipsManager.Toast("扫荡失败(" + errorCode + ")");   // err610_sweep_* 系错误码,显码降级
+                GameLog.Warn("Dungeon", "61022 sweep fail dun_id={0} code={1}", dunId, errorCode);
+                return;
+            }
+
+            int dunType = DungeonConfigs.GetType(dunId);
+            if (DungeonModel.Instance.DunStatesByType.TryGetValue(dunType, out List<DungeonModel.DunState> list) && list != null)
+            {
+                if (DungeonModel.IsSweepGroupCountType(dunType))
+                {
+                    foreach (DungeonModel.DunState vo in list) vo.DailyCount += autoNum;
+                }
+                else
+                {
+                    foreach (DungeonModel.DunState vo in list)
+                    {
+                        if (vo.DunId == dunId) { vo.DailyCount += 1; break; }
+                    }
+                }
+            }
+
+            // 奖励展示走既有结算通道(result_type=Sweeping 的分型布局未移植,victory 面板兜底展示)。
+            DungeonResultView.Instance.Show(true, grade, displayRewards);
+            GameLog.Info("Dungeon", "61022 sweep ok dun_id={0} type={1} grade={2} left={3} auto={4} rewards={5}",
+                dunId, dunType, grade, leftCount, autoNum, displayRewards.Count);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_UPDATE);
+        }
+
+        /// <summary>61023 时间评分状态:cur_score:i, next_score:i, change_time:i(对标老端 NOW_TIME_SCORE_STATE)。</summary>
+        private void On61023(NetReader r)
+        {
+            int curScore = (int)r.ReadU32();
+            int nextScore = (int)r.ReadU32();
+            int changeTime = (int)r.ReadU32();
+            DungeonModel.Instance.SetScoreState(curScore, nextScore, changeTime);
+            GameLog.Info("Dungeon", "61023 score cur={0} next={1} change={2}", curScore, nextScore, changeTime);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_SCORE_STATE);
+        }
+
+        /// <summary>61025 鼓舞:error_code:i, coin_count:c, gold_count:c。成功→伤害加成 toast
+        /// (帮派经验本 ×5%/其余 ×10%,对标老端;老端逐档连弹 total 条,本端只弹最终加成一条,简化)。</summary>
+        private void On61025(NetReader r)
+        {
+            int errorCode = (int)r.ReadU32();
+            int coinCount = r.ReadU8();
+            int goldCount = r.ReadU8();
+            if (errorCode != 1)
+            {
+                TipsManager.Toast("鼓舞失败(" + errorCode + ")");
+                GameLog.Warn("Dungeon", "61025 inspirit fail code={0}", errorCode);
+                return;
+            }
+            DungeonModel model = DungeonModel.Instance;
+            model.SetInspiritInfo(coinCount, goldCount);
+            int bonus = model.GetInspiritBonusPercent(RoleModel.Instance.DunId);
+            TipsManager.Toast("鼓舞成功,当前伤害加成为 " + bonus + "%");
+            GameLog.Info("Dungeon", "61025 inspirit ok coin={0} gold={1} bonus={2}%", coinCount, goldCount, bonus);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_INSPIRIT_UPDATE, true);
+        }
+
+        /// <summary>61026 鼓舞状态:coin_count:c, gold_count:c(被动查询,不弹 toast——区别于 61025 成功那条)。</summary>
+        private void On61026(NetReader r)
+        {
+            int coinCount = r.ReadU8();
+            int goldCount = r.ReadU8();
+            DungeonModel.Instance.SetInspiritInfo(coinCount, goldCount);
+            GameLog.Info("Dungeon", "61026 inspirit state coin={0} gold={1}", coinCount, goldCount);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_INSPIRIT_UPDATE, false);
+        }
+
+        /// <summary>61030 下一波怪物生成时间:wave_num:i, time:i。</summary>
+        private void On61030(NetReader r)
+        {
+            int waveNum = (int)r.ReadU32();
+            int time = (int)r.ReadU32();
+            DungeonModel.Instance.SetNextWaveTime(waveNum, time);
+            GameLog.Info("Dungeon", "61030 next wave num={0} time={1}", waveNum, time);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_NEXT_WAVE, waveNum, time);
+        }
+
+        /// <summary>61120 资源副本一键操作:code:i, oper_type:c, sweep_list(与 61022 同款 reward 形状,32 位 count)。
+        /// 成功→老端开 DungeonMaterialNewResultView(未移植)→统一走既有 DungeonResultView 通道(TODO);
+        /// 次数同步由服务端一键收尾时自动推 61121(lib_dungeon_resource.erl:290),无需客户端补发。
+        /// 失败常见 err610_no_active_weekly_card(需周卡),错误码表未移植显码降级。</summary>
+        private void On61120(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            int operType = r.ReadU8();
+            List<(int typeId, long num)> rewards;
+            List<(int goodsId, long count)> displayRewards;
+            ReadSweepRewardList(r, out rewards, out displayRewards);
+
+            if (code != 1)
+            {
+                TipsManager.Toast((operType == 1 ? "一键挑战" : "一键扫荡") + "失败(" + code + ")");
+                GameLog.Warn("Dungeon", "61120 onekey fail oper={0} code={1}", operType, code);
+                return;
+            }
+            DungeonResultView.Instance.Show(true, 0, displayRewards);
+            GameLog.Info("Dungeon", "61120 onekey ok oper={0} rewards={1}", operType, displayRewards.Count);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_UPDATE);
+        }
+
+        /// <summary>61121 资源副本次数:count_list[u16×{dun_type:c, sweep_count:h, challenge_count:h}]
+        /// (对标老端 SaveDungeonNumData → dungeon_num_data_)。</summary>
+        private void On61121(NetReader r)
+        {
+            List<(int dunType, int sweep, int challenge)> list =
+                r.ReadArray(rr => ((int)rr.ReadU8(), (int)rr.ReadU16(), (int)rr.ReadU16()));
+            foreach ((int dunType, int sweep, int challenge) item in list)
+                DungeonModel.Instance.SetResourceCount(item.dunType, item.sweep, item.challenge);
+            GameLog.Info("Dungeon", "61121 resource count entries={0}", list.Count);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_RESOURCE_COUNT, list.Count == 1 ? list[0].dunType : 0);
+        }
+
+        /// <summary>50801 周本信息:dun_list[u16×{week_dun_id:i, dun_score:h, single_succ:c, team_succ:c,
+        /// help_times:h, boss_reward[u16×{boss_id:i, reward_st:c}]}] → PolarModel(独立数据线)。</summary>
+        private void On50801(NetReader r)
+        {
+            List<PolarModel.WeekInfoVo> list = r.ReadArray(ReadPolarWeekInfo);
+            PolarModel.Instance.SetWeekInfos(list);
+            GameLog.Info("Dungeon", "50801 polar info count={0}", list.Count);
+            EventDispatcher.Emit(GlobalEvent.EVT_POLAR_DATA);
+        }
+
+        private static PolarModel.WeekInfoVo ReadPolarWeekInfo(NetReader r)
+        {
+            var vo = new PolarModel.WeekInfoVo
+            {
+                WeekDunId = (int)r.ReadU32(),
+                DunScore = r.ReadU16(),
+                SingleSucc = r.ReadU8(),
+                TeamSucc = r.ReadU8(),
+                HelpTimes = r.ReadU16(),
+            };
+            vo.BossReward = r.ReadArray(rr => new PolarModel.BossRewardVo
+            {
+                BossId = (int)rr.ReadU32(),
+                RewardSt = rr.ReadU8(),
+            });
+            return vo;
+        }
+
+        /// <summary>50802 周本榜单:team_dun_id:i, self_rank:c, self_pass_time:h,
+        /// rank_list[u16×{pass_time:h, time:i, rank:c, role_list[u16×{role_id:l, role_name:s,
+        /// server_id:h, server_num:h}]}] → PolarModel(role_list 支持同排名多个组队成员)。</summary>
+        private void On50802(NetReader r)
+        {
+            var vo = new PolarModel.RankVo
+            {
+                TeamDunId = (int)r.ReadU32(),
+                SelfRank = r.ReadU8(),
+                SelfPassTime = r.ReadU16(),
+            };
+            vo.Entries = r.ReadArray(ReadPolarRankEntry);
+            PolarModel.Instance.SetRank(vo);
+            GameLog.Info("Dungeon", "50802 polar rank dun={0} selfRank={1} entries={2}", vo.TeamDunId, vo.SelfRank, vo.Entries.Count);
+            EventDispatcher.Emit(GlobalEvent.EVT_POLAR_RANK_DATA, vo.TeamDunId);
+        }
+
+        private static PolarModel.RankEntryVo ReadPolarRankEntry(NetReader r)
+        {
+            var e = new PolarModel.RankEntryVo
+            {
+                PassTime = r.ReadU16(),
+                Time = (int)r.ReadU32(),
+                Rank = r.ReadU8(),
+            };
+            e.Roles = r.ReadArray(rr => new PolarModel.RankRoleVo
+            {
+                RoleId = (long)rr.ReadU64(),
+                RoleName = rr.ReadString(),
+                ServerId = rr.ReadU16(),
+                ServerNum = rr.ReadU16(),
+            });
+            return e;
+        }
+
+        /// <summary>61022/61120 共用的 sweep_list 读取+奖励拼平(r9 侦察建议的公共工具,免逐协议复制粘贴):
+        /// sweep_list[u16×{reward_list[u16×{style:c,typeId:i,count:i,goods_id:l}],
+        /// other_reward[u16×{reward_type:c,other_reward_list[u16×{style1:c,typeId1:i,count1:i,goods_id1:l}]}]}]。
+        /// ⚠count 是 32 位(pt_610/pt_611 item Count:32),与 61003 的 64 位不同。displayRewards 经
+        /// GoodsModel.GetMappingTypeId 还原真实 goods_id 供结算面板;按 max_overlap 拆堆叠的展示细则未移植(TODO)。</summary>
+        private static void ReadSweepRewardList(NetReader r,
+            out List<(int typeId, long num)> rewards, out List<(int goodsId, long count)> displayRewards)
+        {
+            var rw = new List<(int typeId, long num)>();
+            var dr = new List<(int goodsId, long count)>();
+            int sweepCount = r.ReadU16();
+            for (int i = 0; i < sweepCount; i++)
+            {
+                int rewardCount = r.ReadU16();
+                for (int j = 0; j < rewardCount; j++)
+                {
+                    int style = r.ReadU8();
+                    int typeId = (int)r.ReadU32();
+                    long count = r.ReadU32();      // ⚠32 位(勿抄 61003 的 u64)
+                    r.ReadU64();                   // goods_id(展示走映射后 id,不用实例 id)
+                    rw.Add((typeId, count));
+                    (int mappedId, int _) = GoodsModel.GetMappingTypeId(style, typeId);
+                    dr.Add((mappedId, count));
+                }
+                int otherCount = r.ReadU16();
+                for (int j = 0; j < otherCount; j++)
+                {
+                    r.ReadU8();                    // reward_type(结算分栏展示未移植,读掉对齐)
+                    int itemCount = r.ReadU16();
+                    for (int k = 0; k < itemCount; k++)
+                    {
+                        int style1 = r.ReadU8();
+                        int typeId1 = (int)r.ReadU32();
+                        long count1 = r.ReadU32();
+                        r.ReadU64();               // goods_id1
+                        rw.Add((typeId1, count1));
+                        (int mappedId, int _) = GoodsModel.GetMappingTypeId(style1, typeId1);
+                        dr.Add((mappedId, count1));
+                    }
+                }
+            }
+            rewards = rw;
+            displayRewards = dr;
         }
 
         private static (int style, int typeId, long count, long goodsId) ReadRewardItem(NetReader r)

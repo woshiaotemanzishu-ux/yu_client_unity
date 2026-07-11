@@ -225,9 +225,16 @@ namespace Shenxiao.Module.Core.AutoBrush
         {
             int errorCode = r.Remaining >= 4 ? r.ReadI32() : -1;
             if (errorCode == 1)
+            {
+                // 对标老端 BaseDungeonController 61002 成功分支:重置副本波数(curr_wave_num=1)。
+                // 61002 是 AutoBrush 与 Dungeon 两条链唯一共用的出口协议(轮9 副本家族),波数状态挂 DungeonModel。
+                Shenxiao.Module.Core.Dungeon.DungeonModel.Instance.ResetWaveNum();
                 GameLog.Info("AutoBrush", "61002 退副本成功,等服务端 12005 切回野外");
+            }
             else
+            {
                 GameLog.Warn("AutoBrush", "61002 退副本失败 errorCode={0}", errorCode);
+            }
         }
 
         private static List<AutoBrushModel.RewardEntry> ReadResultRewards(NetReader r)

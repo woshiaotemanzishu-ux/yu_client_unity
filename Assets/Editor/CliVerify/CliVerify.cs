@@ -160,6 +160,14 @@ namespace Shenxiao.EditorTools
             Run(TeamCase.Run, 300.0);
         }
 
+        /// <summary>副本家族补全一期(自动循环 轮9)实证:61004 尾哨兵/61007+61019 坐标状态机/61018 type 分支/
+        /// 61021 共享 vip_count+6100043 专文案/61022 扫荡 32 位 count/61121 资源次数/50801·50802 周本独立
+        /// PolarModel + DungeonBuyTimeView 壳渲染(编辑期不可加载则优雅降级;详见 DungeonFamilyCase 注释)。</summary>
+        public static void DungeonFamily()
+        {
+            Run(DungeonFamilyCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -194,6 +202,7 @@ namespace Shenxiao.EditorTools
                 int ch = await ChatCase.Run();
                 int fm = await FriendMailCase.Run();
                 int tm = await TeamCase.Run();
+                int df = await DungeonFamilyCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -201,8 +210,8 @@ namespace Shenxiao.EditorTools
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m
                     + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
                     + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch + " friendmail=" + fm
-                    + " team=" + tm);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm })
+                    + " team=" + tm + " dungeonfam=" + df);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);
