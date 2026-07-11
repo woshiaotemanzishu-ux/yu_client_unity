@@ -1210,3 +1210,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **3b(232fe7fec)天赋页真 UI**:发现烤入管线早把天赋六件套烤进 RoleModule.prefab 当死重模板——Creator 走外科装配:提升+m_Script 替换法(Bind→业务子类,保序列化引用/fileID)+修复式幂等+贴图纠偏;RoleFlow 第 8 页签「天赋」带 4 转门控(BaseWindowSkinView 新 OpenCheck/LockedToast)。
 - **三个可复用的坑**:①Bind 子组件是 BaseView,父视图必须先 Show() 触发 EnsureBound/OnInit,否则模板捕获静默为空;②config_skill 的 condition 空时是 JSON 数组、非空才是 Erlang 串,Value<string> 会对 JArray 抛 InvalidCast;③烤入管线不保证 ScrollRect.content 接线,视图查找要留根兜底。
 - **验证:InnateViewCase(装配 prefab 实例化渲染,技能树 10/10 条目+截图)+RenderAll 二十三用例全绿 EXIT 0**。
+
+## 自动循环 轮4a(2026-07-11 夜间无人值守):装备补全一段(精炼/洗魄/神炼/宗师),二十四用例全绿
+
+- **b284495d9**:精炼 15250/51、洗魄 15212/13/14/52(15213 手写锁定槽序列 c+h+c[]+c,index+1)、神屠九炼 15255(refinement_lv 复用 15000 详情)、淬炉宗师 15260/61;GoodsDynamicModel 补 Invalidate/Patch 双口子;EquipConfigs 最小配置层(缺表降级)。跳过 15202/06/07(老端无入口)与 15242/43/15253(服务端 DEAD);宝石全套=4b;神装/共鸣套装/铸灵护灵觉醒唤魔归后续包。
+- 侦察修正 GapMap:该包原清单混入大量独立系统(神装在合成窗、共鸣套装独立窗、觉醒唤魔另有归属),已按老端窗口归属重新切包。
+- ControllerHub 并行会话残留仍未提交,继续用「回 HEAD 重放增量」拆分法注册 3 个新控制器。
+- **验证:EquipGrowthCase 绿 + RenderAll 二十四用例全绿 EXIT 0**。
