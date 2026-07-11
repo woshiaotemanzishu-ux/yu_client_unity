@@ -118,6 +118,14 @@ namespace Shenxiao.EditorTools
             Run(EquipGrowthCase.Run, 120.0);
         }
 
+        /// <summary>宝石(骸珀镶嵌,自动循环 轮4 下半/4b)实证:15210/15211/15215/15216 合成包驱动
+        /// EquipJewelController 反射喂包(含 15216 一键自循环真的能停的断言)+ JewelModule.prefab 渲染断言
+        /// 雕刻等级文本(详见 JewelCase 注释)。</summary>
+        public static void Jewel()
+        {
+            Run(JewelCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -147,14 +155,15 @@ namespace Shenxiao.EditorTools
                 int sg = await SkillGrowthCase.Run();
                 int iv = await InnateViewCase.Run();
                 int eg = await EquipGrowthCase.Run();
+                int jw = await JewelCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
                     + " guildjoin=" + j + " rune=" + n + " dungeon=" + v + " thinslice=" + w + " finalslice=" + f
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m
                     + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
-                    + " equipgrowth=" + eg);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg })
+                    + " equipgrowth=" + eg + " jewel=" + jw);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

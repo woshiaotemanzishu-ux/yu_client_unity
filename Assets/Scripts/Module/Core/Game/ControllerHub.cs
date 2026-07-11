@@ -89,6 +89,7 @@ namespace Shenxiao.Module.Core.Game
             DungeonController.Instance,
             EquipStoneController.Instance,
             EquipWearController.Instance,
+            EquipJewelController.Instance,
             OnHookController.Instance,
             BagFusionController.Instance,
             ComposeController.Instance,

@@ -41,7 +41,8 @@ namespace Shenxiao.Module.Core.Equip
             "EquipModule", "EquipModule", "JewelModule", "EquipModule", "EquipRefinementModule", "EquipArmorModule"
         };
         // 该标签内容是否已在 Unity 写好(写好才开放;其余 disabled,写完置 true 即开)
-        private static readonly bool[] TabEnabled = { true, true, false, true, true, true };
+        // tab2 骸珀镶嵌(EquipJewelView,自动循环 轮4 下半/4b):Jewel 手写 View 已补齐,开放。
+        private static readonly bool[] TabEnabled = { true, true, true, true, true, true };
         private const int DefaultTab = 0;
 
         private static GameObject _frameRoot;
@@ -63,8 +64,11 @@ namespace Shenxiao.Module.Core.Equip
             if (_window != null) _window.Hide();
         }
 
-        /// <summary>打开装备模块内子窗(淬炉宗师 EquipStrenMasterView、洗魄选材 EquipWashGoodsView…),在所有已加载内容源里按 View 子类名查找并 Show。未移植 → 日志降级。</summary>
-        public static void OpenSub(string viewTypeName)
+        /// <summary>打开装备模块内子窗(淬炉宗师 EquipStrenMasterView、洗魄选材 EquipWashGoodsView、宝石背包
+        /// EquipJewelBagView…),在所有已加载内容源里按 View 子类名查找并 Show(args)。args 透传给
+        /// BaseView.Show(object),供需要打开上下文的弹窗(如 EquipJewelBagView.Context)使用;无需上下文的
+        /// 子窗传 null 与既有调用完全等价(向后兼容,原调用点无需改)。未移植 → 日志降级。</summary>
+        public static void OpenSub(string viewTypeName, object args = null)
         {
             if (_contentRoots.Count == 0)
             {
@@ -76,7 +80,7 @@ namespace Shenxiao.Module.Core.Equip
                 if (root == null) continue;
                 foreach (BaseView v in root.GetComponentsInChildren<BaseView>(true))
                 {
-                    if (v.GetType().Name == viewTypeName) { v.Show(); return; }
+                    if (v.GetType().Name == viewTypeName) { v.Show(args); return; }
                 }
             }
             GameLog.Info("Equip", "装备子窗 [{0}] 未移植 View,待对接", viewTypeName);

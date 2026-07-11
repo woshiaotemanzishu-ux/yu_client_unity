@@ -776,10 +776,28 @@
         // 15206/15207 进阶装备/进阶属性预览:老端零 UI 参照,跳过。
         // 15242/15243 唤魔信息(旧):pp_equip.erl 整段注释、pt_152 无 read/write,服务端 DEAD,跳过。
         // 15253 神装升阶重复号:协议 read/write 都在但 pp_equip.erl 无 handle 分支,服务端 DEAD,跳过。
-        // 15210/15211(宝石雕刻)、15215/15216(宝石升级/合成):随 Jewel UI 归 4b 另单,本轮不加常量。
         // 15217-15219 神装信息/升阶/升阶预览:独立合成窗(RedEnterView 神兵铸造页签),与本模块无关,归后续包。
         // 15220-15223/15262 共鸣套装:独立窗(EquipSuitBaseView),归后续包。
         // 15230-15233(铸灵/护灵)、15241/15244/15245(觉醒/唤魔技能):归后续包,本轮不加常量。
+
+        // ----- 宝石(骸珀镶嵌,自动循环 轮4 下半/4b;pt_152 段内 15210/15211/15215/15216;
+        // 老端 EquipController.ts + jewel/EquipJewelView.ts + jewel/EquipJewelCraveView.ts -----
+        /// <summary>宝石雕刻信息查询(发 "c" equip_pos;回包 res:i, equip_pos:c, refine_lv:c, exp:i,
+        /// attr_list[u16×{attr_id:c, attr_val:i}])。**refine_lv 是 1 字节**(服务端 pt_152.erl:281-302 item_to_bin_2
+        /// 实证,勿按规格草稿字面 h 解读——字段名 refine_lv 勿与 15250 的 refine 混)。GAME_START 循环 equip_pos=1..10
+        /// 预拉(对标 EquipController.ts:224)。</summary>
+        public const int EQUIP_JEWEL_CRAVE_INFO = 15210;
+        /// <summary>宝石雕刻执行(发 "cic" equip_pos, 材料type_id, one_key[0/1];回包 res:i, equip_pos:c, is_up:c,
+        /// one_key:c)。成功自动重发 15210 刷新(对标老端 on15211)。</summary>
+        public const int EQUIP_JEWEL_CRAVE_DO = 15211;
+        /// <summary>宝石升级(镶嵌位上,发 "ccc" equip_pos, stone_pos, upgrade_type[0普通/1一键低级宝石/2直升丹];
+        /// 回包 res:i, equip_pos:c, pos:c, type_id:i)。无 OpenLv 门。</summary>
+        public const int EQUIP_JEWEL_STONE_UPGRADE = 15215;
+        /// <summary>宝石合成(发 "ic" type_id, is_one_key[0/1];回包 res:i, type_id:i, is_one_key:c)。
+        /// 成功且 is_one_key==1 时服务端语义要求客户端自循环续发(对标老端 on15216);老端 UI 首发入口已被砍
+        /// (全仓库找不到手动首次发起调用点,只留自循环续发),Unity 同步只留 API <see cref="EquipJewelController.CombineStone"/>
+        /// 供未来入口调用,本轮不建 UI 触发按钮。</summary>
+        public const int EQUIP_JEWEL_STONE_COMBINE = 15216;
 
         // ----- 古宝/妖物(pt_133 段内 13320/13321,yu_server enchantment_guard soap;老端 MonsterController.ts/guBao) -----
         /// <summary>古宝全量状态(请求无参;回包 combat:l + soap_list[u16×{soap_id:h, debris_list[u16×{debris_id:h}]}])。</summary>
