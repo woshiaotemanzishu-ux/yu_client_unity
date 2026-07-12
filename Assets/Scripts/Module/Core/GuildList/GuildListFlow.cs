@@ -7,13 +7,16 @@ using UnityEngine;
 namespace Shenxiao.Module.Core.GuildList
 {
     /// <summary>
-    /// 公会列表模块编排:按需打开/关闭公会列表面板。
+    /// 公会列表模块编排:按需打开/关闭公会列表面板(无会态)。
     ///
     /// 对标老端 主界面 `MainFunc.Guild(=8)` → `GuildModel.OpenGuildView`:有会开 GuildMainBaseView、
-    /// 无会开 GuildListView / GuildJoinBaseView。Unity 侧目前仅移植 <c>GuildListView</c>(公会列表/查找,无会态),
-    /// 故本 Flow 打开它作为公会入口的降级实现;「有会主界面 GuildMainBaseView」「申请入会 GuildJoinBaseView」
-    /// 待移植后再按会籍分支。手法照抄 BagFlow/RoleFlow。入口注册见 <see cref="GuildListBootstrap"/>(MainUIRouter "guild")。
+    /// 无会开 GuildListView。会籍分支已在 <see cref="GuildListBootstrap"/> 落地(轮13a:
+    /// RoleModel.GuildId&gt;0 → <see cref="Shenxiao.Module.Core.Guild.GuildMainFlow"/>,否则 → 本 Flow)。
+    /// 手法照抄 BagFlow/RoleFlow。
     /// 无独立关闭按钮 → 再次点击图标 <see cref="Toggle"/> 关闭(与老端 BaseWindowComponent 再点关闭一致)。
+    ///
+    /// **存档**:GuildModule.prefab 里烤好但零引用的 GuildJoinView 节点未采用——本 Flow 的 <see cref="GuildListView"/>
+    /// (GuildListViewBind)已是真业务代码入口,迁移 GuildJoinView 无协议收益,故保留死节点原样,不接线(轮13a)。
     /// </summary>
     public static class GuildListFlow
     {

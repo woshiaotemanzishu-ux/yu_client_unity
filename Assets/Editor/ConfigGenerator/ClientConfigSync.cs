@@ -37,6 +37,7 @@ namespace Shenxiao.EditorTools.ConfigGen
             "ConfigAutoBrush",
             "ClientTransfer",       // 转职卡展示文案(career→{name,desc1,desc2}),轮5 TransferJobModel 用
             "ClientShopConfig",     // 商城二级子页签定义(ShopSeries[shop_type]=[{id,desc}],仅灵玉/善缘两类型有),轮11 ShopConfigs 用
+            "ConfigGuild",          // 结社主界面按钮定义(main_func,9行;本轮未接线,GuildConfigs.MainFunc 登记供以后消费),轮13a
         };
 
         // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)
@@ -83,6 +84,13 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_guild_prestige",      // 结社头衔购买条件文案(11条,具名键 title_id),轮11 ShopConfigs.GetGuildPrestige 用
             "config_ranking",   // 排行榜 rank_type 枚举权威表(15条,数字键 type),轮12 RankConfigs.GetByType/GetVisibleSorted 用
             "config_medal",     // 勋章样式表(约131条,数字键 id),轮12 RankConfigs.GetMedal 用(本轮仅导表+访问器,渲染留UI尾包)
+            "config_guild_lv",            // 结社等级表(数字键 id;member_capacity/growth_val_limit),轮13a GuildConfigs.GetLv 用
+            "config_guild_pos",           // 结社职位表(数字键 position,5档:会长/副会长/会员/宝贝/精英),轮13a GuildConfigs.GetPosition 用
+            "config_guild_donate",        // 结社捐献档位(数字键 donate_type;UI 未建,数据层留存),轮13a GuildConfigs.GetDonate 用
+            "config_guild_skill",         // 结社技能基础表(数字键 skill_id),轮13a GuildConfigs.GetSkill 用
+            "config_guild_skill_research", // 结社技能研究表(具名键 "skillId@lv"),轮13a GuildConfigs.GetSkillResearch 用
+            "config_guild_constant",      // 结社通用常量KV(数字键 id;公告字数/结社名字数/建社消耗档位等),轮13a GuildConfigs.GetKv 用
+            "config_guild_welcome",       // 结社入会欢迎语模板(数字键 id),轮13a GuildConfigs.GetWelcome 用
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

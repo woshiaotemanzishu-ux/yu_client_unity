@@ -6,9 +6,9 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 结社加入实证:40001(列表)/40004(创建)合成包反射喂 GuildJoinController 私有 handler,
-    /// 断言 GuildJoinModel 列表套值 + HasGuild 判定 + errcode 失败不抛异常;再拉起 GuildJoinShellView
-    /// 渲染断言含「结社」文本与创建按钮。
+    /// 结社加入实证:40001(列表)/40002(单个申请,轮13a补)/40004(创建)合成包反射喂 GuildJoinController
+    /// 私有 handler,断言 GuildJoinModel 列表套值 + HasGuild 判定 + errcode 失败不抛异常;再拉起
+    /// GuildJoinShellView 渲染断言含「结社」文本与创建按钮。
     /// 独立用例文件(避免多代理改 CliVerify.cs 冲突),复用 CliVerify.Stage/Pkt/FindDeep(均已 public)。
     /// CliVerify.Pkt 无字符串写入方法(NetReader.ReadString 用 u16 长度+UTF8),故本文件自带 <see cref="AppendString"/>
     /// 手工拼 s 字段字节,不改 CliVerify.cs 本体。
@@ -25,8 +25,9 @@ namespace Shenxiao.EditorTools
                 const System.Reflection.BindingFlags F =
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
                 System.Reflection.MethodInfo m40001 = ctrl.GetType().GetMethod("On40001", F);
+                System.Reflection.MethodInfo m40002 = ctrl.GetType().GetMethod("On40002", F);
                 System.Reflection.MethodInfo m40004 = ctrl.GetType().GetMethod("On40004", F);
-                if (m40001 == null || m40004 == null)
+                if (m40001 == null || m40002 == null || m40004 == null)
                 {
                     Debug.LogError("CLIVERIFY guildjoin handlers missing (reflection)");
                     return 3;
@@ -81,6 +82,36 @@ namespace Shenxiao.EditorTools
                     + " name0=" + (model.List.Count > 0 ? model.List[0].Name : "<none>")
                     + " lv0=" + (model.List.Count > 0 ? model.List[0].Lv : -1) + " ok=" + listOk);
 
+                // 40002 单个申请(轮13a补,与40003同结构):自动审批直接入会,error_code:i=1, guild_id:l=1001, apply_type:c=2。
+                Shenxiao.Module.Core.Role.RoleModel.Instance.GuildId = 0;
+                byte[] p40002AutoJoin = new CliVerify.Pkt().I(1).L(1001).C(2).Bytes();
+                Feed(m40002, p40002AutoJoin);
+                bool apply2Ok = model.HasGuild && Shenxiao.Module.Core.Role.RoleModel.Instance.GuildId == 1001;
+                Debug.Log("CLIVERIFY guildjoin 40002 autoJoin hasGuild=" + model.HasGuild
+                    + " roleModelGuildId=" + Shenxiao.Module.Core.Role.RoleModel.Instance.GuildId + " ok=" + apply2Ok);
+
+                // 40002 人工审批(apply_type=1,审批中/尚未入会)——**订正**:服务端 40002 无论审批中还是自动
+                // 入会都会回传目标 guild_id(非0,恒为申请目标公会 id),guild_id!=0 并非"已入会"判据(那是
+                // 40003 的形态,40003 审批中路径 GuildId=0);此处喂真实形态 guild_id=1001(目标公会)+apply_type=1,
+                // 断言 RoleModel.GuildId 必须保持 0(不能被误判成已入会,回归 blocker 修复前的 bug)。
+                model.Clear();
+                Shenxiao.Module.Core.Role.RoleModel.Instance.GuildId = 0;
+                byte[] p40002Pending = new CliVerify.Pkt().I(1).L(1001).C(1).Bytes();
+                bool apply2PendingNoThrow = true;
+                try { Feed(m40002, p40002Pending); }
+                catch (System.Exception e) { apply2PendingNoThrow = false; Debug.LogError("CLIVERIFY guildjoin 40002 pending threw: " + e); }
+                bool apply2PendingOk = apply2PendingNoThrow && !model.HasGuild
+                    && Shenxiao.Module.Core.Role.RoleModel.Instance.GuildId == 0; // 关键断言:审批中不得同步 GuildId
+                Debug.Log("CLIVERIFY guildjoin 40002 pending hasGuild=" + model.HasGuild
+                    + " roleModelGuildId=" + Shenxiao.Module.Core.Role.RoleModel.Instance.GuildId + " ok=" + apply2PendingOk);
+
+                // 40002 失败:error_code:i=400。只要不抛异常即过。
+                byte[] p40002Fail = new CliVerify.Pkt().I(400).L(0).C(0).Bytes();
+                bool apply2FailNoThrow = true;
+                try { Feed(m40002, p40002Fail); }
+                catch (System.Exception e) { apply2FailNoThrow = false; Debug.LogError("CLIVERIFY guildjoin 40002 fail threw: " + e); }
+                Debug.Log("CLIVERIFY guildjoin 40002 fail noThrow=" + apply2FailNoThrow);
+
                 // 40004 创建成功:error_code:i=1, guild_id:l=2001。
                 byte[] p40004Ok = new CliVerify.Pkt().I(1).L(2001).Bytes();
                 Feed(m40004, p40004Ok);
@@ -108,9 +139,11 @@ namespace Shenxiao.EditorTools
                 bool createBtnOk = createBtn != null && createBtn.gameObject.activeInHierarchy;
                 Debug.Log("CLIVERIFY guildjoin shell textOk=" + textOk + " createBtnOk=" + createBtnOk + " shot=" + png);
 
-                bool pass = listOk && createOk && failNoThrow && textOk && createBtnOk;
-                Debug.Log("CLIVERIFY guildjoin VERDICT listOk=" + listOk + " createOk=" + createOk
-                    + " failNoThrow=" + failNoThrow + " textOk=" + textOk + " createBtnOk=" + createBtnOk + " pass=" + pass);
+                bool pass = listOk && apply2Ok && apply2PendingOk && apply2FailNoThrow && createOk && failNoThrow && textOk && createBtnOk;
+                Debug.Log("CLIVERIFY guildjoin VERDICT listOk=" + listOk + " apply2Ok=" + apply2Ok
+                    + " apply2PendingOk=" + apply2PendingOk + " apply2FailNoThrow=" + apply2FailNoThrow
+                    + " createOk=" + createOk + " failNoThrow=" + failNoThrow + " textOk=" + textOk
+                    + " createBtnOk=" + createBtnOk + " pass=" + pass);
 
                 Shenxiao.Module.Core.Guild.GuildJoinShellView.Close();
                 Shenxiao.Module.Core.Guild.GuildJoinModel.Instance.Clear();

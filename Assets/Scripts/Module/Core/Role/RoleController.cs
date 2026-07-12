@@ -96,6 +96,14 @@ namespace Shenxiao.Module.Core.Role
             m.CombatPower = r.ReadU64();
             m.GuildId = r.ReadU64();
             m.GuildName = r.ReadString();
+            // position 不在 13001 本体里,但 Figure 块自带 position/position_name(FigureProto.cs:51-52)——
+            // 登录即种子落值,避免"首个 40015 到达前 IsGuildMaster()/职位门控恒为 false"的短暂竞态
+            // (老端 mainRoleVo 随登录角色数据即带 position;40015 到达后照常覆盖为准)。
+            if (m.Figure != null)
+            {
+                if (m.Figure.Raw.TryGetValue("position", out object posObj)) m.GuildPosition = System.Convert.ToInt32(posObj);
+                if (m.Figure.Raw.TryGetValue("position_name", out object posNameObj)) m.GuildPositionName = posNameObj as string ?? "";
+            }
             m.SetPeaceCd(r.ReadU16());       // peace_cd_time(和平切换冷却剩余秒,对标老端 MainRoleVo.ReadFrom13001:276)
             r.ReadU16();                     // hatred(仇恨值,对标老端 :277;暂不用)
             r.ReadU64();                     // team_id

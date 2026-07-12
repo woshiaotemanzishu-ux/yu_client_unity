@@ -36,6 +36,10 @@ namespace Shenxiao.Module.Core.Role
         public int DunId;
         public long GuildId;
         public string GuildName = "";
+        /// <summary>公会职位(1会长/2副会长/3会员/4宝贝/5精英,对标老端 mainRoleVo.position)。
+        /// 由 GuildController.On40015 落值(公会核心一期,轮13a)。</summary>
+        public int GuildPosition;
+        public string GuildPositionName = "";
 
         public FigureProto Figure;        // 外观块
         public BattleAttrProto BattleAttr; // 战斗属性块
@@ -108,12 +112,25 @@ namespace Shenxiao.Module.Core.Role
         public int Career => Figure?.career ?? 0;
         public int Sex => Figure?.sex ?? 0;
 
+        /// <summary>公会身份落值(对标老端 mainRoleVo ChangeVar guild_id/guild_name/position/position_name,
+        /// 由 GuildController.On40015 调用;40003/40004 建社/申请成功只落 guild_id,名称/职位靠随后的 40015 补齐)。</summary>
+        public void SetGuildIdentity(long guildId, string guildName, int position, string positionName)
+        {
+            GuildId = guildId;
+            GuildName = guildName ?? "";
+            GuildPosition = position;
+            GuildPositionName = positionName ?? "";
+        }
+
         public void Reset()
         {
             HasBaseInfo = false;
             Figure = null;
             BattleAttr = null;
+            GuildId = 0;
             GuildName = "";
+            GuildPosition = 0;
+            GuildPositionName = "";
             ServerName = "";
             PkStatus = 0;
             PeaceCdEndSec = 0;

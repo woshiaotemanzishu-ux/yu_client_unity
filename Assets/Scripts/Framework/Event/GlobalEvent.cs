@@ -176,6 +176,20 @@ namespace Shenxiao.Framework.Event
         public const string EVT_RUNE_UPDATE = "EVT_RUNE_UPDATE";
         /// <summary>结社数据变动(40001 列表/40003 申请/40004 创建回包)。</summary>
         public const string EVT_GUILD_UPDATE = "EVT_GUILD_UPDATE";
+        /// <summary>公会核心一期(轮13a):40005 基础信息落地(读 GuildModel.Info)。</summary>
+        public const string EVT_GUILD_INFO_UPDATE = "EVT_GUILD_INFO_UPDATE";
+        /// <summary>40006 成员列表落地(读 GuildModel.Members)。</summary>
+        public const string EVT_GUILD_MEMBER_UPDATE = "EVT_GUILD_MEMBER_UPDATE";
+        /// <summary>40008/40009/40016 申请列表变动(读 GuildModel.Applies)。</summary>
+        public const string EVT_GUILD_APPLY_UPDATE = "EVT_GUILD_APPLY_UPDATE";
+        /// <summary>40008 由"查看申请"按钮触发(GuildModel.ApplyRequestMark)且列表非空到达——自动开申请弹层
+        /// (对标老端 on40008 里 apply_request_mark 分支);为空时不发这个事件,改为 toast"当前没有申请信息"。</summary>
+        public const string EVT_GUILD_APPLY_AUTO_OPEN = "EVT_GUILD_APPLY_AUTO_OPEN";
+        /// <summary>共享错误壳 40000 到达(参数: int errorCode)。</summary>
+        public const string EVT_GUILD_ERROR = "EVT_GUILD_ERROR";
+        /// <summary>公会核心一期其余数据变动统称(权限/技能/声望/合并候选/改名信息/捐献/活跃度等,
+        /// 本轮未各自建 UI 消费点,统一一个事件供以后按需订阅,避免逐号建事件)。</summary>
+        public const string EVT_GUILD_DATA_UPDATE = "EVT_GUILD_DATA_UPDATE";
         /// <summary>神装合成数据变动(15020 合成回包后)。收尾三件套(第20轮工单)。</summary>
         public const string EVT_COMPOSE_UPDATE = "EVT_COMPOSE_UPDATE";
         /// <summary>排位赛数据变动(28001 页面信息/28002 随机对手/28003 挑战回包后)。收尾三件套(第20轮工单)。</summary>

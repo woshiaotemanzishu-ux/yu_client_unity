@@ -142,6 +142,7 @@ namespace Shenxiao.Module.Core.Game
             EquipRefinementController.Instance,
             GuBaoController.Instance,
             GuildJoinController.Instance,
+            GuildController.Instance,
             RuneController.Instance,
             DungeonController.Instance,
             EquipStoneController.Instance,

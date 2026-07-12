@@ -203,6 +203,16 @@ namespace Shenxiao.EditorTools
             Run(RankCase.Run, 300.0);
         }
 
+        /// <summary>公会核心一期(自动循环 轮13a)实证:pt_400 第1组33活号(40000/05-21/23/27/28/30/31/39/40/42/43/44/
+        /// 60-63)合成包驱动 GuildController 反射喂包,断言 40005 批量链/40006 大列表尾哨兵/40008→40009 订正
+        /// 单删/40021 权限 Contains 修正/40012 等级门失败码/40013 双错误通道(40000共享壳+自号)/改名链(40043/44)/
+        /// 40018 广播recv 双到达同处理/边界各一发;尾段拉起 GuildMainFlow(信息/成员两页)渲染断言,编辑期不可
+        /// 加载则优雅降级(不计入通过判定,详见 GuildCoreCase 注释)。</summary>
+        public static void GuildCore()
+        {
+            Run(GuildCoreCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -242,6 +252,7 @@ namespace Shenxiao.EditorTools
                 int cv = await CreateRoleVideoCase.Run();
                 int sh = await ShopCase.Run();
                 int rk = await RankCase.Run();
+                int gc = await GuildCoreCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -250,8 +261,8 @@ namespace Shenxiao.EditorTools
                     + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
                     + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch + " friendmail=" + fm
                     + " team=" + tm + " dungeonfam=" + df + " dailyhub=" + dh + " createvideo=" + cv + " shop=" + sh
-                    + " rank=" + rk);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk })
+                    + " rank=" + rk + " guildcore=" + gc);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

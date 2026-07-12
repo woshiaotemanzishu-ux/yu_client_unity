@@ -1077,6 +1077,114 @@
         public const int GUILD_CREATE = 40004;
         /// <summary>任务系统补触发加入结社判定(C2S 无参,对标老端 GuildJoinView 打开时发 30008)。</summary>
         public const int CC_TASK_JOIN_GUILD = 30008;
+        /// <summary>申请加入指定公会(发 "l" guild_id;回包 error_code:i, guild_id:l, apply_type:c——
+        /// 与 40003 同结构。GuildListItem/TopItem 逐行"申请"按钮用,区别于 40003 一键批量)。</summary>
+        public const int GUILD_APPLY_ONE = 40002;
+
+        // ----- 公会核心一期(自动循环 轮13a;pt_400 第1组33活号,GuildController 新控制器;
+        //        wire 权威=r13_server_pt400.md §字段序,老端 GuildController.ts/GuildModel.ts 格式串交叉) -----
+        /// <summary>公会协议家族共享错误壳(仅 write,无 read;error_code:i)。前置粗校验(40013任命互斥/
+        /// 40029自嘲/40042未入会/40043改名checklist)专用,自号回错的号不走这里。**补全**:40002/40003
+        /// 加入申请的前置三校验(已在公会/等级不足/圣域中)失败也走这里(pp_guild.erl 40002/40003 分支);
+        /// 40004 建会失败同样先走这里(lib_guild.erl create_guild 失败分支),只有真正建会成功才回 40004
+        /// 自己的号(该失败分支在服务端现状下理论不可达,Unity On40004 的失败处理防御性无害)。</summary>
+        public const int GUILD_ERROR = 40000;
+        /// <summary>公会基础信息(C2S 无参;回包 guild_id:l, guild_name:s, announce:s,
+        /// position_list[u16×{position:c, role_id:l, figure}], guild_lv:h, gfunds:i, growth_val:i, gactivity:i,
+        /// member_num:h, member_capacity:h, combat_power:l(**实为前十战力和 combat_power_ten**), online_num:h,
+        /// disband_warnning_time:i, salary_status:c, division:c, join_time:i, is_in_merge:c)。</summary>
+        public const int GUILD_BASE_INFO = 40005;
+        /// <summary>公会成员列表(C2S 无参,服务端无分页,规模=member_capacity;回包
+        /// member_list[u16×{role_id:l, figure, position:c, title_id:i, combat_power:l, online_flag:c,
+        /// offline_time:i, create_time:i}])。</summary>
+        public const int GUILD_MEMBER_LIST = 40006;
+        /// <summary>退出结社(C2S 无参;回包 error_code:i)。前置 mutex(晚宴/领地战/结社副本/圣域/协助/怒海每日),
+        /// 失败走自己的号。</summary>
+        public const int GUILD_QUIT = 40007;
+        /// <summary>申请列表(C2S 无参,上限20(仅手动审批公会生效);回包
+        /// apply_list[u16×{role_id:l, figure, combat_power:l}])。</summary>
+        public const int GUILD_APPLY_LIST = 40008;
+        /// <summary>审批单条申请(发 "lc" role_id, type[1同意/0拒绝];回包 error_code:i, type:c, role_id:l)。
+        /// 审批人不存在/无权限/申请记录不存在=静默不回包。</summary>
+        public const int GUILD_APPLY_APPROVE = 40009;
+        /// <summary>查审批设置(C2S 无参;回包 approve_type:c, auto_approve_lv:h, auto_approve_power:i)。</summary>
+        public const int GUILD_APPLY_SETTING_INFO = 40010;
+        /// <summary>设置审批规则(发 "chi" approve_type, auto_approve_lv, auto_approve_power;
+        /// 回包 error_code:i)。**订正**:pp_guild 前置层 ErrorCode==nothing 时确实 skip 不发,但已 cast
+        /// 出去的业务层(mod_guild_cast.erl 'setting_approve')结尾无条件回包,成功时 error_code==1 一样
+        /// 会到达——并非"成功静默,收到即失败"(此前注释系对前置层的误读)。</summary>
+        public const int GUILD_APPLY_SETTING_SET = 40011;
+        /// <summary>编辑公告(发 "cs" save_type[1保存/2保存并通知], announce;回包 error_code:i)。
+        /// **订正(同40011)**:'modify_announce' 结尾无条件回包,error_code==1 为真成功,并非静默。
+        /// 唯一纯等级门:公会等级&lt;4 拒。</summary>
+        public const int GUILD_ANNOUNCE_SET = 40012;
+        /// <summary>任命职位(发 "lc" role_id, position;回包 error_code:i, role_id:l, position:c)。
+        /// 转会长分支互斥锁前置失败走共享 40000(与 40007/14 不同),业务层失败回自己的号。</summary>
+        public const int GUILD_APPOINT_POSITION = 40013;
+        /// <summary>踢出成员(发 "l" role_id;回包 error_code:i, role_id:l)。</summary>
+        public const int GUILD_KICK = 40014;
+        /// <summary>玩家自身公会信息(C2S 无参,被动补发点极多——入会/改名/合并/职位变更;回包
+        /// guild_id:l, guild_name:s, guild_lv:h, position:c, position_name:s)。落 RoleModel 主角VO。</summary>
+        public const int GUILD_SELF_INFO = 40015;
+        /// <summary>全部批准/拒绝申请(发 "c" type[1同意/2拒绝];回包 error_code:i, type:c)。
+        /// Type∉{1,2} 服务端子句不匹配=静默丢弃,严禁发其它值。</summary>
+        public const int GUILD_APPLY_BULK_HANDLE = 40016;
+        /// <summary>场景广播(纯推送,无 C2S;role_id:l, guild_id:l, guild_name:s, position:c, position_name:s)。
+        /// 按当前地图区域池广播(非公会广播),用于更新他人头顶公会名牌;Common/UI3D 红线内不接场景消费,仅解析+事件。</summary>
+        public const int GUILD_SCENE_BROADCAST = 40017;
+        /// <summary>公会升级(**老端从未真实发送**,"升级仙宗"按钮只弹提示,本轮不做真实发送 API;
+        /// 回包 error_code:i——**必须接 recv**:操作者私有确认 + 等级真变化时公会全员广播[固定1],
+        /// 同一操作可能收到两份,按"收到即刷新"处理,不辨来源)。</summary>
+        public const int GUILD_UPGRADE = 40018;
+        /// <summary>公告编辑界面信息(**纯死号,老端 handler 函数体为空且从无主动请求点**;回包
+        /// remain_times:c, free_times:c)。本轮仅注册防御 no-op handler,不发送、不消费。</summary>
+        public const int GUILD_ANNOUNCE_INFO = 40019;
+        /// <summary>领取公会工资(C2S 无参,每日一次;回包 error_code:i)。</summary>
+        public const int GUILD_SALARY = 40020;
+        /// <summary>权限列表(C2S 无参,不在公会时回空列表非静默;回包
+        /// permission_type_list[u16×{permission_type:c}])。</summary>
+        public const int GUILD_PERMISSION_LIST = 40021;
+        /// <summary>捐献信息(C2S 无参,混在批量拉取里仍活跃请求,UI 不建;回包 gactivity:i, donate_times:c,
+        /// self_gift_list[u16×{gift_id:h, gift_status:c}], donate_record[u16×{donate_id:i, role_id:l,
+        /// role_name:s, donate_type:c, times:c, donate_add:h, gfunds_add:h, guild_activity:h, time:i}]
+        /// (item_to_bin_6 字段序按 40026 同名"捐献记录"结构类推,报告未逐字段列出,已标注假设))。</summary>
+        public const int GUILD_DONATE_INFO = 40023;
+        /// <summary>解散公会(会长专属,C2S 无参;回包 error_code:i)。圣域场景内禁止解散走自己的号。</summary>
+        public const int GUILD_DISBAND = 40027;
+        /// <summary>公会活跃度查询/推送(C2S 无参;回包 gactivity:i)。</summary>
+        public const int GUILD_ACTIVITY = 40028;
+        /// <summary>调戏(发 "l" role_id;**recv:null,服务端无 write 调用点,纯发**;自娱自乐/不同公会走共享
+        /// 40000 静默或回错,正常路径只触发公会聊天频道飘字)。</summary>
+        public const int GUILD_TEASE = 40029;
+        /// <summary>玩家声望信息(C2S 无参;回包 all_prestige:i, title_id:i, prestige_week:i, prestige_limit:i)。</summary>
+        public const int GUILD_PRESTIGE_INFO = 40030;
+        /// <summary>今日声望推送/查询(C2S 无参;回包 all_prestige:i, prestige_day:i, prestige_day_limit:i)。</summary>
+        public const int GUILD_PRESTIGE_DAILY = 40031;
+        /// <summary>贡献值变化推送(纯推送,无 C2S;new_donate:i)。仅被动获得贡献(任务奖励等)时触发,
+        /// 不伴随死掉的 40024 主动捐献 UI。</summary>
+        public const int GUILD_DONATE_PUSH = 40039;
+        /// <summary>公会技能列表(发 "c" type[1基础/2高级];回包 donate:i,
+        /// skill_list[u16×{skill_id:i, learn_lv:c, research_lv:c, cur_power:l, next_power:l}])。</summary>
+        public const int GUILD_SKILL_LIST = 40040;
+        /// <summary>学习公会技能(发 "i" skill_id;回包 error_code:i, skill_id:i, learn_lv:c, donate:i(**学习后剩余
+        /// 贡献值,非本次消耗**), cur_power:l, next_power:l)。未入会前置走共享 40000,深层业务失败回自己的号。</summary>
+        public const int GUILD_SKILL_LEARN = 40042;
+        /// <summary>公会改名(发 "s" new_name;回包 error_code:i, new_name:s——**深层9项checklist失败一律走
+        /// 共享40000,只有真正扣费成功才回自己的号**)。</summary>
+        public const int GUILD_RENAME = 40043;
+        /// <summary>改名信息(C2S 无参;回包 is_free:c, next_rename_time:i)。</summary>
+        public const int GUILD_RENAME_INFO = 40044;
+        /// <summary>仙宗召援(C2S 无参;回包 role_id:l, role_name:s, role_lv:h, role_career:c, role_sex:c,
+        /// role_pic:s, role_pic_ver:i, boss_type:h, boss_type_name:s, boss_id:i, layer:c, scene_id:i, x:h, y:h)。
+        /// 真公会广播(send_to_guild),收到时非自己发起才提示。</summary>
+        public const int GUILD_BOSS_CALL = 40060;
+        /// <summary>公会合并候选列表(C2S 无参;回包 guild_list[u16×{同 40001 item_to_bin_0 结构}])。</summary>
+        public const int GUILD_MERGE_LIST = 40061;
+        /// <summary>申请合并指定公会(发 "l" guild_id;回包 error_code:i, guild_id:l)。成功后联动推给对方会长
+        /// 一份新的 40061。</summary>
+        public const int GUILD_MERGE_APPLY = 40062;
+        /// <summary>响应合并申请(发 "cl" op_type[1同意/2拒绝], guild_id;回包 error_code:i, guild_id:l)。</summary>
+        public const int GUILD_MERGE_RESPONSE = 40063;
 
         // ----- 薄增量六件套(第20轮工单;详见 Docs/工单-薄增量六件套.md) -----
         /// <summary>OutWard 通用一键升星(type_id∉{1,2}:3翼影/4圣器/5神兵;发 "c" type_id;

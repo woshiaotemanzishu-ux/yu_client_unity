@@ -18,9 +18,16 @@ namespace Shenxiao.Module.Core.Guild
             public long GuildId;
             public string Name;
             public int Lv;
+            public long ChiefId;
+            public string ChiefName;
             public int MemberNum;
             public int MemberCapacity;
             public bool IsApply;
+            /// <summary>入会门槛战力(auto_approve_power);0=无条件限制(对标老端 GuildListItem.SetDate)。</summary>
+            public long AutoApprovePower;
+            /// <summary>combat_power 字段——**服务端实为前十名成员战力之和(combat_power_ten)**,
+            /// 非全员战力总和(r13_server_pt400 §字段序陷阱#2),仅用于列表排序/展示,勿当校验口径。</summary>
+            public long CombatPower;
         }
 
         private readonly List<GuildBrief> _list = new List<GuildBrief>();

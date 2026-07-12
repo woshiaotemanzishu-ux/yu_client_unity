@@ -1,0 +1,98 @@
+
+{  
+    "main_func":[
+        {"id":1,"title":"每日礼包","icon":"guild_010"},
+        {"id":3,"title":"仙宗庇护","icon":"guild_011"},
+        {"id":4,"title":"仙宗仓库","icon":"guild_012"},
+        {"id":9,"title":"仙宗红包","icon":"guild_013"},
+        {"id":5,"title":"仙宗盛宴","icon":"guild_014"},
+        {"id":11,"title":"善缘商店","icon":"guild_016"},
+		{"id":12,"title":"仙宗武魂","icon":"guild_018"},
+        {"id":8,"title":"解散仙宗","icon":"guild_017"},
+        {"id":13,"title":"合并仙宗","icon":"guild_019"}
+    ],
+    "down_drop_apply_set_power":{
+        "0":{"id":1, "content":"人物战斗力0以上", "cond":0},
+        "200000":{"id":2, "content":"人物战斗力200000以上", "cond":200000},
+		"500000":{"id":3, "content":"人物战斗力500000以上", "cond":500000},
+		"800000":{"id":4, "content":"人物战斗力800000以上", "cond":800000},
+		"1500000":{"id":5, "content":"人物战斗力1500000以上", "cond":1500000},
+		"2000000":{"id":6, "content":"人物战斗力2000000以上", "cond":2000000}
+    },
+    "down_drop_apply_set_level":{
+        "0":{"id":1, "content":"人物等级0以上", "cond":0},
+        "100":{"id":2, "content":"人物等级100以上", "cond":100},
+        "200":{"id":3, "content":"人物等级200以上", "cond":200}
+    },
+    "down_drop_apply_set_stage":{
+        "1":{"id":1, "content":"4阶", "cond":4},
+        "2":{"id":2, "content":"5阶及以下", "cond":5},
+        "3":{"id":3, "content":"6阶及以下", "cond":6},
+        "4":{"id":4, "content":"7阶及以下", "cond":7},
+        "5":{"id":5, "content":"8阶及以下", "cond":8},
+        "6":{"id":6, "content":"9阶及以下", "cond":9},
+        "7":{"id":7, "content":"10阶及以下", "cond":10},
+        "8":{"id":8, "content":"11阶及以下", "cond":11},
+        "9":{"id":9, "content":"12阶及以下", "cond":12},
+		"10":{"id":10, "content":"13阶及以下", "cond":13},
+		"11":{"id":11, "content":"14阶及以下", "cond":14},
+		"12":{"id":12, "content":"15阶及以下", "cond":15},
+		"13":{"id":13, "content":"16阶及以下", "cond":16}
+    },
+    "down_drop_apply_set_color":{
+        "1":{"id":1, "content":"紫色及以下", "cond":3},
+        "2":{"id":2, "content":"橙色及以下", "cond":4},
+        "3":{"id":3, "content":"红色及以下", "cond":5}
+    },
+    "down_drop_apply_set_star":{
+        "1":{"id":1, "content":"1星及以下", "cond":1},
+        "2":{"id":2, "content":"2星及以下", "cond":2}
+    },
+    "depot_goods":[
+        {"type_id": 38250022, "score_plus": 2000, "score_cost": 20000}
+    ],
+    "donate_cfg":{
+        "1":{"donate_type": 1, "icon": "guild_json.guild_045_png", "title": "金币捐献","goods_type":3},
+        "2":{"donate_type": 2, "icon": "guild_json.guild_043_png", "title": "绑玉捐献","goods_type":2},
+        "3":{"donate_type": 3, "icon": "guild_json.guild_044_png", "title": "灵玉捐献","goods_type":1}
+    },
+    "down_drop_depot_stage":{
+        "0":{"id":0, "content":"阶数选择", "cond":-1},
+        "1":{"id":1, "content":"4阶", "cond":4},
+        "2":{"id":2, "content":"5阶", "cond":5},
+        "3":{"id":3, "content":"6阶", "cond":6},
+        "4":{"id":4, "content":"7阶", "cond":7},
+        "5":{"id":5, "content":"8阶", "cond":8},
+        "6":{"id":6, "content":"9阶", "cond":9},
+        "7":{"id":7, "content":"10阶", "cond":10},
+        "8":{"id":8, "content":"11阶", "cond":11},
+        "9":{"id":9, "content":"12阶", "cond":12},
+		"10":{"id":10, "content":"13阶", "cond":13},
+		"11":{"id":11, "content":"14阶", "cond":14},
+		"12":{"id":12, "content":"15阶", "cond":15},
+		"13":{"id":13, "content":"16阶", "cond":16}
+    },
+    "down_drop_depot_color":{
+        "0":{"id":0, "content":"品质选择", "cond":-1},
+        "1":{"id":1, "content":"紫色", "cond":3},
+        "2":{"id":2, "content":"橙色", "cond":4},
+        "3":{"id":3, "content":"红色", "cond":5}
+    },
+    "gift_intro":{
+        "title": "仙宗头衔",
+        "content": [
+            "累计获取5000点善缘可进阶为[小善]<br/>累计获取12500点善缘可进阶为[乐助]<br/>累计获取20000点善缘可进阶为[暖心]<br/>累计获取37500点善缘可进阶为[鼎力]<br/>累计获取62500点善缘可进阶为[热忱]<br/>累计获取100000点善缘可进阶为[勤勉]<br/>累计获取150000点善缘可进阶为[无私]<br/>累计获取225000点善缘可进阶为[慈悲]<br/>累计获取325000点善缘可进阶为[普度]<br/>累计获取450000点善缘可进阶为[忘我]",
+            "每周至少获取1000点善缘,否则头衔会降级",
+            "头衔等级越高,每日礼包奖励越多"
+        ]
+    },
+    "intro_cfg":{
+        "1":{ 
+            "desc": "仙宗协助界面说明",
+            "tips": 1,
+            "content": [
+            "每日可最多获得<font color='#b3ff48'>2000</font >点善缘值.",
+            "每日前5次协助将获得额外奖励."
+        ]}
+    }
+}
