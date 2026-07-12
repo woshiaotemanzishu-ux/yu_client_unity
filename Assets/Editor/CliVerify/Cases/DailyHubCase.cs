@@ -79,18 +79,21 @@ namespace Shenxiao.EditorTools
                 Debug.Log("CLIVERIFY dailyhub 15700 ok=" + err700Ok);
 
                 // ---- A. 15701(act_type=1,每日任务)真实配置驱动排序(可否领活跃度>开启状态,尾哨兵 Live 核对) ----
-                // 三条:132@0@0(普通开启,val=100)/157@0@0(module==157&&sub==0 特判,val=450)/132@0@0(可领活跃度,val=10100)
+                // 三条:280@0@0(普通开启,val=100)/157@0@0(module==157&&sub==0 特判,val=450)/132@0@0(可领活跃度,val=10450)。
+                // ⚠首跑订正(轮13a批处理):此前"普通项"误用 132@0——老端 132@0(主线挂机)与 157@0 同为特判
+                // (DailyModel.ts:397-398),两者 va 同值且 config_ac rank 同为 999,相对序在两端都无定义
+                // (.NET List.Sort 不稳定/老端 JS 比较器对同值返回 1),断言特定顺序=测了未定义行为。
                 Feed(m15701, new CliVerify.Pkt()
                     .C(1).L(999L)
                     .H(3)
                         .I(157).I(0).I(0).I(0).I(5).I(0).I(100).I(0).C(1)   // 特判项:CanGetLive=0,State=1(开启)
-                        .I(132).I(0).I(0).I(0).I(5).I(0).I(100).I(0).C(1)   // 普通开启项:CanGetLive=0
+                        .I(280).I(0).I(0).I(0).I(5).I(0).I(100).I(0).C(1)   // 普通开启项(280@0,rank=3,liveness max=10):CanGetLive=0
                         .I(132).I(0).I(0).I(1).I(5).I(777).I(100).I(1).C(1) // 可领活跃度项:CanGetLive=1,Live=777(尾哨兵)
                     .Bytes());
                 Shenxiao.Module.Core.Daily.DailyModel.DailyDataVo unlimit = model.GetDailyData(Shenxiao.Module.Core.Daily.DailyModel.ACT_UNLIMIT);
                 bool splitOk = unlimit != null && unlimit.OnHookTime == 999L && unlimit.AcList.Count == 3;
                 bool sortOk = splitOk
-                    && unlimit.AcList[0].Module == 132 && unlimit.AcList[0].CanGetLive == 0
+                    && unlimit.AcList[0].Module == 280 && unlimit.AcList[0].CanGetLive == 0
                     && unlimit.AcList[1].Module == 157
                     && unlimit.AcList[2].Module == 132 && unlimit.AcList[2].CanGetLive == 1 && unlimit.AcList[2].Live == 777;
                 Debug.Log("CLIVERIFY dailyhub 15701 unlimit split=" + splitOk + " sort=" + sortOk
