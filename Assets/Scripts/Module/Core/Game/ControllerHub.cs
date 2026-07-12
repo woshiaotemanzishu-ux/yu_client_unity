@@ -26,6 +26,7 @@ using Shenxiao.Module.Core.Guild;
 using Shenxiao.Module.Core.Notice;
 using Shenxiao.Module.Core.OutWard;
 using Shenxiao.Module.Core.Partner;
+using Shenxiao.Module.Core.Rank;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Rune;
 using Shenxiao.Module.Core.RushGift;
@@ -154,6 +155,7 @@ namespace Shenxiao.Module.Core.Game
             SettingController.Instance,
             DailyController.Instance,
             ShopController.Instance,
+            RankController.Instance,
             // 后续:EquipController ...
         };
 

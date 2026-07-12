@@ -193,6 +193,16 @@ namespace Shenxiao.EditorTools
             Run(ShopCase.Run, 300.0);
         }
 
+        /// <summary>排行榜(自动循环 轮12 #12,纯数据层轮)实证:22100 防御 recv 不炸+显码/22101 分页续拉
+        /// (响应驱动非 Update,config rank_max 驱动——wire Sum 位服务端两分支都填请求 Len 回声,不入控制流)
+        /// +SelVal 64位尾哨兵+战力榜5页拉满/等级榜20+20+10短尾不误杀+服务端回空终止+未知 rank_type 兜底
+        /// 不炸+Start≤0/Len≤0 本地拦截不发包;config_ranking show==1 过滤排序断言(详见 RankCase 注释)。
+        /// 本轮 UI prefab 全套不存在,无渲染段。</summary>
+        public static void Rank()
+        {
+            Run(RankCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -231,6 +241,7 @@ namespace Shenxiao.EditorTools
                 int dh = await DailyHubCase.Run();
                 int cv = await CreateRoleVideoCase.Run();
                 int sh = await ShopCase.Run();
+                int rk = await RankCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -238,8 +249,9 @@ namespace Shenxiao.EditorTools
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m
                     + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
                     + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch + " friendmail=" + fm
-                    + " team=" + tm + " dungeonfam=" + df + " dailyhub=" + dh + " createvideo=" + cv + " shop=" + sh);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh })
+                    + " team=" + tm + " dungeonfam=" + df + " dailyhub=" + dh + " createvideo=" + cv + " shop=" + sh
+                    + " rank=" + rk);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

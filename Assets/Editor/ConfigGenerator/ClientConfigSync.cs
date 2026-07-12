@@ -81,6 +81,8 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_mystery_shop_hit",    // 神秘/神纹商店刷新消耗区间表(7条,具名键 id),轮11 ShopConfigs.GetRefreshCfg 用
             "config_quick_buy_price",     // QuickBuyView 速购单价表(35条,具名键 goods_type_id),轮11 ShopConfigs.GetQuickBuyPrice 用(UI 未接壳)
             "config_guild_prestige",      // 结社头衔购买条件文案(11条,具名键 title_id),轮11 ShopConfigs.GetGuildPrestige 用
+            "config_ranking",   // 排行榜 rank_type 枚举权威表(15条,数字键 type),轮12 RankConfigs.GetByType/GetVisibleSorted 用
+            "config_medal",     // 勋章样式表(约131条,数字键 id),轮12 RankConfigs.GetMedal 用(本轮仅导表+访问器,渲染留UI尾包)
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

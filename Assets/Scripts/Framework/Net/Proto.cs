@@ -1532,5 +1532,44 @@
         /// (slice 不改原数组,老端这条广播实际从未真删过);本端按显然意图实现为真删,注释订正存档
         /// (同轮10 rule10 先例:64003 真删)。</summary>
         public const int SHOP_VIE_DELETE = 64003;
+
+        // ----- 排行榜(22100-22105,自动循环 轮12 #12,纯数据层轮;yu_server src/pt/pt_221.erl 权威字段序,
+        //        与 yu_client commonController/RankController.ts:88-124 实注册清单交叉核对;冲突处按服务端 write 为准。
+        //        存活裁决(r12_server §存活判定,DEAD占比4/6全家族最高):22100 从建库起从未被调用(孤儿壳,非"曾用现废");
+        //        22102(公会榜)/22103(点赞信息)/22104(膜拜)handle 整段被注释(pp_common_rank.erl:95 注释块标题
+        //        "公会排行榜和膜拜被剥离出排行榜！！！"自证已废),对应 write 侧代码虽在但唯一调用入口不可达——
+        //        彻底不可达且无替代迁移(22102 底层数据被圣域 pt_283/28302 接管,22103/22104 纯功能下线)。
+        //        跳过(§0/规格纪律 5,严禁实现发送与业务):22102/22103/22104。
+        //        22105("我要变强"/末位信息):服务端活(pp_common_rank.erl:133-135 恒定回包)但老端 RankController.ts
+        //        从未 RegisterProtocal(22105,...),全仓零引用——老端行为优先,跳过不移植(r12_oldrank §RegisterProtocal
+        //        实注册清单/r12_server §结论1)。 -----
+
+        /// <summary>排行榜通用错误码壳。回包(pt_221.erl write(22100,[Errcode])):Errcode:32。
+        /// **孤儿协议**:r12_server 证实全仓库 `pt_221:write(22100` 零调用点(从建库起就没接入,非"曾用现废");
+        /// 老端 RankController.ts 仍 RegisterProtocal(22100,On22100) 只做 Util.ErrorCodeShow——本端照抄注册防御 recv
+        /// (显码 toast),避免真出现时无 handler 报"unhandled proto"噪音,注释存档"服务端从未发"。</summary>
+        public const int RANK_ERROR = 22100;
+        /// <summary>查询个人排行榜(14 种 rank_type,战力/等级/成就/竞技/坐骑/飞骑/翅膀/精灵×2/圣器/神兵/装备/爬塔/挂机)。
+        /// 发 "iii"(type, start, len;均 u32)。回包(pt_221.erl write(22101,...)):
+        /// RankType:32, Start:32, Len:32, RoleRank:32, <b>SelVal:64</b>(⚠位宽陷阱!22102 同名字段是 32位,
+        /// 别按 22102 的宽度表照抄), SelSecVal:32, Sum:32, RankList[u16×{PlayerId:64, PraiseNum:32,
+        /// Figure(变长,复用 <see cref="Shenxiao.Common.Proto.FigureProto"/>,与 10+ 处协议共用同一份"玩家外观快照"
+        /// schema,非本协议专属), SelCombat:64, FirstValue:64, SecondValue:32, ThirdValue:32, Rank:32}]。
+        /// guard(r12_server §Guard lib_common_rank_mod.erl:1187):Start≤0 或 Len≤0 服务端**静默 skip**(不回任何包,
+        /// 连 22100 都不发)——本端发送侧本地拦截,不发废包。RankType 无白名单校验,未知值落服务端 combat_power
+        /// 兜底语义,仍正常回包(不报错)。
+        /// ⚠**Sum 字段更正(轮12 blocker 修复,原注释仅提越界分支是误记)**:lib_common_rank_mod.erl **正常分支
+        /// (:1220)与越界分支(:1190)都**把 Sum 字段位置填成客户端请求的 Len,不是 :1183 算出的真实
+        /// Sum=length(RankList)——wire sum 恒为请求 len 的回声,不可用于判断"是否越界"或"是否还有下一页"
+        /// (旧的"只增不减/越界终止"防御建立在误读上,已废弃,<see cref="Rank.RankModel.ApplySum"/> 现仅存档展示)。
+        /// 分页续拉改为 config 驱动(对标老端 RankModel.ts:128-160 用 config_ranking.rank_max 预排页数,与
+        /// wire sum 无关):续拉条件是 received&lt;RankConfigs.GetByType(type).RankMax,落在
+        /// <see cref="Rank.RankModel.RankTypeData.ConfiguredMax"/>。真实数据不足 Len 条时服务端用全 0
+        /// (PlayerId=0)占位项凑满整页,与老端一致照样入库(渲染"虚位以待"留 UI 尾包)。
+        /// 分页节流:老端 20 条/帧(oneMax)由 <c>reqFun()</c> 按帧续拉;本端把"帧"替换成"收到响应后立即续发下一页"
+        /// (无 Update 依赖,轮1"Update 驱动行为需走非 Update 通道"教训——续拉逻辑落在 On22101 handler 内,可被
+        /// CliVerify 反射直接喂包驱动,无需真实等待/tick)。自身排名(RoleRank/SelVal/SelSecVal)随每包自带,
+        /// 无需独立协议查询。</summary>
+        public const int RANK_QUERY = 22101;
     }
 }

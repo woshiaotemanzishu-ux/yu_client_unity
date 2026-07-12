@@ -517,5 +517,10 @@ namespace Shenxiao.Framework.Event
         /// <summary>商城红点综合判定变化(参数: bool show;聚合钻石/抢购/神秘首次全新 三路,对标老端
         /// REFRESH_ACTIVITY_ICON_RED_DOT,153——活动图标像素级挂接留 TODO,本轮先给可消费信号)。</summary>
         public const string EVT_SHOP_RED_DOT = "EVT_SHOP_RED_DOT";
+
+        // ----- Rank / 排行榜(自动循环 轮12 #12,纯数据层轮) -----
+        /// <summary>22101 某 rank_type 的一页数据落地/续拉完成(参数: int rankType;对标老端
+        /// RankModelEvent.RANK_DATA_UPDATE)。本轮无 UI 消费方,先给可订阅信号,供 UI 尾包直接接。</summary>
+        public const string EVT_RANK_DATA_UPDATE = "EVT_RANK_DATA_UPDATE";
     }
 }
