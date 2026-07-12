@@ -1353,5 +1353,116 @@
         /// <summary>一键同意入队(sentientAct 专属 UI 共用协议)。发:无参;回包 ErrorCode:i。无论成败都补拉
         /// <see cref="TEAM_APPLY_LIST"/>(24047)。</summary>
         public const int TEAM_APPLY_ALL = 24063;
+
+        // ----- 日常中心(157xx + 41900系 + 61801,自动循环 轮10;yu_server src/pt/pt_157.erl·pt_419.erl·
+        //        pt_618.erl 权威字段序,与 yu_client commonController/DailyController.ts + commonModel/
+        //        DailyModel.ts 交叉核对;冲突处按服务端 write 为准。⚠轮10交叉验收 blocker 订正:15700"跨系统
+        //        共享错误码壳不重复注册"的裁决前提不成立——全仓 grep 无任何人注册它,已改为在 DailyController
+        //        补注册(老端就是 DailyController 唯一注册方,GapMap 风险#5 结论仍成立:不存在双注册冲突)。
+        //        跳过:15702/15704/15707/15708(号段空洞,双端均无 read/write/handle)、
+        //        15713(read/write 骨架在,handle 已注释,DEAD,老端也无 UI 接线)。⚠勘误(r10 侦察定案):
+        //        签到/补签实际协议是 41704/41705,归 WelfareController,不在本簇——本文件不加那两个号。) -----
+
+        /// <summary>15700 通用错误码(纯推送,pt_157.erl:56-62 write(15700,[Errcode:32])):15701/15705/15710/
+        /// 15715/15716/15717/15719/15720 等失败分支的服务端 guard 全部经此号回包,不是独立请求。</summary>
+        public const int DAILY_ERROR = 15700;
+        /// <summary>查询活跃度次数(每日任务/限时活动共用一张读表,按 act_type 分槽)。发 "c"(act_type:1非限时/2限时);
+        /// 回包(pt_157.erl:64-81 write(15701,...)):ActType:8, Time:64(离线挂机时间搭车带出),
+        /// AcList[u16×{Module:32,ModuleSub:32,AcSub:32,Num:32,MaxNum:32,Live:32,MaxLive:32,CanGetLive:32,State:8}]。
+        /// 老端 GAME_START 对两种 act_type 各发一次,DailyTaskView/DailyLimitActivityView 开页各自再发一次。</summary>
+        public const int DAILY_ACTIVITY_LIST = 15701;
+        /// <summary>查询活跃度奖励(每日任务底栏宝箱进度条)。发:无参;回包(pt_157.erl:83-100 write(15703,...)):
+        /// Live:32, LiveMax:32, RewardList[u16×{Id:32,State:8}](对标老端按 Id 升序展示)。
+        /// 同号还被服务端 <c>lib_liveness:refresh_live_reward/1</c> 在活跃度变化时主动推送复用。</summary>
+        public const int DAILY_LIVENESS_REWARD = 15703;
+        /// <summary>领取活跃度宝箱奖励。发 "i"(id);回包(pt_157.erl:102-110 write(15705,...)):Errcode:32, Id:32。
+        /// guard:已领(1570002)/活跃度不够(1570001)/背包不足(兜底 err150_no_cell)。成功→toast+重拉
+        /// <see cref="DAILY_LIVENESS_REWARD"/>+GetBoxRewardListById 奖励预览(周卡翻倍假条目未接线,TODO)。</summary>
+        public const int DAILY_LIVENESS_REWARD_GET = 15705;
+        /// <summary>活动状态变更主动推送(S2C 专用)。回包(pt_157.erl:112-124 write(15706,...)):
+        /// Module:32, ModuleSub:32, ActType:8, Status:8。原地改 daily_data[ActType] 里对应条目 state
+        /// (对标老端 UpdateDailyData;650@1 CSPVP 联动分支老端已注释,不抄)。</summary>
+        public const int DAILY_ACTIVITY_STATE_PUSH = 15706;
+        /// <summary>查询玩家活跃度形象信息。发:无参;回包(pt_157.erl:126-138 write(15709,...)):
+        /// Lv:32, Liveness:32, Id:32, Display:8。挂在每日任务底栏"活跃度形象"入口(DailyLivenessMsgView,
+        /// 现仅 Bind 无具体类,r10_unity 结论,UI 未接壳)。</summary>
+        public const int DAILY_LIVENESS_INFO = 15709;
+        /// <summary>活跃度升级。发:无参;回包(pt_157.erl:140-150 write(15710,...)):Errcode:32, Lv:32, Liveness:32。
+        /// guard:活跃度不够(1570006)/已满级(1570007)/配置错(1570005)。成功→toast「升级成功」+重拉
+        /// <see cref="DAILY_LIVENESS_INFO"/>+UseNewImage(按新等级自动挑一个新解锁形象换上)。</summary>
+        public const int DAILY_LIVENESS_LEVEL_UP = 15710;
+        /// <summary>更换活跃度形象。发 "i"(figure id;⚠仅被 UseNewImage 自动触发,老端手动选择 UI 按钮代码已整段
+        /// 注释,无玩家可操作入口)。回包(pt_157.erl:152-160 write(15711,...)):Errcode:32, Id:32。⚠r10_server
+        /// 实证:服务端 <c>pp_activitycalen.erl</c> 对应 handle 子句已注释(DEAD),本端仍防御性注册 recv
+        /// (同 <see cref="CHAT_BANNED_NOTICE"/> 先例),现状发送后恒收不到回包,无害。</summary>
+        public const int DAILY_LIVENESS_CHANGE_FIGURE = 15711;
+        /// <summary>广播他人活跃度形象变更(S2C 专用推送)。回包(pt_157.erl:162-170 write(15712,...)):
+        /// RoleId:64, FigureId:32。⚠r10_server 实证:触发主体已从"活跃度换形象"整体迁移给龙珠模块
+        /// (<c>lib_dragon_ball.erl</c>),协议本身仍活。场景内角色形象同步消费方未接线(仅转发事件,TODO)。</summary>
+        public const int DAILY_LIVENESS_FIGURE_PUSH = 15712;
+        /// <summary>离线挂机时间更新推送(S2C 专用)。回包(pt_157.erl:182-188 write(15714,...)):Time:64。
+        /// 刷每日任务底栏"离线挂机时间"文案(UI 未接壳,先落 DailyModel.OutlineTime)。</summary>
+        public const int DAILY_ONHOOK_TIME_PUSH = 15714;
+        /// <summary>查询活跃度找回信息(50 级开)。发:无参;回包(pt_157.erl:190-203 write(15715,...)):
+        /// ResAct[u16×{ActId:32,ActSub:16,Lefttimes:16,BackTimes:16}]。guard:开启等级不够(1570012)。
+        /// ⚠老端 <c>LivenessCanFind()</c> 已硬编码 return false=功能下线;按规格协议接收保留但**不建 UI**
+        /// (GAME_START 时等级达标才发,照老端)。</summary>
+        public const int DAILY_LIVENESS_FIND_INFO = 15715;
+        /// <summary>活跃度找回(消耗绑钻换活跃度)。发 "ihh"(act_id, act_sub, times;⚠老端 h5/src 全仓库无发送
+        /// 调用点,功能已随 15715 一并下线,本端仅按协议声明防御性注册 recv,不提供 UI)。
+        /// 回包(pt_157.erl:205-215 write(15716,...)):ActId:32, ActSub:16, Lefttimes:16。</summary>
+        public const int DAILY_LIVENESS_FIND = 15716;
+        /// <summary>领取活跃度(每日任务单条 item 完成后领取)。发 "ih"(module, module_sub)。
+        /// ⚠r10_server 静态证据:read 只解 2 字段但 handle pattern 要 3 字段,疑似历史 arity 不匹配 bug、
+        /// 大概率不可达(需网关派发代码交叉确认,本仓无法 100% 定论)——按规格 §0 与老端行为原样实现:
+        /// 回包(pt_157.erl:217-227 write(15717,...)):ActId:32, ActSub:16, AddLive:32(字段名历史遗留,
+        /// 语义已是 LeftTimes,不影响编码)。成功→toast「领取成功」+重拉 <see cref="DAILY_ACTIVITY_LIST"/>
+        /// (UnLimit)+<see cref="DAILY_LIVENESS_REWARD"/> 联动。</summary>
+        public const int DAILY_TASK_LIVENESS_CLAIM = 15717;
+        /// <summary>活动报名情况查询/推送(限时活动预约状态表)。发:无参;回包(pt_157.erl:229-242 write(15718,...)):
+        /// ActList[u16×{Module:32,ModuleSub:32,AcSub:32,Status:8,Join:8}](过滤 module!=500,驱动预约红点计数)。
+        /// 同号还被服务端每日刷新/公会战状态变化主动推送复用。DailyView 打开时统一拉一次。</summary>
+        public const int DAILY_SIGNUP_LIST = 15718;
+        /// <summary>活动报名/预约。发 "iii"(module, module_sub, ac_sub);回包(pt_157.erl:244-260 write(15719,...)):
+        /// Code:32, Module:32, ModuleSub:32, AcSub:32, Status:8, Join:8。guard 链见 r10_server(活动开启中不能报名/
+        /// 公会战资格/未入会/未到今日开启/等级或类型不符/已报名等 6 支)。成功且 Status!=2→弹预约成功小窗
+        /// (DailyReservationView,现仅 Bind 无具体类,toast 兜底)。⚠老端夹带微信小游戏订阅检查,Unity 非微信
+        /// 渠道整体跳过,不移植。</summary>
+        public const int DAILY_SIGNUP = 15719;
+        /// <summary>领取报名奖励(活动结束后)。发 "iii"(module, module_sub, ac_sub);
+        /// 回包(pt_157.erl:262-274 write(15720,...)):Code:32, Module:32, ModuleSub:32, AcSub:32。
+        /// guard:未到今日开启(1570010)/状态不符(?FAIL)。成功→按 config_ac.sign_up_reward 展示奖励(降级 toast)+
+        /// 该条目预约状态置 2(已领)+预约红点 -1。</summary>
+        public const int DAILY_SIGNUP_REWARD = 15720;
+        /// <summary>限时活动开启提醒(主动推送+GAME_START/升级时主动查一次)。发:无参;
+        /// 回包(pt_157.erl:276-291 write(15721,...)):IsRemind:8, ActList[u16×{Module:32,ModuleSub:32,AcSub:32,
+        /// State:8,Time:32,SignState:8}]。老端弹窗簇 DailyActTipView 逻辑最绕(未弹→判断是否弹新窗;已弹→原地
+        /// 刷新/跳tab/关闭),现仅 Bind 无具体类(r10_unity 结论)——按规格"有壳接壳,无壳 toast 降级+TODO"实现。</summary>
+        public const int DAILY_ACT_REMIND = 15721;
+        /// <summary>设置"今日不再提醒"开关(DailyActTipView 弹窗里的复选框)。发 "c"(open:0/1)。
+        /// ⚠<c>pt_157.erl</c> 全文无 write(15722,...) 子句——服务端仅写内存 map,纯 fire-and-forget,
+        /// 无需(也无法)注册 recv。</summary>
+        public const int DAILY_ACT_REMIND_SET = 15722;
+
+        /// <summary>资源找回界面信息。发:无参;回包(pt_419.erl:22-37 write(41900,...)):
+        /// Errcode:32, ResAct[u16×{ActId:32,ActSub:16,Lefttimes:16,LefttimesVip:16,RewardLv:32}]。
+        /// 触发点:GAME_START/DailyResFindView 开页/41903 回错 4190001 兜底重拉。同号亦被凌晨4点刷新主动推送复用。</summary>
+        public const int DAILY_RES_FIND_INFO = 41900;
+        /// <summary>资源找回(单条,可选额外次数)。发 "ihchh"(act_id, act_sub, type:1绑钻/2金币, times:正常次数,
+        /// times_others:额外/vip次数);回包(pt_419.erl 对应 write(41903,...)):Errcode:32, Type:8, ActId:32,
+        /// ActSub:16, Lefttimes:16, LefttimesVip:16, RewardLv:32。guard 链见 r10_server(公会战资格/等级/次数为0/
+        /// 类型非法/配置缺失(4190003)/次数不足(4190001/4190002)/背包满(1500011))。成功→toast「找回成功」+
+        /// 只更新该条目 lefttimes/lefttimes_vip(对标 UpdateFindData)。UI 简化:滑杆简化为"全额找回"一键。</summary>
+        public const int DAILY_RES_FIND = 41903;
+        /// <summary>一键找回。发 "c"(type);回包(pt_419.erl 对应 write(41904,...)):Errcode:32, Type:8,
+        /// ActList[u16×{ActId:32,ActSub:16,Lefttimes:16,LefttimesVip:16,RewardLv:32}](覆盖式整表刷新,对标
+        /// SetAllResFindData)。成功后主动重拉一次 <see cref="DAILY_RES_FIND_INFO"/> 兜底(对标老端)。</summary>
+        public const int DAILY_RES_FIND_ONEKEY = 41904;
+
+        /// <summary>我要变强(100级开)状态列表查询。发:无参;回包(pt_618.erl:12-25 write(61801,...)):
+        /// StateList[u16×{Id:32,State:8,Time:64}]。⚠等级不足时服务端**静默不回包**(无 errcode,r10_server
+        /// 实证,与 157/419 家族"总有个错误码回包"风格不同)。该页本身不再发起任何"变强"动作协议,
+        /// 只是状态汇总+跳转(真正操作分散在各外部系统,Unity 端 jump_id→具体系统映射表未移植,TODO log)。</summary>
+        public const int DAILY_STRONGER_LIST = 61801;
     }
 }

@@ -5,6 +5,7 @@ using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Role;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Daily
@@ -41,6 +42,24 @@ namespace Shenxiao.Module.Core.Daily
         };
         // 已写内容才开放;6/6 全开(每日任务/限时活动/无尽之海/资源找回/托管/我要变强)
         private static readonly bool[] TabEnabled = { true, true, true, true, true, true };
+        // 老端 DailyView.ts:35-42 tabStrList 标签文字。
+        private static readonly string[] TabLabels =
+        {
+            "每日任务", "限时活动", "无尽之海",
+            "资源找回", "托管中心", "我要变强",
+        };
+        // 老端 DailyView.ts:55 titleStr="daily.uirw_008a"(六标签共用同一张窗标题图,未按标签区分)。
+        private static readonly string TabTitle = GameResPath.GetIcon("daily", "uirw_008a");
+        // 老端 DailyView.ts:58 bg_list(无尽之海单独一张背景,其余 5 个标签共用 daily_bg.jpg)。
+        private static readonly string[] TabBackgrounds =
+        {
+            GameResPath.GetBigBgPath("daily_bg.jpg"), GameResPath.GetBigBgPath("daily_bg.jpg"),
+            GameResPath.GetBigBgPath("uicczh_008.jpg"), GameResPath.GetBigBgPath("daily_bg.jpg"),
+            GameResPath.GetBigBgPath("daily_bg.jpg"), GameResPath.GetBigBgPath("daily_bg.jpg"),
+        };
+        // 我要变强(老端 tabStrList[5].open_lv=100)门控;无尽之海(老端 tab_new_cond["2"]=CheckFuncOpenState)门控。
+        private const int StrongerTabIndex = 5;
+        private const int StrongerOpenLv = 100;
         private const int DefaultTab = 3;
         private const int BrightSeaTab = 2;
 
@@ -98,6 +117,7 @@ namespace Shenxiao.Module.Core.Daily
             {
                 if (_window != null) _window.Show();
                 if (_window != null) _window.SelectTab(defaultTab);
+                DailyController.Instance.RequestSignUpList(); // 对标老端 DailyView._Local_Open 每次开窗补发 15718
                 return;
             }
 
@@ -146,15 +166,26 @@ namespace Shenxiao.Module.Core.Daily
                 string viewName = TabContent[i];
                 string prefabName = TabPrefab[i];
                 bool enabled = TabEnabled[i];
+                bool isBrightSea = i == BrightSeaTab;
+                bool isStrongerTab = i == StrongerTabIndex;
                 specs.Add(new TabSpec
                 {
                     Enabled = enabled,
+                    Label = TabLabels[i],
+                    TitleImagePath = TabTitle,
+                    BackgroundImagePath = TabBackgrounds[i],
                     ContentFactory = enabled ? (Func<RectTransform, BaseView>)(parent => ReparentFrom(prefabName, viewName, parent)) : null,
+                    // 无尽之海(老端 tab_new_cond["2"]=CommonManager.CheckFuncOpenState)/我要变强(老端 open_lv:100)门控。
+                    OpenCheck = isBrightSea ? (Func<bool>)(() => FuncOpenConfig.CheckFuncOpenState("BrightSeaEnterView"))
+                        : isStrongerTab ? (Func<bool>)(() => RoleModel.Instance.Level >= StrongerOpenLv)
+                        : null,
+                    LockedToast = isBrightSea ? "功能尚未开放" : isStrongerTab ? "【" + StrongerOpenLv + "级开启】" : null,
                 });
             }
 
             _window.Show();
             _window.Configure(specs, defaultTab);
+            DailyController.Instance.RequestSignUpList(); // 对标老端 DailyView._Local_Open,首次加载路径同样补发一次 15718
             GameLog.Info("Daily", "每日六标签窗打开(BaseWindowSkinView,默认 tab{0})", defaultTab);
         }
 

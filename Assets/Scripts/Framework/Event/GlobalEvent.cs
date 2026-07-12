@@ -469,5 +469,32 @@ namespace Shenxiao.Framework.Event
         // ----- Res -----
         public const string EVT_RES_UPDATE_PROGRESS = "EVT_RES_UPDATE_PROGRESS";
         public const string EVT_RES_UPDATE_DONE = "EVT_RES_UPDATE_DONE";
+
+        // ----- Daily / 日常中心(自动循环 轮10) -----
+        /// <summary>15701(act_type=UnLimit)每日任务表落地(读 DailyModel.GetDailyData(1);对标老端 UPDATE_DAILY_DATA)。</summary>
+        public const string EVT_DAILY_TASK_UPDATE = "EVT_DAILY_TASK_UPDATE";
+        /// <summary>15701(act_type=Limit)限时活动表落地(读 DailyModel.GetDailyData(2))。</summary>
+        public const string EVT_DAILY_LIMIT_UPDATE = "EVT_DAILY_LIMIT_UPDATE";
+        /// <summary>15703 活跃度宝箱进度落地(对标老端 UPDATE_LIVENESS_REWARD)。</summary>
+        public const string EVT_DAILY_LIVENESS_REWARD_UPDATE = "EVT_DAILY_LIVENESS_REWARD_UPDATE";
+        /// <summary>15709 活跃度形象信息落地(对标老端 UPDATE_LIVENESS_IMAGE_DATA)。</summary>
+        public const string EVT_DAILY_LIVENESS_IMAGE_UPDATE = "EVT_DAILY_LIVENESS_IMAGE_UPDATE";
+        /// <summary>15712 他人活跃度形象广播转发(参数: long role_id, int figure_id;场景角色同步消费方未接线,TODO)。</summary>
+        public const string EVT_DAILY_FIGURE_PUSH = "EVT_DAILY_FIGURE_PUSH";
+        /// <summary>15714 离线挂机时间更新(参数: long time;对标老端 UPDATE_OUTLINE_INFO)。</summary>
+        public const string EVT_DAILY_OUTLINE_TIME = "EVT_DAILY_OUTLINE_TIME";
+        /// <summary>41900/41903/41904 资源找回表变动(对标老端 UPDATE_RES_FIND_DATA)。</summary>
+        public const string EVT_DAILY_RES_FIND_UPDATE = "EVT_DAILY_RES_FIND_UPDATE";
+        /// <summary>61801 我要变强状态表落地(对标老端 STRONGER_DATA_RETURN)。</summary>
+        public const string EVT_DAILY_STRONGER_UPDATE = "EVT_DAILY_STRONGER_UPDATE";
+        /// <summary>15718/15719/15720 预约状态表变动(驱动限时活动页红点/领奖态刷新)。</summary>
+        public const string EVT_DAILY_SIGNUP_UPDATE = "EVT_DAILY_SIGNUP_UPDATE";
+        /// <summary>15719 报名成功(参数: int module, int module_sub, int ac_sub;状态经 DailyModel.TryGetReservation
+        /// 回读,对标老端 DAILY_ORDER_SUCCESS)。</summary>
+        public const string EVT_DAILY_SIGNUP_SUCCESS = "EVT_DAILY_SIGNUP_SUCCESS";
+        /// <summary>15721 活动开启提醒到达(壳未接线,仅供日志/未来 DailyActTipView 消费)。</summary>
+        public const string EVT_DAILY_ACT_REMIND = "EVT_DAILY_ACT_REMIND";
+        /// <summary>日常中心红点综合判定变化(参数: bool show;简化版 ComputeRedDot,对标老端 ShowRedDot)。</summary>
+        public const string EVT_DAILY_RED_DOT = "EVT_DAILY_RED_DOT";
     }
 }

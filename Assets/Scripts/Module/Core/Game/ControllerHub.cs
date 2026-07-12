@@ -7,6 +7,7 @@ using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Chat;
 using Shenxiao.Module.Core.CycleimpActlist;
 using Shenxiao.Module.Core.CustomActivity;
+using Shenxiao.Module.Core.Daily;
 using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.FirstRecharge;
 using Shenxiao.Module.Core.Friend;
@@ -150,6 +151,7 @@ namespace Shenxiao.Module.Core.Game
             JjcController.Instance,
             PkStatusController.Instance,
             SettingController.Instance,
+            DailyController.Instance,
             // 后续:EquipController ...
         };
 
