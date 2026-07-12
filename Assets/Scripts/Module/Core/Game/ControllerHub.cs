@@ -32,6 +32,7 @@ using Shenxiao.Module.Core.RushGift;
 using Shenxiao.Module.Core.SuitCollect;
 using Shenxiao.Module.Core.Scene;
 using Shenxiao.Module.Core.Setting;
+using Shenxiao.Module.Core.Shop;
 using Shenxiao.Module.Core.Skill;
 using Shenxiao.Module.Core.SurpriseGift;
 using Shenxiao.Module.Core.Svip;
@@ -152,6 +153,7 @@ namespace Shenxiao.Module.Core.Game
             PkStatusController.Instance,
             SettingController.Instance,
             DailyController.Instance,
+            ShopController.Instance,
             // 后续:EquipController ...
         };
 

@@ -109,6 +109,8 @@ namespace Shenxiao.Module.Core.Common
         private string[] _sharedTitleImages;
         private string[] _sharedTitleTexts;
         private string _sharedBackground;
+        private string[] _sharedUpImages;
+        private string[] _sharedDownImages;
         private TMPro.TextMeshProUGUI _titleOverlay;
         private Dictionary<int, Func<RectTransform, BaseView>> _overrideFactory;
         private readonly Dictionary<int, BaseView> _overrideCache = new Dictionary<int, BaseView>();
@@ -117,9 +119,13 @@ namespace Shenxiao.Module.Core.Common
         /// overrides:个别标签用专属视图(index→工厂),命中时改显该专属视图(不调 onTabSelected)。可选 isEnabled 判定标签可点。
         /// labels:标签文字(对标老端 tabStrList);titleImages:每页标题图(对标 titleList);
         /// titleTexts:每页标题文字覆盖(对标老端 EnsureMountPetModuleTitleOverlay,盖住/替代标题位图);
-        /// backgroundImage:窗底大图(对标 bg_list,null=默认 ui_bg_1)。</summary>
+        /// backgroundImage:窗底大图(对标 bg_list,null=默认 ui_bg_1)。
+        /// upImages/downImages:每标签图标式皮肤(对标老端 tabStrList[i].icon_up_source/icon_down_source,如商城
+        /// 11 标签——轮11 补齐:BuildSharedTabs 此前只传 3 参数给 TabButtonTwoSkin.SetData,没有 icon 通道,
+        /// 图标式标签只能渲染纯色矩形;现按 <see cref="BuildTabs"/> 同款 7 参数补齐,不改既有形态①路径)。</summary>
         public void ConfigureShared(int tabCount, Func<RectTransform, BaseView> contentFactory, Action<int> onTabSelected, int defaultIndex = 0, Func<int, bool> isEnabled = null, Dictionary<int, Func<RectTransform, BaseView>> overrides = null,
-            string[] labels = null, string[] titleImages = null, string backgroundImage = null, string[] titleTexts = null)
+            string[] labels = null, string[] titleImages = null, string backgroundImage = null, string[] titleTexts = null,
+            string[] upImages = null, string[] downImages = null)
         {
             _sharedCount = tabCount;
             _sharedFactory = contentFactory;
@@ -130,6 +136,8 @@ namespace Shenxiao.Module.Core.Common
             _sharedTitleImages = titleImages;
             _sharedTitleTexts = titleTexts;
             _sharedBackground = backgroundImage;
+            _sharedUpImages = upImages;
+            _sharedDownImages = downImages;
             BuildSharedTabs();
             int def = defaultIndex;
             if (isEnabled != null && (def < 0 || def >= tabCount || !isEnabled(def)))
@@ -155,7 +163,10 @@ namespace Shenxiao.Module.Core.Common
                 go.SetActive(true);
                 TabButtonTwoSkin tab = go.GetComponent<TabButtonTwoSkin>();
                 if (tab == null) { Destroy(go); continue; }
-                tab.SetData(i, SelectShared, _sharedLabels != null && i < _sharedLabels.Length ? _sharedLabels[i] : null);
+                tab.SetData(i, SelectShared,
+                    _sharedLabels != null && i < _sharedLabels.Length ? _sharedLabels[i] : null,
+                    _sharedUpImages != null && i < _sharedUpImages.Length ? _sharedUpImages[i] : null,
+                    _sharedDownImages != null && i < _sharedDownImages.Length ? _sharedDownImages[i] : null);
                 LayoutTab(go, _tabs.Count);
                 _tabs.Add(tab);
                 _tabIndices.Add(i);

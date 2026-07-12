@@ -1464,5 +1464,73 @@
         /// 实证,与 157/419 家族"总有个错误码回包"风格不同)。该页本身不再发起任何"变强"动作协议,
         /// 只是状态汇总+跳转(真正操作分散在各外部系统,Unity 端 jump_id→具体系统映射表未移植,TODO log)。</summary>
         public const int DAILY_STRONGER_LIST = 61801;
+
+        // ----- 商店(15301-15307 + 64000-64003,自动循环 轮11;yu_server src/pt/pt_153.erl·pt_640.erl 权威字段序,
+        //        与 yu_client commonController/ShopController.ts:448-458 实注册清单 + commonModel/ShopModel.ts
+        //        交叉核对;冲突处按服务端 write 为准。边界勘误:LimitLevelShop(模块612,61200-03)是已完工独立
+        //        系统,协议号/数据模型不共享,勿混。
+        //        跳过:15303(双端定义齐全但老端 RegisterProtocal 从未注册、全仓零 Fire 调用,彻底死号,
+        //        被 15304 取代——r11_server §存活判定证实 15303 本身"可达"[pp_shop.erl 有 handle 子句],
+        //        但客户端从未发送过,故本端不注册/不提供发送 API)。 -----
+
+        /// <summary>商店列表(按 shop_type 查询)。发 "c"(type:u8,ShopType 枚举 1-18)。
+        /// 回包(pt_153.erl write(15301,...)):Type:8, GoodsList[u16×{KeyId:32, SubtypeList:s(先去 "%["/"%]" 包裹
+        /// 再按逗号切成 series_list), Rank:32, GoodsId:32, Num:32, MoneyType:32, Price:32, Discount:16,
+        /// QuotaType:8, QuotaNum:16(真实限购上限), "SoldOut":16(⚠字段名具误导性,真实语义=已购次数 UsedTime,
+        /// 非售罄布尔), Condition:s(Erlang term,如 [{lv,120}]), TriggerTaskId:32, Bind:8}。
+        /// guard:Type 不在 18 种合法值内 → 服务端静默 skip 不回包(r11_server §Guard)。
+        /// ⚠type==TopVipShop(10)老端整包劫持转发给独立 TopVipModel(不进主 ShopModel 表)——Unity 现状
+        /// TopVip 模块无对应接收方(无 SetSupremeVipShopGoodsList 等价物),本端落 ShopModel 专槽
+        /// (TopVipShopGoodsList)+TODO,不双注册/转发 45102(该号属 TopVipController 自己的协议,与本簇无关)。</summary>
+        public const int SHOP_GOODS_LIST = 15301;
+        /// <summary>购买商品(按 key_id,全商城通用购买入口)。发 "ii"(key_id, num)。
+        /// 回包(pt_153.erl write(15302,...)):Result:32, KeyId:32, Num:32。成功(Result==1)→ sold_out(已购次数)
+        /// 累加 num;quota_type==3(终生限购)额外整表重排。发货/扣钱走既有 pt_150(15017/15018/15008),
+        /// 本协议只处理结果码,不重复实现入库/扣币(r11_server §购买链路副作用)。</summary>
+        public const int SHOP_BUY = 15302;
+        /// <summary>快速购买(按 goods_id,专供速购弹窗 QuickBuyView,与 15301/15302 体系平行)。
+        /// 发 "iic"(goods_id, num, buy_type:1钻石/2绑钻)。回包(pt_153.erl write(15304,...)):
+        /// Res:32, GoodsId:32, Num:32, BuyType:8。UI 未接壳(QuickBuyView 未移植),仅留发送/接收 API。</summary>
+        public const int SHOP_QUICK_BUY = 15304;
+        /// <summary>神秘/神纹商店主页查询。发 "h"(type:u16,MysteryShopType:1神秘/2神纹)。
+        /// 回包(pt_153.erl write(15305,...)):Type:16, RefreshTime:32, HitNum:16,
+        /// GoodList[u16×{CfgId:16, Discount:8, Price:32, "BuyType":8(⚠字段名具误导性,真实语义=购买状态
+        /// 1未买/2已买,非货币类型), BuyNum:8}]。guard:Type 不在 ?SHOP_TYPE_CAREER(仅2种)内 → 静默 skip。</summary>
+        public const int SHOP_MYSTERY_LIST = 15305;
+        /// <summary>手动刷新神秘/神纹商店。发 "h"(type)。回包(pt_153.erl write(15306,...)):Errcode:32。
+        /// errcode==1 时服务端会自动补推 15305,本端不重复重拉(对标老端协议注释)。</summary>
+        public const int SHOP_MYSTERY_REFRESH = 15306;
+        /// <summary>购买神秘/神纹商店商品。发 "hhi"(type, cfg_id, price——折扣价客户端算好回传做防篡改校验)。
+        /// 回包(pt_153.erl write(15307,...)):Errcode:32, Type:16, CfgId:16。
+        /// ⚠r11_server 证实服务端失败分支实参错位:成功给 [Errcode,Type,CfgId],失败给 [Errcode,Id,0]
+        /// (Id 顶替 Type 位、CfgId 位恒 0)——但老端 Handler15307 失败分支只调 Util.ErrorCodeShow(errcode),
+        /// 从不读第2/3字段,故该错位不影响实际消费;本端同样只读 errcode 做提示,第2/3字段照位宽消耗但不作为
+        /// Type/CfgId 语义使用(按老端行为原样实现,注释存档,不强行"修正"一个从未被读取的错位字段)。</summary>
+        public const int SHOP_MYSTERY_BUY = 15307;
+        /// <summary>抢购(限购)商城列表推送。send:null(协议表标注服务端主动推),但老端仍在 GAME_START/
+        /// 每日4点/开抢购tab 时主动裸发一个无参帧拉取,照抄。发:无参。
+        /// 回包(pt_640.erl write(64000,...)):IdList[u16×{Id:32, GoodId:32, DefaultNum:32, PriceType:8,
+        /// OldPrice:32, NewPrice:32, TotalLimitNum:32, LeftLimitNum:32, DailyLimitNum:32, BuyNum:32}]。
+        /// guard:进程字典节流,距上次响应 &lt;200 秒的重复请求静默 skip(r11_server §Guard)。
+        /// ⚠left_time 字段协议表无此项——是客户端收到后自算"下一个游戏日0点"接上去的本地展示字段,
+        /// 不是服务端下发,倒计时纯前端算(须用服务器墙钟 SERVER_ZONE_HOURS=8,轮10 血训,勿裸 UTC)。</summary>
+        public const int SHOP_VIE_LIST = 64000;
+        /// <summary>购买抢购商品。发 "ii"(id, num——购买次数固定传1)。
+        /// 回包(pt_640.erl write(64001,...)):Errcode:32, Id:32, BuyNum:32(⚠=本次购买数量回显,服务端字段名
+        /// SelfNum=Num,非累计已购数;失败路径恒 0。老端 Handler64001 同款直接当 buy_num 赋值=忠实复刻,
+        /// 累计数以下一次 64000 全量为准), LeftLimitNum:32
+        /// (全服剩余限购)。⚠双编码体系:errcode 正常业务分支=0-7 自定义提示码(老端专用文案表
+        /// 0失败/1成功/2已下架/3金额不足/4达到限购/5售罄/6剩余不足/7未上架),守卫失败分支=全局
+        /// ERRCODE 大数值(如 err640_goods_not_on_sale=6400000);按量级分流:≥100000 走显码降级 toast,
+        /// 0-7 走老端文案。成功后原地 patch 本地 vie_info 对应条目(不重拉整张 64000 列表)。</summary>
+        public const int SHOP_VIE_BUY = 64001;
+        /// <summary>抢购商品库存变化广播(纯推送,S2C only)。回包(pt_640.erl write(64002,...)):
+        /// ChangeList[u16×{Id:32, LeftLimitNum:32}]。逐条 patch 本地 vie_info 对应条目 left_limit_num。</summary>
+        public const int SHOP_VIE_UPDATE = 64002;
+        /// <summary>抢购商品下架广播(纯推送,S2C only)。回包(pt_640.erl write(64003,...)):
+        /// DelList[u16×{Id:32}]。⚠老端 vinfo.id_list.slice(i,1) 是 Array.slice 误当 splice 的假删除 bug
+        /// (slice 不改原数组,老端这条广播实际从未真删过);本端按显然意图实现为真删,注释订正存档
+        /// (同轮10 rule10 先例:64003 真删)。</summary>
+        public const int SHOP_VIE_DELETE = 64003;
     }
 }

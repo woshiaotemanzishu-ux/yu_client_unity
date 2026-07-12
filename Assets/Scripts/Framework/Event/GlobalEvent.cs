@@ -496,5 +496,26 @@ namespace Shenxiao.Framework.Event
         public const string EVT_DAILY_ACT_REMIND = "EVT_DAILY_ACT_REMIND";
         /// <summary>日常中心红点综合判定变化(参数: bool show;简化版 ComputeRedDot,对标老端 ShowRedDot)。</summary>
         public const string EVT_DAILY_RED_DOT = "EVT_DAILY_RED_DOT";
+
+        // ----- Shop / 商店(自动循环 轮11) -----
+        /// <summary>15301 某 shop_type 商品列表落地(参数: int shopType;对标老端 ShopEvent.UPDATE_SHOP_DATA)。</summary>
+        public const string EVT_SHOP_DATA_UPDATE = "EVT_SHOP_DATA_UPDATE";
+        /// <summary>15302 购买成功后单条 sold_out 原地更新(参数: int keyId;对标老端 UPDATE_SHOP_ONE_DATA)。</summary>
+        public const string EVT_SHOP_ONE_UPDATE = "EVT_SHOP_ONE_UPDATE";
+        /// <summary>15302 购买成功(参数: int keyId;对标老端 BUY_GOODS_SUCCESS,驱动奖励飞图标——未接线,TODO)。</summary>
+        public const string EVT_SHOP_BUY_SUCCESS = "EVT_SHOP_BUY_SUCCESS";
+        /// <summary>15305 神秘/神纹商店数据落地(参数: int mysteryType;对标老端 UPDATE_MYSTERY_SHOP_DATA)。</summary>
+        public const string EVT_SHOP_MYSTERY_UPDATE = "EVT_SHOP_MYSTERY_UPDATE";
+        /// <summary>15305 hit_num 变化 → 刷新特效(参数: int mysteryType;对标老端 SHOW_REFRESH_EFFECT;未接线,TODO)。</summary>
+        public const string EVT_SHOP_MYSTERY_REFRESH_EFFECT = "EVT_SHOP_MYSTERY_REFRESH_EFFECT";
+        /// <summary>15307 购买神秘/神纹商品成功(参数: int cfgId;对标老端 SHOP_MYSTERY_BUY_SUCCESS)。</summary>
+        public const string EVT_SHOP_MYSTERY_BUY_SUCCESS = "EVT_SHOP_MYSTERY_BUY_SUCCESS";
+        /// <summary>64000/64001/64002/64003 抢购商城数据落地/变化(对标老端 UPDATE_VIE_SHOP_DATA)。</summary>
+        public const string EVT_SHOP_VIE_UPDATE = "EVT_SHOP_VIE_UPDATE";
+        /// <summary>64001 抢购购买成功(参数: int id;对标老端 BUY_VIE_GOODS_SUCCESS)。</summary>
+        public const string EVT_SHOP_VIE_BUY_SUCCESS = "EVT_SHOP_VIE_BUY_SUCCESS";
+        /// <summary>商城红点综合判定变化(参数: bool show;聚合钻石/抢购/神秘首次全新 三路,对标老端
+        /// REFRESH_ACTIVITY_ICON_RED_DOT,153——活动图标像素级挂接留 TODO,本轮先给可消费信号)。</summary>
+        public const string EVT_SHOP_RED_DOT = "EVT_SHOP_RED_DOT";
     }
 }

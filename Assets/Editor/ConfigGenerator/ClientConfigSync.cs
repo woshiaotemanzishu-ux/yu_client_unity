@@ -36,6 +36,7 @@ namespace Shenxiao.EditorTools.ConfigGen
             "ConfigCustomActivityView",
             "ConfigAutoBrush",
             "ClientTransfer",       // 转职卡展示文案(career→{name,desc1,desc2}),轮5 TransferJobModel 用
+            "ClientShopConfig",     // 商城二级子页签定义(ShopSeries[shop_type]=[{id,desc}],仅灵玉/善缘两类型有),轮11 ShopConfigs 用
         };
 
         // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)
@@ -74,6 +75,12 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_dungeon",         // 副本配置(⚠数字键,39 列序在 config_table_default;御魂本 12001~,主线 100980/101522)
             "config_goods_compose",   // 神装合成规则(⚠数字键,列序见 config_table_default;type==2=装备类;主线 101725 ctype73)
             "config_career",          // 转职合法(career,sex)组合("career@sex" 具名键),轮5 TransferJobModel 用
+            "config_shop",                // 服务端权威商品表(241条,具名键 key_id),轮11 ShopConfigs.GetShopCfgRow 用(15301 已直接下发过滤后数据,本表暂无直接消费点,仅登记供以后至尊VIP/喇叭跳转复用)
+            "config_limit_shop_config",   // 抢购(64000/64001)静态数据(42条,具名键 id),轮11 ShopConfigs.GetVieData 用
+            "config_mystery_shop_good",   // 神秘/神纹商店格子静态配置(352条,具名键 id),轮11 ShopConfigs.GetMysteryGoodCfg 用
+            "config_mystery_shop_hit",    // 神秘/神纹商店刷新消耗区间表(7条,具名键 id),轮11 ShopConfigs.GetRefreshCfg 用
+            "config_quick_buy_price",     // QuickBuyView 速购单价表(35条,具名键 goods_type_id),轮11 ShopConfigs.GetQuickBuyPrice 用(UI 未接壳)
+            "config_guild_prestige",      // 结社头衔购买条件文案(11条,具名键 title_id),轮11 ShopConfigs.GetGuildPrestige 用
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

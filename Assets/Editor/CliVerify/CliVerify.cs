@@ -184,6 +184,15 @@ namespace Shenxiao.EditorTools
             Run(CreateRoleVideoCase.Run, 120.0);
         }
 
+        /// <summary>商店(自动循环 轮11)实证:15301 分槽+SoldOut已购次数语义+TopVipShop劫持扇出不炸/
+        /// 15305 BuyType状态语义/15306 刷新联动/15307 失败包错位兼容(第二字段=Id)/64000 left_time
+        /// 服务器墙钟自算/64001 双编码分流(0-7文案表/≥100000显码)/64003 真删/失败码各一发;
+        /// ShopFlow 形态④ 11标签结构断言(labels非空/tab3 override命中 ShopVieView)(详见 ShopCase 注释)。</summary>
+        public static void Shop()
+        {
+            Run(ShopCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -221,6 +230,7 @@ namespace Shenxiao.EditorTools
                 int df = await DungeonFamilyCase.Run();
                 int dh = await DailyHubCase.Run();
                 int cv = await CreateRoleVideoCase.Run();
+                int sh = await ShopCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -228,8 +238,8 @@ namespace Shenxiao.EditorTools
                     + " taskfinish=" + a + " itemtips=" + b + " toast=" + c + " settingpk=" + k + " pettrain=" + m
                     + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
                     + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch + " friendmail=" + fm
-                    + " team=" + tm + " dungeonfam=" + df + " dailyhub=" + dh + " createvideo=" + cv);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv })
+                    + " team=" + tm + " dungeonfam=" + df + " dailyhub=" + dh + " createvideo=" + cv + " shop=" + sh);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);
