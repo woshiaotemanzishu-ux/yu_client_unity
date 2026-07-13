@@ -1186,6 +1186,143 @@
         /// <summary>响应合并申请(发 "cl" op_type[1同意/2拒绝], guild_id;回包 error_code:i, guild_id:l)。</summary>
         public const int GUILD_MERGE_RESPONSE = 40063;
 
+        // ----- 公会二期:结社仓库(自动循环 轮13b;pt_401,wire 权威=yu_server src/pt/pt_401.erl 源码逐字节读出,
+        //        非报告转述;老端 GuildDepotView.ts/GuildDepotItem.ts 交叉) -----
+        /// <summary>仓库家族共享错误壳(仅 write,error_code:i)。40102/40103 静默陷阱(Num&lt;=0 且非任务装备id/
+        /// 40104 空数组)不经这里,是真无回包,不要等它。</summary>
+        public const int GUILD_DEPOT_ERROR = 40100;
+        /// <summary>仓库信息(C2S 无参;回包 depot_score:i, exchange_records[u16×{id:i,role_name:s,exchange_type:c,
+        /// goods_id:l,type_id:i,color:c,rating:i,overall_rating:i,addition_attrlist[u16×{attr_type:c,attr_value:i,
+        /// color:c,combat_power:i}],equip_extra_attr[u16×{color:c,type_id:c,attr_id:h,attr_val:i,plus_interval:c,
+        /// plus_unit:i}],stone_list[u16×{pos:c,type_id:i}],wash_attr[u16×{index:c,color:c,attr_id:h,attr_val:i}],
+        /// suit_lv:c,suit_slv:h,suit_count:c,time:i}], depot_goods[u16×{同上 12 字段(无 id/role_name/exchange_type/
+        /// time),多一个 goods_num:i}])。列表头部可能有一条虚构任务装备条目(goods_id=1,不对应真实仓库记录)。</summary>
+        public const int GUILD_DEPOT_INFO = 40101;
+        /// <summary>捐献装备入仓库(自定义变长数组,非固定 fmt:发 "h"+count,逐条 "li" goods_id,num;
+        /// 回包 error_code:i, depot_score:i——**该号 ErrorCode 恒为成功,失败改走共享 40100**)。空列表本地拦截不发。</summary>
+        public const int GUILD_DEPOT_DONATE = 40102;
+        /// <summary>积分兑换仓库物品(发 "lii" goods_id,type_id,num;回包 error_code:i, depot_score:i)。
+        /// **静默陷阱**:Num&lt;=0 且 goods_id≠任务装备id(=1)时服务端两个 do_handle 子句都不匹配,真无回包
+        /// (发送侧本地锁死 Num&gt;0);任务装备兑换必须 Num 精确=1(≠1 会被错误路由到通用兑换分支,
+        /// 大概率回"物品不在仓库",发送侧本地锁死任务装备 Num=1)。经验道具兑换失败改走共享 40100 而非本号
+        /// (三条兑换路径里唯一不同的一条,与老端一致)。</summary>
+        public const int GUILD_DEPOT_EXCHANGE = 40103;
+        /// <summary>销毁仓库物品(自定义变长数组:发 "h"+count,逐条 "l" goods_id;回包 error_code:i, op_type:c
+        /// [3手动/4自动], depot_num:i)。空列表本地拦截不发(服务端同样静默,不依赖它兜底)。</summary>
+        public const int GUILD_DEPOT_DESTROY = 40104;
+        /// <summary>仓库物品新增推送(纯推送,无 C2S;depot_goods[u16×{同 40101 depot_goods 单条结构,13 字段}])。</summary>
+        public const int GUILD_DEPOT_GOODS_ADD = 40105;
+        /// <summary>仓库物品数量增量推送(纯推送;depot_goods[u16×{goods_id:l, num:i}](num=0=删除,精简结构非
+        /// 完整物品,任务装备兑换后传的是虚构条目清零 {1,0}))。</summary>
+        public const int GUILD_DEPOT_GOODS_NUM = 40106;
+        /// <summary>兑换记录新增推送(纯推送;exchange_records[u16×{同 40101 exchange_records 单条结构,16 字段}])。</summary>
+        public const int GUILD_DEPOT_RECORD_PUSH = 40107;
+        /// <summary>仓库更新广播(公会全员,send_to_guild;change:c,四处调用点硬编码恒为 1)。任务装备/经验道具
+        /// 兑换两条路径不触发此号(只影响个人虚拟条目,不动公会共享物品池,设计如此非遗漏)。</summary>
+        public const int GUILD_DEPOT_CHANGE = 40108;
+        /// <summary>按条件批量销毁设置(发 "ccc" stage,color,star;**recv:null,服务端无 write(40109,...) 子句,
+        /// 响应借道 40104**——严禁按老端"复制粘贴读40108"的 handler bug 照抄,不要为本号注册接收器)。</summary>
+        public const int GUILD_DEPOT_AUTO_DESTROY_SET = 40109;
+        /// <summary>查当前自动清理条件(C2S 无参;回包 stage:c,color:c,star:c)。</summary>
+        public const int GUILD_DEPOT_AUTO_DESTROY_INFO = 40110;
+
+        // ----- 公会二期:结社宝箱(自动循环 轮13b;pt_403,wire 权威=pt_403.erl 源码) -----
+        /// <summary>宝箱家族共享错误壳(仅 write,error_code:i;仅1处真实调用点但确认存活)。</summary>
+        public const int GUILD_BOX_ERROR = 40300;
+        /// <summary>宝箱信息(C2S 无参;回包 num:h, max_num:h, send_list[u16×{auto_id:l,role_name:s,role_id:l,
+        /// task_id:i,status:c,reward:ObjectList,time:i}], log[u16×{role_name:s,role_id:l,task_id:i,time:i}],
+        /// info[u16×{task_id:i,send_num:c}])。</summary>
+        public const int GUILD_BOX_INFO = 40301;
+        /// <summary>领取宝箱(发 "l" auto_id——**64 位!服务端 `AutoId:64` 源码原文,老端 r13_oldguild 文档写的
+        /// `h` gift_id 是文档命名混淆(与短id宝箱语义混淆),16 位是老端 bug,严禁照抄**;auto_id=0=一键领取;
+        /// 回包 code:i, send_list[u16×{auto_id:l, reward:ObjectList}])。</summary>
+        public const int GUILD_BOX_RECEIVE = 40302;
+        /// <summary>新宝箱记录推送(公会全员广播;send_list[u16×{同 40301 send_list 结构}], log[u16×{同 40301
+        /// log 结构}])。</summary>
+        public const int GUILD_BOX_NEW_PUSH = 40303;
+        /// <summary>宝箱记录失效推送(公会全员广播,GM清空/过期自动清理;auto_id:l——按 id 移除单条)。</summary>
+        public const int GUILD_BOX_REMOVE_PUSH = 40304;
+        /// <summary>任务发放次数状态推送(info[u16×{task_id:i,send_num:c}])。**三种触发范围混用**:①单人完成
+        /// 任务后仅发给操作者本人(增量1条);②day_clear 每日重置 / gm_clear GM清空——走 `send_to_all/1`
+        /// **全服广播,不分公会**(不带 GuildId 过滤信息)。recv 端**严禁假设收到即代表自己有公会**,必须容忍
+        /// 无公会/未加载 GuildModel.Info 场景下也收到本号(纯按 TaskInfoList 内容更新,不触发红点)。</summary>
+        public const int GUILD_BOX_TASK_INFO_PUSH = 40305;
+
+        // ----- 公会二期:结社协助(自动循环 轮13b;pt_404,wire 权威=pt_404.erl 源码) -----
+        /// <summary>发起协助请求(发 "chil" type[1boss/2副本/3璀璨之海/4主线本],sub_type,target_cfg_id,target_id;
+        /// 回包 error_code:i, assist_id:l(早期拒绝分支恒 0,成功分支为服务端分配 id), type:c, sub_type:h,
+        /// target_cfg_id:i, target_id:l)。无独立错误壳,首字段即 ErrorCode。</summary>
+        public const int GUILD_ASSIST_LAUNCH = 40401;
+        /// <summary>协助他人(发 "lc" assist_id,type——**服务端业务层丢弃客户端 Type,只用 AssistId**;
+        /// 回包 error_code:i, assist_id:l, type:c(深层分支回显服务端权威 LaunchAssist.type,早期失败分支才回显
+        /// 客户端原始值))。</summary>
+        public const int GUILD_ASSIST_HELP = 40402;
+        /// <summary>取消协助/求助(发 "l" assist_id;回包 error_code:i, cancel_type:c[1主动/2璀璨之海结算触发],
+        /// assist_id:l, ask_id:l——按 ask_id 是否是自己区分"取消成功"vs"对方取消了对我的协助")。</summary>
+        public const int GUILD_ASSIST_CANCEL = 40403;
+        /// <summary>今日协助成功次数(C2S 无参;回包 assist_count:c——**8位!非常见的 i/h**)。**静默陷阱**:
+        /// `AssistId&gt;0 andalso AssistProcess==1` 条件不满足时(纯查询无进行中协助)服务端直接 ok 不回包,
+        /// 发送侧不能假设必有响应。</summary>
+        public const int GUILD_ASSIST_COUNT = 40404;
+        /// <summary>求助列表(C2S 无参,**服务端全局 map 靠 GuildId 过滤,无任何长度上限**;回包
+        /// assist_list[u16×{同 40406 单条结构,14 字段}])。</summary>
+        public const int GUILD_ASSIST_LIST = 40405;
+        /// <summary>新求助推送(公会全员广播;assist_id:l,type:c,sub_type:h,target_cfg_id:i,target_id:l,
+        /// role_id:l,name:s,level:h,career:c,sex:c,pic:s,pic_ver:i,is_assist:c(广播时刻恒0,还没人应助),
+        /// extra:ObjectList嵌套变长(仅 type==3 璀璨之海非空,字段 ser_id:i,ser_num:h,rober_id:l,rober_name:s,
+        /// rober_power:i,rober_reward:ObjectList,back_reward:ObjectList,共7字段))。</summary>
+        public const int GUILD_ASSIST_NEW_PUSH = 40406;
+        /// <summary>求助结束/失效推送(公会全员广播;assist_id:l)。**扇出模式**:发起者"取消全部协助"场景是
+        /// "1次本号广播(全公会,告知求助消失)+ N次 40403 单播(每个正在协助中的协助者各一份,通知其协助被取消)"
+        /// 的组合,recv 端必须按条处理,不能当全量刷新——收到一条只移除这一条 assist_id。</summary>
+        public const int GUILD_ASSIST_REMOVE_PUSH = 40407;
+        /// <summary>查当前正在协助的对象(C2S 无参;回包 assist_id:l,type:c,sub_type:h,target_cfg_id:i,
+        /// target_id:l,role_id:l,name:s,level:h,career:c,sex:c,pic:s,pic_ver:i——12字段,比40406/40405单条
+        /// 少 is_assist+extra 两项)。</summary>
+        public const int GUILD_ASSIST_MY_INFO = 40408;
+        /// <summary>协助成功通知(纯推送,面向协助者;assist_id:l)。区别于 40407(面向全公会/求助者)。</summary>
+        public const int GUILD_ASSIST_SUCCESS_PUSH = 40409;
+        /// <summary>有人接受协助通知(纯推送,面向求助者;assist_id:l, role_id:l(协助者), name:s(协助者名))。</summary>
+        public const int GUILD_ASSIST_ACCEPTED_PUSH = 40410;
+
+        // ----- 公会二期:结社武魂/神像(自动循环 轮13b;pt_405,wire 权威=pt_405.erl 源码;
+        //        神像进度是 per-player 存储(SQL 按 RoleId 查/存),与 GuildId 无存储层绑定,仅解锁门槛依赖公会
+        //        等级/头衔——不做全公会广播,全部 send_to_uid 仅操作者本人) -----
+        /// <summary>神像家族共享错误壳(errcode:i;顶层门槛[开服天数/角色等级]+几乎全部业务失败分支共用,
+        /// 是四族里调用最密集的错误壳)。</summary>
+        public const int GUILD_GOD_ERROR = 40500;
+        /// <summary>神像总览(C2S 无参,仅 GuildIdol 功能开放才发;回包 guild_title_lv:h, god_list[u16×{god_id:h,
+        /// color:c,lv:h,god_power:l}]——遍历配置里**全部**神像id(未激活的以{Id,0,0,0}占位),非"已拥有"列表)。</summary>
+        public const int GUILD_GOD_INFO = 40501;
+        /// <summary>单神像铭文详情(发 "h" god_id;回包 god_id:h, rune_list[u16×{pos:c,goods_id:l,goods_type_id:i}]
+        /// (至多6条,槽位上限=?pos_list), combo_id:c(每次查询重新校验有效性,不满足强制清零), achievement_lvs
+        /// [u16×{lv:h}](同样重新过滤), god_power:l)。**事实上的"万能刷新推送号"**——40505/506/507/508/509
+        /// 五个操作成功后统一补发本号刷新,不是各自独立确认。</summary>
+        public const int GUILD_GOD_RUNE_INFO = 40502;
+        /// <summary>神像升品(发 "h" god_id;回包 god_id:h, color:c[升品后新品质], lv:h, god_power:l)。</summary>
+        public const int GUILD_GOD_COLOR_UP = 40503;
+        /// <summary>神像觉醒(发 "h" god_id;回包 god_id:h, color:c[本次未变], lv:h[觉醒后新等级], god_power:l)。
+        /// **同一字段位置在40503/40504语义不同**(是否为本次变更值),消费方不要弄反。</summary>
+        public const int GUILD_GOD_AWAKE = 40504;
+        /// <summary>穿戴铭文(发 "hcl" god_id,pos_id,goods_id)。**DEAD——全仓库排除四参遮蔽后确认无任何
+        /// write(40505,...) 调用点,协议格式完整但业务代码统一改用 40502 全量刷新代替**;发送侧照常发送
+        /// (真实用户操作),**接收侧严禁注册 handler**(永远收不到,注册了也是死代码),结果只能靠 40502 到达判断。</summary>
+        public const int GUILD_GOD_WEAR = 40505;
+        /// <summary>激活铭文组合(发 "hc" god_id,combo_id)。**协议层设计上就没有 write 方向**(pt_405.erl 的
+        /// write 子句列表里 40505 后面直接跳到 40507,40506 连定义都没有——不同于40505/507"定义了但弃用",
+        /// 本号是从设计上就单向),响应同样借道 40502/40500,**接收侧不注册**。</summary>
+        public const int GUILD_GOD_COMBO_ACTIVATE = 40506;
+        /// <summary>脱下铭文(发 "hc" god_id,pos)。**DEAD,与40505同一模式**(协议格式已定义 code:i,业务代码
+        /// 从未调用),发送侧照常发送,**接收侧严禁注册 handler**。</summary>
+        public const int GUILD_GOD_TAKE_OFF = 40507;
+        /// <summary>升级铭文(发 "hc" god_id,pos;回包 code:i——真实存活,与40505/507对照组,证明该模式本可以
+        /// 有独立确认号,只是这两个是真被弃用)。成功先补发40502再回本号。</summary>
+        public const int GUILD_GOD_RUNE_UPGRADE = 40508;
+        /// <summary>激活铭文大师等级(发 "ch" god_id,lv——**注意此号 GodId 是 8 位,是本族唯一独例,其余 8 个
+        /// 神像号 GodId 均为 16 位,不可类推复用同一套解析函数**;回包 code:i)。成功先补发40502再回本号,
+        /// 隐式门槛:6个铭文槽位须全部插满(check_achievement_lv 要求 RuneList 长度≥6)。</summary>
+        public const int GUILD_GOD_ACHIEVEMENT_ACTIVATE = 40509;
+
         // ----- 薄增量六件套(第20轮工单;详见 Docs/工单-薄增量六件套.md) -----
         /// <summary>OutWard 通用一键升星(type_id∉{1,2}:3翼影/4圣器/5神兵;发 "c" type_id;
         /// 回包=16023 少 etime/auto_buy:errcode:i, type_id:c, stage:c, star:h, blessing:i, blessing_plus:i,

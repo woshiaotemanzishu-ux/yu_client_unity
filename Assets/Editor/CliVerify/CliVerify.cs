@@ -213,6 +213,17 @@ namespace Shenxiao.EditorTools
             Run(GuildCoreCase.Run, 300.0);
         }
 
+        /// <summary>公会二期(自动循环 轮13b)实证:pt_401仓库(40100-110)/pt_403宝箱(40300-305)/pt_404协助
+        /// (40401-410)/pt_405神像(40500-509)约37活号合成包驱动 GuildController 反射喂包,断言 40302/40301
+        /// AutoId 64位尾哨兵(贯穿写入→读回→按id移除+SendFmt字节级验证)/仓库存取链(嵌套装备属性四件套skip
+        /// 不误伤尾字段)/40305无公会防御/协助扇出按条处理/神像40502全量刷新(尾字段god_power)+40509 GodId
+        /// 8位独例编码宽度/40500共享壳/边界各一发;尾段拉起宝箱tab+仓库弹层渲染断言,编辑期不可加载则优雅
+        /// 降级(不计入通过判定,详见 GuildExtCase 注释)。</summary>
+        public static void GuildExt()
+        {
+            Run(GuildExtCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -253,6 +264,7 @@ namespace Shenxiao.EditorTools
                 int sh = await ShopCase.Run();
                 int rk = await RankCase.Run();
                 int gc = await GuildCoreCase.Run();
+                int ge = await GuildExtCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -261,8 +273,8 @@ namespace Shenxiao.EditorTools
                     + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
                     + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch + " friendmail=" + fm
                     + " team=" + tm + " dungeonfam=" + df + " dailyhub=" + dh + " createvideo=" + cv + " shop=" + sh
-                    + " rank=" + rk + " guildcore=" + gc);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc })
+                    + " rank=" + rk + " guildcore=" + gc + " guildext=" + ge);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

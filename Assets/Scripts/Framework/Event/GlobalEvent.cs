@@ -190,6 +190,14 @@ namespace Shenxiao.Framework.Event
         /// <summary>公会核心一期其余数据变动统称(权限/技能/声望/合并候选/改名信息/捐献/活跃度等,
         /// 本轮未各自建 UI 消费点,统一一个事件供以后按需订阅,避免逐号建事件)。</summary>
         public const string EVT_GUILD_DATA_UPDATE = "EVT_GUILD_DATA_UPDATE";
+        /// <summary>公会二期(轮13b):结社仓库数据变动(40101/102/103/104/105/106/107/108/110,读 GuildModel.DepotGoods/DepotScore)。</summary>
+        public const string EVT_GUILD_DEPOT_UPDATE = "EVT_GUILD_DEPOT_UPDATE";
+        /// <summary>结社宝箱数据变动(40301/302/303/304/305,读 GuildModel.BoxSendList/BoxLog)。</summary>
+        public const string EVT_GUILD_BOX_UPDATE = "EVT_GUILD_BOX_UPDATE";
+        /// <summary>结社协助数据变动(40401-410,读 GuildModel.AssistList/CurrentMyAssist)。</summary>
+        public const string EVT_GUILD_ASSIST_UPDATE = "EVT_GUILD_ASSIST_UPDATE";
+        /// <summary>结社武魂/神像数据变动(40500-509,读 GuildModel.GodList/GetGodDetail)。</summary>
+        public const string EVT_GUILD_GOD_UPDATE = "EVT_GUILD_GOD_UPDATE";
         /// <summary>神装合成数据变动(15020 合成回包后)。收尾三件套(第20轮工单)。</summary>
         public const string EVT_COMPOSE_UPDATE = "EVT_COMPOSE_UPDATE";
         /// <summary>排位赛数据变动(28001 页面信息/28002 随机对手/28003 挑战回包后)。收尾三件套(第20轮工单)。</summary>

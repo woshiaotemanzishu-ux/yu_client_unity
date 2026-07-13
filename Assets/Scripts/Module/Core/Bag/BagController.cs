@@ -87,7 +87,7 @@ namespace Shenxiao.Module.Core.Bag
 
             // 对标老端 GoodsController GAME_START → setTimeout(delay_fun,2.5) 尾部 SendFmtToGame(15027,"c",1):
             // 延时 2.5 秒主动查看一次过期物品(挂在本方法尾部,不阻塞前面的 15010 请求)。
-            await Task.Delay(2500);
+            await Shenxiao.Framework.Util.TimeUtil.Delay(2500);
             GoodsExpiredModel.Instance.RequestExpiredGoods();
         }
 
@@ -457,7 +457,7 @@ namespace Shenxiao.Module.Core.Bag
 
         private async void AutoConfirmExpiredAfterDelay(int epoch)
         {
-            await Task.Delay(16000);   // close_time=15,每秒-1,<0 触发,共 16 次 tick ≈16 秒(去老端文件抄准秒数)
+            await Shenxiao.Framework.Util.TimeUtil.Delay(16000);   // close_time=15,每秒-1,<0 触发,共 16 次 tick ≈16 秒(去老端文件抄准秒数)
             if (epoch != _expiredConfirmEpoch) return;   // 期间用户已手动确认/取消,或又弹了新一轮 → 作废
             _expiredConfirmEpoch++;
             GameLog.Info("Bag", "15027 倒计时到期,自动确认回收(对标 GoodsExpiredView.SetOkText close_time<0)");
@@ -803,7 +803,7 @@ namespace Shenxiao.Module.Core.Bag
             r.ReadU8();                      // sub_pos:c
             g.Cell = r.ReadU16();            // cell:h
             g.GoodsNum = r.ReadU32();        // goods_num:i
-            r.ReadU8();                      // bind:c
+            g.Bind = r.ReadU8();             // bind:c
             r.ReadU8();                      // trade:c
             r.ReadU8();                      // sell:c
             r.ReadU8();                      // is_drop:c

@@ -390,6 +390,373 @@ namespace Shenxiao.Module.Core.Guild
             public string PositionName;
         }
 
+        // ==================== 通用变长奖励(ObjectList,对标服务端 pt:write_object_list:u16 计数+{style:c,type_id:i,num:i}) ====================
+
+        public struct RewardEntry
+        {
+            public int Style;
+            public int TypeId;
+            public long Num;
+        }
+
+        internal static List<RewardEntry> ReadRewardList(Shenxiao.Framework.Net.NetReader r)
+            => r.ReadArray(rr => new RewardEntry { Style = rr.ReadU8(), TypeId = (int)rr.ReadU32(), Num = rr.ReadU32() });
+
+        // ==================== 公会二期(轮13b):结社仓库(40100-110,pt_401) ====================
+
+        /// <summary>仓库物品条目(对标服务端 pt_401.erl item_to_bin_5/_10,13 字段;嵌套宝石/洗炼/极品/附加属性
+        /// 数组按序读过不留——本轮 UI 仅需 TypeId/Num/Color 铺 EquipmentItem 格子,实例属性显示待后续 tips 移植)。</summary>
+        public sealed class DepotGoodsEntry
+        {
+            public long GoodsId;
+            public int TypeId;
+            public long Num;
+            public int Color;
+            public long Rating;
+            public long OverallRating;
+            public int SuitLv;
+            public int SuitSlv;
+            public int SuitCount;
+        }
+
+        /// <summary>兑换记录条目(对标 item_to_bin_0/_16,16 字段;比 DepotGoodsEntry 多 RecordId/RoleName/
+        /// ExchangeType/Time 四项来源信息,无 Num——单条记录代表一次操作)。</summary>
+        public sealed class DepotRecordEntry
+        {
+            public int RecordId;
+            public string RoleName;
+            public int ExchangeType;
+            public long GoodsId;
+            public int TypeId;
+            public int Color;
+            public long Rating;
+            public long OverallRating;
+            public int SuitLv;
+            public int SuitSlv;
+            public int SuitCount;
+            public long Time;
+        }
+
+        /// <summary>仓库任务装备虚构占位条目 GoodsId(对标服务端 `?GUILD_DEPOT_TASK_EQUIP`=1;40103 兑换该id时
+        /// Num 必须精确=1,否则被服务端错误路由到通用兑换分支;40106 增量里该id配 num=0 代表"虚构条目清零",
+        /// 不是真实仓库物品变化)。</summary>
+        public const long DEPOT_TASK_EQUIP_GOODS_ID = 1;
+
+        public int DepotScore { get; private set; }
+        private readonly List<DepotGoodsEntry> _depotGoods = new List<DepotGoodsEntry>();
+        private readonly List<DepotRecordEntry> _depotRecords = new List<DepotRecordEntry>();
+        public IReadOnlyList<DepotGoodsEntry> DepotGoods => _depotGoods;
+        public IReadOnlyList<DepotRecordEntry> DepotRecords => _depotRecords;
+        public bool HasDepotInfo { get; private set; }
+        /// <summary>当前生效的自动清理条件(40109 设置后由 40110 查询回显;stage=0 代表未生效)。</summary>
+        public int AutoDestroyStage { get; private set; }
+        public int AutoDestroyColor { get; private set; }
+        public int AutoDestroyStar { get; private set; }
+
+        /// <summary>40101 全量落地(清空重建,对标老端仓库主体一次性下发)。</summary>
+        public void SetDepotInfo(int depotScore, List<DepotRecordEntry> records, List<DepotGoodsEntry> goods)
+        {
+            DepotScore = depotScore;
+            _depotRecords.Clear();
+            if (records != null) _depotRecords.AddRange(records);
+            _depotGoods.Clear();
+            if (goods != null) _depotGoods.AddRange(goods);
+            HasDepotInfo = true;
+        }
+
+        public void SetDepotScore(int score) => DepotScore = score;
+
+        /// <summary>40105 新增推送(逐条插入,对标老端)。**Guard**:底表(40101)未加载则忽略——对标老端
+        /// on40105 `depot_info` 判空 return,避免推送先于全量到达时凭空建表。</summary>
+        public void AddDepotGoods(List<DepotGoodsEntry> list)
+        {
+            if (!HasDepotInfo || list == null) return;
+            _depotGoods.AddRange(list);
+        }
+
+        /// <summary>40106 数量增量(按 GoodsId 更新已有条目;num&lt;=0 物理移除)。**Guard**:底表未加载则忽略;
+        /// **对标老端"只更新已有条目从不新增"**——未知 goods_id 直接丢弃,不再伪造 TypeId=0 幽灵条目
+        /// (该 id 必然已由 40101/40105 下发过,收到未知 id 只可能是时序错乱)。</summary>
+        public void ApplyDepotGoodsNum(List<(long goodsId, long num)> deltas)
+        {
+            if (!HasDepotInfo || deltas == null) return;
+            foreach ((long goodsId, long num) d in deltas)
+            {
+                int idx = _depotGoods.FindIndex(g => g.GoodsId == d.goodsId);
+                if (idx < 0) continue;
+                if (d.num <= 0) _depotGoods.RemoveAt(idx);
+                else _depotGoods[idx].Num = d.num;
+            }
+        }
+
+        /// <summary>40107 兑换记录头插(对标老端"头插本地记录列表")。**Guard**:底表未加载则忽略。</summary>
+        public void PrependDepotRecords(List<DepotRecordEntry> list)
+        {
+            if (!HasDepotInfo || list == null || list.Count == 0) return;
+            _depotRecords.InsertRange(0, list);
+        }
+
+        public void SetAutoDestroySetting(int stage, int color, int star)
+        {
+            AutoDestroyStage = stage;
+            AutoDestroyColor = color;
+            AutoDestroyStar = star;
+        }
+
+        // ==================== 公会二期(轮13b):结社宝箱(40300-305,pt_403) ====================
+
+        public sealed class BoxSendEntry
+        {
+            public long AutoId;
+            public string RoleName;
+            public long RoleId;
+            public int TaskId;
+            public int Status;
+            public List<RewardEntry> Reward;
+            public long Time;
+        }
+
+        public sealed class BoxLogEntry
+        {
+            public string RoleName;
+            public long RoleId;
+            public int TaskId;
+            public long Time;
+        }
+
+        public sealed class BoxTaskInfo
+        {
+            public int TaskId;
+            public int SendNum;
+        }
+
+        public int BoxNum { get; private set; }
+        public int BoxMaxNum { get; private set; }
+        private readonly List<BoxSendEntry> _boxSendList = new List<BoxSendEntry>();
+        private readonly List<BoxLogEntry> _boxLog = new List<BoxLogEntry>();
+        private readonly Dictionary<int, int> _boxTaskInfo = new Dictionary<int, int>(); // taskId -> sendNum
+        public IReadOnlyList<BoxSendEntry> BoxSendList => _boxSendList;
+        public IReadOnlyList<BoxLogEntry> BoxLog => _boxLog;
+        public bool HasBoxInfo { get; private set; }
+
+        public int GetBoxTaskSendNum(int taskId) => _boxTaskInfo.TryGetValue(taskId, out int n) ? n : 0;
+
+        /// <summary>40301 全量落地。</summary>
+        public void SetBoxInfo(int num, int maxNum, List<BoxSendEntry> sendList, List<BoxLogEntry> log, List<BoxTaskInfo> info)
+        {
+            BoxNum = num;
+            BoxMaxNum = maxNum;
+            _boxSendList.Clear();
+            if (sendList != null) _boxSendList.AddRange(sendList);
+            _boxLog.Clear();
+            if (log != null) _boxLog.AddRange(log);
+            ApplyBoxTaskInfo(info);
+            HasBoxInfo = true;
+        }
+
+        /// <summary>40303 增量新增(对标老端 updateRewardBox:send/log 均 unshift 头插——日志流"最新在前",
+        /// 与 <see cref="PrependDepotRecords"/> 同款,不能用尾插 AddRange)。**Guard**:底表(40301)未加载则忽略
+        /// (对标老端 `_rewardBoxViewData` 判空 return)。</summary>
+        public void AddBoxEntries(List<BoxSendEntry> sendList, List<BoxLogEntry> log)
+        {
+            if (!HasBoxInfo) return;
+            if (sendList != null) _boxSendList.InsertRange(0, sendList);
+            if (log != null) _boxLog.InsertRange(0, log);
+        }
+
+        /// <summary>40304 按 id 移除单条(公会全员广播,过期/GM清空)。**Guard**:底表未加载则忽略。</summary>
+        public void RemoveBoxEntry(long autoId)
+        {
+            if (!HasBoxInfo) return;
+            _boxSendList.RemoveAll(e => e.AutoId == autoId);
+        }
+
+        /// <summary>40302 领取成功后原地移除已领条目(对标老端"补发40301刷新",本地先行摘除避免重复展示)。</summary>
+        public void RemoveBoxEntries(IEnumerable<long> autoIds)
+        {
+            if (autoIds == null) return;
+            var set = new HashSet<long>(autoIds);
+            _boxSendList.RemoveAll(e => set.Contains(e.AutoId));
+        }
+
+        /// <summary>40305:**按条 upsert 而非全量替换**——同一协议号在"单人完成任务"(增量1条)与
+        /// "day_clear/gm_clear 全服广播"(全量所有任务id)两种触发源下语义不同,upsert 天然兼容两者,
+        /// 且不假设收到即代表自己有公会(纯按 TaskId 更新,不触发任何"无公会"相关逻辑)。**Guard**:底表未加载
+        /// 则忽略(对标老端 `_rewardBoxViewData` 判空 return——与"是否有公会"无关,是"宝箱视图是否加载过")。</summary>
+        public void ApplyBoxTaskInfo(List<BoxTaskInfo> info)
+        {
+            if (!HasBoxInfo || info == null) return;
+            foreach (BoxTaskInfo i in info) _boxTaskInfo[i.TaskId] = i.SendNum;
+        }
+
+        // ==================== 公会二期(轮13b):结社协助(40401-410,pt_404) ====================
+
+        public sealed class AssistExtra
+        {
+            public int SerId;
+            public int SerNum;
+            public long RoberId;
+            public string RoberName;
+            public long RoberPower;
+            public List<RewardEntry> RoberReward;
+            public List<RewardEntry> BackReward;
+        }
+
+        /// <summary>求助条目(对标 pt_404.erl item_to_bin_0,14 字段;40405 列表项/40406 新求助推送共用同一结构)。</summary>
+        public sealed class AssistEntry
+        {
+            public long AssistId;
+            public int Type;
+            public int SubType;
+            public int TargetCfgId;
+            public long TargetId;
+            public long RoleId;
+            public string Name;
+            public int Level;
+            public int Career;
+            public int Sex;
+            public string Pic;
+            public long PicVer;
+            public bool IsAssist;
+            public List<AssistExtra> Extra;
+        }
+
+        /// <summary>当前正在协助的对象(40408,12 字段——比 AssistEntry 少 IsAssist/Extra)。</summary>
+        public sealed class MyAssistInfo
+        {
+            public long AssistId;
+            public int Type;
+            public int SubType;
+            public int TargetCfgId;
+            public long TargetId;
+            public long RoleId;
+            public string Name;
+            public int Level;
+            public int Career;
+            public int Sex;
+            public string Pic;
+            public long PicVer;
+        }
+
+        /// <summary>我方主动发起、尚未被接受/取消的求助(40401 成功回显,对标老端 ReqData;
+        /// On40403 isSelf 分支/On40407 assistId 命中时清空——与 <see cref="CurrentMyAssist"/>(对标老端
+        /// AssistData/"我在协助谁")是两条独立状态:一个是"我发的求助",一个是"我在帮的人")。</summary>
+        public sealed class MyAssistRequest
+        {
+            public long AssistId;
+            public int Type;
+            public int SubType;
+            public int TargetCfgId;
+            public long TargetId;
+        }
+
+        public int AssistCount { get; private set; }
+        private readonly List<AssistEntry> _assistList = new List<AssistEntry>();
+        public IReadOnlyList<AssistEntry> AssistList => _assistList;
+        public bool HasAssistList { get; private set; }
+        public MyAssistInfo CurrentMyAssist { get; private set; }
+        public MyAssistRequest MyRequest { get; private set; }
+
+        public void SetAssistCount(int count) => AssistCount = count;
+
+        /// <summary>40405 全量落地(服务端无长度上限,不做客户端截断)。</summary>
+        public void SetAssistList(List<AssistEntry> list)
+        {
+            _assistList.Clear();
+            if (list != null) _assistList.AddRange(list);
+            HasAssistList = true;
+        }
+
+        /// <summary>40406 新求助推送:同 AssistId 已存在则替换(理论不该发生),否则追加。**Guard**:底表(40405)
+        /// 未加载则忽略(对标老端 on40406 `hdata` 判空才 table.insert)。</summary>
+        public void UpsertAssist(AssistEntry entry)
+        {
+            if (!HasAssistList || entry == null) return;
+            int idx = _assistList.FindIndex(a => a.AssistId == entry.AssistId);
+            if (idx >= 0) _assistList[idx] = entry;
+            else _assistList.Add(entry);
+        }
+
+        /// <summary>40407 按条移除(**扇出模式,一次只处理一条,不当全量刷新**)。</summary>
+        public void RemoveAssist(long assistId)
+        {
+            _assistList.RemoveAll(a => a.AssistId == assistId);
+        }
+
+        public void SetMyAssist(MyAssistInfo info) => CurrentMyAssist = info;
+
+        public void ClearMyAssist() => CurrentMyAssist = null;
+
+        public void SetMyRequest(MyAssistRequest info) => MyRequest = info;
+
+        public void ClearMyRequest() => MyRequest = null;
+
+        // ==================== 公会二期(轮13b):结社武魂/神像(40500-509,pt_405;per-player 数据,独立分区
+        //        ——存储层与 GuildId 无关,仅解锁门槛依赖公会等级/头衔,不做全公会广播) ====================
+
+        public sealed class GodEntry
+        {
+            public int GodId;
+            public int Color;
+            public int Lv;
+            public long GodPower;
+        }
+
+        public sealed class GodRuneEntry
+        {
+            public int Pos;
+            public long GoodsId;
+            public int GoodsTypeId;
+        }
+
+        /// <summary>单神像铭文详情(40502,GodId 对标本轮"万能刷新推送号")。</summary>
+        public sealed class GodDetail
+        {
+            public int GodId;
+            public readonly List<GodRuneEntry> RuneList = new List<GodRuneEntry>();
+            public int ComboId;
+            public readonly List<int> AchievementLvs = new List<int>();
+            public long GodPower;
+        }
+
+        /// <summary>结社头衔等级(40501 GuildTitleLv,神像解锁门槛用——与 40030 声望的 TitleId 是两个不同概念,
+        /// 不要混用)。</summary>
+        public int GodGuildTitleLv { get; private set; }
+        private readonly List<GodEntry> _godList = new List<GodEntry>();
+        public IReadOnlyList<GodEntry> GodList => _godList;
+        public bool HasGodInfo { get; private set; }
+        private readonly Dictionary<int, GodDetail> _godDetails = new Dictionary<int, GodDetail>();
+
+        public GodEntry GetGod(int godId) => _godList.Find(g => g.GodId == godId);
+        public GodDetail GetGodDetail(int godId) => _godDetails.TryGetValue(godId, out GodDetail d) ? d : null;
+
+        /// <summary>40501 全量落地(遍历配置里全部神像id,未激活以 {Id,0,0,0} 占位——非"已拥有"列表)。</summary>
+        public void SetGodList(int guildTitleLv, List<GodEntry> list)
+        {
+            GodGuildTitleLv = guildTitleLv;
+            _godList.Clear();
+            if (list != null) _godList.AddRange(list);
+            HasGodInfo = true;
+        }
+
+        /// <summary>40502 单神像详情落地(按 GodId 覆盖式 upsert)。</summary>
+        public void SetGodDetail(GodDetail detail)
+        {
+            if (detail == null) return;
+            _godDetails[detail.GodId] = detail;
+        }
+
+        /// <summary>40503/40504 升品/觉醒成功原地 patch GodList 对应条目(**同一字段位置语义在两号里不同**,
+        /// 由调用方按号自行确定含义,这里只负责原样写入)。</summary>
+        public void PatchGod(int godId, int color, int lv, long godPower)
+        {
+            GodEntry g = GetGod(godId);
+            if (g == null) { _godList.Add(new GodEntry { GodId = godId, Color = color, Lv = lv, GodPower = godPower }); return; }
+            g.Color = color;
+            g.Lv = lv;
+            g.GodPower = godPower;
+        }
+
         // ==================== 重置(断线/登出/退会/解散) ====================
 
         public void Reset()
@@ -416,6 +783,29 @@ namespace Shenxiao.Module.Core.Guild
             LastBossCall = null; BossCallSelfMark = false;
             MergeCandidates.Clear();
             HasMergeCandidates = false;
+
+            DepotScore = 0;
+            _depotGoods.Clear();
+            _depotRecords.Clear();
+            HasDepotInfo = false;
+            AutoDestroyStage = 0; AutoDestroyColor = 0; AutoDestroyStar = 0;
+
+            BoxNum = 0; BoxMaxNum = 0;
+            _boxSendList.Clear();
+            _boxLog.Clear();
+            _boxTaskInfo.Clear();
+            HasBoxInfo = false;
+
+            AssistCount = 0;
+            _assistList.Clear();
+            HasAssistList = false;
+            CurrentMyAssist = null;
+            MyRequest = null;
+
+            GodGuildTitleLv = 0;
+            _godList.Clear();
+            HasGodInfo = false;
+            _godDetails.Clear();
         }
 
         /// <summary>是否会长(对标老端 IsGuildMaster:mainRoleVo.position==1)。</summary>

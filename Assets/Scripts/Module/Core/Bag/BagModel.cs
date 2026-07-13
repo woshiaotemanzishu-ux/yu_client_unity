@@ -172,6 +172,7 @@ namespace Shenxiao.Module.Core.Bag
         public long GoodsNum;  // goods_num:i(堆叠数量)
         public int Color;      // color:c(品质 0..8)
         public int Cell;       // cell:h(格子序号)
+        public int Bind;       // bind:c(0=不绑定;公会仓库捐献等"仅非绑定可用"场景过滤用,对标老端 GetShowEquips info.bind!=0)
 
         // —— 装备实例态(非装备物品恒 0/null;装备 tips「极品/强化」实例行用,待活服实装备 + 实例透传)——
         public int Stren;        // stren:h(强化等级)

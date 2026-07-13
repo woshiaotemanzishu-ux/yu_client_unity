@@ -16,8 +16,10 @@ namespace Shenxiao.Module.Core.Guild
     /// 成员页"查看申请"按钮触发的弹层(<see cref="GuildApplyLookView"/>),与规格草案字面"申请页"描述不同,
     /// 以老端真实结构 GuildMainBaseView.ts/GuildMemberView.ts 为准(偏差记入工单 summary)。
     ///
-    /// 本轮:信息(GuildMainView)/成员(GuildMemberView)真接线;排行(HolyTerritoryGuildView,圣域模块跨包)/
-    /// 宝箱(GuildRewardBoxView,13b 仓库宝箱包)留 TODO(TabSpec.Enabled=false,不建按钮)。
+    /// 本轮:信息(GuildMainView)/成员(GuildMemberView)/宝箱(GuildRewardBoxView,轮13b)真接线;
+    /// 排行(HolyTerritoryGuildView,圣域模块跨包)留 TODO(TabSpec.Enabled=false,不建按钮)。
+    /// 仓库(GuildDepotView)/捐献选择(GuildDepotSelectView)是从"结社仓库"main_func 格子触发的弹层
+    /// (同 <see cref="OpenApplyLook"/> 套路),非 tab。
     /// </summary>
     public static class GuildMainFlow
     {
@@ -35,6 +37,9 @@ namespace Shenxiao.Module.Core.Guild
         private static GuildMainView _mainView;
         private static GuildMemberView _memberView;
         private static GuildApplyLookView _applyView;
+        private static GuildRewardBoxView _boxView;
+        private static GuildDepotView _depotView;
+        private static GuildDepotSelectView _depotSelectView;
         private static bool _loading;
 
         public static void Toggle()
@@ -48,14 +53,20 @@ namespace Shenxiao.Module.Core.Guild
         public static void Close()
         {
             if (_window != null) _window.Hide();
-            if (_applyView != null && _applyView.IsShown) _applyView.Hide(); // 弹层脱管补救,随主窗关闭一并收拢
+            // 弹层脱管补救,随主窗关闭一并收拢(对标 13a 先例)
+            if (_applyView != null && _applyView.IsShown) _applyView.Hide();
+            if (_depotView != null && _depotView.IsShown) _depotView.Hide();
+            if (_depotSelectView != null && _depotSelectView.IsShown) _depotSelectView.Hide();
         }
 
         private static async Task OpenAsync()
         {
             if (_frameRoot != null)
             {
-                if (_applyView != null && _applyView.IsShown) _applyView.Hide(); // 再开时收拢上次残留的弹层
+                // 再开时收拢上次残留的弹层
+                if (_applyView != null && _applyView.IsShown) _applyView.Hide();
+                if (_depotView != null && _depotView.IsShown) _depotView.Hide();
+                if (_depotSelectView != null && _depotSelectView.IsShown) _depotSelectView.Hide();
                 if (_window != null) { _window.Show(); _window.SelectTab(TAB_INFO); }
                 GuildController.Instance.RequestBaseInfo();
                 return;
@@ -94,6 +105,9 @@ namespace Shenxiao.Module.Core.Guild
             _mainView = _contentRoot.GetComponentInChildren<GuildMainView>(true);
             _memberView = _contentRoot.GetComponentInChildren<GuildMemberView>(true);
             _applyView = _contentRoot.GetComponentInChildren<GuildApplyLookView>(true);
+            _boxView = _contentRoot.GetComponentInChildren<GuildRewardBoxView>(true);
+            _depotView = _contentRoot.GetComponentInChildren<GuildDepotView>(true);
+            _depotSelectView = _contentRoot.GetComponentInChildren<GuildDepotSelectView>(true);
 
             var specs = new List<TabSpec>
             {
@@ -112,13 +126,19 @@ namespace Shenxiao.Module.Core.Guild
                     ContentFactory = _memberView != null ? (System.Func<RectTransform, BaseView>)(p => Reparent(_memberView, p)) : null,
                 },
                 new TabSpec { Enabled = false, Label = "排行" }, // HolyTerritoryGuildView,圣域模块跨包,TODO
-                new TabSpec { Enabled = false, Label = "宝箱" }, // GuildRewardBoxView,归 13b 仓库宝箱包,TODO
+                new TabSpec
+                {
+                    Enabled = _boxView != null,
+                    Label = "宝箱",
+                    BackgroundImagePath = GameResPath.GetBigBgPath("daily_bg.jpg"),
+                    ContentFactory = _boxView != null ? (System.Func<RectTransform, BaseView>)(p => Reparent(_boxView, p)) : null,
+                },
             };
 
             _window.Show();
             _window.Configure(specs, TAB_INFO);
             GuildController.Instance.RequestBaseInfo();
-            GameLog.Info("Guild", "公会主界面打开(信息/成员真接线,排行/宝箱 TODO)");
+            GameLog.Info("Guild", "公会主界面打开(信息/成员/宝箱真接线,排行 TODO)");
         }
 
         private static BaseView Reparent(BaseView view, RectTransform parent)
@@ -142,6 +162,31 @@ namespace Shenxiao.Module.Core.Guild
             _applyView.Show();
         }
 
+        /// <summary>由 GuildMainView"结社仓库"格子驱动打开(GuildDepotView 是弹层,非 tab,同
+        /// <see cref="OpenApplyLook"/> 套路)。</summary>
+        public static void OpenDepot()
+        {
+            if (_depotView == null)
+            {
+                GameLog.Warn("Guild", "GuildDepotView 未加载(GuildModule.prefab 缺节点?)");
+                return;
+            }
+            _depotView.transform.SetAsLastSibling();
+            _depotView.Show();
+        }
+
+        /// <summary>由 GuildDepotView"捐献"按钮驱动打开。</summary>
+        public static void OpenDepotSelect()
+        {
+            if (_depotSelectView == null)
+            {
+                GameLog.Warn("Guild", "GuildDepotSelectView 未加载(GuildModule.prefab 缺节点?)");
+                return;
+            }
+            _depotSelectView.transform.SetAsLastSibling();
+            _depotSelectView.Show();
+        }
+
         /// <summary>断线/登出清理(public:CliVerify GuildCoreCase 渲染段收尾要跨程序集调用)。</summary>
         public static void Reset()
         {
@@ -153,6 +198,9 @@ namespace Shenxiao.Module.Core.Guild
             _mainView = null;
             _memberView = null;
             _applyView = null;
+            _boxView = null;
+            _depotView = null;
+            _depotSelectView = null;
             _loading = false;
         }
     }

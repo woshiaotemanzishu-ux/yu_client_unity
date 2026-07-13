@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using Shenxiao.Common.Proto;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
@@ -56,6 +57,50 @@ namespace Shenxiao.Module.Core.Guild
             RegisterProtocal(Proto.GUILD_MERGE_APPLY, On40062);
             RegisterProtocal(Proto.GUILD_MERGE_RESPONSE, On40063);
             // 40029(调戏)recv:null(服务端无 write 调用点),只发不收,故不注册。
+
+            // ---- 公会二期(轮13b):结社仓库(pt_401) ----
+            RegisterProtocal(Proto.GUILD_DEPOT_ERROR, On40100);
+            RegisterProtocal(Proto.GUILD_DEPOT_INFO, On40101);
+            RegisterProtocal(Proto.GUILD_DEPOT_DONATE, On40102);
+            RegisterProtocal(Proto.GUILD_DEPOT_EXCHANGE, On40103);
+            RegisterProtocal(Proto.GUILD_DEPOT_DESTROY, On40104);
+            RegisterProtocal(Proto.GUILD_DEPOT_GOODS_ADD, On40105);
+            RegisterProtocal(Proto.GUILD_DEPOT_GOODS_NUM, On40106);
+            RegisterProtocal(Proto.GUILD_DEPOT_RECORD_PUSH, On40107);
+            RegisterProtocal(Proto.GUILD_DEPOT_CHANGE, On40108);
+            RegisterProtocal(Proto.GUILD_DEPOT_AUTO_DESTROY_INFO, On40110);
+            // 40109(按条件销毁)recv:null(服务端无 write(40109,...) 子句,响应借道40104),故不注册。
+
+            // ---- 公会二期(轮13b):结社宝箱(pt_403) ----
+            RegisterProtocal(Proto.GUILD_BOX_ERROR, On40300);
+            RegisterProtocal(Proto.GUILD_BOX_INFO, On40301);
+            RegisterProtocal(Proto.GUILD_BOX_RECEIVE, On40302);
+            RegisterProtocal(Proto.GUILD_BOX_NEW_PUSH, On40303);
+            RegisterProtocal(Proto.GUILD_BOX_REMOVE_PUSH, On40304);
+            RegisterProtocal(Proto.GUILD_BOX_TASK_INFO_PUSH, On40305);
+
+            // ---- 公会二期(轮13b):结社协助(pt_404) ----
+            RegisterProtocal(Proto.GUILD_ASSIST_LAUNCH, On40401);
+            RegisterProtocal(Proto.GUILD_ASSIST_HELP, On40402);
+            RegisterProtocal(Proto.GUILD_ASSIST_CANCEL, On40403);
+            RegisterProtocal(Proto.GUILD_ASSIST_COUNT, On40404);
+            RegisterProtocal(Proto.GUILD_ASSIST_LIST, On40405);
+            RegisterProtocal(Proto.GUILD_ASSIST_NEW_PUSH, On40406);
+            RegisterProtocal(Proto.GUILD_ASSIST_REMOVE_PUSH, On40407);
+            RegisterProtocal(Proto.GUILD_ASSIST_MY_INFO, On40408);
+            RegisterProtocal(Proto.GUILD_ASSIST_SUCCESS_PUSH, On40409);
+            RegisterProtocal(Proto.GUILD_ASSIST_ACCEPTED_PUSH, On40410);
+
+            // ---- 公会二期(轮13b):结社武魂/神像(pt_405) ----
+            RegisterProtocal(Proto.GUILD_GOD_ERROR, On40500);
+            RegisterProtocal(Proto.GUILD_GOD_INFO, On40501);
+            RegisterProtocal(Proto.GUILD_GOD_RUNE_INFO, On40502);
+            RegisterProtocal(Proto.GUILD_GOD_COLOR_UP, On40503);
+            RegisterProtocal(Proto.GUILD_GOD_AWAKE, On40504);
+            RegisterProtocal(Proto.GUILD_GOD_RUNE_UPGRADE, On40508);
+            RegisterProtocal(Proto.GUILD_GOD_ACHIEVEMENT_ACTIVATE, On40509);
+            // 40505(穿戴结果)/40507(脱铭文结果):DEAD,全仓库排除四参遮蔽后确认无调用点,不注册接收器。
+            // 40506(激活组合结果):协议层设计上无 write 方向(write 子句列表里没有 40506),不注册接收器。
         }
 
         public override void Dispose()
@@ -68,9 +113,10 @@ namespace Shenxiao.Module.Core.Guild
 
         // ==================== 批量拉取(对标老端 RequestBaseInfo,本轮范围子集) ====================
 
-        /// <summary>进入公会主界面时批量拉取(对标老端 GuildController.RequestBaseInfo,仅保留本轮范围内的号:
+        /// <summary>进入公会主界面时批量拉取(对标老端 GuildController.RequestBaseInfo):
         /// 40005 基础信息/40021 权限/40023 捐献(数据层)/40040 技能(基础档)/40030 声望/40015 自身信息/
-        /// 40061 合并候选;40231 守卫/40301 宝箱/40501 武魂/40405 协助/40101 仓库等留 13b)。</summary>
+        /// 40061 合并候选/40405 求助列表(13b 新补,数据层已通、消费成本为零);
+        /// 40231 守卫/40301 宝箱(视图开页即拉,门控后补)/40501 武魂(同)/40101 仓库(视图开页即拉)仍留后续轮次统一接红点门控。</summary>
         public void RequestBaseInfo()
         {
             SendFmt(Proto.GUILD_BASE_INFO);
@@ -80,7 +126,8 @@ namespace Shenxiao.Module.Core.Guild
             SendFmt(Proto.GUILD_PRESTIGE_INFO);
             SendFmt(Proto.GUILD_SELF_INFO);
             SendFmt(Proto.GUILD_MERGE_LIST);
-            GameLog.Info("Guild", "RequestBaseInfo 批量拉取(40005/21/23/40+40030/15/61)");
+            RequestAssistList();
+            GameLog.Info("Guild", "RequestBaseInfo 批量拉取(40005/21/23/40+40030/15/61/405)");
         }
 
         // ==================== 基础信息/成员 ====================
@@ -742,6 +789,747 @@ namespace Shenxiao.Module.Core.Guild
                 GameLog.Info("Guild", "40063 响应合并失败 errorCode={0}", errorCode);
             }
             EventDispatcher.Emit(GlobalEvent.EVT_GUILD_DATA_UPDATE);
+        }
+
+        // ============================================================================================
+        // 公会二期(自动循环 轮13b):结社仓库(pt_401)/宝箱(pt_403)/协助(pt_404)/武魂神像(pt_405)
+        // wire 权威 = yu_server src/pt/pt_40{1,3,4,5}.erl 源码逐字节读出(非报告转述)。
+        // ============================================================================================
+
+        // ==================== 结社仓库(pt_401) ====================
+
+        public void RequestDepotInfo() => SendFmt(Proto.GUILD_DEPOT_INFO);
+
+        /// <summary>捐献装备入仓库(自定义变长数组:发 "h"+count,逐条 "li" goods_id,num,对标老端
+        /// GuildDepotSelectView 自拼包体)。**Guard**:空列表本地拦截,不发包(对标老端"前端先判空拦截")。</summary>
+        public void DonateDepot(IReadOnlyList<(long goodsId, int num)> list)
+        {
+            if (list == null || list.Count == 0) { TipsManager.Toast("请先选择要捐献的物品"); return; }
+            var fmt = new StringBuilder("h");
+            var args = new List<object>(1 + list.Count * 2) { list.Count };
+            foreach ((long goodsId, int num) it in list)
+            {
+                fmt.Append("li");
+                args.Add(it.goodsId);
+                args.Add(it.num);
+            }
+            SendFmt(Proto.GUILD_DEPOT_DONATE, fmt.ToString(), args.ToArray());
+            GameLog.Info("Guild", "40102 捐献仓库 items={0}", list.Count);
+        }
+
+        /// <summary>积分兑换仓库物品(发 "lii" goods_id,type_id,num)。**Guard(r13b §Guard 静默陷阱订正)**:
+        /// 任务装备(goods_id==DEPOT_TASK_EQUIP_GOODS_ID)锁死 num=1(≠1 会被服务端错误路由到通用兑换分支,
+        /// 大概率报"物品不在仓库");其余物品 num 必须&gt;0,否则服务端两个 do_handle 子句都不匹配、真无回包
+        /// (本地提前拦截,不寄望回包纠错)。</summary>
+        public void ExchangeDepot(long goodsId, int typeId, int num)
+        {
+            bool isTaskEquip = goodsId == GuildModel.DEPOT_TASK_EQUIP_GOODS_ID;
+            if (isTaskEquip) num = 1;
+            else if (num <= 0)
+            {
+                GameLog.Warn("Guild", "40103 本地拦截:num={0}<=0 且非任务装备(服务端会静默无回包)", num);
+                return;
+            }
+            SendFmt(Proto.GUILD_DEPOT_EXCHANGE, "lii", goodsId, typeId, num);
+            GameLog.Info("Guild", "40103 兑换 goodsId={0} typeId={1} num={2}", goodsId, typeId, num);
+        }
+
+        /// <summary>销毁仓库物品(自定义变长数组:发 "h"+count,逐条 "l" goods_id)。**Guard**:空列表本地拦截。</summary>
+        public void DestroyDepot(IReadOnlyList<long> goodsIds)
+        {
+            if (goodsIds == null || goodsIds.Count == 0) { TipsManager.Toast("请先选择要销毁的物品"); return; }
+            var fmt = new StringBuilder("h");
+            var args = new List<object>(1 + goodsIds.Count) { goodsIds.Count };
+            foreach (long id in goodsIds) { fmt.Append('l'); args.Add(id); }
+            SendFmt(Proto.GUILD_DEPOT_DESTROY, fmt.ToString(), args.ToArray());
+            GameLog.Info("Guild", "40104 销毁 items={0}", goodsIds.Count);
+        }
+
+        /// <summary>设置按条件自动销毁(发 "ccc" stage,color,star;recv:null,响应借道40104——本调用后若需要
+        /// 刷新回显,调用方自行补发 RequestAutoDestroySetting)。</summary>
+        public void SetAutoDestroySetting(int stage, int color, int star)
+        {
+            SendFmt(Proto.GUILD_DEPOT_AUTO_DESTROY_SET, "ccc", stage, color, star);
+            GameLog.Info("Guild", "40109 设置自动销毁条件 stage={0} color={1} star={2}", stage, color, star);
+        }
+
+        public void RequestAutoDestroySetting() => SendFmt(Proto.GUILD_DEPOT_AUTO_DESTROY_INFO);
+
+        private void On40100(NetReader r)
+        {
+            int errorCode = (int)r.ReadU32();
+            ShowError(errorCode);
+            GameLog.Info("Guild", "40100 仓库错误壳 errorCode={0}", errorCode);
+        }
+
+        /// <summary>40101:depot_score:i, exchange_records[u16×16字段], depot_goods[u16×13字段]
+        /// (字段序=pt_401.erl item_to_bin_0/_5 源码原文)。</summary>
+        private void On40101(NetReader r)
+        {
+            int depotScore = (int)r.ReadU32();
+            List<GuildModel.DepotRecordEntry> records = r.ReadArray(ReadDepotRecord);
+            List<GuildModel.DepotGoodsEntry> goods = r.ReadArray(ReadDepotGoods);
+            GuildModel.Instance.SetDepotInfo(depotScore, records, goods);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_DEPOT_UPDATE);
+            GameLog.Info("Guild", "40101 仓库信息 score={0} records={1} goods={2} remaining={3}B",
+                depotScore, records.Count, goods.Count, r.Remaining);
+        }
+
+        /// <summary>兑换记录单条(item_to_bin_0/_16,16字段;嵌套 addition_attrlist/equip_extra_attr/stone_list/
+        /// wash_attr 四个变长数组按序读过不留——本轮仅需 12 个标量字段铺列表文本)。</summary>
+        private static GuildModel.DepotRecordEntry ReadDepotRecord(NetReader r)
+        {
+            var e = new GuildModel.DepotRecordEntry
+            {
+                RecordId = (int)r.ReadU32(),
+                RoleName = r.ReadString(),
+                ExchangeType = r.ReadU8(),
+                GoodsId = r.ReadU64(),
+                TypeId = (int)r.ReadU32(),
+                Color = r.ReadU8(),
+                Rating = r.ReadU32(),
+                OverallRating = r.ReadU32(),
+            };
+            SkipDepotNestedAttrs(r);
+            e.SuitLv = r.ReadU8();
+            e.SuitSlv = r.ReadU16();
+            e.SuitCount = r.ReadU8();
+            e.Time = r.ReadU32();
+            return e;
+        }
+
+        /// <summary>仓库物品单条(item_to_bin_5/_10,13字段;比记录少 Id/RoleName/ExchangeType/Time,多 GoodsNum)。</summary>
+        private static GuildModel.DepotGoodsEntry ReadDepotGoods(NetReader r)
+        {
+            var e = new GuildModel.DepotGoodsEntry
+            {
+                GoodsId = r.ReadU64(),
+                TypeId = (int)r.ReadU32(),
+                Num = r.ReadU32(),
+                Color = r.ReadU8(),
+                Rating = r.ReadU32(),
+                OverallRating = r.ReadU32(),
+            };
+            SkipDepotNestedAttrs(r);
+            e.SuitLv = r.ReadU8();
+            e.SuitSlv = r.ReadU16();
+            e.SuitCount = r.ReadU8();
+            return e;
+        }
+
+        /// <summary>装备实例嵌套四件套按序读过不留(addition_attrlist[4字段]/equip_extra_attr[6字段]/
+        /// stone_list[2字段]/wash_attr[4字段],字段序=pt_401.erl item_to_bin_1/2/3/4 源码原文;
+        /// 实例属性展示待装备 tips 移植,本轮仓库列表只需基础 12/13 字段)。</summary>
+        private static void SkipDepotNestedAttrs(NetReader r)
+        {
+            r.ReadArray(rr => { rr.ReadU8(); rr.ReadU32(); rr.ReadU8(); rr.ReadU32(); return 0; });                  // addition_attrlist
+            r.ReadArray(rr => { rr.ReadU8(); rr.ReadU8(); rr.ReadU16(); rr.ReadU32(); rr.ReadU8(); rr.ReadU32(); return 0; }); // equip_extra_attr
+            r.ReadArray(rr => { rr.ReadU8(); rr.ReadU32(); return 0; });                                             // stone_list
+            r.ReadArray(rr => { rr.ReadU8(); rr.ReadU8(); rr.ReadU16(); rr.ReadU32(); return 0; });                  // wash_attr
+        }
+
+        /// <summary>40102:error_code:i, depot_score:i。**该号 ErrorCode 恒为 ?SUCCESS**(服务端已知调用点
+        /// 全部如此),失败改走共享40100——else 分支纯防御,理论不可达。</summary>
+        private void On40102(NetReader r)
+        {
+            int errorCode = (int)r.ReadU32();
+            int depotScore = (int)r.ReadU32();
+            if (errorCode == 1)
+            {
+                GuildModel.Instance.SetDepotScore(depotScore);
+                TipsManager.Toast("捐献成功");
+                EventDispatcher.Emit(GlobalEvent.EVT_GUILD_DEPOT_UPDATE);
+                GameLog.Info("Guild", "40102 捐献成功 depotScore={0}", depotScore);
+            }
+            else
+            {
+                GameLog.Warn("Guild", "40102 非预期失败码 errorCode={0}(该号理论恒成功,失败应走40100)", errorCode);
+            }
+        }
+
+        /// <summary>40103:error_code:i, depot_score:i。失败补发40101刷新(对标老端"防止界面数据脏")。</summary>
+        private void On40103(NetReader r)
+        {
+            int errorCode = (int)r.ReadU32();
+            int depotScore = (int)r.ReadU32();
+            if (errorCode == 1)
+            {
+                GuildModel.Instance.SetDepotScore(depotScore);
+                TipsManager.Toast("兑换成功");
+                EventDispatcher.Emit(GlobalEvent.EVT_GUILD_DEPOT_UPDATE);
+                GameLog.Info("Guild", "40103 兑换成功 depotScore={0}", depotScore);
+            }
+            else
+            {
+                ShowError(errorCode);
+                RequestDepotInfo();
+                GameLog.Info("Guild", "40103 兑换失败 errorCode={0}", errorCode);
+            }
+        }
+
+        /// <summary>40104:error_code:i, op_type:c[3手动/4自动], depot_num:i。失败补发40101(对标老端)。</summary>
+        private void On40104(NetReader r)
+        {
+            int errorCode = (int)r.ReadU32();
+            int opType = r.ReadU8();
+            int depotNum = (int)r.ReadU32();
+            if (errorCode == 1)
+            {
+                // 对标老端:op_type==3 手动销毁/op_type==4 结社仓管自动清理,两种文案分开(其余 op_type 老端不弹)。
+                if (opType == 3) TipsManager.Toast("操作成功，共清理" + depotNum + "件装备");
+                else if (opType == 4) TipsManager.Toast("结社仓管自动清理" + depotNum + "件装备");
+                EventDispatcher.Emit(GlobalEvent.EVT_GUILD_DEPOT_UPDATE);
+                GameLog.Info("Guild", "40104 销毁成功 opType={0} depotNum={1}", opType, depotNum);
+            }
+            else
+            {
+                ShowError(errorCode);
+                RequestDepotInfo();
+                GameLog.Info("Guild", "40104 销毁失败 errorCode={0}", errorCode);
+            }
+        }
+
+        private void On40105(NetReader r)
+        {
+            List<GuildModel.DepotGoodsEntry> list = r.ReadArray(ReadDepotGoods);
+            GuildModel.Instance.AddDepotGoods(list);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_DEPOT_UPDATE);
+            GameLog.Info("Guild", "40105 仓库新增推送 count={0}", list.Count);
+        }
+
+        /// <summary>40106:depot_goods[u16×{goods_id:l,num:i}](精简结构,num=0=删除)。</summary>
+        private void On40106(NetReader r)
+        {
+            List<(long goodsId, long num)> deltas = r.ReadArray(rr => (rr.ReadU64(), (long)rr.ReadU32()));
+            GuildModel.Instance.ApplyDepotGoodsNum(deltas);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_DEPOT_UPDATE);
+            GameLog.Info("Guild", "40106 仓库数量增量 count={0}", deltas.Count);
+        }
+
+        private void On40107(NetReader r)
+        {
+            List<GuildModel.DepotRecordEntry> list = r.ReadArray(ReadDepotRecord);
+            GuildModel.Instance.PrependDepotRecords(list);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_DEPOT_UPDATE);
+            GameLog.Info("Guild", "40107 兑换记录推送 count={0}", list.Count);
+        }
+
+        /// <summary>40108:change:c(四处调用点硬编码恒为1)。change==1 补发40101整表刷新(对标老端)。</summary>
+        private void On40108(NetReader r)
+        {
+            int change = r.ReadU8();
+            if (change == 1) RequestDepotInfo();
+            GameLog.Info("Guild", "40108 仓库变化广播(公会全员) change={0}", change);
+        }
+
+        private void On40110(NetReader r)
+        {
+            int stage = r.ReadU8();
+            int color = r.ReadU8();
+            int star = r.ReadU8();
+            GuildModel.Instance.SetAutoDestroySetting(stage, color, star);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_DEPOT_UPDATE);
+            GameLog.Info("Guild", "40110 自动销毁条件 stage={0} color={1} star={2}", stage, color, star);
+        }
+
+        // ==================== 结社宝箱(pt_403) ====================
+
+        public void RequestBoxInfo() => SendFmt(Proto.GUILD_BOX_INFO);
+
+        /// <summary>领取宝箱奖励(发 "l" auto_id——**64位!服务端 mod_id_create 生成的自增id,r13b 裁决:
+        /// 老端实发 'l'(64位)与服务端一致——早期侦察稿曾误记老端为 'h'(16位)/称其为"老端bug",
+        /// 经复核老端 GuildRBItem.ts/GuildRewardBoxView.ts/proto403.d.ts 三处均为 'l',该误记已订正**;
+        /// auto_id=0=一键领取)。</summary>
+        public void ReceiveBox(long autoId) => SendFmt(Proto.GUILD_BOX_RECEIVE, "l", autoId);
+
+        private void On40300(NetReader r)
+        {
+            int errorCode = (int)r.ReadU32();
+            ShowError(errorCode);
+            GameLog.Info("Guild", "40300 宝箱错误壳 errorCode={0}", errorCode);
+        }
+
+        private void On40301(NetReader r)
+        {
+            int num = r.ReadU16();
+            int maxNum = r.ReadU16();
+            List<GuildModel.BoxSendEntry> sendList = r.ReadArray(ReadBoxSendEntry);
+            List<GuildModel.BoxLogEntry> log = r.ReadArray(ReadBoxLogEntry);
+            List<GuildModel.BoxTaskInfo> info = r.ReadArray(ReadBoxTaskInfo);
+            GuildModel.Instance.SetBoxInfo(num, maxNum, sendList, log, info);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_BOX_UPDATE);
+            GameLog.Info("Guild", "40301 宝箱信息 num={0}/{1} send={2} log={3} info={4} remaining={5}B",
+                num, maxNum, sendList.Count, log.Count, info.Count, r.Remaining);
+        }
+
+        private static GuildModel.BoxSendEntry ReadBoxSendEntry(NetReader r)
+        {
+            return new GuildModel.BoxSendEntry
+            {
+                AutoId = r.ReadU64(),
+                RoleName = r.ReadString(),
+                RoleId = r.ReadU64(),
+                TaskId = (int)r.ReadU32(),
+                Status = r.ReadU8(),
+                Reward = GuildModel.ReadRewardList(r),
+                Time = r.ReadU32(),
+            };
+        }
+
+        private static GuildModel.BoxLogEntry ReadBoxLogEntry(NetReader r)
+        {
+            return new GuildModel.BoxLogEntry
+            {
+                RoleName = r.ReadString(),
+                RoleId = r.ReadU64(),
+                TaskId = (int)r.ReadU32(),
+                Time = r.ReadU32(),
+            };
+        }
+
+        private static GuildModel.BoxTaskInfo ReadBoxTaskInfo(NetReader r)
+            => new GuildModel.BoxTaskInfo { TaskId = (int)r.ReadU32(), SendNum = r.ReadU8() };
+
+        /// <summary>40302:code:i, send_list[u16×{auto_id:l(64位尾哨兵专测点),reward:ObjectList}]。
+        /// 成功后本地摘除已领条目 + 补发40301刷新(对标老端 RefreshRewardBoxRed)。</summary>
+        private void On40302(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            List<(long autoId, List<GuildModel.RewardEntry> reward)> sendList =
+                r.ReadArray(rr => (rr.ReadU64(), GuildModel.ReadRewardList(rr)));
+            if (code == 1)
+            {
+                var ids = new List<long>(sendList.Count);
+                foreach (var it in sendList) ids.Add(it.autoId);
+                GuildModel.Instance.RemoveBoxEntries(ids);
+                RequestBoxInfo();
+                TipsManager.Toast("领取成功");
+                EventDispatcher.Emit(GlobalEvent.EVT_GUILD_BOX_UPDATE);
+                GameLog.Info("Guild", "40302 领取成功 count={0} remaining={1}B", sendList.Count, r.Remaining);
+            }
+            else
+            {
+                ShowError(code);
+                GameLog.Info("Guild", "40302 领取失败 errorCode={0}", code);
+            }
+        }
+
+        private void On40303(NetReader r)
+        {
+            List<GuildModel.BoxSendEntry> sendList = r.ReadArray(ReadBoxSendEntry);
+            List<GuildModel.BoxLogEntry> log = r.ReadArray(ReadBoxLogEntry);
+            GuildModel.Instance.AddBoxEntries(sendList, log);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_BOX_UPDATE);
+            GameLog.Info("Guild", "40303 新宝箱推送(公会全员) send={0} log={1}", sendList.Count, log.Count);
+        }
+
+        private void On40304(NetReader r)
+        {
+            long autoId = r.ReadU64();
+            GuildModel.Instance.RemoveBoxEntry(autoId);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_BOX_UPDATE);
+            GameLog.Info("Guild", "40304 宝箱记录失效(公会全员) autoId={0}", autoId);
+        }
+
+        /// <summary>40305:**day_clear/gm_clear 触发时是 send_to_all 全服广播,不分公会**——recv 侧严禁假设
+        /// 收到即代表自己有公会,纯按 TaskInfoList 内容 upsert,不触碰 GuildModel.Info/GuildId。</summary>
+        private void On40305(NetReader r)
+        {
+            List<GuildModel.BoxTaskInfo> info = r.ReadArray(ReadBoxTaskInfo);
+            GuildModel.Instance.ApplyBoxTaskInfo(info);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_BOX_UPDATE);
+            GameLog.Info("Guild", "40305 任务发放次数更新(可能是全服广播,不代表本公会/不刷红点) count={0}", info.Count);
+        }
+
+        // ==================== 结社协助(pt_404) ====================
+
+        /// <summary>对标服务端 check_had_assist_other 的"5秒内刚发起过"分支——本地 CD 拦截,避免必然失败的重复请求。</summary>
+        private long _lastAssistLaunchSec;
+
+        /// <summary>发起协助请求(发 "chil" type[1boss/2副本/3璀璨之海/4主线本],sub_type,target_cfg_id,target_id)。
+        /// **Guard**:本地5秒CD。</summary>
+        public void LaunchAssist(int type, int subType, int targetCfgId, long targetId)
+        {
+            long now = TimeUtil.NowSec();
+            if (now - _lastAssistLaunchSec < 5) { TipsManager.Toast("操作过于频繁"); return; }
+            _lastAssistLaunchSec = now;
+            SendFmt(Proto.GUILD_ASSIST_LAUNCH, "chil", type, subType, targetCfgId, targetId);
+            GameLog.Info("Guild", "40401 发起协助 type={0} subType={1} targetId={2}", type, subType, targetId);
+        }
+
+        /// <summary>协助他人(发 "lc" assist_id,type——服务端业务层丢弃 Type,仅早期立即失败分支回显)。</summary>
+        public void HelpAssist(long assistId, int type) => SendFmt(Proto.GUILD_ASSIST_HELP, "lc", assistId, type);
+
+        /// <summary>取消协助/求助(发 "l" assist_id)。**Guard**:assistId&lt;=0 本地拦截。</summary>
+        public void CancelAssist(long assistId)
+        {
+            if (assistId <= 0) return;
+            SendFmt(Proto.GUILD_ASSIST_CANCEL, "l", assistId);
+            GameLog.Info("Guild", "40403 取消协助 assistId={0}", assistId);
+        }
+
+        public void RequestAssistCount() => SendFmt(Proto.GUILD_ASSIST_COUNT);
+
+        /// <summary>**Guard**:无公会时服务端 pp_guild_assist.erl:62-69 回 `send_to_sid(Sid, pt_404, 40405, [])`——
+        /// 空实参列表匹配不上 pt_404.erl:81 `write(40405,[AssistList])` 的单元素模式,落到同文件 catch-all
+        /// `write(_,_) -&gt; pt:pack(0, &lt;&lt;&gt;&gt;)`,客户端收到协议号 0 的空帧,等效于"永不回 40405"——
+        /// 无公会时本地直接不发,避免调用方(未来 GuildHelpView)误以为会有回包而死等。</summary>
+        public void RequestAssistList()
+        {
+            if (!GuildModel.IsHasGuild()) return;
+            SendFmt(Proto.GUILD_ASSIST_LIST);
+        }
+
+        public void RequestMyAssist() => SendFmt(Proto.GUILD_ASSIST_MY_INFO);
+
+        private void On40401(NetReader r)
+        {
+            int errorCode = (int)r.ReadU32();
+            long assistId = r.ReadU64();
+            int type = r.ReadU8();
+            int subType = r.ReadU16();
+            int targetCfgId = (int)r.ReadU32();
+            long targetId = r.ReadU64();
+            if (errorCode == 1)
+            {
+                // 对标老端 SetReqData(scmd):落"我方求助"回显,供 On40403(isSelf)/On40407 命中后清空,
+                // 避免协助 UI 接线时消费到"已取消却仍显示进行中"的脏数据。
+                GuildModel.Instance.SetMyRequest(new GuildModel.MyAssistRequest
+                {
+                    AssistId = assistId, Type = type, SubType = subType, TargetCfgId = targetCfgId, TargetId = targetId,
+                });
+                TipsManager.Toast("已请求协助");
+                GameLog.Info("Guild", "40401 发起协助成功 assistId={0} type={1}", assistId, type);
+            }
+            else
+            {
+                ShowError(errorCode);
+                GameLog.Info("Guild", "40401 发起协助失败 errorCode={0}", errorCode);
+            }
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_ASSIST_UPDATE);
+        }
+
+        /// <summary>40402:error_code:i, assist_id:l, type:c。成功且 type≠3(非璀璨之海)才补发40408
+        /// (对标老端"落 AssistData")。</summary>
+        private void On40402(NetReader r)
+        {
+            int errorCode = (int)r.ReadU32();
+            long assistId = r.ReadU64();
+            int type = r.ReadU8();
+            if (errorCode == 1)
+            {
+                if (type != 3) RequestMyAssist();
+                TipsManager.Toast("正在前往协助"); // 文案对标老端(非"协助成功")
+                GameLog.Info("Guild", "40402 协助成功 assistId={0} type={1}", assistId, type);
+            }
+            else
+            {
+                ShowError(errorCode);
+                GameLog.Info("Guild", "40402 协助失败 errorCode={0}", errorCode);
+            }
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_ASSIST_UPDATE);
+        }
+
+        /// <summary>40403:error_code:i, cancel_type:c[1主动/2璀璨之海结算触发], assist_id:l, ask_id:l。
+        /// 按 ask_id 是否是自己区分"我取消了求助"(ReqData)vs"我取消了/对方取消了对某人的协助"(AssistData)——
+        /// 老端后者是中性文案"已取消协助",不区分具体是谁触发的(对标老端)。</summary>
+        private void On40403(NetReader r)
+        {
+            int errorCode = (int)r.ReadU32();
+            int cancelType = r.ReadU8();
+            long assistId = r.ReadU64();
+            long askId = r.ReadU64();
+            if (errorCode == 1)
+            {
+                GuildModel.Instance.RemoveAssist(assistId);
+                bool isSelf = askId == Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId;
+                // 对标老端:isSelf→"我取消了自己的求助"清 ReqData;否则→"我正在协助的对象取消了求助"清 AssistData。
+                // 按 assistId 命中而非无条件清空,防止晚到的旧包误清当前正在生效的另一条记录。
+                if (isSelf)
+                {
+                    if (GuildModel.Instance.MyRequest != null && GuildModel.Instance.MyRequest.AssistId == assistId)
+                        GuildModel.Instance.ClearMyRequest();
+                }
+                else if (GuildModel.Instance.CurrentMyAssist != null && GuildModel.Instance.CurrentMyAssist.AssistId == assistId)
+                {
+                    GuildModel.Instance.ClearMyAssist();
+                }
+                // 文案逐字对标老端(else 分支是中性"已取消协助",不区分"我方主动取消协助"与"对方取消了求助"——
+                // 两种触发源共用同一提示,不要臆造"对方取消了对你的协助"这种更具体但老端没有的措辞)。
+                TipsManager.Toast(isSelf ? "协助请求已取消" : "已取消协助");
+                GameLog.Info("Guild", "40403 取消 assistId={0} cancelType={1} isSelf={2}", assistId, cancelType, isSelf);
+            }
+            else
+            {
+                ShowError(errorCode);
+                GameLog.Info("Guild", "40403 取消失败 errorCode={0}", errorCode);
+            }
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_ASSIST_UPDATE);
+        }
+
+        /// <summary>40404:assist_count:c(**8位!**)。pp_guild_assist.erl:55-59 handle(40404,..) 无条件
+        /// send_to_sid,**恒回包**(真静默的是 40408,见其注释)。</summary>
+        private void On40404(NetReader r)
+        {
+            int count = r.ReadU8();
+            GuildModel.Instance.SetAssistCount(count);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_ASSIST_UPDATE);
+            GameLog.Info("Guild", "40404 今日协助次数 count={0}", count);
+        }
+
+        /// <summary>40405:assist_list[u16×14字段](服务端全局 map 靠 GuildId 过滤,**无任何长度上限**,
+        /// 客户端不做截断)。</summary>
+        private void On40405(NetReader r)
+        {
+            List<GuildModel.AssistEntry> list = r.ReadArray(ReadAssistEntry);
+            GuildModel.Instance.SetAssistList(list);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_ASSIST_UPDATE);
+            GameLog.Info("Guild", "40405 求助列表 count={0} remaining={1}B", list.Count, r.Remaining);
+        }
+
+        /// <summary>求助单条(item_to_bin_0,14字段;40405/40406 共用同一结构)。</summary>
+        private static GuildModel.AssistEntry ReadAssistEntry(NetReader r)
+        {
+            var e = new GuildModel.AssistEntry
+            {
+                AssistId = r.ReadU64(),
+                Type = r.ReadU8(),
+                SubType = r.ReadU16(),
+                TargetCfgId = (int)r.ReadU32(),
+                TargetId = r.ReadU64(),
+                RoleId = r.ReadU64(),
+                Name = r.ReadString(),
+                Level = r.ReadU16(),
+                Career = r.ReadU8(),
+                Sex = r.ReadU8(),
+                Pic = r.ReadString(),
+                PicVer = r.ReadU32(),
+                IsAssist = r.ReadU8() != 0,
+            };
+            e.Extra = r.ReadArray(ReadAssistExtra);
+            return e;
+        }
+
+        /// <summary>璀璨之海掠夺信息(item_to_bin_1/_2,7字段;仅 Type==3 时非空)。</summary>
+        private static GuildModel.AssistExtra ReadAssistExtra(NetReader r)
+        {
+            return new GuildModel.AssistExtra
+            {
+                SerId = (int)r.ReadU32(),
+                SerNum = r.ReadU16(),
+                RoberId = r.ReadU64(),
+                RoberName = r.ReadString(),
+                RoberPower = r.ReadU32(),
+                RoberReward = GuildModel.ReadRewardList(r),
+                BackReward = GuildModel.ReadRewardList(r),
+            };
+        }
+
+        private void On40406(NetReader r)
+        {
+            GuildModel.AssistEntry entry = ReadAssistEntry(r);
+            GuildModel.Instance.UpsertAssist(entry);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_ASSIST_UPDATE);
+            GameLog.Info("Guild", "40406 新求助推送(公会全员) assistId={0} type={1}", entry.AssistId, entry.Type);
+        }
+
+        /// <summary>40407:assist_id:l。**扇出模式的一部分**(取消全部协助场景="1次本号广播+N次40403单播",
+        /// 本号按条移除,不当全量刷新;recv 端逐条处理即为正确行为,无需额外识别是否属于扇出批次)。</summary>
+        private void On40407(NetReader r)
+        {
+            long assistId = r.ReadU64();
+            GuildModel.Instance.RemoveAssist(assistId);
+            // 对标老端 on40407:adata/rdata 各自按 assist_id 命中才清空(同一 assistId 不可能同时是"我在帮的人"
+            // 又是"我发的求助",两个 if 互不冲突,无需 else)。
+            if (GuildModel.Instance.CurrentMyAssist != null && GuildModel.Instance.CurrentMyAssist.AssistId == assistId)
+                GuildModel.Instance.ClearMyAssist();
+            if (GuildModel.Instance.MyRequest != null && GuildModel.Instance.MyRequest.AssistId == assistId)
+                GuildModel.Instance.ClearMyRequest();
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_ASSIST_UPDATE);
+            GameLog.Info("Guild", "40407 求助结束(公会全员) assistId={0}", assistId);
+        }
+
+        /// <summary>40408:12字段(比40405/40406单条少 is_assist/extra)。**Guard 静默说明**:请求本身在
+        /// AssistId&gt;0 andalso AssistProcess==1 不满足(纯查询无进行中协助)时服务端真静默不回包
+        /// (pp_guild_assist.erl:73-80 handle(40408,..) 不满足条件时 `_ -&gt; ok`),发送侧不能假设必有响应,
+        /// 本轮不做等待超时兜底(与老端一致)。</summary>
+        private void On40408(NetReader r)
+        {
+            var info = new GuildModel.MyAssistInfo
+            {
+                AssistId = r.ReadU64(),
+                Type = r.ReadU8(),
+                SubType = r.ReadU16(),
+                TargetCfgId = (int)r.ReadU32(),
+                TargetId = r.ReadU64(),
+                RoleId = r.ReadU64(),
+                Name = r.ReadString(),
+                Level = r.ReadU16(),
+                Career = r.ReadU8(),
+                Sex = r.ReadU8(),
+                Pic = r.ReadString(),
+                PicVer = r.ReadU32(),
+            };
+            GuildModel.Instance.SetMyAssist(info);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_ASSIST_UPDATE);
+            GameLog.Info("Guild", "40408 当前协助对象 assistId={0}", info.AssistId);
+        }
+
+        private void On40409(NetReader r)
+        {
+            long assistId = r.ReadU64();
+            TipsManager.Toast("协助成功");
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_ASSIST_UPDATE);
+            GameLog.Info("Guild", "40409 协助成功通知(面向协助者) assistId={0}", assistId);
+        }
+
+        private void On40410(NetReader r)
+        {
+            long assistId = r.ReadU64();
+            long roleId = r.ReadU64();
+            string name = r.ReadString();
+            TipsManager.Toast(name + " 接受了你的协助请求");
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_ASSIST_UPDATE);
+            GameLog.Info("Guild", "40410 有人接受协助(面向求助者) assistId={0} roleId={1} name={2}", assistId, roleId, name);
+        }
+
+        // ==================== 结社武魂/神像(pt_405;per-player 数据,不做全公会广播) ====================
+
+        public void RequestGodList() => SendFmt(Proto.GUILD_GOD_INFO);
+
+        public void RequestGodRune(int godId) => SendFmt(Proto.GUILD_GOD_RUNE_INFO, "h", godId);
+
+        public void UpgradeGodColor(int godId) => SendFmt(Proto.GUILD_GOD_COLOR_UP, "h", godId);
+
+        public void AwakeGod(int godId) => SendFmt(Proto.GUILD_GOD_AWAKE, "h", godId);
+
+        /// <summary>穿戴铭文(发 "hcl" god_id,pos_id,goods_id)。**DEAD 确认号**:服务端从不回 40505,
+        /// 结果只能靠后续 40502 到达判断,调用方不要等待 40505 回调。**Guard**:pos_id∈[1,6](?pos_list)。</summary>
+        public void WearGodRune(int godId, int posId, long goodsId)
+        {
+            if (posId < 1 || posId > 6) { GameLog.Warn("Guild", "40505 本地拦截:posId={0} 越界(合法[1,6])", posId); return; }
+            SendFmt(Proto.GUILD_GOD_WEAR, "hcl", godId, posId, goodsId);
+            GameLog.Info("Guild", "40505 穿戴铭文(DEAD确认号,靠40502判断结果) godId={0} pos={1}", godId, posId);
+        }
+
+        /// <summary>激活铭文组合(发 "hc" god_id,combo_id)。协议层设计上无 write 方向,结果靠 40502 判断。</summary>
+        public void ActivateGodCombo(int godId, int comboId)
+        {
+            SendFmt(Proto.GUILD_GOD_COMBO_ACTIVATE, "hc", godId, comboId);
+            GameLog.Info("Guild", "40506 激活组合(无write方向,靠40502判断结果) godId={0} comboId={1}", godId, comboId);
+        }
+
+        /// <summary>脱下铭文(发 "hc" god_id,pos)。**DEAD 确认号**,结果靠 40502 判断。**Guard**:pos∈[1,6]。</summary>
+        public void TakeOffGodRune(int godId, int pos)
+        {
+            if (pos < 1 || pos > 6) { GameLog.Warn("Guild", "40507 本地拦截:pos={0} 越界(合法[1,6])", pos); return; }
+            SendFmt(Proto.GUILD_GOD_TAKE_OFF, "hc", godId, pos);
+            GameLog.Info("Guild", "40507 脱铭文(DEAD确认号,靠40502判断结果) godId={0} pos={1}", godId, pos);
+        }
+
+        /// <summary>升级铭文(发 "hc" god_id,pos)。**Guard**:pos∈[1,6]。</summary>
+        public void UpgradeGodRune(int godId, int pos)
+        {
+            if (pos < 1 || pos > 6) { GameLog.Warn("Guild", "40508 本地拦截:pos={0} 越界(合法[1,6])", pos); return; }
+            SendFmt(Proto.GUILD_GOD_RUNE_UPGRADE, "hc", godId, pos);
+            GameLog.Info("Guild", "40508 升级铭文 godId={0} pos={1}", godId, pos);
+        }
+
+        /// <summary>激活铭文大师等级(发 "ch" god_id,lv——**GodId 8位独例,r13b 裁决:勿类推复用其余8个号
+        /// 的16位解析函数**)。</summary>
+        public void ActivateGodAchievement(int godId, int lv)
+        {
+            SendFmt(Proto.GUILD_GOD_ACHIEVEMENT_ACTIVATE, "ch", godId, lv);
+            GameLog.Info("Guild", "40509 激活铭文大师等级 godId={0}(8位) lv={1}", godId, lv);
+        }
+
+        private void On40500(NetReader r)
+        {
+            int errorCode = (int)r.ReadU32();
+            if (errorCode != 1) ShowError(errorCode); // 对标老端 `errcode != 1` 才显码,理论无害但照抄守卫
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_ERROR, errorCode);
+            GameLog.Info("Guild", "40500 神像错误壳 errorCode={0}", errorCode);
+        }
+
+        /// <summary>40501:guild_title_lv:h, god_list[u16×{god_id:h,color:c,lv:h,god_power:l}]
+        /// (遍历配置里**全部**神像id,未激活以{Id,0,0,0}占位,非"已拥有"列表)。</summary>
+        private void On40501(NetReader r)
+        {
+            int guildTitleLv = r.ReadU16();
+            List<GuildModel.GodEntry> list = r.ReadArray(rr => new GuildModel.GodEntry
+            {
+                GodId = rr.ReadU16(),
+                Color = rr.ReadU8(),
+                Lv = rr.ReadU16(),
+                GodPower = rr.ReadU64(),
+            });
+            GuildModel.Instance.SetGodList(guildTitleLv, list);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_GOD_UPDATE);
+            GameLog.Info("Guild", "40501 神像总览 guildTitleLv={0} count={1}", guildTitleLv, list.Count);
+        }
+
+        /// <summary>40502:god_id:h, rune_list[u16×{pos:c,goods_id:l,goods_type_id:i}](至多6条),
+        /// combo_id:c, achievement_lvs[u16×{lv:h}], god_power:l。**本族万能刷新推送号**——40505/506/507/
+        /// 508/509 五个操作成功后统一补发本号,不是各自独立确认(505/507还DEAD,连推都没有别的路)。</summary>
+        private void On40502(NetReader r)
+        {
+            var detail = new GuildModel.GodDetail { GodId = r.ReadU16() };
+            detail.RuneList.AddRange(r.ReadArray(rr => new GuildModel.GodRuneEntry
+            {
+                Pos = rr.ReadU8(),
+                GoodsId = rr.ReadU64(),
+                GoodsTypeId = (int)rr.ReadU32(),
+            }));
+            detail.ComboId = r.ReadU8();
+            detail.AchievementLvs.AddRange(r.ReadArray(rr => (int)rr.ReadU16()));
+            detail.GodPower = r.ReadU64();
+            GuildModel.Instance.SetGodDetail(detail);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_GOD_UPDATE);
+            GameLog.Info("Guild", "40502 神像铭文详情(万能刷新推送号) godId={0} runeCount={1} comboId={2}",
+                detail.GodId, detail.RuneList.Count, detail.ComboId);
+        }
+
+        /// <summary>40503:god_id:h, color:c[升品后新品质], lv:h, god_power:l。</summary>
+        private void On40503(NetReader r)
+        {
+            int godId = r.ReadU16();
+            int color = r.ReadU8();
+            int lv = r.ReadU16();
+            long godPower = r.ReadU64();
+            GuildModel.Instance.PatchGod(godId, color, lv, godPower);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_GOD_UPDATE);
+            GameLog.Info("Guild", "40503 神像升品 godId={0} color={1}", godId, color);
+        }
+
+        /// <summary>40504:god_id:h, color:c[本次未变], lv:h[觉醒后新等级], god_power:l。
+        /// **同一字段位置在40503/40504语义不同**(是否为本次操作变更值),消费方不要弄反。</summary>
+        private void On40504(NetReader r)
+        {
+            int godId = r.ReadU16();
+            int color = r.ReadU8();
+            int lv = r.ReadU16();
+            long godPower = r.ReadU64();
+            GuildModel.Instance.PatchGod(godId, color, lv, godPower);
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_GOD_UPDATE);
+            GameLog.Info("Guild", "40504 神像觉醒 godId={0} lv={1}", godId, lv);
+        }
+
+        /// <summary>40508:code:i(真实存活,与DEAD的40505/507对照组;成功前服务端先推40502)。</summary>
+        private void On40508(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            if (code == 1) TipsManager.Toast("升级铭文成功");
+            else ShowError(code);
+            GameLog.Info("Guild", "40508 升级铭文 code={0}", code);
+        }
+
+        /// <summary>40509:code:i(成功前服务端先推40502;隐式门槛:6个铭文槽位须全部插满)。</summary>
+        private void On40509(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            if (code == 1) TipsManager.Toast("激活铭文大师等级成功");
+            else ShowError(code);
+            GameLog.Info("Guild", "40509 激活铭文大师等级 code={0}", code);
         }
     }
 }

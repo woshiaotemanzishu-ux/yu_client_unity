@@ -91,6 +91,16 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_guild_skill_research", // 结社技能研究表(具名键 "skillId@lv"),轮13a GuildConfigs.GetSkillResearch 用
             "config_guild_constant",      // 结社通用常量KV(数字键 id;公告字数/结社名字数/建社消耗档位等),轮13a GuildConfigs.GetKv 用
             "config_guild_welcome",       // 结社入会欢迎语模板(数字键 id),轮13a GuildConfigs.GetWelcome 用
+            "config_guild_depot_score",   // 仓库积分兑换表(具名键"stage@star@color",117条),轮13b GuildConfigs.GetDepotScore 用(已与 data_guild_depot.erl 逐值核对一致)
+            "config_guild_daily",         // 宝箱任务表(数字键 task_id,7条),轮13b GuildConfigs.GetDailyTask 用(已与 data_guild_daily.erl 逐值核对一致)
+            "config_guild_assist",        // 协助开放条件表(具名键"type@sub_type",8条),轮13b GuildConfigs.GetAssistCfg 用(已与 data_guild_assist.erl 逐值核对一致)
+            "config_guild_god",           // 神像基础表(数字键 god_id,4条),轮13b GuildConfigs.GetGod 用
+            "config_guild_god_color",     // 神像品级表(具名键"god_id@color"),轮13b GuildConfigs.GetGodColor 用
+            "config_guild_god_lv",        // 神像等级表(具名键"god_id@lv"),轮13b GuildConfigs.GetGodLv 用
+            "config_guild_god_kv",        // 神像杂项KV(具名键 key:open_day/lv_limit/combo_tv_time),轮13b GuildConfigs.GetGodKv 用
+            "config_guild_god_rune",      // 铭文表(数字键 goods_id,25条,81010031-81010060段),轮13b GuildConfigs.GetGodRune 用
+            "config_guild_god_rune_combo",       // 铭文组合表(具名键"god_id@combo_id",16条),轮13b GuildConfigs.GetGodRuneCombo 用
+            "config_guild_god_rune_achievement",  // 铭文大师成就表(具名键"god_id@need_lv",16条),轮13b GuildConfigs.GetGodRuneAchievement 用
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]
