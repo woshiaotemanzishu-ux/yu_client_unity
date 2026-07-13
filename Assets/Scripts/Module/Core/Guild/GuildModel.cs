@@ -550,8 +550,10 @@ namespace Shenxiao.Module.Core.Guild
             if (sendList != null) _boxSendList.AddRange(sendList);
             _boxLog.Clear();
             if (log != null) _boxLog.AddRange(log);
-            ApplyBoxTaskInfo(info);
+            // 必须先置 HasBoxInfo 再 ApplyBoxTaskInfo——后者带"底表未加载则忽略"防御门,
+            // 原顺序会把首个 40301 自带的任务次数表挡在门外(轮13b 批处理实跑抓出)。
             HasBoxInfo = true;
+            ApplyBoxTaskInfo(info);
         }
 
         /// <summary>40303 增量新增(对标老端 updateRewardBox:send/log 均 unshift 头插——日志流"最新在前",

@@ -94,6 +94,11 @@ namespace Shenxiao.EditorTools
                     bool box301Ok = model.HasBoxInfo && model.BoxNum == 1 && model.BoxMaxNum == 3
                         && model.BoxSendList.Count == 1 && model.BoxSendList[0].AutoId == AUTO_ID_SENTINEL
                         && model.BoxLog.Count == 1 && model.GetBoxTaskSendNum(1001) == 2;
+                    if (!box301Ok)
+                        Debug.Log("CLIVERIFY guildext box301 breakdown has=" + model.HasBoxInfo + " num=" + model.BoxNum
+                            + "/" + model.BoxMaxNum + " sendCnt=" + model.BoxSendList.Count
+                            + " autoId=" + (model.BoxSendList.Count > 0 ? model.BoxSendList[0].AutoId : -1)
+                            + " logCnt=" + model.BoxLog.Count + " sendNum1001=" + model.GetBoxTaskSendNum(1001));
 
                     var p40302 = new CliVerify.Pkt().I(1).H(1).L(AUTO_ID_SENTINEL).H(0); // code=1,send_list=[{auto_id=同一64位哨兵,reward=[]}]
                     Feed(m40302, p40302.Bytes());
@@ -159,7 +164,9 @@ namespace Shenxiao.EditorTools
                     bool depot106Ok = !model.DepotGoods.Any(g => g.GoodsId == Shenxiao.Module.Core.Guild.GuildModel.DEPOT_TASK_EQUIP_GOODS_ID)
                         && model.DepotGoods.Any(g => g.GoodsId == 777 && g.Num == 50);
 
-                    Feed(m40107, new CliVerify.Pkt()
+                    // ⚠首跑订正(轮13b批处理):On40107 走 ReadArray(u16 计数前缀,服务端 write(40107,[RecordList]) 是列表),
+                    // 此前裸喂单条记录被当 count=0 解析——补 .H(1) 计数前缀。
+                    Feed(m40107, new CliVerify.Pkt().H(1)
                         .I(502).S("").C(3).L(999).I(1).C(1).I(10).I(10).H(0).H(0).H(0).H(0).C(0).H(0).C(0).I(1700001000)
                         .Bytes());
                     bool depot107Ok = model.DepotRecords.Count == 2 && model.DepotRecords[0].RecordId == 502; // 头插
@@ -190,12 +197,16 @@ namespace Shenxiao.EditorTools
                         + " guildIdUntouched=" + (role.GuildId == 5001) + " ok=" + box305Ok);
 
                     // ======== ④ 协助扇出按条处理(40406×2 → 40407 删1条,另一条须保留) ========
+                    // ⚠首跑订正(轮13b批处理):40406 增量推送有"底表未加载则忽略"防御门(对标老端 hdata 判空,
+                    // 修复代理按验收 minor 加的)——先喂 40405 空列表落底表,再喂增量。
+                    Feed(m40405, new CliVerify.Pkt().H(0).Bytes());
                     Feed(m40406, BuildAssistEntry(8001, "甲"));
                     Feed(m40406, BuildAssistEntry(8002, "乙"));
                     bool assist406Ok = model.AssistList.Count == 2;
+                    int after406Count = model.AssistList.Count;
                     Feed(m40407, new CliVerify.Pkt().L(8001).Bytes());
                     assistFanoutOk = assist406Ok && model.AssistList.Count == 1 && model.AssistList[0].AssistId == 8002;
-                    Debug.Log("CLIVERIFY guildext 协助扇出 after406=" + model.AssistList.Count + "(期望2) afterOneRemove="
+                    Debug.Log("CLIVERIFY guildext 协助扇出 after406=" + after406Count + "(期望2) afterOneRemove="
                         + model.AssistList.Count + "(期望1,剩8002) ok=" + assistFanoutOk);
 
                     // ======== ⑤ 神像 40502 全量刷新(尾字段 god_power 命中=嵌套 rune_list/achievement_lvs skip 精确) ========
