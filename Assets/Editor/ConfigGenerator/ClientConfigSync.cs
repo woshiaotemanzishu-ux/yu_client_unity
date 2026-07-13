@@ -101,6 +101,12 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_guild_god_rune",      // 铭文表(数字键 goods_id,25条,81010031-81010060段),轮13b GuildConfigs.GetGodRune 用
             "config_guild_god_rune_combo",       // 铭文组合表(具名键"god_id@combo_id",16条),轮13b GuildConfigs.GetGodRuneCombo 用
             "config_guild_god_rune_achievement",  // 铭文大师成就表(具名键"god_id@need_lv",16条),轮13b GuildConfigs.GetGodRuneAchievement 用
+            "config_boss_type",            // Boss家族一期(轮15a)boss_type级配置(17条,数字键;缺11/feast·15·17/domainserver三行是源数据事实),BossConfigs.GetBossType 用
+            "config_boss_cfg",             // 单个boss实例(206条,数字键;场景/坐标/hurt_limit归属门槛等),BossConfigs.GetBossCfg 用
+            "config_boss_type_key_value",  // KV补充表(92条,复合键"boss_type@key"),BossConfigs.GetTypeKv 用
+            "config_boss_show_hp",         // 场景血条显示白名单(68条,数字键=scene),BossConfigs.ShowHpInScene 用
+            "config_domain_kill_reward",   // 秘境领域阶段奖励档位(3条,数字键),BossConfigs.GetDomainKillReward 用
+            "config_decoration_boss",      // 幻域/特殊boss装饰配置(25条,数字键),BossConfigs.GetDecorationBoss 用
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

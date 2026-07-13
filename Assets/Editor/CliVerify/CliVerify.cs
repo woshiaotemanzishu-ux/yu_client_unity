@@ -224,6 +224,17 @@ namespace Shenxiao.EditorTools
             Run(GuildExtCase.Run, 300.0);
         }
 
+        /// <summary>Boss家族一期·本服核心(自动循环 轮15a)实证:46000段主链(列表/进入判定/46009订正后
+        /// 类型门/关注/击杀日志100条上限/掉落日志/体力/结算奖励/伤害榜自己+前3防抖广播/连杀通知/死亡debuff
+        /// 转发ReliveModel/消耗复活/46045 code字段订正)+ 免战(20201-205)+ 采集(20025-26)+ 死号未注册断言
+        /// (代表性子集)+ 边界失败码各一发,合成包驱动 BossController 反射喂包;跨服族(47000-035/47101-117/
+        /// 61900-902)全不测(留15b),纯数据层轮无渲染段(BossHelpPanelView/BossHelpItemView 已接真数据链
+        /// 但宿主 BossFightSceneView 仍是死分支,详见 BossCase 注释)。</summary>
+        public static void Boss()
+        {
+            Run(BossCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -265,6 +276,7 @@ namespace Shenxiao.EditorTools
                 int rk = await RankCase.Run();
                 int gc = await GuildCoreCase.Run();
                 int ge = await GuildExtCase.Run();
+                int bs = await BossCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -273,8 +285,8 @@ namespace Shenxiao.EditorTools
                     + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
                     + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch + " friendmail=" + fm
                     + " team=" + tm + " dungeonfam=" + df + " dailyhub=" + dh + " createvideo=" + cv + " shop=" + sh
-                    + " rank=" + rk + " guildcore=" + gc + " guildext=" + ge);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge })
+                    + " rank=" + rk + " guildcore=" + gc + " guildext=" + ge + " boss=" + bs);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

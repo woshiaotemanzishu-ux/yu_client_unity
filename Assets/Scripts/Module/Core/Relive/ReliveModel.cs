@@ -72,6 +72,28 @@ namespace Shenxiao.Module.Core.Relive
             TiredEndTime = endTime;
         }
 
+        /// <summary>新野外Boss场景死亡次数(自动循环 轮15a,46034 转发落地;对标老端
+        /// ReliveModel.SetReliveTimeData(...,BossSpecialReliveType.WorldBoss))。复活窗精确路由
+        /// (BossFieldReliveView 等)留 TODO——本条只负责数据转发落地,不驱动 UI。</summary>
+        public int BossDieTimes { get; private set; }
+
+        /// <summary>下次可进场景时间戳(秒)。</summary>
+        public long BossNextEnterTime { get; private set; }
+
+        /// <summary>死亡debuff结束时间戳(秒)。</summary>
+        public long BossDebuffEndTime { get; private set; }
+
+        /// <summary>安全时间结束时间戳(秒,0=无安全时间)。</summary>
+        public long BossSafeEndTime { get; private set; }
+
+        public void SetBossDieInfo(int dieTimes, long nextEnterTime, long debuffEndTime, long safeEndTime)
+        {
+            BossDieTimes = dieTimes;
+            BossNextEnterTime = nextEnterTime;
+            BossDebuffEndTime = debuffEndTime;
+            BossSafeEndTime = safeEndTime;
+        }
+
         /// <summary>断线/登出重置(对标各 Model 既有 Clear 惯例)。</summary>
         public void Clear()
         {
@@ -84,6 +106,10 @@ namespace Shenxiao.Module.Core.Relive
             NextReviveTime = 0;
             TiredCount = 0;
             TiredEndTime = 0;
+            BossDieTimes = 0;
+            BossNextEnterTime = 0;
+            BossDebuffEndTime = 0;
+            BossSafeEndTime = 0;
         }
     }
 }

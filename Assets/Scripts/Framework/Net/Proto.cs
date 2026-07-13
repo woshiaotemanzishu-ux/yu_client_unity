@@ -1816,5 +1816,159 @@
         /// CliVerify 反射直接喂包驱动,无需真实等待/tick)。自身排名(RoleRank/SelVal/SelSecVal)随每包自带,
         /// 无需独立协议查询。</summary>
         public const int RANK_QUERY = 22101;
+
+        // ----- Boss 家族一期·本服核心(自动循环 轮15a/15a修复轮;46000-46046=pt_460,20025-26=采集,20201-205=免战)。
+        //        范围铁律:47000-47035/47101-47117/61900-61902 跨服族全部不实现(留15b)。
+        //        存活裁决(逐号与 yu_server src/boss/{pp_boss,lib_boss,lib_boss_mod,mod_boss}.erl 直接核对调用点,
+        //        不采信侦察子报告的推断结论——过程中修正了子报告 3 处误判,详见各号注释):
+        //        46037/46038/46039/46046 虽号段在 46000-46046 内,但 pp_boss.erl 对应 handle 子句**无条件**转发
+        //        mod_great_demon_local:*(跨服秘境大妖,不看 boss_type 取值)——判定为跨服族复用本号段的壳,
+        //        本轮不实现(与47xxx同等对待)。46017/46018/46020/46021/46023/46032 服务端 handle 仍在但对应
+        //        C2S 老端已弃用(zero SCMD_REQUEST 调用)且均非自主推送(仅同步应答自己的请求),我方不发起
+        //        请求则永不可达,不实现;46030 write 调用点已被注释(lib_boss.erl:802 `%`开头),真死,不注册。
+        //        **修复轮订正**:46013/46031 初审误判为"非自主推送不可达"——直接核实 mod_boss.erl:1795-1798
+        //        (46013 神庙怪刷新 send_to_scene)、lib_boss.erl:1833-1852(46031 秘境宝箱归属 send_to_scene/
+        //        send_to_uid)均为服务端**无条件主动推送**,且落点场景(TEMPLE=5/FAIRYLAND=9)本轮 46003 EnterBoss
+        //        即可到达——照 46006 先例登记防御 recv(数据只落日志,不建 UI)。46026-46029/46033(节日boss场景
+        //        内推送)+46040(血条百分比,请求驱动)同样登记防御 recv/数据层——46003 Feast(11)进场即可触达
+        //        前者,46040 消费方留战斗HUD轮 TODO。 -----
+
+        /// <summary>查采集怪当前采集对象(20025/26 无 ClientProtocol.json 定义,手工 ReadFmt,对标老端
+        /// BossController.ts:648-677)。S2C:h(count)+循环 l(role_id)。C2S(BossController.ts:522,
+        /// `BROADCAST_COLLECT_RESULT` flag==13 且 `IsHolyBossScene()` 时触发):"ii"(monster_ins_id, monster_type_id)。
+        /// 老端消费方是千幻蜃楼(跨服 holy)场景内打断判定——Unity 无场景采集钩子(BossSceneManager 等价物未接),
+        /// 本轮只接 recv/send 数据层,消费方以事件形式暴露,TODO 场景钩子。</summary>
+        public const int BOSS_COLLECT_QUERY = 20025;
+        /// <summary>玩家采集被打断通知(S2C 单 l:role_id)。同上,场景消费钩子 TODO。</summary>
+        public const int BOSS_COLLECT_INTERRUPT = 20026;
+
+        /// <summary>免战保护信息查询(C2S 空包;S2C protect_list[{scene_type,protect_time,use_count}])。</summary>
+        public const int WAR_FREE_INFO = 20201;
+        /// <summary>使用免战保护(C2S "i" scene_type;S2C error_code,scene_type,protect_time,use_count)。</summary>
+        public const int WAR_FREE_USE = 20202;
+        /// <summary>免战保护结束时间查询(进场景请求,C2S 空包;S2C end_time,按服务器时间戳算剩余)。</summary>
+        public const int WAR_FREE_END_TIME = 20203;
+        /// <summary>免战保护时间更新推送(S2C scene_type,protect_time,use_count,纯推送)。</summary>
+        public const int WAR_FREE_UPDATE = 20204;
+        /// <summary>结束免战保护(C2S "i" scene_type;S2C error_code,scene_type)。</summary>
+        public const int WAR_FREE_END = 20205;
+
+        /// <summary>本服 Boss 列表/状态查询(多路复用,靠 boss_type 分派)。C2S "c" boss_type。S2C:BossType:8,
+        /// AllCount:8, Count:8, Tired:16, AllTired:16, Vit:16, LastVitTime:32, CollectTimes:8, AllCollectTimes:8,
+        /// BossInfo[u16 计数]{BossId:32,Num:8,RebornTime:32,IsRemind:8,AutoRemind:8}。</summary>
+        public const int BOSS_LIST = 46000;
+        /// <summary>击杀日志查询(pp_boss.erl:103 handle 真实存在,老端 46001✅注册但 SCMD_REQUEST 从未 Fire——
+        /// 本轮按 wire 权威补齐发送侧,CliVerify 断言 100 条硬顶`?BOSS_LOG_LEN`)。C2S "ci" boss_type,boss_id。
+        /// S2C KillLog[u16计数]{Time:32,RoleId:64,Name:s}。</summary>
+        public const int BOSS_KILL_LOG = 46001;
+        /// <summary>全局掉落日志查询(C2S 空包)。S2C DropLog[u16计数]{Time:32,RoleId:64,Name:s,BossType:8,
+        /// BossId:32,GoodsId:32,Num:32,Rating:32,EquipExtraAttr[u16计数]{Color:8,TypeId:8,AttrId:16,AttrVal:32,
+        /// PlusInterval:8,PlusUnit:32},IsTop:8}。</summary>
+        public const int BOSS_DROP_LOG = 46002;
+        /// <summary>进入 Boss 场景(C2S "ci" boss_type,boss_id)。S2C Code:32(同号回声,失败即错误码)。</summary>
+        public const int BOSS_ENTER = 46003;
+        /// <summary>离开 Boss 场景(C2S "c" boss_type)。S2C Code:32。</summary>
+        public const int BOSS_LEAVE = 46004;
+        /// <summary>蛮荒禁地/跨服大妖怒气值(纯服务端推送,老端从未 SCMD_REQUEST 主动请求,本端同样只 recv 不
+        /// 提供发送方法)。S2C Anger:16,MaxAnger:16。</summary>
+        public const int BOSS_ANGER = 46005;
+        /// <summary>蛮荒禁地退出倒计时(Type=1雷神之怒预警30s/2踢出倒计时10s,timer 驱动纯推送)。老端
+        /// zero-ref(遗弃号)但 pp_boss.erl:233/mod_boss.erl 多处仍在推(r15_server §存活互证:服务端还活着在推)——
+        /// 登记防御 recv,只落地不建 UI。S2C Type:8,TickoutTime:8。</summary>
+        public const int BOSS_ANGER_TIME = 46006;
+        /// <summary>关注/取关操作(C2S "cicc" boss_type,boss_id,remind,auto_state)。S2C Code:32,BossType:8,
+        /// BossId:32,Remind:8,IsAuto:8。</summary>
+        public const int BOSS_REMIND = 46007;
+        /// <summary>Boss 重生提醒单播(仅发给关注了该 Boss 的人,S2C 字段结构与 46016 完全相同,复用同一读取
+        /// 函数——老端 On46008 直接 GetSCMD(46016))。S2C BossType:8,BossId:32。</summary>
+        public const int BOSS_REVIVE_REMIND = 46008;
+        /// <summary>Boss 重生广播(场景广播,通常与 46036 成对发出)。**老端真 bug(轮15a rule10 订正)**:
+        /// `On46009` 判断写成 `boss_type==suit || secret || eudaemon || ...`,`||` 后面全是裸常量非零恒真,
+        /// KILL_BOSS 事件对任意 boss_type 无条件触发——本端订正为显式逐项 `==` 比较(同轮13 权限 truthy 同款笔误)。
+        /// S2C BossType:8,BossId:32,RebornTime:32,Num:8。</summary>
+        public const int BOSS_REBORN = 46009;
+        /// <summary>Boss 疲劳值广播(联动补发 46044 刷新完整体力信息,对标老端注释)。S2C BossTired:8
+        /// (⚠字段名 boss_tired 不是 tired)。</summary>
+        public const int BOSS_TIRED = 46011;
+        /// <summary>幻兽领(Eudaemon)采集次数广播(登记防御 recv,同 46006 先例:mod_boss.erl:1795-1798
+        /// 神庙怪刷新分支无条件 send_to_scene,老端 TS 侧零引用但服务端仍在推;Temple(5) 场景本轮 46003
+        /// EnterBoss 即可到达,原自述"非自主推送不可达"结论有误,修复轮订正)。S2C BossType:8,BossId:32,Num:8。</summary>
+        public const int BOSS_COLLECT_TIMES = 46013;
+        /// <summary>每日 boss 重置广播(mod_boss.erl:1072 send_to_all 全服广播,空包无字段;与 46013/46031
+        /// 同类"服务端在推、老端零消费"——登记防御 recv 保持同类一致,主控轮15a收尾补齐)。S2C 空。</summary>
+        public const int BOSS_DAILY_RESET = 46014;
+        /// <summary>结算奖励推送(与 47015 共用结构;C2S 读侧 pp_boss.erl 无 handle 子句,发了静默丢——
+        /// 本端只 recv 不提供发送方法)。r15_server 直接核实 write 调用点真活(lib_boss_api.erl:176 /
+        /// lib_boss_mod.erl:1290),订正子报告"死配置"误判为"C2S 死/S2C 活"。S2C RewardType:8,
+        /// RewardList[u16计数]{Type:8,GoodsTypeId:32,Num:32,Id:64}。</summary>
+        public const int BOSS_SETTLE_REWARD = 46015;
+        /// <summary>Boss 被击杀/复活提醒通知(fieldspecial/field_infinite 不弹提示;abyss 180级以下不弹;
+        /// field 体力为0不弹——UI 层判断留 TODO,本轮只落数据)。S2C BossType:8,BossId:32。</summary>
+        public const int BOSS_KILLED_NOTICE = 46016;
+        /// <summary>世界boss伤害榜前3名防抖广播(轮15a 订正:r15_server 子报告注3称"从未 send"为误判——
+        /// 直接核实 mod_boss.erl:2052-2062 `do_handle_info({'send_rank',...})` 确有 `send_to_scene`,
+        /// 500ms 防抖后真广播;老端 TS 侧虽已被新一代榜单取代零引用,但服务端仍在推,登记防御 recv)。
+        /// S2C Rank[u16计数]{RoleName:s,Damage:32}。</summary>
+        public const int BOSS_DAMAGE_RANK_TOP3 = 46019;
+        /// <summary>世界boss伤害排名(自己,非拉取——每次伤害发生后服务端由 `lib_boss_api:be_hurted`→
+        /// `rank_damage` 自动触发即时回给攻击者本人,recv 纯被动落表,不提供拉取方法)。
+        /// S2C SelfRank:8,SelfDamage:32,SelfName:s,Distance:32。</summary>
+        public const int BOSS_DAMAGE_RANK_SELF = 46022;
+        /// <summary>连杀通知场景广播(轮15a 订正:r15_server 子报告注4称"全仓库无调用点"为误判——直接核实
+        /// `lib_boss_mod:dkill_notice/2`(46024)确被 :765 行 `apply_cast` 调用且真 send_to_scene;
+        /// dkill&gt;2 且是自己连杀才带 index,他人连杀按5的倍数才播报——UI 播报节流留 TODO,本轮落数据)。
+        /// S2C RoleId:64,Figure(<see cref="Shenxiao.Common.Proto.FigureProto"/>),Dkill:16。</summary>
+        public const int BOSS_DKILL_NOTICE = 46024;
+        /// <summary>世界boss广播role信息壳(老端 `switch(vo.key)` case 体为空,未来扩展占位,本端同样只落
+        /// 原始 key/val 不做业务分支)。S2C InfoList[u16计数]{Key:8,Val:32}。</summary>
+        public const int BOSS_ROLE_INFO = 46025;
+        /// <summary>节日boss隐藏宝箱列表推送(登记防御 recv:C2S 无 handle 子句/纯 server→client 单向,
+        /// lib_boss_mod.erl:1713 write 侧真实调用;46003 Feast(11) 进场即可触达)。
+        /// S2C BoxList[u16计数]{BoxId:32}。</summary>
+        public const int BOSS_FEAST_HIDE_BOX = 46026;
+        /// <summary>节日boss宝箱刷新广播(场景内怪物快照,28字段复用全场景怪物结构非boss专属item,
+        /// lib_boss.erl:1723-1728 `send_to_scene(?FEAST_BOSS_SCENE,...)`,登记防御 recv)。
+        /// S2C BossId:32,BossX:32,BossY:32,BoxList[u16计数]{X:16,Y:16,AutoId:32,MonCfgId:32,Hp:64,HpLim:64,
+        /// Lv:16,Name:s,Sp:16,MonResource:32,MonRes:s,ImagId:32,WeaponId:32,AttType:8,Kind:8,Color:8,OnHook:8,
+        /// Boss:8,CollectTime:32,IsBeClicked:8,IsBeAtted:8,Hide:8,Ghost:8,MonGroup:16,GuildId:64,Angel:16,
+        /// AttrType:8,Title:32}。</summary>
+        public const int BOSS_FEAST_BOX_REFRESH = 46027;
+        /// <summary>节日boss采集结算结果(登记防御 recv)。S2C Code:8,RewardList(write_object_list,
+        /// u16计数×{Type:8,GoodsTypeId:32,Num:32})。</summary>
+        public const int BOSS_FEAST_COLLECT_RESULT = 46028;
+        /// <summary>节日boss全部击杀空回执(登记防御 recv)。S2C 空包。</summary>
+        public const int BOSS_FEAST_ALL_KILLED = 46029;
+        /// <summary>秘境宝箱归属信息广播(登记防御 recv,同 46006 先例:lib_boss.erl:1833-1852
+        /// `send_draw_data`/`send_to_scene`+`send_to_uid` 秘境boss被击杀时无条件广播;Secret(9) 场景本轮 46003
+        /// EnterBoss 即可到达,原自述"非自主推送不可达"结论有误,修复轮订正)。S2C BossId:32,RoleId:64,Name:s,
+        /// Career:8,Lv:16,Combat:64,Picture:s,PictureVer:32,Time:32,Curtimes:16,LimitTimes:16。</summary>
+        public const int BOSS_DOMAIN_BOX_OWNER = 46031;
+        /// <summary>节日boss下一波倒计时(登记防御 recv)。S2C NextWave:32,Time:32。</summary>
+        public const int BOSS_FEAST_NEXT_WAVE = 46033;
+        /// <summary>新野外boss死亡debuff状态查询(C2S 空包)。S2C DieTimes:16,Time:32,DebuffTime:32,SafeTime:32——
+        /// 转发 <see cref="Shenxiao.Module.Core.Relive.ReliveModel"/> 死亡次数槽位(spec 明示接线点)。</summary>
+        public const int BOSS_DEATH_DEBUFF = 46034;
+        /// <summary>秘境领域层数广播(纯推送)。S2C BossType:8,Layer:8。</summary>
+        public const int BOSS_DOMAIN_LAYER = 46035;
+        /// <summary>Boss/大妖复活坐标点位广播(通常与 46009 成对发出)。S2C BossId:32,Xylist[u16计数]{X:16,Y:16}。</summary>
+        public const int BOSS_REBORN_POS = 46036;
+        /// <summary>boss血量百分比显示(登记防御 recv+补发送方法,C2S 空包,老端 BossModel.StartUpdateBossHp
+        /// 每5s 轮询;config_boss_show_hp 门控哪些场景显示血条,战斗HUD消费方留TODO)。
+        /// S2C List[u16计数]{MonId:32,AutoId:64,Hp:64,HpMax:64}。</summary>
+        public const int BOSS_HP_SHOW = 46040;
+        /// <summary>消耗复活(C2S "ci" boss_type,boss_id)。S2C Errcode:32,BossType:8,BossId:32。</summary>
+        public const int BOSS_REVIVE_CONSUME = 46041;
+        /// <summary>Boss 进出/复活成功广播通知(无 read,纯推送;`46041` 消耗复活成功分支联动触发,eudemons_land
+        /// 系统也复用此号广播,与本轮无关不处理其分支)。S2C BossType:8,BossId:32。</summary>
+        public const int BOSS_REVIVE_NOTICE = 46042;
+        /// <summary>体力查询 ack(仅 NEW_OUTSIDE/SPECIAL 类型响应,真实数据走 46044;C2S "c" boss_type)。
+        /// S2C 空包(纯触发信号)。</summary>
+        public const int BOSS_VIT_ACK = 46043;
+        /// <summary>体力详情查询(C2S "c" boss_type)。S2C Vit:16,MaxVit:16,AddVit:16,BackVit:16,LastVitTime:32。</summary>
+        public const int BOSS_VIT_DETAIL = 46044;
+        /// <summary>找回体力(C2S "ch" boss_type,vit_back_num)。**老端真 bug(轮15a rule9 订正)**:S2C 定义字段名
+        /// 是 `code`,老端失败分支误读成不存在的 `scmd.errcode`(恒 undefined)——本端一律按 wire 真实字段
+        /// `code` 实现,不照抄老端笔误。S2C Code:32。</summary>
+        public const int BOSS_VIT_RECOVER = 46045;
     }
 }

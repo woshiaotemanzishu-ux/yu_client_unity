@@ -544,5 +544,35 @@ namespace Shenxiao.Framework.Event
         /// <summary>22101 某 rank_type 的一页数据落地/续拉完成(参数: int rankType;对标老端
         /// RankModelEvent.RANK_DATA_UPDATE)。本轮无 UI 消费方,先给可订阅信号,供 UI 尾包直接接。</summary>
         public const string EVT_RANK_DATA_UPDATE = "EVT_RANK_DATA_UPDATE";
+
+        // ----- Boss / Boss家族一期·本服核心(自动循环 轮15a;46000段+20025-26+20201-205) -----
+        /// <summary>46000 某 boss_type 的列表/状态落地(参数: int bossType)。</summary>
+        public const string EVT_BOSS_LIST_UPDATE = "EVT_BOSS_LIST_UPDATE";
+        /// <summary>46009 Boss 重生广播(参数: int bossType, int bossId;订正后的显式类型门,对标老端
+        /// KILL_BOSS 事件,恒真 bug 已修)。</summary>
+        public const string EVT_BOSS_REBORN = "EVT_BOSS_REBORN";
+        /// <summary>46016/46008 Boss 击杀/复活提醒落地(参数: int bossType, int bossId)。</summary>
+        public const string EVT_BOSS_KILLED_NOTICE = "EVT_BOSS_KILLED_NOTICE";
+        /// <summary>46003/46004 进出 Boss 场景结果(参数: bool isEnter, int code)。</summary>
+        public const string EVT_BOSS_ENTER_RESULT = "EVT_BOSS_ENTER_RESULT";
+        /// <summary>46007 关注/取关操作回执(参数: int bossType, int bossId, bool remind)。</summary>
+        public const string EVT_BOSS_REMIND_UPDATE = "EVT_BOSS_REMIND_UPDATE";
+        /// <summary>46019/46022 伤害榜落地(自己排名或前3防抖广播,recv 纯被动落表,非拉取)。</summary>
+        public const string EVT_BOSS_DAMAGE_RANK_UPDATE = "EVT_BOSS_DAMAGE_RANK_UPDATE";
+        /// <summary>46002 全局掉落日志落地(46046 跨服大妖变体本轮不接,详见 Proto.cs 说明)。</summary>
+        public const string EVT_BOSS_DROP_LOG_UPDATE = "EVT_BOSS_DROP_LOG_UPDATE";
+        /// <summary>46001 击杀日志落地(≤100 条,?BOSS_LOG_LEN 硬顶)。</summary>
+        public const string EVT_BOSS_KILL_LOG_UPDATE = "EVT_BOSS_KILL_LOG_UPDATE";
+        /// <summary>46041 消耗复活结果(参数: bool success, int bossType, int bossId)。</summary>
+        public const string EVT_BOSS_REVIVE_RESULT = "EVT_BOSS_REVIVE_RESULT";
+        /// <summary>46044/46043 体力数据更新。</summary>
+        public const string EVT_BOSS_VIT_UPDATE = "EVT_BOSS_VIT_UPDATE";
+        /// <summary>46045 找回体力结果(参数: bool success;wire 真实字段 code,订正老端 errcode 笔误)。</summary>
+        public const string EVT_BOSS_VIT_RECOVER_RESULT = "EVT_BOSS_VIT_RECOVER_RESULT";
+        /// <summary>20201-205 免战保护状态更新(信息/使用回执/结束时间/推送/结束回执统一走这一个信号)。</summary>
+        public const string EVT_BOSS_WAR_FREE_UPDATE = "EVT_BOSS_WAR_FREE_UPDATE";
+        /// <summary>20025/20026 场景采集查询/打断通知(参数: List&lt;long&gt; roleIds 或单 role;场景消费钩子
+        /// 未接,TODO,本事件先给可订阅信号)。</summary>
+        public const string EVT_BOSS_COLLECT_UPDATE = "EVT_BOSS_COLLECT_UPDATE";
     }
 }
