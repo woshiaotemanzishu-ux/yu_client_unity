@@ -44,10 +44,13 @@ namespace Shenxiao.Module.Core.Login
             _config = config;
 
             // 6 个独立 prefab 加载到 Window 层(键 prefabs/ui/login/<view>,编辑器有 prefab 兜底)。
+            Shenxiao.Framework.UI.BootOverlay.Report(0.90f, "正在加载登录界面…");
             _loginPanel = await LoadViewAsync<LoginPanelView>("LoginPanel");
             _loadingView = await LoadViewAsync<LoadingView>("LoadingView");
+            Shenxiao.Framework.UI.BootOverlay.Report(0.94f, "正在加载登录界面…");
             _enterView = await LoadViewAsync<ServerEnterView>("ServerEnterView");
             _selectView = await LoadViewAsync<ServerSelectView>("ServerSelectView");
+            Shenxiao.Framework.UI.BootOverlay.Report(0.97f, "正在加载登录界面…");
             _selectRoleView = await LoadViewAsync<RoleSelectView>("RoleSelectView");
             _createRoleView = await LoadViewAsync<RoleCreateView>("RoleCreateView");
             if (_loginPanel == null || _loadingView == null || _enterView == null
@@ -63,11 +66,14 @@ namespace Shenxiao.Module.Core.Login
             EventDispatcher.On<int>(GlobalEvent.EVT_GAME_ROLE_LIST, OnRoleList);
             EventDispatcher.On(GlobalEvent.EVT_GAME_ENTERED, OnGameEntered);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
+            EventDispatcher.On(GlobalEvent.EVT_SCENE_ENTITIES_READY, OnSceneEntitiesReady);
             LegacyPreloadService.ProgressChanged += OnPreloadProgress;
 
             // ---------- ① 加载页 ----------
             _loadingView.Show();
             _loadingView.SetProgress(0f);
+            await Task.Yield(); // 游戏自己的加载页渲染出第一帧后,页面 HTML 加载层才可撤(无缝交接)
+            Shenxiao.Framework.UI.BootOverlay.Done();
             await PreloadAsync();
             _loadingView.SetProgress(1f);
             await Task.Yield();
@@ -197,7 +203,8 @@ namespace Shenxiao.Module.Core.Login
 
         private static async Task<LoginRequestResult> WithTimeout(Task<LoginRequestResult> task, string what)
         {
-            Task finished = await Task.WhenAny(task, Task.Delay(15000));
+            // ⚠ Task.Delay 在 WebGL 永不醒 → 超时保护会失效(接口挂了就永等);用跨平台 Delay。
+            Task finished = await Task.WhenAny(task, Shenxiao.Framework.Util.TimeUtil.Delay(15000));
             if (finished != task)
             {
                 GameLog.Error("Login", "{0}超时:{1} 不可达(浏览器应能打开并显示 API is ready)", what, _config.gmApiUrl);
@@ -321,6 +328,7 @@ namespace Shenxiao.Module.Core.Login
             HideView(_selectView);
             HideView(_selectRoleView);
             HideView(_createRoleView);
+            if (_loadingView == null) return; // 登录模块已退役(异常重入防御)
             _loadingView.Show();
             _loadingView.SetProgress(0f, "加载游戏资源");
             GameLog.Info("Login", "进入游戏成功,等待 GAME_START 资源接管完成");
@@ -328,8 +336,60 @@ namespace Shenxiao.Module.Core.Login
 
         private static void OnGameStart()
         {
-            HideAllViews();
-            GameLog.Info("Login", "—— 🎉 GAME_START:登录模块退下,主城/场景接管 ——");
+            // 加载页留任到场景首屏就绪:GAME_START 时 12005 还没发,这里就撤页会让玩家
+            // 盯着黑地图等瓦片/怪物蹦出来(实测 5-10s 裸奔)。等 EVT_SCENE_FIRST_SCREEN_READY 揭幕。
+            HideView(_loginPanel);
+            HideView(_enterView);
+            HideView(_selectView);
+            HideView(_selectRoleView);
+            HideView(_createRoleView);
+            if (_loadingView != null) _loadingView.SetProgress(1f, "进入场景");
+            _ = HideLoadingFallbackAsync();
+            GameLog.Info("Login", "—— 🎉 GAME_START:登录模块退下,等场景首屏就绪揭幕 ——");
+            // 老端"进包免下载"清单改为进游戏后后台静默预取(Boot 不再硬下 100MB,详见 LegacyPreloadService)。
+            _ = LegacyPreloadService.BackgroundPrefetchLegacyAsync();
+            MemoryReport.ScheduleAfterGameStart(); // Development 构建:world+30s/120s 内存归因 dump(Release no-op)
+        }
+
+        private static void OnSceneEntitiesReady()
+        {
+            // 首屏实体(主角/怪/NPC)全部立起才揭幕——只等瓦片的话玩家会盯着实体逐个蹦 3-5 秒。
+            HideView(_loadingView);
+            // 登录模块整体退役:六个登录 prefab(含 ui_Login_bg1/bg2/load_bg0 等 4 张 5MB 级大图与其
+            // bundle)Hide 只是隐藏,实例与纹理整局驻留(MemReport 实测 ~21MB)。WebGL 断线=页面级重载+
+            // 游戏内静默重连,本会话不会再回登录页,销毁归还。重复触发(每次切图)时字段已空,无害。
+            ReleaseLoginViews();
+        }
+
+        private static void ReleaseLoginViews()
+        {
+            if (_loginPanel == null && _loadingView == null) return;
+            ReleaseView(ref _loginPanel);
+            ReleaseView(ref _enterView);
+            ReleaseView(ref _selectView);
+            ReleaseView(ref _selectRoleView);
+            ReleaseView(ref _createRoleView);
+            ReleaseView(ref _loadingView);
+            LegacyPreloadService.ProgressChanged -= OnPreloadProgress;
+            GameLog.Info("Login", "login views released(进世界,登录模块退役归还纹理/bundle)");
+        }
+
+        private static void ReleaseView<T>(ref T view) where T : BaseView
+        {
+            if (view == null) return;
+            ResManager.ReleaseInstance(view.gameObject);
+            view = null;
+        }
+
+        /// <summary>首屏就绪事件缺席(异常流程)时 12s 兜底撤加载页,别把玩家关在门外。</summary>
+        private static async Task HideLoadingFallbackAsync()
+        {
+            await TimeUtil.Delay(12000);
+            if (_loadingView != null && _loadingView.gameObject.activeInHierarchy)
+            {
+                GameLog.Warn("Login", "首屏就绪事件超时,加载页兜底撤下");
+                HideView(_loadingView);
+            }
         }
 
         private static void OnPreloadProgress(LegacyPreloadStage stage, float progress, string hint)

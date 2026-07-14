@@ -178,10 +178,22 @@ namespace Shenxiao.Module.Core.Boss
 
         // ---- 46009 订正后类型门(rule10,轮13 权限 truthy 同款笔误订正):老端 `||` 链漏 `==`,
         // 后 7 项裸常量恒真,KILL_BOSS 对任意 boss_type 无条件触发——本端改成显式集合命中判断。
+        // 轮15b 复核订正:老端 On46009 门里那句 `BossModel.BossType.mystery` 在老端常量表(BossModel.ts:143
+        // `mystery: 20,//秘境领域boss 本服16 跨服20`)运行时数值其实是 20,不是 15a 沿用的 16——15a 把这门
+        // 错接到了本服 BOSS_TYPE_DOMAIN(16)常量上,订正为 KfGreatDemon(20)。
+        // 双收依据(服务端 write(46009) 调用点实参核对,E:\GitProject\yu_server):
+        //   ·16(DOMAIN)确有真实到达路径——lib_boss.erl:2400(cl_boss_reborn,秘境领域怪物自然重生广播)+
+        //     lib_boss.erl:2494(create_domain_special_boss_core,秘境特殊怪补怪广播),均 BossType=?BOSS_TYPE_DOMAIN
+        //     经 mod_boss.erl:717/786(gm_create_domain_boss cast + boss_be_kill DOMAIN 分支)真实触达,非死代码。
+        //   ·20(KfGreatDemon)同样有真实到达路径——lib_great_demon.erl:457/504/534 三处
+        //     pt_460:write(46009,[?BOSS_TYPE_KF_GREAT_DEMON,...]),跨服节点补怪/重生广播。
+        // 两个类型都会真实收到 46009,故双收(16 订正保留 + 20 补上),而不是简单替换。
         private static readonly HashSet<int> KillBossNotifyTypes = new HashSet<int>
         {
             BossType.Suit, BossType.Secret, BossType.Eudaemon, BossType.Field,
-            BossType.FieldInfinite, BossType.FieldSpecial, BossType.Abyss, BossType.Mystery,
+            BossType.FieldInfinite, BossType.FieldSpecial, BossType.Abyss,
+            BossType.Mystery,      // BOSS_TYPE_DOMAIN=16,双收依据见上
+            BossType.KfGreatDemon, // BOSS_TYPE_KF_GREAT_DEMON=20,老端 mystery 常量运行时真值,本轮主收订正
         };
 
         public static bool ShouldNotifyKillBoss(int bossType) => KillBossNotifyTypes.Contains(bossType);

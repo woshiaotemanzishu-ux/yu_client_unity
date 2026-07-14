@@ -34,5 +34,20 @@ namespace Shenxiao.Framework.Util
         public static long NowSec() => NowMs() / 1000L;
 
         public static DateTime NowUtc() => _epoch.AddMilliseconds(NowMs());
+
+        /// <summary>
+        /// 跨平台延迟(替代 Task.Delay)。⚠ WebGL 上 Task.Delay 永不完成(依赖 System.Threading.Timer,
+        /// WebGL 无线程),曾造成:自动战斗环一拍即死、combo 副技能(真实伤害包)永不补发、任务轮询停摆。
+        /// WebGL 走 Unity 6 Awaitable.WaitForSecondsAsync(主线程帧驱动);其他平台保持 Task.Delay。
+        /// 只能在主线程 async 链中使用(本项目所有游戏逻辑均满足)。
+        /// </summary>
+        public static async System.Threading.Tasks.Task Delay(int ms, System.Threading.CancellationToken token = default)
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            await UnityEngine.Awaitable.WaitForSecondsAsync(ms / 1000f, token);
+#else
+            await System.Threading.Tasks.Task.Delay(ms, token);
+#endif
+        }
     }
 }

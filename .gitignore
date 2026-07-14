@@ -55,3 +55,28 @@ Desktop.ini
 # /Assets/Prefabs/UI/ 规则对已跟踪文件不生效;其余 UI prefab 仍忽略(可再生成)。
 # 注:这些 prefab 引用的散图/字体仍在被忽略的 /Assets/GameRes/resource/ 下,
 # clean checkout 时结构与脚本组件可加载,缺失的静态贴图=优雅降级(动态图运行时走 ResManager)。
+
+# ── 生成物 / 缓存 / 构建产物(不入库,纯浪费空间)────────────────────────
+# 以下全部为「未跟踪」的机器本地产物,忽略即可,无需 git rm。
+
+# Android IL2CPP / CMake / Ninja 原生构建临时目录(.o / ninja / CMakeCache…)
+/.utmp/
+
+# Addressables 打包输出:bundle + catalog,每次构建重生成,~GB 级
+/ServerData/
+
+# Addressables 编辑器生成的机器/CDN 相关缓存(Unity 官方建议忽略:含本机 CCD
+# 桶信息,逐人不同,入库会引起无谓冲突)
+/Assets/AddressableAssetsData/ProfileDataSourceSettings.asset
+/Assets/AddressableAssetsData/ProfileDataSourceSettings.asset.meta
+# 注:addressables_content_state.bin(Android/WebGL,各 ~750K)不忽略——体积小,
+# 且它是内容热更(Update a Previous Build)的基线,漏记反而会出问题,照常入库。
+
+# PoseProbe 调试渲染帧(写到工程根目录)
+/PoseProbe_*.png
+
+# 无头测试 harness 的浏览器 profile/缓存、依赖与截图产物
+#(*.cjs / *.mjs 脚本本身保留入库)
+/Tools/headless/node_modules/
+/Tools/headless/out*/
+/Tools/headless/*profile*/

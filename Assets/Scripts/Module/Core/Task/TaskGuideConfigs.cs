@@ -24,6 +24,7 @@ namespace Shenxiao.Module.Core.Tasks
 
         private static JObject _root;
         private static readonly HashSet<int> _missingLogged = new HashSet<int>();
+        private static readonly HashSet<int> _noStepLogged = new HashSet<int>();
 
         public static bool IsLoaded => _root != null;
 
@@ -42,6 +43,7 @@ namespace Shenxiao.Module.Core.Tasks
 
             _root = JObject.Parse(asset.text);
             _missingLogged.Clear();
+            _noStepLogged.Clear();
             ResManager.Release(asset);
         }
 
@@ -130,7 +132,11 @@ namespace Shenxiao.Module.Core.Tasks
             }
 
             TaskModel.TaskGuideStep step = ReadStep(arrowCfg);
-            if (step == null) LogMissingOnce(task.TaskTipsType, "missing main-ui guide step");
+            // 无步骤≠缺配置:如 tipsType=10 按具体任务 ID 配子表(sub_dun_type_in_main_ui),
+            // 不在表内的任务老端就是静默无箭头——每类型一次 Info 留痕即可,别当告警刷。
+            if (step == null && _noStepLogged.Add(task.TaskTipsType))
+                GameLog.Info("Task", "ConfigTaskArrow no main-ui guide step: tipsType={0} task={1}(老端同为无箭头,非缺配)",
+                    task.TaskTipsType, task.TaskId);
             return step;
         }
 

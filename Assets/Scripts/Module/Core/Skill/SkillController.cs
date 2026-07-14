@@ -63,16 +63,19 @@ namespace Shenxiao.Module.Core.Skill
 
         private async void OnGameStart()
         {
+            // Reset 必须在任何 await 之前同步执行:压在 4 个 Addressables await 后面时,与登录点火链
+            // (TaskController→FindNextAutoFightTask→SetAutoFightWeight(TASK))存在竞态——Reset 落在首次
+            // 点火之后会把状态灭掉,后续同值 SetAutoFightWeight 早退不发事件,攻击环再无人拉起(死循环成因)。
+            AutoFightModel.Instance.Reset();
+            // 21002/13007 不依赖本地配置,先发不压在配置加载后面(配置挂起曾导致技能表永远不来 → 永久 no-skill)。
+            SendFmt(Proto.SKILL_LIST);         // 21002 技能总表
+            SendFmt(Proto.SKILL_SHORTCUT_BAR); // 13007 快捷栏
+
             // 技能名/等级图标来自 config_skill;快捷栏顺序来自 ConfigSkillUI(EnsureLoaded 幂等,对标 BagController/TaskController)。
             await SkillConfigs.EnsureLoaded();
             await SkillUIConfigs.EnsureLoaded();
             await SkillMovieConfigs.EnsureLoaded();
             await OtherFightConfigs.EnsureLoaded();
-            AutoFightModel.Instance.Reset();
-
-            // 对标 SkillController GAME_START 延迟批量请求;Unity 这里 await 配置即天然延迟,连接已就绪后再发。
-            SendFmt(Proto.SKILL_LIST);         // 21002 技能总表
-            SendFmt(Proto.SKILL_SHORTCUT_BAR); // 13007 快捷栏
             // 对标老端 GAME_START 延迟2帧追加请求(21010/18401 无条件发,服务端按 turn 静默 skip,非错误码)。
             SendFmt(Proto.TALENT_INFO);        // 21010 天赋面板
             SendFmt(Proto.MODULE_BUFF_LIST);   // 18401 模块加成

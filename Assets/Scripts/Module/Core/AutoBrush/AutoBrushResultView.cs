@@ -138,7 +138,7 @@ namespace Shenxiao.Module.Core.AutoBrush
             while (!token.IsCancellationRequested)
             {
                 if (_bind?._lb_exit != null) _bind._lb_exit.text = "完成(" + _leftTime + ")";
-                try { await Task.Delay(1000, token); }
+                try { await Shenxiao.Framework.Util.TimeUtil.Delay(1000, token); }
                 catch (TaskCanceledException) { return; }
 
                 _leftTime--;

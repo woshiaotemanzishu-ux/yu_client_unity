@@ -109,131 +109,74 @@ namespace Shenxiao.EditorTools.ArtImport
             public List<LedgerRun> runs = new List<LedgerRun>();
         }
 
-        // ---------------- 职业对照面板(左=老模型,右=新整模) ----------------
-
-        private sealed class CareerRow
-        {
-            public string Name;           // 剑士
-            public int Res;               // role_res(configlogin.json CreateRole.Res)
-            public bool HasOld;           // object/role/model_clothe_{res}/ 在
-            public string NewStatus;      // 未导入 / 仅create2 / create2+3
-            public string ArtStatus;      // 美术工程:未交付 / 未导入 / 可更新 / 已是最新
-            public string ImportedFolder; // Assets/GameRes/object/role/model_create_{res}
-            public readonly List<string> ArtPrefabs = new List<string>();
-        }
+        // ---------------- 泛化部件导入(2026-07-11:创角整模已退役改视频,导入线泛化到任意部件) ----------------
+        //
+        // 交付规范(与美术约定):{美术工程}/Assets/{TopDir}/{module}_{id}/{任意前缀}@{动作}.prefab
+        //   Role/role_1213、Head/head_1213、Weapon/weapon_1200…;动作名取 prefab 名 '@' 后缀(小写)。
+        // 目标:Assets/GameRes/object/{module}/{module}_{id}/{id}@{动作}.prefab(根 prefab 统一改名,
+        //   前缀随意→键位确定;文件改名不动 .meta 内容,GUID/引用不受影响)。
 
         private const string QuickSourcePrefsKey = "ArtImport.SourceProject";
-        private const string LoginConfigPath = "Assets/GameRes/resource/config/client/configlogin.json";
         private string _quickSource;
-        private List<CareerRow> _careers;
+
+        /// <summary>部件模块 ↔ 美术工程顶层目录。加新部件类型(坐骑/怪物…)在这里列装。</summary>
+        private static readonly Dictionary<string, string> PartTopDirs = new Dictionary<string, string>
+        {
+            { "role", "Role" }, { "head", "Head" }, { "weapon", "Weapon" },
+            { "wing", "Wing" }, { "back", "Back" },
+        };
+
+        /// <summary>角色本体骨架必须带的挂点空节点(精确小写;RoleModelAssembler/EffectBinder 按名匹配)。</summary>
+        private static readonly string[] RoleMountNodes = { "head", "rhand", "root" };
+
+        public static bool IsPartModule(string module) => PartTopDirs.ContainsKey(module);
+
+        private static string SourceProject =>
+            EditorPrefs.GetString(QuickSourcePrefsKey, "E:/Project/ArtsProject").Replace('\\', '/').TrimEnd('/');
+
+        private static string PartSourceFolder(string module, string folderName) =>
+            $"{SourceProject}/Assets/{PartTopDirs[module]}/{folderName}";
 
         private void OnEnable()
         {
             _quickSource = EditorPrefs.GetString(QuickSourcePrefsKey, "E:/Project/ArtsProject");
         }
 
-        /// <summary>按 configlogin.json 的职业表建对照:老拼装 / 新整模(工程内) / 美术工程交付状态。</summary>
-        private void ScanCareers()
+        /// <summary>
+        /// 美术工程部件交付状态:未交付 / 未导入 / 可更新 / 已是最新(哈希比对)。
+        /// 有几 MB 的 prefab 要算 MD5——调用方自行缓存结果,别放 OnGUI 每帧调。
+        /// </summary>
+        public static string GetPartArtStatus(string module, string folderName)
         {
-            _careers = new List<CareerRow>();
-            if (!File.Exists(LoginConfigPath))
-            {
-                EditorUtility.DisplayDialog("缺配置", LoginConfigPath + " 不存在", "好");
-                return;
-            }
-            Newtonsoft.Json.Linq.JObject cfg =
-                Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(LoginConfigPath));
-            Newtonsoft.Json.Linq.JToken createRole = cfg["CreateRole"];
-            if (!(createRole?["UI"] is Newtonsoft.Json.Linq.JArray ui))
-            {
-                EditorUtility.DisplayDialog("配置异常", "configlogin.json 里没有 CreateRole.UI", "好");
-                return;
-            }
-            foreach (Newtonsoft.Json.Linq.JToken o in ui)
-            {
-                int career = o.Value<int>("career");
-                int sex = o.Value<int>("sex");
-                int res = createRole["Res"]?[$"{career}@{sex}"]?.Value<int>("role_res") ?? 0;
-                var row = new CareerRow { Name = o.Value<string>("name"), Res = res };
-                if (res > 0)
-                {
-                    row.HasOld = AssetDatabase.IsValidFolder($"Assets/GameRes/object/role/model_clothe_{res}");
-                    row.ImportedFolder = $"Assets/GameRes/object/role/model_create_{res}";
-                    bool c2 = File.Exists(AbsOfProject($"{row.ImportedFolder}/{res}@create2.prefab"));
-                    bool c3 = File.Exists(AbsOfProject($"{row.ImportedFolder}/{res}@create3.prefab"));
-                    row.NewStatus = c2 ? (c3 ? "create2+3" : "仅create2") : "未导入";
-                    ScanArtSide(row);
-                }
-                _careers.Add(row);
-            }
-        }
-
-        private void ScanArtSide(CareerRow row)
-        {
-            row.ArtPrefabs.Clear();
-            string folder = (_quickSource ?? "").Replace('\\', '/').TrimEnd('/') + $"/Assets/role_{row.Res}";
-            if (!Directory.Exists(folder))
-            {
-                row.ArtStatus = "未交付";
-                return;
-            }
+            if (!IsPartModule(module)) return "未交付";
+            _md5Cache.Clear(); // 导入会替换工程内文件,别吃陈旧哈希
+            string folder = PartSourceFolder(module, folderName);
+            if (!Directory.Exists(folder)) return "未交付";
             bool anyNew = false, anyUpdate = false;
+            int count = 0;
             foreach (string prefab in Directory.GetFiles(folder, "*@*.prefab", SearchOption.TopDirectoryOnly))
             {
+                count++;
                 string abs = prefab.Replace('\\', '/');
-                row.ArtPrefabs.Add(abs);
                 string guid = ReadGuidOfMeta(abs + ".meta");
                 string existing = guid != null ? AssetDatabase.GUIDToAssetPath(guid) : null;
                 if (string.IsNullOrEmpty(existing)) anyNew = true;
                 else if (!(HashEquals(abs, existing) && HashEquals(abs + ".meta", existing + ".meta"))) anyUpdate = true;
             }
-            row.ArtStatus = row.ArtPrefabs.Count == 0 ? "未交付"
-                : anyNew ? "未导入" : anyUpdate ? "可更新" : "已是最新";
+            return count == 0 ? "未交付" : anyNew ? "未导入" : anyUpdate ? "可更新" : "已是最新";
         }
 
-        private void DrawCareerPanel()
+        /// <summary>
+        /// 角色本体挂点体检:返回缺失的挂点节点名(head/rhand/root,精确小写)。
+        /// 缺 rhand=武器挂不上、缺 head=头饰挂不上、缺 root=技能特效兜底挂错位——需美术在骨架里补空节点。
+        /// </summary>
+        public static string[] MissingRoleMounts(string prefabPath)
         {
-            EditorGUILayout.LabelField("创角职业对照(左=老拼装,右=新整模;运行时有新用新、无新用老)", EditorStyles.boldLabel);
-            EditorGUILayout.BeginHorizontal();
-            string src = EditorGUILayout.TextField("美术工程", _quickSource);
-            if (src != _quickSource)
-            {
-                _quickSource = src;
-                EditorPrefs.SetString(QuickSourcePrefsKey, src);
-            }
-            if (GUILayout.Button("扫描", GUILayout.Width(60f))) ScanCareers();
-            EditorGUILayout.EndHorizontal();
-
-            if (_careers == null) return;
-            foreach (CareerRow row in _careers)
-            {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField($"{row.Name}({(row.Res > 0 ? row.Res.ToString() : "无res")})", GUILayout.Width(96f));
-                EditorGUILayout.LabelField(row.HasOld ? "老:拼装✓" : "老:缺!", GUILayout.Width(66f));
-                EditorGUILayout.LabelField("新:" + (row.NewStatus ?? "-"), GUILayout.Width(96f));
-                EditorGUILayout.LabelField("美术:" + (row.ArtStatus ?? "-"), GUILayout.Width(96f));
-
-                GUI.enabled = row.ArtPrefabs.Count > 0;
-                if (GUILayout.Button("导入/更新", GUILayout.Width(70f)))
-                {
-                    _sourcePrefabs.Clear();
-                    _sourcePrefabs.AddRange(row.ArtPrefabs);
-                    Plan plan = Scan();
-                    if (plan.Files.Count > 0) Execute(plan);
-                    _plan = null;
-                    ScanCareers();
-                    GUIUtility.ExitGUI(); // 布局中途弹了进度条/对话框,结束本帧 GUI 防布局错乱
-                }
-                GUI.enabled = row.NewStatus != null && row.NewStatus != "未导入";
-                if (GUILayout.Button("重导FBX", GUILayout.Width(66f)))
-                {
-                    ReimportModels(row.ImportedFolder);
-                    GUIUtility.ExitGUI();
-                }
-                GUI.enabled = true;
-                EditorGUILayout.EndHorizontal();
-            }
-            EditorGUILayout.Space();
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null) return RoleMountNodes;
+            var names = new HashSet<string>(
+                prefab.GetComponentsInChildren<Transform>(true).Select(t => t.name));
+            return RoleMountNodes.Where(n => !names.Contains(n)).ToArray();
         }
 
         /// <summary>
@@ -261,6 +204,12 @@ namespace Shenxiao.EditorTools.ArtImport
         private Vector2 _scroll;
         private string _lastDir = "";
 
+        // ---- ImportPart(泛化部件一键导入)专用;手动窗口路径不设,保持原行为 ----
+        private string _forcedTargetFolder; // 目标夹名固定(role_1213/head_1213/weapon_1200),不再按源夹名猜
+        private string _partId;             // 根 prefab 统一改名 {id}@{动作}.prefab(head@idle → 1213@idle)
+        private bool _sampleLanding = true; // 头饰/武器不采落点(2.33 身高归一只对角色本体有意义)
+        private bool _checkRoleMounts;      // 角色本体导入后做挂点体检(head/rhand/root),结果进台账
+
         [MenuItem("神霄/美术/导入外部成品模型(保GUID)", priority = 30)]
         public static void Open()
         {
@@ -269,18 +218,25 @@ namespace Shenxiao.EditorTools.ArtImport
         }
 
         /// <summary>
-        /// 外部面板(资产管理等)的一键入口:按 role_res 从美术工程导入/替换该角色的创角整模。
-        /// 走与本窗口完全相同的管线(整文件夹+保GUID+FBX二次导入+档案注入+台账)。
+        /// 外部面板(资产管理[替换新模型])的一键入口:按 交付规范 从美术工程导入/替换一个部件整夹。
+        /// 走与本窗口完全相同的管线(整文件夹+保GUID+FBX二次导入+档案注入+台账),外加:
+        /// 目标夹名固定为 {module}_{id}、根 prefab 统一改名 {id}@{动作}.prefab;
+        /// module=role 时采落点+挂点体检,其余部件不采落点(身高归一只对角色本体有意义)。
         /// </summary>
-        public static bool ImportRole(int res, out string summary)
+        public static bool ImportPart(string module, string folderName, out string summary)
         {
+            if (!IsPartModule(module))
+            {
+                summary = $"未知部件模块 {module}(可选:{string.Join("/", PartTopDirs.Keys)})";
+                return false;
+            }
             var tool = CreateInstance<ArtPrefabImporter>();
             try
             {
-                string folder = (tool._quickSource ?? "").Replace('\\', '/').TrimEnd('/') + $"/Assets/role_{res}";
+                string folder = PartSourceFolder(module, folderName);
                 if (!Directory.Exists(folder))
                 {
-                    summary = $"美术工程未交付 role_{res}({folder})";
+                    summary = $"美术工程未交付 {PartTopDirs[module]}/{folderName}({folder})";
                     return false;
                 }
                 tool._sourcePrefabs.Clear();
@@ -288,9 +244,17 @@ namespace Shenxiao.EditorTools.ArtImport
                     tool._sourcePrefabs.Add(prefab.Replace('\\', '/'));
                 if (tool._sourcePrefabs.Count == 0)
                 {
-                    summary = $"role_{res} 根目录下没有 xxx@动作.prefab";
+                    summary = $"{folderName} 根目录下没有 xxx@动作.prefab";
                     return false;
                 }
+
+                tool._targetBase = $"Assets/GameRes/object/{module}";
+                tool._forcedTargetFolder = folderName;
+                int us = folderName.LastIndexOf('_');
+                tool._partId = us >= 0 && us < folderName.Length - 1 ? folderName.Substring(us + 1) : folderName;
+                tool._sampleLanding = module == "role";
+                tool._checkRoleMounts = module == "role";
+
                 Plan plan = tool.Scan();
                 if (plan.Files.Count == 0)
                 {
@@ -298,9 +262,17 @@ namespace Shenxiao.EditorTools.ArtImport
                     return false;
                 }
                 tool.Execute(plan);
-                summary = $"role_{res}:新增 {plan.Files.Count(f => f.Action == FileAction.Add)}," +
+                summary = $"{folderName}:新增 {plan.Files.Count(f => f.Action == FileAction.Add)}," +
                           $"替换 {plan.Files.Count(f => f.Action == FileAction.Replace)}," +
                           $"未变 {plan.Files.Count(f => f.Action == FileAction.SkipSame)}";
+                if (module == "role")
+                {
+                    string firstRoot = plan.RootPrefabDsts.FirstOrDefault();
+                    string[] missing = firstRoot != null ? MissingRoleMounts(firstRoot) : RoleMountNodes;
+                    summary += missing.Length == 0
+                        ? ";挂点体检✓(head/rhand/root 齐)"
+                        : $";⚠挂点缺[{string.Join(",", missing)}](美术需在骨架补空节点)";
+                }
                 return true;
             }
             finally
@@ -310,41 +282,17 @@ namespace Shenxiao.EditorTools.ArtImport
         }
 
         /// <summary>
-        /// 美术工程交付状态:未交付 / 未导入 / 可更新 / 已是最新(哈希比对)。
-        /// 有几 MB 的 prefab 要算 MD5——调用方自行缓存结果,别放 OnGUI 每帧调。
-        /// </summary>
-        public static string GetArtStatus(int res)
-        {
-            _md5Cache.Clear(); // 导入会替换工程内文件,别吃陈旧哈希
-            string src = EditorPrefs.GetString(QuickSourcePrefsKey, "E:/Project/ArtsProject");
-            string folder = src.Replace('\\', '/').TrimEnd('/') + $"/Assets/role_{res}";
-            if (!Directory.Exists(folder)) return "未交付";
-            bool anyNew = false, anyUpdate = false;
-            int count = 0;
-            foreach (string prefab in Directory.GetFiles(folder, "*@*.prefab", SearchOption.TopDirectoryOnly))
-            {
-                count++;
-                string abs = prefab.Replace('\\', '/');
-                string guid = ReadGuidOfMeta(abs + ".meta");
-                string existing = guid != null ? AssetDatabase.GUIDToAssetPath(guid) : null;
-                if (string.IsNullOrEmpty(existing)) anyNew = true;
-                else if (!(HashEquals(abs, existing) && HashEquals(abs + ".meta", existing + ".meta"))) anyUpdate = true;
-            }
-            return count == 0 ? "未交付" : anyNew ? "未导入" : anyUpdate ? "可更新" : "已是最新";
-        }
-
-        /// <summary>
         /// 一键把创角整模的动画/位移相关事实吐到 Console(排查"位移不播/落点不对"用,输出发给程序):
         /// FBX 动画类型与 motion 节点、每个 clip 的根位移曲线(RootT/MotionT/根路径 m_LocalPosition)、
         /// prefab 上每个 Animator 的 applyRootMotion、蒙皮渲染器的 rootBone 与包围盒。
         /// </summary>
-        [MenuItem("神霄/美术/诊断创角整模(输出Console)", priority = 31)]
+        [MenuItem("神霄/美术/诊断新角色模型(输出Console)", priority = 31)]
         public static void DiagnoseCreatorModels()
         {
-            var sb = new System.Text.StringBuilder("=== 创角整模诊断 ===\n");
+            var sb = new System.Text.StringBuilder("=== 新角色模型诊断(object/role/role_*) ===\n");
             foreach (string dir in AssetDatabase.GetSubFolders("Assets/GameRes/object/role"))
             {
-                if (!Path.GetFileName(dir).StartsWith("model_create_", StringComparison.Ordinal)) continue;
+                if (!Regex.IsMatch(Path.GetFileName(dir), @"^role_\d+$")) continue;
                 sb.AppendLine($"—— {dir}");
                 Vector3? create2End = null, create3End = null; // 顶层节点末帧,做落点一致性/单位判定
 
@@ -470,7 +418,17 @@ namespace Shenxiao.EditorTools.ArtImport
         {
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
 
-            DrawCareerPanel();
+            // 一键部件替换入口在【神霄/资产管理】各模型条目详情页(走 ImportPart);
+            // 本窗口保留手动模式:任意外部工程 prefab 的通用保GUID导入。
+            EditorGUILayout.BeginHorizontal();
+            string src = EditorGUILayout.TextField("美术工程(一键线源)", _quickSource);
+            if (src != _quickSource)
+            {
+                _quickSource = src;
+                EditorPrefs.SetString(QuickSourcePrefsKey, src);
+            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("源(另一个 Unity 工程的 prefab)", EditorStyles.boldLabel);
             for (int i = _sourcePrefabs.Count - 1; i >= 0; i--)
@@ -497,7 +455,7 @@ namespace Shenxiao.EditorTools.ArtImport
             _importWholeFolder = EditorGUILayout.ToggleLeft(
                 "整文件夹导入(推荐:FBX 内嵌材质按名搜索的贴图不在 GUID 闭包里,漏了=白模)", _importWholeFolder);
             EditorGUILayout.HelpBox(
-                "prefab 名形如 1300@create2 时落到 {模型目录}/model_create_1300/,否则用源文件夹名;\n" +
+                "落夹规则:{模型目录}/{源文件夹名小写}/(交付规范 role_1213/head_1213/…,夹名即键位);\n" +
                 "角色文件夹之外的依赖(Shared/PandaShader 等)按源相对路径落到共享目录,只存一份。",
                 MessageType.None);
 
@@ -758,17 +716,13 @@ namespace Shenxiao.EditorTools.ArtImport
 
         private void MapTargets(Plan plan, List<PlannedFile> closure)
         {
-            // 每个源 prefab 所在文件夹 → 目标文件夹名(1300@create2 → model_create_1300)
+            // 每个源 prefab 所在文件夹 → 目标文件夹名。ImportPart 固定为 {module}_{id};
+            // 手动窗口按源文件夹名小写落夹(交付规范 role_1213/head_1213/…,夹名即键位)。
             var folderMap = new Dictionary<string, string>(); // 源相对文件夹 -> 目标文件夹名
             foreach (string prefab in _sourcePrefabs)
             {
                 string folderRel = Rel(plan.SourceAssetsRoot, Path.GetDirectoryName(prefab));
-                string name = Path.GetFileNameWithoutExtension(prefab);
-                Match m = Regex.Match(name, @"^(\d+)@");
-                string target = m.Success
-                    ? $"model_create_{m.Groups[1].Value}"
-                    : Path.GetFileName(folderRel).ToLowerInvariant();
-                folderMap[folderRel] = target;
+                folderMap[folderRel] = _forcedTargetFolder ?? Path.GetFileName(folderRel).ToLowerInvariant();
             }
 
             var usedDst = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -812,6 +766,24 @@ namespace Shenxiao.EditorTools.ArtImport
                 bool isRootPrefab = f.Src.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase) &&
                     _sourcePrefabs.Any(p => string.Equals(
                         Path.GetDirectoryName(p)?.Replace('\\', '/'), srcDir, StringComparison.OrdinalIgnoreCase));
+
+                // ImportPart:根 prefab 统一改名 {id}@{动作}.prefab(head@idle → 1213@idle)。
+                // 改的是目标文件名,.meta 内容原样,GUID/引用不受影响;键位从此确定,前缀随美术。
+                // 已在工程内原位替换(Replace/SkipSame)的沿用现路径——首轮导入已归一,不再折腾。
+                if (isRootPrefab && _partId != null && f.Action == FileAction.Add)
+                {
+                    string stem = Path.GetFileNameWithoutExtension(f.Dst);
+                    int at = stem.IndexOf('@');
+                    if (at >= 0 && at < stem.Length - 1)
+                    {
+                        string dir = Path.GetDirectoryName(f.Dst)?.Replace('\\', '/');
+                        string renamed = $"{dir}/{_partId}@{stem.Substring(at + 1).ToLowerInvariant()}.prefab";
+                        if (string.Equals(renamed, f.Dst, StringComparison.Ordinal) || usedDst.Add(renamed))
+                            f.Dst = renamed;
+                        else
+                            plan.Warnings.Add($"根 prefab 改名撞车,保留原名:{f.Dst}(源里有重名动作?)");
+                    }
+                }
                 if (isRootPrefab) plan.RootPrefabDsts.Add(f.Dst);
                 plan.Files.Add(f);
             }
@@ -894,13 +866,29 @@ namespace Shenxiao.EditorTools.ArtImport
                 {
                     foreach (string dst in plan.RootPrefabDsts.Distinct())
                     {
-                        // 每个 prefab 用【自己动作的末帧】采样自己的落点/体量:即使 create2 与
-                        // create3 的 FBX 导出单位错配(1213 实锤 2.54×),各自归一后都精确落在
-                        // 原点、身高 2.33,切换依旧无缝——单位错配被自动中和,不阻塞在美术侧
-                        (bool hasLanding, Vector3 landing, float scale) = SamplePrefabLanding(dst, notes);
+                        // 每个 prefab 用【自己动作的末帧】采样自己的落点/体量:即使两段动作的
+                        // FBX 导出单位错配(1213 实锤 2.54×),各自归一后都精确落在
+                        // 原点、身高 2.33,切换依旧无缝——单位错配被自动中和,不阻塞在美术侧。
+                        // 头饰/武器等部件不采(挂到本体骨骼上随本体,身高归一无意义)。
+                        (bool hasLanding, Vector3 landing, float scale) = _sampleLanding
+                            ? SamplePrefabLanding(dst, notes)
+                            : (false, Vector3.zero, 1f);
                         string[] blendMats = AnalyzeBlendMaterials(dst, notes);
                         InjectProfile(dst, _renderMode == RenderMode.Dedicated, rendererIndex,
                             hasLanding, landing, scale, blendMats, notes);
+                    }
+                }
+
+                // 3.5 挂点体检(角色本体):骨架必须带 head/rhand/root 精确小写空节点,
+                // 装配器(RoleModelAssembler.FindBone)按名精确匹配,缺=头饰/武器挂不上、特效挂错位
+                if (_checkRoleMounts)
+                {
+                    foreach (string dst in plan.RootPrefabDsts.Distinct())
+                    {
+                        string[] missing = MissingRoleMounts(dst);
+                        if (missing.Length > 0)
+                            notes.Add($"挂点体检 {Path.GetFileName(dst)}:缺 [{string.Join(",", missing)}]" +
+                                      "(精确小写;缺 rhand=武器挂不上/缺 head=头饰挂不上/缺 root=特效兜底挂错位)——需美术在骨架补空节点");
                     }
                 }
 

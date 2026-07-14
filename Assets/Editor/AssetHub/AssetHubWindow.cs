@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -1130,58 +1131,310 @@ namespace Shenxiao.Editor.AssetHub
             }
         }
 
-        // 美术工程交付状态缓存(GetArtStatus 要给几 MB 的 prefab 算 MD5,不能每帧调)
-        private readonly Dictionary<int, string> _wholeModelArtStatus = new Dictionary<int, string>();
-        private bool _previewWholeModel; // 预览窗显示新整模(而不是老转换产物)
+        // 新模型(美术成品)交付状态缓存(GetPartArtStatus 要给几 MB 的 prefab 算 MD5,不能每帧调)
+        private readonly Dictionary<string, string> _artPartStatus = new Dictionary<string, string>();
+        // 挂点体检缓存(要载 prefab 数节点,不能每帧调);key=交付夹名,值=缺失挂点列表
+        private readonly Dictionary<string, string[]> _mountCache = new Dictionary<string, string[]>();
+        private bool _previewNewModel; // 预览窗显示新模型(而不是老转换产物)
+        private bool _oldClipsFoldout;   // 有新模型线时,原始动作长列表默认收起(防糊满详情页)
+        private string _oldClipsEntryId; // 换条目时重置折叠状态
 
         /// <summary>
-        /// 新整模(创角成品 prefab)对照区:老拼装条目下直接显示"工程内/美术工程"两侧状态,
-        /// 一键从美术工程导入/替换。运行时规则:创角页有新整模用新,没有回落老拼装,互不影响。
+        /// 条目 → 新模型(美术成品)交付映射:OutDir 的 object/{module}/ 定模块,Id 尾段数字定 id,
+        /// 交付夹 = {module}_{id}(美术工程 Role/role_1213、Head/head_1213、Weapon/weapon_1200…)。
+        /// 返回 null = 该域没有新模型交付线(特效/怪物等待列装,在 ArtPrefabImporter.PartTopDirs 加)。
         /// </summary>
-        private void DrawWholeModelSection(AssetEntry e)
+        private static (string module, string folder, string id)? ArtPartOf(AssetEntry e)
         {
-            if (!int.TryParse(e.Id, out int res)) return;
+            if (e == null || e.Kind != AssetKind.Model || string.IsNullOrEmpty(e.OutDir)) return null;
+            const string prefix = "Assets/GameRes/object/";
+            if (!e.OutDir.StartsWith(prefix)) return null;
+            string rest = e.OutDir.Substring(prefix.Length);
+            int slash = rest.IndexOf('/');
+            if (slash <= 0) return null;
+            string module = rest.Substring(0, slash);
+            if (!EditorTools.ArtImport.ArtPrefabImporter.IsPartModule(module)) return null;
+            // Id:"1213"(时装/默认装)或 "model_head_1213"/"model_weapon_r_1200"(部件域)→ 取尾段数字
+            int idStart = e.Id.Length;
+            while (idStart > 0 && char.IsDigit(e.Id[idStart - 1])) idStart--;
+            if (idStart == e.Id.Length) return null; // 尾段无数字,对不上交付夹
+            string id = e.Id.Substring(idStart);
+            return (module, $"{module}_{id}", id);
+        }
 
-            EditorGUILayout.Space(4f);
-            EditorGUILayout.LabelField("新整模(美术成品,创角页优先使用)", EditorStyles.boldLabel);
-            string folder = $"Assets/GameRes/object/role/model_create_{res}";
-            bool c2 = File.Exists($"{folder}/{res}@create2.prefab");
-            bool c3 = File.Exists($"{folder}/{res}@create3.prefab");
-            string inGame = c2 ? (c3 ? "已导入(create2+3)" : "仅create2") : "未导入";
-            if (!_wholeModelArtStatus.TryGetValue(res, out string artStatus))
+        /// <summary>新模型预览用的 prefab:优先 idle(待机),其次 create3,再退第一个动作。</summary>
+        private static string FirstNewModelPrefab((string module, string folder, string id) part)
+        {
+            string dir = $"Assets/GameRes/object/{part.module}/{part.folder}";
+            if (!Directory.Exists(dir)) return null;
+            foreach (string act in new[] { "idle", "create3" })
             {
-                artStatus = EditorTools.ArtImport.ArtPrefabImporter.GetArtStatus(res);
-                _wholeModelArtStatus[res] = artStatus;
+                string p = $"{dir}/{part.id}@{act}.prefab";
+                if (File.Exists(p)) return p;
             }
-            EditorGUILayout.LabelField("状态", $"工程内:{inGame}    美术工程:{artStatus}");
+            return Directory.GetFiles(dir, "*@*.prefab", SearchOption.TopDirectoryOnly)
+                .Select(p => p.Replace('\\', '/')).OrderBy(p => p).FirstOrDefault();
+        }
 
-            using (new EditorGUILayout.HorizontalScope())
+        /// <summary>
+        /// 新模型替换区(对标 cyzc 物品图标管理:一行一条、原始/新都能定位、槽位直接选资产):
+        /// 每个动作一行——原始列(有无+定位老 clip)、新模型槽位(ObjectField 直接拖/选 prefab)、
+        /// 定位/还原按钮。**没有全局开关**:某动作槽位有值就用新、空就用原始,全部按
+        /// model_replacement.json 自动选择(运行时 RoleModelAssembler 同一份配置)。
+        /// [更新导入]从美术工程搬文件并按 {id}@动作 自动填槽;[全部还原]清空本模型全部配置。
+        /// </summary>
+        private void DrawArtPartSection(AssetEntry e, (string module, string folder, string id) part)
+        {
+            string targetDir = $"Assets/GameRes/object/{part.module}/{part.folder}";
+            string[] prefabs = Directory.Exists(targetDir)
+                ? Directory.GetFiles(targetDir, "*@*.prefab", SearchOption.TopDirectoryOnly)
+                    .Select(p => p.Replace('\\', '/')).OrderBy(p => p).ToArray()
+                : new string[0];
+            var newAvail = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // 动作→已导入 prefab 路径
+            foreach (string p in prefabs)
             {
-                GUI.enabled = artStatus != "未交付";
-                string btn = c2 ? "替换新模型(从美术工程更新)" : "导入新模型(从美术工程)";
-                if (GUILayout.Button(btn, GUILayout.Height(24f)))
-                {
-                    bool ok = EditorTools.ArtImport.ArtPrefabImporter.ImportRole(res, out string summary);
-                    _wholeModelArtStatus.Remove(res);
-                    if (ok) ShowNotification(new GUIContent(summary));
-                    else EditorUtility.DisplayDialog("导入失败", summary, "好");
-                    GUIUtility.ExitGUI();
-                }
-                GUI.enabled = true;
-                if (GUILayout.Button("刷新状态", GUILayout.Width(70f), GUILayout.Height(24f)))
-                    _wholeModelArtStatus.Remove(res);
-                GUI.enabled = c2;
-                if (GUILayout.Button("定位", GUILayout.Width(50f), GUILayout.Height(24f)))
-                {
-                    var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>($"{folder}/{res}@create2.prefab");
-                    if (obj != null) EditorGUIUtility.PingObject(obj);
-                }
-                GUI.enabled = true;
+                string s = Path.GetFileNameWithoutExtension(p);
+                int at = s.IndexOf('@');
+                if (at >= 0 && at < s.Length - 1) newAvail[s.Substring(at + 1)] = p;
             }
-            GUI.enabled = c2;
-            _previewWholeModel = EditorGUILayout.ToggleLeft(
-                "预览新整模(下方预览窗换成新模型;老模型的动作列表不适用它)", _previewWholeModel && c2);
-            GUI.enabled = true;
+            if (!_artPartStatus.TryGetValue(part.folder, out string artStatus))
+            {
+                artStatus = EditorTools.ArtImport.ArtPrefabImporter.GetPartArtStatus(part.module, part.folder);
+                _artPartStatus[part.folder] = artStatus;
+            }
+            Dictionary<string, string> configured = ModelReplacementStore.GetActions(part.module, part.id);
+            string[] oldActions = OldActionNames(e, part.module);
+            var oldSet = new HashSet<string>(oldActions, StringComparer.OrdinalIgnoreCase);
+            string oldAnimDir = OldActionAnimDir(e, part.module);
+
+            // 行集合 = 原始 ∪ 已导入新 ∪ 已配置,逐条列出:有新货/已配置的排前面
+            var rows = oldActions
+                .Union(newAvail.Keys, StringComparer.OrdinalIgnoreCase)
+                .Union(configured.Keys, StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(a => configured.ContainsKey(a) || newAvail.ContainsKey(a))
+                .ThenBy(a => a, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            EditorGUILayout.Space(6f);
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+            {
+                // —— 标题行:统计 + 两侧状态 ——
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField("新模型替换", EditorStyles.boldLabel, GUILayout.Width(80f));
+                    var badge = new GUIStyle(EditorStyles.miniBoldLabel);
+                    badge.normal.textColor = configured.Count > 0
+                        ? new Color(0.3f, 0.85f, 0.4f) : new Color(0.75f, 0.75f, 0.75f);
+                    GUILayout.Label($"已配置 {configured.Count}/{rows.Length} 个动作", badge, GUILayout.Width(120f));
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Label($"美术工程:{artStatus} | 工程内新资源:{(prefabs.Length > 0 ? prefabs.Length + " 动作" : "未导入")}",
+                        EditorStyles.miniLabel);
+                }
+
+                // —— 挂点体检(角色本体,一行) ——
+                if (part.module == "role" && prefabs.Length > 0)
+                {
+                    if (!_mountCache.TryGetValue(part.folder, out string[] missing))
+                    {
+                        missing = EditorTools.ArtImport.ArtPrefabImporter.MissingRoleMounts(prefabs[0]);
+                        _mountCache[part.folder] = missing;
+                    }
+                    if (missing.Length == 0)
+                        EditorGUILayout.LabelField("挂点  ✓ head / rhand / root 齐", EditorStyles.miniLabel);
+                    else
+                        EditorGUILayout.HelpBox(
+                            $"挂点缺 [{string.Join(",", missing)}]:美术工程跑菜单[交付/补挂点]后点下方[更新导入]。",
+                            MessageType.Warning);
+                }
+
+                // —— 逐行:动作 | 原始(可定位) | 新模型槽位(可选可定位) | 还原 | 生效 ——
+                EditorGUILayout.Space(2f);
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    GUILayout.Label("动作", EditorStyles.miniBoldLabel, GUILayout.Width(92f));
+                    GUILayout.Label("原始", EditorStyles.miniBoldLabel, GUILayout.Width(40f));
+                    GUILayout.Label("新模型(拖入/选择 prefab)", EditorStyles.miniBoldLabel, GUILayout.MinWidth(150f));
+                    GUILayout.Label("", GUILayout.Width(40f)); // 定位
+                    GUILayout.Label("", GUILayout.Width(40f)); // 还原
+                    GUILayout.Label("生效", EditorStyles.miniBoldLabel, GUILayout.Width(40f));
+                }
+                foreach (string action in rows)
+                {
+                    bool hasCfg = configured.TryGetValue(action, out string cfgKey);
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        GUILayout.Label(action, GUILayout.Width(92f));
+
+                        // 原始列:有=可点定位老 clip;无=占位
+                        if (oldSet.Contains(action) && oldAnimDir != null)
+                        {
+                            if (GUILayout.Button("有", EditorStyles.miniButton, GUILayout.Width(40f)))
+                            {
+                                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>($"{oldAnimDir}/{action}.anim");
+                                if (clip != null) EditorGUIUtility.PingObject(clip);
+                            }
+                        }
+                        else
+                        {
+                            GUILayout.Label("—", GUILayout.Width(40f));
+                        }
+
+                        // 新模型槽位:显示已配置的 prefab,可直接拖/选;清空=还原该动作
+                        GameObject cur = hasCfg
+                            ? AssetDatabase.LoadAssetAtPath<GameObject>(ModelReplacementStore.KeyToPrefabPath(cfgKey))
+                            : null;
+                        GameObject picked = (GameObject)EditorGUILayout.ObjectField(
+                            cur, typeof(GameObject), false, GUILayout.MinWidth(150f));
+                        if (picked != cur)
+                        {
+                            if (picked == null)
+                            {
+                                ModelReplacementStore.RemoveAction(part.module, part.id, action);
+                            }
+                            else if (PrefabUtility.GetPrefabAssetType(picked) != PrefabAssetType.Regular
+                                     && PrefabUtility.GetPrefabAssetType(picked) != PrefabAssetType.Variant)
+                            {
+                                // 裸 FBX/模型资产没有 Timeline/渲染档案,不能当动作件(实锤:用户拖过 models/create3.fbx)
+                                EditorUtility.DisplayDialog("不是 prefab",
+                                    "要选 {id}@动作 的 prefab(蓝色方块图标),不能选 FBX/模型资产。", "好");
+                            }
+                            else
+                            {
+                                string key = ModelReplacementStore.PathToKey(AssetDatabase.GetAssetPath(picked));
+                                if (key == null)
+                                    EditorUtility.DisplayDialog("不在 GameRes 内",
+                                        "新模型 prefab 必须在 Assets/GameRes/ 下(要能进 Addressables)。", "好");
+                                else
+                                    ModelReplacementStore.SetAction(part.module, part.id, action, key);
+                            }
+                        }
+
+                        using (new EditorGUI.DisabledScope(cur == null))
+                        {
+                            if (GUILayout.Button("定位", EditorStyles.miniButton, GUILayout.Width(40f)))
+                                EditorGUIUtility.PingObject(cur);
+                        }
+                        using (new EditorGUI.DisabledScope(!hasCfg))
+                        {
+                            if (GUILayout.Button("还原", EditorStyles.miniButton, GUILayout.Width(40f)))
+                                ModelReplacementStore.RemoveAction(part.module, part.id, action);
+                        }
+
+                        var eff = new GUIStyle(EditorStyles.miniLabel);
+                        if (hasCfg) eff.normal.textColor = new Color(0.3f, 0.85f, 0.4f);
+                        GUILayout.Label(hasCfg ? "新" : "原始", eff, GUILayout.Width(40f));
+                    }
+                }
+
+                // —— 打包提示(一行小字;打包线按同一份清单剔除,不双打) ——
+                int oldCovered = oldActions.Count(a => configured.ContainsKey(a));
+                string packHint = configured.Count == 0
+                    ? "打包:未配置任何动作 → 全用原始,剔除新资源"
+                    : oldCovered >= oldActions.Length
+                        ? "打包:原始动作已全被新覆盖 → 可剔除原始资源"
+                        : $"打包:已配置 {configured.Count} 动作,其余 {oldActions.Length - oldCovered} 个用原始 → 两份都留";
+                GUILayout.Label(packHint + "(记录:model_replacement.json)", EditorStyles.miniLabel);
+
+                // —— 操作行 ——
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    GUI.enabled = artStatus != "未交付";
+                    if (GUILayout.Button(prefabs.Length > 0 ? "更新导入" : "导入新模型",
+                            GUILayout.Width(90f), GUILayout.Height(22f)))
+                    {
+                        bool ok = EditorTools.ArtImport.ArtPrefabImporter.ImportPart(part.module, part.folder, out string summary);
+                        InvalidatePartCaches(part.folder);
+                        if (ok)
+                        {
+                            int filled = AutoFillFromImported(part);
+                            ShowNotification(new GUIContent($"{summary};自动配置 {filled} 个动作"));
+                        }
+                        else EditorUtility.DisplayDialog("导入失败", summary, "好");
+                        GUIUtility.ExitGUI();
+                    }
+                    GUI.enabled = prefabs.Length > 0;
+                    if (GUILayout.Button("自动配全部", GUILayout.Width(80f), GUILayout.Height(22f)))
+                    {
+                        int filled = AutoFillFromImported(part);
+                        ShowNotification(new GUIContent($"按已导入资源自动配置 {filled} 个动作"));
+                    }
+                    GUI.enabled = configured.Count > 0;
+                    if (GUILayout.Button("全部还原", GUILayout.Width(70f), GUILayout.Height(22f))
+                        && EditorUtility.DisplayDialog("全部还原",
+                            $"清空 {part.folder} 的全部动作配置,恢复原始模型?\n(新资源保留在工程,打包按记录剔除)", "还原", "取消"))
+                    {
+                        ModelReplacementStore.ClearEntry(part.module, part.id);
+                        GUIUtility.ExitGUI();
+                    }
+                    GUI.enabled = prefabs.Length > 0;
+                    _previewNewModel = GUILayout.Toggle(_previewNewModel && prefabs.Length > 0,
+                        "预览新模型", "Button", GUILayout.Width(76f), GUILayout.Height(22f));
+                    GUI.enabled = true;
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button("刷新", GUILayout.Width(44f), GUILayout.Height(22f)))
+                        InvalidatePartCaches(part.folder);
+                }
+            }
+        }
+
+        /// <summary>按已导入的 {id}@动作 prefab 自动填全部动作槽(已有配置的动作原样覆盖为导入件)。</summary>
+        private int AutoFillFromImported((string module, string folder, string id) part)
+        {
+            string targetDir = $"Assets/GameRes/object/{part.module}/{part.folder}";
+            if (!Directory.Exists(targetDir)) return 0;
+            int filled = 0;
+            foreach (string p in Directory.GetFiles(targetDir, "*@*.prefab", SearchOption.TopDirectoryOnly))
+            {
+                string s = Path.GetFileNameWithoutExtension(p);
+                int at = s.IndexOf('@');
+                if (at < 0 || at >= s.Length - 1) continue;
+                string key = ModelReplacementStore.PathToKey(p.Replace('\\', '/'));
+                if (key == null) continue;
+                ModelReplacementStore.SetAction(part.module, part.id, s.Substring(at + 1).ToLowerInvariant(), key);
+                filled++;
+            }
+            return filled;
+        }
+
+        private void InvalidatePartCaches(string folder)
+        {
+            _artPartStatus.Remove(folder);
+            _mountCache.Remove(folder);
+        }
+
+        /// <summary>原始动作 .anim 所在的 GameRes 目录(定位老 clip 用);没有返回 null。</summary>
+        private static string OldActionAnimDir(AssetEntry e, string module)
+        {
+            if (string.IsNullOrEmpty(e.ActionDir)) return null;
+            string dirName = Path.GetFileName(e.ActionDir.TrimEnd('/', '\\'));
+            string converted = $"Assets/GameRes/object/{module}/action/{dirName}";
+            return Directory.Exists(converted) ? converted : null;
+        }
+
+        /// <summary>
+        /// 原始(老端)动作名列表:优先 GameRes 里已转换的 .anim(运行时真正可用的);
+        /// 一个都没转换时退回老客户端源 .lani 清单(展示"原始有这个动作"用)。按条目 ActionDir 定目录。
+        /// </summary>
+        private static string[] OldActionNames(AssetEntry e, string module)
+        {
+            if (string.IsNullOrEmpty(e.ActionDir)) return new string[0];
+            string dirName = Path.GetFileName(e.ActionDir.TrimEnd('/', '\\'));
+            string converted = $"Assets/GameRes/object/{module}/action/{dirName}";
+            if (Directory.Exists(converted))
+            {
+                string[] anims = Directory.GetFiles(converted, "*.anim", SearchOption.TopDirectoryOnly)
+                    .Select(Path.GetFileNameWithoutExtension).OrderBy(n => n).ToArray();
+                if (anims.Length > 0) return anims;
+            }
+            if (Directory.Exists(e.ActionDir))
+            {
+                // 老 .lani 名形如 idle-idle.lani / create2-create2.lani,取 '-' 前段
+                return Directory.GetFiles(e.ActionDir, "*.lani", SearchOption.TopDirectoryOnly)
+                    .Select(Path.GetFileNameWithoutExtension)
+                    .Select(n => { int i = n.IndexOf('-'); return i > 0 ? n.Substring(0, i) : n; })
+                    .Distinct().OrderBy(n => n).ToArray();
+            }
+            return new string[0];
         }
 
         private void DrawDetailPane()
@@ -1196,13 +1449,13 @@ namespace Shenxiao.Editor.AssetHub
                 AssetEntry e = _selected;
                 EntryStatus s = StatusOf(e);
                 // 先装载预览实例:动作列表(DrawClipsSection)读 _preview.Clips,需与当前条目同步。
-                // 勾了[预览新整模]则加载新美术成品(Timeline 驱动,此预览窗不播动作,可看模型/粒子)
+                // 勾了[预览新模型]则加载新美术成品(Timeline 驱动,此预览窗不播动作,可看模型/粒子)
                 string previewPath = s == EntryStatus.Converted || s == EntryStatus.Stale ? e.PrefabPath : null;
-                if (_previewWholeModel && e.Note != null && e.Note.Contains("CreateRole")
-                    && int.TryParse(e.Id, out int wmRes))
+                (string module, string folder, string id)? artPart = ArtPartOf(e);
+                if (_previewNewModel && artPart != null)
                 {
-                    string wm = $"Assets/GameRes/object/role/model_create_{wmRes}/{wmRes}@create2.prefab";
-                    if (File.Exists(wm)) previewPath = wm;
+                    string np = FirstNewModelPrefab(artPart.Value);
+                    if (np != null) previewPath = np;
                 }
                 _preview.SetPrefab(previewPath);
 
@@ -1220,13 +1473,27 @@ namespace Shenxiao.Editor.AssetHub
                 EditorGUILayout.LabelField("源", e.LhPath, EditorStyles.wordWrappedMiniLabel);
                 EditorGUILayout.LabelField("产物", e.PrefabPath, EditorStyles.wordWrappedMiniLabel);
 
-                // 创角默认装:新整模(美术成品)对照替换——有新用新、无新用老(运行时自动)
-                if (e.Note != null && e.Note.Contains("CreateRole"))
-                    DrawWholeModelSection(e);
+                // 新模型(美术成品)对照替换:时装/默认装/头饰/武器/翅膀/背饰 模型条目通用
+                if (artPart != null)
+                    DrawArtPartSection(e, artPart.Value);
 
                 if (e.Kind == AssetKind.Model)
                 {
-                    DrawClipsSection(e, s);
+                    if (artPart != null)
+                    {
+                        // 有新模型线的条目:原始动作长列表默认收起(90+ 行糊满详情页;要预览再展开)
+                        if (_oldClipsEntryId != e.Id)
+                        {
+                            _oldClipsEntryId = e.Id;
+                            _oldClipsFoldout = false;
+                        }
+                        _oldClipsFoldout = EditorGUILayout.Foldout(_oldClipsFoldout, "原始模型动作预览", true);
+                        if (_oldClipsFoldout) DrawClipsSection(e, s);
+                    }
+                    else
+                    {
+                        DrawClipsSection(e, s);
+                    }
                     DrawAlwaysEffects(e);
                 }
                 else if (e.Kind == AssetKind.Effect)

@@ -23,6 +23,10 @@ namespace Shenxiao.Module.Core.Login
     [UIView("prefabs/ui/login/loadingview")]
     public sealed class LoadingView : BaseView
     {
+        // 加载页必须压在 Tip(toast)之上:不设则落默认 Window 层,进世界加载期间"穿戴成功"等
+        // toast 会穿透叠在加载页上(实测)。UILayer.Loading(5) 本就是为它预留的层。
+        public override UILayer Layer => UILayer.Loading;
+
         // 老端字面量(LoginLoadingView.ts):front_img_width=635(满宽),进度端标贴边修正阈值/偏移。
         // 注意:老端进度端标是「左边缘 pivot」,55 = 端标半宽,maskWidth-55 让其【中心】落在填充尖端。
         // Unity 端标已用【中心】pivot(0.5),故偏移应为 0——x=maskWidth 即端标中心贴在 BarFront 最右填充边。

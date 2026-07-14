@@ -100,7 +100,7 @@ namespace Shenxiao.Module.Core.Tasks
                     {
                         GameLog.Warn("Task", "autopilot tick exception: {0}", e.Message);
                     }
-                    await Task.Delay(TICK_MS, cts.Token);
+                    await Shenxiao.Framework.Util.TimeUtil.Delay(TICK_MS, cts.Token);
                 }
             }
             catch (OperationCanceledException)

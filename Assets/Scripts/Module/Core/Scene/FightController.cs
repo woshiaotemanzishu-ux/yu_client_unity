@@ -60,7 +60,8 @@ namespace Shenxiao.Module.Core.Scene
         // 这里在唯一 20001 出口做 FIFO 节流:相邻两包间隔不低于 MIN_ATTACK_SEND_INTERVAL_SEC(对齐服务端 ~200ms
         // 处理节流线),承载真实伤害的连招不丢、只把突发摊匀。稳态 AutoFight 节奏(500ms 循环,engage→combo 间隔
         // ≥200ms)本就不触发节流;只有续体堆积时才生效。队列上限兜底极端卡顿,溢出丢最早请求并告警。
-        private const float MIN_ATTACK_SEND_INTERVAL_SEC = 0.2f;
+        // 0.22 = 服务端 ~200ms 节流线 + 10% 护带:恰好卡线时双方时钟抖动会零星打出 20005 errCode=2 噪音。
+        private const float MIN_ATTACK_SEND_INTERVAL_SEC = 0.22f;
         private const int MAX_PENDING_ATTACK_SENDS = 16;
         private readonly Queue<Action> _attackSendQueue = new Queue<Action>();
         private float _nextAttackSendAllowedAt;
@@ -214,7 +215,7 @@ namespace Shenxiao.Module.Core.Scene
                     if (now < _nextAttackSendAllowedAt)
                     {
                         int waitMs = (int)Math.Ceiling((_nextAttackSendAllowedAt - now) * 1000f);
-                        if (waitMs > 0) await Task.Delay(waitMs);
+                        if (waitMs > 0) await Shenxiao.Framework.Util.TimeUtil.Delay(waitMs); // ⚠ Task.Delay 在 WebGL 永不醒
                         continue; // await 后重判:多个续体同帧醒来也只放行到时的那个,其余继续等
                     }
                     Action send = _attackSendQueue.Dequeue();
@@ -506,9 +507,15 @@ namespace Shenxiao.Module.Core.Scene
             int x2 = r.ReadU16();
             int y2 = r.ReadU16();
             List<long> inexistenceList = r.ReadArray(rr => (long)rr.ReadU32());
-            GameLog.Warn("Fight",
-                "recv 20005 攻击失败(log-only): errCode={0} attacker(sign={1} id={2} hp={3} pos=({4},{5})) defender(sign={6} id={7} hp={8} pos=({9},{10})) inexistence={11}",
-                errCode, sign1, user1, hp1, x1, y1, sign2, user2, hp2, x2, y2, inexistenceList.Count);
+            // errCode=2(节奏卡线被服务端限频)是已知良性噪音,降 Info;其余错误码保持 Warn 可见。
+            if (errCode == 2)
+                GameLog.Info("Fight",
+                    "recv 20005 攻击失败(log-only): errCode={0} attacker(sign={1} id={2} hp={3} pos=({4},{5})) defender(sign={6} id={7} hp={8} pos=({9},{10})) inexistence={11}",
+                    errCode, sign1, user1, hp1, x1, y1, sign2, user2, hp2, x2, y2, inexistenceList.Count);
+            else
+                GameLog.Warn("Fight",
+                    "recv 20005 攻击失败(log-only): errCode={0} attacker(sign={1} id={2} hp={3} pos=({4},{5})) defender(sign={6} id={7} hp={8} pos=({9},{10})) inexistence={11}",
+                    errCode, sign1, user1, hp1, x1, y1, sign2, user2, hp2, x2, y2, inexistenceList.Count);
         }
 
         /// <summary>20007 buff 技能清理广播(纯转发事件,消费方 TODO——buff UI 未移植)。</summary>

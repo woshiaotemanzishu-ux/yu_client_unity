@@ -143,7 +143,16 @@ namespace Shenxiao.Module.Core.Scene
                 0,
                 SkillManager.ONLY_FIRE_ATTACK);
 
-            GameLog.Info("Scene", "click monster ins={0} type={1} attackStarted={2}",
+            // 对标老端 Scene.ts:592-594:点中可攻击怪即静默点亮自动战斗(Fire(STARTAUTOFIGHT, false, true),
+            // 不弹提示、不写 cookie)→ 持续攻击环放行,打到目标死、再自动猎下一只。
+            // 移植时漏掉这个边沿曾导致"点一次打一次"。SetAutoFight 内部同值早退,EnsureRunning 幂等。
+            if (monster.CanAttack == 1)
+            {
+                AutoFight.AutoFightModel.Instance.SetAutoFight(true);
+                AutoFight.AutoFightController.Instance.EnsureRunning();
+            }
+
+            GameLog.Info("Scene", "click monster ins={0} type={1} attackStarted={2}(可攻击则静默开自动,对标老端点怪持续打)",
                 monster.InstanceId, monster.TypeId, started);
             return true;
         }

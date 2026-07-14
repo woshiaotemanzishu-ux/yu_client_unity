@@ -62,7 +62,7 @@ namespace Shenxiao.Module.Core.Equip
 
         private static async Task DebounceAsync()
         {
-            await Task.Delay(1000);
+            await Shenxiao.Framework.Util.TimeUtil.Delay(1000);
             _debouncing = false;
             TryAutoWear();
         }

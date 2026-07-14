@@ -104,6 +104,7 @@ namespace Shenxiao.Module.Core.Game
             LimitLevelShopController.Instance,
             EyouController.Instance,
             BossController.Instance,
+            KfBossController.Instance,
             ActivityForeshowController.Instance,
             BanquetController.Instance,
             KaifuController.Instance,

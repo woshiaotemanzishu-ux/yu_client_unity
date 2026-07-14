@@ -30,6 +30,34 @@ namespace Shenxiao.Common.UI3D
         public static async Task<GameObject> BuildAsync(RoleModelSpec spec)
         {
             if (spec == null || spec.ClotheRes <= 0) return null;
+
+            // 新模型替换(资产管理按动作逐条配置,model_replacement.json):该模型有任何动作配了新
+            // prefab → 返回混合驱动容器(ReplaceableRoleModel):配了的动作亮新模型,没配的动作自动
+            // 切回老拼装模型,逐动作互切。清单里完全没配 → 纯老管线,零改动。
+            await ModelReplacement.EnsureLoaded();
+            if (ModelReplacement.HasEntry("role", spec.ClotheRes))
+            {
+                var container = new GameObject($"role_{spec.ClotheRes}_mix");
+                var driver = container.AddComponent<ReplaceableRoleModel>();
+                driver.Init(spec);
+                string first = "idle";
+                if (spec.Actions != null)
+                {
+                    foreach (string a in spec.Actions)
+                    {
+                        if (!string.IsNullOrEmpty(a)) { first = a; break; }
+                    }
+                }
+                await driver.PlayAsync(first, restart: true);
+                return container;
+            }
+            return await BuildOldModelAsync(spec);
+        }
+
+        /// <summary>原始管线(老拼装):衣服+部件+老 clip。混合驱动器的老模型分支也走这里。</summary>
+        internal static async Task<GameObject> BuildOldModelAsync(RoleModelSpec spec)
+        {
+            if (spec == null || spec.ClotheRes <= 0) return null;
             AssetAssemblyEntry profile = await AssetAssemblyProfiles.GetAsync(AssetAssemblyProfiles.RoleProfileId(spec.ClotheRes));
             string defaultModelKey = Key("role", "model_clothe_" + spec.ClotheRes);
             string modelKey = !string.IsNullOrEmpty(profile?.Model) ? profile.Model : defaultModelKey;
@@ -40,6 +68,7 @@ namespace Shenxiao.Common.UI3D
                 return null;
             }
             GameObject root = Object.Instantiate(prefab);
+            LoadedAssetReleaser.Track(root, prefab);
             if (profile != null && profile.AlwaysEffects != null)
             {
                 await EffectBinder.AttachBindings(root, FilterEffects(profile.AlwaysEffects, "model"), "always");
@@ -76,6 +105,66 @@ namespace Shenxiao.Common.UI3D
             return $"object/{module}/{name}/{name}";
         }
 
+        /// <summary>
+        /// 新模型整装:清单指到的身体 prefab + 部件(头饰/武器,清单有新用新、没新挂老件——
+        /// 新骨架按交付规范带 head/rhand 同名挂点,老件挂得上)。ArtModelStager 统一上台包装
+        /// (落点归一/根位移/透明分流)。循环/停末帧由 ReplaceableRoleModel 按动作再设。
+        /// 加载失败返回 null,调用方回落原始管线。
+        /// </summary>
+        internal static async Task<GameObject> BuildNewModelAsync(RoleModelSpec spec, string bodyKey, string action)
+        {
+            GameObject bodyPrefab = await ResManager.LoadOptionalAsync<GameObject>(bodyKey);
+            if (bodyPrefab == null)
+            {
+                GameLog.Warn("UI3D", "替换清单指向的新模型缺失:{0}(资产管理[更新导入])", bodyKey);
+                return null;
+            }
+            GameObject inst = Object.Instantiate(bodyPrefab);
+            LoadedAssetReleaser.Track(inst, bodyPrefab);
+
+            if (spec.HeadRes > 0)
+            {
+                string headKey = ModelReplacement.GetPrefabKey("head", spec.HeadRes, action)
+                    ?? ModelReplacement.GetPrefabKey("head", spec.HeadRes, "idle")
+                    ?? Key("head", "model_head_" + spec.HeadRes);
+                await AttachPartOptional(inst, "head", headKey);
+            }
+            if (spec.WeaponRes > 0)
+            {
+                string weaponKey = ModelReplacement.GetPrefabKey("weapon", spec.WeaponRes, action)
+                    ?? ModelReplacement.GetPrefabKey("weapon", spec.WeaponRes, "idle")
+                    ?? Key("weapon", "model_weapon_r_" + spec.WeaponRes);
+                await AttachPartOptional(inst, "rhand", weaponKey);
+            }
+
+            GameObject staged = ArtModelStager.Stage(inst, bodyPrefab, UnityEngine.Playables.DirectorWrapMode.Loop);
+            GameLog.Info("UI3D", "新模型上台:{0}(action={1})", bodyKey, action);
+            return staged;
+        }
+
+        /// <summary>新模型部件挂接:资源缺失只警告不阻塞(对标 AttachPart,不带特效绑定)。</summary>
+        private static async Task AttachPartOptional(GameObject root, string boneName, string key)
+        {
+            GameObject prefab = await ResManager.LoadOptionalAsync<GameObject>(key);
+            if (prefab == null)
+            {
+                GameLog.Warn("UI3D", "新模型部件缺失,跳过:{0}", key);
+                return;
+            }
+            Transform bone = FindBone(root.transform, boneName);
+            if (bone == null)
+            {
+                GameLog.Warn("UI3D", "挂点骨骼缺失:{0}(模型 {1},美术工程跑[交付/补挂点]后重导)", boneName, root.name);
+                ResManager.Release(prefab); // 借了没用上,当场归还
+                return;
+            }
+            GameObject part = Object.Instantiate(prefab, bone);
+            LoadedAssetReleaser.Track(part, prefab);
+            part.transform.localPosition = Vector3.zero;
+            part.transform.localRotation = Quaternion.identity;
+            part.transform.localScale = Vector3.one;
+        }
+
         private static async Task<GameObject> AttachPart(GameObject root, string boneName, string key,
             string effectModule, string effectKey)
         {
@@ -89,9 +178,11 @@ namespace Shenxiao.Common.UI3D
             if (bone == null)
             {
                 GameLog.Warn("UI3D", "挂点骨骼缺失:{0}(模型 {1})", boneName, root.name);
+                ResManager.Release(prefab); // 借了没用上,当场归还
                 return null;
             }
             GameObject part = Object.Instantiate(prefab, bone);
+            LoadedAssetReleaser.Track(part, prefab);
             // 对标老客户端 ResetTransform:挂上后清局部位移/旋转/缩放
             part.transform.localPosition = Vector3.zero;
             part.transform.localRotation = Quaternion.identity;
@@ -106,6 +197,8 @@ namespace Shenxiao.Common.UI3D
             AssetAssemblyEntry profile = null)
         {
             if (root == null || actions == null || actions.Length == 0) return;
+            // 新模型(带渲染档案,Timeline 自播):老 clip 按 Transform 路径绑老骨架,喂进来也绑不上,直接跳过
+            if (root.GetComponentInChildren<ArtModelRenderProfile>(true) != null) return;
             var anim = root.GetComponent<Animation>();
             if (anim == null) anim = root.AddComponent<Animation>();
             foreach (string name in actions)
@@ -121,6 +214,7 @@ namespace Shenxiao.Common.UI3D
                         continue;
                     }
                     anim.AddClip(clip, name);
+                    LoadedAssetReleaser.Track(root, clip);
                 }
             }
         }
@@ -134,6 +228,11 @@ namespace Shenxiao.Common.UI3D
         public static async Task PlayActionAsync(GameObject root, string actionName, AssetAssemblyEntry profile)
         {
             if (root == null || string.IsNullOrEmpty(actionName)) return;
+            var driver = root.GetComponent<ReplaceableRoleModel>();
+            if (driver != null)
+            {
+                driver.Play(actionName, restart: true); // 混合模型:按清单新老互切
+            }
             var anim = root.GetComponent<Animation>();
             if (anim != null && anim.GetClip(actionName) != null)
             {
@@ -150,6 +249,18 @@ namespace Shenxiao.Common.UI3D
         public static void PlayActions(GameObject root, string[] actions)
         {
             if (root == null || actions == null || actions.Length == 0) return;
+            var driver = root.GetComponent<ReplaceableRoleModel>();
+            if (driver != null)
+            {
+                // 混合模型:播首个动作(顺序队列是老 Animation 的能力,新模型段落自含起承转合)
+                foreach (string name in actions)
+                {
+                    if (string.IsNullOrEmpty(name)) continue;
+                    driver.Play(name, restart: true);
+                    return;
+                }
+                return;
+            }
             var anim = root.GetComponent<Animation>();
             if (anim == null) return;
             anim.Stop();

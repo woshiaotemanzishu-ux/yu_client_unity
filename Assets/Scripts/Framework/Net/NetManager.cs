@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
 using UnityEngine;
+#if UNITY_WEBGL && !UNITY_EDITOR
+using System.Runtime.InteropServices;
+using AOT;
+#endif
 
 namespace Shenxiao.Framework.Net
 {
@@ -50,7 +54,11 @@ namespace Shenxiao.Framework.Net
         private static WebSocketCloseStatus? _remoteCloseStatus;
         private static string _remoteCloseDescription;
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+        public static bool IsConnected => _webglActive && WebGlWs.SxWsState() == 1;
+#else
         public static bool IsConnected => _ws != null && _ws.State == WebSocketState.Open;
+#endif
 
         /// <summary>距最近一次收到任何下行数据的秒数;未连接/无记录时为正无穷。</summary>
         public static float SecondsSinceLastInbound
@@ -76,6 +84,38 @@ namespace Shenxiao.Framework.Net
                 : float.PositiveInfinity;
         }
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+        /// <summary>连接 ws:// 或 wss://(WebGL:浏览器原生 WebSocket,IL2CPP 不支持 ClientWebSocket/线程池)。</summary>
+        public static async Task ConnectAsync(string url)
+        {
+            await DisconnectAsync();
+            ClearRemoteCloseState();
+            _webglConnectTcs = new TaskCompletionSource<bool>();
+            _webglActive = true;
+            GameLog.Info("Net", "connecting {0} (webgl)", url);
+            WebGlWs.SxWsConnect(url, _onWsOpen, _onWsMessage, _onWsClose, _onWsError);
+            await _webglConnectTcs.Task;
+            Interlocked.Exchange(ref _lastInboundUtcTicks, DateTime.UtcNow.Ticks);
+            GameLog.Info("Net", "connected {0}", url);
+            EventDispatcher.Emit(GlobalEvent.EVT_NET_CONNECTED);
+        }
+
+        public static Task DisconnectAsync()
+        {
+            ConfigureHeartbeat(0, 0f);
+            ClearRemoteCloseState();
+            Interlocked.Exchange(ref _lastInboundUtcTicks, 0L);
+            _webglConnectTcs?.TrySetCanceled();
+            _webglConnectTcs = null;
+            if (_webglActive)
+            {
+                _webglActive = false;
+                WebGlWs.SxWsClose(1000);
+                EventDispatcher.Emit(GlobalEvent.EVT_NET_DISCONNECTED);
+            }
+            return Task.CompletedTask;
+        }
+#else
         /// <summary>连接 ws:// 或 wss://,失败抛异常;成功后发 EVT_NET_CONNECTED。</summary>
         public static async Task ConnectAsync(string url)
         {
@@ -114,6 +154,7 @@ namespace Shenxiao.Framework.Net
                 EventDispatcher.Emit(GlobalEvent.EVT_NET_DISCONNECTED);
             }
         }
+#endif
 
         /// <summary>发包,对标 Laya SendFmtToGame(10000, "iiss", ...)。</summary>
         public static void SendFmt(int protoId, string format = null, params object[] args)
@@ -170,6 +211,21 @@ namespace Shenxiao.Framework.Net
             }
         }
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+        private static Task SendRaw(byte[] frame, int protoId)
+        {
+            if (!IsConnected) { GameLog.Warn("Net", "send while disconnected: proto={0}", protoId); return Task.CompletedTask; }
+            if (WebGlWs.SxWsSend(frame, frame.Length) == 0)
+            {
+                GameLog.Error("Net", "send fail proto={0}: ws not open", protoId);
+            }
+            else if (ShouldLogHandshakeTraffic(protoId))
+            {
+                GameLog.Info("Net", "sent proto={0} bytes={1}", protoId, frame.Length);
+            }
+            return Task.CompletedTask;
+        }
+#else
         private static async Task SendRaw(byte[] frame, int protoId)
         {
             if (!IsConnected) { GameLog.Warn("Net", "send while disconnected: proto={0}", protoId); return; }
@@ -186,6 +242,7 @@ namespace Shenxiao.Framework.Net
                 GameLog.Error("Net", "send fail proto={0}: {1}", protoId, e.Message);
             }
         }
+#endif
 
         private static async Task ReceiveLoop()
         {
@@ -333,5 +390,75 @@ namespace Shenxiao.Framework.Net
         {
             return protoId == 10000 || protoId == 10003 || protoId == 10004;
         }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // ---- WebGL 浏览器原生 WebSocket 桥(Assets/Plugins/WebGL/ShenxiaoWebSocket.jslib) ----
+        // 回调都发生在浏览器 JS 事件循环 = Unity 主线程,入队走既有 _inboxLock 路径,派发仍在 Pump()。
+        private static bool _webglActive;
+        private static TaskCompletionSource<bool> _webglConnectTcs;
+        // 委托必须存静态字段:传给 native 后若被 GC,回调即野指针。
+        private static readonly WebGlWs.VoidCb _onWsOpen = OnWsOpen;
+        private static readonly WebGlWs.MsgCb _onWsMessage = OnWsMessage;
+        private static readonly WebGlWs.CloseCb _onWsClose = OnWsClose;
+        private static readonly WebGlWs.VoidCb _onWsError = OnWsError;
+
+        [MonoPInvokeCallback(typeof(WebGlWs.VoidCb))]
+        private static void OnWsOpen()
+        {
+            _webglConnectTcs?.TrySetResult(true);
+        }
+
+        [MonoPInvokeCallback(typeof(WebGlWs.MsgCb))]
+        private static void OnWsMessage(IntPtr ptr, int len)
+        {
+            if (len <= 0) return;
+            var data = new byte[len];
+            Marshal.Copy(ptr, data, 0, len);
+            Interlocked.Exchange(ref _lastInboundUtcTicks, DateTime.UtcNow.Ticks);
+            if (len >= RECV_HEADER_SIZE)
+            {
+                int protoId = (data[4] << 8) | data[5];
+                if (ShouldLogHandshakeTraffic(protoId))
+                {
+                    GameLog.Info("Net", "recv ws message bytes={0} proto={1}", len, protoId);
+                }
+            }
+            SplitFrames(data, len);
+        }
+
+        [MonoPInvokeCallback(typeof(WebGlWs.CloseCb))]
+        private static void OnWsClose(int code, int wasClean)
+        {
+            if (_webglConnectTcs != null && !_webglConnectTcs.Task.IsCompleted)
+            {
+                _webglConnectTcs.TrySetException(new IOException("websocket closed during connect: code=" + code));
+                return;
+            }
+            MarkRemoteClose((WebSocketCloseStatus)code, "wasClean=" + wasClean);
+        }
+
+        [MonoPInvokeCallback(typeof(WebGlWs.VoidCb))]
+        private static void OnWsError()
+        {
+            if (_webglConnectTcs != null && !_webglConnectTcs.Task.IsCompleted)
+            {
+                _webglConnectTcs.TrySetException(new IOException("websocket connect error"));
+                return;
+            }
+            GameLog.Error("Net", "websocket error (webgl)");
+        }
+
+        private static class WebGlWs
+        {
+            public delegate void VoidCb();
+            public delegate void MsgCb(IntPtr ptr, int len);
+            public delegate void CloseCb(int code, int wasClean);
+
+            [DllImport("__Internal")] public static extern void SxWsConnect(string url, VoidCb onOpen, MsgCb onMessage, CloseCb onClose, VoidCb onError);
+            [DllImport("__Internal")] public static extern int SxWsSend(byte[] data, int len);
+            [DllImport("__Internal")] public static extern int SxWsState();
+            [DllImport("__Internal")] public static extern void SxWsClose(int code);
+        }
+#endif
     }
 }

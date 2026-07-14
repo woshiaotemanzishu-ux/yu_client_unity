@@ -1970,5 +1970,165 @@
         /// 是 `code`,老端失败分支误读成不存在的 `scmd.errcode`(恒 undefined)——本端一律按 wire 真实字段
         /// `code` 实现,不照抄老端笔误。S2C Code:32。</summary>
         public const int BOSS_VIT_RECOVER = 46045;
+
+        // ----- Boss 家族二期·跨服族(自动循环 轮15b;pt_470=千幻蜃楼/圣兽岭 47000-47035,pt_471=镇煞封魂/
+        //        幻域Boss 47101-47117,pt_619=论剑恩怨簿 61900-61902,+ pt_460 内 kf_great_demon 壳
+        //        46037/46038/46039/46046)。落点 KfBossController.cs/KfBossModel.cs,与 15a 的
+        //        BossController.cs/BossModel.cs(本服 46000 段)并列,不改后者结构。
+        //        死号裁决(与 yu_server 源码直接核对调用点,订正 r15b 侦察子报告 2 处误判——47008/47117
+        //        报告称"服务端无发送调用点",经 grep mod_eudemons_land.erl:1158/1188(47008 write+
+        //        send_to_scene)与 lib_decoration_boss_local.erl:435(47117 write+send_to_all)证伪,均按活号实现):
+        //        真死跳过:47001(发送侧 C2S 死号,老端从未 Fire,与 46032 同款,15a 已档同类);
+        //        47011(同区服务器列表整链路死代码——pp_eudemons_land.erl 无 handle(47011,..)子句,
+        //        组包函数 mod_eudemons_land_zone_local:get_same_zone_servers/1 全仓库零调用点)。 -----
+
+        /// <summary>千幻蜃楼/圣兽岭 boss 列表(C2S "c" boss_type,服务端裸值,如 holy=1)。S2C BossType:8(裸值,
+        /// 客户端侧按老端 cross_boss_base_index=1000 自行 +1000 换算 UI 类型)、ActStatus:8、ResetEtime:32、
+        /// Tired:8、MaxTired:8、CollectList[u16计数]{Type:8,CollectTimes:8,TotalCollectTimes:8}、
+        /// BossInfo[u16计数]{BossId:32,Num:8,RebornTime:32,IsRemind:8}。§广播语义:sync==NO 时先回 47010
+        /// 占位错误码(kf_server_allot),异步触发跨服同步,客户端需重新发起本请求才能吃到 sync==YES 后的真数据
+        /// (r15b 时序结论:失败优先占位、无中间"已受理"包,不做自动轮询,严禁死等)。</summary>
+        public const int KFBOSS_EUDEMONS_LIST = 47000;
+        /// <summary>千幻蜃楼全局掉落日志查询(C2S 空包)。S2C DropLog[u16计数]{RoleId:64,ServerId:16,ServerNum:16,
+        /// Name:s,BossId:32,Layers:8,GoodsId:32,Rating:32,EquipExtraAttr[...],Time:32}(与 46046 同形态,
+        /// 共用 KfBossModel.CrossDropLogEntry)。</summary>
+        public const int KFBOSS_EUDEMONS_DROP_LOG = 47002;
+        /// <summary>进入千幻蜃楼(C2S "ci" boss_type,boss_id)。S2C Code:32。§跨服时序(r15b 权威):pp 层不等
+        /// 跨服回执直接 apply_cast 转发;跨服侧失败显式回 47003 定向发送,**成功无任何包**,靠场景切换事件隐式
+        /// 确认(严禁死等专属成功回包)。</summary>
+        public const int KFBOSS_EUDEMONS_ENTER = 47003;
+        /// <summary>离开千幻蜃楼(C2S "c" boss_type)。S2C Code:32。</summary>
+        public const int KFBOSS_EUDEMONS_LEAVE = 47004;
+        /// <summary>千幻蜃楼 boss 关注/取关(跨服变体,比 46007 少 AutoRemind 字段;C2S "cic" boss_type,boss_id,
+        /// remind)。S2C Code:32,BossType:8,BossId:32,Remind:8。</summary>
+        public const int KFBOSS_EUDEMONS_REMIND = 47005;
+        /// <summary>千幻蜃楼 boss 重生提醒单播(仅关注者收到,无 read 纯推送)。S2C BossType:8,BossId:32。
+        /// ⚠服务端在产 bug(r15b 实证,lib_great_demon_local.erl:571-580 send_remind_msg_role 复制粘贴遗留):
+        /// 跨服大妖(KfGreatDemon=20)重生关注提醒本应走 pt_460:46008,却误写成 pt_470:write(47006,[20,BossId])
+        /// 发出——本端不特殊处理,老端"歪打正着"地在这里正常收到即可(此 handler 本就不校验 BossType 取值),
+        /// 对应的 46008-for-type20 路径不用补,注释存档到此为止。</summary>
+        public const int KFBOSS_EUDEMONS_REBORN_TIP = 47006;
+        /// <summary>千幻蜃楼 boss 被击杀信息(无 read 纯推送)。S2C BossType:8,BossId:32,RebornTime:32,Num:8。
+        /// boss_type==holy(1+1000)时才触发 KILL_BOSS 类通知(对标老端 On47007),其余仅落地 RebornTime。</summary>
+        public const int KFBOSS_EUDEMONS_KILLED_NOTICE = 47007;
+        /// <summary>千幻蜃楼怪物重生刷新信息(无 read 纯推送)。S2C BossType:8,BossId:32,RebornTime:32,Num:8
+        /// (与 47007 结构相同)。老端 RegisteredHandler 函数体为空(收到即弃),但服务端确认真会发送
+        /// (mod_eudemons_land.erl:1158/1188,write+send_to_scene)——本端按活号防御 recv(数据落地,不额外弹窗)。</summary>
+        public const int KFBOSS_EUDEMONS_REBORN_REFRESH = 47008;
+        /// <summary>千幻蜃楼疲劳值广播(无 read 纯推送)。S2C BossTired:8。</summary>
+        public const int KFBOSS_EUDEMONS_TIRED = 47009;
+        /// <summary>千幻蜃楼错误提示码专用号(无 read 纯推送,"同步中"占位/通用错误码复用同一个号)。
+        /// S2C Code:32——code==1031(kf_server_allot)时是老端特殊文案"正在获取千幻蜃楼信息 请稍候再试",
+        /// 其余走通用错误码展示。不做自动重试轮询(r15b:老端本身也只是提示语,无计时器,严禁死等)。</summary>
+        public const int KFBOSS_EUDEMONS_SYNC_CODE = 47010;
+        /// <summary>千幻蜃楼结算奖励(C2S 空包)。S2C RewardType:8,RewardList[u16计数]{Type:8,GoodsTypeId:32,
+        /// Num:32,Id:64}(与 46015 共用结构)。reward_type==3 时老端走通用弹窗,本轮只落数据不分弹窗。</summary>
+        public const int KFBOSS_EUDEMONS_SETTLE_REWARD = 47015;
+        /// <summary>千幻蜃楼个人信息推送壳(C2S 空包)。S2C InfoList[u16计数]{Key:8,Val:32}(老端 switch(key){}
+        /// 空 case,占位壳,本端同样只落原始 key/val)。</summary>
+        public const int KFBOSS_EUDEMONS_ROLE_INFO = 47016;
+        /// <summary>千幻蜃楼进场景宝箱信息全量(C2S 空包)。S2C Info[u16计数]{BossId:32,Xylist[u16计数]{X:16,Y:16}}。</summary>
+        public const int KFBOSS_EUDEMONS_BOX_POS = 47017;
+        /// <summary>千幻蜃楼宝箱信息单条更新(无 read 纯推送)。S2C BossId:32,Xylist[u16计数]{X:16,Y:16}。</summary>
+        public const int KFBOSS_EUDEMONS_BOX_POS_UPDATE = 47018;
+        /// <summary>千幻蜃楼狩猎等级信息(C2S 空包,独有子系统)。S2C Level:16,Exp:32,AddExp:32。</summary>
+        public const int KFBOSS_EUDEMONS_HUNT_LEVEL = 47019;
+        /// <summary>圣兽领榜单(C2S 空包)。S2C PlayerList[u16计数]{RoleId:64,RoleName:s,ServerId:16,ServerNum:16,
+        /// Score:32,SortKey1:32,KillNum:16,SortKey2:32,TotalScore:32,SortKey3:32}(一次性全量下发)。</summary>
+        public const int KFBOSS_EUDEMONS_RANK = 47021;
+        /// <summary>玩家获得积分推送(C2S 空包,无 read 但 wire 定义;老端 Handler 函数体为空,纯推送未消费)。
+        /// S2C ScoreType:8,ScoreAdd:16。</summary>
+        public const int KFBOSS_EUDEMONS_SCORE = 47022;
+        /// <summary>最大疲劳值变化刷新(C2S 空包)。S2C MaxTired:8。</summary>
+        public const int KFBOSS_EUDEMONS_MAX_TIRED = 47023;
+        /// <summary>千幻蜃楼玩家死亡次数(C2S 空包)。S2C DieTimes:16,Time:32,DieTime:32,SafeTime:32——转发
+        /// ReliveModel.HolyBoss 槽位(对标老端 SetReliveTimeData(...,BossSpecialReliveType.HolyBoss),与 46034
+        /// 的 WorldBoss 槽位并列)。</summary>
+        public const int KFBOSS_EUDEMONS_DEATH_DEBUFF = 47034;
+        /// <summary>复活千幻蜃楼 boss(C2S "ci" boss_type,boss_id)。S2C Errcode:32,BossType:8,BossId:32。
+        /// 成功后老端补发 47000(对标本端 EnterBoss 系"隐式成功"惯例的例外——此号本身即显式结果包,
+        /// 成功分支仍需重拉列表刷新数据)。</summary>
+        public const int KFBOSS_EUDEMONS_REVIVE = 47035;
+
+        /// <summary>镇煞封魂主界面数据(C2S 空包)。S2C ActStatus:8,Count:8,AssistCount:8,BuyCount:8,AddCount:8,
+        /// InBuff:8,KillCount:16,IsAlive:8,SbossRoleNum:8,BossList[u16计数]{BossId:32,RebornTime:32,RoleNum:8,
+        /// IsHadAssist:8}。</summary>
+        public const int KFBOSS_DECORATION_INFO = 47101;
+        /// <summary>进入镇煞封魂 boss(C2S "ic" boss_id,type[1=普通/2=协助])。S2C ErrorCode:32,BossId:32,Type:8。
+        /// §双路径(r15b):CLS_TYPE_GAME 纯本服同步处理,成败都显式回包;CLS_TYPE_CENTER 两段 cast 转发跨服,
+        /// 全程无本服占位 ack,最终成败由跨服 relay 回一个显式包——两条路径客户端表现一致,均不用等待额外包。</summary>
+        public const int KFBOSS_DECORATION_ENTER = 47102;
+        /// <summary>退出镇煞封魂(C2S 空包)。S2C ErrorCode:32。</summary>
+        public const int KFBOSS_DECORATION_LEAVE = 47103;
+        /// <summary>购买进入次数(C2S 空包)。S2C ErrorCode:32——成功后老端本地 buy_count+1,不重查 47101。</summary>
+        public const int KFBOSS_DECORATION_BUY_COUNT = 47104;
+        /// <summary>取消关注列表(C2S 空包,初始化批量落地)。S2C UnfollowList[u16计数]{BossId:32}(数组元素是裸
+        /// BossId,非结构体)。</summary>
+        public const int KFBOSS_DECORATION_UNFOLLOW_LIST = 47105;
+        /// <summary>单个关注/取关(C2S "ic" boss_id,is_follow)。S2C ErrorCode:32,BossId:32,IsFollow:8。</summary>
+        public const int KFBOSS_DECORATION_FOLLOW = 47106;
+        /// <summary>boss/特殊 boss 复活通知(无 read 纯推送)。S2C BossId:32——联动 config_decoration_boss
+        /// 生成提示文案(老端消费方,本轮数据层只透出事件)。</summary>
+        public const int KFBOSS_DECORATION_REBORN = 47107;
+        /// <summary>镇煞封魂掉落记录(C2S 空包)。S2C DropLog[u16计数]{RoleId:64,ServerId:16,ServerNum:16,Name:s,
+        /// BossId:32,GoodsId:32,Num:32,Rating:32,EquipExtraAttr[...],Time:32}——注意比 46002/47002/46046 少
+        /// Layers 字段、多 Num 字段,独立形态(KfBossModel.DecorationDropLogEntry)。</summary>
+        public const int KFBOSS_DECORATION_DROP_LOG = 47108;
+        /// <summary>特殊 boss 个人伤害排名全量(C2S 空包)。S2C RankList[u16计数]{RoleId:64,Name:s,ServerId:16,
+        /// ServerNum:16,ServerName:s,Hurt:64}。</summary>
+        public const int KFBOSS_DECORATION_RANK = 47109;
+        /// <summary>进入特殊 boss(C2S 空包)。S2C ErrorCode:32。</summary>
+        public const int KFBOSS_DECORATION_ENTER_SPECIAL = 47110;
+        /// <summary>仙宗召援(C2S 空包)。S2C ErrorCode:32——注意与 Guild 家族 40060"仙宗召援"同名不同协议号,
+        /// 是镇煞封魂场景内独立的呼叫入口,不要混淆(轮13 报告已提醒)。</summary>
+        public const int KFBOSS_DECORATION_GUILD_HELP = 47111;
+        /// <summary>特殊 boss 个人伤害单条推送(无 read 纯推送,增量 patch 排行榜)。S2C RoleId:64,Name:s,
+        /// ServerId:16,ServerNum:16,ServerName:s,Hurt:64——按 RoleId 命中则更新伤害,否则追加。</summary>
+        public const int KFBOSS_DECORATION_DAMAGE_PUSH = 47112;
+        /// <summary>镇煞封魂 boss 结算(无 read 纯推送)。S2C IsBelong:8,IsDouble:8,RewardTypeList[u16计数]
+        /// {RewardType:8,RewardList[u16计数]{Style1:8,TypeId1:32,Count1:32,GoodsId1:64}},RewardTypeList2
+        /// [同构](双层嵌套数组,两套奖励表)。</summary>
+        public const int KFBOSS_DECORATION_SETTLE = 47113;
+        /// <summary>战斗场景信息(C2S 空包,进场景即推)。S2C EnterType:8,QuitTime:32,ReviveTime:32。</summary>
+        public const int KFBOSS_DECORATION_SCENE_INFO = 47114;
+        /// <summary>退出时间单独刷新(无 read 纯推送)。S2C QuitTime:32。</summary>
+        public const int KFBOSS_DECORATION_QUIT_TIME = 47115;
+        /// <summary>复活时间单独刷新(无 read 纯推送)。S2C ReviveTime:32。</summary>
+        public const int KFBOSS_DECORATION_REVIVE_TIME = 47116;
+        /// <summary>boss/特殊 boss 死亡广播(无 read;老端 RegisteredHandler 函数体为空,收到即弃)。
+        /// S2C BossId:32,RebornTime:32。服务端确认真会发送且是全服广播(lib_decoration_boss_local.erl:435-436
+        /// `write(47117,...)+send_to_all`——本代理直接核对调用点证伪了 r15b 报告"零调用点"的结论),
+        /// 按活号防御 recv(数据只落日志,不建 UI)。</summary>
+        public const int KFBOSS_DECORATION_DEATH = 47117;
+
+        /// <summary>论剑恩怨簿界面协议(C2S 空包)。S2C SendList[u16计数]{Sign:8,Time:32,SceneName:s,AttrName:s,
+        /// AttrId:64}(本服)+ KfSendList[u16计数]{Sign:8,Time:32,SceneName:s,ServerId:32,ServerNum:32,
+        /// AttrName:s,AttrId:64}(跨服,注意 ServerId/ServerNum 是 32 位,与 47xxx/46xxx 系普遍 16 位不同)。
+        /// §scope quirk(r15b+r15_oldboss#10):服务端 is_in_kf_pk_scene 只覆盖 EUDEMONS_BOSS/KF_SANCTUARY/
+        /// SANCTUM 三类场景,镇煞封魂/跨服大妖场景死亡不产恩怨记录,照实接收不额外过滤。§凌晨清理 quirk:
+        /// pt_619 变量名 BeforeOneMounth 实际赋值=NowTime(近全清,非 30 天窗口)+ DB 持久化代码整段注释死,
+        /// 纯会话内存态——客户端照收推送即可,不做本地跨会话缓存假设。</summary>
+        public const int KFBOSS_KILL_RECORD_LIST = 61900;
+        /// <summary>本服新击杀记录推送(无 read;单条,与 61900 SendList 单条 item 结构相同)。
+        /// S2C Sign:8,Time:32,SceneName:s,AttrName:s,AttrId:64。</summary>
+        public const int KFBOSS_KILL_RECORD_NEW = 61901;
+        /// <summary>跨服击杀记录推送(无 read;单条,与 61900 KfSendList 单条 item 结构相同)。
+        /// S2C Sign:8,Time:32,SceneName:s,ServerId:32,ServerNum:32,AttrName:s,AttrId:64。</summary>
+        public const int KFBOSS_KILL_RECORD_KF_NEW = 61902;
+
+        /// <summary>跨服秘境大妖(太古遗凶)阶段奖励状态(C2S 空包)。S2C KillNum:32,HadRewardList[u16计数]
+        /// {Stage:16}——pt_460 内 kf_great_demon 专属壳,pp_boss.erl 无条件转发 mod_great_demon_local,
+        /// 与 boss_type 取值无关(15a 曾判定死号,15b 订正实现)。</summary>
+        public const int KFBOSS_GREAT_DEMON_REWARD_STATE = 46037;
+        /// <summary>领取太古遗凶阶段奖励(C2S "i" reward_id)。S2C RewardId:32,Code:32。成功后老端补发本号
+        /// 重拉(对标 SendFmtToGame(46037))。</summary>
+        public const int KFBOSS_GREAT_DEMON_REWARD_TAKE = 46038;
+        /// <summary>太古遗凶进场景宝箱+特殊 boss 信息(C2S 空包)。S2C Info[u16计数]{BossId:32,Xylist[u16计数]
+        /// {X:16,Y:16}}——只收集 mon_type∈{宝箱2/高级宝箱3/特殊大妖1}三种,普通怪(0)不进列表。</summary>
+        public const int KFBOSS_GREAT_DEMON_BOX_INFO = 46039;
+        /// <summary>太古遗凶掉落记录(C2S "h" boss_type,固定传 KfGreatDemon=20)。S2C BossType:16,DropLog
+        /// [u16计数]{RoleId:64,ServerId:16,ServerNum:16,Name:s,BossId:32,Layers:8,GoodsId:32,Rating:32,
+        /// EquipExtraAttr[...],Time:32}(与 47002 同形态,共用 KfBossModel.CrossDropLogEntry)。</summary>
+        public const int KFBOSS_GREAT_DEMON_DROP_LOG = 46046;
     }
 }

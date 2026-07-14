@@ -130,7 +130,7 @@ namespace Shenxiao.Module.Core.Dungeon
 
         private async Task CheckAllDunInitStateAsync(int epoch)
         {
-            await Task.Delay(500);
+            await Shenxiao.Framework.Util.TimeUtil.Delay(500);
             if (epoch != _checkEpoch || !IsInitialized) return;
             DungeonModel model = DungeonModel.Instance;
             int sent = 0;

@@ -20,6 +20,8 @@ namespace Shenxiao.Module.Core.Scene
 
         private static GameObject _sceneRoot;
         private static GameObject _mainRoleRoot;
+        private static GameObject _mainRoleModel;
+        private static RoleModelSpec _lastSpec;
         private static int _buildVersion;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -70,6 +72,20 @@ namespace Shenxiao.Module.Core.Scene
                 return;
             }
 
+            // 同形象且模型仍活着(同图副本进出/跨图传送/重连同帧重进):不整只销毁重建——
+            // 老端这里角色原地不动,重建等于白重载 衣/头/武器/翅膀+动作 一整套。Init 本身是复位函数,
+            // 复位坐标/动作/移动状态即可。形象真变了(换装)照走完整重建。
+            if (_mainRoleRoot != null && _mainRoleModel != null && SameFigure(spec, _lastSpec))
+            {
+                MainRoleAgent existing = _mainRoleRoot.GetComponent<MainRoleAgent>();
+                if (existing != null)
+                {
+                    existing.Init(_mainRoleModel, role.X, role.Y, role.Career, role.Figure?.sex ?? 0, spec.ClotheRes);
+                    GameLog.Info("Scene", "main role reused (same figure): pos=({0},{1})", role.X, role.Y);
+                    return;
+                }
+            }
+
             GameObject model = await RoleModelAssembler.BuildAsync(spec);
             if (version != _buildVersion)
             {
@@ -107,8 +123,21 @@ namespace Shenxiao.Module.Core.Scene
             agent.Init(model, role.X, role.Y, role.Career, role.Figure?.sex ?? 0, spec.ClotheRes);
             SceneInputDriver.EnsureInstalled();
 
+            _mainRoleModel = model;
+            _lastSpec = spec;
             GameLog.Info("Scene", "main role ready: roleId={0} pos=({1},{2}) clothe={3}",
                 role.RoleId, role.X, role.Y, spec.ClotheRes);
+        }
+
+        private static bool SameFigure(RoleModelSpec a, RoleModelSpec b)
+        {
+            return a != null && b != null
+                && a.Career == b.Career
+                && a.ClotheRes == b.ClotheRes
+                && a.WeaponRes == b.WeaponRes
+                && a.HeadRes == b.HeadRes
+                && a.WingId == b.WingId
+                && a.BackOrnamentId == b.BackOrnamentId;
         }
 
         private static async Task<RoleModelSpec> BuildSpecAsync(RoleModel role)
@@ -167,6 +196,8 @@ namespace Shenxiao.Module.Core.Scene
                 UnityEngine.Object.Destroy(_mainRoleRoot);
                 _mainRoleRoot = null;
             }
+            _mainRoleModel = null;
+            _lastSpec = null;
             // 模型挂在合成台上,逻辑节点销毁时一并清掉合成台里的主角与画面。
             SceneCharacterStage.Clear();
         }

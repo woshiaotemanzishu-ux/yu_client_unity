@@ -314,7 +314,7 @@ namespace Shenxiao.Module.Core.Dialogue
                         if (_bind?._lb_go_on_time != null) _bind._lb_go_on_time.text = _time.ToString();
                     }
 
-                    try { await Task.Delay(1000, token); }
+                    try { await Shenxiao.Framework.Util.TimeUtil.Delay(1000, token); }
                     catch (TaskCanceledException) { return; }
                     continue;
                 }

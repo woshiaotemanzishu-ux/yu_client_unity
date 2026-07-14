@@ -259,7 +259,7 @@ namespace Shenxiao.Module.Core.MainUI
         {
             try
             {
-                await Task.Delay(10, token);
+                await Shenxiao.Framework.Util.TimeUtil.Delay(10, token);
             }
             catch (TaskCanceledException)
             {
@@ -462,10 +462,10 @@ namespace Shenxiao.Module.Core.MainUI
         {
             try
             {
-                await Task.Delay(AutoTaskStartDelayMs, token);
+                await Shenxiao.Framework.Util.TimeUtil.Delay(AutoTaskStartDelayMs, token); // ⚠ Task.Delay 在 WebGL 永不醒
                 while (!token.IsCancellationRequested)
                 {
-                    await Task.Delay(AutoTaskPeriodMs, token);
+                    await Shenxiao.Framework.Util.TimeUtil.Delay(AutoTaskPeriodMs, token);
                     TryAutoTask();
                 }
             }
@@ -484,6 +484,17 @@ namespace Shenxiao.Module.Core.MainUI
             if (TaskModel.Instance.ShouldHoldAutoTaskForMainLineGuide(task)) return;
 
             if (DialogueModel.Instance.DialogIsOpen && task.Id > 0 && DialogueModel.Instance.CurrentNpcId == task.Id)
+            {
+                return;
+            }
+
+            // 防重入(对标老端 UpdateAutoFight 的 goToPos 闸):当前杀怪/收集任务已武装(weight=TASK 且
+            // 锁定目标就是本任务的怪)时,10 秒兜底轮询不得重进 DoTask——否则走"已在附近→到达回调→重锁同一只怪"
+            // 空转链每 10 秒刷屏一次(永动死循环的重入源)。目标怪死亡/离场时 GetClickTarget 自清返 null,
+            // 条件不成立,轮询自动恢复"重新寻路/重新锁怪"的兜底职能。
+            if ((task.TaskTipsType == TaskModel.TIP_KILL || task.TaskTipsType == TaskModel.TIP_ITEM)
+                && AutoFight.AutoFightModel.Instance.AutoFightWeight == AutoFight.AutoFightModel.AUTO_WEIGHT_TASK
+                && Scene.SceneCombat.Instance.GetClickTarget()?.TypeId == task.Id)
             {
                 return;
             }

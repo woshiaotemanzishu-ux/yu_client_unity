@@ -348,7 +348,8 @@ namespace Shenxiao.Module.Core.Scene
                 _autoMoving = false;
                 _onArrive = null;
                 FaceTowardPixel(targetX, targetY);
-                GameLog.Info("Scene", "MoveToNpc: 主角已在 NPC 附近,直接触发到达回调(开对话)");
+                // 回调语义由调用方决定(对话/杀怪/采集),别在这写死"开对话"——曾把杀怪链误导成对话链。
+                GameLog.Info("Scene", "MoveToNpc: 主角已在目标点附近,直接触发到达回调");
                 onArrive?.Invoke();
                 return;
             }
@@ -674,7 +675,7 @@ namespace Shenxiao.Module.Core.Scene
                 float wait = Mathf.Max(GetActionLength(actionName), SkillMovieConfigs.GetConfiguredDurationSeconds(skillId));
                 if (wait > 0f)
                 {
-                    await Task.Delay(Mathf.RoundToInt(wait * 1000f));
+                    await TimeUtil.Delay(Mathf.RoundToInt(wait * 1000f));
                     if (version == _actionVersion && !_moving && _model != null) PlayAction(ActionIdle);
                 }
             }
@@ -722,7 +723,7 @@ namespace Shenxiao.Module.Core.Scene
                 else
                 {
                     float duration = GetActionLength(playedAction);
-                    if (duration > 0f) await Task.Delay(Mathf.RoundToInt(duration * 1000f));
+                    if (duration > 0f) await TimeUtil.Delay(Mathf.RoundToInt(duration * 1000f));
                 }
 
                 if (version == _actionVersion && !_moving && _model != null)
@@ -767,7 +768,7 @@ namespace Shenxiao.Module.Core.Scene
             try
             {
                 if (particle.StartTime > 0f)
-                    await Task.Delay(Mathf.RoundToInt(particle.StartTime * 1000f));
+                    await TimeUtil.Delay(Mathf.RoundToInt(particle.StartTime * 1000f));
                 if (version != _actionVersion || _model == null) return;
 
                 bool hasTargets = hitMonsterIds != null && hitMonsterIds.Count > 0;
@@ -832,16 +833,18 @@ namespace Shenxiao.Module.Core.Scene
                 if (prefab == null || host == null)
                 {
                     GameLog.Warn("Scene", "level up effect missing or host destroyed: {0}", key);
+                    ResManager.Release(prefab); // 宿主没了也归还这次引用(prefab==null 时为空操作)
                     return;
                 }
 
                 GameObject effect = UnityEngine.Object.Instantiate(prefab, host);
+                LoadedAssetReleaser.Track(effect, prefab);
                 effect.name = "__fx_levelup_effect_xemlvup";
                 effect.transform.localPosition = Vector3.zero;
                 effect.transform.localRotation = Quaternion.identity;
                 effect.transform.localScale = Vector3.one;
                 if (effect != null) EffectBinder.PlayOneShot(effect);
-                await Task.Delay(1000);
+                await TimeUtil.Delay(1000);
             }
             catch (Exception ex)
             {
@@ -923,7 +926,7 @@ namespace Shenxiao.Module.Core.Scene
             ResetModelVisualOffset();
 
             float stay = configuredFallStay >= 0f ? configuredFallStay : OtherFightConfigs.GetJumpFallStayTime(jumpType, _career, 0.1f);
-            if (stay > 0f) await Task.Delay(Mathf.RoundToInt(stay * 1000f));
+            if (stay > 0f) await TimeUtil.Delay(Mathf.RoundToInt(stay * 1000f));
         }
 
         private static float GetTaskJumpDuration(float vspeed, float gravity, float fallStay)

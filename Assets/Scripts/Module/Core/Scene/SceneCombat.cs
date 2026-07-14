@@ -54,8 +54,9 @@ namespace Shenxiao.Module.Core.Scene
         /// </summary>
         private const int FindAndAttackIntervalMs = 400;
 
-        /// <summary>上次发起"寻怪后接近"的时间(Environment.TickCount 毫秒;对标老端 last_find_target_time)。</summary>
-        private int _lastFindTargetTick;
+        /// <summary>上次发起"寻怪后接近"的时间(毫秒;对标老端 last_find_target_time)。
+        /// 计时基准=Time.realtimeSinceStartupAsDouble(Environment.TickCount 在 WebGL 不可靠)。</summary>
+        private double _lastFindTargetMs;
 
         /// <summary>当前点击/锁定目标实例 id(对标老端 Scene.curr_click_target;0=无)。</summary>
         public int CurrentTargetId { get; private set; }
@@ -273,9 +274,9 @@ namespace Shenxiao.Module.Core.Scene
             // 节流(对标老端 Scene.ts:1744 `NowTime - last_find_target_time < auto_find_and_attack_interval` return):
             // 接近尚在进行时,不用每个 100ms tick 都重新 MoveToNpc 一次(MainRoleAgent 的移动本身按 Update() 逐帧推进,
             // 不需要这里反复驱动;重复调用只会清零卡死/超时计时器)。已到点才允许重发一次接近指令。
-            int nowTick = Environment.TickCount;
-            if (_lastFindTargetTick != 0 && nowTick - _lastFindTargetTick < FindAndAttackIntervalMs) return;
-            _lastFindTargetTick = nowTick;
+            double nowMs = UnityEngine.Time.realtimeSinceStartupAsDouble * 1000.0;
+            if (_lastFindTargetMs != 0 && nowMs - _lastFindTargetMs < FindAndAttackIntervalMs) return;
+            _lastFindTargetMs = nowMs;
 
             // 站位修正(对标老端 StartTargetAction:停在玩家"接近方向"那一侧的攻击距离处,而非走到 BOSS 中心):
             // 原来 MoveToNpc(BOSS 中心, 半径=range/LogicRatioX) 是各向同性大圆,玩家从哪边进圆就停哪边 → 可能停到 BOSS 背后。
@@ -429,8 +430,12 @@ namespace Shenxiao.Module.Core.Scene
         {
             try
             {
-                if (delayMs > 0) await Task.Delay(delayMs);
-                if (!NetManager.IsConnected) return; // 已断线则不补发(短会话窗口兜底)
+                if (delayMs > 0) await Shenxiao.Framework.Util.TimeUtil.Delay(delayMs); // ⚠ Task.Delay 在 WebGL 永不醒
+                if (!NetManager.IsConnected)
+                {
+                    GameLog.Info("Combat", "combo 副技能补发跳过: 已断线 engage={0} combo={1}", engageSkillId, comboSkillId);
+                    return;
+                }
 
                 // 发包前重过滤:只留仍在场且 hp>0 的怪(engage 帧 damage=0 不会杀怪,通常全保留;防移除/位移)。
                 var alive = new List<int>(monsterIds.Count);
@@ -439,7 +444,11 @@ namespace Shenxiao.Module.Core.Scene
                     MonsterVo m = SceneManager.Instance.GetMonster(ins);
                     if (m != null && m.Hp > 0) alive.Add(ins);
                 }
-                if (alive.Count == 0) return;
+                if (alive.Count == 0)
+                {
+                    GameLog.Info("Combat", "combo 副技能补发跳过: 目标全灭/离场 engage={0} combo={1}", engageSkillId, comboSkillId);
+                    return;
+                }
 
                 GameLog.Info("Combat",
                     "combo 副技能补发: engage={0} → combo={1} 延迟={2}ms 目标=[{3}](承载真实伤害,对标老端 fight-movie comboSkills 第二次 20001)",

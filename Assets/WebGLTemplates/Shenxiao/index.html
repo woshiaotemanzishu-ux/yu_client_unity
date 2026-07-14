@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>{{{ PRODUCT_NAME }}}</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <!--
+      ⚠ 本模板必须保持"官方 Default 模板 + sx-boot 加载层"的结构。
+      2026-07-12 实证:从零自写的全屏 canvas 页面(position:fixed + 100%宽高、无 TemplateData 结构)
+      会导致 TMP 输入框无法激活/键盘输入失灵(按钮正常、输入框全死,机理未明,现象可稳定复现);
+      基于 Default 底座只叠加载层则一切正常。改版式请在此基础上小步验证键盘输入。
+    -->
+  </head>
+  <body>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width={{{ WIDTH }}} height={{{ HEIGHT }}} tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-logo-title-footer"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">{{{ PRODUCT_NAME }}}</div>
+      </div>
+    </div>
+    <script>
+      // ---- 官方默认进度条承载全程(自定义 HTML 加载页已按需求移除,2026-07-13):----
+      // 0~85% 引擎下载/启动(loader onProgress),85~100% 游戏侧 BootOverlay 经 jslib 继续驱动同一根条,
+      // SxBootDone(游戏加载页渲染出第一帧)才撤条——交接时序与原 sx-boot 层完全一致。
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var sxMax = 0;              // 进度只进不退
+      var sxLastUpdate = Date.now();
+      window.SxBootUpdate = function (p, t) {
+        sxLastUpdate = Date.now();
+        if (p > sxMax) sxMax = p;
+        if (progressBarFull) progressBarFull.style.width = (sxMax * 100) + "%";
+      };
+      window.SxBootDone = function () {
+        if (loadingBar) loadingBar.style.display = "none";
+      };
+      loadingBar.style.display = "block";
+
+      var canvas = document.querySelector("#unity-canvas");
+
+      function unityShowBanner(msg, type) {
+        var warningBanner = document.querySelector("#unity-warning");
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/{{{ LOADER_FILENAME }}}";
+      var config = {
+        arguments: [],
+        dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
+        frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
+#if USE_THREADS
+        workerUrl: buildUrl + "/{{{ WORKER_FILENAME }}}",
+#endif
+#if USE_WASM
+        codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
+#endif
+#if SYMBOLS_FILENAME
+        symbolsUrl: buildUrl + "/{{{ SYMBOLS_FILENAME }}}",
+#endif
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+        productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+        productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+        showBanner: unityShowBanner,
+        // UnityCache(IndexedDB)策略:bundle 文件名带内容 hash,内容一变名字就变 → immutable 免再验证,
+        // 二次进入零网络请求;引擎 data/wasm 文件名不变 → must-revalidate(服务器 304 秒回)。
+        cacheControl: function (url) {
+          return /\.bundle/.test(url) ? 'immutable' : 'must-revalidate';
+        },
+      };
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // 移动端:游戏画布铺满浏览器可视区
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        document.querySelector("#unity-container").className = "unity-mobile";
+        canvas.className = "unity-mobile";
+      } else {
+        // 桌面:固定设计分辨率窗口(与老端 H5 一致的竖屏画布)
+        canvas.style.width = "{{{ WIDTH }}}px";
+        canvas.style.height = "{{{ HEIGHT }}}px";
+      }
+
+      // Unity 自带 loading bar 不启用,由 sx-boot 加载层全程接管进度显示。
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          window.SxBootUpdate(progress * 0.85, progress < 1 ? '正在下载游戏引擎…' : '正在启动引擎…');
+        }).then((unityInstance) => {
+          window.SxUnity = unityInstance;
+          // 之后由游戏侧 BootOverlay(SxBootUpdate/SxBootDone)推进 85%→100%。
+          // 看门狗兜底:引擎就绪后若 45 秒无任何游戏侧进度更新(异常场景),自动撤条避免卡死。
+          var watchdog = setInterval(function () {
+            if (!loadingBar || loadingBar.style.display === "none") { clearInterval(watchdog); return; }
+            if (Date.now() - sxLastUpdate > 45000) { clearInterval(watchdog); window.SxBootDone(); }
+          }, 5000);
+          document.querySelector("#unity-fullscreen-button").onclick = () => {
+            unityInstance.SetFullscreen(1);
+          };
+        }).catch((message) => {
+          unityShowBanner('加载失败,请刷新重试:' + message, 'error');
+        });
+      };
+
+      document.body.appendChild(script);
+    </script>
+  </body>
+</html>

@@ -1,7 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.AddressableAssets;
 using Shenxiao.Framework.Util;
 
 namespace Shenxiao.Framework.Res
@@ -20,60 +18,34 @@ namespace Shenxiao.Framework.Res
     }
 
     /// <summary>
-    /// Manages the remote Addressables catalog version. Called at launch.
+    /// Applies the resource version handshake. Since the 2026-07 packaging plan the remote catalog
+    /// is the player's built-in one (catalog_live.bin/.hash under {ResCdn.BaseUrl}/[BuildTarget]):
+    /// Addressables checks the .hash at init and swaps the catalog itself, so this class no longer
+    /// loads catalogs or rewrites InternalIds — it only feeds ResCdn before initialization.
     /// </summary>
     public static class ResVersionManager
     {
         public static ResourceVersionInfo Current { get; private set; }
 
-        /// <summary>
-        /// Apply a resource version response: redirect Addressables remote URL and reload catalog.
-        /// </summary>
-        public static async Task ApplyAsync(ResourceVersionInfo info)
+        public static Task ApplyAsync(ResourceVersionInfo info)
         {
             if (info == null) throw new ArgumentNullException(nameof(info));
             Current = info;
 
-            // Override Addressables remote load path via InternalIdTransformFunc.
-            string baseUrl = info.cdnBaseUrl;
-            if (!string.IsNullOrEmpty(baseUrl))
+            if (!string.IsNullOrEmpty(info.cdnBaseUrl))
             {
-                Addressables.InternalIdTransformFunc = location =>
-                {
-                    return RewriteAddressableInternalId(location.InternalId, baseUrl);
-                };
+                ResCdn.Configure(info.cdnBaseUrl);
+                GameLog.Info("Res", "cdn base = {0} (version={1})", ResCdn.BaseUrl, info.resourceVersion);
             }
 
             if (!string.IsNullOrEmpty(info.catalogUrl))
             {
-                var loadHandle = Addressables.LoadContentCatalogAsync(info.catalogUrl, true);
-                await AddressablesAwaiter.Wait(loadHandle);
-                ResManager.InvalidateKeyCache(); // 新 catalog 的 key→location 映射变了,清掉旧版本的存在性缓存
-                GameLog.Info("Res", "catalog loaded version={0}", info.resourceVersion);
-            }
-        }
-
-        private static string RewriteAddressableInternalId(string id, string baseUrl)
-        {
-            if (id.StartsWith("http://", StringComparison.Ordinal) ||
-                id.StartsWith("https://", StringComparison.Ordinal))
-            {
-                int schemeEnd = id.IndexOf("://", StringComparison.Ordinal) + 3;
-                int firstSlash = id.IndexOf('/', schemeEnd);
-                string tail = firstSlash >= 0 ? id.Substring(firstSlash + 1) : string.Empty;
-                return baseUrl.TrimEnd('/') + "/" + tail;
+                // 附加 catalog 与内置 catalog 同 key 并存时行为未定义(union locator),该通道已废弃:
+                // 内置远端 catalog 固定名 catalog_live.*,更新由 .hash 驱动,无需下发 catalogUrl。
+                GameLog.Warn("Res", "catalogUrl deprecated (built-in remote catalog self-updates via .hash), ignored: {0}", info.catalogUrl);
             }
 
-            const string serverDataSegment = "ServerData/";
-            string normalizedId = id.Replace('\\', '/');
-            int serverDataIndex = normalizedId.IndexOf(serverDataSegment, StringComparison.OrdinalIgnoreCase);
-            if (serverDataIndex >= 0)
-            {
-                string tail = normalizedId.Substring(serverDataIndex + serverDataSegment.Length);
-                return baseUrl.TrimEnd('/') + "/" + tail;
-            }
-
-            return id;
+            return Task.CompletedTask;
         }
     }
 }

@@ -85,11 +85,13 @@ namespace Shenxiao.Module.Core.Login
         {
             // 隐藏编辑器占位:真模型由 UIModelStage 贴进 modelCon,占位只是编辑期看位置/大小用。
             if (modelPlaceholder != null) modelPlaceholder.gameObject.SetActive(false);
+            UIModelStage.SetDragRotate(true); // 对标老端:模型区横向拖动=左右转身(仅本页开启)
             Refresh();
         }
 
         protected override void OnHide()
         {
+            UIModelStage.SetDragRotate(false);
             UIModelStage.Clear();
         }
 
@@ -252,8 +254,17 @@ namespace Shenxiao.Module.Core.Login
                 Destroy(model);
                 return;
             }
-            UIModelStage.ShowInstance(modelCon, model,
-                MODEL_SCALE, LoginConfigs.GetModelPos("SelectRole", option.Career, option.Sex));
+            Vector2 pos = LoginConfigs.GetModelPos("SelectRole", option.Career, option.Sex);
+            float yaw = UIModelStage.MODEL_YAW;
+            // 新模型(激活中的实例带渲染档案)吃单独的展示旋钮:老 ModelPos 是按老模型调的构图,
+            // 新模型的构图/朝向在 configlogin SelectRole.NewModel { x, y, yaw } 里所见即所得拧
+            if (model.GetComponentInChildren<ArtModelRenderProfile>(false) != null)
+            {
+                Vector3 tuning = LoginConfigs.GetNewModelTuning("SelectRole");
+                pos += new Vector2(tuning.x, tuning.y);
+                yaw += tuning.z;
+            }
+            UIModelStage.ShowInstance(modelCon, model, MODEL_SCALE, pos, yaw);
         }
 
         private void OnClickEnter()

@@ -35,8 +35,15 @@ namespace Shenxiao.Module.Core.Preload
         private const int WarmConcurrency = 8;
         private static readonly Dictionary<string, UnityEngine.Object> _retained =
             new Dictionary<string, UnityEngine.Object>();
+        // 预热资产按阶段登记,阶段过期即整批归还(不登记则永久驻留:选角页全职业模型、
+        // 每张到过的地图的首屏瓦片都会钉死在 wasm 堆里)。
+        private static readonly Dictionary<LegacyPreloadStage, HashSet<string>> _retainedByStage =
+            new Dictionary<LegacyPreloadStage, HashSet<string>>();
         private static readonly Dictionary<string, bool> _keyExists =
             new Dictionary<string, bool>();
+        // 当前 SceneMap 桶预热对应的场景:同场景重进(首次进世界紧跟 12005/进出同图副本)跳过
+        // 释放-重热返工——GameStart 刚预热好的首屏瓦片被释放再重载,白耗且拖慢首屏。
+        private static int _retainedSceneId;
 
         private static bool _legacyLoaded;
         private static List<PreloadEntry> _legacyCommonEntries;
@@ -46,7 +53,10 @@ namespace Shenxiao.Module.Core.Preload
         public static async Task PreloadBootAsync(IEnumerable<string> appPreloadKeys, Action<float, string> progress = null)
         {
             var entries = new Dictionary<string, PreloadEntry>();
-            AddEntries(entries, await GetLegacyCommonEntries());
+            // ⚠ 不要在 Boot 拉 GetLegacyCommonEntries():那份 ConfigPreloadResList.package_common_res(4453条)
+            // 在老端是【打包进安装包免下载】的构建期清单(唯一消费者 PickUpPackageFile.js),不是启动下载清单!
+            // 老端出登录页前只强制加载登录模块自身(几 MB);误把全清单塞 Boot 曾让登录前硬下 255 keys/102MB。
+            // 该清单改为进游戏后后台预取(BackgroundPrefetchLegacyAsync),对齐"进包免下载→后台补齐"语义。
             AddManualBootEntries(entries);
             if (appPreloadKeys != null)
             {
@@ -57,6 +67,72 @@ namespace Shenxiao.Module.Core.Preload
             }
 
             await RunStageAsync(LegacyPreloadStage.Boot, entries, progress);
+        }
+
+        /// <summary>
+        /// 进游戏后台预取老端"进包免下载"清单(只下载进缓存,不预热实例化)。fire-and-forget,
+        /// 失败静默(纯预热性质,业务按需加载自会兜底)。调用点:LoginFlow 收到 EVT_GAME_ENTERED 后。
+        /// </summary>
+        public static async Task BackgroundPrefetchLegacyAsync()
+        {
+            // 进世界即归还 Boot/选角阶段的预热引用:登录模块、全职业展示模型/视频进游戏后不再需要,
+            // 在用的资产(如主角自己的模型)由使用方自己的引用计数保活,不受影响。
+            ReleaseStageRetained(LegacyPreloadStage.Boot);
+            ReleaseStageRetained(LegacyPreloadStage.RoleSelection);
+            try
+            {
+                List<PreloadEntry> legacy = await GetLegacyCommonEntries();
+                var entries = new Dictionary<string, PreloadEntry>();
+                AddEntries(entries, legacy);
+                List<PreloadEntry> valid = await FilterExistingAsync(entries.Values);
+                if (valid.Count == 0) return;
+                var keys = new List<string>(valid.Count);
+                foreach (PreloadEntry e in valid) keys.Add(e.Key);
+                long size = await ResManager.GetDownloadSize(keys);
+                if (size <= 0) { GameLog.Info("Preload", "后台预取:清单已全部在缓存"); return; }
+                GameLog.Info("Preload", "后台预取启动: {0} keys, {1} KB(进游戏后静默补齐;ResManager 分批下载压峰值)",
+                    keys.Count, size / 1024);
+                await ResManager.DownloadAsync(keys, null);
+                GameLog.Info("Preload", "后台预取完成");
+            }
+            catch (Exception e)
+            {
+                GameLog.Info("Preload", "后台预取跳过: {0}", e.Message);
+            }
+        }
+
+        /// <summary>归还某阶段预热持有的全部资产引用(引用计数-1,归零才真正卸载;在用资产不受影响)。</summary>
+        public static void ReleaseStageRetained(LegacyPreloadStage stage)
+        {
+            if (!_retainedByStage.TryGetValue(stage, out HashSet<string> keys) || keys.Count == 0) return;
+            int released = 0;
+            foreach (string key in keys)
+            {
+                if (_retained.TryGetValue(key, out UnityEngine.Object asset))
+                {
+                    _retained.Remove(key);
+                    ResManager.Release(asset);
+                    released++;
+                }
+            }
+            keys.Clear();
+            if (stage == LegacyPreloadStage.SceneMap) _retainedSceneId = 0;
+            if (released > 0) GameLog.Info("Preload", "released {0} retained assets of stage {1}", released, stage);
+        }
+
+        private static void Retain(LegacyPreloadStage stage, string key, UnityEngine.Object asset)
+        {
+            // 地图键(首屏瓦片/底图/寻路bytes)一律归 SceneMap 桶:首图经 GameStart 预热,
+            // 不改桶则换图释放不到它,每到一张新图就永久多驻一屏瓦片。
+            if (key.StartsWith("resource/game/scene/map/", StringComparison.Ordinal))
+                stage = LegacyPreloadStage.SceneMap;
+            _retained[key] = asset;
+            if (!_retainedByStage.TryGetValue(stage, out HashSet<string> set))
+            {
+                set = new HashSet<string>();
+                _retainedByStage[stage] = set;
+            }
+            set.Add(key);
         }
 
         public static async Task PreloadRoleSelectionAsync(Action<float, string> progress = null)
@@ -154,6 +230,17 @@ namespace Shenxiao.Module.Core.Preload
 
         public static async Task PreloadSceneMapAsync(int sceneId, int focusX, int focusY, Action<float, string> progress = null)
         {
+            // 同场景已预热(GameStart 或上一次 12005):跳过,不做释放-重热返工。
+            if (sceneId == _retainedSceneId
+                && _retainedByStage.TryGetValue(LegacyPreloadStage.SceneMap, out HashSet<string> held)
+                && held.Count > 0)
+            {
+                Report(LegacyPreloadStage.SceneMap, progress, 1f, "场景资源已预热");
+                return;
+            }
+            // 换图先归还上一张图的预热引用(首屏瓦片/底图/bytes);
+            // 视图仍在展示的瓦片有自己的引用计数,释放预热引用不会把它们卸掉。
+            ReleaseStageRetained(LegacyPreloadStage.SceneMap);
             var entries = new Dictionary<string, PreloadEntry>();
             await AddSceneMapEntriesAsync(entries, sceneId, focusX, focusY);
             await RunStageAsync(LegacyPreloadStage.SceneMap, entries, progress);
@@ -279,7 +366,7 @@ namespace Shenxiao.Module.Core.Preload
                 {
                     int i = next++;
                     if (i >= toWarm.Count) return;
-                    await WarmOneAsync(toWarm[i]);
+                    await WarmOneAsync(stage, toWarm[i]);
                     done++;
                     float p = start + (end - start) * done / toWarm.Count;
                     Report(stage, progress, p, "预热资源");
@@ -322,7 +409,7 @@ namespace Shenxiao.Module.Core.Preload
             return true;
         }
 
-        private static async Task WarmOneAsync(PreloadEntry entry)
+        private static async Task WarmOneAsync(LegacyPreloadStage stage, PreloadEntry entry)
         {
             if (_retained.ContainsKey(entry.Key)) return;
             UnityEngine.Object asset = null;
@@ -345,7 +432,7 @@ namespace Shenxiao.Module.Core.Preload
                     break;
             }
 
-            if (asset != null) _retained[entry.Key] = asset;
+            if (asset != null) Retain(stage, entry.Key, asset);
         }
 
         private static void Report(LegacyPreloadStage stage, Action<float, string> progress, float p, string hint)
@@ -551,8 +638,17 @@ namespace Shenxiao.Module.Core.Preload
 
             TextAsset bytes = await ResManager.LoadAsync<TextAsset>(dataKey);
             if (bytes == null) return;
-            if (!_retained.ContainsKey(ResourcePath.Normalize(dataKey)))
-                _retained[ResourcePath.Normalize(dataKey)] = bytes;
+            _retainedSceneId = sceneId;
+            string normalizedDataKey = ResourcePath.Normalize(dataKey);
+            if (_retained.ContainsKey(normalizedDataKey))
+            {
+                // 该 LoadAsync 命中缓存已 +1 引用,而 Retain 不会重复登记:立即归还这次多余引用防泄漏
+                ResManager.Release(bytes);
+            }
+            else
+            {
+                Retain(LegacyPreloadStage.SceneMap, normalizedDataKey, bytes);
+            }
 
             SceneMapData data;
             try

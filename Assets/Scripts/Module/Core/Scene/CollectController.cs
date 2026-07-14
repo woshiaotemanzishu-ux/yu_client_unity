@@ -157,7 +157,7 @@ namespace Shenxiao.Module.Core.Scene
         // 避免服务端静默丢弃请求时 _collecting 永久为真、堵死后续采集(对标老端"假设服务端必回"的兜底)。
         private async Task StartWatchdogAsync(int epoch)
         {
-            await Task.Delay(StartWatchdogMs);
+            await TimeUtil.Delay(StartWatchdogMs);
             if (epoch != _epoch || !_collecting || _started) return; // 已换会话/已复位/已开始
             GameLog.Warn("Collect", "START 回包超时(ins={0})→ 复位采集态并触发重试", _insId);
             FinishVisualAndState();
@@ -200,7 +200,7 @@ namespace Shenxiao.Module.Core.Scene
         private async Task WaitThenRequestCompleteAsync(int pickTimeSec, int epoch)
         {
             int ms = Mathf.Max(200, pickTimeSec * 1000);
-            await Task.Delay(ms);
+            await TimeUtil.Delay(ms);
             if (epoch != _epoch || !_collecting || !_started) return;
             if (!NetManager.IsConnected) { FinishVisualAndState(); return; }
             SendFmt(Proto.CS_COLLECT, "iic", _insId, _typeId, FLAG_COMPLETE);
@@ -244,7 +244,7 @@ namespace Shenxiao.Module.Core.Scene
         // 切场景(sceneId 变)或服务端已重发(同 id 已在场景)则不加回。
         private async Task ReAddTaskCollectAsync(MonsterVo vo, int sceneId)
         {
-            await Task.Delay(TaskCollectReAddMs);
+            await TimeUtil.Delay(TaskCollectReAddMs);
             if (vo == null) return;
             if (RoleModel.Instance.SceneId != sceneId) return;                 // 已切场景,不加回
             if (SceneManager.Instance.GetMonster(vo.InstanceId) != null) return; // 服务端/他途已加回

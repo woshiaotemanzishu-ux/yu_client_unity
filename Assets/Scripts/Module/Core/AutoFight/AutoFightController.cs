@@ -28,7 +28,7 @@ namespace Shenxiao.Module.Core.AutoFight
         private const int LOOP_DELAY_MS = 100;
 
         private CancellationTokenSource _loopCts;
-        private bool _warnedNoSkill;
+        private string _lastBlockReason;
 
         private AutoFightController() { }
 
@@ -54,6 +54,17 @@ namespace Shenxiao.Module.Core.AutoFight
             else StopLoop();
         }
 
+        /// <summary>
+        /// 电平自愈:状态为 on 但环已死(单拍异常退出/事件边沿被静默早退吞掉)时重新拉起。
+        /// 老端攻击由常驻主循环按状态电平驱动,不存在"环死了没人拉"的故障类;Unity 版环是
+        /// 事件边沿拉起的独立协程,所以在每次任务点火(锁怪成功)后都补一次存活保证。
+        /// StartLoop 自带 _loopCts 幂等守卫,重复调用无副作用。
+        /// </summary>
+        public void EnsureRunning()
+        {
+            if (AutoFightModel.Instance.AutoFightState) StartLoop();
+        }
+
         private void OnSceneSnapshotReady()
         {
             if (AutoFightModel.Instance.AutoFightState) StartLoop();
@@ -67,7 +78,7 @@ namespace Shenxiao.Module.Core.AutoFight
         private void StartLoop()
         {
             if (_loopCts != null) return;
-            _warnedNoSkill = false;
+            _lastBlockReason = null;
             _loopCts = new CancellationTokenSource();
             _ = RunLoopAsync(_loopCts);
             GameLog.Info("AutoFight", "auto-fight loop started weight={0}", AutoFightModel.Instance.AutoFightWeight);
@@ -93,17 +104,16 @@ namespace Shenxiao.Module.Core.AutoFight
             {
                 while (!cts.Token.IsCancellationRequested)
                 {
-                    TryAutoAttack();
-                    await Task.Delay(LOOP_DELAY_MS, cts.Token);
+                    // try 在 while 内:单拍异常只丢这一拍,不能杀整环——环死而 state 留 true 时
+                    // 事件边沿(SetAutoFightWeight 同值早退不发事件)无法复活它,曾造成任务杀怪永动死循环。
+                    try { TryAutoAttack(); }
+                    catch (Exception e) { GameLog.Warn("AutoFight", "tick exception: {0}", e); }
+                    await Shenxiao.Framework.Util.TimeUtil.Delay(LOOP_DELAY_MS, cts.Token); // ⚠ Task.Delay 在 WebGL 永不醒(一拍即死环)
                 }
             }
             catch (OperationCanceledException)
             {
                 // Normal state change / scene clear shutdown.
-            }
-            catch (Exception e)
-            {
-                GameLog.Warn("AutoFight", "auto-fight loop exception: {0}", e.Message);
             }
             finally
             {
@@ -118,27 +128,44 @@ namespace Shenxiao.Module.Core.AutoFight
         {
             AutoFightModel model = AutoFightModel.Instance;
             // CombatFreeze:大妖来袭横幅等演出期间冻结自动攻击(横幅结束才开打,对标老端 STOPAUTOFIGHT)。
-            if (!model.AutoFightState || model.TempMode || model.CombatFreeze || !NetManager.IsConnected) return;
+            // 闸门不再静默:阻塞原因变化时打一行,防"环在跑但永远不出手"再次无声化(任务死循环误诊主因)。
+            if (!model.AutoFightState || model.TempMode || model.CombatFreeze || !NetManager.IsConnected)
+            {
+                ReportBlock(!model.AutoFightState ? "state-off"
+                    : model.TempMode ? "temp-mode"
+                    : model.CombatFreeze ? "combat-freeze" : "disconnected");
+                return;
+            }
 
             // 对标老端 Scene.ts:1760 `if (skill_mgr.IsInRigidity()) return`:动作僵直没结束前不再发起下一次攻击。
             // 这是老端真正的攻击节奏闸门(100ms 只是"多久看一眼",不是"多久打一下");之前这里没有任何节奏门禁,
             // 相当于每 500ms 无条件请求一次攻击,和老端"打完一下动作(约 0.4~1.3s)才能打下一下"不对标。
-            if (SkillManager.Instance.IsInRigidity()) return;
+            if (SkillManager.Instance.IsInRigidity()) return; // 正常出招节奏,不算阻塞
 
             SkillVo skill = SkillManager.Instance.GetNextCombatSkill();
             if (skill == null)
             {
-                if (!_warnedNoSkill)
-                {
-                    _warnedNoSkill = true;
-                    GameLog.Warn("AutoFight", "auto-fight blocked: no learned combat skill");
-                }
+                ReportBlock("no-skill(21002 未达或无战斗技能)");
                 return;
             }
 
-            _warnedNoSkill = false;
-            if (!EnsureTaskTarget()) return;
+            if (!EnsureTaskTarget())
+            {
+                ReportBlock("no-task-target");
+                return;
+            }
+
+            ReportBlock(null);
             SceneCombat.Instance.MainRoleAttackTarget(skill.Id, SkillManager.ONLY_FIRE_ATTACK);
+        }
+
+        /// <summary>阻塞原因变化时打一行(同因去重),畅通时打 unblocked。</summary>
+        private void ReportBlock(string reason)
+        {
+            if (reason == _lastBlockReason) return;
+            _lastBlockReason = reason;
+            if (reason != null) GameLog.Info("AutoFight", "attack blocked by {0}", reason);
+            else GameLog.Info("AutoFight", "attack unblocked");
         }
 
         private static bool EnsureTaskTarget()

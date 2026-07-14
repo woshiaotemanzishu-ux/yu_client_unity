@@ -68,7 +68,8 @@ namespace Shenxiao.Module.Core.Friend
         {
             if (_vo == null) return;
             if (RoleModel.Instance.RoleId == _vo.RoleId) return;
-            FriendFlow.OpenMenu(_vo, (Vector2)Input.mousePosition);
+            // 同 FriendListItem:Input.mousePosition 在纯新输入系统 player 构建里抛异常,改用条目屏幕位。
+            FriendFlow.OpenMenu(_vo, RectTransformUtility.WorldToScreenPoint(null, transform.position));
         }
     }
 }

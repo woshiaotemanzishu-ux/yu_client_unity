@@ -100,7 +100,10 @@ namespace Shenxiao.EditorTools
                     && suitState.GetEntry(4000002).RebornTime == 1700000000;
                 Debug.Log("CLIVERIFY boss 46000 list count=" + (suitState?.BossList.Count ?? -1) + " ok=" + b46000);
 
-                // ---- C. 46009 订正后类型门(rule10):Suit(4,在名单内)触发通知;Home(3,不在名单内)不触发,但列表仍更新 ----
+                // ---- C. 46009 订正后类型门(rule10):Suit(4,在名单内)触发通知;Home(3,不在名单内)不触发,但列表仍更新;
+                //         轮15b 复核订正(见 BossModel.cs 注释):门值 16→20 双收——Mystery(16,DOMAIN)与
+                //         KfGreatDemon(20)均确认有真实服务端 write(46009) 到达路径,都应触发通知(第⑤铁律:
+                //         订正连带既有断言同轮跟随)。 ----
                 int killBossFireCount = 0;
                 System.Action<int, int> onKillBoss = (bt, bi) => killBossFireCount++;
                 Shenxiao.Framework.Event.EventDispatcher.On(Shenxiao.Framework.Event.GlobalEvent.EVT_BOSS_REBORN, onKillBoss);
@@ -110,10 +113,18 @@ namespace Shenxiao.EditorTools
                 Feed("On46009", new CliVerify.Pkt().C(HOME).I(3000001).I(1700002000).C(1).Bytes());
                 bool notifyNotFiredForHome = killBossFireCount == 1; // 未再 +1
                 bool homeListUpdated = model.GetBossState(HOME)?.GetEntry(3000001)?.RebornTime == 1700002000;
+                const int MYSTERY = Shenxiao.Module.Core.Boss.BossModel.BossType.Mystery; // 16=DOMAIN,双收
+                Feed("On46009", new CliVerify.Pkt().C(MYSTERY).I(4300001).I(1700002500).C(1).Bytes());
+                bool notifyFiredForMystery16 = killBossFireCount == 2;
+                const int KFGREAT = Shenxiao.Module.Core.Boss.BossModel.BossType.KfGreatDemon; // 20=老端mystery真值,主收
+                Feed("On46009", new CliVerify.Pkt().C(KFGREAT).I(5800001).I(1700003000).C(1).Bytes());
+                bool notifyFiredForKfGreat20 = killBossFireCount == 3;
                 Shenxiao.Framework.Event.EventDispatcher.Off(Shenxiao.Framework.Event.GlobalEvent.EVT_BOSS_REBORN, onKillBoss);
-                bool b46009 = notifyFired && notifyNotFiredForHome && homeListUpdated;
+                bool b46009 = notifyFired && notifyNotFiredForHome && homeListUpdated
+                    && notifyFiredForMystery16 && notifyFiredForKfGreat20;
                 Debug.Log("CLIVERIFY boss 46009 rule10 notifyFired=" + notifyFired
-                    + " homeNotSuppressed=" + notifyNotFiredForHome + " homeListUpdated=" + homeListUpdated + " ok=" + b46009);
+                    + " homeNotSuppressed=" + notifyNotFiredForHome + " homeListUpdated=" + homeListUpdated
+                    + " mystery16=" + notifyFiredForMystery16 + " kfGreat20=" + notifyFiredForKfGreat20 + " ok=" + b46009);
 
                 // ---- D. 46001 击杀日志(100条硬顶,?BOSS_LOG_LEN) ----
                 var killPkt = new CliVerify.Pkt().H(100);

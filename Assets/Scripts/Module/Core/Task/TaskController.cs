@@ -103,7 +103,7 @@ namespace Shenxiao.Module.Core.Tasks
                     TaskModel.Instance.FindNextAutoFightTask();
                     return;
                 }
-                await Task.Delay(500);
+                await Shenxiao.Framework.Util.TimeUtil.Delay(500);
             }
             GameLog.Warn("Task", "login kickoff abandoned: MainRoleAgent not ready in 60s");
         }
@@ -247,7 +247,7 @@ namespace Shenxiao.Module.Core.Tasks
             // 老端主线任务 30001 后 DoTask 是立即执行(TaskModel.ts:2226-2234,仅帮派/日常 setTimeout 700ms);
             // 这里只留一小拍去重窗(同一完成常连发多条 30001,epoch 取最后一条),不再人为停 350ms——
             // 那是"任务推进后角色愣一下才动"的直接来源之一(用户实感,以老端节奏为准)。
-            await Task.Delay(100);
+            await Shenxiao.Framework.Util.TimeUtil.Delay(100);
             if (epoch != _taskOneAutoEpoch) return;
             if (!TaskModel.Instance.GetAutoTaskSetting()) return;
 
@@ -261,7 +261,7 @@ namespace Shenxiao.Module.Core.Tasks
 
         private async Task ResumeAutoFightAfterProgressAsync(int taskId, int epoch)
         {
-            await Task.Delay(100); // 同上:老端进度更新即续跑,只留去重窗(原 250ms 是可感知的停顿)
+            await Shenxiao.Framework.Util.TimeUtil.Delay(100); // 同上:老端进度更新即续跑,只留去重窗(原 250ms 是可感知的停顿)
             if (epoch != _taskOneAutoEpoch) return;
             if (!TaskModel.Instance.GetAutoTaskSetting()) return;
 

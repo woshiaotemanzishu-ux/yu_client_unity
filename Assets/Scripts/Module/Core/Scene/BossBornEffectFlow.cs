@@ -238,7 +238,9 @@ namespace Shenxiao.Module.Core.Scene
 
             var img = go.GetComponent<Image>();
             img.sprite = EnsureWhite();
-            img.color = new Color(0f, 0f, 0f, BAR_ALPHA); // 贴图加载前的纯黑兜底
+            // 贴图到位前保持全透明:遮罩是"黑+alpha渐变"的电影黑边,用纯黑当占位/兜底会变成
+            // 实心黑条盖满全屏(Web 端遮罩图下载慢/缺失时=整屏黑 2.6 秒,实测踩过)。
+            img.color = new Color(0f, 0f, 0f, 0f);
             img.raycastTarget = false;
             return rt;
         }
@@ -263,7 +265,8 @@ namespace Shenxiao.Module.Core.Scene
             bool ok = await ResManager.SetImageAsync(img, addr, false, false);
             if (img == null) return;
             // SetImageAsync 会把 alpha 顶到 1,这里复位到 0.8(贴图本身黑色,白 tint 不改黑,只用其 alpha 渐变)。
-            img.color = ok ? new Color(1f, 1f, 1f, BAR_ALPHA) : new Color(0f, 0f, 0f, BAR_ALPHA);
+            // 加载失败=跳过黑边(保持透明),只留横幅/冻结演出——缺资源绝不能退化成实心黑铺屏。
+            img.color = ok ? new Color(1f, 1f, 1f, BAR_ALPHA) : new Color(0f, 0f, 0f, 0f);
         }
 
         private static void SetBarY(RectTransform rt, float y)

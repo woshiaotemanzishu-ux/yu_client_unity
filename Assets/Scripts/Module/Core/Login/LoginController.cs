@@ -452,7 +452,7 @@ namespace Shenxiao.Module.Core.Login
         {
             try
             {
-                await Task.Delay(TimeSpan.FromSeconds(delaySec), token);
+                await Shenxiao.Framework.Util.TimeUtil.Delay((int)(delaySec * 1000f), token); // Task.Delay 在 WebGL 永不醒:曾致心跳只发首跳→服务端超时踢线
                 if (!token.IsCancellationRequested) SendHeartbeatNow();
             }
             catch (OperationCanceledException)
@@ -474,7 +474,7 @@ namespace Shenxiao.Module.Core.Login
             bool timeout = false;
             try
             {
-                await Task.Delay(TimeSpan.FromSeconds(timeoutSec), cts.Token);
+                await Shenxiao.Framework.Util.TimeUtil.Delay((int)(timeoutSec * 1000f), cts.Token);
                 timeout = !cts.IsCancellationRequested;
             }
             catch (OperationCanceledException)
@@ -580,7 +580,7 @@ namespace Shenxiao.Module.Core.Login
             {
                 while (!cts.Token.IsCancellationRequested && NetManager.IsConnected)
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(5), cts.Token);
+                    await Shenxiao.Framework.Util.TimeUtil.Delay(5000, cts.Token); // 判死 watchdog 也不能用 Task.Delay(WebGL 永不醒)
                     if (cts.Token.IsCancellationRequested || !NetManager.IsConnected) break;
 
                     float silenceSec = NetManager.SecondsSinceLastInbound;
@@ -666,7 +666,7 @@ namespace Shenxiao.Module.Core.Login
         {
             try
             {
-                await Task.Delay(TimeSpan.FromSeconds(delaySec), cts.Token);
+                await Shenxiao.Framework.Util.TimeUtil.Delay((int)(delaySec * 1000f), cts.Token);
                 if (cts.Token.IsCancellationRequested || roleId <= 0 || roleId != _activeRoleId) return;
 
                 if (_autoReconnectCts == cts)

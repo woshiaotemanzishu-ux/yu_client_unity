@@ -42,8 +42,13 @@ namespace Shenxiao.Module.Core.Skill
         private readonly Dictionary<int, SkillVo> _mySkillList = new Dictionary<int, SkillVo>();
         private int _autoFightShortcutIndex;
 
-        /// <summary>技能僵直结束时间(Environment.TickCount 毫秒,对标老端 SkillManager.skill_rigidity)。</summary>
-        private int _rigidityEndTick;
+        /// <summary>技能僵直结束时间(NowMs 毫秒,对标老端 SkillManager.skill_rigidity)。
+        /// ⚠ 不能用 Environment.TickCount:WebGL/IL2CPP 上它不可靠(实测冻结,僵直永不过期 →
+        /// 自动战斗首刀后 5 分钟不出第二刀)。统一用 Time.realtimeSinceStartupAsDouble。</summary>
+        private double _rigidityEndMs;
+
+        /// <summary>主线程单调毫秒钟(WebGL 可靠;仅主线程调用)。</summary>
+        private static double NowMs() => UnityEngine.Time.realtimeSinceStartupAsDouble * 1000.0;
 
         /// <summary>首屏技能槽(去普攻、按 id 升序)。视图据此铺 4 槽。</summary>
         public List<SkillVo> ShortcutList { get; private set; } = new List<SkillVo>();
@@ -147,19 +152,20 @@ namespace Shenxiao.Module.Core.Skill
         public void SetSkillRigidity(int durationMs)
         {
             if (durationMs <= 0) durationMs = DefaultRigidityMs;
-            int end = System.Environment.TickCount + durationMs;
-            if (_rigidityEndTick != 0 && end < _rigidityEndTick) return; // 对标老端: rigidity_end_time < this.skill_rigidity 则不覆盖
-            _rigidityEndTick = end;
+            double end = NowMs() + durationMs;
+            if (_rigidityEndMs != 0 && end < _rigidityEndMs) return; // 对标老端: rigidity_end_time < this.skill_rigidity 则不覆盖
+            _rigidityEndMs = end;
         }
 
         /// <summary>是否仍在攻击僵直中(对标老端 SkillManager.IsInRigidity)。AutoFightController 用它替代固定 tick 间隔节流攻击。</summary>
-        public bool IsInRigidity() => _rigidityEndTick != 0 && Environment_TickDiff(_rigidityEndTick) > 0;
+        public bool IsInRigidity() => _rigidityEndMs != 0 && NowMs() < _rigidityEndMs;
 
         // ── 技能 CD(对标老端 SkillManager.ResetSkill → SkillVo.startCD + Fire(START_SKILL_CD)) ──────────
-        // 数据源 = config_skill lv_data[level-1].cd(毫秒,SkillConfigs.GetCdMsForLevel);状态 = 释放时刻 tick。
+        // 数据源 = config_skill lv_data[level-1].cd(毫秒,SkillConfigs.GetCdMsForLevel);状态 = 释放时刻 NowMs。
         // 消费方:MainUISkillItem 每帧轮询画时钟遮罩+倒计时(对标 CirCleCdView 帧驱动);
         //         GetNextCombatSkill/GetNextAutoFightSkill 跳过 CD 中技能(对标老端自动战斗按 GetLeftCD()==0 选技)。
-        private readonly Dictionary<int, (int startTick, int cdMs)> _skillCd = new Dictionary<int, (int, int)>();
+        // 计时基准同僵直:NowMs(Environment.TickCount 在 WebGL 不可靠)。
+        private readonly Dictionary<int, (double startMs, int cdMs)> _skillCd = new Dictionary<int, (double, int)>();
 
         /// <summary>技能释放 → 进 CD(对标老端 ResetSkill;调用点 SceneCombat.ReleaseMainSkill,自动/手动同路)。cd=0 无记录。</summary>
         public void ResetSkill(int skillId)
@@ -167,25 +173,25 @@ namespace Shenxiao.Module.Core.Skill
             int level = GetSkill(skillId)?.Level ?? 0;
             int cdMs = SkillConfigs.IsLoaded ? SkillConfigs.GetCdMsForLevel(skillId, level) : 0;
             if (cdMs <= 0) { _skillCd.Remove(skillId); return; }
-            _skillCd[skillId] = (System.Environment.TickCount, cdMs);
+            _skillCd[skillId] = (NowMs(), cdMs);
         }
 
-        /// <summary>剩余 CD 毫秒(对标老端 SkillVo.GetLeftCD);0=可用。TickCount 差值防回绕(同僵直约定)。</summary>
+        /// <summary>剩余 CD 毫秒(对标老端 SkillVo.GetLeftCD);0=可用。</summary>
         public int GetCdLeftMs(int skillId)
         {
-            if (!_skillCd.TryGetValue(skillId, out (int startTick, int cdMs) cd)) return 0;
-            int elapsed = System.Environment.TickCount - cd.startTick;
+            if (!_skillCd.TryGetValue(skillId, out (double startMs, int cdMs) cd)) return 0;
+            double elapsed = NowMs() - cd.startMs;
             if (elapsed < 0 || elapsed >= cd.cdMs)
             {
-                _skillCd.Remove(skillId); // 到点即清(防表膨胀;elapsed<0=回绕,按已过处理)
+                _skillCd.Remove(skillId); // 到点即清(防表膨胀)
                 return 0;
             }
-            return cd.cdMs - elapsed;
+            return cd.cdMs - (int)elapsed;
         }
 
         /// <summary>本次 CD 总时长毫秒(遮罩分母);无在途 CD 返回 0。</summary>
         public int GetCdTotalMs(int skillId)
-            => _skillCd.TryGetValue(skillId, out (int startTick, int cdMs) cd) ? cd.cdMs : 0;
+            => _skillCd.TryGetValue(skillId, out (double startMs, int cdMs) cd) ? cd.cdMs : 0;
 
         /// <summary>服务端主动清 CD(对标 20018,FightController.On20018 调用)。与现有 CD 状态机对齐:直接摘除记录,
         /// MainUISkillItem 下一帧轮询 GetCdLeftMs 自然归零、遮罩消失,不需要额外事件桥接。</summary>
@@ -201,12 +207,8 @@ namespace Shenxiao.Module.Core.Skill
             long leftMs = serverEndTimeMs - TimeUtil.NowMs();
             if (leftMs <= 0) { _skillCd.Remove(skillId); return; }
             int cdMs = leftMs > int.MaxValue ? int.MaxValue : (int)leftMs;
-            _skillCd[skillId] = (System.Environment.TickCount, cdMs);
+            _skillCd[skillId] = (NowMs(), cdMs);
         }
-
-        // TickCount 会在约 24.9 天回绕;用差值判断而非直接比较,避免回绕瞬间误判(老端 Status.NowTime 是秒级浮点无此问题,
-        // 这里补一个防回绕的差值封装,仍是"未到点=true"的同一语义)。
-        private static int Environment_TickDiff(int endTick) => endTick - System.Environment.TickCount;
 
         public SkillVo GetNextAutoFightSkill()
         {
@@ -288,7 +290,7 @@ namespace Shenxiao.Module.Core.Skill
             BarInfo = null;
             _autoFightShortcutIndex = 0;
             _skillCd.Clear();
-            _rigidityEndTick = 0;
+            _rigidityEndMs = 0;
             GameLog.Debug("Skill", "SkillManager cleared");
         }
     }

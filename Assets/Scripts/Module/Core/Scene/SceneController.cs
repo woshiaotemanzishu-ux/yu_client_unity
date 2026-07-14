@@ -21,6 +21,8 @@ namespace Shenxiao.Module.Core.Scene
         public static readonly SceneController Instance = new SceneController();
 
         private int _loadVersion;
+        /// <summary>收到 12002 快照时的 _loadVersion——实体就绪探针据此确认"本场景的快照已到"。</summary>
+        private int _snapshotLoadVersion = -1;
         /// <summary>第15轮驱动标志(由 LoginBootstrap 在 smoke 模式下设置)。</summary>
         public static bool EnableRound15ComboTest { get; set; }
 
@@ -233,8 +235,8 @@ namespace Shenxiao.Module.Core.Scene
 
             // 真正换场景(场景实例或副本状态变化)才压黑幕过渡;同场景位置校正类 12005 不闪屏。
             // 没有过渡时"角色瞬移+全场实体重刷"会被玩家误读成断线重连(第24轮 test.log 实证)。
-            bool sceneChanged = prevSceneId != instanceId || prevDunId != dunId;
-            if (sceneChanged) SceneTransitionMask.Show();
+            // 黑幕不在这里拉:同图切换(打大妖/进出同图副本)老端是无感的——是否真换图要等地图数据
+            // 解析出 mapResId 才知道,决策移到 LoadSceneMapAsync(同图=不拉幕,角色/瓦片全复用)。
             // 退副本回野外给个明确提示,否则任务自动流(通关→61002→12005)的切换毫无预兆。
             if (prevDunId != 0 && dunId == 0) Shenxiao.Common.Tips.TipsManager.Toast("副本结束,返回野外");
 
@@ -257,6 +259,8 @@ namespace Shenxiao.Module.Core.Scene
                 SendFmt(Proto.SC_NPC_LIST, "i", sceneId);
                 GameLog.Info("Scene", "request 12100: editor harness bypass sceneId={0}", sceneId);
                 EventDispatcher.Emit(GlobalEvent.EVT_SCENE_MAP_READY);
+                EventDispatcher.Emit(GlobalEvent.EVT_SCENE_FIRST_SCREEN_READY);
+                EventDispatcher.Emit(GlobalEvent.EVT_SCENE_ENTITIES_READY);
                 return;
             }
 #endif
@@ -267,16 +271,58 @@ namespace Shenxiao.Module.Core.Scene
             if (data == null)
             {
                 SceneTransitionMask.Hide();   // 地图加载失败别黑屏卡死(另有 8s 自动兜底)
+                EventDispatcher.Emit(GlobalEvent.EVT_SCENE_FIRST_SCREEN_READY); // 加载页同样别卡死
+                EventDispatcher.Emit(GlobalEvent.EVT_SCENE_ENTITIES_READY);
                 return;
             }
 
+            // 真换图才拉黑幕(盖住底图/瓦片整屏重铺);同图(副本进出)对齐老端无感,不黑一下。
+            if (!SceneMapView.IsSameMapShown(data)) SceneTransitionMask.Show();
             await SceneMapView.ShowAsync(data, role.X, role.Y);
             if (version != _loadVersion) return;
 
             SendFmt(Proto.SC_NPC_LIST, "i", sceneId);
             GameLog.Info("Scene", "request 12100: local map loaded sceneId={0}", sceneId);
             EventDispatcher.Emit(GlobalEvent.EVT_SCENE_MAP_READY);
-            SceneTransitionMask.Hide();   // 地图+主角就绪(MainRoleFlow 在 MAP_READY 同帧重建)→ 渐隐揭幕
+            // 首屏瓦片真正画完再揭幕:此前在瓦片"入队"后就揭,12005→出怪全程裸奔(进世界盯黑地图数秒)。
+            // 12100 已在上面发出,这段等待不拖慢出怪管线;5s 兜底防慢网压幕(黑幕自身另有 8s 兜底)。
+            await SceneMapView.WaitTilesIdleAsync(5000);
+            if (version != _loadVersion) return;
+            SceneTransitionMask.Hide();
+            EventDispatcher.Emit(GlobalEvent.EVT_SCENE_FIRST_SCREEN_READY);
+            _ = EmitEntitiesReadyAsync(version);
+        }
+
+        /// <summary>
+        /// 首屏实体就绪探针:主角就绪 + 12002 快照已到 + 首批怪/NPC 全部立起(条件稳定 0.25s 防
+        /// 快照解析中途的假空窗)→ EVT_SCENE_ENTITIES_READY;8s 兜底防慢网把加载页锁死。
+        /// 首次进世界的加载页(LoginFlow)等这个信号才揭幕,免得玩家盯着实体逐个蹦出来。
+        /// </summary>
+        private async Task EmitEntitiesReadyAsync(int version)
+        {
+            double deadline = UnityEngine.Time.realtimeSinceStartupAsDouble + 8.0;
+            double stableSince = -1.0;
+            while (UnityEngine.Time.realtimeSinceStartupAsDouble < deadline)
+            {
+                if (version != _loadVersion) return; // 新加载接管(含事件发放权)
+                double now = UnityEngine.Time.realtimeSinceStartupAsDouble;
+                bool ready = _snapshotLoadVersion == version
+                             && MainRoleAgent.Current != null
+                             && MonsterRenderer.PendingSpawns == 0
+                             && NpcRenderer.PendingSpawns == 0;
+                if (ready)
+                {
+                    if (stableSince < 0) stableSince = now;
+                    if (now - stableSince >= 0.25) break;
+                }
+                else
+                {
+                    stableSince = -1.0;
+                }
+                await Task.Yield();
+            }
+            if (version != _loadVersion) return;
+            EventDispatcher.Emit(GlobalEvent.EVT_SCENE_ENTITIES_READY);
         }
 
         // ===================== 12002 场景快照 =====================
@@ -309,6 +355,7 @@ namespace Shenxiao.Module.Core.Scene
 
                 GameLog.Info("Scene", "12002 快照: 玩家={0} 怪物/采集={1} 伙伴={2} 其他={3} 假人={4} remaining={5}B",
                     players, monsters, partners, others, fakes, reader.Remaining);
+                _snapshotLoadVersion = _loadVersion;
                 EventDispatcher.Emit(GlobalEvent.EVT_SCENE_SNAPSHOT_READY);
 
                 // 第15轮 Combo副技能取证驱动:smoke 自动进游戏后,在场景快照接收到怪物时自动驱动普攻并捕获副技能 damage>0
@@ -374,7 +421,7 @@ namespace Shenxiao.Module.Core.Scene
         {
             try
             {
-                await Task.Delay(1000); // 让怪物渲染就位
+                await TimeUtil.Delay(1000); // 让怪物渲染就位
                 if (SceneManager.Instance.MonsterCount == 0) return;
 
                 const int attackSkill = 59100001; // 普攻御剑一式
@@ -425,7 +472,7 @@ namespace Shenxiao.Module.Core.Scene
         {
             try
             {
-                await Task.Delay(500);
+                await TimeUtil.Delay(500);
                 if (_round18TargetMonster == 0) return;
 
                 MonsterVo target = SceneManager.Instance.GetMonster(_round18TargetMonster);

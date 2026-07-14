@@ -263,7 +263,7 @@ namespace Shenxiao.Module.Core.Tasks
                 if (_closeTime > 0)
                 {
                     if (_bind?._lb_count_down != null) _bind._lb_count_down.text = _closeTime + "s后自动提交任务";
-                    try { await Task.Delay(1000, token); }
+                    try { await Shenxiao.Framework.Util.TimeUtil.Delay(1000, token); }
                     catch (TaskCanceledException) { return; }
                     continue;
                 }

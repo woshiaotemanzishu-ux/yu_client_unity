@@ -41,6 +41,7 @@ namespace Shenxiao.Module.Core.MainUI
         // 图标特效(对标老端 ActivityIcon.SetIconEffect:cfg.effect_name 有值时 AddUIEffect 到 _box_effect2)。
         private UIEffectStage.Handle _effect;
         private string _effectName;
+        private bool _effectClicked; // 对标老端 is_clicked:effect_need_delete 特效点过一次后本局不再挂
 
         public string IconType => _iconType;
         public MainUIConfigs.FunctionIconCfg Cfg => _cfg;
@@ -87,10 +88,9 @@ namespace Shenxiao.Module.Core.MainUI
 
         public void SetVisible(bool visible)
         {
-            // 【最小验证措施】带特效的图标拒绝被隐藏:活动区当前是「烤制静态图 + 动态图标被折叠/重建隐藏」的坏混合,
-            // 动态图标(带特效)会被 HideAllIcons/折叠盖掉 → 看不到特效。这里让带特效的图标常显,先肉眼确认环特效在真UI上成立。
-            // 注:这是验证期权宜,正解是修活动视图(动态图标接管 + 清掉烤出的静态图),确认后移除本特判。
-            if (!visible && _effect != null) return;
+            // 特效跟随图标显隐(对标老端 SetLayer 的显隐代理不变量:图标隐→特效必隐)。
+            // 此前"带特效图标拒绝隐藏"的验证期 hack 已拆:它让特效图标滞留旧槽位盖到别的图标上,
+            // 是满解锁号"特效乱/两账号不一样"观感的放大器。
             gameObject.SetActive(visible);
             // 首充气泡:显示时启浮动,隐藏时停并归位(GameObject 失活也会停协程,这里显式收尾保证归位)。
             if (visible) StartFloat();
@@ -235,15 +235,15 @@ namespace Shenxiao.Module.Core.MainUI
         {
             string eff = _cfg != null ? _cfg.EffectName : null;
             if (string.IsNullOrEmpty(eff)) { ClearEffect(); return; }
+            // 对标老端 ActivityIcon.RefreshIcon 的 !is_clicked 闸:effect_need_delete 的特效点过一次后本局不再挂。
+            if (_effectClicked && _cfg != null && _cfg.EffectNeedDelete) { ClearEffect(); return; }
             RectTransform host = EnsureEffectBox(); // 烤制把 inactive 的 box_effect2 裁掉了→克隆出的图标字段为 null,这里按名找/缺则建
             if (host == null) { ClearEffect(); return; }
             if (_effectName == eff && _effect != null)
             {
-                // 真因:RefreshAsync 每次都先调 HideOptionalState 把 _box_effect2 SetActive(false)。
-                // 同特效已挂时本方法早退→盒被关着不再激活→特效盒 inactive→RawImage 不渲染(「单独正常、放UI上全无」的真根因)。
-                // 这里每次刷新都把盒/图标补激活回来。
+                // RefreshAsync 每次都先 HideOptionalState 把 _box_effect2 关掉,同特效已挂时这里要把盒补激活
+                // (否则「单独正常、放UI上全无」)。只激活特效盒,不动图标自身的显隐(那归 SetVisible/槽位管)。
                 host.gameObject.SetActive(true);
-                gameObject.SetActive(true);
                 return;
             }
             ClearEffect();
@@ -264,9 +264,9 @@ namespace Shenxiao.Module.Core.MainUI
                 return;
             }
             _effect = handle;
-            // 【最小验证】带特效的动态图标强制现身,盖过烤制静态图,让环特效在真UI上可见。
-            gameObject.SetActive(true);
-            UIEffectStage.Note(string.Format("ActivityIcon[{0}] FORCE-SHOWN (effect attached, overriding fold/baked hide)", _iconType));
+            // 不再强制 SetActive(true):特效可见性完全跟随图标本身的显隐(SetVisible/槽位/折叠),
+            // 对标老端"图标隐→特效必隐"不变量。此前的 FORCE-SHOWN hack 会盖过折叠/槽位隐藏,
+            // 让特效滞留陈旧位置叠到别的图标上。
         }
 
         private void ClearEffect()
@@ -375,6 +375,14 @@ namespace Shenxiao.Module.Core.MainUI
 
         private void OnClick()
         {
+            // 对标老端 ClickEvent 的 effect_need_delete 分支:点过一次即清特效并本局不再挂(is_clicked)。
+            // 未移植时"超值礼包转圈"等特效永不消失,是特效观感乱的成因之一。
+            if (_effect != null && _cfg != null && _cfg.EffectNeedDelete)
+            {
+                _effectClicked = true;
+                ClearEffect();
+            }
+
             // 盒入口图标(is_box,如 100 福利大厅 / 101 寻宝):点开收纳盒弹窗铺出里面的成员,而非路由到某个功能面板
             // (对标老端 ActivityIcon.ClickEvent 的 cfg.is_box 分支:OPEN_VIEW 'MainUIIconBoxView', icon_type, global_pos)。
             if (_cfg != null && _cfg.IsBox)

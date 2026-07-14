@@ -32,8 +32,12 @@ namespace Shenxiao.Common.UI3D
         // 2.5D 立体感全部来自模型后倾(见 MODEL_TILT),相机本身不俯视。
         // (之前的 24° 俯角是另一种近似:会让投影落点与逻辑像素竖直错位,且观感与老版不一致,故改回 0°。)
         private const float CAMERA_PITCH = 0f;
-        // 正交半高(世界单位)= 参考分辨率高 / 200。老客户端场景相机 orthographicVerticalSize(全高)= stage.height*0.01,
-        // 即 100 像素/世界单位;Unity 用的是半高,故 1280/200 = 6.4——与地图严格 1:1 锁定(地图也是 1 像素 = 1 参考像素)。
+        // 正交半高(世界单位)基准值:参考分辨率高 1280 / 200 = 6.4,仅作画布高度取不到时的兜底。
+        // ⚠ 不能写死用它:老端场景相机是随舞台高度自适应的(orthographicVerticalSize = stage.height*0.01,
+        // 舞台变尺寸时 CameraManager 重设),CanvasScaler(720×1280,match=0.5) 只有恰好 9:16 时画布高才=1280。
+        // 写死 6.4 曾导致非 9:16 下 RT 内容整体缩放 k=画布高/1280:偏离屏幕中心的 NPC 被径向错位,
+        // 主角走近时错位连续收敛到 0,观感="NPC 滑回原位";名牌(画布单位 1:1)与模型分离同因。
+        // 现由 SyncProjection() 按实际画布高度动态设置(9:16 时结果与 6.4 完全一致)。
         private const float ORTHO_SIZE = 6.4f;
         // 模型 2.5D 倾角(绕世界 X 轴,挂父容器;朝向 yaw 挂模型自身,净旋转 = Rx(MODEL_TILT)*Ry(yaw))。
         // 【符号经实机实测确定,勿轻易翻回 +38】相机平视 forward=+Z;要"俯视角色"必须让头朝相机倾(模型 up 的 Z 分量为负):
@@ -102,6 +106,7 @@ namespace Shenxiao.Common.UI3D
             model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
             model.transform.localScale = new Vector3(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
 
+            UpdateArtAmbient();
             if (_img != null) _img.gameObject.SetActive(true);
         }
 
@@ -156,6 +161,7 @@ namespace Shenxiao.Common.UI3D
             model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
             model.transform.localScale = new Vector3(modelScale, modelScale, modelScale);
 
+            UpdateArtAmbient();
             if (_img != null) _img.gameObject.SetActive(true);
             return tiltGo.transform;
         }
@@ -184,12 +190,27 @@ namespace Shenxiao.Common.UI3D
         {
             if (_mainRoleTilt != null) { Object.Destroy(_mainRoleTilt); _mainRoleTilt = null; _mainRole = null; }
             else if (_mainRole != null) { Object.Destroy(_mainRole); _mainRole = null; }
+            if (_ambientHeld) { ArtAmbient.Release(); _ambientHeld = false; } // Destroy 延后生效,这里直接放光
             if (_img != null)
             {
                 _img.rectTransform.offsetMin = Vector2.zero; // 清掉上一张图遗留的相机偏移,下次上台从居中开始
                 _img.rectTransform.offsetMax = Vector2.zero;
                 _img.gameObject.SetActive(false);
             }
+        }
+
+        // —— 场景环境光(用户定案:场景内也像创角/UI台一样给新模型上亮平光):
+        // 台上有任何带渲染档案的新模型(激活中)→ 持有 ArtAmbient;老模型全是 unlit 不吃光,零影响。
+        private static bool _ambientHeld;
+
+        private static void UpdateArtAmbient()
+        {
+            bool need = _charsRoot != null
+                && _charsRoot.GetComponentInChildren<ArtModelRenderProfile>(true) != null;
+            if (need == _ambientHeld) return;
+            _ambientHeld = need;
+            if (need) ArtAmbient.Retain();
+            else ArtAmbient.Release();
         }
 
         private static void EnsureStage()
@@ -214,9 +235,30 @@ namespace Shenxiao.Common.UI3D
             _cam.clearFlags = CameraClearFlags.SolidColor;
             _cam.backgroundColor = new Color(0f, 0f, 0f, 0f); // 透明底,地图透出
             _cam.orthographic = true;
-            _cam.orthographicSize = ORTHO_SIZE;
+            _cam.orthographicSize = ORTHO_SIZE; // 随后 SyncProjection 按实际画布高度覆盖
             _cam.nearClipPlane = 0.3f;
             _cam.farClipPlane = CAMERA_DISTANCE * 2f + 10f;
+            SyncProjection();
+        }
+
+        /// <summary>
+        /// 合成相机投影随实际画布高度自适应(对标老端 camera.orthographicVerticalSize = stage.height*0.01,
+        /// 舞台变尺寸时重设)。保证任意分辨率下"100 画布像素 = 1 世界单位"成立,场景角色与地图像素严格 1:1
+        /// 锚定(NPC 落位不随宽高比漂移)、名牌与模型重合。画布高度取不到时兜底参考分辨率 1280(=旧常量行为)。
+        /// 调用时机:建台(EnsureStage)/建视图(EnsureView)/RT 重建(EnsureRenderTexture,自带屏幕尺寸变化检测)。
+        /// </summary>
+        private static void SyncProjection()
+        {
+            if (_cam == null) return;
+            float canvasH = 0f;
+            Transform sceneLayer = ViewManager.GetLayer(UILayer.Scene);
+            if (sceneLayer != null)
+            {
+                Canvas canvas = sceneLayer.GetComponentInParent<Canvas>();
+                if (canvas != null) canvasH = ((RectTransform)canvas.transform).rect.height;
+            }
+            if (canvasH <= 0f) canvasH = 2f * ORTHO_SIZE * PIXELS_PER_UNIT; // 1280
+            _cam.orthographicSize = canvasH / (2f * PIXELS_PER_UNIT);
         }
 
         /// <summary>在 Scene 层建满屏 RawImage 展示 RT(自带 Canvas 压在地图之上、HUD 之下)。</summary>
@@ -226,6 +268,7 @@ namespace Shenxiao.Common.UI3D
             if (sceneLayer == null) return;
 
             EnsureRenderTexture();
+            SyncProjection();
 
             if (_img != null && _img.transform.parent == sceneLayer)
             {
@@ -268,6 +311,7 @@ namespace Shenxiao.Common.UI3D
             ClearRenderTexture(_rt);
             if (_cam != null) _cam.targetTexture = _rt;
             if (_img != null) _img.texture = _rt;
+            SyncProjection(); // 屏幕尺寸变化 → 画布高度大概率也变了,随 RT 重建一起重算投影
         }
 
         private static void ClearRenderTexture(RenderTexture rt)

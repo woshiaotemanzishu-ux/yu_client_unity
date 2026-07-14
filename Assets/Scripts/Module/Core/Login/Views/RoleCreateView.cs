@@ -322,6 +322,11 @@ namespace Shenxiao.Module.Core.Login
             RawImage image = VideoImageOrNull();
             if (image == null) return false; // 老 prefab 没有 VideoImage 节点:重新生成 prefab 前先走拼装链
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // WebGL 不支持 VideoClip 资产播放(只支持 URL 流播):裸 mp4 由打包步骤发布到
+            // {cdn}/WebGL/video/,浏览器 <video> 流式解码。存在性靠 Prepare 失败(404)判定。
+            return await TryShowVideoByUrl(image, res, selectedAtRequest);
+#else
             string baseKey = $"{VIDEO_KEY_BASE}{res.RoleRes}@";
             VideoClip intro = await ResManager.LoadOptionalAsync<VideoClip>(baseKey + "create2");
             VideoClip idle = await ResManager.LoadOptionalAsync<VideoClip>(baseKey + "create3");
@@ -332,7 +337,59 @@ namespace Shenxiao.Module.Core.Login
             UIModelStage.Clear(); // 换下可能在台上的 3D 模型(其他职业的拼装链兜底)
             PlayCareerVideo(image, intro, idle);
             return true;
+#endif
         }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        private string _pendingIdleUrl; // 出场段播完接的待机段 URL(对应 clip 版的 _pendingIdleClip)
+
+        private async Task<bool> TryShowVideoByUrl(RawImage image, LoginConfigs.CareerRes res, int selectedAtRequest)
+        {
+            string baseUrl = $"{Shenxiao.Framework.Res.ResCdn.BaseUrl}/WebGL/video/{res.RoleRes}@";
+            string introUrl = baseUrl + "create2.mp4";
+            string idleUrl = baseUrl + "create3.mp4";
+
+            VideoPlayer vp = EnsureVideoPlayer(image, null); // URL 模式尺寸走交付规格 720×1280
+            vp.source = VideoSource.Url;
+
+            bool introOk = await PrepareUrlAsync(vp, introUrl, 10f);
+            if (!introOk && !await PrepareUrlAsync(vp, idleUrl, 10f)) return false; // 两段都取不到:拼装链兜底
+            if (selectedAtRequest != _selectedIndex || !gameObject.activeInHierarchy) return true;
+
+            UIModelStage.Clear();
+            _pendingIdleClip = null;
+            _pendingIdleUrl = introOk ? idleUrl : null; // 只有待机段时自循环
+            vp.isLooping = !introOk;
+            if (!image.enabled) vp.sendFrameReadyEvents = true;
+            vp.Play();
+            return true;
+        }
+
+        /// <summary>设 url 并 Prepare,等就绪/出错/超时。404 等错误走 errorReceived → false。</summary>
+        private static async Task<bool> PrepareUrlAsync(VideoPlayer vp, string url, float timeoutSec)
+        {
+            bool ready = false, failed = false;
+            void OnPrepared(VideoPlayer _) => ready = true;
+            void OnError(VideoPlayer _, string msg) { failed = true; GameLog.Info("Login", "创角视频不可用 {0}: {1}", url, msg); }
+            vp.prepareCompleted += OnPrepared;
+            vp.errorReceived += OnError;
+            try
+            {
+                vp.Stop();
+                vp.url = url;
+                vp.Prepare();
+                float deadline = Time.realtimeSinceStartup + timeoutSec;
+                while (!ready && !failed && Time.realtimeSinceStartup < deadline)
+                    await Task.Yield();
+                return ready;
+            }
+            finally
+            {
+                vp.prepareCompleted -= OnPrepared;
+                vp.errorReceived -= OnError;
+            }
+        }
+#endif
 
         /// <summary>
         /// 播创角展示视频:create2 出场播一遍 → loopPointReached 接 create3 待机循环。
@@ -355,8 +412,9 @@ namespace Shenxiao.Module.Core.Login
         /// <summary>视频播放器/画布懒建:RenderTexture 按 clip 尺寸建(当前交付 720×1280),尺寸变了重建。</summary>
         private VideoPlayer EnsureVideoPlayer(RawImage image, VideoClip sizeRef)
         {
-            int w = sizeRef.width > 0 ? (int)sizeRef.width : 720;
-            int h = sizeRef.height > 0 ? (int)sizeRef.height : 1280;
+            // sizeRef 为空(WebGL URL 模式)时按交付规格 720×1280 建 RT
+            int w = sizeRef != null && sizeRef.width > 0 ? (int)sizeRef.width : 720;
+            int h = sizeRef != null && sizeRef.height > 0 ? (int)sizeRef.height : 1280;
             if (_videoTexture != null && (_videoTexture.width != w || _videoTexture.height != h))
             {
                 if (_videoPlayer != null) _videoPlayer.targetTexture = null;
@@ -392,6 +450,16 @@ namespace Shenxiao.Module.Core.Login
         /// <summary>出场段播完接待机段;待机段自循环时 _pendingIdleClip 已清,直接忽略。</summary>
         private void OnVideoLoopPoint(VideoPlayer vp)
         {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            if (!string.IsNullOrEmpty(_pendingIdleUrl))
+            {
+                vp.url = _pendingIdleUrl;         // URL 模式换段:RT 保留出场末帧,画面无缝
+                _pendingIdleUrl = null;
+                vp.isLooping = true;
+                vp.Play();
+                return;
+            }
+#endif
             if (_pendingIdleClip == null) return; // 无待机段停末帧 / 待机段自循环:都不用管
             vp.clip = _pendingIdleClip;           // 换段期间 RT 保留出场末帧,画面无缝
             _pendingIdleClip = null;

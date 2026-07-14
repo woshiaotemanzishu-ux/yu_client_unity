@@ -25,6 +25,8 @@ namespace Shenxiao.Module.Core.MainUI
         private UIEffectStage.Handle _finishEffect;
         private bool _finishEffectLoading;
         private int _finishEffectVersion;
+        // 槽由 UiCreator 种进 prefab;缺槽=烤制缺口(队列在案),每次任务完成都刷警告只是噪音 → 全局一次
+        private static bool s_finishSlotMissingLogged;
 
         protected override void OnInit()
         {
@@ -156,7 +158,11 @@ namespace Shenxiao.Module.Core.MainUI
             if (slot == null)
             {
                 _finishEffectLoading = false;
-                GameLog.Warn("MainUI", "Task finish effect slot missing: {0}", TASK_FINISH_EFFECT_SLOT);
+                if (!s_finishSlotMissingLogged)
+                {
+                    s_finishSlotMissingLogged = true;
+                    GameLog.Warn("MainUI", "Task finish effect slot missing: {0}(烤制缺口,重跑 UiCreator 主界面回填补槽)", TASK_FINISH_EFFECT_SLOT);
+                }
                 return;
             }
 

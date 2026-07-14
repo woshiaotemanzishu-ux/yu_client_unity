@@ -38,7 +38,24 @@ namespace Shenxiao.Framework
             _layers.Init(rootCanvas);
             ViewManager.Init(_layers);
 
-            // 2. Resource version handshake (skipped if URL empty)
+            // 2. CDN base must be set before Addressables.InitializeAsync:
+            //    Remote.LoadPath = "{Shenxiao.Framework.Res.ResCdn.BaseUrl}/[BuildTarget]",
+            //    the {} part is evaluated (and cached) by Addressables on first use.
+            // 部署侧覆盖(壳同目录 boot_config.json / ?cdn= 参数):CDN 地址不烧死在壳里,改配置零重打包。
+            await BootConfig.ApplyAsync(appConfig);
+            string cdnBase = appConfig.addressablesCdnBaseUrl;
+            // 手机 GPU 无 DXT:主内容的 DXT 纹理会被软解成 RGBA32(内存数倍+加载慢)。
+            // 配置了 ASTC 变体源且设备缺 DXT、有 ASTC 时自动换源(内容由 打包/⑦ ASTC变体 构建)。
+            if (!string.IsNullOrEmpty(appConfig.astcCdnBaseUrl)
+                && !SystemInfo.SupportsTextureFormat(TextureFormat.DXT5)
+                && SystemInfo.SupportsTextureFormat(TextureFormat.ASTC_6x6))
+            {
+                cdnBase = appConfig.astcCdnBaseUrl;
+                GameLog.Info("App", "device lacks DXT → ASTC content source: {0}", cdnBase);
+            }
+            ResCdn.Configure(cdnBase);
+
+            // 2b. Resource version handshake (skipped if URL empty)
             if (!string.IsNullOrEmpty(appConfig.addressablesCdnBaseUrl)
                 || !string.IsNullOrEmpty(appConfig.addressablesCatalogUrl))
             {
@@ -58,9 +75,11 @@ namespace Shenxiao.Framework
             }
 
             // 3. Initialize Addressables (no-op if catalog already loaded above).
+            BootOverlay.Report(0.86f, "正在连接资源服务器…");
             var initHandle = UnityEngine.AddressableAssets.Addressables.InitializeAsync();
             await AddressablesAwaiter.Wait(initHandle);
 
+            BootOverlay.Report(0.88f, "正在准备登录资源…");
             GameLog.Info("App", "framework ready");
 
             // Hand off to game flow (login bootstrap listens for this event).

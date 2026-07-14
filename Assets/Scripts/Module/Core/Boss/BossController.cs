@@ -389,6 +389,10 @@ namespace Shenxiao.Module.Core.Boss
             PlusInterval = r.ReadU8(), PlusUnit = r.ReadU32(),
         };
 
+        /// <summary>轮15b 补注(跨服壳复用确认):本 handler 同样服务 KfGreatDemon(boss_type=20,太古遗凶)
+        /// 的进场景结果——服务端 `enter_check` 用同步 call 在本服完成完整 guard,通过后才 apply_cast 转发
+        /// 跨服节点;**成功无任何 46003 包**(靠场景切换事件隐式确认),仅失败显式回此号,与本服其余 BossType
+        /// 完全同一惯例,无需单独接线。</summary>
         private void On46003(NetReader r)
         {
             int code = r.ReadI32();

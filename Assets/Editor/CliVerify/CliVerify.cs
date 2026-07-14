@@ -184,6 +184,13 @@ namespace Shenxiao.EditorTools
             Run(CreateRoleVideoCase.Run, 120.0);
         }
 
+        /// <summary>新模型部件导入(资产管理[替换新模型]泛化)实证——会真实导入 1213 三件套资产
+        /// (幂等,重跑=SkipSame)且依赖本机美术工程,故不入 RenderAll(详见 NewPartImportCase 注释)。</summary>
+        public static void NewPartImport()
+        {
+            Run(NewPartImportCase.Run, 900.0);
+        }
+
         /// <summary>商店(自动循环 轮11)实证:15301 分槽+SoldOut已购次数语义+TopVipShop劫持扇出不炸/
         /// 15305 BuyType状态语义/15306 刷新联动/15307 失败包错位兼容(第二字段=Id)/64000 left_time
         /// 服务器墙钟自算/64001 双编码分流(0-7文案表/≥100000显码)/64003 真删/失败码各一发;
@@ -235,6 +242,18 @@ namespace Shenxiao.EditorTools
             Run(BossCase.Run, 300.0);
         }
 
+        /// <summary>Boss家族二期·跨服族(自动循环 轮15b)实证:pt_470千幻蜃楼主链(列表/进出场景/关注/
+        /// 47006复活提醒含服务端误发壳量quirk/47008防御recv/宝箱坐标·狩猎等级·榜单/死亡debuff转
+        /// ReliveModel.HolyBoss/复活)+ pt_471镇煞封魂全链(主信息/进出购买/关注/复活提醒/掉落/排名全量与
+        /// patch/双套奖励结算/场景信息/47117防御recv)+ pt_619论剑恩怨簿(61900-902,含32位ServerId独例)+
+        /// pt_460内kf_great_demon壳(46037-39/46046)+ Mystery=20订正后类型门回归+ 死号未注册断言
+        /// (47001/47011)+ 边界失败码各一发,合成包驱动 KfBossController 反射喂包;纯数据层轮无渲染段
+        /// (CrossServerEnterView 7Tab壳与千幻蜃楼视图均无 Bind 供给,详见 KfBossCase 注释)。</summary>
+        public static void KfBoss()
+        {
+            Run(KfBossCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -277,6 +296,7 @@ namespace Shenxiao.EditorTools
                 int gc = await GuildCoreCase.Run();
                 int ge = await GuildExtCase.Run();
                 int bs = await BossCase.Run();
+                int kb = await KfBossCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -285,8 +305,8 @@ namespace Shenxiao.EditorTools
                     + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
                     + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch + " friendmail=" + fm
                     + " team=" + tm + " dungeonfam=" + df + " dailyhub=" + dh + " createvideo=" + cv + " shop=" + sh
-                    + " rank=" + rk + " guildcore=" + gc + " guildext=" + ge + " boss=" + bs);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs })
+                    + " rank=" + rk + " guildcore=" + gc + " guildext=" + ge + " boss=" + bs + " kfboss=" + kb);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

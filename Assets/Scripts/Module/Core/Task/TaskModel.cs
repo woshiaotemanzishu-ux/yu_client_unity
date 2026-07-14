@@ -504,7 +504,8 @@ namespace Shenxiao.Module.Core.Tasks
             // 选中态(对标 now_select_task_id):点任务即设选中并广播,任务栏据此刷新 _img_select。
             NowSelectTaskId = task.TaskId;
             EventDispatcher.Emit(GlobalEvent.EVT_TASK_SELECT_CHANGED, task.TaskId);
-            GameLog.Info("Task", "DoTask: id={0} tipsType={1} finish={2} npcId={3} scene=({4},{5},{6})",
+            // targetId:杀怪任务=怪物 typeId,对话任务=NPC id(此前打成 npcId 曾导致"杀怪目标被当 NPC"的误诊)
+            GameLog.Info("Task", "DoTask: id={0} tipsType={1} finish={2} targetId={3} scene=({4},{5},{6})",
                 task.TaskId, task.TaskTipsType, task.HasFinish, task.Id, task.SceneId, task.SceneX, task.SceneY);
 
             // 1) 找 NPC 对话任务(对标 ts:783 finish 早退排除 find-npc + ts:1767 Talk/StartTalk/EndTalk case)。
@@ -797,6 +798,7 @@ namespace Shenxiao.Module.Core.Tasks
                 // 驱动副本内输出;Unity 自动化链此前没人置 AutoFightState → 副本内 20001 从未发出 →
                 // 20s wave_timeout 判负(13306 state=1)无限重试。对标老端语义:任务驱动进副本=有仗要打。
                 AutoFight.AutoFightModel.Instance.SetAutoFightWeight(AutoFight.AutoFightModel.AUTO_WEIGHT_TASK);
+                AutoFight.AutoFightController.Instance.EnsureRunning(); // 同值早退不发事件时的环存活保证
                 AutoBrushController.Instance.RequestEnterOrExit(0);
                 return;
             }
@@ -896,6 +898,9 @@ namespace Shenxiao.Module.Core.Tasks
 
             StopWaitingTaskMonster();
             AutoFightModel.Instance.SetAutoFightWeight(AutoFightModel.AUTO_WEIGHT_TASK);
+            // 电平自愈:weight 已是 TASK 时 SetAutoFightWeight 同值早退不发事件,攻击环若已死将无人拉起
+            // (任务杀怪永动死循环根因)。锁怪成功 = "状态 + 环存活"双保证。
+            AutoFightController.Instance.EnsureRunning();
             GameLog.Info("Task", "auto task kill started: task={0} monsterType={1}", task.TaskId, task.Id);
             return true;
         }
@@ -1028,7 +1033,7 @@ namespace Shenxiao.Module.Core.Tasks
 
         private async Task RetryCollectAfterDelayAsync(int taskId, int token)
         {
-            await Task.Delay(1500);
+            await Shenxiao.Framework.Util.TimeUtil.Delay(1500);
             if (token != _collectRetryToken || !AutoTaskEnabled) return;
             TaskVo task = MainLineTaskVo;
             if (task == null || task.TaskId != taskId || task.TaskTipsType != TIP_COLLECT || IsAllStepFinish(taskId)) return;

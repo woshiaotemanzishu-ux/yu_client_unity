@@ -89,7 +89,8 @@ namespace Shenxiao.Common.UI3D
             EnsureRenderTexture(container);
 
             if (_model != null) Object.Destroy(_model);
-            _modelRoot.localPosition = new Vector3(position.x, position.y + BASE_Y, 0f);
+            _baseYaw = yaw;
+            _userYaw = 0f; // 换人/换模型回正,拖拽旋转从默认朝向重新开始(对标老端)
             _modelYaw.localRotation = Quaternion.Euler(0f, yaw, 0f);
             _model = modelInstance;
             _model.transform.SetParent(_modelYaw, false);
@@ -98,6 +99,21 @@ namespace Shenxiao.Common.UI3D
             _model.transform.localScale = Vector3.one * (BODY_SCALE_MUL * scale);
             bool isArtModel = ApplyRenderProfile(_model);
             SetArtAmbient(isArtModel);
+            _displayFlipped = !isArtModel; // 老模型 FLIP 镜像展示 → 拖拽转身方向取反(见 AddUserYaw)
+
+            // 摆位分流(选角"镜头偏右"实锤根因,2026-07-11):
+            //  老模型(正交):config 偏移直接挪 3D——正交是平行投影,离轴=纯平移,行为与从前一致;
+            //  新模型(透视):模型离轴=被斜视(等效视口偏转)。故模型中心必须锁在相机光轴上
+            //  (落点=脚底在容器原点,抬半个归一身高即中心对轴),config 构图偏移改挪 2D 贴图(见下)。
+            if (isArtModel)
+            {
+                float stageHeight = 2.33f * BODY_SCALE_MUL * scale * ROOT_SCALE; // 导入烤入的归一身高 × 台上缩放链
+                _modelRoot.localPosition = new Vector3(0f, -stageHeight * 0.5f, 0f);
+            }
+            else
+            {
+                _modelRoot.localPosition = new Vector3(position.x, position.y + BASE_Y, 0f);
+            }
 
             if (_img == null || _img.transform.parent != container)
             {
@@ -110,17 +126,37 @@ namespace Shenxiao.Common.UI3D
                 rt.offsetMin = Vector2.zero;
                 rt.offsetMax = Vector2.zero;
                 _img = go.GetComponent<RawImage>();
-                _img.raycastTarget = false;
                 _img.uvRect = FLIP_HORIZONTAL;
+                var drag = go.AddComponent<UIModelDragRotate>(); // 拖拽旋转(是否命中由 raycastTarget 开关)
+                drag.Stage = this;
             }
+            _img.raycastTarget = _dragRotate; // 开了拖拽才吃指针;按钮等 UI 在其上层,优先命中不受影响
             _img.texture = _rt;
             // 整模(带渲染档案)换预乘合成材质:加法特效渲到透明 RT 再按默认 SrcAlpha 贴 UI 会洗成白块;
             // 老模型 material=null 走 UI 默认材质,行为与从前一致
             _img.material = isArtModel ? CompositeMaterial() : null;
             // 水平翻转只给 Laya 转换的老模型(它们的几何本来就是镜像的,翻一次才正);
-            // 新美术成品是原生 Unity 朝向,再翻=镜像(武器换手)
+            // 新美术成品是原生 Unity 朝向,再翻=镜像(武器换手)——创角整模时代实锤的铁律
             _img.uvRect = isArtModel ? new Rect(0f, 0f, 1f, 1f) : FLIP_HORIZONTAL;
+            // 新模型的页面构图偏移挪 2D 贴图(模型本体锁光轴防斜视);老模型偏移在 3D,贴图归零。
+            // 基准换算必须复刻老构图:老路径模型可视中心 = pos + (0, BASE_Y + 半身高);新路径模型
+            // 渲在画面正中,把贴图平移到同一构图点 → 页面位置与老基准一致(漏掉基准项=人飘上天,实锤)。
+            Vector2 imgOffset = Vector2.zero;
+            if (isArtModel)
+            {
+                float pxPerUnit = container.rect.height / ORTHO_FULL_HEIGHT; // 12.8 台上单位 = 容器全高
+                float stageHeight = 2.33f * BODY_SCALE_MUL * scale * ROOT_SCALE;
+                imgOffset = new Vector2(position.x, position.y + BASE_Y + stageHeight * 0.5f) * pxPerUnit;
+            }
+            _img.rectTransform.offsetMin = imgOffset;
+            _img.rectTransform.offsetMax = imgOffset;
             _img.gameObject.SetActive(true);
+            // 镜像/口径排查诊断:art=按激活子树认定的整模判定,flip=是否套了 Laya 镜像补偿
+            Shenxiao.Framework.Util.GameLog.Info("UI3D",
+                "UI台上台:{0} art={1} flip={2} 相机={3} 容器={4}x{5}",
+                modelInstance.name, isArtModel, !isArtModel,
+                _cam.orthographic ? "正交12.8" : "透视60",
+                Mathf.RoundToInt(container.rect.width), Mathf.RoundToInt(container.rect.height));
         }
 
         private static Material _compositeMat;
@@ -151,8 +187,10 @@ namespace Shenxiao.Common.UI3D
             UniversalAdditionalCameraData camData = _cam.GetUniversalAdditionalCameraData();
             if (camData == null) return false;
 
+            // 只看【激活中】的子树:混合模型(ReplaceableRoleModel)容器里新老实例并存,
+            // 亮着的才是正在展示的那个——按它决定相机/合成,而不是"藏着新模型就当整模"
             ArtModelRenderProfile profile =
-                model != null ? model.GetComponentInChildren<ArtModelRenderProfile>(true) : null;
+                model != null ? model.GetComponentInChildren<ArtModelRenderProfile>(false) : null;
             if (profile != null)
             {
                 camData.SetRenderer(profile.useDedicatedRenderer && profile.rendererIndex >= 0
@@ -231,31 +269,49 @@ namespace Shenxiao.Common.UI3D
             _modelYaw = yawGo.transform;
         }
 
-        // —— 整模环境光(定案:用环境光,不用平行光)——
-        // 新美术整模是 Lit 材质,登录场景没有灯、环境光又暗,不提亮=整体偏黑。
-        // 整模上台期间把场景环境光切成亮平光,下台立刻恢复;老模型/场景全是不吃光照的
-        // unlit shader,切环境光对它们无影响——真正吃光的只有台上的整模。
-        private static readonly Color ART_AMBIENT = Color.white;
-        private static bool _ambientApplied;
-        private static UnityEngine.Rendering.AmbientMode _savedAmbientMode;
-        private static Color _savedAmbientLight;
+        // —— 拖拽旋转(对标老客户端:模型区横向拖动=左右转身,无缩放/无平移)——
+        private bool _dragRotate;
+        private bool _displayFlipped; // 老模型走 FLIP 镜像展示:画面左右反了,拖拽方向要跟着反才顺手
+        private float _baseYaw = MODEL_YAW;
+        private float _userYaw;
 
-        private static void SetArtAmbient(bool on)
+        /// <summary>开关默认台的拖拽旋转(选角等页 OnShow 开、OnHide 关;不开时画面贴图不吃指针)。</summary>
+        public static void SetDragRotate(bool on) => Default.EnableDragRotate(on);
+
+        public void EnableDragRotate(bool on)
         {
-            if (on && !_ambientApplied)
-            {
-                _savedAmbientMode = RenderSettings.ambientMode;
-                _savedAmbientLight = RenderSettings.ambientLight;
-                RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-                RenderSettings.ambientLight = ART_AMBIENT;
-                _ambientApplied = true;
-            }
-            else if (!on && _ambientApplied)
-            {
-                RenderSettings.ambientMode = _savedAmbientMode;
-                RenderSettings.ambientLight = _savedAmbientLight;
-                _ambientApplied = false;
-            }
+            _dragRotate = on;
+            if (_img != null) _img.raycastTarget = on;
+        }
+
+        /// <summary>拖拽增量转身(UIModelDragRotate 回调):只动 yaw,基准朝向来自 ShowInstance。
+        /// 老模型的画面是镜像贴的(Laya 补偿),同样的物理旋转在屏幕上看是反的——增量取反对齐手感。</summary>
+        public void AddUserYaw(float degrees)
+        {
+            _userYaw += _displayFlipped ? -degrees : degrees;
+            if (_modelYaw != null)
+                _modelYaw.localRotation = Quaternion.Euler(0f, _baseYaw + _userYaw, 0f);
+        }
+
+        /// <summary>拖拽结束回调:把当前朝向偏移吐到日志——拖到满意的角度后,把这个数填进
+        /// configlogin 对应页的 NewModel.yaw,默认朝向就固定成这个角度。</summary>
+        public void ReportUserYaw()
+        {
+            float normalized = Mathf.Repeat(_userYaw + 180f, 360f) - 180f; // 归一到 ±180
+            Shenxiao.Framework.Util.GameLog.Info("UI3D",
+                "拖拽朝向偏移 {0}°(固定它:填进 configlogin 该页 NewModel.yaw)", Mathf.Round(normalized));
+        }
+
+        // —— 整模环境光(定案:用环境光,不用平行光;实现收编进 ArtAmbient 引用计数,
+        // UI 台+场景台共用,谁有新模型谁持有,全放光了才恢复)——
+        private bool _ambientHeld;
+
+        private void SetArtAmbient(bool on)
+        {
+            if (on == _ambientHeld) return;
+            _ambientHeld = on;
+            if (on) ArtAmbient.Retain();
+            else ArtAmbient.Release();
         }
 
         /// <summary>RT 尺寸跟随容器(老客户端 createFromPool(parent.width, parent.height)),保证不拉伸变形。</summary>

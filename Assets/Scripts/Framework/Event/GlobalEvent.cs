@@ -288,6 +288,10 @@ namespace Shenxiao.Framework.Event
 
         // ----- Scene -----
         public const string EVT_SCENE_MAP_READY = "EVT_SCENE_MAP_READY";
+        /// <summary>场景首屏就绪:地图首屏瓦片加载泵空闲(或兜底超时)。切图黑幕据此揭幕。</summary>
+        public const string EVT_SCENE_FIRST_SCREEN_READY = "EVT_SCENE_FIRST_SCREEN_READY";
+        /// <summary>场景实体就绪:主角+12002快照+首批怪/NPC全部立起(或兜底超时)。首次进世界的加载页据此揭幕。</summary>
+        public const string EVT_SCENE_ENTITIES_READY = "EVT_SCENE_ENTITIES_READY";
         /// <summary>12002 场景快照解析完成、场景对象表(SceneManager)已就绪。携带数据用 SceneManager 的强类型事件。</summary>
         public const string EVT_SCENE_SNAPSHOT_READY = "EVT_SCENE_SNAPSHOT_READY";
         /// <summary>切场景/登出:场景对象表已清空。</summary>
@@ -574,5 +578,41 @@ namespace Shenxiao.Framework.Event
         /// <summary>20025/20026 场景采集查询/打断通知(参数: List&lt;long&gt; roleIds 或单 role;场景消费钩子
         /// 未接,TODO,本事件先给可订阅信号)。</summary>
         public const string EVT_BOSS_COLLECT_UPDATE = "EVT_BOSS_COLLECT_UPDATE";
+
+        // ----- KfBoss / Boss家族二期·跨服族(自动循环 轮15b;pt_470+pt_471+pt_619+pt_460内kf_great_demon壳) -----
+        /// <summary>pt_470 千幻蜃楼状态变化(47000列表/47005关注/47007-09重生刷新/47017-19宝箱坐标·狩猎
+        /// 等级/47021榜单/47023最大疲劳,参数: int clientBossType,均已 +1000)。</summary>
+        public const string EVT_KFBOSS_EUDEMONS_UPDATE = "EVT_KFBOSS_EUDEMONS_UPDATE";
+        /// <summary>47003/47004 进出千幻蜃楼结果(参数: bool isEnter, int code)。</summary>
+        public const string EVT_KFBOSS_EUDEMONS_ENTER_RESULT = "EVT_KFBOSS_EUDEMONS_ENTER_RESULT";
+        /// <summary>47006 千幻蜃楼 boss 重生提醒(含服务端 46008-for-type20 误发壳量,参数: int bossType, int bossId)。</summary>
+        public const string EVT_KFBOSS_EUDEMONS_REBORN_TIP = "EVT_KFBOSS_EUDEMONS_REBORN_TIP";
+        /// <summary>47002 千幻蜃楼掉落日志落地。</summary>
+        public const string EVT_KFBOSS_EUDEMONS_DROP_LOG_UPDATE = "EVT_KFBOSS_EUDEMONS_DROP_LOG_UPDATE";
+        /// <summary>47015 千幻蜃楼结算奖励落地。</summary>
+        public const string EVT_KFBOSS_EUDEMONS_SETTLE_REWARD = "EVT_KFBOSS_EUDEMONS_SETTLE_REWARD";
+        /// <summary>47035 复活千幻蜃楼 boss 结果(参数: bool success, int bossType, int bossId)。</summary>
+        public const string EVT_KFBOSS_EUDEMONS_REVIVE_RESULT = "EVT_KFBOSS_EUDEMONS_REVIVE_RESULT";
+        /// <summary>pt_471 镇煞封魂状态变化(47101主信息/47104购买/47105-06关注/47109-12排名/47114-16场景信息,
+        /// 无参数,消费方统一重读 KfBossModel)。</summary>
+        public const string EVT_KFBOSS_DECORATION_UPDATE = "EVT_KFBOSS_DECORATION_UPDATE";
+        /// <summary>47102/47103/47110 进出/进特殊 boss 结果(参数: int code)。</summary>
+        public const string EVT_KFBOSS_DECORATION_ENTER_RESULT = "EVT_KFBOSS_DECORATION_ENTER_RESULT";
+        /// <summary>47107 镇煞封魂 boss 复活提醒(参数: int bossId)。</summary>
+        public const string EVT_KFBOSS_DECORATION_REVIVE_TIP = "EVT_KFBOSS_DECORATION_REVIVE_TIP";
+        /// <summary>47108 镇煞封魂掉落日志落地。</summary>
+        public const string EVT_KFBOSS_DECORATION_DROP_LOG_UPDATE = "EVT_KFBOSS_DECORATION_DROP_LOG_UPDATE";
+        /// <summary>47113 镇煞封魂 boss 结算落地。</summary>
+        public const string EVT_KFBOSS_DECORATION_SETTLE = "EVT_KFBOSS_DECORATION_SETTLE";
+        /// <summary>47111 仙宗召援(镇煞封魂场景内,勿与 Guild 40060 混淆)结果(参数: int code)。</summary>
+        public const string EVT_KFBOSS_DECORATION_GUILD_HELP_RESULT = "EVT_KFBOSS_DECORATION_GUILD_HELP_RESULT";
+        /// <summary>pt_619 论剑恩怨簿更新(61900全量/61901本服增量/61902跨服增量,均复用此信号)。</summary>
+        public const string EVT_KFBOSS_KILL_RECORD_UPDATE = "EVT_KFBOSS_KILL_RECORD_UPDATE";
+        /// <summary>46037/46038 太古遗凶阶段奖励状态/领取结果落地。</summary>
+        public const string EVT_KFBOSS_GREAT_DEMON_REWARD_UPDATE = "EVT_KFBOSS_GREAT_DEMON_REWARD_UPDATE";
+        /// <summary>46039 太古遗凶进场景宝箱信息落地。</summary>
+        public const string EVT_KFBOSS_GREAT_DEMON_BOX_UPDATE = "EVT_KFBOSS_GREAT_DEMON_BOX_UPDATE";
+        /// <summary>46046 太古遗凶掉落日志落地。</summary>
+        public const string EVT_KFBOSS_GREAT_DEMON_DROP_LOG_UPDATE = "EVT_KFBOSS_GREAT_DEMON_DROP_LOG_UPDATE";
     }
 }

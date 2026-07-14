@@ -107,9 +107,10 @@ namespace Shenxiao.Common.UI3D
                 GameLog.Warn("Effect", "特效未转换,跳过:{0}(资产管理「特效」域里转)", effectKey);
                 return null;
             }
-            if (host == null) return null; // 加载期间宿主可能已销毁
+            if (host == null) { ResManager.Release(prefab); return null; } // 加载期间宿主已销毁:归还引用
             Transform bone = RoleModelAssembler.FindBone(host.transform, boneName) ?? host.transform;
             GameObject eff = Object.Instantiate(prefab, bone);
+            LoadedAssetReleaser.Track(eff, prefab);
             eff.name = "__fx_" + tag + "_" + System.IO.Path.GetFileName(effectKey);
             eff.transform.localPosition = Vector3.zero;
             eff.transform.localRotation = Quaternion.identity;

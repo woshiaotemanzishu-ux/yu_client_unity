@@ -184,7 +184,9 @@ namespace Shenxiao.Framework.Scene3D.Map
         /// 实测进副本时把网络 keepalive 饿死触发 force-close)。去掉 SceneId 比较后:同 mapResId+同尺寸 → 命中复用,
         /// 不重载、不卡顿、无黑屏,实现"同地图只换实例名"的无缝切换。
         /// </summary>
-        private static bool IsSameMapShown(SceneMapData data)
+        /// <summary>目标场景是否与当前展示的是同一张图(同 resId 同尺寸)——同图切换(副本进出)对齐老端:
+        /// 瓦片不重载、不拉黑幕,无感切换。public 供 SceneController 决定要不要 SceneTransitionMask。</summary>
+        public static bool IsSameMapShown(SceneMapData data)
         {
             return _data != null
                 && _root != null && _preview != null && _previewSprite != null && _preview.enabled
@@ -403,6 +405,22 @@ namespace Shenxiao.Framework.Scene3D.Map
             _inFlightTiles[key] = _version;
             _loadQueue.Enqueue(new TileLoadRequest(row, col, _version));
             PumpLoads();
+        }
+
+        /// <summary>
+        /// 等待瓦片加载泵空闲(队列清空且无在飞)——"首屏瓦片画完"的揭幕信号。
+        /// timeoutMs 兜底防慢网把幕布压死;期间换图(版本变化,揭幕权移交新加载)立即返回。
+        /// </summary>
+        public static async Task WaitTilesIdleAsync(int timeoutMs)
+        {
+            int version = _version;
+            double deadline = Time.realtimeSinceStartupAsDouble * 1000.0 + timeoutMs;
+            while (_loadQueue.Count > 0 || _activeTileLoads > 0)
+            {
+                if (_version != version) return;
+                if (Time.realtimeSinceStartupAsDouble * 1000.0 > deadline) return;
+                await Task.Yield();
+            }
         }
 
         /// <summary>

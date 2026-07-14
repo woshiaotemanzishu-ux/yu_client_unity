@@ -69,9 +69,12 @@ namespace Shenxiao.EditorTools.AddrSetup
                 countRemote += AssignFolderToGroup(settings, "Assets/Prefabs", prefabGroup);
             }
 
+            // 拆包标签:每个 Remote 条目恰好一个 pack_ 标签,配合 PackTogetherByLabel 决定 bundle 粒度。
+            int packUnits = Shenxiao.EditorTools.Packaging.PackLabeler.AssignAll(settings);
+
             AssetDatabase.SaveAssets();
             EditorUtility.SetDirty(settings);
-            Debug.Log($"[AddressableSetup] local entries: {countLocal}, remote entries: {countRemote}");
+            Debug.Log($"[AddressableSetup] local entries: {countLocal}, remote entries: {countRemote}, pack units: {packUnits}");
         }
 
         private static AddressableAssetGroup EnsureLocalGroup(AddressableAssetSettings settings)

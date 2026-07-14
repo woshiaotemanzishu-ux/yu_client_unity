@@ -107,6 +107,8 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_boss_show_hp",         // 场景血条显示白名单(68条,数字键=scene),BossConfigs.ShowHpInScene 用
             "config_domain_kill_reward",   // 秘境领域阶段奖励档位(3条,数字键),BossConfigs.GetDomainKillReward 用
             "config_decoration_boss",      // 幻域/特殊boss装饰配置(25条,数字键),BossConfigs.GetDecorationBoss 用
+            "config_eudemons_boss_cfg",    // Boss家族二期·跨服族(轮15b)千幻蜃楼/圣兽岭逐只配置(48条,数字键),KfBossConfigs.GetEudemonsBossCfg 用
+            "config_kf_great_demon",       // 跨服"太古遗凶"专用配置(31条,数字键),KfBossConfigs.GetKfGreatDemonCfg 用
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

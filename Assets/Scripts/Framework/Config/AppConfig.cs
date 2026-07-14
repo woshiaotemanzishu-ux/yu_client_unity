@@ -29,6 +29,9 @@ namespace Shenxiao.Framework.Config
         [Tooltip("Optional Unity Addressables remote catalog URL. Empty = use the built-in/local catalog.")]
         public string addressablesCatalogUrl = "";
 
+        [Tooltip("ASTC 内容变体 CDN 基址(ServerData-ASTC 的发布根)。设备不支持 DXT(手机 GPU)且支持 ASTC 时自动改用;留空=始终用主源。")]
+        public string astcCdnBaseUrl = "";
+
         [Tooltip("Old-client raw resource CDN imported from yu_client platform cfg. Kept for comparison/tools, not used as Unity Addressables CDN.")]
         public string legacyResourceCdnBaseUrl = "";
 

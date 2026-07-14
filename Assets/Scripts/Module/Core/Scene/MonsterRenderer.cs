@@ -83,6 +83,17 @@ namespace Shenxiao.Module.Core.Scene
         }
 
         private static readonly Dictionary<int, MonView> _views = new Dictionary<int, MonView>();
+
+        /// <summary>还没立起来的怪物视图数(数据已到、模型仍在加载/排队)——进场"实体就绪"揭幕探针用。</summary>
+        public static int PendingSpawns
+        {
+            get
+            {
+                int pending = 0;
+                foreach (MonView v in _views.Values) { if (!v.Loaded) pending++; }
+                return pending;
+            }
+        }
         /// <summary>战斗层预告"该实例是被打死的"(20001 hp==0),下一次 MonsterRemoved 走死亡动画而非瞬删。</summary>
         private static readonly HashSet<int> _killedPending = new HashSet<int>();
         private static readonly List<DyingCorpse> _dying = new List<DyingCorpse>();
@@ -156,7 +167,7 @@ namespace Shenxiao.Module.Core.Scene
 
             string modelKey = ModelKey(vo.MonsterRes);
             GameObject prefab = await ResManager.LoadAsync<GameObject>(modelKey);
-            if (IsStale(view)) return;
+            if (IsStale(view)) { ResManager.Release(prefab); return; } // 借了没用上,归还
 
             if (prefab == null)
             {
@@ -170,9 +181,10 @@ namespace Shenxiao.Module.Core.Scene
 
             // 帧预算:prefab 命中缓存时几十只怪的 await 同帧返回,Instantiate+名牌+Animation 会挤在一帧 → 排队限流。
             await SceneSpawnBudget.WaitTurnAsync();
-            if (IsStale(view)) return;
+            if (IsStale(view)) { ResManager.Release(prefab); return; }
 
             GameObject model = Object.Instantiate(prefab);
+            LoadedAssetReleaser.Track(model, prefab);
             // 大妖优先用 ConfigAutoBrush 的 scene_scale(对标老端 vo.icon_scale=cfg.scene_scale);否则 config_mon icon_scale。
             float iconScale = autoBrushScale > 0f ? autoBrushScale
                 : (cfg != null && cfg.IconScale > 0f ? cfg.IconScale : -1f);
@@ -277,10 +289,15 @@ namespace Shenxiao.Module.Core.Scene
                         if (corpse.Model != null && clip != null && clip.legacy)
                         {
                             anim.AddClip(clip, ACTION_DEATH);
+                            LoadedAssetReleaser.Track(corpse.Model, clip);
                         }
                         else if (clip == null)
                         {
                             GameLog.Warn("Scene", "monster death 动作缺失,尸体静止停留:res={0} key={1}", monsterRes, key);
+                        }
+                        else
+                        {
+                            ResManager.Release(clip); // 模型已亡/片段非 legacy:借了没用上,归还
                         }
                     }
                     if (!corpse.Done && corpse.Model != null && anim.GetClip(ACTION_DEATH) != null)
@@ -290,7 +307,7 @@ namespace Shenxiao.Module.Core.Scene
                         // death 多为非循环片段,播完自然停在末帧(倒地),停留期内即尸体姿态。
                     }
                 }
-                await Task.Delay(Mathf.RoundToInt(DEAD_BODY_LINGER_SECONDS * 1000f));
+                await TimeUtil.Delay(Mathf.RoundToInt(DEAD_BODY_LINGER_SECONDS * 1000f));
             }
             catch (System.Exception ex)
             {
@@ -419,7 +436,7 @@ namespace Shenxiao.Module.Core.Scene
             if (model == null) return;
             string actionKey = $"object/monster/action/{monsterRes}/{ACTION_IDLE}";
             AnimationClip clip = await ResManager.LoadAsync<AnimationClip>(actionKey);
-            if (model == null) return; // 加载期间被销毁(Unity 重载 == null)
+            if (model == null) { ResManager.Release(clip); return; } // 加载期间被销毁(Unity 重载 == null)
             if (clip == null)
             {
                 GameLog.Warn("Scene", "monster idle 动作未转换,静态展示:res={0} key={1}", monsterRes, actionKey);
@@ -429,8 +446,10 @@ namespace Shenxiao.Module.Core.Scene
             {
                 // 非 legacy 片段无法挂到 Animation 组件播放(避免抛错);静态展示并记录(同 NPC 走 legacy 约定)。
                 GameLog.Warn("Scene", "monster idle 非 legacy 片段,静态展示:res={0} key={1}", monsterRes, actionKey);
+                ResManager.Release(clip);
                 return;
             }
+            LoadedAssetReleaser.Track(model, clip);
             Animation anim = model.GetComponent<Animation>();
             if (anim == null) anim = model.AddComponent<Animation>();
             if (anim.GetClip(ACTION_IDLE) == null) anim.AddClip(clip, ACTION_IDLE);
@@ -546,7 +565,7 @@ namespace Shenxiao.Module.Core.Scene
                     SkillMovieConfigs.GetConfiguredDurationSeconds(skillId));
                 if (wait > 0f)
                 {
-                    await Task.Delay(Mathf.RoundToInt(wait * 1000f));
+                    await TimeUtil.Delay(Mathf.RoundToInt(wait * 1000f));
                     if (!IsStale(view) && version == view.ActionVersion && view.Model != null)
                     {
                         TryPlayMonsterAction(view, ACTION_IDLE, 0.12f, false);
@@ -573,7 +592,7 @@ namespace Shenxiao.Module.Core.Scene
                 float wait = GetMonsterActionLength(view, actionName);
                 if (backToIdle && wait > 0f)
                 {
-                    await Task.Delay(Mathf.RoundToInt(wait * 1000f));
+                    await TimeUtil.Delay(Mathf.RoundToInt(wait * 1000f));
                     if (!IsStale(view) && version == view.ActionVersion && view.Model != null)
                     {
                         TryPlayMonsterAction(view, ACTION_IDLE, 0.12f, false);
@@ -596,7 +615,7 @@ namespace Shenxiao.Module.Core.Scene
 
             string actionKey = $"object/monster/action/{view.MonsterRes}/{actionName}";
             AnimationClip clip = await ResManager.LoadAsync<AnimationClip>(actionKey);
-            if (view.Model == null) return;
+            if (view.Model == null) { ResManager.Release(clip); return; }
             if (clip == null)
             {
                 GameLog.Warn("Scene", "monster action missing monster_res={0} action={1} key={2}",
@@ -607,9 +626,11 @@ namespace Shenxiao.Module.Core.Scene
             {
                 GameLog.Warn("Scene", "monster action non-legacy monster_res={0} action={1} key={2}",
                     view.MonsterRes, actionName, actionKey);
+                ResManager.Release(clip);
                 return;
             }
             anim.AddClip(clip, actionName);
+            LoadedAssetReleaser.Track(view.Model, clip);
         }
 
         private static bool TryPlayMonsterAction(MonView view, string actionName, float fade, bool restart)
@@ -649,7 +670,7 @@ namespace Shenxiao.Module.Core.Scene
             try
             {
                 if (particle.StartTime > 0f)
-                    await Task.Delay(Mathf.RoundToInt(particle.StartTime * 1000f));
+                    await TimeUtil.Delay(Mathf.RoundToInt(particle.StartTime * 1000f));
                 if (IsStale(view) || view.Model == null || version != view.ActionVersion) return;
 
                 GameObject effect = await EffectBinder.AttachOne(view.Model, "root", "skills_effect",

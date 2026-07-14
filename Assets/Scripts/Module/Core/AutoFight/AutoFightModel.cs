@@ -83,8 +83,10 @@ namespace Shenxiao.Module.Core.AutoFight
 
         public void Reset()
         {
-            AutoFightState = false;
-            AutoFightWeight = AUTO_WEIGHT_CLOSE;
+            // 必须走 SetAutoFightWeight 让 EVT_AUTO_FIGHT_STATE(false) 正常发出、攻击环被 StopLoop 收编。
+            // 旧实现直改字段是"静默翻状态"的合法入口,曾造成 state=true 而环死 / state=false 而环空转的分叉
+            // (任务杀怪永动死循环成因之一:Reset 落在首次点火后,静默灭状态,后续同值 SetAutoFightWeight 早退不发事件)。
+            SetAutoFightWeight(AUTO_WEIGHT_CLOSE);
             AutoFindWayState = false;
             AutoFindWayWeight = AUTO_WEIGHT_CLOSE;
             TempMode = false;

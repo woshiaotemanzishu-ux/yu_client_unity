@@ -87,7 +87,9 @@ namespace Shenxiao.Module.Core.Friend
         {
             if (_vo == null) return;
             if (RoleModel.Instance.RoleId == _vo.RoleId) return; // 自己不弹菜单(对标老端 touchGroup 拦截)
-            FriendFlow.OpenMenu(_vo, (Vector2)Input.mousePosition);
+            // 用条目自身屏幕位(Overlay canvas 下 world≈screen):Input.mousePosition 在纯新输入系统
+            // (activeInputHandler=1)的 player 构建里直接抛 InvalidOperationException,且触屏无鼠标。
+            FriendFlow.OpenMenu(_vo, RectTransformUtility.WorldToScreenPoint(null, transform.position));
         }
     }
 }

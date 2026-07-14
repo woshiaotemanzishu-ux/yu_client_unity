@@ -58,6 +58,17 @@ namespace Shenxiao.Module.Core.Scene
         }
 
         private static readonly Dictionary<int, NpcView> _views = new Dictionary<int, NpcView>();
+
+        /// <summary>还没立起来的 NPC 视图数(数据已到、模型仍在加载/排队)——进场"实体就绪"揭幕探针用。</summary>
+        public static int PendingSpawns
+        {
+            get
+            {
+                int pending = 0;
+                foreach (NpcView v in _views.Values) { if (!v.Loaded) pending++; }
+                return pending;
+            }
+        }
         private static GameObject _driverGo;
         private static int _epoch;
 
@@ -102,8 +113,8 @@ namespace Shenxiao.Module.Core.Scene
             string modelKey = NpcConfigs.GetModelKey(vo.NpcId, cfg, out string modelModule, out string modelResId);
             GameObject prefab = await ResManager.LoadAsync<GameObject>(modelKey);
 
-            // 加载期间被移除/替换/清场:丢弃(尚未实例化,prefab 句柄由 ResManager 管理)。
-            if (IsStale(view)) return;
+            // 加载期间被移除/替换/清场:丢弃并归还这次借的引用。
+            if (IsStale(view)) { ResManager.Release(prefab); return; }
 
             if (prefab == null)
             {
@@ -117,9 +128,10 @@ namespace Shenxiao.Module.Core.Scene
 
             // 帧预算:prefab 命中缓存时全场 NPC 的 await 同帧返回,Instantiate+名牌会挤在一帧 → 排队限流。
             await SceneSpawnBudget.WaitTurnAsync();
-            if (IsStale(view)) return;
+            if (IsStale(view)) { ResManager.Release(prefab); return; }
 
             GameObject model = Object.Instantiate(prefab);
+            LoadedAssetReleaser.Track(model, prefab);
             // 缩放:config_npc.icon_scale(对标 Npc.ts:109-110 this.scale = icon_scale);缺/<=0 用合成台默认 MODEL_SCALE。
             float iconScale = cfg != null && cfg.IconScale > 0f ? cfg.IconScale : -1f;
             Transform tilt = iconScale > 0f
@@ -228,12 +240,13 @@ namespace Shenxiao.Module.Core.Scene
             if (model == null) return;
             string actionKey = NpcConfigs.GetActionKey(module, modelResId, ACTION_IDLE);
             AnimationClip clip = await ResManager.LoadAsync<AnimationClip>(actionKey);
-            if (model == null) return; // 加载期间被销毁(Unity 重载 == null)
+            if (model == null) { ResManager.Release(clip); return; } // 加载期间被销毁(Unity 重载 == null)
             if (clip == null)
             {
                 GameLog.Warn("Scene", "npc idle 动作未转换,静态展示:res={0} key={1}", modelResId, actionKey);
                 return;
             }
+            LoadedAssetReleaser.Track(model, clip);
             Animation anim = model.GetComponent<Animation>();
             if (anim == null) anim = model.AddComponent<Animation>();
             if (anim.GetClip(ACTION_IDLE) == null) anim.AddClip(clip, ACTION_IDLE);

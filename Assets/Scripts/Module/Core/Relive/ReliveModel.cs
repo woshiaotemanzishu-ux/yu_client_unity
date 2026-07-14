@@ -94,6 +94,28 @@ namespace Shenxiao.Module.Core.Relive
             BossSafeEndTime = safeEndTime;
         }
 
+        /// <summary>千幻蜃楼/圣兽岭场景死亡次数(自动循环 轮15b,pt_470:47034 转发落地;对标老端
+        /// ReliveModel.SetReliveTimeData(...,BossSpecialReliveType.HolyBoss),与 <see cref="BossDieTimes"/>
+        /// 系(46034→WorldBoss)并列的另一槽位。复活窗精确路由同样留 TODO,本条只负责数据转发。</summary>
+        public int HolyBossDieTimes { get; private set; }
+
+        /// <summary>下次可进场景时间戳(秒)。</summary>
+        public long HolyBossNextEnterTime { get; private set; }
+
+        /// <summary>死亡debuff结束时间戳(秒)。</summary>
+        public long HolyBossDebuffEndTime { get; private set; }
+
+        /// <summary>安全时间结束时间戳(秒,0=无安全时间)。</summary>
+        public long HolyBossSafeEndTime { get; private set; }
+
+        public void SetHolyBossDieInfo(int dieTimes, long nextEnterTime, long debuffEndTime, long safeEndTime)
+        {
+            HolyBossDieTimes = dieTimes;
+            HolyBossNextEnterTime = nextEnterTime;
+            HolyBossDebuffEndTime = debuffEndTime;
+            HolyBossSafeEndTime = safeEndTime;
+        }
+
         /// <summary>断线/登出重置(对标各 Model 既有 Clear 惯例)。</summary>
         public void Clear()
         {
@@ -110,6 +132,10 @@ namespace Shenxiao.Module.Core.Relive
             BossNextEnterTime = 0;
             BossDebuffEndTime = 0;
             BossSafeEndTime = 0;
+            HolyBossDieTimes = 0;
+            HolyBossNextEnterTime = 0;
+            HolyBossDebuffEndTime = 0;
+            HolyBossSafeEndTime = 0;
         }
     }
 }

@@ -168,7 +168,9 @@ namespace Shenxiao.Framework.Res
                     after.RefCount++;
                     return (T)after.Asset;
                 }
-                return null;
+                // 缓存已空≠加载失败:多半是首个消费方"用完即还"(Release 到归零把条目移除)。
+                // 这里落空直接返回 null 是沉默假失败(实测:配表并发 EnsureLoaded 曾误报"缺配表")
+                // ——落到下面重新加载一次;若在飞加载是真失败,重载会在 LoadFresh 里正常报错。
             }
 
             Task<T> load = LoadFreshAsync<T>(key, cacheKey, optional);
@@ -192,6 +194,7 @@ namespace Shenxiao.Framework.Res
             if (asset == null)
             {
                 Addressables.Release(handle);
+                if (!optional) GameLog.Error("Res", "load failed key={0} type={1}(句柄成功但结果为空,疑类型不匹配)", key, typeof(T).Name);
                 return null;
             }
             _assetCache[cacheKey] = new AssetCacheEntry { Handle = handle, Asset = asset, RefCount = 1 };
@@ -398,20 +401,32 @@ namespace Shenxiao.Framework.Res
         }
 
         /// <summary>
+        /// 分批下载的批大小:单个 DownloadDependenciesAsync 大合并 op 的句柄要等全部完成才能释放,
+        /// 期间 op 引用的所有 bundle 同时驻留内存(WebGL 上实测单 op 143~150MB 把 wasm 堆推高数百 MB
+        /// 且多阶段并发叠加)。按批推进、批间释放句柄,峰值被批大小封顶,已下数据留在浏览器/磁盘缓存。
+        /// </summary>
+        private const int DownloadBatchSize = 16;
+
+        /// <summary>
         /// Download dependencies for given keys with progress callback. 未登记的 key 自动跳过。
         /// </summary>
         public static async Task DownloadAsync(IEnumerable<string> keys, Action<float> onProgress)
         {
             List<string> valid = await FilterExistingKeys(keys);
             if (valid.Count == 0) { onProgress?.Invoke(1f); return; }
-            var handle = Addressables.DownloadDependenciesAsync((IEnumerable<object>)valid, Addressables.MergeMode.Union);
-            while (!handle.IsDone)
+            for (int start = 0; start < valid.Count; start += DownloadBatchSize)
             {
-                onProgress?.Invoke(handle.PercentComplete);
-                await Task.Yield();
+                int count = Math.Min(DownloadBatchSize, valid.Count - start);
+                List<string> batch = valid.GetRange(start, count);
+                var handle = Addressables.DownloadDependenciesAsync((IEnumerable<object>)batch, Addressables.MergeMode.Union);
+                while (!handle.IsDone)
+                {
+                    onProgress?.Invoke((start + handle.PercentComplete * count) / valid.Count);
+                    await Task.Yield();
+                }
+                Addressables.Release(handle);
             }
             onProgress?.Invoke(1f);
-            Addressables.Release(handle);
         }
 
         private static async Task<List<string>> FilterExistingKeys(IEnumerable<string> keys)

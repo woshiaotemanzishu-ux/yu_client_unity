@@ -135,6 +135,22 @@ namespace Shenxiao.Module.Core.Login
             return new Vector2(x, y);
         }
 
+        /// <summary>
+        /// 新模型展示微调(页面级旋钮,老模型不吃):configlogin 的 {section}.NewModel
+        /// { yaw(度,叠加在 180 转身上,调"面朝哪边"), x, y(构图偏移,叠加在 ModelPos 之上) }。
+        /// ModelPos/PosOffset 全是给老模型调的(用户实锤:选角从没为新模型调过),新模型单独给旋钮,
+        /// 改 configlogin.json 后重进页面即生效,所见即所得拧。返回 (x, y, yaw)。
+        /// </summary>
+        public static Vector3 GetNewModelTuning(string section)
+        {
+            JToken t = _login?[section]?["NewModel"];
+            if (t == null) return Vector3.zero;
+            return new Vector3(
+                t.Value<float>("x"),
+                t.Value<float>("y"),
+                t.Value<float>("yaw"));
+        }
+
         /// <summary>选角页固定槽位数(SelectRole.TotalCount,不足补「创建角色」空槽)。</summary>
         public static int SelectRoleTotalCount()
         {

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Shenxiao.Framework.UI
@@ -77,12 +78,20 @@ namespace Shenxiao.Framework.UI
         /// Null-check for generated Bind fields. References are assigned in the editor by the
         /// UI generator; a miss here means the prefab and the Bind script are out of sync.
         /// </summary>
+        private static readonly HashSet<string> s_tplMissLogged = new HashSet<string>();
+
         protected void EnsureBound(string fieldName, Object reference)
         {
-            if (reference == null)
+            if (reference != null) return;
+            // _tpl_* 是烤制时被裁掉的 inactive 模板节点(运行时消费方均有 null 兜底),
+            // 每次开界面都报 Error 只是噪音——降为全局一次性提示。
+            if (fieldName.StartsWith("_tpl_", System.StringComparison.Ordinal))
             {
-                Debug.LogError($"[{GetType().Name}] Bind 字段未绑定: {fieldName}(重跑回填或检查节点是否被删)", this);
+                if (s_tplMissLogged.Add($"{GetType().Name}.{fieldName}"))
+                    Debug.LogWarning($"[{GetType().Name}] 模板字段未回填(烤制裁剪,已知家族): {fieldName} — 需要该模板时重跑 UiCreator 回填", this);
+                return;
             }
+            Debug.LogError($"[{GetType().Name}] Bind 字段未绑定: {fieldName}(重跑回填或检查节点是否被删)", this);
         }
     }
 }

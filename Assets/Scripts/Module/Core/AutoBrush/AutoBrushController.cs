@@ -188,7 +188,7 @@ namespace Shenxiao.Module.Core.AutoBrush
         {
             try
             {
-                await Task.Delay(2000);
+                await Shenxiao.Framework.Util.TimeUtil.Delay(2000);
                 if (RoleModel.Instance.DunId == 0)
                 {
                     GameLog.Info("AutoBrush", "auto exit dungeon skip: 已不在副本(dunId=0)");

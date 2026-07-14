@@ -81,7 +81,7 @@ namespace Shenxiao.Module.Core.Scene
 
         private static async Task AutoHideAsync(int serial)
         {
-            await Task.Delay(System.TimeSpan.FromSeconds(AUTO_HIDE_SEC));
+            await Shenxiao.Framework.Util.TimeUtil.Delay((int)(AUTO_HIDE_SEC * 1000)); // Task.Delay 在 WebGL 永不醒
             if (_group == null || serial != _serial || !_group.gameObject.activeSelf) return;
             GameLog.Warn("Scene", "场景过渡黑幕 {0}s 未收到隐藏信号(地图加载失败/中断?)→ 兜底渐隐", AUTO_HIDE_SEC);
             Hide();

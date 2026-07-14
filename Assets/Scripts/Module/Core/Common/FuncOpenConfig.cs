@@ -25,17 +25,25 @@ namespace Shenxiao.Module.Core.Common
         private const string CONFIG_KEY = "resource/config/client/configfuncopencondition";
 
         private static JObject _cfg;
+        private static Task _loading;
 
         public static bool IsLoaded => _cfg != null;
 
-        public static async Task EnsureLoaded()
+        // 单飞:GAME_START 一帧多个图标并发 EnsureLoaded 时只发一次真实加载,
+        // 避免"首个用完即还→共乘者拿空"的竞态误报缺表。
+        public static Task EnsureLoaded()
         {
-            if (_cfg != null) return;
+            if (_cfg != null) return Task.CompletedTask;
+            return _loading ?? (_loading = LoadCoreAsync());
+        }
 
+        private static async Task LoadCoreAsync()
+        {
             UnityEngine.TextAsset asset = await ResManager.LoadAsync<UnityEngine.TextAsset>(CONFIG_KEY);
             if (asset == null)
             {
                 GameLog.Error("Config", "功能开放表缺失: {0}(跑「神霄/配表/同步客户端配置」)", CONFIG_KEY);
+                _loading = null; // 允许下次重试
                 return;
             }
 
