@@ -49,6 +49,7 @@ using Shenxiao.Module.Core.Market;
 using Shenxiao.Module.Core.LimitLevelShop;
 using Shenxiao.Module.Core.Eyou;
 using Shenxiao.Module.Core.Boss;
+using Shenxiao.Module.Core.Marriage;
 using Shenxiao.Module.Core.ActivityForeshow;
 using Shenxiao.Module.Core.Banquet;
 using Shenxiao.Module.Core.Kaifu;
@@ -105,6 +106,7 @@ namespace Shenxiao.Module.Core.Game
             EyouController.Instance,
             BossController.Instance,
             KfBossController.Instance,
+            MarriageController.Instance,
             ActivityForeshowController.Instance,
             BanquetController.Instance,
             KaifuController.Instance,

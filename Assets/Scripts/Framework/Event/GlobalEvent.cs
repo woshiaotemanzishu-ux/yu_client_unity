@@ -614,5 +614,68 @@ namespace Shenxiao.Framework.Event
         public const string EVT_KFBOSS_GREAT_DEMON_BOX_UPDATE = "EVT_KFBOSS_GREAT_DEMON_BOX_UPDATE";
         /// <summary>46046 太古遗凶掉落日志落地。</summary>
         public const string EVT_KFBOSS_GREAT_DEMON_DROP_LOG_UPDATE = "EVT_KFBOSS_GREAT_DEMON_DROP_LOG_UPDATE";
+
+        // ----- Marriage / 婚姻(征友/戒指/结婚,自动循环 轮16;pt_172 172xx + 223xx 鲜花) -----
+        /// <summary>17200/17201/17202 征友大厅数据变化(参数: int page;-1=非分页专属操作如关注回执)。</summary>
+        public const string EVT_MARRIAGE_PERSONALS_UPDATE = "EVT_MARRIAGE_PERSONALS_UPDATE";
+        /// <summary>17205 玩家细节(公会)到达,读 MarriageModel.LastRoleDetail。</summary>
+        public const string EVT_MARRIAGE_ROLE_DETAIL_UPDATE = "EVT_MARRIAGE_ROLE_DETAIL_UPDATE";
+        /// <summary>17210/17211/17213 戒指数据变化(成功分支),读 MarriageModel.Ring。</summary>
+        public const string EVT_MARRIAGE_RING_UPDATE = "EVT_MARRIAGE_RING_UPDATE";
+        /// <summary>17212 戒指单步提升失败(死号防御recv,对标老端 STOP_RING_UPGRADE)。</summary>
+        public const string EVT_MARRIAGE_RING_STOP_UPGRADE = "EVT_MARRIAGE_RING_STOP_UPGRADE";
+        /// <summary>17222 求婚/再婚/离婚协商/礼包邀请推送(参数: int type),读 MarriageModel.LastPropose。</summary>
+        public const string EVT_MARRIAGE_PROPOSE_PUSH = "EVT_MARRIAGE_PROPOSE_PUSH";
+        /// <summary>17231 发送求婚结果(参数: bool success)。</summary>
+        public const string EVT_MARRIAGE_PROPOSE_SEND_RESULT = "EVT_MARRIAGE_PROPOSE_SEND_RESULT";
+        /// <summary>17223 回应求婚结果(参数: bool success)。</summary>
+        public const string EVT_MARRIAGE_PROPOSE_RESPOND_RESULT = "EVT_MARRIAGE_PROPOSE_RESPOND_RESULT";
+        /// <summary>17224 回应结果推送(参数: long roleId, int type, int answerType;仅 answerType==1 时发,
+        /// 对标老端拒绝分支无任何反馈)。</summary>
+        public const string EVT_MARRIAGE_ANSWER_PUSH = "EVT_MARRIAGE_ANSWER_PUSH";
+        /// <summary>17226 登录求婚/离婚信息汇总到达,读 MarriageModel.BiaobaiList/BiaobaiAnswerList。</summary>
+        public const string EVT_MARRIAGE_BIAOBAI_UPDATE = "EVT_MARRIAGE_BIAOBAI_UPDATE";
+        /// <summary>17229 键值推送(参数: int key, long val;key==1 对应恩爱值)。</summary>
+        public const string EVT_MARRIAGE_KEY_VALUE_UPDATE = "EVT_MARRIAGE_KEY_VALUE_UPDATE";
+        /// <summary>17232 我的伴侣数据变化(三成功码 1/1720012/1012 均发),读 MarriageModel.Mate。</summary>
+        public const string EVT_MARRIAGE_MATE_UPDATE = "EVT_MARRIAGE_MATE_UPDATE";
+        /// <summary>17234 发送离婚结果(参数: bool success)。</summary>
+        public const string EVT_MARRIAGE_DIVORCE_RESULT = "EVT_MARRIAGE_DIVORCE_RESULT";
+        /// <summary>17235 回应离婚结果(参数: bool success, int answerType)。</summary>
+        public const string EVT_MARRIAGE_DIVORCE_RESPOND_RESULT = "EVT_MARRIAGE_DIVORCE_RESPOND_RESULT";
+        /// <summary>17236 领取恩爱称号成功(参数: int id)。</summary>
+        public const string EVT_MARRIAGE_DSGT_UPDATE = "EVT_MARRIAGE_DSGT_UPDATE";
+        /// <summary>17237 购买真爱礼包结果(参数: bool success)。</summary>
+        public const string EVT_MARRIAGE_GIFT_BUY_RESULT = "EVT_MARRIAGE_GIFT_BUY_RESULT";
+        /// <summary>17238 真爱礼包信息到达,读 MarriageModel.Gift。</summary>
+        public const string EVT_MARRIAGE_GIFT_INFO_UPDATE = "EVT_MARRIAGE_GIFT_INFO_UPDATE";
+        /// <summary>17239 领取真爱礼包奖励结果(参数: bool success, int countType),读 MarriageModel.LastGiftReward。</summary>
+        public const string EVT_MARRIAGE_GIFT_TAKE_RESULT = "EVT_MARRIAGE_GIFT_TAKE_RESULT";
+        /// <summary>17240 请求对方购买礼包结果(参数: bool success)。</summary>
+        public const string EVT_MARRIAGE_GIFT_ASK_RESULT = "EVT_MARRIAGE_GIFT_ASK_RESULT";
+        /// <summary>17245 进退副本匹配结果(参数: int type, int dunId;死链UI MarriageMatchView 未定义类,
+        /// 数据层仍照接)。</summary>
+        public const string EVT_MARRIAGE_MATCH_RESULT = "EVT_MARRIAGE_MATCH_RESULT";
+        /// <summary>17246 匹配结果推送(死链UI MarriageMatchTipsView 未定义类,数据层仍照接),读
+        /// MarriageModel.LastMatchResult。</summary>
+        public const string EVT_MARRIAGE_MATCH_PUSH = "EVT_MARRIAGE_MATCH_PUSH";
+        /// <summary>17295 邀请伴侣购买副本次数结果(参数: bool success)。</summary>
+        public const string EVT_MARRIAGE_DUN_INVITE_BUY_RESULT = "EVT_MARRIAGE_DUN_INVITE_BUY_RESULT";
+        /// <summary>17296 收到副本次数购买邀请推送(参数: long roleId, int dunId)。</summary>
+        public const string EVT_MARRIAGE_DUN_INVITE_PUSH = "EVT_MARRIAGE_DUN_INVITE_PUSH";
+        /// <summary>17297 同意/拒绝购买副本次数推送(参数: int agree, int dunId)。</summary>
+        public const string EVT_MARRIAGE_DUN_INVITE_RESPOND_PUSH = "EVT_MARRIAGE_DUN_INVITE_RESPOND_PUSH";
+        /// <summary>22300 鲜花错误码专用号到达(参数: int code)。</summary>
+        public const string EVT_MARRIAGE_FLOWER_ERROR = "EVT_MARRIAGE_FLOWER_ERROR";
+        /// <summary>22301 赠送鲜花结果(参数: bool success, long receiveId, long goodsId)。</summary>
+        public const string EVT_MARRIAGE_FLOWER_GIVE_RESULT = "EVT_MARRIAGE_FLOWER_GIVE_RESULT";
+        /// <summary>22302 收礼记录到达(一次性全量),读 MarriageModel.FlowerRecords。</summary>
+        public const string EVT_MARRIAGE_FLOWER_RECORD_UPDATE = "EVT_MARRIAGE_FLOWER_RECORD_UPDATE";
+        /// <summary>22303 鲜花相关信息到达,读 MarriageModel.Flower。</summary>
+        public const string EVT_MARRIAGE_FLOWER_INFO_UPDATE = "EVT_MARRIAGE_FLOWER_INFO_UPDATE";
+        /// <summary>22304 收到的鲜花通知(参数: long senderId, long goodsId)。</summary>
+        public const string EVT_MARRIAGE_FLOWER_RECEIVED = "EVT_MARRIAGE_FLOWER_RECEIVED";
+        /// <summary>22305 感谢收花者结果(参数: bool success, long id)。</summary>
+        public const string EVT_MARRIAGE_FLOWER_THANKS_RESULT = "EVT_MARRIAGE_FLOWER_THANKS_RESULT";
     }
 }

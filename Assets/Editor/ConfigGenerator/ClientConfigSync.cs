@@ -109,6 +109,10 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_decoration_boss",      // 幻域/特殊boss装饰配置(25条,数字键),BossConfigs.GetDecorationBoss 用
             "config_eudemons_boss_cfg",    // Boss家族二期·跨服族(轮15b)千幻蜃楼/圣兽岭逐只配置(48条,数字键),KfBossConfigs.GetEudemonsBossCfg 用
             "config_kf_great_demon",       // 跨服"太古遗凶"专用配置(31条,数字键),KfBossConfigs.GetKfGreatDemonCfg 用
+            "config_marriage_constant",    // 婚姻(轮16)通用常量表(41条,数字键 id),MarriageConfigs.GetConstant 用
+            "config_ring_star",            // 戒指阶星属性表(101条,复合键"stage@star"),MarriageConfigs.GetRingStar 用
+            "config_flower_tools",         // 鲜花道具表(6条,数字键=goods_id),MarriageConfigs.GetFlowerTool 用
+            "config_love_dsgt_cfg",        // 恩爱称号档位表(10条,数字键=顺位id),MarriageConfigs.GetLoveDsgt 用(config_personal_tag_info 半死跳过,见 MarriageConfigs 注释)
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

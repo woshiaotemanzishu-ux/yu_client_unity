@@ -723,8 +723,8 @@
         public const int MARKET_ICON_INFO = 15121; // 市场跨服开放时间(图标151/151@1切换)。请求无参(read(15121,_)->{ok,
         public const int LIMITLEVELSHOP_LIST = 61200; // 限时等级抢购礼包列表(模块612,驱动图标61201)。请求无参(read(61200,_)->
         public const int ACTIVITYFORESHOW_SNATCH_TIME = 65208; // 领地夺宝时间信息(预告图标 652@31@0 用)。请求无字段(read(65208,_)->{
-        public const int BANQUET_WEDDING_STATE = 17249; // 婚礼状态(→172@2 宾客管理图标)。read(17249,_)->{ok,[]} 裸请求;w
-        public const int BANQUET_CALL = 17256; // 婚礼召集/婚礼列表(→172@1 婚礼图标)。read(17256,_)->{ok,[]} 裸请
+        public const int BANQUET_WEDDING_STATE = 17249; // 婚礼状态(→172@2 宾客管理图标)。read(17249,_)->{ok,[]} 裸请求;w(与婚姻172xx同属pt_172号段,归Banquet占用,自动循环轮16婚姻段不重复定义,交叉见下方"婚姻"段头注释)
+        public const int BANQUET_CALL = 17256; // 婚礼召集/婚礼列表(→172@1 婚礼图标)。read(17256,_)->{ok,[]} 裸请(与婚姻172xx同属pt_172号段,归Banquet占用,自动循环轮16婚姻段不重复定义,交叉见下方"婚姻"段头注释)
         public const int KAIFU_INVEST_OPEN = 42004; // 开服投资活动开启列表(驱动 4205 巅峰投资 / 1112 超值投资图标;裸请求)
         public const int KAIFU_BOOK_INFO = 42401; // 契约之书章节信息(驱动 424 / 424@1 图标;裸请求)
         public const int DIAMONDFIGHT_INFO = 13700; // 灵玉/勾玉大战活动状态(war_state 驱动图标137);请求裸发 read(13700,_
@@ -2130,5 +2130,129 @@
         /// [u16计数]{RoleId:64,ServerId:16,ServerNum:16,Name:s,BossId:32,Layers:8,GoodsId:32,Rating:32,
         /// EquipExtraAttr[...],Time:32}(与 47002 同形态,共用 KfBossModel.CrossDropLogEntry)。</summary>
         public const int KFBOSS_GREAT_DEMON_DROP_LOG = 46046;
+
+        // ----- 婚姻(172xx+223xx,pt_172 pp_marriage,征友/戒指/结婚;老端 MarriageController.ts,自动循环 轮16) -----
+        //        本包=MarriageController 注册 33 号(纯数据层,UI View 绑定留尾包)。排除:marriage2=Banquet
+        //        (17249/17256 已在上方由 BANQUET_WEDDING_STATE/BANQUET_CALL 占用,勿重复定义)/dungeonMarriage=
+        //        BaseDungeon(61020/61021)/baby=BabyController(18xxx,17280-94 宝宝幻形整体悬空)/遗留死号
+        //        (17203/04/20/21/25/30/33/41-44/54/55/80-94/98)。位宽独例(逐号勿套模板):17222 CombatPower=u32;
+        //        17226(bin_6/bin_8)·17232=u64。无 Code 前导帧:17205/17222/17224/17226/17229/17238/17244/17296/
+        //        17297(纯推送/通知);17246 与 r16 报告"无Code"结论不同——ClientProtocol.json 与老端 on17246 实读
+        //        `scmd.code` 逐字核验后订正为**带 Code**(本代理直接核对原文覆盖侦察报告的误判)。17212 戒指单步
+        //        升级为死号(老端注册 handler 但零发送点+成功分支全注释),本段只注册防御 recv 不提供发送方法。 -----
+
+        /// <summary>征友大厅列表分页(C2S "c" page)。S2C Code:32,Page:8,OwnPopularity:32,AskFollowTime:32,
+        /// AskFlowerTime:32,LessFreeTimes:8,PlayerList[u16计数]{RoleId:64,Name:s,Lv:16,Sex:8,Vip:32,Career:8,
+        /// Turn:8,IfMarriage:8,Picture:s,PictureVer:32,IfOnline:8,Popularity:32,Msg:s,Type:8,Time:32,IfFollow:8,
+        /// IfFriend:8,Intimacy:32,TagList[u16计数]{TagId:8,TagSubid:8},VipExp:32,VipHide:8,IsSupvip:8}
+        /// (**无 CombatPower 字段**,勿多读)。Page:1=大厅/2=我的关注/3=粉丝(关注/粉丝页硬截断100条,大厅不截断)。</summary>
+        public const int MARRIAGE_PERSONALS_LIST = 17200;
+        /// <summary>关注/取消关注玩家(C2S "lc" follow_role_id,type)。S2C Code:32,FollowRoleId:64,Type:8。</summary>
+        public const int MARRIAGE_PERSONALS_FOLLOW = 17201;
+        /// <summary>发布征友信息(C2S 变长:Msg:str,Type:8,TagList[u16计数]{TagId:8,TagSubid:8})。
+        /// S2C Code:32,Type:8。</summary>
+        public const int MARRIAGE_PERSONALS_ISSUE = 17202;
+        /// <summary>玩家细节(公会)信息(C2S "l" role_id)。S2C RoleId:64,GuildId:64,GuildName:s(**无 Code 前缀,
+        /// 独例**)。</summary>
+        public const int MARRIAGE_ROLE_DETAIL = 17205;
+
+        /// <summary>戒指信息(C2S 空包)。S2C Code:32,Stage:8,Star:8,PrayNum:32,RingCombatPower:32,
+        /// PolishList[u16计数]{GoodsTypeId:32,UseNum:16},AttrList[u16计数]{AttrType:32,AttrNum:32}。
+        /// 老端用 config_ring_star 自算 ring_combat_power **覆盖**服务端字段——本轮先如实落地服务端值,
+        /// 自算覆盖逻辑留 TODO(见 MarriageController 注释)。</summary>
+        public const int MARRIAGE_RING_INFO = 17210;
+        /// <summary>解锁戒指(C2S 空包)。S2C Code:32,Stage:8,Star:8,PrayNum:32。</summary>
+        public const int MARRIAGE_RING_UNLOCK = 17211;
+        /// <summary>戒指单步提升——**死号**(老端注册 handler 但零发送点+成功分支全注释,实际升级走 17213
+        /// 一键提升)。C2S "i" goods_type_id(GoodsTypeId:32,虽 wire 定义完整但本端不提供发送方法)。
+        /// S2C Code:32,GoodsTypeId:32,Stage:8,Star:8,PrayNum:32——本端只注册防御 recv(解析不消费,失败发
+        /// EVT_MARRIAGE_RING_STOP_UPGRADE 对齐老端失败分支)。</summary>
+        public const int MARRIAGE_RING_UPGRADE_STEP = 17212;
+        /// <summary>一键提升戒指(C2S 空包)。S2C Code:32,Stage:8,Star:8,PrayNum:32。</summary>
+        public const int MARRIAGE_RING_UPGRADE_ALL = 17213;
+
+        /// <summary>求婚/再婚/离婚协商/礼包邀请推送(无 read,纯推送)。S2C RoleId:64,Name:s,Lv:16,
+        /// CombatPower:32(**u32 独例**,勿套 17226/17232 的 u64),Sex:8,Vip:32,Career:8,Turn:8,Picture:s,
+        /// PictureVer:32,Type:8,ProposeType:8,Msg:s,IfAa:8,CostList[u16计数]{GoodsType:32,GoodsTypeId:32,
+        /// GoodsNum:32}(**无 Code 前缀**)。Type:2=求婚/4=离婚协商/5=请求购买礼包。</summary>
+        public const int MARRIAGE_PROPOSE_PUSH = 17222;
+        /// <summary>回应求婚(C2S "lc" role_id,type;type:1=答应/2=拒绝)。S2C Code:32,RoleId:64,Type:8。</summary>
+        public const int MARRIAGE_PROPOSE_RESPOND = 17223;
+        /// <summary>回应求婚/离婚结果推送(无 read,双向单播,纯推送)。S2C RoleId:64,Type:8,AnswerType:8
+        /// (**无 Code 前缀**)。AnswerType:1=答应/2=拒绝——老端仅 answer_type==1 时处理(清亲密度/开成功窗/
+        /// 重拉伴侣礼包戒指信息),==2 拒绝无任何反馈分支,本端镜像:仅 answer_type==1 时落地并发事件。</summary>
+        public const int MARRIAGE_ANSWER_PUSH = 17224;
+        /// <summary>登录求婚/离婚信息汇总(C2S 空包,无 Code 前缀)。S2C BiaobaiList[u16计数]×bin_6,
+        /// BiaobaiAnswerList[u16计数]×bin_8。bin_6: RoleId:64,Name:s,Lv:16,CombatPower:**64**(独例,与
+        /// 17222 的 u32 不同),Sex:8,Vip:32,Career:8,Turn:8,Type:8,ProposeType:8,Msg:s,IfAa:8,
+        /// CostList[u16计数]{u32,u32,u32}。bin_8: RoleId:64,Name:s,Lv:16,CombatPower:64,Sex:8,Vip:32,
+        /// Career:8,Turn:8,Type:8,AnswerType:8。老端只读 biaobai_list、**不读 answer_list**——本端两个数组
+        /// 都必须 ReadArray 读完保游标(answer_list 落地但老端未消费,比老端完整无害)。</summary>
+        public const int MARRIAGE_BIAOBAI_LIST = 17226;
+        /// <summary>其他信息推送(键值,如恩爱值,无 read,无 Code 前缀)。S2C List[u16计数]{Key:8,Val:32}。
+        /// Key==1 时对应恩爱值(老端 SetLoveNum)。</summary>
+        public const int MARRIAGE_KEY_VALUE_PUSH = 17229;
+        /// <summary>发送求婚(C2S "lcsc" role_id,wedding_type,msg,if_aa)。S2C Code:32,RoleId:64
+        /// (成功后对方收到 17222/17224 推送)。AA制分支服务端已注释,IfAa 读入即弃,不影响本端如实发送。</summary>
+        public const int MARRIAGE_PROPOSE_SEND = 17231;
+        /// <summary>我的伴侣(C2S 空包)。S2C Code:32,RoleId:64,CombatPower:**64**,
+        /// Figure(<see cref="Shenxiao.Common.Proto.FigureProto"/>,write_figure 全字段含 is_marriage/
+        /// marriage_id/marriage_name),Type:8,NowWeddingState:8,AnniversaryTime:32,LoveNum:32,
+        /// FirstMarriage:8。老端 code∈{1,1720012(单身),1012} 都当成功刷新伴侣(有意逻辑非bug),本端三码
+        /// 同镜像落地。</summary>
+        public const int MARRIAGE_MATE_INFO = 17232;
+        /// <summary>发送离婚(C2S "c" divorce_type)。S2C Code:32(成功后对标老端重拉 17232)。</summary>
+        public const int MARRIAGE_DIVORCE_SEND = 17234;
+        /// <summary>回应离婚(C2S "c" answer_type)。S2C Code:32,AnswerType:8。</summary>
+        public const int MARRIAGE_DIVORCE_RESPOND = 17235;
+        /// <summary>领取恩爱称号奖励(C2S "c" id)。S2C Code:32,Id:8。</summary>
+        public const int MARRIAGE_DSGT_TAKE = 17236;
+        /// <summary>购买真爱礼包(C2S 空包)。S2C Code:32(老端成功分支额外经 ChatModel 发情侣公告私信
+        /// BoardMarriager,跨模块社交联动,本轮数据层不接,留 TODO)。</summary>
+        public const int MARRIAGE_GIFT_BUY = 17237;
+        /// <summary>真爱礼包信息(C2S 空包,无 Code 前缀)。S2C LoveGiftTimeS:32,LoveGiftTimeO:32,
+        /// GiftState[u16计数]{CountType:8,State:8,Time:32}。</summary>
+        public const int MARRIAGE_GIFT_INFO = 17238;
+        /// <summary>领取真爱礼包奖励(C2S "c" count_type;1=购买礼包/2=登录礼包)。S2C Code:32,CountType:8,
+        /// Reward:ObjectList(u16计数{Type:8,TypeId:32,Num:32})。</summary>
+        public const int MARRIAGE_GIFT_TAKE = 17239;
+        /// <summary>请求对方购买礼包(C2S 空包)。S2C Code:32(成功后对方收到 17222 type=5 推送)。</summary>
+        public const int MARRIAGE_GIFT_ASK_BUY = 17240;
+
+        /// <summary>进入/退出伴侣副本匹配(C2S "ci" type,dun_id;type:1=进入/2=退出)。S2C Code:32,Type:8,
+        /// DunId:32。</summary>
+        public const int MARRIAGE_DUN_MATCH = 17245;
+        /// <summary>匹配结果(无 read,纯推送)。S2C Code:32,List[u16计数]{Type:8,RoleId:64,
+        /// Figure(<see cref="Shenxiao.Common.Proto.FigureProto"/>),Power:64},EnterTime:8。⚠与 r16 报告
+        /// "无Code"结论不同——ClientProtocol.json 定义 code:i 为首字段且老端 on17246 实读 scmd.code,直接
+        /// 核对原文订正为带 Code(本代理 §1 裁决)。死链 UI(MarriageMatchView/MatchTipsView 未定义类,OPEN
+        /// 静默失败),数据层仍照接解析落地+发事件,UI 消费方留尾包。</summary>
+        public const int MARRIAGE_DUN_MATCH_RESULT = 17246;
+        /// <summary>邀请伴侣购买副本次数(C2S "i" dun_id)。S2C Code:32。</summary>
+        public const int MARRIAGE_DUN_INVITE_BUY = 17295;
+        /// <summary>收到伴侣购买副本次数邀请推送(无 read,无 Code 前缀)。S2C RoleId:64,RoleName:s,DunId:32。</summary>
+        public const int MARRIAGE_DUN_INVITE_PUSH = 17296;
+        /// <summary>同意/拒绝购买副本次数(C2S "ci" agree,dun_id;agree:1=同意/2=拒绝)。S2C Agree:8,DunId:32,
+        /// RoleId:64,RoleName:s(**无 Code 前缀**,回执字段即请求回声)。</summary>
+        public const int MARRIAGE_DUN_INVITE_RESPOND = 17297;
+
+        /// <summary>鲜花错误码专用号(无 read,纯推送)。S2C Code:32。</summary>
+        public const int MARRIAGE_FLOWER_ERROR = 22300;
+        /// <summary>赠送鲜花(C2S "lhihc" role_id,server_id,goods_type_id,num,anonymous)。S2C Code:32,
+        /// ReceiveId:64,ReceiveServerId:16,GoodsId:32,GoodsNum:16。</summary>
+        public const int MARRIAGE_FLOWER_GIVE = 22301;
+        /// <summary>收礼记录(C2S 空包,无 Code 前缀;一次性全量下发,无分页)。S2C RecordList[u16计数]
+        /// {Id:64,SenderId:64,SenderName:s,ServerId:16,ServerNum:16,GoodsId:32,GoodsNum:16,Anonymous:8,
+        /// IsThanks:8,Time:32}。</summary>
+        public const int MARRIAGE_FLOWER_RECORD = 22302;
+        /// <summary>鲜花相关信息(C2S 空包,无 Code 前缀)。S2C FlowerNum:32,Charm:32,Fame:32。</summary>
+        public const int MARRIAGE_FLOWER_INFO = 22303;
+        /// <summary>收到的鲜花通知(无 read,无 Code 前缀)。S2C SenderId:64,
+        /// SenderFigure(<see cref="Shenxiao.Common.Proto.FigureProto"/>),ServerId:16,ServerNum:16,
+        /// GoodsId:32,GoodsNum:16。</summary>
+        public const int MARRIAGE_FLOWER_RECEIVED = 22304;
+        /// <summary>感谢收花者(C2S "l" id;老端两处调用点分别传 role_id 与记录 id,字段语义按上下文由调用方
+        /// 决定,wire 侧仅回声该值)。S2C Code:32,Id:64。</summary>
+        public const int MARRIAGE_FLOWER_THANKS = 22305;
     }
 }
