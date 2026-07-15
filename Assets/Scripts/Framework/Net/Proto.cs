@@ -1975,12 +1975,12 @@
         //        幻域Boss 47101-47117,pt_619=论剑恩怨簿 61900-61902,+ pt_460 内 kf_great_demon 壳
         //        46037/46038/46039/46046)。落点 KfBossController.cs/KfBossModel.cs,与 15a 的
         //        BossController.cs/BossModel.cs(本服 46000 段)并列,不改后者结构。
-        //        死号裁决(与 yu_server 源码直接核对调用点,订正 r15b 侦察子报告 2 处误判——47008/47117
-        //        报告称"服务端无发送调用点",经 grep mod_eudemons_land.erl:1158/1188(47008 write+
-        //        send_to_scene)与 lib_decoration_boss_local.erl:435(47117 write+send_to_all)证伪,均按活号实现):
-        //        真死跳过:47001(发送侧 C2S 死号,老端从未 Fire,与 46032 同款,15a 已档同类);
-        //        47011(同区服务器列表整链路死代码——pp_eudemons_land.erl 无 handle(47011,..)子句,
-        //        组包函数 mod_eudemons_land_zone_local:get_same_zone_servers/1 全仓库零调用点)。 -----
+        //        死号裁决(与 yu_server 源码直接核对调用点;15b 服务端镜头复验):47008 r15b 侦察报告称"服务端无
+        //        发送调用点",经 mod_eudemons_land.erl:1158/1188(write+send_to_scene)证伪,确为活号(服务端镜头
+        //        复验通过);47117 同判活号防御 recv(lib_decoration_boss_local.erl:435 write+send_to_all,15b 未再独立复验):
+        //        真死跳过:47001(发送侧 C2S 死号,老端从未 Fire,与 46032 同款;服务端 read/response 链其实完整,仅老端不发);
+        //        47011(整链路死——pp_eudemons_land.erl 无 handle(47011,..)子句,write(47011) 组包在 zone_local.erl:154
+        //        虽有唯一调用点,但其宿主触发函数 mod_eudemons_land_zone_local:get_same_zone_servers/1 全仓库零调用者,永不执行)。 -----
 
         /// <summary>千幻蜃楼/圣兽岭 boss 列表(C2S "c" boss_type,服务端裸值,如 holy=1)。S2C BossType:8(裸值,
         /// 客户端侧按老端 cross_boss_base_index=1000 自行 +1000 换算 UI 类型)、ActStatus:8、ResetEtime:32、
