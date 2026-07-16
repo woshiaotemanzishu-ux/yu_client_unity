@@ -119,15 +119,25 @@ namespace Shenxiao.EditorTools
                     && model.Ring.RingCombatPower == 9999 && model.Ring.PolishList.Count == 1
                     && model.Ring.PolishList[0].GoodsTypeId == 23020001 && model.Ring.PolishList[0].UseNum == 10
                     && model.Ring.AttrList.Count == 2 && model.Ring.AttrList[1].AttrType == 20 && model.Ring.AttrList[1].AttrNum == 100;
+                // B3 失败码边界:code!=1(1720001 ring_not_polish),Ring 不应被覆盖(stage/star/power 仍是成功值)
+                Feed("On17210", new CliVerify.Pkt().I(1720001).C(9).C(9).I(999).I(888).H(0).H(0).Bytes());
+                bool b17210fail = model.Ring.Stage == 3 && model.Ring.Star == 5 && model.Ring.RingCombatPower == 9999;
                 Debug.Log("CLIVERIFY marriage 17210 戒指信息 stage=" + (model.Ring?.Stage ?? -1) + " polishN="
-                    + (model.Ring?.PolishList.Count ?? -1) + " attrN=" + (model.Ring?.AttrList.Count ?? -1) + " ok=" + b17210);
+                    + (model.Ring?.PolishList.Count ?? -1) + " attrN=" + (model.Ring?.AttrList.Count ?? -1) + " ok=" + b17210 + " failNotOverwritten=" + b17210fail);
 
                 // ---- F. 17211解锁/17213一键提升(原地更新stage/star/prayNum) ----
                 Feed("On17211", new CliVerify.Pkt().I(1).C(1).C(0).I(0).Bytes());
                 bool b17211 = model.Ring.Stage == 1 && model.Ring.Star == 0;
+                // B3 失败码边界:code!=1(1720091 ring_unlock),不应覆盖 stage/star
+                Feed("On17211", new CliVerify.Pkt().I(1720091).C(9).C(9).I(999).Bytes());
+                bool b17211fail = model.Ring.Stage == 1 && model.Ring.Star == 0;
                 Feed("On17213", new CliVerify.Pkt().I(1).C(1).C(4).I(30).Bytes());
                 bool b17213 = model.Ring.Stage == 1 && model.Ring.Star == 4 && model.Ring.PrayNum == 30;
-                Debug.Log("CLIVERIFY marriage 17211/17213 戒指解锁/一键提升 ok=" + (b17211 && b17213));
+                // B3 失败码边界:code!=1(1720001 ring_not_polish),不应覆盖 stage/star/prayNum
+                Feed("On17213", new CliVerify.Pkt().I(1720001).C(9).C(9).I(999).Bytes());
+                bool b17213fail = model.Ring.Stage == 1 && model.Ring.Star == 4 && model.Ring.PrayNum == 30;
+                Debug.Log("CLIVERIFY marriage 17211/17213 戒指解锁/一键提升 ok=" + (b17211 && b17213)
+                    + " failNotOverwritten=" + (b17211fail && b17213fail));
 
                 // ---- G. 17212 死号防御recv(只解析不消费,失败发 STOP_RING_UPGRADE,不抛) ----
                 int stopUpgradeCount = 0;
@@ -173,7 +183,8 @@ namespace Shenxiao.EditorTools
                 int answerPushCount = 0;
                 System.Action<long, int, int> onAnswerPush = (rid, type, ans) => answerPushCount++;
                 Shenxiao.Framework.Event.EventDispatcher.On(Shenxiao.Framework.Event.GlobalEvent.EVT_MARRIAGE_ANSWER_PUSH, onAnswerPush);
-                Feed("On17224", new CliVerify.Pkt().L(9005).C(2).C(1).Bytes()); // type=2离婚,answer=1答应 → 应发事件
+                // M-server3 订正:Type=UseType(1=表白/2=求婚/3=离婚,lib_marriage.erl:1224-1227与mod_marriage.erl:1389-1392),非"2=离婚"
+                Feed("On17224", new CliVerify.Pkt().L(9005).C(2).C(1).Bytes()); // type=2求婚,answer=1答应 → 应发事件
                 bool b17224Accept = answerPushCount == 1;
                 Feed("On17224", new CliVerify.Pkt().L(9006).C(2).C(2).Bytes()); // answer=2拒绝 → 老端无反馈,本端不发
                 bool b17224Reject = answerPushCount == 1; // 计数不应增加
@@ -235,9 +246,16 @@ namespace Shenxiao.EditorTools
                 p17232c.C(2).C(2).I(0).I(500).C(0);
                 Feed("On17232", p17232c.Bytes()); // 1012 也当成功
                 bool b17232code1012 = model.HasMate && model.Mate.RoleId == 9006 && model.Mate.CombatPower == 888888;
-                bool b17232 = b17232code1 && b17232single && b17232code1012;
+                // B3 边界:非成功码(1720003 marriage_not_pray,非{1,1720012,1012}三码之一)不应刷新伴侣态
+                CliVerify.Pkt p17232d = new CliVerify.Pkt().I(1720003).L(9999).L(123456);
+                AppendFigure(p17232d, "不应生效", 1, 0, 0, "");
+                p17232d.C(0).C(0).I(0).I(0).C(0);
+                Feed("On17232", p17232d.Bytes());
+                bool b17232notRefreshed = model.Mate.RoleId == 9006 && model.Mate.CombatPower == 888888;
+                bool b17232 = b17232code1 && b17232single && b17232code1012 && b17232notRefreshed;
                 Debug.Log("CLIVERIFY marriage 17232 我的伴侣(u64+Figure+三成功码) code1=" + b17232code1
-                    + " code1720012=" + b17232single + " code1012=" + b17232code1012 + " ok=" + b17232);
+                    + " code1720012=" + b17232single + " code1012=" + b17232code1012
+                    + " failNotRefreshed=" + b17232notRefreshed + " ok=" + b17232);
 
                 // ---- O. 17234 发送离婚(成功后重拉伴侣)/17235 回应离婚 ----
                 int divorceCount = 0; bool lastDivorceOk = false;
@@ -258,7 +276,13 @@ namespace Shenxiao.EditorTools
                 Debug.Log("CLIVERIFY marriage 17236 领取恩爱称号 lastId=" + model.LastDsgtId + " ok=" + b17236);
 
                 // ---- Q. 17237买礼包/17238礼包信息(无Code)/17239领取(ObjectList)/17240请对方买 ----
+                int giftBuyCount = 0; bool lastGiftBuyOk = false;
+                System.Action<bool> onGiftBuy = ok => { giftBuyCount++; lastGiftBuyOk = ok; };
+                Shenxiao.Framework.Event.EventDispatcher.On(Shenxiao.Framework.Event.GlobalEvent.EVT_MARRIAGE_GIFT_BUY_RESULT, onGiftBuy);
                 Feed("On17237", new CliVerify.Pkt().I(1).Bytes());
+                Feed("On17237", new CliVerify.Pkt().I(1720080).Bytes()); // B3 失败码边界:love_gift_type_err
+                Shenxiao.Framework.Event.EventDispatcher.Off(Shenxiao.Framework.Event.GlobalEvent.EVT_MARRIAGE_GIFT_BUY_RESULT, onGiftBuy);
+                bool b17237 = giftBuyCount == 2 && !lastGiftBuyOk;
                 byte[] p17238 = new CliVerify.Pkt().I(1700010000).I(1700020000)
                     .H(1).C(1).C(0).I(1700030000)
                     .Bytes();
@@ -272,12 +296,22 @@ namespace Shenxiao.EditorTools
                 bool b17239 = model.LastGiftRewardCountType == 1 && model.LastGiftReward.Count == 2
                     && model.LastGiftReward[0].TypeId == 38240101 && model.LastGiftReward[1].Num == 1;
                 Feed("On17239", new CliVerify.Pkt().I(1720001).C(2).H(0).Bytes());
+                int giftAskCount = 0; bool lastGiftAskOk = false;
+                System.Action<bool> onGiftAsk = ok => { giftAskCount++; lastGiftAskOk = ok; };
+                Shenxiao.Framework.Event.EventDispatcher.On(Shenxiao.Framework.Event.GlobalEvent.EVT_MARRIAGE_GIFT_ASK_RESULT, onGiftAsk);
                 Feed("On17240", new CliVerify.Pkt().I(1).Bytes());
-                bool bGiftGroup = b17238 && b17239;
+                Feed("On17240", new CliVerify.Pkt().I(1720070).Bytes()); // B3 失败码边界:marriage_ask_lv_limit
+                Shenxiao.Framework.Event.EventDispatcher.Off(Shenxiao.Framework.Event.GlobalEvent.EVT_MARRIAGE_GIFT_ASK_RESULT, onGiftAsk);
+                bool b17240 = giftAskCount == 2 && !lastGiftAskOk;
+                bool bGiftGroup = b17237 && b17238 && b17239 && b17240;
                 Debug.Log("CLIVERIFY marriage 17237/38/39/40 礼包 giftState=" + (model.Gift?.GiftState.Count ?? -1)
-                    + " rewardN=" + model.LastGiftReward.Count + " ok=" + bGiftGroup);
+                    + " rewardN=" + model.LastGiftReward.Count + " gift37=" + b17237 + " ask40=" + b17240 + " ok=" + bGiftGroup);
 
                 // ---- R. 17245进退匹配/17246匹配结果(死链UI,数据层照接;17246订正为带Code) ----
+                // 裁决1(死号封存):RequestDunMatch 已删除(服务端 handle(17245) 整段注释),仿17212段(L65-68)反射断言无公开发送方法
+                bool dead17245SendOk = t.GetMethod("RequestDunMatch", PF) == null;
+                bool dead17245RecvOk = t.GetMethod("On17245", F) != null && t.GetMethod("On17246", F) != null;
+                Debug.Log("CLIVERIFY marriage 17245死号 noSendMethod=" + dead17245SendOk + " hasDefensiveRecv=" + dead17245RecvOk);
                 Feed("On17245", new CliVerify.Pkt().I(1).C(1).I(13001).Bytes());
                 bool b17245 = model.IsMatching && model.MatchDunId == 13001;
                 Feed("On17245", new CliVerify.Pkt().I(1720001).C(2).I(13001).Bytes());
@@ -290,19 +324,54 @@ namespace Shenxiao.EditorTools
                 bool b17246 = model.LastMatchResult != null && model.LastMatchResult.List.Count == 1
                     && model.LastMatchResult.List[0].RoleId == 9005 && model.LastMatchResult.List[0].Power == 999999
                     && model.LastMatchResult.EnterTime == 5;
-                Debug.Log("CLIVERIFY marriage 17245/17246 匹配(死链UI,订正带Code) matching=" + b17245 + " result=" + b17246 + " ok=" + (b17245 && b17246));
+                // B3 失败码边界:code!=1(1720087 in_marriaage_dun_match),On17246 无 else 分支,LastMatchResult 不应被覆盖
+                CliVerify.Pkt p17246fail = new CliVerify.Pkt().I(1720087)
+                    .H(1).C(2).L(9999);
+                AppendFigure(p17246fail, "不应生效", 1, 0, 0, "");
+                p17246fail.L(1);
+                p17246fail.C(9);
+                Feed("On17246", p17246fail.Bytes());
+                bool b17246fail = model.LastMatchResult != null && model.LastMatchResult.List.Count == 1
+                    && model.LastMatchResult.List[0].RoleId == 9005 && model.LastMatchResult.EnterTime == 5;
+                Debug.Log("CLIVERIFY marriage 17245/17246 匹配(死链UI,订正带Code) matching=" + b17245 + " result=" + b17246
+                    + " failNotOverwritten=" + b17246fail + " ok=" + (b17245 && b17246 && b17246fail));
 
                 // ---- S. 17295邀请买次数/17296收到邀请(无Code)/17297同意拒绝(无Code) ----
+                int dunInviteBuyCount = 0; bool lastDunInviteBuyOk = false;
+                System.Action<bool> onDunInviteBuy = ok => { dunInviteBuyCount++; lastDunInviteBuyOk = ok; };
+                Shenxiao.Framework.Event.EventDispatcher.On(Shenxiao.Framework.Event.GlobalEvent.EVT_MARRIAGE_DUN_INVITE_BUY_RESULT, onDunInviteBuy);
                 Feed("On17295", new CliVerify.Pkt().I(1).Bytes());
+                Feed("On17295", new CliVerify.Pkt().I(1720088).Bytes()); // B3 失败码边界:dun_intimacy_not_enough
+                Shenxiao.Framework.Event.EventDispatcher.Off(Shenxiao.Framework.Event.GlobalEvent.EVT_MARRIAGE_DUN_INVITE_BUY_RESULT, onDunInviteBuy);
+                bool b17295 = dunInviteBuyCount == 2 && !lastDunInviteBuyOk;
                 Feed("On17296", new CliVerify.Pkt().L(9005).S("对方").I(13001).Bytes());
                 bool b17296 = model.LastDunInvite != null && model.LastDunInvite.RoleId == 9005 && model.LastDunInvite.DunId == 13001;
-                Feed("On17297", new CliVerify.Pkt().C(1).I(13001).L(9005).S("对方").Bytes());
-                Debug.Log("CLIVERIFY marriage 17295/96/97 副本邀请(无Code) invite=" + b17296 + " ok=" + b17296);
+                var dunRespondList = new List<(int agree, int dunId)>();
+                System.Action<int, int> onDunRespond = (agree, dunId) => dunRespondList.Add((agree, dunId));
+                Shenxiao.Framework.Event.EventDispatcher.On<int, int>(Shenxiao.Framework.Event.GlobalEvent.EVT_MARRIAGE_DUN_INVITE_RESPOND_PUSH, onDunRespond);
+                Feed("On17297", new CliVerify.Pkt().C(1).I(13001).L(9005).S("对方").Bytes()); // agree=1同意
+                Feed("On17297", new CliVerify.Pkt().C(2).I(13002).L(9006).S("对方乙").Bytes()); // B3 边界:agree=2拒绝
+                Shenxiao.Framework.Event.EventDispatcher.Off<int, int>(Shenxiao.Framework.Event.GlobalEvent.EVT_MARRIAGE_DUN_INVITE_RESPOND_PUSH, onDunRespond);
+                bool b17297 = dunRespondList.Count == 2 && dunRespondList[0].agree == 1 && dunRespondList[0].dunId == 13001
+                    && dunRespondList[1].agree == 2 && dunRespondList[1].dunId == 13002;
+                Debug.Log("CLIVERIFY marriage 17295/96/97 副本邀请(无Code) invite95=" + b17295 + " invite96=" + b17296
+                    + " respond97=" + b17297 + " ok=" + (b17295 && b17296 && b17297));
 
                 // ---- T. 鲜花 22300错误码/22301赠花/22302收礼记录全量/22303信息/22304收花/22305感谢 ----
                 Feed("On22300", new CliVerify.Pkt().I(1720001).Bytes());
+                // 预置 Fame 基线(供 22301 M4 Fame 联动断言;SetFlowerInfo 整体替换,不影响后续正式 22303 断言)
+                Feed("On22303", new CliVerify.Pkt().I(0).I(0).I(1000).Bytes());
+                Shenxiao.Module.Core.Marriage.MarriageConfigs.FlowerToolRow fdata38100001 =
+                    Shenxiao.Module.Core.Marriage.MarriageConfigs.GetFlowerTool(38100001);
+                long expectedFameAfterGive = 1000 + (fdata38100001 != null ? (long)fdata38100001.Fame * 1 : 0);
                 Feed("On22301", new CliVerify.Pkt().I(1).L(9007).H(1001).I(38100001).H(1).Bytes());
+                bool b22301FameOk = model.Flower != null && model.Flower.Fame == expectedFameAfterGive;
                 Feed("On22301", new CliVerify.Pkt().I(1020002).L(9007).H(1001).I(38100001).H(1).Bytes()); // 频繁操作码,不弹
+                bool b22301Fame1020002Stable = model.Flower.Fame == expectedFameAfterGive;
+                // B3 失败码边界:常规失败码(非1020002,2230001 num_not_enough)→走ShowError路径,Fame不变
+                Feed("On22301", new CliVerify.Pkt().I(2230001).L(9007).H(1001).I(38100001).H(1).Bytes());
+                bool b22301RegularFailFameStable = model.Flower.Fame == expectedFameAfterGive;
+                bool b22301 = b22301FameOk && b22301Fame1020002Stable && b22301RegularFailFameStable;
                 byte[] p22302 = new CliVerify.Pkt().H(2)
                     .L(1).L(9007).S("送花者甲").H(1001).H(1).I(38100001).H(1).C(0).C(0).I(1700040000)
                     .L(2).L(9008).S("送花者乙").H(1001).H(1).I(38100002).H(2).C(1).C(1).I(1700040100)
@@ -310,7 +379,7 @@ namespace Shenxiao.EditorTools
                 Feed("On22302", p22302);
                 bool b22302 = model.HasFlowerRecords && model.FlowerRecords.Count == 2 && model.FlowerRecords[0].SenderName == "送花者甲"
                     && model.FlowerRecords[1].GoodsNum == 2 && model.FlowerRecords[1].IsThanks == 1;
-                Feed("On22303", new CliVerify.Pkt().I(500).I(300).I(200).Bytes());
+                Feed("On22303", new CliVerify.Pkt().I(500).I(300).I(200).Bytes()); // 重置为正式断言值(SetFlowerInfo整体替换,冲掉22301的Fame联动)
                 bool b22303 = model.HasFlowerInfo && model.Flower.FlowerNum == 500 && model.Flower.Charm == 300 && model.Flower.Fame == 200;
                 CliVerify.Pkt p22304 = new CliVerify.Pkt().L(9009);
                 AppendFigure(p22304, "送花人", 150, 0, 0, "");
@@ -318,20 +387,31 @@ namespace Shenxiao.EditorTools
                 Feed("On22304", p22304.Bytes());
                 bool b22304 = model.LastFlowerReceived != null && model.LastFlowerReceived.SenderId == 9009
                     && model.LastFlowerReceived.SenderFigure.name == "送花人" && model.LastFlowerReceived.GoodsId == 38100003;
+                int flowerThanksCount = 0; bool lastFlowerThanksOk = false;
+                System.Action<bool, long> onFlowerThanks = (ok, id) => { flowerThanksCount++; lastFlowerThanksOk = ok; };
+                Shenxiao.Framework.Event.EventDispatcher.On<bool, long>(Shenxiao.Framework.Event.GlobalEvent.EVT_MARRIAGE_FLOWER_THANKS_RESULT, onFlowerThanks);
                 Feed("On22305", new CliVerify.Pkt().I(1).L(9007).Bytes());
-                bool bFlowerGroup = b22302 && b22303 && b22304;
-                Debug.Log("CLIVERIFY marriage 鲜花22300-05 record=" + b22302 + " info=" + b22303 + " received=" + b22304 + " ok=" + bFlowerGroup);
+                Feed("On22305", new CliVerify.Pkt().I(2230001).L(9008).Bytes()); // B3 失败码边界:num_not_enough
+                Shenxiao.Framework.Event.EventDispatcher.Off<bool, long>(Shenxiao.Framework.Event.GlobalEvent.EVT_MARRIAGE_FLOWER_THANKS_RESULT, onFlowerThanks);
+                bool b22305 = flowerThanksCount == 2 && !lastFlowerThanksOk;
+                bool bFlowerGroup = b22301 && b22302 && b22303 && b22304 && b22305;
+                Debug.Log("CLIVERIFY marriage 鲜花22300-05 give301=" + b22301 + " record=" + b22302 + " info=" + b22303
+                    + " received=" + b22304 + " thanks305=" + b22305 + " ok=" + bFlowerGroup);
 
                 bool pass = configOk && deadSendOk && deadRecvOk && b17200 && b17200fail && b1720102NoThrow && b17205
-                    && b17210 && b17211 && b17213 && b17212 && b17222 && b17223 && b17224 && b17226 && b17229 && b17231
-                    && b17232 && b17234 && b17236 && bGiftGroup && b17245 && b17246 && b17296 && bFlowerGroup;
+                    && b17210 && b17210fail && b17211 && b17211fail && b17213 && b17213fail && b17212 && b17222 && b17223
+                    && b17224 && b17226 && b17229 && b17231 && b17232 && b17234 && b17236 && bGiftGroup
+                    && dead17245SendOk && dead17245RecvOk && b17245 && b17246 && b17246fail && b17295 && b17296 && b17297
+                    && bFlowerGroup;
 
                 Debug.Log("CLIVERIFY marriage VERDICT config=" + configOk + " dead17212=" + (deadSendOk && deadRecvOk)
-                    + " l17200=" + b17200 + " l17205=" + b17205 + " l17210=" + b17210 + " l1721113=" + (b17211 && b17213)
+                    + " l17200=" + b17200 + " l17205=" + b17205 + " l17210=" + (b17210 && b17210fail)
+                    + " l1721113=" + (b17211 && b17211fail && b17213 && b17213fail)
                     + " l17212=" + b17212 + " l17222=" + b17222 + " l17223=" + b17223 + " l17224=" + b17224
                     + " l17226=" + b17226 + " l17229=" + b17229 + " l17231=" + b17231 + " l17232=" + b17232
-                    + " l1723435=" + b17234 + " l17236=" + b17236 + " gift=" + bGiftGroup + " match=" + (b17245 && b17246)
-                    + " dunInvite=" + b17296 + " flower=" + bFlowerGroup + " pass=" + pass);
+                    + " l1723435=" + b17234 + " l17236=" + b17236 + " gift=" + bGiftGroup
+                    + " dead17245=" + (dead17245SendOk && dead17245RecvOk) + " match=" + (b17245 && b17246 && b17246fail)
+                    + " dunInvite=" + (b17295 && b17296 && b17297) + " flower=" + bFlowerGroup + " pass=" + pass);
 
                 model.Clear();
                 return pass ? 0 : 3;

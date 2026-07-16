@@ -5,6 +5,8 @@ using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Friend;
+using Shenxiao.Module.Core.Role;
 
 namespace Shenxiao.Module.Core.Marriage
 {
@@ -22,17 +24,35 @@ namespace Shenxiao.Module.Core.Marriage
     /// 死号(老端注册 handler 但零发送点+成功分支全注释,实际升级走17213一键),本端只注册防御 recv、
     /// **不提供发送方法**;⑤17226 必须 ReadArray 读完两个数组(biaobai_list + biaobai_answer_list)保证
     /// 游标正确,老端只消费 biaobai_list、不消费 answer_list,本端两者都落地(比老端完整无害);
-    /// ⑥17245/17246 死链 UI(MarriageMatchView/MatchTipsView/MarriageTagView 是老端未定义类的死链,OPEN
-    /// 静默失败)——数据层仍照接解析落地+发事件,UI 消费方留尾包,不因死链跳过协议实现;
+    /// ⑥17245/17246 死链——不仅 UI 层死(MarriageMatchView/MatchTipsView/MarriageTagView 三文件在但无任何
+    /// 活模块 import,模块从未加载,window 注册不执行,OPEN 静默失败),服务端 C2S handler(17245)也已整段
+    /// 注释(pp_marriage.erl:1598-1607)、17246 全部推送点无触发源(lib_marriage.erl:2038-2129/
+    /// mod_marriage_match.erl:219)——本端不提供 17245 发送方法(RequestDunMatch 按轮16三镜头验收裁决1删除,
+    /// 死号严禁发),On17245/On17246 仅保留防御性 recv,协议注册仅防御,数据层照接解析落地+发事件供尾包消费;
     /// ⑦17210 戒指战力自算(老端用 config_ring_star 覆盖服务端 ring_combat_power)本轮**不接**,先如实落地
     /// 服务端权威值,TODO 见 On17210;⑧17237 购买礼包成功后老端额外经 ChatModel 发情侣公告私信
-    /// (BoardMarriager),属跨模块社交联动,本轮数据层不接,TODO;⑨标签子系统(config_personal_tag_info)
-    /// 半死,本轮不导入该表,17200 player_list 的 tag_list 字段仍如实解析落地。
+    /// (BoardMarriager),属跨模块社交联动,本轮数据层不接,TODO;⑨标签子系统(config_personal_tag_info)有
+    /// 3 个活视图消费(MarriageComView.ts:89/MarriageFriendItem.ts:109/MarriageIssueView.ts:102·174 经
+    /// GetTagsStr 渲染标签文案,同属尾包依赖的还有 config_fame_lv),仅其编辑入口 MarriageTagView 模块从未
+    /// 加载(死链)——本轮数据层不消费标签文案仍不导入该表,17200 player_list 的 tag_list 字段照常解析落地,
+    /// UI 尾包接线时须补导 config_personal_tag_info+config_fame_lv。
+    ///
+    /// 登录/升级链(B1 修复,镜像老端 MarriageController.ts:78-100):GAME_START 时恒发 22303(鲜花信息);
+    /// 等级≥config_marriage_constant id=1(MarriageOpenLv=170)时补发 17226/17238/17210;CHANGE_LEVEL 精确
+    /// 达到该临界值时补发 17238/17210(ts:93-100,本端用 EVT_ROLE_INFO_UPDATE+_lastLevel 做等价探测,同
+    /// DailyController 先例)。
+    /// TODO(跨天补发 17238):老端 ServerTimeModel.DAY_CHANGE → SendFmtToGame(17238)(ts:118-120);本仓
+    /// GlobalEvent 全量核对无跨天/日期切换事件(见 <see cref="GlobalEvent"/>),暂无可挂载点,尾包补跨天事件
+    /// 后在此接 RequestGiftInfo()。
     /// </summary>
     public sealed class MarriageController : BaseController
     {
         public static readonly MarriageController Instance = new MarriageController();
         private MarriageController() { }
+
+        /// <summary>上次已处理的角色等级(对标老端 CHANGE_LEVEL 事件基准,-1=未初始化;同 DailyController
+        /// _lastLevel 先例,经 EVT_ROLE_INFO_UPDATE 探测等级变化)。</summary>
+        private int _lastLevel = -1;
 
         private static void ShowError(int errorCode) => TipsManager.Toast("错误(" + errorCode + ")"); // 错误码表未移植,显码降级
 
@@ -80,12 +100,60 @@ namespace Shenxiao.Module.Core.Marriage
             RegisterProtocal(Proto.MARRIAGE_FLOWER_INFO, On22303);
             RegisterProtocal(Proto.MARRIAGE_FLOWER_RECEIVED, On22304);
             RegisterProtocal(Proto.MARRIAGE_FLOWER_THANKS, On22305);
+
+            EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
+            EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
         }
 
         public override void Dispose()
         {
+            EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
+            EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            _lastLevel = -1;
             MarriageModel.Instance.Clear();
             base.Dispose();
+        }
+
+        // ---------------------------------------------------------------------------------------
+        // 登录/升级触发链(B1;对标老端 ts:78-100)
+        // ---------------------------------------------------------------------------------------
+
+        /// <summary>config_marriage_constant id=1(MarriageOpenLv,marriage.hrl=170)开启等级,原始值为数字
+        /// 字符串;配置未就绪或解析失败时返回 int.MaxValue(视为未达标,避免配置未加载时误发)。</summary>
+        private static int GetMarriageOpenLevel() =>
+            int.TryParse(MarriageConfigs.GetConstant(1), out int v) ? v : int.MaxValue;
+
+        private async void OnGameStart()
+        {
+            await MarriageConfigs.EnsureLoaded();
+            RequestFlowerInfo(); // 22303 鲜花相关信息,老端恒发(ts:81)
+            int needLv = GetMarriageOpenLevel();
+            int lv = RoleModel.Instance.Level;
+            if (needLv <= lv)
+            {
+                RequestBiaobaiList(); // 17226 别人求婚/离婚信息(ts:87)
+                RequestGiftInfo();    // 17238 礼包信息(ts:88)
+                RequestRingInfo();    // 17210 戒指信息(ts:89)
+            }
+            _lastLevel = lv;
+            GameLog.Info("Marriage", "GAME_START 婚姻登录链 22303恒发 needLv={0} lv={1} 达标补发biaobai/gift/ring={2}",
+                needLv, lv, needLv <= lv);
+        }
+
+        /// <summary>对标老端 role_vo.Bind(CHANGE_LEVEL) 仅在"精确达到开启等级临界值"时补发 17238/17210
+        /// (ts:93-100)——本仓无 CHANGE_LEVEL 专属事件,借 EVT_ROLE_INFO_UPDATE + _lastLevel 探测等级变化,
+        /// 同 DailyController.OnRoleInfoUpdate 先例。</summary>
+        private void OnRoleInfoUpdate()
+        {
+            RoleModel role = RoleModel.Instance;
+            if (!role.HasBaseInfo || role.Level == _lastLevel) return;
+            _lastLevel = role.Level;
+            if (role.Level == GetMarriageOpenLevel())
+            {
+                RequestGiftInfo();
+                RequestRingInfo();
+                GameLog.Info("Marriage", "CHANGE_LEVEL 达开启等级临界 lv={0} 补发gift/ring", role.Level);
+            }
         }
 
         // ---------------------------------------------------------------------------------------
@@ -124,6 +192,7 @@ namespace Shenxiao.Module.Core.Marriage
             long askFlowerTime = r.ReadU32();
             int lessFreeTimes = r.ReadU8();
             List<MarriageModel.PersonalsEntry> list = r.ReadArray(ReadPersonalsEntry);
+            list.Sort((a, b) => b.Time.CompareTo(a.Time)); // 落地前按 time 降序(老端 ts:172-175 player_list.sort)
             if (code == 1)
             {
                 var data = new MarriageModel.PersonalsPage
@@ -163,13 +232,38 @@ namespace Shenxiao.Module.Core.Marriage
             TagId = r.ReadU8(), TagSubId = r.ReadU8(),
         };
 
+        /// <summary>M1 修复(镜像老端 ts:181-202):成功时从大厅桶(page1)找到该 role 的 vo,塞进"我的关注"
+        /// 桶(page2)并按 time 降序;page2 桶尚未加载则改发 17200 "c" 2 重拉;page1 未含该 vo 时老端什么也不做
+        /// (本端镜像不发事件)。失败只 ShowError,不发 PERSONALS_UPDATE 事件(此前失败也发,已改掉)。</summary>
         private void On17201(NetReader r)
         {
             int code = r.ReadI32();
             long followRoleId = r.ReadU64();
             int type = r.ReadU8();
-            if (code != 1) ShowError(code);
-            EventDispatcher.Emit(GlobalEvent.EVT_MARRIAGE_PERSONALS_UPDATE, -1);
+            if (code == 1)
+            {
+                MarriageModel.PersonalsPage page1 = MarriageModel.Instance.GetPersonalsPage(1);
+                MarriageModel.PersonalsEntry vo = page1?.PlayerList.Find(e => e.RoleId == followRoleId);
+                if (vo != null)
+                {
+                    MarriageModel.PersonalsPage page2 = MarriageModel.Instance.GetPersonalsPage(2);
+                    if (page2 != null)
+                    {
+                        page2.PlayerList.Add(vo);
+                        page2.PlayerList.Sort((a, b) => b.Time.CompareTo(a.Time));
+                        MarriageModel.Instance.SetPersonalsPage(2, page2);
+                        EventDispatcher.Emit(GlobalEvent.EVT_MARRIAGE_PERSONALS_UPDATE, 2);
+                    }
+                    else
+                    {
+                        RequestPersonalsList(2);
+                    }
+                }
+            }
+            else
+            {
+                ShowError(code);
+            }
             GameLog.Info("Marriage", "17201 关注/取消关注 code={0} followRoleId={1} type={2}", code, followRoleId, type);
         }
 
@@ -180,6 +274,7 @@ namespace Shenxiao.Module.Core.Marriage
             if (code == 1)
             {
                 TipsManager.Toast("发布成功");
+                RequestPersonalsList(1); // M2 修复:成功后重拉大厅第1页(老端 ts:204-213)
                 EventDispatcher.Emit(GlobalEvent.EVT_MARRIAGE_PERSONALS_UPDATE, 1);
             }
             else
@@ -306,6 +401,10 @@ namespace Shenxiao.Module.Core.Marriage
         public void RespondPropose(long roleId, int type) => SendFmt(Proto.MARRIAGE_PROPOSE_RESPOND, "lc", roleId, type);
         public void RequestPropose(long roleId, int weddingType, string msg, int ifAa) =>
             SendFmt(Proto.MARRIAGE_PROPOSE_SEND, "lcsc", roleId, weddingType, msg, ifAa);
+        /// <summary>B1 修复:登录求婚/离婚信息汇总(C2S 空包)。此前只注册 On17226 收、漏了发送方法,
+        /// 该请求-应答号永远收不到推送(老端 ts:87 SendFmtToGame(17226));登录链见 OnGameStart。
+        /// ⚠服务端列表空时不回包(mod_marriage.erl:1264-1267),调用方不可等待回包。</summary>
+        public void RequestBiaobaiList() => SendFmt(Proto.MARRIAGE_BIAOBAI_LIST);
         public void RequestMyMate() => SendFmt(Proto.MARRIAGE_MATE_INFO);
         public void RequestDivorce(int divorceType) => SendFmt(Proto.MARRIAGE_DIVORCE_SEND, "c", divorceType);
         public void RespondDivorce(int answerType) => SendFmt(Proto.MARRIAGE_DIVORCE_RESPOND, "c", answerType);
@@ -359,6 +458,11 @@ namespace Shenxiao.Module.Core.Marriage
                 RequestMyMate();
                 RequestGiftInfo();
                 RequestRingInfo();
+                if (type == 3) // M6 修复:离婚时清空好友亲密度(老端 ts:340-344 fri_vo.intimacy=0)
+                {
+                    FriendModel.FriendVo friVo = FriendModel.Instance.GetFriendById(roleId);
+                    if (friVo != null) FriendModel.Instance.UpdateIntimacy(roleId, 0);
+                }
                 EventDispatcher.Emit(GlobalEvent.EVT_MARRIAGE_ANSWER_PUSH, roleId, type, answerType);
             }
             GameLog.Info("Marriage", "17224 回应结果推送 roleId={0} type={1} answerType={2}", roleId, type, answerType);
@@ -428,7 +532,8 @@ namespace Shenxiao.Module.Core.Marriage
         }
 
         /// <summary>17232 我的伴侣。CombatPower **u64**。老端 code∈{1,1720012单身,1012} 三码都当成功刷新
-        /// (有意逻辑非bug),本端三码同镜像落地。</summary>
+        /// (有意逻辑非bug),本端三码同镜像落地。TODO(M7):回写 RoleModel is_marriage/marriage_id/
+        /// marriage_name(老端 ts:385-388 role_vo.ChangeVar),待 RoleModel 补婚姻字段后在此接。</summary>
         private void On17232(NetReader r)
         {
             int code = r.ReadI32();
@@ -482,6 +587,8 @@ namespace Shenxiao.Module.Core.Marriage
             GameLog.Info("Marriage", "17235 回应离婚 code={0} answerType={1}", code, answerType);
         }
 
+        /// <summary>M10:老端成功后 setTimeout 1s 才发 UPDATE_DSGT(等称号数据先回,ts:417-421),本端立即
+        /// 发事件;尾包接称号联动消费方时注意此时序差。</summary>
         private void On17236(NetReader r)
         {
             int code = r.ReadI32();
@@ -559,8 +666,8 @@ namespace Shenxiao.Module.Core.Marriage
         // 副本匹配/邀请(17245-17297)——死链 UI,数据层照接。
         // ---------------------------------------------------------------------------------------
 
-        /// <summary>type:1=进入匹配/2=退出匹配。</summary>
-        public void RequestDunMatch(int type, int dunId) => SendFmt(Proto.MARRIAGE_DUN_MATCH, "ci", type, dunId);
+        // 17245(进入/退出匹配)是死号发送:服务端 handle(17245) 整段注释(pp_marriage.erl:1598-1607),
+        // 死号严禁发,故不提供 RequestDunMatch(轮16三镜头验收裁决1;On17245 防御 recv 保留)。
         public void RequestDunInviteBuy(int dunId) => SendFmt(Proto.MARRIAGE_DUN_INVITE_BUY, "i", dunId);
         /// <summary>agree:1=同意/2=拒绝。</summary>
         public void RespondDunInviteBuy(int agree, int dunId) => SendFmt(Proto.MARRIAGE_DUN_INVITE_RESPOND, "ci", agree, dunId);
@@ -579,11 +686,14 @@ namespace Shenxiao.Module.Core.Marriage
             {
                 ShowError(code);
             }
-            GameLog.Info("Marriage", "17245 进退匹配 code={0} type={1} dunId={2}(死链UI:MarriageMatchView未定义类)", code, type, dunId);
+            GameLog.Info("Marriage", "17245 进退匹配 code={0} type={1} dunId={2}(死链:服务端handler已注释/UI模块从未加载)", code, type, dunId);
         }
 
         /// <summary>17246 匹配结果。⚠与 r16 侦察报告"无Code"结论不同——ClientProtocol.json+老端 on17246 实读
-        /// scmd.code,本端订正为带 Code(见 Proto.cs 注释)。死链 UI(MarriageMatchTipsView 未定义类),数据层照接。</summary>
+        /// scmd.code,本端订正为带 Code(见 Proto.cs 注释)。死链(服务端 17246 推送点全部无触发源,
+        /// lib_marriage.erl:2038-2129/mod_marriage_match.erl:219;UI 层 MarriageMatchTipsView 模块也从未
+        /// 加载),数据层仍照接解析落地。enter_time:老端把该字段做 getServerTime()+enter_time 绝对化
+        /// (ts:479),本端落原始相对值,尾包接 UI 时须换算(死链号,本轮不引入时钟依赖)。</summary>
         private void On17246(NetReader r)
         {
             int code = r.ReadI32();
@@ -596,7 +706,7 @@ namespace Shenxiao.Module.Core.Marriage
                 MarriageModel.Instance.SetMatchResult(result);
                 EventDispatcher.Emit(GlobalEvent.EVT_MARRIAGE_MATCH_PUSH);
             }
-            GameLog.Info("Marriage", "17246 匹配结果 code={0} count={1} enterTime={2}(死链UI:MarriageMatchTipsView未定义类)",
+            GameLog.Info("Marriage", "17246 匹配结果 code={0} count={1} enterTime={2}(死链:推送点无触发源/UI模块从未加载)",
                 code, list.Count, enterTime);
         }
 
@@ -623,7 +733,8 @@ namespace Shenxiao.Module.Core.Marriage
             GameLog.Info("Marriage", "17296 收到副本次数购买邀请 roleId={0} roleName={1} dunId={2}", d.RoleId, d.RoleName, d.DunId);
         }
 
-        /// <summary>17297 同意/拒绝购买副本次数推送(无 Code 前缀,回执字段即请求回声)。</summary>
+        /// <summary>17297 同意/拒绝购买副本次数推送(无 Code 前缀)。agree/dun_id 是请求回声;
+        /// role_id/role_name 是回应方附加信息,非请求回声。</summary>
         private void On17297(NetReader r)
         {
             int agree = r.ReadU8();
@@ -656,6 +767,10 @@ namespace Shenxiao.Module.Core.Marriage
             GameLog.Info("Marriage", "22300 鲜花错误码 code={0}", code);
         }
 
+        /// <summary>M4 修复(镜像老端 ts:526-531 on22301 成功分支):①好友亲密度
+        /// fri_vo.intimacy += fdata.intimacy*goods_num(FriendModel 已有 GetFriendById/UpdateIntimacy,
+        /// 好友桶未命中则跳过,老端同);②名誉值 model.AddRoleFame(fdata.fame*goods_num)(即
+        /// MarriageModel.Flower.Fame 自增,见 MarriageModel.AddFlowerFame)。</summary>
         private void On22301(NetReader r)
         {
             int code = r.ReadI32();
@@ -666,6 +781,13 @@ namespace Shenxiao.Module.Core.Marriage
             if (code == 1)
             {
                 TipsManager.Toast("赠送成功");
+                MarriageConfigs.FlowerToolRow fdata = MarriageConfigs.GetFlowerTool((int)goodsId);
+                if (fdata != null)
+                {
+                    FriendModel.FriendVo friVo = FriendModel.Instance.GetFriendById(receiveId);
+                    if (friVo != null) FriendModel.Instance.UpdateIntimacy(receiveId, friVo.Intimacy + fdata.Intimacy * goodsNum);
+                    MarriageModel.Instance.AddFlowerFame(fdata.Fame * goodsNum);
+                }
             }
             else if (code != 1020002) // 操作太频繁的错误码老端不展示
             {
@@ -712,6 +834,8 @@ namespace Shenxiao.Module.Core.Marriage
             GameLog.Info("Marriage", "22304 收到鲜花通知 senderId={0} goodsId={1} num={2}", f.SenderId, f.GoodsId, f.GoodsNum);
         }
 
+        /// <summary>M5:老端 on22305 无条件 toast"感谢成功"、不判 code(ts:561-565),此处 code==1 才 toast
+        /// 是本端单向加强;且服务端 22305(感谢)处理恒回 Code=1(lib_flower.erl:111-123),else 分支实际死路。</summary>
         private void On22305(NetReader r)
         {
             int code = r.ReadI32();

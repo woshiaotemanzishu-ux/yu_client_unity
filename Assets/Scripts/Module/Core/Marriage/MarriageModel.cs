@@ -173,7 +173,15 @@ namespace Shenxiao.Module.Core.Marriage
         /// <summary>17229 键值(Key==1 对应恩爱值 LoveNum,其余原样透出供以后扩展消费)。</summary>
         private readonly Dictionary<int, long> _keyValues = new Dictionary<int, long>();
         public IReadOnlyDictionary<int, long> KeyValues => _keyValues;
-        public void SetKeyValue(int key, long val) => _keyValues[key] = val;
+
+        /// <summary>B2 修复:Key==1 时镜像同步 Mate.LoveNum(老端 MarriageModel.ts:655-660 SetKeyValue→
+        /// SetLoveNum→minfo.love_num=value),避免 Mate.LoveNum 与 GetKeyValue(1) 双源不一致。</summary>
+        public void SetKeyValue(int key, long val)
+        {
+            _keyValues[key] = val;
+            if (key == 1 && Mate != null) Mate.LoveNum = val;
+        }
+
         public long GetKeyValue(int key) => _keyValues.TryGetValue(key, out long v) ? v : 0;
 
         /// <summary>17232 我的伴侣(Figure 复用 FigureProto,含 is_marriage/marriage_id/marriage_name)。</summary>
@@ -255,6 +263,14 @@ namespace Shenxiao.Module.Core.Marriage
         public FlowerInfo Flower { get; private set; }
         public bool HasFlowerInfo { get; private set; }
         public void SetFlowerInfo(FlowerInfo f) { Flower = f; HasFlowerInfo = true; }
+
+        /// <summary>M4 修复:22301 赠花成功后的名誉值本地自增(对标老端 MarriageModel.AddRoleFame——
+        /// this._flower_info.fame += add_num,未加载 _flower_info 时静默跳过不生效,ts:671-675)。</summary>
+        public void AddFlowerFame(long addNum)
+        {
+            if (Flower == null) return;
+            Flower.Fame += addNum;
+        }
 
         /// <summary>22302 收礼记录(一次性全量,无分页,如实全量落地)。</summary>
         public sealed class FlowerRecordEntry

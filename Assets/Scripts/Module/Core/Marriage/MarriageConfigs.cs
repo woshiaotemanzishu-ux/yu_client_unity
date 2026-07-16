@@ -11,12 +11,18 @@ namespace Shenxiao.Module.Core.Marriage
     /// yu_client cdn/resource/config/server/ 原样拷入(与 KfBossConfigs 同规格,数字/复合键扁平 JSON):
     ///   · config_marriage_constant(41条,数字键 id)——婚姻通用常量(开启等级/发布消耗/求婚亲密度/礼包消耗/
     ///     恩爱称号返还物品等),对标老端 MarriageModel.GetConstantData(key)。
-    ///   · config_ring_star(101条,复合键"stage@star")——戒指阶星属性表(upgrade_pray_num/attr_list/
-    ///     marriage_attr),17210 战力自算 TODO 依赖此表(本轮未接算法,见 MarriageController 注释)。
+    ///   · config_ring_star(501条,stage 1-50,复合键"stage@star")——戒指阶星属性表(upgrade_pray_num/
+    ///     attr_list/marriage_attr),17210 战力自算 TODO 依赖此表(本轮未接算法,见 MarriageController 注释)。
+    ///     轮16三镜头验收裁决2:拷贝源=yu_client cdn\resource\config\server(法定同步源,LayaUISettings.
+    ///     CdnResourceRoot,历轮同源)的 501 条版本,与服务端 data_ring.erl 501+1 兜底精确吻合;
+    ///     cdn\assets\resource\config\server 下的 101 条(stage 1-10)为老端发布侧陈旧副本,不采用。
     ///   · config_flower_tools(6条,数字键=goods_id)——鲜花道具表(intimacy/charm/fame/特效)。
     ///   · config_love_dsgt_cfg(10条,数字键=顺位id)——恩爱称号档位表(dsgt=真实称号id,love_num=解锁门槛)。
-    /// **跳过 config_personal_tag_info**(60条,半死,仅死链 MarriageTagView 消费,17200 player_list 的
-    /// tag_list 字段仍如实解析落地,UI 尾包再决定是否需要导入此表)。
+    /// **跳过 config_personal_tag_info**(60条)。轮16三镜头验收 M9 订正:该表有 3 个活视图消费
+    /// (MarriageComView.ts:89/MarriageFriendItem.ts:109/MarriageIssueView.ts:102·174 经 GetTagsStr 渲染
+    /// 标签文案,同属尾包依赖的还有 config_fame_lv),并非"仅死链消费"——死的只是其编辑入口 MarriageTagView
+    /// (模块从未加载)。本轮数据层不消费标签文案,仍不导入该表;17200 player_list 的 tag_list 字段仍如实
+    /// 解析落地;UI 尾包接线时须补导 config_personal_tag_info+config_fame_lv。
     /// </summary>
     public static class MarriageConfigs
     {
