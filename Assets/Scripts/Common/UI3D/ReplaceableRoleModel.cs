@@ -83,8 +83,9 @@ namespace Shenxiao.Common.UI3D
                 GameObject inst = await EnsureNewInstance(action, key);
                 if (this == null || inst == null || version != _playVersion) return;
                 Activate(inst);
-                var director = inst.GetComponentInChildren<PlayableDirector>(true);
-                if (director != null)
+                // 身体与完整模型空间头饰各有一条同名 Timeline,必须同帧启动、同速播放。
+                // 只驱动第一个 director 会让头饰在缓存切换或非 1 倍速时逐渐失步。
+                foreach (PlayableDirector director in inst.GetComponentsInChildren<PlayableDirector>(true))
                 {
                     director.extrapolationMode = LoopActions.Contains(action)
                         ? DirectorWrapMode.Loop : DirectorWrapMode.Hold;
@@ -93,7 +94,7 @@ namespace Shenxiao.Common.UI3D
                         director.time = 0;
                         director.Play();
                     }
-                    if (director.playableGraph.IsValid())
+                    if (director.playableGraph.IsValid() && director.playableGraph.GetRootPlayableCount() > 0)
                         director.playableGraph.GetRootPlayable(0).SetSpeed(Mathf.Max(0.01f, speed));
                 }
                 return;

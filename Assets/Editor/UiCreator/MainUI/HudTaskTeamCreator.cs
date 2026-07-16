@@ -27,8 +27,9 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     /// root="HudTaskTeam" 收成面板实际占位:AnchorBottomLeft 锚左下(对标老端 view 在主界面里的位置
     /// x=10,y=586,255x314 —— 底边距 = 1280-(586+314) = 380),不再全屏;子根 "MainUITaskTeamView"
     /// 挂业务类,Stretch 填满 root。挪整块面板直接拖 root(所见即所得)。
-    /// 任务列表排版归 prefab:TaskScrollView 的 Content 挂 VerticalLayoutGroup(间距 24,步进=老端 78)
-    /// + ContentSizeFitter;MainUITaskItem 模板新增 TaskTipsLabel(任务描述,原为运行时造节点)。
+    /// 任务列表排版归 prefab:TaskScrollView 的 Content 挂 VerticalLayoutGroup(间距 2)
+    /// + ContentSizeFitter;任务条高度和主线条占位由运行时按真实文本行数同步,对标老端
+    /// MainUITaskItem.SetTipsMsg / MainUITaskTeamView.SetTaskConSize。
     ///
     /// 两个模板(未激活模板子节点,回填各自 Bind 字段):
     ///   _tpl_MainUITaskItem —— 对标 resource/game/mainUI/MainUITaskItem.json(210x54),挂已写好的业务类
@@ -416,16 +417,16 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             view._box_task = boxTask;
             const float w = 210f, h = 214f;
 
-            // _panel_task(Laya Panel→ScrollRect): x=0,y=80,w=210,h=134
-            ScrollRect panelTask = NewScrollRect("TaskScrollView", boxTask, 134f, out RectTransform panelTaskContent); // 老端: _panel_task
-            PlaceLaya((RectTransform)panelTask.transform, 0f, 80f, 210f, 134f, w, h);
+            // _panel_task(Laya Panel→ScrollRect):主线单行高 55 时 x=0,y=57,w=210,h=157。
+            // 运行时若主线隐藏则恢复 y=0,h=214;主线多行时继续按其真实高度动态挤压。
+            ScrollRect panelTask = NewScrollRect("TaskScrollView", boxTask, 157f, out RectTransform panelTaskContent); // 老端: _panel_task
+            PlaceLaya((RectTransform)panelTask.transform, 0f, 57f, 210f, 157f, w, h);
             view._panel_task = panelTask;
 
-            // 任务列表排版归 prefab:VerticalLayoutGroup 按 sibling 顺序竖排(步进=老端 78:项高 54+间距 24,
-            // 想改行距在这组件上调)+ ContentSizeFitter 按内容撑高(任务多时可滚动)。
-            // 运行时 MainUITaskTeamView.RefreshTaskItems 只克隆/填数据/显隐,不再算坐标。
+            // 老端 UpdateItemSize 是「每项真实高度 + 2px」,并不是固定 78px 步进。
+            // 每项高度由 MainUITaskItem 按描述文本行数改 RectTransform,这里仅负责 2px 间距和内容撑高。
             var taskLayout = panelTaskContent.gameObject.AddComponent<VerticalLayoutGroup>();
-            taskLayout.spacing = 24f;
+            taskLayout.spacing = 2f;
             taskLayout.childAlignment = TextAnchor.UpperLeft;
             taskLayout.childControlWidth = false;
             taskLayout.childControlHeight = false;
@@ -555,7 +556,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
 
             // 运行时快照实测尺寸 21x20(设计源没写 width/height)
             Image done = UiCreatorKit.NewImage("TaskDoneMark", root); // 老端: _img_done
-            PlaceLaya(done.rectTransform, 186f, 0f, 21f, 20f, w, h);
+            AnchorTopLeft(done.rectTransform, 186f, 0f, 21f, 20f);
             done.raycastTarget = false;
             UiCreatorKit.TrySetSprite(done, IMG_TASKITEM_DONE, UiCreatorKit.Palette.Mark);
             done.gameObject.SetActive(false); // OnInit 强制隐藏
@@ -571,26 +572,26 @@ namespace Shenxiao.Editor.UiCreator.MainUI
 
             // 运行时快照实测高度 16(设计源没写 height)
             TextMeshProUGUI title = UiCreatorKit.NewText("TaskTitleLabel", root, "[主] 任务标题"); // 老端: lblTaskTitle
-            PlaceLaya(title.rectTransform, 6f, 6f, 180f, 16f, w, h);
+            AnchorTopLeft(title.rectTransform, 6f, 6f, 180f, 16f);
             title.fontSize = 16f;
             title.alignment = TextAlignmentOptions.Left;
             title.color = ParseColor("#54d5ff", Color.cyan);
             item.lblTaskTitle = title;
 
             TextMeshProUGUI title2 = UiCreatorKit.NewText("TaskSubTitleLabel", root, ""); // 老端: lblTaskTitle2
-            PlaceLaya(title2.rectTransform, 6f, 6f, 180f, 16f, w, h);
+            AnchorTopLeft(title2.rectTransform, 6f, 6f, 180f, 16f);
             title2.fontSize = 16f;
             title2.alignment = TextAlignmentOptions.Left;
             title2.color = ParseColor("#54d5ff", Color.cyan);
             item.lblTaskTitle2 = title2;
 
-            // 任务描述 tips(原为 MainUITaskItem.SetTips 运行时 new GameObject 造节点+写死几何(6,-32,210×44);
-            // 现烤进模板,位置/尺寸/字号在 prefab 调,运行时只填文本)。
+            // 任务描述 tips:老端从 (6,32) 起按 215px 行宽换行;模板烤静态起点/字号,
+            // 运行时按真实行数把文本框和任务条从单行 55px 向下增高。
             TextMeshProUGUI taskTips = UiCreatorKit.NewText("TaskTipsLabel", root, "任务描述内容");
             taskTips.rectTransform.anchorMin = taskTips.rectTransform.anchorMax = new Vector2(0f, 1f);
             taskTips.rectTransform.pivot = new Vector2(0f, 1f);
             taskTips.rectTransform.anchoredPosition = new Vector2(6f, -32f);
-            taskTips.rectTransform.sizeDelta = new Vector2(210f, 44f);
+            taskTips.rectTransform.sizeDelta = new Vector2(215f, 18f);
             taskTips.fontSize = 18f;
             taskTips.alignment = TextAlignmentOptions.TopLeft;
             taskTips.textWrappingMode = TextWrappingModes.Normal;
@@ -798,6 +799,16 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             rt.pivot = Vector2.zero;
             rt.sizeDelta = new Vector2(w, h);
             rt.anchoredPosition = new Vector2(left, bottom);
+        }
+
+        /// <summary>左上锚定:x 向右、y 向下为正。任务条增高时标题/完成标记保持贴顶。</summary>
+        private static void AnchorTopLeft(RectTransform rt, float x, float y, float w, float h)
+        {
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.sizeDelta = new Vector2(w, h);
+            rt.anchoredPosition = new Vector2(x, -y);
         }
 
         /// <summary>

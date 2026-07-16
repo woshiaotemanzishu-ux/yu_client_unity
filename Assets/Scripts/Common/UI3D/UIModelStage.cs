@@ -48,6 +48,14 @@ namespace Shenxiao.Common.UI3D
         private Transform _modelYaw;  // 对标 model_transform(旋转用)
         private GameObject _model;
 
+        // —— 整模(带渲染档案)的当前排布状态:供实时调参工具重排,也是"所见即所得"输出配置的真值源 ——
+        private bool _isArt;               // 当前展示的是不是整模(带 ArtModelRenderProfile)
+        private RectTransform _container;  // 当前贴进的 UI 容器(重排 imgOffset 要用它的高)
+        private float _artScaleParam;      // 传进来的显示 scale(= MODEL_SCALE × 页面配置 scale)
+        private Vector2 _artPos;           // 构图位移(= ModelPos + 配置 x/y),叠加在 BASE_Y 之上
+        private float _artYaw = MODEL_YAW; // 绝对朝向角(= 180 + 配置 yaw)
+        private float _artPitch;           // 俯仰角(度,正=相机抬高往下看=俯视,治仰视)
+
         public UIModelStage()
         {
             _stagePos = STAGE_BASE + new Vector3(STAGE_SPACING * _nextIndex++, 0f, 0f);
@@ -58,27 +66,27 @@ namespace Shenxiao.Common.UI3D
         public static UIModelStage Default => _default ?? (_default = new UIModelStage());
 
         public static void Show(RectTransform container, GameObject modelPrefab,
-            float scale = 1f, Vector2 position = default, float yaw = MODEL_YAW)
-            => Default.Place(container, modelPrefab, scale, position, yaw);
+            float scale = 1f, Vector2 position = default, float yaw = MODEL_YAW, float pitch = 0f)
+            => Default.Place(container, modelPrefab, scale, position, yaw, pitch);
 
         public static void ShowInstance(RectTransform container, GameObject modelInstance,
-            float scale = 1f, Vector2 position = default, float yaw = MODEL_YAW)
-            => Default.PlaceInstance(container, modelInstance, scale, position, yaw);
+            float scale = 1f, Vector2 position = default, float yaw = MODEL_YAW, float pitch = 0f)
+            => Default.PlaceInstance(container, modelInstance, scale, position, yaw, pitch);
 
         public static void Clear() => Default.ClearStage();
 
         // ——————————————— 实例 API ———————————————
         /// <summary>实例化 prefab 上台(所有权交给本台)。</summary>
         public void Place(RectTransform container, GameObject modelPrefab,
-            float scale = 1f, Vector2 position = default, float yaw = MODEL_YAW)
+            float scale = 1f, Vector2 position = default, float yaw = MODEL_YAW, float pitch = 0f)
         {
             if (modelPrefab == null) return;
-            PlaceInstance(container, Object.Instantiate(modelPrefab), scale, position, yaw);
+            PlaceInstance(container, Object.Instantiate(modelPrefab), scale, position, yaw, pitch);
         }
 
         /// <summary>已组装好的实例上台,所有权交给本台。</summary>
         public void PlaceInstance(RectTransform container, GameObject modelInstance,
-            float scale = 1f, Vector2 position = default, float yaw = MODEL_YAW)
+            float scale = 1f, Vector2 position = default, float yaw = MODEL_YAW, float pitch = 0f)
         {
             if (container == null || modelInstance == null)
             {
@@ -100,15 +108,20 @@ namespace Shenxiao.Common.UI3D
             bool isArtModel = ApplyRenderProfile(_model);
             SetArtAmbient(isArtModel);
             _displayFlipped = !isArtModel; // 老模型 FLIP 镜像展示 → 拖拽转身方向取反(见 AddUserYaw)
+            _isArt = isArtModel;
+            _container = container;
 
             // 摆位分流(选角"镜头偏右"实锤根因,2026-07-11):
             //  老模型(正交):config 偏移直接挪 3D——正交是平行投影,离轴=纯平移,行为与从前一致;
             //  新模型(透视):模型离轴=被斜视(等效视口偏转)。故模型中心必须锁在相机光轴上
             //  (落点=脚底在容器原点,抬半个归一身高即中心对轴),config 构图偏移改挪 2D 贴图(见下)。
+            //  整模的排布(缩放/中心对轴/相机俯仰/imgOffset)统一走 RelayoutArt(_img 建好后再调)。
             if (isArtModel)
             {
-                float stageHeight = 2.33f * BODY_SCALE_MUL * scale * ROOT_SCALE; // 导入烤入的归一身高 × 台上缩放链
-                _modelRoot.localPosition = new Vector3(0f, -stageHeight * 0.5f, 0f);
+                _artScaleParam = scale;
+                _artPos = position;
+                _artYaw = yaw;
+                _artPitch = pitch;
             }
             else
             {
@@ -141,15 +154,15 @@ namespace Shenxiao.Common.UI3D
             // 新模型的页面构图偏移挪 2D 贴图(模型本体锁光轴防斜视);老模型偏移在 3D,贴图归零。
             // 基准换算必须复刻老构图:老路径模型可视中心 = pos + (0, BASE_Y + 半身高);新路径模型
             // 渲在画面正中,把贴图平移到同一构图点 → 页面位置与老基准一致(漏掉基准项=人飘上天,实锤)。
-            Vector2 imgOffset = Vector2.zero;
             if (isArtModel)
             {
-                float pxPerUnit = container.rect.height / ORTHO_FULL_HEIGHT; // 12.8 台上单位 = 容器全高
-                float stageHeight = 2.33f * BODY_SCALE_MUL * scale * ROOT_SCALE;
-                imgOffset = new Vector2(position.x, position.y + BASE_Y + stageHeight * 0.5f) * pxPerUnit;
+                RelayoutArt(); // 缩放/中心对轴/相机俯仰/imgOffset 一并按 _art* 状态排好(_img 已建)
             }
-            _img.rectTransform.offsetMin = imgOffset;
-            _img.rectTransform.offsetMax = imgOffset;
+            else
+            {
+                _img.rectTransform.offsetMin = Vector2.zero;
+                _img.rectTransform.offsetMax = Vector2.zero;
+            }
             _img.gameObject.SetActive(true);
             // 镜像/口径排查诊断:art=按激活子树认定的整模判定,flip=是否套了 Laya 镜像补偿
             Shenxiao.Framework.Util.GameLog.Info("UI3D",
@@ -213,8 +226,59 @@ namespace Shenxiao.Common.UI3D
             _cam.orthographic = true;
             _cam.orthographicSize = ORTHO_FULL_HEIGHT * 0.5f;
             _cam.transform.localPosition = new Vector3(0f, 0f, CAMERA_Z);
+            _cam.transform.localRotation = Quaternion.identity; // 还原:上一个整模可能把相机俯仰过
             return false;
         }
+
+        // ——————————————— 整模排布 + 实时调参 API(供 ArtModelTuner 所见即所得拧)———————————————
+
+        /// <summary>
+        /// 按当前 _art* 状态把整模排好:朝向 yaw、体量缩放、中心锁相机光轴、相机俯仰、构图 imgOffset。
+        /// 缩放与 stageHeight 同步用 _artScaleParam,故缩放后脚底仍归一,不飘;俯仰绕构图中心转相机,模型不出框。
+        /// </summary>
+        private void RelayoutArt()
+        {
+            if (!_isArt || _model == null || _modelRoot == null || _modelYaw == null) return;
+            _modelYaw.localRotation = Quaternion.Euler(0f, _artYaw, 0f);
+            _model.transform.localScale = Vector3.one * (BODY_SCALE_MUL * _artScaleParam);
+            float stageHeight = 2.33f * BODY_SCALE_MUL * _artScaleParam * ROOT_SCALE;
+            _modelRoot.localPosition = new Vector3(0f, -stageHeight * 0.5f, 0f);
+            ApplyArtCameraPitch(_artPitch);
+            if (_img != null && _container != null)
+            {
+                float pxPerUnit = _container.rect.height / ORTHO_FULL_HEIGHT; // 12.8 台上单位 = 容器全高
+                Vector2 imgOffset =
+                    new Vector2(_artPos.x, _artPos.y + BASE_Y + stageHeight * 0.5f) * pxPerUnit;
+                _img.rectTransform.offsetMin = imgOffset;
+                _img.rectTransform.offsetMax = imgOffset;
+            }
+        }
+
+        /// <summary>相机绕构图中心(_root 空间 y=0)做俯仰:pitch>0 抬高相机往下看=俯视(治仰视),模型始终在框内。</summary>
+        private void ApplyArtCameraPitch(float pitch)
+        {
+            if (_cam == null) return;
+            float dist = (ORTHO_FULL_HEIGHT * 0.5f) / Mathf.Tan(ART_FOV * 0.5f * Mathf.Deg2Rad);
+            float th = pitch * Mathf.Deg2Rad;
+            _cam.transform.localPosition = new Vector3(0f, dist * Mathf.Sin(th), -dist * Mathf.Cos(th));
+            _cam.transform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+        }
+
+        // 当前整模排布真值(实时调参工具读它显示、松手/输出时换算回配置)。
+        public bool IsArt => _isArt && _model != null;
+        public float ArtYaw => _artYaw;               // 绝对朝向(配置 yaw = ArtYaw - MODEL_YAW)
+        public float ArtPitch => _artPitch;
+        public float ArtScaleParam => _artScaleParam; // 显示 scale(配置 scale = ArtScaleParam / 页面基准 scale)
+        public Vector2 ArtPosition => _artPos;        // 构图位移(配置 x/y = ArtPosition - 页面 ModelPos)
+        public AnimatedAttachmentPositionFollower ActiveAttachmentFollower =>
+            _model != null
+                ? _model.GetComponentInChildren<AnimatedAttachmentPositionFollower>(false)
+                : null;
+
+        public void SetArtYaw(float absoluteYaw) { _artYaw = absoluteYaw; RelayoutArt(); }
+        public void SetArtPitch(float pitch) { _artPitch = pitch; RelayoutArt(); }
+        public void SetArtScaleParam(float scaleParam) { _artScaleParam = Mathf.Max(0.01f, scaleParam); RelayoutArt(); }
+        public void SetArtPosition(Vector2 pos) { _artPos = pos; RelayoutArt(); }
 
         /// <summary>清掉当前模型并隐藏贴图(台子/相机/RT 保留,可再 Place)。</summary>
         public void ClearStage()
@@ -288,6 +352,11 @@ namespace Shenxiao.Common.UI3D
         /// 老模型的画面是镜像贴的(Laya 补偿),同样的物理旋转在屏幕上看是反的——增量取反对齐手感。</summary>
         public void AddUserYaw(float degrees)
         {
+            if (_isArt)
+            {
+                SetArtYaw(_artYaw + degrees); // 整模原生朝向(不镜像),拖拽直接加在绝对朝向上,与调参工具同源
+                return;
+            }
             _userYaw += _displayFlipped ? -degrees : degrees;
             if (_modelYaw != null)
                 _modelYaw.localRotation = Quaternion.Euler(0f, _baseYaw + _userYaw, 0f);
@@ -297,9 +366,11 @@ namespace Shenxiao.Common.UI3D
         /// configlogin 对应页的 NewModel.yaw,默认朝向就固定成这个角度。</summary>
         public void ReportUserYaw()
         {
-            float normalized = Mathf.Repeat(_userYaw + 180f, 360f) - 180f; // 归一到 ±180
+            float offset = _isArt
+                ? Mathf.Repeat(_artYaw - MODEL_YAW + 180f, 360f) - 180f // 整模:配置 yaw = 绝对朝向 - 180
+                : Mathf.Repeat(_userYaw + 180f, 360f) - 180f;           // 归一到 ±180
             Shenxiao.Framework.Util.GameLog.Info("UI3D",
-                "拖拽朝向偏移 {0}°(固定它:填进 configlogin 该页 NewModel.yaw)", Mathf.Round(normalized));
+                "拖拽朝向偏移 {0}°(固定它:填进 configlogin 该页 NewModel.yaw)", Mathf.Round(offset));
         }
 
         // —— 整模环境光(定案:用环境光,不用平行光;实现收编进 ArtAmbient 引用计数,

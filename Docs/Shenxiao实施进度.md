@@ -6,7 +6,7 @@
 > - [编码规范](Shenxiao编码规范.md)
 > - [Copilot 红线](../.github/copilot-instructions.md)
 
-**最近更新**：2026-06-11
+**最近更新**：2026-07-15
 
 **状态图例**：
 - ✅ 已完成
@@ -1261,3 +1261,23 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - 过程小坑:渲染断言全场景 FindObjectsByType 撞早前用例残留的烤制占位实例——改反射定位业务视图自有 _bind(沉淀:**渲染断言定位到被测实例,别全场景搜类型**)。
 - 本轮实现代理曾因网络证书瞬断中止,SendMessage 断点续跑成功(实现未落盘无半成品)。
 - **验证:DungeonFamilyCase 十组断言 + RenderAll 三十用例全绿 EXIT 0**。
+
+## 2026-07-15：1213 / 1200 Art 挂点模板与一键导入闭环
+
+- **Role 模板**：1213 的 `rhand` 从错误的腕骨原点修正为手掌权重网格实测
+  `(-0.14,0.03,0.02)`；Art 新增每骨架一份 `role_mount_profile.json`，所有动作统一烘焙。
+  未知新 `role_*` 缺 profile 直接失败，不再自动猜 0/0/1。1111/1300/1400 明确列为 1213 前旧资源兼容跳过。
+- **Head / Weapon 模板**：Head 使用 `head_mount ↔ head_attach`；Weapon 使用
+  `rhand ↔ weapon_attach`。1200 `weapon_attach` 对齐 FBX `Bone_wq_r` 的位置与 `Z=89.71°` 轴向；
+  `AttachmentSocketAligner` 改为同时解算 locator 位置和旋转。
+- **Art 总闸门**：新增「交付/检查全部模板与基准」。批处理实测 Role 7/0、Head 3/0、Weapon 2/0，
+  `[DeliveryCheck] ... pass=True`，进程退出码 0。
+- **Art 视觉预览**：新增 Role/Head/Weapon 拖入式装配预览和正背左右四方向截图；1213+Head1213+Weapon1200
+  使用图形设备实测生成 4 张有效截图，locator 位置误差约 `0.0000014`、旋转误差 `0°`。
+- **主工程导入闸门**：资产管理继续保留一次设置 Art 项目根目录、每模型手选并显示具体目录、点击即整夹替换；
+  `ImportPart` 导入后新增最终 prefab 结构硬检查，失败时不自动写入 `model_replacement.json`。
+- **整链路验证**：从 `E:/Project/ArtsProject` 重新导入 role_1213/head_1213/weapon_1200，
+  三类模板结构、7/2/1 动作、Addressables、运行时补偿 0/0/1、头饰/武器正式 locator 拼装全部通过；
+  武器定位误差约 `0.0000014`、旋转误差 `0°`。
+- **经验文档**：[Art模板验收与挂点排查经验.md](Art模板验收与挂点排查经验.md)。核心教训：
+  “错误变换稳定”不等于视觉挂点正确，自动矩阵验收必须和四方向、多动作视觉验收同时存在。

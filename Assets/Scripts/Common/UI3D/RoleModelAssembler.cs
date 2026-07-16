@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
 using UnityEngine;
+using UnityEngine.Playables;
 
 namespace Shenxiao.Common.UI3D
 {
@@ -21,8 +22,8 @@ namespace Shenxiao.Common.UI3D
 
     /// <summary>
     /// 角色 3D 组装(老客户端 UIModelClass3D 装配部分的对等物):
-    /// 衣服为主体,头饰挂 head 骨、武器挂 rhand 骨(职业 1~4 均右手单持,
-    /// 对标 GameResPath.GetWeaponRes 的 WeaponCountInfo.role),挂上后清局部变换(ResetTransform)。
+    /// 衣服为主体。带独立 Timeline 的新头饰挂 head_mount 完整继承身体头骨变换,自身 Timeline 播子骨动画;
+    /// 无独立动画的静态头饰才挂 head_mount(旧资源回退 head)。武器以 weapon_attach 对齐角色 rhand。
     /// 动作 clip 从共享目录 object/role/action/{1000+career*100}/ 按名加载,对标 PlayActions 顺序播放。
     /// </summary>
     public static class RoleModelAssembler
@@ -107,7 +108,8 @@ namespace Shenxiao.Common.UI3D
 
         /// <summary>
         /// 新模型整装:清单指到的身体 prefab + 部件(头饰/武器,清单有新用新、没新挂老件——
-        /// 新骨架按交付规范带 head/rhand 同名挂点,老件挂得上)。ArtModelStager 统一上台包装
+        /// 带独立 Timeline 的头饰已经包含自身飘动动作,挂 head_mount 继承身体头骨完整变换;
+        /// 静态头饰才走 head_mount(旧资源仍回退 head)。ArtModelStager 统一上台包装
         /// (落点归一/根位移/透明分流)。循环/停末帧由 ReplaceableRoleModel 按动作再设。
         /// 加载失败返回 null,调用方回落原始管线。
         /// </summary>
@@ -127,14 +129,22 @@ namespace Shenxiao.Common.UI3D
                 string headKey = ModelReplacement.GetPrefabKey("head", spec.HeadRes, action)
                     ?? ModelReplacement.GetPrefabKey("head", spec.HeadRes, "idle")
                     ?? Key("head", "model_head_" + spec.HeadRes);
-                await AttachPartOptional(inst, "head", headKey);
+                await AttachPartOptional(inst, "head_mount", headKey, "head",
+                    attachAnimatedAtHeadSocket: true,
+                    animatedPositionOffset: ModelReplacement.GetAttachmentPositionOffset("head", spec.HeadRes),
+                    animatedRotationOffset: ModelReplacement.GetAttachmentRotationOffset("head", spec.HeadRes),
+                    animatedScale: ModelReplacement.GetAttachmentScale("head", spec.HeadRes));
             }
             if (spec.WeaponRes > 0)
             {
                 string weaponKey = ModelReplacement.GetPrefabKey("weapon", spec.WeaponRes, action)
                     ?? ModelReplacement.GetPrefabKey("weapon", spec.WeaponRes, "idle")
                     ?? Key("weapon", "model_weapon_r_" + spec.WeaponRes);
-                await AttachPartOptional(inst, "rhand", weaponKey);
+                await AttachPartOptional(inst, "rhand", weaponKey,
+                    attachmentLocatorName: "weapon_attach",
+                    attachmentPositionOffset: ModelReplacement.GetAttachmentPositionOffset("weapon", spec.WeaponRes),
+                    attachmentRotationOffset: ModelReplacement.GetAttachmentRotationOffset("weapon", spec.WeaponRes),
+                    attachmentScale: ModelReplacement.GetAttachmentScale("weapon", spec.WeaponRes));
             }
 
             GameObject staged = ArtModelStager.Stage(inst, bodyPrefab, UnityEngine.Playables.DirectorWrapMode.Loop);
@@ -143,7 +153,12 @@ namespace Shenxiao.Common.UI3D
         }
 
         /// <summary>新模型部件挂接:资源缺失只警告不阻塞(对标 AttachPart,不带特效绑定)。</summary>
-        private static async Task AttachPartOptional(GameObject root, string boneName, string key)
+        private static async Task AttachPartOptional(GameObject root, string boneName, string key,
+            string legacyBoneName = null, bool attachAnimatedAtHeadSocket = false,
+            Vector3 animatedPositionOffset = default, Vector3 animatedRotationOffset = default,
+            float animatedScale = 1f, string attachmentLocatorName = null,
+            Vector3 attachmentPositionOffset = default, Vector3 attachmentRotationOffset = default,
+            float attachmentScale = 1f)
         {
             GameObject prefab = await ResManager.LoadOptionalAsync<GameObject>(key);
             if (prefab == null)
@@ -151,18 +166,82 @@ namespace Shenxiao.Common.UI3D
                 GameLog.Warn("UI3D", "新模型部件缺失,跳过:{0}", key);
                 return;
             }
-            Transform bone = FindBone(root.transform, boneName);
-            if (bone == null)
+            // 动态头饰的 Bone_head 根不参与自身 Timeline，实际动画只在发丝/装饰子骨。
+            // 因此动态件和静态件都挂 head_mount：父级负责身体头骨完整变换，头饰 Timeline 负责内部子骨动画。
+            bool attachAnimatedAtSocket = attachAnimatedAtHeadSocket &&
+                                          prefab.GetComponentInChildren<PlayableDirector>(true) != null;
+            Transform anchor = FindBone(root.transform, boneName);
+            if (anchor == null && !string.IsNullOrEmpty(legacyBoneName))
+            {
+                anchor = FindBone(root.transform, legacyBoneName);
+                if (anchor != null)
+                    GameLog.Warn("UI3D", "模型缺新挂点 {0},临时回退旧挂点 {1}:{2}(请从 Art 项目重导)",
+                        boneName, legacyBoneName, root.name);
+            }
+            if (anchor == null)
             {
                 GameLog.Warn("UI3D", "挂点骨骼缺失:{0}(模型 {1},美术工程跑[交付/补挂点]后重导)", boneName, root.name);
                 ResManager.Release(prefab); // 借了没用上,当场归还
                 return;
             }
-            GameObject part = Object.Instantiate(prefab, bone);
+            GameObject part = Object.Instantiate(prefab, anchor);
             LoadedAssetReleaser.Track(part, prefab);
-            part.transform.localPosition = Vector3.zero;
-            part.transform.localRotation = Quaternion.identity;
-            part.transform.localScale = Vector3.one;
+            // 新模型部件(带渲染档案)自带烤好的根偏移:根节点偏移 + 子 FBX 等值负偏移,相消把网格
+            // 摆在 prefab 原点。保留这份烤入变换,网格才精确落到挂点节点(根+子相消=0,数学实锤);
+            // 清零会打破相消→网格飘出挂点(头饰浮空实锤)。老式静态件网格原点即挂接点,才清零贴骨。
+            if (attachAnimatedAtSocket || part.GetComponentInChildren<ArtModelRenderProfile>(true) != null)
+            {
+                part.transform.localPosition = prefab.transform.localPosition;
+                part.transform.localRotation = prefab.transform.localRotation;
+                part.transform.localScale = prefab.transform.localScale;
+            }
+            else
+            {
+                part.transform.localPosition = Vector3.zero;
+                part.transform.localRotation = Quaternion.identity;
+                part.transform.localScale = Vector3.one;
+            }
+
+            if (attachAnimatedAtSocket)
+            {
+                Transform bodyHead = FindSkinnedBone(root, "head", "Bip001 Head", "Bip001_Head");
+                // 新规范优先使用独立、非蒙皮的 head_attach 定位节点；旧资源才回退 Bone_head。
+                // 定位节点与发丝骨架职责分离后，美术可以在模板内校准包络而不改动画骨。
+                Transform attachmentHead = FindBone(part.transform, "head_attach")
+                    ?? FindSkinnedBone(part, "Bone_head");
+                if (bodyHead != null && attachmentHead != null)
+                {
+                    var follower = part.AddComponent<AnimatedAttachmentPositionFollower>();
+                    follower.Initialize(bodyHead, attachmentHead, root.transform, animatedPositionOffset,
+                        animatedRotationOffset, animatedScale);
+                }
+                else
+                {
+                    GameLog.Warn("UI3D",
+                        "动态头饰定位骨缺失:身体 head={0},头饰 head_attach/Bone_head={1}({2});已挂 head_mount 但无法做局部校准",
+                        bodyHead != null, attachmentHead != null, key);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(attachmentLocatorName))
+            {
+                Transform locator = FindBone(part.transform, attachmentLocatorName);
+                if (locator != null)
+                {
+                    var aligner = part.AddComponent<AttachmentSocketAligner>();
+                    aligner.Initialize(locator, attachmentPositionOffset, attachmentRotationOffset, attachmentScale);
+                }
+                else
+                {
+                    // 旧武器没有独立 locator：保持原 prefab 根姿态，只叠加临时校准；新交付必须补 weapon_attach。
+                    part.transform.localPosition += attachmentPositionOffset;
+                    part.transform.localRotation *= Quaternion.Euler(attachmentRotationOffset);
+                    part.transform.localScale = Vector3.Scale(part.transform.localScale,
+                        Vector3.one * Mathf.Max(0.01f, attachmentScale));
+                    GameLog.Warn("UI3D", "部件定位点缺失:{0}({1});已按旧 prefab 根兼容,请从 Art 模板重导",
+                        attachmentLocatorName, key);
+                }
+            }
         }
 
         private static async Task<GameObject> AttachPart(GameObject root, string boneName, string key,
@@ -300,6 +379,22 @@ namespace Shenxiao.Common.UI3D
             {
                 Transform found = FindBone(t.GetChild(i), name);
                 if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static Transform FindSkinnedBone(GameObject root, params string[] names)
+        {
+            if (root == null || names == null) return null;
+            foreach (string name in names)
+            {
+                foreach (SkinnedMeshRenderer renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
+                    foreach (Transform bone in renderer.bones)
+                    {
+                        if (bone != null && bone.name == name) return bone;
+                    }
+                }
             }
             return null;
         }

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Shenxiao.Common.UI3D;
 using Shenxiao.EditorTools.ArtImport;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -10,11 +11,11 @@ namespace Shenxiao.EditorTools
 {
     /// <summary>
     /// 新模型部件导入链路实证(资产管理[替换新模型]泛化,2026-07-11):
-    ///  ① ImportPart 三件套:role_1213(六动作)/head_1213(两动作)/weapon_1200(一动作)从美术工程整夹导入
+    ///  ① ImportPart 三件套:role_1213(七动作)/head_1213(两动作)/weapon_1200(一动作)从美术工程整夹导入
     ///  ② 目标归一:object/{module}/{夹}/{id}@{动作}.prefab(head@idle → 1213@idle 改名生效)
     ///  ③ Addressables 键位已登记(object/role/role_1213/1213@idle 等)
-    ///  ④ 挂点体检:head 必须在(判红);rhand/root 当前交付缺失、已发回美术补,只记 WARN——美术修完改硬断言
-    ///  ⑤ 拼装冒烟:body(idle) 实例化 + head_1213 挂 head 节点 + weapon 挂 rhand(缺则跳过),截图留档
+    ///  ④ 挂点体检:Role 必须有 head_mount/rhand/root；运行时补偿必须保持 0/0/1
+    ///  ⑤ 拼装冒烟:body(idle) + head_attach 对齐 head_mount + weapon_attach 对齐 rhand,截图留档
     /// 注意:本用例会真实写入工程资产(幂等,重跑=SkipSame)且依赖本机 E:/Project/ArtsProject——
     /// 不入 RenderAll(纯验证套件不做资产变更)。单独跑:
     ///   Unity.exe -batchmode -projectPath . -executeMethod Shenxiao.EditorTools.CliVerify.NewPartImport
@@ -37,11 +38,11 @@ namespace Shenxiao.EditorTools
             if (!okRole || !okHead || !okWeapon) return Task.FromResult(3);
 
             // ② 目标归一:根 prefab 统一 {id}@{动作}.prefab(源里 head@idle 应被改名为 1213@idle)
-            string[] expectRole = { "attack", "create3", "death", "idle", "run", "walk" };
+            string[] expectRole = { "attack", "create3", "death", "idle", "run", "test", "walk" };
             bool roleOk = expectRole.All(a => File.Exists($"{RoleDir}/1213@{a}.prefab"));
             bool headOk = File.Exists($"{HeadDir}/1213@idle.prefab") && File.Exists($"{HeadDir}/1213@create3.prefab");
             bool weaponOk = File.Exists($"{WeaponDir}/1200@idle.prefab");
-            Debug.Log("CLIVERIFY newpart assets role6=" + roleOk + " head2=" + headOk + " weapon1=" + weaponOk);
+            Debug.Log("CLIVERIFY newpart assets role7=" + roleOk + " head2=" + headOk + " weapon1=" + weaponOk);
 
             // ③ Addressables 键位(地址=GameRes 相对路径小写去扩展)
             var settings = UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings;
@@ -62,15 +63,18 @@ namespace Shenxiao.EditorTools
             }
             Debug.Log("CLIVERIFY newpart addr role=" + addrRole + " head=" + addrHead + " weapon=" + addrWeapon);
 
-            // ④ 挂点体检(硬断言):美术工程已按交付规范补齐 head/rhand/root(MountPointPatcher),缺=判红
+            // ④ 挂点体检(硬断言):美术工程按模板补齐 head_mount/rhand/root,缺=判红。
             string[] missing = ArtPrefabImporter.MissingRoleMounts($"{RoleDir}/1213@idle.prefab");
             bool mountsOk = missing.Length == 0;
             if (!mountsOk)
                 Debug.LogError("CLIVERIFY newpart mounts missing=[" + string.Join(",", missing)
-                    + "](交付规范要求 head/rhand/root 齐,美术工程跑 交付/补挂点 后重导)");
+                    + "](交付规范要求 head_mount/rhand/root 齐,美术工程跑交付总检查后重导)");
+            bool zeroRuntimeCompensation = HasZeroRuntimeCompensation();
+            if (!zeroRuntimeCompensation)
+                Debug.LogError("CLIVERIFY newpart runtime compensation 不是 0/0/1；模板问题不应转成游戏逐件偏移");
 
             // ⑤ 拼装冒烟 + 截图(空场景+补光,自适应取景;batch 不播 Timeline,静态姿势即可):
-            //    身体 + 头饰挂 head + 武器挂 rhand,三件全挂上才过(对标 RoleModelAssembler.AttachPart)
+            //    身体 + 头饰 locator 对齐 head_mount + 武器 locator 对齐 rhand，三件全挂上才过。
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             bool bodyOk = false, headAttached = false, weaponAttached = false;
             var bodyPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{RoleDir}/1213@idle.prefab");
@@ -79,20 +83,18 @@ namespace Shenxiao.EditorTools
                 GameObject body = Object.Instantiate(bodyPrefab);
                 bodyOk = body.GetComponentInChildren<SkinnedMeshRenderer>(true) != null;
 
-                Transform headNode = CliVerify.FindDeep(body.transform, "head");
+                Transform headNode = CliVerify.FindDeep(body.transform, "head_mount");
                 var headPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{HeadDir}/1213@idle.prefab");
                 if (headNode != null && headPrefab != null)
                 {
-                    AttachZeroed(headPrefab, headNode);
-                    headAttached = true;
+                    headAttached = AttachHeadByLocator(body, headPrefab, headNode);
                 }
 
                 Transform rhand = CliVerify.FindDeep(body.transform, "rhand");
                 var weaponPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{WeaponDir}/1200@idle.prefab");
                 if (rhand != null && weaponPrefab != null)
                 {
-                    AttachZeroed(weaponPrefab, rhand);
-                    weaponAttached = true;
+                    weaponAttached = AttachWeaponByLocator(weaponPrefab, rhand);
                 }
                 else
                 {
@@ -110,21 +112,64 @@ namespace Shenxiao.EditorTools
             }
 
             bool pass = roleOk && headOk && weaponOk && addrRole && addrHead && addrWeapon
+                && zeroRuntimeCompensation
                 && mountsOk && bodyOk && headAttached && weaponAttached;
             Debug.Log("CLIVERIFY newpart VERDICT assets=" + (roleOk && headOk && weaponOk)
                 + " addr=" + (addrRole && addrHead && addrWeapon) + " mounts=" + mountsOk
+                + " compensation0/0/1=" + zeroRuntimeCompensation
                 + " body=" + bodyOk + " headAttached=" + headAttached + " weaponAttached=" + weaponAttached
                 + " pass=" + pass);
             return Task.FromResult(pass ? 0 : 3);
         }
 
-        /// <summary>对标 RoleModelAssembler.AttachPart:实例化为挂点子节点并清局部变换。</summary>
-        private static void AttachZeroed(GameObject prefab, Transform bone)
+        private static bool AttachHeadByLocator(GameObject body, GameObject prefab, Transform socket)
         {
-            GameObject inst = Object.Instantiate(prefab, bone);
-            inst.transform.localPosition = Vector3.zero;
-            inst.transform.localRotation = Quaternion.identity;
-            inst.transform.localScale = Vector3.one;
+            GameObject inst = Object.Instantiate(prefab, socket);
+            inst.transform.localPosition = prefab.transform.localPosition;
+            inst.transform.localRotation = prefab.transform.localRotation;
+            inst.transform.localScale = prefab.transform.localScale;
+            Transform bodyHead = CliVerify.FindDeep(body.transform, "Bip001 Head")
+                                 ?? CliVerify.FindDeep(body.transform, "head");
+            Transform locator = CliVerify.FindDeep(inst.transform, "head_attach");
+            if (bodyHead == null || locator == null) return false;
+            var follower = inst.AddComponent<AnimatedAttachmentPositionFollower>();
+            follower.Initialize(bodyHead, locator, body.transform, Vector3.zero, Vector3.zero, 1f);
+            follower.SnapNow();
+            return true;
+        }
+
+        private static bool AttachWeaponByLocator(GameObject prefab, Transform socket)
+        {
+            GameObject inst = Object.Instantiate(prefab, socket);
+            inst.transform.localPosition = prefab.transform.localPosition;
+            inst.transform.localRotation = prefab.transform.localRotation;
+            inst.transform.localScale = prefab.transform.localScale;
+            Transform locator = CliVerify.FindDeep(inst.transform, "weapon_attach");
+            if (locator == null) return false;
+            var aligner = inst.AddComponent<AttachmentSocketAligner>();
+            aligner.Initialize(locator, Vector3.zero, Vector3.zero, 1f);
+            aligner.SnapNow();
+            float positionError = Vector3.Distance(locator.position, socket.position);
+            float rotationError = Quaternion.Angle(locator.rotation, socket.rotation);
+            Debug.Log($"CLIVERIFY weapon locator error pos={positionError:F7},rot={rotationError:F5}°");
+            return positionError <= 0.0001f && rotationError <= 0.01f;
+        }
+
+        private static bool HasZeroRuntimeCompensation()
+        {
+            const string config = "Assets/GameRes/resource/config/client/model_replacement.json";
+            if (!File.Exists(config)) return false;
+            ModelReplacement.Data data = JsonUtility.FromJson<ModelReplacement.Data>(File.ReadAllText(config));
+            if (data?.entries == null) return false;
+            foreach (string key in new[] { "head/1213", "weapon/1200" })
+            {
+                ModelReplacement.Entry entry = data.entries.FirstOrDefault(e => e != null && e.key == key);
+                if (entry == null || entry.attachmentPositionOffset.sqrMagnitude > 0.00000001f
+                    || entry.attachmentRotationOffset.sqrMagnitude > 0.00000001f
+                    || Mathf.Abs(entry.attachmentScale - 1f) > 0.0001f)
+                    return false;
+            }
+            return true;
         }
 
         /// <summary>自适应取景截图:按蒙皮包围盒摆相机(模型原始体量未知,不能用固定机位)。</summary>

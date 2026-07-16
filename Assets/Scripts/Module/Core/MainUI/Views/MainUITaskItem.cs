@@ -14,10 +14,14 @@ namespace Shenxiao.Module.Core.MainUI
     public sealed class MainUITaskItem : MainUITaskItemBind
     {
         private const string TASK_FINISH_EFFECT_SLOT = "main_ui_task_finish_frame";
+        private const float SingleLineHeight = 18f;
+        private const float ExtraLineSpacing = 5f;
+        private const float ItemChromeHeight = 37f;
+        private const float TaskTipsWidth = 215f;
         private static readonly Regex FontColorStart = new Regex("<font\\s+color=['\"]?(#[0-9a-fA-F]{6})['\"]?>", RegexOptions.IgnoreCase);
 
-        /// <summary>任务描述 tips 标签(烤在模板里,位置/尺寸在 prefab 调;由 HudTaskTeamCreator 回填)。
-        /// 老实现是运行时 new GameObject 造节点+写死几何,违背"布局归 prefab"铁律,已改;字段为空时走旧路兜底。</summary>
+        /// <summary>任务描述 tips 标签(烤在模板里,静态起点/宽度/字号在 prefab 调;由 HudTaskTeamCreator 回填)。
+        /// 运行时只按真实文本行数同步高度,字段为空时走旧 prefab 兜底。</summary>
         public TextMeshProUGUI taskTips;
 
         private readonly List<TextMeshProUGUI> _tipLabels = new List<TextMeshProUGUI>();
@@ -27,6 +31,9 @@ namespace Shenxiao.Module.Core.MainUI
         private int _finishEffectVersion;
         // 槽由 UiCreator 种进 prefab;缺槽=烤制缺口(队列在案),每次任务完成都刷警告只是噪音 → 全局一次
         private static bool s_finishSlotMissingLogged;
+
+        /// <summary>当前任务条实际高度。单行 55px,每增加一行增加 23px,对标老端 GetHeight。</summary>
+        public float CurrentHeight { get; private set; } = SingleLineHeight + ItemChromeHeight;
 
         protected override void OnInit()
         {
@@ -64,6 +71,7 @@ namespace Shenxiao.Module.Core.MainUI
             ClearTipLabels();
             if (_entry == null)
             {
+                ResizeForLineCount(1);
                 HideMainLineArrow();
                 lblTaskTitle.text = "";
                 lblTaskTitle2.text = "";
@@ -223,11 +231,12 @@ namespace Shenxiao.Module.Core.MainUI
         {
             string text = ToTmpRichText(TaskModel.Instance.BuildMainUITips(task));
 
-            // 布局归 prefab:tips 标签已烤进模板(TaskTipsLabel),这里只填内容。
+            // 静态样式归 prefab;运行时按真实文案行数同步任务条高度。
             if (taskTips != null)
             {
                 taskTips.text = text;
                 taskTips.gameObject.SetActive(true);
+                ResizeForText(taskTips);
                 return;
             }
 
@@ -240,7 +249,38 @@ namespace Shenxiao.Module.Core.MainUI
             rt.anchorMax = new Vector2(0f, 1f);
             rt.pivot = new Vector2(0f, 1f);
             rt.anchoredPosition = new Vector2(6f, -32f);
-            rt.sizeDelta = new Vector2(210f, 44f);
+            rt.sizeDelta = new Vector2(TaskTipsWidth, SingleLineHeight);
+            ResizeForText(tips);
+        }
+
+        private void ResizeForText(TextMeshProUGUI text)
+        {
+            RectTransform textRect = text.rectTransform;
+            textRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, TaskTipsWidth);
+            text.ForceMeshUpdate(true, true);
+            int lineCount = Mathf.Max(1, text.textInfo.lineCount);
+            ResizeForLineCount(lineCount);
+            float tipsHeight = lineCount * SingleLineHeight + (lineCount - 1) * ExtraLineSpacing;
+            SetHeight(textRect, tipsHeight);
+        }
+
+        private void ResizeForLineCount(int lineCount)
+        {
+            float tipsHeight = lineCount * SingleLineHeight + (lineCount - 1) * ExtraLineSpacing;
+            CurrentHeight = tipsHeight + ItemChromeHeight;
+
+            RectTransform root = (RectTransform)transform;
+            root.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, CurrentHeight);
+            SetHeight(_img_bg != null ? _img_bg.rectTransform : null, CurrentHeight);
+            SetHeight(_img_select != null ? _img_select.rectTransform : null, CurrentHeight);
+            SetHeight(_box_finger_con, CurrentHeight);
+            SetHeight(_box_effect, CurrentHeight + 3f);
+            if (taskTips != null) SetHeight(taskTips.rectTransform, tipsHeight);
+        }
+
+        private static void SetHeight(RectTransform rect, float height)
+        {
+            if (rect != null) rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
         }
 
         private TextMeshProUGUI CreateTipLabel()

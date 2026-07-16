@@ -29,10 +29,12 @@ namespace Shenxiao.Module.Core.MainUI
         }
 
         private static readonly Dictionary<Transform, ParentSnapshot> Snapshots = new Dictionary<Transform, ParentSnapshot>();
+        private static readonly List<Transform> SnapshotOrder = new List<Transform>();
         private static BridgeDriver _driver;
         private static int _openWindowCount;
         private static int _retryFramesRemaining;
         private static bool _installed;
+        private static bool _restorePending;
         private static bool _hasTopVisibilitySnapshot;
         private static TopVisibilitySnapshot _topVisibility;
 
@@ -56,6 +58,7 @@ namespace Shenxiao.Module.Core.MainUI
 
         private static void OnBaseWindowOpened()
         {
+            _restorePending = false;
             _openWindowCount++;
             _retryFramesRemaining = MaxRetryFrames;
             EnsureDriver();
@@ -67,16 +70,11 @@ namespace Shenxiao.Module.Core.MainUI
             if (_openWindowCount > 0) _openWindowCount--;
             if (_openWindowCount == 0)
             {
-                if (HasShownBaseWindow())
-                {
-                    _openWindowCount = 1;
-                    _retryFramesRemaining = MaxRetryFrames;
-                    EnsureDriver();
-                    if (RaiseBars()) _retryFramesRemaining = 0;
-                    return;
-                }
-
-                Restore();
+                // BaseView.InternalHide invokes OnHide before clearing IsShown and deactivating
+                // the GameObject. Checking synchronously here would see the closing window itself
+                // as still shown and leave the MainUI head/map hidden forever.
+                _restorePending = true;
+                EnsureDriver();
             }
         }
 
@@ -87,14 +85,36 @@ namespace Shenxiao.Module.Core.MainUI
 
             MainUITopView top = FindSceneView<MainUITopView>();
             ApplyBaseWindowTopState(top);
-            MoveToWindowLayer(top, windowLayer);
             MainUIDownView down = FindSceneView<MainUIDownView>();
-            MoveToWindowLayer(down, windowLayer);
+
+            Transform topCarrier = top != null ? ResolveCarrier(top.transform, windowLayer) : null;
+            Transform downCarrier = down != null ? ResolveCarrier(down.transform, windowLayer) : null;
+
+            // Capture every original sibling index before moving either carrier. Moving HudTop
+            // first shifts HudNavBar's live index by one and would otherwise restore it above
+            // HudChatBar after the base window closes.
+            CaptureSnapshot(topCarrier);
+            CaptureSnapshot(downCarrier);
+            MoveToWindowLayer(topCarrier, windowLayer);
+            MoveToWindowLayer(downCarrier, windowLayer);
             return top != null && down != null;
         }
 
         private static void TickRetry()
         {
+            if (_restorePending)
+            {
+                _restorePending = false;
+                if (!HasShownBaseWindow())
+                {
+                    Restore();
+                    return;
+                }
+
+                _openWindowCount = 1;
+                _retryFramesRemaining = MaxRetryFrames;
+            }
+
             if (_openWindowCount <= 0)
             {
                 if (!HasShownBaseWindow()) return;
@@ -142,19 +162,21 @@ namespace Shenxiao.Module.Core.MainUI
             return null;
         }
 
-        private static void MoveToWindowLayer(Component view, Transform windowLayer)
+        private static void CaptureSnapshot(Transform t)
         {
-            if (view == null || windowLayer == null) return;
+            if (t == null || Snapshots.ContainsKey(t)) return;
 
-            Transform t = ResolveCarrier(view.transform, windowLayer);
-            if (!Snapshots.ContainsKey(t))
+            Snapshots[t] = new ParentSnapshot
             {
-                Snapshots[t] = new ParentSnapshot
-                {
-                    Parent = t.parent,
-                    SiblingIndex = t.GetSiblingIndex(),
-                };
-            }
+                Parent = t.parent,
+                SiblingIndex = t.GetSiblingIndex(),
+            };
+            SnapshotOrder.Add(t);
+        }
+
+        private static void MoveToWindowLayer(Transform t, Transform windowLayer)
+        {
+            if (t == null || windowLayer == null) return;
 
             if (t.parent != windowLayer)
             {
@@ -203,13 +225,14 @@ namespace Shenxiao.Module.Core.MainUI
 
         private static void Restore()
         {
+            _restorePending = false;
             _retryFramesRemaining = 0;
             RestoreTopVisibility();
 
-            foreach (KeyValuePair<Transform, ParentSnapshot> kv in Snapshots)
+            for (int i = 0; i < SnapshotOrder.Count; i++)
             {
-                Transform t = kv.Key;
-                ParentSnapshot snapshot = kv.Value;
+                Transform t = SnapshotOrder[i];
+                if (t == null || !Snapshots.TryGetValue(t, out ParentSnapshot snapshot)) continue;
                 if (t == null || snapshot.Parent == null) continue;
 
                 t.SetParent(snapshot.Parent, false);
@@ -217,6 +240,7 @@ namespace Shenxiao.Module.Core.MainUI
                 t.SetSiblingIndex(index);
             }
             Snapshots.Clear();
+            SnapshotOrder.Clear();
             _openWindowCount = 0;
         }
 

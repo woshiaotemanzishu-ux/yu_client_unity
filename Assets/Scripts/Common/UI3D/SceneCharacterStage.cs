@@ -73,7 +73,7 @@ namespace Shenxiao.Common.UI3D
         /// 把装配好的主角模型放上合成台:置于台中心、落地、面向相机。返回后由 MainRoleAgent 继续驱动
         /// (转向改模型 yaw、播动作读模型上的 Animation),本台只负责「被看见」。
         /// </summary>
-        public static void SetMainRole(GameObject model)
+        public static void SetMainRole(GameObject model, float modelScale = MODEL_SCALE)
         {
             if (model == null) return;
             EnsureStage();
@@ -104,7 +104,7 @@ namespace Shenxiao.Common.UI3D
             // 默认朝向:美术正脸朝本地 -Z,旋 180°(对标 SceneRotateY = 180)后静止时背对相机(默认待机姿态);
             // 移动时由 MainRoleAgent.Face 改模型自身 yaw 覆盖(后倾在父容器上,Face 改 yaw 不受影响)。
             model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
-            model.transform.localScale = new Vector3(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
+            model.transform.localScale = new Vector3(modelScale, modelScale, modelScale);
 
             UpdateArtAmbient();
             if (_img != null) _img.gameObject.SetActive(true);

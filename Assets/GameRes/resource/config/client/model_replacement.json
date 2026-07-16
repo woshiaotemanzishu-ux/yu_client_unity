@@ -1,5 +1,5 @@
-﻿{
-    "version": 1,
+{
+    "version": 2,
     "entries": [
         {
             "key": "role/1213",
@@ -27,6 +27,50 @@
                 {
                     "action": "walk",
                     "prefabKey": "object/role/role_1213/1213@walk"
+                }
+            ]
+        },
+        {
+            "key": "head/1213",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
+            "actions": [
+                {
+                    "action": "idle",
+                    "prefabKey": "object/head/head_1213/1213@idle"
+                },
+                {
+                    "action": "create3",
+                    "prefabKey": "object/head/head_1213/1213@create3"
+                }
+            ]
+        },
+        {
+            "key": "weapon/1200",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
+            "actions": [
+                {
+                    "action": "idle",
+                    "prefabKey": "object/weapon/weapon_1200/1200@idle"
                 }
             ]
         }

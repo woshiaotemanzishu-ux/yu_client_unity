@@ -29,6 +29,9 @@ namespace Shenxiao.Common.UI3D
         public class Entry
         {
             public string key;        // "{module}/{id}":role/1213、head/1213、weapon/1200
+            public Vector3 attachmentPositionOffset; // 动态部件定位骨的挂点局部位置校准(默认 0)
+            public Vector3 attachmentRotationOffset; // 动态部件 prefab 根的挂点局部旋转校准(默认 0)
+            public float attachmentScale = 1f;        // 动态部件相对挂点缩放(默认 1)
             public List<ActionOverride> actions = new List<ActionOverride>();
         }
 
@@ -106,6 +109,46 @@ namespace Shenxiao.Common.UI3D
                 return null;
             }
             return null;
+        }
+
+        /// <summary>动态部件定位骨的挂点局部位置校准;未配置返回零。</summary>
+        public static Vector3 GetAttachmentPositionOffset(string module, int id)
+        {
+            if (_data == null) return Vector3.zero;
+            string entryKey = module + "/" + id;
+            for (int i = 0; i < _data.entries.Count; i++)
+            {
+                Entry e = _data.entries[i];
+                if (e != null && e.key == entryKey) return e.attachmentPositionOffset;
+            }
+            return Vector3.zero;
+        }
+
+        /// <summary>动态部件 prefab 根的挂点局部旋转校准;未配置返回零。</summary>
+        public static Vector3 GetAttachmentRotationOffset(string module, int id)
+        {
+            if (_data == null) return Vector3.zero;
+            string entryKey = module + "/" + id;
+            for (int i = 0; i < _data.entries.Count; i++)
+            {
+                Entry e = _data.entries[i];
+                if (e != null && e.key == entryKey) return e.attachmentRotationOffset;
+            }
+            return Vector3.zero;
+        }
+
+        /// <summary>动态部件相对挂点缩放;未配置或非法值返回 1。</summary>
+        public static float GetAttachmentScale(string module, int id)
+        {
+            if (_data == null) return 1f;
+            string entryKey = module + "/" + id;
+            for (int i = 0; i < _data.entries.Count; i++)
+            {
+                Entry e = _data.entries[i];
+                if (e != null && e.key == entryKey)
+                    return e.attachmentScale > 0.01f ? e.attachmentScale : 1f;
+            }
+            return 1f;
         }
 
 #if UNITY_EDITOR

@@ -29,6 +29,9 @@ namespace Shenxiao.Module.Core.MainUI
         private const int AutoTaskMaxLevel = 65;
         private const int AutoTaskStartDelayMs = 500;
         private const int AutoTaskPeriodMs = 10000;
+        private const float TaskViewportWidth = 210f;
+        private const float TaskViewportFullHeight = 214f;
+        private const float TaskItemSpacing = 2f;
 
         private readonly List<MainUITaskItem> _taskItems = new List<MainUITaskItem>();
         private readonly List<TeamMainRoleItem> _teamItems = new List<TeamMainRoleItem>();
@@ -141,6 +144,8 @@ namespace Shenxiao.Module.Core.MainUI
             TaskModel.TaskEntry mainLine = TaskModel.Instance.MainLineTaskNeedShowArrow()
                 ? TaskModel.Instance.GetMainLineEntry() : null;
             RefreshMainLineItem(mainLine, showMainLineGuide);
+            bool hasMainLine = mainLine != null && _mainLineItem != null;
+            ApplyTaskViewport(hasMainLine, hasMainLine ? _mainLineItem.CurrentHeight : 0f);
 
             // 排版归 prefab:Content 上的 VerticalLayoutGroup 按 sibling 顺序竖排(间距/对齐去 prefab 调),
             // 这里只按顺序克隆/填数据/显隐,不再算坐标(原 -i*78 步进已删)。
@@ -237,6 +242,21 @@ namespace Shenxiao.Module.Core.MainUI
             rt.pivot = new Vector2(0f, 1f);
             rt.anchoredPosition = Vector2.zero;
             return _mainLineItem;
+        }
+
+        /// <summary>对标老端 SetTaskConSize:无主线时任务列表占满 214px;有主线时从
+        /// 「主线真实高度 + 2px」开始,剩余高度同步缩短。</summary>
+        private void ApplyTaskViewport(bool hasMainLine, float mainLineHeight)
+        {
+            if (_panel_task == null) return;
+
+            float top = hasMainLine ? mainLineHeight + TaskItemSpacing : 0f;
+            float height = hasMainLine
+                ? Mathf.Max(0f, TaskViewportFullHeight - top)
+                : TaskViewportFullHeight;
+            RectTransform viewport = (RectTransform)_panel_task.transform;
+            viewport.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0f, TaskViewportWidth);
+            viewport.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, top, height);
         }
 
         private void ShowFinger()

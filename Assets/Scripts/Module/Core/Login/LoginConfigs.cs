@@ -151,6 +151,23 @@ namespace Shenxiao.Module.Core.Login
                 t.Value<float>("yaw"));
         }
 
+        /// <summary>
+        /// 新模型显示缩放旋钮({section}.NewModel.scale,默认 1=保持导入归一后的原始大小)。
+        /// 只作用于新模型,乘在页面显示 scale 上;因显示 scale 同时进网格缩放与竖直居中基准
+        /// (UIModelStage 的 stageHeight),缩放后脚底仍归一到原点,不会飘。缺省/异常值回退 1。
+        /// </summary>
+        public static float GetNewModelScale(string section)
+        {
+            float s = _login?[section]?["NewModel"]?["scale"]?.Value<float>() ?? 1f;
+            return s > 0f ? s : 1f;
+        }
+
+        /// <summary>新模型俯仰旋钮({section}.NewModel.pitch,度;默认 0=平视,正=相机往下看治仰视)。只作用于新模型。</summary>
+        public static float GetNewModelPitch(string section)
+        {
+            return _login?[section]?["NewModel"]?["pitch"]?.Value<float>() ?? 0f;
+        }
+
         /// <summary>选角页固定槽位数(SelectRole.TotalCount,不足补「创建角色」空槽)。</summary>
         public static int SelectRoleTotalCount()
         {

@@ -178,12 +178,11 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             PlaceRightMiddle(boxExpEffect, -25f, 50f, 50f);
             view._box_exp_effect = boxExpEffect;
 
-            // ExpLabel:快照里 _lb_exp 的 runtime x=254 疑似设备相关 centerX 布局换算异常(870 宽容器里 724 宽文本框
-            // 居中该落在 x≈73,而非 254);改用与 _img_exp 左对齐的设计值 x=73,换算后 cx=0 正好居中,
-            // 与经验条视觉对齐,判定更符合设计意图,详见生成报告。
+            // ExpLabel:老端 runtime 是 x=254,y=-12,w=724,h=24,fontSize=24,scale=0.5。
+            // Unity 不保留内部 0.5 缩放,直接换算成最终视觉框 362x12 / 12px 字号,中心仍落在屏幕 x=360。
             TextMeshProUGUI lbExp = UiCreatorKit.NewText("ExpLabel", viewRoot, "0 / 0"); // 老端: _lb_exp
-            PlaceBottom(lbExp.rectTransform, 73f, -12f, 724f, 24f);
-            lbExp.fontSize = 20f;
+            PlaceBottom(lbExp.rectTransform, 254f, -12f, 362f, 12f);
+            lbExp.fontSize = 12f;
             view._lb_exp = lbExp;
 
             root.gameObject.SetActive(true);
@@ -252,7 +251,8 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             rt.anchorMax = new Vector2(0.5f, 0f);
             rt.pivot = new Vector2(0.5f, 0f);
             rt.sizeDelta = new Vector2(width, height);
-            rt.anchoredPosition = Vector2.zero;
+            // 老端 DownView 基线 y=1279(720x1280 画布),比屏幕底边高 1px。
+            rt.anchoredPosition = new Vector2(0f, 1f);
         }
 
         /// <summary>左上锚定(槽位用,与 HudActivityCreator.AnchorTopLeft 同款):x 向右、y 向下为正。</summary>

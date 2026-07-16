@@ -93,6 +93,9 @@ namespace Shenxiao.Module.Core.Login
         {
             UIModelStage.SetDragRotate(false);
             UIModelStage.Clear();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            ArtModelTuner.Detach();
+#endif
         }
 
         protected override void OnDispose()
@@ -254,17 +257,28 @@ namespace Shenxiao.Module.Core.Login
                 Destroy(model);
                 return;
             }
-            Vector2 pos = LoginConfigs.GetModelPos("SelectRole", option.Career, option.Sex);
+            Vector2 modelPosBase = LoginConfigs.GetModelPos("SelectRole", option.Career, option.Sex);
+            Vector2 pos = modelPosBase;
             float yaw = UIModelStage.MODEL_YAW;
+            float scale = MODEL_SCALE;
+            float pitch = 0f;
             // 新模型(激活中的实例带渲染档案)吃单独的展示旋钮:老 ModelPos 是按老模型调的构图,
-            // 新模型的构图/朝向在 configlogin SelectRole.NewModel { x, y, yaw } 里所见即所得拧
-            if (model.GetComponentInChildren<ArtModelRenderProfile>(false) != null)
+            // 新模型的构图/朝向/大小/俯仰在 configlogin SelectRole.NewModel { x, y, yaw, scale, pitch } 里所见即所得拧
+            bool isArt = model.GetComponentInChildren<ArtModelRenderProfile>(false) != null;
+            if (isArt)
             {
                 Vector3 tuning = LoginConfigs.GetNewModelTuning("SelectRole");
                 pos += new Vector2(tuning.x, tuning.y);
                 yaw += tuning.z;
+                scale *= LoginConfigs.GetNewModelScale("SelectRole");
+                pitch = LoginConfigs.GetNewModelPitch("SelectRole");
             }
-            UIModelStage.ShowInstance(modelCon, model, MODEL_SCALE, pos, yaw);
+            UIModelStage.ShowInstance(modelCon, model, scale, pos, yaw, pitch);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // 运行时所见即所得头饰调参浮层(仅 Editor/Development):只改头饰相对身体的位置/旋转/缩放
+            if (isArt)
+                ArtModelTuner.Attach("SelectRole");
+#endif
         }
 
         private void OnClickEnter()

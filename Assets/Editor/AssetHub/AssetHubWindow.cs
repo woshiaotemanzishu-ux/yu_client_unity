@@ -1135,6 +1135,7 @@ namespace Shenxiao.Editor.AssetHub
         private readonly Dictionary<string, string> _artPartStatus = new Dictionary<string, string>();
         // 挂点体检缓存(要载 prefab 数节点,不能每帧调);key=交付夹名,值=缺失挂点列表
         private readonly Dictionary<string, string[]> _mountCache = new Dictionary<string, string[]>();
+        private const string ART_PART_SOURCE_PREFS_PREFIX = "AssetHub.ArtPartSource.";
         private bool _previewNewModel; // 预览窗显示新模型(而不是老转换产物)
         private bool _oldClipsFoldout;   // 有新模型线时,原始动作长列表默认收起(防糊满详情页)
         private string _oldClipsEntryId; // 换条目时重置折叠状态
@@ -1176,12 +1177,111 @@ namespace Shenxiao.Editor.AssetHub
                 .Select(p => p.Replace('\\', '/')).OrderBy(p => p).FirstOrDefault();
         }
 
+        private static string ArtPartSourcePrefsKey((string module, string folder, string id) part) =>
+            $"{ART_PART_SOURCE_PREFS_PREFIX}{part.module}.{part.id}";
+
+        private static string GetArtPartSourceFolder((string module, string folder, string id) part)
+        {
+            string sourceFolder = EditorPrefs.GetString(ArtPartSourcePrefsKey(part), "")
+                .Replace('\\', '/').TrimEnd('/');
+            string assetsRoot = $"{EditorTools.ArtImport.ArtPrefabImporter.ArtProjectRoot}/Assets".TrimEnd('/');
+            return sourceFolder.Equals(assetsRoot, StringComparison.OrdinalIgnoreCase)
+                   || sourceFolder.StartsWith(assetsRoot + "/", StringComparison.OrdinalIgnoreCase)
+                ? sourceFolder
+                : "";
+        }
+
+        private static void SetArtPartSourceFolder(
+            (string module, string folder, string id) part, string sourceFolder)
+        {
+            EditorPrefs.SetString(ArtPartSourcePrefsKey(part),
+                (sourceFolder ?? "").Replace('\\', '/').TrimEnd('/'));
+        }
+
+        private void DrawArtPartImportControls(
+            AssetEntry entry,
+            (string module, string folder, string id) part,
+            string sourceFolder)
+        {
+            string artProjectRoot = EditorTools.ArtImport.ArtPrefabImporter.ArtProjectRoot;
+            bool artProjectValid = Directory.Exists($"{artProjectRoot}/Assets")
+                                   && Directory.Exists($"{artProjectRoot}/ProjectSettings");
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Label("Art 项目", EditorStyles.miniBoldLabel, GUILayout.Width(64f));
+                EditorGUILayout.SelectableLabel(artProjectRoot, EditorStyles.textField,
+                    GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                if (GUILayout.Button("设置", GUILayout.Width(48f)))
+                {
+                    string selectedRoot = EditorUtility.OpenFolderPanel(
+                        "选择 Art Unity 项目根目录", artProjectRoot, "");
+                    if (!string.IsNullOrEmpty(selectedRoot))
+                    {
+                        if (!EditorTools.ArtImport.ArtPrefabImporter.TrySetArtProjectRoot(selectedRoot, out string error))
+                            EditorUtility.DisplayDialog("Art 项目目录无效", error, "好");
+                        else
+                        {
+                            _artPartStatus.Clear();
+                            GUIUtility.ExitGUI();
+                        }
+                    }
+                }
+            }
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Label("模型目录", EditorStyles.miniBoldLabel, GUILayout.Width(64f));
+                string displayFolder = string.IsNullOrEmpty(sourceFolder)
+                    ? "未选择(点击右侧按钮选择 Art 项目内的具体模型文件夹)"
+                    : sourceFolder;
+                EditorGUILayout.SelectableLabel(displayFolder, EditorStyles.textField,
+                    GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                using (new EditorGUI.DisabledScope(!artProjectValid))
+                {
+                    if (GUILayout.Button("选择目录并导入替换", GUILayout.Width(140f)))
+                    {
+                        string pickerRoot = EditorTools.ArtImport.ArtPrefabImporter.GetPartPickerRoot(part.module);
+                        if (!Directory.Exists(pickerRoot)) pickerRoot = $"{artProjectRoot}/Assets";
+                        if (Directory.Exists(sourceFolder)) pickerRoot = sourceFolder;
+                        string selectedFolder = EditorUtility.OpenFolderPanel(
+                            $"为 {entry.Id} {entry.DisplayName} 选择新模型目录", pickerRoot, "");
+                        if (!string.IsNullOrEmpty(selectedFolder))
+                        {
+                            selectedFolder = selectedFolder.Replace('\\', '/').TrimEnd('/');
+                            SetArtPartSourceFolder(part, selectedFolder);
+                            InvalidatePartCaches(part.folder);
+                            bool ok = EditorTools.ArtImport.ArtPrefabImporter.ImportPart(
+                                part.module, part.folder, selectedFolder, out string summary);
+                            if (ok)
+                            {
+                                int filled = AutoFillFromImported(part);
+                                ShowNotification(new GUIContent($"{summary};自动配置 {filled} 个动作"));
+                            }
+                            else
+                            {
+                                EditorUtility.DisplayDialog("导入替换失败", summary, "好");
+                            }
+                            GUIUtility.ExitGUI();
+                        }
+                    }
+                }
+            }
+
+            if (!artProjectValid)
+            {
+                EditorGUILayout.HelpBox(
+                    "Art 项目目录无效。请先点“设置”，选择同时包含 Assets 和 ProjectSettings 的 Unity 项目根目录。",
+                    MessageType.Warning);
+            }
+        }
+
         /// <summary>
         /// 新模型替换区(对标 cyzc 物品图标管理:一行一条、原始/新都能定位、槽位直接选资产):
         /// 每个动作一行——原始列(有无+定位老 clip)、新模型槽位(ObjectField 直接拖/选 prefab)、
         /// 定位/还原按钮。**没有全局开关**:某动作槽位有值就用新、空就用原始,全部按
         /// model_replacement.json 自动选择(运行时 RoleModelAssembler 同一份配置)。
-        /// [更新导入]从美术工程搬文件并按 {id}@动作 自动填槽;[全部还原]清空本模型全部配置。
+        /// [选择目录并导入替换]从美术工程搬文件并按 {id}@动作 自动填槽;[全部还原]清空本模型全部配置。
         /// </summary>
         private void DrawArtPartSection(AssetEntry e, (string module, string folder, string id) part)
         {
@@ -1197,9 +1297,11 @@ namespace Shenxiao.Editor.AssetHub
                 int at = s.IndexOf('@');
                 if (at >= 0 && at < s.Length - 1) newAvail[s.Substring(at + 1)] = p;
             }
+            string sourceFolder = GetArtPartSourceFolder(part);
             if (!_artPartStatus.TryGetValue(part.folder, out string artStatus))
             {
-                artStatus = EditorTools.ArtImport.ArtPrefabImporter.GetPartArtStatus(part.module, part.folder);
+                artStatus = EditorTools.ArtImport.ArtPrefabImporter.GetPartArtStatusForFolder(
+                    part.module, sourceFolder);
                 _artPartStatus[part.folder] = artStatus;
             }
             Dictionary<string, string> configured = ModelReplacementStore.GetActions(part.module, part.id);
@@ -1227,9 +1329,11 @@ namespace Shenxiao.Editor.AssetHub
                         ? new Color(0.3f, 0.85f, 0.4f) : new Color(0.75f, 0.75f, 0.75f);
                     GUILayout.Label($"已配置 {configured.Count}/{rows.Length} 个动作", badge, GUILayout.Width(120f));
                     GUILayout.FlexibleSpace();
-                    GUILayout.Label($"美术工程:{artStatus} | 工程内新资源:{(prefabs.Length > 0 ? prefabs.Length + " 动作" : "未导入")}",
+                    GUILayout.Label($"所选模型目录:{artStatus} | 工程内新资源:{(prefabs.Length > 0 ? prefabs.Length + " 动作" : "未导入")}",
                         EditorStyles.miniLabel);
                 }
+
+                DrawArtPartImportControls(e, part, sourceFolder);
 
                 // —— 挂点体检(角色本体,一行) ——
                 if (part.module == "role" && prefabs.Length > 0)
@@ -1240,10 +1344,10 @@ namespace Shenxiao.Editor.AssetHub
                         _mountCache[part.folder] = missing;
                     }
                     if (missing.Length == 0)
-                        EditorGUILayout.LabelField("挂点  ✓ head / rhand / root 齐", EditorStyles.miniLabel);
+                        EditorGUILayout.LabelField("挂点  ✓ head_mount / rhand / root 齐", EditorStyles.miniLabel);
                     else
                         EditorGUILayout.HelpBox(
-                            $"挂点缺 [{string.Join(",", missing)}]:美术工程跑菜单[交付/补挂点]后点下方[更新导入]。",
+                            $"挂点缺 [{string.Join(",", missing)}]:美术工程跑菜单[交付/补挂点]后重新选择该目录导入。",
                             MessageType.Warning);
                 }
 
@@ -1338,20 +1442,6 @@ namespace Shenxiao.Editor.AssetHub
                 // —— 操作行 ——
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    GUI.enabled = artStatus != "未交付";
-                    if (GUILayout.Button(prefabs.Length > 0 ? "更新导入" : "导入新模型",
-                            GUILayout.Width(90f), GUILayout.Height(22f)))
-                    {
-                        bool ok = EditorTools.ArtImport.ArtPrefabImporter.ImportPart(part.module, part.folder, out string summary);
-                        InvalidatePartCaches(part.folder);
-                        if (ok)
-                        {
-                            int filled = AutoFillFromImported(part);
-                            ShowNotification(new GUIContent($"{summary};自动配置 {filled} 个动作"));
-                        }
-                        else EditorUtility.DisplayDialog("导入失败", summary, "好");
-                        GUIUtility.ExitGUI();
-                    }
                     GUI.enabled = prefabs.Length > 0;
                     if (GUILayout.Button("自动配全部", GUILayout.Width(80f), GUILayout.Height(22f)))
                     {
