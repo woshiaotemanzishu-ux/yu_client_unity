@@ -677,5 +677,24 @@ namespace Shenxiao.Framework.Event
         public const string EVT_MARRIAGE_FLOWER_RECEIVED = "EVT_MARRIAGE_FLOWER_RECEIVED";
         /// <summary>22305 感谢收花者结果(参数: bool success, long id)。</summary>
         public const string EVT_MARRIAGE_FLOWER_THANKS_RESULT = "EVT_MARRIAGE_FLOWER_THANKS_RESULT";
+
+        // ----- 自定义活动 / CustomActivity(331xx/332xx+225xx补全+224xx+159xx,自动循环 轮17)-----
+        // 通用事件为主(P1 定义,事件粒度收敛,不给每个子活动开专用事件;UI 尾包再按需加)。P2-P6 只用这些。
+        /// <summary>33101 全量活动列表落地(对标老端 SaveActInfo),读 CustomActivityModel.ActList。</summary>
+        public const string EVT_CUSTOMACT_LIST_UPDATE = "EVT_CUSTOMACT_LIST_UPDATE";
+        /// <summary>33102 活动增量新开落地(对标老端 AddActInfo)。</summary>
+        public const string EVT_CUSTOMACT_LIST_ADD = "EVT_CUSTOMACT_LIST_ADD";
+        /// <summary>33103 活动增量关闭落地(对标老端 DeleteActInfo)。</summary>
+        public const string EVT_CUSTOMACT_LIST_REMOVE = "EVT_CUSTOMACT_LIST_REMOVE";
+        /// <summary>33104 单活动通用详情落地(参数: int baseType, int subType),读 CustomActivityModel.GetDetail。</summary>
+        public const string EVT_CUSTOMACT_DETAIL_UPDATE = "EVT_CUSTOMACT_DETAIL_UPDATE";
+        /// <summary>33105 通用领取/操作结果(参数: int baseType, int subType, int code;code==1 成功)。</summary>
+        public const string EVT_CUSTOMACT_RESULT = "EVT_CUSTOMACT_RESULT";
+        /// <summary>33106 全服计数更新(参数: int baseType, int subType)。</summary>
+        public const string EVT_CUSTOMACT_ALLCOUNT_UPDATE = "EVT_CUSTOMACT_ALLCOUNT_UPDATE";
+        /// <summary>33100 331 家族通用错误码到达(参数: int code)。</summary>
+        public const string EVT_CUSTOMACT_ERROR = "EVT_CUSTOMACT_ERROR";
+        /// <summary>33158 红包雨波次(RED_PACKET_RAIN=82,P4 使用)。</summary>
+        public const string EVT_CUSTOMACT_REDPACKET_WAVE = "EVT_CUSTOMACT_REDPACKET_WAVE";
     }
 }

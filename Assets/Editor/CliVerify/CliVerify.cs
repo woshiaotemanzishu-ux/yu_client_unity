@@ -264,6 +264,43 @@ namespace Shenxiao.EditorTools
             Run(MarriageCase.Run, 300.0);
         }
 
+        /// <summary>轮17 自定义活动框架核心(33100-33108):列表落地/增删/通用详情33104/通用领奖33105/
+        /// 全服计数/批量转发+NetManager注册线核实;纯数据层轮无渲染段。</summary>
+        public static void CustomActCore()
+        {
+            Run(CustomActCoreCase.Run, 300.0);
+        }
+
+        /// <summary>轮17 P2 抽奖A(自选奖励/许愿池/天命转盘/百抽,15号)。</summary>
+        public static void CustomActLotteryA()
+        {
+            Run(CustomActLotteryACase.Run, 300.0);
+        }
+
+        /// <summary>轮17 P3 抽奖B(扭蛋/鉴宝2/在线抽/寻宝/招财猫/绑玉祈愿,14号)。</summary>
+        public static void CustomActLotteryB()
+        {
+            Run(CustomActLotteryBCase.Run, 300.0);
+        }
+
+        /// <summary>轮17 P4 节日族(摇钱树/节日活跃/赛博夺宝/绑钻转盘/红包雨/神圣召唤,20号)。</summary>
+        public static void CustomActFestival()
+        {
+            Run(CustomActFestivalCase.Run, 300.0);
+        }
+
+        /// <summary>轮17 P5 商业礼包族(0元/投资/vip礼包/问卷/红包返利/总览/获奖记录/159xx充值统计等,~22号)。</summary>
+        public static void CustomActBiz()
+        {
+            Run(CustomActBizCase.Run, 300.0);
+        }
+
+        /// <summary>轮17 P6 跨服+榜(跨服团购/TopPlayer补全/跨服鲜花榜/消费榜,~13号)。</summary>
+        public static void CustomActKfRank()
+        {
+            Run(CustomActKfRankCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -308,6 +345,12 @@ namespace Shenxiao.EditorTools
                 int bs = await BossCase.Run();
                 int kb = await KfBossCase.Run();
                 int mr = await MarriageCase.Run();
+                int c0 = await CustomActCoreCase.Run();
+                int c2 = await CustomActLotteryACase.Run();
+                int c3 = await CustomActLotteryBCase.Run();
+                int c4 = await CustomActFestivalCase.Run();
+                int c5 = await CustomActBizCase.Run();
+                int c6 = await CustomActKfRankCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -316,8 +359,10 @@ namespace Shenxiao.EditorTools
                     + " goodsproto=" + gp + " relive=" + rl + " skillgrowth=" + sg + " innateview=" + iv
                     + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch + " friendmail=" + fm
                     + " team=" + tm + " dungeonfam=" + df + " dailyhub=" + dh + " createvideo=" + cv + " shop=" + sh
-                    + " rank=" + rk + " guildcore=" + gc + " guildext=" + ge + " boss=" + bs + " kfboss=" + kb + " marriage=" + mr);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr })
+                    + " rank=" + rk + " guildcore=" + gc + " guildext=" + ge + " boss=" + bs + " kfboss=" + kb + " marriage=" + mr
+                    + " customactcore=" + c0 + " calotteryA=" + c2 + " calotteryB=" + c3 + " cafestival=" + c4
+                    + " cabiz=" + c5 + " cakfrank=" + c6);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, c0, c2, c3, c4, c5, c6 })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

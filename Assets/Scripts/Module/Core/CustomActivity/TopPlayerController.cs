@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -17,9 +18,23 @@ namespace Shenxiao.Module.Core.CustomActivity
     /// 时间窗请求 22501;收到数据且仍在窗口内 → 经 ActivityIconManager.AddOwnerIcon 强加 331@10@0
     /// (绕过 open_lv=999 的通用门),并 Emit EVT_TOPPLAYER_MAIN_DATA 让活动视图挂 ui_cb01 + 填文案。
     ///
-    /// 仍缺(留作后续):奖励领取 22503/22504、get-way 22505、榜单 reward item + 3D 模型、逐秒倒计时、
+    /// 仍缺(留作后续):榜单 reward item + 3D 模型、逐秒倒计时、
     /// 红点(22502 goal_list 已读取但未驱动 _img_red)。需要 config_rush_rank.json 与 331_10.png 导入为
     /// Addressable 后此图标才会真正出现。
+    ///
+    /// 【自动循环 轮17 P6 新增】22500(通用错误码)/22503(领目标奖)/22504(领排名奖)/22505(获取途径)。
+    /// wire 全部回 pt_225.erl 原文核(read:8-27行,write:30-129行,item_to_bin_0/1/2/3:134-184行)。
+    /// 任务只放行本文件(TopPlayerController.cs)一个文件,TopPlayerModel.cs 不在可写范围——22503/22504 的
+    /// "成功后重拉 22502"联动改走直接 SendFmt(对标老端 Fire(SCMD_REQUEST,22502,sub_type),ts:1195/1208);
+    /// 22504 的 SetActResult(scmd) 落地复用 P1 已提供的公开 API CustomActivityModel.Instance.SetClaimResult
+    /// (baseType=TopPlayerModel.ACT_BASE_TYPE);22505 的 GetWay 数据没有 Model 可落,改存本类私有字段
+    /// (_getWayByRushId),Emit 复用既有通用事件 EVT_CUSTOMACT_DETAIL_UPDATE 替代老端 UPDATE_VIEW 语义。
+    ///
+    /// 【C2S 参数序订正,已回填 Proto.cs】经 TopPlayerItem.ts:50-52 实际调用点 Fire(SCMD_REQUEST,22504,
+    /// rank_type,1,id) 与 pt_225.erl:15-24 read(22503)/read(22504) 逐字段核对,真实顺序是 Type,
+    /// SubType(固定值1),Goal/RewardId(fmt "ihc" 对应 i=Type,h=SubType,c=Goal/RewardId);"1"是硬编码的
+    /// TopPlayerModel.ACT_SUB_TYPE。本文件按 erl 原文实现;Proto.cs TOP_PLAYER_GOAL_CLAIM/TOP_PLAYER_RANK_CLAIM
+    /// 注释已同步订正(不再是早期误记的 "Type,Goal,SubType")。
     /// </summary>
     public sealed class TopPlayerController : BaseController
     {
@@ -28,10 +43,28 @@ namespace Shenxiao.Module.Core.CustomActivity
 
         private bool _requested;
 
+        /// <summary>22505 获取途径信息缓存(对标老端 model.TopPlayerGetWayInfo(scmd);TopPlayerModel.cs 不在
+        /// 本轮可写文件范围,暂存本类私有字段,key=RushId)。</summary>
+        private readonly Dictionary<int, List<GetWayEntry>> _getWayByRushId = new Dictionary<int, List<GetWayEntry>>();
+
+        /// <summary>获取途径单条(对标 pt_225.erl item_to_bin_3:174-184)。</summary>
+        public sealed class GetWayEntry
+        {
+            public int JumpId;
+            public int Label;
+            public long EndTime;
+        }
+
+        private static void ShowError(int errorCode) => TipsManager.Toast("错误(" + errorCode + ")"); // 错误码表未移植,显码降级(仿 CustomActivityController.Core.cs)
+
         protected override void Register()
         {
             RegisterProtocal(Proto.TOP_PLAYER_RANK_INFO, On22501);   // 22501
             RegisterProtocal(Proto.TOP_PLAYER_GOAL_INFO, On22502);   // 22502
+            RegisterProtocal(Proto.TOP_PLAYER_ERROR, On22500);       // 22500(P6新增)
+            RegisterProtocal(Proto.TOP_PLAYER_GOAL_CLAIM, On22503);  // 22503(P6新增)
+            RegisterProtocal(Proto.TOP_PLAYER_RANK_CLAIM, On22504);  // 22504(P6新增)
+            RegisterProtocal(Proto.TOP_PLAYER_GET_WAY, On22505);     // 22505(P6新增)
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_READY, OnRoleInfoUpdate);
         }
@@ -42,6 +75,7 @@ namespace Shenxiao.Module.Core.CustomActivity
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_READY, OnRoleInfoUpdate);
             TopPlayerModel.Instance.Reset();
             _requested = false;
+            _getWayByRushId.Clear();
             base.Dispose();
         }
 
@@ -63,8 +97,11 @@ namespace Shenxiao.Module.Core.CustomActivity
             return openDay <= 8 && role.Level >= 130;
         }
 
-        /// <summary>对标 MainUIActivityView.InitEvent 末尾的 config_rush_rank 遍历 + 22501("ih")。</summary>
-        private async Task RequestOpenRanksAsync()
+        /// <summary>对标 MainUIActivityView.InitEvent 末尾的 config_rush_rank 遍历 + 22501("ih")。改 public
+        /// (自动循环 轮17 B2):供 CustomActivityController.Core.cs 的 RequestActDetail TOP_PLAYER 分支
+        /// 直接调用,镜像老端 RequireActInfo TOP_PLAYER 分支里紧跟 22502 之后的同一段遍历(无角色等级/开服
+        /// 天数门禁,与 OnRoleInfoUpdate 那条带门禁的触发路径语义不同,两者并存不冲突)。</summary>
+        public async Task RequestOpenRanksAsync()
         {
             await RushRankConfigs.EnsureLoaded();
             if (RushRankConfigs.All == null) return;
@@ -158,5 +195,88 @@ namespace Shenxiao.Module.Core.CustomActivity
             // 通知活动视图:挂 ui_cb01、填榜首名/活动名。
             EventDispatcher.Emit(GlobalEvent.EVT_TOPPLAYER_MAIN_DATA, info.RankType);
         }
+
+        // ---------------------------------------------------------------------------------------
+        // 自动循环 轮17 P6 新增:22500/22503/22504/22505(wire 全部回 pt_225.erl 原文核,见头注释)。
+        // ---------------------------------------------------------------------------------------
+
+        /// <summary>22500 头号玩家通用错误码(S2C only,pt_225.erl:30-36 write;无 read,C2S 侧无此号)。
+        /// 对标老端 On22500(ts:1122-1127):仅 error_code!=1012 弹窗。</summary>
+        private void On22500(NetReader r)
+        {
+            int code = r.ReadI32();
+            if (code != 1012) ShowError(code);
+            GameLog.Info("TopPlayer", "22500 通用错误码 code={0}", code);
+        }
+
+        /// <summary>22503 领取目标奖励回执:ErrorCode:32,Type:32,Goal:8,SubType:16(pt_225.erl:86-98 write)。
+        /// 对标老端 On22503(ts:1190-1197):**仅 code==1 时**重拉 22502 刷新目标列表;失败老端无 else 分支,
+        /// 不弹错也不刷新(照抄这个不对称行为,不额外加 ShowError)。</summary>
+        private void On22503(NetReader r)
+        {
+            int code = r.ReadI32();
+            int type = (int)r.ReadU32();
+            int goal = r.ReadU8();
+            int subType = r.ReadU16();
+            if (code == 1)
+            {
+                SendFmt(Proto.TOP_PLAYER_GOAL_INFO, "h", subType); // 对标 Fire(SCMD_REQUEST,22502,sub_type),ts:1195
+            }
+            EventDispatcher.Emit(GlobalEvent.EVT_CUSTOMACT_RESULT, TopPlayerModel.ACT_BASE_TYPE, subType, code);
+            GameLog.Info("TopPlayer", "22503 领取目标奖励回执 code={0} type={1} goal={2} sub={3}", code, type, goal, subType);
+        }
+
+        /// <summary>22504 领取排名奖励回执:ErrorCode:32,RewardId:8,SubType:16,Type:32(pt_225.erl:100-112 write)。
+        /// 对标老端 On22504(ts:1199-1209):**无论成败**都 SetActResult(scmd) + 重拉 22502(与 22503 不同,
+        /// 22503 只在成功时才刷新)。SetActResult 落地复用 CustomActivityModel 既有公开 API SetClaimResult。
+        /// **三镜头订正,去掉老端没有的弹码**:老端 On22504 全函数体没有任何 ShowError/Util.ErrorCodeShow
+        /// 调用(失败静默,不弹窗;失败信息走独立的 22500 通用错误码通道,这里再弹一次会双弹),已删除
+        /// 原先误加的 `if(code!=1) ShowError(code)`,保留 GameLog+EVT_CUSTOMACT_RESULT 事件留痕成败。</summary>
+        private void On22504(NetReader r)
+        {
+            int code = r.ReadI32();
+            int rewardId = r.ReadU8();
+            int subType = r.ReadU16();
+            int type = (int)r.ReadU32();
+            CustomActivityModel.Instance.SetClaimResult(TopPlayerModel.ACT_BASE_TYPE, subType, rewardId, code);
+            SendFmt(Proto.TOP_PLAYER_GOAL_INFO, "h", subType); // 对标 Fire(SCMD_REQUEST,22502,sub_type),ts:1208,无条件执行
+            EventDispatcher.Emit(GlobalEvent.EVT_CUSTOMACT_RESULT, TopPlayerModel.ACT_BASE_TYPE, subType, code);
+            GameLog.Info("TopPlayer", "22504 领取排名奖励回执 code={0} rewardId={1} sub={2} type={3}", code, rewardId, subType, type);
+        }
+
+        /// <summary>22505 获取途径信息:RushId:32,Res[u16计数]×{JumpId:32,Label:32,EndTime:64}
+        /// (pt_225.erl:114-129 write,item_to_bin_3:174-184)。对标老端 On22505(ts:1210-1214):
+        /// model.TopPlayerGetWayInfo(scmd) + Fire(UPDATE_VIEW,10,1,rush_id)——TopPlayerModel.cs 不在本轮可写
+        /// 文件范围,数据暂存本类私有字段 _getWayByRushId,Emit 复用既有通用事件 EVT_CUSTOMACT_DETAIL_UPDATE
+        /// (base=10,sub=1)替代 UPDATE_VIEW 语义。</summary>
+        private void On22505(NetReader r)
+        {
+            int rushId = (int)r.ReadU32();
+            List<GetWayEntry> list = r.ReadArray(rr => new GetWayEntry
+            {
+                JumpId = (int)rr.ReadU32(),
+                Label = (int)rr.ReadU32(),
+                EndTime = rr.ReadU64(),
+            });
+            _getWayByRushId[rushId] = list;
+            EventDispatcher.Emit(GlobalEvent.EVT_CUSTOMACT_DETAIL_UPDATE, TopPlayerModel.ACT_BASE_TYPE, TopPlayerModel.ACT_SUB_TYPE);
+            GameLog.Info("TopPlayer", "22505 获取途径信息 rushId={0} resN={1}", rushId, list.Count);
+        }
+
+        public IReadOnlyList<GetWayEntry> GetGetWay(int rushId) =>
+            _getWayByRushId.TryGetValue(rushId, out List<GetWayEntry> v) ? v : null;
+
+        /// <summary>22503 领取目标奖励(C2S "ihc" Type,SubType,Goal;SubType 固定 TopPlayerModel.ACT_SUB_TYPE,
+        /// 对标 TopPlayerItem.ts:52 `Fire(SCMD_REQUEST,22503,rank_type,1,id)`,顺序订正见头注释)。</summary>
+        public void RequestGoalClaim(int type, int goal) =>
+            SendFmt(Proto.TOP_PLAYER_GOAL_CLAIM, "ihc", type, TopPlayerModel.ACT_SUB_TYPE, goal);
+
+        /// <summary>22504 领取排名奖励(C2S "ihc" Type,SubType,RewardId,同上订正;对标 TopPlayerItem.ts:50)。</summary>
+        public void RequestRankClaim(int type, int rewardId) =>
+            SendFmt(Proto.TOP_PLAYER_RANK_CLAIM, "ihc", type, TopPlayerModel.ACT_SUB_TYPE, rewardId);
+
+        /// <summary>22505 获取途径(C2S "i" RushId,对标 ts:403-404)。</summary>
+        public void RequestGetWay(int rushId) =>
+            SendFmt(Proto.TOP_PLAYER_GET_WAY, "i", rushId);
     }
 }

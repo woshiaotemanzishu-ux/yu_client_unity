@@ -2254,5 +2254,200 @@
         /// <summary>感谢收花者(C2S "l" id;老端两处调用点分别传 role_id 与记录 id,字段语义按上下文由调用方
         /// 决定,wire 侧仅回声该值)。S2C Code:32,Id:64。</summary>
         public const int MARRIAGE_FLOWER_THANKS = 22305;
+
+        // ===================================================================================================
+        // ----- 自定义活动(331xx/332xx+225xx补全+224xx+159xx,pp_custom_act/pp_custom_act_list/pp_rush_rank,
+        // 自动循环 轮17)P1-P6 全部活号常量。331xx/332xx 已存在:CUSTOM_ACTIVITY_LIST=33101(:683)/
+        // CUSTOM_ACTIVITY_FTVINVEST=33211(:720)/CUSTOM_ACTIVITY_RED_ENVELOPE_REBATE=33255(:721);225xx 已存在:
+        // TOP_PLAYER_RANK_INFO=22501(:689)/TOP_PLAYER_GOAL_INFO=22502(:692)——原位保留不重复定义,本段仅补全。
+        // 命名:CUSTOM_ACT_*(331xx/332xx新号)/TOP_PLAYER_*(225xx补全)/KF_FLOWER_RANK_*·CONSUME_RANK_*(224xx)/RECHARGE_STAT_*(159xx)。
+        // 死号(§1,老端未注册或服务端/客户端任一侧全死)严禁在本段出现:33107/33110/33111/33112-33114/33116
+        // (33115 完美情缘活)/33118/33120-33123/33126/33127/33143/33145/33146/33148/33149/33151-33154/
+        // 33160-33164/33170-33178/33180-33189(33179 活)/33198/33199/33201-33208/33218-33220/33223/33249/
+        // 33252-33254(LIST_DUOBAO 独立包不碰)/33261/22601-22603。
+        // ===================================================================================================
+
+        // ---- P1 框架核心(pt_331 33100-33108,33101 已存在于上方;字段序逐个回 pt_331.erl 原文+item_to_bin_N
+        // 核对,发现 33104 recon 表初稿"Type:8,Value:32"有误,已用 pt_331.erl:2236 item_to_bin_3 订正为
+        // 8字段,详见常量注释) ----
+        /// <summary>331 家族通用错误码出口(纯推送,S2C only)。回包 ErrorCode:32。老端仅 ErrorCode!=1012 时
+        /// 弹窗显错(pt_331.erl:347-353,ClientProtocol.json "33100")。</summary>
+        public const int CUSTOM_ACT_ERROR = 33100;
+        /// <summary>活动增量新开(S2C only,推送点 lib_custom_act.erl:2247)。回包同 33101 结构:List[u16计数]×
+        /// {BaseType:16,SubType:16,ActType:8,ShowId:16,Wlv:16,Name:s,Desc:s,Condition:s,Stime:32,Etime:32}
+        /// (pt_331.erl:370-383 item_to_bin_1,字段序与 item_to_bin_0/33101 完全一致)。</summary>
+        public const int CUSTOM_ACT_ADD = 33102;
+        /// <summary>活动增量关闭(S2C only,推送点 lib_custom_act.erl:2274/280、mod_hi_point.erl:204)。
+        /// 回包 List[u16计数]×{BaseType:16,SubType:16}(pt_331.erl:385-398)。</summary>
+        public const int CUSTOM_ACT_REMOVE = 33103;
+        /// <summary>单活动通用详情(默认兜底号,RequireActInfo 分发表末尾兜底)。C2S "hh" BaseType,SubType。
+        /// S2C BaseType:16,SubType:16,RewardList[u16计数]×{Grade:16,FormType:8,Status:8,ReceiveTimes:16,
+        /// Name:s,Desc:s,Condition:s,Reward:s}——**订正**:pt_331.erl:400-417 的 write 子句只列了变量名,
+        /// 真实字段序在 item_to_bin_3(pt_331.erl:2236-2262)且与 ClientProtocol.json "33104" 完全一致
+        /// (8字段,非早期侦察表误记的 Type:8,Value:32 两字段/33107 的结构)。</summary>
+        public const int CUSTOM_ACT_DETAIL = 33104;
+        /// <summary>通用领取/操作结果回执(近20个子活动共用)。C2S "hhh" BaseType,SubType,Grade。
+        /// S2C ErrorCode:32,BaseType:16,SubType:16,Grade:16(pt_331.erl:419-431)。</summary>
+        public const int CUSTOM_ACT_CLAIM = 33105;
+        /// <summary>全服计数(FtvCollectionExchange/FtvShop/AtListPurchase 共用)。C2S 老端 args.length>=5 时才发
+        /// "hhhhh" BaseType,SubType,ModId,CounterId,Grade(不足5参不发,ts:359-365)。S2C BaseType:16,SubType:16,
+        /// ModId:16,CounterId:16,Count:16,Grade:16(pt_331.erl:433-449)。</summary>
+        public const int CUSTOM_ACT_ALLCOUNT = 33106;
+        /// <summary>活动刷新批量指令(S2C only,推送点 lib_custom_act.erl:437 RefreshActList)。回包
+        /// Values[u16计数]×{BaseType:16,SubType:16}(pt_331.erl:470-483)。老端收到后遍历逐条 RequireActInfo,
+        /// 本端镜像遍历调 RequestActDetail(见 CustomActivityController.Core.cs On33108)。</summary>
+        public const int CUSTOM_ACT_REFRESH = 33108;
+
+        // ---- P1 头号玩家/开服冲榜补全(pt_225,22501/22502 已存在于上方;本段仅补 22500/22503-05,
+        // 实现归 P6 独占 TopPlayerController.cs) ----
+        /// <summary>头号玩家通用错误码(S2C only)。回包 ErrorCode:32。老端仅 ErrorCode!=1012 弹窗
+        /// (ClientProtocol.json "22500","error_code":"i")。</summary>
+        public const int TOP_PLAYER_ERROR = 22500;
+        /// <summary>领取目标奖励。C2S "ihc" 实参序=Type,SubType(恒=1),Goal——轮17收口订正:早期注释写
+        /// "Type,Goal,SubType"与原文不符,已按 pt_225.erl:15-19 read 定义+老端 TopPlayerItem.ts:50-52 调用
+        /// 实参交叉核实。S2C ErrorCode:32,Type:32,Goal:8,SubType:16(ClientProtocol.json "22503")。
+        /// 成功后老端重拉 22502。</summary>
+        public const int TOP_PLAYER_GOAL_CLAIM = 22503;
+        /// <summary>领取排名奖励。C2S "ihc" 实参序=Type,SubType(恒=1),RewardId(同上轮17收口订正,
+        /// pt_225.erl:20-24)。S2C ErrorCode:32,RewardId:8,SubType:16,Type:32(ClientProtocol.json "22504")。
+        /// 成功后老端重拉 22502。</summary>
+        public const int TOP_PLAYER_RANK_CLAIM = 22504;
+        /// <summary>头号玩家获取途径信息。C2S "i" RushId。S2C RushId:32,Res[u16计数]×{JumpId:32,Label:32,
+        /// EndTime:64}(ClientProtocol.json "22505")。</summary>
+        public const int TOP_PLAYER_GET_WAY = 22505;
+
+        // ---- P1 鲜花榜/消费榜补全(224xx,与轮12 221xx 竞榜/pt_225 无交集;实现归 P6 独占。轮17收口定名:
+        // P6 已裁决 22400/22403=跨服鲜花榜(老端注册处注释"//鲜花榜" ts:2878-2880,On22403 联动
+        // FlowerrankModel.SetFlowerRankData ts:1911-1915;本服鲜花榜走 22401 不在本轮号段),
+        // 22405=首发充值消费排行(ts:2921-2922)。Unity 无 FlowerrankModel,数据落 P6 Model+TODO) ----
+        /// <summary>跨服鲜花榜通用错误码(S2C only)。回包 Code:32(ClientProtocol.json "22400")。</summary>
+        public const int KF_FLOWER_RANK_ERROR = 22400;
+        /// <summary>跨服鲜花榜数据(含 figure_list)。C2S "ih" rankType,subType(老端 FlowerRankView.ts:63-84
+        /// 仅 base_type==2 跨服时发)。S2C Type:32,SubType:16,SelRank:32,SelVal:32,SelZone:8,Sum:32,MaxLen:16,
+        /// RankLimit:32,RankList[u16计数]×{RoleId:64,ServerId:16,Zone:8,ServerNum:16,Name:s,FirstValue:32,
+        /// Rank:32},FigureList[u16计数]×{RoleId:64,Figure:RecFigure}(ClientProtocol.json "22403")。</summary>
+        public const int KF_FLOWER_RANK_INFO = 22403;
+        /// <summary>首发充值消费排行。S2C Code:32,Type:16,SubType:16,RankType:32,SelRank:32,SelVal:32,Sum:32,
+        /// MaxLen:16,RankLimit:32,RankList[u16计数]×{RoleId:64,Name:s,FirstValue:32,Rank:32}
+        /// (ClientProtocol.json "22405")。</summary>
+        public const int CONSUME_RANK_INFO = 22405;
+
+        // ---- P1 充值统计补全(159xx,15908 归 AddVipService 与本段无冲突;实现归 P5) ----
+        /// <summary>每日累充信息。S2C SubType:16,Num:32,RewardInfos[u16计数]×{Id:16,State:8,Val:32,Max:32,
+        /// RewardList:ObjectList,Condition:s,Desc:s}(ClientProtocol.json "15955";老端注册注释"每日累充")。</summary>
+        public const int RECHARGE_STAT_DAILY_ACCUM_INFO = 15955;
+        /// <summary>每日累充奖励列表。S2C SubType:16,RewardList[u16计数]×{Id:16,State:8,Val:32,Max:32,
+        /// GoldNum:64,RewardList:ObjectList,Condition:s,Desc:s}(ClientProtocol.json "15956")。</summary>
+        public const int RECHARGE_STAT_DAILY_ACCUM_REWARD = 15956;
+        /// <summary>某活动类型充值总额(老端注释"某个活动类型的充值总额")。S2C Type:16,SubType:16,TotalGold:32
+        /// (ClientProtocol.json "15957")。老端 On15957→SetActRecharge(type,subtype,total_gold)。</summary>
+        public const int RECHARGE_STAT_ACT_RECHARGE = 15957;
+        /// <summary>节日活动·充值有礼充值金额(老端注释原文)。S2C Type:16,SubType:16,TotalGold:32
+        /// (ClientProtocol.json "15958")。</summary>
+        public const int RECHARGE_STAT_POLITE_RECHARGE = 15958;
+        /// <summary>当天充值金额(老端注释原文)。S2C TotalGold:32(ClientProtocol.json "15959")。
+        /// 老端收到后追发 RequireActInfo(CON_RECHARGE,1)。</summary>
+        public const int RECHARGE_STAT_TODAY = 15959;
+        /// <summary>几天前的充值金额列表(老端注释原文)。S2C Lists[u16计数]×{Time:32,TotalGold:32}
+        /// (ClientProtocol.json "15960")。</summary>
+        public const int RECHARGE_STAT_HISTORY = 15960;
+
+        // ---- P2 抽奖A:OPTIONALLOTTO=76/WISH_POOL=79/DESTINY_TURNTABLE=99/TURNTABLE_100=100 ----
+        public const int CUSTOM_ACT_LOTTO_PANEL = 33128;   // OPTIONALLOTTO 界面
+        public const int CUSTOM_ACT_LOTTO_LOCK = 33129;    // 锁定奖池;**变长发送特例**(老端 WriteBegin/WriteFMT 手写,非固定 fmt)
+        public const int CUSTOM_ACT_LOTTO_RESET = 33133;   // 重置
+        public const int CUSTOM_ACT_LOTTO_DRAW = 33134;    // 抽奖
+        public const int CUSTOM_ACT_LOTTO_STAGE = 33135;   // 阶段奖
+        public const int CUSTOM_ACT_LOTTO_POOL = 33139;    // 奖池
+        public const int CUSTOM_ACT_WISHPOOL_POOL = 33141;  // WISH_POOL 奖池
+        public const int CUSTOM_ACT_WISHPOOL_CLAIM = 33142; // 取奖池奖励(老端 fmt 表 33142 命中"hhh"死分支,实发参数待 P2 回调用点核实)
+        public const int CUSTOM_ACT_WISHPOOL_RESET = 33144; // 重置
+        public const int CUSTOM_ACT_DESTINY_PANEL = 33238;  // DESTINY_TURNTABLE 界面
+        public const int CUSTOM_ACT_DESTINY_PUSH = 33239;   // **recv-only**(C2S 死,S2C 抽奖后积分推送)
+        public const int CUSTOM_ACT_DESTINY_DRAW = 33240;   // 开抽;Reward 走 write_string 非 object_list(pt_332.erl:1042)
+        public const int CUSTOM_ACT_TURN100_PANEL = 33241;  // TURNTABLE_100 界面
+        public const int CUSTOM_ACT_TURN100_PUSH = 33242;   // **recv-only** 推送
+
+        // ---- P3 抽奖B:GASHAPON=103/LUC_TREA_TWO=102/ONLINE_DRAW=81/LUC_TREA=80/FORTUNECAT=87/
+        // BIND_JAGE_WISH=127 ----
+        public const int CUSTOM_ACT_GASHAPON_INFO = 33245;        // 通用抽奖信息
+        public const int CUSTOM_ACT_GASHAPON_DRAW = 33246;        // 开抽
+        public const int CUSTOM_ACT_LUCTREA2_PANEL = 33243;       // 幸运鉴宝2 界面;GradeInfo 嵌套
+        public const int CUSTOM_ACT_LUCTREA2_DRAW = 33244;
+        public const int CUSTOM_ACT_ONLINEDRAW_PANEL = 33217;     // WinnerList 含 write_figure→复用 FigureProto
+        public const int CUSTOM_ACT_ONLINEDRAW_GOODS_POWER = 33266; // 物品期望战力,read GoodsId:64
+        public const int CUSTOM_ACT_LUCTREA_PANEL = 33213;        // Pool=Obj[],ErrorCode 在**末尾**
+        public const int CUSTOM_ACT_LUCTREA_DRAW = 33214;
+        public const int CUSTOM_ACT_FORTUNECAT_INFO = 33224;
+        public const int CUSTOM_ACT_FORTUNECAT_DRAW = 33225;
+        public const int CUSTOM_ACT_FORTUNECAT_RECORD = 33226;
+        public const int CUSTOM_ACT_BINDJAGE_INFO = 33260;        // 心愿单信息
+        public const int CUSTOM_ACT_BINDJAGE_DRAW = 33262;        // Errcode 末尾
+        public const int CUSTOM_ACT_BINDJAGE_FREEGIFT = 33263;    // Errcode 末尾
+
+        // ---- P4 节日族:摇钱树 MONEYTREE=50/MOUNT_TURNTABLE=54/MONEYTREE_SHOP=89/FTVACTIVENESS=56/
+        // SAIBOTREASURE=58/绑钻转盘 TURNTABLE=28/RED_PACKET_RAIN=82/HOLYCALL=67 ----
+        public const int CUSTOM_ACT_MONEYTREE_PANEL = 33190;    // 三嵌套 ShowList/CumulateReward/Shop
+        public const int CUSTOM_ACT_MONEYTREE_DRAW = 33191;     // 服务端同号双子句(HOLY_SUMMON 精确+通用兜底)
+        public const int CUSTOM_ACT_MONEYTREE_CUMULATE = 33192;
+        public const int CUSTOM_ACT_MONEYTREE_SHOP = 33168;     // 树商店兑换
+        public const int CUSTOM_ACT_MONEYTREE_CURRENCY = 33231; // 契约点/货币展示
+        public const int CUSTOM_ACT_FTVACTIVE_PANEL = 33193;
+        public const int CUSTOM_ACT_FTVACTIVE_SUBMIT = 33194;
+        public const int CUSTOM_ACT_FTVACTIVE_SERVER_CLAIM = 33195;
+        public const int CUSTOM_ACT_FTVACTIVE_TRIGGER_PUSH = 33196; // **recv-only** 广播
+        public const int CUSTOM_ACT_SAIBO_PANEL = 33165;
+        public const int CUSTOM_ACT_SAIBO_STAGE = 33166;   // ErrorCode 开头但含 Buy 尾字段
+        public const int CUSTOM_ACT_SAIBO_DRAW = 33167;
+        public const int CUSTOM_ACT_BINDDIAMOND_PANEL = 33130;
+        public const int CUSTOM_ACT_BINDDIAMOND_DRAW = 33131;
+        public const int CUSTOM_ACT_BINDDIAMOND_RECORD = 33132;
+        public const int CUSTOM_ACT_REDRAIN_PANEL = 33155;      // WaveReceive 嵌套;C2S 仅 "h" SubType(无 BaseType)
+        public const int CUSTOM_ACT_REDRAIN_GRAB = 33157;
+        public const int CUSTOM_ACT_REDRAIN_WAVE_PUSH = 33158;  // **recv-only** 3字段;服务端 lib_red_envelopes_mod.erl:302 误用16字段调用(应33902)是已知线上bug,与本号定义无关
+        public const int CUSTOM_ACT_HOLYCALL_PANEL = 33221;     // 四嵌套+RareDrawTimes
+        public const int CUSTOM_ACT_HOLYCALL_RARE_DRAW = 33222;
+
+        // ---- P5 商业礼包族:ZERO_MALL=36/FTVINVEST=62/VIPGIFT=71/DAILYSUPPLY=61/NAMEVERIFY=69/批量兑换/
+        // QUESTIONNAIRE=90/MANY_RECHARGE=107/冲级/ADVERTISEMENT=111/RED_ENVELOPE_REBATE=117/CARNIVAL=118/
+        // TIRED_CHARGE_POLITE=121/OVER_VIEW=126/RARE_SURFACE=128/通用号/HOTPOINT/actMarriage=25/BETA_ACT=77 ----
+        public const int CUSTOM_ACT_ZEROMALL_PANEL = 33136;
+        public const int CUSTOM_ACT_ZEROMALL_BUY = 33137;
+        public const int CUSTOM_ACT_ZEROMALL_REBATE = 33138;
+        public const int CUSTOM_ACT_FTVINVEST_BUY = 33212; // 购买;同时升级现有 On33211(见 CustomActivityController.cs)
+        public const int CUSTOM_ACT_VIPGIFT_SET_GRADE = 33215;
+        public const int CUSTOM_ACT_DAILYSUPPLY_LIVENESS = 33209;
+        public const int CUSTOM_ACT_NAMEVERIFY_CONFIRM = 33169; // read/write 均空包
+        public const int CUSTOM_ACT_BATCH_EXCHANGE = 33179;     // FTVSHOP/FTVEXCHANGE/ATLISTPURCHASE 共用;ErrorCode,Num,BaseType,SubType,Grade 序注意
+        public const int CUSTOM_ACT_QUESTIONNAIRE_SUBMIT = 33236;
+        public const int CUSTOM_ACT_MANYRECHARGE_PANEL = 33247;
+        public const int CUSTOM_ACT_LEVEL_RUSH_GIFT = 33248;    // 冲级挑战
+        public const int CUSTOM_ACT_AD_CD_LIST = 33250;         // ADVERTISEMENT 冷却列表
+        public const int CUSTOM_ACT_RUSH_RANK_TOP_PLAYER_PUSH = 33251; // 头号玩家提示(331家族内部冲榜上报,与225xx pp_rush_rank 是两套,勿混淆)
+        public const int CUSTOM_ACT_REDENVELOPE_WITHDRAW = 33256; // 提现;同时升级现有 On33255(见 CustomActivityController.cs)
+        public const int CUSTOM_ACT_CARNIVAL_TASK = 33258;
+        /// <summary>累充有礼(TIRED_CHARGE_POLITE=121)奖励状态。On33101 扫描到 BaseType==121 的条目会追发本号
+        /// (镜像老端 On33101:950-952 双追发之二,见 CustomActivityController.cs On33101)。C2S "hh" BaseType,
+        /// SubType。S2C BaseType:16,SubType:16,RechargeNum:16,IsRecharge:16,List[u16计数]×{Grade:16,
+        /// Condition:s,Name:s,Desc:s,RewardList[u16计数]×{FormType:8,Status:8,Reward:s}}(pt_332.erl:1503,
+        /// guard Type==RECHARGE_POLITE)。</summary>
+        public const int CUSTOM_ACT_TIRED_CHARGE_POLITE = 33259;
+        public const int CUSTOM_ACT_OVERVIEW_REWARD = 33264;     // +镜像老端 RequireOverViewRew 遍历补拉(Model.ts:410,归 P5)
+        public const int CUSTOM_ACT_RARESURFACE_CLAIM = 33265;   // Errcode 末尾;被 wxOneMoney 复用=通用分档领取
+        public const int CUSTOM_ACT_REWARD_LIST_PUSH = 33257;    // **recv-only** 通用奖励列表推送,被≥3个活动模块复用
+        public const int CUSTOM_ACT_WIN_LOG = 33197;             // 活动通用获奖记录,LogList+SelfList 三层嵌套
+        /// <summary>嗨点(HOTPOINT,SPECIAL_ID.HOTPOINT=23)。老端注册但服务端 handle 空转({ok,Player},
+        /// pp_custom_act.erl:632-639)且 33101 列表层整体过滤 HI_POINT(lib_custom_act.erl:2314 起)——
+        /// **P5 只注册防御 recv,不提供发送方法**。</summary>
+        public const int CUSTOM_ACT_HI_POINT_INFO = 33140;
+        public const int CUSTOM_ACT_MARRIAGE_ACT_INFO = 33115;   // 完美情缘(actMarriage=25):Code开头+WeddingTypeList;C2S "hc" SubType,Opr(固定1)
+        public const int CUSTOM_ACT_BETA_RECHARGE_RETURN = 33216; // 封测充值返还(BETA_ACT=77);C2S 空包
+
+        // ---- P6 跨服+榜:KFGROUPBUY=88(改 .Kf.cs)/TopPlayer补全(改 TopPlayerController.cs)/消费鲜花榜(见上方 224xx) ----
+        public const int CUSTOM_ACT_KFGROUPBUY_INFO = 33227;
+        public const int CUSTOM_ACT_KFGROUPBUY_RECORD = 33228;   // FirstBuy/TailBuy 双子数组嵌套
+        public const int CUSTOM_ACT_KFGROUPBUY_BUY = 33229;
+        public const int CUSTOM_ACT_KFGROUPBUY_COUNT_PUSH = 33230; // **recv-only** 购买数广播
+        public const int CUSTOM_ACT_KFGROUPBUY_SHOUT = 33267;      // 喊话,Code开头
     }
 }
