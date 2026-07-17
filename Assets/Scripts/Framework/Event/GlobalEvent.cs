@@ -696,5 +696,56 @@ namespace Shenxiao.Framework.Event
         public const string EVT_CUSTOMACT_ERROR = "EVT_CUSTOMACT_ERROR";
         /// <summary>33158 红包雨波次(RED_PACKET_RAIN=82,P4 使用)。</summary>
         public const string EVT_CUSTOMACT_REDPACKET_WAVE = "EVT_CUSTOMACT_REDPACKET_WAVE";
+
+        // ----- 便宜活批(GodBefall/Halo/FairyWish/RedPacket/FirstBlood/Festival/Welfare/AdReward/Scene散件,
+        //        自动循环 轮18)-----
+        // 事件粒度收敛:每系统 1-2 个通用事件,不为每个协议号单开;具体协议号交叉见 Proto.cs 对应常量注释。
+        // Model 先落数据、事件后 Emit;PK1-PK5 各包按需在事件参数上扩展,不新增事件条目(除非确有必要)。
+
+        /// <summary>GodBefall(440xx)数据到达(<see cref="Shenxiao.Framework.Net.Proto.GODBEFALL_LIST"/> 全量 /
+        /// <see cref="Shenxiao.Framework.Net.Proto.GODBEFALL_ITEM_PUSH"/> 单只 / 44006出战 / 44010变身CD /
+        /// 44011切变身 落地后发)。参数: long godId(0=全量列表刷新,非0=单只神格局部刷新)。</summary>
+        public const string EVT_GODBEFALL_UPDATE = "EVT_GODBEFALL_UPDATE";
+        /// <summary>GodBefall 操作结果(激活/升级/升阶/升星/穿脱装/合成/神格强化等,44002-44005/44012-44018)。
+        /// 参数: int protoId(触发的请求号), int code(0/1=成功,其余=错误码)。</summary>
+        public const string EVT_GODBEFALL_RESULT = "EVT_GODBEFALL_RESULT";
+
+        /// <summary>Halo(514xx)信息/领奖/特权设置变化落地(51400/51401/51402)。参数: int protoId。</summary>
+        public const string EVT_HALO_UPDATE = "EVT_HALO_UPDATE";
+
+        /// <summary>FairyWish(513xx)信息/强化节点/点击列表变化落地(51300/51301/51303,51302 send-only 不经此事件)。
+        /// 参数: int fairyId(0=批量/未指定单体)。</summary>
+        public const string EVT_FAIRYWISH_UPDATE = "EVT_FAIRYWISH_UPDATE";
+
+        /// <summary>RedPacket(339xx)列表/新增/领完推送落地(33900错误码/33901列表/33907新增/33908领完)。
+        /// 参数: long redEnvelopesId(0=整表刷新)。</summary>
+        public const string EVT_REDPACKET_UPDATE = "EVT_REDPACKET_UPDATE";
+        /// <summary>RedPacket 打开/发红包结果(33902/33904/33906)。参数: int protoId, int code。</summary>
+        public const string EVT_REDPACKET_RESULT = "EVT_REDPACKET_RESULT";
+
+        /// <summary>FirstBlood(188xx)列表/提醒/红点/详情/领奖结果统一落地(18800-18807,type 96/97/105 三业务
+        /// 共用同一事件,消费方按 type/subtype 自行分桶)。参数: int type, int subtype。</summary>
+        public const string EVT_FIRSTBLOOD_UPDATE = "EVT_FIRSTBLOOD_UPDATE";
+
+        /// <summary>Festival(194xx)信息/任务列表/领奖结果统一落地(19400-19405,19401 现有 On19401 走独立
+        /// FestivalModel 落地,本事件供 PK3 扩展 19402-19405 后统一 Emit,查重确认全仓此前无同名事件)。
+        /// 参数: int protoId。</summary>
+        public const string EVT_FESTIVAL_UPDATE = "EVT_FESTIVAL_UPDATE";
+
+        /// <summary>Welfare 家族(签到41703-05/静默下载41707-08/在线41715-16/心悦41719/
+        /// 战力福利41723-24)信息落地。参数: int protoId(区分子系统)。m9:41722(成长福利)不在此列——
+        /// 该号走图标机制(refreshIcon/RefreshIconRed),不 Emit 本事件。</summary>
+        public const string EVT_WELFARE_UPDATE = "EVT_WELFARE_UPDATE";
+        /// <summary>Welfare 家族操作结果(领取/摇奖/补签等)。参数: int protoId, int code。m9:同上,
+        /// 41722 不 Emit 本事件。</summary>
+        public const string EVT_WELFARE_RESULT = "EVT_WELFARE_RESULT";
+
+        /// <summary>AdReward(193xx)广告列表/奖励推送/档位变更统一落地(19301-19304)。参数: int protoId。</summary>
+        public const string EVT_ADREWARD_UPDATE = "EVT_ADREWARD_UPDATE";
+
+        /// <summary>Scene 散件(120xx 补全,PK5:12015/12017/12022/12023/12025-12028/12030/12036/12043-12045/
+        /// 12078/12080/12083/12085/12087/12088/12090/12092)通用落地事件,不与既有 EVT_DROP_*(15053/15088)
+        /// 混用。参数: int protoId,消费方按需读 SceneManager 对应字段。</summary>
+        public const string EVT_SCENE_MISC_UPDATE = "EVT_SCENE_MISC_UPDATE";
     }
 }

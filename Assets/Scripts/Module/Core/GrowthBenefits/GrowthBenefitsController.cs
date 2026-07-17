@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -12,7 +13,8 @@ namespace Shenxiao.Module.Core.GrowthBenefits
     /// 回包据 GetEntranceOpenState(等级 ≥135 且任务未全领)增删主界面图标 41720。
     /// 41721 为服务端推送的任务进度变更,合并后同样刷新图标。等级变化(EVT_ROLE_INFO_UPDATE)复请求 41720
     /// (对标老端 CHANGE_LEVEL→refreshIcon/复算),让升到 135 级开启成长福利后图标及时出现。
-    /// 本期只做图标;41722(领取回包)属面板动作、41723/41724(战力福利)未移植,均待用户验收。
+    /// 本期只做图标;41722(领取任务奖励)协议收发已由 PK4(轮18)追加,面板 UI 仍未移植,待用户验收。
+    /// 41723/41724(战力福利)归独立 <see cref="Shenxiao.Module.Core.Welfare.CombatWelfareController"/>,不在本类。
     /// </summary>
     public sealed class GrowthBenefitsController : BaseController
     {
@@ -28,6 +30,9 @@ namespace Shenxiao.Module.Core.GrowthBenefits
         {
             RegisterProtocal(Proto.GROWTHBENEFITS_INFO, On41720);
             RegisterProtocal(Proto.GROWTHBENEFITS_TASK_UPDATE, On41721);
+            // PK4(轮18)追加:41722 领取成长福利任务奖励(老端同一 GrowthBenefitsController 注册,
+            // GrowthBenefitsController.ts:232 On41722)。
+            RegisterProtocal(Proto.GROWTHBENEFITS_TASK_CLAIM, On41722);
             // 对标老端 CHANGE_LEVEL→刷新图标:等级变化时复请求(135级开启成长福利)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
         }
@@ -62,6 +67,34 @@ namespace Shenxiao.Module.Core.GrowthBenefits
             List<KeyValuePair<int, int>> tasks = ReadTaskList(r);
             GrowthBenefitsModel.Instance.UpsertTasks(tasks);
             RefreshIcon("41721");
+        }
+
+        /// <summary>领取成长福利任务奖励(对标老端 GrowthBenefitTaskItem.ts:67,发 "h" TaskId)。</summary>
+        public void ClaimTask(int taskId)
+        {
+            if (taskId <= 0) return;
+            SendFmt(Proto.GROWTHBENEFITS_TASK_CLAIM, "h", taskId);
+            GameLog.Info("GrowthBenefits", "41722 claim taskId={0}", taskId);
+        }
+
+        // 41722: Errcode:32, TaskId:16, Status:8(对标老端 On41722 读 scmd.errcode,非 scmd.code)。
+        // 成功(errcode==1)只原地覆盖该 task_id 的领取态(UpsertTasks 单条),失败显码降级(同 RushGiftController 先例)。
+        private void On41722(NetReader r)
+        {
+            int errcode = (int)r.ReadU32();
+            int taskId = r.ReadU16();
+            int status = r.ReadU8();
+            if (errcode == 1)
+            {
+                GrowthBenefitsModel.Instance.UpsertTasks(
+                    new List<KeyValuePair<int, int>> { new KeyValuePair<int, int>(taskId, status) });
+                RefreshIcon("41722");
+            }
+            else
+            {
+                TipsManager.Toast("领取失败(" + errcode + ")");
+            }
+            GameLog.Info("GrowthBenefits", "41722 领取成长福利任务 taskId={0} errcode={1} status={2}", taskId, errcode, status);
         }
 
         // item_to_bin_8/9 一致:task_id:16, process:16, status:8。process 面板进度用,本期图标不需,读掉即可。

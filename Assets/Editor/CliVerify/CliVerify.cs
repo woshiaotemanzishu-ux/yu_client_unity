@@ -301,6 +301,36 @@ namespace Shenxiao.EditorTools
             Run(CustomActKfRankCase.Run, 300.0);
         }
 
+        /// <summary>轮18 PK1 谪仙临凡(pt_440,16号,含44000二层嵌套/44016·44018变长C2S)。</summary>
+        public static void GodBefall()
+        {
+            Run(GodBefallCase.Run, 300.0);
+        }
+
+        /// <summary>轮18 PK2 三小合包(光环514/仙灵直购513/公会红包339,14号)。</summary>
+        public static void CheapTrio()
+        {
+            Run(CheapTrioCase.Run, 300.0);
+        }
+
+        /// <summary>轮18 PK3 首杀首通(pt_188,type收口分发)+祭典宝录(pt_194补全),13号。</summary>
+        public static void FbFestival()
+        {
+            Run(FbFestivalCase.Run, 300.0);
+        }
+
+        /// <summary>轮18 PK4 福利余量(签到/下载/在线/心悦/成长41722/战力)+广告独立归属,15号。</summary>
+        public static void Welfare()
+        {
+            Run(WelfareCase.Run, 300.0);
+        }
+
+        /// <summary>轮18 PK5 场景散件(pt_120,22号,12024保游标/12089·12091双端死不注册)。</summary>
+        public static void SceneMisc()
+        {
+            Run(SceneMiscCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -351,6 +381,11 @@ namespace Shenxiao.EditorTools
                 int c4 = await CustomActFestivalCase.Run();
                 int c5 = await CustomActBizCase.Run();
                 int c6 = await CustomActKfRankCase.Run();
+                int g1 = await GodBefallCase.Run();
+                int g2 = await CheapTrioCase.Run();
+                int g3 = await FbFestivalCase.Run();
+                int g4 = await WelfareCase.Run();
+                int g5 = await SceneMiscCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -361,8 +396,9 @@ namespace Shenxiao.EditorTools
                     + " team=" + tm + " dungeonfam=" + df + " dailyhub=" + dh + " createvideo=" + cv + " shop=" + sh
                     + " rank=" + rk + " guildcore=" + gc + " guildext=" + ge + " boss=" + bs + " kfboss=" + kb + " marriage=" + mr
                     + " customactcore=" + c0 + " calotteryA=" + c2 + " calotteryB=" + c3 + " cafestival=" + c4
-                    + " cabiz=" + c5 + " cakfrank=" + c6);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, c0, c2, c3, c4, c5, c6 })
+                    + " cabiz=" + c5 + " cakfrank=" + c6
+                    + " godbefall=" + g1 + " cheaptrio=" + g2 + " fbfestival=" + g3 + " welfare=" + g4 + " scenemisc=" + g5);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5 })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

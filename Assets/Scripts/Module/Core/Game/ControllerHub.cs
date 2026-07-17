@@ -68,6 +68,13 @@ using Shenxiao.Module.Core.SevenDay;
 using Shenxiao.Module.Core.PushGift;
 using Shenxiao.Module.Core.Adventure;
 using Shenxiao.Module.Core.Relive;
+using Shenxiao.Module.Core.GodBefall;
+using Shenxiao.Module.Core.Halo;
+using Shenxiao.Module.Core.FairyWish;
+using Shenxiao.Module.Core.RedPacket;
+using Shenxiao.Module.Core.FirstBlood;
+using Shenxiao.Module.Core.Welfare;
+using Shenxiao.Module.Core.AdReward;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -160,6 +167,15 @@ namespace Shenxiao.Module.Core.Game
             DailyController.Instance,
             ShopController.Instance,
             RankController.Instance,
+            // ----- 便宜活批(自动循环 轮18)已注册:PK1-PK4 各包已补协议,Register() 均已实做(非空壳) -----
+            GodBefallController.Instance,
+            HaloController.Instance,
+            FairyWishController.Instance,
+            RedPacketController.Instance,
+            FirstBloodController.Instance,
+            WelfareController.Instance,
+            CombatWelfareController.Instance,
+            AdRewardController.Instance,
             // 后续:EquipController ...
         };
 

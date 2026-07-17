@@ -1,0 +1,155 @@
+{
+    "comment_vip_lv": {
+        "type": "类型，0为图片，1为模型,2为特效",
+        "model_type": "图片为0，模型类型NONE=-1，ROLE(人物)=0，PET(宠物)=1，HORSE坐骑=2，WING翅膀=3，WEAPON武器=4",
+        "name": "名称",
+        "action_list": "动作id",
+        "x": "水平位置",
+        "y": "垂直位置",
+        "x_size": "x方向大小",
+        "y_size": "y方向大小",
+        "res": "资源",
+        "reward":"需要显示在卡片上的道具"
+    },
+    "vip_card_1@1": {
+        "type": 2,
+        "name": "豪门新贵",
+        "model_type": 0,
+        "res": "ui_1001_vip",
+        "x": 0,
+        "y": -70,
+        "reward":[[0,38061001,1],[0,36040001,1],[0,16020001,3]]
+    },
+    "vip_card_2@1": {
+        "type": 1,
+        "name": "校园青春",
+        "model_type": 4,
+        "res": "102013",
+        "action_list": ["idle_2_2_0"],
+        "x": -30,
+        "y": 80,
+        "x_size": "1",
+        "y_size": "1",
+        "reward":[[0,20030012,1],[0,36040002,1],[0,17020001,5]]
+    },
+    "vip_card_3@1": {
+        "type": 1,
+        "name": "白夔伯爵",
+        "model_type": 2,
+        "res": "703013",
+        "x": 0,
+        "y": 10,
+        "x_size": 0.8,
+        "y_size": 0.8,
+        "action_list": ["idle_3_1"],
+        "reward":[[0,16030001,1],[0,36040003,1],[0,20020001,5]]
+    },
+    "vip_card_1@2": {
+        "type": 2,
+        "name": "豪门新贵",
+        "model_type": 0,
+        "res": "ui_1001_vip",
+        "x": 0,
+        "y": -70,
+        "reward":[[0,38061001,1],[0,36040001,1],[0,16020001,3]]
+    },
+    "vip_card_2@2": {
+        "type": 1,
+        "name": "校园青春",
+        "model_type": 4,
+        "res": "102113",
+        "x": -30,
+        "y": 80,
+        "x_size": "0.8",
+        "y_size": "0.8",
+        "action_list": ["idle_2_2_0"],
+        "reward":[[0,20030012,1],[0,36040002,1],[0,17020001,5]]
+    },
+    "vip_card_3@2": {
+        "type": 1,
+        "name": "白夔伯爵",
+        "model_type": 2,
+        "res": "703013",
+        "x": 0,
+        "y": 10,
+        "x_size": 0.8,
+        "y_size": 0.8,
+        "action_list": ["idle_3_1"],
+        "reward":[[0,16030001,1],[0,36040003,1],[0,20020001,5]]
+    },
+    "vip_lv_1": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_stageproperty_vip4"
+    },
+    "vip_lv_2": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_stageproperty_vip3"
+    },
+    "vip_lv_3": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_stageproperty_vip1"
+    },
+    "vip_lv_4": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_1002_vip"
+    },
+    "vip_lv_5": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_stageproperty_vip2"
+    },
+    "vip_lv_6": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_1003_vip"
+    },
+    "vip_lv_7": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_stageproperty_vip5"
+    },
+    "vip_lv_8": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_1004_vip"
+    },
+    "vip_lv_9": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_1005_vip"
+    },
+    "vip_lv_10": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_1006_vip"
+    },
+    "vip_lv_11": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_1007_vip"
+    },
+    "vip_lv_12": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_1008_vip"
+    },
+        "vip_lv_13": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_1009_vip"
+    },
+        "vip_lv_14": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_1010_vip"
+    },
+        "vip_lv_15": {
+        "type": 2,
+        "model_type": 0,
+        "res": "ui_1011_vip"
+    }
+}

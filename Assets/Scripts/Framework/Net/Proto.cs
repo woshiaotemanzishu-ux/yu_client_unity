@@ -2449,5 +2449,323 @@
         public const int CUSTOM_ACT_KFGROUPBUY_BUY = 33229;
         public const int CUSTOM_ACT_KFGROUPBUY_COUNT_PUSH = 33230; // **recv-only** 购买数广播
         public const int CUSTOM_ACT_KFGROUPBUY_SHOUT = 33267;      // 喊话,Code开头
+
+        // ----- 便宜活批(440/514/339/188/513/194补全/417补全/193xx/120散件,自动循环 轮18) -----
+        // 骨架轮(P0)只落协议常量+wire摘要,业务/UI留 PK1-PK5 各包实现;侦察材料见
+        // scratchpad spec_cheapwins_round18.md + r18_oldclient_cheapwins.md + r18_unity_cheapwins.md,
+        // erl 行号已按本轮实读 yu_server/src/pt/pt_{440,514,513,339,188,194,417,193,120}.erl 原文核对
+        // (非抄侦察稿估读)。§1 死号(33903/33905/41702/41706/41710-41714/41717/41718/15104/15105/
+        // 12089/12091/12024消费侧空转/18802 type96&&subtype==2 禁发/51303 禁发/51302 无回包/19405 无回执)
+        // 严禁在此新增常量或改动既有寄存;交叉见各常量注释断言。
+
+        // ---- PK1 GodBefall 谪仙临凡(440xx,yu_server pt_440.erl;16 号全活,44007-44009 空号) ----
+        /// <summary>神格总列表(S2C 主推送,GAME_START/CHANGE_LEVEL 发空触发)。pt_440.erl:8,73-86:
+        /// 发空;回包 GodList[u16×{IsBattle:8,GodId:32,Lv:16,Exp:32,Grade:16,Star:32,Power:64,
+        /// NextLvPower:64,NextGradePower:64,NextStarPower:64,EquipList[u16×{Pos:8,GoodsId:64}]}]
+        /// (二层嵌套,item_to_bin_0/item_to_bin_1)。</summary>
+        public const int GODBEFALL_LIST = 44000;
+        /// <summary>单只神格详情推送(44002/44005 成功后老端自动补发,老端 ts:213,250 镜像)。pt_440.erl:10-12,
+        /// 88-121:发 "i"(GodId);回包同 <see cref="GODBEFALL_LIST"/> 单元素结构(11 字段,IsBattle 起
+        /// EquipList 止,无 Errcode)。</summary>
+        public const int GODBEFALL_ITEM_PUSH = 44001;
+        /// <summary>激活神格(首只激活服务端自动上阵,44006 推送镜像)。pt_440.erl:13-15,123-133:
+        /// 发 "i"(GodId);回包 Errcode:32, Power:64, GodId:32。</summary>
+        public const int GODBEFALL_ACTIVATE = 44002;
+        /// <summary>升级。pt_440.erl:16-18,135-155:发 "i"(GodId);回包 Errcode:32, GodId:32, Lv:16, Exp:32,
+        /// Power:64, NextLvPower:64, NextGradePower:64, NextStarPower:64。</summary>
+        public const int GODBEFALL_LEVEL_UP = 44003;
+        /// <summary>升阶。pt_440.erl:19-21,157-175:发 "i"(GodId);回包 Errcode:32, GodId:32, Grade:16,
+        /// Power:64, NextLvPower:64, NextGradePower:64, NextStarPower:64。</summary>
+        public const int GODBEFALL_GRADE_UP = 44004;
+        /// <summary>升星。pt_440.erl:22-24,177-195:发 "i"(GodId);回包 Errcode:32, GodId:32, Star:32,
+        /// Power:64, NextLvPower:64, NextGradePower:64, NextStarPower:64。</summary>
+        public const int GODBEFALL_STAR_UP = 44005;
+        /// <summary>出战/放入出战槽位。pt_440.erl:25-28,197-205:发 "ci"(Pos:8, GodId:32);
+        /// 回包 Errcode:32, GodId:32。成功后服务端推送 <see cref="GODBEFALL_LIST"/> 全量刷新
+        /// (老端首只神格激活即自动出战,亦经此号镜像)。</summary>
+        public const int GODBEFALL_SET_BATTLE = 44006;
+        /// <summary>变身冷却状态查询/推送(GAME_START + SceneManager.START 发空;死亡事件亦推送)。
+        /// pt_440.erl:29-30,207-215:发空;回包 SwitchCd:32, EndTime:32。⚠切场景 CD 推送服务端已注释
+        /// (仅死亡事件触发),存档不当 bug 追。</summary>
+        public const int GODBEFALL_SWITCH_CD = 44010;
+        /// <summary>切换出战神格变身。pt_440.erl:31-32,217-225:发空;回包 Errcode:32, GodId:32
+        /// (老端调用点 MainUISkillItemGod.ts:116,303)。</summary>
+        public const int GODBEFALL_SWITCH = 44011;
+        /// <summary>穿戴神装。pt_440.erl:33-36,227-233:发 "li"(GoodsId:64, Pos/Id:32);
+        /// 回包仅 Code:32(成功无 ack,只回 <see cref="GODBEFALL_ITEM_PUSH"/> 推送——与 44013 不对称,注释存档)。</summary>
+        public const int GODBEFALL_EQUIP_WEAR = 44012;
+        /// <summary>脱下神装。pt_440.erl:37-40,235-241:发 "ic"(Id:32, Pos:8);回包 Code:32
+        /// (成功=ack+<see cref="GODBEFALL_ITEM_PUSH"/> 双反馈,与 44012 不对称)。</summary>
+        public const int GODBEFALL_EQUIP_TAKEOFF = 44013;
+        /// <summary>快速合成(按规则)。pt_440.erl:41-44,243-253:发 "il"(RuleId:32, GoodsId:64);
+        /// 回包 Code:32, RuleId:32, GoodsId:64。</summary>
+        public const int GODBEFALL_QUICK_SYNTHESIS = 44014;
+        /// <summary>战力预览。pt_440.erl:45-47,255-263:发 "i"(GodId);回包 GodId:32, Power:64(无 Code)。</summary>
+        public const int GODBEFALL_POWER_PREVIEW = 44015;
+        /// <summary>智能合成(GodBefallSynthesisView.ts:110,老端**自定义 WriteFmt**,勿套通用解析模板)。
+        /// pt_440.erl:48-56,265-280:发 u16 计数 + {RuleId:32,Count:8}×N(m5订正:此前"变长数组[u8+...]"
+        /// 计数宽度写错,GodBefallController.RequestSmartSynthesis 实际用 "h" 即 16 位);回包 Code:32,
+        /// GoodsList[u16×{GoodsType:8,GoodsTypeId:64,GoodsNum:8}]。</summary>
+        public const int GODBEFALL_SMART_SYNTHESIS = 44016;
+        /// <summary>神格强化界面(god_type 分流,GAME_START 对 god_type 3~6 循环发)。pt_440.erl:57-59,282-292:
+        /// 发 "c"(GodType:8);回包 GodType:8, CurrentLv:16, CurrentExp:32(无 Code)。</summary>
+        public const int GODBEFALL_TYPE_PANEL = 44017;
+        /// <summary>神格强化提交(老端**自定义 WriteFmt**)。pt_440.erl:60-70,294-312:
+        /// 发 GodType:8 + u16 计数 + {GoodsTypeId:32,GoodsNum:16}×N + IsDivide:8(m5订正:计数宽度同上,
+        /// GodBefallController.RequestTypeStrengthen 实际用 "h");
+        /// 回包 Code:32, Args:string, GodType:8, CurrentLv:16, CurrentExp:32, IsDivide:8。</summary>
+        public const int GODBEFALL_TYPE_STRENGTHEN = 44018;
+
+        // ---- PK2 三小合包:Halo 光环(514xx,pt_514.erl,3 号全活) ----
+        /// <summary>光环信息(GAME_START/DAY_CHANGE 发空)。pt_514.erl:8,20-44:发空;回包 EndTime:32,
+        /// Rewards[u16×{Id:32,State:8}], SettingList[u16×{HaloId:16,Type:16,State:8}]。
+        /// ⚠业务层字段名 Type 实为 wire 上的 HaloId 槽位(item_to_bin_1 命名与业务含义错位),照 erl 原名注释存档。
+        /// 0 点批量刷新服务端已注释=死,存档不当 bug 追。</summary>
+        public const int HALO_INFO = 51400;
+        /// <summary>领取光环奖励(HaloItem.ts:55)。pt_514.erl:10-12,46-56:发 "i"(Id:32);
+        /// 回包 Id:32, State:8, **Errcode:32 在末尾**(与常见 Errcode 开头习惯相反,逐号核实存档)。</summary>
+        public const int HALO_REWARD_RECEIVE = 51401;
+        /// <summary>光环/自动扫荡特权设置(同号双向,C2S+S2C)。pt_514.erl:13-17,58-70:发 "hhc"(Id:16, Type:16,
+        /// State:8);回包同结构 + **Errcode:32 在末尾**。⚠发送点全在外系统(arena/ArenaEnterView.ts:195,199、
+        /// dungeonEquip/DungeonEquipEnterView.ts:222,226、dungeonDragon/DungeonDragonEnterView.ts:190,194、
+        /// godBeast/GodBeastComView.ts:215,219),HaloController 内部调用是注释掉的死代码(:39-41);
+        /// 本轮只落数据层收发,4 处外系统入口 UI 闭环留尾包。</summary>
+        public const int HALO_SETTING_UPDATE = 51402;
+
+        // ---- PK2 三小合包:FairyWish 仙灵祝福(513xx,pt_513.erl,4 号全活) ----
+        /// <summary>某仙灵全部信息(上线/重连/充值服务端主动推,老端对 5 个 FairyId 各推一次)。pt_513.erl:8-10,22-39:
+        /// 发 "i"(FairyId);回包 FairyId:32, IsBuy:8, NodeList[u16×{NodeId:32,IsActivate:8,Combat:32}]。</summary>
+        public const int FAIRYWISH_INFO = 51300;
+        /// <summary>强化节点(FairyWishView.ts:228)。pt_513.erl:11-14,41-51:发 "ii"(FairyId, NodeId);
+        /// 回包 FairyId:32, NodeId:32, **Code:32 在末尾**。成功后联动 OutWardBaseModel.UpdateOutWardStrongerRed
+        /// (fairy_id-1000)刷新红点,红点耦合 Pet/OutWard 系统,注释存档。</summary>
+        public const int FAIRYWISH_NODE_ACTIVATE = 51301;
+        /// <summary>购买仙灵(pet/OutWardBaseView.ts:411 发送点)。pt_513.erl:15-17,53-57:发 "i"(FairyId);
+        /// **send-only,服务端 write 子句体为空(无字段),发后不等待回包**(fire-and-forget,回执改走后续
+        /// <see cref="FAIRYWISH_INFO"/> 主动推送)。⚠严禁按通用模式阻塞等待本号 ack。</summary>
+        public const int FAIRYWISH_BUY = 51302;
+        /// <summary>点击次数推送(recv-only,全仓无发送点)。pt_513.erl:18-19,59-72:客户端严禁发;
+        /// 回包 ClickList[u16×{FairyId:32,Times:8}]。</summary>
+        public const int FAIRYWISH_CLICK_PUSH = 51303;
+
+        // ---- PK2 三小合包:RedPacket 公会红包(339xx,pt_339.erl;7 号活,33903/33905 死号不注册
+        //        [老端零调用+handler 读体存在但业务空转,r18_oldclient_cheapwins §3 实证]) ----
+        /// <summary>339 通用错误码(纯推送)。pt_339.erl:33-39:客户端严禁发;回包 Errcode:32。</summary>
+        public const int REDPACKET_ERROR = 33900;
+        /// <summary>红包列表(RedPacketMainView.ts:94;33904/33906 成功后回补)。pt_339.erl:8,41-63:发空;
+        /// 回包 RedEnvelopesList[u16×item_to_bin_0(16字段:Id:64,RoleId:64,RoleName:s,Career:8,Sex:8,Turn:8,
+        /// Picture:s,PictureVer:32,Type:8,Extra:32,Status:8,ReceiveStatus:8,TotalNum:16,RecipientsNum:16,
+        /// Msg:s,Stime:32)] + RecordList[u16×item_to_bin_1(4字段:Id:32,RoleName:s,CfgId:32,Time:32)]。</summary>
+        public const int REDPACKET_LIST = 33901;
+        /// <summary>打开红包(MainItem.ts:59,64)。pt_339.erl:10-12,65-112:发 "l"(RedEnvelopesId:64);
+        /// 回包 16 字段(Id..Extra 同 <see cref="REDPACKET_LIST"/> 单项前 10 字段序,ReceiveMoney 替换
+        /// ReceiveStatus 位)+ RecipientList[u16×item_to_bin_2(9字段:RoleId:64,RoleName:s,Career:8,Sex:8,
+        /// Turn:8,Picture:s,PictureVer:32,ReceiveMoney:32,Time:32)]。位宽已按 pt_339.erl 原文核对。</summary>
+        public const int REDPACKET_OPEN = 33902;
+        /// <summary>发系统/物品红包(CtrlView.ts:121 物品红包分支)。pt_339.erl:17-20,128-134:
+        /// 发 "lh"(Id:64, SplitNum:16);回包仅 Errcode:32。</summary>
+        public const int REDPACKET_SEND = 33904;
+        /// <summary>发 VIP 红包(CtrlView.ts:119,type==100 分支)。pt_339.erl:26-30,144-154:
+        /// 发 "ihs"(Money:32, SplitNum:16, Msg:string);回包 Errcode:32, Args:string。</summary>
+        public const int REDPACKET_SEND_VIP = 33906;
+        /// <summary>红包新增推送(S2C,与 <see cref="REDPACKET_LIST"/> 的 RedEnvelopesList 单元素同结构)。
+        /// pt_339.erl:156-169:客户端严禁发;回包 RedEnvelopesList[u16×item_to_bin_3(16字段,同33901)]。</summary>
+        public const int REDPACKET_NEW_PUSH = 33907;
+        /// <summary>红包已领完推送(公会广播)。pt_339.erl:171-177:客户端严禁发;回包 Id:64。</summary>
+        public const int REDPACKET_TAKEN_PUSH = 33908;
+
+        // ---- PK3 FirstBlood 首杀/首通(188xx,pt_188.erl;8 号全活,18800-18807;type 收口分发:
+        //        96=Boss首杀/97=副本首通[UI归DungeonPartner]/105=神符本首通[UI归DungeonRune]) ----
+        /// <summary>188 通用错误码(纯推送,无 read 子句)。pt_188.erl:42-48:客户端严禁发;回包 Code:32。</summary>
+        public const int FIRSTBLOOD_ERROR = 18800;
+        /// <summary>首杀/首通列表(GAME_START 发 (96,1)(97,1))。pt_188.erl:8-11,50-67:发 "cc"(Type:8, Subtype:8);
+        /// 回包 Type:8, Subtype:8, FirstBloodList[u16×item_to_bin_0(11字段:ShowFirstBlood:8,BossId:32,
+        /// FirstBloodRoleId:64,FirstBloodRoleName:s,RoleLv:16,RoleSex:8,RoleCarrer:8,Picture:s,PictureVer:32,
+        /// DressList[u16×{DressType:8,DressId:32}],RewardState:8)]。二层嵌套。</summary>
+        public const int FIRSTBLOOD_LIST = 18801;
+        /// <summary>领取首杀/首通奖励(MainView.ts:169)。pt_188.erl:12-16,69-85:发 "cci"(Type:8, Subtype:8,
+        /// BossId:32);回包 Type:8, Subtype:8, Code:32, BossId:32, RewardList(ObjectList)。
+        /// ⚠Type==96(Boss)&&Subtype==2 分支服务端 handle 注释(pp_boss_first_blood_plus.erl:47-56),
+        /// **该组合严禁发送**。</summary>
+        public const int FIRSTBLOOD_REWARD_CLAIM = 18802;
+        /// <summary>首杀提醒推送。pt_188.erl:17-20,87-103:回包 Type:8, Subtype:8,
+        /// FirstBloodRoleName:string, BossName:string。</summary>
+        public const int FIRSTBLOOD_NOTICE_PUSH = 18803;
+        /// <summary>神符本(type=105)专属领奖(老端发送点 dungeonRune/DungeonRuneFirstView.ts:133)。
+        /// pt_188.erl:21-25,105-126:发 "cci"(Type:8, Subtype:8, DunId:32);回包 Type:8, Subtype:8, DunId:32,
+        /// RewardState:8, PassRoleList[u16×item_to_bin_2(10字段:RoleId:64,RoleName:s,Rank:8,RoleLv:16,
+        /// RoleSex:8,RoleCarrer:8,Picture:s,PictureVer:32,DressList[u16×{DressType:8,DressId:32}],Time:64)]。
+        /// 二层嵌套。</summary>
+        public const int FIRSTBLOOD_RUNE_REWARD_CLAIM = 18804;
+        /// <summary>红点列表(GAME_START 发 (105,1))。pt_188.erl:26-29,128-145:发 "cc"(Type:8, Subtype:8);
+        /// 回包 Type:8, Subtype:8, RedPointList[u16×{DunId:32,ShowPoint:8}]。</summary>
+        public const int FIRSTBLOOD_REDPOINT_LIST = 18805;
+        /// <summary>逐条详情查询(收到 <see cref="FIRSTBLOOD_LIST"/> 后按列表逐条发,老端 Controller:138 镜像)。
+        /// pt_188.erl:30-34,147-159:发 "cci"(Type:8, Subtype:8, BossId:32);
+        /// 回包 Type:8, Subtype:8, BossId:32, SharedStatus:8。</summary>
+        public const int FIRSTBLOOD_DETAIL_QUERY = 18806;
+        /// <summary>领全服归属奖(MainView.ts:152)。pt_188.erl:35-39,161-178:发 "cci"(Type:8, Subtype:8,
+        /// BossId:32);回包结构同 <see cref="FIRSTBLOOD_REWARD_CLAIM"/>(Type,Subtype,Code,BossId,RewardList)。</summary>
+        public const int FIRSTBLOOD_GUILD_REWARD_CLAIM = 18807;
+
+        // ---- PK3 Festival 祭典/宝录补全(194xx,pt_194.erl;19401=FESTIVAL_INFO 已在 :719 注册,勿重复定义;
+        //        本段补 19400/19402-19405) ----
+        /// <summary>194 通用返回码(纯推送,无 read 子句)。pt_194.erl:25-35:客户端严禁发;
+        /// 回包 Code:32, Args:string。</summary>
+        public const int FESTIVAL_ERROR = 19400;
+        /// <summary>领取等级奖励(AwardListItem:181/LevelAwardView:120,lv=0 代表全部)。pt_194.erl:10-12,64-72:
+        /// 发 "h"(Lv:16,m5订正:此前误写"c"即8位,FestivalController.RequestLevelAward 实际用 "h");
+        /// 回包 RewardList(ObjectList,无独立 Code 字段——非空即成功,对齐老端读法)。</summary>
+        public const int FESTIVAL_LEVEL_AWARD_CLAIM = 19402;
+        /// <summary>任务列表(type=0 代表三类全部,收到 <see cref="FESTIVAL_INFO"/>(19401)后老端自动发 type=0,
+        /// Controller:140 镜像)。pt_194.erl:13-15,74-87:发 "c"(Type:8);回包 TypeList[u16×item_to_bin_1(3字段:
+        /// Type:8, TaskList[u16×item_to_bin_2{TaskId:16,FinishTimes:8,CurNum:32,Status:8}], RefreshTime:32)]。
+        /// 二层嵌套。</summary>
+        public const int FESTIVAL_TASK_LIST = 19403;
+        /// <summary>领取任务经验(TaskView:235/TaskListItem:100)。pt_194.erl:16-19,89-95:
+        /// 发 "ch"(Type:8, TaskId:16);回包 Exp:32(无 Code,捎带随后 <see cref="FESTIVAL_INFO"/>+
+        /// <see cref="FESTIVAL_TASK_LIST"/> 刷新)。</summary>
+        public const int FESTIVAL_TASK_EXP_CLAIM = 19404;
+        /// <summary>购买高阶宝录(1=豪华/2=至尊,CommodityView:586/GetRewardView:267)。pt_194.erl:20-22:
+        /// 发 "c"(Type:8);**pt_194.erl 无对应 write 子句,服务端不回执**——成功与否只能等
+        /// <see cref="FESTIVAL_INFO"/>(19401)刷新态,发送侧禁止阻塞等待本号 ack。</summary>
+        public const int FESTIVAL_PURCHASE = 19405;
+
+        // ---- PK4 Welfare 福利余量(417xx,pt_417.erl;签到/静默下载/在线/心悦,死号 41702/41706/
+        //        41710-41714/41717/41718 不注册[服务端 handler 活但老端零消费,配置对齐铁律以客户端为准]) ----
+        /// <summary>签到基础信息(DAY_CHANGE 延时 5ms 重发)。pt_417.erl:16-17,105-141:发空;回包
+        /// TotalDays:8, TotalType:16, TotalState[u16×item_to_bin_1{Sum:32,Receive:8}],
+        /// AccState[u16×item_to_bin_2{CheckDay:8,Receive:8}], CheckType:16, RetroTimes:8, DaysFresh:8,
+        /// RemainTimes:8, CheckDay:8(9字段双平行数组)。</summary>
+        public const int WELFARE_CHECKIN_INFO = 41703;
+        /// <summary>签到领取(老端**自定义 ReadFmt 裸读非 GetSCMD**,勿套通用模板)。pt_417.erl:18-21,143-167:
+        /// 发 "cc"(Day:8, Retroactive:8);回包 Code:32, Rewads[u16×{Style:32,TypeId:32,Count:32}],
+        /// ExtraRewads[u16×同结构]。⚠位宽已按 pt_417.erl:143-167 原文核实为 Style:32(非侦察稿存疑的
+        /// "Style:8?"),item_to_bin_3/item_to_bin_4 三字段均 32 位。</summary>
+        public const int WELFARE_CHECKIN_CLAIM = 41704;
+        /// <summary>签到补签。pt_417.erl:22-24,169-184:发 "c"(Day:8);
+        /// 回包 Code:32, Rewads[u16×{Style:32,TypeId:32,Count:32}]。</summary>
+        public const int WELFARE_CHECKIN_RETROACTIVE = 41705;
+        /// <summary>静默下载奖励信息(GAME_START 发空)。pt_417.erl:28-29,194-204:发空;
+        /// 回包 Code:32, Rewads(ObjectList)。</summary>
+        public const int WELFARE_DOWNLOAD_INFO = 41707;
+        /// <summary>领取静默下载奖励。pt_417.erl:30-31,206-212:发空;回包 Code:32。</summary>
+        public const int WELFARE_DOWNLOAD_CLAIM = 41708;
+        /// <summary>在线福利信息(GAME_START/升级到 KV 门槛时发空)。pt_417.erl:42-43,266-283:发空;
+        /// 回包 Time:16, LoginTime:32, List[u16×{Id:32,State:8}]。</summary>
+        public const int WELFARE_ONLINE_INFO = 41715;
+        /// <summary>领取在线福利(含月卡额外档)。pt_417.erl:44-46,285-300:发 "i"(Id:32);
+        /// 回包 Code:32, SendList[u16×item_to_bin_7{RewardId:32,Rewards(ObjectList),
+        /// OtherRewards(ObjectList)}]。二层嵌套。</summary>
+        public const int WELFARE_ONLINE_CLAIM = 41716;
+        /// <summary>心悦礼包(GAME_START 按 GetWelfareWelcomeOpenState 条件发,opr=3/4 分支)。
+        /// pt_417.erl:52-54,326-340:发 "c"(Opr:8);回包 Code:32, Opr:8, GiftSt:8, Reward(ObjectList)。</summary>
+        public const int WELFARE_XINYUE_GIFT = 41719;
+
+        // ---- PK4 成长福利补全(41722,延续既有 GROWTHBENEFITS_INFO=41720/GROWTHBENEFITS_TASK_UPDATE=41721 家族) ----
+        /// <summary>领取成长福利任务奖励(GrowthBenefitTaskItem.ts:67)。pt_417.erl:57-59,372-382:
+        /// 发 "h"(TaskId:16);回包 Errcode:32, TaskId:16, Status:8。</summary>
+        public const int GROWTHBENEFITS_TASK_CLAIM = 41722;
+
+        // ---- PK4 战力福利 CombatWelfare(41723/41724,老端独立 GrowthForceModel,新建 CombatWelfareController) ----
+        /// <summary>战力福利面板(开界面/CheckFightWelfareOpen)。pt_417.erl:60-61,384-405:发空;
+        /// 回包 Round:8, Times:8, Combat:64, NextCombat:64, List[u16×裸整数 RewardId:16](item_to_bin_10 单字段)。</summary>
+        public const int COMBAT_WELFARE_INFO = 41723;
+        /// <summary>战力福利摇奖(GrowthForceModel.FightWelfareSend)。pt_417.erl:62-63,407-421:发空;
+        /// 回包 Code:32, Round:8, Times:8, RewardId:16, NextCombat:64。</summary>
+        public const int COMBAT_WELFARE_DRAW = 41724;
+
+        // ---- PK4 广告奖励 AdReward(193xx,pt_193.erl;独立 AdRewardController,不塞 Welfare;
+        //        ClientProtocol.json L2102-2109) ----
+        /// <summary>广告奖励推送(S2C,pt_193.erl 无对应 read 子句,客户端严禁发)。pt_193.erl:17-25:
+        /// 回包 Reward(ObjectList)。</summary>
+        public const int ADREWARD_REWARD_PUSH = 19301;
+        /// <summary>广告冷却/开放列表(GAME_START 按 GetAdOpenState 发空)。pt_193.erl:8-9,27-40:发空;
+        /// 回包 AdList[u16×{ModId:32,SubId:32,Count:8}]。</summary>
+        public const int ADREWARD_LIST = 19302;
+        /// <summary>上报广告观看完成/领取。pt_193.erl:10-14,42-54:发 "iii"(ModId:32, SubId:32, GradeId:32);
+        /// 回包 ModId:32, SubId:32, GradeId:32, Code:32。</summary>
+        public const int ADREWARD_WATCH_CLAIM = 19303;
+        /// <summary>广告档位变更推送(老端 On19304 逻辑全注释=占位;pt_193.erl 无对应 read 子句,S2C only)。
+        /// pt_193.erl:56-66:回包 ModId:32, SubId:32, GradeId:32。**仅注册防御 recv,不提供发送方法**。</summary>
+        public const int ADREWARD_GRADE_PUSH = 19304;
+
+        // ---- PK5 场景散件(120xx,pt_120.erl;SceneController.cs 追加分支,复用既有 SC_ 前缀。
+        //        死号不注册:12089[真死,RegisterProtocal 老端已注释]/12091[服务端 wire 层无 write 定义,
+        //        仅会发 cmd=0 空包]。12024 特殊:注册但自空——读完 3 字段不消费,镜像老端处理体空转) ----
+        /// <summary>假人进场(单条推送)。pt_120.erl:185-186,553-564(binary_12015):回包
+        /// Id:32, 0:16(保留位/占位), ServerId:16, ServerNum:16, Figure(FigureProto), X:16, Y:16, Hp:64,
+        /// HpLim:64, Speed:16, Hide:8, Ghost:8, Group:64。</summary>
+        public const int SC_DUMMY_ENTER = 12015;
+        /// <summary>掉落包生成(触发 DEAL_WITH_SCENE_DROP_LIST_VO)。pt_120.erl:189-193:回包
+        /// MonId:32, Time:16, Scene:32, DropList[u16×...](与 <see cref="SC_DROP_LIST"/>(12018) 的 DropBin
+        /// 同源 17 字段结构,复用既有 DropVo 解析), X:16, Y:16, Boss:8。</summary>
+        public const int SC_DROP_SPAWN = 12017;
+        /// <summary>开始拾取掉落确认(注册但**自空处理**——只按序读完 3 字段保游标,不落 Model,
+        /// 镜像老端处理体空转)。pt_120.erl:231-232:回包 DropId:64, RoleId:64, DropEndTime:64。</summary>
+        public const int SC_DROP_PICK_CONFIRM = 12024;
+        /// <summary>Boss 归属变更(按伤害最高)。pt_120.erl:222-223:回包 PlayerId:64, BossFlag:8。</summary>
+        public const int SC_BOSS_OWNER = 12022;
+        /// <summary>怪物喊话气泡。pt_120.erl:226-228:回包 AutoId:32, Msg:string。</summary>
+        public const int SC_MONSTER_TALK = 12023;
+        /// <summary>Boss 伤害榜初始全量(C2S 查询)。pt_120.erl:46-47(read "i" AutoId),235-242(write):
+        /// 发 "i"(AutoId:32);回包 AutoId:32, ConfigId:32, List[u16×{RoleId:64,Name:s,ServerId:16,
+        /// ServerNum:16,ServerName:s,TeamId:64,TeamPos:8,Hurt:64,AssistId:64}]。</summary>
+        public const int SC_BOSS_HURT_LIST = 12025;
+        /// <summary>Boss 伤害榜增量新增(S2C only)。pt_120.erl:245-248:回包 AutoId:32, ConfigId:32,
+        /// RoleId:64, Name:string, ServerId:16, ServerNum:16, ServerName:string, TeamId:64, TeamPos:8,
+        /// Hurt:64, AssistId:64(单条,非数组)。</summary>
+        public const int SC_BOSS_HURT_ADD = 12026;
+        /// <summary>Boss 伤害榜移除(S2C only)。pt_120.erl:251-253:回包 AutoId:32, ConfigId:32,
+        /// RoleIdList[u16×{RoleId:64}]。</summary>
+        public const int SC_BOSS_HURT_REMOVE = 12027;
+        /// <summary>玩家协助 id 更改(S2C only)。pt_120.erl:256-258:回包 AutoId:32, ConfigId:32,
+        /// ChangeIds[u16×{RoleId:64,AssistId:64}]。</summary>
+        public const int SC_BOSS_ASSIST_CHANGE = 12028;
+        /// <summary>动态区域标记(S2C only)。pt_120.erl:261-263,546-550(pack_area_mark):回包
+        /// AreaMarkList[u16×{AreaId:8,ClientType:8}]。</summary>
+        public const int SC_AREA_MARK = 12030;
+        /// <summary>血量变化广播(战斗表现核心,含 can_receive_scene_protocal 门控)。pt_120.erl:288-291
+        /// (7 参重载补 SourceSign=0,SourceId=0 后统一落 9 字段):回包 Sign:8, Id:64, Hp:64, HpLim:64,
+        /// IsMinus:8(是否扣血), Change:64, BuffId:16, SourceSign:8, SourceId:64(吸血反弹流血特效来源)。</summary>
+        public const int SC_HP_CHANGE = 12036;
+        /// <summary>怪物:玩家求助列表全量(C2S 查询)。pt_120.erl:78-79(read "i" AutoId),316-323(write):
+        /// 发 "i"(AutoId:32);回包 AutoId:32, ConfigId:32, List[u16×{AssistId:64,RoleId:64,Name:s,
+        /// ServerId:16,ServerNum:16,ServerName:s}]。</summary>
+        public const int SC_ASSIST_LIST = 12043;
+        /// <summary>玩家求助增量新增(S2C only)。pt_120.erl:326-329:回包 AutoId:32, ConfigId:32,
+        /// AssistId:64, RoleId:64, Name:string, ServerId:16, ServerNum:16, ServerName:string(单条)。</summary>
+        public const int SC_ASSIST_ADD = 12044;
+        /// <summary>玩家求助删除(S2C only)。pt_120.erl:332-333:回包 AutoId:32, ConfigId:32,
+        /// DelAssistId:64。</summary>
+        public const int SC_ASSIST_REMOVE = 12045;
+        /// <summary>婚姻名/转职等 Figure 变更广播(含主角自身分支)。pt_120.erl:363-365:回包
+        /// Id:64, Figure(FigureProto,pt:write_figure)。</summary>
+        public const int SC_FIGURE_CHANGE = 12078;
+        /// <summary>怪物 can_attack 等属性变更广播(S2C only)。pt_120.erl:371-373:回包
+        /// Id:32, Attrs[u16×{Type:8,Value:32}]。</summary>
+        public const int SC_MONSTER_ATTR_UPDATE = 12080;
+        /// <summary>复活完成(触发 RELIVE_COMPLETE + 请求剩余复活次数,与 Relive 模块[20009/20017]联动)。
+        /// pt_120.erl:383-385:回包 ReviveType:8, ScenceId:32, X:16, Y:16, ScenceName:string, Hp:64,
+        /// Gold:32, BGold:32, AttProtectedTime:16(9 字段)。</summary>
+        public const int SC_REVIVE_COMPLETE = 12083;
+        /// <summary>安全区状态(**GapMap"小飞鞋"标注订正**:实为区域安全状态广播,非小飞鞋;小飞鞋归
+        /// 12033/AutoFight 13300 家族。老端发送点绑定 SAFE_AREA_CHANGE 事件,recv 更新 role_vo.safe_area_state)。
+        /// pt_120.erl:82-83(read "c" Type),392-393(write):发 "c"(Type:8);回包 PlayerId:64, Type:8。</summary>
+        public const int SC_SAFE_AREA_STATE = 12085;
+        /// <summary>场景玩家计数(老端发送点绑定 SCENE_PALYER_COUNT 事件,recv 更新 BossModel)。
+        /// pt_120.erl:85-86(read "h" SceneId),400-401(write):发 "h"(SceneId:16);回包
+        /// SceneId:16, Num:16。</summary>
+        public const int SC_PLAYER_COUNT = 12087;
+        /// <summary>场景内简单用户列表(C2S 裸查询)。pt_120.erl:88-89(read 裸),403-406(write),
+        /// 703-709(pack_simple_user):发空;回包 Users[u16×{Platform:string,ServerNum:16,Id:64,Sex:8,
+        /// Realm:8,Career:8,Lv:16,Name:string,Picture:string,PictureVer:32}]。</summary>
+        public const int SC_SIMPLE_USER_LIST = 12088;
+        /// <summary>公会 id 字段广播(S2C only)。pt_120.erl:439-440:回包 Sign:8, Id:64, GuildId:64。</summary>
+        public const int SC_GUILD_ID_CHANGE = 12090;
+        /// <summary>怪物 Buff 批量请求(老端发送点绑定 REQUEST_MONSTER_BUFF 事件)。pt_120.erl:94-100
+        /// (read 变长数组),442-446(write):发变长数组[u16×{GoodsId:64}];回包
+        /// List[u16×{Id:64,AerBuffList:预编码二进制(来源另一模块,原样透传)}]。</summary>
+        public const int SC_MONSTER_BUFF_BATCH = 12092;
     }
 }

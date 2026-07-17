@@ -38,6 +38,13 @@ namespace Shenxiao.EditorTools.ConfigGen
             "ClientTransfer",       // 转职卡展示文案(career→{name,desc1,desc2}),轮5 TransferJobModel 用
             "ClientShopConfig",     // 商城二级子页签定义(ShopSeries[shop_type]=[{id,desc}],仅灵玉/善缘两类型有),轮11 ShopConfigs 用
             "ConfigGuild",          // 结社主界面按钮定义(main_func,9行;本轮未接线,GuildConfigs.MainFunc 登记供以后消费),轮13a
+            "ClientGodBefall",      // GodBefall(降神/谪仙临凡)客户端展示表,自动循环 轮18 便宜活批 PK1
+            "ConfigGodBefall",      // GodBefall 客户端配置(与 ClientGodBefall 配套),轮18 PK1
+            "ClientConfigFiestaITaskTab", // Festival 任务页签客户端展示表,轮18 PK3
+            "ClientConfigFiestaIntroduce", // Festival 介绍文案表,轮18 PK3
+            "ClientFirstBloodShow", // FirstBlood 客户端展示表,轮18 PK3
+            "ClientRedBagOpen",     // RedPacket 客户端展示表,轮18 PK2
+            "ClientVipWelfare",     // Welfare/VIP 客户端展示表,轮18 PK4
         };
 
         // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)
@@ -92,6 +99,39 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_guild_constant",      // 结社通用常量KV(数字键 id;公告字数/结社名字数/建社消耗档位等),轮13a GuildConfigs.GetKv 用
             "config_guild_welcome",       // 结社入会欢迎语模板(数字键 id),轮13a GuildConfigs.GetWelcome 用
             "config_guild_depot_score",   // 仓库积分兑换表(具名键"stage@star@color",117条),轮13b GuildConfigs.GetDepotScore 用(已与 data_guild_depot.erl 逐值核对一致)
+            "config_god",                  // 谪仙临凡(GodBefall)神格基础表,自动循环 轮18 便宜活批 PK1 用
+            "config_god_equip",            // GodBefall 神装配置,轮18 PK1
+            "config_god_lv",               // GodBefall 升级经验表,轮18 PK1
+            "config_god_stage",            // GodBefall 升阶配置,轮18 PK1
+            "config_god_star",             // GodBefall 升星配置,轮18 PK1
+            "config_god_kv",               // GodBefall 杂项KV,轮18 PK1
+            "config_god_star_up_limit",    // GodBefall 升星上限,轮18 PK1
+            "config_god_stren",            // GodBefall 神格强化(44017/44018)配置,轮18 PK1
+            "config_hero_halo",            // 光环(Halo,pt_514)配置表,轮18 PK2
+            "config_red_envelopes",        // 公会红包(RedPacket,pt_339)配置,轮18 PK2
+            "config_red_envelopes_goods",  // 公会红包可选物品表,轮18 PK2
+            "config_fairy",                // 仙灵祝福(FairyWish,pt_513)基础表(fairy_buy 数据源,非148精灵系统),轮18 PK2
+            "config_fairy_node",           // FairyWish 强化节点表,轮18 PK2
+            "config_boss_first_blood_plus_boss", // 首杀/首通(FirstBlood,pt_188)Boss配置,轮18 PK3
+            "config_fiesta_act",           // 祭典/宝录(Festival,pt_194)活动表,轮18 PK3
+            "config_fiesta_act_task",      // Festival 活动任务表,轮18 PK3
+            "config_fiesta_kv",            // Festival 杂项KV,轮18 PK3
+            "config_fiesta_lv_exp",        // Festival 等级经验表,轮18 PK3
+            "config_fiesta_task",          // Festival 任务表,轮18 PK3
+            "config_checkin_type",         // 签到(Welfare 41703-05)类型表,轮18 PK4
+            "config_checkin_daily_rewards",// 签到每日奖励表,轮18 PK4
+            "config_checkin_total_rewards",// 签到累计奖励表,轮18 PK4
+            "config_checkin_daily_retroactive", // 签到补签配置,轮18 PK4
+            "config_checkin_key_value",    // 签到杂项KV,轮18 PK4
+            "config_online_reward",        // 在线福利(41715/41716)奖励表,轮18 PK4
+            "config_welfare_cfg",          // Welfare 通用配置,轮18 PK4
+            "config_welfare_night_reward", // Welfare 晚间奖励配置,轮18 PK4
+            "config_grow_welfare_info",    // 成长福利(41722)配置,轮18 PK4
+            "config_combat_welfare_reward",// 战力福利(41723/41724)奖励表,轮18 PK4
+            "config_combat_welfare_times", // 战力福利摇奖次数表,轮18 PK4
+            "config_xinyue_gift",          // 心悦礼包(41719)配置,轮18 PK4
+            "config_real_info_reward",     // 实名认证奖励表,轮18 PK4
+            "config_scene_revive_cost",    // 场景复活消耗(12083联动),轮18 PK5
             "config_guild_daily",         // 宝箱任务表(数字键 task_id,7条),轮13b GuildConfigs.GetDailyTask 用(已与 data_guild_daily.erl 逐值核对一致)
             "config_guild_assist",        // 协助开放条件表(具名键"type@sub_type",8条),轮13b GuildConfigs.GetAssistCfg 用(已与 data_guild_assist.erl 逐值核对一致)
             "config_guild_god",           // 神像基础表(数字键 god_id,4条),轮13b GuildConfigs.GetGod 用
