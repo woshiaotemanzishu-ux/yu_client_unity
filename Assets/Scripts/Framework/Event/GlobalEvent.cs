@@ -747,5 +747,14 @@ namespace Shenxiao.Framework.Event
         /// 12078/12080/12083/12085/12087/12088/12090/12092)通用落地事件,不与既有 EVT_DROP_*(15053/15088)
         /// 混用。参数: int protoId,消费方按需读 SceneManager 对应字段。</summary>
         public const string EVT_SCENE_MISC_UPDATE = "EVT_SCENE_MISC_UPDATE";
+
+        // ----- 交易行(151xx补全,自动循环 轮19)----- MARKET_ICON_INFO(15121) 既有图标逻辑不经这两个
+        // 事件,继续走 ActivityIconManager 直接增删,一行未动。
+        /// <summary>Market(151xx补全)列表/信息类落地(15100错误推送/15101/15102/15109/15112/15114/
+        /// 15118/15119/15120删除推送)。参数: int protoId。</summary>
+        public const string EVT_MARKET_UPDATE = "EVT_MARKET_UPDATE";
+        /// <summary>Market 操作结果(上架15106/下架15108/购买15111/发起求购15115/撤销求购15116/
+        /// 求购出售15117/喊话15122)。参数: int protoId(触发的请求号), int code(1=成功,其余=错误码)。</summary>
+        public const string EVT_MARKET_RESULT = "EVT_MARKET_RESULT";
     }
 }

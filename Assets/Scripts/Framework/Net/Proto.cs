@@ -2767,5 +2767,75 @@
         /// (read 变长数组),442-446(write):发变长数组[u16×{GoodsId:64}];回包
         /// List[u16×{Id:64,AerBuffList:预编码二进制(来源另一模块,原样透传)}]。</summary>
         public const int SC_MONSTER_BUFF_BATCH = 12092;
+
+        // ----- 交易行补全(151xx,yu_server pt_151.erl / 老端 MarketController.ts,自动循环 轮19) -----
+        // MARKET_ICON_INFO=15121 已在上方"便宜活批"段定义(轮18),本段补齐老端活号 17 个中除 15121 外的
+        // 其余 16 个。死号 15103(协议 read/write 双缺但业务层活,发了也拿垃圾响应;read no_match 后更
+        // 可能网关静默丢弃——pt_151:read 全仓无调用点[全仓 grep pt_151: 仅命中 :write,无一处 :read],
+        // 网关是独立二进制,不在本仓库源码树内,无法在此继续追踪确证)/15104(搜索,老端零调用已自砍)/
+        // 15105(推荐价,老端零调用已自砍,服务端该错误分支本身还在产 bug:1元素vs3字段定义)/
+        // 15107(P2P上架,do_handle 整段注释)/15110(P2P列表,注释+write缺)/15113(P2P红点,触发链依赖已
+        // 注释的15107)严禁在此新增常量。服务端统一 open_lv=90 门槛(pp_sell.erl:22-29),90 级以下静默
+        // 丢包不回。wire 已逐字段核对 pt_151.erl 原文(行号见各常量注释),详见 r18_server_market.md 台账。
+        /// <summary>15100 通用错误码推送(S2C only)。pt_151.erl:81-91:回包 Errcode:32, Args:string。</summary>
+        public const int MARKET_ERROR_PUSH = 15100;
+        /// <summary>15101 一级分类挂单数量。pt_151.erl:8-10(read "i" Type),93-108(write):
+        /// 发 "i"(Type:32);回包 Type:32, SellList[u16×{Subtype:32,SellNum:32}]。</summary>
+        public const int MARKET_LEVEL1_LIST = 15101;
+        /// <summary>15102 二级列表商品(9字段,EquipExtraAttr 二层嵌套)。pt_151.erl:11-17(read "iiccc"
+        /// Type,Subtype,Stage,Star,Color;99=不筛选),110-127(write):发 "iiccc";回包 Type:32,Subtype:32,
+        /// GoodsList[u16×{Id:64,PlayerId:64,TypeId:32,GoodsNum:32,Rating:32,OverallRating:32,UnitPrice:32,
+        /// SellType:8,EquipExtraAttr[u16×{Color:8,TypeId:8,AttrId:16,AttrVal:32,PlusInterval:8,
+        /// PlusUnit:32}]}]。</summary>
+        public const int MARKET_GOODS_LIST = 15102;
+        /// <summary>15106 上架。pt_151.erl:25-30(read "liic" GoodsId,GoodsNum,Price,IsShout),156-162
+        /// (write):发 "liic";回包 Errcode:32。成功后老端重发 <see cref="MARKET_SHELF_LIST"/> 刷新
+        /// (ts:163)。</summary>
+        public const int MARKET_SELL_UP = 15106;
+        /// <summary>15108 下架。pt_151.erl:31-36(read "clii" SellType,Id,TypeId,GoodsNum),164-170
+        /// (write):发 "clii"(SellType 老端恒传1);回包 Errcode:32。成功后老端重发
+        /// <see cref="MARKET_SHELF_LIST"/> 刷新(ts:177)。</summary>
+        public const int MARKET_SELL_DOWN = 15108;
+        /// <summary>15109 我的上架列表。pt_151.erl:37-38(read 裸),172-185(write):发空;回包
+        /// GoodsList[u16×9字段](同 <see cref="MARKET_GOODS_LIST"/> 元素结构,item_to_bin_5)。
+        /// 15106/15108 成功后老端回补。</summary>
+        public const int MARKET_SHELF_LIST = 15109;
+        /// <summary>15111 购买。pt_151.erl:39-48(read "cliiliii" SellType,Id,Type,Subtype,SellerId,
+        /// TypeId,GoodsNum,UnitPrice),187-201(write):发 "cliiliii"(SellType 老端恒传1);回包
+        /// Errcode:32,SellType:8,Id:64,Type:32,Subtype:32(5字段,无 write_string)。成功后老端重发
+        /// <see cref="MARKET_BUY_TIMES"/> 刷新(ts:199)。</summary>
+        public const int MARKET_BUY = 15111;
+        /// <summary>15112 交易记录。pt_151.erl:49-50(read 裸),203-216(write):发空;回包
+        /// RecordList[u16×{TypeId:32,GoodsNum:32,Rating:32,OverallRating:32,Type:8,Tax:32,Price:32,
+        /// Time:32,EquipExtraAttr[u16×同 15102 六字段]}]。</summary>
+        public const int MARKET_RECORD_LIST = 15112;
+        /// <summary>15114 购买次数。pt_151.erl:51-52(read 裸),218-231(write):发空;回包
+        /// TimesList[u16×{Type:8,Times:8,TimesLimit:8}]。</summary>
+        public const int MARKET_BUY_TIMES = 15114;
+        /// <summary>15115 发起求购。pt_151.erl:53-57(read "iii" TypeId,GoodsNum,UnitPrice),233-255
+        /// (write):发 "iii";回包 Errcode:32,Id:64,PlayerId:64,RoleName:string,TypeId:32,GoodsNum:16
+        /// (与 read 侧 32 位不同,write 子句原文核实),UnitPrice:32,Time:32。</summary>
+        public const int MARKET_PLZ_CREATE = 15115;
+        /// <summary>15116 撤销求购。pt_151.erl:58-60(read "l" Id),257-265(write):发 "l";回包
+        /// Errcode:32,Id:64。</summary>
+        public const int MARKET_PLZ_CANCEL = 15116;
+        /// <summary>15117 出售给求购单。pt_151.erl:61-67(read "lliii" Id,BuyerId,TypeId,GoodsNum,Price),
+        /// 267-277(write):发 "lliii";回包 Errcode:32,Id:64,GoodsNum:32。</summary>
+        public const int MARKET_PLZ_SELL = 15117;
+        /// <summary>15118 求购列表(全服,分页)。pt_151.erl:68-71(read "hh" PageNo,PageSize),279-298
+        /// (write):发 "hh";回包 PageTotal:16,PageNo:16,PageSize:16,SeekList[u16×{Id:64,SerId:64,
+        /// ServerNum:64(独例),PlayerId:64,RoleName:string,TypeId:32,GoodsNum:16,UnitPrice:32,
+        /// Time:32}]。</summary>
+        public const int MARKET_PLZ_LIST_ALL = 15118;
+        /// <summary>15119 我的求购列表。pt_151.erl:72-73(read 裸),300-313(write):发空;回包
+        /// SeekList[u16×{Id:64,TypeId:32,GoodsNum:16,UnitPrice:32,Time:32}](比 15118 少 SerId/
+        /// ServerNum/RoleName)。</summary>
+        public const int MARKET_PLZ_LIST_MINE = 15119;
+        /// <summary>15120 挂单/求购删除推送(S2C only)。pt_151.erl:315-327:回包 SellType:8,Type:32,
+        /// Subtype:32,Id:64。SellType==1(挂单)/3(求购)分流,2(P2P)死路径。</summary>
+        public const int MARKET_SELL_DELETE_PUSH = 15120;
+        /// <summary>15122 喊话。pt_151.erl:76-78(read "l" SellId),337-347(write):发 "l";回包
+        /// Errcode:32,SellId:64,CdTime:32。老端成功分支为空(ts:299-307),只在失败分支显码。</summary>
+        public const int MARKET_SHOUT = 15122;
     }
 }
