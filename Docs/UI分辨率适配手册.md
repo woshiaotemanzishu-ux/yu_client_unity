@@ -89,6 +89,8 @@ Laya 的 `centerX/left/right/top/bottom` 与 Unity 的 `anchorMin/anchorMax/offs
 | — | 存档主界面手改(重跑 Creator 前保命) | `65393a5ea` |
 | A-防护 | 转换器黑名单 + CLI 入口 + CliVerify 多分辨率标尺 | `5ce872fa1` |
 | A/B | MainUI 贴边锚定 + 手改回写 Creator + BaseWindowSkin | `9e28a18a0` |
+| A/B 产物 | MainUI 7 区域重烤落盘(实物验证通过) | `29945a3c7` |
+| **C** | **转换器根锚定推导链(代码已就绪,待灰度重转)** | `9c8a6bbdd` |
 
 **MainUI 逐区域最终状态**(✅=已按老端语义贴边,➖=本来就对):
 
@@ -112,26 +114,65 @@ Laya 的 `centerX/left/right/top/bottom` 与 Unity 的 `anchorMin/anchorMax/offs
 
 | 批次 | 内容 | 预估 | 前置 |
 |---|---|---|---|
-| **C** | 转换器推导链:`analyze_layaui.py` 扩 `tsChain`/`rootLayout` → manifest 加字段 → `BuildRoot` 改优先级合并链。一次修掉 181 个反向错的 view | 2.5–3 人日 | 批次 A 的黑名单与标尺(已就位) |
-| **D** | 13 个全屏战斗 view 四边贴边 + 安全区落到 view 根;例外表人工裁决 | 1 人日 | C |
+| **C-重转** | 按灰度重转 prefab,验收清单见下 | — | **需在编辑器里操作** |
+| **D** | 13 个全屏战斗 view 四边贴边 + 安全区落到 view 根;例外表人工裁决 | 1 人日 | C-重转 |
 | **E** | 平台面:WebGL 模板跟随窗口、宽屏底图、放行横屏、文档 | 1–2 人日 | **需用户在场实测** |
+| 附 | 吸收 manifest 的 1190 条无关漂移(见下) | 0.5 人日 | 独立于主线 |
 
-#### 批次 C 的实现约束(重要)
+#### 批次 C 重转的验收清单
 
-推导链的优先级(低→高):
-`scene json props` → 基类默认(`tsChain` 含 `BaseWindowComponent` → `{centerX:0,bottom:0}`;
-链上有 `is_center=true` → `{centerX:0,centerY:0}`;都没有 → **保持左上兜底**,这条正是修掉 181 个错的关键)
-→ `manifest.rootLayout`(子类 TS 覆写)→ `ui_root_layouts.json`(人工最终裁决)。
+灰度顺序:**外科式单窗口 → 3~5 模块 → 20 模块 → 全量**。每档都跑 720×1280 + 1080×2400。
 
-**合并结果必须走 `ApplyConfiguredRootLayout` 的 clean-props 通道,不要与原 scene props 混合。**
-原因:`LayaRectMath` 的水平分支顺序是 `left&&right > centerX > right > left`,
-而 Laya 实测(`laya.ui.js:242-257`)是 `centerX > left(+right) > right`,两者只在
-`centerX` 与 `left+right` 共存时分叉。当前全库该组合为 0 所以无感,一旦"合并"就会立刻踩到。
-走 clean-props 天然规避,`LayaRectMath` 一行都不用改。
+1. **最危险的失效模式**:转换报告「## 分类统计」里 `根锚定/⚠兜底居中(推导不出)` 应约 **8**、
+   `根锚定/⚠共用件冲突(维持现状待裁决)` 应为 **4**。
+   若前者接近 0 且「左上绝对定位」数暴涨,说明 `isCenter` 字段丢了 ——
+   **那会把 483 个本来就对的 view 全改成左上**。
+2. `git diff` 应只出现 **68 个** view-prefab 的根 RectTransform 变化;
+   **483 个 fast-center 必须零 diff**(这是分清"修好的"与"改坏的"的标尺)。
+3. 53 个基准档真位移需在 1080×2400 / 1920×1080 目视验收,其中 3 个 `is_center=true` 的优先看:
+   `friendInvite/FriendInviteView`、`outline/OutLineView`、`seaHegemony/SeaFightSettleView`
+   —— 已读 `laya.ui.js:242` 原文确认是 scene 显式锚被 `is_center` 遮蔽的**有意修正**,非回归。
+4. `patched` 名单 4 条重烤后**必须手动重跑** `InnateSkillCreator` / `FriendBindUpgrader` /
+   `JewelBindUpgrader`,否则天赋页、好友私聊窗、骸珀镶嵌页缺业务组件。
 
-**生成器必须以 `ui_manifest.json` 的 scenes 为索引反查 TS,而不是以 TS 类为索引正推** ——
-746 个 view 类里只有 620 个有 scene 条目(126 个无 scene,含全部 80 个 BWC 子类),
-正推会为不存在的键写配置。
+#### 批次 C 的实现要点(已落地,供日后维护参考)
+
+推导链优先级(低→高):`scene props` → 基类默认 → `manifest.rootLayout` → `ui_root_layouts.json`。
+基类默认:`tsChain` 含 `BaseWindowComponent` → `{centerX:0,bottom:0}`;`isCenter=true` → 走
+**原样不动的快路径**;两者都无 → 保持左上兜底(这条正是修掉反向错的关键)。
+
+几个不能动的约束:
+
+- **`isCenter` 必须单列字段,不能折进 `rootLayout` 的 `{centerX:0,centerY:0}`** ——
+  折进去就得走 `LayaRectMath` 才能复现居中,而那会把 pivot 从 `(0.5,0.5)` 打成 `(0,1)`、
+  `anchoredPosition` 全变,炸出 495 个 prefab 的 diff 噪声,零位移证明作废。
+- **合并结果必须走 clean-props 通道,不与 scene props 混合。**
+  `LayaRectMath` 的水平分支顺序是 `left&&right > centerX > right > left`,
+  而 Laya 实测(`laya.ui.js:242` `resetLayoutX`)是 `centerX` 绝对优先、`left+right` 仅在
+  `centerX` 为 NaN 时拉伸。两者只在 `centerX` 与 `left+right` 共存时分叉,当前全库该组合命中 0
+  所以无感,一旦合并就会变成真 bug。走 clean-props 天然规避,`LayaRectMath` 一行未改。
+- **刻意不提取 `scaleX`/`scaleY`**:实测 50 余处 scale 赋值绝大多数是开场/补间动画起始值
+  (`BaseView1` 的 0.825)。静态折叠会造成全局缩放事故 —— 0.825 一旦沿链下发,全部 view 都缩水。
+- **逻辑落在 `ApplyRootLayout` 而非 `BuildRoot` 本体**:`BuildRoot` 另有两个调用方
+  (`CollectInlineTemplates` 的 715 个内联 item、`Baker.BakeViewTree` 的快照烤图),
+  它们的几何已是运行时绝对值,再叠基类语义会双重偏移。
+- **`shared-prefab`(160 个)整体跳过推导链**:`ConvertOne` 里 `BuildWindow` 之后紧跟
+  `NormalizeItemRoot` 无条件抹平,推导只是白算再被抹掉。
+- **`FIX_ITEM_CHAIN_ROOTS = false`**:链上无 `BaseView1` 的 128 个 view-prefab
+  (大窗的子页 item,由父容器 `addChild` 挂入、从不参与 `is_center`)本批次只打标记不改行为。
+  核实父容器语义后把该 const 改 `true` 即放行。
+- **生成器以 `ui_manifest.json` 的 scenes 为索引反查 TS,不要以 TS 类为索引正推** ——
+  view 类比 scene 条目多,正推会为不存在的键写配置。
+
+#### manifest 的 1190 条无关漂移(待单独处理)
+
+`yu_client` 的 TS 源自 06-11 以来变过,直接跑 `python Tools/LayaUI/analyze_layaui.py` 会带来
+1190 个 scene 的差异(`otherRefFiles` 1166 / `skinSource` 57 / `missingSkins` 55 / `tsClass` 24)
+与 14 个 decision 翻转,summary 从 view-prefab 756 漂到 754、shared-prefab 160 漂到 167。
+
+**这个不一致在批次 C 动手前就已存在。** 批次 C 为了不污染"基准档零位移"的可证明性,
+采用了**只增不改的嫁接**(索引口径与脚本完全一致)。所以当前仓库的 manifest ≠ 今天全量跑脚本的产物。
+待适配主线收口后单独开一轮吸收漂移,那时直接跑脚本即可得到同样的 4 个新字段。
 
 ---
 
