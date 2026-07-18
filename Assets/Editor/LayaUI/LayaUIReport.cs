@@ -15,7 +15,9 @@ namespace Shenxiao.Editor.LayaUI
         private string _scene = "";
         private readonly List<string> _lines = new List<string>();
         private readonly Dictionary<string, int> _unknownProps = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> _tally = new Dictionary<string, int>();
         public int MissingCount { get; private set; }
+        public int WarnCount { get; private set; }
 
         public LayaUIReport(string module)
         {
@@ -50,6 +52,28 @@ namespace Shenxiao.Editor.LayaUI
             _lines.Add("- " + msg);
         }
 
+        /// <summary>
+        /// 警告:不缺图,但这一处的转换结果可能不对(如根锚定推导链查不到、只能走兜底)。
+        /// 与 Approx 的区别:Approx 是"已知的近似",Warn 是"数据缺失导致没算准,需要补数据或人工裁决"。
+        /// </summary>
+        public void Warn(string msg)
+        {
+            WarnCount++;
+            _lines.Add("- ⚠️ " + msg);
+        }
+
+        /// <summary>
+        /// 分桶计数,只进末尾汇总不逐条刷屏(如根锚定各来源各命中多少个)。
+        /// 验收时直接看汇总表对账,比翻几千行明细快。
+        /// </summary>
+        public void Tally(string bucket)
+        {
+            if (string.IsNullOrEmpty(bucket)) return;
+            int n;
+            _tally.TryGetValue(bucket, out n);
+            _tally[bucket] = n + 1;
+        }
+
         public void UnknownProp(string type, string prop)
         {
             string key = type + "." + prop;
@@ -67,6 +91,14 @@ namespace Shenxiao.Editor.LayaUI
             sb.AppendLine();
             sb.AppendLine("生成时间: " + System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             foreach (string l in _lines) sb.AppendLine(l);
+            if (_tally.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("## 分类统计");
+                List<string> keys = new List<string>(_tally.Keys);
+                keys.Sort();
+                foreach (string k in keys) sb.AppendLine("- `" + k + "` ×" + _tally[k]);
+            }
             if (_unknownProps.Count > 0)
             {
                 sb.AppendLine();

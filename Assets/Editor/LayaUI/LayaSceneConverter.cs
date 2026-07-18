@@ -320,7 +320,7 @@ namespace Shenxiao.Editor.LayaUI
             _bakedSkins = entry.BakedSkins;
             GameObject go = BuildRoot(entry.Name, rootJson, manifest, report);
             _bakedSkins = null;
-            ApplyConfiguredRootLayout(sceneKey, entry, rootJson, go, manifest, report);
+            ApplyRootLayout(sceneKey, entry, rootJson, go, manifest, report);
 
             var templates = new List<GameObject>();
             var templateEntries = new List<LayaUIManifest.SceneEntry>();
@@ -509,12 +509,18 @@ namespace Shenxiao.Editor.LayaUI
             }
             catch (System.Exception e)
             {
-                Debug.LogError("[LayaUI] ui_root_layouts.json 瑙ｆ瀽澶辫触: " + e.Message);
+                Debug.LogError("[LayaUI] ui_root_layouts.json 解析失败: " + e.Message);
                 _rootLayoutConfig = new JObject();
             }
             return _rootLayoutConfig;
         }
 
+        /// <summary>
+        /// 人工裁决表(推导链最高层)查表,四级依次:
+        /// scene key → tsClass → scene 名 → 继承链上的基类名。
+        /// 最后一级让一条配置能覆盖一整族(例如配 "BaseWindowComponent" 就作用于全部共用
+        /// BaseWindowSkin 的业务大窗,不必逐个窗口写)。
+        /// </summary>
         private static JObject GetConfiguredRootLayout(string sceneKey, LayaUIManifest.SceneEntry entry)
         {
             JObject cfg = LoadRootLayoutConfig();
@@ -523,21 +529,155 @@ namespace Shenxiao.Editor.LayaUI
             JToken token = cfg[sceneKey];
             if (token == null && entry != null && !string.IsNullOrEmpty(entry.TsClass)) token = cfg[entry.TsClass];
             if (token == null && entry != null && !string.IsNullOrEmpty(entry.Name)) token = cfg[entry.Name];
+            if (token == null && entry != null && entry.TsChain != null)
+            {
+                // 顺序是"自身 → 根基类",所以越派生的类越先命中,基类只当兜底。
+                foreach (string cls in entry.TsChain)
+                {
+                    if (string.IsNullOrEmpty(cls)) continue;
+                    token = cfg[cls];
+                    if (token != null) break;
+                }
+            }
             return token as JObject;
         }
 
-        private static void ApplyConfiguredRootLayout(string sceneKey, LayaUIManifest.SceneEntry entry, JObject rootJson,
+        // ---------------------------------------------------------------- 根锚定推导链
+
+        /// <summary>水平轴定位键。数组顺序即 Laya Widget 的轴内优先级:centerX > left(+right) > right > x。</summary>
+        private static readonly string[] AXIS_X = { "centerX", "left", "right", "x" };
+
+        /// <summary>垂直轴定位键。数组顺序即 Laya Widget 的轴内优先级:centerY > top(+bottom) > bottom > y。</summary>
+        private static readonly string[] AXIS_Y = { "centerY", "top", "bottom", "y" };
+
+        /// <summary>节点自身属性:不参与按轴取舍,逐键覆盖后原样带进 clean props
+        /// (少了它们 clean props 会把 pivot 打回 (0,1)、丢掉 scale,违反"只改 anchor 不改 pivot")。</summary>
+        private static readonly string[] SELF_KEYS = { "anchorX", "anchorY", "pivotX", "pivotY", "scaleX", "scaleY", "rotation" };
+
+        /// <summary>
+        /// BaseItem1 / BaseItemRenderer 后代(BaseWindowComponent 的子页 item)要不要也按左上绝对定位修。
+        /// 老端这批由父容器 addChild 挂进去、从不参与 is_center,理论上左上才对;但那是另一类缺陷、
+        /// 另一套修法(父容器语义尚未核实),本批次先只打标记不改行为,免得把 100 多个子页一起动了。
+        /// 核实后把这里改 true 即可放行。
+        /// </summary>
+        private const bool FIX_ITEM_CHAIN_ROOTS = false;
+
+        /// <summary>
+        /// 根锚定推导链(低→高):
+        ///   L0 scene json props → L1 基类默认(tsChain)→ L2 manifest.rootLayout(子类 TS 覆写)
+        ///   → L3 ui_root_layouts.json(人工最终裁决)
+        ///
+        /// 为什么需要它:老端 86% 的 view 根锚定写在 TS 运行时基类里(BaseView1 的 is_center、
+        /// BaseWindowComponent 的 bottom=0+centerX=0),.scene 数据里根本没有。BuildRoot 只读 scene props,
+        /// 于是把这层语义压成二值——有显式锚就换算,否则【无条件居中】。绝大多数 view 落进那条兜底,
+        /// 其中相当一批本该保持左上绝对定位却被强行居中。这里把基类语义补回来。
+        ///
+        /// 合并结果统一走 clean props(只含 width/height + 收敛后的定位键 + 节点自身属性)再喂
+        /// LayaRectMath.Apply,不与原 scene props 混着喂——理由见 NormalizeAxis。
+        /// </summary>
+        private static void ApplyRootLayout(string sceneKey, LayaUIManifest.SceneEntry entry, JObject rootJson,
             GameObject go, LayaUIManifest manifest, LayaUIReport report)
         {
-            JObject layout = GetConfiguredRootLayout(sceneKey, entry);
-            if (layout == null) return;
+            JObject sceneProps = rootJson["props"] as JObject ?? new JObject();
+            float w = LayaRectMath.F(sceneProps, "width") ?? manifest.DesignWidth;
+            float h = LayaRectMath.F(sceneProps, "height") ?? manifest.DesignHeight;
+            RectTransform rt = (RectTransform)go.transform;
 
-            JObject rootProps = rootJson["props"] as JObject ?? new JObject();
-            float w = LayaRectMath.F(rootProps, "width") ?? manifest.DesignWidth;
-            float h = LayaRectMath.F(rootProps, "height") ?? manifest.DesignHeight;
+            // 共享件的根随后会被 NormalizeItemRoot 无条件打成左上锚(ConvertOne 里 BuildWindow 之后),
+            // 在这儿推导只是白算一遍再被抹掉,还会往报告里灌误导信息。
+            if (entry != null && entry.Decision == "shared-prefab")
+            {
+                report.Tally("根锚定/跳过-共享件(随后被 NormalizeItemRoot 归一)");
+                return;
+            }
 
-            // Root layout overrides model BaseView1.LoadSuccess display_obj assignments.
-            // Use a clean prop object so stale JSON top/bottom/center fields do not survive TS assignments.
+            string baseWhy;
+            JObject baseLayer = DeriveBaseLayout(entry, out baseWhy);                        // L1 基类默认
+            JObject tsLayer = PickLayoutKeys(entry != null ? entry.RootLayout : null);       // L2 子类 TS 覆写
+            JObject manLayer = PickLayoutKeys(GetConfiguredRootLayout(sceneKey, entry));     // L3 人工裁决
+
+            // 一个 .scene 被多个 TS 类共用、各自的根锚定又不一致:manifest 里那份 rootLayout 只是
+            // 取值顺序上先到的一个,不是裁决结果。此时【不许】拿它去套——Unity 侧这些类共用同一个
+            // prefab,套错等于拿 A 界面的锚渲染 B 界面。维持改前行为并告警,交人工进 ui_root_layouts.json;
+            // 人工表一旦写了就以人工表为准(那正是这条路的逃生口)。
+            if (entry != null && entry.RootLayoutConflict != null && entry.RootLayoutConflict.Count > 0)
+            {
+                string who = string.Join(" / ", entry.RootLayoutConflict.ToArray());
+                if (CountOf(manLayer) == 0)
+                {
+                    report.Warn("根锚定 " + sceneKey + " 被多个 TS 类共用且根锚定冲突(" + who + ")," +
+                                "已维持改前行为不做推导;需人工在 " + ROOT_LAYOUT_CONFIG_PATH + " 里裁决或拆件");
+                    report.Tally("根锚定/⚠共用件冲突(维持现状待裁决)");
+                    return;
+                }
+                report.Note("根锚定 " + sceneKey + " 共用件冲突(" + who + "),按人工表裁决");
+                baseLayer = null;
+                tsLayer = null;
+            }
+
+            bool hasHigher = CountOf(baseLayer) > 0 || CountOf(tsLayer) > 0 || CountOf(manLayer) > 0;
+            if (!hasHigher)
+            {
+                // L1/L2/L3 都没输入,scene props 就是全部语义——BuildRoot 已经算完了,原样保留。
+                if (HasExplicitRootLayout(sceneProps))
+                {
+                    report.Tally("根锚定/scene 显式锚");
+                    return;
+                }
+
+                // scene 无锚 + 推导链查不到:只能沿用旧的【无条件居中】兜底。
+                // 保留它是为了生成器还没产出新字段时不炸掉全库(并行开发的必要条件),
+                // 但每命中一次都必须吼出来——否则生成器漏项会被这条兜底永久掩盖。
+                if (!CanDeriveFromChain(entry))
+                {
+                    report.Warn("根锚定 " + sceneKey + " 推导链查不到(tsChain/rootLayout 缺失,或 is_center 是运行时切换)," +
+                                "沿用无条件居中兜底;需 analyze_layaui.py 补字段或人工进 " + ROOT_LAYOUT_CONFIG_PATH);
+                    report.Tally("根锚定/⚠兜底居中(推导不出)");
+                    return;
+                }
+
+                if (!IsViewChain(entry) && !FIX_ITEM_CHAIN_ROOTS)
+                {
+                    // 链上没有 BaseView1:BaseItem1 / BaseItemRenderer 后代是别人的子页 item,
+                    // 由父容器 addChild 挂进去,从来不参与 is_center 语义。见 FIX_ITEM_CHAIN_ROOTS。
+                    report.Tally("根锚定/子页 item 链(本批次不改行为)");
+                    report.Note("根锚定 " + sceneKey + " 链上无 BaseView1(" + ChainText(entry) + "),按子页 item 处理,本批次维持原样");
+                    return;
+                }
+
+                // 走到这里 = tsChain 在、链上既无 BaseWindowComponent 也无 is_center=true。
+                // 老端这类 view 的根压根没被设过锚,保持 .scene 的 x/y 左上绝对定位才是对的
+                // ——此前一律居中,正是"反向错"的来源。下面按空的高层继续走合并,
+                // 收敛后只剩 L0 的 x/y,LayaRectMath 的兜底分支即左上绝对定位。
+            }
+
+            JObject layout = new JObject();
+            Accumulate(layout, PickLayoutKeys(sceneProps)); // L0
+            Accumulate(layout, baseLayer);                  // L1
+            Accumulate(layout, tsLayer);                    // L2
+            OverrideByAxis(layout, manLayer);               // L3
+            NormalizeAxis(layout, AXIS_X);
+            NormalizeAxis(layout, AXIS_Y);
+
+            // 零位移快路径:老端 is_center 的那一大批 view 今天走 BuildRoot 的居中兜底,
+            // 推导链算出来的也正是 {centerX:0, centerY:0}——但若过一遍 LayaRectMath,
+            // pivot 会被解成 (0,1)、anchoredPosition 解成 (-w/2, h/2):屏幕矩形一样,
+            // prefab YAML 里的 m_Pivot / m_AnchoredPosition 却全变,基准档"逐字节零 diff"的
+            // 无回归证明就没了。所以这里逐行复刻旧兜底,不经 LayaRectMath。
+            // (仅当 scene 自己没有显式锚时才走——scene 带 centerX/centerY 的根今天是过 Apply 的,
+            //  pivot 由 anchorX/pivotX 解出,不能被这条快路径打成 0.5。)
+            if (!HasExplicitRootLayout(sceneProps) && IsPureCenter(layout))
+            {
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.sizeDelta = new Vector2(w, h);
+                rt.anchoredPosition = Vector2.zero;
+                report.Tally("根锚定/居中(" + (baseWhy ?? "推导") + ",与改前逐字节一致)");
+                return;
+            }
+
+            // clean props:定位键只认收敛结果,节点自身属性(pivot/scale/rotation)从 scene 搬过来。
+            // 绝不把 scene 的定位键一起倒进来——那样陈旧的 top/bottom/center 会活过 TS 赋值。
             JObject p = new JObject
             {
                 ["width"] = w,
@@ -548,9 +688,190 @@ namespace Shenxiao.Editor.LayaUI
                 p[prop.Name] = prop.Value.DeepClone();
             }
 
-            RectTransform rt = (RectTransform)go.transform;
             LayaRectMath.Apply(rt, p, new Vector2(w, h));
-            report.Note("RootLayout " + sceneKey + " -> " + layout.ToString(Newtonsoft.Json.Formatting.None));
+
+            string src = SourceText(baseWhy, tsLayer, manLayer, hasHigher);
+            report.Tally("根锚定/" + src);
+            report.Note("根锚定 " + sceneKey + " ← " + src + " " + layout.ToString(Newtonsoft.Json.Formatting.None));
+            if (entry != null && entry.RootLayout != null && IsTrue(entry.RootLayout, "safeAreaTop"))
+            {
+                // 老端原文是 top = Util.GetLiuhaiHeight()(硬编码 60 + 静态缓存永不更新,是老端 bug)。
+                // 统一折算成 0,安全区交给 Unity 的 SafeAreaRoot,绝不烤成 60px(会叠成双倍内缩)。
+                report.Note("根锚定 " + sceneKey + " 的 top 原本取自 Util.GetLiuhaiHeight(),已按手册折算成 0,安全区走 SafeAreaRoot");
+            }
+        }
+
+        /// <summary>
+        /// L1 基类默认层。tsChain 缺失时返回 null —— 这个 null 是"无从推导"与"推导出无锚"的分界线,
+        /// 上层据此决定是沿用旧居中兜底还是修成左上绝对定位,不能退化成返回空对象。
+        /// </summary>
+        private static JObject DeriveBaseLayout(LayaUIManifest.SceneEntry entry, out string why)
+        {
+            why = null;
+            if (entry == null || entry.TsChain == null || entry.TsChain.Count == 0) return null;
+
+            JObject o = null;
+            if (entry.TsChain.Contains("BaseWindowComponent"))
+            {
+                // BaseWindowComponent 的 load_callback:display_obj.bottom = 0;display_obj.centerX = 0
+                o = new JObject { ["centerX"] = 0f, ["bottom"] = 0f };
+                why = "BaseWindowComponent";
+            }
+            if (ResolveIsCenter(entry) == true)
+            {
+                // BaseView1.OnLoadCompleted:if (is_center) display_obj.centerX = display_obj.centerY = 0
+                if (o == null) o = new JObject();
+                o["centerX"] = 0f;
+                o["centerY"] = 0f;
+                why = why == null ? "is_center" : why + "+is_center";
+            }
+            return o;
+        }
+
+        /// <summary>is_center 的静态生效值;null = 未提取到,或是运行时切换(不可静态折叠)。</summary>
+        private static bool? ResolveIsCenter(LayaUIManifest.SceneEntry entry)
+        {
+            if (entry == null || entry.IsCenter == null || entry.IsCenter.Type == JTokenType.Null) return null;
+            if (entry.IsCenter.Type == JTokenType.Boolean) return (bool)entry.IsCenter;
+            return null;    // "dynamic" 之类:构造期一个值、SetData 里另一个值,不许折叠
+        }
+
+        /// <summary>推导链是否可用。tsChain 缺失,或 is_center 被标成运行时切换,都算"推导不出"。</summary>
+        private static bool CanDeriveFromChain(LayaUIManifest.SceneEntry entry)
+        {
+            if (entry == null || entry.TsChain == null || entry.TsChain.Count == 0) return false;
+            if (entry.IsCenter != null && entry.IsCenter.Type != JTokenType.Null &&
+                entry.IsCenter.Type != JTokenType.Boolean) return false;
+            return true;
+        }
+
+        /// <summary>链上是否有 BaseView1(有 = 真 view,根锚归 is_center 管;没有 = 别人的子页 item)。</summary>
+        private static bool IsViewChain(LayaUIManifest.SceneEntry entry)
+        {
+            return entry != null && entry.TsChain != null && entry.TsChain.Contains("BaseView1");
+        }
+
+        private static string ChainText(LayaUIManifest.SceneEntry entry)
+        {
+            if (entry == null || entry.TsChain == null) return "无链";
+            return string.Join(" → ", entry.TsChain.ToArray());
+        }
+
+        private static int CountOf(JObject o)
+        {
+            return o == null ? 0 : o.Count;
+        }
+
+        /// <summary>只挑出参与根锚定的键(定位键 + 节点自身属性),safeAreaTop 这类元数据键一律滤掉。</summary>
+        private static JObject PickLayoutKeys(JObject src)
+        {
+            if (src == null) return null;
+            JObject o = new JObject();
+            foreach (JProperty prop in src.Properties())
+            {
+                if (!IsLayoutKey(prop.Name)) continue;
+                if (prop.Value == null || prop.Value.Type == JTokenType.Null) continue;
+                o[prop.Name] = prop.Value.DeepClone();
+            }
+            return o.Count > 0 ? o : null;
+        }
+
+        private static bool IsLayoutKey(string name)
+        {
+            return System.Array.IndexOf(AXIS_X, name) >= 0
+                || System.Array.IndexOf(AXIS_Y, name) >= 0
+                || System.Array.IndexOf(SELF_KEYS, name) >= 0;
+        }
+
+        /// <summary>
+        /// 按 Laya Widget 的真实语义叠一层:逐键覆盖。
+        /// 老端就是"scene 属性先加载、TS 赋值再打在同一个 Widget 上",赋了哪个键就只动哪个键,
+        /// 同轴其它键仍留在 Widget 上参与 resetLayout(所以 bottom=0 叠在 top 上会变拉伸,不是顶掉 top)。
+        /// </summary>
+        private static void Accumulate(JObject dst, JObject src)
+        {
+            if (src == null) return;
+            foreach (JProperty prop in src.Properties())
+            {
+                dst[prop.Name] = prop.Value.DeepClone();
+            }
+        }
+
+        /// <summary>
+        /// 人工裁决层的叠法:按轴整体接管——该轴只要写了一个键,低层这一轴的键全部作废。
+        /// 它不是 Laya 语义的一部分,是"人说了算"的最终覆盖,所以 ui_root_layouts.json 里
+        /// 写 {x:10} 就真的是 x=10,不会被 scene 里的 left+right 顶成拉伸。
+        /// </summary>
+        private static void OverrideByAxis(JObject dst, JObject src)
+        {
+            if (src == null) return;
+            if (MentionsAxis(src, AXIS_X)) ClearAxis(dst, AXIS_X);
+            if (MentionsAxis(src, AXIS_Y)) ClearAxis(dst, AXIS_Y);
+            Accumulate(dst, src);
+        }
+
+        private static bool MentionsAxis(JObject o, string[] axis)
+        {
+            foreach (string k in axis) if (HasProp(o, k)) return true;
+            return false;
+        }
+
+        private static void ClearAxis(JObject o, string[] axis)
+        {
+            foreach (string k in axis) o.Remove(k);
+        }
+
+        /// <summary>
+        /// 把一根轴上累积到的键收敛成【互斥的一种形态】,使 LayaRectMath 与 laya.ui.js 的分支顺序
+        /// 差异永远构造不出来。
+        ///
+        /// Laya(cdn/libs/laya.ui.js 的 Widget.resetLayoutX/Y):centerX > left(+right 才拉伸) > right;
+        /// LayaRectMath.Apply:                                  left&&right > centerX > right > left。
+        /// 两者只在 centerX 与 left+right 共存时分叉(垂直轴同理)。全库 scene 现在没有这种组合,
+        /// 所以一直无感;但推导链会自己造出来——比如 scene 是 left+right+top+bottom 的根,
+        /// 叠上基类的 {centerX:0,bottom:0} 就正好合成 centerX+left+right。
+        /// 这里按 Laya 的优先级先裁掉败者,只留一种形态喂下去,LayaRectMath 一行都不用改。
+        /// </summary>
+        private static void NormalizeAxis(JObject o, string[] axis)
+        {
+            string center = axis[0], near = axis[1], far = axis[2], abs = axis[3];
+            bool hasNear = HasProp(o, near), hasFar = HasProp(o, far);
+            if (HasProp(o, center)) KeepOnly(o, axis, center, null);
+            else if (hasNear && hasFar) KeepOnly(o, axis, near, far);   // 两端都在 = 拉伸
+            else if (hasNear) KeepOnly(o, axis, near, null);
+            else if (hasFar) KeepOnly(o, axis, far, null);
+            else KeepOnly(o, axis, abs, null);                          // 全无 = 绝对坐标兜底
+        }
+
+        private static void KeepOnly(JObject o, string[] axis, string a, string b)
+        {
+            foreach (string k in axis)
+            {
+                if (k == a || (b != null && k == b)) continue;
+                o.Remove(k);
+            }
+        }
+
+        /// <summary>收敛结果是否恰好是"水平垂直都居中"(即老端 is_center 的等价形态)。</summary>
+        private static bool IsPureCenter(JObject o)
+        {
+            if (!HasProp(o, "centerX") || !HasProp(o, "centerY")) return false;
+            if ((LayaRectMath.F(o, "centerX") ?? 1f) != 0f) return false;
+            if ((LayaRectMath.F(o, "centerY") ?? 1f) != 0f) return false;
+            // 收敛后 centerX/centerY 在场就意味着同轴其它键已被裁掉,这里只兜自身属性:
+            // 带 pivot/scale/rotation 的根不能走快路径(快路径是照抄旧兜底,旧兜底会忽略它们)。
+            foreach (string k in SELF_KEYS) if (HasProp(o, k)) return false;
+            return true;
+        }
+
+        private static string SourceText(string baseWhy, JObject tsLayer, JObject manLayer, bool hasHigher)
+        {
+            if (!hasHigher) return "左上绝对定位(链上无根锚,修正原居中兜底)";
+            List<string> parts = new List<string>();
+            if (baseWhy != null) parts.Add("基类:" + baseWhy);
+            if (CountOf(tsLayer) > 0) parts.Add("TS 覆写");
+            if (CountOf(manLayer) > 0) parts.Add("人工表");
+            return string.Join("+", parts.ToArray());
         }
 
         private static JObject LoadSceneJson(LayaUIManifest.SceneEntry entry)
@@ -577,14 +898,19 @@ namespace Shenxiao.Editor.LayaUI
                 // 不再丢弃根级 left/right/top/bottom/centerX/centerY/scale。
                 // (centerX/centerY 经 Apply 得到与原居中实现相同的屏幕矩形与尺寸,
                 //  仅锚点内部值不同,子节点因落在同一矩形而渲染一致。)
-                // ApplyConfiguredRootLayout 仍会在其后覆盖配置过的 MainUI 根。
                 rt.sizeDelta = new Vector2(w, h);
                 LayaRectMath.Apply(rt, props, new Vector2(w, h));
             }
             else
             {
-                // 无显式定位的普通窗口:沿用 is_center 居中默认
-                // (窗口由 ViewManager 挂到全屏层下,居中即原 is_center 行为)。
+                // 【临时值】无显式定位的窗口先摆居中,真正的根锚由 BuildWindow 里紧随其后的
+                // ApplyRootLayout 按推导链(基类默认 / TS 覆写 / 人工表)定夺。
+                // 这条居中只有在推导链完全查不到时才会留到最后(那时 ApplyRootLayout 会写 report.Warn)——
+                // 老端的锚定语义写在 TS 运行时基类里,scene 数据里没有,不能拿"无锚"当"居中"。
+                //
+                // 注意 BuildRoot 还有两个不走 BuildWindow 的调用方:CollectInlineTemplates(内联 item)
+                // 与 Baker 的 BakeViewTree(快照烤图)。它们随后各有各的归一/绝对几何,
+                // 推导链有意不参与——所以新逻辑收在 ApplyRootLayout 里,BuildRoot 保持原样。
                 rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
                 rt.pivot = new Vector2(0.5f, 0.5f);
                 rt.sizeDelta = new Vector2(w, h);
