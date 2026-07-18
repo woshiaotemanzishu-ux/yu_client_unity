@@ -106,7 +106,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         {
             // 整棵树在 root 未激活时构建,建完再统一激活(与 Login 系列 / HudActivityCreator 一致的安全写法)。
             RectTransform root = UiCreatorKit.NewRoot("HudChatBar");
-            AnchorBottomStretch(root, ChatH);
+            AnchorBottomCenter(root, ChatW, ChatH);
             root.gameObject.SetActive(false);
 
             RectTransform viewRoot = UiCreatorKit.NewNode("MainUIChatView", root);
@@ -422,12 +422,15 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         }
 
         /// <summary>贴底、横向铺满(区域 root 用:宽度由 Stretch 撑满父级,高度固定)。</summary>
-        private static void AnchorBottomStretch(RectTransform rt, float height)
+        /// <summary>底边贴齐 + 水平【固定宽居中】(老端 MainUIChatView 是 centerX=0、.scene 根固定 720×254)。
+        /// 原先用的是横向 Stretch(anchorMax.x=1、sizeDelta.x=0):在 720 宽下与固定 720 等价,
+        /// 但宽屏下 root 会跟着铺满整屏 —— 内部底图仍是 720 中心锚所以看不出来,可 root 的 raycast 区域
+        /// 铺满了,会吃掉两侧本该穿透到 3D 场景的点击。改成固定宽居中后与老端一致。</summary>
+        private static void AnchorBottomCenter(RectTransform rt, float width, float height)
         {
-            rt.anchorMin = new Vector2(0f, 0f);
-            rt.anchorMax = new Vector2(1f, 0f);
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
             rt.pivot = new Vector2(0.5f, 0f);
-            rt.sizeDelta = new Vector2(0f, height);
+            rt.sizeDelta = new Vector2(width, height);
             rt.anchoredPosition = Vector2.zero;
         }
 

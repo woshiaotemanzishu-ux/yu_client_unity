@@ -154,13 +154,13 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         public static void Generate()
         {
             RectTransform hudRoot = UiCreatorKit.NewRoot("HudSecondary");
-            // root 收成【底部散布带】(全宽×830,盖住二级散布件 + 右侧功能列),不再全屏;
-            // 所有子根一律锚屏幕底边/底带,root 高度只是编辑器观感,改它不影响任何子件位置。
-            hudRoot.anchorMin = new Vector2(0f, 0f);
-            hudRoot.anchorMax = new Vector2(1f, 0f);
-            hudRoot.pivot = new Vector2(0.5f, 0f);
-            hudRoot.sizeDelta = new Vector2(0f, 830f);
-            hudRoot.anchoredPosition = Vector2.zero;
+            // root 改回【全屏 Stretch】:原本是全宽×830 的钉底带,但那样 root 的垂直中线是"距屏幕底 415"的
+            // 固定线,而不是真正的屏幕中线 —— 老端 _box_right(右侧功能列)用的是 centerY=250,即相对
+            // 【屏幕】垂直中线偏移,必须有一个高度随屏幕变化的父矩形才能复刻。
+            // 改全屏是安全的:原 root 本就 pivot(0.5,0)+anchoredPosition(0,0)+锚底,底边就在屏幕底;
+            // 全屏后底边仍在屏幕底,而所有子根(MainUISecondaryView / 三个 PlaceAboveBottom 子根)都锚 root 底边,
+            // 位置一律不变。720×1280 基准档逐像素零位移。
+            UiCreatorKit.Stretch(hudRoot);
             hudRoot.gameObject.SetActive(false);
 
             BuildSecondaryView(hudRoot);
@@ -210,7 +210,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             view._box_notification_bar = BuildNotificationBar(root, view);
 
             RectTransform boxAutoEffect = UiCreatorKit.NewNode("AutoStateEffectSlot", root); // 老端: _box_auto_effect
-            PlaceBottom(boxAutoEffect, 235f, -350f, 250f, 200f);
+            PlaceBottomCenterX(boxAutoEffect, 235f, -350f, 250f, 200f); // 老端 centerX=0(实测中心 235+125=360)
             view._box_auto_effect = boxAutoEffect; // 纯特效容器,老端无常驻子节点,内容留空
 
             view._box_outline_exp = BuildOutlineExp(root, view);
@@ -234,11 +234,17 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             // 容器收成实际矩形(老端是 0×0 标记点):右列入口图原图是 114×64 横条(大战/副本/竞技…,老端对
             // 右列专门按原图尺寸显示,一刀切 72×72 会把横条压扁——这就是"进游戏被压缩"的根因),
             // 槽按真实横条尺寸建:2 列×6 行 = 228×384,右缘锚、底距屏幕底 390(首图标底边=老终态 y890)。
-            boxRight.anchorMin = new Vector2(1f, 0f);
-            boxRight.anchorMax = new Vector2(1f, 0f);
+            // 垂直方向锚【屏幕中线】而非钉底:老端是 centerY=250(相对满屏 Main 层的垂直中线下移 250),
+            // 原先烤成"距屏幕底 390"在 720×1280 下等价,但屏幕一变高就分叉(老端跟中线走、Unity 钉死离底)。
+            // pivot 保持 (1,0) 不动 —— 老端 _box_right 是 0×0 标记点,那个原点对应 Unity 这里的【底边】,
+            // 连 pivot 一起改会让整簇上移半个高度(192px)。
+            // 校验:720×1280 中线距底 640,底边 = 640-250 = 390,与原值一致(零位移);
+            //       1080×2400(Expand 逻辑高 1600)中线距底 800,底边 = 550,老端 1600-(800+250) = 550,一致。
+            boxRight.anchorMin = new Vector2(1f, 0.5f);
+            boxRight.anchorMax = new Vector2(1f, 0.5f);
             boxRight.pivot = new Vector2(1f, 0f);
             boxRight.sizeDelta = new Vector2(228f, 384f);
-            boxRight.anchoredPosition = new Vector2(0f, 390f);
+            boxRight.anchoredPosition = new Vector2(0f, -250f);
             view._box_right = boxRight;
             // 【槽位基线】右簇 8 个 114×64 空槽(容器内部坐标,右下锚):第一列 6 个从容器底往上排,
             // 第 7、8 个在左边第二列。槽位置/尺寸全在 prefab 可拖(图标克隆体撑满所在槽,槽多大图多大)。
@@ -256,7 +262,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             // 本区不再建 NoticeIconSlot 节点。
 
             RectTransform boxGod = UiCreatorKit.NewNode("GodSkillIconSlot", root); // 老端: _box_god
-            PlaceBottom(boxGod, 525f, -170f, 80f, 80f);
+            PlaceBottomRight(boxGod, 525f, -170f, 80f, 80f); // 老端 right=115(实测右缘 720-(525+80)=115)
             boxGod.gameObject.SetActive(false);
             view._box_god = boxGod;
 
@@ -264,14 +270,14 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             view._box_please.gameObject.SetActive(false);
 
             RectTransform gpTMap = UiCreatorKit.NewNode("TreasureMapEffectSlot", root); // 老端: _gp_t_map
-            PlaceBottom(gpTMap, 152f, -271f, 416f, 100f);
+            PlaceBottomCenterX(gpTMap, 152f, -271f, 416f, 100f); // 老端 centerX=0(实测中心 152+208=360)
             view._gp_t_map = gpTMap; // 老端亦无常驻子节点(另由藏宝图子组件动态填充),内容留空
             gpTMap.gameObject.SetActive(false); // 对标 MainUISecondaryView.OnInit 里的 _gp_t_map.SetActive(false)
 
             view._gp_pro = BuildGpPro(root, view);
 
             Image imgTtRecord = UiCreatorKit.NewImage("TtRecordButton", root); // 老端: _img_tt_record
-            PlaceBottom(imgTtRecord.rectTransform, 538f, -21f, 55f, 55f);
+            PlaceBottomCenterX(imgTtRecord.rectTransform, 538f, -21f, 55f, 55f); // 老端 centerX=205(实测中心 538+27.5=565.5)
             imgTtRecord.color = UiCreatorKit.Palette.BtnNeutral; // 老端该图无固定 skin(运行时动态换图),占位色回退
             imgTtRecord.gameObject.SetActive(false);
             view._img_tt_record = imgTtRecord;
@@ -292,14 +298,64 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             rt.anchoredPosition = new Vector2(x, bottomUp);
         }
 
+        /// <summary>同 PlaceAboveBottom,但水平方向锚【屏幕右缘】(老端 right 型)。
+        /// x 仍传相对水平中线的偏移(与 PlaceAboveBottom 同参数),方法内换算成相对右缘的偏移;
+        /// pivot 保持中心不变,基准档零位移。</summary>
+        private static void PlaceAboveBottomRight(RectTransform rt, float x, float bottomUp, float w, float h)
+        {
+            rt.anchorMin = rt.anchorMax = new Vector2(1f, 0f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(w, h);
+            rt.anchoredPosition = new Vector2(x - DesignWidth * 0.5f, bottomUp);
+        }
+
         /// <summary>SecondaryView 专用:子节点锚定在父矩形【左下角固定点】(不随父 sizeDelta 缩放),
-        /// pivot 取自身左上角(对齐老端默认 anchorX=0,anchorY=0),anchoredPosition=(老端x, -老端y)。</summary>
+        /// pivot 取自身左上角(对齐老端默认 anchorX=0,anchorY=0),anchoredPosition=(老端x, -老端y)。
+        /// 仅给老端真·左锚的子件用(当前只有 _box_left);其余一律走 PlaceBottomCenterX / PlaceBottomRight。</summary>
         private static void PlaceBottom(RectTransform rt, float x, float layaY, float w, float h)
         {
             rt.anchorMin = rt.anchorMax = new Vector2(0f, 0f);
             rt.pivot = new Vector2(0f, 1f);
             rt.sizeDelta = new Vector2(w, h);
             rt.anchoredPosition = new Vector2(x, -layaY);
+        }
+
+        // ---------------------------------------------------------------------------------------
+        // 老端 Laya 的 centerX / right 相对布局语义 → Unity 锚点。
+        //
+        // 为什么需要这两个方法:老端 MainUISecondaryView 的子件绝大多数用 Laya Widget 的 centerX(水平居中偏移)
+        // 或 right(距右边缘)定位,屏幕变宽时会自动跟随中线/右缘。但这层语义写在老端 .scene 数据与 TS 里,
+        // 而本 Creator 的几何源是 720×1280 的【单点运行时快照】——在这一个采样点上 "centerX=-1" 与 "left=209"
+        // 完全等价、快照分辨不出,于是过去一律烤成了 PlaceBottom 的左锚绝对坐标。父节点是水平拉伸的,
+        // 结果宽屏下这批子件整体左漂 (实际宽-720)/2,这正是"改宽高比界面就乱"的直接根因之一。
+        //
+        // 换算故意【只改 anchor、不改 pivot】:pivot 保持左上 (0,1) 与 PlaceBottom 一致,这样调用点无需改动
+        // 任何数值,只换方法名即可,720×1280 基准档保证逐像素零位移(硬性验收标准)。
+        // 也【不直接抄老端的 centerX/right 字面量】:快照实测的 x 精度更高(例如 _box_help 实测中心 195.5,
+        // 老端 centerX=-165 折合 195,直接抄会引入 0.5px 位移)。
+        // ---------------------------------------------------------------------------------------
+
+        /// <summary>老端设计宽度;快照 x 是在这个宽度下采的,换算基准。</summary>
+        private const float DesignWidth = 720f;
+
+        /// <summary>老端 centerX 型子件:锚父矩形【水平中线】,屏幕变宽时跟随中线走。
+        /// x 仍传快照实测的左上原点 x(与 PlaceBottom 同参数),方法内换算成相对中线的偏移。</summary>
+        private static void PlaceBottomCenterX(RectTransform rt, float x, float layaY, float w, float h)
+        {
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.sizeDelta = new Vector2(w, h);
+            rt.anchoredPosition = new Vector2(x - DesignWidth * 0.5f, -layaY);
+        }
+
+        /// <summary>老端 right 型子件:锚父矩形【右边缘】,屏幕变宽时贴右走。
+        /// x 仍传快照实测的左上原点 x,方法内换算成相对右缘的偏移。</summary>
+        private static void PlaceBottomRight(RectTransform rt, float x, float layaY, float w, float h)
+        {
+            rt.anchorMin = rt.anchorMax = new Vector2(1f, 0f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.sizeDelta = new Vector2(w, h);
+            rt.anchoredPosition = new Vector2(x - DesignWidth, -layaY);
         }
 
         /// <summary>建一个 72×72 空槽(左上锚/左上枢轴,anchoredPosition 直接取旧运行时公式的等价终态值;
@@ -330,7 +386,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private static RectTransform BuildBoxHelp(Transform parent, MainUISecondaryView view)
         {
             RectTransform boxHelp = UiCreatorKit.NewNode("GuildHelpButtonBox", parent); // 老端: _box_help
-            PlaceBottom(boxHelp, 168f, -21f, 55f, 55f);
+            PlaceBottomCenterX(boxHelp, 168f, -21f, 55f, 55f); // 老端 centerX=-165(实测中心 168+27.5=195.5)
 
             Image imgHelp = UiCreatorKit.NewImage("GuildHelpIcon", boxHelp); // 老端: _img_help
             UiCreatorKit.Place(imgHelp.rectTransform, 0f, 0f, 55f, 55f);
@@ -362,7 +418,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private static RectTransform BuildNotificationBar(Transform parent, MainUISecondaryView view)
         {
             RectTransform bar = UiCreatorKit.NewNode("NotificationBar", parent); // 老端: _box_notification_bar
-            PlaceBottom(bar, 209f, -104f, 300f, 52f);
+            PlaceBottomCenterX(bar, 209f, -104f, 300f, 52f); // 老端 centerX=-1(实测中心 209+150=359)
 
             // 老端 _box_sea/_box_team/_box_red_packet/_box_chat 共用同一枚基础槽位(-123,0.5),
             // 同一时刻只会有一个按功能开关显示,当前均为隐藏遗留功能。
@@ -477,7 +533,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private static RectTransform BuildOutlineExp(Transform parent, MainUISecondaryView view)
         {
             RectTransform box = UiCreatorKit.NewNode("OnHookExpOrbBox", parent); // 老端: _box_outline_exp
-            PlaceBottom(box, 231f, -180f, 257f, 61f);
+            PlaceBottomCenterX(box, 231f, -180f, 257f, 61f); // 老端 centerX=-1(实测中心 231+128.5=359.5)
 
             Image bg1 = UiCreatorKit.NewImage("ExpOrbBaseBg", box); // 老端: _img_outline_exp_bg1
             UiCreatorKit.Place(bg1.rectTransform, 0f, -3.5f, 351f, 40f);
@@ -543,7 +599,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private static RectTransform BuildOldOutlineExp(Transform parent, MainUISecondaryView view)
         {
             RectTransform box = UiCreatorKit.NewNode("LegacyExpOrbBox", parent); // 老端: _box_old_outline_exp
-            PlaceBottom(box, 231f, -180f, 257f, 61f);
+            PlaceBottomCenterX(box, 231f, -180f, 257f, 61f); // 老端 centerX=-1(与 _box_outline_exp 同位)
 
             Image bg = UiCreatorKit.NewImage("LegacyExpOrbBg", box); // 老端: _img_old_outline_exp_bg
             UiCreatorKit.Place(bg.rectTransform, 0f, -0.5f, 351f, 40f);
@@ -564,7 +620,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private static RectTransform BuildPlease(Transform parent, MainUISecondaryView view)
         {
             RectTransform box = UiCreatorKit.NewNode("MarriageGiftHintBox", parent); // 老端: _box_please
-            PlaceBottom(box, 418f, -251f, 70f, 70f);
+            PlaceBottomRight(box, 418f, -251f, 70f, 70f); // 老端 right=232(实测右缘 720-(418+70)=232)
 
             Image imgPlease = UiCreatorKit.NewImage("MarriageGiftHintIcon", box); // 老端: _img_please
             UiCreatorKit.Place(imgPlease.rectTransform, 0.5f, 0f, 65f, 58f);
@@ -578,7 +634,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private static RectTransform BuildGpPro(Transform parent, MainUISecondaryView view)
         {
             RectTransform box = UiCreatorKit.NewNode("RedPacketRainEntryBox", parent); // 老端: _gp_pro
-            PlaceBottom(box, 321f, -354f, 78f, 78f);
+            PlaceBottomCenterX(box, 321f, -354f, 78f, 78f); // 老端 centerX=0(实测中心 321+39=360)
 
             Image imgRpr = UiCreatorKit.NewImage("RedPacketRainIcon", box); // 老端: _img_rpr
             UiCreatorKit.Place(imgRpr.rectTransform, 0f, 0f, 78f, 78f);
@@ -627,7 +683,10 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         {
             RectTransform root = UiCreatorKit.NewNode("MainUIMarriageItem", hudRoot);
             // 运行态参考坐标(老端 root 552,478 178x71;root 已收成底部散布带 → 锚带底,距底 766.5 = 原屏幕 y513.5)。
-            PlaceAboveBottom(root, 281f, 766.5f, 178f, 71f);
+            // 老端 right=-10(贴右缘并向右溢出 10):实测中心 360+281=641、右缘 641+89=730,距右 720-730=-10。
+            // 原先烤成相对中线 +281 的居中锚,宽屏下会跟着中线走而离开右缘,故改锚右缘。
+            // 校验:720 宽时锚点 720、中心 = 720-79 = 641,与原值一致(零位移)。
+            PlaceAboveBottomRight(root, 281f, 766.5f, 178f, 71f);
 
             var view = root.gameObject.AddComponent<MainUIMarriageItem>();
 

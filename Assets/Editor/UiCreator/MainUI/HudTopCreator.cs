@@ -188,7 +188,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         {
             // 老端 _box_icon: x=285,y=38,w=324,h=72(4 格 72 宽 + 12 间距;对标 ReflowIconBox 常量)。
             RectTransform icon = UiCreatorKit.NewNode("QuickAccessRow", boxRoot); // 老端: _box_icon
-            PlaceLaya(icon, 285f, 38f, 324f, 72f, TopBarWidth, TopBarHeight);
+            PlaceLaya(icon, 275.1f, 38f, 324f, 72f, TopBarWidth, TopBarHeight); // x 285→275.1:回写手改(存档 65393a5ea),与 MiniMapBox 同向左移
             view._box_icon = icon;
 
             // 四个图标格用左上锚(PlaceTopLeft):ReflowIconBox 运行时直接改 anchoredPosition.x 靠左紧排。
@@ -318,7 +318,10 @@ namespace Shenxiao.Editor.UiCreator.MainUI
 
             // 老端 _lb_value 宽度随文本自适应(129/55/103 三种);模板固定给个够用起步宽度,左对齐贴 x=37。
             TextMeshProUGUI value = UiCreatorKit.NewText("CurrencyValueLabel", root, "0"); // 老端: _lb_value
-            PlaceLaya(value.rectTransform, 37f, 9f, 90f, h, w, h);
+            // y 9→4、高 h(=34)→25:回写手改(存档 65393a5ea),把 34 高的文本框在 34 高的条里居中。
+            // 注意第 4 参原本传的是变量 h(既当节点高又当父高),这里必须换成字面量 25f。
+            // 本模板运行时被 BuildMoneyItems 克隆 3 份,影响全部货币项。
+            PlaceLaya(value.rectTransform, 37f, 4f, 90f, 25f, w, h);
             value.fontSize = 19f; // 老端 fontSize 38 * scaleX 0.5(内部倍字号缩放技巧)
             value.alignment = TextAlignmentOptions.Left;
             value.color = Color.white;
@@ -339,7 +342,9 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         {
             // 老端 _box_map: x=617,y=39,w=125,h=72。
             RectTransform map = UiCreatorKit.NewNode("MiniMapBox", boxRoot); // 老端: _box_map
-            PlaceLaya(map, 617f, 39f, 125f, 72f, TopBarWidth, TopBarHeight);
+            // x 617→594.1:回写手改(存档 65393a5ea)。原值右边缘 = 617+125 = 742,超出 720 设计画布 22px;
+            // 拉回后右边缘 719.1,贴边留 0.9px。
+            PlaceLaya(map, 594.1f, 39f, 125f, 72f, TopBarWidth, TopBarHeight);
             view._box_map = map;
             const float w = 125f, h = 72f;
 
@@ -365,20 +370,23 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             view._lb_role_pos = rolePos;
 
             Image wifi = UiCreatorKit.NewImage("WifiIcon", map); // 老端: _img_wifi
-            PlaceLaya(wifi.rectTransform, 95f, 2f, 20f, 16f, w, h);
+            PlaceLaya(wifi.rectTransform, 103.4f, 0.2f, 20f, 16f, w, h); // 95,2→103.4,0.2:回写手改,与三件套对齐
             wifi.raycastTarget = false;
             UiCreatorKit.TrySetSprite(wifi, IMG_WIFI, UiCreatorKit.Palette.BtnNeutral);
             view._img_wifi = wifi;
 
             TextMeshProUGUI time = UiCreatorKit.NewText("SystemClockLabel", map, "00:00"); // 老端: _lb_time
-            PlaceLaya(time.rectTransform, 12f, 3f, 61f, 28f, w, h);
+            // 12,3,61,28 → 13.993,0.2,54.607,16:回写手改(存档 65393a5ea)。
+            // 原值时钟右边缘 73 压住电池左边缘 58(重叠 14px),且高 28 与电池/wifi 的 16 不齐;
+            // 改后三件套(时钟/电池/wifi)统一 y=0.2、高 16,横向互不重叠。
+            PlaceLaya(time.rectTransform, 13.993f, 0.2f, 54.607f, 16f, w, h);
             time.fontSize = 14f; // 28 * 0.5
             time.alignment = TextAlignmentOptions.Left;
             time.color = Color.white;
             view._lb_time = time;
 
             Image powerBg = UiCreatorKit.NewImage("BatteryIconBg", map); // 老端: _img_power_bg
-            PlaceLaya(powerBg.rectTransform, 58f, 2f, 30f, 16f, w, h);
+            PlaceLaya(powerBg.rectTransform, 68.6f, 0.2f, 30f, 16f, w, h); // 58,2→68.6,0.2:回写手改,让开时钟并与三件套对齐同一条 16px 带
             powerBg.raycastTarget = false;
             UiCreatorKit.TrySetSprite(powerBg, IMG_POWER_BG, UiCreatorKit.Palette.BtnNeutral);
             view._img_power_bg = powerBg;
@@ -436,14 +444,17 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             view._img_fight = fight;
 
             TextMeshProUGUI hpLabel = UiCreatorKit.NewText("HpValueLabel", head, "0/0"); // 老端: _lb_hp
-            PlaceLaya(hpLabel.rectTransform, 171f, 42f, 300f, 36f, w, h, 0.5f, 0f);
+            // 171,42,300,36 → 180,44,182,14:回写手改(存档 65393a5ea)。
+            // 新值与血条 HpBar 的 PlaceTopLeft(hp, 89f, 44f, 182f, 14f, 0f) 逐字一致 —— 意图是让血量文字
+            // 精确叠在血条 rect 上,而非原来那个 300×36 的松散框。
+            PlaceLaya(hpLabel.rectTransform, 180f, 44f, 182f, 14f, w, h, 0.5f, 0f);
             hpLabel.fontSize = 18f; // 36 * 0.5
             hpLabel.alignment = TextAlignmentOptions.Center;
             hpLabel.color = Color.white;
             view._lb_hp = hpLabel;
 
             TextMeshProUGUI fighting = UiCreatorKit.NewText("CombatPowerLabel", head, "0"); // 老端: _lb_fighting
-            PlaceLaya(fighting.rectTransform, 140f, 9f, 256f, 22f, w, h);
+            PlaceLaya(fighting.rectTransform, 140f, 9f, 147f, 22f, w, h); // 宽 256→147:回写手改,纯收紧空文本框,x/y 不变(左边缘仍在 -3)
             fighting.fontSize = 20f; // 老端未做 2x/0.5 缩放
             fighting.alignment = TextAlignmentOptions.Left;
             fighting.color = ParseColor("#ffe57b", Color.yellow);

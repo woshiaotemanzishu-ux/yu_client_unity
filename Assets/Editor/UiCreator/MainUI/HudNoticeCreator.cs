@@ -52,6 +52,14 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         // 区域外框:右上锚。快照 _box_notice 原点 globalBounds=(705,475)、right:15;老端图标挂原点上方
         // (y=-72) → 首图标顶 = 475-72 = 403。(.scene 里 y:-410 是跑偏的设计值,以快照为准。)
         private const float RegionRightInset = 15f, RegionTop = 403f;
+        // 垂直方向锚【屏幕底边】而非顶边:老端 _box_notice 是 MainUISecondaryView 的子节点,
+        // 而 SecondaryView 是 left=0/right=0/bottom=290 的锚底 view —— 整簇随屏幕底边走。
+        // 本区域拆成独立 prefab 时误用了右上锚(随顶边走),屏幕一变高就与老端分叉。
+        // 底边距屏幕底 = 1280 - 403 - 72 = 805(RegionTop/RegionH 均取自运行时快照)。
+        // 注:按 .scene 设计值(y:-410)推算只得 700,差的 105 是 MainUISecondaryView 自身高度;
+        // 依「快照优先、.scene 设计值会跑偏」铁律,以 805 为准。
+        private const float DesignHeight = 1280f;
+        private const float RegionBottomUp = DesignHeight - RegionTop - RegionH;
         private const float RegionW = SlotCount * SlotW + (SlotCount - 1) * SlotGap; // 226
         private const float RegionH = SlotH;
 
@@ -76,7 +84,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         {
             // 整棵树在 root 未激活时构建,建完再统一激活(与 Login 系列 Creator 一致的安全写法)。
             RectTransform root = UiCreatorKit.NewRoot("HudNotice");
-            AnchorTopRight(root, RegionRightInset, RegionTop, RegionW, RegionH);
+            AnchorBottomRight(root, RegionRightInset, RegionBottomUp, RegionW, RegionH);
             root.gameObject.SetActive(false);
 
             RectTransform viewRoot = UiCreatorKit.NewNode("MainUINoticeView", root);
@@ -143,13 +151,25 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             return wrapper;
         }
 
-        /// <summary>右上锚定:锚点/轴心取父右上角,rightInset=距右缘、top=距顶。</summary>
+        /// <summary>右上锚定:锚点/轴心取父右上角,rightInset=距右缘、top=距顶。
+        /// 只给【容器内部】的槽位用(NoticeSlots 高度固定 = 槽高,垂直方向填满,用顶锚或底锚等价);
+        /// 区域根请用 AnchorBottomRight —— 它要跟随屏幕底边。</summary>
         private static void AnchorTopRight(RectTransform rt, float rightInset, float top, float w, float h)
         {
             rt.anchorMin = rt.anchorMax = new Vector2(1f, 1f);
             rt.pivot = new Vector2(1f, 1f);
             rt.sizeDelta = new Vector2(w, h);
             rt.anchoredPosition = new Vector2(-rightInset, -top);
+        }
+
+        /// <summary>右下锚定:锚点/轴心取父右下角,rightInset=距右缘、bottomUp=距底边。
+        /// 区域根用它跟随屏幕底边(老端 _box_notice 挂在锚底的 MainUISecondaryView 下)。</summary>
+        private static void AnchorBottomRight(RectTransform rt, float rightInset, float bottomUp, float w, float h)
+        {
+            rt.anchorMin = rt.anchorMax = new Vector2(1f, 0f);
+            rt.pivot = new Vector2(1f, 0f);
+            rt.sizeDelta = new Vector2(w, h);
+            rt.anchoredPosition = new Vector2(-rightInset, bottomUp);
         }
 
         public static void Preview()

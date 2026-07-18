@@ -26,7 +26,9 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         // 折叠太极(TurnDisk):从 HudActivity 提到总装层(它收放的不止活动区)。老端渲染在屏幕 (6,410)、尺寸 78×78;
         // 位置可后续在 MainUIModule.prefab 里手调。挂 MainUIFoldView,点击广播折叠事件,各区域视图各自监听收放。
         private const string IMG_TURN = "resource/game/mainUI/texture/uizjmv3_017b.png";
-        private static readonly Vector2 TurnLocal = new Vector2(6f, 410f);
+        // y 由 410 改为 396.3:回写编辑器内的手工微调(见提交 65393a5ea,TurnDisk anchoredPosition.y -449 → -435.3),
+        // 按「改 UI 一律改 Creator」铁律落回生成器,避免下次重跑总装时被覆盖抹掉。
+        private static readonly Vector2 TurnLocal = new Vector2(6f, 396.3f);
         private static readonly Vector2 TurnSize = new Vector2(78f, 78f);
 
         // 子 prefab 路径 + 缺失时的补生成动作;顺序 = prefab 子节点顺序。

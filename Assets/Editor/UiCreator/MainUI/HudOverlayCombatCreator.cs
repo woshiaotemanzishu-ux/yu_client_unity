@@ -144,10 +144,13 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         {
             // 整棵树在 root 未激活时构建(对标 Login 样板,避免子节点 OnEnable 早于建树完成)。
             RectTransform root = UiCreatorKit.NewRoot("HudOverlayCombat");
-            // root 收成【居中分组把手】(不再全屏,免得编辑器里一个全屏矩形挡操作):六个弹层子根各自有界、
-            // 全部中心锚(=锚屏幕中心),位置不受 root 尺寸影响;拖此根=整组平移。唯一要盖全屏的
-            // FlowerEffectView 改为绝对 720×1280(本工程 UI 全按 720×1280 设计画布绝对值编排,等效全屏)。
-            UiCreatorKit.Place(root, 0f, 0f, 260f, 160f);
+            // root 改回【全屏 Stretch】。原先收成 260×160 的"居中分组把手"(拖根=整组平移),但那样 root 矩形
+            // 只有屏幕正中一小块,子根就没法锚到屏幕边缘 —— 而 BOSS 大血条老端是右上对齐、FlowerEffectView
+            // 老端是四边铺满,两者都需要一个与屏幕同尺寸的父矩形才能复刻。
+            // 改全屏是零位移的:原 root 中心锚 pos(0,0),矩形中心就在屏幕中心;全屏后矩形=屏幕,中心仍在屏幕中心,
+            // 因此所有用 UiCreatorKit.Place(中心锚)摆位的子根位置一律不变。
+            // 代价是失去"拖此根=整组平移"的编辑器便利 —— 该便利与"子根要能贴屏幕边"本质冲突,取后者。
+            UiCreatorKit.Stretch(root);
             root.gameObject.SetActive(false);
 
             // 六个子视图各自独立 BaseView,建完各自关掉(事件驱动弹层默认不显示),
@@ -173,7 +176,18 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         {
             RectTransform root = UiCreatorKit.NewNode("MainUIHiterBigBloodView", parent);
             // 运行态佐证:老端 x=365,y=127(720x1280 全屏画布下),327x78 → 中心锚 cx=168.5,cy=474。
-            UiCreatorKit.Place(root, 168.5f, 474f, 327f, 78f);
+            // 锚【屏幕右上角】:老端 MainUIHiterBigBloodView 是 x = stageWidth - width - Offset_X(右对齐)、
+            // y = Offset_Y + 刘海高(顶部对齐),即右上贴边而非居中。由 x=365/宽327 反解 Offset_X = 720-365-327 = 28。
+            // pivot 保持中心 (0.5,0.5) 不变,只改 anchor:pos = 节点中心相对右上角的偏移
+            //   x = -(720 - 528.5) = -191.5   (528.5 = 365 + 327/2)
+            //   y = -166                      (166 = 127 + 78/2)
+            // 校验 720×1280:锚点(720,顶),中心 =(528.5, 距顶166),与原中心锚 Place(168.5,474) 完全一致(零位移)。
+            // 刘海不在这里补:交给 UILayer.Main 上的 SafeAreaRoot 统一处理,补 60px 会与安全区叠成双倍内缩。
+            // 旁证:老端 MainUIHiterBigBloodView.ts:117-118 残留的、被注释掉的 Unity 风格标注正是 anchorMin=anchorMax=(1,1)。
+            root.anchorMin = root.anchorMax = new Vector2(1f, 1f);
+            root.pivot = new Vector2(0.5f, 0.5f);
+            root.sizeDelta = new Vector2(327f, 78f);
+            root.anchoredPosition = new Vector2(-191.5f, -166f);
             var view = root.gameObject.AddComponent<MainUIHiterBigBloodView>();
 
             RectTransform boxCon = UiCreatorKit.NewNode("BloodBarContainer", root); // 老端: _box_con
@@ -321,8 +335,15 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private static RectTransform BuildDropProgress(Transform parent)
         {
             RectTransform root = UiCreatorKit.NewNode("DropProgress", parent);
-            // 老端由掉落/采集触发点动态挂载(链路未移植),无运行态佐证,占位默认屏幕位置,自行在编辑器调。
-            UiCreatorKit.Place(root, 0f, -450f, 394f, 32f);
+            // 锚【屏幕底边】:老端 DropProgress.ts:27-28 是 centerX=0 + bottom=450(水平居中 + 底边距屏幕底 450)。
+            // pivot 保持中心 (0.5,0.5),故 pos.y = 450 + 32/2 = 466(中心距底)。
+            // ⚠ 这一处【在 720×1280 基准档也会移位】(中心距底 190 → 466),是有意修正而非回归:
+            // 原值 -450 是本 Creator 自己标注的占位猜测(注释原文"无运行态佐证,占位默认屏幕位置"),
+            // 不是快照实测值;老端 bottom=450 才是真值。验收时这一处需要单独截图确认。
+            root.anchorMin = root.anchorMax = new Vector2(0.5f, 0f);
+            root.pivot = new Vector2(0.5f, 0.5f);
+            root.sizeDelta = new Vector2(394f, 32f);
+            root.anchoredPosition = new Vector2(0f, 466f);
             var view = root.gameObject.AddComponent<DropProgress>();
 
             Image image1 = UiCreatorKit.NewImage("ProgressBackgroundImage", root); // 老端: _Image1
@@ -374,9 +395,10 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private static RectTransform BuildFlowerEffect(Transform parent)
         {
             RectTransform root = UiCreatorKit.NewNode("FlowerEffectView", parent);
-            // 老端 top/bottom/left/right=0 铺满全屏纯特效容器;bundle 根已收成居中把手,不能再用 Stretch
-            //(会跟着把手缩小),改绝对 720×1280 中心锚 —— 设计画布即全屏,覆盖范围与原 Stretch 等效。
-            UiCreatorKit.Place(root, 0f, 0f, UiCreatorKit.DesignWidth, UiCreatorKit.DesignHeight);
+            // 老端 top/bottom/left/right=0 铺满全屏纯特效容器。之前因为 bundle 根收成了居中把手、Stretch 会
+            // 跟着把手缩小,才退而用绝对 720×1280 中心锚;现在 bundle 根已改回全屏 Stretch,这里可以直接
+            // Stretch 真正铺满 —— 绝对 720×1280 在宽屏下盖不住两侧,特效会露边。
+            UiCreatorKit.Stretch(root);
             var view = root.gameObject.AddComponent<FlowerEffectView>();
 
             RectTransform groupEff = UiCreatorKit.NewNode("EffectAnchorGroup", root); // 老端: _group_eff

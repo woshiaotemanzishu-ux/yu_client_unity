@@ -108,10 +108,26 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             // 想改布局:直接在 prefab 的 IconGrid 下拖这些 Slot_* 节点即可 —— 代码绝不算坐标。
             // 老端活动网格 4 行封顶(每行 ≤7,共 28 个上限,超出往下挤/隐);对齐之 → 4×7=28 个槽,杜绝往下溢出压到场景/角色。
             const int SlotRows = 4, SlotCols = 7;
+            // 底排(r=3)整体右移给左下角的太极折叠钮 TurnDisk 让位,并因此少一格:
+            // 太极在总装根层占屏幕 x∈[6,84]、y∈[396.3,474.3](见 MainUIModuleCreator.TurnLocal/TurnSize),
+            // 而底排槽屏幕 y∈[403,475] 与它完全重叠 —— 不缩进的话首槽(屏幕 x∈[10,82])会被太极正面压住。
+            // 缩进 80.6 后首槽屏幕 x∈[90.6,162.6],距太极右缘留 6.6px 净空;
+            // 末槽右缘 = 80.6 + 5*77 + 72 = 537.6,仍在区域宽 548 内,再加第 7 格右缘 614.6 会溢出 66px,
+            // 故底排只排 6 格。数值取自编辑器内的手工调整(存档提交 65393a5ea),
+            // 按「改 UI 一律改 Creator」铁律回写,避免下次重跑生成时被覆盖抹掉。
+            // 注:本类顶部结构注释早就写明「Group_ActivityFourth(loc4/10) —— padding.left=77 缩进,给太极让位」,
+            // 是后来改成均匀 4×7 槽位循环时把这条缩进丢了,这里把它补回来(实测值 80.6,比原设计的 77 多 3.6px 净空)。
+            const float LastRowIndent = 80.6f;
             int idx = 0;
             for (int r = 0; r < SlotRows; r++)
-                for (int c = 0; c < SlotCols; c++)
-                    BuildSlot(gpCon, idx++, c * (GridCellW + GridHGap), r * (GridCellH + GridVGap));
+            {
+                bool isLastRow = r == SlotRows - 1;
+                float indent = isLastRow ? LastRowIndent : 0f;
+                int cols = isLastRow ? SlotCols - 1 : SlotCols; // 底排让位后第 7 格放不下
+                for (int c = 0; c < cols; c++)
+                    BuildSlot(gpCon, idx++, indent + c * (GridCellW + GridHGap), r * (GridCellH + GridVGap));
+            }
+            int slotCount = idx; // 27 = 前三排 7 格 + 底排 6 格
 
             root.gameObject.SetActive(true);
             GameObject saved = UiCreatorKit.SavePrefab(root.gameObject, PrefabPath);
@@ -119,7 +135,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             Selection.activeObject = saved;
             EditorGUIUtility.PingObject(saved);
             Debug.Log("[UiCreator] HudActivity.prefab 已生成: " + PrefabPath +
-                      "(槽位式:IconGrid 下 " + (SlotRows * SlotCols) + " 个空槽,位置全在 prefab 可拖;人工核对后再并入 MainUIModule.prefab)");
+                      "(槽位式:IconGrid 下 " + slotCount + " 个空槽,底排缩进给太极让位、少一格;位置全在 prefab 可拖;人工核对后再并入 MainUIModule.prefab)");
         }
 
         /// <summary>建一个空槽位:左上锚定的 72×72 RectTransform + 一个样例图标子节点(仅设计期可视,运行时被 MainUIActivityView 清掉)。</summary>
