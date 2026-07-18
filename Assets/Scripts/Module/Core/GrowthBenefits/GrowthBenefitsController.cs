@@ -35,11 +35,14 @@ namespace Shenxiao.Module.Core.GrowthBenefits
             RegisterProtocal(Proto.GROWTHBENEFITS_TASK_CLAIM, On41722);
             // 对标老端 CHANGE_LEVEL→刷新图标:等级变化时复请求(135级开启成长福利)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            // 对标老端 GrowthBenefitsController.ts:81-83:DAY_CHANGE→SendFmtToGame(41720),跨天复请求任务列表。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
             ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
             GrowthBenefitsModel.Instance.Reset();
             _lastLevel = -1;

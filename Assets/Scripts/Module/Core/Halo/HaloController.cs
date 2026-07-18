@@ -3,14 +3,17 @@ using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Common;
 
 namespace Shenxiao.Module.Core.Halo
 {
     /// <summary>
     /// 光环(Halo)协议控制器(自动循环 轮18 PK2;对标老端 commonController/HaloController.ts,服务端 pt_514,
-    /// 3 号全活:51400/51401/51402)。进游戏(EVT_GAME_START)发 51400 求活动信息;DAY_CHANGE 老端同样发 51400
-    /// (ts:57-68,按 ConfigFuncOpenCondition 的 open_lv/open_day 门槛判定),但 Unity 尚无服务器日切事件源,
-    /// TODO 待 ServerTime 模块接入后补挂(同 DungeonController.cs:96-98 先例,不臆造替代触发源)。
+    /// 3 号全活:51400/51401/51402)。进游戏(EVT_GAME_START)发 51400 求活动信息;DAY_CHANGE(轮20 实接,
+    /// EVT_SERVER_DAY_CHANGE)按 ConfigFuncOpenCondition["HaloMainView"] 的 open_lv/open_day **双门**判定
+    /// 通过后才补发 51400(ts:57-68,双门不得简化成无条件发)——判定复用既有
+    /// <see cref="FuncOpenConfig.CheckFuncOpenState"/>,与 MainUITopView.cs:293 光环图标复检共享同一张表
+    /// 同一 key(configfuncopencondition.json 实测 HaloMainView.open_task=0,不引入老端没有的第三道门)。
     /// ⚠51401/51402 的 Errcode 均在包尾(与常见"开头 Errcode"习惯相反,pt_514.erl:46-70 已核,勿套通用模板)。
     /// ⚠51402(RequestHaloSetting)发送点老端散在 4 外系统入口,HaloController.ts 内部调用反是注释掉的死代码
     /// (ts:38-41)。本轮只接数据层收发,UI 闭环留尾包,4 处入口存档:
@@ -30,11 +33,13 @@ namespace Shenxiao.Module.Core.Halo
             RegisterProtocal(Proto.HALO_REWARD_RECEIVE, On51401);
             RegisterProtocal(Proto.HALO_SETTING_UPDATE, On51402);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             HaloModel.Instance.Reset();
             base.Dispose();
         }
@@ -43,6 +48,36 @@ namespace Shenxiao.Module.Core.Halo
         {
             await HaloConfigs.EnsureLoaded();
             RequestInfo();
+        }
+
+        /// <summary>跨天(对标老端 HaloController.ts:57-68 day_change):role_lv&gt;=open_lv 且
+        /// open_day&gt;=_open_day 双门都过才补发 51400,否则静默不发——**不得简化成无条件发**。
+        /// FuncOpenConfig.CheckFuncOpenState("HaloMainView") 内部即
+        /// (ServerTimeModel.GetOpenServerDay()&gt;=open_day) && (RoleModel.Instance.Level&gt;=open_lv),
+        /// 与老端两条件逐一等价(FuncOpenConfig.cs:64-65)。
+        /// ⚠配表未就绪前置判断:老端 day_change(HaloController.ts:59-61)`config["HaloMainView"]`
+        /// 缺表时 data 为 undefined、`data.open_lv` 直接抛 TypeError,整个 day_change 处理函数中断、
+        /// 不发 51400。FuncOpenConfig.CheckFuncOpenState 在 `_cfg == null` 时却返回 true(FuncOpenConfig.cs:57,
+        /// 表未加载按开放处理),若不加显式判断会在配表未就绪的窗口把"未知"误判成"开放"、无条件发包
+        /// ——与老端方向相反。故这里在 CheckFuncOpenState 之前先判 <see cref="FuncOpenConfig.IsLoaded"/>,
+        /// 未就绪就不发(对标老端异常中断的净效果:不发包)。</summary>
+        private async void OnServerDayChange()
+        {
+            await FuncOpenConfig.EnsureLoaded();
+            if (!FuncOpenConfig.IsLoaded)
+            {
+                GameLog.Error("Halo", "DAY_CHANGE ConfigFuncOpenCondition 未就绪,门槛判定中断,不补发51400(对标老端 data.open_lv 抛异常中断)");
+                return;
+            }
+            if (FuncOpenConfig.CheckFuncOpenState("HaloMainView"))
+            {
+                RequestInfo();
+                GameLog.Info("Halo", "DAY_CHANGE 双门达标补发51400");
+            }
+            else
+            {
+                GameLog.Info("Halo", "DAY_CHANGE 双门未达标,不补发51400");
+            }
         }
 
         /// <summary>请求光环信息(对标老端 GAME_START/DAY_CHANGE→Fire(REQUEST_SCMD,51400));发空包。</summary>

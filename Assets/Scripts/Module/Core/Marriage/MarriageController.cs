@@ -41,9 +41,9 @@ namespace Shenxiao.Module.Core.Marriage
     /// 等级≥config_marriage_constant id=1(MarriageOpenLv=170)时补发 17226/17238/17210;CHANGE_LEVEL 精确
     /// 达到该临界值时补发 17238/17210(ts:93-100,本端用 EVT_ROLE_INFO_UPDATE+_lastLevel 做等价探测,同
     /// DailyController 先例)。
-    /// TODO(跨天补发 17238):老端 ServerTimeModel.DAY_CHANGE → SendFmtToGame(17238)(ts:118-120);本仓
-    /// GlobalEvent 全量核对无跨天/日期切换事件(见 <see cref="GlobalEvent"/>),暂无可挂载点,尾包补跨天事件
-    /// 后在此接 RequestGiftInfo()。
+    /// 跨天补发 17238(轮20 实接):老端 ServerTimeModel.DAY_CHANGE → SendFmtToGame(17238)
+    /// (MarriageController.ts:118-120),本端订阅 <see cref="GlobalEvent.EVT_SERVER_DAY_CHANGE"/>
+    /// 调用既有 <see cref="RequestGiftInfo"/>,见 <see cref="OnServerDayChange"/>。
     /// </summary>
     public sealed class MarriageController : BaseController
     {
@@ -103,12 +103,14 @@ namespace Shenxiao.Module.Core.Marriage
 
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             _lastLevel = -1;
             MarriageModel.Instance.Clear();
             base.Dispose();
@@ -154,6 +156,14 @@ namespace Shenxiao.Module.Core.Marriage
                 RequestRingInfo();
                 GameLog.Info("Marriage", "CHANGE_LEVEL 达开启等级临界 lv={0} 补发gift/ring", role.Level);
             }
+        }
+
+        /// <summary>跨天补发 17238 真爱礼包信息(对标老端 ServerTimeModel.DAY_CHANGE→SendFmtToGame(17238),
+        /// MarriageController.ts:118-120,无其它副作用)。</summary>
+        private void OnServerDayChange()
+        {
+            RequestGiftInfo();
+            GameLog.Info("Marriage", "DAY_CHANGE 跨天补发17238礼包信息");
         }
 
         // ---------------------------------------------------------------------------------------

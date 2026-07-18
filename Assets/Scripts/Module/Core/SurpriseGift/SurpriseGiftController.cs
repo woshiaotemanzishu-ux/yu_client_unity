@@ -38,11 +38,16 @@ namespace Shenxiao.Module.Core.SurpriseGift
             RegisterProtocal(Proto.SURPRISE_GIFT_REFRESH, On49004);
             // 对标老端 CHANGE_LEVEL→LoadConfig→请求 49000:等级变化时复请求(升到开启等级后图标出现)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            // 对标老端 SurpriseGiftController.ts:53:DAY_CHANGE→game_start(=LoadConfig,SurpriseGiftModel.ts:63-72
+            // 内 getOpenStatus() 通过才 Fire 49000)。与 OnRoleInfoUpdate 同一简化口径:服务端已按开服天/等级
+            // 把控(未开则不回包),故无条件复请求,不复刻客户端侧 getOpenStatus() 预判。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
             ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
             SurpriseGiftModel.Instance.Reset();
             _lastLevel = -1;

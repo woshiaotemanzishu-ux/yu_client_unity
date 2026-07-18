@@ -12,8 +12,11 @@ namespace Shenxiao.Module.Core.LimitLevelShop
     /// 抢购礼包列表;回包据列表是否非空(GetEntranceOpenState)增删主界面图标 61201。
     /// 老端 On61200→RefreshState 对每个在开礼包 addIcon(其 act_condition.pic,变体 61201..61225)、
     /// 对已消失的 deleteIcon;本期图标化先只做主图标 61201(暂不解析 act_condition,见 RefreshIcon 上方 TODO)。
-    /// 等级变化(EVT_ROLE_INFO_UPDATE)复请求 61200——本系统按等级开抢购,升级可能开出新档;
-    /// 对标老端 GAME_START/DAY_CHANGE 重拉链(Unity 暂无 DAY_CHANGE 事件,以等级变化作复拉钩子)。
+    /// 等级变化(EVT_ROLE_INFO_UPDATE)复请求 61200——本系统按等级开抢购,升级可能开出新档,本端补的
+    /// Unity 侧探测(老端无对应 CHANGE_LEVEL 绑定,纯本端加强,保留)。
+    /// 跨天(轮20 实接,EVT_SERVER_DAY_CHANGE)同样复请求 61200(对标老端 LimitLevelShopController.ts:46
+    /// DAY_CHANGE→ResetData;该闭包命名具误导性,实际只 Fire(SCMD_REQUEST,61200)发包,并不重置本地模型——
+    /// 模型重置 _model.ReSetModel() 是 GAME_START 专属,DAY_CHANGE 不带,见 OnServerDayChange)。
     /// 购买/礼包详情(61201 买结果、61202 活动信息、61203 礼包配置)属玩法,均未移植,待用户验收。
     /// </summary>
     public sealed class LimitLevelShopController : BaseController
@@ -32,13 +35,16 @@ namespace Shenxiao.Module.Core.LimitLevelShop
         protected override void Register()
         {
             RegisterProtocal(Proto.LIMITLEVELSHOP_LIST, On61200);
-            // 对标老端 GAME_START/DAY_CHANGE→SCMD_REQUEST 61200:等级变化时复请求(按等级开抢购)。
+            // 本端加强:等级变化时复请求(按等级开抢购),老端无对应绑定。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            // 对标老端 DAY_CHANGE→SCMD_REQUEST 61200(LimitLevelShopController.ts:46)。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             foreach (string icon in _shownIcons) ActivityIconManager.Instance.DeleteIcon(icon);
             _shownIcons.Clear();
             LimitLevelShopModel.Instance.Reset();
@@ -138,7 +144,7 @@ namespace Shenxiao.Module.Core.LimitLevelShop
             return null;
         }
 
-        // 对标老端:主角等级变化复请求 61200(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。
+        // 本端加强:主角等级变化复请求 61200(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。
         private void OnRoleInfoUpdate()
         {
             RoleModel role = RoleModel.Instance;
@@ -146,6 +152,15 @@ namespace Shenxiao.Module.Core.LimitLevelShop
             if (role.Level == _lastLevel) return;
             _lastLevel = role.Level;
             RequestStartup();
+        }
+
+        /// <summary>跨天(对标老端 LimitLevelShopController.ts:46 DAY_CHANGE→ResetData):只复请求 61200,
+        /// 不清本地模型状态(ResetData 这个闭包名字具误导性,内部只 Fire(SCMD_REQUEST,61200);
+        /// 真正的模型重置 _model.ReSetModel() 只在 GAME_START 调,DAY_CHANGE 不带)。</summary>
+        private void OnServerDayChange()
+        {
+            RequestStartup();
+            GameLog.Info("LimitLevelShop", "DAY_CHANGE 跨天复请求61200");
         }
     }
 }

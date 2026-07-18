@@ -29,8 +29,10 @@ namespace Shenxiao.Module.Core.Daily
         /// 周几月日/预约红点时分比较)都用 TimeUtil.GetZoneTime() 服务器墙钟,不是裸 UTC——同本仓 BossModel.
         /// SERVER_ZONE_HOURS 先例。<see cref="TimeUtilNowUtc"/> 统一在此加偏移,避免各判定点各自裸用 NowUtc()
         /// 系统性偏移 8 小时(轮10交叉验收 blocker)。
+        /// 轮20收敛:转发 Shenxiao.Framework.Util.TimeUtil.SERVER_ZONE_HOURS(唯一事实源),值不变、
+        /// 零行为变更,保留常量名/可见性避免改调用点(spec_serverclock_round20.md §2.3)。
         /// </summary>
-        public const int SERVER_ZONE_HOURS = 8;
+        public const int SERVER_ZONE_HOURS = Shenxiao.Framework.Util.TimeUtil.SERVER_ZONE_HOURS;
 
         // 排序算法内部用的展示态(对标老端 ActivityState 枚举;非协议原始 State 字段)
         private const int AS_OPENING = 1, AS_TODAY = 2, AS_UNOPENED = 3, AS_TIMEOVER = 4, AS_LVLIMIT = 5, AS_CLOSED = 6;

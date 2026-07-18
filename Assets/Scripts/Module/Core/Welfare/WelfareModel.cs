@@ -77,9 +77,25 @@ namespace Shenxiao.Module.Core.Welfare
         /// (对标 UpdateResourceGiftRewardState({code:2}))。</summary>
         public int DownloadCode { get; private set; }
 
+        /// <summary>41707 服务端下发的奖励明细(pt_417.erl:194-204 write(41707,[Code,Rewads]),Rewads 走标准
+        /// write_object_list)。pp_welfare.erl:291-301 查询分支与 :322-338 领取分支读的是同一份
+        /// data_key_value:get(?KEY_DOWNLOAD_GIFT),即这份明细与实际发奖同源、不会漂移;41708 领取回包
+        /// 只回裸 Code(pt_417.erl:206-212),明细优先取这里,见 WelfareController.On41708。</summary>
+        public IReadOnlyList<(int type, int typeId, int num)> DownloadRewards => _downloadRewards;
+        private readonly List<(int type, int typeId, int num)> _downloadRewards = new List<(int, int, int)>();
+
         public void SetDownloadState(int code)
         {
             DownloadCode = code;
+            HasDownloadInfo = true;
+        }
+
+        /// <summary>41707 专用:落地 Code + 服务端同源奖励明细(见 <see cref="DownloadRewards"/>)。</summary>
+        public void SetDownloadInfo(int code, List<(int type, int typeId, int num)> rewards)
+        {
+            DownloadCode = code;
+            _downloadRewards.Clear();
+            if (rewards != null) _downloadRewards.AddRange(rewards);
             HasDownloadInfo = true;
         }
 
@@ -136,6 +152,7 @@ namespace Shenxiao.Module.Core.Welfare
 
             HasDownloadInfo = false;
             DownloadCode = 0;
+            _downloadRewards.Clear();
 
             HasOnlineInfo = false;
             OnlineTime = 0;

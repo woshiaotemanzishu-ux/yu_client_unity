@@ -464,6 +464,13 @@ namespace Shenxiao.EditorTools
             Run(MarketCase.Run, 300.0);
         }
 
+        /// <summary>轮20 跨天/整点事件源(10201 驱动的 DAY_CHANGE/HOUR_REFRESH;含裁决1 订正老端 truthy bug、
+        /// 裁决2 服务器时区、裁决5 10000 只对时不触发、ErlangParser 护栏、config_key_value + 41708 明细)。</summary>
+        public static void ServerClock()
+        {
+            Run(ServerClockCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -521,6 +528,7 @@ namespace Shenxiao.EditorTools
                 int g4 = await WelfareCase.Run();
                 int g5 = await SceneMiscCase.Run();
                 int mk = await MarketCase.Run();
+                int sc = await ServerClockCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -534,8 +542,8 @@ namespace Shenxiao.EditorTools
                     + " customactcore=" + c0 + " calotteryA=" + c2 + " calotteryB=" + c3 + " cafestival=" + c4
                     + " cabiz=" + c5 + " cakfrank=" + c6
                     + " godbefall=" + g1 + " cheaptrio=" + g2 + " fbfestival=" + g3 + " welfare=" + g4 + " scenemisc=" + g5
-                    + " market=" + mk);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk })
+                    + " market=" + mk + " serverclock=" + sc);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

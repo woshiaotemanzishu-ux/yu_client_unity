@@ -36,11 +36,15 @@ namespace Shenxiao.Module.Core.Compete
             RegisterProtocal(Proto.COMPETE_ACT_LIST, On33800);
             // 对标老端 CHANGE_LEVEL→game_star:等级变化时复请求 33800。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            // ServerClock(轮20 P4)补 DAY_CHANGE 复拉钩子(对标老端 CompeteListController.ts:206,
+            // 绑定的是与 GAME_START 同一个 game_star 处理函数,见 OnServerDayChange 注释)。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             ClearOwnedIcons();
             CompeteModel.Instance.Reset();
             _lastLevel = -1;
@@ -131,6 +135,18 @@ namespace Shenxiao.Module.Core.Compete
             if (!role.HasBaseInfo) return;
             if (role.Level == _lastLevel) return;
             _lastLevel = role.Level;
+            RequestStartup();
+        }
+
+        /// <summary>跨天(对标老端 CompeteListController.ts:206,绑定与 GAME_START 同一个 game_star 处理函数,
+        /// ts:196-204):game_star 清空 actList/CompeteOpenActive/CompeteViewData/CompeteRankData/
+        /// CompeteKeyData 五个字段(后四个是面板专用字典,本端未建——面板/榜单/抽奖/积分领取[33801-33807]与
+        /// 对应 View 本期不移植,同 icon-only 类注释,不镜像)+ await InitConfig()(重载 confRaceActInfo
+        /// 面板配置,本端同样未建,不镜像)+ 无条件重发 33800。本端对应清
+        /// <see cref="CompeteModel.Reset"/>(清 actList,与老端 actList=[] 等价)+ 重发 33800。</summary>
+        private void OnServerDayChange()
+        {
+            CompeteModel.Instance.Reset();
             RequestStartup();
         }
     }

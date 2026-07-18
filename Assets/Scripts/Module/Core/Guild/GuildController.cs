@@ -5,6 +5,7 @@ using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Common;
 
 namespace Shenxiao.Module.Core.Guild
 {
@@ -101,12 +102,120 @@ namespace Shenxiao.Module.Core.Guild
             RegisterProtocal(Proto.GUILD_GOD_ACHIEVEMENT_ACTIVATE, On40509);
             // 40505(穿戴结果)/40507(脱铭文结果):DEAD,全仓库排除四参遮蔽后确认无调用点,不注册接收器。
             // 40506(激活组合结果):协议层设计上无 write 方向(write 子句列表里没有 40506),不注册接收器。
+
+            // ---- ServerClock(轮20 P4)补 DAY_CHANGE/REFRESH_SERVER_TIME/HOUR_REFRESH 三个复拉钩子
+            // (对标老端 GuildController.ts:223/228/232;CHANGE_LEVEL 钩子[ts:215-222]不在本轮范围,不接)。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_TIME_REFRESH, OnServerTimeRefresh);
+            EventDispatcher.On<int>(GlobalEvent.EVT_SERVER_HOUR_REFRESH, OnServerHourRefresh);
         }
 
         public override void Dispose()
         {
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_TIME_REFRESH, OnServerTimeRefresh);
+            EventDispatcher.Off<int>(GlobalEvent.EVT_SERVER_HOUR_REFRESH, OnServerHourRefresh);
             GuildModel.Instance.Reset();
             base.Dispose();
+        }
+
+        // ==================== ServerClock(轮20 P4):跨天/整点复拉 ====================
+
+        /// <summary>跨天(对标老端 GuildController.ts:223-227 DAY_CHANGE 绑定,函数体 3 行):
+        /// ① Fire(GuildEvent.CHANGED_CONDS_ASSIST)——纯本地事件,通知"协助开放条件"相关 UI(自动战斗/BOSS
+        /// 伤害榜/秘境合并挑战等多处入口)按新的开服天/等级复评是否显示协助按钮,本端复用既有
+        /// EVT_GUILD_ASSIST_UPDATE(各 Assist 协议回执统一在发的通用事件,语义等价"协助状态变了请刷新");
+        /// ② RequestGuildIdol()——见 <see cref="RequestGuildIdol"/>;
+        /// ③ CheckApplyRedMask()(GuildModel.ts:2048-2050)是纯本地红点计算(加入公会提示,驱动
+        /// RedDotController.up),不发任何协议,本仓 Guild 红点体系未建,数据层轮不镜像(同 On33104
+        /// SuperGiftView 先例,CustomActivityController.Core.cs:151)。
+        /// ⚠**与下方 OnServerTimeRefresh 在 EVT_GUILD_ASSIST_UPDATE 上双发,核实为老端原生行为、
+        /// 非本端误镜像,不去重**:老端 DAY_CHANGE(ts:223-227)与 REFRESH_SERVER_TIME(ts:228-230)
+        /// 两个订阅**各自独立**都 Fire(CHANGED_CONDS_ASSIST)(两处源码原文都有这行,不是共享同一次
+        /// Fire)。而 0 点时两个事件本就会被同一次 10201 回包连续触发同一帧:老端
+        /// ServerTimeModel.InitServerTime(ServerTimeModel.ts:33-41)先调 TryFireEvent()(内部按
+        /// lastDay 变化**条件性**触发 DAY_CHANGE,ts:47-51)、再**无条件** Fire(REFRESH_SERVER_TIME)
+        /// (ts:40)——本端 GameStartController.On10201(GameStartController.cs:132-135)逐行对应镜像同一
+        /// 顺序(ServerTimeModel.TryFireEvent() 后紧跟无条件 Emit(EVT_SERVER_TIME_REFRESH))。故跨天时
+        /// CHANGED_CONDS_ASSIST 在老端本就真实触发两次,本端此处双发是对老端行为的忠实复刻,不是重复
+        /// 订阅同一语义、也不是接线失误。</summary>
+        private void OnServerDayChange()
+        {
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_ASSIST_UPDATE);
+            RequestGuildIdol();
+        }
+
+        /// <summary>对标老端 GuildController.ts:228-230 REFRESH_SERVER_TIME 绑定:仅
+        /// Fire(GuildEvent.CHANGED_CONDS_ASSIST),同上复用 EVT_GUILD_ASSIST_UPDATE。
+        /// ⚠与上方 OnServerDayChange 的双发说明见其类注释——0 点场景下二者同帧各自真实触发一次,
+        /// 均属老端原文行为,不去重。</summary>
+        private void OnServerTimeRefresh()
+        {
+            EventDispatcher.Emit(GlobalEvent.EVT_GUILD_ASSIST_UPDATE);
+        }
+
+        /// <summary>对标老端 GuildController.ts:232-238 HOUR_REFRESH 绑定:hour==4 时
+        /// setTimeout(reqRewardBox,5)。5ms 延时对标老端 setTimeout(...,5) 原样保留(同
+        /// WelfareController.OnServerDayChange 先例,用 <see cref="TimeUtil.Delay"/> 代替——WebGL 上
+        /// Task.Delay 永不醒,同项目既有铁律)。</summary>
+        private async void OnServerHourRefresh(int hour)
+        {
+            if (hour != 4) return;
+            await TimeUtil.Delay(5);
+            await ReqRewardBox();
+        }
+
+        /// <summary>对标老端 reqRewardBox(GuildController.ts:324-333):三重前置校验全过才发 40301——
+        /// ① ConfigFuncOpenCondition["GuildRewardBoxView"] 存在且 open_lv/open_day 达标
+        /// (<see cref="FuncOpenConfig.CheckFuncOpenState"/>,语义等价老端 box_cfg &amp;&amp;
+        /// lev&gt;=open_lv &amp;&amp; open_day&gt;=open_day,实测该表 open_lv=130/open_day=1);
+        /// ② guild_id&gt;0(已入会,对标 RoleManager.GetMainRoleVo().guild_id&gt;0);
+        /// ③ !_rewardBoxViewData(老端"本地还没有宝箱数据才发",本端用 <see cref="GuildModel.HasBoxInfo"/>
+        /// 取反镜像,避免重复请求覆盖本地已领取状态)。
+        /// ⚠配表未就绪前置判断:老端 `box_cfg = cfg['GuildRewardBoxView']` 缺表/缺条目时 box_cfg 为
+        /// undefined,`if (box_cfg && ...)` 直接短路不发 40301。FuncOpenConfig.CheckFuncOpenState 在
+        /// `_cfg == null` 时却返回 true(FuncOpenConfig.cs:57,表未加载按开放处理),若不加显式判断会把
+        /// "配表未就绪"误判成"条件已开放"、绕过①②直接放行——与老端方向相反。故这里在
+        /// CheckFuncOpenState 之前先判 <see cref="FuncOpenConfig.IsLoaded"/>,未就绪就不发。</summary>
+        private async System.Threading.Tasks.Task ReqRewardBox()
+        {
+            await FuncOpenConfig.EnsureLoaded();
+            if (!FuncOpenConfig.IsLoaded)
+            {
+                GameLog.Error("Guild", "reqRewardBox ConfigFuncOpenCondition 未就绪,门槛判定中断,不补发40301(对标老端 box_cfg undefined 短路)");
+                return;
+            }
+            if (!FuncOpenConfig.CheckFuncOpenState("GuildRewardBoxView")) return;
+            if (Shenxiao.Module.Core.Role.RoleModel.Instance.GuildId <= 0) return;
+            if (GuildModel.Instance.HasBoxInfo) return;
+            RequestBoxInfo();
+            GameLog.Info("Guild", "reqRewardBox 三重校验通过,补发40301(对标老端 GuildController.ts:324-333)");
+        }
+
+        /// <summary>对标老端 RequestGuildIdol(GuildController.ts:317-322):GuildIdolIsOpen() 门槛过了才发
+        /// 40501。GuildIdolIsOpen(GuildModel.ts:1103-1115)读服务端 KV 表 config_guild_god_kv 的
+        /// open_day/lv_limit 两行,本端复用既有 <see cref="GuildConfigs.GetGodKv"/>(此前零消费方)。</summary>
+        public async void RequestGuildIdol()
+        {
+            await GuildConfigs.EnsureLoaded();
+            if (!IsGuildIdolOpen()) return;
+            RequestGodList();
+        }
+
+        /// <summary>对标老端 GuildIdolIsOpen(GuildModel.ts:1103-1115):config_guild_god_kv 表缺失(未加载)
+        /// 时直接 false(老端 !cfg 早退);否则 open_day&gt;=limit_day 且 role_lv&gt;=limit_lv 双达标才 true。</summary>
+        private static bool IsGuildIdolOpen()
+        {
+            Newtonsoft.Json.Linq.JObject openDayRow = GuildConfigs.GetGodKv("open_day");
+            Newtonsoft.Json.Linq.JObject lvLimitRow = GuildConfigs.GetGodKv("lv_limit");
+            if (openDayRow == null || lvLimitRow == null) return false;
+            if (!int.TryParse(openDayRow["value"]?.ToString(), out int limitDay)) return false;
+            if (!int.TryParse(lvLimitRow["value"]?.ToString(), out int limitLv)) return false;
+
+            int openDay = Shenxiao.Module.Core.Game.ServerTimeModel.GetOpenServerDay();
+            int roleLv = Shenxiao.Module.Core.Role.RoleModel.Instance.HasBaseInfo
+                ? Shenxiao.Module.Core.Role.RoleModel.Instance.Level : 0;
+            return openDay >= limitDay && roleLv >= limitLv;
         }
 
         private static void ShowError(int errorCode) => TipsManager.Toast("错误(" + errorCode + ")"); // 错误码表未移植,显码降级

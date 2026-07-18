@@ -40,6 +40,8 @@ namespace Shenxiao.Module.Core.Market
             RegisterProtocal(Proto.MARKET_ICON_INFO, On15121);
             // 对标老端 CHANGE_LEVEL→发 15121:等级变化时复请求(市场按 151 图标配置 open_lv 开启)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            // ServerClock(轮20 P4)补 DAY_CHANGE 复拉钩子(对标老端 MarketController.ts:109-112,跨天无条件重发 15121)。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
 
             // 自动循环 轮19 扩展:15100-15120/15122(除死号)。死号 15103/15104/15105/15107/15110/15113
             // 严禁在此注册——15104/15105 老端注册了空壳 handler(ts:150-156,on15104/on15105 仅
@@ -69,6 +71,7 @@ namespace Shenxiao.Module.Core.Market
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             // 两个图标都删(对标老端 showIcon 只留一个,断线时两者都清)。
             ActivityIconManager.Instance.DeleteIcon(ICON_TYPE_LOCAL);
             ActivityIconManager.Instance.DeleteIcon(ICON_TYPE_KF);
@@ -113,6 +116,13 @@ namespace Shenxiao.Module.Core.Market
             if (!role.HasBaseInfo) return;
             if (role.Level == _lastLevel) return;
             _lastLevel = role.Level;
+            RequestStartup();
+        }
+
+        /// <summary>跨天(对标老端 MarketController.ts:109-112 DAY_CHANGE 绑定):函数体只有一行
+        /// 无条件 SendFmtToGame(15121),没有额外门槛/清缓存副作用,直接镜像。</summary>
+        private void OnServerDayChange()
+        {
             RequestStartup();
         }
 

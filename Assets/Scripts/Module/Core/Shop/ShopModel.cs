@@ -65,8 +65,10 @@ namespace Shenxiao.Module.Core.Shop
         public const int DIAMOND_RED_KEY_ID = 2005;
 
         /// <summary>服务器配置时区(线上=UTC+8)。64000 的 left_time 客户端自算"下一个游戏日0点"必须用这个,
-        /// 不能裸 UTC/裸 DateTime.Now(轮10 血训,同 DailyModel.SERVER_ZONE_HOURS 先例)。</summary>
-        public const int SERVER_ZONE_HOURS = 8;
+        /// 不能裸 UTC/裸 DateTime.Now(轮10 血训,同 DailyModel.SERVER_ZONE_HOURS 先例)。
+        /// 轮20收敛:转发 Shenxiao.Framework.Util.TimeUtil.SERVER_ZONE_HOURS(唯一事实源),值不变、
+        /// 零行为变更,保留常量名/可见性避免改调用点(spec_serverclock_round20.md §2.3)。</summary>
+        public const int SERVER_ZONE_HOURS = Shenxiao.Framework.Util.TimeUtil.SERVER_ZONE_HOURS;
 
         // =====================================================================================
         // 15301:常规商城(按 shop_type 分槽存)
@@ -317,6 +319,17 @@ namespace Shenxiao.Module.Core.Shop
                 VieRedStatus = vo.IdList.Count > 0 && !showOut;
             }
             _vieInfo = vo;
+        }
+
+        /// <summary>清空抢购缓存(对标老端 ShopController.ts:154-155 的 `model.SetVieInfo(null)` +
+        /// `model.vie_red_stutus = null` 两行)。老端 SetVieInfo 可以直接吃 null,本端 <see cref="SetVieInfo"/>
+        /// 入口就要对 vo.IdList 排序,传 null 会 NPE,故单开此方法承载"置空"语义,二者不可互相替代。
+        /// 清 VieRedStatus 是关键:SetVieInfo 只在 VieRedStatus==null 时才重判红点,不清则 4 点后的
+        /// 64000 回包会沿用昨天的红点结论。</summary>
+        public void ClearVieInfo()
+        {
+            _vieInfo = null;
+            VieRedStatus = null;
         }
 
         public bool CheckVieOpen() => _vieInfo != null && _vieInfo.IdList.Count > 0;

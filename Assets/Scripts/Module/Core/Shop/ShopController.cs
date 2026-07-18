@@ -49,12 +49,14 @@ namespace Shenxiao.Module.Core.Shop
 
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.On<int>(GlobalEvent.EVT_SERVER_HOUR_REFRESH, OnServerHourRefresh);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off<int>(GlobalEvent.EVT_SERVER_HOUR_REFRESH, OnServerHourRefresh);
             _lastLevel = -1;
             _lastVipFlag = -1;
             ShopModel.Instance.Clear();
@@ -63,10 +65,26 @@ namespace Shenxiao.Module.Core.Shop
 
         // =====================================================================================
         // 触发时机(对标老端 GAME_START 13 种 shop_type 逐个 Fire 15301 + Fire 64000;
-        // HOUR_REFRESH==4 点复拉——Unity 尚无服务器日切事件源,同 Dungeon/Kaifu/LimitLevelShop 既有
-        // 结论 TODO,待 ServerTime 模块补日切事件后再接;CHANGE_LEVEL==300/vip_flag 变化仍按等价的
+        // HOUR_REFRESH==4 点复拉见 OnServerHourRefresh;CHANGE_LEVEL==300/vip_flag 变化仍按等价的
         // EVT_ROLE_INFO_UPDATE 复请求,见 OnRoleInfoUpdate)
         // =====================================================================================
+
+        /// <summary>整点刷新(对标老端 ShopController.ts:152-162,hour==4):先清缓存
+        /// (老端 `model.SetVieInfo(null)` + `model.vie_red_stutus = null` 两行,本端合并为
+        /// <see cref="ShopModel.ClearVieInfo"/>——本端 SetVieInfo 入口会对 vo.IdList 排序,吃不了 null),
+        /// 再发 64000 + 15301×3(EudaemonShop/SacredShop/SoulOfWar)。
+        /// **清缓存必须在发包之前**(副作用顺序对齐老端):清空后 CheckVieOpen() 转 false,抢购入口暂时收起,
+        /// 由随后到达的 64000 回包重新填充并重判红点,与老端一致。</summary>
+        private void OnServerHourRefresh(int hour)
+        {
+            if (hour != 4) return;
+            ShopModel.Instance.ClearVieInfo();
+            RequestVieList();
+            RequestShopType(ShopModel.TYPE_EUDAEMON_SHOP);
+            RequestShopType(ShopModel.TYPE_SACRED_SHOP);
+            RequestShopType(ShopModel.TYPE_SOUL_OF_WAR);
+            GameLog.Info("Shop", "HOUR_REFRESH==4 清抢购红点缓存 + 复请求 64000 + 15301×3(圣兽领/领地/战魂)");
+        }
 
         private async void OnGameStart()
         {

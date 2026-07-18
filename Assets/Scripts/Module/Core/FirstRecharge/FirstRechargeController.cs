@@ -22,6 +22,21 @@ namespace Shenxiao.Module.Core.FirstRecharge
             RegisterProtocal(Proto.FIRST_RECHARGE_INFO, On15905);
             RegisterProtocal(Proto.FIRST_RECHARGE_CLAIM, On15906);
             RegisterProtocal(Proto.FIRST_RECHARGE_ISBUY, On15908);
+            // 对标老端 FirstRechargeController.ts:196-202(dayChange):跨天后若 HasNoRecevie() 才复请求 15905。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+        }
+
+        public override void Dispose()
+        {
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            base.Dispose();
+        }
+
+        // 对标老端 HasNoRecevie()(FirstRechargeModel.ts:106-116):reward_list 任一 open==2("明天可领")才复请求。
+        // Unity FirstRechargeModel.HasTomorrowReward() 同判 Slots[i].Open==2,语义等价。
+        private void OnServerDayChange()
+        {
+            if (FirstRechargeModel.Instance.HasTomorrowReward()) RequestInfo();
         }
 
         public void RequestInfo() => SendFmt(Proto.FIRST_RECHARGE_INFO);

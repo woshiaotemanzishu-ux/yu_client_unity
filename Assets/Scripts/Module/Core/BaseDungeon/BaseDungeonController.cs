@@ -28,11 +28,18 @@ namespace Shenxiao.Module.Core.BaseDungeon
             RegisterProtocal(Proto.BASEDUNGEON_TOWER_INFO, On61117);
             // 对标老端 CHANGE_LEVEL→RequestLimitTowerData:等级变化时复请求。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            // ServerClock(轮20 P4)补 DAY_CHANGE 复拉钩子(对标老端 BaseDungeonController.ts:230-240
+            // DAY_CHANGE 绑定里的 RequestLimitTowerData()一行;同一绑定里另两行 ResetDunInitState()/
+            // CheckAllDunInitState() 归 Unity Dungeon/DungeonController.cs 管[P2 包],与本"限时爬塔"
+            // 61117 子系统无关,不在本文件镜像范围。HOUR_REFRESH 绑定[ts:242-253]全函数体没有
+            // RequestLimitTowerData 调用,本子系统不接 HOUR_REFRESH 钩子)。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             ActivityIconManager.Instance.DeleteIcon(TOWER_ICON_TYPE);
             BaseDungeonModel.Instance.Reset();
             _lastLevel = -1;
@@ -83,6 +90,14 @@ namespace Shenxiao.Module.Core.BaseDungeon
             if (!role.HasBaseInfo) return;
             if (role.Level == _lastLevel) return;
             _lastLevel = role.Level;
+            RequestStartup();
+        }
+
+        /// <summary>跨天(对标老端 BaseDungeonController.ts:230-240 DAY_CHANGE 绑定里的
+        /// RequestLimitTowerData()一行,即 BaseDungeonModel.ts:3562-3565 Fire(SCMD_REQUEST,61117),
+        /// 无条件重发,无门槛)。</summary>
+        private void OnServerDayChange()
+        {
             RequestStartup();
         }
     }

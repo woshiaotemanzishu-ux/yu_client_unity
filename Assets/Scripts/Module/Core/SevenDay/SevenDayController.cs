@@ -29,11 +29,15 @@ namespace Shenxiao.Module.Core.SevenDay
             RegisterProtocal(Proto.SEVENDAY_MERGE_INFO, On17502);
             // 对标老端 CHANGE_LEVEL→LevelChange:等级到 open_lv 时复请求 17500/17502。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            // 对标老端 SevenDayController.ts:44:game_start(=RequestStartup 同款,发17500/17502)同时绑
+            // GAME_START 与 DAY_CHANGE 两个事件——跨天后复请求(七天/合服七天面板按 current_day 换页)。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
             ActivityIconManager.Instance.DeleteIcon(SevenDayModel.ICON_OPEN);
             ActivityIconManager.Instance.DeleteIcon(SevenDayModel.ICON_EIGHT);
             ActivityIconManager.Instance.DeleteIcon(SevenDayModel.ICON_MERGE);

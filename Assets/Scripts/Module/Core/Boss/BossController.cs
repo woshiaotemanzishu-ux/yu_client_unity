@@ -5,6 +5,7 @@ using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Dungeon;
 using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Relive;
 using Shenxiao.Module.Core.Role;
@@ -38,6 +39,12 @@ namespace Shenxiao.Module.Core.Boss
 
         public const string ICON_TYPE = BossModel.ICON_TYPE;
 
+        /// <summary>跨服千幻蜃楼(holy)子类型,对标老端 BossModel.BossType.holy(1+cross_boss_base_index=1001)
+        /// - BossModel.cross_boss_base_index(1000) = 1(BossModel.ts:118,149)。47000 请求体带的就是这个"去掉
+        /// 千位跨服偏移后"的子类型,不是协议号本身;BossModel.cs 不在本包文件所有权内(spec §2 P2),常量落在
+        /// 本控制器,不新增 Model 字段。</summary>
+        private const int CROSS_BOSS_HOLY_TYPE = 1;
+
         // 复评图标的等级去抖:EVT_ROLE_INFO_UPDATE 亦随经验/货币变化触发,只在等级真变时复评。
         private int _lastLevel = -1;
 
@@ -46,6 +53,7 @@ namespace Shenxiao.Module.Core.Boss
             // 无专属 BOSS 图标协议可注册:驱动源 33101 已由 CustomActivityController 独占(见类注释,不可重注册)。
             // 模板对齐:等级变化复评(节日BOSS图标无等级门,仅复检钩子)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.On<int>(GlobalEvent.EVT_SERVER_HOUR_REFRESH, OnServerHourRefresh);
 
             RegisterBossFamily();
         }
@@ -53,11 +61,30 @@ namespace Shenxiao.Module.Core.Boss
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off<int>(GlobalEvent.EVT_SERVER_HOUR_REFRESH, OnServerHourRefresh);
             ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
             BossModel.Instance.Reset();
             BossModel.Instance.Clear46000();
             _lastLevel = -1;
             base.Dispose();
+        }
+
+        /// <summary>整点刷新(对标老端 BossController.ts:168-180,hour==4 连发 7 个请求):46000×5
+        /// (suit/abyss/field/field_infinite/fieldspecial)+ 47000(holy 跨服子类型)+ 61020(专属大妖
+        /// Vip_Rerson_Boss,老端经 boss_model.Fire(BaseDungeonModel.SCMD_REQUEST,61020,DUN_TYPE.Vip_Rerson_Boss)
+        /// 转发,本端借道 DungeonController.RequestState 公开 API 直发,不重复注册 61020 发送口)。
+        /// hour 恒为4(ServerTimeModel.RefreshHourList=[4]),此判断是镜像老端的冗余判断。</summary>
+        private void OnServerHourRefresh(int hour)
+        {
+            if (hour != 4) return;
+            RequestBossList(BossModel.BossType.Suit);
+            RequestBossList(BossModel.BossType.Abyss);
+            RequestBossList(BossModel.BossType.Field);
+            RequestBossList(BossModel.BossType.FieldInfinite);
+            RequestBossList(BossModel.BossType.FieldSpecial);
+            SendFmt(Proto.KFBOSS_EUDEMONS_LIST, "c", CROSS_BOSS_HOLY_TYPE); // 47000
+            DungeonController.Instance.RequestState(DungeonModel.TYPE_VIP_PERSON_BOSS); // 61020
+            GameLog.Info("Boss", "HOUR_REFRESH==4 批量复请求 46000×5(suit/abyss/field/field_infinite/fieldspecial) + 47000 + 61020");
         }
 
         /// <summary>

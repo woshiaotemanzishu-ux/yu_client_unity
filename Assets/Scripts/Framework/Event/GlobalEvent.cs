@@ -756,5 +756,24 @@ namespace Shenxiao.Framework.Event
         /// <summary>Market 操作结果(上架15106/下架15108/购买15111/发起求购15115/撤销求购15116/
         /// 求购出售15117/喊话15122)。参数: int protoId(触发的请求号), int code(1=成功,其余=错误码)。</summary>
         public const string EVT_MARKET_RESULT = "EVT_MARKET_RESULT";
+
+        // ----- ServerClock(轮20)----- 跨天/整点事件源,由服务端 0点/4点单播 10201 驱动(不是本地 ticker,
+        // 见 GameStartController.On10201 → ServerTimeModel.TryFireEvent),spec_serverclock_round20.md §0。
+        /// <summary>服务器时间已刷新(无参)。对标老端 ServerTimeModel.REFRESH_SERVER_TIME
+        /// (yu_client\h5\src\serverTime\ServerTimeModel.ts:8),每次收到 10201 落地后无条件发
+        /// (ServerTimeModel.ts:40 InitServerTime 尾部)。GameStartController.On10201 发;消费方按需订阅
+        /// "刚拿到新服务器时钟"信号(P4b LungController 绑的就是这个,非 DAY_CHANGE)。</summary>
+        public const string EVT_SERVER_TIME_REFRESH = "EVT_SERVER_TIME_REFRESH";
+        /// <summary>跨天(无参)。对标老端 ServerTimeModel.DAY_CHANGE(ServerTimeModel.ts:6),
+        /// ServerTimeModel.TryFireEvent 在 GetOpenServerDay() 变化时发(ServerTimeModel.ts:49-51)。
+        /// ServerTimeModel.TryFireEvent 发;P3/P4/P4b 多个小户(Marriage/Halo/Chat/Guild/CustomActivity 等)
+        /// 订阅做跨天重置/补发。</summary>
+        public const string EVT_SERVER_DAY_CHANGE = "EVT_SERVER_DAY_CHANGE";
+        /// <summary>整点刷新(参数: int hour)。对标老端 ServerTimeModel.HOUR_REFRESH(ServerTimeModel.ts:9),
+        /// ServerTimeModel.TryFireEvent 在命中 RefreshHourList 时发(ServerTimeModel.ts:58-63)。因
+        /// refresh_hour_list=[4](ServerTimeModel.ts:10),该参数恒为 4;订阅方照老端写 if(hour==4) 的可保留
+        /// (镜像老端恒真冗余,非本端引入)。ServerTimeModel.TryFireEvent 发;P2 三大户(Dungeon/Boss/Shop)+
+        /// P4/P4b 多个模块订阅。</summary>
+        public const string EVT_SERVER_HOUR_REFRESH = "EVT_SERVER_HOUR_REFRESH";
     }
 }

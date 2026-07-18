@@ -36,12 +36,15 @@ namespace Shenxiao.Module.Core.DragonBall
             // 而 14311 常先于首充数据(15905/15908)到达,此刻判"未首充"→图标被隐藏且不再复判。
             // 订阅首充更新事件,数据到达后按存下的 GiftId 复判图标(无需重发 14311),兜住这个时序。
             EventDispatcher.On(GlobalEvent.EVT_FIRST_RECHARGE_UPDATE, OnFirstRechargeUpdate);
+            // 对标老端 DragonBallController.ts:114-116:DAY_CHANGE→SendFmtToGame(14311),跨天复请求礼包数据。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_FIRST_RECHARGE_UPDATE, OnFirstRechargeUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
             ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
             DragonBallModel.Instance.Reset();
             _lastLevel = -1;

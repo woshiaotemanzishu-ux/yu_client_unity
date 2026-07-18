@@ -84,12 +84,19 @@ namespace Shenxiao.Module.Core.CustomActivity
             // 等级/任务变化用缓存列表复评图标(对标老端 CHANGE_LEVEL→UpdateActivityIcons(cache) 与 taskChange)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskListUpdated);
+
+            // ServerClock(轮20 P4)补 DAY_CHANGE/HOUR_REFRESH 两个复拉钩子(对标老端
+            // CustomActivityController.ts:207/225,老端函数体见 OnServerDayChange/OnServerHourRefresh 注释)。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            EventDispatcher.On<int>(GlobalEvent.EVT_SERVER_HOUR_REFRESH, OnServerHourRefresh);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskListUpdated);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            EventDispatcher.Off<int>(GlobalEvent.EVT_SERVER_HOUR_REFRESH, OnServerHourRefresh);
             ClearOwnedIcons();
             _cachedList.Clear();
             _lastLevel = -1;
@@ -239,6 +246,43 @@ namespace Shenxiao.Module.Core.CustomActivity
         {
             if (_cachedList.Count == 0) return;
             ReapplyGenericIcons(); // 任务变化影响 open_task_id 门禁(对标老端 taskChange)。
+        }
+
+        /// <summary>跨天(对标老端 CustomActivityController.ts:207 绑定→change_day_func:179-183):
+        /// ① show_super_gift_view=true + CookieWrapper.RemoveCookie(SUPER_GIFT_CHECK)——纯 UI 侧状态
+        /// (驱动超值礼包弹窗首次自动开启),本仓无 CookieWrapper/SuperGiftView 落地,数据层轮不镜像
+        /// (同 On33104 base_type==120 段"is_have_receive/product_id/130级弹窗等纯UI侧逻辑不镜像"先例,
+        /// 见 CustomActivityController.Core.cs On33104 注释);
+        /// ② activenss_time_limit()(ts:163-178):除 UI 倒计时字段 fvt_activeness_time/SetActRechargeDay(0)
+        /// (同样纯 UI 状态,本仓无对应字段,不镜像)外,唯一网络副作用是无条件 Fire(SCMD_REQUEST,15959)——
+        /// 本端对应 <see cref="RequestTodayRecharge"/>(15959 当天充值金额,On15959 内追发 CON_RECHARGE
+        /// 详情,见 CustomActivityController.Biz.cs)。</summary>
+        private void OnServerDayChange()
+        {
+            RequestTodayRecharge();
+        }
+
+        /// <summary>整点(对标老端 CustomActivityController.ts:225 绑定→匿名函数 209-224):hour==4 时遍历
+        /// cache_scmd_33101_list(本端 _cachedList),三重过滤全过才发 33193——
+        /// ① base_type==ACT_ID.FTVACTIVENESS(56,ConfigCustomActivity.json ACT_ID.FTVACTIVENESS 实测值,
+        /// 本文件 ACT_ID_FTVACTIVENESS 常量,见 Core.cs);
+        /// ② show_id!=10;
+        /// ③ GetActData(base_type,sub_type) 非空——老端 GetActData 读的是 SetActData 落的缓存,SetActData
+        /// 由众多 331 号收包处理器统一写入(含通用详情 33104),本端对应容器是
+        /// <see cref="CustomActivityModel.GetDetail"/>(On33104 落地;On33196 追发 33193 时已用同一等价物,
+        /// 见 CustomActivityController.Festival.cs On33196 注释)。三者全过 → 调
+        /// <see cref="RequestFtvActivePanel"/>(33193,base_type,sub_type)。</summary>
+        private void OnServerHourRefresh(int hour)
+        {
+            if (hour != 4) return;
+            for (int i = 0; i < _cachedList.Count; i++)
+            {
+                ActInfo info = _cachedList[i];
+                if (info.BaseType != ACT_ID_FTVACTIVENESS) continue;
+                if (info.ShowId == 10) continue;
+                if (CustomActivityModel.Instance.GetDetail(info.BaseType, info.SubType) == null) continue;
+                RequestFtvActivePanel(info.BaseType, info.SubType);
+            }
         }
 
         // 通用 33101 图标复评:用缓存快照重算应显图标集,增新去旧(专属通道图标 331@62@1/331@117@0 不在此列)。

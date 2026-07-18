@@ -18,7 +18,10 @@ namespace Shenxiao.Module.Core.Kaifu
     /// 这三个图标在 configfunctionicon 里均 controll_by_own_fun=true 且 open_lv 很高(4205=360/1112=132/424=160),
     /// 通用扫描(RefreshDefaultIconsCoreAsync)会跳过、AddIconAsync 又会被 open_lv 拦掉;而老端 addIcon 不校验 open_lv
     /// (FunIsOpenByIconType 恒真),门判全由本模块自管——故一律走 ActivityIconManager.AddOwnerIcon(绕过 open_lv 门)。
-    /// 等级变化(EVT_ROLE_INFO_UPDATE)复请求(对标老端 GAME_START/DAY_CHANGE 复发 42004),让达到开启等级后图标及时出现。
+    /// 等级变化(EVT_ROLE_INFO_UPDATE)复请求(本端加强,老端无对应 CHANGE_LEVEL 绑定),让达到开启等级后图标及时出现。
+    /// 跨天(轮20 实接,EVT_SERVER_DAY_CHANGE)对标老端 KaifuActivityController.ts:56,**仅**复发 42004
+    /// (不带 42401——老端该行只有一句 SendFmtToGame(42004));⚠同文件 :84-86 是另一段被注释掉的
+    /// AddBookIcon 死链订阅,与本条无关,勿混淆/勿接(见 OnServerDayChange)。
     /// 本期只做图标;投资数据/领取(42000-42003)与契约之书面板(42402-42406)均属面板,未移植,待用户验收。
     /// </summary>
     public sealed class KaifuController : BaseController
@@ -38,13 +41,16 @@ namespace Shenxiao.Module.Core.Kaifu
         {
             RegisterProtocal(Proto.KAIFU_INVEST_OPEN, On42004);
             RegisterProtocal(Proto.KAIFU_BOOK_INFO, On42401);
-            // 对标老端 GAME_START/DAY_CHANGE→复发 42004:等级变化时复请求,让达到开启等级后图标及时出现。
+            // 本端加强:等级变化时复请求 42004/42401,让达到开启等级后图标及时出现。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            // 对标老端 DAY_CHANGE→SendFmtToGame(42004)(KaifuActivityController.ts:56)。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             ActivityIconManager.Instance.DeleteIcon(ICON_INVEST_TOP);
             ActivityIconManager.Instance.DeleteIcon(ICON_INVEST_VALUE);
             ActivityIconManager.Instance.DeleteIcon(ICON_BOOK);
@@ -157,7 +163,7 @@ namespace Shenxiao.Module.Core.Kaifu
             else ActivityIconManager.Instance.DeleteIcon(iconType);
         }
 
-        // 对标老端:主角等级变化复请求(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。
+        // 本端加强:主角等级变化复请求(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。
         private void OnRoleInfoUpdate()
         {
             RoleModel role = RoleModel.Instance;
@@ -165,6 +171,15 @@ namespace Shenxiao.Module.Core.Kaifu
             if (role.Level == _lastLevel) return;
             _lastLevel = role.Level;
             RequestStartup();
+        }
+
+        /// <summary>跨天(对标老端 KaifuActivityController.ts:56 DAY_CHANGE):**仅**复发 42004(投资开启列表),
+        /// 不带 42401——老端该 DAY_CHANGE 绑定原文只有一行 SendFmtToGame(42004)。⚠勿与同文件 :84-86
+        /// 被注释掉的 AddBookIcon DAY_CHANGE 死链订阅混淆(那段死链不接)。</summary>
+        private void OnServerDayChange()
+        {
+            SendFmt(Proto.KAIFU_INVEST_OPEN); // 42004
+            GameLog.Info("Kaifu", "DAY_CHANGE 跨天复发42004");
         }
     }
 }

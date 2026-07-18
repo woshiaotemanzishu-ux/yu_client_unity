@@ -77,6 +77,8 @@ namespace Shenxiao.Module.Core.Dungeon
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskListUpdated);
             EventDispatcher.On(GlobalEvent.EVT_SCENE_MAP_READY, OnSceneMapReady);
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            EventDispatcher.On<int>(GlobalEvent.EVT_SERVER_HOUR_REFRESH, OnServerHourRefresh);
         }
 
         public override void Dispose()
@@ -85,6 +87,8 @@ namespace Shenxiao.Module.Core.Dungeon
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskListUpdated);
             EventDispatcher.Off(GlobalEvent.EVT_SCENE_MAP_READY, OnSceneMapReady);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            EventDispatcher.Off<int>(GlobalEvent.EVT_SERVER_HOUR_REFRESH, OnServerHourRefresh);
             ++_checkEpoch;   // 使在途防抖批次失效
             _lastLevel = -1;
             DungeonModel.Instance.Clear();
@@ -94,8 +98,8 @@ namespace Shenxiao.Module.Core.Dungeon
 
         // =====================================================================================
         // 61020 触发时机(对标老端 Init() 的 CheckAllDunInitState:GAME_START/等级变化/任务推进 →
-        // 500ms 防抖 → 对白名单里未 init 的类型批量发 61020。DAY_CHANGE/HOUR_REFRESH==4 的重置路老端
-        // 走 ServerTimeModel 事件,Unity 尚无服务器日切事件源,TODO 待 ServerTime 模块接入后补挂)。
+        // 500ms 防抖 → 对白名单里未 init 的类型批量发 61020。DAY_CHANGE/HOUR_REFRESH==4 的重置路
+        // 见下方 OnServerDayChange/OnServerHourRefresh,轮20 已接入 ServerClock 事件源)。
         // =====================================================================================
 
         private void OnGameStart()
@@ -103,6 +107,27 @@ namespace Shenxiao.Module.Core.Dungeon
             // 对标老端 GAME_START:ResetData(全类型待重拉)后批量补请求。
             DungeonModel.Instance.ResetDunInitState();
             CheckAllDunInitState();
+        }
+
+        /// <summary>跨天(对标老端 BaseDungeonController.ts:230-240 DAY_CHANGE):无条件 ResetDunInitState +
+        /// CheckAllDunInitState(老端另有 setTimeout(fn,3) 才调用 CheckAllDunInitState,CheckAllDunInitState
+        /// 自身又是 500ms 防抖,3ms 在这条链路里可忽略——本端直接复用既有 500ms 防抖链,见 spec_serverclock_round20.md
+        /// §2 P2)。同一老端处理器内还调用 local_BaseDungeonModel_Instance.RequestLimitTowerData()(爬塔请求,
+        /// BaseDungeonController.ts:237),但那部分数据/发送不归本文件所有——已挂在 BaseDungeon/BaseDungeonController.cs
+        /// (P4 包,独立订阅同一个 EVT_SERVER_DAY_CHANGE),本控制器不重复实现。</summary>
+        private void OnServerDayChange()
+        {
+            DungeonModel.Instance.ResetDunInitState();
+            CheckAllDunInitState();
+        }
+
+        /// <summary>整点刷新(对标老端 BaseDungeonController.ts:242-253 HOUR_REFRESH):无条件
+        /// ResetDunInitState;仅 hour==4 才补触发 CheckAllDunInitState(RefreshHourList=[4],hour 恒为4,
+        /// 此判断是镜像老端的冗余判断,非本端引入)。</summary>
+        private void OnServerHourRefresh(int hour)
+        {
+            DungeonModel.Instance.ResetDunInitState();
+            if (hour == 4) CheckAllDunInitState();
         }
 
         private void OnRoleInfoUpdate()

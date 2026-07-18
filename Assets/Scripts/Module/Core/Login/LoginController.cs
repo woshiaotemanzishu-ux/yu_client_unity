@@ -270,7 +270,16 @@ namespace Shenxiao.Module.Core.Login
         {
             object[] head = reader.ReadFmt("clihi");
             long serverTimeMs = (long)head[1];
+            long openTimeSec = (uint)head[2];
             int roleCount = (ushort)head[3];
+
+            // 裁决5(spec_serverclock_round20.md §1):补对时 + 落 open_time,对标老端 On10000
+            // (LoginController.ts:275-276)只做这两件事——Time:64 是毫秒、OpenTime:32 是秒,不得混淆单位;
+            // 严禁在此调 ServerTimeModel.TryFireEvent(老端同一位置也不调,10201 才是唯一驱动点)。
+            // 只想改 open_time,merge_time/merge_start_time/merge_count 原样传回当前值(不建第二个局部
+            // setter,避免 ServerTimeModel 出现双写入口)。
+            TimeUtil.SyncServerTime(serverTimeMs);
+            ServerTimeModel.ApplyServerInfo(openTimeSec, ServerTimeModel.MergeTime, ServerTimeModel.MergeStartTime, ServerTimeModel.MergeCount);
 
             var roles = new List<GameRoleInfo>(roleCount);
             for (int i = 0; i < roleCount; i++)

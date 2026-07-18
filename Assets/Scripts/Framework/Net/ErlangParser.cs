@@ -110,10 +110,19 @@ namespace Shenxiao.Framework.Net
             SkipWhitespace(s, ref pos);
             while (pos < s.Length && s[pos] != close)
             {
+                int posBefore = pos; // 护栏基线(轮20 P5):本轮起点游标,用来判断这一圈到底有没有真的前进
                 var item = ParseValue(s, ref pos);
                 if (item != null) items.Add(item);
                 SkipWhitespace(s, ref pos);
                 if (pos < s.Length && s[pos] == ',') { pos++; SkipWhitespace(s, ref pos); }
+                // 护栏(轮20 P5,spec_serverclock_round20.md 裁决7):喂 JSON 串(如 config_key_value[1].value,
+                // 老端 41708 就是这么喂的)时,遇到 JSON 特有字符(如 ':')会走到 ParseAtomOrNumber——
+                // IsIdentChar(:159-168)不含 ':',while 循环一次都不走,token 长度 0 直接返回 null 且 pos 未前进;
+                // 回到本函数后 item==null 不入队、SkipWhitespace 不动、也不是 ',',于是 pos 卡在同一个字符上,
+                // while 条件永远为真 → 无限循环挂死主线程。老端等价兜底是
+                // yu_client\h5\src\util\ErlangParser.ts:173 的 loop_times>1000 计数熔断(空转 1000 次才放弃,
+                // 期间还会 SendErrorToPHP 刷一堆空错误上报);本端不复刻"空转再放弃",游标一旦没前进立刻跳出。
+                if (pos == posBefore) break;
             }
             if (pos < s.Length && s[pos] == close) pos++;
             return new ErlangTerm(kind, items);

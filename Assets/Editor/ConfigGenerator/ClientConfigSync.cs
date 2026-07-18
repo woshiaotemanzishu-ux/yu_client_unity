@@ -153,6 +153,7 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_ring_star",            // 戒指阶星属性表(501条,stage 1-50,复合键"stage@star";源=cdn\resource\config\server法定同步源,与服务端data_ring.erl 501+1兜底精确吻合;cdn\assets下101条为陈旧副本),MarriageConfigs.GetRingStar 用
             "config_flower_tools",         // 鲜花道具表(6条,数字键=goods_id),MarriageConfigs.GetFlowerTool 用
             "config_love_dsgt_cfg",        // 恩爱称号档位表(10条,数字键=顺位id),MarriageConfigs.GetLoveDsgt 用(config_personal_tag_info 半死跳过,见 MarriageConfigs 注释)
+            "config_key_value",            // 全局杂项KV(59条,数字键=key;value 字符串形态不统一——key1 JSON数组/key11&20001 裸整数数组/key15&18 单引号渠道名列表),轮20 P5 KeyValueConfigs.GetRaw 用(41708 下载礼包明细消费 key1)
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

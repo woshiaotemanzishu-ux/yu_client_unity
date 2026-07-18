@@ -73,11 +73,13 @@ namespace Shenxiao.Module.Core.Chat
             RegisterProtocal(Proto.CHAT_NOTICE, On11050);
             RegisterProtocal(Proto.CHAT_ROBOT, On11064);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             _lastSendUnixSec.Clear();
             ChatModel.Instance.Reset();
             base.Dispose();
@@ -90,11 +92,31 @@ namespace Shenxiao.Module.Core.Chat
             RequestCache(ChatModel.ChannelWorld);
             ChatModel.Instance.EnsureWelcomeSystemMessage();
 
-            // 11023/11050/11064 均对标老端 GAME_START 空参发一次(11023 老端另有 DAY_CHANGE 复触发,
-            // 本端未接日切事件,仅 GAME_START 查一次,TODO 见汇报)。
+            // 11023/11050/11064 均对标老端 GAME_START 空参发一次(11023 跨天复触发见 OnServerDayChange)。
             SendFmt(Proto.CHAT_ZONE_OPEN);
             SendFmt(Proto.CHAT_NOTICE);
             SendFmt(Proto.CHAT_ROBOT);
+        }
+
+        /// <summary>跨天(对标老端 ChatController.ts:130-137 day_change,两个独立 if,非 if/else):
+        /// ①kuaFuOpenData 未拿到(即本地尚无 11023 应答,ChatModel.IsZoneOpen 默认 false)时补发 11023
+        /// 查询跨服聊天开关。
+        /// ②老端第二个 if(ChatController.ts:134 `if (!_model.SmallKuaFuOpen)`)**是死分支,本端不移植**:
+        /// ChatModel.SmallKuaFuOpen 是**方法**(ChatModel.ts:3205 `public SmallKuaFuOpen() { return this._smallKuaFuOpen }`),
+        /// 这里漏写了调用括号,`!<函数对象>` 恒为 false,故 setSmallKuaFuOpen() 在跨天时**从未被调用过**
+        /// (对照组:ChatTrumpetMenu.ts:120 就正确写成 `!_model.SmallKuaFuOpen()`)。
+        /// 老端该 bug 的玩家可感知后果:挂机跨天恰好达到 config.openDay 时,小跨服频道不会自动出现,
+        /// 必须重登(GAME_START 路径 ChatController.ts:121 是无条件调 setSmallKuaFuOpen() 的,所以重登就好了)。
+        /// 本端不复刻该死分支,也**暂不做"订正式补齐"**——前置是 Chat 模块的小跨服频道门禁本身尚未移植
+        /// (Unity ChatModel 无 _smallKuaFuOpen 字段、无 ViewClassCFG 的 openDay/openLevel 门槛表),
+        /// 属 Chat 模块缺口而非跨天缺口;待该门禁移植时,在此按订正后语义(带括号)接上即可。</summary>
+        private void OnServerDayChange()
+        {
+            if (!ChatModel.Instance.IsZoneOpen) // 对标老端 !_model.kuaFuOpenData(ChatController.ts:131,On11023 落地)
+            {
+                SendFmt(Proto.CHAT_ZONE_OPEN); // 11023
+                GameLog.Info("Chat", "DAY_CHANGE zoneOpen未知,复发11023");
+            }
         }
 
         private void RequestCache(int channel)

@@ -5,6 +5,12 @@ namespace Shenxiao.Module.Core.AdReward
     /// <summary>
     /// 广告奖励(AdReward)数据(对标老客户端 commonModel/WelfareModel.ts 广告分支,自动循环 轮18 PK4)。
     /// 承载 19302 下发的广告冷却/开放列表(ad_list)。
+    ///
+    /// 轮20 裁决8存档(spec_serverclock_round20.md §1):config_advertisement **不接**。这不是"缺表降级",
+    /// 是整条链路按设计封存——闸门是 <see cref="GetAdOpenState"/> 恒 false,前置条件是 Conch 壳 + Eyou 发行渠道
+    /// 专属平台探测(Unity 客户端没有对应实现),不是配表缺失。即便把 config_advertisement 搬进来,
+    /// <see cref="Shenxiao.Module.Core.AdReward.AdRewardController.OnGameStart"/> 仍不会发 19302(闸门恒 false 拦在前面),
+    /// 表也没有第二个消费点(全仓零引用 advertisement_id)。故本轮不搬该表,待真正接入 Eyou 渠道 SDK 时再一并接。
     /// </summary>
     public sealed class AdRewardModel
     {

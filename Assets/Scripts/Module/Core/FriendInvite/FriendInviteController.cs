@@ -17,6 +17,11 @@ namespace Shenxiao.Module.Core.FriendInvite
     /// LevelChange→init_fun),让升到 30 级且分享开启后图标及时出现。
     ///
     /// 本期只做图标,红点/助力/红包/福利/微信分享(34002~34012、11301/11302)与面板待用户验收。
+    ///
+    /// TODO(跨天 11301):老端 FriendInviteController.ts:156 在 DAY_CHANGE 时 SendFmtToGame(11301)
+    /// (微信分享次数查询);本端 Proto 尚无 11301/11302 号、FriendInviteModel 亦无对应字段
+    /// (UpdateShareTimes 等),移植该协议时再补回 DAY_CHANGE 订阅与 RequestXxx/OnXxx 实现——
+    /// 空效果订阅(F3 裁决4)已移除,不在此保留零效果占位。
     /// </summary>
     public sealed class FriendInviteController : BaseController
     {
@@ -33,6 +38,7 @@ namespace Shenxiao.Module.Core.FriendInvite
             RegisterProtocal(Proto.FRIENDINVITE_INFO, On34001);
             // 对标老端 CHANGE_LEVEL→LevelChange→init_fun:等级变化时复请求(30级 + 分享开启后显示图标)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            // DAY_CHANGE→11301 未接线,见类头 TODO(F3 裁决4:移除零效果订阅,不留空 handler)。
         }
 
         public override void Dispose()

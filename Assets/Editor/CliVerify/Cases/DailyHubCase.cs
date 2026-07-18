@@ -143,28 +143,68 @@ namespace Shenxiao.EditorTools
                 bool claim717Ok = claim717NoThrow && logs.Exists(l => l.Contains("15717 领活跃度成功"));
                 Debug.Log("CLIVERIFY dailyhub 15717 ok=" + claim717Ok);
 
-                // ---- G. 15718 预约红点计数(⚠已订正老端恒假 bug;用同一时钟公式[含服务器时区偏移]自算
-                // 期望值,免时区抖动误报——轮10交叉验收 blocker 订正:生产代码已从裸 UTC 改为 UTC+SERVER_ZONE_HOURS,
-                // 此处期望值公式必须同步改,否则会互相掩盖) ----
+                // ---- G. 15718 预约红点计数(⚠已订正老端恒假 bug) ----
+                // 【轮20 订正:此段此前是时间敏感 flaky,北京时间 20:30 之后跑 RenderAll 必挂】
+                // 原期望值用 DateTime.UtcNow(**设备墙钟**)自算,而生产代码 DailyModel.SetResTable(DailyModel.cs:405)
+                // 用的是 TimeUtilNowUtc() = TimeUtil.NowUtc()+SERVER_ZONE_HOURS(**服务端同步钟**)。两钟在
+                // RenderAll 里必然分叉(ChatCase 等前置用例会调 TimeUtil.SyncServerTime 操纵全局钟),
+                // 违反历轮铁律"合成包用例期望值必须与生产代码同钟同源";而且原期望值还**漏掉了生产侧的
+                // `lv >= start_lv` 条件**(DailyModel.cs:421)。
+                // 现改为:钉死服务器时钟 + 硬编码期望值,三个分支(窗口前/窗口后/等级不足)全确定性,不再看真实时刻。
                 Newtonsoft.Json.Linq.JObject ac135 = Shenxiao.Module.Core.Daily.DailyConfigs.GetAc(135, 0, 1);
                 var region135 = Shenxiao.Module.Core.Daily.DailyConfigs.ParseTimeRegion(
                     Shenxiao.Module.Core.Daily.DailyConfigs.ReadString(ac135, "time_region"));
-                DateTime nowUtc = DateTime.UtcNow.AddHours(Shenxiao.Module.Core.Daily.DailyModel.SERVER_ZONE_HOURS);
-                bool expectCanRes = region135.Count > 0 &&
-                    (nowUtc.Hour < region135[0].startH || (nowUtc.Hour == region135[0].startH && nowUtc.Minute < region135[0].startM));
-                int expectedRed = expectCanRes ? 1 : 0;
-                Feed(m15718, new CliVerify.Pkt()
+                int startLv135 = Shenxiao.Module.Core.Daily.DailyConfigs.ReadInt(ac135, "start_lv");
+                // 配置前提自检:本段的硬编码期望值建立在 135@0@1 = 窗口 20:30 起、start_lv=130 之上。
+                // 配置若漂移,这里要**大声失败**,而不是让期望值悄悄改变含义。
+                bool cfg135Ok = region135.Count > 0 && region135[0].startH == 20 && region135[0].startM == 30
+                                && startLv135 == 130;
+
+                byte[] pkt15718 = new CliVerify.Pkt()
                     .H(3)
                         .I(500).I(0).I(0).C(1).C(1)   // module==500 → 过滤,不进表
-                        .I(135).I(0).I(1).C(0).C(0)   // 未预约(status=0),按当前时钟可能可预约
-                        .I(132).I(0).I(0).C(1).C(1)   // 已预约(status!=0)→ 不计入红点
-                    .Bytes());
+                        .I(135).I(0).I(1).C(0).C(0)   // 未预约(status=0)→ 是否计红点取决于时钟+等级
+                        .I(132).I(0).I(0).C(1).C(1)   // 已预约(status!=0)→ 恒不计入红点
+                    .Bytes();
+
+                // 钉服务器墙钟到指定时刻(TimeUtil 的钟就是生产侧判定用的钟)
+                void PinServerClock(int h, int mi) => Shenxiao.Framework.Util.TimeUtil.SyncServerTime(
+                    new DateTimeOffset(2026, 7, 15, h, mi, 0,
+                        TimeSpan.FromHours(Shenxiao.Module.Core.Daily.DailyModel.SERVER_ZONE_HOURS))
+                    .ToUnixTimeMilliseconds());
+
+                long clockBackup = Shenxiao.Framework.Util.TimeUtil.NowMs();
+
+                // G1 窗口前(10:00)+ 等级 200 ≥ 130 → 135 计红点,期望 1
+                PinServerClock(10, 0);
+                Feed(m15718, pkt15718);
                 bool signupFilterOk = !model.TryGetReservation(500, 0, 0, out _)
                     && model.TryGetReservation(135, 0, 1, out int res135) && res135 == 0
                     && model.TryGetReservation(132, 0, 0, out int res132) && res132 == 1;
-                bool redCountOk = model.DailyResRed == expectedRed;
-                Debug.Log("CLIVERIFY dailyhub 15718 filter=" + signupFilterOk + " red=" + model.DailyResRed
-                    + " expected=" + expectedRed + " ok=" + redCountOk);
+                bool redBeforeWindowOk = model.DailyResRed == 1;
+
+                // G2 窗口后(21:00)→ 不可预约,期望 0
+                PinServerClock(21, 0);
+                Feed(m15718, pkt15718);
+                bool redAfterWindowOk = model.DailyResRed == 0;
+
+                // G3 窗口前但等级不足(129 < start_lv 130)→ 期望 0(补齐原期望值漏掉的等级门)
+                PinServerClock(10, 0);
+                Shenxiao.Module.Core.Role.RoleModel.Instance.Level = 129;
+                Feed(m15718, pkt15718);
+                bool redLevelGateOk = model.DailyResRed == 0;
+                Shenxiao.Module.Core.Role.RoleModel.Instance.Level = 200; // 还原,后续段落依赖 200 级
+
+                // 先在"窗口前"重建表状态(后续 H/I 段基于 135 未预约 + 红点=1 继续),**再**还原全局时钟——
+                // 顺序不能反:还原后再喂包会让红点重新受真实时刻影响,flaky 就回来了。
+                PinServerClock(10, 0);
+                Feed(m15718, pkt15718);
+                Shenxiao.Framework.Util.TimeUtil.SyncServerTime(clockBackup);
+
+                bool redCountOk = cfg135Ok && redBeforeWindowOk && redAfterWindowOk && redLevelGateOk;
+                Debug.Log("CLIVERIFY dailyhub 15718 filter=" + signupFilterOk + " cfg135=" + cfg135Ok
+                    + " redBeforeWindow=" + redBeforeWindowOk + " redAfterWindow=" + redAfterWindowOk
+                    + " redLevelGate=" + redLevelGateOk + " ok=" + redCountOk);
 
                 // ---- H. 15719 成功(status!=2 弹窗事件)+ 失败码 ----
                 signupSuccessCount = 0;

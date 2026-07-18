@@ -47,6 +47,7 @@ namespace Shenxiao.Module.Core.MainUI
             ReflowIconBox();
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.On(GlobalEvent.EVT_PK_STATUS_CHANGED, RefreshPkStatus);
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             RefreshRole();
             RefreshPkStatus();
             RefreshClock();
@@ -143,18 +144,26 @@ namespace Shenxiao.Module.Core.MainUI
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_PK_STATUS_CHANGED, RefreshPkStatus);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
         }
 
         private void OnDestroy()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_PK_STATUS_CHANGED, RefreshPkStatus);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
         }
 
         private void OnRoleInfoUpdate()
         {
             RefreshRole();
             // 等级变化可能跨过光环开放门槛(open_lv=100),复检显隐(对标老端 CHANGE_LEVEL → UpdateHaloIcon)。
+            _ = RefreshHaloIconAsync();
+        }
+
+        // 对标老端跨天复检光环(见 RefreshHaloIconAsync 前的说明注释)。
+        private void OnServerDayChange()
+        {
             _ = RefreshHaloIconAsync();
         }
 
@@ -282,8 +291,13 @@ namespace Shenxiao.Module.Core.MainUI
         /// HaloModel.GetOpenState → CheckFuncOpenState("HaloMainView")(开服≥6 天 且 等级≥100)。
         /// 未达条件隐藏(新号创建即满足隐藏),达成后随等级变化(EVT_ROLE_INFO_UPDATE)复检显示;
         /// 显隐后按老端 RefBoxChildsLayout(_box_icon,12,72,"left") 把可见图标左对齐重排,消除空位。
-        /// 注:老端 GetOpenState 还含 is_(wx_)alpha 平台分支与 DAY_CHANGE 单独触发,本端未移植平台变体;
-        ///     「已满级但尚未到第6天」这一开服天达标转换当前无日切事件驱动,等级门(100)为实际主门。
+        /// 跨天复检(EVT_SERVER_DAY_CHANGE→OnServerDayChange):老端本身不在 MainUITopView.ts 绑 DAY_CHANGE
+        /// (全文件零 ServerTimeModel 引用),其"开服天达标"复检走的是间接链路——HaloController.ts:57-68
+        /// DAY_CHANGE→双门判定通过才请求 51400→On51400(:74-79)回包后 Fire(OPEN_HALO_ICON,true)→
+        /// MainUITopView 监听 OPEN_HALO_ICON(:225-227)调 UpdateHaloIcon。本端 FuncOpenConfig.CheckFuncOpenState
+        /// 直接本地读表(含 open_day),不必等服务端回包,故简化为收到 EVT_SERVER_DAY_CHANGE 直接复检,行为等价、
+        /// 路径更短(该 51400 请求由 P3 的 HaloController.cs 另行接线,不属本类职责)。
+        /// 注:老端 GetOpenState 还含 is_(wx_)alpha 平台分支,本端未移植平台变体,维持原状。
         /// </summary>
         private async Task RefreshHaloIconAsync()
         {

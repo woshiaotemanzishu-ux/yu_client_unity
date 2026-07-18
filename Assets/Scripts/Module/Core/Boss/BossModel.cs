@@ -31,8 +31,10 @@ namespace Shenxiao.Module.Core.Boss
         /// <summary>
         /// 服务端配置时区(线上=UTC+8,按"落定线上值"做法)。活动 condition 里 time 窗的时分秒是服务端墙钟,
         /// 需把 UTC 服务器时间(TimeUtil.NowUtc)加此偏移换算成墙钟再比窗(对标老端 TimeUtil.GetZoneTime 的 server_zone)。
+        /// 轮20收敛:转发 TimeUtil.SERVER_ZONE_HOURS(唯一事实源),值不变、零行为变更,保留常量名/可见性
+        /// 避免改调用点(spec_serverclock_round20.md §2.3)。
         /// </summary>
-        public const int SERVER_ZONE_HOURS = 8;
+        public const int SERVER_ZONE_HOURS = TimeUtil.SERVER_ZONE_HOURS;
 
         /// <summary>
         /// 计算节日BOSS当前三态(对标老端 BossModel.GetFeastBossTime + FeastBossActivity 的图标分支)。

@@ -3,6 +3,9 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.MainUI;
+using Shenxiao.Module.Core.Game;
+using Shenxiao.Module.Core.Guild;
+using Shenxiao.Module.Core.Role;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -104,6 +107,9 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
             EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
             EventDispatcher.On<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
+            // 对标老端 MainUISecondaryView.ts:777-781(DAY_CHANGE)+:784-790(REFRESH_SERVER_TIME,一次性)。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_TIME_REFRESH, OnServerTimeRefreshOnce);
             RefreshSlotsAsync();
         }
 
@@ -115,6 +121,9 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
             EventDispatcher.Off<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            // 老端为一次性订阅(用完即解绑),但视图可能在其触发前就被关闭——这里兜底注销,防止 Off 未配对残留。
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_TIME_REFRESH, OnServerTimeRefreshOnce);
         }
 
         // 增/删任一活动图标 → 两簇按顺序整体重填槽位(槽位式无增量,全量重填最简单稳妥,两簇常年个位数开销可忽略)。
@@ -137,6 +146,39 @@ namespace Shenxiao.Module.Core.MainUI
             if (_box_left != null) _box_left.gameObject.SetActive(!folded);
             if (_box_right != null) _box_right.gameObject.SetActive(!folded);
             if (!folded) RefreshSlotsAsync();
+        }
+
+        // 对标老端 IsActiveGuildHelp(MainUISecondaryView.ts:920-922)=
+        // GuildModel.IsCanOpenAssist() && !SceneManager.NotShowHelpScene()。
+        // 后半场景门(NotShowHelpScene 依赖 IsSeaHegemonyScene/IsNoonPartyScene/IsSeaAsserScene/
+        // IsHolyBattleFightScene/IsHolyBattleWaitScene/IsPolarDungeon/IsKFPolarDungeon,SceneManager.ts:2092-2096)
+        // Unity 的 Scene/SceneManager.cs 尚无对应方法(该文件不在本包所有权内,不可越权新增),
+        // 本端先只接 IsCanOpenAssist 半(公会成员+等级+开服天门槛,数据已全通,非猜测);
+        // 场景门缺口(几个特殊玩法场景内本该隐藏而未隐藏)留 todos_left。
+        // IsCanOpenAssist(GuildModel.ts:1012-1022): IsHasGuild()(guild_id>0) && role_lv>=kv[26] && cur_day>=kv[28]。
+        private static bool IsActiveGuildHelp()
+        {
+            if (RoleModel.Instance.GuildId <= 0) return false;
+            int.TryParse(GuildConfigs.GetKv(26), out int condLv);
+            int.TryParse(GuildConfigs.GetKv(28), out int openDay);
+            return RoleModel.Instance.Level >= condLv && ServerTimeModel.GetOpenServerDay() >= openDay;
+        }
+
+        // 对标老端 MainUISecondaryView.ts:777-781:跨天后复判 _box_help 显隐。
+        private async void OnServerDayChange()
+        {
+            await GuildConfigs.EnsureLoaded();
+            if (this == null || _box_help == null) return; // view destroyed during await
+            _box_help.gameObject.SetActive(IsActiveGuildHelp());
+        }
+
+        // 对标老端 MainUISecondaryView.ts:784-790:一次性订阅(拿到首次服务器时间后判一次即解绑)。
+        private async void OnServerTimeRefreshOnce()
+        {
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_TIME_REFRESH, OnServerTimeRefreshOnce);
+            await GuildConfigs.EnsureLoaded();
+            if (this == null || _box_help == null) return; // view destroyed during await
+            _box_help.gameObject.SetActive(IsActiveGuildHelp());
         }
 
         private async void RefreshSlotsAsync()

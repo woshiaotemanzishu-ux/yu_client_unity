@@ -29,11 +29,16 @@ namespace Shenxiao.Module.Core.Adventure
             RegisterProtocal(Proto.ADVENTURE_INFO, On42700);
             // 对标老端 CHANGE_LEVEL→复算开启态:等级变化时复请求 42700(神装功能等级门槛)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            // 对标老端 AdventureController.ts:52:DAY_CHANGE→ref_func 发 42700,并在 model.shop_data 已加载时
+            // 延迟发 42704(商店刷新)。42704/商店(shop_data)本期未移植(面板/协议 42701-42706 待用户验收),
+            // 故只复请求 42700,42704 留 todos_left,不发明数据流。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
             ActivityIconManager.Instance.DeleteIcon(AdventureModel.ICON_TYPE_A);
             ActivityIconManager.Instance.DeleteIcon(AdventureModel.ICON_TYPE_B);
             AdventureModel.Instance.Reset();

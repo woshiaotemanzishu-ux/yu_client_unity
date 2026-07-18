@@ -14,6 +14,11 @@ namespace Shenxiao.Module.Core.Lung
     /// 让满足开服/等级门槛后图标及时出现。图标的 open_lv/open_day 门由 ActivityIconManager 图标配置统一把控。
     /// 本期只做图标:神纹穿戴/升级/兑换/商店/红点(18100-18104/18106-18113)、18112(stove_open_state,
     /// 老端仅设 start_time 并复请求 18105,不直接动图标)与面板均不移植。
+    ///
+    /// TODO(REFRESH_SERVER_TIME→18112):老端 LungController.ts:208 在 REFRESH_SERVER_TIME 时
+    /// Fire LUNG_REQUEST_PROTO 18112(Handler18112 落 stove_open_state 后复请求 18105);本端 Proto
+    /// 尚无 18112 号、LungModel 亦无 stove_open_state 字段,移植该协议时再补回 REFRESH_SERVER_TIME
+    /// 订阅与 RequestXxx/OnXxx 实现——空效果订阅(F3 裁决4)已移除,不在此保留零效果占位。
     /// </summary>
     public sealed class LungController : BaseController
     {
@@ -30,6 +35,7 @@ namespace Shenxiao.Module.Core.Lung
             RegisterProtocal(Proto.LUNG_STOVE_INFO, On18105);
             // 对标老端 CHANGE_LEVEL→Fire LUNG_REQUEST_PROTO 18105:等级变化时复请求。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            // REFRESH_SERVER_TIME→18112 未接线,见类头 TODO(F3 裁决4:移除零效果订阅,不留空 handler)。
         }
 
         public override void Dispose()

@@ -125,10 +125,14 @@ namespace Shenxiao.Module.Core.Game
             int mergeCount = (int)reader.ReadU32();
             long serverTime = reader.ReadU64();
 
+            // 顺序对标老端 InitServerTime(ServerTimeModel.ts:34-41):先对时、再落字段、再 TryFireEvent
+            // (依赖新时钟必须排在 SyncServerTime 之后)、再无条件 REFRESH_SERVER_TIME、最后既有 FLAG_READY。
             TimeUtil.SyncServerTime(serverTime);
-            ServerTimeModel.SetServerTime(openTime, mergeStartTime);
+            ServerTimeModel.ApplyServerInfo(openTime, mergeTime, mergeStartTime, mergeCount);
+            ServerTimeModel.TryFireEvent();
             GameLog.Info("Game", "10201 server time ready: open={0} merge={1} mergeStart={2} mergeCount={3}",
                 openTime, mergeTime, mergeStartTime, mergeCount);
+            EventDispatcher.Emit(GlobalEvent.EVT_SERVER_TIME_REFRESH);
             EventDispatcher.Emit(GlobalEvent.EVT_GAME_START_FLAG_READY, "10201");
         }
 

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json.Linq;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
@@ -10,12 +11,13 @@ using Shenxiao.Module.Core.Role;
 namespace Shenxiao.Module.Core.Welfare
 {
     /// <summary>
-    /// 福利余量(Welfare)控制器(对标老客户端 commonController/WelfareController.ts,自动循环 轮18 PK4)。
-    /// 承接签到(41703-05)/静默下载(41707-08)/在线福利(41715-16)/心悦礼包(41719)四段。GAME_START 时
-    /// 老端一次性发 41700(RushGift 另管)/41703/41707/41715(ts:440-454);等级精确命中
-    /// config_welfare_cfg["3"]=online_reward_open_lv 时补发 41715(ts:467-470);DAY_CHANGE 延时5ms重发 41703
-    /// (ts:457-465)——本仓暂无跨天/日期切换事件源(全量核对 GlobalEvent 无果,同轮16 MarriageController/
-    /// DungeonController/ChatController 先例),该重拉留 TODO,尾包补跨天事件源后在此接。
+    /// 福利余量(Welfare)控制器(对标老客户端 commonController/WelfareController.ts,自动循环 轮18 PK4;
+    /// 轮20 P5 补跨天重拉 + 41708 明细转正)。承接签到(41703-05)/静默下载(41707-08)/在线福利(41715-16)/
+    /// 心悦礼包(41719)四段。GAME_START 时老端一次性发 41700(RushGift 另管)/41703/41707/41715(ts:440-454);
+    /// 等级精确命中 config_welfare_cfg["3"]=online_reward_open_lv 时补发 41715(ts:467-470,见
+    /// <see cref="OnRoleInfoUpdate"/>);跨天(DAY_CHANGE)延时5ms重发 41703(ts:457-465,见
+    /// <see cref="OnServerDayChange"/>)——轮20 前本仓无跨天事件源,该重拉留过 TODO,现由 ServerClock
+    /// (<see cref="Shenxiao.Framework.Event.GlobalEvent.EVT_SERVER_DAY_CHANGE"/>,spec_serverclock_round20.md)接上。
     /// 死号 41702/41706/41710-41714/41717/41718 不注册(见 Proto.cs §1 死号总清单);19301-19304 归
     /// <see cref="Shenxiao.Module.Core.AdReward.AdRewardController"/> 独立模块;41722 归既有
     /// <see cref="Shenxiao.Module.Core.GrowthBenefits.GrowthBenefitsController"/>(本轮追加);
@@ -41,12 +43,14 @@ namespace Shenxiao.Module.Core.Welfare
             RegisterProtocal(Proto.WELFARE_XINYUE_GIFT, On41719);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             WelfareModel.Instance.Reset();
             _lastLevel = -1;
             base.Dispose();
@@ -60,6 +64,7 @@ namespace Shenxiao.Module.Core.Welfare
         {
             WelfareModel.Instance.Reset();
             await WelfareConfigs.EnsureLoaded();
+            await KeyValueConfigs.EnsureLoaded(); // 41708 明细要用 config_key_value[1],GAME_START 时提前备好(见 On41708)
             SendFmt(Proto.WELFARE_CHECKIN_INFO);
             SendFmt(Proto.WELFARE_DOWNLOAD_INFO);
             SendFmt(Proto.WELFARE_ONLINE_INFO);
@@ -76,6 +81,17 @@ namespace Shenxiao.Module.Core.Welfare
             _lastLevel = role.Level;
             int onlineOpenLv = WelfareConfigs.GetKvInt(3, 75); // 兜底线上值(config_welfare_cfg["3"].val=75)
             if (role.Level == onlineOpenLv) SendFmt(Proto.WELFARE_ONLINE_INFO);
+        }
+
+        /// <summary>对标老端 ServerTimeModel.DAY_CHANGE 绑定(WelfareController.ts:457-465):跨天后延时 5ms
+        /// 重发 41703,刷新签到面板"今日是否已签到"态(签到判定看服务端当天 check_day,不重拉就会停在旧一天的状态)。
+        /// 5ms 延时对标老端 setTimeout(...,5) 原样保留,用跨平台 <see cref="TimeUtil.Delay"/>(WebGL 上
+        /// Task.Delay 永不醒,同项目既有铁律)。</summary>
+        private async void OnServerDayChange()
+        {
+            await TimeUtil.Delay(5);
+            SendFmt(Proto.WELFARE_CHECKIN_INFO);
+            GameLog.Info("Welfare", "EVT_SERVER_DAY_CHANGE 延时5ms重发 41703(对标老端 WelfareController.ts:457-465)");
         }
 
         // ---- 发送封装 ----
@@ -165,26 +181,45 @@ namespace Shenxiao.Module.Core.Welfare
             GameLog.Info("Welfare", "41705 补签 code={0} rewardN={1}", code, reward.Count);
         }
 
-        /// <summary>41707 静默下载奖励信息(标准 write_object_list:Type:8,TypeId:32,Num:32)。</summary>
+        /// <summary>41707 静默下载奖励信息(标准 write_object_list:Type:8,TypeId:32,Num:32)。
+        /// pt_417.erl:194-204 write(41707,[Code,Rewads])——**该回包本就带完整奖励明细**,落进
+        /// <see cref="WelfareModel.DownloadRewards"/>(此前版本把 rewads 读出来只打日志就整个丢弃,已订正),
+        /// 供 41708 领取时优先复用,见 On41708 注释。</summary>
         private void On41707(NetReader r)
         {
             int code = (int)r.ReadU32();
             List<(int type, int typeId, int num)> rewads = ReadObjectList(r);
-            WelfareModel.Instance.SetDownloadState(code);
+            WelfareModel.Instance.SetDownloadInfo(code, rewads);
             EventDispatcher.Emit(GlobalEvent.EVT_WELFARE_UPDATE, Proto.WELFARE_DOWNLOAD_INFO);
             GameLog.Info("Welfare", "41707 静默下载信息 code={0} rewadsN={1}", code, rewads.Count);
         }
 
-        /// <summary>41708 领取静默下载奖励(裸 Code)。真实奖励明细来自 config_key_value[1].value(Erlang term,
-        /// 对标老端 Handler41708),Unity 侧 config_key_value 未同步(P0 config 搬运清单缺项),暂只提示成功文案,
-        /// TODO 待补该配置后还原 CongratulationObtainView 明细。</summary>
+        /// <summary>41708 领取静默下载奖励(裸 Code,pt_417.erl:206-212 write(41708,[Code])只回裸 Code)。
+        /// ⚠订正:此前注释断言"明细服务端不下发"是错的——41707 回包本就带明细(pt_417.erl:194-204
+        /// write(41707,[Code,Rewads]))。明细来源改为**优先用 41707 已落进
+        /// <see cref="WelfareModel.DownloadRewards"/> 的服务端明细**:pp_welfare.erl:291-301(41707 查询分支)
+        /// 与 :322-338(41708 领取分支实际发奖)读的是同一份 data_key_value:get(?KEY_DOWNLOAD_GIFT),同源不会漂移。
+        /// 仅当本地没收到过 41707(<see cref="WelfareModel.HasDownloadInfo"/> 为 false 或明细为空,理论上不该发生,
+        /// GAME_START 已先发 41707)才回退到 config_key_value[1] 静态配表自查
+        /// (<see cref="ParseDownloadGiftReward"/> 兜底,静态配置有与服务端实际发奖脱节漂移的风险)。
+        /// 老端存档(如实写明,老端也没用上 41707 的明细):Handler41707(WelfareController.ts:173-176)把 41707
+        /// 整包丢给 UpdateResourceGiftRewardState,该函数(WelfareModel.ts:462-466)只取 scmd.code,明细被弃;
+        /// Handler41708(WelfareController.ts:179-186)转而把 config_key_value[1].value 这段 JSON 字符串直接喂给
+        /// 面向 Erlang term 语法的 ErlangParser.Parse,产出 1000 个空串垃圾对象(ErlangParser.ts:42
+        /// identityCharParttern 正则不含 ':',喂到 ':' 时 ParseDataItemStatement(:179-188)空转不前进,靠
+        /// ParseArrayStatement 里 :173 的 loop_times>1000 计数熔断)——这是老端存量 bug。本端不复刻,
+        /// **严禁走 <see cref="Shenxiao.Framework.Net.ErlangParser"/>**。</summary>
         private void On41708(NetReader r)
         {
             int code = (int)r.ReadU32();
             if (code == 1)
             {
-                WelfareModel.Instance.SetDownloadState(2); // 对标老端 UpdateResourceGiftRewardState({code:2})
-                TipsManager.Toast("领取成功");
+                WelfareModel model = WelfareModel.Instance;
+                string summary = model.HasDownloadInfo && model.DownloadRewards.Count > 0
+                    ? FormatRewardSummary(model.DownloadRewards) // 优先:41707 服务端同源明细
+                    : FormatRewadsSummary(ParseDownloadGiftReward()); // 兜底:未收到过 41707 才自查静态配表
+                model.SetDownloadState(2); // 对标老端 UpdateResourceGiftRewardState({code:2})
+                TipsManager.Toast(summary.Length > 0 ? "领取成功,获得 " + summary : "领取成功");
             }
             else
             {
@@ -192,6 +227,37 @@ namespace Shenxiao.Module.Core.Welfare
             }
             EventDispatcher.Emit(GlobalEvent.EVT_WELFARE_RESULT, Proto.WELFARE_DOWNLOAD_CLAIM, code);
             GameLog.Info("Welfare", "41708 领取静默下载奖励 code={0}", code);
+        }
+
+        /// <summary>兜底路径:解析 config_key_value[1].value 的下载礼包奖励明细,仅当本地未收到过 41707
+        /// 服务端明细时才会被 On41708 调用(见上方 On41708 注释)。元素形如 {"0":style,"1":typeId,"2":count},
+        /// 与 <see cref="ReadRewadsTriple"/> 的 Rewads 三元组同构(对标老端 welfareModel.config_key_value[1].value
+        /// 解析后交给 CongratulationObtainView 的数据形状),故复用同一套 (style, typeId, count) 元组格式化。
+        /// 配表未加载/解析失败均兜底返回空表,不阻断"领取成功"提示。</summary>
+        private static List<(int style, int typeId, long count)> ParseDownloadGiftReward()
+        {
+            var result = new List<(int, int, long)>();
+            string json = KeyValueConfigs.GetRaw(1);
+            if (string.IsNullOrEmpty(json)) return result;
+            try
+            {
+                if (JToken.Parse(json) is JArray arr)
+                {
+                    foreach (JToken t in arr)
+                    {
+                        if (!(t is JObject o)) continue;
+                        int style = o["0"]?.Value<int>() ?? 0;
+                        int typeId = o["1"]?.Value<int>() ?? 0;
+                        long count = o["2"]?.Value<long>() ?? 0L;
+                        result.Add((style, typeId, count));
+                    }
+                }
+            }
+            catch
+            {
+                GameLog.Error("Welfare", "config_key_value[1] 奖励明细 JSON 解析失败,降级为纯提示");
+            }
+            return result;
         }
 
         /// <summary>41715 在线福利信息(裸)。</summary>
@@ -275,7 +341,7 @@ namespace Shenxiao.Module.Core.Welfare
 
         /// <summary>奖励摘要文案(降级 toast 用,对标老端 CongratulationObtainView 的物品名列表;同 MailController/
         /// DailyController 先例——本项目 CongratulationObtainView 尚无业务子类消费方)。</summary>
-        private static string FormatRewardSummary(List<(int type, int typeId, int num)> rewards)
+        private static string FormatRewardSummary(IReadOnlyList<(int type, int typeId, int num)> rewards)
         {
             var sb = new StringBuilder();
             for (int i = 0; i < rewards.Count; i++)

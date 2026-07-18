@@ -19,6 +19,11 @@ namespace Shenxiao.Module.Core.ActivityForeshow
     ///
     /// 等级变化(EVT_ROLE_INFO_UPDATE)复请求 65208 并复评九魂圣殿图标,对标老端 CHANGE_LEVEL→SetTimer→重扫。
     /// 完整日历时间窗(预告 60 分钟显示、20 分钟倒计时、进行中、结束)与提示弹窗待 XianShiActivity 配置移植后再补。
+    ///
+    /// 跨天/整点(EVT_SERVER_DAY_CHANGE / EVT_SERVER_TIME_REFRESH)只做本地复评,不发 65208:老端
+    /// ActivityForeshowManager.ts:115-127 两处都只调 SetTimer()(:259-272,重算 limit_act_list + 建/撤 15s
+    /// 定时器 + OnTime()),全程零发包;65208 的唯一发送点是 :505 ActivityRequestData(),被
+    /// request_dic[icon_type] 一次性门守着,与跨天/整点无关。见 OnServerDayChange 注释。
     /// </summary>
     public sealed class ActivityForeshowController : BaseController
     {
@@ -37,11 +42,17 @@ namespace Shenxiao.Module.Core.ActivityForeshow
             RegisterProtocal(Proto.ACTIVITYFORESHOW_SNATCH_TIME, On65208);
             // 对标老端 CHANGE_LEVEL→SetTimer 重扫:等级变化时复请求并复评图标。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            // 对标老端 ActivityForeshowManager.ts:115-122(DAY_CHANGE)与:124-127(REFRESH_SERVER_TIME):
+            // 两处都只调 SetTimer(),本端归并为同一个本地复评函数,详见 OnServerDayChange 注释。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_TIME_REFRESH, OnServerDayChange);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_TIME_REFRESH, OnServerDayChange);
             ActivityIconManager.Instance.DeleteIcon(ICON_SNATCH_TREASURE);
             ActivityIconManager.Instance.DeleteIcon(ICON_NINE_SKY_ONE);
             ActivityIconManager.Instance.DeleteIcon(ICON_NINE_SKY_TWO);
@@ -96,6 +107,21 @@ namespace Shenxiao.Module.Core.ActivityForeshow
                 ActivityIconManager.Instance.DeleteIcon(ICON_NINE_SKY_ONE);
                 ActivityIconManager.Instance.DeleteIcon(ICON_NINE_SKY_TWO);
             }
+        }
+
+        // 对标老端 ActivityForeshowManager.ts:115-127:
+        //   DAY_CHANGE   → 清 tip 弹窗缓存列表(本端未移植提示弹窗故无对应状态) + SetTimer()
+        //   REFRESH_SERVER_TIME → SetTimer()
+        // SetTimer()(:259-272)只做 limit_act_list = GetLimitActivityList() + 建/撤 15s 定时器 + OnTime(),
+        // 全程零发包;OnTime()→CheckLimitActivityState→ShowActivityIconForeshow→ActivityRequestData(:500-511)
+        // 才可能发 65208,但后者被 request_dic[icon_type] 一次性门守着(发过一次后 request_dic[icon_type]=true,
+        // 同会话内不会再发),与跨天/整点本身无关——故跨天/整点钩子对 65208 而言是零发包的本地复评。
+        // 本端未移植受限活动列表(limit_act_list/XianShiActivity 时间窗),故复评收窄为对已有缓存数据的
+        // 本地复判:领地夺宝按缓存 end_time 复判(RefreshSnatchIcon),九魂圣殿按本地开关复判(RefreshNineSkyIcons)。
+        private void OnServerDayChange()
+        {
+            RefreshSnatchIcon();
+            RefreshNineSkyIcons();
         }
 
         // 对标老端:主角等级变化复请求 65208(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。

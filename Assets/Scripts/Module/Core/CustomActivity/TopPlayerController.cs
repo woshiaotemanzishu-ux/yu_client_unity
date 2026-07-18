@@ -67,16 +67,33 @@ namespace Shenxiao.Module.Core.CustomActivity
             RegisterProtocal(Proto.TOP_PLAYER_GET_WAY, On22505);     // 22505(P6新增)
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_READY, OnRoleInfoUpdate);
+            // ServerClock(轮20 P4)补 DAY_CHANGE 复拉钩子(对标老端 topPlayer/TopPlayerView.ts:212
+            // change_day→UpdateTab,其函数体对每个 start_day<=open_day 的已开榜 tab 发 22501)。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_READY, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             TopPlayerModel.Instance.Reset();
             _requested = false;
             _getWayByRushId.Clear();
             base.Dispose();
+        }
+
+        /// <summary>跨天(对标老端 TopPlayerView.ts:208-212 change_day→UpdateTab):UpdateTab 按
+        /// start_day&lt;=open_day 遍历已开榜的 tab,逐个 Fire(SCMD_REQUEST,22501,type,sub_type)(ts:274-286)
+        /// ——与既有 <see cref="RequestOpenRanksAsync"/>(config_rush_rank 时间窗遍历发 22501)是同一段逻辑的
+        /// 另一处触发点,直接复用,不额外加 GatePasses/_requested 门槛(老端 UpdateTab 本身无这两道门,
+        /// 那是 OnRoleInfoUpdate 首次拉取专属的去抖,不适用于这里)。
+        /// ⚠TopPkController.ts:106(281xx 巅峰对决系统)的同名 DAY_CHANGE 绑定不在本方法镜像范围——
+        /// 本仓尚无 TopPk/281xx 对应 Controller/Model(零 28101-28107 注册),按 spec §3.5"无对应模块不许
+        /// 新建"不接,留后续轮次。</summary>
+        private void OnServerDayChange()
+        {
+            _ = RequestOpenRanksAsync();
         }
 
         private void OnRoleInfoUpdate()
