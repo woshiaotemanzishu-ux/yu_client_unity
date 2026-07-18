@@ -1,0 +1,97 @@
+{
+  "_comment": "UiCreator(手写脚手架)拥有的 prefab 路径。Laya 转换器(LayaSceneConverter)存盘命中 owned 里的路径时【跳过存盘】并写进转换报告,避免一次全量重烤把 UiCreator 这个事实源的产物覆盖掉。",
+  "_format": "owned / patched 均为对象数组:path=相对仓库根的 prefab 路径(与转换器 LayaUISettings.PREFAB_ROOT 拼出来的路径逐字符比对,大小写敏感,统一用正斜杠);owner=拥有它的 Creator 类名;note=一句话说明。【只有 owned 参与拦截,patched 仅作说明、不拦截。】",
+  "_source": "2026-07-18 实测求交集:UiCreator 侧取各 Creator 真正写盘的路径(UiCreatorKit.SavePrefab / PrefabUtility.SaveAsPrefabAsset / LayaBindFiller.FillPrefab / GenerateStandalone 的目标,以及 UiRebuildRegistry 注册项的 PrefabPath);转换器侧按 ui_manifest.json + ui_groups.json 推出合并组 prefab、组外单窗口 prefab、shared-prefab 共享件三类输出路径。交集 17 条 = owned 13 + patched 4。",
+  "_maintenance": "新增/改名 Creator 产物后要同步这份清单,否则重烤会覆盖。判定口径:Creator 从零建树(UiCreatorKit.NewRoot/NewNode)并整体存盘 → 进 owned;Creator 只是在转换器烤好的 prefab 上打补丁(嫁接子树 / 升级 Bind 组件)→ 进 patched。",
+
+  "owned": [
+    {
+      "path": "Assets/Prefabs/UI/MainUI/MainUIModule.prefab",
+      "owner": "MainUIModuleCreator",
+      "note": "主界面总装:12 个 Region + 1 个 Overlay bundle 嵌套而成,与转换器 mainUI 合并组同名撞车"
+    },
+    {
+      "path": "Assets/Prefabs/UI/MainUI/ArrowComponent.prefab",
+      "owner": "HudOverlayPopupsCreator",
+      "note": "引导箭头,MainUIGuideManager 按名单独加载,文件名必须精确"
+    },
+    {
+      "path": "Assets/Prefabs/UI/MainUI/MainUIBuffView.prefab",
+      "owner": "HudOverlayPopupsCreator",
+      "note": "buff 浮层(GenerateStandalone 从零建树,原地覆盖旧转换器版本)"
+    },
+    {
+      "path": "Assets/Prefabs/UI/MainUI/MainUIFightModeView.prefab",
+      "owner": "HudOverlayPopupsCreator",
+      "note": "战斗模式浮层(GenerateStandalone)"
+    },
+    {
+      "path": "Assets/Prefabs/UI/MainUI/MainUIIconBoxView.prefab",
+      "owner": "HudOverlayPopupsCreator",
+      "note": "收纳盒弹窗(GenerateStandalone)"
+    },
+    {
+      "path": "Assets/Prefabs/UI/MainUI/OpenDestinyView.prefab",
+      "owner": "HudOverlayPopupsCreator",
+      "note": "命运开启弹窗(GenerateStandalone,业务未接线)"
+    },
+    {
+      "path": "Assets/Prefabs/UI/MainUI/EyouThAdultItem.prefab",
+      "owner": "HudOverlayPopupsCreator",
+      "note": "18+ 提示件(GenerateStandalone);转换器侧决策为 shared-prefab 共享件"
+    },
+    {
+      "path": "Assets/Prefabs/UI/MainUI/CollectBarView.prefab",
+      "owner": "HudOverlayCombatCreator",
+      "note": "采集条,运行时按地址单独加载,不进总装"
+    },
+    {
+      "path": "Assets/Prefabs/UI/MainUI/FightingUpView.prefab",
+      "owner": "HudOverlayCombatCreator",
+      "note": "战力飘字,运行时按地址单独加载,不进总装"
+    },
+    {
+      "path": "Assets/Prefabs/UI/MainUI/MainUIReliveView.prefab",
+      "owner": "MainUIReliveCreator",
+      "note": "复活窗:从 HudOverlayCombat bundle(UiCreator 产物)摘子树另存,不含转换器几何"
+    },
+    {
+      "path": "Assets/Prefabs/UI/Pet/PetModule.prefab",
+      "owner": "PetCreator",
+      "note": "侍魂模块,UiCreatorKit.NewRoot 从零建树,与转换器 pet 合并组撞车"
+    },
+    {
+      "path": "Assets/Prefabs/UI/Setting/SettingModule.prefab",
+      "owner": "SettingCreator",
+      "note": "设置模块,UiCreatorKit.NewRoot 从零建树,与转换器 setting 合并组撞车"
+    },
+    {
+      "path": "Assets/Prefabs/UI/TransferJob/TransferJobCardView.prefab",
+      "owner": "TransferJobCreator",
+      "note": "转职卡窗,纯代码建树(无死树可用),与转换器 transferJob 单窗口输出撞车"
+    }
+  ],
+
+  "patched": [
+    {
+      "path": "Assets/Prefabs/UI/Role/RoleModule.prefab",
+      "owner": "InnateSkillCreator",
+      "note": "【不拦截】几何仍归转换器;Creator 只把 InnateSkillView 从 __Templates 提升到顶层并升级运行时组件。重烤后【必须重跑一次该 Creator】,否则天赋页打不开"
+    },
+    {
+      "path": "Assets/Prefabs/UI/Friend/FriendModule.prefab",
+      "owner": "FriendBindUpgrader",
+      "note": "【不拦截】几何仍归转换器;Creator 只从 ChatModule 嫁接 FriendChatView 子树 + 升级 Bind。重烤后【必须重跑一次该 Creator】"
+    },
+    {
+      "path": "Assets/Prefabs/UI/Friend/FriendChatItem.prefab",
+      "owner": "FriendBindUpgrader",
+      "note": "【不拦截】转换器 shared-prefab 产物;Creator 只跑 LayaBindFiller.FillPrefab 升级 Bind。重烤后【必须重跑一次该 Creator】"
+    },
+    {
+      "path": "Assets/Prefabs/UI/Jewel/JewelModule.prefab",
+      "owner": "JewelBindUpgrader",
+      "note": "【不拦截】几何仍归转换器;Creator 只从 CommonModule/__Templates 嫁接 EquipJewelView 子树 + 升级 Bind。重烤后【必须重跑一次该 Creator】"
+    }
+  ]
+}

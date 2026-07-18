@@ -142,6 +142,41 @@ namespace Shenxiao.Editor.LayaUI
             RunModules(modules, "LayaUI 全量转换", false);
         }
 
+        /// <summary>
+        /// 批处理入口(不弹任何对话框):
+        /// Unity.exe -batchmode -executeMethod Shenxiao.Editor.LayaUI.LayaUIPipeline.RunAllModulesCli
+        ///
+        /// 只做流水线的【转换】那一段(散图 → 模板补齐 → prefab/Bind cs)。
+        /// 回填 Bind 引用刻意不在这里跑:新生成的 Bind cs 必须先经 Unity 编译一轮才能 AddComponent,
+        /// 而同一次 -executeMethod 调用里等不到这轮编译。回填需另起一次编辑器会话
+        /// (打开工程由 [DidReloadScripts] 自动续跑,或单独调 LayaBindFiller.FillModule)。
+        /// </summary>
+        public static void RunAllModulesCli()
+        {
+            string[] modules = LoadKnownModules();
+            if (modules.Length == 0)
+            {
+                Debug.LogError("[LayaUI] 没有读到模块列表: " + NAMES_PATH);
+                EditorApplication.Exit(1);
+                return;
+            }
+
+            // RunModules 会在「yu_client 根目录没配好」「一个模块都没转成」等情况下整体中止。
+            // 必须看返回值再决定退出码,否则批处理跑了个空也是 exit 0,CI 一路绿灯却什么都没产出。
+            int done = RunModules(modules, "LayaUI 全量转换(CLI)", false);
+            if (done <= 0)
+            {
+                Debug.LogError("[LayaUI] 全量转换未产出任何模块(done=" + done +
+                               "):先确认 yu_client 根目录已配置、模块列表有效。");
+                EditorApplication.Exit(1);
+                return;
+            }
+
+            Debug.Log("CLIVERIFY layaui-convert-all modules=" + modules.Length + " converted=" + done +
+                      "(仅转换;Bind 回填需下次开编辑器时自动续跑)");
+            EditorApplication.Exit(done == modules.Length ? 0 : 1);
+        }
+
         public static int GetLastMissingCount(string module)
         {
             return EditorPrefs.GetInt(MissingKey(module), -1);
@@ -152,13 +187,17 @@ namespace Shenxiao.Editor.LayaUI
             RunModules(new[] { module }, "LayaUI", true);
         }
 
-        public static void RunModules(IEnumerable<string> modules, string title, bool confirmAcceptedModules)
+        /// <summary>
+        /// 跑一批模块的转换流水线。返回【实际转换成功的模块数】,-1 表示前置校验没过、一个都没开跑
+        /// (批处理入口靠这个返回值判定退出码,不然中途整体中止也会被当成功)。
+        /// </summary>
+        public static int RunModules(IEnumerable<string> modules, string title, bool confirmAcceptedModules)
         {
             string err;
             if (!LayaUISettings.ValidateClientRoot(out err))
             {
                 EditorUtility.DisplayDialog("LayaUI", err + "\n\n先在设置里配置 yu_client 目录。", "好");
-                return;
+                return -1;
             }
 
             List<string> targets = modules
@@ -166,7 +205,7 @@ namespace Shenxiao.Editor.LayaUI
                 .Select(m => m.Trim())
                 .Distinct()
                 .ToList();
-            if (targets.Count == 0) return;
+            if (targets.Count == 0) return -1;
 
             string[] accepted = targets.Where(LayaUIAcceptance.IsAccepted).ToArray();
             if (confirmAcceptedModules && accepted.Length > 0 &&
@@ -175,7 +214,7 @@ namespace Shenxiao.Editor.LayaUI
                     "\n\n重转会重建这些模块的生成 prefab, prefab 上的手调会丢。\n确定重转?",
                     "重转", "取消"))
             {
-                return;
+                return -1;
             }
 
             var completed = new List<string>();
@@ -199,7 +238,7 @@ namespace Shenxiao.Editor.LayaUI
                     if (imported > 0) spriteReport.Save();
                 }
 
-                if (canceled) return;
+                if (canceled) return 0;
 
                 // ② 模板补齐只需做一次,再逐模块转换(写 prefab + Bind cs)。
                 LayaUITemplates.BuildAll();
@@ -225,7 +264,7 @@ namespace Shenxiao.Editor.LayaUI
                 EditorUtility.ClearProgressBar();
             }
 
-            if (completed.Count == 0) return;
+            if (completed.Count == 0) return 0;
 
             // ③ 排队回填:Bind cs 触发编译则 DidReloadScripts 续跑;没触发则直接补。
             QueuePendingModules(completed);
@@ -235,6 +274,7 @@ namespace Shenxiao.Editor.LayaUI
             string suffix = canceled ? "(用户中止,已完成 " + completed.Count + "/" + targets.Count + ")" : "";
             GameLog(title + " 转换完成 " + completed.Count + "/" + targets.Count + suffix +
                     ",等编译后自动回填 Bind ...");
+            return completed.Count;
         }
 
         [UnityEditor.Callbacks.DidReloadScripts]

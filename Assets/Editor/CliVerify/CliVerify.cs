@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using Shenxiao.Framework.UI;
@@ -24,6 +25,125 @@ namespace Shenxiao.EditorTools
     public static class CliVerify
     {
         private const string FontPath = "Assets/_App/Fonts/FZYHJW SDF.asset";
+
+        /// <summary>设计分辨率(= Launch.unity 里 CanvasScaler.referenceResolution)。恒为 720×1280,
+        /// 与「本次渲染多大」无关——改渲染档位时不要动它,动了等于改设计基准。
+        /// ⚠ 真正的上游事实源是 Assets/Scripts/Framework/Config/AppConfig.cs 的 designResolution
+        ///   (默认 720×1280),Launch.unity 的 scaler 由 LaunchSceneCreator.cs 从该配置烤出。
+        ///   这里为避免在 batch 域加载配置资产(会给默认跑法引入新的失败点)而写成常量,
+        ///   因此改了 AppConfig.designResolution / canvasMatch 必须同步改这里,否则验收舞台又会与线上发散。</summary>
+        public const int DesignWidth = 720;
+        public const int DesignHeight = 1280;
+
+        /// <summary>默认渲染分辨率(基准档)。不传命令行参数时维持 720×1280,历史用例产物逐像素不变。</summary>
+        public const int DefaultCaptureWidth = DesignWidth;
+        public const int DefaultCaptureHeight = DesignHeight;
+
+        /// <summary>
+        /// 五档标准采样(UI 分辨率自适应验收标尺)。改锚定语义 / 重跑转换器重烤 prefab 后,应逐档跑一遍再比对:
+        ///   720×1280   基准档(应与改动前逐像素一致)
+        ///   1080×2400  主流长屏手机
+        ///   750×1334   9:16 短屏
+        ///   1280×720   横屏
+        ///   1920×1080  PC 宽屏
+        /// 跑法(不传参数即基准档):
+        ///   Unity.exe -batchmode -projectPath . -executeMethod Shenxiao.EditorTools.CliVerify.XXX
+        ///             -cliVerifyWidth 1080 -cliVerifyHeight 2400 -logFile Temp/x_1080x2400.log
+        /// 非基准档的截图文件名会自动追加 _宽x高 后缀(见 AppendResolutionSuffix),各档产物不互相覆盖。
+        /// </summary>
+        public static readonly Vector2Int[] StandardSampleResolutions =
+        {
+            new Vector2Int(720, 1280),
+            new Vector2Int(1080, 2400),
+            new Vector2Int(750, 1334),
+            new Vector2Int(1280, 720),
+            new Vector2Int(1920, 1080),
+        };
+
+        private static int _captureWidth = -1;
+        private static int _captureHeight = -1;
+
+        /// <summary>本次验收的渲染宽度(命令行 -cliVerifyWidth,缺省 720)。</summary>
+        public static int CaptureWidth
+        {
+            get
+            {
+                if (_captureWidth < 0)
+                {
+                    _captureWidth = GetCommandLineInt("-cliVerifyWidth", DefaultCaptureWidth);
+                }
+
+                return _captureWidth;
+            }
+        }
+
+        /// <summary>本次验收的渲染高度(命令行 -cliVerifyHeight,缺省 1280)。</summary>
+        public static int CaptureHeight
+        {
+            get
+            {
+                if (_captureHeight < 0)
+                {
+                    _captureHeight = GetCommandLineInt("-cliVerifyHeight", DefaultCaptureHeight);
+                }
+
+                return _captureHeight;
+            }
+        }
+
+        /// <summary>当前是否跑在基准档(720×1280)。</summary>
+        public static bool IsDefaultResolution =>
+            CaptureWidth == DefaultCaptureWidth && CaptureHeight == DefaultCaptureHeight;
+
+        /// <summary>命令行整数参数解析(沿用 RuntimeUiCaptureTool.GetCommandLineDelaySeconds 的写法:
+        /// 顺扫 argv 找 key,取紧随其后的值;缺失/非法/非正数一律回退默认值)。</summary>
+        private static int GetCommandLineInt(string key, int fallback)
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length - 1; i++)
+            {
+                if (string.Equals(args[i], key, StringComparison.OrdinalIgnoreCase) &&
+                    int.TryParse(args[i + 1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int value) &&
+                    value > 0)
+                {
+                    return value;
+                }
+            }
+
+            return fallback;
+        }
+
+        /// <summary>本次渲染档是否属于 StandardSampleResolutions 五档标准采样。
+        /// 用于在日志里点名「非标准档」,兜住只传了 -cliVerifyWidth 却漏传 -cliVerifyHeight
+        /// 这类footgun(那会渲染出 1080×1280 之类谁也没打算验收的尺寸,却一路静默跑完)。</summary>
+        public static bool IsStandardSampleResolution()
+        {
+            foreach (Vector2Int r in StandardSampleResolutions)
+            {
+                if (r.x == CaptureWidth && r.y == CaptureHeight)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>非基准档给截图文件名追加 _宽x高 后缀,避免多档截图互相覆盖;基准档保持原名不变,
+        /// 历史文档 / 工单里引用的 Temp/roundXX_*.png 路径不受影响。</summary>
+        public static string AppendResolutionSuffix(string projectRelativePng)
+        {
+            if (IsDefaultResolution || string.IsNullOrEmpty(projectRelativePng))
+            {
+                return projectRelativePng;
+            }
+
+            string dir = Path.GetDirectoryName(projectRelativePng);
+            string tagged = Path.GetFileNameWithoutExtension(projectRelativePng)
+                            + "_" + CaptureWidth + "x" + CaptureHeight
+                            + Path.GetExtension(projectRelativePng);
+            return string.IsNullOrEmpty(dir) ? tagged : Path.Combine(dir, tagged);
+        }
 
         /// <summary>编译探针:域加载成功即 0(编译错时 executeMethod 根本不会被调用)。</summary>
         public static void CompileCheck()
@@ -893,7 +1013,9 @@ namespace Shenxiao.EditorTools
             EditorApplication.update += tick;
         }
 
-        /// <summary>临时渲染舞台(空场景 + 720×1280 RenderTexture 相机 + ScreenSpaceCamera Canvas + 层/视图管理器)。</summary>
+        /// <summary>临时渲染舞台(空场景 + RenderTexture 相机 + ScreenSpaceCamera Canvas + 层/视图管理器)。
+        /// 渲染分辨率取 CaptureWidth/CaptureHeight(命令行 -cliVerifyWidth/-cliVerifyHeight,缺省 720×1280);
+        /// CanvasScaler 的设计分辨率恒为 720×1280,靠 scaler 把设计尺寸缩放到实际渲染尺寸。</summary>
         public sealed class Stage : IDisposable
         {
             public Transform CanvasRoot => _canvas.transform;
@@ -908,7 +1030,19 @@ namespace Shenxiao.EditorTools
                 Shenxiao.Framework.Res.ResManager.EditorPreferFallback = true;
                 EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
                 var s = new Stage();
-                s._rt = new RenderTexture(720, 1280, 24);
+                int renderW = CaptureWidth;
+                int renderH = CaptureHeight;
+                if (!IsDefaultResolution)
+                {
+                    // 基准档不打这行,保证默认跑法的日志与改动前逐行一致(避免误伤按日志断言的用例)。
+                    string tierTag = IsStandardSampleResolution()
+                        ? "标准采样档"
+                        : "非标准档!不在五档标准采样内,确认是否漏传 -cliVerifyWidth / -cliVerifyHeight 之一";
+                    Debug.Log("CLIVERIFY RESOLUTION " + renderW + "x" + renderH +
+                              " (非基准档,截图名带分辨率后缀;" + tierTag + ")");
+                }
+
+                s._rt = new RenderTexture(renderW, renderH, 24);
 
                 var camGo = new GameObject("CliVerifyCam");
                 s._cam = camGo.AddComponent<Camera>();
@@ -922,8 +1056,20 @@ namespace Shenxiao.EditorTools
                 s._canvas.worldCamera = s._cam;
                 s._canvas.planeDistance = 1f;
                 var scaler = canvasGo.AddComponent<CanvasScaler>();
+                // ⚠ 以下五项必须与 Assets/_App/Scenes/Launch.unity 的 CanvasScaler 保持一致,否则一旦跑非基准分辨率,
+                //   验收舞台与线上的缩放算法就会发散 —— 截图「过了」而真机是歪的,验收失真。
+                //   Launch.unity 实测值:m_UiScaleMode=1(ScaleWithScreenSize)、m_ReferenceResolution={720,1280}、
+                //   m_ScreenMatchMode=1、m_MatchWidthOrHeight=0.5、m_ReferencePixelsPerUnit=100;
+                //   生成源同为 Assets/Editor/Bootstrap/LaunchSceneCreator.cs(那里显式写了 Expand)。
+                //   m_ScreenMatchMode 数值含义:0=MatchWidthOrHeight / 1=Expand / 2=Shrink。
+                //   历史上这里漏设 screenMatchMode,取到默认值 0(MatchWidthOrHeight),与线上的 1(Expand)不符。
+                //   补设在基准档无影响:720×1280 渲染 720×1280 设计时两算法都得 scaleFactor=1(Expand 取 min(1,1)=1,
+                //   MatchWidthOrHeight 取 2^Lerp(log2(1),log2(1),0.5)=2^0=1),故基准档产物不变。
                 scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                scaler.referenceResolution = new Vector2(720, 1280);
+                scaler.referenceResolution = new Vector2(DesignWidth, DesignHeight);
+                scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
+                scaler.matchWidthOrHeight = 0.5f;
+                scaler.referencePixelsPerUnit = 100f;
                 canvasGo.AddComponent<GraphicRaycaster>();
 
                 var lm = new LayerManager();
@@ -959,7 +1105,8 @@ namespace Shenxiao.EditorTools
                 tex.Apply();
                 RenderTexture.active = prev;
 
-                string full = Path.GetFullPath(projectRelativePng);
+                // 非基准档自动加 _宽x高 后缀,各档截图不互相覆盖(基准档仍是原文件名)。
+                string full = Path.GetFullPath(AppendResolutionSuffix(projectRelativePng));
                 Directory.CreateDirectory(Path.GetDirectoryName(full));
                 File.WriteAllBytes(full, tex.EncodeToPNG());
                 UnityEngine.Object.DestroyImmediate(tex);

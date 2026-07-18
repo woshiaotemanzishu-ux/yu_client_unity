@@ -24,6 +24,9 @@ namespace Shenxiao.Editor.LayaUI
     {
         private const string ROOT_LAYOUT_CONFIG_PATH = "Schemas/LayaUI/ui_root_layouts.json";
 
+        /// <summary>UiCreator 产物黑名单(命中的 prefab 路径转换器只读不写),见 IsCreatorOwned。</summary>
+        private const string CREATOR_OWNED_PATH = "Schemas/LayaUI/ui_creator_owned.json";
+
         // 当前正在转换的窗口/item 的烘焙皮肤表(节点名 -> 图路径,来自 TS 静态扫描)
         private static Dictionary<string, string> _bakedSkins;
         private static JObject _rootLayoutConfig;
@@ -55,6 +58,7 @@ namespace Shenxiao.Editor.LayaUI
             if (!LayaUISettings.ValidateClientRoot(out err)) { Debug.LogError("[LayaUI] " + err); return -1; }
 
             _rootLayoutConfig = null;
+            ResetCreatorOwnedCache();   // 每次转换重读黑名单,免得会话里改了 json 不生效
             LayaSpriteImporter.ResetCache();
             LayaUIReport report = new LayaUIReport(module);
             HashSet<string> stack = new HashSet<string>();
@@ -96,6 +100,7 @@ namespace Shenxiao.Editor.LayaUI
             if (!LayaUISettings.ValidateClientRoot(out err)) { Debug.LogError("[LayaUI] " + err); return; }
 
             _rootLayoutConfig = null;
+            ResetCreatorOwnedCache();   // 每次转换重读黑名单,免得会话里改了 json 不生效
             LayaSpriteImporter.ResetCache();
             LayaUIReport report = new LayaUIReport(module);
             try
@@ -129,6 +134,7 @@ namespace Shenxiao.Editor.LayaUI
         public static void ConvertSingle(string sceneKey)
         {
             _rootLayoutConfig = null;
+            ResetCreatorOwnedCache();   // 每次转换重读黑名单,免得会话里改了 json 不生效
             LayaUIManifest manifest = LayaUIManifest.Load(true);
             if (manifest == null) return;
             LayaUIManifest.SceneEntry e = manifest.Get(sceneKey);
@@ -149,6 +155,7 @@ namespace Shenxiao.Editor.LayaUI
         public static void ReconvertWindowInGroup(string sceneKey)
         {
             _rootLayoutConfig = null;
+            ResetCreatorOwnedCache();   // 每次转换重读黑名单,免得会话里改了 json 不生效
             LayaUIManifest manifest = LayaUIManifest.Load(true);
             if (manifest == null) return;
             LayaUIManifest.SceneEntry entry = manifest.Get(sceneKey);
@@ -181,8 +188,17 @@ namespace Shenxiao.Editor.LayaUI
                 win.SetActive(active);
 
                 LayaBindGenerator.Generate(entry, manifest, win.transform, report);
-                PrefabUtility.SaveAsPrefabAsset(root, groupPath);
-                Debug.Log("[LayaUI] 已在 " + groupPath + " 内重转窗口 " + entry.Name);
+                // 命中黑名单只跳过存盘,不 return——后面的 report.Save() 还要把这次跳过写进报告。
+                if (IsCreatorOwned(groupPath, report, "组内重转存盘"))
+                {
+                    Debug.LogWarning("[LayaUI] " + groupPath + " 归 UiCreator 所有,窗口 " + entry.Name +
+                                     " 的重转结果未落盘;要改它请改对应 Creator 代码后点生成。");
+                }
+                else
+                {
+                    PrefabUtility.SaveAsPrefabAsset(root, groupPath);
+                    Debug.Log("[LayaUI] 已在 " + groupPath + " 内重转窗口 " + entry.Name);
+                }
             }
             finally
             {
@@ -230,8 +246,10 @@ namespace Shenxiao.Editor.LayaUI
                 LayaBindGenerator.Generate(entry, manifest, win.transform, report);
 
                 // 清掉以前单窗口模式留下的同名 prefab,避免新旧两套并存
+                // (UiCreator 产物同样不许删——那不是"旧单窗口残留",是现役事实源)
                 string oldPath = PrefabPath(entry, manifest);
-                if (AssetDatabase.LoadAssetAtPath<GameObject>(oldPath) != null)
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(oldPath) != null &&
+                    !IsCreatorOwned(oldPath, report, "删除旧单窗口 prefab"))
                 {
                     AssetDatabase.DeleteAsset(oldPath);
                     report.Note("删除旧单窗口 prefab: " + oldPath + "(已并入 " + group.Name + ")");
@@ -239,6 +257,11 @@ namespace Shenxiao.Editor.LayaUI
             }
 
             string prefabPath = LayaUISettings.PREFAB_ROOT + "/" + (moduleDir ?? "Unknown") + "/" + group.Name + ".prefab";
+            if (IsCreatorOwned(prefabPath, report, "合并组存盘"))
+            {
+                Object.DestroyImmediate(root);
+                return;
+            }
             Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
             PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
             Object.DestroyImmediate(root);
@@ -269,6 +292,14 @@ namespace Shenxiao.Editor.LayaUI
                     NormalizeItemRoot(go); // 共享件也是列表项语义,统一左上锚定
                 }
                 LayaBindGenerator.Generate(entry, manifest, go.transform, report);
+
+                // UiCreator 产物:Bind cs 照常生成(运行时代码要用),但 prefab 不写盘。
+                // 仍返回 prefabPath——共享件嵌套等调用方靠它 LoadAssetAtPath 拿现存(UiCreator 版)资产。
+                if (IsCreatorOwned(prefabPath, report, "单 prefab 存盘"))
+                {
+                    Object.DestroyImmediate(go);
+                    return prefabPath;
+                }
 
                 Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
                 PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
@@ -365,6 +396,86 @@ namespace Shenxiao.Editor.LayaUI
         public static string PrefabPath(LayaUIManifest.SceneEntry entry, LayaUIManifest manifest)
         {
             return LayaUISettings.PREFAB_ROOT + "/" + manifest.ModuleDir(entry.Module) + "/" + entry.Name + ".prefab";
+        }
+
+        // ---------------------------------------------------------------- UiCreator 产物黑名单
+
+        /// <summary>
+        /// UiCreator 拥有的 prefab 路径(Schemas/LayaUI/ui_creator_owned.json 的 owned 段)。
+        /// 转换器命中这些路径时跳过存盘/跳过删除,避免全量重烤覆盖手写脚手架的产物。
+        /// 惰性加载 + 进程内缓存,不在每个存盘点重复读盘;json 改完调 <see cref="ResetCreatorOwnedCache"/> 生效。
+        /// </summary>
+        private static HashSet<string> _creatorOwned;
+
+        /// <summary>owner 说明(路径 -> Creator 类名),只用于往报告里写清是谁拥有。</summary>
+        private static Dictionary<string, string> _creatorOwnedBy;
+
+        /// <summary>清掉黑名单缓存,下次判定重新读盘(各转换入口开头调一次)。</summary>
+        public static void ResetCreatorOwnedCache()
+        {
+            _creatorOwned = null;
+            _creatorOwnedBy = null;
+        }
+
+        private static void EnsureCreatorOwnedLoaded()
+        {
+            if (_creatorOwned != null) return;
+
+            // 大小写敏感:路径全部由 PREFAB_ROOT + moduleDir + name 拼出,json 里也按同样写法登记。
+            _creatorOwned = new HashSet<string>();
+            _creatorOwnedBy = new Dictionary<string, string>();
+
+            string path = Path.Combine(Directory.GetCurrentDirectory(), CREATOR_OWNED_PATH);
+            if (!File.Exists(path))
+            {
+                // 没有配置文件 = 不拦截任何路径(老工程/新机首次跑)。
+                // 注意:缓存是每个转换入口重置一次,所以全量转换会每个模块各吼一条,不是全程只吼一条。
+                Debug.LogWarning("[LayaUI] 找不到 UiCreator 产物黑名单 " + CREATOR_OWNED_PATH +
+                                 ",本次转换不做覆盖保护。");
+                return;
+            }
+
+            try
+            {
+                JObject root = JObject.Parse(File.ReadAllText(path));
+                JArray owned = root["owned"] as JArray;
+                if (owned == null) return;
+                foreach (JToken t in owned)
+                {
+                    // 兼容两种写法:纯字符串 "Assets/..." 或对象 { "path": ..., "owner": ... }
+                    string p = t.Type == JTokenType.String ? (string)t : (string)t["path"];
+                    if (string.IsNullOrEmpty(p)) continue;
+                    p = p.Replace('\\', '/');
+                    _creatorOwned.Add(p);
+                    string owner = t.Type == JTokenType.String ? null : (string)t["owner"];
+                    _creatorOwnedBy[p] = string.IsNullOrEmpty(owner) ? "UiCreator" : owner;
+                }
+                // 载入成功不打日志:全量转换会逐模块重载一次,刷屏没意义;真正命中时 IsCreatorOwned 会逐条吼。
+            }
+            catch (System.Exception e)
+            {
+                // 解析失败按"空黑名单"处理,但必须吼出来,不能静默放行覆盖。
+                Debug.LogError("[LayaUI] " + CREATOR_OWNED_PATH + " 解析失败,本次转换不做覆盖保护: " + e.Message);
+            }
+        }
+
+        /// <summary>
+        /// 该 prefab 路径是否归 UiCreator 所有(命中则调用方必须跳过存盘/删除)。
+        /// 命中时往报告里记一行,绝不静默跳过。
+        /// </summary>
+        private static bool IsCreatorOwned(string prefabPath, LayaUIReport report, string action)
+        {
+            if (string.IsNullOrEmpty(prefabPath)) return false;
+            EnsureCreatorOwnedLoaded();
+            string key = prefabPath.Replace('\\', '/');
+            if (!_creatorOwned.Contains(key)) return false;
+
+            string owner;
+            if (!_creatorOwnedBy.TryGetValue(key, out owner)) owner = "UiCreator";
+            string msg = "⏭ 跳过" + action + "(UiCreator 产物,归 " + owner + "): " + key;
+            if (report != null) report.Note(msg);
+            Debug.Log("[LayaUI] " + msg);
+            return true;
         }
 
         private static string FindGroupPrefabContaining(string folder, string windowName)
