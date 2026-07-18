@@ -275,6 +275,12 @@ namespace Shenxiao.Common.UI3D
                 ? _model.GetComponentInChildren<AnimatedAttachmentPositionFollower>(false)
                 : null;
 
+        /// <summary>当前激活实例上的武器对齐器(调参浮层用;武器挂 rhand,对齐 weapon_attach)。</summary>
+        public AttachmentSocketAligner ActiveWeaponAligner =>
+            _model != null
+                ? _model.GetComponentInChildren<AttachmentSocketAligner>(false)
+                : null;
+
         public void SetArtYaw(float absoluteYaw) { _artYaw = absoluteYaw; RelayoutArt(); }
         public void SetArtPitch(float pitch) { _artPitch = pitch; RelayoutArt(); }
         public void SetArtScaleParam(float scaleParam) { _artScaleParam = Mathf.Max(0.01f, scaleParam); RelayoutArt(); }

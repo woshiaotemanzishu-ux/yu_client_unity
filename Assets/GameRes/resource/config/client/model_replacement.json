@@ -3,6 +3,17 @@
     "entries": [
         {
             "key": "role/1213",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
             "actions": [
                 {
                     "action": "idle",
@@ -71,6 +82,234 @@
                 {
                     "action": "idle",
                     "prefabKey": "object/weapon/weapon_1200/1200@idle"
+                }
+            ]
+        },
+        {
+            "key": "role/1300",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
+            "actions": [
+                {
+                    "action": "attack",
+                    "prefabKey": "object/role/role_1300/1300@attack"
+                },
+                {
+                    "action": "death",
+                    "prefabKey": "object/role/role_1300/1300@death"
+                },
+                {
+                    "action": "idle",
+                    "prefabKey": "object/role/role_1300/1300@idle"
+                },
+                {
+                    "action": "run",
+                    "prefabKey": "object/role/role_1300/1300@run"
+                },
+                {
+                    "action": "walk",
+                    "prefabKey": "object/role/role_1300/1300@walk"
+                }
+            ]
+        },
+        {
+            "key": "head/1300",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
+            "actions": [
+                {
+                    "action": "idle",
+                    "prefabKey": "object/head/head_1300/1300@idle"
+                }
+            ]
+        },
+        {
+            "key": "role/1111",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
+            "actions": [
+                {
+                    "action": "death",
+                    "prefabKey": "object/role/role_1111/1111@death"
+                },
+                {
+                    "action": "hited",
+                    "prefabKey": "object/role/role_1111/1111@hited"
+                },
+                {
+                    "action": "idle",
+                    "prefabKey": "object/role/role_1111/1111@idle"
+                },
+                {
+                    "action": "run",
+                    "prefabKey": "object/role/role_1111/1111@run"
+                },
+                {
+                    "action": "walk",
+                    "prefabKey": "object/role/role_1111/1111@walk"
+                }
+            ]
+        },
+        {
+            "key": "head/1100",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
+            "actions": [
+                {
+                    "action": "idle",
+                    "prefabKey": "object/head/head_1100/1100@idle"
+                }
+            ]
+        },
+        {
+            "key": "role/1400",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
+            "actions": [
+                {
+                    "action": "attack",
+                    "prefabKey": "object/role/role_1400/1400@attack"
+                },
+                {
+                    "action": "death",
+                    "prefabKey": "object/role/role_1400/1400@death"
+                },
+                {
+                    "action": "idle",
+                    "prefabKey": "object/role/role_1400/1400@idle"
+                },
+                {
+                    "action": "run",
+                    "prefabKey": "object/role/role_1400/1400@run"
+                },
+                {
+                    "action": "walk",
+                    "prefabKey": "object/role/role_1400/1400@walk"
+                }
+            ]
+        },
+        {
+            "key": "head/1400",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
+            "actions": [
+                {
+                    "action": "idle",
+                    "prefabKey": "object/head/head_1400/1400@idle"
+                }
+            ]
+        },
+        {
+            "key": "weapon/1100",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
+            "actions": [
+                {
+                    "action": "idle",
+                    "prefabKey": "object/weapon/weapon_1100/1100@idle"
+                }
+            ]
+        },
+        {
+            "key": "weapon/1300",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
+            "actions": [
+                {
+                    "action": "idle",
+                    "prefabKey": "object/weapon/weapon_1300/1300@idle"
+                }
+            ]
+        },
+        {
+            "key": "weapon/1400",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
+            "actions": [
+                {
+                    "action": "idle",
+                    "prefabKey": "object/weapon/weapon_1400/1400@idle"
                 }
             ]
         }

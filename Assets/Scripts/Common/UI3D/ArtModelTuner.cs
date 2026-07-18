@@ -33,6 +33,10 @@ namespace Shenxiao.Common.UI3D
         private Vector3 _initialPosition;
         private Vector3 _initialRotation;
         private float _initialScale = 1f;
+        private AttachmentSocketAligner _currentAligner;
+        private Vector3 _initialWeaponPosition;
+        private Vector3 _initialWeaponRotation;
+        private float _initialWeaponScale = 1f;
 
         /// <summary>挂起/更新调参浮层(每次展示整模时调,刷新页面基准)。</summary>
         public static void Attach(string section)
@@ -60,37 +64,53 @@ namespace Shenxiao.Common.UI3D
             UIModelStage st = UIModelStage.Default;
             if (st == null || !st.IsArt) return;
             AnimatedAttachmentPositionFollower follower = st.ActiveAttachmentFollower;
-            if (follower == null) return;
+            AttachmentSocketAligner aligner = st.ActiveWeaponAligner;
+            if (follower == null && aligner == null) return;
 
-            if (_current != follower)
+            if (_current != follower && follower != null)
             {
                 _current = follower;
                 _initialPosition = follower.PositionOffset;
                 _initialRotation = follower.RotationOffset;
                 _initialScale = follower.ScaleMultiplier;
             }
+            if (_currentAligner != aligner && aligner != null)
+            {
+                _currentAligner = aligner;
+                _initialWeaponPosition = aligner.PositionOffset;
+                _initialWeaponRotation = aligner.RotationOffset;
+                _initialWeaponScale = aligner.ScaleMultiplier;
+            }
 
+            float panelHeight = 30f + (follower != null ? 330f : 0f) + (aligner != null ? 310f : 0f);
             float panelX = Mathf.Max(ScreenMargin, Screen.width - PanelWidth - ScreenMargin);
-            float panelY = Mathf.Max(ScreenMargin, Screen.height - PanelHeight - ScreenMargin);
+            float panelY = Mathf.Max(ScreenMargin, Screen.height - panelHeight - ScreenMargin);
             float toggleX = Mathf.Max(ScreenMargin, Screen.width - ToggleWidth - ScreenMargin);
             float toggleY = _open
                 ? Mathf.Max(ScreenMargin, panelY - ToggleHeight - ToggleGap)
                 : Mathf.Max(ScreenMargin, Screen.height - ToggleHeight - ScreenMargin);
 
             if (GUI.Button(new Rect(toggleX, toggleY, ToggleWidth, ToggleHeight),
-                    _open ? "头饰调参 ▲" : "头饰调参 ▼"))
+                    _open ? "挂点调参 ▲" : "挂点调参 ▼"))
                 _open = !_open;
             if (!_open) return;
 
+            GUILayout.BeginArea(new Rect(panelX, panelY, PanelWidth, panelHeight), GUI.skin.box);
+            GUILayout.Label($"挂点局部调参 · {_section}(拖角色检查四方向)");
+            if (follower != null) DrawHead(follower);
+            if (aligner != null) DrawWeapon(aligner);
+            GUILayout.EndArea();
+        }
+
+        private void DrawHead(AnimatedAttachmentPositionFollower follower)
+        {
             Vector3 pos = follower.PositionOffset;
             Vector3 rot = follower.RotationOffset;
             float scale = follower.ScaleMultiplier;
 
-            GUILayout.BeginArea(new Rect(panelX, panelY, PanelWidth, PanelHeight), GUI.skin.box);
-            GUILayout.Label($"1213 头饰挂点局部调参 · {_section}(拖角色检查四方向)");
-            GUILayout.Label($"身体世界缩放 {V(follower.ReferenceWorldScale)}  Y={R(follower.ReferenceWorldEuler.y)}°");
-            GUILayout.Label($"头饰世界缩放 {V(follower.AttachmentWorldScale)}");
             GUILayout.Space(4f);
+            GUILayout.Label($"—— 头饰 {PartId(follower)} ——");
+            GUILayout.Label($"身体世界缩放 {V(follower.ReferenceWorldScale)}  Y={R(follower.ReferenceWorldEuler.y)}°  头饰 {V(follower.AttachmentWorldScale)}");
             pos.x = Row("挂点局部 X", pos.x, -0.5f, 0.5f, 0.001f);
             pos.y = Row("挂点局部 Y", pos.y, 0f, 1.2f, 0.001f);
             pos.z = Row("挂点局部 Z", pos.z, -0.6f, 0.6f, 0.001f);
@@ -101,9 +121,8 @@ namespace Shenxiao.Common.UI3D
 
             follower.SetTuning(pos, rot, scale);
 
-            GUILayout.Space(6f);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("同角色标准(旋转0/缩放1)"))
+            if (GUILayout.Button("头饰标准(旋转0/缩放1)"))
                 follower.SetTuning(pos, Vector3.zero, 1f);
             if (GUILayout.Button("恢复进入页参数"))
                 follower.SetTuning(_initialPosition, _initialRotation, _initialScale);
@@ -114,11 +133,45 @@ namespace Shenxiao.Common.UI3D
             if (GUILayout.Button("复制头饰参数"))
                 GUIUtility.systemCopyBuffer = output;
             if (GUILayout.Button("输出头饰参数到日志"))
-            {
                 Shenxiao.Framework.Util.GameLog.Info("UI3D", output);
-            }
             GUILayout.EndHorizontal();
-            GUILayout.EndArea();
+        }
+
+        /// <summary>武器块:offset 在 rhand(socket)局部空间——旋转量与 role_mount_profile.json 的
+        /// rhandLocalEuler 一一对应(profile 现值为 0 时直接照抄),量完回烤进 Art 工程校准档。</summary>
+        private void DrawWeapon(AttachmentSocketAligner aligner)
+        {
+            Vector3 pos = aligner.PositionOffset;
+            Vector3 rot = aligner.RotationOffset;
+            float scale = aligner.ScaleMultiplier;
+
+            GUILayout.Space(6f);
+            GUILayout.Label($"—— 武器 {PartId(aligner)} ——");
+            GUILayout.Label($"rhand 世界 {V(aligner.ReferenceWorldEuler)}°  武器缩放 {V(aligner.AttachmentWorldScale)}");
+            pos.x = Row("武器局部 X", pos.x, -0.4f, 0.4f, 0.001f);
+            pos.y = Row("武器局部 Y", pos.y, -0.4f, 0.4f, 0.001f);
+            pos.z = Row("武器局部 Z", pos.z, -0.4f, 0.4f, 0.001f);
+            rot.x = Row("武器旋转 X", rot.x, -180f, 180f, 0.5f);
+            rot.y = Row("武器旋转 Y", rot.y, -180f, 180f, 0.5f);
+            rot.z = Row("武器旋转 Z", rot.z, -180f, 180f, 0.5f);
+            scale = Row("武器缩放", scale, 0.5f, 1.5f, 0.001f);
+
+            aligner.SetTuning(pos, rot, scale);
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("武器标准(全 0/缩放1)"))
+                aligner.SetTuning(Vector3.zero, Vector3.zero, 1f);
+            if (GUILayout.Button("恢复进入页参数"))
+                aligner.SetTuning(_initialWeaponPosition, _initialWeaponRotation, _initialWeaponScale);
+            GUILayout.EndHorizontal();
+
+            string output = WeaponOutput(aligner);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("复制武器参数"))
+                GUIUtility.systemCopyBuffer = output;
+            if (GUILayout.Button("输出武器参数到日志"))
+                Shenxiao.Framework.Util.GameLog.Info("UI3D", output);
+            GUILayout.EndHorizontal();
         }
 
         private static float Row(string label, float v, float min, float max, float step)
@@ -136,9 +189,29 @@ namespace Shenxiao.Common.UI3D
         {
             Vector3 p = f.PositionOffset;
             Vector3 r = f.RotationOffset;
-            return $"HeadAttachment/1213: {{ \"position\": {{ \"x\": {R(p.x)}, \"y\": {R(p.y)}, \"z\": {R(p.z)} }}, " +
+            return $"HeadAttachment/{PartId(f)}: {{ \"position\": {{ \"x\": {R(p.x)}, \"y\": {R(p.y)}, \"z\": {R(p.z)} }}, " +
                    $"\"rotation\": {{ \"x\": {R(r.x)}, \"y\": {R(r.y)}, \"z\": {R(r.z)} }}, " +
                    $"\"scale\": {R(f.ScaleMultiplier)} }}";
+        }
+
+        private static string WeaponOutput(AttachmentSocketAligner a)
+        {
+            Vector3 p = a.PositionOffset;
+            Vector3 r = a.RotationOffset;
+            return $"WeaponAttachment/{PartId(a)}: {{ \"position\": {{ \"x\": {R(p.x)}, \"y\": {R(p.y)}, \"z\": {R(p.z)} }}, " +
+                   $"\"rotation\": {{ \"x\": {R(r.x)}, \"y\": {R(r.y)}, \"z\": {R(r.z)} }}, " +
+                   $"\"scale\": {R(a.ScaleMultiplier)} }}";
+        }
+
+        /// <summary>挂件 res 标识:取挂件实例名(如 "1300@idle(Clone)")的 @ 前段;解析不出就用原名。</summary>
+        private static string PartId(Component c)
+        {
+            if (c == null) return "?";
+            string n = c.gameObject.name;
+            int clone = n.IndexOf("(Clone)", System.StringComparison.Ordinal);
+            if (clone >= 0) n = n.Substring(0, clone);
+            int at = n.IndexOf('@');
+            return at > 0 ? n.Substring(0, at) : n;
         }
 
         private static float R(float v) => Mathf.Round(v * 10000f) / 10000f;

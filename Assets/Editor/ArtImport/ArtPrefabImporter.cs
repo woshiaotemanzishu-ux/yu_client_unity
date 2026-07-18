@@ -117,7 +117,15 @@ namespace Shenxiao.EditorTools.ArtImport
         //   前缀随意→键位确定;文件改名不动 .meta 内容,GUID/引用不受影响)。
 
         private const string QuickSourcePrefsKey = "ArtImport.SourceProject";
-        private const string DEFAULT_ART_PROJECT_ROOT = "E:/Project/ArtsProject";
+        private const string DEFAULT_ART_PROJECT_ROOT = "E:/GitProject/ArtsProject";
+
+        /// <summary>
+        /// 旧美术工程副本。2026-07 美术模板迁到 E:/GitProject/ArtsProject 并建了 git,旧路径不再维护。
+        /// 2026-07-18 实锤事故:美术在新工程调好握点保存,主工程一键导入却拿的是这份 07-17 旧副本
+        /// (rhand 仍是 -0.14/0.03/0.02),表现为"美术改了、导进来没生效"。见下方自动迁移。
+        /// </summary>
+        private const string LEGACY_ART_PROJECT_ROOT = "E:/Project/ArtsProject";
+
         private string _quickSource;
 
         /// <summary>部件模块 ↔ 美术工程顶层目录。加新部件类型(坐骑/怪物…)在这里列装。</summary>
@@ -132,9 +140,28 @@ namespace Shenxiao.EditorTools.ArtImport
 
         public static bool IsPartModule(string module) => PartTopDirs.ContainsKey(module);
 
-        /// <summary>当前美术 Unity 项目根目录，由 EditorPrefs 持久保存。</summary>
-        public static string ArtProjectRoot =>
-            EditorPrefs.GetString(QuickSourcePrefsKey, DEFAULT_ART_PROJECT_ROOT).Replace('\\', '/').TrimEnd('/');
+        /// <summary>
+        /// 当前美术 Unity 项目根目录，由 EditorPrefs 持久保存。
+        /// 若存档仍指向已停止维护的旧副本(LEGACY_ART_PROJECT_ROOT)且新工程可用，一次性自动切换——
+        /// 旧副本文件夹还在磁盘上，靠"存在性"判断抓不出来，只能按路径点名。
+        /// </summary>
+        public static string ArtProjectRoot
+        {
+            get
+            {
+                string stored = EditorPrefs.GetString(QuickSourcePrefsKey, DEFAULT_ART_PROJECT_ROOT)
+                    .Replace('\\', '/').TrimEnd('/');
+                if (string.Equals(stored, LEGACY_ART_PROJECT_ROOT, StringComparison.OrdinalIgnoreCase)
+                    && Directory.Exists(DEFAULT_ART_PROJECT_ROOT + "/Assets"))
+                {
+                    EditorPrefs.SetString(QuickSourcePrefsKey, DEFAULT_ART_PROJECT_ROOT);
+                    Debug.LogWarning($"[ArtImport] 美术工程源指向已停维护的旧副本 {LEGACY_ART_PROJECT_ROOT}，" +
+                                     $"已自动切到 {DEFAULT_ART_PROJECT_ROOT}；请重新导入一次受影响的部件。");
+                    return DEFAULT_ART_PROJECT_ROOT;
+                }
+                return stored;
+            }
+        }
 
         /// <summary>保存美术 Unity 项目根目录；允许用户选到 Assets 目录并自动归一到项目根。</summary>
         public static bool TrySetArtProjectRoot(string projectRoot, out string error)
@@ -173,7 +200,7 @@ namespace Shenxiao.EditorTools.ArtImport
 
         private void OnEnable()
         {
-            _quickSource = EditorPrefs.GetString(QuickSourcePrefsKey, DEFAULT_ART_PROJECT_ROOT);
+            _quickSource = ArtProjectRoot; // 走带旧副本迁移的取值，别再直读 EditorPrefs
         }
 
         /// <summary>
@@ -264,11 +291,49 @@ namespace Shenxiao.EditorTools.ArtImport
             if (!Nearly(hand.localScale, Vector3.one, 0.0001f))
                 throw new InvalidOperationException(path + " rhand scale 必须为 1");
 
-            Matrix4x4 relative = prefab.transform.worldToLocalMatrix * head.localToWorldMatrix;
-            if (relative.GetPosition().magnitude > 0.0001f
-                || Quaternion.Angle(relative.rotation, Quaternion.identity) > 0.05f
-                || (relative.lossyScale - Vector3.one).magnitude > 0.001f)
-                throw new InvalidOperationException(path + " head_mount 没有绑定姿态逆矩阵补偿");
+            // 2026-07-16 与 Art 工程 MountPointPatcher 同步:补偿以蒙皮 bindposes 为事实源
+            // (真绑定姿态,与 FBX 静置摆姿无关;旧口径"当前姿态下累计=角色根"在摆姿≠绑定时必误报)。
+            if (TryGetHeadBindLocal(prefab.transform, head.parent, out Matrix4x4 expected))
+            {
+                Vector3 expPos = expected.GetPosition();
+                Quaternion expRot = expected.rotation;
+                Vector3 expScale = expected.lossyScale;
+                if (expected.determinant < 0f) expScale.x = -expScale.x;
+                if ((head.localPosition - expPos).magnitude > 0.005f
+                    || Quaternion.Angle(head.localRotation, expRot) > 0.1f
+                    || (head.localScale - expScale).magnitude > 0.005f)
+                    throw new InvalidOperationException(path + " head_mount 没有绑定姿态逆矩阵补偿(vs bindposes 真值)");
+            }
+            else
+            {
+                // 头骨不在任何蒙皮 bones 中才回退旧口径(要求静置姿态=绑定姿态)。
+                Matrix4x4 relative = prefab.transform.worldToLocalMatrix * head.localToWorldMatrix;
+                if (relative.GetPosition().magnitude > 0.0001f
+                    || Quaternion.Angle(relative.rotation, Quaternion.identity) > 0.05f
+                    || (relative.lossyScale - Vector3.one).magnitude > 0.001f)
+                    throw new InvalidOperationException(path + " head_mount 没有绑定姿态逆矩阵补偿");
+            }
+        }
+
+        /// <summary>bindpose = W_bone⁻¹ × W_smr ⇒ W_bone(bind) = W_smr × bindpose⁻¹;期望补偿 L = W_bone(bind)⁻¹ × W_root。</summary>
+        private static bool TryGetHeadBindLocal(Transform roleRoot, Transform host, out Matrix4x4 bindLocal)
+        {
+            bindLocal = Matrix4x4.identity;
+            if (host == null) return false;
+            foreach (SkinnedMeshRenderer smr in roleRoot.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                if (smr.sharedMesh == null) continue;
+                Transform[] bones = smr.bones;
+                Matrix4x4[] bindposes = smr.sharedMesh.bindposes;
+                for (int i = 0; i < bones.Length && i < bindposes.Length; i++)
+                {
+                    if (bones[i] != host) continue;
+                    Matrix4x4 headBindWorld = smr.transform.localToWorldMatrix * bindposes[i].inverse;
+                    bindLocal = headBindWorld.inverse * roleRoot.localToWorldMatrix;
+                    return true;
+                }
+            }
+            return false;
         }
 
         private static void ValidateHeadStructure(string path, GameObject prefab)

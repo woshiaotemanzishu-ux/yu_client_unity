@@ -51,7 +51,8 @@ namespace Shenxiao.Module.Core.Scene
         public static MainRoleAgent Current { get; private set; }
 
         private Transform _modelTr;     // 模型子节点(用于转向)
-        private Animation _anim;        // RoleModelAssembler 在模型根挂的 Animation
+        private Animation _anim;        // 老拼装管线在模型根挂的 Animation(混合容器根上没有,此时为 null)
+        private ReplaceableRoleModel _driver; // model_replacement 命中时 BuildAsync 返回容器上的混合驱动器;动作一律优先走它
         private GameObject _model;
         private int _career;
         private int _sex;
@@ -86,6 +87,7 @@ namespace Shenxiao.Module.Core.Scene
             _model = model;
             _modelTr = model != null ? model.transform : transform;
             _anim = model != null ? model.GetComponent<Animation>() : null;
+            _driver = model != null ? model.GetComponent<ReplaceableRoleModel>() : null;
             _career = career;
             _sex = sex;
             _clotheRes = clotheRes;
@@ -488,7 +490,7 @@ namespace Shenxiao.Module.Core.Scene
         {
             try
             {
-                if (_model == null || _anim == null) return;
+                if (_model == null || (_anim == null && _driver == null)) return;
                 int version = ++_actionVersion;
                 EffectBinder.ClearTag(_model, "action");
                 ResetModelVisualOffset();
@@ -538,7 +540,7 @@ namespace Shenxiao.Module.Core.Scene
         {
             try
             {
-                if (_model == null || _anim == null)
+                if (_model == null || (_anim == null && _driver == null))
                 {
                     MoveToNpcStrict(targetX, targetY, ArrivalLogicDist, onArrive);
                     return;
@@ -640,7 +642,7 @@ namespace Shenxiao.Module.Core.Scene
         {
             try
             {
-                if (_model == null || _anim == null) return;
+                if (_model == null || (_anim == null && _driver == null)) return;
                 await SkillMovieConfigs.EnsureLoaded();
 
                 string actionName = SkillMovieConfigs.GetActionName(skillId);
@@ -689,7 +691,7 @@ namespace Shenxiao.Module.Core.Scene
         {
             try
             {
-                if (_model == null || _anim == null) return;
+                if (_model == null || (_anim == null && _driver == null)) return;
                 await OtherFightConfigs.EnsureLoaded();
                 int version = ++_actionVersion;
                 _moving = false;
@@ -1000,7 +1002,9 @@ namespace Shenxiao.Module.Core.Scene
 
         private float GetActionLength(string action)
         {
-            if (_anim == null || string.IsNullOrEmpty(action)) return 0f;
+            if (string.IsNullOrEmpty(action)) return 0f;
+            if (_driver != null) return _driver.GetLength(action); // 新实例首播前=0,外层节拍自会兜底
+            if (_anim == null) return 0f;
             AnimationClip clip = _anim.GetClip(action);
             return clip != null ? clip.length : 0f;
         }
@@ -1032,12 +1036,16 @@ namespace Shenxiao.Module.Core.Scene
 
         private bool HasActionClip(string action)
         {
-            return _anim != null && !string.IsNullOrEmpty(action) && _anim.GetClip(action) != null;
+            if (string.IsNullOrEmpty(action)) return false;
+            if (_driver != null) return _driver.CanPlay(action); // 混合模型:老件未建时先放行,真播缺再静默跳过
+            return _anim != null && _anim.GetClip(action) != null;
         }
 
         private bool TryPlayAction(string action, float fade, bool restart, float speed = 1f)
         {
-            if (_anim == null || string.IsNullOrEmpty(action)) return false;
+            if (string.IsNullOrEmpty(action)) return false;
+            if (_driver != null) return _driver.Play(action, restart, speed); // 混合模型:按清单新老互切
+            if (_anim == null) return false;
             if (_anim.GetClip(action) == null) return false; // 未转换的动作静默跳过,不影响移动
             if (!restart && _anim.IsPlaying(action)) return true;
             if (restart) _anim.Stop(action);
@@ -1050,7 +1058,9 @@ namespace Shenxiao.Module.Core.Scene
         /// <summary>循环播放动作(采集等需持续到外部停止的动作)。设 WrapMode.Loop 后 CrossFade。</summary>
         private bool TryPlayActionLoop(string action, float fade)
         {
-            if (_anim == null || string.IsNullOrEmpty(action)) return false;
+            if (string.IsNullOrEmpty(action)) return false;
+            if (_driver != null) return _driver.Play(action, restart: false, speed: 1f, forceLoop: true);
+            if (_anim == null) return false;
             if (_anim.GetClip(action) == null) return false;
             AnimationState state = _anim[action];
             if (state != null) state.wrapMode = WrapMode.Loop;

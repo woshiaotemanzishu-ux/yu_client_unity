@@ -64,15 +64,16 @@ namespace Shenxiao.Common.UI3D
             return 0f;
         }
 
-        /// <summary>同步入口(外层状态机用):内部异步加载,期间保持上一画面,加载完仍是最新请求才上台。</summary>
-        public bool Play(string action, bool restart = false, float speed = 1f)
+        /// <summary>同步入口(外层状态机用):内部异步加载,期间保持上一画面,加载完仍是最新请求才上台。
+        /// forceLoop=白名单外也强制循环(采集这类"播到外部叫停"的动作)。</summary>
+        public bool Play(string action, bool restart = false, float speed = 1f, bool forceLoop = false)
         {
             if (!CanPlay(action)) return false;
-            _ = PlayAsync(action, restart, speed);
+            _ = PlayAsync(action, restart, speed, forceLoop);
             return true;
         }
 
-        public async Task PlayAsync(string action, bool restart = false, float speed = 1f)
+        public async Task PlayAsync(string action, bool restart = false, float speed = 1f, bool forceLoop = false)
         {
             if (string.IsNullOrEmpty(action) || _spec == null) return;
             int version = ++_playVersion;
@@ -87,7 +88,7 @@ namespace Shenxiao.Common.UI3D
                 // 只驱动第一个 director 会让头饰在缓存切换或非 1 倍速时逐渐失步。
                 foreach (PlayableDirector director in inst.GetComponentsInChildren<PlayableDirector>(true))
                 {
-                    director.extrapolationMode = LoopActions.Contains(action)
+                    director.extrapolationMode = forceLoop || LoopActions.Contains(action)
                         ? DirectorWrapMode.Loop : DirectorWrapMode.Hold;
                     if (restart || director.state != PlayState.Playing)
                     {
@@ -110,6 +111,11 @@ namespace Shenxiao.Common.UI3D
                 if (this == null || version != _playVersion) return;
             }
             if (_oldAnim.GetClip(action) == null) return; // 未转换的动作静默跳过(与老门禁一致)
+            if (forceLoop)
+            {
+                AnimationState loopState = _oldAnim[action];
+                if (loopState != null) loopState.wrapMode = WrapMode.Loop;
+            }
             if (!restart && _oldAnim.IsPlaying(action)) return;
             if (restart) _oldAnim.Stop(action);
             AnimationState st = _oldAnim[action];

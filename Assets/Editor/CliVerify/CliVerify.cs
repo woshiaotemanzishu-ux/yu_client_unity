@@ -95,6 +95,13 @@ namespace Shenxiao.EditorTools
             Run(ReliveCase.Run, 120.0);
         }
 
+        /// <summary>场景主角混合驱动接线实证(新模型逐动作替换):BuildAsync 混合容器 + MainRoleAgent
+        /// 动作出口委托 ReplaceableRoleModel 断言(run 走新/attack 回落老,详见 SceneMixDriverCase 注释)。</summary>
+        public static void SceneMixDriver()
+        {
+            Run(SceneMixDriverCase.Run, 300.0);
+        }
+
         /// <summary>技能成长线(自动循环 轮3)实证:21001/21010/21011/21012/13008/13010/12093/18401/20006 合成包驱动
         /// SkillController/FightController 反射喂包,纯逻辑断言(详见 SkillGrowthCase 注释)。</summary>
         public static void SkillGrowth()
@@ -381,6 +388,7 @@ namespace Shenxiao.EditorTools
                 int bs = await BossCase.Run();
                 int kb = await KfBossCase.Run();
                 int mr = await MarriageCase.Run();
+                int md = await SceneMixDriverCase.Run();
                 int c0 = await CustomActCoreCase.Run();
                 int c2 = await CustomActLotteryACase.Run();
                 int c3 = await CustomActLotteryBCase.Run();
@@ -402,11 +410,12 @@ namespace Shenxiao.EditorTools
                     + " equipgrowth=" + eg + " jewel=" + jw + " rolegrowth=" + rg + " chat=" + ch + " friendmail=" + fm
                     + " team=" + tm + " dungeonfam=" + df + " dailyhub=" + dh + " createvideo=" + cv + " shop=" + sh
                     + " rank=" + rk + " guildcore=" + gc + " guildext=" + ge + " boss=" + bs + " kfboss=" + kb + " marriage=" + mr
+                    + " mixdriver=" + md
                     + " customactcore=" + c0 + " calotteryA=" + c2 + " calotteryB=" + c3 + " cafestival=" + c4
                     + " cabiz=" + c5 + " cakfrank=" + c6
                     + " godbefall=" + g1 + " cheaptrio=" + g2 + " fbfestival=" + g3 + " welfare=" + g4 + " scenemisc=" + g5
                     + " market=" + mk);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk })
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

@@ -38,11 +38,11 @@ namespace Shenxiao.EditorTools
             if (!okRole || !okHead || !okWeapon) return Task.FromResult(3);
 
             // ② 目标归一:根 prefab 统一 {id}@{动作}.prefab(源里 head@idle 应被改名为 1213@idle)
-            string[] expectRole = { "attack", "create3", "death", "idle", "run", "test", "walk" };
+            string[] expectRole = { "attack", "create3", "death", "idle", "run", "walk" }; // test 动作 07-17 已随交付删除
             bool roleOk = expectRole.All(a => File.Exists($"{RoleDir}/1213@{a}.prefab"));
             bool headOk = File.Exists($"{HeadDir}/1213@idle.prefab") && File.Exists($"{HeadDir}/1213@create3.prefab");
             bool weaponOk = File.Exists($"{WeaponDir}/1200@idle.prefab");
-            Debug.Log("CLIVERIFY newpart assets role7=" + roleOk + " head2=" + headOk + " weapon1=" + weaponOk);
+            Debug.Log("CLIVERIFY newpart assets role6=" + roleOk + " head2=" + headOk + " weapon1=" + weaponOk);
 
             // ③ Addressables 键位(地址=GameRes 相对路径小写去扩展)
             var settings = UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings;
