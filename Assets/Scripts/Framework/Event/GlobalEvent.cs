@@ -63,6 +63,11 @@ namespace Shenxiao.Framework.Event
         /// <summary>某条公告轮到展示(参数 ChatModel.NoticeEntry),对标老端 CheckGongGaoFunc。
         /// ChatModel.PumpNotice 发;跑马灯/传闻 UI 消费方 TODO。</summary>
         public const string EVT_CHAT_NOTICE_TRIGGERED = "EVT_CHAT_NOTICE_TRIGGERED";
+        /// <summary>11016 跨系统红点推送到达(轮21 PF 补漏批;参数: int moduleId, int type, int num)。
+        /// moduleId==339(红包,需先判断本人已入公会)/moduleId==400&amp;&amp;type==1(公会申请数)。ChatController.On11016
+        /// 发;RedPacket 模块与公会红点体系均不在聊天包所有权范围内,本事件只做跨模块通知,真消费方(RedPacketModel/
+        /// 公会红点)接线时按 moduleId 分流订阅,TODO。</summary>
+        public const string EVT_CHAT_RED_DOT_PUSH = "EVT_CHAT_RED_DOT_PUSH";
 
         // ----- Bag -----
         public const string EVT_BAG_UPDATE = "EVT_BAG_UPDATE";
@@ -775,5 +780,10 @@ namespace Shenxiao.Framework.Event
         /// (镜像老端恒真冗余,非本端引入)。ServerTimeModel.TryFireEvent 发;P2 三大户(Dungeon/Boss/Shop)+
         /// P4/P4b 多个模块订阅。</summary>
         public const string EVT_SERVER_HOUR_REFRESH = "EVT_SERVER_HOUR_REFRESH";
+
+        // ----- Fashion(时装,第21轮 PA)-----
+        /// <summary>时装数据变化(无参;41300/41301/41302/41303/41304/41306/41312/41316/41311 落地后发,
+        /// 对标老端 FashionModel.Fire(UPDATEVIEW,...)/Fire(UPDATE_FIGHT,...) 的合并简化版)。</summary>
+        public const string EVT_FASHION_UPDATE = "EVT_FASHION_UPDATE";
     }
 }

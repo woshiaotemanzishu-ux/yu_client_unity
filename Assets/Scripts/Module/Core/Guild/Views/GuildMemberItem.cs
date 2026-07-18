@@ -12,8 +12,9 @@ namespace Shenxiao.Module.Core.Guild.Views
 {
     /// <summary>
     /// 成员列表单行(对标老客户端 guild/GuildMemberItem.ts):头像 + 名字 + 战力 + 在线/离线时长 + 头衔 +
-    /// 职位图标 + 自己行专属"退出结社"按钮。右键/点击头像打开的 GuildRoleMenuView(任命/踢出菜单)与
-    /// 19501 资料卡同属轮12已知全仓缺口,本轮不补(_click_group 不接,避免空 TODO 刷屏)。
+    /// 职位图标 + 自己行专属"退出结社"按钮。头像点击接 <see cref="Shenxiao.Module.Core.LookOver.LookOverFlow"/>
+    /// 资料卡(轮21 §2 PL);右键/点击头像弹出的 GuildRoleMenuView(任命/踢出菜单)老端还有其它选项,
+    /// 全仓缺口仍留待补(本轮只补"查看信息"这一条最高频操作)。
     /// </summary>
     public sealed class GuildMemberItem : GuildMemberItemBind
     {
@@ -86,6 +87,8 @@ namespace Shenxiao.Module.Core.Guild.Views
             CustomHeadItem item = await EnsureHead(_playerHead);
             if (item == null || _data != data) return;
             item.SetRoleData(data.Career, data.Turn, data.Level, showLevel: true);
+            long roleId = data.RoleId;
+            item.SetClickFunc(() => Shenxiao.Module.Core.LookOver.LookOverFlow.Show(roleId));
         }
 
         /// <summary>幂等:_playerHead 容器下已有 CustomHeadItem 直接复用,否则实例化(同 Team/Friend 模块套路,

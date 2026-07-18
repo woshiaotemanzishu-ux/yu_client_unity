@@ -10,14 +10,16 @@ namespace Shenxiao.Module.Core.OutWard
 {
     /// <summary>
     /// 幻化外观临时壳(TEMP SHELL,同 PartnerShellView/ItemTipsView 约定:代码建 uGUI、数据全真、样式从简待用户重做 UI)。
-    /// 固定两行(坐骑 type_id=1 / 剑魄同修 type_id=2,系统名硬字面——非配置数据):
-    ///   名字 + 「N阶M星 祝福X/Y」(系统A,16002/16023 真实回包) + 「等级L(经验E)」(系统B,16028/16029 真实回包)
-    ///   + 按钮[升星](StarUp)与[升级](LvUp)。无数据时如实显示等待 16002/16028,不造假。
-    /// DoTask ctype23(100330)/ctype90(100521/100901)由此进入。
-    /// 薄增量六件套(第20轮工单)加三行(翼影 type_id=3 / 古法符相 type_id=4 / 殒锋天刃 type_id=5):只有系统A阶星线
-    /// (16002/16005),无系统B等级线 → 只显[升星](StarUpGeneric),不显[升级]。
+    /// 固定六行(坐骑1/剑魄同修2/翼影3/古法符相4/殒锋天刃5/玄穹云披12,系统名硬字面——非配置数据):
+    ///   名字 + 「N阶M星 祝福X/Y」(系统A,16002/16023 或 16005 真实回包) + 「等级L(经验E)」(系统B,16028/16029 真实回包)
+    ///   + 按钮[升星](StarUp/StarUpGeneric)与[升级](LvUp)。无数据时如实显示等待 16002/16028,不造假。
+    /// DoTask ctype23(100330)/ctype90(100521/100901)由此进入;薄增量六件套(第20轮)DoTask ctype24(100665)/
+    /// ctype92(101045)/ctype41(101345)由此进入。
+    /// ⚠第21轮侦察订正:第20轮误判"3/4/5 只有系统A阶星线,无系统B等级线"——实际系统B(16028/16029/16030)对全部
+    /// 6 个 type_id 都活(config_mount_level 每 type_id 各 750 条;lib_mount_upgrade_sys.erl:33-43 send_panel_info
+    /// 不含 type_id guard),故每行都可能有等级线,不再按 type_id 分组隐藏[升级]按钮;仅[升星]仍需按 type_id 选协议
+    /// (1/2 专线 16023,其余通用线 16005——这是协议路由差异,与系统B是否存在无关)。
     /// 老端枚举注释警示:Artifact=4=古法符相线,HolyDevice=5=殒锋天刃线(以 mount.hrl ARTIFACT_ID=4/HOLYORGAN_ID=5 为准)。
-    /// DoTask ctype24(100665)/ctype92(101045)/ctype41(101345)由此进入。
     /// </summary>
     public static class OutWardShellView
     {
@@ -28,9 +30,11 @@ namespace Shenxiao.Module.Core.OutWard
             (3, "翼影"),
             (4, "古法符相"),
             (5, "殒锋天刃"),
+            (12, "玄穹云披"),
         };
 
-        // type_id∈{1,2}=坐骑/同修专线(16023 StarUp);其它(3/4/5)=通用线(16005 StarUpGeneric)。
+        // type_id∈{1,2}=坐骑/同修一键升星走专线 16023(带 auto_buy/gold_type);其它(3/4/5/12)=通用线 16005(仅 type_id)。
+        // ⚠这只是[升星]协议路由差异,与系统B等级线是否存在无关(系统B对全部6类型都活,见类头订正)。
         private static bool IsGenericLine(int typeId) => typeId != 1 && typeId != 2;
 
         private static GameObject _root;
@@ -83,7 +87,7 @@ namespace Shenxiao.Module.Core.OutWard
                 lrt.anchorMin = new Vector2(0f, 0f); lrt.anchorMax = new Vector2(1f, 1f);
                 lrt.offsetMin = new Vector2(16f, 0f); lrt.offsetMax = new Vector2(-240f, 0f);
                 bool generic = IsGenericLine(typeId);
-                label.text = BuildRowText(name, vo, generic);
+                label.text = BuildRowText(name, vo);
 
                 bool canStarUp = vo != null;
                 System.Action starUpAction = generic
@@ -91,26 +95,22 @@ namespace Shenxiao.Module.Core.OutWard
                     : () => OutWardController.Instance.StarUp(typeId);
                 NewButton(row.transform, "升星", -180f, canStarUp,
                     new Color(0.22f, 0.42f, 0.24f), starUpAction);
-                if (!generic)
-                {
-                    bool canLvUp = vo != null && vo.HasLv;
-                    NewButton(row.transform, "升级", -70f, canLvUp,
-                        new Color(0.20f, 0.30f, 0.48f), () => OutWardController.Instance.LvUp(typeId));
-                }
+                // 系统B等级线对全部6类型都活(第21轮订正),[升级]按钮不再按 type_id 分组隐藏。
+                bool canLvUp = vo != null && vo.HasLv;
+                NewButton(row.transform, "升级", -70f, canLvUp,
+                    new Color(0.20f, 0.30f, 0.48f), () => OutWardController.Instance.LvUp(typeId));
             }
         }
 
-        private static string BuildRowText(string name, OutWardModel.OutWardVo vo, bool generic)
+        private static string BuildRowText(string name, OutWardModel.OutWardVo vo)
         {
             if (vo == null)
             {
-                return name + "　<color=#8893a6>等待 16002" + (generic ? "" : "/16028") + "(需活服)</color>";
+                return name + "　<color=#8893a6>等待 16002/16028(需活服)</color>";
             }
             long maxBlessing = OutWardConfigs.GetMaxBlessing(vo.TypeId, vo.Stage, vo.Star);
             string stageStar = "<color=#ffe222>" + vo.Stage + "阶" + vo.Star + "星</color>"
                 + "　祝福 " + vo.Blessing + (maxBlessing > 0 ? "/" + maxBlessing : "");
-            // 3翼影/4圣器/5神兵只有系统A阶星线,无系统B等级线(不发 16028)→ 不显示等级文案。
-            if (generic) return name + "　" + stageStar;
             string lvText = vo.HasLv
                 ? "　等级 " + vo.Level + "(经验 " + vo.CurExp + ")"
                 : "　<color=#8893a6>等待 16028</color>";
@@ -140,7 +140,7 @@ namespace Shenxiao.Module.Core.OutWard
             GameObject panel = NewRect("Panel", _root.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
             var panelRt = (RectTransform)panel.transform;
             panelRt.pivot = new Vector2(0.5f, 0.5f);
-            panelRt.sizeDelta = new Vector2(620f, 650f);
+            panelRt.sizeDelta = new Vector2(620f, 740f);   // 6 行(90px/行)+ 标题/关闭区,第21轮补第6行(type_id=12)后加高
             Image panelImg = panel.AddComponent<Image>();
             panelImg.color = new Color(0.07f, 0.09f, 0.14f, 0.97f);
 

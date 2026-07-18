@@ -8,17 +8,25 @@ namespace Shenxiao.Module.Core.OutWard
 {
     /// <summary>
     /// 幻化外观协议控制器(对标老端 commonController/OutWardController.ts;服务端 pt_160)。
-    /// 进游戏(EVT_GAME_START)对 type_id 1(坐骑)、2(剑魄同修)各发一次 16002(系统A阶星)与 16028(系统B等级面板)。
+    /// 进游戏(EVT_GAME_START)对全部 6 个培养对象 type_id∈{1坐骑,2剑魄同修,3翼影,4古法符相,5殒锋天刃,12玄穹云披}
+    /// 各发一次 16002(系统A阶星)与 16028(系统B等级面板)——服务端总闸 pp_mount.erl:26-45 的
+    /// ?APPERENCE=data_mount:get_constant_cfg(20)=[1,2,3,4,5,12],type 6(精灵)/7(宠物)/8(法阵)一律 skip 不回包,严禁发。
     /// 16023 一键升星(坐骑/同修专线,发 "ccc" type_id,auto_buy=0,gold_type=0):errcode==1 成功后老端另拉一次 16002
     /// 联动刷同修属性(照做);16029 升级(发 "c" type_id)同理成功后拉 16002。
-    /// 老端锚点:OutWardController.ts:265-275(On16023)、:302-315(On16029)、:436-443(升星发包)、:475-478(升级发包)。
-    /// 薄增量六件套(第20轮工单):16005 通用一键升星(type_id∉{1,2}:3翼影/4圣器/5神兵),回包=16023 少 etime/auto_buy 两字段;
-    /// GameStart 对 3/4/5 也各发一次 16002(16028 等级线与这三个任务无关,不扩)。
+    /// 老端锚点:OutWardController.ts:265-275(On16023)、:302-315(On16029)、:317-330(On16030)、:389-402(GameStart 拉取)、
+    /// :436-443(升星发包)、:475-478(升级发包)。
+    /// 薄增量六件套(第20轮工单):16005 通用一键升星(type_id∉{1,2}:3翼影/4圣器/5神兵),回包=16023 少 etime/auto_buy 两字段。
+    /// ⚠第21轮侦察订正:第20轮误判"3/4/5 只有系统A阶星线,无系统B等级线"——实际系统B(16028/16029/16030)对全部
+    /// 6 个 type_id 都活(config_mount_level 每 type_id 各 750 条;lib_mount_upgrade_sys.erl:33-43 send_panel_info
+    /// 不含 type_id guard),本轮已把 GameStart 拉取集与 16030 补齐。
     /// 老端枚举注释警示:Artifact=4=古法符相线,HolyDevice=5=殒锋天刃线(曾错位,以 mount.hrl ARTIFACT_ID=4/HOLYORGAN_ID=5 为准)。
     /// </summary>
     public sealed class OutWardController : BaseController
     {
         public static readonly OutWardController Instance = new OutWardController();
+
+        /// <summary>全部 6 个培养对象 type_id(服务端 ?APPERENCE 总闸;对标老端 enum_OutWardType 减去 Sprite/Pet/MagicArr)。</summary>
+        public static readonly int[] AllTypeIds = { 1, 2, 3, 4, 5, 12 };
 
         private OutWardController() { }
 
@@ -29,6 +37,7 @@ namespace Shenxiao.Module.Core.OutWard
             RegisterProtocal(Proto.OUTWARD_LV_PANEL, On16028);
             RegisterProtocal(Proto.OUTWARD_LV_UP, On16029);
             RegisterProtocal(Proto.OUTWARD_STAR_UP_GENERIC, On16005);
+            RegisterProtocal(Proto.OUTWARD_LV_SKILL_UP, On16030);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
@@ -39,21 +48,19 @@ namespace Shenxiao.Module.Core.OutWard
             base.Dispose();
         }
 
-        /// <summary>对标老端登录拉取:type_id 1(坐骑)、2(剑魄同修)各发 16002+16028,共 4 包;
-        /// 3(翼影)/4(圣器古法符相)/5(神兵殒锋天刃)只有系统A阶星线,只发 16002(薄增量六件套第20轮)。</summary>
+        /// <summary>对标老端登录拉取(OutWardController.ts:389-402):全部 6 个 type_id∈<see cref="AllTypeIds"/>
+        /// 各发 16002(系统A阶星)+16028(系统B等级面板),共 12 包。第21轮订正:系统B对全部 6 个 type_id 都活,
+        /// 不再像第20轮那样把 3/4/5/12 排除在 16028 拉取外。</summary>
         private async void OnGameStart()
         {
             await OutWardConfigs.EnsureLoaded();
-            foreach (int typeId in new[] { 1, 2 })
+            foreach (int typeId in AllTypeIds)
             {
                 RequestInfo(typeId);
                 RequestLvPanel(typeId);
             }
-            foreach (int typeId in new[] { 3, 4, 5 })
-            {
-                RequestInfo(typeId);
-            }
-            GameLog.Info("OutWard", "GameStart request 16002+16028 for type_id 1,2; 16002 for type_id 3,4,5(对标 OutWardController 登录拉取)");
+            GameLog.Info("OutWard", "GameStart request 16002+16028 for type_id {0}(全 6 类型,对标 OutWardController 登录拉取)",
+                string.Join(",", AllTypeIds));
         }
 
         /// <summary>16002 外观对象信息(系统A阶星)请求。</summary>
@@ -93,6 +100,16 @@ namespace Shenxiao.Module.Core.OutWard
             if (typeId <= 0) return;
             SendFmt(Proto.OUTWARD_STAR_UP_GENERIC, "c", typeId);
             GameLog.Info("OutWard", "starUpGeneric 16005 type_id={0}", typeId);
+        }
+
+        /// <summary>16030 系统B技能升级(发 "ci" type_id,skill_id;对全部 6 个 type_id 都活,第21轮补齐。
+        /// 对标老端 OutWardController.ts:317-330,发包点见其 SkillUp 惯例——本轮只补数据层,壳/真页未接技能升级按钮,
+        /// 留待技能 UI 落地时调用)。</summary>
+        public void LvSkillUp(int typeId, int skillId)
+        {
+            if (typeId <= 0 || skillId <= 0) return;
+            SendFmt(Proto.OUTWARD_LV_SKILL_UP, "ci", typeId, skillId);
+            GameLog.Info("OutWard", "lvSkillUp 16030 type_id={0} skill_id={1}", typeId, skillId);
         }
 
         /// <summary>16002 回包:type_id:c, stage:c, star:h, blessing:i, figure_stage:c, combat:i, etime:l,
@@ -205,6 +222,27 @@ namespace Shenxiao.Module.Core.OutWard
             GameLog.Info("OutWard", "16005 starUpGeneric ok type_id={0} → {1}阶{2}星 blessing={3}(+{4}) ratios={5} remaining={6}B",
                 typeId, stage, star, blessing, blessingPlus, ratios.Count, r.Remaining);
             RequestInfo(typeId);   // 对标老端成功后 REQUEST_PROTO 16002 联动刷属性
+            EventDispatcher.Emit(GlobalEvent.EVT_OUTWARD_UPDATE);
+        }
+
+        /// <summary>16030 系统B技能升级结果:errcode:i, type_id:c, skill_id:i, level:c。第21轮补齐(对全部6类型都活)。
+        /// errcode!=1 显码降级;成功后套值 LvSkills 对应技能等级 + 另拉 16002 联动刷新(对标老端 On16030:317-330)。</summary>
+        private void On16030(NetReader r)
+        {
+            int errcode = (int)r.ReadU32();
+            int typeId = r.ReadU8();
+            int skillId = (int)r.ReadU32();
+            int level = r.ReadU8();
+            if (errcode != 1)
+            {
+                TipsManager.Toast("提升失败(" + errcode + ")");   // 错误码表未移植,显码降级
+                GameLog.Info("OutWard", "16030 lvSkillUp fail errcode={0} type_id={1} skill_id={2}", errcode, typeId, skillId);
+                return;
+            }
+            OutWardModel.Instance.Apply16030(typeId, skillId, level);
+            GameLog.Info("OutWard", "16030 lvSkillUp ok type_id={0} skill_id={1} → level={2} remaining={3}B",
+                typeId, skillId, level, r.Remaining);
+            RequestInfo(typeId);   // 对标老端成功后 REQUEST_PROTO 16002 联动刷新
             EventDispatcher.Emit(GlobalEvent.EVT_OUTWARD_UPDATE);
         }
 

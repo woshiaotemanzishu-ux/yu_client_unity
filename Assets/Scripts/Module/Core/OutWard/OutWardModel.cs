@@ -123,6 +123,20 @@ namespace Shenxiao.Module.Core.OutWard
             vo.LvSkills = skills;
         }
 
+        /// <summary>16030 系统B技能升级成功套值(errcode==1 时调用;在 LvSkills 里原地更新对应 skill_id 的等级,
+        /// 找不到则忽略——对标老端 On16030 的 for-in 就地改写惯例)。第21轮补齐。</summary>
+        public void Apply16030(int typeId, int skillId, int level)
+        {
+            OutWardVo vo = GetOrCreate(typeId);
+            if (vo.LvSkills == null) return;
+            for (int i = 0; i < vo.LvSkills.Count; i++)
+            {
+                if (vo.LvSkills[i].skillId != skillId) continue;
+                vo.LvSkills[i] = (skillId, level);
+                break;
+            }
+        }
+
         public void Clear()
         {
             _map.Clear();

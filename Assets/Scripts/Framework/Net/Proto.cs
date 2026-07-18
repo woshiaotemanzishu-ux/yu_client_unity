@@ -36,6 +36,11 @@
         /// 私聊(channel=6)=对方 role_id;喇叭(channel=2)=范围选择(1本服/2小跨服/3全服,TRUMPET_TYPE);其余频道传0。
         /// 回包同号 11001 用于世界/公会/队伍等公共频道广播;**私聊(channel=6)真正回包走 11002,喇叭走 11029,
         /// 不会原样回 11001**(pp_chat.erl handle(11001,...) 内按 Channel 分三路 write(11001/11002/11029,...))。</summary>
+        /// <summary>聊天家族统一错误码出口(对标老端 ChatController.ts:412-417 On11000:
+        /// Util.ErrorCodeShow(scmd.error_code, scmd.args),无其它副作用)。轮21 覆盖率审计发现的跨系统统一
+        /// 错误码出口漏号之一(同批 15200/40505/40507,见 r21_coverage_governance.md;40505/40507 经复核为
+        /// 服务端死号,已在 GuildController.cs 注释说明,不需要新注册)。回包 error_code:i, args:s。</summary>
+        public const int CHAT_ERROR = 11000;
         public const int CHAT_MESSAGE = 11001;
         /// <summary>私聊消息推送(S2C,双方各收一份完全相同的包)。回包(pt_110.erl write(11002,...)):
         /// Channel:8, ServerNum:16, SerId:16, SerName:s, PlayerList[u16 len]{PlayerId:64, Figure}(固定2项:[发送者,接收者]),
@@ -80,6 +85,13 @@
         /// 遍历清理该玩家在公共频道的消息 + 私聊 dict 条目,**跳过自己**(role_id==自身时不清理)。
         /// 不在本轮目标号内,但它是私聊清理(11046)唯一入口,随 11027/11028 一并接。</summary>
         public const int CHAT_BLACKLIST_CLEAR = 11046;
+        /// <summary>跨系统红点推送(对标老端 ChatController.ts:640-654 On11016):module_id==339(红包)时,
+        /// 若本人未加入公会(guild_id==0)老端直接 return 不置位,否则置红包红点;module_id==400 且 type==1 时
+        /// 是公会申请数红点(RedDotController.up(GUILD_APPLY,num) + 刷新主界面功能图标)。回包
+        /// module_id:h, type:h, num:h。⚠Unity 侧 RedPacket 模块与公会红点体系(GuildController.cs 已注明
+        /// "本仓 Guild 红点体系未建")均不在聊天包所有权范围,本轮只解包 + Emit 通用事件,真消费方接入时
+        /// 按 module_id 分流(见 GlobalEvent.EVT_CHAT_RED_DOT_PUSH 注释)。</summary>
+        public const int CHAT_RED_DOT_PUSH = 11016;
         /// <summary>系统公告/跑马灯(GAME_START 空参发一次;服务端后台改公告表时会主动全服重推,幂等重建)。
         /// 回包 notice_list[u16 len]{Source:s, Type:8, Color:s, Content:s, Url:s, SendCount:32, SendGap:16,
         /// StartTime:32, EndTime:32, State:8}。⚠与"喇叭"是两套系统(11050 纯只读零消耗,喇叭消耗广播在 11001/11029),
@@ -553,6 +565,13 @@
         /// 回包 ErrorCode:i + MailIds[h+{MailId:l}]。服务端对"有未领附件/当日未读"的 id 静默跳过不删(lib_mail.erl:274-287),
         /// 前端也复刻 GetNoGetRewardEmailList 过滤(只删无附件或已领附件的邮件)。</summary>
         public const int MAIL_DELETE = 19003;
+        /// <summary>新邮件到达增量推送(S2C 主动,轮21 PF 补漏批;对标老端 FriendController.ts:546-551
+        /// On19004 `_model.addEmail(scmd.mail_list)`——**与 19001 全量列表不同,是追加/upsert 语义**,新邮件
+        /// 到达时(如 GM 邮件、任务完成邮件)服务端立即推送本号,不追加就永远进不了列表。回包 mail_list
+        /// [h + {MailId:l,Type:c,State:c,Title:s,IsAttach:c,Time:i,EffectEt:i}](字段同 19001/<see cref="MAIL_NEW"/>)。
+        /// 服务端唯一发送点 lib_mail.erl:172-186 `add_mail/2`,发完本号必紧跟着发一次 19008(HasUnread=true)。
+        /// 轮7 已发现此缺口并留 TODO(见 <see cref="MAIL_NEW"/> 旧注),本轮补齐。</summary>
+        public const int MAIL_ADD_PUSH = 19004;
         /// <summary>批量领取附件(自动循环 轮7)。**手写变长包**同 <see cref="MAIL_DELETE"/> 结构;
         /// 回包 ErrorCode:i + MailIds[h+{MailId:l}] + Reward(ObjectList,老端 CongratulationObtainView 展示用)。
         /// 服务端顺序处理、遇首个失败即整体中止(已成功的 id 仍在 MailIds 里)。前端背包容量预检
@@ -562,10 +581,12 @@
         /// 服务端 check_send_guild_mail_on_server 当前版本硬编码恒返回 not_open(lib_mail.erl:741-742),
         /// 功能实际不可用;UI 归属公会模块(GuildMailView),本轮只补 API,TODO 见汇报。</summary>
         public const int MAIL_GUILD_SEND = 19006;
-        /// <summary>新邮件推送(S2C,单封,同列表项格式)。**既有 handler 保留,行为按老端 On19007 空实现原样**——
-        /// 服务端 19007 实为"取单条邮件基本信息"请求/回(read MailId:l),并非推送;真正的"新邮件到达"推送号是
-        /// <c>19004</c>(pt_190.erl write(19004,MailList),字段同 19001),老端 FriendController.ts 全程未消费 19004,
-        /// 本轮按规格§0"既有 handler 保留、19007 主动发送跳过"维持现状不新增 19004 处理(TODO,见汇报)。</summary>
+        /// <summary>⚠命名历史遗留,非推送:服务端 19007 实为"取单条邮件基本信息"C2S 请求/回(read MailId:l,
+        /// pp_mail.erl:83-92 `handle(19007,PS,[MailId])`),回包字段同列表项(同 <see cref="MAIL_NEW"/> 自身
+        /// 即字段,非推送触发)。**老端从未发送该号**(FriendController.ts 全仓库零 SendFmtToGame(19007,...)
+        /// 调用点,只注册了空 On19007),故对老端而言恒不可达。真正的"新邮件到达"推送号是
+        /// <see cref="MAIL_ADD_PUSH"/>(19004),轮21 已补齐。本号既有 handler 保留(防御性,若未来真被请求触发
+        /// 仍可正确落地单条数据),不提供发送 API。</summary>
         public const int MAIL_NEW = 19007;
         /// <summary>是否有未读邮件(S2C "c")。</summary>
         public const int MAIL_UNREAD = 19008;
@@ -848,6 +869,14 @@
         /// 确认/超时 → 发 opr=2;opr==2 回执老端不处理,仅 log。GAME_START 后延时 2.5 秒自动查看一次(对标老端
         /// setTimeout(delay_fun,2.5) 尾部 SendFmtToGame(15027,"c",1))。</summary>
         public const int GOODS_EXPIRED = 15027;
+
+        /// <summary>背包已满改邮件发放通知(S2C 主动推送,禁止客户端发送;对标老端 BagController.ts:147-167
+        /// On15029)。回包(yu_server pt_150.erl write(15029):799-807,全仓库唯一发送点
+        /// lib_goods_api.erl:2111 `send_mail_when_no_cell`,state 恒为1):state:c, location:h(掉落物所属
+        /// bag_location,老端据此弹二次确认框跳转对应背包/星装页签)。物品本体已经落进系统邮件,此包只是
+        /// "背包满了改邮件发,要不要去清一下"的提醒;Unity 暂无星装(232星座装备)模块与"打开指定背包位置"
+        /// 事件通道,降级为纯 toast 提示,不复刻老端按 location 跳转 OpenFun(105)/(170) 的二次确认框,TODO。</summary>
+        public const int BAG_FULL_MAIL_NOTICE = 15029;
 
         /// <summary>服务端通知客户端重新拉取物品背包数据(对标 On15030,老端空桩 //OnGameStart())。禁止客户端发送,
         /// 空包(无字段);收到后重新走一次 <see cref="GOODS_CONTAINER_INFO"/>(pos=bag)流程。</summary>
@@ -1328,6 +1357,13 @@
         /// 回包=16023 少 etime/auto_buy:errcode:i, type_id:c, stage:c, star:h, blessing:i, blessing_plus:i,
         /// ratio_list[u16×{rate:c,rate_num:h}])。解主线 100665/101045/101345(ctype24/92/41)。</summary>
         public const int OUTWARD_STAR_UP_GENERIC = 16005;
+        // ----- 第21轮 OutWard 全类型补漏(pt_160.erl:122-125/703-714;老端 OutWardController.ts:317-330/354) -----
+        /// <summary>外观等级线·系统B技能升级(发 "ci" type_id,skill_id;回包:errcode:i, type_id:c, skill_id:i, level:c)。
+        /// ⚠侦察订正(第21轮):系统B(16028/16029/本号)对全部 6 个 type_id{1,2,3,4,5,12}都活,并非仅坐骑/同修专属
+        /// (config_mount_level 每 type_id 各 750 条;lib_mount_upgrade_sys.erl:33-43 send_panel_info 不含 type_id guard)。
+        /// errcode==1 成功后老端另拉一次 16002(REQUEST_PROTO)联动刷新,同 16023/16029 惯例。</summary>
+        public const int OUTWARD_LV_SKILL_UP = 16030;
+
         /// <summary>宝石镶嵌(发 "ccl" equipPos,stonePos,goodsId;回包 res:i, equip_type:c, pos:c, type_id:i)。主线 101175(ctype48)。</summary>
         public const int EQUIP_STONE_SET = 15208;
         /// <summary>宝石拆除(发 "cc";回包 res:i, equip_type:c, pos:c)。</summary>
@@ -1335,6 +1371,11 @@
         /// <summary>领取挂机收益(C2S 无参;回包 code:i + exp_list 按 ClientProtocol "13216" 读完)。
         /// 主线 101211(ctype91,唯一事件计数型:领一次即完成)。</summary>
         public const int ONHOOK_RECEIVE = 13216;
+        /// <summary>装备家族统一错误码出口(对标老端 EquipController.ts:274-282 On15200:
+        /// Util.ErrorCodeShow(scmd.res);res==1520090/1520091 两个分支老端均为空/已注释,无额外副作用——
+        /// 满足断言E族错误出口收紧规则)。轮21 覆盖率审计发现的跨系统统一错误码出口漏号之一(同批
+        /// 11000/40505/40507,见 r21_coverage_governance.md)。回包只有 res:i。</summary>
+        public const int EQUIP_ERROR = 15200;
         /// <summary>穿戴装备(发 "l" goods_id 实例id;回包 res:i, goods_id:l, old_goods_id:l, type_id:i, cell_pos:c)。
         /// 主线 101205(ctype93 穿3件3阶橙装,状态快照自动判定)。</summary>
         public const int EQUIP_WEAR = 15201;
@@ -1412,6 +1453,14 @@
         /// (全仓库找不到手动首次发起调用点,只留自循环续发),Unity 同步只留 API <see cref="EquipJewelController.CombineStone"/>
         /// 供未来入口调用,本轮不建 UI 触发按钮。</summary>
         public const int EQUIP_JEWEL_STONE_COMBINE = 15216;
+        /// <summary>子功能战力查询(轮21 PF 补漏批;发/回同号 "c" sub_mod → 回包 sub_mod:c, power:i)。
+        /// 对标老端 EquipController.ts:713-716 On15254 → model.Fire(EquipEvent.SUBTYPE_POWER,scmd);
+        /// 唯一真实调用点 jewel/EquipJewelView.ts:463-465 `GetPowerOnProto`(视图打开/刷新时发 sub_mod=1)。
+        /// 服务端 pp_equip.erl:571-574 `get_equip_sub_mod_power/2` 目前**只认 sub_mod==1(?EQUIP_STONE_POWER,
+        /// 宝石/骸珀镶嵌)**,其余取值恒回 power=0(def_goods.hrl:122)——本号事实上是"宝石镶嵌战力"专用号,
+        /// 不是通用子系统战力查询。Unity 暂无 EquipJewelView 主战力展示位(仅有 CraveView 子窗),落
+        /// EquipJewelModel 数据层 + 复用既有 EVT_EQUIP_JEWEL_UPDATE 事件,消费方 TODO。</summary>
+        public const int EQUIP_JEWEL_SUB_MOD_POWER = 15254;
 
         // ----- 古宝/妖物(pt_133 段内 13320/13321,yu_server enchantment_guard soap;老端 MonsterController.ts/guBao) -----
         /// <summary>古宝全量状态(请求无参;回包 combat:l + soap_list[u16×{soap_id:h, debris_list[u16×{debris_id:h}]}])。</summary>
@@ -2424,6 +2473,20 @@
         public const int CUSTOM_ACT_LEVEL_RUSH_GIFT = 33248;    // 冲级挑战
         public const int CUSTOM_ACT_AD_CD_LIST = 33250;         // ADVERTISEMENT 冷却列表
         public const int CUSTOM_ACT_RUSH_RANK_TOP_PLAYER_PUSH = 33251; // 头号玩家提示(331家族内部冲榜上报,与225xx pp_rush_rank 是两套,勿混淆)
+        /// <summary>LIST_DUOBAO=116 夺宝积分墙阶段信息(轮21 PF 补漏批;老端独立 ListDuobaoController.ts+
+        /// ListDuobaoModel.ts,非主 CustomActivityController.ts 一部分)。发/回 "hh" type,subtype。
+        /// 回包(pt_332.erl write(33252):1325-1361):Type:h,Subtype:h,Score:i,TodayScore:i,Condition:s,
+        /// RewardList[h+{GradeId:h,IsRare:c,Reward:ObjectList}],StageList[h+{Id:h,GotType:c}],WorldLv:i。</summary>
+        public const int CUSTOM_ACT_LISTDUOBAO_STAGE = 33252;
+        /// <summary>LIST_DUOBAO 排行榜(轮21 PF 补漏批)。发/回 "hh" type,subtype。
+        /// 回包(pt_332.erl write(33253):1363-1397):Type:h,Subtype:h,Score:i,Rank:h,
+        /// RankList[h+{Rank:h,ServerId:i,RoleId:l,RoleName:s,RoleScore:i}],SeverScore:i,ServerRank:h,
+        /// ServerRankList[h+{Rank:h,ServerId:i,ServerName:s,ServerScore:i}]。</summary>
+        public const int CUSTOM_ACT_LISTDUOBAO_RANK = 33253;
+        /// <summary>LIST_DUOBAO 阶段奖励领取(轮21 PF 补漏批)。发 "hhh" type,subtype,reward_id。
+        /// 回包(pt_332.erl write(33254):1399-1411):Type:h,Subtype:h,RewardId:h,ErrorCode:i。
+        /// 对标老端 On33254:领取后**无条件**(不看 error_code)追发 33252 刷新阶段信息。</summary>
+        public const int CUSTOM_ACT_LISTDUOBAO_CLAIM = 33254;
         public const int CUSTOM_ACT_REDENVELOPE_WITHDRAW = 33256; // 提现;同时升级现有 On33255(见 CustomActivityController.cs)
         public const int CUSTOM_ACT_CARNIVAL_TASK = 33258;
         /// <summary>累充有礼(TIRED_CHARGE_POLITE=121)奖励状态。On33101 扫描到 BaseType==121 的条目会追发本号
@@ -2837,5 +2900,57 @@
         /// <summary>15122 喊话。pt_151.erl:76-78(read "l" SellId),337-347(write):发 "l";回包
         /// Errcode:32,SellId:64,CdTime:32。老端成功分支为空(ts:299-307),只在失败分支显码。</summary>
         public const int MARKET_SHOUT = 15122;
+
+        // ----- 时装 Fashion(pt_413,yu_server src/fashion/;老端 commonController/FashionController.ts。
+        // 第21轮 PA:只做第一刀 8 活号。pos:1=衣服 3=头饰(data_fashion.erl:19275
+        // get_pos_id_list()->[1,3];pos2武器/pos4足部已死,config_fashion_model 无对应数据佐证)。
+        // ⚠死号严禁发:41307 全死(pp_fashion.erl 无 41307 handle 子句,落 catch-all 只 ?PRINT 不回包;
+        // 唯一 write 调用点 lib_fashion.erl:375 已注释;老端 FashionController.ts:44-45 有 send 分支但
+        // 全仓零 Fire 且 RegisterProtocal 列表:419-431 不含 41307)。
+        // 41310 客户端侧死(服务端 pp_fashion.erl:298-317 会回,但老端零发包点且 RegisterProtocal 列表
+        // 不含 41310,收到也丢弃)。
+        // 41311 上行死、仅活下行:FashionController.ts:46-47 的 send 分支全仓零 Fire(不发);但
+        // RegisterProtocal(41311,On41311)(:426)存在且有实体——服务端会在穿脱/激活/染色/神殿觉醒后
+        // 主动广播(lib_fashion_event.erl:22、lib_fashion.erl:177、lib_temple_awaken.erl:1471),
+        // 必须注册接收并处理形象变更,只是本端永不主动请求它。 -----
+        /// <summary>41300 全量拉取(发空;老端由 GoodsModel.CREATE_BAG_LIST_FINISH 触发 Fire(SCMD_REQUEST,41300),
+        /// FashionController.ts:97;本端简化为 EVT_GAME_START 后拉取,配置就绪即可,无需等背包)。
+        /// 回包 pt_413.erl:83-87 + item_to_bin_0/1/2(:310-360):
+        /// Code:i, PosList[u16×{PosId:c, WearFashionId:i, PosLv:h, PosUpgradeNum:i,
+        /// FashionList[u16×{FashionId:i, FashionStarLv:h, NowColorId:c,
+        /// ColorList[u16×{ColorId:c, FashionStarLv:h}]}]}]。</summary>
+        public const int FASHION_INFO_ALL = 41300;
+        /// <summary>41301 染色解锁(发 "cicc" PosId,FashionId,ColorId,Type;老端 FashionMainView.ts:94 **只发 Type=2**
+        /// =解锁颜色——Type=1 染色分支服务端未用,pp_fashion.erl:64 注释原文「%% 染色（未用）」,严禁发 Type=1);
+        /// 回包 Code:i, PosId:c, FashionId:i, ColorId:c, Type:c。Code==1 成功后 color_list 追加 {ColorId,1}
+        /// (pp_fashion.erl:133)。</summary>
+        public const int FASHION_UNLOCK_COLOR = 41301;
+        /// <summary>41302 穿戴(发 "cic" PosId,FashionId,ColorId;41304 激活成功后老端也会自动补发这个 ColorId=0,
+        /// FashionController.ts:288);回包 Code:i, PosId:c, FashionId:i, ColorId:c。</summary>
+        public const int FASHION_WEAR = 41302;
+        /// <summary>41303 卸下(发 "ci" PosId,FashionId;⚠也会被动收到——穿神殿/套装收集/天启会顶掉时装,
+        /// 服务端 lib_fashion_api.erl:48 对 pos∈[1,3] 各主动推一个非本人请求的 41303,Model 须能处理"被动卸下");
+        /// 回包 Code:i, PosId:c, FashionId:i。</summary>
+        public const int FASHION_TAKE_OFF = 41303;
+        /// <summary>41304 激活(发 "ci" PosId,FashionId;成功后老端自动 Fire(SCMD_REQUEST,41302,PosId,FashionId,0)
+        /// 补穿,FashionController.ts:288);回包 Code:i, PosId:c, FashionId:i。</summary>
+        public const int FASHION_ACTIVE = 41304;
+        /// <summary>41306 基础色(color 0)进阶(发 "cic" PosId,FashionId,ColorId;ColorId 恒传当前 now_color_id;
+        /// ⚠服务端 lib_fashion_check.erl:141 对未解锁颜色 keyfind 会 badmatch 崩进程——只对已在 color_list
+        /// 里的颜色发);回包 Code:i, PosId:c, FashionId:i, ColorId:c, FashionStarLv:h。</summary>
+        public const int FASHION_UPGRADE_BASE = 41306;
+        /// <summary>41312 时装战力(发 "ci" PosId,FashionId;41304/41306/41316 成功后服务端会自动内部再调一次也推这个,
+        /// pp_fashion.erl:238/:294);回包(⚠**无 Code 首位**,与其余 413xx 惯例相反):
+        /// PosId:c, FashionId:i, ColorPowerList[u16×{ColorId:c, ColorPower:l, NextColorPower:l}]。</summary>
+        public const int FASHION_POWER = 41312;
+        /// <summary>41316 彩色(非 0 色)进阶(发 "cic" PosId,FashionId,ColorId;与 41306 同结构不同协议号/字段位置);
+        /// 回包 PosId:c, FashionId:i, ColorId:c, Lv:c(⚠8位,41306 对应字段 FashionStarLv 是 16位), Code:i
+        /// (⚠**Code 在最后**,与 41300-41306 惯例相反)。</summary>
+        public const int FASHION_UPGRADE_COLOR = 41316;
+        /// <summary>41311 外观形象增量广播(⚠仅活下行,严禁发上行——见上方族注释);
+        /// 回包 RoleId:l, FashionEquip[u16×{PartPos:c, FashionModelId:i, FashionChartletId:c}]
+        /// (item_to_bin_4,pt_413.erl:368)。对标老端 On41311(FashionController.ts:337-344)
+        /// role_vo.ChangeVar("fashion_model_list", scmd.fashion_equip)。</summary>
+        public const int FASHION_FIGURE_PUSH = 41311;
     }
 }

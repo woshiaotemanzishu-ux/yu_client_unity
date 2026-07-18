@@ -198,6 +198,7 @@ namespace Shenxiao.Module.Core.CustomActivity
             ClearFestival();
             ClearBiz();
             ClearKf();
+            ClearList(); // 轮21 PF 补漏批新增:LIST_DUOBAO,见 CustomActivityModel.List.cs
         }
     }
 }

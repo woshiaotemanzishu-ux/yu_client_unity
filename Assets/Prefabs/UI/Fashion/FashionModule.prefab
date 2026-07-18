@@ -3061,7 +3061,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4924166060417653399}
-  - component: {fileID: 2950453492567859680}
+  - component: {fileID: 3453922838621768945}
   m_Layer: 0
   m_Name: FashionColorItem
   m_TagString: Untagged
@@ -3092,7 +3092,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 115, y: 115}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &2950453492567859680
+--- !u!114 &3453922838621768945
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3101,9 +3101,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2169800186816086329}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5395de12c47d0af45bc14287f78663a6, type: 3}
+  m_Script: {fileID: 11500000, guid: 0ce166e8a97f1b14eafa3d72318d77f5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Fashion.FashionColorItemBind
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Fashion.FashionColorItem
   bg: {fileID: 4688336430978034739}
   select: {fileID: 6622526051212089002}
   red: {fileID: 5320298921874161675}
@@ -5533,7 +5533,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7659298959015722615}
-  - component: {fileID: 7730933711952739424}
+  - component: {fileID: 9160672344494185521}
   m_Layer: 0
   m_Name: FashionItem
   m_TagString: Untagged
@@ -5561,7 +5561,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 96, y: 97}
   m_Pivot: {x: 0, y: 1}
---- !u!114 &7730933711952739424
+--- !u!114 &9160672344494185521
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5570,9 +5570,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 3970110420063448254}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 45499c8bf707360409733a530da9904e, type: 3}
+  m_Script: {fileID: 11500000, guid: f06c0208ab243eb488ce3b0a339f625a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Fashion.FashionItemBind
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Fashion.FashionItem
   fashion_group: {fileID: 250993826385884816}
   fashion_icon_group: {fileID: 2385116688809983800}
   fashion_plate_image: {fileID: 3473076844003055672}
@@ -9830,7 +9830,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3069510744227063180}
-  - component: {fileID: 6927521674980138618}
+  - component: {fileID: 1872436021041345065}
   m_Layer: 0
   m_Name: FashionAttrItem
   m_TagString: Untagged
@@ -9862,7 +9862,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 300, y: 20}
   m_Pivot: {x: 0, y: 1}
---- !u!114 &6927521674980138618
+--- !u!114 &1872436021041345065
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -9871,9 +9871,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6236601041767428821}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88239ecb46e8dbd478ca1955201f0d38, type: 3}
+  m_Script: {fileID: 11500000, guid: da33ed9d6a886bd4f865924608a785a0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Fashion.FashionAttrItemBind
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Fashion.FashionAttrItem
   bg: {fileID: 3387674929645500155}
   _lb_att0: {fileID: 9778760518517114}
   _Image1: {fileID: 5109385866058716790}
@@ -11810,7 +11810,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7436176566824106544}
-  - component: {fileID: 8940355806491468794}
+  - component: {fileID: 6794656278597553367}
   m_Layer: 0
   m_Name: FashionMainView
   m_TagString: Untagged
@@ -11849,7 +11849,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 720, y: 992}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &8940355806491468794
+--- !u!114 &6794656278597553367
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -11858,9 +11858,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 7515214408132225996}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9fe9fc471a4517447b9d694c324731f7, type: 3}
+  m_Script: {fileID: 11500000, guid: fbd5d038be7d19446bdb9739103820d0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Generated::Shenxiao.Generated.UI.Fashion.FashionMainViewBind
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.Fashion.FashionMainView
   _img_bg: {fileID: 2932343270183617601}
   _list_fashion_item: {fileID: 1441028986635825480}
   _box_model: {fileID: 7431259415479168205}

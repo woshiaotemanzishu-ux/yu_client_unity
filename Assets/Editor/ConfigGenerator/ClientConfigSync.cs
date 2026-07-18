@@ -154,6 +154,9 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_flower_tools",         // 鲜花道具表(6条,数字键=goods_id),MarriageConfigs.GetFlowerTool 用
             "config_love_dsgt_cfg",        // 恩爱称号档位表(10条,数字键=顺位id),MarriageConfigs.GetLoveDsgt 用(config_personal_tag_info 半死跳过,见 MarriageConfigs 注释)
             "config_key_value",            // 全局杂项KV(59条,数字键=key;value 字符串形态不统一——key1 JSON数组/key11&20001 裸整数数组/key15&18 单引号渠道名列表),轮20 P5 KeyValueConfigs.GetRaw 用(41708 下载礼包明细消费 key1)
+            "config_fashion",              // 时装(pt_413,41300+)基础表,主键"pos@fashion_id@star_lv"(⚠此源=cdn\resource\config\server 实测6420条/星级到200,与服务端data_fashion.erl一致;cdn\assets下1200条/20星是陈旧副本,同config_ring_star的先例),轮21 PA FashionConfigs.GetBaseRow 用
+            "config_fashion_color",        // 时装染色表,主键"pos@fashion_id@color_id@star_lv"(此源15180条,同上口径),轮21 PA FashionConfigs.GetColorRow 用
+            "config_fashion_model",        // 时装模型表,主键"pos@fashion_id@career@sex@color_id"(704条,两份源一致),轮21 PA FashionConfigs 预留(本轮未强依赖,留展示/第二刀用)
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

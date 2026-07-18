@@ -124,8 +124,7 @@ namespace Shenxiao.Module.Core.Friend
             switch (label)
             {
                 case "查看信息":
-                    FriendController.Instance.RequestPlayerCard(_vo.RoleId);
-                    GameLog.Info("Friend", "菜单[查看信息] → 请求资料卡(19501),UI 待对接");
+                    Shenxiao.Module.Core.LookOver.LookOverFlow.Show(_vo.RoleId);
                     break;
                 case "加为好友":
                     FriendController.Instance.AddFriendApply(_vo.RoleId);

@@ -18,6 +18,7 @@ using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Compose;
 using Shenxiao.Module.Core.Dungeon;
 using Shenxiao.Module.Core.Equip;
+using Shenxiao.Module.Core.Fashion;
 using Shenxiao.Module.Core.Festival;
 using Shenxiao.Module.Core.Jjc;
 using Shenxiao.Module.Core.OnHook;
@@ -176,6 +177,7 @@ namespace Shenxiao.Module.Core.Game
             WelfareController.Instance,
             CombatWelfareController.Instance,
             AdRewardController.Instance,
+            FashionController.Instance,   // 时装(413xx),第21轮 PA
             // 后续:EquipController ...
         };
 

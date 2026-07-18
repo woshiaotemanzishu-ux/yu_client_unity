@@ -471,6 +471,25 @@ namespace Shenxiao.EditorTools
             Run(ServerClockCase.Run, 300.0);
         }
 
+        /// <summary>轮21 look_over 角色资料卡(module1:19501 上行 + 19502 落地 + 自查拦截 + 面板)。</summary>
+        public static void LookOver()
+        {
+            Run(LookOverCase.Run, 300.0);
+        }
+
+        /// <summary>轮21 Fashion 时装数据层第一刀(41300/41301/41302/41303/41304/41306/41312/41316 + 41311 收)。</summary>
+        public static void Fashion()
+        {
+            Run(FashionCase.Run, 300.0);
+        }
+
+        /// <summary>轮21 协议覆盖率核验(防虚假完工):A总量防倒退/B家族防倒退/C完工家族零未申报/
+        /// D双注册/E族错误出口。基线 Schemas/ProtocolCoverage/baseline.json,报告落 Reports/(已 gitignore)。</summary>
+        public static void ProtocolCoverage()
+        {
+            Run(ProtocolCoverageCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -529,6 +548,9 @@ namespace Shenxiao.EditorTools
                 int g5 = await SceneMiscCase.Run();
                 int mk = await MarketCase.Run();
                 int sc = await ServerClockCase.Run();
+                int lo = await LookOverCase.Run();
+                int fa = await FashionCase.Run();
+                int pc = await ProtocolCoverageCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -542,8 +564,9 @@ namespace Shenxiao.EditorTools
                     + " customactcore=" + c0 + " calotteryA=" + c2 + " calotteryB=" + c3 + " cafestival=" + c4
                     + " cabiz=" + c5 + " cakfrank=" + c6
                     + " godbefall=" + g1 + " cheaptrio=" + g2 + " fbfestival=" + g3 + " welfare=" + g4 + " scenemisc=" + g5
-                    + " market=" + mk + " serverclock=" + sc);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc })
+                    + " market=" + mk + " serverclock=" + sc
+                    + " lookover=" + lo + " fashion=" + fa + " protocolcoverage=" + pc);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, pc })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

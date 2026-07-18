@@ -350,6 +350,18 @@ namespace Shenxiao.Module.Core.Chat
             HideRect(item.img_voice_txt1);
             HideImage(item.img_voice_img);
             HideImage(item.img_voice_img1);
+
+            // 头像点击查看资料卡(轮21 §2 PL,对标老端 ChatItem.ts:91-97 head_player.SetClickFunc →
+            // OPEN_CHAT_MENU → "查看信息"):img_headicon1 是"对方"消息槽(head_player),img_headicon
+            // 是"自己"消息槽(head_main),老端 head_main 从未 SetClickFunc(:84-88 回调体为空)——自己发的
+            // 消息头像本就不可点,故只给 img_headicon1 接点击;isSelf 时 playerRoleCon 隐藏,点不到亦无碍。
+            // 简化:跳过 ChatMenuView 中间菜单(该 prefab 未烤,见侦察 r21_lookover.md §5),直开资料卡。
+            if (item.img_headicon1 != null && message.PlayerId != 0)
+            {
+                long headRoleId = message.PlayerId;
+                int headServerId = message.ServerId;
+                UIUtil.AddClick(item.img_headicon1, () => Shenxiao.Module.Core.LookOver.LookOverFlow.Show(headRoleId, headServerId));
+            }
         }
 
         private GameObject FindChatItemTemplate()

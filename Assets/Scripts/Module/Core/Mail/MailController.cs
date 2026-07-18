@@ -13,10 +13,11 @@ namespace Shenxiao.Module.Core.Mail
     /// 邮件协议接收（对标 yu_server pt_190 / 老客户端 commonController/FriendController.ts 邮件段,
     /// 自动循环 轮7 扩容详情/删除/领取/公会邮件/意见反馈）：
     ///   19001 邮件列表；19002 详情(缓存优先,命中不发协议)；19003 批量删除(手写变长包,GetNoGetRewardEmailList
-    ///   过滤保护)；19005 批量领取(手写变长包,背包容量前置校验)；19006 公会邮件发送(功能已被服务端硬编码禁用,
-    ///   UI 归公会模块 TODO)；19007 新邮件推送(既有,老端 On19007 空实现原样保留)；19008 是否有未读；
-    ///   19009 可发剩余(服务端 handle 整段被注释,DEAD,既有 handler 保留)；19010 意见反馈(非"联系客服"聊天,
-    ///   是工单提交,30s 服务端硬编码 CD)。
+    ///   过滤保护)；19004 新邮件到达增量推送(轮21 PF 补漏批,追加/upsert 语义,别与 19001 全量混)；
+    ///   19005 批量领取(手写变长包,背包容量前置校验)；19006 公会邮件发送(功能已被服务端硬编码禁用,
+    ///   UI 归公会模块 TODO)；19007 非推送,是"取单条邮件信息"C2S 请求/回,老端从未发送恒不可达(见 MAIL_NEW
+    ///   注释)；19008 是否有未读；19009 可发剩余(服务端 handle 整段被注释,DEAD,既有 handler 保留)；
+    ///   19010 意见反馈(非"联系客服"聊天,是工单提交,30s 服务端硬编码 CD)。
     /// </summary>
     public sealed class MailController : BaseController
     {
@@ -28,6 +29,7 @@ namespace Shenxiao.Module.Core.Mail
             RegisterProtocal(Proto.MAIL_LIST, On19001);
             RegisterProtocal(Proto.MAIL_DETAIL, On19002);
             RegisterProtocal(Proto.MAIL_DELETE, On19003);
+            RegisterProtocal(Proto.MAIL_ADD_PUSH, On19004);
             RegisterProtocal(Proto.MAIL_RECEIVE, On19005);
             RegisterProtocal(Proto.MAIL_GUILD_SEND, On19006);
             RegisterProtocal(Proto.MAIL_NEW, On19007);
@@ -198,6 +200,25 @@ namespace Shenxiao.Module.Core.Mail
                 EventDispatcher.Emit(GlobalEvent.EVT_MAIL_LIST_UPDATE);
             }
             GameLog.Info("Mail", "19003 删除结果 errorCode={0} count={1}", errorCode, ids.Count);
+        }
+
+        // 19004: MailList[h + {MailId:l,Type:c,State:c,Title:s,IsAttach:c,Time:i,EffectEt:i}](字段同19001)
+        /// <summary>19004 新邮件到达增量推送(轮21 PF 补漏批,对标老端 FriendController.ts:546-551 On19004
+        /// `_model.addEmail(scmd.mail_list)`)。**追加/upsert 语义,不是整表覆盖**——老端 table.insert 直接追加
+        /// 到列表末尾(不去重),本端用既有 <see cref="MailModel.AddOrUpdate"/>(按 MailId 存在则原地更新、否则
+        /// 插入表头)达到等价效果(显示顺序由 UI 端排序决定,原始插入位置不影响功能)。服务端每次发完本号会
+        /// 紧跟着发一次 19008(HasUnread=true,lib_mail.erl:184),On19008 已有独立 handler 处理,这里不重复。</summary>
+        private void On19004(NetReader r)
+        {
+            int count = r.ReadU16();
+            for (int i = 0; i < count; i++)
+            {
+                var vo = new MailVo();
+                vo.ReadFromProtocal(r);
+                MailModel.Instance.AddOrUpdate(vo);
+            }
+            GameLog.Info("Mail", "19004 新邮件到达增量推送 count={0}", count);
+            EventDispatcher.Emit(GlobalEvent.EVT_MAIL_LIST_UPDATE);
         }
 
         // 19005: ErrorCode:i, MailIds[h+{MailId:l}], Reward(ObjectList: h+{Style:c,TypeId:i,Count:i})

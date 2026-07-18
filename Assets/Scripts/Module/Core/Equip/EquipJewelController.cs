@@ -29,6 +29,7 @@ namespace Shenxiao.Module.Core.Equip
             RegisterProtocal(Proto.EQUIP_JEWEL_CRAVE_DO, On15211);
             RegisterProtocal(Proto.EQUIP_JEWEL_STONE_UPGRADE, On15215);
             RegisterProtocal(Proto.EQUIP_JEWEL_STONE_COMBINE, On15216);
+            RegisterProtocal(Proto.EQUIP_JEWEL_SUB_MOD_POWER, On15254);
             // 对标 EquipController.ts:224 GAME_START 循环 equip_pos=1..10 预拉雕刻信息。
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, RequestAllCraveInfo);
         }
@@ -65,6 +66,15 @@ namespace Shenxiao.Module.Core.Equip
         {
             SendFmt(Proto.EQUIP_JEWEL_STONE_UPGRADE, "ccc", equipPos, stonePos, upgradeType);
             GameLog.Info("Equip", "upgradeStone 15215 equip_pos={0} stone_pos={1} upgrade_type={2}", equipPos, stonePos, upgradeType);
+        }
+
+        /// <summary>15254 子功能战力查询(发 "c" sub_mod;轮21 PF 补漏批)。唯一真实调用点是老端
+        /// jewel/EquipJewelView.ts:463-465 `GetPowerOnProto`(视图打开/刷新时发 sub_mod=1)。服务端目前只认
+        /// sub_mod==1(宝石/骸珀镶嵌),其余取值恒回 power=0(见 Proto.EQUIP_JEWEL_SUB_MOD_POWER 注释)。</summary>
+        public void RequestSubModPower(int subMod = 1)
+        {
+            SendFmt(Proto.EQUIP_JEWEL_SUB_MOD_POWER, "c", subMod);
+            GameLog.Info("Equip", "request 15254 sub_mod={0}", subMod);
         }
 
         /// <summary>
@@ -201,6 +211,19 @@ namespace Shenxiao.Module.Core.Equip
                 TipsManager.Toast("合成宝石失败(" + res + ")");
                 GameLog.Info("Equip", "15216 fail res={0} type_id={1} one_key={2}", res, typeId, isOneKey);
             }
+        }
+
+        /// <summary>15254 回包:sub_mod:c, power:i(对标老端 On15254 → model.Fire(EquipEvent.SUBTYPE_POWER,scmd);
+        /// 消费方 jewel/EquipJewelView.ts:206-212 只处理 sub_mod==1,更新"战力"展示控件)。Unity 暂无
+        /// EquipJewelView 主战力展示位(仅有 CraveView 子窗),落数据层 + 复用既有 EVT_EQUIP_JEWEL_UPDATE 事件,
+        /// 消费方 TODO(不新增专用事件,理由见 Proto.EQUIP_JEWEL_SUB_MOD_POWER 注释)。</summary>
+        private void On15254(NetReader r)
+        {
+            int subMod = r.ReadU8();
+            long power = r.ReadU32();
+            EquipJewelModel.Instance.SetSubModPower(subMod, power);
+            GameLog.Info("Equip", "15254 子功能战力 sub_mod={0} power={1}", subMod, power);
+            EventDispatcher.Emit(GlobalEvent.EVT_EQUIP_JEWEL_UPDATE);
         }
     }
 }

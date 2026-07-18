@@ -16,10 +16,11 @@ using UnityEngine.UI;
 namespace Shenxiao.Module.Core.Pet
 {
     /// <summary>
-    /// 培养页(对标老端 pet/OutWardBaseView.ts;坐骑/剑魄同修共用,按 <see cref="SetType"/> 切 type_id):
+    /// 培养页(对标老端 pet/OutWardBaseView.ts;坐骑/剑魄同修/翼影/古法符相/殒锋天刃/玄穹云披共用同一份 View,
+    /// 按 <see cref="SetType"/> 切 type_id——第21轮起 PetFlow(1/2)与 RoleFlow(3/4/5/12)各自持一份独立实例):
     /// 阶名/阶数(res_name/res_stage,config_mount_stage)+ 星级条(star*/shadow* 亮灰互斥)+ 战力(_gp_fight)
-    /// + 祝福值环(exp_group,config_mount_star max_blessing)+ 一键提升(lv_button → 16023 StarUp)。
-    /// 数据源 OutWardModel(16002/16023 真实回包),监听 EVT_OUTWARD_UPDATE 刷新。
+    /// + 祝福值环(exp_group,config_mount_star max_blessing)+ 一键提升(lv_button → 16023/16005 StarUp)。
+    /// 数据源 OutWardModel(16002/16023/16005 真实回包),监听 EVT_OUTWARD_UPDATE 刷新。
     ///
     /// 页内任务引导(对标老端 PartnerComponentView.UpdateTask + story_obj_list):当前主线任务是
     /// TrainMount(23)/TrainPartner(25) 且对应本页 type_id 时——未完成 → 手指指 lv_button
@@ -33,14 +34,16 @@ namespace Shenxiao.Module.Core.Pet
         private int _typeId = 1;
         private bool _subscribed;
 
-        /// <summary>切换培养对象(1=御风云骑/坐骑,2=剑魄同修/侍魂),PetFlow 页签驱动。</summary>
+        /// <summary>切换培养对象(1=御风云骑/坐骑,2=剑魄同修/侍魂,3=翼影,4=古法符相,5=殒锋天刃,12=玄穹云披),
+        /// PetFlow/RoleFlow 页签驱动。</summary>
         public void SetType(int typeId)
         {
             if (typeId <= 0) return;
             _typeId = typeId;
-            // 打开页时补拉一次(对标老端 OPEN_MOUNTPET_VIEW → 16002/16028 批量拉取)
+            // 打开页时补拉一次(对标老端 OPEN_MOUNTPET_VIEW → 16002/16028 批量拉取)。第21轮订正:系统B(16028)
+            // 对全部6个 type_id 都活(config_mount_level 每 type_id 各750条),不再只对1/2拉。
             OutWardController.Instance.RequestInfo(_typeId);
-            if (_typeId == 1 || _typeId == 2) OutWardController.Instance.RequestLvPanel(_typeId);
+            OutWardController.Instance.RequestLvPanel(_typeId);
             Refresh();
             RefreshGuide();
         }

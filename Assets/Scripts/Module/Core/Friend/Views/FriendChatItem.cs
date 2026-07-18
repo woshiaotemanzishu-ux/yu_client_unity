@@ -48,6 +48,8 @@ namespace Shenxiao.Module.Core.Friend
             if (_head != null && msg.Figure != null)
             {
                 _head.SetRoleData(msg.Figure.career, msg.Figure.turn, msg.Figure.level, showLevel: false);
+                long roleId = msg.PlayerId;
+                _head.SetClickFunc(() => Shenxiao.Module.Core.LookOver.LookOverFlow.Show(roleId));
             }
         }
     }

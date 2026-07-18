@@ -80,6 +80,8 @@ namespace Shenxiao.Module.Core.CustomActivity
             RegisterFestival();
             RegisterBiz();
             RegisterKf();
+            // 轮21 PF 补漏批新增:LIST_DUOBAO=116 夺宝积分墙(33252/33253/33254),见 CustomActivityController.List.cs。
+            RegisterList();
 
             // 等级/任务变化用缓存列表复评图标(对标老端 CHANGE_LEVEL→UpdateActivityIcons(cache) 与 taskChange)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);

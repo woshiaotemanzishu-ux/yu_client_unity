@@ -18,6 +18,7 @@ namespace Shenxiao.Module.Core.Equip
 
         protected override void Register()
         {
+            RegisterProtocal(Proto.EQUIP_ERROR, On15200);
             RegisterProtocal(Proto.EQUIP_WEAR, On15201);
             // 自动穿戴(对标老端一键穿戴,自动任务模式代行;见 EquipAutoWear 头注释):
             // 背包变化防抖触发;进游戏后请求装备通道(15010 pos=1)供 rating 比较。
@@ -45,6 +46,16 @@ namespace Shenxiao.Module.Core.Equip
         {
             SendFmt(Proto.EQUIP_WEAR, "l", goodsId);
             GameLog.Info("Equip", "wear 15201 goodsId={0}", goodsId);
+        }
+
+        /// <summary>15200 装备家族统一错误码出口(对标老端 EquipController.ts:274-282 On15200:
+        /// Util.ErrorCodeShow(scmd.res);res==1520090/1520091 两分支老端均为空/已注释,无额外副作用;
+        /// 轮21 覆盖率审计补漏,见 Proto.EQUIP_ERROR 注释)。错误码表未移植,显码降级。</summary>
+        private void On15200(NetReader r)
+        {
+            int res = (int)r.ReadU32();
+            TipsManager.Toast("操作失败(" + res + ")");
+            GameLog.Warn("Equip", "15200 装备家族错误码 res={0}", res);
         }
 
         /// <summary>15201 回包:res:i, goods_id:l, old_goods_id:l, type_id:i, cell_pos:c。

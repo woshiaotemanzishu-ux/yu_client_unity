@@ -57,8 +57,13 @@ namespace Shenxiao.Module.Core.Chat
 
         private ChatController() { }
 
+        // 跨系统红点(11016)module_id 取值(对标老端 ChatController.ts:640-654):339=红包,400=公会。
+        private const int RedDotModuleRedPacket = 339;
+        private const int RedDotModuleGuild = 400;
+
         protected override void Register()
         {
+            RegisterProtocal(Proto.CHAT_ERROR, On11000);
             RegisterProtocal(Proto.CHAT_MESSAGE, On11001);
             RegisterProtocal(Proto.CHAT_PRIVATE_MESSAGE, On11002);
             RegisterProtocal(Proto.CHAT_CACHE, On11010);
@@ -70,6 +75,7 @@ namespace Shenxiao.Module.Core.Chat
             RegisterProtocal(Proto.CHAT_HORN_PUSH, On11029);
             RegisterProtocal(Proto.CHAT_BANNED_NOTICE, On11042);
             RegisterProtocal(Proto.CHAT_BLACKLIST_CLEAR, On11046);
+            RegisterProtocal(Proto.CHAT_RED_DOT_PUSH, On11016);
             RegisterProtocal(Proto.CHAT_NOTICE, On11050);
             RegisterProtocal(Proto.CHAT_ROBOT, On11064);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
@@ -226,6 +232,17 @@ namespace Shenxiao.Module.Core.Chat
         // =====================================================================================
         // 接收侧
         // =====================================================================================
+
+        /// <summary>11000 聊天家族统一错误码出口(对标老端 ChatController.ts:412-417 On11000:
+        /// Util.ErrorCodeShow(scmd.error_code, scmd.args),无其它副作用;轮21 覆盖率审计补漏)。
+        /// 错误码表/args 格式化未移植,显码降级(同 DailyController.On15700/GuildController.On40000 先例)。</summary>
+        private void On11000(NetReader r)
+        {
+            int errorCode = (int)r.ReadU32();
+            string args = r.ReadString();
+            TipsManager.Toast("操作失败(" + errorCode + ")");
+            GameLog.Warn("Chat", "11000 聊天家族错误码 code={0} args={1}", errorCode, args);
+        }
 
         private void On11001(NetReader r)
         {
@@ -439,6 +456,33 @@ namespace Shenxiao.Module.Core.Chat
         {
             int type = r.ReadU8();
             GameLog.Info("Chat", "11064 robot chat type={0}(降级:config_jjc_robot/ClientRobotLv 未迁移,不生成假人消息)", type);
+        }
+
+        /// <summary>11016 跨系统红点推送(对标老端 ChatController.ts:640-654 On11016):module_id==339(红包)时,
+        /// 老端先查 guild_id==0 → return(未入会不置位),否则 RedPacketModel.SetRedMark(true);module_id==400
+        /// 且 type==1 时是公会申请数红点(RedDotController.up(GUILD_APPLY,num) + 刷新主界面功能图标)。
+        /// ⚠RedPacket 模块 Model 与公会红点体系均不在聊天包所有权范围(且 GuildController.cs 已注明"本仓
+        /// Guild 红点体系未建"),本号只解包 + 复刻老端的公会门槛前置判断,再 Emit 通用事件留给真消费方接线,
+        /// 不直接落库(对标规格"无消费方就 Emit 事件 + 留痕 TODO")。</summary>
+        private void On11016(NetReader r)
+        {
+            int moduleId = r.ReadU16();
+            int type = r.ReadU16();
+            int num = r.ReadU16();
+            if (moduleId == RedDotModuleRedPacket)
+            {
+                if (RoleModel.Instance.GuildId == 0)
+                {
+                    GameLog.Info("Chat", "11016 红包红点推送但本人未加入公会(guild_id=0),对标老端 return 不置位");
+                    return;
+                }
+                EventDispatcher.Emit(GlobalEvent.EVT_CHAT_RED_DOT_PUSH, moduleId, type, num);
+            }
+            else if (moduleId == RedDotModuleGuild && type == 1)
+            {
+                EventDispatcher.Emit(GlobalEvent.EVT_CHAT_RED_DOT_PUSH, moduleId, type, num);
+            }
+            GameLog.Info("Chat", "11016 跨系统红点推送 module_id={0} type={1} num={2}(消费方 TODO)", moduleId, type, num);
         }
 
         private static ChatMessage ReadMessage(NetReader r)

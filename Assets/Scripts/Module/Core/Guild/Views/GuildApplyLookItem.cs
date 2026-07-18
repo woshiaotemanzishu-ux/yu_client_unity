@@ -38,6 +38,8 @@ namespace Shenxiao.Module.Core.Guild.Views
             CustomHeadItem item = await EnsureHead(_playerHead);
             if (item == null || _data != data) return;
             item.SetRoleData(data.Figure?.career ?? 0, data.Figure?.turn ?? 0, data.Level, showLevel: false);
+            long roleId = data.RoleId;
+            item.SetClickFunc(() => Shenxiao.Module.Core.LookOver.LookOverFlow.Show(roleId));
         }
 
         /// <summary>幂等:_playerHead 容器下已有 CustomHeadItem 直接复用,否则实例化(同 GuildMemberItem 套路)。</summary>

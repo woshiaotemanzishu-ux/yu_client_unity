@@ -50,6 +50,7 @@ namespace Shenxiao.Module.Core.Bag
             RegisterProtocal(Proto.GOODS_EXCHANGE, On15022);
             RegisterProtocal(Proto.GOODS_EXCHANGE_LIST, On15026);
             RegisterProtocal(Proto.GOODS_EXPIRED, On15027);
+            RegisterProtocal(Proto.BAG_FULL_MAIL_NOTICE, On15029);
             RegisterProtocal(Proto.GOODS_RELOAD_NOTICE, On15030);
             RegisterProtocal(Proto.DROP_PICK, On15053);
             RegisterProtocal(Proto.GOODS_BUFF_LIST, On15055);
@@ -468,6 +469,19 @@ namespace Shenxiao.Module.Core.Bag
         {
             SendFmt(Proto.GOODS_EXPIRED, "c", 2);
             GameLog.Info("Bag", "15027 opr=2 发送回收请求");
+        }
+
+        /// <summary>15029 背包已满改邮件发放通知(S2C 主动,轮21 PF 补漏批;对标老端 BagController.ts:147-167
+        /// On15029)。物品已经落进系统邮件(服务端 lib_goods_api.erl:2108-2119 `send_mail_when_no_cell`
+        /// 与本包同一次调用先发本号再发系统邮件),此包只是提醒。老端按 location(4=普通背包/45=星装)弹二次
+        /// 确认框跳转对应页签;Unity 暂无星装(232星座装备)模块与"打开指定背包位置"事件通道,降级为 toast
+        /// 提示,不复刻二次确认框跳转,TODO。</summary>
+        private void On15029(NetReader r)
+        {
+            int state = r.ReadU8();
+            int location = r.ReadU16();
+            TipsManager.Toast("背包已满,物品已通过邮件发送,请前往整理背包");
+            GameLog.Info("Bag", "15029 背包已满改邮件发放 state={0} location={1}(降级为纯提示,未接二次确认跳转,TODO)", state, location);
         }
 
         /// <summary>15030 服务端要求重拉背包(对标 On15030,老端空桩仅重走 GAME_START 流程)。直接复用 15010 请求路径
