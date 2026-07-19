@@ -1,3 +1,4 @@
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -14,6 +15,8 @@ namespace Shenxiao.Module.Core.SeaHegemony
     /// 让升到 400 级、开服 30 天开启四海争霸后图标及时出现。
     /// 砖块/攻防/阵营/官职/特权等所有玩法协议(18601-18624 玩法段/18650-18715)一律不注册,本期只做图标。
     /// 注:老端图标由 18625(报名/结束时间)驱动 addIcon(18601);18607(活动开始/时间)只刷红点、不增删图标,故不注册。
+    /// 轮22 族错误出口批补 18614/18616(舰船/职务错误壳)+ 18700(pt_187 日常家族错误壳,老端也共用本控制器,
+    /// 不新建 187 族 Controller)。
     /// </summary>
     public sealed class SeaHegemonyController : BaseController
     {
@@ -29,6 +32,9 @@ namespace Shenxiao.Module.Core.SeaHegemony
         {
             RegisterProtocal(Proto.SEAHEGEMONY_INFO, On18600);
             RegisterProtocal(Proto.SEAHEGEMONY_SIGNUP, On18625);
+            RegisterProtocal(Proto.SEACRAFT_ERROR_18614, On18614);
+            RegisterProtocal(Proto.SEACRAFT_ERROR_18616, On18616);
+            RegisterProtocal(Proto.SEACRAFT_DAILY_ERROR, On18700);
             // 对标老端 GAME_START→发 18600、等级变化重发链:等级变化时复请求(400级/开服30天开启)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
         }
@@ -101,6 +107,40 @@ namespace Shenxiao.Module.Core.SeaHegemony
             if (role.Level == _lastLevel) return;
             _lastLevel = role.Level;
             RequestStartup();
+        }
+
+        /// <summary>18614 舰船错误出口(对标老端 SeaHegemonyController.ts:301-308:
+        /// scmd&amp;&amp;code!=1→ErrorCodeShow,无其它副作用)。错误码表未移植,显码降级。</summary>
+        private void On18614(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            if (code != 1)
+            {
+                TipsManager.Toast("操作失败(" + code + ")");
+                GameLog.Warn("SeaHegemony", "18614 code={0}", code);
+            }
+        }
+
+        /// <summary>18616 舰船职务/分配错误出口(对标老端 SeaHegemonyController.ts:318-325:
+        /// scmd&amp;&amp;code!=1→ErrorCodeShow,无其它副作用)。错误码表未移植,显码降级。</summary>
+        private void On18616(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            if (code != 1)
+            {
+                TipsManager.Toast("操作失败(" + code + ")");
+                GameLog.Warn("SeaHegemony", "18616 code={0}", code);
+            }
+        }
+
+        /// <summary>18700 四海争霸日常(pt_187)家族统一错误出口(对标老端 SeaHegemonyController.ts:590-595:
+        /// 无条件 ErrorCodeShow(code)——服务端 send_error/2(pp_seacraft_daily.erl:373-376)只在错误分支
+        /// 调用,回包恒为错误码,故老端无 if 守卫直接显码,本端如实镜像)。错误码表未移植,显码降级。</summary>
+        private void On18700(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            TipsManager.Toast("操作失败(" + code + ")");
+            GameLog.Warn("SeaHegemony", "18700 日常错误壳 code={0}", code);
         }
     }
 }

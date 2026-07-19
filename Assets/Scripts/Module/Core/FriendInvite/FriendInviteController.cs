@@ -1,3 +1,4 @@
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -17,6 +18,7 @@ namespace Shenxiao.Module.Core.FriendInvite
     /// LevelChange→init_fun),让升到 30 级且分享开启后图标及时出现。
     ///
     /// 本期只做图标,红点/助力/红包/福利/微信分享(34002~34012、11301/11302)与面板待用户验收。
+    /// 轮22 族错误出口批补 34000(家族统一错误壳)。
     ///
     /// TODO(跨天 11301):老端 FriendInviteController.ts:156 在 DAY_CHANGE 时 SendFmtToGame(11301)
     /// (微信分享次数查询);本端 Proto 尚无 11301/11302 号、FriendInviteModel 亦无对应字段
@@ -36,6 +38,7 @@ namespace Shenxiao.Module.Core.FriendInvite
         protected override void Register()
         {
             RegisterProtocal(Proto.FRIENDINVITE_INFO, On34001);
+            RegisterProtocal(Proto.FRIENDINVITE_ERROR, On34000);
             // 对标老端 CHANGE_LEVEL→LevelChange→init_fun:等级变化时复请求(30级 + 分享开启后显示图标)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             // DAY_CHANGE→11301 未接线,见类头 TODO(F3 裁决4:移除零效果订阅,不留空 handler)。
@@ -89,6 +92,19 @@ namespace Shenxiao.Module.Core.FriendInvite
             if (role.Level == _lastLevel) return;
             _lastLevel = role.Level;
             RequestStartup();
+        }
+
+        /// <summary>34000 好友邀请(pt_340)家族统一错误出口(对标老端 FriendInviteController.ts:160-163
+        /// On34000:无条件 ErrorCodeShow(code,args)。服务端 send_error_code/3(lib_invite.erl:436-441)
+        /// 是多处失败分支共享的错误壳,首字段 Pt 标识触发协议号,老端与本端均只读不透出)。
+        /// 错误码表/args 格式化未移植,显码降级。</summary>
+        private void On34000(NetReader r)
+        {
+            r.ReadU16();              // pt(触发协议号,老端 UI 不消费)
+            int code = (int)r.ReadU32();
+            string args = r.ReadString();
+            TipsManager.Toast("操作失败(" + code + ")");
+            GameLog.Warn("FriendInvite", "34000 家族错误壳 pt-code={0} args={1}", code, args);
         }
     }
 }

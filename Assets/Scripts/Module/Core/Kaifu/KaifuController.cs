@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -41,6 +42,7 @@ namespace Shenxiao.Module.Core.Kaifu
         {
             RegisterProtocal(Proto.KAIFU_INVEST_OPEN, On42004);
             RegisterProtocal(Proto.KAIFU_BOOK_INFO, On42401);
+            RegisterProtocal(Proto.KAIFU_INVEST_ERROR, On42000);
             // 本端加强:等级变化时复请求 42004/42401,让达到开启等级后图标及时出现。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             // 对标老端 DAY_CHANGE→SendFmtToGame(42004)(KaifuActivityController.ts:56)。
@@ -67,6 +69,18 @@ namespace Shenxiao.Module.Core.Kaifu
             SendFmt(Proto.KAIFU_INVEST_OPEN);
             // read(42401,_)->{ok,[]}:裸发,拉契约之书信息驱动 424 图标(老端此请求被注释,这里复活以让 424 生效)。
             SendFmt(Proto.KAIFU_BOOK_INFO);
+        }
+
+        /// <summary>42000 开服投资(pt_420)家族统一错误出口(轮22 族错误出口批;对标老端
+        /// KaifuActivityController.ts:161-164 On42000:无条件 ErrorCodeShow(code,args)。服务端
+        /// send_error/2(lib_investment.erl:413-417)是投资相关多处失败分支共享的错误壳,回包恒为错误码)。
+        /// 错误码表/args 格式化未移植,显码降级。</summary>
+        private void On42000(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            string args = r.ReadString();
+            TipsManager.Toast("操作失败(" + code + ")");
+            GameLog.Warn("Kaifu", "42000 投资家族错误壳 code={0} args={1}", code, args);
         }
 
         // 42004: open_list[u16 count × { type:c, show_id:h, state:c, refresh_time:i }](对标 pt_420 item_to_bin_1)

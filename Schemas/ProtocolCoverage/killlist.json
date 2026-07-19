@@ -1,5 +1,11 @@
 [
   {
+    "cmd": 11005,
+    "reason": "dead_server_param_shape_mismatch",
+    "evidence": "yu_server/src/chat/mod_chat_voice.erl:138 + pt_110.erl:279-285,773",
+    "note": "聊天语音写入结果:唯一调用点传裸整数 Res,而 write(11005,[ErrorCode]) 子句要求列表实参,Erlang 子句不匹配落到 pt_110.erl:773 兜底 write(_,_)->pack(0,<<>>) 发 cmd=0 空包——客户端永远收不到 11005。轮22 PK2 核实,推翻侦察稿三层皆活结论。属服务端在产 bug 家族(cmd=0 空包型,同轮17 待人工清单)。"
+  },
+  {
     "cmd": 11101,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/CheatController.ts:38",
@@ -40,6 +46,12 @@
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/BabyController.ts:609",
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
+  },
+  {
+    "cmd": 18300,
+    "reason": "dead_server_never_writes",
+    "evidence": "yu_server/src/demons/pp_demons.erl(无handle(18300,...)子句);yu_server/src/pt/pt_183.erl:58(仅pack定义)",
+    "note": "族错误出口候选(轮22 PK3,S3 批复核)。老端 DemonController.ts:190-193(On18300)非注释错误码壳,注册点467。服务端 pp_demons.erl 全仓库 grep \"18300\" 零命中——该模块 do_handle 是每号各自内联发送自己的错误码(如18304/18305/18306等,均 send_to_sid(...,pt_183,各自Cmd,...)),不共用18300;经 send_error/send_pt_data 等间接封装模式复核后仍确认18300零真实调用点,catch-all handle(_Code,_,_)->{error,...} 也不对外发包。族路由 mod_server.erl:695 \"183\"->pp_demons Live,但该号本身从未被 write。⚠订正:S3 侦察稿同批给出的另外9个候选中,8个(13400/17900/18905/18918/18920/20600/27909/28012)经本包逐条打开原文复核,实为服务端经 lib_server_send:send_to_sid/send_to_uid(Id,Mod,Cmd,Args) 或 send_error(Id,Args,Cmd)/send_pt_data(Id,Cmd,Args) 等『Cmd 作为参数传入的间接封装』真实调用,简单 grep 'write(cmd' 或 'Mod:write(cmd' 会漏掉这类调用点——本条 18300 与 62107(单独一条)是复核后唯一维持『真死』结论的两个号,不属于该方法论漏洞,详见返回值订正声明表。"
   },
   {
     "cmd": 19007,
@@ -114,10 +126,238 @@
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
   {
+    "cmd": 40024,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/guild/pp_guild.erl:360-404",
+    "note": "公会捐献(轮22 PK3 复核,#13c 订正)。老端 GuildController.ts:643-659 on40024 handler 非空(捐献成功提示+model 更新),但全仓库 grep \"40024\" 无任何 SendFmtToGame/REQUEST_PROTO 发送点;唯一入口 GuildMainItem.ts:71-77 case2 ClickDonate 的 main_func 配置(cdn/resource/config/client/ConfigGuild.json 及 .bak_client_xianxia 变体)main_func 数组均无 id=2(实测 ids=[1,3,4,5,8,9,11,12,13]),按钮不渲染。服务端 pp_guild.erl:360-404 handle(40024,...) 整段注释;真实 write 调用点在 lib_guild_mod.erl:1509(guild_donate/5 函数体内),该函数全仓库 grep 仅 1 处调用者 pp_guild.erl:376(已注释),零真实调用者。路由 mod_server.erl:747 \"400\"->pp_guild:handle 族活,但因无匹配子句落 pp_guild.erl:683 catch-all `{error,\"pp_guild no match\"}`。双端皆死,GuildController.cs:18 既有『死号严禁实现』文档结论一致。"
+  },
+  {
+    "cmd": 40025,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/guild/pp_guild.erl:407-449",
+    "note": "领取活跃度礼包(轮22 PK3 复核,#13c 订正)。老端 GuildController.ts:661-695 on40025 handler 非空,唯一发送点 GuildProgressItem.ts:48 Fire(REQUEST_PROTO,40025,'h',gift_id),但该文件全仓库 grep 未被任何其它 ts import,cdn/js/bundle.js 对 'GuildProgressItem' 零命中,未参与生产构建(死代码)。服务端 pp_guild.erl:407-449 handle(40025,...) 整段注释,write 调用点(447行)本身也在注释块内。族路由活但同样落 catch-all no-match。双端皆死。"
+  },
+  {
+    "cmd": 40026,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/guild/lib_guild_mod.erl:1510",
+    "note": "捐献记录推送(S→C only,pt_400.erl 无 read(40026,...) 子句,轮22 PK3 复核,#13c 订正)。依附 40024 死链:唯一 write(40026,...) 调用点在 lib_guild_mod.erl:1510,与 40024 共享同一个 guild_donate/5 函数体(见 40024 条目,零真实调用者),故同样永不会被推送。老端 on40026(GuildController.ts:697-709)handler 非空但同样不可达。"
+  },
+  {
     "cmd": 40029,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/GuildController.ts:1419",
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
+  },
+  {
+    "cmd": 40041,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/guild/pp_guild.erl:474-479",
+    "note": "研究公会技能(轮22 PK3 复核,#13c 订正)。老端 GuildController.ts:766-773 on40041 handler 非空(只处理 scmd.gfunds),全仓库 grep \"40041\" 除 handler/Register 外无任何发送点。服务端链条本身『接得上』但入口零调用:pp_guild.erl:474-479 handle(40041,[SkillId]) 整段注释(478行是唯一调用 mod_guild:research_skill/2 的地方);该函数经 mod_guild.erl:438(cast)→mod_guild_cast.erl:683→lib_guild_mod.erl:839 最终写40041,但全仓库 grep \"mod_guild:research_skill(\" 唯一调用点就是 pp_guild.erl:478(已注释),零真实调用者。与结社宝箱 40301(#13b已实现)是完全不同的两套系统,不冲突。GuildController.cs:18 既有文档一致。"
+  },
+  {
+    "cmd": 40050,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/guild/GuildMainItem.ts:91-93(case6→ClickExplore),268-269(OpenFunHandler(58))",
+    "note": "结社探索/公会秘境信息(轮22 PK3 复核,#13c 订正)。老端 GuildController.ts:979-990 on40050 handler 非空(排序+SetExploreInfo+红点),但唯一触发链 GuildMainItem.ClickExplore()→OpenFun.OpenFunHandler(58)(h5/src/common/OpenFun.ts:275-280 case58)→GuildModel.CanOpenGuildExplore()→Fire(OPEN_VIEW,'GuildExploreBaseView') 落到的 view class 全仓库 grep 'class GuildExplore' 零命中,cdn/js/bundle.js 内 2 处 'GuildExploreBaseView' 字符串经 python 逐一核对均为 Fire() 调用参数字面量,非 class 声明,window['GuildExploreBaseView'] 恒 undefined。main_func 配置(cdn/resource/config/client/ConfigGuild.json 及 .bak_client_xianxia 变体)main_func 数组无 id=6(实测 ids=[1,3,4,5,8,9,11,12,13]),入口按钮本身不渲染。服务端三层判定活(pp_guild.erl:522-532 handle(40050,...) 非注释→mod_guild_dun_mgr,真实 write 在 lib_guild_dun_mod.erl:138,mod_server.erl:747 \"400\"族路由活),但玩家在老端实际摸不到这套UI(第4层判定标准,轮22立)。"
+  },
+  {
+    "cmd": 40051,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/GuildController.ts:992-1020(on40051,全仓库0处发送点)",
+    "note": "领取积分礼包(轮22 PK3 复核,#13c 订正)。同 40050 根因(唯一入口链死+main_func无id=6),且全仓库 grep 无任何 REQUEST_PROTO/SendFmtToGame(40051) 发送点(连 on40055 结算后也不会二次请求它)。服务端 pp_guild.erl:535-574 handle(40051,...) 非注释,真实校验+发奖,三层判定活,但同属摸不到的探索子系统。"
+  },
+  {
+    "cmd": 40052,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/GuildController.ts:1022-1025(on40052,仅Fire(EXPOLORE_UDPATE_FIGHT_TIME)无消费方)",
+    "note": "副本剩余时间推送(轮22 PK3 复核,#13c 订正)。老端 on40052 只 Fire 一个事件,全仓库 grep 该事件名无任何 .Bind 订阅者(发到空气里)。服务端 pp_guild.erl:576-577 handle(40052,...) 非注释→lib_guild_dun:send_guild_dun_endtime,三层判定活,但同属探索子系统摸不到范畴。"
+  },
+  {
+    "cmd": 40053,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/GuildController.ts:1027-1033(on40053,几乎空,仅code!=1报错提示,全仓库0处发送点)",
+    "note": "进入挑战/开门(轮22 PK3 复核,#13c 订正)。⚠此号在族错误出口侦察(S3)里曾被单独判定为『三层活可接进 GuildController.cs』(handler 体近似纯 ErrorCodeShow 模式),但主控裁决(spec §0 #1)明确推翻此建议——40053 属结社探索/公会秘境子系统(GuildMainItem.ClickExplore 唯一入口,main_func 无 id=6,同 40050),跟随整个探索子系统一并跳过,不单独接入 GuildController 族错误出口列表。服务端 pp_guild.erl:579-592 handle(40053,...) 非注释,三层判定活。"
+  },
+  {
+    "cmd": 40054,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/GuildController.ts:1035-1042(on40054,读scmd.code提示,全仓库grep无任何pt_400:write(40054,...)调用点)",
+    "note": "离开挑战(轮22 PK3 复核,#13c 订正)。C→S 请求处理是活的(pp_guild.erl:594-595 handle(40054,...) 非注释→lib_guild_dun:leave_challenge 真实生效),但 S→C 响应从未被服务端发出(pt_400.erl:694 write(40054,...) 定义存在,全仓库 grep 零调用点),是『单向生效无回执』设计,老端 on40054 的提示分支永远不会触发。同属探索子系统摸不到范畴,不接。"
+  },
+  {
+    "cmd": 40055,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/GuildController.ts:1044-1056(on40055,type!=1分支打开GuildExploreResultView,该class不存在)",
+    "note": "挑战结算(轮22 PK3 复核,#13c 订正)。老端 on40055 真实,type==1 时开宝箱+重拉40050/40058,否则打开 GuildExploreResultView——该 view class 全仓库/bundle.js 均搜不到定义,type!=1分支必抛TypeError。服务端 write 点 lib_guild_dun.erl:116、lib_guild_dun_mod.erl:318 均为真实结算流程,三层判定活,但同属摸不到的探索子系统。"
+  },
+  {
+    "cmd": 40056,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/GuildController.ts:1058-1068(on40056,全仓库0处发送点)",
+    "note": "成员挑战记录列表(轮22 PK3 复核,#13c 订正)。同根因(唯一触发链死+main_func无id=6),全仓库无发送点。服务端 pp_guild.erl:597-603 handle(40056,...) 非注释,三层判定活。"
+  },
+  {
+    "cmd": 40057,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/GuildController.ts:1070-1078(on40057,全仓库0处发送点)",
+    "note": "通风报信(轮22 PK3 复核,#13c 订正)。同根因,全仓库无发送点。服务端 pp_guild.erl:605-611 handle(40057,...) 非注释(含次数限制 err400_no_notify_times),三层判定活。"
+  },
+  {
+    "cmd": 40058,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/GuildController.ts:1080-1086(on40058,发送点同40050,仅被死入口on40055/on40057间接重拉,无独立入口)",
+    "note": "通知记录列表(轮22 PK3 复核,#13c 订正)。同根因,唯一间接触发路径也挂在同一条死链上。服务端 pp_guild.erl:613-619 handle(40058,...) 非注释,三层判定活。"
+  },
+  {
+    "cmd": 40210,
+    "reason": "old_client_never_wired",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl(S-only,pt_402.erl 无 read(40210,...) 子句);老端 h5/src 全仓库 grep \"40210\" 除误伤子串'4021045'外零命中",
+    "note": "个人奖励信息推送(RewardList,轮22 PK3,S2 批复核)。触发源是 mod_guild_feast_mgr:receive_reward(由40215间接触发)。老端 GuildActivityController.ts RegisterProtocal(402xx) 列表(:350-376)未注册40210。服务端进程 mod_guild_feast_mgr 在 gsrv_server_base.erl:127 start_link 活,三层判定活,但老端从未接入这套UI(疑似被『40255自动经验/贡献』路径取代),孤儿协议,不需要迁移。"
+  },
+  {
+    "cmd": 40213,
+    "reason": "old_client_never_wired",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:195;老端 h5/src 全仓库 grep \"40213\" 零命中",
+    "note": "个人奖励信息(Exp/Donate,轮22 PK3,S2 批复核)。server handle(40213,Status,_)(:195)非注释,活跃,调用 mod_guild_feast_mgr:send_role_reward_info。老端 GuildActivityController.ts 未注册该号,全仓库 grep 零命中。三层判定活但老端从未接入,孤儿协议。"
+  },
+  {
+    "cmd": 40215,
+    "reason": "old_client_never_wired",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:206;老端 h5/src 全仓库 grep \"40215\" 零命中",
+    "note": "采集宴席奖励(轮22 PK3,S2 批复核)。server handle(40215,...)(:206)非注释,校验场景+发奖条件→mod_guild_feast_mgr:receive_reward,真实生效。老端全仓库 grep 零命中,从未注册/发送。孤儿协议。"
+  },
+  {
+    "cmd": 40216,
+    "reason": "old_client_never_wired",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:220;老端 h5/src 全仓库 grep \"40216\" 零命中",
+    "note": "累积经验/贡献(纯C2S,pt_402.erl 无对应 write 子句,轮22 PK3,S2 批复核)。server handle(40216,[Type]) when Type==1 orelse Type==2(:220)非注释→mod_guild_feast_mgr:update_acc_reward。老端从未发送/注册,全仓库零命中。孤儿协议。"
+  },
+  {
+    "cmd": 40218,
+    "reason": "dead_server_never_writes",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:242-251 + mod_guild_feast_mgr.erl:416-433",
+    "note": "退出晚宴场景:C2S handle 活(真会退场景,Unity 实现为只发送 RequestExitScene),但 exit_scene 实现从不回写 40218,全仓 grep write(40218 仅命中 pt_402.erl:288-294 定义本身。接收侧死——老端 on40218(GuildActivityController.ts:177-184)是死接收。轮22 PK1 按裁决3 核实。"
+  },
+  {
+    "cmd": 40219,
+    "reason": "old_client_never_wired",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:254;老端 h5/src 全仓库 grep \"40219\" 零命中",
+    "note": "是否能采集宴席奖励(轮22 PK3,S2 批复核)。server handle(40219,...)(:254)非注释,校验发奖条件。老端从未注册/发送,全仓库零命中。孤儿协议,与40210/40213/40215/40216 同属『个人奖励采集』被弃用子玩法。"
+  },
+  {
+    "cmd": 40230,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/guild/GuildMainItem.ts:104-106(case10→ClickGuard),277-282(ClickGuard函数体整段注释)",
+    "note": "进入守卫公会(结社守卫副本,轮22 PK3 裁决2,note引#14)。维持工单 #14(2026-07-13)既有裁决:老端唯一入口 GuildMainItem.ClickGuard()(:277-282)函数体整段注释=死(仅剩注释掉的 DailyModel.GetAcCfg 判断与 Fire(OPEN_VIEW,'GuildGuardBaseView') 两行),main_func 配置(ConfigGuild.json 及 xianxia 变体)main_func 数组无 id=10(实测 ids=[1,3,4,5,8,9,11,12,13]),按钮不渲染;数据层零消费方(r13_oldguild §F 已存档九号字段表供将来复活)。服务端三层判定活(pp_guild_act.erl:284-303 handle(40230,[])非注释→mod_guild_guard:enter_act 真实进入副本,mod_guild_guard 进程 gsrv_server_base.erl:132 start_link 活)但不构成翻案理由——按第4层判定标准(老端UI可达性,轮22立,先例即本条#14)不移植。"
+  },
+  {
+    "cmd": 40231,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/guild/GuildMainItem.ts:277-282(唯一入口ClickGuard死);h5/src/commonController/GuildController.ts:306(RequestBaseInfo批量拉取会发,无消费方)",
+    "note": "获取守卫公会状态(轮22 PK3 裁决2,note引#14)。同 40230 根因(#14),唯一UI入口死。老端 GuildController.ts:306 RequestBaseInfo() 内会无条件 SendFmtToGame(40231)(批量拉取的一部分,不经过死掉的ClickGuard),但注册的 on40231(:1102) 除写 model 字段外无任何 UI 消费方,发了也没人看。服务端 pp_guild_act.erl:306-309 handle(40231,[])非注释→mod_guild_guard:get_info,三层判定活。维持 #14 裁决。"
+  },
+  {
+    "cmd": 40232,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/guild/GuildMainItem.ts:277-282(同40230,唯一入口死);h5/src/commonController/GuildController.ts 全仓库 grep 无 SendFmtToGame(40232) 主动发送点",
+    "note": "获取守卫公会当前挑战波数(轮22 PK3 裁决2,note引#14)。同 40230/40231 根因(#14),唯一UI入口死,且全仓库无主动发送点(不像40231还有批量拉取)。服务端 pp_guild_act.erl:312-315 handle(40232,[])非注释,三层判定活。维持 #14 裁决。"
+  },
+  {
+    "cmd": 40240,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:318",
+    "note": "公会争霸活动信息(轮22 PK3,S2 批复核)。handle(40240,Status,_) 整段注释(:318起);真实 write 调用点 lib_guild_war_mod.erl:977、mod_guild_war_cast.erl:54 均在从未 start_link 的进程模块内。老端 h5/src 全仓库 grep '40240' zero 命中(除 h5/libs/proto402.d.ts 自动生成类型声明外)。服务端 guild_war 子系统(mod_guild_war/mod_guild_war_battle/mod_guild_war_cast/mod_guild_war_call/mod_guild_war_info)全仓库 grep 'mod_guild_war' 在 gsrv_server_base.erl 零命中(对照跨服版 mod_kf_guild_war_local 在 gsrv_server_base.erl:169 也被注释),整个进程族从未 start_link,即便 handle 分支未注释也不可达。"
+  },
+  {
+    "cmd": 40241,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:328",
+    "note": "公会争霸首届界面信息(未开启)(轮22 PK3,S2 批复核)。handle(40241,...) 整段注释;真实 write 调用点 lib_guild_war.erl:177,在从未 start_link 的进程模块内(同 40240 条目 guild_war 子系统死进程结论)。老端全仓库 zero 命中。"
+  },
+  {
+    "cmd": 40242,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:338",
+    "note": "公会争霸首届界面信息(开启)(轮22 PK3,S2 批复核)。handle(40242,...) 整段注释;真实 write 调用点 lib_guild_war.erl:205,同 40240 条目死进程结论。老端全仓库 zero 命中。"
+  },
+  {
+    "cmd": 40243,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:348",
+    "note": "公会争霸界面信息(未开启)(轮22 PK3,S2 批复核)。handle(40243,...) 整段注释;真实 write 调用点 lib_guild_war.erl:216,同 40240 条目死进程结论。老端全仓库 zero 命中。"
+  },
+  {
+    "cmd": 40244,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:358",
+    "note": "公会争霸界面信息(已开启)(轮22 PK3,S2 批复核)。handle(40244,...) 整段注释;真实 write 调用点 lib_guild_war.erl:245,同 40240 条目死进程结论。老端全仓库 zero 命中。"
+  },
+  {
+    "cmd": 40245,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:368",
+    "note": "进入公会争霸场景(轮22 PK3,S2 批复核)。handle(40245,...) 整段注释,调用 mod_guild_war:enter_scene(同样属死进程模块,无对应 pt_402:write(40245,...) 调用点)。同 40240 条目死进程结论。老端全仓库 zero 命中。"
+  },
+  {
+    "cmd": 40246,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:387",
+    "note": "退出公会争霸场景(轮22 PK3,S2 批复核)。handle(40246,...) 整段注释,调用 mod_guild_war:exit_scene(同样属死进程模块,无对应 pt_402:write(40246,...) 调用点)。同 40240 条目死进程结论。老端全仓库 zero 命中。"
+  },
+  {
+    "cmd": 40247,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:398",
+    "note": "公会争霸战斗信息(轮22 PK3,S2 批复核)。handle(40247,...) 整段注释;真实 write 调用点 mod_guild_war_battle.erl:341,同 40240 条目死进程结论。老端全仓库 zero 命中。"
+  },
+  {
+    "cmd": 40248,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_war/mod_guild_war_battle.erl:468",
+    "note": "公会争霸战斗信息更新推送(S→C only,pt_402.erl 无 read(40248,...) 子句,轮22 PK3,S2 批复核)。唯一 write(40248,...) 调用点在 mod_guild_war_battle.erl:468,该模块全仓库 grep 'mod_guild_war' 在 gsrv_server_base.erl 零 start_link 注册,函数体本身是死代码尸体。老端全仓库 zero 命中。"
+  },
+  {
+    "cmd": 40249,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_war/mod_guild_war_battle.erl:545",
+    "note": "公会争霸战斗结果推送(S→C only,pt_402.erl 无 read(40249,...) 子句,轮22 PK3,S2 批复核)。唯一 write(40249,...) 调用点在 mod_guild_war_battle.erl:545,同 40248 条目死进程结论。老端全仓库 zero 命中。"
+  },
+  {
+    "cmd": 40250,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:415",
+    "note": "主宰公会界面信息(轮22 PK3,S2 批复核)。handle(40250,...) 整段注释;真实 write 调用点 mod_guild_war_cast.erl:258,同 40240 条目死进程结论。老端全仓库 zero 命中。"
+  },
+  {
+    "cmd": 40251,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:421",
+    "note": "连胜奖励(轮22 PK3,S2 批复核)。handle(40251,...) 整段注释;真实 write 调用点 mod_guild_war_cast.erl:280,同 40240 条目死进程结论。老端全仓库 zero 命中。"
+  },
+  {
+    "cmd": 40252,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:426",
+    "note": "终结奖励(轮22 PK3,S2 批复核)。handle(40252,...) 整段注释;真实 write 调用点 mod_guild_war_cast.erl:303,同 40240 条目死进程结论。老端全仓库 zero 命中。"
+  },
+  {
+    "cmd": 40253,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:431",
+    "note": "分配奖励(轮22 PK3,S2 批复核)。handle(40253,[Type,SpecifyId,Extra]) 整段注释;真实 write 调用点 lib_guild_war_mod.erl:923,950,同 40240 条目死进程结论。老端全仓库 zero 命中。"
+  },
+  {
+    "cmd": 40254,
+    "reason": "dead_server_handle_commented+process_never_started",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:442",
+    "note": "领取俸禄(轮22 PK3,S2 批复核)。handle(40254,...) 整段注释;真实 write 调用点 mod_guild_war_cast.erl:355,同 40240 条目死进程结论。老端全仓库 zero 命中。"
+  },
+  {
+    "cmd": 40263,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/guild_act/pp_guild_act.erl:624-643(注释)+ lib_guild_feast.erl:1103 + mod_guild_feast_mgr.erl:240-241,1240-1247",
+    "note": "召唤远古巨龙:c2s handle 整段注释;唯一 write(40263 调用点的触发链完全依附已注释 c2s,100% 不可达;kf 模块(mod_kf_guild_feast_topic 等)grep fire|dragon 零命中无接管。老端 EveningDragonCallItem.ts:29 仍在发=发了落 no_match 静默。轮22 PK1 三层核实死透,发送/接收均不实现。"
   },
   {
     "cmd": 40505,
@@ -148,6 +388,12 @@
     "reason": "dead_server_call_site_commented",
     "evidence": "yu_server/src/boss/lib_boss.erl:797-817",
     "note": "深渊BOSS场景内非本人死亡推送:唯一会调用 pt_460:write(46030,..) 的 mon_drop/5 的 BossType==?BOSS_TYPE_ABYSS 子句(含 :802 的 write 调用)从函数定义起被整段注释,ABYSS 类型实际落到 :838 空操作兜底子句。全仓 grep 46030 除 pt_460.erl 定义外零命中。轮21 PF 包实证,订正了审计把它列为『玩家可感知漏号』的误判。"
+  },
+  {
+    "cmd": 62107,
+    "reason": "dead_server_never_writes",
+    "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
+    "note": "退出资格赛场景(轮22 PK3,S3 批复核)。C→S 请求处理链是活的(handle(62107,Status,_)(:78)非注释→mod_kf_1vN_local:quit/5(:71)→do_handle_cast({quit,...})(:390)→跨节点转发 mod_kf_1vN.erl:432 do_handle_cast({quit,Node,...})→lib_kf_1vN:quit_to_main_scene 或场景内部消息,均不产生任何 pt_621:write(62107,...) 调用),但 S→C 响应从未被服务端发出——全仓库 grep \"62107\" 除 handle 子句本身与 pt_621.erl:20(read)/165(write pack定义) 外零命中,含 send_to_sid/send_to_uid/send_error 等间接封装模式复核后仍确认无回包。老端 Kf1vnController.ts:274-277(Handler62107)注册点500,永远收不到这个号,是『请求有效但从无回执』的单向设计,注册接收 handler 不会被触发。"
   },
   {
     "cmd": 65207,

@@ -1,3 +1,4 @@
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -15,6 +16,7 @@ namespace Shenxiao.Module.Core.KfHolyArea
     /// 本期只做图标;场景/建筑/积分/排行/拍卖/死亡疲劳等玩法协议(28400-28423)与面板均待用户验收。
     /// 注:老端 KfHolyAreaMainView.ts:140 另绑 DAY_CHANGE→UpdateModeTips()(面板内文案刷新),该面板的
     /// Unity 数据视图脚本尚未转换(仅有 KfHolyAreaMainViewBind 脚手架),本轮不新建,留后续轮次。
+    /// 轮22 族错误出口批补 28407(退出)+ 28414(家族统一错误壳)。
     /// </summary>
     public sealed class KfHolyAreaController : BaseController
     {
@@ -29,6 +31,8 @@ namespace Shenxiao.Module.Core.KfHolyArea
         protected override void Register()
         {
             RegisterProtocal(Proto.KFHOLYAREA_ACT_STATE, On28410);
+            RegisterProtocal(Proto.KFHOLYAREA_EXIT_ERROR, On28407);
+            RegisterProtocal(Proto.KFHOLYAREA_ERROR, On28414);
             // 对标老端 CHANGE_LEVEL→(level==open_lv)请求 28410:等级变化时复请求。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             // 对标老端 KfHolyAreaController.ts:81-86:DAY_CHANGE→无条件复请求28410+RefreshIcon()
@@ -98,6 +102,25 @@ namespace Shenxiao.Module.Core.KfHolyArea
         {
             RequestStartup();
             RefreshIcon();
+        }
+
+        /// <summary>28407 退出错误出口(对标老端 KfHolyAreaController.ts:272-275:无条件 ErrorCodeShow(code),
+        /// 无其它副作用——服务端不论 IsOut 真假均回此号,老端同样无 if 守卫)。错误码表未移植,显码降级。</summary>
+        private void On28407(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            TipsManager.Toast("操作失败(" + code + ")");
+            GameLog.Warn("KfHolyArea", "28407 退出 code={0}", code);
+        }
+
+        /// <summary>28414 神陨禁区(pt_284)家族统一错误出口(对标老端 KfHolyAreaController.ts:354-357"错误返回",
+        /// 无条件 ErrorCodeShow(code)——服务端 send_error/2(pp_c_sanctuary.erl:16-31,等级不足)与
+        /// lib_sanctuary_cluster_util.erl:162/166 共享此号回包,恒为错误码)。错误码表未移植,显码降级。</summary>
+        private void On28414(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            TipsManager.Toast("操作失败(" + code + ")");
+            GameLog.Warn("KfHolyArea", "28414 家族错误壳 code={0}", code);
         }
     }
 }

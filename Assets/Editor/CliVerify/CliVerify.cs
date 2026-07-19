@@ -490,6 +490,15 @@ namespace Shenxiao.EditorTools
             Run(ProtocolCoverageCase.Run, 300.0);
         }
 
+        /// <summary>轮22 PK1 公会晚宴数据层(pt_402 主体,26号:公会BOSS 40201/03/04/08/09 + 晚宴主流程
+        /// 40211/12/14/17/20/21/22 + 篝火/答题/龙魂/菜肴 40255/56/57/58/59/60/62/64/65/66/67 + 族错误出口
+        /// 40200)合成包驱动 GuildActivityController 反射喂包,断言 GuildActivityModel 落地字段/事件 +
+        /// config 六项计数 + 40214 尾哨兵字节游标核对 + 40218/40261/40263 死号断言(详见 GuildActivityCase 注释)。</summary>
+        public static void GuildActivity()
+        {
+            Run(GuildActivityCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -551,6 +560,7 @@ namespace Shenxiao.EditorTools
                 int lo = await LookOverCase.Run();
                 int fa = await FashionCase.Run();
                 int pc = await ProtocolCoverageCase.Run();
+                int ga = await GuildActivityCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -565,8 +575,8 @@ namespace Shenxiao.EditorTools
                     + " cabiz=" + c5 + " cakfrank=" + c6
                     + " godbefall=" + g1 + " cheaptrio=" + g2 + " fbfestival=" + g3 + " welfare=" + g4 + " scenemisc=" + g5
                     + " market=" + mk + " serverclock=" + sc
-                    + " lookover=" + lo + " fashion=" + fa + " protocolcoverage=" + pc);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, pc })
+                    + " lookover=" + lo + " fashion=" + fa + " protocolcoverage=" + pc + " guildactivity=" + ga);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, pc, ga })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

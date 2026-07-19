@@ -1,3 +1,4 @@
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -14,6 +15,7 @@ namespace Shenxiao.Module.Core.Kf1vn
     /// (对标老端 CHANGE_LEVEL→InitRequest→发 62101),让升到开启等级后图标及时出现;实际是否显示由图标
     /// 配置门(open_lv/open_day,ActivityIconManager.AddIcon 内校验)与 stage 共同把控。
     /// 本期只做图标:报名/竞猜/战斗/结算/兑换等玩法协议(62100/62102~62136)与所有面板均未移植,待用户验收。
+    /// 轮22 族错误出口批补 62103/62132(均无条件 ErrorCodeShow,老端无 if 守卫)。
     /// </summary>
     public sealed class Kf1vnController : BaseController
     {
@@ -28,6 +30,8 @@ namespace Shenxiao.Module.Core.Kf1vn
         protected override void Register()
         {
             RegisterProtocal(Proto.KF1VN_STAGE_INFO, On62101);
+            RegisterProtocal(Proto.KF1VN_ERROR, On62103);
+            RegisterProtocal(Proto.KF1VN_QUIZ_ERROR, On62132);
             // 对标老端 CHANGE_LEVEL→InitRequest 发 62101:等级变化时复请求(达开启等级后图标出现)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             // 对标老端 Kf1vnController.ts:130-137:DAY_CHANGE→若开服天倒退到低于 ConfigFuncOpenCondition
@@ -93,6 +97,25 @@ namespace Shenxiao.Module.Core.Kf1vn
             if (role.Level == _lastLevel) return;
             _lastLevel = role.Level;
             RequestStartup();
+        }
+
+        /// <summary>62103 错误出口(对标老端 Kf1vnController.ts:242-245 Handler62103:
+        /// 无条件 ErrorCodeShow(error_code),无其它副作用)。错误码表未移植,显码降级。</summary>
+        private void On62103(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            TipsManager.Toast("操作失败(" + code + ")");
+            GameLog.Warn("Kf1vn", "62103 code={0}", code);
+        }
+
+        /// <summary>62132 竞猜/匹配相关错误出口(对标老端 Kf1vnController.ts:444-447 Handler62132:
+        /// 无条件 ErrorCodeShow(error_code),忽略 error_args,无其它副作用)。错误码表/args 格式化未移植,显码降级。</summary>
+        private void On62132(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            string args = r.ReadString();
+            TipsManager.Toast("操作失败(" + code + ")");
+            GameLog.Warn("Kf1vn", "62132 code={0} args={1}", code, args);
         }
     }
 }

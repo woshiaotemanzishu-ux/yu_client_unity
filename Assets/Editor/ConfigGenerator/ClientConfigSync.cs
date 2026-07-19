@@ -45,6 +45,8 @@ namespace Shenxiao.EditorTools.ConfigGen
             "ClientFirstBloodShow", // FirstBlood 客户端展示表,轮18 PK3
             "ClientRedBagOpen",     // RedPacket 客户端展示表,轮18 PK2
             "ClientVipWelfare",     // Welfare/VIP 客户端展示表,轮18 PK4
+            "ConfigGuildAct",       // 公会晚宴(GuildActivity,pt_402)客户端展示表:fire_pos_cfg/fire_cfg/
+                                    // evening_intro_cfg/evening_stage_cfg/evening_main_cfg 共5组,自动循环 轮22 PK1
         };
 
         // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)
@@ -157,6 +159,7 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_fashion",              // 时装(pt_413,41300+)基础表,主键"pos@fashion_id@star_lv"(⚠此源=cdn\resource\config\server 实测6420条/星级到200,与服务端data_fashion.erl一致;cdn\assets下1200条/20星是陈旧副本,同config_ring_star的先例),轮21 PA FashionConfigs.GetBaseRow 用
             "config_fashion_color",        // 时装染色表,主键"pos@fashion_id@color_id@star_lv"(此源15180条,同上口径),轮21 PA FashionConfigs.GetColorRow 用
             "config_fashion_model",        // 时装模型表,主键"pos@fashion_id@career@sex@color_id"(704条,两份源一致),轮21 PA FashionConfigs 预留(本轮未强依赖,留展示/第二刀用)
+            "config_guild_activity_gift",  // 公会晚宴(GuildActivity,pt_402)活跃度礼包表(数字键 id,5条),自动循环 轮22 PK1 GuildActivityConfigs.GetGift 用
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

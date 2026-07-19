@@ -14,7 +14,8 @@ namespace Shenxiao.Module.Core.Marriage
     /// 婚姻(征友/戒指/结婚,自动循环 轮16)控制器:pt_172 172xx(征友17200-05/戒指17210-13/求婚·结婚·
     /// 离婚·秀恩爱17222-40/副本匹配邀请17245-97)+ 223xx 鲜花(22300-05)。共 33 号,纯数据层接入
     /// (UI 14 个 View 已烤 Bind 但空壳,本轮不接 View,数据从 MarriageModel 取,消费方留 port-view-bindings
-    /// 尾包,同 15a/15b Boss 先例)。
+    /// 尾包,同 15a/15b Boss 先例)。轮22 族错误出口批补 17263/17264(婚礼场景进出,老端挂
+    /// BanquetController.ts 但协议仍属 pt_172),共 35 号。
     ///
     /// 纪律:①CombatPower 位宽独例——17222(推送)=u32,17226(bin_6/bin_8)与17232=u64,逐号严格照抄 r16,
     /// 勿套统一模板;②17200 bin_0 无 CombatPower 字段;③无 Code 前导帧一批(17205/17222/17224/17226/
@@ -92,6 +93,10 @@ namespace Shenxiao.Module.Core.Marriage
             RegisterProtocal(Proto.MARRIAGE_DUN_INVITE_BUY, On17295);
             RegisterProtocal(Proto.MARRIAGE_DUN_INVITE_PUSH, On17296);
             RegisterProtocal(Proto.MARRIAGE_DUN_INVITE_RESPOND, On17297);
+
+            // ---- 婚礼场景进出错误壳(轮22 族错误出口批;老端挂 BanquetController.ts,协议仍属 pt_172) ----
+            RegisterProtocal(Proto.MARRIAGE_BANQUET_ENTER_SCENE, On17263);
+            RegisterProtocal(Proto.MARRIAGE_BANQUET_LEAVE_SCENE, On17264);
 
             // ---- 鲜花(22300-22305) ----
             RegisterProtocal(Proto.MARRIAGE_FLOWER_ERROR, On22300);
@@ -724,6 +729,25 @@ namespace Shenxiao.Module.Core.Marriage
         {
             Type = r.ReadU8(), RoleId = r.ReadU64(), Figure = FigureProto.Read(r), Power = r.ReadU64(),
         };
+
+        /// <summary>17263 进入婚礼场景错误出口(轮22 族错误出口批;对标老端 BanquetController.ts:202-207
+        /// On17263:code!=1→ErrorCodeShow,无其它副作用。成功分支[check_all 通过]服务端不回本号,
+        /// 走 mod_marriage_wedding_mgr:enter_wedding 场景切换,不臆造成功回调)。</summary>
+        private void On17263(NetReader r)
+        {
+            int code = r.ReadI32();
+            if (code != 1) ShowError(code);
+            GameLog.Info("Marriage", "17263 进入婚礼场景 code={0}", code);
+        }
+
+        /// <summary>17264 离开婚礼场景错误出口(轮22 族错误出口批;对标老端 BanquetController.ts:209-214
+        /// On17264:code!=1→ErrorCodeShow,无其它副作用。成功/失败均回本号,老端成功分支同样无额外动作)。</summary>
+        private void On17264(NetReader r)
+        {
+            int code = r.ReadI32();
+            if (code != 1) ShowError(code);
+            GameLog.Info("Marriage", "17264 离开婚礼场景 code={0}", code);
+        }
 
         private void On17295(NetReader r)
         {

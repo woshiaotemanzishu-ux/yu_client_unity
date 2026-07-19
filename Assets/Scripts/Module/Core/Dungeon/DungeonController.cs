@@ -37,6 +37,9 @@ namespace Shenxiao.Module.Core.Dungeon
     ///      61003·61020 →补发 61121(对标老端 RequestDungeonNum);GAME_START/等级变化/任务推进→
     ///      500ms 防抖对 InitStateDunTypes 白名单批量 61020(对标 CheckAllDunInitState);
     ///      进副本场景(EVT_SCENE_MAP_READY 且 DunId≠0)→固定重发 61004/61018/61030 三连+61019 对账。
+    ///
+    /// 轮22 族错误出口批补 61000(家族统一错误壳)+ 61047(回应邀请进入副本)+ 61092(异兽入侵领取阶段奖励,
+    /// 老端成功分支已注释,纯错误出口)。
     /// </summary>
     public sealed class DungeonController : BaseController
     {
@@ -51,9 +54,12 @@ namespace Shenxiao.Module.Core.Dungeon
 
         protected override void Register()
         {
+            RegisterProtocal(Proto.DUNGEON_ERROR, On61000);
             RegisterProtocal(Proto.DUNGEON_ENTER, On61001);
             RegisterProtocal(Proto.DUNGEON_SETTLE_UI, On61003);
             RegisterProtocal(Proto.DUNGEON_STATE, On61020);
+            RegisterProtocal(Proto.DUNGEON_INVITE_RESPOND, On61047);
+            RegisterProtocal(Proto.DUNGEON_MONSTER_INVASION_REWARD, On61092);
             // 61002(DUNGEON_EXIT)已由 AutoBrushController 注册,红线不可重复注册;Exit() 只发不接。
             RegisterProtocal(Proto.DUNGEON_INFO, On61004);
             RegisterProtocal(Proto.DUNGEON_WAVE_PUSH, On61005);
@@ -305,6 +311,18 @@ namespace Shenxiao.Module.Core.Dungeon
         /// 服务端 guard Rank1&lt;Rank2 且 Rank1&gt;0 且 Rank2≤30,越界静默无响应)。</summary>
         public void RequestPolarRank(int teamDunId) =>
             SendFmt(Proto.POLAR_RANK, "icc", teamDunId, 1, PolarModel.RANK_MAX);
+
+        /// <summary>61000 通用副本(pt_610)家族统一错误出口(对标老端 BaseDungeonController.ts:668-673
+        /// "通用错误返回",无条件 ErrorCodeShow(error_code)。服务端 send_dungeon_msg/2(lib_dungeon.erl:1341-1345)
+        /// 是副本大量失败分支共享的错误壳,回包恒为错误码,老端忽略 error_code_args,本端同样只消费不透出)。
+        /// 错误码表未移植,显码降级。</summary>
+        private void On61000(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            string args = r.ReadString();
+            TipsManager.Toast("操作失败(" + code + ")");
+            GameLog.Warn("Dungeon", "61000 家族错误壳 code={0} args={1}", code, args);
+        }
 
         /// <summary>61001 进入回包:dun_id:i, scene_id:i, error_code:i, error_code_args:s。
         /// error_code==1 成功(对标老端 BaseDungeonController.ts:675~681,与 61002 的"1=成功"同一套约定)。</summary>
@@ -777,6 +795,37 @@ namespace Shenxiao.Module.Core.Dungeon
                 ServerNum = rr.ReadU16(),
             });
             return e;
+        }
+
+        /// <summary>61047 回应邀请进入副本(对标老端 BaseDungeonController.ts:1593-1601 内联 handler:
+        /// code==1 空分支/否则 ErrorCodeShow(code),无其它副作用)。answer 字段老端未读,本端只消费对齐游标。
+        /// 错误码表未移植,显码降级。</summary>
+        private void On61047(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            r.ReadU8();   // answer(老端未消费,仅对齐游标)
+            if (code != 1)
+            {
+                TipsManager.Toast("操作失败(" + code + ")");
+                GameLog.Warn("Dungeon", "61047 回应邀请进入副本失败 code={0}", code);
+            }
+        }
+
+        /// <summary>61092 异兽入侵 领取阶段奖励(对标老端 BaseDungeonController.ts:1848-1857 内联 handler:
+        /// error_code==1 分支 setMonsterInvasionReward 调用**已被老端注释**——纯死代码,运行时无副作用,
+        /// 否则 ErrorCodeShow(error_code)。本端如实镜像"成功也不做事",不臆造奖励消费,仅读完 reward_list
+        /// 保证游标对齐)。错误码表未移植,显码降级。</summary>
+        private void On61092(NetReader r)
+        {
+            r.ReadU32();     // dun_id(老端未读)
+            int code = (int)r.ReadU32();
+            r.ReadU8();      // reward_status(老端未读)
+            r.ReadArray(rr => { rr.ReadU8(); rr.ReadU32(); rr.ReadU32(); return 0; });   // reward_list(老端成功分支已注释,仅对齐游标)
+            if (code != 1)
+            {
+                TipsManager.Toast("操作失败(" + code + ")");
+                GameLog.Warn("Dungeon", "61092 异兽入侵领取阶段奖励失败 code={0}", code);
+            }
         }
 
         /// <summary>61022/61120 共用的 sweep_list 读取+奖励拼平(r9 侦察建议的公共工具,免逐协议复制粘贴):

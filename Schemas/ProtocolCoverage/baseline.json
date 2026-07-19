@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-18 23:36:58",
-  "denominatorNote": "对外只报口径B=活口径:Unity已覆盖627/活协议全集1468=42.7%(脚注口径C=含手写:725/1566=46.3%;口径A=全集口径749/2371=31.6% 分母含死号,禁止对外报)",
-  "totalUnityRegistered": 749,
+  "generatedAt": "2026-07-19 18:16:23",
+  "denominatorNote": "对外只报口径B=活口径:Unity已覆盖666/活协议全集1468=45.4%(脚注口径C=含手写:764/1566=48.8%;口径A=全集口径788/2371=33.2% 分母含死号,禁止对外报)",
+  "totalUnityRegistered": 788,
   "totalClientProtocolDefined": 2371,
   "totalLiveDefined": 1468,
-  "totalLiveGap": 841,
+  "totalLiveGap": 802,
   "totalDeadGap": 879,
-  "liveCoveragePercent": 42.7,
-  "errorExitUnregisteredCount": 50,
+  "liveCoveragePercent": 45.4,
+  "errorExitUnregisteredCount": 34,
   "registeredCmds": [
     10000,
     10003,
@@ -115,6 +115,7 @@
     13320,
     13321,
     13700,
+    13704,
     13800,
     13801,
     13802,
@@ -275,6 +276,8 @@
     17246,
     17249,
     17256,
+    17263,
+    17264,
     17295,
     17296,
     17297,
@@ -283,7 +286,10 @@
     18105,
     18401,
     18600,
+    18614,
+    18616,
     18625,
+    18700,
     18800,
     18801,
     18802,
@@ -409,7 +415,9 @@
     28001,
     28002,
     28003,
+    28407,
     28410,
+    28414,
     30000,
     30001,
     30003,
@@ -512,6 +520,7 @@
     33906,
     33907,
     33908,
+    34000,
     34001,
     40000,
     40001,
@@ -559,6 +568,30 @@
     40107,
     40108,
     40110,
+    40200,
+    40201,
+    40203,
+    40204,
+    40208,
+    40209,
+    40211,
+    40212,
+    40214,
+    40217,
+    40220,
+    40221,
+    40222,
+    40255,
+    40256,
+    40257,
+    40258,
+    40259,
+    40260,
+    40262,
+    40264,
+    40265,
+    40266,
+    40267,
     40300,
     40301,
     40302,
@@ -609,6 +642,7 @@
     41900,
     41903,
     41904,
+    42000,
     42004,
     42401,
     42601,
@@ -727,6 +761,7 @@
     51401,
     51402,
     59004,
+    61000,
     61001,
     61002,
     61003,
@@ -744,6 +779,8 @@
     61025,
     61026,
     61030,
+    61047,
+    61092,
     61117,
     61120,
     61121,
@@ -753,6 +790,8 @@
     61901,
     61902,
     62101,
+    62103,
+    62132,
     64000,
     64001,
     64002,
@@ -846,8 +885,8 @@
     },
     {
       "prefix": 137,
-      "unityRegistered": 1,
-      "liveGap": 21,
+      "unityRegistered": 2,
+      "liveGap": 20,
       "status": "pending"
     },
     {
@@ -1032,15 +1071,19 @@
     },
     {
       "prefix": 172,
-      "unityRegistered": 29,
-      "liveGap": 24,
+      "unityRegistered": 31,
+      "liveGap": 22,
       "status": "pending"
     },
     {
       "prefix": 173,
       "unityRegistered": 0,
       "liveGap": 13,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        17300
+      ]
     },
     {
       "prefix": 174,
@@ -1116,14 +1159,14 @@
     },
     {
       "prefix": 186,
-      "unityRegistered": 2,
-      "liveGap": 32,
+      "unityRegistered": 4,
+      "liveGap": 30,
       "status": "pending"
     },
     {
       "prefix": 187,
-      "unityRegistered": 0,
-      "liveGap": 13,
+      "unityRegistered": 1,
+      "liveGap": 12,
       "status": "pending"
     },
     {
@@ -1238,19 +1281,32 @@
       "prefix": 216,
       "unityRegistered": 0,
       "liveGap": 6,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        21600,
+        21606
+      ]
     },
     {
       "prefix": 217,
       "unityRegistered": 0,
       "liveGap": 3,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        21700
+      ]
     },
     {
       "prefix": 218,
       "unityRegistered": 0,
       "liveGap": 12,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        21800
+      ]
     },
     {
       "prefix": 221,
@@ -1334,7 +1390,11 @@
       "prefix": 281,
       "unityRegistered": 0,
       "liveGap": 15,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        28100
+      ]
     },
     {
       "prefix": 282,
@@ -1346,25 +1406,37 @@
       "prefix": 283,
       "unityRegistered": 0,
       "liveGap": 18,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        28300
+      ]
     },
     {
       "prefix": 284,
-      "unityRegistered": 1,
-      "liveGap": 21,
+      "unityRegistered": 3,
+      "liveGap": 19,
       "status": "pending"
     },
     {
       "prefix": 285,
       "unityRegistered": 0,
       "liveGap": 5,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        28500
+      ]
     },
     {
       "prefix": 286,
       "unityRegistered": 0,
       "liveGap": 10,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        28600
+      ]
     },
     {
       "prefix": 300,
@@ -1388,7 +1460,11 @@
       "prefix": 333,
       "unityRegistered": 0,
       "liveGap": 6,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        33306
+      ]
     },
     {
       "prefix": 338,
@@ -1404,8 +1480,8 @@
     },
     {
       "prefix": 340,
-      "unityRegistered": 1,
-      "liveGap": 12,
+      "unityRegistered": 2,
+      "liveGap": 11,
       "status": "pending"
     },
     {
@@ -1418,13 +1494,18 @@
       "prefix": 399,
       "unityRegistered": 0,
       "liveGap": 7,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        39900
+      ]
     },
     {
       "prefix": 400,
       "unityRegistered": 36,
       "liveGap": 13,
-      "status": "legacy_unverified"
+      "status": "done",
+      "statusNote": "轮22 PK3:该家族此前『legacy_unverified』遗留的全部 13 个未申报活缺口(40024/40025/40026/40041/40050/40051/40052/40053/40054/40055/40056/40057/40058,与 Reports/ProtocolCoverage/coverage_20260719_175131.md 报告的 legacy_unverified 未申报清单逐号一致)本轮已全部落 killlist.json(均带 evidence),满足断言C『活缺口⊆killlist』,由 legacy_unverified 转正 done。工单 #13c 同轮订正(轮21『严重虚标』定性改判为『申报欠账非实现欠账』)。"
     },
     {
       "prefix": 401,
@@ -1434,9 +1515,10 @@
     },
     {
       "prefix": 402,
-      "unityRegistered": 0,
-      "liveGap": 29,
-      "status": "pending"
+      "unityRegistered": 24,
+      "liveGap": 5,
+      "status": "done",
+      "statusNote": "轮22 PK1 接 26 号;活缺口(40218/40263/40230-32 等)已全部 killlist,主控收口转 done"
     },
     {
       "prefix": 403,
@@ -1496,7 +1578,11 @@
       "prefix": 415,
       "unityRegistered": 0,
       "liveGap": 3,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        41500
+      ]
     },
     {
       "prefix": 416,
@@ -1524,8 +1610,8 @@
     },
     {
       "prefix": 420,
-      "unityRegistered": 1,
-      "liveGap": 4,
+      "unityRegistered": 2,
+      "liveGap": 3,
       "status": "pending"
     },
     {
@@ -1658,7 +1744,11 @@
       "prefix": 506,
       "unityRegistered": 0,
       "liveGap": 21,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        50603
+      ]
     },
     {
       "prefix": 507,
@@ -1758,8 +1848,8 @@
     },
     {
       "prefix": 610,
-      "unityRegistered": 17,
-      "liveGap": 37,
+      "unityRegistered": 20,
+      "liveGap": 34,
       "status": "pending"
     },
     {
@@ -1788,8 +1878,8 @@
     },
     {
       "prefix": 621,
-      "unityRegistered": 1,
-      "liveGap": 23,
+      "unityRegistered": 3,
+      "liveGap": 21,
       "status": "pending"
     },
     {
@@ -1814,13 +1904,21 @@
       "prefix": 651,
       "unityRegistered": 0,
       "liveGap": 7,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        65100
+      ]
     },
     {
       "prefix": 652,
       "unityRegistered": 1,
       "liveGap": 6,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        65206
+      ]
     },
     {
       "prefix": 653,
@@ -1832,7 +1930,23 @@
       "prefix": 654,
       "unityRegistered": 0,
       "liveGap": 10,
-      "status": "pending"
+      "status": "pending",
+      "errorExitPending": true,
+      "errorExitCmd": [
+        65400
+      ]
     }
-  ]
+  ],
+  "killlistReasonSchema": {
+    "_note": "轮22 PK3 补(schema注释,非机检字段,ProtocolCoverageBaseline.cs 用 Newtonsoft.Json 默认 MissingMemberHandling=Ignore 反序列化,多出的顶层字段不影响加载)。killlist.json 每条 reason 取值说明:",
+    "dead_empty_body": "老端 RegisterProtocal 的 handler 函数体去注释后为空,ProtocolCoverageScanner 自动判死。",
+    "dead_server_never_writes": "服务端全仓库 grep pt_XXX:write(cmd 及常见间接封装(lib_server_send:send_to_sid/send_to_uid(Id,Mod,Cmd,Args)、send_error(Id,Args,Cmd)、send_pt_data(Id,Cmd,Args) 等『Cmd 作为变量/参数传入』的调用点)后仍确认无真实调用点,只有 pt_XXX.erl 自身的 pack 定义。⚠轮22 PK3 血训:简单文本 grep 'write(cmd' 只能抓直接调用,会漏掉上述三种间接封装,S3 侦察稿同批给出的10个候选里有8个(13400/17900/18905/18918/18920/20600/27909/28012)属于这种漏判,复核后未入killlist(见工单订正声明)。",
+    "dead_server_call_site_commented": "服务端唯一会调用 write(cmd,..) 的分支/函数整段被注释(但 handle/3 本身可能未注释,或另有其它分支)。",
+    "dead_server_handle_commented": "服务端 pp_XXX.erl 对应 handle(cmd,...) 子句整段被注释,c2s 请求无法匹配,落入文件末尾 catch-all 返回 no-match 错误,不回包。",
+    "process_never_started": "该协议依附的服务端进程模块(mod_xxx)在 gsrv_server_base.erl(或对应 supervisor 列表)全仓库无 start_link 注册,即便 handle 分支代码未注释,进程不存在也不可达;通常与 dead_server_handle_commented 组合出现(如 40240-40254)。",
+    "old_client_unreachable": "轮22 立,第4层判定标准。服务端三层判定活(handle 非注释+有真实 write 调用点+族路由 Live),但**老端玩家实际摸不到**——view class 全仓库/bundle.js 均无定义、或唯一入口的 main_func 配置缺对应 id 导致按钮不渲染、或唯一入口函数体本身整段注释。按『事实源=老端客户端』原则不移植。先例:工单 #14(结社守卫)、#24011(组队委任队长)。",
+    "old_client_never_wired": "服务端三层判定活(handle 非注释+有真实 write 调用点+族路由 Live),但**老端从未做出对应 UI/交互**——全仓库 grep 协议号 zero 命中(无 RegisterProtocal、无发送点),是服务端设计完整但老端从未接入的孤儿协议,不需要迁移(老端没做,不必替它做)。",
+    "skip_decision": "非死号,团队/主控裁决主动跳过(如产品范围/优先级决定)。"
+  },
+  "errorExitPendingSchema": "family 条目里 errorExitPending=true 表示该家族含至少一个三层判定为活的『族统一错误码出口』候选(见 errorExitCmd),但因该家族在 Unity 侧尚无对应 Controller(spec §3.5『无对应模块不许新建』),暂不接入;待该家族自己的 Controller 新建轮到来时,应把 errorExitCmd 里的号一并接上,不要因为『只是错误出口』就抢先建 Controller。轮22 PK3 立,覆盖 173/216/217/218/281/283/285/286/333/399/415/506/651/652/654 共15个家族(402 除外——本轮 PK1 正在建 GuildActivityController,不属于『无 Controller』挂起态)。"
 }

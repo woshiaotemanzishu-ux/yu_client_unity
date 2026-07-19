@@ -785,5 +785,55 @@ namespace Shenxiao.Framework.Event
         /// <summary>时装数据变化(无参;41300/41301/41302/41303/41304/41306/41312/41316/41311 落地后发,
         /// 对标老端 FashionModel.Fire(UPDATEVIEW,...)/Fire(UPDATE_FIGHT,...) 的合并简化版)。</summary>
         public const string EVT_FASHION_UPDATE = "EVT_FASHION_UPDATE";
+
+        // ----- 公会晚宴 GuildActivity(pt_402 主体,自动循环 轮22 PK1)-----
+        /// <summary>40200 族错误出口(参数: int errcode)。</summary>
+        public const string EVT_GUILDACT_ERROR = "EVT_GUILDACT_ERROR";
+        /// <summary>40201 公会BOSS信息落地(无参)。</summary>
+        public const string EVT_GUILDACT_BOSS_INFO_UPDATE = "EVT_GUILDACT_BOSS_INFO_UPDATE";
+        /// <summary>40203 兽粮被动推送(参数: long add, long total)。</summary>
+        public const string EVT_GUILDACT_BOSS_MAT_ADD = "EVT_GUILDACT_BOSS_MAT_ADD";
+        /// <summary>40204 召集公会BOSS结果(参数: int errcode)。</summary>
+        public const string EVT_GUILDACT_CALL_BOSS_RESULT = "EVT_GUILDACT_CALL_BOSS_RESULT";
+        /// <summary>40208 BOSS结算推送(无参,读 GuildActivityModel.LastBossResult)。</summary>
+        public const string EVT_GUILDACT_BOSS_RESULT = "EVT_GUILDACT_BOSS_RESULT";
+        /// <summary>40209 自动召唤设置结果(参数: int errcode, int isAuto)。</summary>
+        public const string EVT_GUILDACT_AUTO_DRUM_RESULT = "EVT_GUILDACT_AUTO_DRUM_RESULT";
+        /// <summary>40211 晚宴活动信息落地(核心驱动号,无参)。</summary>
+        public const string EVT_GUILDACT_ACT_INFO_UPDATE = "EVT_GUILDACT_ACT_INFO_UPDATE";
+        /// <summary>40212 进入晚宴场景结果(参数: int errcode)。</summary>
+        public const string EVT_GUILDACT_ENTER_SCENE_RESULT = "EVT_GUILDACT_ENTER_SCENE_RESULT";
+        /// <summary>40214 积分排行榜落地(无参)。</summary>
+        public const string EVT_GUILDACT_RANK_INFO_UPDATE = "EVT_GUILDACT_RANK_INFO_UPDATE";
+        /// <summary>40217 答题信息落地(无参)。</summary>
+        public const string EVT_GUILDACT_QUEST_INFO_UPDATE = "EVT_GUILDACT_QUEST_INFO_UPDATE";
+        /// <summary>40220 个人积分排行落地(无参)。</summary>
+        public const string EVT_GUILDACT_MY_RANK_UPDATE = "EVT_GUILDACT_MY_RANK_UPDATE";
+        /// <summary>40221 小游戏完成状态(参数: bool finished)。</summary>
+        public const string EVT_GUILDACT_MINI_GAME_STATUS = "EVT_GUILDACT_MINI_GAME_STATUS";
+        /// <summary>40222 当日轮换小游戏类型(参数: int gameType)。</summary>
+        public const string EVT_GUILDACT_GAME_TYPE_UPDATE = "EVT_GUILDACT_GAME_TYPE_UPDATE";
+        /// <summary>40255 经验/贡献推送(参数: int type, long exp)。</summary>
+        public const string EVT_GUILDACT_EXP_PUSH = "EVT_GUILDACT_EXP_PUSH";
+        /// <summary>40256 火苗信息落地(无参)。</summary>
+        public const string EVT_GUILDACT_FIRE_INFO_UPDATE = "EVT_GUILDACT_FIRE_INFO_UPDATE";
+        /// <summary>40257 采集火苗奖励推送(无参,读 GuildActivityModel.LastFireReward)。</summary>
+        public const string EVT_GUILDACT_FIRE_REWARD_PUSH = "EVT_GUILDACT_FIRE_REWARD_PUSH";
+        /// <summary>40258 阶段推送(参数: int stage, int time)。</summary>
+        public const string EVT_GUILDACT_STAGE_PUSH = "EVT_GUILDACT_STAGE_PUSH";
+        /// <summary>40259 答题状态推送(参数: int status)。</summary>
+        public const string EVT_GUILDACT_QUESTION_STATUS = "EVT_GUILDACT_QUESTION_STATUS";
+        /// <summary>40260 龙魂信息落地(无参)。</summary>
+        public const string EVT_GUILDACT_DRAGON_INFO_UPDATE = "EVT_GUILDACT_DRAGON_INFO_UPDATE";
+        /// <summary>40262 战斗结果推送(无参,读 GuildActivityModel.LastResult)。</summary>
+        public const string EVT_GUILDACT_RESULT_INFO_UPDATE = "EVT_GUILDACT_RESULT_INFO_UPDATE";
+        /// <summary>40264 购买菜肴结果(参数: bool ok, int code)。</summary>
+        public const string EVT_GUILDACT_FOOD_BUY_RESULT = "EVT_GUILDACT_FOOD_BUY_RESULT";
+        /// <summary>40265 菜肴状态落地(无参)。</summary>
+        public const string EVT_GUILDACT_FOOD_STATUS_UPDATE = "EVT_GUILDACT_FOOD_STATUS_UPDATE";
+        /// <summary>40266 答题积分排名奖励推送(无参,读 GuildActivityModel.LastRankReward)。</summary>
+        public const string EVT_GUILDACT_RANK_REWARD_PUSH = "EVT_GUILDACT_RANK_REWARD_PUSH";
+        /// <summary>40267 经验加成状态落地(参数: long ratio)。</summary>
+        public const string EVT_GUILDACT_EXP_BUFF_UPDATE = "EVT_GUILDACT_EXP_BUFF_UPDATE";
     }
 }

@@ -1,3 +1,4 @@
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -13,6 +14,7 @@ namespace Shenxiao.Module.Core.DiamondFight
     /// 让升到开启等级后图标及时出现。
     /// 本期只做图标:老端 request_data 里的 13703/13716/13721 及面板/报名/竞猜/战斗协议(13701-13724)
     /// 一律不注册、不移植,均待用户验收。
+    /// 轮22 族错误出口批补 13704(进入准备场景,纯错误出口)。
     /// </summary>
     public sealed class DiamondFightController : BaseController
     {
@@ -27,6 +29,7 @@ namespace Shenxiao.Module.Core.DiamondFight
         protected override void Register()
         {
             RegisterProtocal(Proto.DIAMONDFIGHT_INFO, On13700);
+            RegisterProtocal(Proto.DIAMONDFIGHT_ENTER_ERROR, On13704);
             // 对标老端 mainRoleInfo.CHANGE_LEVEL→request_data:等级变化时复请求(达到开启等级后拿 war_state)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
         }
@@ -64,6 +67,18 @@ namespace Shenxiao.Module.Core.DiamondFight
 
             GameLog.Info("DiamondFight", "13700 灵玉大战: war_state={0} end_time={1} open={2}",
                 warState, endTime, m.GetIconOpenState());
+        }
+
+        /// <summary>13704 进入准备场景错误出口(对标老端 DiamondFightController.ts:298-303 On13704:
+        /// code!=1→ErrorCodeShow,无其它副作用)。错误码表未移植,显码降级。</summary>
+        private void On13704(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            if (code != 1)
+            {
+                TipsManager.Toast("操作失败(" + code + ")");
+                GameLog.Warn("DiamondFight", "13704 进入准备场景失败 code={0}", code);
+            }
         }
 
         // 对标老端:主角等级变化复请求 13700(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。

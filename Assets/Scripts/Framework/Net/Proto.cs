@@ -748,16 +748,57 @@
         public const int BANQUET_CALL = 17256; // 婚礼召集/婚礼列表(→172@1 婚礼图标)。read(17256,_)->{ok,[]} 裸请(与婚姻172xx同属pt_172号段,归Banquet占用,自动循环轮16婚姻段不重复定义,交叉见下方"婚姻"段头注释)
         public const int KAIFU_INVEST_OPEN = 42004; // 开服投资活动开启列表(驱动 4205 巅峰投资 / 1112 超值投资图标;裸请求)
         public const int KAIFU_BOOK_INFO = 42401; // 契约之书章节信息(驱动 424 / 424@1 图标;裸请求)
+        /// <summary>开服投资(pt_420)家族统一错误出口(轮22 族错误出口批;对标老端 KaifuActivityController.ts:161-164
+        /// On42000:无条件 ErrorCodeShow(code,args)。服务端 send_error/2(lib_investment.erl:413-417)是投资
+        /// 相关多处失败分支共享的错误壳,回包恒为错误码)。回包(pt_420.erl write(42000,[Code,Args])):code:i, args:s。</summary>
+        public const int KAIFU_INVEST_ERROR = 42000;
         public const int DIAMONDFIGHT_INFO = 13700; // 灵玉/勾玉大战活动状态(war_state 驱动图标137);请求裸发 read(13700,_
+        /// <summary>灵玉大战"进入准备场景"错误出口(轮22 族错误出口批;对标老端 DiamondFightController.ts:298-303
+        /// On13704:code!=1→ErrorCodeShow,无其它副作用)。回包(pt_137.erl write(13704,[Code])):code:i。</summary>
+        public const int DIAMONDFIGHT_ENTER_ERROR = 13704;
         public const int KF1VN_STAGE_INFO = 62101; // 诸天王者(跨服1vn)活动阶段。请求无字段裸发;回包 stage:c, turn:h, edti
-        public const int SEAHEGEMONY_INFO = 18600; // 四海争霸基础信息(阵营/报名态)。请求无参 read(18600,_)->{ok,[]};回包 
+        /// <summary>诸天王者错误出口(轮22 族错误出口批;对标老端 Kf1vnController.ts:242-245 Handler62103:
+        /// 无条件 ErrorCodeShow(error_code),无其它副作用)。回包(pt_621.erl write(62103,[ErrorCode])):code:i。</summary>
+        public const int KF1VN_ERROR = 62103;
+        /// <summary>诸天王者竞猜/匹配相关错误出口(轮22 族错误出口批;对标老端 Kf1vnController.ts:444-447
+        /// Handler62132:无条件 ErrorCodeShow(error_code),忽略 error_args,无其它副作用)。
+        /// 回包(pt_621.erl write(62132,[ErrorCode,ErrorArgs])):code:i, args:s。</summary>
+        public const int KF1VN_QUIZ_ERROR = 62132;
+        public const int SEAHEGEMONY_INFO = 18600; // 四海争霸基础信息(阵营/报名态)。请求无参 read(18600,_)->{ok,[]};回包
         public const int SEAHEGEMONY_SIGNUP = 18625; // 四海争霸报名结束时间。请求无参 read(18625,_)->{ok,[]};回包 end_ti
+        /// <summary>四海争霸(舰船)错误出口(轮22 族错误出口批;对标老端 SeaHegemonyController.ts:301-308,
+        /// scmd&amp;&amp;code!=1→ErrorCodeShow,无其它副作用)。回包(pp_seacraft.erl:261;pt_186.erl
+        /// write(18614,[Code])):code:i。</summary>
+        public const int SEACRAFT_ERROR_18614 = 18614;
+        /// <summary>四海争霸(舰船职务/分配)错误出口(轮22 族错误出口批;对标老端 SeaHegemonyController.ts:318-325,
+        /// scmd&amp;&amp;code!=1→ErrorCodeShow,无其它副作用)。回包(lib_seacraft_mod.erl:1468/1472/1476/1487/1492,
+        /// pp_seacraft.erl:280;pt_186.erl write(18616,[Code])):code:i。</summary>
+        public const int SEACRAFT_ERROR_18616 = 18616;
+        /// <summary>四海争霸日常(pt_187)家族统一错误出口(轮22 族错误出口批;老端也挂在 SeaHegemonyController.ts:590-595,
+        /// 与186共用UI控制器,不新建 Controller;无条件 ErrorCodeShow(code),服务端 send_error/2 是多处
+        /// do_handle 共享的错误壳,回包恒为错误码——对标老端无 if 守卫直接显码)。回包(pp_seacraft_daily.erl:375
+        /// send_error/2;pt_187.erl write(18700,[Code])):code:i。</summary>
+        public const int SEACRAFT_DAILY_ERROR = 18700;
         public const int KFHOLYAREA_ACT_STATE = 28410; // 神陨禁区(跨服圣域)活动状态/时间窗——驱动主界面图标284。请求裸发 read(28410,_
+        /// <summary>神陨禁区"退出"错误出口(轮22 族错误出口批;对标老端 KfHolyAreaController.ts:272-275,
+        /// 无条件 ErrorCodeShow(code),无其它副作用)。回包(pp_c_sanctuary.erl:147-165;pt_284.erl
+        /// write(28407,[ErrCode])):code:i(成功/失败均回此号,老端也是无条件显码)。</summary>
+        public const int KFHOLYAREA_EXIT_ERROR = 28407;
+        /// <summary>神陨禁区(pt_284)家族统一错误出口(轮22 族错误出口批;对标老端 KfHolyAreaController.ts:354-357
+        /// "错误返回",无条件 ErrorCodeShow(code)。服务端 send_error/2(pp_c_sanctuary.erl:16-31,等级不足时
+        /// 触发)+ lib_sanctuary_cluster_util.erl:162/166 共用此号,回包恒为错误码)。
+        /// 回包(pt_284.erl write(28414,[Code])):code:i。</summary>
+        public const int KFHOLYAREA_ERROR = 28414;
         public const int LUNG_STOVE_INFO = 18105; // 神纹熔炉数据(stove_data);回包驱动主界面图标181显隐;请求 read(18105,
         public const int BASEDUNGEON_TOWER_INFO = 61117; // 限时爬塔状态(round/over_time/reward_mode)——驱动限时塔图标 331
         public const int GROWTHBENEFITS_INFO = 41720;      // 成长福利信息/任务态
         public const int GROWTHBENEFITS_TASK_UPDATE = 41721; // 成长福利任务进度推送
         public const int FRIENDINVITE_INFO = 34001;        // 好友邀请/分享信息
+        /// <summary>好友邀请(pt_340)家族统一错误出口(轮22 族错误出口批;对标老端 FriendInviteController.ts:160-163
+        /// On34000:无条件 ErrorCodeShow(code,args)。服务端 send_error_code/3(lib_invite.erl:436-441)是
+        /// 多处失败分支共享的错误壳,首字段 Pt 标识触发协议号,老端不消费该字段,本端同样只读不透出)。
+        /// 回包(pt_340.erl write(34000,[Pt,Code,Args])):pt:h, code:i, args:s。</summary>
+        public const int FRIENDINVITE_ERROR = 34000;
         public const int TOPVIP_INFO = 45101;              // 至尊VIP基础信息
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)
         public const int SEVENDAY_OPEN_INFO = 17500;       // 七天登录信息
@@ -974,6 +1015,11 @@
         public const int OUTWARD_LV_UP = 16029;
 
         // ----- 通用副本(pt_610,yu_server dungeon;老端 BaseDungeonController.ts。御魂本 type=12,dun_id 12001~) -----
+        /// <summary>通用副本(pt_610)家族统一错误出口(轮22 族错误出口批;对标老端 BaseDungeonController.ts:668-673
+        /// "通用错误返回",无条件 ErrorCodeShow(error_code)。服务端 send_dungeon_msg/2(lib_dungeon.erl:1341-1345)
+        /// 是副本大量失败分支共享的错误壳,回包恒为错误码,老端忽略 error_code_args 字段)。
+        /// 回包(pt_610.erl write(61000,[ErrorCode,ErrorCodeArgs])):code:i, args:s。</summary>
+        public const int DUNGEON_ERROR = 61000;
         /// <summary>进入副本(发 "i" dun_id;回包 dun_id:i, scene_id:i, error_code:i, error_code_args:s)。
         /// 主线 100980(ctype9 id=12)=通关御魂本1层一次、101522(ctype57)=到3层。</summary>
         public const int DUNGEON_ENTER = 61001;
@@ -1059,6 +1105,17 @@
         /// <summary>资源副本次数信息(对标老端 RequestDungeonNum;61020 处理完资源副本类型后补发本号)。
         /// 发 "c"(dun_type;0=查全部资源副本类型);回包 count_list[u16×{dun_type:c,sweep_count:h,challenge_count:h}]。</summary>
         public const int DUNGEON_RESOURCE_COUNT = 61121;
+        /// <summary>回应邀请进入副本(轮22 族错误出口批;对标老端 BaseDungeonController.ts:1593-1601 内联
+        /// handler:code==1 空分支/否则 ErrorCodeShow(code),无其它副作用)。回包(lib_dungeon.erl:2988
+        /// offline_answer_invite_dun/1;pt_610.erl write(61047,[Code,Answer])):code:i, answer:c
+        /// (answer 老端未读,本端同样只消费不透出)。</summary>
+        public const int DUNGEON_INVITE_RESPOND = 61047;
+        /// <summary>异兽入侵 领取阶段奖励(轮22 族错误出口批;对标老端 BaseDungeonController.ts:1848-1857
+        /// 内联handler:error_code==1 分支 setMonsterInvasionReward 调用**已被老端注释**[纯死代码,运行时
+        /// 无副作用],否则 ErrorCodeShow(error_code)——本端如实镜像"成功也不做事",不臆造奖励消费)。
+        /// 回包(pp_dungeon.erl:631/643/648/652;pt_610.erl write(61092,[DunId,ErrorCode,RewardStatus,RewardList])):
+        /// dun_id:i, code:i, reward_status:c, reward_list[u16×{style:c,typeId:i,num:i}]。</summary>
+        public const int DUNGEON_MONSTER_INVASION_REWARD = 61092;
 
         // 以下号跳过(仅存说明,不写代码;轮9 双端侦察定案,见 r9_olddungeon/r9_server):
         // 61006(事件触发)/61014(剧情播放列表)/61016(结算界面2关卡)/61017(跳过副本)/61024(副本可用性)/
@@ -2277,6 +2334,18 @@
         /// 核对原文订正为带 Code(本代理 §1 裁决)。死链 UI(MarriageMatchView/MatchTipsView 未定义类,OPEN
         /// 静默失败),数据层仍照接解析落地+发事件,UI 消费方留尾包。</summary>
         public const int MARRIAGE_DUN_MATCH_RESULT = 17246;
+
+        /// <summary>进入婚礼场景(轮22 族错误出口批;老端挂在 BanquetController.ts:202-207 On17263,
+        /// code!=1→ErrorCodeShow,无其它副作用;协议属 pt_172 婚姻族)。回包(pp_marriage.erl:1979/1985,
+        /// mod_marriage_wedding_mgr.erl:1424;pt_172.erl write(17263,[Code])):code:i。
+        /// ⚠成功分支(check_all 通过)不回本号,由 mod_marriage_wedding_mgr:enter_wedding 走场景切换,
+        /// 本端只镜像老端"失败才提示"的错误壳,不臆造成功回调。</summary>
+        public const int MARRIAGE_BANQUET_ENTER_SCENE = 17263;
+        /// <summary>离开婚礼场景(轮22 族错误出口批;老端 BanquetController.ts:209-214 On17264,
+        /// code!=1→ErrorCodeShow,无其它副作用)。回包(pp_marriage.erl:1992-2005,
+        /// pt_172.erl write(17264,[Code])):code:i(成功/失败均回此号)。</summary>
+        public const int MARRIAGE_BANQUET_LEAVE_SCENE = 17264;
+
         /// <summary>邀请伴侣购买副本次数(C2S "i" dun_id)。S2C Code:32。</summary>
         public const int MARRIAGE_DUN_INVITE_BUY = 17295;
         /// <summary>收到伴侣购买副本次数邀请推送(无 read,无 Code 前缀)。S2C RoleId:64,RoleName:s,DunId:32。</summary>
@@ -2952,5 +3021,116 @@
         /// (item_to_bin_4,pt_413.erl:368)。对标老端 On41311(FashionController.ts:337-344)
         /// role_vo.ChangeVar("fashion_model_list", scmd.fashion_equip)。</summary>
         public const int FASHION_FIGURE_PUSH = 41311;
+
+        // ----- 公会晚宴 GuildActivity(pt_402 主体,yu_server src/guild_act/;老端 commonController/
+        // GuildActivityController.ts。自动循环 轮22 PK1:26 号(公会BOSS 40201/03/04/08/09 + 晚宴主流程
+        // 40211/12/14/17/20/21/22 + 篝火/答题/龙魂/菜肴 40255/56/57/58/59/60/62/64/65/66/67 + 族错误出口
+        // 40200)。结社守卫(40230-32)按主控裁决2 全部 killlist,不在此列;40263(召唤远古巨龙)三层死透
+        // (c2s pp_guild_act.erl:624-643 整段注释,S2C 唯一调用链 lib_guild_feast.erl:1096-1127→
+        // mod_guild_feast_mgr.erl:240-241,1240-1247 均只被该已注释 c2s 触达,kf 模块 mod_kf_guild_feast_topic
+        // 核实与 dragon/fire 无关——全仓 grep 零命中,无接管),发送/接收均不实现,不建常量,归 PK3 killlist。 -----
+        /// <summary>40200 族错误出口(Errcode:32,通用错误码包,pp_guild_act.erl send_error_code/2 到处调用)。
+        /// 老端 on40200→Util.ErrorCodeShow。纯 S-only,无 c2s。</summary>
+        public const int GUILDFEAST_ERROR = 40200;
+        /// <summary>40201 公会BOSS信息(Etime:32,AutoDrumupTime:32,DunId:32,GbossMat:32,RemainTimes:8,
+        /// IsAuto:8,IsDrumToday:8,MonState:8)。C2S 空包,GAME_START 后老端恒发(ts:83)。
+        /// server handle(40201,_)(pp_guild_act.erl:27)→mod_guild_boss:send_gboss_info。</summary>
+        public const int GUILDFEAST_BOSS_INFO = 40201;
+        /// <summary>40203 兽粮被动推送(AddGbossMat:32,GbossMat:32)。**c2s"上交兽粮"已注释**
+        /// (pp_guild_act.erl:47-74),纯内部触发(mod_guild_boss.erl:311,由 lib_gift_new.erl:541/
+        /// lib_goods_api.erl:670,674 拾取/使用神兽诱饵物料时调用),本端只接收不发送。</summary>
+        public const int GUILDFEAST_BOSS_MAT_ADD = 40203;
+        /// <summary>40204 召集公会BOSS(Errcode:32,RoleId:64)。C2S 空包(会长/副会长权限)。
+        /// server handle(40204,_)(pp_guild_act.erl:77+)→mod_guild_boss:drum_up。</summary>
+        public const int GUILDFEAST_BOSS_CALL = 40204;
+        /// <summary>40208 BOSS结算推送(GbossResult:8,FixReward[Gtype:8,GtypeId:32,Gnum:**16**独例],
+        /// AuctionReward[同结构])。无独立 c2s(战斗结算内部推送,mod_guild_boss.erl:971)。</summary>
+        public const int GUILDFEAST_BOSS_RESULT = 40208;
+        /// <summary>40209 设置自动召唤(Errcode:32,IsAuto:8)。C2S 带 IsAuto:8。
+        /// server handle(40209,[IsAuto])(pp_guild_act.erl:137)。</summary>
+        public const int GUILDFEAST_BOSS_AUTO = 40209;
+        /// <summary>40211 晚宴活动信息(核心驱动号:Status:8,ActEndTime:32,Etime:32,Stage:8)。C2S 空包,
+        /// GAME_START 后老端恒发+切场景重发(ts:85,109,161)。server handle(40211,_)(L152)→
+        /// mod_guild_feast_mgr:send_act_info。是驱动整个晚宴 UI 状态机的核心号(老端 CheckOpenView 按
+        /// Stage 决定弹哪个面板,本轮 UI 不接,数据先落地)。</summary>
+        public const int GUILDFEAST_ACT_INFO = 40211;
+        /// <summary>40212 进入晚宴场景(Errcode:32)。C2S 空包。server handle(40212,_)(L157)多重校验
+        /// (GM关闭/场景/等级/公会等级)。errcode==1 老端重发 40211(ts:160-161)。</summary>
+        public const int GUILDFEAST_ENTER_SCENE = 40212;
+        /// <summary>40214 积分排行榜(IsKf:8,GuildList[u16×{GuildId:64,ServerNum:32,GuildName,GuildScore:32,
+        /// GuildRank:16}],RankList[u16×{SerId:32,SerNum:32,Rank:16,Name,Score:32}])。C2S 空包。
+        /// server handle(40214,_)(L200)→send_quiz_rank。</summary>
+        public const int GUILDFEAST_RANK_INFO = 40214;
+        /// <summary>40217 答题信息(Status:8,Etime:32,No:32,Id:64)。C2S 空包(须在晚宴场景)。
+        /// server handle(40217,_)(L231)。</summary>
+        public const int GUILDFEAST_QUEST_INFO = 40217;
+        /// <summary>40218 退出晚宴场景。**仅 C2S 空包(退出场景请求,有真实副作用:
+        /// lib_scene:player_change_scene+mod_guild_feast_mgr:exit_scene,pp_guild_act.erl:242-251),
+        /// 严禁注册接收**——全仓 grep "write(40218" 只命中 pt_402.erl:288-294 的函数定义本身,
+        /// 无任何调用点(mod_guild_feast_mgr.erl:416-433 的 exit_scene 内部实现里没有回写 40218);
+        /// 老端 GuildActivityController.ts:177-184 注册的 on40218 是永远不会触发的死接收(镜像
+        /// "40054 单向生效无回执"先例,主控裁决3)。</summary>
+        public const int GUILDFEAST_EXIT_SCENE = 40218;
+        /// <summary>40220 个人积分排行(Rank:16,Point:64)。C2S 空包。server handle(40220,_)(L268)。</summary>
+        public const int GUILDFEAST_MY_RANK = 40220;
+        /// <summary>40221 小游戏是否已完成(IsFinish:8)。C2S 空包。server handle(40221,_)(L274)。</summary>
+        public const int GUILDFEAST_MINI_GAME_STATUS = 40221;
+        /// <summary>40222 当日轮换小游戏类型(GameType:8,1=答题/2=消消乐)。C2S 空包。
+        /// server handle(40222,_)(L279)。</summary>
+        public const int GUILDFEAST_GAME_TYPE = 40222;
+        /// <summary>40255 经验/贡献推送(Type:8,Exp:64)。**纯被动收,老端从未主动发送**(全仓 zero
+        /// Fire(REQUEST_PROTO,40255)/SendFmtToGame(40255)),真正驱动号是玩家在晚宴场景获得经验时
+        /// player/lib_player.erl:460 内部直调 mod_guild_feast_mgr:send_exp_by_cast,不经 c2s。
+        /// ⚠pp_guild_act.erl 有两条 handle(40255,...)子句(L463 无判别性 [_Type] 在前,L522 篝火经验
+        /// [Type==1] 在后)——Erlang 子句顺序匹配,第二条永久不可达(r22 侦察已证实,轮13a 疑点坐实),
+        /// 但因老端根本不发起 c2s 40255,该遮蔽不影响现网表现,本端按"只会推 Type=1"实现接收即可。
+        /// 不提供发送方法。</summary>
+        public const int GUILDFEAST_EXP_PUSH = 40255;
+        /// <summary>40256 火苗信息(Wave:32,NextTime:64)。C2S 空包。server handle(40256,[])(L474)。</summary>
+        public const int GUILDFEAST_FIRE_INFO = 40256;
+        /// <summary>40257 采集火苗奖励推送(RewardList,pt:write_object_list 标准格式 u16计数+
+        /// {Type:8,TypeId:32,Num:32})。**c2s"点击火苗采集"已死**——pp_guild_act.erl:487-496 整段注释,
+        /// 唯一 c2s 触发链 mod_guild_feast_mgr:collect_fire(RoleId,FireId,GuildId)(L164-165)→cast→
+        /// do_handle_event(L702-739)无任何存活调用点(唯一调用方就是已注释的 c2s)。**但 S2C 推送本身另有
+        /// 存活触发链**:lib_mon_event.erl:110,239(通用怪物击杀事件)→mod_guild_feast_mgr:kill_boss→
+        /// lib_guild_feast.erl:905 collect_fire(MonId,AtterId,State)→pt_402:write(40257,...)(:938)——
+        /// 即当前版本"采集火苗"已改为"在场景里击杀火苗怪"触发,不再是点击 c2s;老端
+        /// GuildActivityController.ts 也只注册 on40257 接收,全仓 zero 主动发送,与此吻合。本端按纯被动
+        /// 推送实现接收,不提供发送方法(主控裁决4 核实结论)。</summary>
+        public const int GUILDFEAST_FIRE_REWARD = 40257;
+        /// <summary>40258 阶段推送(Stage:8,Time:16)。无对应 c2s(pt_402.erl 无 read(40258)子句,纯推送)。
+        /// 老端 on40258 取出即弃(占位),本端如实落地供尾包消费。</summary>
+        public const int GUILDFEAST_STAGE_PUSH = 40258;
+        /// <summary>40259 答题(推送 Status:8;C2S 带 Answer:8)。server handle(40259,[Answer])(L500)→
+        /// mod_guild_feast_mgr:quiz_answer,与 pp_chat.erl:115,147 共享同一 quiz_answer 函数(答题也可经
+        /// 聊天频道触发,老端未走该路径,本端不复刻聊天侧触发)。</summary>
+        public const int GUILDFEAST_ANSWER = 40259;
+        /// <summary>40260 龙魂信息(DragonSpirit:64)。C2S 空包。server handle(40260,[])(L509)。
+        /// 40261 购买成功后由 add_dragon_spirit 内部广播本号刷新(mod_guild_feast_mgr.erl:855-858)。</summary>
+        public const int GUILDFEAST_DRAGON_INFO = 40260;
+        /// <summary>40261 购买龙魂(**仅 C2S**,字段名沿用 pt_402.erl 的"DragonSpirit:64"但语义是购买数量
+        /// Num——lib_guild_feast.erl:561-579 buy_dragon_spirit/4 签名即为 Num)。pt_402.erl 全仓无
+        /// write(40261 子句,老端 on40261 也是空函数占位(ts:217-219),**严禁注册接收**:失败走 40200
+        /// 通用错误包(:578),成功由 mod_guild_feast_mgr:add_dragon_spirit 内部广播 40260 刷新
+        /// (:575→mod_guild_feast_mgr.erl:855-858),不是遗漏。</summary>
+        public const int GUILDFEAST_BUY_DRAGON_SPIRIT = 40261;
+        /// <summary>40262 战斗结果推送(Status:8,RewardList 标准ObjectList)。无独立 c2s(战斗结算内部推送)。
+        /// 老端对应弹窗分支已被注释(ts:224-228),仅 model.SetResultInfo 落地,UI 未接。</summary>
+        public const int GUILDFEAST_RESULT_INFO = 40262;
+        /// <summary>40264 购买菜肴(Code:32,FoodList[u16×{Type:8,Status:8}])。C2S 带 Type:8。
+        /// server handle(40264,[Type])(L532)含高级菜肴每公会限购一次校验。</summary>
+        public const int GUILDFEAST_FOOD_BUY = 40264;
+        /// <summary>40265 菜肴状态(FoodList[u16×{Type:8,Status:8}])。C2S 空包。
+        /// server handle(40265,[])(L599)。</summary>
+        public const int GUILDFEAST_FOOD_STATUS = 40265;
+        /// <summary>40266 答题积分排名奖励(Rank:32,Reward 标准ObjectList)。**纯 S-only 推送,无对应 c2s**
+        /// (pt_402.erl 无 read(40266)子句)。触发链:mod_guild_feast_mgr.erl:797-814 阶段切换时
+        /// {'pre_enter_dragon',...}内部事件(非kf分支)→lib_guild_feast:quest_calc_reward(L390-)→
+        /// lib_player:apply_cast(...,send_topic_reward_in_ps,...)(L398-399)→
+        /// send_topic_reward_in_ps/3(L1430-1443)→pt_402:write(40266,...)(:1437),全链存活确认;
+        /// kf(跨服)分支改走 mod_kf_guild_feast_topic:end_act(不影响本号非kf路径的存活判定)。</summary>
+        public const int GUILDFEAST_RANK_REWARD = 40266;
+        /// <summary>40267 经验加成状态(Ratio:32)。C2S 空包。server handle(40267,[])(L612)。</summary>
+        public const int GUILDFEAST_EXP_BUFF = 40267;
     }
 }
