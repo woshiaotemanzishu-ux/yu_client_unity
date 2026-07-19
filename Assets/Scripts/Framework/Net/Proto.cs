@@ -3132,5 +3132,265 @@
         public const int GUILDFEAST_RANK_REWARD = 40266;
         /// <summary>40267 经验加成状态(Ratio:32)。C2S 空包。server handle(40267,[])(L612)。</summary>
         public const int GUILDFEAST_EXP_BUFF = 40267;
+
+        // ===================================================================================
+        // 232 星宿核心(pp_constellation_equip,pt_232.erl 直接处理段;族路由 mod_server.erl:720
+        // "232"→pp_constellation_equip:handle/3。开放门禁:OpenDay&gt;=open_day_limit(=0) 且
+        // Figure.lv&gt;=open_lv(config_constellation_kv,=560),不满足静默 skip——**唯二例外 23250/23255**
+        // 门禁外也放行(pp_constellation_equip.erl:40 `Cmd==23250 orelse Cmd==23255`)。
+        // 23204(单星宿总属性查询)按主控裁决1 killlist:老端注册 On23204 但全仓零发送点(请求方向死),
+        // 响应永不触发——不发不收,本段不建常量(同 40218/40263 先例"永不触发的接收严禁注册")。
+        // 星宿锻造(chc,PK2 段)分段追加于本段之后,见 <see cref="STARFORGE_STREN_INFO"/> 起。
+        // ===================================================================================
+
+        /// <summary>23200 族错误出口(ErrorCode:32,ErrorCodeArgs:string)。全家族 send_error 统一出口
+        /// (pp_constellation_equip.erl:764-768 send_error/2),23202/23203/23205/23207(隐含)/23209/23250/
+        /// 23254/23255/23257 等"自身无 Code 字段"的号失败时均走这里。⚠老端 On23200 特判
+        /// error_code==1500081(err150_compose_fail)时 Fire COM_FAIL 而非通用 ErrorCodeShow——但全仓 grep
+        /// pp_constellation_equip.erl 未发现任何 send_error(...,err150_compose_fail) 调用点(该错误码两处
+        /// 用例都直接 pt_232:write(23252,...)自己的号,见 <see cref="STAREQUIP_COMPOSE"/>),故此特判在当前
+        /// 服务端实现下是死分支,本端仍照抄镜像(不删,防止以后服务端改动激活)。</summary>
+        public const int STAREQUIP_ERROR = 23200;
+
+        /// <summary>23201 总览(C2S 空包;S2C 无 Code)。响应 write(23201,[TotalStar:16,ItemList_Len:16+
+        /// ItemList[item_to_bin_0:{Page:32,Power:64,NormalNum:8,SpecialNum:8,Attr(attr_list),IsActive:8}]])。
+        /// ⚠TotalStar 是 **u16**,不是 32 位。服务端 do_handle(23201,PS,[])(pp_constellation_equip.erl:49-59)
+        /// 无失败分支,恒回本号。老端 StarEquipController.ts:147-172 on23201——**关键副作用**:落地前若
+        /// model.totalStar!=scmd.total_star,额外补发 <see cref="STAREQUIP_STAR_MASTER_INFO"/>(ts:150-151);
+        /// 触发链见 GAME_START(ts:470)/CHANGE_LEVEL==580(ts:461,阈值取自 ConfigFuncOpenCondition
+        /// ["StarEquipView"].open_lv,与服务端门禁 560 是两个不同来源的数字,本端用 FuncOpenConfig 共享设施
+        /// 做等价的"跨越开放阈值"判定,不完全照抄老端"=="精确匹配,见 StarEquipController 类注释)。</summary>
+        public const int STAREQUIP_OVERVIEW = 23201;
+
+        /// <summary>23202 穿戴(C2S "lic" GoodsAutoId:64,ConstellationId(页):32,IsReplace:8;S2C **无 Code**,
+        /// 仅成功才回本号)。响应 write(23202,[GoodsId:64,GoodsTypeId:32])。失败(装备不存在/校验不过/
+        /// 事务失败)一律 send_error→<see cref="STAREQUIP_ERROR"/>,不会带 Code 回本号——本号本身恒等于成功。
+        /// 服务端 do_handle(23202,...)(pp_constellation_equip.erl:62-195),写在 :156。
+        /// 老端请求 StarChangeEquipItem.ts:45,响应 StarEquipController.ts:174-207 on23202(额外拉
+        /// config_constellation_strength/enchantment/spirit 三张 PK2 配表转交 chcModel.UpdateEquipHandle,
+        /// 本轮数据层不移植该 UI 联动,留尾包/PK2 对接)。</summary>
+        public const int STAREQUIP_WEAR = 23202;
+
+        /// <summary>23203 卸下(C2S "ic" ConstellationId(页):32,Pos:8;S2C **无 Code**,仅成功回本号)。
+        /// 响应 write(23203,[GoodsId:64,GoodsTypeId:32])(卸下的那件装备的 id/type_id)。失败同样一律
+        /// send_error→23200。服务端 do_handle(23203,...)(pp_constellation_equip.erl:198-264),写在 :248。
+        /// 老端请求 StarEquipToolTip.ts:245,响应 StarEquipController.ts:209-242 on23203(与 23202 共享同一套
+        /// UpdateEquipHandle 联动,同上不移植)。</summary>
+        public const int STAREQUIP_UNWEAR = 23203;
+
+        /// <summary>23205 星级大师界面(C2S 空包;S2C 无 Code)。响应 write(23205,[Level:16,MaxLevel:16,
+        /// Star:16,Power:32])。服务端 do_handle(23205,PS,[])(pp_constellation_equip.erl:280-291),失败
+        /// (StarStaus 记录形状不对,实践中不会发生)走 send_error→23200。老端 StarEquipController.ts:252-275
+        /// on23205——星数下降到低于已点亮的大师等级时弹窗提示,并按红点/功能图标刷新(UI 派生逻辑,本轮
+        /// 数据层不移植)。触发链见 <see cref="STAREQUIP_OVERVIEW"/> 注释与 GAME_START/CHANGE_LEVEL。</summary>
+        public const int STAREQUIP_STAR_MASTER_INFO = 23205;
+
+        /// <summary>23206 星级大师升级(C2S "h" StarLevel:16;S2C **自带 Code**,不走 23200——服务端两个分支
+        /// 都直接写本号:失败 write(23206,[Code:32,0,0]),成功 write(23206,[?SUCCESS,StarLevel:16,
+        /// NewPower:32]))。服务端 do_handle(23206,...)(pp_constellation_equip.erl:294-323),写在 :303/:316。
+        /// 老端请求/响应 StarEquipController.ts:277-296 on23206。</summary>
+        public const int STAREQUIP_STAR_MASTER_UP = 23206;
+
+        /// <summary>23207 吞噬界面信息(C2S 空包;S2C 无 Code,do_handle 无失败分支恒回本号)。响应
+        /// write(23207,[Level:16,Exp:32,Power:32,Color:8,Star:8])。服务端
+        /// pp_constellation_equip.erl:326-333,写在 :331。老端 StarEquipController.ts:298-308 on23207。
+        /// 触发链:GAME_START 恒发(ts:471);CHANGE_LEVEL==580 补发(ts:463,与 23201/23205 同批)。</summary>
+        public const int STAREQUIP_DEVOUR_INFO = 23207;
+
+        /// <summary>23208 吞噬品质/星级筛选(C2S "cc" NewColor:8,NewStar:8;S2C **Code 在末尾**——
+        /// write(23208,[NewColor:8,NewStar:8,?SUCCESS:32]),失败经 send_error→23200,本号自身恒为成功)。
+        /// 服务端校验 NewColor/NewStar 是否在 config_constellation_kv 的 decompose_color_status/
+        /// decompose_star_status 枚举内(pp_constellation_equip.erl:336-353,写在 :348)。
+        /// 老端 StarEquipController.ts:310-321 on23208。</summary>
+        public const int STAREQUIP_DEVOUR_TAB = 23208;
+
+        /// <summary>23209 吞噬执行(C2S 变长数组:WriteBegin(23209)+WriteFMT("h",count)+逐个
+        /// WriteFMT("l",materialGoodsAutoId),对标 StarEquipController.ts:61-69 REQUEST_DEVOUR;
+        /// 服务端 read(23209,Bin0) 用 pt:read_array 读回同一形状——u16 计数+N×u64。S2C **无 Code**,仅成功
+        /// 回本号:write(23209,[NewLevel:16,NewExp:32,NewPower:32])——**无 Color/Star 字段**(吞噬执行不改
+        /// 筛选态)。失败一律 send_error→23200。服务端 pp_constellation_equip.erl:356-417,写在 :407。
+        /// 老端响应 StarEquipController.ts:323-332 on23209。</summary>
+        public const int STAREQUIP_DEVOUR = 23209;
+
+        /// <summary>23250 装备属性预览/tips(C2S "ll" RoleId:64,GoodsAutoId:64;S2C **无 Code**)。
+        /// 响应 write(23250,[GoodsId:64,Score:32,SendDsgt[item_to_bin_7],StarAttrCfg[item_to_bin_8],
+        /// StarAttr(attr_list),SuitNum:16,SuitAttr(attr_list),BaseAttr(attr_list),ExtraAttr(attr_list),
+        /// StrenAttr/EvoluAttr/MasterAttr/SpiritAttr(均 attr_list,来自 PK2 锻造系统贡献值),BaseRating:32])。
+        /// RoleId!=自己时经 lib_player:apply_cast 跨进程查询他人装备(get_tips_msg 导出函数,
+        /// pp_constellation_equip.erl:420-427/1055-1111,写在 :1108)。⚠**门禁豁免号之一**:未达
+        /// open_lv/open_day_limit 也放行(:40)。老端请求 StarEquipToolTip.ts 等多处,响应
+        /// StarEquipController.ts:334-339 on23250。</summary>
+        public const int STAREQUIP_TIPS_PREVIEW = 23250;
+
+        /// <summary>23251 星数被动推送(**无对应 C2S**——pt_232.erl 无 read(23251) 子句,纯服务端主动推)。
+        /// 响应形状与 23205 完全一致:write(23251,[Level:16,MaxLevel:16,Star:16,Power:32])。触发点
+        /// lib_constellation_equip:notify_client_star(穿脱装备/合成/蜕变等星数变化时调用,如
+        /// pp_constellation_equip.erl:166/254/743)。老端 StarEquipController.ts:341-366 on23251——星数
+        /// **下降**到低于已点亮大师等级时弹窗提示(与 23205 的弹窗方向相反,23205 是首次达标提示"可点亮",
+        /// 23251 是回退提示"部分属性失效",UI 派生逻辑本轮不移植)。</summary>
+        public const int STAREQUIP_STAR_PUSH = 23251;
+
+        /// <summary>23252 合成(C2S 变长:WriteBegin(23252)+"i" RuleId+3 组"h"计数+N×"l" 材料id
+        /// [IrregularGlist/RegularGlist/RatioGlist],对标 StarEquipController.ts:71-90 COM_REQUEST;
+        /// S2C **自带 Code,四个不同出口都写本号,不经 23200**:①check_compose 前置校验失败→
+        /// write(23252,[Code,RuleId,[]])(pp_constellation_equip.erl:554-556);②材料扣除失败→
+        /// write(23252,[err150_compose_fail=1500081,RuleId,[]])(:539-541);③随机判定失败(未中奖)→
+        /// 同 err150_compose_fail(:528-530);④成功→write(23252,[err150_compose_success=1500080,RuleId,
+        /// SendList[item_to_bin_9:{GoodsId:64,GoodsTypeId:32}]])(:472-480)。老端 On23252(ts:368-379):
+        /// code∈{1,1500080}→COM_SUCCESS;code==1500081→COM_FAIL;其余→ErrorCodeShow。</summary>
+        public const int STAREQUIP_COMPOSE = 23252;
+
+        /// <summary>23253 解锁星宿页(C2S "i" ConstellationId(页):32;S2C **末尾 Code,但本号自身恒为成功**——
+        /// write(23253,[ConstellationId:32,?SUCCESS:32]),已激活/条件不满足两个失败分支都 send_error→23200,
+        /// 不会带非 1 的 Code 回本号)。服务端 pp_constellation_equip.erl:560-583,写在 :573。
+        /// 老端响应 StarEquipController.ts:381-404 on23253(成功后重发 <see cref="STAREQUIP_OVERVIEW"/>
+        /// 刷新总览,ts:398)。</summary>
+        public const int STAREQUIP_UNLOCK_PAGE = 23253;
+
+        /// <summary>23254 蜕变/属性转移预览对比(C2S "ll" GoodsAutoId:64,TargetGoodsAutoId:64;S2C **无
+        /// Code**)。响应字段序与 <see cref="STAREQUIP_TIPS_PREVIEW"/> 相同,仅在最前多一个
+        /// TargetGoodsAutoId:64(write(23254,[GoodsId:64,TargetGoodsId:64,Score:32,...(其余同23250)...]))。
+        /// 服务端 pp_constellation_equip.erl:585-636,写在 :632。老端响应 StarEquipController.ts:406-413
+        /// on23254(model.transfromCache 单槽缓存,与 23255 共用 Fire(TRANSFROM_PREVIEW,...))。</summary>
+        public const int STAREQUIP_TRANSFORM_PREVIEW = 23254;
+
+        /// <summary>23255 按 goods_type_id 维度的类型 tips(C2S "i" GoodsTypeId:32;S2C **无 Code**)。
+        /// 响应比 23250/23254 精简(无 SuitAttr/锻造四段属性):write(23255,[GoodsTypeId:32,Score:32,
+        /// SendDsgt[item_to_bin_12],StarAttrCfg[item_to_bin_13],StarAttr(attr_list),SuitNum:16,
+        /// BaseAttr(attr_list),ExtraAttr(attr_list),BaseRating:32])。⚠**门禁豁免号之二**:未达
+        /// open_lv/open_day_limit 也放行(pp_constellation_equip.erl:40)。服务端 :639-672,写在 :664。
+        /// 老端响应 StarEquipController.ts:415-421 on23255(model.typePreviewCache[goods_id] 分桶缓存)。</summary>
+        public const int STAREQUIP_TYPE_TIPS_PREVIEW = 23255;
+
+        /// <summary>23256 合成次数/特殊配方倒计时信息(C2S "i" ComposeId:32;S2C 无 Code,do_handle 无失败
+        /// 分支恒回本号)。响应 write(23256,[ComposeId:32,Times:16,Index:16,Num:16])。服务端
+        /// pp_constellation_equip.erl:674-692,写在 :690(缺配置时防御性 Index=Num=Times=0)。
+        /// 老端响应 StarEquipController.ts:423-429 on23256(model.comSpNumList[compose_id] 分桶缓存)。</summary>
+        public const int STAREQUIP_COMPOSE_TIME = 23256;
+
+        /// <summary>23257 蜕变/属性转移执行(C2S "ll" CostGoodsAutoId:64,TargetGoodsAutoId:64;S2C
+        /// **单字段 Res:32,仅成功回本号**——write(23257,[?SUCCESS])(pp_constellation_equip.erl:694-758,写在
+        /// :728);check_translate 校验失败/事务失败均 send_error→23200,本号自身恒为成功,不会带非 1 的
+        /// Res)。服务端成功后额外重发 <see cref="STAREQUIP_STAR_PUSH"/>(若星数变化,:747 evolution_info 是
+        /// PK2 锻造侧联动)。老端响应 StarEquipController.ts:431-438 on23257——**空 if 块**(`if(scmd.res==1){}`,
+        /// 老端未接任何动作),本端如实落地 Res 并补发一个事件供尾包消费(比老端多做但无害,同本仓"照接
+        /// 解析落地"惯例)。</summary>
+        public const int STAREQUIP_TRANSFORM = 23257;
+
+        // ===================================================================================
+        // 232 星宿锻造(chc,pt_232 兜底转发段;族路由 mod_server.erl:720 "232"→pp_constellation_equip,
+        // 未匹配 cmd 经 pp_constellation_equip.erl:760-762 兜底转发给 pp_constellation_forge:handle/3)。
+        // 轮23 PK2。四子系统:1强化STREN/2进化EVO/3附魔MAGIC(客户端UI显示"觉醒")/4启灵SOUL,类型码不在
+        // wire 上传输,由 cmd 号本身区分(23210系/23220系/23230系/23240系)。星宿装备主系统(23200-23209/
+        // 23250-23257)属 StarEquipController 段(PK1),就近但分段追加于此之前。
+        // 门禁:客户端总开关 chcModel.OPEN_LV=560(硬编码);服务端每子系统各自 open_lv=580
+        // (config_constellation_forge_kv id1/2/3/5,yu_server constellation_forge.hrl:10-14)。
+        // ===================================================================================
+
+        /// <summary>23210 强化界面数据(S2C,请求 c2s "c" TypeId)。
+        /// 响应 pt_232.erl write(23210,[Code:32,TypeId:8,Stage:32,IsMax:8,Buff:16,
+        /// EquipList_Len:16+EquipList[{EquipId:64,Pos:8,Lv:32}]])。服务端 lib_constellation_forge.erl:185-197
+        /// strength_info/2(写在 :196),门禁 pp_constellation_forge.erl:24-32(RoleLv&gt;=?STRENGTH_LV,不满足
+        /// 静默 skip,不回包不报错)。老端 chcController.ts:196-210 on23210。</summary>
+        public const int STARFORGE_STREN_INFO = 23210;
+
+        /// <summary>23211 强化动作(C2S "ccc" TypeId,Pos,Type[恒0,强化无自动购买语义];S2C)。
+        /// 响应 pt_232.erl write(23211,[Code:32,TypeId:8,Pos:8,Type:8,Buff:16,Lv:32])。服务端
+        /// lib_constellation_forge.erl:200-212 strength/4→strength_done(:474-504,写在 :498);门禁/失败
+        /// pp_constellation_forge.erl:35-49。老端请求 chcStrenView.ts:98,响应 chcController.ts:212-232。
+        /// ⚠本号还会"被动"收到两类误发的失败回包(服务端 bug,Unity 不 workaround,原样按本号格式解析即可):
+        ///   ① 23231(附魔)失败/等级不足分支——pp_constellation_forge.erl:127,131 误发 23211(裁决2,字段形状
+        ///      与本号 6 字段一致,数值语义对得上,无害误投)。
+        ///   ② 23221(进化)失败/等级不足分支——pp_constellation_forge.erl:99,103 同样误发 23211(裁决2/侦察
+        ///      档案未点出此第二例,本轮 PK2 直接读 pp_constellation_forge.erl 独立核实发现;且此例字段形状
+        ///      对不上:[ErroCode,EVOLUTION_FAIL(=0),TypeId,EquipId(64位),Pos,0] 硬套进
+        ///      [Code,TypeId,Pos,Type,Buff,Lv] 6 字段模具,EquipId 被砍到 Type:8 只剩低8位,TypeId/Pos 错位
+        ///      —— 语义比①更烂,但客户端侧仍旧只是"按 23211 格式老实解析",不会抛异常,只是显示的
+        ///      TypeId/Pos/Type/Lv 是垃圾值,Code 字段本身还是真错误码可正常提示。)</summary>
+        public const int STARFORGE_STREN_ACTION = 23211;
+
+        /// <summary>23212 强化大师界面(S2C,请求 c2s "c" TypeId)。响应 write(23212,[Code:32,TypeId:8,
+        /// MasterList_Len:16+MasterList[{MasterLv:32,Status:8}]])。服务端 lib_constellation_forge.erl:215-224
+        /// strength_master_info/2(写在 :223),门禁 pp_constellation_forge.erl:52-60。
+        /// 老端 chcController.ts:234-238 on23212。</summary>
+        public const int STARFORGE_STREN_MASTER_INFO = 23212;
+
+        /// <summary>23213 点亮强化大师(C2S "c" TypeId;S2C)。响应 write(23213,[Code:32,TypeId:8,MasterLv:32])。
+        /// 服务端 lib_constellation_forge.erl:227-247 lighten_strength_master(写在 :244);门禁/失败
+        /// pp_constellation_forge.erl:64-77。老端请求 chcMasterView.ts:68,响应 chcController.ts:240-258
+        /// (成功后 Toast"点亮成功"+自行重发 23210 刷新强化界面,:254)。</summary>
+        public const int STARFORGE_STREN_MASTER_LIGHT = 23213;
+
+        /// <summary>23220 进化界面数据(S2C,请求 c2s "c" TypeId)。响应 write(23220,[Code:32,TypeId:8,
+        /// EquipList_Len:16+EquipList[{EquipId:64,Pos:8,Lv:32,AttrNum:16}]])。服务端
+        /// lib_constellation_forge.erl:250-255 evolution_info/2(写在 :254),门禁 pp_constellation_forge.erl:80-88。
+        /// 老端 chcController.ts:260-274 on23220。</summary>
+        public const int STARFORGE_EVO_INFO = 23220;
+
+        /// <summary>23221 进化动作(C2S 专用通道,非通用 REQUEST_PROTO——因带变长数组,老端走
+        /// chcModel.SEND_EVO_PROTO→WriteBegin(23221)+WriteFMT("c",TypeId)+WriteFMT("l",EquipId)+
+        /// WriteFMT("c",Pos)+WriteFMT("h",count)+逐个WriteFMT("l",CequipId),chcController.ts:62-75;
+        /// S2C)。响应 write(23221,[Code:32,IsSuccess:8,TypeId:8,EquipId:64,Pos:8,Lv:32,AttrId:32])。
+        /// 服务端 lib_constellation_forge.erl:258-265 evolution/5→check_evolution(:528-563)→
+        /// evolution_done(:618-652,成功/失败两分支写在 :641/:646)→evolution_done_core(:654-694,含蜕变
+        /// 星数/传闻广播)。门禁/请求本身失败 pp_constellation_forge.erl:91-105(⚠:99,:103 把失败/等级不足
+        /// 误发成 23211,见 <see cref="STARFORGE_STREN_ACTION"/> 注释②)。老端响应 chcController.ts:276-296
+        /// on23221;⚠真正走到 on23221(即 Code==1)的分支必然是"请求本身有效",此时 IsSuccess 才代表随机
+        /// 判定的进化成功/失败(evolution_done_help urand:rand(1,10000),lib_constellation_forge.erl:635),
+        /// 而 Code!=1 的分支因上述误发 bug 在当前服务端实现下已不可达(死代码但照抄,不删)。
+        /// 裁决3"借号"写法(老端已知非 bug,照实现):lib_constellation_forge.erl:631 evolution_done_help 里
+        /// `#goods{id = GoodsId, goods_id = GId} = NewGoodsInfo`——局部变量名 GoodsId 实际绑定的是
+        /// `.id`(装备实例自增 id,语义应叫 EquipId),GId 才是真正的静态模板 id(语义应叫 GoodsId);
+        /// 对比 :665 evolution_done_core 里 `#goods{id = EquipId, goods_id = GoodsId}` 才是"正常"命名。
+        /// 写出去的 wire EquipId 字段值本身是对的(装备实例 id),只是这处局部变量名被"借用"反了,
+        /// 纯命名混乱不是功能 bug——Unity 侧照单收字段即可,不必纠结命名。</summary>
+        public const int STARFORGE_EVO_ACTION = 23221;
+
+        /// <summary>23230 附魔(客户端UI"觉醒")界面数据(S2C,请求 c2s "c" TypeId)。响应
+        /// write(23230,[Code:32,TypeId:8,Stage:32,IsMax:8,EquipList_Len:16+EquipList[{EquipId:64,Pos:8,Lv:32}]])
+        /// ⚠比 23210 少一个 Buff:16 字段,不要对齐错位。服务端 lib_constellation_forge.erl:268-275
+        /// enchantment_info/2(写在 :274),门禁 pp_constellation_forge.erl:108-116。
+        /// 老端 chcController.ts:298-311 on23230。</summary>
+        public const int STARFORGE_MAGIC_INFO = 23230;
+
+        /// <summary>23231 附魔(客户端UI"觉醒")动作(C2S "ccc" TypeId,Pos,Type[0/1,材料不足时是否自动
+        /// 购买消耗品];S2C)。⚠响应 write(23231,[Code:32,TypeId:8,Pos:8,Type:32,Lv:32])——Type 字段响应侧
+        /// 是 32 位,请求侧是 8 位,读写宽度不对称,照抄不要按请求宽度去读响应。服务端
+        /// lib_constellation_forge.erl:279-291 enchantment/4→enchantment_done(:726-753,写在 :749);门禁/失败
+        /// pp_constellation_forge.erl:119-133(⚠:127,:131 失败/等级不足分支误发 23211 而非 23231,裁决2,
+        /// Unity 不 workaround,见 <see cref="STARFORGE_STREN_ACTION"/> 注释①)。老端请求 chcMagicView.ts:97,
+        /// 响应 chcController.ts:313-330。</summary>
+        public const int STARFORGE_MAGIC_ACTION = 23231;
+
+        /// <summary>23232 附魔大师界面(S2C,请求 c2s "c" TypeId)。响应 write(23232,[Code:32,TypeId:8,
+        /// MasterList_Len:16+MasterList[{MasterLv:32,Status:8}]])。服务端 lib_constellation_forge.erl:294-303
+        /// enchantment_master_info(写在 :302),门禁 pp_constellation_forge.erl:136-144。
+        /// 老端 chcController.ts:332-335 on23232。</summary>
+        public const int STARFORGE_MAGIC_MASTER_INFO = 23232;
+
+        /// <summary>23233 点亮附魔大师(C2S "c" TypeId;S2C)。响应 write(23233,[Code:32,TypeId:8,MasterLv:32])。
+        /// 服务端 lib_constellation_forge.erl:306-326 lighten_enchantment_master(写在 :321,该函数内调用
+        /// :314 的 lighten_enchantment_master_do 助手拿到结果后才发送,发送点本身在外层非 _do 函数里,
+        /// 核实原文订正,勿与 :755-783 的 _do 助手混淆);服务端在成功
+        /// 分支内部还会额外主动重推一次 23210(:323 `strength_info(LastPlayer,EquipType)`——附魔大师的百分比
+        /// 加成会改变强化显示属性,服务端自己推送刷新,不用客户端另外请求);门禁/失败
+        /// pp_constellation_forge.erl:147-160。老端请求 chcMasterView.ts:70,响应 chcController.ts:337-354
+        /// (成功后 Toast"点亮成功"+自行重发 23230 刷新附魔界面,:350——与服务端的 23210 被动刷新是两件
+        /// 不同的事,互不冲突)。</summary>
+        public const int STARFORGE_MAGIC_MASTER_LIGHT = 23233;
+
+        /// <summary>23240 启灵界面数据(S2C,请求 c2s "c" TypeId)。响应 write(23240,[Code:32,TypeId:8,
+        /// EquipList_Len:16+EquipList[{EquipId:64,Pos:8,IsSpirit:8}]])。服务端 lib_constellation_forge.erl:329-334
+        /// spirit_info/2(写在 :333),门禁 pp_constellation_forge.erl:163-170。
+        /// 老端 chcController.ts:356-364 on23240。</summary>
+        public const int STARFORGE_SOUL_INFO = 23240;
+
+        /// <summary>23241 启灵动作(C2S "cc" TypeId,Pos;S2C)。响应 write(23241,[Code:32,TypeId:8,Pos:8,
+        /// IsSpirit:8])。服务端 lib_constellation_forge.erl:337-379 spirit/3(写在 :358;已启灵重复请求直接
+        /// {false,err232_no_cfg}不经 send,:343);门禁/失败 pp_constellation_forge.erl:173-186——本号两个失败
+        /// 分支都正确发回本号自己(23241),没有 23211/23231 那种误路由 bug,自洽。老端请求 chcSoulView.ts:80,
+        /// 响应 chcController.ts:366-384(成功后 Fire(OPEN_VIEW,"chcSuccessView",scmd)弹窗,Unity 侧改走
+        /// EVT_STARFORGE_ACTION_RESULT 事件通知,留给尾包 UI 消费)。</summary>
+        public const int STARFORGE_SOUL_ACTION = 23241;
     }
 }

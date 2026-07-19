@@ -47,6 +47,7 @@ namespace Shenxiao.EditorTools.ConfigGen
             "ClientVipWelfare",     // Welfare/VIP 客户端展示表,轮18 PK4
             "ConfigGuildAct",       // 公会晚宴(GuildActivity,pt_402)客户端展示表:fire_pos_cfg/fire_cfg/
                                     // evening_intro_cfg/evening_stage_cfg/evening_main_cfg 共5组,自动循环 轮22 PK1
+            "ConfigConstellation",  // 星宿(StarEquip)客户端专属星图坐标表(star_point_cfg,UI 用),轮23 PK1
         };
 
         // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)
@@ -160,6 +161,22 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_fashion_color",        // 时装染色表,主键"pos@fashion_id@color_id@star_lv"(此源15180条,同上口径),轮21 PA FashionConfigs.GetColorRow 用
             "config_fashion_model",        // 时装模型表,主键"pos@fashion_id@career@sex@color_id"(704条,两份源一致),轮21 PA FashionConfigs 预留(本轮未强依赖,留展示/第二刀用)
             "config_guild_activity_gift",  // 公会晚宴(GuildActivity,pt_402)活跃度礼包表(数字键 id,5条),自动循环 轮22 PK1 GuildActivityConfigs.GetGift 用
+            "config_constellation_equip",           // 星宿(StarEquip pt_232)装备基础表(180条,数字键 goods_id),轮23 PK1 StarEquipConfigs.GetEquipInfo 用
+            "config_constellation_page",             // 星宿套装页表(5条,数字键 page),轮23 PK1 StarEquipConfigs.GetPageInfo 用
+            "config_constellation_compose",          // 星宿合成规则表(20条,数字键 id),轮23 PK1 StarEquipConfigs.GetComposeInfo 用
+            "config_constellation_decompose",        // 星宿吞噬等级表(2000条,数字键 lv),轮23 PK1 StarEquipConfigs.GetDecomposeInfo 用
+            "config_constellation_pos",               // 星宿装备位表(10条,数字键 pos),轮23 PK1 StarEquipConfigs.GetPos 用
+            "config_constellation_kv",                // 星宿核心杂项KV(6条,具名键;open_lv=560/open_day_limit=0 等),轮23 PK1 StarEquipConfigs.GetKv 用
+            "config_constellation_strength",          // 星宿锻造-强化表(876条,复合键"type@pos@lv"),轮23 PK2 消费,本类只加载
+            "config_constellation_strength_buff",     // 星宿锻造-强化额外Buff表(15条,复合键"type@lv"),轮23 PK2 消费
+            "config_constellation_strength_master",   // 星宿锻造-强化大师表(23条,复合键"type@lv"),轮23 PK2 消费
+            "config_constellation_enchantment",       // 星宿锻造-附魔(觉醒)表(930条,复合键"type@pos@lv"),轮23 PK2 消费
+            "config_constellation_enchantment_master", // 星宿锻造-附魔大师表(55条,复合键"type@lv"),轮23 PK2 消费
+            "config_constellation_evolution",         // 星宿锻造-进化表(222条,复合键"type@pos@lv"),轮23 PK2 消费
+            "config_constellation_evolution_pool",    // 星宿锻造-进化属性池表(30条,复合键"type@pos"),轮23 PK2 消费
+            "config_constellation_evolution_rate",    // ⚠源表实测0条(空表存疑,见 StarEquipConfigs.GetEvolutionRateRaw 注释),轮23 PK2 占位加载
+            "config_constellation_spirit",             // 星宿锻造-启灵表(30条,复合键"type@pos"),轮23 PK2 消费
+            "config_constellation_forge_kv",           // 星宿锻造杂项KV(10条,数字键 id;四子系统开放等级580+类型码),轮23 PK1/PK2 共用
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

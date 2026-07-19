@@ -499,6 +499,23 @@ namespace Shenxiao.EditorTools
             Run(GuildActivityCase.Run, 300.0);
         }
 
+        /// <summary>轮23 PK1 星宿核心数据层(pt_232 23200-23209/23250-23257,17号)合成包驱动
+        /// StarEquipController 反射喂包,断言 StarEquipModel 落地字段/事件 + config 17 表计数 +
+        /// 23201/23250 尾哨兵字节游标核对 + 23204 killlist 死号断言(详见 StarEquipCase 注释)。
+        /// 星宿锻造(chc/StarForge,PK2,23210-23241)独立 StarForgeCase.cs,由主控收口挂。</summary>
+        public static void StarEquip()
+        {
+            Run(StarEquipCase.Run, 300.0);
+        }
+
+        /// <summary>轮23 PK2 星宿锻造(chc,pt_232 兜底转发段 23210-23241,12号:强化/进化/
+        /// 觉醒[服务端叫附魔]/启灵四子系统 + 强化·附魔大师)。含 23231 失败分支服务端误发 23211 的
+        /// 容忍性断言与嵌套数组尾哨兵核对(详见 StarForgeCase 注释)。</summary>
+        public static void StarForge()
+        {
+            Run(StarForgeCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -561,6 +578,8 @@ namespace Shenxiao.EditorTools
                 int fa = await FashionCase.Run();
                 int pc = await ProtocolCoverageCase.Run();
                 int ga = await GuildActivityCase.Run();
+                int se = await StarEquipCase.Run();
+                int sf = await StarForgeCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -575,8 +594,9 @@ namespace Shenxiao.EditorTools
                     + " cabiz=" + c5 + " cakfrank=" + c6
                     + " godbefall=" + g1 + " cheaptrio=" + g2 + " fbfestival=" + g3 + " welfare=" + g4 + " scenemisc=" + g5
                     + " market=" + mk + " serverclock=" + sc
-                    + " lookover=" + lo + " fashion=" + fa + " protocolcoverage=" + pc + " guildactivity=" + ga);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, pc, ga })
+                    + " lookover=" + lo + " fashion=" + fa + " protocolcoverage=" + pc + " guildactivity=" + ga
+                    + " starequip=" + se + " starforge=" + sf);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, pc, ga, se, sf })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

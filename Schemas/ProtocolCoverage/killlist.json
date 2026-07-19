@@ -96,6 +96,12 @@
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
   {
+    "cmd": 23204,
+    "reason": "old_client_unreachable",
+    "evidence": "yu_client/h5/src/commonController/StarEquipController.ts:244,444 + 全仓 grep SendFmtToGame(23204 零命中",
+    "note": "单星宿总属性查询:老端注册了 On23204(handler 非空)且服务端 pp_constellation_equip.erl:267-277 handle 真实处理,但老端全仓零发送点=请求方向死、响应永不触发(半死活尸型)。按 40218/40263 先例:Unity 不发不收。轮23 主控裁决1。"
+  },
+  {
     "cmd": 28418,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/KfHolyAreaController.ts:379",

@@ -835,5 +835,61 @@ namespace Shenxiao.Framework.Event
         public const string EVT_GUILDACT_RANK_REWARD_PUSH = "EVT_GUILDACT_RANK_REWARD_PUSH";
         /// <summary>40267 经验加成状态落地(参数: long ratio)。</summary>
         public const string EVT_GUILDACT_EXP_BUFF_UPDATE = "EVT_GUILDACT_EXP_BUFF_UPDATE";
+
+        // ----- StarEquip(星宿核心 pp_constellation_equip,pt_232 直接处理段 23200-23209/23250-23257,
+        // 轮23 PK1;23204 按裁决1 killlist 不建对应事件) -----
+        /// <summary>23200 族错误出口(参数: int errorCode, string errorCodeArgs)。老端特判 errorCode==1500081
+        /// 触发 <see cref="EVT_STAREQUIP_COMPOSE_FAIL"/>(见 Proto.cs STAREQUIP_ERROR 注释:当前服务端实现下
+        /// 是死分支,镜像不删)。</summary>
+        public const string EVT_STAREQUIP_ERROR = "EVT_STAREQUIP_ERROR";
+        /// <summary>23201 总览落地(无参,读 StarEquipModel.PageInfo/TotalStar)。</summary>
+        public const string EVT_STAREQUIP_OVERVIEW_UPDATE = "EVT_STAREQUIP_OVERVIEW_UPDATE";
+        /// <summary>23202 穿戴成功(参数: long goodsAutoId, long goodsTypeId;失败经 EVT_STAREQUIP_ERROR)。</summary>
+        public const string EVT_STAREQUIP_WEAR_RESULT = "EVT_STAREQUIP_WEAR_RESULT";
+        /// <summary>23203 卸下成功(参数: long goodsAutoId, long goodsTypeId;失败经 EVT_STAREQUIP_ERROR)。</summary>
+        public const string EVT_STAREQUIP_UNWEAR_RESULT = "EVT_STAREQUIP_UNWEAR_RESULT";
+        /// <summary>23205 星级大师界面信息落地(无参,读 StarEquipModel.StarMaster)。</summary>
+        public const string EVT_STAREQUIP_STAR_MASTER_INFO_UPDATE = "EVT_STAREQUIP_STAR_MASTER_INFO_UPDATE";
+        /// <summary>23206 星级大师升级结果(参数: bool ok, int code)。</summary>
+        public const string EVT_STAREQUIP_STAR_MASTER_UP_RESULT = "EVT_STAREQUIP_STAR_MASTER_UP_RESULT";
+        /// <summary>23207 吞噬界面信息落地(无参,读 StarEquipModel.Devour)。</summary>
+        public const string EVT_STAREQUIP_DEVOUR_INFO_UPDATE = "EVT_STAREQUIP_DEVOUR_INFO_UPDATE";
+        /// <summary>23208 吞噬筛选结果(无参,读 StarEquipModel.Devour.Color/Star;失败经 EVT_STAREQUIP_ERROR)。</summary>
+        public const string EVT_STAREQUIP_DEVOUR_TAB_RESULT = "EVT_STAREQUIP_DEVOUR_TAB_RESULT";
+        /// <summary>23209 吞噬执行成功(无参,读 StarEquipModel.Devour;失败经 EVT_STAREQUIP_ERROR)。</summary>
+        public const string EVT_STAREQUIP_DEVOUR_RESULT = "EVT_STAREQUIP_DEVOUR_RESULT";
+        /// <summary>23250 装备属性预览落地(无参,读 StarEquipModel.LastPreview)。</summary>
+        public const string EVT_STAREQUIP_PREVIEW_UPDATE = "EVT_STAREQUIP_PREVIEW_UPDATE";
+        /// <summary>23251 星数被动推送落地(无参,读 StarEquipModel.StarPush)。</summary>
+        public const string EVT_STAREQUIP_STAR_PUSH_UPDATE = "EVT_STAREQUIP_STAR_PUSH_UPDATE";
+        /// <summary>23252 合成成功(参数: int ruleId;读 StarEquipModel.LastComposeReward)。</summary>
+        public const string EVT_STAREQUIP_COMPOSE_SUCCESS = "EVT_STAREQUIP_COMPOSE_SUCCESS";
+        /// <summary>23252 合成失败(code==err150_compose_fail=1500081;无参)且共 23200 死分支同名复用
+        /// (见 EVT_STAREQUIP_ERROR 注释)。</summary>
+        public const string EVT_STAREQUIP_COMPOSE_FAIL = "EVT_STAREQUIP_COMPOSE_FAIL";
+        /// <summary>23253 解锁星宿页成功(参数: int page;失败经 EVT_STAREQUIP_ERROR)。</summary>
+        public const string EVT_STAREQUIP_UNLOCK_PAGE_RESULT = "EVT_STAREQUIP_UNLOCK_PAGE_RESULT";
+        /// <summary>23254 蜕变/属性转移预览落地(无参,读 StarEquipModel.LastTransformPreview)。</summary>
+        public const string EVT_STAREQUIP_TRANSFORM_PREVIEW_UPDATE = "EVT_STAREQUIP_TRANSFORM_PREVIEW_UPDATE";
+        /// <summary>23255 类型 tips 预览落地(参数: long goodsTypeId;读 StarEquipModel.TypePreviewCache[id])。</summary>
+        public const string EVT_STAREQUIP_TYPE_PREVIEW_UPDATE = "EVT_STAREQUIP_TYPE_PREVIEW_UPDATE";
+        /// <summary>23256 合成次数信息落地(参数: int composeId;读 StarEquipModel.ComposeTime[id])。</summary>
+        public const string EVT_STAREQUIP_COMPOSE_TIME_UPDATE = "EVT_STAREQUIP_COMPOSE_TIME_UPDATE";
+        /// <summary>23257 蜕变/属性转移执行结果(参数: bool ok)。老端 on23257 是空 if 块未接任何动作,本端
+        /// 仍补发事件供尾包消费(比老端多做但无害)。</summary>
+        public const string EVT_STAREQUIP_TRANSFORM_RESULT = "EVT_STAREQUIP_TRANSFORM_RESULT";
+
+        // ----- StarForge(星宿锻造 chc,pt_232 兜底转发段 23210-23241,轮23 PK2) -----
+        /// <summary>23210/23220/23230/23240 某子系统某"页"入口数据落地(参数: int chcType[1强化/2进化/
+        /// 3附魔显示"觉醒"/4启灵], int stype[星宿页])。数据本体读 StarForgeModel.GetInfo。</summary>
+        public const string EVT_STARFORGE_INFO_UPDATE = "EVT_STARFORGE_INFO_UPDATE";
+        /// <summary>23212/23232 大师列表落地(参数: int chcType[仅1/3有意义], int stype)。
+        /// 数据本体读 StarForgeModel.GetMaster。</summary>
+        public const string EVT_STARFORGE_MASTER_UPDATE = "EVT_STARFORGE_MASTER_UPDATE";
+        /// <summary>23211/23221/23231/23241 动作结果(参数: int chcType, int code[原始错误码,1=成功],
+        /// bool applied[数据是否真的变化——STREN/MAGIC/SOUL 即 code==1;EVO 是 code==1 且 is_success==1])。</summary>
+        public const string EVT_STARFORGE_ACTION_RESULT = "EVT_STARFORGE_ACTION_RESULT";
+        /// <summary>23213/23233 点亮大师结果(参数: int chcType[1/3], int code[1=成功])。</summary>
+        public const string EVT_STARFORGE_MASTER_RESULT = "EVT_STARFORGE_MASTER_RESULT";
     }
 }
