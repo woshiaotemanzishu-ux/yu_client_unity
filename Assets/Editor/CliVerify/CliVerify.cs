@@ -201,6 +201,12 @@ namespace Shenxiao.EditorTools
             Run(PetTrainCase.Run, 300.0);
         }
 
+        /// <summary>OutWard 坐骑/幻化协议与初始化请求链定向验证。</summary>
+        public static void OutWard()
+        {
+            Run(OutWardCase.Run, 300.0);
+        }
+
         /// <summary>Goods 协议扩容(自动循环 轮1)实证:15000/15002/15019/15026/15053/15055/15090 合成包驱动
         /// BagController 反射喂包,纯逻辑断言(详见 GoodsProtoCase 注释)。</summary>
         public static void GoodsProto()
@@ -516,6 +522,18 @@ namespace Shenxiao.EditorTools
             Run(StarForgeCase.Run, 300.0);
         }
 
+        /// <summary>轮24 PB 婚宴数据层(pt_172 172xx 扩壳,22个接收活号:17250/51/52/53/57/58/59/60/61/62/
+        /// 65/66/67/70/71/72/75/76/77/78/79/98)合成包驱动 BanquetController 反射喂包,断言 BanquetModel 落地
+        /// 字段/事件 + config 13 表计数 + 17252 尾哨兵字节游标核对 + killlist(17254/55/69/73/74/80-94)死号
+        /// 断言(详见 BanquetCase 注释)。PI 幻化全链(pt_160,轮24 同批)收工前复核:PI 扩既有 OutWardCase.cs
+        /// 而非新建 Case(类注释自述"扩既有 OutWardCase 而非新建 OutWardIllusionCase"),该文件本就已挂在
+        /// RenderAll(`int o = await OutWardCase.Run()`)——PI 的新增断言随扩容自动纳入既有挂钩,本次
+        /// PB 收工前确认无需为 PI 额外补四点。</summary>
+        public static void Banquet()
+        {
+            Run(BanquetCase.Run, 300.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -580,6 +598,7 @@ namespace Shenxiao.EditorTools
                 int ga = await GuildActivityCase.Run();
                 int se = await StarEquipCase.Run();
                 int sf = await StarForgeCase.Run();
+                int bq = await BanquetCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -595,8 +614,8 @@ namespace Shenxiao.EditorTools
                     + " godbefall=" + g1 + " cheaptrio=" + g2 + " fbfestival=" + g3 + " welfare=" + g4 + " scenemisc=" + g5
                     + " market=" + mk + " serverclock=" + sc
                     + " lookover=" + lo + " fashion=" + fa + " protocolcoverage=" + pc + " guildactivity=" + ga
-                    + " starequip=" + se + " starforge=" + sf);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, pc, ga, se, sf })
+                    + " starequip=" + se + " starforge=" + sf + " banquet=" + bq);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, pc, ga, se, sf, bq })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

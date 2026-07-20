@@ -77,6 +77,10 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_mount_level",     // 系统B等级经验表(具名键,~12000 行)
             "config_mount_goods",     // 培养道具(具名键)
             "config_mount_prop",      // 道具经验换算(具名键)
+            "config_mount_figure",       // 幻化可激活形象列表(主键"type_id@id@career",320条),轮24 PI OutWardConfigs.GetFigureRow 用
+            "config_mount_figure_stage", // 幻化升阶配置(主键"type_id@id@stage",5730条),轮24 PI OutWardConfigs.GetFigureStageRow 用
+            "config_mount_figure_star",  // 幻化升星配置(主键"type_id@id@star",3232条,老端 upStarCfg),轮24 PI OutWardConfigs.GetFigureStarRow 用
+            "config_mount_skill",        // 幻化技能配置(主键"type_id@skill_id",144条),轮24 PI OutWardConfigs.GetSkillRow 用
             "config_temple_awaken_kv",        // 天命觉醒 KV(前置任务/等级门槛;主线 100590)
             "config_equip_stren_lv",          // 强化消耗+属性(⚠数字键,列序 part/stren/object_list/attr_list,主键 "part@stren")
             "config_equip_stren_lv_key",      // 强化等级索引
@@ -177,6 +181,19 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_constellation_evolution_rate",    // ⚠源表实测0条(空表存疑,见 StarEquipConfigs.GetEvolutionRateRaw 注释),轮23 PK2 占位加载
             "config_constellation_spirit",             // 星宿锻造-启灵表(30条,复合键"type@pos"),轮23 PK2 消费
             "config_constellation_forge_kv",           // 星宿锻造杂项KV(10条,数字键 id;四子系统开放等级580+类型码),轮23 PK1/PK2 共用
+            "config_wedding_info",              // 婚宴(Banquet pt_172)婚礼类型主表(3条,数字键=wedding_type),轮24 PB BanquetConfigs.GetInfo 用
+            "config_wedding_time",               // 婚宴预约时段表(12条,数字键=time_id;begin/end_time 为内嵌JSON字符串{"0":H,"1":M}),轮24 PB BanquetConfigs.GetTime 用
+            "config_wedding_time_stage",          // 婚宴预约阶段流程表(3条,数字键=stage_id),轮24 PB BanquetConfigs.GetTimeStage 用
+            "config_wedding_candies",             // 婚宴喜糖表(2条,数字键=candies_id 8002003/8002004),轮24 PB BanquetConfigs.GetCandy 用
+            "config_wedding_fires",               // 婚宴烟花表(2条,数字键=fires_id 1/2),轮24 PB BanquetConfigs.GetFires 用
+            "config_wedding_table",               // 婚宴餐桌菜品表(3条,数字键=table_id 8002001/02/05),轮24 PB BanquetConfigs.GetTable 用
+            "config_wedding_aura",                // 婚宴气氛值奖励档位表(1条,数字键=aura_id),轮24 PB BanquetConfigs.GetAura 用
+            "config_wedding_guest_position",      // 婚宴宾客坐标点位表(41条,数字键=id),轮24 PB BanquetConfigs.GetGuestPosition 用(无婚礼场景,仅加载)
+            "config_wedding_position",            // 婚宴场景坐标点位表(696条,数字键=pos_id),轮24 PB BanquetConfigs.GetPosition 用(无婚礼场景,仅加载)
+            "config_wedding_scene_exp_coef",       // 婚宴经验系数表(27条,复合键"wedding_type@num1@num2"),轮24 PB BanquetConfigs.GetSceneExpCoef 用
+            "config_wedding_card",                 // ⚠源表实测0条(空表,对应pp_marriage.erl:1662 WeddingCardCon整行注释),轮24 PB 占位加载
+            "config_wedding_scene_exp",            // ⚠源表实测0条(空表,真正在用的是config_wedding_scene_exp_coef),轮24 PB 占位加载
+            "config_wedding_trouble_maker",        // ⚠源表实测0条(空表,对应killlist 17269/17274捣蛋鬼死链佐证),轮24 PB 占位加载
         };
 
         [MenuItem("神霄/配表/同步客户端配置(JSON)", priority = 62)]

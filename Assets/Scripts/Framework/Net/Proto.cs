@@ -746,6 +746,117 @@
         public const int ACTIVITYFORESHOW_SNATCH_TIME = 65208; // 领地夺宝时间信息(预告图标 652@31@0 用)。请求无字段(read(65208,_)->{
         public const int BANQUET_WEDDING_STATE = 17249; // 婚礼状态(→172@2 宾客管理图标)。read(17249,_)->{ok,[]} 裸请求;w(与婚姻172xx同属pt_172号段,归Banquet占用,自动循环轮16婚姻段不重复定义,交叉见下方"婚姻"段头注释)
         public const int BANQUET_CALL = 17256; // 婚礼召集/婚礼列表(→172@1 婚礼图标)。read(17256,_)->{ok,[]} 裸请(与婚姻172xx同属pt_172号段,归Banquet占用,自动循环轮16婚姻段不重复定义,交叉见下方"婚姻"段头注释)
+
+        // ----- 婚宴数据层补全(自动循环 轮24 PB,pt_172 172xx;扩 BANQUET_WEDDING_STATE/BANQUET_CALL 既有壳,不重建) -----
+        //        22 个接收活号新增,逐条核对 pp_marriage.erl 原文(17249/56 已在上方；17263/64 的回包归
+        //        Marriage 接收，Banquet 仅提供进入/离开场景的发送 API,不重复定义常量)。
+        //        NowWeddingState==2 门:17252(open_invite_guest)/17259(buy_max)/17260(open_ask_invite)。
+        //        婚礼场景(?WeddingScene)门:17262/17265/17266/17267/17270/17272/17275(Unity 无婚礼场景,
+        //        发送方法照建,场景门禁本端不预检,服务端权威拦截,调用留 UI/场景轮)。AskInviteLv=130 门:
+        //        17257(pp_marriage.erl:1843)**与 17258(:1860,同一常量,侦察稿未提及,本代理原文核实补全)**。
+        //        成功复发链(照 BanquetController.ts 原文):17251(code∈{1,1720034})→17249+17250;
+        //        17253(code∈{1,1720033})/17259(code==1)/17261(无条件)→17252;17266(code==1)/
+        //        17267(code∈{1,1720071},且配置已载)→17272;
+        //        17271(type==1 时)→17272;17276(无条件,S2C-only 推送)→17249+17250;17298(error_code==1)→17252+17260(type=[2])。
+        //        无 read 的纯推送号(S2C only,C2S 不可达):17271/17276/17277/17278/17279(pt_172.erl 无对应
+        //        read 子句,逐号核对确认)。17273 虽有服务端推送,但老端 handler 为空,已按玩家行为事实源列入 killlist。 -----
+
+        /// <summary>婚宴预约/报名视图数据(C2S 空包)。S2C Code:32,NowWeddingState:8,
+        /// MyWeddingTimes[u16计数]{WeddingType:8,UseTimes:16,MaxTimes:16,OrderToday:8},
+        /// DayList[u16计数]{OrderUnixDate:32,TimeList[u16计数]{TimeId:8,
+        /// OrderList[u16计数]{RoleIdM:64,RoleIdW:64,WeddingType:8,IfOwn:8}}}(三层嵌套)。
+        /// 老端特例 code!=1720012 才显码(1720012=err172_couple_single,data_error_code.erl:3034,原样镜像)。</summary>
+        public const int BANQUET_APPLY_INFO = 17250;
+        /// <summary>预约婚礼(C2S "ccc" day_id,time_id,wedding_type)。S2C Code:32,Time:32,WeddingType:8,
+        /// ManList[u16计数]×bin_16,WomanList[u16计数]×bin_17(bin_16/17:RoleId:64,Name:s,Lv:16,
+        /// CombatPower:64,Sex:8,Vip:32,Career:8,Turn:8,**无 Picture 字段**——勿与 17256 bin_24/25/26
+        /// 混淆)。成功码 1 或 1720034(err172_wedding_order_success,data_error_code.erl:3122,配偶侧回执)
+        /// 均触发重发 17249+17250。</summary>
+        public const int BANQUET_APPLY_SEND = 17251;
+        /// <summary>婚宴邀请视图数据(C2S 空包)。服务端 NowWeddingState==2 才放行(pp_marriage.erl:1755),
+        /// 否则回错误壳(字段占位全 0/"")。S2C Code:32,MyRoleId:64,MyName:s,MyPicture:s,MyPictureVer:32,
+        /// LoverRoleId:64,LoverName:s,LoverPicture:s,LoverPictureVer:32,WeddingType:8,WeddingTime:32,
+        /// IfOrderAgain:8,LessInviteNum:8,GuestNum:8,GuestList[u16计数]{RoleId:64,AnswerType:8,Name:s},
+        /// AskInviteList[u16计数]{RoleId:64,Name:s}(**无 AnswerType,与 GuestList 形状不同**)。</summary>
+        public const int BANQUET_INVITE_INFO = 17252;
+        /// <summary>邀请宾客(C2S "h"+N×"l" count,role_id...;InviteList 变长数组)。服务端校验:不可邀请自己/
+        /// 不可邀请配偶/NowWeddingState==2/每个被邀请人 Lv&gt;=130(err172_marriage_ask_lv_limit,
+        /// pp_marriage.erl:1788)。S2C Code:32,InviteList[u16计数]{RoleId:64}(**纯 RoleId,无 Name/Type 包装**)。
+        /// 成功码 1 或 1720033(err172_wedding_invite_success,data_error_code.erl:3118)均触发重发 17252。</summary>
+        public const int BANQUET_INVITE_SEND = 17253;
+        /// <summary>索要请柬(C2S "l" role_id_m)。服务端 Lv&gt;=130 门(AskInviteLv,pp_marriage.erl:1843
+        /// err172_marriage_ask_lv_limit)。S2C Code:32(无其它字段)。</summary>
+        public const int BANQUET_ASK_INVITE = 17257;
+        /// <summary>购买请柬/买路进场(C2S "l" role_id_m)。服务端同 17257 Lv&gt;=130 门(pp_marriage.erl:1860,
+        /// 本代理原文核实补全,侦察稿未提及)+ ?WeddingGuestMaxNumPrice 消耗校验。S2C Code:32,RoleIdM:64。</summary>
+        public const int BANQUET_BUY_INVITE_CARD = 17258;
+        /// <summary>购买邀请名额上限(C2S "c" buy_num,buy_num&gt;0)。服务端 NowWeddingState==2 门。
+        /// S2C Code:32,LessInviteNum:8,GuestNum:8。成功(code==1)重发 17252;code==1720036
+        /// (err172_wedding_buy_max_num_success,data_error_code.erl:3130,已是成功语义但老端仍归入 else 分支)
+        /// 时不显码但也不触发重发。</summary>
+        public const int BANQUET_BUY_INVITE_MAX = 17259;
+        /// <summary>打开索要/邀请列表(C2S "h"+N×"c" count,type...;TypeList 变长数组,老端固定传 [2])。
+        /// 服务端 NowWeddingState==2 门。S2C Code:32,LessInviteNum:8,
+        /// List[u16计数]{Type:8,InfoList[u16计数]{RoleId:64,AnswerType:8,Name:s}}。**双 type 分流**:
+        /// Type==1→AskData(索要请柬列表,老端按"是否比上次更多"判定 172@2 红点是否为"新申请");
+        /// Type==2→GuestList(与 17252 的 GuestList 字段共用同一顶层桶)。</summary>
+        public const int BANQUET_OPEN_ASK_INVITE = 17260;
+        /// <summary>回应索要请柬(C2S "h"+N×"lc" count,(role_id,answer_type)...;AnswerAskList 变长数组)。
+        /// 服务端要求 wedding_pid 存活(err172_wedding_not_start)。S2C Code:32(无论成功失败,老端无条件
+        /// 重发 17252 刷新邀请视图)。</summary>
+        public const int BANQUET_ANSWER_ASK_INVITE = 17261;
+        /// <summary>婚礼动画场景信息(C2S 空包)。服务端要求 SceneId==?WeddingScene 且对方 wedding_pid 存活,
+        /// 否则回错误壳(err172_wedding_not_start/err172_wedding_not_scene)。S2C Code:32,
+        /// ManList[u16计数]{RoleIdM:64,FigureM(<see cref="Shenxiao.Common.Proto.FigureProto"/>,pt:write_figure)},
+        /// WomanList[u16计数]{RoleIdW:64,FigureW},GuestPositionList[u16计数]{PosId:8,GuestRoleId:64,IfEnter:8}。</summary>
+        public const int BANQUET_SCENE_ANIME_INFO = 17262;
+        /// <summary>婚礼信息(C2S 空包)。服务端要求 SceneId==?WeddingScene,否则回错误壳(字段占位全 0)。
+        /// S2C Code:32,StageId:8,StageEndTime:32,Aura:32,LessNormalCandies:32,LessSpecialCandies:32,
+        /// GuestsNum:8。</summary>
+        public const int BANQUET_WEDDING_INFO = 17265;
+        /// <summary>撒喜糖(C2S "c" candies_type;1=普通/2=特殊；8002003/8002004 是对应配置物品 ID,
+        /// 不能上行)。服务端要求婚礼场景+wedding_pid 存活+RoleIdM∈{自己,配偶}(err172_wedding_not_owner)。
+        /// S2C Code:32(成功后老端重发 17272)。</summary>
+        public const int BANQUET_SPRINKLE_CANDIES = 17266;
+        /// <summary>放烟花(C2S "c" fires_type)。服务端要求婚礼场景+wedding_pid 存活+config_wedding_fires
+        /// 命中+可发奖校验。S2C Code:32(老端本地读 config_wedding_fires 取 charact 播场景特效,配置已载时
+        /// 无条件重发 17272,配置未载时整段跳过——本端镜像该门禁,详见 BanquetController.On17267 注释)。</summary>
+        public const int BANQUET_SET_OFF_FIRES = 17267;
+        /// <summary>发弹幕(C2S "si" msg,tk_time;tk_time 老端固定传 0)。内部转发 pp_chat:handle(11001,场景频道)。
+        /// S2C Code:32(仅 ?SUCCESS/?FAIL 两态,无其它字段)。</summary>
+        public const int BANQUET_SEND_DANMU = 17270;
+        /// <summary>吃桌菜/采集喜糖结果推送(**无 read,S2C only**,由场景采集完成触发,非本模块协议号驱动——
+        /// 老端经通用 COMPLETE_TO_COLLECT 场景事件本地乐观更新 BanquetModel.list_table_num/BanquetData 计数,
+        /// 未走本号请求;本轮无婚礼场景,只镜像接收解析+发事件,场景采集联动留尾包)。S2C Code:32,
+        /// ErrorCodeArgs:s,Type:8(1=桌菜"喜宴"/2=普通喜糖/其它=特殊喜糖)。Type==1 时老端额外
+        /// SendFmtToGame(17272) 且 toast"获得喜宴"。</summary>
+        public const int BANQUET_COLLECT_RESULT = 17271;
+        /// <summary>婚礼道具使用信息/桌菜采集状态(C2S 空包)。服务端要求婚礼场景,否则回错误壳。S2C Code:32,
+        /// IfMaster:8,FreeCandies:8,FreeFires:8,CollectTableList[u16计数]{TableMonOnlyId:32}
+        /// (**纯 u32,无字段包装**)。</summary>
+        public const int BANQUET_GOODS_INFO = 17272;
+        /// <summary>婚礼获得总经验(C2S 空包)。服务端要求婚礼场景,否则静默 skip(不回包,老端也无错误壳分支)。
+        /// S2C AllExp:64(**无 Code 前缀,唯一字段**)。</summary>
+        public const int BANQUET_EXP_INFO = 17275;
+        /// <summary>婚礼开始推送(**无 read,S2C only**,对标 mod_marriage_wedding_mgr.erl:694 定时扫描
+        /// wedding_order_list 到点触发,双向单播新人)。S2C RoleIdM:64,RoleIdW:64(**无 Code 前缀**)。
+        /// 老端收到无条件重发 17249+17250(刷新预约/图标状态,字段本身不消费)。</summary>
+        public const int BANQUET_WEDDING_START_PUSH = 17276;
+        /// <summary>气氛值变化推送(**无 read,S2C only**)。S2C InfoList[u16计数]{Type:8,Values:32}
+        /// (**无 Code 前缀**)。老端仅 Type==1 时 Fire(AURA,values),其余 Type 现无分支但仍需读完整个数组
+        /// 保游标。</summary>
+        public const int BANQUET_AURA_PUSH = 17277;
+        /// <summary>气氛值奖励推送(**无 read,S2C only**,达到 config_wedding_aura 阈值时按在场宾客逐个 cast)。
+        /// S2C AuraNum:32,Reward:ObjectList(u16计数{Type:8,TypeId:32,Num:32})(**无 Code 前缀**)。
+        /// 老端弹 BanquetRewardView 领奖动画,本轮数据层only,发事件供尾包 UI 消费。</summary>
+        public const int BANQUET_AURA_REWARD_PUSH = 17278;
+        /// <summary>吃桌菜奖励推送(**无 read,S2C only**)。S2C Type:8,Reward:ObjectList(**无 Code 前缀**)。
+        /// 老端 Util.ShowCongratulationView(reward,10) 弹祝贺动画,本轮数据层only,发事件供尾包 UI 消费。</summary>
+        public const int BANQUET_TABLE_REWARD_PUSH = 17279;
+        /// <summary>一键邀请剩余宾客(C2S 空包,对标 lib_marriage:one_invite_role)。S2C ErrorCode:32
+        /// (**字段名 ErrorCode 非 Code,语义相同**)。成功(==1)时老端 toast"一键邀请成功！"+重发
+        /// 17252+17260(TypeList=[2])。</summary>
+        public const int BANQUET_ONE_INVITE = 17298;
         public const int KAIFU_INVEST_OPEN = 42004; // 开服投资活动开启列表(驱动 4205 巅峰投资 / 1112 超值投资图标;裸请求)
         public const int KAIFU_BOOK_INFO = 42401; // 契约之书章节信息(驱动 424 / 424@1 图标;裸请求)
         /// <summary>开服投资(pt_420)家族统一错误出口(轮22 族错误出口批;对标老端 KaifuActivityController.ts:161-164
@@ -1013,6 +1124,79 @@
         /// add_exp:i, combat:i, skill_list[u16×{skill_id:i,skill_level:c}], ratio_list[u16×{rate:c,rate_num:h}])。
         /// 主线 100521=同修(type_id=2)到2级、100901=坐骑(type_id=1)到2级(ctype90:id=type_id/need=等级)。</summary>
         public const int OUTWARD_LV_UP = 16029;
+
+        // ----- 幻化 OutWard Illusion 全链补齐(pt_160,轮24 PI;老端 OutWardController.ts:71-355)-----
+        // 服务端总闸复述(pp_mount.erl:26-45 handle/3):TypeId 必须 ∈ ?APPERENCE(=data_mount:get_constant_cfg(20),
+        // 现网值 [1,2,3,4,5,12],与 OutWardController.AllTypeIds 完全一致)且角色等级达到该 type 的开放等级,
+        // 否则整包 skip 零回包——TypeId∈{6精灵Sprite,7飞骑Pet,8法阵MagicArr} 在协议层不可达,老端 UI 遗留的
+        // 对应分支(ShowIlluRed/GetRedType/CanIllusionUP 等)是死代码,本轮严禁移植,发送侧沿用既有 AllTypeIds。
+        /// <summary>族错误出口(无请求,S2C only;回包 errcode:i)。errcode==1600023 时老端特判"激活数量已达上限"
+        /// (Fire PET_ACTIVE_LIMIT),其余显码降级。对标 OutWardController.ts:71-78 On16000,
+        /// pt_160.erl write(16000,[Errcode])(唯一字段)。</summary>
+        public const int OUTWARD_ERROR = 16000;
+        /// <summary>场景外观变化广播(S2C only,read/2 未定义;回包 type_id:c, role_id:l, is_ride:c, figure_id:i,
+        /// speed:h)。触发方:场景内任意角色幻化(16003)/骑乘(16004)变化时 lib_mount:change_ride_status/
+        /// broadcast_to_scene_1 用 send_to_area_scene 广播给场景内所有人(非仅操作者自己)。对标
+        /// OutWardController.ts:80-91 On16001(role_vo.SetFigureId+SetFigureRideState+改速度)——Unity 场景
+        /// 暂无角色外观渲染消费方,本轮只落数据 + Emit 事件留 TODO 消费方。</summary>
+        public const int OUTWARD_SCENE_FIGURE_CHANGE = 16001;
+        /// <summary>幻化穿戴/取消(发 "ccii" type_id,type[1=基础/2=幻化],args,color;回包 errcode:i, type_id:c,
+        /// type:c, args:i, color:i——type==2 时 args 回显穿戴的 figure_id,type==1 时 args 回显 figure_stage,
+        /// 两种语义共用同一字段,对标 OutWardBaseModel.UpdateOutWardFigure 的 type 分支)。对标
+        /// OutWardController.ts:98-106 On16003 / :431-434 发送(ILLUSION_OUTWARD)。</summary>
+        public const int OUTWARD_ILLUSION_WEAR = 16003;
+        /// <summary>上/下坐骑(发 "cc" type_id,type[0=下/1=上];回包 errcode:i, type_id:c, type:c)。对标
+        /// OutWardController.ts:108-117 On16004(仅 errcode==1 且 type_id==Horse 触发骑乘动画)/
+        /// :726-731 发送(CHANGE_HORSE_STATE)。老端未记录"是否骑乘中"到 Model,本轮同样不落该状态,
+        /// 只 Emit 事件供未来场景动画消费。</summary>
+        public const int OUTWARD_RIDE_TOGGLE = 16004;
+        /// <summary>幻化形象列表(发 "c" type_id;回包 errcode:i, type_id:c, illusion_id:i(当前穿戴的 figure id,
+        /// 0=未穿戴/仅基础形象), color_id:h, figure_list[u16×{id:i, stage:c, star:h, end_time:i}])。对标
+        /// OutWardController.ts:128-140 On16006,pp_mount.erl:152-165 do_handle(16006)。</summary>
+        public const int OUTWARD_ILLUSION_LIST = 16006;
+        /// <summary>幻化形象详情(发 "ci" type_id,id;回包 errcode:i, type_id:c, id:i, stage:c, star:h,
+        /// blessing:i, combat:i, star_combat:i, end_time:i, attr_list[u16×{attr_id:c,attr_val:i}],
+        /// skill_list[u16×skill_id:i](⚠仅 id,无 level,区别于 16002/16028 的 skill_list),
+        /// color_list[u16×{color_id:h,color_lv:i}], next_star_power:l)。该 id 未激活时服务端直接
+        /// skip 不回包(pp_mount.erl:187-188 "未激活不处理",非 bug)。对标 On16007:142-149。</summary>
+        public const int OUTWARD_FIGURE_DETAIL = 16007;
+        /// <summary>激活形象(发 "ci" type_id,id;回包 errcode:i, type_id:c, id:i, combat:i)。服务端实测
+        /// 4 条失败分支全部改走 16000 通用错误出口(lib_mount.erl:1676/1680/1684/1687),16008 本身只在
+        /// 成功时出现,但老端仍防御式判 errcode,照抄。对标 On16008:151-176(成功后无条件补拉 16006)。</summary>
+        public const int OUTWARD_FIGURE_ACTIVATE = 16008;
+        /// <summary>幻化升阶(发 "cii" type_id,id,goods_id;回包 errcode:i, type_id:c, id:i, stage:c,
+        /// blessing:i, blessing_plus:i, ratio_list[u16×{rate:c,rate_num:h}], goods_id:i)。服务端
+        /// type_id∈{Horse,Partner} 走 figure_upgrade_stage_sp,其余走 figure_upgrade_stage
+        /// (pp_mount.erl:197-203);失败同样改走 16000。对标 On16009:178-194(成功后无条件补拉 16006)。</summary>
+        public const int OUTWARD_FIGURE_STAGE_UP = 16009;
+        /// <summary>使用魔晶(发 "ci" type_id,goods_id;回包 errcode:i, type_id:c, goods_id:i)。对标
+        /// On16010:196-206(成功后补拉 16011+16002)。</summary>
+        public const int OUTWARD_CRYSTAL_USE = 16010;
+        /// <summary>魔晶使用次数(发 "c" type_id;回包 type_id:c, counter_list[u16×{goods_id:i,times:i,times_lim:i}])。
+        /// 对标 On16011:208-211。</summary>
+        public const int OUTWARD_CRYSTAL_COUNTER = 16011;
+        /// <summary>幻化到期删除推送(S2C only,read/2 未定义;⚠write 用 Id:8,与 16007/16008 的 Id:32 不同,
+        /// 不可复用同一读函数;回包 type_id:c, id:c)。触发:lib_mount:clear_figure/3 由
+        /// check_figure_time 定时器在幻化真到期时真删库 + 真推包。对标 On16012:213-223
+        /// (删本地缓存 + Fire CANCEL_ACTIVE + 补拉 16006)。</summary>
+        public const int OUTWARD_FIGURE_EXPIRED = 16012;
+        /// <summary>幻化升星(发 "ci" type_id,id;回包 errcode:i, type_id:c, id:i, star:h)。失败同样改走
+        /// 16000。对标 On16020:230-250(成功后原地патch 缓存 star 字段 + 补拉 16006 + 补拉 16007)。</summary>
+        public const int OUTWARD_FIGURE_STAR_UP = 16020;
+        /// <summary>幻化战力预览(发 "cc" type_id,id;⚠id 与请求方均是 8 位[c],非 16007/16008 的 32 位[i];
+        /// 回包(无 errcode 包装)type_id:c, id:c, power:l, star_combat:l, next_star_power:l)。老端仅在该
+        /// figure 尚无 16007 详情缓存时才发起本请求,已缓存直接读缓存的 combat/star_combat/next_star_power——
+        /// "选中未缓存才请求"。对标 On16022:260-263 Fire REAL_FIGHT / IllusionBaseView.SetFightValue:1273-1295。</summary>
+        public const int OUTWARD_FIGHT_PREVIEW = 16022;
+        /// <summary>坐骑/同修一键升星自动购买开关(发 "cc" type_id,auto_buy;回包 errcode:i, type_id:c, auto_buy:c)。
+        /// 服务端 guard type_id∈{Horse,Partner}(pp_mount.erl:960-961);服务端实测恒发 ?SUCCESS
+        /// (lib_mount.erl:1341),老端 On16024 也确实不判 errcode 直接套值——本号照抄不加 errcode 判断。
+        /// 对标 On16024:277-284。</summary>
+        public const int OUTWARD_AUTO_BUY = 16024;
+        /// <summary>幻化升星战力预览(发 "cc" type_id,id[⚠均 8 位];回包(无 errcode)type_id:c, id:c, power:l,
+        /// next_star_power:l)。老端仅在该 figure 的 star_combat 未缓存(取自 16007 缓存)时才发起本请求
+        /// (OutwardStarView.SelectItem:311-329)。对标 On16027:286-289 Fire UPDATE_STAR_FIGHT。</summary>
+        public const int OUTWARD_STAR_FIGHT_PREVIEW = 16027;
 
         // ----- 通用副本(pt_610,yu_server dungeon;老端 BaseDungeonController.ts。御魂本 type=12,dun_id 12001~) -----
         /// <summary>通用副本(pt_610)家族统一错误出口(轮22 族错误出口批;对标老端 BaseDungeonController.ts:668-673

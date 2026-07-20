@@ -40,10 +40,9 @@ namespace Shenxiao.Module.Core.Pet
         {
             if (typeId <= 0) return;
             _typeId = typeId;
-            // 打开页时补拉一次(对标老端 OPEN_MOUNTPET_VIEW → 16002/16028 批量拉取)。第21轮订正:系统B(16028)
-            // 对全部6个 type_id 都活(config_mount_level 每 type_id 各750条),不再只对1/2拉。
-            OutWardController.Instance.RequestInfo(_typeId);
-            OutWardController.Instance.RequestLvPanel(_typeId);
+            // 打开页时补拉一次。对标老端 OPEN_MOUNTPET_VIEW 的完整四包初始化:
+            // 16002 阶星 + 16006 幻化列表 + 16011 魔晶次数 + 16028 等级线。
+            OutWardController.Instance.RequestPanelData(_typeId);
             Refresh();
             RefreshGuide();
         }
@@ -283,6 +282,9 @@ namespace Shenxiao.Module.Core.Pet
             BindDegrade(after_btn1, "下一个外观(浏览切换)");
             BindDegrade(proptity_btn, "属性 PetProptityView");
             BindDegrade(bag_btn, "侍魂装备背包 PetEquipBaseView");
+            // 幻化(IllusionBaseView):数据层已通(轮24 PI——OutWardController/OutWardModel 已落地
+            // 16003/16006-16009/16020/16022/16027 全链 + 4 张幻化专属配表),UI 待烤(prefab/View 未搭建,
+            // 本按钮仍是 BindDegrade 通用桩,点击只弹"待开放" toast)。
             BindDegrade(illusion_btn, "幻化 IllusionBaseView");
             BindDegrade(_Image14, "自动购买切换");
             BindDegrade(autoImg, "自动购买切换");

@@ -131,8 +131,46 @@ namespace Shenxiao.Framework.Event
         public const string EVT_SUIT_CLT_UPDATE = "EVT_SUIT_CLT_UPDATE";
         /// <summary>冲级豪礼状态变动(41700 列表/41701 领取后)。</summary>
         public const string EVT_RUSH_GIFT_UPDATE = "EVT_RUSH_GIFT_UPDATE";
-        /// <summary>幻化外观数据变动(参数: int type_id;16002 阶星/16023 升星/16028 等级面板/16029 升级后)。</summary>
+        /// <summary>幻化外观数据变动(⚠无参,Emit() 零参数——订阅方 OutWardShellView.Rebuild/
+        /// OutWardBaseView.OnOutWardUpdate 均为无参 Action,回调里自行按当前 _typeId 重读 Model;
+        /// 16002 阶星/16023 升星/16028 等级面板/16029 升级/16024 自动购买切换后触发)。</summary>
         public const string EVT_OUTWARD_UPDATE = "EVT_OUTWARD_UPDATE";
+        // ----- OutWard 幻化(Illusion,pt_160,轮24 PI)-----
+        /// <summary>幻化家族错误出口(参数: int errcode;16000,errcode!=1600023 的一般错误)。</summary>
+        public const string EVT_OUTWARD_ERROR = "EVT_OUTWARD_ERROR";
+        /// <summary>幻化激活数量已达上限(参数: int errcode==1600023;16000 特判,对标老端 PET_ACTIVE_LIMIT)。</summary>
+        public const string EVT_OUTWARD_ACTIVE_LIMIT = "EVT_OUTWARD_ACTIVE_LIMIT";
+        /// <summary>场景外观变化广播落地(参数: int typeId, long roleId;16001,S2C only)。Unity 场景暂无角色
+        /// 外观渲染消费方——TODO 消费方:场景角色模型换装/骑乘姿态(对标老端 role_vo.SetFigureId+
+        /// SetFigureRideState)。</summary>
+        public const string EVT_OUTWARD_SCENE_FIGURE_CHANGE = "EVT_OUTWARD_SCENE_FIGURE_CHANGE";
+        /// <summary>幻化穿戴/取消成功(参数: int typeId;16003)。</summary>
+        public const string EVT_OUTWARD_ILLUSION_WEAR = "EVT_OUTWARD_ILLUSION_WEAR";
+        /// <summary>上/下坐骑结果落地(参数: int typeId, int type[0=下/1=上];16004)。TODO 消费方:坐骑骑乘动画
+        /// (对标老端仅 Horse 触发 HorseChange)。</summary>
+        public const string EVT_OUTWARD_RIDE_TOGGLE = "EVT_OUTWARD_RIDE_TOGGLE";
+        /// <summary>幻化形象列表变动(参数: int typeId;16006 全量/16008 激活后/16009 升阶后/16020 升星后补拉/
+        /// 16012 到期删除后补拉)。</summary>
+        public const string EVT_OUTWARD_ILLUSION_LIST_UPDATE = "EVT_OUTWARD_ILLUSION_LIST_UPDATE";
+        /// <summary>幻化形象详情缓存更新(参数: int typeId, int figureId;16007)。</summary>
+        public const string EVT_OUTWARD_FIGURE_DETAIL_UPDATE = "EVT_OUTWARD_FIGURE_DETAIL_UPDATE";
+        /// <summary>幻化激活成功(参数: int typeId, int figureId;16008,老端开 OutwardChangedView 庆祝页,
+        /// Unity 暂无该 UI,先落数据 Emit 事件)。</summary>
+        public const string EVT_OUTWARD_FIGURE_ACTIVATED = "EVT_OUTWARD_FIGURE_ACTIVATED";
+        /// <summary>幻化升阶成功(参数: int typeId, int figureId;16009)。</summary>
+        public const string EVT_OUTWARD_FIGURE_STAGE_UP = "EVT_OUTWARD_FIGURE_STAGE_UP";
+        /// <summary>幻化升星成功(参数: int typeId, int figureId;16020)。</summary>
+        public const string EVT_OUTWARD_FIGURE_STAR_UP = "EVT_OUTWARD_FIGURE_STAR_UP";
+        /// <summary>幻化到期删除(参数: int typeId, int figureId;16012,S2C only)。</summary>
+        public const string EVT_OUTWARD_FIGURE_EXPIRED = "EVT_OUTWARD_FIGURE_EXPIRED";
+        /// <summary>魔晶使用/次数变动(参数: int typeId;16010 使用后/16011 次数列表)。</summary>
+        public const string EVT_OUTWARD_CRYSTAL_UPDATE = "EVT_OUTWARD_CRYSTAL_UPDATE";
+        /// <summary>幻化战力预览(参数: int typeId, int figureId;16022,老端不落任何列表,瞬时值只经事件传递——
+        /// 具体数值读 OutWardModel.LastFightPreview)。</summary>
+        public const string EVT_OUTWARD_FIGHT_PREVIEW = "EVT_OUTWARD_FIGHT_PREVIEW";
+        /// <summary>幻化升星战力预览(参数: int typeId, int figureId;16027,同上瞬时语义,数值读
+        /// OutWardModel.LastStarFightPreview)。</summary>
+        public const string EVT_OUTWARD_STAR_FIGHT_PREVIEW = "EVT_OUTWARD_STAR_FIGHT_PREVIEW";
         /// <summary>天命觉醒状态变动(42909 前置态/42900 完成后)。</summary>
         public const string EVT_TEMPLE_AWAKEN_UPDATE = "EVT_TEMPLE_AWAKEN_UPDATE";
         /// <summary>装备强化数据变动(15204 查询/15205 强化后)。</summary>
@@ -682,6 +720,54 @@ namespace Shenxiao.Framework.Event
         public const string EVT_MARRIAGE_FLOWER_RECEIVED = "EVT_MARRIAGE_FLOWER_RECEIVED";
         /// <summary>22305 感谢收花者结果(参数: bool success, long id)。</summary>
         public const string EVT_MARRIAGE_FLOWER_THANKS_RESULT = "EVT_MARRIAGE_FLOWER_THANKS_RESULT";
+
+        // ----- 婚宴 / Banquet 数据层补全(pt_172 172xx,自动循环 轮24 PB;扩既有 172@1/172@2 图标壳) -----
+        /// <summary>17250 预约/报名视图数据到达,读 BanquetModel.ApplyView/CanApply。</summary>
+        public const string EVT_BANQUET_APPLY_INFO_UPDATE = "EVT_BANQUET_APPLY_INFO_UPDATE";
+        /// <summary>17251 预约婚礼结果(参数: bool success;成功码 1/1720034 均算,内部已重发 17249+17250)。</summary>
+        public const string EVT_BANQUET_APPLY_RESULT = "EVT_BANQUET_APPLY_RESULT";
+        /// <summary>17252 邀请视图数据到达,读 BanquetModel.InviteView/GuestList/AskData。</summary>
+        public const string EVT_BANQUET_INVITE_INFO_UPDATE = "EVT_BANQUET_INVITE_INFO_UPDATE";
+        /// <summary>17253 邀请宾客结果(参数: bool success;成功码 1/1720033 均算,内部已重发 17252)。</summary>
+        public const string EVT_BANQUET_INVITE_SEND_RESULT = "EVT_BANQUET_INVITE_SEND_RESULT";
+        /// <summary>17257 索要请柬结果(参数: bool success)。</summary>
+        public const string EVT_BANQUET_ASK_INVITE_RESULT = "EVT_BANQUET_ASK_INVITE_RESULT";
+        /// <summary>17258 购买请柬/买路进场结果(参数: bool success)。</summary>
+        public const string EVT_BANQUET_BUY_INVITE_CARD_RESULT = "EVT_BANQUET_BUY_INVITE_CARD_RESULT";
+        /// <summary>17259 购买邀请名额上限结果(参数: bool success;成功已重发 17252,code==1720036 不显码)。</summary>
+        public const string EVT_BANQUET_BUY_MAX_RESULT = "EVT_BANQUET_BUY_MAX_RESULT";
+        /// <summary>17260 type==1(索要列表)/17252(ask_invite_list) 共享的 AskData 顶层桶更新(参数: bool isNewApply;
+        /// 对标老端"比上次更多才算新申请"的 172@2 红点判定)。</summary>
+        public const string EVT_BANQUET_ASK_DATA_UPDATE = "EVT_BANQUET_ASK_DATA_UPDATE";
+        /// <summary>17260 type==2(宾客列表)/17252(guest_list) 共享的 GuestList 顶层桶更新。</summary>
+        public const string EVT_BANQUET_GUEST_LIST_UPDATE = "EVT_BANQUET_GUEST_LIST_UPDATE";
+        /// <summary>17261 回应索要请柬结果(参数: bool success;无论成败均已重发 17252)。</summary>
+        public const string EVT_BANQUET_ANSWER_ASK_RESULT = "EVT_BANQUET_ANSWER_ASK_RESULT";
+        /// <summary>17262 婚礼动画场景信息到达,读 BanquetModel.WeddingRoleList。</summary>
+        public const string EVT_BANQUET_SCENE_ANIME_UPDATE = "EVT_BANQUET_SCENE_ANIME_UPDATE";
+        /// <summary>17265 婚礼信息到达,读 BanquetModel.BanquetData。</summary>
+        public const string EVT_BANQUET_INFO_UPDATE = "EVT_BANQUET_INFO_UPDATE";
+        /// <summary>17266 撒喜糖结果(参数: bool success;成功已重发 17272)。</summary>
+        public const string EVT_BANQUET_CANDIES_RESULT = "EVT_BANQUET_CANDIES_RESULT";
+        /// <summary>17267 放烟花结果(参数: bool success;仅本端角色触发时判 code,config_wedding_fires 未载时
+        /// 老端整段跳过不发本事件)。</summary>
+        public const string EVT_BANQUET_FIRES_RESULT = "EVT_BANQUET_FIRES_RESULT";
+        /// <summary>17270 发弹幕结果(参数: bool success)。</summary>
+        public const string EVT_BANQUET_DANMU_RESULT = "EVT_BANQUET_DANMU_RESULT";
+        /// <summary>17271 吃桌菜/采集喜糖结果推送(参数: int type, bool success;type==1=桌菜"喜宴"时已重发 17272)。</summary>
+        public const string EVT_BANQUET_COLLECT_RESULT = "EVT_BANQUET_COLLECT_RESULT";
+        /// <summary>17272 婚礼道具使用信息到达,读 BanquetModel.GoodsInfo。</summary>
+        public const string EVT_BANQUET_GOODS_INFO_UPDATE = "EVT_BANQUET_GOODS_INFO_UPDATE";
+        /// <summary>17275 婚礼获得总经验推送(参数: long allExp)。</summary>
+        public const string EVT_BANQUET_EXP_UPDATE = "EVT_BANQUET_EXP_UPDATE";
+        /// <summary>17277 气氛值变化推送(参数: long auraValue;仅 Type==1 时发)。</summary>
+        public const string EVT_BANQUET_AURA_UPDATE = "EVT_BANQUET_AURA_UPDATE";
+        /// <summary>17278 气氛值奖励推送(参数: long auraNum),读 BanquetModel.LastAuraReward。</summary>
+        public const string EVT_BANQUET_AURA_REWARD_PUSH = "EVT_BANQUET_AURA_REWARD_PUSH";
+        /// <summary>17279 吃桌菜奖励推送(参数: int type),读 BanquetModel.LastTableReward。</summary>
+        public const string EVT_BANQUET_TABLE_REWARD_PUSH = "EVT_BANQUET_TABLE_REWARD_PUSH";
+        /// <summary>17298 一键邀请剩余宾客结果(参数: bool success;成功已重发 17252+17260)。</summary>
+        public const string EVT_BANQUET_ONE_INVITE_RESULT = "EVT_BANQUET_ONE_INVITE_RESULT";
 
         // ----- 自定义活动 / CustomActivity(331xx/332xx+225xx补全+224xx+159xx,自动循环 轮17)-----
         // 通用事件为主(P1 定义,事件粒度收敛,不给每个子活动开专用事件;UI 尾包再按需加)。P2-P6 只用这些。

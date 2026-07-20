@@ -36,10 +36,124 @@
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
   {
+    "cmd": 17254,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/marriage/pp_marriage.erl:1809-1813(整段注释);h5/src/commonController/BanquetController.ts:120-122(On17254 空函数体)",
+    "note": "婚宴获取被邀请列表:服务端 C2S 入口整段注释,老端虽注册但 handler 为空。四层核对后判死(被 17253 直邀+17257/17258 索购请柬机制取代)。轮24 侦察。"
+  },
+  {
+    "cmd": 17255,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/marriage/pp_marriage.erl:1815-1820(整段注释);h5/src/commonController/BanquetController.ts:369-395(完整注册表无17255)",
+    "note": "婚宴接受/拒绝邀请:与 17254 同批废弃旧机制,服务端 C2S 入口注释且老端未注册。轮24 侦察。"
+  },
+  {
+    "cmd": 17269,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/marriage/pp_marriage.erl:2192-2214(C2S入口整段注释);yu_server/src/marriage/mod_marriage_wedding.erl:868-874(初始timer注释);yu_server/src/data/create/data_wedding.erl:2201-2205(配置与怪物列表为空)",
+    "note": "婚宴捣蛋鬼解谜死链:客户端入口、服务端 C2S 入口、初始调度与配置均不可达。mod_marriage_wedding_mgr.erl:1519-1539 会正确转发 WeddingPid,不是接线错误。轮24 侦察。"
+  },
+  {
     "cmd": 17273,
     "reason": "dead_empty_body",
-    "evidence": "h5/src/commonController/BanquetController.ts:388",
-    "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
+    "evidence": "h5/src/commonController/BanquetController.ts:289-291(handler函数体为空;注册点:388)",
+    "note": "老端收到服务端推送后明确不做任何行为,按玩家行为事实源判 dead_empty_body;Unity 不注册、不移植。"
+  },
+  {
+    "cmd": 17274,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/marriage/pp_marriage.erl:2249-2260(C2S入口整段注释);yu_server/src/marriage/mod_marriage_wedding.erl:868-874(唯一初始timer注释)",
+    "note": "婚宴捣蛋鬼出现/消失通知:查询入口与初始调度均不可达,属同批僵尸协议。轮24 侦察。"
+  },
+  {
+    "cmd": 17280,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
+  },
+  {
+    "cmd": 17281,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
+  },
+  {
+    "cmd": 17282,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
+  },
+  {
+    "cmd": 17283,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
+  },
+  {
+    "cmd": 17284,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
+  },
+  {
+    "cmd": 17285,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
+  },
+  {
+    "cmd": 17286,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
+  },
+  {
+    "cmd": 17287,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
+  },
+  {
+    "cmd": 17288,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
+  },
+  {
+    "cmd": 17289,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
+  },
+  {
+    "cmd": 17290,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
+  },
+  {
+    "cmd": 17291,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
+  },
+  {
+    "cmd": 17292,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
+  },
+  {
+    "cmd": 17293,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
+  },
+  {
+    "cmd": 17294,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/BanquetController.ts:369-395(婚宴控制器完整注册表无17280-17294;h5/src逐号检索零注册零发送)",
+    "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
   },
   {
     "cmd": 18212,

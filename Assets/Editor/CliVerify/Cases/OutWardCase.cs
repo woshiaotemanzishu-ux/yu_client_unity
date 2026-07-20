@@ -9,6 +9,9 @@ namespace Shenxiao.EditorTools
     /// 幻化外观(OutWard)实证:config_mount_star 同步 + 16002/16023/16028/16029 合成包驱动 OutWardModel/Controller,
     /// 断言字段套值 + errcode!=1 不抛异常;再拉起 OutWardShellView 渲染断言「1阶2星」文案与升星按钮存在。
     /// 独立文件复用 CliVerify.Stage/Pkt/FindDeep(已 public),不改 CliVerify.cs 本体(主控统一接 RenderAll)。
+    /// 轮24 PI 扩:幻化(Illusion)全链 16000/16001/16003/16004/16006-16012/16020/16022/16024/16027,
+    /// 含裁决6红线(AllTypeIds 严格 {1,2,3,4,5,12})、4 张幻化专属配表加载、16006/16007/16011 嵌套数组
+    /// 尾哨兵核对——扩既有 OutWardCase 而非新建 OutWardIllusionCase(仓库现状只有一个 OutWard Case,禁双份)。
     /// </summary>
     public static class OutWardCase
     {
@@ -25,9 +28,112 @@ namespace Shenxiao.EditorTools
                     return 3;
                 }
 
-                object ctrl = Shenxiao.Module.Core.OutWard.OutWardController.Instance;
+                Shenxiao.Module.Core.OutWard.OutWardController ctrl = Shenxiao.Module.Core.OutWard.OutWardController.Instance;
+                ctrl.Init();
                 const System.Reflection.BindingFlags F =
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+                const System.Reflection.BindingFlags SF =
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static;
+
+                // 注册必须落进 NetManager 运行时真字典，不能只靠“存在同名 handler”反射冒充已接线。
+                int[] expectedRegistered =
+                {
+                    Shenxiao.Framework.Net.Proto.OUTWARD_ERROR,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_SCENE_FIGURE_CHANGE,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_INFO,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_ILLUSION_WEAR,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_RIDE_TOGGLE,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_STAR_UP_GENERIC,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_ILLUSION_LIST,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_FIGURE_DETAIL,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_FIGURE_ACTIVATE,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_FIGURE_STAGE_UP,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_CRYSTAL_USE,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_CRYSTAL_COUNTER,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_FIGURE_EXPIRED,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_FIGURE_STAR_UP,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_FIGHT_PREVIEW,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_STAR_UP,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_AUTO_BUY,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_STAR_FIGHT_PREVIEW,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_LV_PANEL,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_LV_UP,
+                    Shenxiao.Framework.Net.Proto.OUTWARD_LV_SKILL_UP,
+                };
+                System.Reflection.FieldInfo handlersField = typeof(Shenxiao.Framework.Net.NetManager).GetField("_handlers", SF);
+                var runtimeHandlers = handlersField?.GetValue(null) as System.Collections.IDictionary;
+                bool registrationOk = runtimeHandlers != null;
+                foreach (int cmd in expectedRegistered)
+                {
+                    if (!registrationOk || !runtimeHandlers.Contains(cmd)
+                        || !(runtimeHandlers[cmd] is System.Delegate handler)
+                        || !object.ReferenceEquals(handler.Target, ctrl))
+                    {
+                        registrationOk = false;
+                        break;
+                    }
+                }
+                Debug.Log("CLIVERIFY outward runtime registration count=" + expectedRegistered.Length + " ok=" + registrationOk);
+
+                // 现有 NetManager 无出站捕获器；用 Controller 内 UNITY_EDITOR-only 截获缝验证两个真实调用入口，
+                // 截获时抑制网络发送，避免“断网不抛异常”弱断言，也避免 CliVerify 误向活连接发测试包。
+                System.Reflection.MethodInfo mGameStart = ctrl.GetType().GetMethod("OnGameStart", F);
+                System.Reflection.FieldInfo requestInterceptField = ctrl.GetType().GetField("s_initialRequestIntercept", SF);
+                var requestTrace = new List<(int proto, int typeId)>();
+                bool InitialPlanMatches(IReadOnlyList<(int proto, int typeId)> trace, IReadOnlyList<int> typeIds)
+                {
+                    int[] expected =
+                    {
+                        Shenxiao.Framework.Net.Proto.OUTWARD_INFO,
+                        Shenxiao.Framework.Net.Proto.OUTWARD_ILLUSION_LIST,
+                        Shenxiao.Framework.Net.Proto.OUTWARD_CRYSTAL_COUNTER,
+                        Shenxiao.Framework.Net.Proto.OUTWARD_LV_PANEL,
+                    };
+                    if (trace.Count != typeIds.Count * expected.Length) return false;
+                    int offset = 0;
+                    foreach (int typeId in typeIds)
+                    {
+                        foreach (int proto in expected)
+                        {
+                            if (trace[offset].proto != proto || trace[offset].typeId != typeId) return false;
+                            offset++;
+                        }
+                    }
+                    return true;
+                }
+
+                bool gameStartRequestsOk = false;
+                bool setTypeRequestsOk = false;
+                GameObject requestProbe = null;
+                if (mGameStart != null && requestInterceptField != null)
+                {
+                    System.Func<int, int, bool> intercept = (proto, typeId) =>
+                    {
+                        requestTrace.Add((proto, typeId));
+                        return true;
+                    };
+                    try
+                    {
+                        requestInterceptField.SetValue(null, intercept);
+                        mGameStart.Invoke(ctrl, null);
+                        await Task.Delay(20); // OnGameStart 是 async void；配置已加载时通常同步完成，仍留一拍防未来改异步。
+                        gameStartRequestsOk = InitialPlanMatches(requestTrace, Shenxiao.Module.Core.OutWard.OutWardController.AllTypeIds);
+
+                        requestTrace.Clear();
+                        requestProbe = new GameObject("CliVerify_OutWardBaseView_RequestProbe");
+                        requestProbe.SetActive(false);
+                        Shenxiao.Module.Core.Pet.OutWardBaseView probeView = requestProbe.AddComponent<Shenxiao.Module.Core.Pet.OutWardBaseView>();
+                        probeView.SetType(12);
+                        setTypeRequestsOk = InitialPlanMatches(requestTrace, new[] { 12 });
+                    }
+                    finally
+                    {
+                        requestInterceptField.SetValue(null, null);
+                        if (requestProbe != null) Object.DestroyImmediate(requestProbe);
+                    }
+                }
+                Debug.Log("CLIVERIFY outward init requests gameStart=" + gameStartRequestsOk + " setType=" + setTypeRequestsOk);
+
                 System.Reflection.MethodInfo m16002 = ctrl.GetType().GetMethod("On16002", F);
                 System.Reflection.MethodInfo m16023 = ctrl.GetType().GetMethod("On16023", F);
                 System.Reflection.MethodInfo m16028 = ctrl.GetType().GetMethod("On16028", F);
@@ -100,6 +206,258 @@ namespace Shenxiao.EditorTools
                 catch (System.Exception e) { lvUpFailNoThrow = false; Debug.LogError("CLIVERIFY outward 16029 fail threw: " + e); }
                 Debug.Log("CLIVERIFY outward 16029 fail noThrow=" + lvUpFailNoThrow);
 
+                // =========================================================================================
+                // 轮24 PI:幻化(Illusion)全链数据层实证。16000/16001/16003/16004/16006-16012/16020/16022/
+                // 16024/16027 合成包驱动反射喂包 + 事件断言 + 嵌套数组尾哨兵核对。
+                // =========================================================================================
+
+                System.Reflection.MethodInfo m16000 = ctrl.GetType().GetMethod("On16000", F);
+                System.Reflection.MethodInfo m16001 = ctrl.GetType().GetMethod("On16001", F);
+                System.Reflection.MethodInfo m16003 = ctrl.GetType().GetMethod("On16003", F);
+                System.Reflection.MethodInfo m16004 = ctrl.GetType().GetMethod("On16004", F);
+                System.Reflection.MethodInfo m16006 = ctrl.GetType().GetMethod("On16006", F);
+                System.Reflection.MethodInfo m16007 = ctrl.GetType().GetMethod("On16007", F);
+                System.Reflection.MethodInfo m16008 = ctrl.GetType().GetMethod("On16008", F);
+                System.Reflection.MethodInfo m16009 = ctrl.GetType().GetMethod("On16009", F);
+                System.Reflection.MethodInfo m16010 = ctrl.GetType().GetMethod("On16010", F);
+                System.Reflection.MethodInfo m16011 = ctrl.GetType().GetMethod("On16011", F);
+                System.Reflection.MethodInfo m16012 = ctrl.GetType().GetMethod("On16012", F);
+                System.Reflection.MethodInfo m16020 = ctrl.GetType().GetMethod("On16020", F);
+                System.Reflection.MethodInfo m16022 = ctrl.GetType().GetMethod("On16022", F);
+                System.Reflection.MethodInfo m16024 = ctrl.GetType().GetMethod("On16024", F);
+                System.Reflection.MethodInfo m16027 = ctrl.GetType().GetMethod("On16027", F);
+                if (m16000 == null || m16001 == null || m16003 == null || m16004 == null || m16006 == null || m16007 == null
+                    || m16008 == null || m16009 == null || m16010 == null || m16011 == null || m16012 == null
+                    || m16020 == null || m16022 == null || m16024 == null || m16027 == null)
+                {
+                    Debug.LogError("CLIVERIFY outward illusion handlers missing (reflection)");
+                    return 3;
+                }
+                Shenxiao.Framework.Net.NetReader FeedR(System.Reflection.MethodInfo m, byte[] pkt)
+                {
+                    var rr = new Shenxiao.Framework.Net.NetReader(pkt, 0, pkt.Length);
+                    m.Invoke(ctrl, new object[] { rr });
+                    return rr;
+                }
+
+                // ---- 0. 裁决6红线:发送侧 TypeId 必须严格等于 {1,2,3,4,5,12},严禁 6/7/8(协议层不可达) ----
+                int[] allTypeIds = Shenxiao.Module.Core.OutWard.OutWardController.AllTypeIds;
+                bool allTypeIdsOk = allTypeIds.Length == 6;
+                foreach (int expect in new[] { 1, 2, 3, 4, 5, 12 }) { if (System.Array.IndexOf(allTypeIds, expect) < 0) allTypeIdsOk = false; }
+                foreach (int forbidden in new[] { 6, 7, 8 }) { if (System.Array.IndexOf(allTypeIds, forbidden) >= 0) allTypeIdsOk = false; }
+                Debug.Log("CLIVERIFY outward 裁决6红线 AllTypeIds=[" + string.Join(",", allTypeIds) + "] ok=" + allTypeIdsOk);
+
+                // ---- 1. 幻化专属4张配表(config_mount_figure/_stage/_star/config_mount_skill) ----
+                bool illuCfgLoaded = Shenxiao.Module.Core.OutWard.OutWardConfigs.IsIllusionConfigLoaded;
+                string figName = Shenxiao.Module.Core.OutWard.OutWardConfigs.GetFigureName(1, 1, 1);
+                Shenxiao.Module.Core.OutWard.OutWardConfigs.GetFigureActivateCost(1, 1, 1, out long actGoodsId, out long actGoodsNum);
+                long maxBless = Shenxiao.Module.Core.OutWard.OutWardConfigs.GetFigureStageMaxBlessing(1, 1, 1);
+                Newtonsoft.Json.Linq.JObject starRow = Shenxiao.Module.Core.OutWard.OutWardConfigs.GetFigureStarRow(1, 1, 1);
+                bool illuCfgOk = illuCfgLoaded && figName == "金匮福猊" && actGoodsId == 16030109 && actGoodsNum == 30
+                    && maxBless == 500 && starRow != null;
+                Debug.Log("CLIVERIFY outward illusion config name=" + figName + " goods=" + actGoodsId + "x" + actGoodsNum
+                    + " maxBless=" + maxBless + " starRow=" + (starRow != null) + " ok=" + illuCfgOk);
+
+                // ---- 2. 16000 族错误出口(errcode==1600023 特判上限 / 其余通用) ----
+                int genericErrCount = 0; int lastGenericErr = 0;
+                System.Action<int> onGenericErr = code => { genericErrCount++; lastGenericErr = code; };
+                int limitErrCount = 0; int lastLimitErr = 0;
+                System.Action<int> onLimitErr = code => { limitErrCount++; lastLimitErr = code; };
+                Shenxiao.Framework.Event.EventDispatcher.On<int>(Shenxiao.Framework.Event.GlobalEvent.EVT_OUTWARD_ERROR, onGenericErr);
+                Shenxiao.Framework.Event.EventDispatcher.On<int>(Shenxiao.Framework.Event.GlobalEvent.EVT_OUTWARD_ACTIVE_LIMIT, onLimitErr);
+                Feed(m16000, new CliVerify.Pkt().I(99999).Bytes());
+                Feed(m16000, new CliVerify.Pkt().I(1600023).Bytes());
+                Shenxiao.Framework.Event.EventDispatcher.Off<int>(Shenxiao.Framework.Event.GlobalEvent.EVT_OUTWARD_ERROR, onGenericErr);
+                Shenxiao.Framework.Event.EventDispatcher.Off<int>(Shenxiao.Framework.Event.GlobalEvent.EVT_OUTWARD_ACTIVE_LIMIT, onLimitErr);
+                bool b16000 = genericErrCount == 1 && lastGenericErr == 99999 && limitErrCount == 1 && lastLimitErr == 1600023;
+                Debug.Log("CLIVERIFY outward 16000 generic=" + lastGenericErr + " limit=" + lastLimitErr + " ok=" + b16000);
+
+                // ---- 3. 16001 场景外观变化广播(S2C only) ----
+                int sceneEventCount = 0; int lastSceneType = 0; long lastSceneRole = 0;
+                System.Action<int, long> onScene = (t, rid) => { sceneEventCount++; lastSceneType = t; lastSceneRole = rid; };
+                Shenxiao.Framework.Event.EventDispatcher.On<int, long>(Shenxiao.Framework.Event.GlobalEvent.EVT_OUTWARD_SCENE_FIGURE_CHANGE, onScene);
+                Feed(m16001, new CliVerify.Pkt().C(1).L(88800001).C(1).I(1019).H(300).Bytes());
+                Shenxiao.Framework.Event.EventDispatcher.Off<int, long>(Shenxiao.Framework.Event.GlobalEvent.EVT_OUTWARD_SCENE_FIGURE_CHANGE, onScene);
+                bool b16001 = sceneEventCount == 1 && lastSceneType == 1 && lastSceneRole == 88800001;
+                Debug.Log("CLIVERIFY outward 16001 scene type=" + lastSceneType + " role=" + lastSceneRole + " ok=" + b16001);
+
+                // ---- 4. 16003 幻化穿戴/取消:type=2(幻化)成功 / type=1(基础)成功 / 失败no-throw ----
+                // 穿戴回包依赖 16006 已建立的幻化容器；先落一个空容器，再断言 IllusionId 真正写入而非只看 FigureStage。
+                model.Apply16006(1, 0, 0, new List<Shenxiao.Module.Core.OutWard.OutWardModel.FigureBriefVo>());
+                Feed(m16003, new CliVerify.Pkt().I(1).C(1).C(2).I(77).I(0).Bytes());   // type_id=1,type=2,args=77(figure_id)
+                Shenxiao.Module.Core.OutWard.OutWardModel.OutWardVo vo1AfterWear = model.Get(1);
+                bool b16003Type2 = vo1AfterWear != null && vo1AfterWear.FigureStage == 0
+                    && model.GetIllusionList(1)?.IllusionId == 77;
+                Feed(m16003, new CliVerify.Pkt().I(1).C(1).C(1).I(3).I(0).Bytes());    // type=1,args=3(figure_stage)
+                vo1AfterWear = model.Get(1);
+                bool b16003Type1 = vo1AfterWear != null && vo1AfterWear.FigureStage == 3
+                    && model.GetIllusionList(1)?.IllusionId == 0;
+                bool b16003FailNoThrow = true;
+                try { Feed(m16003, new CliVerify.Pkt().I(5).C(1).C(2).I(0).I(0).Bytes()); }
+                catch (System.Exception e) { b16003FailNoThrow = false; Debug.LogError("CLIVERIFY outward 16003 fail threw: " + e); }
+                Debug.Log("CLIVERIFY outward 16003 type2ok=" + b16003Type2 + " type1ok=" + b16003Type1 + " failNoThrow=" + b16003FailNoThrow);
+
+                // ---- 5. 16004 上/下坐骑:成功事件 / 失败no-throw ----
+                int rideEventCount = 0; int lastRideType = 0; int lastRideMode = -1;
+                System.Action<int, int> onRide = (t, md) => { rideEventCount++; lastRideType = t; lastRideMode = md; };
+                Shenxiao.Framework.Event.EventDispatcher.On<int, int>(Shenxiao.Framework.Event.GlobalEvent.EVT_OUTWARD_RIDE_TOGGLE, onRide);
+                Feed(m16004, new CliVerify.Pkt().I(1).C(1).C(1).Bytes());
+                Shenxiao.Framework.Event.EventDispatcher.Off<int, int>(Shenxiao.Framework.Event.GlobalEvent.EVT_OUTWARD_RIDE_TOGGLE, onRide);
+                bool b16004Ok = rideEventCount == 1 && lastRideType == 1 && lastRideMode == 1;
+                bool b16004FailNoThrow = true;
+                try { Feed(m16004, new CliVerify.Pkt().I(5).C(1).C(0).Bytes()); }
+                catch (System.Exception e) { b16004FailNoThrow = false; Debug.LogError("CLIVERIFY outward 16004 fail threw: " + e); }
+                Debug.Log("CLIVERIFY outward 16004 ok=" + b16004Ok + " failNoThrow=" + b16004FailNoThrow);
+
+                // ---- 6. 16006 幻化形象列表(嵌套数组×2条 + 尾哨兵;type_id=1 触发自动补拉16007) ----
+                byte[] p16006 = new CliVerify.Pkt()
+                    .I(1).C(1).I(0).H(0)          // errcode,type_id,illusion_id=0,color_id=0
+                    .H(2)                          // figure_list 计数
+                    .I(1).C(1).H(0).I(0)           // figure#1: id=1,stage=1,star=0,end_time=0
+                    .I(2).C(1).H(3).I(1700000000)  // figure#2: id=2,stage=1,star=3,end_time=1700000000
+                    .I(135797531)                  // 尾哨兵
+                    .Bytes();
+                Shenxiao.Framework.Net.NetReader reader16006 = FeedR(m16006, p16006);
+                bool b16006Sentinel = reader16006.Remaining == 4 && reader16006.ReadU32() == 135797531;
+                Shenxiao.Module.Core.OutWard.OutWardModel.IllusionListVo illu1 = model.GetIllusionList(1);
+                bool b16006Data = illu1 != null && illu1.IllusionId == 0 && illu1.ColorId == 0 && illu1.FigureList.Count == 2
+                    && illu1.FigureList[0].Id == 1 && illu1.FigureList[1].Id == 2 && illu1.FigureList[1].Star == 3;
+                Debug.Log("CLIVERIFY outward 16006 data=" + b16006Data + " sentinel=" + b16006Sentinel);
+
+                // ---- 7. 16007 幻化形象详情(attr/skill/color 三个嵌套数组 + 尾哨兵;type_id=1,id=1) ----
+                byte[] p16007 = new CliVerify.Pkt()
+                    .I(1).C(1).I(1).C(1).H(0).I(500).I(1000).I(200).I(0)   // errcode..end_time
+                    .H(1).C(1).I(999)                    // attr_list: {attr_id=1,val=999}
+                    .H(2).I(59140030).I(59140031)         // skill_list: 仅 id
+                    .H(1).H(1).I(2)                       // color_list: {color_id=1,color_lv=2}
+                    .L(12345)                              // next_star_power
+                    .I(246813579)                          // 尾哨兵
+                    .Bytes();
+                Shenxiao.Framework.Net.NetReader reader16007 = FeedR(m16007, p16007);
+                bool b16007Sentinel = reader16007.Remaining == 4 && reader16007.ReadU32() == 246813579;
+                Shenxiao.Module.Core.OutWard.OutWardModel.FigureDetailVo detail11 = model.GetFigureDetail(1, 1);
+                bool b16007Data = detail11 != null && detail11.Stage == 1 && detail11.Combat == 1000 && detail11.StarCombat == 200
+                    && detail11.Attrs.Count == 1 && detail11.Skills.Count == 2 && detail11.Skills[0] == 59140030
+                    && detail11.ColorList.Count == 1 && detail11.NextStarPower == 12345;
+                Debug.Log("CLIVERIFY outward 16007 data=" + b16007Data + " sentinel=" + b16007Sentinel);
+
+                // ---- 8. 16008 激活形象:成功事件(补拉16006)/ 失败no-throw ----
+                int activateEventCount = 0; int lastActivateType = 0; int lastActivateId = 0;
+                System.Action<int, int> onActivate = (t, id) => { activateEventCount++; lastActivateType = t; lastActivateId = id; };
+                Shenxiao.Framework.Event.EventDispatcher.On<int, int>(Shenxiao.Framework.Event.GlobalEvent.EVT_OUTWARD_FIGURE_ACTIVATED, onActivate);
+                Feed(m16008, new CliVerify.Pkt().I(1).C(1).I(3).I(1500).Bytes());
+                Shenxiao.Framework.Event.EventDispatcher.Off<int, int>(Shenxiao.Framework.Event.GlobalEvent.EVT_OUTWARD_FIGURE_ACTIVATED, onActivate);
+                bool b16008Ok = activateEventCount == 1 && lastActivateType == 1 && lastActivateId == 3;
+                bool b16008FailNoThrow = true;
+                try { Feed(m16008, new CliVerify.Pkt().I(5).C(1).I(3).I(0).Bytes()); }
+                catch (System.Exception e) { b16008FailNoThrow = false; Debug.LogError("CLIVERIFY outward 16008 fail threw: " + e); }
+                Debug.Log("CLIVERIFY outward 16008 ok=" + b16008Ok + " failNoThrow=" + b16008FailNoThrow);
+
+                // ---- 9. 16009 幻化升阶:成功事件(嵌套ratio_list,补拉16006)/ 失败no-throw ----
+                int stageEventCount = 0; int lastStageType = 0; int lastStageId = 0;
+                System.Action<int, int> onStage = (t, id) => { stageEventCount++; lastStageType = t; lastStageId = id; };
+                Shenxiao.Framework.Event.EventDispatcher.On<int, int>(Shenxiao.Framework.Event.GlobalEvent.EVT_OUTWARD_FIGURE_STAGE_UP, onStage);
+                byte[] p16009Ok = new CliVerify.Pkt().I(1).C(1).I(3).C(2).I(600).I(0).H(1).C(1).H(50).I(16030109).Bytes();
+                Feed(m16009, p16009Ok);
+                Shenxiao.Framework.Event.EventDispatcher.Off<int, int>(Shenxiao.Framework.Event.GlobalEvent.EVT_OUTWARD_FIGURE_STAGE_UP, onStage);
+                bool b16009Ok = stageEventCount == 1 && lastStageType == 1 && lastStageId == 3;
+                bool b16009FailNoThrow = true;
+                try { Feed(m16009, new CliVerify.Pkt().I(5).C(1).I(3).C(0).I(0).I(0).H(0).I(0).Bytes()); }
+                catch (System.Exception e) { b16009FailNoThrow = false; Debug.LogError("CLIVERIFY outward 16009 fail threw: " + e); }
+                Debug.Log("CLIVERIFY outward 16009 ok=" + b16009Ok + " failNoThrow=" + b16009FailNoThrow);
+
+                // ---- 10. 16010 使用魔晶:成功(补拉16011+16002)/失败,均只需 no-throw ----
+                bool b16010OkNoThrow = true;
+                try { Feed(m16010, new CliVerify.Pkt().I(1).C(1).I(16030109).Bytes()); }
+                catch (System.Exception e) { b16010OkNoThrow = false; Debug.LogError("CLIVERIFY outward 16010 ok threw: " + e); }
+                bool b16010FailNoThrow = true;
+                try { Feed(m16010, new CliVerify.Pkt().I(5).C(1).I(16030109).Bytes()); }
+                catch (System.Exception e) { b16010FailNoThrow = false; Debug.LogError("CLIVERIFY outward 16010 fail threw: " + e); }
+                Debug.Log("CLIVERIFY outward 16010 okNoThrow=" + b16010OkNoThrow + " failNoThrow=" + b16010FailNoThrow);
+
+                // ---- 11. 16011 魔晶使用次数(嵌套数组 + 尾哨兵,无errcode字段) ----
+                byte[] p16011 = new CliVerify.Pkt()
+                    .C(1).H(2)
+                    .I(16030109).I(3).I(10)
+                    .I(16030110).I(0).I(5)
+                    .I(864297531)   // 尾哨兵
+                    .Bytes();
+                Shenxiao.Framework.Net.NetReader reader16011 = FeedR(m16011, p16011);
+                bool b16011Sentinel = reader16011.Remaining == 4 && reader16011.ReadU32() == 864297531;
+                var counters1 = model.GetCrystalCounters(1);
+                bool b16011Data = counters1 != null && counters1.Count == 2
+                    && counters1[0].goodsId == 16030109 && counters1[0].times == 3 && counters1[0].timesLim == 10;
+                Debug.Log("CLIVERIFY outward 16011 data=" + b16011Data + " sentinel=" + b16011Sentinel);
+
+                // ---- 12. 16012 到期删除推送(纯下行,双删:形象列表 + 详情缓存) ----
+                Feed(m16012, new CliVerify.Pkt().C(1).C(1).Bytes());
+                Shenxiao.Module.Core.OutWard.OutWardModel.IllusionListVo illu1AfterExpire = model.GetIllusionList(1);
+                bool b16012Removed = illu1AfterExpire != null && illu1AfterExpire.FigureList.TrueForAll(f => f.Id != 1)
+                    && model.GetFigureDetail(1, 1) == null;
+                Debug.Log("CLIVERIFY outward 16012 removed=" + b16012Removed);
+
+                // ---- 13. 16020 幻化升星:成功原地patch(figure id=2,由16006建立) / 失败no-throw ----
+                int starUpEventCount = 0; int lastStarUpType = 0; int lastStarUpId = 0;
+                System.Action<int, int> onStarUp = (t, id) => { starUpEventCount++; lastStarUpType = t; lastStarUpId = id; };
+                Shenxiao.Framework.Event.EventDispatcher.On<int, int>(Shenxiao.Framework.Event.GlobalEvent.EVT_OUTWARD_FIGURE_STAR_UP, onStarUp);
+                Feed(m16020, new CliVerify.Pkt().I(1).C(1).I(2).H(5).Bytes());
+                Shenxiao.Framework.Event.EventDispatcher.Off<int, int>(Shenxiao.Framework.Event.GlobalEvent.EVT_OUTWARD_FIGURE_STAR_UP, onStarUp);
+                Shenxiao.Module.Core.OutWard.OutWardModel.IllusionListVo illu1AfterStar = model.GetIllusionList(1);
+                Shenxiao.Module.Core.OutWard.OutWardModel.FigureBriefVo brief2 = illu1AfterStar?.FigureList.Find(f => f.Id == 2);
+                bool b16020Ok = starUpEventCount == 1 && lastStarUpId == 2 && brief2 != null && brief2.Star == 5;
+                bool b16020FailNoThrow = true;
+                try { Feed(m16020, new CliVerify.Pkt().I(5).C(1).I(2).H(0).Bytes()); }
+                catch (System.Exception e) { b16020FailNoThrow = false; Debug.LogError("CLIVERIFY outward 16020 fail threw: " + e); }
+                Debug.Log("CLIVERIFY outward 16020 ok=" + b16020Ok + " failNoThrow=" + b16020FailNoThrow);
+
+                // ---- 14. 16022 幻化战力预览(无errcode)+ "选中未缓存才请求"缓存门槛的缓存态验证 ----
+                Feed(m16022, new CliVerify.Pkt().C(1).C(2).L(3000).L(1200).L(1600).Bytes());
+                bool b16022Data = model.LastFightPreview.TypeId == 1 && model.LastFightPreview.FigureId == 2
+                    && model.LastFightPreview.Power == 3000 && model.LastFightPreview.StarCombat == 1200
+                    && model.LastFightPreview.NextStarPower == 1600;
+                Debug.Log("CLIVERIFY outward 16022 data=" + b16022Data);
+                // 缓存门槛:给 type=2,id=1 建一份 16007 详情缓存后,RequestFightPreview 应据此跳过实际发送
+                // (SendFmt 本身在此黑盒用例里不可断言"是否被跳过",跳过分支已随源码人工核对,见 Controller 注释)。
+                byte[] p16007ForType2 = new CliVerify.Pkt().I(1).C(2).I(1).C(1).H(0).I(0).I(0).I(0).I(0).H(0).H(0).H(0).L(0).Bytes();
+                Feed(m16007, p16007ForType2);
+                bool b16022GateCachePresent = model.GetFigureDetail(2, 1) != null;
+                bool b16022GateNoThrow = true;
+                try { Shenxiao.Module.Core.OutWard.OutWardController.Instance.RequestFightPreview(2, 1); }
+                catch (System.Exception e) { b16022GateNoThrow = false; Debug.LogError("CLIVERIFY outward RequestFightPreview(cached) threw: " + e); }
+                Debug.Log("CLIVERIFY outward 16022 gate cachePresent=" + b16022GateCachePresent + " noThrow=" + b16022GateNoThrow);
+
+                // ---- 15. 16024 自动购买(type=1 的 vo 已由本用例最早的 16002 feed 建立) ----
+                Feed(m16024, new CliVerify.Pkt().I(1).C(1).C(1).Bytes());
+                Shenxiao.Module.Core.OutWard.OutWardModel.OutWardVo vo1AfterAutoBuy = model.Get(1);
+                bool b16024Ok = vo1AfterAutoBuy != null && vo1AfterAutoBuy.AutoBuy == 1;
+                Debug.Log("CLIVERIFY outward 16024 autoBuy=" + (vo1AfterAutoBuy?.AutoBuy ?? -1) + " ok=" + b16024Ok);
+
+                // ---- 16. 16027 幻化升星战力预览(无errcode,无star_combat字段) ----
+                Feed(m16027, new CliVerify.Pkt().C(1).C(2).L(4000).L(4800).Bytes());
+                bool b16027Data = model.LastStarFightPreview.TypeId == 1 && model.LastStarFightPreview.FigureId == 2
+                    && model.LastStarFightPreview.Power == 4000 && model.LastStarFightPreview.NextStarPower == 4800
+                    && model.LastStarFightPreview.StarCombat == 0;
+                Debug.Log("CLIVERIFY outward 16027 data=" + b16027Data);
+
+                bool illusionPass = registrationOk && gameStartRequestsOk && setTypeRequestsOk
+                    && allTypeIdsOk && illuCfgOk && b16000 && b16001
+                    && b16003Type2 && b16003Type1 && b16003FailNoThrow && b16004Ok && b16004FailNoThrow
+                    && b16006Data && b16006Sentinel && b16007Data && b16007Sentinel
+                    && b16008Ok && b16008FailNoThrow && b16009Ok && b16009FailNoThrow
+                    && b16010OkNoThrow && b16010FailNoThrow && b16011Data && b16011Sentinel && b16012Removed
+                    && b16020Ok && b16020FailNoThrow && b16022Data && b16022GateCachePresent && b16022GateNoThrow
+                    && b16024Ok && b16027Data;
+                Debug.Log("CLIVERIFY outward illusion VERDICT registration=" + registrationOk
+                    + " gameStartRequests=" + gameStartRequestsOk + " setTypeRequests=" + setTypeRequestsOk
+                    + " allTypeIdsOk=" + allTypeIdsOk + " illuCfgOk=" + illuCfgOk
+                    + " b16000=" + b16000 + " b16001=" + b16001 + " b16003=" + (b16003Type2 && b16003Type1 && b16003FailNoThrow)
+                    + " b16004=" + (b16004Ok && b16004FailNoThrow) + " b16006=" + (b16006Data && b16006Sentinel)
+                    + " b16007=" + (b16007Data && b16007Sentinel) + " b16008=" + (b16008Ok && b16008FailNoThrow)
+                    + " b16009=" + (b16009Ok && b16009FailNoThrow) + " b16010=" + (b16010OkNoThrow && b16010FailNoThrow)
+                    + " b16011=" + (b16011Data && b16011Sentinel) + " b16012=" + b16012Removed
+                    + " b16020=" + (b16020Ok && b16020FailNoThrow) + " b16022=" + (b16022Data && b16022GateCachePresent && b16022GateNoThrow)
+                    + " b16024=" + b16024Ok + " b16027=" + b16027Data + " illusionPass=" + illusionPass);
+
                 Shenxiao.Module.Core.OutWard.OutWardShellView.Show();
                 await Task.Delay(400);
                 stage.ForceCjkFont();
@@ -112,10 +470,21 @@ namespace Shenxiao.EditorTools
                 bool starBtnOk = starBtn != null && starBtn.gameObject.activeInHierarchy;
                 Debug.Log("CLIVERIFY outward shell rowOk=" + rowOk + " starBtn=" + starBtnOk + " shot=" + png);
 
-                bool pass = infoOk && starUpOk && starUpFailNoThrow && lvPanelOk && lvUpOk && lvUpFailNoThrow && rowOk && starBtnOk;
+                // 登出/Dispose 会调 Clear；两类瞬时战力预览也必须归零，不能串到下一角色/下一会话。
+                model.Clear();
+                bool clearPreviewOk = model.LastFightPreview.TypeId == 0 && model.LastFightPreview.FigureId == 0
+                    && model.LastFightPreview.Power == 0 && model.LastFightPreview.StarCombat == 0 && model.LastFightPreview.NextStarPower == 0
+                    && model.LastStarFightPreview.TypeId == 0 && model.LastStarFightPreview.FigureId == 0
+                    && model.LastStarFightPreview.Power == 0 && model.LastStarFightPreview.StarCombat == 0
+                    && model.LastStarFightPreview.NextStarPower == 0;
+                Debug.Log("CLIVERIFY outward clear preview reset=" + clearPreviewOk);
+
+                bool pass = infoOk && starUpOk && starUpFailNoThrow && lvPanelOk && lvUpOk && lvUpFailNoThrow && rowOk && starBtnOk
+                    && illusionPass && clearPreviewOk;
                 Debug.Log("CLIVERIFY outward VERDICT infoOk=" + infoOk + " starUpOk=" + starUpOk
                     + " starUpFailNoThrow=" + starUpFailNoThrow + " lvPanelOk=" + lvPanelOk + " lvUpOk=" + lvUpOk
-                    + " lvUpFailNoThrow=" + lvUpFailNoThrow + " rowOk=" + rowOk + " starBtnOk=" + starBtnOk + " pass=" + pass);
+                    + " lvUpFailNoThrow=" + lvUpFailNoThrow + " rowOk=" + rowOk + " starBtnOk=" + starBtnOk
+                    + " illusionPass=" + illusionPass + " pass=" + pass);
 
                 Shenxiao.Module.Core.OutWard.OutWardShellView.Close();
                 Shenxiao.Module.Core.OutWard.OutWardModel.Instance.Clear();
