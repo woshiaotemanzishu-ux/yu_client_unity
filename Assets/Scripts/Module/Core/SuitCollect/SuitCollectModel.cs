@@ -75,6 +75,28 @@ namespace Shenxiao.Module.Core.SuitCollect
             vo.PosList = posList;
         }
 
+        /// <summary>15258 增量点亮：只合并部位并去重，不覆盖阶段或其它套装。</summary>
+        public void MergeLitPositions(List<(int suitId, int equipType)> list)
+        {
+            if (list == null) return;
+            foreach ((int suitId, int equipType) in list)
+            {
+                SuitVo vo = Get(suitId);
+                if (vo == null)
+                {
+                    vo = new SuitVo { SuitId = suitId, PosList = new List<int>() };
+                    _suits[suitId] = vo;
+                }
+                vo.PosList ??= new List<int>();
+                if (!vo.PosList.Contains(equipType)) vo.PosList.Add(equipType);
+            }
+        }
+
+        public void ApplyFashionWear(int suitId, bool isWear)
+        {
+            FashionSuitId = suitId == 0 || !isWear ? 0 : suitId;
+        }
+
         public void Clear()
         {
             _suits.Clear();
@@ -138,6 +160,18 @@ namespace Shenxiao.Module.Core.SuitCollect
                 return obj.Value<int?>("stage") ?? -1;
             }
             return -1;
+        }
+
+        /// <summary>是否为配置表中存在的套装 id（任一职业行存在即有效）。</summary>
+        public static bool IsKnownSuit(int suitId)
+        {
+            if (suitId <= 0 || _suitClt == null) return false;
+            string prefix = suitId + "@";
+            foreach (JProperty property in _suitClt.Properties())
+            {
+                if (property.Name.StartsWith(prefix, System.StringComparison.Ordinal)) return true;
+            }
+            return false;
         }
     }
 }

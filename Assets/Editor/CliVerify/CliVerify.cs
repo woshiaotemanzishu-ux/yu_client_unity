@@ -189,6 +189,12 @@ namespace Shenxiao.EditorTools
             Run(PartnerCaseAsync, 240.0);
         }
 
+        /// <summary>套装收集 15256-15259 数据、出站与轻量 UI 验证。</summary>
+        public static void SuitCollect()
+        {
+            Run(SuitCollectCase.Run, 300.0);
+        }
+
         /// <summary>设置面板 + PK 模式链路实证(SettingCreator 重建 + 10202/13012 合成包 + 双视图渲染断言)。</summary>
         public static void SettingPk()
         {

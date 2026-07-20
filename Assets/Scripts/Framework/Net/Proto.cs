@@ -1106,6 +1106,11 @@
         /// <summary>激活套装阶段(发 "cc" suit_id,stage;回包:code:i, suit_id:c, cur_stage:c,
         /// cur_pos_list[u16×{equip_type:c}];code==1 成功——服务端需背包有对应部位装备)。</summary>
         public const int SUIT_CLT_ACTIVE = 15257;
+        /// <summary>穿装自动点亮广播(S2C only,客户端禁止发送空包)。回包:
+        /// list[u16×{suit_id:c,equip_type:c}]。</summary>
+        public const int SUIT_CLT_AUTO_LIGHT = 15258;
+        /// <summary>套装时装穿脱。发 "cc" suit_id,is_wear(0/1);回包:code:i,suit_id:c,is_wear:c。</summary>
+        public const int SUIT_CLT_FASHION_WEAR = 15259;
 
         // ----- 冲级豪礼/等级礼包(pt_417,yu_server welfare/pp_welfare;老端 WelfareController.ts) -----
         /// <summary>礼包状态列表(请求无参;回包:giftbag_state[u16×{lv:h, received:c, end_time:l, remain_num:i}];

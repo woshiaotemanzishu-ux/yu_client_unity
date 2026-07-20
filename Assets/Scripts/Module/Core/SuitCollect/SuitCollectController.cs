@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
@@ -10,11 +11,15 @@ namespace Shenxiao.Module.Core.SuitCollect
     /// 套装收集协议控制器(对标老端 commonController/SuitActivityController.ts;服务端 pt_152 段内 15256-15259,
     /// yu_server goods/suit_collect)。进游戏(EVT_GAME_START)发 15256 求全量;Activate(suitId,stage) 发 15257
     /// 激活套装阶段——**主线 100391 任务闭环唯一触发点**(服务端按 {suit_clt,[{SuitId,CurStage}]} 匹配完成)。
-    /// 15258(穿装自动点亮广播)/15259(时装穿脱)本轮未接,留后。
+    /// 15258 接穿装自动点亮增量广播；15259 接套装时装穿脱请求/回包。
     /// </summary>
     public sealed class SuitCollectController : BaseController
     {
         public static readonly SuitCollectController Instance = new SuitCollectController();
+
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_outboundIntercept;
+#endif
 
         private SuitCollectController() { }
 
@@ -22,6 +27,8 @@ namespace Shenxiao.Module.Core.SuitCollect
         {
             RegisterProtocal(Proto.SUIT_CLT_INFO, On15256);
             RegisterProtocal(Proto.SUIT_CLT_ACTIVE, On15257);
+            RegisterProtocal(Proto.SUIT_CLT_AUTO_LIGHT, On15258);
+            RegisterProtocal(Proto.SUIT_CLT_FASHION_WEAR, On15259);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
@@ -45,6 +52,14 @@ namespace Shenxiao.Module.Core.SuitCollect
             if (suitId <= 0 || stage <= 0) return;
             SendFmt(Proto.SUIT_CLT_ACTIVE, "cc", suitId, stage);
             GameLog.Info("SuitCollect", "activate 15257 suit={0} stage={1}", suitId, stage);
+        }
+
+        /// <summary>穿/脱套装时装。suitId 必须来自已加载的 config_suit_clt，isWear 只编码为 0/1。</summary>
+        public void SetFashionWear(int suitId, bool isWear)
+        {
+            if (!SuitCollectConfigs.IsKnownSuit(suitId)) return;
+            SendPacket(Proto.SUIT_CLT_FASHION_WEAR, "cc", suitId, isWear ? 1 : 0);
+            GameLog.Info("SuitCollect", "send 15259 suit={0} wear={1}", suitId, isWear);
         }
 
         /// <summary>15256 套装收集全量:clt_list[u16×{suit_id:c, cur_stage:c, cur_pos_list[u16×{equip_type:c}]}]
@@ -77,6 +92,43 @@ namespace Shenxiao.Module.Core.SuitCollect
             GameLog.Info("SuitCollect", "15257 activate ok suit={0} curStage={1} pos={2} remaining={3}B",
                 suitId, curStage, posList.Count, r.Remaining);
             EventDispatcher.Emit(GlobalEvent.EVT_SUIT_CLT_UPDATE);
+        }
+
+        private void On15258(NetReader r)
+        {
+            List<(int suitId, int equipType)> list = r.ReadArray(rr => ((int)rr.ReadU8(), (int)rr.ReadU8()));
+            SuitCollectModel.Instance.MergeLitPositions(list);
+            GameLog.Info("SuitCollect", "15258 auto light count={0} remaining={1}B", list.Count, r.Remaining);
+            EventDispatcher.Emit(GlobalEvent.EVT_SUIT_CLT_UPDATE);
+        }
+
+        private void On15259(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            int suitId = r.ReadU8();
+            bool isWear = r.ReadU8() != 0;
+            if (code != 1)
+            {
+                TipsManager.Toast("操作失败(" + code + ")");
+                GameLog.Info("SuitCollect", "15259 fashion fail code={0} suit={1} wear={2}", code, suitId, isWear);
+                return;
+            }
+            SuitCollectModel.Instance.ApplyFashionWear(suitId, isWear);
+            if (suitId != 0) TipsManager.Toast(isWear ? "穿戴成功" : "脱下成功");
+            EventDispatcher.Emit(GlobalEvent.EVT_SUIT_CLT_UPDATE);
+            GameLog.Info("SuitCollect", "15259 fashion ok suit={0} wear={1} remaining={2}B", suitId, isWear, r.Remaining);
+        }
+
+        private static void SendPacket(int protoId, string format = null, params object[] args)
+        {
+#if UNITY_EDITOR
+            if (s_outboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(protoId, format, args);
+                if (s_outboundIntercept(frame)) return;
+            }
+#endif
+            NetManager.SendFmt(protoId, format, args);
         }
 
         /// <summary>读 15256 clt_list 单项(字段序照 ClientProtocol.json,逐字段按序读完)。</summary>
