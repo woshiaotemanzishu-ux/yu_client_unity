@@ -28,6 +28,8 @@ namespace Shenxiao.EditorTools
 
         public static async Task<int> Run()
         {
+            bool editorPreferFallbackBefore = Shenxiao.Framework.Res.ResManager.EditorPreferFallback;
+            Shenxiao.Framework.Res.ResManager.EditorPreferFallback = true;
             var logs = new List<string>();
             Application.LogCallback cb = (msg, stack, type) => logs.Add(msg);
             Application.logMessageReceived += cb;
@@ -193,6 +195,16 @@ namespace Shenxiao.EditorTools
                 Debug.Log("CLIVERIFY marriage 17224 回应结果(无Code) acceptFired=" + b17224Accept + " rejectSilent=" + b17224Reject + " ok=" + b17224);
 
                 // ---- K. 17226 登录表白汇总(无Code,双数组必须都读完保游标,CombatPower u64) ----
+                byte[] p17226Request = Shenxiao.Framework.Net.UserMsgAdapter.Encode(
+                    Shenxiao.Framework.Net.Proto.MARRIAGE_BIAOBAI_LIST, null, new object[0]);
+                bool b17226RequestWire = p17226Request.Length == 6
+                    && ((p17226Request[0] << 8) | p17226Request[1]) == 6
+                    && ((p17226Request[2] << 8) | p17226Request[3]) == 1000
+                    && ((p17226Request[4] << 8) | p17226Request[5]) == 17226;
+                logs.Clear();
+                ((Shenxiao.Module.Core.Marriage.MarriageController)ctrl).RequestBiaobaiList();
+                bool b17226PublicSend = logs.Exists(l => l.Contains("proto=17226"));
+                bool b17226Outbound = b17226RequestWire && b17226PublicSend;
                 byte[] p17226 = new CliVerify.Pkt()
                     .H(2)
                         .L(9101).S("甲甲").H(101).L(111111).C(1).I(11).C(1).C(1).C(2).C(1).S("求婚msg").C(0)
@@ -211,7 +223,7 @@ namespace Shenxiao.EditorTools
                     && model.BiaobaiAnswerList[0].RoleId == 9201 && model.BiaobaiAnswerList[0].Name == "丙丙"
                     && model.BiaobaiAnswerList[0].CombatPower == 333333 && model.BiaobaiAnswerList[0].AnswerType == 1;
                 Debug.Log("CLIVERIFY marriage 17226 登录表白汇总(双数组游标) biaobaiN=" + model.BiaobaiList.Count
-                    + " answerN=" + model.BiaobaiAnswerList.Count + " ok=" + b17226);
+                    + " answerN=" + model.BiaobaiAnswerList.Count + " outboundEmpty=" + b17226Outbound + " ok=" + b17226);
 
                 // ---- L. 17229 键值推送(无Code) ----
                 Feed("On17229", new CliVerify.Pkt().H(1).C(1).I(5200).Bytes());
@@ -400,7 +412,7 @@ namespace Shenxiao.EditorTools
 
                 bool pass = configOk && deadSendOk && deadRecvOk && b17200 && b17200fail && b1720102NoThrow && b17205
                     && b17210 && b17210fail && b17211 && b17211fail && b17213 && b17213fail && b17212 && b17222 && b17223
-                    && b17224 && b17226 && b17229 && b17231 && b17232 && b17234 && b17236 && bGiftGroup
+                    && b17224 && b17226Outbound && b17226 && b17229 && b17231 && b17232 && b17234 && b17236 && bGiftGroup
                     && dead17245SendOk && dead17245RecvOk && b17245 && b17246 && b17246fail && b17295 && b17296 && b17297
                     && bFlowerGroup;
 
@@ -408,7 +420,7 @@ namespace Shenxiao.EditorTools
                     + " l17200=" + b17200 + " l17205=" + b17205 + " l17210=" + (b17210 && b17210fail)
                     + " l1721113=" + (b17211 && b17211fail && b17213 && b17213fail)
                     + " l17212=" + b17212 + " l17222=" + b17222 + " l17223=" + b17223 + " l17224=" + b17224
-                    + " l17226=" + b17226 + " l17229=" + b17229 + " l17231=" + b17231 + " l17232=" + b17232
+                    + " l17226=" + (b17226Outbound && b17226) + " l17229=" + b17229 + " l17231=" + b17231 + " l17232=" + b17232
                     + " l1723435=" + b17234 + " l17236=" + b17236 + " gift=" + bGiftGroup
                     + " dead17245=" + (dead17245SendOk && dead17245RecvOk) + " match=" + (b17245 && b17246 && b17246fail)
                     + " dunInvite=" + (b17295 && b17296 && b17297) + " flower=" + bFlowerGroup + " pass=" + pass);
@@ -419,6 +431,7 @@ namespace Shenxiao.EditorTools
             finally
             {
                 Application.logMessageReceived -= cb;
+                Shenxiao.Framework.Res.ResManager.EditorPreferFallback = editorPreferFallbackBefore;
             }
         }
 

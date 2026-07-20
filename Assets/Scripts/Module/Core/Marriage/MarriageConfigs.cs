@@ -14,8 +14,7 @@ namespace Shenxiao.Module.Core.Marriage
     ///   · config_ring_star(501条,stage 1-50,复合键"stage@star")——戒指阶星属性表(upgrade_pray_num/
     ///     attr_list/marriage_attr),17210 战力自算 TODO 依赖此表(本轮未接算法,见 MarriageController 注释)。
     ///     轮16三镜头验收裁决2:拷贝源=yu_client cdn\resource\config\server(法定同步源,LayaUISettings.
-    ///     CdnResourceRoot,历轮同源)的 501 条版本,与服务端 data_ring.erl 501+1 兜底精确吻合;
-    ///     cdn\assets\resource\config\server 下的 101 条(stage 1-10)为老端发布侧陈旧副本,不采用。
+    ///     CdnResourceRoot,历轮同源),实际 501 条,与服务端 data_ring.erl 501+1 兜底精确吻合。
     ///   · config_flower_tools(6条,数字键=goods_id)——鲜花道具表(intimacy/charm/fame/特效)。
     ///   · config_love_dsgt_cfg(10条,数字键=顺位id)——恩爱称号档位表(dsgt=真实称号id,love_num=解锁门槛)。
     /// **跳过 config_personal_tag_info**(60条)。轮16三镜头验收 M9 订正:该表有 3 个活视图消费

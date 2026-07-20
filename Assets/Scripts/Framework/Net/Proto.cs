@@ -2526,14 +2526,15 @@
         /// <summary>请求对方购买礼包(C2S 空包)。S2C Code:32(成功后对方收到 17222 type=5 推送)。</summary>
         public const int MARRIAGE_GIFT_ASK_BUY = 17240;
 
-        /// <summary>进入/退出伴侣副本匹配(C2S "ci" type,dun_id;type:1=进入/2=退出)。S2C Code:32,Type:8,
-        /// DunId:32。</summary>
+        /// <summary>进入/退出伴侣副本匹配的历史线格式(C2S "ci" type,dun_id;type:1=进入/2=退出;S2C
+        /// Code:32,Type:8,DunId:32)。服务端 pp_marriage:handle(17245) 已整段注释,本端不提供发送 API;
+        /// 常量和接收注册只用于防御尾包。</summary>
         public const int MARRIAGE_DUN_MATCH = 17245;
         /// <summary>匹配结果(无 read,纯推送)。S2C Code:32,List[u16计数]{Type:8,RoleId:64,
         /// Figure(<see cref="Shenxiao.Common.Proto.FigureProto"/>),Power:64},EnterTime:8。⚠与 r16 报告
         /// "无Code"结论不同——ClientProtocol.json 定义 code:i 为首字段且老端 on17246 实读 scmd.code,直接
-        /// 核对原文订正为带 Code(本代理 §1 裁决)。死链 UI(MarriageMatchView/MatchTipsView 未定义类,OPEN
-        /// 静默失败),数据层仍照接解析落地+发事件,UI 消费方留尾包。</summary>
+        /// 核对原文订正为带 Code(本代理 §1 裁决)。由于 17245 服务端入口已封存,17246 推送链无触发源;
+        /// 本端只保留防御接收、解析落地和事件派发。</summary>
         public const int MARRIAGE_DUN_MATCH_RESULT = 17246;
 
         /// <summary>进入婚礼场景(轮22 族错误出口批;老端挂在 BanquetController.ts:202-207 On17263,

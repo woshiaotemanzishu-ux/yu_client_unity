@@ -705,11 +705,9 @@ namespace Shenxiao.Framework.Event
         public const string EVT_MARRIAGE_GIFT_TAKE_RESULT = "EVT_MARRIAGE_GIFT_TAKE_RESULT";
         /// <summary>17240 请求对方购买礼包结果(参数: bool success)。</summary>
         public const string EVT_MARRIAGE_GIFT_ASK_RESULT = "EVT_MARRIAGE_GIFT_ASK_RESULT";
-        /// <summary>17245 进退副本匹配结果(参数: int type, int dunId;死链UI MarriageMatchView 未定义类,
-        /// 数据层仍照接)。</summary>
+        /// <summary>17245 进退副本匹配防御接收(参数: int type, int dunId;服务端 handler 已整段注释)。</summary>
         public const string EVT_MARRIAGE_MATCH_RESULT = "EVT_MARRIAGE_MATCH_RESULT";
-        /// <summary>17246 匹配结果推送(死链UI MarriageMatchTipsView 未定义类,数据层仍照接),读
-        /// MarriageModel.LastMatchResult。</summary>
+        /// <summary>17246 匹配结果防御接收(17245 服务端入口封存后无触发源),读 MarriageModel.LastMatchResult。</summary>
         public const string EVT_MARRIAGE_MATCH_PUSH = "EVT_MARRIAGE_MATCH_PUSH";
         /// <summary>17295 邀请伴侣购买副本次数结果(参数: bool success)。</summary>
         public const string EVT_MARRIAGE_DUN_INVITE_BUY_RESULT = "EVT_MARRIAGE_DUN_INVITE_BUY_RESULT";

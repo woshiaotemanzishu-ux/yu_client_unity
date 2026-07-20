@@ -11,7 +11,8 @@ namespace Shenxiao.Module.Core.Marriage
     /// 背景(bg ui_marry_bg4)+ 角标(img4 uijh_123)+ 副本次数(_lb_count)+ 顶部说明(_lb_tips「与异性/伴侣一起进入副本…」)+
     /// 奖励横排(scroll/_group_item 克隆 EquipmentItem,按 config_dungeon_ui_content 铺奖励)+
     /// 队友下拉(_drop_btn_con 克隆 DownDropBtn,数据来自 MarriageModel.GetCanDunFriendList)+ 伴侣标识(_img_mate,选中伴侣时显示)+
-    /// 自动匹配(_btn_match → REQUEST_PROTO 17245)+ 前往挑战(_btn_go → 61046,离线伴侣走镜像 Alert 确认)+
+    /// 自动匹配(_btn_match;原 17245 服务端 handler 已整段注释,本端封存且不发送)+ 前往挑战(_btn_go → 61046,
+    /// 离线伴侣走镜像 Alert 确认)+
     /// 增加次数(_btn_add → 61021/17295,结婚后可买,Alert 二次确认)+ 说明(_btn_help → OPEN_INSTRUCTION_VIEW 1721)。
     ///
     /// 降级:MarriageModel(GetInstance/GetDunInfo/GetCanDunFriendList/MarriageDefine.DUN_ID)、FriendModel/RoleManager/VipModel、
@@ -48,7 +49,7 @@ namespace Shenxiao.Module.Core.Marriage
 
         private void BindButtons()
         {
-            BindBtn(_btn_match, "自动匹配 REQUEST_PROTO(17245)");
+            BindBtn(_btn_match, "自动匹配已封存(17245 服务端入口不可达,不发送)");
             BindBtn(_btn_go, "前往挑战 SCMD_REQUEST(61046)");
             BindBtn(_btn_add, "增加次数 SCMD_REQUEST(61021)/REQUEST_PROTO(17295)");
             BindBtn(_btn_help, "说明 OPEN_INSTRUCTION_VIEW(1721)");

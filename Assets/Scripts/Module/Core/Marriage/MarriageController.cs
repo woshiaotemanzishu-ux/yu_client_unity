@@ -87,7 +87,7 @@ namespace Shenxiao.Module.Core.Marriage
             RegisterProtocal(Proto.MARRIAGE_GIFT_TAKE, On17239);
             RegisterProtocal(Proto.MARRIAGE_GIFT_ASK_BUY, On17240);
 
-            // ---- 副本匹配/邀请(17245-17297;死链 UI 数据层照接) ----
+            // ---- 副本匹配/邀请(17245-17297;17245 服务端入口已封存,17245/17246 仅防御接收) ----
             RegisterProtocal(Proto.MARRIAGE_DUN_MATCH, On17245);
             RegisterProtocal(Proto.MARRIAGE_DUN_MATCH_RESULT, On17246);
             RegisterProtocal(Proto.MARRIAGE_DUN_INVITE_BUY, On17295);
@@ -678,7 +678,7 @@ namespace Shenxiao.Module.Core.Marriage
         }
 
         // ---------------------------------------------------------------------------------------
-        // 副本匹配/邀请(17245-17297)——死链 UI,数据层照接。
+        // 副本匹配/邀请(17245-17297)——17245 服务端入口已封存,17245/17246 仅防御接收。
         // ---------------------------------------------------------------------------------------
 
         // 17245(进入/退出匹配)是死号发送:服务端 handle(17245) 整段注释(pp_marriage.erl:1598-1607),
