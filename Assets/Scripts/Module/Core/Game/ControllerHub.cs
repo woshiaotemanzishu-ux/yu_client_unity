@@ -26,6 +26,7 @@ using Shenxiao.Module.Core.GuBao;
 using Shenxiao.Module.Core.Guild;
 using Shenxiao.Module.Core.Notice;
 using Shenxiao.Module.Core.OutWard;
+using Shenxiao.Module.Core.PetEquip;
 using Shenxiao.Module.Core.Partner;
 using Shenxiao.Module.Core.Rank;
 using Shenxiao.Module.Core.Role;
@@ -149,6 +150,7 @@ namespace Shenxiao.Module.Core.Game
             SuitCollectController.Instance,
             RushGiftController.Instance,
             OutWardController.Instance,
+            PetEquipController.Instance,
             TempleAwakenController.Instance,
             EquipStrenController.Instance,
             EquipSmeltController.Instance,

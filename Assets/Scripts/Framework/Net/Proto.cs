@@ -1198,6 +1198,23 @@
         /// (OutwardStarView.SelectItem:311-329)。对标 On16027:286-289 Fire UPDATE_STAR_FIGHT。</summary>
         public const int OUTWARD_STAR_FIGHT_PREVIEW = 16027;
 
+        // ----- 坐骑/伙伴装备 PetEquip(pt_160,自动循环轮25A;老端 PetEquipController.ts) -----
+        /// <summary>装备面板全量(发 "c" type_id,仅 1=坐骑/2=伙伴；回包 type_id:c,errcode:i,
+        /// combat_power:i,pet_equip_list[u16×{pos_id:c,pos_lv:i,stage:i,star:h,pos_point:i,
+        /// goods_id:l,goods_type_id:i}])。仅 errcode==1 可替换模型。</summary>
+        public const int PET_EQUIP_INFO = 16014;
+        /// <summary>穿戴/替换装备(发 "ccl" type_id,pos_id,goods_id；回包 type_id:c,code:i,pos_id:c,
+        /// new_goods_id:l,old_goods_id:l,new_goods_type_id:i,combat_power:i)。成功后重拉 16014；货品容器
+        /// 增删由同次服务端操作另发 15017/15018,不可在本号伪造。</summary>
+        public const int PET_EQUIP_WEAR = 16015;
+        /// <summary>装备强化(自定义动态帧: type_id:c,goods_id:l,cost_list[h×cost_goods_id:l]；回包
+        /// type_id:c,code:i,exp:i,level:h,goods_id:l,combat_power:i)。仅 code==1 且 goods_id 命中时更新。</summary>
+        public const int PET_EQUIP_STRENGTHEN = 16016;
+        /// <summary>装备打磨/升星进阶(发 "cll" type_id,goods_id,cost_goods_id；回包 type_id:c,code:i,
+        /// stage:h,star:h,goods_id:l,cost_goods_id:l,combat_power:i,exp:i,level:h)。成功时同步模型和已穿戴
+        /// 货品的阶段/星级/评分。</summary>
+        public const int PET_EQUIP_POLISH = 16017;
+
         // ----- 通用副本(pt_610,yu_server dungeon;老端 BaseDungeonController.ts。御魂本 type=12,dun_id 12001~) -----
         /// <summary>通用副本(pt_610)家族统一错误出口(轮22 族错误出口批;对标老端 BaseDungeonController.ts:668-673
         /// "通用错误返回",无条件 ErrorCodeShow(error_code)。服务端 send_dungeon_msg/2(lib_dungeon.erl:1341-1345)

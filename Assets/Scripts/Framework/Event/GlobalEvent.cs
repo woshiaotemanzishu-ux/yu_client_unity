@@ -171,6 +171,13 @@ namespace Shenxiao.Framework.Event
         /// <summary>幻化升星战力预览(参数: int typeId, int figureId;16027,同上瞬时语义,数值读
         /// OutWardModel.LastStarFightPreview)。</summary>
         public const string EVT_OUTWARD_STAR_FIGHT_PREVIEW = "EVT_OUTWARD_STAR_FIGHT_PREVIEW";
+        // ----- PetEquip 坐骑/伙伴装备(pt_160,轮25A) -----
+        /// <summary>装备数据变化(参数:int typeId；16014全量/16015成功回拉/16016或16017成功更新)。</summary>
+        public const string EVT_PET_EQUIP_UPDATE = "EVT_PET_EQUIP_UPDATE";
+        /// <summary>装备强化跨级成功(无参数；16016 level 真变化时触发，对标老端 UPGRADE_SUCCESS)。</summary>
+        public const string EVT_PET_EQUIP_STRENGTH_SUCCESS = "EVT_PET_EQUIP_STRENGTH_SUCCESS";
+        /// <summary>装备打磨成功(无参数；16017，对标老端 STAR_SUCCESS)。</summary>
+        public const string EVT_PET_EQUIP_STAR_SUCCESS = "EVT_PET_EQUIP_STAR_SUCCESS";
         /// <summary>天命觉醒状态变动(42909 前置态/42900 完成后)。</summary>
         public const string EVT_TEMPLE_AWAKEN_UPDATE = "EVT_TEMPLE_AWAKEN_UPDATE";
         /// <summary>装备强化数据变动(15204 查询/15205 强化后)。</summary>

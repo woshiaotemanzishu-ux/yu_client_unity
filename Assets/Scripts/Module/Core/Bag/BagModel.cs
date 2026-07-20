@@ -8,8 +8,8 @@ namespace Shenxiao.Module.Core.Bag
     ///
     /// 老端链路:GoodsController.On15010(pos==bag)→ goodsModel.bag_goods_max_cell=vo.max_cell + goodsModel.CreateBagList(vo.goods_list)
     /// (CreateBagList = ResetBagData 清空 + 逐项 UpdateBagGoods → AddGoodsToBag)。本类 <see cref="SetBagFull"/> 一比一对标
-    /// 「满包全量 = 清空再装入」语义。只保留显示所需字段(type_id/goods_num/color/cell + goods_id 主键),装备态(强化/星级/
-    /// 觉醒/附加属性)按 ClientProtocol.json 顺序读过但暂不留(待装备 tips/配置移植)。
+    /// 「满包全量 = 清空再装入」语义。主背包之外还缓存坐骑/伙伴装备与装备背包四容器
+    /// (pos=22/32/23/33)，供 PetEquip 数据层读取；其它容器仍按原有专线分流。
     /// </summary>
     public sealed class BagModel
     {
@@ -60,6 +60,10 @@ namespace Shenxiao.Module.Core.Bag
 
         /// <summary>背包物品(对标 GoodsModel.bag_goods_list;满包 15010 全量装入,顺序即服务端下发序)。</summary>
         public readonly List<BagGoods> BagGoodsList = new List<BagGoods>();
+
+        /// <summary>坐骑/伙伴装备四容器。只收 pos=22/32/23/33，不把其它容器混入主背包。</summary>
+        private readonly Dictionary<int, List<BagGoods>> _petEquipContainers = new Dictionary<int, List<BagGoods>>();
+        private static readonly IReadOnlyList<BagGoods> EmptyContainer = new BagGoods[0];
 
         /// <summary>各槽位容量(对标 GoodsModel.xxx_max_cell 系列字段;15002 扩容成功后按 pos 更新,见 BagController.On15002)。</summary>
         private readonly Dictionary<int, int> _maxCellByPos = new Dictionary<int, int>();
@@ -130,6 +134,128 @@ namespace Shenxiao.Module.Core.Bag
             }
         }
 
+        /// <summary>是否为 PetEquip 使用的四个物品容器。</summary>
+        public static bool IsPetEquipContainer(int pos)
+        {
+            return pos == POS_HORSE || pos == POS_HORSE_BAG || pos == POS_PARTNER || pos == POS_PARTNER_BAG;
+        }
+
+        /// <summary>
+        /// 查询物品容器。跨模块契约：PetEquip 只传 22/32/23/33；兼容传 4 时返回既有主背包。
+        /// 未收到全量时返回只读空表而非 null。
+        /// </summary>
+        public IReadOnlyList<BagGoods> GetContainer(int pos)
+        {
+            if (pos == POS_BAG) return BagGoodsList;
+            return _petEquipContainers.TryGetValue(pos, out List<BagGoods> list) ? list : EmptyContainer;
+        }
+
+        /// <summary>按实例 goods_id 查容器物品；未找到返回 null。</summary>
+        public BagGoods FindContainerGoods(int pos, long goodsId)
+        {
+            IReadOnlyList<BagGoods> list = GetContainer(pos);
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].GoodsId == goodsId) return list[i];
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 16017 宠物装备打磨成功后的已穿戴实例同步。wornPos 只接受 22/23；找不到不造幽灵物品。
+        /// 老端把回包 combat_power 写入 wear.overall_rating，故这里不改物品自身 CombatPower。
+        /// </summary>
+        public bool UpdatePetEquipState(int wornPos, long goodsId, int equipStage, int equipStar, long overallRating)
+        {
+            if (wornPos != POS_HORSE && wornPos != POS_PARTNER) return false;
+            BagGoods goods = FindContainerGoods(wornPos, goodsId);
+            if (goods == null) return false;
+            goods.EquipStage = equipStage;
+            goods.EquipStar = equipStar;
+            goods.OverallRating = overallRating;
+            return true;
+        }
+
+        /// <summary>15010 四容器全量：原子替换并记录 max_cell。仅供 BagController。</summary>
+        internal void SetPetEquipContainerFull(int pos, int maxCell, List<BagGoods> goods)
+        {
+            if (!IsPetEquipContainer(pos)) return;
+            _petEquipContainers[pos] = goods != null ? new List<BagGoods>(goods) : new List<BagGoods>();
+            SortPetEquipBag(pos, _petEquipContainers[pos]);
+            SetMaxCell(pos, maxCell);
+        }
+
+        /// <summary>15017 四容器全字段增量。已穿戴容器新增同 cell 物品时替换旧实例。</summary>
+        internal void UpsertPetEquipContainer(int pos, BagGoods vo)
+        {
+            if (!IsPetEquipContainer(pos) || vo == null) return;
+            if (!_petEquipContainers.TryGetValue(pos, out List<BagGoods> list))
+            {
+                list = new List<BagGoods>();
+                _petEquipContainers[pos] = list;
+            }
+
+            int idx = list.FindIndex(g => g.GoodsId == vo.GoodsId);
+            if (idx >= 0)
+            {
+                if (vo.GoodsNum <= 0) list.RemoveAt(idx);
+                else list[idx] = vo;
+                SortPetEquipBag(pos, list);
+                return;
+            }
+            if (vo.GoodsNum <= 0) return;
+
+            if ((pos == POS_HORSE || pos == POS_PARTNER) && vo.Cell > 0)
+            {
+                int cellIdx = list.FindIndex(g => g.Cell == vo.Cell);
+                if (cellIdx >= 0)
+                {
+                    list[cellIdx] = vo;
+                    return;
+                }
+            }
+            list.Add(vo);
+            SortPetEquipBag(pos, list);
+        }
+
+        /// <summary>
+        /// 15018 四容器数量增量。该包没有 cell/评分/装备阶段等字段；与老端
+        /// UpdateHorse/Partner*Goods 一致，未知 goods_id 且 num&gt;0 时先按包内 type_id 建最小项，
+        /// 后续 15017/15010 再补齐全字段。
+        /// </summary>
+        internal void UpdatePetEquipContainerNum(int pos, long goodsId, int typeId, long num)
+        {
+            if (!IsPetEquipContainer(pos)) return;
+            if (!_petEquipContainers.TryGetValue(pos, out List<BagGoods> list))
+            {
+                if (num <= 0) return;
+                list = new List<BagGoods>();
+                _petEquipContainers[pos] = list;
+            }
+            int idx = list.FindIndex(g => g.GoodsId == goodsId);
+            if (idx >= 0)
+            {
+                if (num <= 0) list.RemoveAt(idx);
+                else list[idx].GoodsNum = num;
+            }
+            else if (num > 0)
+            {
+                list.Add(new BagGoods { GoodsId = goodsId, TypeId = typeId, GoodsNum = num });
+            }
+            SortPetEquipBag(pos, list);
+        }
+
+        /// <summary>老端仅对 horse_bag/partner_bag 排序：品质降序，同品质评分降序。</summary>
+        private static void SortPetEquipBag(int pos, List<BagGoods> list)
+        {
+            if ((pos != POS_HORSE_BAG && pos != POS_PARTNER_BAG) || list == null || list.Count < 2) return;
+            list.Sort((a, b) =>
+            {
+                int color = b.Color.CompareTo(a.Color);
+                return color != 0 ? color : b.Rating.CompareTo(a.Rating);
+            });
+        }
+
         /// <summary>取特殊积分(对标 GoodsModel.GetSpecialScore;无则 0)。</summary>
         public long GetSpecialScore(int currencyId)
         {
@@ -152,6 +278,7 @@ namespace Shenxiao.Module.Core.Bag
         public void Clear()
         {
             BagGoodsList.Clear();
+            _petEquipContainers.Clear();
             SpecialScores.Clear();
             _maxCellByPos.Clear();
             CellNum = 0;
@@ -178,7 +305,10 @@ namespace Shenxiao.Module.Core.Bag
         public int Stren;        // stren:h(强化等级)
         public int Level;        // level:h(实例需求等级)
         public long Rating;      // rating:i(评分)
+        public long OverallRating; // overall_rating:i(总评分;PetEquip 16017 成功会同步已穿戴实例)
         public long CombatPower; // combat_power:i(战力)
+        public int EquipStage;   // equipStage:c(坐骑/伙伴装备阶)
+        public int EquipStar;    // equipStar:c(坐骑/伙伴装备星)
         public List<EquipExtraAttr> ExtraAttrs;     // equip_extra_attr(极品属性,对标 EquipToolTips SetBestPro)
         public List<EquipAdditionAttr> AdditionAttrs; // addition_attrlist(附加属性)
         public List<EquipAwakeAttr> AwakeList;        // awake_list(觉醒)

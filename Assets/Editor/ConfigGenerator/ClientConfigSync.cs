@@ -81,6 +81,11 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_mount_figure_stage", // 幻化升阶配置(主键"type_id@id@stage",5730条),轮24 PI OutWardConfigs.GetFigureStageRow 用
             "config_mount_figure_star",  // 幻化升星配置(主键"type_id@id@star",3232条,老端 upStarCfg),轮24 PI OutWardConfigs.GetFigureStarRow 用
             "config_mount_skill",        // 幻化技能配置(主键"type_id@skill_id",144条),轮24 PI OutWardConfigs.GetSkillRow 用
+            "config_pet_equip_pos",      // 坐骑/伙伴装备槽位基础(8条),轮25A PetEquipConfigs
+            "config_pet_equip_pos_lv",   // 装备槽位强化等级(2408条)
+            "config_pet_equip_stage",    // 装备打磨阶段(1600条)
+            "config_pet_equip_star",     // 装备打磨星级(1600条)
+            "config_pet_equip_goods",    // 装备物品静态属性(120条)
             "config_temple_awaken_kv",        // 天命觉醒 KV(前置任务/等级门槛;主线 100590)
             "config_equip_stren_lv",          // 强化消耗+属性(⚠数字键,列序 part/stren/object_list/attr_list,主键 "part@stren")
             "config_equip_stren_lv_key",      // 强化等级索引

@@ -12,11 +12,12 @@ namespace Shenxiao.Module.Core.Bag
 {
     /// <summary>
     /// 背包协议控制器(对标老客户端 commonController/GoodsController.ts 的 15010 收/送 + BagController.ts 编排)。
-    /// 进游戏(EVT_GAME_START)请求满背包(发 15010 "h" pos=bag),收 15010 解析落 <see cref="BagModel"/>,发 EVT_BAG_UPDATE。
+    /// 进游戏(EVT_GAME_START)请求主背包 + 坐骑/伙伴装备四容器(15010 "h" pos=4/22/32/23/33)，
+    /// 收 15010/15017/15018 后按 pos 落 <see cref="BagModel"/>；主背包仍独占 EVT_BAG_UPDATE。
     /// 镜像 <see cref="Tasks.TaskController"/>/<see cref="Scene.SceneController"/> 的「一模块一控制器」范式,注册进 ControllerHub。
     ///
-    /// 老端 GoodsController 在 GAME_START 批量请求各容器(equip/bag/warehouse/…);本轮只接背包(主线竖切聚焦背包入口),
-    /// 其它 pos 暂不请求。15010 回包按 pos 区分,仅 bag(4)落 BagModel;服务端登录主动推送的其它容器(若有)按 pos 跳过。
+    /// 老端 GoodsController GAME_START 明确请求 horse/horse_bag/partner/partner_bag；本端本包只补这四个 PetEquip 前置容器，
+    /// 其它 pos 保持既有专线或跳过，不扩大迁移范围。
     /// </summary>
     public sealed class BagController : BaseController
     {
@@ -30,6 +31,11 @@ namespace Shenxiao.Module.Core.Bag
         // 15027 过期物品简易确认弹窗的竞态令牌(对标 GoodsExpiredView.close_time 倒计时;用户手动确认/取消或
         // 又弹出新一轮时递增,令旧的自动确认延时任务失效,避免重复发 opr=2)。
         private int _expiredConfirmEpoch;
+
+#if UNITY_EDITOR
+        /// <summary>CliVerify 启动出站截获缝：返回 true 时记录但不真发；Player 构建不包含。</summary>
+        private static Func<int, bool> s_startupContainerIntercept;
+#endif
 
         protected override void Register()
         {
@@ -83,8 +89,13 @@ namespace Shenxiao.Module.Core.Bag
         {
             // 背包格的真实图标/品质底板走 config_goods(同 TaskController 预载;EnsureLoaded 幂等)。
             await GoodsModel.EnsureLoaded();
-            SendFmt(Proto.GOODS_CONTAINER_INFO, "h", BagModel.POS_BAG);
-            GameLog.Info("Bag", "request 15010 bag pos={0}(对标 GoodsController GAME_START SendFmtToGame(15010,h,bag))", BagModel.POS_BAG);
+            RequestStartupContainers();
+            GameLog.Info("Bag", "request 15010 startup pos=4,22,32,23,33(主背包+坐骑/伙伴装备四容器)");
+
+#if UNITY_EDITOR
+            // 截获缝只会由 CliVerify 临时设置；测试启动请求时不再挂一个 2.5 秒后的 15027 真发送任务。
+            if (s_startupContainerIntercept != null) return;
+#endif
 
             // 对标老端 GoodsController GAME_START → setTimeout(delay_fun,2.5) 尾部 SendFmtToGame(15027,"c",1):
             // 延时 2.5 秒主动查看一次过期物品(挂在本方法尾部,不阻塞前面的 15010 请求)。
@@ -92,24 +103,48 @@ namespace Shenxiao.Module.Core.Bag
             GoodsExpiredModel.Instance.RequestExpiredGoods();
         }
 
+        private void RequestStartupContainers()
+        {
+            RequestContainerInfo(BagModel.POS_BAG);
+            RequestContainerInfo(BagModel.POS_HORSE);
+            RequestContainerInfo(BagModel.POS_HORSE_BAG);
+            RequestContainerInfo(BagModel.POS_PARTNER);
+            RequestContainerInfo(BagModel.POS_PARTNER_BAG);
+        }
+
+        private void RequestContainerInfo(int pos)
+        {
+#if UNITY_EDITOR
+            if (s_startupContainerIntercept != null && s_startupContainerIntercept(pos)) return;
+#endif
+            SendFmt(Proto.GOODS_CONTAINER_INFO, "h", pos);
+        }
+
         /// <summary>
         /// 15017 物品容器增量·全字段(对标 GoodsController.On15017)。pos:h + goods_list[u16 × 同 15010 单项 schema,
-        /// 复用 <see cref="ReadGoods"/>]。仅背包 pos 落 <see cref="BagModel.Upsert"/>(num&lt;=0 删/有则替换/新增);
-        /// equip 等其它 pos 老端走 UpdateEquipGoods(未移植)→ 按序读完跳过。
+        /// 复用 <see cref="ReadGoods"/>]。背包 pos 落 <see cref="BagModel.Upsert"/>；22/32/23/33 落 PetEquip 四容器；
+        /// equip 等其它 pos 仍按序读完跳过。
         /// </summary>
         private void On15017(NetReader r)
         {
             int pos = r.ReadU16();
             List<BagGoods> list = r.ReadArray(ReadGoods);
-            if (pos != BagModel.POS_BAG)
+            if (pos == BagModel.POS_BAG)
             {
-                GameLog.Debug("Bag", "15017 pos={0}(非背包,暂不接) goods={1} remaining={2}B", pos, list.Count, r.Remaining);
+                foreach (BagGoods g in list) BagModel.Instance.Upsert(g);
+                GameLog.Info("Bag", "15017 bag delta: goods={0} bagCount={1} remaining={2}B",
+                    list.Count, BagModel.Instance.BagGoodsList.Count, r.Remaining);
+                EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
                 return;
             }
-            foreach (BagGoods g in list) BagModel.Instance.Upsert(g);
-            GameLog.Info("Bag", "15017 bag delta: goods={0} bagCount={1} remaining={2}B",
-                list.Count, BagModel.Instance.BagGoodsList.Count, r.Remaining);
-            EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
+            if (BagModel.IsPetEquipContainer(pos))
+            {
+                foreach (BagGoods g in list) BagModel.Instance.UpsertPetEquipContainer(pos, g);
+                GameLog.Info("Bag", "15017 PetEquip container pos={0} delta={1} count={2} remaining={3}B",
+                    pos, list.Count, BagModel.Instance.GetContainer(pos).Count, r.Remaining);
+                return;
+            }
+            GameLog.Debug("Bag", "15017 pos={0}(未接容器) goods={1} remaining={2}B", pos, list.Count, r.Remaining);
         }
 
         /// <summary>
@@ -122,16 +157,24 @@ namespace Shenxiao.Module.Core.Bag
             int pos = r.ReadU16();
             List<(long goodsId, long num, int typeId)> list = r.ReadArray(rr =>
                 (rr.ReadU64(), (long)rr.ReadU32(), (int)rr.ReadU32()));
-            if (pos != BagModel.POS_BAG)
+            if (pos == BagModel.POS_BAG)
             {
-                GameLog.Debug("Bag", "15018 pos={0}(非背包,暂不接) goods={1} remaining={2}B", pos, list.Count, r.Remaining);
+                foreach ((long goodsId, long num, int typeId) it in list)
+                    BagModel.Instance.UpdateNum(it.goodsId, it.typeId, it.num);
+                GameLog.Info("Bag", "15018 bag num delta: goods={0} bagCount={1} remaining={2}B",
+                    list.Count, BagModel.Instance.BagGoodsList.Count, r.Remaining);
+                EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
                 return;
             }
-            foreach ((long goodsId, long num, int typeId) it in list)
-                BagModel.Instance.UpdateNum(it.goodsId, it.typeId, it.num);
-            GameLog.Info("Bag", "15018 bag num delta: goods={0} bagCount={1} remaining={2}B",
-                list.Count, BagModel.Instance.BagGoodsList.Count, r.Remaining);
-            EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
+            if (BagModel.IsPetEquipContainer(pos))
+            {
+                foreach ((long goodsId, long num, int typeId) it in list)
+                    BagModel.Instance.UpdatePetEquipContainerNum(pos, it.goodsId, it.typeId, it.num);
+                GameLog.Info("Bag", "15018 PetEquip container pos={0} delta={1} count={2} remaining={3}B",
+                    pos, list.Count, BagModel.Instance.GetContainer(pos).Count, r.Remaining);
+                return;
+            }
+            GameLog.Debug("Bag", "15018 pos={0}(未接容器) goods={1} remaining={2}B", pos, list.Count, r.Remaining);
         }
 
         /// <summary>出售物品(对标 OnSellGoodsHandler:15021 = h count + 逐项 l goods_id/i num)。
@@ -762,7 +805,7 @@ namespace Shenxiao.Module.Core.Bag
 
         /// <summary>
         /// 15010 物品容器全量。读 pos/cell_num/max_cell/cell_gold + goods_list(u16 计数 + 逐项)。
-        /// 每个回包对应一个 pos;仅背包(pos==4)落 <see cref="BagModel"/>。每项须按 ClientProtocol.json 顺序读完
+        /// 每个回包对应一个 pos；主背包及 PetEquip 四容器落 <see cref="BagModel"/>。每项须按 ClientProtocol.json 顺序读完
         /// (含 addition_attrlist / equip_extra_attr / awake_list 3 个嵌套数组)否则错位。
         /// </summary>
         private void On15010(NetReader r)
@@ -782,6 +825,12 @@ namespace Shenxiao.Module.Core.Bag
                 GameLog.Info("Bag", "15010 bag: cellNum={0} maxCell={1} goods={2} equipWithInstAttr={3} remaining={4}B",
                     cellNum, maxCell, list.Count, withInstAttr, r.Remaining);
                 EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
+            }
+            else if (BagModel.IsPetEquipContainer(pos))
+            {
+                BagModel.Instance.SetPetEquipContainerFull(pos, maxCell, list);
+                GameLog.Info("Bag", "15010 PetEquip container pos={0} cellNum={1} maxCell={2} goods={3} remaining={4}B",
+                    pos, cellNum, maxCell, list.Count, r.Remaining);
             }
             else if (pos == Rune.RuneController.RUNE_BAG_POS)
             {
@@ -827,7 +876,7 @@ namespace Shenxiao.Module.Core.Bag
             g.Stren = r.ReadU16();           // stren:h
             g.Level = r.ReadU16();           // level:h
             g.Rating = r.ReadU32();          // rating:i
-            r.ReadU32();                     // overall_rating:i
+            g.OverallRating = r.ReadU32();   // overall_rating:i
 
             int addCount = r.ReadU16();      // addition_attrlist[]
             if (addCount > 0) g.AdditionAttrs = new List<EquipAdditionAttr>(addCount);
@@ -857,8 +906,8 @@ namespace Shenxiao.Module.Core.Bag
                 });
             }
 
-            r.ReadU8();                      // equipStage:c
-            r.ReadU8();                      // equipStar:c
+            g.EquipStage = r.ReadU8();       // equipStage:c
+            g.EquipStar = r.ReadU8();        // equipStar:c
             r.ReadU32();                     // skill_id:i
             r.ReadU8();                      // skill_lv:c
 
