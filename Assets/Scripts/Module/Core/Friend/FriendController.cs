@@ -10,10 +10,10 @@ namespace Shenxiao.Module.Core.Friend
     /// <summary>
     /// 好友协议控制器(对标老客户端 commonController/FriendController.ts 好友段,自动循环 轮7)。
     /// 14000-14015/14099(好友/仇人/黑名单、推荐/搜索、申请、关系操作、右键菜单、在线/亲密度增量推送),
-    /// 外加 19501/19502(资料卡请求 + module_id=1 基础装备完整卡片)。
+    /// 外加 19501-19512(资料卡统一请求 + module 1-12 完整快照)。
     ///
     /// 跳过(按规格§0):14011(单点查双方关系,老端未实现)、14012(号未分配,DEAD)、
-    /// 14016/14017(劲敌模块,服务端无 handler 路由)。19503-19512 只在 Proto.cs 加常量注释,不在此注册。
+    /// 14016/14017(劲敌模块,服务端无 handler 路由)。19503-19512 的长结构解析在 FriendController.LookOver.cs。
     ///
     /// 守卫门槛(pp_relationship.erl):除 14000+Type=3、14010、14007+Type∈{2,3} 外都要求好友模块开放等级,
     /// 服务端未过校验静默丢包不回——本端不复刻该等级预判(协议层交给服务端权威裁决,前端只管发)。
@@ -22,7 +22,7 @@ namespace Shenxiao.Module.Core.Friend
     /// <c>FriendController.Instance,</c>(建议紧邻 FriendInviteController.Instance 之后),否则 GAME_START 不会
     /// 自动拉取好友/申请列表——已在本轮汇报中列出。
     /// </summary>
-    public sealed class FriendController : BaseController
+    public sealed partial class FriendController : BaseController
     {
         public static readonly FriendController Instance = new FriendController();
         private FriendController() { }
@@ -46,6 +46,7 @@ namespace Shenxiao.Module.Core.Friend
             RegisterProtocal(Proto.FRIEND_ERROR, On14099);
             RegisterProtocal(Proto.LOOKOVER_REQUEST, On19501);
             RegisterProtocal(Proto.LOOKOVER_BASE_EQUIP, On19502);
+            RegisterLookOverProtocols();
 
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
@@ -53,6 +54,7 @@ namespace Shenxiao.Module.Core.Friend
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
+            ClearLookOverRequests();
             FriendModel.Instance.Reset();
             base.Dispose();
         }
@@ -60,6 +62,7 @@ namespace Shenxiao.Module.Core.Friend
         // 对标老端 GAME_START:自动拉好友列表(type=1)+ 申请列表。
         private void OnGameStart()
         {
+            ClearLookOverRequests();
             FriendModel.Instance.Reset();
             RequestFriendList(FriendModel.TYPE_FRIEND);
             RequestApplyList();
@@ -137,7 +140,8 @@ namespace Shenxiao.Module.Core.Friend
         /// <summary>19501 查看资料卡(申请信号,server_id=0 表示同服)。moduleId 默认1=基础装备。</summary>
         public void RequestPlayerCard(long roleId, int moduleId = 1, int serverId = 0)
         {
-            SendFmt(Proto.LOOKOVER_REQUEST, "hlh", serverId, roleId, moduleId);
+            RememberLookOverRequest(roleId, moduleId, serverId);
+            SendLookOverRequest(serverId, roleId, moduleId);
         }
 
         // =====================================================================================

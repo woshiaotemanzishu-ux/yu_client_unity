@@ -10,13 +10,13 @@ using UnityEngine;
 namespace Shenxiao.Module.Core.LookOver
 {
     /// <summary>
-    /// 他人资料卡窗口编排(轮21 §2 PL,module 1 基本装备——对标老客户端各处
+    /// 他人资料卡窗口编排(轮21 module 1 基础卡 + 轮28 module 2-12 扩展资料——对标老客户端各处
     /// requestPlayerMessage/ChatMenuView"查看信息" → 15011/19501 → PlayerMessageView 的最小可用形态)。
     ///
-    /// 数据链复用 Friend 模块既有实现(自动循环 轮7 已收口,本包不改):19501 发送走
+    /// 数据链复用 Friend 模块：19501 统一请求走
     /// <see cref="FriendController.RequestPlayerCard"/>(wire "hlh" 与 pt_195.erl:8-12 read 子句一致);
-    /// 19502 落地走 <see cref="FriendModel.SetPlayerCard"/> → <c>GlobalEvent.EVT_PLAYER_CARD</c>
-    /// (先前零订阅者,本包新增 <see cref="Views.LookOverCardView"/> 消费)。
+    /// 19502 落地走 <see cref="FriendModel.SetPlayerCard"/> → <c>GlobalEvent.EVT_PLAYER_CARD</c>；
+    /// 19503-19512 走结构化扩展快照 → <c>GlobalEvent.EVT_LOOKOVER_MODULE</c>，由同一窗口切换消费。
     ///
     /// ⚠**陷阱③自查**(侦察 r21_lookover.md §1.3/§8.6,服务端 lib_player_look_over.erl:89/:56
     /// 两处"自己查自己"子句顺序遮蔽 → 零回包):FriendController.RequestPlayerCard 本身**没有**
@@ -34,8 +34,21 @@ namespace Shenxiao.Module.Core.LookOver
 
         private static Views.LookOverCardView _view;
         private static bool _loading;
+        private static int _generation;
 
-        /// <summary>打开资料卡(module 1 基本装备)。serverId=0 表示同服/合服;跨服传对方 server_id。
+        public readonly struct Target
+        {
+            public readonly long RoleId;
+            public readonly int ServerId;
+
+            public Target(long roleId, int serverId)
+            {
+                RoleId = roleId;
+                ServerId = serverId;
+            }
+        }
+
+        /// <summary>打开资料卡(默认 module 1，可在窗口内切换 module 2-12)。serverId=0 表示同服/合服;跨服传对方 server_id。
         /// 自己/无效 role_id 直接拦截,不发包也不开面板(陷阱③,见类注释)。</summary>
         public static void Show(long roleId, int serverId = 0)
         {
@@ -53,12 +66,18 @@ namespace Shenxiao.Module.Core.LookOver
         private static async Task ShowAsync(long roleId, int serverId)
         {
             if (_loading) return;
+            int generation = _generation;
 
             if (_view == null)
             {
                 _loading = true;
                 string key = GameResPath.GetUIPrefab(MODULE, PREFAB);
                 GameObject go = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+                if (generation != _generation)
+                {
+                    if (go != null) ResManager.ReleaseInstance(go);
+                    return;
+                }
                 _loading = false;
 
                 if (go == null)
@@ -75,14 +94,18 @@ namespace Shenxiao.Module.Core.LookOver
                 }
             }
 
-            _view.Show(roleId);
-            FriendController.Instance.RequestPlayerCard(roleId, moduleId: 1, serverId: serverId);
+            _view.Show(new Target(roleId, serverId));
         }
 
         /// <summary>断线(非游戏内自动重连)清面板,对标 FriendFlow/TransferJobFlow 同款 Reset。</summary>
         internal static void Reset()
         {
-            if (_view != null) ResManager.ReleaseInstance(_view.gameObject);
+            _generation++;
+            if (_view != null)
+            {
+                _view.Hide(); // 先触发 View 的配对 Off/目标清理，再释放实例
+                ResManager.ReleaseInstance(_view.gameObject);
+            }
             _view = null;
             _loading = false;
         }

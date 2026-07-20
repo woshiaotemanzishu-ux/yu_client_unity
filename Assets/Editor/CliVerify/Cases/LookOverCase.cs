@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -26,6 +27,15 @@ namespace Shenxiao.EditorTools
     {
         private const BindingFlags F = BindingFlags.NonPublic | BindingFlags.Instance;
         private const BindingFlags SF = BindingFlags.NonPublic | BindingFlags.Static;
+
+        private sealed class CheckResult
+        {
+            public bool Modules;
+            public bool Wire;
+            public bool Filter;
+            public bool Cache;
+            public bool Clear;
+        }
 
         /// <summary>自带批处理泵循环的独立入口(不依赖 CliVerify.cs 的 Run helper,后者是 private)。</summary>
         public static void RunBatch()
@@ -69,10 +79,12 @@ namespace Shenxiao.EditorTools
             try
             {
                 bool selfGuardOk = RunSelfGuard();
-                bool renderOk = await RunRenderAsync(stage);
+                CheckResult checks = await RunRenderAsync(stage);
+                bool modulesOk = selfGuardOk && checks.Modules;
 
-                bool pass = selfGuardOk && renderOk;
-                Debug.Log("CLIVERIFY lookover VERDICT selfGuard=" + selfGuardOk + " render=" + renderOk + " pass=" + pass);
+                bool pass = modulesOk && checks.Wire && checks.Filter && checks.Cache && checks.Clear;
+                Debug.Log("CLIVERIFY lookover VERDICT modules=" + modulesOk + " wire=" + checks.Wire
+                    + " filter=" + checks.Filter + " cache=" + checks.Cache + " clear=" + checks.Clear + " pass=" + pass);
                 return pass ? 0 : 3;
             }
             finally
@@ -120,8 +132,9 @@ namespace Shenxiao.EditorTools
         // ② Show(他人) → 加载中态 → 19502 落地渲染
         // =====================================================================================
 
-        private static async Task<bool> RunRenderAsync(CliVerify.Stage stage)
+        private static async Task<CheckResult> RunRenderAsync(CliVerify.Stage stage)
         {
+            var checks = new CheckResult();
             const long roleId = 55001;
             long savedSelfId = Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId;
             Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId = 1; // 与 roleId 不同,不触发自查
@@ -140,7 +153,7 @@ namespace Shenxiao.EditorTools
             {
                 Debug.LogError("CLIVERIFY lookover render: LookOverCardView 未能实例化(prefab/Addressable 缺失,先跑 LookOverCardCreator.GenerateBatch)");
                 Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId = savedSelfId;
-                return false;
+                return checks;
             }
 
             bool loadingOk = view.lblLoading != null && view.lblLoading.gameObject.activeSelf
@@ -153,7 +166,7 @@ namespace Shenxiao.EditorTools
             {
                 Debug.LogError("CLIVERIFY lookover render: FriendController.On19502 反射失败");
                 Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId = savedSelfId;
-                return false;
+                return checks;
             }
 
             byte[] p19502 = new CliVerify.Pkt().H(7).L(roleId).L(66666).H(9)
@@ -178,6 +191,13 @@ namespace Shenxiao.EditorTools
             int rowCount = view.listDetail != null && view.listDetail.content != null ? view.listDetail.content.childCount : -1;
             bool rowsOk = rowCount == 4; // "装备1件" 标题行 + 1装备 + 1法阵 + 1仙灵
 
+            CheckResult extended = await RunExtendedAsync(view, roleId, 7);
+            checks.Modules = loadingOk && renderedOk && rowsOk && extended.Modules;
+            checks.Wire = extended.Wire;
+            checks.Filter = extended.Filter;
+            checks.Cache = extended.Cache;
+            checks.Clear = extended.Clear;
+
             string png = stage.Capture("Temp/round21_lookover_card.png");
             Debug.Log("CLIVERIFY lookover render renderedOk=" + renderedOk + " rowCount=" + rowCount + " rowsOk=" + rowsOk
                 + " name=" + view.lblName?.text + " server=" + view.lblServer?.text + " roleId=" + view.lblRoleId?.text
@@ -185,13 +205,203 @@ namespace Shenxiao.EditorTools
 
             Shenxiao.Module.Core.LookOver.LookOverFlow.Close();
             Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId = savedSelfId;
-            Shenxiao.Module.Core.Friend.FriendModel.Instance.Reset();
-
-            return loadingOk && renderedOk && rowsOk;
+            return checks;
         }
 
         /// <summary>按 FigureProto.SCHEMA 字段序逐项写一个全零/空的最小 Figure 块(与 FriendMailCase/ChatCase
         /// 的 AppendMinimalFigure 逐字节相同,独立文件各自持有一份,避免跨用例文件耦合;name 可变,其余全零)。</summary>
+        private static async Task<CheckResult> RunExtendedAsync(
+            Shenxiao.Module.Core.LookOver.Views.LookOverCardView view, long roleId, int serverId)
+        {
+            var result = new CheckResult();
+            Shenxiao.Module.Core.Friend.FriendController ctrl = Shenxiao.Module.Core.Friend.FriendController.Instance;
+            Shenxiao.Module.Core.Friend.FriendModel model = Shenxiao.Module.Core.Friend.FriendModel.Instance;
+            Type controllerType = ctrl.GetType();
+            FieldInfo interceptField = controllerType.GetField("s_lookOverOutboundIntercept", SF);
+            var handlers = new Dictionary<int, MethodInfo>();
+            bool reflectionOk = interceptField != null;
+            for (int cmd = 19503; cmd <= 19512; cmd++)
+            {
+                MethodInfo handler = controllerType.GetMethod("On" + cmd, F);
+                handlers[cmd] = handler;
+                reflectionOk &= handler != null;
+            }
+            if (!reflectionOk)
+            {
+                Debug.LogError("CLIVERIFY lookover PK-C reflection contract missing");
+                return result;
+            }
+
+            object savedIntercept = interceptField.GetValue(null);
+            var outbound = new List<byte[]>();
+            Func<byte[], bool> intercept = frame => { outbound.Add(frame); return true; };
+            try
+            {
+                interceptField.SetValue(null, intercept);
+
+                ctrl.RequestPlayerCard(roleId, 1, 7);
+                ctrl.RequestPlayerCard(roleId, 12, 9);
+                int validCount = outbound.Count;
+                result.Wire = validCount == 2
+                    && FrameEquals(outbound[0], 19501, new CliVerify.Pkt().H(7).L(roleId).H(1).Bytes())
+                    && FrameEquals(outbound[1], 19501, new CliVerify.Pkt().H(9).L(roleId).H(12).Bytes());
+
+                ctrl.RequestPlayerCard(0, 1, 7);
+                ctrl.RequestPlayerCard(roleId, 0, 7);
+                ctrl.RequestPlayerCard(roleId, 13, 7);
+                result.Filter = outbound.Count == validCount;
+
+                var cases = new (int Cmd, int Variant, int ModuleId)[]
+                {
+                    (19503, 0, 2), (19504, 3, 3), (19504, 4, 4), (19505, 0, 6),
+                    (19506, 0, 5), (19507, 0, 7), (19508, 0, 8), (19509, 0, 9),
+                    (19510, 0, 10), (19511, 0, 11), (19512, 0, 12),
+                };
+                bool modulesOk = true;
+                foreach ((int cmd, int variant, int moduleId) in cases)
+                {
+                    ctrl.RequestPlayerCard(roleId, moduleId, serverId);
+                    byte[] payload = BuildModulePayload(cmd, variant);
+                    var reader = new Shenxiao.Framework.Net.NetReader(payload, 0, payload.Length);
+                    handlers[cmd].Invoke(ctrl, new object[] { reader });
+                    Shenxiao.Module.Core.Friend.LookOverModuleSnapshot snapshot =
+                        model.GetLookOverModule(roleId, moduleId);
+                    modulesOk &= reader.Remaining == 0 && snapshot != null
+                        && snapshot.RoleId == roleId && snapshot.ServerId == serverId
+                        && snapshot.ModuleId == moduleId && snapshot.PrimaryPower == ExpectedPrimary(cmd, variant);
+                    if (cmd == 19503) modulesOk &= RowsContain(snapshot, "33001234", "3210");
+                    if (cmd == 19506) modulesOk &= RowsContain(snapshot, "66001122", "6123", "66002233");
+                    if (cmd == 19511) modulesOk &= RowsContain(snapshot, "77110011", "70001", "77112233");
+                }
+                result.Modules = modulesOk;
+
+                model.ClearLookOverModules();
+                view.SelectModule(2);
+                ctrl.RequestPlayerCard(roleId, 3, serverId);
+                Feed(handlers[19504], ctrl, BuildModulePayload(19504, 3), out bool sys3Consumed);
+                await Task.Delay(50);
+                bool outOfOrderIgnored = sys3Consumed && view.lblLoading != null && view.lblLoading.gameObject.activeSelf;
+
+                ctrl.RequestPlayerCard(roleId, 2, serverId);
+                Feed(handlers[19503], ctrl, BuildModulePayload(19503, 0), out bool ballConsumed);
+                await Task.Delay(50);
+                bool module2Rendered = ballConsumed && LabelEndsWith(view.lblCombat, "2030003")
+                    && LabelEndsWith(view.lblAchv, "2");
+
+                view.SelectModule(3);
+                await Task.Delay(50);
+                bool module3Rendered = LabelEndsWith(view.lblCombat, "2041003") && LabelEndsWith(view.lblAchv, "3");
+                Shenxiao.Module.Core.Friend.LookOverModuleSnapshot cached2 = model.GetLookOverModule(roleId, 2);
+                Shenxiao.Module.Core.Friend.LookOverModuleSnapshot cached3 = model.GetLookOverModule(roleId, 3);
+                result.Cache = outOfOrderIgnored && module2Rendered && module3Rendered
+                    && cached2 != null && cached3 != null && !ReferenceEquals(cached2, cached3)
+                    && cached2.ModuleId == 2 && cached3.ModuleId == 3;
+
+                view.SelectModule(1);
+                await Task.Delay(50);
+                model.Reset();
+                bool clearOk = model.LastLookOverModule == null;
+                for (int moduleId = 2; moduleId <= 12; moduleId++)
+                    clearOk &= model.GetLookOverModule(roleId, moduleId) == null;
+                result.Clear = clearOk;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("CLIVERIFY lookover PK-C exception " + e);
+            }
+            finally
+            {
+                interceptField.SetValue(null, savedIntercept);
+            }
+            return result;
+        }
+
+        private static void Feed(MethodInfo handler, object ctrl, byte[] payload, out bool consumed)
+        {
+            var reader = new Shenxiao.Framework.Net.NetReader(payload, 0, payload.Length);
+            handler.Invoke(ctrl, new object[] { reader });
+            consumed = reader.Remaining == 0;
+        }
+
+        private static long ExpectedPrimary(int cmd, int variant)
+        {
+            if (cmd == 19504) return 2041000 + variant;
+            switch (cmd)
+            {
+                case 19503: return 2030003;
+                case 19505: return 2050005;
+                case 19506: return 2060006;
+                case 19507: return 2070007;
+                case 19508: return 2080008;
+                case 19509: return 2090009;
+                case 19510: return 2100010;
+                case 19511: return 4221022; // CompanionPower + DemonsPower
+                case 19512: return 2120012;
+                default: return -1;
+            }
+        }
+
+        private static byte[] BuildModulePayload(int cmd, int variant)
+        {
+            switch (cmd)
+            {
+                case 19503:
+                    return new CliVerify.Pkt().L(2030003).C(1)
+                        .H(1).I(33001234).H(3210).H(1).C(17).C(29).Bytes();
+                case 19504:
+                    return new CliVerify.Pkt().C(variant).L(2040000 + variant).L(2041000 + variant)
+                        .H(0).H(0).H(0).H(0).H(0).H(0).H(0).Bytes();
+                case 19505:
+                    return new CliVerify.Pkt().H(650).H(651).L(2050005).L(2051005)
+                        .H(0).H(0).H(0).Bytes();
+                case 19506:
+                    return new CliVerify.Pkt().L(2060006).H(1)
+                        .H(1).C(5).C(1).L(66001122)
+                            .H(1).C(2).H(6123).H(23).H(34).L(66002233).I(1900000000)
+                                .H(0).H(0).H(0)
+                        .H(0).H(0).H(0).Bytes();
+                case 19507:
+                    return new CliVerify.Pkt().L(2070007).H(0).Bytes();
+                case 19508:
+                    return new CliVerify.Pkt().L(2080008).H(0).Bytes();
+                case 19509:
+                    return new CliVerify.Pkt().L(2090009).H(209).H(0).Bytes();
+                case 19510:
+                    return new CliVerify.Pkt().L(2100010).C(5).C(2).H(0).Bytes();
+                case 19511:
+                    return new CliVerify.Pkt().L(2110011)
+                        .H(1).C(7).H(21).H(8).C(1).H(99).L(77110011).H(0)
+                        .L(2111011).I(70001)
+                        .H(1).I(70001).H(35).C(9).C(4).L(77112233).H(0).H(0).Bytes();
+                case 19512:
+                    return new CliVerify.Pkt().L(2120012).C(12).H(0).Bytes();
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(cmd));
+            }
+        }
+
+        private static bool RowsContain(
+            Shenxiao.Module.Core.Friend.LookOverModuleSnapshot snapshot, params string[] tokens)
+        {
+            IReadOnlyList<string> rows = snapshot.BuildRows();
+            string joined = rows == null ? "" : string.Join("|", rows);
+            foreach (string token in tokens) if (!joined.Contains(token)) return false;
+            return true;
+        }
+
+        private static bool LabelEndsWith(TMPro.TextMeshProUGUI label, string suffix) =>
+            label != null && label.text != null && label.text.EndsWith(suffix, StringComparison.Ordinal);
+
+        private static bool FrameEquals(byte[] frame, int protoId, byte[] payload)
+        {
+            if (frame == null || payload == null || frame.Length != payload.Length + 6) return false;
+            if (((frame[0] << 8) | frame[1]) != frame.Length
+                || ((frame[2] << 8) | frame[3]) != 1000
+                || ((frame[4] << 8) | frame[5]) != protoId) return false;
+            for (int i = 0; i < payload.Length; i++) if (frame[i + 6] != payload[i]) return false;
+            return true;
+        }
+
         private static CliVerify.Pkt AppendMinimalFigure(this CliVerify.Pkt p, string name)
         {
             return p

@@ -615,27 +615,26 @@
         /// EquipList[h+{GoodsId:l,TypeId:i,Cell:h,Color:c,Stren:h,Star:c,Stage:h,Level:h,GodLevel:h}],
         /// MagicCircle[h+{Lv:c,IsOpen:c,FreeFlag:c,EndTime:i}],FairyList[h+{Type:h,IsActive:c}]。</summary>
         public const int LOOKOVER_BASE_EQUIP = 19502;
-        /// <summary>module_id=2 龙珠资料(本轮只加常量,字段:SumPower:l,IsActive:c,BallList[],FigureList[];
-        /// 后续接 UI 时再解析回包)。</summary>
+        /// <summary>module_id=2 龙珠资料:SumPower:l,IsActive:c,BallList[],FigureList[]；轮28 已完整解析并接资料卡。</summary>
         public const int LOOKOVER_DRAGONBALL = 19503;
         /// <summary>module_id=3/4 共用号,靠首字段 SysType 分流(3=影装/4=神祭,两个完全不同 UI)——
-        /// 移植时不能按协议号一一映射 View,必须在回调里按 SysType 再分发。本轮只加常量。</summary>
+        /// 不能按协议号一一映射 View，回调按 SysType 分发；轮28 已完整解析两分支。</summary>
         public const int LOOKOVER_SEAL_OR_DRACONIC = 19504;
-        /// <summary>号与 module_id 顺序错位:19505 实为 module_id=6 天启资料(非 5)。本轮只加常量。</summary>
+        /// <summary>号与 module_id 顺序错位:19505 实为 module_id=6 天启资料(非 5)，轮28 已完整解析。</summary>
         public const int LOOKOVER_REVELATION = 19505;
-        /// <summary>号与 module_id 顺序错位:19506 实为 module_id=5 幻化资料(非 6)。本轮只加常量。</summary>
+        /// <summary>号与 module_id 顺序错位:19506 实为 module_id=5 幻化资料(非 6)，轮28 已完整解析。</summary>
         public const int LOOKOVER_ILLUSION = 19506;
-        /// <summary>module_id=7 谪仙临凡(降神)资料。本轮只加常量。</summary>
+        /// <summary>module_id=7 谪仙临凡(降神)资料，轮28 已完整解析。</summary>
         public const int LOOKOVER_GODBEFALL = 19507;
-        /// <summary>module_id=8 灵饰资料。本轮只加常量。</summary>
+        /// <summary>module_id=8 灵饰资料，轮28 已完整解析。</summary>
         public const int LOOKOVER_UNREAL = 19508;
-        /// <summary>module_id=9 神纹资料。本轮只加常量。</summary>
+        /// <summary>module_id=9 神纹资料，轮28 已完整解析。</summary>
         public const int LOOKOVER_LUNG = 19509;
-        /// <summary>module_id=10 蜃妖资料(事件名历史上叫 GODBEAST,与"降神"无关,命名易混淆见 r7_oldfriend)。本轮只加常量。</summary>
+        /// <summary>module_id=10 蜃妖资料(历史命名 GODBEAST,与“降神”无关)，轮28 已完整解析。</summary>
         public const int LOOKOVER_GODBEAST = 19510;
-        /// <summary>module_id=11 神巫+妖灵双数据。本轮只加常量。</summary>
+        /// <summary>module_id=11 神巫+妖灵双数据，轮28 已完整解析。</summary>
         public const int LOOKOVER_PET = 19511;
-        /// <summary>module_id=12 御魂资料。本轮只加常量。</summary>
+        /// <summary>module_id=12 御魂资料，轮28 已完整解析。</summary>
         public const int LOOKOVER_RUNE = 19512;
 
         // ----- 好友(140xx,yu_server pt_140.erl / pp_relationship.erl,自动循环 轮7) -----

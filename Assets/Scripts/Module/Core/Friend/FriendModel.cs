@@ -11,7 +11,7 @@ namespace Shenxiao.Module.Core.Friend
     /// 推荐列表(含搜索结果与"假人"填充位)、申请列表、右键菜单数据缓存(800ms 节流)、资料卡缓存。
     /// 事件走 <see cref="GlobalEvent"/>(EVT_FRIEND_*),仅存数据,不发协议(协议侧见 FriendController)。
     /// </summary>
-    public sealed class FriendModel
+    public sealed partial class FriendModel
     {
         public static readonly FriendModel Instance = new FriendModel();
         private FriendModel() { }
@@ -467,6 +467,7 @@ namespace Shenxiao.Module.Core.Friend
             _menuDataDic.Clear();
             LastOperateType = 0;
             LastPlayerCard = null;
+            ClearLookOverModules();
             _chatPartners.Clear();
         }
     }

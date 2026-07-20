@@ -401,8 +401,10 @@ namespace Shenxiao.Framework.Event
         /// <summary>140xx 通用错误码兜底(参数: int code),对标老端 On14099。</summary>
         public const string EVT_FRIEND_ERROR = "EVT_FRIEND_ERROR";
         /// <summary>他人资料卡就绪(参数: FriendModel.PlayerCard),对标老端 19501→19502(module_id=1 基础装备)。
-        /// FriendController.On19502 发,消费方(资料卡 UI)本轮未接,TODO。</summary>
+        /// FriendController.On19502 发,LookOverCardView 消费。</summary>
         public const string EVT_PLAYER_CARD = "EVT_PLAYER_CARD";
+        /// <summary>资料卡扩展模块就绪(参数: LookOverModuleSnapshot)。19503-19512 发。</summary>
+        public const string EVT_LOOKOVER_MODULE = "EVT_LOOKOVER_MODULE";
 
         // ----- Team / 组队(自动循环 轮8;24xxx,yu_server pt_240.erl / pp_team.erl) -----
         /// <summary>队伍信息变化(创建/加入/退出/成员增删/队长变更/助战广播/场景/在线,统一走这一条,
