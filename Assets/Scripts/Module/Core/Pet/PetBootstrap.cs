@@ -1,6 +1,7 @@
 using Shenxiao.Framework.Event;
 using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.MainUI;
+using Shenxiao.Module.Core.PetEquip;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Pet
@@ -25,6 +26,7 @@ namespace Shenxiao.Module.Core.Pet
             {
                 return;
             }
+            PetEquipFlow.Reset();
             PetFlow.Reset();
         }
     }

@@ -142,6 +142,7 @@ namespace Shenxiao.Module.Core.Bag
                 foreach (BagGoods g in list) BagModel.Instance.UpsertPetEquipContainer(pos, g);
                 GameLog.Info("Bag", "15017 PetEquip container pos={0} delta={1} count={2} remaining={3}B",
                     pos, list.Count, BagModel.Instance.GetContainer(pos).Count, r.Remaining);
+                EventDispatcher.Emit(GlobalEvent.EVT_PET_EQUIP_BAG_UPDATE, pos);
                 return;
             }
             GameLog.Debug("Bag", "15017 pos={0}(未接容器) goods={1} remaining={2}B", pos, list.Count, r.Remaining);
@@ -172,6 +173,7 @@ namespace Shenxiao.Module.Core.Bag
                     BagModel.Instance.UpdatePetEquipContainerNum(pos, it.goodsId, it.typeId, it.num);
                 GameLog.Info("Bag", "15018 PetEquip container pos={0} delta={1} count={2} remaining={3}B",
                     pos, list.Count, BagModel.Instance.GetContainer(pos).Count, r.Remaining);
+                EventDispatcher.Emit(GlobalEvent.EVT_PET_EQUIP_BAG_UPDATE, pos);
                 return;
             }
             GameLog.Debug("Bag", "15018 pos={0}(未接容器) goods={1} remaining={2}B", pos, list.Count, r.Remaining);
@@ -831,6 +833,7 @@ namespace Shenxiao.Module.Core.Bag
                 BagModel.Instance.SetPetEquipContainerFull(pos, maxCell, list);
                 GameLog.Info("Bag", "15010 PetEquip container pos={0} cellNum={1} maxCell={2} goods={3} remaining={4}B",
                     pos, cellNum, maxCell, list.Count, r.Remaining);
+                EventDispatcher.Emit(GlobalEvent.EVT_PET_EQUIP_BAG_UPDATE, pos);
             }
             else if (pos == Rune.RuneController.RUNE_BAG_POS)
             {

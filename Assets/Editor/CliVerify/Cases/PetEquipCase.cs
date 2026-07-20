@@ -249,20 +249,18 @@ namespace Shenxiao.EditorTools
                 outbound.Clear();
                 mGameStart.Invoke(ctrl, null);
                 await Task.Delay(20);
-                bool gameStartPair = outbound.Count == 2
-                    && FrameEquals(outbound[0], Shenxiao.Framework.Net.Proto.PET_EQUIP_INFO, new CliVerify.Pkt().C(1).Bytes())
-                    && FrameEquals(outbound[1], Shenxiao.Framework.Net.Proto.PET_EQUIP_INFO, new CliVerify.Pkt().C(2).Bytes());
+                bool closedStartSuppressed = outbound.Count == 0;
 
                 Shenxiao.Module.Core.Role.RoleModel.Instance.Level = 220;
                 bool openAt220 = Shenxiao.Module.Core.Common.FuncOpenConfig.CheckFuncOpenState("PetEquipBaseView");
                 mRoleUpdate.Invoke(ctrl, null);
-                bool transitionPair = outbound.Count == 4
-                    && FrameEquals(outbound[2], Shenxiao.Framework.Net.Proto.PET_EQUIP_INFO, new CliVerify.Pkt().C(1).Bytes())
-                    && FrameEquals(outbound[3], Shenxiao.Framework.Net.Proto.PET_EQUIP_INFO, new CliVerify.Pkt().C(2).Bytes());
+                bool transitionPair = outbound.Count == 2
+                    && FrameEquals(outbound[0], Shenxiao.Framework.Net.Proto.PET_EQUIP_INFO, new CliVerify.Pkt().C(1).Bytes())
+                    && FrameEquals(outbound[1], Shenxiao.Framework.Net.Proto.PET_EQUIP_INFO, new CliVerify.Pkt().C(2).Bytes());
                 mRoleUpdate.Invoke(ctrl, null);
-                bool repeatSuppressed = outbound.Count == 4;
-                lifecycleOk = closedAt219 && openAt220 && gameStartPair && transitionPair && repeatSuppressed;
-                Debug.Log("CLIVERIFY petEquip lifecycle gameStart=" + gameStartPair + " transition=" + transitionPair
+                bool repeatSuppressed = outbound.Count == 2;
+                lifecycleOk = closedAt219 && openAt220 && closedStartSuppressed && transitionPair && repeatSuppressed;
+                Debug.Log("CLIVERIFY petEquip lifecycle closedStartSuppressed=" + closedStartSuppressed + " transition=" + transitionPair
                     + " repeatSuppressed=" + repeatSuppressed);
             }
             finally

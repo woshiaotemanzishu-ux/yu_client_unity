@@ -4,9 +4,13 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Generated.UI.Common;
 using Shenxiao.Generated.UI.Pet;
+using Shenxiao.Generated.UI.PetEquip;
+using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.OutWard;
+using Shenxiao.Module.Core.PetEquip;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Tasks;
 using TMPro;
@@ -33,6 +37,7 @@ namespace Shenxiao.Module.Core.Pet
     {
         private int _typeId = 1;
         private bool _subscribed;
+        private PetEquipOutItemBind[] _petEquipSlots;
 
         /// <summary>切换培养对象(1=御风云骑/坐骑,2=剑魄同修/侍魂,3=翼影,4=古法符相,5=殒锋天刃,12=玄穹云披),
         /// PetFlow/RoleFlow 页签驱动。</summary>
@@ -51,6 +56,7 @@ namespace Shenxiao.Module.Core.Pet
         {
             HideStaticStates();
             BindButtons();
+            BindPetEquipSlots();
             Subscribe();
         }
 
@@ -67,6 +73,7 @@ namespace Shenxiao.Module.Core.Pet
             await OutWardConfigs.EnsureLoaded();
             await Common.GoodsModel.EnsureLoaded();
             await Skill.SkillConfigs.EnsureLoaded();
+            await FuncOpenConfig.EnsureLoaded();
             if (this == null || !gameObject.activeInHierarchy) return;
             Refresh();
         }
@@ -94,6 +101,10 @@ namespace Shenxiao.Module.Core.Pet
             EventDispatcher.On(GlobalEvent.EVT_OUTWARD_UPDATE, OnOutWardUpdate);
             EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskUpdate);
             EventDispatcher.On(GlobalEvent.EVT_TASK_ONE_UPDATED, OnTaskUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleOrFuncOpenUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_FUNC_OPEN_UPDATE, OnRoleOrFuncOpenUpdate);
+            EventDispatcher.On<int>(GlobalEvent.EVT_PET_EQUIP_UPDATE, OnPetEquipUpdate);
+            EventDispatcher.On<int>(GlobalEvent.EVT_PET_EQUIP_BAG_UPDATE, OnPetEquipBagUpdate);
         }
 
         private void Unsubscribe()
@@ -103,6 +114,10 @@ namespace Shenxiao.Module.Core.Pet
             EventDispatcher.Off(GlobalEvent.EVT_OUTWARD_UPDATE, OnOutWardUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_TASK_ONE_UPDATED, OnTaskUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleOrFuncOpenUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_FUNC_OPEN_UPDATE, OnRoleOrFuncOpenUpdate);
+            EventDispatcher.Off<int>(GlobalEvent.EVT_PET_EQUIP_UPDATE, OnPetEquipUpdate);
+            EventDispatcher.Off<int>(GlobalEvent.EVT_PET_EQUIP_BAG_UPDATE, OnPetEquipBagUpdate);
         }
 
         private void OnOutWardUpdate()
@@ -118,13 +133,39 @@ namespace Shenxiao.Module.Core.Pet
         {
             if (!this) { Unsubscribe(); return; }
             if (!gameObject.activeInHierarchy) return;
+            RefreshPetEquipEntry();
             RefreshGuide();
+        }
+
+        private void OnRoleOrFuncOpenUpdate()
+        {
+            if (!this) { Unsubscribe(); return; }
+            if (!gameObject.activeInHierarchy) return;
+            RefreshPetEquipEntry();
+        }
+
+        private void OnPetEquipUpdate(int typeId)
+        {
+            if (!this) { Unsubscribe(); return; }
+            if (!gameObject.activeInHierarchy || typeId != _typeId) return;
+            RefreshPetEquipEntry();
+        }
+
+        private void OnPetEquipBagUpdate(int pos)
+        {
+            if (!this) { Unsubscribe(); return; }
+            int wornPos = _typeId == PetEquipController.TYPE_HORSE
+                ? Bag.BagModel.POS_HORSE
+                : Bag.BagModel.POS_PARTNER;
+            if (!gameObject.activeInHierarchy || pos != wornPos) return;
+            RefreshPetEquipEntry();
         }
 
         // ---------------------------------------------------------------- 数据渲染
 
         private void Refresh()
         {
+            RefreshPetEquipEntry();
             OutWardModel.OutWardVo vo = OutWardModel.Instance.Get(_typeId);
             int career = RoleModel.Instance.Career;
 
@@ -281,7 +322,11 @@ namespace Shenxiao.Module.Core.Pet
             BindDegrade(before_btn1, "上一个外观(浏览切换)");
             BindDegrade(after_btn1, "下一个外观(浏览切换)");
             BindDegrade(proptity_btn, "属性 PetProptityView");
-            BindDegrade(bag_btn, "侍魂装备背包 PetEquipBaseView");
+            if (bag_btn != null)
+            {
+                bag_btn.raycastTarget = true;
+                UIUtil.AddClick(bag_btn, () => PetEquipFlow.Open(_typeId));
+            }
             // 幻化(IllusionBaseView):数据层已通(轮24 PI——OutWardController/OutWardModel 已落地
             // 16003/16006-16009/16020/16022/16027 全链 + 4 张幻化专属配表),UI 待烤(prefab/View 未搭建,
             // 本按钮仍是 BindDegrade 通用桩,点击只弹"待开放" toast)。
@@ -291,6 +336,79 @@ namespace Shenxiao.Module.Core.Pet
             BindDegrade(select_1, "培养线页签(当前页)");
             BindDegrade(select_2, "等级线页签 OutwardLvSystem");
             BindDegrade(btn_switch, "培养线/等级线切换 OutwardLvSystem");
+        }
+
+        private void BindPetEquipSlots()
+        {
+            if (_group_equip == null)
+            {
+                _petEquipSlots = new PetEquipOutItemBind[0];
+                return;
+            }
+
+            var slots = new List<PetEquipOutItemBind>();
+            foreach (PetEquipOutItemBind slot in _group_equip.GetComponentsInChildren<PetEquipOutItemBind>(true))
+            {
+                if (slot == null || slot.gameObject == _tpl_PetEquipOutItem) continue;
+                slots.Add(slot);
+                if (slot._Image1 != null)
+                {
+                    slot._Image1.raycastTarget = true;
+                    UIUtil.AddClick(slot._Image1, () => PetEquipFlow.Open(_typeId));
+                }
+            }
+            _petEquipSlots = slots.ToArray();
+        }
+
+        private void RefreshPetEquipEntry()
+        {
+            bool supported = _typeId == PetEquipController.TYPE_HORSE || _typeId == PetEquipController.TYPE_PARTNER;
+            string outwardView = _typeId == PetEquipController.TYPE_HORSE ? "HorseComponentView" : "PartnerComponentView";
+            bool open = supported
+                && FuncOpenConfig.IsLoaded
+                && FuncOpenConfig.CheckFuncOpenState("PetEquipBaseView")
+                && FuncOpenConfig.CheckFuncOpenState(outwardView);
+
+            if (bag_btn != null) bag_btn.gameObject.SetActive(open);
+            if (_group_equip != null) _group_equip.gameObject.SetActive(open);
+            if (!open || _petEquipSlots == null) return;
+
+            PetEquipModel.PetEquipInfo info = PetEquipModel.Instance.Get(_typeId);
+            for (int i = 0; i < _petEquipSlots.Length; i++)
+            {
+                PetEquipOutItemBind slot = _petEquipSlots[i];
+                if (slot == null) continue;
+                int posId = i + 1;
+                PetEquipModel.PetEquipItem equipped = null;
+                if (info?.Items != null)
+                {
+                    for (int j = 0; j < info.Items.Count; j++)
+                    {
+                        if (info.Items[j].PosId == posId) { equipped = info.Items[j]; break; }
+                    }
+                }
+
+                slot.gameObject.SetActive(true);
+                bool has = equipped != null && equipped.GoodsId > 0;
+                if (slot._group_data != null) slot._group_data.gameObject.SetActive(has);
+                if (slot._group_item != null) slot._group_item.gameObject.SetActive(has);
+                if (slot._group_empty != null) slot._group_empty.gameObject.SetActive(!has);
+                if (slot._img_icon != null) slot._img_icon.gameObject.SetActive(!has);
+                if (slot._reddot != null) slot._reddot.gameObject.SetActive(false);
+
+                EquipmentItemBind item = slot.GetComponentInChildren<EquipmentItemBind>(true);
+                if (item == null) continue;
+                item.gameObject.SetActive(has);
+                if (!has) continue;
+
+                if (item.grade != null) item.grade.text = equipped.Stage > 0 ? equipped.Stage + "阶" : "";
+                if (item.stren != null) item.stren.text = equipped.PosLevel > 0 ? "+" + equipped.PosLevel : "";
+                if (item.petEquipstage != null) item.petEquipstage.text = equipped.Star > 0 ? equipped.Star + "星" : "";
+                if (item.num_text != null) item.num_text.text = "";
+                string iconName = GoodsModel.GetGoodsIcon(equipped.GoodsTypeId);
+                if (item.icon != null && !string.IsNullOrEmpty(iconName))
+                    _ = ResManager.SetImageAsync(item.icon, GameResPath.GetGoodsIconPath(iconName), nativeSize: false);
+            }
         }
 
         private void OnLvButton()

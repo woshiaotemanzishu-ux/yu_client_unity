@@ -174,6 +174,8 @@ namespace Shenxiao.Framework.Event
         // ----- PetEquip 坐骑/伙伴装备(pt_160,轮25A) -----
         /// <summary>装备数据变化(参数:int typeId；16014全量/16015成功回拉/16016或16017成功更新)。</summary>
         public const string EVT_PET_EQUIP_UPDATE = "EVT_PET_EQUIP_UPDATE";
+        /// <summary>宠物装备四容器变化(参数:int pos；15010全量/15017或15018增量，pos=22/32/23/33)。</summary>
+        public const string EVT_PET_EQUIP_BAG_UPDATE = "EVT_PET_EQUIP_BAG_UPDATE";
         /// <summary>装备强化跨级成功(无参数；16016 level 真变化时触发，对标老端 UPGRADE_SUCCESS)。</summary>
         public const string EVT_PET_EQUIP_STRENGTH_SUCCESS = "EVT_PET_EQUIP_STRENGTH_SUCCESS";
         /// <summary>装备打磨成功(无参数；16017，对标老端 STAR_SUCCESS)。</summary>

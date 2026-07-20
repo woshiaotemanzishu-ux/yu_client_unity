@@ -77,6 +77,22 @@ namespace Shenxiao.EditorTools.AddrSetup
             Debug.Log($"[AddressableSetup] local entries: {countLocal}, remote entries: {countRemote}, pack units: {packUnits}");
         }
 
+        /// <summary>CLI 入口：完成自动分组并以进程码返回，避免 -quit 抢在脚本重载后的方法执行之前。</summary>
+        public static void AutoGroupAllBatch()
+        {
+            try
+            {
+                AutoGroupAll();
+                Debug.Log("[AddressableSetup] AutoGroupAllBatch OK");
+                EditorApplication.Exit(0);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("[AddressableSetup] AutoGroupAllBatch FAILED: " + e);
+                EditorApplication.Exit(1);
+            }
+        }
+
         private static AddressableAssetGroup EnsureLocalGroup(AddressableAssetSettings settings)
         {
             var g = settings.FindGroup(LocalGroupName);

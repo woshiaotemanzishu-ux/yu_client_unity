@@ -62,8 +62,11 @@ namespace Shenxiao.Module.Core.PetEquip
 
             _featureWasOpen = FuncOpenConfig.CheckFuncOpenState("PetEquipBaseView");
             _sessionStarted = true;
-            RequestInfo(TYPE_HORSE);
-            RequestInfo(TYPE_PARTNER);
+            if (_featureWasOpen)
+            {
+                RequestInfo(TYPE_HORSE);
+                RequestInfo(TYPE_PARTNER);
+            }
         }
 
         private void OnRoleInfoUpdate()
