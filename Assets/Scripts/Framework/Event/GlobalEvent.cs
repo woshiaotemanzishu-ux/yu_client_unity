@@ -63,6 +63,8 @@ namespace Shenxiao.Framework.Event
         /// <summary>某条公告轮到展示(参数 ChatModel.NoticeEntry),对标老端 CheckGongGaoFunc。
         /// ChatModel.PumpNotice 发;跑马灯/传闻 UI 消费方 TODO。</summary>
         public const string EVT_CHAT_NOTICE_TRIGGERED = "EVT_CHAT_NOTICE_TRIGGERED";
+        /// <summary>11063 鲜花特效入队(参数 string effectName)。表现层只消费服务端原样下发的资源名。</summary>
+        public const string EVT_CHAT_FLOWER_EFFECT = "EVT_CHAT_FLOWER_EFFECT";
         /// <summary>11016 跨系统红点推送到达(轮21 PF 补漏批;参数: int moduleId, int type, int num)。
         /// moduleId==339(红包,需先判断本人已入公会)/moduleId==400&amp;&amp;type==1(公会申请数)。ChatController.On11016
         /// 发;RedPacket 模块与公会红点体系均不在聊天包所有权范围内,本事件只做跨模块通知,真消费方(RedPacketModel/

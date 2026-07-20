@@ -16,6 +16,7 @@ namespace Shenxiao.Module.Core.Chat
         private static void Install()
         {
             MainUIRouter.Register("chat", ChatFlow.Toggle);
+            FlowerEffectPresenter.Install();
             EventDispatcher.On(GlobalEvent.EVT_NET_DISCONNECTED, OnDisconnected);
         }
 
@@ -25,6 +26,7 @@ namespace Shenxiao.Module.Core.Chat
             {
                 return;
             }
+            FlowerEffectPresenter.Reset();
             ChatModel.Instance.Reset();
             ChatFlow.Reset();
         }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Shenxiao.Common.Proto;
+using Shenxiao.Framework.Event;
 
 namespace Shenxiao.Module.Core.Marriage
 {
@@ -311,10 +312,33 @@ namespace Shenxiao.Module.Core.Marriage
         public FlowerReceived LastFlowerReceived { get; private set; }
         public void SetLastFlowerReceived(FlowerReceived f) => LastFlowerReceived = f;
 
+        // 11063 全局鲜花特效只保存服务端资源名；Chat 表现层按 FIFO 消费，本层不猜 prefab/Transform。
+        private const int FlowerEffectCapacity = 20;
+        private readonly List<string> _flowerEffects = new List<string>(FlowerEffectCapacity);
+        public IReadOnlyList<string> FlowerEffects => _flowerEffects;
+
+        public void EnqueueFlowerEffect(string effectName)
+        {
+            if (_flowerEffects.Count >= FlowerEffectCapacity) _flowerEffects.RemoveAt(0);
+            _flowerEffects.Add(effectName);
+            EventDispatcher.Emit(GlobalEvent.EVT_CHAT_FLOWER_EFFECT, effectName);
+        }
+
+        public bool TryDequeueFlowerEffect(out string effectName)
+        {
+            if (_flowerEffects.Count == 0) { effectName = null; return false; }
+            effectName = _flowerEffects[0];
+            _flowerEffects.RemoveAt(0);
+            return true;
+        }
+
+        public void ClearFlowerEffects() => _flowerEffects.Clear();
+
         // ============================================================================================
 
         public void Clear()
         {
+            ClearFlowerEffects();
             _personalsPages.Clear();
             LastRoleDetail = null;
 

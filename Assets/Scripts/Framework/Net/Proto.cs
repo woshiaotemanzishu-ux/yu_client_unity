@@ -98,6 +98,12 @@
         /// 客户端收到后自跑本地每秒轮询定时器按 send_gap 循环触发展示(对标老端 StartGongGaoList,定时器实现见
         /// <see cref="Shenxiao.Module.Core.Chat.ChatModel.PumpNotice"/>,勿用 MonoBehaviour.Update 直接承载判定逻辑)。</summary>
         public const int CHAT_NOTICE = 11050;
+        /// <summary>通用掉落飘字推送(S2C)。回包:Type:8 + GoodsList[u16×{GoodsTypeId:32,Num:32}]。</summary>
+        public const int CHAT_GOODS_GAIN = 11060;
+        /// <summary>标准 ObjectList 掉落飘字推送(S2C)。回包:ObjectList[u16×{Style:8,TypeId:32,Count:32}]。</summary>
+        public const int CHAT_OBJECT_GAIN = 11061;
+        /// <summary>全局鲜花特效推送(S2C)。回包:Effect:string；资源名由服务端下发，客户端不得硬编码。</summary>
+        public const int CHAT_FLOWER_EFFECT = 11063;
         /// <summary>假人聊天触发(GAME_START 空参发一次;策划要求仅该账号下第一个角色会收到,服务端 mod_counter 已把关)。
         /// 回包 "c"(type)。⚠降级:老端据此拼假人击杀/获得道具消息需要 config_jjc_robot + ClientRobotLv 两张配置表
         /// (伪造角色外观/装备/战力用于营造"新服热闹"假象),两表均未迁移入 Unity——本端只记录收到的 type,

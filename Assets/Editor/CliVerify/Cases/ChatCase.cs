@@ -28,6 +28,14 @@ namespace Shenxiao.EditorTools
 
         public static async Task<int> Run()
         {
+            bool editorPreferFallbackBefore = Shenxiao.Framework.Res.ResManager.EditorPreferFallback;
+            Shenxiao.Framework.Res.ResManager.EditorPreferFallback = true;
+            try { return await RunCore(); }
+            finally { Shenxiao.Framework.Res.ResManager.EditorPreferFallback = editorPreferFallbackBefore; }
+        }
+
+        private static async Task<int> RunCore()
+        {
             object ctrl = Shenxiao.Module.Core.Chat.ChatController.Instance;
 
             MethodInfo GetM(string name)
@@ -46,9 +54,13 @@ namespace Shenxiao.EditorTools
             MethodInfo m11042 = GetM("On11042");
             MethodInfo m11046 = GetM("On11046");
             MethodInfo m11050 = GetM("On11050");
+            MethodInfo m11060 = GetM("On11060");
+            MethodInfo m11061 = GetM("On11061");
+            MethodInfo m11063 = GetM("On11063");
             MethodInfo m11064 = GetM("On11064");
             if (m11001 == null || m11002 == null || m11023 == null || m11027 == null || m11028 == null
-                || m11029 == null || m11042 == null || m11046 == null || m11050 == null || m11064 == null)
+                || m11029 == null || m11042 == null || m11046 == null || m11050 == null
+                || m11060 == null || m11061 == null || m11063 == null || m11064 == null)
             {
                 return 3;
             }
@@ -56,12 +68,20 @@ namespace Shenxiao.EditorTools
             void Feed(MethodInfo m, byte[] pkt) =>
                 m.Invoke(ctrl, new object[] { new Shenxiao.Framework.Net.NetReader(pkt, 0, pkt.Length) });
 
+            int FeedRemaining(MethodInfo m, byte[] pkt)
+            {
+                var reader = new Shenxiao.Framework.Net.NetReader(pkt, 0, pkt.Length);
+                m.Invoke(ctrl, new object[] { reader });
+                return reader.Remaining;
+            }
+
             var model = Shenxiao.Module.Core.Chat.ChatModel.Instance;
             var bag = Shenxiao.Module.Core.Bag.BagModel.Instance;
             model.Reset();
             bag.Clear();
             Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId = 5001;
             Shenxiao.Module.Core.Role.RoleModel.Instance.Level = 999;
+            await Shenxiao.Module.Core.Common.GoodsModel.EnsureLoaded();
 
             bool worldBucketOk = TestWorldBucket(m11001, Feed, model);
             bool privateOk = TestPrivateChat(m11002, Feed, model);
@@ -71,6 +91,9 @@ namespace Shenxiao.EditorTools
             bool playerInfoOk = TestPrivatePlayerInfo(m11028, Feed, model);
             bool blacklistOk = TestBlacklistClear(m11046, Feed, model);
             bool noticeOk = TestNotice(m11050, Feed, model);
+            bool goodsGainOk = TestGoodsGain(m11060, FeedRemaining);
+            bool objectGainOk = TestObjectGain(m11061, FeedRemaining);
+            bool flowerOk = TestFlowerEffect(m11063, FeedRemaining);
             bool bannedOk = TestBannedNotice(m11042, Feed);
             bool robotOk = TestRobot(m11064, Feed);
             bool sendChatOk = TestSendChat(bag);
@@ -79,10 +102,12 @@ namespace Shenxiao.EditorTools
             bag.Clear();
 
             bool pass = worldBucketOk && privateOk && hornOk && zoneOk && clickCacheOk && playerInfoOk
-                && blacklistOk && noticeOk && bannedOk && robotOk && sendChatOk;
+                && blacklistOk && noticeOk && goodsGainOk && objectGainOk && flowerOk
+                && bannedOk && robotOk && sendChatOk;
             Debug.Log("CLIVERIFY chat VERDICT worldBucket=" + worldBucketOk + " private=" + privateOk
                 + " horn=" + hornOk + " zone=" + zoneOk + " clickCache=" + clickCacheOk
                 + " playerInfo=" + playerInfoOk + " blacklist=" + blacklistOk + " notice=" + noticeOk
+                + " goodsGain=" + goodsGainOk + " objectGain=" + objectGainOk + " flower=" + flowerOk
                 + " banned=" + bannedOk + " robot=" + robotOk + " sendChat=" + sendChatOk + " pass=" + pass);
             await Task.CompletedTask;
             return pass ? 0 : 3;
@@ -285,6 +310,95 @@ namespace Shenxiao.EditorTools
         }
 
         // ---- 11042:被禁言 toast(老端漏接的补齐) ----
+        private static bool TestGoodsGain(MethodInfo m, System.Func<MethodInfo, byte[], int> feedRemaining)
+        {
+            const int knownGoods = 1102015065; // config_goods 中的喇叭卷轴；仅用于 Case 构包。
+            var logs = new List<string>();
+            Application.LogCallback cb = (msg, stack, type) => logs.Add(msg);
+            Application.logMessageReceived += cb;
+            try
+            {
+                int silentRemaining = feedRemaining(m,
+                    new CliVerify.Pkt().C(2).H(1).I(knownGoods).I(1).Bytes());
+                bool silentOk = silentRemaining == 0 && !logs.Any(x => x.Contains("float:") || x.Contains("toast:"));
+
+                logs.Clear();
+                byte[] visible = new CliVerify.Pkt().C(5).H(3)
+                    .I(knownGoods).I(2)
+                    .I(knownGoods).I(0)
+                    .I(2147483000).I(1)
+                    .Bytes();
+                int visibleRemaining = feedRemaining(m, visible);
+                int shown = logs.Count(x => x.Contains("float:"));
+                bool visibleOk = visibleRemaining == 0 && shown == 1
+                    && logs.Any(x => x.Contains("x2") && x.Contains("双倍战魂卡"));
+                bool ok = silentOk && visibleOk;
+                Debug.Log("CLIVERIFY chat 11060 silentOk=" + silentOk + " visibleOk=" + visibleOk + " ok=" + ok);
+                return ok;
+            }
+            finally { Application.logMessageReceived -= cb; }
+        }
+
+        private static bool TestObjectGain(MethodInfo m, System.Func<MethodInfo, byte[], int> feedRemaining)
+        {
+            const int knownGoods = 1102015065;
+            var logs = new List<string>();
+            Application.LogCallback cb = (msg, stack, type) => logs.Add(msg);
+            Application.logMessageReceived += cb;
+            try
+            {
+                byte[] pkt = new CliVerify.Pkt().H(4)
+                    .C(0).I(knownGoods).I(1)
+                    .C(3).I(0).I(2)
+                    .C(0).I(knownGoods).I(0)
+                    .C(0).I(2147483000).I(1)
+                    .Bytes();
+                int remaining = feedRemaining(m, pkt);
+                List<string> shown = logs.Where(x => x.Contains("float:")).ToList();
+                bool cursorOk = remaining == 0;
+                bool filterOk = shown.Count == 2;
+                bool singleOk = shown.Count > 0 && !shown[0].Contains("x1");
+                bool mappedOk = shown.Count > 1 && shown[1].Contains("x2");
+                bool ok = cursorOk && filterOk && singleOk && mappedOk;
+                Debug.Log("CLIVERIFY chat 11061 cursorOk=" + cursorOk + " filterOk=" + filterOk
+                    + " singleOk=" + singleOk + " mappedOk=" + mappedOk + " ok=" + ok);
+                return ok;
+            }
+            finally { Application.logMessageReceived -= cb; }
+        }
+
+        private static bool TestFlowerEffect(MethodInfo m, System.Func<MethodInfo, byte[], int> feedRemaining)
+        {
+            var marriage = Shenxiao.Module.Core.Marriage.MarriageModel.Instance;
+            marriage.ClearFlowerEffects();
+            var fired = new List<string>();
+            System.Action<string> onEffect = value => fired.Add(value);
+            EventDispatcher.On<string>(GlobalEvent.EVT_CHAT_FLOWER_EFFECT, onEffect);
+            bool cursorOk = true;
+            try
+            {
+                for (int i = 0; i < 21; i++)
+                {
+                    string effect = "server_effect_" + i;
+                    cursorOk &= feedRemaining(m, new CliVerify.Pkt().S(effect).Bytes()) == 0;
+                }
+            }
+            finally { EventDispatcher.Off<string>(GlobalEvent.EVT_CHAT_FLOWER_EFFECT, onEffect); }
+
+            bool fifoOk = marriage.FlowerEffects.Count == 20
+                && marriage.FlowerEffects[0] == "server_effect_1"
+                && marriage.FlowerEffects[19] == "server_effect_20";
+            bool eventOk = fired.Count == 21 && fired[20] == "server_effect_20";
+            bool dequeueOk = marriage.TryDequeueFlowerEffect(out string first) && first == "server_effect_1"
+                && marriage.FlowerEffects.Count == 19;
+            marriage.ClearFlowerEffects();
+            bool clearOk = marriage.FlowerEffects.Count == 0;
+            bool ok = cursorOk && fifoOk && eventOk && dequeueOk && clearOk;
+            Debug.Log("CLIVERIFY chat 11063 cursorOk=" + cursorOk + " fifoOk=" + fifoOk
+                + " eventOk=" + eventOk + " dequeueOk=" + dequeueOk + " clearOk=" + clearOk + " ok=" + ok);
+            return ok;
+        }
+
         private static bool TestBannedNotice(MethodInfo m, System.Action<MethodInfo, byte[]> feed)
         {
             var logs = new List<string>();

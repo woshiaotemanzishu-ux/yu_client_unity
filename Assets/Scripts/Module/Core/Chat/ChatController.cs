@@ -6,6 +6,8 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Bag;
+using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Marriage;
 using Shenxiao.Module.Core.Role;
 
 namespace Shenxiao.Module.Core.Chat
@@ -77,6 +79,9 @@ namespace Shenxiao.Module.Core.Chat
             RegisterProtocal(Proto.CHAT_BLACKLIST_CLEAR, On11046);
             RegisterProtocal(Proto.CHAT_RED_DOT_PUSH, On11016);
             RegisterProtocal(Proto.CHAT_NOTICE, On11050);
+            RegisterProtocal(Proto.CHAT_GOODS_GAIN, On11060);
+            RegisterProtocal(Proto.CHAT_OBJECT_GAIN, On11061);
+            RegisterProtocal(Proto.CHAT_FLOWER_EFFECT, On11063);
             RegisterProtocal(Proto.CHAT_ROBOT, On11064);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
@@ -87,6 +92,7 @@ namespace Shenxiao.Module.Core.Chat
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             _lastSendUnixSec.Clear();
+            FlowerEffectPresenter.Reset();
             ChatModel.Instance.Reset();
             base.Dispose();
         }
@@ -456,6 +462,55 @@ namespace Shenxiao.Module.Core.Chat
         {
             int type = r.ReadU8();
             GameLog.Info("Chat", "11064 robot chat type={0}(降级:config_jjc_robot/ClientRobotLv 未迁移,不生成假人消息)", type);
+        }
+
+        /// <summary>11060 通用掉落提示。场景屏蔽与 LungMaterial 开关尚无 Unity 权威入口，暂不猜条件。</summary>
+        private void On11060(NetReader r)
+        {
+            int type = r.ReadU8();
+            List<(int typeId, int num)> goods = r.ReadArray(rr => ((int)rr.ReadU32(), (int)rr.ReadU32()));
+            // TODO: 接入权威场景分类后补单人跨服排行/晚间/新主线副本屏蔽；接入 LungModel 后补其材料屏蔽。
+            if (type == 2) return;
+            foreach ((int rawTypeId, int num) in goods)
+            {
+                if (num <= 0) continue;
+                int typeId = rawTypeId;
+                if (rawTypeId == 22 || rawTypeId == 23 || rawTypeId == 41 || rawTypeId == 42)
+                    typeId = GoodsModel.GetMappingTypeId(-1, rawTypeId).goodsId;
+                GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(typeId);
+                if (basic == null) continue;
+                string text = "获得 " + basic.Name + "x" + num;
+                switch (type)
+                {
+                    case 1:
+                    case 3: TipsManager.Float(text); break;
+                    case 4: TipsManager.Toast(text + "（物品展示）"); break; // showGoods 未迁移的可靠降级
+                    case 5: TipsManager.Float(text + "（双倍战魂卡）"); break;
+                }
+            }
+            GameLog.Info("Chat", "11060 goods gain type={0} count={1}", type, goods.Count);
+        }
+
+        private void On11061(NetReader r)
+        {
+            List<(int style, int typeId, int count)> objects = r.ReadArray(rr =>
+                ((int)rr.ReadU8(), (int)rr.ReadU32(), (int)rr.ReadU32()));
+            foreach ((int style, int rawTypeId, int count) in objects)
+            {
+                if (count <= 0) continue;
+                int typeId = GoodsModel.GetMappingTypeId(style, rawTypeId).goodsId;
+                GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(typeId);
+                if (basic == null) continue;
+                TipsManager.Float("获得 " + basic.Name + (count > 1 ? "x" + count : string.Empty));
+            }
+            GameLog.Info("Chat", "11061 object gain count={0}", objects.Count);
+        }
+
+        private void On11063(NetReader r)
+        {
+            string effectName = r.ReadString();
+            MarriageModel.Instance.EnqueueFlowerEffect(effectName);
+            GameLog.Info("Chat", "11063 flower effect={0}", effectName);
         }
 
         /// <summary>11016 跨系统红点推送(对标老端 ChatController.ts:640-654 On11016):module_id==339(红包)时,
