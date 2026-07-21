@@ -116,7 +116,9 @@ namespace Shenxiao.Editor.UiCreator.Baby
         {
             for (int i = 0; i < EquipPrefabPaths.Length; i++) if (!Fill(EquipPrefabPaths[i])) return false;
             if (!EnsureNestedTemplate(EquipPrefabPaths[4], "__Templates", BaseAwardItemPath)
+                || !EnsureNestedTemplate(EquipPrefabPaths[3], "__Templates", BaseAwardItemPath)
                 || !EnsureNestedTemplate(EquipPrefabPaths[1], "__Templates", EquipPrefabPaths[4])
+                || !EnsureNestedTemplate(EquipPrefabPaths[1], "__Templates", EquipPrefabPaths[3])
                 || !EnsureNestedTemplate(EquipPrefabPaths[1], "__Templates", FightingShowSmallItemPath)
                 || !EnsureNestedTemplate(EquipPrefabPaths[0], "__Templates", EquipPrefabPaths[1])) return false;
             return VerifyEquipStatic();
@@ -138,10 +140,14 @@ namespace Shenxiao.Editor.UiCreator.Baby
             ok &= CheckBusinessView<BabyEquipView>(AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[1]), "BabyEquipView");
             ok &= CheckBusinessView<BabyEquipFuncView>(AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[0]), "BabyEquipFuncView");
             GameObject icon = AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[4]);
+            GameObject subItem = AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[3]);
             GameObject view = AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[1]);
             GameObject func = AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[0]);
             ok &= CheckTemplate<Shenxiao.Module.Core.Common.BaseAwardItem>(icon != null ? icon.transform.Find("__Templates/BaseAwardItem")?.gameObject : null, "BabyEquipIcon.BaseAwardItem");
+            ok &= CheckTemplate<Shenxiao.Module.Core.Common.BaseAwardItem>(subItem != null ? subItem.transform.Find("__Templates/BaseAwardItem")?.gameObject : null, "BabyEquipSubItem.BaseAwardItem");
             ok &= CheckTemplate<BabyEquipIcon>(view != null ? view.transform.Find("__Templates/BabyEquipIcon")?.gameObject : null, "BabyEquipView.BabyEquipIcon");
+            ok &= CheckTemplate<BabyEquipSubItemBind>(view != null ? view.transform.Find("__Templates/BabyEquipSubItem")?.gameObject : null, "BabyEquipView.BabyEquipSubItem");
+            ok &= CheckTemplate<Shenxiao.Module.Core.Common.BaseAwardItem>(view != null ? view.transform.Find("__Templates/BabyEquipSubItem/__Templates/BaseAwardItem")?.gameObject : null, "BabyEquipView.BabyEquipSubItem.BaseAwardItem");
             ok &= CheckTemplate<BabyEquipView>(func != null ? func.transform.Find("__Templates/BabyEquipView")?.gameObject : null, "BabyEquipFuncView.BabyEquipView");
             ok &= CheckTemplate<Shenxiao.Module.Core.Common.FightingShowSmallItem>(view != null ? view.transform.Find("__Templates/FightingShowSmallItem")?.gameObject : null, "BabyEquipView.FightingShowSmallItem");
             ok &= CheckBusinessView<Shenxiao.Module.Core.Common.FightingShowSmallItem>(view, "BabyEquipView.FightingShowSmallItem");
