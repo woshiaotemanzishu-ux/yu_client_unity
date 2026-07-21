@@ -25,6 +25,7 @@ namespace Shenxiao.EditorTools
             try
             {
                 ResManager.EditorPreferFallback = true;
+                bool likeStatic = BabyBindUpgrader.VerifyLikeStatic();
                 _ = BabyRaiseConfigs.EnsureLoaded();
                 _ = BabyFigureConfigs.EnsureLoaded();
                 _ = BabyFigureStarConfigs.EnsureLoaded();
@@ -45,8 +46,8 @@ namespace Shenxiao.EditorTools
                     && BabyStageConfigs.GetNext(1, 1) != null && BabyStageConfigs.GetNext(1, 1).ExpCon == 13;
                 bool upgraded = BabyBindUpgrader.Generate();
                 bool prefab = upgraded && VerifyInstances();
-                bool pass = config && upgraded && prefab;
-                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " upgraded=" + upgraded + " prefab=" + prefab + " pass=" + pass);
+                bool pass = config && likeStatic && upgraded && prefab;
+                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " upgraded=" + upgraded + " prefab=" + prefab + " pass=" + pass);
                 return Task.FromResult(pass ? 0 : 3);
             }
             catch (Exception e)

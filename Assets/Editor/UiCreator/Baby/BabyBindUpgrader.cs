@@ -15,6 +15,15 @@ namespace Shenxiao.Editor.UiCreator.Baby
     {
         private const string ModulePath = "Assets/Prefabs/UI/Baby/BabyModule.prefab";
         private const string PropItemPath = "Assets/Prefabs/UI/Baby/BabyPropItem.prefab";
+        private const string LikeViewPath = "Assets/Prefabs/UI/Baby/BabyLikeView.prefab";
+        private const string LikeItemPath = "Assets/Prefabs/UI/Baby/BabyLikeItem.prefab";
+        private const string BelikeViewPath = "Assets/Prefabs/UI/Baby/BabyBelikeView.prefab";
+        private const string BelikeItemPath = "Assets/Prefabs/UI/Baby/BabyBelikeItem.prefab";
+        private const string LikeRewardPath = "Assets/Prefabs/UI/Baby/BabyLikeReward.prefab";
+        private static readonly string[] LikeSceneKeys =
+        {
+            "baby/BabyLikeView", "baby/BabyLikeItem", "baby/BabyBelikeView", "baby/BabyBelikeItem", "baby/BabyLikeReward",
+        };
         private const BindingFlags BindFields = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
 
         [InitializeOnLoadMethod]
@@ -36,6 +45,60 @@ namespace Shenxiao.Editor.UiCreator.Baby
         {
             if (!Fill(ModulePath) || !Fill(PropItemPath)) return false;
             return Verify();
+        }
+
+        /// <summary>
+        /// Converts the five orphan baby-like scenes, fills their generated Bind components, and restores
+        /// the local list-template relationships.  Kept separate from <see cref="Generate"/> because these
+        /// scenes are intentionally not part of BabyModule's combined conversion manifest.
+        /// </summary>
+        public static bool GenerateLikeStatic()
+        {
+            for (int i = 0; i < LikeSceneKeys.Length; i++) LayaSceneConverter.ConvertSingle(LikeSceneKeys[i]);
+            if (!Fill(LikeViewPath) || !Fill(LikeItemPath) || !Fill(BelikeViewPath)
+                || !Fill(BelikeItemPath) || !Fill(LikeRewardPath)) return false;
+            if (!EnsureTemplates(LikeViewPath, LikeItemPath, LikeRewardPath)
+                || !EnsureTemplates(BelikeViewPath, BelikeItemPath)) return false;
+            return VerifyLikeStatic();
+        }
+
+        /// <summary>Unity CLI entry point for the orphan baby-like static conversion.</summary>
+        public static void GenerateLikeStaticBatch()
+        {
+            try
+            {
+                bool ok = GenerateLikeStatic();
+                Debug.Log("[UiCreator] BabyBindUpgrader.GenerateLikeStaticBatch " + (ok ? "OK" : "FAILED"));
+                EditorApplication.Exit(ok ? 0 : 1);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("[UiCreator] BabyBindUpgrader.GenerateLikeStaticBatch exception: " + e);
+                EditorApplication.Exit(1);
+            }
+        }
+
+        /// <summary>Read-only acceptance for the five orphan prefabs and their local disabled templates.</summary>
+        public static bool VerifyLikeStatic()
+        {
+            bool ok = true;
+            ok &= CheckGeneratedBind(LikeViewPath, "BabyLikeView");
+            ok &= CheckGeneratedBind(LikeItemPath, "BabyLikeItem");
+            ok &= CheckGeneratedBind(BelikeViewPath, "BabyBelikeView");
+            ok &= CheckGeneratedBind(BelikeItemPath, "BabyBelikeItem");
+            ok &= CheckGeneratedBind(LikeRewardPath, "BabyLikeReward");
+            ok &= CheckNamedNodes(LikeViewPath, "bg1", "closeBtn", "_Scroller1", "Content1",
+                "rewardScroller", "Content", "belikeBtn", "leftBtn", "rightBtn", "myRank", "mylike",
+                "tipsLb", "noOneLb", "likeRed");
+            ok &= CheckNamedNodes(LikeItemPath, "rankImg", "rankLb", "nameLb", "fightLb", "numLb");
+            ok &= CheckNamedNodes(BelikeViewPath, "bg1", "closeBtn", "_Scroller1", "Content", "noOneLb");
+            ok &= CheckNamedNodes(BelikeItemPath, "likeBtn", "lb");
+            ok &= CheckNamedNodes(LikeRewardPath, "lb", "_Scroller1", "Content");
+            ok &= CheckTemplatePath(LikeViewPath, "__Templates/BabyLikeItem");
+            ok &= CheckTemplatePath(LikeViewPath, "__Templates/BabyLikeReward");
+            ok &= CheckTemplatePath(BelikeViewPath, "__Templates/BabyBelikeItem");
+            Debug.Log("[UiCreator] Baby like static verification " + (ok ? "OK" : "FAILED"));
+            return ok;
         }
 
         /// <summary>供 CLI Case 和人工菜单复用的只读验收。</summary>
@@ -108,6 +171,104 @@ namespace Shenxiao.Editor.UiCreator.Baby
         {
             if (LayaBindFiller.FillPrefab(path)) return true;
             Debug.LogError("[UiCreator] LayaBindFiller.FillPrefab(" + path + ") 失败(看 Console 前面的警告)");
+            return false;
+        }
+
+        private static bool EnsureTemplates(string viewPath, params string[] itemPaths)
+        {
+            GameObject view = PrefabUtility.LoadPrefabContents(viewPath);
+            if (view == null)
+            {
+                Debug.LogError("[UiCreator] Baby static prefab missing " + viewPath);
+                return false;
+            }
+            try
+            {
+                Transform templates = view.transform.Find("__Templates");
+                if (templates == null)
+                {
+                    templates = new GameObject("__Templates", typeof(RectTransform)).transform;
+                    templates.SetParent(view.transform, false);
+                }
+                templates.gameObject.SetActive(false);
+                for (int i = 0; i < itemPaths.Length; i++)
+                {
+                    GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>(itemPaths[i]);
+                    if (source == null)
+                    {
+                        Debug.LogError("[UiCreator] Baby static template source missing " + itemPaths[i]);
+                        return false;
+                    }
+                    Transform existing = templates.Find(source.name);
+                    if (existing == null)
+                    {
+                        GameObject clone = Object.Instantiate(source, templates, false);
+                        clone.name = source.name;
+                        clone.SetActive(false);
+                    }
+                    else existing.gameObject.SetActive(false);
+                }
+                PrefabUtility.SaveAsPrefabAsset(view, viewPath);
+                return true;
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(view);
+            }
+        }
+
+        private static bool CheckGeneratedBind(string prefabPath, string rootName)
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null || prefab.transform.name != rootName)
+            {
+                Debug.LogError("[UiCreator] Baby static prefab/root missing " + prefabPath);
+                return false;
+            }
+            Component bind = prefab.GetComponent(rootName + "Bind");
+            if (bind == null)
+            {
+                Debug.LogError("[UiCreator] Baby generated Bind missing " + rootName + "Bind(" + prefabPath + ")");
+                return false;
+            }
+            bool ok = true;
+            foreach (FieldInfo field in bind.GetType().GetFields(BindFields))
+            {
+                if (field.GetValue(bind) != null) continue;
+                Debug.LogError("[UiCreator] Baby generated Bind field missing " + bind.GetType().Name + "." + field.Name);
+                ok = false;
+            }
+            return ok;
+        }
+
+        private static bool CheckNamedNodes(string prefabPath, params string[] names)
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null) return false;
+            Transform[] nodes = prefab.GetComponentsInChildren<Transform>(true);
+            bool ok = true;
+            for (int i = 0; i < names.Length; i++)
+            {
+                bool found = false;
+                for (int j = 0; j < nodes.Length; j++)
+                {
+                    if (nodes[j].name != names[i]) continue;
+                    found = true;
+                    break;
+                }
+                if (found) continue;
+                Debug.LogError("[UiCreator] Baby static node missing " + prefabPath + "/" + names[i]);
+                ok = false;
+            }
+            return ok;
+        }
+
+        private static bool CheckTemplatePath(string viewPath, string path)
+        {
+            GameObject view = AssetDatabase.LoadAssetAtPath<GameObject>(viewPath);
+            Transform template = view != null ? view.transform.Find(path) : null;
+            if (template != null && !template.gameObject.activeSelf) return true;
+            Debug.LogError("[UiCreator] Baby static template missing or active " + viewPath + "/" + path);
             return false;
         }
 
