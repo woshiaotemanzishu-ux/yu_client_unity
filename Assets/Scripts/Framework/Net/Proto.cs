@@ -1225,7 +1225,7 @@
         /// 货品的阶段/星级/评分。</summary>
         public const int PET_EQUIP_POLISH = 16017;
 
-        // ----- 宝宝 Baby(pt_182，只读首包；老端 BabyController.ts) -----
+        // ----- 宝宝 Baby(pt_182，15 个老端可达数据/操作协议；老端 BabyController.ts) -----
         /// <summary>宝宝通用错误：cmd:h,error_code:I,args:s。</summary>
         public const int BABY_ERROR = 18200;
         /// <summary>宝宝基础信息：active_time:I,baby_id:I,baby_name:s,is_change_name:c；请求体为空。</summary>
@@ -1240,8 +1240,22 @@
         public const int BABY_FIGURE_INFO = 18206;
         /// <summary>宝宝家族信息（含 attr_info/attr_list 双层数组）；请求体为空。</summary>
         public const int BABY_FAMILY_INFO = 18207;
+        /// <summary>激活宝宝：请求体为空；回包 code:I。</summary>
+        public const int BABY_ACTIVATE = 18210;
+        /// <summary>宝宝阶段提升：请求体为空；回包 code:I,stage:h,stage_lv:c,stage_exp:I,power:I。</summary>
+        public const int BABY_STAGE_UP = 18211;
+        /// <summary>宝宝形象升星：请求 baby_id:I；回包 code:I,baby_id:I,baby_star:h,power:l,next_power:l。</summary>
+        public const int BABY_FIGURE_STAR_UP = 18213;
+        /// <summary>宝宝形象穿脱：请求 type:c,baby_id:I；回包 code:I,type:c,baby_id:I，type 仅 1/2。</summary>
+        public const int BABY_FIGURE_WEAR = 18214;
+        /// <summary>宝宝改名：请求 name:s；回包 code:I,name:s。</summary>
+        public const int BABY_RENAME = 18215;
         /// <summary>宝宝任务进度推送：task_id:h,finish_num:h,finish_state:c。</summary>
         public const int BABY_TASK_UPDATE = 18221;
+        /// <summary>领取宝宝任务奖励：请求 task_id:h；回包 code:I,task_id:h,finish_num:h,finish_state:c。</summary>
+        public const int BABY_TASK_REWARD = 18222;
+        /// <summary>宝宝形象战力推送：请求 baby_id:I；回包 baby_id:I,baby_star:h,power:l,next_power:l（无 code）。</summary>
+        public const int BABY_FIGURE_POWER = 18223;
 
         // ----- 通用副本(pt_610,yu_server dungeon;老端 BaseDungeonController.ts。御魂本 type=12,dun_id 12001~) -----
         /// <summary>通用副本(pt_610)家族统一错误出口(轮22 族错误出口批;对标老端 BaseDungeonController.ts:668-673

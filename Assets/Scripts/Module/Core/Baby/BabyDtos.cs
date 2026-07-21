@@ -62,6 +62,9 @@ namespace Shenxiao.Module.Core.Baby
     {
         public int BabyId;
         public int BabyStar;
+        public long Power;
+        public long NextPower;
+        public bool IsActivated;
     }
 
     public sealed class BabyFigureInfo
@@ -97,5 +100,65 @@ namespace Shenxiao.Module.Core.Baby
     public sealed class BabyFamilyInfo
     {
         public readonly List<BabyFamilyEntry> InfoList = new List<BabyFamilyEntry>();
+    }
+
+    public sealed class BabyActivateResult
+    {
+        public int Code;
+        public bool Succeeded => Code == 1;
+    }
+
+    public sealed class BabyStageUpResult
+    {
+        public int Code;
+        public int Stage;
+        public int StageLevel;
+        public int StageExp;
+        public int Power;
+        public bool Succeeded => Code == 1;
+    }
+
+    public sealed class BabyFigureStarResult
+    {
+        public int Code;
+        public int BabyId;
+        public int BabyStar;
+        public long Power;
+        public long NextPower;
+        public bool Succeeded => Code == 1;
+        public bool IsActivated => Succeeded && BabyStar > 0;
+    }
+
+    public sealed class BabyFigureWearResult
+    {
+        public int Code;
+        public int Type;
+        public int BabyId;
+        public bool Succeeded => Code == 1;
+    }
+
+    public sealed class BabyRenameResult
+    {
+        public int Code;
+        public string Name = string.Empty;
+        public bool Succeeded => Code == 1;
+    }
+
+    public sealed class BabyTaskRewardResult
+    {
+        public int Code;
+        public int TaskId;
+        public int FinishNum;
+        public int FinishState;
+        public bool Succeeded => Code == 1;
+    }
+
+    public sealed class BabyFigurePowerResult
+    {
+        public int BabyId;
+        public int BabyStar;
+        public long Power;
+        public long NextPower;
+        public bool IsActivated;
     }
 }

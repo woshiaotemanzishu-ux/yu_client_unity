@@ -1,6 +1,6 @@
 namespace Shenxiao.Module.Core.Baby
 {
-    /// <summary>宝宝系统 182xx 只读协议状态。</summary>
+    /// <summary>宝宝系统 182xx 数据状态与最近一次操作结果。</summary>
     public sealed class BabyModel
     {
         public static readonly BabyModel Instance = new BabyModel();
@@ -12,6 +12,13 @@ namespace Shenxiao.Module.Core.Baby
         public BabyEquipInfo Equip { get; private set; }
         public BabyFigureInfo Figures { get; private set; }
         public BabyFamilyInfo Family { get; private set; }
+        public BabyActivateResult LastActivateResult { get; private set; }
+        public BabyStageUpResult LastStageUpResult { get; private set; }
+        public BabyFigureStarResult LastFigureStarResult { get; private set; }
+        public BabyFigureWearResult LastFigureWearResult { get; private set; }
+        public BabyRenameResult LastRenameResult { get; private set; }
+        public BabyTaskRewardResult LastTaskRewardResult { get; private set; }
+        public BabyFigurePowerResult LastFigurePowerResult { get; private set; }
 
         private BabyModel() { }
 
@@ -20,8 +27,101 @@ namespace Shenxiao.Module.Core.Baby
         public void ApplyRaise(BabyRaiseInfo value) => Raise = value;
         public void ApplyStage(BabyStageInfo value) => Stage = value;
         public void ApplyEquip(BabyEquipInfo value) => Equip = value;
-        public void ApplyFigures(BabyFigureInfo value) => Figures = value;
+        public void ApplyFigures(BabyFigureInfo value)
+        {
+            for (int i = 0; i < value.ActiveList.Count; i++)
+            {
+                BabyFigureEntry incoming = value.ActiveList[i];
+                incoming.IsActivated = true;
+                BabyFigureEntry previous = FindFigure(incoming.BabyId);
+                if (previous == null) continue;
+                incoming.Power = previous.Power;
+                incoming.NextPower = previous.NextPower;
+            }
+            Figures = value;
+        }
         public void ApplyFamily(BabyFamilyInfo value) => Family = value;
+        public void ApplyActivateResult(BabyActivateResult value) => LastActivateResult = value;
+
+        public void ApplyStageUpResult(BabyStageUpResult value)
+        {
+            LastStageUpResult = value;
+            if (!value.Succeeded) return;
+            Stage = new BabyStageInfo
+            {
+                Stage = value.Stage,
+                StageLevel = value.StageLevel,
+                StageExp = value.StageExp,
+                Power = value.Power
+            };
+        }
+
+        public void ApplyFigureStarResult(BabyFigureStarResult value) => LastFigureStarResult = value;
+
+        public void ApplyFigureWearResult(BabyFigureWearResult value)
+        {
+            LastFigureWearResult = value;
+            if (!value.Succeeded || Basic == null) return;
+            Basic.BabyId = value.Type == 2 ? 0 : value.BabyId;
+        }
+
+        public void ApplyRenameResult(BabyRenameResult value)
+        {
+            LastRenameResult = value;
+            if (!value.Succeeded || Basic == null) return;
+            Basic.BabyName = value.Name;
+            Basic.IsChangeName = true;
+        }
+
+        public void ApplyTaskRewardResult(BabyTaskRewardResult value) => LastTaskRewardResult = value;
+
+        public void ApplyFigurePowerResult(BabyFigurePowerResult value)
+        {
+            BabyFigureEntry entry = FindFigure(value.BabyId);
+            value.IsActivated = entry != null;
+            LastFigurePowerResult = value;
+            if (entry == null) return;
+            entry.Power = value.Power;
+            entry.NextPower = value.NextPower;
+        }
+
+        public bool HasAnyActivatedFigure()
+        {
+            if (Figures == null) return false;
+            for (int i = 0; i < Figures.ActiveList.Count; i++)
+            {
+                if (Figures.ActiveList[i].IsActivated) return true;
+            }
+            return false;
+        }
+
+        public bool MergeFigure(int babyId, int babyStar, long power, long nextPower)
+        {
+            BabyFigureEntry entry = FindFigure(babyId);
+            bool added = entry == null;
+            if (added)
+            {
+                if (Figures == null) Figures = new BabyFigureInfo();
+                entry = new BabyFigureEntry { BabyId = babyId };
+                Figures.ActiveList.Add(entry);
+            }
+            entry.BabyStar = babyStar;
+            entry.Power = power;
+            entry.NextPower = nextPower;
+            entry.IsActivated = true;
+            return added;
+        }
+
+        public BabyFigureEntry FindFigure(int babyId)
+        {
+            if (Figures == null) return null;
+            for (int i = 0; i < Figures.ActiveList.Count; i++)
+            {
+                BabyFigureEntry entry = Figures.ActiveList[i];
+                if (entry.BabyId == babyId) return entry;
+            }
+            return null;
+        }
 
         public bool TryApplyTaskProgress(int taskId, int finishNum, int finishState)
         {
@@ -46,6 +146,13 @@ namespace Shenxiao.Module.Core.Baby
             Equip = null;
             Figures = null;
             Family = null;
+            LastActivateResult = null;
+            LastStageUpResult = null;
+            LastFigureStarResult = null;
+            LastFigureWearResult = null;
+            LastRenameResult = null;
+            LastTaskRewardResult = null;
+            LastFigurePowerResult = null;
         }
     }
 }

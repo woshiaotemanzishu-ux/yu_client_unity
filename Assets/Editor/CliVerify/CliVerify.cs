@@ -558,7 +558,7 @@ namespace Shenxiao.EditorTools
             Run(PetEquipUiCase.Run, 300.0);
         }
 
-        /// <summary>宝宝 182xx 首个只读态包、启动级联与任务进度推送验证。</summary>
+        /// <summary>宝宝 182xx 的 15 个老端可达数据/操作协议、启动级联与结果合并验证。</summary>
         public static void Baby()
         {
             Run(BabyCase.Run, 300.0);
