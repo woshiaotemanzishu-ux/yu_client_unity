@@ -108,9 +108,14 @@ namespace Shenxiao.Editor.UiCreator.Baby
             ok &= CheckTemplatePath(BelikeViewPath, "__Templates/BabyBelikeItem");
             ok &= CheckBusinessView<BabyLikeView>(AssetDatabase.LoadAssetAtPath<GameObject>(LikeViewPath), "BabyLikeView");
             ok &= CheckBusinessView<BabyLikeItem>(AssetDatabase.LoadAssetAtPath<GameObject>(LikeItemPath), "BabyLikeItem");
+            ok &= CheckBusinessView<BabyBelikeView>(AssetDatabase.LoadAssetAtPath<GameObject>(BelikeViewPath), "BabyBelikeView");
+            ok &= CheckBusinessView<BabyBelikeItem>(AssetDatabase.LoadAssetAtPath<GameObject>(BelikeItemPath), "BabyBelikeItem");
             GameObject likeView = AssetDatabase.LoadAssetAtPath<GameObject>(LikeViewPath);
             Transform likeItemTemplate = likeView != null ? likeView.transform.Find("__Templates/BabyLikeItem") : null;
             ok &= CheckTemplate<BabyLikeItem>(likeItemTemplate != null ? likeItemTemplate.gameObject : null, "BabyLikeView.BabyLikeItem template");
+            GameObject belikeView = AssetDatabase.LoadAssetAtPath<GameObject>(BelikeViewPath);
+            Transform belikeItemTemplate = belikeView != null ? belikeView.transform.Find("__Templates/BabyBelikeItem") : null;
+            ok &= CheckTemplate<BabyBelikeItem>(belikeItemTemplate != null ? belikeItemTemplate.gameObject : null, "BabyBelikeView.BabyBelikeItem template");
             Debug.Log("[UiCreator] Baby like static verification " + (ok ? "OK" : "FAILED"));
             return ok;
         }

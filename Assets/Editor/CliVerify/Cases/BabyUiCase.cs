@@ -16,6 +16,7 @@ namespace Shenxiao.EditorTools
     {
         private const string ModulePath = "Assets/Prefabs/UI/Baby/BabyModule.prefab";
         private const string LikeViewPath = "Assets/Prefabs/UI/Baby/BabyLikeView.prefab";
+        private const string BelikeViewPath = "Assets/Prefabs/UI/Baby/BabyBelikeView.prefab";
         private const string PropItemPath = "Assets/Prefabs/UI/Baby/BabyPropItem.prefab";
         private const string FramePath = "Assets/Prefabs/UI/Common/BaseWindowSkin.prefab";
         private const BindingFlags BindFields = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
@@ -58,8 +59,9 @@ namespace Shenxiao.EditorTools
                 bool upgraded = BabyBindUpgrader.Generate();
                 bool prefab = upgraded && VerifyInstances();
                 bool likeRank = likeStatic && VerifyLikeRank();
-                bool pass = config && likeStatic && upgraded && prefab && likeRank;
-                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " pass=" + pass);
+                bool belike = likeStatic && VerifyBelike();
+                bool pass = config && likeStatic && upgraded && prefab && likeRank && belike;
+                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " pass=" + pass);
                 return Task.FromResult(pass ? 0 : 3);
             }
             catch (Exception e)
@@ -395,6 +397,52 @@ namespace Shenxiao.EditorTools
             Transform[] nodes = root.GetComponentsInChildren<Transform>(true);
             for (int i = 0; i < nodes.Length; i++) if (nodes[i].name == name) return nodes[i];
             return null;
+        }
+
+        private static bool VerifyBelike()
+        {
+            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(BelikeViewPath);
+            if (asset == null) return false;
+            GameObject viewObject = UnityEngine.Object.Instantiate(asset);
+            FieldInfo interceptField = typeof(BabyController).GetField("s_outboundIntercept", BindingFlags.Static | BindingFlags.NonPublic);
+            object oldIntercept = interceptField != null ? interceptField.GetValue(null) : null;
+            try
+            {
+                BabyBelikeView view = viewObject.GetComponent<BabyBelikeView>();
+                if (view == null || interceptField == null) return false;
+                var frames = new System.Collections.Generic.List<byte[]>();
+                interceptField.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
+                BabyPraiseRecordsInfo records = new BabyPraiseRecordsInfo();
+                records.Entries.Add(new BabyPraiseRecordEntry { PraiserId = 11, Name = "pending", IsPraiseBack = false });
+                records.Entries.Add(new BabyPraiseRecordEntry { PraiserId = 12, Name = "done", IsPraiseBack = true });
+                BabyModel.Instance.ApplyPraiseRecords(records);
+                viewObject.SetActive(true);
+                view.Show();
+                Transform content = view._Scroller1 != null ? view._Scroller1.content : FindNode(viewObject.transform, "Content");
+                BabyBelikeItem[] items = content != null ? content.GetComponentsInChildren<BabyBelikeItem>(true) : new BabyBelikeItem[0];
+                TMPro.TextMeshProUGUI firstName = items.Length > 0 ? FindNode(items[0].transform, "lb")?.GetComponent<TMPro.TextMeshProUGUI>() : null;
+                UnityEngine.UI.Image firstButton = items.Length > 0 ? FindNode(items[0].transform, "likeBtn")?.GetComponent<UnityEngine.UI.Image>() : null;
+                UnityEngine.UI.Image secondButton = items.Length > 1 ? FindNode(items[1].transform, "likeBtn")?.GetComponent<UnityEngine.UI.Image>() : null;
+                bool shown = frames.Count == 1 && IsProtocol(frames[0], Proto.BABY_LIKE_RECORDS) && items.Length == 2
+                    && firstName != null && firstName.text == "pending" && firstButton != null && firstButton.gameObject.activeSelf
+                    && secondButton != null && !secondButton.gameObject.activeSelf;
+                UnityEngine.UI.Button button = firstButton != null ? firstButton.GetComponent<UnityEngine.UI.Button>() : null;
+                button?.onClick.Invoke();
+                shown = shown && frames.Count == 2 && IsProtocol(frames[1], Proto.BABY_PRAISE);
+                BabyModel.Instance.ApplyPraiseRecords(new BabyPraiseRecordsInfo());
+                Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_LIKE_RECORDS);
+                TMPro.TextMeshProUGUI empty = FindNode(viewObject.transform, "noOneLb")?.GetComponent<TMPro.TextMeshProUGUI>();
+                bool emptyShown = empty != null && empty.gameObject.activeSelf
+                    && (content == null || content.GetComponentsInChildren<BabyBelikeItem>(true).Length == 0);
+                view.Hide();
+                return shown && emptyShown;
+            }
+            finally
+            {
+                BabyModel.Instance.Reset();
+                if (interceptField != null) interceptField.SetValue(null, oldIntercept);
+                UnityEngine.Object.DestroyImmediate(viewObject);
+            }
         }
 
         private static bool VerifyIllusionTabRed()
