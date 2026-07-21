@@ -28,6 +28,7 @@ namespace Shenxiao.EditorTools
             {
                 ResManager.EditorPreferFallback = true;
                 bool likeStatic = BabyBindUpgrader.VerifyLikeStatic();
+                bool teaseStatic = BabyBindUpgrader.VerifyTeaseStatic();
                 Shenxiao.Framework.UI.UIViewAttribute likeAddress = typeof(BabyLikeView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
                 Shenxiao.Framework.UI.UIViewAttribute belikeAddress = typeof(BabyBelikeView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
                 bool viewAddresses = likeAddress != null && likeAddress.AddrKey == "prefabs/ui/baby/babylikeview"
@@ -64,8 +65,8 @@ namespace Shenxiao.EditorTools
                 bool prefab = upgraded && VerifyInstances();
                 bool likeRank = likeStatic && VerifyLikeRank();
                 bool belike = likeStatic && VerifyBelike();
-                bool pass = config && likeStatic && viewAddresses && upgraded && prefab && likeRank && belike;
-                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " pass=" + pass);
+                bool pass = config && likeStatic && teaseStatic && viewAddresses && upgraded && prefab && likeRank && belike;
+                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " teaseStatic=" + teaseStatic + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " pass=" + pass);
                 return Task.FromResult(pass ? 0 : 3);
             }
             catch (Exception e)

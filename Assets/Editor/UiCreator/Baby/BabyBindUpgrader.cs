@@ -21,6 +21,8 @@ namespace Shenxiao.Editor.UiCreator.Baby
         private const string BelikeItemPath = "Assets/Prefabs/UI/Baby/BabyBelikeItem.prefab";
         private const string LikeRewardPath = "Assets/Prefabs/UI/Baby/BabyLikeReward.prefab";
         private const string BaseAwardItemPath = "Assets/Prefabs/UI/Common/BaseAwardItem.prefab";
+        private const string TeaseViewPath = "Assets/Prefabs/UI/Baby/BabyTeaseView.prefab";
+        private const string TeaseSceneKey = "baby/BabyTeaseView";
         private static readonly string[] LikeSceneKeys =
         {
             "baby/BabyLikeView", "baby/BabyLikeItem", "baby/BabyBelikeView", "baby/BabyBelikeItem", "baby/BabyLikeReward",
@@ -72,6 +74,25 @@ namespace Shenxiao.Editor.UiCreator.Baby
             if (!EnsureNestedTemplate(LikeRewardPath, "__Templates", BaseAwardItemPath)
                 || !EnsureNestedTemplate(LikeViewPath, "__Templates/BabyLikeReward/__Templates", BaseAwardItemPath)) return false;
             return VerifyLikeStatic();
+        }
+
+        public static bool GenerateTeaseStatic()
+        {
+            LayaSceneConverter.ConvertSingle(TeaseSceneKey);
+            return true;
+        }
+
+        public static bool UpgradeTeaseStatic()
+        {
+            return Fill(TeaseViewPath) && VerifyTeaseStatic();
+        }
+
+        public static bool VerifyTeaseStatic()
+        {
+            bool ok = CheckGeneratedBindByName(TeaseViewPath, "BabyTeaseView", "BabyTeaseViewBind");
+            ok &= CheckNamedNodes(TeaseViewPath, "modelGp", "teaseEffectGp", "closeBtn", "teaseBtn", "nameLb", "sayLb");
+            Debug.Log("[UiCreator] Baby tease static verification " + (ok ? "OK" : "FAILED"));
+            return ok;
         }
 
         /// <summary>Unity CLI entry point for the orphan baby-like static conversion.</summary>
@@ -311,6 +332,30 @@ namespace Shenxiao.Editor.UiCreator.Baby
             }
             bool ok = true;
             foreach (FieldInfo field in typeof(T).GetFields(BindFields))
+            {
+                if (field.GetValue(bind) != null) continue;
+                Debug.LogError("[UiCreator] Baby generated Bind field missing " + bind.GetType().Name + "." + field.Name);
+                ok = false;
+            }
+            return ok;
+        }
+
+        private static bool CheckGeneratedBindByName(string prefabPath, string rootName, string bindName)
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null || prefab.transform.name != rootName)
+            {
+                Debug.LogError("[UiCreator] Baby static prefab/root missing " + prefabPath);
+                return false;
+            }
+            Component bind = prefab.GetComponent(bindName);
+            if (bind == null)
+            {
+                Debug.LogError("[UiCreator] Baby generated Bind missing " + bindName + "(" + prefabPath + ")");
+                return false;
+            }
+            bool ok = true;
+            foreach (FieldInfo field in bind.GetType().GetFields(BindFields))
             {
                 if (field.GetValue(bind) != null) continue;
                 Debug.LogError("[UiCreator] Baby generated Bind field missing " + bind.GetType().Name + "." + field.Name);
