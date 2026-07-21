@@ -28,6 +28,7 @@ namespace Shenxiao.Module.Core.Baby
             if (!_listening)
             {
                 EventDispatcher.On<int>(GlobalEvent.EVT_BABY_UPDATE, OnBabyUpdate);
+                EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, OnBagUpdate);
                 _listening = true;
             }
             Refresh();
@@ -53,6 +54,11 @@ namespace Shenxiao.Module.Core.Baby
             Refresh();
         }
 
+        private void OnBagUpdate()
+        {
+            Refresh();
+        }
+
         private void Refresh()
         {
             BabyModel model = BabyModel.Instance;
@@ -61,12 +67,17 @@ namespace Shenxiao.Module.Core.Baby
             lvExpLb.text = model.Raise != null ? model.Raise.RaiseExp.ToString() : string.Empty;
             stageExpLb.text = model.Stage != null ? model.Stage.StageExp.ToString() : string.Empty;
             if (lvtaskRed != null) lvtaskRed.gameObject.SetActive(model.HasClaimableRaiseTask());
+            bool stageUpgradeRed = model.HasStageUpgradeRed();
+            if (stageRed != null) stageRed.gameObject.SetActive(stageUpgradeRed);
+            if (stageTabRed != null) stageTabRed.gameObject.SetActive(stageUpgradeRed);
             if (_shown && BabyRaiseConfigs.IsLoaded) RefreshTasks(model.Raise);
         }
 
         private async Task EnsureConfigsAndRefreshAsync()
         {
             await BabyRaiseConfigs.EnsureLoaded();
+            await BabyValueConfigs.EnsureLoaded();
+            await BabyStageConfigs.EnsureLoaded();
             if (_shown) Refresh();
         }
 
@@ -124,6 +135,7 @@ namespace Shenxiao.Module.Core.Baby
         {
             if (!_listening) return;
             EventDispatcher.Off<int>(GlobalEvent.EVT_BABY_UPDATE, OnBabyUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, OnBagUpdate);
             _listening = false;
         }
     }

@@ -1,3 +1,5 @@
+using Shenxiao.Module.Core.Bag;
+
 namespace Shenxiao.Module.Core.Baby
 {
     /// <summary>宝宝系统 182xx 数据状态与最近一次操作结果。</summary>
@@ -142,6 +144,27 @@ namespace Shenxiao.Module.Core.Baby
             if (Raise == null) return false;
             for (int i = 0; i < Raise.TaskList.Count; i++)
                 if (Raise.TaskList[i].FinishState == 1) return true;
+            return false;
+        }
+
+        public bool HasStageUpgradeRed()
+        {
+            if (Raise == null || Stage == null || !BabyValueConfigs.IsLoaded || !BabyStageConfigs.IsLoaded
+                || Raise.RaiseLevel < BabyValueConfigs.StageRaiseLevel) return false;
+            BabyStageConfigs.StageCfg next = BabyStageConfigs.GetNext(Stage.Stage, Stage.StageLevel);
+            if (next == null) return false;
+            long needExp = (long)next.ExpCon - Stage.StageExp;
+            if (needExp <= 0) return true;
+            for (int i = 0; i < BabyValueConfigs.StageMaterials.Count; i++)
+            {
+                BabyValueConfigs.StageMaterial material = BabyValueConfigs.StageMaterials[i];
+                if (material == null || material.ItemId <= 0 || material.ExpPerItem <= 0) continue;
+                long count = BagModel.Instance.GetTypeGoodsNum(material.ItemId);
+                if (count <= 0) continue;
+                long requiredCount = (needExp + material.ExpPerItem - 1) / material.ExpPerItem;
+                if (count >= requiredCount) return true;
+                needExp -= count * material.ExpPerItem;
+            }
             return false;
         }
 

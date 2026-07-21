@@ -94,6 +94,7 @@ namespace Shenxiao.EditorTools
                     return true;
                 }));
                 Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
+                Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(2, 38040041, 1);
                 bool pages = Check<GestateBabyViewBind>(module) && Check<BabyFamilyViewBind>(module)
                     && Check<BabyCultivateViewBind>(module) && Check<BabyChangedViewBind>(module)
                     && Check<BabyIllusionViewBind>(module);
@@ -117,7 +118,7 @@ namespace Shenxiao.EditorTools
                 raise.TaskList.Add(new BabyTaskInfo { TaskId = 2, FinishNum = 3, FinishState = 1 });
                 raise.TaskList.Add(new BabyTaskInfo { TaskId = 3, FinishNum = 2, FinishState = 2 });
                 model.ApplyRaise(raise);
-                model.ApplyStage(new BabyStageInfo { StageExp = 13 });
+                model.ApplyStage(new BabyStageInfo { Stage = 1, StageLevel = 1, StageExp = 3 });
                 BabyCultivateView cultivateView = module.GetComponentInChildren<BabyCultivateView>(true);
                 bool display = cultivateView != null;
                 if (display)
@@ -125,8 +126,21 @@ namespace Shenxiao.EditorTools
                     cultivateView.gameObject.SetActive(true);
                     cultivateView.Show();
                     display = cultivateView.babyName.text == "baby" && cultivateView.lvLb.text == "7"
-                        && cultivateView.lvExpLb.text == "11" && cultivateView.stageExpLb.text == "13"
-                        && cultivateView.lvtaskRed.gameObject.activeSelf;
+                        && cultivateView.lvExpLb.text == "11" && cultivateView.stageExpLb.text == "3"
+                        && cultivateView.lvtaskRed.gameObject.activeSelf
+                        && cultivateView.stageRed.gameObject.activeSelf && cultivateView.stageTabRed.gameObject.activeSelf;
+                    Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(2, 38040041, 0);
+                    Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BAG_UPDATE);
+                    bool stageRedRefresh = !cultivateView.stageRed.gameObject.activeSelf && !cultivateView.stageTabRed.gameObject.activeSelf;
+                    Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(2, 38040041, 1);
+                    Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BAG_UPDATE);
+                    stageRedRefresh = stageRedRefresh && cultivateView.stageRed.gameObject.activeSelf && cultivateView.stageTabRed.gameObject.activeSelf;
+                    raise.RaiseLevel = 1;
+                    Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_RAISE_INFO);
+                    stageRedRefresh = stageRedRefresh && !cultivateView.stageRed.gameObject.activeSelf && !cultivateView.stageTabRed.gameObject.activeSelf;
+                    raise.RaiseLevel = 7;
+                    Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_RAISE_INFO);
+                    display = display && stageRedRefresh && cultivateView.stageRed.gameObject.activeSelf && cultivateView.stageTabRed.gameObject.activeSelf;
                     bool taskRedRefresh = model.TryApplyTaskProgress(2, 3, 2);
                     Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_TASK_UPDATE);
                     taskRedRefresh = taskRedRefresh && !cultivateView.lvtaskRed.gameObject.activeSelf;
