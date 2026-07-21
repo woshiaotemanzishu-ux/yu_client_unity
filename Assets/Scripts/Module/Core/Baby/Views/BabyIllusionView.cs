@@ -20,6 +20,8 @@ namespace Shenxiao.Module.Core.Baby
         protected override void OnInit()
         {
             UIUtil.AddClick(useGp, OnUseClick);
+            UIUtil.AddClick(activeBtn, OnFigureStarUpClick);
+            UIUtil.AddClick(stageBtn, OnFigureStarUpClick);
         }
 
         protected override void OnShow(object args)
@@ -93,6 +95,8 @@ namespace Shenxiao.Module.Core.Baby
             }
             if (selectedImg != null) selectedImg.gameObject.SetActive(_selectedBabyId > 0 && wornBabyId == _selectedBabyId);
             if (useGp != null) useGp.gameObject.SetActive(_selectedBabyId > 0);
+            if (activeGp != null) activeGp.gameObject.SetActive(false);
+            if (stageGp != null) stageGp.gameObject.SetActive(_selectedBabyId > 0);
         }
 
         private void CreateItem(BabyFigureEntry entry)
@@ -136,6 +140,11 @@ namespace Shenxiao.Module.Core.Baby
             BabyBasicInfo basic = BabyModel.Instance.Basic;
             int type = basic != null && basic.BabyId == _selectedBabyId ? 2 : 1;
             BabyController.Instance.RequestSetFigure(type, _selectedBabyId);
+        }
+
+        private void OnFigureStarUpClick()
+        {
+            if (_selectedBabyId > 0) BabyController.Instance.RequestFigureStarUp(_selectedBabyId);
         }
 
         private void ClearItems()

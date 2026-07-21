@@ -137,7 +137,11 @@ namespace Shenxiao.EditorTools
                         && illusionItems.Length == 2 && illusionItems[0].resImg.sprite != null
                         && illusionItems[1].resImg.sprite != null
                         && illusionView.selectedImg.gameObject.activeSelf
-                        && illusionView.useGp.gameObject.activeSelf;
+                        && illusionView.useGp.gameObject.activeSelf
+                        && illusionView.activeBtn.GetComponent<UnityEngine.UI.Button>() != null
+                        && illusionView.stageBtn.GetComponent<UnityEngine.UI.Button>() != null
+                        && !illusionView.activeGp.gameObject.activeSelf
+                        && illusionView.stageGp.gameObject.activeSelf;
                     illusionView.Hide();
                 }
                 model.Reset();
