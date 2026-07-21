@@ -73,17 +73,17 @@ namespace Shenxiao.Module.Core.Baby
             BabyModel model = BabyModel.Instance;
             int wornBabyId = model.Basic != null ? model.Basic.BabyId : 0;
             List<BabyFigureEntry> active = model.Figures != null ? model.Figures.ActiveList : null;
-            if (!ContainsActive(active, _selectedBabyId))
-                _selectedBabyId = ContainsActive(active, wornBabyId) ? wornBabyId : FirstActiveId(active);
+            if (BabyFigureConfigs.Get(_selectedBabyId) == null)
+                _selectedBabyId = BabyFigureConfigs.Get(wornBabyId) != null ? wornBabyId
+                    : BabyFigureConfigs.All.Count > 0 ? BabyFigureConfigs.All[0].BabyId : 0;
 
             ClearItems();
-            if (_tpl_BabyIlluItem != null && illuGp != null && active != null)
+            if (_tpl_BabyIlluItem != null && illuGp != null)
             {
-                for (int i = 0; i < active.Count; i++)
+                for (int i = 0; i < BabyFigureConfigs.All.Count; i++)
                 {
-                    BabyFigureEntry entry = active[i];
-                    if (entry == null || !entry.IsActivated) continue;
-                    CreateItem(entry);
+                    BabyFigureConfigs.BabyFigureCfg cfg = BabyFigureConfigs.All[i];
+                    CreateItem(cfg, FindActiveEntry(active, cfg.BabyId));
                 }
             }
 
@@ -93,19 +93,21 @@ namespace Shenxiao.Module.Core.Baby
                 babyName.text = _selectedBabyId <= 0 ? string.Empty
                     : cfg != null ? cfg.BabyName : _selectedBabyId.ToString();
             }
-            if (selectedImg != null) selectedImg.gameObject.SetActive(_selectedBabyId > 0 && wornBabyId == _selectedBabyId);
-            if (useGp != null) useGp.gameObject.SetActive(_selectedBabyId > 0);
-            if (activeGp != null) activeGp.gameObject.SetActive(false);
             BabyFigureEntry selected = FindActiveEntry(active, _selectedBabyId);
+            if (selectedImg != null) selectedImg.gameObject.SetActive(_selectedBabyId > 0 && wornBabyId == _selectedBabyId);
+            if (useGp != null) useGp.gameObject.SetActive(selected != null);
+            if (activeGp != null) activeGp.gameObject.SetActive(_selectedBabyId > 0 && selected == null);
+            if (unActive != null) unActive.gameObject.SetActive(_selectedBabyId > 0 && selected == null);
             bool hasNextStar = selected != null && BabyFigureStarConfigs.IsLoaded
                 && BabyFigureStarConfigs.Get(selected.BabyId, selected.BabyStar + 1) != null;
             if (stageGp != null) stageGp.gameObject.SetActive(hasNextStar);
             if (maxImg != null) maxImg.gameObject.SetActive(selected != null && BabyFigureStarConfigs.IsLoaded && !hasNextStar);
         }
 
-        private void CreateItem(BabyFigureEntry entry)
+        private void CreateItem(BabyFigureConfigs.BabyFigureCfg cfg, BabyFigureEntry entry)
         {
             GameObject go = Instantiate(_tpl_BabyIlluItem, illuGp, false);
+            go.name = "BabyIlluItem_" + cfg.BabyId;
             go.SetActive(true);
             _items.Add(go);
 
@@ -113,15 +115,14 @@ namespace Shenxiao.Module.Core.Baby
             if (item == null) return;
             if (item.stageLb != null)
             {
-                item.stageLb.gameObject.SetActive(true);
-                item.stageLb.text = entry.BabyStar.ToString();
+                item.stageLb.gameObject.SetActive(entry != null);
+                item.stageLb.text = entry != null ? entry.BabyStar.ToString() : string.Empty;
             }
-            if (item.unActive != null) item.unActive.gameObject.SetActive(false);
-            if (item.select_img != null) item.select_img.gameObject.SetActive(entry.BabyId == _selectedBabyId);
-            BabyFigureConfigs.BabyFigureCfg cfg = BabyFigureConfigs.Get(entry.BabyId);
+            if (item.unActive != null) item.unActive.gameObject.SetActive(entry == null);
+            if (item.select_img != null) item.select_img.gameObject.SetActive(cfg.BabyId == _selectedBabyId);
             if (item.resImg != null && cfg != null && !string.IsNullOrEmpty(cfg.ResourceId))
                 _ = ResManager.SetImageAsync(item.resImg, GameResPath.GetIcon("baby", cfg.ResourceId), nativeSize: false);
-            int babyId = entry.BabyId;
+            int babyId = cfg.BabyId;
             UIUtil.AddClick(item.clickGp, () => Select(babyId));
         }
 
@@ -134,14 +135,14 @@ namespace Shenxiao.Module.Core.Baby
 
         private void Select(int babyId)
         {
-            if (babyId <= 0 || babyId == _selectedBabyId) return;
+            if (BabyFigureConfigs.Get(babyId) == null || babyId == _selectedBabyId) return;
             _selectedBabyId = babyId;
             Refresh();
         }
 
         private void OnUseClick()
         {
-            if (_selectedBabyId <= 0) return;
+            if (FindActiveEntry(BabyModel.Instance.Figures != null ? BabyModel.Instance.Figures.ActiveList : null, _selectedBabyId) == null) return;
             BabyBasicInfo basic = BabyModel.Instance.Basic;
             int type = basic != null && basic.BabyId == _selectedBabyId ? 2 : 1;
             BabyController.Instance.RequestSetFigure(type, _selectedBabyId);
@@ -149,7 +150,7 @@ namespace Shenxiao.Module.Core.Baby
 
         private void OnFigureStarUpClick()
         {
-            if (_selectedBabyId > 0) BabyController.Instance.RequestFigureStarUp(_selectedBabyId);
+            if (BabyFigureConfigs.Get(_selectedBabyId) != null) BabyController.Instance.RequestFigureStarUp(_selectedBabyId);
         }
 
         private void ClearItems()

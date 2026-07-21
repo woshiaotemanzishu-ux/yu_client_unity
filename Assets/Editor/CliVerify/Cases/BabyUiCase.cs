@@ -30,6 +30,7 @@ namespace Shenxiao.EditorTools
                 BabyFigureStarConfigs.BabyFigureStarCfg starCfg = BabyFigureStarConfigs.Get(1, 2);
                 bool config = BabyRaiseConfigs.IsLoaded && BabyRaiseConfigs.Get(1) != null
                     && figureCfg != null && figureCfg.ResourceId == "1011"
+                    && BabyFigureConfigs.All.Count == 9
                     && starCfg != null && starCfg.Costs.Count > 0
                     && starCfg.Costs[0].TypeId == 68010001 && starCfg.Costs[0].Num == 25;
                 bool upgraded = BabyBindUpgrader.Generate();
@@ -136,17 +137,35 @@ namespace Shenxiao.EditorTools
                     illusionView.gameObject.SetActive(true);
                     illusionView.Show();
                     BabyIlluItemBind[] illusionItems = illusionView.illuGp.GetComponentsInChildren<BabyIlluItemBind>(true);
-                    illusionDisplay = illusionView.illuGp.childCount == 2
+                    int inactiveCount = 0;
+                    int loadedIconCount = 0;
+                    for (int i = 0; i < illusionItems.Length; i++)
+                    {
+                        if (illusionItems[i].unActive.gameObject.activeSelf) inactiveCount++;
+                        if (illusionItems[i].resImg.sprite != null) loadedIconCount++;
+                    }
+                    illusionDisplay = illusionView.illuGp.childCount == 9
                         && illusionView.babyName.text == illusionCfg.BabyName
-                        && illusionItems.Length == 2 && illusionItems[0].resImg.sprite != null
-                        && illusionItems[1].resImg.sprite != null
+                        && illusionItems.Length == 9 && inactiveCount >= 7 && loadedIconCount == 9
                         && illusionView.selectedImg.gameObject.activeSelf
+                        && !illusionView.unActive.gameObject.activeSelf
                         && illusionView.useGp.gameObject.activeSelf
                         && illusionView.activeBtn.GetComponent<UnityEngine.UI.Button>() != null
                         && illusionView.stageBtn.GetComponent<UnityEngine.UI.Button>() != null
                         && !illusionView.activeGp.gameObject.activeSelf
                         && illusionView.stageGp.gameObject.activeSelf
                         && !illusionView.maxImg.gameObject.activeSelf;
+                    if (illusionDisplay)
+                    {
+                        Transform third = illusionView.illuGp.Find("BabyIlluItem_3");
+                        UnityEngine.UI.Button thirdButton = third != null ? third.GetComponent<BabyIlluItemBind>().clickGp.GetComponent<UnityEngine.UI.Button>() : null;
+                        thirdButton?.onClick.Invoke();
+                        BabyFigureConfigs.BabyFigureCfg thirdCfg = BabyFigureConfigs.Get(3);
+                        illusionDisplay = thirdCfg != null && illusionView.babyName.text == thirdCfg.BabyName
+                            && illusionView.activeGp.gameObject.activeSelf && !illusionView.useGp.gameObject.activeSelf
+                            && illusionView.unActive.gameObject.activeSelf && !illusionView.selectedImg.gameObject.activeSelf
+                            && !illusionView.stageGp.gameObject.activeSelf && !illusionView.maxImg.gameObject.activeSelf;
+                    }
                     illusionView.Hide();
                 }
                 model.Reset();

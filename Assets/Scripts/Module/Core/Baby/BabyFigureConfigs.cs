@@ -20,9 +20,12 @@ namespace Shenxiao.Module.Core.Baby
         }
 
         private static Dictionary<int, BabyFigureCfg> _byBabyId;
+        private static readonly IReadOnlyList<BabyFigureCfg> Empty = new List<BabyFigureCfg>();
+        private static IReadOnlyList<BabyFigureCfg> _all = Empty;
         private static Task _loading;
 
         public static bool IsLoaded => _byBabyId != null;
+        public static IReadOnlyList<BabyFigureCfg> All => _all;
 
         public static Task EnsureLoaded()
         {
@@ -43,6 +46,7 @@ namespace Shenxiao.Module.Core.Baby
             {
                 GameLog.Warn("Baby", "missing baby figure config: {0}", key);
                 _byBabyId = byBabyId;
+                _all = Empty;
                 return;
             }
 
@@ -73,6 +77,9 @@ namespace Shenxiao.Module.Core.Baby
                 ResManager.Release(asset);
             }
 
+            var all = new List<BabyFigureCfg>(byBabyId.Values);
+            all.Sort((a, b) => a.BabyId.CompareTo(b.BabyId));
+            _all = all.AsReadOnly();
             _byBabyId = byBabyId;
         }
 
