@@ -23,6 +23,7 @@
 
 ## Codex 独立工作树与 Unity 性能约束（2026-07-21）
 
+- 当前“定时迁移”是持续任务：除非用户明确喊停，或工单中的可迁移内容已全部完成，否则每完成并提交一包就直接进入下一包，不要停下来征询“是否继续”。技术问题由 Codex 自行定位、实现和验证；只有产品取舍、权限、不可逆操作或多个正确方向需要用户拍板时才提问。
 - 用户日常打开和精修的 Unity 项目是 `E:\GitProject\yu_client_unity`，当前工作分支是 `feat/ui-adaptive-anchors`；Codex 自动迁移固定使用 Git worktree `E:\GitProject\yu_client_unity_codex`，分支是 `codex/automation-workspace`。独立目录由提交 `40e68b1dcb836ff59d2e8dc00d5392ad622aaadd` 建立，不是普通文件夹副本。
 - 两个工作树必须使用不同分支。用户在原目录提交后，Codex 开工前先检查两边状态，再把 `feat/ui-adaptive-anchors` 的新提交合入 Codex 分支；Codex 阶段成果在独立分支提交，验收后再合回用户分支。不要假设另一目录里的未提交修改会自动同步；同改 scene、prefab、`.meta` 或大资源前要先协调，避免二进制/序列化冲突。
 - `Library/`、`Temp/`、`obj/` 等 Unity 缓存不在工作树间共享。Codex 工作树初建时没有 `Library/`；第一次打开必然进行完整导入，属于高负载操作，只能安排在用户明确空闲的时间窗口，不能为了普通代码检查擅自启动。
