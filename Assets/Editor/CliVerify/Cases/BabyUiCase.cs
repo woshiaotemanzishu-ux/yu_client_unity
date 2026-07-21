@@ -372,6 +372,24 @@ namespace Shenxiao.EditorTools
                 TMPro.TextMeshProUGUI secondRank = items.Length > 1 ? FindNode(items[1].transform, "rankLb")?.GetComponent<TMPro.TextMeshProUGUI>() : null;
                 shown = shown && content != null && items.Length == 3 && firstName != null && firstName.text == "first"
                     && secondRank != null && secondRank.text == "2";
+                Transform rewardContent = FindNode(viewObject.transform, "rewardScroller")?.Find("Content");
+                BabyLikeReward[] rewards = rewardContent != null ? rewardContent.GetComponentsInChildren<BabyLikeReward>(true) : new BabyLikeReward[0];
+                Shenxiao.Module.Core.Common.BaseAwardItem[] firstRewards = rewards.Length > 0
+                    ? rewards[0].GetComponentsInChildren<Shenxiao.Module.Core.Common.BaseAwardItem>(true)
+                    : new Shenxiao.Module.Core.Common.BaseAwardItem[0];
+                int activeRewardCount = 0;
+                bool firstRewardCountHidden = false;
+                string secondRewardNum = string.Empty;
+                for (int i = 0; i < firstRewards.Length; i++)
+                {
+                    if (!firstRewards[i].gameObject.activeSelf) continue;
+                    if (activeRewardCount == 0) firstRewardCountHidden = !firstRewards[i].num_text.gameObject.activeSelf;
+                    else if (activeRewardCount == 1) secondRewardNum = firstRewards[i].num_text.text;
+                    activeRewardCount++;
+                }
+                TMPro.TextMeshProUGUI rewardLabel = rewards.Length > 0 ? FindNode(rewards[0].transform, "lb")?.GetComponent<TMPro.TextMeshProUGUI>() : null;
+                shown = shown && rewards.Length == 6 && rewardLabel != null && rewardLabel.text == "第1名" && activeRewardCount == 2
+                    && firstRewardCountHidden && secondRewardNum == "3";
                 BabyModel.Instance.ApplyPraiseRank(new BabyPraiseRankInfo { RoleId = 2 });
                 Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_LIKE_RANK);
                 TMPro.TextMeshProUGUI empty = FindNode(viewObject.transform, "noOneLb")?.GetComponent<TMPro.TextMeshProUGUI>();

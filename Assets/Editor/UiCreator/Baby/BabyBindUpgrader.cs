@@ -20,6 +20,7 @@ namespace Shenxiao.Editor.UiCreator.Baby
         private const string BelikeViewPath = "Assets/Prefabs/UI/Baby/BabyBelikeView.prefab";
         private const string BelikeItemPath = "Assets/Prefabs/UI/Baby/BabyBelikeItem.prefab";
         private const string LikeRewardPath = "Assets/Prefabs/UI/Baby/BabyLikeReward.prefab";
+        private const string BaseAwardItemPath = "Assets/Prefabs/UI/Common/BaseAwardItem.prefab";
         private static readonly string[] LikeSceneKeys =
         {
             "baby/BabyLikeView", "baby/BabyLikeItem", "baby/BabyBelikeView", "baby/BabyBelikeItem", "baby/BabyLikeReward",
@@ -64,10 +65,12 @@ namespace Shenxiao.Editor.UiCreator.Baby
         /// </summary>
         public static bool UpgradeLikeStatic()
         {
-            if (!Fill(LikeViewPath) || !Fill(LikeItemPath) || !Fill(BelikeViewPath)
+            if (!Fill(BaseAwardItemPath) || !Fill(LikeViewPath) || !Fill(LikeItemPath) || !Fill(BelikeViewPath)
                 || !Fill(BelikeItemPath) || !Fill(LikeRewardPath)) return false;
             if (!EnsureTemplates(LikeViewPath, LikeItemPath, LikeRewardPath)
                 || !EnsureTemplates(BelikeViewPath, BelikeItemPath)) return false;
+            if (!EnsureNestedTemplate(LikeRewardPath, "__Templates", BaseAwardItemPath)
+                || !EnsureNestedTemplate(LikeViewPath, "__Templates/BabyLikeReward/__Templates", BaseAwardItemPath)) return false;
             return VerifyLikeStatic();
         }
 
@@ -110,9 +113,18 @@ namespace Shenxiao.Editor.UiCreator.Baby
             ok &= CheckBusinessView<BabyLikeItem>(AssetDatabase.LoadAssetAtPath<GameObject>(LikeItemPath), "BabyLikeItem");
             ok &= CheckBusinessView<BabyBelikeView>(AssetDatabase.LoadAssetAtPath<GameObject>(BelikeViewPath), "BabyBelikeView");
             ok &= CheckBusinessView<BabyBelikeItem>(AssetDatabase.LoadAssetAtPath<GameObject>(BelikeItemPath), "BabyBelikeItem");
+            ok &= CheckBusinessView<BabyLikeReward>(AssetDatabase.LoadAssetAtPath<GameObject>(LikeRewardPath), "BabyLikeReward");
+            ok &= CheckBusinessView<Shenxiao.Module.Core.Common.BaseAwardItem>(AssetDatabase.LoadAssetAtPath<GameObject>(LikeRewardPath), "BabyLikeReward.BaseAwardItem");
             GameObject likeView = AssetDatabase.LoadAssetAtPath<GameObject>(LikeViewPath);
             Transform likeItemTemplate = likeView != null ? likeView.transform.Find("__Templates/BabyLikeItem") : null;
             ok &= CheckTemplate<BabyLikeItem>(likeItemTemplate != null ? likeItemTemplate.gameObject : null, "BabyLikeView.BabyLikeItem template");
+            Transform likeRewardTemplate = likeView != null ? likeView.transform.Find("__Templates/BabyLikeReward") : null;
+            ok &= CheckTemplate<BabyLikeReward>(likeRewardTemplate != null ? likeRewardTemplate.gameObject : null, "BabyLikeView.BabyLikeReward template");
+            GameObject rewardSource = AssetDatabase.LoadAssetAtPath<GameObject>(LikeRewardPath);
+            Transform awardTemplate = rewardSource != null ? rewardSource.transform.Find("__Templates/BaseAwardItem") : null;
+            ok &= CheckTemplate<Shenxiao.Module.Core.Common.BaseAwardItem>(awardTemplate != null ? awardTemplate.gameObject : null, "BabyLikeReward.BaseAwardItem template");
+            Transform nestedAwardTemplate = likeView != null ? likeView.transform.Find("__Templates/BabyLikeReward/__Templates/BaseAwardItem") : null;
+            ok &= CheckTemplate<Shenxiao.Module.Core.Common.BaseAwardItem>(nestedAwardTemplate != null ? nestedAwardTemplate.gameObject : null, "BabyLikeView.BabyLikeReward.BaseAwardItem template");
             GameObject belikeView = AssetDatabase.LoadAssetAtPath<GameObject>(BelikeViewPath);
             Transform belikeItemTemplate = belikeView != null ? belikeView.transform.Find("__Templates/BabyBelikeItem") : null;
             ok &= CheckTemplate<BabyBelikeItem>(belikeItemTemplate != null ? belikeItemTemplate.gameObject : null, "BabyBelikeView.BabyBelikeItem template");
@@ -234,6 +246,53 @@ namespace Shenxiao.Editor.UiCreator.Baby
             {
                 PrefabUtility.UnloadPrefabContents(view);
             }
+        }
+
+        private static bool EnsureNestedTemplate(string prefabPath, string parentPath, string sourcePath)
+        {
+            GameObject prefab = PrefabUtility.LoadPrefabContents(prefabPath);
+            if (prefab == null) return false;
+            try
+            {
+                GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>(sourcePath);
+                if (source == null) return false;
+                bool changed = false;
+                Transform parent = prefab.transform;
+                string[] parts = parentPath.Split('/');
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    Transform child = parent.Find(parts[i]);
+                    if (child == null)
+                    {
+                        child = new GameObject(parts[i], typeof(RectTransform)).transform;
+                        child.SetParent(parent, false);
+                        changed = true;
+                    }
+                    if (parts[i] == "__Templates" && child.gameObject.activeSelf)
+                    {
+                        child.gameObject.SetActive(false);
+                        changed = true;
+                    }
+                    parent = child;
+                }
+                Transform existing = parent.Find(source.name);
+                if (existing == null)
+                {
+                    GameObject clone = PrefabUtility.InstantiatePrefab(source, parent) as GameObject;
+                    if (clone == null) return false;
+                    clone.name = source.name;
+                    clone.SetActive(false);
+                    changed = true;
+                }
+                else if (existing.gameObject.activeSelf)
+                {
+                    existing.gameObject.SetActive(false);
+                    changed = true;
+                }
+                if (changed) PrefabUtility.SaveAsPrefabAsset(prefab, prefabPath);
+                return true;
+            }
+            finally { PrefabUtility.UnloadPrefabContents(prefab); }
         }
 
         private static bool CheckGeneratedBind<T>(string prefabPath, string rootName) where T : Component

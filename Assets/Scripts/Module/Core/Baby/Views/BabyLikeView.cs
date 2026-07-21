@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Generated.UI.Baby;
@@ -18,24 +19,30 @@ namespace Shenxiao.Module.Core.Baby
         private TextMeshProUGUI _noOneLb;
         private GameObject _itemTemplate;
         private readonly List<GameObject> _items = new List<GameObject>();
+        private Transform _rewardContent;
+        private GameObject _rewardTemplate;
+        private readonly List<GameObject> _rewardItems = new List<GameObject>();
 
         protected override void OnShow(object args)
         {
             Subscribe();
             BabyController.Instance.RequestLikeRank();
             Refresh();
+            if (!BabyPraiseConfigs.IsLoaded) _ = EnsureRewardsAndRefreshAsync();
         }
 
         protected override void OnHide()
         {
             Unsubscribe();
             ClearItems();
+            ClearRewardItems();
         }
 
         protected override void OnDispose()
         {
             Unsubscribe();
             ClearItems();
+            ClearRewardItems();
         }
 
         private void Subscribe()
@@ -81,6 +88,7 @@ namespace Shenxiao.Module.Core.Baby
             }
             if (_myRank != null) _myRank.text = "我的排名:" + (selfRank > 0 ? selfRank.ToString() : "未上榜");
             if (_myLike != null) _myLike.text = "我的赞:" + selfPraise;
+            RefreshRewards();
         }
 
         private void CacheNodes()
@@ -92,10 +100,12 @@ namespace Shenxiao.Module.Core.Baby
             for (int i = 0; i < nodes.Length; i++)
             {
                 if (_content == null && nodes[i].name == "Content1") _content = nodes[i];
+                if (_rewardContent == null && nodes[i].name == "Content" && nodes[i].parent != null && nodes[i].parent.name == "rewardScroller") _rewardContent = nodes[i];
                 if (nodes[i].name == "myRank") _myRank = nodes[i].GetComponent<TextMeshProUGUI>();
                 else if (nodes[i].name == "mylike") _myLike = nodes[i].GetComponent<TextMeshProUGUI>();
                 else if (nodes[i].name == "noOneLb") _noOneLb = nodes[i].GetComponent<TextMeshProUGUI>();
                 else if (nodes[i].name == "BabyLikeItem" && nodes[i].parent != null && nodes[i].parent.name == "__Templates") _itemTemplate = nodes[i].gameObject;
+                else if (nodes[i].name == "BabyLikeReward" && nodes[i].parent != null && nodes[i].parent.name == "__Templates") _rewardTemplate = nodes[i].gameObject;
             }
         }
 
@@ -104,6 +114,29 @@ namespace Shenxiao.Module.Core.Baby
             for (int i = 0; i < _items.Count; i++) DestroyItem(_items[i]);
             _items.Clear();
         }
+
+        private void RefreshRewards()
+        {
+            ClearRewardItems();
+            if (!BabyPraiseConfigs.IsLoaded || _rewardContent == null || _rewardTemplate == null) return;
+            for (int i = 0; i < BabyPraiseConfigs.All.Count; i++)
+            {
+                GameObject go = Instantiate(_rewardTemplate, _rewardContent);
+                go.SetActive(true);
+                BabyLikeReward item = go.GetComponent<BabyLikeReward>();
+                if (item == null) { DestroyItem(go); continue; }
+                item.SetData(BabyPraiseConfigs.All[i]);
+                _rewardItems.Add(go);
+            }
+        }
+
+        private async Task EnsureRewardsAndRefreshAsync()
+        {
+            await BabyPraiseConfigs.EnsureLoaded();
+            if (IsShown) RefreshRewards();
+        }
+
+        private void ClearRewardItems() { for (int i = 0; i < _rewardItems.Count; i++) DestroyItem(_rewardItems[i]); _rewardItems.Clear(); }
 
         private static void DestroyItem(GameObject item)
         {
