@@ -41,7 +41,7 @@ namespace Shenxiao.Module.Core.Baby
                 BabyEquipIcon icon = go.GetComponent<BabyEquipIcon>();
                 if (icon == null) { DestroyItem(go); continue; }
                 BabyEquipEntry entry = Find(equip, position);
-                icon.SetData(position, entry, position == _selectedPosition, SelectPosition); _items.Add(go);
+                icon.SetData(position, entry, BabyModel.Instance.GetWearGoods(position), position == _selectedPosition, SelectPosition); _items.Add(go);
             }
             RefreshCandidates();
         }

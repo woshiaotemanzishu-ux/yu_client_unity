@@ -36,6 +36,16 @@ namespace Shenxiao.Module.Core.Baby
         public void ApplyRaise(BabyRaiseInfo value) => Raise = value;
         public void ApplyStage(BabyStageInfo value) => Stage = value;
         public void ApplyEquip(BabyEquipInfo value) => Equip = value;
+        public BagGoods GetWearGoods(int positionId)
+        {
+            if (Equip == null) return null;
+            for (int i = 0; i < Equip.EquipList.Count; i++)
+            {
+                BabyEquipEntry entry = Equip.EquipList[i];
+                if (entry.PositionId == positionId) return entry.Id > 0 ? BagModel.Instance.FindContainerGoods(BagModel.POS_BABY_EQUIP, entry.Id) : null;
+            }
+            return null;
+        }
         public void ApplyEquipWearResult(BabyEquipWearResult value)
         {
             LastEquipWearResult = value;

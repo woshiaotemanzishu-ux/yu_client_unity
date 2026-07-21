@@ -1,6 +1,7 @@
 using System;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Baby;
+using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Common;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,16 +20,20 @@ namespace Shenxiao.Module.Core.Baby
         private bool _bound;
         public int PositionId { get; private set; }
         public bool IsOccupied { get; private set; }
+        public long GoodsId { get; private set; }
+        public int TypeId { get; private set; }
 
-        public void SetData(int positionId, BabyEquipEntry entry, bool selected, Action<int> onClick)
+        public void SetData(int positionId, BabyEquipEntry entry, BagGoods goods, bool selected, Action<int> onClick)
         {
             PositionId = positionId;
             _onClick = onClick;
             CacheNodes();
             if (!_bound) { _bound = true; UIUtil.AddClick(this, () => _onClick?.Invoke(PositionId)); }
             if (_item != null) { if (Application.isPlaying) Destroy(_item); else DestroyImmediate(_item); _item = null; }
-            bool occupied = entry != null && entry.GoodsTypeId > 0;
+            bool occupied = entry != null && (entry.Id > 0 || entry.GoodsTypeId > 0);
             IsOccupied = occupied;
+            GoodsId = occupied ? (goods != null ? goods.GoodsId : entry.Id) : 0;
+            TypeId = occupied ? (goods != null && goods.TypeId > 0 ? goods.TypeId : entry.GoodsTypeId) : 0;
             if (_defaultImg != null) _defaultImg.gameObject.SetActive(!occupied);
             if (_addImg != null) _addImg.gameObject.SetActive(!occupied);
             SetSelected(selected);
@@ -39,7 +44,7 @@ namespace Shenxiao.Module.Core.Baby
             if (award != null)
             {
                 award.SetScale(88f / 127f);
-                award.SetData(entry.GoodsTypeId, 1);
+                award.SetData(TypeId, 1);
             }
         }
 

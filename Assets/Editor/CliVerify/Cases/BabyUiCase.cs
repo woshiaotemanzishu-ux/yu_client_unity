@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Shenxiao.Editor.UiCreator.Baby;
 using Shenxiao.Framework.Net;
+using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
 using Shenxiao.Generated.UI.Baby;
 using Shenxiao.Module.Core.Baby;
@@ -490,11 +491,12 @@ namespace Shenxiao.EditorTools
             GameObject root = UnityEngine.Object.Instantiate(asset);
             FieldInfo interceptField = typeof(BabyController).GetField("s_outboundIntercept", BindingFlags.Static | BindingFlags.NonPublic);
             MethodInfo setBabyEquipBagFull = typeof(Shenxiao.Module.Core.Bag.BagModel).GetMethod("SetBabyEquipBagFull", BindingFlags.Instance | BindingFlags.NonPublic);
+            MethodInfo setBabyEquipFull = typeof(Shenxiao.Module.Core.Bag.BagModel).GetMethod("SetBabyEquipFull", BindingFlags.Instance | BindingFlags.NonPublic);
             object oldIntercept = interceptField != null ? interceptField.GetValue(null) : null;
             try
             {
                 BabyEquipFuncView view = root.GetComponent<BabyEquipFuncView>();
-                if (view == null || interceptField == null || setBabyEquipBagFull == null) return false;
+                if (view == null || interceptField == null || setBabyEquipBagFull == null || setBabyEquipFull == null) return false;
                 var frames = new System.Collections.Generic.List<byte[]>();
                 interceptField.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
                 setBabyEquipBagFull.Invoke(Shenxiao.Module.Core.Bag.BagModel.Instance, new object[] { 4, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>
@@ -504,10 +506,15 @@ namespace Shenxiao.EditorTools
                     new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 0x2122232425262728L, TypeId = 65020200, GoodsNum = 1 },
                     new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 0x3132333435363738L, TypeId = 38040041, GoodsNum = 1 }
                 }});
+                const long wornId = 0x4142434445464748L;
+                setBabyEquipFull.Invoke(Shenxiao.Module.Core.Bag.BagModel.Instance, new object[] { 1, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>
+                {
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = wornId, TypeId = 65010200, GoodsNum = 1 }
+                }});
                 BabyModel.Instance.ApplyStage(new BabyStageInfo { Stage = 1 });
                 BabyModel.Instance.ApplyBasic(new BabyBasicInfo { BabyName = "equip" });
                 BabyEquipInfo equip = new BabyEquipInfo { Power = 77 };
-                equip.EquipList.Add(new BabyEquipEntry { PositionId = 1, GoodsTypeId = 38040041 });
+                equip.EquipList.Add(new BabyEquipEntry { PositionId = 1, Id = wornId, GoodsTypeId = 65010300 });
                 BabyModel.Instance.ApplyEquip(equip);
                 root.SetActive(true); view.Show();
                 BabyEquipView content = null;
@@ -548,6 +555,18 @@ namespace Shenxiao.EditorTools
                 for (int i = 0; i < allCandidates.Length; i++) if (allCandidates[i].gameObject.activeInHierarchy) candidates.Add(allCandidates[i]);
                 bool initialCandidates = first != null && FindNode(first.transform, "effectGp")?.gameObject.activeSelf == true
                     && candidates.Count == 2 && candidates[0].GoodsId == 0x0102030405060708L && candidates[1].GoodsId == 0x1112131415161718L;
+                bool wornOverride = first != null && first.GoodsId == wornId && first.TypeId == 65010200;
+                setBabyEquipFull.Invoke(Shenxiao.Module.Core.Bag.BagModel.Instance, new object[] { 1, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>
+                {
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = wornId + 1, TypeId = 65010200, GoodsNum = 1 }
+                }});
+                EventDispatcher.Emit(GlobalEvent.EVT_BABY_EQUIP_UPDATE);
+                allIcons = content.GetComponentsInChildren<BabyEquipIcon>(true);
+                icons.Clear();
+                for (int i = 0; i < allIcons.Length; i++) if (allIcons[i].gameObject.activeInHierarchy) icons.Add(allIcons[i]);
+                first = null;
+                for (int i = 0; i < icons.Count; i++) if (icons[i].PositionId == 1) { first = icons[i]; break; }
+                bool wornFallback = first != null && first.GoodsId == wornId && first.TypeId == 65010300;
                 BabyEquipIcon second = null;
                 for (int i = 0; i < icons.Count; i++) if (icons[i].PositionId == 2) { second = icons[i]; break; }
                 UnityEngine.UI.Button secondButton = second != null ? second.GetComponent<UnityEngine.UI.Button>() : null;
@@ -581,9 +600,10 @@ namespace Shenxiao.EditorTools
                     + " last=" + (last != null ? last.IsOccupied.ToString() : "<null>") + " firstDefault=" + (firstDefault != null ? firstDefault.gameObject.activeSelf.ToString() : "<null>")
                     + " lastDefault=" + (lastDefault != null ? lastDefault.gameObject.activeSelf.ToString() : "<null>") + " inert=" + inertButtons
                     + " initialCandidates=" + initialCandidates + " secondCandidates=" + secondCandidates + " wearFrame=" + wearFrame
+                    + " worn=" + wornOverride + "/" + wornFallback
                     + " selectedFirst=" + (selectedFirst != null) + "/" + selectedFirstEffect + " selectedSecond=" + (selectedSecond != null) + "/" + selectedSecondEffect
                     + " candidateCount=" + candidates.Count + " candidateType=" + (candidates.Count > 0 ? candidates[0].TypeId : 0));
-                pass = pass && inertButtons && initialCandidates && secondCandidates && wearFrame;
+                pass = pass && inertButtons && initialCandidates && wornOverride && wornFallback && secondCandidates && wearFrame;
                 view.Hide(); return pass;
             }
             finally { Shenxiao.Module.Core.Bag.BagModel.Instance.Clear(); BabyModel.Instance.Reset(); if (interceptField != null) interceptField.SetValue(null, oldIntercept); UnityEngine.Object.DestroyImmediate(root); }
