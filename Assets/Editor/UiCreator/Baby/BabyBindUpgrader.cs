@@ -137,6 +137,7 @@ namespace Shenxiao.Editor.UiCreator.Baby
             ok &= CheckGeneratedBindByName(EquipPrefabPaths[4], "BabyEquipIcon", "BabyEquipIconBind");
             ok &= CheckNamedNodes(EquipPrefabPaths[4], "itemGp", "defaultImg", "addImg", "effectGp");
             ok &= CheckBusinessView<BabyEquipIcon>(AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[4]), "BabyEquipIcon");
+            ok &= CheckBusinessView<BabyEquipSubItem>(AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[3]), "BabyEquipSubItem");
             ok &= CheckBusinessView<BabyEquipView>(AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[1]), "BabyEquipView");
             ok &= CheckBusinessView<BabyEquipFuncView>(AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[0]), "BabyEquipFuncView");
             GameObject icon = AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[4]);
@@ -146,7 +147,7 @@ namespace Shenxiao.Editor.UiCreator.Baby
             ok &= CheckTemplate<Shenxiao.Module.Core.Common.BaseAwardItem>(icon != null ? icon.transform.Find("__Templates/BaseAwardItem")?.gameObject : null, "BabyEquipIcon.BaseAwardItem");
             ok &= CheckTemplate<Shenxiao.Module.Core.Common.BaseAwardItem>(subItem != null ? subItem.transform.Find("__Templates/BaseAwardItem")?.gameObject : null, "BabyEquipSubItem.BaseAwardItem");
             ok &= CheckTemplate<BabyEquipIcon>(view != null ? view.transform.Find("__Templates/BabyEquipIcon")?.gameObject : null, "BabyEquipView.BabyEquipIcon");
-            ok &= CheckTemplate<BabyEquipSubItemBind>(view != null ? view.transform.Find("__Templates/BabyEquipSubItem")?.gameObject : null, "BabyEquipView.BabyEquipSubItem");
+            ok &= CheckTemplate<BabyEquipSubItem>(view != null ? view.transform.Find("__Templates/BabyEquipSubItem")?.gameObject : null, "BabyEquipView.BabyEquipSubItem");
             ok &= CheckTemplate<Shenxiao.Module.Core.Common.BaseAwardItem>(view != null ? view.transform.Find("__Templates/BabyEquipSubItem/__Templates/BaseAwardItem")?.gameObject : null, "BabyEquipView.BabyEquipSubItem.BaseAwardItem");
             ok &= CheckTemplate<BabyEquipView>(func != null ? func.transform.Find("__Templates/BabyEquipView")?.gameObject : null, "BabyEquipFuncView.BabyEquipView");
             ok &= CheckTemplate<Shenxiao.Module.Core.Common.FightingShowSmallItem>(view != null ? view.transform.Find("__Templates/FightingShowSmallItem")?.gameObject : null, "BabyEquipView.FightingShowSmallItem");

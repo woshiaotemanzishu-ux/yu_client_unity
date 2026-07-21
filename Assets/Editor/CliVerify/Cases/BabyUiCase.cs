@@ -489,13 +489,22 @@ namespace Shenxiao.EditorTools
             if (asset == null) return false;
             GameObject root = UnityEngine.Object.Instantiate(asset);
             FieldInfo interceptField = typeof(BabyController).GetField("s_outboundIntercept", BindingFlags.Static | BindingFlags.NonPublic);
+            MethodInfo setBabyEquipBagFull = typeof(Shenxiao.Module.Core.Bag.BagModel).GetMethod("SetBabyEquipBagFull", BindingFlags.Instance | BindingFlags.NonPublic);
             object oldIntercept = interceptField != null ? interceptField.GetValue(null) : null;
             try
             {
                 BabyEquipFuncView view = root.GetComponent<BabyEquipFuncView>();
-                if (view == null || interceptField == null) return false;
+                if (view == null || interceptField == null || setBabyEquipBagFull == null) return false;
                 var frames = new System.Collections.Generic.List<byte[]>();
                 interceptField.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
+                setBabyEquipBagFull.Invoke(Shenxiao.Module.Core.Bag.BagModel.Instance, new object[] { 4, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>
+                {
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 0x0102030405060708L, TypeId = 65010200, GoodsNum = 1 },
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 0x1112131415161718L, TypeId = 65010300, GoodsNum = 1 },
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 0x2122232425262728L, TypeId = 65020200, GoodsNum = 1 },
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 0x3132333435363738L, TypeId = 38040041, GoodsNum = 1 }
+                }});
+                BabyModel.Instance.ApplyStage(new BabyStageInfo { Stage = 1 });
                 BabyModel.Instance.ApplyBasic(new BabyBasicInfo { BabyName = "equip" });
                 BabyEquipInfo equip = new BabyEquipInfo { Power = 77 };
                 equip.EquipList.Add(new BabyEquipEntry { PositionId = 1, GoodsTypeId = 38040041 });
@@ -534,15 +543,50 @@ namespace Shenxiao.EditorTools
                 bool inertButtons = content != null
                     && FindNode(content.transform, "forgeBtn")?.GetComponent<UnityEngine.UI.Button>() == null
                     && FindNode(content.transform, "imprintBtn")?.GetComponent<UnityEngine.UI.Button>() == null;
+                var candidates = new System.Collections.Generic.List<BabyEquipSubItem>();
+                BabyEquipSubItem[] allCandidates = content != null ? content.GetComponentsInChildren<BabyEquipSubItem>(true) : new BabyEquipSubItem[0];
+                for (int i = 0; i < allCandidates.Length; i++) if (allCandidates[i].gameObject.activeInHierarchy) candidates.Add(allCandidates[i]);
+                bool initialCandidates = first != null && FindNode(first.transform, "effectGp")?.gameObject.activeSelf == true
+                    && candidates.Count == 2 && candidates[0].GoodsId == 0x0102030405060708L && candidates[1].GoodsId == 0x1112131415161718L;
+                BabyEquipIcon second = null;
+                for (int i = 0; i < icons.Count; i++) if (icons[i].PositionId == 2) { second = icons[i]; break; }
+                UnityEngine.UI.Button secondButton = second != null ? second.GetComponent<UnityEngine.UI.Button>() : null;
+                if (secondButton != null) secondButton.onClick.Invoke();
+                BabyEquipIcon selectedFirst = null, selectedSecond = null;
+                allIcons = content != null ? content.GetComponentsInChildren<BabyEquipIcon>(true) : new BabyEquipIcon[0];
+                for (int i = 0; i < allIcons.Length; i++)
+                {
+                    if (!allIcons[i].gameObject.activeInHierarchy) continue;
+                    if (allIcons[i].PositionId == 1) selectedFirst = allIcons[i];
+                    else if (allIcons[i].PositionId == 2) selectedSecond = allIcons[i];
+                }
+                candidates.Clear();
+                allCandidates = content != null ? content.GetComponentsInChildren<BabyEquipSubItem>(true) : new BabyEquipSubItem[0];
+                for (int i = 0; i < allCandidates.Length; i++) if (allCandidates[i].gameObject.activeInHierarchy) candidates.Add(allCandidates[i]);
+                bool selectedSecondEffect = selectedSecond != null && FindNode(selectedSecond.transform, "effectGp")?.gameObject.activeSelf == true;
+                bool selectedFirstEffect = selectedFirst != null && FindNode(selectedFirst.transform, "effectGp")?.gameObject.activeSelf == true;
+                bool secondCandidates = selectedSecondEffect && selectedFirst != null && !selectedFirstEffect
+                    && candidates.Count == 1 && candidates[0].TypeId == 65020200;
+                UnityEngine.UI.Button candidateButton = candidates.Count == 1 ? candidates[0].GetComponent<UnityEngine.UI.Button>() : null;
+                if (candidateButton != null) candidateButton.onClick.Invoke();
+                bool wearFrame = false;
+                if (frames.Count == 2 && IsProtocol(frames[1], Proto.BABY_EQUIP_WEAR))
+                {
+                    NetReader reader = new NetReader(frames[1], 6, frames[1].Length - 6);
+                    wearFrame = reader.ReadU8() == 2 && reader.ReadU64() == 0x2122232425262728L && reader.Remaining == 0;
+                }
                 Debug.Log("CLIVERIFY baby equip frames=" + frames.Count + " proto=" + (frames.Count > 0 && IsProtocol(frames[0], Proto.BABY_EQUIP_INFO))
                     + " content=" + (content != null) + " icons=" + icons.Count + " name=" + (name != null ? name.text : "<null>")
                     + " fighting=" + (fighting != null && fighting._lb_fighting != null ? fighting._lb_fighting.text : "<null>") + " first=" + (first != null ? first.IsOccupied.ToString() : "<null>")
                     + " last=" + (last != null ? last.IsOccupied.ToString() : "<null>") + " firstDefault=" + (firstDefault != null ? firstDefault.gameObject.activeSelf.ToString() : "<null>")
-                    + " lastDefault=" + (lastDefault != null ? lastDefault.gameObject.activeSelf.ToString() : "<null>") + " inert=" + inertButtons);
-                pass = pass && inertButtons;
+                    + " lastDefault=" + (lastDefault != null ? lastDefault.gameObject.activeSelf.ToString() : "<null>") + " inert=" + inertButtons
+                    + " initialCandidates=" + initialCandidates + " secondCandidates=" + secondCandidates + " wearFrame=" + wearFrame
+                    + " selectedFirst=" + (selectedFirst != null) + "/" + selectedFirstEffect + " selectedSecond=" + (selectedSecond != null) + "/" + selectedSecondEffect
+                    + " candidateCount=" + candidates.Count + " candidateType=" + (candidates.Count > 0 ? candidates[0].TypeId : 0));
+                pass = pass && inertButtons && initialCandidates && secondCandidates && wearFrame;
                 view.Hide(); return pass;
             }
-            finally { BabyModel.Instance.Reset(); if (interceptField != null) interceptField.SetValue(null, oldIntercept); UnityEngine.Object.DestroyImmediate(root); }
+            finally { Shenxiao.Module.Core.Bag.BagModel.Instance.Clear(); BabyModel.Instance.Reset(); if (interceptField != null) interceptField.SetValue(null, oldIntercept); UnityEngine.Object.DestroyImmediate(root); }
         }
 
         private static bool VerifyIllusionTabRed()

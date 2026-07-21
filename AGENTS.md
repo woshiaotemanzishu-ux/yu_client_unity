@@ -52,6 +52,7 @@
 - prefab 变更应来自通用转换器或 Unity Editor 菜单生成结果。只有用户明确要求手调，或确认是一次性验收调整时，才允许手工改 prefab，并且必须记录原因和风险。
 - 业务 View/Flow 只负责旧端运行时行为: 真实数据刷新、按钮事件、动态列表/模板实例化、运行时换图、角色模型、显隐状态和协议链路。不要用业务代码硬补本该由转换器生成的静态 UI。
 - 独立 item prefab 被模块 prefab 作为嵌套模板引用时，给 item 新增业务子类不能只升级模块根 prefab；必须把独立源 prefab 也交给同一 Editor upgrader 重绑，再验证模块里的嵌套模板已解析到业务组件。ListDuobao 的 `ListGoodsItem.prefab` 就是这一类。
+- Laya 的 `Box`（例如 `effectGp`）转换后可能只有 `RectTransform`，不能因节点名或用途就按 `Image` 绑定；纯显隐节点用 `Transform/GameObject.SetActive`，并在交互用例里断言 `activeSelf`。嵌套模板内外存在同名节点时，查找必须限制在直属父级或模板根作用域，避免误绑到子模板。
 - 发现页面背景透明、窗框缺失、按钮皮肤/列表模板/九宫格/图片尺寸不对时，先归因为转换器、资源映射、默认皮肤、Bind 或运行时加载链路，优先找共性修复；避免逐页精修。
 
 ## 协议迁移补充记忆
