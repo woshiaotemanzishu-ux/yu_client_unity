@@ -60,6 +60,7 @@ namespace Shenxiao.Editor.UiCreator.Baby
             ok &= CheckBusinessView<GestateBabyView>(module, "GestateBabyView");
             ok &= CheckBusinessView<BabyFamilyView>(module, "BabyFamilyView");
             ok &= CheckBusinessView<BabyCultivateView>(module, "BabyCultivateView");
+            ok &= CheckBusinessView<BabyCulTaskItem>(module, "BabyCulTaskItem(__Templates)");
             ok &= CheckBusinessView<BabyIllusionView>(module, "BabyIllusionView");
             ok &= CheckBind<BabyCulTaskItemBind>(module, "BabyCulTaskItem(__Templates)");
             ok &= CheckBind<BabyIlluItemBind>(module, "BabyIlluItem(__Templates)");

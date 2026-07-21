@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Baby;
+using UnityEngine;
 
 namespace Shenxiao.Module.Core.Baby
 {
@@ -8,6 +11,8 @@ namespace Shenxiao.Module.Core.Baby
     public partial class BabyCultivateView : BabyCultivateViewBind
     {
         private bool _listening;
+        private bool _shown;
+        private readonly List<GameObject> _taskItems = new List<GameObject>();
 
         protected override void OnInit()
         {
@@ -19,22 +24,28 @@ namespace Shenxiao.Module.Core.Baby
 
         protected override void OnShow(object args)
         {
+            _shown = true;
             if (!_listening)
             {
                 EventDispatcher.On<int>(GlobalEvent.EVT_BABY_UPDATE, OnBabyUpdate);
                 _listening = true;
             }
             Refresh();
+            _ = EnsureConfigsAndRefreshAsync();
         }
 
         protected override void OnHide()
         {
+            _shown = false;
             StopListening();
+            ClearTaskItems();
         }
 
         protected override void OnDispose()
         {
+            _shown = false;
             StopListening();
+            ClearTaskItems();
         }
 
         private void OnBabyUpdate(int command)
@@ -49,6 +60,57 @@ namespace Shenxiao.Module.Core.Baby
             lvLb.text = model.Raise != null ? model.Raise.RaiseLevel.ToString() : string.Empty;
             lvExpLb.text = model.Raise != null ? model.Raise.RaiseExp.ToString() : string.Empty;
             stageExpLb.text = model.Stage != null ? model.Stage.StageExp.ToString() : string.Empty;
+            if (_shown && BabyRaiseConfigs.IsLoaded) RefreshTasks(model.Raise);
+        }
+
+        private async Task EnsureConfigsAndRefreshAsync()
+        {
+            await BabyRaiseConfigs.EnsureLoaded();
+            if (_shown) Refresh();
+        }
+
+        private void RefreshTasks(BabyRaiseInfo raise)
+        {
+            ClearTaskItems();
+            if (raise == null || _tpl_BabyCulTaskItem == null) return;
+
+            var tasks = new List<BabyTaskInfo>(raise.TaskList);
+            tasks.Sort((a, b) =>
+            {
+                int state = StateOrder(a.FinishState).CompareTo(StateOrder(b.FinishState));
+                return state != 0 ? state : a.TaskId.CompareTo(b.TaskId);
+            });
+            Transform parent = taskGp != null && taskGp.content != null ? taskGp.content : taskGp != null ? taskGp.transform : transform;
+            for (int i = 0; i < tasks.Count; i++)
+            {
+                BabyRaiseConfigs.BabyRaiseTaskCfg cfg = BabyRaiseConfigs.Get(tasks[i].TaskId);
+                if (cfg == null) continue;
+                GameObject itemObject = Instantiate(_tpl_BabyCulTaskItem, parent);
+                itemObject.SetActive(true);
+                BabyCulTaskItem item = itemObject.GetComponent<BabyCulTaskItem>();
+                if (item == null)
+                {
+                    DestroyTaskItem(itemObject);
+                    continue;
+                }
+                item.SetData(tasks[i], cfg);
+                _taskItems.Add(itemObject);
+            }
+        }
+
+        private static int StateOrder(int state) => state == 1 ? 0 : state == 0 ? 1 : state == 2 ? 2 : 3;
+
+        private void ClearTaskItems()
+        {
+            for (int i = 0; i < _taskItems.Count; i++) DestroyTaskItem(_taskItems[i]);
+            _taskItems.Clear();
+        }
+
+        private static void DestroyTaskItem(GameObject item)
+        {
+            if (item == null) return;
+            if (Application.isPlaying) Destroy(item);
+            else DestroyImmediate(item);
         }
 
         private void SelectPage(int index)

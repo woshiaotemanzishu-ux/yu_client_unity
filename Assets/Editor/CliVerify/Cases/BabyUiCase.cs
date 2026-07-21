@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using Shenxiao.Editor.UiCreator.Baby;
+using Shenxiao.Framework.Res;
 using Shenxiao.Generated.UI.Baby;
 using Shenxiao.Module.Core.Baby;
 using UnityEditor;
@@ -18,18 +19,27 @@ namespace Shenxiao.EditorTools
 
         public static Task<int> Run()
         {
+            bool editorPreferFallbackBefore = ResManager.EditorPreferFallback;
             try
             {
+                ResManager.EditorPreferFallback = true;
+                _ = BabyRaiseConfigs.EnsureLoaded();
+                bool config = BabyRaiseConfigs.IsLoaded && BabyRaiseConfigs.Get(1) != null;
                 bool upgraded = BabyBindUpgrader.Generate();
                 bool prefab = upgraded && VerifyInstances();
-                bool pass = upgraded && prefab;
-                Debug.Log("CLIVERIFY babyui VERDICT upgraded=" + upgraded + " prefab=" + prefab + " pass=" + pass);
+                bool pass = config && upgraded && prefab;
+                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " upgraded=" + upgraded + " prefab=" + prefab + " pass=" + pass);
                 return Task.FromResult(pass ? 0 : 3);
             }
             catch (Exception e)
             {
                 Debug.LogError("CLIVERIFY babyui EXCEPTION " + e);
                 return Task.FromResult(3);
+            }
+            finally
+            {
+                ResManager.EditorPreferFallback = editorPreferFallbackBefore;
+                BabyModel.Instance.Reset();
             }
         }
 
@@ -64,7 +74,11 @@ namespace Shenxiao.EditorTools
                     && module.GetComponentInChildren<BabyIllusionView>(true) != null;
                 BabyModel model = BabyModel.Instance;
                 model.ApplyBasic(new BabyBasicInfo { BabyName = "baby" });
-                model.ApplyRaise(new BabyRaiseInfo { RaiseLevel = 7, RaiseExp = 11 });
+                BabyRaiseInfo raise = new BabyRaiseInfo { RaiseLevel = 7, RaiseExp = 11 };
+                raise.TaskList.Add(new BabyTaskInfo { TaskId = 1, FinishNum = 0, FinishState = 0 });
+                raise.TaskList.Add(new BabyTaskInfo { TaskId = 2, FinishNum = 3, FinishState = 1 });
+                raise.TaskList.Add(new BabyTaskInfo { TaskId = 3, FinishNum = 2, FinishState = 2 });
+                model.ApplyRaise(raise);
                 model.ApplyStage(new BabyStageInfo { StageExp = 13 });
                 BabyCultivateView cultivateView = module.GetComponentInChildren<BabyCultivateView>(true);
                 bool display = cultivateView != null;
@@ -74,6 +88,7 @@ namespace Shenxiao.EditorTools
                     cultivateView.Show();
                     display = cultivateView.babyName.text == "baby" && cultivateView.lvLb.text == "7"
                         && cultivateView.lvExpLb.text == "11" && cultivateView.stageExpLb.text == "13";
+                    display = display && VerifyTasks(cultivateView);
                     UnityEngine.UI.Button lvButton = cultivateView.lvBtnGp.GetComponent<UnityEngine.UI.Button>();
                     UnityEngine.UI.Button stageButton = cultivateView.stageBtnGp.GetComponent<UnityEngine.UI.Button>();
                     UnityEngine.UI.Button upButton = cultivateView.upBtn.GetComponent<UnityEngine.UI.Button>();
@@ -119,7 +134,7 @@ namespace Shenxiao.EditorTools
                     illusionView.Hide();
                 }
                 model.Reset();
-                bool items = Check<BabyCulTaskItemBind>(module) && Check<BabyIlluItemBind>(module)
+                bool items = Check<BabyCulTaskItemBind>(module) && Check<BabyCulTaskItem>(module) && Check<BabyIlluItemBind>(module)
                     && Check<BabyPropItemBind>(propItem);
                 BabyCultivateViewBind cultivate = module.GetComponentInChildren<BabyCultivateViewBind>(true);
                 BabyIllusionViewBind illusion = module.GetComponentInChildren<BabyIllusionViewBind>(true);
@@ -145,6 +160,19 @@ namespace Shenxiao.EditorTools
             foreach (FieldInfo field in typeof(T).GetFields(BindFields))
                 if (field.GetValue(bind) == null) return false;
             return true;
+        }
+
+        private static bool VerifyTasks(BabyCultivateView view)
+        {
+            BabyCulTaskItem[] all = view.taskGp.GetComponentsInChildren<BabyCulTaskItem>(true);
+            var tasks = new System.Collections.Generic.List<BabyCulTaskItem>();
+            for (int i = 0; i < all.Length; i++) if (all[i].TaskId > 0) tasks.Add(all[i]);
+            if (tasks.Count != 3 || tasks[0].TaskId != 2 || tasks[1].TaskId != 1 || tasks[2].TaskId != 3) return false;
+            return tasks[0].getBtn.gameObject.activeSelf && tasks[0].reddot.gameObject.activeSelf
+                && !tasks[0].goBtn.gameObject.activeSelf && !tasks[0].finishImg.gameObject.activeSelf
+                && tasks[1].goBtn.gameObject.activeSelf && !tasks[1].getBtn.gameObject.activeSelf
+                && !tasks[1].finishImg.gameObject.activeSelf && tasks[2].finishImg.gameObject.activeSelf
+                && !tasks[2].goBtn.gameObject.activeSelf && !tasks[2].getBtn.gameObject.activeSelf;
         }
 
         private static bool Has<T>(GameObject template) where T : Component
