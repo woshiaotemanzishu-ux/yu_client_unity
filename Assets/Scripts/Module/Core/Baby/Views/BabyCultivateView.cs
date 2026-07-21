@@ -1,4 +1,5 @@
 using Shenxiao.Framework.Event;
+using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Baby;
 
 namespace Shenxiao.Module.Core.Baby
@@ -7,6 +8,14 @@ namespace Shenxiao.Module.Core.Baby
     public partial class BabyCultivateView : BabyCultivateViewBind
     {
         private bool _listening;
+
+        protected override void OnInit()
+        {
+            UIUtil.AddClick(lvBtnGp, () => SelectPage(0));
+            UIUtil.AddClick(stageBtnGp, () => SelectPage(1));
+            UIUtil.AddClick(upBtn, () => BabyController.Instance.RequestStageUp());
+            SelectPage(0);
+        }
 
         protected override void OnShow(object args)
         {
@@ -40,6 +49,12 @@ namespace Shenxiao.Module.Core.Baby
             lvLb.text = model.Raise != null ? model.Raise.RaiseLevel.ToString() : string.Empty;
             lvExpLb.text = model.Raise != null ? model.Raise.RaiseExp.ToString() : string.Empty;
             stageExpLb.text = model.Stage != null ? model.Stage.StageExp.ToString() : string.Empty;
+        }
+
+        private void SelectPage(int index)
+        {
+            if (lvGp != null) lvGp.gameObject.SetActive(index == 0);
+            if (stageGp != null) stageGp.gameObject.SetActive(index == 1);
         }
 
         private void StopListening()

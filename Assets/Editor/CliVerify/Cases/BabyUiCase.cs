@@ -74,6 +74,17 @@ namespace Shenxiao.EditorTools
                     cultivateView.Show();
                     display = cultivateView.babyName.text == "baby" && cultivateView.lvLb.text == "7"
                         && cultivateView.lvExpLb.text == "11" && cultivateView.stageExpLb.text == "13";
+                    UnityEngine.UI.Button lvButton = cultivateView.lvBtnGp.GetComponent<UnityEngine.UI.Button>();
+                    UnityEngine.UI.Button stageButton = cultivateView.stageBtnGp.GetComponent<UnityEngine.UI.Button>();
+                    UnityEngine.UI.Button upButton = cultivateView.upBtn.GetComponent<UnityEngine.UI.Button>();
+                    display = display && lvButton != null && stageButton != null && upButton != null;
+                    if (display)
+                    {
+                        stageButton.onClick.Invoke();
+                        display = cultivateView.stageGp.gameObject.activeSelf && !cultivateView.lvGp.gameObject.activeSelf;
+                        lvButton.onClick.Invoke();
+                        display = display && cultivateView.lvGp.gameObject.activeSelf && !cultivateView.stageGp.gameObject.activeSelf;
+                    }
                     cultivateView.Hide();
                 }
                 BabyFamilyView familyView = module.GetComponentInChildren<BabyFamilyView>(true);
