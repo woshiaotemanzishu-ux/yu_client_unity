@@ -4,6 +4,7 @@ using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoBrush;
 using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Bag;
+using Shenxiao.Module.Core.Baby;
 using Shenxiao.Module.Core.Chat;
 using Shenxiao.Module.Core.CycleimpActlist;
 using Shenxiao.Module.Core.CustomActivity;
@@ -137,6 +138,7 @@ namespace Shenxiao.Module.Core.Game
             PushGiftController.Instance,
             AdventureController.Instance,
             BagController.Instance,
+            BabyController.Instance,
             SkillController.Instance,
             FightController.Instance,
             ReliveController.Instance,

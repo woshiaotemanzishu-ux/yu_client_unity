@@ -137,6 +137,8 @@ namespace Shenxiao.Framework.Event
         /// OutWardBaseView.OnOutWardUpdate 均为无参 Action,回调里自行按当前 _typeId 重读 Model;
         /// 16002 阶星/16023 升星/16028 等级面板/16029 升级/16024 自动购买切换后触发)。</summary>
         public const string EVT_OUTWARD_UPDATE = "EVT_OUTWARD_UPDATE";
+        /// <summary>宝宝只读状态更新（参数：int protoId；18200/01/03/04/05/06/07/21）。</summary>
+        public const string EVT_BABY_UPDATE = "EVT_BABY_UPDATE";
         // ----- OutWard 幻化(Illusion,pt_160,轮24 PI)-----
         /// <summary>幻化家族错误出口(参数: int errcode;16000,errcode!=1600023 的一般错误)。</summary>
         public const string EVT_OUTWARD_ERROR = "EVT_OUTWARD_ERROR";

@@ -1225,6 +1225,24 @@
         /// 货品的阶段/星级/评分。</summary>
         public const int PET_EQUIP_POLISH = 16017;
 
+        // ----- 宝宝 Baby(pt_182，只读首包；老端 BabyController.ts) -----
+        /// <summary>宝宝通用错误：cmd:h,error_code:I,args:s。</summary>
+        public const int BABY_ERROR = 18200;
+        /// <summary>宝宝基础信息：active_time:I,baby_id:I,baby_name:s,is_change_name:c；请求体为空。</summary>
+        public const int BABY_BASIC_INFO = 18201;
+        /// <summary>宝宝抚养信息：raise_lv:h,raise_exp:I,task_list[h×{task_id:h,finish_num:h,finish_state:c}],power:I；请求体为空。</summary>
+        public const int BABY_RAISE_INFO = 18203;
+        /// <summary>宝宝阶段信息：stage:h,stage_lv:c,stage_exp:I,power:I；请求体为空。</summary>
+        public const int BABY_STAGE_INFO = 18204;
+        /// <summary>宝宝装备：equip_list[h×{pos_id:c,id:l,goods_type_id:I,estage:h,estage_lv:h,estage_exp:I,skill_id:I}],power:I；请求体为空。</summary>
+        public const int BABY_EQUIP_INFO = 18205;
+        /// <summary>宝宝形象：active_list[h×{baby_id:I,baby_star:h}]；请求体为空。</summary>
+        public const int BABY_FIGURE_INFO = 18206;
+        /// <summary>宝宝家族信息（含 attr_info/attr_list 双层数组）；请求体为空。</summary>
+        public const int BABY_FAMILY_INFO = 18207;
+        /// <summary>宝宝任务进度推送：task_id:h,finish_num:h,finish_state:c。</summary>
+        public const int BABY_TASK_UPDATE = 18221;
+
         // ----- 通用副本(pt_610,yu_server dungeon;老端 BaseDungeonController.ts。御魂本 type=12,dun_id 12001~) -----
         /// <summary>通用副本(pt_610)家族统一错误出口(轮22 族错误出口批;对标老端 BaseDungeonController.ts:668-673
         /// "通用错误返回",无条件 ErrorCodeShow(error_code)。服务端 send_dungeon_msg/2(lib_dungeon.erl:1341-1345)
