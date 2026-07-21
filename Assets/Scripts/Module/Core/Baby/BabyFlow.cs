@@ -1,0 +1,188 @@
+using System;
+using System.Threading.Tasks;
+using Shenxiao.Framework.Event;
+using Shenxiao.Framework.Res;
+using Shenxiao.Framework.UI;
+using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.MainUI;
+using UnityEngine;
+
+namespace Shenxiao.Module.Core.Baby
+{
+    /// <summary>宝宝入口：Basic 回包决定独立孕育页或共享窗框内的培养基线。</summary>
+    public static class BabyFlow
+    {
+        private const string ContentModule = "baby";
+        private const string ContentPrefab = "BabyModule";
+        private const string FrameModule = "common";
+        private const string FramePrefab = "BaseWindowSkin";
+        private static readonly string[] Tabs = { "培养", "家庭", "皮肤" };
+        private static readonly string WindowBg = GameResPath.GetBigBgPath("uibbsj_013.jpg");
+
+        private static GameObject _frameRoot;
+        private static GameObject _contentRoot;
+        private static BaseWindowSkinView _window;
+        private static GestateBabyView _gestateView;
+        private static BabyCultivateView _cultivateView;
+        private static bool _loading;
+        private static bool _listening;
+        private static bool _windowConfigured;
+
+        public static void Toggle()
+        {
+            if (IsShown()) { Close(); return; }
+            Open();
+        }
+
+        public static void Open() => _ = OpenAsync();
+
+        public static void Close()
+        {
+            HideViews();
+            StopListening();
+        }
+
+        internal static void Reset()
+        {
+            Close();
+            StopListening();
+            if (_frameRoot != null) ResManager.ReleaseInstance(_frameRoot);
+            if (_contentRoot != null) ResManager.ReleaseInstance(_contentRoot);
+            _frameRoot = null;
+            _contentRoot = null;
+            _window = null;
+            _gestateView = null;
+            _cultivateView = null;
+            _loading = false;
+            _windowConfigured = false;
+        }
+
+        private static async Task OpenAsync()
+        {
+            if (_contentRoot != null)
+            {
+                StartListening();
+                BabyController.Instance.RequestStartup();
+                DecideView();
+                return;
+            }
+            if (_loading) return;
+
+            _loading = true;
+            string frameKey = GameResPath.GetUIPrefab(FrameModule, FramePrefab);
+            string contentKey = GameResPath.GetUIPrefab(ContentModule, ContentPrefab);
+            try
+            {
+                _frameRoot = await MainUIRouteFallback.InstantiateOrShowAsync("182", "Baby", frameKey,
+                    ViewManager.GetLayer(UILayer.Window));
+                _contentRoot = _frameRoot != null
+                    ? await MainUIRouteFallback.InstantiateOrShowAsync("182", "Baby", contentKey,
+                        ViewManager.GetLayer(UILayer.Window))
+                    : null;
+            }
+            catch (Exception e)
+            {
+                GameLog.Error("Baby", "Baby module load failed: {0}", e.Message);
+            }
+            finally
+            {
+                _loading = false;
+            }
+
+            if (_frameRoot == null || _contentRoot == null)
+            {
+                MainUIRouteFallback.ShowUnavailable("182", "Baby", "BabyModule/BaseWindowSkin load failed");
+                Reset();
+                return;
+            }
+
+            _frameRoot.name = FramePrefab;
+            _contentRoot.name = ContentPrefab;
+            _window = _frameRoot.GetComponentInChildren<BaseWindowSkinView>(true);
+            _gestateView = _contentRoot.GetComponentInChildren<GestateBabyView>(true);
+            _cultivateView = _contentRoot.GetComponentInChildren<BabyCultivateView>(true);
+            if (_window == null || _gestateView == null || _cultivateView == null)
+            {
+                GameLog.Error("Baby", "BabyModule missing required business view; run BabyBindUpgrader");
+                Reset();
+                return;
+            }
+
+            foreach (Transform child in _contentRoot.transform) child.gameObject.SetActive(false);
+            _frameRoot.SetActive(false);
+            StartListening();
+            BabyController.Instance.RequestStartup();
+            DecideView();
+        }
+
+        private static void StartListening()
+        {
+            if (_listening) return;
+            EventDispatcher.On<int>(GlobalEvent.EVT_BABY_UPDATE, OnBabyUpdate);
+            _listening = true;
+        }
+
+        private static void StopListening()
+        {
+            if (!_listening) return;
+            EventDispatcher.Off<int>(GlobalEvent.EVT_BABY_UPDATE, OnBabyUpdate);
+            _listening = false;
+        }
+
+        private static void OnBabyUpdate(int command)
+        {
+            DecideView();
+        }
+
+        private static void DecideView()
+        {
+            BabyBasicInfo basic = BabyModel.Instance.Basic;
+            if (basic == null)
+            {
+                HideViews();
+                return;
+            }
+
+            if (!basic.IsActive)
+            {
+                if (_window != null) _window.Hide();
+                if (_gestateView != null && !_gestateView.IsShown) _gestateView.Show();
+                return;
+            }
+
+            if (_gestateView != null) _gestateView.Hide();
+            if (_window == null || _cultivateView == null) return;
+            _window.Show();
+            if (!_windowConfigured)
+            {
+                _window.ConfigureShared(Tabs.Length, ReparentCultivate, null, 0,
+                    index => index == 0, null, Tabs, null, WindowBg);
+                _windowConfigured = true;
+            }
+            else
+            {
+                _window.SelectShared(0);
+            }
+        }
+
+        private static BaseView ReparentCultivate(RectTransform parent)
+        {
+            _cultivateView.transform.SetParent(parent, false);
+            _cultivateView.gameObject.SetActive(true);
+            return _cultivateView;
+        }
+
+        private static void HideViews()
+        {
+            if (_gestateView != null) _gestateView.Hide();
+            if (_window != null) _window.Hide();
+        }
+
+        private static bool IsShown()
+        {
+            return (_gestateView != null && _gestateView.IsShown)
+                || (_window != null && _window.IsShown);
+        }
+    }
+}

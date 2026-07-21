@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Shenxiao.Editor.UiCreator.Baby;
 using Shenxiao.Generated.UI.Baby;
+using Shenxiao.Module.Core.Baby;
 using UnityEditor;
 using UnityEngine;
 
@@ -57,6 +58,8 @@ namespace Shenxiao.EditorTools
                 bool pages = Check<GestateBabyViewBind>(module) && Check<BabyFamilyViewBind>(module)
                     && Check<BabyCultivateViewBind>(module) && Check<BabyChangedViewBind>(module)
                     && Check<BabyIllusionViewBind>(module);
+                bool businessViews = module.GetComponentInChildren<GestateBabyView>(true) != null
+                    && module.GetComponentInChildren<BabyCultivateView>(true) != null;
                 bool items = Check<BabyCulTaskItemBind>(module) && Check<BabyIlluItemBind>(module)
                     && Check<BabyPropItemBind>(propItem);
                 BabyCultivateViewBind cultivate = module.GetComponentInChildren<BabyCultivateViewBind>(true);
@@ -65,8 +68,8 @@ namespace Shenxiao.EditorTools
                     && Has<BabyPropItemBind>(cultivate != null ? cultivate._tpl_BabyPropItem : null)
                     && Has<BabyIlluItemBind>(illusion != null ? illusion._tpl_BabyIlluItem : null)
                     && Has<BabyPropItemBind>(illusion != null ? illusion._tpl_BabyPropItem : null);
-                Debug.Log("CLIVERIFY babyui pages=" + pages + " items=" + items + " templates=" + templates);
-                return pages && items && templates;
+                Debug.Log("CLIVERIFY babyui pages=" + pages + " businessViews=" + businessViews + " items=" + items + " templates=" + templates);
+                return pages && businessViews && items && templates;
             }
             finally
             {

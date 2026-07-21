@@ -1,6 +1,7 @@
 using System.Reflection;
 using Shenxiao.Editor.LayaUI;
 using Shenxiao.Generated.UI.Baby;
+using Shenxiao.Module.Core.Baby;
 using UnityEditor;
 using UnityEngine;
 
@@ -56,6 +57,8 @@ namespace Shenxiao.Editor.UiCreator.Baby
             ok &= CheckBind<BabyCultivateViewBind>(module, "BabyCultivateView");
             ok &= CheckBind<BabyChangedViewBind>(module, "BabyChangedView");
             ok &= CheckBind<BabyIllusionViewBind>(module, "BabyIllusionView");
+            ok &= CheckBusinessView<GestateBabyView>(module, "GestateBabyView");
+            ok &= CheckBusinessView<BabyCultivateView>(module, "BabyCultivateView");
             ok &= CheckBind<BabyCulTaskItemBind>(module, "BabyCulTaskItem(__Templates)");
             ok &= CheckBind<BabyIlluItemBind>(module, "BabyIlluItem(__Templates)");
             ok &= CheckBind<BabyPropItemBind>(propItem, "BabyPropItem(独立源 prefab)");
@@ -120,6 +123,13 @@ namespace Shenxiao.Editor.UiCreator.Baby
         {
             if (template != null && template.GetComponent<T>() != null) return true;
             Debug.LogError("[UiCreator] Baby 嵌套模板未解析到 " + typeof(T).Name + "(" + label + ")");
+            return false;
+        }
+
+        private static bool CheckBusinessView<T>(GameObject root, string label) where T : Component
+        {
+            if (root.GetComponentInChildren<T>(true) != null) return true;
+            Debug.LogError("[UiCreator] Baby missing business view " + typeof(T).Name + "(" + label + ")");
             return false;
         }
     }
