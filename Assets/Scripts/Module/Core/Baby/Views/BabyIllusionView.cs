@@ -29,6 +29,8 @@ namespace Shenxiao.Module.Core.Baby
             UIUtil.AddClick(useGp, OnUseClick);
             UIUtil.AddClick(activeBtn, OnFigureStarUpClick);
             UIUtil.AddClick(stageBtn, OnFigureStarUpClick);
+            UIUtil.AddClick(leftBtn, () => SelectRelative(-1));
+            UIUtil.AddClick(rightBtn, () => SelectRelative(1));
         }
 
         protected override void OnShow(object args)
@@ -167,6 +169,17 @@ namespace Shenxiao.Module.Core.Baby
             if (BabyFigureConfigs.Get(babyId) == null || babyId == _selectedBabyId) return;
             _selectedBabyId = babyId;
             Refresh();
+        }
+
+        private void SelectRelative(int offset)
+        {
+            for (int i = 0; i < BabyFigureConfigs.All.Count; i++)
+            {
+                if (BabyFigureConfigs.All[i].BabyId != _selectedBabyId) continue;
+                int next = i + offset;
+                if (next >= 0 && next < BabyFigureConfigs.All.Count) Select(BabyFigureConfigs.All[next].BabyId);
+                return;
+            }
         }
 
         private void OnUseClick()

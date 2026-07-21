@@ -152,7 +152,7 @@ namespace Shenxiao.EditorTools
                 model.ApplyBasic(new BabyBasicInfo { BabyId = 1 });
                 model.ApplyFigures(new BabyFigureInfo());
                 model.MergeFigure(1, 2, 1000, 1300);
-                model.MergeFigure(2, 3, 0, 0);
+                model.MergeFigure(2, 3, 2000, 2200);
                 BabyFigureConfigs.BabyFigureCfg illusionCfg = BabyFigureConfigs.Get(1);
                 bool illusionDisplay = illusionView != null && illusionCfg != null;
                 if (illusionDisplay)
@@ -191,6 +191,19 @@ namespace Shenxiao.EditorTools
                     bool activeFightingDisplay = fightingItems.Length == 1 && fightingItems[0]._lb_fighting.text == "1000"
                         && fightingItems[0]._box_up.gameObject.activeSelf && powerFrames.Count == 0;
                     illusionDisplay = illusionDisplay && activeFightingDisplay;
+                    UnityEngine.UI.Button leftButton = illusionView.leftBtn.GetComponent<UnityEngine.UI.Button>();
+                    UnityEngine.UI.Button rightButton = illusionView.rightBtn.GetComponent<UnityEngine.UI.Button>();
+                    if (illusionDisplay && leftButton != null && rightButton != null)
+                    {
+                        leftButton.onClick.Invoke();
+                        illusionDisplay = illusionView.babyName.text == illusionCfg.BabyName && powerFrames.Count == 0;
+                        rightButton.onClick.Invoke();
+                        BabyFigureConfigs.BabyFigureCfg secondCfg = BabyFigureConfigs.Get(2);
+                        illusionDisplay = illusionDisplay && secondCfg != null && illusionView.babyName.text == secondCfg.BabyName && powerFrames.Count == 0;
+                        leftButton.onClick.Invoke();
+                        illusionDisplay = illusionDisplay && illusionView.babyName.text == illusionCfg.BabyName && powerFrames.Count == 0;
+                    }
+                    else illusionDisplay = false;
                     BabyIlluItem activeIllu = illusionView.illuGp.Find("BabyIlluItem_1").GetComponent<BabyIlluItem>();
                     bool activeStarsDisplay = activeIllu != null && activeIllu.star_group.childCount == 5
                         && activeIllu.star_shadow_group.childCount == 5 && CountActiveChildren(activeIllu.star_group) == 2
