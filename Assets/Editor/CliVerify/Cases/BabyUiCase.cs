@@ -25,9 +25,13 @@ namespace Shenxiao.EditorTools
                 ResManager.EditorPreferFallback = true;
                 _ = BabyRaiseConfigs.EnsureLoaded();
                 _ = BabyFigureConfigs.EnsureLoaded();
+                _ = BabyFigureStarConfigs.EnsureLoaded();
                 BabyFigureConfigs.BabyFigureCfg figureCfg = BabyFigureConfigs.Get(1);
+                BabyFigureStarConfigs.BabyFigureStarCfg starCfg = BabyFigureStarConfigs.Get(1, 2);
                 bool config = BabyRaiseConfigs.IsLoaded && BabyRaiseConfigs.Get(1) != null
-                    && figureCfg != null && figureCfg.ResourceId == "1011";
+                    && figureCfg != null && figureCfg.ResourceId == "1011"
+                    && starCfg != null && starCfg.Costs.Count > 0
+                    && starCfg.Costs[0].TypeId == 68010001 && starCfg.Costs[0].Num == 25;
                 bool upgraded = BabyBindUpgrader.Generate();
                 bool prefab = upgraded && VerifyInstances();
                 bool pass = config && upgraded && prefab;
@@ -141,7 +145,8 @@ namespace Shenxiao.EditorTools
                         && illusionView.activeBtn.GetComponent<UnityEngine.UI.Button>() != null
                         && illusionView.stageBtn.GetComponent<UnityEngine.UI.Button>() != null
                         && !illusionView.activeGp.gameObject.activeSelf
-                        && illusionView.stageGp.gameObject.activeSelf;
+                        && illusionView.stageGp.gameObject.activeSelf
+                        && !illusionView.maxImg.gameObject.activeSelf;
                     illusionView.Hide();
                 }
                 model.Reset();

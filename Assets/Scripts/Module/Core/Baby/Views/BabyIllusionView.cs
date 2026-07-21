@@ -96,7 +96,11 @@ namespace Shenxiao.Module.Core.Baby
             if (selectedImg != null) selectedImg.gameObject.SetActive(_selectedBabyId > 0 && wornBabyId == _selectedBabyId);
             if (useGp != null) useGp.gameObject.SetActive(_selectedBabyId > 0);
             if (activeGp != null) activeGp.gameObject.SetActive(false);
-            if (stageGp != null) stageGp.gameObject.SetActive(_selectedBabyId > 0);
+            BabyFigureEntry selected = FindActiveEntry(active, _selectedBabyId);
+            bool hasNextStar = selected != null && BabyFigureStarConfigs.IsLoaded
+                && BabyFigureStarConfigs.Get(selected.BabyId, selected.BabyStar + 1) != null;
+            if (stageGp != null) stageGp.gameObject.SetActive(hasNextStar);
+            if (maxImg != null) maxImg.gameObject.SetActive(selected != null && BabyFigureStarConfigs.IsLoaded && !hasNextStar);
         }
 
         private void CreateItem(BabyFigureEntry entry)
@@ -124,6 +128,7 @@ namespace Shenxiao.Module.Core.Baby
         private async Task EnsureConfigsAndRefreshAsync()
         {
             await BabyFigureConfigs.EnsureLoaded();
+            await BabyFigureStarConfigs.EnsureLoaded();
             if (_shown) Refresh();
         }
 
@@ -165,6 +170,14 @@ namespace Shenxiao.Module.Core.Baby
             for (int i = 0; i < entries.Count; i++)
                 if (entries[i] != null && entries[i].IsActivated && entries[i].BabyId == babyId) return true;
             return false;
+        }
+
+        private static BabyFigureEntry FindActiveEntry(List<BabyFigureEntry> entries, int babyId)
+        {
+            if (entries == null || babyId <= 0) return null;
+            for (int i = 0; i < entries.Count; i++)
+                if (entries[i] != null && entries[i].IsActivated && entries[i].BabyId == babyId) return entries[i];
+            return null;
         }
 
         private static int FirstActiveId(List<BabyFigureEntry> entries)
