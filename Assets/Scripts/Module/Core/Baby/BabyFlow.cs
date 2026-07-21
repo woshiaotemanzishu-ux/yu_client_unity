@@ -32,6 +32,7 @@ namespace Shenxiao.Module.Core.Baby
         private static bool _listening;
         private static bool _windowConfigured;
         private static bool _illusionRedLoading;
+        private static bool _cultivateRedLoading;
 
         public static void Toggle()
         {
@@ -63,6 +64,7 @@ namespace Shenxiao.Module.Core.Baby
             _loading = false;
             _windowConfigured = false;
             _illusionRedLoading = false;
+            _cultivateRedLoading = false;
         }
 
         private static async Task OpenAsync()
@@ -148,6 +150,7 @@ namespace Shenxiao.Module.Core.Baby
 
         private static void OnBagUpdate()
         {
+            RefreshCultivateTabRed();
             RefreshIllusionTabRed();
         }
 
@@ -194,7 +197,29 @@ namespace Shenxiao.Module.Core.Baby
         private static void RefreshCultivateTabRed()
         {
             if (_window == null || !_windowConfigured) return;
-            _window.SetTabRed(0, BabyModel.Instance.HasClaimableRaiseTask());
+            bool taskRed = BabyModel.Instance.HasClaimableRaiseTask();
+            if (!BabyValueConfigs.IsLoaded || !BabyStageConfigs.IsLoaded)
+            {
+                _window.SetTabRed(0, taskRed);
+                if (!_cultivateRedLoading) _ = EnsureCultivateRedConfigsAsync();
+                return;
+            }
+            _window.SetTabRed(0, taskRed || BabyModel.Instance.HasStageUpgradeRed());
+        }
+
+        private static async Task EnsureCultivateRedConfigsAsync()
+        {
+            _cultivateRedLoading = true;
+            try
+            {
+                await BabyValueConfigs.EnsureLoaded();
+                await BabyStageConfigs.EnsureLoaded();
+            }
+            finally
+            {
+                _cultivateRedLoading = false;
+            }
+            if (_window != null && _windowConfigured) RefreshCultivateTabRed();
         }
 
         private static void RefreshIllusionTabRed()

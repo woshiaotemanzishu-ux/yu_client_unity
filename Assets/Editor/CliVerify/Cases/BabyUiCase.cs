@@ -353,10 +353,16 @@ namespace Shenxiao.EditorTools
                 bool cultivateVisible = tab0.redDisplay.gameObject.activeSelf;
                 bool taskUpdated = BabyModel.Instance.TryApplyTaskProgress(2, 3, 2);
                 cultivateRefresh.Invoke(null, null);
-                bool cultivateHidden = taskUpdated && !tab0.redDisplay.gameObject.activeSelf;
+                bool cultivateStageKeepsVisible = taskUpdated && tab0.redDisplay.gameObject.activeSelf;
+                Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(2, 38040041, 0);
+                bagUpdate.Invoke(null, null);
+                bool cultivateHidden = !tab0.redDisplay.gameObject.activeSelf;
                 taskUpdated = taskUpdated && BabyModel.Instance.TryApplyTaskProgress(2, 3, 1);
                 cultivateRefresh.Invoke(null, null);
                 bool cultivateRestored = taskUpdated && tab0.redDisplay.gameObject.activeSelf;
+                Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(2, 38040041, 1);
+                bagUpdate.Invoke(null, null);
+                bool cultivateStillVisible = tab0.redDisplay.gameObject.activeSelf;
 
                 bagUpdate.Invoke(null, null);
                 bool visible = tab2.redDisplay.gameObject.activeSelf;
@@ -365,7 +371,7 @@ namespace Shenxiao.EditorTools
                 bool hidden = !tab2.redDisplay.gameObject.activeSelf;
                 Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
                 bagUpdate.Invoke(null, null);
-                return cultivateVisible && cultivateHidden && cultivateRestored
+                return cultivateVisible && cultivateStageKeepsVisible && cultivateHidden && cultivateRestored && cultivateStillVisible
                     && visible && hidden && tab2.redDisplay.gameObject.activeSelf;
             }
             finally
@@ -373,6 +379,7 @@ namespace Shenxiao.EditorTools
                 if (windowField != null) windowField.SetValue(null, oldWindow);
                 if (configuredField != null) configuredField.SetValue(null, oldConfigured);
                 BabyModel.Instance.TryApplyTaskProgress(2, 3, 1);
+                Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(2, 38040041, 1);
                 Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
                 UnityEngine.Object.DestroyImmediate(frame);
             }
