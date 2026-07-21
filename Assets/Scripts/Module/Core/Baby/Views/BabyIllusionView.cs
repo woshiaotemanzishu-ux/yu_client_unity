@@ -5,6 +5,7 @@ using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Baby;
+using Shenxiao.Module.Core.Common;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Baby
@@ -16,6 +17,8 @@ namespace Shenxiao.Module.Core.Baby
         private bool _listening;
         private bool _shown;
         private int _selectedBabyId;
+        private BaseAwardItem _activeCostItem;
+        private BaseAwardItem _stageCostItem;
 
         protected override void OnInit()
         {
@@ -102,6 +105,12 @@ namespace Shenxiao.Module.Core.Baby
                 && BabyFigureStarConfigs.Get(selected.BabyId, selected.BabyStar + 1) != null;
             if (stageGp != null) stageGp.gameObject.SetActive(hasNextStar);
             if (maxImg != null) maxImg.gameObject.SetActive(selected != null && BabyFigureStarConfigs.IsLoaded && !hasNextStar);
+            BabyFigureConfigs.BabyFigureCfg selectedCfg = BabyFigureConfigs.Get(_selectedBabyId);
+            UpdateCostItem(ref _activeCostItem, activeitemGp, selected != null || selectedCfg == null || selectedCfg.Costs.Count == 0 ? 0 : selectedCfg.Costs[0].TypeId,
+                selectedCfg != null && selectedCfg.Costs.Count > 0 ? selectedCfg.Costs[0].Num : 0);
+            BabyFigureStarConfigs.BabyFigureStarCfg nextCfg = hasNextStar ? BabyFigureStarConfigs.Get(selected.BabyId, selected.BabyStar + 1) : null;
+            UpdateCostItem(ref _stageCostItem, stageitemGp, nextCfg != null && nextCfg.Costs.Count > 0 ? nextCfg.Costs[0].TypeId : 0,
+                nextCfg != null && nextCfg.Costs.Count > 0 ? nextCfg.Costs[0].Num : 0);
         }
 
         private void CreateItem(BabyFigureConfigs.BabyFigureCfg cfg, BabyFigureEntry entry)
@@ -130,6 +139,7 @@ namespace Shenxiao.Module.Core.Baby
         {
             await BabyFigureConfigs.EnsureLoaded();
             await BabyFigureStarConfigs.EnsureLoaded();
+            await GoodsModel.EnsureLoaded();
             if (_shown) Refresh();
         }
 
@@ -151,6 +161,24 @@ namespace Shenxiao.Module.Core.Baby
         private void OnFigureStarUpClick()
         {
             if (BabyFigureConfigs.Get(_selectedBabyId) != null) BabyController.Instance.RequestFigureStarUp(_selectedBabyId);
+        }
+
+        private void UpdateCostItem(ref BaseAwardItem item, RectTransform parent, long typeId, long num)
+        {
+            if (typeId <= 0 || typeId > int.MaxValue)
+            {
+                if (item != null) item.gameObject.SetActive(false);
+                return;
+            }
+            if (item == null && _tpl_BaseAwardItem != null && parent != null)
+            {
+                GameObject go = Instantiate(_tpl_BaseAwardItem, parent, false);
+                item = go.GetComponent<BaseAwardItem>();
+                if (item != null) item.SetScale(0.7f);
+            }
+            if (item == null) return;
+            item.gameObject.SetActive(true);
+            item.SetData((int)typeId, num);
         }
 
         private void ClearItems()

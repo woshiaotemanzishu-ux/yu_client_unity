@@ -17,7 +17,10 @@ namespace Shenxiao.Module.Core.Baby
             public string ResourceId = "";
             public int ActiveStage;
             public int Power;
+            public readonly List<CostItem> Costs = new List<CostItem>();
         }
+
+        public sealed class CostItem { public int Type; public long TypeId; public long Num; }
 
         private static Dictionary<int, BabyFigureCfg> _byBabyId;
         private static readonly IReadOnlyList<BabyFigureCfg> Empty = new List<BabyFigureCfg>();
@@ -58,7 +61,7 @@ namespace Shenxiao.Module.Core.Baby
                     if (!(pair.Value is JObject row)) continue;
                     int babyId = ReadInt(row, "baby_id");
                     if (babyId <= 0) continue;
-                    byBabyId[babyId] = new BabyFigureCfg
+                    var cfg = new BabyFigureCfg
                     {
                         BabyId = babyId,
                         BabyName = row["baby_name_con"]?.ToString() ?? "",
@@ -66,6 +69,8 @@ namespace Shenxiao.Module.Core.Baby
                         ActiveStage = ReadInt(row, "active_stage"),
                         Power = ReadInt(row, "power"),
                     };
+                    ParseCosts(row["cost"]?.ToString(), cfg.Costs);
+                    byBabyId[babyId] = cfg;
                 }
             }
             catch (System.Exception e)
@@ -86,5 +91,19 @@ namespace Shenxiao.Module.Core.Baby
         private static int ReadInt(JObject row, string key)
             => int.TryParse(row[key]?.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
                 ? value : 0;
+
+        private static long ReadLong(JObject row, string key)
+            => long.TryParse(row[key]?.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out long value)
+                ? value : 0;
+
+        private static void ParseCosts(string raw, List<CostItem> costs)
+        {
+            if (string.IsNullOrEmpty(raw)) return;
+            foreach (JToken token in JArray.Parse(raw))
+            {
+                if (!(token is JObject item)) continue;
+                costs.Add(new CostItem { Type = ReadInt(item, "0"), TypeId = ReadLong(item, "1"), Num = ReadLong(item, "2") });
+            }
+        }
     }
 }

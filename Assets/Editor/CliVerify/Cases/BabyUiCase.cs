@@ -26,11 +26,13 @@ namespace Shenxiao.EditorTools
                 _ = BabyRaiseConfigs.EnsureLoaded();
                 _ = BabyFigureConfigs.EnsureLoaded();
                 _ = BabyFigureStarConfigs.EnsureLoaded();
+                _ = Shenxiao.Module.Core.Common.GoodsModel.EnsureLoaded();
                 BabyFigureConfigs.BabyFigureCfg figureCfg = BabyFigureConfigs.Get(1);
                 BabyFigureStarConfigs.BabyFigureStarCfg starCfg = BabyFigureStarConfigs.Get(1, 2);
                 bool config = BabyRaiseConfigs.IsLoaded && BabyRaiseConfigs.Get(1) != null
                     && figureCfg != null && figureCfg.ResourceId == "1011"
                     && BabyFigureConfigs.All.Count == 9
+                    && figureCfg.Costs.Count > 0 && figureCfg.Costs[0].TypeId == 68010001 && figureCfg.Costs[0].Num == 30
                     && starCfg != null && starCfg.Costs.Count > 0
                     && starCfg.Costs[0].TypeId == 68010001 && starCfg.Costs[0].Num == 25;
                 bool upgraded = BabyBindUpgrader.Generate();
@@ -137,6 +139,8 @@ namespace Shenxiao.EditorTools
                     illusionView.gameObject.SetActive(true);
                     illusionView.Show();
                     BabyIlluItemBind[] illusionItems = illusionView.illuGp.GetComponentsInChildren<BabyIlluItemBind>(true);
+                    Shenxiao.Module.Core.Common.BaseAwardItem[] stageCostItems =
+                        illusionView.stageitemGp.GetComponentsInChildren<Shenxiao.Module.Core.Common.BaseAwardItem>(true);
                     int inactiveCount = 0;
                     int loadedIconCount = 0;
                     for (int i = 0; i < illusionItems.Length; i++)
@@ -154,17 +158,24 @@ namespace Shenxiao.EditorTools
                         && illusionView.stageBtn.GetComponent<UnityEngine.UI.Button>() != null
                         && !illusionView.activeGp.gameObject.activeSelf
                         && illusionView.stageGp.gameObject.activeSelf
-                        && !illusionView.maxImg.gameObject.activeSelf;
+                        && !illusionView.maxImg.gameObject.activeSelf
+                        && stageCostItems.Length == 1 && stageCostItems[0].gameObject.activeSelf
+                        && stageCostItems[0].num_text.text == "30";
                     if (illusionDisplay)
                     {
                         Transform third = illusionView.illuGp.Find("BabyIlluItem_3");
                         UnityEngine.UI.Button thirdButton = third != null ? third.GetComponent<BabyIlluItemBind>().clickGp.GetComponent<UnityEngine.UI.Button>() : null;
                         thirdButton?.onClick.Invoke();
                         BabyFigureConfigs.BabyFigureCfg thirdCfg = BabyFigureConfigs.Get(3);
+                        Shenxiao.Module.Core.Common.BaseAwardItem[] activeCostItems =
+                            illusionView.activeitemGp.GetComponentsInChildren<Shenxiao.Module.Core.Common.BaseAwardItem>(true);
                         illusionDisplay = thirdCfg != null && illusionView.babyName.text == thirdCfg.BabyName
                             && illusionView.activeGp.gameObject.activeSelf && !illusionView.useGp.gameObject.activeSelf
                             && illusionView.unActive.gameObject.activeSelf && !illusionView.selectedImg.gameObject.activeSelf
-                            && !illusionView.stageGp.gameObject.activeSelf && !illusionView.maxImg.gameObject.activeSelf;
+                            && !illusionView.stageGp.gameObject.activeSelf && !illusionView.maxImg.gameObject.activeSelf
+                            && activeCostItems.Length == 1 && activeCostItems[0].gameObject.activeSelf
+                            && activeCostItems[0].num_text.text == "30"
+                            && stageCostItems.Length == 1 && !stageCostItems[0].gameObject.activeSelf;
                     }
                     illusionView.Hide();
                 }
