@@ -62,6 +62,7 @@ namespace Shenxiao.Editor.UiCreator.Baby
             ok &= CheckBusinessView<BabyCultivateView>(module, "BabyCultivateView");
             ok &= CheckBusinessView<BabyCulTaskItem>(module, "BabyCulTaskItem(__Templates)");
             ok &= CheckBusinessView<BabyIllusionView>(module, "BabyIllusionView");
+            ok &= CheckBusinessView<BabyPropItem>(propItem, "BabyPropItem(独立源 prefab)");
             ok &= CheckBind<BabyCulTaskItemBind>(module, "BabyCulTaskItem(__Templates)");
             ok &= CheckBind<BabyIlluItemBind>(module, "BabyIlluItem(__Templates)");
             ok &= CheckBind<BabyPropItemBind>(propItem, "BabyPropItem(独立源 prefab)");
@@ -72,10 +73,14 @@ namespace Shenxiao.Editor.UiCreator.Baby
                 "BabyCultivateView._tpl_BabyCulTaskItem");
             ok &= CheckTemplate<BabyPropItemBind>(cultivate != null ? cultivate._tpl_BabyPropItem : null,
                 "BabyCultivateView._tpl_BabyPropItem");
+            ok &= CheckTemplate<BabyPropItem>(cultivate != null ? cultivate._tpl_BabyPropItem : null,
+                "BabyCultivateView._tpl_BabyPropItem business");
             ok &= CheckTemplate<BabyIlluItemBind>(illusion != null ? illusion._tpl_BabyIlluItem : null,
                 "BabyIllusionView._tpl_BabyIlluItem");
             ok &= CheckTemplate<BabyPropItemBind>(illusion != null ? illusion._tpl_BabyPropItem : null,
                 "BabyIllusionView._tpl_BabyPropItem");
+            ok &= CheckTemplate<BabyPropItem>(illusion != null ? illusion._tpl_BabyPropItem : null,
+                "BabyIllusionView._tpl_BabyPropItem business");
             Debug.Log("[UiCreator] BabyBindUpgrader 验证 " + (ok ? "OK " : "FAILED ") + ModulePath);
             return ok;
         }

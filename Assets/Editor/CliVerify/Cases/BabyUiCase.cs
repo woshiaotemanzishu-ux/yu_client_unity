@@ -83,7 +83,16 @@ namespace Shenxiao.EditorTools
                 bool businessViews = module.GetComponentInChildren<GestateBabyView>(true) != null
                     && module.GetComponentInChildren<BabyFamilyView>(true) != null
                     && module.GetComponentInChildren<BabyCultivateView>(true) != null
-                    && module.GetComponentInChildren<BabyIllusionView>(true) != null;
+                    && module.GetComponentInChildren<BabyIllusionView>(true) != null
+                    && propItem.GetComponentInChildren<BabyPropItem>(true) != null;
+                BabyPropItem propBusiness = propItem.GetComponentInChildren<BabyPropItem>(true);
+                bool propDisplay = propBusiness != null;
+                if (propDisplay)
+                {
+                    propBusiness.SetData(2, 100, true, 150);
+                    propDisplay = !string.IsNullOrEmpty(propBusiness.nameLb.text)
+                        && propBusiness.nextLb.text.Contains("+50") && propBusiness.arrow.gameObject.activeSelf;
+                }
                 BabyModel model = BabyModel.Instance;
                 model.ApplyBasic(new BabyBasicInfo { BabyName = "baby" });
                 BabyRaiseInfo raise = new BabyRaiseInfo { RaiseLevel = 7, RaiseExp = 11 };
@@ -185,15 +194,17 @@ namespace Shenxiao.EditorTools
                 }
                 model.Reset();
                 bool items = Check<BabyCulTaskItemBind>(module) && Check<BabyCulTaskItem>(module) && Check<BabyIlluItemBind>(module)
-                    && Check<BabyPropItemBind>(propItem);
+                    && Check<BabyPropItemBind>(propItem) && Check<BabyPropItem>(propItem);
                 BabyCultivateViewBind cultivate = module.GetComponentInChildren<BabyCultivateViewBind>(true);
                 BabyIllusionViewBind illusion = module.GetComponentInChildren<BabyIllusionViewBind>(true);
                 bool templates = Has<BabyCulTaskItemBind>(cultivate != null ? cultivate._tpl_BabyCulTaskItem : null)
                     && Has<BabyPropItemBind>(cultivate != null ? cultivate._tpl_BabyPropItem : null)
+                    && Has<BabyPropItem>(cultivate != null ? cultivate._tpl_BabyPropItem : null)
                     && Has<BabyIlluItemBind>(illusion != null ? illusion._tpl_BabyIlluItem : null)
-                    && Has<BabyPropItemBind>(illusion != null ? illusion._tpl_BabyPropItem : null);
+                    && Has<BabyPropItemBind>(illusion != null ? illusion._tpl_BabyPropItem : null)
+                    && Has<BabyPropItem>(illusion != null ? illusion._tpl_BabyPropItem : null);
                 Debug.Log("CLIVERIFY babyui pages=" + pages + " businessViews=" + businessViews + " display=" + display + " familyDisplay=" + familyDisplay + " illusionDisplay=" + illusionDisplay + " items=" + items + " templates=" + templates);
-                return pages && businessViews && display && familyDisplay && illusionDisplay && items && templates;
+                return pages && businessViews && propDisplay && display && familyDisplay && illusionDisplay && items && templates;
             }
             finally
             {
