@@ -87,6 +87,7 @@ namespace Shenxiao.EditorTools
             MethodInfo m18214 = M("On18214");
             MethodInfo m18215 = M("On18215");
             MethodInfo m18217 = M("On18217");
+            MethodInfo m18218 = M("On18218");
             MethodInfo m18221 = M("On18221");
             MethodInfo m18222 = M("On18222");
             MethodInfo m18223 = M("On18223");
@@ -96,7 +97,7 @@ namespace Shenxiao.EditorTools
             bool allPass = m18200 != null && m18201 != null && m18203 != null && m18204 != null
                 && m18205 != null && m18206 != null && m18207 != null && m18208 != null && m18209 != null
                 && m18210 != null && m18211 != null && m18213 != null && m18214 != null && m18215 != null
-                && m18217 != null && m18221 != null && m18222 != null && m18223 != null && m18224 != null && mGameStart != null;
+                && m18217 != null && m18218 != null && m18221 != null && m18222 != null && m18223 != null && m18224 != null && mGameStart != null;
             void Check(string tag, bool ok)
             {
                 Debug.Log("CLIVERIFY baby " + tag + " ok=" + ok);
@@ -124,6 +125,7 @@ namespace Shenxiao.EditorTools
                 [Proto.BABY_FIGURE_WEAR] = m18214,
                 [Proto.BABY_RENAME] = m18215,
                 [Proto.BABY_PRAISE] = m18217,
+                [Proto.BABY_EQUIP_WEAR] = m18218,
                 [Proto.BABY_TASK_UPDATE] = m18221,
                 [Proto.BABY_TASK_REWARD] = m18222,
                 [Proto.BABY_FIGURE_POWER] = m18223,
@@ -275,6 +277,10 @@ namespace Shenxiao.EditorTools
                 bool c2s18217 = requestTrace.Count == 1 && FrameEquals(requestTrace[0], Proto.BABY_PRAISE,
                     new CliVerify.Pkt().L(0x0102030405060708L).C(2).Bytes());
                 requestTrace.Clear();
+                ctrl.RequestEquipWear(6, 0x0102030405060708L);
+                bool c2s18218 = requestTrace.Count == 1 && FrameEquals(requestTrace[0], Proto.BABY_EQUIP_WEAR,
+                    new CliVerify.Pkt().C(6).L(0x0102030405060708L).Bytes());
+                requestTrace.Clear();
                 ctrl.RequestSetFigure(0, 1);
                 ctrl.RequestSetFigure(3, 1);
                 ctrl.RequestTaskReward(0);
@@ -284,9 +290,12 @@ namespace Shenxiao.EditorTools
                 ctrl.RequestPraise(0, 2);
                 ctrl.RequestPraise(1, 0);
                 ctrl.RequestPraise(1, 3);
+                ctrl.RequestEquipWear(0, 1);
+                ctrl.RequestEquipWear(7, 1);
+                ctrl.RequestEquipWear(1, 0);
                 bool c2sGuards = requestTrace.Count == 0;
                 Check("second packet C2S exact wire/guards", c2s18210 && c2s18211 && c2s18213
-                    && c2s18214 && c2s18215 && c2s18222 && c2s18223 && c2s18208 && c2s18209 && c2s18217 && c2sGuards);
+                    && c2s18214 && c2s18215 && c2s18222 && c2s18223 && c2s18208 && c2s18209 && c2s18217 && c2s18218 && c2sGuards);
 
                 requestTrace.Clear();
                 NetReader r18200 = Feed(m18200, new CliVerify.Pkt()
@@ -585,6 +594,14 @@ namespace Shenxiao.EditorTools
                 NetReader r18217Opr1 = Feed(m18217, new CliVerify.Pkt().I(1).L(101).C(1).H(0).I(Tail).Bytes());
                 Check("18217 failed or opr1 no refetch/tail", TailOk(r18217Fail) && TailOk(r18217Opr1)
                     && requestTrace.Count == 0 && model.LastPraiseAction != null && model.LastPraiseAction.Opr == 1);
+                model.ApplyEquip(new BabyEquipInfo { Power = 5 });
+                model.Equip.EquipList.Add(new BabyEquipEntry { PositionId = 2, Id = 9, GoodsTypeId = 10, SkillId = 11, Stage = 12, StageLevel = 13, StageExp = 14 });
+                NetReader r18218Ok = Feed(m18218, new CliVerify.Pkt().I(1).C(2).L(99).I(88).I(77).I(66).I(Tail).Bytes());
+                BabyEquipEntry worn = model.Equip.EquipList[0];
+                NetReader r18218Fail = Feed(m18218, new CliVerify.Pkt().I(5).C(2).L(100).I(101).I(102).I(103).I(Tail).Bytes());
+                Check("18218 update/failure/tail", TailOk(r18218Ok) && TailOk(r18218Fail) && worn.Id == 99 && worn.GoodsTypeId == 88 && worn.SkillId == 77
+                    && worn.Stage == 12 && worn.StageLevel == 13 && worn.StageExp == 14 && model.Equip.Power == 66
+                    && model.LastEquipWearResult != null && !model.LastEquipWearResult.Succeeded && worn.Id == 99);
             }
             finally
             {

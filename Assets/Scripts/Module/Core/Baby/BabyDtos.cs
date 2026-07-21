@@ -58,6 +58,17 @@ namespace Shenxiao.Module.Core.Baby
         public int Power;
     }
 
+    public sealed class BabyEquipWearResult
+    {
+        public int Code;
+        public int PositionId;
+        public long Id;
+        public int GoodsTypeId;
+        public int SkillId;
+        public int Power;
+        public bool Succeeded => Code == 1;
+    }
+
     public sealed class BabyFigureEntry
     {
         public int BabyId;

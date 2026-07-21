@@ -1257,6 +1257,8 @@
         public const int BABY_RENAME = 18215;
         /// <summary>宝宝点赞/回赞：请求 role_id:l,opr:c；回包 code:I,role_id:l,opr:c,rewards[h×{type:c,type_id:I,num:I}]。</summary>
         public const int BABY_PRAISE = 18217;
+        /// <summary>宝宝装备穿戴：请求 pos:c,goods_id:l；回包 code:I,pos:c,goods_id:l,goods_type_id:I,skill_id:I,power:I。</summary>
+        public const int BABY_EQUIP_WEAR = 18218;
         /// <summary>宝宝任务进度推送：task_id:h,finish_num:h,finish_state:c。</summary>
         public const int BABY_TASK_UPDATE = 18221;
         /// <summary>领取宝宝任务奖励：请求 task_id:h；回包 code:I,task_id:h,finish_num:h,finish_state:c。</summary>

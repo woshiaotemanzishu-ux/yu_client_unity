@@ -36,6 +36,7 @@ namespace Shenxiao.Module.Core.Baby
             RegisterProtocal(Proto.BABY_FIGURE_STAR_UP, On18213);
             RegisterProtocal(Proto.BABY_FIGURE_WEAR, On18214);
             RegisterProtocal(Proto.BABY_RENAME, On18215);
+            RegisterProtocal(Proto.BABY_EQUIP_WEAR, On18218);
             RegisterProtocal(Proto.BABY_PRAISE, On18217);
             RegisterProtocal(Proto.BABY_TASK_UPDATE, On18221);
             RegisterProtocal(Proto.BABY_TASK_REWARD, On18222);
@@ -100,6 +101,11 @@ namespace Shenxiao.Module.Core.Baby
         }
 
         public void RequestEquipInfo() => SendEmpty(Proto.BABY_EQUIP_INFO);
+        public void RequestEquipWear(int posId, long goodsId)
+        {
+            if (posId < 1 || posId > 6 || goodsId <= 0) return;
+            SendRequest(Proto.BABY_EQUIP_WEAR, "cl", posId, goodsId);
+        }
 
         public void RequestLikeRank() => SendEmpty(Proto.BABY_LIKE_RANK);
 
@@ -412,6 +418,21 @@ namespace Shenxiao.Module.Core.Baby
             BabyModel.Instance.ApplyPraiseAction(result);
             EventDispatcher.Emit(GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_PRAISE);
             if (result.Succeeded && result.Opr != 1) SendEmpty(Proto.BABY_LIKE_RECORDS);
+        }
+
+        private void On18218(NetReader r)
+        {
+            var result = new BabyEquipWearResult
+            {
+                Code = r.ReadI32(),
+                PositionId = r.ReadU8(),
+                Id = r.ReadU64(),
+                GoodsTypeId = r.ReadI32(),
+                SkillId = r.ReadI32(),
+                Power = r.ReadI32()
+            };
+            BabyModel.Instance.ApplyEquipWearResult(result);
+            EventDispatcher.Emit(GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_EQUIP_WEAR);
         }
 
         private void On18224(NetReader r)
