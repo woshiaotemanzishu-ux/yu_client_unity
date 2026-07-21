@@ -16,6 +16,7 @@ namespace Shenxiao.EditorTools
     {
         private const string ModulePath = "Assets/Prefabs/UI/Baby/BabyModule.prefab";
         private const string PropItemPath = "Assets/Prefabs/UI/Baby/BabyPropItem.prefab";
+        private const string FramePath = "Assets/Prefabs/UI/Common/BaseWindowSkin.prefab";
         private const BindingFlags BindFields = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
 
         public static Task<int> Run()
@@ -153,6 +154,7 @@ namespace Shenxiao.EditorTools
                 model.ApplyFigures(new BabyFigureInfo());
                 model.MergeFigure(1, 2, 1000, 1300);
                 model.MergeFigure(2, 3, 2000, 2200);
+                bool tabRedDisplay = VerifyIllusionTabRed();
                 BabyFigureConfigs.BabyFigureCfg illusionCfg = BabyFigureConfigs.Get(1);
                 bool illusionDisplay = illusionView != null && illusionCfg != null;
                 if (illusionDisplay)
@@ -274,7 +276,7 @@ namespace Shenxiao.EditorTools
                     && Has<BabyPropItemBind>(illusion != null ? illusion._tpl_BabyPropItem : null)
                     && Has<BabyPropItem>(illusion != null ? illusion._tpl_BabyPropItem : null);
                 Debug.Log("CLIVERIFY babyui pages=" + pages + " businessViews=" + businessViews + " display=" + display + " familyDisplay=" + familyDisplay + " illusionDisplay=" + illusionDisplay + " items=" + items + " templates=" + templates);
-                return pages && businessViews && propDisplay && display && familyDisplay && illusionDisplay && items && templates;
+                return pages && businessViews && propDisplay && display && familyDisplay && illusionDisplay && tabRedDisplay && items && templates;
             }
             finally
             {
@@ -283,6 +285,54 @@ namespace Shenxiao.EditorTools
                 if (interceptField != null) interceptField.SetValue(null, oldIntercept);
                 UnityEngine.Object.DestroyImmediate(module);
                 UnityEngine.Object.DestroyImmediate(propItem);
+            }
+        }
+
+        private static bool VerifyIllusionTabRed()
+        {
+            GameObject frameAsset = AssetDatabase.LoadAssetAtPath<GameObject>(FramePath);
+            if (frameAsset == null) return false;
+            GameObject frame = UnityEngine.Object.Instantiate(frameAsset);
+            FieldInfo windowField = typeof(BabyFlow).GetField("_window", BindingFlags.Static | BindingFlags.NonPublic);
+            FieldInfo configuredField = typeof(BabyFlow).GetField("_windowConfigured", BindingFlags.Static | BindingFlags.NonPublic);
+            MethodInfo bagUpdate = typeof(BabyFlow).GetMethod("OnBagUpdate", BindingFlags.Static | BindingFlags.NonPublic);
+            object oldWindow = windowField != null ? windowField.GetValue(null) : null;
+            object oldConfigured = configuredField != null ? configuredField.GetValue(null) : null;
+            try
+            {
+                Shenxiao.Module.Core.Common.BaseWindowSkinView window = frame.GetComponentInChildren<Shenxiao.Module.Core.Common.BaseWindowSkinView>(true);
+                if (window == null || windowField == null || configuredField == null || bagUpdate == null) return false;
+                frame.SetActive(true);
+                window.Show();
+                window.ConfigureShared(3, null, null, 0, index => index >= 0 && index < 3);
+                windowField.SetValue(null, window);
+                configuredField.SetValue(null, true);
+
+                Shenxiao.Module.Core.Common.TabButtonTwoSkin[] allTabs =
+                    frame.GetComponentsInChildren<Shenxiao.Module.Core.Common.TabButtonTwoSkin>(true);
+                Shenxiao.Module.Core.Common.TabButtonTwoSkin tab2 = null;
+                int activeIndex = 0;
+                for (int i = 0; i < allTabs.Length; i++)
+                {
+                    if (!allTabs[i].gameObject.activeSelf) continue;
+                    if (activeIndex++ == 2) { tab2 = allTabs[i]; break; }
+                }
+                if (tab2 == null || tab2.redDisplay == null) return false;
+
+                bagUpdate.Invoke(null, null);
+                bool visible = tab2.redDisplay.gameObject.activeSelf;
+                Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 0);
+                bagUpdate.Invoke(null, null);
+                bool hidden = !tab2.redDisplay.gameObject.activeSelf;
+                Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
+                bagUpdate.Invoke(null, null);
+                return visible && hidden && tab2.redDisplay.gameObject.activeSelf;
+            }
+            finally
+            {
+                if (windowField != null) windowField.SetValue(null, oldWindow);
+                if (configuredField != null) configuredField.SetValue(null, oldConfigured);
+                UnityEngine.Object.DestroyImmediate(frame);
             }
         }
 

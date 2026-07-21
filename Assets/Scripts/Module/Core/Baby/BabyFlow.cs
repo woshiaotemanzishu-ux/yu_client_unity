@@ -31,6 +31,7 @@ namespace Shenxiao.Module.Core.Baby
         private static bool _loading;
         private static bool _listening;
         private static bool _windowConfigured;
+        private static bool _illusionRedLoading;
 
         public static void Toggle()
         {
@@ -61,6 +62,7 @@ namespace Shenxiao.Module.Core.Baby
             _illusionView = null;
             _loading = false;
             _windowConfigured = false;
+            _illusionRedLoading = false;
         }
 
         private static async Task OpenAsync()
@@ -127,6 +129,7 @@ namespace Shenxiao.Module.Core.Baby
         {
             if (_listening) return;
             EventDispatcher.On<int>(GlobalEvent.EVT_BABY_UPDATE, OnBabyUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, OnBagUpdate);
             _listening = true;
         }
 
@@ -134,12 +137,19 @@ namespace Shenxiao.Module.Core.Baby
         {
             if (!_listening) return;
             EventDispatcher.Off<int>(GlobalEvent.EVT_BABY_UPDATE, OnBabyUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, OnBagUpdate);
             _listening = false;
         }
 
         private static void OnBabyUpdate(int command)
         {
             DecideView();
+            RefreshIllusionTabRed();
+        }
+
+        private static void OnBagUpdate()
+        {
+            RefreshIllusionTabRed();
         }
 
         private static void DecideView()
@@ -172,12 +182,39 @@ namespace Shenxiao.Module.Core.Baby
                     },
                     Tabs, null, WindowBg);
                 _windowConfigured = true;
+                RefreshIllusionTabRed();
             }
             else
             {
                 int index = _window.CurrentIndex;
                 _window.SelectShared(index >= 0 && index < Tabs.Length ? index : 0);
             }
+        }
+
+        private static void RefreshIllusionTabRed()
+        {
+            if (_window == null || !_windowConfigured) return;
+            if (!BabyFigureConfigs.IsLoaded || !BabyFigureStarConfigs.IsLoaded)
+            {
+                if (!_illusionRedLoading) _ = EnsureIllusionRedConfigsAsync();
+                return;
+            }
+            _window.SetTabRed(2, BabyIllusionView.HasAnyRed());
+        }
+
+        private static async Task EnsureIllusionRedConfigsAsync()
+        {
+            _illusionRedLoading = true;
+            try
+            {
+                await BabyFigureConfigs.EnsureLoaded();
+                await BabyFigureStarConfigs.EnsureLoaded();
+            }
+            finally
+            {
+                _illusionRedLoading = false;
+            }
+            if (_window != null && _windowConfigured) RefreshIllusionTabRed();
         }
 
         private static BaseView ReparentCultivate(RectTransform parent)

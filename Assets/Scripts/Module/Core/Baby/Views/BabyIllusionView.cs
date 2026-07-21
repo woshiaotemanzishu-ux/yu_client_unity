@@ -186,6 +186,19 @@ namespace Shenxiao.Module.Core.Baby
             return next != null && AreCostsAffordable(next.Costs);
         }
 
+        internal static bool HasAnyRed()
+        {
+            BabyModel model = BabyModel.Instance;
+            if (model.Figures == null || !BabyFigureConfigs.IsLoaded || !BabyFigureStarConfigs.IsLoaded) return false;
+            List<BabyFigureEntry> active = model.Figures.ActiveList;
+            for (int i = 0; i < BabyFigureConfigs.All.Count; i++)
+            {
+                BabyFigureConfigs.BabyFigureCfg cfg = BabyFigureConfigs.All[i];
+                if (CanShowRed(cfg, FindActiveEntry(active, cfg.BabyId))) return true;
+            }
+            return false;
+        }
+
         private static bool AreCostsAffordable(List<BabyFigureConfigs.CostItem> costs)
         {
             if (costs == null || costs.Count == 0) return false;
