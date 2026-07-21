@@ -43,6 +43,7 @@ namespace Shenxiao.EditorTools
                 _ = BabyValueConfigs.EnsureLoaded();
                 _ = BabyStageConfigs.EnsureLoaded();
                 _ = BabyPraiseConfigs.EnsureLoaded();
+                _ = BabyEquipConfigs.EnsureLoaded();
                 _ = Shenxiao.Module.Core.Common.GoodsModel.EnsureLoaded();
                 BabyFigureConfigs.BabyFigureCfg figureCfg = BabyFigureConfigs.Get(1);
                 BabyFigureStarConfigs.BabyFigureStarCfg starCfg = BabyFigureStarConfigs.Get(1, 2);
@@ -64,7 +65,11 @@ namespace Shenxiao.EditorTools
                     && BabyPraiseConfigs.All[0].Rewards.Count > 0
                     && BabyPraiseConfigs.All[0].Rewards[0].TypeId == 38040043 && BabyPraiseConfigs.All[0].Rewards[0].Num == 1
                     && BabyPraiseConfigs.All[5].Rewards.Count > 0
-                    && BabyPraiseConfigs.All[5].Rewards[0].TypeId == 38040041 && BabyPraiseConfigs.All[5].Rewards[0].Num == 1;
+                    && BabyPraiseConfigs.All[5].Rewards[0].TypeId == 38040041 && BabyPraiseConfigs.All[5].Rewards[0].Num == 1
+                    && BabyEquipConfigs.IsLoaded && BabyEquipConfigs.All.Count == 43
+                    && BabyEquipConfigs.Get(65010200) != null && BabyEquipConfigs.Get(65010200).PosId == 1 && BabyEquipConfigs.Get(65010200).Skills.Count == 1 && BabyEquipConfigs.Get(65010200).Skills[0] == 2001001
+                    && BabyEquipConfigs.Get(65060601) != null && BabyEquipConfigs.Get(65060601).PosId == 6 && BabyEquipConfigs.Get(65060601).Color == 6
+                    && BabyEquipConfigs.CanWear(65010200, 1, 1) && !BabyEquipConfigs.CanWear(65010200, 2, 1) && !BabyEquipConfigs.CanWear(65010200, 1, 0) && !BabyEquipConfigs.CanWear(1, 1, 1);
                 bool upgraded = BabyBindUpgrader.Generate();
                 bool prefab = upgraded && VerifyInstances();
                 bool likeRank = likeStatic && VerifyLikeRank();
