@@ -17,6 +17,7 @@ namespace Shenxiao.EditorTools
         private const string ModulePath = "Assets/Prefabs/UI/Baby/BabyModule.prefab";
         private const string LikeViewPath = "Assets/Prefabs/UI/Baby/BabyLikeView.prefab";
         private const string BelikeViewPath = "Assets/Prefabs/UI/Baby/BabyBelikeView.prefab";
+        private const string EquipFuncViewPath = "Assets/Prefabs/UI/Baby/BabyEquipFuncView.prefab";
         private const string PropItemPath = "Assets/Prefabs/UI/Baby/BabyPropItem.prefab";
         private const string FramePath = "Assets/Prefabs/UI/Common/BaseWindowSkin.prefab";
         private const BindingFlags BindFields = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
@@ -32,8 +33,10 @@ namespace Shenxiao.EditorTools
                 bool equipStatic = BabyBindUpgrader.VerifyEquipStatic();
                 Shenxiao.Framework.UI.UIViewAttribute likeAddress = typeof(BabyLikeView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
                 Shenxiao.Framework.UI.UIViewAttribute belikeAddress = typeof(BabyBelikeView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
+                Shenxiao.Framework.UI.UIViewAttribute equipAddress = typeof(BabyEquipFuncView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
                 bool viewAddresses = likeAddress != null && likeAddress.AddrKey == "prefabs/ui/baby/babylikeview"
-                    && belikeAddress != null && belikeAddress.AddrKey == "prefabs/ui/baby/babybelikeview";
+                    && belikeAddress != null && belikeAddress.AddrKey == "prefabs/ui/baby/babybelikeview"
+                    && equipAddress != null && equipAddress.AddrKey == "prefabs/ui/baby/babyequipfuncview";
                 _ = BabyRaiseConfigs.EnsureLoaded();
                 _ = BabyFigureConfigs.EnsureLoaded();
                 _ = BabyFigureStarConfigs.EnsureLoaded();
@@ -66,8 +69,9 @@ namespace Shenxiao.EditorTools
                 bool prefab = upgraded && VerifyInstances();
                 bool likeRank = likeStatic && VerifyLikeRank();
                 bool belike = likeStatic && VerifyBelike();
-                bool pass = config && likeStatic && teaseStatic && equipStatic && viewAddresses && upgraded && prefab && likeRank && belike;
-                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " teaseStatic=" + teaseStatic + " equipStatic=" + equipStatic + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " pass=" + pass);
+                bool equip = equipStatic && VerifyEquip();
+                bool pass = config && likeStatic && teaseStatic && equipStatic && viewAddresses && upgraded && prefab && likeRank && belike && equip;
+                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " teaseStatic=" + teaseStatic + " equipStatic=" + equipStatic + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " equip=" + equip + " pass=" + pass);
                 return Task.FromResult(pass ? 0 : 3);
             }
             catch (Exception e)
@@ -472,6 +476,68 @@ namespace Shenxiao.EditorTools
                 if (interceptField != null) interceptField.SetValue(null, oldIntercept);
                 UnityEngine.Object.DestroyImmediate(viewObject);
             }
+        }
+
+        private static bool VerifyEquip()
+        {
+            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(EquipFuncViewPath);
+            if (asset == null) return false;
+            GameObject root = UnityEngine.Object.Instantiate(asset);
+            FieldInfo interceptField = typeof(BabyController).GetField("s_outboundIntercept", BindingFlags.Static | BindingFlags.NonPublic);
+            object oldIntercept = interceptField != null ? interceptField.GetValue(null) : null;
+            try
+            {
+                BabyEquipFuncView view = root.GetComponent<BabyEquipFuncView>();
+                if (view == null || interceptField == null) return false;
+                var frames = new System.Collections.Generic.List<byte[]>();
+                interceptField.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
+                BabyModel.Instance.ApplyBasic(new BabyBasicInfo { BabyName = "equip" });
+                BabyEquipInfo equip = new BabyEquipInfo { Power = 77 };
+                equip.EquipList.Add(new BabyEquipEntry { PositionId = 1, GoodsTypeId = 38040041 });
+                BabyModel.Instance.ApplyEquip(equip);
+                root.SetActive(true); view.Show();
+                BabyEquipView content = null;
+                BabyEquipView[] allContents = root.GetComponentsInChildren<BabyEquipView>(true);
+                for (int i = 0; i < allContents.Length; i++)
+                {
+                    if (!allContents[i].gameObject.activeInHierarchy) continue;
+                    content = allContents[i];
+                    break;
+                }
+                BabyEquipIcon[] allIcons = content != null ? content.GetComponentsInChildren<BabyEquipIcon>(true) : new BabyEquipIcon[0];
+                var icons = new System.Collections.Generic.List<BabyEquipIcon>();
+                for (int i = 0; i < allIcons.Length; i++) if (allIcons[i].gameObject.activeInHierarchy) icons.Add(allIcons[i]);
+                TMPro.TextMeshProUGUI name = content != null ? FindNode(content.transform, "nameLb")?.GetComponent<TMPro.TextMeshProUGUI>() : null;
+                Shenxiao.Module.Core.Common.FightingShowSmallItem fighting = null;
+                Shenxiao.Module.Core.Common.FightingShowSmallItem[] allFighting = content != null
+                    ? content.GetComponentsInChildren<Shenxiao.Module.Core.Common.FightingShowSmallItem>(true)
+                    : new Shenxiao.Module.Core.Common.FightingShowSmallItem[0];
+                for (int i = 0; i < allFighting.Length; i++)
+                {
+                    if (!allFighting[i].gameObject.activeInHierarchy) continue;
+                    fighting = allFighting[i];
+                    break;
+                }
+                BabyEquipIcon first = null, last = null;
+                for (int i = 0; i < icons.Count; i++) { if (icons[i].PositionId == 1) first = icons[i]; else if (icons[i].PositionId == 6) last = icons[i]; }
+                UnityEngine.UI.Image firstDefault = first != null ? FindNode(first.transform, "defaultImg")?.GetComponent<UnityEngine.UI.Image>() : null;
+                UnityEngine.UI.Image lastDefault = last != null ? FindNode(last.transform, "defaultImg")?.GetComponent<UnityEngine.UI.Image>() : null;
+                bool pass = frames.Count == 1 && IsProtocol(frames[0], Proto.BABY_EQUIP_INFO) && content != null && icons.Count == 6
+                    && name != null && name.text == "equip" && fighting != null && fighting._lb_fighting != null && fighting._lb_fighting.text == "77"
+                    && first != null && first.IsOccupied && last != null && !last.IsOccupied
+                    && firstDefault != null && !firstDefault.gameObject.activeSelf && lastDefault != null && lastDefault.gameObject.activeSelf;
+                bool inertButtons = content != null
+                    && FindNode(content.transform, "forgeBtn")?.GetComponent<UnityEngine.UI.Button>() == null
+                    && FindNode(content.transform, "imprintBtn")?.GetComponent<UnityEngine.UI.Button>() == null;
+                Debug.Log("CLIVERIFY baby equip frames=" + frames.Count + " proto=" + (frames.Count > 0 && IsProtocol(frames[0], Proto.BABY_EQUIP_INFO))
+                    + " content=" + (content != null) + " icons=" + icons.Count + " name=" + (name != null ? name.text : "<null>")
+                    + " fighting=" + (fighting != null && fighting._lb_fighting != null ? fighting._lb_fighting.text : "<null>") + " first=" + (first != null ? first.IsOccupied.ToString() : "<null>")
+                    + " last=" + (last != null ? last.IsOccupied.ToString() : "<null>") + " firstDefault=" + (firstDefault != null ? firstDefault.gameObject.activeSelf.ToString() : "<null>")
+                    + " lastDefault=" + (lastDefault != null ? lastDefault.gameObject.activeSelf.ToString() : "<null>") + " inert=" + inertButtons);
+                pass = pass && inertButtons;
+                view.Hide(); return pass;
+            }
+            finally { BabyModel.Instance.Reset(); if (interceptField != null) interceptField.SetValue(null, oldIntercept); UnityEngine.Object.DestroyImmediate(root); }
         }
 
         private static bool VerifyIllusionTabRed()

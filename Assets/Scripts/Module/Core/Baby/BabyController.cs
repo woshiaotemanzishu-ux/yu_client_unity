@@ -99,6 +99,8 @@ namespace Shenxiao.Module.Core.Baby
             SendRequest(Proto.BABY_FIGURE_POWER, "i", babyId);
         }
 
+        public void RequestEquipInfo() => SendEmpty(Proto.BABY_EQUIP_INFO);
+
         public void RequestLikeRank() => SendEmpty(Proto.BABY_LIKE_RANK);
 
         public void RequestLikeRecords() => SendEmpty(Proto.BABY_LIKE_RECORDS);

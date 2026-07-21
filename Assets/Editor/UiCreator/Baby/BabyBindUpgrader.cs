@@ -21,6 +21,7 @@ namespace Shenxiao.Editor.UiCreator.Baby
         private const string BelikeItemPath = "Assets/Prefabs/UI/Baby/BabyBelikeItem.prefab";
         private const string LikeRewardPath = "Assets/Prefabs/UI/Baby/BabyLikeReward.prefab";
         private const string BaseAwardItemPath = "Assets/Prefabs/UI/Common/BaseAwardItem.prefab";
+        private const string FightingShowSmallItemPath = "Assets/Prefabs/UI/Common/FightingShowSmallItem.prefab";
         private const string TeaseViewPath = "Assets/Prefabs/UI/Baby/BabyTeaseView.prefab";
         private const string TeaseSceneKey = "baby/BabyTeaseView";
         private static readonly string[] EquipSceneKeys =
@@ -114,6 +115,10 @@ namespace Shenxiao.Editor.UiCreator.Baby
         public static bool UpgradeEquipStatic()
         {
             for (int i = 0; i < EquipPrefabPaths.Length; i++) if (!Fill(EquipPrefabPaths[i])) return false;
+            if (!EnsureNestedTemplate(EquipPrefabPaths[4], "__Templates", BaseAwardItemPath)
+                || !EnsureNestedTemplate(EquipPrefabPaths[1], "__Templates", EquipPrefabPaths[4])
+                || !EnsureNestedTemplate(EquipPrefabPaths[1], "__Templates", FightingShowSmallItemPath)
+                || !EnsureNestedTemplate(EquipPrefabPaths[0], "__Templates", EquipPrefabPaths[1])) return false;
             return VerifyEquipStatic();
         }
 
@@ -129,6 +134,17 @@ namespace Shenxiao.Editor.UiCreator.Baby
             ok &= CheckNamedNodes(EquipPrefabPaths[3], "selectImg", "equipGp", "redImg");
             ok &= CheckGeneratedBindByName(EquipPrefabPaths[4], "BabyEquipIcon", "BabyEquipIconBind");
             ok &= CheckNamedNodes(EquipPrefabPaths[4], "itemGp", "defaultImg", "addImg", "effectGp");
+            ok &= CheckBusinessView<BabyEquipIcon>(AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[4]), "BabyEquipIcon");
+            ok &= CheckBusinessView<BabyEquipView>(AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[1]), "BabyEquipView");
+            ok &= CheckBusinessView<BabyEquipFuncView>(AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[0]), "BabyEquipFuncView");
+            GameObject icon = AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[4]);
+            GameObject view = AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[1]);
+            GameObject func = AssetDatabase.LoadAssetAtPath<GameObject>(EquipPrefabPaths[0]);
+            ok &= CheckTemplate<Shenxiao.Module.Core.Common.BaseAwardItem>(icon != null ? icon.transform.Find("__Templates/BaseAwardItem")?.gameObject : null, "BabyEquipIcon.BaseAwardItem");
+            ok &= CheckTemplate<BabyEquipIcon>(view != null ? view.transform.Find("__Templates/BabyEquipIcon")?.gameObject : null, "BabyEquipView.BabyEquipIcon");
+            ok &= CheckTemplate<BabyEquipView>(func != null ? func.transform.Find("__Templates/BabyEquipView")?.gameObject : null, "BabyEquipFuncView.BabyEquipView");
+            ok &= CheckTemplate<Shenxiao.Module.Core.Common.FightingShowSmallItem>(view != null ? view.transform.Find("__Templates/FightingShowSmallItem")?.gameObject : null, "BabyEquipView.FightingShowSmallItem");
+            ok &= CheckBusinessView<Shenxiao.Module.Core.Common.FightingShowSmallItem>(view, "BabyEquipView.FightingShowSmallItem");
             Debug.Log("[UiCreator] Baby equip static verification " + (ok ? "OK" : "FAILED"));
             return ok;
         }
