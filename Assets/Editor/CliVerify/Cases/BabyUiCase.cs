@@ -208,9 +208,12 @@ namespace Shenxiao.EditorTools
                     bool activeStarsDisplay = activeIllu != null && activeIllu.star_group.childCount == 5
                         && activeIllu.star_shadow_group.childCount == 5 && CountActiveChildren(activeIllu.star_group) == 2
                         && AllSprites(activeIllu.star_group) && AllSprites(activeIllu.star_shadow_group);
-                    illusionDisplay = illusionDisplay && activeStarsDisplay;
+                    string expectedFrame = "com_goods_plate_" + Shenxiao.Module.Core.Common.GoodsModel.GetDisplayColor(68010001);
+                    bool activeFrameDisplay = activeIllu != null && activeIllu.box.sprite != null
+                        && activeIllu.box.sprite.name == expectedFrame;
+                    illusionDisplay = illusionDisplay && activeStarsDisplay && activeFrameDisplay;
                     Debug.Log("CLIVERIFY babyui illusion active list=" + listDisplay + " props=" + activePropsDisplay
-                        + " fighting=" + activeFightingDisplay + " stars=" + activeStarsDisplay);
+                        + " fighting=" + activeFightingDisplay + " stars=" + activeStarsDisplay + " frame=" + activeFrameDisplay);
                     if (illusionDisplay)
                     {
                         Transform third = illusionView.illuGp.Find("BabyIlluItem_3");

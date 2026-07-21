@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Shenxiao.Framework.Res;
 using Shenxiao.Generated.UI.Baby;
+using Shenxiao.Module.Core.Common;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,6 +11,20 @@ namespace Shenxiao.Module.Core.Baby
     {
         private readonly List<Image> _shadows = new List<Image>();
         private readonly List<Image> _stars = new List<Image>();
+
+        public void SetCostFrame(long typeId)
+        {
+            if (box == null) return;
+            if (typeId <= 0 || typeId > int.MaxValue)
+            {
+                box.gameObject.SetActive(false);
+                return;
+            }
+
+            box.gameObject.SetActive(true);
+            string frame = "com_goods_plate_" + GoodsModel.GetDisplayColor((int)typeId);
+            _ = ResManager.SetImageAsync(box, GameResPath.GetIcon("common", frame), nativeSize: false);
+        }
 
         public void SetStar(int star, bool active)
         {
