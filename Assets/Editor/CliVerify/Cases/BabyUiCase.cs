@@ -74,8 +74,13 @@ namespace Shenxiao.EditorTools
 
             GameObject module = UnityEngine.Object.Instantiate(moduleAsset);
             GameObject propItem = UnityEngine.Object.Instantiate(propItemAsset);
+            FieldInfo interceptField = typeof(BabyController).GetField("s_outboundIntercept", BindingFlags.Static | BindingFlags.NonPublic);
+            object oldIntercept = interceptField != null ? interceptField.GetValue(null) : null;
+            var powerFrames = new System.Collections.Generic.List<byte[]>();
             try
             {
+                if (interceptField == null) return false;
+                interceptField.SetValue(null, new Func<byte[], bool>(frame => { powerFrames.Add(frame); return true; }));
                 Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
                 bool pages = Check<GestateBabyViewBind>(module) && Check<BabyFamilyViewBind>(module)
                     && Check<BabyCultivateViewBind>(module) && Check<BabyChangedViewBind>(module)
@@ -141,7 +146,7 @@ namespace Shenxiao.EditorTools
                 BabyIllusionView illusionView = module.GetComponentInChildren<BabyIllusionView>(true);
                 model.ApplyBasic(new BabyBasicInfo { BabyId = 1 });
                 model.ApplyFigures(new BabyFigureInfo());
-                model.MergeFigure(1, 2, 0, 0);
+                model.MergeFigure(1, 2, 1000, 1300);
                 model.MergeFigure(2, 3, 0, 0);
                 BabyFigureConfigs.BabyFigureCfg illusionCfg = BabyFigureConfigs.Get(1);
                 bool illusionDisplay = illusionView != null && illusionCfg != null;
@@ -175,6 +180,9 @@ namespace Shenxiao.EditorTools
                         && illusionView.stageLb.text.Contains("35/30") && illusionView.stageLb.text.Contains("#0f9f00");
                     BabyPropItem[] activeProps = illusionView.propGp.GetComponentsInChildren<BabyPropItem>(true);
                     illusionDisplay = illusionDisplay && CountVisible(activeProps) == 4 && activeProps[0].nextLb.text.Contains("+30000");
+                    Shenxiao.Module.Core.Common.FightingShowSmallItem[] fightingItems = illusionView.fight.GetComponentsInChildren<Shenxiao.Module.Core.Common.FightingShowSmallItem>(true);
+                    illusionDisplay = illusionDisplay && fightingItems.Length == 1 && fightingItems[0]._lb_fighting.text == "1000"
+                        && fightingItems[0]._box_up.gameObject.activeSelf && powerFrames.Count == 0;
                     if (illusionDisplay)
                     {
                         Transform third = illusionView.illuGp.Find("BabyIlluItem_3");
@@ -193,6 +201,12 @@ namespace Shenxiao.EditorTools
                             && stageCostItems.Length == 1 && !stageCostItems[0].gameObject.activeSelf;
                         BabyPropItem[] inactiveProps = illusionView.propGp.GetComponentsInChildren<BabyPropItem>(true);
                         illusionDisplay = illusionDisplay && CountVisible(inactiveProps) == 4 && inactiveProps[0].nextLb.text.Contains("+70000");
+                        bool requestPower = powerFrames.Count == 1 && IsPowerFrame(powerFrames[0], 3);
+                        model.ApplyFigurePowerResult(new BabyFigurePowerResult { BabyId = 3, BabyStar = 0, Power = 700, NextPower = 900 });
+                        Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_FIGURE_POWER);
+                        fightingItems = illusionView.fight.GetComponentsInChildren<Shenxiao.Module.Core.Common.FightingShowSmallItem>(true);
+                        illusionDisplay = illusionDisplay && requestPower && powerFrames.Count == 1 && fightingItems.Length == 1
+                            && fightingItems[0]._lb_fighting.text == "700+" && fightingItems[0]._box_up.gameObject.activeSelf;
                     }
                     illusionView.Hide();
                 }
@@ -214,6 +228,7 @@ namespace Shenxiao.EditorTools
             {
                 BabyModel.Instance.Reset();
                 Shenxiao.Module.Core.Bag.BagModel.Instance.Clear();
+                if (interceptField != null) interceptField.SetValue(null, oldIntercept);
                 UnityEngine.Object.DestroyImmediate(module);
                 UnityEngine.Object.DestroyImmediate(propItem);
             }
@@ -251,6 +266,13 @@ namespace Shenxiao.EditorTools
             int count = 0;
             for (int i = 0; i < items.Length; i++) if (items[i] != null && items[i].gameObject.activeSelf) count++;
             return count;
+        }
+
+        private static bool IsPowerFrame(byte[] frame, int babyId)
+        {
+            if (frame == null || frame.Length != 10 || frame[4] != (byte)(Proto.BABY_FIGURE_POWER >> 8) || frame[5] != (byte)Proto.BABY_FIGURE_POWER) return false;
+            return frame[6] == (byte)(babyId >> 24) && frame[7] == (byte)(babyId >> 16)
+                && frame[8] == (byte)(babyId >> 8) && frame[9] == (byte)babyId;
         }
     }
 }

@@ -21,6 +21,8 @@ namespace Shenxiao.Module.Core.Baby
         private BaseAwardItem _activeCostItem;
         private BaseAwardItem _stageCostItem;
         private readonly List<BabyPropItem> _propItems = new List<BabyPropItem>();
+        private FightingShowSmallItem _fightingItem;
+        private int _pendingPowerBabyId;
 
         protected override void OnInit()
         {
@@ -40,6 +42,7 @@ namespace Shenxiao.Module.Core.Baby
         protected override void OnHide()
         {
             _shown = false;
+            _pendingPowerBabyId = 0;
             Unsubscribe();
             ClearItems();
         }
@@ -47,6 +50,7 @@ namespace Shenxiao.Module.Core.Baby
         protected override void OnDispose()
         {
             _shown = false;
+            _pendingPowerBabyId = 0;
             Unsubscribe();
             ClearItems();
         }
@@ -70,8 +74,11 @@ namespace Shenxiao.Module.Core.Baby
         private void OnBabyUpdate(int command)
         {
             if (!gameObject.activeInHierarchy) return;
+            if (command == Proto.BABY_FIGURE_POWER
+                && BabyModel.Instance.LastFigurePowerResult?.BabyId == _pendingPowerBabyId)
+                _pendingPowerBabyId = 0;
             if (command == Proto.BABY_FIGURE_INFO || command == Proto.BABY_FIGURE_WEAR
-                || command == Proto.BABY_FIGURE_STAR_UP)
+                || command == Proto.BABY_FIGURE_STAR_UP || command == Proto.BABY_FIGURE_POWER)
                 Refresh();
         }
 
@@ -121,6 +128,7 @@ namespace Shenxiao.Module.Core.Baby
             UpdateCostItem(ref _stageCostItem, stageitemGp, stageLb, nextCfg != null && nextCfg.Costs.Count > 0 ? nextCfg.Costs[0].TypeId : 0,
                 nextCfg != null && nextCfg.Costs.Count > 0 ? nextCfg.Costs[0].Num : 0);
             RefreshProps(selected);
+            RefreshFighting(selected);
         }
 
         private void CreateItem(BabyFigureConfigs.BabyFigureCfg cfg, BabyFigureEntry entry)
@@ -242,6 +250,57 @@ namespace Shenxiao.Module.Core.Baby
                 long currentValue = current != null && current.Count > 0 ? value.Value : 0;
                 item.SetData(value.AttrId, currentValue, nextValue != null, nextValue != null ? nextValue.Value : 0);
             }
+        }
+
+        private void RefreshFighting(BabyFigureEntry selected)
+        {
+            if (_selectedBabyId <= 0)
+            {
+                if (_fightingItem != null) _fightingItem.gameObject.SetActive(false);
+                return;
+            }
+            long power = 0;
+            long nextPower = 0;
+            bool hasData = false;
+            bool inactive = selected == null;
+            if (selected != null)
+            {
+                power = selected.Power;
+                nextPower = selected.NextPower;
+                hasData = power != 0 || nextPower != 0;
+            }
+            else
+            {
+                BabyFigurePowerResult result = BabyModel.Instance.LastFigurePowerResult;
+                if (result != null && result.BabyId == _selectedBabyId)
+                {
+                    power = result.Power;
+                    nextPower = result.NextPower;
+                    hasData = true;
+                }
+            }
+            if (!hasData)
+            {
+                if (_fightingItem != null) _fightingItem.gameObject.SetActive(false);
+                if (_pendingPowerBabyId != _selectedBabyId)
+                {
+                    _pendingPowerBabyId = _selectedBabyId;
+                    BabyController.Instance.RequestFigurePower(_selectedBabyId);
+                }
+                return;
+            }
+            if (_fightingItem == null && _tpl_FightingShowSmallItem != null && fight != null)
+            {
+                GameObject go = Instantiate(_tpl_FightingShowSmallItem, fight, false);
+                _fightingItem = go.GetComponent<FightingShowSmallItem>();
+            }
+            if (_fightingItem == null) return;
+            _fightingItem.gameObject.SetActive(true);
+            _fightingItem.SetFighting(power);
+            _fightingItem.SetFightingUp(System.Math.Max(nextPower - power, 0));
+            if (inactive && BabyModel.Instance.LastFigurePowerResult != null && BabyModel.Instance.LastFigurePowerResult.BabyId == _selectedBabyId
+                && _fightingItem._lb_fighting != null)
+                _fightingItem._lb_fighting.text = power + "+";
         }
 
         private void HideProps()
