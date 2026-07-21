@@ -173,6 +173,8 @@ namespace Shenxiao.EditorTools
                         && stageCostItems.Length == 1 && stageCostItems[0].gameObject.activeSelf
                         && stageCostItems[0].num_text.text == "30"
                         && illusionView.stageLb.text.Contains("35/30") && illusionView.stageLb.text.Contains("#0f9f00");
+                    BabyPropItem[] activeProps = illusionView.propGp.GetComponentsInChildren<BabyPropItem>(true);
+                    illusionDisplay = illusionDisplay && CountVisible(activeProps) == 4 && activeProps[0].nextLb.text.Contains("+30000");
                     if (illusionDisplay)
                     {
                         Transform third = illusionView.illuGp.Find("BabyIlluItem_3");
@@ -189,6 +191,8 @@ namespace Shenxiao.EditorTools
                             && activeCostItems[0].num_text.text == "30"
                             && illusionView.activeLb.text.Contains("0/30") && illusionView.activeLb.text.Contains("#ff4f50")
                             && stageCostItems.Length == 1 && !stageCostItems[0].gameObject.activeSelf;
+                        BabyPropItem[] inactiveProps = illusionView.propGp.GetComponentsInChildren<BabyPropItem>(true);
+                        illusionDisplay = illusionDisplay && CountVisible(inactiveProps) == 4 && inactiveProps[0].nextLb.text.Contains("+70000");
                     }
                     illusionView.Hide();
                 }
@@ -240,6 +244,13 @@ namespace Shenxiao.EditorTools
         private static bool Has<T>(GameObject template) where T : Component
         {
             return template != null && template.GetComponent<T>() != null;
+        }
+
+        private static int CountVisible<T>(T[] items) where T : Component
+        {
+            int count = 0;
+            for (int i = 0; i < items.Length; i++) if (items[i] != null && items[i].gameObject.activeSelf) count++;
+            return count;
         }
     }
 }

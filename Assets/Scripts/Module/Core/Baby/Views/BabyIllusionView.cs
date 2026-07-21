@@ -20,6 +20,7 @@ namespace Shenxiao.Module.Core.Baby
         private int _selectedBabyId;
         private BaseAwardItem _activeCostItem;
         private BaseAwardItem _stageCostItem;
+        private readonly List<BabyPropItem> _propItems = new List<BabyPropItem>();
 
         protected override void OnInit()
         {
@@ -119,6 +120,7 @@ namespace Shenxiao.Module.Core.Baby
             BabyFigureStarConfigs.BabyFigureStarCfg nextCfg = hasNextStar ? BabyFigureStarConfigs.Get(selected.BabyId, selected.BabyStar + 1) : null;
             UpdateCostItem(ref _stageCostItem, stageitemGp, stageLb, nextCfg != null && nextCfg.Costs.Count > 0 ? nextCfg.Costs[0].TypeId : 0,
                 nextCfg != null && nextCfg.Costs.Count > 0 ? nextCfg.Costs[0].Num : 0);
+            RefreshProps(selected);
         }
 
         private void CreateItem(BabyFigureConfigs.BabyFigureCfg cfg, BabyFigureEntry entry)
@@ -195,6 +197,63 @@ namespace Shenxiao.Module.Core.Baby
             if (item == null) return;
             item.gameObject.SetActive(true);
             item.SetData((int)typeId, num);
+        }
+
+        private void RefreshProps(BabyFigureEntry selected)
+        {
+            if (!BabyFigureStarConfigs.IsLoaded || _tpl_BabyPropItem == null || propGp == null)
+            {
+                HideProps();
+                return;
+            }
+            int babyId = _selectedBabyId;
+            BabyFigureStarConfigs.BabyFigureStarCfg currentCfg = selected != null
+                ? BabyFigureStarConfigs.Get(babyId, selected.BabyStar) : null;
+            BabyFigureStarConfigs.BabyFigureStarCfg nextCfg = BabyFigureStarConfigs.Get(babyId, selected != null ? selected.BabyStar + 1 : 1);
+            List<BabyFigureStarConfigs.AttrItem> current = currentCfg != null ? currentCfg.BaseAttrs : null;
+            List<BabyFigureStarConfigs.AttrItem> next = nextCfg != null ? nextCfg.BaseAttrs : null;
+            List<BabyFigureStarConfigs.AttrItem> source = current != null && current.Count > 0 ? current : next;
+            if (source == null || source.Count == 0)
+            {
+                HideProps();
+                return;
+            }
+            while (_propItems.Count < source.Count)
+            {
+                GameObject go = Instantiate(_tpl_BabyPropItem, propGp, false);
+                BabyPropItem item = go.GetComponent<BabyPropItem>();
+                if (item == null)
+                {
+                    if (Application.isPlaying) Destroy(go);
+                    else DestroyImmediate(go);
+                    break;
+                }
+                _propItems.Add(item);
+            }
+            for (int i = 0; i < _propItems.Count; i++)
+            {
+                BabyPropItem item = _propItems[i];
+                bool visible = i < source.Count;
+                if (item == null) continue;
+                item.gameObject.SetActive(visible);
+                if (!visible) continue;
+                BabyFigureStarConfigs.AttrItem value = source[i];
+                BabyFigureStarConfigs.AttrItem nextValue = FindAttr(next, value.AttrId);
+                long currentValue = current != null && current.Count > 0 ? value.Value : 0;
+                item.SetData(value.AttrId, currentValue, nextValue != null, nextValue != null ? nextValue.Value : 0);
+            }
+        }
+
+        private void HideProps()
+        {
+            for (int i = 0; i < _propItems.Count; i++) if (_propItems[i] != null) _propItems[i].gameObject.SetActive(false);
+        }
+
+        private static BabyFigureStarConfigs.AttrItem FindAttr(List<BabyFigureStarConfigs.AttrItem> attrs, int attrId)
+        {
+            if (attrs == null) return null;
+            for (int i = 0; i < attrs.Count; i++) if (attrs[i].AttrId == attrId) return attrs[i];
+            return null;
         }
 
         private void ClearItems()
