@@ -60,6 +60,21 @@ namespace Shenxiao.EditorTools
                     && Check<BabyIllusionViewBind>(module);
                 bool businessViews = module.GetComponentInChildren<GestateBabyView>(true) != null
                     && module.GetComponentInChildren<BabyCultivateView>(true) != null;
+                BabyModel model = BabyModel.Instance;
+                model.ApplyBasic(new BabyBasicInfo { BabyName = "baby" });
+                model.ApplyRaise(new BabyRaiseInfo { RaiseLevel = 7, RaiseExp = 11 });
+                model.ApplyStage(new BabyStageInfo { StageExp = 13 });
+                BabyCultivateView cultivateView = module.GetComponentInChildren<BabyCultivateView>(true);
+                bool display = cultivateView != null;
+                if (display)
+                {
+                    cultivateView.gameObject.SetActive(true);
+                    cultivateView.Show();
+                    display = cultivateView.babyName.text == "baby" && cultivateView.lvLb.text == "7"
+                        && cultivateView.lvExpLb.text == "11" && cultivateView.stageExpLb.text == "13";
+                    cultivateView.Hide();
+                }
+                model.Reset();
                 bool items = Check<BabyCulTaskItemBind>(module) && Check<BabyIlluItemBind>(module)
                     && Check<BabyPropItemBind>(propItem);
                 BabyCultivateViewBind cultivate = module.GetComponentInChildren<BabyCultivateViewBind>(true);
@@ -68,11 +83,12 @@ namespace Shenxiao.EditorTools
                     && Has<BabyPropItemBind>(cultivate != null ? cultivate._tpl_BabyPropItem : null)
                     && Has<BabyIlluItemBind>(illusion != null ? illusion._tpl_BabyIlluItem : null)
                     && Has<BabyPropItemBind>(illusion != null ? illusion._tpl_BabyPropItem : null);
-                Debug.Log("CLIVERIFY babyui pages=" + pages + " businessViews=" + businessViews + " items=" + items + " templates=" + templates);
-                return pages && businessViews && items && templates;
+                Debug.Log("CLIVERIFY babyui pages=" + pages + " businessViews=" + businessViews + " display=" + display + " items=" + items + " templates=" + templates);
+                return pages && businessViews && display && items && templates;
             }
             finally
             {
+                BabyModel.Instance.Reset();
                 UnityEngine.Object.DestroyImmediate(module);
                 UnityEngine.Object.DestroyImmediate(propItem);
             }
