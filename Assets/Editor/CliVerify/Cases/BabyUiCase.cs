@@ -31,6 +31,7 @@ namespace Shenxiao.EditorTools
                 _ = BabyFigureStarConfigs.EnsureLoaded();
                 _ = BabyValueConfigs.EnsureLoaded();
                 _ = BabyStageConfigs.EnsureLoaded();
+                _ = BabyPraiseConfigs.EnsureLoaded();
                 _ = Shenxiao.Module.Core.Common.GoodsModel.EnsureLoaded();
                 BabyFigureConfigs.BabyFigureCfg figureCfg = BabyFigureConfigs.Get(1);
                 BabyFigureStarConfigs.BabyFigureStarCfg starCfg = BabyFigureStarConfigs.Get(1, 2);
@@ -43,7 +44,16 @@ namespace Shenxiao.EditorTools
                     && BabyValueConfigs.IsLoaded && BabyValueConfigs.StageRaiseLevel == 2
                     && BabyValueConfigs.StageMaterials.Count > 0 && BabyValueConfigs.StageMaterials[0].ItemId == 38040041
                     && BabyValueConfigs.StageMaterials[0].ExpPerItem == 10
-                    && BabyStageConfigs.GetNext(1, 1) != null && BabyStageConfigs.GetNext(1, 1).ExpCon == 13;
+                    && BabyStageConfigs.GetNext(1, 1) != null && BabyStageConfigs.GetNext(1, 1).ExpCon == 13
+                    && BabyPraiseConfigs.IsLoaded && BabyPraiseConfigs.All.Count == 6
+                    && BabyPraiseConfigs.GetByRank(1) != null && BabyPraiseConfigs.GetByRank(1).Rank1 == 1
+                    && BabyPraiseConfigs.GetByRank(2) != null && BabyPraiseConfigs.GetByRank(2).Rank1 == 2
+                    && BabyPraiseConfigs.GetByRank(100) != null && BabyPraiseConfigs.GetByRank(100).Rank2 == 100
+                    && BabyPraiseConfigs.GetByRank(0) == null && BabyPraiseConfigs.GetByRank(101) == null
+                    && BabyPraiseConfigs.All[0].Rewards.Count > 0
+                    && BabyPraiseConfigs.All[0].Rewards[0].TypeId == 38040043 && BabyPraiseConfigs.All[0].Rewards[0].Num == 1
+                    && BabyPraiseConfigs.All[5].Rewards.Count > 0
+                    && BabyPraiseConfigs.All[5].Rewards[0].TypeId == 38040041 && BabyPraiseConfigs.All[5].Rewards[0].Num == 1;
                 bool upgraded = BabyBindUpgrader.Generate();
                 bool prefab = upgraded && VerifyInstances();
                 bool pass = config && likeStatic && upgraded && prefab;
