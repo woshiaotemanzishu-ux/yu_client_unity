@@ -19,6 +19,7 @@ namespace Shenxiao.EditorTools
         private const string LikeViewPath = "Assets/Prefabs/UI/Baby/BabyLikeView.prefab";
         private const string BelikeViewPath = "Assets/Prefabs/UI/Baby/BabyBelikeView.prefab";
         private const string EquipFuncViewPath = "Assets/Prefabs/UI/Baby/BabyEquipFuncView.prefab";
+        private const string ForgeViewPath = "Assets/Prefabs/UI/Baby/BabyForgeView.prefab";
         private const string ImprintViewPath = "Assets/Prefabs/UI/Baby/BabyImprintView.prefab";
         private const string AddImprintViewPath = "Assets/Prefabs/UI/Baby/BabyAddImprintView.prefab";
         private const string ImprintItemPath = "Assets/Prefabs/UI/Baby/BabyImprintItem.prefab";
@@ -86,8 +87,9 @@ namespace Shenxiao.EditorTools
                 bool belike = likeStatic && VerifyBelike();
                 bool equip = equipStatic && VerifyEquip();
                 bool imprintBusiness = imprintStatic && VerifyImprintBusinessInstances();
-                bool pass = config && likeStatic && teaseStatic && equipStatic && imprintStatic && forgeStatic && imprintBusiness && viewAddresses && upgraded && prefab && likeRank && belike && equip;
-                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " teaseStatic=" + teaseStatic + " equipStatic=" + equipStatic + " imprintStatic=" + imprintStatic + " forgeStatic=" + forgeStatic + " imprintBusiness=" + imprintBusiness + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " equip=" + equip + " pass=" + pass);
+                bool forgeBusiness = forgeStatic && VerifyForgeBusinessInstances();
+                bool pass = config && likeStatic && teaseStatic && equipStatic && imprintStatic && forgeStatic && imprintBusiness && forgeBusiness && viewAddresses && upgraded && prefab && likeRank && belike && equip;
+                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " teaseStatic=" + teaseStatic + " equipStatic=" + equipStatic + " imprintStatic=" + imprintStatic + " forgeStatic=" + forgeStatic + " imprintBusiness=" + imprintBusiness + " forgeBusiness=" + forgeBusiness + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " equip=" + equip + " pass=" + pass);
                 return Task.FromResult(pass ? 0 : 3);
             }
             catch (Exception e)
@@ -556,6 +558,36 @@ namespace Shenxiao.EditorTools
                 UnityEngine.Object.DestroyImmediate(item);
                 UnityEngine.Object.DestroyImmediate(addItem);
             }
+        }
+
+        private static bool VerifyForgeBusinessInstances()
+        {
+            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(ForgeViewPath);
+            MethodInfo setBagFull = typeof(Shenxiao.Module.Core.Bag.BagModel).GetMethod("SetBagFull", BindingFlags.Instance | BindingFlags.Public);
+            FieldInfo intercept = typeof(BabyController).GetField("s_outboundIntercept", BindingFlags.Static | BindingFlags.NonPublic);
+            if (asset == null || setBagFull == null || intercept == null) return false;
+            GameObject root = UnityEngine.Object.Instantiate(asset); object oldIntercept = intercept.GetValue(null); var frames = new System.Collections.Generic.List<byte[]>();
+            try
+            {
+                BabyForgeView view = root.GetComponent<BabyForgeView>();
+                if (view == null || typeof(BabyForgeView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>() != null) return false;
+                intercept.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; })); root.SetActive(true);
+                setBagFull.Invoke(Shenxiao.Module.Core.Bag.BagModel.Instance, new object[] { 0, 20, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods> { new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 1, TypeId = 38040031, GoodsNum = 1 } } });
+                BabyEquipInfo equip = new BabyEquipInfo(); equip.EquipList.Add(new BabyEquipEntry { PositionId = 1, Id = 11, GoodsTypeId = 65010200, Stage = 0, StageLevel = 0, StageExp = 0 }); BabyModel.Instance.ApplyEquip(equip);
+                view.SetPositionId(1); BabyEquipUpgradeConfigs.PreviewResult levelPreview = BabyEquipUpgradeConfigs.Preview(equip.EquipList[0]);
+                bool level = view.Mode == BabyForgeView.ForgeMode.Level && view.RenderedCostCount == levelPreview.Costs.Count && FindNode(root.transform, "lvLb")?.GetComponent<TMPro.TextMeshProUGUI>()?.text == "0\u7ea7" && FindNode(root.transform, "nextlvLb")?.GetComponent<TMPro.TextMeshProUGUI>()?.text == "1\u7ea7" && FindNode(root.transform, "lvExpLb")?.GetComponent<TMPro.TextMeshProUGUI>()?.text.StartsWith("0/") == true && FindNode(root.transform, "lvGp")?.gameObject.activeSelf == true && FindNode(root.transform, "stageGp")?.gameObject.activeSelf == false && FindNode(root.transform, "maxStage")?.gameObject.activeSelf == false && FindNode(root.transform, "lvExpImg")?.GetComponent<UnityEngine.UI.Image>()?.fillAmount == 0f;
+                equip.EquipList[0].StageLevel = 10; view.Refresh(); BabyEquipUpgradeConfigs.PreviewResult stagePreview = BabyEquipUpgradeConfigs.Preview(equip.EquipList[0]);
+                bool stage = view.Mode == BabyForgeView.ForgeMode.Stage && stagePreview.IsStageUpgrade && view.RenderedCostCount == stagePreview.Costs.Count && FindNode(root.transform, "lvGp")?.gameObject.activeSelf == false && FindNode(root.transform, "stageGp")?.gameObject.activeSelf == true && FindNode(root.transform, "maxStage")?.gameObject.activeSelf == false;
+                equip.EquipList[0].Stage = 10; equip.EquipList[0].StageLevel = 0; view.Refresh();
+                bool max = view.Mode == BabyForgeView.ForgeMode.Max && view.RenderedCostCount == 0 && FindNode(root.transform, "maxStage")?.gameObject.activeSelf == true;
+                bool passive = FindNode(root.transform, "lvBtn")?.GetComponent<UnityEngine.UI.Button>() == null && FindNode(root.transform, "stageBtn")?.GetComponent<UnityEngine.UI.Button>() == null && FindNode(root.transform, "targetGp")?.gameObject.activeSelf == false && FindNode(root.transform, "effectGp")?.gameObject.activeSelf == false && FindNode(root.transform, "targetEffectGp")?.gameObject.activeSelf == false;
+                view.Clear();
+                bool cleared = view.PositionId == 0 && view.Mode == BabyForgeView.ForgeMode.Empty && view.RenderedCostCount == 0;
+                Debug.Log("CLIVERIFY baby forge display level=" + level + " stage=" + stage + " max=" + max
+                    + " passive=" + passive + " cleared=" + cleared + " frames=" + frames.Count);
+                return level && stage && max && passive && cleared && frames.Count == 0;
+            }
+            finally { Shenxiao.Module.Core.Bag.BagModel.Instance.Clear(); BabyModel.Instance.Reset(); intercept.SetValue(null, oldIntercept); UnityEngine.Object.DestroyImmediate(root); }
         }
 
         private static bool VerifyEquipUpgradeConfigs()

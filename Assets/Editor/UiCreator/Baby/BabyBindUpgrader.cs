@@ -174,7 +174,7 @@ namespace Shenxiao.Editor.UiCreator.Baby
             return VerifyForgeStatic();
         }
 
-        /// <summary>Read-only acceptance for the Forge child panel; it deliberately has no business View component.</summary>
+        /// <summary>Read-only acceptance for the Forge child display panel; it has no UIView route or action binding.</summary>
         public static bool VerifyForgeStatic()
         {
             bool ok = CheckGeneratedBindByName(ForgeViewPath, "BabyForgeView", "BabyForgeViewBind");
@@ -183,6 +183,7 @@ namespace Shenxiao.Editor.UiCreator.Baby
                 "stageGp", "_Scroller2", "Content1", "stageBtn", "stageRed", "maxStage", "targetGp", "effectGp", "targetEffectGp");
             ok &= CheckTemplatePath(ForgeViewPath, "__Templates/BaseAwardItem");
             GameObject forge = AssetDatabase.LoadAssetAtPath<GameObject>(ForgeViewPath);
+            ok &= CheckBusinessView<BabyForgeView>(forge, "BabyForgeView");
             ok &= CheckTemplate<Shenxiao.Module.Core.Common.BaseAwardItem>(forge != null ? forge.transform.Find("__Templates/BaseAwardItem")?.gameObject : null, "BabyForgeView.BaseAwardItem");
             if (AssetDatabase.LoadAssetAtPath<Sprite>(ImprintButtonSkinPath) == null)
             {

@@ -74,3 +74,4 @@
 动 UI/转换器读流水线文档,动登录/网络读登录链路文档,动进游戏/主界面/场景接管读进游戏链路文档。
 冲突时以 `Docs/Shenxiao重构实施方案.md` 为权威;实施进度与变更日志见
 [Docs/Shenxiao实施进度.md](Docs/Shenxiao实施进度.md)。
+- BabyForgeView 当前仅为纯显示骨架：不得添加 Button、发送协议或注册 UIView/路由；按“存在下一强化配置=Level，否则预览为升阶=Stage，否则有效装备=Max”切换，Level/Stage 仅渲染 `Preview.Costs`，`targetGp/effectGp/targetEffectGp` 固定隐藏。其 `lvGp/stageGp/maxStage` 实际挂在 `_Group1` 下，材料 `Content/Content1` 也不是可依赖的直接子节点，业务缓存必须按各自命名子树判断，不能限定 `parent == root` 或使用一层 `Find`。显示回归会从老端自动补入真实 LFS 图 `goodsicon/38040031.png`（SHA256 `ADB96DCF...2B29DB9`）与 `38040034.png`（`A97C5299...7B09D6`）。
