@@ -6,6 +6,7 @@ using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Baby;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Bag;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Baby
@@ -54,6 +55,7 @@ namespace Shenxiao.Module.Core.Baby
             if (_listening) return;
             _listening = true;
             EventDispatcher.On<int>(GlobalEvent.EVT_BABY_UPDATE, OnBabyUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, OnBagUpdate);
         }
 
         private void Unsubscribe()
@@ -61,6 +63,7 @@ namespace Shenxiao.Module.Core.Baby
             if (!_listening) return;
             _listening = false;
             EventDispatcher.Off<int>(GlobalEvent.EVT_BABY_UPDATE, OnBabyUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, OnBagUpdate);
         }
 
         private void OnBabyUpdate(int command)
@@ -69,6 +72,11 @@ namespace Shenxiao.Module.Core.Baby
             if (command == Proto.BABY_FIGURE_INFO || command == Proto.BABY_FIGURE_WEAR
                 || command == Proto.BABY_FIGURE_STAR_UP)
                 Refresh();
+        }
+
+        private void OnBagUpdate()
+        {
+            if (gameObject.activeInHierarchy) Refresh();
         }
 
         private void Refresh()
@@ -106,10 +114,10 @@ namespace Shenxiao.Module.Core.Baby
             if (stageGp != null) stageGp.gameObject.SetActive(hasNextStar);
             if (maxImg != null) maxImg.gameObject.SetActive(selected != null && BabyFigureStarConfigs.IsLoaded && !hasNextStar);
             BabyFigureConfigs.BabyFigureCfg selectedCfg = BabyFigureConfigs.Get(_selectedBabyId);
-            UpdateCostItem(ref _activeCostItem, activeitemGp, selected != null || selectedCfg == null || selectedCfg.Costs.Count == 0 ? 0 : selectedCfg.Costs[0].TypeId,
+            UpdateCostItem(ref _activeCostItem, activeitemGp, activeLb, selected != null || selectedCfg == null || selectedCfg.Costs.Count == 0 ? 0 : selectedCfg.Costs[0].TypeId,
                 selectedCfg != null && selectedCfg.Costs.Count > 0 ? selectedCfg.Costs[0].Num : 0);
             BabyFigureStarConfigs.BabyFigureStarCfg nextCfg = hasNextStar ? BabyFigureStarConfigs.Get(selected.BabyId, selected.BabyStar + 1) : null;
-            UpdateCostItem(ref _stageCostItem, stageitemGp, nextCfg != null && nextCfg.Costs.Count > 0 ? nextCfg.Costs[0].TypeId : 0,
+            UpdateCostItem(ref _stageCostItem, stageitemGp, stageLb, nextCfg != null && nextCfg.Costs.Count > 0 ? nextCfg.Costs[0].TypeId : 0,
                 nextCfg != null && nextCfg.Costs.Count > 0 ? nextCfg.Costs[0].Num : 0);
         }
 
@@ -163,11 +171,12 @@ namespace Shenxiao.Module.Core.Baby
             if (BabyFigureConfigs.Get(_selectedBabyId) != null) BabyController.Instance.RequestFigureStarUp(_selectedBabyId);
         }
 
-        private void UpdateCostItem(ref BaseAwardItem item, RectTransform parent, long typeId, long num)
+        private void UpdateCostItem(ref BaseAwardItem item, RectTransform parent, TMPro.TextMeshProUGUI label, long typeId, long num)
         {
             if (typeId <= 0 || typeId > int.MaxValue)
             {
                 if (item != null) item.gameObject.SetActive(false);
+                if (label != null) { label.text = string.Empty; label.gameObject.SetActive(false); }
                 return;
             }
             if (item == null && _tpl_BaseAwardItem != null && parent != null)
@@ -175,6 +184,13 @@ namespace Shenxiao.Module.Core.Baby
                 GameObject go = Instantiate(_tpl_BaseAwardItem, parent, false);
                 item = go.GetComponent<BaseAwardItem>();
                 if (item != null) item.SetScale(0.7f);
+            }
+            long have = BagModel.Instance.GetTypeGoodsNum((int)typeId);
+            string color = have >= num ? "#0f9f00" : "#ff4f50";
+            if (label != null)
+            {
+                label.text = GoodsModel.GetGoodsName((int)typeId) + "\n<color=" + color + ">(" + have + "/" + num + ")</color>";
+                label.gameObject.SetActive(true);
             }
             if (item == null) return;
             item.gameObject.SetActive(true);

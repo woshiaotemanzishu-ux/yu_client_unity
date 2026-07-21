@@ -50,6 +50,7 @@ namespace Shenxiao.EditorTools
             {
                 ResManager.EditorPreferFallback = editorPreferFallbackBefore;
                 BabyModel.Instance.Reset();
+                Shenxiao.Module.Core.Bag.BagModel.Instance.Clear();
             }
         }
 
@@ -75,6 +76,7 @@ namespace Shenxiao.EditorTools
             GameObject propItem = UnityEngine.Object.Instantiate(propItemAsset);
             try
             {
+                Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
                 bool pages = Check<GestateBabyViewBind>(module) && Check<BabyFamilyViewBind>(module)
                     && Check<BabyCultivateViewBind>(module) && Check<BabyChangedViewBind>(module)
                     && Check<BabyIllusionViewBind>(module);
@@ -160,7 +162,8 @@ namespace Shenxiao.EditorTools
                         && illusionView.stageGp.gameObject.activeSelf
                         && !illusionView.maxImg.gameObject.activeSelf
                         && stageCostItems.Length == 1 && stageCostItems[0].gameObject.activeSelf
-                        && stageCostItems[0].num_text.text == "30";
+                        && stageCostItems[0].num_text.text == "30"
+                        && illusionView.stageLb.text.Contains("35/30") && illusionView.stageLb.text.Contains("#0f9f00");
                     if (illusionDisplay)
                     {
                         Transform third = illusionView.illuGp.Find("BabyIlluItem_3");
@@ -175,6 +178,7 @@ namespace Shenxiao.EditorTools
                             && !illusionView.stageGp.gameObject.activeSelf && !illusionView.maxImg.gameObject.activeSelf
                             && activeCostItems.Length == 1 && activeCostItems[0].gameObject.activeSelf
                             && activeCostItems[0].num_text.text == "30"
+                            && illusionView.activeLb.text.Contains("0/30") && illusionView.activeLb.text.Contains("#ff4f50")
                             && stageCostItems.Length == 1 && !stageCostItems[0].gameObject.activeSelf;
                     }
                     illusionView.Hide();
@@ -194,6 +198,7 @@ namespace Shenxiao.EditorTools
             finally
             {
                 BabyModel.Instance.Reset();
+                Shenxiao.Module.Core.Bag.BagModel.Instance.Clear();
                 UnityEngine.Object.DestroyImmediate(module);
                 UnityEngine.Object.DestroyImmediate(propItem);
             }
