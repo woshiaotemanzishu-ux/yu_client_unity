@@ -17,6 +17,7 @@ namespace Shenxiao.Module.Core.Baby
         private readonly List<GameObject> _items = new List<GameObject>();
         private bool _listening;
         private bool _shown;
+        private bool _initialSelectionResolved;
         private int _selectedBabyId;
         private BaseAwardItem _activeCostItem;
         private BaseAwardItem _stageCostItem;
@@ -94,7 +95,22 @@ namespace Shenxiao.Module.Core.Baby
             BabyModel model = BabyModel.Instance;
             int wornBabyId = model.Basic != null ? model.Basic.BabyId : 0;
             List<BabyFigureEntry> active = model.Figures != null ? model.Figures.ActiveList : null;
-            if (BabyFigureConfigs.Get(_selectedBabyId) == null)
+            if (!_initialSelectionResolved && model.Figures != null && BabyFigureConfigs.IsLoaded && BabyFigureStarConfigs.IsLoaded)
+            {
+                int firstRedBabyId = 0;
+                for (int i = 0; i < BabyFigureConfigs.All.Count; i++)
+                {
+                    BabyFigureConfigs.BabyFigureCfg cfg = BabyFigureConfigs.All[i];
+                    if (!CanShowRed(cfg, FindActiveEntry(active, cfg.BabyId))) continue;
+                    firstRedBabyId = cfg.BabyId;
+                    break;
+                }
+                _selectedBabyId = firstRedBabyId > 0 ? firstRedBabyId
+                    : BabyFigureConfigs.Get(wornBabyId) != null ? wornBabyId
+                    : BabyFigureConfigs.All.Count > 0 ? BabyFigureConfigs.All[0].BabyId : 0;
+                _initialSelectionResolved = true;
+            }
+            else if (_initialSelectionResolved && BabyFigureConfigs.Get(_selectedBabyId) == null)
                 _selectedBabyId = BabyFigureConfigs.Get(wornBabyId) != null ? wornBabyId
                     : BabyFigureConfigs.All.Count > 0 ? BabyFigureConfigs.All[0].BabyId : 0;
 
@@ -204,7 +220,9 @@ namespace Shenxiao.Module.Core.Baby
 
         private void Select(int babyId)
         {
-            if (BabyFigureConfigs.Get(babyId) == null || babyId == _selectedBabyId) return;
+            if (BabyFigureConfigs.Get(babyId) == null) return;
+            _initialSelectionResolved = true;
+            if (babyId == _selectedBabyId) return;
             _selectedBabyId = babyId;
             Refresh();
         }

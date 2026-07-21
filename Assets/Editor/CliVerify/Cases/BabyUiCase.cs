@@ -149,7 +149,7 @@ namespace Shenxiao.EditorTools
                     familyView.Hide();
                 }
                 BabyIllusionView illusionView = module.GetComponentInChildren<BabyIllusionView>(true);
-                model.ApplyBasic(new BabyBasicInfo { BabyId = 1 });
+                model.ApplyBasic(new BabyBasicInfo { BabyId = 2 });
                 model.ApplyFigures(new BabyFigureInfo());
                 model.MergeFigure(1, 2, 1000, 1300);
                 model.MergeFigure(2, 3, 2000, 2200);
@@ -172,7 +172,7 @@ namespace Shenxiao.EditorTools
                     bool listDisplay = illusionView.illuGp.childCount == 9
                         && illusionView.babyName.text == illusionCfg.BabyName
                         && illusionItems.Length == 9 && inactiveCount >= 7 && loadedIconCount == 9
-                        && illusionView.selectedImg.gameObject.activeSelf
+                        && !illusionView.selectedImg.gameObject.activeSelf
                         && !illusionView.unActive.gameObject.activeSelf
                         && illusionView.useGp.gameObject.activeSelf
                         && illusionView.activeBtn.GetComponent<UnityEngine.UI.Button>() != null
@@ -193,17 +193,20 @@ namespace Shenxiao.EditorTools
                     illusionDisplay = illusionDisplay && activeFightingDisplay;
                     BabyIlluItem redIllu = illusionView.illuGp.Find("BabyIlluItem_1").GetComponent<BabyIlluItem>();
                     bool redDisplay = redIllu != null && redIllu.red_dot.gameObject.activeSelf
-                        && illusionView.activeRed.gameObject.activeSelf && illusionView.stageRed.gameObject.activeSelf;
+                        && illusionView.activeRed.gameObject.activeSelf && illusionView.stageRed.gameObject.activeSelf
+                        && illusionView.babyName.text == illusionCfg.BabyName;
                     Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 0);
                     Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BAG_UPDATE);
                     redIllu = illusionView.illuGp.Find("BabyIlluItem_1").GetComponent<BabyIlluItem>();
                     redDisplay = redDisplay && redIllu != null && !redIllu.red_dot.gameObject.activeSelf
-                        && !illusionView.activeRed.gameObject.activeSelf && !illusionView.stageRed.gameObject.activeSelf;
+                        && !illusionView.activeRed.gameObject.activeSelf && !illusionView.stageRed.gameObject.activeSelf
+                        && illusionView.babyName.text == illusionCfg.BabyName;
                     Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
                     Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BAG_UPDATE);
                     redIllu = illusionView.illuGp.Find("BabyIlluItem_1").GetComponent<BabyIlluItem>();
                     redDisplay = redDisplay && redIllu != null && redIllu.red_dot.gameObject.activeSelf
-                        && illusionView.activeRed.gameObject.activeSelf && illusionView.stageRed.gameObject.activeSelf;
+                        && illusionView.activeRed.gameObject.activeSelf && illusionView.stageRed.gameObject.activeSelf
+                        && illusionView.babyName.text == illusionCfg.BabyName;
                     illusionDisplay = illusionDisplay && redDisplay;
                     UnityEngine.UI.Button leftButton = illusionView.leftBtn.GetComponent<UnityEngine.UI.Button>();
                     UnityEngine.UI.Button rightButton = illusionView.rightBtn.GetComponent<UnityEngine.UI.Button>();
