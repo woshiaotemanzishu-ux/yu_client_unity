@@ -32,6 +32,7 @@ namespace Shenxiao.EditorTools
                 bool likeStatic = BabyBindUpgrader.VerifyLikeStatic();
                 bool teaseStatic = BabyBindUpgrader.VerifyTeaseStatic();
                 bool equipStatic = BabyBindUpgrader.VerifyEquipStatic();
+                bool imprintStatic = BabyBindUpgrader.VerifyImprintStatic();
                 Shenxiao.Framework.UI.UIViewAttribute likeAddress = typeof(BabyLikeView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
                 Shenxiao.Framework.UI.UIViewAttribute belikeAddress = typeof(BabyBelikeView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
                 Shenxiao.Framework.UI.UIViewAttribute equipAddress = typeof(BabyEquipFuncView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
@@ -79,8 +80,8 @@ namespace Shenxiao.EditorTools
                 bool likeRank = likeStatic && VerifyLikeRank();
                 bool belike = likeStatic && VerifyBelike();
                 bool equip = equipStatic && VerifyEquip();
-                bool pass = config && likeStatic && teaseStatic && equipStatic && viewAddresses && upgraded && prefab && likeRank && belike && equip;
-                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " teaseStatic=" + teaseStatic + " equipStatic=" + equipStatic + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " equip=" + equip + " pass=" + pass);
+                bool pass = config && likeStatic && teaseStatic && equipStatic && imprintStatic && viewAddresses && upgraded && prefab && likeRank && belike && equip;
+                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " teaseStatic=" + teaseStatic + " equipStatic=" + equipStatic + " imprintStatic=" + imprintStatic + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " equip=" + equip + " pass=" + pass);
                 return Task.FromResult(pass ? 0 : 3);
             }
             catch (Exception e)

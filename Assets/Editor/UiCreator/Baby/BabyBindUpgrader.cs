@@ -38,6 +38,16 @@ namespace Shenxiao.Editor.UiCreator.Baby
         {
             "baby/BabyLikeView", "baby/BabyLikeItem", "baby/BabyBelikeView", "baby/BabyBelikeItem", "baby/BabyLikeReward",
         };
+        private static readonly string[] ImprintSceneKeys =
+        {
+            "baby/BabyImprintView", "baby/BabyAddImprintView", "baby/BabyImprintItem", "baby/BabyAddImprintItem",
+        };
+        private static readonly string[] ImprintPrefabPaths =
+        {
+            "Assets/Prefabs/UI/Baby/BabyImprintView.prefab", "Assets/Prefabs/UI/Baby/BabyAddImprintView.prefab",
+            "Assets/Prefabs/UI/Baby/BabyImprintItem.prefab", "Assets/Prefabs/UI/Baby/BabyAddImprintItem.prefab",
+        };
+        private const string ImprintButtonSkinPath = "Assets/GameRes/resource/game/common/texture/com_rect_btn12.png";
         private const BindingFlags BindFields = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
 
         [InitializeOnLoadMethod]
@@ -58,7 +68,8 @@ namespace Shenxiao.Editor.UiCreator.Baby
         public static bool Generate()
         {
             if (!Fill(ModulePath) || !Fill(PropItemPath)) return false;
-            return Verify();
+            // Orphan scenes are converted once via GenerateImprintStatic; incremental passes only restore bindings/templates.
+            return Verify() && UpgradeImprintStatic();
         }
 
         /// <summary>
@@ -85,6 +96,53 @@ namespace Shenxiao.Editor.UiCreator.Baby
             if (!EnsureNestedTemplate(LikeRewardPath, "__Templates", BaseAwardItemPath)
                 || !EnsureNestedTemplate(LikeViewPath, "__Templates/BabyLikeReward/__Templates", BaseAwardItemPath)) return false;
             return VerifyLikeStatic();
+        }
+
+        /// <summary>
+        /// First pass for the four orphan imprint scenes. This only converts/generates Bind sources;
+        /// run <see cref="UpgradeImprintStatic"/> after Unity has compiled those sources.
+        /// </summary>
+        public static bool GenerateImprintStatic()
+        {
+            for (int i = 0; i < ImprintSceneKeys.Length; i++) LayaSceneConverter.ConvertSingle(ImprintSceneKeys[i]);
+            return true;
+        }
+
+        /// <summary>Post-compilation imprint pass: fill Bind references and restore disabled list templates.</summary>
+        public static bool UpgradeImprintStatic()
+        {
+            if (!Fill(BaseAwardItemPath)) return false;
+            for (int i = 0; i < ImprintPrefabPaths.Length; i++) if (!Fill(ImprintPrefabPaths[i])) return false;
+            if (!EnsureTemplates(ImprintPrefabPaths[0], ImprintPrefabPaths[2])
+                || !EnsureTemplates(ImprintPrefabPaths[1], ImprintPrefabPaths[3])
+                || !EnsureNestedTemplate(ImprintPrefabPaths[2], "__Templates", BaseAwardItemPath)
+                || !EnsureNestedTemplate(ImprintPrefabPaths[3], "__Templates", BaseAwardItemPath)) return false;
+            return VerifyImprintStatic();
+        }
+
+        /// <summary>Read-only acceptance for orphan imprint prefabs; no business component or button is required here.</summary>
+        public static bool VerifyImprintStatic()
+        {
+            bool ok = CheckGeneratedBindByName(ImprintPrefabPaths[0], "BabyImprintView", "BabyImprintViewBind");
+            ok &= CheckNamedNodes(ImprintPrefabPaths[0], "itemScroller", "Content1", "_Scroller1", "Content", "skillLb",
+                "stageGp", "_Scroller2", "Content11", "impBtn", "successLb", "impRed", "activeImg", "targetGp", "effectGp", "failImg");
+            ok &= CheckGeneratedBindByName(ImprintPrefabPaths[1], "BabyAddImprintView", "BabyAddImprintViewBind");
+            ok &= CheckNamedNodes(ImprintPrefabPaths[1], "_Scroller1", "Content", "nothingLb");
+            ok &= CheckGeneratedBindByName(ImprintPrefabPaths[2], "BabyImprintItem", "BabyImprintItemBind");
+            ok &= CheckNamedNodes(ImprintPrefabPaths[2], "itemGp", "addImg", "numLb");
+            ok &= CheckGeneratedBindByName(ImprintPrefabPaths[3], "BabyAddImprintItem", "BabyAddImprintItemBind");
+            ok &= CheckNamedNodes(ImprintPrefabPaths[3], "clickBg", "itemGp", "nameLb", "probabilityLb");
+            ok &= CheckTemplatePath(ImprintPrefabPaths[0], "__Templates/BabyImprintItem");
+            ok &= CheckTemplatePath(ImprintPrefabPaths[1], "__Templates/BabyAddImprintItem");
+            ok &= CheckTemplatePath(ImprintPrefabPaths[2], "__Templates/BaseAwardItem");
+            ok &= CheckTemplatePath(ImprintPrefabPaths[3], "__Templates/BaseAwardItem");
+            if (AssetDatabase.LoadAssetAtPath<Sprite>(ImprintButtonSkinPath) == null)
+            {
+                Debug.LogError("[UiCreator] Baby imprint button skin missing " + ImprintButtonSkinPath);
+                ok = false;
+            }
+            Debug.Log("[UiCreator] Baby imprint static verification " + (ok ? "OK" : "FAILED"));
+            return ok;
         }
 
         public static bool GenerateTeaseStatic()
@@ -168,6 +226,38 @@ namespace Shenxiao.Editor.UiCreator.Baby
             catch (System.Exception e)
             {
                 Debug.LogError("[UiCreator] BabyBindUpgrader.GenerateLikeStaticBatch exception: " + e);
+                EditorApplication.Exit(1);
+            }
+        }
+
+        /// <summary>CLI first pass: converts the four imprint prefabs and emits Bind sources, then exits for compilation.</summary>
+        public static void GenerateImprintStaticBatch()
+        {
+            try
+            {
+                bool ok = GenerateImprintStatic();
+                Debug.Log("[UiCreator] BabyBindUpgrader.GenerateImprintStaticBatch " + (ok ? "OK (compile then run UpgradeImprintStaticBatch)" : "FAILED"));
+                EditorApplication.Exit(ok ? 0 : 1);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("[UiCreator] BabyBindUpgrader.GenerateImprintStaticBatch exception: " + e);
+                EditorApplication.Exit(1);
+            }
+        }
+
+        /// <summary>CLI post-compilation pass: fills and verifies the four imprint prefabs.</summary>
+        public static void UpgradeImprintStaticBatch()
+        {
+            try
+            {
+                bool ok = UpgradeImprintStatic();
+                Debug.Log("[UiCreator] BabyBindUpgrader.UpgradeImprintStaticBatch " + (ok ? "OK" : "FAILED"));
+                EditorApplication.Exit(ok ? 0 : 1);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("[UiCreator] BabyBindUpgrader.UpgradeImprintStaticBatch exception: " + e);
                 EditorApplication.Exit(1);
             }
         }
@@ -315,7 +405,8 @@ namespace Shenxiao.Editor.UiCreator.Baby
                     Transform existing = templates.Find(source.name);
                     if (existing == null)
                     {
-                        GameObject clone = Object.Instantiate(source, templates, false);
+                        GameObject clone = PrefabUtility.InstantiatePrefab(source, templates) as GameObject;
+                        if (clone == null) return false;
                         clone.name = source.name;
                         clone.SetActive(false);
                     }
