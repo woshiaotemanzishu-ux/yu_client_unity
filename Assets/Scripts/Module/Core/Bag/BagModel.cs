@@ -63,6 +63,8 @@ namespace Shenxiao.Module.Core.Bag
 
         /// <summary>坐骑/伙伴装备四容器。只收 pos=22/32/23/33，不把其它容器混入主背包。</summary>
         private readonly Dictionary<int, List<BagGoods>> _petEquipContainers = new Dictionary<int, List<BagGoods>>();
+        // pos36=宝宝已穿戴装备实例；pos37=待穿候选背包，二者不可混用。
+        private readonly List<BagGoods> _babyEquip = new List<BagGoods>();
         private readonly List<BagGoods> _babyEquipBag = new List<BagGoods>();
         private static readonly IReadOnlyList<BagGoods> EmptyContainer = new BagGoods[0];
 
@@ -72,6 +74,8 @@ namespace Shenxiao.Module.Core.Bag
         /// <summary>背包容量(对标 GoodsModel.bag_goods_max_cell = vo.max_cell);等价 GetMaxCell(POS_BAG),旧字段保留兼容。</summary>
         public int MaxCell => GetMaxCell(POS_BAG);
         public int BabyEquipBagMaxCell => GetMaxCell(POS_BABY_BAG);
+        public int BabyEquipMaxCell => GetMaxCell(POS_BABY_EQUIP);
+        public bool HasBabyEquipData { get; private set; }
         public bool HasBabyEquipBagData { get; private set; }
 
         /// <summary>取任意槽位当前容量(未收到过 15010/15002 则 0)。</summary>
@@ -150,9 +154,21 @@ namespace Shenxiao.Module.Core.Bag
         public IReadOnlyList<BagGoods> GetContainer(int pos)
         {
             if (pos == POS_BAG) return BagGoodsList;
+            if (pos == POS_BABY_EQUIP) return _babyEquip;
             if (pos == POS_BABY_BAG) return _babyEquipBag;
             return _petEquipContainers.TryGetValue(pos, out List<BagGoods> list) ? list : EmptyContainer;
         }
+
+        internal void SetBabyEquipFull(int maxCell, List<BagGoods> goods)
+        {
+            _babyEquip.Clear();
+            if (goods != null) _babyEquip.AddRange(goods);
+            SetMaxCell(POS_BABY_EQUIP, maxCell);
+            HasBabyEquipData = true;
+        }
+
+        internal void UpsertBabyEquip(BagGoods vo) => UpsertList(_babyEquip, vo);
+        internal void UpdateBabyEquipNum(long goodsId, int typeId, long num) => UpdateListNum(_babyEquip, goodsId, typeId, num);
 
         internal void SetBabyEquipBagFull(int maxCell, List<BagGoods> goods)
         {
@@ -308,7 +324,9 @@ namespace Shenxiao.Module.Core.Bag
         {
             BagGoodsList.Clear();
             _petEquipContainers.Clear();
+            _babyEquip.Clear();
             _babyEquipBag.Clear();
+            HasBabyEquipData = false;
             HasBabyEquipBagData = false;
             SpecialScores.Clear();
             _maxCellByPos.Clear();

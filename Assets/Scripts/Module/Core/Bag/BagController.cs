@@ -152,6 +152,12 @@ namespace Shenxiao.Module.Core.Bag
                 EventDispatcher.Emit(GlobalEvent.EVT_BABY_EQUIP_BAG_UPDATE);
                 return;
             }
+            if (pos == BagModel.POS_BABY_EQUIP)
+            {
+                foreach (BagGoods g in list) BagModel.Instance.UpsertBabyEquip(g);
+                EventDispatcher.Emit(GlobalEvent.EVT_BABY_EQUIP_UPDATE);
+                return;
+            }
             GameLog.Debug("Bag", "15017 pos={0}(未接容器) goods={1} remaining={2}B", pos, list.Count, r.Remaining);
         }
 
@@ -187,6 +193,12 @@ namespace Shenxiao.Module.Core.Bag
             {
                 foreach ((long goodsId, long num, int typeId) it in list) BagModel.Instance.UpdateBabyEquipBagNum(it.goodsId, it.typeId, it.num);
                 EventDispatcher.Emit(GlobalEvent.EVT_BABY_EQUIP_BAG_UPDATE);
+                return;
+            }
+            if (pos == BagModel.POS_BABY_EQUIP)
+            {
+                foreach ((long goodsId, long num, int typeId) it in list) BagModel.Instance.UpdateBabyEquipNum(it.goodsId, it.typeId, it.num);
+                EventDispatcher.Emit(GlobalEvent.EVT_BABY_EQUIP_UPDATE);
                 return;
             }
             GameLog.Debug("Bag", "15018 pos={0}(未接容器) goods={1} remaining={2}B", pos, list.Count, r.Remaining);
@@ -852,6 +864,12 @@ namespace Shenxiao.Module.Core.Bag
             {
                 BagModel.Instance.SetBabyEquipBagFull(maxCell, list);
                 EventDispatcher.Emit(GlobalEvent.EVT_BABY_EQUIP_BAG_UPDATE);
+            }
+            else if (pos == BagModel.POS_BABY_EQUIP)
+            {
+                // pos36 是宝宝已穿戴装备实例；pos37 才是待穿候选背包。
+                BagModel.Instance.SetBabyEquipFull(maxCell, list);
+                EventDispatcher.Emit(GlobalEvent.EVT_BABY_EQUIP_UPDATE);
             }
             else if (pos == Rune.RuneController.RUNE_BAG_POS)
             {

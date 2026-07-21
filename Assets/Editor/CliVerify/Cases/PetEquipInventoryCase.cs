@@ -135,6 +135,26 @@ namespace Shenxiao.EditorTools
                 }
                 finally { EventDispatcher.Off(GlobalEvent.EVT_BABY_EQUIP_BAG_UPDATE, onBabyBag); }
 
+                int wornBabyEvents = 0;
+                System.Action onWornBaby = () => wornBabyEvents++;
+                EventDispatcher.On(GlobalEvent.EVT_BABY_EQUIP_UPDATE, onWornBaby);
+                bool wornBabyOk;
+                try
+                {
+                    const long wornFirst = 0x700000024L;
+                    const long wornSecond = 0x800000024L;
+                    NetReader wornFull = Feed(m15010, ctrl, FullPacket(BagModel.POS_BABY_EQUIP, 1, 66, wornFirst, 910036, 1, 4, 9400, 3, 4, 0x3ABA0036));
+                    wornBabyOk = TailOk(wornFull, 0x3ABA0036) && bag.HasBabyEquipData && bag.BabyEquipMaxCell == 66
+                        && bag.GetContainer(BagModel.POS_BABY_EQUIP).Count == 1 && GoodsFieldsOk(bag.FindContainerGoods(BagModel.POS_BABY_EQUIP, wornFirst), wornFirst, 910036, 1, 4, 9400, 3, 4, BagModel.POS_BABY_EQUIP);
+                    NetReader wornAdd = Feed(m15017, ctrl, DeltaFullPacket(BagModel.POS_BABY_EQUIP, wornSecond, 910037, 2, 7, 9401, 5, 6).I(0x4ADA0036).Bytes());
+                    NetReader wornNum = Feed(m15018, ctrl, NumPacket(BagModel.POS_BABY_EQUIP, wornSecond, 88, 910037).I(0x5AEA0036).Bytes());
+                    NetReader wornDelete = Feed(m15018, ctrl, NumPacket(BagModel.POS_BABY_EQUIP, wornFirst, 0, 910036).I(0x5AEB0036).Bytes());
+                    wornBabyOk &= TailOk(wornAdd, 0x4ADA0036) && TailOk(wornNum, 0x5AEA0036) && TailOk(wornDelete, 0x5AEB0036)
+                        && bag.GetContainer(BagModel.POS_BABY_EQUIP).Count == 1 && bag.FindContainerGoods(BagModel.POS_BABY_EQUIP, wornSecond)?.GoodsNum == 88
+                        && bag.GetContainer(BagModel.POS_BABY_BAG).Count == 1 && wornBabyEvents == 4;
+                }
+                finally { EventDispatcher.Off(GlobalEvent.EVT_BABY_EQUIP_UPDATE, onWornBaby); }
+
                 bool deltaOk = true;
                 var secondIds = new Dictionary<int, long>();
                 foreach (int pos in PetPositions)
@@ -189,14 +209,15 @@ namespace Shenxiao.EditorTools
                     && main.TypeId == 710004 && main.Cell == 3 && main.GoodsNum == 77
                     && main.OverallRating == 4104 && main.EquipStage == 2 && main.EquipStar == 3;
                 bag.Clear();
-                bool babyClearOk = !bag.HasBabyEquipBagData && bag.BabyEquipBagMaxCell == 0 && bag.GetContainer(BagModel.POS_BABY_BAG).Count == 0;
+                bool babyClearOk = !bag.HasBabyEquipData && bag.BabyEquipMaxCell == 0 && bag.GetContainer(BagModel.POS_BABY_EQUIP).Count == 0
+                    && !bag.HasBabyEquipBagData && bag.BabyEquipBagMaxCell == 0 && bag.GetContainer(BagModel.POS_BABY_BAG).Count == 0;
 
                 bool pass = startupOk && mainFullOk && fullOk && mainIsolatedAfterFull
-                    && deltaOk && numDeleteOk && syncOk && mainDeltaOk && babyOk && babyClearOk;
+                    && deltaOk && numDeleteOk && syncOk && mainDeltaOk && babyOk && wornBabyOk && babyClearOk;
                 Debug.Log("CLIVERIFY pet-equip inventory startup=" + startupOk
                     + " mainFull=" + mainFullOk + " fourFull=" + fullOk + " isolated=" + mainIsolatedAfterFull
                     + " delta=" + deltaOk + " numDelete=" + numDeleteOk + " sync=" + syncOk
-                    + " mainRegression=" + mainDeltaOk + " baby=" + babyOk + " babyClear=" + babyClearOk + " pass=" + pass);
+                    + " mainRegression=" + mainDeltaOk + " baby=" + babyOk + " wornBaby=" + wornBabyOk + " babyClear=" + babyClearOk + " pass=" + pass);
                 return pass ? 0 : 3;
             }
             finally
