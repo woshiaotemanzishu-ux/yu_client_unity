@@ -24,7 +24,10 @@ namespace Shenxiao.EditorTools
             {
                 ResManager.EditorPreferFallback = true;
                 _ = BabyRaiseConfigs.EnsureLoaded();
-                bool config = BabyRaiseConfigs.IsLoaded && BabyRaiseConfigs.Get(1) != null;
+                _ = BabyFigureConfigs.EnsureLoaded();
+                BabyFigureConfigs.BabyFigureCfg figureCfg = BabyFigureConfigs.Get(1);
+                bool config = BabyRaiseConfigs.IsLoaded && BabyRaiseConfigs.Get(1) != null
+                    && figureCfg != null && figureCfg.ResourceId == "1011";
                 bool upgraded = BabyBindUpgrader.Generate();
                 bool prefab = upgraded && VerifyInstances();
                 bool pass = config && upgraded && prefab;
@@ -118,17 +121,21 @@ namespace Shenxiao.EditorTools
                     familyView.Hide();
                 }
                 BabyIllusionView illusionView = module.GetComponentInChildren<BabyIllusionView>(true);
-                model.ApplyBasic(new BabyBasicInfo { BabyId = 101 });
+                model.ApplyBasic(new BabyBasicInfo { BabyId = 1 });
                 model.ApplyFigures(new BabyFigureInfo());
-                model.MergeFigure(101, 2, 0, 0);
-                model.MergeFigure(202, 3, 0, 0);
-                bool illusionDisplay = illusionView != null;
+                model.MergeFigure(1, 2, 0, 0);
+                model.MergeFigure(2, 3, 0, 0);
+                BabyFigureConfigs.BabyFigureCfg illusionCfg = BabyFigureConfigs.Get(1);
+                bool illusionDisplay = illusionView != null && illusionCfg != null;
                 if (illusionDisplay)
                 {
                     illusionView.gameObject.SetActive(true);
                     illusionView.Show();
+                    BabyIlluItemBind[] illusionItems = illusionView.illuGp.GetComponentsInChildren<BabyIlluItemBind>(true);
                     illusionDisplay = illusionView.illuGp.childCount == 2
-                        && illusionView.babyName.text == "101"
+                        && illusionView.babyName.text == illusionCfg.BabyName
+                        && illusionItems.Length == 2 && illusionItems[0].resImg.sprite != null
+                        && illusionItems[1].resImg.sprite != null
                         && illusionView.selectedImg.gameObject.activeSelf
                         && illusionView.useGp.gameObject.activeSelf;
                     illusionView.Hide();

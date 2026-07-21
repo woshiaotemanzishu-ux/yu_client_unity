@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Baby;
 using UnityEngine;
@@ -12,6 +14,7 @@ namespace Shenxiao.Module.Core.Baby
     {
         private readonly List<GameObject> _items = new List<GameObject>();
         private bool _listening;
+        private bool _shown;
         private int _selectedBabyId;
 
         protected override void OnInit()
@@ -21,18 +24,22 @@ namespace Shenxiao.Module.Core.Baby
 
         protected override void OnShow(object args)
         {
+            _shown = true;
             Subscribe();
             Refresh();
+            _ = EnsureConfigsAndRefreshAsync();
         }
 
         protected override void OnHide()
         {
+            _shown = false;
             Unsubscribe();
             ClearItems();
         }
 
         protected override void OnDispose()
         {
+            _shown = false;
             Unsubscribe();
             ClearItems();
         }
@@ -78,7 +85,12 @@ namespace Shenxiao.Module.Core.Baby
                 }
             }
 
-            if (babyName != null) babyName.text = _selectedBabyId > 0 ? _selectedBabyId.ToString() : string.Empty;
+            if (babyName != null)
+            {
+                BabyFigureConfigs.BabyFigureCfg cfg = BabyFigureConfigs.Get(_selectedBabyId);
+                babyName.text = _selectedBabyId <= 0 ? string.Empty
+                    : cfg != null ? cfg.BabyName : _selectedBabyId.ToString();
+            }
             if (selectedImg != null) selectedImg.gameObject.SetActive(_selectedBabyId > 0 && wornBabyId == _selectedBabyId);
             if (useGp != null) useGp.gameObject.SetActive(_selectedBabyId > 0);
         }
@@ -98,8 +110,17 @@ namespace Shenxiao.Module.Core.Baby
             }
             if (item.unActive != null) item.unActive.gameObject.SetActive(false);
             if (item.select_img != null) item.select_img.gameObject.SetActive(entry.BabyId == _selectedBabyId);
+            BabyFigureConfigs.BabyFigureCfg cfg = BabyFigureConfigs.Get(entry.BabyId);
+            if (item.resImg != null && cfg != null && !string.IsNullOrEmpty(cfg.ResourceId))
+                _ = ResManager.SetImageAsync(item.resImg, GameResPath.GetIcon("baby", cfg.ResourceId), nativeSize: false);
             int babyId = entry.BabyId;
             UIUtil.AddClick(item.clickGp, () => Select(babyId));
+        }
+
+        private async Task EnsureConfigsAndRefreshAsync()
+        {
+            await BabyFigureConfigs.EnsureLoaded();
+            if (_shown) Refresh();
         }
 
         private void Select(int babyId)
