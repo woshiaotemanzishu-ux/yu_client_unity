@@ -22,9 +22,11 @@ namespace Shenxiao.Module.Core.Baby
 
         public long GoodsId => _goods != null ? _goods.GoodsId : 0;
         public int TypeId => _goods != null ? _goods.TypeId : 0;
+        public bool BetterVisible => _redImg != null && _redImg.gameObject.activeSelf;
+        public bool HasUpgradeRed => BetterVisible;
         private BagGoods _goods;
 
-        public void SetData(BagGoods goods, Action<BagGoods> onClick)
+        public void SetData(BagGoods goods, bool better, Action<BagGoods> onClick)
         {
             CacheNodes();
             _goods = goods;
@@ -36,7 +38,7 @@ namespace Shenxiao.Module.Core.Baby
                 string name = GoodsModel.GetGoodsName(typeId);
                 _nameLb.text = string.IsNullOrEmpty(name) ? typeId.ToString() : name;
             }
-            if (_redImg != null) _redImg.gameObject.SetActive(false);
+            if (_redImg != null) _redImg.gameObject.SetActive(better);
             if (_selectImg != null) _selectImg.gameObject.SetActive(false);
             if (_award != null) { if (Application.isPlaying) Destroy(_award); else DestroyImmediate(_award); _award = null; }
             if (_equipGp == null || _template == null || typeId <= 0) return;

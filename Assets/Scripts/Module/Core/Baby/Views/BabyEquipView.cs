@@ -64,6 +64,7 @@ namespace Shenxiao.Module.Core.Baby
             if (_candidateContent == null || _candidateTemplate == null) return;
             IReadOnlyList<BagGoods> goods = BagModel.Instance.GetContainer(BagModel.POS_BABY_BAG);
             int stage = BabyModel.Instance.Stage != null ? BabyModel.Instance.Stage.Stage : 0;
+            BagGoods worn = BabyModel.Instance.GetWearGoods(_selectedPosition);
             int index = 0;
             for (int i = 0; i < goods.Count; i++)
             {
@@ -83,7 +84,8 @@ namespace Shenxiao.Module.Core.Baby
                     rect.sizeDelta = new Vector2(156f, 208f);
                     rect.anchoredPosition = new Vector2(col * step, -row * 208f);
                 }
-                go.GetComponent<BabyEquipSubItem>()?.SetData(entry, OnCandidateClick);
+                bool better = worn == null || worn.Rating < entry.Rating;
+                go.GetComponent<BabyEquipSubItem>()?.SetData(entry, better, OnCandidateClick);
                 _candidateItems.Add(go); index++;
             }
             RectTransform content = _candidateContent as RectTransform;
