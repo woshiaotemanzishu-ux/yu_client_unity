@@ -128,7 +128,18 @@ namespace Shenxiao.EditorTools
                     display = cultivateView.babyName.text == "baby" && cultivateView.lvLb.text == "7"
                         && cultivateView.lvExpLb.text == "11" && cultivateView.stageExpLb.text == "3"
                         && cultivateView.lvtaskRed.gameObject.activeSelf
+                        && !model.BabyLikeRed && !cultivateView.likeRed.gameObject.activeSelf
                         && cultivateView.stageRed.gameObject.activeSelf && cultivateView.stageTabRed.gameObject.activeSelf;
+                    model.ApplyPraisePush(new BabyPraisePush
+                    {
+                        PraiserId = Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId ^ 1L
+                    });
+                    Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_PRAISE_PUSH);
+                    bool likeRedRefresh = model.BabyLikeRed && cultivateView.likeRed.gameObject.activeSelf;
+                    model.ApplyPraiseRecords(new BabyPraiseRecordsInfo());
+                    Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_LIKE_RECORDS);
+                    likeRedRefresh = likeRedRefresh && !model.BabyLikeRed && !cultivateView.likeRed.gameObject.activeSelf;
+                    display = display && likeRedRefresh;
                     Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(2, 38040041, 0);
                     Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BAG_UPDATE);
                     bool stageRedRefresh = !cultivateView.stageRed.gameObject.activeSelf && !cultivateView.stageTabRed.gameObject.activeSelf;
@@ -307,6 +318,7 @@ namespace Shenxiao.EditorTools
             }
             finally
             {
+                BabyModel.Instance.ApplyPraiseRecords(new BabyPraiseRecordsInfo());
                 BabyModel.Instance.Reset();
                 Shenxiao.Module.Core.Bag.BagModel.Instance.Clear();
                 if (interceptField != null) interceptField.SetValue(null, oldIntercept);
@@ -364,6 +376,24 @@ namespace Shenxiao.EditorTools
                 bagUpdate.Invoke(null, null);
                 bool cultivateStillVisible = tab0.redDisplay.gameObject.activeSelf;
 
+                BabyModel.Instance.TryApplyTaskProgress(2, 3, 2);
+                Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(2, 38040041, 0);
+                cultivateRefresh.Invoke(null, null);
+                bool cultivateLikeStartsHidden = !tab0.redDisplay.gameObject.activeSelf;
+                BabyModel.Instance.ApplyPraisePush(new BabyPraisePush
+                {
+                    PraiserId = Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId ^ 1L
+                });
+                cultivateRefresh.Invoke(null, null);
+                bool cultivateLikeShows = tab0.redDisplay.gameObject.activeSelf;
+                BabyModel.Instance.ApplyPraiseRecords(new BabyPraiseRecordsInfo());
+                cultivateRefresh.Invoke(null, null);
+                bool cultivateLikeClears = !tab0.redDisplay.gameObject.activeSelf;
+                BabyModel.Instance.TryApplyTaskProgress(2, 3, 1);
+                Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(2, 38040041, 1);
+                cultivateRefresh.Invoke(null, null);
+                bool cultivateTaskRestores = tab0.redDisplay.gameObject.activeSelf;
+
                 bagUpdate.Invoke(null, null);
                 bool visible = tab2.redDisplay.gameObject.activeSelf;
                 Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 0);
@@ -372,6 +402,7 @@ namespace Shenxiao.EditorTools
                 Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
                 bagUpdate.Invoke(null, null);
                 return cultivateVisible && cultivateStageKeepsVisible && cultivateHidden && cultivateRestored && cultivateStillVisible
+                    && cultivateLikeStartsHidden && cultivateLikeShows && cultivateLikeClears && cultivateTaskRestores
                     && visible && hidden && tab2.redDisplay.gameObject.activeSelf;
             }
             finally
@@ -379,6 +410,7 @@ namespace Shenxiao.EditorTools
                 if (windowField != null) windowField.SetValue(null, oldWindow);
                 if (configuredField != null) configuredField.SetValue(null, oldConfigured);
                 BabyModel.Instance.TryApplyTaskProgress(2, 3, 1);
+                BabyModel.Instance.ApplyPraiseRecords(new BabyPraiseRecordsInfo());
                 Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(2, 38040041, 1);
                 Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
                 UnityEngine.Object.DestroyImmediate(frame);

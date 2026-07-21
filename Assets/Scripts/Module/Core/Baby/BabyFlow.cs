@@ -197,14 +197,14 @@ namespace Shenxiao.Module.Core.Baby
         private static void RefreshCultivateTabRed()
         {
             if (_window == null || !_windowConfigured) return;
-            bool taskRed = BabyModel.Instance.HasClaimableRaiseTask();
+            bool taskOrLikeRed = BabyModel.Instance.HasClaimableRaiseTask() || BabyModel.Instance.BabyLikeRed;
             if (!BabyValueConfigs.IsLoaded || !BabyStageConfigs.IsLoaded)
             {
-                _window.SetTabRed(0, taskRed);
+                _window.SetTabRed(0, taskOrLikeRed);
                 if (!_cultivateRedLoading) _ = EnsureCultivateRedConfigsAsync();
                 return;
             }
-            _window.SetTabRed(0, taskRed || BabyModel.Instance.HasStageUpgradeRed());
+            _window.SetTabRed(0, taskOrLikeRed || BabyModel.Instance.HasStageUpgradeRed());
         }
 
         private static async Task EnsureCultivateRedConfigsAsync()

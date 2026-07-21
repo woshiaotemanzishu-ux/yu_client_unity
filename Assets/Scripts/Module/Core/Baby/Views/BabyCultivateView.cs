@@ -67,6 +67,7 @@ namespace Shenxiao.Module.Core.Baby
             lvExpLb.text = model.Raise != null ? model.Raise.RaiseExp.ToString() : string.Empty;
             stageExpLb.text = model.Stage != null ? model.Stage.StageExp.ToString() : string.Empty;
             if (lvtaskRed != null) lvtaskRed.gameObject.SetActive(model.HasClaimableRaiseTask());
+            if (likeRed != null) likeRed.gameObject.SetActive(model.BabyLikeRed);
             bool stageUpgradeRed = model.HasStageUpgradeRed();
             if (stageRed != null) stageRed.gameObject.SetActive(stageUpgradeRed);
             if (stageTabRed != null) stageTabRed.gameObject.SetActive(stageUpgradeRed);
