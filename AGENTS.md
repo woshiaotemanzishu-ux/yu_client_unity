@@ -32,6 +32,7 @@
 - 2026-07-21 用户已明确授权：定时迁移允许在原项目 Unity 运行时启动第二个 `yu_client_unity_codex` Unity 做编译验证，不必逐次询问。实现包至少经过隔离工作树的 Unity `-batchmode -nographics -quit` 全项目脚本编译，才能标记“编译通过”；Roslyn/`dotnet` 仅作前置快检。第二个 Unity 仍必须单实例、整个进程树设为 `BelowNormal`，不得同时跑实现子代理的重负载任务。
 - 2026-07-21 晚间实证：用户同时开着 `yu_client_unity` 与 `ArtsProject` 两个交互 Editor 时，Codex 再用“全核心 + BelowNormal”启动第三个 Editor，仍可能因并发脚本编译/ILPP 把机器拖到卡死重启；`BelowNormal` 不是资源上限。此机后续批处理统一使用 `Idle`、仅绑定 16～19 四个 E 核（affinity `0xF0000`）、`-job-worker-count 2`，且代码全部定稿后再集中启动，禁止边编译边改脚本。启动前必须按命令行里的 `-projectPath` 区分主 Editor 与 AssetImportWorker，不得误杀用户两个项目的子进程。
 - `CliVerify` 的入口约定与纯编译/生成器不同：必须保留图形设备，且由用例自己的 `EditorApplication.Exit` 收尾，因此运行 `Shenxiao.EditorTools.CliVerify.*` 时**不要加** `-nographics` 或 `-quit`；否则可能只完成导入就以 0 退出，实际一行 `CLIVERIFY` 都没执行。验收必须在日志里同时看到具体 `VERDICT pass=True` 与 `CLIVERIFY EXIT 0`，不能只看进程返回 0。
+- Unity 启动时会清理项目自身的 `Temp/`，所以两份 TMP 字体的运行前备份**不能**放在 `Temp/CodexVerify`；应放 `%LOCALAPPDATA%\Temp` 等项目外临时目录，进程退出后恢复并用 `git hash-object` 对照运行前/HEAD。`ClientConfigSync.SyncIfStale(true)` 还可能只因行尾把 `Assets/GameRes/resource/config/client/configfunctionicon.json` 标脏；若运行前该文件干净且 `git diff` 无业务内容，按运行前版本精确恢复，不要混入提交。
 - 隔离工作树自己的 `Library/` 在首次全量导入后保留且不提交，后续只做增量编译；不得与原项目复制、共享或软链接。首次 batchmode 退出会由 TMP `InitializeFontAssetResourceChangeCallBacks` 清空动态字体缓存，已观察到 `Assets/_App/Fonts/DFPYuanW7 SDF.asset` 与 `FZYHJW SDF.asset` 被改写；每次 Unity 验证后必须核对 `git status`，只还原本次进程产生的这类明确副作用，不得把字体清空结果提交。
 - 2026-07-21 的只读诊断显示：单个用户 Editor 会派生 2 个 AssetImportWorker 和 3 个 ShaderCompiler，Unity 进程合计约 7.9 GB、333 个线程；全系统约 357 个进程、8241 个线程，出现过 120～180 的处理器队列和约 8.8 万次/秒上下文切换。机器是 i7-12700KF、48 GB 内存、NVMe，检查时内存、页面文件和磁盘均未耗尽；卡顿主因应先排查 Unity 并发导入/编译、Defender 扫描和后台 Chromium/WebView 进程，而不是直接归因于硬件性能不足。
 - 本机网络默认路由和 DNS 经过 `TAG Wintun`、`mihomo-tag`/`tagtunnel`。物理 Realtek 网卡到路由器检查时零丢包且没有断线记录；重负载时若仅本机“断网”，优先同时记录 TUN 进程响应、网关连通和公网连通，判断代理进程是否被调度饿死。不要未经用户同意修改 Defender 排除项、网卡节能或代理优先级。
@@ -51,6 +52,9 @@
 
 - 不得从 S2C 命令号反推 C2S。连服夺宝是已核实的非对称链：老端专用 `ListDuobaoView.ts` 发 33191，服务端 `pp_custom_act.erl` 在 `type=116` 时转入 rush treasure，成功后回 33803；Unity 必须保留 33191 请求 + 33803 独立接收。另一个通用 `CompetelistView` 直接发 33803，不代表专用夺宝页也应照抄。
 - 活动入口路由必须查新客户端实际 `configcustomactivity/configfunctionicon` 键，不要只照旧端拼接规则。当前连服夺宝实际可见父入口是 `331@110`，子活动数据是 `116@0`；在通用父容器尚未接管前，专用路由只能有条件占用 `331@110`，同时保留精确键 `331@116@0`。
+- 时装第二刀已核实的 wire：41305 上行是 `PosId:u8 + Count:u16 + N×{GoodsInstanceId:u64,Num:u16}`，这里必须发背包实例 id，严禁用 `type_id`；当前服务端实际只允许衣服位 `pos=1`。41313 下行是无 Code 的套装全量快照，落地前要清旧表；41314/41315 的 Code 都位于 `SuitId/ActiveNum或Lv` 之后的第三字段，不能套用“Code 总在包头”的惯例。41314 只开放 2 件/4 件两档，4 件成功时套装等级置 1。
+- 时装第二刀权威配置是老端 CDN `config_fashion_pos`、`config_fashion_suit`、`config_fashion_suit_star`，分别驱动部位经验/属性、四件条件/激活属性、套装 1～10 阶；不得把条件、阶数或消耗硬编码进 View。`FashionModule.prefab` 的 Level/Suit/材料/页签/条件格都是顶层模板节点，业务 Flow 必须在 reparent 前保存模板引用，BindUpgrader 当前成功判据为 9 个业务组件。
+- 41305 服务端会删除请求里给出的全部数量；客户端默认候选必须只凑当前等级的经验缺口，最后一个实例按 `ceil(剩余缺口/单件经验)` 裁量并受真实库存/u16 限制，补足后停止，绝不能默认把整堆材料全发。41315 不能只查 cost：必须逐项核对 `SuitStarRow.Conditions`；Slot 先映射 `SuitRow.Conditions`，时装取指定基础色星级，幻化 subtype 1/2 取 Star、其余取 Stage，条件不足时按钮、红点和发包都要拦截。
 
 任何 AI 工具(Claude Code / Cursor / Codex / Copilot 等)写代码前必须读前三份;
 动 UI/转换器读流水线文档,动登录/网络读登录链路文档,动进游戏/主界面/场景接管读进游戏链路文档。

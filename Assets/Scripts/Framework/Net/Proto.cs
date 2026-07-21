@@ -3216,7 +3216,7 @@
         public const int MARKET_SHOUT = 15122;
 
         // ----- 时装 Fashion(pt_413,yu_server src/fashion/;老端 commonController/FashionController.ts。
-        // 第21轮 PA:只做第一刀 8 活号。pos:1=衣服 3=头饰(data_fashion.erl:19275
+        // 第21轮 PA/PD:接管时装主体及部位升级/套装协议。pos:1=衣服 3=头饰(data_fashion.erl:19275
         // get_pos_id_list()->[1,3];pos2武器/pos4足部已死,config_fashion_model 无对应数据佐证)。
         // ⚠死号严禁发:41307 全死(pp_fashion.erl 无 41307 handle 子句,落 catch-all 只 ?PRINT 不回包;
         // 唯一 write 调用点 lib_fashion.erl:375 已注释;老端 FashionController.ts:44-45 有 send 分支但
@@ -3249,6 +3249,10 @@
         /// <summary>41304 激活(发 "ci" PosId,FashionId;成功后老端自动 Fire(SCMD_REQUEST,41302,PosId,FashionId,0)
         /// 补穿,FashionController.ts:288);回包 Code:i, PosId:c, FashionId:i。</summary>
         public const int FASHION_ACTIVE = 41304;
+        /// <summary>41305 衣服部位升级(变长请求:PosId:c,GoodsCount:h,
+        /// GoodsList[N×{GoodsInstanceId:l,GoodsNum:h}];GoodsInstanceId 是64位背包实例id,不是物品类型id)。
+        /// 回包 Code:i,PosId:c,PosLv:h,PosUpgradeNum:i。</summary>
+        public const int FASHION_POSITION_UPGRADE = 41305;
         /// <summary>41306 基础色(color 0)进阶(发 "cic" PosId,FashionId,ColorId;ColorId 恒传当前 now_color_id;
         /// ⚠服务端 lib_fashion_check.erl:141 对未解锁颜色 keyfind 会 badmatch 崩进程——只对已在 color_list
         /// 里的颜色发);回包 Code:i, PosId:c, FashionId:i, ColorId:c, FashionStarLv:h。</summary>
@@ -3257,6 +3261,15 @@
         /// pp_fashion.erl:238/:294);回包(⚠**无 Code 首位**,与其余 413xx 惯例相反):
         /// PosId:c, FashionId:i, ColorPowerList[u16×{ColorId:c, ColorPower:l, NextColorPower:l}]。</summary>
         public const int FASHION_POWER = 41312;
+        /// <summary>41313 套装全量信息(发空;服务端在套装符合数量变化时也会主动推送)。回包无 Code:
+        /// FashionSuit[u16×{SuitId:c,Lv:c,ActiveNum:c,ConformNum:c,Power:i,NextPower:i}]。</summary>
+        public const int FASHION_SUIT_INFO = 41313;
+        /// <summary>41314 激活套装档位(发 "cc" SuitId,ActiveNum;老端 ActiveNum 只发2/4)。回包注意 Code 在第三位:
+        /// SuitId:c,ActiveNum:c,Code:i,Power:i,NextPower:i。</summary>
+        public const int FASHION_SUIT_ACTIVATE = 41314;
+        /// <summary>41315 套装升阶(发 "c" SuitId)。回包注意 Code 在第三位:
+        /// SuitId:c,Lv:c,Code:i,Power:i,NextPower:i。</summary>
+        public const int FASHION_SUIT_UPGRADE = 41315;
         /// <summary>41316 彩色(非 0 色)进阶(发 "cic" PosId,FashionId,ColorId;与 41306 同结构不同协议号/字段位置);
         /// 回包 PosId:c, FashionId:i, ColorId:c, Lv:c(⚠8位,41306 对应字段 FashionStarLv 是 16位), Code:i
         /// (⚠**Code 在最后**,与 41300-41306 惯例相反)。</summary>

@@ -4,11 +4,14 @@ namespace Shenxiao.Module.Core.Fashion
 {
     /// <summary>
     /// 时装数据层(对标老端 commonModel/FashionModel.ts 的 fashion_info_dic/fashion_active_dic,协议段 pt_413)。
-    /// 第21轮 PA 第一刀:只落 41300/41301/41302/41303/41304/41306/41312/41316 八个活号需要的字段。
+    /// 落地时装主体、部位升级41305与套装41313-41315所需状态。
     /// pos 只有 1(衣服)/3(头饰)——data_fashion.erl:19275 get_pos_id_list() -> [1,3]。
     /// </summary>
     public sealed class FashionModel
     {
+        public const int SUIT_HIGH_ACTIVE_COUNT = 2;
+        public const int SUIT_PERFECT_ACTIVE_COUNT = 4;
+
         public static readonly FashionModel Instance = new FashionModel();
         private FashionModel() { }
 
@@ -37,12 +40,12 @@ namespace Shenxiao.Module.Core.Fashion
             public bool IsColorUnlocked(int colorId) => colorId == 0 || Colors.ContainsKey(colorId);
         }
 
-        /// <summary>一个穿戴位(pos 1/3)的整体状态:当前穿的时装 id + 部位等级(41305 第二刀用,先落字段) + 已激活时装表。</summary>
+        /// <summary>一个穿戴位(pos 1/3)的整体状态:当前穿的时装 id + 部位等级 + 已激活时装表。</summary>
         public sealed class PosInfo
         {
             public int PosId;
             public int WearFashionId;   // 0=未穿
-            public int PosLv;           // 部位等级(第二刀 FashionLevelView 用,本轮只落数据)
+            public int PosLv;
             public long PosUpgradeNum;
             public readonly Dictionary<int, FashionEntry> Active = new Dictionary<int, FashionEntry>();
 
@@ -57,13 +60,34 @@ namespace Shenxiao.Module.Core.Fashion
             public long NextPower;
         }
 
+        /// <summary>时装套装状态(41313 全量,41314/41315 增量)。</summary>
+        public sealed class SuitEntry
+        {
+            public int SuitId;
+            public int Lv;
+            public int ActiveNum;
+            public int ConformNum;
+            public long Power;
+            public long NextPower;
+        }
+
         // ---- 41300 快照用的传输结构(Controller 解析 wire 后组装,交给本层落地) ----
         public sealed class ColorWire { public int ColorId; public int StarLv; }
         public sealed class FashionWire { public int FashionId; public int StarLv; public int NowColorId; public List<ColorWire> Colors; }
         public sealed class PosWire { public int PosId; public int WearFashionId; public int PosLv; public long PosUpgradeNum; public List<FashionWire> Fashions; }
+        public sealed class SuitWire
+        {
+            public int SuitId;
+            public int Lv;
+            public int ActiveNum;
+            public int ConformNum;
+            public long Power;
+            public long NextPower;
+        }
 
         private readonly Dictionary<int, PosInfo> _pos = new Dictionary<int, PosInfo>();
         private readonly Dictionary<long, List<PowerEntry>> _power = new Dictionary<long, List<PowerEntry>>();
+        private readonly Dictionary<int, SuitEntry> _suits = new Dictionary<int, SuitEntry>();
 
         public PosInfo GetPos(int posId) => _pos.TryGetValue(posId, out PosInfo p) ? p : null;
 
@@ -85,6 +109,10 @@ namespace Shenxiao.Module.Core.Fashion
 
         public List<PowerEntry> GetPower(int posId, int fashionId) =>
             _power.TryGetValue(PowerKey(posId, fashionId), out List<PowerEntry> list) ? list : null;
+
+        public SuitEntry GetSuit(int suitId) => _suits.TryGetValue(suitId, out SuitEntry suit) ? suit : null;
+
+        public IEnumerable<SuitEntry> GetSuits() => _suits.Values;
 
         /// <summary>41300 全量套值(对标老端 On41300 遍历 pos_list 逐条 Fire(GETACTIVATEFASHION) → CreateActiveList):
         /// 整体替换,不做增量合并——这是快照,不是补丁。</summary>
@@ -165,6 +193,15 @@ namespace Shenxiao.Module.Core.Fashion
             }
         }
 
+        /// <summary>41305 成功增量。老端仅在已有部位状态时套值,缺状态由 Controller 重拉41300。</summary>
+        public bool Apply41305(int posId, int posLv, long posUpgradeNum)
+        {
+            if (!_pos.TryGetValue(posId, out PosInfo p)) return false;
+            p.PosLv = posLv;
+            p.PosUpgradeNum = posUpgradeNum;
+            return true;
+        }
+
         /// <summary>41306 基础色进阶成功套值(对标老端 On41306):更新 color_list 里 colorId 那一档星级;
         /// 若该档正是当前穿的颜色,顶层 StarLv 同步刷新(对标老端"list.now_color_id==色id 才更新展示星级"分支)。</summary>
         public void Apply41306(int posId, int fashionId, int colorId, int newStarLv)
@@ -191,10 +228,51 @@ namespace Shenxiao.Module.Core.Fashion
             _power[PowerKey(posId, fashionId)] = colorPowers;
         }
 
+        /// <summary>41313 套装全量快照。先清旧表再落地；服务端也会用同号主动推送最新快照。</summary>
+        public void Apply41313(List<SuitWire> suits)
+        {
+            if (suits == null) return;
+            _suits.Clear();
+            foreach (SuitWire row in suits)
+            {
+                _suits[row.SuitId] = new SuitEntry
+                {
+                    SuitId = row.SuitId,
+                    Lv = row.Lv,
+                    ActiveNum = row.ActiveNum,
+                    ConformNum = row.ConformNum,
+                    Power = row.Power,
+                    NextPower = row.NextPower,
+                };
+            }
+        }
+
+        /// <summary>41314 激活成功增量;完美激活(4件)时老端把套装等级置为1。</summary>
+        public bool Apply41314(int suitId, int activeNum, long power, long nextPower)
+        {
+            if (!_suits.TryGetValue(suitId, out SuitEntry suit)) return false;
+            suit.ActiveNum = activeNum;
+            suit.Power = power;
+            suit.NextPower = nextPower;
+            if (activeNum >= SUIT_PERFECT_ACTIVE_COUNT) suit.Lv = 1;
+            return true;
+        }
+
+        /// <summary>41315 升阶成功增量。</summary>
+        public bool Apply41315(int suitId, int lv, long power, long nextPower)
+        {
+            if (!_suits.TryGetValue(suitId, out SuitEntry suit)) return false;
+            suit.Lv = lv;
+            suit.Power = power;
+            suit.NextPower = nextPower;
+            return true;
+        }
+
         public void Clear()
         {
             _pos.Clear();
             _power.Clear();
+            _suits.Clear();
         }
     }
 }

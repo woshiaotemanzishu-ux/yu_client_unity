@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
@@ -9,13 +10,19 @@ namespace Shenxiao.Module.Core.Fashion
 {
     /// <summary>
     /// 时装协议控制器(对标老端 commonController/FashionController.ts;服务端 pt_413/pp_fashion)。
-    /// 第21轮 PA 第一刀:8 活号 41300/41301(Type2)/41302/41303/41304/41306/41312/41316。
+    /// 已接管时装主体、部位升级41305与套装41313-41315。
     /// ⚠死号严禁发:41307 全死、41310 客户端侧死(见 Proto.cs 413xx 段族注释证据)。
     /// 41311 上行死(不发),但仅活下行——本控制器注册接收,处理自身形象增量变更。
     /// </summary>
     public sealed class FashionController : BaseController
     {
         public static readonly FashionController Instance = new FashionController();
+
+#if UNITY_EDITOR
+        // CliVerify 出站截获缝：返回 true 时只保留真实编码帧，不访问活动连接。
+        private static Func<byte[], bool> s_outboundIntercept;
+#endif
+
         private FashionController() { }
 
         protected override void Register()
@@ -25,8 +32,12 @@ namespace Shenxiao.Module.Core.Fashion
             RegisterProtocal(Proto.FASHION_WEAR, On41302);
             RegisterProtocal(Proto.FASHION_TAKE_OFF, On41303);
             RegisterProtocal(Proto.FASHION_ACTIVE, On41304);
+            RegisterProtocal(Proto.FASHION_POSITION_UPGRADE, On41305);
             RegisterProtocal(Proto.FASHION_UPGRADE_BASE, On41306);
             RegisterProtocal(Proto.FASHION_POWER, On41312);
+            RegisterProtocal(Proto.FASHION_SUIT_INFO, On41313);
+            RegisterProtocal(Proto.FASHION_SUIT_ACTIVATE, On41314);
+            RegisterProtocal(Proto.FASHION_SUIT_UPGRADE, On41315);
             RegisterProtocal(Proto.FASHION_UPGRADE_COLOR, On41316);
             RegisterProtocal(Proto.FASHION_FIGURE_PUSH, On41311);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
@@ -41,17 +52,84 @@ namespace Shenxiao.Module.Core.Fashion
 
         /// <summary>对标老端 GoodsModel.CREATE_BAG_LIST_FINISH → Fire(SCMD_REQUEST,41300)(FashionController.ts:97)。
         /// 本端简化为 EVT_GAME_START 后直接拉取(41300 请求本身无参,不依赖背包数据就绪,配表就绪即可)。
-        /// 41313(套装)不在本轮范围,不随 GAME_START 发(spec 裁决11:套装留轮22)。</summary>
+        /// 套装快照41313同样在 GAME_START 拉取;服务端也可能在符合数量变化时主动推送同号快照。</summary>
         private async void OnGameStart()
         {
             await FashionConfigs.EnsureLoaded();
             RequestInfoAll();
+            RequestSuitInfo();
         }
 
         /// <summary>41300 全量拉取(发空)。</summary>
         public void RequestInfoAll()
         {
             SendFmt(Proto.FASHION_INFO_ALL);
+        }
+
+        /// <summary>41305 衣服部位升级。goodsId 是背包物品实例id,不是物品类型id。</summary>
+        public void UpgradePosition(int posId, IReadOnlyList<(long goodsId, int num)> goodsList)
+        {
+            if (posId != 1 || goodsList == null || goodsList.Count == 0 || goodsList.Count > ushort.MaxValue)
+            {
+                GameLog.Warn("Fashion", "41305 拒发:pos={0} goodsCount={1}", posId, goodsList?.Count ?? 0);
+                return;
+            }
+
+            var fmt = new System.Text.StringBuilder("ch");
+            var args = new List<object>(2 + goodsList.Count * 2) { posId, goodsList.Count };
+            foreach ((long goodsId, int num) item in goodsList)
+            {
+                if (item.goodsId <= 0 || item.num <= 0 || item.num > ushort.MaxValue)
+                {
+                    GameLog.Warn("Fashion", "41305 拒发:goodsId={0} num={1}", item.goodsId, item.num);
+                    return;
+                }
+                fmt.Append("lh");
+                args.Add(item.goodsId);
+                args.Add(item.num);
+            }
+            SendRequest(Proto.FASHION_POSITION_UPGRADE, fmt.ToString(), args.ToArray());
+        }
+
+        /// <summary>41313 套装全量信息(发空;也注册接收服务端主动推送)。</summary>
+        public void RequestSuitInfo()
+        {
+            SendRequest(Proto.FASHION_SUIT_INFO);
+        }
+
+        /// <summary>41314 激活套装档位;老端只发送高级2件/完美4件两档。</summary>
+        public void ActivateSuit(int suitId, int activeNum)
+        {
+            if (suitId <= 0 || suitId > byte.MaxValue ||
+                (activeNum != FashionModel.SUIT_HIGH_ACTIVE_COUNT && activeNum != FashionModel.SUIT_PERFECT_ACTIVE_COUNT))
+            {
+                GameLog.Warn("Fashion", "41314 拒发:suit={0} activeNum={1}", suitId, activeNum);
+                return;
+            }
+            SendRequest(Proto.FASHION_SUIT_ACTIVATE, "cc", suitId, activeNum);
+        }
+
+        /// <summary>41315 套装升阶。</summary>
+        public void UpgradeSuit(int suitId)
+        {
+            if (suitId <= 0 || suitId > byte.MaxValue)
+            {
+                GameLog.Warn("Fashion", "41315 拒发:suit={0}", suitId);
+                return;
+            }
+            SendRequest(Proto.FASHION_SUIT_UPGRADE, "c", suitId);
+        }
+
+        private void SendRequest(int protoId, string format = null, params object[] args)
+        {
+#if UNITY_EDITOR
+            if (s_outboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(protoId, format, args);
+                if (s_outboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(protoId, format, args);
         }
 
         /// <summary>41301 解锁颜色(发 "cicc" PosId,FashionId,ColorId,Type;Type 恒传 2——老端只发 Type=2,
@@ -232,6 +310,30 @@ namespace Shenxiao.Module.Core.Fashion
             Wear(posId, fashionId, 0);   // 对标老端激活成功后自动 Fire(SCMD_REQUEST,41302,pos,fashion,0)
         }
 
+        /// <summary>41305 回包:Code:i,PosId:c,PosLv:h,PosUpgradeNum:i。</summary>
+        private void On41305(NetReader r)
+        {
+            int code = (int)r.ReadU32();
+            int posId = r.ReadU8();
+            int posLv = r.ReadU16();
+            long posUpgradeNum = r.ReadU32();
+            if (code != 1)
+            {
+                TipsManager.Toast("部位升级失败(" + code + ")");
+                GameLog.Info("Fashion", "41305 fail code={0} pos={1}", code, posId);
+                return;
+            }
+            if (!FashionModel.Instance.Apply41305(posId, posLv, posUpgradeNum))
+            {
+                GameLog.Warn("Fashion", "41305 成功但本地缺 pos={0},重拉41300", posId);
+                RequestInfoAll();
+                return;
+            }
+            TipsManager.Toast("成功");
+            GameLog.Info("Fashion", "41305 部位升级 pos={0} lv={1} exp={2}", posId, posLv, posUpgradeNum);
+            EventDispatcher.Emit(GlobalEvent.EVT_FASHION_UPDATE);
+        }
+
         /// <summary>41306 回包:Code:i,PosId:c,FashionId:i,ColorId:c,FashionStarLv:h。对标老端 On41306:code==1 落地,
         /// 否则显码。</summary>
         private void On41306(NetReader r)
@@ -267,6 +369,78 @@ namespace Shenxiao.Module.Core.Fashion
         private static FashionModel.PowerEntry ReadPowerEntry(NetReader r)
         {
             return new FashionModel.PowerEntry { ColorId = r.ReadU8(), Power = (long)r.ReadU64(), NextPower = (long)r.ReadU64() };
+        }
+
+        /// <summary>41313 套装快照(无 Code):FashionSuit[h×{SuitId:c,Lv:c,ActiveNum:c,ConformNum:c,Power:i,NextPower:i}]。</summary>
+        private void On41313(NetReader r)
+        {
+            List<FashionModel.SuitWire> suits = r.ReadArray(ReadSuitWire);
+            FashionModel.Instance.Apply41313(suits);
+            GameLog.Info("Fashion", "41313 套装快照 count={0} remaining={1}B", suits.Count, r.Remaining);
+            EventDispatcher.Emit(GlobalEvent.EVT_FASHION_UPDATE);
+        }
+
+        private static FashionModel.SuitWire ReadSuitWire(NetReader r)
+        {
+            return new FashionModel.SuitWire
+            {
+                SuitId = r.ReadU8(),
+                Lv = r.ReadU8(),
+                ActiveNum = r.ReadU8(),
+                ConformNum = r.ReadU8(),
+                Power = r.ReadU32(),
+                NextPower = r.ReadU32(),
+            };
+        }
+
+        /// <summary>41314 回包:SuitId:c,ActiveNum:c,Code:i,Power:i,NextPower:i(Code 在第三位)。</summary>
+        private void On41314(NetReader r)
+        {
+            int suitId = r.ReadU8();
+            int activeNum = r.ReadU8();
+            int code = (int)r.ReadU32();
+            long power = r.ReadU32();
+            long nextPower = r.ReadU32();
+            if (code != 1)
+            {
+                TipsManager.Toast("套装激活失败(" + code + ")");
+                GameLog.Info("Fashion", "41314 fail code={0} suit={1} activeNum={2}", code, suitId, activeNum);
+                return;
+            }
+            if (!FashionModel.Instance.Apply41314(suitId, activeNum, power, nextPower))
+            {
+                GameLog.Warn("Fashion", "41314 成功但本地缺 suit={0},重拉41313", suitId);
+                RequestSuitInfo();
+                return;
+            }
+            TipsManager.Toast("激活成功");
+            GameLog.Info("Fashion", "41314 套装激活 suit={0} activeNum={1}", suitId, activeNum);
+            EventDispatcher.Emit(GlobalEvent.EVT_FASHION_UPDATE);
+        }
+
+        /// <summary>41315 回包:SuitId:c,Lv:c,Code:i,Power:i,NextPower:i(Code 在第三位)。</summary>
+        private void On41315(NetReader r)
+        {
+            int suitId = r.ReadU8();
+            int lv = r.ReadU8();
+            int code = (int)r.ReadU32();
+            long power = r.ReadU32();
+            long nextPower = r.ReadU32();
+            if (code != 1)
+            {
+                TipsManager.Toast("套装进阶失败(" + code + ")");
+                GameLog.Info("Fashion", "41315 fail code={0} suit={1} lv={2}", code, suitId, lv);
+                return;
+            }
+            if (!FashionModel.Instance.Apply41315(suitId, lv, power, nextPower))
+            {
+                GameLog.Warn("Fashion", "41315 成功但本地缺 suit={0},重拉41313", suitId);
+                RequestSuitInfo();
+                return;
+            }
+            TipsManager.Toast("进阶成功");
+            GameLog.Info("Fashion", "41315 套装进阶 suit={0} lv={1}", suitId, lv);
+            EventDispatcher.Emit(GlobalEvent.EVT_FASHION_UPDATE);
         }
 
         /// <summary>41316 回包(⚠Code 在最后,Lv 是 8位——与 41306 的 FashionStarLv 16位不同):

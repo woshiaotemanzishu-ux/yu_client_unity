@@ -169,6 +169,9 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_fashion",              // 时装(pt_413,41300+)基础表,主键"pos@fashion_id@star_lv"(⚠此源=cdn\resource\config\server 实测6420条/星级到200,与服务端data_fashion.erl一致;cdn\assets下1200条/20星是陈旧副本,同config_ring_star的先例),轮21 PA FashionConfigs.GetBaseRow 用
             "config_fashion_color",        // 时装染色表,主键"pos@fashion_id@color_id@star_lv"(此源15180条,同上口径),轮21 PA FashionConfigs.GetColorRow 用
             "config_fashion_model",        // 时装模型表,主键"pos@fashion_id@career@sex@color_id"(704条,两份源一致),轮21 PA FashionConfigs 预留(本轮未强依赖,留展示/第二刀用)
+            "config_fashion_pos",          // 时装部位等级表,主键"pos_id@pos_lv"(3003条,3部位×0..1000级),FashionLevelView 用
+            "config_fashion_suit",         // 时装套装基础表,数字键 suit_id(4条),FashionSuitView 页签/激活条件用
+            "config_fashion_suit_star",    // 时装套装升阶表,主键"suit_id@star_id"(40条,4套×1..10阶),FashionSuitView 用
             "config_guild_activity_gift",  // 公会晚宴(GuildActivity,pt_402)活跃度礼包表(数字键 id,5条),自动循环 轮22 PK1 GuildActivityConfigs.GetGift 用
             "config_constellation_equip",           // 星宿(StarEquip pt_232)装备基础表(180条,数字键 goods_id),轮23 PK1 StarEquipConfigs.GetEquipInfo 用
             "config_constellation_page",             // 星宿套装页表(5条,数字键 page),轮23 PK1 StarEquipConfigs.GetPageInfo 用

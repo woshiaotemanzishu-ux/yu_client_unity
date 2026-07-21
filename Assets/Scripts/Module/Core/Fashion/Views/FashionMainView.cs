@@ -17,7 +17,7 @@ namespace Shenxiao.Module.Core.Fashion
     ///
     /// 覆盖 8 活号:41300(全量)/41301(Type2解锁颜色)/41302(穿戴)/41303(卸下)/41304(激活)/
     /// 41306(基础色进阶)/41312(战力,请求即可,展示留 TODO)/41316(彩色进阶)。
-    /// 41305(部位等级)/41313-15(套装)不在本轮范围,_img_grade 按 pos 显隐但点击只降级提示。
+    /// 41305(部位等级)由 _img_grade 打开 FashionLevelView；41313-15 套装由 FashionFlow 第三个页签承载。
     ///
     /// "能点能用即可,不求像素级"(spec 裁决12):列表按横排铺开,不做虚拟滚动/裁剪遮罩;
     /// 未激活/灰显用透明度代替灰阶滤镜(GuildRBItem.cs 先例);3D 模型预览(_box_model)/染色贴图
@@ -58,6 +58,7 @@ namespace Shenxiao.Module.Core.Fashion
 
         protected override void OnShow(object args)
         {
+            Subscribe();
             _ = EnsureConfigsThenRefresh();
             Refresh();
         }
@@ -107,8 +108,7 @@ namespace Shenxiao.Module.Core.Fashion
         private void OnGradeClick()
         {
             if (_posId != 1) return; // 头饰位无部位等级(对标老端 pos==Head 隐藏 _img_grade)
-            TipsManager.Toast("部位升级 待开放");
-            GameLog.Info("Fashion", "点击[部位升级](FashionLevelView,41305) → 第二刀未接线");
+            FashionFlow.OpenLevel(_posId);
         }
 
         private void OnWearToggleClick()
@@ -447,7 +447,6 @@ namespace Shenxiao.Module.Core.Fashion
         //    但主界面已在跑的 3D 模型不会热更(Scene/MainRoleFlow.cs 只在 EVT_SCENE_MAP_READY 时重建整只模型,
         //    没有"figure 变了就地刷新"的订阅通道,且该文件不在本包所有权内)——留给下一次碰 Scene 家族的人接上
         //    EVT_FASHION_UPDATE(或专门加一个更精确的形象刷新事件)。
-        // 4. 套装页(FashionSuitView,41313-15)与部位等级(FashionLevelView,41305)是第二刀;
-        //    本类 _img_grade 只挂了"待开放"降级提示。
+        // 4. 套装页(FashionSuitView,41313-15)与部位等级(FashionLevelView,41305)已由 FashionFlow 接线。
     }
 }
