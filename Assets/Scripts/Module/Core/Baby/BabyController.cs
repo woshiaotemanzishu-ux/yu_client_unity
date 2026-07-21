@@ -59,6 +59,8 @@ namespace Shenxiao.Module.Core.Baby
             SendEmpty(Proto.BABY_BASIC_INFO);
         }
 
+        public void RequestFamily() => SendEmpty(Proto.BABY_FAMILY_INFO);
+
         public void RequestActivate() => SendEmpty(Proto.BABY_ACTIVATE);
 
         public void RequestStageUp() => SendEmpty(Proto.BABY_STAGE_UP);

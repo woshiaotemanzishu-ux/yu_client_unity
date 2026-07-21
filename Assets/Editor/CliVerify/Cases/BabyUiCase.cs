@@ -59,6 +59,7 @@ namespace Shenxiao.EditorTools
                     && Check<BabyCultivateViewBind>(module) && Check<BabyChangedViewBind>(module)
                     && Check<BabyIllusionViewBind>(module);
                 bool businessViews = module.GetComponentInChildren<GestateBabyView>(true) != null
+                    && module.GetComponentInChildren<BabyFamilyView>(true) != null
                     && module.GetComponentInChildren<BabyCultivateView>(true) != null
                     && module.GetComponentInChildren<BabyIllusionView>(true) != null;
                 BabyModel model = BabyModel.Instance;
@@ -74,6 +75,21 @@ namespace Shenxiao.EditorTools
                     display = cultivateView.babyName.text == "baby" && cultivateView.lvLb.text == "7"
                         && cultivateView.lvExpLb.text == "11" && cultivateView.stageExpLb.text == "13";
                     cultivateView.Hide();
+                }
+                BabyFamilyView familyView = module.GetComponentInChildren<BabyFamilyView>(true);
+                BabyFamilyInfo family = new BabyFamilyInfo();
+                family.InfoList.Add(new BabyFamilyEntry { ActiveTime = 1, BabyName = "family-a", RaiseLevel = 8, Stage = 5, StageLevel = 2, BabyPower = 600 });
+                family.InfoList.Add(new BabyFamilyEntry { ActiveTime = 2, BabyName = "family-b", RaiseLevel = 9, Stage = 6, StageLevel = 3, BabyPower = 700 });
+                model.ApplyFamily(family);
+                bool familyDisplay = familyView != null;
+                if (familyDisplay)
+                {
+                    familyView.gameObject.SetActive(true);
+                    familyView.Show();
+                    familyDisplay = familyView.scroller1.gameObject.activeSelf && familyView.scroller2.gameObject.activeSelf
+                        && familyView.value1.text.Contains("family-a") && familyView.value1.text.Contains("8")
+                        && familyView.value2.text.Contains("family-b") && familyView.value2.text.Contains("700");
+                    familyView.Hide();
                 }
                 BabyIllusionView illusionView = module.GetComponentInChildren<BabyIllusionView>(true);
                 model.ApplyBasic(new BabyBasicInfo { BabyId = 101 });
@@ -100,8 +116,8 @@ namespace Shenxiao.EditorTools
                     && Has<BabyPropItemBind>(cultivate != null ? cultivate._tpl_BabyPropItem : null)
                     && Has<BabyIlluItemBind>(illusion != null ? illusion._tpl_BabyIlluItem : null)
                     && Has<BabyPropItemBind>(illusion != null ? illusion._tpl_BabyPropItem : null);
-                Debug.Log("CLIVERIFY babyui pages=" + pages + " businessViews=" + businessViews + " display=" + display + " illusionDisplay=" + illusionDisplay + " items=" + items + " templates=" + templates);
-                return pages && businessViews && display && illusionDisplay && items && templates;
+                Debug.Log("CLIVERIFY babyui pages=" + pages + " businessViews=" + businessViews + " display=" + display + " familyDisplay=" + familyDisplay + " illusionDisplay=" + illusionDisplay + " items=" + items + " templates=" + templates);
+                return pages && businessViews && display && familyDisplay && illusionDisplay && items && templates;
             }
             finally
             {
