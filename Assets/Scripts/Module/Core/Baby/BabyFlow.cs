@@ -25,6 +25,7 @@ namespace Shenxiao.Module.Core.Baby
         private static GameObject _contentRoot;
         private static BaseWindowSkinView _window;
         private static GestateBabyView _gestateView;
+        private static BabyFamilyView _familyView;
         private static BabyCultivateView _cultivateView;
         private static BabyIllusionView _illusionView;
         private static bool _loading;
@@ -55,6 +56,7 @@ namespace Shenxiao.Module.Core.Baby
             _contentRoot = null;
             _window = null;
             _gestateView = null;
+            _familyView = null;
             _cultivateView = null;
             _illusionView = null;
             _loading = false;
@@ -104,9 +106,10 @@ namespace Shenxiao.Module.Core.Baby
             _contentRoot.name = ContentPrefab;
             _window = _frameRoot.GetComponentInChildren<BaseWindowSkinView>(true);
             _gestateView = _contentRoot.GetComponentInChildren<GestateBabyView>(true);
+            _familyView = _contentRoot.GetComponentInChildren<BabyFamilyView>(true);
             _cultivateView = _contentRoot.GetComponentInChildren<BabyCultivateView>(true);
             _illusionView = _contentRoot.GetComponentInChildren<BabyIllusionView>(true);
-            if (_window == null || _gestateView == null || _cultivateView == null || _illusionView == null)
+            if (_window == null || _gestateView == null || _familyView == null || _cultivateView == null || _illusionView == null)
             {
                 GameLog.Error("Baby", "BabyModule missing required business view; run BabyBindUpgrader");
                 Reset();
@@ -161,15 +164,19 @@ namespace Shenxiao.Module.Core.Baby
             if (!_windowConfigured)
             {
                 _window.ConfigureShared(Tabs.Length, ReparentCultivate, null, 0,
-                    index => index == 0 || index == 2,
-                    new Dictionary<int, Func<RectTransform, BaseView>> { { 2, ReparentIllusion } },
+                    index => index >= 0 && index < Tabs.Length,
+                    new Dictionary<int, Func<RectTransform, BaseView>>
+                    {
+                        { 1, ReparentFamily },
+                        { 2, ReparentIllusion }
+                    },
                     Tabs, null, WindowBg);
                 _windowConfigured = true;
             }
             else
             {
                 int index = _window.CurrentIndex;
-                _window.SelectShared(index == 0 || index == 2 ? index : 0);
+                _window.SelectShared(index >= 0 && index < Tabs.Length ? index : 0);
             }
         }
 
@@ -178,6 +185,13 @@ namespace Shenxiao.Module.Core.Baby
             _cultivateView.transform.SetParent(parent, false);
             _cultivateView.gameObject.SetActive(true);
             return _cultivateView;
+        }
+
+        private static BaseView ReparentFamily(RectTransform parent)
+        {
+            _familyView.transform.SetParent(parent, false);
+            _familyView.gameObject.SetActive(true);
+            return _familyView;
         }
 
         private static BaseView ReparentIllusion(RectTransform parent)
