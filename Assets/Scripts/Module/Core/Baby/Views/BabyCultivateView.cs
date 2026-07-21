@@ -19,6 +19,7 @@ namespace Shenxiao.Module.Core.Baby
             UIUtil.AddClick(lvBtnGp, () => SelectPage(0));
             UIUtil.AddClick(stageBtnGp, () => SelectPage(1));
             UIUtil.AddClick(upBtn, () => BabyController.Instance.RequestStageUp());
+            UIUtil.AddClick(rankBtn, () => _ = ViewManager.Open<BabyLikeView>());
             SelectPage(0);
         }
 

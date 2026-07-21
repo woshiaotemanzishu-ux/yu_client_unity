@@ -28,6 +28,10 @@ namespace Shenxiao.EditorTools
             {
                 ResManager.EditorPreferFallback = true;
                 bool likeStatic = BabyBindUpgrader.VerifyLikeStatic();
+                Shenxiao.Framework.UI.UIViewAttribute likeAddress = typeof(BabyLikeView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
+                Shenxiao.Framework.UI.UIViewAttribute belikeAddress = typeof(BabyBelikeView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
+                bool viewAddresses = likeAddress != null && likeAddress.AddrKey == "prefabs/ui/baby/babylikeview"
+                    && belikeAddress != null && belikeAddress.AddrKey == "prefabs/ui/baby/babybelikeview";
                 _ = BabyRaiseConfigs.EnsureLoaded();
                 _ = BabyFigureConfigs.EnsureLoaded();
                 _ = BabyFigureStarConfigs.EnsureLoaded();
@@ -60,8 +64,8 @@ namespace Shenxiao.EditorTools
                 bool prefab = upgraded && VerifyInstances();
                 bool likeRank = likeStatic && VerifyLikeRank();
                 bool belike = likeStatic && VerifyBelike();
-                bool pass = config && likeStatic && upgraded && prefab && likeRank && belike;
-                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " pass=" + pass);
+                bool pass = config && likeStatic && viewAddresses && upgraded && prefab && likeRank && belike;
+                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " pass=" + pass);
                 return Task.FromResult(pass ? 0 : 3);
             }
             catch (Exception e)
@@ -177,7 +181,8 @@ namespace Shenxiao.EditorTools
                     UnityEngine.UI.Button lvButton = cultivateView.lvBtnGp.GetComponent<UnityEngine.UI.Button>();
                     UnityEngine.UI.Button stageButton = cultivateView.stageBtnGp.GetComponent<UnityEngine.UI.Button>();
                     UnityEngine.UI.Button upButton = cultivateView.upBtn.GetComponent<UnityEngine.UI.Button>();
-                    display = display && lvButton != null && stageButton != null && upButton != null;
+                    UnityEngine.UI.Button rankButton = cultivateView.rankBtn.GetComponent<UnityEngine.UI.Button>();
+                    display = display && lvButton != null && stageButton != null && upButton != null && rankButton != null;
                     if (display)
                     {
                         stageButton.onClick.Invoke();
@@ -366,6 +371,9 @@ namespace Shenxiao.EditorTools
                 TMPro.TextMeshProUGUI myLike = FindNode(viewObject.transform, "mylike")?.GetComponent<TMPro.TextMeshProUGUI>();
                 bool shown = frames.Count == 1 && IsProtocol(frames[0], Proto.BABY_LIKE_RANK)
                     && myRank != null && myRank.text == "我的排名:2" && myLike != null && myLike.text == "我的赞:22";
+                UnityEngine.UI.Button closeButton = FindNode(viewObject.transform, "closeBtn")?.GetComponent<UnityEngine.UI.Button>();
+                UnityEngine.UI.Button belikeButton = FindNode(viewObject.transform, "belikeBtn")?.GetComponent<UnityEngine.UI.Button>();
+                shown = shown && closeButton != null && belikeButton != null;
                 Transform content = view._Scroller1 != null ? view._Scroller1.content : FindNode(viewObject.transform, "Content1");
                 BabyLikeItem[] items = content != null ? content.GetComponentsInChildren<BabyLikeItem>(true) : new BabyLikeItem[0];
                 TMPro.TextMeshProUGUI firstName = items.Length > 0 ? FindNode(items[0].transform, "nameLb")?.GetComponent<TMPro.TextMeshProUGUI>() : null;
@@ -444,6 +452,7 @@ namespace Shenxiao.EditorTools
                 bool shown = frames.Count == 1 && IsProtocol(frames[0], Proto.BABY_LIKE_RECORDS) && items.Length == 2
                     && firstName != null && firstName.text == "pending" && firstButton != null && firstButton.gameObject.activeSelf
                     && secondButton != null && !secondButton.gameObject.activeSelf;
+                shown = shown && FindNode(viewObject.transform, "closeBtn")?.GetComponent<UnityEngine.UI.Button>() != null;
                 UnityEngine.UI.Button button = firstButton != null ? firstButton.GetComponent<UnityEngine.UI.Button>() : null;
                 button?.onClick.Invoke();
                 shown = shown && frames.Count == 2 && IsProtocol(frames[1], Proto.BABY_PRAISE);

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
+using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Baby;
 using TMPro;
 using UnityEngine;
@@ -9,6 +10,7 @@ using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Baby
 {
+    [UIView("prefabs/ui/baby/babylikeview")]
     public sealed class BabyLikeView : BabyLikeViewBind
     {
         private bool _listening;
@@ -22,6 +24,15 @@ namespace Shenxiao.Module.Core.Baby
         private Transform _rewardContent;
         private GameObject _rewardTemplate;
         private readonly List<GameObject> _rewardItems = new List<GameObject>();
+        private Image _closeBtn;
+        private Image _belikeBtn;
+
+        protected override void OnInit()
+        {
+            CacheNodes();
+            UIUtil.AddClick(_closeBtn, () => ViewManager.Close<BabyLikeView>());
+            UIUtil.AddClick(_belikeBtn, () => _ = ViewManager.Open<BabyBelikeView>());
+        }
 
         protected override void OnShow(object args)
         {
@@ -104,6 +115,8 @@ namespace Shenxiao.Module.Core.Baby
                 if (nodes[i].name == "myRank") _myRank = nodes[i].GetComponent<TextMeshProUGUI>();
                 else if (nodes[i].name == "mylike") _myLike = nodes[i].GetComponent<TextMeshProUGUI>();
                 else if (nodes[i].name == "noOneLb") _noOneLb = nodes[i].GetComponent<TextMeshProUGUI>();
+                else if (nodes[i].name == "closeBtn") _closeBtn = nodes[i].GetComponent<Image>();
+                else if (nodes[i].name == "belikeBtn") _belikeBtn = nodes[i].GetComponent<Image>();
                 else if (nodes[i].name == "BabyLikeItem" && nodes[i].parent != null && nodes[i].parent.name == "__Templates") _itemTemplate = nodes[i].gameObject;
                 else if (nodes[i].name == "BabyLikeReward" && nodes[i].parent != null && nodes[i].parent.name == "__Templates") _rewardTemplate = nodes[i].gameObject;
             }

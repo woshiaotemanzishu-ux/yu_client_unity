@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
+using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Baby;
 using TMPro;
 using UnityEngine;
@@ -8,6 +9,7 @@ using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Baby
 {
+    [UIView("prefabs/ui/baby/babybelikeview")]
     public sealed class BabyBelikeView : BabyBelikeViewBind
     {
         private bool _listening;
@@ -15,6 +17,13 @@ namespace Shenxiao.Module.Core.Baby
         private TextMeshProUGUI _noOneLb;
         private GameObject _itemTemplate;
         private readonly List<GameObject> _items = new List<GameObject>();
+        private Image _closeBtn;
+
+        protected override void OnInit()
+        {
+            CacheNodes();
+            UIUtil.AddClick(_closeBtn, () => ViewManager.Close<BabyBelikeView>());
+        }
 
         protected override void OnShow(object args)
         {
@@ -73,6 +82,7 @@ namespace Shenxiao.Module.Core.Baby
             {
                 if (_content == null && nodes[i].name == "Content") _content = nodes[i];
                 if (nodes[i].name == "noOneLb") _noOneLb = nodes[i].GetComponent<TextMeshProUGUI>();
+                else if (nodes[i].name == "closeBtn") _closeBtn = nodes[i].GetComponent<Image>();
                 else if (nodes[i].name == "BabyBelikeItem" && nodes[i].parent != null && nodes[i].parent.name == "__Templates") _itemTemplate = nodes[i].gameObject;
             }
         }
