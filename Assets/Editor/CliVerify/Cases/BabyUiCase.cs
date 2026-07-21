@@ -46,6 +46,7 @@ namespace Shenxiao.EditorTools
                 _ = BabyPraiseConfigs.EnsureLoaded();
                 _ = BabyEquipConfigs.EnsureLoaded();
                 _ = BabyEquipUpgradeConfigs.EnsureLoaded();
+                _ = BabyEquipEngraveConfigs.EnsureLoaded();
                 _ = Shenxiao.Module.Core.Common.GoodsModel.EnsureLoaded();
                 BabyFigureConfigs.BabyFigureCfg figureCfg = BabyFigureConfigs.Get(1);
                 BabyFigureStarConfigs.BabyFigureStarCfg starCfg = BabyFigureStarConfigs.Get(1, 2);
@@ -72,7 +73,7 @@ namespace Shenxiao.EditorTools
                     && BabyEquipConfigs.Get(65010200) != null && BabyEquipConfigs.Get(65010200).PosId == 1 && BabyEquipConfigs.Get(65010200).Skills.Count == 1 && BabyEquipConfigs.Get(65010200).Skills[0] == 2001001
                     && BabyEquipConfigs.Get(65060601) != null && BabyEquipConfigs.Get(65060601).PosId == 6 && BabyEquipConfigs.Get(65060601).Color == 6
                     && BabyEquipConfigs.CanWear(65010200, 1, 1) && !BabyEquipConfigs.CanWear(65010200, 2, 1) && !BabyEquipConfigs.CanWear(65010200, 1, 0) && !BabyEquipConfigs.CanWear(1, 1, 1)
-                    && VerifyEquipUpgradeConfigs();
+                    && VerifyEquipUpgradeConfigs() && VerifyEquipEngraveConfigs();
                 bool upgraded = BabyBindUpgrader.Generate();
                 bool prefab = upgraded && VerifyInstances();
                 bool likeRank = likeStatic && VerifyLikeRank();
@@ -568,6 +569,43 @@ namespace Shenxiao.EditorTools
             {
                 bag.Clear();
             }
+        }
+
+        private static bool VerifyEquipEngraveConfigs()
+        {
+            BabyEquipEngraveConfigs.EngraveCfg weak = BabyEquipEngraveConfigs.Get(2, 38040037);
+            BabyEquipEngraveConfigs.EngraveCfg strong = BabyEquipEngraveConfigs.Get(2, 38040040);
+            if (!BabyEquipEngraveConfigs.IsLoaded || weak == null || strong == null || weak.Num != 2 || weak.Ratio != 500
+                || strong.Num != 1 || strong.Ratio != 10000 || BabyEquipEngraveConfigs.GetColorCandidates(2).Count != 4) return false;
+            MethodInfo setBagFull = typeof(Shenxiao.Module.Core.Bag.BagModel).GetMethod("SetBagFull", BindingFlags.Instance | BindingFlags.Public);
+            if (setBagFull == null) return false;
+            var bag = Shenxiao.Module.Core.Bag.BagModel.Instance;
+            try
+            {
+                setBagFull.Invoke(bag, new object[] { 0, 20, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>
+                {
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 1, TypeId = 38040037, GoodsNum = 4 },
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 2, TypeId = 38040040, GoodsNum = 2 }
+                }});
+                var entry = new BabyEquipEntry { PositionId = 1, GoodsTypeId = 65010200, SkillId = 0 };
+                BabyEquipEngraveConfigs.PreviewResult repeated = BabyEquipEngraveConfigs.Preview(entry, new[] { 38040037, 38040037, 38040040 });
+                BabyEquipEngraveConfigs.PreviewResult capped = BabyEquipEngraveConfigs.Preview(entry, new[] { 38040040, 38040040 });
+                bool preview = repeated.Valid && repeated.Enough && repeated.Ratio == 10000 && repeated.Costs.Count == 2
+                    && repeated.Costs[0].TypeId == 38040037 && repeated.Costs[0].Num == 4
+                    && repeated.Costs[1].TypeId == 38040040 && repeated.Costs[1].Num == 1
+                    && capped.Valid && capped.Enough && capped.Ratio == 10000
+                    && bag.GetTypeGoodsNum(38040037) == 4 && bag.GetTypeGoodsNum(38040040) == 2;
+                setBagFull.Invoke(bag, new object[] { 0, 20, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>
+                {
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 3, TypeId = 38040037, GoodsNum = 3 }
+                }});
+                BabyEquipEngraveConfigs.PreviewResult shortBag = BabyEquipEngraveConfigs.Preview(entry, new[] { 38040037, 38040037 });
+                entry.SkillId = 1;
+                BabyEquipEngraveConfigs.PreviewResult hadSkill = BabyEquipEngraveConfigs.Preview(entry, new[] { 38040037 });
+                BabyEquipEngraveConfigs.PreviewResult invalid = BabyEquipEngraveConfigs.Preview(new BabyEquipEntry { GoodsTypeId = 65010200 }, new[] { 1 });
+                return preview && shortBag.Valid && !shortBag.Enough && !hadSkill.Valid && !invalid.Valid;
+            }
+            finally { bag.Clear(); }
         }
 
         private static bool VerifyEquip()

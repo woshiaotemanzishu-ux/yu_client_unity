@@ -89,6 +89,7 @@ namespace Shenxiao.EditorTools
             MethodInfo m18217 = M("On18217");
             MethodInfo m18218 = M("On18218");
             MethodInfo m18219 = M("On18219");
+            MethodInfo m18220 = M("On18220");
             MethodInfo m18221 = M("On18221");
             MethodInfo m18222 = M("On18222");
             MethodInfo m18223 = M("On18223");
@@ -98,7 +99,7 @@ namespace Shenxiao.EditorTools
             bool allPass = m18200 != null && m18201 != null && m18203 != null && m18204 != null
                 && m18205 != null && m18206 != null && m18207 != null && m18208 != null && m18209 != null
                 && m18210 != null && m18211 != null && m18213 != null && m18214 != null && m18215 != null
-                && m18217 != null && m18218 != null && m18219 != null && m18221 != null && m18222 != null && m18223 != null && m18224 != null && mGameStart != null;
+                && m18217 != null && m18218 != null && m18219 != null && m18220 != null && m18221 != null && m18222 != null && m18223 != null && m18224 != null && mGameStart != null;
             void Check(string tag, bool ok)
             {
                 Debug.Log("CLIVERIFY baby " + tag + " ok=" + ok);
@@ -128,6 +129,7 @@ namespace Shenxiao.EditorTools
                 [Proto.BABY_PRAISE] = m18217,
                 [Proto.BABY_EQUIP_WEAR] = m18218,
                 [Proto.BABY_EQUIP_UPGRADE] = m18219,
+                [Proto.BABY_EQUIP_IMPRINT] = m18220,
                 [Proto.BABY_TASK_UPDATE] = m18221,
                 [Proto.BABY_TASK_REWARD] = m18222,
                 [Proto.BABY_FIGURE_POWER] = m18223,
@@ -151,7 +153,7 @@ namespace Shenxiao.EditorTools
                     break;
                 }
             }
-            Check("runtime registration count=20", registrationOk);
+            Check("runtime registration count=21", registrationOk);
 
             FieldInfo hubAllField = typeof(ControllerHub).GetField("ALL", SF);
             var hubAll = hubAllField?.GetValue(null) as IEnumerable;
@@ -287,6 +289,10 @@ namespace Shenxiao.EditorTools
                 bool c2s18219 = requestTrace.Count == 1 && FrameEquals(requestTrace[0], Proto.BABY_EQUIP_UPGRADE,
                     new CliVerify.Pkt().C(6).Bytes());
                 requestTrace.Clear();
+                ctrl.RequestEquipImprint(2, new List<int> { 38040037, 38040040 });
+                bool c2s18220 = requestTrace.Count == 1 && FrameEquals(requestTrace[0], Proto.BABY_EQUIP_IMPRINT,
+                    new CliVerify.Pkt().C(2).H(2).I(38040037).I(38040040).Bytes());
+                requestTrace.Clear();
                 ctrl.RequestSetFigure(0, 1);
                 ctrl.RequestSetFigure(3, 1);
                 ctrl.RequestTaskReward(0);
@@ -301,9 +307,14 @@ namespace Shenxiao.EditorTools
                 ctrl.RequestEquipWear(1, 0);
                 ctrl.RequestEquipUpgrade(0);
                 ctrl.RequestEquipUpgrade(7);
+                ctrl.RequestEquipImprint(0, new List<int> { 1 });
+                ctrl.RequestEquipImprint(7, new List<int> { 1 });
+                ctrl.RequestEquipImprint(1, null);
+                ctrl.RequestEquipImprint(1, new List<int>());
+                ctrl.RequestEquipImprint(1, new List<int> { 0 });
                 bool c2sGuards = requestTrace.Count == 0;
                 Check("second packet C2S exact wire/guards", c2s18210 && c2s18211 && c2s18213
-                    && c2s18214 && c2s18215 && c2s18222 && c2s18223 && c2s18208 && c2s18209 && c2s18217 && c2s18218 && c2s18219 && c2sGuards);
+                    && c2s18214 && c2s18215 && c2s18222 && c2s18223 && c2s18208 && c2s18209 && c2s18217 && c2s18218 && c2s18219 && c2s18220 && c2sGuards);
 
                 requestTrace.Clear();
                 NetReader r18200 = Feed(m18200, new CliVerify.Pkt()
@@ -627,6 +638,25 @@ namespace Shenxiao.EditorTools
                     && model.Equip.EquipList.Count == 1 && ReferenceEquals(worn, model.Equip.EquipList[0])
                     && RequestTraceEquals(requestTrace, Proto.BABY_EQUIP_INFO)
                     && TraceEquals(updateTrace, Proto.BABY_EQUIP_UPGRADE));
+
+                requestTrace.Clear();
+                updateTrace.Clear();
+                NetReader r18220Ok = Feed(m18220, new CliVerify.Pkt().I(1).C(2).L(499).I(488).I(2001001).I(466).I(Tail).Bytes());
+                bool r18220SuccessState = model.LastEquipImprintResult != null && model.LastEquipImprintResult.AttemptCompleted && model.LastEquipImprintResult.Succeeded;
+                NetReader r18220ProbFail = Feed(m18220, new CliVerify.Pkt().I(1).C(2).L(599).I(588).I(0).I(566).I(Tail).Bytes());
+                bool r18220ProbabilityState = model.LastEquipImprintResult != null && model.LastEquipImprintResult.AttemptCompleted && !model.LastEquipImprintResult.Succeeded
+                    && worn.SkillId == 2001001 && model.Equip.Power == 466;
+                NetReader r18220Error = Feed(m18220, new CliVerify.Pkt().I(5).C(2).L(699).I(688).I(2001002).I(666).I(Tail).Bytes());
+                Check("18220 success/probability failure/error/tail", TailOk(r18220Ok) && TailOk(r18220ProbFail) && TailOk(r18220Error)
+                    && r18220SuccessState && r18220ProbabilityState
+                    && worn.Id == 199 && worn.GoodsTypeId == 188 && worn.Stage == 112 && worn.StageLevel == 113 && worn.StageExp == 114
+                    && worn.SkillId == 2001001 && model.Equip.Power == 466 && model.LastEquipImprintResult != null && !model.LastEquipImprintResult.AttemptCompleted
+                    && TraceEquals(updateTrace, Proto.BABY_EQUIP_IMPRINT, Proto.BABY_EQUIP_IMPRINT, Proto.BABY_EQUIP_IMPRINT));
+                requestTrace.Clear();
+                updateTrace.Clear();
+                NetReader r18220Missing = Feed(m18220, new CliVerify.Pkt().I(1).C(6).L(799).I(788).I(2001003).I(766).I(Tail).Bytes());
+                Check("18220 missing slot refetch/no fabricate/tail", TailOk(r18220Missing) && model.Equip.EquipList.Count == 1
+                    && RequestTraceEquals(requestTrace, Proto.BABY_EQUIP_INFO) && TraceEquals(updateTrace, Proto.BABY_EQUIP_IMPRINT));
             }
             finally
             {

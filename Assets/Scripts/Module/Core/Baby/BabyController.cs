@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -38,6 +39,7 @@ namespace Shenxiao.Module.Core.Baby
             RegisterProtocal(Proto.BABY_RENAME, On18215);
             RegisterProtocal(Proto.BABY_EQUIP_WEAR, On18218);
             RegisterProtocal(Proto.BABY_EQUIP_UPGRADE, On18219);
+            RegisterProtocal(Proto.BABY_EQUIP_IMPRINT, On18220);
             RegisterProtocal(Proto.BABY_PRAISE, On18217);
             RegisterProtocal(Proto.BABY_TASK_UPDATE, On18221);
             RegisterProtocal(Proto.BABY_TASK_REWARD, On18222);
@@ -113,6 +115,19 @@ namespace Shenxiao.Module.Core.Baby
         {
             if (posId < 1 || posId > 6) return;
             SendRequest(Proto.BABY_EQUIP_UPGRADE, "c", posId);
+        }
+
+        /// <summary>仅供完成预览/确认的铭刻流程调用；UI 按钮不得绕过配置、库存和已铭刻校验直接调用。</summary>
+        public void RequestEquipImprint(int posId, IReadOnlyList<int> selectedTypeIds)
+        {
+            if (posId < 1 || posId > 6 || selectedTypeIds == null || selectedTypeIds.Count < 1 || selectedTypeIds.Count > ushort.MaxValue) return;
+            for (int i = 0; i < selectedTypeIds.Count; i++) if (selectedTypeIds[i] <= 0) return;
+            int count = selectedTypeIds.Count;
+            var args = new object[count + 2];
+            args[0] = posId;
+            args[1] = count;
+            for (int i = 0; i < count; i++) args[i + 2] = selectedTypeIds[i];
+            SendRequest(Proto.BABY_EQUIP_IMPRINT, "ch" + new string('i', count), args);
         }
 
         public void RequestLikeRank() => SendEmpty(Proto.BABY_LIKE_RANK);
@@ -459,6 +474,18 @@ namespace Shenxiao.Module.Core.Baby
             bool updated = BabyModel.Instance.ApplyEquipUpgradeResult(result);
             if (result.Succeeded && !updated) RequestEquipInfo();
             EventDispatcher.Emit(GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_EQUIP_UPGRADE);
+        }
+
+        private void On18220(NetReader r)
+        {
+            var result = new BabyEquipImprintResult
+            {
+                Code = r.ReadI32(), PositionId = r.ReadU8(), Id = r.ReadU64(), GoodsTypeId = r.ReadI32(),
+                SkillId = r.ReadI32(), Power = r.ReadI32()
+            };
+            bool updated = BabyModel.Instance.ApplyEquipImprintResult(result);
+            if (result.Succeeded && !updated) RequestEquipInfo();
+            EventDispatcher.Emit(GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_EQUIP_IMPRINT);
         }
 
         private void On18224(NetReader r)
