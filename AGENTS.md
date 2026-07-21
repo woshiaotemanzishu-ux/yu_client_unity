@@ -58,7 +58,7 @@
 ## 协议迁移补充记忆
 
 - 宝宝装备的通用物品容器必须分开：`pos=36` 是已穿戴装备实例库，供 18205/18218 槽位里的装备实例 id 反查；`pos=37` 是待穿候选背包。二者都接收 15010/15017/15018，但使用独立存储与事件；老端登录批量请求中 36/37 均被注释，Unity 当前只主动请求 37，36 保持被动接收，未经实证不要擅自加入启动请求。182xx 槽位包与 pos36 物品包没有固定先后，UI 必须同时监听两条更新链，实例未到或 id 不匹配时先降级显示槽位包的 `GoodsTypeId`。候选变强红点严格比较 `BagGoods.Rating`（不用 `OverallRating`）：空槽或候选更高即红；红点节点是 `BabyEquipSubItem.redImg`，槽位 `BabyEquipIcon.effectGp` 只表示选中。
-- 宝宝装备强化 18219 上行只有 `pos_id:u8`；回包是 `code:i,pos:u8,id:u64,type:i,stage:u16,stage_lv:u16,stage_exp:i,power:i`。服务端会自行挑选强化经验材料或按升阶配置直接扣固定 cost，客户端不发送材料列表；扣包另走 15017/15018。Unity 已接协议与模型更新，但 `forgeBtn/imprintBtn` 必须继续无 Button，直到两份强化/升阶配置、消耗预览和明确确认交互完成；不得把 `RequestEquipUpgrade` 直接绑定按钮。
+- 宝宝装备强化 18219 上行只有 `pos_id:u8`；回包是 `code:i,pos:u8,id:u64,type:i,stage:u16,stage_lv:u16,stage_exp:i,power:i`。服务端会自行挑选强化经验材料或按升阶配置直接扣固定 cost，客户端不发送材料列表；扣包另走 15017/15018。`forgeBtn` 已通过运行时 Button 开放，但只能走“实时预览足够 → 列出材料名×数量 → 二次确认 → 回调再次校验同槽位/实例/消费快照 → pending 防连点 → 发 18219”的链路，不能直接绑定 `RequestEquipUpgrade`。`imprintBtn` 是铭刻 18220，必须继续无 Button；其上行是 `pos:u8,count:u16,N×type_id:i32`，材料选择、配置与回包模型尚未迁移，不能按 18219 猜测实现。
 - 18219 的只读消耗预览来自三处：`config_baby_value[8]` 定义材料固定顺序 38040031/32/33 与每件 10/50/100 经验，`config_baby_equip_stren` 用 `pos@stage@nextLv.point_con - 当前stage_exp` 算经验缺口，当前阶段满级时改读下一条 `config_baby_equip_stage.cost`。服务端按该材料顺序从普通背包 `pos=4` 取最少件数；升阶预览即使有一项不足也必须返回完整 cost，不能提前截断。
 - 不得从 S2C 命令号反推 C2S。连服夺宝是已核实的非对称链：老端专用 `ListDuobaoView.ts` 发 33191，服务端 `pp_custom_act.erl` 在 `type=116` 时转入 rush treasure，成功后回 33803；Unity 必须保留 33191 请求 + 33803 独立接收。另一个通用 `CompetelistView` 直接发 33803，不代表专用夺宝页也应照抄。
 - 活动入口路由必须查新客户端实际 `configcustomactivity/configfunctionicon` 键，不要只照旧端拼接规则。当前连服夺宝实际可见父入口是 `331@110`，子活动数据是 `116@0`；在通用父容器尚未接管前，专用路由只能有条件占用 `331@110`，同时保留精确键 `331@116@0`。

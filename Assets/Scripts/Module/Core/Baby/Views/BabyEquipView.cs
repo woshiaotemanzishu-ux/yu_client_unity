@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using Shenxiao.Module.Core.Bag;
 using Shenxiao.Generated.UI.Baby;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Common.Tips;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Baby
 {
@@ -20,6 +22,19 @@ namespace Shenxiao.Module.Core.Baby
         private GameObject _candidateTemplate;
         private readonly List<GameObject> _candidateItems = new List<GameObject>();
         private int _selectedPosition = 1;
+        private Button _forgeButton;
+        private bool _forgeBound;
+        private bool _confirming;
+        private bool _upgradePending;
+        private int _stateVersion;
+        private int _confirmVersion;
+        private int _confirmPosition;
+        private long _confirmGoodsId;
+        private string _confirmPreviewKey = string.Empty;
+
+        public bool UpgradePending => _upgradePending;
+        public bool ForgeInteractable => _forgeButton != null && _forgeButton.interactable;
+        public string LastForgeConfirmText { get; private set; } = string.Empty;
 
         public void Refresh(BabyEquipInfo equip, BabyBasicInfo basic)
         {
@@ -44,6 +59,7 @@ namespace Shenxiao.Module.Core.Baby
                 icon.SetData(position, entry, BabyModel.Instance.GetWearGoods(position), position == _selectedPosition, SelectPosition); _items.Add(go);
             }
             RefreshCandidates();
+            RefreshForgeState();
         }
 
         private void SelectPosition(int positionId)
@@ -56,6 +72,24 @@ namespace Shenxiao.Module.Core.Baby
                 if (icon != null) icon.SetSelected(icon.PositionId == _selectedPosition);
             }
             RefreshCandidates();
+            RefreshForgeState();
+        }
+
+        public void OnUpgradeResult()
+        {
+            _stateVersion++;
+            ClearConfirmState();
+            _upgradePending = false;
+            RefreshForgeState();
+        }
+
+        public void ResetUpgradeState()
+        {
+            _stateVersion++;
+            ClearConfirmState();
+            _upgradePending = false;
+            LastForgeConfirmText = string.Empty;
+            RefreshForgeState();
         }
 
         private void RefreshCandidates()
@@ -107,9 +141,94 @@ namespace Shenxiao.Module.Core.Baby
             BabyController.Instance.RequestEquipWear(_selectedPosition, current.GoodsId);
         }
 
+        private void OnForgeClick()
+        {
+            if (_confirming || _upgradePending) return;
+            BabyEquipUpgradeConfigs.PreviewResult preview = GetCurrentPreview(out BabyEquipEntry entry);
+            if (entry == null || preview == null || !preview.Enough) { RefreshForgeState(); return; }
+            _confirming = true;
+            _confirmVersion = _stateVersion;
+            _confirmPosition = _selectedPosition;
+            _confirmGoodsId = entry.Id;
+            _confirmPreviewKey = BuildPreviewKey(preview);
+            LastForgeConfirmText = BuildConfirmText(preview);
+            RefreshForgeState();
+            TipsManager.Confirm(LastForgeConfirmText, ConfirmUpgrade, CancelUpgrade);
+        }
+
+        private void ConfirmUpgrade()
+        {
+            if (_upgradePending || _confirmVersion != _stateVersion) return;
+            int position = _confirmPosition;
+            long goodsId = _confirmGoodsId;
+            string previewKey = _confirmPreviewKey;
+            BabyEquipEntry entry = Find(BabyModel.Instance.Equip, position);
+            BabyEquipUpgradeConfigs.PreviewResult preview = entry != null && entry.Id > 0 ? BabyEquipUpgradeConfigs.Preview(entry) : null;
+            ClearConfirmState();
+            if (_selectedPosition != position || entry == null || entry.Id != goodsId || preview == null || !preview.Enough || BuildPreviewKey(preview) != previewKey)
+            {
+                RefreshForgeState();
+                return;
+            }
+            _upgradePending = true;
+            RefreshForgeState();
+            BabyController.Instance.RequestEquipUpgrade(position);
+        }
+
+        private void CancelUpgrade()
+        {
+            if (_confirmVersion != _stateVersion) return;
+            ClearConfirmState();
+            RefreshForgeState();
+        }
+
+        private void ClearConfirmState()
+        {
+            _confirming = false;
+            _confirmPosition = 0;
+            _confirmGoodsId = 0;
+            _confirmPreviewKey = string.Empty;
+        }
+
+        private BabyEquipUpgradeConfigs.PreviewResult GetCurrentPreview(out BabyEquipEntry entry)
+        {
+            entry = Find(BabyModel.Instance.Equip, _selectedPosition);
+            return entry != null && entry.Id > 0 ? BabyEquipUpgradeConfigs.Preview(entry) : null;
+        }
+
+        private void RefreshForgeState()
+        {
+            if (_forgeButton == null) return;
+            BabyEquipUpgradeConfigs.PreviewResult preview = GetCurrentPreview(out BabyEquipEntry entry);
+            _forgeButton.interactable = !_confirming && !_upgradePending && entry != null && preview != null && preview.Enough;
+        }
+
+        private static string BuildConfirmText(BabyEquipUpgradeConfigs.PreviewResult preview)
+        {
+            var text = new System.Text.StringBuilder(preview.IsStageUpgrade ? "是否消耗以下材料升阶宝宝装备？" : "是否消耗以下材料强化宝宝装备？");
+            for (int i = 0; i < preview.Costs.Count; i++)
+            {
+                BabyEquipUpgradeConfigs.CostItem cost = preview.Costs[i];
+                string name = GoodsModel.GetGoodsName(cost.TypeId);
+                text.Append('\n').Append(string.IsNullOrEmpty(name) ? cost.TypeId.ToString() : name).Append('×').Append(cost.Num);
+            }
+            return text.ToString();
+        }
+
+        private static string BuildPreviewKey(BabyEquipUpgradeConfigs.PreviewResult preview)
+        {
+            var key = new System.Text.StringBuilder().Append(preview.IsStageUpgrade ? 'S' : 'L').Append(':').Append(preview.RequiredExp);
+            for (int i = 0; i < preview.Costs.Count; i++)
+            {
+                BabyEquipUpgradeConfigs.CostItem cost = preview.Costs[i];
+                key.Append('|').Append(cost.Type).Append(':').Append(cost.TypeId).Append(':').Append(cost.Num);
+            }
+            return key.ToString();
+        }
+
         private static BabyEquipEntry Find(BabyEquipInfo equip, int position) { if (equip != null) for (int i = 0; i < equip.EquipList.Count; i++) if (equip.EquipList[i].PositionId == position) return equip.EquipList[i]; return null; }
         private float GetCandidateWidth() { float width = _Scroller1 != null && _Scroller1.viewport != null ? _Scroller1.viewport.rect.width : 0f; return width > 0f ? width : 680f; }
-        private void CacheNodes() { if (_Scroller1 != null && _Scroller1.content != null) { Transform inner = _Scroller1.content.Find("Content"); _candidateContent = inner != null ? inner : _Scroller1.content; if (inner != null) _Scroller1.content = inner as RectTransform; } if (_template != null && _candidateTemplate != null) return; foreach (Transform node in GetComponentsInChildren<Transform>(true)) { if (node.name == "nameLb" && node.parent == transform) _nameLb = node.GetComponent<TextMeshProUGUI>(); else if (node.name == "fight") _fight = node; else if (node.name == "leftGp") _leftGp = node; else if (node.name == "rightGp") _rightGp = node; else if (node.name == "BabyEquipIcon" && node.parent != null && node.parent.name == "__Templates") _template = node.gameObject; else if (node.name == "BabyEquipSubItem" && node.parent != null && node.parent.name == "__Templates") _candidateTemplate = node.gameObject; else if (node.name == "FightingShowSmallItem" && node.parent != null && node.parent.name == "__Templates") _fightTemplate = node.gameObject; } }
+        private void CacheNodes() { if (_Scroller1 != null && _Scroller1.content != null) { Transform inner = _Scroller1.content.Find("Content"); _candidateContent = inner != null ? inner : _Scroller1.content; if (inner != null) _Scroller1.content = inner as RectTransform; } if (_template == null || _candidateTemplate == null || _forgeButton == null) foreach (Transform node in GetComponentsInChildren<Transform>(true)) { if (node.name == "nameLb" && node.parent == transform) _nameLb = node.GetComponent<TextMeshProUGUI>(); else if (node.name == "fight") _fight = node; else if (node.name == "leftGp") _leftGp = node; else if (node.name == "rightGp") _rightGp = node; else if (node.name == "BabyEquipIcon" && node.parent != null && node.parent.name == "__Templates") _template = node.gameObject; else if (node.name == "BabyEquipSubItem" && node.parent != null && node.parent.name == "__Templates") _candidateTemplate = node.gameObject; else if (node.name == "FightingShowSmallItem" && node.parent != null && node.parent.name == "__Templates") _fightTemplate = node.gameObject; else if (node.name == "forgeBtn" && node.parent == transform) { Image image = node.GetComponent<Image>(); if (image != null) { image.raycastTarget = true; _forgeButton = node.GetComponent<Button>() ?? node.gameObject.AddComponent<Button>(); _forgeButton.targetGraphic = image; if (!_forgeBound) { _forgeButton.onClick.AddListener(OnForgeClick); _forgeBound = true; } } } } }
         private void ClearItems() { for (int i = 0; i < _items.Count; i++) DestroyItem(_items[i]); _items.Clear(); }
         private void ClearCandidates() { for (int i = 0; i < _candidateItems.Count; i++) DestroyItem(_candidateItems[i]); _candidateItems.Clear(); }
         private static void DestroyItem(GameObject go) { if (Application.isPlaying) Destroy(go); else DestroyImmediate(go); }
