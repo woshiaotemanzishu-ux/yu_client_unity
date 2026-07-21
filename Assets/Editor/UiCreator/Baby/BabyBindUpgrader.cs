@@ -136,6 +136,18 @@ namespace Shenxiao.Editor.UiCreator.Baby
             ok &= CheckTemplatePath(ImprintPrefabPaths[1], "__Templates/BabyAddImprintItem");
             ok &= CheckTemplatePath(ImprintPrefabPaths[2], "__Templates/BaseAwardItem");
             ok &= CheckTemplatePath(ImprintPrefabPaths[3], "__Templates/BaseAwardItem");
+            GameObject imprintView = AssetDatabase.LoadAssetAtPath<GameObject>(ImprintPrefabPaths[0]);
+            GameObject addView = AssetDatabase.LoadAssetAtPath<GameObject>(ImprintPrefabPaths[1]);
+            GameObject imprintItem = AssetDatabase.LoadAssetAtPath<GameObject>(ImprintPrefabPaths[2]);
+            GameObject addItem = AssetDatabase.LoadAssetAtPath<GameObject>(ImprintPrefabPaths[3]);
+            ok &= CheckBusinessView<BabyImprintView>(imprintView, "BabyImprintView");
+            ok &= CheckBusinessView<BabyAddImprintView>(addView, "BabyAddImprintView");
+            ok &= CheckBusinessView<BabyImprintItem>(imprintItem, "BabyImprintItem");
+            ok &= CheckBusinessView<BabyAddImprintItem>(addItem, "BabyAddImprintItem");
+            ok &= CheckTemplate<BabyImprintItem>(imprintView != null ? imprintView.transform.Find("__Templates/BabyImprintItem")?.gameObject : null, "BabyImprintView.BabyImprintItem");
+            ok &= CheckTemplate<BabyAddImprintItem>(addView != null ? addView.transform.Find("__Templates/BabyAddImprintItem")?.gameObject : null, "BabyAddImprintView.BabyAddImprintItem");
+            ok &= CheckTemplate<Shenxiao.Module.Core.Common.BaseAwardItem>(imprintItem != null ? imprintItem.transform.Find("__Templates/BaseAwardItem")?.gameObject : null, "BabyImprintItem.BaseAwardItem");
+            ok &= CheckTemplate<Shenxiao.Module.Core.Common.BaseAwardItem>(addItem != null ? addItem.transform.Find("__Templates/BaseAwardItem")?.gameObject : null, "BabyAddImprintItem.BaseAwardItem");
             if (AssetDatabase.LoadAssetAtPath<Sprite>(ImprintButtonSkinPath) == null)
             {
                 Debug.LogError("[UiCreator] Baby imprint button skin missing " + ImprintButtonSkinPath);

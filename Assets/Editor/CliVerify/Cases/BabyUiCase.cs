@@ -19,6 +19,10 @@ namespace Shenxiao.EditorTools
         private const string LikeViewPath = "Assets/Prefabs/UI/Baby/BabyLikeView.prefab";
         private const string BelikeViewPath = "Assets/Prefabs/UI/Baby/BabyBelikeView.prefab";
         private const string EquipFuncViewPath = "Assets/Prefabs/UI/Baby/BabyEquipFuncView.prefab";
+        private const string ImprintViewPath = "Assets/Prefabs/UI/Baby/BabyImprintView.prefab";
+        private const string AddImprintViewPath = "Assets/Prefabs/UI/Baby/BabyAddImprintView.prefab";
+        private const string ImprintItemPath = "Assets/Prefabs/UI/Baby/BabyImprintItem.prefab";
+        private const string AddImprintItemPath = "Assets/Prefabs/UI/Baby/BabyAddImprintItem.prefab";
         private const string PropItemPath = "Assets/Prefabs/UI/Baby/BabyPropItem.prefab";
         private const string FramePath = "Assets/Prefabs/UI/Common/BaseWindowSkin.prefab";
         private const BindingFlags BindFields = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
@@ -80,8 +84,9 @@ namespace Shenxiao.EditorTools
                 bool likeRank = likeStatic && VerifyLikeRank();
                 bool belike = likeStatic && VerifyBelike();
                 bool equip = equipStatic && VerifyEquip();
-                bool pass = config && likeStatic && teaseStatic && equipStatic && imprintStatic && viewAddresses && upgraded && prefab && likeRank && belike && equip;
-                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " teaseStatic=" + teaseStatic + " equipStatic=" + equipStatic + " imprintStatic=" + imprintStatic + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " equip=" + equip + " pass=" + pass);
+                bool imprintBusiness = imprintStatic && VerifyImprintBusinessInstances();
+                bool pass = config && likeStatic && teaseStatic && equipStatic && imprintStatic && imprintBusiness && viewAddresses && upgraded && prefab && likeRank && belike && equip;
+                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " teaseStatic=" + teaseStatic + " equipStatic=" + equipStatic + " imprintStatic=" + imprintStatic + " imprintBusiness=" + imprintBusiness + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " equip=" + equip + " pass=" + pass);
                 return Task.FromResult(pass ? 0 : 3);
             }
             catch (Exception e)
@@ -485,6 +490,70 @@ namespace Shenxiao.EditorTools
                 BabyModel.Instance.Reset();
                 if (interceptField != null) interceptField.SetValue(null, oldIntercept);
                 UnityEngine.Object.DestroyImmediate(viewObject);
+            }
+        }
+
+        private static bool VerifyImprintBusinessInstances()
+        {
+            GameObject imprintRoot = AssetDatabase.LoadAssetAtPath<GameObject>(ImprintViewPath);
+            GameObject addRoot = AssetDatabase.LoadAssetAtPath<GameObject>(AddImprintViewPath);
+            GameObject imprintItemRoot = AssetDatabase.LoadAssetAtPath<GameObject>(ImprintItemPath);
+            GameObject addItemRoot = AssetDatabase.LoadAssetAtPath<GameObject>(AddImprintItemPath);
+            if (imprintRoot == null || addRoot == null || imprintItemRoot == null || addItemRoot == null) return false;
+            GameObject imprint = UnityEngine.Object.Instantiate(imprintRoot);
+            GameObject add = UnityEngine.Object.Instantiate(addRoot);
+            GameObject item = UnityEngine.Object.Instantiate(imprintItemRoot);
+            GameObject addItem = UnityEngine.Object.Instantiate(addItemRoot);
+            FieldInfo interceptField = typeof(BabyController).GetField("s_outboundIntercept", BindingFlags.Static | BindingFlags.NonPublic);
+            object oldIntercept = interceptField != null ? interceptField.GetValue(null) : null;
+            var frames = new System.Collections.Generic.List<byte[]>();
+            try
+            {
+                if (interceptField == null) return false;
+                interceptField.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
+                BabyImprintView imprintView = imprint.GetComponent<BabyImprintView>();
+                BabyAddImprintView addView = add.GetComponent<BabyAddImprintView>();
+                BabyImprintItem materialItem = item.GetComponent<BabyImprintItem>();
+                BabyAddImprintItem candidateItem = addItem.GetComponent<BabyAddImprintItem>();
+                if (imprintView == null || addView == null || materialItem == null || candidateItem == null) return false;
+                imprintView.SetPositionId(3);
+                bool main = imprintView.PositionId == 3;
+                addView.SetCandidates(null, null);
+                bool empty = addView.NothingVisible && addView.CandidateCount == 0;
+                int materialClicks = 0;
+                materialItem.SetMaterial(38040037, 2, () => materialClicks++);
+                UnityEngine.UI.Button materialButton = item.transform.Find("itemGp")?.GetComponent<UnityEngine.UI.Button>();
+                materialButton?.onClick.Invoke();
+                bool material = materialItem.TypeId == 38040037 && materialItem.Num == 2 && !materialItem.IsAdd && materialClicks == 1;
+                materialItem.SetAdd(() => materialClicks++);
+                bool addSlot = materialItem.IsAdd && materialItem.TypeId == 0 && materialItem.Num == 0;
+                int candidateClicks = 0;
+                var candidates = new System.Collections.Generic.List<BabyEquipEngraveConfigs.EngraveCfg>
+                {
+                    new BabyEquipEngraveConfigs.EngraveCfg { Color = 2, GoodsId = 38040037, Num = 2, Ratio = 500 }
+                };
+                addView.SetCandidates(candidates, _ => candidateClicks++);
+                BabyAddImprintItem rendered = null;
+                BabyAddImprintItem[] renderedAll = add.GetComponentsInChildren<BabyAddImprintItem>(true);
+                for (int i = 0; i < renderedAll.Length; i++)
+                    if (renderedAll[i].gameObject.activeSelf) { rendered = renderedAll[i]; break; }
+                UnityEngine.UI.Button candidateButton = rendered != null ? rendered.transform.Find("clickBg")?.GetComponent<UnityEngine.UI.Button>() : null;
+                candidateButton?.onClick.Invoke(); candidateButton?.onClick.Invoke();
+                int standaloneCandidateClicks = 0;
+                candidateItem.SetData(38040037, 500, _ => standaloneCandidateClicks++);
+                UnityEngine.UI.Button standaloneCandidateButton = addItem.transform.Find("clickBg")?.GetComponent<UnityEngine.UI.Button>();
+                standaloneCandidateButton?.onClick.Invoke();
+                bool candidate = rendered != null && candidateClicks == 1 && standaloneCandidateClicks == 1 && candidateItem.TypeId == 38040037
+                    && !string.IsNullOrEmpty(candidateItem.DisplayName) && candidateItem.ProbabilityText == "5%";
+                return main && empty && material && addSlot && candidate && frames.Count == 0;
+            }
+            finally
+            {
+                if (interceptField != null) interceptField.SetValue(null, oldIntercept);
+                UnityEngine.Object.DestroyImmediate(imprint);
+                UnityEngine.Object.DestroyImmediate(add);
+                UnityEngine.Object.DestroyImmediate(item);
+                UnityEngine.Object.DestroyImmediate(addItem);
             }
         }
 
