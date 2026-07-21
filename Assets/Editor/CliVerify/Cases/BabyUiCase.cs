@@ -119,7 +119,14 @@ namespace Shenxiao.EditorTools
                     cultivateView.gameObject.SetActive(true);
                     cultivateView.Show();
                     display = cultivateView.babyName.text == "baby" && cultivateView.lvLb.text == "7"
-                        && cultivateView.lvExpLb.text == "11" && cultivateView.stageExpLb.text == "13";
+                        && cultivateView.lvExpLb.text == "11" && cultivateView.stageExpLb.text == "13"
+                        && cultivateView.lvtaskRed.gameObject.activeSelf;
+                    bool taskRedRefresh = model.TryApplyTaskProgress(2, 3, 2);
+                    Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_TASK_UPDATE);
+                    taskRedRefresh = taskRedRefresh && !cultivateView.lvtaskRed.gameObject.activeSelf;
+                    taskRedRefresh = taskRedRefresh && model.TryApplyTaskProgress(2, 3, 1);
+                    Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_TASK_UPDATE);
+                    display = display && taskRedRefresh && cultivateView.lvtaskRed.gameObject.activeSelf;
                     display = display && VerifyTasks(cultivateView);
                     UnityEngine.UI.Button lvButton = cultivateView.lvBtnGp.GetComponent<UnityEngine.UI.Button>();
                     UnityEngine.UI.Button stageButton = cultivateView.stageBtnGp.GetComponent<UnityEngine.UI.Button>();

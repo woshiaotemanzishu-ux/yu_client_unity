@@ -137,6 +137,14 @@ namespace Shenxiao.Module.Core.Baby
             return false;
         }
 
+        public bool HasClaimableRaiseTask()
+        {
+            if (Raise == null) return false;
+            for (int i = 0; i < Raise.TaskList.Count; i++)
+                if (Raise.TaskList[i].FinishState == 1) return true;
+            return false;
+        }
+
         public void Reset()
         {
             LastError = null;

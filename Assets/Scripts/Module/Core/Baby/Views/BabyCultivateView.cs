@@ -60,6 +60,7 @@ namespace Shenxiao.Module.Core.Baby
             lvLb.text = model.Raise != null ? model.Raise.RaiseLevel.ToString() : string.Empty;
             lvExpLb.text = model.Raise != null ? model.Raise.RaiseExp.ToString() : string.Empty;
             stageExpLb.text = model.Stage != null ? model.Stage.StageExp.ToString() : string.Empty;
+            if (lvtaskRed != null) lvtaskRed.gameObject.SetActive(model.HasClaimableRaiseTask());
             if (_shown && BabyRaiseConfigs.IsLoaded) RefreshTasks(model.Raise);
         }
 
