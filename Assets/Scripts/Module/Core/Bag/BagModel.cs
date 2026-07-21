@@ -63,6 +63,7 @@ namespace Shenxiao.Module.Core.Bag
 
         /// <summary>坐骑/伙伴装备四容器。只收 pos=22/32/23/33，不把其它容器混入主背包。</summary>
         private readonly Dictionary<int, List<BagGoods>> _petEquipContainers = new Dictionary<int, List<BagGoods>>();
+        private readonly List<BagGoods> _babyEquipBag = new List<BagGoods>();
         private static readonly IReadOnlyList<BagGoods> EmptyContainer = new BagGoods[0];
 
         /// <summary>各槽位容量(对标 GoodsModel.xxx_max_cell 系列字段;15002 扩容成功后按 pos 更新,见 BagController.On15002)。</summary>
@@ -70,6 +71,8 @@ namespace Shenxiao.Module.Core.Bag
 
         /// <summary>背包容量(对标 GoodsModel.bag_goods_max_cell = vo.max_cell);等价 GetMaxCell(POS_BAG),旧字段保留兼容。</summary>
         public int MaxCell => GetMaxCell(POS_BAG);
+        public int BabyEquipBagMaxCell => GetMaxCell(POS_BABY_BAG);
+        public bool HasBabyEquipBagData { get; private set; }
 
         /// <summary>取任意槽位当前容量(未收到过 15010/15002 则 0)。</summary>
         public int GetMaxCell(int pos) => _maxCellByPos.TryGetValue(pos, out int v) ? v : 0;
@@ -147,7 +150,33 @@ namespace Shenxiao.Module.Core.Bag
         public IReadOnlyList<BagGoods> GetContainer(int pos)
         {
             if (pos == POS_BAG) return BagGoodsList;
+            if (pos == POS_BABY_BAG) return _babyEquipBag;
             return _petEquipContainers.TryGetValue(pos, out List<BagGoods> list) ? list : EmptyContainer;
+        }
+
+        internal void SetBabyEquipBagFull(int maxCell, List<BagGoods> goods)
+        {
+            _babyEquipBag.Clear();
+            if (goods != null) _babyEquipBag.AddRange(goods);
+            SetMaxCell(POS_BABY_BAG, maxCell);
+            HasBabyEquipBagData = true;
+        }
+
+        internal void UpsertBabyEquipBag(BagGoods vo) => UpsertList(_babyEquipBag, vo);
+        internal void UpdateBabyEquipBagNum(long goodsId, int typeId, long num) => UpdateListNum(_babyEquipBag, goodsId, typeId, num);
+
+        private static void UpsertList(List<BagGoods> list, BagGoods vo)
+        {
+            if (vo == null) return;
+            int idx = list.FindIndex(g => g.GoodsId == vo.GoodsId);
+            if (idx >= 0) { if (vo.GoodsNum <= 0) list.RemoveAt(idx); else list[idx] = vo; }
+            else if (vo.GoodsNum > 0) list.Add(vo);
+        }
+        private static void UpdateListNum(List<BagGoods> list, long goodsId, int typeId, long num)
+        {
+            int idx = list.FindIndex(g => g.GoodsId == goodsId);
+            if (idx >= 0) { if (num <= 0) list.RemoveAt(idx); else list[idx].GoodsNum = num; }
+            else if (num > 0) list.Add(new BagGoods { GoodsId = goodsId, TypeId = typeId, GoodsNum = num });
         }
 
         /// <summary>按实例 goods_id 查容器物品；未找到返回 null。</summary>
@@ -279,6 +308,8 @@ namespace Shenxiao.Module.Core.Bag
         {
             BagGoodsList.Clear();
             _petEquipContainers.Clear();
+            _babyEquipBag.Clear();
+            HasBabyEquipBagData = false;
             SpecialScores.Clear();
             _maxCellByPos.Clear();
             CellNum = 0;

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Net;
+using Shenxiao.Framework.Event;
 using Shenxiao.Module.Core.Bag;
 using UnityEngine;
 
@@ -82,6 +83,7 @@ namespace Shenxiao.EditorTools
                     BagModel.POS_HORSE_BAG,
                     BagModel.POS_PARTNER,
                     BagModel.POS_PARTNER_BAG,
+                    BagModel.POS_BABY_BAG,
                 };
                 bool startupOk = SequenceEqual(startupTrace, expectedStartup);
 
@@ -108,6 +110,31 @@ namespace Shenxiao.EditorTools
                 }
                 bool mainIsolatedAfterFull = bag.BagGoodsList.Count == 1 && bag.BagGoodsList[0].GoodsId == mainId;
 
+                int babyEvents = 0;
+                System.Action onBabyBag = () => babyEvents++;
+                EventDispatcher.On(GlobalEvent.EVT_BABY_EQUIP_BAG_UPDATE, onBabyBag);
+                bool babyOk;
+                try
+                {
+                    const long babyFirst = 0x400000025L;
+                    const long babySecond = 0x500000025L;
+                    NetReader babyFull = Feed(m15010, ctrl, FullPacket(BagModel.POS_BABY_BAG, 2, 77, babyFirst, 900037, 1, 3, 9300, 2, 3, 0xBABA0037));
+                    babyOk = TailOk(babyFull, 0xBABA0037) && bag.HasBabyEquipBagData && bag.BabyEquipBagMaxCell == 77
+                        && bag.GetContainer(BagModel.POS_BABY_BAG).Count == 1 && GoodsFieldsOk(bag.FindContainerGoods(BagModel.POS_BABY_BAG, babyFirst), babyFirst, 900037, 1, 3, 9300, 2, 3, BagModel.POS_BABY_BAG);
+                    NetReader babyDelta = Feed(m15017, ctrl, DeltaFullPacket(BagModel.POS_BABY_BAG, babyFirst, 900038, 2, 8, 9301, 4, 5).I(0xDADA0037).Bytes());
+                    NetReader babyAdd = Feed(m15017, ctrl, DeltaFullPacket(BagModel.POS_BABY_BAG, babySecond, 900039, 3, 9, 9302, 6, 7).I(0xDADB0037).Bytes());
+                    NetReader babyDelete = Feed(m15017, ctrl, DeltaFullPacket(BagModel.POS_BABY_BAG, babyFirst, 900038, 2, 0, 9301, 4, 5).I(0xDADC0037).Bytes());
+                    babyOk &= TailOk(babyDelta, 0xDADA0037) && TailOk(babyAdd, 0xDADB0037) && TailOk(babyDelete, 0xDADC0037)
+                        && bag.GetContainer(BagModel.POS_BABY_BAG).Count == 1 && bag.FindContainerGoods(BagModel.POS_BABY_BAG, babySecond) != null;
+                    NetReader babyNum = Feed(m15018, ctrl, NumPacket(BagModel.POS_BABY_BAG, babySecond, 99, 900039).I(0xEAEA0037).Bytes());
+                    NetReader babyNumAdd = Feed(m15018, ctrl, NumPacket(BagModel.POS_BABY_BAG, 0x600000025L, 5, 900040).I(0xEAEB0037).Bytes());
+                    NetReader babyNumDelete = Feed(m15018, ctrl, NumPacket(BagModel.POS_BABY_BAG, babySecond, 0, 900039).I(0xEAEC0037).Bytes());
+                    babyOk &= TailOk(babyNum, 0xEAEA0037) && TailOk(babyNumAdd, 0xEAEB0037) && TailOk(babyNumDelete, 0xEAEC0037)
+                        && bag.GetContainer(BagModel.POS_BABY_BAG).Count == 1 && bag.GetContainer(BagModel.POS_BABY_BAG)[0].GoodsId == 0x600000025L
+                        && bag.GetContainer(BagModel.POS_BABY_BAG)[0].GoodsNum == 5 && babyEvents == 7;
+                }
+                finally { EventDispatcher.Off(GlobalEvent.EVT_BABY_EQUIP_BAG_UPDATE, onBabyBag); }
+
                 bool deltaOk = true;
                 var secondIds = new Dictionary<int, long>();
                 foreach (int pos in PetPositions)
@@ -116,11 +143,11 @@ namespace Shenxiao.EditorTools
                     long secondId = 0x200000000L + pos;
                     secondIds[pos] = secondId;
 
-                    Feed(m15017, ctrl, DeltaFullPacket(pos, firstId, 810000 + pos, 1, 11 + pos, 9100 + pos, 8, 9));
+                    Feed(m15017, ctrl, DeltaFullPacket(pos, firstId, 810000 + pos, 1, 11 + pos, 9100 + pos, 8, 9).Bytes());
                     BagGoods updated = bag.FindContainerGoods(pos, firstId);
                     deltaOk &= GoodsFieldsOk(updated, firstId, 810000 + pos, 1, 11 + pos, 9100 + pos, 8, 9, pos);
 
-                    Feed(m15017, ctrl, DeltaFullPacket(pos, secondId, 820000 + pos, 2, 21 + pos, 9200 + pos, 10, 11));
+                    Feed(m15017, ctrl, DeltaFullPacket(pos, secondId, 820000 + pos, 2, 21 + pos, 9200 + pos, 10, 11).Bytes());
                     deltaOk &= bag.GetContainer(pos).Count == 2
                         && GoodsFieldsOk(bag.FindContainerGoods(pos, secondId), secondId, 820000 + pos, 2,
                             21 + pos, 9200 + pos, 10, 11, pos);
@@ -131,10 +158,10 @@ namespace Shenxiao.EditorTools
                 {
                     long firstId = firstIds[pos];
                     long secondId = secondIds[pos];
-                    Feed(m15018, ctrl, NumPacket(pos, secondId, 99, 820000 + pos));
-                    Feed(m15018, ctrl, NumPacket(pos, firstId, 0, 810000 + pos));
+                    Feed(m15018, ctrl, NumPacket(pos, secondId, 99, 820000 + pos).Bytes());
+                    Feed(m15018, ctrl, NumPacket(pos, firstId, 0, 810000 + pos).Bytes());
                     long thirdId = 0x300000000L + pos;
-                    Feed(m15018, ctrl, NumPacket(pos, thirdId, 5, 830000 + pos));
+                    Feed(m15018, ctrl, NumPacket(pos, thirdId, 5, 830000 + pos).Bytes());
                     IReadOnlyList<BagGoods> list = bag.GetContainer(pos);
                     BagGoods third = bag.FindContainerGoods(pos, thirdId);
                     numDeleteOk &= list.Count == 2
@@ -155,19 +182,21 @@ namespace Shenxiao.EditorTools
                     && !bag.UpdatePetEquipState(BagModel.POS_HORSE_BAG, secondIds[BagModel.POS_HORSE_BAG], 1, 1, 1)
                     && !bag.UpdatePetEquipState(BagModel.POS_HORSE, 0x7FFFFFFFFL, 1, 1, 1);
 
-                Feed(m15017, ctrl, DeltaFullPacket(BagModel.POS_BAG, mainId, 710004, 3, 8, 4104, 2, 3));
-                Feed(m15018, ctrl, NumPacket(BagModel.POS_BAG, mainId, 77, 710004));
+                Feed(m15017, ctrl, DeltaFullPacket(BagModel.POS_BAG, mainId, 710004, 3, 8, 4104, 2, 3).Bytes());
+                Feed(m15018, ctrl, NumPacket(BagModel.POS_BAG, mainId, 77, 710004).Bytes());
                 BagGoods main = bag.FindContainerGoods(BagModel.POS_BAG, mainId);
                 bool mainDeltaOk = bag.HasData && bag.BagGoodsList.Count == 1 && main != null
                     && main.TypeId == 710004 && main.Cell == 3 && main.GoodsNum == 77
                     && main.OverallRating == 4104 && main.EquipStage == 2 && main.EquipStar == 3;
+                bag.Clear();
+                bool babyClearOk = !bag.HasBabyEquipBagData && bag.BabyEquipBagMaxCell == 0 && bag.GetContainer(BagModel.POS_BABY_BAG).Count == 0;
 
                 bool pass = startupOk && mainFullOk && fullOk && mainIsolatedAfterFull
-                    && deltaOk && numDeleteOk && syncOk && mainDeltaOk;
+                    && deltaOk && numDeleteOk && syncOk && mainDeltaOk && babyOk && babyClearOk;
                 Debug.Log("CLIVERIFY pet-equip inventory startup=" + startupOk
                     + " mainFull=" + mainFullOk + " fourFull=" + fullOk + " isolated=" + mainIsolatedAfterFull
                     + " delta=" + deltaOk + " numDelete=" + numDeleteOk + " sync=" + syncOk
-                    + " mainRegression=" + mainDeltaOk + " pass=" + pass);
+                    + " mainRegression=" + mainDeltaOk + " baby=" + babyOk + " babyClear=" + babyClearOk + " pass=" + pass);
                 return pass ? 0 : 3;
             }
             finally
@@ -206,17 +235,17 @@ namespace Shenxiao.EditorTools
             return packet.I(sentinel).Bytes();
         }
 
-        private static byte[] DeltaFullPacket(int pos, long goodsId, int typeId, int cell, long num,
+        private static CliVerify.Pkt DeltaFullPacket(int pos, long goodsId, int typeId, int cell, long num,
             long overallRating, int equipStage, int equipStar)
         {
             CliVerify.Pkt packet = new CliVerify.Pkt().H(pos).H(1);
             AppendGoods(packet, goodsId, typeId, cell, num, overallRating, equipStage, equipStar, pos);
-            return packet.Bytes();
+            return packet;
         }
 
-        private static byte[] NumPacket(int pos, long goodsId, long num, int typeId)
+        private static CliVerify.Pkt NumPacket(int pos, long goodsId, long num, int typeId)
         {
-            return new CliVerify.Pkt().H(pos).H(1).L(goodsId).I(num).I(typeId).Bytes();
+            return new CliVerify.Pkt().H(pos).H(1).L(goodsId).I(num).I(typeId);
         }
 
         /// <summary>逐字段镜像 pt_150 15010/15017 goods 单项，含三个嵌套数组各一项。</summary>

@@ -110,6 +110,7 @@ namespace Shenxiao.Module.Core.Bag
             RequestContainerInfo(BagModel.POS_HORSE_BAG);
             RequestContainerInfo(BagModel.POS_PARTNER);
             RequestContainerInfo(BagModel.POS_PARTNER_BAG);
+            RequestContainerInfo(BagModel.POS_BABY_BAG);
         }
 
         private void RequestContainerInfo(int pos)
@@ -145,6 +146,12 @@ namespace Shenxiao.Module.Core.Bag
                 EventDispatcher.Emit(GlobalEvent.EVT_PET_EQUIP_BAG_UPDATE, pos);
                 return;
             }
+            if (pos == BagModel.POS_BABY_BAG)
+            {
+                foreach (BagGoods g in list) BagModel.Instance.UpsertBabyEquipBag(g);
+                EventDispatcher.Emit(GlobalEvent.EVT_BABY_EQUIP_BAG_UPDATE);
+                return;
+            }
             GameLog.Debug("Bag", "15017 pos={0}(未接容器) goods={1} remaining={2}B", pos, list.Count, r.Remaining);
         }
 
@@ -174,6 +181,12 @@ namespace Shenxiao.Module.Core.Bag
                 GameLog.Info("Bag", "15018 PetEquip container pos={0} delta={1} count={2} remaining={3}B",
                     pos, list.Count, BagModel.Instance.GetContainer(pos).Count, r.Remaining);
                 EventDispatcher.Emit(GlobalEvent.EVT_PET_EQUIP_BAG_UPDATE, pos);
+                return;
+            }
+            if (pos == BagModel.POS_BABY_BAG)
+            {
+                foreach ((long goodsId, long num, int typeId) it in list) BagModel.Instance.UpdateBabyEquipBagNum(it.goodsId, it.typeId, it.num);
+                EventDispatcher.Emit(GlobalEvent.EVT_BABY_EQUIP_BAG_UPDATE);
                 return;
             }
             GameLog.Debug("Bag", "15018 pos={0}(未接容器) goods={1} remaining={2}B", pos, list.Count, r.Remaining);
@@ -834,6 +847,11 @@ namespace Shenxiao.Module.Core.Bag
                 GameLog.Info("Bag", "15010 PetEquip container pos={0} cellNum={1} maxCell={2} goods={3} remaining={4}B",
                     pos, cellNum, maxCell, list.Count, r.Remaining);
                 EventDispatcher.Emit(GlobalEvent.EVT_PET_EQUIP_BAG_UPDATE, pos);
+            }
+            else if (pos == BagModel.POS_BABY_BAG)
+            {
+                BagModel.Instance.SetBabyEquipBagFull(maxCell, list);
+                EventDispatcher.Emit(GlobalEvent.EVT_BABY_EQUIP_BAG_UPDATE);
             }
             else if (pos == Rune.RuneController.RUNE_BAG_POS)
             {
