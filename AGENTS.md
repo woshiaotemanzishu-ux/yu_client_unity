@@ -43,6 +43,7 @@
 - 2026-07-21 已实测并采用官方 Unity CLI：本机二进制为 `C:\Users\FXL\AppData\Local\Unity\bin\unity.exe`（`1.0.0-beta.2`），隔离项目使用 `com.unity.pipeline@0.3.1-exp.1`，不得把 Pipeline 试装到用户日常工作的原项目。Codex 应让一个受限的隔离 Editor 常驻并通过 `unity status/list/command` 复用，避免每包重复启动 batchmode；首次安装 Pipeline 仍会触发一次完整脚本编译/ILPP，不属于轻量操作。
 - Unity CLI 的内建命令优先于 Roslyn `eval`：实测 `editor_status` 约 0.6 秒，热 `eval` 约 1～2 秒，冷 `eval` 可能约 9 秒。`eval` 代码必须是完整方法体片段（例如 `return UnityEditor.EditorApplication.isCompiling;`），并同时检查外层 `success` 与 `data.result.success`，因为 Roslyn 编译失败时 CLI 进程仍可能返回 0、外层仍为成功。CLI 暴露了约 140 个工具，静态查询、重编译、测试、截图和构建优先使用已有工具，不要重复造 Editor 脚本。
 - 常驻 Pipeline Editor 与低成本实现代理并行时，主代理应先通过 `eval` 调用 `AssetDatabase.DisallowAutoRefresh()` 和 `EditorApplication.LockReloadAssemblies()`；实现定稿并完成 diff 审核后，再调用 `UnlockReloadAssemblies()`、`AllowAutoRefresh()` 与一次 `AssetDatabase.Refresh()`，然后等待 `editor_status` 恢复 `ready/compiling=false`。这样可避免代理边写脚本、Unity 边反复编译。通过 Pipeline 直接调用 `Case.Run()` 时，以日志中的 `VERDICT ... pass=True` 加 CLI 内层 `data.result.success=true/result=0` 作为成功判据；传统独立 batch 才要求日志中的 `CLIVERIFY EXIT 0`。
+- Pipeline `eval` 在 Unity 主线程执行，**禁止**在其中对 `ResManager.LoadAsync` / Addressables 等需要主线程继续泵帧的任务调用 `.GetAwaiter().GetResult()`、`.Result` 或 `.Wait()`，否则会形成主线程互等，外层 CLI 超时也无法中止。正确做法是第一条 `eval` 用 `_ = Xxx.EnsureLoaded(); return true;` 启动异步工作，随后用独立的轻量 `eval` 轮询 `IsLoaded` / 结果字段。若误锁死，只结束隔离项目的 Editor PID，保留 `Library`，再按 `Idle` + `0xF0000` + `-job-worker-count 2` 原参数重启；不得碰用户日常 Unity 进程。
 
 ## UI 生成/修复记忆
 
