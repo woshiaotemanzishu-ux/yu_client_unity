@@ -39,6 +39,9 @@
 - 本仓库约有 13.5 万个受控文件并使用 Git LFS。首次 `git worktree add` 可能超过命令包装器的超时，但底层 `git`/`git-lfs` 仍会继续检出；遇到超时先检查相关进程、文件数和目录体积是否持续增长，正常增长就等待完成，不要立即重建、删除目录或重复 checkout。最终必须用 `git status`、HEAD、分支、受控文件数和 `Assets/Packages/ProjectSettings` 完整性验收。
 - 这台电脑的原仓库 `E:\GitProject\yu_client_unity` 保存共享的本地 LFS 对象库；Git 历史中的 LFS pointer 是正常存储格式，但工作目录里的资源必须是展开后的真实二进制文件。2026-07-21 已验证原工作树和 Codex 工作树各有 56,036 个 LFS 路径，全部为 materialized、指针内容匹配数为 0，共享对象库约 48,463 个去重对象/5.03 GB，`git lfs fsck --objects --pointers HEAD` 通过。新建 worktree 时出现 `git-lfs` 进程只是从共享本地对象库展开内容，不代表重新初始化或从远端拿到占位引用。以后怀疑资源为指针时先看 `git lfs ls-files -l` 的状态标记并执行 `git lfs fsck`，不要直接重拉或覆盖资源。
 - 诊断还发现近 18 天存在 7 次无蓝屏代码的意外关机记录，以及三条不同型号的 16 GB 内存混插和 2023 年 BIOS。若意外关机不是用户在卡死后手动重启造成，需要单独排查内存、BIOS、电源和硬件稳定性；当前 WHEA 只有信息型厂商 CPER 记录，不能据此断言某个硬件已经损坏。
+- 定时迁移的代理分工固定为“主代理总控、低成本子代理执行”：确定、重复、机械性的侦察和实现优先交给低推理强度代理；主代理只做范围裁定、协议/架构决策、diff 审核、Unity 验收和提交。子任务必须限定目录、产物和字数，禁止多个代理重复通读全仓库；实现代理不得启动 Unity，所有 Unity 操作只由主代理串行执行。
+- 2026-07-21 已实测并采用官方 Unity CLI：本机二进制为 `C:\Users\FXL\AppData\Local\Unity\bin\unity.exe`（`1.0.0-beta.2`），隔离项目使用 `com.unity.pipeline@0.3.1-exp.1`，不得把 Pipeline 试装到用户日常工作的原项目。Codex 应让一个受限的隔离 Editor 常驻并通过 `unity status/list/command` 复用，避免每包重复启动 batchmode；首次安装 Pipeline 仍会触发一次完整脚本编译/ILPP，不属于轻量操作。
+- Unity CLI 的内建命令优先于 Roslyn `eval`：实测 `editor_status` 约 0.6 秒，热 `eval` 约 1～2 秒，冷 `eval` 可能约 9 秒。`eval` 代码必须是完整方法体片段（例如 `return UnityEditor.EditorApplication.isCompiling;`），并同时检查外层 `success` 与 `data.result.success`，因为 Roslyn 编译失败时 CLI 进程仍可能返回 0、外层仍为成功。CLI 暴露了约 140 个工具，静态查询、重编译、测试、截图和构建优先使用已有工具，不要重复造 Editor 脚本。
 
 ## UI 生成/修复记忆
 
