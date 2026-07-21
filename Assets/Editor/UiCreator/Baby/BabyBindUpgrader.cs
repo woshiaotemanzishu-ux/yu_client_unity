@@ -55,6 +55,15 @@ namespace Shenxiao.Editor.UiCreator.Baby
         public static bool GenerateLikeStatic()
         {
             for (int i = 0; i < LikeSceneKeys.Length; i++) LayaSceneConverter.ConvertSingle(LikeSceneKeys[i]);
+            return UpgradeLikeStatic();
+        }
+
+        /// <summary>
+        /// Reuses the already converted prefabs when only business subclasses or template bindings changed.
+        /// This avoids regenerating every local file ID on each incremental migration round.
+        /// </summary>
+        public static bool UpgradeLikeStatic()
+        {
             if (!Fill(LikeViewPath) || !Fill(LikeItemPath) || !Fill(BelikeViewPath)
                 || !Fill(BelikeItemPath) || !Fill(LikeRewardPath)) return false;
             if (!EnsureTemplates(LikeViewPath, LikeItemPath, LikeRewardPath)
@@ -82,11 +91,11 @@ namespace Shenxiao.Editor.UiCreator.Baby
         public static bool VerifyLikeStatic()
         {
             bool ok = true;
-            ok &= CheckGeneratedBind(LikeViewPath, "BabyLikeView");
-            ok &= CheckGeneratedBind(LikeItemPath, "BabyLikeItem");
-            ok &= CheckGeneratedBind(BelikeViewPath, "BabyBelikeView");
-            ok &= CheckGeneratedBind(BelikeItemPath, "BabyBelikeItem");
-            ok &= CheckGeneratedBind(LikeRewardPath, "BabyLikeReward");
+            ok &= CheckGeneratedBind<BabyLikeViewBind>(LikeViewPath, "BabyLikeView");
+            ok &= CheckGeneratedBind<BabyLikeItemBind>(LikeItemPath, "BabyLikeItem");
+            ok &= CheckGeneratedBind<BabyBelikeViewBind>(BelikeViewPath, "BabyBelikeView");
+            ok &= CheckGeneratedBind<BabyBelikeItemBind>(BelikeItemPath, "BabyBelikeItem");
+            ok &= CheckGeneratedBind<BabyLikeRewardBind>(LikeRewardPath, "BabyLikeReward");
             ok &= CheckNamedNodes(LikeViewPath, "bg1", "closeBtn", "_Scroller1", "Content1",
                 "rewardScroller", "Content", "belikeBtn", "leftBtn", "rightBtn", "myRank", "mylike",
                 "tipsLb", "noOneLb", "likeRed");
@@ -97,6 +106,11 @@ namespace Shenxiao.Editor.UiCreator.Baby
             ok &= CheckTemplatePath(LikeViewPath, "__Templates/BabyLikeItem");
             ok &= CheckTemplatePath(LikeViewPath, "__Templates/BabyLikeReward");
             ok &= CheckTemplatePath(BelikeViewPath, "__Templates/BabyBelikeItem");
+            ok &= CheckBusinessView<BabyLikeView>(AssetDatabase.LoadAssetAtPath<GameObject>(LikeViewPath), "BabyLikeView");
+            ok &= CheckBusinessView<BabyLikeItem>(AssetDatabase.LoadAssetAtPath<GameObject>(LikeItemPath), "BabyLikeItem");
+            GameObject likeView = AssetDatabase.LoadAssetAtPath<GameObject>(LikeViewPath);
+            Transform likeItemTemplate = likeView != null ? likeView.transform.Find("__Templates/BabyLikeItem") : null;
+            ok &= CheckTemplate<BabyLikeItem>(likeItemTemplate != null ? likeItemTemplate.gameObject : null, "BabyLikeView.BabyLikeItem template");
             Debug.Log("[UiCreator] Baby like static verification " + (ok ? "OK" : "FAILED"));
             return ok;
         }
@@ -217,7 +231,7 @@ namespace Shenxiao.Editor.UiCreator.Baby
             }
         }
 
-        private static bool CheckGeneratedBind(string prefabPath, string rootName)
+        private static bool CheckGeneratedBind<T>(string prefabPath, string rootName) where T : Component
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             if (prefab == null || prefab.transform.name != rootName)
@@ -225,14 +239,14 @@ namespace Shenxiao.Editor.UiCreator.Baby
                 Debug.LogError("[UiCreator] Baby static prefab/root missing " + prefabPath);
                 return false;
             }
-            Component bind = prefab.GetComponent(rootName + "Bind");
+            T bind = prefab.GetComponent<T>();
             if (bind == null)
             {
-                Debug.LogError("[UiCreator] Baby generated Bind missing " + rootName + "Bind(" + prefabPath + ")");
+                Debug.LogError("[UiCreator] Baby generated Bind missing " + typeof(T).Name + "(" + prefabPath + ")");
                 return false;
             }
             bool ok = true;
-            foreach (FieldInfo field in bind.GetType().GetFields(BindFields))
+            foreach (FieldInfo field in typeof(T).GetFields(BindFields))
             {
                 if (field.GetValue(bind) != null) continue;
                 Debug.LogError("[UiCreator] Baby generated Bind field missing " + bind.GetType().Name + "." + field.Name);

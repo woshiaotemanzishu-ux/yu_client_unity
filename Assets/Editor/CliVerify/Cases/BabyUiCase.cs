@@ -15,6 +15,7 @@ namespace Shenxiao.EditorTools
     public static class BabyUiCase
     {
         private const string ModulePath = "Assets/Prefabs/UI/Baby/BabyModule.prefab";
+        private const string LikeViewPath = "Assets/Prefabs/UI/Baby/BabyLikeView.prefab";
         private const string PropItemPath = "Assets/Prefabs/UI/Baby/BabyPropItem.prefab";
         private const string FramePath = "Assets/Prefabs/UI/Common/BaseWindowSkin.prefab";
         private const BindingFlags BindFields = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
@@ -56,8 +57,9 @@ namespace Shenxiao.EditorTools
                     && BabyPraiseConfigs.All[5].Rewards[0].TypeId == 38040041 && BabyPraiseConfigs.All[5].Rewards[0].Num == 1;
                 bool upgraded = BabyBindUpgrader.Generate();
                 bool prefab = upgraded && VerifyInstances();
-                bool pass = config && likeStatic && upgraded && prefab;
-                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " upgraded=" + upgraded + " prefab=" + prefab + " pass=" + pass);
+                bool likeRank = likeStatic && VerifyLikeRank();
+                bool pass = config && likeStatic && upgraded && prefab && likeRank;
+                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " pass=" + pass);
                 return Task.FromResult(pass ? 0 : 3);
             }
             catch (Exception e)
@@ -336,6 +338,63 @@ namespace Shenxiao.EditorTools
                 UnityEngine.Object.DestroyImmediate(module);
                 UnityEngine.Object.DestroyImmediate(propItem);
             }
+        }
+
+        private static bool VerifyLikeRank()
+        {
+            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(LikeViewPath);
+            if (asset == null) return false;
+            GameObject viewObject = UnityEngine.Object.Instantiate(asset);
+            FieldInfo interceptField = typeof(BabyController).GetField("s_outboundIntercept", BindingFlags.Static | BindingFlags.NonPublic);
+            object oldIntercept = interceptField != null ? interceptField.GetValue(null) : null;
+            try
+            {
+                BabyLikeView view = viewObject.GetComponent<BabyLikeView>();
+                if (view == null || interceptField == null) return false;
+                var frames = new System.Collections.Generic.List<byte[]>();
+                interceptField.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
+                BabyPraiseRankInfo rank = new BabyPraiseRankInfo { RoleId = 2 };
+                rank.Entries.Add(new BabyPraiseRankEntry { RoleId = 1, Name = "first", BabyPower = 11, PraiseNum = 21 });
+                rank.Entries.Add(new BabyPraiseRankEntry { RoleId = 2, Name = "self", BabyPower = 12, PraiseNum = 22 });
+                rank.Entries.Add(new BabyPraiseRankEntry { RoleId = 3, Name = "third", BabyPower = 13, PraiseNum = 23 });
+                BabyModel.Instance.ApplyPraiseRank(rank);
+                viewObject.SetActive(true);
+                view.Show();
+                TMPro.TextMeshProUGUI myRank = FindNode(viewObject.transform, "myRank")?.GetComponent<TMPro.TextMeshProUGUI>();
+                TMPro.TextMeshProUGUI myLike = FindNode(viewObject.transform, "mylike")?.GetComponent<TMPro.TextMeshProUGUI>();
+                bool shown = frames.Count == 1 && IsProtocol(frames[0], Proto.BABY_LIKE_RANK)
+                    && myRank != null && myRank.text == "我的排名:2" && myLike != null && myLike.text == "我的赞:22";
+                Transform content = view._Scroller1 != null ? view._Scroller1.content : FindNode(viewObject.transform, "Content1");
+                BabyLikeItem[] items = content != null ? content.GetComponentsInChildren<BabyLikeItem>(true) : new BabyLikeItem[0];
+                TMPro.TextMeshProUGUI firstName = items.Length > 0 ? FindNode(items[0].transform, "nameLb")?.GetComponent<TMPro.TextMeshProUGUI>() : null;
+                TMPro.TextMeshProUGUI secondRank = items.Length > 1 ? FindNode(items[1].transform, "rankLb")?.GetComponent<TMPro.TextMeshProUGUI>() : null;
+                shown = shown && content != null && items.Length == 3 && firstName != null && firstName.text == "first"
+                    && secondRank != null && secondRank.text == "2";
+                BabyModel.Instance.ApplyPraiseRank(new BabyPraiseRankInfo { RoleId = 2 });
+                Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_LIKE_RANK);
+                TMPro.TextMeshProUGUI empty = FindNode(viewObject.transform, "noOneLb")?.GetComponent<TMPro.TextMeshProUGUI>();
+                int emptyItems = content != null ? content.GetComponentsInChildren<BabyLikeItem>(true).Length : -1;
+                bool emptyShown = content != null && empty != null && empty.gameObject.activeSelf && emptyItems == 0;
+                Debug.Log("CLIVERIFY babyui likerank frames=" + frames.Count + " shown=" + shown
+                    + " items=" + items.Length + " myRank=" + (myRank != null ? myRank.text : "null")
+                    + " myLike=" + (myLike != null ? myLike.text : "null") + " emptyShown=" + emptyShown
+                    + " emptyItems=" + emptyItems + " emptyChildren=" + (content != null ? content.childCount : -1));
+                view.Hide();
+                return shown && emptyShown;
+            }
+            finally
+            {
+                BabyModel.Instance.Reset();
+                if (interceptField != null) interceptField.SetValue(null, oldIntercept);
+                UnityEngine.Object.DestroyImmediate(viewObject);
+            }
+        }
+
+        private static Transform FindNode(Transform root, string name)
+        {
+            Transform[] nodes = root.GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < nodes.Length; i++) if (nodes[i].name == name) return nodes[i];
+            return null;
         }
 
         private static bool VerifyIllusionTabRed()
