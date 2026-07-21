@@ -45,6 +45,7 @@ namespace Shenxiao.EditorTools
                 _ = BabyStageConfigs.EnsureLoaded();
                 _ = BabyPraiseConfigs.EnsureLoaded();
                 _ = BabyEquipConfigs.EnsureLoaded();
+                _ = BabyEquipUpgradeConfigs.EnsureLoaded();
                 _ = Shenxiao.Module.Core.Common.GoodsModel.EnsureLoaded();
                 BabyFigureConfigs.BabyFigureCfg figureCfg = BabyFigureConfigs.Get(1);
                 BabyFigureStarConfigs.BabyFigureStarCfg starCfg = BabyFigureStarConfigs.Get(1, 2);
@@ -70,7 +71,8 @@ namespace Shenxiao.EditorTools
                     && BabyEquipConfigs.IsLoaded && BabyEquipConfigs.All.Count == 43
                     && BabyEquipConfigs.Get(65010200) != null && BabyEquipConfigs.Get(65010200).PosId == 1 && BabyEquipConfigs.Get(65010200).Skills.Count == 1 && BabyEquipConfigs.Get(65010200).Skills[0] == 2001001
                     && BabyEquipConfigs.Get(65060601) != null && BabyEquipConfigs.Get(65060601).PosId == 6 && BabyEquipConfigs.Get(65060601).Color == 6
-                    && BabyEquipConfigs.CanWear(65010200, 1, 1) && !BabyEquipConfigs.CanWear(65010200, 2, 1) && !BabyEquipConfigs.CanWear(65010200, 1, 0) && !BabyEquipConfigs.CanWear(1, 1, 1);
+                    && BabyEquipConfigs.CanWear(65010200, 1, 1) && !BabyEquipConfigs.CanWear(65010200, 2, 1) && !BabyEquipConfigs.CanWear(65010200, 1, 0) && !BabyEquipConfigs.CanWear(1, 1, 1)
+                    && VerifyEquipUpgradeConfigs();
                 bool upgraded = BabyBindUpgrader.Generate();
                 bool prefab = upgraded && VerifyInstances();
                 bool likeRank = likeStatic && VerifyLikeRank();
@@ -481,6 +483,90 @@ namespace Shenxiao.EditorTools
                 BabyModel.Instance.Reset();
                 if (interceptField != null) interceptField.SetValue(null, oldIntercept);
                 UnityEngine.Object.DestroyImmediate(viewObject);
+            }
+        }
+
+        private static bool VerifyEquipUpgradeConfigs()
+        {
+            if (!BabyEquipUpgradeConfigs.IsLoaded || BabyEquipUpgradeConfigs.Materials.Count != 3) return false;
+            var materials = BabyEquipUpgradeConfigs.Materials;
+            BabyEquipUpgradeConfigs.StrenCfg first = BabyEquipUpgradeConfigs.GetStren(1, 0, 1);
+            BabyEquipUpgradeConfigs.StrenCfg final = BabyEquipUpgradeConfigs.GetStren(6, 10, 0);
+            BabyEquipUpgradeConfigs.StageCfg stage10 = BabyEquipUpgradeConfigs.GetStage(10);
+            bool realConfig = materials[0].TypeId == 38040031 && materials[0].ExpPerItem == 10
+                && materials[1].TypeId == 38040032 && materials[1].ExpPerItem == 50
+                && materials[2].TypeId == 38040033 && materials[2].ExpPerItem == 100
+                && first != null && first.PointCon == 10 && final != null && final.PointCon == 0
+                && stage10 != null && stage10.Costs.Count == 3
+                && stage10.Costs[0].TypeId == 38040034 && stage10.Costs[0].Num == 25
+                && stage10.Costs[1].TypeId == 38040035 && stage10.Costs[1].Num == 10
+                && stage10.Costs[2].TypeId == 38040036 && stage10.Costs[2].Num == 5;
+            if (!realConfig) return false;
+
+            MethodInfo setBagFull = typeof(Shenxiao.Module.Core.Bag.BagModel).GetMethod("SetBagFull", BindingFlags.Instance | BindingFlags.Public);
+            if (setBagFull == null) return false;
+            var bag = Shenxiao.Module.Core.Bag.BagModel.Instance;
+            var entry = new BabyEquipEntry { PositionId = 1, Stage = 0, StageLevel = 0, StageExp = 0 };
+            try
+            {
+                setBagFull.Invoke(bag, new object[] { 0, 20, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>
+                {
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 1, TypeId = 38040031, GoodsNum = 1 }
+                }});
+                BabyEquipUpgradeConfigs.PreviewResult normalExact = BabyEquipUpgradeConfigs.Preview(entry);
+                bool normal = !normalExact.IsStageUpgrade && normalExact.RequiredExp == 10 && normalExact.Enough
+                    && normalExact.Costs.Count == 1 && normalExact.Costs[0].TypeId == 38040031 && normalExact.Costs[0].Num == 1;
+
+                setBagFull.Invoke(bag, new object[] { 0, 20, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>() });
+                BabyEquipUpgradeConfigs.PreviewResult normalShort = BabyEquipUpgradeConfigs.Preview(entry);
+                normal = normal && !normalShort.Enough && normalShort.Costs.Count == 0;
+
+                entry.StageExp = 0;
+                entry.StageLevel = 1;
+                setBagFull.Invoke(bag, new object[] { 0, 20, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>
+                {
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 2, TypeId = 38040031, GoodsNum = 1 },
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 3, TypeId = 38040032, GoodsNum = 1 }
+                }});
+                BabyEquipUpgradeConfigs.PreviewResult crossMaterial = BabyEquipUpgradeConfigs.Preview(entry);
+                normal = normal && crossMaterial.Enough && crossMaterial.Costs.Count == 2
+                    && crossMaterial.Costs[0].TypeId == 38040031 && crossMaterial.Costs[0].Num == 1
+                    && crossMaterial.Costs[1].TypeId == 38040032 && crossMaterial.Costs[1].Num == 1;
+
+                entry.Stage = 9;
+                entry.StageLevel = 10;
+                entry.StageExp = 0;
+                setBagFull.Invoke(bag, new object[] { 0, 20, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>
+                {
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 4, TypeId = 38040034, GoodsNum = 25 },
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 5, TypeId = 38040035, GoodsNum = 10 },
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 6, TypeId = 38040036, GoodsNum = 5 }
+                }});
+                BabyEquipUpgradeConfigs.PreviewResult stageExact = BabyEquipUpgradeConfigs.Preview(entry);
+                bool stage = stageExact.IsStageUpgrade && stageExact.Enough && stageExact.Costs.Count == 3
+                    && stageExact.Costs[0].TypeId == 38040034 && stageExact.Costs[0].Num == 25
+                    && stageExact.Costs[1].TypeId == 38040035 && stageExact.Costs[1].Num == 10
+                    && stageExact.Costs[2].TypeId == 38040036 && stageExact.Costs[2].Num == 5;
+                setBagFull.Invoke(bag, new object[] { 0, 20, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>
+                {
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 4, TypeId = 38040034, GoodsNum = 25 },
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 5, TypeId = 38040035, GoodsNum = 10 },
+                    new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 6, TypeId = 38040036, GoodsNum = 4 }
+                }});
+                BabyEquipUpgradeConfigs.PreviewResult stageShort = BabyEquipUpgradeConfigs.Preview(entry);
+                stage = stage && stageShort.IsStageUpgrade && !stageShort.Enough && stageShort.Costs.Count == 3;
+
+                entry.PositionId = 6;
+                entry.Stage = 10;
+                entry.StageLevel = 0;
+                BabyEquipUpgradeConfigs.PreviewResult finalStage = BabyEquipUpgradeConfigs.Preview(entry);
+                BabyEquipUpgradeConfigs.PreviewResult missing = BabyEquipUpgradeConfigs.Preview(new BabyEquipEntry { PositionId = 7, Stage = 1, StageLevel = 1 });
+                return normal && stage && !finalStage.Enough && !finalStage.IsStageUpgrade
+                    && !missing.Enough && !missing.IsStageUpgrade;
+            }
+            finally
+            {
+                bag.Clear();
             }
         }
 
