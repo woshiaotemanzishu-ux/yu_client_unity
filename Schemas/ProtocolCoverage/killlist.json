@@ -36,6 +36,18 @@
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
   {
+    "cmd": 16013,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/OutWardController.ts:225-228,345(全 h5/src 只有接收/注册，无 C2S 请求点);yu_server/src/mount/pp_mount.erl:241-248",
+    "note": "技能属性战力查询的服务端链存活，但老端从未提供玩家可达的请求入口；按老端行为事实源不迁移。轮29复核。"
+  },
+  {
+    "cmd": 16021,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/OutWardController.ts:252-258,347(全 h5/src 无 C2S 请求点);yu_server/src/mount/pp_mount.erl:26-43,887-904;yu_server/src/data/create/data_mount.erl:39818",
+    "note": "法阵广播只有接收壳且老端无请求入口；服务端外层还以 APPERENCE=[1,2,3,4,5,12] 拦截法阵 TypeId=8，设计路径双重不可达，不迁移。轮29复核。"
+  },
+  {
     "cmd": 17254,
     "reason": "dead_server_handle_commented",
     "evidence": "yu_server/src/marriage/pp_marriage.erl:1809-1813(整段注释);h5/src/commonController/BanquetController.ts:120-122(On17254 空函数体)",
@@ -156,10 +168,64 @@
     "note": "\"宝宝形象\"死协议壳(pt_172 号段内与婚宴无关的另一组),老端从未接入。轮24 侦察。"
   },
   {
+    "cmd": 18202,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/BabyController.ts:68-74,599(全 h5/src 仅 handler/注册，无 C2S 请求点)",
+    "note": "服务端虽保留他人宝宝信息协议，老端玩家路径没有发起 18202 的入口；按老端行为事实源不迁移。轮29复核。"
+  },
+  {
+    "cmd": 18208,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/BabyController.ts:220-224,605(全 h5/src 仅 handler/注册，无 C2S 请求点)",
+    "note": "点赞排行只有接收壳，老端玩家路径没有发起 18208 的入口；按老端行为事实源不迁移。轮29复核。"
+  },
+  {
+    "cmd": 18209,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/BabyController.ts:226-240,401-409,606(唯一请求位于不可达的 18217 成功分支)",
+    "note": "点赞记录的唯一请求依赖服务端 handle 已注释的 18217 点赞链，玩家实际不可达；不迁移。轮29复核。"
+  },
+  {
     "cmd": 18212,
     "reason": "dead_empty_body",
-    "evidence": "h5/src/commonController/BabyController.ts:609",
-    "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
+    "evidence": "h5/src/commonController/BabyController.ts:309-311,609",
+    "note": "老端虽注册 18212，但 handler 去注释后为空；无玩家行为需要迁移。轮29复核。"
+  },
+  {
+    "cmd": 18216,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/baby/pp_baby.erl:209-216;h5/src/commonController/BabyController.ts:614",
+    "note": "服务端展示宝宝 handle 整段注释，老端注册点也被注释；不迁移。轮29复核。"
+  },
+  {
+    "cmd": 18217,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/baby/pp_baby.erl:218-226;h5/src/commonController/BabyController.ts:401-416,613",
+    "note": "服务端点赞/逗弄 handle 整段注释，请求落入 no-match；老端接收壳不可达，不迁移。轮29复核。"
+  },
+  {
+    "cmd": 18218,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/BabyController.ts:418-482,615(全 h5/src 仅 handler/注册，无 C2S 请求点)",
+    "note": "装备穿戴回包存在，但老端玩家路径没有发起 18218 的入口；按老端事实源不迁移。轮29复核。"
+  },
+  {
+    "cmd": 18219,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/BabyController.ts:484-513,616(除红点枚举外无 C2S 请求点)",
+    "note": "装备锻造回包存在，但老端没有可达请求入口；按老端事实源不迁移。轮29复核。"
+  },
+  {
+    "cmd": 18220,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/BabyController.ts:515-545,617,662-675(IMP_GOODS 绑定存在但全 h5/src 无触发点)",
+    "note": "装备注灵写包桥存在，但其唯一 IMP_GOODS 事件无任何 Fire 调用，玩家实际不可达；不迁移。轮29复核。"
+  },
+  {
+    "cmd": 18224,
+    "reason": "dead_server_call_site_commented",
+    "evidence": "yu_server/src/baby/mod_baby_mgr.erl:200-259;yu_server/src/baby/lib_baby.erl:668-696;yu_server/src/baby/pp_baby.erl:218-226",
+    "note": "被点赞推送的唯一调用链起点是已整段注释的 18217 handle；服务端无法进入 praise_player_baby 链，18224 实际不可达。轮29复核。"
   },
   {
     "cmd": 18300,
