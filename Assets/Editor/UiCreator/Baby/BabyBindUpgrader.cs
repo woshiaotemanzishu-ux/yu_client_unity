@@ -23,6 +23,16 @@ namespace Shenxiao.Editor.UiCreator.Baby
         private const string BaseAwardItemPath = "Assets/Prefabs/UI/Common/BaseAwardItem.prefab";
         private const string TeaseViewPath = "Assets/Prefabs/UI/Baby/BabyTeaseView.prefab";
         private const string TeaseSceneKey = "baby/BabyTeaseView";
+        private static readonly string[] EquipSceneKeys =
+        {
+            "baby/BabyEquipFuncView", "baby/BabyEquipView", "baby/BabyEquipTabItem", "baby/BabyEquipSubItem", "baby/BabyEquipIcon",
+        };
+        private static readonly string[] EquipPrefabPaths =
+        {
+            "Assets/Prefabs/UI/Baby/BabyEquipFuncView.prefab", "Assets/Prefabs/UI/Baby/BabyEquipView.prefab",
+            "Assets/Prefabs/UI/Baby/BabyEquipTabItem.prefab", "Assets/Prefabs/UI/Baby/BabyEquipSubItem.prefab",
+            "Assets/Prefabs/UI/Baby/BabyEquipIcon.prefab",
+        };
         private static readonly string[] LikeSceneKeys =
         {
             "baby/BabyLikeView", "baby/BabyLikeItem", "baby/BabyBelikeView", "baby/BabyBelikeItem", "baby/BabyLikeReward",
@@ -92,6 +102,34 @@ namespace Shenxiao.Editor.UiCreator.Baby
             bool ok = CheckGeneratedBindByName(TeaseViewPath, "BabyTeaseView", "BabyTeaseViewBind");
             ok &= CheckNamedNodes(TeaseViewPath, "modelGp", "teaseEffectGp", "closeBtn", "teaseBtn", "nameLb", "sayLb");
             Debug.Log("[UiCreator] Baby tease static verification " + (ok ? "OK" : "FAILED"));
+            return ok;
+        }
+
+        public static bool GenerateEquipStatic()
+        {
+            for (int i = 0; i < EquipSceneKeys.Length; i++) LayaSceneConverter.ConvertSingle(EquipSceneKeys[i]);
+            return true;
+        }
+
+        public static bool UpgradeEquipStatic()
+        {
+            for (int i = 0; i < EquipPrefabPaths.Length; i++) if (!Fill(EquipPrefabPaths[i])) return false;
+            return VerifyEquipStatic();
+        }
+
+        public static bool VerifyEquipStatic()
+        {
+            bool ok = CheckGeneratedBindByName(EquipPrefabPaths[0], "BabyEquipFuncView", "BabyEquipFuncViewBind");
+            ok &= CheckNamedNodes(EquipPrefabPaths[0], "viewGp", "TabList", "closeBtn");
+            ok &= CheckGeneratedBindByName(EquipPrefabPaths[1], "BabyEquipView", "BabyEquipViewBind");
+            ok &= CheckNamedNodes(EquipPrefabPaths[1], "modelGp", "fight", "forgeBtn", "imprintBtn", "_Scroller1", "Content");
+            ok &= CheckGeneratedBindByName(EquipPrefabPaths[2], "BabyEquipTabItem", "BabyEquipTabItemBind");
+            ok &= CheckNamedNodes(EquipPrefabPaths[2], "labelDisplay", "reddot");
+            ok &= CheckGeneratedBindByName(EquipPrefabPaths[3], "BabyEquipSubItem", "BabyEquipSubItemBind");
+            ok &= CheckNamedNodes(EquipPrefabPaths[3], "selectImg", "equipGp", "redImg");
+            ok &= CheckGeneratedBindByName(EquipPrefabPaths[4], "BabyEquipIcon", "BabyEquipIconBind");
+            ok &= CheckNamedNodes(EquipPrefabPaths[4], "itemGp", "defaultImg", "addImg", "effectGp");
+            Debug.Log("[UiCreator] Baby equip static verification " + (ok ? "OK" : "FAILED"));
             return ok;
         }
 
