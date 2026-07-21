@@ -42,6 +42,7 @@
 - 定时迁移的代理分工固定为“主代理总控、低成本子代理执行”：确定、重复、机械性的侦察和实现优先交给低推理强度代理；主代理只做范围裁定、协议/架构决策、diff 审核、Unity 验收和提交。子任务必须限定目录、产物和字数，禁止多个代理重复通读全仓库；实现代理不得启动 Unity，所有 Unity 操作只由主代理串行执行。
 - 2026-07-21 已实测并采用官方 Unity CLI：本机二进制为 `C:\Users\FXL\AppData\Local\Unity\bin\unity.exe`（`1.0.0-beta.2`），隔离项目使用 `com.unity.pipeline@0.3.1-exp.1`，不得把 Pipeline 试装到用户日常工作的原项目。Codex 应让一个受限的隔离 Editor 常驻并通过 `unity status/list/command` 复用，避免每包重复启动 batchmode；首次安装 Pipeline 仍会触发一次完整脚本编译/ILPP，不属于轻量操作。
 - Unity CLI 的内建命令优先于 Roslyn `eval`：实测 `editor_status` 约 0.6 秒，热 `eval` 约 1～2 秒，冷 `eval` 可能约 9 秒。`eval` 代码必须是完整方法体片段（例如 `return UnityEditor.EditorApplication.isCompiling;`），并同时检查外层 `success` 与 `data.result.success`，因为 Roslyn 编译失败时 CLI 进程仍可能返回 0、外层仍为成功。CLI 暴露了约 140 个工具，静态查询、重编译、测试、截图和构建优先使用已有工具，不要重复造 Editor 脚本。
+- 常驻 Pipeline Editor 与低成本实现代理并行时，主代理应先通过 `eval` 调用 `AssetDatabase.DisallowAutoRefresh()` 和 `EditorApplication.LockReloadAssemblies()`；实现定稿并完成 diff 审核后，再调用 `UnlockReloadAssemblies()`、`AllowAutoRefresh()` 与一次 `AssetDatabase.Refresh()`，然后等待 `editor_status` 恢复 `ready/compiling=false`。这样可避免代理边写脚本、Unity 边反复编译。通过 Pipeline 直接调用 `Case.Run()` 时，以日志中的 `VERDICT ... pass=True` 加 CLI 内层 `data.result.success=true/result=0` 作为成功判据；传统独立 batch 才要求日志中的 `CLIVERIFY EXIT 0`。
 
 ## UI 生成/修复记忆
 
