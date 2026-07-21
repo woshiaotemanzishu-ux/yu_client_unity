@@ -28,6 +28,8 @@ namespace Shenxiao.EditorTools
                 _ = BabyRaiseConfigs.EnsureLoaded();
                 _ = BabyFigureConfigs.EnsureLoaded();
                 _ = BabyFigureStarConfigs.EnsureLoaded();
+                _ = BabyValueConfigs.EnsureLoaded();
+                _ = BabyStageConfigs.EnsureLoaded();
                 _ = Shenxiao.Module.Core.Common.GoodsModel.EnsureLoaded();
                 BabyFigureConfigs.BabyFigureCfg figureCfg = BabyFigureConfigs.Get(1);
                 BabyFigureStarConfigs.BabyFigureStarCfg starCfg = BabyFigureStarConfigs.Get(1, 2);
@@ -36,7 +38,11 @@ namespace Shenxiao.EditorTools
                     && BabyFigureConfigs.All.Count == 9
                     && figureCfg.Costs.Count > 0 && figureCfg.Costs[0].TypeId == 68010001 && figureCfg.Costs[0].Num == 30
                     && starCfg != null && starCfg.Costs.Count > 0
-                    && starCfg.Costs[0].TypeId == 68010001 && starCfg.Costs[0].Num == 25;
+                    && starCfg.Costs[0].TypeId == 68010001 && starCfg.Costs[0].Num == 25
+                    && BabyValueConfigs.IsLoaded && BabyValueConfigs.StageRaiseLevel == 2
+                    && BabyValueConfigs.StageMaterials.Count > 0 && BabyValueConfigs.StageMaterials[0].ItemId == 38040041
+                    && BabyValueConfigs.StageMaterials[0].ExpPerItem == 10
+                    && BabyStageConfigs.GetNext(1, 1) != null && BabyStageConfigs.GetNext(1, 1).ExpCon == 13;
                 bool upgraded = BabyBindUpgrader.Generate();
                 bool prefab = upgraded && VerifyInstances();
                 bool pass = config && upgraded && prefab;
