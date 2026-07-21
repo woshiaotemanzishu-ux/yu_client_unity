@@ -88,6 +88,7 @@ namespace Shenxiao.EditorTools
             MethodInfo m18215 = M("On18215");
             MethodInfo m18217 = M("On18217");
             MethodInfo m18218 = M("On18218");
+            MethodInfo m18219 = M("On18219");
             MethodInfo m18221 = M("On18221");
             MethodInfo m18222 = M("On18222");
             MethodInfo m18223 = M("On18223");
@@ -97,7 +98,7 @@ namespace Shenxiao.EditorTools
             bool allPass = m18200 != null && m18201 != null && m18203 != null && m18204 != null
                 && m18205 != null && m18206 != null && m18207 != null && m18208 != null && m18209 != null
                 && m18210 != null && m18211 != null && m18213 != null && m18214 != null && m18215 != null
-                && m18217 != null && m18218 != null && m18221 != null && m18222 != null && m18223 != null && m18224 != null && mGameStart != null;
+                && m18217 != null && m18218 != null && m18219 != null && m18221 != null && m18222 != null && m18223 != null && m18224 != null && mGameStart != null;
             void Check(string tag, bool ok)
             {
                 Debug.Log("CLIVERIFY baby " + tag + " ok=" + ok);
@@ -126,6 +127,7 @@ namespace Shenxiao.EditorTools
                 [Proto.BABY_RENAME] = m18215,
                 [Proto.BABY_PRAISE] = m18217,
                 [Proto.BABY_EQUIP_WEAR] = m18218,
+                [Proto.BABY_EQUIP_UPGRADE] = m18219,
                 [Proto.BABY_TASK_UPDATE] = m18221,
                 [Proto.BABY_TASK_REWARD] = m18222,
                 [Proto.BABY_FIGURE_POWER] = m18223,
@@ -149,7 +151,7 @@ namespace Shenxiao.EditorTools
                     break;
                 }
             }
-            Check("runtime registration count=19", registrationOk);
+            Check("runtime registration count=20", registrationOk);
 
             FieldInfo hubAllField = typeof(ControllerHub).GetField("ALL", SF);
             var hubAll = hubAllField?.GetValue(null) as IEnumerable;
@@ -281,6 +283,10 @@ namespace Shenxiao.EditorTools
                 bool c2s18218 = requestTrace.Count == 1 && FrameEquals(requestTrace[0], Proto.BABY_EQUIP_WEAR,
                     new CliVerify.Pkt().C(6).L(0x0102030405060708L).Bytes());
                 requestTrace.Clear();
+                ctrl.RequestEquipUpgrade(6);
+                bool c2s18219 = requestTrace.Count == 1 && FrameEquals(requestTrace[0], Proto.BABY_EQUIP_UPGRADE,
+                    new CliVerify.Pkt().C(6).Bytes());
+                requestTrace.Clear();
                 ctrl.RequestSetFigure(0, 1);
                 ctrl.RequestSetFigure(3, 1);
                 ctrl.RequestTaskReward(0);
@@ -293,9 +299,11 @@ namespace Shenxiao.EditorTools
                 ctrl.RequestEquipWear(0, 1);
                 ctrl.RequestEquipWear(7, 1);
                 ctrl.RequestEquipWear(1, 0);
+                ctrl.RequestEquipUpgrade(0);
+                ctrl.RequestEquipUpgrade(7);
                 bool c2sGuards = requestTrace.Count == 0;
                 Check("second packet C2S exact wire/guards", c2s18210 && c2s18211 && c2s18213
-                    && c2s18214 && c2s18215 && c2s18222 && c2s18223 && c2s18208 && c2s18209 && c2s18217 && c2s18218 && c2sGuards);
+                    && c2s18214 && c2s18215 && c2s18222 && c2s18223 && c2s18208 && c2s18209 && c2s18217 && c2s18218 && c2s18219 && c2sGuards);
 
                 requestTrace.Clear();
                 NetReader r18200 = Feed(m18200, new CliVerify.Pkt()
@@ -602,6 +610,23 @@ namespace Shenxiao.EditorTools
                 Check("18218 update/failure/tail", TailOk(r18218Ok) && TailOk(r18218Fail) && worn.Id == 99 && worn.GoodsTypeId == 88 && worn.SkillId == 77
                     && worn.Stage == 12 && worn.StageLevel == 13 && worn.StageExp == 14 && model.Equip.Power == 66
                     && model.LastEquipWearResult != null && !model.LastEquipWearResult.Succeeded && worn.Id == 99);
+
+                updateTrace.Clear();
+                NetReader r18219Ok = Feed(m18219, new CliVerify.Pkt().I(1).C(2).L(199).I(188).H(112).H(113).I(114).I(166).I(Tail).Bytes());
+                NetReader r18219Fail = Feed(m18219, new CliVerify.Pkt().I(5).C(2).L(299).I(288).H(212).H(213).I(214).I(266).I(Tail).Bytes());
+                Check("18219 update/preserve skill/failure/tail", TailOk(r18219Ok) && TailOk(r18219Fail)
+                    && worn.Id == 199 && worn.GoodsTypeId == 188 && worn.SkillId == 77
+                    && worn.Stage == 112 && worn.StageLevel == 113 && worn.StageExp == 114 && model.Equip.Power == 166
+                    && model.LastEquipUpgradeResult != null && !model.LastEquipUpgradeResult.Succeeded
+                    && TraceEquals(updateTrace, Proto.BABY_EQUIP_UPGRADE, Proto.BABY_EQUIP_UPGRADE));
+
+                requestTrace.Clear();
+                updateTrace.Clear();
+                NetReader r18219Missing = Feed(m18219, new CliVerify.Pkt().I(1).C(6).L(399).I(388).H(312).H(313).I(314).I(366).I(Tail).Bytes());
+                Check("18219 missing slot refetch/no fabricate/tail", TailOk(r18219Missing)
+                    && model.Equip.EquipList.Count == 1 && ReferenceEquals(worn, model.Equip.EquipList[0])
+                    && RequestTraceEquals(requestTrace, Proto.BABY_EQUIP_INFO)
+                    && TraceEquals(updateTrace, Proto.BABY_EQUIP_UPGRADE));
             }
             finally
             {

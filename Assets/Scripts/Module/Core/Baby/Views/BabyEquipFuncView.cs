@@ -18,7 +18,7 @@ namespace Shenxiao.Module.Core.Baby
         protected override void OnDispose() { _shown = false; Unsubscribe(); Clear(); }
         private void Subscribe() { if (_listening) return; _listening = true; EventDispatcher.On<int>(GlobalEvent.EVT_BABY_UPDATE, OnUpdate); EventDispatcher.On(GlobalEvent.EVT_BABY_EQUIP_BAG_UPDATE, Refresh); EventDispatcher.On(GlobalEvent.EVT_BABY_EQUIP_UPDATE, Refresh); }
         private void Unsubscribe() { if (!_listening) return; _listening = false; EventDispatcher.Off<int>(GlobalEvent.EVT_BABY_UPDATE, OnUpdate); EventDispatcher.Off(GlobalEvent.EVT_BABY_EQUIP_BAG_UPDATE, Refresh); EventDispatcher.Off(GlobalEvent.EVT_BABY_EQUIP_UPDATE, Refresh); }
-        private void OnUpdate(int command) { if ((command == Proto.BABY_EQUIP_INFO || command == Proto.BABY_EQUIP_WEAR || command == Proto.BABY_STAGE_INFO) && _shown) Refresh(); }
+        private void OnUpdate(int command) { if ((command == Proto.BABY_EQUIP_INFO || command == Proto.BABY_EQUIP_WEAR || command == Proto.BABY_EQUIP_UPGRADE || command == Proto.BABY_STAGE_INFO) && _shown) Refresh(); }
         private async System.Threading.Tasks.Task EnsureConfigs() { await GoodsModel.EnsureLoaded(); await BabyEquipConfigs.EnsureLoaded(); if (_shown) Refresh(); }
         private void Refresh() { CacheNodes(); if (_viewGp == null || _template == null) return; if (_content == null) { _content = Instantiate(_template, _viewGp); _content.SetActive(true); } _content.GetComponent<BabyEquipView>()?.Refresh(BabyModel.Instance.Equip, BabyModel.Instance.Basic); }
         private void Clear() { if (_content == null) return; if (Application.isPlaying) Destroy(_content); else DestroyImmediate(_content); _content = null; }

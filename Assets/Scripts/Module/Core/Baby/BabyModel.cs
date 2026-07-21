@@ -14,6 +14,7 @@ namespace Shenxiao.Module.Core.Baby
         public BabyStageInfo Stage { get; private set; }
         public BabyEquipInfo Equip { get; private set; }
         public BabyEquipWearResult LastEquipWearResult { get; private set; }
+        public BabyEquipUpgradeResult LastEquipUpgradeResult { get; private set; }
         public BabyFigureInfo Figures { get; private set; }
         public BabyFamilyInfo Family { get; private set; }
         public BabyActivateResult LastActivateResult { get; private set; }
@@ -56,6 +57,24 @@ namespace Shenxiao.Module.Core.Baby
             if (entry == null) { entry = new BabyEquipEntry { PositionId = value.PositionId }; Equip.EquipList.Add(entry); }
             entry.Id = value.Id; entry.GoodsTypeId = value.GoodsTypeId; entry.SkillId = value.SkillId;
             Equip.Power = value.Power;
+        }
+        public bool ApplyEquipUpgradeResult(BabyEquipUpgradeResult value)
+        {
+            LastEquipUpgradeResult = value;
+            if (!value.Succeeded || Equip == null) return false;
+            for (int i = 0; i < Equip.EquipList.Count; i++)
+            {
+                BabyEquipEntry entry = Equip.EquipList[i];
+                if (entry.PositionId != value.PositionId) continue;
+                entry.Id = value.Id;
+                entry.GoodsTypeId = value.GoodsTypeId;
+                entry.Stage = value.Stage;
+                entry.StageLevel = value.StageLevel;
+                entry.StageExp = value.StageExp;
+                Equip.Power = value.Power;
+                return true;
+            }
+            return false;
         }
         public void ApplyFigures(BabyFigureInfo value)
         {
@@ -226,6 +245,7 @@ namespace Shenxiao.Module.Core.Baby
             Stage = null;
             Equip = null;
             LastEquipWearResult = null;
+            LastEquipUpgradeResult = null;
             Figures = null;
             Family = null;
             LastActivateResult = null;

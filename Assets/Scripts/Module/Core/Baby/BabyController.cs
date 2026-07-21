@@ -37,6 +37,7 @@ namespace Shenxiao.Module.Core.Baby
             RegisterProtocal(Proto.BABY_FIGURE_WEAR, On18214);
             RegisterProtocal(Proto.BABY_RENAME, On18215);
             RegisterProtocal(Proto.BABY_EQUIP_WEAR, On18218);
+            RegisterProtocal(Proto.BABY_EQUIP_UPGRADE, On18219);
             RegisterProtocal(Proto.BABY_PRAISE, On18217);
             RegisterProtocal(Proto.BABY_TASK_UPDATE, On18221);
             RegisterProtocal(Proto.BABY_TASK_REWARD, On18222);
@@ -105,6 +106,13 @@ namespace Shenxiao.Module.Core.Baby
         {
             if (posId < 1 || posId > 6 || goodsId <= 0) return;
             SendRequest(Proto.BABY_EQUIP_WEAR, "cl", posId, goodsId);
+        }
+
+        /// <summary>仅协议前置：服务端会自动选材并扣料，未提供消耗预览/确认前不得直接绑定 UI 按钮。</summary>
+        public void RequestEquipUpgrade(int posId)
+        {
+            if (posId < 1 || posId > 6) return;
+            SendRequest(Proto.BABY_EQUIP_UPGRADE, "c", posId);
         }
 
         public void RequestLikeRank() => SendEmpty(Proto.BABY_LIKE_RANK);
@@ -433,6 +441,24 @@ namespace Shenxiao.Module.Core.Baby
             };
             BabyModel.Instance.ApplyEquipWearResult(result);
             EventDispatcher.Emit(GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_EQUIP_WEAR);
+        }
+
+        private void On18219(NetReader r)
+        {
+            var result = new BabyEquipUpgradeResult
+            {
+                Code = r.ReadI32(),
+                PositionId = r.ReadU8(),
+                Id = r.ReadU64(),
+                GoodsTypeId = r.ReadI32(),
+                Stage = r.ReadU16(),
+                StageLevel = r.ReadU16(),
+                StageExp = r.ReadI32(),
+                Power = r.ReadI32()
+            };
+            bool updated = BabyModel.Instance.ApplyEquipUpgradeResult(result);
+            if (result.Succeeded && !updated) RequestEquipInfo();
+            EventDispatcher.Emit(GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_EQUIP_UPGRADE);
         }
 
         private void On18224(NetReader r)

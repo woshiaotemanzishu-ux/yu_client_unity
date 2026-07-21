@@ -69,6 +69,19 @@ namespace Shenxiao.Module.Core.Baby
         public bool Succeeded => Code == 1;
     }
 
+    public sealed class BabyEquipUpgradeResult
+    {
+        public int Code;
+        public int PositionId;
+        public long Id;
+        public int GoodsTypeId;
+        public int Stage;
+        public int StageLevel;
+        public int StageExp;
+        public int Power;
+        public bool Succeeded => Code == 1;
+    }
+
     public sealed class BabyFigureEntry
     {
         public int BabyId;
