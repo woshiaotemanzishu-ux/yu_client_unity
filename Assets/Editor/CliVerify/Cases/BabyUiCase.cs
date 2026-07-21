@@ -37,6 +37,7 @@ namespace Shenxiao.EditorTools
                 bool teaseStatic = BabyBindUpgrader.VerifyTeaseStatic();
                 bool equipStatic = BabyBindUpgrader.VerifyEquipStatic();
                 bool imprintStatic = BabyBindUpgrader.VerifyImprintStatic();
+                bool forgeStatic = BabyBindUpgrader.VerifyForgeStatic();
                 Shenxiao.Framework.UI.UIViewAttribute likeAddress = typeof(BabyLikeView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
                 Shenxiao.Framework.UI.UIViewAttribute belikeAddress = typeof(BabyBelikeView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
                 Shenxiao.Framework.UI.UIViewAttribute equipAddress = typeof(BabyEquipFuncView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
@@ -85,8 +86,8 @@ namespace Shenxiao.EditorTools
                 bool belike = likeStatic && VerifyBelike();
                 bool equip = equipStatic && VerifyEquip();
                 bool imprintBusiness = imprintStatic && VerifyImprintBusinessInstances();
-                bool pass = config && likeStatic && teaseStatic && equipStatic && imprintStatic && imprintBusiness && viewAddresses && upgraded && prefab && likeRank && belike && equip;
-                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " teaseStatic=" + teaseStatic + " equipStatic=" + equipStatic + " imprintStatic=" + imprintStatic + " imprintBusiness=" + imprintBusiness + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " equip=" + equip + " pass=" + pass);
+                bool pass = config && likeStatic && teaseStatic && equipStatic && imprintStatic && forgeStatic && imprintBusiness && viewAddresses && upgraded && prefab && likeRank && belike && equip;
+                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " teaseStatic=" + teaseStatic + " equipStatic=" + equipStatic + " imprintStatic=" + imprintStatic + " forgeStatic=" + forgeStatic + " imprintBusiness=" + imprintBusiness + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " equip=" + equip + " pass=" + pass);
                 return Task.FromResult(pass ? 0 : 3);
             }
             catch (Exception e)
@@ -748,7 +749,7 @@ namespace Shenxiao.EditorTools
                     && firstDefault != null && !firstDefault.gameObject.activeSelf && lastDefault != null && lastDefault.gameObject.activeSelf;
                 UnityEngine.UI.Button forgeButton = content != null ? FindNode(content.transform, "forgeBtn")?.GetComponent<UnityEngine.UI.Button>() : null;
                 UnityEngine.UI.Button imprintButton = content != null ? FindNode(content.transform, "imprintBtn")?.GetComponent<UnityEngine.UI.Button>() : null;
-                bool forgeReady = forgeButton != null && forgeButton.interactable && content.ForgeInteractable && imprintButton == null;
+                bool mainEntriesPassive = forgeButton == null && imprintButton == null;
                 var candidates = new System.Collections.Generic.List<BabyEquipSubItem>();
                 BabyEquipSubItem[] allCandidates = content != null ? content.GetComponentsInChildren<BabyEquipSubItem>(true) : new BabyEquipSubItem[0];
                 for (int i = 0; i < allCandidates.Length; i++) if (allCandidates[i].gameObject.activeInHierarchy) candidates.Add(allCandidates[i]);
@@ -756,26 +757,15 @@ namespace Shenxiao.EditorTools
                     && candidates.Count == 2 && candidates[0].GoodsId == 0x0102030405060708L && candidates[1].GoodsId == 0x1112131415161718L;
                 bool ratingRed = candidates.Count == 2 && !candidates[0].BetterVisible && candidates[1].BetterVisible;
                 bool wornOverride = first != null && first.GoodsId == wornId && first.TypeId == 65010200;
-                if (forgeButton != null) { forgeButton.onClick.Invoke(); forgeButton.onClick.Invoke(); }
                 int upgradeFrames = 0;
-                bool upgradeWire = false;
                 for (int i = 0; i < frames.Count; i++)
                 {
                     if (!IsProtocol(frames[i], Proto.BABY_EQUIP_UPGRADE)) continue;
                     upgradeFrames++;
-                    NetReader reader = new NetReader(frames[i], 6, frames[i].Length - 6);
-                    upgradeWire = reader.ReadU8() == 1 && reader.Remaining == 0;
                 }
-                string forgeMaterialName = Shenxiao.Module.Core.Common.GoodsModel.GetGoodsName(38040031);
-                bool forgeConfirm = content.UpgradePending && !content.ForgeInteractable && upgradeFrames == 1 && upgradeWire
-                    && !string.IsNullOrEmpty(forgeMaterialName) && content.LastForgeConfirmText.Contains(forgeMaterialName)
-                    && content.LastForgeConfirmText.Contains("×1");
-                EventDispatcher.Emit(GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_EQUIP_UPGRADE);
-                bool forgeRecovered = !content.UpgradePending && content.ForgeInteractable;
-                forgeButton = FindNode(content.transform, "forgeBtn")?.GetComponent<UnityEngine.UI.Button>();
+                bool mainEntriesDoNotUpgrade = upgradeFrames == 0;
                 setBagFull.Invoke(Shenxiao.Module.Core.Bag.BagModel.Instance, new object[] { 0, 20, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>() });
                 EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
-                bool forgeBagDisabled = !content.ForgeInteractable && forgeButton != null && !forgeButton.interactable;
                 setBabyEquipFull.Invoke(Shenxiao.Module.Core.Bag.BagModel.Instance, new object[] { 1, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>
                 {
                     new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = wornId + 1, TypeId = 65010200, GoodsNum = 1 }
@@ -824,12 +814,12 @@ namespace Shenxiao.EditorTools
                     + " content=" + (content != null) + " icons=" + icons.Count + " name=" + (name != null ? name.text : "<null>")
                     + " fighting=" + (fighting != null && fighting._lb_fighting != null ? fighting._lb_fighting.text : "<null>") + " first=" + (first != null ? first.IsOccupied.ToString() : "<null>")
                     + " last=" + (last != null ? last.IsOccupied.ToString() : "<null>") + " firstDefault=" + (firstDefault != null ? firstDefault.gameObject.activeSelf.ToString() : "<null>")
-                    + " lastDefault=" + (lastDefault != null ? lastDefault.gameObject.activeSelf.ToString() : "<null>") + " forge=" + forgeReady + "/" + forgeConfirm + "/" + forgeRecovered + "/" + forgeBagDisabled
+                    + " lastDefault=" + (lastDefault != null ? lastDefault.gameObject.activeSelf.ToString() : "<null>") + " mainEntries=" + mainEntriesPassive + "/" + mainEntriesDoNotUpgrade
                     + " initialCandidates=" + initialCandidates + " secondCandidates=" + secondCandidates + " wearFrame=" + wearFrame
                     + " worn=" + wornOverride + "/" + wornFallback
                     + " selectedFirst=" + (selectedFirst != null) + "/" + selectedFirstEffect + " selectedSecond=" + (selectedSecond != null) + "/" + selectedSecondEffect
                     + " candidateCount=" + candidates.Count + " candidateType=" + (candidates.Count > 0 ? candidates[0].TypeId : 0));
-                pass = pass && forgeReady && forgeConfirm && forgeRecovered && forgeBagDisabled && initialCandidates && ratingRed && wornOverride && wornFallback && fallbackRed && secondCandidates && wearFrame;
+                pass = pass && mainEntriesPassive && mainEntriesDoNotUpgrade && initialCandidates && ratingRed && wornOverride && wornFallback && fallbackRed && secondCandidates && wearFrame;
                 view.Hide(); return pass;
             }
             finally { Shenxiao.Module.Core.Bag.BagModel.Instance.Clear(); BabyModel.Instance.Reset(); if (interceptField != null) interceptField.SetValue(null, oldIntercept); UnityEngine.Object.DestroyImmediate(root); }

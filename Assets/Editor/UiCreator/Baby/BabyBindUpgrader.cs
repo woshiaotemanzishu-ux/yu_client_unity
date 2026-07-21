@@ -21,6 +21,8 @@ namespace Shenxiao.Editor.UiCreator.Baby
         private const string BelikeItemPath = "Assets/Prefabs/UI/Baby/BabyBelikeItem.prefab";
         private const string LikeRewardPath = "Assets/Prefabs/UI/Baby/BabyLikeReward.prefab";
         private const string BaseAwardItemPath = "Assets/Prefabs/UI/Common/BaseAwardItem.prefab";
+        private const string ForgeViewPath = "Assets/Prefabs/UI/Baby/BabyForgeView.prefab";
+        private const string ForgeSceneKey = "baby/BabyForgeView";
         private const string FightingShowSmallItemPath = "Assets/Prefabs/UI/Common/FightingShowSmallItem.prefab";
         private const string TeaseViewPath = "Assets/Prefabs/UI/Baby/BabyTeaseView.prefab";
         private const string TeaseSceneKey = "baby/BabyTeaseView";
@@ -154,6 +156,40 @@ namespace Shenxiao.Editor.UiCreator.Baby
                 ok = false;
             }
             Debug.Log("[UiCreator] Baby imprint static verification " + (ok ? "OK" : "FAILED"));
+            return ok;
+        }
+
+        /// <summary>First Forge pass: generate the prefab and Bind source, then wait for Unity compilation.</summary>
+        public static bool GenerateForgeStatic()
+        {
+            LayaSceneConverter.ConvertSingle(ForgeSceneKey);
+            return true;
+        }
+
+        /// <summary>Post-compilation Forge pass: restore the disabled award-item template and verify static structure.</summary>
+        public static bool UpgradeForgeStatic()
+        {
+            if (!Fill(BaseAwardItemPath) || !Fill(ForgeViewPath)) return false;
+            if (!EnsureNestedTemplate(ForgeViewPath, "__Templates", BaseAwardItemPath)) return false;
+            return VerifyForgeStatic();
+        }
+
+        /// <summary>Read-only acceptance for the Forge child panel; it deliberately has no business View component.</summary>
+        public static bool VerifyForgeStatic()
+        {
+            bool ok = CheckGeneratedBindByName(ForgeViewPath, "BabyForgeView", "BabyForgeViewBind");
+            ok &= CheckNamedNodes(ForgeViewPath, "itemScroller", "Content11", "_Scroller1", "Content111",
+                "lvGp", "lvBtn", "lvExpImg", "lvLb", "nextlvLb", "lvExpLb", "matGp", "Content", "lvRed",
+                "stageGp", "_Scroller2", "Content1", "stageBtn", "stageRed", "maxStage", "targetGp", "effectGp", "targetEffectGp");
+            ok &= CheckTemplatePath(ForgeViewPath, "__Templates/BaseAwardItem");
+            GameObject forge = AssetDatabase.LoadAssetAtPath<GameObject>(ForgeViewPath);
+            ok &= CheckTemplate<Shenxiao.Module.Core.Common.BaseAwardItem>(forge != null ? forge.transform.Find("__Templates/BaseAwardItem")?.gameObject : null, "BabyForgeView.BaseAwardItem");
+            if (AssetDatabase.LoadAssetAtPath<Sprite>(ImprintButtonSkinPath) == null)
+            {
+                Debug.LogError("[UiCreator] Baby Forge button skin missing " + ImprintButtonSkinPath);
+                ok = false;
+            }
+            Debug.Log("[UiCreator] Baby Forge static verification " + (ok ? "OK" : "FAILED"));
             return ok;
         }
 
