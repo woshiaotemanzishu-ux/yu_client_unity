@@ -191,6 +191,20 @@ namespace Shenxiao.EditorTools
                     bool activeFightingDisplay = fightingItems.Length == 1 && fightingItems[0]._lb_fighting.text == "1000"
                         && fightingItems[0]._box_up.gameObject.activeSelf && powerFrames.Count == 0;
                     illusionDisplay = illusionDisplay && activeFightingDisplay;
+                    BabyIlluItem redIllu = illusionView.illuGp.Find("BabyIlluItem_1").GetComponent<BabyIlluItem>();
+                    bool redDisplay = redIllu != null && redIllu.red_dot.gameObject.activeSelf
+                        && illusionView.activeRed.gameObject.activeSelf && illusionView.stageRed.gameObject.activeSelf;
+                    Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 0);
+                    Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BAG_UPDATE);
+                    redIllu = illusionView.illuGp.Find("BabyIlluItem_1").GetComponent<BabyIlluItem>();
+                    redDisplay = redDisplay && redIllu != null && !redIllu.red_dot.gameObject.activeSelf
+                        && !illusionView.activeRed.gameObject.activeSelf && !illusionView.stageRed.gameObject.activeSelf;
+                    Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
+                    Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BAG_UPDATE);
+                    redIllu = illusionView.illuGp.Find("BabyIlluItem_1").GetComponent<BabyIlluItem>();
+                    redDisplay = redDisplay && redIllu != null && redIllu.red_dot.gameObject.activeSelf
+                        && illusionView.activeRed.gameObject.activeSelf && illusionView.stageRed.gameObject.activeSelf;
+                    illusionDisplay = illusionDisplay && redDisplay;
                     UnityEngine.UI.Button leftButton = illusionView.leftBtn.GetComponent<UnityEngine.UI.Button>();
                     UnityEngine.UI.Button rightButton = illusionView.rightBtn.GetComponent<UnityEngine.UI.Button>();
                     if (illusionDisplay && leftButton != null && rightButton != null)
@@ -213,7 +227,7 @@ namespace Shenxiao.EditorTools
                         && activeIllu.box.sprite.name == expectedFrame;
                     illusionDisplay = illusionDisplay && activeStarsDisplay && activeFrameDisplay;
                     Debug.Log("CLIVERIFY babyui illusion active list=" + listDisplay + " props=" + activePropsDisplay
-                        + " fighting=" + activeFightingDisplay + " stars=" + activeStarsDisplay + " frame=" + activeFrameDisplay);
+                        + " fighting=" + activeFightingDisplay + " red=" + redDisplay + " stars=" + activeStarsDisplay + " frame=" + activeFrameDisplay);
                     if (illusionDisplay)
                     {
                         Transform third = illusionView.illuGp.Find("BabyIlluItem_3");

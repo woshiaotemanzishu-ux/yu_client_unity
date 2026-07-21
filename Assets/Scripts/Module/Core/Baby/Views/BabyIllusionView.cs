@@ -115,6 +115,9 @@ namespace Shenxiao.Module.Core.Baby
                     : cfg != null ? cfg.BabyName : _selectedBabyId.ToString();
             }
             BabyFigureEntry selected = FindActiveEntry(active, _selectedBabyId);
+            bool selectedRed = CanShowRed(BabyFigureConfigs.Get(_selectedBabyId), selected);
+            if (activeRed != null) activeRed.gameObject.SetActive(selectedRed);
+            if (stageRed != null) stageRed.gameObject.SetActive(selectedRed);
             if (selectedImg != null) selectedImg.gameObject.SetActive(_selectedBabyId > 0 && wornBabyId == _selectedBabyId);
             if (useGp != null) useGp.gameObject.SetActive(selected != null);
             if (activeGp != null) activeGp.gameObject.SetActive(_selectedBabyId > 0 && selected == null);
@@ -150,11 +153,45 @@ namespace Shenxiao.Module.Core.Baby
             if (item.unActive != null) item.unActive.gameObject.SetActive(entry == null);
             item.SetStar(entry != null ? entry.BabyStar : 0, entry != null);
             item.SetCostFrame(cfg.Costs.Count > 0 ? cfg.Costs[0].TypeId : 0);
+            if (item.red_dot != null) item.red_dot.gameObject.SetActive(CanShowRed(cfg, entry));
             if (item.select_img != null) item.select_img.gameObject.SetActive(cfg.BabyId == _selectedBabyId);
             if (item.resImg != null && cfg != null && !string.IsNullOrEmpty(cfg.ResourceId))
                 _ = ResManager.SetImageAsync(item.resImg, GameResPath.GetIcon("baby", cfg.ResourceId), nativeSize: false);
             int babyId = cfg.BabyId;
             UIUtil.AddClick(item.clickGp, () => Select(babyId));
+        }
+
+        private static bool CanShowRed(BabyFigureConfigs.BabyFigureCfg cfg, BabyFigureEntry entry)
+        {
+            if (BabyModel.Instance.Figures == null || !BabyFigureConfigs.IsLoaded || cfg == null) return false;
+            if (entry == null) return AreCostsAffordable(cfg.Costs);
+            if (!BabyFigureStarConfigs.IsLoaded) return false;
+            BabyFigureStarConfigs.BabyFigureStarCfg next = BabyFigureStarConfigs.Get(entry.BabyId, entry.BabyStar + 1);
+            return next != null && AreCostsAffordable(next.Costs);
+        }
+
+        private static bool AreCostsAffordable(List<BabyFigureConfigs.CostItem> costs)
+        {
+            if (costs == null || costs.Count == 0) return false;
+            for (int i = 0; i < costs.Count; i++)
+            {
+                BabyFigureConfigs.CostItem cost = costs[i];
+                if (cost.TypeId <= 0 || cost.TypeId > int.MaxValue
+                    || BagModel.Instance.GetTypeGoodsNum((int)cost.TypeId) < cost.Num) return false;
+            }
+            return true;
+        }
+
+        private static bool AreCostsAffordable(List<BabyFigureStarConfigs.CostItem> costs)
+        {
+            if (costs == null || costs.Count == 0) return false;
+            for (int i = 0; i < costs.Count; i++)
+            {
+                BabyFigureStarConfigs.CostItem cost = costs[i];
+                if (cost.TypeId <= 0 || cost.TypeId > int.MaxValue
+                    || BagModel.Instance.GetTypeGoodsNum((int)cost.TypeId) < cost.Num) return false;
+            }
+            return true;
         }
 
         private async Task EnsureConfigsAndRefreshAsync()
