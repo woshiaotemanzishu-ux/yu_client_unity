@@ -495,6 +495,12 @@ namespace Shenxiao.EditorTools
             Run(FashionCase.Run, 300.0);
         }
 
+        /// <summary>ListDuobao 33252/33253/33803 数据链及七个业务 Bind 组件验证。</summary>
+        public static void ListDuobao()
+        {
+            Run(ListDuobaoCase.Run, 300.0);
+        }
+
         /// <summary>轮21 协议覆盖率核验(防虚假完工):A总量防倒退/B家族防倒退/C完工家族零未申报/
         /// D双注册/E族错误出口。基线 Schemas/ProtocolCoverage/baseline.json,报告落 Reports/(已 gitignore)。</summary>
         public static void ProtocolCoverage()
@@ -624,6 +630,7 @@ namespace Shenxiao.EditorTools
                 int sc = await ServerClockCase.Run();
                 int lo = await LookOverCase.Run();
                 int fa = await FashionCase.Run();
+                int ld = await ListDuobaoCase.Run();
                 int pc = await ProtocolCoverageCase.Run();
                 int ga = await GuildActivityCase.Run();
                 int se = await StarEquipCase.Run();
@@ -647,10 +654,10 @@ namespace Shenxiao.EditorTools
                     + " cabiz=" + c5 + " cakfrank=" + c6
                     + " godbefall=" + g1 + " cheaptrio=" + g2 + " fbfestival=" + g3 + " welfare=" + g4 + " scenemisc=" + g5
                     + " market=" + mk + " serverclock=" + sc
-                    + " lookover=" + lo + " fashion=" + fa + " protocolcoverage=" + pc + " guildactivity=" + ga
+                    + " lookover=" + lo + " fashion=" + fa + " listduobao=" + ld + " protocolcoverage=" + pc + " guildactivity=" + ga
                     + " starequip=" + se + " starforge=" + sf + " banquet=" + bq
                     + " petequip=" + pe + " petequipinventory=" + pi + " petequipui=" + pu + " baby=" + by);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, pc, ga, se, sf, bq, pe, pi, pu, by })
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, ld, pc, ga, se, sf, bq, pe, pi, pu, by })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Text;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Common;
 
 namespace Shenxiao.Module.Core.CustomActivity
 {
@@ -18,8 +20,7 @@ namespace Shenxiao.Module.Core.CustomActivity
     /// 先例:守卫字段避免重复订阅,主文件 Dispose() 不在本代理可编辑范围故不配对 Off,理由同 Biz.cs 头注释——
     /// Dispose() 期间 On33101 已被基类注销、不会再 Emit LIST_UPDATE,长期订阅无副作用)。
     ///
-    /// UI:Assets/Scripts/Generated/UI/ListDuobao/*Bind.cs 已有烤图绑定但全仓库 grep 实证**无消费方 View**,
-    /// 本轮只补数据层三号,不建 View,消费方 TODO。
+    /// UI 消费方位于 Module/Core/ListDuobao；入口、阶段/排行/记录与抽奖结果已接线。
     /// </summary>
     public sealed partial class CustomActivityController
     {
@@ -32,12 +33,24 @@ namespace Shenxiao.Module.Core.CustomActivity
             RegisterProtocal(Proto.CUSTOM_ACT_LISTDUOBAO_STAGE, On33252);
             RegisterProtocal(Proto.CUSTOM_ACT_LISTDUOBAO_RANK, On33253);
             RegisterProtocal(Proto.CUSTOM_ACT_LISTDUOBAO_CLAIM, On33254);
+            RegisterProtocal(Proto.COMPETE_ACT_LIST_DUOBAO_DRAW, On33803);
 
             if (!_listDuobaoHookInstalled)
             {
                 _listDuobaoHookInstalled = true;
                 EventDispatcher.On(GlobalEvent.EVT_CUSTOMACT_LIST_UPDATE, OnListUpdateForListDuobao);
+                EventDispatcher.On(GlobalEvent.EVT_CUSTOMACT_LIST_ADD, OnListUpdateForListDuobao);
+                EventDispatcher.On(GlobalEvent.EVT_CUSTOMACT_LIST_REMOVE, OnListUpdateForListDuobao);
             }
+        }
+
+        private void UnregisterList()
+        {
+            if (!_listDuobaoHookInstalled) return;
+            EventDispatcher.Off(GlobalEvent.EVT_CUSTOMACT_LIST_UPDATE, OnListUpdateForListDuobao);
+            EventDispatcher.Off(GlobalEvent.EVT_CUSTOMACT_LIST_ADD, OnListUpdateForListDuobao);
+            EventDispatcher.Off(GlobalEvent.EVT_CUSTOMACT_LIST_REMOVE, OnListUpdateForListDuobao);
+            _listDuobaoHookInstalled = false;
         }
 
         /// <summary>对标老端 CustomActivityModel.ts:386-389:33101 落地后扫描 base_type==116 的条目,记录
@@ -50,8 +63,9 @@ namespace Shenxiao.Module.Core.CustomActivity
                 if (kv.Value.BaseType != ACT_ID_LIST_DUOBAO) continue;
                 CustomActivityModel.Instance.SetListDuobaoSubType(kv.Value.SubType);
                 RequestListDuobaoStage(ACT_ID_LIST_DUOBAO, kv.Value.SubType);
-                break;
+                return;
             }
+            CustomActivityModel.Instance.ClearList();
         }
 
         /// <summary>33252 查询夺宝阶段信息(发 "hh" type,subtype)。</summary>
@@ -85,8 +99,16 @@ namespace Shenxiao.Module.Core.CustomActivity
             });
             int worldLv = r.ReadI32();
 
+            if (type != ACT_ID_LIST_DUOBAO || subType != CustomActivityModel.Instance.ListDuobaoSubType)
+            {
+                GameLog.Warn("CustomActivity", "ignore 33252 stale list-duobao type={0} sub={1} current={2}",
+                    type, subType, CustomActivityModel.Instance.ListDuobaoSubType);
+                return;
+            }
+
             var info = new CustomActivityModel.ListDuobaoStageInfo
             {
+                Type = type,
                 SubType = subType,
                 Score = score,
                 TodayScore = todayScore,
@@ -126,8 +148,16 @@ namespace Shenxiao.Module.Core.CustomActivity
                 ServerScore = rr.ReadI32(),
             });
 
+            if (type != ACT_ID_LIST_DUOBAO || subType != CustomActivityModel.Instance.ListDuobaoSubType)
+            {
+                GameLog.Warn("CustomActivity", "ignore 33253 stale list-duobao type={0} sub={1} current={2}",
+                    type, subType, CustomActivityModel.Instance.ListDuobaoSubType);
+                return;
+            }
+
             var info = new CustomActivityModel.ListDuobaoRankInfo
             {
+                Type = type,
                 SubType = subType,
                 Score = score,
                 Rank = rank,
@@ -152,11 +182,85 @@ namespace Shenxiao.Module.Core.CustomActivity
             int subType = r.ReadU16();
             int rewardId = r.ReadU16();
             int errorCode = r.ReadI32();
+            if (type != ACT_ID_LIST_DUOBAO || subType != CustomActivityModel.Instance.ListDuobaoSubType) return;
             if (errorCode == 1) TipsManager.Toast("领取成功");
             else ShowError(errorCode);
             EventDispatcher.Emit(GlobalEvent.EVT_CUSTOMACT_RESULT, type, subType, errorCode);
             RequestListDuobaoStage(type, subType); // 对标老端无条件追发33252
             GameLog.Info("CustomActivity", "33254 夺宝领取 type={0} sub={1} rewardId={2} code={3}", type, subType, rewardId, errorCode);
+        }
+
+        /// <summary>33803 连服夺宝抽奖结果；33191 仍由 Festival partial 唯一注册。</summary>
+        private void On33803(NetReader r)
+        {
+            var result = new CustomActivityModel.ListDuobaoDrawResult
+            {
+                Type = r.ReadU16(),
+                SubType = r.ReadU16(),
+                Times = r.ReadU8(),
+                TodayScore = r.ReadU32(),
+                Error = r.ReadU32(),
+            };
+            List<CustomActivityModel.ListDuobaoDrawReward> rewards = r.ReadArray(rr =>
+            {
+                var reward = new CustomActivityModel.ListDuobaoDrawReward { RewardId = rr.ReadU16() };
+                reward.Reward.AddRange(CustomActivityModel.ReadRewardObjList(rr));
+                return reward;
+            });
+            result.RewardList.AddRange(rewards);
+
+            if (result.Type != ACT_ID_LIST_DUOBAO || result.SubType != CustomActivityModel.Instance.ListDuobaoSubType)
+            {
+                GameLog.Warn("CustomActivity", "ignore 33803 stale list-duobao type={0} sub={1} current={2}",
+                    result.Type, result.SubType, CustomActivityModel.Instance.ListDuobaoSubType);
+                return;
+            }
+
+            CustomActivityModel.Instance.SetListDuobaoDraw(result);
+            if (result.Error == 1)
+            {
+                string rewardSummary = FormatListDuobaoRewards(result.RewardList);
+                TipsManager.Toast(string.IsNullOrEmpty(rewardSummary)
+                    ? (result.Times > 1 ? "十连夺宝成功" : "夺宝成功")
+                    : "获得 " + rewardSummary);
+            }
+            else ShowError((int)result.Error);
+            EventDispatcher.Emit(GlobalEvent.EVT_LIST_DUOBAO_DRAW_RESULT, result);
+            GameLog.Info("CustomActivity", "33803 list-duobao draw type={0} sub={1} times={2} score={3} code={4} rewardN={5}",
+                result.Type, result.SubType, result.Times, result.TodayScore, result.Error, result.RewardList.Count);
+        }
+
+        // Unity 尚无通用 CongratulationObtainView，按 Mail/Daily 既有降级约定展示完整奖励摘要。
+        private static string FormatListDuobaoRewards(IReadOnlyList<CustomActivityModel.ListDuobaoDrawReward> groups)
+        {
+            var totals = new Dictionary<int, long>();
+            var order = new List<int>();
+            for (int i = 0; i < groups.Count; i++)
+            {
+                IReadOnlyList<CustomActivityModel.RewardObj> rewards = groups[i].Reward;
+                for (int j = 0; j < rewards.Count; j++)
+                {
+                    CustomActivityModel.RewardObj reward = rewards[j];
+                    (int goodsId, int _) = GoodsModel.GetMappingTypeId(reward.Type, reward.GoodsId);
+                    if (!totals.ContainsKey(goodsId))
+                    {
+                        totals[goodsId] = 0;
+                        order.Add(goodsId);
+                    }
+                    totals[goodsId] += reward.Num;
+                }
+            }
+
+            var text = new StringBuilder();
+            for (int i = 0; i < order.Count; i++)
+            {
+                int goodsId = order[i];
+                if (i > 0) text.Append('、');
+                string name = GoodsModel.GetGoodsName(goodsId);
+                text.Append(string.IsNullOrEmpty(name) ? "物品" + goodsId : name)
+                    .Append('x').Append(totals[goodsId]);
+            }
+            return text.ToString();
         }
     }
 }

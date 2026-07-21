@@ -794,6 +794,8 @@ namespace Shenxiao.Framework.Event
         public const string EVT_CUSTOMACT_DETAIL_UPDATE = "EVT_CUSTOMACT_DETAIL_UPDATE";
         /// <summary>33105 通用领取/操作结果(参数: int baseType, int subType, int code;code==1 成功)。</summary>
         public const string EVT_CUSTOMACT_RESULT = "EVT_CUSTOMACT_RESULT";
+        /// <summary>33803 连服夺宝抽奖结果。参数: CustomActivityModel.ListDuobaoDrawResult。</summary>
+        public const string EVT_LIST_DUOBAO_DRAW_RESULT = "EVT_LIST_DUOBAO_DRAW_RESULT";
         /// <summary>33106 全服计数更新(参数: int baseType, int subType)。</summary>
         public const string EVT_CUSTOMACT_ALLCOUNT_UPDATE = "EVT_CUSTOMACT_ALLCOUNT_UPDATE";
         /// <summary>33100 331 家族通用错误码到达(参数: int code)。</summary>

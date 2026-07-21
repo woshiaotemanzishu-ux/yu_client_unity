@@ -50,6 +50,7 @@ namespace Shenxiao.Module.Core.CustomActivity
         /// <summary>33252 回包落地(对标老端 ListDuobaoModel.SetData)。</summary>
         public sealed class ListDuobaoStageInfo
         {
+            public int Type;
             public int SubType;
             public int Score;
             public int TodayScore;
@@ -62,6 +63,7 @@ namespace Shenxiao.Module.Core.CustomActivity
         /// <summary>33253 回包落地(对标老端 ListDuobaoModel.SetRankData)。</summary>
         public sealed class ListDuobaoRankInfo
         {
+            public int Type;
             public int SubType;
             public int Score;
             public int Rank;
@@ -71,22 +73,64 @@ namespace Shenxiao.Module.Core.CustomActivity
             public readonly List<ListDuobaoServerRankEntry> ServerRankList = new List<ListDuobaoServerRankEntry>();
         }
 
+        public sealed class ListDuobaoDrawReward
+        {
+            public int RewardId;
+            public readonly List<RewardObj> Reward = new List<RewardObj>();
+        }
+
+        public sealed class ListDuobaoDrawResult
+        {
+            public int Type;
+            public int SubType;
+            public int Times;
+            public long TodayScore;
+            public long Error;
+            public readonly List<ListDuobaoDrawReward> RewardList = new List<ListDuobaoDrawReward>();
+        }
+
         /// <summary>当前唯一活跃夺宝子活动的 sub_type(对标老端 ListDuobaoModel.sub_type,由
         /// CustomActivityController.List.cs 在 33101 列表里扫到 base_type==116 的条目时设置);未确定 → -1。</summary>
         public int ListDuobaoSubType { get; private set; } = -1;
 
         public ListDuobaoStageInfo ListDuobaoStage { get; private set; }
         public ListDuobaoRankInfo ListDuobaoRank { get; private set; }
+        public ListDuobaoDrawResult ListDuobaoDraw { get; private set; }
+        public bool ListDuobaoFirstIn { get; private set; } = true;
 
         public void SetListDuobaoSubType(int subType) => ListDuobaoSubType = subType;
-        public void SetListDuobaoStage(ListDuobaoStageInfo info) => ListDuobaoStage = info;
+        public void SetListDuobaoStage(ListDuobaoStageInfo info)
+        {
+            if (info == null) { ListDuobaoStage = null; return; }
+            info.StageList.Sort((a, b) => a.Id.CompareTo(b.Id));
+            ListDuobaoStage = info;
+        }
         public void SetListDuobaoRank(ListDuobaoRankInfo info) => ListDuobaoRank = info;
+        public void SetListDuobaoDraw(ListDuobaoDrawResult info) => ListDuobaoDraw = info;
+        public void MarkListDuobaoEntered() => ListDuobaoFirstIn = false;
+
+        public bool HasListDuobaoStageRed()
+        {
+            if (ListDuobaoFirstIn) return true;
+            if (ListDuobaoStage == null) return false;
+            for (int i = 0; i < ListDuobaoStage.StageList.Count; i++)
+                if (ListDuobaoStage.StageList[i].GotType == 1) return true;
+            return false;
+        }
+
+        public ActEntry GetActiveListDuobaoAct()
+        {
+            if (ListDuobaoSubType < 0) return null;
+            return GetActEntry(116, ListDuobaoSubType);
+        }
 
         public void ClearList()
         {
             ListDuobaoSubType = -1;
             ListDuobaoStage = null;
             ListDuobaoRank = null;
+            ListDuobaoDraw = null;
+            ListDuobaoFirstIn = true;
         }
     }
 }
