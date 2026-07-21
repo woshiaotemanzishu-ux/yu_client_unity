@@ -161,4 +161,51 @@ namespace Shenxiao.Module.Core.Baby
         public long NextPower;
         public bool IsActivated;
     }
+
+    public sealed class BabyPraiseRankEntry
+    {
+        public long RoleId;
+        public string Name = string.Empty;
+        public int BabyPower;
+        public int PraiseNum;
+    }
+
+    public sealed class BabyPraiseRankInfo
+    {
+        public long RoleId;
+        public readonly List<BabyPraiseRankEntry> Entries = new List<BabyPraiseRankEntry>();
+    }
+
+    public sealed class BabyPraiseRecordEntry
+    {
+        public long PraiserId;
+        public string Name = string.Empty;
+        public bool IsPraiseBack;
+    }
+
+    public sealed class BabyPraiseRecordsInfo
+    {
+        public readonly List<BabyPraiseRecordEntry> Entries = new List<BabyPraiseRecordEntry>();
+    }
+
+    public sealed class BabyPraiseRewardEntry
+    {
+        public int Type;
+        public int TypeId;
+        public int Num;
+    }
+
+    public sealed class BabyPraiseActionResult
+    {
+        public int Code;
+        public long RoleId;
+        public int Opr;
+        public readonly List<BabyPraiseRewardEntry> Rewards = new List<BabyPraiseRewardEntry>();
+        public bool Succeeded => Code == 1;
+    }
+
+    public sealed class BabyPraisePush
+    {
+        public long PraiserId;
+    }
 }

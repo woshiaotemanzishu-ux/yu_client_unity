@@ -7,6 +7,7 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Module.Core.Baby;
 using Shenxiao.Module.Core.Game;
+using Shenxiao.Module.Core.Role;
 using UnityEngine;
 
 namespace Shenxiao.EditorTools
@@ -78,20 +79,24 @@ namespace Shenxiao.EditorTools
             MethodInfo m18205 = M("On18205");
             MethodInfo m18206 = M("On18206");
             MethodInfo m18207 = M("On18207");
+            MethodInfo m18208 = M("On18208");
+            MethodInfo m18209 = M("On18209");
             MethodInfo m18210 = M("On18210");
             MethodInfo m18211 = M("On18211");
             MethodInfo m18213 = M("On18213");
             MethodInfo m18214 = M("On18214");
             MethodInfo m18215 = M("On18215");
+            MethodInfo m18217 = M("On18217");
             MethodInfo m18221 = M("On18221");
             MethodInfo m18222 = M("On18222");
             MethodInfo m18223 = M("On18223");
+            MethodInfo m18224 = M("On18224");
             MethodInfo mGameStart = M("OnGameStart");
 
             bool allPass = m18200 != null && m18201 != null && m18203 != null && m18204 != null
-                && m18205 != null && m18206 != null && m18207 != null && m18210 != null && m18211 != null
-                && m18213 != null && m18214 != null && m18215 != null && m18221 != null
-                && m18222 != null && m18223 != null && mGameStart != null;
+                && m18205 != null && m18206 != null && m18207 != null && m18208 != null && m18209 != null
+                && m18210 != null && m18211 != null && m18213 != null && m18214 != null && m18215 != null
+                && m18217 != null && m18221 != null && m18222 != null && m18223 != null && m18224 != null && mGameStart != null;
             void Check(string tag, bool ok)
             {
                 Debug.Log("CLIVERIFY baby " + tag + " ok=" + ok);
@@ -111,14 +116,18 @@ namespace Shenxiao.EditorTools
                 [Proto.BABY_EQUIP_INFO] = m18205,
                 [Proto.BABY_FIGURE_INFO] = m18206,
                 [Proto.BABY_FAMILY_INFO] = m18207,
+                [Proto.BABY_LIKE_RANK] = m18208,
+                [Proto.BABY_LIKE_RECORDS] = m18209,
                 [Proto.BABY_ACTIVATE] = m18210,
                 [Proto.BABY_STAGE_UP] = m18211,
                 [Proto.BABY_FIGURE_STAR_UP] = m18213,
                 [Proto.BABY_FIGURE_WEAR] = m18214,
                 [Proto.BABY_RENAME] = m18215,
+                [Proto.BABY_PRAISE] = m18217,
                 [Proto.BABY_TASK_UPDATE] = m18221,
                 [Proto.BABY_TASK_REWARD] = m18222,
-                [Proto.BABY_FIGURE_POWER] = m18223
+                [Proto.BABY_FIGURE_POWER] = m18223,
+                [Proto.BABY_PRAISE_PUSH] = m18224
             };
             int actualRouteCount = 0;
             if (handlers != null)
@@ -138,7 +147,7 @@ namespace Shenxiao.EditorTools
                     break;
                 }
             }
-            Check("runtime registration count=15", registrationOk);
+            Check("runtime registration count=19", registrationOk);
 
             FieldInfo hubAllField = typeof(ControllerHub).GetField("ALL", SF);
             var hubAll = hubAllField?.GetValue(null) as IEnumerable;
@@ -203,6 +212,7 @@ namespace Shenxiao.EditorTools
 
             object oldIntercept = interceptField.GetValue(null);
             bool oldStartup = (bool)startupField.GetValue(ctrl);
+            long oldRoleId = RoleModel.Instance.RoleId;
             var requestTrace = new List<byte[]>();
             var updateTrace = new List<int>();
             void OnBabyUpdate(int protoId) => updateTrace.Add(protoId);
@@ -255,15 +265,28 @@ namespace Shenxiao.EditorTools
                     && FrameEquals(requestTrace[0], Proto.BABY_FIGURE_POWER,
                         new CliVerify.Pkt().I(0x21222324).Bytes());
                 requestTrace.Clear();
+                ctrl.RequestLikeRank();
+                bool c2s18208 = RequestTraceEquals(requestTrace, Proto.BABY_LIKE_RANK);
+                requestTrace.Clear();
+                ctrl.RequestLikeRecords();
+                bool c2s18209 = RequestTraceEquals(requestTrace, Proto.BABY_LIKE_RECORDS);
+                requestTrace.Clear();
+                ctrl.RequestPraise(0x0102030405060708L, 2);
+                bool c2s18217 = requestTrace.Count == 1 && FrameEquals(requestTrace[0], Proto.BABY_PRAISE,
+                    new CliVerify.Pkt().L(0x0102030405060708L).C(2).Bytes());
+                requestTrace.Clear();
                 ctrl.RequestSetFigure(0, 1);
                 ctrl.RequestSetFigure(3, 1);
                 ctrl.RequestTaskReward(0);
                 ctrl.RequestTaskReward(ushort.MaxValue + 1);
                 ctrl.RequestFigureStarUp(0);
                 ctrl.RequestFigurePower(0);
+                ctrl.RequestPraise(0, 2);
+                ctrl.RequestPraise(1, 0);
+                ctrl.RequestPraise(1, 3);
                 bool c2sGuards = requestTrace.Count == 0;
                 Check("second packet C2S exact wire/guards", c2s18210 && c2s18211 && c2s18213
-                    && c2s18214 && c2s18215 && c2s18222 && c2s18223 && c2sGuards);
+                    && c2s18214 && c2s18215 && c2s18222 && c2s18223 && c2s18208 && c2s18209 && c2s18217 && c2sGuards);
 
                 requestTrace.Clear();
                 NetReader r18200 = Feed(m18200, new CliVerify.Pkt()
@@ -516,12 +539,59 @@ namespace Shenxiao.EditorTools
                     && RequestTraceEquals(requestTrace, Proto.BABY_RAISE_INFO)
                     && updateTrace.Count == 0
                     && existingTask.FinishNum == 8 && existingTask.FinishState == 0);
+
+                updateTrace.Clear();
+                NetReader r18208 = Feed(m18208, new CliVerify.Pkt().L(99).H(2)
+                    .L(101).S("rank-a").I(700).I(12)
+                    .L(202).S("rank-b").I(800).I(13).I(Tail).Bytes());
+                Check("18208 u64/string/u32 list/tail", TailOk(r18208) && model.PraiseRank != null
+                    && model.PraiseRank.RoleId == 99 && model.PraiseRank.Entries.Count == 2
+                    && model.PraiseRank.Entries[1].Name == "rank-b" && model.PraiseRank.Entries[1].PraiseNum == 13
+                    && TraceEquals(updateTrace, Proto.BABY_LIKE_RANK));
+
+                updateTrace.Clear();
+                NetReader r18209Pending = Feed(m18209, new CliVerify.Pkt().H(2)
+                    .L(301).S("fan-a").C(0).L(302).S("fan-b").C(1).I(Tail).Bytes());
+                Check("18209 pending red/tail", TailOk(r18209Pending) && model.PraiseRecords != null
+                    && model.PraiseRecords.Entries.Count == 2 && model.BabyLikeRed
+                    && TraceEquals(updateTrace, Proto.BABY_LIKE_RECORDS));
+                updateTrace.Clear();
+                NetReader r18209AllBack = Feed(m18209, new CliVerify.Pkt().H(1)
+                    .L(301).S("fan-a").C(1).I(Tail).Bytes());
+                Check("18209 all back clears red/tail", TailOk(r18209AllBack) && !model.BabyLikeRed
+                    && TraceEquals(updateTrace, Proto.BABY_LIKE_RECORDS));
+
+                RoleModel.Instance.RoleId = 777;
+                updateTrace.Clear();
+                NetReader r18224Self = Feed(m18224, new CliVerify.Pkt().L(777).I(Tail).Bytes());
+                Check("18224 self filtered/tail", TailOk(r18224Self) && !model.BabyLikeRed && updateTrace.Count == 0);
+                updateTrace.Clear();
+                NetReader r18224Other = Feed(m18224, new CliVerify.Pkt().L(778).I(Tail).Bytes());
+                Check("18224 other red/tail", TailOk(r18224Other) && model.LastPraisePush != null
+                    && model.LastPraisePush.PraiserId == 778 && model.BabyLikeRed
+                    && TraceEquals(updateTrace, Proto.BABY_PRAISE_PUSH));
+
+                requestTrace.Clear();
+                updateTrace.Clear();
+                NetReader r18217Ok = Feed(m18217, new CliVerify.Pkt().I(1).L(101).C(2).H(1)
+                    .C(3).I(68010001).I(2).I(Tail).Bytes());
+                Check("18217 success reward/refetch/tail", TailOk(r18217Ok) && model.LastPraiseAction != null
+                    && model.LastPraiseAction.Succeeded && model.LastPraiseAction.Rewards.Count == 1
+                    && model.LastPraiseAction.Rewards[0].TypeId == 68010001
+                    && RequestTraceEquals(requestTrace, Proto.BABY_LIKE_RECORDS)
+                    && TraceEquals(updateTrace, Proto.BABY_PRAISE));
+                requestTrace.Clear();
+                NetReader r18217Fail = Feed(m18217, new CliVerify.Pkt().I(5).L(101).C(2).H(0).I(Tail).Bytes());
+                NetReader r18217Opr1 = Feed(m18217, new CliVerify.Pkt().I(1).L(101).C(1).H(0).I(Tail).Bytes());
+                Check("18217 failed or opr1 no refetch/tail", TailOk(r18217Fail) && TailOk(r18217Opr1)
+                    && requestTrace.Count == 0 && model.LastPraiseAction != null && model.LastPraiseAction.Opr == 1);
             }
             finally
             {
                 EventDispatcher.Off<int>(GlobalEvent.EVT_BABY_UPDATE, OnBabyUpdate);
                 interceptField.SetValue(null, oldIntercept);
                 startupField.SetValue(ctrl, oldStartup);
+                RoleModel.Instance.RoleId = oldRoleId;
             }
 
             Debug.Log("CLIVERIFY baby RESULT " + (allPass ? "PASS" : "FAIL"));

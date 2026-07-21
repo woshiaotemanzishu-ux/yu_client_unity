@@ -1226,7 +1226,7 @@
         /// 货品的阶段/星级/评分。</summary>
         public const int PET_EQUIP_POLISH = 16017;
 
-        // ----- 宝宝 Baby(pt_182，15 个老端可达数据/操作协议；老端 BabyController.ts) -----
+        // ----- 宝宝 Baby(pt_182，19 个老端可达数据/操作协议；老端 BabyController.ts) -----
         /// <summary>宝宝通用错误：cmd:h,error_code:I,args:s。</summary>
         public const int BABY_ERROR = 18200;
         /// <summary>宝宝基础信息：active_time:I,baby_id:I,baby_name:s,is_change_name:c；请求体为空。</summary>
@@ -1241,6 +1241,10 @@
         public const int BABY_FIGURE_INFO = 18206;
         /// <summary>宝宝家族信息（含 attr_info/attr_list 双层数组）；请求体为空。</summary>
         public const int BABY_FAMILY_INFO = 18207;
+        /// <summary>宝宝点赞榜：请求体为空；回包 role_id:l,praise_list[h×{role_id:l,name:s,baby_power:I,praise_num:I}]。</summary>
+        public const int BABY_LIKE_RANK = 18208;
+        /// <summary>宝宝获赞记录：请求体为空；回包 record_list[h×{praiser_id:l,name:s,is_praise_back:c}]。</summary>
+        public const int BABY_LIKE_RECORDS = 18209;
         /// <summary>激活宝宝：请求体为空；回包 code:I。</summary>
         public const int BABY_ACTIVATE = 18210;
         /// <summary>宝宝阶段提升：请求体为空；回包 code:I,stage:h,stage_lv:c,stage_exp:I,power:I。</summary>
@@ -1251,12 +1255,16 @@
         public const int BABY_FIGURE_WEAR = 18214;
         /// <summary>宝宝改名：请求 name:s；回包 code:I,name:s。</summary>
         public const int BABY_RENAME = 18215;
+        /// <summary>宝宝点赞/回赞：请求 role_id:l,opr:c；回包 code:I,role_id:l,opr:c,rewards[h×{type:c,type_id:I,num:I}]。</summary>
+        public const int BABY_PRAISE = 18217;
         /// <summary>宝宝任务进度推送：task_id:h,finish_num:h,finish_state:c。</summary>
         public const int BABY_TASK_UPDATE = 18221;
         /// <summary>领取宝宝任务奖励：请求 task_id:h；回包 code:I,task_id:h,finish_num:h,finish_state:c。</summary>
         public const int BABY_TASK_REWARD = 18222;
         /// <summary>宝宝形象战力推送：请求 baby_id:I；回包 baby_id:I,baby_star:h,power:l,next_power:l（无 code）。</summary>
         public const int BABY_FIGURE_POWER = 18223;
+        /// <summary>他人点赞推送：praiser_id:l（仅服务端主动下发）。</summary>
+        public const int BABY_PRAISE_PUSH = 18224;
 
         // ----- 通用副本(pt_610,yu_server dungeon;老端 BaseDungeonController.ts。御魂本 type=12,dun_id 12001~) -----
         /// <summary>通用副本(pt_610)家族统一错误出口(轮22 族错误出口批;对标老端 BaseDungeonController.ts:668-673

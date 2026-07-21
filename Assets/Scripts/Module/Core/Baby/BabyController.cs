@@ -2,6 +2,7 @@ using System;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Role;
 
 namespace Shenxiao.Module.Core.Baby
 {
@@ -28,14 +29,18 @@ namespace Shenxiao.Module.Core.Baby
             RegisterProtocal(Proto.BABY_EQUIP_INFO, On18205);
             RegisterProtocal(Proto.BABY_FIGURE_INFO, On18206);
             RegisterProtocal(Proto.BABY_FAMILY_INFO, On18207);
+            RegisterProtocal(Proto.BABY_LIKE_RANK, On18208);
+            RegisterProtocal(Proto.BABY_LIKE_RECORDS, On18209);
             RegisterProtocal(Proto.BABY_ACTIVATE, On18210);
             RegisterProtocal(Proto.BABY_STAGE_UP, On18211);
             RegisterProtocal(Proto.BABY_FIGURE_STAR_UP, On18213);
             RegisterProtocal(Proto.BABY_FIGURE_WEAR, On18214);
             RegisterProtocal(Proto.BABY_RENAME, On18215);
+            RegisterProtocal(Proto.BABY_PRAISE, On18217);
             RegisterProtocal(Proto.BABY_TASK_UPDATE, On18221);
             RegisterProtocal(Proto.BABY_TASK_REWARD, On18222);
             RegisterProtocal(Proto.BABY_FIGURE_POWER, On18223);
+            RegisterProtocal(Proto.BABY_PRAISE_PUSH, On18224);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
@@ -92,6 +97,16 @@ namespace Shenxiao.Module.Core.Baby
         {
             if (babyId <= 0) return;
             SendRequest(Proto.BABY_FIGURE_POWER, "i", babyId);
+        }
+
+        public void RequestLikeRank() => SendEmpty(Proto.BABY_LIKE_RANK);
+
+        public void RequestLikeRecords() => SendEmpty(Proto.BABY_LIKE_RECORDS);
+
+        public void RequestPraise(long roleId, int opr)
+        {
+            if (roleId <= 0 || (opr != 1 && opr != 2)) return;
+            SendRequest(Proto.BABY_PRAISE, "lc", roleId, opr);
         }
 
         private void SendEmpty(int protoId)
@@ -337,6 +352,72 @@ namespace Shenxiao.Module.Core.Baby
             {
                 EventDispatcher.Emit(GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_TASK_UPDATE);
             }
+        }
+
+        private void On18208(NetReader r)
+        {
+            BabyPraiseRankInfo info = new BabyPraiseRankInfo { RoleId = r.ReadU64() };
+            int count = r.ReadU16();
+            for (int i = 0; i < count; i++)
+            {
+                info.Entries.Add(new BabyPraiseRankEntry
+                {
+                    RoleId = r.ReadU64(),
+                    Name = r.ReadString(),
+                    BabyPower = r.ReadI32(),
+                    PraiseNum = r.ReadI32()
+                });
+            }
+            BabyModel.Instance.ApplyPraiseRank(info);
+            EventDispatcher.Emit(GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_LIKE_RANK);
+        }
+
+        private void On18209(NetReader r)
+        {
+            BabyPraiseRecordsInfo info = new BabyPraiseRecordsInfo();
+            int count = r.ReadU16();
+            for (int i = 0; i < count; i++)
+            {
+                info.Entries.Add(new BabyPraiseRecordEntry
+                {
+                    PraiserId = r.ReadU64(),
+                    Name = r.ReadString(),
+                    IsPraiseBack = r.ReadU8() != 0
+                });
+            }
+            BabyModel.Instance.ApplyPraiseRecords(info);
+            EventDispatcher.Emit(GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_LIKE_RECORDS);
+        }
+
+        private void On18217(NetReader r)
+        {
+            BabyPraiseActionResult result = new BabyPraiseActionResult
+            {
+                Code = r.ReadI32(),
+                RoleId = r.ReadU64(),
+                Opr = r.ReadU8()
+            };
+            int count = r.ReadU16();
+            for (int i = 0; i < count; i++)
+            {
+                result.Rewards.Add(new BabyPraiseRewardEntry
+                {
+                    Type = r.ReadU8(),
+                    TypeId = r.ReadI32(),
+                    Num = r.ReadI32()
+                });
+            }
+            BabyModel.Instance.ApplyPraiseAction(result);
+            EventDispatcher.Emit(GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_PRAISE);
+            if (result.Succeeded && result.Opr != 1) SendEmpty(Proto.BABY_LIKE_RECORDS);
+        }
+
+        private void On18224(NetReader r)
+        {
+            BabyPraisePush push = new BabyPraisePush { PraiserId = r.ReadU64() };
+            if (push.PraiserId == RoleModel.Instance.RoleId) return;
+            BabyModel.Instance.ApplyPraisePush(push);
+            EventDispatcher.Emit(GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_PRAISE_PUSH);
         }
 
         private void On18222(NetReader r)

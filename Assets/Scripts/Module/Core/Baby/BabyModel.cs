@@ -1,4 +1,5 @@
 using Shenxiao.Module.Core.Bag;
+using Shenxiao.Module.Core.Role;
 
 namespace Shenxiao.Module.Core.Baby
 {
@@ -21,6 +22,11 @@ namespace Shenxiao.Module.Core.Baby
         public BabyRenameResult LastRenameResult { get; private set; }
         public BabyTaskRewardResult LastTaskRewardResult { get; private set; }
         public BabyFigurePowerResult LastFigurePowerResult { get; private set; }
+        public BabyPraiseRankInfo PraiseRank { get; private set; }
+        public BabyPraiseRecordsInfo PraiseRecords { get; private set; }
+        public BabyPraiseActionResult LastPraiseAction { get; private set; }
+        public BabyPraisePush LastPraisePush { get; private set; }
+        public bool BabyLikeRed { get; private set; }
 
         private BabyModel() { }
 
@@ -85,6 +91,28 @@ namespace Shenxiao.Module.Core.Baby
             if (entry == null) return;
             entry.Power = value.Power;
             entry.NextPower = value.NextPower;
+        }
+
+        public void ApplyPraiseRank(BabyPraiseRankInfo value) => PraiseRank = value;
+
+        public void ApplyPraiseRecords(BabyPraiseRecordsInfo value)
+        {
+            PraiseRecords = value;
+            BabyLikeRed = false;
+            for (int i = 0; i < value.Entries.Count; i++)
+            {
+                if (value.Entries[i].IsPraiseBack) continue;
+                BabyLikeRed = true;
+                break;
+            }
+        }
+
+        public void ApplyPraiseAction(BabyPraiseActionResult value) => LastPraiseAction = value;
+
+        public void ApplyPraisePush(BabyPraisePush value)
+        {
+            LastPraisePush = value;
+            if (value.PraiserId != RoleModel.Instance.RoleId) BabyLikeRed = true;
         }
 
         public bool HasAnyActivatedFigure()
@@ -184,6 +212,11 @@ namespace Shenxiao.Module.Core.Baby
             LastRenameResult = null;
             LastTaskRewardResult = null;
             LastFigurePowerResult = null;
+            PraiseRank = null;
+            PraiseRecords = null;
+            LastPraiseAction = null;
+            LastPraisePush = null;
+            BabyLikeRed = false;
         }
     }
 }
