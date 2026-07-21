@@ -303,12 +303,13 @@ namespace Shenxiao.EditorTools
             FieldInfo windowField = typeof(BabyFlow).GetField("_window", BindingFlags.Static | BindingFlags.NonPublic);
             FieldInfo configuredField = typeof(BabyFlow).GetField("_windowConfigured", BindingFlags.Static | BindingFlags.NonPublic);
             MethodInfo bagUpdate = typeof(BabyFlow).GetMethod("OnBagUpdate", BindingFlags.Static | BindingFlags.NonPublic);
+            MethodInfo cultivateRefresh = typeof(BabyFlow).GetMethod("RefreshCultivateTabRed", BindingFlags.Static | BindingFlags.NonPublic);
             object oldWindow = windowField != null ? windowField.GetValue(null) : null;
             object oldConfigured = configuredField != null ? configuredField.GetValue(null) : null;
             try
             {
                 Shenxiao.Module.Core.Common.BaseWindowSkinView window = frame.GetComponentInChildren<Shenxiao.Module.Core.Common.BaseWindowSkinView>(true);
-                if (window == null || windowField == null || configuredField == null || bagUpdate == null) return false;
+                if (window == null || windowField == null || configuredField == null || bagUpdate == null || cultivateRefresh == null) return false;
                 frame.SetActive(true);
                 window.Show();
                 window.ConfigureShared(3, null, null, 0, index => index >= 0 && index < 3);
@@ -317,14 +318,25 @@ namespace Shenxiao.EditorTools
 
                 Shenxiao.Module.Core.Common.TabButtonTwoSkin[] allTabs =
                     frame.GetComponentsInChildren<Shenxiao.Module.Core.Common.TabButtonTwoSkin>(true);
+                Shenxiao.Module.Core.Common.TabButtonTwoSkin tab0 = null;
                 Shenxiao.Module.Core.Common.TabButtonTwoSkin tab2 = null;
                 int activeIndex = 0;
                 for (int i = 0; i < allTabs.Length; i++)
                 {
                     if (!allTabs[i].gameObject.activeSelf) continue;
+                    if (activeIndex == 0) tab0 = allTabs[i];
                     if (activeIndex++ == 2) { tab2 = allTabs[i]; break; }
                 }
-                if (tab2 == null || tab2.redDisplay == null) return false;
+                if (tab0 == null || tab2 == null || tab0.redDisplay == null || tab2.redDisplay == null) return false;
+
+                cultivateRefresh.Invoke(null, null);
+                bool cultivateVisible = tab0.redDisplay.gameObject.activeSelf;
+                bool taskUpdated = BabyModel.Instance.TryApplyTaskProgress(2, 3, 2);
+                cultivateRefresh.Invoke(null, null);
+                bool cultivateHidden = taskUpdated && !tab0.redDisplay.gameObject.activeSelf;
+                taskUpdated = taskUpdated && BabyModel.Instance.TryApplyTaskProgress(2, 3, 1);
+                cultivateRefresh.Invoke(null, null);
+                bool cultivateRestored = taskUpdated && tab0.redDisplay.gameObject.activeSelf;
 
                 bagUpdate.Invoke(null, null);
                 bool visible = tab2.redDisplay.gameObject.activeSelf;
@@ -333,12 +345,15 @@ namespace Shenxiao.EditorTools
                 bool hidden = !tab2.redDisplay.gameObject.activeSelf;
                 Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
                 bagUpdate.Invoke(null, null);
-                return visible && hidden && tab2.redDisplay.gameObject.activeSelf;
+                return cultivateVisible && cultivateHidden && cultivateRestored
+                    && visible && hidden && tab2.redDisplay.gameObject.activeSelf;
             }
             finally
             {
                 if (windowField != null) windowField.SetValue(null, oldWindow);
                 if (configuredField != null) configuredField.SetValue(null, oldConfigured);
+                BabyModel.Instance.TryApplyTaskProgress(2, 3, 1);
+                Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
                 UnityEngine.Object.DestroyImmediate(frame);
             }
         }

@@ -144,7 +144,6 @@ namespace Shenxiao.Module.Core.Baby
         private static void OnBabyUpdate(int command)
         {
             DecideView();
-            RefreshIllusionTabRed();
         }
 
         private static void OnBagUpdate()
@@ -182,13 +181,20 @@ namespace Shenxiao.Module.Core.Baby
                     },
                     Tabs, null, WindowBg);
                 _windowConfigured = true;
-                RefreshIllusionTabRed();
             }
             else
             {
                 int index = _window.CurrentIndex;
                 _window.SelectShared(index >= 0 && index < Tabs.Length ? index : 0);
             }
+            RefreshCultivateTabRed();
+            RefreshIllusionTabRed();
+        }
+
+        private static void RefreshCultivateTabRed()
+        {
+            if (_window == null || !_windowConfigured) return;
+            _window.SetTabRed(0, BabyModel.Instance.HasClaimableRaiseTask());
         }
 
         private static void RefreshIllusionTabRed()
