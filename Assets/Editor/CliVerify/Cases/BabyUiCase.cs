@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using Shenxiao.Editor.UiCreator.Baby;
+using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Res;
 using Shenxiao.Generated.UI.Baby;
 using Shenxiao.Module.Core.Baby;
@@ -80,7 +81,11 @@ namespace Shenxiao.EditorTools
             try
             {
                 if (interceptField == null) return false;
-                interceptField.SetValue(null, new Func<byte[], bool>(frame => { powerFrames.Add(frame); return true; }));
+                interceptField.SetValue(null, new Func<byte[], bool>(frame =>
+                {
+                    if (IsProtocol(frame, Proto.BABY_FIGURE_POWER)) powerFrames.Add(frame);
+                    return true;
+                }));
                 Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
                 bool pages = Check<GestateBabyViewBind>(module) && Check<BabyFamilyViewBind>(module)
                     && Check<BabyCultivateViewBind>(module) && Check<BabyChangedViewBind>(module)
@@ -154,7 +159,7 @@ namespace Shenxiao.EditorTools
                 {
                     illusionView.gameObject.SetActive(true);
                     illusionView.Show();
-                    BabyIlluItemBind[] illusionItems = illusionView.illuGp.GetComponentsInChildren<BabyIlluItemBind>(true);
+                    BabyIlluItem[] illusionItems = illusionView.illuGp.GetComponentsInChildren<BabyIlluItem>(true);
                     Shenxiao.Module.Core.Common.BaseAwardItem[] stageCostItems =
                         illusionView.stageitemGp.GetComponentsInChildren<Shenxiao.Module.Core.Common.BaseAwardItem>(true);
                     int inactiveCount = 0;
@@ -164,7 +169,7 @@ namespace Shenxiao.EditorTools
                         if (illusionItems[i].unActive.gameObject.activeSelf) inactiveCount++;
                         if (illusionItems[i].resImg.sprite != null) loadedIconCount++;
                     }
-                    illusionDisplay = illusionView.illuGp.childCount == 9
+                    bool listDisplay = illusionView.illuGp.childCount == 9
                         && illusionView.babyName.text == illusionCfg.BabyName
                         && illusionItems.Length == 9 && inactiveCount >= 7 && loadedIconCount == 9
                         && illusionView.selectedImg.gameObject.activeSelf
@@ -178,17 +183,28 @@ namespace Shenxiao.EditorTools
                         && stageCostItems.Length == 1 && stageCostItems[0].gameObject.activeSelf
                         && stageCostItems[0].num_text.text == "30"
                         && illusionView.stageLb.text.Contains("35/30") && illusionView.stageLb.text.Contains("#0f9f00");
+                    illusionDisplay = listDisplay;
                     BabyPropItem[] activeProps = illusionView.propGp.GetComponentsInChildren<BabyPropItem>(true);
-                    illusionDisplay = illusionDisplay && CountVisible(activeProps) == 4 && activeProps[0].nextLb.text.Contains("+30000");
+                    bool activePropsDisplay = CountVisible(activeProps) == 4 && activeProps[0].nextLb.text.Contains("+30000");
+                    illusionDisplay = illusionDisplay && activePropsDisplay;
                     Shenxiao.Module.Core.Common.FightingShowSmallItem[] fightingItems = illusionView.fight.GetComponentsInChildren<Shenxiao.Module.Core.Common.FightingShowSmallItem>(true);
-                    illusionDisplay = illusionDisplay && fightingItems.Length == 1 && fightingItems[0]._lb_fighting.text == "1000"
+                    bool activeFightingDisplay = fightingItems.Length == 1 && fightingItems[0]._lb_fighting.text == "1000"
                         && fightingItems[0]._box_up.gameObject.activeSelf && powerFrames.Count == 0;
+                    illusionDisplay = illusionDisplay && activeFightingDisplay;
+                    BabyIlluItem activeIllu = illusionView.illuGp.Find("BabyIlluItem_1").GetComponent<BabyIlluItem>();
+                    bool activeStarsDisplay = activeIllu != null && activeIllu.star_group.childCount == 5
+                        && activeIllu.star_shadow_group.childCount == 5 && CountActiveChildren(activeIllu.star_group) == 2
+                        && AllSprites(activeIllu.star_group) && AllSprites(activeIllu.star_shadow_group);
+                    illusionDisplay = illusionDisplay && activeStarsDisplay;
+                    Debug.Log("CLIVERIFY babyui illusion active list=" + listDisplay + " props=" + activePropsDisplay
+                        + " fighting=" + activeFightingDisplay + " stars=" + activeStarsDisplay);
                     if (illusionDisplay)
                     {
                         Transform third = illusionView.illuGp.Find("BabyIlluItem_3");
                         UnityEngine.UI.Button thirdButton = third != null ? third.GetComponent<BabyIlluItemBind>().clickGp.GetComponent<UnityEngine.UI.Button>() : null;
                         thirdButton?.onClick.Invoke();
                         BabyFigureConfigs.BabyFigureCfg thirdCfg = BabyFigureConfigs.Get(3);
+                        BabyIlluItem inactiveIllu = illusionView.illuGp.Find("BabyIlluItem_3").GetComponent<BabyIlluItem>();
                         Shenxiao.Module.Core.Common.BaseAwardItem[] activeCostItems =
                             illusionView.activeitemGp.GetComponentsInChildren<Shenxiao.Module.Core.Common.BaseAwardItem>(true);
                         illusionDisplay = thirdCfg != null && illusionView.babyName.text == thirdCfg.BabyName
@@ -201,6 +217,8 @@ namespace Shenxiao.EditorTools
                             && stageCostItems.Length == 1 && !stageCostItems[0].gameObject.activeSelf;
                         BabyPropItem[] inactiveProps = illusionView.propGp.GetComponentsInChildren<BabyPropItem>(true);
                         illusionDisplay = illusionDisplay && CountVisible(inactiveProps) == 4 && inactiveProps[0].nextLb.text.Contains("+70000");
+                        illusionDisplay = illusionDisplay && inactiveIllu != null && !inactiveIllu.star_group.gameObject.activeSelf
+                            && !inactiveIllu.star_shadow_group.gameObject.activeSelf;
                         bool requestPower = powerFrames.Count == 1 && IsPowerFrame(powerFrames[0], 3);
                         model.ApplyFigurePowerResult(new BabyFigurePowerResult { BabyId = 3, BabyStar = 0, Power = 700, NextPower = 900 });
                         Shenxiao.Framework.Event.EventDispatcher.Emit(Shenxiao.Framework.Event.GlobalEvent.EVT_BABY_UPDATE, Proto.BABY_FIGURE_POWER);
@@ -211,7 +229,7 @@ namespace Shenxiao.EditorTools
                     illusionView.Hide();
                 }
                 model.Reset();
-                bool items = Check<BabyCulTaskItemBind>(module) && Check<BabyCulTaskItem>(module) && Check<BabyIlluItemBind>(module)
+                bool items = Check<BabyCulTaskItemBind>(module) && Check<BabyCulTaskItem>(module) && Check<BabyIlluItemBind>(module) && Check<BabyIlluItem>(module)
                     && Check<BabyPropItemBind>(propItem) && Check<BabyPropItem>(propItem);
                 BabyCultivateViewBind cultivate = module.GetComponentInChildren<BabyCultivateViewBind>(true);
                 BabyIllusionViewBind illusion = module.GetComponentInChildren<BabyIllusionViewBind>(true);
@@ -219,6 +237,7 @@ namespace Shenxiao.EditorTools
                     && Has<BabyPropItemBind>(cultivate != null ? cultivate._tpl_BabyPropItem : null)
                     && Has<BabyPropItem>(cultivate != null ? cultivate._tpl_BabyPropItem : null)
                     && Has<BabyIlluItemBind>(illusion != null ? illusion._tpl_BabyIlluItem : null)
+                    && Has<BabyIlluItem>(illusion != null ? illusion._tpl_BabyIlluItem : null)
                     && Has<BabyPropItemBind>(illusion != null ? illusion._tpl_BabyPropItem : null)
                     && Has<BabyPropItem>(illusion != null ? illusion._tpl_BabyPropItem : null);
                 Debug.Log("CLIVERIFY babyui pages=" + pages + " businessViews=" + businessViews + " display=" + display + " familyDisplay=" + familyDisplay + " illusionDisplay=" + illusionDisplay + " items=" + items + " templates=" + templates);
@@ -270,9 +289,29 @@ namespace Shenxiao.EditorTools
 
         private static bool IsPowerFrame(byte[] frame, int babyId)
         {
-            if (frame == null || frame.Length != 10 || frame[4] != (byte)(Proto.BABY_FIGURE_POWER >> 8) || frame[5] != (byte)Proto.BABY_FIGURE_POWER) return false;
+            if (frame == null || frame.Length != 10 || !IsProtocol(frame, Proto.BABY_FIGURE_POWER)) return false;
             return frame[6] == (byte)(babyId >> 24) && frame[7] == (byte)(babyId >> 16)
                 && frame[8] == (byte)(babyId >> 8) && frame[9] == (byte)babyId;
+        }
+
+        private static bool IsProtocol(byte[] frame, int protocol)
+        {
+            return frame != null && frame.Length >= 6 && frame[4] == (byte)(protocol >> 8)
+                && frame[5] == (byte)(protocol & 0xff);
+        }
+
+        private static int CountActiveChildren(Transform parent)
+        {
+            int count = 0;
+            for (int i = 0; i < parent.childCount; i++) if (parent.GetChild(i).gameObject.activeSelf) count++;
+            return count;
+        }
+
+        private static bool AllSprites(Transform parent)
+        {
+            for (int i = 0; i < parent.childCount; i++)
+                if (parent.GetChild(i).GetComponent<UnityEngine.UI.Image>()?.sprite == null) return false;
+            return true;
         }
     }
 }

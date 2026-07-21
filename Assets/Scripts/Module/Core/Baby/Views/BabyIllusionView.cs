@@ -138,7 +138,7 @@ namespace Shenxiao.Module.Core.Baby
             go.SetActive(true);
             _items.Add(go);
 
-            BabyIlluItemBind item = go.GetComponent<BabyIlluItemBind>();
+            BabyIlluItem item = go.GetComponent<BabyIlluItem>();
             if (item == null) return;
             if (item.stageLb != null)
             {
@@ -146,6 +146,7 @@ namespace Shenxiao.Module.Core.Baby
                 item.stageLb.text = entry != null ? entry.BabyStar.ToString() : string.Empty;
             }
             if (item.unActive != null) item.unActive.gameObject.SetActive(entry == null);
+            item.SetStar(entry != null ? entry.BabyStar : 0, entry != null);
             if (item.select_img != null) item.select_img.gameObject.SetActive(cfg.BabyId == _selectedBabyId);
             if (item.resImg != null && cfg != null && !string.IsNullOrEmpty(cfg.ResourceId))
                 _ = ResManager.SetImageAsync(item.resImg, GameResPath.GetIcon("baby", cfg.ResourceId), nativeSize: false);
