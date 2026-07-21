@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
@@ -25,6 +26,7 @@ namespace Shenxiao.Module.Core.Baby
         private static BaseWindowSkinView _window;
         private static GestateBabyView _gestateView;
         private static BabyCultivateView _cultivateView;
+        private static BabyIllusionView _illusionView;
         private static bool _loading;
         private static bool _listening;
         private static bool _windowConfigured;
@@ -54,6 +56,7 @@ namespace Shenxiao.Module.Core.Baby
             _window = null;
             _gestateView = null;
             _cultivateView = null;
+            _illusionView = null;
             _loading = false;
             _windowConfigured = false;
         }
@@ -102,7 +105,8 @@ namespace Shenxiao.Module.Core.Baby
             _window = _frameRoot.GetComponentInChildren<BaseWindowSkinView>(true);
             _gestateView = _contentRoot.GetComponentInChildren<GestateBabyView>(true);
             _cultivateView = _contentRoot.GetComponentInChildren<BabyCultivateView>(true);
-            if (_window == null || _gestateView == null || _cultivateView == null)
+            _illusionView = _contentRoot.GetComponentInChildren<BabyIllusionView>(true);
+            if (_window == null || _gestateView == null || _cultivateView == null || _illusionView == null)
             {
                 GameLog.Error("Baby", "BabyModule missing required business view; run BabyBindUpgrader");
                 Reset();
@@ -157,12 +161,15 @@ namespace Shenxiao.Module.Core.Baby
             if (!_windowConfigured)
             {
                 _window.ConfigureShared(Tabs.Length, ReparentCultivate, null, 0,
-                    index => index == 0, null, Tabs, null, WindowBg);
+                    index => index == 0 || index == 2,
+                    new Dictionary<int, Func<RectTransform, BaseView>> { { 2, ReparentIllusion } },
+                    Tabs, null, WindowBg);
                 _windowConfigured = true;
             }
             else
             {
-                _window.SelectShared(0);
+                int index = _window.CurrentIndex;
+                _window.SelectShared(index == 0 || index == 2 ? index : 0);
             }
         }
 
@@ -171,6 +178,13 @@ namespace Shenxiao.Module.Core.Baby
             _cultivateView.transform.SetParent(parent, false);
             _cultivateView.gameObject.SetActive(true);
             return _cultivateView;
+        }
+
+        private static BaseView ReparentIllusion(RectTransform parent)
+        {
+            _illusionView.transform.SetParent(parent, false);
+            _illusionView.gameObject.SetActive(true);
+            return _illusionView;
         }
 
         private static void HideViews()
