@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
+using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Baby;
+using Shenxiao.Module.Core.Role;
 
 namespace Shenxiao.Module.Core.Baby
 {
@@ -9,6 +11,12 @@ namespace Shenxiao.Module.Core.Baby
     public sealed class BabyFamilyView : BabyFamilyViewBind
     {
         private bool _listening;
+
+        protected override void OnInit()
+        {
+            UIUtil.AddClick(reName1, OpenRename);
+            UIUtil.AddClick(reName2, OpenRename);
+        }
 
         protected override void OnShow(object args)
         {
@@ -83,12 +91,14 @@ namespace Shenxiao.Module.Core.Baby
                 ? string.Format("{0}\n{1}\n{2}-{3}\n{4}", string.IsNullOrEmpty(entry.BabyName) ? "宝宝" : entry.BabyName,
                     entry.RaiseLevel, entry.Stage, entry.StageLevel, entry.BabyPower)
                 : string.Empty;
-            if (rename != null) rename.gameObject.SetActive(false);
+            if (rename != null) rename.gameObject.SetActive(valid && entry.RoleId == RoleModel.Instance.RoleId);
             if (fight != null) fight.gameObject.SetActive(false);
             if (sp != null) sp.text = string.Empty;
             if (nom != null) nom.text = string.Empty;
             if (my != null) my.text = string.Empty;
         }
+
+        private void OpenRename() => _ = ViewManager.Open<BabyRenameView>();
 
         private void HideUnsupported()
         {

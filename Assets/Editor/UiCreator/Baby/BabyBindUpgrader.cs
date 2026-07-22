@@ -1,7 +1,9 @@
 using System.Reflection;
 using Shenxiao.Editor.LayaUI;
 using Shenxiao.Generated.UI.Baby;
+using Shenxiao.Generated.UI.Setting;
 using Shenxiao.Module.Core.Baby;
+using Shenxiao.Module.Core.Setting;
 using UnityEditor;
 using UnityEngine;
 
@@ -25,6 +27,8 @@ namespace Shenxiao.Editor.UiCreator.Baby
         private const string ForgeSceneKey = "baby/BabyForgeView";
         private const string FightingShowSmallItemPath = "Assets/Prefabs/UI/Common/FightingShowSmallItem.prefab";
         private const string TeaseViewPath = "Assets/Prefabs/UI/Baby/BabyTeaseView.prefab";
+        private const string RenameViewPath = "Assets/Prefabs/UI/Baby/BabyRenameView.prefab";
+        private const string SettingModulePath = "Assets/Prefabs/UI/Setting/SettingModule.prefab";
         private const string TeaseSceneKey = "baby/BabyTeaseView";
         private static readonly string[] EquipSceneKeys =
         {
@@ -71,7 +75,7 @@ namespace Shenxiao.Editor.UiCreator.Baby
         {
             if (!Fill(ModulePath) || !Fill(PropItemPath)) return false;
             // Orphan scenes are converted once via GenerateImprintStatic; incremental passes only restore bindings/templates.
-            return Verify() && UpgradeImprintStatic();
+            return Verify() && UpgradeImprintStatic() && UpgradeRenameStatic();
         }
 
         /// <summary>
@@ -198,6 +202,43 @@ namespace Shenxiao.Editor.UiCreator.Baby
         {
             LayaSceneConverter.ConvertSingle(TeaseSceneKey);
             return true;
+        }
+
+        /// <summary>从已转换的老端同源 SettingChangeNameView 抽取宝宝专用 prefab，并替换业务组件。</summary>
+        public static bool GenerateRenameStatic()
+        {
+            GameObject module = PrefabUtility.LoadPrefabContents(SettingModulePath);
+            if (module == null) return false;
+            try
+            {
+                Transform source = FindByName(module.transform, "SettingChangeNameView");
+                if (source == null) return false;
+                GameObject view = Object.Instantiate(source.gameObject);
+                view.name = "BabyRenameView";
+                SettingChangeNameView old = view.GetComponent<SettingChangeNameView>();
+                if (old == null) return false;
+                BabyRenameView replacement = view.AddComponent<BabyRenameView>();
+                foreach (FieldInfo field in typeof(SettingChangeNameViewBind).GetFields(BindingFlags.Instance | BindingFlags.Public))
+                    field.SetValue(replacement, field.GetValue(old));
+                Object.DestroyImmediate(old);
+                PrefabUtility.SaveAsPrefabAsset(view, RenameViewPath);
+                Object.DestroyImmediate(view);
+            }
+            finally { PrefabUtility.UnloadPrefabContents(module); }
+            return UpgradeRenameStatic();
+        }
+
+        public static bool UpgradeRenameStatic()
+        {
+            return VerifyRenameStatic();
+        }
+
+        public static bool VerifyRenameStatic()
+        {
+            bool ok = CheckNamedNodes(RenameViewPath, "InptextDisplay", "confirmBtn", "cancleBtn", "_close_btn");
+            ok &= CheckBusinessView<BabyRenameView>(AssetDatabase.LoadAssetAtPath<GameObject>(RenameViewPath), "BabyRenameView");
+            Debug.Log("[UiCreator] Baby rename static verification " + (ok ? "OK" : "FAILED"));
+            return ok;
         }
 
         public static bool UpgradeTeaseStatic()
@@ -430,6 +471,17 @@ namespace Shenxiao.Editor.UiCreator.Baby
             if (LayaBindFiller.FillPrefab(path)) return true;
             Debug.LogError("[UiCreator] LayaBindFiller.FillPrefab(" + path + ") 失败(看 Console 前面的警告)");
             return false;
+        }
+
+        private static Transform FindByName(Transform root, string name)
+        {
+            if (root.name == name) return root;
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform found = FindByName(root.GetChild(i), name);
+                if (found != null) return found;
+            }
+            return null;
         }
 
         private static bool EnsureTemplates(string viewPath, params string[] itemPaths)

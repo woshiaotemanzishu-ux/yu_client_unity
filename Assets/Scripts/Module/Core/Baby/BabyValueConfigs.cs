@@ -15,6 +15,7 @@ namespace Shenxiao.Module.Core.Baby
         private static Task _loading;
         public static bool IsLoaded { get; private set; }
         public static int StageRaiseLevel { get; private set; }
+        public static int RenameCostNum { get; private set; }
         public static readonly List<StageMaterial> StageMaterials = new List<StageMaterial>();
 
         public static Task EnsureLoaded()
@@ -27,6 +28,7 @@ namespace Shenxiao.Module.Core.Baby
         private static async Task LoadAsync()
         {
             StageRaiseLevel = 0;
+            RenameCostNum = 0;
             StageMaterials.Clear();
             string key = GameResPath.GetServerConfigPath("config_baby_value");
             TextAsset asset = await ResManager.LoadAsync<TextAsset>(key);
@@ -45,6 +47,9 @@ namespace Shenxiao.Module.Core.Baby
                     foreach (JToken token in JArray.Parse(raw))
                         if (token is JObject item) StageMaterials.Add(new StageMaterial
                         { ItemId = ReadInt(item, "0"), ExpPerItem = ReadInt(item, "1") });
+                string renameRaw = root["7"]?["value"]?.ToString();
+                if (!string.IsNullOrEmpty(renameRaw) && JArray.Parse(renameRaw).First is JObject rename)
+                    RenameCostNum = ReadInt(rename, "2");
             }
             catch (System.Exception e) { GameLog.Warn("Baby", "parse baby value config failed: {0}", e.Message); }
             finally { ResManager.Release(asset); }

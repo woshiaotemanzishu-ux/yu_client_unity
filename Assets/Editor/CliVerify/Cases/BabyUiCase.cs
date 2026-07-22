@@ -25,6 +25,7 @@ namespace Shenxiao.EditorTools
         private const string ImprintItemPath = "Assets/Prefabs/UI/Baby/BabyImprintItem.prefab";
         private const string AddImprintItemPath = "Assets/Prefabs/UI/Baby/BabyAddImprintItem.prefab";
         private const string PropItemPath = "Assets/Prefabs/UI/Baby/BabyPropItem.prefab";
+        private const string RenameViewPath = "Assets/Prefabs/UI/Baby/BabyRenameView.prefab";
         private const string FramePath = "Assets/Prefabs/UI/Common/BaseWindowSkin.prefab";
         private const BindingFlags BindFields = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
 
@@ -39,6 +40,7 @@ namespace Shenxiao.EditorTools
                 bool equipStatic = BabyBindUpgrader.VerifyEquipStatic();
                 bool imprintStatic = BabyBindUpgrader.VerifyImprintStatic();
                 bool forgeStatic = BabyBindUpgrader.VerifyForgeStatic();
+                bool renameStatic = BabyBindUpgrader.VerifyRenameStatic();
                 Shenxiao.Framework.UI.UIViewAttribute likeAddress = typeof(BabyLikeView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
                 Shenxiao.Framework.UI.UIViewAttribute belikeAddress = typeof(BabyBelikeView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
                 Shenxiao.Framework.UI.UIViewAttribute equipAddress = typeof(BabyEquipFuncView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>();
@@ -63,7 +65,7 @@ namespace Shenxiao.EditorTools
                     && figureCfg.Costs.Count > 0 && figureCfg.Costs[0].TypeId == 68010001 && figureCfg.Costs[0].Num == 30
                     && starCfg != null && starCfg.Costs.Count > 0
                     && starCfg.Costs[0].TypeId == 68010001 && starCfg.Costs[0].Num == 25
-                    && BabyValueConfigs.IsLoaded && BabyValueConfigs.StageRaiseLevel == 2
+                    && BabyValueConfigs.IsLoaded && BabyValueConfigs.StageRaiseLevel == 2 && BabyValueConfigs.RenameCostNum == 200
                     && BabyValueConfigs.StageMaterials.Count > 0 && BabyValueConfigs.StageMaterials[0].ItemId == 38040041
                     && BabyValueConfigs.StageMaterials[0].ExpPerItem == 10
                     && BabyStageConfigs.GetNext(1, 1) != null && BabyStageConfigs.GetNext(1, 1).ExpCon == 13
@@ -88,8 +90,11 @@ namespace Shenxiao.EditorTools
                 bool equip = equipStatic && VerifyEquip();
                 bool imprintBusiness = imprintStatic && VerifyImprintBusinessInstances();
                 bool forgeBusiness = forgeStatic && VerifyForgeBusinessInstances();
-                bool pass = config && likeStatic && teaseStatic && equipStatic && imprintStatic && forgeStatic && imprintBusiness && forgeBusiness && viewAddresses && upgraded && prefab && likeRank && belike && equip;
-                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " teaseStatic=" + teaseStatic + " equipStatic=" + equipStatic + " imprintStatic=" + imprintStatic + " forgeStatic=" + forgeStatic + " imprintBusiness=" + imprintBusiness + " forgeBusiness=" + forgeBusiness + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " equip=" + equip + " pass=" + pass);
+                bool renameRules = BabyRenameView.IsValidLength("abcd") && BabyRenameView.IsValidLength("宝宝")
+                    && !BabyRenameView.IsValidLength("") && !BabyRenameView.IsValidLength("a") && !BabyRenameView.IsValidLength("七个字七个字七个字七");
+                bool renamePrefab = VerifyRenameInstance();
+                bool pass = config && likeStatic && teaseStatic && equipStatic && imprintStatic && forgeStatic && renameStatic && renameRules && renamePrefab && imprintBusiness && forgeBusiness && viewAddresses && upgraded && prefab && likeRank && belike && equip;
+                Debug.Log("CLIVERIFY babyui VERDICT config=" + config + " likeStatic=" + likeStatic + " teaseStatic=" + teaseStatic + " equipStatic=" + equipStatic + " imprintStatic=" + imprintStatic + " forgeStatic=" + forgeStatic + " renameStatic=" + renameStatic + " renameRules=" + renameRules + " renamePrefab=" + renamePrefab + " imprintBusiness=" + imprintBusiness + " forgeBusiness=" + forgeBusiness + " addresses=" + viewAddresses + " upgraded=" + upgraded + " prefab=" + prefab + " likeRank=" + likeRank + " belike=" + belike + " equip=" + equip + " pass=" + pass);
                 return Task.FromResult(pass ? 0 : 3);
             }
             catch (Exception e)
@@ -218,8 +223,9 @@ namespace Shenxiao.EditorTools
                 }
                 BabyFamilyView familyView = module.GetComponentInChildren<BabyFamilyView>(true);
                 BabyFamilyInfo family = new BabyFamilyInfo();
-                family.InfoList.Add(new BabyFamilyEntry { ActiveTime = 1, BabyName = "family-a", RaiseLevel = 8, Stage = 5, StageLevel = 2, BabyPower = 600 });
-                family.InfoList.Add(new BabyFamilyEntry { ActiveTime = 2, BabyName = "family-b", RaiseLevel = 9, Stage = 6, StageLevel = 3, BabyPower = 700 });
+                long selfRoleId = Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId;
+                family.InfoList.Add(new BabyFamilyEntry { RoleId = selfRoleId, ActiveTime = 1, BabyName = "family-a", RaiseLevel = 8, Stage = 5, StageLevel = 2, BabyPower = 600 });
+                family.InfoList.Add(new BabyFamilyEntry { RoleId = selfRoleId == long.MaxValue ? selfRoleId - 1 : selfRoleId + 1, ActiveTime = 2, BabyName = "family-b", RaiseLevel = 9, Stage = 6, StageLevel = 3, BabyPower = 700 });
                 model.ApplyFamily(family);
                 bool familyDisplay = familyView != null;
                 if (familyDisplay)
@@ -228,7 +234,9 @@ namespace Shenxiao.EditorTools
                     familyView.Show();
                     familyDisplay = familyView.scroller1.gameObject.activeSelf && familyView.scroller2.gameObject.activeSelf
                         && familyView.value1.text.Contains("family-a") && familyView.value1.text.Contains("8")
-                        && familyView.value2.text.Contains("family-b") && familyView.value2.text.Contains("700");
+                        && familyView.value2.text.Contains("family-b") && familyView.value2.text.Contains("700")
+                        && familyView.reName1.gameObject.activeSelf && familyView.reName1.GetComponent<UnityEngine.UI.Button>() != null
+                        && !familyView.reName2.gameObject.activeSelf;
                     familyView.Hide();
                 }
                 BabyIllusionView illusionView = module.GetComponentInChildren<BabyIllusionView>(true);
@@ -369,6 +377,20 @@ namespace Shenxiao.EditorTools
                 UnityEngine.Object.DestroyImmediate(module);
                 UnityEngine.Object.DestroyImmediate(propItem);
             }
+        }
+
+        private static bool VerifyRenameInstance()
+        {
+            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(RenameViewPath);
+            if (asset == null) return false;
+            GameObject instance = UnityEngine.Object.Instantiate(asset);
+            try
+            {
+                BabyRenameView view = instance.GetComponent<BabyRenameView>();
+                return view != null && view.InptextDisplay != null && view.confirmBtn != null
+                    && view.cancleBtn != null && view._close_btn != null;
+            }
+            finally { UnityEngine.Object.DestroyImmediate(instance); }
         }
 
         private static bool VerifyLikeRank()

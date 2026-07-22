@@ -256,10 +256,15 @@ namespace Shenxiao.EditorTools
                     && FrameEquals(requestTrace[0], Proto.BABY_FIGURE_WEAR,
                         new CliVerify.Pkt().C(2).I(0x11121314).Bytes());
                 requestTrace.Clear();
-                ctrl.RequestRename("baby-name");
+                ctrl.RequestRename("  baby-name  ");
                 bool c2s18215 = requestTrace.Count == 1
                     && FrameEquals(requestTrace[0], Proto.BABY_RENAME,
                         new CliVerify.Pkt().S("baby-name").Bytes());
+                requestTrace.Clear();
+                ctrl.RequestRename("");
+                ctrl.RequestRename("a");
+                ctrl.RequestRename("七个汉字七个汉字");
+                bool c2s18215Guards = requestTrace.Count == 0;
                 requestTrace.Clear();
                 ctrl.RequestTaskReward(0x1234);
                 bool c2s18222 = requestTrace.Count == 1
@@ -314,7 +319,7 @@ namespace Shenxiao.EditorTools
                 ctrl.RequestEquipImprint(1, new List<int> { 0 });
                 bool c2sGuards = requestTrace.Count == 0;
                 Check("second packet C2S exact wire/guards", c2s18210 && c2s18211 && c2s18213
-                    && c2s18214 && c2s18215 && c2s18222 && c2s18223 && c2s18208 && c2s18209 && c2s18217 && c2s18218 && c2s18219 && c2s18220 && c2sGuards);
+                    && c2s18214 && c2s18215 && c2s18215Guards && c2s18222 && c2s18223 && c2s18208 && c2s18209 && c2s18217 && c2s18218 && c2s18219 && c2s18220 && c2sGuards);
 
                 requestTrace.Clear();
                 NetReader r18200 = Feed(m18200, new CliVerify.Pkt()

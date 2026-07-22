@@ -88,7 +88,9 @@ namespace Shenxiao.Module.Core.Baby
 
         public void RequestRename(string name)
         {
-            SendRequest(Proto.BABY_RENAME, "s", name ?? string.Empty);
+            name = BabyRenameView.NormalizeName(name);
+            if (!BabyRenameView.IsValidLength(name)) return;
+            SendRequest(Proto.BABY_RENAME, "s", name);
         }
 
         public void RequestTaskReward(int taskId)
