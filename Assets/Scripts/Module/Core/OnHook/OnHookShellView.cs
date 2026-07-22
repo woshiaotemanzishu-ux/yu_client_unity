@@ -57,7 +57,7 @@ namespace Shenxiao.Module.Core.OnHook
             GameObject panel = NewRect("Panel", _root.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
             var panelRt = (RectTransform)panel.transform;
             panelRt.pivot = new Vector2(0.5f, 0.5f);
-            panelRt.sizeDelta = new Vector2(480f, 300f);
+            panelRt.sizeDelta = new Vector2(480f, 330f);
             Image panelImg = panel.AddComponent<Image>();
             panelImg.color = new Color(0.07f, 0.09f, 0.14f, 0.97f);
 
@@ -72,8 +72,8 @@ namespace Shenxiao.Module.Core.OnHook
             _info = NewText("Info", panel.transform, 22, TextAlignmentOptions.TopLeft);
             var infoRt = _info.rectTransform;
             infoRt.anchorMin = new Vector2(0f, 0.5f); infoRt.anchorMax = new Vector2(1f, 0.5f);
-            infoRt.pivot = new Vector2(0.5f, 0.5f); infoRt.anchoredPosition = new Vector2(0f, 32f);
-            infoRt.sizeDelta = new Vector2(-56f, 100f); _info.color = Color.white;
+            infoRt.pivot = new Vector2(0.5f, 0.5f); infoRt.anchoredPosition = new Vector2(0f, 52f);
+            infoRt.sizeDelta = new Vector2(-56f, 126f); _info.color = Color.white;
             OnHookModel.Instance.Changed -= Refresh;
             OnHookModel.Instance.Changed += Refresh;
 
@@ -81,7 +81,7 @@ namespace Shenxiao.Module.Core.OnHook
             var receiveRt = (RectTransform)receiveBtn.transform;
             receiveRt.pivot = new Vector2(0.5f, 0.5f);
             receiveRt.sizeDelta = new Vector2(200f, 64f);
-            receiveRt.anchoredPosition = new Vector2(0f, 10f);
+            receiveRt.anchoredPosition = new Vector2(0f, -16f);
             Image receiveImg = receiveBtn.AddComponent<Image>();
             receiveImg.color = new Color(0.22f, 0.42f, 0.24f, 1f);
             TextMeshProUGUI receiveLbl = NewText("Label", receiveBtn.transform, 28, TextAlignmentOptions.Center);
@@ -94,7 +94,7 @@ namespace Shenxiao.Module.Core.OnHook
             var closeRt = (RectTransform)closeBtn.transform;
             closeRt.pivot = new Vector2(0.5f, 0f);
             closeRt.sizeDelta = new Vector2(200f, 56f);
-            closeRt.anchoredPosition = new Vector2(0f, 14f);
+            closeRt.anchoredPosition = new Vector2(0f, 10f);
             Image closeImg = closeBtn.AddComponent<Image>();
             closeImg.color = new Color(0.20f, 0.30f, 0.48f, 1f);
             TextMeshProUGUI closeLbl = NewText("Label", closeBtn.transform, 26, TextAlignmentOptions.Center);
@@ -109,6 +109,7 @@ namespace Shenxiao.Module.Core.OnHook
             if (_info == null) return;
             OnHookModel model = OnHookModel.Instance;
             _info.text = "累计挂机：" + FormatTime(model.TotalAfkTime) + "\n剩余挂机：" + FormatTime(model.RemainingAfkTime)
+                + "\n经验效率：" + model.ExpEffect + "/分"
                 + "\n奖励：" + model.Rewards.Count + "项";
         }
 

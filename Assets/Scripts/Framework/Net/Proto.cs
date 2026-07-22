@@ -1692,6 +1692,8 @@
         public const int ONHOOK_INFO = 13212;
         /// <summary>挂机时长更新(C2S 空包；S2C afk_time:i,next_time:i)。</summary>
         public const int ONHOOK_TIME_UPDATE = 13214;
+        /// <summary>挂机经验效率推送（C2S 空包但老端无主动发送入口；S2C exp_effect:l/u64）。仅被动接收，禁止轮询。</summary>
+        public const int ONHOOK_EXP_EFFECT = 13215;
         /// <summary>领取挂机收益(C2S 空包；S2C errcode:i,old_lv:h,old_lv_ratio:h,goods_list[u16×{style:c,typeId:i,count:l}])。
         /// 主线 101211(ctype91,唯一事件计数型:领一次即完成)。</summary>
         public const int ONHOOK_RECEIVE = 13216;

@@ -33,6 +33,7 @@ namespace Shenxiao.Module.Core.OnHook
             RegisterProtocal(Proto.ONHOOK_TICK, On13211);
             RegisterProtocal(Proto.ONHOOK_INFO, On13212);
             RegisterProtocal(Proto.ONHOOK_TIME_UPDATE, On13214);
+            RegisterProtocal(Proto.ONHOOK_EXP_EFFECT, On13215);
             RegisterProtocal(Proto.ONHOOK_RECEIVE, On13216);
         }
 
@@ -79,6 +80,14 @@ namespace Shenxiao.Module.Core.OnHook
             int nextTime = unchecked((int)r.ReadU32());
             OnHookModel.Instance.ApplyTime(afkTime, nextTime);
             GameLog.Info("OnHook", "13214 remaining={0}B", r.Remaining);
+        }
+
+        /// <summary>13215 仅服务端推送的挂机经验效率，完整读取 u64；不提供主动请求或轮询入口。</summary>
+        private static void On13215(NetReader r)
+        {
+            long expEffect = r.ReadU64();
+            OnHookModel.Instance.ApplyExpEffect(expEffect);
+            GameLog.Info("OnHook", "13215 exp_effect={0} remaining={1}B", expEffect, r.Remaining);
         }
 
         /// <summary>13216 领取挂机收益(C2S 无参)。</summary>
@@ -171,6 +180,13 @@ namespace Shenxiao.Module.Core.OnHook
         public void ApplyTime(int afkTime, int nextTime)
         {
             RemainingAfkTime = afkTime; NextTime = nextTime;
+            Changed?.Invoke();
+        }
+
+        /// <summary>13215 是独立增量推送，绝不能覆盖 13212 的奖励和其他快照字段。</summary>
+        public void ApplyExpEffect(long expEffect)
+        {
+            ExpEffect = expEffect;
             Changed?.Invoke();
         }
 
