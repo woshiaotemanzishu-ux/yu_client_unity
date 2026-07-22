@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## Achievement 40901/03/06/08 (R124)
+
+- GAME_START sends four empty frames in order 40901->40903->40906->40908. Each reply owns an independent full snapshot (stage rewards, achievement entries, scalar star, type stars); all lists replace atomically and empty lists clear old values. Do not attach 40900/02/04/05/07/09, configuration derivation, red dots, UI, or reward operations.
+
 ## Revelation 28606 (R123)
 
 - 28606 is the parameterless full main-state snapshot: raw figure IDs/power plus ordered gathering, suit, and skill lists. Every packet atomically replaces all fields and empty lists clear prior state. Do not attach 28600-05/07-09, configuration, red dots, bag, appearance resources, 3D, or UI.
