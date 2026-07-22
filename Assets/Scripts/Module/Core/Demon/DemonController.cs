@@ -8,9 +8,9 @@ namespace Shenxiao.Module.Core.Demon
         private static Func<byte[], bool> s_outboundIntercept;
 #endif
         private DemonController() { }
-        protected override void Register() { RegisterProtocal(Proto.DEMON_INFO, On18301); RegisterProtocal(Proto.DEMON_FETTERS, On18303); }
-        /// <summary>受控简化：当前未移植 DemonMainView 开放门控，18301/18303 均为无参只读快照，故登录各拉取一次。</summary>
-        public void RequestStartup() { SendEmpty(Proto.DEMON_INFO); SendEmpty(Proto.DEMON_FETTERS); }
+        protected override void Register() { RegisterProtocal(Proto.DEMON_INFO, On18301); RegisterProtocal(Proto.DEMON_FETTERS, On18303); RegisterProtocal(Proto.DEMON_PAINTINGS, On18307); }
+        /// <summary>受控简化：当前未移植 DemonMainView 开放门控，18301/18303/18307 均为无参只读快照，故登录各拉取一次。</summary>
+        public void RequestStartup() { SendEmpty(Proto.DEMON_INFO); SendEmpty(Proto.DEMON_FETTERS); SendEmpty(Proto.DEMON_PAINTINGS); }
         private void SendEmpty(int protoId)
         {
 #if UNITY_EDITOR
@@ -25,6 +25,7 @@ namespace Shenxiao.Module.Core.Demon
             DemonModel.Instance.Replace(openState, demons);
         }
         private void On18303(NetReader r) { int count = r.ReadU16(); var fetters = new List<uint>(count); for (int i = 0; i < count; i++) fetters.Add(r.ReadU32()); DemonModel.Instance.ReplaceFetters(fetters); }
+        private void On18307(NetReader r) { int count = r.ReadU16(); var paintings = new List<byte>(count); for (int i = 0; i < count; i++) paintings.Add(r.ReadU8()); DemonModel.Instance.ReplacePaintings(paintings); }
         private static DemonModel.Entry ReadEntry(NetReader r)
         {
             uint id = r.ReadU32(); ushort level = r.ReadU16(); uint exp = r.ReadU32(); byte star = r.ReadU8(); byte slotNumber = r.ReadU8(); int skillCount = r.ReadU16(); var skills = new List<DemonModel.Skill>(skillCount);

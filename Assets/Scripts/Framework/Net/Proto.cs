@@ -947,6 +947,8 @@
         public const int DEMON_INFO = 18301;
         /// <summary>使魔羁绊全量快照。C2S 空包；S2C: fetters:u16×fetter_id:u32。</summary>
         public const int DEMON_FETTERS = 18303;
+        /// <summary>使魔上卷/绘卷全量快照。C2S 空包；S2C: paintings:u16×painting_id:u8。</summary>
+        public const int DEMON_PAINTINGS = 18307;
         /// <summary>装扮类型快照。C2S: dress_type:u8；S2C 为该类型已启用装扮全量列表。</summary>
         public const int DRESS_INFO = 11200;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)
