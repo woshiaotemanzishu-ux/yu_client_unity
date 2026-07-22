@@ -17,6 +17,7 @@ namespace Shenxiao.Module.Core.Deposit
         protected override void Register()
         {
             RegisterProtocal(Proto.DEPOSIT_ACTIVITY_ONHOOK, On19201);
+            RegisterProtocal(Proto.DEPOSIT_RECORDS, On19206);
             RegisterProtocal(Proto.DEPOSIT_COINS_PUSH, On19208);
         }
 
@@ -54,6 +55,27 @@ namespace Shenxiao.Module.Core.Deposit
         private void On19208(NetReader reader)
         {
             DepositModel.Instance.ReplaceCoins(reader.ReadU32(), reader.ReadU32());
+        }
+
+        public void RequestRecords()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.DEPOSIT_RECORDS, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.DEPOSIT_RECORDS);
+        }
+        private void On19206(NetReader reader)
+        {
+            int count = reader.ReadU16();
+            var records = new List<DepositModel.RecordEntry>(count);
+            for (int i = 0; i < count; i++)
+            {
+                records.Add(new DepositModel.RecordEntry(
+                    reader.ReadU16(), reader.ReadU16(), reader.ReadU32(),
+                    reader.ReadU32(), reader.ReadU16(), reader.ReadU32()));
+            }
+            DepositModel.Instance.ReplaceRecords(records);
         }
 
         public override void Dispose()
