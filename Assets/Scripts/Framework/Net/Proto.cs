@@ -972,6 +972,8 @@
         public const int NOON_PARTY_TOTAL_EXP = 28503;
         /// <summary>午时狂欢 Boss/宝箱怪复活的 Unix 绝对截止时刻。C2S 空包；S2C: time:u32。</summary>
         public const int NOON_PARTY_REBORN_DEADLINE = 28505;
+        /// <summary>午时狂欢活动结束的 Unix 绝对截止时刻。C2S 空包；S2C: time:u32。</summary>
+        public const int NOON_PARTY_END_DEADLINE = 28506;
         /// <summary>托管选择快照。C2S 空包；S2C: day_coin:u32,onhook_coin:u32,activities:u16×嵌套行为列表。</summary>
         public const int DEPOSIT_ACTIVITY_ONHOOK = 19201;
         /// <summary>装扮类型快照。C2S: dress_type:u8；S2C 为该类型已启用装扮全量列表。</summary>

@@ -10,6 +10,8 @@ namespace Shenxiao.Module.Core.NoonParty
         public uint TotalExp { get; private set; }
         public bool HasRebornDeadline { get; private set; }
         public uint RebornDeadline { get; private set; }
+        public bool HasEndDeadline { get; private set; }
+        public uint EndDeadline { get; private set; }
 
         public void Replace(uint totalExp)
         {
@@ -23,12 +25,20 @@ namespace Shenxiao.Module.Core.NoonParty
             HasRebornDeadline = true;
         }
 
+        public void ReplaceEndDeadline(uint endDeadline)
+        {
+            EndDeadline = endDeadline;
+            HasEndDeadline = true;
+        }
+
         public void Reset()
         {
             TotalExp = 0;
             HasData = false;
             RebornDeadline = 0;
             HasRebornDeadline = false;
+            EndDeadline = 0;
+            HasEndDeadline = false;
         }
     }
 }

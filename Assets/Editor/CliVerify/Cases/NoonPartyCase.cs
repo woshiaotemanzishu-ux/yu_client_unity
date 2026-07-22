@@ -36,6 +36,8 @@ namespace Shenxiao.EditorTools
             uint oldTotalExp = model.TotalExp;
             bool oldHasRebornDeadline = model.HasRebornDeadline;
             uint oldRebornDeadline = model.RebornDeadline;
+            bool oldHasEndDeadline = model.HasEndDeadline;
+            uint oldEndDeadline = model.EndDeadline;
             FieldInfo interceptField = typeof(NoonPartyController).GetField("s_outboundIntercept", StaticNonPublic);
             object oldIntercept = interceptField == null ? null : interceptField.GetValue(null);
 
@@ -46,12 +48,13 @@ namespace Shenxiao.EditorTools
 
                 MethodInfo on28503 = typeof(NoonPartyController).GetMethod("On28503", InstanceNonPublic);
                 MethodInfo on28505 = typeof(NoonPartyController).GetMethod("On28505", InstanceNonPublic);
+                MethodInfo on28506 = typeof(NoonPartyController).GetMethod("On28506", InstanceNonPublic);
                 IDictionary handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                bool pass = interceptField != null && on28503 != null && on28505 != null && handlers != null
-                    && handlers.Contains(28503) && handlers.Contains(28505);
+                bool pass = interceptField != null && on28503 != null && on28505 != null && on28506 != null && handlers != null
+                    && handlers.Contains(28503) && handlers.Contains(28505) && handlers.Contains(28506);
                 for (int proto = 28500; proto <= 28506; proto++)
                 {
-                    if (proto != 28503 && proto != 28505)
+                    if (proto != 28503 && proto != 28505 && proto != 28506)
                     {
                         pass &= !handlers.Contains(proto);
                     }
@@ -75,6 +78,9 @@ namespace Shenxiao.EditorTools
                 controller.RequestRebornDeadline();
                 pass &= IsExactRequest(frames.Count == 1 ? frames[0] : null, Proto.NOON_PARTY_REBORN_DEADLINE);
                 frames.Clear();
+                controller.RequestEndDeadline();
+                pass &= IsExactRequest(frames.Count == 1 ? frames[0] : null, Proto.NOON_PARTY_END_DEADLINE);
+                frames.Clear();
 
                 pass &= Feed(on28503, controller, 0) && model.HasData && model.TotalExp == 0 && frames.Count == 0;
                 pass &= Feed(on28503, controller, 100) && model.TotalExp == 100 && frames.Count == 0;
@@ -84,9 +90,14 @@ namespace Shenxiao.EditorTools
                 pass &= Feed(on28505, controller, 200) && model.RebornDeadline == 200 && frames.Count == 0;
                 pass &= Feed(on28505, controller, 250) && model.RebornDeadline == 250 && frames.Count == 0;
                 pass &= Feed(on28505, controller, uint.MaxValue) && model.RebornDeadline == uint.MaxValue && frames.Count == 0;
+                pass &= Feed(on28506, controller, 0) && model.HasEndDeadline && model.EndDeadline == 0 && frames.Count == 0;
+                pass &= Feed(on28506, controller, 300) && model.EndDeadline == 300 && frames.Count == 0;
+                pass &= Feed(on28506, controller, 350) && model.EndDeadline == 350 && frames.Count == 0;
+                pass &= Feed(on28506, controller, uint.MaxValue) && model.EndDeadline == uint.MaxValue && frames.Count == 0;
 
                 controller.Dispose();
-                pass &= !model.HasData && model.TotalExp == 0 && !model.HasRebornDeadline && model.RebornDeadline == 0;
+                pass &= !model.HasData && model.TotalExp == 0 && !model.HasRebornDeadline && model.RebornDeadline == 0
+                    && !model.HasEndDeadline && model.EndDeadline == 0;
 
                 Debug.Log("CLIVERIFY noonparty VERDICT pass=" + pass);
                 return pass ? 0 : 3;
@@ -107,6 +118,11 @@ namespace Shenxiao.EditorTools
                 if (oldHasRebornDeadline)
                 {
                     model.ReplaceRebornDeadline(oldRebornDeadline);
+                }
+
+                if (oldHasEndDeadline)
+                {
+                    model.ReplaceEndDeadline(oldEndDeadline);
                 }
 
                 if (wasInitialized)
