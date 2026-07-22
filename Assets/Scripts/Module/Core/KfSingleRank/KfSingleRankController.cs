@@ -18,6 +18,7 @@ namespace Shenxiao.Module.Core.KfSingleRank
         protected override void Register()
         {
             RegisterProtocal(Proto.KF_SINGLE_RANK_INFO, On50701);
+            RegisterProtocal(Proto.KF_SINGLE_RANK_AREA_TOP, On50703);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
@@ -47,6 +48,29 @@ namespace Shenxiao.Module.Core.KfSingleRank
                 levels.Add(new KfSingleRankModel.LevelEntry(reader.ReadU8(), reader.ReadU32()));
             }
             KfSingleRankModel.Instance.Replace(startLevel, rewardState, levels);
+        }
+
+        public void RequestAreaTop(byte areaId)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.KF_SINGLE_RANK_AREA_TOP, "c", new object[] { areaId });
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.KF_SINGLE_RANK_AREA_TOP, "c", areaId);
+        }
+
+        private void On50703(NetReader reader)
+        {
+            byte areaId = reader.ReadU8();
+            int count = reader.ReadU16();
+            var entries = new List<KfSingleRankModel.AreaRankEntry>(count);
+            for (int i = 0; i < count; i++)
+            {
+                entries.Add(new KfSingleRankModel.AreaRankEntry(
+                    reader.ReadU8(), unchecked((ulong)reader.ReadU64()), reader.ReadString(),
+                    reader.ReadU16(), reader.ReadU32()));
+            }
+            KfSingleRankModel.Instance.ReplaceAreaTop(areaId, entries);
         }
 
         public override void Dispose()

@@ -963,6 +963,8 @@
         public const int MON_BOOK_TYPE_INFO = 44201;
         /// <summary>跨服单人排行副本个人状态。C2S 空包；S2C: start_level:u8,reward_state:u8,levels:u16×{u8,u32}。</summary>
         public const int KF_SINGLE_RANK_INFO = 50701;
+        /// <summary>跨服单人排行副本指定区域榜单。C2S: area_id:u8；S2C: area_id+完整排行表。</summary>
+        public const int KF_SINGLE_RANK_AREA_TOP = 50703;
         public const int ACHIEVEMENT_STAGE = 40901;
         public const int ACHIEVEMENT_ENTRIES = 40903;
         public const int ACHIEVEMENT_STAR = 40906;

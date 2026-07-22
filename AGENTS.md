@@ -1,8 +1,8 @@
 # AGENTS.md
 
-## KfSingleRank 50701 (R142)
+## KfSingleRank 50701/50703 (R142/R144)
 
-- GAME_START sends parameterless 50701 once; server owns the rank-dungeon open gate. Snapshot is `start_level:u8,reward_state:u8,levels:u16×{level:u8,go_time:u32}` and fully replaces wire-order entries, including duplicates and empty clears. Do not hardcode a 460 level catch-up or bind role updates until opening configuration/UI exists; exclude 50702-05, UI, scene, config, red dots, and auto-fight.
+- GAME_START resets both main/area state and sends parameterless 50701 once; server owns the rank-dungeon open gate. A normal 50701 reply replaces only main state and must not clear area caches. 50703 is explicit `area_id:u8`, returning an independent ordered per-area list `u8,u16×{u8,u64,string,u16,u32}`; preserve duplicates and empty snapshots. Do not hardcode a 460 level catch-up or bind role updates; exclude 50702/04/05, UI, scene, sorting, config, red dots, and auto-fight.
 
 ## MonBook 44201/44205/44207 (R138/R139/R143)
 
