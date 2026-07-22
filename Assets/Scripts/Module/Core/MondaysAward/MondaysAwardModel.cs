@@ -46,23 +46,42 @@ namespace Shenxiao.Module.Core.MondaysAward
             }
         }
 
+        public sealed class PoolEntry
+        {
+            private readonly IReadOnlyList<ushort> _rids;
+
+            public ushort Id { get; }
+            public IReadOnlyList<ushort> Rids => _rids;
+
+            public PoolEntry(ushort id, List<ushort> rids)
+            {
+                Id = id;
+                _rids = new List<ushort>(rids ?? new List<ushort>()).AsReadOnly();
+            }
+        }
+
         public static readonly MondaysAwardModel Instance = new MondaysAwardModel();
 
         private readonly List<TaskStateEntry> _taskStates = new List<TaskStateEntry>();
         private readonly IReadOnlyList<TaskStateEntry> _readOnlyTaskStates;
         private readonly List<RecordEntry> _records = new List<RecordEntry>();
         private readonly IReadOnlyList<RecordEntry> _readOnlyRecords;
+        private readonly List<PoolEntry> _pools = new List<PoolEntry>();
+        private readonly IReadOnlyList<PoolEntry> _readOnlyPools;
 
         private MondaysAwardModel()
         {
             _readOnlyTaskStates = _taskStates.AsReadOnly();
             _readOnlyRecords = _records.AsReadOnly();
+            _readOnlyPools = _pools.AsReadOnly();
         }
 
         public bool HasData { get; private set; }
         public IReadOnlyList<TaskStateEntry> TaskStates => _readOnlyTaskStates;
         public bool HasRecords { get; private set; }
         public IReadOnlyList<RecordEntry> Records => _readOnlyRecords;
+        public bool HasPools { get; private set; }
+        public IReadOnlyList<PoolEntry> Pools => _readOnlyPools;
 
         public void Replace(List<TaskStateEntry> taskStates)
         {
@@ -86,12 +105,25 @@ namespace Shenxiao.Module.Core.MondaysAward
             HasRecords = true;
         }
 
+        public void ReplacePools(List<PoolEntry> pools)
+        {
+            _pools.Clear();
+            if (pools != null)
+            {
+                _pools.AddRange(pools);
+            }
+
+            HasPools = true;
+        }
+
         public void Reset()
         {
             _taskStates.Clear();
             _records.Clear();
+            _pools.Clear();
             HasData = false;
             HasRecords = false;
+            HasPools = false;
         }
     }
 }

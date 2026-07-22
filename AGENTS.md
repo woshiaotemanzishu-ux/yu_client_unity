@@ -16,9 +16,9 @@
 
 - 28503 is an on-demand, parameterless cumulative-experience scalar snapshot: `exp:u32`. Both server paths send the absolute cumulative total, so every packet replaces `TotalExp`; never add deltas. 28504 is separately on-demand and returns `low_box:u32,high_box:u32`; response/push packets replace both absolute counts together, so no local +1 and a later `(0,0)` clears old counts. 28505 is separately on-demand and carries `time:u32`, a Unix absolute Boss/treasure-monster reborn deadline; every response/push replaces `RebornDeadline`, never adds a duration. 28506 is separately on-demand and returns the activity's Unix absolute end deadline; each response replaces `EndDeadline`. Do not attach GAME_START, level/scene gates, entry/exit, 28500-02, HUD, auto-fight, UI, config, inventory, or other NoonParty behavior.
 
-## MondaysAward 17904/17905 (R131/R148)
+## MondaysAward 17904/17905/17908 (R131/R148/R149)
 
-- 17904 is the only parameterless GAME_START task-state snapshot: `task_state:u16*{task_id:u16,state:u8}`. 17905 is an independent on-demand parameterless cross-server record snapshot: `count:u16*{server_id:u32,server_num:u16,role_id:u64,role_name:string,type:u8,pool_id:u16,utime:u32,picture:string,picture_ver:u32,career:u16,turn:u16}`. Both replace only their own ordered full list, preserve duplicates, and clear old entries on an empty list. Do not reproduce the old client’s first-17904 automatic 17907 request or attach 17900-03/06-08, personal records, pools/draw/claim operations, config, red dots, or UI.
+- 17904 is the only parameterless GAME_START task-state snapshot: `task_state:u16*{task_id:u16,state:u8}`. 17905 is an independent on-demand cross-server record snapshot: `count:u16*{server_id:u32,server_num:u16,role_id:u64,role_name:string,type:u8,pool_id:u16,utime:u32,picture:string,picture_ver:u32,career:u16,turn:u16}`. 17908 is an independent on-demand current-pool snapshot: `pool_count:u16*{id:u16,rid_count:u16,rid:u16*rid_count}`. Each replaces only its own ordered full list, preserving duplicate RoleIds/Rids; every empty list clears old entries but remains loaded. Do not reproduce the old client’s first-17904 automatic 17907 request or attach 17900-03/06/07, personal records, prize-pool draw/claim operations, config, red dots, or UI.
 
 ## HolyBattle 21801/21804/21805 (R130/R146/R147)
 

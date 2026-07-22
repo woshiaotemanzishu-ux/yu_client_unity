@@ -5,7 +5,7 @@ using Shenxiao.Framework.Net;
 namespace Shenxiao.Module.Core.MondaysAward
 {
     /// <summary>
-    /// 周一嘉礼任务和跨服开奖记录快照。仅请求/接收 17904/17905；不复刻老端首次回包后自动请求 17907。
+    /// 周一嘉礼任务、记录和当前奖池快照。仅请求/接收 17904/17905/17908；不复刻老端首次回包后自动请求 17907。
     /// </summary>
     public sealed class MondaysAwardController : BaseController
     {
@@ -21,6 +21,7 @@ namespace Shenxiao.Module.Core.MondaysAward
         {
             RegisterProtocal(Proto.MONDAYS_AWARD_TASK_STATE, On17904);
             RegisterProtocal(Proto.MONDAYS_AWARD_RECORDS, On17905);
+            RegisterProtocal(Proto.MONDAYS_AWARD_POOLS, On17908);
         }
 
         public void RequestTaskState()
@@ -75,6 +76,38 @@ namespace Shenxiao.Module.Core.MondaysAward
             }
 
             MondaysAwardModel.Instance.ReplaceRecords(records);
+        }
+
+        public void RequestPools()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.MONDAYS_AWARD_POOLS, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame))
+            {
+                return;
+            }
+#endif
+            SendFmt(Proto.MONDAYS_AWARD_POOLS);
+        }
+
+        private void On17908(NetReader reader)
+        {
+            int count = reader.ReadU16();
+            var pools = new List<MondaysAwardModel.PoolEntry>(count);
+            for (int i = 0; i < count; i++)
+            {
+                ushort id = reader.ReadU16();
+                int ridCount = reader.ReadU16();
+                var rids = new List<ushort>(ridCount);
+                for (int j = 0; j < ridCount; j++)
+                {
+                    rids.Add(reader.ReadU16());
+                }
+
+                pools.Add(new MondaysAwardModel.PoolEntry(id, rids));
+            }
+
+            MondaysAwardModel.Instance.ReplacePools(pools);
         }
 
         public override void Dispose()

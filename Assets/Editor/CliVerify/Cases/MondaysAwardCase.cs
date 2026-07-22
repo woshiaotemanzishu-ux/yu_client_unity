@@ -36,6 +36,8 @@ namespace Shenxiao.EditorTools
             var oldTaskStates = new List<MondaysAwardModel.TaskStateEntry>(model.TaskStates);
             bool oldHasRecords = model.HasRecords;
             var oldRecords = new List<MondaysAwardModel.RecordEntry>(model.Records);
+            bool oldHasPools = model.HasPools;
+            var oldPools = new List<MondaysAwardModel.PoolEntry>(model.Pools);
             FieldInfo interceptField = typeof(MondaysAwardController).GetField("s_outboundIntercept", StaticNonPublic);
             object oldIntercept = interceptField == null ? null : interceptField.GetValue(null);
 
@@ -46,12 +48,13 @@ namespace Shenxiao.EditorTools
 
                 MethodInfo on17904 = typeof(MondaysAwardController).GetMethod("On17904", InstanceNonPublic);
                 MethodInfo on17905 = typeof(MondaysAwardController).GetMethod("On17905", InstanceNonPublic);
+                MethodInfo on17908 = typeof(MondaysAwardController).GetMethod("On17908", InstanceNonPublic);
                 IDictionary handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                bool pass = interceptField != null && on17904 != null && on17905 != null && handlers != null
-                    && handlers.Contains(17904) && handlers.Contains(17905);
+                bool pass = interceptField != null && on17904 != null && on17905 != null && on17908 != null && handlers != null
+                    && handlers.Contains(17904) && handlers.Contains(17905) && handlers.Contains(17908);
                 for (int proto = 17900; proto <= 17908; proto++)
                 {
-                    if (proto != 17904 && proto != 17905)
+                    if (proto != 17904 && proto != 17905 && proto != 17908)
                     {
                         pass &= !handlers.Contains(proto);
                     }
@@ -79,6 +82,30 @@ namespace Shenxiao.EditorTools
                     && !model.HasRecords && model.Records.Count == 0;
                 frames.Clear();
 
+                controller.RequestPools();
+                pass &= IsExactPoolsRequest(frames.Count == 1 ? frames[0] : null)
+                    && !model.HasPools && model.Pools.Count == 0;
+                frames.Clear();
+
+                byte[] firstPoolBytes = new CliVerify.Pkt().H(3)
+                    .H(0).H(0)
+                    .H(ushort.MaxValue).H(3).H(0).H(ushort.MaxValue).H(ushort.MaxValue)
+                    .H(7).H(2).H(5).H(5)
+                    .Bytes();
+                var firstPoolReader = new NetReader(firstPoolBytes, 0, firstPoolBytes.Length);
+                on17908.Invoke(controller, new object[] { firstPoolReader });
+                pass &= firstPoolReader.Remaining == 0 && model.HasPools && model.Pools.Count == 3
+                    && model.Pools[0].Id == 0 && model.Pools[0].Rids.Count == 0
+                    && model.Pools[1].Id == ushort.MaxValue && model.Pools[1].Rids.Count == 3
+                    && model.Pools[1].Rids[0] == 0 && model.Pools[1].Rids[1] == ushort.MaxValue && model.Pools[1].Rids[2] == ushort.MaxValue
+                    && model.Pools[2].Id == 7 && model.Pools[2].Rids.Count == 2 && model.Pools[2].Rids[0] == 5 && model.Pools[2].Rids[1] == 5
+                    && !model.HasData && !model.HasRecords && frames.Count == 0;
+
+                controller.RequestPools();
+                pass &= IsExactPoolsRequest(frames.Count == 1 ? frames[0] : null)
+                    && model.HasPools && model.Pools.Count == 3;
+                frames.Clear();
+
                 const string roleName = "\u4e2d\u6587\u89d2\u8272";
                 const string picture = "\u4e2d\u6587\u5934\u50cf";
                 byte[] firstRecordBytes = new CliVerify.Pkt().H(2)
@@ -97,7 +124,7 @@ namespace Shenxiao.EditorTools
                     && model.Records[1].Type == byte.MaxValue && model.Records[1].PoolId == ushort.MaxValue
                     && model.Records[1].Utime == uint.MaxValue && model.Records[1].Picture == picture && model.Records[1].PictureVer == uint.MaxValue
                     && model.Records[1].Career == ushort.MaxValue && model.Records[1].Turn == ushort.MaxValue
-                    && !model.HasData && frames.Count == 0;
+                    && !model.HasData && model.HasPools && model.Pools.Count == 3 && frames.Count == 0;
 
                 byte[] firstBytes = new CliVerify.Pkt().H(2).H(0).C(0).H(65535).C(255).Bytes();
                 var firstReader = new NetReader(firstBytes, 0, firstBytes.Length);
@@ -106,6 +133,7 @@ namespace Shenxiao.EditorTools
                     && model.TaskStates[0].TaskId == 0 && model.TaskStates[0].State == 0
                     && model.TaskStates[1].TaskId == ushort.MaxValue && model.TaskStates[1].State == byte.MaxValue
                     && model.HasRecords && model.Records.Count == 2
+                    && model.HasPools && model.Pools.Count == 3
                     && frames.Count == 0;
 
                 byte[] secondBytes = new CliVerify.Pkt().H(1).H(7).C(8).Bytes();
@@ -127,7 +155,7 @@ namespace Shenxiao.EditorTools
                 on17904.Invoke(controller, new object[] { isolationTaskReader });
                 pass &= isolationTaskReader.Remaining == 0 && model.TaskStates.Count == 1
                     && model.TaskStates[0].TaskId == 9 && model.TaskStates[0].State == 10
-                    && model.Records.Count == 2 && frames.Count == 0;
+                    && model.Records.Count == 2 && model.Pools.Count == 3 && frames.Count == 0;
 
                 byte[] replacementRecordBytes = new CliVerify.Pkt().H(1)
                     .I(7).H(8).L(9).S("one").C(1).H(2).I(3).S("pic").I(4).H(5).H(6).Bytes();
@@ -135,16 +163,31 @@ namespace Shenxiao.EditorTools
                 on17905.Invoke(controller, new object[] { replacementRecordReader });
                 pass &= replacementRecordReader.Remaining == 0 && model.HasRecords && model.Records.Count == 1
                     && model.Records[0].RoleId == 9 && model.Records[0].RoleName == "one"
-                    && model.HasData && model.TaskStates.Count == 1 && frames.Count == 0;
+                    && model.HasData && model.TaskStates.Count == 1 && model.Pools.Count == 3 && frames.Count == 0;
+
+                byte[] replacementPoolBytes = new CliVerify.Pkt().H(1).H(7).H(1).H(9).Bytes();
+                var replacementPoolReader = new NetReader(replacementPoolBytes, 0, replacementPoolBytes.Length);
+                on17908.Invoke(controller, new object[] { replacementPoolReader });
+                pass &= replacementPoolReader.Remaining == 0 && model.HasPools && model.Pools.Count == 1
+                    && model.Pools[0].Id == 7 && model.Pools[0].Rids.Count == 1 && model.Pools[0].Rids[0] == 9
+                    && model.HasData && model.TaskStates.Count == 1 && model.HasRecords && model.Records.Count == 1
+                    && model.Records[0].RoleId == 9 && frames.Count == 0;
+
+                var emptyPoolReader = new NetReader(new CliVerify.Pkt().H(0).Bytes(), 0, 2);
+                on17908.Invoke(controller, new object[] { emptyPoolReader });
+                pass &= emptyPoolReader.Remaining == 0 && model.HasPools && model.Pools.Count == 0
+                    && model.HasData && model.TaskStates.Count == 1 && model.HasRecords && model.Records.Count == 1
+                    && model.Records[0].RoleId == 9 && frames.Count == 0;
 
                 var emptyRecordReader = new NetReader(new CliVerify.Pkt().H(0).Bytes(), 0, 2);
                 on17905.Invoke(controller, new object[] { emptyRecordReader });
                 pass &= emptyRecordReader.Remaining == 0 && model.HasRecords && model.Records.Count == 0
-                    && model.HasData && model.TaskStates.Count == 1 && frames.Count == 0;
+                    && model.HasData && model.TaskStates.Count == 1 && model.HasPools && model.Pools.Count == 0 && frames.Count == 0;
 
                 controller.Dispose();
-                pass &= !controller.IsInitialized && !handlers.Contains(17904) && !handlers.Contains(17905)
-                    && !model.HasData && model.TaskStates.Count == 0 && !model.HasRecords && model.Records.Count == 0;
+                pass &= !controller.IsInitialized && !handlers.Contains(17904) && !handlers.Contains(17905) && !handlers.Contains(17908)
+                    && !model.HasData && model.TaskStates.Count == 0 && !model.HasRecords && model.Records.Count == 0
+                    && !model.HasPools && model.Pools.Count == 0;
 
                 Debug.Log("CLIVERIFY mondaysaward VERDICT pass=" + pass);
                 return pass ? 0 : 3;
@@ -165,6 +208,11 @@ namespace Shenxiao.EditorTools
                 if (oldHasRecords)
                 {
                     model.ReplaceRecords(oldRecords);
+                }
+
+                if (oldHasPools)
+                {
+                    model.ReplacePools(oldPools);
                 }
 
                 if (wasInitialized)
@@ -197,6 +245,16 @@ namespace Shenxiao.EditorTools
                 && frame[2] == 0x03 && frame[3] == 0xE8
                 && frame[4] == (byte)(Proto.MONDAYS_AWARD_RECORDS >> 8)
                 && frame[5] == (byte)(Proto.MONDAYS_AWARD_RECORDS & 0xFF);
+        }
+
+        private static bool IsExactPoolsRequest(byte[] frame)
+        {
+            return frame != null
+                && frame.Length == 6
+                && frame[0] == 0 && frame[1] == 6
+                && frame[2] == 0x03 && frame[3] == 0xE8
+                && frame[4] == (byte)(Proto.MONDAYS_AWARD_POOLS >> 8)
+                && frame[5] == (byte)(Proto.MONDAYS_AWARD_POOLS & 0xFF);
         }
     }
 }

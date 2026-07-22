@@ -988,6 +988,8 @@
         public const int MONDAYS_AWARD_TASK_STATE = 17904;
         /// <summary>周一嘉礼跨服开奖记录。C2S 空包；S2C: count:u16×{server_id:u32,server_num:u16,role_id:u64,role_name:string,type:u8,pool_id:u16,utime:u32,picture:string,picture_ver:u32,career:u16,turn:u16}。</summary>
         public const int MONDAYS_AWARD_RECORDS = 17905;
+        /// <summary>周一嘉礼当前奖池。C2S 空包；S2C: pool_count:u16×{id:u16,rid_count:u16,rid:u16×rid_count}。</summary>
+        public const int MONDAYS_AWARD_POOLS = 17908;
         /// <summary>午时狂欢累计经验。C2S 空包；S2C: exp:u32（每包为累计绝对值）。</summary>
         public const int NOON_PARTY_TOTAL_EXP = 28503;
         /// <summary>午时狂欢普通/高级宝箱已采集绝对计数。C2S 空包；S2C: low_box:u32,high_box:u32。</summary>
