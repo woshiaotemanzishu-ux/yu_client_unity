@@ -966,6 +966,8 @@
         public const int ETERNITY_TIME_INFO = 27900;
         /// <summary>圣灵战场世界信息。C2S 空包；S2C: mod:u8,status:u8,end_time:u32,servers:u16×{id:u32,num:u32,name:s,level:u32}。</summary>
         public const int HOLY_BATTLE_INFO = 21801;
+        /// <summary>周一嘉礼任务状态。C2S 空包；S2C: task_state:u16×{task_id:u16,state:u8}。</summary>
+        public const int MONDAYS_AWARD_TASK_STATE = 17904;
         /// <summary>装扮类型快照。C2S: dress_type:u8；S2C 为该类型已启用装扮全量列表。</summary>
         public const int DRESS_INFO = 11200;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)
