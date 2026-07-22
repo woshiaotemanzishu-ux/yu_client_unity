@@ -10,7 +10,8 @@ namespace Shenxiao.Module.Core.Equip
     /// 不朽圣骸页(对标老客户端 equipArmor/EquipArmorView.ts,EquipView 标签5 内容):圣骸部位页签(_gp_tabs 克隆 _tpl_ArmorTabItem)+
     /// 属性(_gp_attr/_gp_attr2)+ 材料(_gp_mat)+ 当前/对比(_gp_curr/gp_msg)+ 制作按钮(_btn_make)+ 全部(_btn_all)+ 左右翻页(leftBtn/rightBtn)+ 红点。
     ///
-    /// 降级:EquipArmorModel/圣骸协议、部位/属性/材料列表项均未移植 → 3 红点/3 模板隐藏、列表空;制作/全部/翻页按钮打日志降级。
+    /// 降级:14401 权威快照已落 ArmorModel，但本 View 尚未接配置/列表消费与14402打造 → 3 红点/3模板隐藏、列表空;
+    /// 制作/全部/翻页按钮仍打日志降级。
     /// 无独立关闭按钮(装备窗框统一关闭)→ 作 EquipView 标签5 内容由 EquipFlow 跨模块 reparent 进窗框内容区。事件驱动,不进 FirstPass。
     /// </summary>
     public sealed class EquipArmorView : EquipArmorViewBind
@@ -32,8 +33,8 @@ namespace Shenxiao.Module.Core.Equip
 
         protected override void OnShow(object args)
         {
-            // 老端 open → 读 EquipArmorModel 铺部位/属性/材料。数据未移植 → 默认降级。
-            GameLog.Info("Equip", "不朽圣骸页打开 → 待对接 EquipArmorModel(默认降级)");
+            // 老端 open → 读 ArmorModel + 配置铺部位/属性/材料；当前只有14401数据地基，仍默认降级。
+            GameLog.Info("Equip", "不朽圣骸页打开 → 14401已接，待对接配置/UI消费与14402(默认降级)");
         }
 
         private void BindBtn(Component target, string label)

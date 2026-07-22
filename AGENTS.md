@@ -18,6 +18,10 @@
 
 - 13218 是物品自动熔炼成功后与15024并列下发的服务端主动推送，不是挂机请求。格式为 `exp_list:u16 count × {add_exp:u16,ratio:u8}`；老端只把全部 `add_exp` 相加后覆盖 `auto_smelt_exp`，空列表覆盖为0。`ratio` 当前不入模但必须读到尾；不得因此主动请求或抢占15024，也不得污染13212快照、13215经验效率或奖励列表。
 
+## Armor 14401（轮109）
+
+- GAME_START 必须发送14401的 `stage:u8=0,type:u8=0` 基础请求。回包为 `stage_list:u16×{stage:u8,type_list:u16×{type:u8,status:u8,pos_list:u16×{gtype_id:u32,pos:u8,status:u8}}}` 全量树；每包替换并允许空包清旧，保存前按stage/type/pos升序，`gtype_id` 必须保留u32。当前只建数据地基，不按角色等级/config过滤，不启用红点/列表/14402打造。
+
 本仓库的 AI 编码约束统一维护在:
 
 - [.github/copilot-instructions.md](.github/copilot-instructions.md) — 精简红线(GitHub Copilot 自动加载)

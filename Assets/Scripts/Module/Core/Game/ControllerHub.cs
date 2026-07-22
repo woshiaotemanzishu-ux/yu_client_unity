@@ -81,6 +81,7 @@ using Shenxiao.Module.Core.Welfare;
 using Shenxiao.Module.Core.AdReward;
 using Shenxiao.Module.Core.StarEquip;
 using Shenxiao.Module.Core.AttributePotion;
+using Shenxiao.Module.Core.Armor;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -189,6 +190,7 @@ namespace Shenxiao.Module.Core.Game
             StarEquipController.Instance, // 星宿核心(pt_232 23200-23209/23250-23257),轮23 PK1
             StarForgeController.Instance, // 星宿锻造 chc(pt_232 兜底转发段 23210-23241),轮23 PK2
             AttributePotionController.Instance,
+            ArmorController.Instance,
             // 后续:EquipController ...
         };
 

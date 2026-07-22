@@ -163,6 +163,11 @@ namespace Shenxiao.EditorTools
             Run(DragonBallCase.Run, 60.0);
         }
 
+        public static void Armor()
+        {
+            Run(ArmorCase.Run, 60.0);
+        }
+
         public static void AttributePotion()
         {
             Run(AttributePotionCase.Run, 120.0);
@@ -665,6 +670,7 @@ namespace Shenxiao.EditorTools
                 int lu = await LungCase.Run();
                 int db = await DragonBallCase.Run();
                 int ap = await AttributePotionCase.Run();
+                int ar = await ArmorCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -681,8 +687,8 @@ namespace Shenxiao.EditorTools
                     + " market=" + mk + " serverclock=" + sc
                     + " lookover=" + lo + " fashion=" + fa + " listduobao=" + ld + " protocolcoverage=" + pc + " guildactivity=" + ga
                     + " starequip=" + se + " starforge=" + sf + " banquet=" + bq
-                    + " petequip=" + pe + " petequipinventory=" + pi + " petequipui=" + pu + " baby=" + by + " lung=" + lu + " dragonball=" + db + " attributepotion=" + ap);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, ld, pc, ga, se, sf, bq, pe, pi, pu, by, lu, db, ap })
+                    + " petequip=" + pe + " petequipinventory=" + pi + " petequipui=" + pu + " baby=" + by + " lung=" + lu + " dragonball=" + db + " attributepotion=" + ap + " armor=" + ar);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, ld, pc, ga, se, sf, bq, pe, pi, pu, by, lu, db, ap, ar })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);
