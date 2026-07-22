@@ -1,21 +1,21 @@
+using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.Common;
 
 namespace Shenxiao.Module.Core.DragonBall
 {
     /// <summary>
     /// 龙玉(龙珠)礼包控制器(对标老客户端 DragonBallController,模块 143)。进游戏请求 14311;
     /// 回包据 dragon_gift_data(id/buy_times)增删主界面「龙珠礼包」图标 143(DragonGiftIconType)。
-    /// 图标显隐条件见 DragonBallModel.GetGiftIconOpenState(id>0 且已首充);等级/开服天/审核服门由
-    /// 图标配置(configfunctionicon 143)经 AddIconAsync 统一判(open_lv=0/open_day=1/need_hide_in_alpha)。
-    /// 等级变化(EVT_ROLE_INFO_UPDATE)时复请求 14311(对标老端 CHANGE_LEVEL→按 config_start_nuclear.open_lv
-    /// 复发 14311),让到达礼包开启等级后图标及时出现。
+    /// 图标显隐由 DragonBallModel 依据功能开放、alpha、config_start_nuclear、角色/开服状态、限购与首充完整判定，
+    /// AddIconAsync 的公共图标配置门作为二次保险。等级变化仅在新等级精确命中表内 open_lv 时复请求14311。
     ///
     /// 本期只做礼包图标:龙珠本体/苍龙镇世/套装(14300-14306/14310/14312)是另一入口(面板)不在本期;
-    /// 老端另有 首充完成/开服天变化 也复请求 14311,本期先对齐 Festival 模板的「等级去抖复请求」。
+    /// 首充更新只按已缓存14311本地复评；开服日变化重拉14311，均与老端一致。
     /// </summary>
     public sealed class DragonBallController : BaseController
     {
@@ -26,6 +26,10 @@ namespace Shenxiao.Module.Core.DragonBall
 
         // 复请求 14311 的等级去抖:EVT_ROLE_INFO_UPDATE 亦随经验/货币变化触发,只在等级真变时重发。
         private int _lastLevel = -1;
+        private int _generation;
+#if UNITY_EDITOR
+        private static System.Func<byte[], bool> s_outboundIntercept;
+#endif
 
         protected override void Register()
         {
@@ -48,13 +52,26 @@ namespace Shenxiao.Module.Core.DragonBall
             ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
             DragonBallModel.Instance.Reset();
             _lastLevel = -1;
+            _generation++;
             base.Dispose();
         }
 
         /// <summary>进游戏请求(GameStartController.RequestStartupPackets 调用,对标老端 GAME_START 发 14311)。</summary>
         public void RequestStartup()
         {
-            SendFmt(Proto.DRAGONBALL_GIFT_INFO);
+            SendEmpty(Proto.DRAGONBALL_GIFT_INFO);
+        }
+
+        private void SendEmpty(int protoId)
+        {
+#if UNITY_EDITOR
+            if (s_outboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(protoId, null, null);
+                if (s_outboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(protoId);
         }
 
         // 14311: id:i, buy_times:h(对标 pt_143.erl write(14311,[Id:32, BuyTimes:16]))。请求无参(read(14311,_)->{ok,[]})。
@@ -66,11 +83,27 @@ namespace Shenxiao.Module.Core.DragonBall
             DragonBallModel m = DragonBallModel.Instance;
             m.SetGiftInfo(giftId, buyTimes);
 
-            if (m.GetGiftIconOpenState()) _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE);
-            else ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
+            _ = RefreshGiftIconWhenConfigReady();
+        }
 
+        private async Task RefreshGiftIconWhenConfigReady()
+        {
+            int generation = _generation;
+            await DragonBallConfigs.EnsureLoaded();
+            await FuncOpenConfig.EnsureLoaded();
+            if (generation != _generation) return;
+            bool open = RefreshGiftIcon();
+            DragonBallModel m = DragonBallModel.Instance;
             GameLog.Info("DragonBall", "14311 龙珠礼包: id={0} buy_times={1} open={2}",
-                giftId, buyTimes, m.GetGiftIconOpenState());
+                m.GiftId, m.BuyTimes, open);
+        }
+
+        private bool RefreshGiftIcon()
+        {
+            bool open = DragonBallModel.Instance.GetGiftIconOpenState();
+            if (open) _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE);
+            else ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
+            return open;
         }
 
         // 对标老端:主角等级变化复请求 14311(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。
@@ -80,16 +113,15 @@ namespace Shenxiao.Module.Core.DragonBall
             if (!role.HasBaseInfo) return;
             if (role.Level == _lastLevel) return;
             _lastLevel = role.Level;
-            RequestStartup();
+            if (DragonBallConfigs.IsLoaded && DragonBallConfigs.HasOpenLevel(role.Level)) RequestStartup();
+            RefreshGiftIcon();
         }
 
         // 对标老端 首充完成/更新→RefreshGiftIcon:首充态变化后,按已存 GiftId 复判「龙珠礼包」图标显隐
         // (无需重发 14311——礼包数据已在,只是首充门槛此刻才满足/解除)。
         private void OnFirstRechargeUpdate()
         {
-            DragonBallModel m = DragonBallModel.Instance;
-            if (m.GetGiftIconOpenState()) _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE);
-            else ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
+            RefreshGiftIcon();
         }
     }
 }

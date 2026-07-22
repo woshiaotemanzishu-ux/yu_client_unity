@@ -1,4 +1,7 @@
 using Shenxiao.Module.Core.FirstRecharge;
+using Shenxiao.Module.Core.Game;
+using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.Common;
 
 namespace Shenxiao.Module.Core.DragonBall
 {
@@ -12,10 +15,8 @@ namespace Shenxiao.Module.Core.DragonBall
     ///   2. dragon_gift_data.id > 0 —— 服务端有下发可购礼包;
     ///   3. config_start_nuclear[id] 存在 且 role_lv>=open_lv 且 open_day 已到 且 times_limit-buy_times>0;
     ///   4. IsDoneFirstRecharge()   —— 已完成首充。
-    /// Unity 侧:1/3 中的 open_lv/open_day/审核服门由图标配置(configfunctionicon 143:open_lv=0/open_day=1/
-    /// need_hide_in_alpha=true)经 ActivityIconManager.AddIconAsync→FunIsOpenByIconType 统一把控;
-    /// config_start_nuclear(每活动 times_limit/自有 open_lv)未移植到 Unity,故「买满即隐」暂不精确复刻
-    /// (BuyTimes 已存,待该配置移植后补 times_limit 判定)。2/4 在此模型判。
+    /// Unity 侧显式加载 config_start_nuclear，并在本模型完整判定功能开放、alpha、等级、开服天、
+    /// 限购余量与首充；AddIconAsync 的图标配置门只作为第二道公共保险，不能替代上述业务门。
     /// </summary>
     public sealed class DragonBallModel
     {
@@ -27,7 +28,7 @@ namespace Shenxiao.Module.Core.DragonBall
 
         // 14311 龙珠礼包数据(对标老端 dragon_gift_data / SetDragonBallGiftData)
         public int GiftId;    // 礼包活动id(config_start_nuclear 主键;0 表示无可购礼包)
-        public int BuyTimes;  // 已购买次数(老端 times_limit-buy_times>0 才显示;times_limit 配置待移植)
+        public int BuyTimes;  // 已购买次数；config_start_nuclear.times_limit-BuyTimes>0 才显示
 
         public void SetGiftInfo(int giftId, int buyTimes)
         {
@@ -36,12 +37,24 @@ namespace Shenxiao.Module.Core.DragonBall
         }
 
         /// <summary>
-        /// 龙珠礼包图标开启状态(对标老端 RefreshGiftIcon 里客户端可判的部分)。
-        /// id>0(有可购礼包)且 已完成首充(is_frist);等级/开服天/审核服门交由图标配置在 AddIconAsync 里判。
+        /// 龙珠礼包图标完整开启状态，对标老端 RefreshGiftIcon；异步配置未就绪时保持关闭。
         /// </summary>
         public bool GetGiftIconOpenState()
         {
-            return GiftId > 0 && FirstRechargeModel.Instance.IsDoneFirstRecharge();
+            // 两份异步配置都就绪前保持关闭，避免 DragonBall 配置先到、功能开放表仍在加载时短暂误显。
+            if (!DragonBallConfigs.IsLoaded || !FuncOpenConfig.IsLoaded) return false;
+            int level = RoleModel.Instance.HasBaseInfo ? RoleModel.Instance.Level : 0;
+            return GetGiftIconOpenState(level, ServerTimeModel.GetOpenServerDay(), FirstRechargeModel.Instance.IsDoneFirstRecharge(), FuncOpenConfig.CheckFuncOpenState("DragonBallView"), PlatformModel.IsAlpha);
+        }
+
+        public bool GetGiftIconOpenState(int roleLevel, int openServerDay, bool firstRechargeDone)
+            => GetGiftIconOpenState(roleLevel, openServerDay, firstRechargeDone, true, false);
+
+        public bool GetGiftIconOpenState(int roleLevel, int openServerDay, bool firstRechargeDone, bool functionOpen, bool isAlpha)
+        {
+            if (GiftId <= 0 || !DragonBallConfigs.IsLoaded || !firstRechargeDone || !functionOpen || isAlpha) return false;
+            DragonBallConfigs.Row row = DragonBallConfigs.Get(GiftId);
+            return row != null && roleLevel >= row.OpenLevel && openServerDay >= row.OpenDay && row.TimesLimit - BuyTimes > 0;
         }
 
         public void Reset()

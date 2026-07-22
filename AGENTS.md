@@ -1,5 +1,11 @@
 # AGENTS.md
 
+## DragonBall 14311（轮101）
+
+- `config_start_nuclear` 是龙珠礼包图标 143 的权威门槛；仅消费 id/open_lv/open_day/times_limit。当前 8 行，最低开启等级 150；1..7 限购1，8限购3。
+- 14311 为 `id:u32,buy_times:u16`。显隐还必须经过 `CheckFuncOpenState("DragonBallView")` 且非 alpha；等级事件只在精确命中配置 open_lv 时重拉。
+- Unity CLI `eval` 在主线程执行：专项若会 `await ResManager.LoadAsync`，必须像批处理用例一样暂置并恢复 `ResManager.EditorPreferFallback=true`，确保 AssetDatabase 兜底同步命中；且 `GetAwaiter().GetResult()` 路径中的整个 Task 必须同步完成，不能含 `Task.Yield`/Delay/等待下一帧，否则会锁死编辑器主线程，只能重启隔离 Unity。
+
 本仓库的 AI 编码约束统一维护在:
 
 - [.github/copilot-instructions.md](.github/copilot-instructions.md) — 精简红线(GitHub Copilot 自动加载)

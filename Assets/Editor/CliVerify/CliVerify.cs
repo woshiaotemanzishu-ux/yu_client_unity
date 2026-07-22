@@ -158,6 +158,11 @@ namespace Shenxiao.EditorTools
             Run(() => Task.FromResult(OnHookCase.Run()), 60.0);
         }
 
+        public static void DragonBall()
+        {
+            Run(DragonBallCase.Run, 60.0);
+        }
+
         /// <summary>P2a 实证:TaskFinishView 用真实 config_task 货币+物品奖励任务渲染,验货币走图标格(非文本)。</summary>
         public static void RenderTaskFinish()
         {
@@ -653,6 +658,7 @@ namespace Shenxiao.EditorTools
                 int pu = await PetEquipUiCase.Run();
                 int by = await BabyCase.Run();
                 int lu = await LungCase.Run();
+                int db = await DragonBallCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -669,8 +675,8 @@ namespace Shenxiao.EditorTools
                     + " market=" + mk + " serverclock=" + sc
                     + " lookover=" + lo + " fashion=" + fa + " listduobao=" + ld + " protocolcoverage=" + pc + " guildactivity=" + ga
                     + " starequip=" + se + " starforge=" + sf + " banquet=" + bq
-                    + " petequip=" + pe + " petequipinventory=" + pi + " petequipui=" + pu + " baby=" + by + " lung=" + lu);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, ld, pc, ga, se, sf, bq, pe, pi, pu, by, lu })
+                    + " petequip=" + pe + " petequipinventory=" + pi + " petequipui=" + pu + " baby=" + by + " lung=" + lu + " dragonball=" + db);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, ld, pc, ga, se, sf, bq, pe, pi, pu, by, lu, db })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);
