@@ -93,6 +93,7 @@ using Shenxiao.Module.Core.Demon;
 using Shenxiao.Module.Core.Revelation;
 using Shenxiao.Module.Core.Achievement;
 using Shenxiao.Module.Core.Guard;
+using Shenxiao.Module.Core.NineSky;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -213,6 +214,7 @@ namespace Shenxiao.Module.Core.Game
             RevelationController.Instance,
             AchievementController.Instance,
             GuardController.Instance,
+            NineSkyController.Instance,
             // 后续:EquipController ...
         };
 

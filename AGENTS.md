@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## NineSky 13500 (R126)
+
+- 13500 is the parameterless GAME_START snapshot. Wire is `state:u8,left_time:u32,mod:u32,group_id:u32,servers:u16*{server_id:u64,server_num:u64,name:string,world_lv:u64},avg_lv:u64`; `avg_lv` is the global tail after the list, not an entry field. Same-number replies/pushes replace the entire snapshot and an empty list clears old servers. Do not attach 13501-13510, UI, configuration, red dots, or operations.
+
 ## Guard 21601 (R125)
 
 - 21601 is an on-demand, parameterless authoritative circle snapshot; it is deliberately not a GAME_START request. Same-number responses/pushes atomically replace the ordered list, including empty-list clear. Do not attach 21600, 21602-21606, maintenance, operations, dialogs, scene appearance, config, red dots, UI, or resources.

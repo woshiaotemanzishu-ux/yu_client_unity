@@ -958,6 +958,7 @@
         public const int ACHIEVEMENT_STAR = 40906;
         public const int ACHIEVEMENT_TYPES = 40908;
         public const int GUARD_INFO = 21601;
+        public const int NINE_SKY_INFO = 13500;
         /// <summary>装扮类型快照。C2S: dress_type:u8；S2C 为该类型已启用装扮全量列表。</summary>
         public const int DRESS_INFO = 11200;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)
