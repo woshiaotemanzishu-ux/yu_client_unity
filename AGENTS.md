@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## KfSingleRank 50701 (R142)
+
+- GAME_START sends parameterless 50701 once; server owns the rank-dungeon open gate. Snapshot is `start_level:u8,reward_state:u8,levels:u16×{level:u8,go_time:u32}` and fully replaces wire-order entries, including duplicates and empty clears. Do not hardcode a 460 level catch-up or bind role updates until opening configuration/UI exists; exclude 50702-05, UI, scene, config, red dots, and auto-fight.
+
 ## MonBook 44205/44207 (R138/R139)
 
 - 44205 is an on-demand parameterless full snapshot: `pic_list:u16×pic_id:u32`, with no tail. Preserve server order and duplicates; every packet atomically replaces the list and an empty packet clears it. 44207 is an on-demand `pic_id:u32 -> pic_id:u32,next_power:u64` preview cache: same PicId replaces, different IDs coexist, and zero is valid via TryGetPreviewPower. Do not bind GAME_START, bag-finish, 44202 success, 44201-04/06, config, decomposition, red dots, or UI.

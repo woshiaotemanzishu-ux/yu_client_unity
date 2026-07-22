@@ -959,6 +959,8 @@
         public const int MON_BOOK_ACTIVATED_PICS = 44205;
         /// <summary>怪物图鉴单项首级战力预览。C2S: pic_id:u32；S2C: pic_id:u32,next_power:u64。</summary>
         public const int MON_BOOK_PREVIEW_POWER = 44207;
+        /// <summary>跨服单人排行副本个人状态。C2S 空包；S2C: start_level:u8,reward_state:u8,levels:u16×{u8,u32}。</summary>
+        public const int KF_SINGLE_RANK_INFO = 50701;
         public const int ACHIEVEMENT_STAGE = 40901;
         public const int ACHIEVEMENT_ENTRIES = 40903;
         public const int ACHIEVEMENT_STAR = 40906;

@@ -102,6 +102,7 @@ using Shenxiao.Module.Core.MondaysAward;
 using Shenxiao.Module.Core.NoonParty;
 using Shenxiao.Module.Core.Deposit;
 using Shenxiao.Module.Core.MonBook;
+using Shenxiao.Module.Core.KfSingleRank;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -231,6 +232,7 @@ namespace Shenxiao.Module.Core.Game
             NoonPartyController.Instance,
             DepositController.Instance,
             MonBookController.Instance,
+            KfSingleRankController.Instance,
             // 后续:EquipController ...
         };
 
