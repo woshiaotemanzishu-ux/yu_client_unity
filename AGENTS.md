@@ -5,6 +5,7 @@
 - `config_start_nuclear` 是龙珠礼包图标 143 的权威门槛；仅消费 id/open_lv/open_day/times_limit。当前 8 行，最低开启等级 150；1..7 限购1，8限购3。
 - 14311 为 `id:u32,buy_times:u16`。显隐还必须经过 `CheckFuncOpenState("DragonBallView")` 且非 alpha；等级事件只在精确命中配置 open_lv 时重拉。
 - Unity CLI `eval` 在主线程执行：专项若会 `await ResManager.LoadAsync`，必须像批处理用例一样暂置并恢复 `ResManager.EditorPreferFallback=true`，确保 AssetDatabase 兜底同步命中；且 `GetAwaiter().GetResult()` 路径中的整个 Task 必须同步完成，不能含 `Task.Yield`/Delay/等待下一帧，否则会锁死编辑器主线程，只能重启隔离 Unity。
+- 轮105补14310：GAME_START 在已接范围内严格空发14310→14311；14310回包 `status:u8,power:u64` 是全量雕像总览，status=1时服务端刻意下发power=0，必须覆盖旧预期战力。等级命中open_lv与跨天仍只重拉14311，首充仍零出站；本轮不得模仿完整老面板追发14300/14306或播放特效。
 
 ## 属性药剂 pt_217（轮102）
 

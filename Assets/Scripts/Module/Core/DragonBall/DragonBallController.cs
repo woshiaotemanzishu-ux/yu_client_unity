@@ -9,12 +9,12 @@ using Shenxiao.Module.Core.Common;
 namespace Shenxiao.Module.Core.DragonBall
 {
     /// <summary>
-    /// 龙玉(龙珠)礼包控制器(对标老客户端 DragonBallController,模块 143)。进游戏请求 14311;
+    /// 龙玉(龙珠)控制器(对标老客户端 DragonBallController,模块 143)。进游戏依次请求 14310、14311;
     /// 回包据 dragon_gift_data(id/buy_times)增删主界面「龙珠礼包」图标 143(DragonGiftIconType)。
     /// 图标显隐由 DragonBallModel 依据功能开放、alpha、config_start_nuclear、角色/开服状态、限购与首充完整判定，
     /// AddIconAsync 的公共图标配置门作为二次保险。等级变化仅在新等级精确命中表内 open_lv 时复请求14311。
     ///
-    /// 本期只做礼包图标:龙珠本体/苍龙镇世/套装(14300-14306/14310/14312)是另一入口(面板)不在本期;
+    /// 14310 只保存雕像状态与未激活预期战力快照；龙珠本体/苍龙镇世/套装(14300-14306/14312)面板仍不在本期;
     /// 首充更新只按已缓存14311本地复评；开服日变化重拉14311，均与老端一致。
     /// </summary>
     public sealed class DragonBallController : BaseController
@@ -33,6 +33,7 @@ namespace Shenxiao.Module.Core.DragonBall
 
         protected override void Register()
         {
+            RegisterProtocal(Proto.DRAGONBALL_STATUE_OVERVIEW, On14310);
             RegisterProtocal(Proto.DRAGONBALL_GIFT_INFO, On14311);
             // 对标老端 CHANGE_LEVEL→复发 14311:等级变化时复请求(到达礼包 open_lv 后图标出现)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
@@ -41,14 +42,14 @@ namespace Shenxiao.Module.Core.DragonBall
             // 订阅首充更新事件,数据到达后按存下的 GiftId 复判图标(无需重发 14311),兜住这个时序。
             EventDispatcher.On(GlobalEvent.EVT_FIRST_RECHARGE_UPDATE, OnFirstRechargeUpdate);
             // 对标老端 DragonBallController.ts:114-116:DAY_CHANGE→SendFmtToGame(14311),跨天复请求礼包数据。
-            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnDayChange);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_FIRST_RECHARGE_UPDATE, OnFirstRechargeUpdate);
-            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnDayChange);
             ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
             DragonBallModel.Instance.Reset();
             _lastLevel = -1;
@@ -56,11 +57,17 @@ namespace Shenxiao.Module.Core.DragonBall
             base.Dispose();
         }
 
-        /// <summary>进游戏请求(GameStartController.RequestStartupPackets 调用,对标老端 GAME_START 发 14311)。</summary>
+        /// <summary>进游戏请求：对标老端已接部分，严格依次空发 14310、14311。</summary>
         public void RequestStartup()
         {
-            SendEmpty(Proto.DRAGONBALL_GIFT_INFO);
+            RequestStatueOverview();
+            RequestGiftInfo();
         }
+
+        /// <summary>14310 严格空包，获取龙珠雕像总览快照。</summary>
+        public void RequestStatueOverview() => SendEmpty(Proto.DRAGONBALL_STATUE_OVERVIEW);
+        /// <summary>14311 严格空包，获取龙珠礼包购买快照。</summary>
+        public void RequestGiftInfo() => SendEmpty(Proto.DRAGONBALL_GIFT_INFO);
 
         private void SendEmpty(int protoId)
         {
@@ -72,6 +79,12 @@ namespace Shenxiao.Module.Core.DragonBall
             }
 #endif
             SendFmt(protoId);
+        }
+
+        // 14310: status:c,power:l。全量替换，绝不追发其它龙珠协议。
+        private void On14310(NetReader r)
+        {
+            DragonBallModel.Instance.SetStatueOverview(r.ReadU8(), unchecked((ulong)r.ReadU64()));
         }
 
         // 14311: id:i, buy_times:h(对标 pt_143.erl write(14311,[Id:32, BuyTimes:16]))。请求无参(read(14311,_)->{ok,[]})。
@@ -113,7 +126,7 @@ namespace Shenxiao.Module.Core.DragonBall
             if (!role.HasBaseInfo) return;
             if (role.Level == _lastLevel) return;
             _lastLevel = role.Level;
-            if (DragonBallConfigs.IsLoaded && DragonBallConfigs.HasOpenLevel(role.Level)) RequestStartup();
+            if (DragonBallConfigs.IsLoaded && DragonBallConfigs.HasOpenLevel(role.Level)) RequestGiftInfo();
             RefreshGiftIcon();
         }
 
@@ -123,5 +136,8 @@ namespace Shenxiao.Module.Core.DragonBall
         {
             RefreshGiftIcon();
         }
+
+        // 跨天只刷新礼包购买次数，不能重复请求雕像总览。
+        private void OnDayChange() => RequestGiftInfo();
     }
 }

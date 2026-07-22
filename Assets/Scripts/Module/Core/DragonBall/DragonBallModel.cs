@@ -6,9 +6,9 @@ using Shenxiao.Module.Core.Common;
 namespace Shenxiao.Module.Core.DragonBall
 {
     /// <summary>
-    /// 龙玉(龙珠)礼包数据(对标老客户端 DragonBallModel 中与主界面图标 143 相关的部分)。
-    /// 本期只做「龙珠礼包」活动图标(DragonGiftIconType=143):由 14311(dragon_gift_data)驱动显隐。
-    /// 龙珠本体/苍龙镇世/套装(14300-14306/14310/14312)是另一入口(module 143 面板),不是活动图标,不在本期。
+    /// 龙玉(龙珠)数据(对标老客户端 DragonBallModel)。14310 保存雕像状态与未激活预期战力快照；
+    /// 「龙珠礼包」活动图标(DragonGiftIconType=143)由 14311(dragon_gift_data)驱动显隐。
+    /// 龙珠本体/苍龙镇世/套装(14300-14306/14312)是另一入口(module 143 面板),不在本期。
     ///
     /// 老端 RefreshGiftIcon 显隐门槛(faithful):
     ///   1. GetOpenState()          —— 功能开放且非审核服;
@@ -25,6 +25,18 @@ namespace Shenxiao.Module.Core.DragonBall
 
         /// <summary>龙珠礼包活动图标类型(对标老端 DragonBallModel.DragonGiftIconType=143)。</summary>
         public const string ICON_TYPE = "143";
+
+        public byte StatueStatus { get; private set; }
+        public ulong StatuePreviewPower { get; private set; }
+        public bool HasStatueOverview { get; private set; }
+
+        /// <summary>14310 是全量雕像总览；status=1 时服务端下发 power=0 也必须覆盖旧值。</summary>
+        public void SetStatueOverview(byte status, ulong power)
+        {
+            StatueStatus = status;
+            StatuePreviewPower = power;
+            HasStatueOverview = true;
+        }
 
         // 14311 龙珠礼包数据(对标老端 dragon_gift_data / SetDragonBallGiftData)
         public int GiftId;    // 礼包活动id(config_start_nuclear 主键;0 表示无可购礼包)
@@ -59,6 +71,9 @@ namespace Shenxiao.Module.Core.DragonBall
 
         public void Reset()
         {
+            StatueStatus = 0;
+            StatuePreviewPower = 0;
+            HasStatueOverview = false;
             GiftId = 0;
             BuyTimes = 0;
         }

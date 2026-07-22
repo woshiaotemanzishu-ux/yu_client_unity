@@ -921,6 +921,8 @@
         /// 回包(pt_340.erl write(34000,[Pt,Code,Args])):pt:h, code:i, args:s。</summary>
         public const int FRIENDINVITE_ERROR = 34000;
         public const int TOPVIP_INFO = 45101;              // 至尊VIP基础信息
+        /// <summary>龙珠雕像总览。C2S 空包；S2C: status:u8,power:u64。</summary>
+        public const int DRAGONBALL_STATUE_OVERVIEW = 14310;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)
         public const int SEVENDAY_OPEN_INFO = 17500;       // 七天登录信息
         public const int SEVENDAY_MERGE_INFO = 17502;      // 合服七天信息

@@ -39,6 +39,9 @@ namespace Shenxiao.EditorTools
             bool wasInitialized = controller.IsInitialized;
             int oldGift = model.GiftId;
             int oldBuy = model.BuyTimes;
+            byte oldStatueStatus = model.StatueStatus;
+            ulong oldStatuePower = model.StatuePreviewPower;
+            bool oldHasStatueOverview = model.HasStatueOverview;
             int oldLevel = role.Level;
             bool oldHasBaseInfo = role.HasBaseInfo;
             bool oldAlpha = PlatformModel.IsAlpha;
@@ -48,6 +51,7 @@ namespace Shenxiao.EditorTools
             FieldInfo generation = controller.GetType().GetField("_generation", PrivateInstance);
             FieldInfo hasBaseInfo = typeof(RoleModel).GetField("<HasBaseInfo>k__BackingField", PrivateInstance);
             MethodInfo on14311 = controller.GetType().GetMethod("On14311", PrivateInstance);
+            MethodInfo on14310 = controller.GetType().GetMethod("On14310", PrivateInstance);
             MethodInfo onRole = controller.GetType().GetMethod("OnRoleInfoUpdate", PrivateInstance);
             object oldIntercept = intercept?.GetValue(null);
             int oldLastLevel = lastLevel == null ? -1 : (int)lastLevel.GetValue(controller);
@@ -82,7 +86,8 @@ namespace Shenxiao.EditorTools
 
                 FieldInfo handlersField = typeof(NetManager).GetField("_handlers", PrivateStatic);
                 var handlers = handlersField?.GetValue(null) as IDictionary;
-                bool handlerOk = on14311 != null && handlers != null && handlers.Contains(Proto.DRAGONBALL_GIFT_INFO);
+                bool handlerOk = on14310 != null && on14311 != null && handlers != null
+                    && handlers.Contains(Proto.DRAGONBALL_STATUE_OVERVIEW) && handlers.Contains(Proto.DRAGONBALL_GIFT_INFO);
                 if (handlerOk)
                 {
                     byte[] packet = new CliVerify.Pkt().I(1).H(1).Bytes();
@@ -90,6 +95,18 @@ namespace Shenxiao.EditorTools
                     on14311.Invoke(controller, new object[] { reader });
                     handlerOk = reader.Remaining == 0 && model.GiftId == 1 && model.BuyTimes == 1
                         && DragonBallConfigs.Get(1).TimesLimit - model.BuyTimes == 0;
+                }
+
+                if (handlerOk)
+                {
+                    byte[] packet = new CliVerify.Pkt().C(0).L(5000000000L).Bytes();
+                    var reader = new NetReader(packet, 0, packet.Length);
+                    on14310.Invoke(controller, new object[] { reader });
+                    handlerOk = reader.Remaining == 0 && model.HasStatueOverview && model.StatueStatus == 0 && model.StatuePreviewPower == 5000000000UL;
+                    byte[] activePacket = new CliVerify.Pkt().C(1).L(0).Bytes();
+                    var activeReader = new NetReader(activePacket, 0, activePacket.Length);
+                    on14310.Invoke(controller, new object[] { activeReader });
+                    handlerOk = handlerOk && activeReader.Remaining == 0 && model.StatueStatus == 1 && model.StatuePreviewPower == 0;
                 }
 
                 bool seamsOk = intercept != null && onRole != null && lastLevel != null
@@ -124,16 +141,17 @@ namespace Shenxiao.EditorTools
                 onRole?.Invoke(controller, null); // 同级噪音不发。
                 int sameLevel = frames.Count;
 
-                bool outboundOk = seamsOk && startup == 1 && at149 == 1 && at150 == 2 && at151 == 2
-                    && firstRechargeRefresh == 2 && dayChange == 3 && sameLevel == 3
-                    && AllEmpty14311(frames);
+                bool outboundOk = seamsOk && startup == 2 && at149 == 2 && at150 == 3 && at151 == 3
+                    && firstRechargeRefresh == 3 && dayChange == 4 && sameLevel == 4
+                    && EmptyFrames(frames, Proto.DRAGONBALL_STATUE_OVERVIEW, Proto.DRAGONBALL_GIFT_INFO,
+                        Proto.DRAGONBALL_GIFT_INFO, Proto.DRAGONBALL_GIFT_INFO);
 
                 int generationBefore = generation == null ? -1 : (int)generation.GetValue(controller);
                 controller.Dispose();
                 EventDispatcher.Emit(GlobalEvent.EVT_SERVER_DAY_CHANGE);
                 int generationAfter = generation == null ? -1 : (int)generation.GetValue(controller);
-                bool disposeOk = !controller.IsInitialized && frames.Count == 3
-                    && generationAfter == generationBefore + 1;
+                bool disposeOk = !controller.IsInitialized && frames.Count == 4 && !model.HasStatueOverview
+                    && model.StatueStatus == 0 && model.StatuePreviewPower == 0 && generationAfter == generationBefore + 1;
 
                 bool pass = configOk && gatesOk && handlerOk && outboundOk && disposeOk;
                 Debug.Log("CLIVERIFY dragonball config=" + configOk + " gates=" + gatesOk
@@ -150,6 +168,7 @@ namespace Shenxiao.EditorTools
             {
                 if (controller.IsInitialized) controller.Dispose();
                 model.SetGiftInfo(oldGift, oldBuy);
+                if (oldHasStatueOverview) model.SetStatueOverview(oldStatueStatus, oldStatuePower);
                 PlatformModel.IsAlpha = oldAlpha;
                 role.Level = oldLevel;
                 hasBaseInfo?.SetValue(role, oldHasBaseInfo);
@@ -159,15 +178,16 @@ namespace Shenxiao.EditorTools
             }
         }
 
-        private static bool AllEmpty14311(IReadOnlyList<byte[]> frames)
+        private static bool EmptyFrames(IReadOnlyList<byte[]> frames, params int[] protocols)
         {
-            for (int i = 0; i < frames.Count; i++)
+            if (frames.Count != protocols.Length) return false;
+            for (int i = 0; i < protocols.Length; i++)
             {
                 byte[] frame = frames[i];
                 if (frame == null || frame.Length != 6 || frame[0] != 0 || frame[1] != 6
                     || frame[2] != 3 || frame[3] != 232
-                    || frame[4] != (byte)(Proto.DRAGONBALL_GIFT_INFO >> 8)
-                    || frame[5] != (byte)(Proto.DRAGONBALL_GIFT_INFO & 0xFF))
+                    || frame[4] != (byte)(protocols[i] >> 8)
+                    || frame[5] != (byte)(protocols[i] & 0xFF))
                 {
                     return false;
                 }
