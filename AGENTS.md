@@ -22,6 +22,10 @@
 
 - GAME_START 必须发送14401的 `stage:u8=0,type:u8=0` 基础请求。回包为 `stage_list:u16×{stage:u8,type_list:u16×{type:u8,status:u8,pos_list:u16×{gtype_id:u32,pos:u8,status:u8}}}` 全量树；每包替换并允许空包清旧，保存前按stage/type/pos升序，`gtype_id` 必须保留u32。当前只建数据地基，不按角色等级/config过滤，不启用红点/列表/14402打造。
 
+## Medal 13401（轮110）
+
+- GAME_START 发送13401严格空包。回包依次为 `id:u32,stren_lv:u32,stren_exp:u32,honour:u64,power:u32,pass_layers:u32`，每包完整覆盖；服务端也会主动重推同号，接收时只更新 MedalModel，不得回环请求或把 `power` 擅自写入 RoleModel。当前不接13400错误出口、13402-13407操作/称号列表、配置、红点或UI。
+
 本仓库的 AI 编码约束统一维护在:
 
 - [.github/copilot-instructions.md](.github/copilot-instructions.md) — 精简红线(GitHub Copilot 自动加载)

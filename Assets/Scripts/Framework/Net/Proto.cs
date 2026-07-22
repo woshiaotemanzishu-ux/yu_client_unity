@@ -929,6 +929,8 @@
         public const int DRAGONBALL_LIST = 14300;
         /// <summary>不朽圣骸基础快照。C2S: stage:u8,type:u8；S2C 为阶段/类型/部位全量树。</summary>
         public const int ARMOR_INFO = 14401;
+        /// <summary>勋章基础快照。C2S 空包；S2C: id,stren_lv,stren_exp,honour,power,pass_layers。</summary>
+        public const int MEDAL_INFO = 13401;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)
         public const int SEVENDAY_OPEN_INFO = 17500;       // 七天登录信息
         public const int SEVENDAY_MERGE_INFO = 17502;      // 合服七天信息

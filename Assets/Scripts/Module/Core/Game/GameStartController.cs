@@ -38,6 +38,7 @@ using Shenxiao.Module.Core.PushGift;
 using Shenxiao.Module.Core.Adventure;
 using Shenxiao.Module.Core.AttributePotion;
 using Shenxiao.Module.Core.Armor;
+using Shenxiao.Module.Core.Medal;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -103,6 +104,7 @@ namespace Shenxiao.Module.Core.Game
             AdventureController.Instance.RequestStartup();
             AttributePotionController.Instance.RequestStartup();
             ArmorController.Instance.RequestStartup();
+            MedalController.Instance.RequestStartup();
             FunctionOpenController.Instance.RequestList();
             GameLog.Info("Game", "requested startup packets: 13001,10201,30005,13088,10202,15800,15905,15908,33101,45120,22700,13800,13011,13017,13046,13080,13086");
         }
