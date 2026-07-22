@@ -30,6 +30,10 @@
 
 - GAME_START 发送10200严格空包。服务端回 `open_day:u32,server_info:u16×{server_id:u16,server_num:u16,server_name:string,world_lv:u16},modules:u16×{module_id:u16,mod:u8,avg_lv:u16,server_ids:u16×u16,next_server_ids:u16×u16}`，并在跨服分组或服务器名变化时主动重推同号。当前按完整快照替换并允许空列表清旧，只建查询数据底座；不迁老端 Cookie、ViewOrder/KfStart UI，也不接10204/10205/10208/10209。
 
+## Reincarnation 16400（轮112）
+
+- GAME_START 发送16400严格空包，回包为 `active_ids:u16×u32`。当前仅按包全量替换并保留服务端顺序/重复项，空列表清旧；不接16401激活、13040/13041角色转生阶段，不做配置派生 last/next、等级重拉、事件、红点、UI或角色属性修改。
+
 本仓库的 AI 编码约束统一维护在:
 
 - [.github/copilot-instructions.md](.github/copilot-instructions.md) — 精简红线(GitHub Copilot 自动加载)

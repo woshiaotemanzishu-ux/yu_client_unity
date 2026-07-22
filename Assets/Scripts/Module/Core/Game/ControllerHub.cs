@@ -84,6 +84,7 @@ using Shenxiao.Module.Core.AttributePotion;
 using Shenxiao.Module.Core.Armor;
 using Shenxiao.Module.Core.Medal;
 using Shenxiao.Module.Core.KfStage;
+using Shenxiao.Module.Core.Reincarnation;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -195,6 +196,7 @@ namespace Shenxiao.Module.Core.Game
             ArmorController.Instance,
             MedalController.Instance,
             KfStageController.Instance,
+            ReincarnationController.Instance,
             // 后续:EquipController ...
         };
 

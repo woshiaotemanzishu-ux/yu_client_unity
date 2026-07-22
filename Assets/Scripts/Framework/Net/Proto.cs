@@ -933,6 +933,8 @@
         public const int MEDAL_INFO = 13401;
         /// <summary>跨服分组基础快照。C2S 空包；S2C 为服务器与模块分组全量数据。</summary>
         public const int KF_STAGE_INFO = 10200;
+        /// <summary>天命觉醒激活列表快照。C2S 空包；S2C: ids:u16×u32。</summary>
+        public const int REINCARNATION_AWAKEN_INFO = 16400;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)
         public const int SEVENDAY_OPEN_INFO = 17500;       // 七天登录信息
         public const int SEVENDAY_MERGE_INFO = 17502;      // 合服七天信息
