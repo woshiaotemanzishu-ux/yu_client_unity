@@ -34,6 +34,9 @@ namespace Shenxiao.EditorTools
             bool wasInitialized = controller.IsInitialized;
             bool oldHasData = model.HasData;
             uint oldTotalExp = model.TotalExp;
+            bool oldHasBoxCounts = model.HasBoxCounts;
+            uint oldLowBoxCount = model.LowBoxCount;
+            uint oldHighBoxCount = model.HighBoxCount;
             bool oldHasRebornDeadline = model.HasRebornDeadline;
             uint oldRebornDeadline = model.RebornDeadline;
             bool oldHasEndDeadline = model.HasEndDeadline;
@@ -47,14 +50,15 @@ namespace Shenxiao.EditorTools
                 model.Reset();
 
                 MethodInfo on28503 = typeof(NoonPartyController).GetMethod("On28503", InstanceNonPublic);
+                MethodInfo on28504 = typeof(NoonPartyController).GetMethod("On28504", InstanceNonPublic);
                 MethodInfo on28505 = typeof(NoonPartyController).GetMethod("On28505", InstanceNonPublic);
                 MethodInfo on28506 = typeof(NoonPartyController).GetMethod("On28506", InstanceNonPublic);
                 IDictionary handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                bool pass = interceptField != null && on28503 != null && on28505 != null && on28506 != null && handlers != null
-                    && handlers.Contains(28503) && handlers.Contains(28505) && handlers.Contains(28506);
+                bool pass = interceptField != null && on28503 != null && on28504 != null && on28505 != null && on28506 != null && handlers != null
+                    && handlers.Contains(28503) && handlers.Contains(28504) && handlers.Contains(28505) && handlers.Contains(28506);
                 for (int proto = 28500; proto <= 28506; proto++)
                 {
-                    if (proto != 28503 && proto != 28505 && proto != 28506)
+                    if (proto != 28503 && proto != 28504 && proto != 28505 && proto != 28506)
                     {
                         pass &= !handlers.Contains(proto);
                     }
@@ -75,6 +79,9 @@ namespace Shenxiao.EditorTools
                 controller.RequestExp();
                 pass &= IsExactRequest(frames.Count == 1 ? frames[0] : null, Proto.NOON_PARTY_TOTAL_EXP);
                 frames.Clear();
+                controller.RequestBoxCounts();
+                pass &= IsExactRequest(frames.Count == 1 ? frames[0] : null, Proto.NOON_PARTY_BOX_COUNTS);
+                frames.Clear();
                 controller.RequestRebornDeadline();
                 pass &= IsExactRequest(frames.Count == 1 ? frames[0] : null, Proto.NOON_PARTY_REBORN_DEADLINE);
                 frames.Clear();
@@ -86,6 +93,11 @@ namespace Shenxiao.EditorTools
                 pass &= Feed(on28503, controller, 100) && model.TotalExp == 100 && frames.Count == 0;
                 pass &= Feed(on28503, controller, 150) && model.TotalExp == 150 && frames.Count == 0;
                 pass &= Feed(on28503, controller, uint.MaxValue) && model.TotalExp == uint.MaxValue && frames.Count == 0;
+                pass &= FeedBoxCounts(on28504, controller, 0, 0) && model.HasBoxCounts && model.LowBoxCount == 0 && model.HighBoxCount == 0 && frames.Count == 0;
+                pass &= FeedBoxCounts(on28504, controller, 1, 0) && model.LowBoxCount == 1 && model.HighBoxCount == 0 && frames.Count == 0;
+                pass &= FeedBoxCounts(on28504, controller, 1, 1) && model.LowBoxCount == 1 && model.HighBoxCount == 1 && frames.Count == 0;
+                pass &= FeedBoxCounts(on28504, controller, uint.MaxValue, 4000000000U) && model.LowBoxCount == uint.MaxValue && model.HighBoxCount == 4000000000U && frames.Count == 0;
+                pass &= FeedBoxCounts(on28504, controller, 0, 0) && model.LowBoxCount == 0 && model.HighBoxCount == 0 && frames.Count == 0;
                 pass &= Feed(on28505, controller, 0) && model.HasRebornDeadline && model.RebornDeadline == 0 && frames.Count == 0;
                 pass &= Feed(on28505, controller, 200) && model.RebornDeadline == 200 && frames.Count == 0;
                 pass &= Feed(on28505, controller, 250) && model.RebornDeadline == 250 && frames.Count == 0;
@@ -96,7 +108,7 @@ namespace Shenxiao.EditorTools
                 pass &= Feed(on28506, controller, uint.MaxValue) && model.EndDeadline == uint.MaxValue && frames.Count == 0;
 
                 controller.Dispose();
-                pass &= !model.HasData && model.TotalExp == 0 && !model.HasRebornDeadline && model.RebornDeadline == 0
+                pass &= !model.HasData && model.TotalExp == 0 && !model.HasBoxCounts && model.LowBoxCount == 0 && model.HighBoxCount == 0 && !model.HasRebornDeadline && model.RebornDeadline == 0
                     && !model.HasEndDeadline && model.EndDeadline == 0;
 
                 Debug.Log("CLIVERIFY noonparty VERDICT pass=" + pass);
@@ -113,6 +125,11 @@ namespace Shenxiao.EditorTools
                 if (oldHasData)
                 {
                     model.Replace(oldTotalExp);
+                }
+
+                if (oldHasBoxCounts)
+                {
+                    model.ReplaceBoxCounts(oldLowBoxCount, oldHighBoxCount);
                 }
 
                 if (oldHasRebornDeadline)
@@ -140,6 +157,14 @@ namespace Shenxiao.EditorTools
         private static bool Feed(MethodInfo handler, NoonPartyController controller, uint totalExp)
         {
             byte[] packet = new CliVerify.Pkt().I(totalExp).Bytes();
+            var reader = new NetReader(packet, 0, packet.Length);
+            handler.Invoke(controller, new object[] { reader });
+            return reader.Remaining == 0;
+        }
+
+        private static bool FeedBoxCounts(MethodInfo handler, NoonPartyController controller, uint lowBoxCount, uint highBoxCount)
+        {
+            byte[] packet = new CliVerify.Pkt().I(lowBoxCount).I(highBoxCount).Bytes();
             var reader = new NetReader(packet, 0, packet.Length);
             handler.Invoke(controller, new object[] { reader });
             return reader.Remaining == 0;

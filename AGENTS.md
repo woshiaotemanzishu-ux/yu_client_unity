@@ -4,9 +4,9 @@
 
 - GAME_START sends only parameterless 19201. Its complete snapshot is `day_coin:u32,onhook_coin:u32,activities:u16×{module_id:u16,sub_module:u16,select_time:u32,behaviours:u16×{behaviour_id:u16,select_time:u32,times:u16}}`; both list levels have no tail fields. Preserve wire order and duplicates, atomically replace on every reply, and clear on an empty list. Fields stay `DayCoin` then `OnhookCoin`; do not copy the old setter's reversed arguments. Do not attach 19202-08 (especially 19208), operations, exchange, records, UI, config, or red dots.
 
-## NoonParty 28503/28505/28506 (R132/R134/R135)
+## NoonParty 28503/28504/28505/28506 (R132/R134/R135/R136)
 
-- 28503 is an on-demand, parameterless cumulative-experience scalar snapshot: `exp:u32`. Both server paths send the absolute cumulative total, so every packet replaces `TotalExp`; never add deltas. 28505 is separately on-demand and carries `time:u32`, a Unix absolute Boss/treasure-monster reborn deadline; every response/push replaces `RebornDeadline`, never adds a duration. 28506 is separately on-demand and returns the activity's Unix absolute end deadline; each response replaces `EndDeadline`. Do not attach GAME_START, level/scene gates, entry/exit, 28500-02/04, HUD, auto-fight, UI, config, inventory, or other NoonParty behavior.
+- 28503 is an on-demand, parameterless cumulative-experience scalar snapshot: `exp:u32`. Both server paths send the absolute cumulative total, so every packet replaces `TotalExp`; never add deltas. 28504 is separately on-demand and returns `low_box:u32,high_box:u32`; response/push packets replace both absolute counts together, so no local +1 and a later `(0,0)` clears old counts. 28505 is separately on-demand and carries `time:u32`, a Unix absolute Boss/treasure-monster reborn deadline; every response/push replaces `RebornDeadline`, never adds a duration. 28506 is separately on-demand and returns the activity's Unix absolute end deadline; each response replaces `EndDeadline`. Do not attach GAME_START, level/scene gates, entry/exit, 28500-02, HUD, auto-fight, UI, config, inventory, or other NoonParty behavior.
 
 ## MondaysAward 17904 (R131)
 

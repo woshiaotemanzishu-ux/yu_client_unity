@@ -970,6 +970,8 @@
         public const int MONDAYS_AWARD_TASK_STATE = 17904;
         /// <summary>午时狂欢累计经验。C2S 空包；S2C: exp:u32（每包为累计绝对值）。</summary>
         public const int NOON_PARTY_TOTAL_EXP = 28503;
+        /// <summary>午时狂欢普通/高级宝箱已采集绝对计数。C2S 空包；S2C: low_box:u32,high_box:u32。</summary>
+        public const int NOON_PARTY_BOX_COUNTS = 28504;
         /// <summary>午时狂欢 Boss/宝箱怪复活的 Unix 绝对截止时刻。C2S 空包；S2C: time:u32。</summary>
         public const int NOON_PARTY_REBORN_DEADLINE = 28505;
         /// <summary>午时狂欢活动结束的 Unix 绝对截止时刻。C2S 空包；S2C: time:u32。</summary>
