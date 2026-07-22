@@ -20,9 +20,9 @@
 
 - 17904 is the only parameterless GAME_START task-state snapshot: `task_state:u16*{task_id:u16,state:u8}`. Request replies and server task/claim updates replace the ordered list atomically; an empty packet clears it. Do not reproduce the old client’s first-17904 automatic 17907 request or attach 17900-03/05-08, prize pools, draw/claim operations, config, red dots, or UI.
 
-## HolyBattle 21801 (R130)
+## HolyBattle 21801/21804 (R130/R146)
 
-- 21801 is the only parameterless request/reply snapshot: `mod:u8,status:u8,end_time:u32,servers:u16*{server_id:u32,server_num:u32,server_name:string(u16 UTF8),level:u32}`. Every requested reply replaces the complete snapshot and an empty list clears it. Never follow it with 21805 or 21811; no server same-number push is expected. Do not attach 21800/21802-21813, UI, config, red dots, or operations.
+- 21801 is the parameterless world snapshot: `mod:u8,status:u8,end_time:u32,servers:u16*{server_id:u32,server_num:u32,server_name:string(u16 UTF8),level:u32}`. Every requested reply replaces only that complete snapshot and an empty list clears it. 21804 is an independent on-demand parameterless waiting-scene experience snapshot `all_exp:u64`; request replies and experience-growth pushes are absolute cumulative totals, so each packet directly replaces AllExperience and never adds locally. Do not attach 21804 to GAME_START, a local ticker, or client-side scene checks; exclude 21802/03/05-13, UI, rewards, config, red dots, and operations.
 
 ## Eternity 27900 (R129)
 

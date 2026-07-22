@@ -980,6 +980,8 @@
         public const int ETERNITY_TIME_INFO = 27900;
         /// <summary>圣灵战场世界信息。C2S 空包；S2C: mod:u8,status:u8,end_time:u32,servers:u16×{id:u32,num:u32,name:s,level:u32}。</summary>
         public const int HOLY_BATTLE_INFO = 21801;
+        /// <summary>圣灵战场等待场景累计经验。C2S 空包；S2C: all_exp:u64（每包为当前累计总值）。</summary>
+        public const int HOLY_BATTLE_EXPERIENCE = 21804;
         /// <summary>周一嘉礼任务状态。C2S 空包；S2C: task_state:u16×{task_id:u16,state:u8}。</summary>
         public const int MONDAYS_AWARD_TASK_STATE = 17904;
         /// <summary>午时狂欢累计经验。C2S 空包；S2C: exp:u32（每包为累计绝对值）。</summary>

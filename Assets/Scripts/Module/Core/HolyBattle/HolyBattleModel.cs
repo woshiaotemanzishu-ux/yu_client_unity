@@ -34,6 +34,8 @@ namespace Shenxiao.Module.Core.HolyBattle
         public byte Status { get; private set; }
         public uint EndTime { get; private set; }
         public bool HasData { get; private set; }
+        public bool HasExperience { get; private set; }
+        public ulong AllExperience { get; private set; }
         public IReadOnlyList<ServerEntry> Servers => _readOnlyServers;
 
         public void Replace(byte mod, byte status, uint endTime, List<ServerEntry> servers)
@@ -51,6 +53,12 @@ namespace Shenxiao.Module.Core.HolyBattle
             HasData = true;
         }
 
+        public void ReplaceExperience(ulong allExperience)
+        {
+            AllExperience = allExperience;
+            HasExperience = true;
+        }
+
         public void Reset()
         {
             Mod = 0;
@@ -58,6 +66,8 @@ namespace Shenxiao.Module.Core.HolyBattle
             EndTime = 0;
             _servers.Clear();
             HasData = false;
+            HasExperience = false;
+            AllExperience = 0;
         }
     }
 }

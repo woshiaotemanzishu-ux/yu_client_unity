@@ -5,7 +5,7 @@ using Shenxiao.Framework.Net;
 namespace Shenxiao.Module.Core.HolyBattle
 {
     /// <summary>
-    /// 圣灵战场的请求回全量快照。仅接收 21801；不复刻老端同启 21805，
+    /// 圣灵战场的按需快照。仅接收 21801/21804；不复刻老端同启 21805，
     /// 也不在 21801 后自动请求 21811。
     /// </summary>
     public sealed class HolyBattleController : BaseController
@@ -21,6 +21,7 @@ namespace Shenxiao.Module.Core.HolyBattle
         protected override void Register()
         {
             RegisterProtocal(Proto.HOLY_BATTLE_INFO, On21801);
+            RegisterProtocal(Proto.HOLY_BATTLE_EXPERIENCE, On21804);
         }
 
         public void RequestInfo()
@@ -53,6 +54,23 @@ namespace Shenxiao.Module.Core.HolyBattle
             }
 
             HolyBattleModel.Instance.Replace(mod, status, endTime, servers);
+        }
+
+        public void RequestExperience()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.HOLY_BATTLE_EXPERIENCE, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame))
+            {
+                return;
+            }
+#endif
+            SendFmt(Proto.HOLY_BATTLE_EXPERIENCE);
+        }
+
+        private void On21804(NetReader reader)
+        {
+            HolyBattleModel.Instance.ReplaceExperience(unchecked((ulong)reader.ReadU64()));
         }
 
         public override void Dispose()
