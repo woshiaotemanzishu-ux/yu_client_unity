@@ -1,12 +1,13 @@
+using System.Collections.Generic;
 using Shenxiao.Framework.Util;
 
 namespace Shenxiao.Module.Core.Lung
 {
     /// <summary>
-    /// 神纹熔炉数据(对标老客户端 LungModel,模块 181)。神纹(龙纹)是大系统,本期只做主界面图标 181,
-    /// 只承载 18105 下发的熔炉数据(stove_data)中与图标显隐相关的字段。GetStoveOpenState() 对标老端
+    /// 神纹数据(对标老客户端 LungModel,模块 181)。18100 承载基础属性、部位与战力全量快照；
+    /// 18105 只承载熔炉数据(stove_data)中与图标显隐相关的字段。GetStoveOpenState() 对标老端
     /// StoveOpenState(true):有炉数据、crucible_id!=0、且未过期(now<=end_time)时熔炉开启,图标显示。
-    /// 神纹穿戴/升级/兑换/商店/红点等玩法协议(18100-18104/18106-18113)与面板均不移植。
+    /// 神纹穿戴/升级/兑换/商店/红点等玩法协议(18101-18104/18106-18111/18113)与面板均不移植。
     /// </summary>
     public sealed class LungModel
     {
@@ -15,6 +16,39 @@ namespace Shenxiao.Module.Core.Lung
 
         /// <summary>主界面图标类型(对标老端 LungModel.LUNG_TOP_ICON="181",loc2 网格)。</summary>
         public const string ICON_TYPE = "181";
+
+        public sealed class AttributeEntry
+        {
+            public byte AttributeId { get; }
+            public uint AttributeValue { get; }
+            public AttributeEntry(byte attributeId, uint attributeValue) { AttributeId = attributeId; AttributeValue = attributeValue; }
+        }
+
+        public sealed class PositionEntry
+        {
+            public byte Position { get; }
+            public ushort Level { get; }
+            public ulong NextPower { get; }
+            public PositionEntry(byte position, ushort level, ulong nextPower) { Position = position; Level = level; NextPower = nextPower; }
+        }
+
+        private readonly List<AttributeEntry> _attributes = new List<AttributeEntry>();
+        private readonly List<PositionEntry> _positions = new List<PositionEntry>();
+        public IReadOnlyList<AttributeEntry> Attributes => _attributes;
+        public IReadOnlyList<PositionEntry> Positions => _positions;
+        public bool HasLungData { get; private set; }
+        public uint CombatPower { get; private set; }
+
+        /// <summary>18100 是服务端全量快照：空数组同样必须清除本地旧数据。</summary>
+        public void ReplaceLungData(List<AttributeEntry> attributes, List<PositionEntry> positions, uint combatPower)
+        {
+            _attributes.Clear();
+            if (attributes != null) _attributes.AddRange(attributes);
+            _positions.Clear();
+            if (positions != null) _positions.AddRange(positions);
+            CombatPower = combatPower;
+            HasLungData = true;
+        }
 
         // 18105 神纹熔炉数据(对标老端 stove_data),仅保留图标显隐所需字段
         public bool HasStoveData; // 是否已收到 18105
@@ -55,6 +89,10 @@ namespace Shenxiao.Module.Core.Lung
 
         public void Reset()
         {
+            _attributes.Clear();
+            _positions.Clear();
+            HasLungData = false;
+            CombatPower = 0;
             HasStoveData = false;
             CrucibleId = 0;
             StartTime = 0;

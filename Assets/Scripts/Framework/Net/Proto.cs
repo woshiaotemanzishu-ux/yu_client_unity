@@ -906,6 +906,8 @@
         /// 触发)+ lib_sanctuary_cluster_util.erl:162/166 共用此号,回包恒为错误码)。
         /// 回包(pt_284.erl write(28414,[Code])):code:i。</summary>
         public const int KFHOLYAREA_ERROR = 28414;
+        /// <summary>神纹/龙纹基础快照。C2S 严格空包；S2C 为属性、部位与战力的全量替换快照。</summary>
+        public const int LUNG_INFO = 18100;
         public const int LUNG_STOVE_INFO = 18105; // 神纹熔炉数据(stove_data);回包驱动主界面图标181显隐;请求 read(18105,
         /// <summary>神纹熔炉下一次开启状态。C2S 严格空包；S2C: crucible_id:u16,start_time:u32。</summary>
         public const int LUNG_STOVE_OPEN_STATE = 18112;

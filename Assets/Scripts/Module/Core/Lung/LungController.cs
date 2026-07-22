@@ -12,8 +12,8 @@ namespace Shenxiao.Module.Core.Lung
     /// 由 SetStoveData→setStoveIcon 触发的 addIcon/deleteIcon,是唯一直接驱动图标的协议)。等级变化
     /// (EVT_ROLE_INFO_UPDATE)复请求 18105(对标老端 CHANGE_LEVEL→Fire LUNG_REQUEST_PROTO 18105),
     /// 让满足开服/等级门槛后图标及时出现。图标的 open_lv/open_day 门由 ActivityIconManager 图标配置统一把控。
-    /// 本期只做图标与下一炉开启快照:18112 只落 crucible_id/start_time 后无条件重拉 18105,
-    /// 不直接驱动图标、不创建倒计时；神纹穿戴/升级/兑换/商店/红点及面板仍不移植。
+    /// 18100 保存神纹属性、部位与战力的服务端全量快照；18112 只落 crucible_id/start_time 后无条件重拉 18105。
+    /// 本期不直接创建倒计时；神纹穿戴/升级/兑换/商店/红点及面板仍不移植。
     /// </summary>
     public sealed class LungController : BaseController
     {
@@ -31,6 +31,7 @@ namespace Shenxiao.Module.Core.Lung
 
         protected override void Register()
         {
+            RegisterProtocal(Proto.LUNG_INFO, On18100);
             RegisterProtocal(Proto.LUNG_STOVE_INFO, On18105);
             RegisterProtocal(Proto.LUNG_STOVE_OPEN_STATE, On18112);
             // 对标老端 CHANGE_LEVEL→Fire LUNG_REQUEST_PROTO 18105:等级变化时复请求。
@@ -49,13 +50,16 @@ namespace Shenxiao.Module.Core.Lung
             base.Dispose();
         }
 
-        /// <summary>进游戏请求：对标老端 GAME_START 同时发 18105 与 18112。</summary>
+        /// <summary>进游戏请求：依次获取基础快照、熔炉与下一炉开启快照。</summary>
         public void RequestStartup()
         {
-            // read(18105,_)->{ok,[]}:请求无字段,裸发。
+            RequestLungInfo();
             RequestStoveInfo();
             RequestOpenSchedule();
         }
+
+        /// <summary>18100 严格空包；供未来神纹面板请求基础全量快照。</summary>
+        public void RequestLungInfo() => SendEmpty(Proto.LUNG_INFO);
 
         /// <summary>18105 严格空包；等级变化和 18112 回包仅重拉本包。</summary>
         public void RequestStoveInfo() => SendEmpty(Proto.LUNG_STOVE_INFO);
@@ -73,6 +77,24 @@ namespace Shenxiao.Module.Core.Lung
             }
 #endif
             SendFmt(protoId);
+        }
+
+        // 18100: attr_list[u16 × {attr_id:u8,attr_value:u32}],
+        //        pos_list[u16 × {pos:u8,lv:u16,next_power:u64}], combat_power:u32。
+        // 服务端每次下发完整快照，不能与旧数据合并。
+        private void On18100(NetReader r)
+        {
+            int attributeCount = r.ReadU16();
+            var attributes = new System.Collections.Generic.List<LungModel.AttributeEntry>(attributeCount);
+            for (int i = 0; i < attributeCount; i++)
+                attributes.Add(new LungModel.AttributeEntry(r.ReadU8(), r.ReadU32()));
+
+            int positionCount = r.ReadU16();
+            var positions = new System.Collections.Generic.List<LungModel.PositionEntry>(positionCount);
+            for (int i = 0; i < positionCount; i++)
+                positions.Add(new LungModel.PositionEntry(r.ReadU8(), r.ReadU16(), unchecked((ulong)r.ReadU64())));
+
+            LungModel.Instance.ReplaceLungData(attributes, positions, r.ReadU32());
         }
 
         // 18105: crucible_id:h, start_time:i, end_time:i, count:i,
