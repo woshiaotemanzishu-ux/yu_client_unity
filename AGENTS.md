@@ -4,9 +4,9 @@
 
 - GAME_START sends parameterless 50701 once; server owns the rank-dungeon open gate. Snapshot is `start_level:u8,reward_state:u8,levels:u16×{level:u8,go_time:u32}` and fully replaces wire-order entries, including duplicates and empty clears. Do not hardcode a 460 level catch-up or bind role updates until opening configuration/UI exists; exclude 50702-05, UI, scene, config, red dots, and auto-fight.
 
-## MonBook 44205/44207 (R138/R139)
+## MonBook 44201/44205/44207 (R138/R139/R143)
 
-- 44205 is an on-demand parameterless full snapshot: `pic_list:u16×pic_id:u32`, with no tail. Preserve server order and duplicates; every packet atomically replaces the list and an empty packet clears it. 44207 is an on-demand `pic_id:u32 -> pic_id:u32,next_power:u64` preview cache: same PicId replaces, different IDs coexist, and zero is valid via TryGetPreviewPower. Do not bind GAME_START, bag-finish, 44202 success, 44201-04/06, config, decomposition, red dots, or UI.
+- 44201 is on-demand `type:u16` and caches per-Type full groups/pictures/combat, preserving wire order and duplicates; Type0/combat0 are valid. 44205 is an on-demand parameterless full snapshot: `pic_list:u16×pic_id:u32`, with no tail. 44207 is an on-demand preview cache. Do not bind GAME_START, config-type traversal, bag-finish, 44202-04/06, config, decomposition, red dots, or UI.
 
 ## Deposit 19201/19206/19208 (R133/R140/R141)
 
