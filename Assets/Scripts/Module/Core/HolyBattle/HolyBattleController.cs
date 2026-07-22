@@ -5,7 +5,7 @@ using Shenxiao.Framework.Net;
 namespace Shenxiao.Module.Core.HolyBattle
 {
     /// <summary>
-    /// 圣灵战场的按需快照。仅接收 21801/21804；不复刻老端同启 21805，
+    /// 圣灵战场的快照。接收 21801/21804/21805；不复刻老端后续请求，
     /// 也不在 21801 后自动请求 21811。
     /// </summary>
     public sealed class HolyBattleController : BaseController
@@ -22,6 +22,7 @@ namespace Shenxiao.Module.Core.HolyBattle
         {
             RegisterProtocal(Proto.HOLY_BATTLE_INFO, On21801);
             RegisterProtocal(Proto.HOLY_BATTLE_EXPERIENCE, On21804);
+            RegisterProtocal(Proto.HOLY_BATTLE_SCORE, On21805);
         }
 
         public void RequestInfo()
@@ -71,6 +72,31 @@ namespace Shenxiao.Module.Core.HolyBattle
         private void On21804(NetReader reader)
         {
             HolyBattleModel.Instance.ReplaceExperience(unchecked((ulong)reader.ReadU64()));
+        }
+
+        public void RequestScore()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.HOLY_BATTLE_SCORE, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame))
+            {
+                return;
+            }
+#endif
+            SendFmt(Proto.HOLY_BATTLE_SCORE);
+        }
+
+        private void On21805(NetReader reader)
+        {
+            uint point = reader.ReadU32();
+            int count = reader.ReadU16();
+            var rewards = new List<HolyBattleModel.RewardEntry>(count);
+            for (int i = 0; i < count; i++)
+            {
+                rewards.Add(new HolyBattleModel.RewardEntry(reader.ReadU16(), reader.ReadU8()));
+            }
+
+            HolyBattleModel.Instance.ReplaceScore(point, rewards);
         }
 
         public override void Dispose()

@@ -20,14 +20,29 @@ namespace Shenxiao.Module.Core.HolyBattle
             }
         }
 
+        public sealed class RewardEntry
+        {
+            public ushort Stage { get; }
+            public byte Status { get; }
+
+            public RewardEntry(ushort stage, byte status)
+            {
+                Stage = stage;
+                Status = status;
+            }
+        }
+
         public static readonly HolyBattleModel Instance = new HolyBattleModel();
 
         private readonly List<ServerEntry> _servers = new List<ServerEntry>();
         private readonly IReadOnlyList<ServerEntry> _readOnlyServers;
+        private readonly List<RewardEntry> _rewards = new List<RewardEntry>();
+        private readonly IReadOnlyList<RewardEntry> _readOnlyRewards;
 
         private HolyBattleModel()
         {
             _readOnlyServers = _servers.AsReadOnly();
+            _readOnlyRewards = _rewards.AsReadOnly();
         }
 
         public byte Mod { get; private set; }
@@ -36,7 +51,10 @@ namespace Shenxiao.Module.Core.HolyBattle
         public bool HasData { get; private set; }
         public bool HasExperience { get; private set; }
         public ulong AllExperience { get; private set; }
+        public bool HasScore { get; private set; }
+        public uint Point { get; private set; }
         public IReadOnlyList<ServerEntry> Servers => _readOnlyServers;
+        public IReadOnlyList<RewardEntry> Rewards => _readOnlyRewards;
 
         public void Replace(byte mod, byte status, uint endTime, List<ServerEntry> servers)
         {
@@ -59,6 +77,18 @@ namespace Shenxiao.Module.Core.HolyBattle
             HasExperience = true;
         }
 
+        public void ReplaceScore(uint point, List<RewardEntry> rewards)
+        {
+            Point = point;
+            _rewards.Clear();
+            if (rewards != null)
+            {
+                _rewards.AddRange(rewards);
+            }
+
+            HasScore = true;
+        }
+
         public void Reset()
         {
             Mod = 0;
@@ -68,6 +98,9 @@ namespace Shenxiao.Module.Core.HolyBattle
             HasData = false;
             HasExperience = false;
             AllExperience = 0;
+            HasScore = false;
+            Point = 0;
+            _rewards.Clear();
         }
     }
 }

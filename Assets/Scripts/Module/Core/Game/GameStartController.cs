@@ -137,6 +137,7 @@ namespace Shenxiao.Module.Core.Game
             TSCrackController.Instance.RequestInfo();
             EternityController.Instance.RequestStartup();
             HolyBattleController.Instance.RequestInfo();
+            HolyBattleController.Instance.RequestScore();
             MondaysAwardController.Instance.RequestTaskState();
             DepositController.Instance.RequestActivityOnhook();
             FunctionOpenController.Instance.RequestList();

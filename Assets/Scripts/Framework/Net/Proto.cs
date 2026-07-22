@@ -982,6 +982,8 @@
         public const int HOLY_BATTLE_INFO = 21801;
         /// <summary>圣灵战场等待场景累计经验。C2S 空包；S2C: all_exp:u64（每包为当前累计总值）。</summary>
         public const int HOLY_BATTLE_EXPERIENCE = 21804;
+        /// <summary>圣灵战场个人积分与阶段奖励。C2S 空包；S2C: point:u32,rewards:u16×{stage:u16,status:u8}。</summary>
+        public const int HOLY_BATTLE_SCORE = 21805;
         /// <summary>周一嘉礼任务状态。C2S 空包；S2C: task_state:u16×{task_id:u16,state:u8}。</summary>
         public const int MONDAYS_AWARD_TASK_STATE = 17904;
         /// <summary>午时狂欢累计经验。C2S 空包；S2C: exp:u32（每包为累计绝对值）。</summary>
