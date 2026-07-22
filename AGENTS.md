@@ -4,9 +4,9 @@
 
 - 44205 is an on-demand parameterless full snapshot: `pic_list:u16×pic_id:u32`, with no tail. Preserve server order and duplicates; every packet atomically replaces the list and an empty packet clears it. 44207 is an on-demand `pic_id:u32 -> pic_id:u32,next_power:u64` preview cache: same PicId replaces, different IDs coexist, and zero is valid via TryGetPreviewPower. Do not bind GAME_START, bag-finish, 44202 success, 44201-04/06, config, decomposition, red dots, or UI.
 
-## Deposit 19201 (R133)
+## Deposit 19201/19208 (R133/R140)
 
-- GAME_START sends only parameterless 19201. Its complete snapshot is `day_coin:u32,onhook_coin:u32,activities:u16×{module_id:u16,sub_module:u16,select_time:u32,behaviours:u16×{behaviour_id:u16,select_time:u32,times:u16}}`; both list levels have no tail fields. Preserve wire order and duplicates, atomically replace on every reply, and clear on an empty list. Fields stay `DayCoin` then `OnhookCoin`; do not copy the old setter's reversed arguments. Do not attach 19202-08 (especially 19208), operations, exchange, records, UI, config, or red dots.
+- GAME_START sends only parameterless 19201. Its complete snapshot is `day_coin:u32,onhook_coin:u32,activities:u16×{module_id:u16,sub_module:u16,select_time:u32,behaviours:u16×{behaviour_id:u16,select_time:u32,times:u16}}`; both list levels have no tail fields. Preserve wire order and duplicates, atomically replace on every reply, and clear on an empty list. Fields stay `DayCoin` then `OnhookCoin`; do not copy the old setter's reversed arguments. S2C-only 19208 is a two-u32 absolute coin snapshot: it sets HasCoins but must not mark Activities loaded (HasData). Do not attach 19202-07, operations, exchange, records, UI, config, or red dots.
 
 ## NoonParty 28503/28504/28505/28506 (R132/R134/R135/R136)
 

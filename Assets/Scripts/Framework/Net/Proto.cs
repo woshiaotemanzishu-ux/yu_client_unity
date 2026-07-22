@@ -984,6 +984,8 @@
         public const int NOON_PARTY_END_DEADLINE = 28506;
         /// <summary>托管选择快照。C2S 空包；S2C: day_coin:u32,onhook_coin:u32,activities:u16×嵌套行为列表。</summary>
         public const int DEPOSIT_ACTIVITY_ONHOOK = 19201;
+        /// <summary>托管双币主动推送。S2C: day_coin:u32,onhook_coin:u32；无 C2S。</summary>
+        public const int DEPOSIT_COINS_PUSH = 19208;
         /// <summary>装扮类型快照。C2S: dress_type:u8；S2C 为该类型已启用装扮全量列表。</summary>
         public const int DRESS_INFO = 11200;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)

@@ -17,6 +17,7 @@ namespace Shenxiao.Module.Core.Deposit
         protected override void Register()
         {
             RegisterProtocal(Proto.DEPOSIT_ACTIVITY_ONHOOK, On19201);
+            RegisterProtocal(Proto.DEPOSIT_COINS_PUSH, On19208);
         }
 
         public void RequestActivityOnhook()
@@ -48,6 +49,11 @@ namespace Shenxiao.Module.Core.Deposit
                 activities.Add(new DepositModel.ActivityEntry(moduleId, subModule, selectTime, behaviours));
             }
             DepositModel.Instance.Replace(dayCoin, onhookCoin, activities);
+        }
+
+        private void On19208(NetReader reader)
+        {
+            DepositModel.Instance.ReplaceCoins(reader.ReadU32(), reader.ReadU32());
         }
 
         public override void Dispose()

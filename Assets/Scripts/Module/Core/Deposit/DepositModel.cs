@@ -44,6 +44,7 @@ namespace Shenxiao.Module.Core.Deposit
         }
 
         public bool HasData { get; private set; }
+        public bool HasCoins { get; private set; }
         public uint DayCoin { get; private set; }
         public uint OnhookCoin { get; private set; }
         public IReadOnlyList<ActivityEntry> Activities => _readOnlyActivities;
@@ -55,6 +56,14 @@ namespace Shenxiao.Module.Core.Deposit
             _activities.Clear();
             if (activities != null) _activities.AddRange(activities);
             HasData = true;
+            HasCoins = true;
+        }
+
+        public void ReplaceCoins(uint dayCoin, uint onhookCoin)
+        {
+            DayCoin = dayCoin;
+            OnhookCoin = onhookCoin;
+            HasCoins = true;
         }
 
         public void Reset()
@@ -63,6 +72,7 @@ namespace Shenxiao.Module.Core.Deposit
             OnhookCoin = 0;
             _activities.Clear();
             HasData = false;
+            HasCoins = false;
         }
     }
 }

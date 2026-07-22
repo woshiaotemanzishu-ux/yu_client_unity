@@ -30,6 +30,7 @@ namespace Shenxiao.EditorTools
             DepositModel model = DepositModel.Instance;
             bool wasInitialized = controller.IsInitialized;
             bool oldHasData = model.HasData;
+            bool oldHasCoins = model.HasCoins;
             uint oldDayCoin = model.DayCoin;
             uint oldOnhookCoin = model.OnhookCoin;
             var oldActivities = new List<DepositModel.ActivityEntry>(model.Activities);
@@ -39,10 +40,10 @@ namespace Shenxiao.EditorTools
             {
                 controller.Init();
                 model.Reset();
-                MethodInfo handler = typeof(DepositController).GetMethod("On19201", InstanceNonPublic);
+                MethodInfo handler = typeof(DepositController).GetMethod("On19201", InstanceNonPublic); MethodInfo coins = typeof(DepositController).GetMethod("On19208", InstanceNonPublic);
                 IDictionary handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                bool pass = interceptField != null && handler != null && handlers != null && handlers.Contains(19201);
-                for (int proto = 19200; proto <= 19208; proto++) if (proto != 19201) pass &= !handlers.Contains(proto);
+                bool pass = interceptField != null && handler != null && coins != null && handlers != null && handlers.Contains(19201) && handlers.Contains(19208);
+                for (int proto = 19200; proto <= 19208; proto++) if (proto != 19201 && proto != 19208) pass &= !handlers.Contains(proto);
                 if (!pass) return 3;
 
                 var frames = new List<byte[]>();
@@ -50,11 +51,12 @@ namespace Shenxiao.EditorTools
                 controller.RequestActivityOnhook();
                 pass &= ExactFrame(frames.Count == 1 ? frames[0] : null);
                 frames.Clear();
+                pass &= Feed(coins, controller, new CliVerify.Pkt().I(9).I(10).Bytes()) && model.HasCoins && !model.HasData && model.DayCoin == 9 && model.OnhookCoin == 10 && model.Activities.Count == 0 && frames.Count == 0;
 
                 byte[] first = new CliVerify.Pkt().I(uint.MaxValue).I(4000000000L).H(2)
                     .H(0).H(ushort.MaxValue).I(uint.MaxValue).H(2).H(0).I(0).H(0).H(ushort.MaxValue).I(4000000000L).H(ushort.MaxValue)
                     .H(7).H(8).I(9).H(0).Bytes();
-                pass &= Feed(handler, controller, first) && model.HasData && model.DayCoin == uint.MaxValue && model.OnhookCoin == 4000000000U
+                pass &= Feed(handler, controller, first) && model.HasData && model.HasCoins && model.DayCoin == uint.MaxValue && model.OnhookCoin == 4000000000U
                     && model.Activities.Count == 2 && model.Activities[0].ModuleId == 0 && model.Activities[0].SubModule == ushort.MaxValue
                     && model.Activities[0].SelectTime == uint.MaxValue && model.Activities[0].Behaviours.Count == 2
                     && model.Activities[0].Behaviours[1].BehaviourId == ushort.MaxValue && model.Activities[0].Behaviours[1].SelectTime == 4000000000U
@@ -68,8 +70,12 @@ namespace Shenxiao.EditorTools
                 byte[] third = new CliVerify.Pkt().I(0).I(0).H(0).Bytes();
                 pass &= Feed(handler, controller, third) && model.HasData && model.DayCoin == 0 && model.OnhookCoin == 0
                     && model.Activities.Count == 0 && frames.Count == 0;
+                pass &= Feed(handler, controller, first) && model.Activities.Count == 2;
+                pass &= Feed(coins, controller, new CliVerify.Pkt().I(100).I(150).Bytes()) && model.DayCoin == 100 && model.OnhookCoin == 150 && model.Activities.Count == 2 && frames.Count == 0;
+                pass &= Feed(coins, controller, new CliVerify.Pkt().I(80).I(200).Bytes()) && model.DayCoin == 80 && model.OnhookCoin == 200 && model.Activities.Count == 2 && frames.Count == 0;
+                pass &= Feed(coins, controller, new CliVerify.Pkt().I(0).I(0).Bytes()) && model.DayCoin == 0 && model.OnhookCoin == 0 && model.Activities.Count == 2 && frames.Count == 0;
                 controller.Dispose();
-                pass &= !model.HasData && model.DayCoin == 0 && model.OnhookCoin == 0 && model.Activities.Count == 0;
+                pass &= !model.HasData && !model.HasCoins && model.DayCoin == 0 && model.OnhookCoin == 0 && model.Activities.Count == 0;
                 Debug.Log("CLIVERIFY deposit VERDICT pass=" + pass);
                 return pass ? 0 : 3;
             }
@@ -77,7 +83,7 @@ namespace Shenxiao.EditorTools
             {
                 if (controller.IsInitialized) controller.Dispose();
                 model.Reset();
-                if (oldHasData) model.Replace(oldDayCoin, oldOnhookCoin, oldActivities);
+                if (oldHasData) model.Replace(oldDayCoin, oldOnhookCoin, oldActivities); else if (oldHasCoins) model.ReplaceCoins(oldDayCoin, oldOnhookCoin);
                 if (wasInitialized) controller.Init();
                 if (interceptField != null) interceptField.SetValue(null, oldIntercept);
             }
