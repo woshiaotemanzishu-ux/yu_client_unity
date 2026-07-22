@@ -575,17 +575,33 @@ namespace Shenxiao.EditorTools
                 setBagFull.Invoke(Shenxiao.Module.Core.Bag.BagModel.Instance, new object[] { 0, 20, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods> { new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = 1, TypeId = 38040031, GoodsNum = 1 } } });
                 BabyEquipInfo equip = new BabyEquipInfo(); equip.EquipList.Add(new BabyEquipEntry { PositionId = 1, Id = 11, GoodsTypeId = 65010200, Stage = 0, StageLevel = 0, StageExp = 0 }); BabyModel.Instance.ApplyEquip(equip);
                 view.SetPositionId(1); BabyEquipUpgradeConfigs.PreviewResult levelPreview = BabyEquipUpgradeConfigs.Preview(equip.EquipList[0]);
-                bool level = view.Mode == BabyForgeView.ForgeMode.Level && view.RenderedCostCount == levelPreview.Costs.Count && FindNode(root.transform, "lvLb")?.GetComponent<TMPro.TextMeshProUGUI>()?.text == "0\u7ea7" && FindNode(root.transform, "nextlvLb")?.GetComponent<TMPro.TextMeshProUGUI>()?.text == "1\u7ea7" && FindNode(root.transform, "lvExpLb")?.GetComponent<TMPro.TextMeshProUGUI>()?.text.StartsWith("0/") == true && FindNode(root.transform, "lvGp")?.gameObject.activeSelf == true && FindNode(root.transform, "stageGp")?.gameObject.activeSelf == false && FindNode(root.transform, "maxStage")?.gameObject.activeSelf == false && FindNode(root.transform, "lvExpImg")?.GetComponent<UnityEngine.UI.Image>()?.fillAmount == 0f;
+                UnityEngine.UI.Button levelButton = FindNode(root.transform, "lvBtn")?.GetComponent<UnityEngine.UI.Button>();
+                UnityEngine.UI.Button stageButton = FindNode(root.transform, "stageBtn")?.GetComponent<UnityEngine.UI.Button>();
+                bool level = view.Mode == BabyForgeView.ForgeMode.Level && view.RenderedCostCount == levelPreview.Costs.Count && FindNode(root.transform, "lvLb")?.GetComponent<TMPro.TextMeshProUGUI>()?.text == "0\u7ea7" && FindNode(root.transform, "nextlvLb")?.GetComponent<TMPro.TextMeshProUGUI>()?.text == "1\u7ea7" && FindNode(root.transform, "lvExpLb")?.GetComponent<TMPro.TextMeshProUGUI>()?.text.StartsWith("0/") == true && FindNode(root.transform, "lvGp")?.gameObject.activeSelf == true && FindNode(root.transform, "stageGp")?.gameObject.activeSelf == false && FindNode(root.transform, "maxStage")?.gameObject.activeSelf == false && FindNode(root.transform, "lvExpImg")?.GetComponent<UnityEngine.UI.Image>()?.fillAmount == 0f && levelButton != null && stageButton != null && view.LevelInteractable && !view.StageInteractable;
+                levelButton?.onClick.Invoke(); levelButton?.onClick.Invoke();
+                var levelReader = frames.Count == 1 ? new NetReader(frames[0], 6, frames[0].Length - 6) : null;
+                bool levelRequest = levelReader != null && IsProtocol(frames[0], Proto.BABY_EQUIP_UPGRADE) && levelReader.ReadU8() == 1 && levelReader.Remaining == 0
+                    && view.Pending && !view.LevelInteractable && !view.StageInteractable && view.LastConfirmText.Contains("\u00d71");
+                view.OnUpgradeResult();
+                bool resultRestores = !view.Pending && view.LevelInteractable;
+                BabyEquipUpgradeConfigs.StageCfg nextStage = BabyEquipUpgradeConfigs.GetStage(1);
+                var stageGoods = new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>();
+                if (nextStage != null) for (int i = 0; i < nextStage.Costs.Count; i++) stageGoods.Add(new Shenxiao.Module.Core.Bag.BagGoods { GoodsId = i + 2, TypeId = nextStage.Costs[i].TypeId, GoodsNum = nextStage.Costs[i].Num });
+                setBagFull.Invoke(Shenxiao.Module.Core.Bag.BagModel.Instance, new object[] { 0, 20, stageGoods });
                 equip.EquipList[0].StageLevel = 10; view.Refresh(); BabyEquipUpgradeConfigs.PreviewResult stagePreview = BabyEquipUpgradeConfigs.Preview(equip.EquipList[0]);
-                bool stage = view.Mode == BabyForgeView.ForgeMode.Stage && stagePreview.IsStageUpgrade && view.RenderedCostCount == stagePreview.Costs.Count && FindNode(root.transform, "lvGp")?.gameObject.activeSelf == false && FindNode(root.transform, "stageGp")?.gameObject.activeSelf == true && FindNode(root.transform, "maxStage")?.gameObject.activeSelf == false;
+                bool stage = view.Mode == BabyForgeView.ForgeMode.Stage && stagePreview.IsStageUpgrade && view.RenderedCostCount == stagePreview.Costs.Count && FindNode(root.transform, "lvGp")?.gameObject.activeSelf == false && FindNode(root.transform, "stageGp")?.gameObject.activeSelf == true && FindNode(root.transform, "maxStage")?.gameObject.activeSelf == false && !view.LevelInteractable && view.StageInteractable;
+                setBagFull.Invoke(Shenxiao.Module.Core.Bag.BagModel.Instance, new object[] { 0, 20, new System.Collections.Generic.List<Shenxiao.Module.Core.Bag.BagGoods>() }); view.Refresh();
+                bool insufficient = !view.LevelInteractable && !view.StageInteractable && frames.Count == 1;
                 equip.EquipList[0].Stage = 10; equip.EquipList[0].StageLevel = 0; view.Refresh();
                 bool max = view.Mode == BabyForgeView.ForgeMode.Max && view.RenderedCostCount == 0 && FindNode(root.transform, "maxStage")?.gameObject.activeSelf == true;
-                bool passive = FindNode(root.transform, "lvBtn")?.GetComponent<UnityEngine.UI.Button>() == null && FindNode(root.transform, "stageBtn")?.GetComponent<UnityEngine.UI.Button>() == null && FindNode(root.transform, "targetGp")?.gameObject.activeSelf == false && FindNode(root.transform, "effectGp")?.gameObject.activeSelf == false && FindNode(root.transform, "targetEffectGp")?.gameObject.activeSelf == false;
+                BabyModel.Instance.ApplyEquip(new BabyEquipInfo()); view.SetPositionId(1);
+                bool noEquip = view.Mode == BabyForgeView.ForgeMode.Empty && !view.LevelInteractable && !view.StageInteractable && frames.Count == 1;
+                bool passive = FindNode(root.transform, "targetGp")?.gameObject.activeSelf == false && FindNode(root.transform, "effectGp")?.gameObject.activeSelf == false && FindNode(root.transform, "targetEffectGp")?.gameObject.activeSelf == false;
                 view.Clear();
                 bool cleared = view.PositionId == 0 && view.Mode == BabyForgeView.ForgeMode.Empty && view.RenderedCostCount == 0;
-                Debug.Log("CLIVERIFY baby forge display level=" + level + " stage=" + stage + " max=" + max
-                    + " passive=" + passive + " cleared=" + cleared + " frames=" + frames.Count);
-                return level && stage && max && passive && cleared && frames.Count == 0;
+                Debug.Log("CLIVERIFY baby forge display level=" + level + " request=" + levelRequest + " restore=" + resultRestores + " stage=" + stage + " insufficient=" + insufficient + " max=" + max
+                    + " noEquip=" + noEquip + " passive=" + passive + " cleared=" + cleared + " frames=" + frames.Count);
+                return level && levelRequest && resultRestores && stage && insufficient && max && noEquip && passive && cleared && frames.Count == 1;
             }
             finally { Shenxiao.Module.Core.Bag.BagModel.Instance.Clear(); BabyModel.Instance.Reset(); intercept.SetValue(null, oldIntercept); UnityEngine.Object.DestroyImmediate(root); }
         }
@@ -866,7 +882,7 @@ namespace Shenxiao.EditorTools
                 Transform viewGp = FindNode(root.transform, "viewGp");
                 if (viewGp != null) for (int i = 0; i < viewGp.childCount; i++) if (viewGp.GetChild(i).gameObject.activeSelf) activeDirectChildren++;
                 bool forgeNavigation = view.CurrentScreen == BabyEquipFuncView.Screen.Forge && forge != null && forge.gameObject.activeInHierarchy
-                    && forge.PositionId == 2 && content != null && !content.gameObject.activeInHierarchy && activeDirectChildren == 1;
+                    && forge.PositionId == 2 && (content == null || !content.gameObject.activeInHierarchy) && activeDirectChildren == 1;
                 UnityEngine.UI.Button closeButton = FindNode(root.transform, "closeBtn")?.GetComponent<UnityEngine.UI.Button>();
                 closeButton?.onClick.Invoke();
                 content = null;

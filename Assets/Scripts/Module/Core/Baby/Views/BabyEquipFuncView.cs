@@ -103,7 +103,12 @@ namespace Shenxiao.Module.Core.Baby
 
         private void OnUpdate(int command)
         {
-            if ((command == Proto.BABY_EQUIP_INFO || command == Proto.BABY_EQUIP_WEAR || command == Proto.BABY_EQUIP_UPGRADE || command == Proto.BABY_STAGE_INFO) && _shown) Refresh();
+            if (command == Proto.BABY_EQUIP_UPGRADE && _shown && _screen == Screen.Forge)
+            {
+                if (_content != null) _content.GetComponent<BabyForgeView>()?.OnUpgradeResult();
+                return;
+            }
+            if ((command == Proto.BABY_EQUIP_INFO || command == Proto.BABY_EQUIP_WEAR || command == Proto.BABY_STAGE_INFO) && _shown) Refresh();
         }
 
         private async System.Threading.Tasks.Task EnsureConfigs()
