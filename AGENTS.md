@@ -1,5 +1,10 @@
 # AGENTS.md
 
+## Dress 11200 (R118)
+
+- GAME_START sends four `11200 + dress_type:u8` requests in the fixed order `1(Bubble) -> 2(Photo) -> 3(Foot) -> 5(Head)`; do not attach 11201-11205.
+- The reply is a type-local full snapshot: `type:u8,used_dress_id:u32,enable_list:u16×{dress_id:u32,dress_lv:u16,cur_power:u64,next_power:u64}`. The U16 is the list count, not a second business field. Same type replaces (an empty list clears only that type); different types coexist. Keep it query-only: no config, wear, activation, upgrade, preview, UI, resources, or scene sync.
+
 ## TempleAwaken 42901（R117）
 - GAME_START 顺序空发 42901→42909；42901 为章节/子章/阶段全量树，process 是 u64，空列表清旧。
 - 42900 成功后仅重拉 42901；同号推送只替换模型并发更新事件，不接领奖、UI 或配置推导。

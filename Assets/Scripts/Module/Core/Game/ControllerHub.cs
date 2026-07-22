@@ -88,6 +88,7 @@ using Shenxiao.Module.Core.Reincarnation;
 using Shenxiao.Module.Core.GodBeast;
 using Shenxiao.Module.Core.Designation;
 using Shenxiao.Module.Core.Mask;
+using Shenxiao.Module.Core.Dress;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -203,6 +204,7 @@ namespace Shenxiao.Module.Core.Game
             GodBeastController.Instance,
             DesignationController.Instance,
             MaskController.Instance,
+            DressController.Instance,
             // 后续:EquipController ...
         };
 
