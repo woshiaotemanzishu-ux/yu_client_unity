@@ -907,6 +907,8 @@
         /// 回包(pt_284.erl write(28414,[Code])):code:i。</summary>
         public const int KFHOLYAREA_ERROR = 28414;
         public const int LUNG_STOVE_INFO = 18105; // 神纹熔炉数据(stove_data);回包驱动主界面图标181显隐;请求 read(18105,
+        /// <summary>神纹熔炉下一次开启状态。C2S 严格空包；S2C: crucible_id:u16,start_time:u32。</summary>
+        public const int LUNG_STOVE_OPEN_STATE = 18112;
         public const int BASEDUNGEON_TOWER_INFO = 61117; // 限时爬塔状态(round/over_time/reward_mode)——驱动限时塔图标 331
         public const int GROWTHBENEFITS_INFO = 41720;      // 成长福利信息/任务态
         public const int GROWTHBENEFITS_TASK_UPDATE = 41721; // 成长福利任务进度推送

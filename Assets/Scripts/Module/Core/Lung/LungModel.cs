@@ -21,6 +21,9 @@ namespace Shenxiao.Module.Core.Lung
         public int CrucibleId;    // 当前熔炉id(0=未开炉)
         public long StartTime;    // 熔炉开始时间戳
         public long EndTime;      // 熔炉结束时间戳(now 超过即关炉)
+        public int NextCrucibleId;
+        public long NextStartTime;
+        public bool HasOpenSchedule;
 
         public void SetStoveData(int crucibleId, long startTime, long endTime)
         {
@@ -28,6 +31,13 @@ namespace Shenxiao.Module.Core.Lung
             CrucibleId = crucibleId;
             StartTime = startTime;
             EndTime = endTime;
+        }
+
+        public void ApplyOpenSchedule(int crucibleId, long startTime)
+        {
+            NextCrucibleId = crucibleId;
+            NextStartTime = startTime;
+            HasOpenSchedule = true;
         }
 
         /// <summary>
@@ -49,6 +59,9 @@ namespace Shenxiao.Module.Core.Lung
             CrucibleId = 0;
             StartTime = 0;
             EndTime = 0;
+            NextCrucibleId = 0;
+            NextStartTime = 0;
+            HasOpenSchedule = false;
         }
     }
 }

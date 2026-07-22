@@ -576,6 +576,12 @@ namespace Shenxiao.EditorTools
             Run(BabyCase.Run, 300.0);
         }
 
+        /// <summary>神纹熔炉 18105/18112 启动和时间刷新闭环。</summary>
+        public static void Lung()
+        {
+            Run(LungCase.Run, 60.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -646,6 +652,7 @@ namespace Shenxiao.EditorTools
                 int pi = await PetEquipInventoryCase.Run();
                 int pu = await PetEquipUiCase.Run();
                 int by = await BabyCase.Run();
+                int lu = await LungCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -662,8 +669,8 @@ namespace Shenxiao.EditorTools
                     + " market=" + mk + " serverclock=" + sc
                     + " lookover=" + lo + " fashion=" + fa + " listduobao=" + ld + " protocolcoverage=" + pc + " guildactivity=" + ga
                     + " starequip=" + se + " starforge=" + sf + " banquet=" + bq
-                    + " petequip=" + pe + " petequipinventory=" + pi + " petequipui=" + pu + " baby=" + by);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, ld, pc, ga, se, sf, bq, pe, pi, pu, by })
+                    + " petequip=" + pe + " petequipinventory=" + pi + " petequipui=" + pu + " baby=" + by + " lung=" + lu);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, ld, pc, ga, se, sf, bq, pe, pi, pu, by, lu })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

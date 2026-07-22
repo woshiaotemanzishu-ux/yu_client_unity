@@ -12,17 +12,16 @@ namespace Shenxiao.Module.Core.Lung
     /// 由 SetStoveData→setStoveIcon 触发的 addIcon/deleteIcon,是唯一直接驱动图标的协议)。等级变化
     /// (EVT_ROLE_INFO_UPDATE)复请求 18105(对标老端 CHANGE_LEVEL→Fire LUNG_REQUEST_PROTO 18105),
     /// 让满足开服/等级门槛后图标及时出现。图标的 open_lv/open_day 门由 ActivityIconManager 图标配置统一把控。
-    /// 本期只做图标:神纹穿戴/升级/兑换/商店/红点(18100-18104/18106-18113)、18112(stove_open_state,
-    /// 老端仅设 start_time 并复请求 18105,不直接动图标)与面板均不移植。
-    ///
-    /// TODO(REFRESH_SERVER_TIME→18112):老端 LungController.ts:208 在 REFRESH_SERVER_TIME 时
-    /// Fire LUNG_REQUEST_PROTO 18112(Handler18112 落 stove_open_state 后复请求 18105);本端 Proto
-    /// 尚无 18112 号、LungModel 亦无 stove_open_state 字段,移植该协议时再补回 REFRESH_SERVER_TIME
-    /// 订阅与 RequestXxx/OnXxx 实现——空效果订阅(F3 裁决4)已移除,不在此保留零效果占位。
+    /// 本期只做图标与下一炉开启快照:18112 只落 crucible_id/start_time 后无条件重拉 18105,
+    /// 不直接驱动图标、不创建倒计时；神纹穿戴/升级/兑换/商店/红点及面板仍不移植。
     /// </summary>
     public sealed class LungController : BaseController
     {
         public static readonly LungController Instance = new LungController();
+#if UNITY_EDITOR
+        // CliVerify temporarily intercepts real encoded frames; Player builds omit this seam.
+        private static System.Func<byte[], bool> s_outboundIntercept;
+#endif
         private LungController() { }
 
         public const string ICON_TYPE = LungModel.ICON_TYPE;
@@ -33,25 +32,47 @@ namespace Shenxiao.Module.Core.Lung
         protected override void Register()
         {
             RegisterProtocal(Proto.LUNG_STOVE_INFO, On18105);
+            RegisterProtocal(Proto.LUNG_STOVE_OPEN_STATE, On18112);
             // 对标老端 CHANGE_LEVEL→Fire LUNG_REQUEST_PROTO 18105:等级变化时复请求。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
-            // REFRESH_SERVER_TIME→18112 未接线,见类头 TODO(F3 裁决4:移除零效果订阅,不留空 handler)。
+            EventDispatcher.On(GlobalEvent.EVT_SERVER_TIME_REFRESH, OnServerTimeRefresh);
+            // 老端每次 REFRESH_SERVER_TIME 均发 18112，不做本地去重。
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SERVER_TIME_REFRESH, OnServerTimeRefresh);
             ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
             LungModel.Instance.Reset();
             _lastLevel = -1;
             base.Dispose();
         }
 
-        /// <summary>进游戏请求(GameStartController.RequestStartupPackets 调用,对标老端 GAME_START 发 18105)。</summary>
+        /// <summary>进游戏请求：对标老端 GAME_START 同时发 18105 与 18112。</summary>
         public void RequestStartup()
         {
             // read(18105,_)->{ok,[]}:请求无字段,裸发。
-            SendFmt(Proto.LUNG_STOVE_INFO);
+            RequestStoveInfo();
+            RequestOpenSchedule();
+        }
+
+        /// <summary>18105 严格空包；等级变化和 18112 回包仅重拉本包。</summary>
+        public void RequestStoveInfo() => SendEmpty(Proto.LUNG_STOVE_INFO);
+
+        /// <summary>18112 严格空包，服务端返回下一炉开启快照。</summary>
+        public void RequestOpenSchedule() => SendEmpty(Proto.LUNG_STOVE_OPEN_STATE);
+
+        private void SendEmpty(int protoId)
+        {
+#if UNITY_EDITOR
+            if (s_outboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(protoId, null, null);
+                if (s_outboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(protoId);
         }
 
         // 18105: crucible_id:h, start_time:i, end_time:i, count:i,
@@ -83,6 +104,15 @@ namespace Shenxiao.Module.Core.Lung
                 crucibleId, endTime, m.GetStoveOpenState());
         }
 
+        // pt_181 18112: crucible_id:h,start_time:i。读到尾后无条件追发 18105。
+        private void On18112(NetReader r)
+        {
+            int crucibleId = r.ReadU16();
+            long startTime = r.ReadU32();
+            LungModel.Instance.ApplyOpenSchedule(crucibleId, startTime);
+            RequestStoveInfo();
+        }
+
         // 对标老端:主角等级变化复请求 18105(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。
         private void OnRoleInfoUpdate()
         {
@@ -90,7 +120,10 @@ namespace Shenxiao.Module.Core.Lung
             if (!role.HasBaseInfo) return;
             if (role.Level == _lastLevel) return;
             _lastLevel = role.Level;
-            RequestStartup();
+            RequestStoveInfo();
         }
+
+        // 老端每次 REFRESH_SERVER_TIME 都发 18112，不自行去重双触发。
+        private void OnServerTimeRefresh() => RequestOpenSchedule();
     }
 }
