@@ -100,6 +100,7 @@ using Shenxiao.Module.Core.Eternity;
 using Shenxiao.Module.Core.HolyBattle;
 using Shenxiao.Module.Core.MondaysAward;
 using Shenxiao.Module.Core.NoonParty;
+using Shenxiao.Module.Core.Deposit;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -227,6 +228,7 @@ namespace Shenxiao.Module.Core.Game
             HolyBattleController.Instance,
             MondaysAwardController.Instance,
             NoonPartyController.Instance,
+            DepositController.Instance,
             // 后续:EquipController ...
         };
 

@@ -55,6 +55,7 @@ using Shenxiao.Module.Core.TSCrack;
 using Shenxiao.Module.Core.Eternity;
 using Shenxiao.Module.Core.HolyBattle;
 using Shenxiao.Module.Core.MondaysAward;
+using Shenxiao.Module.Core.Deposit;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -137,6 +138,7 @@ namespace Shenxiao.Module.Core.Game
             EternityController.Instance.RequestStartup();
             HolyBattleController.Instance.RequestInfo();
             MondaysAwardController.Instance.RequestTaskState();
+            DepositController.Instance.RequestActivityOnhook();
             FunctionOpenController.Instance.RequestList();
             GameLog.Info("Game", "requested startup packets: 13001,10201,30005,13088,10202,15800,15905,15908,33101,45120,22700,13800,13011,13017,13046,13080,13086");
         }
