@@ -93,6 +93,9 @@ namespace Shenxiao.Module.Core.Baby
             SendRequest(Proto.BABY_RENAME, "s", name);
         }
 
+        /// <summary>展示宝宝到世界频道。18216 是严格空包，服务端不回包。</summary>
+        public void RequestShowBaby() => SendEmpty(Proto.BABY_SHOW);
+
         public void RequestTaskReward(int taskId)
         {
             if (taskId <= 0 || taskId > ushort.MaxValue) return;

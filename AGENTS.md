@@ -74,6 +74,7 @@
 
 - 2026-07-23 宝宝家庭 18207：Controller 反转 `info_list` 后，View 再依“本人且男 / 非本人且女”落左槽；资料显示名称/血型/生日/星座，战力用 `FightingShowSmallItem`。`type=1` 补 ClientBaby.defaultAttr(1..8) 并按 ConfigItemAttr.kind=2 分栏，其他 type 标题“给予TA的加成”；父母/子女模型与伴侣资料不在 18207，不能伪造。
 - 2026-07-23 宝宝孕育：消耗只读 `config_baby_value[2]` 首项（当前 `{type=2,type_id=0,num=288}`），`type=2/type_id=0` 经 `GoodsModel.GetMappingTypeId` 映射为绑定灵玉展示物品；`GestateBabyView` 复用内嵌 `_tpl_BaseAwardItem` 显示真实图标和数量。点击须先以 `RoleModel.BGold` 校验；不足按配置货币名提示且零出站，足额同次打开只发一次空包 18210 并关闭。
+- 2026-07-23 宝宝晒娃：`pt_182.erl read(18216, _)` 确认 18216 为严格空 C2S 包，`pp_baby.erl` 的展示处理目前注释且无业务回包，故 Controller 只提供 `RequestShowBaby()` 空包入口、不注册 S2C。培养页 `showBtn` 必须启用；旧端 `BabyCultivateView.ts:108-116` 用实例字段 `limitTime` 和服务器秒钟冷却 5 秒：首次发包后提示“世界频道晒娃成功”，冷却点击只提示“等待{剩余秒}秒后才可再次发送”，同一 View 跨 Hide/Show 不清零，Dispose 自然释放。回归以 `TimeUtil.SyncServerTime` 推进，须恢复 TimeUtil 私有时间基线，验证空 payload、冷却单帧、Hide/Show 保留及第 5 秒可再发。
 
 任何 AI 工具(Claude Code / Cursor / Codex / Copilot 等)写代码前必须读前三份;
 动 UI/转换器读流水线文档,动登录/网络读登录链路文档,动进游戏/主界面/场景接管读进游戏链路文档。

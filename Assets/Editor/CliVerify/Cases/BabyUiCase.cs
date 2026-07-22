@@ -5,6 +5,7 @@ using Shenxiao.Editor.UiCreator.Baby;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
+using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.Baby;
 using Shenxiao.Module.Core.Baby;
 using UnityEditor;
@@ -133,17 +134,23 @@ namespace Shenxiao.EditorTools
             GameObject module = UnityEngine.Object.Instantiate(moduleAsset);
             GameObject propItem = UnityEngine.Object.Instantiate(propItemAsset);
             FieldInfo interceptField = typeof(BabyController).GetField("s_outboundIntercept", BindingFlags.Static | BindingFlags.NonPublic);
+            FieldInfo serverEpochField = typeof(TimeUtil).GetField("_serverEpochMs", BindingFlags.Static | BindingFlags.NonPublic);
+            FieldInfo localBaseField = typeof(TimeUtil).GetField("_localBaseTime", BindingFlags.Static | BindingFlags.NonPublic);
             object oldIntercept = interceptField != null ? interceptField.GetValue(null) : null;
+            object oldServerEpoch = serverEpochField != null ? serverEpochField.GetValue(null) : null;
+            object oldLocalBase = localBaseField != null ? localBaseField.GetValue(null) : null;
             int oldBGold = Shenxiao.Module.Core.Role.RoleModel.Instance.BGold;
             var powerFrames = new System.Collections.Generic.List<byte[]>();
             int activateFrames = 0;
+            var showFrames = new System.Collections.Generic.List<byte[]>();
             try
             {
-                if (interceptField == null) return false;
+                if (interceptField == null || serverEpochField == null || localBaseField == null) return false;
                 interceptField.SetValue(null, new Func<byte[], bool>(frame =>
                 {
                     if (IsProtocol(frame, Proto.BABY_FIGURE_POWER)) powerFrames.Add(frame);
                     if (IsProtocol(frame, Proto.BABY_ACTIVATE)) activateFrames++;
+                    if (IsProtocol(frame, Proto.BABY_SHOW)) showFrames.Add(frame);
                     return true;
                 }));
                 Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
@@ -196,6 +203,8 @@ namespace Shenxiao.EditorTools
                 bool display = cultivateView != null;
                 if (display)
                 {
+                    const long ShowTestStartSec = 1700000000L;
+                    TimeUtil.SyncServerTime(ShowTestStartSec * 1000L);
                     cultivateView.gameObject.SetActive(true);
                     cultivateView.Show();
                     display = cultivateView.babyName.text == "baby" && cultivateView.lvLb.text == "7"
@@ -236,13 +245,26 @@ namespace Shenxiao.EditorTools
                     UnityEngine.UI.Button stageButton = cultivateView.stageBtnGp.GetComponent<UnityEngine.UI.Button>();
                     UnityEngine.UI.Button upButton = cultivateView.upBtn.GetComponent<UnityEngine.UI.Button>();
                     UnityEngine.UI.Button rankButton = cultivateView.rankBtn.GetComponent<UnityEngine.UI.Button>();
-                    display = display && lvButton != null && stageButton != null && upButton != null && rankButton != null;
+                    UnityEngine.UI.Button showButton = cultivateView.showBtn.GetComponent<UnityEngine.UI.Button>();
+                    display = display && lvButton != null && stageButton != null && upButton != null && rankButton != null && showButton != null && showButton.gameObject.activeSelf;
                     if (display)
                     {
                         stageButton.onClick.Invoke();
                         display = cultivateView.stageGp.gameObject.activeSelf && !cultivateView.lvGp.gameObject.activeSelf;
                         lvButton.onClick.Invoke();
                         display = display && cultivateView.lvGp.gameObject.activeSelf && !cultivateView.stageGp.gameObject.activeSelf;
+                        showButton.onClick.Invoke();
+                        showButton.onClick.Invoke();
+                        NetReader showReader = showFrames.Count == 1 ? new NetReader(showFrames[0], 6, showFrames[0].Length - 6) : null;
+                        bool showCooldown = showReader != null && showReader.Remaining == 0 && showFrames.Count == 1;
+                        cultivateView.Hide();
+                        cultivateView.Show();
+                        showButton.onClick.Invoke();
+                        showCooldown = showCooldown && showFrames.Count == 1;
+                        TimeUtil.SyncServerTime((ShowTestStartSec + 5L) * 1000L);
+                        showButton.onClick.Invoke();
+                        showCooldown = showCooldown && showFrames.Count == 2;
+                        display = display && showCooldown;
                     }
                     cultivateView.Hide();
                 }
@@ -415,6 +437,8 @@ namespace Shenxiao.EditorTools
                 Shenxiao.Module.Core.Bag.BagModel.Instance.Clear();
                 Shenxiao.Module.Core.Role.RoleModel.Instance.BGold = oldBGold;
                 if (interceptField != null) interceptField.SetValue(null, oldIntercept);
+                if (serverEpochField != null) serverEpochField.SetValue(null, oldServerEpoch);
+                if (localBaseField != null) localBaseField.SetValue(null, oldLocalBase);
                 UnityEngine.Object.DestroyImmediate(module);
                 UnityEngine.Object.DestroyImmediate(propItem);
             }

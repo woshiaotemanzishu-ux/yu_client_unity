@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
+using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.Baby;
 using UnityEngine;
 
@@ -12,6 +14,8 @@ namespace Shenxiao.Module.Core.Baby
     {
         private bool _listening;
         private bool _shown;
+        // 对标旧端 BabyCultivateView.limitTime：同一 View 实例跨 Hide/Show 保留，Dispose 后自然释放。
+        private long _showLimitTime;
         private readonly List<GameObject> _taskItems = new List<GameObject>();
 
         protected override void OnInit()
@@ -19,6 +23,7 @@ namespace Shenxiao.Module.Core.Baby
             UIUtil.AddClick(lvBtnGp, () => SelectPage(0));
             UIUtil.AddClick(stageBtnGp, () => SelectPage(1));
             UIUtil.AddClick(upBtn, () => BabyController.Instance.RequestStageUp());
+            UIUtil.AddClick(showBtn, ShowBaby);
             UIUtil.AddClick(rankBtn, () => _ = ViewManager.Open<BabyLikeView>());
             SelectPage(0);
         }
@@ -131,6 +136,20 @@ namespace Shenxiao.Module.Core.Baby
         {
             if (lvGp != null) lvGp.gameObject.SetActive(index == 0);
             if (stageGp != null) stageGp.gameObject.SetActive(index == 1);
+        }
+
+        private void ShowBaby()
+        {
+            long now = TimeUtil.NowSec();
+            if (_showLimitTime > now)
+            {
+                TipsManager.Toast("等待" + (_showLimitTime - now) + "秒后才可再次发送");
+                return;
+            }
+
+            BabyController.Instance.RequestShowBaby();
+            TipsManager.Toast("世界频道晒娃成功");
+            _showLimitTime = now + 5;
         }
 
         private void StopListening()

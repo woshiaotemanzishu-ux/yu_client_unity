@@ -1226,7 +1226,7 @@
         /// 货品的阶段/星级/评分。</summary>
         public const int PET_EQUIP_POLISH = 16017;
 
-        // ----- 宝宝 Baby(pt_182，19 个老端可达数据/操作协议；老端 BabyController.ts) -----
+        // ----- 宝宝 Baby(pt_182，当前已接 23 个老端数据/操作协议；仅 18202/18212 保持死号) -----
         /// <summary>宝宝通用错误：cmd:h,error_code:I,args:s。</summary>
         public const int BABY_ERROR = 18200;
         /// <summary>宝宝基础信息：active_time:I,baby_id:I,baby_name:s,is_change_name:c；请求体为空。</summary>
@@ -1255,6 +1255,8 @@
         public const int BABY_FIGURE_WEAR = 18214;
         /// <summary>宝宝改名：请求 name:s；回包 code:I,name:s。</summary>
         public const int BABY_RENAME = 18215;
+        /// <summary>展示宝宝到世界频道：请求体为空；pt_182.erl read(18216, _)；服务端当前不回包。</summary>
+        public const int BABY_SHOW = 18216;
         /// <summary>宝宝点赞/回赞：请求 role_id:l,opr:c；回包 code:I,role_id:l,opr:c,rewards[h×{type:c,type_id:I,num:I}]。</summary>
         public const int BABY_PRAISE = 18217;
         /// <summary>宝宝装备穿戴：请求 pos:c,goods_id:l；回包 code:I,pos:c,goods_id:l,goods_type_id:I,skill_id:I,power:I。</summary>
