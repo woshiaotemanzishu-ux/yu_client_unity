@@ -1,9 +1,10 @@
 # AGENTS.md
 
-## Demon 18301 (R119)
+## Demon 18301 / 18303 (R119-R120)
 
 - 18301 is only the raw Demon entity snapshot: `open_state:u8,demons:u16*{id:u32,level:u16,exp:u32,star:u8,slot_num:u8,skills:u16*{id:u32,lv:u16,process:u32,is_active:u8},slot_skills:u16*{id:u32,lv:u16,slot:u8,quality:u8,sort:u16}}`. Every packet replaces the complete list; an empty list clears it.
-- Current Unity has no DemonMainView open gate. Controlled simplification: send the parameterless read-only 18301 once on GAME_START. Do not add 18302-18317, 18303 bond, 18307 scroll, 50901 blessing, configuration, derived red dots, events, UI, resources, or 3D.
+- Current Unity has no DemonMainView open gate. Controlled simplification: send the parameterless read-only 18301 once on GAME_START. Do not add 18302 or 18304-18317, 18307 scroll, 50901 blessing, configuration, derived red dots, events, UI, resources, or 3D.
+- 18303 is the independent full fetter snapshot `fetters:u16*fetter_id:u32`; GAME_START sends 18301 then 18303 as empty frames. Replace each packet atomically, dedupe repeated IDs while preserving first-seen order, and allow an empty packet to clear the list. The prior scope exclusion is narrowed only for 18303; still do not attach 18302, 18304-18317, 18307, 50901, config, red dots, UI, or 3D.
 
 ## Dress 11200 (R118)
 

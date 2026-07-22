@@ -11,10 +11,12 @@ namespace Shenxiao.Module.Core.Demon
             public uint DemonId { get; } public ushort Level { get; } public uint Experience { get; } public byte Star { get; } public byte SlotNumber { get; } public IReadOnlyList<Skill> Skills { get; } public IReadOnlyList<SlotSkill> SlotSkills { get; }
             public Entry(uint id, ushort level, uint exp, byte star, byte slotNumber, List<Skill> skills, List<SlotSkill> slotSkills) { DemonId = id; Level = level; Experience = exp; Star = star; SlotNumber = slotNumber; Skills = (skills ?? new List<Skill>()).AsReadOnly(); SlotSkills = (slotSkills ?? new List<SlotSkill>()).AsReadOnly(); }
         }
-        public static readonly DemonModel Instance = new DemonModel(); private readonly List<Entry> _demons = new List<Entry>(); private readonly IReadOnlyList<Entry> _readOnlyDemons; private DemonModel() { _readOnlyDemons = _demons.AsReadOnly(); }
-        public byte OpenState { get; private set; } public bool HasData { get; private set; } public IReadOnlyList<Entry> Demons => _readOnlyDemons;
+        public static readonly DemonModel Instance = new DemonModel(); private readonly List<Entry> _demons = new List<Entry>(); private readonly List<uint> _fetters = new List<uint>(); private readonly IReadOnlyList<Entry> _readOnlyDemons; private readonly IReadOnlyList<uint> _readOnlyFetters; private DemonModel() { _readOnlyDemons = _demons.AsReadOnly(); _readOnlyFetters = _fetters.AsReadOnly(); }
+        public byte OpenState { get; private set; } public bool HasData { get; private set; } public bool HasFettersData { get; private set; } public IReadOnlyList<Entry> Demons => _readOnlyDemons; public IReadOnlyList<uint> Fetters => _readOnlyFetters;
         public bool TryGet(uint demonId, out Entry entry) { for (int i = 0; i < _demons.Count; i++) if (_demons[i].DemonId == demonId) { entry = _demons[i]; return true; } entry = null; return false; }
+        public bool HasFetter(uint fetterId) { for (int i = 0; i < _fetters.Count; i++) if (_fetters[i] == fetterId) return true; return false; }
         public void Replace(byte openState, List<Entry> demons) { OpenState = openState; _demons.Clear(); if (demons != null) _demons.AddRange(demons); HasData = true; }
-        public void Reset() { OpenState = 0; _demons.Clear(); HasData = false; }
+        public void ReplaceFetters(List<uint> fetters) { _fetters.Clear(); if (fetters != null) { var seen = new HashSet<uint>(); for (int i = 0; i < fetters.Count; i++) if (seen.Add(fetters[i])) _fetters.Add(fetters[i]); } HasFettersData = true; }
+        public void Reset() { OpenState = 0; _demons.Clear(); _fetters.Clear(); HasData = false; HasFettersData = false; }
     }
 }
