@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shenxiao.Common.Tips;
@@ -28,6 +29,9 @@ namespace Shenxiao.Module.Core.Kaifu
     public sealed class KaifuController : BaseController
     {
         public static readonly KaifuController Instance = new KaifuController();
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_investInfoOutboundIntercept;
+#endif
         private KaifuController() { }
 
         public const string ICON_INVEST_TOP = KaifuModel.ICON_INVEST_TOP;     // 4205 巅峰投资
@@ -41,6 +45,7 @@ namespace Shenxiao.Module.Core.Kaifu
         protected override void Register()
         {
             RegisterProtocal(Proto.KAIFU_INVEST_OPEN, On42004);
+            RegisterProtocal(Proto.KAIFU_INVEST_INFO, On42001);
             RegisterProtocal(Proto.KAIFU_BOOK_INFO, On42401);
             RegisterProtocal(Proto.KAIFU_INVEST_ERROR, On42000);
             // 本端加强:等级变化时复请求 42004/42401,让达到开启等级后图标及时出现。
@@ -81,6 +86,35 @@ namespace Shenxiao.Module.Core.Kaifu
             string args = r.ReadString();
             TipsManager.Toast("操作失败(" + code + ")");
             GameLog.Warn("Kaifu", "42000 投资家族错误壳 code={0} args={1}", code, args);
+        }
+
+        public void RequestInvestInfo(byte type)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.KAIFU_INVEST_INFO, "c", new object[] { type });
+            if (s_investInfoOutboundIntercept != null && s_investInfoOutboundIntercept(frame))
+            {
+                return;
+            }
+#endif
+            SendFmt(Proto.KAIFU_INVEST_INFO, "c", type);
+        }
+
+        private void On42001(NetReader reader)
+        {
+            byte type = reader.ReadU8();
+            ushort curLv = reader.ReadU16();
+            uint buyTime = reader.ReadU32();
+            uint getTime = reader.ReadU32();
+            ushort loginDays = reader.ReadU16();
+            int count = reader.ReadU16();
+            var rewards = new List<KaifuModel.InvestRewardEntry>(count);
+            for (int i = 0; i < count; i++)
+            {
+                rewards.Add(new KaifuModel.InvestRewardEntry(reader.ReadU8(), reader.ReadU16()));
+            }
+
+            KaifuModel.Instance.ReplaceInvestInfo(type, curLv, buyTime, getTime, loginDays, rewards);
         }
 
         // 42004: open_list[u16 count × { type:c, show_id:h, state:c, refresh_time:i }](对标 pt_420 item_to_bin_1)

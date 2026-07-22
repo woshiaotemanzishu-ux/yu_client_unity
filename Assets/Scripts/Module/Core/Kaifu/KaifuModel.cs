@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Shenxiao.Framework.Util;
 
 namespace Shenxiao.Module.Core.Kaifu
@@ -13,8 +14,46 @@ namespace Shenxiao.Module.Core.Kaifu
     /// </summary>
     public sealed class KaifuModel
     {
+        public sealed class InvestRewardEntry
+        {
+            public byte Id { get; }
+            public ushort GotLv { get; }
+
+            public InvestRewardEntry(byte id, ushort gotLv)
+            {
+                Id = id;
+                GotLv = gotLv;
+            }
+        }
+
+        public sealed class InvestInfoSnapshot
+        {
+            public byte Type { get; }
+            public ushort CurLv { get; }
+            public uint BuyTime { get; }
+            public uint GetTime { get; }
+            public ushort LoginDays { get; }
+            public IReadOnlyList<InvestRewardEntry> Rewards { get; }
+
+            public InvestInfoSnapshot(byte type, ushort curLv, uint buyTime, uint getTime, ushort loginDays, List<InvestRewardEntry> rewards)
+            {
+                Type = type;
+                CurLv = curLv;
+                BuyTime = buyTime;
+                GetTime = getTime;
+                LoginDays = loginDays;
+                Rewards = new List<InvestRewardEntry>(rewards ?? new List<InvestRewardEntry>()).AsReadOnly();
+            }
+        }
+
         public static readonly KaifuModel Instance = new KaifuModel();
-        private KaifuModel() { }
+        private readonly Dictionary<byte, InvestInfoSnapshot> _investInfos = new Dictionary<byte, InvestInfoSnapshot>();
+        private readonly IReadOnlyDictionary<byte, InvestInfoSnapshot> _readOnlyInvestInfos;
+
+        private KaifuModel()
+        {
+            _readOnlyInvestInfos = new ReadOnlyDictionary<byte, InvestInfoSnapshot>(_investInfos);
+        }
 
         // ---- 图标类型(对标老端 addIcon(...) 传入的 icon_type;均为 controll_by_own_fun=true,门判在本模块自管) ----
         /// <summary>巅峰投资图标(对标老端 addIcon("4205"))。</summary>
@@ -49,6 +88,17 @@ namespace Shenxiao.Module.Core.Kaifu
         // 契约之书(42401)图标态:是否有活动数据、是否已全部领取(对标老端 finishAll 的图标相关近似)
         public bool BookActive;
         public bool BookAllClaimed;
+        public IReadOnlyDictionary<byte, InvestInfoSnapshot> InvestInfos => _readOnlyInvestInfos;
+
+        public void ReplaceInvestInfo(byte type, ushort curLv, uint buyTime, uint getTime, ushort loginDays, List<InvestRewardEntry> rewards)
+        {
+            _investInfos[type] = new InvestInfoSnapshot(type, curLv, buyTime, getTime, loginDays, rewards);
+        }
+
+        public bool TryGetInvestInfo(byte type, out InvestInfoSnapshot snapshot)
+        {
+            return _investInfos.TryGetValue(type, out snapshot);
+        }
 
         /// <summary>
         /// 解析 42004 开启列表,算出两个投资图标的显隐(对标老端 KaifuActivityModel.InvestOpen)。
@@ -113,6 +163,7 @@ namespace Shenxiao.Module.Core.Kaifu
             ShowTopIcon = false;
             BookActive = false;
             BookAllClaimed = false;
+            _investInfos.Clear();
         }
 
         // 对标老端 ViewClassCFG:仅 1/2/3/5/6/7/8 有配置(type 4 无 → 老端 !cfg break)。

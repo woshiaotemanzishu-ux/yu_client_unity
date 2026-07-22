@@ -864,6 +864,8 @@
         /// 17252+17260(TypeList=[2])。</summary>
         public const int BANQUET_ONE_INVITE = 17298;
         public const int KAIFU_INVEST_OPEN = 42004; // 开服投资活动开启列表(驱动 4205 巅峰投资 / 1112 超值投资图标;裸请求)
+        /// <summary>开服投资按类型状态。C2S: type:u8；S2C: type:u8,cur_lv:u16,buy_time:u32,get_time:u32,login_days:u16,rewards:u16×{id:u8,got_lv:u16}。</summary>
+        public const int KAIFU_INVEST_INFO = 42001;
         public const int KAIFU_BOOK_INFO = 42401; // 契约之书章节信息(驱动 424 / 424@1 图标;裸请求)
         /// <summary>开服投资(pt_420)家族统一错误出口(轮22 族错误出口批;对标老端 KaifuActivityController.ts:161-164
         /// On42000:无条件 ErrorCodeShow(code,args)。服务端 send_error/2(lib_investment.erl:413-417)是投资

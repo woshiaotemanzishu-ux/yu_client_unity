@@ -20,6 +20,10 @@
 
 - 17904 is the only parameterless GAME_START task-state snapshot: `task_state:u16*{task_id:u16,state:u8}`. 17905 is an independent on-demand cross-server record snapshot: `count:u16*{server_id:u32,server_num:u16,role_id:u64,role_name:string,type:u8,pool_id:u16,utime:u32,picture:string,picture_ver:u32,career:u16,turn:u16}`. 17908 is an independent on-demand current-pool snapshot: `pool_count:u16*{id:u16,rid_count:u16,rid:u16*rid_count}`. Each replaces only its own ordered full list, preserving duplicate RoleIds/Rids; every empty list clears old entries but remains loaded. Do not reproduce the old client’s first-17904 automatic 17907 request or attach 17900-03/06/07, personal records, prize-pool draw/claim operations, config, red dots, or UI.
 
+## Kaifu 42001 (R150)
+
+- 42001 is an explicit `type:u8` investment-state request/reply snapshot: `type:u8,cur_lv:u16,buy_time:u32,get_time:u32,login_days:u16,rewards:u16*{id:u8,got_lv:u16}`. Cache only the received Type; each full packet preserves reward wire order and duplicate IDs, and an empty reward list clears that Type while remaining loaded. Do not attach GAME_START, day/level/UI triggers, 42002 purchase, 42003 claim/Type2 refetch, investment UI, config, or red dots.
+
 ## HolyBattle 21801/21804/21805 (R130/R146/R147)
 
 - GAME_START requests 21801 then 21805; 21804 remains on-demand only. 21801 is the parameterless world snapshot: `mod:u8,status:u8,end_time:u32,servers:u16*{server_id:u32,server_num:u32,server_name:string(u16 UTF8),level:u32}`. 21804 is the independent waiting-scene absolute cumulative experience snapshot `all_exp:u64`, never locally added. 21805 is the independent full score snapshot `point:u32,rewards:u16*{stage:u16,status:u8}`; requested replies and GM repairs replace Point and the ordered reward table atomically, and an empty table clears old rewards. Normal 21801/04/05 packets do not clear one another. Exclude 21802/03/06-13, claiming, UI, scenes, ticker, config, red dots, and operations.
