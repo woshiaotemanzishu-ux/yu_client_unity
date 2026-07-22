@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## Guard 21601 (R125)
+
+- 21601 is an on-demand, parameterless authoritative circle snapshot; it is deliberately not a GAME_START request. Same-number responses/pushes atomically replace the ordered list, including empty-list clear. Do not attach 21600, 21602-21606, maintenance, operations, dialogs, scene appearance, config, red dots, UI, or resources.
+
 ## Achievement 40901/03/06/08 (R124)
 
 - GAME_START sends four empty frames in order 40901->40903->40906->40908. Each reply owns an independent full snapshot (stage rewards, achievement entries, scalar star, type stars); all lists replace atomically and empty lists clear old values. Do not attach 40900/02/04/05/07/09, configuration derivation, red dots, UI, or reward operations.
