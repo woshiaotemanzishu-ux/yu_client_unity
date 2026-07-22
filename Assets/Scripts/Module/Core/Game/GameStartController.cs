@@ -46,6 +46,7 @@ using Shenxiao.Module.Core.Designation;
 using Shenxiao.Module.Core.Mask;
 using Shenxiao.Module.Core.TempleAwaken;
 using Shenxiao.Module.Core.Dress;
+using Shenxiao.Module.Core.Demon;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -119,6 +120,7 @@ namespace Shenxiao.Module.Core.Game
             MaskController.Instance.RequestStartup();
             TempleAwakenController.Instance.RequestStartup();
             DressController.Instance.RequestStartup();
+            DemonController.Instance.RequestStartup();
             FunctionOpenController.Instance.RequestList();
             GameLog.Info("Game", "requested startup packets: 13001,10201,30005,13088,10202,15800,15905,15908,33101,45120,22700,13800,13011,13017,13046,13080,13086");
         }

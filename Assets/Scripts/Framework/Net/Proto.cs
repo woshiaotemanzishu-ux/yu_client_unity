@@ -943,6 +943,8 @@
         public const int DESIGNATION_LIST = 41101;
         /// <summary>面具状态快照。C2S 空包；S2C: mask_id:u8,end_time:u32。</summary>
         public const int MASK_INFO = 51101;
+        /// <summary>使魔实体核心快照。C2S 空包；S2C 为开放状态和完整实体列表。</summary>
+        public const int DEMON_INFO = 18301;
         /// <summary>装扮类型快照。C2S: dress_type:u8；S2C 为该类型已启用装扮全量列表。</summary>
         public const int DRESS_INFO = 11200;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)

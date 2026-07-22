@@ -1,0 +1,36 @@
+using System; using System.Collections.Generic; using Shenxiao.Framework.Net;
+namespace Shenxiao.Module.Core.Demon
+{
+    public sealed class DemonController : BaseController
+    {
+        public static readonly DemonController Instance = new DemonController();
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_outboundIntercept;
+#endif
+        private DemonController() { }
+        protected override void Register() => RegisterProtocal(Proto.DEMON_INFO, On18301);
+        /// <summary>受控简化：当前未移植 DemonMainView 开放门控，18301 是无参只读快照，故登录直接拉取一次。</summary>
+        public void RequestStartup()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.DEMON_INFO, null, null); if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.DEMON_INFO);
+        }
+        private void On18301(NetReader r)
+        {
+            byte openState = r.ReadU8(); int count = r.ReadU16(); var demons = new List<DemonModel.Entry>(count);
+            for (int i = 0; i < count; i++) demons.Add(ReadEntry(r));
+            DemonModel.Instance.Replace(openState, demons);
+        }
+        private static DemonModel.Entry ReadEntry(NetReader r)
+        {
+            uint id = r.ReadU32(); ushort level = r.ReadU16(); uint exp = r.ReadU32(); byte star = r.ReadU8(); byte slotNumber = r.ReadU8(); int skillCount = r.ReadU16(); var skills = new List<DemonModel.Skill>(skillCount);
+            for (int i = 0; i < skillCount; i++) skills.Add(new DemonModel.Skill(r.ReadU32(), r.ReadU16(), r.ReadU32(), r.ReadU8()));
+            int slotSkillCount = r.ReadU16(); var slotSkills = new List<DemonModel.SlotSkill>(slotSkillCount);
+            for (int i = 0; i < slotSkillCount; i++) slotSkills.Add(new DemonModel.SlotSkill(r.ReadU32(), r.ReadU16(), r.ReadU8(), r.ReadU8(), r.ReadU16()));
+            return new DemonModel.Entry(id, level, exp, star, slotNumber, skills, slotSkills);
+        }
+        public override void Dispose() { DemonModel.Instance.Reset(); base.Dispose(); }
+    }
+}

@@ -1,5 +1,10 @@
 # AGENTS.md
 
+## Demon 18301 (R119)
+
+- 18301 is only the raw Demon entity snapshot: `open_state:u8,demons:u16*{id:u32,level:u16,exp:u32,star:u8,slot_num:u8,skills:u16*{id:u32,lv:u16,process:u32,is_active:u8},slot_skills:u16*{id:u32,lv:u16,slot:u8,quality:u8,sort:u16}}`. Every packet replaces the complete list; an empty list clears it.
+- Current Unity has no DemonMainView open gate. Controlled simplification: send the parameterless read-only 18301 once on GAME_START. Do not add 18302-18317, 18303 bond, 18307 scroll, 50901 blessing, configuration, derived red dots, events, UI, resources, or 3D.
+
 ## Dress 11200 (R118)
 
 - GAME_START sends four `11200 + dress_type:u8` requests in the fixed order `1(Bubble) -> 2(Photo) -> 3(Foot) -> 5(Head)`; do not attach 11201-11205.
