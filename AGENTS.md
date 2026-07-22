@@ -24,7 +24,8 @@
 
 ## Medal 13401（轮110）
 
-- GAME_START 发送13401严格空包。回包依次为 `id:u32,stren_lv:u32,stren_exp:u32,honour:u64,power:u32,pass_layers:u32`，每包完整覆盖；服务端也会主动重推同号，接收时只更新 MedalModel，不得回环请求或把 `power` 擅自写入 RoleModel。当前不接13400错误出口、13402-13407操作/称号列表、配置、红点或UI。
+- GAME_START 发送13401严格空包。回包依次为 `id:u32,stren_lv:u32,stren_exp:u32,honour:u64,power:u32,pass_layers:u32`，每包完整覆盖；服务端也会主动重推同号，接收时只更新 MedalModel，不得回环请求或把 `power` 擅自写入 RoleModel。当前不接13400错误出口、13402-13404/13406-13407操作协议、配置、红点或UI。
+- 轮114补13405后，GAME_START固定按13401→13405连续发两个严格空包。13405回 `titles:u16×{id:u32,level:u16,power:u32,is_equip:u8}`，服务端会把已拥有与未拥有（level=0）称号都放进完整列表；每包全量替换且空列表清旧。仍不接13403/04/06佩戴升级、13407强化、称号配置、红点或UI。
 
 ## KfStage 10200（轮111）
 
