@@ -957,6 +957,8 @@
         public const int REVELATION_POWER = 28609;
         /// <summary>怪物图鉴已激活 PicId 全量快照。C2S 空包；S2C: pic_list:u16×pic_id:u32。</summary>
         public const int MON_BOOK_ACTIVATED_PICS = 44205;
+        /// <summary>怪物图鉴单项首级战力预览。C2S: pic_id:u32；S2C: pic_id:u32,next_power:u64。</summary>
+        public const int MON_BOOK_PREVIEW_POWER = 44207;
         public const int ACHIEVEMENT_STAGE = 40901;
         public const int ACHIEVEMENT_ENTRIES = 40903;
         public const int ACHIEVEMENT_STAR = 40906;

@@ -1,8 +1,8 @@
 # AGENTS.md
 
-## MonBook 44205 (R138)
+## MonBook 44205/44207 (R138/R139)
 
-- 44205 is an on-demand parameterless full snapshot: `pic_list:u16×pic_id:u32`, with no tail. Preserve server order and duplicates; every packet atomically replaces the list and an empty packet clears it. Do not bind GAME_START, bag-finish, 44202 success, 44201-04/06/07, config, decomposition, red dots, or UI.
+- 44205 is an on-demand parameterless full snapshot: `pic_list:u16×pic_id:u32`, with no tail. Preserve server order and duplicates; every packet atomically replaces the list and an empty packet clears it. 44207 is an on-demand `pic_id:u32 -> pic_id:u32,next_power:u64` preview cache: same PicId replaces, different IDs coexist, and zero is valid via TryGetPreviewPower. Do not bind GAME_START, bag-finish, 44202 success, 44201-04/06, config, decomposition, red dots, or UI.
 
 ## Deposit 19201 (R133)
 
