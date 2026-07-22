@@ -1,11 +1,12 @@
 # AGENTS.md
 
-## Demon 18301 / 18303 / 18307 (R119-R121)
+## Demon 18301 / 18303 / 18307 / 50901 (R119-R122)
 
 - 18301 is only the raw Demon entity snapshot: `open_state:u8,demons:u16*{id:u32,level:u16,exp:u32,star:u8,slot_num:u8,skills:u16*{id:u32,lv:u16,process:u32,is_active:u8},slot_skills:u16*{id:u32,lv:u16,slot:u8,quality:u8,sort:u16}}`. Every packet replaces the complete list; an empty list clears it.
-- Current Unity has no DemonMainView open gate. Controlled simplification: send the parameterless read-only Demon snapshots on GAME_START. Do not add 18302, 18304-06, 18308-18317, 50901 blessing, configuration, derived red dots, events, UI, resources, or 3D.
+- Current Unity has no DemonMainView open gate. Controlled simplification: send the parameterless read-only Demon snapshots on GAME_START. Do not add 18302, 18304-06, 18308-18317, 50902, configuration, derived red dots, events, UI, resources, or 3D.
 - 18303 is the independent full fetter snapshot `fetters:u16*fetter_id:u32`; GAME_START sends 18301 then 18303 as empty frames. Replace each packet atomically, dedupe repeated IDs while preserving first-seen order, and allow an empty packet to clear the list. The prior scope exclusion is narrowed only for 18303; still do not attach 18302, 18304-06, 18308-18317, 50901, config, red dots, UI, or 3D.
-- 18307 is the independent full painting ID snapshot `paintings:u16*painting_id:u8`; GAME_START now sends 18301->18303->18307. Deduplicate repeated IDs in first-seen order and clear on an empty packet. Do not attach 18308 claim or any other operation, 50901, config, red dots, UI, resources, or 3D.
+- 18307 is the independent full painting ID snapshot `paintings:u16*painting_id:u8`; GAME_START now sends 18301->18303->18307. Deduplicate repeated IDs in first-seen order and clear on an empty packet. Do not attach 18308 claim or any other operation, config, red dots, UI, resources, or 3D.
+- 50901 is an independent scalar blessing snapshot `bless_value:u32`; GAME_START now sends 18301->18303->18307->50901. Server pushes after rotary actions only replace this value and must not trigger a request. Do not attach 50902 or rotary operations, config, red dots, UI, resources, or 3D.
 
 ## Dress 11200 (R118)
 
