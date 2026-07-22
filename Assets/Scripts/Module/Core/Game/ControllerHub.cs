@@ -83,6 +83,7 @@ using Shenxiao.Module.Core.StarEquip;
 using Shenxiao.Module.Core.AttributePotion;
 using Shenxiao.Module.Core.Armor;
 using Shenxiao.Module.Core.Medal;
+using Shenxiao.Module.Core.KfStage;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -193,6 +194,7 @@ namespace Shenxiao.Module.Core.Game
             AttributePotionController.Instance,
             ArmorController.Instance,
             MedalController.Instance,
+            KfStageController.Instance,
             // 后续:EquipController ...
         };
 
