@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## Revelation 28606 (R123)
+
+- 28606 is the parameterless full main-state snapshot: raw figure IDs/power plus ordered gathering, suit, and skill lists. Every packet atomically replaces all fields and empty lists clear prior state. Do not attach 28600-05/07-09, configuration, red dots, bag, appearance resources, 3D, or UI.
+
 ## Demon 18301 / 18303 / 18307 / 50901 (R119-R122)
 
 - 18301 is only the raw Demon entity snapshot: `open_state:u8,demons:u16*{id:u32,level:u16,exp:u32,star:u8,slot_num:u8,skills:u16*{id:u32,lv:u16,process:u32,is_active:u8},slot_skills:u16*{id:u32,lv:u16,slot:u8,quality:u8,sort:u16}}`. Every packet replaces the complete list; an empty list clears it.
