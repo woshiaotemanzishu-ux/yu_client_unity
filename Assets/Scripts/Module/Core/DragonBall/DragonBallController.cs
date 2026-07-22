@@ -14,7 +14,8 @@ namespace Shenxiao.Module.Core.DragonBall
     /// 图标显隐由 DragonBallModel 依据功能开放、alpha、config_start_nuclear、角色/开服状态、限购与首充完整判定，
     /// AddIconAsync 的公共图标配置门作为二次保险。等级变化仅在新等级精确命中表内 open_lv 时复请求14311。
     ///
-    /// 14310 保存雕像快照，14303 保存套装概览；龙珠本体/苍龙镇世/操作链(14300-14302/14304-14306/14312)仍不在本期;
+    /// 14310 保存雕像快照，14303 保存套装概览，14300 保存龙珠本体列表；
+    /// 激活/升级/穿戴/苍龙镇世等操作链(14301-14302/14304-14306/14312)仍不在本期;
     /// 首充更新只按已缓存14311本地复评；开服日变化重拉14311，均与老端一致。
     /// </summary>
     public sealed class DragonBallController : BaseController
@@ -35,6 +36,7 @@ namespace Shenxiao.Module.Core.DragonBall
         {
             RegisterProtocal(Proto.DRAGONBALL_STATUE_OVERVIEW, On14310);
             RegisterProtocal(Proto.DRAGONBALL_SUIT_INFO, On14303);
+            RegisterProtocal(Proto.DRAGONBALL_LIST, On14300);
             RegisterProtocal(Proto.DRAGONBALL_GIFT_INFO, On14311);
             // 对标老端 CHANGE_LEVEL→复发 14311:等级变化时复请求(到达礼包 open_lv 后图标出现)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
@@ -70,6 +72,8 @@ namespace Shenxiao.Module.Core.DragonBall
         public void RequestStatueOverview() => SendEmpty(Proto.DRAGONBALL_STATUE_OVERVIEW);
         /// <summary>14303 严格空包，获取龙珠套装概览。</summary>
         public void RequestSuitInfo() => SendEmpty(Proto.DRAGONBALL_SUIT_INFO);
+        /// <summary>14300 严格空包；雕像 inactive→active 边沿补取本体列表，服务端也会主动刷新本包。</summary>
+        public void RequestDragonList() => SendEmpty(Proto.DRAGONBALL_LIST);
         /// <summary>14311 严格空包，获取龙珠礼包购买快照。</summary>
         public void RequestGiftInfo() => SendEmpty(Proto.DRAGONBALL_GIFT_INFO);
 
@@ -85,10 +89,24 @@ namespace Shenxiao.Module.Core.DragonBall
             SendFmt(protoId);
         }
 
-        // 14310: status:c,power:l。全量替换，绝不追发其它龙珠协议。
+        // 14310: status:c,power:l。仅 inactive→active 边沿补拉 14300。
         private void On14310(NetReader r)
         {
-            DragonBallModel.Instance.SetStatueOverview(r.ReadU8(), unchecked((ulong)r.ReadU64()));
+            DragonBallModel model = DragonBallModel.Instance;
+            byte oldStatus = model.StatueStatus;
+            byte status = r.ReadU8();
+            model.SetStatueOverview(status, unchecked((ulong)r.ReadU64()));
+            if (status == 1 && oldStatus != 1) RequestDragonList();
+        }
+
+        // 14300: count:h,{dragon_id:i,dragon_lv:h,power:l,next_power:l}；按 id upsert。
+        private void On14300(NetReader r)
+        {
+            int count = r.ReadU16();
+            var entries = new System.Collections.Generic.List<DragonBallModel.BallEntry>(count);
+            for (int i = 0; i < count; i++)
+                entries.Add(new DragonBallModel.BallEntry(r.ReadU32(), r.ReadU16(), unchecked((ulong)r.ReadU64()), unchecked((ulong)r.ReadU64())));
+            DragonBallModel.Instance.SetBallData(entries);
         }
 
         // 14303: wear_type:c,count:h,{type:c,lv:c,power:l,next_power:l}；按 type upsert。

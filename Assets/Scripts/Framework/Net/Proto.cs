@@ -925,6 +925,8 @@
         public const int DRAGONBALL_STATUE_OVERVIEW = 14310;
         /// <summary>龙珠套装概览。C2S 空包；S2C: wear_type:u8,items:u16×{type:u8,lv:u8,power:u64,next_power:u64}。</summary>
         public const int DRAGONBALL_SUIT_INFO = 14303;
+        /// <summary>龙珠本体列表/状态刷新。C2S 空包；S2C: items:u16×{dragon_id:u32,dragon_lv:u16,power:u64,next_power:u64}。</summary>
+        public const int DRAGONBALL_LIST = 14300;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)
         public const int SEVENDAY_OPEN_INFO = 17500;       // 七天登录信息
         public const int SEVENDAY_MERGE_INFO = 17502;      // 合服七天信息

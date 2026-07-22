@@ -6,6 +6,7 @@
 - 14311 为 `id:u32,buy_times:u16`。显隐还必须经过 `CheckFuncOpenState("DragonBallView")` 且非 alpha；等级事件只在精确命中配置 open_lv 时重拉。
 - Unity CLI `eval` 在主线程执行：专项若会 `await ResManager.LoadAsync`，必须像批处理用例一样暂置并恢复 `ResManager.EditorPreferFallback=true`，确保 AssetDatabase 兜底同步命中；且 `GetAwaiter().GetResult()` 路径中的整个 Task 必须同步完成，不能含 `Task.Yield`/Delay/等待下一帧，否则会锁死编辑器主线程，只能重启隔离 Unity。
 - 轮105补14310、轮106补14303：GAME_START 严格空发14310→14303→14311；14310回包 `status:u8,power:u64` 是全量雕像总览，status=1时服务端刻意下发power=0，必须覆盖旧预期战力。14303回包为 `wear_type:u8,items:u16×{type:u8,lv:u8,power:u64,next_power:u64}`，严格按老端以type upsert，包中缺席type不清除。等级命中open_lv与跨天仍只重拉14311，首充仍零出站；不得模仿完整老面板追发14300/14306、计算红点或播放特效。
+- 轮107补14300后修订边界：14310 从非1变为1时只补发一次空14300，重复active不发，仍不追14306/14311；14300回包 `items:u16×{dragon_id:u32,dragon_lv:u16,power:u64,next_power:u64}` 按老端以dragon_id upsert，服务端也会在激活/套装变化后主动推送。不得清除包中缺席项，也不据此实现升级红点或面板。
 
 ## 属性药剂 pt_217（轮102）
 

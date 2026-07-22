@@ -7,9 +7,10 @@ using Shenxiao.Module.Core.Common;
 namespace Shenxiao.Module.Core.DragonBall
 {
     /// <summary>
-    /// 龙玉(龙珠)数据(对标老客户端 DragonBallModel)。14310 保存雕像快照，14303 按类型更新套装概览；
+    /// 龙玉(龙珠)数据(对标老客户端 DragonBallModel)。14310 保存雕像快照，14303 按类型更新套装概览，
+    /// 14300 按 dragon_id 更新龙珠本体状态；
     /// 「龙珠礼包」活动图标(DragonGiftIconType=143)由 14311(dragon_gift_data)驱动显隐。
-    /// 龙珠本体/苍龙镇世/操作链(14300-14302/14304-14306/14312)不在本期。
+    /// 激活、升级、穿戴、苍龙镇世等操作链(14301-14302/14304-14306/14312)不在本期。
     ///
     /// 老端 RefreshGiftIcon 显隐门槛(faithful):
     ///   1. GetOpenState()          —— 功能开放且非审核服;
@@ -44,6 +45,26 @@ namespace Shenxiao.Module.Core.DragonBall
         public IReadOnlyDictionary<byte, SuitEntry> Suits => _suits;
         public byte WearType { get; private set; }
         public bool HasSuitData { get; private set; }
+
+        public sealed class BallEntry
+        {
+            public uint DragonId { get; }
+            public ushort DragonLevel { get; }
+            public ulong Power { get; }
+            public ulong NextPower { get; }
+            public BallEntry(uint dragonId, ushort dragonLevel, ulong power, ulong nextPower) { DragonId = dragonId; DragonLevel = dragonLevel; Power = power; NextPower = nextPower; }
+        }
+
+        private readonly Dictionary<uint, BallEntry> _balls = new Dictionary<uint, BallEntry>();
+        public IReadOnlyDictionary<uint, BallEntry> Balls => _balls;
+        public bool HasDragonData { get; private set; }
+
+        /// <summary>14300 按 dragon_id upsert；空包与包中缺席项均不清除已有条目。</summary>
+        public void SetBallData(List<BallEntry> entries)
+        {
+            if (entries != null) for (int i = 0; i < entries.Count; i++) _balls[entries[i].DragonId] = entries[i];
+            HasDragonData = true;
+        }
 
         /// <summary>14303 按 type 更新，包中缺席的旧 type 保留；空列表只更新穿戴类型和已收包状态。</summary>
         public void SetSuitData(byte wearType, List<SuitEntry> entries)
@@ -100,6 +121,8 @@ namespace Shenxiao.Module.Core.DragonBall
             _suits.Clear();
             WearType = 0;
             HasSuitData = false;
+            _balls.Clear();
+            HasDragonData = false;
             GiftId = 0;
             BuyTimes = 0;
         }
