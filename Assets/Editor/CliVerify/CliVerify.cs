@@ -152,6 +152,12 @@ namespace Shenxiao.EditorTools
             EditorApplication.Exit(0);
         }
 
+        /// <summary>挂机收益信息协议回归。</summary>
+        public static void OnHook()
+        {
+            Run(() => Task.FromResult(OnHookCase.Run()), 60.0);
+        }
+
         /// <summary>P2a 实证:TaskFinishView 用真实 config_task 货币+物品奖励任务渲染,验货币走图标格(非文本)。</summary>
         public static void RenderTaskFinish()
         {

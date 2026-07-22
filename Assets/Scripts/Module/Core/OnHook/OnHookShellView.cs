@@ -8,7 +8,7 @@ namespace Shenxiao.Module.Core.OnHook
 {
     /// <summary>
     /// 挂机收益临时壳(TEMP SHELL,同 GuBaoShellView/OutWardShellView 约定:代码建 uGUI、样式从简待用户重做 UI)。
-    /// 最小可用面:标题「挂机收益」+ [领取] 按钮 → 发 13216。信息协议(累计挂机时长/经验等)13211/13212/13214 未移植,
+    /// 最小可用面:标题、累计/剩余挂机时间、奖励项数与 [领取] 按钮；Show 空发13212并由13211/12/14刷新，
     /// 不画假进度条。主线 101211(ctype91)由此进入。
     /// </summary>
     public static class OnHookShellView
@@ -16,6 +16,8 @@ namespace Shenxiao.Module.Core.OnHook
         private static GameObject _root;
         private static TMP_FontAsset _font;
         private static Material _fontMat;
+        private static TextMeshProUGUI _info;
+        public static string DisplayText => _info == null ? string.Empty : _info.text;
 
         public static void Show()
         {
@@ -23,6 +25,8 @@ namespace Shenxiao.Module.Core.OnHook
             if (_root == null) return;
             _root.SetActive(true);
             _root.transform.SetAsLastSibling();
+            Refresh();
+            OnHookController.Instance.RequestInfo();
             GameLog.Info("OnHook", "OnHookShellView 打开");
         }
 
@@ -34,6 +38,7 @@ namespace Shenxiao.Module.Core.OnHook
         private static void EnsureBuilt()
         {
             if (_root != null) return;
+            OnHookModel.Instance.Changed -= Refresh;
             Transform parent = ViewManager.GetLayer(UILayer.Window);
             if (parent == null)
             {
@@ -64,6 +69,14 @@ namespace Shenxiao.Module.Core.OnHook
             title.color = new Color(1f, 0.86f, 0.45f);
             title.fontStyle = FontStyles.Bold;
 
+            _info = NewText("Info", panel.transform, 22, TextAlignmentOptions.TopLeft);
+            var infoRt = _info.rectTransform;
+            infoRt.anchorMin = new Vector2(0f, 0.5f); infoRt.anchorMax = new Vector2(1f, 0.5f);
+            infoRt.pivot = new Vector2(0.5f, 0.5f); infoRt.anchoredPosition = new Vector2(0f, 32f);
+            infoRt.sizeDelta = new Vector2(-56f, 100f); _info.color = Color.white;
+            OnHookModel.Instance.Changed -= Refresh;
+            OnHookModel.Instance.Changed += Refresh;
+
             GameObject receiveBtn = NewRect("Receive", panel.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
             var receiveRt = (RectTransform)receiveBtn.transform;
             receiveRt.pivot = new Vector2(0.5f, 0.5f);
@@ -89,6 +102,20 @@ namespace Shenxiao.Module.Core.OnHook
             closeLbl.text = "关闭";
             closeLbl.color = Color.white;
             UIUtil.AddClick(closeImg, Close);
+        }
+
+        private static void Refresh()
+        {
+            if (_info == null) return;
+            OnHookModel model = OnHookModel.Instance;
+            _info.text = "累计挂机：" + FormatTime(model.TotalAfkTime) + "\n剩余挂机：" + FormatTime(model.RemainingAfkTime)
+                + "\n奖励：" + model.Rewards.Count + "项";
+        }
+
+        private static string FormatTime(int sec)
+        {
+            if (sec < 0) sec = 0;
+            return (sec / 3600).ToString("D2") + ":" + ((sec / 60) % 60).ToString("D2") + ":" + (sec % 60).ToString("D2");
         }
 
         private static GameObject NewRect(string name, Transform parent, Vector2 aMin, Vector2 aMax)

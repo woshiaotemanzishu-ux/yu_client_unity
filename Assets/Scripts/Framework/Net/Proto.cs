@@ -1685,7 +1685,14 @@
         public const int EQUIP_STONE_SET = 15208;
         /// <summary>宝石拆除(发 "cc";回包 res:i, equip_type:c, pos:c)。</summary>
         public const int EQUIP_STONE_UNSET = 15209;
-        /// <summary>领取挂机收益(C2S 无参;回包 code:i + exp_list 按 ClientProtocol "13216" 读完)。
+        /// <summary>挂机到点更新(C2S 空包；S2C error_code:i,next_time:i,had_afk_time:i)。</summary>
+        public const int ONHOOK_TICK = 13211;
+        /// <summary>挂机收益信息(C2S 空包;S2C login_type:c,off_lv:h,cost_afk_time:i,reward:ObjectList,
+        /// back_count:i,back_exp:l,afk_time:i,next_time:i,exp_effect:l,had_afk_time:i)。</summary>
+        public const int ONHOOK_INFO = 13212;
+        /// <summary>挂机时长更新(C2S 空包；S2C afk_time:i,next_time:i)。</summary>
+        public const int ONHOOK_TIME_UPDATE = 13214;
+        /// <summary>领取挂机收益(C2S 空包；S2C errcode:i,old_lv:h,old_lv_ratio:h,goods_list[u16×{style:c,typeId:i,count:l}])。
         /// 主线 101211(ctype91,唯一事件计数型:领一次即完成)。</summary>
         public const int ONHOOK_RECEIVE = 13216;
         /// <summary>装备家族统一错误码出口(对标老端 EquipController.ts:274-282 On15200:
