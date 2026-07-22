@@ -99,6 +99,7 @@ using Shenxiao.Module.Core.TSCrack;
 using Shenxiao.Module.Core.Eternity;
 using Shenxiao.Module.Core.HolyBattle;
 using Shenxiao.Module.Core.MondaysAward;
+using Shenxiao.Module.Core.NoonParty;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -225,6 +226,7 @@ namespace Shenxiao.Module.Core.Game
             EternityController.Instance,
             HolyBattleController.Instance,
             MondaysAwardController.Instance,
+            NoonPartyController.Instance,
             // 后续:EquipController ...
         };
 

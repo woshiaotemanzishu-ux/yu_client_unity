@@ -968,6 +968,8 @@
         public const int HOLY_BATTLE_INFO = 21801;
         /// <summary>周一嘉礼任务状态。C2S 空包；S2C: task_state:u16×{task_id:u16,state:u8}。</summary>
         public const int MONDAYS_AWARD_TASK_STATE = 17904;
+        /// <summary>午时狂欢累计经验。C2S 空包；S2C: exp:u32（每包为累计绝对值）。</summary>
+        public const int NOON_PARTY_TOTAL_EXP = 28503;
         /// <summary>装扮类型快照。C2S: dress_type:u8；S2C 为该类型已启用装扮全量列表。</summary>
         public const int DRESS_INFO = 11200;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)

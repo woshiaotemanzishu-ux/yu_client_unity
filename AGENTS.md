@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## NoonParty 28503 (R132)
+
+- 28503 is an on-demand, parameterless cumulative-experience scalar snapshot: `exp:u32`. Both server paths send the absolute cumulative total, so every packet replaces `TotalExp`; never add deltas. Do not attach GAME_START, level/scene gates, entry/exit, 28500-02/04-06, HUD, auto-fight, UI, config, inventory, or other NoonParty behavior.
+
 ## MondaysAward 17904 (R131)
 
 - 17904 is the only parameterless GAME_START task-state snapshot: `task_state:u16*{task_id:u16,state:u8}`. Request replies and server task/claim updates replace the ordered list atomically; an empty packet clears it. Do not reproduce the old client’s first-17904 automatic 17907 request or attach 17900-03/05-08, prize pools, draw/claim operations, config, red dots, or UI.
