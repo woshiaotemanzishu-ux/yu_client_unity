@@ -962,6 +962,8 @@
         public const int GHOST_WALK_INFO = 20601;
         /// <summary>时空圣痕跨服世界列表。C2S 空包；S2C: status:u8,servers:u16×{server_num:u32,name:s,level:u16}。</summary>
         public const int TS_CRACK_WORLD_INFO = 20411;
+        /// <summary>永恒圣殿活动时间。C2S 空包；S2C: open_time:u32,enter_time:u32,end_time:u32。</summary>
+        public const int ETERNITY_TIME_INFO = 27900;
         /// <summary>装扮类型快照。C2S: dress_type:u8；S2C 为该类型已启用装扮全量列表。</summary>
         public const int DRESS_INFO = 11200;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)

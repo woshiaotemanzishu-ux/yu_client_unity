@@ -96,6 +96,7 @@ using Shenxiao.Module.Core.Guard;
 using Shenxiao.Module.Core.NineSky;
 using Shenxiao.Module.Core.GhostWalk;
 using Shenxiao.Module.Core.TSCrack;
+using Shenxiao.Module.Core.Eternity;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -219,6 +220,7 @@ namespace Shenxiao.Module.Core.Game
             NineSkyController.Instance,
             GhostWalkController.Instance,
             TSCrackController.Instance,
+            EternityController.Instance,
             // 后续:EquipController ...
         };
 

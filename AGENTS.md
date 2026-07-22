@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## Eternity 27900 (R129)
+
+- 27900 is the parameterless time snapshot `open_time:u32,enter_time:u32,end_time:u32`; same-number replies/pushes replace all three fields. GAME_START resets the model and sends only at level >=480. On role updates, only an exact changed level `==480` sends a catch-up request; a jump past 480 deliberately does not send, matching the old client. Do not attach 27901-27909, config, polling, UI, red dots, or operations.
+
 ## TSCrack 20411 (R128)
 
 - 20411 is the only parameterless GAME_START world snapshot: `status:u8,servers:u16*{server_num:u32,server_name:string(u16 UTF8),level:u16}`. Every reply replaces the entire ordered list and an empty list clears it. Never auto-request 20401/20405/20407/20409/20410 (or any other 204xx) after the reply or on level change; do not add UI, config, red dots, or operations.
