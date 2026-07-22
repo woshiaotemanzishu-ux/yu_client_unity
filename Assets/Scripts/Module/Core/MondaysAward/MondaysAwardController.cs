@@ -5,7 +5,7 @@ using Shenxiao.Framework.Net;
 namespace Shenxiao.Module.Core.MondaysAward
 {
     /// <summary>
-    /// 周一嘉礼任务状态快照。仅请求/接收 17904；不复刻老端首次回包后自动请求 17907。
+    /// 周一嘉礼任务和跨服开奖记录快照。仅请求/接收 17904/17905；不复刻老端首次回包后自动请求 17907。
     /// </summary>
     public sealed class MondaysAwardController : BaseController
     {
@@ -20,6 +20,7 @@ namespace Shenxiao.Module.Core.MondaysAward
         protected override void Register()
         {
             RegisterProtocal(Proto.MONDAYS_AWARD_TASK_STATE, On17904);
+            RegisterProtocal(Proto.MONDAYS_AWARD_RECORDS, On17905);
         }
 
         public void RequestTaskState()
@@ -47,6 +48,33 @@ namespace Shenxiao.Module.Core.MondaysAward
             }
 
             MondaysAwardModel.Instance.Replace(taskStates);
+        }
+
+        public void RequestRecords()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.MONDAYS_AWARD_RECORDS, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame))
+            {
+                return;
+            }
+#endif
+            SendFmt(Proto.MONDAYS_AWARD_RECORDS);
+        }
+
+        private void On17905(NetReader reader)
+        {
+            int count = reader.ReadU16();
+            var records = new List<MondaysAwardModel.RecordEntry>(count);
+            for (int i = 0; i < count; i++)
+            {
+                records.Add(new MondaysAwardModel.RecordEntry(
+                    reader.ReadU32(), reader.ReadU16(), unchecked((ulong)reader.ReadU64()), reader.ReadString(),
+                    reader.ReadU8(), reader.ReadU16(), reader.ReadU32(), reader.ReadString(), reader.ReadU32(),
+                    reader.ReadU16(), reader.ReadU16()));
+            }
+
+            MondaysAwardModel.Instance.ReplaceRecords(records);
         }
 
         public override void Dispose()
