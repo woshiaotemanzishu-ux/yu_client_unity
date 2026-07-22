@@ -66,6 +66,8 @@ namespace Shenxiao.EditorTools
                     && starCfg != null && starCfg.Costs.Count > 0
                     && starCfg.Costs[0].TypeId == 68010001 && starCfg.Costs[0].Num == 25
                     && BabyValueConfigs.IsLoaded && BabyValueConfigs.StageRaiseLevel == 2 && BabyValueConfigs.RenameCostNum == 200
+                    && BabyValueConfigs.GestateCost != null && BabyValueConfigs.GestateCost.Type == 2
+                    && BabyValueConfigs.GestateCost.TypeId == 0 && BabyValueConfigs.GestateCost.Num == 288
                     && BabyValueConfigs.StageMaterials.Count > 0 && BabyValueConfigs.StageMaterials[0].ItemId == 38040041
                     && BabyValueConfigs.StageMaterials[0].ExpPerItem == 10
                     && BabyStageConfigs.GetNext(1, 1) != null && BabyStageConfigs.GetNext(1, 1).ExpCon == 13
@@ -132,13 +134,16 @@ namespace Shenxiao.EditorTools
             GameObject propItem = UnityEngine.Object.Instantiate(propItemAsset);
             FieldInfo interceptField = typeof(BabyController).GetField("s_outboundIntercept", BindingFlags.Static | BindingFlags.NonPublic);
             object oldIntercept = interceptField != null ? interceptField.GetValue(null) : null;
+            int oldBGold = Shenxiao.Module.Core.Role.RoleModel.Instance.BGold;
             var powerFrames = new System.Collections.Generic.List<byte[]>();
+            int activateFrames = 0;
             try
             {
                 if (interceptField == null) return false;
                 interceptField.SetValue(null, new Func<byte[], bool>(frame =>
                 {
                     if (IsProtocol(frame, Proto.BABY_FIGURE_POWER)) powerFrames.Add(frame);
+                    if (IsProtocol(frame, Proto.BABY_ACTIVATE)) activateFrames++;
                     return true;
                 }));
                 Shenxiao.Module.Core.Bag.BagModel.Instance.UpdateNum(1, 68010001, 35);
@@ -151,6 +156,26 @@ namespace Shenxiao.EditorTools
                     && module.GetComponentInChildren<BabyCultivateView>(true) != null
                     && module.GetComponentInChildren<BabyIllusionView>(true) != null
                     && propItem.GetComponentInChildren<BabyPropItem>(true) != null;
+                GestateBabyView gestateView = module.GetComponentInChildren<GestateBabyView>(true);
+                bool gestateDisplay = gestateView != null;
+                if (gestateDisplay)
+                {
+                    Shenxiao.Module.Core.Role.RoleModel.Instance.BGold = 287;
+                    gestateView.gameObject.SetActive(true);
+                    gestateView.Show();
+                    Shenxiao.Module.Core.Common.BaseAwardItem[] costs =
+                        gestateView.itemGp.GetComponentsInChildren<Shenxiao.Module.Core.Common.BaseAwardItem>(true);
+                    UnityEngine.UI.Button button = gestateView.gestateBtn.GetComponent<UnityEngine.UI.Button>();
+                    gestateDisplay = costs.Length == 1 && costs[0].gameObject.activeSelf
+                        && costs[0].num_text.text == "288" && button != null;
+                    button?.onClick.Invoke();
+                    bool insufficientGuard = activateFrames == 0;
+                    Shenxiao.Module.Core.Role.RoleModel.Instance.BGold = 288;
+                    button?.onClick.Invoke();
+                    button?.onClick.Invoke();
+                    gestateDisplay = gestateDisplay && insufficientGuard && activateFrames == 1;
+                    gestateView.Hide();
+                }
                 BabyPropItem propBusiness = propItem.GetComponentInChildren<BabyPropItem>(true);
                 bool propDisplay = propBusiness != null;
                 if (propDisplay)
@@ -380,14 +405,15 @@ namespace Shenxiao.EditorTools
                     && Has<BabyIlluItem>(illusion != null ? illusion._tpl_BabyIlluItem : null)
                     && Has<BabyPropItemBind>(illusion != null ? illusion._tpl_BabyPropItem : null)
                     && Has<BabyPropItem>(illusion != null ? illusion._tpl_BabyPropItem : null);
-                Debug.Log("CLIVERIFY babyui pages=" + pages + " businessViews=" + businessViews + " display=" + display + " familyDisplay=" + familyDisplay + " illusionDisplay=" + illusionDisplay + " items=" + items + " templates=" + templates);
-                return pages && businessViews && propDisplay && display && familyDisplay && illusionDisplay && tabRedDisplay && items && templates;
+                Debug.Log("CLIVERIFY babyui pages=" + pages + " businessViews=" + businessViews + " gestateDisplay=" + gestateDisplay + " display=" + display + " familyDisplay=" + familyDisplay + " illusionDisplay=" + illusionDisplay + " items=" + items + " templates=" + templates);
+                return pages && businessViews && gestateDisplay && propDisplay && display && familyDisplay && illusionDisplay && tabRedDisplay && items && templates;
             }
             finally
             {
                 BabyModel.Instance.ApplyPraiseRecords(new BabyPraiseRecordsInfo());
                 BabyModel.Instance.Reset();
                 Shenxiao.Module.Core.Bag.BagModel.Instance.Clear();
+                Shenxiao.Module.Core.Role.RoleModel.Instance.BGold = oldBGold;
                 if (interceptField != null) interceptField.SetValue(null, oldIntercept);
                 UnityEngine.Object.DestroyImmediate(module);
                 UnityEngine.Object.DestroyImmediate(propItem);

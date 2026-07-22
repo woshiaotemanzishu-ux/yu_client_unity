@@ -73,6 +73,7 @@
 - 41305 服务端会删除请求里给出的全部数量；客户端默认候选必须只凑当前等级的经验缺口，最后一个实例按 `ceil(剩余缺口/单件经验)` 裁量并受真实库存/u16 限制，补足后停止，绝不能默认把整堆材料全发。41315 不能只查 cost：必须逐项核对 `SuitStarRow.Conditions`；Slot 先映射 `SuitRow.Conditions`，时装取指定基础色星级，幻化 subtype 1/2 取 Star、其余取 Stage，条件不足时按钮、红点和发包都要拦截。
 
 - 2026-07-23 宝宝家庭 18207：Controller 反转 `info_list` 后，View 再依“本人且男 / 非本人且女”落左槽；资料显示名称/血型/生日/星座，战力用 `FightingShowSmallItem`。`type=1` 补 ClientBaby.defaultAttr(1..8) 并按 ConfigItemAttr.kind=2 分栏，其他 type 标题“给予TA的加成”；父母/子女模型与伴侣资料不在 18207，不能伪造。
+- 2026-07-23 宝宝孕育：消耗只读 `config_baby_value[2]` 首项（当前 `{type=2,type_id=0,num=288}`），`type=2/type_id=0` 经 `GoodsModel.GetMappingTypeId` 映射为绑定灵玉展示物品；`GestateBabyView` 复用内嵌 `_tpl_BaseAwardItem` 显示真实图标和数量。点击须先以 `RoleModel.BGold` 校验；不足按配置货币名提示且零出站，足额同次打开只发一次空包 18210 并关闭。
 
 任何 AI 工具(Claude Code / Cursor / Codex / Copilot 等)写代码前必须读前三份;
 动 UI/转换器读流水线文档,动登录/网络读登录链路文档,动进游戏/主界面/场景接管读进游戏链路文档。

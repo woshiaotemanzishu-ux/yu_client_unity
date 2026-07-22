@@ -11,11 +11,13 @@ namespace Shenxiao.Module.Core.Baby
     public static class BabyValueConfigs
     {
         public sealed class StageMaterial { public int ItemId; public int ExpPerItem; }
+        public sealed class Cost { public int Type; public int TypeId; public int Num; }
 
         private static Task _loading;
         public static bool IsLoaded { get; private set; }
         public static int StageRaiseLevel { get; private set; }
         public static int RenameCostNum { get; private set; }
+        public static Cost GestateCost { get; private set; }
         public static readonly List<StageMaterial> StageMaterials = new List<StageMaterial>();
 
         public static Task EnsureLoaded()
@@ -29,6 +31,7 @@ namespace Shenxiao.Module.Core.Baby
         {
             StageRaiseLevel = 0;
             RenameCostNum = 0;
+            GestateCost = null;
             StageMaterials.Clear();
             string key = GameResPath.GetServerConfigPath("config_baby_value");
             TextAsset asset = await ResManager.LoadAsync<TextAsset>(key);
@@ -50,6 +53,12 @@ namespace Shenxiao.Module.Core.Baby
                 string renameRaw = root["7"]?["value"]?.ToString();
                 if (!string.IsNullOrEmpty(renameRaw) && JArray.Parse(renameRaw).First is JObject rename)
                     RenameCostNum = ReadInt(rename, "2");
+                string gestateRaw = root["2"]?["value"]?.ToString();
+                if (!string.IsNullOrEmpty(gestateRaw) && JArray.Parse(gestateRaw).First is JObject gestate)
+                {
+                    int num = ReadInt(gestate, "2");
+                    if (num > 0) GestateCost = new Cost { Type = ReadInt(gestate, "0"), TypeId = ReadInt(gestate, "1"), Num = num };
+                }
             }
             catch (System.Exception e) { GameLog.Warn("Baby", "parse baby value config failed: {0}", e.Message); }
             finally { ResManager.Release(asset); }
