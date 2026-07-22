@@ -34,6 +34,10 @@
 
 - GAME_START 发送16400严格空包，回包为 `active_ids:u16×u32`。当前仅按包全量替换并保留服务端顺序/重复项，空列表清旧；不接16401激活、13040/13041角色转生阶段，不做配置派生 last/next、等级重拉、事件、红点、UI或角色属性修改。
 
+## GodBeast 17301（轮113）
+
+- GAME_START 发送17301严格空包。回包为 `fight_count:u8,eudemons:u16×{id:u32,state:u8,score:u32,equips:u16×{pos:u8,goods_id:u64,stren:u16,exp:u32},attrs:u16×{attr_type:u16,attr_value:u32}}` 权威全量快照，空列表清旧，`goods_id` 保留u64。当前不接17300错误出口、17302-17312养成操作，不做配置排序、装备字典/GoodsModel映射、派生战斗数、红点、UI或3D资源。
+
 本仓库的 AI 编码约束统一维护在:
 
 - [.github/copilot-instructions.md](.github/copilot-instructions.md) — 精简红线(GitHub Copilot 自动加载)

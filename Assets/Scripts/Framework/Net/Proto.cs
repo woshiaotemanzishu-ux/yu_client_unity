@@ -935,6 +935,8 @@
         public const int KF_STAGE_INFO = 10200;
         /// <summary>天命觉醒激活列表快照。C2S 空包；S2C: ids:u16×u32。</summary>
         public const int REINCARNATION_AWAKEN_INFO = 16400;
+        /// <summary>幻兽总览快照。C2S 空包；S2C 为战斗次数和幻兽嵌套列表。</summary>
+        public const int GODBEAST_OVERVIEW = 17301;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)
         public const int SEVENDAY_OPEN_INFO = 17500;       // 七天登录信息
         public const int SEVENDAY_MERGE_INFO = 17502;      // 合服七天信息
