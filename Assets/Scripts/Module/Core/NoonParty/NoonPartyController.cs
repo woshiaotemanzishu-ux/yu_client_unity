@@ -16,6 +16,7 @@ namespace Shenxiao.Module.Core.NoonParty
         protected override void Register()
         {
             RegisterProtocal(Proto.NOON_PARTY_TOTAL_EXP, On28503);
+            RegisterProtocal(Proto.NOON_PARTY_REBORN_DEADLINE, On28505);
         }
 
         public void RequestExp()
@@ -33,6 +34,23 @@ namespace Shenxiao.Module.Core.NoonParty
         private void On28503(NetReader reader)
         {
             NoonPartyModel.Instance.Replace(reader.ReadU32());
+        }
+
+        public void RequestRebornDeadline()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.NOON_PARTY_REBORN_DEADLINE, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame))
+            {
+                return;
+            }
+#endif
+            SendFmt(Proto.NOON_PARTY_REBORN_DEADLINE);
+        }
+
+        private void On28505(NetReader reader)
+        {
+            NoonPartyModel.Instance.ReplaceRebornDeadline(reader.ReadU32());
         }
 
         public override void Dispose()

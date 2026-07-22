@@ -4,9 +4,9 @@
 
 - GAME_START sends only parameterless 19201. Its complete snapshot is `day_coin:u32,onhook_coin:u32,activities:u16×{module_id:u16,sub_module:u16,select_time:u32,behaviours:u16×{behaviour_id:u16,select_time:u32,times:u16}}`; both list levels have no tail fields. Preserve wire order and duplicates, atomically replace on every reply, and clear on an empty list. Fields stay `DayCoin` then `OnhookCoin`; do not copy the old setter's reversed arguments. Do not attach 19202-08 (especially 19208), operations, exchange, records, UI, config, or red dots.
 
-## NoonParty 28503 (R132)
+## NoonParty 28503/28505 (R132/R134)
 
-- 28503 is an on-demand, parameterless cumulative-experience scalar snapshot: `exp:u32`. Both server paths send the absolute cumulative total, so every packet replaces `TotalExp`; never add deltas. Do not attach GAME_START, level/scene gates, entry/exit, 28500-02/04-06, HUD, auto-fight, UI, config, inventory, or other NoonParty behavior.
+- 28503 is an on-demand, parameterless cumulative-experience scalar snapshot: `exp:u32`. Both server paths send the absolute cumulative total, so every packet replaces `TotalExp`; never add deltas. 28505 is separately on-demand and carries `time:u32`, a Unix absolute Boss/treasure-monster reborn deadline; every response/push replaces `RebornDeadline`, never adds a duration. Do not attach GAME_START, level/scene gates, entry/exit, 28500-02/04/06, HUD, auto-fight, UI, config, inventory, or other NoonParty behavior.
 
 ## MondaysAward 17904 (R131)
 

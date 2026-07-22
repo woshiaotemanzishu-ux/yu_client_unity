@@ -34,6 +34,8 @@ namespace Shenxiao.EditorTools
             bool wasInitialized = controller.IsInitialized;
             bool oldHasData = model.HasData;
             uint oldTotalExp = model.TotalExp;
+            bool oldHasRebornDeadline = model.HasRebornDeadline;
+            uint oldRebornDeadline = model.RebornDeadline;
             FieldInfo interceptField = typeof(NoonPartyController).GetField("s_outboundIntercept", StaticNonPublic);
             object oldIntercept = interceptField == null ? null : interceptField.GetValue(null);
 
@@ -43,11 +45,13 @@ namespace Shenxiao.EditorTools
                 model.Reset();
 
                 MethodInfo on28503 = typeof(NoonPartyController).GetMethod("On28503", InstanceNonPublic);
+                MethodInfo on28505 = typeof(NoonPartyController).GetMethod("On28505", InstanceNonPublic);
                 IDictionary handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                bool pass = interceptField != null && on28503 != null && handlers != null && handlers.Contains(28503);
+                bool pass = interceptField != null && on28503 != null && on28505 != null && handlers != null
+                    && handlers.Contains(28503) && handlers.Contains(28505);
                 for (int proto = 28500; proto <= 28506; proto++)
                 {
-                    if (proto != 28503)
+                    if (proto != 28503 && proto != 28505)
                     {
                         pass &= !handlers.Contains(proto);
                     }
@@ -66,16 +70,23 @@ namespace Shenxiao.EditorTools
                     return true;
                 }));
                 controller.RequestExp();
-                pass &= IsExactRequest(frames.Count == 1 ? frames[0] : null);
+                pass &= IsExactRequest(frames.Count == 1 ? frames[0] : null, Proto.NOON_PARTY_TOTAL_EXP);
+                frames.Clear();
+                controller.RequestRebornDeadline();
+                pass &= IsExactRequest(frames.Count == 1 ? frames[0] : null, Proto.NOON_PARTY_REBORN_DEADLINE);
                 frames.Clear();
 
                 pass &= Feed(on28503, controller, 0) && model.HasData && model.TotalExp == 0 && frames.Count == 0;
                 pass &= Feed(on28503, controller, 100) && model.TotalExp == 100 && frames.Count == 0;
                 pass &= Feed(on28503, controller, 150) && model.TotalExp == 150 && frames.Count == 0;
                 pass &= Feed(on28503, controller, uint.MaxValue) && model.TotalExp == uint.MaxValue && frames.Count == 0;
+                pass &= Feed(on28505, controller, 0) && model.HasRebornDeadline && model.RebornDeadline == 0 && frames.Count == 0;
+                pass &= Feed(on28505, controller, 200) && model.RebornDeadline == 200 && frames.Count == 0;
+                pass &= Feed(on28505, controller, 250) && model.RebornDeadline == 250 && frames.Count == 0;
+                pass &= Feed(on28505, controller, uint.MaxValue) && model.RebornDeadline == uint.MaxValue && frames.Count == 0;
 
                 controller.Dispose();
-                pass &= !model.HasData && model.TotalExp == 0;
+                pass &= !model.HasData && model.TotalExp == 0 && !model.HasRebornDeadline && model.RebornDeadline == 0;
 
                 Debug.Log("CLIVERIFY noonparty VERDICT pass=" + pass);
                 return pass ? 0 : 3;
@@ -91,6 +102,11 @@ namespace Shenxiao.EditorTools
                 if (oldHasData)
                 {
                     model.Replace(oldTotalExp);
+                }
+
+                if (oldHasRebornDeadline)
+                {
+                    model.ReplaceRebornDeadline(oldRebornDeadline);
                 }
 
                 if (wasInitialized)
@@ -113,14 +129,14 @@ namespace Shenxiao.EditorTools
             return reader.Remaining == 0;
         }
 
-        private static bool IsExactRequest(byte[] frame)
+        private static bool IsExactRequest(byte[] frame, int proto)
         {
             return frame != null
                 && frame.Length == 6
                 && frame[0] == 0 && frame[1] == 6
                 && frame[2] == 0x03 && frame[3] == 0xE8
-                && frame[4] == (byte)(Proto.NOON_PARTY_TOTAL_EXP >> 8)
-                && frame[5] == (byte)(Proto.NOON_PARTY_TOTAL_EXP & 0xFF);
+                && frame[4] == (byte)(proto >> 8)
+                && frame[5] == (byte)(proto & 0xFF);
         }
     }
 }
