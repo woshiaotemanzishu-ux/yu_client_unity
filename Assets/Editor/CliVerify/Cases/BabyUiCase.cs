@@ -224,19 +224,34 @@ namespace Shenxiao.EditorTools
                 BabyFamilyView familyView = module.GetComponentInChildren<BabyFamilyView>(true);
                 BabyFamilyInfo family = new BabyFamilyInfo();
                 long selfRoleId = Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId;
-                family.InfoList.Add(new BabyFamilyEntry { RoleId = selfRoleId, ActiveTime = 1, BabyName = "family-a", RaiseLevel = 8, Stage = 5, StageLevel = 2, BabyPower = 600 });
-                family.InfoList.Add(new BabyFamilyEntry { RoleId = selfRoleId == long.MaxValue ? selfRoleId - 1 : selfRoleId + 1, ActiveTime = 2, BabyName = "family-b", RaiseLevel = 9, Stage = 6, StageLevel = 3, BabyPower = 700 });
+                var mine = new BabyFamilyEntry { RoleId = selfRoleId, ActiveTime = 1, BabyName = "family-a", BabyPower = 600 };
+                mine.AttrInfo.Add(new BabyAttrGroup { Type = 1 });
+                mine.AttrInfo[0].AttrList.Add(new BabyAttrEntry { AttrId = 1, Value = 20 });
+                mine.AttrInfo[0].AttrList.Add(new BabyAttrEntry { AttrId = 9, Value = 125 });
+                var mate = new BabyFamilyEntry { RoleId = selfRoleId == long.MaxValue ? selfRoleId - 1 : selfRoleId + 1, ActiveTime = 2, BabyName = "family-b", BabyPower = 700 };
+                mate.AttrInfo.Add(new BabyAttrGroup { Type = 2 });
+                mate.AttrInfo[0].AttrList.Add(new BabyAttrEntry { AttrId = 3, Value = 30 });
+                family.InfoList.Add(mine);
+                family.InfoList.Add(mate);
                 model.ApplyFamily(family);
                 bool familyDisplay = familyView != null;
                 if (familyDisplay)
                 {
                     familyView.gameObject.SetActive(true);
                     familyView.Show();
+                    bool selfOnLeft = Shenxiao.Module.Core.Role.RoleModel.Instance.Sex == 1;
+                    string leftName = selfOnLeft ? "family-a" : "family-b";
+                    string rightName = selfOnLeft ? "family-b" : "family-a";
                     familyDisplay = familyView.scroller1.gameObject.activeSelf && familyView.scroller2.gameObject.activeSelf
-                        && familyView.value1.text.Contains("family-a") && familyView.value1.text.Contains("8")
-                        && familyView.value2.text.Contains("family-b") && familyView.value2.text.Contains("700")
-                        && familyView.reName1.gameObject.activeSelf && familyView.reName1.GetComponent<UnityEngine.UI.Button>() != null
-                        && !familyView.reName2.gameObject.activeSelf;
+                        && familyView.value1.text.Contains(leftName) && familyView.value2.text.Contains(rightName)
+                        && (selfOnLeft ? familyView.value1.text.Contains("B型血") : familyView.value2.text.Contains("B型血"))
+                        && (selfOnLeft ? familyView.spLb1.text.Contains("1.25%") : familyView.spLb2.text.Contains("1.25%"))
+                        && (selfOnLeft ? familyView.nomLb1.text.Contains("20") : familyView.nomLb2.text.Contains("20"))
+                        && (selfOnLeft ? familyView.myLb2.text.Contains("给予TA的加成") : familyView.myLb1.text.Contains("给予TA的加成"))
+                        && familyView.fight1.GetComponentInChildren<Shenxiao.Module.Core.Common.FightingShowSmallItem>(true) != null
+                        && (selfOnLeft ? familyView.reName1 : familyView.reName2).gameObject.activeSelf
+                        && (selfOnLeft ? familyView.reName1 : familyView.reName2).GetComponent<UnityEngine.UI.Button>() != null
+                        && !(selfOnLeft ? familyView.reName2 : familyView.reName1).gameObject.activeSelf;
                     familyView.Hide();
                 }
                 BabyIllusionView illusionView = module.GetComponentInChildren<BabyIllusionView>(true);

@@ -72,6 +72,8 @@
 - 时装第二刀权威配置是老端 CDN `config_fashion_pos`、`config_fashion_suit`、`config_fashion_suit_star`，分别驱动部位经验/属性、四件条件/激活属性、套装 1～10 阶；不得把条件、阶数或消耗硬编码进 View。`FashionModule.prefab` 的 Level/Suit/材料/页签/条件格都是顶层模板节点，业务 Flow 必须在 reparent 前保存模板引用，BindUpgrader 当前成功判据为 9 个业务组件。
 - 41305 服务端会删除请求里给出的全部数量；客户端默认候选必须只凑当前等级的经验缺口，最后一个实例按 `ceil(剩余缺口/单件经验)` 裁量并受真实库存/u16 限制，补足后停止，绝不能默认把整堆材料全发。41315 不能只查 cost：必须逐项核对 `SuitStarRow.Conditions`；Slot 先映射 `SuitRow.Conditions`，时装取指定基础色星级，幻化 subtype 1/2 取 Star、其余取 Stage，条件不足时按钮、红点和发包都要拦截。
 
+- 2026-07-23 宝宝家庭 18207：Controller 反转 `info_list` 后，View 再依“本人且男 / 非本人且女”落左槽；资料显示名称/血型/生日/星座，战力用 `FightingShowSmallItem`。`type=1` 补 ClientBaby.defaultAttr(1..8) 并按 ConfigItemAttr.kind=2 分栏，其他 type 标题“给予TA的加成”；父母/子女模型与伴侣资料不在 18207，不能伪造。
+
 任何 AI 工具(Claude Code / Cursor / Codex / Copilot 等)写代码前必须读前三份;
 动 UI/转换器读流水线文档,动登录/网络读登录链路文档,动进游戏/主界面/场景接管读进游戏链路文档。
 冲突时以 `Docs/Shenxiao重构实施方案.md` 为权威;实施进度与变更日志见
