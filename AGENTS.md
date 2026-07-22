@@ -43,6 +43,10 @@
 
 - 老端在背包初始化完成后空发41101；本端沿用 Fashion 同类迁移经验，简化为 GAME_START 空发一次（请求自身无背包参数）。回包为 `current_used:u32,items:u16×{id:u32,order:u8,end_time:u32}` 完整快照，服务端已负责清过期与特殊称号过滤，本端只全量替换、空列表清旧。不得与 Medal 13405 普通标题表混为一体；当前不接41102-41110、配置、背包数量、红点、事件、UI或场景广播。
 
+## Mask 51101（轮116）
+
+- GAME_START 发送51101严格空包，服务端也会在使用/取消蒙面后主动重推同号；回包仅 `mask_id:u8,end_time:u32`，每包全量覆盖。当前只是数据地基，不代表蒙面表现完成：不接51102取消操作，不写 Role/Figure，不做 Scene 广播消费、变身资源、特效、提示或UI。
+
 本仓库的 AI 编码约束统一维护在:
 
 - [.github/copilot-instructions.md](.github/copilot-instructions.md) — 精简红线(GitHub Copilot 自动加载)

@@ -43,6 +43,7 @@ using Shenxiao.Module.Core.KfStage;
 using Shenxiao.Module.Core.Reincarnation;
 using Shenxiao.Module.Core.GodBeast;
 using Shenxiao.Module.Core.Designation;
+using Shenxiao.Module.Core.Mask;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -113,6 +114,7 @@ namespace Shenxiao.Module.Core.Game
             ReincarnationController.Instance.RequestStartup();
             GodBeastController.Instance.RequestStartup();
             DesignationController.Instance.RequestStartup();
+            MaskController.Instance.RequestStartup();
             FunctionOpenController.Instance.RequestList();
             GameLog.Info("Game", "requested startup packets: 13001,10201,30005,13088,10202,15800,15905,15908,33101,45120,22700,13800,13011,13017,13046,13080,13086");
         }
