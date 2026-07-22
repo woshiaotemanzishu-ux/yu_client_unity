@@ -953,6 +953,8 @@
         public const int DEMON_BLESSING = 50901;
         /// <summary>天启主状态快照。C2S 空包；S2C 为标量与三类全量列表。</summary>
         public const int REVELATION_INFO = 28606;
+        /// <summary>天启装备战力刷新。C2S 空包；S2C: power:u64，仅在已有28606快照时覆盖。</summary>
+        public const int REVELATION_POWER = 28609;
         public const int ACHIEVEMENT_STAGE = 40901;
         public const int ACHIEVEMENT_ENTRIES = 40903;
         public const int ACHIEVEMENT_STAR = 40906;

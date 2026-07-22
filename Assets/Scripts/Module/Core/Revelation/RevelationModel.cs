@@ -11,6 +11,7 @@ namespace Shenxiao.Module.Core.Revelation
         public ushort MaxFigureId { get; private set; } public ushort CurrentFigureId { get; private set; } public ulong Power { get; private set; } public bool HasData { get; private set; } public IReadOnlyList<Gathering> Gatherings => _roGatherings; public IReadOnlyList<Suit> Suits => _roSuits; public IReadOnlyList<Skill> Skills => _roSkills;
         public bool TryGetGathering(byte pos, out Gathering value) { for (int i = 0; i < _gatherings.Count; i++) if (_gatherings[i].Pos == pos) { value = _gatherings[i]; return true; } value = null; return false; }
         public void Replace(ushort maxFigureId, ushort currentFigureId, ulong power, List<Gathering> gatherings, List<Suit> suits, List<Skill> skills) { MaxFigureId = maxFigureId; CurrentFigureId = currentFigureId; Power = power; _gatherings.Clear(); _suits.Clear(); _skills.Clear(); if (gatherings != null) _gatherings.AddRange(gatherings); if (suits != null) _suits.AddRange(suits); if (skills != null) _skills.AddRange(skills); HasData = true; }
+        public void ReplacePowerIfLoaded(ulong power) { if (HasData) Power = power; }
         public void Reset() { MaxFigureId = 0; CurrentFigureId = 0; Power = 0; _gatherings.Clear(); _suits.Clear(); _skills.Clear(); HasData = false; }
     }
 }

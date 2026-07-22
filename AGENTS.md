@@ -40,9 +40,9 @@
 
 - GAME_START sends four empty frames in order 40901->40903->40906->40908. Each reply owns an independent full snapshot (stage rewards, achievement entries, scalar star, type stars); all lists replace atomically and empty lists clear old values. Do not attach 40900/02/04/05/07/09, configuration derivation, red dots, UI, or reward operations.
 
-## Revelation 28606 (R123)
+## Revelation 28606/28609 (R123/R137)
 
-- 28606 is the parameterless full main-state snapshot: raw figure IDs/power plus ordered gathering, suit, and skill lists. Every packet atomically replaces all fields and empty lists clear prior state. Do not attach 28600-05/07-09, configuration, red dots, bag, appearance resources, 3D, or UI.
+- 28606 is the parameterless full main-state snapshot: raw figure IDs/power plus ordered gathering, suit, and skill lists. Every packet atomically replaces all fields and empty lists clear prior state. 28609 is an on-demand `power:u64` refresh: ignore it before a 28606 snapshot; otherwise replace only Power, preserving every other field/list. Do not attach 28600-05/07/08, configuration, red dots, bag, appearance resources, 3D, or UI.
 
 ## Demon 18301 / 18303 / 18307 / 50901 (R119-R122)
 
