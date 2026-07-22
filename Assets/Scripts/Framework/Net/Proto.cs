@@ -1706,6 +1706,8 @@
         /// <summary>领取挂机收益(C2S 空包；S2C errcode:i,old_lv:h,old_lv_ratio:h,goods_list[u16×{style:c,typeId:i,count:l}])。
         /// 主线 101211(ctype91,唯一事件计数型:领一次即完成)。</summary>
         public const int ONHOOK_RECEIVE = 13216;
+        /// <summary>物品自动熔炼经验服务端主动推送：exp_list[u16 × {add_exp:u16,ratio:u8}]。</summary>
+        public const int ONHOOK_AUTO_SMELT_EXP = 13218;
         /// <summary>装备家族统一错误码出口(对标老端 EquipController.ts:274-282 On15200:
         /// Util.ErrorCodeShow(scmd.res);res==1520090/1520091 两个分支老端均为空/已注释,无额外副作用——
         /// 满足断言E族错误出口收紧规则)。轮21 覆盖率审计发现的跨系统统一错误码出口漏号之一(同批

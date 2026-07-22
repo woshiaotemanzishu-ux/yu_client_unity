@@ -35,6 +35,7 @@ namespace Shenxiao.Module.Core.OnHook
             RegisterProtocal(Proto.ONHOOK_TIME_UPDATE, On13214);
             RegisterProtocal(Proto.ONHOOK_EXP_EFFECT, On13215);
             RegisterProtocal(Proto.ONHOOK_RECEIVE, On13216);
+            RegisterProtocal(Proto.ONHOOK_AUTO_SMELT_EXP, On13218);
         }
 
         /// <summary>13212 挂机收益信息(C2S 空包)。</summary>
@@ -90,6 +91,20 @@ namespace Shenxiao.Module.Core.OnHook
             GameLog.Info("OnHook", "13215 exp_effect={0} remaining={1}B", expEffect, r.Remaining);
         }
 
+        /// <summary>13218 是物品自动熔炼经验的服务端主动推送，与服务端 15024 并列；不是挂机主动请求。</summary>
+        private static void On13218(NetReader r)
+        {
+            int count = r.ReadU16();
+            long total = 0;
+            for (int i = 0; i < count; i++)
+            {
+                total += r.ReadU16();
+                r.ReadU8(); // ratio 必须完整消费；当前模型只保留本次自动熔炼经验合计。
+            }
+            OnHookModel.Instance.ApplyAutoSmeltExp(total);
+            GameLog.Info("OnHook", "13218 auto_smelt_exp={0} remaining={1}B", total, r.Remaining);
+        }
+
         /// <summary>13216 领取挂机收益(C2S 无参)。</summary>
         public void Receive()
         {
@@ -135,7 +150,7 @@ namespace Shenxiao.Module.Core.OnHook
         }
     }
 
-    /// <summary>挂机收益 13211/13212/13214 的服务端快照；View 只订阅本模型，不持有协议数据。</summary>
+    /// <summary>挂机收益 13211/13212/13214/13215 快照及 13218 自动熔炼经验增量；View 只订阅本模型。</summary>
     public sealed class OnHookModel
     {
         public readonly struct Reward
@@ -154,6 +169,7 @@ namespace Shenxiao.Module.Core.OnHook
         public int RemainingAfkTime { get; private set; }
         public int NextTime { get; private set; }
         public long ExpEffect { get; private set; }
+        public long AutoSmeltExp { get; private set; }
         public byte LoginType { get; private set; }
         public ushort OffLevel { get; private set; }
         public int BackCount { get; private set; }
@@ -190,10 +206,17 @@ namespace Shenxiao.Module.Core.OnHook
             Changed?.Invoke();
         }
 
+        /// <summary>13218 覆盖本次物品自动熔炼经验合计；空列表即覆盖为零。</summary>
+        public void ApplyAutoSmeltExp(long autoSmeltExp)
+        {
+            AutoSmeltExp = autoSmeltExp;
+            Changed?.Invoke();
+        }
+
         public void Reset()
         {
             TotalAfkTime = CostAfkTime = RemainingAfkTime = NextTime = BackCount = 0;
-            BackExp = ExpEffect = 0; LoginType = 0; OffLevel = 0; _rewards.Clear();
+            BackExp = ExpEffect = AutoSmeltExp = 0; LoginType = 0; OffLevel = 0; _rewards.Clear();
             Changed?.Invoke();
         }
     }

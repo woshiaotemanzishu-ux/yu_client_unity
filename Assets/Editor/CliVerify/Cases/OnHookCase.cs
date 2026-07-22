@@ -27,7 +27,7 @@ namespace Shenxiao.EditorTools
                 intercept.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
                 FieldInfo hf = typeof(NetManager).GetField("_handlers", F);
                 var handlers = hf?.GetValue(null) as IDictionary;
-                bool registered = handlers != null && handlers.Contains(13211) && handlers.Contains(13212) && handlers.Contains(13214) && handlers.Contains(13215) && handlers.Contains(13216);
+                bool registered = handlers != null && handlers.Contains(13211) && handlers.Contains(13212) && handlers.Contains(13214) && handlers.Contains(13215) && handlers.Contains(13216) && handlers.Contains(13218);
 
                 NetReader Feed(string method, byte[] bytes)
                 {
@@ -60,6 +60,14 @@ namespace Shenxiao.EditorTools
                     && model.Rewards[0].GoodsId == rewardIdBefore13215 && model.Rewards[1].Num == rewardNumBefore13215
                     && OnHookShellView.DisplayText.Contains("经验效率：" + expEffect + "/分");
                 bool onlyShowInfoOutbound = frames.Count == 1 && empty(frames[0], Proto.ONHOOK_INFO);
+                var r18 = Feed("On13218", new CliVerify.Pkt().H(2).H(60000).C(255).H(7).C(1).Bytes());
+                bool autoSmeltPush = r18.Remaining == 0 && model.AutoSmeltExp == 60007
+                    && model.CostAfkTime == costBefore13215 && model.RemainingAfkTime == remainingBefore13215
+                    && model.TotalAfkTime == totalBefore13215 && model.ExpEffect == expEffect && model.Rewards.Count == 2
+                    && model.Rewards[0].GoodsId == rewardIdBefore13215 && model.Rewards[1].Num == rewardNumBefore13215
+                    && frames.Count == 1 && empty(frames[0], Proto.ONHOOK_INFO);
+                var r18empty = Feed("On13218", new CliVerify.Pkt().H(0).Bytes());
+                bool autoSmeltEmpty = r18empty.Remaining == 0 && model.AutoSmeltExp == 0;
                 var r11 = Feed("On13211", new CliVerify.Pkt().I(1).I(9000).I(10000).Bytes());
                 bool tick = r11.Remaining == 0 && model.NextTime == 9000 && model.TotalAfkTime == 10000 && model.Rewards.Count == 2;
                 var r11fail = Feed("On13211", new CliVerify.Pkt().I(2).I(9001).I(99999).Bytes());
@@ -71,7 +79,7 @@ namespace Shenxiao.EditorTools
                 bool successNoRequest = r16ok.Remaining == 0 && frames.Count == 0;
                 var r16fail = Feed("On13216", new CliVerify.Pkt().I(2).H(1).H(2).H(0).Bytes());
                 bool failNoRequest = r16fail.Remaining == 0 && frames.Count == 0;
-                bool pass = registered && showSentInfo && info && expEffectPush && onlyShowInfoOutbound && tick && tickFail && time && successNoRequest && failNoRequest;
+                bool pass = registered && showSentInfo && info && expEffectPush && onlyShowInfoOutbound && autoSmeltPush && autoSmeltEmpty && tick && tickFail && time && successNoRequest && failNoRequest;
                 Debug.Log("CLIVERIFY onhook pass=" + pass);
                 return pass ? 0 : 3;
             }

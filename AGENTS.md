@@ -12,6 +12,10 @@
 - 21701/21703 单项均为 `goods_id:u32,lv:u8,current_day_count:u32,current_count:u64`。21701 替换整个档位桶；21703 按 `(lv,goods_id)` 幂等合并。跨天先清客户端缓存再空发21703，不得把历史总次数本地归零。
 - 21702 成功没有本号回包，服务端随后推21701；失败才走21700。使用入口必须从 `config_attr_medicament` 派生档位，并按真实背包数、`config_attr_medicament_use_count` 日/总余量共同裁剪，不能让调用方任意传档位，也不能乐观扣包或改计数。
 
+## OnHook 13218（轮104）
+
+- 13218 是物品自动熔炼成功后与15024并列下发的服务端主动推送，不是挂机请求。格式为 `exp_list:u16 count × {add_exp:u16,ratio:u8}`；老端只把全部 `add_exp` 相加后覆盖 `auto_smelt_exp`，空列表覆盖为0。`ratio` 当前不入模但必须读到尾；不得因此主动请求或抢占15024，也不得污染13212快照、13215经验效率或奖励列表。
+
 本仓库的 AI 编码约束统一维护在:
 
 - [.github/copilot-instructions.md](.github/copilot-instructions.md) — 精简红线(GitHub Copilot 自动加载)
