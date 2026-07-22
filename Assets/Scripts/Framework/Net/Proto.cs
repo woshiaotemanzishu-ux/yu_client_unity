@@ -965,6 +965,8 @@
         public const int KF_SINGLE_RANK_INFO = 50701;
         /// <summary>跨服单人排行副本指定区域榜单。C2S: area_id:u8；S2C: area_id+完整排行表。</summary>
         public const int KF_SINGLE_RANK_AREA_TOP = 50703;
+        /// <summary>跨服单人排行副本指定区域可挑战擂主表。C2S: area_id:u8；S2C: area_id:u8,entries:u16×{level:u8,role_id:u64,role_name:string,server_id:u16,server_num:u16,lv:u16,career:u8,sex:u8,turn:u8,picture:string,picture_ver:u8,go_time:u32}。</summary>
+        public const int KF_SINGLE_RANK_AREA_TOWERS = 50702;
         public const int ACHIEVEMENT_STAGE = 40901;
         public const int ACHIEVEMENT_ENTRIES = 40903;
         public const int ACHIEVEMENT_STAR = 40906;

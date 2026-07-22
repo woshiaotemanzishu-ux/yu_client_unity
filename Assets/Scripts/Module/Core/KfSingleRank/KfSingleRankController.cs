@@ -18,6 +18,7 @@ namespace Shenxiao.Module.Core.KfSingleRank
         protected override void Register()
         {
             RegisterProtocal(Proto.KF_SINGLE_RANK_INFO, On50701);
+            RegisterProtocal(Proto.KF_SINGLE_RANK_AREA_TOWERS, On50702);
             RegisterProtocal(Proto.KF_SINGLE_RANK_AREA_TOP, On50703);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
@@ -71,6 +72,42 @@ namespace Shenxiao.Module.Core.KfSingleRank
                     reader.ReadU16(), reader.ReadU32()));
             }
             KfSingleRankModel.Instance.ReplaceAreaTop(areaId, entries);
+        }
+        public void RequestAreaTowers(byte areaId)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(
+                Proto.KF_SINGLE_RANK_AREA_TOWERS,
+                "c",
+                new object[] { areaId });
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.KF_SINGLE_RANK_AREA_TOWERS, "c", areaId);
+        }
+
+        private void On50702(NetReader reader)
+        {
+            byte areaId = reader.ReadU8();
+            int count = reader.ReadU16();
+            var entries = new List<KfSingleRankModel.AreaTowerEntry>(count);
+            for (int i = 0; i < count; i++)
+            {
+                entries.Add(new KfSingleRankModel.AreaTowerEntry(
+                    reader.ReadU8(),
+                    unchecked((ulong)reader.ReadU64()),
+                    reader.ReadString(),
+                    reader.ReadU16(),
+                    reader.ReadU16(),
+                    reader.ReadU16(),
+                    reader.ReadU8(),
+                    reader.ReadU8(),
+                    reader.ReadU8(),
+                    reader.ReadString(),
+                    reader.ReadU8(),
+                    reader.ReadU32()));
+            }
+
+            KfSingleRankModel.Instance.ReplaceAreaTowers(areaId, entries);
         }
 
         public override void Dispose()

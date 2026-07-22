@@ -46,6 +46,61 @@ namespace Shenxiao.Module.Core.KfSingleRank
                 Entries = new List<AreaRankEntry>(entries ?? new List<AreaRankEntry>()).AsReadOnly();
             }
         }
+        public sealed class AreaTowerEntry
+        {
+            public byte Level { get; }
+            public ulong RoleId { get; }
+            public string RoleName { get; }
+            public ushort ServerId { get; }
+            public ushort ServerNum { get; }
+            public ushort LevelValue { get; }
+            public byte Career { get; }
+            public byte Sex { get; }
+            public byte Turn { get; }
+            public string Picture { get; }
+            public byte PictureVer { get; }
+            public uint GoTime { get; }
+
+            public AreaTowerEntry(
+                byte level,
+                ulong roleId,
+                string roleName,
+                ushort serverId,
+                ushort serverNum,
+                ushort levelValue,
+                byte career,
+                byte sex,
+                byte turn,
+                string picture,
+                byte pictureVer,
+                uint goTime)
+            {
+                Level = level;
+                RoleId = roleId;
+                RoleName = roleName;
+                ServerId = serverId;
+                ServerNum = serverNum;
+                LevelValue = levelValue;
+                Career = career;
+                Sex = sex;
+                Turn = turn;
+                Picture = picture;
+                PictureVer = pictureVer;
+                GoTime = goTime;
+            }
+        }
+
+        public sealed class AreaTowerSnapshot
+        {
+            public byte AreaId { get; }
+            public IReadOnlyList<AreaTowerEntry> Entries { get; }
+
+            public AreaTowerSnapshot(byte areaId, List<AreaTowerEntry> entries)
+            {
+                AreaId = areaId;
+                Entries = new List<AreaTowerEntry>(entries ?? new List<AreaTowerEntry>()).AsReadOnly();
+            }
+        }
 
         public static readonly KfSingleRankModel Instance = new KfSingleRankModel();
 
@@ -53,11 +108,14 @@ namespace Shenxiao.Module.Core.KfSingleRank
         private readonly IReadOnlyList<LevelEntry> _readOnlyLevels;
         private readonly Dictionary<byte, AreaSnapshot> _areaTops = new Dictionary<byte, AreaSnapshot>();
         private readonly IReadOnlyDictionary<byte, AreaSnapshot> _readOnlyAreaTops;
+        private readonly Dictionary<byte, AreaTowerSnapshot> _areaTowers = new Dictionary<byte, AreaTowerSnapshot>();
+        private readonly IReadOnlyDictionary<byte, AreaTowerSnapshot> _readOnlyAreaTowers;
 
         private KfSingleRankModel()
         {
             _readOnlyLevels = _levels.AsReadOnly();
             _readOnlyAreaTops = new ReadOnlyDictionary<byte, AreaSnapshot>(_areaTops);
+            _readOnlyAreaTowers = new ReadOnlyDictionary<byte, AreaTowerSnapshot>(_areaTowers);
         }
 
         public bool HasData { get; private set; }
@@ -65,6 +123,16 @@ namespace Shenxiao.Module.Core.KfSingleRank
         public byte RewardState { get; private set; }
         public IReadOnlyList<LevelEntry> Levels => _readOnlyLevels;
         public IReadOnlyDictionary<byte, AreaSnapshot> AreaTops => _readOnlyAreaTops;
+        public IReadOnlyDictionary<byte, AreaTowerSnapshot> AreaTowers => _readOnlyAreaTowers;
+        public bool TryGetAreaTowers(byte areaId, out AreaTowerSnapshot snapshot)
+        {
+            return _areaTowers.TryGetValue(areaId, out snapshot);
+        }
+
+        public void ReplaceAreaTowers(byte areaId, List<AreaTowerEntry> entries)
+        {
+            _areaTowers[areaId] = new AreaTowerSnapshot(areaId, entries);
+        }
 
         public bool TryGetAreaTop(byte areaId, out AreaSnapshot snapshot)
         {
@@ -91,6 +159,7 @@ namespace Shenxiao.Module.Core.KfSingleRank
             RewardState = 0;
             _levels.Clear();
             _areaTops.Clear();
+            _areaTowers.Clear();
             HasData = false;
         }
     }
