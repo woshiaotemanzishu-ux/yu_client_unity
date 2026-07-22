@@ -53,6 +53,8 @@ namespace Shenxiao.EditorTools.ConfigGen
         // 登录链路用到的服务端表(头像=config_dress_up_cfg type5 的 screen 字段)
         private static readonly string[] SYNC_LIST_SERVER =
         {
+            "config_attr_medicament", // 属性药剂物品→等级权威表(pt_217)
+            "config_attr_medicament_use_count", // 属性药剂等级段日/总次数权威表(pt_217)
             "config_baby_equip", // 宝宝装备 goods_id→pos/stage/color/skills 穿戴门禁
             "config_enchantment_guard_boss",
             "config_enchantment_guard_stage_reward",

@@ -925,6 +925,11 @@
         public const int PUSHGIFT_LIST = 19101;            // 礼包推送列表
         public const int PUSHGIFT_OFFLINE = 19104;         // 礼包推送-离线过期领取
         public const int ADVENTURE_INFO = 42700;           // 天天冒险活动时间窗
+        // 属性药剂(pt_217): 21702 成功不回本号，服务端随后推 21701；21700 是唯一错误出口。
+        public const int ATTRIBUTE_POTION_ERROR = 21700;
+        public const int ATTRIBUTE_POTION_LEVEL_COUNT = 21701;
+        public const int ATTRIBUTE_POTION_USE = 21702;
+        public const int ATTRIBUTE_POTION_ALL_COUNT = 21703;
 
         // ----- 周卡(452xx,yu_server pt_452.erl) -----
         /// <summary>周卡信息。请求无参;回包 Lv:h, Exp:i, IsActivity:c, GiftBagNum:h, CanReceiveGift:h, ExpiredTime:i。</summary>

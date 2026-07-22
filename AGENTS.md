@@ -6,6 +6,12 @@
 - 14311 为 `id:u32,buy_times:u16`。显隐还必须经过 `CheckFuncOpenState("DragonBallView")` 且非 alpha；等级事件只在精确命中配置 open_lv 时重拉。
 - Unity CLI `eval` 在主线程执行：专项若会 `await ResManager.LoadAsync`，必须像批处理用例一样暂置并恢复 `ResManager.EditorPreferFallback=true`，确保 AssetDatabase 兜底同步命中；且 `GetAwaiter().GetResult()` 路径中的整个 Task 必须同步完成，不能含 `Task.Yield`/Delay/等待下一帧，否则会锁死编辑器主线程，只能重启隔离 Unity。
 
+## 属性药剂 pt_217（轮102）
+
+- 21701 的 `lv:u8` 是药剂档位（当前配置1..4），**不是角色等级**；老端只在界面档位缓存缺失时请求，没有角色升级订阅。21703 是启动/跨天的全档位请求。
+- 21701/21703 单项均为 `goods_id:u32,lv:u8,current_day_count:u32,current_count:u64`。21701 替换整个档位桶；21703 按 `(lv,goods_id)` 幂等合并。跨天先清客户端缓存再空发21703，不得把历史总次数本地归零。
+- 21702 成功没有本号回包，服务端随后推21701；失败才走21700。使用入口必须从 `config_attr_medicament` 派生档位，并按真实背包数、`config_attr_medicament_use_count` 日/总余量共同裁剪，不能让调用方任意传档位，也不能乐观扣包或改计数。
+
 本仓库的 AI 编码约束统一维护在:
 
 - [.github/copilot-instructions.md](.github/copilot-instructions.md) — 精简红线(GitHub Copilot 自动加载)
