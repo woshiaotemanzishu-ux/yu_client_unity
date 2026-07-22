@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## GhostWalk 20601 (R127)
+
+- 20601 is the empty GAME_START request and full snapshot `state:u8,etime:u32,ser_mod:u8,group_id:u32,servers:u16*{ser_id:u16,ser_num:u16,name:string,open_day:u16,world_lv:u16},avg_wlv:u16`. `avg_wlv` is the global tail outside the list; same-number replies/pushes replace the entire snapshot and an empty list clears old servers. Do not auto-request 20602 after 20601. No 20600/20602-20605, UI, config, red dots, or operations.
+
 ## NineSky 13500 (R126)
 
 - 13500 is the parameterless GAME_START snapshot. Wire is `state:u8,left_time:u32,mod:u32,group_id:u32,servers:u16*{server_id:u64,server_num:u64,name:string,world_lv:u64},avg_lv:u64`; `avg_lv` is the global tail after the list, not an entry field. Same-number replies/pushes replace the entire snapshot and an empty list clears old servers. Do not attach 13501-13510, UI, configuration, red dots, or operations.

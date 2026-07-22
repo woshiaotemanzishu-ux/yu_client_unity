@@ -94,6 +94,7 @@ using Shenxiao.Module.Core.Revelation;
 using Shenxiao.Module.Core.Achievement;
 using Shenxiao.Module.Core.Guard;
 using Shenxiao.Module.Core.NineSky;
+using Shenxiao.Module.Core.GhostWalk;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -215,6 +216,7 @@ namespace Shenxiao.Module.Core.Game
             AchievementController.Instance,
             GuardController.Instance,
             NineSkyController.Instance,
+            GhostWalkController.Instance,
             // 后续:EquipController ...
         };
 
