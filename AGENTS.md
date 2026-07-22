@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## TempleAwaken 42901（R117）
+- GAME_START 顺序空发 42901→42909；42901 为章节/子章/阶段全量树，process 是 u64，空列表清旧。
+- 42900 成功后仅重拉 42901；同号推送只替换模型并发更新事件，不接领奖、UI 或配置推导。
+
 ## DragonBall 14311（轮101）
 
 - `config_start_nuclear` 是龙珠礼包图标 143 的权威门槛；仅消费 id/open_lv/open_day/times_limit。当前 8 行，最低开启等级 150；1..7 限购1，8限购3。

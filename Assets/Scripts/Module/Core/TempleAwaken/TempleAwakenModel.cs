@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
@@ -21,6 +22,15 @@ namespace Shenxiao.Module.Core.TempleAwaken
 
         /// <summary>觉醒之路是否已开启(42900 error_code==1 成功)。</summary>
         public bool Opened { get; private set; }
+        public sealed class StageEntry { public ushort Stage { get; } public byte Status { get; } public ulong Process { get; } public StageEntry(ushort stage, byte status, ulong process) { Stage = stage; Status = status; Process = process; } }
+        public sealed class SubChapterEntry { public ushort SubChapter { get; } public byte Status { get; } public IReadOnlyList<StageEntry> Stages { get; } public SubChapterEntry(ushort subChapter, byte status, List<StageEntry> stages) { SubChapter = subChapter; Status = status; Stages = (stages ?? new List<StageEntry>()).AsReadOnly(); } }
+        public sealed class ChapterEntry { public ushort Chapter { get; } public byte Status { get; } public byte IsWear { get; } public IReadOnlyList<SubChapterEntry> Subs { get; } public ChapterEntry(ushort chapter, byte status, byte isWear, List<SubChapterEntry> subs) { Chapter = chapter; Status = status; IsWear = isWear; Subs = (subs ?? new List<SubChapterEntry>()).AsReadOnly(); } }
+        private readonly List<ChapterEntry> _chapters = new List<ChapterEntry>();
+        public byte TaskComplete { get; private set; }
+        public IReadOnlyList<ChapterEntry> Chapters => _chapters.AsReadOnly();
+        public bool IsTaskComplete => TaskComplete != 0;
+        public bool HasInfo { get; private set; }
+        public void ReplaceInfo(byte taskComplete, List<ChapterEntry> chapters) { TaskComplete = taskComplete; _chapters.Clear(); if (chapters != null) _chapters.AddRange(chapters); HasInfo = true; }
 
         public void SetPreTaskFinished(bool finished)
         {
@@ -36,6 +46,9 @@ namespace Shenxiao.Module.Core.TempleAwaken
         {
             PreTaskFinished = false;
             Opened = false;
+            TaskComplete = 0;
+            _chapters.Clear();
+            HasInfo = false;
         }
     }
 

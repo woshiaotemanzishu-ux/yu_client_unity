@@ -8,19 +8,37 @@ namespace Shenxiao.Module.Core.TempleAwaken
     /// <summary>
     /// 天命觉醒(神殿觉醒之路)协议控制器(对标老端 TempleAwakenEnterView.ts:220-223 点击发 42900;
     /// 服务端 pt_429 lib_temple_awaken:finish_initial_task → lib_task_api:open_temple_awaken)。
-    /// 42900 完成初始任务(C2S 无参),42909 前置完成态推送(服务端主动下发,客户端不轮询)。
-    /// 42901+(神殿主界面/章节/奖励)留后,本轮只做开启最小闭环。
+    /// 42900 完成初始任务(C2S 无参)，42901 是全量章节/子章/阶段快照，42909 是前置完成态。
+    /// GAME_START 空发 42901→42909；领奖、穿戴、场景同步和完整界面仍留后。
     /// </summary>
     public sealed class TempleAwakenController : BaseController
     {
         public static readonly TempleAwakenController Instance = new TempleAwakenController();
+#if UNITY_EDITOR
+        private static System.Func<byte[], bool> s_outboundIntercept;
+#endif
 
         private TempleAwakenController() { }
 
         protected override void Register()
         {
             RegisterProtocal(Proto.TEMPLE_AWAKEN_FINISH_INITIAL, On42900);
+            RegisterProtocal(Proto.TEMPLE_AWAKEN_INFO, On42901);
             RegisterProtocal(Proto.TEMPLE_AWAKEN_PRE_STATE, On42909);
+        }
+
+        public void RequestStartup()
+        {
+            SendEmpty(Proto.TEMPLE_AWAKEN_INFO);
+            SendEmpty(Proto.TEMPLE_AWAKEN_PRE_STATE);
+        }
+        private void SendEmpty(int protoId)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(protoId, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(protoId);
         }
 
         public override void Dispose()
@@ -49,9 +67,23 @@ namespace Shenxiao.Module.Core.TempleAwaken
                 return;
             }
             TempleAwakenModel.Instance.SetOpened(true);
+            SendEmpty(Proto.TEMPLE_AWAKEN_INFO);
             TipsManager.Toast("觉醒之路已开启");
             TempleAwakenShellView.Close();
             GameLog.Info("TempleAwaken", "42900 ok 觉醒之路已开启");
+            EventDispatcher.Emit(GlobalEvent.EVT_TEMPLE_AWAKEN_UPDATE);
+        }
+
+        private void On42901(NetReader r)
+        {
+            byte taskComplete = r.ReadU8(); int chapterCount = r.ReadU16(); var chapters = new System.Collections.Generic.List<TempleAwakenModel.ChapterEntry>(chapterCount);
+            for (int i = 0; i < chapterCount; i++)
+            {
+                ushort chapter = r.ReadU16(); byte status = r.ReadU8(); byte isWear = r.ReadU8(); int subCount = r.ReadU16(); var subs = new System.Collections.Generic.List<TempleAwakenModel.SubChapterEntry>(subCount);
+                for (int j = 0; j < subCount; j++) { ushort sub = r.ReadU16(); byte subStatus = r.ReadU8(); int stageCount = r.ReadU16(); var stages = new System.Collections.Generic.List<TempleAwakenModel.StageEntry>(stageCount); for (int k = 0; k < stageCount; k++) stages.Add(new TempleAwakenModel.StageEntry(r.ReadU16(), r.ReadU8(), unchecked((ulong)r.ReadU64()))); subs.Add(new TempleAwakenModel.SubChapterEntry(sub, subStatus, stages)); }
+                chapters.Add(new TempleAwakenModel.ChapterEntry(chapter, status, isWear, subs));
+            }
+            TempleAwakenModel.Instance.ReplaceInfo(taskComplete, chapters);
             EventDispatcher.Emit(GlobalEvent.EVT_TEMPLE_AWAKEN_UPDATE);
         }
 

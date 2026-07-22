@@ -1748,6 +1748,8 @@
         /// <summary>完成觉醒之路初始任务(C2S 无参;回包 error_code:i,==1 成功 → 服务端 open_temple_awaken 推进
         /// 主线 100590(ctype81);前置=任务 100580 完成,KV(6) 等级门槛服务端校验)。</summary>
         public const int TEMPLE_AWAKEN_FINISH_INITIAL = 42900;
+        /// <summary>天命觉醒全量状态树。C2S 空包；S2C 为章节/子章/阶段进度。</summary>
+        public const int TEMPLE_AWAKEN_INFO = 42901;
         /// <summary>觉醒之路前置任务完成态推送(is_finish:c)。</summary>
         public const int TEMPLE_AWAKEN_PRE_STATE = 42909;
 
