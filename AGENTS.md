@@ -55,6 +55,7 @@
 - Laya 的 `Box`（例如 `effectGp`）转换后可能只有 `RectTransform`，不能因节点名或用途就按 `Image` 绑定；纯显隐节点用 `Transform/GameObject.SetActive`，并在交互用例里断言 `activeSelf`。嵌套模板内外存在同名节点时，查找必须限制在直属父级或模板根作用域，避免误绑到子模板。
 - 宝宝铭刻四个 orphan scene（BabyImprintView/AddImprintView/ImprintItem/AddImprintItem）必须先显式 `GenerateImprintStatic` 生成 prefab/Bind，等 Unity 编译后只跑 `UpgradeImprintStatic` 回填并嵌模板；增量回归不得重复 ConvertSingle。旧 JSON 误引用 `common/texture/com_rect_btn12.png`，真实同名字节只在 old alert/H5 镜像，已按 SHA256 `83ABC71B...DDEF558` 复制到新 common 路径并按 PNG LFS 管理；静态验收需确认主 prefab 真正引用该 Sprite GUID。
 - BabyImprintView/BabyForgeView 都是 628×744 且没有 close 节点，尺寸与行为表明它们是 720×992 BabyEquipView 内的子面板，不是独立模态 Window；四个铭刻 prefab 已绑定无 UIViewAttribute 的业务子类，本地 item callback 必须保持零出站。后续只能在确认装备页内层级、切换与返回关系后嵌入，不能仅因 prefab 独立就注册 ViewManager 地址。
+- BabyEquipFuncView 是装备外壳：`viewGp` 同一时刻只能有一个活动的直属子页（Equip/Forge/Imprint）。子页时外壳 `closeBtn` 必须本地返回 Equip；Equip 主页时才关闭整个窗口。BabyEquipView 的 forge/imprint 入口默认不能有 Button；只能由该外壳配置本地回调后动态添加，回调只把当前槽位交给外壳换屏，严禁直接发送强化/铭刻协议。
 - 发现页面背景透明、窗框缺失、按钮皮肤/列表模板/九宫格/图片尺寸不对时，先归因为转换器、资源映射、默认皮肤、Bind 或运行时加载链路，优先找共性修复；避免逐页精修。
 
 ## 协议迁移补充记忆

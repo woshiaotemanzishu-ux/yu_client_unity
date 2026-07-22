@@ -227,7 +227,9 @@ namespace Shenxiao.Editor.UiCreator.Baby
                 || !EnsureNestedTemplate(EquipPrefabPaths[1], "__Templates", EquipPrefabPaths[4])
                 || !EnsureNestedTemplate(EquipPrefabPaths[1], "__Templates", EquipPrefabPaths[3])
                 || !EnsureNestedTemplate(EquipPrefabPaths[1], "__Templates", FightingShowSmallItemPath)
-                || !EnsureNestedTemplate(EquipPrefabPaths[0], "__Templates", EquipPrefabPaths[1])) return false;
+                || !EnsureNestedTemplate(EquipPrefabPaths[0], "__Templates", EquipPrefabPaths[1])
+                || !EnsureNestedTemplate(EquipPrefabPaths[0], "__Templates", ForgeViewPath)
+                || !EnsureNestedTemplate(EquipPrefabPaths[0], "__Templates", ImprintPrefabPaths[0])) return false;
             return VerifyEquipStatic();
         }
 
@@ -257,8 +259,12 @@ namespace Shenxiao.Editor.UiCreator.Baby
             ok &= CheckTemplate<BabyEquipSubItem>(view != null ? view.transform.Find("__Templates/BabyEquipSubItem")?.gameObject : null, "BabyEquipView.BabyEquipSubItem");
             ok &= CheckTemplate<Shenxiao.Module.Core.Common.BaseAwardItem>(view != null ? view.transform.Find("__Templates/BabyEquipSubItem/__Templates/BaseAwardItem")?.gameObject : null, "BabyEquipView.BabyEquipSubItem.BaseAwardItem");
             ok &= CheckTemplate<BabyEquipView>(func != null ? func.transform.Find("__Templates/BabyEquipView")?.gameObject : null, "BabyEquipFuncView.BabyEquipView");
+            ok &= CheckTemplate<BabyForgeView>(func != null ? func.transform.Find("__Templates/BabyForgeView")?.gameObject : null, "BabyEquipFuncView.BabyForgeView");
+            ok &= CheckTemplate<BabyImprintView>(func != null ? func.transform.Find("__Templates/BabyImprintView")?.gameObject : null, "BabyEquipFuncView.BabyImprintView");
             ok &= CheckTemplate<Shenxiao.Module.Core.Common.FightingShowSmallItem>(view != null ? view.transform.Find("__Templates/FightingShowSmallItem")?.gameObject : null, "BabyEquipView.FightingShowSmallItem");
             ok &= CheckBusinessView<Shenxiao.Module.Core.Common.FightingShowSmallItem>(view, "BabyEquipView.FightingShowSmallItem");
+            ok &= typeof(BabyForgeView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>() == null;
+            ok &= typeof(BabyImprintView).GetCustomAttribute<Shenxiao.Framework.UI.UIViewAttribute>() == null;
             Debug.Log("[UiCreator] Baby equip static verification " + (ok ? "OK" : "FAILED"));
             return ok;
         }

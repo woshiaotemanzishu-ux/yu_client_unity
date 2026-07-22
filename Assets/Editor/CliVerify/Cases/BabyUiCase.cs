@@ -781,7 +781,13 @@ namespace Shenxiao.EditorTools
                     && firstDefault != null && !firstDefault.gameObject.activeSelf && lastDefault != null && lastDefault.gameObject.activeSelf;
                 UnityEngine.UI.Button forgeButton = content != null ? FindNode(content.transform, "forgeBtn")?.GetComponent<UnityEngine.UI.Button>() : null;
                 UnityEngine.UI.Button imprintButton = content != null ? FindNode(content.transform, "imprintBtn")?.GetComponent<UnityEngine.UI.Button>() : null;
-                bool mainEntriesPassive = forgeButton == null && imprintButton == null;
+                bool mainEntriesLocal = forgeButton != null && imprintButton != null;
+                GameObject standaloneAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/Baby/BabyEquipView.prefab");
+                GameObject standalone = standaloneAsset != null ? UnityEngine.Object.Instantiate(standaloneAsset) : null;
+                bool standaloneEntriesPassive = standalone != null
+                    && FindNode(standalone.transform, "forgeBtn")?.GetComponent<UnityEngine.UI.Button>() == null
+                    && FindNode(standalone.transform, "imprintBtn")?.GetComponent<UnityEngine.UI.Button>() == null;
+                if (standalone != null) UnityEngine.Object.DestroyImmediate(standalone);
                 var candidates = new System.Collections.Generic.List<BabyEquipSubItem>();
                 BabyEquipSubItem[] allCandidates = content != null ? content.GetComponentsInChildren<BabyEquipSubItem>(true) : new BabyEquipSubItem[0];
                 for (int i = 0; i < allCandidates.Length; i++) if (allCandidates[i].gameObject.activeInHierarchy) candidates.Add(allCandidates[i]);
@@ -846,12 +852,47 @@ namespace Shenxiao.EditorTools
                     + " content=" + (content != null) + " icons=" + icons.Count + " name=" + (name != null ? name.text : "<null>")
                     + " fighting=" + (fighting != null && fighting._lb_fighting != null ? fighting._lb_fighting.text : "<null>") + " first=" + (first != null ? first.IsOccupied.ToString() : "<null>")
                     + " last=" + (last != null ? last.IsOccupied.ToString() : "<null>") + " firstDefault=" + (firstDefault != null ? firstDefault.gameObject.activeSelf.ToString() : "<null>")
-                    + " lastDefault=" + (lastDefault != null ? lastDefault.gameObject.activeSelf.ToString() : "<null>") + " mainEntries=" + mainEntriesPassive + "/" + mainEntriesDoNotUpgrade
+                    + " lastDefault=" + (lastDefault != null ? lastDefault.gameObject.activeSelf.ToString() : "<null>") + " mainEntries=" + mainEntriesLocal + "/" + standaloneEntriesPassive + "/" + mainEntriesDoNotUpgrade
                     + " initialCandidates=" + initialCandidates + " secondCandidates=" + secondCandidates + " wearFrame=" + wearFrame
                     + " worn=" + wornOverride + "/" + wornFallback
                     + " selectedFirst=" + (selectedFirst != null) + "/" + selectedFirstEffect + " selectedSecond=" + (selectedSecond != null) + "/" + selectedSecondEffect
                     + " candidateCount=" + candidates.Count + " candidateType=" + (candidates.Count > 0 ? candidates[0].TypeId : 0));
-                pass = pass && mainEntriesPassive && mainEntriesDoNotUpgrade && initialCandidates && ratingRed && wornOverride && wornFallback && fallbackRed && secondCandidates && wearFrame;
+                forgeButton = content != null ? FindNode(content.transform, "forgeBtn")?.GetComponent<UnityEngine.UI.Button>() : null;
+                forgeButton?.onClick.Invoke();
+                BabyForgeView forge = null;
+                BabyForgeView[] allForge = root.GetComponentsInChildren<BabyForgeView>(true);
+                for (int i = 0; i < allForge.Length; i++) if (allForge[i].gameObject.activeInHierarchy) { forge = allForge[i]; break; }
+                int activeDirectChildren = 0;
+                Transform viewGp = FindNode(root.transform, "viewGp");
+                if (viewGp != null) for (int i = 0; i < viewGp.childCount; i++) if (viewGp.GetChild(i).gameObject.activeSelf) activeDirectChildren++;
+                bool forgeNavigation = view.CurrentScreen == BabyEquipFuncView.Screen.Forge && forge != null && forge.gameObject.activeInHierarchy
+                    && forge.PositionId == 2 && content != null && !content.gameObject.activeInHierarchy && activeDirectChildren == 1;
+                UnityEngine.UI.Button closeButton = FindNode(root.transform, "closeBtn")?.GetComponent<UnityEngine.UI.Button>();
+                closeButton?.onClick.Invoke();
+                content = null;
+                allContents = root.GetComponentsInChildren<BabyEquipView>(true);
+                for (int i = 0; i < allContents.Length; i++) if (allContents[i].gameObject.activeInHierarchy) { content = allContents[i]; break; }
+                bool forgeCloseReturns = view.CurrentScreen == BabyEquipFuncView.Screen.Equip && content != null && content.gameObject.activeInHierarchy;
+                imprintButton = content != null ? FindNode(content.transform, "imprintBtn")?.GetComponent<UnityEngine.UI.Button>() : null;
+                imprintButton?.onClick.Invoke();
+                BabyImprintView imprint = null;
+                BabyImprintView[] allImprint = root.GetComponentsInChildren<BabyImprintView>(true);
+                for (int i = 0; i < allImprint.Length; i++) if (allImprint[i].gameObject.activeInHierarchy) { imprint = allImprint[i]; break; }
+                bool imprintNavigation = view.CurrentScreen == BabyEquipFuncView.Screen.Imprint && imprint != null && imprint.gameObject.activeInHierarchy && imprint.PositionId == 2;
+                closeButton?.onClick.Invoke();
+                bool imprintCloseReturns = view.CurrentScreen == BabyEquipFuncView.Screen.Equip;
+                int forbiddenFrames = 0;
+                for (int i = 0; i < frames.Count; i++) if (IsProtocol(frames[i], Proto.BABY_EQUIP_UPGRADE) || IsProtocol(frames[i], Proto.BABY_EQUIP_IMPRINT)) forbiddenFrames++;
+                FieldInfo viewsField = typeof(Shenxiao.Framework.UI.ViewManager).GetField("_views", BindingFlags.Static | BindingFlags.NonPublic);
+                System.Collections.IDictionary views = viewsField != null ? viewsField.GetValue(null) as System.Collections.IDictionary : null;
+                if (views != null) views[typeof(BabyEquipFuncView)] = view;
+                closeButton?.onClick.Invoke();
+                activeDirectChildren = 0;
+                if (viewGp != null) for (int i = 0; i < viewGp.childCount; i++) if (viewGp.GetChild(i).gameObject.activeSelf) activeDirectChildren++;
+                bool homeCloseContext = view.CurrentScreen == BabyEquipFuncView.Screen.Equip && activeDirectChildren == 0;
+                if (views != null) views.Remove(typeof(BabyEquipFuncView));
+                pass = pass && mainEntriesLocal && standaloneEntriesPassive && mainEntriesDoNotUpgrade && initialCandidates && ratingRed && wornOverride && wornFallback && fallbackRed && secondCandidates && wearFrame
+                    && forgeNavigation && forgeCloseReturns && imprintNavigation && imprintCloseReturns && homeCloseContext && forbiddenFrames == 0;
                 view.Hide(); return pass;
             }
             finally { Shenxiao.Module.Core.Bag.BagModel.Instance.Clear(); BabyModel.Instance.Reset(); if (interceptField != null) interceptField.SetValue(null, oldIntercept); UnityEngine.Object.DestroyImmediate(root); }

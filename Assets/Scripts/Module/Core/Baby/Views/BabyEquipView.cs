@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Shenxiao.Framework.UI;
 using Shenxiao.Module.Core.Bag;
 using Shenxiao.Generated.UI.Baby;
 using Shenxiao.Module.Core.Common;
@@ -21,6 +23,28 @@ namespace Shenxiao.Module.Core.Baby
         private GameObject _candidateTemplate;
         private readonly List<GameObject> _candidateItems = new List<GameObject>();
         private int _selectedPosition = 1;
+        private Image _forgeBtn, _imprintBtn;
+
+        public int SelectedPosition => _selectedPosition;
+
+        public void SetSelectedPosition(int positionId)
+        {
+            if (positionId >= 1 && positionId <= 6) _selectedPosition = positionId;
+        }
+
+        /// <summary>Only the equipment window shell supplies these local navigation callbacks; this view never routes or sends a forge/imprint protocol.</summary>
+        public void ConfigureEntryCallbacks(Action<int> forge, Action<int> imprint)
+        {
+            CacheNodes();
+            ConfigureEntry(_forgeBtn, forge);
+            ConfigureEntry(_imprintBtn, imprint);
+        }
+
+        protected override void OnDispose()
+        {
+            UIUtil.ClearClicks(_forgeBtn);
+            UIUtil.ClearClicks(_imprintBtn);
+        }
 
         public void Refresh(BabyEquipInfo equip, BabyBasicInfo basic)
         {
@@ -110,7 +134,8 @@ namespace Shenxiao.Module.Core.Baby
 
         private static BabyEquipEntry Find(BabyEquipInfo equip, int position) { if (equip != null) for (int i = 0; i < equip.EquipList.Count; i++) if (equip.EquipList[i].PositionId == position) return equip.EquipList[i]; return null; }
         private float GetCandidateWidth() { float width = _Scroller1 != null && _Scroller1.viewport != null ? _Scroller1.viewport.rect.width : 0f; return width > 0f ? width : 680f; }
-        private void CacheNodes() { if (_Scroller1 != null && _Scroller1.content != null) { Transform inner = _Scroller1.content.Find("Content"); _candidateContent = inner != null ? inner : _Scroller1.content; if (inner != null) _Scroller1.content = inner as RectTransform; } if (_template == null || _candidateTemplate == null || _fightTemplate == null) foreach (Transform node in GetComponentsInChildren<Transform>(true)) { if (node.name == "nameLb" && node.parent == transform) _nameLb = node.GetComponent<TextMeshProUGUI>(); else if (node.name == "fight") _fight = node; else if (node.name == "leftGp") _leftGp = node; else if (node.name == "rightGp") _rightGp = node; else if (node.name == "BabyEquipIcon" && node.parent != null && node.parent.name == "__Templates") _template = node.gameObject; else if (node.name == "BabyEquipSubItem" && node.parent != null && node.parent.name == "__Templates") _candidateTemplate = node.gameObject; else if (node.name == "FightingShowSmallItem" && node.parent != null && node.parent.name == "__Templates") _fightTemplate = node.gameObject; } }
+        private void CacheNodes() { if (_Scroller1 != null && _Scroller1.content != null) { Transform inner = _Scroller1.content.Find("Content"); _candidateContent = inner != null ? inner : _Scroller1.content; if (inner != null) _Scroller1.content = inner as RectTransform; } if (_template == null || _candidateTemplate == null || _fightTemplate == null || _forgeBtn == null || _imprintBtn == null) foreach (Transform node in GetComponentsInChildren<Transform>(true)) { if (node.name == "nameLb" && node.parent == transform) _nameLb = node.GetComponent<TextMeshProUGUI>(); else if (node.name == "fight") _fight = node; else if (node.name == "leftGp") _leftGp = node; else if (node.name == "rightGp") _rightGp = node; else if (node.name == "forgeBtn") _forgeBtn = node.GetComponent<Image>(); else if (node.name == "imprintBtn") _imprintBtn = node.GetComponent<Image>(); else if (node.name == "BabyEquipIcon" && node.parent != null && node.parent.name == "__Templates") _template = node.gameObject; else if (node.name == "BabyEquipSubItem" && node.parent != null && node.parent.name == "__Templates") _candidateTemplate = node.gameObject; else if (node.name == "FightingShowSmallItem" && node.parent != null && node.parent.name == "__Templates") _fightTemplate = node.gameObject; } }
+        private void ConfigureEntry(Image target, Action<int> callback) { if (target == null || callback == null) return; UIUtil.ClearClicks(target); UIUtil.AddClick(target, () => callback(_selectedPosition)); }
         private void ClearItems() { for (int i = 0; i < _items.Count; i++) DestroyItem(_items[i]); _items.Clear(); }
         private void ClearCandidates() { for (int i = 0; i < _candidateItems.Count; i++) DestroyItem(_candidateItems[i]); _candidateItems.Clear(); }
         private static void DestroyItem(GameObject go) { if (Application.isPlaying) Destroy(go); else DestroyImmediate(go); }
