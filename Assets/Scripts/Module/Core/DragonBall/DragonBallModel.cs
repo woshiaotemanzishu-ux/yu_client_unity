@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Shenxiao.Module.Core.FirstRecharge;
 using Shenxiao.Module.Core.Game;
 using Shenxiao.Module.Core.Role;
@@ -6,9 +7,9 @@ using Shenxiao.Module.Core.Common;
 namespace Shenxiao.Module.Core.DragonBall
 {
     /// <summary>
-    /// 龙玉(龙珠)数据(对标老客户端 DragonBallModel)。14310 保存雕像状态与未激活预期战力快照；
+    /// 龙玉(龙珠)数据(对标老客户端 DragonBallModel)。14310 保存雕像快照，14303 按类型更新套装概览；
     /// 「龙珠礼包」活动图标(DragonGiftIconType=143)由 14311(dragon_gift_data)驱动显隐。
-    /// 龙珠本体/苍龙镇世/套装(14300-14306/14312)是另一入口(module 143 面板),不在本期。
+    /// 龙珠本体/苍龙镇世/操作链(14300-14302/14304-14306/14312)不在本期。
     ///
     /// 老端 RefreshGiftIcon 显隐门槛(faithful):
     ///   1. GetOpenState()          —— 功能开放且非审核服;
@@ -29,6 +30,28 @@ namespace Shenxiao.Module.Core.DragonBall
         public byte StatueStatus { get; private set; }
         public ulong StatuePreviewPower { get; private set; }
         public bool HasStatueOverview { get; private set; }
+
+        public sealed class SuitEntry
+        {
+            public byte Type { get; }
+            public byte Level { get; }
+            public ulong Power { get; }
+            public ulong NextPower { get; }
+            public SuitEntry(byte type, byte level, ulong power, ulong nextPower) { Type = type; Level = level; Power = power; NextPower = nextPower; }
+        }
+
+        private readonly Dictionary<byte, SuitEntry> _suits = new Dictionary<byte, SuitEntry>();
+        public IReadOnlyDictionary<byte, SuitEntry> Suits => _suits;
+        public byte WearType { get; private set; }
+        public bool HasSuitData { get; private set; }
+
+        /// <summary>14303 按 type 更新，包中缺席的旧 type 保留；空列表只更新穿戴类型和已收包状态。</summary>
+        public void SetSuitData(byte wearType, List<SuitEntry> entries)
+        {
+            WearType = wearType;
+            if (entries != null) for (int i = 0; i < entries.Count; i++) _suits[entries[i].Type] = entries[i];
+            HasSuitData = true;
+        }
 
         /// <summary>14310 是全量雕像总览；status=1 时服务端下发 power=0 也必须覆盖旧值。</summary>
         public void SetStatueOverview(byte status, ulong power)
@@ -74,6 +97,9 @@ namespace Shenxiao.Module.Core.DragonBall
             StatueStatus = 0;
             StatuePreviewPower = 0;
             HasStatueOverview = false;
+            _suits.Clear();
+            WearType = 0;
+            HasSuitData = false;
             GiftId = 0;
             BuyTimes = 0;
         }

@@ -9,12 +9,12 @@ using Shenxiao.Module.Core.Common;
 namespace Shenxiao.Module.Core.DragonBall
 {
     /// <summary>
-    /// 龙玉(龙珠)控制器(对标老客户端 DragonBallController,模块 143)。进游戏依次请求 14310、14311;
+    /// 龙玉(龙珠)控制器(对标老客户端 DragonBallController,模块 143)。进游戏依次请求 14310、14303、14311;
     /// 回包据 dragon_gift_data(id/buy_times)增删主界面「龙珠礼包」图标 143(DragonGiftIconType)。
     /// 图标显隐由 DragonBallModel 依据功能开放、alpha、config_start_nuclear、角色/开服状态、限购与首充完整判定，
     /// AddIconAsync 的公共图标配置门作为二次保险。等级变化仅在新等级精确命中表内 open_lv 时复请求14311。
     ///
-    /// 14310 只保存雕像状态与未激活预期战力快照；龙珠本体/苍龙镇世/套装(14300-14306/14312)面板仍不在本期;
+    /// 14310 保存雕像快照，14303 保存套装概览；龙珠本体/苍龙镇世/操作链(14300-14302/14304-14306/14312)仍不在本期;
     /// 首充更新只按已缓存14311本地复评；开服日变化重拉14311，均与老端一致。
     /// </summary>
     public sealed class DragonBallController : BaseController
@@ -34,6 +34,7 @@ namespace Shenxiao.Module.Core.DragonBall
         protected override void Register()
         {
             RegisterProtocal(Proto.DRAGONBALL_STATUE_OVERVIEW, On14310);
+            RegisterProtocal(Proto.DRAGONBALL_SUIT_INFO, On14303);
             RegisterProtocal(Proto.DRAGONBALL_GIFT_INFO, On14311);
             // 对标老端 CHANGE_LEVEL→复发 14311:等级变化时复请求(到达礼包 open_lv 后图标出现)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
@@ -57,15 +58,18 @@ namespace Shenxiao.Module.Core.DragonBall
             base.Dispose();
         }
 
-        /// <summary>进游戏请求：对标老端已接部分，严格依次空发 14310、14311。</summary>
+        /// <summary>进游戏请求：对标老端严格依次空发 14310、14303、14311。</summary>
         public void RequestStartup()
         {
             RequestStatueOverview();
+            RequestSuitInfo();
             RequestGiftInfo();
         }
 
         /// <summary>14310 严格空包，获取龙珠雕像总览快照。</summary>
         public void RequestStatueOverview() => SendEmpty(Proto.DRAGONBALL_STATUE_OVERVIEW);
+        /// <summary>14303 严格空包，获取龙珠套装概览。</summary>
+        public void RequestSuitInfo() => SendEmpty(Proto.DRAGONBALL_SUIT_INFO);
         /// <summary>14311 严格空包，获取龙珠礼包购买快照。</summary>
         public void RequestGiftInfo() => SendEmpty(Proto.DRAGONBALL_GIFT_INFO);
 
@@ -85,6 +89,17 @@ namespace Shenxiao.Module.Core.DragonBall
         private void On14310(NetReader r)
         {
             DragonBallModel.Instance.SetStatueOverview(r.ReadU8(), unchecked((ulong)r.ReadU64()));
+        }
+
+        // 14303: wear_type:c,count:h,{type:c,lv:c,power:l,next_power:l}；按 type upsert。
+        private void On14303(NetReader r)
+        {
+            byte wearType = r.ReadU8();
+            int count = r.ReadU16();
+            var entries = new System.Collections.Generic.List<DragonBallModel.SuitEntry>(count);
+            for (int i = 0; i < count; i++)
+                entries.Add(new DragonBallModel.SuitEntry(r.ReadU8(), r.ReadU8(), unchecked((ulong)r.ReadU64()), unchecked((ulong)r.ReadU64())));
+            DragonBallModel.Instance.SetSuitData(wearType, entries);
         }
 
         // 14311: id:i, buy_times:h(对标 pt_143.erl write(14311,[Id:32, BuyTimes:16]))。请求无参(read(14311,_)->{ok,[]})。

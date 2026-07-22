@@ -42,6 +42,9 @@ namespace Shenxiao.EditorTools
             byte oldStatueStatus = model.StatueStatus;
             ulong oldStatuePower = model.StatuePreviewPower;
             bool oldHasStatueOverview = model.HasStatueOverview;
+            var oldSuits = new List<DragonBallModel.SuitEntry>(model.Suits.Values);
+            byte oldWearType = model.WearType;
+            bool oldHasSuitData = model.HasSuitData;
             int oldLevel = role.Level;
             bool oldHasBaseInfo = role.HasBaseInfo;
             bool oldAlpha = PlatformModel.IsAlpha;
@@ -52,13 +55,23 @@ namespace Shenxiao.EditorTools
             FieldInfo hasBaseInfo = typeof(RoleModel).GetField("<HasBaseInfo>k__BackingField", PrivateInstance);
             MethodInfo on14311 = controller.GetType().GetMethod("On14311", PrivateInstance);
             MethodInfo on14310 = controller.GetType().GetMethod("On14310", PrivateInstance);
+            MethodInfo on14303 = controller.GetType().GetMethod("On14303", PrivateInstance);
             MethodInfo onRole = controller.GetType().GetMethod("OnRoleInfoUpdate", PrivateInstance);
             object oldIntercept = intercept?.GetValue(null);
             int oldLastLevel = lastLevel == null ? -1 : (int)lastLevel.GetValue(controller);
+            var frames = new List<byte[]>();
 
             try
             {
                 controller.Init();
+                if (intercept != null)
+                {
+                    intercept.SetValue(null, new Func<byte[], bool>(frame =>
+                    {
+                        frames.Add(frame);
+                        return true;
+                    }));
+                }
 
                 DragonBallConfigs.Row one = DragonBallConfigs.Get(1);
                 DragonBallConfigs.Row eight = DragonBallConfigs.Get(8);
@@ -86,8 +99,8 @@ namespace Shenxiao.EditorTools
 
                 FieldInfo handlersField = typeof(NetManager).GetField("_handlers", PrivateStatic);
                 var handlers = handlersField?.GetValue(null) as IDictionary;
-                bool handlerOk = on14310 != null && on14311 != null && handlers != null
-                    && handlers.Contains(Proto.DRAGONBALL_STATUE_OVERVIEW) && handlers.Contains(Proto.DRAGONBALL_GIFT_INFO);
+                bool handlerOk = on14310 != null && on14303 != null && on14311 != null && handlers != null
+                    && handlers.Contains(Proto.DRAGONBALL_STATUE_OVERVIEW) && handlers.Contains(Proto.DRAGONBALL_SUIT_INFO) && handlers.Contains(Proto.DRAGONBALL_GIFT_INFO);
                 if (handlerOk)
                 {
                     byte[] packet = new CliVerify.Pkt().I(1).H(1).Bytes();
@@ -95,6 +108,20 @@ namespace Shenxiao.EditorTools
                     on14311.Invoke(controller, new object[] { reader });
                     handlerOk = reader.Remaining == 0 && model.GiftId == 1 && model.BuyTimes == 1
                         && DragonBallConfigs.Get(1).TimesLimit - model.BuyTimes == 0;
+                }
+
+                if (handlerOk)
+                {
+                    byte[] packet = new CliVerify.Pkt().C(2).H(2).C(1).C(4).L(5000000000L).L(7000000000L).C(2).C(5).L(6).L(7).Bytes();
+                    var reader = new NetReader(packet, 0, packet.Length);
+                    on14303.Invoke(controller, new object[] { reader });
+                    handlerOk = reader.Remaining == 0 && model.HasSuitData && model.WearType == 2 && model.Suits.Count == 2
+                        && model.Suits[1].Level == 4 && model.Suits[1].Power == 5000000000UL && model.Suits[1].NextPower == 7000000000UL;
+                    byte[] updatePacket = new CliVerify.Pkt().C(3).H(2).C(1).C(8).L(9).L(10).C(3).C(6).L(11).L(12).Bytes();
+                    var updateReader = new NetReader(updatePacket, 0, updatePacket.Length);
+                    on14303.Invoke(controller, new object[] { updateReader });
+                    handlerOk = handlerOk && updateReader.Remaining == 0 && model.WearType == 3 && model.Suits.Count == 3
+                        && model.Suits[1].Level == 8 && model.Suits[2].Level == 5 && model.Suits[3].NextPower == 12;
                 }
 
                 if (handlerOk)
@@ -108,18 +135,11 @@ namespace Shenxiao.EditorTools
                     on14310.Invoke(controller, new object[] { activeReader });
                     handlerOk = handlerOk && activeReader.Remaining == 0 && model.StatueStatus == 1 && model.StatuePreviewPower == 0;
                 }
+                handlerOk = handlerOk && frames.Count == 0;
+                frames.Clear();
 
                 bool seamsOk = intercept != null && onRole != null && lastLevel != null
                     && generation != null && hasBaseInfo != null;
-                var frames = new List<byte[]>();
-                if (intercept != null)
-                {
-                    intercept.SetValue(null, new Func<byte[], bool>(frame =>
-                    {
-                        frames.Add(frame);
-                        return true;
-                    }));
-                }
 
                 role.Level = 149;
                 hasBaseInfo?.SetValue(role, true);
@@ -141,17 +161,17 @@ namespace Shenxiao.EditorTools
                 onRole?.Invoke(controller, null); // 同级噪音不发。
                 int sameLevel = frames.Count;
 
-                bool outboundOk = seamsOk && startup == 2 && at149 == 2 && at150 == 3 && at151 == 3
-                    && firstRechargeRefresh == 3 && dayChange == 4 && sameLevel == 4
-                    && EmptyFrames(frames, Proto.DRAGONBALL_STATUE_OVERVIEW, Proto.DRAGONBALL_GIFT_INFO,
+                bool outboundOk = seamsOk && startup == 3 && at149 == 3 && at150 == 4 && at151 == 4
+                    && firstRechargeRefresh == 4 && dayChange == 5 && sameLevel == 5
+                    && EmptyFrames(frames, Proto.DRAGONBALL_STATUE_OVERVIEW, Proto.DRAGONBALL_SUIT_INFO, Proto.DRAGONBALL_GIFT_INFO,
                         Proto.DRAGONBALL_GIFT_INFO, Proto.DRAGONBALL_GIFT_INFO);
 
                 int generationBefore = generation == null ? -1 : (int)generation.GetValue(controller);
                 controller.Dispose();
                 EventDispatcher.Emit(GlobalEvent.EVT_SERVER_DAY_CHANGE);
                 int generationAfter = generation == null ? -1 : (int)generation.GetValue(controller);
-                bool disposeOk = !controller.IsInitialized && frames.Count == 4 && !model.HasStatueOverview
-                    && model.StatueStatus == 0 && model.StatuePreviewPower == 0 && generationAfter == generationBefore + 1;
+                bool disposeOk = !controller.IsInitialized && frames.Count == 5 && !model.HasStatueOverview && !model.HasSuitData
+                    && model.StatueStatus == 0 && model.StatuePreviewPower == 0 && model.Suits.Count == 0 && generationAfter == generationBefore + 1;
 
                 bool pass = configOk && gatesOk && handlerOk && outboundOk && disposeOk;
                 Debug.Log("CLIVERIFY dragonball config=" + configOk + " gates=" + gatesOk
@@ -169,6 +189,7 @@ namespace Shenxiao.EditorTools
                 if (controller.IsInitialized) controller.Dispose();
                 model.SetGiftInfo(oldGift, oldBuy);
                 if (oldHasStatueOverview) model.SetStatueOverview(oldStatueStatus, oldStatuePower);
+                if (oldHasSuitData) model.SetSuitData(oldWearType, oldSuits);
                 PlatformModel.IsAlpha = oldAlpha;
                 role.Level = oldLevel;
                 hasBaseInfo?.SetValue(role, oldHasBaseInfo);
