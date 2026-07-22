@@ -647,6 +647,11 @@ namespace Shenxiao.EditorTools
             Run(GhostWalkCase.Run, 60.0);
         }
 
+        public static void TSCrack()
+        {
+            Run(TSCrackCase.Run, 60.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {
@@ -734,6 +739,7 @@ namespace Shenxiao.EditorTools
                 int gd = await GuardCase.Run();
                 int ns = await NineSkyCase.Run();
                 int gw = await GhostWalkCase.Run();
+                int tc = await TSCrackCase.Run();
                 Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
@@ -750,8 +756,8 @@ namespace Shenxiao.EditorTools
                     + " market=" + mk + " serverclock=" + sc
                     + " lookover=" + lo + " fashion=" + fa + " listduobao=" + ld + " protocolcoverage=" + pc + " guildactivity=" + ga
                     + " starequip=" + se + " starforge=" + sf + " banquet=" + bq
-                    + " petequip=" + pe + " petequipinventory=" + pi + " petequipui=" + pu + " baby=" + by + " lung=" + lu + " dragonball=" + db + " attributepotion=" + ap + " armor=" + ar + " medal=" + me + " kfstage=" + ks + " reincarnation=" + re + " godbeast=" + gb + " designation=" + ds + " mask=" + ma + " dress=" + dr + " demon=" + dm + " revelation=" + rv + " achievement=" + ac + " guard=" + gd + " ninesky=" + ns + " ghostwalk=" + gw);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, ld, pc, ga, se, sf, bq, pe, pi, pu, by, lu, db, ap, ar, me, ks, re, gb, ds, ma, dr, dm, rv, ac, gd, ns, gw })
+                    + " petequip=" + pe + " petequipinventory=" + pi + " petequipui=" + pu + " baby=" + by + " lung=" + lu + " dragonball=" + db + " attributepotion=" + ap + " armor=" + ar + " medal=" + me + " kfstage=" + ks + " reincarnation=" + re + " godbeast=" + gb + " designation=" + ds + " mask=" + ma + " dress=" + dr + " demon=" + dm + " revelation=" + rv + " achievement=" + ac + " guard=" + gd + " ninesky=" + ns + " ghostwalk=" + gw + " tscrack=" + tc);
+                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, ld, pc, ga, se, sf, bq, pe, pi, pu, by, lu, db, ap, ar, me, ks, re, gb, ds, ma, dr, dm, rv, ac, gd, ns, gw, tc })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);

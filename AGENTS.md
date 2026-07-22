@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## TSCrack 20411 (R128)
+
+- 20411 is the only parameterless GAME_START world snapshot: `status:u8,servers:u16*{server_num:u32,server_name:string(u16 UTF8),level:u16}`. Every reply replaces the entire ordered list and an empty list clears it. Never auto-request 20401/20405/20407/20409/20410 (or any other 204xx) after the reply or on level change; do not add UI, config, red dots, or operations.
+
 ## GhostWalk 20601 (R127)
 
 - 20601 is the empty GAME_START request and full snapshot `state:u8,etime:u32,ser_mod:u8,group_id:u32,servers:u16*{ser_id:u16,ser_num:u16,name:string,open_day:u16,world_lv:u16},avg_wlv:u16`. `avg_wlv` is the global tail outside the list; same-number replies/pushes replace the entire snapshot and an empty list clears old servers. Do not auto-request 20602 after 20601. No 20600/20602-20605, UI, config, red dots, or operations.
