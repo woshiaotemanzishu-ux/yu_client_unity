@@ -101,6 +101,7 @@ using Shenxiao.Module.Core.HolyBattle;
 using Shenxiao.Module.Core.MondaysAward;
 using Shenxiao.Module.Core.NoonParty;
 using Shenxiao.Module.Core.Deposit;
+using Shenxiao.Module.Core.MonBook;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -229,6 +230,7 @@ namespace Shenxiao.Module.Core.Game
             MondaysAwardController.Instance,
             NoonPartyController.Instance,
             DepositController.Instance,
+            MonBookController.Instance,
             // 后续:EquipController ...
         };
 
