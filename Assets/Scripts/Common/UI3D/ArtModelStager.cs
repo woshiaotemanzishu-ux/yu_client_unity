@@ -71,14 +71,23 @@ namespace Shenxiao.Common.UI3D
                 for (int i = 0; i < mats.Length; i++)
                 {
                     Material m = mats[i];
-                    if (m == null || m.shader == null || !m.HasProperty("_AlphaClip")) continue;
-                    if (m.HasProperty("_Surface") && m.GetFloat("_Surface") > 0.5f) continue; // 美术自设的透明,不动
+                    if (m == null || m.shader == null) continue;
+
+                    // 美术已经声明为 Transparent 的 Shader/材质自带完整混合语义（Panda 的加法、
+                    // Alpha、双通道 Blend 都在其中）。运行时再次按贴图 alpha 猜混合方式会破坏原表现。
+                    // 这里只转换导入后仍为 Opaque 的 URP 材质，保证直接预览与 RT 上台使用同一份参数。
+                    string renderType = m.GetTag("RenderType", false, string.Empty);
+                    if (string.Equals(renderType, "Transparent", System.StringComparison.OrdinalIgnoreCase) ||
+                        (m.HasProperty("_Surface") && m.GetFloat("_Surface") > 0.5f))
+                        continue;
 
                     bool blend = false; // 实例名带"(Instance)"后缀,用 StartsWith 匹配
                     foreach (string n in blendSet)
                     {
                         if (m.name.StartsWith(n)) { blend = true; break; }
                     }
+
+                    if (!m.HasProperty("_AlphaClip")) continue;
                     if (blend)
                     {
                         m.SetFloat("_Surface", 1f);

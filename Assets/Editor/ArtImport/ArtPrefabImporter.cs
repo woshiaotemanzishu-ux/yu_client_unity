@@ -252,7 +252,7 @@ namespace Shenxiao.EditorTools.ArtImport
         }
 
         /// <summary>
-        /// 挂点问题只影响头饰/武器/翅膀/特效，不影响身体 Timeline 播放。完整检查结果进入导入台账供美术修，
+        /// 挂点问题只影响头饰/武器/翅膀/背饰/特效，不影响身体 Timeline 播放。完整检查结果进入导入台账供美术修，
         /// 但不再作为 idle/create3 是否写入替换清单的硬门槛。
         /// </summary>
         private static string[] InspectRoleMountStructure(string path)
@@ -280,6 +280,17 @@ namespace Shenxiao.EditorTools.ArtImport
                     issues.Add("rhand 不在实际右手骨下");
                 if (!Nearly(hand.localScale, Vector3.one, 0.0001f))
                     issues.Add("rhand scale 必须为 1");
+            }
+
+            if (wings.Length == 1)
+            {
+                Transform wing = wings[0];
+                string[] wingHosts = { "Bip001 Spine1", "Bip001_Spine1", "Spine1", "UpperChest", "Chest" };
+                if (wing.parent == null || !wingHosts.Any(n =>
+                        string.Equals(wing.parent.name, n, StringComparison.OrdinalIgnoreCase)))
+                    issues.Add("wing 不在 Spine1/胸骨下");
+                if (!Nearly(wing.localScale, Vector3.one, 0.0001f))
+                    issues.Add("wing scale 必须为 1");
             }
 
             if (heads.Length == 1)
@@ -331,6 +342,7 @@ namespace Shenxiao.EditorTools.ArtImport
                         case "head": ValidateHeadStructure(path, prefab); break;
                         case "weapon": ValidateWeaponStructure(path, prefab); break;
                         case "wing": ValidateWingStructure(path, prefab); break;
+                        case "back": ValidateBackStructure(path, prefab); break;
                     }
                 }
                 catch (InvalidOperationException e) { issues.Add(e.Message); }
@@ -421,6 +433,20 @@ namespace Shenxiao.EditorTools.ArtImport
             RequireUnit(path + " wing_content", content);
             if (prefab.GetComponentsInChildren<Transform>(true).Count(t => t.name == "wing_attach") != 1)
                 throw new InvalidOperationException(path + " 必须有且只有一个 wing_attach");
+        }
+
+        private static void ValidateBackStructure(string path, GameObject prefab)
+        {
+            RequireUnit(path + " prefab 根", prefab.transform);
+            Transform locator = FindDirect(prefab.transform, "back_attach");
+            Transform content = FindDirect(prefab.transform, "back_content");
+            if (locator == null || content == null)
+                throw new InvalidOperationException(path + " 缺根直属 back_attach/back_content");
+            if (!Nearly(locator.localScale, Vector3.one, 0.0001f))
+                throw new InvalidOperationException(path + " back_attach scale 必须为 1");
+            RequireUnit(path + " back_content", content);
+            if (prefab.GetComponentsInChildren<Transform>(true).Count(t => t.name == "back_attach") != 1)
+                throw new InvalidOperationException(path + " 必须有且只有一个 back_attach");
         }
 
         private static Transform SingleNamed(string path, Transform[] all, string name)
@@ -1729,6 +1755,12 @@ namespace Shenxiao.EditorTools.ArtImport
                 foreach (Material m in r.sharedMaterials)
                 {
                     if (m == null) continue;
+                    // 已经由美术 Shader/材质定义为 Transparent 的资源必须原样保留。尤其 Panda
+                    // 使用独立颜色/Alpha Blend，不能仅凭贴图有渐变 alpha 就误标为待转换材质。
+                    string renderType = m.GetTag("RenderType", false, string.Empty);
+                    if (string.Equals(renderType, "Transparent", StringComparison.OrdinalIgnoreCase) ||
+                        (m.HasProperty("_Surface") && m.GetFloat("_Surface") > 0.5f))
+                        continue;
                     Texture tex = m.mainTexture;
                     if (tex == null && m.HasProperty("_BaseMap")) tex = m.GetTexture("_BaseMap");
                     if (tex == null) continue;

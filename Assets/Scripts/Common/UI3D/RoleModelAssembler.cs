@@ -100,7 +100,7 @@ namespace Shenxiao.Common.UI3D
         }
 
         /// <summary>
-        /// 新模型整装:清单指到的身体 prefab + 部件(头饰/武器/翅膀,清单有新用新、没新挂老件——
+        /// 新模型整装:清单指到的身体 prefab + 部件(头饰/武器/翅膀/背饰,清单有新用新、没新挂老件——
         /// 带独立 Timeline 的头饰已经包含自身飘动动作,挂 head_mount 继承身体头骨完整变换;
         /// 静态头饰才走 head_mount(旧资源仍回退 head)。ArtModelStager 统一上台包装
         /// (落点归一/根位移/透明分流)。循环/停末帧由 ReplaceableRoleModel 按动作再设。
@@ -149,6 +149,17 @@ namespace Shenxiao.Common.UI3D
                     attachmentPositionOffset: ModelReplacement.GetAttachmentPositionOffset("wing", spec.WingId),
                     attachmentRotationOffset: ModelReplacement.GetAttachmentRotationOffset("wing", spec.WingId),
                     attachmentScale: ModelReplacement.GetAttachmentScale("wing", spec.WingId));
+            }
+            if (spec.BackOrnamentId > 0)
+            {
+                string replacementBackKey = ModelReplacement.GetPrefabKey("back", spec.BackOrnamentId, action)
+                    ?? ModelReplacement.GetPrefabKey("back", spec.BackOrnamentId, "idle");
+                string backKey = replacementBackKey ?? Key("back", "model_back_" + spec.BackOrnamentId);
+                await AttachPartOptional(inst, "wing", backKey,
+                    attachmentLocatorName: replacementBackKey != null ? "back_attach" : null,
+                    attachmentPositionOffset: ModelReplacement.GetAttachmentPositionOffset("back", spec.BackOrnamentId),
+                    attachmentRotationOffset: ModelReplacement.GetAttachmentRotationOffset("back", spec.BackOrnamentId),
+                    attachmentScale: ModelReplacement.GetAttachmentScale("back", spec.BackOrnamentId));
             }
 
             GameObject staged = ArtModelStager.Stage(inst, bodyPrefab, UnityEngine.Playables.DirectorWrapMode.Loop);

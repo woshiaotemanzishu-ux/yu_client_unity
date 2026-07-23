@@ -62,6 +62,7 @@ namespace Shenxiao.Common.UI3D
         private static Transform _charsRoot;
         private static GameObject _mainRole;
         private static GameObject _mainRoleTilt; // 主角的 2.5D 后倾父容器(模型挂其下;销毁它即连模型一起清掉)
+        private static ReplaceableRoleModel _mainRoleDriver;
 
         /// <summary>场景角色挂载根(隔离区中心)。NPC/怪物后续按相对主角的偏移摆进来。</summary>
         public static Transform CharsRoot
@@ -79,6 +80,7 @@ namespace Shenxiao.Common.UI3D
             EnsureStage();
             EnsureView();
 
+            UnbindMainRoleDriver();
             if (_mainRoleTilt != null)
             {
                 _mainRoleTilt.SetActive(false); // Destroy 延迟到帧末；先退台，避免旧档案干扰新模型的渲染口径
@@ -107,6 +109,7 @@ namespace Shenxiao.Common.UI3D
             model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
             model.transform.localScale = new Vector3(modelScale, modelScale, modelScale);
 
+            BindMainRoleDriver(model);
             UpdateArtAmbient();
             if (_img != null) _img.gameObject.SetActive(true);
         }
@@ -192,6 +195,7 @@ namespace Shenxiao.Common.UI3D
         /// <summary>清掉主角并隐藏合成画面(切场景/断线时调)。</summary>
         public static void Clear()
         {
+            UnbindMainRoleDriver();
             if (_mainRoleTilt != null)
             {
                 _mainRoleTilt.SetActive(false);
@@ -213,6 +217,27 @@ namespace Shenxiao.Common.UI3D
         // —— 场景环境光(用户定案:场景内也像创角/UI台一样给新模型上亮平光):
         // 台上有任何带渲染档案的新模型(激活中)→ 持有 ArtAmbient;老模型全是 unlit 不吃光,零影响。
         private static bool _ambientHeld;
+
+        private static void BindMainRoleDriver(GameObject model)
+        {
+            _mainRoleDriver = model != null ? model.GetComponent<ReplaceableRoleModel>() : null;
+            if (_mainRoleDriver != null)
+                _mainRoleDriver.ActiveModelChanged += OnMainRoleActiveModelChanged;
+        }
+
+        private static void UnbindMainRoleDriver()
+        {
+            if (_mainRoleDriver != null)
+                _mainRoleDriver.ActiveModelChanged -= OnMainRoleActiveModelChanged;
+            _mainRoleDriver = null;
+        }
+
+        private static void OnMainRoleActiveModelChanged()
+        {
+            // idle(新)→run(老)时释放整模光照/相机配置；run(老)→idle(新)时必须同帧恢复。
+            // 之前只有 NPC/怪物进出台时才重算，导致跑动期间释放后回 idle 永远不再 Retain。
+            UpdateArtAmbient();
+        }
 
         private static void UpdateArtAmbient()
         {

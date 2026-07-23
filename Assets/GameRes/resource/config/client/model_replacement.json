@@ -118,6 +118,10 @@
                 {
                     "action": "walk",
                     "prefabKey": "object/role/role_1300/1300@walk"
+                },
+                {
+                    "action": "create3",
+                    "prefabKey": "object/role/role_1300/1300@create3"
                 }
             ]
         },
@@ -174,6 +178,10 @@
                 {
                     "action": "walk",
                     "prefabKey": "object/role/role_1111/1111@walk"
+                },
+                {
+                    "action": "create3",
+                    "prefabKey": "object/role/role_1111/1111@create3"
                 }
             ]
         },
@@ -230,6 +238,10 @@
                 {
                     "action": "walk",
                     "prefabKey": "object/role/role_1400/1400@walk"
+                },
+                {
+                    "action": "create3",
+                    "prefabKey": "object/role/role_1400/1400@create3"
                 }
             ]
         },
@@ -398,6 +410,86 @@
                 {
                     "action": "idle",
                     "prefabKey": "object/head/head_1402/1402@idle"
+                }
+            ]
+        },
+        {
+            "key": "role/1413",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
+            "actions": [
+                {
+                    "action": "attack",
+                    "prefabKey": "object/role/role_1213/1213@attack"
+                },
+                {
+                    "action": "create3",
+                    "prefabKey": "object/role/role_1213/1213@create3"
+                },
+                {
+                    "action": "death",
+                    "prefabKey": "object/role/role_1213/1213@death"
+                },
+                {
+                    "action": "idle",
+                    "prefabKey": "object/role/role_1213/1213@idle"
+                },
+                {
+                    "action": "run",
+                    "prefabKey": "object/role/role_1213/1213@run"
+                },
+                {
+                    "action": "walk",
+                    "prefabKey": "object/role/role_1213/1213@walk"
+                }
+            ]
+        },
+        {
+            "key": "role/1311",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
+            "actions": [
+                {
+                    "action": "create3",
+                    "prefabKey": "object/role/role_1111/1111@create3"
+                },
+                {
+                    "action": "death",
+                    "prefabKey": "object/role/role_1111/1111@death"
+                },
+                {
+                    "action": "hited",
+                    "prefabKey": "object/role/role_1111/1111@hited"
+                },
+                {
+                    "action": "idle",
+                    "prefabKey": "object/role/role_1111/1111@idle"
+                },
+                {
+                    "action": "run",
+                    "prefabKey": "object/role/role_1111/1111@run"
+                },
+                {
+                    "action": "walk",
+                    "prefabKey": "object/role/role_1111/1111@walk"
                 }
             ]
         }

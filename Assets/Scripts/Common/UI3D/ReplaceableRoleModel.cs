@@ -29,6 +29,9 @@ namespace Shenxiao.Common.UI3D
         private int _playVersion; // 加载期间又切了动作:旧结果作废(同 RoleCreateView 的 token 套路)
         private bool _buildingOld;
 
+        /// <summary>激活的新/老实例发生切换。展示台用它同步环境光、Renderer 与 RT 合成配置。</summary>
+        public event System.Action ActiveModelChanged;
+
         public void Init(RoleModelSpec spec)
         {
             _spec = spec;
@@ -146,12 +149,17 @@ namespace Shenxiao.Common.UI3D
         {
             if (_active == target)
             {
-                if (target != null && !target.activeSelf) target.SetActive(true);
+                if (target != null && !target.activeSelf)
+                {
+                    target.SetActive(true);
+                    ActiveModelChanged?.Invoke();
+                }
                 return;
             }
             if (_active != null) _active.SetActive(false);
             _active = target;
             if (_active != null) _active.SetActive(true);
+            ActiveModelChanged?.Invoke();
         }
 
         private async Task<GameObject> EnsureNewInstance(string action, string key)
