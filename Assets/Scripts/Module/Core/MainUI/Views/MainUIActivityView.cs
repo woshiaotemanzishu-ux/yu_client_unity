@@ -20,13 +20,6 @@ namespace Shenxiao.Module.Core.MainUI
     /// </summary>
     public sealed class MainUIActivityView : MainUIActivityViewBind
     {
-        // 诸天玄门族(241/241@1@0):配置里是 loc5/6(本该归 Secondary),老端强制搬进活动网格;这里让活动视图认领
-        // (Secondary 侧 ShouldOwnSecondaryIcon 同步排除)。槽位式下不再有"第四排"概念,只是纳入本视图的顺序流。
-        private static bool IsForcedActivityIcon(string iconType)
-        {
-            return iconType == "241" || iconType == "241@1@0";
-        }
-
         // 612 前缀 = 限时等级抢购(LimitLevelShop)图标。老端 SHOP_ACTIVITY_ICON_PREFIX="612",
         // Suppress612ShopActivityIconsForChatBar 把它们从活动区隐藏、挪到聊天条商城入口 → 活动网格不显。
         // (MainUISecondaryView 早已同样排除;此前 MainUIActivityView 漏了,导致满级号抢购档在活动区平铺过量。)
@@ -162,7 +155,7 @@ namespace Shenxiao.Module.Core.MainUI
                 // 612 限时抢购图标不进活动区(对标老端 Suppress612ShopActivityIconsForChatBar:活动区抑制、挪聊天条)。
                 // 数据层仍在 ActivityIconManager(LimitLevelShop 变体驱动),只是活动网格不铺它们——否则满级号一堆抢购档会平铺过量。
                 if (Is612Icon(kv.Key)) continue;
-                if (ShouldOwnActivityIcon(kv.Value.Data.LocationType) || IsForcedActivityIcon(kv.Key))
+                if (ShouldOwnActivityIcon(kv.Value.Data.LocationType))
                     list.Add(kv.Key);
             }
             list.Sort(CompareIconType);

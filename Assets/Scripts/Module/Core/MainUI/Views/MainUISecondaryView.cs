@@ -234,9 +234,8 @@ namespace Shenxiao.Module.Core.MainUI
         }
 
         // 该簇该认领的图标类型(左簇 loc4 / 右簇 loc5),按 pos_index 稳定排序作为填充顺序。
-        // 排除项:158(变强,归聊天条)、241 族(老端强制搬活动网格,见 MainUIActivityView.IsForcedFourth)、
-        // 612 前缀(限时抢购:老端是"藏到 hide_pos+缩小+透明"的假隐藏,现直接不认领——与 MainUIActivityView/
-        // MainUINoticeView 的 612 处理口径一致,数据仍在 Manager 里供聊天条商城入口用)。
+        // 排除项:158(变强,归聊天条)、612 前缀(限时抢购:老端是"藏到 hide_pos+缩小+透明"的假隐藏,
+        // 现直接不认领——与 MainUIActivityView 的 612 处理口径一致,数据仍在 Manager 里供聊天条商城入口用)。
         private List<string> CollectOwnedIconTypes(int locationType)
         {
             var list = new List<string>();
@@ -244,7 +243,7 @@ namespace Shenxiao.Module.Core.MainUI
             {
                 if (kv.Value?.Data == null) continue;
                 if (kv.Value.Data.LocationType != locationType) continue;
-                if (kv.Key == "158" || kv.Key == "241" || kv.Key == "241@1@0") continue;
+                if (kv.Key == "158") continue;
                 if (!string.IsNullOrEmpty(kv.Key) && kv.Key.StartsWith("612")) continue;
                 list.Add(kv.Key);
             }

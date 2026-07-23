@@ -8,6 +8,8 @@ namespace Shenxiao.EditorTools.ConfigGen
     /// <summary>
     /// 客户端散表 JSON 同步:yu_client cdn/resource/config/client/{Name}.json
     /// → Assets/GameRes/resource/config/client/{name 小写}.json(地址=小写约定)。
+    /// ConfigFunctionIcon 例外:它的 location_type 是老端界面布局语义,以 h5/laya/assets 源表为准；
+    /// cdn 成品表会把第四排入口二次改写到 loc5/6,不能用来还原老端 MainUI 容器归属。
     /// 这些表结构不规则(嵌套 dict/数组),不走 ConfigGenerator 的强类型生成,
     /// 运行时由 LoginConfigs 等按 JObject 读取。新链路要用新表 → 往 SYNC_LIST 加一行。
     /// </summary>
@@ -238,7 +240,9 @@ namespace Shenxiao.EditorTools.ConfigGen
             int copied = 0;
             foreach (string name in names)
             {
-                string src = Path.Combine(srcDir, name + ".json");
+                string src = sub == "client" && name == "ConfigFunctionIcon"
+                    ? Path.Combine(LayaUISettings.LayaAssetsRoot, "resource", "config", "client", name + ".json")
+                    : Path.Combine(srcDir, name + ".json");
                 if (!File.Exists(src))
                 {
                     Debug.LogError($"[ClientConfigSync] 缺源文件: {src}");
