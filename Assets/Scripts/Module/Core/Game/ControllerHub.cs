@@ -106,6 +106,7 @@ using Shenxiao.Module.Core.KfSingleRank;
 using Shenxiao.Module.Core.DragonWhisper;
 using Shenxiao.Module.Core.TreasureMap;
 using Shenxiao.Module.Core.DungeonPartner;
+using Shenxiao.Module.Core.SentientAct;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -239,6 +240,7 @@ namespace Shenxiao.Module.Core.Game
             DragonWhisperController.Instance,
             TreasureMapController.Instance,
             DungeonPartnerController.Instance,
+            SentientActController.Instance,
             // 后续:EquipController ...
         };
 

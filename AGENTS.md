@@ -201,6 +201,10 @@
 
 - 两号均显式发送 `level:u8`；61105 S2C 为 `level:u8,sweep_count:u16,dun_list:u16×{dun_id:u32,score:u8}`，61106 S2C 为 `level:u8,stage_reward:u16×{score:u16,status:u8}`。61105 的 SweepCount 是跨章节全局日计数，每个05包覆盖全局值；两类列表分别按 level 完整替换、保序保重、空表仍 loaded，不同 level 与05/06相互隔离。无效 level 服务端静默无响应，客户端保留旧桶；仅 Reset/Dispose 全清。不接依赖章节配置的 GAME_START/日切遍历，也不接61107-61110、配置/UI/红点/奖励操作。
 
+## SentientAct 24101 / 24102 / 24107（R164）
+
+- GAME_START 无门槛固定空发24101→24107→24102。24101 是活动状态完整快照并兼具服务端主动广播，S2C 为 `state:u8,end_time:u32,mod:u32,group_id:u32,next_start_time:u32,servers:u16×{server_id:u64,server_num:u64,name:string,world_lv:u64},avg_lv:u64`；每个 state 非0包都追发24102，state=0不清旧门户。24102完整替换 `portals:u16×{portal_id:u64,x:u32,y:u32}`；24107按 wire `assist_num:u32,enter_num:u32` 完整覆盖。三slice普通包互不清，仅登录Reset/Dispose全清；24106删除门户delta及24103-05/08/09场景/操作链不在本轮。
+
 - 宝宝装备的通用物品容器必须分开：`pos=36` 是已穿戴装备实例库，供 18205/18218 槽位里的装备实例 id 反查；`pos=37` 是待穿候选背包。二者都接收 15010/15017/15018，但使用独立存储与事件；老端登录批量请求中 36/37 均被注释，Unity 当前只主动请求 37，36 保持被动接收，未经实证不要擅自加入启动请求。182xx 槽位包与 pos36 物品包没有固定先后，UI 必须同时监听两条更新链，实例未到或 id 不匹配时先降级显示槽位包的 `GoodsTypeId`。候选变强红点严格比较 `BagGoods.Rating`（不用 `OverallRating`）：空槽或候选更高即红；红点节点是 `BabyEquipSubItem.redImg`，槽位 `BabyEquipIcon.effectGp` 只表示选中。
 - 宝宝装备强化 18219 上行只有 `pos_id:u8`；回包是 `code:i,pos:u8,id:u64,type:i,stage:u16,stage_lv:u16,stage_exp:i,power:i`。服务端会自行挑选强化经验材料或按升阶配置直接扣固定 cost，客户端不发送材料列表；扣包另走 15017/15018。实际消费必须放在 Forge 子面板，并走“实时预览足够 → 列出材料名×数量 → 二次确认 → 回调再次校验同槽位/实例/消费快照 → pending 防连点 → 发 18219”的链路，不能把主页入口直接绑定到 `RequestEquipUpgrade`。
 - `imprintBtn` 是铭刻 18220，上行 `pos:u8,count:u16,N×type_id:i32`，回包 `code:i,pos:u8,id:u64,type:i,skill_id:i,power:i`；协议、模型与 `config_baby_equip_engrave` 只读预览已迁，但独立选择/概率/结果 UI 尚未迁，所以按钮必须继续无 Button。每个提交的 type 都按装备颜色对应配置的 `num` 全扣，重复 type 会重复计费，ratio 累加后封顶 10000；服务端先扣料再掷概率，因此 `code=1,skill_id=0` 是“已消费但铭刻失败”，不能当协议错误，也不能回滚本地背包。材料只来自普通背包 `pos=4`，已有 SkillId 的装备禁止再次铭刻。

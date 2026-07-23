@@ -16,6 +16,12 @@
         public const int DUNGEON_PARTNER_DUNGEONS = 61105;
         /// <summary>伙伴副本章节星级奖励。C2S: level:u8；S2C: level:u8,stage_reward:u16×{score:u16,status:u8}。</summary>
         public const int DUNGEON_PARTNER_STAGE_REWARDS = 61106;
+        /// <summary>尘世门活动状态。C2S 空包；S2C state:u8,end_time:u32,mod:u32,group_id:u32,next_start_time:u32,servers:u16×{server_id:u64,server_num:u64,name:string,world_lv:u64},avg_lv:u64。</summary>
+        public const int SENTIENT_ACT_INFO = 24101;
+        /// <summary>尘世门门户快照。C2S 空包；S2C portals:u16×{portal_id:u64,x:u32,y:u32}。</summary>
+        public const int SENTIENT_ACT_PORTALS = 24102;
+        /// <summary>尘世门人数快照。C2S 空包；S2C assist_num:u32,enter_num:u32。</summary>
+        public const int SENTIENT_ACT_COUNTS = 24107;
 
         // ----- 登录链(1xxxx) -----
         /// <summary>账号登录游戏服。发 "iiss"(pid, 时间戳秒, account_id, plat_name);
