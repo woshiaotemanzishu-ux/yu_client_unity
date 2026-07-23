@@ -1999,6 +1999,8 @@
         /// <summary>无尽之海巡航船只页状态快照(C2S 严格空包；S2C shipping_id:u8,luckey_value:u16,
         /// reward_times:u8,total_reward_times:u8,up_times:u8,total_up_times:u8)。</summary>
         public const int BRIGHT_SEA_SHIP_INFO = 18902;
+        /// <summary>无尽之海巡航结算详情(C2S auto_id:u64；S2C 掠夺者、奖励及掠夺奖励快照)。</summary>
+        public const int BRIGHT_SEA_CRUISE_DETAIL = 18904;
         /// <summary>无尽之海跨服信息快照(C2S 严格空包；S2C 模式/世界等级及 enemy、un_satisfy 服务器列表)。</summary>
         public const int BRIGHT_SEA_SERVER_INFO = 18915;
         /// <summary>无尽之海协助绑元次数快照(C2S 严格空包；S2C daily_num:u16,max_bgold_num:u16)。</summary>

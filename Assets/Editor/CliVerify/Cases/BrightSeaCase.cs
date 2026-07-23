@@ -37,13 +37,14 @@ namespace Shenxiao.EditorTools
                 MethodInfo on18900 = typeof(BrightSeaController).GetMethod("On18900", InstanceNonPublic);
                 MethodInfo on18901 = typeof(BrightSeaController).GetMethod("On18901", InstanceNonPublic);
                 MethodInfo on18902 = typeof(BrightSeaController).GetMethod("On18902", InstanceNonPublic);
+                MethodInfo on18904 = typeof(BrightSeaController).GetMethod("On18904", InstanceNonPublic);
                 MethodInfo on18915 = typeof(BrightSeaController).GetMethod("On18915", InstanceNonPublic);
                 MethodInfo on18916 = typeof(BrightSeaController).GetMethod("On18916", InstanceNonPublic);
                 IDictionary handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                pass = intercept != null && on18900 != null && on18901 != null && on18902 != null && on18915 != null && on18916 != null && handlers != null
-                    && handlers.Contains(18900) && handlers.Contains(18901) && handlers.Contains(18902) && handlers.Contains(18915) && handlers.Contains(18916);
+                pass = intercept != null && on18900 != null && on18901 != null && on18902 != null && on18904 != null && on18915 != null && on18916 != null && handlers != null
+                    && handlers.Contains(18900) && handlers.Contains(18901) && handlers.Contains(18902) && handlers.Contains(18904) && handlers.Contains(18915) && handlers.Contains(18916);
                 for (int proto = 18901; proto <= 18920; proto++)
-                    pass &= handlers.Contains(proto) == (proto == 18901 || proto == 18902 || proto == 18915 || proto == 18916);
+                    pass &= handlers.Contains(proto) == (proto == 18901 || proto == 18902 || proto == 18904 || proto == 18915 || proto == 18916);
 
                 var frames = new List<byte[]>();
                 intercept.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
@@ -56,6 +57,12 @@ namespace Shenxiao.EditorTools
                 controller.RequestShipInfo();
                 pass &= Frames(frames, 18902);
                 frames.Clear();
+                controller.RequestCruiseDetail(ulong.MaxValue);
+                pass &= DetailFrame(frames, ulong.MaxValue);
+                frames.Clear();
+                controller.RequestCruiseDetail(0);
+                pass &= DetailFrame(frames, 0);
+                frames.Clear();
                 controller.RequestServerInfo();
                 pass &= Frames(frames, 18915);
                 frames.Clear();
@@ -67,9 +74,10 @@ namespace Shenxiao.EditorTools
                 model.ReplaceShipInfo(1, 2, 3, 4, 5, 6);
                 model.ReplaceServerInfo(1, 2, new List<BrightSeaModel.ServerEntry> { new BrightSeaModel.ServerEntry() }, 3, 4, 5, new List<BrightSeaModel.ServerEntry>());
                 model.ReplaceAssistBGoldInfo(1, 2);
+                model.ReplaceCruiseDetail(1, 2, 3, 4, "stale", 5, 6, new List<BrightSeaModel.ObjectEntry> { new BrightSeaModel.ObjectEntry() }, new List<BrightSeaModel.ObjectEntry> { new BrightSeaModel.ObjectEntry() }, 7);
                 frames.Clear();
                 EventDispatcher.Emit(GlobalEvent.EVT_GAME_START);
-                pass &= Frames(frames, 18900) && !model.HasInfo && !model.HasCruiseLogs && !model.HasShipInfo && !model.HasServerInfo && !model.HasAssistBGoldInfo
+                pass &= Frames(frames, 18900) && !model.HasInfo && !model.HasCruiseLogs && !model.HasShipInfo && !model.HasServerInfo && !model.HasAssistBGoldInfo && !model.HasCruiseDetail
                     && model.SendList.Count == 0 && model.CruiseLogs.Count == 0 && model.EnemyServers.Count == 0 && model.UnsatisfiedServers.Count == 0;
 
                 string chinese = "海域中文";
@@ -135,12 +143,31 @@ namespace Shenxiao.EditorTools
                     && model.ShipRewardTimes == 254 && model.ShipTotalRewardTimes == 253 && model.UpTimes == 252 && model.TotalUpTimes == 251
                     && model.HasInfo && model.HasCruiseLogs && model.HasServerInfo;
 
+                var fiveBeforeDetail = new SavedState(model);
+                Invoke(on18904, controller, DetailMultiPacket(chinese), out int detailRemaining);
+                pass &= detailRemaining == 0 && DetailIs(model, ulong.MaxValue, uint.MaxValue, 4000000000U, ulong.MaxValue, chinese, ulong.MaxValue, byte.MaxValue, uint.MaxValue, 2, 2)
+                    && model.CruiseDetailReward[0].Type == 1 && model.CruiseDetailReward[0].TypeId == uint.MaxValue && model.CruiseDetailReward[0].Num == uint.MaxValue
+                    && model.CruiseDetailReward[1].Type == 1 && model.CruiseDetailReward[1].TypeId == uint.MaxValue && model.CruiseDetailReward[1].Num == uint.MaxValue
+                    && model.CruiseDetailRobReward[0].Type == byte.MaxValue && model.CruiseDetailRobReward[0].TypeId == 5 && model.CruiseDetailRobReward[0].Num == 6
+                    && model.CruiseDetailRobReward[1].Type == byte.MaxValue && model.CruiseDetailRobReward[1].TypeId == 5 && model.CruiseDetailRobReward[1].Num == 6
+                    && fiveBeforeDetail.MatchesCoreFive(model);
+                Invoke(on18904, controller, DetailNoLogPacket(), out detailRemaining);
+                pass &= detailRemaining == 0 && DetailIs(model, 9, 0, 0, 0, "", 0, 7, 0, 1, 0) && model.CruiseDetailReward[0].Type == 2
+                    && model.CruiseDetailReward[0].TypeId == 3 && model.CruiseDetailReward[0].Num == 4 && fiveBeforeDetail.MatchesCoreFive(model);
+                Invoke(on18904, controller, DetailZeroPacket(), out detailRemaining);
+                pass &= detailRemaining == 0 && DetailIs(model, 0, 0, 0, 0, "", 0, 0, 0, 0, 0) && fiveBeforeDetail.MatchesCoreFive(model);
+                Invoke(on18904, controller, DetailSinglePacket(), out detailRemaining);
+                pass &= detailRemaining == 0 && DetailSingleState(model);
+                frames.Clear();
+                controller.RequestCruiseDetail(10);
+                pass &= DetailFrame(frames, 10) && DetailSingleState(model);
+
                 var fourBeforeAssist = new SavedState(model);
                 Invoke(on18916, controller, AssistPacket(ushort.MaxValue, ushort.MaxValue), out int assistRemaining);
                 pass &= assistRemaining == 0 && model.HasAssistBGoldInfo && model.AssistBGoldNum == ushort.MaxValue && model.AssistBGoldMax == ushort.MaxValue
-                    && fourBeforeAssist.MatchesCoreFour(model);
+                    && fourBeforeAssist.MatchesCoreFour(model) && DetailSingleState(model);
                 Invoke(on18916, controller, AssistPacket(7, ushort.MaxValue), out assistRemaining);
-                pass &= assistRemaining == 0 && model.HasAssistBGoldInfo && model.AssistBGoldNum == 7 && model.AssistBGoldMax == ushort.MaxValue && fourBeforeAssist.MatchesCoreFour(model);
+                pass &= assistRemaining == 0 && model.HasAssistBGoldInfo && model.AssistBGoldNum == 7 && model.AssistBGoldMax == ushort.MaxValue && fourBeforeAssist.MatchesCoreFour(model) && DetailSingleState(model);
 
                 Invoke(on18900, controller, MainSinglePacket(), out mainRemaining);
                 pass &= mainRemaining == 0 && model.HasInfo && model.Picture == "next" && model.PictureVersion == 1
@@ -149,7 +176,7 @@ namespace Shenxiao.EditorTools
                     && model.SendList.Count == 1 && model.SendList[0].AutoId == 3 && model.SendList[0].RoleName == "solo"
                     && model.HasServerInfo && model.EnemyServers.Count == 2 && model.UnsatisfiedServers.Count == 2
                     && model.HasCruiseLogs && model.CruiseLogs.Count == 2 && model.CruiseLogs[0].AutoId == ulong.MaxValue && model.HasShipInfo
-                    && AssistIs(model, 7, ushort.MaxValue);
+                    && AssistIs(model, 7, ushort.MaxValue) && DetailSingleState(model);
 
                 Invoke(on18900, controller, MainEmptyPacket(), out mainRemaining);
                 pass &= mainRemaining == 0 && model.HasInfo && model.SendList.Count == 0 && model.Picture == ""
@@ -160,7 +187,7 @@ namespace Shenxiao.EditorTools
                     && model.EnemyServers[0].ServerId == 3 && model.EnemyServers[0].ServerName == "solo"
                     && model.UnsatisfiedServers.Count == 1 && model.UnsatisfiedServers[0].ServerName == "tail"
                     && model.HasCruiseLogs && model.CruiseLogs.Count == 2 && model.CruiseLogs[1].AutoId == ulong.MaxValue && model.HasShipInfo
-                    && AssistIs(model, 7, ushort.MaxValue);
+                    && AssistIs(model, 7, ushort.MaxValue) && DetailSingleState(model);
 
                 Invoke(on18915, controller, ServerEmptyPacket(), out serverRemaining);
                 pass &= serverRemaining == 0 && model.HasServerInfo && model.EnemyServers.Count == 0
@@ -170,7 +197,7 @@ namespace Shenxiao.EditorTools
                 pass &= logsRemaining == 0 && model.HasCruiseLogs && model.CruiseLogs.Count == 1
                     && model.CruiseLogs[0].AutoId == 18 && model.CruiseLogs[0].RoberName == "single"
                     && model.HasInfo && model.SendList.Count == 0 && model.HasServerInfo && model.EnemyServers.Count == 0 && model.HasShipInfo
-                    && AssistIs(model, 7, ushort.MaxValue);
+                    && AssistIs(model, 7, ushort.MaxValue) && DetailSingleState(model);
 
                 Invoke(on18901, controller, LogsEmptyPacket(), out logsRemaining);
                 pass &= logsRemaining == 0 && model.HasCruiseLogs && model.CruiseLogs.Count == 0
@@ -179,7 +206,7 @@ namespace Shenxiao.EditorTools
                 Invoke(on18902, controller, ShipPacket(1, 2, 3, 4, 5, 6), out shipRemaining);
                 pass &= shipRemaining == 0 && model.HasShipInfo && model.ShippingId == 1 && model.LuckeyValue == 2
                     && model.ShipRewardTimes == 3 && model.ShipTotalRewardTimes == 4 && model.UpTimes == 5 && model.TotalUpTimes == 6
-                    && model.HasInfo && model.HasCruiseLogs && model.HasServerInfo && AssistIs(model, 7, ushort.MaxValue);
+                    && model.HasInfo && model.HasCruiseLogs && model.HasServerInfo && AssistIs(model, 7, ushort.MaxValue) && DetailSingleState(model);
                 frames.Clear();
                 controller.RequestShipInfo();
                 pass &= Frames(frames, 18902) && model.HasShipInfo && model.ShippingId == 1 && model.LuckeyValue == 2
@@ -248,6 +275,7 @@ namespace Shenxiao.EditorTools
                 model.ReplaceShipInfo(10, 11, 12, 13, 14, 15);
                 model.ReplaceServerInfo(16, 17, new List<BrightSeaModel.ServerEntry> { new BrightSeaModel.ServerEntry { ServerId = 18 } }, 19, 20, 21, new List<BrightSeaModel.ServerEntry> { new BrightSeaModel.ServerEntry { ServerId = 22 } });
                 model.ReplaceAssistBGoldInfo(23, 24);
+                model.ReplaceCruiseDetail(25, 26, 27, 28, "detail", 29, 30, new List<BrightSeaModel.ObjectEntry> { new BrightSeaModel.ObjectEntry { Type = 31 } }, new List<BrightSeaModel.ObjectEntry> { new BrightSeaModel.ObjectEntry { Type = 32 } }, 33);
                 var allSlices = new SavedState(model);
                 model.Clear();
                 allSlices.Restore(model);
@@ -259,13 +287,16 @@ namespace Shenxiao.EditorTools
                     && model.EnemyServers[0].ServerId == 18 && model.UnsatisfiedModule == 19 && model.UnsatisfiedWorldLevel == 20
                     && model.MinWorldLevel == 21 && model.UnsatisfiedServers.Count == 1 && model.UnsatisfiedServers[0].ServerId == 22;
                 pass &= model.HasAssistBGoldInfo && model.AssistBGoldNum == 23 && model.AssistBGoldMax == 24;
+                pass &= DetailIs(model, 25, 26, 27, 28, "detail", 29, 30, 33, 1, 1);
 
                 controller.Dispose();
                 frames.Clear();
                 EventDispatcher.Emit(GlobalEvent.EVT_GAME_START);
-                pass &= !controller.IsInitialized && !handlers.Contains(18900) && !handlers.Contains(18901) && !handlers.Contains(18902) && !handlers.Contains(18915) && !handlers.Contains(18916)
-                    && !model.HasInfo && !model.HasCruiseLogs && !model.HasShipInfo && !model.HasServerInfo && !model.HasAssistBGoldInfo && model.SendList.Count == 0
-                    && model.CruiseLogs.Count == 0 && model.EnemyServers.Count == 0 && model.UnsatisfiedServers.Count == 0 && frames.Count == 0;
+                pass &= !controller.IsInitialized && !handlers.Contains(18900) && !handlers.Contains(18901) && !handlers.Contains(18902) && !handlers.Contains(18904) && !handlers.Contains(18915) && !handlers.Contains(18916)
+                    && !model.HasInfo && !model.HasCruiseLogs && !model.HasShipInfo && !model.HasServerInfo && !model.HasAssistBGoldInfo && !model.HasCruiseDetail && model.SendList.Count == 0
+                    && model.CruiseLogs.Count == 0 && model.EnemyServers.Count == 0 && model.UnsatisfiedServers.Count == 0 && model.CruiseDetailAutoId == 0
+                    && model.CruiseDetailRoberServerId == 0 && model.CruiseDetailRoberServerNumber == 0 && model.CruiseDetailRoberId == 0 && model.CruiseDetailRoberName == null
+                    && model.CruiseDetailRoberPower == 0 && model.CruiseDetailShippingId == 0 && model.CruiseDetailTime == 0 && model.CruiseDetailReward.Count == 0 && model.CruiseDetailRobReward.Count == 0 && frames.Count == 0;
             }
             finally
             {
@@ -285,6 +316,11 @@ namespace Shenxiao.EditorTools
         private static bool Frames(List<byte[]> frames, int proto) => frames.Count == 1 && frames[0].Length == 6
             && frames[0][0] == 0 && frames[0][1] == 6 && frames[0][2] == 3 && frames[0][3] == 232
             && frames[0][4] == (byte)(proto >> 8) && frames[0][5] == (byte)proto;
+
+        private static bool DetailFrame(List<byte[]> frames, ulong autoId) => frames.Count == 1 && frames[0].Length == 14
+            && frames[0][0] == 0 && frames[0][1] == 14 && frames[0][2] == 3 && frames[0][3] == 232 && frames[0][4] == 73 && frames[0][5] == 216
+            && frames[0][6] == (byte)(autoId >> 56) && frames[0][7] == (byte)(autoId >> 48) && frames[0][8] == (byte)(autoId >> 40) && frames[0][9] == (byte)(autoId >> 32)
+            && frames[0][10] == (byte)(autoId >> 24) && frames[0][11] == (byte)(autoId >> 16) && frames[0][12] == (byte)(autoId >> 8) && frames[0][13] == (byte)autoId;
 
         private static byte[] MainPacket(string chinese) => new CliVerify.Pkt().S(chinese).I(4294967295L).C(255).C(0).C(254).C(1).L(-1).C(253).H(2)
             .L(77).C(1).I(4294967295L).I(4000000000L).L(-1).S(chinese).L(-1).S("").H(65535).L(-1)
@@ -313,6 +349,13 @@ namespace Shenxiao.EditorTools
 
         private static byte[] AssistPacket(ushort num, ushort max) => new CliVerify.Pkt().H(num).H(max).Bytes();
 
+        private static byte[] DetailMultiPacket(string chinese) => new CliVerify.Pkt().L(-1).I(4294967295L).I(4000000000L).L(-1).S(chinese).L(-1).C(255)
+            .H(2).C(1).I(4294967295L).I(4294967295L).C(1).I(4294967295L).I(4294967295L)
+            .H(2).C(255).I(5).I(6).C(255).I(5).I(6).I(4294967295L).Bytes();
+        private static byte[] DetailNoLogPacket() => new CliVerify.Pkt().L(9).I(0).I(0).L(0).S("").L(0).C(7).H(1).C(2).I(3).I(4).H(0).I(0).Bytes();
+        private static byte[] DetailZeroPacket() => new CliVerify.Pkt().L(0).I(0).I(0).L(0).S("").L(0).C(0).H(0).H(0).I(0).Bytes();
+        private static byte[] DetailSinglePacket() => new CliVerify.Pkt().L(10).I(11).I(12).L(13).S("single").L(14).C(15).H(1).C(17).I(18).I(19).H(1).C(20).I(21).I(22).I(16).Bytes();
+
         private static byte[] ServerMultiPacket(string chinese) => new CliVerify.Pkt().C(255).H(65535).H(2)
             .I(4294967295L).H(65535).S(chinese).H(0).I(1).H(2).S("").H(65535)
             .C(254).H(65535).H(0).H(2).I(9).H(10).S("u").H(11).I(9).H(12).S("v").H(13).Bytes();
@@ -323,10 +366,22 @@ namespace Shenxiao.EditorTools
         private static byte[] ServerEmptyPacket() => new CliVerify.Pkt().C(0).H(0).H(0).C(0).H(0).H(0).H(0).Bytes();
 
         private static bool AssistIs(BrightSeaModel m, ushort num, ushort max) => m.HasAssistBGoldInfo && m.AssistBGoldNum == num && m.AssistBGoldMax == max;
+        private static bool DetailIs(BrightSeaModel m, ulong autoId, uint serverId, uint serverNum, ulong roberId, string name, ulong power, byte shippingId, uint time, int rewardCount, int robRewardCount)
+        {
+            bool fields = m.HasCruiseDetail && m.CruiseDetailAutoId == autoId && m.CruiseDetailRoberServerId == serverId && m.CruiseDetailRoberServerNumber == serverNum
+                && m.CruiseDetailRoberId == roberId && m.CruiseDetailRoberName == name && m.CruiseDetailRoberPower == power && m.CruiseDetailShippingId == shippingId
+                && m.CruiseDetailTime == time && m.CruiseDetailReward.Count == rewardCount && m.CruiseDetailRobReward.Count == robRewardCount;
+            return fields;
+        }
+
+        private static bool DetailSingleState(BrightSeaModel m) => DetailIs(m, 10, 11, 12, 13, "single", 14, 15, 16, 1, 1)
+            && ItemIs(m.CruiseDetailReward[0], 17, 18, 19) && ItemIs(m.CruiseDetailRobReward[0], 20, 21, 22);
+
+        private static bool ItemIs(BrightSeaModel.ObjectEntry item, byte type, uint typeId, uint num) => item != null && item.Type == type && item.TypeId == typeId && item.Num == num;
 
         private sealed class AmbientState
         {
-            private static readonly int[] Protocols = { 18900, 18901, 18902, 18915, 18916 };
+            private static readonly int[] Protocols = { 18900, 18901, 18902, 18904, 18915, 18916 };
             private readonly bool _initialized;
             private readonly SavedState _model;
             private readonly object _intercept;
@@ -402,7 +457,7 @@ namespace Shenxiao.EditorTools
 
         private sealed class SavedState
         {
-            private readonly bool _info, _cruiseLogs, _shipInfo, _serverInfo, _assistBGold;
+            private readonly bool _info, _cruiseLogs, _shipInfo, _serverInfo, _assistBGold, _cruiseDetail;
             private readonly string _picture;
             private readonly uint _pictureVersion;
             private readonly byte _reward, _totalReward, _rob, _totalRob, _status, _module, _unsatisfiedModule;
@@ -411,21 +466,29 @@ namespace Shenxiao.EditorTools
             private readonly byte _shippingId, _shipReward, _shipTotalReward, _up, _totalUp;
             private readonly ushort _luckey;
             private readonly ushort _assistBGoldNum, _assistBGoldMax;
+            private readonly ulong _detailAutoId, _detailRoberId, _detailRoberPower;
+            private readonly uint _detailRoberServerId, _detailRoberServerNumber, _detailTime;
+            private readonly string _detailRoberName;
+            private readonly byte _detailShippingId;
             private readonly List<BrightSeaModel.ShippingEntry> _ships;
             private readonly List<BrightSeaModel.CruiseLogEntry> _logs;
             private readonly List<BrightSeaModel.ServerEntry> _enemy, _unsatisfied;
+            private readonly List<BrightSeaModel.ObjectEntry> _detailReward, _detailRobReward;
 
             public SavedState(BrightSeaModel m)
             {
-                _info = m.HasInfo; _cruiseLogs = m.HasCruiseLogs; _shipInfo = m.HasShipInfo; _serverInfo = m.HasServerInfo; _assistBGold = m.HasAssistBGoldInfo; _picture = m.Picture; _pictureVersion = m.PictureVersion;
+                _info = m.HasInfo; _cruiseLogs = m.HasCruiseLogs; _shipInfo = m.HasShipInfo; _serverInfo = m.HasServerInfo; _assistBGold = m.HasAssistBGoldInfo; _cruiseDetail = m.HasCruiseDetail; _picture = m.Picture; _pictureVersion = m.PictureVersion;
                 _reward = m.RewardTimes; _totalReward = m.TotalRewardTimes; _rob = m.RobTimes; _totalRob = m.TotalRobTimes;
                 _status = m.Status; _autoId = m.AutoId; _module = m.TreasureModule; _world = m.WorldLevel;
                 _unsatisfiedModule = m.UnsatisfiedModule; _unsatisfiedWorld = m.UnsatisfiedWorldLevel; _minWorld = m.MinWorldLevel;
                 _shippingId = m.ShippingId; _luckey = m.LuckeyValue; _shipReward = m.ShipRewardTimes; _shipTotalReward = m.ShipTotalRewardTimes; _up = m.UpTimes; _totalUp = m.TotalUpTimes;
                 _assistBGoldNum = m.AssistBGoldNum; _assistBGoldMax = m.AssistBGoldMax;
+                _detailAutoId = m.CruiseDetailAutoId; _detailRoberServerId = m.CruiseDetailRoberServerId; _detailRoberServerNumber = m.CruiseDetailRoberServerNumber;
+                _detailRoberId = m.CruiseDetailRoberId; _detailRoberName = m.CruiseDetailRoberName; _detailRoberPower = m.CruiseDetailRoberPower; _detailShippingId = m.CruiseDetailShippingId; _detailTime = m.CruiseDetailTime;
                 _ships = m.SendList.ConvertAll(CloneShipping); _logs = m.CruiseLogs.ConvertAll(CloneLog);
                 _enemy = m.EnemyServers.ConvertAll(CloneServer);
                 _unsatisfied = m.UnsatisfiedServers.ConvertAll(CloneServer);
+                _detailReward = m.CruiseDetailReward.ConvertAll(CloneObject); _detailRobReward = m.CruiseDetailRobReward.ConvertAll(CloneObject);
             }
 
             public void Restore(BrightSeaModel m)
@@ -435,13 +498,19 @@ namespace Shenxiao.EditorTools
                 if (_shipInfo) m.ReplaceShipInfo(_shippingId, _luckey, _shipReward, _shipTotalReward, _up, _totalUp);
                 if (_serverInfo) m.ReplaceServerInfo(_module, _world, _enemy, _unsatisfiedModule, _unsatisfiedWorld, _minWorld, _unsatisfied);
                 if (_assistBGold) m.ReplaceAssistBGoldInfo(_assistBGoldNum, _assistBGoldMax);
+                if (_cruiseDetail) m.ReplaceCruiseDetail(_detailAutoId, _detailRoberServerId, _detailRoberServerNumber, _detailRoberId, _detailRoberName, _detailRoberPower, _detailShippingId, _detailReward, _detailRobReward, _detailTime);
             }
 
             public bool Matches(BrightSeaModel m)
             {
-                return MatchesCoreFour(m) && _assistBGold == m.HasAssistBGoldInfo
-                    && _assistBGoldNum == m.AssistBGoldNum && _assistBGoldMax == m.AssistBGoldMax;
+                return MatchesCoreFive(m) && _cruiseDetail == m.HasCruiseDetail && _detailAutoId == m.CruiseDetailAutoId
+                    && _detailRoberServerId == m.CruiseDetailRoberServerId && _detailRoberServerNumber == m.CruiseDetailRoberServerNumber && _detailRoberId == m.CruiseDetailRoberId
+                    && _detailRoberName == m.CruiseDetailRoberName && _detailRoberPower == m.CruiseDetailRoberPower && _detailShippingId == m.CruiseDetailShippingId && _detailTime == m.CruiseDetailTime
+                    && SameList(_detailReward, m.CruiseDetailReward) && SameList(_detailRobReward, m.CruiseDetailRobReward);
             }
+
+            public bool MatchesCoreFive(BrightSeaModel m) => MatchesCoreFour(m) && _assistBGold == m.HasAssistBGoldInfo
+                && _assistBGoldNum == m.AssistBGoldNum && _assistBGoldMax == m.AssistBGoldMax;
 
             public bool MatchesCoreFour(BrightSeaModel m)
             {

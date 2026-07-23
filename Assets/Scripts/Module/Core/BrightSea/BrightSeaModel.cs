@@ -101,6 +101,19 @@ namespace Shenxiao.Module.Core.BrightSea
         public ushort AssistBGoldNum { get; private set; }
         public ushort AssistBGoldMax { get; private set; }
 
+        // ---- 18904 巡航结算详情（独立于其余五个快照）----
+        public bool HasCruiseDetail { get; private set; }
+        public ulong CruiseDetailAutoId { get; private set; }
+        public uint CruiseDetailRoberServerId { get; private set; }
+        public uint CruiseDetailRoberServerNumber { get; private set; }
+        public ulong CruiseDetailRoberId { get; private set; }
+        public string CruiseDetailRoberName { get; private set; }
+        public ulong CruiseDetailRoberPower { get; private set; }
+        public byte CruiseDetailShippingId { get; private set; }
+        public readonly List<ObjectEntry> CruiseDetailReward = new List<ObjectEntry>();
+        public readonly List<ObjectEntry> CruiseDetailRobReward = new List<ObjectEntry>();
+        public uint CruiseDetailTime { get; private set; }
+
         /// <summary>每个 18900 包无条件整体替换；空列表也为已加载快照。</summary>
         public void Replace(string picture, uint pictureVersion, byte rewardTimes, byte totalRewardTimes,
             byte robTimes, byte totalRobTimes, ulong autoId, byte status, List<ShippingEntry> sendList)
@@ -160,6 +173,17 @@ namespace Shenxiao.Module.Core.BrightSea
             HasAssistBGoldInfo = true;
         }
 
+        public void ReplaceCruiseDetail(ulong autoId, uint roberServerId, uint roberServerNumber, ulong roberId, string roberName,
+            ulong roberPower, byte shippingId, List<ObjectEntry> reward, List<ObjectEntry> robReward, uint time)
+        {
+            CruiseDetailAutoId = autoId; CruiseDetailRoberServerId = roberServerId; CruiseDetailRoberServerNumber = roberServerNumber;
+            CruiseDetailRoberId = roberId; CruiseDetailRoberName = roberName; CruiseDetailRoberPower = roberPower;
+            CruiseDetailShippingId = shippingId; CruiseDetailReward.Clear(); CruiseDetailRobReward.Clear();
+            if (reward != null) CruiseDetailReward.AddRange(reward);
+            if (robReward != null) CruiseDetailRobReward.AddRange(robReward);
+            CruiseDetailTime = time; HasCruiseDetail = true;
+        }
+
         public void Clear()
         {
             Picture = null;
@@ -180,6 +204,10 @@ namespace Shenxiao.Module.Core.BrightSea
             HasShipInfo = false;
             AssistBGoldNum = AssistBGoldMax = 0;
             HasAssistBGoldInfo = false;
+            CruiseDetailAutoId = CruiseDetailRoberId = CruiseDetailRoberPower = 0;
+            CruiseDetailRoberServerId = CruiseDetailRoberServerNumber = CruiseDetailTime = 0;
+            CruiseDetailRoberName = null; CruiseDetailShippingId = 0;
+            CruiseDetailReward.Clear(); CruiseDetailRobReward.Clear(); HasCruiseDetail = false;
         }
     }
 }
