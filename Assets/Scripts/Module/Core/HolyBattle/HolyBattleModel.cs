@@ -32,17 +32,52 @@ namespace Shenxiao.Module.Core.HolyBattle
             }
         }
 
+        public sealed class RecordRoleEntry
+        {
+            public ulong RoleId { get; }
+            public byte Rank { get; }
+            public uint ServerId { get; }
+            public uint ServerNum { get; }
+            public string Name { get; }
+            public uint Point { get; }
+            public ushort Kill { get; }
+            public ushort Assists { get; }
+
+            public RecordRoleEntry(ulong roleId, byte rank, uint serverId, uint serverNum, string name, uint point, ushort kill, ushort assists)
+            {
+                RoleId = roleId; Rank = rank; ServerId = serverId; ServerNum = serverNum; Name = name; Point = point; Kill = kill; Assists = assists;
+            }
+        }
+
+        public sealed class RecordGroupEntry
+        {
+            public byte GroupId { get; }
+            public byte TowerNum { get; }
+            public uint Point { get; }
+            public byte Rank { get; }
+            public IReadOnlyList<RecordRoleEntry> Roles { get; }
+
+            public RecordGroupEntry(byte groupId, byte towerNum, uint point, byte rank, List<RecordRoleEntry> roles)
+            {
+                GroupId = groupId; TowerNum = towerNum; Point = point; Rank = rank;
+                Roles = new List<RecordRoleEntry>(roles ?? new List<RecordRoleEntry>()).AsReadOnly();
+            }
+        }
+
         public static readonly HolyBattleModel Instance = new HolyBattleModel();
 
         private readonly List<ServerEntry> _servers = new List<ServerEntry>();
         private readonly IReadOnlyList<ServerEntry> _readOnlyServers;
         private readonly List<RewardEntry> _rewards = new List<RewardEntry>();
         private readonly IReadOnlyList<RewardEntry> _readOnlyRewards;
+        private readonly List<RecordGroupEntry> _recordStats = new List<RecordGroupEntry>();
+        private readonly IReadOnlyList<RecordGroupEntry> _readOnlyRecordStats;
 
         private HolyBattleModel()
         {
             _readOnlyServers = _servers.AsReadOnly();
             _readOnlyRewards = _rewards.AsReadOnly();
+            _readOnlyRecordStats = _recordStats.AsReadOnly();
         }
 
         public byte Mod { get; private set; }
@@ -55,6 +90,8 @@ namespace Shenxiao.Module.Core.HolyBattle
         public uint Point { get; private set; }
         public IReadOnlyList<ServerEntry> Servers => _readOnlyServers;
         public IReadOnlyList<RewardEntry> Rewards => _readOnlyRewards;
+        public bool HasRecordStats { get; private set; }
+        public IReadOnlyList<RecordGroupEntry> RecordStats => _readOnlyRecordStats;
 
         public void Replace(byte mod, byte status, uint endTime, List<ServerEntry> servers)
         {
@@ -89,6 +126,13 @@ namespace Shenxiao.Module.Core.HolyBattle
             HasScore = true;
         }
 
+        public void ReplaceRecordStats(List<RecordGroupEntry> groups)
+        {
+            _recordStats.Clear();
+            if (groups != null) _recordStats.AddRange(groups);
+            HasRecordStats = true;
+        }
+
         public void Reset()
         {
             Mod = 0;
@@ -101,6 +145,8 @@ namespace Shenxiao.Module.Core.HolyBattle
             HasScore = false;
             Point = 0;
             _rewards.Clear();
+            _recordStats.Clear();
+            HasRecordStats = false;
         }
     }
 }

@@ -42,6 +42,8 @@ namespace Shenxiao.EditorTools
             uint oldPoint = model.Point;
             var oldServers = new List<HolyBattleModel.ServerEntry>(model.Servers);
             var oldRewards = new List<HolyBattleModel.RewardEntry>(model.Rewards);
+            bool oldHasRecordStats = model.HasRecordStats;
+            var oldRecordStats = new List<HolyBattleModel.RecordGroupEntry>(model.RecordStats);
             FieldInfo interceptField = typeof(HolyBattleController).GetField("s_outboundIntercept", StaticNonPublic);
             object oldIntercept = interceptField == null ? null : interceptField.GetValue(null);
 
@@ -53,12 +55,13 @@ namespace Shenxiao.EditorTools
                 MethodInfo on21801 = typeof(HolyBattleController).GetMethod("On21801", InstanceNonPublic);
                 MethodInfo on21804 = typeof(HolyBattleController).GetMethod("On21804", InstanceNonPublic);
                 MethodInfo on21805 = typeof(HolyBattleController).GetMethod("On21805", InstanceNonPublic);
+                MethodInfo on21808 = typeof(HolyBattleController).GetMethod("On21808", InstanceNonPublic);
                 IDictionary handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                bool pass = interceptField != null && on21801 != null && on21804 != null && on21805 != null && handlers != null
-                    && handlers.Contains(21801) && handlers.Contains(21804) && handlers.Contains(21805);
+                bool pass = interceptField != null && on21801 != null && on21804 != null && on21805 != null && on21808 != null && handlers != null
+                    && handlers.Contains(21801) && handlers.Contains(21804) && handlers.Contains(21805) && handlers.Contains(21808);
                 for (int proto = 21800; proto <= 21813; proto++)
                 {
-                    if (proto != 21801 && proto != 21804 && proto != 21805)
+                    if (proto != 21801 && proto != 21804 && proto != 21805 && proto != 21808)
                     {
                         pass &= !handlers.Contains(proto);
                     }
@@ -90,9 +93,42 @@ namespace Shenxiao.EditorTools
                     && !model.HasScore && model.Point == 0 && model.Rewards.Count == 0;
                 frames.Clear();
 
+                controller.RequestRecordStats();
+                pass &= IsExactRecordStatsRequest(frames.Count == 1 ? frames[0] : null)
+                    && !model.HasRecordStats && model.RecordStats.Count == 0;
+                frames.Clear();
+
+                byte[] statsBytes = new CliVerify.Pkt().H(2)
+                    .C(byte.MaxValue).C(0).I(0).C(0).H(0)
+                    .C(byte.MaxValue).C(byte.MaxValue).I(uint.MaxValue).C(byte.MaxValue).H(3)
+                    .L(1).C(1).I(2).I(3).S("\u4e2d").I(10).H(0).H(ushort.MaxValue)
+                    .L(unchecked((long)ulong.MaxValue)).C(byte.MaxValue).I(uint.MaxValue).I(uint.MaxValue).S("\u4e2d").I(uint.MaxValue).H(ushort.MaxValue).H(ushort.MaxValue)
+                    .L(1).C(2).I(2).I(3).S("same").I(uint.MaxValue).H(1).H(2).Bytes();
+                var statsReader = new NetReader(statsBytes, 0, statsBytes.Length);
+                on21808.Invoke(controller, new object[] { statsReader });
+                pass &= statsReader.Remaining == 0 && model.HasRecordStats && model.RecordStats.Count == 2
+                    && model.RecordStats[0].GroupId == byte.MaxValue && model.RecordStats[0].Roles.Count == 0
+                    && model.RecordStats[1].GroupId == byte.MaxValue && model.RecordStats[1].TowerNum == byte.MaxValue
+                    && model.RecordStats[1].Point == uint.MaxValue && model.RecordStats[1].Rank == byte.MaxValue
+                    && model.RecordStats[1].Roles.Count == 3
+                    && model.RecordStats[1].Roles[0].RoleId == ulong.MaxValue && model.RecordStats[1].Roles[0].Rank == byte.MaxValue
+                    && model.RecordStats[1].Roles[0].ServerId == uint.MaxValue && model.RecordStats[1].Roles[0].ServerNum == uint.MaxValue
+                    && model.RecordStats[1].Roles[0].Name == "\u4e2d" && model.RecordStats[1].Roles[0].Point == uint.MaxValue
+                    && model.RecordStats[1].Roles[0].Kill == ushort.MaxValue && model.RecordStats[1].Roles[0].Assists == ushort.MaxValue
+                    && model.RecordStats[1].Roles[1].RoleId == 1 && model.RecordStats[1].Roles[1].Rank == 2
+                    && model.RecordStats[1].Roles[1].ServerId == 2 && model.RecordStats[1].Roles[1].ServerNum == 3
+                    && model.RecordStats[1].Roles[1].Name == "same" && model.RecordStats[1].Roles[1].Point == uint.MaxValue
+                    && model.RecordStats[1].Roles[1].Kill == 1 && model.RecordStats[1].Roles[1].Assists == 2
+                    && model.RecordStats[1].Roles[2].RoleId == 1 && model.RecordStats[1].Roles[2].Rank == 1
+                    && model.RecordStats[1].Roles[2].ServerId == 2 && model.RecordStats[1].Roles[2].ServerNum == 3
+                    && model.RecordStats[1].Roles[2].Name == "\u4e2d" && model.RecordStats[1].Roles[2].Point == 10
+                    && model.RecordStats[1].Roles[2].Kill == 0 && model.RecordStats[1].Roles[2].Assists == ushort.MaxValue
+                    && frames.Count == 0;
+
                 var zeroExperienceReader = new NetReader(new CliVerify.Pkt().L(0).Bytes(), 0, 8);
                 on21804.Invoke(controller, new object[] { zeroExperienceReader });
-                pass &= zeroExperienceReader.Remaining == 0 && model.HasExperience && model.AllExperience == 0 && frames.Count == 0;
+                pass &= zeroExperienceReader.Remaining == 0 && model.HasExperience && model.AllExperience == 0
+                    && model.HasRecordStats && model.RecordStats.Count == 2 && frames.Count == 0;
 
                 var firstExperienceReader = new NetReader(new CliVerify.Pkt().L(100).Bytes(), 0, 8);
                 on21804.Invoke(controller, new object[] { firstExperienceReader });
@@ -118,7 +154,8 @@ namespace Shenxiao.EditorTools
                     && model.Rewards[0].Stage == 0 && model.Rewards[0].Status == 0
                     && model.Rewards[1].Stage == ushort.MaxValue && model.Rewards[1].Status == 1
                     && model.Rewards[2].Stage == ushort.MaxValue && model.Rewards[2].Status == 2
-                    && model.HasExperience && model.AllExperience == 5000000001UL && !model.HasData && frames.Count == 0;
+                    && model.HasExperience && model.AllExperience == 5000000001UL && !model.HasData
+                    && model.HasRecordStats && model.RecordStats.Count == 2 && frames.Count == 0;
 
                 const string chineseName = "圣灵中文服";
                 byte[] firstBytes = new CliVerify.Pkt()
@@ -137,6 +174,7 @@ namespace Shenxiao.EditorTools
                     && model.Servers[1].ServerName == "Second" && model.Servers[1].Level == 0
                     && model.HasExperience && model.AllExperience == 5000000001UL
                     && model.HasScore && model.Point == 0 && model.Rewards.Count == 3
+                    && model.HasRecordStats && model.RecordStats.Count == 2
                     && frames.Count == 0;
 
                 var maxExperienceReader = new NetReader(new CliVerify.Pkt().L(unchecked((long)ulong.MaxValue)).Bytes(), 0, 8);
@@ -161,24 +199,42 @@ namespace Shenxiao.EditorTools
                 on21805.Invoke(controller, new object[] { replacementScoreReader });
                 pass &= replacementScoreReader.Remaining == 0 && model.HasScore && model.Point == uint.MaxValue
                     && model.Rewards.Count == 1 && model.Rewards[0].Stage == 9 && model.Rewards[0].Status == 2
-                    && model.HasData && model.Mod == 1 && model.HasExperience && model.AllExperience == ulong.MaxValue && frames.Count == 0;
+                    && model.HasData && model.Mod == 1 && model.HasExperience && model.AllExperience == ulong.MaxValue
+                    && model.HasRecordStats && model.RecordStats.Count == 2 && frames.Count == 0;
+
+                byte[] replacementStatsBytes = new CliVerify.Pkt().H(1).C(1).C(2).I(3).C(4).H(1)
+                    .L(5).C(6).I(7).I(8).S("one").I(9).H(10).H(11).Bytes();
+                var replacementStatsReader = new NetReader(replacementStatsBytes, 0, replacementStatsBytes.Length);
+                on21808.Invoke(controller, new object[] { replacementStatsReader });
+                pass &= replacementStatsReader.Remaining == 0 && model.HasRecordStats && model.RecordStats.Count == 1
+                    && model.RecordStats[0].GroupId == 1 && model.RecordStats[0].Roles.Count == 1
+                    && model.HasData && model.Servers.Count == 1 && model.HasExperience && model.AllExperience == ulong.MaxValue
+                    && model.HasScore && model.Rewards.Count == 1 && frames.Count == 0;
 
                 var emptyScoreReader = new NetReader(new CliVerify.Pkt().I(0).H(0).Bytes(), 0, 6);
                 on21805.Invoke(controller, new object[] { emptyScoreReader });
                 pass &= emptyScoreReader.Remaining == 0 && model.HasScore && model.Point == 0 && model.Rewards.Count == 0
-                    && model.HasData && model.Mod == 1 && model.HasExperience && model.AllExperience == ulong.MaxValue && frames.Count == 0;
+                    && model.HasData && model.Mod == 1 && model.HasExperience && model.AllExperience == ulong.MaxValue
+                    && model.HasRecordStats && model.RecordStats.Count == 1 && frames.Count == 0;
 
                 byte[] thirdBytes = new CliVerify.Pkt().C(0).C(0).I(0).H(0).Bytes();
                 var thirdReader = new NetReader(thirdBytes, 0, thirdBytes.Length);
                 on21801.Invoke(controller, new object[] { thirdReader });
                 pass &= thirdReader.Remaining == 0
                     && model.HasData && model.Mod == 0 && model.Status == 0 && model.EndTime == 0 && model.Servers.Count == 0
-                    && model.HasExperience && model.AllExperience == ulong.MaxValue && model.HasScore && model.Rewards.Count == 0;
+                    && model.HasExperience && model.AllExperience == ulong.MaxValue && model.HasScore && model.Rewards.Count == 0
+                    && model.HasRecordStats && model.RecordStats.Count == 1;
+
+                var emptyStatsReader = new NetReader(new CliVerify.Pkt().H(0).Bytes(), 0, 2);
+                on21808.Invoke(controller, new object[] { emptyStatsReader });
+                pass &= emptyStatsReader.Remaining == 0 && model.HasRecordStats && model.RecordStats.Count == 0
+                    && model.HasData && model.HasExperience && model.HasScore && frames.Count == 0;
 
                 controller.Dispose();
-                pass &= !controller.IsInitialized && !handlers.Contains(21801) && !handlers.Contains(21804) && !handlers.Contains(21805)
+                pass &= !controller.IsInitialized && !handlers.Contains(21801) && !handlers.Contains(21804) && !handlers.Contains(21805) && !handlers.Contains(21808)
                     && !model.HasData && model.Mod == 0 && model.Status == 0 && model.EndTime == 0 && model.Servers.Count == 0
-                    && !model.HasExperience && model.AllExperience == 0 && !model.HasScore && model.Point == 0 && model.Rewards.Count == 0;
+                    && !model.HasExperience && model.AllExperience == 0 && !model.HasScore && model.Point == 0 && model.Rewards.Count == 0
+                    && !model.HasRecordStats && model.RecordStats.Count == 0;
 
                 Debug.Log("CLIVERIFY holybattle VERDICT pass=" + pass);
                 return pass ? 0 : 3;
@@ -204,6 +260,11 @@ namespace Shenxiao.EditorTools
                 if (oldHasScore)
                 {
                     model.ReplaceScore(oldPoint, oldRewards);
+                }
+
+                if (oldHasRecordStats)
+                {
+                    model.ReplaceRecordStats(oldRecordStats);
                 }
 
                 if (wasInitialized)
@@ -246,6 +307,14 @@ namespace Shenxiao.EditorTools
                 && frame[2] == 0x03 && frame[3] == 0xE8
                 && frame[4] == (byte)(Proto.HOLY_BATTLE_SCORE >> 8)
                 && frame[5] == (byte)(Proto.HOLY_BATTLE_SCORE & 0xFF);
+        }
+
+        private static bool IsExactRecordStatsRequest(byte[] frame)
+        {
+            return frame != null && frame.Length == 6
+                && frame[0] == 0 && frame[1] == 6 && frame[2] == 0x03 && frame[3] == 0xE8
+                && frame[4] == (byte)(Proto.HOLY_BATTLE_RECORD_STATS >> 8)
+                && frame[5] == (byte)(Proto.HOLY_BATTLE_RECORD_STATS & 0xFF);
         }
     }
 }

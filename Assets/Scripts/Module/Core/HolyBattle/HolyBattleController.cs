@@ -23,6 +23,7 @@ namespace Shenxiao.Module.Core.HolyBattle
             RegisterProtocal(Proto.HOLY_BATTLE_INFO, On21801);
             RegisterProtocal(Proto.HOLY_BATTLE_EXPERIENCE, On21804);
             RegisterProtocal(Proto.HOLY_BATTLE_SCORE, On21805);
+            RegisterProtocal(Proto.HOLY_BATTLE_RECORD_STATS, On21808);
         }
 
         public void RequestInfo()
@@ -97,6 +98,42 @@ namespace Shenxiao.Module.Core.HolyBattle
             }
 
             HolyBattleModel.Instance.ReplaceScore(point, rewards);
+        }
+
+        public void RequestRecordStats()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.HOLY_BATTLE_RECORD_STATS, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.HOLY_BATTLE_RECORD_STATS);
+        }
+
+        private void On21808(NetReader reader)
+        {
+            int groupCount = reader.ReadU16();
+            var groups = new List<HolyBattleModel.RecordGroupEntry>(groupCount);
+            for (int i = 0; i < groupCount; i++)
+            {
+                byte groupId = reader.ReadU8(); byte towerNum = reader.ReadU8(); uint point = reader.ReadU32(); byte rank = reader.ReadU8();
+                int roleCount = reader.ReadU16(); var roles = new List<HolyBattleModel.RecordRoleEntry>(roleCount);
+                for (int j = 0; j < roleCount; j++)
+                    roles.Add(new HolyBattleModel.RecordRoleEntry(unchecked((ulong)reader.ReadU64()), reader.ReadU8(), reader.ReadU32(), reader.ReadU32(), reader.ReadString(), reader.ReadU32(), reader.ReadU16(), reader.ReadU16()));
+                for (int roleIndex = 1; roleIndex < roles.Count; roleIndex++)
+                {
+                    HolyBattleModel.RecordRoleEntry current = roles[roleIndex];
+                    int insertIndex = roleIndex;
+                    while (insertIndex > 0 && roles[insertIndex - 1].Point < current.Point)
+                    {
+                        roles[insertIndex] = roles[insertIndex - 1];
+                        insertIndex--;
+                    }
+
+                    roles[insertIndex] = current;
+                }
+                groups.Add(new HolyBattleModel.RecordGroupEntry(groupId, towerNum, point, rank, roles));
+            }
+            HolyBattleModel.Instance.ReplaceRecordStats(groups);
         }
 
         public override void Dispose()
