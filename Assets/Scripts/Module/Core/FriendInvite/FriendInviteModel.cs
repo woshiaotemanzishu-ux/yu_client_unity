@@ -4,8 +4,8 @@ using System.Collections.Generic;
 namespace Shenxiao.Module.Core.FriendInvite
 {
     /// <summary>
-    /// 好友邀请(分享)数据(对标老客户端 FriendInviteModel)。承载 34001 邀请基础信息与
-    /// 34006 升级邀请角色全量快照,并提供主界面图标(340)显隐判定。
+    /// 好友邀请(分享)数据(对标老客户端 FriendInviteModel)。承载 34001 邀请基础信息、
+    /// 34005 帮助信息与 34006 升级邀请角色全量快照,并提供主界面图标(340)显隐判定。
     ///
     /// 图标开关铁律(对标老端 CheckIconOpenState = !is_alpha && ShareOpenState()):
     /// 好友邀请是「分享/邀请」社交入口,是否开启由**客户端构建/渠道配置**决定,而非服务端协议
@@ -49,8 +49,13 @@ namespace Shenxiao.Module.Core.FriendInvite
             public byte Career;
             public byte Status;
         }
+        public sealed class RewardState { public byte RewardId; public byte Status; }
         public bool HasLevelInfo { get; private set; }
         public readonly List<LevelInviteEntry> LevelInviteEntries = new List<LevelInviteEntry>();
+        public bool HasHelpInfo { get; private set; }
+        public ushort HelpCount { get; private set; }
+        public readonly List<RewardState> HelpRewards = new List<RewardState>();
+        public readonly List<LevelInviteEntry> HelpInviteEntries = new List<LevelInviteEntry>();
 
         public void SetInfo(int getStatus, int recoverTime, int dailyCount, int totalCount)
         {
@@ -65,6 +70,13 @@ namespace Shenxiao.Module.Core.FriendInvite
             LevelInviteEntries.Clear();
             if (entries != null) LevelInviteEntries.AddRange(entries);
             HasLevelInfo = true;
+        }
+        public void ReplaceHelpInfo(ushort count, List<RewardState> rewards, List<LevelInviteEntry> entries)
+        {
+            HelpCount = count; HelpRewards.Clear(); HelpInviteEntries.Clear();
+            if (rewards != null) HelpRewards.AddRange(rewards);
+            if (entries != null) HelpInviteEntries.AddRange(entries);
+            HasHelpInfo = true;
         }
 
         /// <summary>
@@ -85,6 +97,7 @@ namespace Shenxiao.Module.Core.FriendInvite
             TotalCount = 0;
             LevelInviteEntries.Clear();
             HasLevelInfo = false;
+            HelpCount = 0; HelpRewards.Clear(); HelpInviteEntries.Clear(); HasHelpInfo = false;
         }
     }
 }
