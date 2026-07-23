@@ -64,6 +64,13 @@ namespace Shenxiao.Module.Core.HolyBattle
             }
         }
 
+        public sealed class BuffEntry
+        {
+            public ushort AttrId { get; }
+            public uint Value { get; }
+            public BuffEntry(ushort attrId, uint value) { AttrId = attrId; Value = value; }
+        }
+
         public static readonly HolyBattleModel Instance = new HolyBattleModel();
 
         private readonly List<ServerEntry> _servers = new List<ServerEntry>();
@@ -72,12 +79,15 @@ namespace Shenxiao.Module.Core.HolyBattle
         private readonly IReadOnlyList<RewardEntry> _readOnlyRewards;
         private readonly List<RecordGroupEntry> _recordStats = new List<RecordGroupEntry>();
         private readonly IReadOnlyList<RecordGroupEntry> _readOnlyRecordStats;
+        private readonly List<BuffEntry> _buffs = new List<BuffEntry>();
+        private readonly IReadOnlyList<BuffEntry> _readOnlyBuffs;
 
         private HolyBattleModel()
         {
             _readOnlyServers = _servers.AsReadOnly();
             _readOnlyRewards = _rewards.AsReadOnly();
             _readOnlyRecordStats = _recordStats.AsReadOnly();
+            _readOnlyBuffs = _buffs.AsReadOnly();
         }
 
         public byte Mod { get; private set; }
@@ -95,6 +105,13 @@ namespace Shenxiao.Module.Core.HolyBattle
         public bool HasPhaseTime { get; private set; }
         public byte PhaseStatus { get; private set; }
         public uint PhaseEndTime { get; private set; }
+        public bool HasFightState { get; private set; }
+        public ushort FightPoint { get; private set; }
+        public ushort SingleRank { get; private set; }
+        public byte GroupRank { get; private set; }
+        public byte Anger { get; private set; }
+        public uint AngerEnd { get; private set; }
+        public IReadOnlyList<BuffEntry> Buffs => _readOnlyBuffs;
 
         public void Replace(byte mod, byte status, uint endTime, List<ServerEntry> servers)
         {
@@ -143,6 +160,12 @@ namespace Shenxiao.Module.Core.HolyBattle
             HasPhaseTime = true;
         }
 
+        public void ReplaceFightState(ushort point, ushort singleRank, byte groupRank, byte anger, uint angerEnd, List<BuffEntry> buffs)
+        {
+            FightPoint = point; SingleRank = singleRank; GroupRank = groupRank; Anger = anger; AngerEnd = angerEnd;
+            _buffs.Clear(); if (buffs != null) _buffs.AddRange(buffs); HasFightState = true;
+        }
+
         public void Reset()
         {
             Mod = 0;
@@ -160,6 +183,7 @@ namespace Shenxiao.Module.Core.HolyBattle
             HasPhaseTime = false;
             PhaseStatus = 0;
             PhaseEndTime = 0;
+            HasFightState = false; FightPoint = 0; SingleRank = 0; GroupRank = 0; Anger = 0; AngerEnd = 0; _buffs.Clear();
         }
     }
 }

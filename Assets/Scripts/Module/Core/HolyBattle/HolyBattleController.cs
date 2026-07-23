@@ -25,6 +25,7 @@ namespace Shenxiao.Module.Core.HolyBattle
             RegisterProtocal(Proto.HOLY_BATTLE_SCORE, On21805);
             RegisterProtocal(Proto.HOLY_BATTLE_RECORD_STATS, On21808);
             RegisterProtocal(Proto.HOLY_BATTLE_PHASE_TIME, On21811);
+            RegisterProtocal(Proto.HOLY_BATTLE_FIGHT_STATE, On21807);
         }
 
         public void RequestInfo()
@@ -149,6 +150,14 @@ namespace Shenxiao.Module.Core.HolyBattle
         private void On21811(NetReader reader)
         {
             HolyBattleModel.Instance.ReplacePhaseTime(reader.ReadU8(), reader.ReadU32());
+        }
+
+        private void On21807(NetReader reader)
+        {
+            ushort point = reader.ReadU16(); ushort singleRank = reader.ReadU16(); byte groupRank = reader.ReadU8(); byte anger = reader.ReadU8(); uint angerEnd = reader.ReadU32();
+            int count = reader.ReadU16(); var buffs = new List<HolyBattleModel.BuffEntry>(count);
+            for (int i = 0; i < count; i++) buffs.Add(new HolyBattleModel.BuffEntry(reader.ReadU16(), reader.ReadU32()));
+            HolyBattleModel.Instance.ReplaceFightState(point, singleRank, groupRank, anger, angerEnd, buffs);
         }
 
         public override void Dispose()
