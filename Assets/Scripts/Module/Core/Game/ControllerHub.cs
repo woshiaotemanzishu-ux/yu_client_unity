@@ -56,6 +56,7 @@ using Shenxiao.Module.Core.Boss;
 using Shenxiao.Module.Core.Marriage;
 using Shenxiao.Module.Core.GuildActivity;
 using Shenxiao.Module.Core.ActivityForeshow;
+using Shenxiao.Module.Core.SnatchTreasure;
 using Shenxiao.Module.Core.Banquet;
 using Shenxiao.Module.Core.Kaifu;
 using Shenxiao.Module.Core.AddVipService;
@@ -149,6 +150,7 @@ namespace Shenxiao.Module.Core.Game
             MarriageController.Instance,
             GuildActivityController.Instance, // 公会晚宴(pt_402),自动循环 轮22 PK1
             ActivityForeshowController.Instance,
+            SnatchTreasureController.Instance,
             BanquetController.Instance,
             KaifuController.Instance,
             AddVipServiceController.Instance,
