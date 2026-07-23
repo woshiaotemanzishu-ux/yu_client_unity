@@ -1978,6 +1978,10 @@
         /// <summary>排位赛挑战次数完整快照(请求无参;回包 errcode:i32(32-bit wire 由 ReadU32 后 unchecked 转 int),
         /// left_num:u16, num_refresh:u32, can_buy_num:u16)。num_refresh 为服务器绝对时间原值，独立于 28001 的页面字段。</summary>
         public const int JJC_TIMES_INFO = 28004;
+        /// <summary>被挑战记录完整快照(C2S 空包;S2C errcode:u32(落库时 unchecked 转 int),
+        /// record_list:u16×{role_id:u64,picture:s,picture_ver:u32,name:s,career:u8,sex:u8,turn:u8,vip_lv:u8,
+        /// lv:u16,combat_power:u64,result:u8,state:u8,rank_range:u32,time:u32})。</summary>
+        public const int JJC_CHALLENGE_RECORDS = 28009;
 
         // ----- 组队(24xxx,yu_server pt_240.erl / pp_team.erl;老端 commonController/TeamController.ts,
         // 自动循环 轮8) -----

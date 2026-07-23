@@ -4,7 +4,7 @@ using Shenxiao.Common.Proto;
 namespace Shenxiao.Module.Core.Jjc
 {
     /// <summary>
-    /// 排位赛(竞技场 JJC,yu_server pt_280 段内 28001/28002/28003/28004;老端 ArenaController.ts/ArenaModel.ts)数据层。
+    /// 排位赛(竞技场 JJC,yu_server pt_280 段内 28001/28002/28003/28004/28009;老端 ArenaController.ts/ArenaModel.ts)数据层。
     /// ⚠服务端计数断链(mod_jjc_cast.erl:87 唯一 increment 被注释)——挑战流程(28003)可正常发起并拿到结果,
     /// 但 mod_daily ?JJC_USE_NUM 永不增长,主线 101465(ctype35「挑战对手」)判定无法自然完成,待服务端修复
     /// (与大妖 63 guard 并列服务端工单)。客户端侧本类/控制器/壳先备好,服务端修复后即可用。
@@ -55,6 +55,21 @@ namespace Shenxiao.Module.Core.Jjc
         public uint TimesRefreshAt { get; private set; }
         public ushort CanBuyNum { get; private set; }
 
+        public sealed class RecordVo
+        {
+            public long RoleId;
+            public string Picture;
+            public uint PictureVer;
+            public string Name;
+            public byte Career, Sex, Turn, VipLv, Result, State;
+            public ushort Lv;
+            public long CombatPower;
+            public uint RankRange, Time;
+        }
+        public int RecordsErrCode { get; private set; }
+        public bool HasChallengeRecords { get; private set; }
+        public readonly List<RecordVo> ChallengeRecords = new List<RecordVo>();
+
         /// <summary>28001 全量套值(对标老端 On28001 → arena_model.SetPageInfo)。</summary>
         public void Apply28001(int rank, int historyRank, int rewardRank, long combat, int hp, int num,
             int numRefresh, int honour, bool isReward, int petId, List<int> breakIdList)
@@ -102,6 +117,15 @@ namespace Shenxiao.Module.Core.Jjc
             HasTimesInfo = true;
         }
 
+        /// <summary>28009 无条件整体替换；空列表也标记 loaded，不在数据层排序或截断。</summary>
+        public void Apply28009(int errCode, List<RecordVo> records)
+        {
+            RecordsErrCode = errCode;
+            ChallengeRecords.Clear();
+            if (records != null) ChallengeRecords.AddRange(records);
+            HasChallengeRecords = true;
+        }
+
         public void Clear()
         {
             Rank = HistoryRank = RewardRank = Hp = Num = NumRefresh = Honour = PetId = 0;
@@ -119,6 +143,9 @@ namespace Shenxiao.Module.Core.Jjc
             LeftNum = 0;
             TimesRefreshAt = 0;
             CanBuyNum = 0;
+            RecordsErrCode = 0;
+            ChallengeRecords.Clear();
+            HasChallengeRecords = false;
         }
     }
 }

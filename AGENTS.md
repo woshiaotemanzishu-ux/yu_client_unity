@@ -1,5 +1,7 @@
 # AGENTS.md
 
+- R166 JJC 28009 is an explicit empty-query full snapshot, not the 28016 live push: `errcode` is a u32 wire bit-pattern stored through unchecked int cast; retain all 14 record fields, duplicate ids and wire order; only UI may sort by time. Empty and err=-1 replies still replace/load the record slice.
+
 - R165 JJC 28004: wire is a standalone full snapshot `errcode:i32(32-bit wire; ReadU32 then unchecked cast int),left_num:u16,num_refresh:u32,can_buy_num:u16`; retain the absolute refresh timestamp as `uint`, and never overwrite 28001's `Num/NumRefresh`. GAME_START clears every JJC slice then sends exact empty `28004 -> 28001`; 28003 result sends exact `28004 -> 28002`.
 
 ## KfSingleRank 50701/50702/50703 (R142/R144/R145)

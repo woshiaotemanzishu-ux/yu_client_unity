@@ -8,7 +8,7 @@ using Shenxiao.Framework.Util;
 namespace Shenxiao.Module.Core.Jjc
 {
     /// <summary>
-    /// 排位赛(竞技场 JJC)协议控制器(对标老端 ArenaController.ts;服务端 pt_280 段内 28001/28002/28003/28004)。
+    /// 排位赛(竞技场 JJC)协议控制器(对标老端 ArenaController.ts;服务端 pt_280 段内 28001/28002/28003/28004/28009)。
     /// 解主线 101465(ctype35「挑战对手」)。⚠服务端计数断链见 <see cref="JjcModel"/> 类注释——挑战本身能正常
     /// 发起并拿结果,但任务判定读的次数不会自然增长,需服务端修复 mod_jjc_cast.erl:87 后才能真正推进任务。
     /// </summary>
@@ -28,6 +28,7 @@ namespace Shenxiao.Module.Core.Jjc
             RegisterProtocal(Proto.JJC_RIVALS, On28002);
             RegisterProtocal(Proto.JJC_CHALLENGE, On28003);
             RegisterProtocal(Proto.JJC_TIMES_INFO, On28004);
+            RegisterProtocal(Proto.JJC_CHALLENGE_RECORDS, On28009);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
@@ -64,6 +65,12 @@ namespace Shenxiao.Module.Core.Jjc
         {
             SendEmpty(Proto.JJC_TIMES_INFO);
             GameLog.Info("Jjc", "request 28004 jjc times info");
+        }
+        /// <summary>请求 28009 被挑战记录完整快照(严格空包)。</summary>
+        public void RequestChallengeRecords()
+        {
+            SendEmpty(Proto.JJC_CHALLENGE_RECORDS);
+            GameLog.Info("Jjc", "request 28009 jjc challenge records");
         }
 
         private void SendEmpty(int protoId)
@@ -151,6 +158,26 @@ namespace Shenxiao.Module.Core.Jjc
             JjcModel.Instance.Apply28004(errCode, leftNum, timesRefreshAt, canBuyNum);
             GameLog.Info("Jjc", "28004 err={0} left={1} refreshAt={2} canBuy={3} remaining={4}B", errCode, leftNum, timesRefreshAt, canBuyNum, r.Remaining);
             EventDispatcher.Emit(GlobalEvent.EVT_JJC_UPDATE);
+        }
+
+        /// <summary>28009 完整快照: errcode:u32, record_list:u16×14 fields。列表按 wire 原序整体替换。</summary>
+        private void On28009(NetReader r)
+        {
+            int errCode = unchecked((int)r.ReadU32());
+            List<JjcModel.RecordVo> records = r.ReadArray(ReadRecord28009);
+            JjcModel.Instance.Apply28009(errCode, records);
+            GameLog.Info("Jjc", "28009 err={0} records={1} remaining={2}B", errCode, records.Count, r.Remaining);
+            EventDispatcher.Emit(GlobalEvent.EVT_JJC_UPDATE);
+        }
+
+        private static JjcModel.RecordVo ReadRecord28009(NetReader r)
+        {
+            return new JjcModel.RecordVo
+            {
+                RoleId = r.ReadU64(), Picture = r.ReadString(), PictureVer = r.ReadU32(), Name = r.ReadString(),
+                Career = r.ReadU8(), Sex = r.ReadU8(), Turn = r.ReadU8(), VipLv = r.ReadU8(), Lv = r.ReadU16(),
+                CombatPower = r.ReadU64(), Result = r.ReadU8(), State = r.ReadU8(), RankRange = r.ReadU32(), Time = r.ReadU32(),
+            };
         }
 
         private static JjcModel.RivalVo ReadRival28002(NetReader r)

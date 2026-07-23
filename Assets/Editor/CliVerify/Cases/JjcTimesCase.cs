@@ -31,11 +31,13 @@ namespace Shenxiao.EditorTools
             var savedBreaks = new List<int>(model.BreakIdList);
             var savedRivals = new List<JjcModel.RivalVo>(model.Rivals);
             var savedResults = new List<JjcModel.RivalVo>(model.LastChallengeRoleList);
+            var savedRecords = new List<JjcModel.RecordVo>(model.ChallengeRecords);
             bool savedInfo = model.HasInfo, savedRivalsFlag = model.HasRivals, savedResult = model.HasChallengeResult, savedTimes = model.HasTimesInfo;
             int rank = model.Rank, history = model.HistoryRank, reward = model.RewardRank, hp = model.Hp, num = model.Num, refresh = model.NumRefresh, honour = model.Honour, pet = model.PetId;
             long combat = model.Combat;
             bool isReward = model.IsReward, win = model.LastChallengeWin;
             int timesErr = model.TimesErrCode; ushort left = model.LeftNum, canBuy = model.CanBuyNum; uint timesAt = model.TimesRefreshAt;
+            int recordsErr = model.RecordsErrCode; bool savedRecordsFlag = model.HasChallengeRecords;
             try { return RunIsolated(ctrl, model); }
             finally
             {
@@ -45,6 +47,7 @@ namespace Shenxiao.EditorTools
                 if (savedRivalsFlag) model.Apply28002(savedRivals);
                 if (savedResult) model.Apply28003(win ? 1 : 0, savedResults);
                 if (savedTimes) model.Apply28004(timesErr, left, timesAt, canBuy);
+                if (savedRecordsFlag) model.Apply28009(recordsErr, savedRecords);
                 if (wasInitialized) ctrl.Init();
             }
         }
@@ -61,8 +64,8 @@ namespace Shenxiao.EditorTools
             void Check(string tag, bool ok) { Debug.Log("CLIVERIFY jjctimes " + tag + " ok=" + ok); if (!ok) pass = false; }
             bool registrationsExact = pass;
             for (int proto = 28000; proto <= 28018; proto++)
-                registrationsExact &= handlers.Contains(proto) == (proto >= 28001 && proto <= 28004);
-            Check("only registers 28001-28004", registrationsExact);
+                registrationsExact &= handlers.Contains(proto) == (proto >= 28001 && (proto <= 28004 || proto == 28009));
+            Check("only registers 28001-28004/28009", registrationsExact);
             if (!pass) return 3;
 
             object oldIntercept = intercept.GetValue(null);
@@ -78,8 +81,9 @@ namespace Shenxiao.EditorTools
                 model.Apply28002(new List<JjcModel.RivalVo> { new JjcModel.RivalVo { Rank = 1 } });
                 model.Apply28003(1, new List<JjcModel.RivalVo> { new JjcModel.RivalVo { Rank = 2 } });
                 model.Apply28004(-1, ushort.MaxValue, uint.MaxValue, ushort.MaxValue);
+                model.Apply28009(1, new List<JjcModel.RecordVo> { new JjcModel.RecordVo { RoleId = 1 } });
                 frames.Clear(); EventDispatcher.Emit(GlobalEvent.EVT_GAME_START);
-                Check("game start clears all then 28004-28001", !model.HasInfo && !model.HasRivals && !model.HasChallengeResult && !model.HasTimesInfo && Frames(frames, 28004, 28001));
+                Check("game start clears all then 28004-28001", !model.HasInfo && !model.HasRivals && !model.HasChallengeResult && !model.HasTimesInfo && !model.HasChallengeRecords && Frames(frames, 28004, 28001));
 
                 Feed(on04, ctrl, new CliVerify.Pkt().I(0).H(0).I(0).H(0).Bytes(), out NetReader zero);
                 Check("28004 zero/read-end", zero.Remaining == 0 && model.HasTimesInfo && model.TimesErrCode == 0 && model.LeftNum == 0 && model.TimesRefreshAt == 0 && model.CanBuyNum == 0);
@@ -101,7 +105,8 @@ namespace Shenxiao.EditorTools
                 ctrl.Dispose(); frames.Clear(); EventDispatcher.Emit(GlobalEvent.EVT_GAME_START);
                 bool removed = true;
                 for (int proto = 28001; proto <= 28004; proto++) removed &= !handlers.Contains(proto);
-                Check("dispose unregisters handlers/event and clears", frames.Count == 0 && removed && !model.HasInfo && !model.HasRivals && !model.HasChallengeResult && !model.HasTimesInfo);
+                removed &= !handlers.Contains(28009);
+                Check("dispose unregisters handlers/event and clears", frames.Count == 0 && removed && !model.HasInfo && !model.HasRivals && !model.HasChallengeResult && !model.HasTimesInfo && !model.HasChallengeRecords);
             }
             finally { intercept.SetValue(null, oldIntercept); }
             Debug.Log("CLIVERIFY jjctimes VERDICT pass=" + pass);
