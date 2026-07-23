@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
@@ -19,6 +20,9 @@ namespace Shenxiao.Module.Core.Adventure
     public sealed class AdventureController : BaseController
     {
         public static readonly AdventureController Instance = new AdventureController();
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_boardStateOutboundIntercept;
+#endif
         private AdventureController() { }
 
         // 复请求 42700 的等级去抖:EVT_ROLE_INFO_UPDATE 亦随经验/货币变化触发,只在等级真变时重发。
@@ -27,6 +31,7 @@ namespace Shenxiao.Module.Core.Adventure
         protected override void Register()
         {
             RegisterProtocal(Proto.ADVENTURE_INFO, On42700);
+            RegisterProtocal(Proto.ADVENTURE_BOARD_STATE, On42701);
             // 对标老端 CHANGE_LEVEL→复算开启态:等级变化时复请求 42700(神装功能等级门槛)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             // 对标老端 AdventureController.ts:52:DAY_CHANGE→ref_func 发 42700,并在 model.shop_data 已加载时
@@ -64,6 +69,20 @@ namespace Shenxiao.Module.Core.Adventure
 
             GameLog.Info("Adventure", "42700 天天冒险: stage={0} start={1} end={2}",
                 stage, startTime, endTime);
+        }
+
+        public void RequestBoardState()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.ADVENTURE_BOARD_STATE, null, null);
+            if (s_boardStateOutboundIntercept != null && s_boardStateOutboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.ADVENTURE_BOARD_STATE);
+        }
+
+        private void On42701(NetReader reader)
+        {
+            AdventureModel.Instance.ReplaceBoardState(reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16());
         }
 
         // 对标老端 SetTimeInfo:先删两个图标,开启时只加当天那一个(默认 42701)。

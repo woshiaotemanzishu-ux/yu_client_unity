@@ -28,6 +28,18 @@ namespace Shenxiao.Module.Core.Adventure
         public int Stage;        // 活动阶段(>0 才算开启)
         public long StartTime;   // 活动开始时间戳(秒)
         public long EndTime;     // 活动结束时间戳(秒)
+        public bool HasBoardState { get; private set; }
+        public ushort Circle { get; private set; }
+        public ushort Location { get; private set; }
+        public ushort LeftTimes { get; private set; }
+        public ushort ThrowTimes { get; private set; }
+        public ushort FreeResetTimes { get; private set; }
+        public ushort FreeThrowTimes { get; private set; }
+
+        public void ReplaceBoardState(ushort circle, ushort location, ushort leftTimes, ushort throwTimes, ushort freeResetTimes, ushort freeThrowTimes)
+        {
+            Circle = circle; Location = location; LeftTimes = leftTimes; ThrowTimes = throwTimes; FreeResetTimes = freeResetTimes; FreeThrowTimes = freeThrowTimes; HasBoardState = true;
+        }
 
         public void SetTimeInfo(int stage, long startTime, long endTime)
         {
@@ -64,6 +76,7 @@ namespace Shenxiao.Module.Core.Adventure
             Stage = 0;
             StartTime = 0;
             EndTime = 0;
+            HasBoardState = false; Circle = 0; Location = 0; LeftTimes = 0; ThrowTimes = 0; FreeResetTimes = 0; FreeThrowTimes = 0;
         }
     }
 }

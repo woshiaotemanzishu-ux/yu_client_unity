@@ -1022,6 +1022,8 @@
         public const int PUSHGIFT_LIST = 19101;            // 礼包推送列表
         public const int PUSHGIFT_OFFLINE = 19104;         // 礼包推送-离线过期领取
         public const int ADVENTURE_INFO = 42700;           // 天天冒险活动时间窗
+        /// <summary>天天冒险主状态。C2S 空包；S2C: circle:u16,location:u16,left_times:u16,throw_times:u16,free_reset_times:u16,free_throw_times:u16。</summary>
+        public const int ADVENTURE_BOARD_STATE = 42701;
         // 属性药剂(pt_217): 21702 成功不回本号，服务端随后推 21701；21700 是唯一错误出口。
         public const int ATTRIBUTE_POTION_ERROR = 21700;
         public const int ATTRIBUTE_POTION_LEVEL_COUNT = 21701;
