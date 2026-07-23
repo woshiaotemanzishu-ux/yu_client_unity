@@ -21,6 +21,14 @@
    没它特效把 alpha 写进展示台 RT,预乘合成被污染=发白/压黑)曾靠"两边工程都改过"维持——美术调贴图时
    shader 被换回原版,导入忠实 Replace,主工程补丁被覆盖,特效全线异常。现在 `EnsurePandaAlphaChannels`
    在拷贝时无条件补,回滚传染不进游戏。
+6. **整模经验不能无差别套到组装部件**:`applyRootMotion=true` 只属于角色主体 Animator。头饰、武器、
+   翅膀等独立 prefab 必须保留美术设置。1005 翅膀三个 Animator 在源 prefab 都明确为 false；公共上台
+   逻辑曾把它们全部改成 true。运行时应以最近的 `ArtModelRenderProfile` 划分主体与部件，只有根档案所属
+   Animator 才启用 Root Motion；这是保持源 prefab 运动设置的正确性修复，不应再把它当作渲染异常根因。
+7. **不能只凭 HDR 数值推断要换 RT/后处理**:1005 材质 `_MainColor` 很高，但已验收的创角 `create2`
+   材质峰值更高，仍使用 ARGB32 + 原版 `StageComposite` 正常显示。二者真正的运行时差异是场景角色台没有
+   读取 `ArtModelRenderProfile`，未复用创角的独立 Renderer、Depth/Opaque Texture 与预乘合成链路。
+   排查同源特效时应先对齐完整渲染路径，不能另加 ARGBHalf/ACES；后者会改变全套模型的既有观感。
 
 ## 排查心法(按这个顺序,别跳)
 
@@ -44,6 +52,8 @@
 | 白模 | 内嵌材质贴图按名引用没搬进来 / FBX 导入时贴图未就位(重导全部 FBX) |
 | 整体偏黑 | Lit 材质+登录场景无灯(整模上台切 Flat 白环境光,已内建) |
 | 特效洗白/压黑 | shader 丢 _ScrA/_DstA 补丁(导入自愈已内建)或材质 alpha 参数没跑 NormalizePandaAlpha |
+| 部件运动/轨迹与美术 prefab 不一致 | 公共上台逻辑误改部件 Animator；只允许角色主体开启 Root Motion，部件保留原值 |
+| 翅膀白/黄硬块、纹理和色相丢失 | 场景台未复用创角整模档案；按 `ArtModelRenderProfile` 切独立 Renderer、Depth/Opaque Texture，并使用原版 StageComposite 预乘贴回 UI |
 | 镜像/换手 | uvRect 翻转错用在原生模型上(按档案分流,已内建) |
 | 原地做动作 | applyRootMotion 没开 / 位移沿 Z 被正交吃掉(均已内建) |
 | 巨大/悬空/怼镜头 | 落点采样错:静态盒≠动画停放、猜错 clip、单位错配 2.54×(逐 prefab 末帧采样,已内建) |

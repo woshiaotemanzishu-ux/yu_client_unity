@@ -18,7 +18,7 @@ namespace Shenxiao.Editor.UiCreator.Equip
     ///   EquipJewelView 子树进 JewelModule 顶层(EquipFlow.ReparentFrom 按顶层名查找,必须顶层),并把
     ///   EquipJewelItem 模板一并克隆到 EquipJewelView/__Templates 下(消费者与模板同 prefab,后续铺格直接用);
     ///   **CommonModule.prefab 只读不改**。
-    /// 【阶段B·升级回填,每次】复用 <see cref="LayaBindFiller.FillPrefab"/>(菜单「神霄/LayaUI/高级/回填 Bind 组件」
+    /// 【阶段B·升级回填,每次】复用 <see cref="LayaBindFiller.FillPrefab"/>(「LayaUI 转换器 > 高级 > 全量回填 Bind」
     ///   的单 prefab 版,EquipModule.prefab 的 EquipStrenView 等此前轮次正是经它升级的):对 prefab 内每个窗口/
     ///   模板做 基类Bind→唯一业务子类 升级(Destroy+Add)+ 按 manifest 节点名重新回填序列化引用。幂等:已是
     ///   子类则跳过升级、引用未漂移则不改。EquipJewelCraveAttItem 无业务子类(4b 判定其属性对比列表依赖未移植

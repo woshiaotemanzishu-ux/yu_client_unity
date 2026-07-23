@@ -44,12 +44,6 @@ namespace Shenxiao.Editor.LayaUI
         /// 保留非 override 件(字段在其源 prefab 已回填),删多余;逐 prefab 保存并报告。
         /// 现版 FillNestedItemBinds 已有嵌套跳过 guard,本方法只清存量。
         /// </summary>
-        [MenuItem("神霄/UI/清理重复 Bind 组件(全部 prefab)")]
-        public static void RemoveDuplicateBindsMenu()
-        {
-            RemoveDuplicateBinds();
-        }
-
         /// <summary>批处理入口:Unity.exe -batchmode -executeMethod Shenxiao.Editor.LayaUI.LayaBindFiller.RemoveDuplicateBindsCli</summary>
         public static void RemoveDuplicateBindsCli()
         {
@@ -394,7 +388,7 @@ namespace Shenxiao.Editor.LayaUI
             return found;
         }
 
-        // ===================== 全量回填工具(菜单 神霄/LayaUI/高级/回填 Bind 组件)=====================
+        // ===================== 全量回填工具(LayaUI 转换器 > 高级 > 批量流水线)=====================
         //
         // 背景:第二步回填原按"模块"跑(FillModule),量产期 view-prefab 都覆盖到了;但 shared-prefab
         // /standalone 这类不随某模块流水线重转的共享件(如 common/BaseAwardItem)会漏挂 Bind 组件,
@@ -415,7 +409,6 @@ namespace Shenxiao.Editor.LayaUI
             internal bool CurrentChanged;
         }
 
-        [MenuItem("神霄/LayaUI/高级/回填 Bind 组件", priority = 100)]
         public static void MenuBackfill()
         {
             BackfillStats s = FillAll(false);
@@ -424,7 +417,6 @@ namespace Shenxiao.Editor.LayaUI
                 s.PrefabsScanned, s.ComponentsAdded, s.ComponentsUpgraded, s.RefsFilled, s.PrefabsChanged, ReportPath));
         }
 
-        [MenuItem("神霄/LayaUI/高级/回填 Bind 组件(预览不写盘)", priority = 101)]
         public static void MenuBackfillDryRun()
         {
             BackfillStats s = FillAll(true);

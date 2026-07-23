@@ -18,8 +18,16 @@ namespace Shenxiao.Editor.AssetHub
     {
         public const string FilePath = "Assets/GameRes/resource/config/client/model_replacement.json";
 
+        private static ModelReplacement.Data _pendingData;
+        private static bool _saveHooked;
+        private static int _saveAttempts;
+        private static double _nextSaveTime;
+
         private static ModelReplacement.Data Load()
         {
+            // OnGUI/导入回调连续改多个动作时，磁盘写入会延后一帧；后续修改必须继续基于
+            // 尚未落盘的数据，不能重新读旧文件把前一个动作覆盖掉。
+            if (_pendingData != null) return _pendingData;
             if (!File.Exists(FilePath)) return new ModelReplacement.Data();
             try
             {
@@ -34,10 +42,61 @@ namespace Shenxiao.Editor.AssetHub
 
         private static void Save(ModelReplacement.Data data)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(FilePath) ?? ".");
-            File.WriteAllText(FilePath, JsonUtility.ToJson(data, true));
-            AssetDatabase.ImportAsset(FilePath);
-            ModelReplacement.InvalidateCache(); // 编辑器运行时(播放模式)下一次 EnsureLoaded 重读
+            // Unity 资源刷新/OnGUI 期间直接 File.WriteAllText 会触发 Win32 IO 1224，且随后破坏
+            // GUILayout 状态。合并本帧的配置修改，等 AssetDatabase 空闲后一次写入并自动重试。
+            _pendingData = data;
+            _saveAttempts = 0;
+            _nextSaveTime = EditorApplication.timeSinceStartup;
+            if (_saveHooked) return;
+            _saveHooked = true;
+            EditorApplication.update += FlushPendingSave;
+        }
+
+        private static void FlushPendingSave()
+        {
+            if (_pendingData == null)
+            {
+                StopSaveLoop();
+                return;
+            }
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating
+                || EditorApplication.timeSinceStartup < _nextSaveTime)
+                return;
+
+            try
+            {
+                ModelReplacement.Data saving = _pendingData;
+                Directory.CreateDirectory(Path.GetDirectoryName(FilePath) ?? ".");
+                File.WriteAllText(FilePath, JsonUtility.ToJson(saving, true));
+                if (ReferenceEquals(_pendingData, saving)) _pendingData = null;
+                StopSaveLoop();
+                ModelReplacement.InvalidateCache(); // 编辑器播放模式下一次 EnsureLoaded 重读
+                AssetDatabase.ImportAsset(FilePath, ImportAssetOptions.ForceSynchronousImport);
+            }
+            catch (IOException exception)
+            {
+                _saveAttempts++;
+                if (_saveAttempts < 40)
+                {
+                    _nextSaveTime = EditorApplication.timeSinceStartup + 0.25d;
+                    return;
+                }
+                StopSaveLoop();
+                Debug.LogException(new IOException(
+                    $"模型替换清单在 {_saveAttempts} 次重试后仍无法写入:{FilePath}", exception));
+            }
+            catch (Exception exception)
+            {
+                StopSaveLoop();
+                Debug.LogException(exception);
+            }
+        }
+
+        private static void StopSaveLoop()
+        {
+            if (!_saveHooked) return;
+            EditorApplication.update -= FlushPendingSave;
+            _saveHooked = false;
         }
 
         /// <summary>该模型已配置的 动作→prefabKey 表(无配置返回空表)。</summary>
@@ -46,6 +105,7 @@ namespace Shenxiao.Editor.AssetHub
             var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             ModelReplacement.Entry e = Load().entries.Find(x => x != null && x.key == module + "/" + id);
             if (e == null) return result;
+            if (e.actions == null) return result;
             foreach (ModelReplacement.ActionOverride o in e.actions)
             {
                 if (o != null && !string.IsNullOrEmpty(o.action) && !string.IsNullOrEmpty(o.prefabKey))
@@ -80,6 +140,45 @@ namespace Shenxiao.Editor.AssetHub
             o.prefabKey = prefabKey;
             Save(data);
             Debug.Log($"[ModelReplacement] {key} {action} → {prefabKey}");
+        }
+
+        /// <summary>
+        /// 一次写入一组动作，可同时覆盖老资源别名 ID。导入结束自动填槽必须走批量入口，
+        /// 避免每个动作/别名各写一次文件，也避免 Unity 正在刷新时撞文件锁。
+        /// </summary>
+        public static void SetActions(string module, IEnumerable<string> ids,
+            IDictionary<string, string> actions)
+        {
+            if (string.IsNullOrEmpty(module) || ids == null || actions == null || actions.Count == 0) return;
+            ModelReplacement.Data data = Load();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string rawId in ids)
+            {
+                string id = (rawId ?? "").Trim();
+                if (id.Length == 0 || !seen.Add(id)) continue;
+                string key = module + "/" + id;
+                ModelReplacement.Entry entry = data.entries.Find(x => x != null && x.key == key);
+                if (entry == null)
+                {
+                    entry = new ModelReplacement.Entry { key = key };
+                    data.entries.Add(entry);
+                }
+                if (entry.actions == null) entry.actions = new List<ModelReplacement.ActionOverride>();
+                foreach (KeyValuePair<string, string> pair in actions)
+                {
+                    if (string.IsNullOrEmpty(pair.Key) || string.IsNullOrEmpty(pair.Value)) continue;
+                    ModelReplacement.ActionOverride action = entry.actions.Find(x =>
+                        x != null && string.Equals(x.action, pair.Key, StringComparison.OrdinalIgnoreCase));
+                    if (action == null)
+                    {
+                        action = new ModelReplacement.ActionOverride { action = pair.Key.ToLowerInvariant() };
+                        entry.actions.Add(action);
+                    }
+                    action.prefabKey = pair.Value;
+                    Debug.Log($"[ModelReplacement] {key} {pair.Key} → {pair.Value}");
+                }
+            }
+            Save(data);
         }
 
         /// <summary>还原一个动作(删配置=该动作回原始)。</summary>

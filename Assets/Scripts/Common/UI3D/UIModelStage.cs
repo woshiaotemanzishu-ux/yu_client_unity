@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 namespace Shenxiao.Common.UI3D
@@ -174,7 +173,11 @@ namespace Shenxiao.Common.UI3D
 
         private static Material _compositeMat;
 
-        private static Material CompositeMaterial()
+        /// <summary>
+        /// 透明 RT 的预乘合成材质。场景角色台与 UI 展示台共用同一口径，避免默认
+        /// SrcAlpha 把已经写进 RT 的加法光再次乘 alpha。
+        /// </summary>
+        internal static Material CompositeMaterial()
         {
             if (_compositeMat == null)
             {
@@ -197,8 +200,6 @@ namespace Shenxiao.Common.UI3D
         private bool ApplyRenderProfile(GameObject model)
         {
             if (_cam == null) return false;
-            UniversalAdditionalCameraData camData = _cam.GetUniversalAdditionalCameraData();
-            if (camData == null) return false;
 
             // 只看【激活中】的子树:混合模型(ReplaceableRoleModel)容器里新老实例并存,
             // 亮着的才是正在展示的那个——按它决定相机/合成,而不是"藏着新模型就当整模"
@@ -206,12 +207,7 @@ namespace Shenxiao.Common.UI3D
                 model != null ? model.GetComponentInChildren<ArtModelRenderProfile>(false) : null;
             if (profile != null)
             {
-                camData.SetRenderer(profile.useDedicatedRenderer && profile.rendererIndex >= 0
-                    ? profile.rendererIndex : -1); // -1 = RP Asset 默认 renderer
-                camData.requiresDepthOption = profile.forceDepthTexture
-                    ? CameraOverrideOption.On : CameraOverrideOption.UsePipelineSettings;
-                camData.requiresColorOption = profile.forceOpaqueTexture
-                    ? CameraOverrideOption.On : CameraOverrideOption.UsePipelineSettings;
+                ArtModelRenderProfile.ApplyToCamera(_cam, profile);
                 // 透视相机:深度方向的出场位移才看得见;距离保证 z=0(落点)平面取景高度不变
                 _cam.orthographic = false;
                 _cam.fieldOfView = ART_FOV;
@@ -220,9 +216,7 @@ namespace Shenxiao.Common.UI3D
                 return true;
             }
 
-            camData.SetRenderer(-1);
-            camData.requiresDepthOption = CameraOverrideOption.UsePipelineSettings;
-            camData.requiresColorOption = CameraOverrideOption.UsePipelineSettings;
+            ArtModelRenderProfile.ApplyToCamera(_cam, null);
             _cam.orthographic = true;
             _cam.orthographicSize = ORTHO_FULL_HEIGHT * 0.5f;
             _cam.transform.localPosition = new Vector3(0f, 0f, CAMERA_Z);

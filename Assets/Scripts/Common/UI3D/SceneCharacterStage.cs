@@ -81,6 +81,7 @@ namespace Shenxiao.Common.UI3D
 
             if (_mainRoleTilt != null)
             {
+                _mainRoleTilt.SetActive(false); // Destroy 延迟到帧末；先退台，避免旧档案干扰新模型的渲染口径
                 Object.Destroy(_mainRoleTilt); // 连同其下旧模型一起销毁
             }
             _mainRole = model;
@@ -182,15 +183,25 @@ namespace Shenxiao.Common.UI3D
         /// <summary>销毁一个场景配角(连同其下模型)。</summary>
         public static void RemoveSceneCharacter(Transform sceneCharTilt)
         {
-            if (sceneCharTilt != null) Object.Destroy(sceneCharTilt.gameObject);
+            if (sceneCharTilt == null) return;
+            sceneCharTilt.gameObject.SetActive(false);
+            Object.Destroy(sceneCharTilt.gameObject);
+            UpdateArtAmbient();
         }
 
         /// <summary>清掉主角并隐藏合成画面(切场景/断线时调)。</summary>
         public static void Clear()
         {
-            if (_mainRoleTilt != null) { Object.Destroy(_mainRoleTilt); _mainRoleTilt = null; _mainRole = null; }
+            if (_mainRoleTilt != null)
+            {
+                _mainRoleTilt.SetActive(false);
+                Object.Destroy(_mainRoleTilt);
+                _mainRoleTilt = null;
+                _mainRole = null;
+            }
             else if (_mainRole != null) { Object.Destroy(_mainRole); _mainRole = null; }
             if (_ambientHeld) { ArtAmbient.Release(); _ambientHeld = false; } // Destroy 延后生效,这里直接放光
+            ConfigureArtRender(null);
             if (_img != null)
             {
                 _img.rectTransform.offsetMin = Vector2.zero; // 清掉上一张图遗留的相机偏移,下次上台从居中开始
@@ -205,12 +216,27 @@ namespace Shenxiao.Common.UI3D
 
         private static void UpdateArtAmbient()
         {
-            bool need = _charsRoot != null
-                && _charsRoot.GetComponentInChildren<ArtModelRenderProfile>(true) != null;
+            ArtModelRenderProfile profile = _charsRoot != null
+                ? _charsRoot.GetComponentInChildren<ArtModelRenderProfile>(false)
+                : null;
+            bool need = profile != null;
+            ConfigureArtRender(profile);
             if (need == _ambientHeld) return;
             _ambientHeld = need;
             if (need) ArtAmbient.Retain();
             else ArtAmbient.Release();
+        }
+
+        /// <summary>
+        /// 与 UIModelStage/创角整模共用同一渲染档案：按档案切换 renderer，并按需强制
+        /// Depth/Opaque Texture；带档案的模型贴回 UGUI 时统一使用预乘合成材质。
+        /// </summary>
+        private static void ConfigureArtRender(ArtModelRenderProfile profile)
+        {
+            ArtModelRenderProfile.ApplyToCamera(_cam, profile);
+            EnsureRenderTexture();
+            if (_img != null)
+                _img.material = profile != null ? UIModelStage.CompositeMaterial() : null;
         }
 
         private static void EnsureStage()
@@ -294,6 +320,7 @@ namespace Shenxiao.Common.UI3D
             _img = go.GetComponent<RawImage>();
             _img.raycastTarget = false; // 不吃点击,场景输入照常落到下面的输入板
             _img.texture = _rt;
+            _img.material = _ambientHeld ? UIModelStage.CompositeMaterial() : null;
         }
 
         private static void EnsureRenderTexture()

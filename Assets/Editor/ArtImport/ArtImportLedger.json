@@ -108669,6 +108669,2161 @@
                 "落点采样 1213@walk.prefab(按 walk 末帧,骨骼锚点):landing=(1.35, 0.45, 4.39) 身高=6.14 scale=0.38",
                 "半透渐变材质 1213@walk.prefab → \"Body\"(贴图 服饰_橙色.png 渐变像素 1.2%,运行时走 Transparent)"
             ]
+        },
+        {
+            "time": "2026-07-21 18:44:37",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 6,
+            "replaced": 0,
+            "skippedSame": 0,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "b44cc18d4ab6675468adf9a12db1c250",
+                    "src": "Role/role_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/role/role_1202/1202@idle.prefab",
+                    "action": "Add",
+                    "bytes": 6392
+                },
+                {
+                    "guid": "53642e3d229dea444bc7a426802bdc7d",
+                    "src": "Role/role_1202/Materials/bobd.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/bobd.mat",
+                    "action": "Add",
+                    "bytes": 3933
+                },
+                {
+                    "guid": "7918c3177390d9b458edba6b77c8c4bd",
+                    "src": "Role/role_1202/Materials/head.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/head.mat",
+                    "action": "Add",
+                    "bytes": 3906
+                },
+                {
+                    "guid": "aea4ce692330491458cfcaea650c05ac",
+                    "src": "Role/role_1202/Models/1202-idle.FBX",
+                    "dst": "Assets/GameRes/object/role/role_1202/Models/1202-idle.FBX",
+                    "action": "Add",
+                    "bytes": 810912
+                },
+                {
+                    "guid": "9179a515a812d0246b54a6694d2f866b",
+                    "src": "Role/role_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/头.png",
+                    "action": "Add",
+                    "bytes": 1730302
+                },
+                {
+                    "guid": "a6c0fe3d6d8705342955e35117cfcf4a",
+                    "src": "Role/role_1202/Tex/服饰.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/服饰.png",
+                    "action": "Add",
+                    "bytes": 15025982
+                }
+            ],
+            "notes": [
+                "落点采样 1202@idle.prefab(按 idle 末帧,骨骼锚点):landing=(0.00, 0.24, 0.00) 身高=4.72 scale=0.49",
+                "半透渐变材质 1202@idle.prefab → \"bobd\"(贴图 服饰.png 渐变像素 0.7%,运行时走 Transparent)",
+                "挂点体检 1202@idle.prefab:缺 [rhand](精确小写;缺 head_mount=静态头部附件无法跟头/缺 rhand=武器挂不上/缺 root=特效兜底挂错位)——美术工程跑[交付/补挂点]后重导"
+            ]
+        },
+        {
+            "time": "2026-07-21 18:45:40",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 4,
+            "replaced": 0,
+            "skippedSame": 0,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "32a8e3f61ddb3524c87e0a3a7620f104",
+                    "src": "Head/head_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/head/head_1202/1202@idle.prefab",
+                    "action": "Add",
+                    "bytes": 5686
+                },
+                {
+                    "guid": "579e409ed7d685e479136aa92cb398aa",
+                    "src": "Head/head_1202/Materials/Hair.mat",
+                    "dst": "Assets/GameRes/object/head/head_1202/Materials/Hair.mat",
+                    "action": "Add",
+                    "bytes": 9986
+                },
+                {
+                    "guid": "615e541adfb2879439ff4e1e00c2f3f9",
+                    "src": "Head/head_1202/Models/head_idle.FBX",
+                    "dst": "Assets/GameRes/object/head/head_1202/Models/head_idle.FBX",
+                    "action": "Add",
+                    "bytes": 62720
+                },
+                {
+                    "guid": "8a736a80110b8974594d032f2cde917a",
+                    "src": "Head/head_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/head/head_1202/Tex/头.png",
+                    "action": "Add",
+                    "bytes": 1730302
+                }
+            ],
+            "notes": []
+        },
+        {
+            "time": "2026-07-21 18:50:52",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 1,
+            "replaced": 1,
+            "skippedSame": 5,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "b44cc18d4ab6675468adf9a12db1c250",
+                    "src": "Role/role_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/role/role_1202/1202@idle.prefab",
+                    "action": "Replace",
+                    "bytes": 8083
+                },
+                {
+                    "guid": "53642e3d229dea444bc7a426802bdc7d",
+                    "src": "Role/role_1202/Materials/bobd.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/bobd.mat",
+                    "action": "SkipSame",
+                    "bytes": 3933
+                },
+                {
+                    "guid": "7918c3177390d9b458edba6b77c8c4bd",
+                    "src": "Role/role_1202/Materials/head.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/head.mat",
+                    "action": "SkipSame",
+                    "bytes": 3906
+                },
+                {
+                    "guid": "aea4ce692330491458cfcaea650c05ac",
+                    "src": "Role/role_1202/Models/1202_idle.fbx",
+                    "dst": "Assets/GameRes/object/role/role_1202/Models/1202-idle.FBX",
+                    "action": "SkipSame",
+                    "bytes": 810912
+                },
+                {
+                    "guid": "9179a515a812d0246b54a6694d2f866b",
+                    "src": "Role/role_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/头.png",
+                    "action": "SkipSame",
+                    "bytes": 1730302
+                },
+                {
+                    "guid": "a6c0fe3d6d8705342955e35117cfcf4a",
+                    "src": "Role/role_1202/Tex/服饰.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/服饰.png",
+                    "action": "SkipSame",
+                    "bytes": 15025982
+                },
+                {
+                    "guid": "d87bedc01522daa4e8ddb6b91429bdf5",
+                    "src": "Role/role_1202/Timeline/idle.playable",
+                    "dst": "Assets/GameRes/object/role/role_1202/Timeline/idle.playable",
+                    "action": "Add",
+                    "bytes": 4227
+                }
+            ],
+            "notes": [
+                "落点采样 1202@idle.prefab(按 idle 末帧,骨骼锚点):landing=(0.00, 0.24, 0.00) 身高=4.72 scale=0.49",
+                "半透渐变材质 1202@idle.prefab → \"bobd\"(贴图 服饰.png 渐变像素 0.7%,运行时走 Transparent)",
+                "挂点体检 1202@idle.prefab:缺 [rhand](精确小写;缺 head_mount=静态头部附件无法跟头/缺 rhand=武器挂不上/缺 root=特效兜底挂错位)——美术工程跑[交付/补挂点]后重导"
+            ]
+        },
+        {
+            "time": "2026-07-21 18:51:16",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 1,
+            "replaced": 1,
+            "skippedSame": 3,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "32a8e3f61ddb3524c87e0a3a7620f104",
+                    "src": "Head/head_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/head/head_1202/1202@idle.prefab",
+                    "action": "Replace",
+                    "bytes": 7378
+                },
+                {
+                    "guid": "579e409ed7d685e479136aa92cb398aa",
+                    "src": "Head/head_1202/Materials/Hair.mat",
+                    "dst": "Assets/GameRes/object/head/head_1202/Materials/Hair.mat",
+                    "action": "SkipSame",
+                    "bytes": 9986
+                },
+                {
+                    "guid": "615e541adfb2879439ff4e1e00c2f3f9",
+                    "src": "Head/head_1202/Models/1202_idle.fbx",
+                    "dst": "Assets/GameRes/object/head/head_1202/Models/head_idle.FBX",
+                    "action": "SkipSame",
+                    "bytes": 62720
+                },
+                {
+                    "guid": "8a736a80110b8974594d032f2cde917a",
+                    "src": "Head/head_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/head/head_1202/Tex/头.png",
+                    "action": "SkipSame",
+                    "bytes": 1730302
+                },
+                {
+                    "guid": "7b4adc60dd365ef46bb9acfec53e89f8",
+                    "src": "Head/head_1202/Timeline/idle.playable",
+                    "dst": "Assets/GameRes/object/head/head_1202/Timeline/idle.playable",
+                    "action": "Add",
+                    "bytes": 4215
+                }
+            ],
+            "notes": []
+        },
+        {
+            "time": "2026-07-22 14:21:30",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 0,
+            "replaced": 6,
+            "skippedSame": 0,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "b44cc18d4ab6675468adf9a12db1c250",
+                    "src": "Role/role_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/role/role_1202/1202@idle.prefab",
+                    "action": "Replace",
+                    "bytes": 6567
+                },
+                {
+                    "guid": "53642e3d229dea444bc7a426802bdc7d",
+                    "src": "Role/role_1202/Materials/bobd.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/bobd.mat",
+                    "action": "Replace",
+                    "bytes": 4071
+                },
+                {
+                    "guid": "7918c3177390d9b458edba6b77c8c4bd",
+                    "src": "Role/role_1202/Materials/head.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/head.mat",
+                    "action": "Replace",
+                    "bytes": 4043
+                },
+                {
+                    "guid": "aea4ce692330491458cfcaea650c05ac",
+                    "src": "Role/role_1202/Models/1202-idle.FBX",
+                    "dst": "Assets/GameRes/object/role/role_1202/Models/1202-idle.FBX",
+                    "action": "Replace",
+                    "bytes": 408928
+                },
+                {
+                    "guid": "9179a515a812d0246b54a6694d2f866b",
+                    "src": "Role/role_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/头.png",
+                    "action": "Replace",
+                    "bytes": 1730302
+                },
+                {
+                    "guid": "a6c0fe3d6d8705342955e35117cfcf4a",
+                    "src": "Role/role_1202/Tex/服饰.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/服饰.png",
+                    "action": "Replace",
+                    "bytes": 15025982
+                }
+            ],
+            "notes": [
+                "落点采样 1202@idle.prefab(按 idle 末帧,骨骼锚点):landing=(0.00, 0.24, 0.00) 身高=4.72 scale=0.49",
+                "半透渐变材质 1202@idle.prefab → \"bobd\"(贴图 服饰.png 渐变像素 0.7%,运行时走 Transparent)"
+            ]
+        },
+        {
+            "time": "2026-07-22 14:36:24",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 1,
+            "replaced": 1,
+            "skippedSame": 5,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "b44cc18d4ab6675468adf9a12db1c250",
+                    "src": "Role/role_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/role/role_1202/1202@idle.prefab",
+                    "action": "Replace",
+                    "bytes": 6567
+                },
+                {
+                    "guid": "53642e3d229dea444bc7a426802bdc7d",
+                    "src": "Role/role_1202/Materials/bobd.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/bobd.mat",
+                    "action": "SkipSame",
+                    "bytes": 4071
+                },
+                {
+                    "guid": "7918c3177390d9b458edba6b77c8c4bd",
+                    "src": "Role/role_1202/Materials/head.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/head.mat",
+                    "action": "SkipSame",
+                    "bytes": 4043
+                },
+                {
+                    "guid": "aea4ce692330491458cfcaea650c05ac",
+                    "src": "Role/role_1202/Models/1202-idle.FBX",
+                    "dst": "Assets/GameRes/object/role/role_1202/Models/1202-idle.FBX",
+                    "action": "SkipSame",
+                    "bytes": 408928
+                },
+                {
+                    "guid": "9179a515a812d0246b54a6694d2f866b",
+                    "src": "Role/role_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/头.png",
+                    "action": "SkipSame",
+                    "bytes": 1730302
+                },
+                {
+                    "guid": "a6c0fe3d6d8705342955e35117cfcf4a",
+                    "src": "Role/role_1202/Tex/服饰.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/服饰.png",
+                    "action": "SkipSame",
+                    "bytes": 15025982
+                },
+                {
+                    "guid": "330b9bff1190c9145b6766f2366bf245",
+                    "src": "Role/role_1202/Timeline/idle.playable",
+                    "dst": "Assets/GameRes/object/role/role_1202/Timeline/idle_330b9b.playable",
+                    "action": "Add",
+                    "bytes": 4395
+                }
+            ],
+            "notes": [
+                "落点采样 1202@idle.prefab(按 idle 末帧,骨骼锚点):landing=(0.00, 0.24, 0.00) 身高=4.72 scale=0.49",
+                "半透渐变材质 1202@idle.prefab → \"bobd\"(贴图 服饰.png 渐变像素 0.7%,运行时走 Transparent)"
+            ]
+        },
+        {
+            "time": "2026-07-22 14:39:53",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 0,
+            "replaced": 2,
+            "skippedSame": 5,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "b44cc18d4ab6675468adf9a12db1c250",
+                    "src": "Role/role_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/role/role_1202/1202@idle.prefab",
+                    "action": "Replace",
+                    "bytes": 6930
+                },
+                {
+                    "guid": "53642e3d229dea444bc7a426802bdc7d",
+                    "src": "Role/role_1202/Materials/bobd.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/bobd.mat",
+                    "action": "SkipSame",
+                    "bytes": 4071
+                },
+                {
+                    "guid": "7918c3177390d9b458edba6b77c8c4bd",
+                    "src": "Role/role_1202/Materials/head.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/head.mat",
+                    "action": "SkipSame",
+                    "bytes": 4043
+                },
+                {
+                    "guid": "aea4ce692330491458cfcaea650c05ac",
+                    "src": "Role/role_1202/Models/1202-idle.FBX",
+                    "dst": "Assets/GameRes/object/role/role_1202/Models/1202-idle.FBX",
+                    "action": "SkipSame",
+                    "bytes": 408928
+                },
+                {
+                    "guid": "9179a515a812d0246b54a6694d2f866b",
+                    "src": "Role/role_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/头.png",
+                    "action": "SkipSame",
+                    "bytes": 1730302
+                },
+                {
+                    "guid": "a6c0fe3d6d8705342955e35117cfcf4a",
+                    "src": "Role/role_1202/Tex/服饰.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/服饰.png",
+                    "action": "SkipSame",
+                    "bytes": 15025982
+                },
+                {
+                    "guid": "330b9bff1190c9145b6766f2366bf245",
+                    "src": "Role/role_1202/Timeline/idle.playable",
+                    "dst": "Assets/GameRes/object/role/role_1202/Timeline/idle_330b9b.playable",
+                    "action": "Replace",
+                    "bytes": 605
+                }
+            ],
+            "notes": [
+                "落点采样 1202@idle.prefab(按 idle 末帧,骨骼锚点):landing=(0.00, 0.24, 0.00) 身高=4.72 scale=0.49",
+                "半透渐变材质 1202@idle.prefab → \"bobd\"(贴图 服饰.png 渐变像素 0.7%,运行时走 Transparent)"
+            ]
+        },
+        {
+            "time": "2026-07-22 14:55:05",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 0,
+            "replaced": 1,
+            "skippedSame": 6,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "b44cc18d4ab6675468adf9a12db1c250",
+                    "src": "Role/role_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/role/role_1202/1202@idle.prefab",
+                    "action": "Replace",
+                    "bytes": 8786
+                },
+                {
+                    "guid": "53642e3d229dea444bc7a426802bdc7d",
+                    "src": "Role/role_1202/Materials/bobd.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/bobd.mat",
+                    "action": "SkipSame",
+                    "bytes": 4071
+                },
+                {
+                    "guid": "7918c3177390d9b458edba6b77c8c4bd",
+                    "src": "Role/role_1202/Materials/head.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/head.mat",
+                    "action": "SkipSame",
+                    "bytes": 4043
+                },
+                {
+                    "guid": "aea4ce692330491458cfcaea650c05ac",
+                    "src": "Role/role_1202/Models/1202-idle.FBX",
+                    "dst": "Assets/GameRes/object/role/role_1202/Models/1202-idle.FBX",
+                    "action": "SkipSame",
+                    "bytes": 408928
+                },
+                {
+                    "guid": "9179a515a812d0246b54a6694d2f866b",
+                    "src": "Role/role_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/头.png",
+                    "action": "SkipSame",
+                    "bytes": 1730302
+                },
+                {
+                    "guid": "a6c0fe3d6d8705342955e35117cfcf4a",
+                    "src": "Role/role_1202/Tex/服饰.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/服饰.png",
+                    "action": "SkipSame",
+                    "bytes": 15025982
+                },
+                {
+                    "guid": "330b9bff1190c9145b6766f2366bf245",
+                    "src": "Role/role_1202/Timeline/idle.playable",
+                    "dst": "Assets/GameRes/object/role/role_1202/Timeline/idle_330b9b.playable",
+                    "action": "SkipSame",
+                    "bytes": 4395
+                }
+            ],
+            "notes": [
+                "落点采样 1202@idle.prefab(按 idle 末帧,骨骼锚点):landing=(0.00, 0.24, 0.00) 身高=4.72 scale=0.49",
+                "半透渐变材质 1202@idle.prefab → \"bobd\"(贴图 服饰.png 渐变像素 0.7%,运行时走 Transparent)"
+            ]
+        },
+        {
+            "time": "2026-07-22 15:15:12",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 0,
+            "replaced": 2,
+            "skippedSame": 5,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "b44cc18d4ab6675468adf9a12db1c250",
+                    "src": "Role/role_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/role/role_1202/1202@idle.prefab",
+                    "action": "Replace",
+                    "bytes": 8452
+                },
+                {
+                    "guid": "53642e3d229dea444bc7a426802bdc7d",
+                    "src": "Role/role_1202/Materials/bobd.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/bobd.mat",
+                    "action": "SkipSame",
+                    "bytes": 4071
+                },
+                {
+                    "guid": "7918c3177390d9b458edba6b77c8c4bd",
+                    "src": "Role/role_1202/Materials/head.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/head.mat",
+                    "action": "SkipSame",
+                    "bytes": 4043
+                },
+                {
+                    "guid": "aea4ce692330491458cfcaea650c05ac",
+                    "src": "Role/role_1202/Models/1202-idle.FBX",
+                    "dst": "Assets/GameRes/object/role/role_1202/Models/1202-idle.FBX",
+                    "action": "SkipSame",
+                    "bytes": 408928
+                },
+                {
+                    "guid": "9179a515a812d0246b54a6694d2f866b",
+                    "src": "Role/role_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/头.png",
+                    "action": "SkipSame",
+                    "bytes": 1730302
+                },
+                {
+                    "guid": "a6c0fe3d6d8705342955e35117cfcf4a",
+                    "src": "Role/role_1202/Tex/服饰.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/服饰.png",
+                    "action": "SkipSame",
+                    "bytes": 15025982
+                },
+                {
+                    "guid": "330b9bff1190c9145b6766f2366bf245",
+                    "src": "Role/role_1202/Timeline/idle.playable",
+                    "dst": "Assets/GameRes/object/role/role_1202/Timeline/idle.playable",
+                    "action": "Replace",
+                    "bytes": 4395
+                }
+            ],
+            "notes": [
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1202/Timeline/idle_330b9b.playable",
+                "程序兼容:美术未交 create3，已由 idle 生成 1202@create3.prefab（同动作内容）",
+                "落点采样 1202@idle.prefab(按 idle 末帧,骨骼锚点):landing=(0.00, 0.24, 0.00) 身高=4.72 scale=0.49",
+                "半透渐变材质 1202@idle.prefab → \"bobd\"(贴图 服饰.png 渐变像素 0.7%,运行时走 Transparent)",
+                "落点采样 1202@create3.prefab(按 create3 末帧,骨骼锚点):landing=(0.00, 0.24, 0.00) 身高=4.72 scale=0.49",
+                "半透渐变材质 1202@create3.prefab → \"bobd\"(贴图 服饰.png 渐变像素 0.7%,运行时走 Transparent)"
+            ]
+        },
+        {
+            "time": "2026-07-22 15:27:19",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 0,
+            "replaced": 5,
+            "skippedSame": 0,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "32a8e3f61ddb3524c87e0a3a7620f104",
+                    "src": "Head/head_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/head/head_1202/1202@idle.prefab",
+                    "action": "Replace",
+                    "bytes": 5843
+                },
+                {
+                    "guid": "579e409ed7d685e479136aa92cb398aa",
+                    "src": "Head/head_1202/Materials/Hair.mat",
+                    "dst": "Assets/GameRes/object/head/head_1202/Materials/Hair.mat",
+                    "action": "Replace",
+                    "bytes": 10368
+                },
+                {
+                    "guid": "615e541adfb2879439ff4e1e00c2f3f9",
+                    "src": "Head/head_1202/Models/head_idle.FBX",
+                    "dst": "Assets/GameRes/object/head/head_1202/Models/head_idle.FBX",
+                    "action": "Replace",
+                    "bytes": 64000
+                },
+                {
+                    "guid": "8a736a80110b8974594d032f2cde917a",
+                    "src": "Head/head_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/head/head_1202/Tex/头.png",
+                    "action": "Replace",
+                    "bytes": 1730302
+                },
+                {
+                    "guid": "fba965827b58d4c45a550dff2e9dd173",
+                    "src": "Head/head_1202/Timeline/idle.playable",
+                    "dst": "Assets/GameRes/object/head/head_1202/Timeline/idle.playable",
+                    "action": "Replace",
+                    "bytes": 4394
+                }
+            ],
+            "notes": []
+        },
+        {
+            "time": "2026-07-22 15:39:10",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 85,
+            "replaced": 1,
+            "skippedSame": 0,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "45c2d1534796d0a489b77a8171968bd4",
+                    "src": "Wing/wing_1005/1005@idle.prefab",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/1005@idle.prefab",
+                    "action": "Add",
+                    "bytes": 1747575
+                },
+                {
+                    "guid": "6222305427b8d2441956279861603d9e",
+                    "src": "Wing/wing_1005/Materials/01 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/01 1.mat",
+                    "action": "Add",
+                    "bytes": 10647
+                },
+                {
+                    "guid": "444ddfc7c820c81438692588bed19268",
+                    "src": "Wing/wing_1005/Materials/01.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/01.mat",
+                    "action": "Add",
+                    "bytes": 10653
+                },
+                {
+                    "guid": "44ddfb80678304e4b99c56f69d7bed9d",
+                    "src": "Wing/wing_1005/Materials/02.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/02.mat",
+                    "action": "Add",
+                    "bytes": 10629
+                },
+                {
+                    "guid": "926660fa4f3f63444adc3e3cdc43d36f",
+                    "src": "Wing/wing_1005/Materials/03 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/03 1.mat",
+                    "action": "Add",
+                    "bytes": 10596
+                },
+                {
+                    "guid": "25c47d44cbd01ae4b81388b002b7dffd",
+                    "src": "Wing/wing_1005/Materials/03 2.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/03 2.mat",
+                    "action": "Add",
+                    "bytes": 10597
+                },
+                {
+                    "guid": "bfec93240cc39df45af4362fbc029b9b",
+                    "src": "Wing/wing_1005/Materials/03.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/03.mat",
+                    "action": "Add",
+                    "bytes": 10587
+                },
+                {
+                    "guid": "ca855bf83607cf64fa99dcfff1320dbb",
+                    "src": "Wing/wing_1005/Materials/04.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/04.mat",
+                    "action": "Add",
+                    "bytes": 10674
+                },
+                {
+                    "guid": "cfb1935119313ef4c8bb2e681b70071a",
+                    "src": "Wing/wing_1005/Materials/05.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/05.mat",
+                    "action": "Add",
+                    "bytes": 10644
+                },
+                {
+                    "guid": "ed62a692092618e42803867d28dc1c05",
+                    "src": "Wing/wing_1005/Materials/06.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/06.mat",
+                    "action": "Add",
+                    "bytes": 10703
+                },
+                {
+                    "guid": "56ac359db3ad6c64a86f712cebdcc261",
+                    "src": "Wing/wing_1005/Materials/07.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/07.mat",
+                    "action": "Add",
+                    "bytes": 10554
+                },
+                {
+                    "guid": "d5a8d81924a1d684bbd91ce504374a0d",
+                    "src": "Wing/wing_1005/Materials/08 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/08 1.mat",
+                    "action": "Add",
+                    "bytes": 10670
+                },
+                {
+                    "guid": "1f12992969c701649a210f3c4348a24e",
+                    "src": "Wing/wing_1005/Materials/08.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/08.mat",
+                    "action": "Add",
+                    "bytes": 10613
+                },
+                {
+                    "guid": "5578b68ef7edb5e479c446dcf1f082d4",
+                    "src": "Wing/wing_1005/Materials/09 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/09 1.mat",
+                    "action": "Add",
+                    "bytes": 10607
+                },
+                {
+                    "guid": "a2c24fcd6b9f43a44829b02c23e3d204",
+                    "src": "Wing/wing_1005/Materials/09.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/09.mat",
+                    "action": "Add",
+                    "bytes": 10605
+                },
+                {
+                    "guid": "e7717323c86513b4087dbac986a223e8",
+                    "src": "Wing/wing_1005/Materials/10.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/10.mat",
+                    "action": "Add",
+                    "bytes": 10609
+                },
+                {
+                    "guid": "487f6239cd9d2a643aeae9208b3435fb",
+                    "src": "Wing/wing_1005/Materials/11 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/11 1.mat",
+                    "action": "Add",
+                    "bytes": 10717
+                },
+                {
+                    "guid": "2f2c7d29ba85ab8429bd86343f207ee3",
+                    "src": "Wing/wing_1005/Materials/11.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/11.mat",
+                    "action": "Add",
+                    "bytes": 10567
+                },
+                {
+                    "guid": "128fbef06fdb1f74c983c413f3bbaaa9",
+                    "src": "Wing/wing_1005/Materials/12.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/12.mat",
+                    "action": "Add",
+                    "bytes": 10646
+                },
+                {
+                    "guid": "aac95d351b3d71f41ae09c1da7c0042e",
+                    "src": "Wing/wing_1005/Materials/13.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/13.mat",
+                    "action": "Add",
+                    "bytes": 10545
+                },
+                {
+                    "guid": "56169be4e6995854cb17b7c506650609",
+                    "src": "Wing/wing_1005/Materials/14 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/14 1.mat",
+                    "action": "Add",
+                    "bytes": 10679
+                },
+                {
+                    "guid": "315c805d27770f340b7bb3d376f5f0fa",
+                    "src": "Wing/wing_1005/Materials/14.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/14.mat",
+                    "action": "Add",
+                    "bytes": 10721
+                },
+                {
+                    "guid": "243457b6c9a595844bffc04bd41ee650",
+                    "src": "Wing/wing_1005/Materials/15 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/15 1.mat",
+                    "action": "Add",
+                    "bytes": 10721
+                },
+                {
+                    "guid": "d532f5fa83c3c5a4cbd485cdadab305b",
+                    "src": "Wing/wing_1005/Materials/15 2.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/15 2.mat",
+                    "action": "Add",
+                    "bytes": 10613
+                },
+                {
+                    "guid": "d6a0eb06a2ba9e640b5e51abb85ca507",
+                    "src": "Wing/wing_1005/Materials/15.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/15.mat",
+                    "action": "Add",
+                    "bytes": 10577
+                },
+                {
+                    "guid": "73d0e57540a00844e8e5f9994af3d577",
+                    "src": "Wing/wing_1005/Materials/16 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/16 1.mat",
+                    "action": "Add",
+                    "bytes": 10682
+                },
+                {
+                    "guid": "1614f3d7c808d9145bd10a62bb2a101b",
+                    "src": "Wing/wing_1005/Materials/16.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/16.mat",
+                    "action": "Add",
+                    "bytes": 10723
+                },
+                {
+                    "guid": "7afaab5f9522ac340a3cce31d731c1b2",
+                    "src": "Wing/wing_1005/Materials/17 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/17 1.mat",
+                    "action": "Add",
+                    "bytes": 10727
+                },
+                {
+                    "guid": "a4510ae2ed0d4dd46a6412a2a16c80d5",
+                    "src": "Wing/wing_1005/Materials/17.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/17.mat",
+                    "action": "Add",
+                    "bytes": 10582
+                },
+                {
+                    "guid": "004a088da06944d4a8e9abcb00b3e411",
+                    "src": "Wing/wing_1005/Materials/wing 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/wing 1.mat",
+                    "action": "Add",
+                    "bytes": 10810
+                },
+                {
+                    "guid": "a70aed56b22383747abc26a86ce180a9",
+                    "src": "Wing/wing_1005/Materials/wing 2.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/wing 2.mat",
+                    "action": "Add",
+                    "bytes": 10560
+                },
+                {
+                    "guid": "a1625774741fc5747b743efa735b6f0f",
+                    "src": "Wing/wing_1005/Materials/wing 3.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/wing 3.mat",
+                    "action": "Add",
+                    "bytes": 10698
+                },
+                {
+                    "guid": "69084083bb41e0649b3d914cb3bf3580",
+                    "src": "Wing/wing_1005/Materials/wing 4.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/wing 4.mat",
+                    "action": "Add",
+                    "bytes": 10713
+                },
+                {
+                    "guid": "c9647db0df32100459d16e0455c24c12",
+                    "src": "Wing/wing_1005/Materials/wing.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/wing.mat",
+                    "action": "Add",
+                    "bytes": 10580
+                },
+                {
+                    "guid": "194ef5416a0ac8841826f55d08ce0cd1",
+                    "src": "Wing/wing_1005/Models/wing-1.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/wing-1.FBX",
+                    "action": "Add",
+                    "bytes": 186816
+                },
+                {
+                    "guid": "6547b45c99f80ba4fa4594a246080640",
+                    "src": "Wing/wing_1005/Models/wing-2.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/wing-2.FBX",
+                    "action": "Add",
+                    "bytes": 155264
+                },
+                {
+                    "guid": "9e75298f6c67cf14db511733f8917534",
+                    "src": "Wing/wing_1005/Models/wing.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/wing.FBX",
+                    "action": "Add",
+                    "bytes": 436896
+                },
+                {
+                    "guid": "bfa642952c98408499126022d090e2a0",
+                    "src": "Wing/wing_1005/Models/云雾.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/云雾.FBX",
+                    "action": "Add",
+                    "bytes": 19136
+                },
+                {
+                    "guid": "3ecb0d6ca38459248b143d85af8dd90f",
+                    "src": "Wing/wing_1005/Models/流水.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/流水.FBX",
+                    "action": "Add",
+                    "bytes": 15712
+                },
+                {
+                    "guid": "0459824556ca63d458785ce10e6f8c35",
+                    "src": "Wing/wing_1005/Models/流水1.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/流水1.FBX",
+                    "action": "Add",
+                    "bytes": 17472
+                },
+                {
+                    "guid": "3052745528c927f4d8782a46d81d853d",
+                    "src": "Wing/wing_1005/Models/特效1.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/特效1.FBX",
+                    "action": "Add",
+                    "bytes": 24160
+                },
+                {
+                    "guid": "c0607807a596194429b87209ee39ae91",
+                    "src": "Wing/wing_1005/Models/特效2.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/特效2.FBX",
+                    "action": "Add",
+                    "bytes": 24048
+                },
+                {
+                    "guid": "472100e7cd6f7ed4988561263830066e",
+                    "src": "Wing/wing_1005/Models/特效3.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/特效3.FBX",
+                    "action": "Add",
+                    "bytes": 36432
+                },
+                {
+                    "guid": "f011a7f6769611b4a916aa6b4e81e5e8",
+                    "src": "Wing/wing_1005/Models/特效4.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/特效4.FBX",
+                    "action": "Add",
+                    "bytes": 18176
+                },
+                {
+                    "guid": "1dc667b3f3927e74d9dbb65e7815dc9f",
+                    "src": "Wing/wing_1005/Tex/01.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/01.tga",
+                    "action": "Add",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "0e1b85ea618a1ef43a46c99b4ed321b4",
+                    "src": "Wing/wing_1005/Tex/02.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/02.tga",
+                    "action": "Add",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "13a50815978f7de438b4870d1cbf6660",
+                    "src": "Wing/wing_1005/Tex/03.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/03.tga",
+                    "action": "Add",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "a3e0a51f6e3833248baa6cccaa64ef0b",
+                    "src": "Wing/wing_1005/Tex/04.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/04.tga",
+                    "action": "Add",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "e9af0b4aa4687904bb04fa7b649c9304",
+                    "src": "Wing/wing_1005/Tex/05.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/05.tga",
+                    "action": "Add",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "df08dc84544f48240b4920040612f0b4",
+                    "src": "Wing/wing_1005/Tex/06.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/06.tga",
+                    "action": "Add",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "c74e2c21fbf870349a2bad7d1a0e7183",
+                    "src": "Wing/wing_1005/Tex/07.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/07.tga",
+                    "action": "Add",
+                    "bytes": 12582956
+                },
+                {
+                    "guid": "3e99efec83a69ba41a7780147cfd31dc",
+                    "src": "Wing/wing_1005/Tex/08.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/08.tga",
+                    "action": "Add",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "db6e6bdada8fda64694b95af421c6c08",
+                    "src": "Wing/wing_1005/Tex/09.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/09.tga",
+                    "action": "Add",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "2ce04b2cc32551b4bb675bebe8e9af76",
+                    "src": "Wing/wing_1005/Tex/1.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/1.png",
+                    "action": "Add",
+                    "bytes": 3368766
+                },
+                {
+                    "guid": "aea3276394eaf1348a8dd6cc4800255d",
+                    "src": "Wing/wing_1005/Tex/10.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/10.tga",
+                    "action": "Add",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "f9a9fbfac0f0efb4e9523daa2dbd9ae1",
+                    "src": "Wing/wing_1005/Tex/11.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/11.tga",
+                    "action": "Add",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "30cf865d54212b841979e26a646390a1",
+                    "src": "Wing/wing_1005/Tex/12.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/12.tga",
+                    "action": "Add",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "9c1dc77816a13134da56f41354bd8149",
+                    "src": "Wing/wing_1005/Tex/13.jpg",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/13.jpg",
+                    "action": "Add",
+                    "bytes": 654749
+                },
+                {
+                    "guid": "e65001ca2a0f1cd4cbabaa80f93a00b6",
+                    "src": "Wing/wing_1005/Tex/13.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/13.tga",
+                    "action": "Add",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "088210c8379d4114a97201ef4efed482",
+                    "src": "Wing/wing_1005/Tex/2.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/2.png",
+                    "action": "Add",
+                    "bytes": 2788679
+                },
+                {
+                    "guid": "5947cfa93a3654946b1e35bcae20bf31",
+                    "src": "Wing/wing_1005/Tex/3.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/3.png",
+                    "action": "Add",
+                    "bytes": 5349031
+                },
+                {
+                    "guid": "d0fee1fda9e54794bab894ad54870f1a",
+                    "src": "Wing/wing_1005/Tex/4.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/4.png",
+                    "action": "Add",
+                    "bytes": 1153433
+                },
+                {
+                    "guid": "58fa1536bfa205e4bb9c1759d38d7aab",
+                    "src": "Wing/wing_1005/Tex/5.jpg",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/5.jpg",
+                    "action": "Add",
+                    "bytes": 219034
+                },
+                {
+                    "guid": "f5d2d1ac351b42542be5a8f6221da026",
+                    "src": "Wing/wing_1005/Tex/5.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/5.png",
+                    "action": "Add",
+                    "bytes": 2319527
+                },
+                {
+                    "guid": "117529cec909fae41ae7df9a0d396762",
+                    "src": "Wing/wing_1005/Tex/6.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/6.png",
+                    "action": "Add",
+                    "bytes": 6702036
+                },
+                {
+                    "guid": "26091c880039b194fba64828d27f2597",
+                    "src": "Wing/wing_1005/Tex/7.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/7.png",
+                    "action": "Add",
+                    "bytes": 8365180
+                },
+                {
+                    "guid": "6490ce38e975f2d47a19d1ffb0f9104f",
+                    "src": "Wing/wing_1005/Tex/Tx_Caustics_03.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_Caustics_03.tga",
+                    "action": "Add",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "28409c3a850a9a941bfcd64fb4989e1d",
+                    "src": "Wing/wing_1005/Tex/Tx_Mask_01.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_Mask_01.tga",
+                    "action": "Add",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "03e2c9569519ab84db752bff67400c13",
+                    "src": "Wing/wing_1005/Tex/Tx_Noise_04.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_Noise_04.png",
+                    "action": "Add",
+                    "bytes": 1171055
+                },
+                {
+                    "guid": "59ff03ed16bbfbb4dad78560e05f8ac6",
+                    "src": "Wing/wing_1005/Tex/TX_Noise_22.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/TX_Noise_22.png",
+                    "action": "Add",
+                    "bytes": 533470
+                },
+                {
+                    "guid": "4cabe5f3bae593249871d871deffd3f0",
+                    "src": "Wing/wing_1005/Tex/Tx_Noise_34.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_Noise_34.png",
+                    "action": "Add",
+                    "bytes": 126220
+                },
+                {
+                    "guid": "122cbafe83fde0a4eabb02b08875cfed",
+                    "src": "Wing/wing_1005/Tex/Tx_SmokeTrail_01.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_SmokeTrail_01.png",
+                    "action": "Add",
+                    "bytes": 130510
+                },
+                {
+                    "guid": "01608a4ceb20b8742821bc272ac99a89",
+                    "src": "Wing/wing_1005/Tex/Tx_SmokeTrail_02.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_SmokeTrail_02.png",
+                    "action": "Add",
+                    "bytes": 77879
+                },
+                {
+                    "guid": "239a37dfa69fc0c478326260a65ddc11",
+                    "src": "Wing/wing_1005/Tex/Tx_SmokeTrail_04.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_SmokeTrail_04.png",
+                    "action": "Add",
+                    "bytes": 320692
+                },
+                {
+                    "guid": "c27b755717e66644bbb4601dc5dfa80f",
+                    "src": "Wing/wing_1005/Tex/Tx_Trail_02.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_Trail_02.png",
+                    "action": "Add",
+                    "bytes": 93502
+                },
+                {
+                    "guid": "eca813d8ff538e24788fe4d03670b947",
+                    "src": "Wing/wing_1005/Tex/Tx_Trail_04.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_Trail_04.png",
+                    "action": "Add",
+                    "bytes": 156178
+                },
+                {
+                    "guid": "697b1e7b4535ba54dacf2cf123a761c9",
+                    "src": "Wing/wing_1005/Tex/山石.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/山石.png",
+                    "action": "Add",
+                    "bytes": 2584545
+                },
+                {
+                    "guid": "864889eccb3754c4d812aeebd097b835",
+                    "src": "Wing/wing_1005/Tex/特效.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/特效.png",
+                    "action": "Add",
+                    "bytes": 10067861
+                },
+                {
+                    "guid": "8fdcfed85efd1d24181eecf1ebe20b71",
+                    "src": "Wing/wing_1005/Tex/特效01.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/特效01.png",
+                    "action": "Add",
+                    "bytes": 1045309
+                },
+                {
+                    "guid": "3bf78a9855e8f554993e3ea1906d8a03",
+                    "src": "Wing/wing_1005/Tex/特效02 1.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/特效02 1.png",
+                    "action": "Add",
+                    "bytes": 4858792
+                },
+                {
+                    "guid": "ebd5f8623d4c4fb4aae7b00c024b5688",
+                    "src": "Wing/wing_1005/Tex/特效02.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/特效02.png",
+                    "action": "Add",
+                    "bytes": 4388254
+                },
+                {
+                    "guid": "c98b744c079af9d4a8e85ec384360c77",
+                    "src": "Wing/wing_1005/Tex/特效03.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/特效03.png",
+                    "action": "Add",
+                    "bytes": 1179102
+                },
+                {
+                    "guid": "5ee7571cd96a7e04d9b5f673ec187d09",
+                    "src": "Wing/wing_1005/Tex/翅膀.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/翅膀.png",
+                    "action": "Add",
+                    "bytes": 6990832
+                },
+                {
+                    "guid": "486006872f88c3b4f8a2efcefd9e6bc3",
+                    "src": "Wing/wing_1005/Tex/透贴.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/透贴.png",
+                    "action": "Add",
+                    "bytes": 243288
+                },
+                {
+                    "guid": "9471e7a10a2fc4547805c9031f037785",
+                    "src": "Wing/wing_1005/Timeline/idle.playable",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Timeline/idle.playable",
+                    "action": "Add",
+                    "bytes": 11939
+                },
+                {
+                    "guid": "446de4ba36021554a94eb3e445fa294c",
+                    "src": "PandaShaderV2.3/Pandavfx_v2.3.shader",
+                    "dst": "Assets/GameRes/object/artshared/PandaShaderV2.3/Pandavfx_v2.3.shader",
+                    "action": "Replace",
+                    "bytes": 28260
+                }
+            ],
+            "notes": [
+                "半透渐变材质 1005@idle.prefab → \"Material #7\"(贴图 翅膀.png 渐变像素 3.2%,运行时走 Transparent)",
+                "半透渐变材质 1005@idle.prefab → \"wing 1\"(贴图 翅膀.png 渐变像素 3.2%,运行时走 Transparent)",
+                "半透渐变材质 1005@idle.prefab → \"wing\"(贴图 翅膀.png 渐变像素 3.2%,运行时走 Transparent)",
+                "半透渐变材质 1005@idle.prefab → \"wing 3\"(贴图 翅膀.png 渐变像素 3.2%,运行时走 Transparent)",
+                "半透渐变材质 1005@idle.prefab → \"wing 4\"(贴图 翅膀.png 渐变像素 3.2%,运行时走 Transparent)",
+                "半透渐变材质 1005@idle.prefab → \"10\"(贴图 翅膀.png 渐变像素 3.2%,运行时走 Transparent)"
+            ]
+        },
+        {
+            "time": "2026-07-22 16:00:13",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 1,
+            "replaced": 1,
+            "skippedSame": 4,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "32a8e3f61ddb3524c87e0a3a7620f104",
+                    "src": "Head/head_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/head/head_1202/1202@idle.prefab",
+                    "action": "Replace",
+                    "bytes": 7649
+                },
+                {
+                    "guid": "d1eb1846604b6ee4aa02d594f2c7e365",
+                    "src": "Head/head_1202/head_calibration.json",
+                    "dst": "Assets/GameRes/object/head/head_1202/head_calibration.json",
+                    "action": "Add",
+                    "bytes": 303
+                },
+                {
+                    "guid": "579e409ed7d685e479136aa92cb398aa",
+                    "src": "Head/head_1202/Materials/Hair.mat",
+                    "dst": "Assets/GameRes/object/head/head_1202/Materials/Hair.mat",
+                    "action": "SkipSame",
+                    "bytes": 10368
+                },
+                {
+                    "guid": "615e541adfb2879439ff4e1e00c2f3f9",
+                    "src": "Head/head_1202/Models/head_idle.FBX",
+                    "dst": "Assets/GameRes/object/head/head_1202/Models/head_idle.FBX",
+                    "action": "SkipSame",
+                    "bytes": 64000
+                },
+                {
+                    "guid": "8a736a80110b8974594d032f2cde917a",
+                    "src": "Head/head_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/head/head_1202/Tex/头.png",
+                    "action": "SkipSame",
+                    "bytes": 1730302
+                },
+                {
+                    "guid": "fba965827b58d4c45a550dff2e9dd173",
+                    "src": "Head/head_1202/Timeline/idle.playable",
+                    "dst": "Assets/GameRes/object/head/head_1202/Timeline/idle.playable",
+                    "action": "SkipSame",
+                    "bytes": 4394
+                }
+            ],
+            "notes": []
+        },
+        {
+            "time": "2026-07-22 16:04:39",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 6,
+            "replaced": 0,
+            "skippedSame": 0,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "32a8e3f61ddb3524c87e0a3a7620f104",
+                    "src": "Head/head_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/head/head_1402/1402@idle.prefab",
+                    "action": "Add",
+                    "bytes": 7649
+                },
+                {
+                    "guid": "d1eb1846604b6ee4aa02d594f2c7e365",
+                    "src": "Head/head_1202/head_calibration.json",
+                    "dst": "Assets/GameRes/object/head/head_1402/head_calibration.json",
+                    "action": "Add",
+                    "bytes": 303
+                },
+                {
+                    "guid": "579e409ed7d685e479136aa92cb398aa",
+                    "src": "Head/head_1202/Materials/Hair.mat",
+                    "dst": "Assets/GameRes/object/head/head_1402/Materials/Hair.mat",
+                    "action": "Add",
+                    "bytes": 10368
+                },
+                {
+                    "guid": "615e541adfb2879439ff4e1e00c2f3f9",
+                    "src": "Head/head_1202/Models/head_idle.FBX",
+                    "dst": "Assets/GameRes/object/head/head_1402/Models/head_idle.FBX",
+                    "action": "Add",
+                    "bytes": 64000
+                },
+                {
+                    "guid": "8a736a80110b8974594d032f2cde917a",
+                    "src": "Head/head_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/head/head_1402/Tex/头.png",
+                    "action": "Add",
+                    "bytes": 1730302
+                },
+                {
+                    "guid": "fba965827b58d4c45a550dff2e9dd173",
+                    "src": "Head/head_1202/Timeline/idle.playable",
+                    "dst": "Assets/GameRes/object/head/head_1402/Timeline/idle.playable",
+                    "action": "Add",
+                    "bytes": 4394
+                }
+            ],
+            "notes": [
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/head/head_1202/1202@idle.prefab",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/head/head_1202/head_calibration.json",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/head/head_1202/Materials/Hair.mat",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/head/head_1202/Models/head_idle.FBX",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/head/head_1202/Tex/头.png",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/head/head_1202/Timeline/idle.playable"
+            ]
+        },
+        {
+            "time": "2026-07-22 16:06:31",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 0,
+            "replaced": 2,
+            "skippedSame": 4,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "32a8e3f61ddb3524c87e0a3a7620f104",
+                    "src": "Head/head_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/head/head_1402/1402@idle.prefab",
+                    "action": "Replace",
+                    "bytes": 7683
+                },
+                {
+                    "guid": "d1eb1846604b6ee4aa02d594f2c7e365",
+                    "src": "Head/head_1202/head_calibration.json",
+                    "dst": "Assets/GameRes/object/head/head_1402/head_calibration.json",
+                    "action": "Replace",
+                    "bytes": 319
+                },
+                {
+                    "guid": "579e409ed7d685e479136aa92cb398aa",
+                    "src": "Head/head_1202/Materials/Hair.mat",
+                    "dst": "Assets/GameRes/object/head/head_1402/Materials/Hair.mat",
+                    "action": "SkipSame",
+                    "bytes": 10368
+                },
+                {
+                    "guid": "615e541adfb2879439ff4e1e00c2f3f9",
+                    "src": "Head/head_1202/Models/head_idle.FBX",
+                    "dst": "Assets/GameRes/object/head/head_1402/Models/head_idle.FBX",
+                    "action": "SkipSame",
+                    "bytes": 64000
+                },
+                {
+                    "guid": "8a736a80110b8974594d032f2cde917a",
+                    "src": "Head/head_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/head/head_1402/Tex/头.png",
+                    "action": "SkipSame",
+                    "bytes": 1730302
+                },
+                {
+                    "guid": "fba965827b58d4c45a550dff2e9dd173",
+                    "src": "Head/head_1202/Timeline/idle.playable",
+                    "dst": "Assets/GameRes/object/head/head_1402/Timeline/idle.playable",
+                    "action": "SkipSame",
+                    "bytes": 4394
+                }
+            ],
+            "notes": []
+        },
+        {
+            "time": "2026-07-22 16:07:03",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 7,
+            "replaced": 0,
+            "skippedSame": 0,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "b44cc18d4ab6675468adf9a12db1c250",
+                    "src": "Role/role_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/role/role_1402/1402@idle.prefab",
+                    "action": "Add",
+                    "bytes": 8452
+                },
+                {
+                    "guid": "53642e3d229dea444bc7a426802bdc7d",
+                    "src": "Role/role_1202/Materials/bobd.mat",
+                    "dst": "Assets/GameRes/object/role/role_1402/Materials/bobd.mat",
+                    "action": "Add",
+                    "bytes": 4071
+                },
+                {
+                    "guid": "7918c3177390d9b458edba6b77c8c4bd",
+                    "src": "Role/role_1202/Materials/head.mat",
+                    "dst": "Assets/GameRes/object/role/role_1402/Materials/head.mat",
+                    "action": "Add",
+                    "bytes": 4043
+                },
+                {
+                    "guid": "aea4ce692330491458cfcaea650c05ac",
+                    "src": "Role/role_1202/Models/1202-idle.FBX",
+                    "dst": "Assets/GameRes/object/role/role_1402/Models/1202-idle.FBX",
+                    "action": "Add",
+                    "bytes": 408928
+                },
+                {
+                    "guid": "9179a515a812d0246b54a6694d2f866b",
+                    "src": "Role/role_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/role/role_1402/Tex/头.png",
+                    "action": "Add",
+                    "bytes": 1730302
+                },
+                {
+                    "guid": "a6c0fe3d6d8705342955e35117cfcf4a",
+                    "src": "Role/role_1202/Tex/服饰.png",
+                    "dst": "Assets/GameRes/object/role/role_1402/Tex/服饰.png",
+                    "action": "Add",
+                    "bytes": 15025982
+                },
+                {
+                    "guid": "330b9bff1190c9145b6766f2366bf245",
+                    "src": "Role/role_1202/Timeline/idle.playable",
+                    "dst": "Assets/GameRes/object/role/role_1402/Timeline/idle.playable",
+                    "action": "Add",
+                    "bytes": 4240
+                }
+            ],
+            "notes": [
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1202/1202@idle.prefab",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1202/Materials/bobd.mat",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1202/Materials/head.mat",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1202/Models/1202-idle.FBX",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1202/Tex/头.png",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1202/Tex/服饰.png",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1202/Timeline/idle.playable",
+                "程序兼容:美术未交 create3，已由 idle 生成 1402@create3.prefab（同动作内容）",
+                "落点采样 1402@idle.prefab(按 idle 末帧,骨骼锚点):landing=(0.00, 0.24, 0.00) 身高=4.72 scale=0.49",
+                "半透渐变材质 1402@idle.prefab → \"bobd\"(贴图 服饰.png 渐变像素 0.7%,运行时走 Transparent)",
+                "落点采样 1402@create3.prefab(按 create3 末帧,骨骼锚点):landing=(0.00, 0.24, 0.00) 身高=4.72 scale=0.49",
+                "半透渐变材质 1402@create3.prefab → \"bobd\"(贴图 服饰.png 渐变像素 0.7%,运行时走 Transparent)",
+                "挂点体检 1402@idle.prefab:rhand scale 必须为 1（只影响部件挂接，身体动作已启用；美术工程跑[交付/补挂点]后重导）",
+                "挂点体检 1402@create3.prefab:rhand scale 必须为 1（只影响部件挂接，身体动作已启用；美术工程跑[交付/补挂点]后重导）"
+            ]
+        },
+        {
+            "time": "2026-07-22 16:29:38",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 0,
+            "replaced": 1,
+            "skippedSame": 85,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "45c2d1534796d0a489b77a8171968bd4",
+                    "src": "Wing/wing_1005/1005@idle.prefab",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/1005@idle.prefab",
+                    "action": "SkipSame",
+                    "bytes": 1680534
+                },
+                {
+                    "guid": "6222305427b8d2441956279861603d9e",
+                    "src": "Wing/wing_1005/Materials/01 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/01 1.mat",
+                    "action": "SkipSame",
+                    "bytes": 10647
+                },
+                {
+                    "guid": "444ddfc7c820c81438692588bed19268",
+                    "src": "Wing/wing_1005/Materials/01.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/01.mat",
+                    "action": "SkipSame",
+                    "bytes": 10653
+                },
+                {
+                    "guid": "44ddfb80678304e4b99c56f69d7bed9d",
+                    "src": "Wing/wing_1005/Materials/02.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/02.mat",
+                    "action": "SkipSame",
+                    "bytes": 10629
+                },
+                {
+                    "guid": "926660fa4f3f63444adc3e3cdc43d36f",
+                    "src": "Wing/wing_1005/Materials/03 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/03 1.mat",
+                    "action": "SkipSame",
+                    "bytes": 10596
+                },
+                {
+                    "guid": "25c47d44cbd01ae4b81388b002b7dffd",
+                    "src": "Wing/wing_1005/Materials/03 2.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/03 2.mat",
+                    "action": "SkipSame",
+                    "bytes": 10597
+                },
+                {
+                    "guid": "bfec93240cc39df45af4362fbc029b9b",
+                    "src": "Wing/wing_1005/Materials/03.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/03.mat",
+                    "action": "SkipSame",
+                    "bytes": 10587
+                },
+                {
+                    "guid": "ca855bf83607cf64fa99dcfff1320dbb",
+                    "src": "Wing/wing_1005/Materials/04.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/04.mat",
+                    "action": "SkipSame",
+                    "bytes": 10674
+                },
+                {
+                    "guid": "cfb1935119313ef4c8bb2e681b70071a",
+                    "src": "Wing/wing_1005/Materials/05.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/05.mat",
+                    "action": "SkipSame",
+                    "bytes": 10644
+                },
+                {
+                    "guid": "ed62a692092618e42803867d28dc1c05",
+                    "src": "Wing/wing_1005/Materials/06.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/06.mat",
+                    "action": "SkipSame",
+                    "bytes": 10703
+                },
+                {
+                    "guid": "56ac359db3ad6c64a86f712cebdcc261",
+                    "src": "Wing/wing_1005/Materials/07.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/07.mat",
+                    "action": "SkipSame",
+                    "bytes": 10554
+                },
+                {
+                    "guid": "d5a8d81924a1d684bbd91ce504374a0d",
+                    "src": "Wing/wing_1005/Materials/08 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/08 1.mat",
+                    "action": "SkipSame",
+                    "bytes": 10670
+                },
+                {
+                    "guid": "1f12992969c701649a210f3c4348a24e",
+                    "src": "Wing/wing_1005/Materials/08.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/08.mat",
+                    "action": "SkipSame",
+                    "bytes": 10613
+                },
+                {
+                    "guid": "5578b68ef7edb5e479c446dcf1f082d4",
+                    "src": "Wing/wing_1005/Materials/09 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/09 1.mat",
+                    "action": "SkipSame",
+                    "bytes": 10607
+                },
+                {
+                    "guid": "a2c24fcd6b9f43a44829b02c23e3d204",
+                    "src": "Wing/wing_1005/Materials/09.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/09.mat",
+                    "action": "SkipSame",
+                    "bytes": 10605
+                },
+                {
+                    "guid": "e7717323c86513b4087dbac986a223e8",
+                    "src": "Wing/wing_1005/Materials/10.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/10.mat",
+                    "action": "SkipSame",
+                    "bytes": 10609
+                },
+                {
+                    "guid": "487f6239cd9d2a643aeae9208b3435fb",
+                    "src": "Wing/wing_1005/Materials/11 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/11 1.mat",
+                    "action": "SkipSame",
+                    "bytes": 10717
+                },
+                {
+                    "guid": "2f2c7d29ba85ab8429bd86343f207ee3",
+                    "src": "Wing/wing_1005/Materials/11.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/11.mat",
+                    "action": "SkipSame",
+                    "bytes": 10567
+                },
+                {
+                    "guid": "128fbef06fdb1f74c983c413f3bbaaa9",
+                    "src": "Wing/wing_1005/Materials/12.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/12.mat",
+                    "action": "SkipSame",
+                    "bytes": 10646
+                },
+                {
+                    "guid": "aac95d351b3d71f41ae09c1da7c0042e",
+                    "src": "Wing/wing_1005/Materials/13.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/13.mat",
+                    "action": "SkipSame",
+                    "bytes": 10545
+                },
+                {
+                    "guid": "56169be4e6995854cb17b7c506650609",
+                    "src": "Wing/wing_1005/Materials/14 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/14 1.mat",
+                    "action": "SkipSame",
+                    "bytes": 10679
+                },
+                {
+                    "guid": "315c805d27770f340b7bb3d376f5f0fa",
+                    "src": "Wing/wing_1005/Materials/14.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/14.mat",
+                    "action": "SkipSame",
+                    "bytes": 10721
+                },
+                {
+                    "guid": "243457b6c9a595844bffc04bd41ee650",
+                    "src": "Wing/wing_1005/Materials/15 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/15 1.mat",
+                    "action": "SkipSame",
+                    "bytes": 10721
+                },
+                {
+                    "guid": "d532f5fa83c3c5a4cbd485cdadab305b",
+                    "src": "Wing/wing_1005/Materials/15 2.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/15 2.mat",
+                    "action": "SkipSame",
+                    "bytes": 10613
+                },
+                {
+                    "guid": "d6a0eb06a2ba9e640b5e51abb85ca507",
+                    "src": "Wing/wing_1005/Materials/15.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/15.mat",
+                    "action": "SkipSame",
+                    "bytes": 10577
+                },
+                {
+                    "guid": "73d0e57540a00844e8e5f9994af3d577",
+                    "src": "Wing/wing_1005/Materials/16 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/16 1.mat",
+                    "action": "SkipSame",
+                    "bytes": 10682
+                },
+                {
+                    "guid": "1614f3d7c808d9145bd10a62bb2a101b",
+                    "src": "Wing/wing_1005/Materials/16.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/16.mat",
+                    "action": "SkipSame",
+                    "bytes": 10723
+                },
+                {
+                    "guid": "7afaab5f9522ac340a3cce31d731c1b2",
+                    "src": "Wing/wing_1005/Materials/17 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/17 1.mat",
+                    "action": "SkipSame",
+                    "bytes": 10727
+                },
+                {
+                    "guid": "a4510ae2ed0d4dd46a6412a2a16c80d5",
+                    "src": "Wing/wing_1005/Materials/17.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/17.mat",
+                    "action": "SkipSame",
+                    "bytes": 10582
+                },
+                {
+                    "guid": "004a088da06944d4a8e9abcb00b3e411",
+                    "src": "Wing/wing_1005/Materials/wing 1.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/wing 1.mat",
+                    "action": "SkipSame",
+                    "bytes": 10810
+                },
+                {
+                    "guid": "a70aed56b22383747abc26a86ce180a9",
+                    "src": "Wing/wing_1005/Materials/wing 2.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/wing 2.mat",
+                    "action": "SkipSame",
+                    "bytes": 10560
+                },
+                {
+                    "guid": "a1625774741fc5747b743efa735b6f0f",
+                    "src": "Wing/wing_1005/Materials/wing 3.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/wing 3.mat",
+                    "action": "SkipSame",
+                    "bytes": 10698
+                },
+                {
+                    "guid": "69084083bb41e0649b3d914cb3bf3580",
+                    "src": "Wing/wing_1005/Materials/wing 4.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/wing 4.mat",
+                    "action": "SkipSame",
+                    "bytes": 10713
+                },
+                {
+                    "guid": "c9647db0df32100459d16e0455c24c12",
+                    "src": "Wing/wing_1005/Materials/wing.mat",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Materials/wing.mat",
+                    "action": "SkipSame",
+                    "bytes": 10580
+                },
+                {
+                    "guid": "194ef5416a0ac8841826f55d08ce0cd1",
+                    "src": "Wing/wing_1005/Models/wing-1.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/wing-1.FBX",
+                    "action": "SkipSame",
+                    "bytes": 186816
+                },
+                {
+                    "guid": "6547b45c99f80ba4fa4594a246080640",
+                    "src": "Wing/wing_1005/Models/wing-2.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/wing-2.FBX",
+                    "action": "SkipSame",
+                    "bytes": 155264
+                },
+                {
+                    "guid": "9e75298f6c67cf14db511733f8917534",
+                    "src": "Wing/wing_1005/Models/wing.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/wing.FBX",
+                    "action": "SkipSame",
+                    "bytes": 436896
+                },
+                {
+                    "guid": "bfa642952c98408499126022d090e2a0",
+                    "src": "Wing/wing_1005/Models/云雾.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/云雾.FBX",
+                    "action": "SkipSame",
+                    "bytes": 19136
+                },
+                {
+                    "guid": "3ecb0d6ca38459248b143d85af8dd90f",
+                    "src": "Wing/wing_1005/Models/流水.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/流水.FBX",
+                    "action": "SkipSame",
+                    "bytes": 15712
+                },
+                {
+                    "guid": "0459824556ca63d458785ce10e6f8c35",
+                    "src": "Wing/wing_1005/Models/流水1.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/流水1.FBX",
+                    "action": "SkipSame",
+                    "bytes": 17472
+                },
+                {
+                    "guid": "3052745528c927f4d8782a46d81d853d",
+                    "src": "Wing/wing_1005/Models/特效1.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/特效1.FBX",
+                    "action": "SkipSame",
+                    "bytes": 24160
+                },
+                {
+                    "guid": "c0607807a596194429b87209ee39ae91",
+                    "src": "Wing/wing_1005/Models/特效2.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/特效2.FBX",
+                    "action": "SkipSame",
+                    "bytes": 24048
+                },
+                {
+                    "guid": "472100e7cd6f7ed4988561263830066e",
+                    "src": "Wing/wing_1005/Models/特效3.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/特效3.FBX",
+                    "action": "SkipSame",
+                    "bytes": 36432
+                },
+                {
+                    "guid": "f011a7f6769611b4a916aa6b4e81e5e8",
+                    "src": "Wing/wing_1005/Models/特效4.FBX",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Models/特效4.FBX",
+                    "action": "SkipSame",
+                    "bytes": 18176
+                },
+                {
+                    "guid": "1dc667b3f3927e74d9dbb65e7815dc9f",
+                    "src": "Wing/wing_1005/Tex/01.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/01.tga",
+                    "action": "SkipSame",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "0e1b85ea618a1ef43a46c99b4ed321b4",
+                    "src": "Wing/wing_1005/Tex/02.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/02.tga",
+                    "action": "SkipSame",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "13a50815978f7de438b4870d1cbf6660",
+                    "src": "Wing/wing_1005/Tex/03.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/03.tga",
+                    "action": "SkipSame",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "a3e0a51f6e3833248baa6cccaa64ef0b",
+                    "src": "Wing/wing_1005/Tex/04.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/04.tga",
+                    "action": "SkipSame",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "e9af0b4aa4687904bb04fa7b649c9304",
+                    "src": "Wing/wing_1005/Tex/05.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/05.tga",
+                    "action": "SkipSame",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "df08dc84544f48240b4920040612f0b4",
+                    "src": "Wing/wing_1005/Tex/06.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/06.tga",
+                    "action": "SkipSame",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "c74e2c21fbf870349a2bad7d1a0e7183",
+                    "src": "Wing/wing_1005/Tex/07.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/07.tga",
+                    "action": "SkipSame",
+                    "bytes": 12582956
+                },
+                {
+                    "guid": "3e99efec83a69ba41a7780147cfd31dc",
+                    "src": "Wing/wing_1005/Tex/08.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/08.tga",
+                    "action": "SkipSame",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "db6e6bdada8fda64694b95af421c6c08",
+                    "src": "Wing/wing_1005/Tex/09.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/09.tga",
+                    "action": "SkipSame",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "2ce04b2cc32551b4bb675bebe8e9af76",
+                    "src": "Wing/wing_1005/Tex/1.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/1.png",
+                    "action": "SkipSame",
+                    "bytes": 3368766
+                },
+                {
+                    "guid": "aea3276394eaf1348a8dd6cc4800255d",
+                    "src": "Wing/wing_1005/Tex/10.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/10.tga",
+                    "action": "SkipSame",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "f9a9fbfac0f0efb4e9523daa2dbd9ae1",
+                    "src": "Wing/wing_1005/Tex/11.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/11.tga",
+                    "action": "SkipSame",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "30cf865d54212b841979e26a646390a1",
+                    "src": "Wing/wing_1005/Tex/12.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/12.tga",
+                    "action": "SkipSame",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "9c1dc77816a13134da56f41354bd8149",
+                    "src": "Wing/wing_1005/Tex/13.jpg",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/13.jpg",
+                    "action": "SkipSame",
+                    "bytes": 654749
+                },
+                {
+                    "guid": "e65001ca2a0f1cd4cbabaa80f93a00b6",
+                    "src": "Wing/wing_1005/Tex/13.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/13.tga",
+                    "action": "SkipSame",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "088210c8379d4114a97201ef4efed482",
+                    "src": "Wing/wing_1005/Tex/2.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/2.png",
+                    "action": "SkipSame",
+                    "bytes": 2788679
+                },
+                {
+                    "guid": "5947cfa93a3654946b1e35bcae20bf31",
+                    "src": "Wing/wing_1005/Tex/3.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/3.png",
+                    "action": "SkipSame",
+                    "bytes": 5349031
+                },
+                {
+                    "guid": "d0fee1fda9e54794bab894ad54870f1a",
+                    "src": "Wing/wing_1005/Tex/4.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/4.png",
+                    "action": "SkipSame",
+                    "bytes": 1153433
+                },
+                {
+                    "guid": "58fa1536bfa205e4bb9c1759d38d7aab",
+                    "src": "Wing/wing_1005/Tex/5.jpg",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/5.jpg",
+                    "action": "SkipSame",
+                    "bytes": 219034
+                },
+                {
+                    "guid": "f5d2d1ac351b42542be5a8f6221da026",
+                    "src": "Wing/wing_1005/Tex/5.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/5.png",
+                    "action": "SkipSame",
+                    "bytes": 2319527
+                },
+                {
+                    "guid": "117529cec909fae41ae7df9a0d396762",
+                    "src": "Wing/wing_1005/Tex/6.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/6.png",
+                    "action": "SkipSame",
+                    "bytes": 6702036
+                },
+                {
+                    "guid": "26091c880039b194fba64828d27f2597",
+                    "src": "Wing/wing_1005/Tex/7.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/7.png",
+                    "action": "SkipSame",
+                    "bytes": 8365180
+                },
+                {
+                    "guid": "6490ce38e975f2d47a19d1ffb0f9104f",
+                    "src": "Wing/wing_1005/Tex/Tx_Caustics_03.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_Caustics_03.tga",
+                    "action": "SkipSame",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "28409c3a850a9a941bfcd64fb4989e1d",
+                    "src": "Wing/wing_1005/Tex/Tx_Mask_01.tga",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_Mask_01.tga",
+                    "action": "SkipSame",
+                    "bytes": 262188
+                },
+                {
+                    "guid": "03e2c9569519ab84db752bff67400c13",
+                    "src": "Wing/wing_1005/Tex/Tx_Noise_04.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_Noise_04.png",
+                    "action": "SkipSame",
+                    "bytes": 1171055
+                },
+                {
+                    "guid": "59ff03ed16bbfbb4dad78560e05f8ac6",
+                    "src": "Wing/wing_1005/Tex/TX_Noise_22.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/TX_Noise_22.png",
+                    "action": "SkipSame",
+                    "bytes": 533470
+                },
+                {
+                    "guid": "4cabe5f3bae593249871d871deffd3f0",
+                    "src": "Wing/wing_1005/Tex/Tx_Noise_34.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_Noise_34.png",
+                    "action": "SkipSame",
+                    "bytes": 126220
+                },
+                {
+                    "guid": "122cbafe83fde0a4eabb02b08875cfed",
+                    "src": "Wing/wing_1005/Tex/Tx_SmokeTrail_01.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_SmokeTrail_01.png",
+                    "action": "SkipSame",
+                    "bytes": 130510
+                },
+                {
+                    "guid": "01608a4ceb20b8742821bc272ac99a89",
+                    "src": "Wing/wing_1005/Tex/Tx_SmokeTrail_02.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_SmokeTrail_02.png",
+                    "action": "SkipSame",
+                    "bytes": 77879
+                },
+                {
+                    "guid": "239a37dfa69fc0c478326260a65ddc11",
+                    "src": "Wing/wing_1005/Tex/Tx_SmokeTrail_04.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_SmokeTrail_04.png",
+                    "action": "SkipSame",
+                    "bytes": 320692
+                },
+                {
+                    "guid": "c27b755717e66644bbb4601dc5dfa80f",
+                    "src": "Wing/wing_1005/Tex/Tx_Trail_02.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_Trail_02.png",
+                    "action": "SkipSame",
+                    "bytes": 93502
+                },
+                {
+                    "guid": "eca813d8ff538e24788fe4d03670b947",
+                    "src": "Wing/wing_1005/Tex/Tx_Trail_04.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/Tx_Trail_04.png",
+                    "action": "SkipSame",
+                    "bytes": 156178
+                },
+                {
+                    "guid": "697b1e7b4535ba54dacf2cf123a761c9",
+                    "src": "Wing/wing_1005/Tex/山石.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/山石.png",
+                    "action": "SkipSame",
+                    "bytes": 2584545
+                },
+                {
+                    "guid": "864889eccb3754c4d812aeebd097b835",
+                    "src": "Wing/wing_1005/Tex/特效.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/特效.png",
+                    "action": "SkipSame",
+                    "bytes": 10067861
+                },
+                {
+                    "guid": "8fdcfed85efd1d24181eecf1ebe20b71",
+                    "src": "Wing/wing_1005/Tex/特效01.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/特效01.png",
+                    "action": "SkipSame",
+                    "bytes": 1045309
+                },
+                {
+                    "guid": "3bf78a9855e8f554993e3ea1906d8a03",
+                    "src": "Wing/wing_1005/Tex/特效02 1.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/特效02 1.png",
+                    "action": "SkipSame",
+                    "bytes": 4858792
+                },
+                {
+                    "guid": "ebd5f8623d4c4fb4aae7b00c024b5688",
+                    "src": "Wing/wing_1005/Tex/特效02.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/特效02.png",
+                    "action": "SkipSame",
+                    "bytes": 4388254
+                },
+                {
+                    "guid": "c98b744c079af9d4a8e85ec384360c77",
+                    "src": "Wing/wing_1005/Tex/特效03.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/特效03.png",
+                    "action": "SkipSame",
+                    "bytes": 1179102
+                },
+                {
+                    "guid": "5ee7571cd96a7e04d9b5f673ec187d09",
+                    "src": "Wing/wing_1005/Tex/翅膀.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/翅膀.png",
+                    "action": "SkipSame",
+                    "bytes": 6990832
+                },
+                {
+                    "guid": "486006872f88c3b4f8a2efcefd9e6bc3",
+                    "src": "Wing/wing_1005/Tex/透贴.png",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Tex/透贴.png",
+                    "action": "SkipSame",
+                    "bytes": 243288
+                },
+                {
+                    "guid": "9471e7a10a2fc4547805c9031f037785",
+                    "src": "Wing/wing_1005/Timeline/idle.playable",
+                    "dst": "Assets/GameRes/object/wing/wing_1005/Timeline/idle.playable",
+                    "action": "SkipSame",
+                    "bytes": 11939
+                },
+                {
+                    "guid": "446de4ba36021554a94eb3e445fa294c",
+                    "src": "PandaShaderV2.3/Pandavfx_v2.3.shader",
+                    "dst": "Assets/GameRes/object/artshared/PandaShaderV2.3/Pandavfx_v2.3.shader",
+                    "action": "Replace",
+                    "bytes": 28260
+                }
+            ],
+            "notes": [
+                "半透渐变材质 1005@idle.prefab → \"Material #7\"(贴图 翅膀.png 渐变像素 3.2%,运行时走 Transparent)",
+                "半透渐变材质 1005@idle.prefab → \"wing 1\"(贴图 翅膀.png 渐变像素 3.2%,运行时走 Transparent)",
+                "半透渐变材质 1005@idle.prefab → \"wing\"(贴图 翅膀.png 渐变像素 3.2%,运行时走 Transparent)",
+                "半透渐变材质 1005@idle.prefab → \"wing 3\"(贴图 翅膀.png 渐变像素 3.2%,运行时走 Transparent)",
+                "半透渐变材质 1005@idle.prefab → \"wing 4\"(贴图 翅膀.png 渐变像素 3.2%,运行时走 Transparent)",
+                "半透渐变材质 1005@idle.prefab → \"10\"(贴图 翅膀.png 渐变像素 3.2%,运行时走 Transparent)"
+            ]
+        },
+        {
+            "time": "2026-07-22 16:30:16",
+            "sourceProject": "E:/GitProject/ArtsProject/Assets",
+            "renderMode": "Dedicated",
+            "rendererIndex": 1,
+            "added": 7,
+            "replaced": 0,
+            "skippedSame": 0,
+            "deduped": 0,
+            "files": [
+                {
+                    "guid": "b44cc18d4ab6675468adf9a12db1c250",
+                    "src": "Role/role_1202/1202@idle.prefab",
+                    "dst": "Assets/GameRes/object/role/role_1202/1202@idle.prefab",
+                    "action": "Add",
+                    "bytes": 8452
+                },
+                {
+                    "guid": "53642e3d229dea444bc7a426802bdc7d",
+                    "src": "Role/role_1202/Materials/bobd.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/bobd.mat",
+                    "action": "Add",
+                    "bytes": 4071
+                },
+                {
+                    "guid": "7918c3177390d9b458edba6b77c8c4bd",
+                    "src": "Role/role_1202/Materials/head.mat",
+                    "dst": "Assets/GameRes/object/role/role_1202/Materials/head.mat",
+                    "action": "Add",
+                    "bytes": 4043
+                },
+                {
+                    "guid": "aea4ce692330491458cfcaea650c05ac",
+                    "src": "Role/role_1202/Models/1202-idle.FBX",
+                    "dst": "Assets/GameRes/object/role/role_1202/Models/1202-idle.FBX",
+                    "action": "Add",
+                    "bytes": 408928
+                },
+                {
+                    "guid": "9179a515a812d0246b54a6694d2f866b",
+                    "src": "Role/role_1202/Tex/头.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/头.png",
+                    "action": "Add",
+                    "bytes": 1730302
+                },
+                {
+                    "guid": "a6c0fe3d6d8705342955e35117cfcf4a",
+                    "src": "Role/role_1202/Tex/服饰.png",
+                    "dst": "Assets/GameRes/object/role/role_1202/Tex/服饰.png",
+                    "action": "Add",
+                    "bytes": 15025982
+                },
+                {
+                    "guid": "330b9bff1190c9145b6766f2366bf245",
+                    "src": "Role/role_1202/Timeline/idle.playable",
+                    "dst": "Assets/GameRes/object/role/role_1202/Timeline/idle.playable",
+                    "action": "Add",
+                    "bytes": 4240
+                }
+            ],
+            "notes": [
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1402/1402@idle.prefab",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1402/Materials/bobd.mat",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1402/Materials/head.mat",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1402/Models/1202-idle.FBX",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1402/Tex/头.png",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1402/Tex/服饰.png",
+                "整部件替换:迁回规范路径并移除旧路径 Assets/GameRes/object/role/role_1402/Timeline/idle.playable",
+                "整模型替换:移除旧动作 Assets/GameRes/object/role/role_1202/1202@create3.prefab",
+                "程序兼容:美术未交 create3，已由 idle 生成 1202@create3.prefab（同动作内容）",
+                "落点采样 1202@idle.prefab(按 idle 末帧,骨骼锚点):landing=(0.00, 0.24, 0.00) 身高=4.72 scale=0.49",
+                "半透渐变材质 1202@idle.prefab → \"bobd\"(贴图 服饰.png 渐变像素 0.7%,运行时走 Transparent)",
+                "落点采样 1202@create3.prefab(按 create3 末帧,骨骼锚点):landing=(0.00, 0.24, 0.00) 身高=4.72 scale=0.49",
+                "半透渐变材质 1202@create3.prefab → \"bobd\"(贴图 服饰.png 渐变像素 0.7%,运行时走 Transparent)",
+                "挂点体检 1202@idle.prefab:rhand scale 必须为 1（只影响部件挂接，身体动作已启用；美术工程跑[交付/补挂点]后重导）",
+                "挂点体检 1202@create3.prefab:rhand scale 必须为 1（只影响部件挂接，身体动作已启用；美术工程跑[交付/补挂点]后重导）"
+            ]
         }
     ]
 }

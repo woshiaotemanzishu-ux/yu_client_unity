@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 namespace Shenxiao.Common.UI3D
 {
@@ -40,5 +41,19 @@ namespace Shenxiao.Common.UI3D
         [Tooltip("需要【半透渐变混合】的材质名(导入时分析贴图 alpha 直方图:有中间值=轻纱/雾状渐变," +
                  "运行时设 Transparent+ZWrite;其余身体材质走 Alpha Clipping 镂空)")]
         public string[] blendMaterials;
+
+        /// <summary>把档案应用到指定相机；UI 台、场景台和编辑器预览共用，避免渲染口径分叉。</summary>
+        public static void ApplyToCamera(Camera camera, ArtModelRenderProfile profile)
+        {
+            if (camera == null) return;
+            UniversalAdditionalCameraData camData = camera.GetUniversalAdditionalCameraData();
+            if (camData == null) return;
+            camData.SetRenderer(profile != null && profile.useDedicatedRenderer && profile.rendererIndex >= 0
+                ? profile.rendererIndex : -1);
+            camData.requiresDepthOption = profile != null && profile.forceDepthTexture
+                ? CameraOverrideOption.On : CameraOverrideOption.UsePipelineSettings;
+            camData.requiresColorOption = profile != null && profile.forceOpaqueTexture
+                ? CameraOverrideOption.On : CameraOverrideOption.UsePipelineSettings;
+        }
     }
 }

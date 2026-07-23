@@ -34,6 +34,25 @@ namespace Shenxiao.Common.UI3D
             _spec = spec;
         }
 
+        /// <summary>
+        /// 动作序列在混合模型下无法沿用旧 Animation.PlayQueued。优先取序列中已经交付的新动作，
+        /// 再退回首个原始动作。典型场景:create2 未交、create3 由 idle 生成时应直接展示 create3，
+        /// 不能先构建老 create2 后永远停在旧模型。
+        /// </summary>
+        public string PreferredAction(IEnumerable<string> actions, string fallback = "idle")
+        {
+            if (_spec == null || actions == null) return fallback;
+            string first = null;
+            foreach (string action in actions)
+            {
+                if (string.IsNullOrEmpty(action)) continue;
+                if (first == null) first = action;
+                if (ModelReplacement.GetPrefabKey("role", _spec.ClotheRes, action) != null)
+                    return action;
+            }
+            return first ?? fallback;
+        }
+
         /// <summary>该动作能不能播:新配置在→能;老模型已建→查 clip;老模型未建→先放行(真播时缺再静默跳过)。</summary>
         public bool CanPlay(string action)
         {

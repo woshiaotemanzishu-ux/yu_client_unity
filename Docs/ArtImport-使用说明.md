@@ -77,7 +77,7 @@
 | 游戏里模型左右镜像 | 展示台为 Laya 老模型做了 RT 水平翻转补偿(老端几何是镜像的);新成品模型是原生朝向,带渲染档案的模型已自动**不翻转**。发现镜像=该 prefab 没挂 ArtModelRenderProfile(重新 [导入/更新]) |
 | 模型全紫 | shader 缺/编译失败:确认 `object/artshared/PandaShaderV2.3/` 在,点开 shader 看 Console 报错 |
 | 游戏里看不到模型 | 先确认跑过 Addressable 自动分组;归一化已兜底大小/位置,若仍取不到景=该 prefab 没有蒙皮网格(锚点退化),报给程序 |
-| 特效在台上洗成白块(场景里正常) | 已修:整模的 RawImage 自动换 `Shenxiao/UI/StageComposite` 预乘合成材质(透明 RT+默认 UI SrcAlpha 混合会把加法特效洗白)。老模型不受影响。若仍有过曝白核=LDR RT 削顶,找程序换 HDR RT |
+| 特效在台上洗成白块(场景里正常) | 已修:带渲染档案的模型自动使用独立 Renderer、Depth/Opaque Texture 和 `Shenxiao/UI/StageComposite` 预乘合成；老模型仍走默认路径。若仍异常先确认运行时实际取到 `ArtModelRenderProfile`，再查材质 `_ScrA/_DstA` |
 | 一直走老模型 | 地址没登记(跑分组)、或 res id 对不上:职业 role_res 见 configlogin.json 的 CreateRole.Res(1111/1213/1300/1400) |
 | 出场动画"原地做动作"(位移不见) | 实锤根因:位移沿 Z(镜头深度),**正交相机下深度移动不可见**;整模已自动切透视 FOV60(照抄美术工程相机,落点平面构图不变)。仍不动→跑诊断菜单看顶层节点(如 ride)逐轴曲线统计,X/Y/Z 全常量=位移根本不在动画里(美术那边看到的是他们场景的相机运动) |
 | 该透明的地方渲成白块/半透渐变不对 | 透明信息在贴图 alpha 里,内嵌材质默认 Opaque 不读。**已自动双轨处理**(导入时分析每张贴图的 alpha 直方图并烤进档案,重导生效):二值缺口→Alpha Clipping 镂空;有渐变像素(>0.2%)的材质→Transparent 混合+保深度写(轻纱/飘带柔和渐变)。台账 notes 会点名"半透渐变材质"。美术在 prefab 里自设 Transparent 的材质游戏不碰。若某材质转 Transparent 后出现自身排序瑕疵→把纱类部件拆成独立材质是最优解 |

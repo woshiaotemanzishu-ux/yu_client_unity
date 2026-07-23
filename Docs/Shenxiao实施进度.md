@@ -940,7 +940,7 @@ Shenxiao.EditorTools.CliVerify.RenderAll -logFile Temp/x.log`(勿加 -nographics
 根因=嵌套标准 prefab(EquipmentItem.prefab)自带 Bind,**旧版回填(嵌套跳过 guard 加入前)又在实例根上 AddComponent 了 added-override 重复件**
 → OnInit/BindClick 双跑,点击回调触发两次(全项目列表项/奖励格潜在双击 bug)。修(修工具不手改 prefab):
 ① `LayaBindFiller.EnsureBindOnWindow` 加同类型重复清理(保非 override 件)+ 嵌套实例升级守卫(不再 DestroyImmediate 嵌套件——历史重复正是它炸掉后 AddComponent 产生的);
-② 新增全量清扫 `RemoveDuplicateBinds`(菜单 神霄/UI/清理重复 Bind 组件;CLI `LayaBindFiller.RemoveDuplicateBindsCli`)——
+② 新增全量清扫 `RemoveDuplicateBinds`(CLI `LayaBindFiller.RemoveDuplicateBindsCli`;存量清完后已撤掉一次性菜单入口)——
 **清理 145 个 prefab、移除 1114 个重复组件**(Achv/Activity/Bag/Boss/… 全模块波及)。
 
 **P2b 使用物品 15050 全链(协议+逻辑,对标老端逐行)**:

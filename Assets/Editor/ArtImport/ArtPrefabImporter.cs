@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using Shenxiao.Common.UI3D;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Playables;
 
 namespace Shenxiao.EditorTools.ArtImport
 {
@@ -72,6 +73,7 @@ namespace Shenxiao.EditorTools.ArtImport
             public string SourceAssetsRoot;
             public readonly List<PlannedFile> Files = new List<PlannedFile>();
             public readonly List<string> RootPrefabDsts = new List<string>();
+            public readonly List<string> RelocatedAssetPaths = new List<string>();
             public readonly List<string> Warnings = new List<string>();
             public readonly Dictionary<string, string> GuidRemap = new Dictionary<string, string>();
         }
@@ -136,7 +138,7 @@ namespace Shenxiao.EditorTools.ArtImport
         };
 
         /// <summary>角色本体必须带的挂点(精确小写;head_mount 含头骨绑定姿态逆矩阵)。</summary>
-        private static readonly string[] RoleMountNodes = { "head_mount", "rhand", "root" };
+        private static readonly string[] RoleMountNodes = { "head_mount", "rhand", "wing", "root" };
 
         public static bool IsPartModule(string module) => PartTopDirs.ContainsKey(module);
 
@@ -236,8 +238,9 @@ namespace Shenxiao.EditorTools.ArtImport
         }
 
         /// <summary>
-        /// 角色本体挂点体检:返回缺失的挂点节点名(head_mount/rhand/root,精确小写)。
-        /// 缺 head_mount=静态模型空间头部附件无法跟头、缺 rhand=武器挂不上、缺 root=技能特效兜底挂错位。
+        /// 角色本体挂点体检:返回缺失的挂点节点名(head_mount/rhand/wing/root,精确小写)。
+        /// 缺 head_mount=静态模型空间头部附件无法跟头、缺 rhand=武器挂不上、缺 wing=翅膀挂不上、
+        /// 缺 root=技能特效兜底挂错位。
         /// </summary>
         public static string[] MissingRoleMounts(string prefabPath)
         {
@@ -249,8 +252,65 @@ namespace Shenxiao.EditorTools.ArtImport
         }
 
         /// <summary>
-        /// 主工程导入后的第二道硬检查。Art 项目负责 profile 与多动作检查；这里再次确认最终 prefab
-        /// 没在复制/改名/导入中丢失 locator、父级或单位变换。失败时资产管理不会自动启用坏资源。
+        /// 挂点问题只影响头饰/武器/翅膀/特效，不影响身体 Timeline 播放。完整检查结果进入导入台账供美术修，
+        /// 但不再作为 idle/create3 是否写入替换清单的硬门槛。
+        /// </summary>
+        private static string[] InspectRoleMountStructure(string path)
+        {
+            var issues = new List<string>();
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefab == null) return new[] { path + " 无法加载，不能检查挂点" };
+
+            Transform[] all = prefab.GetComponentsInChildren<Transform>(true);
+            Transform[] heads = all.Where(t => t.name == "head_mount").ToArray();
+            Transform[] hands = all.Where(t => t.name == "rhand").ToArray();
+            Transform[] wings = all.Where(t => t.name == "wing").ToArray();
+            Transform[] roots = all.Where(t => t.name == "root").ToArray();
+            if (heads.Length != 1) issues.Add($"head_mount 数量={heads.Length}，必须为 1");
+            if (hands.Length != 1) issues.Add($"rhand 数量={hands.Length}，必须为 1");
+            if (wings.Length != 1) issues.Add($"wing 数量={wings.Length}，必须为 1");
+            if (roots.Length != 1) issues.Add($"root 数量={roots.Length}，必须为 1");
+
+            if (hands.Length == 1)
+            {
+                Transform hand = hands[0];
+                string[] handHosts = { "Bip001 R Hand", "Bip001_R_Hand", "R Hand", "RightHand" };
+                if (hand.parent == null || !handHosts.Any(n =>
+                        string.Equals(hand.parent.name, n, StringComparison.OrdinalIgnoreCase)))
+                    issues.Add("rhand 不在实际右手骨下");
+                if (!Nearly(hand.localScale, Vector3.one, 0.0001f))
+                    issues.Add("rhand scale 必须为 1");
+            }
+
+            if (heads.Length == 1)
+            {
+                Transform head = heads[0];
+                // 2026-07-16 与 Art 工程 MountPointPatcher 同步:补偿以蒙皮 bindposes 为事实源。
+                if (TryGetHeadBindLocal(prefab.transform, head.parent, out Matrix4x4 expected))
+                {
+                    Vector3 expScale = expected.lossyScale;
+                    if (expected.determinant < 0f) expScale.x = -expScale.x;
+                    if ((head.localPosition - expected.GetPosition()).magnitude > 0.005f
+                        || Quaternion.Angle(head.localRotation, expected.rotation) > 0.1f
+                        || (head.localScale - expScale).magnitude > 0.005f)
+                        issues.Add("head_mount 没有绑定姿态逆矩阵补偿(vs bindposes 真值)");
+                }
+                else
+                {
+                    Matrix4x4 relative = prefab.transform.worldToLocalMatrix * head.localToWorldMatrix;
+                    if (relative.GetPosition().magnitude > 0.0001f
+                        || Quaternion.Angle(relative.rotation, Quaternion.identity) > 0.05f
+                        || (relative.lossyScale - Vector3.one).magnitude > 0.001f)
+                        issues.Add("head_mount 没有绑定姿态逆矩阵补偿");
+                }
+            }
+            return issues.ToArray();
+        }
+
+        /// <summary>
+        /// 主工程导入后的第二道硬检查。角色本体只把“动作能否实际播放”作为启用门槛；
+        /// head_mount/rhand/wing/root 属于部件挂接能力，缺失时继续启用身体动作并在导入台账中明确告警，
+        /// 不能因为一把武器暂时挂不上，就让已经可播放的 idle/create3 整体保持未配置状态。
         /// </summary>
         public static string[] ValidateImportedPartStructure(string module, IEnumerable<string> prefabPaths)
         {
@@ -270,6 +330,7 @@ namespace Shenxiao.EditorTools.ArtImport
                         case "role": ValidateRoleStructure(path, prefab); break;
                         case "head": ValidateHeadStructure(path, prefab); break;
                         case "weapon": ValidateWeaponStructure(path, prefab); break;
+                        case "wing": ValidateWingStructure(path, prefab); break;
                     }
                 }
                 catch (InvalidOperationException e) { issues.Add(e.Message); }
@@ -279,40 +340,16 @@ namespace Shenxiao.EditorTools.ArtImport
 
         private static void ValidateRoleStructure(string path, GameObject prefab)
         {
-            Transform[] all = prefab.GetComponentsInChildren<Transform>(true);
-            Transform head = SingleNamed(path, all, "head_mount");
-            Transform hand = SingleNamed(path, all, "rhand");
-            SingleNamed(path, all, "root");
-
-            string[] handHosts = { "Bip001 R Hand", "Bip001_R_Hand", "R Hand", "RightHand" };
-            if (hand.parent == null || !handHosts.Any(n =>
-                    string.Equals(hand.parent.name, n, StringComparison.OrdinalIgnoreCase)))
-                throw new InvalidOperationException(path + " rhand 不在实际右手骨下");
-            if (!Nearly(hand.localScale, Vector3.one, 0.0001f))
-                throw new InvalidOperationException(path + " rhand scale 必须为 1");
-
-            // 2026-07-16 与 Art 工程 MountPointPatcher 同步:补偿以蒙皮 bindposes 为事实源
-            // (真绑定姿态,与 FBX 静置摆姿无关;旧口径"当前姿态下累计=角色根"在摆姿≠绑定时必误报)。
-            if (TryGetHeadBindLocal(prefab.transform, head.parent, out Matrix4x4 expected))
-            {
-                Vector3 expPos = expected.GetPosition();
-                Quaternion expRot = expected.rotation;
-                Vector3 expScale = expected.lossyScale;
-                if (expected.determinant < 0f) expScale.x = -expScale.x;
-                if ((head.localPosition - expPos).magnitude > 0.005f
-                    || Quaternion.Angle(head.localRotation, expRot) > 0.1f
-                    || (head.localScale - expScale).magnitude > 0.005f)
-                    throw new InvalidOperationException(path + " head_mount 没有绑定姿态逆矩阵补偿(vs bindposes 真值)");
-            }
-            else
-            {
-                // 头骨不在任何蒙皮 bones 中才回退旧口径(要求静置姿态=绑定姿态)。
-                Matrix4x4 relative = prefab.transform.worldToLocalMatrix * head.localToWorldMatrix;
-                if (relative.GetPosition().magnitude > 0.0001f
-                    || Quaternion.Angle(relative.rotation, Quaternion.identity) > 0.05f
-                    || (relative.lossyScale - Vector3.one).magnitude > 0.001f)
-                    throw new InvalidOperationException(path + " head_mount 没有绑定姿态逆矩阵补偿");
-            }
+            PlayableDirector director = prefab.GetComponentInChildren<PlayableDirector>(true);
+            if (director == null || director.playableAsset == null)
+                throw new InvalidOperationException(path + " 缺 PlayableDirector 或 playable");
+            Animator animator = prefab.GetComponentInChildren<Animator>(true);
+            if (animator == null)
+                throw new InvalidOperationException(path + " 缺 Animator");
+            bool animatorBound = director.playableAsset.outputs.Any(output =>
+                director.GetGenericBinding(output.sourceObject) is Animator);
+            if (!animatorBound)
+                throw new InvalidOperationException(path + " Timeline AnimationTrack 没有绑定 Animator");
         }
 
         /// <summary>bindpose = W_bone⁻¹ × W_smr ⇒ W_bone(bind) = W_smr × bindpose⁻¹;期望补偿 L = W_bone(bind)⁻¹ × W_root。</summary>
@@ -370,6 +407,20 @@ namespace Shenxiao.EditorTools.ArtImport
                     || Quaternion.Angle(locator.localRotation, relative.rotation) > 0.01f)
                     throw new InvalidOperationException(path + " weapon_attach 未对齐 Bone_wq_r 的握点和轴向");
             }
+        }
+
+        private static void ValidateWingStructure(string path, GameObject prefab)
+        {
+            RequireUnit(path + " prefab 根", prefab.transform);
+            Transform locator = FindDirect(prefab.transform, "wing_attach");
+            Transform content = FindDirect(prefab.transform, "wing_content");
+            if (locator == null || content == null)
+                throw new InvalidOperationException(path + " 缺根直属 wing_attach/wing_content");
+            if (!Nearly(locator.localScale, Vector3.one, 0.0001f))
+                throw new InvalidOperationException(path + " wing_attach scale 必须为 1");
+            RequireUnit(path + " wing_content", content);
+            if (prefab.GetComponentsInChildren<Transform>(true).Count(t => t.name == "wing_attach") != 1)
+                throw new InvalidOperationException(path + " 必须有且只有一个 wing_attach");
         }
 
         private static Transform SingleNamed(string path, Transform[] all, string name)
@@ -965,6 +1016,12 @@ namespace Shenxiao.EditorTools.ArtImport
             var usedDst = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (PlannedFile f in closure)
             {
+                string relAssets = Rel(plan.SourceAssetsRoot, f.Src);
+                string owner = folderMap.Keys
+                    .Where(k => relAssets.StartsWith(k + "/", StringComparison.OrdinalIgnoreCase))
+                    .OrderByDescending(k => k.Length)
+                    .FirstOrDefault();
+
                 // 角色目录根下的所有 prefab 都算"根 prefab"(挂档案+换材质),不只用户勾的那个——
                 // create3 曾因只勾了 create2 而五次导入都没被接管,镜像/材质跟着漏(实锤教训)
                 string srcDir = Path.GetDirectoryName(f.Src)?.Replace('\\', '/');
@@ -989,15 +1046,15 @@ namespace Shenxiao.EditorTools.ArtImport
 
                 if (canonicalRootDst != null)
                 {
-                    if (!usedDst.Add(canonicalRootDst))
-                        plan.Warnings.Add($"根 prefab 动作重名:{canonicalRootDst}(请清理美术源目录中的重复动作)");
-                    f.Dst = canonicalRootDst;
-                    f.Action = File.Exists(AbsOfProject(canonicalRootDst))
-                        ? (HashEquals(f.Src, canonicalRootDst) &&
-                           HashEquals(f.Src + ".meta", canonicalRootDst + ".meta")
-                            ? FileAction.SkipSame
-                            : FileAction.Replace)
-                        : FileAction.Add;
+                    MapForcedTarget(plan, f, canonicalRootDst, usedDst);
+                }
+                else if (_forcedTargetFolder != null && owner != null)
+                {
+                    // ImportPart 是整部件替换。部件目录内的依赖也必须落回源目录对应的规范路径；
+                    // 不能因为上次交付重建了 meta/GUID，就保留旧文件并生成 idle_xxxxxx.playable。
+                    string canonicalDst =
+                        $"{_targetBase}/{folderMap[owner]}/{relAssets.Substring(owner.Length + 1)}";
+                    MapForcedTarget(plan, f, canonicalDst, usedDst);
                 }
                 else
                 {
@@ -1012,11 +1069,6 @@ namespace Shenxiao.EditorTools.ArtImport
                     }
                     else
                     {
-                        string relAssets = Rel(plan.SourceAssetsRoot, f.Src);
-                        string owner = folderMap.Keys
-                            .Where(k => relAssets.StartsWith(k + "/", StringComparison.OrdinalIgnoreCase))
-                            .OrderByDescending(k => k.Length)
-                            .FirstOrDefault();
                         string dst = owner != null
                             ? $"{_targetBase}/{folderMap[owner]}/{relAssets.Substring(owner.Length + 1)}"
                             : $"{_sharedBase}/{relAssets}";
@@ -1038,6 +1090,28 @@ namespace Shenxiao.EditorTools.ArtImport
             }
         }
 
+        private static void MapForcedTarget(Plan plan, PlannedFile file, string destination,
+            HashSet<string> usedDestinations)
+        {
+            if (!usedDestinations.Add(destination))
+                plan.Warnings.Add($"部件内规范路径重名:{destination}(请清理美术源目录中的重复文件)");
+
+            string existingByGuid = AssetDatabase.GUIDToAssetPath(file.Guid);
+            if (!string.IsNullOrEmpty(existingByGuid)
+                && !string.Equals(existingByGuid, destination, StringComparison.OrdinalIgnoreCase))
+            {
+                plan.RelocatedAssetPaths.Add(existingByGuid);
+            }
+
+            file.Dst = destination;
+            file.Action = File.Exists(AbsOfProject(destination))
+                ? (HashEquals(file.Src, destination)
+                   && HashEquals(file.Src + ".meta", destination + ".meta")
+                    ? FileAction.SkipSame
+                    : FileAction.Replace)
+                : FileAction.Add;
+        }
+
         // ---------------- 导入执行 ----------------
 
         private void Execute(Plan plan)
@@ -1048,8 +1122,10 @@ namespace Shenxiao.EditorTools.ArtImport
                 .ToList();
             try
             {
-                // ImportPart 是整模型替换:同步根动作 prefab,删除目标目录里源目录已不存在的旧动作
-                // 以及历史碰撞生成的 *_xxxxxx 副本。只清目标模型目录顶层,不碰依赖子目录。
+                RemoveRelocatedAssets(plan, notes);
+
+                // ImportPart 是整模型替换:同步根动作 prefab,删除目标目录里源目录已不存在的旧动作；
+                // 部件内依赖若因历史 GUID 碰撞落过后缀路径,也迁回源目录对应的规范路径。
                 SyncRootPrefabs(plan, notes);
 
                 // 1. 落文件(文本资产顺手做去重 GUID 重写),一次 Refresh 全导入
@@ -1090,6 +1166,10 @@ namespace Shenxiao.EditorTools.ArtImport
                     EditorUtility.DisplayProgressBar("导入", "二次导入模型 " + f.Dst, 0.9f);
                     AssetDatabase.ImportAsset(f.Dst, ImportAssetOptions.ForceUpdate);
                 }
+
+                // role 只交 idle 时，程序侧生成标准 create3 动作件。创角链明确请求 create3，
+                // 不能让业务代码把 idle 当 create3 硬播；生成独立 prefab + Timeline 后仍按标准动作清单接管。
+                EnsureRoleCreate3Alias(plan, notes);
 
                 // 2.7 材质策略:身体材质保留 FBX 内嵌(=美术工程原样:Lit 材质+舞台补光,
                 // 见 UIModelStage.StageLight)。顺手清理历史版本盲生成的 _gen_* 替身材质。
@@ -1138,11 +1218,9 @@ namespace Shenxiao.EditorTools.ArtImport
                 {
                     foreach (string dst in plan.RootPrefabDsts.Distinct())
                     {
-                        string[] missing = MissingRoleMounts(dst);
-                        if (missing.Length > 0)
-                            notes.Add($"挂点体检 {Path.GetFileName(dst)}:缺 [{string.Join(",", missing)}]" +
-                                      "(精确小写;缺 head_mount=静态头部附件无法跟头/缺 rhand=武器挂不上/缺 root=特效兜底挂错位)" +
-                                      "——美术工程跑[交付/补挂点]后重导");
+                        foreach (string issue in InspectRoleMountStructure(dst))
+                            notes.Add($"挂点体检 {Path.GetFileName(dst)}:{issue}" +
+                                      "（只影响部件挂接，身体动作已启用；美术工程跑[交付/补挂点]后重导）");
                     }
                 }
 
@@ -1152,7 +1230,7 @@ namespace Shenxiao.EditorTools.ArtImport
                     EditorUtility.DisplayProgressBar("导入", "Addressable 自动分组…", 0.95f);
                     AddrSetup.AddressableSetup.AutoGroupAll();
                 }
-                WriteLedger(plan, rendererIndex, notes);
+                QueueLedgerWrite(plan, rendererIndex, notes);
 
                 int added = plan.Files.Count(f => f.Action == FileAction.Add);
                 int replaced = plan.Files.Count(f => f.Action == FileAction.Replace);
@@ -1168,6 +1246,116 @@ namespace Shenxiao.EditorTools.ArtImport
             {
                 EditorUtility.ClearProgressBar();
             }
+        }
+
+        private static void RemoveRelocatedAssets(Plan plan, List<string> notes)
+        {
+            var destinations = new HashSet<string>(
+                plan.Files.Select(file => file.Dst), StringComparer.OrdinalIgnoreCase);
+            foreach (string path in plan.RelocatedAssetPaths.Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                if (destinations.Contains(path)) continue;
+                if (!AssetDatabase.DeleteAsset(path))
+                    throw new IOException("无法清理同 GUID 的旧导入路径:" + path);
+                notes.Add("整部件替换:迁回规范路径并移除旧路径 " + path);
+            }
+        }
+
+        /// <summary>
+        /// 角色交付只有 idle 时，用同一段 Timeline 生成独立 create3 标准动作件。
+        /// 两个 prefab/Timeline 各有自己的 GUID，运行时仍按动作名选择；以后美术补真 create3 时，
+        /// SyncRootPrefabs 会先删掉这个程序别名，再由源交付完整替换。
+        /// </summary>
+        private void EnsureRoleCreate3Alias(Plan plan, List<string> notes)
+        {
+            if (!_checkRoleMounts || string.IsNullOrEmpty(_partId)) return;
+            if (plan.RootPrefabDsts.Any(path =>
+                    string.Equals(ActionOfPrefab(path), "create3", StringComparison.OrdinalIgnoreCase)))
+                return;
+
+            string idlePrefabPath = plan.RootPrefabDsts.FirstOrDefault(path =>
+                string.Equals(ActionOfPrefab(path), "idle", StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrEmpty(idlePrefabPath)
+                || !File.Exists(AbsOfProject(idlePrefabPath)))
+                return;
+
+            GameObject idlePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(idlePrefabPath);
+            PlayableDirector idleDirector = idlePrefab != null
+                ? idlePrefab.GetComponentInChildren<PlayableDirector>(true)
+                : null;
+            string idleTimelinePath = idleDirector?.playableAsset != null
+                ? AssetDatabase.GetAssetPath(idleDirector.playableAsset)
+                : null;
+            if (string.IsNullOrEmpty(idleTimelinePath))
+            {
+                notes.Add($"{idlePrefabPath} 没有可复制的 Timeline，无法自动生成 create3");
+                return;
+            }
+
+            string roleFolder = Path.GetDirectoryName(idlePrefabPath)?.Replace('\\', '/');
+            if (string.IsNullOrEmpty(roleFolder)) return;
+            string create3PrefabPath = $"{roleFolder}/{_partId}@create3.prefab";
+            string create3TimelineFolder = $"{roleFolder}/Timeline";
+            string create3TimelinePath = $"{create3TimelineFolder}/create3.playable";
+
+            if (!AssetDatabase.IsValidFolder(create3TimelineFolder))
+            {
+                Directory.CreateDirectory(AbsOfProject(create3TimelineFolder));
+                AssetDatabase.Refresh();
+            }
+            if (AssetDatabase.LoadMainAssetAtPath(create3PrefabPath) != null)
+                AssetDatabase.DeleteAsset(create3PrefabPath);
+            if (AssetDatabase.LoadMainAssetAtPath(create3TimelinePath) != null)
+                AssetDatabase.DeleteAsset(create3TimelinePath);
+
+            if (!AssetDatabase.CopyAsset(idleTimelinePath, create3TimelinePath))
+                throw new IOException($"复制 create3 Timeline 失败:{idleTimelinePath} → {create3TimelinePath}");
+            PlayableAsset create3Timeline = AssetDatabase.LoadAssetAtPath<PlayableAsset>(create3TimelinePath);
+            if (create3Timeline == null)
+                throw new IOException("复制后的 create3 Timeline 无法加载:" + create3TimelinePath);
+            create3Timeline.name = "create3";
+            EditorUtility.SetDirty(create3Timeline);
+
+            if (!AssetDatabase.CopyAsset(idlePrefabPath, create3PrefabPath))
+                throw new IOException($"复制 create3 prefab 失败:{idlePrefabPath} → {create3PrefabPath}");
+            GameObject root = PrefabUtility.LoadPrefabContents(create3PrefabPath);
+            try
+            {
+                root.name = _partId + "@create3";
+                PlayableDirector director = root.GetComponentInChildren<PlayableDirector>(true);
+                Animator animator = root.GetComponentInChildren<Animator>(true);
+                if (director == null || animator == null)
+                    throw new InvalidOperationException(create3PrefabPath + " 缺 PlayableDirector/Animator");
+
+                PlayableAsset oldTimeline = director.playableAsset;
+                if (oldTimeline != null)
+                {
+                    foreach (PlayableBinding output in oldTimeline.outputs)
+                        director.ClearGenericBinding(output.sourceObject);
+                }
+                director.playableAsset = create3Timeline;
+                foreach (PlayableBinding output in create3Timeline.outputs)
+                    director.SetGenericBinding(output.sourceObject, animator);
+
+                PrefabUtility.SaveAsPrefabAsset(root, create3PrefabPath);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.ImportAsset(create3TimelinePath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ImportAsset(create3PrefabPath, ImportAssetOptions.ForceUpdate);
+            plan.RootPrefabDsts.Add(create3PrefabPath);
+            notes.Add($"程序兼容:美术未交 create3，已由 idle 生成 {_partId}@create3.prefab（同动作内容）");
+        }
+
+        private static string ActionOfPrefab(string prefabPath)
+        {
+            string stem = Path.GetFileNameWithoutExtension(prefabPath);
+            int at = stem.IndexOf('@');
+            return at >= 0 && at < stem.Length - 1 ? stem.Substring(at + 1) : "";
         }
 
         private void SyncRootPrefabs(Plan plan, List<string> notes)
@@ -1219,22 +1407,56 @@ namespace Shenxiao.EditorTools.ArtImport
             if (File.Exists(dstAbs)) File.SetAttributes(dstAbs, FileAttributes.Normal);
 
             bool isText = TextExts.Contains(Path.GetExtension(f.Src));
-            if (Path.GetFileName(f.Src).StartsWith("Pandavfx", StringComparison.OrdinalIgnoreCase) &&
-                f.Src.EndsWith(".shader", StringComparison.OrdinalIgnoreCase))
+            bool isPandaShader = Path.GetFileName(f.Src)
+                                     .StartsWith("Pandavfx", StringComparison.OrdinalIgnoreCase)
+                                 && f.Src.EndsWith(".shader", StringComparison.OrdinalIgnoreCase);
+            if (isPandaShader)
             {
                 // 自愈补丁:美术侧 shader 被换回原版时(实锤发生过,00:35 回滚→01:01 导入把主工程
-                // 补丁覆盖没→特效全线异常),导入时自动补回 alpha 混合控制,永不再被回滚传染
-                File.WriteAllText(dstAbs, EnsurePandaAlphaChannels(File.ReadAllText(f.Src)));
+                // 补丁覆盖没→特效全线异常),导入时自动补回 alpha 混合控制,永不再被回滚传染。
+                // Shader 已被 Unity 编译后会以 mapped section 占用；内容相同绝不能重复打开写流，
+                // 否则 Windows 返回 1224，连无关的角色/翅膀导入也会被共用 Shader 阻断。
+                WriteTextIfChanged(dstAbs, EnsurePandaAlphaChannels(File.ReadAllText(f.Src)),
+                    keepExistingWhenMapped: true);
             }
             else if (isText && remap.Count > 0)
-                File.WriteAllText(dstAbs, RemapGuids(File.ReadAllText(f.Src), remap));
+                WriteTextIfChanged(dstAbs, RemapGuids(File.ReadAllText(f.Src), remap));
             else
                 File.Copy(f.Src, dstAbs, true);
 
             string dstMeta = dstAbs + ".meta";
             if (File.Exists(dstMeta)) File.SetAttributes(dstMeta, FileAttributes.Normal);
             string meta = File.ReadAllText(f.Src + ".meta");
-            File.WriteAllText(dstMeta, remap.Count > 0 ? RemapGuids(meta, remap) : meta);
+            WriteTextIfChanged(dstMeta, remap.Count > 0 ? RemapGuids(meta, remap) : meta);
+        }
+
+        /// <summary>
+        /// Unity 对 Shader 等资源可能持有 Windows mapped section。先比较最终导入文本，内容相同就完全不碰文件；
+        /// Panda Shader 若确有变化但当前会话仍被映射占用，保留主工程已加载版本并让本次模型导入继续，
+        /// 不允许一个共用 Shader 把整套部件导入回滚。
+        /// </summary>
+        private static void WriteTextIfChanged(string path, string contents, bool keepExistingWhenMapped = false)
+        {
+            if (File.Exists(path) && string.Equals(File.ReadAllText(path), contents, StringComparison.Ordinal))
+                return;
+            try
+            {
+                File.WriteAllText(path, contents);
+            }
+            catch (IOException exception) when (keepExistingWhenMapped
+                                                && File.Exists(path)
+                                                && IsMappedFileLock(exception))
+            {
+                Debug.LogWarning($"[ArtImport] Unity 正在占用共用 Shader，保留主工程现有版本并继续导入:{path}" +
+                                 "（如需升级 Shader，请退出 Unity 后单独同步）");
+            }
+        }
+
+        private static bool IsMappedFileLock(IOException exception)
+        {
+            const int ErrorUserMappedFile = 1224;
+            return (exception.HResult & 0xFFFF) == ErrorUserMappedFile
+                   || exception.Message.IndexOf("1224", StringComparison.Ordinal) >= 0;
         }
 
         private static string RemapGuids(string text, Dictionary<string, string> remap)
@@ -1599,11 +1821,13 @@ namespace Shenxiao.EditorTools.ArtImport
             }
         }
 
-        private void WriteLedger(Plan plan, int rendererIndex, List<string> notes)
+        private static readonly List<LedgerRun> PendingLedgerRuns = new List<LedgerRun>();
+        private static bool _ledgerWriteHooked;
+        private static int _ledgerWriteAttempts;
+        private static double _nextLedgerWriteTime;
+
+        private void QueueLedgerWrite(Plan plan, int rendererIndex, List<string> notes)
         {
-            Ledger ledger = File.Exists(LedgerPath)
-                ? JsonUtility.FromJson<Ledger>(File.ReadAllText(LedgerPath)) ?? new Ledger()
-                : new Ledger();
             var run = new LedgerRun
             {
                 time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
@@ -1614,7 +1838,7 @@ namespace Shenxiao.EditorTools.ArtImport
                 replaced = plan.Files.Count(f => f.Action == FileAction.Replace),
                 skippedSame = plan.Files.Count(f => f.Action == FileAction.SkipSame),
                 deduped = plan.Files.Count(f => f.Action == FileAction.DedupDropped),
-                notes = notes,
+                notes = new List<string>(notes),
             };
             foreach (PlannedFile f in plan.Files)
             {
@@ -1627,10 +1851,71 @@ namespace Shenxiao.EditorTools.ArtImport
                     bytes = f.Bytes,
                 });
             }
-            ledger.runs.Add(run);
-            Directory.CreateDirectory(Path.GetDirectoryName(LedgerPath) ?? ".");
-            File.WriteAllText(LedgerPath, JsonUtility.ToJson(ledger, true));
-            AssetDatabase.ImportAsset(LedgerPath);
+            PendingLedgerRuns.Add(run);
+            _ledgerWriteAttempts = 0;
+            _nextLedgerWriteTime = EditorApplication.timeSinceStartup;
+            if (_ledgerWriteHooked) return;
+            _ledgerWriteHooked = true;
+            EditorApplication.update += FlushPendingLedgerRuns;
+        }
+
+        private static void FlushPendingLedgerRuns()
+        {
+            if (PendingLedgerRuns.Count == 0)
+            {
+                StopLedgerWriter();
+                return;
+            }
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating
+                || EditorApplication.timeSinceStartup < _nextLedgerWriteTime)
+                return;
+
+            try
+            {
+                Ledger ledger = File.Exists(LedgerPath)
+                    ? JsonUtility.FromJson<Ledger>(File.ReadAllText(LedgerPath)) ?? new Ledger()
+                    : new Ledger();
+                ledger.runs.AddRange(PendingLedgerRuns);
+                Directory.CreateDirectory(Path.GetDirectoryName(LedgerPath) ?? ".");
+                File.WriteAllText(LedgerPath, JsonUtility.ToJson(ledger, true));
+                PendingLedgerRuns.Clear();
+                StopLedgerWriter();
+                try
+                {
+                    AssetDatabase.ImportAsset(LedgerPath, ImportAssetOptions.ForceSynchronousImport);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(new IOException(
+                        $"台账已经写入，但 Unity 未能立即刷新资产:{LedgerPath}", exception));
+                }
+            }
+            catch (IOException exception)
+            {
+                _ledgerWriteAttempts++;
+                if (_ledgerWriteAttempts < 20)
+                {
+                    _nextLedgerWriteTime = EditorApplication.timeSinceStartup + 0.25d;
+                    return;
+                }
+                Debug.LogException(new IOException(
+                    $"美术导入已完成，但台账在 {_ledgerWriteAttempts} 次重试后仍无法写入:{LedgerPath}", exception));
+                PendingLedgerRuns.Clear();
+                StopLedgerWriter();
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                PendingLedgerRuns.Clear();
+                StopLedgerWriter();
+            }
+        }
+
+        private static void StopLedgerWriter()
+        {
+            if (!_ledgerWriteHooked) return;
+            EditorApplication.update -= FlushPendingLedgerRuns;
+            _ledgerWriteHooked = false;
         }
 
         // ---------------- 小工具 ----------------
