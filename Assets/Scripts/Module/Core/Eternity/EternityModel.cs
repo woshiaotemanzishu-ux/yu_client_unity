@@ -1,15 +1,33 @@
+using System.Collections.Generic;
+
 namespace Shenxiao.Module.Core.Eternity
 {
     public sealed class EternityModel
     {
         public static readonly EternityModel Instance = new EternityModel();
 
-        private EternityModel() { }
-
         public uint OpenTime { get; private set; }
         public uint EnterTime { get; private set; }
         public uint EndTime { get; private set; }
         public bool HasData { get; private set; }
+        private readonly List<JoinEntry> _joinList = new List<JoinEntry>();
+        private readonly IReadOnlyList<JoinEntry> _readOnlyJoinList;
+        public bool HasJoinInfo { get; private set; }
+        public byte CanEnterScene { get; private set; }
+        public IReadOnlyList<JoinEntry> JoinList => _readOnlyJoinList;
+
+        public sealed class JoinEntry
+        {
+            public uint Scene { get; }
+            public ushort SelfServerNum { get; }
+            public ushort SceneNum { get; }
+            public JoinEntry(uint scene, ushort selfServerNum, ushort sceneNum) { Scene = scene; SelfServerNum = selfServerNum; SceneNum = sceneNum; }
+        }
+
+        private EternityModel()
+        {
+            _readOnlyJoinList = _joinList.AsReadOnly();
+        }
 
         public void Replace(uint openTime, uint enterTime, uint endTime)
         {
@@ -19,12 +37,23 @@ namespace Shenxiao.Module.Core.Eternity
             HasData = true;
         }
 
+        public void ReplaceJoinInfo(byte canEnterScene, List<JoinEntry> joinList)
+        {
+            CanEnterScene = canEnterScene;
+            _joinList.Clear();
+            if (joinList != null) _joinList.AddRange(joinList);
+            HasJoinInfo = true;
+        }
+
         public void Reset()
         {
             OpenTime = 0;
             EnterTime = 0;
             EndTime = 0;
             HasData = false;
+            CanEnterScene = 0;
+            _joinList.Clear();
+            HasJoinInfo = false;
         }
     }
 }

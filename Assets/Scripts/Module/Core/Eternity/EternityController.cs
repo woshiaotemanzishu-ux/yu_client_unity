@@ -26,6 +26,7 @@ namespace Shenxiao.Module.Core.Eternity
         protected override void Register()
         {
             RegisterProtocal(Proto.ETERNITY_TIME_INFO, On27900);
+            RegisterProtocal(Proto.ETERNITY_JOIN_INFO, On27901);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
         }
 
@@ -51,12 +52,28 @@ namespace Shenxiao.Module.Core.Eternity
             SendFmt(Proto.ETERNITY_TIME_INFO);
         }
 
+        public void RequestJoinInfo()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.ETERNITY_JOIN_INFO, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.ETERNITY_JOIN_INFO);
+        }
+
         private void On27900(NetReader reader)
         {
             uint openTime = reader.ReadU32();
             uint enterTime = reader.ReadU32();
             uint endTime = reader.ReadU32();
             EternityModel.Instance.Replace(openTime, enterTime, endTime);
+        }
+
+        private void On27901(NetReader reader)
+        {
+            byte canEnterScene = reader.ReadU8();
+            var joins = reader.ReadArray(r => new EternityModel.JoinEntry(r.ReadU32(), r.ReadU16(), r.ReadU16()));
+            EternityModel.Instance.ReplaceJoinInfo(canEnterScene, joins);
         }
 
         private void OnRoleInfoUpdate()

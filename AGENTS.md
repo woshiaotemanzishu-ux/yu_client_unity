@@ -35,7 +35,7 @@
 
 ## Eternity 27900 (R129)
 
-- 27900 is the parameterless time snapshot `open_time:u32,enter_time:u32,end_time:u32`; same-number replies/pushes replace all three fields. GAME_START resets the model and sends only at level >=480. On role updates, only an exact changed level `==480` sends a catch-up request; a jump past 480 deliberately does not send, matching the old client. Do not attach 27901-27909, config, polling, UI, red dots, or operations.
+- 27900 is the parameterless time snapshot `open_time:u32,enter_time:u32,end_time:u32`; same-number replies/pushes replace all three fields. GAME_START resets the model and sends only at level >=480. On role updates, only an exact changed level `==480` sends a catch-up request; a jump past 480 deliberately does not send, matching the old client. 27901 is independently requested only by the main view/manual refresh: `can_enter_scene:u8,join_list:u16×{scene:u32,self_server_num:u16,scene_num:u16}`. It replaces its raw ordered list (including duplicate scenes; server wire is already folded reverse), and empty remains a loaded snapshot. Do not attach 27902-27909, config, polling, UI, red dots, or operations.
 
 ## TSCrack 20411 (R128)
 
