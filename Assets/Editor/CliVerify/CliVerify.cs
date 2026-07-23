@@ -208,6 +208,11 @@ namespace Shenxiao.EditorTools
             Run(DemonCase.Run, 60.0);
         }
 
+        public static void DragonWhisper()
+        {
+            Run(DragonWhisperCase.Run, 60.0);
+        }
+
         public static void Revelation() { Run(RevelationCase.Run, 60.0); }
         public static void Achievement() { Run(AchievementCase.Run, 60.0); }
         public static void Guard() { Run(GuardCase.Run, 60.0); }

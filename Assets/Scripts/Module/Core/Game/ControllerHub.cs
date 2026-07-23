@@ -103,6 +103,7 @@ using Shenxiao.Module.Core.NoonParty;
 using Shenxiao.Module.Core.Deposit;
 using Shenxiao.Module.Core.MonBook;
 using Shenxiao.Module.Core.KfSingleRank;
+using Shenxiao.Module.Core.DragonWhisper;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -233,6 +234,7 @@ namespace Shenxiao.Module.Core.Game
             DepositController.Instance,
             MonBookController.Instance,
             KfSingleRankController.Instance,
+            DragonWhisperController.Instance,
             // 后续:EquipController ...
         };
 

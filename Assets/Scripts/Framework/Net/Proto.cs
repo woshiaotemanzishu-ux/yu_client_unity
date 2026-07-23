@@ -6,6 +6,9 @@
     /// </summary>
     public static class Proto
     {
+        /// <summary>龙语秘境主面板快照。C2S 严格空包；S2C 为剩余次数、总次数及地图/怪物列表。</summary>
+        public const int DRAGON_WHISPER_INFO = 65101;
+
         // ----- 登录链(1xxxx) -----
         /// <summary>账号登录游戏服。发 "iiss"(pid, 时间戳秒, account_id, plat_name);
         /// 回包 "clihi"(career, 服务器时间l, 开服时间i, 角色数h, 注册数i)+ 逐角色数据。</summary>
