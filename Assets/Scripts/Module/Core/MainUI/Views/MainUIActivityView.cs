@@ -13,6 +13,8 @@ namespace Shenxiao.Module.Core.MainUI
     /// 本类只做一件事——把"本视图该显示的图标"**按顺序一个个填进这些槽**(自然溢流:填满一个进下一个),
     /// 图标继承所在槽的位置。槽比图标多 → 多余的槽隐藏;图标比槽多 → 超出的丢弃并告警。
     /// 【不再按 location_type 分组、不再用 GridLayoutGroup/VerticalLayoutGroup 自动排布】—— 想调布局去 prefab 摆槽位。
+    /// location_type=6/7(老端 _box_notice 及其后续位)也统一由本视图显示:配置/服务器仍决定图标是否存在,
+    /// 但 Unity 不再为通知位另开 HudNotice 屏幕区域。
     ///
     /// 右上「竞榜/头号玩家榜」卡片已拆到 <see cref="MainUIRankView"/>;折叠太极已提到 <see cref="MainUIFoldView"/>(总装层)。
     /// </summary>
@@ -148,7 +150,8 @@ namespace Shenxiao.Module.Core.MainUI
                     types.Count, slotCount, types.Count - slotCount);
         }
 
-        // 本视图该认领的图标类型,按 (location_type, pos_index) 稳定排序作为填充顺序(顺序不影响观感,只求确定性)。
+        // 本视图认领所有活动区图标(含 loc6/7 通知位),按 (location_type, pos_index) 稳定排序。
+        // location_type 仍是配置/服务端驱动的分类与排序元数据,不再对应多个 Unity 显示模块。
         private List<string> CollectOwnedIconTypes()
         {
             var list = new List<string>();
@@ -213,10 +216,10 @@ namespace Shenxiao.Module.Core.MainUI
             return locationType == ActivityIconManager.LocationType.ActivityOne
                    || locationType == ActivityIconManager.LocationType.ActivityTwo
                    || locationType == ActivityIconManager.LocationType.ActivityOther
+                   || locationType == ActivityIconManager.LocationType.Notice
+                   || locationType == ActivityIconManager.LocationType.NoticeAfter
                    || locationType == ActivityIconManager.LocationType.ActivityFourth
-                   || locationType == ActivityIconManager.LocationType.RightMiddle
-                   || locationType == 9
-                   || locationType == 10;
+                   || locationType == ActivityIconManager.LocationType.RightMiddle;
         }
 
         private static int CompareIconType(string a, string b)

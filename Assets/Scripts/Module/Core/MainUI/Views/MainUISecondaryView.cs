@@ -13,8 +13,8 @@ namespace Shenxiao.Module.Core.MainUI
 {
     /// <summary>
     /// Runtime parity for old-client MainUISecondaryView.LoadSuccess.
-    /// 「通知位」图标簇(老端 _box_notice,location_type=6)已拆到独立区域 <see cref="MainUINoticeView"/>
-    /// (HudNotice.prefab),本视图只剩 left/right 两簇——现同样改【槽位式】(模式照抄 MainUINoticeView):
+    /// 「通知位」图标簇(老端 _box_notice,location_type=6)已统一交给 <see cref="MainUIActivityView"/> 显示,
+    /// 本视图只剩 left/right 两簇——现同样改【槽位式】:
     /// 布局 100% 归 prefab,_box_left/_box_right 下由美术手摆空槽位,本类只按序把图标填进槽,代码不算坐标;
     /// _box_right 的最终位置也已直接烤在 prefab(HudSecondary 根下右缘 centerY-250),不再运行时 reparent/搬家。
     /// </summary>

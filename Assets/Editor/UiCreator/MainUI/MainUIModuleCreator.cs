@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace Shenxiao.Editor.UiCreator.MainUI
 {
     /// <summary>
-    /// 主界面【总装】生成器:把 12 个 Region + 1 个 Overlay bundle(均为重构版 UICreator 产物)
+    /// 主界面【总装】生成器:把 11 个 Region + 1 个 Overlay bundle(均为重构版 UICreator 产物)
     /// 以嵌套 prefab 方式装进一个根节点,覆盖存盘为运行时实际加载的
     /// Assets/Prefabs/UI/MainUI/MainUIModule.prefab(旧 Laya 转换器版本被替换,git 可回退)。
     ///
@@ -17,7 +17,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     /// - CollectBarView / FightingUpView / ArrowComponent 三个运行时按名单独加载的 prefab
     ///   不进总装(MainUIFlow/MainUIGuideManager 走独立地址),由各自条目单独生成。
     /// - 运行时行为:MainUIFlow 实例化本 prefab 后收集全部 BaseView 统一关闭,再按
-    ///   InitMainUI 顺序 Show 首批 9 个视图 —— 因此子节点顺序只是编辑器观感,不影响逻辑。
+    ///   InitMainUI 顺序 Show 首批视图 —— 因此子节点顺序只是编辑器观感,不影响逻辑。
     /// </summary>
     public static class MainUIModuleCreator
     {
@@ -37,7 +37,6 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             ("Assets/Prefabs/UI/MainUI/Regions/HudTop.prefab", "HudTop", HudTopCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudActivity.prefab", "HudActivity", HudActivityCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudRank.prefab", "HudRank", HudRankCreator.Generate),
-            ("Assets/Prefabs/UI/MainUI/Regions/HudNotice.prefab", "HudNotice", HudNoticeCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudFuncOpen.prefab", "HudFuncOpen", HudFuncOpenCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudTaskTeam.prefab", "HudTaskTeam", HudTaskTeamCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudSkillBar.prefab", "HudSkillBar", HudSkillBarCreator.Generate),
@@ -55,7 +54,6 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             typeof(MainUITopViewBind),
             typeof(MainUIActivityViewBind),
             typeof(MainUIRankViewBind),
-            typeof(MainUINoticeViewBind),
             typeof(Shenxiao.Generated.UI.FunctionOpen.FunctionOpenIconBind), // 功能预告框(HudFuncOpen 区域)
             typeof(MainUISkillViewBind),
             typeof(MainUIChatViewBind),
@@ -76,7 +74,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             {
                 Module = "MainUI",
                 Name = "MainUIModule(总装·覆盖现网)",
-                Note = "嵌套 12 Region + 1 Overlay 存为运行时加载的 MainUIModule.prefab;缺的子件先自动补生成",
+                Note = "嵌套 11 Region + 1 Overlay 存为运行时加载的 MainUIModule.prefab;loc6/7 已并入 HudActivity",
                 Order = 90,
                 Generate = Generate,
                 Preview = Preview,

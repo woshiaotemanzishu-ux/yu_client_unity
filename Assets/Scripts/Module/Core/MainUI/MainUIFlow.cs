@@ -32,7 +32,6 @@ namespace Shenxiao.Module.Core.MainUI
             typeof(MainUITopViewBind),
             typeof(MainUIActivityViewBind),
             typeof(MainUIRankViewBind),
-            typeof(MainUINoticeViewBind), // 通知位(老端 _box_notice 簇,拆自 Secondary;槽位式独立区域 HudNotice)
             typeof(Shenxiao.Generated.UI.FunctionOpen.FunctionOpenIconBind), // 功能预告框(HudFuncOpen 区域;原 FunctionOpenFlow 单独挂载已退役)
             typeof(MainUISkillViewBind),
             typeof(MainUIChatViewBind),
