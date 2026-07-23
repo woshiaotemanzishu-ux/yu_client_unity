@@ -947,6 +947,8 @@
         public const int MASK_INFO = 51101;
         /// <summary>使魔实体核心快照。C2S 空包；S2C 为开放状态和完整实体列表。</summary>
         public const int DEMON_INFO = 18301;
+        /// <summary>使魔天赋商店完整快照。C2S 空包；S2C: refresh_time:u32,refresh_num:u16,cost:ObjectList,shop:u16×{id:u32,goods_id:u32,price:u32,num:u16,cost_num:u16,discount:u8,can_buy_num:u16,buy_num:u16}。</summary>
+        public const int DEMON_TALENT_SHOP = 18311;
         /// <summary>使魔羁绊全量快照。C2S 空包；S2C: fetters:u16×fetter_id:u32。</summary>
         public const int DEMON_FETTERS = 18303;
         /// <summary>使魔上卷/绘卷全量快照。C2S 空包；S2C: paintings:u16×painting_id:u8。</summary>
