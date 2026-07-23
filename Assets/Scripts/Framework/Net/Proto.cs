@@ -1986,6 +1986,8 @@
         /// <summary>无尽之海主快照(C2S 严格空包；S2C pic:s,pic_ver:u32,reward_times:u8,total_reward_times:u8,
         /// rob_times:u8,total_rob_times:u8,auto_id:u64,status:u8,send_list:u16×完整航运项)。</summary>
         public const int BRIGHT_SEA_INFO = 18900;
+        /// <summary>无尽之海跨服信息快照(C2S 严格空包；S2C 模式/世界等级及 enemy、un_satisfy 服务器列表)。</summary>
+        public const int BRIGHT_SEA_SERVER_INFO = 18915;
 
         // ----- 组队(24xxx,yu_server pt_240.erl / pp_team.erl;老端 commonController/TeamController.ts,
         // 自动循环 轮8) -----

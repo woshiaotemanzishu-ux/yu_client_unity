@@ -6,7 +6,7 @@ using Shenxiao.Framework.Util;
 
 namespace Shenxiao.Module.Core.BrightSea
 {
-    /// <summary>无尽之海仅接 18900 主快照；不接航运、抢夺、场景或 UI 链。</summary>
+    /// <summary>无尽之海仅接 18900 主快照与显式 18915 跨服快照；不接航运、抢夺、场景或 UI 链。</summary>
     public sealed class BrightSeaController : BaseController
     {
         public static readonly BrightSeaController Instance = new BrightSeaController();
@@ -20,6 +20,7 @@ namespace Shenxiao.Module.Core.BrightSea
         protected override void Register()
         {
             RegisterProtocal(Proto.BRIGHT_SEA_INFO, On18900);
+            RegisterProtocal(Proto.BRIGHT_SEA_SERVER_INFO, On18915);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
@@ -45,6 +46,17 @@ namespace Shenxiao.Module.Core.BrightSea
 #endif
             SendFmt(Proto.BRIGHT_SEA_INFO);
             GameLog.Info("BrightSea", "request 18900 bright sea info");
+        }
+
+        /// <summary>请求 18915 跨服信息完整快照（严格空包，不绑定 GAME_START）。</summary>
+        public void RequestServerInfo()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.BRIGHT_SEA_SERVER_INFO, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.BRIGHT_SEA_SERVER_INFO);
+            GameLog.Info("BrightSea", "request 18915 bright sea server info");
         }
 
         private void On18900(NetReader r)
@@ -84,6 +96,32 @@ namespace Shenxiao.Module.Core.BrightSea
                 PictureVersion = r.ReadU32(),
                 EndTime = r.ReadU32(),
                 RobTimes = r.ReadU8(),
+            };
+        }
+
+        private void On18915(NetReader r)
+        {
+            byte treasureModule = r.ReadU8();
+            ushort worldLevel = r.ReadU16();
+            List<BrightSeaModel.ServerEntry> enemyServers = r.ReadArray(ReadServerEntry);
+            byte unsatisfiedModule = r.ReadU8();
+            ushort unsatisfiedWorldLevel = r.ReadU16();
+            ushort minWorldLevel = r.ReadU16();
+            List<BrightSeaModel.ServerEntry> unsatisfiedServers = r.ReadArray(ReadServerEntry);
+            BrightSeaModel.Instance.ReplaceServerInfo(treasureModule, worldLevel, enemyServers,
+                unsatisfiedModule, unsatisfiedWorldLevel, minWorldLevel, unsatisfiedServers);
+            GameLog.Info("BrightSea", "18915 mod={0} enemy={1} unsatisfied={2} remaining={3}B",
+                treasureModule, enemyServers.Count, unsatisfiedServers.Count, r.Remaining);
+        }
+
+        private static BrightSeaModel.ServerEntry ReadServerEntry(NetReader r)
+        {
+            return new BrightSeaModel.ServerEntry
+            {
+                ServerId = r.ReadU32(),
+                ServerNumber = r.ReadU16(),
+                ServerName = r.ReadString(),
+                WorldLevel = r.ReadU16(),
             };
         }
     }

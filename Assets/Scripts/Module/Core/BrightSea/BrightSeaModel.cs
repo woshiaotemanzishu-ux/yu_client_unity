@@ -26,6 +26,14 @@ namespace Shenxiao.Module.Core.BrightSea
             public byte RobTimes;
         }
 
+        public sealed class ServerEntry
+        {
+            public uint ServerId;
+            public ushort ServerNumber;
+            public string ServerName;
+            public ushort WorldLevel;
+        }
+
         public static readonly BrightSeaModel Instance = new BrightSeaModel();
         private BrightSeaModel() { }
 
@@ -39,6 +47,16 @@ namespace Shenxiao.Module.Core.BrightSea
         public byte Status { get; private set; }
         public bool HasInfo { get; private set; }
         public readonly List<ShippingEntry> SendList = new List<ShippingEntry>();
+
+        // ---- 18915 跨服信息（独立于 18900 主快照）----
+        public byte TreasureModule { get; private set; }
+        public ushort WorldLevel { get; private set; }
+        public readonly List<ServerEntry> EnemyServers = new List<ServerEntry>();
+        public byte UnsatisfiedModule { get; private set; }
+        public ushort UnsatisfiedWorldLevel { get; private set; }
+        public ushort MinWorldLevel { get; private set; }
+        public readonly List<ServerEntry> UnsatisfiedServers = new List<ServerEntry>();
+        public bool HasServerInfo { get; private set; }
 
         /// <summary>每个 18900 包无条件整体替换；空列表也为已加载快照。</summary>
         public void Replace(string picture, uint pictureVersion, byte rewardTimes, byte totalRewardTimes,
@@ -57,6 +75,22 @@ namespace Shenxiao.Module.Core.BrightSea
             HasInfo = true;
         }
 
+        /// <summary>18915 两个服务器列表按 wire 原序整体替换；空列表也为已加载快照。</summary>
+        public void ReplaceServerInfo(byte treasureModule, ushort worldLevel, List<ServerEntry> enemyServers,
+            byte unsatisfiedModule, ushort unsatisfiedWorldLevel, ushort minWorldLevel, List<ServerEntry> unsatisfiedServers)
+        {
+            TreasureModule = treasureModule;
+            WorldLevel = worldLevel;
+            EnemyServers.Clear();
+            if (enemyServers != null) EnemyServers.AddRange(enemyServers);
+            UnsatisfiedModule = unsatisfiedModule;
+            UnsatisfiedWorldLevel = unsatisfiedWorldLevel;
+            MinWorldLevel = minWorldLevel;
+            UnsatisfiedServers.Clear();
+            if (unsatisfiedServers != null) UnsatisfiedServers.AddRange(unsatisfiedServers);
+            HasServerInfo = true;
+        }
+
         public void Clear()
         {
             Picture = null;
@@ -65,6 +99,11 @@ namespace Shenxiao.Module.Core.BrightSea
             AutoId = 0;
             SendList.Clear();
             HasInfo = false;
+            TreasureModule = UnsatisfiedModule = 0;
+            WorldLevel = UnsatisfiedWorldLevel = MinWorldLevel = 0;
+            EnemyServers.Clear();
+            UnsatisfiedServers.Clear();
+            HasServerInfo = false;
         }
     }
 }
