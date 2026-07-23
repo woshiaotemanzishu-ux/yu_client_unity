@@ -6,7 +6,7 @@ using Shenxiao.Framework.Util;
 
 namespace Shenxiao.Module.Core.BrightSea
 {
-    /// <summary>无尽之海仅接 18900 主快照、显式 18901 日志和显式 18915 跨服快照；不接航运、抢夺、场景或 UI 链。</summary>
+    /// <summary>无尽之海仅接 18900 主快照、显式 18901 日志、显式 18902 船页状态和显式 18915 跨服快照；不接航运操作、抢夺、场景或 UI 链。</summary>
     public sealed class BrightSeaController : BaseController
     {
         public static readonly BrightSeaController Instance = new BrightSeaController();
@@ -21,6 +21,7 @@ namespace Shenxiao.Module.Core.BrightSea
         {
             RegisterProtocal(Proto.BRIGHT_SEA_INFO, On18900);
             RegisterProtocal(Proto.BRIGHT_SEA_CRUISE_LOGS, On18901);
+            RegisterProtocal(Proto.BRIGHT_SEA_SHIP_INFO, On18902);
             RegisterProtocal(Proto.BRIGHT_SEA_SERVER_INFO, On18915);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
@@ -58,6 +59,17 @@ namespace Shenxiao.Module.Core.BrightSea
 #endif
             SendFmt(Proto.BRIGHT_SEA_CRUISE_LOGS);
             GameLog.Info("BrightSea", "request 18901 bright sea cruise logs");
+        }
+
+        /// <summary>请求 18902 巡航船只页状态快照（严格空包，不绑定 GAME_START）。</summary>
+        public void RequestShipInfo()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.BRIGHT_SEA_SHIP_INFO, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.BRIGHT_SEA_SHIP_INFO);
+            GameLog.Info("BrightSea", "request 18902 bright sea ship info");
         }
 
         /// <summary>请求 18915 跨服信息完整快照（严格空包，不绑定 GAME_START）。</summary>
@@ -138,6 +150,12 @@ namespace Shenxiao.Module.Core.BrightSea
             entry.ReceiveList.AddRange(r.ReadArray(ReadObjectEntry));
             entry.Time = r.ReadU32();
             return entry;
+        }
+
+        private void On18902(NetReader r)
+        {
+            BrightSeaModel.Instance.ReplaceShipInfo(r.ReadU8(), r.ReadU16(), r.ReadU8(), r.ReadU8(), r.ReadU8(), r.ReadU8());
+            GameLog.Info("BrightSea", "18902 ship state remaining={0}B", r.Remaining);
         }
 
         private static BrightSeaModel.ObjectEntry ReadObjectEntry(NetReader r)

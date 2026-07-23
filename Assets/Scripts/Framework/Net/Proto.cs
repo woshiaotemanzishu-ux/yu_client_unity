@@ -1990,6 +1990,9 @@
         public const int BRIGHT_SEA_INFO = 18900;
         /// <summary>无尽之海巡航/掠夺记录快照(C2S 严格空包；S2C log_list:u16×完整日志及三个 ObjectList)。</summary>
         public const int BRIGHT_SEA_CRUISE_LOGS = 18901;
+        /// <summary>无尽之海巡航船只页状态快照(C2S 严格空包；S2C shipping_id:u8,luckey_value:u16,
+        /// reward_times:u8,total_reward_times:u8,up_times:u8,total_up_times:u8)。</summary>
+        public const int BRIGHT_SEA_SHIP_INFO = 18902;
         /// <summary>无尽之海跨服信息快照(C2S 严格空包；S2C 模式/世界等级及 enemy、un_satisfy 服务器列表)。</summary>
         public const int BRIGHT_SEA_SERVER_INFO = 18915;
 

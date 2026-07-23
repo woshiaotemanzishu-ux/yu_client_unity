@@ -87,6 +87,15 @@ namespace Shenxiao.Module.Core.BrightSea
         public readonly List<CruiseLogEntry> CruiseLogs = new List<CruiseLogEntry>();
         public bool HasCruiseLogs { get; private set; }
 
+        // ---- 18902 巡航船只页状态（独立于 18900/18901/18915） ----
+        public bool HasShipInfo { get; private set; }
+        public byte ShippingId { get; private set; }
+        public ushort LuckeyValue { get; private set; }
+        public byte ShipRewardTimes { get; private set; }
+        public byte ShipTotalRewardTimes { get; private set; }
+        public byte UpTimes { get; private set; }
+        public byte TotalUpTimes { get; private set; }
+
         /// <summary>每个 18900 包无条件整体替换；空列表也为已加载快照。</summary>
         public void Replace(string picture, uint pictureVersion, byte rewardTimes, byte totalRewardTimes,
             byte robTimes, byte totalRobTimes, ulong autoId, byte status, List<ShippingEntry> sendList)
@@ -128,6 +137,17 @@ namespace Shenxiao.Module.Core.BrightSea
             HasCruiseLogs = true;
         }
 
+        public void ReplaceShipInfo(byte shippingId, ushort luckeyValue, byte rewardTimes, byte totalRewardTimes, byte upTimes, byte totalUpTimes)
+        {
+            ShippingId = shippingId;
+            LuckeyValue = luckeyValue;
+            ShipRewardTimes = rewardTimes;
+            ShipTotalRewardTimes = totalRewardTimes;
+            UpTimes = upTimes;
+            TotalUpTimes = totalUpTimes;
+            HasShipInfo = true;
+        }
+
         public void Clear()
         {
             Picture = null;
@@ -143,6 +163,9 @@ namespace Shenxiao.Module.Core.BrightSea
             HasServerInfo = false;
             CruiseLogs.Clear();
             HasCruiseLogs = false;
+            ShippingId = ShipRewardTimes = ShipTotalRewardTimes = UpTimes = TotalUpTimes = 0;
+            LuckeyValue = 0;
+            HasShipInfo = false;
         }
     }
 }
