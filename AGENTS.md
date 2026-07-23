@@ -1,5 +1,7 @@
 # AGENTS.md
 
+- Git 收口规则：隔离 worktree / `codex/*` 分支只用于开发与验收；每轮已确认成果必须在停止前合并到本地 `main`，确认提交已包含后再删除临时分支和失效 worktree。若用户主工作树存在未提交改动，不得为切换 `main` 而覆盖、暂存或代提交这些现场；应在独立干净 worktree 更新 `main`，待用户改动完成并提交后再把主工作树切回 `main`。
+
 - R166 JJC 28009 is an explicit empty-query full snapshot, not the 28016 live push: `errcode` is a u32 wire bit-pattern stored through unchecked int cast; retain all 14 record fields, duplicate ids and wire order; only UI may sort by time. Empty and err=-1 replies still replace/load the record slice.
 
 - R178 BrightSea 18904 is explicit-only `auto_id:u64` and replaces an independent detail snapshot (robber fields plus reward/rob-reward ObjectLists); exclude old UI, notifications, events, red dot and reward chains.
