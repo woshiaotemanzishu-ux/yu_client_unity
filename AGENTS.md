@@ -188,9 +188,10 @@
 
 ## 协议迁移补充记忆
 
-## DragonWhisper 65101（R160）
+## DragonWhisper 65101 / 65106（R160/R161）
 
 - 65101 是龙语秘境主面板的显式空包请求和完整 S2C 快照：`left_count:u8, all_count:u8, map_lists:u16×{map_id:u8,role_num:u16,mon_list:u16×{mon_id:u32,reborn_time:u32}}`。每包完整替换，必须保留服务端 map/monster 原始顺序和重复 ID，空列表清旧；不得绑定 GAME_START、等级/开放门、VIP、UI、场景、配置、红点或 65102-65107。
+- 65106 是显式空包请求的掉落记录完整快照：`drop_log:u16×{time:u32,server_id:u32,server_num:u32,role_id:u64,name:string,boss_id:u32,goods_id:u32,num:u32,rating:u32,equip_extra_attr:u16×{color:u8,type_id:u8,attr_id:u16,attr_val:u32,plus_interval:u8,plus_unit:u32},is_top:u8}`。保留记录与属性原始顺序/重复项，空表清旧且 loaded；与 65101 双向隔离，仅 Reset/Dispose 同时清空。
 
 - 宝宝装备的通用物品容器必须分开：`pos=36` 是已穿戴装备实例库，供 18205/18218 槽位里的装备实例 id 反查；`pos=37` 是待穿候选背包。二者都接收 15010/15017/15018，但使用独立存储与事件；老端登录批量请求中 36/37 均被注释，Unity 当前只主动请求 37，36 保持被动接收，未经实证不要擅自加入启动请求。182xx 槽位包与 pos36 物品包没有固定先后，UI 必须同时监听两条更新链，实例未到或 id 不匹配时先降级显示槽位包的 `GoodsTypeId`。候选变强红点严格比较 `BagGoods.Rating`（不用 `OverallRating`）：空槽或候选更高即红；红点节点是 `BabyEquipSubItem.redImg`，槽位 `BabyEquipIcon.effectGp` 只表示选中。
 - 宝宝装备强化 18219 上行只有 `pos_id:u8`；回包是 `code:i,pos:u8,id:u64,type:i,stage:u16,stage_lv:u16,stage_exp:i,power:i`。服务端会自行挑选强化经验材料或按升阶配置直接扣固定 cost，客户端不发送材料列表；扣包另走 15017/15018。实际消费必须放在 Forge 子面板，并走“实时预览足够 → 列出材料名×数量 → 二次确认 → 回调再次校验同槽位/实例/消费快照 → pending 防连点 → 发 18219”的链路，不能把主页入口直接绑定到 `RequestEquipUpgrade`。
