@@ -2001,6 +2001,8 @@
         public const int BRIGHT_SEA_SHIP_INFO = 18902;
         /// <summary>无尽之海跨服信息快照(C2S 严格空包；S2C 模式/世界等级及 enemy、un_satisfy 服务器列表)。</summary>
         public const int BRIGHT_SEA_SERVER_INFO = 18915;
+        /// <summary>无尽之海协助绑元次数快照(C2S 严格空包；S2C daily_num:u16,max_bgold_num:u16)。</summary>
+        public const int BRIGHT_SEA_ASSIST_BGOLD_INFO = 18916;
 
         // ----- 组队(24xxx,yu_server pt_240.erl / pp_team.erl;老端 commonController/TeamController.ts,
         // 自动循环 轮8) -----

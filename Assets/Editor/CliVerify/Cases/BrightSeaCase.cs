@@ -25,10 +25,10 @@ namespace Shenxiao.EditorTools
         {
             BrightSeaController controller = BrightSeaController.Instance;
             BrightSeaModel model = BrightSeaModel.Instance;
-            bool wasInitialized = controller.IsInitialized;
-            SavedState old = new SavedState(model);
             FieldInfo intercept = typeof(BrightSeaController).GetField("s_outboundIntercept", StaticNonPublic);
-            object oldIntercept = intercept == null ? null : intercept.GetValue(null);
+            var ambient = new AmbientState(controller, model, intercept);
+            bool pass = false;
+            bool restored = false;
 
             try
             {
@@ -38,11 +38,12 @@ namespace Shenxiao.EditorTools
                 MethodInfo on18901 = typeof(BrightSeaController).GetMethod("On18901", InstanceNonPublic);
                 MethodInfo on18902 = typeof(BrightSeaController).GetMethod("On18902", InstanceNonPublic);
                 MethodInfo on18915 = typeof(BrightSeaController).GetMethod("On18915", InstanceNonPublic);
+                MethodInfo on18916 = typeof(BrightSeaController).GetMethod("On18916", InstanceNonPublic);
                 IDictionary handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                bool pass = intercept != null && on18900 != null && on18901 != null && on18902 != null && on18915 != null && handlers != null
-                    && handlers.Contains(18900) && handlers.Contains(18901) && handlers.Contains(18902) && handlers.Contains(18915);
+                pass = intercept != null && on18900 != null && on18901 != null && on18902 != null && on18915 != null && on18916 != null && handlers != null
+                    && handlers.Contains(18900) && handlers.Contains(18901) && handlers.Contains(18902) && handlers.Contains(18915) && handlers.Contains(18916);
                 for (int proto = 18901; proto <= 18920; proto++)
-                    pass &= handlers.Contains(proto) == (proto == 18901 || proto == 18902 || proto == 18915);
+                    pass &= handlers.Contains(proto) == (proto == 18901 || proto == 18902 || proto == 18915 || proto == 18916);
 
                 var frames = new List<byte[]>();
                 intercept.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
@@ -57,14 +58,18 @@ namespace Shenxiao.EditorTools
                 frames.Clear();
                 controller.RequestServerInfo();
                 pass &= Frames(frames, 18915);
+                frames.Clear();
+                controller.RequestAssistBGoldInfo();
+                pass &= Frames(frames, 18916);
 
                 model.Replace("stale", 1, 1, 1, 1, 1, 1, 1, new List<BrightSeaModel.ShippingEntry> { new BrightSeaModel.ShippingEntry() });
                 model.ReplaceCruiseLogs(new List<BrightSeaModel.CruiseLogEntry> { new BrightSeaModel.CruiseLogEntry() });
                 model.ReplaceShipInfo(1, 2, 3, 4, 5, 6);
                 model.ReplaceServerInfo(1, 2, new List<BrightSeaModel.ServerEntry> { new BrightSeaModel.ServerEntry() }, 3, 4, 5, new List<BrightSeaModel.ServerEntry>());
+                model.ReplaceAssistBGoldInfo(1, 2);
                 frames.Clear();
                 EventDispatcher.Emit(GlobalEvent.EVT_GAME_START);
-                pass &= Frames(frames, 18900) && !model.HasInfo && !model.HasCruiseLogs && !model.HasShipInfo && !model.HasServerInfo
+                pass &= Frames(frames, 18900) && !model.HasInfo && !model.HasCruiseLogs && !model.HasShipInfo && !model.HasServerInfo && !model.HasAssistBGoldInfo
                     && model.SendList.Count == 0 && model.CruiseLogs.Count == 0 && model.EnemyServers.Count == 0 && model.UnsatisfiedServers.Count == 0;
 
                 string chinese = "海域中文";
@@ -130,13 +135,21 @@ namespace Shenxiao.EditorTools
                     && model.ShipRewardTimes == 254 && model.ShipTotalRewardTimes == 253 && model.UpTimes == 252 && model.TotalUpTimes == 251
                     && model.HasInfo && model.HasCruiseLogs && model.HasServerInfo;
 
+                var fourBeforeAssist = new SavedState(model);
+                Invoke(on18916, controller, AssistPacket(ushort.MaxValue, ushort.MaxValue), out int assistRemaining);
+                pass &= assistRemaining == 0 && model.HasAssistBGoldInfo && model.AssistBGoldNum == ushort.MaxValue && model.AssistBGoldMax == ushort.MaxValue
+                    && fourBeforeAssist.MatchesCoreFour(model);
+                Invoke(on18916, controller, AssistPacket(7, ushort.MaxValue), out assistRemaining);
+                pass &= assistRemaining == 0 && model.HasAssistBGoldInfo && model.AssistBGoldNum == 7 && model.AssistBGoldMax == ushort.MaxValue && fourBeforeAssist.MatchesCoreFour(model);
+
                 Invoke(on18900, controller, MainSinglePacket(), out mainRemaining);
                 pass &= mainRemaining == 0 && model.HasInfo && model.Picture == "next" && model.PictureVersion == 1
                     && model.RewardTimes == 2 && model.TotalRewardTimes == 3 && model.RobTimes == 4
                     && model.TotalRobTimes == 5 && model.AutoId == 2 && model.Status == 6
                     && model.SendList.Count == 1 && model.SendList[0].AutoId == 3 && model.SendList[0].RoleName == "solo"
                     && model.HasServerInfo && model.EnemyServers.Count == 2 && model.UnsatisfiedServers.Count == 2
-                    && model.HasCruiseLogs && model.CruiseLogs.Count == 2 && model.CruiseLogs[0].AutoId == ulong.MaxValue && model.HasShipInfo;
+                    && model.HasCruiseLogs && model.CruiseLogs.Count == 2 && model.CruiseLogs[0].AutoId == ulong.MaxValue && model.HasShipInfo
+                    && AssistIs(model, 7, ushort.MaxValue);
 
                 Invoke(on18900, controller, MainEmptyPacket(), out mainRemaining);
                 pass &= mainRemaining == 0 && model.HasInfo && model.SendList.Count == 0 && model.Picture == ""
@@ -146,7 +159,8 @@ namespace Shenxiao.EditorTools
                 pass &= serverRemaining == 0 && model.HasInfo && model.HasServerInfo && model.EnemyServers.Count == 1
                     && model.EnemyServers[0].ServerId == 3 && model.EnemyServers[0].ServerName == "solo"
                     && model.UnsatisfiedServers.Count == 1 && model.UnsatisfiedServers[0].ServerName == "tail"
-                    && model.HasCruiseLogs && model.CruiseLogs.Count == 2 && model.CruiseLogs[1].AutoId == ulong.MaxValue && model.HasShipInfo;
+                    && model.HasCruiseLogs && model.CruiseLogs.Count == 2 && model.CruiseLogs[1].AutoId == ulong.MaxValue && model.HasShipInfo
+                    && AssistIs(model, 7, ushort.MaxValue);
 
                 Invoke(on18915, controller, ServerEmptyPacket(), out serverRemaining);
                 pass &= serverRemaining == 0 && model.HasServerInfo && model.EnemyServers.Count == 0
@@ -155,7 +169,8 @@ namespace Shenxiao.EditorTools
                 Invoke(on18901, controller, LogsSinglePacket(), out logsRemaining);
                 pass &= logsRemaining == 0 && model.HasCruiseLogs && model.CruiseLogs.Count == 1
                     && model.CruiseLogs[0].AutoId == 18 && model.CruiseLogs[0].RoberName == "single"
-                    && model.HasInfo && model.SendList.Count == 0 && model.HasServerInfo && model.EnemyServers.Count == 0 && model.HasShipInfo;
+                    && model.HasInfo && model.SendList.Count == 0 && model.HasServerInfo && model.EnemyServers.Count == 0 && model.HasShipInfo
+                    && AssistIs(model, 7, ushort.MaxValue);
 
                 Invoke(on18901, controller, LogsEmptyPacket(), out logsRemaining);
                 pass &= logsRemaining == 0 && model.HasCruiseLogs && model.CruiseLogs.Count == 0
@@ -164,7 +179,7 @@ namespace Shenxiao.EditorTools
                 Invoke(on18902, controller, ShipPacket(1, 2, 3, 4, 5, 6), out shipRemaining);
                 pass &= shipRemaining == 0 && model.HasShipInfo && model.ShippingId == 1 && model.LuckeyValue == 2
                     && model.ShipRewardTimes == 3 && model.ShipTotalRewardTimes == 4 && model.UpTimes == 5 && model.TotalUpTimes == 6
-                    && model.HasInfo && model.HasCruiseLogs && model.HasServerInfo;
+                    && model.HasInfo && model.HasCruiseLogs && model.HasServerInfo && AssistIs(model, 7, ushort.MaxValue);
                 frames.Clear();
                 controller.RequestShipInfo();
                 pass &= Frames(frames, 18902) && model.HasShipInfo && model.ShippingId == 1 && model.LuckeyValue == 2
@@ -174,6 +189,12 @@ namespace Shenxiao.EditorTools
                 pass &= shipRemaining == 0 && model.HasShipInfo && model.ShippingId == 0 && model.LuckeyValue == 0
                     && model.ShipRewardTimes == 0 && model.ShipTotalRewardTimes == 0 && model.UpTimes == 0 && model.TotalUpTimes == 0
                     && model.HasInfo && model.HasCruiseLogs && model.HasServerInfo;
+                frames.Clear();
+                controller.RequestAssistBGoldInfo();
+                pass &= Frames(frames, 18916) && model.HasAssistBGoldInfo && model.AssistBGoldNum == 7 && model.AssistBGoldMax == ushort.MaxValue;
+                Invoke(on18916, controller, AssistPacket(0, 0), out assistRemaining);
+                pass &= assistRemaining == 0 && model.HasAssistBGoldInfo && model.AssistBGoldNum == 0 && model.AssistBGoldMax == 0
+                    && model.HasInfo && model.HasCruiseLogs && model.HasShipInfo && model.HasServerInfo;
 
                 model.ReplaceServerInfo(7, 8, new List<BrightSeaModel.ServerEntry> { new BrightSeaModel.ServerEntry { ServerId = 9 } }, 10, 11, 12, new List<BrightSeaModel.ServerEntry>());
                 pass &= model.HasServerInfo && model.EnemyServers.Count == 1 && model.EnemyServers[0].ServerId == 9;
@@ -214,10 +235,19 @@ namespace Shenxiao.EditorTools
                     && model.ShippingId == 9 && model.LuckeyValue == 10 && model.TotalUpTimes == 14;
 
                 model.Clear();
+                model.ReplaceAssistBGoldInfo(12, 13);
+                var assistOnly = new SavedState(model);
+                model.Clear();
+                assistOnly.Restore(model);
+                pass &= !model.HasInfo && !model.HasCruiseLogs && !model.HasServerInfo && !model.HasShipInfo && model.HasAssistBGoldInfo
+                    && model.AssistBGoldNum == 12 && model.AssistBGoldMax == 13;
+
+                model.Clear();
                 model.Replace("four", 1, 2, 3, 4, 5, 6, 7, new List<BrightSeaModel.ShippingEntry> { new BrightSeaModel.ShippingEntry { AutoId = 8 } });
                 model.ReplaceCruiseLogs(new List<BrightSeaModel.CruiseLogEntry> { new BrightSeaModel.CruiseLogEntry { AutoId = 9 } });
                 model.ReplaceShipInfo(10, 11, 12, 13, 14, 15);
                 model.ReplaceServerInfo(16, 17, new List<BrightSeaModel.ServerEntry> { new BrightSeaModel.ServerEntry { ServerId = 18 } }, 19, 20, 21, new List<BrightSeaModel.ServerEntry> { new BrightSeaModel.ServerEntry { ServerId = 22 } });
+                model.ReplaceAssistBGoldInfo(23, 24);
                 var allSlices = new SavedState(model);
                 model.Clear();
                 allSlices.Restore(model);
@@ -228,24 +258,21 @@ namespace Shenxiao.EditorTools
                     && model.HasServerInfo && model.TreasureModule == 16 && model.WorldLevel == 17 && model.EnemyServers.Count == 1
                     && model.EnemyServers[0].ServerId == 18 && model.UnsatisfiedModule == 19 && model.UnsatisfiedWorldLevel == 20
                     && model.MinWorldLevel == 21 && model.UnsatisfiedServers.Count == 1 && model.UnsatisfiedServers[0].ServerId == 22;
+                pass &= model.HasAssistBGoldInfo && model.AssistBGoldNum == 23 && model.AssistBGoldMax == 24;
 
                 controller.Dispose();
                 frames.Clear();
                 EventDispatcher.Emit(GlobalEvent.EVT_GAME_START);
-                pass &= !controller.IsInitialized && !handlers.Contains(18900) && !handlers.Contains(18901) && !handlers.Contains(18902) && !handlers.Contains(18915)
-                    && !model.HasInfo && !model.HasCruiseLogs && !model.HasShipInfo && !model.HasServerInfo && model.SendList.Count == 0
+                pass &= !controller.IsInitialized && !handlers.Contains(18900) && !handlers.Contains(18901) && !handlers.Contains(18902) && !handlers.Contains(18915) && !handlers.Contains(18916)
+                    && !model.HasInfo && !model.HasCruiseLogs && !model.HasShipInfo && !model.HasServerInfo && !model.HasAssistBGoldInfo && model.SendList.Count == 0
                     && model.CruiseLogs.Count == 0 && model.EnemyServers.Count == 0 && model.UnsatisfiedServers.Count == 0 && frames.Count == 0;
-                Debug.Log("CLIVERIFY brightsea VERDICT pass=" + pass);
-                return pass ? 0 : 3;
             }
             finally
             {
-                if (controller.IsInitialized) controller.Dispose();
-                model.Clear();
-                old.Restore(model);
-                if (wasInitialized) controller.Init();
-                if (intercept != null) intercept.SetValue(null, oldIntercept);
+                restored = ambient.Restore(controller, model, intercept);
+                Debug.Log("CLIVERIFY brightsea restored=" + restored + " VERDICT pass=" + pass);
             }
+            return pass && restored ? 0 : 3;
         }
 
         private static void Invoke(MethodInfo method, BrightSeaController controller, byte[] bytes, out int remaining)
@@ -284,6 +311,8 @@ namespace Shenxiao.EditorTools
         private static byte[] ShipPacket(byte shippingId, ushort luckeyValue, byte rewardTimes, byte totalRewardTimes, byte upTimes, byte totalUpTimes)
             => new CliVerify.Pkt().C(shippingId).H(luckeyValue).C(rewardTimes).C(totalRewardTimes).C(upTimes).C(totalUpTimes).Bytes();
 
+        private static byte[] AssistPacket(ushort num, ushort max) => new CliVerify.Pkt().H(num).H(max).Bytes();
+
         private static byte[] ServerMultiPacket(string chinese) => new CliVerify.Pkt().C(255).H(65535).H(2)
             .I(4294967295L).H(65535).S(chinese).H(0).I(1).H(2).S("").H(65535)
             .C(254).H(65535).H(0).H(2).I(9).H(10).S("u").H(11).I(9).H(12).S("v").H(13).Bytes();
@@ -293,9 +322,87 @@ namespace Shenxiao.EditorTools
 
         private static byte[] ServerEmptyPacket() => new CliVerify.Pkt().C(0).H(0).H(0).C(0).H(0).H(0).H(0).Bytes();
 
+        private static bool AssistIs(BrightSeaModel m, ushort num, ushort max) => m.HasAssistBGoldInfo && m.AssistBGoldNum == num && m.AssistBGoldMax == max;
+
+        private sealed class AmbientState
+        {
+            private static readonly int[] Protocols = { 18900, 18901, 18902, 18915, 18916 };
+            private readonly bool _initialized;
+            private readonly SavedState _model;
+            private readonly object _intercept;
+            private readonly Dictionary<int, object> _netHandlers = new Dictionary<int, object>();
+            private readonly bool _hadGameStart;
+            private readonly List<Delegate> _gameStartHandlers;
+
+            public AmbientState(BrightSeaController controller, BrightSeaModel model, FieldInfo intercept)
+            {
+                _initialized = controller.IsInitialized;
+                _model = new SavedState(model);
+                _intercept = intercept == null ? null : intercept.GetValue(null);
+                IDictionary net = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
+                if (net != null) foreach (int proto in Protocols) if (net.Contains(proto)) _netHandlers[proto] = net[proto];
+                IDictionary events = typeof(EventDispatcher).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
+                _hadGameStart = events != null && events.Contains(GlobalEvent.EVT_GAME_START);
+                if (_hadGameStart) _gameStartHandlers = new List<Delegate>((IList<Delegate>)events[GlobalEvent.EVT_GAME_START]);
+            }
+
+            public bool Restore(BrightSeaController controller, BrightSeaModel model, FieldInfo intercept)
+            {
+                try
+                {
+                    if (controller.IsInitialized) controller.Dispose();
+                    model.Clear();
+                    _model.Restore(model);
+                    if (_initialized) controller.Init();
+
+                    IDictionary net = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
+                    if (net == null) return false;
+                    foreach (int proto in Protocols)
+                    {
+                        if (_netHandlers.TryGetValue(proto, out object handler)) net[proto] = handler;
+                        else net.Remove(proto);
+                    }
+
+                    IDictionary events = typeof(EventDispatcher).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
+                    if (events == null) return false;
+                    if (_hadGameStart) events[GlobalEvent.EVT_GAME_START] = new List<Delegate>(_gameStartHandlers);
+                    else events.Remove(GlobalEvent.EVT_GAME_START);
+                    if (intercept != null) intercept.SetValue(null, _intercept);
+                    return controller.IsInitialized == _initialized && _model.Matches(model)
+                        && HandlersMatch(net) && EventHandlersMatch(events)
+                        && (intercept == null || ReferenceEquals(intercept.GetValue(null), _intercept));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("CLIVERIFY brightsea restore EXCEPTION " + e);
+                    return false;
+                }
+            }
+
+            private bool HandlersMatch(IDictionary net)
+            {
+                foreach (int proto in Protocols)
+                {
+                    bool had = _netHandlers.TryGetValue(proto, out object expected);
+                    if (net.Contains(proto) != had || (had && !ReferenceEquals(net[proto], expected))) return false;
+                }
+                return true;
+            }
+
+            private bool EventHandlersMatch(IDictionary events)
+            {
+                if (events.Contains(GlobalEvent.EVT_GAME_START) != _hadGameStart) return false;
+                if (!_hadGameStart) return true;
+                IList<Delegate> actual = events[GlobalEvent.EVT_GAME_START] as IList<Delegate>;
+                if (actual == null || actual.Count != _gameStartHandlers.Count) return false;
+                for (int i = 0; i < actual.Count; i++) if (!ReferenceEquals(actual[i], _gameStartHandlers[i])) return false;
+                return true;
+            }
+        }
+
         private sealed class SavedState
         {
-            private readonly bool _info, _cruiseLogs, _shipInfo, _serverInfo;
+            private readonly bool _info, _cruiseLogs, _shipInfo, _serverInfo, _assistBGold;
             private readonly string _picture;
             private readonly uint _pictureVersion;
             private readonly byte _reward, _totalReward, _rob, _totalRob, _status, _module, _unsatisfiedModule;
@@ -303,20 +410,22 @@ namespace Shenxiao.EditorTools
             private readonly ushort _world, _unsatisfiedWorld, _minWorld;
             private readonly byte _shippingId, _shipReward, _shipTotalReward, _up, _totalUp;
             private readonly ushort _luckey;
+            private readonly ushort _assistBGoldNum, _assistBGoldMax;
             private readonly List<BrightSeaModel.ShippingEntry> _ships;
             private readonly List<BrightSeaModel.CruiseLogEntry> _logs;
             private readonly List<BrightSeaModel.ServerEntry> _enemy, _unsatisfied;
 
             public SavedState(BrightSeaModel m)
             {
-                _info = m.HasInfo; _cruiseLogs = m.HasCruiseLogs; _shipInfo = m.HasShipInfo; _serverInfo = m.HasServerInfo; _picture = m.Picture; _pictureVersion = m.PictureVersion;
+                _info = m.HasInfo; _cruiseLogs = m.HasCruiseLogs; _shipInfo = m.HasShipInfo; _serverInfo = m.HasServerInfo; _assistBGold = m.HasAssistBGoldInfo; _picture = m.Picture; _pictureVersion = m.PictureVersion;
                 _reward = m.RewardTimes; _totalReward = m.TotalRewardTimes; _rob = m.RobTimes; _totalRob = m.TotalRobTimes;
                 _status = m.Status; _autoId = m.AutoId; _module = m.TreasureModule; _world = m.WorldLevel;
                 _unsatisfiedModule = m.UnsatisfiedModule; _unsatisfiedWorld = m.UnsatisfiedWorldLevel; _minWorld = m.MinWorldLevel;
                 _shippingId = m.ShippingId; _luckey = m.LuckeyValue; _shipReward = m.ShipRewardTimes; _shipTotalReward = m.ShipTotalRewardTimes; _up = m.UpTimes; _totalUp = m.TotalUpTimes;
-                _ships = new List<BrightSeaModel.ShippingEntry>(m.SendList); _logs = new List<BrightSeaModel.CruiseLogEntry>(m.CruiseLogs);
-                _enemy = new List<BrightSeaModel.ServerEntry>(m.EnemyServers);
-                _unsatisfied = new List<BrightSeaModel.ServerEntry>(m.UnsatisfiedServers);
+                _assistBGoldNum = m.AssistBGoldNum; _assistBGoldMax = m.AssistBGoldMax;
+                _ships = m.SendList.ConvertAll(CloneShipping); _logs = m.CruiseLogs.ConvertAll(CloneLog);
+                _enemy = m.EnemyServers.ConvertAll(CloneServer);
+                _unsatisfied = m.UnsatisfiedServers.ConvertAll(CloneServer);
             }
 
             public void Restore(BrightSeaModel m)
@@ -325,6 +434,78 @@ namespace Shenxiao.EditorTools
                 if (_cruiseLogs) m.ReplaceCruiseLogs(_logs);
                 if (_shipInfo) m.ReplaceShipInfo(_shippingId, _luckey, _shipReward, _shipTotalReward, _up, _totalUp);
                 if (_serverInfo) m.ReplaceServerInfo(_module, _world, _enemy, _unsatisfiedModule, _unsatisfiedWorld, _minWorld, _unsatisfied);
+                if (_assistBGold) m.ReplaceAssistBGoldInfo(_assistBGoldNum, _assistBGoldMax);
+            }
+
+            public bool Matches(BrightSeaModel m)
+            {
+                return MatchesCoreFour(m) && _assistBGold == m.HasAssistBGoldInfo
+                    && _assistBGoldNum == m.AssistBGoldNum && _assistBGoldMax == m.AssistBGoldMax;
+            }
+
+            public bool MatchesCoreFour(BrightSeaModel m)
+            {
+                return _info == m.HasInfo && _cruiseLogs == m.HasCruiseLogs && _shipInfo == m.HasShipInfo && _serverInfo == m.HasServerInfo
+                    && _picture == m.Picture && _pictureVersion == m.PictureVersion && _reward == m.RewardTimes && _totalReward == m.TotalRewardTimes
+                    && _rob == m.RobTimes && _totalRob == m.TotalRobTimes && _status == m.Status && _autoId == m.AutoId
+                    && _module == m.TreasureModule && _world == m.WorldLevel && _unsatisfiedModule == m.UnsatisfiedModule
+                    && _unsatisfiedWorld == m.UnsatisfiedWorldLevel && _minWorld == m.MinWorldLevel && _shippingId == m.ShippingId
+                    && _luckey == m.LuckeyValue && _shipReward == m.ShipRewardTimes && _shipTotalReward == m.ShipTotalRewardTimes
+                    && _up == m.UpTimes && _totalUp == m.TotalUpTimes
+                    && SameList(_ships, m.SendList) && SameList(_logs, m.CruiseLogs) && SameList(_enemy, m.EnemyServers) && SameList(_unsatisfied, m.UnsatisfiedServers);
+            }
+
+            private static bool SameList<T>(List<T> expected, List<T> actual)
+            {
+                if (expected.Count != actual.Count) return false;
+                for (int i = 0; i < expected.Count; i++) if (!SameObject(expected[i], actual[i])) return false;
+                return true;
+            }
+
+            private static BrightSeaModel.ShippingEntry CloneShipping(BrightSeaModel.ShippingEntry x) => new BrightSeaModel.ShippingEntry
+            {
+                AutoId = x.AutoId, ShippingId = x.ShippingId, ServerId = x.ServerId, ServerNumber = x.ServerNumber, GuildId = x.GuildId, GuildName = x.GuildName,
+                RoleId = x.RoleId, RoleName = x.RoleName, RoleLevel = x.RoleLevel, Power = x.Power, Sex = x.Sex, Career = x.Career, Turn = x.Turn,
+                Picture = x.Picture, PictureVersion = x.PictureVersion, EndTime = x.EndTime, RobTimes = x.RobTimes
+            };
+
+            private static BrightSeaModel.ServerEntry CloneServer(BrightSeaModel.ServerEntry x) => new BrightSeaModel.ServerEntry
+            { ServerId = x.ServerId, ServerNumber = x.ServerNumber, ServerName = x.ServerName, WorldLevel = x.WorldLevel };
+
+            private static BrightSeaModel.ObjectEntry CloneObject(BrightSeaModel.ObjectEntry x) => new BrightSeaModel.ObjectEntry { Type = x.Type, TypeId = x.TypeId, Num = x.Num };
+
+            private static BrightSeaModel.CruiseLogEntry CloneLog(BrightSeaModel.CruiseLogEntry x)
+            {
+                var clone = new BrightSeaModel.CruiseLogEntry
+                {
+                    AutoId = x.AutoId, Type = x.Type, RoberServerId = x.RoberServerId, RoberServerNumber = x.RoberServerNumber,
+                    RoberGuildId = x.RoberGuildId, RoberGuildName = x.RoberGuildName, RoberId = x.RoberId, RoberName = x.RoberName,
+                    RoberPower = x.RoberPower, ShippingId = x.ShippingId, Time = x.Time
+                };
+                clone.Reward.AddRange(x.Reward.ConvertAll(CloneObject));
+                clone.BackList.AddRange(x.BackList.ConvertAll(CloneObject));
+                clone.ReceiveList.AddRange(x.ReceiveList.ConvertAll(CloneObject));
+                return clone;
+            }
+
+            private static bool SameObject(object expected, object actual)
+            {
+                if (ReferenceEquals(expected, actual)) return true;
+                if (expected == null || actual == null || expected.GetType() != actual.GetType()) return false;
+                Type type = expected.GetType();
+                if (type.IsPrimitive || type == typeof(string)) return expected.Equals(actual);
+                if (expected is IEnumerable expectedList && actual is IEnumerable actualList)
+                {
+                    IEnumerator a = expectedList.GetEnumerator(), b = actualList.GetEnumerator();
+                    while (a.MoveNext())
+                    {
+                        if (!b.MoveNext() || !SameObject(a.Current, b.Current)) return false;
+                    }
+                    return !b.MoveNext();
+                }
+                foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+                    if (!SameObject(field.GetValue(expected), field.GetValue(actual))) return false;
+                return true;
             }
         }
     }

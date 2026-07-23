@@ -96,6 +96,11 @@ namespace Shenxiao.Module.Core.BrightSea
         public byte UpTimes { get; private set; }
         public byte TotalUpTimes { get; private set; }
 
+        // ---- 18916 协助绑元日次数（独立于其余四个快照）----
+        public bool HasAssistBGoldInfo { get; private set; }
+        public ushort AssistBGoldNum { get; private set; }
+        public ushort AssistBGoldMax { get; private set; }
+
         /// <summary>每个 18900 包无条件整体替换；空列表也为已加载快照。</summary>
         public void Replace(string picture, uint pictureVersion, byte rewardTimes, byte totalRewardTimes,
             byte robTimes, byte totalRobTimes, ulong autoId, byte status, List<ShippingEntry> sendList)
@@ -148,6 +153,13 @@ namespace Shenxiao.Module.Core.BrightSea
             HasShipInfo = true;
         }
 
+        public void ReplaceAssistBGoldInfo(ushort num, ushort max)
+        {
+            AssistBGoldNum = num;
+            AssistBGoldMax = max;
+            HasAssistBGoldInfo = true;
+        }
+
         public void Clear()
         {
             Picture = null;
@@ -166,6 +178,8 @@ namespace Shenxiao.Module.Core.BrightSea
             ShippingId = ShipRewardTimes = ShipTotalRewardTimes = UpTimes = TotalUpTimes = 0;
             LuckeyValue = 0;
             HasShipInfo = false;
+            AssistBGoldNum = AssistBGoldMax = 0;
+            HasAssistBGoldInfo = false;
         }
     }
 }
