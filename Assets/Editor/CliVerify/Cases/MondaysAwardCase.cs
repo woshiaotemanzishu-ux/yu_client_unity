@@ -38,6 +38,9 @@ namespace Shenxiao.EditorTools
             var oldRecords = new List<MondaysAwardModel.RecordEntry>(model.Records);
             bool oldHasPools = model.HasPools;
             var oldPools = new List<MondaysAwardModel.PoolEntry>(model.Pools);
+            bool oldHasDrawState = model.HasDrawState;
+            byte oldDrawStateCode = model.DrawStateCode;
+            ushort oldDrawTimes = model.DrawTimes;
             FieldInfo interceptField = typeof(MondaysAwardController).GetField("s_outboundIntercept", StaticNonPublic);
             object oldIntercept = interceptField == null ? null : interceptField.GetValue(null);
 
@@ -49,12 +52,13 @@ namespace Shenxiao.EditorTools
                 MethodInfo on17904 = typeof(MondaysAwardController).GetMethod("On17904", InstanceNonPublic);
                 MethodInfo on17905 = typeof(MondaysAwardController).GetMethod("On17905", InstanceNonPublic);
                 MethodInfo on17908 = typeof(MondaysAwardController).GetMethod("On17908", InstanceNonPublic);
+                MethodInfo on17907 = typeof(MondaysAwardController).GetMethod("On17907", InstanceNonPublic);
                 IDictionary handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                bool pass = interceptField != null && on17904 != null && on17905 != null && on17908 != null && handlers != null
-                    && handlers.Contains(17904) && handlers.Contains(17905) && handlers.Contains(17908);
+                bool pass = interceptField != null && on17904 != null && on17905 != null && on17908 != null && on17907 != null && handlers != null
+                    && handlers.Contains(17904) && handlers.Contains(17905) && handlers.Contains(17907) && handlers.Contains(17908);
                 for (int proto = 17900; proto <= 17908; proto++)
                 {
-                    if (proto != 17904 && proto != 17905 && proto != 17908)
+                    if (proto != 17904 && proto != 17905 && proto != 17907 && proto != 17908)
                     {
                         pass &= !handlers.Contains(proto);
                     }
@@ -87,6 +91,27 @@ namespace Shenxiao.EditorTools
                     && !model.HasPools && model.Pools.Count == 0;
                 frames.Clear();
 
+                controller.RequestDrawState();
+                pass &= IsExactDrawStateRequest(frames.Count == 1 ? frames[0] : null)
+                    && !model.HasDrawState && model.DrawStateCode == 0 && model.DrawTimes == 0;
+                frames.Clear();
+
+                var drawZeroReader = new NetReader(new CliVerify.Pkt().C(0).H(0).Bytes(), 0, 3);
+                on17907.Invoke(controller, new object[] { drawZeroReader });
+                pass &= drawZeroReader.Remaining == 0 && model.HasDrawState && model.DrawStateCode == 0 && !model.IsDrawOpen && model.DrawTimes == 0;
+                var drawOpenReader = new NetReader(new CliVerify.Pkt().C(1).H(ushort.MaxValue).Bytes(), 0, 3);
+                on17907.Invoke(controller, new object[] { drawOpenReader });
+                pass &= drawOpenReader.Remaining == 0 && model.HasDrawState && model.DrawStateCode == 1 && model.IsDrawOpen && model.DrawTimes == ushort.MaxValue;
+                var drawRawReader = new NetReader(new CliVerify.Pkt().C(byte.MaxValue).H(7).Bytes(), 0, 3);
+                on17907.Invoke(controller, new object[] { drawRawReader });
+                pass &= drawRawReader.Remaining == 0 && model.HasDrawState && model.DrawStateCode == byte.MaxValue
+                    && !model.IsDrawOpen && model.DrawTimes == 7 && frames.Count == 0;
+
+                controller.RequestDrawState();
+                pass &= IsExactDrawStateRequest(frames.Count == 1 ? frames[0] : null)
+                    && model.DrawStateCode == byte.MaxValue && model.DrawTimes == 7;
+                frames.Clear();
+
                 byte[] firstPoolBytes = new CliVerify.Pkt().H(3)
                     .H(0).H(0)
                     .H(ushort.MaxValue).H(3).H(0).H(ushort.MaxValue).H(ushort.MaxValue)
@@ -99,7 +124,8 @@ namespace Shenxiao.EditorTools
                     && model.Pools[1].Id == ushort.MaxValue && model.Pools[1].Rids.Count == 3
                     && model.Pools[1].Rids[0] == 0 && model.Pools[1].Rids[1] == ushort.MaxValue && model.Pools[1].Rids[2] == ushort.MaxValue
                     && model.Pools[2].Id == 7 && model.Pools[2].Rids.Count == 2 && model.Pools[2].Rids[0] == 5 && model.Pools[2].Rids[1] == 5
-                    && !model.HasData && !model.HasRecords && frames.Count == 0;
+                    && !model.HasData && !model.HasRecords
+                    && model.HasDrawState && model.DrawStateCode == byte.MaxValue && model.DrawTimes == 7 && frames.Count == 0;
 
                 controller.RequestPools();
                 pass &= IsExactPoolsRequest(frames.Count == 1 ? frames[0] : null)
@@ -124,7 +150,8 @@ namespace Shenxiao.EditorTools
                     && model.Records[1].Type == byte.MaxValue && model.Records[1].PoolId == ushort.MaxValue
                     && model.Records[1].Utime == uint.MaxValue && model.Records[1].Picture == picture && model.Records[1].PictureVer == uint.MaxValue
                     && model.Records[1].Career == ushort.MaxValue && model.Records[1].Turn == ushort.MaxValue
-                    && !model.HasData && model.HasPools && model.Pools.Count == 3 && frames.Count == 0;
+                    && !model.HasData && model.HasPools && model.Pools.Count == 3
+                    && model.HasDrawState && model.DrawStateCode == byte.MaxValue && model.DrawTimes == 7 && frames.Count == 0;
 
                 byte[] firstBytes = new CliVerify.Pkt().H(2).H(0).C(0).H(65535).C(255).Bytes();
                 var firstReader = new NetReader(firstBytes, 0, firstBytes.Length);
@@ -134,6 +161,7 @@ namespace Shenxiao.EditorTools
                     && model.TaskStates[1].TaskId == ushort.MaxValue && model.TaskStates[1].State == byte.MaxValue
                     && model.HasRecords && model.Records.Count == 2
                     && model.HasPools && model.Pools.Count == 3
+                    && model.HasDrawState && model.DrawStateCode == byte.MaxValue && model.DrawTimes == 7
                     && frames.Count == 0;
 
                 byte[] secondBytes = new CliVerify.Pkt().H(1).H(7).C(8).Bytes();
@@ -171,23 +199,33 @@ namespace Shenxiao.EditorTools
                 pass &= replacementPoolReader.Remaining == 0 && model.HasPools && model.Pools.Count == 1
                     && model.Pools[0].Id == 7 && model.Pools[0].Rids.Count == 1 && model.Pools[0].Rids[0] == 9
                     && model.HasData && model.TaskStates.Count == 1 && model.HasRecords && model.Records.Count == 1
-                    && model.Records[0].RoleId == 9 && frames.Count == 0;
+                    && model.Records[0].RoleId == 9
+                    && model.HasDrawState && model.DrawStateCode == byte.MaxValue && model.DrawTimes == 7 && frames.Count == 0;
+
+                var replacementDrawReader = new NetReader(new CliVerify.Pkt().C(1).H(123).Bytes(), 0, 3);
+                on17907.Invoke(controller, new object[] { replacementDrawReader });
+                pass &= replacementDrawReader.Remaining == 0 && model.HasDrawState && model.DrawStateCode == 1
+                    && model.IsDrawOpen && model.DrawTimes == 123
+                    && model.HasData && model.TaskStates.Count == 1 && model.HasRecords && model.Records.Count == 1
+                    && model.HasPools && model.Pools.Count == 1 && frames.Count == 0;
 
                 var emptyPoolReader = new NetReader(new CliVerify.Pkt().H(0).Bytes(), 0, 2);
                 on17908.Invoke(controller, new object[] { emptyPoolReader });
                 pass &= emptyPoolReader.Remaining == 0 && model.HasPools && model.Pools.Count == 0
                     && model.HasData && model.TaskStates.Count == 1 && model.HasRecords && model.Records.Count == 1
-                    && model.Records[0].RoleId == 9 && frames.Count == 0;
+                    && model.Records[0].RoleId == 9
+                    && model.HasDrawState && model.DrawStateCode == 1 && model.DrawTimes == 123 && frames.Count == 0;
 
                 var emptyRecordReader = new NetReader(new CliVerify.Pkt().H(0).Bytes(), 0, 2);
                 on17905.Invoke(controller, new object[] { emptyRecordReader });
                 pass &= emptyRecordReader.Remaining == 0 && model.HasRecords && model.Records.Count == 0
-                    && model.HasData && model.TaskStates.Count == 1 && model.HasPools && model.Pools.Count == 0 && frames.Count == 0;
+                    && model.HasData && model.TaskStates.Count == 1 && model.HasPools && model.Pools.Count == 0
+                    && model.HasDrawState && model.DrawStateCode == 1 && model.DrawTimes == 123 && frames.Count == 0;
 
                 controller.Dispose();
-                pass &= !controller.IsInitialized && !handlers.Contains(17904) && !handlers.Contains(17905) && !handlers.Contains(17908)
+                pass &= !controller.IsInitialized && !handlers.Contains(17904) && !handlers.Contains(17905) && !handlers.Contains(17907) && !handlers.Contains(17908)
                     && !model.HasData && model.TaskStates.Count == 0 && !model.HasRecords && model.Records.Count == 0
-                    && !model.HasPools && model.Pools.Count == 0;
+                    && !model.HasPools && model.Pools.Count == 0 && !model.HasDrawState && model.DrawStateCode == 0 && model.DrawTimes == 0;
 
                 Debug.Log("CLIVERIFY mondaysaward VERDICT pass=" + pass);
                 return pass ? 0 : 3;
@@ -213,6 +251,11 @@ namespace Shenxiao.EditorTools
                 if (oldHasPools)
                 {
                     model.ReplacePools(oldPools);
+                }
+
+                if (oldHasDrawState)
+                {
+                    model.ReplaceDrawState(oldDrawStateCode, oldDrawTimes);
                 }
 
                 if (wasInitialized)
@@ -255,6 +298,14 @@ namespace Shenxiao.EditorTools
                 && frame[2] == 0x03 && frame[3] == 0xE8
                 && frame[4] == (byte)(Proto.MONDAYS_AWARD_POOLS >> 8)
                 && frame[5] == (byte)(Proto.MONDAYS_AWARD_POOLS & 0xFF);
+        }
+
+        private static bool IsExactDrawStateRequest(byte[] frame)
+        {
+            return frame != null && frame.Length == 6 && frame[0] == 0 && frame[1] == 6
+                && frame[2] == 0x03 && frame[3] == 0xE8
+                && frame[4] == (byte)(Proto.MONDAYS_AWARD_DRAW_STATE >> 8)
+                && frame[5] == (byte)(Proto.MONDAYS_AWARD_DRAW_STATE & 0xFF);
         }
     }
 }

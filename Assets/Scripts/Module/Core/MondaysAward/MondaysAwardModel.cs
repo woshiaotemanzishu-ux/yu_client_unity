@@ -82,6 +82,10 @@ namespace Shenxiao.Module.Core.MondaysAward
         public IReadOnlyList<RecordEntry> Records => _readOnlyRecords;
         public bool HasPools { get; private set; }
         public IReadOnlyList<PoolEntry> Pools => _readOnlyPools;
+        public bool HasDrawState { get; private set; }
+        public byte DrawStateCode { get; private set; }
+        public bool IsDrawOpen => DrawStateCode == 1;
+        public ushort DrawTimes { get; private set; }
 
         public void Replace(List<TaskStateEntry> taskStates)
         {
@@ -116,6 +120,13 @@ namespace Shenxiao.Module.Core.MondaysAward
             HasPools = true;
         }
 
+        public void ReplaceDrawState(byte code, ushort drawTimes)
+        {
+            DrawStateCode = code;
+            DrawTimes = drawTimes;
+            HasDrawState = true;
+        }
+
         public void Reset()
         {
             _taskStates.Clear();
@@ -124,6 +135,9 @@ namespace Shenxiao.Module.Core.MondaysAward
             HasData = false;
             HasRecords = false;
             HasPools = false;
+            HasDrawState = false;
+            DrawStateCode = 0;
+            DrawTimes = 0;
         }
     }
 }

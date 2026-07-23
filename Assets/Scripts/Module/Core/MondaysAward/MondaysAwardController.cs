@@ -22,6 +22,7 @@ namespace Shenxiao.Module.Core.MondaysAward
             RegisterProtocal(Proto.MONDAYS_AWARD_TASK_STATE, On17904);
             RegisterProtocal(Proto.MONDAYS_AWARD_RECORDS, On17905);
             RegisterProtocal(Proto.MONDAYS_AWARD_POOLS, On17908);
+            RegisterProtocal(Proto.MONDAYS_AWARD_DRAW_STATE, On17907);
         }
 
         public void RequestTaskState()
@@ -108,6 +109,20 @@ namespace Shenxiao.Module.Core.MondaysAward
             }
 
             MondaysAwardModel.Instance.ReplacePools(pools);
+        }
+
+        public void RequestDrawState()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.MONDAYS_AWARD_DRAW_STATE, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.MONDAYS_AWARD_DRAW_STATE);
+        }
+
+        private void On17907(NetReader reader)
+        {
+            MondaysAwardModel.Instance.ReplaceDrawState(reader.ReadU8(), reader.ReadU16());
         }
 
         public override void Dispose()

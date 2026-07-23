@@ -996,6 +996,8 @@
         public const int MONDAYS_AWARD_RECORDS = 17905;
         /// <summary>周一嘉礼当前奖池。C2S 空包；S2C: pool_count:u16×{id:u16,rid_count:u16,rid:u16×rid_count}。</summary>
         public const int MONDAYS_AWARD_POOLS = 17908;
+        /// <summary>周一嘉礼抽奖窗口与累计次数。C2S 空包；S2C: code:u8,draw_times:u16。</summary>
+        public const int MONDAYS_AWARD_DRAW_STATE = 17907;
         /// <summary>午时狂欢累计经验。C2S 空包；S2C: exp:u32（每包为累计绝对值）。</summary>
         public const int NOON_PARTY_TOTAL_EXP = 28503;
         /// <summary>午时狂欢普通/高级宝箱已采集绝对计数。C2S 空包；S2C: low_box:u32,high_box:u32。</summary>
