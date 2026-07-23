@@ -936,6 +936,8 @@
         public const int GROWTHBENEFITS_INFO = 41720;      // 成长福利信息/任务态
         public const int GROWTHBENEFITS_TASK_UPDATE = 41721; // 成长福利任务进度推送
         public const int FRIENDINVITE_INFO = 34001;        // 好友邀请/分享信息
+        /// <summary>好友邀请升级角色全量快照。C2S 空包；S2C pos_list:u16×{invitee_id:u64,pos:u8,name:s,lv:u16,career:u8,status:u8}。</summary>
+        public const int FRIENDINVITE_LEVEL_INFO = 34006;
         /// <summary>好友邀请(pt_340)家族统一错误出口(轮22 族错误出口批;对标老端 FriendInviteController.ts:160-163
         /// On34000:无条件 ErrorCodeShow(code,args)。服务端 send_error_code/3(lib_invite.erl:436-441)是
         /// 多处失败分支共享的错误壳,首字段 Pt 标识触发协议号,老端不消费该字段,本端同样只读不透出)。

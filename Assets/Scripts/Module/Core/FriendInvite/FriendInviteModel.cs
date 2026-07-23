@@ -1,10 +1,11 @@
 using Shenxiao.Module.Core.Game;
+using System.Collections.Generic;
 
 namespace Shenxiao.Module.Core.FriendInvite
 {
     /// <summary>
-    /// 好友邀请(分享)数据(对标老客户端 FriendInviteModel)。承载 34001 下发的邀请基础信息,
-    /// 并提供主界面图标(340)显隐判定。
+    /// 好友邀请(分享)数据(对标老客户端 FriendInviteModel)。承载 34001 邀请基础信息与
+    /// 34006 升级邀请角色全量快照,并提供主界面图标(340)显隐判定。
     ///
     /// 图标开关铁律(对标老端 CheckIconOpenState = !is_alpha && ShareOpenState()):
     /// 好友邀请是「分享/邀请」社交入口,是否开启由**客户端构建/渠道配置**决定,而非服务端协议
@@ -39,6 +40,17 @@ namespace Shenxiao.Module.Core.FriendInvite
         public int RecoverTime; // 恢复/刷新时间戳
         public int DailyCount;  // 今日已邀请次数
         public int TotalCount;  // 累计邀请次数
+        public sealed class LevelInviteEntry
+        {
+            public ulong InviteeId;
+            public byte Pos;
+            public string Name = "";
+            public ushort Level;
+            public byte Career;
+            public byte Status;
+        }
+        public bool HasLevelInfo { get; private set; }
+        public readonly List<LevelInviteEntry> LevelInviteEntries = new List<LevelInviteEntry>();
 
         public void SetInfo(int getStatus, int recoverTime, int dailyCount, int totalCount)
         {
@@ -46,6 +58,13 @@ namespace Shenxiao.Module.Core.FriendInvite
             RecoverTime = recoverTime;
             DailyCount = dailyCount;
             TotalCount = totalCount;
+        }
+
+        public void ReplaceLevelInfo(List<LevelInviteEntry> entries)
+        {
+            LevelInviteEntries.Clear();
+            if (entries != null) LevelInviteEntries.AddRange(entries);
+            HasLevelInfo = true;
         }
 
         /// <summary>
@@ -64,6 +83,8 @@ namespace Shenxiao.Module.Core.FriendInvite
             RecoverTime = 0;
             DailyCount = 0;
             TotalCount = 0;
+            LevelInviteEntries.Clear();
+            HasLevelInfo = false;
         }
     }
 }
