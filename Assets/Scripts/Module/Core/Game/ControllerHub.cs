@@ -104,6 +104,7 @@ using Shenxiao.Module.Core.Deposit;
 using Shenxiao.Module.Core.MonBook;
 using Shenxiao.Module.Core.KfSingleRank;
 using Shenxiao.Module.Core.DragonWhisper;
+using Shenxiao.Module.Core.TreasureMap;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -235,6 +236,7 @@ namespace Shenxiao.Module.Core.Game
             MonBookController.Instance,
             KfSingleRankController.Instance,
             DragonWhisperController.Instance,
+            TreasureMapController.Instance,
             // 后续:EquipController ...
         };
 

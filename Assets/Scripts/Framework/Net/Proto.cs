@@ -10,6 +10,8 @@
         public const int DRAGON_WHISPER_INFO = 65101;
         /// <summary>龙语秘境掉落记录快照。C2S 严格空包；S2C 为完整掉落记录列表。</summary>
         public const int DRAGON_WHISPER_DROP_LOG = 65106;
+        /// <summary>藏宝图开奖记录快照。C2S 严格空包；S2C 为完整记录及奖励列表。</summary>
+        public const int TREASURE_MAP_DRAW_LOG = 20303;
 
         // ----- 登录链(1xxxx) -----
         /// <summary>账号登录游戏服。发 "iiss"(pid, 时间戳秒, account_id, plat_name);
