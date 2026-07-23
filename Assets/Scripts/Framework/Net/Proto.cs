@@ -1975,6 +1975,9 @@
         /// role_list[u16×{role_id:l, figure:RecFigure, before_rank:h, rank:h, combat:l}], result:c,
         /// reward_list[u16×{type:c, type_id:i, num:l}], break_reward_list:ObjectList)。</summary>
         public const int JJC_CHALLENGE = 28003;
+        /// <summary>排位赛挑战次数完整快照(请求无参;回包 errcode:i32(32-bit wire 由 ReadU32 后 unchecked 转 int),
+        /// left_num:u16, num_refresh:u32, can_buy_num:u16)。num_refresh 为服务器绝对时间原值，独立于 28001 的页面字段。</summary>
+        public const int JJC_TIMES_INFO = 28004;
 
         // ----- 组队(24xxx,yu_server pt_240.erl / pp_team.erl;老端 commonController/TeamController.ts,
         // 自动循环 轮8) -----

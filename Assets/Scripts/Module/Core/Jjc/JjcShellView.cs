@@ -37,6 +37,7 @@ namespace Shenxiao.Module.Core.Jjc
             }
             JjcController.Instance.RequestInfo();
             JjcController.Instance.RequestRivals();
+            JjcController.Instance.RequestTimesInfo();
             Rebuild();
             GameLog.Info("Jjc", "JjcShellView 打开: hasInfo={0} hasRivals={1}", JjcModel.Instance.HasInfo, JjcModel.Instance.HasRivals);
         }

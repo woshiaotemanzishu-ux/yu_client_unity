@@ -4,7 +4,7 @@ using Shenxiao.Common.Proto;
 namespace Shenxiao.Module.Core.Jjc
 {
     /// <summary>
-    /// 排位赛(竞技场 JJC,yu_server pt_280 段内 28001/28002/28003;老端 ArenaController.ts/ArenaModel.ts)数据层。
+    /// 排位赛(竞技场 JJC,yu_server pt_280 段内 28001/28002/28003/28004;老端 ArenaController.ts/ArenaModel.ts)数据层。
     /// ⚠服务端计数断链(mod_jjc_cast.erl:87 唯一 increment 被注释)——挑战流程(28003)可正常发起并拿到结果,
     /// 但 mod_daily ?JJC_USE_NUM 永不增长,主线 101465(ctype35「挑战对手」)判定无法自然完成,待服务端修复
     /// (与大妖 63 guard 并列服务端工单)。客户端侧本类/控制器/壳先备好,服务端修复后即可用。
@@ -48,6 +48,13 @@ namespace Shenxiao.Module.Core.Jjc
         public readonly List<RivalVo> LastChallengeRoleList = new List<RivalVo>();
         public bool HasChallengeResult { get; private set; }
 
+        // ---- 28004 挑战次数完整快照(与 28001 页面信息独立) ----
+        public bool HasTimesInfo { get; private set; }
+        public int TimesErrCode { get; private set; }
+        public ushort LeftNum { get; private set; }
+        public uint TimesRefreshAt { get; private set; }
+        public ushort CanBuyNum { get; private set; }
+
         /// <summary>28001 全量套值(对标老端 On28001 → arena_model.SetPageInfo)。</summary>
         public void Apply28001(int rank, int historyRank, int rewardRank, long combat, int hp, int num,
             int numRefresh, int honour, bool isReward, int petId, List<int> breakIdList)
@@ -85,6 +92,16 @@ namespace Shenxiao.Module.Core.Jjc
             HasChallengeResult = true;
         }
 
+        /// <summary>28004 完整快照绝对覆盖；不得回写 28001 的 Num/NumRefresh。</summary>
+        public void Apply28004(int errCode, ushort leftNum, uint timesRefreshAt, ushort canBuyNum)
+        {
+            TimesErrCode = errCode;
+            LeftNum = leftNum;
+            TimesRefreshAt = timesRefreshAt;
+            CanBuyNum = canBuyNum;
+            HasTimesInfo = true;
+        }
+
         public void Clear()
         {
             Rank = HistoryRank = RewardRank = Hp = Num = NumRefresh = Honour = PetId = 0;
@@ -97,6 +114,11 @@ namespace Shenxiao.Module.Core.Jjc
             LastChallengeWin = false;
             LastChallengeRoleList.Clear();
             HasChallengeResult = false;
+            HasTimesInfo = false;
+            TimesErrCode = 0;
+            LeftNum = 0;
+            TimesRefreshAt = 0;
+            CanBuyNum = 0;
         }
     }
 }

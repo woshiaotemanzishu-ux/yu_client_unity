@@ -1,5 +1,7 @@
 # AGENTS.md
 
+- R165 JJC 28004: wire is a standalone full snapshot `errcode:i32(32-bit wire; ReadU32 then unchecked cast int),left_num:u16,num_refresh:u32,can_buy_num:u16`; retain the absolute refresh timestamp as `uint`, and never overwrite 28001's `Num/NumRefresh`. GAME_START clears every JJC slice then sends exact empty `28004 -> 28001`; 28003 result sends exact `28004 -> 28002`.
+
 ## KfSingleRank 50701/50702/50703 (R142/R144/R145)
 
 - GAME_START clears main, 50703 area-top, and 50702 area-tower state, then sends parameterless 50701 once; server owns the rank-dungeon open gate. Normal 50701/50702/50703 packets replace only their own snapshot and must not clear the other caches. 50702 and 50703 are explicit `area_id:u8` requests with independent ordered per-area full snapshots; preserve duplicates and empty snapshots. Do not hardcode a 460 level catch-up or bind role updates; exclude 50704/05, UI, scene, sorting, config, red dots, and auto-fight.
