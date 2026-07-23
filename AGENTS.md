@@ -27,6 +27,7 @@
 ## Adventure 42701 (R155)
 
 - 42701 is an explicit parameterless board-state snapshot: `circle:u16,location:u16,left_times:u16,throw_times:u16,free_reset_times:u16,free_throw_times:u16`; every packet is the full current absolute state. `left_times` is the server ADVEN_RESET_NUM value, not a client-side derivation. Do not attach GAME_START, day/level hooks, 42700 follow-ups, 42702-06 operations, UI, config, or red dots.
+- 42704 is an explicit parameterless shop snapshot: `times:u32,refresh_cost:ObjectList,goods:u16×{id:u16,type:u8,reward:ObjectList,show_price:u32,price:u32,over:u8,state:u8}`. Every packet replaces the complete state; retain duplicate objects and IDs and ObjectList wire order, while exposing goods in the old-client-compatible reversed wire order. Do not attach GAME_START, day hooks, 42700/01 follow-ups, operations, UI, config, or red dots.
 
 ## HolyBattle 21801/21804/21805/21807/21808/21811 (R130/R146/R147/R151/R152/R154)
 

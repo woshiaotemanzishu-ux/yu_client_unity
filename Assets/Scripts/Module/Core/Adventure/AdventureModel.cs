@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
 
@@ -35,10 +36,45 @@ namespace Shenxiao.Module.Core.Adventure
         public ushort ThrowTimes { get; private set; }
         public ushort FreeResetTimes { get; private set; }
         public ushort FreeThrowTimes { get; private set; }
+        public bool HasShopSnapshot { get; private set; }
+        public uint ShopTimes { get; private set; }
+        public List<ObjectEntry> RefreshCost { get; private set; } = new List<ObjectEntry>();
+        /// <summary>兼容旧端 SetAdvShopData：以服务端 goods_list 的反转顺序暴露，保留重复 Id。</summary>
+        public List<ShopGoodsEntry> ShopGoods { get; private set; } = new List<ShopGoodsEntry>();
+
+        public sealed class ObjectEntry
+        {
+            public byte Style { get; }
+            public uint TypeId { get; }
+            public uint Count { get; }
+            public ObjectEntry(byte style, uint typeId, uint count) { Style = style; TypeId = typeId; Count = count; }
+        }
+
+        public sealed class ShopGoodsEntry
+        {
+            public ushort Id { get; }
+            public byte Type { get; }
+            public List<ObjectEntry> Reward { get; }
+            public uint ShowPrice { get; }
+            public uint Price { get; }
+            public byte Over { get; }
+            public byte State { get; }
+            public ShopGoodsEntry(ushort id, byte type, List<ObjectEntry> reward, uint showPrice, uint price, byte over, byte state)
+            { Id = id; Type = type; Reward = reward; ShowPrice = showPrice; Price = price; Over = over; State = state; }
+        }
 
         public void ReplaceBoardState(ushort circle, ushort location, ushort leftTimes, ushort throwTimes, ushort freeResetTimes, ushort freeThrowTimes)
         {
             Circle = circle; Location = location; LeftTimes = leftTimes; ThrowTimes = throwTimes; FreeResetTimes = freeResetTimes; FreeThrowTimes = freeThrowTimes; HasBoardState = true;
+        }
+
+        public void ReplaceShopSnapshot(uint times, List<ObjectEntry> refreshCost, List<ShopGoodsEntry> wireGoods)
+        {
+            ShopTimes = times;
+            RefreshCost = refreshCost;
+            ShopGoods = wireGoods;
+            ShopGoods.Reverse();
+            HasShopSnapshot = true;
         }
 
         public void SetTimeInfo(int stage, long startTime, long endTime)
@@ -77,6 +113,7 @@ namespace Shenxiao.Module.Core.Adventure
             StartTime = 0;
             EndTime = 0;
             HasBoardState = false; Circle = 0; Location = 0; LeftTimes = 0; ThrowTimes = 0; FreeResetTimes = 0; FreeThrowTimes = 0;
+            HasShopSnapshot = false; ShopTimes = 0; RefreshCost = new List<ObjectEntry>(); ShopGoods = new List<ShopGoodsEntry>();
         }
     }
 }

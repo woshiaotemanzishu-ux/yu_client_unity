@@ -32,6 +32,7 @@ namespace Shenxiao.Module.Core.Adventure
         {
             RegisterProtocal(Proto.ADVENTURE_INFO, On42700);
             RegisterProtocal(Proto.ADVENTURE_BOARD_STATE, On42701);
+            RegisterProtocal(Proto.ADVENTURE_SHOP_SNAPSHOT, On42704);
             // 对标老端 CHANGE_LEVEL→复算开启态:等级变化时复请求 42700(神装功能等级门槛)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             // 对标老端 AdventureController.ts:52:DAY_CHANGE→ref_func 发 42700,并在 model.shop_data 已加载时
@@ -83,6 +84,28 @@ namespace Shenxiao.Module.Core.Adventure
         private void On42701(NetReader reader)
         {
             AdventureModel.Instance.ReplaceBoardState(reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16());
+        }
+
+        public void RequestShopSnapshot()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.ADVENTURE_SHOP_SNAPSHOT, null, null);
+            if (s_boardStateOutboundIntercept != null && s_boardStateOutboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.ADVENTURE_SHOP_SNAPSHOT);
+        }
+
+        private void On42704(NetReader reader)
+        {
+            uint times = reader.ReadU32();
+            var refreshCost = reader.ReadArray(ReadObjectEntry);
+            var goods = reader.ReadArray(r => new AdventureModel.ShopGoodsEntry(r.ReadU16(), r.ReadU8(), r.ReadArray(ReadObjectEntry), r.ReadU32(), r.ReadU32(), r.ReadU8(), r.ReadU8()));
+            AdventureModel.Instance.ReplaceShopSnapshot(times, refreshCost, goods);
+        }
+
+        private static AdventureModel.ObjectEntry ReadObjectEntry(NetReader reader)
+        {
+            return new AdventureModel.ObjectEntry(reader.ReadU8(), reader.ReadU32(), reader.ReadU32());
         }
 
         // 对标老端 SetTimeInfo:先删两个图标,开启时只加当天那一个(默认 42701)。
