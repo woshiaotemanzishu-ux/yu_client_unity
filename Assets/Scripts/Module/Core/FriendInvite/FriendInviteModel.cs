@@ -5,7 +5,7 @@ namespace Shenxiao.Module.Core.FriendInvite
 {
     /// <summary>
     /// 好友邀请(分享)数据(对标老客户端 FriendInviteModel)。承载 34001 邀请基础信息、
-    /// 34005 帮助信息、34006 升级邀请角色与 34012 福利奖励状态全量快照,并提供主界面图标(340)显隐判定。
+    /// 34005 帮助信息、34006 升级邀请角色、34008 一次性等级奖励信息与 34012 福利奖励状态全量快照,并提供主界面图标(340)显隐判定。
     ///
     /// 图标开关铁律(对标老端 CheckIconOpenState = !is_alpha && ShareOpenState()):
     /// 好友邀请是「分享/邀请」社交入口,是否开启由**客户端构建/渠道配置**决定,而非服务端协议
@@ -16,7 +16,7 @@ namespace Shenxiao.Module.Core.FriendInvite
     /// 若后续接入 ClientConfig.json 解析,改由 login 引导按真实 share_open 赋值即可。
     /// 叠加的等级门(open_lv=30)/开服天/审核隐藏(need_hide_in_alpha)由 ActivityIconManager.AddIconAsync
     /// 的 FunIsOpenByIconType 统一把控(对标老端 addIcon 内部对 open_lv/open_day/need_hide_in_alpha 的校验)。
-    /// 面板/助力/红包/福利等 UI 待用户验收,本期只做图标。
+    /// 面板/助力/红包/福利等 UI 待用户验收,当前只做图标与只读数据底座。
     /// </summary>
     public sealed class FriendInviteModel
     {
@@ -50,6 +50,12 @@ namespace Shenxiao.Module.Core.FriendInvite
             public byte Status;
         }
         public sealed class RewardState { public byte RewardId; public byte Status; }
+        public sealed class BoostReward { public byte Type; public uint TypeId; public uint Num; }
+        public const ushort BoostLevelKey = 60; // old FriendInviteModel.boost_lv_key
+        public bool HasBoostInfo { get; private set; }
+        public ushort BoostLevel { get; private set; }
+        public ushort BoostTotalCount { get; private set; }
+        public readonly List<BoostReward> BoostRewards = new List<BoostReward>();
         public const byte WelfareType = 3; // old FriendInviteModel.welfare_type
         public bool HasWelfareInfo { get; private set; }
         public byte WelfareInfoType { get; private set; }
@@ -89,6 +95,13 @@ namespace Shenxiao.Module.Core.FriendInvite
             if (rewards != null) WelfareRewards.AddRange(rewards);
             HasWelfareInfo = true;
         }
+        public void ReplaceBoostInfo(ushort level, ushort totalCount, List<BoostReward> rewards)
+        {
+            BoostLevel = level; BoostTotalCount = totalCount;
+            BoostRewards.Clear();
+            if (rewards != null) BoostRewards.AddRange(rewards);
+            HasBoostInfo = true;
+        }
 
         /// <summary>
         /// 图标入口开启状态(对标老端 CheckIconOpenState():!plat_form_mgr.is_alpha && ShareOpenState())。
@@ -110,6 +123,7 @@ namespace Shenxiao.Module.Core.FriendInvite
             HasLevelInfo = false;
             HelpCount = 0; HelpRewards.Clear(); HelpInviteEntries.Clear(); HasHelpInfo = false;
             WelfareInfoType = 0; WelfareRewards.Clear(); HasWelfareInfo = false;
+            BoostLevel = 0; BoostTotalCount = 0; BoostRewards.Clear(); HasBoostInfo = false;
         }
     }
 }

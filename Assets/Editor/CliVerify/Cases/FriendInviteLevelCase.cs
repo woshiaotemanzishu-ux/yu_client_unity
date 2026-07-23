@@ -28,6 +28,7 @@ namespace Shenxiao.EditorTools
             ushort oldHelpCount = m.HelpCount;
             var oldHelpRewards = CloneRewards(m.HelpRewards); var oldHelpEntries = Clone(m.HelpInviteEntries);
             byte oldWelfareType = m.WelfareInfoType; var oldWelfareRewards = CloneRewards(m.WelfareRewards);
+            bool oldBoost = m.HasBoostInfo; ushort oldBoostLevel = m.BoostLevel, oldBoostTotal = m.BoostTotalCount; var oldBoostRewards = CloneBoost(m.BoostRewards);
             var oldEntries = Clone(m.LevelInviteEntries);
             var lastLevel = typeof(FriendInviteController).GetField("_lastLevel", NP); object oldLast = lastLevel?.GetValue(c);
             var intercept = typeof(FriendInviteController).GetField("s_outboundIntercept", SNP); object oldIntercept = intercept?.GetValue(null);
@@ -41,17 +42,17 @@ namespace Shenxiao.EditorTools
             bool oldIcon = icons != null && icons.Contains("340"), oldBox = boxes != null && boxes.Contains("340");
             object oldIconRef = oldIcon ? icons["340"] : null, oldBoxRef = oldBox ? boxes["340"] : null;
             var handlers = typeof(NetManager).GetField("_handlers", SNP)?.GetValue(null) as IDictionary;
-            bool old34000 = handlers != null && handlers.Contains(34000), old34001 = handlers != null && handlers.Contains(34001), old34005 = handlers != null && handlers.Contains(34005), old34006 = handlers != null && handlers.Contains(34006), old34012 = handlers != null && handlers.Contains(34012);
-            object old34000Ref = old34000 ? handlers[34000] : null, old34001Ref = old34001 ? handlers[34001] : null, old34005Ref = old34005 ? handlers[34005] : null, old34006Ref = old34006 ? handlers[34006] : null, old34012Ref = old34012 ? handlers[34012] : null;
+            bool old34000 = handlers != null && handlers.Contains(34000), old34001 = handlers != null && handlers.Contains(34001), old34005 = handlers != null && handlers.Contains(34005), old34006 = handlers != null && handlers.Contains(34006), old34008 = handlers != null && handlers.Contains(34008), old34012 = handlers != null && handlers.Contains(34012);
+            object old34000Ref = old34000 ? handlers[34000] : null, old34001Ref = old34001 ? handlers[34001] : null, old34005Ref = old34005 ? handlers[34005] : null, old34006Ref = old34006 ? handlers[34006] : null, old34008Ref = old34008 ? handlers[34008] : null, old34012Ref = old34012 ? handlers[34012] : null;
             try
             {
-                c.Init(); m.Reset(); var on = typeof(FriendInviteController).GetMethod("On34006", NP); var onHelp = typeof(FriendInviteController).GetMethod("On34005", NP); var onWelfare = typeof(FriendInviteController).GetMethod("On34012", NP);
+                c.Init(); m.Reset(); var on = typeof(FriendInviteController).GetMethod("On34006", NP); var onHelp = typeof(FriendInviteController).GetMethod("On34005", NP); var onBoost = typeof(FriendInviteController).GetMethod("On34008", NP); var onWelfare = typeof(FriendInviteController).GetMethod("On34012", NP);
                 var onInfo = typeof(FriendInviteController).GetMethod("On34001", NP);
-                pass = on != null && onHelp != null && onWelfare != null && onInfo != null && intercept != null && handlers != null
+                pass = on != null && onHelp != null && onBoost != null && onWelfare != null && onInfo != null && intercept != null && handlers != null
                     && lastLevel != null && roleReady != null && eventHandlers != null && icons != null && boxes != null;
-                for (int p = 34000; p <= 34012; p++) pass &= handlers.Contains(p) == (p == 34000 || p == 34001 || p == 34005 || p == 34006 || p == 34012);
+                for (int p = 34000; p <= 34012; p++) pass &= handlers.Contains(p) == (p == 34000 || p == 34001 || p == 34005 || p == 34006 || p == 34008 || p == 34012);
                 var frames = new List<byte[]>(); intercept.SetValue(null, new Func<byte[], bool>(f => { frames.Add(f); return true; }));
-                c.RequestLevelInfo(); pass &= Frames(frames, 34006); frames.Clear(); c.RequestHelpInfo(); pass &= Frames(frames, 34005); frames.Clear(); c.RequestWelfareInfo(3); pass &= Frames(frames, 34012); frames.Clear(); c.RequestStartup(); pass &= Frames(frames, 34001, 34012, 34005, 34006);
+                c.RequestLevelInfo(); pass &= Frames(frames, 34006); frames.Clear(); c.RequestHelpInfo(); pass &= Frames(frames, 34005); frames.Clear(); c.RequestWelfareInfo(3); pass &= Frames(frames, 34012); frames.Clear(); c.RequestBoostInfo(60); pass &= Frames(frames, 34008); frames.Clear(); c.RequestStartup(); pass &= Frames(frames, 34001, 34012, 34005, 34006, 34008);
                 Invoke(on, c, PacketSingle(), out int keepRemain);
                 FriendInviteModel.ShareOpen = false;
                 Invoke(onInfo, c, InfoPacket(), out int infoRemain);
@@ -66,43 +67,59 @@ namespace Shenxiao.EditorTools
                 Invoke(onInfo, c, InfoPacket(), out infoRemain);
                 pass &= infoRemain == 0 && m.HasHelpInfo && m.HelpCount == ushort.MaxValue && m.HelpRewards.Count == 2 && m.HelpInviteEntries.Count == 2
                     && m.HasLevelInfo && m.LevelInviteEntries.Count == 1;
-                role.MarkBaseInfoReady(); role.Level = 654321; lastLevel.SetValue(c, 0); frames.Clear(); EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE); pass &= Frames(frames, 34001, 34012, 34005, 34006);
+                FriendInviteModel.ShareOpen = true; role.MarkBaseInfoReady(); role.Level = 654321; lastLevel.SetValue(c, 0); frames.Clear(); EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE); pass &= Frames(frames, 34001, 34012, 34005, 34006, 34008);
+                Invoke(onBoost, c, BoostMultiPacket(), out int boostRemain);
+                pass &= boostRemain == 0 && BoostMultiState(m) && InfoState(m) && LevelSingleState(m) && HelpMultiState(m) && WelfareMultiState(m);
                 Invoke(on, c, PacketMulti(), out int remain);
                 pass &= remain == 0 && m.HasLevelInfo && m.LevelInviteEntries.Count == 2 && m.LevelInviteEntries[0].InviteeId == ulong.MaxValue
                     && m.LevelInviteEntries[0].Pos == 255 && m.LevelInviteEntries[0].Name == "邀请中文" && m.LevelInviteEntries[0].Level == ushort.MaxValue
                     && m.LevelInviteEntries[0].Career == 254 && m.LevelInviteEntries[0].Status == 253 && m.LevelInviteEntries[1].InviteeId == ulong.MaxValue
                     && m.LevelInviteEntries[1].Pos == 255 && m.LevelInviteEntries[1].Name == "" && m.LevelInviteEntries[1].Level == 0
                     && m.LevelInviteEntries[1].Career == 1 && m.LevelInviteEntries[1].Status == 2;
-                pass &= HelpMultiState(m) && WelfareMultiState(m);
+                pass &= FiveSlicesPresent(m);
+                // Old LevelChange: only a real level change, share open, and no ordinary icon reruns init; box-only is still absent.
+                role.MarkBaseInfoReady(); lastLevel.SetValue(c, role.Level); frames.Clear(); EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
+                pass &= frames.Count == 0 && FiveSlicesPresent(m);
+                FriendInviteModel.ShareOpen = false; icons.Remove("340"); boxes.Remove("340"); role.Level++; frames.Clear(); EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
+                pass &= frames.Count == 0 && FiveSlicesPresent(m);
+                icons["340"] = new ActivityIconManager.IconInfo { IconType = "340" }; role.Level++; frames.Clear(); EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
+                pass &= frames.Count == 0 && FiveSlicesPresent(m);
+                FriendInviteModel.ShareOpen = true; role.Level++; frames.Clear(); EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
+                pass &= frames.Count == 0 && FiveSlicesPresent(m);
+                icons.Remove("340"); boxes["340"] = new ActivityIconManager.IconInfo { IconType = "340" }; role.Level++; frames.Clear(); EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
+                pass &= Frames(frames, 34001, 34012, 34005, 34006, 34008) && FiveSlicesPresent(m);
+                boxes.Remove("340"); role.Level++; frames.Clear(); EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
+                pass &= Frames(frames, 34001, 34012, 34005, 34006, 34008) && FiveSlicesPresent(m);
                 m.SetInfo(9, 8, 7, 6);
-                Invoke(on, c, PacketSingle(), out remain); pass &= remain == 0 && m.LevelInviteEntries.Count == 1 && m.LevelInviteEntries[0].Name == "";
-                pass &= m.GetStatus == 9 && m.RecoverTime == 8 && m.DailyCount == 7 && m.TotalCount == 6;
-                frames.Clear(); c.RequestLevelInfo(); pass &= Frames(frames, 34006) && m.LevelInviteEntries.Count == 1 && m.LevelInviteEntries[0].InviteeId == 1;
+                Invoke(on, c, PacketSingle(), out remain); pass &= remain == 0 && InfoState(m) && LevelSingleState(m) && HelpMultiState(m) && WelfareMultiState(m) && BoostMultiState(m);
+                frames.Clear(); c.RequestLevelInfo(); pass &= Frames(frames, 34006) && InfoState(m) && LevelSingleState(m) && HelpMultiState(m) && WelfareMultiState(m) && BoostMultiState(m);
                 Invoke(onHelp, c, HelpSinglePacket(), out helpRemain);
-                pass &= helpRemain == 0 && m.HasHelpInfo && m.HelpCount == 7 && m.HelpRewards.Count == 1 && m.HelpRewards[0].RewardId == 8 && m.HelpRewards[0].Status == 9
-                    && m.HelpInviteEntries.Count == 1 && Entry(m.HelpInviteEntries[0], 10, 11, "single", 12, 13, 14)
-                    && m.GetStatus == 9 && m.RecoverTime == 8 && m.DailyCount == 7 && m.TotalCount == 6 && m.LevelInviteEntries.Count == 1;
+                pass &= helpRemain == 0 && InfoState(m) && LevelSingleState(m) && HelpSingleState(m) && WelfareMultiState(m) && BoostMultiState(m);
                 frames.Clear(); c.RequestHelpInfo();
-                pass &= Frames(frames, 34005) && m.HasHelpInfo && m.HelpCount == 7 && m.HelpRewards.Count == 1 && m.HelpInviteEntries.Count == 1 && Entry(m.HelpInviteEntries[0], 10, 11, "single", 12, 13, 14);
+                pass &= Frames(frames, 34005) && InfoState(m) && LevelSingleState(m) && HelpSingleState(m) && WelfareMultiState(m) && BoostMultiState(m);
                 Invoke(onWelfare, c, WelfareSinglePacket(), out welfareRemain);
-                pass &= welfareRemain == 0 && m.HasWelfareInfo && m.WelfareInfoType == 3 && m.WelfareRewards.Count == 1 && m.WelfareRewards[0].RewardId == 8 && m.WelfareRewards[0].Status == 9;
-                frames.Clear(); c.RequestWelfareInfo(3); pass &= Frames(frames, 34012) && m.WelfareRewards.Count == 1;
+                pass &= welfareRemain == 0 && InfoState(m) && LevelSingleState(m) && HelpSingleState(m) && WelfareSingleState(m) && BoostMultiState(m);
+                frames.Clear(); c.RequestWelfareInfo(3); pass &= Frames(frames, 34012) && InfoState(m) && LevelSingleState(m) && HelpSingleState(m) && WelfareSingleState(m) && BoostMultiState(m);
+                Invoke(onBoost, c, BoostSinglePacket(), out boostRemain);
+                pass &= boostRemain == 0 && InfoState(m) && LevelSingleState(m) && HelpSingleState(m) && WelfareSingleState(m) && BoostSingleState(m);
+                frames.Clear(); c.RequestBoostInfo(60); pass &= Frames(frames, 34008) && InfoState(m) && LevelSingleState(m) && HelpSingleState(m) && WelfareSingleState(m) && BoostSingleState(m);
                 Invoke(on, c, new CliVerify.Pkt().H(0).Bytes(), out remain);
-                pass &= remain == 0 && m.HasLevelInfo && m.LevelInviteEntries.Count == 0 && m.HasHelpInfo && m.HelpCount == 7 && m.HelpRewards.Count == 1 && m.HelpInviteEntries.Count == 1;
-                Invoke(onHelp, c, new CliVerify.Pkt().H(0).H(0).H(0).Bytes(), out helpRemain); pass &= helpRemain == 0 && m.HasHelpInfo && m.HelpCount == 0 && m.HelpRewards.Count == 0 && m.HelpInviteEntries.Count == 0 && m.HasLevelInfo && m.LevelInviteEntries.Count == 0 && m.WelfareRewards.Count == 1;
-                Invoke(onWelfare, c, new CliVerify.Pkt().C(255).H(0).Bytes(), out welfareRemain); pass &= welfareRemain == 0 && m.HasWelfareInfo && m.WelfareInfoType == 255 && m.WelfareRewards.Count == 0 && m.HasHelpInfo && m.HasLevelInfo;
-                // Dispose 必须从四个非空 slice 出发验证全清，不能借前面的空快照假绿。
+                pass &= remain == 0 && InfoState(m) && LevelEmptyState(m) && HelpSingleState(m) && WelfareSingleState(m) && BoostSingleState(m);
+                Invoke(onHelp, c, new CliVerify.Pkt().H(0).H(0).H(0).Bytes(), out helpRemain); pass &= helpRemain == 0 && InfoState(m) && LevelEmptyState(m) && HelpEmptyState(m) && WelfareSingleState(m) && BoostSingleState(m);
+                Invoke(onWelfare, c, new CliVerify.Pkt().C(255).H(0).Bytes(), out welfareRemain); pass &= welfareRemain == 0 && InfoState(m) && LevelEmptyState(m) && HelpEmptyState(m) && WelfareEmptyState(m) && BoostSingleState(m);
+                Invoke(onBoost, c, new CliVerify.Pkt().H(0).H(0).H(0).Bytes(), out boostRemain); pass &= boostRemain == 0 && InfoState(m) && LevelEmptyState(m) && HelpEmptyState(m) && WelfareEmptyState(m) && BoostEmptyState(m);
+                // Dispose 必须从五个非空 slice 出发验证全清，不能借前面的空快照假绿。
                 Invoke(onInfo, c, InfoPacket(), out infoRemain);
                 Invoke(on, c, PacketSingle(), out remain);
                 Invoke(onHelp, c, HelpSinglePacket(), out helpRemain);
                 Invoke(onWelfare, c, WelfareSinglePacket(), out welfareRemain);
-                pass &= infoRemain == 0 && remain == 0 && helpRemain == 0 && welfareRemain == 0 && m.HasLevelInfo && m.LevelInviteEntries.Count == 1
-                    && m.HasHelpInfo && m.HelpCount == 7 && m.HelpRewards.Count == 1 && m.HelpInviteEntries.Count == 1
-                    && m.HasWelfareInfo && m.WelfareInfoType == 3 && m.WelfareRewards.Count == 1;
+                Invoke(onBoost, c, BoostSinglePacket(), out boostRemain);
+                pass &= infoRemain == 0 && remain == 0 && helpRemain == 0 && welfareRemain == 0 && boostRemain == 0
+                    && InfoState(m) && LevelSingleState(m) && HelpSingleState(m) && WelfareSingleState(m) && BoostSingleState(m);
                 c.Dispose(); frames.Clear(); EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
-                pass &= !handlers.Contains(34000) && !handlers.Contains(34001) && !handlers.Contains(34005) && !handlers.Contains(34006) && !handlers.Contains(34012) && !m.HasLevelInfo && !m.HasHelpInfo && !m.HasWelfareInfo && m.LevelInviteEntries.Count == 0
+                pass &= !handlers.Contains(34000) && !handlers.Contains(34001) && !handlers.Contains(34005) && !handlers.Contains(34006) && !handlers.Contains(34008) && !handlers.Contains(34012) && !m.HasLevelInfo && !m.HasHelpInfo && !m.HasBoostInfo && !m.HasWelfareInfo && m.LevelInviteEntries.Count == 0
                     && m.HelpCount == 0 && m.HelpRewards.Count == 0 && m.HelpInviteEntries.Count == 0
-                    && m.WelfareInfoType == 0 && m.WelfareRewards.Count == 0
+                    && m.WelfareInfoType == 0 && m.WelfareRewards.Count == 0 && m.BoostLevel == 0 && m.BoostTotalCount == 0 && m.BoostRewards.Count == 0
                     && m.GetStatus == 0 && m.RecoverTime == 0 && m.DailyCount == 0 && m.TotalCount == 0 && frames.Count == 0;
                 Debug.Log("CLIVERIFY friendinvitelevel pass=" + pass);
             }
@@ -112,16 +129,18 @@ namespace Shenxiao.EditorTools
                 m.SetInfo(oldGet, oldRecover, oldDaily, oldTotal); if (oldHas) m.ReplaceLevelInfo(oldEntries);
                 if (oldHelp) m.ReplaceHelpInfo(oldHelpCount, oldHelpRewards, oldHelpEntries);
                 if (oldWelfare) m.ReplaceWelfareInfo(oldWelfareType, oldWelfareRewards);
+                if (oldBoost) m.ReplaceBoostInfo(oldBoostLevel, oldBoostTotal, oldBoostRewards);
                 FriendInviteModel.ShareOpen = oldShare;
                 role.Level = oldRoleLevel; if (roleReady != null) roleReady.SetValue(role, oldRoleReady);
                 if (was) c.Init(); if (lastLevel != null) lastLevel.SetValue(c, oldLast);
                 if (handlers != null)
                 {
-                    handlers.Remove(34000); handlers.Remove(34001); handlers.Remove(34005); handlers.Remove(34006); handlers.Remove(34012);
+                    handlers.Remove(34000); handlers.Remove(34001); handlers.Remove(34005); handlers.Remove(34006); handlers.Remove(34008); handlers.Remove(34012);
                     if (old34000) handlers[34000] = old34000Ref;
                     if (old34001) handlers[34001] = old34001Ref;
                     if (old34005) handlers[34005] = old34005Ref;
                     if (old34006) handlers[34006] = old34006Ref;
+                    if (old34008) handlers[34008] = old34008Ref;
                     if (old34012) handlers[34012] = old34012Ref;
                 }
                 if (icons != null) { icons.Remove("340"); if (oldIcon) icons["340"] = oldIconRef; }
@@ -133,13 +152,13 @@ namespace Shenxiao.EditorTools
                     if (oldRoleEvent) eventHandlers[GlobalEvent.EVT_ROLE_INFO_UPDATE] = new List<Delegate>(oldRoleSubscribers);
                 }
                 bool restored = c.IsInitialized == was && m.GetStatus == oldGet && m.RecoverTime == oldRecover && m.DailyCount == oldDaily && m.TotalCount == oldTotal
-                    && m.HasLevelInfo == oldHas && SameEntries(m.LevelInviteEntries, oldEntries) && m.HasHelpInfo == oldHelp && m.HelpCount == oldHelpCount && SameRewards(m.HelpRewards, oldHelpRewards) && SameEntries(m.HelpInviteEntries, oldHelpEntries) && m.HasWelfareInfo == oldWelfare && m.WelfareInfoType == oldWelfareType && SameRewards(m.WelfareRewards, oldWelfareRewards) && FriendInviteModel.ShareOpen == oldShare
+                    && m.HasLevelInfo == oldHas && SameEntries(m.LevelInviteEntries, oldEntries) && m.HasHelpInfo == oldHelp && m.HelpCount == oldHelpCount && SameRewards(m.HelpRewards, oldHelpRewards) && SameEntries(m.HelpInviteEntries, oldHelpEntries) && m.HasWelfareInfo == oldWelfare && m.WelfareInfoType == oldWelfareType && SameRewards(m.WelfareRewards, oldWelfareRewards) && m.HasBoostInfo == oldBoost && m.BoostLevel == oldBoostLevel && m.BoostTotalCount == oldBoostTotal && SameBoost(m.BoostRewards, oldBoostRewards) && FriendInviteModel.ShareOpen == oldShare
                     && (lastLevel == null || Equals(lastLevel.GetValue(c), oldLast)) && (intercept == null || ReferenceEquals(intercept.GetValue(null), oldIntercept))
                     && role.Level == oldRoleLevel && (roleReady == null || Equals(roleReady.GetValue(role), oldRoleReady))
                     && (icons == null || (icons.Contains("340") == oldIcon && (!oldIcon || ReferenceEquals(icons["340"], oldIconRef))))
                     && (boxes == null || (boxes.Contains("340") == oldBox && (!oldBox || ReferenceEquals(boxes["340"], oldBoxRef))));
-                if (handlers != null) restored &= handlers.Contains(34000) == old34000 && handlers.Contains(34001) == old34001 && handlers.Contains(34005) == old34005 && handlers.Contains(34006) == old34006 && handlers.Contains(34012) == old34012
-                    && (!old34000 || ReferenceEquals(handlers[34000], old34000Ref)) && (!old34001 || ReferenceEquals(handlers[34001], old34001Ref)) && (!old34005 || ReferenceEquals(handlers[34005], old34005Ref)) && (!old34006 || ReferenceEquals(handlers[34006], old34006Ref)) && (!old34012 || ReferenceEquals(handlers[34012], old34012Ref));
+                if (handlers != null) restored &= handlers.Contains(34000) == old34000 && handlers.Contains(34001) == old34001 && handlers.Contains(34005) == old34005 && handlers.Contains(34006) == old34006 && handlers.Contains(34008) == old34008 && handlers.Contains(34012) == old34012
+                    && (!old34000 || ReferenceEquals(handlers[34000], old34000Ref)) && (!old34001 || ReferenceEquals(handlers[34001], old34001Ref)) && (!old34005 || ReferenceEquals(handlers[34005], old34005Ref)) && (!old34006 || ReferenceEquals(handlers[34006], old34006Ref)) && (!old34008 || ReferenceEquals(handlers[34008], old34008Ref)) && (!old34012 || ReferenceEquals(handlers[34012], old34012Ref));
                 if (eventHandlers != null) restored &= eventHandlers.Contains(GlobalEvent.EVT_ROLE_INFO_UPDATE) == oldRoleEvent
                     && (!oldRoleEvent || SameDelegates((List<Delegate>)eventHandlers[GlobalEvent.EVT_ROLE_INFO_UPDATE], oldRoleSubscribers));
                 pass &= restored;
@@ -159,9 +178,25 @@ namespace Shenxiao.EditorTools
         private static bool WelfareMultiState(FriendInviteModel m) => m.HasWelfareInfo && m.WelfareInfoType == 255 && m.WelfareRewards.Count == 2
             && m.WelfareRewards[0].RewardId == 255 && m.WelfareRewards[0].Status == 254 && m.WelfareRewards[1].RewardId == 255 && m.WelfareRewards[1].Status == 1;
         private static List<FriendInviteModel.RewardState> CloneRewards(List<FriendInviteModel.RewardState> src) { var r=new List<FriendInviteModel.RewardState>(); foreach(var e in src)r.Add(new FriendInviteModel.RewardState{RewardId=e.RewardId,Status=e.Status}); return r; }
+        private static List<FriendInviteModel.BoostReward> CloneBoost(List<FriendInviteModel.BoostReward> src) { var r=new List<FriendInviteModel.BoostReward>(); foreach(var e in src)r.Add(new FriendInviteModel.BoostReward{Type=e.Type,TypeId=e.TypeId,Num=e.Num}); return r; }
+        private static bool SameBoost(List<FriendInviteModel.BoostReward> a,List<FriendInviteModel.BoostReward>b){if(a.Count!=b.Count)return false;for(int i=0;i<a.Count;i++)if(a[i].Type!=b[i].Type||a[i].TypeId!=b[i].TypeId||a[i].Num!=b[i].Num)return false;return true;}
+        private static bool BoostMultiState(FriendInviteModel m) => m.HasBoostInfo && m.BoostLevel == ushort.MaxValue && m.BoostTotalCount == ushort.MaxValue && m.BoostRewards.Count == 2 && m.BoostRewards[0].Type == 255 && m.BoostRewards[0].TypeId == uint.MaxValue && m.BoostRewards[0].Num == uint.MaxValue && m.BoostRewards[1].Type == 255 && m.BoostRewards[1].TypeId == 0 && m.BoostRewards[1].Num == 0;
+        private static bool InfoState(FriendInviteModel m) => m.GetStatus == 9 && m.RecoverTime == 8 && m.DailyCount == 7 && m.TotalCount == 6;
+        private static bool LevelSingleState(FriendInviteModel m) => m.HasLevelInfo && m.LevelInviteEntries.Count == 1 && Entry(m.LevelInviteEntries[0], 1, 2, "", 3, 4, 5);
+        private static bool LevelEmptyState(FriendInviteModel m) => m.HasLevelInfo && m.LevelInviteEntries.Count == 0;
+        private static bool HelpSingleState(FriendInviteModel m) => m.HasHelpInfo && m.HelpCount == 7 && m.HelpRewards.Count == 1 && m.HelpRewards[0].RewardId == 8 && m.HelpRewards[0].Status == 9 && m.HelpInviteEntries.Count == 1 && Entry(m.HelpInviteEntries[0], 10, 11, "single", 12, 13, 14);
+        private static bool HelpEmptyState(FriendInviteModel m) => m.HasHelpInfo && m.HelpCount == 0 && m.HelpRewards.Count == 0 && m.HelpInviteEntries.Count == 0;
+        private static bool WelfareSingleState(FriendInviteModel m) => m.HasWelfareInfo && m.WelfareInfoType == 3 && m.WelfareRewards.Count == 1 && m.WelfareRewards[0].RewardId == 8 && m.WelfareRewards[0].Status == 9;
+        private static bool WelfareEmptyState(FriendInviteModel m) => m.HasWelfareInfo && m.WelfareInfoType == 255 && m.WelfareRewards.Count == 0;
+        private static bool BoostSingleState(FriendInviteModel m) => m.HasBoostInfo && m.BoostLevel == 60 && m.BoostTotalCount == 7 && m.BoostRewards.Count == 1 && m.BoostRewards[0].Type == 8 && m.BoostRewards[0].TypeId == 9 && m.BoostRewards[0].Num == 10;
+        private static bool BoostEmptyState(FriendInviteModel m) => m.HasBoostInfo && m.BoostLevel == 0 && m.BoostTotalCount == 0 && m.BoostRewards.Count == 0;
+        private static bool LevelMultiState(FriendInviteModel m) => m.HasLevelInfo && m.LevelInviteEntries.Count == 2
+            && Entry(m.LevelInviteEntries[0], ulong.MaxValue, 255, "邀请中文", ushort.MaxValue, 254, 253)
+            && Entry(m.LevelInviteEntries[1], ulong.MaxValue, 255, "", 0, 1, 2);
+        private static bool FiveSlicesPresent(FriendInviteModel m) => InfoState(m) && LevelMultiState(m) && HelpMultiState(m) && WelfareMultiState(m) && BoostMultiState(m);
         private static bool SameRewards(List<FriendInviteModel.RewardState> a,List<FriendInviteModel.RewardState>b){if(a.Count!=b.Count)return false;for(int i=0;i<a.Count;i++)if(a[i].RewardId!=b[i].RewardId||a[i].Status!=b[i].Status)return false;return true;}
         private static void Invoke(MethodInfo h, FriendInviteController c, byte[] b, out int remain) { var r = new NetReader(b, 0, b.Length); h.Invoke(c, new object[] { r }); remain = r.Remaining; }
-        private static bool Frames(List<byte[]> f, params int[] ps) { if (f.Count != ps.Length) return false; for (int i = 0; i < ps.Length; i++) { int len = ps[i] == 34012 ? 7 : 6; if (f[i].Length != len || f[i][0] != 0 || f[i][1] != len || f[i][2] != 3 || f[i][3] != 232 || f[i][4] != (byte)(ps[i] >> 8) || f[i][5] != (byte)ps[i] || (ps[i] == 34012 && f[i][6] != 3)) return false; } return true; }
+        private static bool Frames(List<byte[]> f, params int[] ps) { if (f.Count != ps.Length) return false; for (int i = 0; i < ps.Length; i++) { int len = ps[i] == 34012 ? 7 : ps[i] == 34008 ? 8 : 6; if (f[i].Length != len || f[i][0] != 0 || f[i][1] != len || f[i][2] != 3 || f[i][3] != 232 || f[i][4] != (byte)(ps[i] >> 8) || f[i][5] != (byte)ps[i] || (ps[i] == 34012 && f[i][6] != 3) || (ps[i] == 34008 && (f[i][6] != 0 || f[i][7] != 60))) return false; } return true; }
         private static byte[] PacketMulti() => new CliVerify.Pkt().H(2).L(-1).C(255).S("邀请中文").H(65535).C(254).C(253).L(-1).C(255).S("").H(0).C(1).C(2).Bytes();
         private static byte[] PacketSingle() => new CliVerify.Pkt().H(1).L(1).C(2).S("").H(3).C(4).C(5).Bytes();
         private static byte[] InfoPacket() => new CliVerify.Pkt().C(9).I(8).C(7).I(6).H(0).Bytes();
@@ -169,5 +204,7 @@ namespace Shenxiao.EditorTools
         private static byte[] HelpSinglePacket() => new CliVerify.Pkt().H(7).H(1).C(8).C(9).H(1).L(10).C(11).S("single").H(12).C(13).C(14).Bytes();
         private static byte[] WelfareMultiPacket() => new CliVerify.Pkt().C(255).H(2).C(255).C(254).C(255).C(1).Bytes();
         private static byte[] WelfareSinglePacket() => new CliVerify.Pkt().C(3).H(1).C(8).C(9).Bytes();
+        private static byte[] BoostMultiPacket() => new CliVerify.Pkt().H(65535).H(65535).H(2).C(255).I(-1).I(-1).C(255).I(0).I(0).Bytes();
+        private static byte[] BoostSinglePacket() => new CliVerify.Pkt().H(60).H(7).H(1).C(8).I(9).I(10).Bytes();
     }
 }
