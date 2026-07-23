@@ -48,6 +48,7 @@
         public const int SETTING_WRITE = 10203;
         /// <summary>脱离卡死(对标老端 confirm_flee):发 "i"(scene_id);回包 code:i(!=1 显错误码,==1 服务端拉人切场景)。</summary>
         public const int SETTING_FLEE = 10210;
+        public const int SETTING_WX_SUBSCRIPTION_SWITCH = 11307; // 微信订阅总开关：空请求，回包 res:u8。
         /// <summary>发言(各频道通用,含喇叭)。发 "csslssis"(channel, province, city, receive_id, msg, args, tktime=0, ticket="");
         /// 对标老端 ChatController.ts send_msg,与 pt_110.erl read(11001) 字段序逐一核对一致。receive_id 语义:
         /// 私聊(channel=6)=对方 role_id;喇叭(channel=2)=范围选择(1本服/2小跨服/3全服,TRUMPET_TYPE);其余频道传0。

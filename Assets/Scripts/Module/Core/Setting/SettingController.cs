@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Net;
+using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
 
 namespace Shenxiao.Module.Core.Setting
@@ -21,18 +22,37 @@ namespace Shenxiao.Module.Core.Setting
         /// <summary>在途 10203 请求队列(服务端按序回包,逐笔对应落地;单槽会在连发时错配响应)。</summary>
         private readonly Queue<KeyValuePair<int, List<KeyValuePair<int, int>>>> _pending =
             new Queue<KeyValuePair<int, List<KeyValuePair<int, int>>>>();
+#if UNITY_EDITOR
+        private static System.Func<byte[], bool> s_outboundIntercept;
+#endif
 
         protected override void Register()
         {
             RegisterProtocal(Proto.SETTING_WRITE, On10203);
             RegisterProtocal(Proto.SETTING_FLEE, On10210);
+            RegisterProtocal(Proto.SETTING_WX_SUBSCRIPTION_SWITCH, On11307);
+            EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
         public override void Dispose()
         {
+            EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
             _pending.Clear();
             SettingModel.Reset();
             base.Dispose();
+        }
+
+        private void OnGameStart() { SettingModel.ClearWxSubscriptionSwitch(); RequestWxSubscriptionSwitch(); }
+        public void RequestWxSubscriptionSwitch()
+        {
+#if UNITY_EDITOR
+            if (s_outboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(Proto.SETTING_WX_SUBSCRIPTION_SWITCH, null, null);
+                if (s_outboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(Proto.SETTING_WX_SUBSCRIPTION_SWITCH);
         }
 
         /// <summary>批量写设置(对标老端 PackageAndSend10203)。entries=(subtype,is_open)。</summary>
@@ -100,5 +120,7 @@ namespace Shenxiao.Module.Core.Setting
             }
             GameLog.Info("Setting", "10210 脱离卡死成功(服务端拉人切场景)");
         }
+
+        private void On11307(NetReader r) => SettingModel.ApplyWxSubscriptionSwitch(r.ReadU8());
     }
 }

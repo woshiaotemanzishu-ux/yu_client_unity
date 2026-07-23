@@ -56,6 +56,12 @@ namespace Shenxiao.Module.Core.Setting
         private static readonly Dictionary<int, Dictionary<int, int>> _data =
             new Dictionary<int, Dictionary<int, int>>();
 
+        public static bool HasWxSubscriptionSwitch { get; private set; }
+        public static byte WxSubscriptionSwitchRaw { get; private set; }
+        public static bool WxSubscriptionSwitchEnabled => WxSubscriptionSwitchRaw == 1;
+        public static void ApplyWxSubscriptionSwitch(byte raw) { WxSubscriptionSwitchRaw = raw; HasWxSubscriptionSwitch = true; }
+        public static void ClearWxSubscriptionSwitch() { HasWxSubscriptionSwitch = false; WxSubscriptionSwitchRaw = 0; }
+
         /// <summary>某 type 的设置块是否已从服务器到达(10202)。</summary>
         public static bool HasType(int type) => _data.ContainsKey(type);
 
@@ -124,6 +130,7 @@ namespace Shenxiao.Module.Core.Setting
         public static void Reset()
         {
             _data.Clear();
+            ClearWxSubscriptionSwitch();
             GameLog.Info("Setting", "SettingModel 已清空(断线/登出)");
         }
     }

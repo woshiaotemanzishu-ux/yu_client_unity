@@ -8,6 +8,8 @@
 
 - R170 SnatchTreasure 65201: explicit-only strict-empty entry snapshot, never GAME_START. Wire is `belong_list:u16*{dunid:u32,score:u16,guild_id:u64,guild_name:string},territory_score:u16,have_territory:u8`; tail scalars are outside the list. Replace atomically, retain duplicate DunId/GuildId and wire order, and empty list remains loaded. 65208 stays exclusively in ActivityForeshow; do not attach 65200/65202-08, scene, battle, rewards, UI, config, sorting, or red dots.
 
+- R171 Setting 11307: GAME_START clears only the wx-subscription slice then sends the strict empty request. Reply is raw `res:u8`; preserve raw and derive enabled only as `res==1`, replacing every packet. Do not attach 11305/11306/11308, SDK, UI, events, red dots or config.
+
 ## KfSingleRank 50701/50702/50703 (R142/R144/R145)
 
 - GAME_START clears main, 50703 area-top, and 50702 area-tower state, then sends parameterless 50701 once; server owns the rank-dungeon open gate. Normal 50701/50702/50703 packets replace only their own snapshot and must not clear the other caches. 50702 and 50703 are explicit `area_id:u8` requests with independent ordered per-area full snapshots; preserve duplicates and empty snapshots. Do not hardcode a 460 level catch-up or bind role updates; exclude 50704/05, UI, scene, sorting, config, red dots, and auto-fight.
