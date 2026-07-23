@@ -34,6 +34,31 @@ namespace Shenxiao.Module.Core.BrightSea
             public ushort WorldLevel;
         }
 
+        public sealed class ObjectEntry
+        {
+            public byte Type;
+            public uint TypeId;
+            public uint Num;
+        }
+
+        public sealed class CruiseLogEntry
+        {
+            public ulong AutoId;
+            public byte Type;
+            public uint RoberServerId;
+            public uint RoberServerNumber;
+            public ulong RoberGuildId;
+            public string RoberGuildName;
+            public ulong RoberId;
+            public string RoberName;
+            public ulong RoberPower;
+            public byte ShippingId;
+            public readonly List<ObjectEntry> Reward = new List<ObjectEntry>();
+            public readonly List<ObjectEntry> BackList = new List<ObjectEntry>();
+            public readonly List<ObjectEntry> ReceiveList = new List<ObjectEntry>();
+            public uint Time;
+        }
+
         public static readonly BrightSeaModel Instance = new BrightSeaModel();
         private BrightSeaModel() { }
 
@@ -57,6 +82,10 @@ namespace Shenxiao.Module.Core.BrightSea
         public ushort MinWorldLevel { get; private set; }
         public readonly List<ServerEntry> UnsatisfiedServers = new List<ServerEntry>();
         public bool HasServerInfo { get; private set; }
+
+        // ---- 18901 巡航/掠夺记录（独立于 18900/18915）----
+        public readonly List<CruiseLogEntry> CruiseLogs = new List<CruiseLogEntry>();
+        public bool HasCruiseLogs { get; private set; }
 
         /// <summary>每个 18900 包无条件整体替换；空列表也为已加载快照。</summary>
         public void Replace(string picture, uint pictureVersion, byte rewardTimes, byte totalRewardTimes,
@@ -91,6 +120,14 @@ namespace Shenxiao.Module.Core.BrightSea
             HasServerInfo = true;
         }
 
+        /// <summary>18901 整表替换；日志及三个 ObjectList 均保留 wire 原序与重复项。</summary>
+        public void ReplaceCruiseLogs(List<CruiseLogEntry> cruiseLogs)
+        {
+            CruiseLogs.Clear();
+            if (cruiseLogs != null) CruiseLogs.AddRange(cruiseLogs);
+            HasCruiseLogs = true;
+        }
+
         public void Clear()
         {
             Picture = null;
@@ -104,6 +141,8 @@ namespace Shenxiao.Module.Core.BrightSea
             EnemyServers.Clear();
             UnsatisfiedServers.Clear();
             HasServerInfo = false;
+            CruiseLogs.Clear();
+            HasCruiseLogs = false;
         }
     }
 }

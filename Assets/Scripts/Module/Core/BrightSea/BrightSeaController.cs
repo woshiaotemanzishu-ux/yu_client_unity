@@ -6,7 +6,7 @@ using Shenxiao.Framework.Util;
 
 namespace Shenxiao.Module.Core.BrightSea
 {
-    /// <summary>无尽之海仅接 18900 主快照与显式 18915 跨服快照；不接航运、抢夺、场景或 UI 链。</summary>
+    /// <summary>无尽之海仅接 18900 主快照、显式 18901 日志和显式 18915 跨服快照；不接航运、抢夺、场景或 UI 链。</summary>
     public sealed class BrightSeaController : BaseController
     {
         public static readonly BrightSeaController Instance = new BrightSeaController();
@@ -20,6 +20,7 @@ namespace Shenxiao.Module.Core.BrightSea
         protected override void Register()
         {
             RegisterProtocal(Proto.BRIGHT_SEA_INFO, On18900);
+            RegisterProtocal(Proto.BRIGHT_SEA_CRUISE_LOGS, On18901);
             RegisterProtocal(Proto.BRIGHT_SEA_SERVER_INFO, On18915);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
@@ -46,6 +47,17 @@ namespace Shenxiao.Module.Core.BrightSea
 #endif
             SendFmt(Proto.BRIGHT_SEA_INFO);
             GameLog.Info("BrightSea", "request 18900 bright sea info");
+        }
+
+        /// <summary>请求 18901 巡航/掠夺记录完整快照（严格空包，不绑定 GAME_START）。</summary>
+        public void RequestCruiseLogs()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.BRIGHT_SEA_CRUISE_LOGS, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.BRIGHT_SEA_CRUISE_LOGS);
+            GameLog.Info("BrightSea", "request 18901 bright sea cruise logs");
         }
 
         /// <summary>请求 18915 跨服信息完整快照（严格空包，不绑定 GAME_START）。</summary>
@@ -97,6 +109,40 @@ namespace Shenxiao.Module.Core.BrightSea
                 EndTime = r.ReadU32(),
                 RobTimes = r.ReadU8(),
             };
+        }
+
+        private void On18901(NetReader r)
+        {
+            List<BrightSeaModel.CruiseLogEntry> logs = r.ReadArray(ReadCruiseLogEntry);
+            BrightSeaModel.Instance.ReplaceCruiseLogs(logs);
+            GameLog.Info("BrightSea", "18901 logs={0} remaining={1}B", logs.Count, r.Remaining);
+        }
+
+        private static BrightSeaModel.CruiseLogEntry ReadCruiseLogEntry(NetReader r)
+        {
+            var entry = new BrightSeaModel.CruiseLogEntry
+            {
+                AutoId = unchecked((ulong)r.ReadU64()),
+                Type = r.ReadU8(),
+                RoberServerId = r.ReadU32(),
+                RoberServerNumber = r.ReadU32(),
+                RoberGuildId = unchecked((ulong)r.ReadU64()),
+                RoberGuildName = r.ReadString(),
+                RoberId = unchecked((ulong)r.ReadU64()),
+                RoberName = r.ReadString(),
+                RoberPower = unchecked((ulong)r.ReadU64()),
+                ShippingId = r.ReadU8(),
+            };
+            entry.Reward.AddRange(r.ReadArray(ReadObjectEntry));
+            entry.BackList.AddRange(r.ReadArray(ReadObjectEntry));
+            entry.ReceiveList.AddRange(r.ReadArray(ReadObjectEntry));
+            entry.Time = r.ReadU32();
+            return entry;
+        }
+
+        private static BrightSeaModel.ObjectEntry ReadObjectEntry(NetReader r)
+        {
+            return new BrightSeaModel.ObjectEntry { Type = r.ReadU8(), TypeId = r.ReadU32(), Num = r.ReadU32() };
         }
 
         private void On18915(NetReader r)
