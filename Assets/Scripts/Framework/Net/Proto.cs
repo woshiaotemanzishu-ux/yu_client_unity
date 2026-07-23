@@ -1805,6 +1805,8 @@
         /// <summary>领取挂机收益(C2S 空包；S2C errcode:i,old_lv:h,old_lv_ratio:h,goods_list[u16×{style:c,typeId:i,count:l}])。
         /// 主线 101211(ctype91,唯一事件计数型:领一次即完成)。</summary>
         public const int ONHOOK_RECEIVE = 13216;
+        /// <summary>挂机经验加成完整列表。C2S 空包；S2C: count:u16×{type:u32,ratio:u64,end_time:u32}。</summary>
+        public const int ONHOOK_EXP_ADDITIONS = 13217;
         /// <summary>物品自动熔炼经验服务端主动推送：exp_list[u16 × {add_exp:u16,ratio:u8}]。</summary>
         public const int ONHOOK_AUTO_SMELT_EXP = 13218;
         /// <summary>装备家族统一错误码出口(对标老端 EquipController.ts:274-282 On15200:

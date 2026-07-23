@@ -35,11 +35,15 @@ namespace Shenxiao.Module.Core.OnHook
             RegisterProtocal(Proto.ONHOOK_TIME_UPDATE, On13214);
             RegisterProtocal(Proto.ONHOOK_EXP_EFFECT, On13215);
             RegisterProtocal(Proto.ONHOOK_RECEIVE, On13216);
+            RegisterProtocal(Proto.ONHOOK_EXP_ADDITIONS, On13217);
             RegisterProtocal(Proto.ONHOOK_AUTO_SMELT_EXP, On13218);
         }
 
         /// <summary>13212 挂机收益信息(C2S 空包)。</summary>
         public void RequestInfo() => SendEmpty(Proto.ONHOOK_INFO);
+
+        /// <summary>13217 挂机经验加成详情(C2S 空包；每次回包替换全部当前加成项)。</summary>
+        public void RequestExpAdditions() => SendEmpty(Proto.ONHOOK_EXP_ADDITIONS);
 
         private static void On13211(NetReader r)
         {
@@ -89,6 +93,13 @@ namespace Shenxiao.Module.Core.OnHook
             long expEffect = r.ReadU64();
             OnHookModel.Instance.ApplyExpEffect(expEffect);
             GameLog.Info("OnHook", "13215 exp_effect={0} remaining={1}B", expEffect, r.Remaining);
+        }
+
+        private static void On13217(NetReader r)
+        {
+            var additions = r.ReadArray(rr => new OnHookModel.ExpAddition(rr.ReadU32(), rr.ReadU64(), rr.ReadU32()));
+            OnHookModel.Instance.ReplaceExpAdditions(additions);
+            GameLog.Info("OnHook", "13217 exp_additions={0} remaining={1}B", additions.Count, r.Remaining);
         }
 
         /// <summary>13218 是物品自动熔炼经验的服务端主动推送，与服务端 15024 并列；不是挂机主动请求。</summary>
@@ -161,8 +172,17 @@ namespace Shenxiao.Module.Core.OnHook
             public long Num { get; }
         }
 
+        public readonly struct ExpAddition
+        {
+            public ExpAddition(uint type, long ratio, uint endTime) { Type = type; Ratio = ratio; EndTime = endTime; }
+            public uint Type { get; }
+            public long Ratio { get; }
+            public uint EndTime { get; }
+        }
+
         public static readonly OnHookModel Instance = new OnHookModel();
         private readonly List<Reward> _rewards = new List<Reward>();
+        private readonly List<ExpAddition> _expAdditions = new List<ExpAddition>();
         public event Action Changed;
         public int TotalAfkTime { get; private set; }
         public int CostAfkTime { get; private set; }
@@ -175,6 +195,8 @@ namespace Shenxiao.Module.Core.OnHook
         public int BackCount { get; private set; }
         public long BackExp { get; private set; }
         public IReadOnlyList<Reward> Rewards => _rewards;
+        public bool HasExpAdditions { get; private set; }
+        public IReadOnlyList<ExpAddition> ExpAdditions => _expAdditions;
 
         public void ApplyInfo(byte loginType, ushort offLevel, int costAfkTime, List<Reward> rewards, int backCount,
             long backExp, int afkTime, int nextTime, long expEffect, int hadAfkTime)
@@ -213,10 +235,18 @@ namespace Shenxiao.Module.Core.OnHook
             Changed?.Invoke();
         }
 
+        public void ReplaceExpAdditions(List<ExpAddition> additions)
+        {
+            _expAdditions.Clear();
+            if (additions != null) _expAdditions.AddRange(additions);
+            HasExpAdditions = true;
+            Changed?.Invoke();
+        }
+
         public void Reset()
         {
             TotalAfkTime = CostAfkTime = RemainingAfkTime = NextTime = BackCount = 0;
-            BackExp = ExpEffect = AutoSmeltExp = 0; LoginType = 0; OffLevel = 0; _rewards.Clear();
+            BackExp = ExpEffect = AutoSmeltExp = 0; LoginType = 0; OffLevel = 0; _rewards.Clear(); _expAdditions.Clear(); HasExpAdditions = false;
             Changed?.Invoke();
         }
     }
