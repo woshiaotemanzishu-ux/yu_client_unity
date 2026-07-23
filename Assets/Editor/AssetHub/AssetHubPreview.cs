@@ -1,3 +1,4 @@
+using Shenxiao.Common.UI3D;
 using UnityEditor;
 using UnityEngine;
 
@@ -43,6 +44,7 @@ namespace Shenxiao.Editor.AssetHub
             _instance = Object.Instantiate(prefab);
             _pru.AddSingleGO(_instance);
             _instance.transform.position = Vector3.zero;
+            AssetHubArtPreview.Apply(_pru, _instance);
 
             var anim = _instance.GetComponent<Animation>();
             Clips = anim != null ? AnimationUtility.GetAnimationClips(_instance) : System.Array.Empty<AnimationClip>();
@@ -166,6 +168,20 @@ namespace Shenxiao.Editor.AssetHub
             _pru?.Cleanup();
             _pru = null;
             _prefabPath = null;
+        }
+    }
+
+    /// <summary>让资产管理预览相机复用游戏内 ArtModelRenderProfile，而不是按裸 Scene 相机渲染。</summary>
+    internal static class AssetHubArtPreview
+    {
+        public static void Apply(PreviewRenderUtility preview, GameObject instance)
+        {
+            if (preview == null || preview.camera == null) return;
+            ArtModelRenderProfile profile = instance != null
+                ? instance.GetComponentInChildren<ArtModelRenderProfile>(false)
+                : null;
+            ArtModelRenderProfile.ApplyToCamera(preview.camera, profile);
+            preview.ambientColor = profile != null ? Color.white : new Color(0.2f, 0.2f, 0.2f, 0f);
         }
     }
 }

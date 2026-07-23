@@ -12,6 +12,7 @@ namespace Shenxiao.Editor.LayaUI
     /// Tab 分类 + 模块按钮(中英对照,来自 Schemas/LayaUI/module_names_cn.json),
     /// 点按钮 = 一键流水线(散图→转换→编译后自动回填→分组→报告)。
     /// 按钮右侧:⚠N = 上次转换缺图数;验收勾 = 标记后重转弹确认。
+    /// 模块批量转换、全量回填等低频操作统一收在「高级」折叠区,不再为每个动作增加菜单项。
     /// </summary>
     public class LayaUIWindow : EditorWindow
     {
@@ -191,8 +192,24 @@ namespace Shenxiao.Editor.LayaUI
 
         private void DrawAdvanced()
         {
-            _showAdvanced = EditorGUILayout.Foldout(_showAdvanced, "高级(单窗口 / 预览 / 报告)", true);
+            _showAdvanced = EditorGUILayout.Foldout(_showAdvanced, "高级(批量 / 单窗口 / 预览 / 报告)", true);
             if (!_showAdvanced) return;
+
+            EditorGUILayout.LabelField("批量流水线", EditorStyles.boldLabel);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("初始化核心(login + mainUI)")) LayaUIPipeline.RunFreshMachineModules();
+                if (GUILayout.Button("重转主界面入口模块")) LayaUIPipeline.RunMainUIEntryModules();
+            }
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("转换全部模块")) LayaUIPipeline.RunAllModules();
+                if (GUILayout.Button("全量回填 Bind(预览)")) LayaBindFiller.MenuBackfillDryRun();
+                if (GUILayout.Button("全量回填 Bind")) LayaBindFiller.MenuBackfill();
+            }
+
+            EditorGUILayout.Space(4f);
+            EditorGUILayout.LabelField("单窗口工具", EditorStyles.boldLabel);
 
             _singleKey = EditorGUILayout.TextField("scene key", _singleKey);
             using (new EditorGUILayout.HorizontalScope())

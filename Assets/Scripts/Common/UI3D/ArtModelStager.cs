@@ -25,7 +25,10 @@ namespace Shenxiao.Common.UI3D
             PlayableDirector director = inst.GetComponentInChildren<PlayableDirector>(true);
             if (director != null) director.extrapolationMode = wrapMode;
 
-            ArtModelRenderProfile profile = inst.GetComponentInChildren<ArtModelRenderProfile>(true);
+            // 身体、头饰、武器、翅膀都可能是独立导入的美术 prefab，并各自带一份透明材质判定。
+            // 根档案负责整模落点；部件档案只负责它自己的子树。不能用身体的 blendMaterials 扫整棵树，
+            // 否则翅膀的渐变/Panda 特效会被误改成 AlphaTest，表现为白片、硬边和错误遮挡。
+            ArtModelRenderProfile profile = inst.GetComponent<ArtModelRenderProfile>();
             if (profile == null)
             {
                 profile = inst.AddComponent<ArtModelRenderProfile>();
@@ -36,10 +39,14 @@ namespace Shenxiao.Common.UI3D
                 ParticleSystem.MainModule main = ps.main;
                 main.scalingMode = ParticleSystemScalingMode.Hierarchy;
             }
-            // 动画是 Generic,根位移依赖这个开关:Timeline 编辑器预览无视它,运行时不开=原地做动作
+            // 只有整模主体的 Generic 动画需要 Root Motion：Timeline 编辑器预览无视该开关，主体不开会
+            // 原地做出场动作。独立部件必须保留 prefab 自己的设置；1005 翅膀有三个 Animator 且美术
+            // 明确关闭 Root Motion。这里按最近的渲染档案分界，避免公共上台逻辑改写部件的运动设置。
             foreach (Animator animator in inst.GetComponentsInChildren<Animator>(true))
             {
-                animator.applyRootMotion = true;
+                ArtModelRenderProfile owner = animator.GetComponentInParent<ArtModelRenderProfile>();
+                if (owner == profile)
+                    animator.applyRootMotion = true;
             }
             // 透明处理:美术把透明信息画在贴图 alpha 里,但 FBX 内嵌材质默认 Opaque 不读 alpha
             // → 该透的地方渲成白块。按导入时烤好的判定分流(只改实例不动资产):
@@ -47,11 +54,18 @@ namespace Shenxiao.Common.UI3D
             //   轻纱/雾状渐变(alpha 有中间值,档案 blendMaterials 点名)→ Transparent 混合 +
             //   保留 ZWrite(自遮挡不乱)+ 低阈值裁剪(全透像素不写深度残影)。
             // 美术在 prefab 里已设 Transparent 的材质一律不碰。
-            var blendSet = new HashSet<string>(
-                profile.blendMaterials ?? System.Array.Empty<string>());
+            var blendSets = new Dictionary<ArtModelRenderProfile, HashSet<string>>();
             foreach (Renderer r in inst.GetComponentsInChildren<Renderer>(true))
             {
                 if (r is ParticleSystemRenderer) continue;
+                ArtModelRenderProfile owner = r.GetComponentInParent<ArtModelRenderProfile>();
+                if (owner == null) owner = profile;
+                if (!blendSets.TryGetValue(owner, out HashSet<string> blendSet))
+                {
+                    blendSet = new HashSet<string>(
+                        owner.blendMaterials ?? System.Array.Empty<string>());
+                    blendSets.Add(owner, blendSet);
+                }
                 Material[] mats = r.materials;
                 bool dirty = false;
                 for (int i = 0; i < mats.Length; i++)

@@ -11,18 +11,20 @@ using UnityEngine;
 namespace Shenxiao.Module.Core.Login
 {
     /// <summary>
-    /// 登录模块 UI 流程编排(重构版:6 个自包含独立 prefab,不再用老 LoginModule 大合并 prefab)。
+    /// 登录模块 UI 流程编排(重构版:独立 LoginStage 外壳 + 6 个原样页面 prefab)。
     /// 链路严格对齐老客户端:
     ///   ① 加载页 LoadingView(真实资源下载进度)
     ///   ② 登录/注册页 LoginPanelView(登录⇄注册子面板)
     ///   ③ 登录成功 → ServerEnterView(显示当前服 + 踏入仙界 + 用户协议弹层)
     ///   ④ 点服务器名 → ServerSelectView 列表选服
     ///   ⑤ 踏入仙界 → get_server_info → WebSocket → 10000 → 选角 RoleSelectView / 创角 RoleCreateView → 进游戏
-    /// 每个页面背景自含,不再有独立 LoginBgView;协议弹层并进 ServerEnterView。
+    /// 页面自身仍按 720x1280 原样渲染;LoginStage 只在外部补 Web 背景和居中视口。
+    /// 协议弹层并进 ServerEnterView。
     /// </summary>
     public static class LoginFlow
     {
         private static AppConfig _config;
+        private static LoginStage _stage;             // 全屏 Web 背景 + 居中 720x1280 视口
         private static LoginPanelView _loginPanel;     // ② 登录 + 注册
         private static LoadingView _loadingView;       // ① 加载
         private static ServerEnterView _enterView;     // ③ 踏入仙界 + 协议弹层
@@ -43,8 +45,14 @@ namespace Shenxiao.Module.Core.Login
         {
             _config = config;
 
-            // 6 个独立 prefab 加载到 Window 层(键 prefabs/ui/login/<view>,编辑器有 prefab 兜底)。
+            // LoginStage 自身铺满 Window 层;6 个原有页面只加载到固定 720x1280 视口内。
             Shenxiao.Framework.UI.BootOverlay.Report(0.90f, "正在加载登录界面…");
+            _stage = await LoadStageAsync();
+            if (_stage == null)
+            {
+                return;
+            }
+
             _loginPanel = await LoadViewAsync<LoginPanelView>("LoginPanel");
             _loadingView = await LoadViewAsync<LoadingView>("LoadingView");
             Shenxiao.Framework.UI.BootOverlay.Report(0.94f, "正在加载登录界面…");
@@ -83,11 +91,28 @@ namespace Shenxiao.Module.Core.Login
             ShowLogin();
         }
 
+        /// <summary>加载登录外部舞台。它只负责 Web 背景和固定视口,不包含任何登录页内容。</summary>
+        private static async Task<LoginStage> LoadStageAsync()
+        {
+            string key = GameResPath.GetUIPrefab("login", "LoginStage");
+            GameObject go = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+            LoginStage stage = go != null ? go.GetComponent<LoginStage>() : null;
+            if (stage == null || stage.viewport == null)
+            {
+                GameLog.Error("Login", "LoginStage prefab 加载失败或缺 Viewport(key={0})。在「神霄/重构UI 生成器」里只重建 LoginStage", key);
+                if (go != null) ResManager.ReleaseInstance(go);
+                return null;
+            }
+
+            go.transform.SetAsFirstSibling();
+            return stage;
+        }
+
         /// <summary>按视图名实例化对应独立 prefab 并取组件(失败返回 null)。</summary>
         private static async Task<T> LoadViewAsync<T>(string viewName) where T : BaseView
         {
             string key = GameResPath.GetUIPrefab("login", viewName);
-            GameObject go = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+            GameObject go = await ResManager.InstantiateAsync(key, _stage.viewport);
             T view = go != null ? go.GetComponent<T>() : null;
             if (view == null)
             {
@@ -246,22 +271,22 @@ namespace Shenxiao.Module.Core.Login
             _busy = true;
             try
             {
-                _enterView.SetTip("解析服务器入口 ...");
+                TipsManager.Toast("解析服务器入口 ...");
                 LoginRequestResult result = await LoginController.Instance.ResolveSelectedServerEndpointAsync();
                 if (!result.success)
                 {
-                    _enterView.SetTip("入口解析失败: " + result.message);
+                    TipsManager.Toast("入口解析失败: " + result.message);
                     return;
                 }
 
-                _enterView.SetTip("连接游戏服 ...");
+                TipsManager.Toast("连接游戏服 ...");
                 result = await LoginController.Instance.ConnectGameAsync();
                 if (!result.success)
                 {
-                    _enterView.SetTip("连接失败: " + result.message);
+                    TipsManager.Toast("连接失败: " + result.message);
                     return;
                 }
-                _enterView.SetTip("已连接,等待角色数据 ...");
+                TipsManager.Toast("已连接,等待角色数据 ...");
             }
             finally
             {
@@ -363,13 +388,18 @@ namespace Shenxiao.Module.Core.Login
 
         private static void ReleaseLoginViews()
         {
-            if (_loginPanel == null && _loadingView == null) return;
+            if (_stage == null && _loginPanel == null && _loadingView == null) return;
             ReleaseView(ref _loginPanel);
             ReleaseView(ref _enterView);
             ReleaseView(ref _selectView);
             ReleaseView(ref _selectRoleView);
             ReleaseView(ref _createRoleView);
             ReleaseView(ref _loadingView);
+            if (_stage != null)
+            {
+                ResManager.ReleaseInstance(_stage.gameObject);
+                _stage = null;
+            }
             LegacyPreloadService.ProgressChanged -= OnPreloadProgress;
             GameLog.Info("Login", "login views released(进世界,登录模块退役归还纹理/bundle)");
         }

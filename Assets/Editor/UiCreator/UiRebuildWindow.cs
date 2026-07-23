@@ -67,7 +67,7 @@ namespace Shenxiao.Editor.UiCreator
                     if (list.Count == 0) continue;
                 }
 
-                // ---------- 模块头:折叠 + 计数 + 批量生成 ----------
+                // ---------- 模块头:折叠 + 计数 + 批量重建 ----------
                 string foldKey = FoldPrefsPrefix + group.Key;
                 bool folded = searching || EditorPrefs.GetBool(foldKey, true);
 
@@ -78,9 +78,9 @@ namespace Shenxiao.Editor.UiCreator
                     folded = searching || now;
 
                     GUILayout.FlexibleSpace();
-                    if (GUILayout.Button("全部生成", GUILayout.Width(68f))
-                        && EditorUtility.DisplayDialog("批量生成:" + group.Key,
-                            "依次执行本模块 " + list.Count + " 个条目的「生成预制体」,已有的会被覆盖重建。继续?", "生成", "取消"))
+                    if (GUILayout.Button("全部重建", GUILayout.Width(68f))
+                        && EditorUtility.DisplayDialog("批量重建:" + group.Key,
+                            "依次重建本模块 " + list.Count + " 个 prefab。\n\n这会覆盖 prefab 内的人工调整,仅在明确需要从 Creator 重新出厂时使用。", "重建并覆盖", "取消"))
                     {
                         foreach (var e in list) e.Generate?.Invoke();
                         AutoFillSlots(group.Key);
@@ -146,7 +146,9 @@ namespace Shenxiao.Editor.UiCreator
 
                 GUILayout.FlexibleSpace();
 
-                if (GUILayout.Button(new GUIContent("①生成", "生成/覆盖重建 prefab(完成后自动回填动态资源槽)"), GUILayout.Width(56f)))
+                if (GUILayout.Button(new GUIContent("重建", "从 Creator 覆盖重建 prefab,会丢失人工调整"), GUILayout.Width(44f))
+                    && (!exists || EditorUtility.DisplayDialog("覆盖重建:" + e.Name,
+                        "这会覆盖现有 prefab 内的人工调整。确定从 Creator 重建?", "重建并覆盖", "取消")))
                 {
                     e.Generate?.Invoke();
                     AutoFillSlots(e.Module);

@@ -41,14 +41,7 @@ namespace Shenxiao.Common.UI3D
                 var container = new GameObject($"role_{spec.ClotheRes}_mix");
                 var driver = container.AddComponent<ReplaceableRoleModel>();
                 driver.Init(spec);
-                string first = "idle";
-                if (spec.Actions != null)
-                {
-                    foreach (string a in spec.Actions)
-                    {
-                        if (!string.IsNullOrEmpty(a)) { first = a; break; }
-                    }
-                }
+                string first = driver.PreferredAction(spec.Actions);
                 await driver.PlayAsync(first, restart: true);
                 return container;
             }
@@ -107,7 +100,7 @@ namespace Shenxiao.Common.UI3D
         }
 
         /// <summary>
-        /// 新模型整装:清单指到的身体 prefab + 部件(头饰/武器,清单有新用新、没新挂老件——
+        /// 新模型整装:清单指到的身体 prefab + 部件(头饰/武器/翅膀,清单有新用新、没新挂老件——
         /// 带独立 Timeline 的头饰已经包含自身飘动动作,挂 head_mount 继承身体头骨完整变换;
         /// 静态头饰才走 head_mount(旧资源仍回退 head)。ArtModelStager 统一上台包装
         /// (落点归一/根位移/透明分流)。循环/停末帧由 ReplaceableRoleModel 按动作再设。
@@ -146,9 +139,21 @@ namespace Shenxiao.Common.UI3D
                     attachmentRotationOffset: ModelReplacement.GetAttachmentRotationOffset("weapon", spec.WeaponRes),
                     attachmentScale: ModelReplacement.GetAttachmentScale("weapon", spec.WeaponRes));
             }
+            if (spec.WingId > 0)
+            {
+                string replacementWingKey = ModelReplacement.GetPrefabKey("wing", spec.WingId, action)
+                    ?? ModelReplacement.GetPrefabKey("wing", spec.WingId, "idle");
+                string wingKey = replacementWingKey ?? Key("wing", "model_wing_" + spec.WingId);
+                await AttachPartOptional(inst, "wing", wingKey,
+                    attachmentLocatorName: replacementWingKey != null ? "wing_attach" : null,
+                    attachmentPositionOffset: ModelReplacement.GetAttachmentPositionOffset("wing", spec.WingId),
+                    attachmentRotationOffset: ModelReplacement.GetAttachmentRotationOffset("wing", spec.WingId),
+                    attachmentScale: ModelReplacement.GetAttachmentScale("wing", spec.WingId));
+            }
 
             GameObject staged = ArtModelStager.Stage(inst, bodyPrefab, UnityEngine.Playables.DirectorWrapMode.Loop);
-            GameLog.Info("UI3D", "新模型上台:{0}(action={1})", bodyKey, action);
+            GameLog.Info("UI3D", "新模型上台:{0}(action={1},head={2},weapon={3},wing={4},back={5})",
+                bodyKey, action, spec.HeadRes, spec.WeaponRes, spec.WingId, spec.BackOrnamentId);
             return staged;
         }
 
@@ -331,13 +336,9 @@ namespace Shenxiao.Common.UI3D
             var driver = root.GetComponent<ReplaceableRoleModel>();
             if (driver != null)
             {
-                // 混合模型:播首个动作(顺序队列是老 Animation 的能力,新模型段落自含起承转合)
-                foreach (string name in actions)
-                {
-                    if (string.IsNullOrEmpty(name)) continue;
-                    driver.Play(name, restart: true);
-                    return;
-                }
+                // 混合模型没有旧 Animation 的排队能力:优先播序列中已交付的新动作。
+                // create2 未交而 create3 已交时，直接上 create3，不能永久停在旧 create2。
+                driver.Play(driver.PreferredAction(actions), restart: true);
                 return;
             }
             var anim = root.GetComponent<Animation>();

@@ -19,7 +19,6 @@ namespace Shenxiao.Module.Core.Login
     /// ── 对接说明(供主控接 LoginFlow)──────────────────────────────────────────
     /// 暴露给 LoginFlow 回调的 public 方法:
     ///   void RefreshServer()          当前服名 ← LoginModel.Instance.SelectedServer?.DisplayName(无则「未选服」)
-    ///   void SetTip(string text)      设置当前服按钮旁提示文案(踏入仙界过程中刷状态用)
     ///   void RefreshAgreement()       按 LoginFlow.AgreementAgreed 更新勾选指示(勾图 SetActive)
     ///   void ShowAgreementAlert()     显示协议弹层
     ///   void HideAgreementAlert()     隐藏协议弹层
@@ -40,7 +39,7 @@ namespace Shenxiao.Module.Core.Login
         public Image serverBtn;                 // 当前服按钮底图(命中体)
         public Image serverStateIcon;           // 服务器状态图标
         public TextMeshProUGUI serverNameLabel; // 当前服名
-        public TextMeshProUGUI tipLabel;        // 提示文案(点击换区 / 流程状态)
+        public TextMeshProUGUI tipLabel;        // 固定操作提示(点击换区)
 
         [Header("踏入仙界")]
         public Image enterBtn;                   // 踏入仙界按钮(命中体)
@@ -95,12 +94,6 @@ namespace Shenxiao.Module.Core.Login
             LoginServerInfo server = LoginModel.Instance.SelectedServer;
             if (serverNameLabel != null) serverNameLabel.text = server != null ? server.DisplayName : "未选服";
             if (tipLabel != null) tipLabel.text = "(点击换区)";
-        }
-
-        /// <summary>踏入仙界流程中刷状态提示(解析入口 / 连接 / 等待角色)。</summary>
-        public void SetTip(string text)
-        {
-            if (tipLabel != null) tipLabel.text = text;
         }
 
         /// <summary>按 LoginFlow.AgreementAgreed 更新勾选指示(勾图显隐,功能性指示)。</summary>

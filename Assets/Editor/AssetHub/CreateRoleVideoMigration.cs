@@ -20,7 +20,7 @@ namespace Shenxiao.EditorTools.AssetHub
     ///     (Creator 已同步加该节点,下次整树重生成也一致)
     /// 批处理:Unity.exe -batchmode -projectPath . -executeMethod
     ///        Shenxiao.EditorTools.AssetHub.CreateRoleVideoMigration.Run -logFile Temp/create_video_migration.log
-    /// 或菜单:神霄/资源/创角视频迁移(整模→视频)
+    /// 这是已完成迁移后的对账/批处理入口,不再占用日常 Unity 菜单。
     /// </summary>
     public static class CreateRoleVideoMigration
     {
@@ -39,12 +39,6 @@ namespace Shenxiao.EditorTools.AssetHub
                 code = 1;
             }
             if (Application.isBatchMode) EditorApplication.Exit(code);
-        }
-
-        [MenuItem("神霄/资源/创角视频迁移(整模→视频)", priority = 40)]
-        private static void RunFromMenu()
-        {
-            Migrate();
         }
 
         private static int Migrate()

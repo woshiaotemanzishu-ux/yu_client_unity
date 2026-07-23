@@ -41,6 +41,7 @@ namespace Shenxiao.Editor.AssetHub
             _instance = Object.Instantiate(prefab);
             _pru.AddSingleGO(_instance);
             _instance.transform.position = Vector3.zero;
+            AssetHubArtPreview.Apply(_pru, _instance);
             _animation = _instance.GetComponent<Animation>();
             if (_animation == null) _animation = _instance.AddComponent<Animation>();
             _lastTick = EditorApplication.timeSinceStartup;
@@ -54,7 +55,12 @@ namespace Shenxiao.Editor.AssetHub
             if (_weaponInstance != null) Object.DestroyImmediate(_weaponInstance);
             _weaponInstance = null;
             _weaponKey = weaponKey;
-            if (_instance == null || string.IsNullOrEmpty(weaponKey)) return;
+            if (_instance == null) return;
+            if (string.IsNullOrEmpty(weaponKey))
+            {
+                AssetHubArtPreview.Apply(_pru, _instance);
+                return;
+            }
 
             string path = AssetAssemblyProfileStore.AssetPathOfKey(weaponKey, ".prefab");
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
@@ -65,6 +71,7 @@ namespace Shenxiao.Editor.AssetHub
             _weaponInstance.transform.localPosition = Vector3.zero;
             _weaponInstance.transform.localRotation = Quaternion.identity;
             _weaponInstance.transform.localScale = Vector3.one;
+            AssetHubArtPreview.Apply(_pru, _instance);
             RefreshParticles();
             _bounds = CalcBounds();
         }

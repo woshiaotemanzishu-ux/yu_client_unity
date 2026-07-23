@@ -252,9 +252,16 @@ namespace Shenxiao.Module.Core.MainUI
         {
             if (model == null) return;
             if (string.IsNullOrEmpty(action)) action = "idle";
+
+            Animation anim = model.GetComponent<Animation>();
+            if (anim != null && anim.GetClip(action) != null)
+            {
+                anim.Play(action);
+                return;
+            }
+
             AnimationClip clip = await ResManager.LoadAsync<AnimationClip>("object/" + module + "/action/" + id + "/" + action);
             if (model == null || clip == null) return;
-            Animation anim = model.GetComponent<Animation>();
             if (anim == null) anim = model.AddComponent<Animation>();
             if (anim.GetClip(action) == null) anim.AddClip(clip, action);
             anim.Play(action);

@@ -21,8 +21,8 @@ namespace Shenxiao.Common.UI3D
         private const float ScreenMargin = 10f;
         private const float ToggleGap = 6f;
 
-        /// <summary>总开关,默认关(隐藏)。由「神霄/调试/头饰调参浮层」菜单翻转,状态存 EditorPrefs
-        /// (见 ArtModelTunerMenu),需要再调参时点一下菜单即可,代码保留不删。</summary>
+        /// <summary>总开关,默认关(隐藏)。由「神霄/调试/头饰调参浮层」菜单翻转,
+        /// 只在当前脚本域有效;需要再调参时临时点开即可,代码保留不删。</summary>
         public static bool Enabled;
 
         private static ArtModelTuner _inst;
@@ -41,6 +41,12 @@ namespace Shenxiao.Common.UI3D
         /// <summary>挂起/更新调参浮层(每次展示整模时调,刷新页面基准)。</summary>
         public static void Attach(string section)
         {
+            if (!Enabled)
+            {
+                Detach();
+                return;
+            }
+
             if (_inst == null)
             {
                 var go = new GameObject("__ArtModelTuner");

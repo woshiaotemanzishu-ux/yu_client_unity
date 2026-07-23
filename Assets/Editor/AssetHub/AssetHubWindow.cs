@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Editor.Laya3D;
 using Shenxiao.Editor.LayaUI;
@@ -54,6 +55,7 @@ namespace Shenxiao.Editor.AssetHub
         private AssetAssemblySet _selectedAssemblySet;
         private Vector2 _assemblyListScroll;
         private Vector2 _assemblyDetailScroll;
+        private bool _artPartImportPending;
 
         private static GUIStyle _rowStyle;
         private static GUIStyle RowStyle => _rowStyle ??= new GUIStyle(EditorStyles.label)
@@ -1198,6 +1200,46 @@ namespace Shenxiao.Editor.AssetHub
                 (sourceFolder ?? "").Replace('\\', '/').TrimEnd('/'));
         }
 
+        private void QueueArtPartImport(
+            (string module, string folder, string id) part, string sourceFolder)
+        {
+            _artPartImportPending = true;
+            Repaint();
+            EditorApplication.delayCall += () =>
+            {
+                if (this == null) return;
+                try
+                {
+                    InvalidatePartCaches(part.folder);
+                    bool ok = EditorTools.ArtImport.ArtPrefabImporter.ImportPart(
+                        part.module, part.folder, sourceFolder, out string summary);
+                    if (ok)
+                    {
+                        int filled = AutoFillFromImported(part);
+                        ShowNotification(new GUIContent($"{summary};自动配置 {filled} 个动作"));
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog("导入替换失败", summary, "好");
+                    }
+                }
+                catch (System.Exception exception)
+                {
+                    Debug.LogException(exception);
+                    EditorUtility.DisplayDialog("导入替换失败", exception.Message, "好");
+                }
+                finally
+                {
+                    if (this != null)
+                    {
+                        _artPartImportPending = false;
+                        InvalidatePartCaches(part.folder);
+                        Repaint();
+                    }
+                }
+            };
+        }
+
         private void DrawArtPartImportControls(
             AssetEntry entry,
             (string module, string folder, string id) part,
@@ -1237,9 +1279,10 @@ namespace Shenxiao.Editor.AssetHub
                     : sourceFolder;
                 EditorGUILayout.SelectableLabel(displayFolder, EditorStyles.textField,
                     GUILayout.Height(EditorGUIUtility.singleLineHeight));
-                using (new EditorGUI.DisabledScope(!artProjectValid))
+                using (new EditorGUI.DisabledScope(!artProjectValid || _artPartImportPending))
                 {
-                    if (GUILayout.Button("选择目录并导入替换", GUILayout.Width(140f)))
+                    string buttonText = _artPartImportPending ? "正在导入…" : "选择目录并导入替换";
+                    if (GUILayout.Button(buttonText, GUILayout.Width(140f)))
                     {
                         string pickerRoot = EditorTools.ArtImport.ArtPrefabImporter.GetPartPickerRoot(part.module);
                         if (!Directory.Exists(pickerRoot)) pickerRoot = $"{artProjectRoot}/Assets";
@@ -1250,18 +1293,7 @@ namespace Shenxiao.Editor.AssetHub
                         {
                             selectedFolder = selectedFolder.Replace('\\', '/').TrimEnd('/');
                             SetArtPartSourceFolder(part, selectedFolder);
-                            InvalidatePartCaches(part.folder);
-                            bool ok = EditorTools.ArtImport.ArtPrefabImporter.ImportPart(
-                                part.module, part.folder, selectedFolder, out string summary);
-                            if (ok)
-                            {
-                                int filled = AutoFillFromImported(part);
-                                ShowNotification(new GUIContent($"{summary};自动配置 {filled} 个动作"));
-                            }
-                            else
-                            {
-                                EditorUtility.DisplayDialog("导入替换失败", summary, "好");
-                            }
+                            QueueArtPartImport(part, selectedFolder);
                             GUIUtility.ExitGUI();
                         }
                     }
@@ -1472,7 +1504,7 @@ namespace Shenxiao.Editor.AssetHub
         {
             string targetDir = $"Assets/GameRes/object/{part.module}/{part.folder}";
             if (!Directory.Exists(targetDir)) return 0;
-            int filled = 0;
+            var actions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (string p in Directory.GetFiles(targetDir, "*@*.prefab", SearchOption.TopDirectoryOnly))
             {
                 string s = Path.GetFileNameWithoutExtension(p);
@@ -1480,10 +1512,55 @@ namespace Shenxiao.Editor.AssetHub
                 if (at < 0 || at >= s.Length - 1) continue;
                 string key = ModelReplacementStore.PathToKey(p.Replace('\\', '/'));
                 if (key == null) continue;
-                ModelReplacementStore.SetAction(part.module, part.id, s.Substring(at + 1).ToLowerInvariant(), key);
-                filled++;
+                actions[s.Substring(at + 1).ToLowerInvariant()] = key;
             }
-            return filled;
+            if (actions.Count == 0) return 0;
+
+            string[] ids = LegacyReplacementIds(part.module, part.id);
+            ModelReplacementStore.SetActions(part.module, ids, actions);
+            if (ids.Length > 1)
+                Debug.Log($"[ModelReplacement] {part.module}/{part.id} 老资源同模别名一并接管:" +
+                          string.Join(",", ids));
+            return actions.Count * ids.Length;
+        }
+
+        /// <summary>
+        /// 老客户端按职业/外观 ID 分了多个 .lh，但可能共用同一套真实 mesh（实锤:1202 与 1402
+        /// 都引用 model_clothe_1202）。服务端 Figure 下发的是外观 ID，故导入美术物理资源 1202 时
+        /// 必须把引用同一 mesh 集合的 1402 也写入替换清单，否则运行时精确匹配永远命不中。
+        /// </summary>
+        private static string[] LegacyReplacementIds(string module, string id)
+        {
+            if (!string.Equals(module, "role", StringComparison.OrdinalIgnoreCase)) return new[] { id };
+            string objs = Path.Combine(LayaUISettings.CdnResourceRoot, "object", "role", "objs");
+            string source = Path.Combine(objs, "model_clothe_" + id + ".lh");
+            HashSet<string> sourceMeshes = LegacyMeshPaths(source);
+            if (sourceMeshes.Count == 0 || !Directory.Exists(objs)) return new[] { id };
+
+            var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { id };
+            foreach (string candidate in Directory.GetFiles(objs, "model_clothe_*.lh", SearchOption.TopDirectoryOnly))
+            {
+                if (!LegacyMeshPaths(candidate).SetEquals(sourceMeshes)) continue;
+                string stem = Path.GetFileNameWithoutExtension(candidate);
+                const string prefix = "model_clothe_";
+                string candidateId = stem.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+                    ? stem.Substring(prefix.Length)
+                    : "";
+                if (candidateId.Length > 0 && candidateId.All(char.IsDigit)) ids.Add(candidateId);
+            }
+            return ids.OrderBy(value => value, StringComparer.OrdinalIgnoreCase).ToArray();
+        }
+
+        private static HashSet<string> LegacyMeshPaths(string lhPath)
+        {
+            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (!File.Exists(lhPath)) return result;
+            foreach (Match match in Regex.Matches(File.ReadAllText(lhPath),
+                         "\\\"meshPath\\\"\\s*:\\s*\\\"([^\\\"]+)\\\""))
+            {
+                result.Add(match.Groups[1].Value.Replace('\\', '/').ToLowerInvariant());
+            }
+            return result;
         }
 
         private void InvalidatePartCaches(string folder)

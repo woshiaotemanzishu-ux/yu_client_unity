@@ -31,7 +31,6 @@ namespace Shenxiao.Editor.LayaUI
         private static string PendingKey => "Shenxiao.LayaUI.PendingFill:" + Application.dataPath.GetHashCode();
         private static string MissingKey(string module) => "Shenxiao.LayaUI.Missing." + module + ":" + Application.dataPath.GetHashCode();
 
-        [MenuItem("神霄/LayaUI/新机一键转换(登录+主界面)", priority = 10)]
         public static void RunFreshMachineModules()
         {
             if (!EditorUtility.DisplayDialog("新机一键转换",
@@ -44,13 +43,6 @@ namespace Shenxiao.Editor.LayaUI
             RunModules(FreshMachineModules, "新机一键转换", false);
         }
 
-        [MenuItem("神霄/LayaUI/重转主界面(MainUI)", priority = 20)]
-        public static void RunMainUI()
-        {
-            RunModule("mainUI");
-        }
-
-        [MenuItem("神霄/LayaUI/重转主界面入口模块", priority = 22)]
         public static void RunMainUIEntryModules()
         {
             RunModules(MainUIEntryModules, MainUIEntryTitle, true);
@@ -116,13 +108,6 @@ namespace Shenxiao.Editor.LayaUI
             RunMainUIEntryModulesNoConfirm();
         }
 
-        [MenuItem("神霄/LayaUI/重转任务(Task)", priority = 21)]
-        public static void RunTask()
-        {
-            RunModule("task");
-        }
-
-        [MenuItem("神霄/LayaUI/高级/一键转换全部模块", priority = 120)]
         public static void RunAllModules()
         {
             string[] modules = LoadKnownModules();
