@@ -92,6 +92,9 @@ namespace Shenxiao.Module.Core.HolyBattle
         public IReadOnlyList<RewardEntry> Rewards => _readOnlyRewards;
         public bool HasRecordStats { get; private set; }
         public IReadOnlyList<RecordGroupEntry> RecordStats => _readOnlyRecordStats;
+        public bool HasPhaseTime { get; private set; }
+        public byte PhaseStatus { get; private set; }
+        public uint PhaseEndTime { get; private set; }
 
         public void Replace(byte mod, byte status, uint endTime, List<ServerEntry> servers)
         {
@@ -133,6 +136,13 @@ namespace Shenxiao.Module.Core.HolyBattle
             HasRecordStats = true;
         }
 
+        public void ReplacePhaseTime(byte status, uint endTime)
+        {
+            PhaseStatus = status;
+            PhaseEndTime = endTime;
+            HasPhaseTime = true;
+        }
+
         public void Reset()
         {
             Mod = 0;
@@ -147,6 +157,9 @@ namespace Shenxiao.Module.Core.HolyBattle
             _rewards.Clear();
             _recordStats.Clear();
             HasRecordStats = false;
+            HasPhaseTime = false;
+            PhaseStatus = 0;
+            PhaseEndTime = 0;
         }
     }
 }

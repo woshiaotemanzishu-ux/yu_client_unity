@@ -24,6 +24,7 @@ namespace Shenxiao.Module.Core.HolyBattle
             RegisterProtocal(Proto.HOLY_BATTLE_EXPERIENCE, On21804);
             RegisterProtocal(Proto.HOLY_BATTLE_SCORE, On21805);
             RegisterProtocal(Proto.HOLY_BATTLE_RECORD_STATS, On21808);
+            RegisterProtocal(Proto.HOLY_BATTLE_PHASE_TIME, On21811);
         }
 
         public void RequestInfo()
@@ -134,6 +135,20 @@ namespace Shenxiao.Module.Core.HolyBattle
                 groups.Add(new HolyBattleModel.RecordGroupEntry(groupId, towerNum, point, rank, roles));
             }
             HolyBattleModel.Instance.ReplaceRecordStats(groups);
+        }
+
+        public void RequestPhaseTime()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.HOLY_BATTLE_PHASE_TIME, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.HOLY_BATTLE_PHASE_TIME);
+        }
+
+        private void On21811(NetReader reader)
+        {
+            HolyBattleModel.Instance.ReplacePhaseTime(reader.ReadU8(), reader.ReadU32());
         }
 
         public override void Dispose()

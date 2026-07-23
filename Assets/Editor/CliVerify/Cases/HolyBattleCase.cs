@@ -44,6 +44,9 @@ namespace Shenxiao.EditorTools
             var oldRewards = new List<HolyBattleModel.RewardEntry>(model.Rewards);
             bool oldHasRecordStats = model.HasRecordStats;
             var oldRecordStats = new List<HolyBattleModel.RecordGroupEntry>(model.RecordStats);
+            bool oldHasPhaseTime = model.HasPhaseTime;
+            byte oldPhaseStatus = model.PhaseStatus;
+            uint oldPhaseEndTime = model.PhaseEndTime;
             FieldInfo interceptField = typeof(HolyBattleController).GetField("s_outboundIntercept", StaticNonPublic);
             object oldIntercept = interceptField == null ? null : interceptField.GetValue(null);
 
@@ -56,12 +59,13 @@ namespace Shenxiao.EditorTools
                 MethodInfo on21804 = typeof(HolyBattleController).GetMethod("On21804", InstanceNonPublic);
                 MethodInfo on21805 = typeof(HolyBattleController).GetMethod("On21805", InstanceNonPublic);
                 MethodInfo on21808 = typeof(HolyBattleController).GetMethod("On21808", InstanceNonPublic);
+                MethodInfo on21811 = typeof(HolyBattleController).GetMethod("On21811", InstanceNonPublic);
                 IDictionary handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                bool pass = interceptField != null && on21801 != null && on21804 != null && on21805 != null && on21808 != null && handlers != null
-                    && handlers.Contains(21801) && handlers.Contains(21804) && handlers.Contains(21805) && handlers.Contains(21808);
+                bool pass = interceptField != null && on21801 != null && on21804 != null && on21805 != null && on21808 != null && on21811 != null && handlers != null
+                    && handlers.Contains(21801) && handlers.Contains(21804) && handlers.Contains(21805) && handlers.Contains(21808) && handlers.Contains(21811);
                 for (int proto = 21800; proto <= 21813; proto++)
                 {
-                    if (proto != 21801 && proto != 21804 && proto != 21805 && proto != 21808)
+                    if (proto != 21801 && proto != 21804 && proto != 21805 && proto != 21808 && proto != 21811)
                     {
                         pass &= !handlers.Contains(proto);
                     }
@@ -98,6 +102,26 @@ namespace Shenxiao.EditorTools
                     && !model.HasRecordStats && model.RecordStats.Count == 0;
                 frames.Clear();
 
+                controller.RequestPhaseTime();
+                pass &= IsExactPhaseTimeRequest(frames.Count == 1 ? frames[0] : null)
+                    && !model.HasPhaseTime && model.PhaseStatus == 0 && model.PhaseEndTime == 0;
+                frames.Clear();
+
+                var phaseZeroReader = new NetReader(new CliVerify.Pkt().C(0).I(0).Bytes(), 0, 5);
+                on21811.Invoke(controller, new object[] { phaseZeroReader });
+                pass &= phaseZeroReader.Remaining == 0 && model.HasPhaseTime && model.PhaseStatus == 0 && model.PhaseEndTime == 0;
+                var phaseWaitReader = new NetReader(new CliVerify.Pkt().C(1).I(uint.MaxValue).Bytes(), 0, 5);
+                on21811.Invoke(controller, new object[] { phaseWaitReader });
+                pass &= phaseWaitReader.Remaining == 0 && model.HasPhaseTime && model.PhaseStatus == 1 && model.PhaseEndTime == uint.MaxValue;
+                var phaseFightReader = new NetReader(new CliVerify.Pkt().C(2).I(7).Bytes(), 0, 5);
+                on21811.Invoke(controller, new object[] { phaseFightReader });
+                pass &= phaseFightReader.Remaining == 0 && model.HasPhaseTime && model.PhaseStatus == 2 && model.PhaseEndTime == 7 && frames.Count == 0;
+
+                controller.RequestPhaseTime();
+                pass &= IsExactPhaseTimeRequest(frames.Count == 1 ? frames[0] : null)
+                    && model.HasPhaseTime && model.PhaseStatus == 2 && model.PhaseEndTime == 7;
+                frames.Clear();
+
                 byte[] statsBytes = new CliVerify.Pkt().H(2)
                     .C(byte.MaxValue).C(0).I(0).C(0).H(0)
                     .C(byte.MaxValue).C(byte.MaxValue).I(uint.MaxValue).C(byte.MaxValue).H(3)
@@ -123,12 +147,14 @@ namespace Shenxiao.EditorTools
                     && model.RecordStats[1].Roles[2].ServerId == 2 && model.RecordStats[1].Roles[2].ServerNum == 3
                     && model.RecordStats[1].Roles[2].Name == "\u4e2d" && model.RecordStats[1].Roles[2].Point == 10
                     && model.RecordStats[1].Roles[2].Kill == 0 && model.RecordStats[1].Roles[2].Assists == ushort.MaxValue
+                    && model.HasPhaseTime && model.PhaseStatus == 2 && model.PhaseEndTime == 7
                     && frames.Count == 0;
 
                 var zeroExperienceReader = new NetReader(new CliVerify.Pkt().L(0).Bytes(), 0, 8);
                 on21804.Invoke(controller, new object[] { zeroExperienceReader });
                 pass &= zeroExperienceReader.Remaining == 0 && model.HasExperience && model.AllExperience == 0
-                    && model.HasRecordStats && model.RecordStats.Count == 2 && frames.Count == 0;
+                    && model.HasRecordStats && model.RecordStats.Count == 2
+                    && model.HasPhaseTime && model.PhaseStatus == 2 && model.PhaseEndTime == 7 && frames.Count == 0;
 
                 var firstExperienceReader = new NetReader(new CliVerify.Pkt().L(100).Bytes(), 0, 8);
                 on21804.Invoke(controller, new object[] { firstExperienceReader });
@@ -155,7 +181,8 @@ namespace Shenxiao.EditorTools
                     && model.Rewards[1].Stage == ushort.MaxValue && model.Rewards[1].Status == 1
                     && model.Rewards[2].Stage == ushort.MaxValue && model.Rewards[2].Status == 2
                     && model.HasExperience && model.AllExperience == 5000000001UL && !model.HasData
-                    && model.HasRecordStats && model.RecordStats.Count == 2 && frames.Count == 0;
+                    && model.HasRecordStats && model.RecordStats.Count == 2
+                    && model.HasPhaseTime && model.PhaseStatus == 2 && model.PhaseEndTime == 7 && frames.Count == 0;
 
                 const string chineseName = "圣灵中文服";
                 byte[] firstBytes = new CliVerify.Pkt()
@@ -175,6 +202,7 @@ namespace Shenxiao.EditorTools
                     && model.HasExperience && model.AllExperience == 5000000001UL
                     && model.HasScore && model.Point == 0 && model.Rewards.Count == 3
                     && model.HasRecordStats && model.RecordStats.Count == 2
+                    && model.HasPhaseTime && model.PhaseStatus == 2 && model.PhaseEndTime == 7
                     && frames.Count == 0;
 
                 var maxExperienceReader = new NetReader(new CliVerify.Pkt().L(unchecked((long)ulong.MaxValue)).Bytes(), 0, 8);
@@ -211,11 +239,18 @@ namespace Shenxiao.EditorTools
                     && model.HasData && model.Servers.Count == 1 && model.HasExperience && model.AllExperience == ulong.MaxValue
                     && model.HasScore && model.Rewards.Count == 1 && frames.Count == 0;
 
+                var replacementPhaseReader = new NetReader(new CliVerify.Pkt().C(1).I(9).Bytes(), 0, 5);
+                on21811.Invoke(controller, new object[] { replacementPhaseReader });
+                pass &= replacementPhaseReader.Remaining == 0 && model.HasPhaseTime && model.PhaseStatus == 1 && model.PhaseEndTime == 9
+                    && model.HasData && model.Servers.Count == 1 && model.HasExperience && model.AllExperience == ulong.MaxValue
+                    && model.HasScore && model.Rewards.Count == 1 && model.HasRecordStats && model.RecordStats.Count == 1 && frames.Count == 0;
+
                 var emptyScoreReader = new NetReader(new CliVerify.Pkt().I(0).H(0).Bytes(), 0, 6);
                 on21805.Invoke(controller, new object[] { emptyScoreReader });
                 pass &= emptyScoreReader.Remaining == 0 && model.HasScore && model.Point == 0 && model.Rewards.Count == 0
                     && model.HasData && model.Mod == 1 && model.HasExperience && model.AllExperience == ulong.MaxValue
-                    && model.HasRecordStats && model.RecordStats.Count == 1 && frames.Count == 0;
+                    && model.HasRecordStats && model.RecordStats.Count == 1
+                    && model.HasPhaseTime && model.PhaseStatus == 1 && model.PhaseEndTime == 9 && frames.Count == 0;
 
                 byte[] thirdBytes = new CliVerify.Pkt().C(0).C(0).I(0).H(0).Bytes();
                 var thirdReader = new NetReader(thirdBytes, 0, thirdBytes.Length);
@@ -223,18 +258,20 @@ namespace Shenxiao.EditorTools
                 pass &= thirdReader.Remaining == 0
                     && model.HasData && model.Mod == 0 && model.Status == 0 && model.EndTime == 0 && model.Servers.Count == 0
                     && model.HasExperience && model.AllExperience == ulong.MaxValue && model.HasScore && model.Rewards.Count == 0
-                    && model.HasRecordStats && model.RecordStats.Count == 1;
+                    && model.HasRecordStats && model.RecordStats.Count == 1
+                    && model.HasPhaseTime && model.PhaseStatus == 1 && model.PhaseEndTime == 9;
 
                 var emptyStatsReader = new NetReader(new CliVerify.Pkt().H(0).Bytes(), 0, 2);
                 on21808.Invoke(controller, new object[] { emptyStatsReader });
                 pass &= emptyStatsReader.Remaining == 0 && model.HasRecordStats && model.RecordStats.Count == 0
-                    && model.HasData && model.HasExperience && model.HasScore && frames.Count == 0;
+                    && model.HasData && model.HasExperience && model.HasScore
+                    && model.HasPhaseTime && model.PhaseStatus == 1 && model.PhaseEndTime == 9 && frames.Count == 0;
 
                 controller.Dispose();
-                pass &= !controller.IsInitialized && !handlers.Contains(21801) && !handlers.Contains(21804) && !handlers.Contains(21805) && !handlers.Contains(21808)
+                pass &= !controller.IsInitialized && !handlers.Contains(21801) && !handlers.Contains(21804) && !handlers.Contains(21805) && !handlers.Contains(21808) && !handlers.Contains(21811)
                     && !model.HasData && model.Mod == 0 && model.Status == 0 && model.EndTime == 0 && model.Servers.Count == 0
                     && !model.HasExperience && model.AllExperience == 0 && !model.HasScore && model.Point == 0 && model.Rewards.Count == 0
-                    && !model.HasRecordStats && model.RecordStats.Count == 0;
+                    && !model.HasRecordStats && model.RecordStats.Count == 0 && !model.HasPhaseTime && model.PhaseStatus == 0 && model.PhaseEndTime == 0;
 
                 Debug.Log("CLIVERIFY holybattle VERDICT pass=" + pass);
                 return pass ? 0 : 3;
@@ -265,6 +302,11 @@ namespace Shenxiao.EditorTools
                 if (oldHasRecordStats)
                 {
                     model.ReplaceRecordStats(oldRecordStats);
+                }
+
+                if (oldHasPhaseTime)
+                {
+                    model.ReplacePhaseTime(oldPhaseStatus, oldPhaseEndTime);
                 }
 
                 if (wasInitialized)
@@ -315,6 +357,14 @@ namespace Shenxiao.EditorTools
                 && frame[0] == 0 && frame[1] == 6 && frame[2] == 0x03 && frame[3] == 0xE8
                 && frame[4] == (byte)(Proto.HOLY_BATTLE_RECORD_STATS >> 8)
                 && frame[5] == (byte)(Proto.HOLY_BATTLE_RECORD_STATS & 0xFF);
+        }
+
+        private static bool IsExactPhaseTimeRequest(byte[] frame)
+        {
+            return frame != null && frame.Length == 6 && frame[0] == 0 && frame[1] == 6
+                && frame[2] == 0x03 && frame[3] == 0xE8
+                && frame[4] == (byte)(Proto.HOLY_BATTLE_PHASE_TIME >> 8)
+                && frame[5] == (byte)(Proto.HOLY_BATTLE_PHASE_TIME & 0xFF);
         }
     }
 }

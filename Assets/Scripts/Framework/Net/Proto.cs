@@ -988,6 +988,8 @@
         public const int HOLY_BATTLE_SCORE = 21805;
         /// <summary>圣灵战场战场统计。C2S 空包；S2C: groups:u16×{group_id:u8,tower_num:u8,point:u32,rank:u8,roles:u16×{role_id:u64,rank:u8,server_id:u32,server_num:u32,name:string,point:u32,kill:u16,assists:u16}}。</summary>
         public const int HOLY_BATTLE_RECORD_STATS = 21808;
+        /// <summary>圣灵战场阶段状态与绝对截止时间。C2S 空包；S2C: status:u8,end_time:u32。</summary>
+        public const int HOLY_BATTLE_PHASE_TIME = 21811;
         /// <summary>周一嘉礼任务状态。C2S 空包；S2C: task_state:u16×{task_id:u16,state:u8}。</summary>
         public const int MONDAYS_AWARD_TASK_STATE = 17904;
         /// <summary>周一嘉礼跨服开奖记录。C2S 空包；S2C: count:u16×{server_id:u32,server_num:u16,role_id:u64,role_name:string,type:u8,pool_id:u16,utime:u32,picture:string,picture_ver:u32,career:u16,turn:u16}。</summary>
