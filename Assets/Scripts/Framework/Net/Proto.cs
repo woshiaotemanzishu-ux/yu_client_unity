@@ -1983,6 +1983,10 @@
         /// lv:u16,combat_power:u64,result:u8,state:u8,rank_range:u32,time:u32})。</summary>
         public const int JJC_CHALLENGE_RECORDS = 28009;
 
+        /// <summary>无尽之海主快照(C2S 严格空包；S2C pic:s,pic_ver:u32,reward_times:u8,total_reward_times:u8,
+        /// rob_times:u8,total_rob_times:u8,auto_id:u64,status:u8,send_list:u16×完整航运项)。</summary>
+        public const int BRIGHT_SEA_INFO = 18900;
+
         // ----- 组队(24xxx,yu_server pt_240.erl / pp_team.erl;老端 commonController/TeamController.ts,
         // 自动循环 轮8) -----
         // 范围裁决(按规格§0):桶1核心 25 个(可发起+有实质处理)+ 桶2推送 14 个,共 39 号在此声明常量。

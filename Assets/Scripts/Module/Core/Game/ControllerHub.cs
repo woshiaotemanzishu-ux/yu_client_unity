@@ -22,6 +22,7 @@ using Shenxiao.Module.Core.Equip;
 using Shenxiao.Module.Core.Fashion;
 using Shenxiao.Module.Core.Festival;
 using Shenxiao.Module.Core.Jjc;
+using Shenxiao.Module.Core.BrightSea;
 using Shenxiao.Module.Core.OnHook;
 using Shenxiao.Module.Core.GuBao;
 using Shenxiao.Module.Core.Guild;
@@ -200,6 +201,7 @@ namespace Shenxiao.Module.Core.Game
             PkStatusController.Instance,
             SettingController.Instance,
             DailyController.Instance,
+            BrightSeaController.Instance,
             ShopController.Instance,
             RankController.Instance,
             // ----- 便宜活批(自动循环 轮18)已注册:PK1-PK4 各包已补协议,Register() 均已实做(非空壳) -----
