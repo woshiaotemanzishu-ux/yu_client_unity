@@ -217,6 +217,7 @@ namespace Shenxiao.EditorTools
         {
             Run(TreasureMapCase.Run, 60.0);
         }
+        public static void DungeonPartner() { Run(DungeonPartnerCase.Run, 60.0); }
 
         public static void Revelation() { Run(RevelationCase.Run, 60.0); }
         public static void Achievement() { Run(AchievementCase.Run, 60.0); }

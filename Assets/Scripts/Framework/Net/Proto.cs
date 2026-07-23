@@ -12,6 +12,10 @@
         public const int DRAGON_WHISPER_DROP_LOG = 65106;
         /// <summary>藏宝图开奖记录快照。C2S 严格空包；S2C 为完整记录及奖励列表。</summary>
         public const int TREASURE_MAP_DRAW_LOG = 20303;
+        /// <summary>伙伴副本章节扫荡信息。C2S: level:u8；S2C: level:u8,sweep_count:u16,dun_list:u16×{dun_id:u32,score:u8}。</summary>
+        public const int DUNGEON_PARTNER_DUNGEONS = 61105;
+        /// <summary>伙伴副本章节星级奖励。C2S: level:u8；S2C: level:u8,stage_reward:u16×{score:u16,status:u8}。</summary>
+        public const int DUNGEON_PARTNER_STAGE_REWARDS = 61106;
 
         // ----- 登录链(1xxxx) -----
         /// <summary>账号登录游戏服。发 "iiss"(pid, 时间戳秒, account_id, plat_name);
