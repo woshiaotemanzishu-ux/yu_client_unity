@@ -5,7 +5,7 @@ namespace Shenxiao.Module.Core.FriendInvite
 {
     /// <summary>
     /// 好友邀请(分享)数据(对标老客户端 FriendInviteModel)。承载 34001 邀请基础信息、
-    /// 34005 帮助信息与 34006 升级邀请角色全量快照,并提供主界面图标(340)显隐判定。
+    /// 34005 帮助信息、34006 升级邀请角色与 34012 福利奖励状态全量快照,并提供主界面图标(340)显隐判定。
     ///
     /// 图标开关铁律(对标老端 CheckIconOpenState = !is_alpha && ShareOpenState()):
     /// 好友邀请是「分享/邀请」社交入口,是否开启由**客户端构建/渠道配置**决定,而非服务端协议
@@ -50,6 +50,10 @@ namespace Shenxiao.Module.Core.FriendInvite
             public byte Status;
         }
         public sealed class RewardState { public byte RewardId; public byte Status; }
+        public const byte WelfareType = 3; // old FriendInviteModel.welfare_type
+        public bool HasWelfareInfo { get; private set; }
+        public byte WelfareInfoType { get; private set; }
+        public readonly List<RewardState> WelfareRewards = new List<RewardState>();
         public bool HasLevelInfo { get; private set; }
         public readonly List<LevelInviteEntry> LevelInviteEntries = new List<LevelInviteEntry>();
         public bool HasHelpInfo { get; private set; }
@@ -78,6 +82,13 @@ namespace Shenxiao.Module.Core.FriendInvite
             if (entries != null) HelpInviteEntries.AddRange(entries);
             HasHelpInfo = true;
         }
+        public void ReplaceWelfareInfo(byte type, List<RewardState> rewards)
+        {
+            WelfareInfoType = type;
+            WelfareRewards.Clear();
+            if (rewards != null) WelfareRewards.AddRange(rewards);
+            HasWelfareInfo = true;
+        }
 
         /// <summary>
         /// 图标入口开启状态(对标老端 CheckIconOpenState():!plat_form_mgr.is_alpha && ShareOpenState())。
@@ -98,6 +109,7 @@ namespace Shenxiao.Module.Core.FriendInvite
             LevelInviteEntries.Clear();
             HasLevelInfo = false;
             HelpCount = 0; HelpRewards.Clear(); HelpInviteEntries.Clear(); HasHelpInfo = false;
+            WelfareInfoType = 0; WelfareRewards.Clear(); HasWelfareInfo = false;
         }
     }
 }

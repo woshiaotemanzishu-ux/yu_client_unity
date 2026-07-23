@@ -940,6 +940,7 @@
         public const int FRIENDINVITE_LEVEL_INFO = 34006;
         /// <summary>好友邀请帮助信息完整快照。C2S 空包；S2C count:u16,reward_list:u16×{reward_id:u8,status:u8},pos_list:u16×升级邀请角色。</summary>
         public const int FRIENDINVITE_HELP_INFO = 34005;
+        public const int FRIENDINVITE_WELFARE_INFO = 34012;
         /// <summary>好友邀请(pt_340)家族统一错误出口(轮22 族错误出口批;对标老端 FriendInviteController.ts:160-163
         /// On34000:无条件 ErrorCodeShow(code,args)。服务端 send_error_code/3(lib_invite.erl:436-441)是
         /// 多处失败分支共享的错误壳,首字段 Pt 标识触发协议号,老端不消费该字段,本端同样只读不透出)。
