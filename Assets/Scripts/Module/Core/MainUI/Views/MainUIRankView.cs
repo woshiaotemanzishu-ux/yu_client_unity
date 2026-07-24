@@ -240,6 +240,7 @@ namespace Shenxiao.Module.Core.MainUI
             UiModelParameterConfigs.ModelParam mp = UiModelParameterConfigs.Get("MainUIActivityView", showId);
 
             if (_cycleModelStage == null) _cycleModelStage = new UIModelStage(); // 独立台,不被背包/角色等抢占
+            _cycleModelStage.EnableDragRotate(true); // HudRank 模型区支持按住左右拖动转身，复用选角页同一套手感与镜像补偿
             model_gp.gameObject.SetActive(true);
             GameObject inst = Instantiate(prefab);
             _cycleModelStage.PlaceInstance(model_gp, inst, mp.Scale, mp.Position, mp.Rotate);

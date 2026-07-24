@@ -40,6 +40,7 @@ namespace Shenxiao.Module.Core.BaseDungeon
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            ActivityIconManager.Instance.SetIconRedDot(TOWER_ICON_TYPE, false);
             ActivityIconManager.Instance.DeleteIcon(TOWER_ICON_TYPE);
             BaseDungeonModel.Instance.Reset();
             _lastLevel = -1;
@@ -57,7 +58,7 @@ namespace Shenxiao.Module.Core.BaseDungeon
         private void On61117(NetReader r)
         {
             int round = r.ReadU8();
-            int overTime = (int)r.ReadU32();
+            long overTime = r.ReadU32();
             int rewardMode = r.ReadU8();
             int passCount = r.ReadU16();
             for (int i = 0; i < passCount; i++)
@@ -67,6 +68,7 @@ namespace Shenxiao.Module.Core.BaseDungeon
 
             BaseDungeonModel m = BaseDungeonModel.Instance;
             m.SetTowerInfo(round, overTime, rewardMode);
+            ActivityIconManager.Instance.SetIconRedDot(TOWER_ICON_TYPE, m.HasTowerRewardRedDot());
 
             // 对标老端 AddTowerIcon:活动进行中(over_time>0 且非「已领大奖且本次未持续显示」)则挂图标(带倒计时+轮次图),否则删。
             if (m.GetTowerIconOpenState())

@@ -60,8 +60,8 @@ namespace Shenxiao.Module.Core.KfHolyArea
         // 28410: act_start:i, act_end:i(活动状态变化通知/请求回包,对标老端 time_data)
         private void On28410(NetReader r)
         {
-            int actStart = (int)r.ReadU32();
-            int actEnd = (int)r.ReadU32();
+            long actStart = r.ReadU32();
+            long actEnd = r.ReadU32();
 
             KfHolyAreaModel m = KfHolyAreaModel.Instance;
             m.SetActTime(actStart, actEnd);
@@ -75,7 +75,8 @@ namespace Shenxiao.Module.Core.KfHolyArea
         private void RefreshIcon()
         {
             KfHolyAreaModel m = KfHolyAreaModel.Instance;
-            if (m.GetEntranceOpenState()) _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE);
+            if (m.GetEntranceOpenState())
+                _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE, 0, m.GetIconStatusText());
             else ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
         }
 

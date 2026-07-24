@@ -3,8 +3,7 @@ using System.Collections.Generic;
 namespace Shenxiao.Module.Core.Vip
 {
     /// <summary>
-    /// Minimal VIP/recharge runtime state required by MainUI recharge icons.
-    /// Old client decides 158@0/158@3 from VipModel.HaveFirstRecharge().
+    /// VIP/充值商品运行时状态。入口固定显示在 MainUITopView；本模型不负责创建 HudActivity 图标。
     /// </summary>
     public sealed class VipModel
     {

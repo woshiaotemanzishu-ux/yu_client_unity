@@ -36,6 +36,7 @@ namespace Shenxiao.Module.Core.ListDuobao
         {
             BindEvents();
             CustomActivityModel.Instance.MarkListDuobaoEntered();
+            CustomActivityController.Instance.RefreshEntranceRedDots();
             RefreshData();
         }
 

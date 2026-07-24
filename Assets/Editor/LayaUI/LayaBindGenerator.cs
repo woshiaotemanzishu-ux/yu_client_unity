@@ -29,6 +29,7 @@ namespace Shenxiao.Editor.LayaUI
 
             string moduleDir = manifest.ModuleDir(entry.Module);
             string className = SanitizeType(entry.Name) + "Bind";
+            RemoveUnusedLegacyFields(className, fields);
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("// 由 LayaUI 转换器自动生成,不要手改。重转会覆盖。");
             sb.AppendLine("// 来源: " + entry.Json);
@@ -60,6 +61,30 @@ namespace Shenxiao.Editor.LayaUI
             string dir = LayaUISettings.BIND_ROOT + "/" + moduleDir;
             Directory.CreateDirectory(dir);
             File.WriteAllText(dir + "/" + className + ".cs", sb.ToString());
+        }
+
+        /// <summary>
+        /// 老端共享模板表会把“类型存在、当前视图从未实例化”的模板也带进 JSON。
+        /// 这些字段在 Unity prefab 没有对应节点，继续生成只会制造永久空绑定和误导性的 Console 报错。
+        /// </summary>
+        private static void RemoveUnusedLegacyFields(string className, List<FieldInfo> fields)
+        {
+            if (className == "ActivityIconBind")
+            {
+                fields.RemoveAll(f => f.FieldName == "_tpl_MainUIStrongerTalkBoard"
+                    || f.FieldName == "_tpl_TalkBoard"
+                    || f.FieldName == "_tpl_ArrowComponent");
+            }
+            else if (className == "MainUITopViewBind")
+            {
+                fields.RemoveAll(f => f.FieldName == "_tpl_CustomHeadItem"
+                    || f.FieldName == "_tpl_ActivityIcon");
+            }
+            else if (className == "MainUISecondaryViewBind")
+            {
+                // 老端通知位已统一由 HudActivity/MainUIActivityView 承接。
+                fields.RemoveAll(f => f.FieldName == "_box_notice");
+            }
         }
 
         public struct FieldInfo

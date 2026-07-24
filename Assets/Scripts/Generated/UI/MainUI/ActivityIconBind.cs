@@ -18,9 +18,6 @@ namespace Shenxiao.Generated.UI.MainUI
         public TextMeshProUGUI _lb_num;
         public TextMeshProUGUI _lb_desc;
         public RectTransform _box_effect2;
-        public GameObject _tpl_MainUIStrongerTalkBoard;
-        public GameObject _tpl_TalkBoard;
-        public GameObject _tpl_ArrowComponent;
         public GameObject _tpl_TopPlayerTipItem;
 
         protected override void BindNodes()
@@ -34,9 +31,6 @@ namespace Shenxiao.Generated.UI.MainUI
             EnsureBound(nameof(_lb_num), _lb_num);
             EnsureBound(nameof(_lb_desc), _lb_desc);
             EnsureBound(nameof(_box_effect2), _box_effect2);
-            EnsureBound(nameof(_tpl_MainUIStrongerTalkBoard), _tpl_MainUIStrongerTalkBoard);
-            EnsureBound(nameof(_tpl_TalkBoard), _tpl_TalkBoard);
-            EnsureBound(nameof(_tpl_ArrowComponent), _tpl_ArrowComponent);
             EnsureBound(nameof(_tpl_TopPlayerTipItem), _tpl_TopPlayerTipItem);
         }
     }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Shenxiao.Module.Core.WeekCard
 {
     /// <summary>
-    /// 周卡数据（对标老客户端 WeekCardController / yu_server pt_452）。只存数据；面板/红点 UI 待用户验收。
+    /// 周卡数据（对标老客户端 WeekCardController / yu_server pt_452）。保存服务端状态并提供入口红点判定。
     /// </summary>
     public sealed class WeekCardModel
     {
@@ -25,6 +25,9 @@ namespace Shenxiao.Module.Core.WeekCard
         public int GiftBagNum;
         public int CanReceiveGift;
         public int ExpiredTime;
+        public bool SpecialRed;
+
+        public bool HasEntranceRedDot => (IsActivity && CanReceiveGift > 0) || SpecialRed;
 
         /// <summary>最近一次领取/推送的奖励（45202/45203）。</summary>
         public readonly List<RewardItem> LastRewards = new List<RewardItem>();
@@ -33,7 +36,10 @@ namespace Shenxiao.Module.Core.WeekCard
         {
             Lv = lv; Exp = exp; IsActivity = isActivity; GiftBagNum = giftBagNum;
             CanReceiveGift = canReceiveGift; ExpiredTime = expiredTime;
+            if (isActivity && SpecialRed) SpecialRed = false;
         }
+
+        public void SetSpecialRed(bool value) => SpecialRed = value;
 
         public void SetRewards(List<RewardItem> rewards)
         {
@@ -44,6 +50,7 @@ namespace Shenxiao.Module.Core.WeekCard
         public void Clear()
         {
             Lv = 0; Exp = 0; IsActivity = false; GiftBagNum = 0; CanReceiveGift = 0; ExpiredTime = 0;
+            SpecialRed = false;
             LastRewards.Clear();
         }
     }

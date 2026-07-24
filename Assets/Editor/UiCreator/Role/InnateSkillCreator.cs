@@ -17,7 +17,7 @@ namespace Shenxiao.Editor.UiCreator.Role
     /// (EquipmentViewBind._tpl_InnateSkillView 等 6 个字段),从未被真正接入任何 RoleFlow tab——
     /// 这就是为什么"天赋"过去打不开:根本没有独立的顶层内容视图。
     ///
-    /// 本 Creator **不重建几何**(baked 数据已对,勿与 HudNotice/MainUIRelive 那种从零 new 节点的 Creator 混淆),
+    /// 本 Creator **不重建几何**(baked 数据已对,勿与 MainUIRelive 那种从零 new 节点的 Creator 混淆),
     /// 分两个阶段,重跑安全(修复式幂等,见 Generate 注释):
     ///
     /// 【阶段A:提升装配】(仅当 RoleModule 顶层还没有 InnateSkillView 时跑一次)
@@ -42,8 +42,8 @@ namespace Shenxiao.Editor.UiCreator.Role
     ///      resource/game/role/other/uijn_001.jpg。
     ///   7) InnateInfoItem 手工建树入 _gp_info——**这一个例外**:老端该 .scene 没被上一轮流水线捕获过
     ///      (__Templates 里找不到它,也没有生成的 Bind 类),按几何报告数值手工搭(详见 BuildInnateInfoItem),
-    ///      字段直接赋值给 <see cref="Shenxiao.Module.Core.Role.InnateInfoItem"/>(仿 HudNotice/
-    ///      MainUINoticeView 手工赋值惯例,非常规 Bind 回填路径)。检测到缺组件的残树(历史坏产物)→ 删了重建。
+    ///      字段直接赋值给 <see cref="Shenxiao.Module.Core.Role.InnateInfoItem"/>(手工赋值惯例,
+    ///      非常规 Bind 回填路径)。检测到缺组件的残树(历史坏产物)→ 删了重建。
     ///
     /// 废弃节点(_img_002/_Image2/_gp_effect 隐藏,InnateListItem._Image44、InnateUpInfoItem 的
     /// _Image11/_Image2/_Image3/_img_limit 隐藏)**保留不删**:它们已挂在自动生成的 *Bind("由 LayaUI 转换器

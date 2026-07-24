@@ -12,7 +12,8 @@ namespace Shenxiao.Module.Core.WeekCard
     ///   45201 周卡信息（Lv:h, Exp:i, IsActivity:c, GiftBagNum:h, CanReceiveGift:h, ExpiredTime:i）；
     ///   45202 领取结果（Code:i + 奖励[h+{Style:c,TypeId:i,Count:i}×N]）；
     ///   45203 奖励推送（Type:c + 奖励[…]）。
-    /// 解析落 <see cref="WeekCardModel"/> 并发 EVT_WEEK_CARD_UPDATE；面板/红点 UI 待用户验收。
+    /// 解析落 <see cref="WeekCardModel"/> 并发 EVT_WEEK_CARD_UPDATE；入口红点由可领取次数及 45203
+    /// 特殊提醒驱动，面板 UI 待用户验收。
     /// </summary>
     public sealed class WeekCardController : BaseController
     {
@@ -37,6 +38,8 @@ namespace Shenxiao.Module.Core.WeekCard
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, RefreshIcon);
             EventDispatcher.Off<string>(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_DELETE, OnIconDeleted);
             ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
+            ActivityIconManager.Instance.SetIconRedDot(ICON_TYPE, false);
+            WeekCardModel.Instance.Clear();
             base.Dispose();
         }
 
@@ -77,6 +80,7 @@ namespace Shenxiao.Module.Core.WeekCard
             int canReceiveGift = r.ReadU16();
             int expiredTime = (int)r.ReadU32();
             WeekCardModel.Instance.SetInfo(lv, exp, isActivity, giftBagNum, canReceiveGift, expiredTime);
+            RefreshRedDot();
             GameLog.Info("WeekCard", "45201 周卡: lv={0} 可领={1} 激活={2}", lv, canReceiveGift, isActivity);
             EventDispatcher.Emit(GlobalEvent.EVT_WEEK_CARD_UPDATE);
         }
@@ -86,6 +90,7 @@ namespace Shenxiao.Module.Core.WeekCard
             int code = (int)r.ReadU32();
             List<WeekCardModel.RewardItem> rewards = ReadRewards(r);
             WeekCardModel.Instance.SetRewards(rewards);
+            if (code == 1) RequestInfo();
             GameLog.Info("WeekCard", "45202 领取结果: code={0} 奖励={1} 项", code, rewards.Count);
             EventDispatcher.Emit(GlobalEvent.EVT_WEEK_CARD_UPDATE);
         }
@@ -95,6 +100,8 @@ namespace Shenxiao.Module.Core.WeekCard
             int type = r.ReadU8();
             List<WeekCardModel.RewardItem> rewards = ReadRewards(r);
             WeekCardModel.Instance.SetRewards(rewards);
+            if (type == 3) WeekCardModel.Instance.SetSpecialRed(true);
+            RefreshRedDot();
             GameLog.Info("WeekCard", "45203 奖励推送: type={0} 奖励={1} 项", type, rewards.Count);
             EventDispatcher.Emit(GlobalEvent.EVT_WEEK_CARD_UPDATE);
         }
@@ -111,6 +118,12 @@ namespace Shenxiao.Module.Core.WeekCard
                 list.Add(new WeekCardModel.RewardItem(style, typeId, num));
             }
             return list;
+        }
+
+        private static void RefreshRedDot()
+        {
+            ActivityIconManager.Instance.SetIconRedDot(
+                ICON_TYPE, WeekCardModel.Instance.HasEntranceRedDot);
         }
     }
 }

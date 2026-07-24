@@ -4,6 +4,7 @@ using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Role;
 
 namespace Shenxiao.Module.Core.Shop
@@ -60,6 +61,7 @@ namespace Shenxiao.Module.Core.Shop
             _lastLevel = -1;
             _lastVipFlag = -1;
             ShopModel.Instance.Clear();
+            ActivityIconManager.Instance.SetIconRedDot("153", false);
             base.Dispose();
         }
 
@@ -148,6 +150,7 @@ namespace Shenxiao.Module.Core.Shop
                 || (ShopModel.Instance.VieRedStatus ?? false)
                 || ShopModel.Instance.MysteryFirstAllNewRed;
             EventDispatcher.Emit(GlobalEvent.EVT_SHOP_RED_DOT, on);
+            ActivityIconManager.Instance.SetIconRedDot("153", on);
         }
 
         // =====================================================================================

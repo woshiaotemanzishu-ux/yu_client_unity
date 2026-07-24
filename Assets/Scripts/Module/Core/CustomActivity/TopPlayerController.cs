@@ -18,9 +18,8 @@ namespace Shenxiao.Module.Core.CustomActivity
     /// 时间窗请求 22501;收到数据且仍在窗口内 → 经 ActivityIconManager.AddOwnerIcon 强加 331@10@0
     /// (绕过 open_lv=999 的通用门),并 Emit EVT_TOPPLAYER_MAIN_DATA 让活动视图挂 ui_cb01 + 填文案。
     ///
-    /// 仍缺(留作后续):榜单 reward item + 3D 模型、逐秒倒计时、
-    /// 红点(22502 goal_list 已读取但未驱动 _img_red)。需要 config_rush_rank.json 与 331_10.png 导入为
-    /// Addressable 后此图标才会真正出现。
+    /// 仍缺(留作后续):榜单 reward item + 3D 模型、逐秒倒计时。入口红点由 22501 排名奖励状态和
+    /// 22502 目标奖励状态统一驱动。
     ///
     /// 【自动循环 轮17 P6 新增】22500(通用错误码)/22503(领目标奖)/22504(领排名奖)/22505(获取途径)。
     /// wire 全部回 pt_225.erl 原文核(read:8-27行,write:30-129行,item_to_bin_0/1/2/3:134-184行)。
@@ -77,6 +76,7 @@ namespace Shenxiao.Module.Core.CustomActivity
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_READY, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            ActivityIconManager.Instance.SetIconRedDot(TopPlayerModel.ICON_TYPE, false);
             TopPlayerModel.Instance.Reset();
             _requested = false;
             _getWayByRushId.Clear();
@@ -168,16 +168,17 @@ namespace Shenxiao.Module.Core.CustomActivity
             }
 
             TopPlayerModel.Instance.SetRankInfo(info);
+            RefreshRedDot();
             GameLog.Info("TopPlayer", "22501 rank_type={0} end_time={1} first='{2}'",
                 info.RankType, info.EndTime, info.FirstName());
             _ = OnRankDataReadyAsync(info);
         }
 
-        // 22502: goal_list[u16 × {rank_type:i, goal[u16 × {goalId:l, status:c}]}] —— 仅红点用;
-        // 主界面展示不依赖,这里读完不报错即可(防止后续协议错位)。
+        // 22502: goal_list[u16 × {rank_type:i, goal[u16 × {goalId:l, status:c}]}]，整包替换目标红点状态。
         private void On22502(NetReader r)
         {
             int n = r.ReadU16();
+            bool hasRed = false;
             for (int i = 0; i < n; i++)
             {
                 r.ReadU32(); // rank_type
@@ -185,9 +186,17 @@ namespace Shenxiao.Module.Core.CustomActivity
                 for (int g = 0; g < gn; g++)
                 {
                     r.ReadU64(); // goalId
-                    r.ReadU8();  // status
+                    if (r.ReadU8() == 1) hasRed = true;
                 }
             }
+            TopPlayerModel.Instance.SetGoalRed(hasRed);
+            RefreshRedDot();
+        }
+
+        private static void RefreshRedDot()
+        {
+            ActivityIconManager.Instance.SetIconRedDot(
+                TopPlayerModel.ICON_TYPE, TopPlayerModel.Instance.HasEntranceRedDot());
         }
 
         /// <summary>对标老端 On22501 末尾的 config_rush_rank 时间窗判定 + UPDATE_TOP_PLAYER_MAIN_DATA。</summary>

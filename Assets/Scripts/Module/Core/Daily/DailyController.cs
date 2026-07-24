@@ -5,6 +5,7 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Role;
 
 namespace Shenxiao.Module.Core.Daily
@@ -58,7 +59,15 @@ namespace Shenxiao.Module.Core.Daily
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             _lastLevel = -1;
             DailyModel.Instance.Clear();
+            ActivityIconManager.Instance.SetIconRedDot("157", false);
             base.Dispose();
+        }
+
+        private static void EmitRedDot()
+        {
+            bool on = DailyModel.Instance.ComputeRedDot();
+            EventDispatcher.Emit(GlobalEvent.EVT_DAILY_RED_DOT, on);
+            ActivityIconManager.Instance.SetIconRedDot("157", on);
         }
 
         // =====================================================================================
@@ -122,7 +131,7 @@ namespace Shenxiao.Module.Core.Daily
             DailyModel.Instance.SetDailyData(actType, onHookTime, list);
             GameLog.Info("Daily", "15701 act_type={0} count={1} onhook={2}", actType, list.Count, onHookTime);
             EventDispatcher.Emit(actType == DailyModel.ACT_UNLIMIT ? GlobalEvent.EVT_DAILY_TASK_UPDATE : GlobalEvent.EVT_DAILY_LIMIT_UPDATE);
-            EventDispatcher.Emit(GlobalEvent.EVT_DAILY_RED_DOT, DailyModel.Instance.ComputeRedDot());
+            EmitRedDot();
         }
 
         private static DailyModel.ActivityVo ReadActivityVo(NetReader r)
@@ -151,7 +160,7 @@ namespace Shenxiao.Module.Core.Daily
             DailyModel.Instance.SetLivenessReward(live, liveMax, list);
             GameLog.Info("Daily", "15703 live={0}/{1} rewards={2}", live, liveMax, list.Count);
             EventDispatcher.Emit(GlobalEvent.EVT_DAILY_LIVENESS_REWARD_UPDATE);
-            EventDispatcher.Emit(GlobalEvent.EVT_DAILY_RED_DOT, DailyModel.Instance.ComputeRedDot());
+            EmitRedDot();
         }
 
         /// <summary>领取活跃度宝箱(DailyBottomView 4 个宝箱格,index 取 state==1 的项才发)。</summary>
@@ -220,7 +229,7 @@ namespace Shenxiao.Module.Core.Daily
             DailyModel.Instance.SetLivenessImage(lv, liveness, id, display);
             GameLog.Info("Daily", "15709 liveness image lv={0} liveness={1} id={2} display={3}", lv, liveness, id, display);
             EventDispatcher.Emit(GlobalEvent.EVT_DAILY_LIVENESS_IMAGE_UPDATE);
-            EventDispatcher.Emit(GlobalEvent.EVT_DAILY_RED_DOT, DailyModel.Instance.ComputeRedDot());
+            EmitRedDot();
         }
 
         private void On15710(NetReader r)
@@ -284,7 +293,7 @@ namespace Shenxiao.Module.Core.Daily
             DailyModel.Instance.SetOutlineTime(time);
             GameLog.Info("Daily", "15714 挂机时间={0}", time);
             EventDispatcher.Emit(GlobalEvent.EVT_DAILY_OUTLINE_TIME, time);
-            EventDispatcher.Emit(GlobalEvent.EVT_DAILY_RED_DOT, DailyModel.Instance.ComputeRedDot());
+            EmitRedDot();
         }
 
         /// <summary>15715 活跃度找回信息:⚠老端 LivenessCanFind() 已硬编码 return false=功能下线;
@@ -327,7 +336,7 @@ namespace Shenxiao.Module.Core.Daily
             DailyModel.Instance.SetResTable(list);
             GameLog.Info("Daily", "15718 报名情况 count={0} red={1}", list.Count, DailyModel.Instance.DailyResRed);
             EventDispatcher.Emit(GlobalEvent.EVT_DAILY_SIGNUP_UPDATE);
-            EventDispatcher.Emit(GlobalEvent.EVT_DAILY_RED_DOT, DailyModel.Instance.ComputeRedDot());
+            EmitRedDot();
         }
 
         /// <summary>报名/预约。⚠老端夹带微信小游戏订阅检查(SettingModel.CheckSubsOpen 等),Unity 非微信渠道整体跳过。</summary>
@@ -357,7 +366,7 @@ namespace Shenxiao.Module.Core.Daily
                 TipsManager.Toast("报名失败(" + code + ")");
                 GameLog.Warn("Daily", "15719 报名失败 code={0}", code);
             }
-            EventDispatcher.Emit(GlobalEvent.EVT_DAILY_RED_DOT, DailyModel.Instance.ComputeRedDot());
+            EmitRedDot();
         }
 
         public void ClaimSignUpReward(int module, int moduleSub, int acSub) => SendFmt(Proto.DAILY_SIGNUP_REWARD, "iii", module, moduleSub, acSub);
@@ -384,7 +393,7 @@ namespace Shenxiao.Module.Core.Daily
                 TipsManager.Toast("领取失败(" + code + ")");
                 GameLog.Warn("Daily", "15720 领取报名奖励失败 code={0}", code);
             }
-            EventDispatcher.Emit(GlobalEvent.EVT_DAILY_RED_DOT, DailyModel.Instance.ComputeRedDot());
+            EmitRedDot();
         }
 
         // =====================================================================================
@@ -443,7 +452,7 @@ namespace Shenxiao.Module.Core.Daily
                 DailyModel.Instance.SetResFindData(list);
                 GameLog.Info("Daily", "41900 资源找回信息 count={0}", list.Count);
                 EventDispatcher.Emit(GlobalEvent.EVT_DAILY_RES_FIND_UPDATE);
-                EventDispatcher.Emit(GlobalEvent.EVT_DAILY_RED_DOT, DailyModel.Instance.ComputeRedDot());
+                EmitRedDot();
             }
             else
             {

@@ -75,7 +75,7 @@ namespace Shenxiao.Module.Core.CustomActivity
             public int BaseType;
             public int SubType;
             public readonly List<int> Investments = new List<int>(); // 每档 Lv(u8)
-            public int BuyTime;
+            public long BuyTime;
         }
 
         private readonly Dictionary<long, FtvInvestInfo> _ftvInvestInfos = new Dictionary<long, FtvInvestInfo>();
@@ -236,8 +236,8 @@ namespace Shenxiao.Module.Core.CustomActivity
             public int Type;
             public int Subtype;
             public int IsQuality;
-            public int StartTime;
-            public int EndTime;
+            public long StartTime;
+            public long EndTime;
             public int LoginMoney;
             public int RechargeMoney;
             public int LoginStatus;

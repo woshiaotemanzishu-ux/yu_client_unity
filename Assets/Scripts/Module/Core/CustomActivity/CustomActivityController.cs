@@ -43,9 +43,11 @@ namespace Shenxiao.Module.Core.CustomActivity
         private const int TIRED_CHARGE_POLITE_BASE_TYPE = 121;
 
         private readonly HashSet<string> _ownedIcons = new HashSet<string>();
+        private readonly HashSet<string> _customRedIcons = new HashSet<string>();
         // 缓存 33101 列表(对标老端 cache_scmd_33101_list),供等级/任务变化时复评。
         private readonly List<ActInfo> _cachedList = new List<ActInfo>();
         private int _applyVersion;
+        private int _redApplyVersion;
         // 复评去抖:EVT_ROLE_INFO_UPDATE 随经验/货币也会触发,只在等级真变时复评(对标老端 CHANGE_LEVEL)。
         private int _lastLevel = -1;
 
@@ -61,8 +63,8 @@ namespace Shenxiao.Module.Core.CustomActivity
             public string Name;
             public string Desc;
             public string Condition;
-            public int StartTime;
-            public int EndTime;
+            public long StartTime;
+            public long EndTime;
         }
 
         protected override void Register()
@@ -100,6 +102,7 @@ namespace Shenxiao.Module.Core.CustomActivity
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskListUpdated);
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             EventDispatcher.Off<int>(GlobalEvent.EVT_SERVER_HOUR_REFRESH, OnServerHourRefresh);
+            ClearCustomActivityRedDots();
             ClearOwnedIcons();
             _cachedList.Clear();
             _lastLevel = -1;
@@ -129,8 +132,8 @@ namespace Shenxiao.Module.Core.CustomActivity
                     Name = r.ReadString(),
                     Desc = r.ReadString(),
                     Condition = r.ReadString(),
-                    StartTime = (int)r.ReadU32(),
-                    EndTime = (int)r.ReadU32(),
+                    StartTime = r.ReadU32(),
+                    EndTime = r.ReadU32(),
                 };
                 _cachedList.Add(info);
                 // 复用同一份解析结果落 Model,不重新读 NetReader(自动循环 轮17 P1 新增,字段与 ActEntry 完全一致)。
@@ -156,6 +159,17 @@ namespace Shenxiao.Module.Core.CustomActivity
             ReapplyGenericIcons();
             EvaluateFeastBoss(); // 节日大妖(51)按时间窗驱动图标。
             GameLog.Info("CustomActivity", "33101 activity list: {0}", count);
+#if UNITY_EDITOR
+            // 同号老/新客户端入口不一致时，先对照服务端实际下发的活动键，避免把缺协议误判成 prefab 问题。
+            var debugEntries = new List<string>(_cachedList.Count);
+            for (int i = 0; i < _cachedList.Count; i++)
+            {
+                ActInfo a = _cachedList[i];
+                debugEntries.Add(string.Format("{0}@{1}/show{2}/end{3}/{4}",
+                    a.BaseType, a.SubType, a.ShowId, a.EndTime, a.Name));
+            }
+            GameLog.Info("CustomActivity", "33101 entries: {0}", string.Join(" | ", debugEntries));
+#endif
         }
 
         // 节日投资(33211,→331@62@1):base_type:h, sub_type:h, investments[u16×{lv:c}], buy_time:i(对标 pt_332 write 33211)。
@@ -168,7 +182,7 @@ namespace Shenxiao.Module.Core.CustomActivity
             // item_to_bin_5=单字段 Lv:8,pt_332.erl:1737-1743)供 P5 面板层消费,不影响下方既有图标/时间窗逻辑。
             var investments = new List<int>(investCount);
             for (int i = 0; i < investCount; i++) investments.Add(r.ReadU8()); // 每档投资等级(面板用,本期只做图标)
-            int buyTime = (int)r.ReadU32();
+            long buyTime = r.ReadU32();
             CustomActivityModel.Instance.SetFtvInvestInfo(new CustomActivityModel.FtvInvestInfo
             {
                 BaseType = baseType, SubType = subType, BuyTime = buyTime,
@@ -176,7 +190,7 @@ namespace Shenxiao.Module.Core.CustomActivity
             CustomActivityModel.Instance.GetFtvInvestInfo(baseType, subType).Investments.AddRange(investments);
 
             // etime:有投资记录看活动结束时间,否则看购买截止时间(对标老端 On33211)。
-            int etime = investCount > 0 && TryGetCachedEndTime(baseType, subType, out int actEnd) ? actEnd : buyTime;
+            long etime = investCount > 0 && TryGetCachedEndTime(baseType, subType, out long actEnd) ? actEnd : buyTime;
             if (etime > TimeUtil.NowSec()) _ = ActivityIconManager.Instance.AddIconAsync(FTVINVEST_ICON, etime);
             else ActivityIconManager.Instance.DeleteIcon(FTVINVEST_ICON);
 
@@ -198,8 +212,8 @@ namespace Shenxiao.Module.Core.CustomActivity
             int type = r.ReadU16();         // type
             int subtype = r.ReadU16();      // subtype
             int isQuality = r.ReadU8();     // 是否达标开启
-            int startTime = (int)r.ReadU32(); // start_time
-            int endTime = (int)r.ReadU32(); // end_time
+            long startTime = r.ReadU32(); // start_time
+            long endTime = r.ReadU32(); // end_time
             int loginMoney = r.ReadU16();      // login_money
             int rechargeMoney = r.ReadU16();   // recharge_money
             int loginStatus = r.ReadU8();      // login_status
@@ -326,7 +340,7 @@ namespace Shenxiao.Module.Core.CustomActivity
             }
         }
 
-        private bool TryGetCachedEndTime(int baseType, int subType, out int endTime)
+        private bool TryGetCachedEndTime(int baseType, int subType, out long endTime)
         {
             for (int i = 0; i < _cachedList.Count; i++)
             {
@@ -342,7 +356,7 @@ namespace Shenxiao.Module.Core.CustomActivity
 
         private async Task ApplyActivityIconsAsync(List<ActInfo> list, int version)
         {
-            var next = new Dictionary<string, int>();
+            var next = new Dictionary<string, long>();
             for (int i = 0; i < list.Count; i++)
             {
                 ActInfo info = list[i];
@@ -372,11 +386,75 @@ namespace Shenxiao.Module.Core.CustomActivity
                 ActivityIconManager.Instance.DeleteIcon(remove[i]);
             }
 
-            foreach (KeyValuePair<string, int> kv in next)
+            foreach (KeyValuePair<string, long> kv in next)
             {
                 _ownedIcons.Add(kv.Key);
                 await ActivityIconManager.Instance.AddIconAsync(kv.Key, kv.Value);
             }
+
+            if (version == _applyVersion)
+                await RefreshCustomActivityRedDotsAsync();
+        }
+
+        /// <summary>
+        /// 通用活动入口红点只消费已经收到的权威详情状态。多个活动映射到同一入口时先聚合再写入，
+        /// 避免后一条无奖励活动把前一条可领取状态覆盖掉。
+        /// </summary>
+        private async Task RefreshCustomActivityRedDotsAsync()
+        {
+            int version = ++_redApplyVersion;
+            var next = new Dictionary<string, bool>();
+            for (int i = 0; i < _cachedList.Count; i++)
+            {
+                ActInfo info = _cachedList[i];
+                string iconType = await CustomActivityConfigs.ResolveIconTypeAsync(info);
+                if (version != _redApplyVersion) return;
+                if (string.IsNullOrEmpty(iconType) || !iconType.StartsWith("331@")) continue;
+
+                bool red = false;
+                CustomActivityModel.DetailData detail =
+                    CustomActivityModel.Instance.GetDetail(info.BaseType, info.SubType);
+                if (detail != null)
+                {
+                    for (int k = 0; k < detail.RewardList.Count; k++)
+                    {
+                        if (detail.RewardList[k].Status != 1) continue;
+                        red = true;
+                        break;
+                    }
+                }
+                if (info.BaseType == 116 && CustomActivityModel.Instance.HasListDuobaoStageRed())
+                    red = true;
+
+                if (next.TryGetValue(iconType, out bool old)) next[iconType] = old || red;
+                else next[iconType] = red;
+            }
+
+            if (version != _redApplyVersion) return;
+            foreach (string oldIcon in new List<string>(_customRedIcons))
+            {
+                if (!next.ContainsKey(oldIcon))
+                    ActivityIconManager.Instance.SetIconRedDot(oldIcon, false);
+            }
+            _customRedIcons.Clear();
+            foreach (KeyValuePair<string, bool> kv in next)
+            {
+                _customRedIcons.Add(kv.Key);
+                ActivityIconManager.Instance.SetIconRedDot(kv.Key, kv.Value);
+            }
+        }
+
+        public void RefreshEntranceRedDots()
+        {
+            _ = RefreshCustomActivityRedDotsAsync();
+        }
+
+        private void ClearCustomActivityRedDots()
+        {
+            ++_redApplyVersion;
+            foreach (string iconType in _customRedIcons)
+                ActivityIconManager.Instance.SetIconRedDot(iconType, false);
+            _customRedIcons.Clear();
         }
 
         private void ClearOwnedIcons()

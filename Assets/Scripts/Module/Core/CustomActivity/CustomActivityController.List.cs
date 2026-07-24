@@ -118,6 +118,7 @@ namespace Shenxiao.Module.Core.CustomActivity
             info.RewardList.AddRange(rewardList);
             info.StageList.AddRange(stageList);
             CustomActivityModel.Instance.SetListDuobaoStage(info);
+            _ = RefreshCustomActivityRedDotsAsync();
             EventDispatcher.Emit(GlobalEvent.EVT_CUSTOMACT_DETAIL_UPDATE, type, subType);
             GameLog.Info("CustomActivity", "33252 夺宝阶段信息 type={0} sub={1} score={2}/{3} rewardN={4} stageN={5} worldLv={6}",
                 type, subType, score, todayScore, rewardList.Count, stageList.Count, worldLv);

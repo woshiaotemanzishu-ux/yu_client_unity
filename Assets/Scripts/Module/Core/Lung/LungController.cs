@@ -119,7 +119,7 @@ namespace Shenxiao.Module.Core.Lung
 
             // 对标老端 setStoveIcon:开启则加图标(带熔炉结束时间做倒计时),关闭则删。
             // AddIconAsync 内部再过一遍图标配置门(open_lv/open_day),与老端 addIcon 一致。
-            if (m.GetStoveOpenState()) _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE, (int)endTime);
+            if (m.GetStoveOpenState()) _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE, endTime);
             else ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
 
             GameLog.Info("Lung", "18105 神纹熔炉: crucible_id={0} end_time={1} open={2}",

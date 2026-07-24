@@ -28,9 +28,9 @@ namespace Shenxiao.Module.Core.Compete
             public int Type;        // 活动大类
             public int Subtype;     // 活动子类
             public int ShowId;      // 展示id
-            public int StartTime;   // 开始时间戳
-            public int EndTime;     // 结束时间戳
-            public int BuyEndTime;  // 购买/参与结束时间戳(图标倒计时用,对标老端 addIcon 传的 buy_end_time)
+            public long StartTime;   // u32 开始时间戳
+            public long EndTime;     // u32 结束时间戳
+            public long BuyEndTime;  // u32 购买/参与结束时间戳(图标倒计时用,对标老端 addIcon 传的 buy_end_time)
         }
 
         private readonly List<RaceActInfo> _actList = new List<RaceActInfo>();

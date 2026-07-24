@@ -49,6 +49,7 @@ namespace Shenxiao.Module.Core.Festival
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
+            ActivityIconManager.Instance.SetIconRedDot(ICON_TYPE, false);
             FestivalModel.Instance.Reset();
             _lastLevel = -1;
             base.Dispose();
@@ -95,6 +96,7 @@ namespace Shenxiao.Module.Core.Festival
             {
                 ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
             }
+            RefreshEntranceRedDot();
 
             GameLog.Info("Festival", "19401 宝录: uid={0} act_id={1} type={2} lv={3} open={4}",
                 uid, actId, type, lv, m.GetEntranceOpenState());
@@ -181,7 +183,15 @@ namespace Shenxiao.Module.Core.Festival
             }
 
             GameLog.Info("Festival", "19403 任务列表: groups={0}", groupCount);
+            RefreshEntranceRedDot();
             EventDispatcher.Emit(GlobalEvent.EVT_FESTIVAL_UPDATE, Proto.FESTIVAL_TASK_LIST);
+        }
+
+        private static void RefreshEntranceRedDot()
+        {
+            FestivalModel m = FestivalModel.Instance;
+            ActivityIconManager.Instance.SetIconRedDot(
+                ICON_TYPE, m.GetEntranceOpenState() && m.GetEntranceRedDot());
         }
 
         // ---- 19404: Exp:32(无Code,捎带随后 19401+19403 刷新,由各自 handler 落地) ----

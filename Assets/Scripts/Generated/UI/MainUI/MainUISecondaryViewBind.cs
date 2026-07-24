@@ -1,7 +1,7 @@
 // 由 LayaUI 转换器自动生成,不要手改。重转会覆盖。
 // 来源: cdn/resource/game/mainUI/MainUISecondaryView.json
-// ⚠️ 手动裁剪:老端 _box_notice「通知位」图标簇已拆到独立视图 MainUINoticeView(见 MainUINoticeViewBind,
-// HudNotice.prefab 槽位式),本 Bind 已删 _box_notice 字段。若重跑转换器覆盖本文件,记得重新按此裁剪。
+// 老端 _box_notice「通知位」活动入口已统一归 MainUIActivityView/HudActivity.prefab；
+// LayaBindGenerator 会在重生成时持续过滤该字段。
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;

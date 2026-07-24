@@ -1,25 +1,28 @@
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.MainUI;
+using Shenxiao.Module.Core.Daily;
 using Shenxiao.Module.Core.Role;
 
 namespace Shenxiao.Module.Core.ActivityForeshow
 {
     /// <summary>
     /// 活动预告/日历控制器(对标老客户端 commonModel/ActivityForeshowManager + commonController/SnatchTreasureController)。
-    /// 本期只做"预告图标"(loc6 通知位)的增删,不做完整日历时间窗/倒计时/提示弹窗。
+    /// 只做预告图标的增删、时间窗和倒计时，不做完整日历面板/提示弹窗。
     ///
     /// 图标与驱动条件:
     /// - 领地夺宝(652@31@0):唯一带服务端信号的一路。进游戏裸发 65208 请求;回包 [dun_id, end_time]
     ///   存入 Model,GetSnatchOpenState()(会话未结束)为真则 AddIconAsync(带 end_time 倒计时),否则 DeleteIcon。
     ///   对标老端 SnatchTreasureController.On65208→timeMsgData→REFRESH_FORESHOWICON→checkOpen→addIcon。
-    /// - 九魂圣殿(135@0@1 / 135@0@2):老端开启态=功能开放(BattleFieldEnterView)+日历时间窗,纯客户端配置、
-    ///   无服务端协议信号。本期未移植该配置,按 Model.NineSkyForeshowEnabled(默认 false)兜底:默认不显示。
+    /// - 配置型限时活动：扫描 HudActivity 第四组(location_type=10)中拥有 config_ac 时段的入口，按等级、
+    ///   开服/合服日、星期、月份、指定日期和 time_region 每 15 秒统一复评；开始前 60 分钟显示开启时间，
+    ///   活动中显示结束倒计时，不含逐按钮特判。
     ///
-    /// 等级变化(EVT_ROLE_INFO_UPDATE)复请求 65208 并复评九魂圣殿图标,对标老端 CHANGE_LEVEL→SetTimer→重扫。
-    /// 完整日历时间窗(预告 60 分钟显示、20 分钟倒计时、进行中、结束)与提示弹窗待 XianShiActivity 配置移植后再补。
-    ///
+    /// 等级变化(EVT_ROLE_INFO_UPDATE)复请求 65208 并复评配置型图标,对标老端 CHANGE_LEVEL→SetTimer→重扫。
     /// 跨天/整点(EVT_SERVER_DAY_CHANGE / EVT_SERVER_TIME_REFRESH)只做本地复评,不发 65208:老端
     /// ActivityForeshowManager.ts:115-127 两处都只调 SetTimer()(:259-272,重算 limit_act_list + 建/撤 15s
     /// 定时器 + OnTime()),全程零发包;65208 的唯一发送点是 :505 ActivityRequestData(),被
@@ -30,12 +33,12 @@ namespace Shenxiao.Module.Core.ActivityForeshow
         public static readonly ActivityForeshowController Instance = new ActivityForeshowController();
         private ActivityForeshowController() { }
 
-        public const string ICON_NINE_SKY_ONE = ActivityForeshowModel.ICON_NINE_SKY_ONE;
-        public const string ICON_NINE_SKY_TWO = ActivityForeshowModel.ICON_NINE_SKY_TWO;
         public const string ICON_SNATCH_TREASURE = ActivityForeshowModel.ICON_SNATCH_TREASURE;
 
         // 复请求 65208 的等级去抖:EVT_ROLE_INFO_UPDATE 亦随经验/货币变化触发,只在等级真变时重发。
         private int _lastLevel = -1;
+        private CancellationTokenSource _scheduleCts;
+        private readonly HashSet<string> _scheduledIconTypes = new HashSet<string>();
 
         protected override void Register()
         {
@@ -53,10 +56,14 @@ namespace Shenxiao.Module.Core.ActivityForeshow
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_TIME_REFRESH, OnServerDayChange);
+            _scheduleCts?.Cancel();
             ActivityIconManager.Instance.DeleteIcon(ICON_SNATCH_TREASURE);
-            ActivityIconManager.Instance.DeleteIcon(ICON_NINE_SKY_ONE);
-            ActivityIconManager.Instance.DeleteIcon(ICON_NINE_SKY_TWO);
+            foreach (string iconType in _scheduledIconTypes)
+                ActivityIconManager.Instance.DeleteIcon(iconType);
+            _scheduledIconTypes.Clear();
             ActivityForeshowModel.Instance.Reset();
+            _scheduleCts?.Dispose();
+            _scheduleCts = null;
             _lastLevel = -1;
             base.Dispose();
         }
@@ -66,7 +73,7 @@ namespace Shenxiao.Module.Core.ActivityForeshow
         {
             // read(65208,_)->{ok,[]}:领地夺宝时间信息请求无字段,裸发。
             SendFmt(Proto.ACTIVITYFORESHOW_SNATCH_TIME);
-            RefreshNineSkyIcons();
+            EnsureScheduleLoop();
         }
 
         // 65208: dun_id:i, end_time:i(write(65208,[Dunid,EndTime]) → <<Dunid:32, EndTime:32>>)
@@ -88,24 +95,73 @@ namespace Shenxiao.Module.Core.ActivityForeshow
         {
             ActivityForeshowModel m = ActivityForeshowModel.Instance;
             if (m.GetSnatchOpenState())
-                _ = ActivityIconManager.Instance.AddIconAsync(ICON_SNATCH_TREASURE, (int)m.SnatchEndTime);
+                _ = ActivityIconManager.Instance.AddIconAsync(ICON_SNATCH_TREASURE, m.SnatchEndTime);
             else
                 ActivityIconManager.Instance.DeleteIcon(ICON_SNATCH_TREASURE);
         }
 
-        // 九魂圣殿两图标(135@0@1 / 135@0@2):无服务端信号,由 NineSkyForeshowEnabled(默认 false)兜底。
-        // 放行时走 AddIconAsync(仍会过图标配置门 open_lv/open_day);否则删除。等价老端 GetOpenState()+日历门。
-        private void RefreshNineSkyIcons()
+        private void EnsureScheduleLoop()
         {
-            if (ActivityForeshowModel.NineSkyForeshowEnabled)
+            if (_scheduleCts != null) return;
+            _scheduleCts = new CancellationTokenSource();
+            _ = ScheduleLoopAsync(_scheduleCts.Token);
+        }
+
+        private async Task ScheduleLoopAsync(CancellationToken token)
+        {
+            try
             {
-                _ = ActivityIconManager.Instance.AddIconAsync(ICON_NINE_SKY_ONE);
-                _ = ActivityIconManager.Instance.AddIconAsync(ICON_NINE_SKY_TWO);
+                while (!token.IsCancellationRequested)
+                {
+                    await RefreshScheduledIconsAsync(token);
+                    await TimeUtil.Delay(15000, token);
+                }
             }
-            else
+            catch (System.OperationCanceledException) { }
+        }
+
+        private async Task RefreshScheduledIconsAsync(CancellationToken token = default)
+        {
+            await Task.WhenAll(DailyConfigs.EnsureLoaded(), MainUIConfigs.EnsureLoaded());
+            if (token.IsCancellationRequested) return;
+
+            var configured = new HashSet<string>();
+            foreach (MainUIConfigs.FunctionIconCfg cfg in MainUIConfigs.AllFunctionIconCfg())
             {
-                ActivityIconManager.Instance.DeleteIcon(ICON_NINE_SKY_ONE);
-                ActivityIconManager.Instance.DeleteIcon(ICON_NINE_SKY_TWO);
+                if (token.IsCancellationRequested) return;
+                if (cfg == null
+                    || cfg.LocationType != ActivityIconManager.LocationType.ActivityFourth
+                    || cfg.IconType == ICON_SNATCH_TREASURE
+                    || !ActivityForeshowModel.Instance.HasSchedule(cfg.IconType)) continue;
+
+                configured.Add(cfg.IconType);
+                RefreshScheduledIcon(cfg.IconType);
+            }
+
+            foreach (string oldIconType in _scheduledIconTypes)
+            {
+                if (!configured.Contains(oldIconType)) ActivityIconManager.Instance.DeleteIcon(oldIconType);
+            }
+            _scheduledIconTypes.Clear();
+            foreach (string iconType in configured) _scheduledIconTypes.Add(iconType);
+        }
+
+        private void RefreshScheduledIcon(string iconType)
+        {
+            try
+            {
+                ActivityForeshowModel.ScheduleDisplay display = ActivityForeshowModel.Instance.EvaluateSchedule(iconType);
+                if (display.Visible)
+                {
+                    _ = ActivityIconManager.Instance.AddIconAsync(iconType, display.EndTime, display.Text);
+                }
+                else ActivityIconManager.Instance.DeleteIcon(iconType);
+            }
+            catch (System.Exception e)
+            {
+                // 单条脏配置或时间计算异常不能终止整个 15 秒统一扫描；撤下本条并继续处理其余活动。
+                ActivityIconManager.Instance.DeleteIcon(iconType);
+                GameLog.Error("ActivityForeshow", "活动预告计算失败 icon={0}: {1}", iconType, e.Message);
             }
         }
 
@@ -116,12 +172,11 @@ namespace Shenxiao.Module.Core.ActivityForeshow
         // 全程零发包;OnTime()→CheckLimitActivityState→ShowActivityIconForeshow→ActivityRequestData(:500-511)
         // 才可能发 65208,但后者被 request_dic[icon_type] 一次性门守着(发过一次后 request_dic[icon_type]=true,
         // 同会话内不会再发),与跨天/整点本身无关——故跨天/整点钩子对 65208 而言是零发包的本地复评。
-        // 本端未移植受限活动列表(limit_act_list/XianShiActivity 时间窗),故复评收窄为对已有缓存数据的
-        // 本地复判:领地夺宝按缓存 end_time 复判(RefreshSnatchIcon),九魂圣殿按本地开关复判(RefreshNineSkyIcons)。
+        // 本端复评全部已接入预告项：服务端状态按缓存值，配置型活动按 config_ac 时间窗。
         private void OnServerDayChange()
         {
             RefreshSnatchIcon();
-            RefreshNineSkyIcons();
+            _ = RefreshScheduledIconsAsync(_scheduleCts?.Token ?? default);
         }
 
         // 对标老端:主角等级变化复请求 65208(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。

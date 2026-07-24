@@ -113,7 +113,7 @@ namespace Shenxiao.Module.Core.LimitLevelShop
             for (int i = 0; i < addList.Count; i++)
             {
                 _shownIcons.Add(addList[i].icon);
-                _ = ActivityIconManager.Instance.AddIconAsync(addList[i].icon, (int)addList[i].endTime);
+                _ = ActivityIconManager.Instance.AddIconAsync(addList[i].icon, addList[i].endTime);
             }
             GameLog.Info("LimitLevelShop", "61200 限时等级抢购: gifts={0} 变体图标={1}",
                 LimitLevelShopModel.Instance.Gifts.Count, newIcons.Count);

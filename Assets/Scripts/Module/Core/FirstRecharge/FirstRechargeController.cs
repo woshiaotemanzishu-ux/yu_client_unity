@@ -29,6 +29,8 @@ namespace Shenxiao.Module.Core.FirstRecharge
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            ActivityIconManager.Instance.SetIconRedDot("159", false);
+            FirstRechargeModel.Instance.Clear();
             base.Dispose();
         }
 
@@ -88,6 +90,7 @@ namespace Shenxiao.Module.Core.FirstRecharge
         {
             FirstRechargeModel model = FirstRechargeModel.Instance;
             string text = model.HasTomorrowReward() && !model.HasClaimableReward() ? "明天可领" : "";
+            ActivityIconManager.Instance.SetIconRedDot("159", model.HasClaimableReward());
             await ActivityIconManager.Instance.RefreshFirstRechargeIconAsync(model.ShouldShowMainIcon(), text);
         }
     }

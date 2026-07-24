@@ -340,8 +340,6 @@ namespace Shenxiao.Module.Core.MainUI
 
             if (_tpl_MainUIMoneyItem != null) _tpl_MainUIMoneyItem.SetActive(false);
             if (_tpl_MainUITopBuffItem != null) _tpl_MainUITopBuffItem.SetActive(false);
-            if (_tpl_CustomHeadItem != null) _tpl_CustomHeadItem.SetActive(false);
-            if (_tpl_ActivityIcon != null) _tpl_ActivityIcon.SetActive(false);
         }
 
         private static bool IsNodeVisible(Component node)

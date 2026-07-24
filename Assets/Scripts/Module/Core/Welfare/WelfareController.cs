@@ -6,6 +6,7 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Role;
 
 namespace Shenxiao.Module.Core.Welfare
@@ -51,6 +52,7 @@ namespace Shenxiao.Module.Core.Welfare
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            ActivityIconManager.Instance.SetIconRedDot("417", false);
             WelfareModel.Instance.Reset();
             _lastLevel = -1;
             base.Dispose();
@@ -63,6 +65,7 @@ namespace Shenxiao.Module.Core.Welfare
         private async void OnGameStart()
         {
             WelfareModel.Instance.Reset();
+            ActivityIconManager.Instance.SetIconRedDot("417", false);
             await WelfareConfigs.EnsureLoaded();
             await KeyValueConfigs.EnsureLoaded(); // 41708 明细要用 config_key_value[1],GAME_START 时提前备好(见 On41708)
             SendFmt(Proto.WELFARE_CHECKIN_INFO);
@@ -133,6 +136,7 @@ namespace Shenxiao.Module.Core.Welfare
             int checkDay = r.ReadU8();
             WelfareModel.Instance.SetCheckinInfo(totalDays, totalType, totalState, accState,
                 checkType, retroTimes, daysFresh, remainTimes, checkDay);
+            RefreshEntranceRedDot();
             EventDispatcher.Emit(GlobalEvent.EVT_WELFARE_UPDATE, Proto.WELFARE_CHECKIN_INFO);
             GameLog.Info("Welfare", "41703 签到信息 totalDays={0} checkDay={1} totalStateN={2} accStateN={3}",
                 totalDays, checkDay, totalState.Count, accState.Count);
@@ -267,8 +271,14 @@ namespace Shenxiao.Module.Core.Welfare
             long loginTime = r.ReadU32();
             List<WelfareModel.OnlineEntry> list = r.ReadArray(rr => new WelfareModel.OnlineEntry((int)rr.ReadU32(), rr.ReadU8()));
             WelfareModel.Instance.SetOnlineInfo(time, loginTime, list);
+            RefreshEntranceRedDot();
             EventDispatcher.Emit(GlobalEvent.EVT_WELFARE_UPDATE, Proto.WELFARE_ONLINE_INFO);
             GameLog.Info("Welfare", "41715 在线福利信息 time={0} loginTime={1} listN={2}", time, loginTime, list.Count);
+        }
+
+        private static void RefreshEntranceRedDot()
+        {
+            ActivityIconManager.Instance.SetIconRedDot("417", WelfareModel.Instance.HasEntranceRedDot());
         }
 
         /// <summary>41716 领取在线福利(二层嵌套 SendList{RewardId,Rewards(ObjectList),OtherRewards(ObjectList)})。

@@ -136,6 +136,26 @@ namespace Shenxiao.Module.Core.Welfare
             HasXinyueInfo = true;
         }
 
+        /// <summary>签到或在线福利存在服务端已达成、尚未领取的奖励时点亮福利入口。</summary>
+        public bool HasEntranceRedDot()
+        {
+            for (int i = 0; i < _checkinAccState.Count; i++)
+            {
+                int receive = _checkinAccState[i].Receive;
+                if (receive == 3 || receive == 4) return true;
+            }
+            for (int i = 0; i < _checkinTotalState.Count; i++)
+            {
+                if (_checkinTotalState[i].Receive == 3) return true;
+            }
+            for (int i = 0; i < _onlineList.Count; i++)
+            {
+                OnlineEntry item = _onlineList[i];
+                if (item.State == 0 && OnlineTime >= WelfareConfigs.GetOnlineRewardTime(item.Id)) return true;
+            }
+            return false;
+        }
+
         /// <summary>断线/登出清空(对标老端 GAME_START 时 welfareModel.Reset())。</summary>
         public void Reset()
         {
@@ -252,6 +272,13 @@ namespace Shenxiao.Module.Core.Welfare
         {
             string v = GetKv(id);
             return int.TryParse(v, out int n) ? n : fallback;
+        }
+
+        public static int GetOnlineRewardTime(int id)
+        {
+            return _onlineReward?[id.ToString(CultureInfo.InvariantCulture)] is JObject obj
+                ? obj.Value<int?>("online_time") ?? int.MaxValue
+                : int.MaxValue;
         }
     }
 }

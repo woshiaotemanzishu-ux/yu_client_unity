@@ -87,7 +87,7 @@ namespace Shenxiao.Module.Core.MainUI
         // ===================== 技能 4 槽(对标 UpdateView)=====================
 
         /// <summary>按 SkillManager.ShortcutList 铺技能槽(对标 UpdateView);【槽位式】按顺序填进
-        /// SkillIconGrid(_box_skill_con)下的空槽(槽位位置由 prefab 决定,代码不算坐标,同 MainUINoticeView.FillSlots)。</summary>
+        /// SkillIconGrid(_box_skill_con)下的空槽(槽位位置由 prefab 决定,代码不算坐标)。</summary>
         public void RefreshSkills()
         {
             IList<SkillVo> skills = SkillManager.Instance.ShortcutList;

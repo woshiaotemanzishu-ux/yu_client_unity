@@ -18,7 +18,7 @@ namespace Shenxiao.Module.Core.DiamondFight
         // 活动阶段 war_state(对标老端 stage_info.war_state):0 未开启 / 1 报名中 / 2..4 进行中 / 5 结束。
         public int WarState;
         // 当前阶段结束时间戳(对标老端 13700 EndTime,面板倒计时用,本期图标不需但按协议读入保留)。
-        public int EndTime;
+        public long EndTime;
 
         /// <summary>
         /// 是否已报名(对标老端 user_info.is_sign)。老端 is_sign 由面板协议 13701/报名回包 13702 置 1,
@@ -29,7 +29,7 @@ namespace Shenxiao.Module.Core.DiamondFight
         public int IsSign;
 
         /// <summary>写入 13700 下发的阶段信息(对标老端 SetStageInfo)。</summary>
-        public void SetStageInfo(int warState, int endTime)
+        public void SetStageInfo(int warState, long endTime)
         {
             WarState = warState;
             EndTime = endTime;

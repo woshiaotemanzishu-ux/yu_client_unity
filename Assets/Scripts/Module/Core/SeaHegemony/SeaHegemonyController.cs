@@ -42,6 +42,7 @@ namespace Shenxiao.Module.Core.SeaHegemony
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            ActivityIconManager.Instance.SetIconRedDot(SeaHegemonyModel.RED_ICON_TYPE, false);
             ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
             SeaHegemonyModel.Instance.Reset();
             _lastLevel = -1;
@@ -69,9 +70,11 @@ namespace Shenxiao.Module.Core.SeaHegemony
             r.ReadU64();     // fight(战功/积分)
             r.ReadU64();     // count(计数)
             r.ReadU16();     // self_level(海域官职等级)
-            r.ReadU8();      // reward_status(每日奖励领取态,面板红点用)
+            int rewardStatus = r.ReadU8(); // 0=每日奖励可领
 
-            SeaHegemonyModel.Instance.SetSeaInfo(camp);
+            SeaHegemonyModel.Instance.SetSeaInfo(camp, rewardStatus);
+            ActivityIconManager.Instance.SetIconRedDot(
+                SeaHegemonyModel.RED_ICON_TYPE, SeaHegemonyModel.Instance.DailyRewardRed);
 
             // 拿报名结束时间(驱动图标 18601)。read(18625,_)->{ok,[]}:裸发。
             SendFmt(Proto.SEAHEGEMONY_SIGNUP);

@@ -52,7 +52,13 @@ namespace Shenxiao.Common.UI3D
             if (o["scale"] != null) p.Scale = (float)o["scale"];
             if (o["position"] is JObject pos)
                 p.Position = new Vector2(pos["x"] != null ? (float)pos["x"] : 0f, pos["y"] != null ? (float)pos["y"] : 0f);
-            if (o["rotate"] != null) p.Rotate = (float)o["rotate"];
+            if (o["rotate"] != null)
+            {
+                float rotate = (float)o["rotate"];
+                // 老端 UIModelClass3D 用 JS 真值判断读取 rotate：0 表示“未指定”，最终回退到正面 180°。
+                // 在配置读取层统一兼容该语义，避免各个 View 或具体 show_id 分别补特殊处理。
+                p.Rotate = rotate == 0f ? UIModelStage.MODEL_YAW : rotate;
+            }
             if (o["action_name_list"] is JArray arr && arr.Count > 0 && arr[0] != null) p.Action = (string)arr[0];
             return p;
         }

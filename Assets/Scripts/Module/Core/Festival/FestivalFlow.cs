@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.MainUI;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Festival
@@ -39,6 +40,11 @@ namespace Shenxiao.Module.Core.Festival
 
         private static async Task OpenAsync()
         {
+            FestivalModel.Instance.ClearLoginRedDot();
+            ActivityIconManager.Instance.SetIconRedDot(
+                FestivalModel.ICON_TYPE,
+                FestivalModel.Instance.GetEntranceOpenState() && FestivalModel.Instance.GetEntranceRedDot());
+
             if (_moduleRoot != null)
             {
                 _moduleRoot.SetActive(true);

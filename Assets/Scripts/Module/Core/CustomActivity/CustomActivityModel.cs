@@ -131,6 +131,17 @@ namespace Shenxiao.Module.Core.CustomActivity
         public DetailData GetDetail(int baseType, int subType) =>
             _details.TryGetValue(Key(baseType, subType), out DetailData d) ? d : null;
 
+        public void MarkDetailClaimed(int baseType, int subType, int grade)
+        {
+            DetailData detail = GetDetail(baseType, subType);
+            if (detail == null) return;
+            for (int i = 0; i < detail.RewardList.Count; i++)
+            {
+                if (detail.RewardList[i].Grade == grade)
+                    detail.RewardList[i].Status = 2;
+            }
+        }
+
         // ============================================================================================
         // §3 通用领取/操作结果(33105)
         // ============================================================================================

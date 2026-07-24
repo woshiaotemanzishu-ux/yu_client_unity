@@ -31,7 +31,7 @@ namespace Shenxiao.Module.Core.MainUI
     {
         // 老客户端 MainUIDownView.ts 明确写死 max_len = 722,经验条目标宽度按它计算。
         private const float EXP_BAR_MAX_WIDTH = 722f;
-        // 功能图标改【槽位式】(同 MainUINoticeView 已验收模式):105 间距等布局烤在 HudNavBar.prefab 的
+        // 功能图标改【槽位式】:105 间距等布局烤在 HudNavBar.prefab 的
         // FuncIconRow 槽位(Slot_*)里,View 只按顺序把图标填进槽,不再算坐标。
 
         // 功能图标配置(两行图标 / 开放判定 / 翻面等级)集中在 MainUIModel(对标老端 Main_Func_Icons /
@@ -303,7 +303,7 @@ namespace Shenxiao.Module.Core.MainUI
         }
 
         /// <summary>对标 UpdateIconItem:遍历当前行,GetMainFuncOpenCond 过的才显示;【槽位式】按顺序填进
-        /// FuncIconRow(_gp_icon_con)下的空槽(槽位位置由 prefab 决定,代码不算坐标,同 MainUINoticeView.FillSlots)。</summary>
+        /// FuncIconRow(_gp_icon_con)下的空槽(槽位位置由 prefab 决定,代码不算坐标)。</summary>
         private void BuildFuncIcons()
         {
             MainUIModel.MainFuncIcon[] line = MainUIModel.MainFuncIcons[_showType];
@@ -353,7 +353,7 @@ namespace Shenxiao.Module.Core.MainUI
                 }
             }
 
-            // 多余空槽隐藏(槽位式:槽比图标多 → 隐藏,同 MainUINoticeView.FillSlots)。
+            // 多余空槽隐藏(槽位式:槽比图标多 → 隐藏)。
             for (int i = shown; i < slotCount; i++)
             {
                 _gp_icon_con.GetChild(i).gameObject.SetActive(false);

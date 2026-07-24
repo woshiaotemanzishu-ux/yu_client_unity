@@ -139,7 +139,7 @@ namespace Shenxiao.Module.Core.MainUI
         }
 
         /// <summary>太极收起/展开(全局事件,由 MainUIFoldView 广播):容器级收放 left/right 两簇;展开时补填一次
-        /// (对标老端 SecondaryView.ShowAnimation,照 MainUINoticeView.OnActivityFold 同款收法)。</summary>
+        /// (对标老端 SecondaryView.ShowAnimation,容器整体收放)。</summary>
         private void OnActivityFold(bool folded)
         {
             _activityFolded = folded;
@@ -234,8 +234,7 @@ namespace Shenxiao.Module.Core.MainUI
         }
 
         // 该簇该认领的图标类型(左簇 loc4 / 右簇 loc5),按 pos_index 稳定排序作为填充顺序。
-        // 排除项:158(变强,归聊天条)、612 前缀(限时抢购:老端是"藏到 hide_pos+缩小+透明"的假隐藏,
-        // 现直接不认领——与 MainUIActivityView 的 612 处理口径一致,数据仍在 Manager 里供聊天条商城入口用)。
+        // 158(变强)是 HudChat 的固定入口，不由 HudSecondary 重复实例化。
         private List<string> CollectOwnedIconTypes(int locationType)
         {
             var list = new List<string>();
@@ -244,7 +243,6 @@ namespace Shenxiao.Module.Core.MainUI
                 if (kv.Value?.Data == null) continue;
                 if (kv.Value.Data.LocationType != locationType) continue;
                 if (kv.Key == "158") continue;
-                if (!string.IsNullOrEmpty(kv.Key) && kv.Key.StartsWith("612")) continue;
                 list.Add(kv.Key);
             }
             list.Sort(CompareIconType);

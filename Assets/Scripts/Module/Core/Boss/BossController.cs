@@ -105,14 +105,14 @@ namespace Shenxiao.Module.Core.Boss
         /// 注:未接每秒定时器,窗口边界的自动切换靠 33101 刷新或等级/任务复评时重算(icon-first 阶段够用);
         /// 严格边界即时切换(老端 StartFeastTimer 每秒轮询)待后续接全局定时器基建后补。
         /// </summary>
-        public void EvaluateFeastBoss(bool hasActivity, string condition, int actStartTime, int actEndTime)
+        public void EvaluateFeastBoss(bool hasActivity, string condition, long actStartTime, long actEndTime)
         {
             if (!hasActivity)
             {
                 NotifyFeastBossActivity(false, 0, null);
                 return;
             }
-            (bool active, int endTime, string foreshadow) =
+            (bool active, long endTime, string foreshadow) =
                 BossModel.ComputeFeastWindow(condition, actStartTime, actEndTime, TimeUtil.NowSec());
             NotifyFeastBossActivity(active, endTime, foreshadow);
         }
@@ -123,7 +123,7 @@ namespace Shenxiao.Module.Core.Boss
         ///   · active=false 且 foreshadow 非空 → 当天有下一场未开始,显示 "HH:MM开启" 预告;
         ///   · 都不满足(foreshadow 传 null) → 删除图标 51。
         /// </summary>
-        public void NotifyFeastBossActivity(bool active, int endTime, string foreshadow = null)
+        public void NotifyFeastBossActivity(bool active, long endTime, string foreshadow = null)
         {
             BossModel.Instance.SetFeastBossActivity(active, endTime, foreshadow);
             RefreshIcon("feastBoss");

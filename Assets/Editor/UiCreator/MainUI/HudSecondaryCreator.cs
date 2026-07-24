@@ -30,14 +30,14 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     /// _box_right 不再按"reparent 前原始位置"建:老端运行时会把它 reparent 到父层(right=0,centerY=250),
     /// 现直接按这个【运行时终态】建成 MainUISecondaryView 的兄弟节点(挂 HudSecondary 根下),
     /// MainUISecondaryView.OnInit 的搬家代码已删。
-    /// 左/右图标簇改【槽位式】(同 HudNoticeCreator):_box_left 下 4 槽、_box_right 下 8 槽,
+    /// 左/右图标簇改【槽位式】:_box_left 下 4 槽、_box_right 下 8 槽,
     /// 槽位位置=旧运行时 GetVisiblePos 公式的等价终态、全烤 prefab 可拖,运行时按序填。
     /// </summary>
     // 命名对照(Laya风格 -> 语义化英文):
     //   _box_left                -> LeftIconSlot
     //   _box_auto_effect         -> AutoStateEffectSlot
     //   _box_right               -> RightIconSlot
-    //   _box_notice              -> (已拆到 HudNotice.prefab / HudNoticeCreator,本区不再建)
+    //   _box_notice              -> (活动入口已统一归 HudActivity.prefab,本区不再建)
     //   _box_god                 -> GodSkillIconSlot
     //   _gp_t_map                -> TreasureMapEffectSlot
     //   _img_tt_record           -> TtRecordButton
@@ -258,8 +258,8 @@ namespace Shenxiao.Editor.UiCreator.MainUI
                     114f, 64f);
             }
 
-            // 老端 _box_notice「通知位」图标簇已拆到独立区域 HudNotice.prefab(见 HudNoticeCreator,槽位式),
-            // 本区不再建 NoticeIconSlot 节点。
+            // 老端 _box_notice「通知位」活动入口已统一归 HudActivity.prefab,
+            // 本区不再建 NoticeIconSlot 节点或承接任何活动位置组。
 
             RectTransform boxGod = UiCreatorKit.NewNode("GodSkillIconSlot", root); // 老端: _box_god
             PlaceBottomRight(boxGod, 525f, -170f, 80f, 80f); // 老端 right=115(实测右缘 720-(525+80)=115)

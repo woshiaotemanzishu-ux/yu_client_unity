@@ -54,7 +54,7 @@ namespace Shenxiao.Module.Core.DiamondFight
         private void On13700(NetReader r)
         {
             int warState = r.ReadU8();
-            int endTime = (int)r.ReadU32();
+            long endTime = r.ReadU32();
 
             DiamondFightModel m = DiamondFightModel.Instance;
             m.SetStageInfo(warState, endTime);

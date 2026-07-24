@@ -51,8 +51,6 @@ namespace Shenxiao.Generated.UI.MainUI
         public Image _img_fight_mode;
         public GameObject _tpl_MainUIMoneyItem;
         public GameObject _tpl_MainUITopBuffItem;
-        public GameObject _tpl_CustomHeadItem;
-        public GameObject _tpl_ActivityIcon;
 
         protected override void BindNodes()
         {
@@ -98,8 +96,6 @@ namespace Shenxiao.Generated.UI.MainUI
             EnsureBound(nameof(_img_fight_mode), _img_fight_mode);
             EnsureBound(nameof(_tpl_MainUIMoneyItem), _tpl_MainUIMoneyItem);
             EnsureBound(nameof(_tpl_MainUITopBuffItem), _tpl_MainUITopBuffItem);
-            EnsureBound(nameof(_tpl_CustomHeadItem), _tpl_CustomHeadItem);
-            EnsureBound(nameof(_tpl_ActivityIcon), _tpl_ActivityIcon);
         }
     }
 }

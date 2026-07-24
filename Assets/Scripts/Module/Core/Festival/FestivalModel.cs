@@ -97,11 +97,39 @@ namespace Shenxiao.Module.Core.Festival
         /// <summary>key=Type(1日/2周/3赛季)。</summary>
         public readonly Dictionary<int, TaskTypeGroup> TaskGroupsByType = new Dictionary<int, TaskTypeGroup>();
 
+        // 老端每次登录先显示一次入口提示，玩家打开入口后清除；可领取奖励/任务仍保持红点。
+        private bool _loginRedDot = true;
+
         public void SetTaskGroup(int type, List<TaskEntry> taskList, int refreshTime)
         {
             var g = new TaskTypeGroup { Type = type, RefreshTime = refreshTime };
             if (taskList != null) g.TaskList.AddRange(taskList);
             TaskGroupsByType[type] = g;
+        }
+
+        public bool GetEntranceRedDot()
+        {
+            if (_loginRedDot) return true;
+
+            for (int i = 0; i < RewardList.Count; i++)
+            {
+                if (RewardList[i].Status1 == 1 || RewardList[i].Status2 == 1) return true;
+            }
+
+            foreach (KeyValuePair<int, TaskTypeGroup> pair in TaskGroupsByType)
+            {
+                List<TaskEntry> tasks = pair.Value.TaskList;
+                for (int i = 0; i < tasks.Count; i++)
+                {
+                    if (tasks[i].Status == 1) return true;
+                }
+            }
+            return false;
+        }
+
+        public void ClearLoginRedDot()
+        {
+            _loginRedDot = false;
         }
 
         // 19404 任务经验领取结果(瞬时;pt_194.erl 回包只有 Exp:32,无 Code)。
@@ -121,6 +149,8 @@ namespace Shenxiao.Module.Core.Festival
             LastLevelAwardSuccess = false;
 
             TaskGroupsByType.Clear();
+
+            _loginRedDot = true;
 
             LastTaskExpClaimed = 0;
         }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Threading.Tasks;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Res;
+using Shenxiao.Framework.Util;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Generated.UI.MainUI;
 using TMPro;
@@ -34,6 +35,13 @@ namespace Shenxiao.Module.Core.MainUI
         private Coroutine _float;
         private Vector2 _floatBase;
         private bool _floatEnabled;
+
+        // 图标描述/倒计时(对标老端 ActivityIcon.SetCountTimer):Time 是服务器下发的绝对 Unix 秒。
+        private static readonly Color DescriptionRunColor = new Color(0.533f, 1f, 0.263f); // #88ff43
+        private static readonly Color DescriptionEndColor = new Color(0.996f, 0.102f, 0.102f); // #fe1a1a
+        private Coroutine _countdown;
+        private long _countdownEndTime;
+        private bool _countdownEnabled;
 
         // 首充气泡复合体只建一次(159 图标:把通用单图标替换成 bg+横幅)。
         private bool _bubbleBuilt;
@@ -117,11 +125,13 @@ namespace Shenxiao.Module.Core.MainUI
         private void OnEnable()
         {
             if (_floatEnabled) StartFloat();
+            if (_countdownEnabled && _countdown == null) ResumeCountdown();
         }
 
         private void OnDisable()
         {
             _float = null; // 失活时协程已被 Unity 停,只清残留引用(无需 StopCoroutine)
+            _countdown = null; // 同上;保留结束时间,展开/复用时 OnEnable 会按服务器时间续跑
         }
 
         private IEnumerator FloatRoutine()
@@ -154,9 +164,11 @@ namespace Shenxiao.Module.Core.MainUI
                 return;
             }
 
-            await SetIconImgAsync();
-            SetIconText(_info != null ? _info.IconTxt : "");
             HideOptionalState();
+            await SetIconImgAsync();
+            if (this == null) return;
+            RefreshDescription();
+            RefreshBadges();
             await RefreshEffectAsync();
         }
 
@@ -319,6 +331,7 @@ namespace Shenxiao.Module.Core.MainUI
 
         private void OnDestroy()
         {
+            StopCountdown();
             ClearEffect();
         }
 
@@ -331,19 +344,121 @@ namespace Shenxiao.Module.Core.MainUI
             await ResManager.SetImageAsync(_img_icon, path, nativeSize: false);
         }
 
-        private void SetIconText(string text)
+        private void RefreshDescription()
+        {
+            // 老端 SetIconType 先开倒计时、再 SetIconText;有业务状态文字时由文字覆盖并取消倒计时。
+            string text = _info != null ? _info.IconTxt : "";
+            if (!string.IsNullOrEmpty(text))
+            {
+                SetIconText(text, DescriptionRunColor);
+                return;
+            }
+
+            if (_cfg != null && _cfg.CountDownTime && _info != null && _info.Time > 0)
+                StartCountdown(_info.Time);
+        }
+
+        private void StartCountdown(long endTime)
+        {
+            StopCountdown();
+            _countdownEndTime = endTime;
+            _countdownEnabled = true;
+            ResumeCountdown();
+        }
+
+        private void ResumeCountdown()
+        {
+            if (!_countdownEnabled || !gameObject.activeInHierarchy) return;
+            TickCountdown();
+            if (_countdownEnabled && _countdown == null)
+                _countdown = StartCoroutine(CountdownRoutine());
+        }
+
+        private IEnumerator CountdownRoutine()
+        {
+            var wait = new WaitForSecondsRealtime(1f);
+            while (_countdownEnabled)
+            {
+                yield return wait;
+                TickCountdown();
+            }
+            _countdown = null;
+        }
+
+        private void TickCountdown()
+        {
+            long left = _countdownEndTime - TimeUtil.NowSec();
+            if (left > 0)
+            {
+                SetIconText(FormatCountdown(left), DescriptionRunColor);
+                return;
+            }
+
+            _countdownEnabled = false;
+            _countdownEndTime = 0;
+            SetIconText("已结束", DescriptionEndColor);
+
+            // 对标老端 OnTimer:倒计时结束后,not_delete=false 的入口由 ActivityIconManager 回收。
+            if (_cfg != null && !_cfg.NotDelete && !string.IsNullOrEmpty(_iconType))
+                ActivityIconManager.Instance.DeleteIcon(_iconType);
+        }
+
+        private void StopCountdown()
+        {
+            _countdownEnabled = false;
+            _countdownEndTime = 0;
+            if (_countdown == null) return;
+            StopCoroutine(_countdown);
+            _countdown = null;
+        }
+
+        // 对标老端 TimeUtil.convertTimeColor:有天数时显示“D天H时”,不足一天显示 HH:mm:ss。
+        private static string FormatCountdown(long seconds)
+        {
+            long days = seconds / 86400;
+            long hours = seconds / 3600 % 24;
+            if (days > 0) return hours > 0 ? days + "天" + hours + "时" : days + "天";
+
+            long minutes = seconds / 60 % 60;
+            long secs = seconds % 60;
+            return string.Format("{0:00}:{1:00}:{2:00}", hours, minutes, secs);
+        }
+
+        private void SetIconText(string text, Color? color = null)
         {
             bool show = !string.IsNullOrEmpty(text);
             if (_lb_desc != null)
             {
                 _lb_desc.text = show ? text : "";
+                if (color.HasValue) _lb_desc.color = color.Value;
                 _lb_desc.gameObject.SetActive(show);
             }
             if (_img_desc_bg != null) _img_desc_bg.gameObject.SetActive(show);
         }
 
+        /// <summary>
+        /// 红点/数字角标统一消费 ActivityIconManager.IconInfo，不在 View 里按活动类型写判断。
+        /// 具体业务只需在收到服务端状态后调用 SetIconRedDot/SetIconBadge。
+        /// </summary>
+        private void RefreshBadges()
+        {
+            int count = _info != null ? _info.BadgeCount : 0;
+            bool showNumber = count > 0;
+            bool showRed = !showNumber && _info != null && _info.RedDot;
+
+            SetGraphicVisible(_img_red, showRed);
+            SetGraphicVisible(_img_red_num, showNumber);
+            if (_lb_num != null)
+            {
+                _lb_num.text = showNumber ? count.ToString() : "";
+                _lb_num.gameObject.SetActive(showNumber);
+            }
+        }
+
         private void HideOptionalState()
         {
+            StopCountdown();
+            SetIconText("");
             SetGraphicVisible(_img_red, false);
             SetGraphicVisible(_img_red_num, false);
             SetTextVisible(_lb_num, false);

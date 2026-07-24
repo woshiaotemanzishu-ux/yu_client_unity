@@ -69,9 +69,9 @@ namespace Shenxiao.Module.Core.Compete
                     Type = r.ReadU16(),
                     Subtype = r.ReadU16(),
                     ShowId = r.ReadU16(),
-                    StartTime = (int)r.ReadU32(),
-                    EndTime = (int)r.ReadU32(),
-                    BuyEndTime = (int)r.ReadU32(),
+                    StartTime = r.ReadU32(),
+                    EndTime = r.ReadU32(),
+                    BuyEndTime = r.ReadU32(),
                 });
             }
 
@@ -87,7 +87,7 @@ namespace Shenxiao.Module.Core.Compete
 
             // next: iconType -> buy_end_time(倒计时文本用)。只收 configfunctionicon 里真存在的键
             // (老端 act_type==0 无单独图标 → 该键没配 → 不进 next,等价原语义)。
-            var next = new Dictionary<string, int>();
+            var next = new Dictionary<string, long>();
             for (int i = 0; i < list.Count; i++)
             {
                 CompeteModel.RaceActInfo info = list[i];
@@ -112,7 +112,7 @@ namespace Shenxiao.Module.Core.Compete
             }
 
             // 添加/刷新当前活跃图标(AddIconAsync 内部再按 open_lv/open_day 门槛把关,不达标自动 no-op)。
-            foreach (KeyValuePair<string, int> kv in next)
+            foreach (KeyValuePair<string, long> kv in next)
             {
                 _ownedIcons.Add(kv.Key);
                 await ActivityIconManager.Instance.AddIconAsync(kv.Key, kv.Value);

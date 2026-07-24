@@ -78,6 +78,16 @@ namespace Shenxiao.Module.Core.GrowthBenefits
             return true;
         }
 
+        /// <summary>服务端任务状态中存在可领取项时显示入口红点。</summary>
+        public bool GetEntranceRedDot()
+        {
+            foreach (KeyValuePair<int, int> task in _taskStatus)
+            {
+                if (task.Value == STATUS_CAN_RECEIVE) return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// 入口开启状态(对标老端 GetEntranceOpenState)。
         /// 成长福利分支:主角等级 ≥ OPEN_LEVEL(config_welfare_cfg["8"]=135)且任务未全部领取。

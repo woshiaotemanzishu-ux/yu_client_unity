@@ -1,4 +1,5 @@
 using Shenxiao.Generated.UI.MainUI;
+using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
@@ -31,6 +32,24 @@ namespace Shenxiao.Module.Core.MainUI
             CreateWelcomeSystemMessage();
             CreateStrengthenIcon();
             WireHudEntries();
+        }
+
+        protected override void OnShow(object args)
+        {
+            EventDispatcher.On<bool>(GlobalEvent.EVT_SHOP_RED_DOT, OnShopRedDot);
+        }
+
+        protected override void OnHide()
+        {
+            EventDispatcher.Off<bool>(GlobalEvent.EVT_SHOP_RED_DOT, OnShopRedDot);
+        }
+
+        private void OnShopRedDot(bool show)
+        {
+            if (_img_shop_red != null)
+            {
+                _img_shop_red.gameObject.SetActive(show);
+            }
         }
 
         /// <summary>

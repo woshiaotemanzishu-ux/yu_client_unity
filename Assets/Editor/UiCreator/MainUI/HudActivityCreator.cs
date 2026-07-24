@@ -8,26 +8,25 @@ using UnityEngine.UI;
 namespace Shenxiao.Editor.UiCreator.MainUI
 {
     /// <summary>
-    /// 主界面「活动入口区」纯代码建树生成器(Unity 布局组容器化版)。
+    /// 主界面「活动入口区」纯代码建树生成器(可编辑槽位版)。
     ///
     /// 设计原则(用户定):布局归 prefab、代码不碰布局。老端 Laya 用 RefreshIconPos 在代码里算坐标——那是 Laya 的搞法;
-    /// Unity 里改成【子容器 + Unity 布局组件】,运行时代码只把图标 Instantiate 进对应容器、按 pos_index 排 sibling 顺序,
-    /// 绝不在 C# 里写位置/间距/尺寸/行偏移。所有布局值(格子大小、间距、缩进、分组竖排)都落在 prefab 组件上,随时可在
-    /// 预制体里手调。
+    /// Unity 里改成【分组手摆槽位】,运行时代码只把图标按配置 location_type/pos_index 填进对应组。绝不在运行时代码里计算坐标、间距、尺寸和行偏移;
+    /// 所有布局都落在 prefab；HudActivity 只保留一份完整 ActivityIcon 模板，运行时按需克隆。
     ///
     /// 结构:
     ///   HudActivity(root)                 —— 有界:左上锚,定位(10,127),548×380,不再全屏
     ///     MainUIActivityView(view)         —— Stretch 填满 root,挂业务类
     ///       __Templates / ActivityIcon      —— 活动图标克隆模板(建完禁用)
-    ///       IconGrid(_gp_con)              —— VerticalLayoutGroup:自动竖排下面 4 个分组(空组由运行时收起)
-    ///         Group_ActivityOne  (loc1)     —— GridLayoutGroup(7列/72格/间距5·20):顶排
-    ///         Group_ActivityTwo  (loc2)     —— GridLayoutGroup:主排(头号玩家 331@10@0 排这组第2格)
-    ///         Group_ActivityOther(loc3)     —— GridLayoutGroup
-    ///         Group_ActivityFourth(loc4/10) —— GridLayoutGroup(padding.left=77 缩进,给太极让位):底排
-    ///       TurnDisk(_img_turn)            —— 收/展太极折叠钮,固定左下(独立于布局组,折叠时不被收起)
+    ///       IconGrid(_gp_con)
+    ///         Group_ActivityOne / Slot_One_00..06
+    ///         Group_ActivityTwo / Slot_Two_00..06
+    ///         Group_ActivityOther / Slot_Other_00..06
+    ///         Group_ActivityFourth / Slot_Fourth_00..05
+    ///                                      —— 27 个分组手摆空槽，运行时克隆唯一模板填入
     ///
     /// 右上「竞榜/头号玩家榜」卡片(老端 _box_rank)已拆到独立区域 HudRank.prefab(见 HudRankCreator)。
-    /// location_type=9(RightMiddle)新老配置都 0 条(死配置),GroupFor 里直接忽略,不建对应容器。
+    /// location_type=6/7/9 不再各建屏幕模块，运行时统一并入 Group_ActivityOther；location_type=10 进入第四组。
     /// 存 Assets/Prefabs/UI/MainUI/Regions/HudActivity.prefab,供人工核对后再并入 MainUIModule.prefab。
     /// </summary>
     // 命名对照(Laya风格 -> 语义化英文):
@@ -45,6 +44,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     public static class HudActivityCreator
     {
         private const string PrefabPath = "Assets/Prefabs/UI/MainUI/Regions/HudActivity.prefab";
+        private const string IconPrefabPath = "Assets/Prefabs/UI/MainUI/Components/ActivityIcon.prefab";
 
         // 老端源图(GameRes 相对路径;均已确认在 Assets/GameRes 下)。太极图(IMG_TURN)已移到 MainUIModuleCreator。
         private const string IMG_RED_DOT = "resource/game/mainUI/texture/com_red_point.png"; // 小红点
@@ -71,8 +71,18 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             UiRebuildRegistry.Register(new UiCreatorEntry
             {
                 Module = "MainUI",
+                Name = "ActivityIcon(活动入口模板)",
+                Note = "唯一活动图标模板;图片、大小、描述条、红点、数字角标和特效都在这里精调",
+                Order = 15,
+                Generate = GenerateActivityIconPrefab,
+                PrefabPath = IconPrefabPath,
+            });
+
+            UiRebuildRegistry.Register(new UiCreatorEntry
+            {
+                Module = "MainUI",
                 Name = "HudActivity(活动入口区)",
-                Note = "有界左上区 + 4 个 GridLayoutGroup 分组容器(loc1/2/3/4)+ 太极;布局全在 prefab 可调",
+                Note = "有界左上区 + 4 个逻辑组/27 个空槽;运行时按配置分组并克隆唯一 ActivityIcon 模板填槽",
                 Order = 20,
                 Generate = Generate,
                 Preview = Preview,
@@ -82,6 +92,13 @@ namespace Shenxiao.Editor.UiCreator.MainUI
 
         public static void Generate()
         {
+            GameObject iconPrefab = EnsureActivityIconPrefab();
+            if (iconPrefab == null)
+            {
+                Debug.LogError("[UiCreator] HudActivity 生成中止:无法生成或加载 " + IconPrefabPath);
+                return;
+            }
+
             RectTransform root = UiCreatorKit.NewRoot("HudActivity");
             // root 收成活动网格的实际占位(左上区),不再全屏 Stretch;并入总装时锚点非全屏 → offset 归零自动跳过。
             AnchorTopLeft(root, RegionOrigin.x, RegionOrigin.y, RegionSize.x, RegionSize.y);
@@ -93,22 +110,32 @@ namespace Shenxiao.Editor.UiCreator.MainUI
 
             // 隐藏模板挂载点:活动图标模板是纯克隆源,不应出现在可见容器里。
             RectTransform templates = NewTemplatesWrapper(viewRoot);
-            GameObject tplIcon = BuildActivityIconTemplate(templates);
+            GameObject tplIcon = InstantiateActivityIcon(iconPrefab, templates, "ActivityIcon");
             AnchorTopLeft((RectTransform)tplIcon.transform, 0f, 0f, GridCellW, GridCellH);
             tplIcon.SetActive(false);
             view._tpl_ActivityIcon = tplIcon;
 
-            // ================= IconGrid(老端 _gp_con):【槽位容器】,子节点=空槽位,运行时按顺序填图标 =================
+            // ================= IconGrid(老端 _gp_con):【分组槽位容器】,运行时按 location_type/pos_index 填图标 =================
             RectTransform gpCon = UiCreatorKit.NewNode("IconGrid", viewRoot); // 老端: _gp_con
             UiCreatorKit.Stretch(gpCon); // 填满 view(槽位相对它左上定位)
             view._gp_con = gpCon;
 
-            // 【槽位基线】默认摆 SlotRows×SlotCols 个空槽位(位置全在 prefab,随便拖/加/删/换行)。每个槽带一个样例图标便于
-            // 编辑器可视,运行时 MainUIActivityView 清样例、把真图标【按顺序】填进各槽(填满一个进下一个,自然溢流)。
-            // 想改布局:直接在 prefab 的 IconGrid 下拖这些 Slot_* 节点即可 —— 代码绝不算坐标。
-            // 老端活动网格 4 行封顶(每行 ≤7,共 28 个上限,超出往下挤/隐);对齐之 → 4×7=28 个槽,杜绝往下溢出压到场景/角色。
-            const int SlotRows = 4, SlotCols = 7;
-            // 底排(r=3)整体右移给左下角的太极折叠钮 TurnDisk 让位,并因此少一格:
+            // 【槽位基线】恢复老端 FormatIconList 的四个逻辑组，但四组都只是 HudActivity 下的普通子层级，
+            // 不再拆 HudNotice/HudSecondary。这样服务端动态增删图标后仍按配置组换行，同时位置仍可在 prefab 精调。
+            RectTransform groupOne = NewSlotGroup("Group_ActivityOne", gpCon);
+            RectTransform groupTwo = NewSlotGroup("Group_ActivityTwo", gpCon);
+            RectTransform groupOther = NewSlotGroup("Group_ActivityOther", gpCon);
+            RectTransform groupFourth = NewSlotGroup("Group_ActivityFourth", gpCon);
+
+            const int SlotCols = 7;
+            for (int c = 0; c < SlotCols; c++)
+                BuildSlot(groupOne, "One", c, c * (GridCellW + GridHGap), 0f);
+            for (int c = 0; c < SlotCols; c++)
+                BuildSlot(groupTwo, "Two", c, c * (GridCellW + GridHGap), GridCellH + GridVGap);
+            for (int c = 0; c < SlotCols; c++)
+                BuildSlot(groupOther, "Other", c, c * (GridCellW + GridHGap), 2f * (GridCellH + GridVGap));
+
+            // 第四组整体右移给左下角的太极折叠钮 TurnDisk 让位,并因此少一格:
             // 太极在总装根层占屏幕 x∈[6,84]、y∈[396.3,474.3](见 MainUIModuleCreator.TurnLocal/TurnSize),
             // 而底排槽屏幕 y∈[403,475] 与它完全重叠 —— 不缩进的话首槽(屏幕 x∈[10,82])会被太极正面压住。
             // 缩进 80.6 后首槽屏幕 x∈[90.6,162.6],距太极右缘留 6.6px 净空;
@@ -118,16 +145,10 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             // 注:本类顶部结构注释早就写明「Group_ActivityFourth(loc4/10) —— padding.left=77 缩进,给太极让位」,
             // 是后来改成均匀 4×7 槽位循环时把这条缩进丢了,这里把它补回来(实测值 80.6,比原设计的 77 多 3.6px 净空)。
             const float LastRowIndent = 80.6f;
-            int idx = 0;
-            for (int r = 0; r < SlotRows; r++)
-            {
-                bool isLastRow = r == SlotRows - 1;
-                float indent = isLastRow ? LastRowIndent : 0f;
-                int cols = isLastRow ? SlotCols - 1 : SlotCols; // 底排让位后第 7 格放不下
-                for (int c = 0; c < cols; c++)
-                    BuildSlot(gpCon, idx++, indent + c * (GridCellW + GridHGap), r * (GridCellH + GridVGap));
-            }
-            int slotCount = idx; // 27 = 前三排 7 格 + 底排 6 格
+            for (int c = 0; c < SlotCols - 1; c++)
+                BuildSlot(groupFourth, "Fourth", c,
+                    LastRowIndent + c * (GridCellW + GridHGap), 3f * (GridCellH + GridVGap));
+            const int slotCount = SlotCols * 3 + (SlotCols - 1); // 27 = 前三组 7 格 + 第四组 6 格
 
             root.gameObject.SetActive(true);
             GameObject saved = UiCreatorKit.SavePrefab(root.gameObject, PrefabPath);
@@ -135,17 +156,54 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             Selection.activeObject = saved;
             EditorGUIUtility.PingObject(saved);
             Debug.Log("[UiCreator] HudActivity.prefab 已生成: " + PrefabPath +
-                      "(槽位式:IconGrid 下 " + slotCount + " 个空槽,底排缩进给太极让位、少一格;位置全在 prefab 可拖;人工核对后再并入 MainUIModule.prefab)");
+                      "(分组槽位式:IconGrid 下 4 组/" + slotCount + " 个空槽,第四组缩进给太极让位;位置全在 prefab 可拖;人工核对后再并入 MainUIModule.prefab)");
         }
 
-        /// <summary>建一个空槽位:左上锚定的 72×72 RectTransform + 一个样例图标子节点(仅设计期可视,运行时被 MainUIActivityView 清掉)。</summary>
-        private static void BuildSlot(RectTransform parent, int index, float x, float y)
+        /// <summary>只建空槽位；活动图标统一由 MainUIActivityView 克隆唯一的 ActivityIcon 模板填入。</summary>
+        private static void BuildSlot(RectTransform parent, string groupKey, int groupIndex, float x, float y)
         {
-            RectTransform slot = UiCreatorKit.NewNode("Slot_" + index, parent);
+            RectTransform slot = UiCreatorKit.NewNode("Slot_" + groupKey + "_" + groupIndex.ToString("00"), parent);
             AnchorTopLeft(slot, x, y, GridCellW, GridCellH);
-            Image sample = UiCreatorKit.NewImage("Sample", slot);
-            AnchorTopLeft(sample.rectTransform, 0f, 0f, GridCellW, GridCellH);
-            UiCreatorKit.TrySetSprite(sample, IMG_SAMPLE_ICON, UiCreatorKit.Palette.BtnNeutral);
+        }
+
+        private static RectTransform NewSlotGroup(string name, Transform parent)
+        {
+            RectTransform group = UiCreatorKit.NewNode(name, parent);
+            UiCreatorKit.Stretch(group);
+            return group;
+        }
+
+        private static GameObject InstantiateActivityIcon(GameObject prefab, Transform parent, string name)
+        {
+            var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
+            instance.name = name;
+            instance.SetActive(true);
+            return instance;
+        }
+
+        private static GameObject EnsureActivityIconPrefab()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(IconPrefabPath);
+            if (prefab != null) return prefab;
+            GenerateActivityIconPrefab();
+            return AssetDatabase.LoadAssetAtPath<GameObject>(IconPrefabPath);
+        }
+
+        /// <summary>独立保存通用图标模板。HudActivity 重建时若它已存在就保留人工精调,不会连带覆盖。</summary>
+        public static void GenerateActivityIconPrefab()
+        {
+            GameObject icon = BuildActivityIconTemplate(null);
+            RectTransform rt = (RectTransform)icon.transform;
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = new Vector2(GridCellW, GridCellH);
+            icon.SetActive(true);
+
+            GameObject saved = UiCreatorKit.SavePrefab(icon, IconPrefabPath);
+            Selection.activeObject = saved;
+            EditorGUIUtility.PingObject(saved);
+            Debug.Log("[UiCreator] ActivityIcon.prefab 已生成: " + IconPrefabPath +
+                      "(HudActivity 仅保留这一份克隆模板;图片/大小/描述条/红点/特效都在此精调)");
         }
 
         /// <summary>

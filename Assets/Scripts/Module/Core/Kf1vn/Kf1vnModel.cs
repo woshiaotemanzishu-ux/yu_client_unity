@@ -18,14 +18,14 @@ namespace Shenxiao.Module.Core.Kf1vn
         // turn/edtime/sub_stage/sub_edtime 面板与战斗流程用,本期图标不需,按协议读齐即可。
         public int Stage;       // 活动阶段(0 未开启,1 报名,2/3 进行,5 擂主战,6 结束等)
         public int Turn;        // 当前轮次
-        public int Edtime;      // 当前阶段结束时间戳
+        public long Edtime;     // u32 Unix 秒
         public int SubStage;    // 子阶段
-        public int SubEdtime;   // 子阶段结束时间戳
+        public long SubEdtime;  // u32 Unix 秒
 
         /// <summary>是否已下发过阶段信息(老端 stage_info 为 false 时 ShowIcon 直接 return)。</summary>
         public bool HasStageInfo;
 
-        public void SetStageInfo(int stage, int turn, int edtime, int subStage, int subEdtime)
+        public void SetStageInfo(int stage, int turn, long edtime, int subStage, long subEdtime)
         {
             Stage = stage;
             Turn = turn;

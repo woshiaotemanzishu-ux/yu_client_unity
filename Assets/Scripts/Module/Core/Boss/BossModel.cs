@@ -42,8 +42,8 @@ namespace Shenxiao.Module.Core.Boss
         /// 返回:active=是否处于某窗内;endTime=窗结束的 unix 时间戳(倒计时用);foreshadow=当天下一场"HH:MM开启"文本(无则 null)。
         /// nowSec=原始服务器 unix 秒(TimeUtil.NowSec);活动总区间 [actStartTime, actEndTime) 之外一律无。
         /// </summary>
-        public static (bool active, int endTime, string foreshadow) ComputeFeastWindow(
-            string condition, int actStartTime, int actEndTime, long nowSec)
+        public static (bool active, long endTime, string foreshadow) ComputeFeastWindow(
+            string condition, long actStartTime, long actEndTime, long nowSec)
         {
             // 活动总区间外:无(对标老端 curTime>=stime && curTime<etime 的外层门)
             if (actStartTime > 0 && nowSec < actStartTime) return (false, 0, null);
@@ -64,7 +64,7 @@ namespace Shenxiao.Module.Core.Boss
                 if (hour >= sH && hour <= eH && nowAllToday > startSec && nowAllToday <= endSec)
                 {
                     int left = endSec - nowAllToday;                 // 距窗结束剩余秒
-                    return (true, (int)(nowSec + left), null);       // 倒计时到窗结束的 unix 时间戳
+                    return (true, nowSec + left, null);             // 倒计时到窗结束的 unix 时间戳
                 }
             }
 
@@ -114,14 +114,14 @@ namespace Shenxiao.Module.Core.Boss
 
         // 节日BOSS图标最终判定(对标老端 FeastBossActivity 的三态):
         public bool FeastBossActive;       // 是否处于活动时间窗内(带倒计时)
-        public int FeastBossEndTime;       // 活动结束时间戳(秒),AddIconAsync 的 time 入参,做倒计时
+        public long FeastBossEndTime;      // 活动结束时间戳(秒),AddIconAsync 的 time 入参,做倒计时
         public string FeastBossForeshadow; // 预告文本("HH:MM开启");非空表示当天有下一场未开始
 
         /// <summary>
         /// 写入节日BOSS图标判定(对标老端 FeastBossActivity 计算出的 [is_in_activity_time, left_time, next_open_time])。
         /// active=时间窗内、endTime=结束时间戳(倒计时用)、foreshadow=预告文本("HH:MM开启",无则传 null/空)。
         /// </summary>
-        public void SetFeastBossActivity(bool active, int endTime, string foreshadow)
+        public void SetFeastBossActivity(bool active, long endTime, string foreshadow)
         {
             FeastBossActive = active;
             FeastBossEndTime = endTime;

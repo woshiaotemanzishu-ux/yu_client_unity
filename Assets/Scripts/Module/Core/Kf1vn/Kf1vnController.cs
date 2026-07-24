@@ -63,9 +63,9 @@ namespace Shenxiao.Module.Core.Kf1vn
         {
             int stage = r.ReadU8();
             int turn = r.ReadU16();
-            int edtime = (int)r.ReadU32();
+            long edtime = r.ReadU32();
             int subStage = r.ReadU8();
-            int subEdtime = (int)r.ReadU32();
+            long subEdtime = r.ReadU32();
 
             Kf1vnModel m = Kf1vnModel.Instance;
             m.SetStageInfo(stage, turn, edtime, subStage, subEdtime);

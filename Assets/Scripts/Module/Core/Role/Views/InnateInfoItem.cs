@@ -13,7 +13,7 @@ namespace Shenxiao.Module.Core.Role
     /// 老端该 .scene 未被 LayaUI 流水线捕获过(RoleModule.prefab 里找不到 InnateInfoItem 的 Bind 类/模板节点,
     /// 只有 InnateSkillView/InnateListItem/InnateSkillItem/InnateTypeItemRenderer/InnateUpInfoItem/InnateUpCondItem
     /// 六个),故本类不继承生成的 *Bind(没有),改由 <see cref="Shenxiao.Editor.UiCreator.Role.InnateSkillCreator"/>
-    /// 按几何报告手工建树后直接赋值这些 public 字段(仿 HudNotice/MainUINoticeView 手工赋值惯例,非常规 Bind 回填)。
+    /// 按几何报告手工建树后直接赋值这些 public 字段(手工赋值惯例,非常规 Bind 回填)。
     ///
     /// 简化:老端 label1..4 四条描述用 HTMLDivElement 精确测高做手风琴展开箭头,本端用 VerticalLayoutGroup 自动排布,
     /// 展开箭头(_img_arrow_right)老端逻辑本就恒不触发(InitEvent 里整段展开/收起代码已注释废弃),不复刻。

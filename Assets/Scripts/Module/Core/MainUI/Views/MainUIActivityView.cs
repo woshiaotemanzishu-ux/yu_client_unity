@@ -7,50 +7,54 @@ using UnityEngine;
 namespace Shenxiao.Module.Core.MainUI
 {
     /// <summary>
-    /// 活动图标网格视图(对标 yu_client MainUIActivityView 的 ADD_ICON 流)—— 【槽位式】。
+    /// 活动图标网格视图(对标 yu_client MainUIActivityView 的 ADD_ICON 流)—— 【分组槽位式】。
     ///
     /// 布局 100% 归 prefab、代码绝不算坐标:_gp_con 下由**美术手摆一批空槽位**(想摆几排/每排几个/摆哪都行),
-    /// 本类只做一件事——把"本视图该显示的图标"**按顺序一个个填进这些槽**(自然溢流:填满一个进下一个),
-    /// 图标继承所在槽的位置。槽比图标多 → 多余的槽隐藏;图标比槽多 → 超出的丢弃并告警。
-    /// 【不再按 location_type 分组、不再用 GridLayoutGroup/VerticalLayoutGroup 自动排布】—— 想调布局去 prefab 摆槽位。
-    /// location_type=6/7(老端 _box_notice 及其后续位)也统一由本视图显示:配置/服务器仍决定图标是否存在,
-    /// 但 Unity 不再为通知位另开 HudNotice 屏幕区域。
+    /// 本类只做一件事——按配置的 location_type/pos_index 把图标填进对应逻辑组的槽位，图标继承槽的位置。
+    /// 逻辑组仍对标老端 ActivityOne/Two/Other/Fourth；但它们只是同一个 HudActivity prefab 里的子层级，
+    /// 不再拆成 HudNotice/HudSecondary 等多个屏幕模块。坐标、间距、尺寸和第四组缩进仍全部归 prefab。
+    /// location_type=6/7(老端 _box_notice 及其后续位)并入 Other 组显示，配置/服务器仍决定图标是否存在。
     ///
     /// 右上「竞榜/头号玩家榜」卡片已拆到 <see cref="MainUIRankView"/>;折叠太极已提到 <see cref="MainUIFoldView"/>(总装层)。
     /// </summary>
     public sealed class MainUIActivityView : MainUIActivityViewBind
     {
-        // 612 前缀 = 限时等级抢购(LimitLevelShop)图标。老端 SHOP_ACTIVITY_ICON_PREFIX="612",
-        // Suppress612ShopActivityIconsForChatBar 把它们从活动区隐藏、挪到聊天条商城入口 → 活动网格不显。
-        // (MainUISecondaryView 早已同样排除;此前 MainUIActivityView 漏了,导致满级号抢购档在活动区平铺过量。)
-        private static bool Is612Icon(string iconType)
-        {
-            return !string.IsNullOrEmpty(iconType) && iconType.StartsWith("612");
-        }
+        private const string GroupOneName = "Group_ActivityOne";
+        private const string GroupTwoName = "Group_ActivityTwo";
+        private const string GroupOtherName = "Group_ActivityOther";
+        private const string GroupFourthName = "Group_ActivityFourth";
+        private const string SlotPrefix = "Slot_";
 
         private readonly Dictionary<string, ActivityIcon> _iconByType = new Dictionary<string, ActivityIcon>();
         private bool _activityFolded;
 
+        private sealed class IconGroups
+        {
+            public readonly List<string> One = new List<string>();
+            public readonly List<string> Two = new List<string>();
+            public readonly List<string> Other = new List<string>();
+            public readonly List<string> Fourth = new List<string>();
+
+            public List<string> Flatten()
+            {
+                var result = new List<string>(One.Count + Two.Count + Other.Count + Fourth.Count);
+                result.AddRange(One);
+                result.AddRange(Two);
+                result.AddRange(Other);
+                result.AddRange(Fourth);
+                return result;
+            }
+        }
+
+        private struct SlotAssignment
+        {
+            public string IconType;
+            public RectTransform Slot;
+        }
+
         protected override void OnInit()
         {
             if (_tpl_ActivityIcon != null) _tpl_ActivityIcon.SetActive(false);
-            ClearDesignTimeSampleIcons();
-        }
-
-        /// <summary>清掉 prefab 里为"设计期可视化"塞进各槽的样例图标(编辑器可见、便于摆槽位;运行时清掉换真图标)。</summary>
-        private void ClearDesignTimeSampleIcons()
-        {
-            if (_gp_con == null) return;
-            for (int s = 0; s < _gp_con.childCount; s++)
-            {
-                Transform slot = _gp_con.GetChild(s);
-                for (int i = slot.childCount - 1; i >= 0; i--)
-                {
-                    GameObject c = slot.GetChild(i).gameObject;
-                    c.SetActive(false);
-                    Destroy(c);
-                }
-            }
         }
 
         protected override void OnShow(object args)
@@ -100,18 +104,50 @@ namespace Shenxiao.Module.Core.MainUI
             FillSlots();
         }
 
-        /// <summary>把本视图该显示的图标按顺序填进 _gp_con 下的槽位(槽位位置由 prefab 决定,代码不算坐标)。</summary>
+        /// <summary>把本视图该显示的图标填进 _gp_con 下的分组槽位(槽位位置由 prefab 决定,代码不算坐标)。</summary>
         private void FillSlots()
         {
             if (_gp_con == null) return;
 
-            List<string> types = CollectOwnedIconTypes();
-            int slotCount = _gp_con.childCount;
-            int shown = Mathf.Min(slotCount, types.Count);
+            IconGroups groups = CollectOwnedIconGroups();
+            List<RectTransform> oneSlots = FindGroupSlots(GroupOneName);
+            List<RectTransform> twoSlots = FindGroupSlots(GroupTwoName);
+            List<RectTransform> otherSlots = FindGroupSlots(GroupOtherName);
+            List<RectTransform> fourthSlots = FindGroupSlots(GroupFourthName);
+
+            // 兼容尚未重建的旧 HudActivity:旧 prefab 只有 IconGrid/Slot_0..N，仍可按旧平铺方式显示；
+            // 用户重建一次 HudActivity 后自动切到分组槽位，不会出现“代码已更新但预制体一片空”的中间态。
+            bool hasGroupedSlots = oneSlots.Count + twoSlots.Count + otherSlots.Count + fourthSlots.Count > 0;
+            var assignments = new List<SlotAssignment>();
+            var allSlots = new List<RectTransform>();
+            if (hasGroupedSlots)
+            {
+                // 对标老端 FormatIconList:第一组超过本排容量时溢到第二组末尾，第二组再溢到 Other 组末尾。
+                SpillOverflow(groups.One, oneSlots.Count, groups.Two);
+                SpillOverflow(groups.Two, twoSlots.Count, groups.Other);
+
+                AddAssignments(groups.One, oneSlots, assignments);
+                AddAssignments(groups.Two, twoSlots, assignments);
+                AddAssignments(groups.Other, otherSlots, assignments);
+                AddAssignments(groups.Fourth, fourthSlots, assignments);
+                allSlots.AddRange(oneSlots);
+                allSlots.AddRange(twoSlots);
+                allSlots.AddRange(otherSlots);
+                allSlots.AddRange(fourthSlots);
+
+                WarnOverflow(GroupOtherName, groups.Other.Count, otherSlots.Count);
+                WarnOverflow(GroupFourthName, groups.Fourth.Count, fourthSlots.Count);
+            }
+            else
+            {
+                CollectSlotsRecursive(_gp_con, allSlots);
+                AddAssignments(groups.Flatten(), allSlots, assignments);
+                WarnOverflow("LegacyFlat", groups.Flatten().Count, allSlots.Count);
+            }
 
             // 释放不再显示的图标(超出槽位容量的、或已关闭的活动)。
             var shownSet = new HashSet<string>();
-            for (int i = 0; i < shown; i++) shownSet.Add(types[i]);
+            for (int i = 0; i < assignments.Count; i++) shownSet.Add(assignments[i].IconType);
             var toRemove = new List<string>();
             foreach (KeyValuePair<string, ActivityIcon> kv in _iconByType)
                 if (!shownSet.Contains(kv.Key)) toRemove.Add(kv.Key);
@@ -121,45 +157,88 @@ namespace Shenxiao.Module.Core.MainUI
                 _iconByType.Remove(toRemove[i]);
             }
 
-            // 逐槽填:前 shown 个槽放图标,其余槽隐藏。
-            for (int i = 0; i < slotCount; i++)
+            // 先隐藏所有槽，再只激活已有图标的槽；组之间不会因某组数量不足而互相抢槽/改变换行。
+            for (int i = 0; i < allSlots.Count; i++)
             {
-                RectTransform slot = _gp_con.GetChild(i) as RectTransform;
-                if (slot == null) continue;
-                if (i < shown)
-                {
-                    ActivityIcon icon = GetOrCreateIcon(types[i]);
-                    if (icon != null) PlaceIconInSlot(icon, slot);
-                    slot.gameObject.SetActive(true);
-                }
-                else
-                {
-                    slot.gameObject.SetActive(false); // 空槽隐藏
-                }
+                if (allSlots[i] != null) allSlots[i].gameObject.SetActive(false);
             }
-
-            if (types.Count > slotCount)
-                GameLog.Warn("MainUI", "活动图标 {0} 个 > 槽位 {1} 个,超出的 {2} 个未显示(去 prefab 里 _gp_con 下多摆几个槽)",
-                    types.Count, slotCount, types.Count - slotCount);
+            for (int i = 0; i < assignments.Count; i++)
+            {
+                SlotAssignment assignment = assignments[i];
+                ActivityIcon icon = GetOrCreateIcon(assignment.IconType);
+                if (icon == null || assignment.Slot == null) continue;
+                PlaceIconInSlot(icon, assignment.Slot);
+                assignment.Slot.gameObject.SetActive(true);
+            }
         }
 
-        // 本视图认领所有活动区图标(含 loc6/7 通知位),按 (location_type, pos_index) 稳定排序。
-        // location_type 仍是配置/服务端驱动的分类与排序元数据,不再对应多个 Unity 显示模块。
-        private List<string> CollectOwnedIconTypes()
+        // 本视图认领所有活动区图标(含 loc6/7 通知位)，但保留老端逻辑分组；这些组都显示在同一个 HudActivity。
+        private IconGroups CollectOwnedIconGroups()
         {
-            var list = new List<string>();
+            var groups = new IconGroups();
             foreach (KeyValuePair<string, ActivityIconManager.IconInfo> kv in ActivityIconManager.Instance.IconInfoByType)
             {
                 if (kv.Value?.Data == null) continue;
-                if (kv.Key == "153") continue; // 老端占位/无效图标,不显示
-                // 612 限时抢购图标不进活动区(对标老端 Suppress612ShopActivityIconsForChatBar:活动区抑制、挪聊天条)。
-                // 数据层仍在 ActivityIconManager(LimitLevelShop 变体驱动),只是活动网格不铺它们——否则满级号一堆抢购档会平铺过量。
-                if (Is612Icon(kv.Key)) continue;
-                if (ShouldOwnActivityIcon(kv.Value.Data.LocationType))
-                    list.Add(kv.Key);
+                int location = kv.Value.Data.LocationType;
+                if (location == ActivityIconManager.LocationType.ActivityOne) groups.One.Add(kv.Key);
+                else if (location == ActivityIconManager.LocationType.ActivityTwo) groups.Two.Add(kv.Key);
+                else if (location == ActivityIconManager.LocationType.ActivityFourth) groups.Fourth.Add(kv.Key);
+                else if (location == ActivityIconManager.LocationType.ActivityOther
+                         || location == ActivityIconManager.LocationType.Notice
+                         || location == ActivityIconManager.LocationType.NoticeAfter
+                         || location == ActivityIconManager.LocationType.RightMiddle)
+                    groups.Other.Add(kv.Key);
             }
-            list.Sort(CompareIconType);
-            return list;
+            groups.One.Sort(CompareIconType);
+            groups.Two.Sort(CompareIconType);
+            groups.Other.Sort(CompareIconType);
+            groups.Fourth.Sort(CompareIconType);
+            return groups;
+        }
+
+        private List<RectTransform> FindGroupSlots(string groupName)
+        {
+            var result = new List<RectTransform>();
+            if (_gp_con == null) return result;
+            Transform group = _gp_con.Find(groupName);
+            if (group != null) CollectSlotsRecursive(group, result);
+            return result;
+        }
+
+        private static void CollectSlotsRecursive(Transform root, List<RectTransform> result)
+        {
+            if (root == null) return;
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform child = root.GetChild(i);
+                if (child.name.StartsWith(SlotPrefix) && child is RectTransform slot)
+                    result.Add(slot);
+                else
+                    CollectSlotsRecursive(child, result);
+            }
+        }
+
+        private static void SpillOverflow(List<string> source, int capacity, List<string> destination)
+        {
+            if (capacity < 0) capacity = 0;
+            if (source.Count <= capacity) return;
+            int overflowCount = source.Count - capacity;
+            destination.AddRange(source.GetRange(capacity, overflowCount));
+            source.RemoveRange(capacity, overflowCount);
+        }
+
+        private static void AddAssignments(List<string> iconTypes, List<RectTransform> slots, List<SlotAssignment> result)
+        {
+            int count = Mathf.Min(iconTypes.Count, slots.Count);
+            for (int i = 0; i < count; i++)
+                result.Add(new SlotAssignment { IconType = iconTypes[i], Slot = slots[i] });
+        }
+
+        private static void WarnOverflow(string groupName, int iconCount, int slotCount)
+        {
+            if (iconCount <= slotCount) return;
+            GameLog.Warn("MainUI", "活动组 {0}:图标 {1} 个 > 槽位 {2} 个,超出的 {3} 个未显示(在 HudActivity prefab 对应 Group 下增加槽位)",
+                groupName, iconCount, slotCount, iconCount - slotCount);
         }
 
         private ActivityIcon GetOrCreateIcon(string iconType)
@@ -202,17 +281,6 @@ namespace Shenxiao.Module.Core.MainUI
             rt.offsetMin = Vector2.zero;
             rt.offsetMax = Vector2.zero;
             icon.gameObject.SetActive(true);
-        }
-
-        private static bool ShouldOwnActivityIcon(int locationType)
-        {
-            return locationType == ActivityIconManager.LocationType.ActivityOne
-                   || locationType == ActivityIconManager.LocationType.ActivityTwo
-                   || locationType == ActivityIconManager.LocationType.ActivityOther
-                   || locationType == ActivityIconManager.LocationType.Notice
-                   || locationType == ActivityIconManager.LocationType.NoticeAfter
-                   || locationType == ActivityIconManager.LocationType.ActivityFourth
-                   || locationType == ActivityIconManager.LocationType.RightMiddle;
         }
 
         private static int CompareIconType(string a, string b)

@@ -17,6 +17,9 @@ namespace Shenxiao.Module.Core.SeaHegemony
         /// <summary>主界面图标类型(对标老端 addIcon(18601),四海争霸,location_type=6)。</summary>
         public const string ICON_TYPE = "18601";
 
+        /// <summary>老端 ActivityIcon 红点监听的海域入口。</summary>
+        public const string RED_ICON_TYPE = "1861";
+
         // 报名窗口时长:活动结束前 86400 秒(24h)进入报名期(对标老端 previewStartime = end_time - 86400)。
         private const long SIGNUP_WINDOW_SEC = 86400;
 
@@ -26,12 +29,16 @@ namespace Shenxiao.Module.Core.SeaHegemony
         /// <summary>是否已报名(对标老端 hasJoinSea = scmd.camp != 0)。</summary>
         public bool HasJoinSea => Camp != 0;
 
+        /// <summary>18600 reward_status==0 表示每日奖励可领。</summary>
+        public bool DailyRewardRed;
+
         /// <summary>18625 报名结束时间戳(服务器秒)。>0 且处于报名窗口内 → 显示图标(对标老端 scmd.end_time)。</summary>
         public long SignupEndTime;
 
-        public void SetSeaInfo(int camp)
+        public void SetSeaInfo(int camp, int rewardStatus)
         {
             Camp = camp;
+            DailyRewardRed = rewardStatus == 0;
         }
 
         public void SetSignupEndTime(long endTime)
@@ -61,6 +68,7 @@ namespace Shenxiao.Module.Core.SeaHegemony
         public void Reset()
         {
             Camp = 0;
+            DailyRewardRed = false;
             SignupEndTime = 0;
         }
     }

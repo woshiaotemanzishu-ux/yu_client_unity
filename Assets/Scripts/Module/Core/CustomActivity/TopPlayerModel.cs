@@ -42,6 +42,7 @@ namespace Shenxiao.Module.Core.CustomActivity
         }
 
         private readonly Dictionary<int, RankInfo> _rankInfoByType = new Dictionary<int, RankInfo>();
+        private bool _hasGoalRed;
 
         public RankInfo LatestRankInfo { get; private set; }
 
@@ -55,9 +56,22 @@ namespace Shenxiao.Module.Core.CustomActivity
         public RankInfo GetRankInfo(int rankType)
             => _rankInfoByType.TryGetValue(rankType, out RankInfo v) ? v : null;
 
+        public void SetGoalRed(bool value) => _hasGoalRed = value;
+
+        public bool HasEntranceRedDot()
+        {
+            if (_hasGoalRed) return true;
+            foreach (KeyValuePair<int, RankInfo> pair in _rankInfoByType)
+            {
+                if (pair.Value != null && pair.Value.Status == 1) return true;
+            }
+            return false;
+        }
+
         public void Reset()
         {
             _rankInfoByType.Clear();
+            _hasGoalRed = false;
             LatestRankInfo = null;
         }
     }

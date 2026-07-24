@@ -44,6 +44,7 @@ namespace Shenxiao.Module.Core.GrowthBenefits
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
             ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
+            ActivityIconManager.Instance.SetIconRedDot(ICON_TYPE, false);
             GrowthBenefitsModel.Instance.Reset();
             _lastLevel = -1;
             base.Dispose();
@@ -124,9 +125,10 @@ namespace Shenxiao.Module.Core.GrowthBenefits
             // (RefreshDefaultIconsCoreAsync)会跳过它,由本控制器负责增删。
             if (open) _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE);
             else ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
+            ActivityIconManager.Instance.SetIconRedDot(ICON_TYPE, open && m.GetEntranceRedDot());
 
-            GameLog.Info("GrowthBenefits", "{0} 成长福利: allReceive={1} open={2}",
-                from, m.GetTaskIsAllReceive(), open);
+            GameLog.Info("GrowthBenefits", "{0} 成长福利: allReceive={1} open={2} red={3}",
+                from, m.GetTaskIsAllReceive(), open, open && m.GetEntranceRedDot());
         }
 
         // 对标老端:主角等级变化复请求 41720(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。

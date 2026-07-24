@@ -87,7 +87,7 @@ namespace Shenxiao.Module.Core.PushGift
 
             // 还有可购礼包 → 挂图标(倒计时=最近结束时间);否则摘掉。
             if (m.GetEntranceOpenState())
-                _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE, (int)m.NextEndTime());
+                _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE, m.NextEndTime());
             else
                 ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
 

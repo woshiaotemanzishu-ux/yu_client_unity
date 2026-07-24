@@ -4,6 +4,7 @@ using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.MainUI;
 
 namespace Shenxiao.Module.Core.CustomActivity
 {
@@ -129,7 +130,28 @@ namespace Shenxiao.Module.Core.CustomActivity
         {
             List<CustomActivityModel.ActEntry> list = r.ReadArray(CustomActivityModel.ReadActEntry);
             CustomActivityModel.Instance.AddActEntries(list);
+            for (int i = 0; i < list.Count; i++)
+            {
+                CustomActivityModel.ActEntry entry = list[i];
+                _cachedList.RemoveAll(x => x.BaseType == entry.BaseType && x.SubType == entry.SubType);
+                _cachedList.Add(new ActInfo
+                {
+                    BaseType = entry.BaseType,
+                    SubType = entry.SubType,
+                    ActType = entry.ActType,
+                    ShowId = entry.ShowId,
+                    Wlv = entry.Wlv,
+                    Name = entry.Name,
+                    Desc = entry.Desc,
+                    Condition = entry.Condition,
+                    StartTime = entry.Stime,
+                    EndTime = entry.Etime,
+                });
+            }
             RequestSeeOnArrivalDetailsIncremental(list);
+            RequestDirectBranchDetails();
+            ReapplyGenericIcons();
+            EvaluateFeastBoss();
             EventDispatcher.Emit(GlobalEvent.EVT_CUSTOMACT_LIST_ADD);
             GameLog.Info("CustomActivity", "33102 活动增量新开 count={0}", list.Count);
         }
@@ -139,6 +161,18 @@ namespace Shenxiao.Module.Core.CustomActivity
         {
             List<(int BaseType, int SubType)> keys = r.ReadArray(rr => ((int)rr.ReadU16(), (int)rr.ReadU16()));
             CustomActivityModel.Instance.RemoveActEntries(keys);
+            for (int i = 0; i < keys.Count; i++)
+            {
+                int baseType = keys[i].BaseType;
+                int subType = keys[i].SubType;
+                _cachedList.RemoveAll(x => x.BaseType == baseType && x.SubType == subType);
+                if (baseType == FTVINVEST_BASE_TYPE)
+                    ActivityIconManager.Instance.DeleteIcon(FTVINVEST_ICON);
+                else if (baseType == RED_ENVELOPE_REBATE_BASE_TYPE)
+                    ActivityIconManager.Instance.DeleteIcon(RED_ENVELOPE_REBATE_ICON);
+            }
+            ReapplyGenericIcons();
+            EvaluateFeastBoss();
             EventDispatcher.Emit(GlobalEvent.EVT_CUSTOMACT_LIST_REMOVE);
             GameLog.Info("CustomActivity", "33103 活动增量关闭 count={0}", keys.Count);
         }
@@ -167,6 +201,7 @@ namespace Shenxiao.Module.Core.CustomActivity
                 }
             }
             CustomActivityModel.Instance.SetDetail(baseType, subType, list);
+            _ = RefreshCustomActivityRedDotsAsync();
             EventDispatcher.Emit(GlobalEvent.EVT_CUSTOMACT_DETAIL_UPDATE, baseType, subType);
             GameLog.Info("CustomActivity", "33104 单活动详情 base={0} sub={1} rewardN={2}", baseType, subType, list.Count);
         }
@@ -183,6 +218,8 @@ namespace Shenxiao.Module.Core.CustomActivity
             if (code == 1)
             {
                 CustomActivityModel.Instance.SetClaimResult(baseType, subType, grade, code);
+                CustomActivityModel.Instance.MarkDetailClaimed(baseType, subType, grade);
+                _ = RefreshCustomActivityRedDotsAsync();
             }
             else
             {

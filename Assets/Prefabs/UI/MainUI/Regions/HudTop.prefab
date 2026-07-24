@@ -1425,67 +1425,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!1 &3297387754136869991
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1632446235433150233}
-  - component: {fileID: 105047004935088604}
-  m_Layer: 0
-  m_Name: mainui_moneyitem_income_glow
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1632446235433150233
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3297387754136869991}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 753821603694115364}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 32, y: 32}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &105047004935088604
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3297387754136869991}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cfac8b9ef2963264d95e63907418724c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Common::Shenxiao.Common.UI3D.UIEffectSlot
-  _kind: 2
-  _slotId: mainui_moneyitem_income_glow
-  _addressKey: effect/objs/ui_effect/ui_bangyu_3/ui_bangyu_3
-  _source: yu_client mainUI/MainUIMoneyItem.ts:98-113
-  _note: "trigger=event UPDATE_MAINUI_MONEY(type, show_effect=true),\u9876\u90E8\u8D27\u5E01(\u94BB\u77F3/\u7ED1\u94BB/\u91D1\u5E01)\u6570\u503C\u589E\u52A0\u65F6\u7684\u8FDB\u8D26\u5149\u6548\u3002MainUIMoneyItem.cs
-    \u76EE\u524D\u5B8C\u5168\u4E0D\u5F15\u7528 _box_effect(\u65E0 SetActive/\u52A0\u8F7D\u903B\u8F91);\u82E5\u8BBE
-    autoPlay=true \u4F1A\u5BFC\u81F4\u5E38\u9A7B\u663E\u793A,\u5148\u4FDD\u6301 false\u3002position/scale
-    \u5F85\u624B\u8C03\u3002"
-  _effectName: ui_bangyu_3
-  _position: {x: 0, y: 0}
-  _scale: {x: 1, y: 1, z: 1}
-  _rotationY: 0
-  _autoPlay: 0
 --- !u!1 &3325523826308343023
 GameObject:
   m_ObjectHideFlags: 0
@@ -1715,8 +1654,6 @@ MonoBehaviour:
   _img_fight_mode: {fileID: 5142738754495631846}
   _tpl_MainUIMoneyItem: {fileID: 8154244976641884625}
   _tpl_MainUITopBuffItem: {fileID: 1758000138436625912}
-  _tpl_CustomHeadItem: {fileID: 0}
-  _tpl_ActivityIcon: {fileID: 0}
 --- !u!1 &3552122354871923429
 GameObject:
   m_ObjectHideFlags: 0
@@ -3753,8 +3690,7 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 753821603694115364}
+  m_Children: []
   m_Father: {fileID: 2750287545234431801}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -3895,42 +3831,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!1 &8344541393805824789
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 753821603694115364}
-  m_Layer: 0
-  m_Name: __DynamicResources
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &753821603694115364
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8344541393805824789}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1632446235433150233}
-  m_Father: {fileID: 5425124092559282001}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &8783806230631015760
 GameObject:
   m_ObjectHideFlags: 0

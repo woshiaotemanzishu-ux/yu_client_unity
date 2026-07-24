@@ -129,7 +129,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
 
             root.gameObject.SetActive(true);
             UiCreatorKit.SavePrefab(root.gameObject, PrefabPath);
-            Debug.Log("[UiCreator] 总装完成:13 个子模块 + 折叠太极 → " + PrefabPath + "(已覆盖旧转换器版本,git 可回退)");
+            Debug.Log("[UiCreator] 总装完成:" + Parts.Length + " 个子模块 + 折叠太极 → " + PrefabPath + "(已覆盖旧转换器版本,git 可回退)");
         }
 
         /// <summary>在总装根层加折叠太极(TurnDisk)+ 挂 MainUIFoldView(点击广播 EVT_MAINUI_ACTIVITY_FOLD)。

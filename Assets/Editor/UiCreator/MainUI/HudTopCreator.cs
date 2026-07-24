@@ -31,12 +31,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     /// Bind 字段),放在 _box_money / _box_buff 下,并回填到 TopView 对应 _tpl_* 字段,供运行时
     /// BuildMoneyItems / 未来的 Buff 克隆逻辑 Instantiate。
     ///
-    /// _tpl_CustomHeadItem / _tpl_ActivityIcon 两个 Bind 字段刻意留空:老端 MainUITopView.ts 的
-    /// GetComponents/GetChildrenByNames 名单里根本没有这两个变量,也从未 new CustomHeadItem(...)/
-    /// new ActivityIcon(...) 过——它们是全项目共享的模板类型,转换器给所有视图统一开了这两个字段位,
-    /// 但本视图没有源节点可依;既有(未改动过的)Assets/Prefabs/UI/MainUI/MainUITopView.prefab 里
-    /// 这两个字段也是 fileID: 0(未绑定),与此结论一致。业务代码 HideUnbackedIndicators 对它们做了
-    /// null 判空,留空不会报错。
+    /// 老端 MainUITopView 中两个从未实例化的共享模板不进入 Unity Bind；顶部 prefab 只保留实际显示节点。
     ///
     /// 元素已尽量贴老端真实源图,贴不到回退占位色(见生成后 Debug.LogWarning + 本方法调用方报告的缺图清单)。
     /// 尺寸/位置为起步值,自行在编辑器手调。入口在「神霄/重构UI 生成器」面板。
@@ -167,11 +162,6 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             BuildMoneyBox(boxRoot, view, templates);
             BuildMapBox(boxRoot, view);
             BuildHeadBox(boxRoot, view, templates);
-
-            // 老端 MainUITopView.ts 没有任何地方 new CustomHeadItem(...)/new ActivityIcon(...),
-            // 这两个 Bind 字段刻意留空(见类注释),HideUnbackedIndicators 对它们做了 null 判空。
-            view._tpl_CustomHeadItem = null;
-            view._tpl_ActivityIcon = null;
 
             root.gameObject.SetActive(true);
             GameObject saved = UiCreatorKit.SavePrefab(root.gameObject, PrefabPath);

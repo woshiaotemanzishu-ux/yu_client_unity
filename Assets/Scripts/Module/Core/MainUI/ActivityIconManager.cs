@@ -30,15 +30,22 @@ namespace Shenxiao.Module.Core.MainUI
         public sealed class IconInfo
         {
             public string IconType;
-            public int Time;
+            public long Time;
             public string IconTxt = "";
             public string IconImg;
+            // 服务端/业务控制器下发的通用附加状态。View 只消费这些字段，不在模板里为某个活动写死判断。
+            public bool RedDot;
+            public int BadgeCount;
             public MainUIConfigs.FunctionIconCfg Data;
         }
 
         private readonly Dictionary<string, IconInfo> _iconInfoByType = new Dictionary<string, IconInfo>();
         // 被折进「收纳盒」的成员图标(对标老端 icon_box_info_dic):它们不上活动栏,点开父盒入口才在弹窗里铺。
         private readonly Dictionary<string, IconInfo> _iconBoxInfoByType = new Dictionary<string, IconInfo>();
+        // 红点可能早于图标创建到达。独立缓存对标老端 icon_red_dot_dic，AddIcon 时再灌入实例，
+        // 避免协议先回、MainUI 后创建导致首屏红点丢失。
+        private readonly Dictionary<string, bool> _redDotByType = new Dictionary<string, bool>();
+        private readonly Dictionary<string, int> _badgeByType = new Dictionary<string, int>();
         private bool _defaultIconsInitialized;
         private Task _refreshDefaultIconsTask;
         // 同步重入保护:默认图标扫描的 foreach 里 AddIcon/DeleteIcon 会同步派发增删事件,
@@ -111,7 +118,7 @@ namespace Shenxiao.Module.Core.MainUI
             }
         }
 
-        public void AddIcon(string iconType, int time = 0, string iconTxt = "", string iconImg = null)
+        public void AddIcon(string iconType, long time = 0, string iconTxt = "", string iconImg = null)
         {
             if (string.IsNullOrEmpty(iconType)) return;
 
@@ -126,6 +133,7 @@ namespace Shenxiao.Module.Core.MainUI
                 existing.Time = time;
                 existing.IconTxt = iconTxt ?? "";
                 existing.IconImg = iconImg;
+                ApplyCachedBadge(iconType, existing);
                 existing.Data = cfg;
                 EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, iconType);
             }
@@ -137,6 +145,8 @@ namespace Shenxiao.Module.Core.MainUI
                     Time = time,
                     IconTxt = iconTxt ?? "",
                     IconImg = iconImg,
+                    RedDot = GetIconRedDot(iconType),
+                    BadgeCount = GetIconBadge(iconType),
                     Data = cfg,
                 };
                 EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_ADD, iconType, cfg.LocationType);
@@ -151,7 +161,7 @@ namespace Shenxiao.Module.Core.MainUI
         /// (其 open_lv=999/max_open_day 会拦掉),由调用方(各自功能控制器)负责门判。
         /// 仅供 TopPlayerController 等专属流程使用,不要在 RefreshDefaultIconsCoreAsync 通用扫描里调。
         /// </summary>
-        public void AddOwnerIcon(string iconType, int time = 0, string iconTxt = "", string iconImg = null)
+        public void AddOwnerIcon(string iconType, long time = 0, string iconTxt = "", string iconImg = null)
         {
             if (string.IsNullOrEmpty(iconType)) return;
 
@@ -167,6 +177,7 @@ namespace Shenxiao.Module.Core.MainUI
                 existing.Time = time;
                 existing.IconTxt = iconTxt ?? "";
                 existing.IconImg = iconImg;
+                ApplyCachedBadge(iconType, existing);
                 existing.Data = cfg;
                 EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, iconType);
             }
@@ -178,6 +189,8 @@ namespace Shenxiao.Module.Core.MainUI
                     Time = time,
                     IconTxt = iconTxt ?? "",
                     IconImg = iconImg,
+                    RedDot = GetIconRedDot(iconType),
+                    BadgeCount = GetIconBadge(iconType),
                     Data = cfg,
                 };
                 EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_ADD, iconType, cfg.LocationType);
@@ -186,7 +199,7 @@ namespace Shenxiao.Module.Core.MainUI
             if (cfg.IsBox) DeleteIconAndIntoBox(iconType);
         }
 
-        public async Task AddIconAsync(string iconType, int time = 0, string iconTxt = "", string iconImg = null)
+        public async Task AddIconAsync(string iconType, long time = 0, string iconTxt = "", string iconImg = null)
         {
             await MainUIConfigs.EnsureLoaded();
             AddIcon(iconType, time, iconTxt, iconImg);
@@ -199,31 +212,96 @@ namespace Shenxiao.Module.Core.MainUI
             else DeleteIcon("159");
         }
 
-        public async Task RefreshRechargeIconAsync(bool haveFirstRecharge)
+        /// <summary>
+        /// 更新活动入口红点。各业务控制器只负责把自己的服务端状态换算成 bool，ActivityIcon 统一负责表现；
+        /// 图标位于收纳盒时会同步刷新父盒入口，不要求 View 知道具体活动类型。
+        /// </summary>
+        public void SetIconRedDot(string iconType, bool show)
         {
-            await MainUIConfigs.EnsureLoaded();
-            const string normalIcon = "158@0";
-            const string multipleIcon = "158@3";
-            if (haveFirstRecharge)
-            {
-                DeleteIcon(normalIcon);
-                AddIcon(multipleIcon);
-            }
-            else
-            {
-                DeleteIcon(multipleIcon);
-                AddIcon(normalIcon);
-            }
+            if (string.IsNullOrEmpty(iconType)) return;
+            _redDotByType[iconType] = show;
+            if (!TryGetAnyIconInfo(iconType, out IconInfo info, out bool inBox)) return;
+            if (info.RedDot == show) return;
+            info.RedDot = show;
+            if (inBox) RefreshHolderBadge(iconType);
+            else EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, iconType);
+        }
+
+        /// <summary>更新数字角标；count&lt;=0 时自动退回普通红点状态。</summary>
+        public void SetIconBadge(string iconType, int count)
+        {
+            if (string.IsNullOrEmpty(iconType)) return;
+            int safeCount = count > 0 ? count : 0;
+            _badgeByType[iconType] = safeCount;
+            if (!TryGetAnyIconInfo(iconType, out IconInfo info, out bool inBox)) return;
+            if (info.BadgeCount == safeCount) return;
+            info.BadgeCount = safeCount;
+            if (inBox) RefreshHolderBadge(iconType);
+            else EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, iconType);
+        }
+
+        public bool GetIconRedDot(string iconType)
+            => !string.IsNullOrEmpty(iconType) && _redDotByType.TryGetValue(iconType, out bool show) && show;
+
+        public int GetIconBadge(string iconType)
+            => !string.IsNullOrEmpty(iconType) && _badgeByType.TryGetValue(iconType, out int count) ? count : 0;
+
+        private void ApplyCachedBadge(string iconType, IconInfo info)
+        {
+            if (info == null) return;
+            info.RedDot = GetIconRedDot(iconType);
+            info.BadgeCount = GetIconBadge(iconType);
         }
 
         public void DeleteIcon(string iconType)
         {
             if (string.IsNullOrEmpty(iconType)) return;
+            MainUIConfigs.BoxIconCfg memberCfg = MainUIConfigs.GetBoxIconCfg(iconType);
             // 对标老端 deleteIcon:栏上 or 盒里任一有它都要删,且两处都清(收纳盒成员也走这里回收)。
             bool had = _iconInfoByType.Remove(iconType);
             bool hadBox = _iconBoxInfoByType.Remove(iconType);
             if (!had && !hadBox) return;
             EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_DELETE, iconType);
+            if (hadBox && memberCfg != null) RefreshHolderBadgeByType(memberCfg.AttachIconType);
+        }
+
+        private bool TryGetAnyIconInfo(string iconType, out IconInfo info, out bool inBox)
+        {
+            inBox = false;
+            if (string.IsNullOrEmpty(iconType)) { info = null; return false; }
+            if (_iconInfoByType.TryGetValue(iconType, out info)) return true;
+            if (_iconBoxInfoByType.TryGetValue(iconType, out info))
+            {
+                inBox = true;
+                return true;
+            }
+            return false;
+        }
+
+        private void RefreshHolderBadge(string memberIconType)
+        {
+            MainUIConfigs.BoxIconCfg cfg = MainUIConfigs.GetBoxIconCfg(memberIconType);
+            if (cfg != null) RefreshHolderBadgeByType(cfg.AttachIconType);
+        }
+
+        private void RefreshHolderBadgeByType(string holderIconType)
+        {
+            if (string.IsNullOrEmpty(holderIconType)
+                || !_iconInfoByType.TryGetValue(holderIconType, out IconInfo holder)) return;
+
+            // 父盒也可能有自己的业务红点/数字角标；聚合成员时不能把父盒自身状态覆盖掉。
+            bool red = GetIconRedDot(holderIconType);
+            int badge = GetIconBadge(holderIconType);
+            foreach (KeyValuePair<string, IconInfo> kv in _iconBoxInfoByType)
+            {
+                MainUIConfigs.BoxIconCfg memberCfg = MainUIConfigs.GetBoxIconCfg(kv.Key);
+                if (memberCfg == null || memberCfg.AttachIconType != holderIconType || kv.Value == null) continue;
+                red |= kv.Value.RedDot;
+                badge += kv.Value.BadgeCount;
+            }
+            holder.RedDot = red;
+            holder.BadgeCount = badge;
+            EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, holderIconType);
         }
 
         private static bool FunIsOpenByIconType(MainUIConfigs.FunctionIconCfg cfg)
@@ -236,9 +314,6 @@ namespace Shenxiao.Module.Core.MainUI
             int level = role.HasBaseInfo ? role.Level : 0;
             int openDay = ServerTimeModel.GetOpenServerDay();
             if (openDay <= 0) openDay = 1;
-
-            // 2820 特判(对标老端 addIcon:iconType=="2820" && openDay>15 → 只看等级≥160,忽略自身 open_lv/open_day)。
-            if (cfg.IconType == "2820" && openDay > 15) return level >= 160;
 
             if (level < cfg.OpenLv) return false;
             if (openDay < cfg.OpenDay) return false;
@@ -253,7 +328,7 @@ namespace Shenxiao.Module.Core.MainUI
         /// 成员图标够格则折进收纳盒:从栏上撤下、记入 _iconBoxInfoByType、并惰性生成父盒入口图标。
         /// 返回 true=已折进盒(调用方应直接返回,不上栏);false=正常渲染。对标老端 addIcon 中段(:291-314)。
         /// </summary>
-        private bool TryRouteIntoBox(string iconType, int time, string iconTxt, string iconImg, MainUIConfigs.FunctionIconCfg cfg)
+        private bool TryRouteIntoBox(string iconType, long time, string iconTxt, string iconImg, MainUIConfigs.FunctionIconCfg cfg)
         {
             MainUIConfigs.BoxIconCfg boxCfg = MainUIConfigs.GetBoxIconCfg(iconType);
             if (boxCfg == null) return false;
@@ -265,6 +340,13 @@ namespace Shenxiao.Module.Core.MainUI
             }
             if (!NeedInputBox(boxCfg)) return false;   // 够不上放入条件 → 正常渲染
 
+            bool redDot = GetIconRedDot(iconType);
+            int badgeCount = GetIconBadge(iconType);
+            if (TryGetAnyIconInfo(iconType, out IconInfo oldInfo, out _))
+            {
+                redDot |= oldInfo.RedDot;
+                if (oldInfo.BadgeCount > badgeCount) badgeCount = oldInfo.BadgeCount;
+            }
             DeleteIcon(iconType);   // 从栏上/盒里撤下(若在)
             _iconBoxInfoByType[iconType] = new IconInfo
             {
@@ -272,10 +354,13 @@ namespace Shenxiao.Module.Core.MainUI
                 Time = time,
                 IconTxt = iconTxt ?? "",
                 IconImg = iconImg,
+                RedDot = redDot,
+                BadgeCount = badgeCount,
                 Data = cfg,
             };
             if (GetIconInfo(boxCfg.AttachIconType) == null)
                 AddIcon(boxCfg.AttachIconType);   // 惰性生成父盒入口图标(100/101)
+            RefreshHolderBadgeByType(boxCfg.AttachIconType);
             return true;
         }
 
@@ -348,6 +433,8 @@ namespace Shenxiao.Module.Core.MainUI
                 }
                 if (isDelete && GetBoxIconInfo(boxIcon) != null) DeleteIcon(boxIcon);
                 AddIcon(iconType, iconInfo.Time, iconInfo.IconTxt, iconInfo.IconImg);
+                SetIconRedDot(iconType, iconInfo.RedDot);
+                SetIconBadge(iconType, iconInfo.BadgeCount);
             }
         }
 

@@ -1,3 +1,5 @@
+using Shenxiao.Framework.Util;
+
 namespace Shenxiao.Module.Core.KfHolyArea
 {
     /// <summary>
@@ -18,11 +20,11 @@ namespace Shenxiao.Module.Core.KfHolyArea
         public const string ICON_TYPE = "284";
 
         // 28410 活动时间窗(对标老端 time_data = {act_start, act_end})
-        public int ActStart; // 活动开始时间戳
-        public int ActEnd;   // 活动结束时间戳(>0 表示本期神陨禁区已配置/开启)
+        public long ActStart; // u32 Unix 秒
+        public long ActEnd;   // u32 Unix 秒(>0 表示本期神陨禁区已配置/开启)
 
         /// <summary>写入 28410 下发的活动时间窗。</summary>
-        public void SetActTime(int actStart, int actEnd)
+        public void SetActTime(long actStart, long actEnd)
         {
             ActStart = actStart;
             ActEnd = actEnd;
@@ -37,6 +39,16 @@ namespace Shenxiao.Module.Core.KfHolyArea
         public bool GetEntranceOpenState()
         {
             return ActEnd > 0;
+        }
+
+        /// <summary>
+        /// 28410 下发的是当天 09:00~次日 02:00 的绝对活动窗。入口存在但尚未进入时段时不显示状态，
+        /// 当前时间落在服务端窗口内则显示运行态；文案通过 IconInfo 交给通用模板，不在 prefab 写死。
+        /// </summary>
+        public string GetIconStatusText()
+        {
+            long now = TimeUtil.NowSec();
+            return ActStart > 0 && now >= ActStart && now < ActEnd ? "进行中" : "";
         }
 
         public void Reset()
