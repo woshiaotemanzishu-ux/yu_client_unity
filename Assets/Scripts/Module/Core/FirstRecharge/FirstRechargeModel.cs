@@ -8,6 +8,17 @@ namespace Shenxiao.Module.Core.FirstRecharge
     /// </summary>
     public sealed class FirstRechargeModel
     {
+        public enum MainIconPresentation
+        {
+            Hidden,
+            NewRoleBanner,
+            StandardIcon,
+        }
+
+        // 老端 FirstRechargeController.CheckShowBubble 的权威展示窗：create_role_time + 30 分钟。
+        // 服务端 15905 只下发 IsNotify，不下发持续时长；这里保留协议配套语义，不把它伪装成活动配置。
+        private const long NewRoleBannerDurationSeconds = 30L * 60L;
+
         public static readonly FirstRechargeModel Instance = new FirstRechargeModel();
         private FirstRechargeModel() { }
 
@@ -91,6 +102,25 @@ namespace Shenxiao.Module.Core.FirstRecharge
         public bool ShouldShowMainIcon()
         {
             return Slots.Count > 0 && !IsDoneAllReward();
+        }
+
+        public long GetNewRoleBannerEndTime(long registerTime)
+        {
+            return registerTime > 0 ? registerTime + NewRoleBannerDurationSeconds : 0;
+        }
+
+        /// <summary>
+        /// 对标老端 FirstRechargeController.CheckShowBubble：
+        /// 已通知/已充值显示普通 159 图标；未充值的新角色在创角后 30 分钟内显示横幅，超时切普通图标。
+        /// </summary>
+        public MainIconPresentation ResolveMainIconPresentation(long nowSec, bool roleInfoReady, long registerTime)
+        {
+            if (!ShouldShowMainIcon()) return MainIconPresentation.Hidden;
+            if (IsNotify || IsDoneFirstRecharge()) return MainIconPresentation.StandardIcon;
+            if (!roleInfoReady || registerTime <= 0) return MainIconPresentation.Hidden;
+            return nowSec < GetNewRoleBannerEndTime(registerTime)
+                ? MainIconPresentation.NewRoleBanner
+                : MainIconPresentation.StandardIcon;
         }
     }
 }

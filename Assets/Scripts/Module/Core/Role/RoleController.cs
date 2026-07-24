@@ -110,7 +110,7 @@ namespace Shenxiao.Module.Core.Role
             r.ReadU64();                     // mate_role_id
             r.ReadString();                  // ip
             r.ReadU16();                     // camp(阵营)
-            r.ReadU32();                     // reg_time
+            m.RegisterTime = r.ReadU32();    // reg_time(Unix 秒)
             // level 不在 13001 里(由 13003 给);若从未收到 13003,用 figure.level 兜底
             if (m.Level == 0 && m.Figure != null) m.Level = m.Figure.level;
             m.MarkBaseInfoReady();

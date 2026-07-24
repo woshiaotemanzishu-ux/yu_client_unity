@@ -12,6 +12,7 @@ using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Tasks;
 using Shenxiao.Module.Core.Team;
+using Shenxiao.Module.Core.TempleAwaken;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -40,7 +41,10 @@ namespace Shenxiao.Module.Core.MainUI
         private MainUITaskItem _mainLineItem; // _box_main_line 内的主线任务条(复用 MainUITaskItem 渲染)
         private bool _clickBound;
         private bool _taskFolded;
+        private bool _activityFolded;
         private bool _teamTabSelected; // 当前是否停在"队伍"页签(对标老端 now_type==Team,决定 _box_team 是否可见)
+        private int _templeAwakenRenderVersion;
+        private int _templeAwakenRoleLevel = int.MinValue;
 
         protected override void OnInit()
         {
@@ -51,11 +55,9 @@ namespace Shenxiao.Module.Core.MainUI
             _img_team_role_count_bg.gameObject.SetActive(false);
             _box_main_line.gameObject.SetActive(false);
             _panel_task.gameObject.SetActive(false);
-            // 神殿觉醒框 SetTempleAwaken 未移植(依赖 TempleAwakenModel);prefab 内 _box_open_awaken
-            // 烘焙了占位文案("剑魄同修提升 10/35"),首登(等级低、觉醒未解锁)老端是隐藏的 → 先整体隐藏,
-            // 不展示假占位。完整移植(按真实 TempleAwakenModel 显隐/进度)留后续轮。
+            // 默认不展示 prefab 占位态；OnShow 收到 42901 后按真实配表和角色等级刷新。
             _box_temple_awaken.gameObject.SetActive(false);
-            // 页签文字烤在 prefab 里("任务"/"队伍"),代码不再改写 —— 想改文案去 prefab(所见即所得)。
+            // 页签文字烤在 prefab 里("任务"/"组队"),代码不再改写 —— 想改文案去 prefab(所见即所得)。
             _lb_task_desc_en.gameObject.SetActive(false);
             _lb_team_desc_en.gameObject.SetActive(false);
             _img_awaken_red.gameObject.SetActive(false);
@@ -74,9 +76,13 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.On<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
             EventDispatcher.On(GlobalEvent.EVT_TEAM_INFO_UPDATE, RefreshTeamPanel);
             EventDispatcher.On(GlobalEvent.EVT_TEAM_APPLY_REDDOT_UPDATE, RefreshTeamRedDot);
+            EventDispatcher.On(GlobalEvent.EVT_TEMPLE_AWAKEN_UPDATE, RefreshTempleAwaken);
+            EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdateForTempleAwaken);
             RefreshTaskItems();
             RefreshTeamPanel();
             RefreshTeamRedDot();
+            _templeAwakenRoleLevel = RoleModel.Instance.Level;
+            RefreshTempleAwaken();
             StartAutoTaskTimer();
         }
 
@@ -88,6 +94,9 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
             EventDispatcher.Off(GlobalEvent.EVT_TEAM_INFO_UPDATE, RefreshTeamPanel);
             EventDispatcher.Off(GlobalEvent.EVT_TEAM_APPLY_REDDOT_UPDATE, RefreshTeamRedDot);
+            EventDispatcher.Off(GlobalEvent.EVT_TEMPLE_AWAKEN_UPDATE, RefreshTempleAwaken);
+            EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdateForTempleAwaken);
+            _templeAwakenRenderVersion++;
             CancelGuideTimer();
             HideMainLineTaskArrow();
             CancelAutoTaskTimer();
@@ -99,8 +108,8 @@ namespace Shenxiao.Module.Core.MainUI
         /// 故须单独一起收,否则会残留半折叠(箭头孤零零留在左边)。</summary>
         private void OnActivityFold(bool folded)
         {
-            if (_box_con != null) _box_con.gameObject.SetActive(!folded);
-            if (_img_arrow != null) _img_arrow.gameObject.SetActive(!folded);
+            _activityFolded = folded;
+            ApplyPanelFoldState();
         }
 
         private void OnTaskOneUpdated(int taskId)
@@ -346,7 +355,6 @@ namespace Shenxiao.Module.Core.MainUI
         private void ShowTaskTab()
         {
             _teamTabSelected = false;
-            _taskFolded = false;
             _box_task.gameObject.SetActive(true);
             _box_team.gameObject.SetActive(false);
             _box_non_team.gameObject.SetActive(false);
@@ -449,18 +457,99 @@ namespace Shenxiao.Module.Core.MainUI
         private void ToggleTaskPanel()
         {
             _taskFolded = !_taskFolded;
+            ApplyPanelFoldState();
             if (_taskFolded)
             {
-                _panel_task.gameObject.SetActive(false);
-                _box_main_line.gameObject.SetActive(false);
                 CancelGuideTimer();
                 HideMainLineTaskArrow();
-                GameLog.Info("MainUI", "任务栏箭头点击 → 收起任务列表");
+                GameLog.Info("MainUI", "任务/组队栏箭头点击 → 收起整个面板");
                 return;
             }
 
-            GameLog.Info("MainUI", "任务栏箭头点击 → 展开任务列表");
-            RefreshTaskItems(false);
+            GameLog.Info("MainUI", "任务/组队栏箭头点击 → 展开整个面板");
+            if (_teamTabSelected) RefreshTeamPanel();
+            else RefreshTaskItems(false);
+        }
+
+        /// <summary>
+        /// 独立箭头只收起 _box_con，箭头自身始终留在原位；太极全局折叠时才连箭头一起隐藏。
+        /// 对标老端 switch_state：_box_con 滑出左侧、_img_arrow_icon.scaleX 翻转。
+        /// </summary>
+        private void ApplyPanelFoldState()
+        {
+            if (_box_con != null)
+                _box_con.gameObject.SetActive(!_activityFolded && !_taskFolded);
+            if (_img_arrow != null)
+                _img_arrow.gameObject.SetActive(!_activityFolded);
+            if (_img_arrow_icon != null)
+            {
+                Vector3 scale = _img_arrow_icon.rectTransform.localScale;
+                float magnitude = Mathf.Abs(scale.x);
+                if (magnitude < 0.001f) magnitude = 1f;
+                scale.x = _taskFolded ? -magnitude : magnitude;
+                _img_arrow_icon.rectTransform.localScale = scale;
+            }
+        }
+
+        private void RefreshTempleAwaken()
+        {
+            int version = ++_templeAwakenRenderVersion;
+            if (_box_temple_awaken != null) _box_temple_awaken.gameObject.SetActive(false);
+            _ = RefreshTempleAwakenAsync(version);
+        }
+
+        private void OnRoleInfoUpdateForTempleAwaken()
+        {
+            int level = RoleModel.Instance.Level;
+            if (level == _templeAwakenRoleLevel) return;
+            _templeAwakenRoleLevel = level;
+            RefreshTempleAwaken();
+        }
+
+        private async Task RefreshTempleAwakenAsync(int version)
+        {
+            await TempleAwakenConfigs.EnsureLoaded();
+            if (this == null || _box_temple_awaken == null || version != _templeAwakenRenderVersion) return;
+
+            TempleAwakenConfigs.HudInfo info = TempleAwakenConfigs.BuildHudInfo(
+                TempleAwakenModel.Instance, RoleModel.Instance.Level, RoleModel.Instance.Career);
+            if (info == null || !info.Visible) return;
+
+            bool active = info.Active;
+            _box_unopen_awaken.gameObject.SetActive(!active);
+            _box_open_awaken.gameObject.SetActive(active);
+            _img_awaken_red.gameObject.SetActive(active && info.CanReceive);
+            _box_awaken_effect.gameObject.SetActive(false);
+
+            if (!active)
+            {
+                _html_open_lv.text = info.Complete
+                    ? "<color=#00FA64>已完成全部</color>"
+                    : $"<color=#00FA64>{info.OpenLevel}</color>级解锁新任务";
+                _box_temple_awaken.gameObject.SetActive(true);
+                return;
+            }
+
+            _lb_open_awaken_progress.text = $"{info.CurrentStage}/{info.TotalStage}";
+            _lb_open_awaken_task_desc.text = info.StageName ?? string.Empty;
+            _lb_open_awaken_task_desc.color = info.CanReceive
+                ? ParseColor("#00FA64")
+                : Color.white;
+            _img_goods_icon.enabled = false;
+            _img_goods_name.enabled = false;
+
+            Task<bool> iconTask = ResManager.SetImageAsync(
+                _img_goods_icon, GameResPath.GetGoodsIconPath(info.GoodsId.ToString()), false, false);
+            Task<bool> nameTask = ResManager.SetImageAsync(
+                _img_goods_name, GameResPath.GetIcon("mainUI", "sdjx_" + info.ChapterId), false, false);
+            bool[] loaded = await Task.WhenAll(iconTask, nameTask);
+            if (this == null || _box_temple_awaken == null || version != _templeAwakenRenderVersion) return;
+
+            _img_goods_icon.color = Color.white;
+            _img_goods_name.color = Color.white;
+            _img_goods_icon.enabled = loaded[0];
+            _img_goods_name.enabled = loaded[1];
+            _box_temple_awaken.gameObject.SetActive(true);
         }
 
         private void StartAutoTaskTimer()

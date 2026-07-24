@@ -92,6 +92,8 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_pet_equip_stage",    // 装备打磨阶段(1600条)
             "config_pet_equip_star",     // 装备打磨星级(1600条)
             "config_pet_equip_goods",    // 装备物品静态属性(120条)
+            "config_temple_awaken",           // 天命觉醒章节(开启等级/职业展示道具/章节阶段数;HUD 横幅)
+            "config_temple_awaken_stage",     // 天命觉醒阶段(子章/阶段文案/开启条件;HUD 横幅)
             "config_temple_awaken_kv",        // 天命觉醒 KV(前置任务/等级门槛;主线 100590)
             "config_equip_stren_lv",          // 强化消耗+属性(⚠数字键,列序 part/stren/object_list/attr_list,主键 "part@stren")
             "config_equip_stren_lv_key",      // 强化等级索引

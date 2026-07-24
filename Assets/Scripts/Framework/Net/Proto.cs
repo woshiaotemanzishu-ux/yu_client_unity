@@ -719,6 +719,8 @@
         public const int FIRST_RECHARGE_INFO = 15905;
         /// <summary>领取首充奖励。发 "c"(index);回包 Errcode:i, Index:c。</summary>
         public const int FIRST_RECHARGE_CLAIM = 15906;
+        /// <summary>首充新号横幅展示期结束通知。请求无参、无回包；服务端据此把 15905.IsNotify 置为 1。</summary>
+        public const int FIRST_RECHARGE_NOTIFY = 15907;
         /// <summary>是否已购首充。请求无参;回包 "c"(isBuy)。</summary>
         public const int FIRST_RECHARGE_ISBUY = 15908;
 

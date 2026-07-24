@@ -12,6 +12,12 @@ namespace Shenxiao.Module.Core.MainUI
     /// </summary>
     public sealed class ActivityIconManager
     {
+        public enum IconPresentation
+        {
+            Standard,
+            WideBanner,
+        }
+
         public static readonly ActivityIconManager Instance = new ActivityIconManager();
 
         public static class LocationType
@@ -36,6 +42,8 @@ namespace Shenxiao.Module.Core.MainUI
             // 服务端/业务控制器下发的通用附加状态。View 只消费这些字段，不在模板里为某个活动写死判断。
             public bool RedDot;
             public int BadgeCount;
+            // 入口形态由业务状态下发给通用模板；View 不再用 icon_type 猜测新号/老号状态。
+            public IconPresentation Presentation;
             public MainUIConfigs.FunctionIconCfg Data;
         }
 
@@ -118,7 +126,12 @@ namespace Shenxiao.Module.Core.MainUI
             }
         }
 
-        public void AddIcon(string iconType, long time = 0, string iconTxt = "", string iconImg = null)
+        public void AddIcon(
+            string iconType,
+            long time = 0,
+            string iconTxt = "",
+            string iconImg = null,
+            IconPresentation presentation = IconPresentation.Standard)
         {
             if (string.IsNullOrEmpty(iconType)) return;
 
@@ -126,13 +139,14 @@ namespace Shenxiao.Module.Core.MainUI
             if (cfg == null || !FunIsOpenByIconType(cfg)) return;
 
             // 收纳盒分流(对标老端 addIcon 中段):够格的成员图标折进盒、不上活动栏;若被折,直接返回。
-            if (TryRouteIntoBox(iconType, time, iconTxt, iconImg, cfg)) return;
+            if (TryRouteIntoBox(iconType, time, iconTxt, iconImg, presentation, cfg)) return;
 
             if (_iconInfoByType.TryGetValue(iconType, out IconInfo existing))
             {
                 existing.Time = time;
                 existing.IconTxt = iconTxt ?? "";
                 existing.IconImg = iconImg;
+                existing.Presentation = presentation;
                 ApplyCachedBadge(iconType, existing);
                 existing.Data = cfg;
                 EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_UPDATE, iconType);
@@ -147,6 +161,7 @@ namespace Shenxiao.Module.Core.MainUI
                     IconImg = iconImg,
                     RedDot = GetIconRedDot(iconType),
                     BadgeCount = GetIconBadge(iconType),
+                    Presentation = presentation,
                     Data = cfg,
                 };
                 EventDispatcher.Emit(GlobalEvent.EVT_MAINUI_ACTIVITY_ICON_ADD, iconType, cfg.LocationType);
@@ -170,7 +185,7 @@ namespace Shenxiao.Module.Core.MainUI
 
             // 自管理图标同样走收纳盒分流(老端只有一个 addIcon,box 分支对所有加入路径生效);
             // 331@10@0 等非盒图标 GetBoxIconCfg==null 会直接放行。
-            if (TryRouteIntoBox(iconType, time, iconTxt, iconImg, cfg)) return;
+            if (TryRouteIntoBox(iconType, time, iconTxt, iconImg, IconPresentation.Standard, cfg)) return;
 
             if (_iconInfoByType.TryGetValue(iconType, out IconInfo existing))
             {
@@ -199,16 +214,33 @@ namespace Shenxiao.Module.Core.MainUI
             if (cfg.IsBox) DeleteIconAndIntoBox(iconType);
         }
 
-        public async Task AddIconAsync(string iconType, long time = 0, string iconTxt = "", string iconImg = null)
+        public async Task AddIconAsync(
+            string iconType,
+            long time = 0,
+            string iconTxt = "",
+            string iconImg = null,
+            IconPresentation presentation = IconPresentation.Standard)
         {
             await MainUIConfigs.EnsureLoaded();
-            AddIcon(iconType, time, iconTxt, iconImg);
+            AddIcon(iconType, time, iconTxt, iconImg, presentation);
         }
 
-        public async Task RefreshFirstRechargeIconAsync(bool show, string iconTxt = "")
+        public async Task RefreshFirstRechargeIconAsync(
+            bool show,
+            bool showWideBanner,
+            long bannerEndTime,
+            string iconTxt = "")
         {
             await MainUIConfigs.EnsureLoaded();
-            if (show) AddIcon("159", 0, iconTxt);
+            if (show)
+            {
+                AddIcon(
+                    "159",
+                    showWideBanner ? bannerEndTime : 0,
+                    iconTxt,
+                    null,
+                    showWideBanner ? IconPresentation.WideBanner : IconPresentation.Standard);
+            }
             else DeleteIcon("159");
         }
 
@@ -328,7 +360,13 @@ namespace Shenxiao.Module.Core.MainUI
         /// 成员图标够格则折进收纳盒:从栏上撤下、记入 _iconBoxInfoByType、并惰性生成父盒入口图标。
         /// 返回 true=已折进盒(调用方应直接返回,不上栏);false=正常渲染。对标老端 addIcon 中段(:291-314)。
         /// </summary>
-        private bool TryRouteIntoBox(string iconType, long time, string iconTxt, string iconImg, MainUIConfigs.FunctionIconCfg cfg)
+        private bool TryRouteIntoBox(
+            string iconType,
+            long time,
+            string iconTxt,
+            string iconImg,
+            IconPresentation presentation,
+            MainUIConfigs.FunctionIconCfg cfg)
         {
             MainUIConfigs.BoxIconCfg boxCfg = MainUIConfigs.GetBoxIconCfg(iconType);
             if (boxCfg == null) return false;
@@ -356,6 +394,7 @@ namespace Shenxiao.Module.Core.MainUI
                 IconImg = iconImg,
                 RedDot = redDot,
                 BadgeCount = badgeCount,
+                Presentation = presentation,
                 Data = cfg,
             };
             if (GetIconInfo(boxCfg.AttachIconType) == null)
@@ -407,7 +446,7 @@ namespace Shenxiao.Module.Core.MainUI
             {
                 IconInfo info = GetIconInfo(member.IconType);
                 if (info != null)
-                    AddIcon(member.IconType, info.Time, info.IconTxt, info.IconImg);
+                    AddIcon(member.IconType, info.Time, info.IconTxt, info.IconImg, info.Presentation);
             }
         }
 
@@ -432,7 +471,7 @@ namespace Shenxiao.Module.Core.MainUI
                     if (otherCfg != null && otherCfg.AttachIconType == boxIcon) { isDelete = false; break; }
                 }
                 if (isDelete && GetBoxIconInfo(boxIcon) != null) DeleteIcon(boxIcon);
-                AddIcon(iconType, iconInfo.Time, iconInfo.IconTxt, iconInfo.IconImg);
+                AddIcon(iconType, iconInfo.Time, iconInfo.IconTxt, iconInfo.IconImg, iconInfo.Presentation);
                 SetIconRedDot(iconType, iconInfo.RedDot);
                 SetIconBadge(iconType, iconInfo.BadgeCount);
             }

@@ -16,7 +16,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     /// _tpl_MainUITaskItem/_tpl_TeamMainRoleItem,与 Bind 42 个字段一一对应):
     ///   _box_con(224x314 主体)
     ///     _box_task_tab / _box_team_tab —— 左缘竖排"任务/组队"两个 tab(点击见 BindButtons)
-    ///     _box_temple_awaken —— 神殿觉醒条(业务代码 OnInit 里整体强制隐藏,未移植;仍按契约建满结构)
+    ///     _box_temple_awaken —— 神殿觉醒条(运行时按 42901 快照 + config_temple_awaken* 配置显隐/填充)
     ///     _box_task —— 任务页内容:_panel_task(ScrollRect,任务列表)+ _box_main_line(主线引导条槽位)
     ///     _box_team —— 组队页"已有队伍"内容:_list_team(ScrollRect,克隆 _tpl_TeamMainRoleItem)
     ///     _box_non_team —— 组队页"无队伍"内容:创建队伍/查找队伍两个按钮
@@ -205,8 +205,8 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             BuildNonTeamBox(boxCon, view);
             BuildArrow(viewRoot, view);
 
-            // 默认显任务页(对标 MainUITaskTeamView.OnInit:_box_task=true,_box_team=false,_box_non_team=false;
-            // _box_temple_awaken 未移植先整体隐藏)。
+            // 默认显任务页(对标 MainUITaskTeamView.OnInit:_box_task=true,_box_team=false,_box_non_team=false)。
+            // 觉醒条默认隐藏，运行时收到 42901 后按真实等级/章节/阶段配置决定是否显示。
             view._box_task.gameObject.SetActive(true);
             view._box_team.gameObject.SetActive(false);
             view._box_non_team.gameObject.SetActive(false);
@@ -240,11 +240,15 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             UiCreatorKit.TrySetSprite(taskBg, IMG_TAB_BG_LIGHT, UiCreatorKit.Palette.BtnPrimary);
             view._img_task_bg = taskBg;
 
-            // Laya centerX=0/centerY=0(居中,忽略原 x/y),fontSize18 加粗
-            TextMeshProUGUI taskDesc = UiCreatorKit.NewText("TaskTabLabel", taskTab, "任务"); // 老端: _lb_task_desc
-            UiCreatorKit.Place(taskDesc.rectTransform, 0f, 0f, 30f, 100f);
+            // 老端运行时不是直接使用 30x100 / 18px:生成代码会把字号放大到 36 后将整个
+            // Label 缩放为 0.5，最终可见 bounds 为 local(10,47) 15x50。Unity 直接照设计尺寸
+            // 会让文字盒大一倍，页签看起来偏位、留白和内容缩进都不对；这里烤最终运行时几何。
+            TextMeshProUGUI taskDesc = UiCreatorKit.NewText("TaskTabLabel", taskTab, "任\n务"); // 老端: _lb_task_desc
+            PlaceLaya(taskDesc.rectTransform, 10f, 47f, 15f, 50f, taskTabW, taskTabH);
             taskDesc.fontSize = 18f;
             taskDesc.fontStyle = FontStyles.Bold;
+            taskDesc.alignment = TextAlignmentOptions.Center;
+            taskDesc.textWrappingMode = TextWrappingModes.NoWrap;
             taskDesc.color = ParseColor("#FFF7D6", Color.white);
             view._lb_task_desc = taskDesc;
 
@@ -266,11 +270,14 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             UiCreatorKit.TrySetSprite(teamBg, IMG_TAB_BG_NORMAL, UiCreatorKit.Palette.BtnNeutral);
             view._img_team_bg = teamBg;
 
-            // 文案烤定为"队伍"(运行时实际显示文案;原 OnInit 改写 text 的代码已删,prefab 所见即所得)。
-            TextMeshProUGUI teamDesc = UiCreatorKit.NewText("TeamTabLabel", teamTab, "队伍"); // 老端: _lb_team_desc
-            UiCreatorKit.Place(teamDesc.rectTransform, 0f, 0f, 35f, 143f); // centerX=0/centerY=0
+            // 老端 LoadSuccess 最终文案为“组队”，同样是 36px + 0.5 整体缩放；运行时快照
+            // bounds 为 local(9,32) 17.5x71.5。显式换行，避免 TMP 字体度量变化后又排回横向。
+            TextMeshProUGUI teamDesc = UiCreatorKit.NewText("TeamTabLabel", teamTab, "组\n队"); // 老端: _lb_team_desc
+            PlaceLaya(teamDesc.rectTransform, 9f, 32f, 17.5f, 71.5f, teamTabW, teamTabH);
             teamDesc.fontSize = 18f;
             teamDesc.fontStyle = FontStyles.Bold;
+            teamDesc.alignment = TextAlignmentOptions.Center;
+            teamDesc.textWrappingMode = TextWrappingModes.NoWrap;
             teamDesc.color = ParseColor("#6CFFD3", Color.cyan);
             view._lb_team_desc = teamDesc;
 
@@ -296,12 +303,13 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             view._img_team_role_count_bg = teamCountBg;
 
             TextMeshProUGUI teamRoleCount = UiCreatorKit.NewText("TeamMemberCountLabel", teamCountBg.transform, "1"); // 老端: _lb_team_role_count
-            PlaceLaya(teamRoleCount.rectTransform, 12f, 9f, 17f, 36f, 34f, 34f);
+            // 老端同样经过 0.5 整体缩放，烤最终可见 bounds。
+            PlaceLaya(teamRoleCount.rectTransform, 12f, 9f, 8.5f, 18f, 34f, 34f);
             teamRoleCount.fontSize = 18f;
             view._lb_team_role_count = teamRoleCount;
         }
 
-        // ---------------------------------------------------------------- 神殿觉醒条(未移植,整体隐藏,仍按契约建满)
+        // ---------------------------------------------------------------- 神殿觉醒条(结构完整，运行时数据驱动)
 
         private static void BuildTempleAwaken(Transform boxCon, MainUITaskTeamView view)
         {
@@ -497,7 +505,8 @@ namespace Shenxiao.Editor.UiCreator.MainUI
 
             // 运行时快照实测尺寸 160x40(设计源没写 width/height)
             TextMeshProUGUI createLabel = UiCreatorKit.NewText("CreateTeamLabel", createTeam.transform, "创建队伍"); // 老端: _lb_create_team
-            PlaceLaya(createLabel.rectTransform, 56f, 20f, 160f, 40f, 171f, 60f);
+            // Laya 生成代码将 40px 文本整体缩放 0.5，最终为 80x20 / 20px。
+            PlaceLaya(createLabel.rectTransform, 56f, 20f, 80f, 20f, 171f, 60f);
             createLabel.fontSize = 20f;
             createLabel.fontStyle = FontStyles.Italic;
             view._lb_create_team = createLabel;
@@ -509,7 +518,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             view._img_search_team = searchTeam;
 
             TextMeshProUGUI searchLabel = UiCreatorKit.NewText("SearchTeamLabel", searchTeam.transform, "查找队伍"); // 老端: _lb_search_team
-            PlaceLaya(searchLabel.rectTransform, 56f, 20f, 160f, 40f, 171f, 60f);
+            PlaceLaya(searchLabel.rectTransform, 56f, 20f, 80f, 20f, 171f, 60f);
             searchLabel.fontSize = 20f;
             searchLabel.fontStyle = FontStyles.Italic;
             view._lb_search_team = searchLabel;

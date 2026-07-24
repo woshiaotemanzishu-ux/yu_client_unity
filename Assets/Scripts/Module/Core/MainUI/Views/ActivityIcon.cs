@@ -19,9 +19,7 @@ namespace Shenxiao.Module.Core.MainUI
         public const float WIDTH = 72f;
         public const float HEIGHT = 72f;
 
-        // 首充气泡上下浮动(对标老端 FirstRechargeBubble._box_icon 的 POSY pingpong:向上 10px、单程 1.5s、循环)。
-        // 老端只有首充气泡这一个图标会浮动,故按图标类型自启;布局每帧改 anchoredPosition,浮动只在布局基准位上叠加偏移。
-        private const string FloatIconType = "159";
+        // 宽横幅上下浮动(当前用于首充新号形态，对标老端 FirstRechargeBubble._box_icon 的 POSY pingpong)。
         private const float FloatDistance = 10f;
         private const float FloatDuration = 1.5f;
 
@@ -45,6 +43,9 @@ namespace Shenxiao.Module.Core.MainUI
 
         // 首充气泡复合体只建一次(159 图标:把通用单图标替换成 bg+横幅)。
         private bool _bubbleBuilt;
+        private RectTransform _bubbleRoot;
+        private TextMeshProUGUI _bubbleTimeLabel;
+        private Coroutine _bubbleCountdown;
 
         // 图标特效(对标老端 ActivityIcon.SetIconEffect:cfg.effect_name 有值时 AddUIEffect 到 _box_effect2)。
         private UIEffectStage.Handle _effect;
@@ -65,7 +66,7 @@ namespace Shenxiao.Module.Core.MainUI
         public void SetIconType(string iconType)
         {
             _iconType = iconType;
-            _floatEnabled = iconType == FloatIconType;
+            SetFloatEnabled(false);
             _ = RefreshAsync();
         }
 
@@ -116,7 +117,20 @@ namespace Shenxiao.Module.Core.MainUI
         private void StopFloat()
         {
             if (_float != null) { StopCoroutine(_float); _float = null; }
-            if (_floatEnabled) ((RectTransform)transform).anchoredPosition = _floatBase; // 归位到布局基准位
+            ((RectTransform)transform).anchoredPosition = _floatBase; // 归位到布局基准位
+        }
+
+        private void SetFloatEnabled(bool enabled)
+        {
+            if (_floatEnabled == enabled)
+            {
+                if (enabled) StartFloat();
+                return;
+            }
+
+            StopFloat();
+            _floatEnabled = enabled;
+            if (enabled) StartFloat();
         }
 
         // 折叠(_gp_con 失活)时 Unity 会停掉浮动协程,但 _float 引用还在;展开(SetActive true)时若不清引用,
@@ -126,12 +140,14 @@ namespace Shenxiao.Module.Core.MainUI
         {
             if (_floatEnabled) StartFloat();
             if (_countdownEnabled && _countdown == null) ResumeCountdown();
+            if (IsFirstRechargeBubble && _bubbleCountdown == null) StartBubbleCountdown();
         }
 
         private void OnDisable()
         {
             _float = null; // 失活时协程已被 Unity 停,只清残留引用(无需 StopCoroutine)
             _countdown = null; // 同上;保留结束时间,展开/复用时 OnEnable 会按服务器时间续跑
+            _bubbleCountdown = null;
         }
 
         private IEnumerator FloatRoutine()
@@ -157,14 +173,19 @@ namespace Shenxiao.Module.Core.MainUI
                 _iconType, _cfg != null, _cfg != null ? _cfg.EffectName : "<no-cfg>", _box_effect2 != null));
             if (_cfg == null) return;
 
-            // 首充气泡(159):不走通用单图标,渲染老端 FirstRechargeBubble 的复合气泡(bg+横幅)。
+            // 入口形态来自业务状态，不再把 icon_type=159 永久解释成横幅。
+            SetFloatEnabled(IsFirstRechargeBubble);
+            SetBubbleVisible(IsFirstRechargeBubble);
             if (IsFirstRechargeBubble)
             {
                 await BuildFirstRechargeBubbleAsync();
+                StartBubbleCountdown();
                 return;
             }
 
+            StopBubbleCountdown();
             HideOptionalState();
+            if (_img_icon != null) _img_icon.gameObject.SetActive(true);
             await SetIconImgAsync();
             if (this == null) return;
             RefreshDescription();
@@ -172,14 +193,19 @@ namespace Shenxiao.Module.Core.MainUI
             await RefreshEffectAsync();
         }
 
-        // “159” = 首充气泡,与 FloatIconType 同一个图标:用作渲染分支判断(_floatEnabled 仅表达浮动语义)。
-        private bool IsFirstRechargeBubble => _iconType == FloatIconType;
+        private bool IsFirstRechargeBubble =>
+            _info != null && _info.Presentation == ActivityIconManager.IconPresentation.WideBanner;
+
+        private void SetBubbleVisible(bool visible)
+        {
+            if (_bubbleRoot != null) _bubbleRoot.gameObject.SetActive(visible);
+        }
 
         /// <summary>
         /// 渲染首充气泡复合体(对标老端 FirstRechargeBubble._box_icon:_img_bg + “领取新服优势”横幅图)。
         /// 老端把它做成独立 view;Unity 这里复用 159 图标的位置/浮动/收放/生命周期,只把单图标替换成气泡复合体。
         /// 贴图已预拷进 Assets/GameRes/resource/game/recharge/texture(mainui_ui_56|57,Sprite 类型);打真机包前需跑 Addressable 自动分组登记这两个 key。
-        /// 绿色倒计时(老端 _lb_time)依赖 bubble_time(创角+30min),Unity 暂无该数据源,留作后续。
+        /// 绿色倒计时直接消费 IconInfo.Time（由 13001.reg_time + 老端 30 分钟展示窗得出）。
         /// </summary>
         private async Task BuildFirstRechargeBubbleAsync()
         {
@@ -191,12 +217,17 @@ namespace Shenxiao.Module.Core.MainUI
             if (_img_desc_bg != null) _img_desc_bg.gameObject.SetActive(false);
             if (_box_arrow != null) _box_arrow.gameObject.SetActive(false);
 
-            if (_bubbleBuilt) return;
+            if (_bubbleBuilt)
+            {
+                SetBubbleVisible(true);
+                return;
+            }
             _bubbleBuilt = true;
 
             // _box_icon 容器:老端 260×129,左上锚,从图标左上角向右下展开(浮动/布局作用在本图标根,复合体随之移动)。
             // 老端 x:15 偏移(FirstRechargeBubble.scene _box_icon),这里照搬。
             RectTransform box = NewBubbleChild("_box_icon", transform, new Vector2(260f, 129f), new Vector2(15f, 0f));
+            _bubbleRoot = box;
             // 老端 RefViewPos 把整个 view scale(0.9)。缩放放在 _box_icon 容器上,而不是图标根——
             // 因为 MainUISecondaryView.RefreshIconPos 每帧对根 SetScale(1f),放根上会被复位。
             box.localScale = new Vector3(0.9f, 0.9f, 1f);
@@ -208,6 +239,17 @@ namespace Shenxiao.Module.Core.MainUI
 
             // 横幅:mainui_ui_57(“领取新服优势”烤字图),原生尺寸,老端 x=78 y=54。
             Image banner = NewBubbleImage("_img_banner", box, Vector2.zero, new Vector2(78f, -54f));
+
+            // 老端 _lb_time:x=135,y=92,anchorX=.5,fontSize=20,color=#b3ff48，格式 mm:ss.ms。
+            _bubbleTimeLabel = NewBubbleText("_lb_time", box, new Vector2(120f, 26f), new Vector2(135f, -92f));
+            _bubbleTimeLabel.fontSize = 20f;
+            _bubbleTimeLabel.color = new Color32(0xB3, 0xFF, 0x48, 0xFF);
+            _bubbleTimeLabel.alignment = TextAlignmentOptions.Center;
+            if (_lb_desc != null && _lb_desc.font != null)
+            {
+                _bubbleTimeLabel.font = _lb_desc.font;
+                _bubbleTimeLabel.fontSharedMaterial = _lb_desc.fontSharedMaterial;
+            }
 
             // 贴图已预拷进 GameRes/recharge/texture(并随包跑 Addressable 自动分组);编辑器下未分组时 ResManager 兜底直接从工程/yu_client 加载。
             // await 是为了被销毁(折叠/重建)时 SetImageAsync 内部的 image==null 守卫能早退,不对已销毁节点赋图。
@@ -237,6 +279,57 @@ namespace Shenxiao.Module.Core.MainUI
             var img = rt.gameObject.AddComponent<Image>();
             img.raycastTarget = false;
             return img;
+        }
+
+        private static TextMeshProUGUI NewBubbleText(string name, Transform parent, Vector2 size, Vector2 anchoredPos)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            var rt = (RectTransform)go.transform;
+            rt.SetParent(parent, false);
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.sizeDelta = size;
+            rt.anchoredPosition = anchoredPos;
+            rt.localScale = Vector3.one;
+            var text = go.AddComponent<TextMeshProUGUI>();
+            text.raycastTarget = false;
+            text.enableWordWrapping = false;
+            return text;
+        }
+
+        private void StartBubbleCountdown()
+        {
+            StopBubbleCountdown();
+            if (_bubbleTimeLabel == null || _info == null || _info.Time <= 0 || !gameObject.activeInHierarchy) return;
+            _bubbleCountdown = StartCoroutine(BubbleCountdownRoutine(_info.Time));
+        }
+
+        private void StopBubbleCountdown()
+        {
+            if (_bubbleCountdown == null) return;
+            StopCoroutine(_bubbleCountdown);
+            _bubbleCountdown = null;
+        }
+
+        private IEnumerator BubbleCountdownRoutine(long endTime)
+        {
+            while (true)
+            {
+                long leftMs = endTime * 1000L - TimeUtil.NowMs();
+                if (leftMs <= 0)
+                {
+                    _bubbleTimeLabel.text = "00:00.00";
+                    _bubbleCountdown = null;
+                    yield break;
+                }
+
+                long minutes = leftMs / 60000L % 60L;
+                long seconds = leftMs / 1000L % 60L;
+                long hundredths = leftMs % 1000L / 10L;
+                _bubbleTimeLabel.text = string.Format("{0:00}:{1:00}.{2:00}", minutes, seconds, hundredths);
+                yield return null;
+            }
         }
 
         /// <summary>
@@ -331,6 +424,7 @@ namespace Shenxiao.Module.Core.MainUI
 
         private void OnDestroy()
         {
+            StopBubbleCountdown();
             StopCountdown();
             ClearEffect();
         }

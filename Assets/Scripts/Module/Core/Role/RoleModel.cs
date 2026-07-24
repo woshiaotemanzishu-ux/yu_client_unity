@@ -19,6 +19,8 @@ namespace Shenxiao.Module.Core.Role
         public long RoleId;
         public int ServerId;
         public string ServerName = "";
+        /// <summary>角色注册时间（13001.reg_time，Unix 秒）；首充等“创角后限时展示”只读此权威时间。</summary>
+        public long RegisterTime;
 
         public long Exp;
         public long ExpLim;
@@ -132,6 +134,7 @@ namespace Shenxiao.Module.Core.Role
             GuildPosition = 0;
             GuildPositionName = "";
             ServerName = "";
+            RegisterTime = 0;
             PkStatus = 0;
             PeaceCdEndSec = 0;
             WorldLv = 0;

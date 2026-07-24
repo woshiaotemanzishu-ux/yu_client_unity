@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.MainUI;
+using Shenxiao.Module.Core.Role;
 
 namespace Shenxiao.Module.Core.FirstRecharge
 {
@@ -17,6 +20,11 @@ namespace Shenxiao.Module.Core.FirstRecharge
         public static readonly FirstRechargeController Instance = new FirstRechargeController();
         private FirstRechargeController() { }
 
+        private CancellationTokenSource _bannerTimerCts;
+        private bool _notifySent;
+        private bool _lastRoleReady;
+        private long _lastRegisterTime = -1;
+
         protected override void Register()
         {
             RegisterProtocal(Proto.FIRST_RECHARGE_INFO, On15905);
@@ -24,13 +32,19 @@ namespace Shenxiao.Module.Core.FirstRecharge
             RegisterProtocal(Proto.FIRST_RECHARGE_ISBUY, On15908);
             // 对标老端 FirstRechargeController.ts:196-202(dayChange):跨天后若 HasNoRecevie() 才复请求 15905。
             EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
         }
 
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
+            EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            CancelBannerTimer();
             ActivityIconManager.Instance.SetIconRedDot("159", false);
             FirstRechargeModel.Instance.Clear();
+            _notifySent = false;
+            _lastRoleReady = false;
+            _lastRegisterTime = -1;
             base.Dispose();
         }
 
@@ -46,6 +60,7 @@ namespace Shenxiao.Module.Core.FirstRecharge
         public void QueryBuy() => SendFmt(Proto.FIRST_RECHARGE_ISBUY);
         public void RequestStartupState()
         {
+            _notifySent = false;
             RequestInfo();
             QueryBuy();
         }
@@ -86,12 +101,85 @@ namespace Shenxiao.Module.Core.FirstRecharge
             EventDispatcher.Emit(GlobalEvent.EVT_FIRST_RECHARGE_UPDATE);
         }
 
-        private static async void RefreshMainUIIcons()
+        private void OnRoleInfoUpdate()
+        {
+            RoleModel role = RoleModel.Instance;
+            if (_lastRoleReady == role.HasBaseInfo && _lastRegisterTime == role.RegisterTime) return;
+            _lastRoleReady = role.HasBaseInfo;
+            _lastRegisterTime = role.RegisterTime;
+            RefreshMainUIIcons();
+        }
+
+        private void RefreshMainUIIcons()
+        {
+            _ = RefreshMainUIIconsAsync();
+        }
+
+        private async Task RefreshMainUIIconsAsync()
         {
             FirstRechargeModel model = FirstRechargeModel.Instance;
+            RoleModel role = RoleModel.Instance;
+            long now = TimeUtil.NowSec();
+            FirstRechargeModel.MainIconPresentation presentation =
+                model.ResolveMainIconPresentation(now, role.HasBaseInfo, role.RegisterTime);
+            long bannerEndTime = model.GetNewRoleBannerEndTime(role.RegisterTime);
+
+            CancelBannerTimer();
+            if (presentation == FirstRechargeModel.MainIconPresentation.StandardIcon
+                && !model.IsNotify
+                && (model.IsDoneFirstRecharge() || (bannerEndTime > 0 && now >= bannerEndTime)))
+            {
+                NotifyBannerFinished();
+            }
+
             string text = model.HasTomorrowReward() && !model.HasClaimableReward() ? "明天可领" : "";
             ActivityIconManager.Instance.SetIconRedDot("159", model.HasClaimableReward());
-            await ActivityIconManager.Instance.RefreshFirstRechargeIconAsync(model.ShouldShowMainIcon(), text);
+            bool show = presentation != FirstRechargeModel.MainIconPresentation.Hidden;
+            bool showBanner = presentation == FirstRechargeModel.MainIconPresentation.NewRoleBanner;
+            await ActivityIconManager.Instance.RefreshFirstRechargeIconAsync(show, showBanner, bannerEndTime, text);
+
+            if (showBanner && bannerEndTime > now) StartBannerTimer(bannerEndTime - now);
+        }
+
+        private void NotifyBannerFinished()
+        {
+            FirstRechargeModel model = FirstRechargeModel.Instance;
+            if (model.IsNotify || _notifySent) return;
+            _notifySent = true;
+            model.IsNotify = true;
+            SendFmt(Proto.FIRST_RECHARGE_NOTIFY);
+        }
+
+        private void StartBannerTimer(long remainingSeconds)
+        {
+            if (remainingSeconds <= 0) return;
+            _bannerTimerCts = new CancellationTokenSource();
+            _ = WaitForBannerEndAsync(remainingSeconds, _bannerTimerCts.Token);
+        }
+
+        private async Task WaitForBannerEndAsync(long remainingSeconds, CancellationToken token)
+        {
+            try
+            {
+                await TimeUtil.Delay((int)(remainingSeconds * 1000L), token);
+            }
+            catch (System.OperationCanceledException)
+            {
+                return;
+            }
+
+            if (token.IsCancellationRequested) return;
+            NotifyBannerFinished();
+            RefreshMainUIIcons();
+            EventDispatcher.Emit(GlobalEvent.EVT_FIRST_RECHARGE_UPDATE);
+        }
+
+        private void CancelBannerTimer()
+        {
+            if (_bannerTimerCts == null) return;
+            _bannerTimerCts.Cancel();
+            _bannerTimerCts.Dispose();
+            _bannerTimerCts = null;
         }
     }
 }
