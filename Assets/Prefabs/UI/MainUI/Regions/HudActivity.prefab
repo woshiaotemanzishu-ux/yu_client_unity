@@ -338,6 +338,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.MainUI.MainUIActivityView
   _gp_con: {fileID: 6031350759485748520}
+  _gp_side_left: {fileID: 0}
+  _gp_side_right: {fileID: 0}
   _tpl_ActivityIcon: {fileID: 4168206619903436392}
 --- !u!1 &3008952523969397971
 GameObject:
@@ -375,6 +377,42 @@ RectTransform:
   - {fileID: 6540449883817774763}
   - {fileID: 8828871658130074451}
   m_Father: {fileID: 6031350759485748520}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &3241478742278279805
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1953349142063319786}
+  m_Layer: 0
+  m_Name: __DynamicResources
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1953349142063319786
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3241478742278279805}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2884381734648223447}
+  m_Father: {fileID: 6869270299139688991}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -846,6 +884,71 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -92}
   m_SizeDelta: {x: 72, y: 72}
   m_Pivot: {x: 0, y: 1}
+--- !u!1 &5373577671292732094
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2884381734648223447}
+  - component: {fileID: 1069690014641824817}
+  m_Layer: 0
+  m_Name: mainui_activityicon_sacred_day2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2884381734648223447
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5373577671292732094}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1953349142063319786}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 32, y: 32}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1069690014641824817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5373577671292732094}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfac8b9ef2963264d95e63907418724c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Common::Shenxiao.Common.UI3D.UIEffectSlot
+  _kind: 2
+  _slotId: mainui_activityicon_sacred_day2
+  _addressKey: effect/objs/ui_effect/UI_1303c/UI_1303c
+  _source: yu_client mainUI/ActivityIcon.ts:1816-1822
+  _note: "trigger=\u786C\u7F16\u7801\u6761\u4EF6(icon_type==283\u300E\u5723\u5730\u300F\u4E14\u5F00\u670D\u7B2C2\u5929\u64AD\u653E),\u4E0E
+    SetIconEffect/_box_effect2 \u7684\u5E38\u89C4 cfg.effect_name \u7CFB\u7EDF\u65E0\u5173,\u662F\u72EC\u7ACB\u7684\u4E00\u6BB5\u6B7B\u4EE3\u7801\u5916\u8001\u7AEF\u7279\u5224\u3002Unity
+    \u7248\u672A\u5B9E\u73B0\u8BE5\u5224\u65AD,HideOptionalState \u6BCF\u6B21\u5237\u65B0\u90FD\u5F3A\u5236\u628A
+    _box_effect \u9690\u85CF;\u5148\u6CE8\u518C\u69FD\u4E0D\u81EA\u52A8\u64AD\u653E\u3002ActivityIcon
+    \u6A21\u677F\u5728\u672C prefab(HudActivity \u5185\u5D4C\u526F\u672C)\u4E0E\u72EC\u7ACB
+    Assets/Prefabs/UI/MainUI/ActivityIcon.prefab(\u88AB HudSecondary._tpl_ActivityIcon
+    \u5F15\u7528)\u5404\u6709\u4E00\u4EFD,\u4E24\u5904\u7ED3\u6784\u4E0D\u5171\u4EAB,\u6545\u5206\u522B\u767B\u8BB0\u4E24\u6761
+    entry\u3002position/scale \u5F85\u624B\u8C03\u3002"
+  _effectName: UI_1303c
+  _position: {x: 0, y: 0}
+  _scale: {x: 1, y: 1, z: 1}
+  _rotationY: 0
+  _autoPlay: 0
 --- !u!1 &5479342880072959590
 GameObject:
   m_ObjectHideFlags: 0
@@ -1373,12 +1476,20 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 3110419863763285766, guid: 97316890d32ea5d4fb678cc8c594ce64, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1953349142063319786}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 97316890d32ea5d4fb678cc8c594ce64, type: 3}
 --- !u!1 &4168206619903436392 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5595321515751480177, guid: 97316890d32ea5d4fb678cc8c594ce64, type: 3}
+  m_PrefabInstance: {fileID: 8394395879803534617}
+  m_PrefabAsset: {fileID: 0}
+--- !u!224 &6869270299139688991 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 3110419863763285766, guid: 97316890d32ea5d4fb678cc8c594ce64, type: 3}
   m_PrefabInstance: {fileID: 8394395879803534617}
   m_PrefabAsset: {fileID: 0}
 --- !u!224 &7315566764025140149 stripped

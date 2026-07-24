@@ -136,8 +136,9 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private static readonly string[] RightSlotSampleCandidates = { "3301.png", "2820.png", "6210.png", "137.png", "621.png" };
         private static readonly string[] LeftSlotSampleCandidates = { "159.png", "158.png", "151_1.png" };
 
-        [InitializeOnLoadMethod]
-        private static void Register()
+        // 已退役：HudSecondary 不再注册到重构 UI 生成器，也不再进入 MainUIModule。
+        // 保留旧生成代码只用于对照拆分前的几何来源；新入口见 HudAuxiliaryCreator/HudActivityCreator。
+        private static void RegisterLegacy()
         {
             UiRebuildRegistry.Register(new UiCreatorEntry
             {

@@ -35,7 +35,9 @@ namespace Shenxiao.Module.Core.MainUI
             typeof(Shenxiao.Generated.UI.FunctionOpen.FunctionOpenIconBind), // 功能预告框(HudFuncOpen 区域;原 FunctionOpenFlow 单独挂载已退役)
             typeof(MainUISkillViewBind),
             typeof(MainUIChatViewBind),
-            typeof(MainUISecondaryViewBind),
+            typeof(MainUINotificationViewBind),
+            typeof(MainUIOnHookViewBind),
+            typeof(MainUISceneAssistViewBind),
             typeof(MainUITaskTeamViewBind),
             typeof(MainUIDownViewBind),
             typeof(MainUIAutoBrushViewBind),
@@ -287,8 +289,8 @@ namespace Shenxiao.Module.Core.MainUI
 
         // ---------- 复活倒计时窗(对标老端 MainUIReliveView;独立 prefab,不在 MainUIModule 内,
         //            事件驱动按需加载缓存,同 CollectBarView/FightingUpView 既定模式) ----------
-        // prefab 由 Assets/Editor/UiCreator/MainUI/MainUIReliveCreator.cs 生成(从 HudOverlayCombat 捆包
-        // 抽取既有 BuildRelive 子树);真机包前需跑一次「神霄/资源/Addressable 自动分组」注册地址。
+        // prefab 由 Assets/Editor/UiCreator/MainUI/MainUIReliveCreator.cs 独立生成；
+        // 真机包前需跑一次「神霄/资源/Addressable 自动分组」注册地址。
 
         private static MainUIReliveView _reliveView;
         private static bool _reliveLoading;

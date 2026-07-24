@@ -14,6 +14,8 @@ namespace Shenxiao.Module.Core.MainUI
     /// 逻辑组仍对标老端 ActivityOne/Two/Other/Fourth；但它们只是同一个 HudActivity prefab 里的子层级，
     /// 不再拆成 HudNotice/HudSecondary 等多个屏幕模块。坐标、间距、尺寸和第四组缩进仍全部归 prefab。
     /// location_type=6/7(老端 _box_notice 及其后续位)并入 Other 组显示，配置/服务器仍决定图标是否存在。
+    /// location_type=4/5 分别填进 HudActivityLeft/HudActivityRight 的空槽；它们只是视觉区域拆分，
+    /// 图标增删、开关、排序、倒计时、红点与模板克隆仍全部由本类统一处理。
     ///
     /// 右上「竞榜/头号玩家榜」卡片已拆到 <see cref="MainUIRankView"/>;折叠太极已提到 <see cref="MainUIFoldView"/>(总装层)。
     /// </summary>
@@ -34,14 +36,18 @@ namespace Shenxiao.Module.Core.MainUI
             public readonly List<string> Two = new List<string>();
             public readonly List<string> Other = new List<string>();
             public readonly List<string> Fourth = new List<string>();
+            public readonly List<string> Left = new List<string>();
+            public readonly List<string> Right = new List<string>();
 
             public List<string> Flatten()
             {
-                var result = new List<string>(One.Count + Two.Count + Other.Count + Fourth.Count);
+                var result = new List<string>(One.Count + Two.Count + Other.Count + Fourth.Count + Left.Count + Right.Count);
                 result.AddRange(One);
                 result.AddRange(Two);
                 result.AddRange(Other);
                 result.AddRange(Fourth);
+                result.AddRange(Left);
+                result.AddRange(Right);
                 return result;
             }
         }
@@ -94,6 +100,8 @@ namespace Shenxiao.Module.Core.MainUI
         {
             _activityFolded = folded;
             if (_gp_con != null) _gp_con.gameObject.SetActive(!folded);
+            if (_gp_side_left != null) _gp_side_left.gameObject.SetActive(!folded);
+            if (_gp_side_right != null) _gp_side_right.gameObject.SetActive(!folded);
             if (!folded) RefreshSlotsAsync();
         }
 
@@ -114,6 +122,8 @@ namespace Shenxiao.Module.Core.MainUI
             List<RectTransform> twoSlots = FindGroupSlots(GroupTwoName);
             List<RectTransform> otherSlots = FindGroupSlots(GroupOtherName);
             List<RectTransform> fourthSlots = FindGroupSlots(GroupFourthName);
+            List<RectTransform> leftSlots = FindExternalSlots(_gp_side_left);
+            List<RectTransform> rightSlots = FindExternalSlots(_gp_side_right);
 
             // 兼容尚未重建的旧 HudActivity:旧 prefab 只有 IconGrid/Slot_0..N，仍可按旧平铺方式显示；
             // 用户重建一次 HudActivity 后自动切到分组槽位，不会出现“代码已更新但预制体一片空”的中间态。
@@ -130,13 +140,19 @@ namespace Shenxiao.Module.Core.MainUI
                 AddAssignments(groups.Two, twoSlots, assignments);
                 AddAssignments(groups.Other, otherSlots, assignments);
                 AddAssignments(groups.Fourth, fourthSlots, assignments);
+                AddAssignments(groups.Left, leftSlots, assignments);
+                AddAssignments(groups.Right, rightSlots, assignments);
                 allSlots.AddRange(oneSlots);
                 allSlots.AddRange(twoSlots);
                 allSlots.AddRange(otherSlots);
                 allSlots.AddRange(fourthSlots);
+                allSlots.AddRange(leftSlots);
+                allSlots.AddRange(rightSlots);
 
                 WarnOverflow(GroupOtherName, groups.Other.Count, otherSlots.Count);
                 WarnOverflow(GroupFourthName, groups.Fourth.Count, fourthSlots.Count);
+                WarnOverflow("HudActivityLeft", groups.Left.Count, leftSlots.Count);
+                WarnOverflow("HudActivityRight", groups.Right.Count, rightSlots.Count);
             }
             else
             {
@@ -183,6 +199,8 @@ namespace Shenxiao.Module.Core.MainUI
                 if (location == ActivityIconManager.LocationType.ActivityOne) groups.One.Add(kv.Key);
                 else if (location == ActivityIconManager.LocationType.ActivityTwo) groups.Two.Add(kv.Key);
                 else if (location == ActivityIconManager.LocationType.ActivityFourth) groups.Fourth.Add(kv.Key);
+                else if (location == ActivityIconManager.LocationType.Left) groups.Left.Add(kv.Key);
+                else if (location == ActivityIconManager.LocationType.Right) groups.Right.Add(kv.Key);
                 else if (location == ActivityIconManager.LocationType.ActivityOther
                          || location == ActivityIconManager.LocationType.Notice
                          || location == ActivityIconManager.LocationType.NoticeAfter
@@ -193,6 +211,8 @@ namespace Shenxiao.Module.Core.MainUI
             groups.Two.Sort(CompareIconType);
             groups.Other.Sort(CompareIconType);
             groups.Fourth.Sort(CompareIconType);
+            groups.Left.Sort(CompareIconType);
+            groups.Right.Sort(CompareIconType);
             return groups;
         }
 
@@ -202,6 +222,13 @@ namespace Shenxiao.Module.Core.MainUI
             if (_gp_con == null) return result;
             Transform group = _gp_con.Find(groupName);
             if (group != null) CollectSlotsRecursive(group, result);
+            return result;
+        }
+
+        private static List<RectTransform> FindExternalSlots(RectTransform root)
+        {
+            var result = new List<RectTransform>();
+            CollectSlotsRecursive(root, result);
             return result;
         }
 

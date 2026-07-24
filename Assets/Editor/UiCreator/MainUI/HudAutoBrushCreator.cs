@@ -1,3 +1,5 @@
+using Shenxiao.Common.UI3D;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Module.Core.MainUI;
 using TMPro;
@@ -29,7 +31,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     //   _img_red(斩妖挂机主图红点) -> IconRedDot
     //   click_gp                  -> OpenAutoBrushButton
     //   _img_red2                 -> ToggleRedDot
-    //   _box_challenge_effect     -> ChallengeEffectSlot
+    //   _box_challenge_effect     -> __DynamicResources/ChallengeEffectSlot
     public static class HudAutoBrushCreator
     {
         private const string PrefabPath = "Assets/Prefabs/UI/MainUI/Regions/HudAutoBrush.prefab";
@@ -78,6 +80,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             RectTransform viewRoot = UiCreatorKit.NewNode("MainUIAutoBrushView", root);
             UiCreatorKit.Stretch(viewRoot);
             viewRoot.localScale = new Vector3(0.9f, 0.9f, 1f);
+            viewRoot.gameObject.AddComponent<CanvasGroup>();
             var view = viewRoot.gameObject.AddComponent<MainUIAutoBrushView>();
 
             Image bg = UiCreatorKit.NewImage("AutoBrushIconBg", viewRoot); // 老端: _img_bg
@@ -147,14 +150,20 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             UiCreatorKit.TrySetSprite(red2, IMG_AB_RED, UiCreatorKit.Palette.Mark);
             view._img_red2 = red2;
 
-            // 快照里多出的挑战特效盒,MainUIAutoBrushViewBind 没有对应字段(_box_effect 才是业务用的那个),
-            // 只为节点覆盖度保留结构,不接引用、不影响 Bind。
-            RectTransform challengeEffect = UiCreatorKit.NewNode("ChallengeEffectSlot", viewRoot); // 老端: _box_challenge_effect
+            RectTransform dynamicResources = UiCreatorKit.NewNode("__DynamicResources", viewRoot);
+            UiCreatorKit.Stretch(dynamicResources);
+            RectTransform challengeEffect = UiCreatorKit.NewNode("ChallengeEffectSlot", dynamicResources); // 老端: _box_challenge_effect
             UiCreatorKit.Place(challengeEffect, 2f, 39f, 128f, 128f);
-            Image challengeImg = UiCreatorKit.NewImage("ChallengeEffectImg", challengeEffect);
-            UiCreatorKit.Place(challengeImg.rectTransform, 0f, 0f, 128f, 128f);
-            challengeImg.color = new Color(1f, 0.85f, 0.3f, 0.18f); // 源节点无 skin,占位半透明色块
-            challengeImg.raycastTarget = false;
+            UIEffectSlot challengeSlot = challengeEffect.gameObject.AddComponent<UIEffectSlot>();
+            challengeSlot.ConfigureEffect(
+                MainUIAutoBrushView.CHALLENGE_EFFECT_SLOT_ID,
+                "ui_mainDungeon",
+                GameResPath.GetUIEffectPrefabPath("ui_mainDungeon"),
+                "yu_client MainUIAutoBrushView.InitChallengeEffect",
+                "斩妖进度完成特效;由 MainUIAutoBrushView 按 current_times == need_times 手动消费",
+                Vector2.zero,
+                Vector3.one,
+                0f);
 
             root.gameObject.SetActive(true);
             GameObject saved = UiCreatorKit.SavePrefab(root.gameObject, PrefabPath);

@@ -44,6 +44,8 @@ namespace Shenxiao.Editor.UiCreator.MainUI
     public static class HudActivityCreator
     {
         private const string PrefabPath = "Assets/Prefabs/UI/MainUI/Regions/HudActivity.prefab";
+        private const string LeftPrefabPath = "Assets/Prefabs/UI/MainUI/Regions/HudActivityLeft.prefab";
+        private const string RightPrefabPath = "Assets/Prefabs/UI/MainUI/Regions/HudActivityRight.prefab";
         private const string IconPrefabPath = "Assets/Prefabs/UI/MainUI/Components/ActivityIcon.prefab";
 
         // 老端源图(GameRes 相对路径;均已确认在 Assets/GameRes 下)。太极图(IMG_TURN)已移到 MainUIModuleCreator。
@@ -82,11 +84,31 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             {
                 Module = "MainUI",
                 Name = "HudActivity(活动入口区)",
-                Note = "有界左上区 + 4 个逻辑组/27 个空槽;运行时按配置分组并克隆唯一 ActivityIcon 模板填槽",
+                Note = "有界左上区 + 4 个逻辑组/27 个空槽；与左右活动位共用同一个 MainUIActivityView/模板",
                 Order = 20,
                 Generate = Generate,
                 Preview = Preview,
                 PrefabPath = PrefabPath,
+            });
+
+            UiRebuildRegistry.Register(new UiCreatorEntry
+            {
+                Module = "MainUI",
+                Name = "HudActivityLeft(左侧活动位)",
+                Note = "location_type=4 的有界空槽区域；无独立逻辑、无模板，由 HudActivity 统一填充",
+                Order = 21,
+                Generate = GenerateLeft,
+                PrefabPath = LeftPrefabPath,
+            });
+
+            UiRebuildRegistry.Register(new UiCreatorEntry
+            {
+                Module = "MainUI",
+                Name = "HudActivityRight(右侧活动位)",
+                Note = "location_type=5 的有界横条槽区域；无独立逻辑、无模板，由 HudActivity 统一填充",
+                Order = 22,
+                Generate = GenerateRight,
+                PrefabPath = RightPrefabPath,
             });
         }
 
@@ -142,7 +164,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             // 末槽右缘 = 80.6 + 5*77 + 72 = 537.6,仍在区域宽 548 内,再加第 7 格右缘 614.6 会溢出 66px,
             // 故底排只排 6 格。数值取自编辑器内的手工调整(存档提交 65393a5ea),
             // 按「改 UI 一律改 Creator」铁律回写,避免下次重跑生成时被覆盖抹掉。
-            // 注:本类顶部结构注释早就写明「Group_ActivityFourth(loc4/10) —— padding.left=77 缩进,给太极让位」,
+            // 注:第四活动组(location_type=10)需要缩进给太极让位；
             // 是后来改成均匀 4×7 槽位循环时把这条缩进丢了,这里把它补回来(实测值 80.6,比原设计的 77 多 3.6px 净空)。
             const float LastRowIndent = 80.6f;
             for (int c = 0; c < SlotCols - 1; c++)
@@ -157,6 +179,48 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             EditorGUIUtility.PingObject(saved);
             Debug.Log("[UiCreator] HudActivity.prefab 已生成: " + PrefabPath +
                       "(分组槽位式:IconGrid 下 4 组/" + slotCount + " 个空槽,第四组缩进给太极让位;位置全在 prefab 可拖;人工核对后再并入 MainUIModule.prefab)");
+        }
+
+        public static void GenerateLeft()
+        {
+            RectTransform root = UiCreatorKit.NewRoot("HudActivityLeft");
+            // 旧 HudSecondary.LeftIconSlot 的运行时终态：(7,498) 起，303×72。
+            AnchorTopLeft(root, 7f, 498f, 303f, 72f);
+            root.gameObject.SetActive(false);
+            for (int i = 0; i < 4; i++)
+                BuildSlot(root, "Left", i, i * (GridCellW + GridHGap), 0f);
+            root.gameObject.SetActive(true);
+            SaveRegion(root, LeftPrefabPath, "HudActivityLeft");
+        }
+
+        public static void GenerateRight()
+        {
+            RectTransform root = UiCreatorKit.NewRoot("HudActivityRight");
+            // 旧 HudSecondary.RightIconSlot 的运行时终态：右缘锚、屏幕中线下移 250，2 列×6 行区域。
+            root.anchorMin = root.anchorMax = new Vector2(1f, 0.5f);
+            root.pivot = new Vector2(1f, 0f);
+            root.sizeDelta = new Vector2(228f, 384f);
+            root.anchoredPosition = new Vector2(0f, -250f);
+            root.gameObject.SetActive(false);
+
+            for (int i = 0; i < 8; i++)
+            {
+                RectTransform slot = UiCreatorKit.NewNode("Slot_Right_" + i.ToString("00"), root);
+                slot.anchorMin = slot.anchorMax = slot.pivot = new Vector2(1f, 0f);
+                slot.sizeDelta = new Vector2(114f, 64f);
+                slot.anchoredPosition = new Vector2(-(Mathf.Floor(i / 6f) * 114f), (i % 6) * 64f);
+            }
+
+            root.gameObject.SetActive(true);
+            SaveRegion(root, RightPrefabPath, "HudActivityRight");
+        }
+
+        private static void SaveRegion(RectTransform root, string path, string label)
+        {
+            GameObject saved = UiCreatorKit.SavePrefab(root.gameObject, path);
+            Selection.activeObject = saved;
+            EditorGUIUtility.PingObject(saved);
+            Debug.Log("[UiCreator] " + label + ".prefab 已生成：" + path + "（只含可编辑空槽，模板与逻辑统一归 HudActivity）");
         }
 
         /// <summary>只建空槽位；活动图标统一由 MainUIActivityView 克隆唯一的 ActivityIcon 模板填入。</summary>

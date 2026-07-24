@@ -11,13 +11,9 @@ using UnityEngine.UI;
 namespace Shenxiao.Editor.UiCreator.MainUI
 {
     /// <summary>
-    /// 主界面「战斗类弹层组」纯代码建树生成器,共两类产物:
+    /// 主界面战斗提示独立 prefab 生成器。
     ///
-    /// 1) HudOverlayCombat.prefab(bundle):打BOSS大血条(MainUIHiterBigBloodView)+ 复活(MainUIReliveView)+
-    ///    掉落/采集进度条(DropProgress)+ 飘花/红包特效容器(FlowerEffectView)+ 主UI特效层(MainUIEffectView)+
-    ///    伙伴技特效层(MainUIEffectPartnerSkillView)六个子视图合一,全部默认 inactive,事件驱动开合;
-    ///    之后由"总装"把这棵树整体嵌进 MainUIModule.prefab(本生成器不碰 MainUIModule)。
-    /// 2) CollectBarView.prefab / FightingUpView.prefab:各自独立 prefab,MainUIFlow 用
+    /// CollectBarView.prefab / FightingUpView.prefab 各自独立，MainUIFlow 用
     ///    GameResPath.GetUIPrefab("mainUI","CollectBarView"/"FightingUpView") 按精确文件名单独加载,
     ///    所以必须各存一份、文件名精确,不放进 bundle。
     ///
@@ -106,16 +102,6 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         [InitializeOnLoadMethod]
         private static void Register()
         {
-            UiRebuildRegistry.Register(new UiCreatorEntry
-            {
-                Module = "MainUI",
-                Name = "HudOverlayCombat(战斗弹层×6)",
-                Note = "大血条+复活+掉落进度+飘花+特效层+伙伴技特效,合一 bundle,全部默认 inactive,待总装嵌入 MainUIModule",
-                Order = 70,
-                Generate = GenerateBundle,
-                Preview = PreviewBundle,
-                PrefabPath = BundlePrefabPath,
-            });
             UiRebuildRegistry.Register(new UiCreatorEntry
             {
                 Module = "MainUI",
@@ -291,7 +277,11 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         }
 
         /// <summary>复活倒计时窗(对标老端 MainUIReliveView.json,720x600,居中)。</summary>
-        private static RectTransform BuildRelive(Transform parent)
+        /// <summary>
+        /// 复活窗的唯一建树函数。MainUIReliveCreator 直接调用它生成独立 prefab；
+        /// legacy bundle 仅保留兼容调用，不再是独立复活窗的生成前置。
+        /// </summary>
+        public static RectTransform BuildRelive(Transform parent)
         {
             RectTransform root = UiCreatorKit.NewNode("MainUIReliveView", parent);
             UiCreatorKit.Place(root, 0f, 0f, 720f, 600f); // 老端 centerX=0,centerY=0(整体居中)

@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace Shenxiao.Editor.UiCreator.MainUI
 {
     /// <summary>
-    /// 主界面【总装】生成器:把 11 个 Region + 1 个 Overlay bundle(均为重构版 UICreator 产物)
+    /// 主界面【总装】生成器:把职责清晰的有界 Region(均为重构版 UICreator 产物)
     /// 以嵌套 prefab 方式装进一个根节点,覆盖存盘为运行时实际加载的
     /// Assets/Prefabs/UI/MainUI/MainUIModule.prefab(旧 Laya 转换器版本被替换,git 可回退)。
     ///
@@ -36,6 +36,8 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         {
             ("Assets/Prefabs/UI/MainUI/Regions/HudTop.prefab", "HudTop", HudTopCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudActivity.prefab", "HudActivity", HudActivityCreator.Generate),
+            ("Assets/Prefabs/UI/MainUI/Regions/HudActivityLeft.prefab", "HudActivityLeft", HudActivityCreator.GenerateLeft),
+            ("Assets/Prefabs/UI/MainUI/Regions/HudActivityRight.prefab", "HudActivityRight", HudActivityCreator.GenerateRight),
             ("Assets/Prefabs/UI/MainUI/Regions/HudRank.prefab", "HudRank", HudRankCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudFuncOpen.prefab", "HudFuncOpen", HudFuncOpenCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudTaskTeam.prefab", "HudTaskTeam", HudTaskTeamCreator.Generate),
@@ -44,8 +46,9 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             ("Assets/Prefabs/UI/MainUI/Regions/HudJoystick.prefab", "HudJoystick", HudJoystickCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudChatBar.prefab", "HudChatBar", HudChatBarCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudNavBar.prefab", "HudNavBar", HudNavBarCreator.Generate),
-            ("Assets/Prefabs/UI/MainUI/Regions/HudSecondary.prefab", "HudSecondary", HudSecondaryCreator.Generate),
-            ("Assets/Prefabs/UI/MainUI/Overlays/HudOverlayCombat.prefab", "HudOverlayCombat", HudOverlayCombatCreator.GenerateBundle),
+            ("Assets/Prefabs/UI/MainUI/Regions/HudNotification.prefab", "HudNotification", HudAuxiliaryCreator.GenerateNotification),
+            ("Assets/Prefabs/UI/MainUI/Regions/HudOnHook.prefab", "HudOnHook", HudAuxiliaryCreator.GenerateOnHook),
+            ("Assets/Prefabs/UI/MainUI/Regions/HudSceneAssist.prefab", "HudSceneAssist", HudAuxiliaryCreator.GenerateSceneAssist),
         };
 
         /// <summary>MainUIFlow.FirstPassViews 同款首批显示顺序(预览用)。</summary>
@@ -57,7 +60,9 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             typeof(Shenxiao.Generated.UI.FunctionOpen.FunctionOpenIconBind), // 功能预告框(HudFuncOpen 区域)
             typeof(MainUISkillViewBind),
             typeof(MainUIChatViewBind),
-            typeof(MainUISecondaryViewBind),
+            typeof(MainUINotificationViewBind),
+            typeof(MainUIOnHookViewBind),
+            typeof(MainUISceneAssistViewBind),
             typeof(MainUITaskTeamViewBind),
             typeof(MainUIDownViewBind),
             typeof(MainUIAutoBrushViewBind),
@@ -74,7 +79,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             {
                 Module = "MainUI",
                 Name = "MainUIModule(总装·覆盖现网)",
-                Note = "嵌套 11 Region + 1 Overlay 存为运行时加载的 MainUIModule.prefab;loc6/7 已并入 HudActivity",
+                Note = "只嵌套有明确职责/边界的 Region；活动 loc1-10 统一由 HudActivity 管理，不再装 HudSecondary/HudOverlayCombat",
                 Order = 90,
                 Generate = Generate,
                 Preview = Preview,
@@ -112,11 +117,13 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             RectTransform root = UiCreatorKit.NewRoot("MainUIModule");
             root.gameObject.SetActive(false);
 
+            var instances = new System.Collections.Generic.Dictionary<string, GameObject>();
             foreach (var part in Parts)
             {
                 GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(part.path);
                 var inst = (GameObject)PrefabUtility.InstantiatePrefab(asset, root);
-                // 子 prefab 根都是全屏 Stretch;重挂父后把边距归零,避免继承实例化偏移。
+                instances[part.label] = inst;
+                // 仅全屏型子 prefab 重挂父后归零边距；有界 Region 保留自己的锚点、尺寸和位置。
                 if (inst.transform is RectTransform rt
                     && rt.anchorMin == Vector2.zero && rt.anchorMax == Vector2.one)
                 {
@@ -125,11 +132,34 @@ namespace Shenxiao.Editor.UiCreator.MainUI
                 }
             }
 
+            WireActivityRegions(instances);
             AddFoldTurnDisk(root); // 折叠太极提到总装层(收放不止活动区)
 
             root.gameObject.SetActive(true);
             UiCreatorKit.SavePrefab(root.gameObject, PrefabPath);
             Debug.Log("[UiCreator] 总装完成:" + Parts.Length + " 个子模块 + 折叠太极 → " + PrefabPath + "(已覆盖旧转换器版本,git 可回退)");
+        }
+
+        private static void WireActivityRegions(System.Collections.Generic.Dictionary<string, GameObject> instances)
+        {
+            if (!instances.TryGetValue("HudActivity", out GameObject activity)
+                || !instances.TryGetValue("HudActivityLeft", out GameObject left)
+                || !instances.TryGetValue("HudActivityRight", out GameObject right))
+            {
+                Debug.LogError("[UiCreator] 总装：HudActivity 三个区域实例不完整，无法统一回填左右活动位");
+                return;
+            }
+
+            MainUIActivityView view = activity.GetComponentInChildren<MainUIActivityView>(true);
+            if (view == null)
+            {
+                Debug.LogError("[UiCreator] 总装：HudActivity 缺 MainUIActivityView");
+                return;
+            }
+
+            view._gp_side_left = left.transform as RectTransform;
+            view._gp_side_right = right.transform as RectTransform;
+            PrefabUtility.RecordPrefabInstancePropertyModifications(view);
         }
 
         /// <summary>在总装根层加折叠太极(TurnDisk)+ 挂 MainUIFoldView(点击广播 EVT_MAINUI_ACTIVITY_FOLD)。
@@ -157,7 +187,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
                 EditorUtility.DisplayDialog("预览 MainUIModule",
                     "请先进入 Play 模式(UI 层已初始化)再点预览。\n\n" +
                     "预览会复刻 MainUIFlow 的做法:实例化总装 prefab → 关闭全部 BaseView → " +
-                    "按 InitMainUI 顺序 Show 首批 9 个视图。弹层类视图保持关闭。",
+                    "按 InitMainUI 顺序 Show 首批常驻视图。弹层类视图保持关闭。",
                     "好");
                 return;
             }

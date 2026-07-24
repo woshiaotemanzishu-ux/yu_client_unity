@@ -59,6 +59,7 @@ namespace Shenxiao.Module.Core.MainUI
         {
             public int Id;
             public string Name;
+            public int Type;      // 1=野外场景(对标老端 SceneManager.IsFieldScene)
             public int Subtype;   // 1=安全场景(整场安全、禁释放技能;对标老端 SceneManager.IsSafeScene)
 
             /// <summary>本场景可切换的 PK 模式列表(requirement 里 type=="pkstate_list" 的 attr;
@@ -228,11 +229,19 @@ namespace Shenxiao.Module.Core.MainUI
             {
                 Id = ReadInt(obj, "id", sceneId),
                 Name = ReadString(obj, "name").Trim(),
+                Type = ReadInt(obj, "type"),
                 Subtype = ReadInt(obj, "subtype"),
                 PkStateList = ReadPkStateList(obj, sceneId),
             };
             _sceneCache[sceneId] = cfg;
             return cfg;
+        }
+
+        /// <summary>按 config_scene.type 判断野外场景,对标老端 SceneManager.IsFieldScene。</summary>
+        public static bool IsFieldScene(int sceneId)
+        {
+            SceneCfg cfg = GetSceneCfg(sceneId);
+            return cfg != null && cfg.Type == 1;
         }
 
         /// <summary>requirement 是"转义 JSON 字符串"(数组,元素 {attr,type}),二次解析取 pkstate_list 的 attr。
