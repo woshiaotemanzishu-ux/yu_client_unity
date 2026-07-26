@@ -2047,6 +2047,8 @@
         public const int BRIGHT_SEA_ASSIST_BGOLD_INFO = 18916;
         /// <summary>无尽之海本人巡航状态快照(C2S 严格空包；S2C auto_id:u64,status:u8,reward_times:u8,total_reward_times:u8)。</summary>
         public const int BRIGHT_SEA_SHIP_STATUS = 18917;
+        /// <summary>无尽之海退出战场失败切片。仅 S2C: code:u32；code==1 严格无本地动作，本轮不发送退出请求或接场景链。</summary>
+        public const int BRIGHT_SEA_EXIT_ERROR = 18918;
 
         // ----- 组队(24xxx,yu_server pt_240.erl / pp_team.erl;老端 commonController/TeamController.ts,
         // 自动循环 轮8) -----
