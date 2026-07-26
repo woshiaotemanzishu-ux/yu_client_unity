@@ -1,0 +1,66 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Threading.Tasks;
+using Shenxiao.Framework.Net;
+using Shenxiao.Module.Core.Demon;
+using UnityEngine;
+
+namespace Shenxiao.EditorTools
+{
+    /// <summary>18314 天赋真实战力纯查询快照专项（不挂总路由）。</summary>
+    public static class DemonTalentPowerCase
+    {
+        private const BindingFlags I = BindingFlags.Instance | BindingFlags.NonPublic;
+        private const BindingFlags S = BindingFlags.Static | BindingFlags.NonPublic;
+        public static Task<int> Run() { try { return Task.FromResult(RunCore()); } catch (Exception e) { Debug.LogError("CLIVERIFY demon-talent-power EXCEPTION " + e); return Task.FromResult(3); } }
+
+        private static int RunCore()
+        {
+            DemonController c = DemonController.Instance; DemonModel m = DemonModel.Instance;
+            FieldInfo intercept = typeof(DemonController).GetField("s_outboundIntercept", S); var ambient = new Ambient(c, m, intercept);
+            bool pass = false, restored = false;
+            try
+            {
+                c.Init(); m.Reset(); MethodInfo on = typeof(DemonController).GetMethod("On18314", I); IDictionary h = typeof(NetManager).GetField("_handlers", S)?.GetValue(null) as IDictionary;
+                pass = intercept != null && on != null && h != null && h.Contains(18301) && h.Contains(18303) && h.Contains(18307) && h.Contains(18311) && h.Contains(18314) && h.Contains(50901) && !h.Contains(18312) && !h.Contains(18313) && !h.Contains(18315);
+                var frames = new List<byte[]>(); intercept.SetValue(null, new Func<byte[], bool>(x => { frames.Add(x); return true; }));
+                c.RequestTalentPower(uint.MaxValue, byte.MaxValue, 4000000000U, ushort.MaxValue);
+                pass &= PowerFrame(frames, uint.MaxValue, byte.MaxValue, 4000000000U, ushort.MaxValue);
+                frames.Clear(); c.RequestStartup(); pass &= EmptyFrames(frames, 18301, 18303, 18307, 50901);
+
+                DemonModel.TalentPower demon = null, goods = null;
+                Feed(on, c, Packet(uint.MaxValue, uint.MaxValue, 1, uint.MaxValue, ushort.MaxValue, 1), out int rem);
+                pass &= rem == 0 && m.TryGetTalentPower(uint.MaxValue, 1, uint.MaxValue, ushort.MaxValue, out demon) && Same(demon, uint.MaxValue, uint.MaxValue, 1, uint.MaxValue, ushort.MaxValue, 1);
+                Feed(on, c, Packet(7, 9, 0, 22, 3, 1), out rem);
+                pass &= rem == 0 && m.TryGetTalentPower(999, 0, 22, 3, out goods) && Same(goods, 7, 9, 0, 22, 3, 1) && m.TalentPowerCount == 2;
+                Feed(on, c, Packet(8, uint.MaxValue, 1, uint.MaxValue, ushort.MaxValue, 1), out rem);
+                pass &= rem == 0 && m.TryGetTalentPower(uint.MaxValue, 1, uint.MaxValue, ushort.MaxValue, out demon) && demon.Power == 8 && m.TryGetTalentPower(0, 0, 22, 3, out goods) && goods.Power == 7;
+                Feed(on, c, Packet(0, uint.MaxValue, 1, uint.MaxValue, ushort.MaxValue, 999), out rem);
+                pass &= rem == 0 && m.TryGetTalentPower(uint.MaxValue, 1, uint.MaxValue, ushort.MaxValue, out demon) && demon.Power == 8 && m.TalentPowerCount == 2;
+                frames.Clear(); c.RequestTalentPower(9, 0, 22, 3); bool kept = m.TryGetTalentPower(9, 0, 22, 3, out DemonModel.TalentPower sameGoods) && ReferenceEquals(goods, sameGoods); pass &= PowerFrame(frames, 9, 0, 22, 3) && kept;
+                c.Dispose(); pass &= !c.IsInitialized && !h.Contains(18314) && m.TalentPowerCount == 0;
+            }
+            finally { restored = ambient.Restore(c, m, intercept); Debug.Log("CLIVERIFY demon-talent-power restored=" + restored + " pass=" + pass); }
+            return pass && restored ? 0 : 3;
+        }
+
+        private static void Feed(MethodInfo method, DemonController c, byte[] bytes, out int remaining) { var r = new NetReader(bytes, 0, bytes.Length); method.Invoke(c, new object[] { r }); remaining = r.Remaining; }
+        private static byte[] Packet(uint power, uint demonId, byte sign, uint skillId, ushort skillLv, uint code) => new CliVerify.Pkt().I(power).I(demonId).C(sign).I(skillId).H(skillLv).I(code).Bytes();
+        private static bool Same(DemonModel.TalentPower v, uint power, uint demonId, byte sign, uint skillId, ushort lv, uint code) => v != null && v.Power == power && v.DemonsId == demonId && v.Sign == sign && v.SkillId == skillId && v.SkillLevel == lv && v.Code == code;
+        private static bool EmptyFrames(List<byte[]> frames, params int[] ids) { if (frames.Count != ids.Length) return false; for (int i = 0; i < ids.Length; i++) if (!EmptyFrame(frames[i], ids[i])) return false; return true; }
+        private static bool EmptyFrame(byte[] f, int id) => f != null && f.Length == 6 && f[0] == 0 && f[1] == 6 && f[2] == 3 && f[3] == 232 && f[4] == (byte)(id >> 8) && f[5] == (byte)id;
+        private static bool PowerFrame(List<byte[]> f, uint demonId, byte sign, uint id, ushort lv) => f.Count == 1 && f[0].Length == 17 && f[0][0] == 0 && f[0][1] == 17 && f[0][2] == 3 && f[0][3] == 232 && f[0][4] == 71 && f[0][5] == 138 && f[0][6] == (byte)(demonId >> 24) && f[0][7] == (byte)(demonId >> 16) && f[0][8] == (byte)(demonId >> 8) && f[0][9] == (byte)demonId && f[0][10] == sign && f[0][11] == (byte)(id >> 24) && f[0][12] == (byte)(id >> 16) && f[0][13] == (byte)(id >> 8) && f[0][14] == (byte)id && f[0][15] == (byte)(lv >> 8) && f[0][16] == (byte)lv;
+
+        private sealed class Ambient
+        {
+            private static readonly int[] P = { 18301, 18303, 18307, 18311, 18312, 18313, 18314, 18315, 50901 };
+            private readonly bool _init, _has, _hasFetters, _hasPaintings, _hasBlessing, _hasShop; private readonly byte _open; private readonly uint _blessing, _refreshTime; private readonly ushort _refreshNum; private readonly object _intercept; private readonly Dictionary<int, object> _handlers = new Dictionary<int, object>(); private readonly Dictionary<string, DemonModel.TalentPower> _demon, _goods; private readonly List<DemonModel.Entry> _entries; private readonly List<uint> _fetters; private readonly List<byte> _paintings; private readonly List<DemonModel.ObjectEntry> _cost; private readonly List<DemonModel.TalentShopEntry> _shop;
+            public Ambient(DemonController c, DemonModel m, FieldInfo i) { _init = c.IsInitialized; _open = m.OpenState; _has = m.HasData; _hasFetters = m.HasFettersData; _hasPaintings = m.HasPaintingsData; _hasBlessing = m.HasBlessingData; _hasShop = m.HasTalentShopSnapshot; _blessing = m.BlessingValue; _refreshTime = m.TalentShopRefreshTime; _refreshNum = m.TalentShopRefreshNum; _entries = new List<DemonModel.Entry>(m.Demons); _fetters = new List<uint>(m.Fetters); _paintings = new List<byte>(m.Paintings); _cost = new List<DemonModel.ObjectEntry>(m.TalentShopCost); _shop = new List<DemonModel.TalentShopEntry>(m.TalentShop); _intercept = i == null ? null : i.GetValue(null); _demon = Copy(m, "_demonTalentPower"); _goods = Copy(m, "_goodsTalentPower"); IDictionary h = typeof(NetManager).GetField("_handlers", S)?.GetValue(null) as IDictionary; if (h != null) foreach (int x in P) if (h.Contains(x)) _handlers[x] = h[x]; }
+            public bool Restore(DemonController c, DemonModel m, FieldInfo i) { try { if (c.IsInitialized) c.Dispose(); m.Reset(); if (_has) m.Replace(_open, _entries); if (_hasFetters) m.ReplaceFetters(_fetters); if (_hasPaintings) m.ReplacePaintings(_paintings); if (_hasBlessing) m.ReplaceBlessing(_blessing); if (_hasShop) m.ReplaceTalentShop(_refreshTime, _refreshNum, _cost, _shop); Put(m, "_demonTalentPower", _demon); Put(m, "_goodsTalentPower", _goods); if (_init) c.Init(); IDictionary h = typeof(NetManager).GetField("_handlers", S)?.GetValue(null) as IDictionary; if (h == null) return false; foreach (int x in P) if (_handlers.TryGetValue(x, out object v)) h[x] = v; else h.Remove(x); if (i != null) i.SetValue(null, _intercept); return c.IsInitialized == _init && m.TalentPowerCount == _demon.Count + _goods.Count && (i == null || ReferenceEquals(i.GetValue(null), _intercept)); } catch (Exception e) { Debug.LogError("CLIVERIFY demon-talent-power restore " + e); return false; } }
+            private static Dictionary<string, DemonModel.TalentPower> Copy(DemonModel m, string n) => new Dictionary<string, DemonModel.TalentPower>((Dictionary<string, DemonModel.TalentPower>)typeof(DemonModel).GetField(n, I).GetValue(m));
+            private static void Put(DemonModel m, string n, Dictionary<string, DemonModel.TalentPower> v) { var t = (Dictionary<string, DemonModel.TalentPower>)typeof(DemonModel).GetField(n, I).GetValue(m); t.Clear(); foreach (var x in v) t[x.Key] = x.Value; }
+        }
+    }
+}
