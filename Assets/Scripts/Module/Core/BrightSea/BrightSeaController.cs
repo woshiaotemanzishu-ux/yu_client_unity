@@ -6,7 +6,7 @@ using Shenxiao.Framework.Util;
 
 namespace Shenxiao.Module.Core.BrightSea
 {
-    /// <summary>无尽之海原始状态切片：接收既有七份快照、18905掠夺启动结果及18918退出失败；不开放航运/抢夺/退出操作请求，也不接场景或UI链。</summary>
+    /// <summary>无尽之海原始状态切片：接收既有七份快照、18905掠夺启动结果、18918退出失败及18920异步战斗错误；不开放航运/抢夺/退出操作请求，也不接场景或UI链。</summary>
     public sealed class BrightSeaController : BaseController
     {
         public static readonly BrightSeaController Instance = new BrightSeaController();
@@ -28,6 +28,7 @@ namespace Shenxiao.Module.Core.BrightSea
             RegisterProtocal(Proto.BRIGHT_SEA_ASSIST_BGOLD_INFO, On18916);
             RegisterProtocal(Proto.BRIGHT_SEA_SHIP_STATUS, On18917);
             RegisterProtocal(Proto.BRIGHT_SEA_EXIT_ERROR, On18918);
+            RegisterProtocal(Proto.BRIGHT_SEA_BATTLE_ERROR, On18920);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
@@ -222,6 +223,11 @@ namespace Shenxiao.Module.Core.BrightSea
         {
             uint code = r.ReadU32();
             if (code != 1) BrightSeaModel.Instance.SetExitError(code);
+        }
+
+        private void On18920(NetReader r)
+        {
+            BrightSeaModel.Instance.SetBattleError(r.ReadU32());
         }
 
         private static BrightSeaModel.ObjectEntry ReadObjectEntry(NetReader r)
