@@ -1013,6 +1013,8 @@
         public const int ETERNITY_TIME_INFO = 27900;
         /// <summary>永恒圣殿参与人数与资格快照。C2S 空包；S2C: can_enter_scene:u8,join_list:u16×{scene:u32,self_server_num:u16,scene_num:u16}。</summary>
         public const int ETERNITY_JOIN_INFO = 27901;
+        /// <summary>永恒圣殿复活状态快照。显式 C2S 空包；S2C: die_times:u16,time:u32,die_time:u32,safe_time:u32。</summary>
+        public const int ETERNITY_RELIVE_INFO = 27906;
         /// <summary>圣灵战场世界信息。C2S 空包；S2C: mod:u8,status:u8,end_time:u32,servers:u16×{id:u32,num:u32,name:s,level:u32}。</summary>
         public const int HOLY_BATTLE_INFO = 21801;
         /// <summary>圣灵战场等待场景累计经验。C2S 空包；S2C: all_exp:u64（每包为当前累计总值）。</summary>

@@ -15,6 +15,11 @@ namespace Shenxiao.Module.Core.Eternity
         public bool HasJoinInfo { get; private set; }
         public byte CanEnterScene { get; private set; }
         public IReadOnlyList<JoinEntry> JoinList => _readOnlyJoinList;
+        public ushort DieTimes { get; private set; }
+        public uint Time { get; private set; }
+        public uint DieTime { get; private set; }
+        public uint SafeTime { get; private set; }
+        public bool HasReliveInfo { get; private set; }
 
         public sealed class JoinEntry
         {
@@ -45,6 +50,15 @@ namespace Shenxiao.Module.Core.Eternity
             HasJoinInfo = true;
         }
 
+        public void ReplaceReliveInfo(ushort dieTimes, uint time, uint dieTime, uint safeTime)
+        {
+            DieTimes = dieTimes;
+            Time = time;
+            DieTime = dieTime;
+            SafeTime = safeTime;
+            HasReliveInfo = true;
+        }
+
         public void Reset()
         {
             OpenTime = 0;
@@ -54,6 +68,11 @@ namespace Shenxiao.Module.Core.Eternity
             CanEnterScene = 0;
             _joinList.Clear();
             HasJoinInfo = false;
+            DieTimes = 0;
+            Time = 0;
+            DieTime = 0;
+            SafeTime = 0;
+            HasReliveInfo = false;
         }
     }
 }
