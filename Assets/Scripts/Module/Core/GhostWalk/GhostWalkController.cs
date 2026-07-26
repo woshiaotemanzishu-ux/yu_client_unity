@@ -16,6 +16,7 @@ namespace Shenxiao.Module.Core.GhostWalk
 
         protected override void Register()
         {
+            RegisterProtocal(Proto.GHOST_WALK_ERROR, On20600);
             RegisterProtocal(Proto.GHOST_WALK_INFO, On20601);
         }
 
@@ -52,6 +53,11 @@ namespace Shenxiao.Module.Core.GhostWalk
 
             ushort averageWorldLevel = r.ReadU16();
             GhostWalkModel.Instance.Replace(state, endTime, serverModule, groupId, servers, averageWorldLevel);
+        }
+
+        private void On20600(NetReader r)
+        {
+            GhostWalkModel.Instance.SetError(r.ReadU32(), r.ReadString());
         }
 
         public override void Dispose()

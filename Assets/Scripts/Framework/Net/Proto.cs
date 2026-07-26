@@ -974,6 +974,8 @@
         public const int GODBEAST_OVERVIEW = 17301;
         /// <summary>幻兽操作错误。S2C: code:u32,args:string；仅接收保留原始值。</summary>
         public const int GODBEAST_ERROR = 17300;
+        /// <summary>百鬼夜行错误。S2C: code:u32,args:string；仅接收保留原始值。</summary>
+        public const int GHOST_WALK_ERROR = 20600;
         /// <summary>称号列表快照。C2S 空包；S2C: current_id:u32,items:u16×{id:u32,order:u8,end_time:u32}。</summary>
         public const int DESIGNATION_LIST = 41101;
         /// <summary>面具状态快照。C2S 空包；S2C: mask_id:u8,end_time:u32。</summary>

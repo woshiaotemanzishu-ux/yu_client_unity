@@ -38,6 +38,9 @@ namespace Shenxiao.Module.Core.GhostWalk
         public uint GroupId { get; private set; }
         public ushort AverageWorldLevel { get; private set; }
         public bool HasData { get; private set; }
+        public bool HasError { get; private set; }
+        public uint LastErrorCode { get; private set; }
+        public string LastErrorArgs { get; private set; }
         public IReadOnlyList<Server> Servers => _readOnlyServers;
 
         public void Replace(byte state, uint endTime, byte serverModule, uint groupId, List<Server> servers, ushort averageWorldLevel)
@@ -57,6 +60,13 @@ namespace Shenxiao.Module.Core.GhostWalk
             HasData = true;
         }
 
+        public void SetError(uint code, string args)
+        {
+            HasError = true;
+            LastErrorCode = code;
+            LastErrorArgs = args;
+        }
+
         public void Reset()
         {
             State = 0;
@@ -66,6 +76,9 @@ namespace Shenxiao.Module.Core.GhostWalk
             AverageWorldLevel = 0;
             _servers.Clear();
             HasData = false;
+            HasError = false;
+            LastErrorCode = 0;
+            LastErrorArgs = null;
         }
     }
 }
