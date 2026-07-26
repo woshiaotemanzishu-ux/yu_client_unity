@@ -34,6 +34,10 @@ namespace Shenxiao.Module.Core.Guard
 
         public bool HasData { get; private set; }
         public IReadOnlyList<Circle> Circles => _readonly;
+        public bool HasError { get; private set; }
+        public uint LastErrorCode { get; private set; }
+        public bool HasLoginCheckResult { get; private set; }
+        public uint LoginCheckResultCode { get; private set; }
 
         public void Replace(List<Circle> values)
         {
@@ -42,10 +46,26 @@ namespace Shenxiao.Module.Core.Guard
             HasData = true;
         }
 
+        public void SetError(uint code)
+        {
+            HasError = true;
+            LastErrorCode = code;
+        }
+
+        public void SetLoginCheckResult(uint code)
+        {
+            HasLoginCheckResult = true;
+            LoginCheckResultCode = code;
+        }
+
         public void Reset()
         {
             _circles.Clear();
             HasData = false;
+            HasError = false;
+            LastErrorCode = 0;
+            HasLoginCheckResult = false;
+            LoginCheckResultCode = 0;
         }
     }
 }

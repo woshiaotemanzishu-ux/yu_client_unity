@@ -1010,7 +1010,11 @@
         public const int ACHIEVEMENT_ENTRIES = 40903;
         public const int ACHIEVEMENT_STAR = 40906;
         public const int ACHIEVEMENT_TYPES = 40908;
+        /// <summary>守护操作错误推送。S2C: errcode:u32；仅接收并保留原始码，不触发 UI。</summary>
+        public const int GUARD_ERROR = 21600;
         public const int GUARD_INFO = 21601;
+        /// <summary>守护登录到期检查结果。S2C: result_code:u32；1 为服务端成功确认，仅接收不主动发送。</summary>
+        public const int GUARD_LOGIN_CHECK_RESULT = 21606;
         public const int NINE_SKY_INFO = 13500;
         /// <summary>九魂圣殿战斗小面板。C2S 空包；S2C: cur_floor:u8,max_floor:u8,left_time:u32,kill_num:u16,score:u32,first_server_num:u16,first_player:string。</summary>
         public const int NINE_SKY_BATTLE_INFO = 13503;

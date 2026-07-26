@@ -16,7 +16,9 @@ namespace Shenxiao.Module.Core.Guard
 
         protected override void Register()
         {
+            RegisterProtocal(Proto.GUARD_ERROR, On21600);
             RegisterProtocal(Proto.GUARD_INFO, On21601);
+            RegisterProtocal(Proto.GUARD_LOGIN_CHECK_RESULT, On21606);
         }
 
         public void RequestInfo()
@@ -37,6 +39,16 @@ namespace Shenxiao.Module.Core.Guard
                 circles.Add(new GuardModel.Circle(r.ReadU8(), r.ReadU8(), r.ReadU32(), r.ReadU8(), r.ReadU8()));
             }
             GuardModel.Instance.Replace(circles);
+        }
+
+        private void On21600(NetReader r)
+        {
+            GuardModel.Instance.SetError(r.ReadU32());
+        }
+
+        private void On21606(NetReader r)
+        {
+            GuardModel.Instance.SetLoginCheckResult(r.ReadU32());
         }
 
         public override void Dispose()
