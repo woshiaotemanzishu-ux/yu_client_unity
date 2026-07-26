@@ -36,6 +36,8 @@ namespace Shenxiao.Module.Core.Eternity
         private readonly IReadOnlyDictionary<uint, BossStateEntry> _readOnlyBossStates;
         public bool HasBossStates { get; private set; }
         public IReadOnlyDictionary<uint, BossStateEntry> BossStates => _readOnlyBossStates;
+        public bool HasError { get; private set; }
+        public uint LastErrorCode { get; private set; }
 
         public sealed class JoinEntry
         {
@@ -173,6 +175,12 @@ namespace Shenxiao.Module.Core.Eternity
             HasBossStates = true;
         }
 
+        public void SetError(uint code)
+        {
+            LastErrorCode = code;
+            HasError = true;
+        }
+
         public void Reset()
         {
             OpenTime = 0;
@@ -196,6 +204,8 @@ namespace Shenxiao.Module.Core.Eternity
             HasDamageRank = false;
             _bossStates.Clear();
             HasBossStates = false;
+            HasError = false;
+            LastErrorCode = 0;
         }
     }
 }

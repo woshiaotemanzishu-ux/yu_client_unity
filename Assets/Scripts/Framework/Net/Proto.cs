@@ -1029,6 +1029,8 @@
         public const int ETERNITY_MONSTER_REBORN = 27907;
         /// <summary>永恒圣殿 Boss 状态推送。仅 S2C：mon_id:u32,reborn_time:u32,bl_server:u32,bl_server_num:u32,bl_server_name:s。</summary>
         public const int ETERNITY_BOSS_STATE = 27908;
+        /// <summary>永恒圣殿进入前置条件拒绝。仅 S2C：code:u32；code==1 不表示本端可确认的进入成功。</summary>
+        public const int ETERNITY_ERROR = 27909;
         /// <summary>永恒圣殿复活状态快照。显式 C2S 空包；S2C: die_times:u16,time:u32,die_time:u32,safe_time:u32。</summary>
         public const int ETERNITY_RELIVE_INFO = 27906;
         /// <summary>圣灵战场世界信息。C2S 空包；S2C: mod:u8,status:u8,end_time:u32,servers:u16×{id:u32,num:u32,name:s,level:u32}。</summary>

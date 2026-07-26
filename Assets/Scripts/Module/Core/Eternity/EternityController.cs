@@ -8,7 +8,7 @@ namespace Shenxiao.Module.Core.Eternity
     /// <summary>
     /// 永恒圣殿原始数据底座：时间、参与资格、怪物信息及复活增量、伤害排行、角色复活状态与 Boss 状态推送。
     /// 老端仅在 GAME_START 时等级达到门槛请求时间快照，并且只在等级精确升至 480 时补发；
-    /// 27907/27908 仅接收服务端场景广播，不增加请求、等级或启动链。
+    /// 27907/27908/27909 仅接收服务端推送，不增加请求、等级或启动链。
     /// </summary>
     public sealed class EternityController : BaseController
     {
@@ -33,6 +33,7 @@ namespace Shenxiao.Module.Core.Eternity
             RegisterProtocal(Proto.ETERNITY_RELIVE_INFO, On27906);
             RegisterProtocal(Proto.ETERNITY_MONSTER_REBORN, On27907);
             RegisterProtocal(Proto.ETERNITY_BOSS_STATE, On27908);
+            RegisterProtocal(Proto.ETERNITY_ERROR, On27909);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
         }
 
@@ -137,6 +138,15 @@ namespace Shenxiao.Module.Core.Eternity
         private void On27908(NetReader reader)
         {
             EternityModel.Instance.ReplaceBossState(new EternityModel.BossStateEntry(reader.ReadU32(), reader.ReadU32(), reader.ReadU32(), reader.ReadU32(), reader.ReadString()));
+        }
+
+        private void On27909(NetReader reader)
+        {
+            uint code = reader.ReadU32();
+            if (code != 1)
+            {
+                EternityModel.Instance.SetError(code);
+            }
         }
 
         private void OnRoleInfoUpdate()
