@@ -167,6 +167,8 @@ namespace Shenxiao.Module.Core.HolyBattle
         public uint DeathServerId { get; private set; }
         public byte DeathCareer { get; private set; }
         public byte DeathTurn { get; private set; }
+        public bool HasError { get; private set; }
+        public uint LastErrorCode { get; private set; }
 
         public void Replace(byte mod, byte status, uint endTime, List<ServerEntry> servers)
         {
@@ -264,6 +266,12 @@ namespace Shenxiao.Module.Core.HolyBattle
             HasDeathInfo = true;
         }
 
+        public void SetError(uint errorCode)
+        {
+            LastErrorCode = errorCode;
+            HasError = true;
+        }
+
         public void Reset()
         {
             Mod = 0;
@@ -300,6 +308,8 @@ namespace Shenxiao.Module.Core.HolyBattle
             DeathServerId = 0;
             DeathCareer = 0;
             DeathTurn = 0;
+            HasError = false;
+            LastErrorCode = 0;
         }
     }
 }

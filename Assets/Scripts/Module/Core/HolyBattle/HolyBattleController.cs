@@ -5,8 +5,8 @@ using Shenxiao.Framework.Net;
 namespace Shenxiao.Module.Core.HolyBattle
 {
     /// <summary>
-    /// 圣灵战场的独立协议切片。21813 只维护怪物原始增量，
-    /// 不接入场景、UI、自动战斗或其他表现层联动。
+    /// 圣灵战场的原始协议切片。21800 只记录服务端错误码，21813 只维护怪物原始增量；
+    /// 数据层不推断操作成功，也不接入场景、UI、自动战斗或其他表现层联动。
     /// </summary>
     public sealed class HolyBattleController : BaseController
     {
@@ -20,6 +20,7 @@ namespace Shenxiao.Module.Core.HolyBattle
 
         protected override void Register()
         {
+            RegisterProtocal(Proto.HOLY_BATTLE_ERROR, On21800);
             RegisterProtocal(Proto.HOLY_BATTLE_INFO, On21801);
             RegisterProtocal(Proto.HOLY_BATTLE_EXPERIENCE, On21804);
             RegisterProtocal(Proto.HOLY_BATTLE_SCORE, On21805);
@@ -50,6 +51,11 @@ namespace Shenxiao.Module.Core.HolyBattle
             if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
 #endif
             SendFmt(Proto.HOLY_BATTLE_MONSTER_INFO);
+        }
+
+        private void On21800(NetReader reader)
+        {
+            HolyBattleModel.Instance.SetError(reader.ReadU32());
         }
 
         private void On21801(NetReader reader)
