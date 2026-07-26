@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Shenxiao.Module.Core.Eternity
 {
@@ -20,6 +21,10 @@ namespace Shenxiao.Module.Core.Eternity
         public uint DieTime { get; private set; }
         public uint SafeTime { get; private set; }
         public bool HasReliveInfo { get; private set; }
+        private readonly Dictionary<uint, BossStateEntry> _bossStates = new Dictionary<uint, BossStateEntry>();
+        private readonly IReadOnlyDictionary<uint, BossStateEntry> _readOnlyBossStates;
+        public bool HasBossStates { get; private set; }
+        public IReadOnlyDictionary<uint, BossStateEntry> BossStates => _readOnlyBossStates;
 
         public sealed class JoinEntry
         {
@@ -29,9 +34,28 @@ namespace Shenxiao.Module.Core.Eternity
             public JoinEntry(uint scene, ushort selfServerNum, ushort sceneNum) { Scene = scene; SelfServerNum = selfServerNum; SceneNum = sceneNum; }
         }
 
+        public sealed class BossStateEntry
+        {
+            public uint MonId { get; }
+            public uint RebornTime { get; }
+            public uint BlServer { get; }
+            public uint BlServerNum { get; }
+            public string BlServerName { get; }
+
+            public BossStateEntry(uint monId, uint rebornTime, uint blServer, uint blServerNum, string blServerName)
+            {
+                MonId = monId;
+                RebornTime = rebornTime;
+                BlServer = blServer;
+                BlServerNum = blServerNum;
+                BlServerName = blServerName;
+            }
+        }
+
         private EternityModel()
         {
             _readOnlyJoinList = _joinList.AsReadOnly();
+            _readOnlyBossStates = new ReadOnlyDictionary<uint, BossStateEntry>(_bossStates);
         }
 
         public void Replace(uint openTime, uint enterTime, uint endTime)
@@ -59,6 +83,12 @@ namespace Shenxiao.Module.Core.Eternity
             HasReliveInfo = true;
         }
 
+        public void ReplaceBossState(BossStateEntry bossState)
+        {
+            _bossStates[bossState.MonId] = bossState;
+            HasBossStates = true;
+        }
+
         public void Reset()
         {
             OpenTime = 0;
@@ -73,6 +103,8 @@ namespace Shenxiao.Module.Core.Eternity
             DieTime = 0;
             SafeTime = 0;
             HasReliveInfo = false;
+            _bossStates.Clear();
+            HasBossStates = false;
         }
     }
 }

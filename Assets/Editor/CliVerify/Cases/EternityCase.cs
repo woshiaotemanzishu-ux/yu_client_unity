@@ -49,6 +49,8 @@ namespace Shenxiao.EditorTools
             uint oldTime = model.Time;
             uint oldDieTime = model.DieTime;
             uint oldSafeTime = model.SafeTime;
+            bool oldHasBossStates = model.HasBossStates;
+            var oldBossStates = new List<EternityModel.BossStateEntry>(model.BossStates.Values);
             int oldLevel = role.Level;
             FieldInfo hasBaseInfoField = typeof(RoleModel).GetField("<HasBaseInfo>k__BackingField", InstanceNonPublic);
             bool oldHasBaseInfo = hasBaseInfoField != null && (bool)hasBaseInfoField.GetValue(role);
@@ -60,7 +62,7 @@ namespace Shenxiao.EditorTools
             var oldHandlers = new Dictionary<int, object>();
             if (handlers != null)
             {
-                foreach (int proto in new[] { 27900, 27901, 27906 })
+                foreach (int proto in new[] { 27900, 27901, 27906, 27908 })
                 {
                     if (handlers.Contains(proto)) oldHandlers[proto] = handlers[proto];
                 }
@@ -79,13 +81,15 @@ namespace Shenxiao.EditorTools
                 MethodInfo on27900 = typeof(EternityController).GetMethod("On27900", InstanceNonPublic);
                 MethodInfo on27901 = typeof(EternityController).GetMethod("On27901", InstanceNonPublic);
                 MethodInfo on27906 = typeof(EternityController).GetMethod("On27906", InstanceNonPublic);
+                MethodInfo on27908 = typeof(EternityController).GetMethod("On27908", InstanceNonPublic);
                 MethodInfo onRoleInfoUpdate = typeof(EternityController).GetMethod("OnRoleInfoUpdate", InstanceNonPublic);
                 pass = hasBaseInfoField != null && interceptField != null && lastLevelField != null
-                    && on27900 != null && on27901 != null && on27906 != null && onRoleInfoUpdate != null && handlers != null
-                    && eventHandlers != null && handlers.Contains(27900) && handlers.Contains(27901) && handlers.Contains(27906);
-                for (int proto = 27902; proto <= 27909; proto++)
+                    && on27900 != null && on27901 != null && on27906 != null && on27908 != null && onRoleInfoUpdate != null && handlers != null
+                    && typeof(EternityController).GetMethod("Request27908", BindingFlags.Public | InstanceNonPublic) == null
+                    && eventHandlers != null;
+                for (int proto = 27900; proto <= 27909; proto++)
                 {
-                    pass &= proto == 27906 ? handlers.Contains(proto) : !handlers.Contains(proto);
+                    pass &= (proto == 27900 || proto == 27901 || proto == 27906 || proto == 27908) == handlers.Contains(proto);
                 }
 
                 if (!pass)
@@ -108,12 +112,12 @@ namespace Shenxiao.EditorTools
                 role.Level = 479;
                 controller.RequestStartup();
                 pass &= frames.Count == 0 && !model.HasData && !model.HasJoinInfo && !model.HasReliveInfo && model.OpenTime == 0 && model.EnterTime == 0 && model.EndTime == 0
-                    && model.CanEnterScene == 0 && model.JoinList.Count == 0 && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0;
+                    && model.CanEnterScene == 0 && model.JoinList.Count == 0 && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0 && !model.HasBossStates && model.BossStates.Count == 0;
 
                 model.Replace(4, 5, 6);
                 role.Level = 480;
                 controller.RequestStartup();
-                pass &= frames.Count == 1 && !model.HasData;
+                pass &= frames.Count == 1 && !model.HasData && !HasProtocol(frames, 27908);
                 pass &= IsExactRequest(frames[0]);
                 frames.Clear();
 
@@ -121,7 +125,7 @@ namespace Shenxiao.EditorTools
                 controller.RequestStartup();
                 role.Level = 480;
                 onRoleInfoUpdate.Invoke(controller, null);
-                pass &= frames.Count == 1 && IsExactRequest(frames[0]);
+                pass &= frames.Count == 1 && IsExactRequest(frames[0]) && !HasProtocol(frames, 27908);
                 onRoleInfoUpdate.Invoke(controller, null);
                 pass &= frames.Count == 1;
                 role.Level = 481;
@@ -133,7 +137,7 @@ namespace Shenxiao.EditorTools
                 controller.RequestStartup();
                 role.Level = 481;
                 onRoleInfoUpdate.Invoke(controller, null);
-                pass &= frames.Count == 0;
+                pass &= frames.Count == 0 && !HasProtocol(frames, 27908);
 
                 byte[] firstBytes = new CliVerify.Pkt().I(0).I(4000000000L).I(4294967295L).Bytes();
                 var firstReader = new NetReader(firstBytes, 0, firstBytes.Length);
@@ -215,10 +219,55 @@ namespace Shenxiao.EditorTools
                 on27906.Invoke(controller, new object[] { zeroReliveReader });
                 pass &= zeroReliveReader.Remaining == 0 && model.HasReliveInfo && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0;
 
+                byte[] maxBossBytes = BossPacket(uint.MaxValue, uint.MaxValue, 4000000000L, uint.MaxValue, "永恒Ω");
+                var maxBossReader = new NetReader(maxBossBytes, 0, maxBossBytes.Length);
+                on27908.Invoke(controller, new object[] { maxBossReader });
+                pass &= maxBossReader.Remaining == 0 && model.HasBossStates && model.BossStates.Count == 1
+                    && IsBoss(model.BossStates[uint.MaxValue], uint.MaxValue, uint.MaxValue, 4000000000U, uint.MaxValue, "永恒Ω") && frames.Count == 0;
+
+                byte[] overwriteBossBytes = BossPacket(uint.MaxValue, 1, 2, 3, "small");
+                var overwriteBossReader = new NetReader(overwriteBossBytes, 0, overwriteBossBytes.Length);
+                on27908.Invoke(controller, new object[] { overwriteBossReader });
+                pass &= overwriteBossReader.Remaining == 0 && model.BossStates.Count == 1 && IsBoss(model.BossStates[uint.MaxValue], uint.MaxValue, 1, 2, 3, "small");
+
+                byte[] zeroBossBytes = BossPacket(0, 0, 0, 0, string.Empty);
+                var zeroBossReader = new NetReader(zeroBossBytes, 0, zeroBossBytes.Length);
+                on27908.Invoke(controller, new object[] { zeroBossReader });
+                pass &= zeroBossReader.Remaining == 0 && model.HasBossStates && model.BossStates.Count == 2 && IsBoss(model.BossStates[0], 0, 0, 0, 0, string.Empty);
+
+                byte[] otherBossBytes = BossPacket(77, 88, 99, 100, "other");
+                var otherBossReader = new NetReader(otherBossBytes, 0, otherBossBytes.Length);
+                on27908.Invoke(controller, new object[] { otherBossReader });
+                pass &= otherBossReader.Remaining == 0 && model.BossStates.Count == 3 && IsBoss(model.BossStates[77], 77, 88, 99, 100, "other")
+                    && IsBoss(model.BossStates[uint.MaxValue], uint.MaxValue, 1, 2, 3, "small");
+
+                byte[] bossIsolatedTimeBytes = new CliVerify.Pkt().I(31).I(32).I(33).Bytes();
+                var bossIsolatedTimeReader = new NetReader(bossIsolatedTimeBytes, 0, bossIsolatedTimeBytes.Length);
+                on27900.Invoke(controller, new object[] { bossIsolatedTimeReader });
+                pass &= bossIsolatedTimeReader.Remaining == 0 && model.OpenTime == 31 && model.EnterTime == 32 && model.EndTime == 33
+                    && model.BossStates.Count == 3 && IsBoss(model.BossStates[77], 77, 88, 99, 100, "other");
+                byte[] bossIsolatedJoinBytes = JoinPacket(2, new[] { new JoinSpec(34, 35, 36) });
+                var bossIsolatedJoinReader = new NetReader(bossIsolatedJoinBytes, 0, bossIsolatedJoinBytes.Length);
+                on27901.Invoke(controller, new object[] { bossIsolatedJoinReader });
+                pass &= bossIsolatedJoinReader.Remaining == 0 && model.CanEnterScene == 2 && model.JoinList.Count == 1 && model.JoinList[0].Scene == 34
+                    && model.BossStates.Count == 3 && IsBoss(model.BossStates[0], 0, 0, 0, 0, string.Empty);
+                byte[] bossIsolatedReliveBytes = new CliVerify.Pkt().H(37).I(38).I(39).I(40).Bytes();
+                var bossIsolatedReliveReader = new NetReader(bossIsolatedReliveBytes, 0, bossIsolatedReliveBytes.Length);
+                on27906.Invoke(controller, new object[] { bossIsolatedReliveReader });
+                pass &= bossIsolatedReliveReader.Remaining == 0 && model.DieTimes == 37 && model.Time == 38 && model.DieTime == 39 && model.SafeTime == 40
+                    && model.BossStates.Count == 3 && IsBoss(model.BossStates[uint.MaxValue], uint.MaxValue, 1, 2, 3, "small");
+
+                byte[] bossBidirectionalBytes = BossPacket(77, 41, 42, 43, "later");
+                var bossBidirectionalReader = new NetReader(bossBidirectionalBytes, 0, bossBidirectionalBytes.Length);
+                on27908.Invoke(controller, new object[] { bossBidirectionalReader });
+                pass &= bossBidirectionalReader.Remaining == 0 && IsBoss(model.BossStates[77], 77, 41, 42, 43, "later")
+                    && model.OpenTime == 31 && model.EnterTime == 32 && model.EndTime == 33 && model.CanEnterScene == 2 && model.JoinList.Count == 1 && model.JoinList[0].Scene == 34
+                    && model.DieTimes == 37 && model.Time == 38 && model.DieTime == 39 && model.SafeTime == 40;
+
                 controller.Dispose();
-                pass &= !controller.IsInitialized && !handlers.Contains(27900) && !handlers.Contains(27901) && !handlers.Contains(27906)
+                pass &= !controller.IsInitialized && !handlers.Contains(27900) && !handlers.Contains(27901) && !handlers.Contains(27906) && !handlers.Contains(27908)
                     && !model.HasData && !model.HasJoinInfo && !model.HasReliveInfo && model.OpenTime == 0 && model.EnterTime == 0 && model.EndTime == 0 && model.CanEnterScene == 0 && model.JoinList.Count == 0
-                    && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0;
+                    && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0 && !model.HasBossStates && model.BossStates.Count == 0;
 
                 Debug.Log("CLIVERIFY eternity VERDICT pass=" + pass);
             }
@@ -244,6 +293,13 @@ namespace Shenxiao.EditorTools
                     {
                         model.ReplaceReliveInfo(oldDieTimes, oldTime, oldDieTime, oldSafeTime);
                     }
+                    if (oldHasBossStates)
+                    {
+                        foreach (EternityModel.BossStateEntry bossState in oldBossStates)
+                        {
+                            model.ReplaceBossState(bossState);
+                        }
+                    }
 
                     role.Level = oldLevel;
                     if (hasBaseInfoField != null)
@@ -268,7 +324,7 @@ namespace Shenxiao.EditorTools
 
                     if (handlers != null)
                     {
-                        foreach (int proto in new[] { 27900, 27901, 27906 })
+                        foreach (int proto in new[] { 27900, 27901, 27906, 27908 })
                         {
                             if (oldHandlers.TryGetValue(proto, out object handler)) handlers[proto] = handler;
                             else handlers.Remove(proto);
@@ -288,6 +344,7 @@ namespace Shenxiao.EditorTools
                         && model.HasData == oldHasData && (!oldHasData || model.OpenTime == oldOpenTime && model.EnterTime == oldEnterTime && model.EndTime == oldEndTime)
                         && model.HasJoinInfo == oldHasJoinInfo && (!oldHasJoinInfo || model.CanEnterScene == oldCanEnterScene && SameJoins(model.JoinList, oldJoinList))
                         && model.HasReliveInfo == oldHasReliveInfo && (!oldHasReliveInfo || model.DieTimes == oldDieTimes && model.Time == oldTime && model.DieTime == oldDieTime && model.SafeTime == oldSafeTime)
+                        && model.HasBossStates == oldHasBossStates && (oldHasBossStates ? SameBossStates(model.BossStates, oldBossStates) : model.BossStates.Count == 0)
                         && role.Level == oldLevel && hasBaseInfoField != null && (bool)hasBaseInfoField.GetValue(role) == oldHasBaseInfo
                         && lastLevelField != null && (int)lastLevelField.GetValue(controller) == oldLastLevel
                         && interceptField != null && ReferenceEquals(interceptField.GetValue(null), oldIntercept)
@@ -338,6 +395,36 @@ namespace Shenxiao.EditorTools
             return actual.Scene == expected.Scene && actual.SelfServerNum == expected.SelfServerNum && actual.SceneNum == expected.SceneNum;
         }
 
+        private static byte[] BossPacket(long monId, long rebornTime, long blServer, long blServerNum, string blServerName)
+        {
+            return new CliVerify.Pkt().I(monId).I(rebornTime).I(blServer).I(blServerNum).S(blServerName).Bytes();
+        }
+
+        private static bool IsBoss(EternityModel.BossStateEntry actual, uint monId, uint rebornTime, uint blServer, uint blServerNum, string blServerName)
+        {
+            return actual.MonId == monId && actual.RebornTime == rebornTime && actual.BlServer == blServer && actual.BlServerNum == blServerNum && actual.BlServerName == blServerName;
+        }
+
+        private static bool HasProtocol(IReadOnlyList<byte[]> frames, int proto)
+        {
+            foreach (byte[] frame in frames)
+            {
+                if (frame != null && frame.Length >= 6 && frame[4] == (byte)(proto >> 8) && frame[5] == (byte)(proto & 0xFF)) return true;
+            }
+            return false;
+        }
+
+        private static bool SameBossStates(IReadOnlyDictionary<uint, EternityModel.BossStateEntry> actual, IReadOnlyList<EternityModel.BossStateEntry> expected)
+        {
+            if (actual.Count != expected.Count) return false;
+            foreach (EternityModel.BossStateEntry expectedState in expected)
+            {
+                if (!actual.TryGetValue(expectedState.MonId, out EternityModel.BossStateEntry actualState)
+                    || !IsBoss(actualState, expectedState.MonId, expectedState.RebornTime, expectedState.BlServer, expectedState.BlServerNum, expectedState.BlServerName)) return false;
+            }
+            return true;
+        }
+
         private static bool SameJoins(IReadOnlyList<EternityModel.JoinEntry> actual, IReadOnlyList<EternityModel.JoinEntry> expected)
         {
             if (actual.Count != expected.Count) return false;
@@ -351,7 +438,7 @@ namespace Shenxiao.EditorTools
         private static bool HandlersMatch(IDictionary handlers, Dictionary<int, object> expected)
         {
             if (handlers == null) return false;
-            foreach (int proto in new[] { 27900, 27901, 27906 })
+            foreach (int proto in new[] { 27900, 27901, 27906, 27908 })
             {
                 bool had = expected.TryGetValue(proto, out object handler);
                 if (handlers.Contains(proto) != had || had && !ReferenceEquals(handlers[proto], handler)) return false;
