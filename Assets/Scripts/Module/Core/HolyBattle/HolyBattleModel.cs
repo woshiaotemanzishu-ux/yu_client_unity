@@ -70,6 +70,23 @@ namespace Shenxiao.Module.Core.HolyBattle
             public uint Value { get; }
             public BuffEntry(ushort attrId, uint value) { AttrId = attrId; Value = value; }
         }
+        public sealed class MonsterEntry
+        {
+            public uint MonAuto { get; }
+            public uint MonCfgId { get; }
+            public uint Hp { get; }
+            public uint HpAll { get; }
+            public byte GroupId { get; }
+
+            public MonsterEntry(uint monAuto, uint monCfgId, uint hp, uint hpAll, byte groupId)
+            {
+                MonAuto = monAuto;
+                MonCfgId = monCfgId;
+                Hp = hp;
+                HpAll = hpAll;
+                GroupId = groupId;
+            }
+        }
 
         public static readonly HolyBattleModel Instance = new HolyBattleModel();
 
@@ -81,6 +98,8 @@ namespace Shenxiao.Module.Core.HolyBattle
         private readonly IReadOnlyList<RecordGroupEntry> _readOnlyRecordStats;
         private readonly List<BuffEntry> _buffs = new List<BuffEntry>();
         private readonly IReadOnlyList<BuffEntry> _readOnlyBuffs;
+        private readonly Dictionary<uint, MonsterEntry> _monsters = new Dictionary<uint, MonsterEntry>();
+        private readonly IReadOnlyDictionary<uint, MonsterEntry> _readOnlyMonsters;
 
         private HolyBattleModel()
         {
@@ -88,6 +107,7 @@ namespace Shenxiao.Module.Core.HolyBattle
             _readOnlyRewards = _rewards.AsReadOnly();
             _readOnlyRecordStats = _recordStats.AsReadOnly();
             _readOnlyBuffs = _buffs.AsReadOnly();
+            _readOnlyMonsters = new System.Collections.ObjectModel.ReadOnlyDictionary<uint, MonsterEntry>(_monsters);
         }
 
         public byte Mod { get; private set; }
@@ -112,6 +132,8 @@ namespace Shenxiao.Module.Core.HolyBattle
         public byte Anger { get; private set; }
         public uint AngerEnd { get; private set; }
         public IReadOnlyList<BuffEntry> Buffs => _readOnlyBuffs;
+        public bool HasMonsterInfo { get; private set; }
+        public IReadOnlyDictionary<uint, MonsterEntry> MonstersByCfgId => _readOnlyMonsters;
 
         public void Replace(byte mod, byte status, uint endTime, List<ServerEntry> servers)
         {
@@ -165,6 +187,25 @@ namespace Shenxiao.Module.Core.HolyBattle
             FightPoint = point; SingleRank = singleRank; GroupRank = groupRank; Anger = anger; AngerEnd = angerEnd;
             _buffs.Clear(); if (buffs != null) _buffs.AddRange(buffs); HasFightState = true;
         }
+        public void ApplyMonsterInfo(List<MonsterEntry> entries)
+        {
+            if (entries != null)
+            {
+                foreach (MonsterEntry entry in entries)
+                {
+                    if (entry.Hp == 0)
+                    {
+                        _monsters.Remove(entry.MonCfgId);
+                    }
+                    else
+                    {
+                        _monsters[entry.MonCfgId] = entry;
+                    }
+                }
+            }
+
+            HasMonsterInfo = true;
+        }
 
         public void Reset()
         {
@@ -184,6 +225,8 @@ namespace Shenxiao.Module.Core.HolyBattle
             PhaseStatus = 0;
             PhaseEndTime = 0;
             HasFightState = false; FightPoint = 0; SingleRank = 0; GroupRank = 0; Anger = 0; AngerEnd = 0; _buffs.Clear();
+            _monsters.Clear();
+            HasMonsterInfo = false;
         }
     }
 }

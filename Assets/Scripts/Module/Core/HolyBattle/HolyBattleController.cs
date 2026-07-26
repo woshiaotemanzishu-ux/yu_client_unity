@@ -5,8 +5,8 @@ using Shenxiao.Framework.Net;
 namespace Shenxiao.Module.Core.HolyBattle
 {
     /// <summary>
-    /// 圣灵战场的快照。接收 21801/21804/21805；不复刻老端后续请求，
-    /// 也不在 21801 后自动请求 21811。
+    /// 圣灵战场的独立协议切片。21813 只维护怪物原始增量，
+    /// 不接入场景、UI、自动战斗或其他表现层联动。
     /// </summary>
     public sealed class HolyBattleController : BaseController
     {
@@ -26,6 +26,7 @@ namespace Shenxiao.Module.Core.HolyBattle
             RegisterProtocal(Proto.HOLY_BATTLE_RECORD_STATS, On21808);
             RegisterProtocal(Proto.HOLY_BATTLE_PHASE_TIME, On21811);
             RegisterProtocal(Proto.HOLY_BATTLE_FIGHT_STATE, On21807);
+            RegisterProtocal(Proto.HOLY_BATTLE_MONSTER_INFO, On21813);
         }
 
         public void RequestInfo()
@@ -38,6 +39,15 @@ namespace Shenxiao.Module.Core.HolyBattle
             }
 #endif
             SendFmt(Proto.HOLY_BATTLE_INFO);
+        }
+
+        public void RequestMonsterInfo()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.HOLY_BATTLE_MONSTER_INFO, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.HOLY_BATTLE_MONSTER_INFO);
         }
 
         private void On21801(NetReader reader)
@@ -158,6 +168,23 @@ namespace Shenxiao.Module.Core.HolyBattle
             int count = reader.ReadU16(); var buffs = new List<HolyBattleModel.BuffEntry>(count);
             for (int i = 0; i < count; i++) buffs.Add(new HolyBattleModel.BuffEntry(reader.ReadU16(), reader.ReadU32()));
             HolyBattleModel.Instance.ReplaceFightState(point, singleRank, groupRank, anger, angerEnd, buffs);
+        }
+
+        private void On21813(NetReader reader)
+        {
+            int count = reader.ReadU16();
+            var entries = new List<HolyBattleModel.MonsterEntry>(count);
+            for (int i = 0; i < count; i++)
+            {
+                entries.Add(new HolyBattleModel.MonsterEntry(
+                    reader.ReadU32(),
+                    reader.ReadU32(),
+                    reader.ReadU32(),
+                    reader.ReadU32(),
+                    reader.ReadU8()));
+            }
+
+            HolyBattleModel.Instance.ApplyMonsterInfo(entries);
         }
 
         public override void Dispose()

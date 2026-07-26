@@ -54,8 +54,23 @@ namespace Shenxiao.EditorTools
             byte oldAnger = model.Anger;
             uint oldAngerEnd = model.AngerEnd;
             var oldBuffs = new List<HolyBattleModel.BuffEntry>(model.Buffs);
+            bool oldHasMonsterInfo = model.HasMonsterInfo;
+            var oldMonsters = new List<HolyBattleModel.MonsterEntry>(model.MonstersByCfgId.Values);
             FieldInfo interceptField = typeof(HolyBattleController).GetField("s_outboundIntercept", StaticNonPublic);
             object oldIntercept = interceptField == null ? null : interceptField.GetValue(null);
+            int[] handlerIds = { 21801, 21804, 21805, 21807, 21808, 21811, 21813 };
+            IDictionary originalHandlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
+            var handlerSnapshot = new Dictionary<int, object>();
+            if (originalHandlers != null)
+            {
+                foreach (int id in handlerIds)
+                {
+                    if (originalHandlers.Contains(id))
+                    {
+                        handlerSnapshot[id] = originalHandlers[id];
+                    }
+                }
+            }
 
             try
             {
@@ -68,13 +83,14 @@ namespace Shenxiao.EditorTools
                 MethodInfo on21808 = typeof(HolyBattleController).GetMethod("On21808", InstanceNonPublic);
                 MethodInfo on21811 = typeof(HolyBattleController).GetMethod("On21811", InstanceNonPublic);
                 MethodInfo on21807 = typeof(HolyBattleController).GetMethod("On21807", InstanceNonPublic);
+                MethodInfo on21813 = typeof(HolyBattleController).GetMethod("On21813", InstanceNonPublic);
                 IDictionary handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                bool pass = interceptField != null && on21801 != null && on21804 != null && on21805 != null && on21807 != null && on21808 != null && on21811 != null && handlers != null
-                    && handlers.Contains(21801) && handlers.Contains(21804) && handlers.Contains(21805) && handlers.Contains(21807) && handlers.Contains(21808) && handlers.Contains(21811)
+                bool pass = interceptField != null && on21801 != null && on21804 != null && on21805 != null && on21807 != null && on21808 != null && on21811 != null && on21813 != null && handlers != null
+                    && handlers.Contains(21801) && handlers.Contains(21804) && handlers.Contains(21805) && handlers.Contains(21807) && handlers.Contains(21808) && handlers.Contains(21811) && handlers.Contains(21813)
                     && typeof(HolyBattleController).GetMethod("RequestFightState") == null;
                 for (int proto = 21800; proto <= 21813; proto++)
                 {
-                    if (proto != 21801 && proto != 21804 && proto != 21805 && proto != 21807 && proto != 21808 && proto != 21811)
+                    if (proto != 21801 && proto != 21804 && proto != 21805 && proto != 21807 && proto != 21808 && proto != 21811 && proto != 21813)
                     {
                         pass &= !handlers.Contains(proto);
                     }
@@ -114,6 +130,11 @@ namespace Shenxiao.EditorTools
                 controller.RequestPhaseTime();
                 pass &= IsExactPhaseTimeRequest(frames.Count == 1 ? frames[0] : null)
                     && !model.HasPhaseTime && model.PhaseStatus == 0 && model.PhaseEndTime == 0;
+                frames.Clear();
+
+                controller.RequestMonsterInfo();
+                pass &= IsExactMonsterInfoRequest(frames.Count == 1 ? frames[0] : null)
+                    && !model.HasMonsterInfo && model.MonstersByCfgId.Count == 0;
                 frames.Clear();
 
                 var phaseZeroReader = new NetReader(new CliVerify.Pkt().C(0).I(0).Bytes(), 0, 5);
@@ -229,6 +250,45 @@ namespace Shenxiao.EditorTools
                     && model.HasFightState && model.Buffs.Count == 3
                     && frames.Count == 0;
 
+                byte[] monsterBytes = new CliVerify.Pkt().H(2)
+                    .I(uint.MaxValue).I(uint.MaxValue).I(uint.MaxValue).I(0).C(byte.MaxValue)
+                    .I(0).I(1).I(2).I(uint.MaxValue).C(0).Bytes();
+                var monsterReader = new NetReader(monsterBytes, 0, monsterBytes.Length);
+                on21813.Invoke(controller, new object[] { monsterReader });
+                pass &= monsterReader.Remaining == 0 && model.HasMonsterInfo && model.MonstersByCfgId.Count == 2
+                    && model.MonstersByCfgId[uint.MaxValue].MonAuto == uint.MaxValue && model.MonstersByCfgId[uint.MaxValue].MonCfgId == uint.MaxValue
+                    && model.MonstersByCfgId[uint.MaxValue].Hp == uint.MaxValue && model.MonstersByCfgId[uint.MaxValue].HpAll == 0 && model.MonstersByCfgId[uint.MaxValue].GroupId == byte.MaxValue
+                    && model.MonstersByCfgId[1].MonAuto == 0 && model.MonstersByCfgId[1].Hp == 2 && model.MonstersByCfgId[1].HpAll == uint.MaxValue && model.MonstersByCfgId[1].GroupId == 0
+                    && model.HasData && model.Mod == 255 && model.Status == 254 && model.EndTime == uint.MaxValue && model.Servers.Count == 2
+                    && model.HasExperience && model.AllExperience == 5000000001UL
+                    && model.HasScore && model.Point == 0 && model.Rewards.Count == 3
+                    && model.HasRecordStats && model.RecordStats.Count == 2
+                    && model.HasPhaseTime && model.PhaseStatus == 2 && model.PhaseEndTime == 7
+                    && model.HasFightState && model.FightPoint == ushort.MaxValue && model.SingleRank == ushort.MaxValue
+                    && model.GroupRank == byte.MaxValue && model.Anger == byte.MaxValue && model.AngerEnd == uint.MaxValue && model.Buffs.Count == 3
+                    && frames.Count == 0;
+
+                byte[] replacementMonsterBytes = new CliVerify.Pkt().H(1).I(7).I(1).I(10).I(20).C(3).Bytes();
+                var replacementMonsterReader = new NetReader(replacementMonsterBytes, 0, replacementMonsterBytes.Length);
+                on21813.Invoke(controller, new object[] { replacementMonsterReader });
+                pass &= replacementMonsterReader.Remaining == 0 && model.HasMonsterInfo && model.MonstersByCfgId.Count == 2
+                    && model.MonstersByCfgId[1].MonAuto == 7 && model.MonstersByCfgId[1].Hp == 10 && model.MonstersByCfgId[1].HpAll == 20 && model.MonstersByCfgId[1].GroupId == 3
+                    && model.MonstersByCfgId.ContainsKey(uint.MaxValue) && model.HasData && model.HasExperience && model.HasScore && model.HasRecordStats && model.HasPhaseTime && model.HasFightState;
+
+                byte[] deletedMonsterBytes = new CliVerify.Pkt().H(2).I(8).I(1).I(0).I(20).C(3).I(9).I(99).I(0).I(0).C(0).Bytes();
+                var deletedMonsterReader = new NetReader(deletedMonsterBytes, 0, deletedMonsterBytes.Length);
+                on21813.Invoke(controller, new object[] { deletedMonsterReader });
+                pass &= deletedMonsterReader.Remaining == 0 && model.HasMonsterInfo && model.MonstersByCfgId.Count == 1
+                    && !model.MonstersByCfgId.ContainsKey(1) && !model.MonstersByCfgId.ContainsKey(99) && model.MonstersByCfgId.ContainsKey(uint.MaxValue);
+
+                var emptyMonsterReader = new NetReader(new CliVerify.Pkt().H(0).Bytes(), 0, 2);
+                on21813.Invoke(controller, new object[] { emptyMonsterReader });
+                pass &= emptyMonsterReader.Remaining == 0 && model.HasMonsterInfo && model.MonstersByCfgId.Count == 1 && model.MonstersByCfgId.ContainsKey(uint.MaxValue);
+                controller.RequestMonsterInfo();
+                pass &= IsExactMonsterInfoRequest(frames.Count == 1 ? frames[0] : null)
+                    && model.HasMonsterInfo && model.MonstersByCfgId.Count == 1 && model.MonstersByCfgId.ContainsKey(uint.MaxValue);
+                frames.Clear();
+
                 var maxExperienceReader = new NetReader(new CliVerify.Pkt().L(unchecked((long)ulong.MaxValue)).Bytes(), 0, 8);
                 on21804.Invoke(controller, new object[] { maxExperienceReader });
                 pass &= maxExperienceReader.Remaining == 0 && model.HasExperience && model.AllExperience == ulong.MaxValue
@@ -268,7 +328,7 @@ namespace Shenxiao.EditorTools
                 pass &= replacementPhaseReader.Remaining == 0 && model.HasPhaseTime && model.PhaseStatus == 1 && model.PhaseEndTime == 9
                     && model.HasData && model.Servers.Count == 1 && model.HasExperience && model.AllExperience == ulong.MaxValue
                     && model.HasScore && model.Rewards.Count == 1 && model.HasRecordStats && model.RecordStats.Count == 1
-                    && model.HasFightState && model.Buffs.Count == 3 && frames.Count == 0;
+                    && model.HasFightState && model.Buffs.Count == 3 && model.HasMonsterInfo && model.MonstersByCfgId.Count == 1 && model.MonstersByCfgId.ContainsKey(uint.MaxValue) && frames.Count == 0;
 
                 byte[] replacementFightBytes = new CliVerify.Pkt().H(1).H(2).C(3).C(4).I(5).H(1).H(6).I(7).Bytes();
                 var replacementFightReader = new NetReader(replacementFightBytes, 0, replacementFightBytes.Length);
@@ -315,12 +375,12 @@ namespace Shenxiao.EditorTools
 
                 controller.Dispose();
                 pass &= !controller.IsInitialized && !handlers.Contains(21801) && !handlers.Contains(21804) && !handlers.Contains(21805)
-                    && !handlers.Contains(21807) && !handlers.Contains(21808) && !handlers.Contains(21811)
+                    && !handlers.Contains(21807) && !handlers.Contains(21808) && !handlers.Contains(21811) && !handlers.Contains(21813)
                     && !model.HasData && model.Mod == 0 && model.Status == 0 && model.EndTime == 0 && model.Servers.Count == 0
                     && !model.HasExperience && model.AllExperience == 0 && !model.HasScore && model.Point == 0 && model.Rewards.Count == 0
                     && !model.HasRecordStats && model.RecordStats.Count == 0 && !model.HasPhaseTime && model.PhaseStatus == 0 && model.PhaseEndTime == 0
                     && !model.HasFightState && model.FightPoint == 0 && model.SingleRank == 0 && model.GroupRank == 0
-                    && model.Anger == 0 && model.AngerEnd == 0 && model.Buffs.Count == 0;
+                    && model.Anger == 0 && model.AngerEnd == 0 && model.Buffs.Count == 0 && !model.HasMonsterInfo && model.MonstersByCfgId.Count == 0;
 
                 Debug.Log("CLIVERIFY holybattle VERDICT pass=" + pass);
                 return pass ? 0 : 3;
@@ -363,14 +423,55 @@ namespace Shenxiao.EditorTools
                     model.ReplaceFightState(oldFightPoint, oldSingleRank, oldGroupRank, oldAnger, oldAngerEnd, oldBuffs);
                 }
 
+                if (oldHasMonsterInfo)
+                {
+                    model.ApplyMonsterInfo(oldMonsters);
+                }
+
                 if (wasInitialized)
                 {
                     controller.Init();
                 }
 
+                IDictionary finalHandlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
+                if (finalHandlers == null)
+                {
+                    throw new InvalidOperationException("HolyBattle handlers unavailable during restore");
+                }
+
+                foreach (int id in handlerIds)
+                {
+                    if (handlerSnapshot.TryGetValue(id, out object handler))
+                    {
+                        finalHandlers[id] = handler;
+                    }
+                    else
+                    {
+                        finalHandlers.Remove(id);
+                    }
+                }
+
                 if (interceptField != null)
                 {
                     interceptField.SetValue(null, oldIntercept);
+                }
+
+                bool restored = controller.IsInitialized == wasInitialized
+                    && model.HasMonsterInfo == oldHasMonsterInfo
+                    && SameMonsters(model.MonstersByCfgId, oldMonsters)
+                    && (interceptField == null || ReferenceEquals(interceptField.GetValue(null), oldIntercept));
+                foreach (int id in handlerIds)
+                {
+                    bool existed = handlerSnapshot.TryGetValue(id, out object expected);
+                    if (finalHandlers.Contains(id) != existed || (existed && !ReferenceEquals(finalHandlers[id], expected)))
+                    {
+                        restored = false;
+                    }
+                }
+
+                if (!restored)
+                {
+                    throw new InvalidOperationException("HolyBattle ambient state restore failed");
                 }
             }
         }
@@ -419,6 +520,37 @@ namespace Shenxiao.EditorTools
                 && frame[2] == 0x03 && frame[3] == 0xE8
                 && frame[4] == (byte)(Proto.HOLY_BATTLE_PHASE_TIME >> 8)
                 && frame[5] == (byte)(Proto.HOLY_BATTLE_PHASE_TIME & 0xFF);
+        }
+
+        private static bool IsExactMonsterInfoRequest(byte[] frame)
+        {
+            return frame != null && frame.Length == 6 && frame[0] == 0 && frame[1] == 6
+                && frame[2] == 0x03 && frame[3] == 0xE8
+                && frame[4] == (byte)(Proto.HOLY_BATTLE_MONSTER_INFO >> 8)
+                && frame[5] == (byte)(Proto.HOLY_BATTLE_MONSTER_INFO & 0xFF);
+        }
+
+        private static bool SameMonsters(IReadOnlyDictionary<uint, HolyBattleModel.MonsterEntry> actual, List<HolyBattleModel.MonsterEntry> expected)
+        {
+            if (actual.Count != expected.Count)
+            {
+                return false;
+            }
+
+            foreach (HolyBattleModel.MonsterEntry item in expected)
+            {
+                if (!actual.TryGetValue(item.MonCfgId, out HolyBattleModel.MonsterEntry restored)
+                    || restored.MonAuto != item.MonAuto
+                    || restored.MonCfgId != item.MonCfgId
+                    || restored.Hp != item.Hp
+                    || restored.HpAll != item.HpAll
+                    || restored.GroupId != item.GroupId)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
