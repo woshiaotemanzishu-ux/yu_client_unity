@@ -6,7 +6,7 @@ using Shenxiao.Module.Core.Role;
 namespace Shenxiao.Module.Core.Eternity
 {
     /// <summary>
-    /// 永恒圣殿原始数据底座：时间、参与资格、伤害排行、复活状态与 Boss 状态推送。
+    /// 永恒圣殿原始数据底座：时间、参与资格、怪物信息、伤害排行、复活状态与 Boss 状态推送。
     /// 老端仅在 GAME_START 时等级达到门槛请求时间快照，并且只在等级精确升至 480 时补发；
     /// 27908 仅接收服务端场景广播，不增加请求、等级或启动链。
     /// </summary>
@@ -28,6 +28,7 @@ namespace Shenxiao.Module.Core.Eternity
         {
             RegisterProtocal(Proto.ETERNITY_TIME_INFO, On27900);
             RegisterProtocal(Proto.ETERNITY_JOIN_INFO, On27901);
+            RegisterProtocal(Proto.ETERNITY_MONSTER_INFO, On27904);
             RegisterProtocal(Proto.ETERNITY_DAMAGE_RANK, On27905);
             RegisterProtocal(Proto.ETERNITY_RELIVE_INFO, On27906);
             RegisterProtocal(Proto.ETERNITY_BOSS_STATE, On27908);
@@ -83,6 +84,15 @@ namespace Shenxiao.Module.Core.Eternity
             SendFmt(Proto.ETERNITY_DAMAGE_RANK, "hi", scene, monId);
         }
 
+        public void RequestMonsterInfo(ushort scene)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.ETERNITY_MONSTER_INFO, "h", new object[] { scene });
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.ETERNITY_MONSTER_INFO, "h", scene);
+        }
+
         private void On27900(NetReader reader)
         {
             uint openTime = reader.ReadU32();
@@ -96,6 +106,13 @@ namespace Shenxiao.Module.Core.Eternity
             byte canEnterScene = reader.ReadU8();
             var joins = reader.ReadArray(r => new EternityModel.JoinEntry(r.ReadU32(), r.ReadU16(), r.ReadU16()));
             EternityModel.Instance.ReplaceJoinInfo(canEnterScene, joins);
+        }
+
+        private void On27904(NetReader reader)
+        {
+            ushort scene = reader.ReadU16();
+            var entries = reader.ReadArray(r => new EternityModel.MonsterEntry(r.ReadU32(), r.ReadU16(), r.ReadU8(), r.ReadU32(), r.ReadString(), r.ReadU32(), r.ReadU32()));
+            EternityModel.Instance.ReplaceMonsterInfo(scene, entries);
         }
 
         private void On27905(NetReader reader)

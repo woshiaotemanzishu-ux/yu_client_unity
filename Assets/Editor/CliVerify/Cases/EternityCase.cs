@@ -49,6 +49,9 @@ namespace Shenxiao.EditorTools
             uint oldTime = model.Time;
             uint oldDieTime = model.DieTime;
             uint oldSafeTime = model.SafeTime;
+            bool oldHasMonsterInfo = model.HasMonsterInfo;
+            ushort oldMonsterScene = model.MonsterScene;
+            var oldMonsterInfo = new List<EternityModel.MonsterEntry>(model.MonsterInfo);
             bool oldHasDamageRank = model.HasDamageRank;
             ushort oldDamageScene = model.DamageScene;
             uint oldDamageMonId = model.DamageMonId;
@@ -66,7 +69,7 @@ namespace Shenxiao.EditorTools
             var oldHandlers = new Dictionary<int, object>();
             if (handlers != null)
             {
-                foreach (int proto in new[] { 27900, 27901, 27905, 27906, 27908 })
+                foreach (int proto in new[] { 27900, 27901, 27904, 27905, 27906, 27908 })
                 {
                     if (handlers.Contains(proto)) oldHandlers[proto] = handlers[proto];
                 }
@@ -84,18 +87,20 @@ namespace Shenxiao.EditorTools
 
                 MethodInfo on27900 = typeof(EternityController).GetMethod("On27900", InstanceNonPublic);
                 MethodInfo on27901 = typeof(EternityController).GetMethod("On27901", InstanceNonPublic);
+                MethodInfo on27904 = typeof(EternityController).GetMethod("On27904", InstanceNonPublic);
                 MethodInfo on27905 = typeof(EternityController).GetMethod("On27905", InstanceNonPublic);
                 MethodInfo on27906 = typeof(EternityController).GetMethod("On27906", InstanceNonPublic);
                 MethodInfo on27908 = typeof(EternityController).GetMethod("On27908", InstanceNonPublic);
                 MethodInfo onRoleInfoUpdate = typeof(EternityController).GetMethod("OnRoleInfoUpdate", InstanceNonPublic);
                 pass = hasBaseInfoField != null && interceptField != null && lastLevelField != null
-                    && on27900 != null && on27901 != null && on27905 != null && on27906 != null && on27908 != null && onRoleInfoUpdate != null && handlers != null
+                    && on27900 != null && on27901 != null && on27904 != null && on27905 != null && on27906 != null && on27908 != null && onRoleInfoUpdate != null && handlers != null
+                    && typeof(EternityController).GetMethod("RequestMonsterInfo", BindingFlags.Public | BindingFlags.Instance) != null
                     && typeof(EternityController).GetMethod("RequestDamageRank", BindingFlags.Public | BindingFlags.Instance) != null
                     && typeof(EternityController).GetMethod("Request27908", BindingFlags.Public | InstanceNonPublic) == null
                     && eventHandlers != null;
                 for (int proto = 27900; proto <= 27909; proto++)
                 {
-                    pass &= (proto == 27900 || proto == 27901 || proto == 27905 || proto == 27906 || proto == 27908) == handlers.Contains(proto);
+                    pass &= (proto == 27900 || proto == 27901 || proto == 27904 || proto == 27905 || proto == 27906 || proto == 27908) == handlers.Contains(proto);
                 }
 
                 if (!pass)
@@ -118,12 +123,12 @@ namespace Shenxiao.EditorTools
                 role.Level = 479;
                 controller.RequestStartup();
                 pass &= frames.Count == 0 && !model.HasData && !model.HasJoinInfo && !model.HasReliveInfo && model.OpenTime == 0 && model.EnterTime == 0 && model.EndTime == 0
-                    && model.CanEnterScene == 0 && model.JoinList.Count == 0 && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0 && !model.HasDamageRank && model.DamageRank.Count == 0 && !model.HasBossStates && model.BossStates.Count == 0;
+                    && model.CanEnterScene == 0 && model.JoinList.Count == 0 && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0 && !model.HasMonsterInfo && model.MonsterInfo.Count == 0 && !model.HasDamageRank && model.DamageRank.Count == 0 && !model.HasBossStates && model.BossStates.Count == 0;
 
                 model.Replace(4, 5, 6);
                 role.Level = 480;
                 controller.RequestStartup();
-                pass &= frames.Count == 1 && !model.HasData && !HasProtocol(frames, 27905) && !HasProtocol(frames, 27908);
+                pass &= frames.Count == 1 && !model.HasData && !HasProtocol(frames, 27904) && !HasProtocol(frames, 27905) && !HasProtocol(frames, 27908);
                 pass &= IsExactRequest(frames[0]);
                 frames.Clear();
 
@@ -131,7 +136,7 @@ namespace Shenxiao.EditorTools
                 controller.RequestStartup();
                 role.Level = 480;
                 onRoleInfoUpdate.Invoke(controller, null);
-                pass &= frames.Count == 1 && IsExactRequest(frames[0]) && !HasProtocol(frames, 27905) && !HasProtocol(frames, 27908);
+                pass &= frames.Count == 1 && IsExactRequest(frames[0]) && !HasProtocol(frames, 27904) && !HasProtocol(frames, 27905) && !HasProtocol(frames, 27908);
                 onRoleInfoUpdate.Invoke(controller, null);
                 pass &= frames.Count == 1;
                 role.Level = 481;
@@ -143,7 +148,7 @@ namespace Shenxiao.EditorTools
                 controller.RequestStartup();
                 role.Level = 481;
                 onRoleInfoUpdate.Invoke(controller, null);
-                pass &= frames.Count == 0 && !HasProtocol(frames, 27905) && !HasProtocol(frames, 27908);
+                pass &= frames.Count == 0 && !HasProtocol(frames, 27904) && !HasProtocol(frames, 27905) && !HasProtocol(frames, 27908);
 
                 byte[] firstBytes = new CliVerify.Pkt().I(0).I(4000000000L).I(4294967295L).Bytes();
                 var firstReader = new NetReader(firstBytes, 0, firstBytes.Length);
@@ -225,6 +230,40 @@ namespace Shenxiao.EditorTools
                 on27906.Invoke(controller, new object[] { zeroReliveReader });
                 pass &= zeroReliveReader.Remaining == 0 && model.HasReliveInfo && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0;
 
+                MonsterSpec firstMonster = new MonsterSpec(uint.MaxValue, ushort.MaxValue, byte.MaxValue, uint.MaxValue, "归属Ω", uint.MaxValue, uint.MaxValue);
+                MonsterSpec duplicateMonster = new MonsterSpec(uint.MaxValue, 1, 2, 3, string.Empty, 4, 5);
+                byte[] multiMonsterBytes = MonsterPacket(ushort.MaxValue, new[] { firstMonster, duplicateMonster });
+                var multiMonsterReader = new NetReader(multiMonsterBytes, 0, multiMonsterBytes.Length);
+                on27904.Invoke(controller, new object[] { multiMonsterReader });
+                pass &= multiMonsterReader.Remaining == 0 && model.HasMonsterInfo && model.MonsterScene == ushort.MaxValue && model.MonsterInfo.Count == 2
+                    && IsMonster(model.MonsterInfo[0], firstMonster) && IsMonster(model.MonsterInfo[1], duplicateMonster);
+
+                controller.RequestMonsterInfo(ushort.MaxValue);
+                pass &= frames.Count == 1 && IsExactMonsterRequest(frames[0], ushort.MaxValue)
+                    && model.MonsterScene == ushort.MaxValue && model.MonsterInfo.Count == 2 && IsMonster(model.MonsterInfo[0], firstMonster);
+                frames.Clear();
+                controller.RequestMonsterInfo(0);
+                pass &= frames.Count == 1 && IsExactMonsterRequest(frames[0], 0)
+                    && model.MonsterScene == ushort.MaxValue && model.MonsterInfo.Count == 2 && IsMonster(model.MonsterInfo[1], duplicateMonster);
+                frames.Clear();
+
+                MonsterSpec singleMonster = new MonsterSpec(0, 0, 0, 0, string.Empty, 0, 0);
+                byte[] singleMonsterBytes = MonsterPacket(0, new[] { singleMonster });
+                var singleMonsterReader = new NetReader(singleMonsterBytes, 0, singleMonsterBytes.Length);
+                on27904.Invoke(controller, new object[] { singleMonsterReader });
+                pass &= singleMonsterReader.Remaining == 0 && model.HasMonsterInfo && model.MonsterScene == 0 && model.MonsterInfo.Count == 1 && IsMonster(model.MonsterInfo[0], singleMonster)
+                    && model.OpenTime == 20 && model.EnterTime == 21 && model.EndTime == 22 && model.CanEnterScene == 1 && model.JoinList.Count == 1 && model.JoinList[0].Scene == 23
+                    && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0;
+
+                var monsterIsolatedTimeReader = new NetReader(reliveIsolatedTimeBytes, 0, reliveIsolatedTimeBytes.Length);
+                on27900.Invoke(controller, new object[] { monsterIsolatedTimeReader });
+                var monsterIsolatedJoinReader = new NetReader(reliveIsolatedJoinBytes, 0, reliveIsolatedJoinBytes.Length);
+                on27901.Invoke(controller, new object[] { monsterIsolatedJoinReader });
+                var monsterIsolatedReliveReader = new NetReader(zeroReliveBytes, 0, zeroReliveBytes.Length);
+                on27906.Invoke(controller, new object[] { monsterIsolatedReliveReader });
+                pass &= monsterIsolatedTimeReader.Remaining == 0 && monsterIsolatedJoinReader.Remaining == 0 && monsterIsolatedReliveReader.Remaining == 0
+                    && model.HasMonsterInfo && model.MonsterScene == 0 && model.MonsterInfo.Count == 1 && IsMonster(model.MonsterInfo[0], singleMonster);
+
                 DamageSpec firstDamage = new DamageSpec(uint.MaxValue, ushort.MaxValue, "服Ω", uint.MaxValue, "甲Ω", ushort.MaxValue);
                 DamageSpec duplicateDamage = new DamageSpec(1, 2, "乙服", uint.MaxValue, "乙", 3);
                 byte[] multiDamageBytes = DamagePacket(ushort.MaxValue, uint.MaxValue, new[] { firstDamage, duplicateDamage });
@@ -248,14 +287,15 @@ namespace Shenxiao.EditorTools
                 on27905.Invoke(controller, new object[] { singleDamageReader });
                 pass &= singleDamageReader.Remaining == 0 && model.HasDamageRank && model.DamageScene == 0 && model.DamageMonId == 0 && model.DamageRank.Count == 1 && IsDamage(model.DamageRank[0], singleDamage)
                     && model.OpenTime == 20 && model.EnterTime == 21 && model.EndTime == 22 && model.CanEnterScene == 1 && model.JoinList.Count == 1 && model.JoinList[0].Scene == 23
-                    && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0;
+                    && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0 && model.MonsterScene == 0 && model.MonsterInfo.Count == 1 && IsMonster(model.MonsterInfo[0], singleMonster);
 
                 byte[] maxBossBytes = BossPacket(uint.MaxValue, uint.MaxValue, 4000000000L, uint.MaxValue, "永恒Ω");
                 var maxBossReader = new NetReader(maxBossBytes, 0, maxBossBytes.Length);
                 on27908.Invoke(controller, new object[] { maxBossReader });
                 pass &= maxBossReader.Remaining == 0 && model.HasBossStates && model.BossStates.Count == 1
                     && IsBoss(model.BossStates[uint.MaxValue], uint.MaxValue, uint.MaxValue, 4000000000U, uint.MaxValue, "永恒Ω") && frames.Count == 0
-                    && model.HasDamageRank && model.DamageScene == 0 && model.DamageMonId == 0 && model.DamageRank.Count == 1 && IsDamage(model.DamageRank[0], singleDamage);
+                    && model.HasDamageRank && model.DamageScene == 0 && model.DamageMonId == 0 && model.DamageRank.Count == 1 && IsDamage(model.DamageRank[0], singleDamage)
+                    && model.HasMonsterInfo && model.MonsterScene == 0 && model.MonsterInfo.Count == 1 && IsMonster(model.MonsterInfo[0], singleMonster);
 
                 byte[] overwriteBossBytes = BossPacket(uint.MaxValue, 1, 2, 3, "small");
                 var overwriteBossReader = new NetReader(overwriteBossBytes, 0, overwriteBossBytes.Length);
@@ -301,12 +341,19 @@ namespace Shenxiao.EditorTools
                 on27905.Invoke(controller, new object[] { emptyDamageReader });
                 pass &= emptyDamageReader.Remaining == 0 && model.HasDamageRank && model.DamageScene == 7 && model.DamageMonId == 8 && model.DamageRank.Count == 0
                     && model.OpenTime == 31 && model.EnterTime == 32 && model.EndTime == 33 && model.CanEnterScene == 2 && model.JoinList.Count == 1 && model.JoinList[0].Scene == 34
-                    && model.DieTimes == 37 && model.Time == 38 && model.DieTime == 39 && model.SafeTime == 40 && IsBoss(model.BossStates[77], 77, 41, 42, 43, "later");
+                    && model.DieTimes == 37 && model.Time == 38 && model.DieTime == 39 && model.SafeTime == 40 && IsBoss(model.BossStates[77], 77, 41, 42, 43, "later") && model.MonsterInfo.Count == 1 && IsMonster(model.MonsterInfo[0], singleMonster);
+
+                byte[] emptyMonsterBytes = MonsterPacket(7, new MonsterSpec[0]);
+                var emptyMonsterReader = new NetReader(emptyMonsterBytes, 0, emptyMonsterBytes.Length);
+                on27904.Invoke(controller, new object[] { emptyMonsterReader });
+                pass &= emptyMonsterReader.Remaining == 0 && model.HasMonsterInfo && model.MonsterScene == 7 && model.MonsterInfo.Count == 0
+                    && model.OpenTime == 31 && model.EnterTime == 32 && model.EndTime == 33 && model.CanEnterScene == 2 && model.JoinList.Count == 1 && model.JoinList[0].Scene == 34
+                    && model.DieTimes == 37 && model.Time == 38 && model.DieTime == 39 && model.SafeTime == 40 && model.DamageScene == 7 && model.DamageMonId == 8 && model.DamageRank.Count == 0 && IsBoss(model.BossStates[77], 77, 41, 42, 43, "later");
 
                 controller.Dispose();
-                pass &= !controller.IsInitialized && !handlers.Contains(27900) && !handlers.Contains(27901) && !handlers.Contains(27905) && !handlers.Contains(27906) && !handlers.Contains(27908)
+                pass &= !controller.IsInitialized && !handlers.Contains(27900) && !handlers.Contains(27901) && !handlers.Contains(27904) && !handlers.Contains(27905) && !handlers.Contains(27906) && !handlers.Contains(27908)
                     && !model.HasData && !model.HasJoinInfo && !model.HasReliveInfo && model.OpenTime == 0 && model.EnterTime == 0 && model.EndTime == 0 && model.CanEnterScene == 0 && model.JoinList.Count == 0
-                    && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0 && !model.HasDamageRank && model.DamageScene == 0 && model.DamageMonId == 0 && model.DamageRank.Count == 0 && !model.HasBossStates && model.BossStates.Count == 0;
+                    && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0 && !model.HasMonsterInfo && model.MonsterScene == 0 && model.MonsterInfo.Count == 0 && !model.HasDamageRank && model.DamageScene == 0 && model.DamageMonId == 0 && model.DamageRank.Count == 0 && !model.HasBossStates && model.BossStates.Count == 0;
 
                 Debug.Log("CLIVERIFY eternity VERDICT pass=" + pass);
             }
@@ -331,6 +378,10 @@ namespace Shenxiao.EditorTools
                     if (oldHasReliveInfo)
                     {
                         model.ReplaceReliveInfo(oldDieTimes, oldTime, oldDieTime, oldSafeTime);
+                    }
+                    if (oldHasMonsterInfo)
+                    {
+                        model.ReplaceMonsterInfo(oldMonsterScene, oldMonsterInfo);
                     }
                     if (oldHasDamageRank)
                     {
@@ -367,7 +418,7 @@ namespace Shenxiao.EditorTools
 
                     if (handlers != null)
                     {
-                        foreach (int proto in new[] { 27900, 27901, 27905, 27906, 27908 })
+                        foreach (int proto in new[] { 27900, 27901, 27904, 27905, 27906, 27908 })
                         {
                             if (oldHandlers.TryGetValue(proto, out object handler)) handlers[proto] = handler;
                             else handlers.Remove(proto);
@@ -387,6 +438,7 @@ namespace Shenxiao.EditorTools
                         && model.HasData == oldHasData && (!oldHasData || model.OpenTime == oldOpenTime && model.EnterTime == oldEnterTime && model.EndTime == oldEndTime)
                         && model.HasJoinInfo == oldHasJoinInfo && (!oldHasJoinInfo || model.CanEnterScene == oldCanEnterScene && SameJoins(model.JoinList, oldJoinList))
                         && model.HasReliveInfo == oldHasReliveInfo && (!oldHasReliveInfo || model.DieTimes == oldDieTimes && model.Time == oldTime && model.DieTime == oldDieTime && model.SafeTime == oldSafeTime)
+                        && model.HasMonsterInfo == oldHasMonsterInfo && (oldHasMonsterInfo ? model.MonsterScene == oldMonsterScene && SameMonsterInfo(model.MonsterInfo, oldMonsterInfo) : model.MonsterScene == 0 && model.MonsterInfo.Count == 0)
                         && model.HasDamageRank == oldHasDamageRank && (oldHasDamageRank ? model.DamageScene == oldDamageScene && model.DamageMonId == oldDamageMonId && SameDamageRank(model.DamageRank, oldDamageRank) : model.DamageScene == 0 && model.DamageMonId == 0 && model.DamageRank.Count == 0)
                         && model.HasBossStates == oldHasBossStates && (oldHasBossStates ? SameBossStates(model.BossStates, oldBossStates) : model.BossStates.Count == 0)
                         && role.Level == oldLevel && hasBaseInfoField != null && (bool)hasBaseInfoField.GetValue(role) == oldHasBaseInfo
@@ -435,6 +487,13 @@ namespace Shenxiao.EditorTools
                 && frame[8] == (byte)(monId >> 24) && frame[9] == (byte)(monId >> 16) && frame[10] == (byte)(monId >> 8) && frame[11] == (byte)monId;
         }
 
+        private static bool IsExactMonsterRequest(byte[] frame, ushort scene)
+        {
+            return frame != null && frame.Length == 8 && frame[0] == 0 && frame[1] == 8 && frame[2] == 0x03 && frame[3] == 0xE8
+                && frame[4] == (byte)(Proto.ETERNITY_MONSTER_INFO >> 8) && frame[5] == (byte)(Proto.ETERNITY_MONSTER_INFO & 0xFF)
+                && frame[6] == (byte)(scene >> 8) && frame[7] == (byte)scene;
+        }
+
         private static byte[] JoinPacket(byte canEnterScene, JoinSpec[] joins)
         {
             var packet = new CliVerify.Pkt().C(canEnterScene).H(joins.Length);
@@ -445,6 +504,30 @@ namespace Shenxiao.EditorTools
         private static bool IsJoin(EternityModel.JoinEntry actual, JoinSpec expected)
         {
             return actual.Scene == expected.Scene && actual.SelfServerNum == expected.SelfServerNum && actual.SceneNum == expected.SceneNum;
+        }
+
+        private static byte[] MonsterPacket(ushort scene, MonsterSpec[] entries)
+        {
+            var packet = new CliVerify.Pkt().H(scene).H(entries.Length);
+            foreach (MonsterSpec entry in entries) packet.I(entry.MonId).H(entry.MonLv).C(entry.MonType).I(entry.BlServer).S(entry.BlServerName).I(entry.BlServerNum).I(entry.RebornTime);
+            return packet.Bytes();
+        }
+
+        private static bool IsMonster(EternityModel.MonsterEntry actual, MonsterSpec expected)
+        {
+            return actual.MonId == expected.MonId && actual.MonLv == expected.MonLv && actual.MonType == expected.MonType && actual.BlServer == expected.BlServer
+                && actual.BlServerName == expected.BlServerName && actual.BlServerNum == expected.BlServerNum && actual.RebornTime == expected.RebornTime;
+        }
+
+        private static bool SameMonsterInfo(IReadOnlyList<EternityModel.MonsterEntry> actual, IReadOnlyList<EternityModel.MonsterEntry> expected)
+        {
+            if (actual.Count != expected.Count) return false;
+            for (int i = 0; i < actual.Count; i++)
+            {
+                MonsterSpec entry = new MonsterSpec(expected[i].MonId, expected[i].MonLv, expected[i].MonType, expected[i].BlServer, expected[i].BlServerName, expected[i].BlServerNum, expected[i].RebornTime);
+                if (!IsMonster(actual[i], entry)) return false;
+            }
+            return true;
         }
 
         private static byte[] DamagePacket(ushort scene, uint monId, DamageSpec[] entries)
@@ -514,7 +597,7 @@ namespace Shenxiao.EditorTools
         private static bool HandlersMatch(IDictionary handlers, Dictionary<int, object> expected)
         {
             if (handlers == null) return false;
-            foreach (int proto in new[] { 27900, 27901, 27905, 27906, 27908 })
+            foreach (int proto in new[] { 27900, 27901, 27904, 27905, 27906, 27908 })
             {
                 bool had = expected.TryGetValue(proto, out object handler);
                 if (handlers.Contains(proto) != had || had && !ReferenceEquals(handlers[proto], handler)) return false;
@@ -547,6 +630,15 @@ namespace Shenxiao.EditorTools
             public DamageSpec(uint serverId, ushort serverNum, string serverName, uint playerId, string playerName, ushort damage)
             {
                 ServerId = serverId; ServerNum = serverNum; ServerName = serverName; PlayerId = playerId; PlayerName = playerName; Damage = damage;
+            }
+        }
+
+        private struct MonsterSpec
+        {
+            public readonly uint MonId; public readonly ushort MonLv; public readonly byte MonType; public readonly uint BlServer; public readonly string BlServerName; public readonly uint BlServerNum; public readonly uint RebornTime;
+            public MonsterSpec(uint monId, ushort monLv, byte monType, uint blServer, string blServerName, uint blServerNum, uint rebornTime)
+            {
+                MonId = monId; MonLv = monLv; MonType = monType; BlServer = blServer; BlServerName = blServerName; BlServerNum = blServerNum; RebornTime = rebornTime;
             }
         }
     }
