@@ -21,6 +21,12 @@ namespace Shenxiao.Module.Core.Eternity
         public uint DieTime { get; private set; }
         public uint SafeTime { get; private set; }
         public bool HasReliveInfo { get; private set; }
+        private readonly List<DamageEntry> _damageRank = new List<DamageEntry>();
+        private readonly IReadOnlyList<DamageEntry> _readOnlyDamageRank;
+        public bool HasDamageRank { get; private set; }
+        public ushort DamageScene { get; private set; }
+        public uint DamageMonId { get; private set; }
+        public IReadOnlyList<DamageEntry> DamageRank => _readOnlyDamageRank;
         private readonly Dictionary<uint, BossStateEntry> _bossStates = new Dictionary<uint, BossStateEntry>();
         private readonly IReadOnlyDictionary<uint, BossStateEntry> _readOnlyBossStates;
         public bool HasBossStates { get; private set; }
@@ -52,9 +58,30 @@ namespace Shenxiao.Module.Core.Eternity
             }
         }
 
+        public sealed class DamageEntry
+        {
+            public uint ServerId { get; }
+            public ushort ServerNum { get; }
+            public string ServerName { get; }
+            public uint PlayerId { get; }
+            public string PlayerName { get; }
+            public ushort Damage { get; }
+
+            public DamageEntry(uint serverId, ushort serverNum, string serverName, uint playerId, string playerName, ushort damage)
+            {
+                ServerId = serverId;
+                ServerNum = serverNum;
+                ServerName = serverName;
+                PlayerId = playerId;
+                PlayerName = playerName;
+                Damage = damage;
+            }
+        }
+
         private EternityModel()
         {
             _readOnlyJoinList = _joinList.AsReadOnly();
+            _readOnlyDamageRank = _damageRank.AsReadOnly();
             _readOnlyBossStates = new ReadOnlyDictionary<uint, BossStateEntry>(_bossStates);
         }
 
@@ -83,6 +110,15 @@ namespace Shenxiao.Module.Core.Eternity
             HasReliveInfo = true;
         }
 
+        public void ReplaceDamageRank(ushort scene, uint monId, List<DamageEntry> entries)
+        {
+            DamageScene = scene;
+            DamageMonId = monId;
+            _damageRank.Clear();
+            if (entries != null) _damageRank.AddRange(entries);
+            HasDamageRank = true;
+        }
+
         public void ReplaceBossState(BossStateEntry bossState)
         {
             _bossStates[bossState.MonId] = bossState;
@@ -103,6 +139,10 @@ namespace Shenxiao.Module.Core.Eternity
             DieTime = 0;
             SafeTime = 0;
             HasReliveInfo = false;
+            DamageScene = 0;
+            DamageMonId = 0;
+            _damageRank.Clear();
+            HasDamageRank = false;
             _bossStates.Clear();
             HasBossStates = false;
         }

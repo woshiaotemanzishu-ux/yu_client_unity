@@ -49,6 +49,10 @@ namespace Shenxiao.EditorTools
             uint oldTime = model.Time;
             uint oldDieTime = model.DieTime;
             uint oldSafeTime = model.SafeTime;
+            bool oldHasDamageRank = model.HasDamageRank;
+            ushort oldDamageScene = model.DamageScene;
+            uint oldDamageMonId = model.DamageMonId;
+            var oldDamageRank = new List<EternityModel.DamageEntry>(model.DamageRank);
             bool oldHasBossStates = model.HasBossStates;
             var oldBossStates = new List<EternityModel.BossStateEntry>(model.BossStates.Values);
             int oldLevel = role.Level;
@@ -62,7 +66,7 @@ namespace Shenxiao.EditorTools
             var oldHandlers = new Dictionary<int, object>();
             if (handlers != null)
             {
-                foreach (int proto in new[] { 27900, 27901, 27906, 27908 })
+                foreach (int proto in new[] { 27900, 27901, 27905, 27906, 27908 })
                 {
                     if (handlers.Contains(proto)) oldHandlers[proto] = handlers[proto];
                 }
@@ -80,16 +84,18 @@ namespace Shenxiao.EditorTools
 
                 MethodInfo on27900 = typeof(EternityController).GetMethod("On27900", InstanceNonPublic);
                 MethodInfo on27901 = typeof(EternityController).GetMethod("On27901", InstanceNonPublic);
+                MethodInfo on27905 = typeof(EternityController).GetMethod("On27905", InstanceNonPublic);
                 MethodInfo on27906 = typeof(EternityController).GetMethod("On27906", InstanceNonPublic);
                 MethodInfo on27908 = typeof(EternityController).GetMethod("On27908", InstanceNonPublic);
                 MethodInfo onRoleInfoUpdate = typeof(EternityController).GetMethod("OnRoleInfoUpdate", InstanceNonPublic);
                 pass = hasBaseInfoField != null && interceptField != null && lastLevelField != null
-                    && on27900 != null && on27901 != null && on27906 != null && on27908 != null && onRoleInfoUpdate != null && handlers != null
+                    && on27900 != null && on27901 != null && on27905 != null && on27906 != null && on27908 != null && onRoleInfoUpdate != null && handlers != null
+                    && typeof(EternityController).GetMethod("RequestDamageRank", BindingFlags.Public | BindingFlags.Instance) != null
                     && typeof(EternityController).GetMethod("Request27908", BindingFlags.Public | InstanceNonPublic) == null
                     && eventHandlers != null;
                 for (int proto = 27900; proto <= 27909; proto++)
                 {
-                    pass &= (proto == 27900 || proto == 27901 || proto == 27906 || proto == 27908) == handlers.Contains(proto);
+                    pass &= (proto == 27900 || proto == 27901 || proto == 27905 || proto == 27906 || proto == 27908) == handlers.Contains(proto);
                 }
 
                 if (!pass)
@@ -112,12 +118,12 @@ namespace Shenxiao.EditorTools
                 role.Level = 479;
                 controller.RequestStartup();
                 pass &= frames.Count == 0 && !model.HasData && !model.HasJoinInfo && !model.HasReliveInfo && model.OpenTime == 0 && model.EnterTime == 0 && model.EndTime == 0
-                    && model.CanEnterScene == 0 && model.JoinList.Count == 0 && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0 && !model.HasBossStates && model.BossStates.Count == 0;
+                    && model.CanEnterScene == 0 && model.JoinList.Count == 0 && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0 && !model.HasDamageRank && model.DamageRank.Count == 0 && !model.HasBossStates && model.BossStates.Count == 0;
 
                 model.Replace(4, 5, 6);
                 role.Level = 480;
                 controller.RequestStartup();
-                pass &= frames.Count == 1 && !model.HasData && !HasProtocol(frames, 27908);
+                pass &= frames.Count == 1 && !model.HasData && !HasProtocol(frames, 27905) && !HasProtocol(frames, 27908);
                 pass &= IsExactRequest(frames[0]);
                 frames.Clear();
 
@@ -125,7 +131,7 @@ namespace Shenxiao.EditorTools
                 controller.RequestStartup();
                 role.Level = 480;
                 onRoleInfoUpdate.Invoke(controller, null);
-                pass &= frames.Count == 1 && IsExactRequest(frames[0]) && !HasProtocol(frames, 27908);
+                pass &= frames.Count == 1 && IsExactRequest(frames[0]) && !HasProtocol(frames, 27905) && !HasProtocol(frames, 27908);
                 onRoleInfoUpdate.Invoke(controller, null);
                 pass &= frames.Count == 1;
                 role.Level = 481;
@@ -137,7 +143,7 @@ namespace Shenxiao.EditorTools
                 controller.RequestStartup();
                 role.Level = 481;
                 onRoleInfoUpdate.Invoke(controller, null);
-                pass &= frames.Count == 0 && !HasProtocol(frames, 27908);
+                pass &= frames.Count == 0 && !HasProtocol(frames, 27905) && !HasProtocol(frames, 27908);
 
                 byte[] firstBytes = new CliVerify.Pkt().I(0).I(4000000000L).I(4294967295L).Bytes();
                 var firstReader = new NetReader(firstBytes, 0, firstBytes.Length);
@@ -219,11 +225,37 @@ namespace Shenxiao.EditorTools
                 on27906.Invoke(controller, new object[] { zeroReliveReader });
                 pass &= zeroReliveReader.Remaining == 0 && model.HasReliveInfo && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0;
 
+                DamageSpec firstDamage = new DamageSpec(uint.MaxValue, ushort.MaxValue, "服Ω", uint.MaxValue, "甲Ω", ushort.MaxValue);
+                DamageSpec duplicateDamage = new DamageSpec(1, 2, "乙服", uint.MaxValue, "乙", 3);
+                byte[] multiDamageBytes = DamagePacket(ushort.MaxValue, uint.MaxValue, new[] { firstDamage, duplicateDamage });
+                var multiDamageReader = new NetReader(multiDamageBytes, 0, multiDamageBytes.Length);
+                on27905.Invoke(controller, new object[] { multiDamageReader });
+                pass &= multiDamageReader.Remaining == 0 && model.HasDamageRank && model.DamageScene == ushort.MaxValue && model.DamageMonId == uint.MaxValue && model.DamageRank.Count == 2
+                    && IsDamage(model.DamageRank[0], firstDamage) && IsDamage(model.DamageRank[1], duplicateDamage);
+
+                controller.RequestDamageRank(ushort.MaxValue, uint.MaxValue);
+                pass &= frames.Count == 1 && IsExactDamageRequest(frames[0], ushort.MaxValue, uint.MaxValue)
+                    && model.DamageScene == ushort.MaxValue && model.DamageMonId == uint.MaxValue && model.DamageRank.Count == 2 && IsDamage(model.DamageRank[0], firstDamage);
+                frames.Clear();
+                controller.RequestDamageRank(0, 0);
+                pass &= frames.Count == 1 && IsExactDamageRequest(frames[0], 0, 0)
+                    && model.DamageScene == ushort.MaxValue && model.DamageMonId == uint.MaxValue && model.DamageRank.Count == 2 && IsDamage(model.DamageRank[1], duplicateDamage);
+                frames.Clear();
+
+                DamageSpec singleDamage = new DamageSpec(0, 0, string.Empty, 0, string.Empty, 0);
+                byte[] singleDamageBytes = DamagePacket(0, 0, new[] { singleDamage });
+                var singleDamageReader = new NetReader(singleDamageBytes, 0, singleDamageBytes.Length);
+                on27905.Invoke(controller, new object[] { singleDamageReader });
+                pass &= singleDamageReader.Remaining == 0 && model.HasDamageRank && model.DamageScene == 0 && model.DamageMonId == 0 && model.DamageRank.Count == 1 && IsDamage(model.DamageRank[0], singleDamage)
+                    && model.OpenTime == 20 && model.EnterTime == 21 && model.EndTime == 22 && model.CanEnterScene == 1 && model.JoinList.Count == 1 && model.JoinList[0].Scene == 23
+                    && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0;
+
                 byte[] maxBossBytes = BossPacket(uint.MaxValue, uint.MaxValue, 4000000000L, uint.MaxValue, "永恒Ω");
                 var maxBossReader = new NetReader(maxBossBytes, 0, maxBossBytes.Length);
                 on27908.Invoke(controller, new object[] { maxBossReader });
                 pass &= maxBossReader.Remaining == 0 && model.HasBossStates && model.BossStates.Count == 1
-                    && IsBoss(model.BossStates[uint.MaxValue], uint.MaxValue, uint.MaxValue, 4000000000U, uint.MaxValue, "永恒Ω") && frames.Count == 0;
+                    && IsBoss(model.BossStates[uint.MaxValue], uint.MaxValue, uint.MaxValue, 4000000000U, uint.MaxValue, "永恒Ω") && frames.Count == 0
+                    && model.HasDamageRank && model.DamageScene == 0 && model.DamageMonId == 0 && model.DamageRank.Count == 1 && IsDamage(model.DamageRank[0], singleDamage);
 
                 byte[] overwriteBossBytes = BossPacket(uint.MaxValue, 1, 2, 3, "small");
                 var overwriteBossReader = new NetReader(overwriteBossBytes, 0, overwriteBossBytes.Length);
@@ -262,12 +294,19 @@ namespace Shenxiao.EditorTools
                 on27908.Invoke(controller, new object[] { bossBidirectionalReader });
                 pass &= bossBidirectionalReader.Remaining == 0 && IsBoss(model.BossStates[77], 77, 41, 42, 43, "later")
                     && model.OpenTime == 31 && model.EnterTime == 32 && model.EndTime == 33 && model.CanEnterScene == 2 && model.JoinList.Count == 1 && model.JoinList[0].Scene == 34
-                    && model.DieTimes == 37 && model.Time == 38 && model.DieTime == 39 && model.SafeTime == 40;
+                    && model.DieTimes == 37 && model.Time == 38 && model.DieTime == 39 && model.SafeTime == 40 && model.DamageRank.Count == 1 && IsDamage(model.DamageRank[0], singleDamage);
+
+                byte[] emptyDamageBytes = DamagePacket(7, 8, new DamageSpec[0]);
+                var emptyDamageReader = new NetReader(emptyDamageBytes, 0, emptyDamageBytes.Length);
+                on27905.Invoke(controller, new object[] { emptyDamageReader });
+                pass &= emptyDamageReader.Remaining == 0 && model.HasDamageRank && model.DamageScene == 7 && model.DamageMonId == 8 && model.DamageRank.Count == 0
+                    && model.OpenTime == 31 && model.EnterTime == 32 && model.EndTime == 33 && model.CanEnterScene == 2 && model.JoinList.Count == 1 && model.JoinList[0].Scene == 34
+                    && model.DieTimes == 37 && model.Time == 38 && model.DieTime == 39 && model.SafeTime == 40 && IsBoss(model.BossStates[77], 77, 41, 42, 43, "later");
 
                 controller.Dispose();
-                pass &= !controller.IsInitialized && !handlers.Contains(27900) && !handlers.Contains(27901) && !handlers.Contains(27906) && !handlers.Contains(27908)
+                pass &= !controller.IsInitialized && !handlers.Contains(27900) && !handlers.Contains(27901) && !handlers.Contains(27905) && !handlers.Contains(27906) && !handlers.Contains(27908)
                     && !model.HasData && !model.HasJoinInfo && !model.HasReliveInfo && model.OpenTime == 0 && model.EnterTime == 0 && model.EndTime == 0 && model.CanEnterScene == 0 && model.JoinList.Count == 0
-                    && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0 && !model.HasBossStates && model.BossStates.Count == 0;
+                    && model.DieTimes == 0 && model.Time == 0 && model.DieTime == 0 && model.SafeTime == 0 && !model.HasDamageRank && model.DamageScene == 0 && model.DamageMonId == 0 && model.DamageRank.Count == 0 && !model.HasBossStates && model.BossStates.Count == 0;
 
                 Debug.Log("CLIVERIFY eternity VERDICT pass=" + pass);
             }
@@ -292,6 +331,10 @@ namespace Shenxiao.EditorTools
                     if (oldHasReliveInfo)
                     {
                         model.ReplaceReliveInfo(oldDieTimes, oldTime, oldDieTime, oldSafeTime);
+                    }
+                    if (oldHasDamageRank)
+                    {
+                        model.ReplaceDamageRank(oldDamageScene, oldDamageMonId, oldDamageRank);
                     }
                     if (oldHasBossStates)
                     {
@@ -324,7 +367,7 @@ namespace Shenxiao.EditorTools
 
                     if (handlers != null)
                     {
-                        foreach (int proto in new[] { 27900, 27901, 27906, 27908 })
+                        foreach (int proto in new[] { 27900, 27901, 27905, 27906, 27908 })
                         {
                             if (oldHandlers.TryGetValue(proto, out object handler)) handlers[proto] = handler;
                             else handlers.Remove(proto);
@@ -344,6 +387,7 @@ namespace Shenxiao.EditorTools
                         && model.HasData == oldHasData && (!oldHasData || model.OpenTime == oldOpenTime && model.EnterTime == oldEnterTime && model.EndTime == oldEndTime)
                         && model.HasJoinInfo == oldHasJoinInfo && (!oldHasJoinInfo || model.CanEnterScene == oldCanEnterScene && SameJoins(model.JoinList, oldJoinList))
                         && model.HasReliveInfo == oldHasReliveInfo && (!oldHasReliveInfo || model.DieTimes == oldDieTimes && model.Time == oldTime && model.DieTime == oldDieTime && model.SafeTime == oldSafeTime)
+                        && model.HasDamageRank == oldHasDamageRank && (oldHasDamageRank ? model.DamageScene == oldDamageScene && model.DamageMonId == oldDamageMonId && SameDamageRank(model.DamageRank, oldDamageRank) : model.DamageScene == 0 && model.DamageMonId == 0 && model.DamageRank.Count == 0)
                         && model.HasBossStates == oldHasBossStates && (oldHasBossStates ? SameBossStates(model.BossStates, oldBossStates) : model.BossStates.Count == 0)
                         && role.Level == oldLevel && hasBaseInfoField != null && (bool)hasBaseInfoField.GetValue(role) == oldHasBaseInfo
                         && lastLevelField != null && (int)lastLevelField.GetValue(controller) == oldLastLevel
@@ -383,6 +427,14 @@ namespace Shenxiao.EditorTools
                 && frame[4] == (byte)(Proto.ETERNITY_RELIVE_INFO >> 8) && frame[5] == (byte)(Proto.ETERNITY_RELIVE_INFO & 0xFF);
         }
 
+        private static bool IsExactDamageRequest(byte[] frame, ushort scene, uint monId)
+        {
+            return frame != null && frame.Length == 12 && frame[0] == 0 && frame[1] == 12 && frame[2] == 0x03 && frame[3] == 0xE8
+                && frame[4] == (byte)(Proto.ETERNITY_DAMAGE_RANK >> 8) && frame[5] == (byte)(Proto.ETERNITY_DAMAGE_RANK & 0xFF)
+                && frame[6] == (byte)(scene >> 8) && frame[7] == (byte)scene
+                && frame[8] == (byte)(monId >> 24) && frame[9] == (byte)(monId >> 16) && frame[10] == (byte)(monId >> 8) && frame[11] == (byte)monId;
+        }
+
         private static byte[] JoinPacket(byte canEnterScene, JoinSpec[] joins)
         {
             var packet = new CliVerify.Pkt().C(canEnterScene).H(joins.Length);
@@ -393,6 +445,30 @@ namespace Shenxiao.EditorTools
         private static bool IsJoin(EternityModel.JoinEntry actual, JoinSpec expected)
         {
             return actual.Scene == expected.Scene && actual.SelfServerNum == expected.SelfServerNum && actual.SceneNum == expected.SceneNum;
+        }
+
+        private static byte[] DamagePacket(ushort scene, uint monId, DamageSpec[] entries)
+        {
+            var packet = new CliVerify.Pkt().H(scene).I(monId).H(entries.Length);
+            foreach (DamageSpec entry in entries) packet.I(entry.ServerId).H(entry.ServerNum).S(entry.ServerName).I(entry.PlayerId).S(entry.PlayerName).H(entry.Damage);
+            return packet.Bytes();
+        }
+
+        private static bool IsDamage(EternityModel.DamageEntry actual, DamageSpec expected)
+        {
+            return actual.ServerId == expected.ServerId && actual.ServerNum == expected.ServerNum && actual.ServerName == expected.ServerName
+                && actual.PlayerId == expected.PlayerId && actual.PlayerName == expected.PlayerName && actual.Damage == expected.Damage;
+        }
+
+        private static bool SameDamageRank(IReadOnlyList<EternityModel.DamageEntry> actual, IReadOnlyList<EternityModel.DamageEntry> expected)
+        {
+            if (actual.Count != expected.Count) return false;
+            for (int i = 0; i < actual.Count; i++)
+            {
+                DamageSpec entry = new DamageSpec(expected[i].ServerId, expected[i].ServerNum, expected[i].ServerName, expected[i].PlayerId, expected[i].PlayerName, expected[i].Damage);
+                if (!IsDamage(actual[i], entry)) return false;
+            }
+            return true;
         }
 
         private static byte[] BossPacket(long monId, long rebornTime, long blServer, long blServerNum, string blServerName)
@@ -438,7 +514,7 @@ namespace Shenxiao.EditorTools
         private static bool HandlersMatch(IDictionary handlers, Dictionary<int, object> expected)
         {
             if (handlers == null) return false;
-            foreach (int proto in new[] { 27900, 27901, 27906, 27908 })
+            foreach (int proto in new[] { 27900, 27901, 27905, 27906, 27908 })
             {
                 bool had = expected.TryGetValue(proto, out object handler);
                 if (handlers.Contains(proto) != had || had && !ReferenceEquals(handlers[proto], handler)) return false;
@@ -463,6 +539,15 @@ namespace Shenxiao.EditorTools
         {
             public readonly uint Scene; public readonly ushort SelfServerNum; public readonly ushort SceneNum;
             public JoinSpec(uint scene, ushort selfServerNum, ushort sceneNum) { Scene = scene; SelfServerNum = selfServerNum; SceneNum = sceneNum; }
+        }
+
+        private struct DamageSpec
+        {
+            public readonly uint ServerId; public readonly ushort ServerNum; public readonly string ServerName; public readonly uint PlayerId; public readonly string PlayerName; public readonly ushort Damage;
+            public DamageSpec(uint serverId, ushort serverNum, string serverName, uint playerId, string playerName, ushort damage)
+            {
+                ServerId = serverId; ServerNum = serverNum; ServerName = serverName; PlayerId = playerId; PlayerName = playerName; Damage = damage;
+            }
         }
     }
 }

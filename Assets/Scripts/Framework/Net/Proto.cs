@@ -1021,6 +1021,8 @@
         public const int ETERNITY_TIME_INFO = 27900;
         /// <summary>永恒圣殿参与人数与资格快照。C2S 空包；S2C: can_enter_scene:u8,join_list:u16×{scene:u32,self_server_num:u16,scene_num:u16}。</summary>
         public const int ETERNITY_JOIN_INFO = 27901;
+        /// <summary>永恒圣殿怪物伤害排行。C2S: scene:u16,mon_id:u32；S2C: scene:u16,mon_id:u32,hurt_list:u16×{server_id:u32,server_num:u16,server_name:s,player_id:u32,player_name:s,damage:u16}。</summary>
+        public const int ETERNITY_DAMAGE_RANK = 27905;
         /// <summary>永恒圣殿 Boss 状态推送。仅 S2C：mon_id:u32,reborn_time:u32,bl_server:u32,bl_server_num:u32,bl_server_name:s。</summary>
         public const int ETERNITY_BOSS_STATE = 27908;
         /// <summary>永恒圣殿复活状态快照。显式 C2S 空包；S2C: die_times:u16,time:u32,die_time:u32,safe_time:u32。</summary>
