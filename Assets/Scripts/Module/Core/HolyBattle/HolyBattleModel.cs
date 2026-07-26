@@ -64,6 +64,20 @@ namespace Shenxiao.Module.Core.HolyBattle
             }
         }
 
+        public sealed class ResultGroupEntry
+        {
+            public byte GroupId { get; }
+            public byte TowerNum { get; }
+            public uint Point { get; }
+
+            public ResultGroupEntry(byte groupId, byte towerNum, uint point)
+            {
+                GroupId = groupId;
+                TowerNum = towerNum;
+                Point = point;
+            }
+        }
+
         public sealed class BuffEntry
         {
             public ushort AttrId { get; }
@@ -96,6 +110,8 @@ namespace Shenxiao.Module.Core.HolyBattle
         private readonly IReadOnlyList<RewardEntry> _readOnlyRewards;
         private readonly List<RecordGroupEntry> _recordStats = new List<RecordGroupEntry>();
         private readonly IReadOnlyList<RecordGroupEntry> _readOnlyRecordStats;
+        private readonly List<ResultGroupEntry> _resultGroups = new List<ResultGroupEntry>();
+        private readonly IReadOnlyList<ResultGroupEntry> _readOnlyResultGroups;
         private readonly List<BuffEntry> _buffs = new List<BuffEntry>();
         private readonly IReadOnlyList<BuffEntry> _readOnlyBuffs;
         private readonly Dictionary<uint, MonsterEntry> _monsters = new Dictionary<uint, MonsterEntry>();
@@ -106,6 +122,7 @@ namespace Shenxiao.Module.Core.HolyBattle
             _readOnlyServers = _servers.AsReadOnly();
             _readOnlyRewards = _rewards.AsReadOnly();
             _readOnlyRecordStats = _recordStats.AsReadOnly();
+            _readOnlyResultGroups = _resultGroups.AsReadOnly();
             _readOnlyBuffs = _buffs.AsReadOnly();
             _readOnlyMonsters = new System.Collections.ObjectModel.ReadOnlyDictionary<uint, MonsterEntry>(_monsters);
         }
@@ -122,6 +139,11 @@ namespace Shenxiao.Module.Core.HolyBattle
         public IReadOnlyList<RewardEntry> Rewards => _readOnlyRewards;
         public bool HasRecordStats { get; private set; }
         public IReadOnlyList<RecordGroupEntry> RecordStats => _readOnlyRecordStats;
+        public bool HasResultInfo { get; private set; }
+        public byte ResultCode { get; private set; }
+        public byte ResultMyGroupId { get; private set; }
+        public byte ResultMyRank { get; private set; }
+        public IReadOnlyList<ResultGroupEntry> ResultGroups => _readOnlyResultGroups;
         public bool HasPhaseTime { get; private set; }
         public byte PhaseStatus { get; private set; }
         public uint PhaseEndTime { get; private set; }
@@ -186,6 +208,16 @@ namespace Shenxiao.Module.Core.HolyBattle
             HasRecordStats = true;
         }
 
+        public void ReplaceResultInfo(byte resultCode, List<ResultGroupEntry> groups, byte myGroupId, byte myRank)
+        {
+            ResultCode = resultCode;
+            _resultGroups.Clear();
+            if (groups != null) _resultGroups.AddRange(groups);
+            ResultMyGroupId = myGroupId;
+            ResultMyRank = myRank;
+            HasResultInfo = true;
+        }
+
         public void ReplacePhaseTime(byte status, uint endTime)
         {
             PhaseStatus = status;
@@ -246,6 +278,11 @@ namespace Shenxiao.Module.Core.HolyBattle
             _rewards.Clear();
             _recordStats.Clear();
             HasRecordStats = false;
+            _resultGroups.Clear();
+            HasResultInfo = false;
+            ResultCode = 0;
+            ResultMyGroupId = 0;
+            ResultMyRank = 0;
             HasPhaseTime = false;
             PhaseStatus = 0;
             PhaseEndTime = 0;

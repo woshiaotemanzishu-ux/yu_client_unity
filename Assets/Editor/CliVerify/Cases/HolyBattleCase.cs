@@ -67,9 +67,14 @@ namespace Shenxiao.EditorTools
             uint oldDeathServerId = model.DeathServerId;
             byte oldDeathCareer = model.DeathCareer;
             byte oldDeathTurn = model.DeathTurn;
+            bool oldHasResultInfo = model.HasResultInfo;
+            byte oldResultCode = model.ResultCode;
+            byte oldResultMyGroupId = model.ResultMyGroupId;
+            byte oldResultMyRank = model.ResultMyRank;
+            var oldResultGroups = new List<HolyBattleModel.ResultGroupEntry>(model.ResultGroups);
             FieldInfo interceptField = typeof(HolyBattleController).GetField("s_outboundIntercept", StaticNonPublic);
             object oldIntercept = interceptField == null ? null : interceptField.GetValue(null);
-            int[] handlerIds = { 21801, 21804, 21805, 21807, 21808, 21809, 21811, 21813 };
+            int[] handlerIds = { 21801, 21804, 21805, 21807, 21808, 21809, 21810, 21811, 21813 };
             IDictionary originalHandlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
             var handlerSnapshot = new Dictionary<int, object>();
             if (originalHandlers != null)
@@ -95,14 +100,15 @@ namespace Shenxiao.EditorTools
                 MethodInfo on21811 = typeof(HolyBattleController).GetMethod("On21811", InstanceNonPublic);
                 MethodInfo on21807 = typeof(HolyBattleController).GetMethod("On21807", InstanceNonPublic);
                 MethodInfo on21809 = typeof(HolyBattleController).GetMethod("On21809", InstanceNonPublic);
+                MethodInfo on21810 = typeof(HolyBattleController).GetMethod("On21810", InstanceNonPublic);
                 MethodInfo on21813 = typeof(HolyBattleController).GetMethod("On21813", InstanceNonPublic);
                 IDictionary handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                bool pass = interceptField != null && on21801 != null && on21804 != null && on21805 != null && on21807 != null && on21808 != null && on21809 != null && on21811 != null && on21813 != null && handlers != null
-                    && handlers.Contains(21801) && handlers.Contains(21804) && handlers.Contains(21805) && handlers.Contains(21807) && handlers.Contains(21808) && handlers.Contains(21809) && handlers.Contains(21811) && handlers.Contains(21813)
-                    && typeof(HolyBattleController).GetMethod("RequestFightState") == null && typeof(HolyBattleController).GetMethod("RequestDeathInfo") == null;
+                bool pass = interceptField != null && on21801 != null && on21804 != null && on21805 != null && on21807 != null && on21808 != null && on21809 != null && on21810 != null && on21811 != null && on21813 != null && handlers != null
+                    && handlers.Contains(21801) && handlers.Contains(21804) && handlers.Contains(21805) && handlers.Contains(21807) && handlers.Contains(21808) && handlers.Contains(21809) && handlers.Contains(21810) && handlers.Contains(21811) && handlers.Contains(21813)
+                    && typeof(HolyBattleController).GetMethod("RequestFightState") == null && typeof(HolyBattleController).GetMethod("RequestDeathInfo") == null && typeof(HolyBattleController).GetMethod("RequestResultInfo") == null;
                 for (int proto = 21800; proto <= 21813; proto++)
                 {
-                    if (proto != 21801 && proto != 21804 && proto != 21805 && proto != 21807 && proto != 21808 && proto != 21809 && proto != 21811 && proto != 21813)
+                    if (proto != 21801 && proto != 21804 && proto != 21805 && proto != 21807 && proto != 21808 && proto != 21809 && proto != 21810 && proto != 21811 && proto != 21813)
                     {
                         pass &= !handlers.Contains(proto);
                     }
@@ -336,12 +342,43 @@ namespace Shenxiao.EditorTools
                     && model.DeathPower == 0 && model.DeathPictureVersion == 0 && model.DeathPicture == "" && model.DeathAnger == 0
                     && model.DeathServerId == 0 && model.DeathCareer == 0 && model.DeathTurn == 0;
 
+                byte[] resultBytes = new CliVerify.Pkt().C(byte.MaxValue).H(2)
+                    .C(byte.MaxValue).C(byte.MaxValue).I(uint.MaxValue).C(byte.MaxValue).C(0).I(0)
+                    .C(byte.MaxValue).C(byte.MaxValue).Bytes();
+                var resultReader = new NetReader(resultBytes, 0, resultBytes.Length);
+                on21810.Invoke(controller, new object[] { resultReader });
+                pass &= resultReader.Remaining == 0 && model.HasResultInfo && model.ResultCode == byte.MaxValue && model.ResultMyGroupId == byte.MaxValue && model.ResultMyRank == byte.MaxValue
+                    && model.ResultGroups.Count == 2 && model.ResultGroups[0].GroupId == byte.MaxValue && model.ResultGroups[0].TowerNum == byte.MaxValue && model.ResultGroups[0].Point == uint.MaxValue
+                    && model.ResultGroups[1].GroupId == byte.MaxValue && model.ResultGroups[1].TowerNum == 0 && model.ResultGroups[1].Point == 0
+                    && model.HasData && model.Mod == 255 && model.Status == 254 && model.EndTime == uint.MaxValue && model.Servers.Count == 2
+                    && model.HasExperience && model.AllExperience == 5000000001UL && model.HasScore && model.Point == 0 && model.Rewards.Count == 3
+                    && model.HasRecordStats && model.RecordStats.Count == 2 && model.RecordStats[1].Roles.Count == 3
+                    && model.HasPhaseTime && model.PhaseStatus == 2 && model.PhaseEndTime == 7
+                    && model.HasFightState && model.FightPoint == ushort.MaxValue && model.SingleRank == ushort.MaxValue
+                    && model.GroupRank == byte.MaxValue && model.Anger == byte.MaxValue && model.AngerEnd == uint.MaxValue && model.Buffs.Count == 3
+                    && model.HasMonsterInfo && model.MonstersByCfgId.Count == 1 && model.MonstersByCfgId.ContainsKey(uint.MaxValue)
+                    && model.MonstersByCfgId[uint.MaxValue].MonAuto == uint.MaxValue && model.MonstersByCfgId[uint.MaxValue].Hp == uint.MaxValue
+                    && model.MonstersByCfgId[uint.MaxValue].HpAll == 0 && model.MonstersByCfgId[uint.MaxValue].GroupId == byte.MaxValue
+                    && model.HasDeathInfo && model.DeathRoleName == "" && model.DeathRoleId == 0 && model.DeathLevel == 0 && model.DeathPower == 0
+                    && model.DeathPictureVersion == 0 && model.DeathPicture == "" && model.DeathAnger == 0 && model.DeathServerId == 0 && model.DeathCareer == 0 && model.DeathTurn == 0 && frames.Count == 0;
+
+                byte[] smallResultBytes = new CliVerify.Pkt().C(1).H(1).C(2).C(3).I(4).C(5).C(6).Bytes();
+                var smallResultReader = new NetReader(smallResultBytes, 0, smallResultBytes.Length);
+                on21810.Invoke(controller, new object[] { smallResultReader });
+                pass &= smallResultReader.Remaining == 0 && model.HasResultInfo && model.ResultCode == 1 && model.ResultMyGroupId == 5 && model.ResultMyRank == 6
+                    && model.ResultGroups.Count == 1 && model.ResultGroups[0].GroupId == 2 && model.ResultGroups[0].TowerNum == 3 && model.ResultGroups[0].Point == 4;
+
+                var emptyResultReader = new NetReader(new CliVerify.Pkt().C(0).H(0).C(7).C(8).Bytes(), 0, 5);
+                on21810.Invoke(controller, new object[] { emptyResultReader });
+                pass &= emptyResultReader.Remaining == 0 && model.HasResultInfo && model.ResultCode == 0 && model.ResultGroups.Count == 0 && model.ResultMyGroupId == 7 && model.ResultMyRank == 8;
+
                 var maxExperienceReader = new NetReader(new CliVerify.Pkt().L(unchecked((long)ulong.MaxValue)).Bytes(), 0, 8);
                 on21804.Invoke(controller, new object[] { maxExperienceReader });
                 pass &= maxExperienceReader.Remaining == 0 && model.HasExperience && model.AllExperience == ulong.MaxValue
                     && model.HasData && model.Mod == 255 && model.Servers.Count == 2 && model.HasDeathInfo && model.DeathRoleName == ""
                     && model.DeathRoleId == 0 && model.DeathLevel == 0 && model.DeathPower == 0 && model.DeathPictureVersion == 0 && model.DeathPicture == ""
-                    && model.DeathAnger == 0 && model.DeathServerId == 0 && model.DeathCareer == 0 && model.DeathTurn == 0 && frames.Count == 0;
+                    && model.DeathAnger == 0 && model.DeathServerId == 0 && model.DeathCareer == 0 && model.DeathTurn == 0
+                    && model.HasResultInfo && model.ResultCode == 0 && model.ResultGroups.Count == 0 && model.ResultMyGroupId == 7 && model.ResultMyRank == 8 && frames.Count == 0;
 
                 byte[] secondBytes = new CliVerify.Pkt()
                     .C(1).C(2).I(3).H(1).I(4).I(5).S("替换服").I(6)
@@ -424,14 +461,15 @@ namespace Shenxiao.EditorTools
 
                 controller.Dispose();
                 pass &= !controller.IsInitialized && !handlers.Contains(21801) && !handlers.Contains(21804) && !handlers.Contains(21805)
-                    && !handlers.Contains(21807) && !handlers.Contains(21808) && !handlers.Contains(21809) && !handlers.Contains(21811) && !handlers.Contains(21813)
+                    && !handlers.Contains(21807) && !handlers.Contains(21808) && !handlers.Contains(21809) && !handlers.Contains(21810) && !handlers.Contains(21811) && !handlers.Contains(21813)
                     && !model.HasData && model.Mod == 0 && model.Status == 0 && model.EndTime == 0 && model.Servers.Count == 0
                     && !model.HasExperience && model.AllExperience == 0 && !model.HasScore && model.Point == 0 && model.Rewards.Count == 0
                     && !model.HasRecordStats && model.RecordStats.Count == 0 && !model.HasPhaseTime && model.PhaseStatus == 0 && model.PhaseEndTime == 0
                     && !model.HasFightState && model.FightPoint == 0 && model.SingleRank == 0 && model.GroupRank == 0
                     && model.Anger == 0 && model.AngerEnd == 0 && model.Buffs.Count == 0 && !model.HasMonsterInfo && model.MonstersByCfgId.Count == 0
                     && !model.HasDeathInfo && model.DeathRoleName == null && model.DeathRoleId == 0 && model.DeathLevel == 0 && model.DeathPower == 0
-                    && model.DeathPictureVersion == 0 && model.DeathPicture == null && model.DeathAnger == 0 && model.DeathServerId == 0 && model.DeathCareer == 0 && model.DeathTurn == 0;
+                    && model.DeathPictureVersion == 0 && model.DeathPicture == null && model.DeathAnger == 0 && model.DeathServerId == 0 && model.DeathCareer == 0 && model.DeathTurn == 0
+                    && !model.HasResultInfo && model.ResultCode == 0 && model.ResultGroups.Count == 0 && model.ResultMyGroupId == 0 && model.ResultMyRank == 0;
 
                 Debug.Log("CLIVERIFY holybattle VERDICT pass=" + pass);
                 return pass ? 0 : 3;
@@ -484,6 +522,11 @@ namespace Shenxiao.EditorTools
                     model.ReplaceDeathInfo(oldDeathRoleName, oldDeathRoleId, oldDeathLevel, oldDeathPower, oldDeathPictureVersion, oldDeathPicture, oldDeathAnger, oldDeathServerId, oldDeathCareer, oldDeathTurn);
                 }
 
+                if (oldHasResultInfo)
+                {
+                    model.ReplaceResultInfo(oldResultCode, oldResultGroups, oldResultMyGroupId, oldResultMyRank);
+                }
+
                 if (wasInitialized)
                 {
                     controller.Init();
@@ -519,6 +562,8 @@ namespace Shenxiao.EditorTools
                     && model.DeathRoleName == oldDeathRoleName && model.DeathRoleId == oldDeathRoleId && model.DeathLevel == oldDeathLevel
                     && model.DeathPower == oldDeathPower && model.DeathPictureVersion == oldDeathPictureVersion && model.DeathPicture == oldDeathPicture
                     && model.DeathAnger == oldDeathAnger && model.DeathServerId == oldDeathServerId && model.DeathCareer == oldDeathCareer && model.DeathTurn == oldDeathTurn
+                    && model.HasResultInfo == oldHasResultInfo && model.ResultCode == oldResultCode && model.ResultMyGroupId == oldResultMyGroupId && model.ResultMyRank == oldResultMyRank
+                    && SameResultGroups(model.ResultGroups, oldResultGroups)
                     && (interceptField == null || ReferenceEquals(interceptField.GetValue(null), oldIntercept));
                 foreach (int id in handlerIds)
                 {
@@ -605,6 +650,24 @@ namespace Shenxiao.EditorTools
                     || restored.Hp != item.Hp
                     || restored.HpAll != item.HpAll
                     || restored.GroupId != item.GroupId)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool SameResultGroups(IReadOnlyList<HolyBattleModel.ResultGroupEntry> actual, List<HolyBattleModel.ResultGroupEntry> expected)
+        {
+            if (actual.Count != expected.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < actual.Count; i++)
+            {
+                if (actual[i].GroupId != expected[i].GroupId || actual[i].TowerNum != expected[i].TowerNum || actual[i].Point != expected[i].Point)
                 {
                     return false;
                 }
