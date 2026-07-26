@@ -1051,6 +1051,8 @@
         public const int SEVENDAY_OPEN_INFO = 17500;       // 七天登录信息
         public const int SEVENDAY_MERGE_INFO = 17502;      // 合服七天信息
         public const int PUSHGIFT_LIST = 19101;            // 礼包推送列表
+        /// <summary>礼包推送单礼包详情。C2S: gift_id:u16,sub_id:u16；S2C: 名称、结束时间、条件及档位奖励完整快照。</summary>
+        public const int PUSHGIFT_DETAIL = 19102;
         public const int PUSHGIFT_OFFLINE = 19104;         // 礼包推送-离线过期领取
         public const int ADVENTURE_INFO = 42700;           // 天天冒险活动时间窗
         /// <summary>天天冒险主状态。C2S 空包；S2C: circle:u16,location:u16,left_times:u16,throw_times:u16,free_reset_times:u16,free_throw_times:u16。</summary>

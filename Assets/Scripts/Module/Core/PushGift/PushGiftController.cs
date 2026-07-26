@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
@@ -13,11 +14,14 @@ namespace Shenxiao.Module.Core.PushGift
     /// 据礼包列表增删主界面图标 191(有未过期礼包→AddIconAsync(191,倒计时=最近结束时间),否则 DeleteIcon)。
     /// 图标经配置门(open_lv/open_day)过滤,故用 AddIconAsync(对标老端走 config-gated addIcon(191,...))。
     /// 等级变化(EVT_ROLE_INFO_UPDATE)时复请求 19101,让升级开启配置门后图标及时出现。
-    /// 面板/购买/激活弹窗(19102/19103/PushGiftTips 等)与红点待用户验收,本期只做图标。
+    /// 19102 仅提供显式详情快照；购买/激活弹窗(19103/PushGiftTips 等)与红点仍不接。
     /// </summary>
     public sealed class PushGiftController : BaseController
     {
         public static readonly PushGiftController Instance = new PushGiftController();
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_outboundIntercept;
+#endif
         private PushGiftController() { }
 
         public const string ICON_TYPE = PushGiftModel.ICON_TYPE;
@@ -29,6 +33,7 @@ namespace Shenxiao.Module.Core.PushGift
         {
             // 只有 19101(激活礼包列表)携带图标数据;19104 的回包也复用 19101 下发(type3 离线过期)。
             RegisterProtocal(Proto.PUSHGIFT_LIST, On19101);
+            RegisterProtocal(Proto.PUSHGIFT_DETAIL, On19102);
             // 对标老端 GAME_START 后主角升级:复请求 19101(升级开启配置门后图标及时出现)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
         }
@@ -45,14 +50,33 @@ namespace Shenxiao.Module.Core.PushGift
         /// <summary>进游戏请求(GameStartController.RequestStartupPackets 调用,对标老端 GAME_START 发 19104+19101)。</summary>
         public void RequestStartup()
         {
-            SendFmt(Proto.PUSHGIFT_OFFLINE); // 19104 领取离线过期礼包(一次性,服务端回 19101 type3)
+            SendEmpty(Proto.PUSHGIFT_OFFLINE); // 19104 领取离线过期礼包(一次性,服务端回 19101 type3)
             RequestGiftList();               // 19101 拉当前激活礼包列表
         }
 
         // 拉当前激活礼包列表(bare,pt_191 read(19101,_)->{ok,[]})。
         private void RequestGiftList()
         {
-            SendFmt(Proto.PUSHGIFT_LIST);
+            SendEmpty(Proto.PUSHGIFT_LIST);
+        }
+
+        /// <summary>请求指定礼包详情（19102，显式调用；不绑定 GAME_START）。</summary>
+        public void RequestGiftDetail(ushort giftId, ushort subId)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.PUSHGIFT_DETAIL, "hh", new object[] { (int)giftId, (int)subId });
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.PUSHGIFT_DETAIL, "hh", (int)giftId, (int)subId);
+        }
+
+        private void SendEmpty(int protocol)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(protocol, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(protocol);
         }
 
         // 19101: type:c, gift_list[u16×{gift_id:h, sub_id:h, title_name:str, gift_name:str, end_time:i, infos:str}]
@@ -93,6 +117,27 @@ namespace Shenxiao.Module.Core.PushGift
 
             GameLog.Info("PushGift", "19101 礼包推送: type={0} count={1} open={2} nextEnd={3}",
                 type, count, m.GetEntranceOpenState(), m.NextEndTime());
+        }
+
+        // 19102: gift_id:h, sub_id:h, gift_name:s, end_time:i, conditions:s,
+        // reward_list[h×{grade_id:h, grade_name:s, buy_cnt:c, buy_time:i, rewards_conditions:s, rewards:s}]
+        private void On19102(NetReader r)
+        {
+            int giftId = r.ReadU16();
+            int subId = r.ReadU16();
+            string giftName = r.ReadString();
+            uint endTime = r.ReadU32();
+            string conditions = r.ReadString();
+            int count = r.ReadU16();
+            var rewards = new List<PushGiftModel.RewardEntry>(count);
+            for (int i = 0; i < count; i++)
+            {
+                rewards.Add(new PushGiftModel.RewardEntry(
+                    r.ReadU16(), r.ReadString(), r.ReadU8(), r.ReadU32(), r.ReadString(), r.ReadString()));
+            }
+            PushGiftModel.Instance.ReplaceGiftDetail(giftId, subId, giftName, endTime, conditions, rewards);
+            GameLog.Info("PushGift", "19102 礼包详情: gift={0}@{1} rewards={2} remaining={3}B",
+                giftId, subId, count, r.Remaining);
         }
 
         // 对标老端:主角等级变化复请求 19101(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。
