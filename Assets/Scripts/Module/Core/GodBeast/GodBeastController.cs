@@ -12,7 +12,11 @@ namespace Shenxiao.Module.Core.GodBeast
         private static Func<byte[], bool> s_outboundIntercept;
 #endif
         private GodBeastController() { }
-        protected override void Register() => RegisterProtocal(Proto.GODBEAST_OVERVIEW, On17301);
+        protected override void Register()
+        {
+            RegisterProtocal(Proto.GODBEAST_ERROR, On17300);
+            RegisterProtocal(Proto.GODBEAST_OVERVIEW, On17301);
+        }
         public void RequestStartup() => SendEmpty();
         private void SendEmpty()
         {
@@ -28,6 +32,7 @@ namespace Shenxiao.Module.Core.GodBeast
             for (int i = 0; i < beastCount; i++) { uint id = r.ReadU32(); byte state = r.ReadU8(); uint score = r.ReadU32(); int ec = r.ReadU16(); var equips = new List<GodBeastModel.Equip>(ec); for (int j = 0; j < ec; j++) equips.Add(new GodBeastModel.Equip(r.ReadU8(), unchecked((ulong)r.ReadU64()), r.ReadU16(), r.ReadU32())); int ac = r.ReadU16(); var attrs = new List<GodBeastModel.Attr>(ac); for (int j = 0; j < ac; j++) attrs.Add(new GodBeastModel.Attr(r.ReadU16(), r.ReadU32())); beasts.Add(new GodBeastModel.Beast(id, state, score, equips, attrs)); }
             GodBeastModel.Instance.ReplaceData(fightCount, beasts);
         }
+        private void On17300(NetReader r) => GodBeastModel.Instance.SetError(r.ReadU32(), r.ReadString());
         public override void Dispose() { GodBeastModel.Instance.Reset(); base.Dispose(); }
     }
 }

@@ -10,7 +10,9 @@ namespace Shenxiao.Module.Core.GodBeast
         public sealed class Beast { public uint Id { get; } public byte State { get; } public uint Score { get; } public IReadOnlyList<Equip> Equips { get; } public IReadOnlyList<Attr> Attrs { get; } public Beast(uint id, byte state, uint score, List<Equip> equips, List<Attr> attrs) { Id = id; State = state; Score = score; Equips = equips ?? new List<Equip>(); Attrs = attrs ?? new List<Attr>(); } }
         public static readonly GodBeastModel Instance = new GodBeastModel(); private readonly List<Beast> _beasts = new List<Beast>(); private GodBeastModel() { }
         public byte FightCount { get; private set; } public IReadOnlyList<Beast> Beasts => _beasts; public bool HasData { get; private set; }
+        public bool HasError { get; private set; } public uint LastErrorCode { get; private set; } public string LastErrorArgs { get; private set; }
         public void ReplaceData(byte fightCount, List<Beast> beasts) { FightCount = fightCount; _beasts.Clear(); if (beasts != null) _beasts.AddRange(beasts); HasData = true; }
-        public void Reset() { FightCount = 0; _beasts.Clear(); HasData = false; }
+        public void SetError(uint code, string args) { HasError = true; LastErrorCode = code; LastErrorArgs = args; }
+        public void Reset() { FightCount = 0; _beasts.Clear(); HasData = false; HasError = false; LastErrorCode = 0; LastErrorArgs = null; }
     }
 }
