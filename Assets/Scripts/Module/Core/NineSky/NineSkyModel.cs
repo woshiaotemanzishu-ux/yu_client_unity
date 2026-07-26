@@ -45,6 +45,12 @@ namespace Shenxiao.Module.Core.NineSky
         public uint Score { get; private set; }
         public ushort FirstServerNum { get; private set; }
         public string FirstPlayer { get; private set; }
+        public bool HasFlagInfo { get; private set; }
+        public byte FlagIndex { get; private set; }
+        public ushort FlagServerNum { get; private set; }
+        public ulong FlagRoleId { get; private set; }
+        public string FlagRoleName { get; private set; }
+        public uint FlagLeftTime { get; private set; }
 
         public void Replace(byte state, uint leftTime, uint mod, uint groupId, List<ServerEntry> servers, ulong averageLevel)
         {
@@ -68,6 +74,11 @@ namespace Shenxiao.Module.Core.NineSky
             CurFloor = curFloor; MaxFloor = maxFloor; BattleLeftTime = leftTime; KillNum = killNum; Score = score; FirstServerNum = firstServerNum; FirstPlayer = firstPlayer; HasBattleInfo = true;
         }
 
+        public void ReplaceFlagInfo(byte index, ushort serverNum, ulong roleId, string roleName, uint leftTime)
+        {
+            FlagIndex = index; FlagServerNum = serverNum; FlagRoleId = roleId; FlagRoleName = roleName; FlagLeftTime = leftTime; HasFlagInfo = true;
+        }
+
         public void Reset()
         {
             State = 0;
@@ -78,6 +89,7 @@ namespace Shenxiao.Module.Core.NineSky
             _servers.Clear();
             HasData = false;
             CurFloor = 0; MaxFloor = 0; BattleLeftTime = 0; KillNum = 0; Score = 0; FirstServerNum = 0; FirstPlayer = null; HasBattleInfo = false;
+            FlagIndex = 0; FlagServerNum = 0; FlagRoleId = 0; FlagRoleName = null; FlagLeftTime = 0; HasFlagInfo = false;
         }
     }
 }

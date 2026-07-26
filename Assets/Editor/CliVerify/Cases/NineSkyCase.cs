@@ -42,7 +42,8 @@ namespace Shenxiao.EditorTools
             FieldInfo interceptField = typeof(NineSkyController).GetField("s_outboundIntercept", StaticNonPublic);
             object oldIntercept = interceptField == null ? null : interceptField.GetValue(null);
             bool oldHasBattle = model.HasBattleInfo; byte oldCurFloor = model.CurFloor, oldMaxFloor = model.MaxFloor; uint oldBattleLeft = model.BattleLeftTime, oldScore = model.Score; ushort oldKill = model.KillNum, oldFirstServer = model.FirstServerNum; string oldFirstPlayer = model.FirstPlayer;
-            IDictionary oldHandlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary; var handlerSnapshot = new Dictionary<int, object>(); if (oldHandlers != null) foreach (int id in new[] { 13500, 13503 }) if (oldHandlers.Contains(id)) handlerSnapshot[id] = oldHandlers[id];
+            bool oldHasFlag = model.HasFlagInfo; byte oldFlagIndex = model.FlagIndex; ushort oldFlagServer = model.FlagServerNum; ulong oldFlagRole = model.FlagRoleId; string oldFlagName = model.FlagRoleName; uint oldFlagLeft = model.FlagLeftTime;
+            IDictionary oldHandlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary; var handlerSnapshot = new Dictionary<int, object>(); if (oldHandlers != null) foreach (int id in new[] { 13500, 13503, 13504 }) if (oldHandlers.Contains(id)) handlerSnapshot[id] = oldHandlers[id];
             bool restored = false, pass = false;
 
             try
@@ -52,11 +53,12 @@ namespace Shenxiao.EditorTools
 
                 MethodInfo on13500 = typeof(NineSkyController).GetMethod("On13500", InstanceNonPublic);
                 MethodInfo on13503 = typeof(NineSkyController).GetMethod("On13503", InstanceNonPublic);
+                MethodInfo on13504 = typeof(NineSkyController).GetMethod("On13504", InstanceNonPublic);
                 IDictionary handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                pass = interceptField != null && on13500 != null && on13503 != null && handlers != null && handlers.Contains(13500) && handlers.Contains(13503);
+                pass = interceptField != null && on13500 != null && on13503 != null && on13504 != null && typeof(NineSkyController).GetMethod("RequestFlagInfo") == null && handlers != null && handlers.Contains(13500) && handlers.Contains(13503) && handlers.Contains(13504);
                 for (int proto = 13501; proto <= 13510; proto++)
                 {
-                    pass &= proto == 13503 ? handlers.Contains(proto) : !handlers.Contains(proto);
+                    pass &= (proto == 13503 || proto == 13504) ? handlers.Contains(proto) : !handlers.Contains(proto);
                 }
 
                 if (!pass)
@@ -139,8 +141,20 @@ namespace Shenxiao.EditorTools
                 var battleZeroReader = new NetReader(battleZero, 0, battleZero.Length); on13503.Invoke(controller, new object[] { battleZeroReader });
                 pass &= battleZeroReader.Remaining == 0 && model.HasBattleInfo && model.CurFloor == 0 && model.MaxFloor == 0 && model.BattleLeftTime == 0 && model.KillNum == 0 && model.Score == 0 && model.FirstServerNum == 0 && model.FirstPlayer == "";
 
+                byte[] flagFull = new CliVerify.Pkt().C(byte.MaxValue).H(ushort.MaxValue).L(unchecked((long)ulong.MaxValue)).S("旗帜").I(uint.MaxValue).Bytes(); var flagFullReader = new NetReader(flagFull, 0, flagFull.Length); on13504.Invoke(controller, new object[] { flagFullReader });
+                pass &= flagFullReader.Remaining == 0 && model.HasFlagInfo && model.FlagIndex == byte.MaxValue && model.FlagServerNum == ushort.MaxValue && model.FlagRoleId == ulong.MaxValue && model.FlagRoleName == "旗帜" && model.FlagLeftTime == uint.MaxValue
+                    && model.HasData && model.State == 255 && model.LeftTime == 4000000000U && model.Mod == 2 && model.GroupId == 3 && model.Servers.Count == 2 && model.AverageLevel == averageAboveLongMax
+                    && model.HasBattleInfo && model.CurFloor == 0 && model.MaxFloor == 0 && model.BattleLeftTime == 0 && model.KillNum == 0 && model.Score == 0 && model.FirstServerNum == 0 && model.FirstPlayer == "";
+                byte[] flagSmall = new CliVerify.Pkt().C(1).H(2).L(3).S("小旗").I(4).Bytes(); var flagSmallReader = new NetReader(flagSmall, 0, flagSmall.Length); on13504.Invoke(controller, new object[] { flagSmallReader });
+                pass &= flagSmallReader.Remaining == 0 && model.FlagIndex == 1 && model.FlagServerNum == 2 && model.FlagRoleId == 3 && model.FlagRoleName == "小旗" && model.FlagLeftTime == 4;
+                reverseReader = new NetReader(thirdBytes, 0, thirdBytes.Length); on13500.Invoke(controller, new object[] { reverseReader });
+                battleSmallReader = new NetReader(battleSmall, 0, battleSmall.Length); on13503.Invoke(controller, new object[] { battleSmallReader });
+                pass &= reverseReader.Remaining == 0 && battleSmallReader.Remaining == 0 && model.HasFlagInfo && model.FlagIndex == 1 && model.FlagServerNum == 2 && model.FlagRoleId == 3 && model.FlagRoleName == "小旗" && model.FlagLeftTime == 4;
+                byte[] flagZero = new CliVerify.Pkt().C(0).H(0).L(0).S("").I(0).Bytes(); var flagZeroReader = new NetReader(flagZero, 0, flagZero.Length); on13504.Invoke(controller, new object[] { flagZeroReader });
+                pass &= flagZeroReader.Remaining == 0 && model.HasFlagInfo && model.FlagIndex == 0 && model.FlagServerNum == 0 && model.FlagRoleId == 0 && model.FlagRoleName == "" && model.FlagLeftTime == 0;
+
                 controller.Dispose();
-                pass &= !model.HasData && !model.HasBattleInfo && !handlers.Contains(13500) && !handlers.Contains(13503) && model.State == 0 && model.LeftTime == 0
+                pass &= !model.HasData && !model.HasBattleInfo && !model.HasFlagInfo && !handlers.Contains(13500) && !handlers.Contains(13503) && !handlers.Contains(13504) && model.State == 0 && model.LeftTime == 0
                     && model.Mod == 0 && model.GroupId == 0 && model.Servers.Count == 0
                     && model.AverageLevel == 0 && model.CurFloor == 0 && model.MaxFloor == 0 && model.BattleLeftTime == 0 && model.KillNum == 0 && model.Score == 0 && model.FirstServerNum == 0 && model.FirstPlayer == null;
 
@@ -154,14 +168,15 @@ namespace Shenxiao.EditorTools
                     model.Reset();
                     if (oldHasData) model.Replace(oldState, oldLeftTime, oldMod, oldGroupId, oldServers, oldAverageLevel);
                     if (oldHasBattle) model.ReplaceBattleInfo(oldCurFloor, oldMaxFloor, oldBattleLeft, oldKill, oldScore, oldFirstServer, oldFirstPlayer);
+                    if (oldHasFlag) model.ReplaceFlagInfo(oldFlagIndex, oldFlagServer, oldFlagRole, oldFlagName, oldFlagLeft);
                     if (wasInitialized) controller.Init();
                     IDictionary finalHandlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
                     if (finalHandlers == null) throw new InvalidOperationException("handlers unavailable");
-                    foreach (int id in new[] { 13500, 13503 }) if (handlerSnapshot.TryGetValue(id, out object value)) finalHandlers[id] = value; else finalHandlers.Remove(id);
+                    foreach (int id in new[] { 13500, 13503, 13504 }) if (handlerSnapshot.TryGetValue(id, out object value)) finalHandlers[id] = value; else finalHandlers.Remove(id);
                     if (interceptField != null) interceptField.SetValue(null, oldIntercept);
-                    restored = controller.IsInitialized == wasInitialized && model.HasData == oldHasData && model.HasBattleInfo == oldHasBattle && model.State == oldState && model.LeftTime == oldLeftTime && model.Mod == oldMod && model.GroupId == oldGroupId && model.AverageLevel == oldAverageLevel && model.CurFloor == oldCurFloor && model.MaxFloor == oldMaxFloor && model.BattleLeftTime == oldBattleLeft && model.KillNum == oldKill && model.Score == oldScore && model.FirstServerNum == oldFirstServer && model.FirstPlayer == oldFirstPlayer && (interceptField == null || ReferenceEquals(interceptField.GetValue(null), oldIntercept));
+                    restored = controller.IsInitialized == wasInitialized && model.HasData == oldHasData && model.HasBattleInfo == oldHasBattle && model.HasFlagInfo == oldHasFlag && model.State == oldState && model.LeftTime == oldLeftTime && model.Mod == oldMod && model.GroupId == oldGroupId && model.AverageLevel == oldAverageLevel && model.CurFloor == oldCurFloor && model.MaxFloor == oldMaxFloor && model.BattleLeftTime == oldBattleLeft && model.KillNum == oldKill && model.Score == oldScore && model.FirstServerNum == oldFirstServer && model.FirstPlayer == oldFirstPlayer && model.FlagIndex == oldFlagIndex && model.FlagServerNum == oldFlagServer && model.FlagRoleId == oldFlagRole && model.FlagRoleName == oldFlagName && model.FlagLeftTime == oldFlagLeft && (interceptField == null || ReferenceEquals(interceptField.GetValue(null), oldIntercept));
                     if (model.Servers.Count != oldServers.Count) restored = false; else for (int i = 0; i < oldServers.Count; i++) { NineSkyModel.ServerEntry a = model.Servers[i], b = oldServers[i]; if (a.ServerId != b.ServerId || a.ServerNumber != b.ServerNumber || a.ServerName != b.ServerName || a.WorldLevel != b.WorldLevel) restored = false; }
-                    foreach (int id in new[] { 13500, 13503 }) { bool existed = handlerSnapshot.TryGetValue(id, out object expected); if (finalHandlers.Contains(id) != existed || (existed && !ReferenceEquals(finalHandlers[id], expected))) restored = false; }
+                    foreach (int id in new[] { 13500, 13503, 13504 }) { bool existed = handlerSnapshot.TryGetValue(id, out object expected); if (finalHandlers.Contains(id) != existed || (existed && !ReferenceEquals(finalHandlers[id], expected))) restored = false; }
                 }
                 catch (Exception exception) { Debug.LogError("CLIVERIFY ninesky restore " + exception); restored = false; }
                 Debug.Log("CLIVERIFY ninesky restored=" + restored + " pass=" + pass);

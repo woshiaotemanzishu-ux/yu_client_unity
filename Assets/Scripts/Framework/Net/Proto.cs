@@ -1010,6 +1010,8 @@
         public const int NINE_SKY_INFO = 13500;
         /// <summary>九魂圣殿战斗小面板。C2S 空包；S2C: cur_floor:u8,max_floor:u8,left_time:u32,kill_num:u16,score:u32,first_server_num:u16,first_player:string。</summary>
         public const int NINE_SKY_BATTLE_INFO = 13503;
+        /// <summary>九魂圣殿秘宝持有者主动快照。S2C: index:u8,server_num:u16,role_id:u64,role_name:string,left_time:u32。</summary>
+        public const int NINE_SKY_FLAG_INFO = 13504;
         public const int GHOST_WALK_INFO = 20601;
         /// <summary>时空圣痕跨服世界列表。C2S 空包；S2C: status:u8,servers:u16×{server_num:u32,name:s,level:u16}。</summary>
         public const int TS_CRACK_WORLD_INFO = 20411;

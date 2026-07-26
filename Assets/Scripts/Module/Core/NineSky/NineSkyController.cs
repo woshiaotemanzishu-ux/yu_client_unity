@@ -18,6 +18,7 @@ namespace Shenxiao.Module.Core.NineSky
         {
             RegisterProtocal(Proto.NINE_SKY_INFO, On13500);
             RegisterProtocal(Proto.NINE_SKY_BATTLE_INFO, On13503);
+            RegisterProtocal(Proto.NINE_SKY_FLAG_INFO, On13504);
         }
 
         public void RequestInfo()
@@ -65,6 +66,11 @@ namespace Shenxiao.Module.Core.NineSky
         private void On13503(NetReader r)
         {
             NineSkyModel.Instance.ReplaceBattleInfo(r.ReadU8(), r.ReadU8(), r.ReadU32(), r.ReadU16(), r.ReadU32(), r.ReadU16(), r.ReadString());
+        }
+
+        private void On13504(NetReader r)
+        {
+            NineSkyModel.Instance.ReplaceFlagInfo(r.ReadU8(), r.ReadU16(), unchecked((ulong)r.ReadU64()), r.ReadString(), r.ReadU32());
         }
 
         public override void Dispose()
