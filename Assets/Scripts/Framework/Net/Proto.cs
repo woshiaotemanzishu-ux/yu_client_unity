@@ -1055,6 +1055,8 @@
         public const int HOLY_BATTLE_DEATH_INFO = 21809;
         /// <summary>圣灵战场结算信息主动推送。仅 S2C: res:u8,groups:u16×{group_id:u8,tower_num:u8,point:u32},my_group_id:u8,my_rank:u8。</summary>
         public const int HOLY_BATTLE_RESULT_INFO = 21810;
+        /// <summary>周一嘉礼统一错误切片。仅 S2C: code:u32；无对应 C2S 请求。</summary>
+        public const int MONDAYS_AWARD_ERROR = 17900;
         /// <summary>周一嘉礼任务状态。C2S 空包；S2C: task_state:u16×{task_id:u16,state:u8}。</summary>
         public const int MONDAYS_AWARD_TASK_STATE = 17904;
         /// <summary>周一嘉礼跨服开奖记录。C2S 空包；S2C: count:u16×{server_id:u32,server_num:u16,role_id:u64,role_name:string,type:u8,pool_id:u16,utime:u32,picture:string,picture_ver:u32,career:u16,turn:u16}。</summary>

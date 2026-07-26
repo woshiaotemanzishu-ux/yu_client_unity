@@ -2,6 +2,7 @@ using System.Collections.Generic;
 
 namespace Shenxiao.Module.Core.MondaysAward
 {
+    /// <summary>周一嘉礼错误、任务、记录、抽奖状态与奖池的独立原始状态；不驱动 UI 或操作成功链。</summary>
     public sealed class MondaysAwardModel
     {
         public sealed class TaskStateEntry
@@ -86,6 +87,8 @@ namespace Shenxiao.Module.Core.MondaysAward
         public byte DrawStateCode { get; private set; }
         public bool IsDrawOpen => DrawStateCode == 1;
         public ushort DrawTimes { get; private set; }
+        public bool HasError { get; private set; }
+        public uint LastErrorCode { get; private set; }
 
         public void Replace(List<TaskStateEntry> taskStates)
         {
@@ -127,6 +130,12 @@ namespace Shenxiao.Module.Core.MondaysAward
             HasDrawState = true;
         }
 
+        public void SetError(uint code)
+        {
+            LastErrorCode = code;
+            HasError = true;
+        }
+
         public void Reset()
         {
             _taskStates.Clear();
@@ -138,6 +147,8 @@ namespace Shenxiao.Module.Core.MondaysAward
             HasDrawState = false;
             DrawStateCode = 0;
             DrawTimes = 0;
+            HasError = false;
+            LastErrorCode = 0;
         }
     }
 }

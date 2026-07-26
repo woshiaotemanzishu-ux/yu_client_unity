@@ -5,7 +5,8 @@ using Shenxiao.Framework.Net;
 namespace Shenxiao.Module.Core.MondaysAward
 {
     /// <summary>
-    /// 周一嘉礼任务、记录和当前奖池快照。仅请求/接收 17904/17905/17908；不复刻老端首次回包后自动请求 17907。
+    /// 周一嘉礼原始协议切片：17900 仅保存服务端错误码，17904/17905/17907/17908 保存独立快照；
+    /// 不迁移 17901/17903/17906 操作链，也不复刻老端首次回包后自动请求 17907。
     /// </summary>
     public sealed class MondaysAwardController : BaseController
     {
@@ -19,10 +20,16 @@ namespace Shenxiao.Module.Core.MondaysAward
 
         protected override void Register()
         {
+            RegisterProtocal(Proto.MONDAYS_AWARD_ERROR, On17900);
             RegisterProtocal(Proto.MONDAYS_AWARD_TASK_STATE, On17904);
             RegisterProtocal(Proto.MONDAYS_AWARD_RECORDS, On17905);
             RegisterProtocal(Proto.MONDAYS_AWARD_POOLS, On17908);
             RegisterProtocal(Proto.MONDAYS_AWARD_DRAW_STATE, On17907);
+        }
+
+        private void On17900(NetReader reader)
+        {
+            MondaysAwardModel.Instance.SetError(reader.ReadU32());
         }
 
         public void RequestTaskState()
