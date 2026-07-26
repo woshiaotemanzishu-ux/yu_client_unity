@@ -17,6 +17,7 @@ namespace Shenxiao.Module.Core.NineSky
         protected override void Register()
         {
             RegisterProtocal(Proto.NINE_SKY_INFO, On13500);
+            RegisterProtocal(Proto.NINE_SKY_BATTLE_INFO, On13503);
         }
 
         public void RequestInfo()
@@ -29,6 +30,15 @@ namespace Shenxiao.Module.Core.NineSky
             }
 #endif
             SendFmt(Proto.NINE_SKY_INFO);
+        }
+
+        public void RequestBattleInfo()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.NINE_SKY_BATTLE_INFO, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.NINE_SKY_BATTLE_INFO);
         }
 
         private void On13500(NetReader r)
@@ -50,6 +60,11 @@ namespace Shenxiao.Module.Core.NineSky
             }
 
             NineSkyModel.Instance.Replace(state, leftTime, mod, groupId, servers, unchecked((ulong)r.ReadU64()));
+        }
+
+        private void On13503(NetReader r)
+        {
+            NineSkyModel.Instance.ReplaceBattleInfo(r.ReadU8(), r.ReadU8(), r.ReadU32(), r.ReadU16(), r.ReadU32(), r.ReadU16(), r.ReadString());
         }
 
         public override void Dispose()

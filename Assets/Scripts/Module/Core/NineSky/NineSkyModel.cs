@@ -37,6 +37,14 @@ namespace Shenxiao.Module.Core.NineSky
         public ulong AverageLevel { get; private set; }
         public bool HasData { get; private set; }
         public IReadOnlyList<ServerEntry> Servers => _readOnlyServers;
+        public bool HasBattleInfo { get; private set; }
+        public byte CurFloor { get; private set; }
+        public byte MaxFloor { get; private set; }
+        public uint BattleLeftTime { get; private set; }
+        public ushort KillNum { get; private set; }
+        public uint Score { get; private set; }
+        public ushort FirstServerNum { get; private set; }
+        public string FirstPlayer { get; private set; }
 
         public void Replace(byte state, uint leftTime, uint mod, uint groupId, List<ServerEntry> servers, ulong averageLevel)
         {
@@ -55,6 +63,11 @@ namespace Shenxiao.Module.Core.NineSky
             HasData = true;
         }
 
+        public void ReplaceBattleInfo(byte curFloor, byte maxFloor, uint leftTime, ushort killNum, uint score, ushort firstServerNum, string firstPlayer)
+        {
+            CurFloor = curFloor; MaxFloor = maxFloor; BattleLeftTime = leftTime; KillNum = killNum; Score = score; FirstServerNum = firstServerNum; FirstPlayer = firstPlayer; HasBattleInfo = true;
+        }
+
         public void Reset()
         {
             State = 0;
@@ -64,6 +77,7 @@ namespace Shenxiao.Module.Core.NineSky
             AverageLevel = 0;
             _servers.Clear();
             HasData = false;
+            CurFloor = 0; MaxFloor = 0; BattleLeftTime = 0; KillNum = 0; Score = 0; FirstServerNum = 0; FirstPlayer = null; HasBattleInfo = false;
         }
     }
 }
