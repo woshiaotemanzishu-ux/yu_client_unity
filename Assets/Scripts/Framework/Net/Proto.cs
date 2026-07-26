@@ -956,6 +956,8 @@
         public const int DRAGONBALL_SUIT_INFO = 14303;
         /// <summary>龙珠本体列表/状态刷新。C2S 空包；S2C: items:u16×{dragon_id:u32,dragon_lv:u16,power:u64,next_power:u64}。</summary>
         public const int DRAGONBALL_LIST = 14300;
+        /// <summary>龙珠系统总战力。C2S 严格空包；S2C: total_power:u64。</summary>
+        public const int DRAGONBALL_TOTAL_POWER = 14306;
         /// <summary>不朽圣骸基础快照。C2S: stage:u8,type:u8；S2C 为阶段/类型/部位全量树。</summary>
         public const int ARMOR_INFO = 14401;
         /// <summary>勋章基础快照。C2S 空包；S2C: id,stren_lv,stren_exp,honour,power,pass_layers。</summary>

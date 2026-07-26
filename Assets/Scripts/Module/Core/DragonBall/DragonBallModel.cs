@@ -8,9 +8,9 @@ namespace Shenxiao.Module.Core.DragonBall
 {
     /// <summary>
     /// 龙玉(龙珠)数据(对标老客户端 DragonBallModel)。14310 保存雕像快照，14303 按类型更新套装概览，
-    /// 14300 按 dragon_id 更新龙珠本体状态；
+    /// 14300 按 dragon_id 更新龙珠本体状态，14306 保存显式查询返回的总战力；
     /// 「龙珠礼包」活动图标(DragonGiftIconType=143)由 14311(dragon_gift_data)驱动显隐。
-    /// 激活、升级、穿戴、苍龙镇世等操作链(14301-14302/14304-14306/14312)不在本期。
+    /// 激活、升级、穿戴、苍龙镇世等操作链(14301-14302/14304-14305/14312)不在本期。
     ///
     /// 老端 RefreshGiftIcon 显隐门槛(faithful):
     ///   1. GetOpenState()          —— 功能开放且非审核服;
@@ -58,6 +58,8 @@ namespace Shenxiao.Module.Core.DragonBall
         private readonly Dictionary<uint, BallEntry> _balls = new Dictionary<uint, BallEntry>();
         public IReadOnlyDictionary<uint, BallEntry> Balls => _balls;
         public bool HasDragonData { get; private set; }
+        public bool HasTotalPower { get; private set; }
+        public ulong TotalPower { get; private set; }
 
         /// <summary>14300 按 dragon_id upsert；空包与包中缺席项均不清除已有条目。</summary>
         public void SetBallData(List<BallEntry> entries)
@@ -80,6 +82,12 @@ namespace Shenxiao.Module.Core.DragonBall
             StatueStatus = status;
             StatuePreviewPower = power;
             HasStatueOverview = true;
+        }
+
+        public void ReplaceTotalPower(ulong totalPower)
+        {
+            TotalPower = totalPower;
+            HasTotalPower = true;
         }
 
         // 14311 龙珠礼包数据(对标老端 dragon_gift_data / SetDragonBallGiftData)
@@ -123,6 +131,8 @@ namespace Shenxiao.Module.Core.DragonBall
             HasSuitData = false;
             _balls.Clear();
             HasDragonData = false;
+            HasTotalPower = false;
+            TotalPower = 0;
             GiftId = 0;
             BuyTimes = 0;
         }

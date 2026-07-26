@@ -47,6 +47,8 @@ namespace Shenxiao.EditorTools
             bool oldHasSuitData = model.HasSuitData;
             var oldBalls = new List<DragonBallModel.BallEntry>(model.Balls.Values);
             bool oldHasDragonData = model.HasDragonData;
+            bool oldHasTotalPower = model.HasTotalPower;
+            ulong oldTotalPower = model.TotalPower;
             int oldLevel = role.Level;
             bool oldHasBaseInfo = role.HasBaseInfo;
             bool oldAlpha = PlatformModel.IsAlpha;
@@ -54,15 +56,34 @@ namespace Shenxiao.EditorTools
             FieldInfo intercept = controller.GetType().GetField("s_outboundIntercept", PrivateStatic);
             FieldInfo lastLevel = controller.GetType().GetField("_lastLevel", PrivateInstance);
             FieldInfo generation = controller.GetType().GetField("_generation", PrivateInstance);
+            FieldInfo handlersField = typeof(NetManager).GetField("_handlers", PrivateStatic);
             FieldInfo hasBaseInfo = typeof(RoleModel).GetField("<HasBaseInfo>k__BackingField", PrivateInstance);
             MethodInfo on14311 = controller.GetType().GetMethod("On14311", PrivateInstance);
             MethodInfo on14310 = controller.GetType().GetMethod("On14310", PrivateInstance);
             MethodInfo on14303 = controller.GetType().GetMethod("On14303", PrivateInstance);
             MethodInfo on14300 = controller.GetType().GetMethod("On14300", PrivateInstance);
+            MethodInfo on14306 = controller.GetType().GetMethod("On14306", PrivateInstance);
             MethodInfo onRole = controller.GetType().GetMethod("OnRoleInfoUpdate", PrivateInstance);
             object oldIntercept = intercept?.GetValue(null);
             int oldLastLevel = lastLevel == null ? -1 : (int)lastLevel.GetValue(controller);
             var frames = new List<byte[]>();
+            int[] protocolRange =
+            {
+                Proto.DRAGONBALL_LIST,
+                Proto.DRAGONBALL_SUIT_INFO,
+                Proto.DRAGONBALL_TOTAL_POWER,
+                Proto.DRAGONBALL_STATUE_OVERVIEW,
+                Proto.DRAGONBALL_GIFT_INFO
+            };
+            var oldHandlers = new Dictionary<int, object>();
+            var handlersBefore = handlersField?.GetValue(null) as IDictionary;
+            if (handlersBefore != null)
+            {
+                foreach (int protocol in protocolRange)
+                {
+                    if (handlersBefore.Contains(protocol)) oldHandlers[protocol] = handlersBefore[protocol];
+                }
+            }
 
             try
             {
@@ -100,10 +121,21 @@ namespace Shenxiao.EditorTools
                 bool gatesOk = id0 && missingRow && function && alpha && levelGate && dayGate
                     && exhausted && firstRecharge && success;
 
-                FieldInfo handlersField = typeof(NetManager).GetField("_handlers", PrivateStatic);
                 var handlers = handlersField?.GetValue(null) as IDictionary;
-                bool handlerOk = on14310 != null && on14303 != null && on14300 != null && on14311 != null && handlers != null
-                    && handlers.Contains(Proto.DRAGONBALL_STATUE_OVERVIEW) && handlers.Contains(Proto.DRAGONBALL_SUIT_INFO) && handlers.Contains(Proto.DRAGONBALL_LIST) && handlers.Contains(Proto.DRAGONBALL_GIFT_INFO);
+                bool handlerOk = on14310 != null && on14303 != null && on14300 != null && on14306 != null && on14311 != null && handlers != null
+                    && handlers.Contains(Proto.DRAGONBALL_STATUE_OVERVIEW) && handlers.Contains(Proto.DRAGONBALL_SUIT_INFO) && handlers.Contains(Proto.DRAGONBALL_LIST) && handlers.Contains(Proto.DRAGONBALL_TOTAL_POWER) && handlers.Contains(Proto.DRAGONBALL_GIFT_INFO);
+                if (handlerOk)
+                {
+                    for (int protocol = 14300; protocol <= 14312; protocol++)
+                    {
+                        bool expected = Array.IndexOf(protocolRange, protocol) >= 0;
+                        if (handlers.Contains(protocol) != expected)
+                        {
+                            handlerOk = false;
+                            break;
+                        }
+                    }
+                }
                 if (handlerOk)
                 {
                     byte[] packet = new CliVerify.Pkt().I(1).H(1).Bytes();
@@ -111,6 +143,22 @@ namespace Shenxiao.EditorTools
                     on14311.Invoke(controller, new object[] { reader });
                     handlerOk = reader.Remaining == 0 && model.GiftId == 1 && model.BuyTimes == 1
                         && DragonBallConfigs.Get(1).TimesLimit - model.BuyTimes == 0;
+                }
+
+                if (handlerOk)
+                {
+                    controller.RequestTotalPower();
+                    handlerOk = EmptyFrames(frames, Proto.DRAGONBALL_TOTAL_POWER) && !model.HasTotalPower && model.TotalPower == 0;
+                    frames.Clear();
+                    var maxReader = new NetReader(new CliVerify.Pkt().L(unchecked((long)ulong.MaxValue)).Bytes(), 0, 8);
+                    on14306.Invoke(controller, new object[] { maxReader });
+                    handlerOk = handlerOk && maxReader.Remaining == 0 && model.HasTotalPower && model.TotalPower == ulong.MaxValue;
+                    var smallReader = new NetReader(new CliVerify.Pkt().L(7).Bytes(), 0, 8);
+                    on14306.Invoke(controller, new object[] { smallReader });
+                    handlerOk = handlerOk && smallReader.Remaining == 0 && model.HasTotalPower && model.TotalPower == 7;
+                    var zeroReader = new NetReader(new CliVerify.Pkt().L(0).Bytes(), 0, 8);
+                    on14306.Invoke(controller, new object[] { zeroReader });
+                    handlerOk = handlerOk && zeroReader.Remaining == 0 && model.HasTotalPower && model.TotalPower == 0;
                 }
 
                 if (handlerOk)
@@ -162,7 +210,25 @@ namespace Shenxiao.EditorTools
                     var updateReader = new NetReader(updatePacket, 0, updatePacket.Length);
                     on14300.Invoke(controller, new object[] { updateReader });
                     handlerOk = handlerOk && updateReader.Remaining == 0 && model.Balls.Count == 3 && model.Balls[1].DragonLevel == 8
-                        && model.Balls[2].DragonLevel == 5 && model.Balls[3].NextPower == 12 && frames.Count == 0;
+                        && model.Balls[2].DragonLevel == 5 && model.Balls[3].NextPower == 12 && model.HasTotalPower && model.TotalPower == 0 && frames.Count == 0;
+                }
+
+                if (handlerOk)
+                {
+                    var totalReader = new NetReader(new CliVerify.Pkt().L(42).Bytes(), 0, 8);
+                    on14306.Invoke(controller, new object[] { totalReader });
+                    handlerOk = totalReader.Remaining == 0 && model.HasTotalPower && model.TotalPower == 42
+                        && model.GiftId == 1 && model.BuyTimes == 1
+                        && model.HasSuitData && model.WearType == 3 && model.Suits.Count == 3
+                        && model.Suits[1].Level == 8 && model.Suits[2].Level == 5 && model.Suits[3].NextPower == 12
+                        && model.HasStatueOverview && model.StatueStatus == 1 && model.StatuePreviewPower == 0
+                        && model.HasDragonData && model.Balls.Count == 3
+                        && model.Balls[1].DragonLevel == 8 && model.Balls[2].DragonLevel == 5 && model.Balls[3].NextPower == 12;
+
+                    byte[] giftPacket = new CliVerify.Pkt().I(1).H(1).Bytes();
+                    var giftReader = new NetReader(giftPacket, 0, giftPacket.Length);
+                    on14311.Invoke(controller, new object[] { giftReader });
+                    handlerOk = handlerOk && giftReader.Remaining == 0 && model.HasTotalPower && model.TotalPower == 42;
                 }
 
                 bool seamsOk = intercept != null && onRole != null && lastLevel != null
@@ -198,7 +264,7 @@ namespace Shenxiao.EditorTools
                 EventDispatcher.Emit(GlobalEvent.EVT_SERVER_DAY_CHANGE);
                 int generationAfter = generation == null ? -1 : (int)generation.GetValue(controller);
                 bool disposeOk = !controller.IsInitialized && frames.Count == 5 && !model.HasStatueOverview && !model.HasSuitData && !model.HasDragonData
-                    && model.StatueStatus == 0 && model.StatuePreviewPower == 0 && model.Suits.Count == 0 && model.Balls.Count == 0 && generationAfter == generationBefore + 1;
+                    && model.StatueStatus == 0 && model.StatuePreviewPower == 0 && model.Suits.Count == 0 && model.Balls.Count == 0 && !model.HasTotalPower && model.TotalPower == 0 && generationAfter == generationBefore + 1;
 
                 bool pass = configOk && gatesOk && handlerOk && outboundOk && disposeOk;
                 Debug.Log("CLIVERIFY dragonball config=" + configOk + " gates=" + gatesOk
@@ -218,12 +284,44 @@ namespace Shenxiao.EditorTools
                 if (oldHasStatueOverview) model.SetStatueOverview(oldStatueStatus, oldStatuePower);
                 if (oldHasSuitData) model.SetSuitData(oldWearType, oldSuits);
                 if (oldHasDragonData) model.SetBallData(oldBalls);
+                if (oldHasTotalPower) model.ReplaceTotalPower(oldTotalPower);
                 PlatformModel.IsAlpha = oldAlpha;
                 role.Level = oldLevel;
                 hasBaseInfo?.SetValue(role, oldHasBaseInfo);
                 if (wasInitialized) controller.Init();
                 lastLevel?.SetValue(controller, oldLastLevel);
                 if (intercept != null) intercept.SetValue(null, oldIntercept);
+
+                var handlersAfter = handlersField?.GetValue(null) as IDictionary;
+                if (handlersAfter != null)
+                {
+                    foreach (int protocol in protocolRange)
+                    {
+                        if (oldHandlers.TryGetValue(protocol, out object oldHandler)) handlersAfter[protocol] = oldHandler;
+                        else handlersAfter.Remove(protocol);
+                    }
+                }
+
+                bool restoreOk = controller.IsInitialized == wasInitialized
+                    && model.HasTotalPower == oldHasTotalPower
+                    && model.TotalPower == oldTotalPower
+                    && (intercept == null || ReferenceEquals(intercept.GetValue(null), oldIntercept))
+                    && (lastLevel == null || (int)lastLevel.GetValue(controller) == oldLastLevel)
+                    && handlersAfter != null;
+                if (restoreOk)
+                {
+                    foreach (int protocol in protocolRange)
+                    {
+                        bool hadOld = oldHandlers.TryGetValue(protocol, out object oldHandler);
+                        if (handlersAfter.Contains(protocol) != hadOld
+                            || (hadOld && !ReferenceEquals(handlersAfter[protocol], oldHandler)))
+                        {
+                            restoreOk = false;
+                            break;
+                        }
+                    }
+                }
+                if (!restoreOk) throw new InvalidOperationException("DragonBallCase ambient state restore failed.");
             }
         }
 

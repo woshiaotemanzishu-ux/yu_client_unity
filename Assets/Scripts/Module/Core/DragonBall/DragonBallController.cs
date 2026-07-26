@@ -14,8 +14,8 @@ namespace Shenxiao.Module.Core.DragonBall
     /// 图标显隐由 DragonBallModel 依据功能开放、alpha、config_start_nuclear、角色/开服状态、限购与首充完整判定，
     /// AddIconAsync 的公共图标配置门作为二次保险。等级变化仅在新等级精确命中表内 open_lv 时复请求14311。
     ///
-    /// 14310 保存雕像快照，14303 保存套装概览，14300 保存龙珠本体列表；
-    /// 激活/升级/穿戴/苍龙镇世等操作链(14301-14302/14304-14306/14312)仍不在本期;
+    /// 14310 保存雕像快照，14303 保存套装概览，14300 保存龙珠本体列表，14306 保存显式查询返回的总战力；
+    /// 激活/升级/穿戴/苍龙镇世等操作链(14301-14302/14304-14305/14312)仍不在本期;
     /// 首充更新只按已缓存14311本地复评；开服日变化重拉14311，均与老端一致。
     /// </summary>
     public sealed class DragonBallController : BaseController
@@ -37,6 +37,7 @@ namespace Shenxiao.Module.Core.DragonBall
             RegisterProtocal(Proto.DRAGONBALL_STATUE_OVERVIEW, On14310);
             RegisterProtocal(Proto.DRAGONBALL_SUIT_INFO, On14303);
             RegisterProtocal(Proto.DRAGONBALL_LIST, On14300);
+            RegisterProtocal(Proto.DRAGONBALL_TOTAL_POWER, On14306);
             RegisterProtocal(Proto.DRAGONBALL_GIFT_INFO, On14311);
             // 对标老端 CHANGE_LEVEL→复发 14311:等级变化时复请求(到达礼包 open_lv 后图标出现)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
@@ -74,6 +75,8 @@ namespace Shenxiao.Module.Core.DragonBall
         public void RequestSuitInfo() => SendEmpty(Proto.DRAGONBALL_SUIT_INFO);
         /// <summary>14300 严格空包；雕像 inactive→active 边沿补取本体列表，服务端也会主动刷新本包。</summary>
         public void RequestDragonList() => SendEmpty(Proto.DRAGONBALL_LIST);
+        /// <summary>14306 严格空包，获取龙珠系统总战力快照。</summary>
+        public void RequestTotalPower() => SendEmpty(Proto.DRAGONBALL_TOTAL_POWER);
         /// <summary>14311 严格空包，获取龙珠礼包购买快照。</summary>
         public void RequestGiftInfo() => SendEmpty(Proto.DRAGONBALL_GIFT_INFO);
 
@@ -118,6 +121,11 @@ namespace Shenxiao.Module.Core.DragonBall
             for (int i = 0; i < count; i++)
                 entries.Add(new DragonBallModel.SuitEntry(r.ReadU8(), r.ReadU8(), unchecked((ulong)r.ReadU64()), unchecked((ulong)r.ReadU64())));
             DragonBallModel.Instance.SetSuitData(wearType, entries);
+        }
+
+        private void On14306(NetReader r)
+        {
+            DragonBallModel.Instance.ReplaceTotalPower(unchecked((ulong)r.ReadU64()));
         }
 
         // 14311: id:i, buy_times:h(对标 pt_143.erl write(14311,[Id:32, BuyTimes:16]))。请求无参(read(14311,_)->{ok,[]})。
