@@ -155,6 +155,18 @@ namespace Shenxiao.Module.Core.Eternity
             HasMonsterInfo = true;
         }
 
+        public void ApplyMonsterReborn(uint monId)
+        {
+            if (!HasMonsterInfo) return;
+            for (int i = 0; i < _monsterInfo.Count; i++)
+            {
+                MonsterEntry entry = _monsterInfo[i];
+                if (entry.MonId != monId) continue;
+                _monsterInfo[i] = new MonsterEntry(entry.MonId, entry.MonLv, entry.MonType, entry.BlServer, entry.BlServerName, entry.BlServerNum, 0);
+                return;
+            }
+        }
+
         public void ReplaceBossState(BossStateEntry bossState)
         {
             _bossStates[bossState.MonId] = bossState;
