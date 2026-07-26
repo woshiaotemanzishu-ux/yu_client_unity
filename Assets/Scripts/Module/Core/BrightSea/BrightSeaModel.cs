@@ -96,12 +96,19 @@ namespace Shenxiao.Module.Core.BrightSea
         public byte UpTimes { get; private set; }
         public byte TotalUpTimes { get; private set; }
 
-        // ---- 18916 协助绑元日次数（独立于其余四个快照）----
+        // ---- 18916 协助绑元日次数（独立于其余六个快照）----
         public bool HasAssistBGoldInfo { get; private set; }
         public ushort AssistBGoldNum { get; private set; }
         public ushort AssistBGoldMax { get; private set; }
 
-        // ---- 18904 巡航结算详情（独立于其余五个快照）----
+        // ---- 18917 本人巡航状态（独立于其余六个快照）----
+        public bool HasShipStatus { get; private set; }
+        public ulong ShipStatusAutoId { get; private set; }
+        public byte ShipStatus { get; private set; }
+        public byte ShipStatusRewardTimes { get; private set; }
+        public byte ShipStatusTotalRewardTimes { get; private set; }
+
+        // ---- 18904 巡航结算详情（独立于其余六个快照）----
         public bool HasCruiseDetail { get; private set; }
         public ulong CruiseDetailAutoId { get; private set; }
         public uint CruiseDetailRoberServerId { get; private set; }
@@ -173,6 +180,16 @@ namespace Shenxiao.Module.Core.BrightSea
             HasAssistBGoldInfo = true;
         }
 
+        /// <summary>18917 每包完整覆盖；全零也是有效已加载快照。</summary>
+        public void ReplaceShipStatus(ulong autoId, byte status, byte rewardTimes, byte totalRewardTimes)
+        {
+            ShipStatusAutoId = autoId;
+            ShipStatus = status;
+            ShipStatusRewardTimes = rewardTimes;
+            ShipStatusTotalRewardTimes = totalRewardTimes;
+            HasShipStatus = true;
+        }
+
         public void ReplaceCruiseDetail(ulong autoId, uint roberServerId, uint roberServerNumber, ulong roberId, string roberName,
             ulong roberPower, byte shippingId, List<ObjectEntry> reward, List<ObjectEntry> robReward, uint time)
         {
@@ -204,6 +221,9 @@ namespace Shenxiao.Module.Core.BrightSea
             HasShipInfo = false;
             AssistBGoldNum = AssistBGoldMax = 0;
             HasAssistBGoldInfo = false;
+            ShipStatusAutoId = 0;
+            ShipStatus = ShipStatusRewardTimes = ShipStatusTotalRewardTimes = 0;
+            HasShipStatus = false;
             CruiseDetailAutoId = CruiseDetailRoberId = CruiseDetailRoberPower = 0;
             CruiseDetailRoberServerId = CruiseDetailRoberServerNumber = CruiseDetailTime = 0;
             CruiseDetailRoberName = null; CruiseDetailShippingId = 0;

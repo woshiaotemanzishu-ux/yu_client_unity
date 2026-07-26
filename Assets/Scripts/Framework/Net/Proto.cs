@@ -2007,6 +2007,8 @@
         public const int BRIGHT_SEA_SERVER_INFO = 18915;
         /// <summary>无尽之海协助绑元次数快照(C2S 严格空包；S2C daily_num:u16,max_bgold_num:u16)。</summary>
         public const int BRIGHT_SEA_ASSIST_BGOLD_INFO = 18916;
+        /// <summary>无尽之海本人巡航状态快照(C2S 严格空包；S2C auto_id:u64,status:u8,reward_times:u8,total_reward_times:u8)。</summary>
+        public const int BRIGHT_SEA_SHIP_STATUS = 18917;
 
         // ----- 组队(24xxx,yu_server pt_240.erl / pp_team.erl;老端 commonController/TeamController.ts,
         // 自动循环 轮8) -----

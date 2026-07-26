@@ -6,7 +6,7 @@ using Shenxiao.Framework.Util;
 
 namespace Shenxiao.Module.Core.BrightSea
 {
-    /// <summary>无尽之海仅接 18900 主快照，以及显式 18901 日志、18902 船页、18904 结算详情、18915 跨服和18916协助绑元快照；不接航运操作、抢夺、场景或 UI 链。</summary>
+    /// <summary>无尽之海仅接 18900 主快照，以及显式 18901 日志、18902 船页、18904 结算详情、18915 跨服、18916协助绑元和18917本人状态快照；不接航运操作、抢夺、场景或 UI 链。</summary>
     public sealed class BrightSeaController : BaseController
     {
         public static readonly BrightSeaController Instance = new BrightSeaController();
@@ -25,6 +25,7 @@ namespace Shenxiao.Module.Core.BrightSea
             RegisterProtocal(Proto.BRIGHT_SEA_CRUISE_DETAIL, On18904);
             RegisterProtocal(Proto.BRIGHT_SEA_SERVER_INFO, On18915);
             RegisterProtocal(Proto.BRIGHT_SEA_ASSIST_BGOLD_INFO, On18916);
+            RegisterProtocal(Proto.BRIGHT_SEA_SHIP_STATUS, On18917);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
@@ -105,6 +106,17 @@ namespace Shenxiao.Module.Core.BrightSea
 #endif
             SendFmt(Proto.BRIGHT_SEA_ASSIST_BGOLD_INFO);
             GameLog.Info("BrightSea", "request 18916 bright sea assist bgold info");
+        }
+
+        /// <summary>请求 18917 本人巡航状态完整快照（严格空包，不绑定 GAME_START）。</summary>
+        public void RequestShipStatus()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.BRIGHT_SEA_SHIP_STATUS, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.BRIGHT_SEA_SHIP_STATUS);
+            GameLog.Info("BrightSea", "request 18917 bright sea ship status");
         }
 
         private void On18900(NetReader r)
@@ -223,6 +235,12 @@ namespace Shenxiao.Module.Core.BrightSea
         {
             BrightSeaModel.Instance.ReplaceAssistBGoldInfo(r.ReadU16(), r.ReadU16());
             GameLog.Info("BrightSea", "18916 assist bgold remaining={0}B", r.Remaining);
+        }
+
+        private void On18917(NetReader r)
+        {
+            BrightSeaModel.Instance.ReplaceShipStatus(unchecked((ulong)r.ReadU64()), r.ReadU8(), r.ReadU8(), r.ReadU8());
+            GameLog.Info("BrightSea", "18917 ship status remaining={0}B", r.Remaining);
         }
 
         private static BrightSeaModel.ServerEntry ReadServerEntry(NetReader r)
