@@ -962,6 +962,8 @@
         public const int ARMOR_INFO = 14401;
         /// <summary>勋章基础快照。C2S 空包；S2C: id,stren_lv,stren_exp,honour,power,pass_layers。</summary>
         public const int MEDAL_INFO = 13401;
+        /// <summary>勋章统一错误切片。仅 S2C: code:u32；服务端虽有空 read 分支，但旧端不发送且 pp 默认忽略，绝不请求本号。</summary>
+        public const int MEDAL_ERROR = 13400;
         /// <summary>勋章称号全量状态。C2S 空包；S2C: titles:u16×{id:u32,level:u16,power:u32,is_equip:u8}。</summary>
         public const int MEDAL_TITLE_SNAPSHOT = 13405;
         /// <summary>跨服分组基础快照。C2S 空包；S2C 为服务器与模块分组全量数据。</summary>

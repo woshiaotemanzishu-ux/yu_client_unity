@@ -3,7 +3,7 @@ using Shenxiao.Framework.Net;
 
 namespace Shenxiao.Module.Core.Medal
 {
-    /// <summary>勋章 13401 基础快照控制器；服务端主动推送仅更新模型，不形成协议回环。</summary>
+    /// <summary>勋章原始协议切片：13400 仅保存错误码，13401/13405 保存快照；不在数据层接 UI 或形成协议回环。</summary>
     public sealed class MedalController : BaseController
     {
         public static readonly MedalController Instance = new MedalController();
@@ -13,6 +13,7 @@ namespace Shenxiao.Module.Core.Medal
         private MedalController() { }
         protected override void Register()
         {
+            RegisterProtocal(Proto.MEDAL_ERROR, On13400);
             RegisterProtocal(Proto.MEDAL_INFO, On13401);
             RegisterProtocal(Proto.MEDAL_TITLE_SNAPSHOT, On13405);
         }
@@ -28,6 +29,10 @@ namespace Shenxiao.Module.Core.Medal
             if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
 #endif
             SendFmt(protoId);
+        }
+        private void On13400(NetReader r)
+        {
+            MedalModel.Instance.SetError(r.ReadU32());
         }
         private void On13401(NetReader r)
         {
