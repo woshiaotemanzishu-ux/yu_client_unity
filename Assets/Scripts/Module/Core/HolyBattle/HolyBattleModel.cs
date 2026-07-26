@@ -134,6 +134,17 @@ namespace Shenxiao.Module.Core.HolyBattle
         public IReadOnlyList<BuffEntry> Buffs => _readOnlyBuffs;
         public bool HasMonsterInfo { get; private set; }
         public IReadOnlyDictionary<uint, MonsterEntry> MonstersByCfgId => _readOnlyMonsters;
+        public bool HasDeathInfo { get; private set; }
+        public string DeathRoleName { get; private set; }
+        public ulong DeathRoleId { get; private set; }
+        public ushort DeathLevel { get; private set; }
+        public ulong DeathPower { get; private set; }
+        public uint DeathPictureVersion { get; private set; }
+        public string DeathPicture { get; private set; }
+        public uint DeathAnger { get; private set; }
+        public uint DeathServerId { get; private set; }
+        public byte DeathCareer { get; private set; }
+        public byte DeathTurn { get; private set; }
 
         public void Replace(byte mod, byte status, uint endTime, List<ServerEntry> servers)
         {
@@ -206,6 +217,20 @@ namespace Shenxiao.Module.Core.HolyBattle
 
             HasMonsterInfo = true;
         }
+        public void ReplaceDeathInfo(string roleName, ulong roleId, ushort level, ulong power, uint pictureVersion, string picture, uint anger, uint serverId, byte career, byte turn)
+        {
+            DeathRoleName = roleName;
+            DeathRoleId = roleId;
+            DeathLevel = level;
+            DeathPower = power;
+            DeathPictureVersion = pictureVersion;
+            DeathPicture = picture;
+            DeathAnger = anger;
+            DeathServerId = serverId;
+            DeathCareer = career;
+            DeathTurn = turn;
+            HasDeathInfo = true;
+        }
 
         public void Reset()
         {
@@ -227,6 +252,17 @@ namespace Shenxiao.Module.Core.HolyBattle
             HasFightState = false; FightPoint = 0; SingleRank = 0; GroupRank = 0; Anger = 0; AngerEnd = 0; _buffs.Clear();
             _monsters.Clear();
             HasMonsterInfo = false;
+            HasDeathInfo = false;
+            DeathRoleName = null;
+            DeathRoleId = 0;
+            DeathLevel = 0;
+            DeathPower = 0;
+            DeathPictureVersion = 0;
+            DeathPicture = null;
+            DeathAnger = 0;
+            DeathServerId = 0;
+            DeathCareer = 0;
+            DeathTurn = 0;
         }
     }
 }

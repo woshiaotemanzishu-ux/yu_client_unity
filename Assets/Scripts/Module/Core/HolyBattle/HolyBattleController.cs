@@ -24,6 +24,7 @@ namespace Shenxiao.Module.Core.HolyBattle
             RegisterProtocal(Proto.HOLY_BATTLE_EXPERIENCE, On21804);
             RegisterProtocal(Proto.HOLY_BATTLE_SCORE, On21805);
             RegisterProtocal(Proto.HOLY_BATTLE_RECORD_STATS, On21808);
+            RegisterProtocal(Proto.HOLY_BATTLE_DEATH_INFO, On21809);
             RegisterProtocal(Proto.HOLY_BATTLE_PHASE_TIME, On21811);
             RegisterProtocal(Proto.HOLY_BATTLE_FIGHT_STATE, On21807);
             RegisterProtocal(Proto.HOLY_BATTLE_MONSTER_INFO, On21813);
@@ -185,6 +186,21 @@ namespace Shenxiao.Module.Core.HolyBattle
             }
 
             HolyBattleModel.Instance.ApplyMonsterInfo(entries);
+        }
+
+        private void On21809(NetReader reader)
+        {
+            HolyBattleModel.Instance.ReplaceDeathInfo(
+                reader.ReadString(),
+                unchecked((ulong)reader.ReadU64()),
+                reader.ReadU16(),
+                unchecked((ulong)reader.ReadU64()),
+                reader.ReadU32(),
+                reader.ReadString(),
+                reader.ReadU32(),
+                reader.ReadU32(),
+                reader.ReadU8(),
+                reader.ReadU8());
         }
 
         public override void Dispose()

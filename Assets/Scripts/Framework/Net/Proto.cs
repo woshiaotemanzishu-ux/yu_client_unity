@@ -1035,6 +1035,8 @@
         public const int HOLY_BATTLE_FIGHT_STATE = 21807;
         /// <summary>圣灵战场怪物增量。C2S 空包；S2C: count:u16×{mon_auto:u32,mon_cfg_id:u32,hp:u32,hp_all:u32,group_id:u8}。</summary>
         public const int HOLY_BATTLE_MONSTER_INFO = 21813;
+        /// <summary>圣灵战场死亡信息主动推送。S2C: role_name:string,role_id:u64,lv:u16,power:u64,picture_ver:u32,picture:string,anger:u32,server_id:u32,career:u8,turn:u8。</summary>
+        public const int HOLY_BATTLE_DEATH_INFO = 21809;
         /// <summary>周一嘉礼任务状态。C2S 空包；S2C: task_state:u16×{task_id:u16,state:u8}。</summary>
         public const int MONDAYS_AWARD_TASK_STATE = 17904;
         /// <summary>周一嘉礼跨服开奖记录。C2S 空包；S2C: count:u16×{server_id:u32,server_num:u16,role_id:u64,role_name:string,type:u8,pool_id:u16,utime:u32,picture:string,picture_ver:u32,career:u16,turn:u16}。</summary>
