@@ -22,6 +22,7 @@ using Shenxiao.Module.Core.Equip;
 using Shenxiao.Module.Core.Fashion;
 using Shenxiao.Module.Core.Festival;
 using Shenxiao.Module.Core.Jjc;
+using Shenxiao.Module.Core.TopPk;
 using Shenxiao.Module.Core.BrightSea;
 using Shenxiao.Module.Core.OnHook;
 using Shenxiao.Module.Core.GuBao;
@@ -200,6 +201,7 @@ namespace Shenxiao.Module.Core.Game
             BagFusionController.Instance,
             ComposeController.Instance,
             JjcController.Instance,
+            TopPkController.Instance,
             PkStatusController.Instance,
             SettingController.Instance,
             DailyController.Instance,

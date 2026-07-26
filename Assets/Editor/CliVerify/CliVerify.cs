@@ -710,6 +710,11 @@ namespace Shenxiao.EditorTools
         {
             Run(JjcTimesCase.Run, 60.0);
         }
+
+        public static void TopPk()
+        {
+            Run(TopPkCase.Run, 60.0);
+        }
         public static void JjcRecords()
         {
             Run(JjcRecordsCase.Run, 60.0);

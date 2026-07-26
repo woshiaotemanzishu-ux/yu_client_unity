@@ -2036,6 +2036,8 @@
         /// record_list:u16×{role_id:u64,picture:s,picture_ver:u32,name:s,career:u8,sex:u8,turn:u8,vip_lv:u8,
         /// lv:u16,combat_power:u64,result:u8,state:u8,rank_range:u32,time:u32})。</summary>
         public const int JJC_CHALLENGE_RECORDS = 28009;
+        /// <summary>巅峰对决通用错误。仅 S2C: code:u32,args:string；原样覆盖错误快照，不发送请求或接入其他 281xx 操作。</summary>
+        public const int TOP_PK_ERROR = 28100;
 
         /// <summary>无尽之海主快照(C2S 严格空包；S2C pic:s,pic_ver:u32,reward_times:u8,total_reward_times:u8,
         /// rob_times:u8,total_rob_times:u8,auto_id:u64,status:u8,send_list:u16×完整航运项)。</summary>
