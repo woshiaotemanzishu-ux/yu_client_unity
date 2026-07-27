@@ -720,6 +720,10 @@ namespace Shenxiao.EditorTools
         {
             Run(HolyTerritoryCase.Run, 60.0);
         }
+        public static void HotPoint()
+        {
+            Run(HotPointCase.Run, 60.0);
+        }
         public static void JjcRecords()
         {
             Run(JjcRecordsCase.Run, 60.0);

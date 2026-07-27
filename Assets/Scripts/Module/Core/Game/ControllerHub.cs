@@ -24,6 +24,7 @@ using Shenxiao.Module.Core.Festival;
 using Shenxiao.Module.Core.Jjc;
 using Shenxiao.Module.Core.TopPk;
 using Shenxiao.Module.Core.HolyTerritory;
+using Shenxiao.Module.Core.HotPoint;
 using Shenxiao.Module.Core.BrightSea;
 using Shenxiao.Module.Core.OnHook;
 using Shenxiao.Module.Core.GuBao;
@@ -204,6 +205,7 @@ namespace Shenxiao.Module.Core.Game
             JjcController.Instance,
             TopPkController.Instance,
             HolyTerritoryController.Instance,
+            HotPointController.Instance,
             PkStatusController.Instance,
             SettingController.Instance,
             DailyController.Instance,
