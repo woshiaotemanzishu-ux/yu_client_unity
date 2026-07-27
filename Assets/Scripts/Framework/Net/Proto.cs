@@ -1859,6 +1859,9 @@
         /// 隐式门槛:6个铭文槽位须全部插满(check_achievement_lv 要求 RuneList 长度≥6)。</summary>
         public const int GUILD_GOD_ACHIEVEMENT_ACTIVATE = 40509;
 
+        /// <summary>祈愿家族统一错误出口。无 C2S；S2C(pt_415): errcode:u32。</summary>
+        public const int PRAY_ERROR = 41500;
+
         // ----- 薄增量六件套(第20轮工单;详见 Docs/工单-薄增量六件套.md) -----
         /// <summary>OutWard 通用一键升星(type_id∉{1,2}:3翼影/4圣器/5神兵;发 "c" type_id;
         /// 回包=16023 少 etime/auto_buy:errcode:i, type_id:c, stage:c, star:h, blessing:i, blessing_plus:i,

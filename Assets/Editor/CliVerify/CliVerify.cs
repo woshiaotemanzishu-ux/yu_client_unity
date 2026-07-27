@@ -733,6 +733,10 @@ namespace Shenxiao.EditorTools
         {
             Run(MiniGameCase.Run, 60.0);
         }
+        public static void Pray()
+        {
+            Run(PrayCase.Run, 60.0);
+        }
         public static void JjcRecords()
         {
             Run(JjcRecordsCase.Run, 60.0);
