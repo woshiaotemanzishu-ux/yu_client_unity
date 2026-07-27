@@ -2038,6 +2038,8 @@
         public const int JJC_CHALLENGE_RECORDS = 28009;
         /// <summary>巅峰对决通用错误。仅 S2C: code:u32,args:string；原样覆盖错误快照，不发送请求或接入其他 281xx 操作。</summary>
         public const int TOP_PK_ERROR = 28100;
+        /// <summary>神陨禁区通用错误。pt_283.erl 仅定义 S2C code:u32，无 28300 C2S；仅保留原始错误码快照。</summary>
+        public const int HOLY_TERRITORY_ERROR = 28300;
 
         /// <summary>无尽之海主快照(C2S 严格空包；S2C pic:s,pic_ver:u32,reward_times:u8,total_reward_times:u8,
         /// rob_times:u8,total_rob_times:u8,auto_id:u64,status:u8,send_list:u16×完整航运项)。</summary>

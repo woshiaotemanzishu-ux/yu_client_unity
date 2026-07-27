@@ -715,6 +715,11 @@ namespace Shenxiao.EditorTools
         {
             Run(TopPkCase.Run, 60.0);
         }
+
+        public static void HolyTerritory()
+        {
+            Run(HolyTerritoryCase.Run, 60.0);
+        }
         public static void JjcRecords()
         {
             Run(JjcRecordsCase.Run, 60.0);
