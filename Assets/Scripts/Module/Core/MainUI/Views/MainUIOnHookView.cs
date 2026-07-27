@@ -1,12 +1,22 @@
+using System.Globalization;
+using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.MainUI;
+using Shenxiao.Module.Core.Bag;
+using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.OnHook;
+using Shenxiao.Module.Core.Role;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.MainUI
 {
-    /// <summary>挂机经验入口；显隐只等权威挂机/场景/任务数据接入，不在主界面硬编码开放条件。</summary>
+    /// <summary>
+    /// 主界面挂机效率入口。显示取决于配置开放等级、功能前置任务、当前场景和 13212/13215 下发值。
+    /// </summary>
     public sealed class MainUIOnHookView : MainUIOnHookViewBind
     {
+        private int _refreshVersion;
+
         protected override void OnInit()
         {
             if (_box_outline_exp != null) _box_outline_exp.gameObject.SetActive(false);
@@ -15,7 +25,106 @@ namespace Shenxiao.Module.Core.MainUI
             RouteClick(_box_outline_exp, "onhook");
             RouteClick(_box_exp_btn, "onhook");
             RouteClick(_box_old_outline_exp, "onhook");
-            RouteClick(_img_add, "onhook_addition");
+            if (add_btn != null) UIUtil.AddClick(add_btn, OpenAddition);
+        }
+
+        protected override void OnShow(object args)
+        {
+            OnHookModel.Instance.Changed += Refresh;
+            GoodsBuffModel.Instance.Changed += Refresh;
+            EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, Refresh);
+            EventDispatcher.On(GlobalEvent.EVT_SCENE_MAP_READY, Refresh);
+            EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, Refresh);
+            Refresh();
+        }
+
+        protected override void OnHide()
+        {
+            ++_refreshVersion;
+            OnHookModel.Instance.Changed -= Refresh;
+            GoodsBuffModel.Instance.Changed -= Refresh;
+            EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, Refresh);
+            EventDispatcher.Off(GlobalEvent.EVT_SCENE_MAP_READY, Refresh);
+            EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, Refresh);
+        }
+
+        private async void Refresh()
+        {
+            int version = ++_refreshVersion;
+            await System.Threading.Tasks.Task.WhenAll(
+                MainUIConfigs.EnsureSceneLoaded(),
+                FuncOpenConfig.EnsureLoaded(),
+                OnHookConfigs.EnsureLoaded());
+
+            if (this == null || !IsShown || version != _refreshVersion) return;
+
+            OnHookModel model = OnHookModel.Instance;
+            bool hasOpenLevel = OnHookConfigs.TryGetOpenLevel(out int openLevel);
+            bool baseVisible = hasOpenLevel
+                               && RoleModel.Instance.Level >= openLevel
+                               && MainUIConfigs.IsFieldScene(RoleModel.Instance.SceneId)
+                               && model.ExpEffect > 0;
+            bool standardVisible = baseVisible
+                                   && FuncOpenConfig.IsLoaded
+                                   && FuncOpenConfig.CheckFuncOpenState("OnHookMainView");
+
+            if (_box_outline_exp != null) _box_outline_exp.gameObject.SetActive(standardVisible);
+            if (_box_old_outline_exp != null) _box_old_outline_exp.gameObject.SetActive(baseVisible && !standardVisible);
+            if (!baseVisible) return;
+
+            if (_lb_outline_exp != null)
+            {
+                _lb_outline_exp.text = "<color=#00fa64>" + FormatExpRate(model.ExpEffect) + "</color>经验/分";
+            }
+            if (_lb_old_outline_exp != null)
+            {
+                _lb_old_outline_exp.text = FormatExpRate(model.ExpEffect) + "经验/分";
+            }
+
+            bool maxed = model.HasExpAdditions
+                         && OnHookConfigs.TryGetMaxAdditionRatio(out long maxRatio)
+                         && SumAdditionRatio(model) >= maxRatio;
+            if (add_btn != null) add_btn.gameObject.SetActive(!maxed);
+            if (_img_add != null) _img_add.gameObject.SetActive(!maxed && HasExperienceBuff());
+        }
+
+        private static long SumAdditionRatio(OnHookModel model)
+        {
+            long total = 0;
+            for (int i = 0; i < model.ExpAdditions.Count; i++)
+            {
+                total += model.ExpAdditions[i].Ratio;
+            }
+            return total;
+        }
+
+        /// <summary>
+        /// 对标老端 WordManager.ConvertNum(value, true)。13212/13215 的模型值保持原始整数，
+        /// 万/亿/万亿换算只发生在显示层。
+        /// </summary>
+        private static string FormatExpRate(long value)
+        {
+            if (value <= 9999L) return value.ToString(CultureInfo.InvariantCulture);
+            if (value < 100000000L)
+                return (value / 10000d).ToString("0.00", CultureInfo.InvariantCulture) + "万";
+            if (value < 1000000000000L)
+                return (value / 100000000d).ToString("0.00", CultureInfo.InvariantCulture) + "亿";
+            return (value / 1000000000000d).ToString("0.00", CultureInfo.InvariantCulture) + "万亿";
+        }
+
+        private static bool HasExperienceBuff()
+        {
+            for (int i = 0; i < GoodsBuffModel.Instance.List.Count; i++)
+            {
+                if (GoodsBuffModel.Instance.List[i].BuffType == 1) return true;
+            }
+            return false;
+        }
+
+        private static void OpenAddition()
+        {
+            OnHookController.Instance.RequestExpAdditions();
+            MainUIRouter.Open("onhook_addition");
         }
 
         private static void RouteClick(Component target, string viewKey)

@@ -71,6 +71,11 @@ namespace Shenxiao.Module.Core.Equip
         public static void TryAutoWear()
         {
             if (!TaskModel.Instance.GetAutoTaskSetting()) return;
+            if (ItemUseFlow.HasPendingEquipment)
+            {
+                GameLog.Info("Equip", "auto-wear skip: ItemUseView has pending equipment");
+                return;
+            }
             if (!_wornLoaded)
             {
                 GameLog.Info("Equip", "auto-wear skip: 装备通道(15010 pos=1)未到,先请求");

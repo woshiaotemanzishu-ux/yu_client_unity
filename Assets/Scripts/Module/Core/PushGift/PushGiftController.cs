@@ -101,8 +101,8 @@ namespace Shenxiao.Module.Core.PushGift
             // 对标老端 On19101:空列表下发时,本地已无礼包则啥也不做,否则摘掉图标。
             if (count == 0)
             {
-                if (m.IsGiftListEmpty()) return;
-                ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
+                if (!m.IsGiftListEmpty()) ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
+                EventDispatcher.Emit(GlobalEvent.EVT_PUSH_GIFT_UPDATE);
                 return;
             }
 
@@ -115,6 +115,7 @@ namespace Shenxiao.Module.Core.PushGift
             else
                 ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
 
+            EventDispatcher.Emit(GlobalEvent.EVT_PUSH_GIFT_UPDATE);
             GameLog.Info("PushGift", "19101 礼包推送: type={0} count={1} open={2} nextEnd={3}",
                 type, count, m.GetEntranceOpenState(), m.NextEndTime());
         }

@@ -213,6 +213,22 @@ namespace Shenxiao.Module.Core.Team
             if (!agree) TeamModel.Instance.DeleteBeInvited(teamId);
         }
 
+        /// <summary>
+        /// 由主界面组队消息入口打开待处理邀请。24007 只写模型和通知状态，
+        /// 不再绕过消息栏自动弹出确认框。
+        /// </summary>
+        public void ShowPendingInvites()
+        {
+            if (_inviteConfirmShowing) return;
+            _pendingInvites.Clear();
+            IReadOnlyList<TeamModel.BeInvitedVo> list = TeamModel.Instance.BeInvitedList;
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i] != null) _pendingInvites.Enqueue(list[i]);
+            }
+            TryShowNextInviteConfirm();
+        }
+
         /// <summary>24008 手写编码(⚠️与24004顺序相反):h(count) + 每项 l(team_id) c(agree)。</summary>
         private static (string fmt, object[] args) BuildInviteResponsePayload(List<(long teamId, int agree)> list)
         {
@@ -409,8 +425,6 @@ namespace Shenxiao.Module.Core.Team
                 InviteType = r.ReadU8(),
             };
             TeamModel.Instance.UpdateBeInvitedList(vo);
-            _pendingInvites.Enqueue(vo);
-            TryShowNextInviteConfirm();
             GameLog.Info("Team", "24007 收到组队邀请 teamId={0} inviterId={1}", vo.TeamId, vo.InviterId);
         }
 

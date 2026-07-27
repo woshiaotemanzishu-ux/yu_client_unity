@@ -65,6 +65,8 @@ namespace Shenxiao.Module.Core.PushGift
 
         // 本地激活礼包表(对标老端 gift_list[gift_id][sub_id]):key=gift_id@sub_id → end_time。
         private readonly Dictionary<string, long> _giftEndTime = new Dictionary<string, long>();
+        // 老端首次加入 gift_list 时同步写 gift_red；通知栏只消费这份协议派生状态。
+        private readonly HashSet<string> _giftRed = new HashSet<string>();
         private readonly Dictionary<string, GiftDetail> _giftDetails = new Dictionary<string, GiftDetail>();
 
         private static string Key(int giftId, int subId) => giftId + "@" + subId;
@@ -96,7 +98,10 @@ namespace Shenxiao.Module.Core.PushGift
             long now = TimeUtil.NowSec();
             foreach (GiftEntry g in list)
             {
-                if (g.EndTime > now) _giftEndTime[Key(g.GiftId, g.SubId)] = g.EndTime;
+                if (g.EndTime <= now) continue;
+                string key = Key(g.GiftId, g.SubId);
+                if (!_giftEndTime.ContainsKey(key)) _giftRed.Add(key);
+                _giftEndTime[key] = g.EndTime;
             }
         }
 
@@ -104,18 +109,26 @@ namespace Shenxiao.Module.Core.PushGift
         public void RemoveGifts(List<GiftEntry> list)
         {
             if (list == null) return;
-            foreach (GiftEntry g in list) _giftEndTime.Remove(Key(g.GiftId, g.SubId));
+            foreach (GiftEntry g in list)
+            {
+                string key = Key(g.GiftId, g.SubId);
+                _giftEndTime.Remove(key);
+                _giftRed.Remove(key);
+            }
+        }
+
+        /// <summary>主界面礼包消息数量；过期项同时从本地状态剔除。</summary>
+        public int GetMainNotificationCount()
+        {
+            RemoveExpired();
+            return _giftRed.Count;
         }
 
         /// <summary>本地礼包是否为空(对标老端 IsGiftListEmpty):过期礼包不计。</summary>
         public bool IsGiftListEmpty()
         {
-            long now = TimeUtil.NowSec();
-            foreach (long end in _giftEndTime.Values)
-            {
-                if (end > now) return false;
-            }
-            return true;
+            RemoveExpired();
+            return _giftEndTime.Count == 0;
         }
 
         /// <summary>
@@ -129,6 +142,7 @@ namespace Shenxiao.Module.Core.PushGift
         /// </summary>
         public long NextEndTime()
         {
+            RemoveExpired();
             long now = TimeUtil.NowSec();
             long min = 0;
             foreach (long end in _giftEndTime.Values)
@@ -139,9 +153,25 @@ namespace Shenxiao.Module.Core.PushGift
             return min;
         }
 
+        private void RemoveExpired()
+        {
+            long now = TimeUtil.NowSec();
+            var expired = new List<string>();
+            foreach (KeyValuePair<string, long> pair in _giftEndTime)
+            {
+                if (pair.Value <= now) expired.Add(pair.Key);
+            }
+            for (int i = 0; i < expired.Count; i++)
+            {
+                _giftEndTime.Remove(expired[i]);
+                _giftRed.Remove(expired[i]);
+            }
+        }
+
         public void Reset()
         {
             _giftEndTime.Clear();
+            _giftRed.Clear();
             _giftDetails.Clear();
         }
     }

@@ -1,8 +1,13 @@
 using Shenxiao.Common.Tips;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using Shenxiao.Framework.Net;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.MainUI;
+using UnityEngine;
 
 namespace Shenxiao.Module.Core.OnHook
 {
@@ -248,6 +253,91 @@ namespace Shenxiao.Module.Core.OnHook
             TotalAfkTime = CostAfkTime = RemainingAfkTime = NextTime = BackCount = 0;
             BackExp = ExpEffect = AutoSmeltExp = 0; LoginType = 0; OffLevel = 0; _rewards.Clear(); _expAdditions.Clear(); HasExpAdditions = false;
             Changed?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// 挂机主界面与效率加成共用配置。
+    /// 开放等级来自 config_afk_kv[11]，加成上限来自 ClientOnHooKInfo.addition；
+    /// 配置缺失时不写业务兜底，让缺表直接暴露。
+    /// </summary>
+    public static class OnHookConfigs
+    {
+        private static JObject _afkKv;
+        private static JObject _additionInfo;
+        private static Task _loading;
+
+        public static bool IsLoaded => _afkKv != null && _additionInfo != null;
+
+        public static async Task EnsureLoaded()
+        {
+            if (IsLoaded) return;
+            if (_loading == null || _loading.IsCompleted)
+            {
+                _loading = LoadAsync();
+            }
+            await _loading;
+        }
+
+        public static bool TryGetOpenLevel(out int level)
+        {
+            level = 0;
+            JToken value = _afkKv?["11"]?["value"];
+            return value != null && int.TryParse(value.ToString(), out level);
+        }
+
+        public static bool TryGetMaxAdditionRatio(out long ratio)
+        {
+            ratio = 0;
+            if (!(_additionInfo?["addition"] is JObject additions)) return false;
+
+            foreach (JProperty property in additions.Properties())
+            {
+                JToken value = property.Value?["max_number"];
+                if (value == null || !long.TryParse(value.ToString(), out long maxNumber))
+                {
+                    return false;
+                }
+                ratio += maxNumber * 10000L;
+            }
+            return true;
+        }
+
+        private static async Task LoadAsync()
+        {
+            _afkKv = await LoadObject(GameResPath.GetServerConfigPath("config_afk_kv"), "config_afk_kv");
+            _additionInfo = await LoadObject(
+                GameResPath.GetClientConfigPath("ClientOnHooKInfo"),
+                "ClientOnHooKInfo");
+        }
+
+        private static async Task<JObject> LoadObject(string key, string label)
+        {
+            TextAsset asset = await ResManager.LoadAsync<TextAsset>(key);
+            if (asset == null)
+            {
+                GameLog.Error("OnHook", "missing config {0}: {1}", label, key);
+                return null;
+            }
+
+            try
+            {
+                return JObject.Parse(asset.text);
+            }
+            finally
+            {
+                ResManager.Release(asset);
+            }
+        }
+    }
+
+    /// <summary>登记挂机收益入口；效率加成详情页尚未转换时不注册假页面。</summary>
+    public static class OnHookBootstrap
+    {
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Install()
+        {
+            MainUIRouter.Register("onhook", OnHookShellView.Show);
         }
     }
 }

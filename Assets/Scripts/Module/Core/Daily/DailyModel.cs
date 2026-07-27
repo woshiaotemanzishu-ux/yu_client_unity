@@ -529,6 +529,16 @@ namespace Shenxiao.Module.Core.Daily
             return null;
         }
 
+        /// <summary>对标老端 ResNormalCanFind：只看普通找回次数，不把 VIP 额外次数混入通知入口。</summary>
+        public bool ResNormalCanFind()
+        {
+            foreach (ResFindVo vo in ResFindList)
+            {
+                if (vo.Lefttimes > 0) return true;
+            }
+            return false;
+        }
+
         // =====================================================================================
         // 61801:我要变强
         // =====================================================================================

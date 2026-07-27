@@ -140,6 +140,20 @@ namespace Shenxiao.Module.Core.Chat
         public int GetPrivateUnread(long targetId) =>
             _privateChats.TryGetValue(targetId, out PrivateChatBucket bucket) ? bucket.UnreadCount : 0;
 
+        /// <summary>主界面通知栏使用的私聊未读总数；只汇总服务端消息驱动的会话桶。</summary>
+        public int TotalPrivateUnread
+        {
+            get
+            {
+                int total = 0;
+                foreach (PrivateChatBucket bucket in _privateChats.Values)
+                {
+                    total += bucket.UnreadCount;
+                }
+                return total;
+            }
+        }
+
         /// <summary>已开过的私聊会话顺序(对标老端 privateChatTabList_;仅存 role_id,玩家名/头像等由消费方另查
         /// 11028)。当前无 FriendChatView 等 UI 消费方,数据结构先落地,TODO 等私聊窗口移植时接。</summary>
         public IReadOnlyList<long> PrivateChatTabList => _privateChatTabOrder;

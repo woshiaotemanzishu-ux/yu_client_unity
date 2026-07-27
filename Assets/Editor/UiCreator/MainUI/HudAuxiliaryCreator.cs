@@ -19,10 +19,9 @@ namespace Shenxiao.Editor.UiCreator.MainUI
 
         private const string IMG_HELP = "resource/game/mainUI/texture/guild_help.png";
         private const string IMG_HELP_TIPS = "resource/game/mainUI/texture/uigh_124.png";
-        private const string IMG_NOTICE_TEAM = "resource/game/mainUI/texture/ui_notice_4.png";
-        private const string IMG_NOTICE_RED_PACKET = "resource/game/mainUI/texture/ui_notice_6.png";
         private const string IMG_NOTICE_EMAIL = "resource/game/mainUI/texture/ui_notice_3.png";
-        private const string IMG_NOTICE_CHAT = "resource/game/mainUI/texture/ui_notice_7.png";
+        private const string IMG_RED_DOT = "resource/game/mainUI/texture/com_red_point.png";
+        private const string IMG_RED_NUM_BG = "resource/game/mainUI/texture/ui_bq_03.png";
         private const string IMG_EXP_TITLE_BG = "resource/game/mainUI/texture/com_title_bg1.png";
         private const string IMG_EXP_BG = "resource/game/mainUI/texture/ui_gj_12.png";
         private const string IMG_EXP_ADD = "resource/game/common/texture/ui_gj_27.png";
@@ -94,14 +93,28 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             helpTips.gameObject.SetActive(false);
 
             RectTransform bar = UiCreatorKit.NewNode("NotificationBar", root);
-            PlaceTopLeft(bar, 119f, 16f, 300f, 52f);
+            // 老端按当前消息状态动态排布；这里保留完整九类通知的可用宽度，
+            // 不再用四枚 55px 图标反推固定 300px 容器。
+            PlaceTopLeft(bar, 20f, 16f, 500f, 55f);
             view._box_notification_bar = bar;
-            view._box_team = BuildNoticeSlot(bar, "TeamInviteNoticeSlot", -123f, 0.5f, IMG_NOTICE_TEAM);
-            view._box_red_packet = BuildNoticeSlot(bar, "RedPacketNoticeSlot", -123f, 0.5f, IMG_NOTICE_RED_PACKET);
-            view._box_email = BuildNoticeSlot(bar, "MailNoticeSlot", -28f, 0.5f, IMG_NOTICE_EMAIL, 8f);
-            view._box_chat = BuildNoticeSlot(bar, "ChatNoticeSlot", -123f, 0.5f, IMG_NOTICE_CHAT);
 
-            SetTransientNotificationDefaults(view);
+            RectTransform content = UiCreatorKit.NewNode("NotificationContent", bar);
+            UiCreatorKit.Stretch(content);
+            var layout = content.gameObject.AddComponent<HorizontalLayoutGroup>();
+            layout.spacing = 2f;
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+            view.NotificationContent = content;
+
+            RectTransform templates = UiCreatorKit.NewNode("__Templates", root);
+            UiCreatorKit.Place(templates, 0f, 0f, 55f, 55f);
+            MainUINotificationItem template = BuildNotificationTemplate(templates);
+            templates.gameObject.SetActive(false);
+            view.NotificationItemTemplate = template;
+
             Save(root, NotificationPath, "HudNotification");
         }
 
@@ -136,7 +149,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             UiCreatorKit.Place(row, 0f, 0f, 219f, 31f);
             TextMeshProUGUI label = UiCreatorKit.NewText("ExpRateLabel", row, "<color=#00fa64>0</color>经验/分");
             UiCreatorKit.Place(label.rectTransform, -49.5f, -3.5f, 120f, 18f);
-            label.fontSize = 24f;
+            label.fontSize = 18f;
             label.alignment = TextAlignmentOptions.Left;
             view._lb_outline_exp = label;
 
@@ -222,23 +235,46 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             Save(root, SceneAssistPath, "HudSceneAssist");
         }
 
-        private static RectTransform BuildNoticeSlot(Transform parent, string name, float cx, float cy, string sprite, float rotation = 0f)
+        private static MainUINotificationItem BuildNotificationTemplate(Transform parent)
         {
-            RectTransform slot = UiCreatorKit.NewNode(name, parent);
-            UiCreatorKit.Place(slot, cx, cy, 55f, 55f);
-            if (rotation != 0f) slot.localEulerAngles = new Vector3(0f, 0f, rotation);
-            Image icon = UiCreatorKit.NewImage("NoticeIcon", slot);
-            UiCreatorKit.Stretch(icon.rectTransform);
-            UiCreatorKit.TrySetSprite(icon, sprite, UiCreatorKit.Palette.BtnSecond);
-            return slot;
-        }
+            RectTransform root = UiCreatorKit.NewNode("NotificationItemTemplate", parent);
+            UiCreatorKit.Place(root, 0f, 0f, 55f, 55f);
+            var item = root.gameObject.AddComponent<MainUINotificationItem>();
+            var layout = root.gameObject.AddComponent<LayoutElement>();
+            layout.preferredWidth = 55f;
+            layout.preferredHeight = 55f;
+            layout.flexibleWidth = 0f;
+            layout.flexibleHeight = 0f;
 
-        private static void SetTransientNotificationDefaults(MainUINotificationView view)
-        {
-            view._box_team.gameObject.SetActive(false);
-            view._box_red_packet.gameObject.SetActive(false);
-            view._box_email.gameObject.SetActive(false);
-            view._box_chat.gameObject.SetActive(false);
+            Image icon = UiCreatorKit.NewImage("NoticeIcon", root);
+            UiCreatorKit.Stretch(icon.rectTransform);
+            UiCreatorKit.TrySetSprite(icon, IMG_NOTICE_EMAIL, UiCreatorKit.Palette.BtnSecond);
+            item.Icon = icon;
+
+            RectTransform effect = UiCreatorKit.NewNode("NoticeEffectAnchor", root);
+            UiCreatorKit.Stretch(effect);
+            effect.gameObject.SetActive(false);
+            item.EffectAnchor = effect;
+
+            Image redDot = UiCreatorKit.NewImage("NoticeRedDot", root);
+            UiCreatorKit.Place(redDot.rectTransform, 19f, 19f, 24f, 24f);
+            UiCreatorKit.TrySetSprite(redDot, IMG_RED_DOT, UiCreatorKit.Palette.Mark);
+            redDot.gameObject.SetActive(false);
+            item.RedDot = redDot;
+
+            Image countBadge = UiCreatorKit.NewImage("NoticeCountBadge", root);
+            UiCreatorKit.Place(countBadge.rectTransform, 18f, 18f, 31f, 31f);
+            UiCreatorKit.TrySetSprite(countBadge, IMG_RED_NUM_BG, UiCreatorKit.Palette.Mark);
+            item.CountBadge = countBadge;
+
+            TextMeshProUGUI count = UiCreatorKit.NewText("NoticeCountLabel", countBadge.transform, string.Empty);
+            UiCreatorKit.Stretch(count.rectTransform);
+            count.fontSize = 18f;
+            count.alignment = TextAlignmentOptions.Center;
+            item.CountLabel = count;
+            countBadge.gameObject.SetActive(false);
+
+            return item;
         }
 
         private static RectTransform NewBottomCenterRoot(string name, float width, float height, float bottom)

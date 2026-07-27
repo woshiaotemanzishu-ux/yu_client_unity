@@ -317,6 +317,7 @@ namespace Shenxiao.Module.Core.Bag
         public static readonly GoodsBuffModel Instance = new GoodsBuffModel();
         private GoodsBuffModel() { }
 
+        public event System.Action Changed;
         public List<GoodsBuffEntry> List { get; private set; } = new List<GoodsBuffEntry>();
 
         /// <summary>请求 buff 列表(15055 无参)。</summary>
@@ -326,8 +327,17 @@ namespace Shenxiao.Module.Core.Bag
             GameLog.Info("Bag", "request 15055(获取buff列表)");
         }
 
-        public void SetList(List<GoodsBuffEntry> list) => List = list ?? new List<GoodsBuffEntry>();
-        public void Clear() => List = new List<GoodsBuffEntry>();
+        public void SetList(List<GoodsBuffEntry> list)
+        {
+            List = list ?? new List<GoodsBuffEntry>();
+            Changed?.Invoke();
+        }
+
+        public void Clear()
+        {
+            List = new List<GoodsBuffEntry>();
+            Changed?.Invoke();
+        }
     }
 
     // ===================== 15088 掉落拾取顺序 =====================

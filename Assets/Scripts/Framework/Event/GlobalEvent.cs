@@ -135,6 +135,8 @@ namespace Shenxiao.Framework.Event
         public const string EVT_SUIT_CLT_UPDATE = "EVT_SUIT_CLT_UPDATE";
         /// <summary>冲级豪礼状态变动(41700 列表/41701 领取后)。</summary>
         public const string EVT_RUSH_GIFT_UPDATE = "EVT_RUSH_GIFT_UPDATE";
+        /// <summary>限时特惠礼包通知状态变动（19101 列表/新增/删除）。</summary>
+        public const string EVT_PUSH_GIFT_UPDATE = "EVT_PUSH_GIFT_UPDATE";
         /// <summary>幻化外观数据变动(⚠无参,Emit() 零参数——订阅方 OutWardShellView.Rebuild/
         /// OutWardBaseView.OnOutWardUpdate 均为无参 Action,回调里自行按当前 _typeId 重读 Model;
         /// 16002 阶星/16023 升星/16028 等级面板/16029 升级/16024 自动购买切换后触发)。</summary>

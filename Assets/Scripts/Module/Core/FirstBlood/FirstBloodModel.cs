@@ -117,6 +117,29 @@ namespace Shenxiao.Module.Core.FirstBlood
         // 18800 纯推送错误码(瞬时)
         public int LastErrorCode;
 
+        /// <summary>
+        /// 对标老端 GetRed(1)：Boss 首杀奖励或全服归属奖励任一未领即显示通知。
+        /// 请求开放门槛属于 Controller；通知区只消费已下发的真实状态，不再重复写等级条件。
+        /// </summary>
+        public bool HasMainNotification()
+        {
+            if (ListByType.TryGetValue(TYPE_BOSS, out List<ListEntry> entries)
+                && ListSubtypeByType.TryGetValue(TYPE_BOSS, out int subtype)
+                && subtype == 1)
+            {
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    if (entries[i].RewardState == 0) return true;
+                }
+            }
+
+            foreach (int sharedStatus in SharedStatusByBossId.Values)
+            {
+                if (sharedStatus == 0) return true;
+            }
+            return false;
+        }
+
         /// <summary>断线/登出清空(ControllerHub.DisposeAll 联动)。</summary>
         public void Reset()
         {

@@ -39,6 +39,7 @@ namespace Shenxiao.Module.Core.Bag
 
         protected override void Register()
         {
+            ItemUseFlow.Initialize();
             RegisterProtocal(Proto.GOODS_CONTAINER_INFO, On15010);
             RegisterProtocal(Proto.GOODS_LIST_UPDATE, On15017);
             RegisterProtocal(Proto.GOODS_NUM_UPDATE, On15018);
@@ -81,6 +82,7 @@ namespace Shenxiao.Module.Core.Bag
             GoodsExpiredModel.Instance.Clear();
             GoodsBuffModel.Instance.Clear();
             DropOrderModel.Instance.Clear();
+            ItemUseFlow.Reset();
             _expiredConfirmEpoch++;
             base.Dispose();
         }
@@ -88,7 +90,7 @@ namespace Shenxiao.Module.Core.Bag
         private async void OnGameStart()
         {
             // 背包格的真实图标/品质底板走 config_goods(同 TaskController 预载;EnsureLoaded 幂等)。
-            await GoodsModel.EnsureLoaded();
+            await Task.WhenAll(GoodsModel.EnsureLoaded(), ItemUseFlow.EnsureConfigs());
             RequestStartupContainers();
             GameLog.Info("Bag", "request 15010 startup pos=4,22,32,23,33(主背包+坐骑/伙伴装备四容器)");
 
@@ -132,9 +134,19 @@ namespace Shenxiao.Module.Core.Bag
             List<BagGoods> list = r.ReadArray(ReadGoods);
             if (pos == BagModel.POS_BAG)
             {
-                foreach (BagGoods g in list) BagModel.Instance.Upsert(g);
+                var received = new List<BagGoods>();
+                foreach (BagGoods g in list)
+                {
+                    BagGoods before = BagModel.Instance.FindContainerGoods(BagModel.POS_BAG, g.GoodsId);
+                    long beforeNum = before?.GoodsNum ?? 0L;
+                    BagModel.Instance.Upsert(g);
+                    BagGoods current = BagModel.Instance.FindContainerGoods(BagModel.POS_BAG, g.GoodsId);
+                    if (current != null && current.GoodsNum > beforeNum) received.Add(current);
+                }
                 GameLog.Info("Bag", "15017 bag delta: goods={0} bagCount={1} remaining={2}B",
                     list.Count, BagModel.Instance.BagGoodsList.Count, r.Remaining);
+                ItemUseFlow.OnReceived(received);
+                ItemUseFlow.OnInventoryStateChanged();
                 EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
                 return;
             }
@@ -173,10 +185,19 @@ namespace Shenxiao.Module.Core.Bag
                 (rr.ReadU64(), (long)rr.ReadU32(), (int)rr.ReadU32()));
             if (pos == BagModel.POS_BAG)
             {
+                var received = new List<BagGoods>();
                 foreach ((long goodsId, long num, int typeId) it in list)
+                {
+                    BagGoods before = BagModel.Instance.FindContainerGoods(BagModel.POS_BAG, it.goodsId);
+                    long beforeNum = before?.GoodsNum ?? 0L;
                     BagModel.Instance.UpdateNum(it.goodsId, it.typeId, it.num);
+                    BagGoods current = BagModel.Instance.FindContainerGoods(BagModel.POS_BAG, it.goodsId);
+                    if (current != null && current.GoodsNum > beforeNum) received.Add(current);
+                }
                 GameLog.Info("Bag", "15018 bag num delta: goods={0} bagCount={1} remaining={2}B",
                     list.Count, BagModel.Instance.BagGoodsList.Count, r.Remaining);
+                ItemUseFlow.OnReceived(received);
+                ItemUseFlow.OnInventoryStateChanged();
                 EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
                 return;
             }
@@ -851,6 +872,8 @@ namespace Shenxiao.Module.Core.Bag
                 int withInstAttr = list.FindAll(x => x.HasInstanceAttr).Count;
                 GameLog.Info("Bag", "15010 bag: cellNum={0} maxCell={1} goods={2} equipWithInstAttr={3} remaining={4}B",
                     cellNum, maxCell, list.Count, withInstAttr, r.Remaining);
+                ItemUseFlow.OnInitialSnapshot(list);
+                ItemUseFlow.OnInventoryStateChanged();
                 EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
             }
             else if (BagModel.IsPetEquipContainer(pos))
@@ -883,6 +906,7 @@ namespace Shenxiao.Module.Core.Bag
             {
                 // 例外(活服实证-自动穿戴):已穿戴装备通道(pos=equip=1)转存 EquipAutoWear 供 rating 比较(同 rune_bag 模式)。
                 Equip.EquipAutoWear.SetWornList(list);
+                ItemUseFlow.OnInventoryStateChanged();
                 GameLog.Info("Bag", "15010 equip: goods={0} remaining={1}B", list.Count, r.Remaining);
             }
             else

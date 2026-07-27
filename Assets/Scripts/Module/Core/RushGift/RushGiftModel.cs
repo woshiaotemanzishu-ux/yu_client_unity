@@ -35,6 +35,17 @@ namespace Shenxiao.Module.Core.RushGift
             return List.Find(g => g.Lv == lv);
         }
 
+        /// <summary>41700 中 received==1 的可领取等级礼包数量。</summary>
+        public int GetMainNotificationCount()
+        {
+            int count = 0;
+            for (int i = 0; i < List.Count; i++)
+            {
+                if (List[i] != null && List[i].Received == 1) count++;
+            }
+            return count;
+        }
+
         /// <summary>41700 全量(对标老端 SetScmd41700:清空重建)。</summary>
         public void SetList(List<GiftVo> list)
         {

@@ -89,6 +89,26 @@ namespace Shenxiao.Module.Core.RedPacket
         public IReadOnlyList<RecordEntry> Records => _records;
         public OpenDetail LastOpenDetail { get; private set; }
 
+        /// <summary>
+        /// 主界面红包通知数量。完全沿用老端 CheckRedStatus：
+        /// receive_status==2，或未开启(status==0)且由自己发出的红包，才属于待处理消息。
+        /// </summary>
+        public int GetMainNotificationCount(long selfRoleId)
+        {
+            int count = 0;
+            for (int i = 0; i < _list.Count; i++)
+            {
+                RedEnvelopeEntry entry = _list[i];
+                if (entry == null) continue;
+                if (entry.ReceiveStatus == 2
+                    || (entry.Status == 0 && entry.RoleId == selfRoleId))
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
         /// <summary>33901 全量落地(对标 SetRedPacketInfo,本端不做 SortRedPacketList 排序——排序是 UI 展示序,
         /// 数据层保留原始到达序,留消费方按需排)。</summary>
         public void ApplyList(List<RedEnvelopeEntry> list, List<RecordEntry> records)

@@ -45,6 +45,8 @@ namespace Shenxiao.EditorTools.ConfigGen
             "ClientConfigFiestaITaskTab", // Festival 任务页签客户端展示表,轮18 PK3
             "ClientConfigFiestaIntroduce", // Festival 介绍文案表,轮18 PK3
             "ClientFirstBloodShow", // FirstBlood 客户端展示表,轮18 PK3
+            "ClientItemUse",       // 背包新增物品/更优装备推荐弹层的权威筛选表(ItemUseView)
+            "ClientOnHooKInfo",    // 挂机效率加成项目及各项上限(OnHookAdditionView/MainUI)
             "ClientRedBagOpen",     // RedPacket 客户端展示表,轮18 PK2
             "ClientVipWelfare",     // Welfare/VIP 客户端展示表,轮18 PK4
             "ConfigGuildAct",       // 公会晚宴(GuildActivity,pt_402)客户端展示表:fire_pos_cfg/fire_cfg/
@@ -63,6 +65,7 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_dress_up_cfg",
             "config_task",
             "config_scene",
+            "config_afk_kv", // 挂机入口开放等级等权威常量，禁止在 MainUI 中硬编码
             "config_npc",   // NPC 身份/默认对话 id(name/title/talk/icon/icon_scale/brith_rot),对话与场景 NPC 名牌都要
             "config_talk",  // NPC 对话内容表(content 为 JSON 串,按 talk_id 查),DialogueController 12101/12102 用
             "config_goods", // 物品基础表(数字索引键 "1"=名/"14"=图标/"18"=品质;"9"/"10" 是 type/subtype),GoodsModel 解析奖励真实物品名/图标
