@@ -14,6 +14,12 @@ namespace Shenxiao.EditorTools
         private const BindingFlags InstancePrivate = BindingFlags.NonPublic | BindingFlags.Instance;
         private const BindingFlags StaticPrivate = BindingFlags.NonPublic | BindingFlags.Static;
 
+        private sealed class HandlerState
+        {
+            public bool Exists;
+            public object Value;
+        }
+
         public static Task<int> Run()
         {
             try { return Task.FromResult(RunSync()); }
@@ -31,23 +37,52 @@ namespace Shenxiao.EditorTools
             var oldMaps = new List<DragonWhisperModel.MapEntry>(model.Maps);
             bool oldDropLog = model.HasDropLog;
             var oldDrops = new List<DragonWhisperModel.DropLogEntry>(model.DropLogs);
+            bool oldHasError = model.HasError;
+            uint oldErrorCode = model.LastErrorCode;
             FieldInfo intercept = typeof(DragonWhisperController).GetField("s_outboundIntercept", StaticPrivate);
             object oldIntercept = intercept?.GetValue(null);
+            var handlers = typeof(NetManager).GetField("_handlers", StaticPrivate)?.GetValue(null) as IDictionary;
+            var savedHandlers = new Dictionary<int, HandlerState>();
+            for (int proto = 65100; proto <= 65107; proto++) SaveHandler(handlers, savedHandlers, proto);
+            bool pass = false;
+            bool restored = false;
             try
             {
                 if (controller.IsInitialized) controller.Dispose();
+                if (handlers != null) for (int proto = 65100; proto <= 65107; proto++) handlers.Remove(proto);
                 model.Reset();
                 controller.Init();
+                MethodInfo onError = typeof(DragonWhisperController).GetMethod("On65100", InstancePrivate);
                 MethodInfo onInfo = typeof(DragonWhisperController).GetMethod("On65101", InstancePrivate);
                 MethodInfo onDropLog = typeof(DragonWhisperController).GetMethod("On65106", InstancePrivate);
-                var handlers = typeof(NetManager).GetField("_handlers", StaticPrivate)?.GetValue(null) as IDictionary;
-                bool pass = intercept != null && onInfo != null && onDropLog != null && handlers != null && handlers.Contains(Proto.DRAGON_WHISPER_INFO) && handlers.Contains(Proto.DRAGON_WHISPER_DROP_LOG);
-                for (int proto = 65100; proto <= 65107; proto++) if (proto != Proto.DRAGON_WHISPER_INFO && proto != Proto.DRAGON_WHISPER_DROP_LOG) pass &= !handlers.Contains(proto);
+                MethodInfo request65100 = typeof(DragonWhisperController).GetMethod("Request65100", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                pass = intercept != null && onError != null && onInfo != null && onDropLog != null && request65100 == null && handlers != null && handlers.Contains(Proto.DRAGON_WHISPER_ERROR) && handlers.Contains(Proto.DRAGON_WHISPER_INFO) && handlers.Contains(Proto.DRAGON_WHISPER_DROP_LOG);
+                for (int proto = 65100; proto <= 65107; proto++) if (proto != Proto.DRAGON_WHISPER_ERROR && proto != Proto.DRAGON_WHISPER_INFO && proto != Proto.DRAGON_WHISPER_DROP_LOG) pass &= !handlers.Contains(proto);
                 Check(ref pass, "seams/register-only-65101-65106", pass);
-                if (!pass) return 3;
+                Check(ref pass, "register-only-65100-65101-65106/no-request-65100", handlers != null && handlers.Contains(65100) && handlers.Contains(65101) && handlers.Contains(65106) && !handlers.Contains(65102) && !handlers.Contains(65103) && !handlers.Contains(65104) && !handlers.Contains(65105) && !handlers.Contains(65107) && request65100 == null);
+                object firstErrorHandler = handlers != null && handlers.Contains(65100) ? handlers[65100] : null;
+                object firstInfoHandler = handlers != null && handlers.Contains(65101) ? handlers[65101] : null;
+                object firstDropHandler = handlers != null && handlers.Contains(65106) ? handlers[65106] : null;
+                controller.Init();
+                Check(ref pass, "init idempotent preserves all three handlers", controller.IsInitialized
+                    && firstErrorHandler != null && ReferenceEquals(handlers[65100], firstErrorHandler)
+                    && firstInfoHandler != null && ReferenceEquals(handlers[65101], firstInfoHandler)
+                    && firstDropHandler != null && ReferenceEquals(handlers[65106], firstDropHandler));
+                if (pass)
+                {
 
                 var frames = new List<byte[]>();
                 intercept.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
+
+                Invoke(onError, controller, ErrorPacket(0), out NetReader errorZeroReader);
+                Check(ref pass, "65100 zero/read-to-end/no-outbound", errorZeroReader.Remaining == 0 && model.HasError && model.LastErrorCode == 0 && !model.HasSnapshot && !model.HasDropLog && frames.Count == 0);
+                Invoke(onError, controller, ErrorPacket(1), out NetReader errorOneReader);
+                Check(ref pass, "65100 one/read-to-end", errorOneReader.Remaining == 0 && model.HasError && model.LastErrorCode == 1 && frames.Count == 0);
+                Invoke(onError, controller, ErrorPacket(uint.MaxValue), out NetReader errorMaxReader);
+                Check(ref pass, "65100 uint-max/read-to-end", errorMaxReader.Remaining == 0 && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0);
+                Invoke(onError, controller, ErrorPacket(7), out NetReader errorOverwriteReader);
+                Check(ref pass, "65100 later-packet-overwrites", errorOverwriteReader.Remaining == 0 && model.HasError && model.LastErrorCode == 7 && frames.Count == 0);
+
                 controller.RequestInfo();
                 controller.RequestDropLog();
                 Check(ref pass, "both requests exact six-byte empty frames", ExactFrames(frames, Proto.DRAGON_WHISPER_INFO, Proto.DRAGON_WHISPER_DROP_LOG) && !model.HasSnapshot && !model.HasDropLog);
@@ -80,6 +115,12 @@ namespace Shenxiao.EditorTools
                 Invoke(onDropLog, controller, DropPacket(manyDrops), out NetReader dropManyReader);
                 DragonWhisperModel.DropLogEntry first = model.DropLogs.Count > 0 ? model.DropLogs[0] : null;
                 DragonWhisperModel.DropLogEntry second = model.DropLogs.Count > 1 ? model.DropLogs[1] : null;
+                Check(ref pass, "65101-65106 updates isolated-from-65100", model.HasError && model.LastErrorCode == 7);
+
+                var mapsBeforeError = new List<DragonWhisperModel.MapEntry>(model.Maps);
+                var dropsBeforeError = new List<DragonWhisperModel.DropLogEntry>(model.DropLogs);
+                Invoke(onError, controller, ErrorPacket(9), out NetReader errorIsolatedReader);
+                Check(ref pass, "65100 isolated-from-maps-dropLogs", errorIsolatedReader.Remaining == 0 && model.HasError && model.LastErrorCode == 9 && SameReferences(model.Maps, mapsBeforeError) && SameReferences(model.DropLogs, dropsBeforeError) && frames.Count == 0);
                 Check(ref pass, "65106 multiple/chinese-empty-name/boundaries/duplicate-extra-order", dropManyReader.Remaining == 0 && model.HasDropLog && model.DropLogs.Count == 2 && first != null && first.Time == uint.MaxValue && first.ServerId == uint.MaxValue && first.ServerNum == uint.MaxValue && first.RoleId == -1 && first.Name == "中文" && first.BossId == uint.MaxValue && first.GoodsId == uint.MaxValue && first.Num == uint.MaxValue && first.Rating == uint.MaxValue && first.EquipExtraAttrs.Count == 3 && Eq(first.EquipExtraAttrs[0], manyDrops[0].Extras[0]) && Eq(first.EquipExtraAttrs[1], manyDrops[0].Extras[1]) && Eq(first.EquipExtraAttrs[2], manyDrops[0].Extras[2]) && first.IsTop == byte.MaxValue && second != null && second.Name == "" && second.RoleId == 0 && second.EquipExtraAttrs.Count == 1 && Eq(second.EquipExtraAttrs[0], manyDrops[1].Extras[0]) && second.IsTop == 0 && model.Maps.Count == 3 && frames.Count == 0);
 
                 controller.RequestDropLog();
@@ -99,18 +140,82 @@ namespace Shenxiao.EditorTools
 
                 controller.Dispose();
                 Check(ref pass, "dispose unregisters-both-and-clears-both", !controller.IsInitialized && !model.HasSnapshot && !model.HasDropLog && model.Maps.Count == 0 && model.DropLogs.Count == 0 && !handlers.Contains(Proto.DRAGON_WHISPER_INFO) && !handlers.Contains(Proto.DRAGON_WHISPER_DROP_LOG));
+                Check(ref pass, "dispose unregisters-65100-and-clears-error", !model.HasError && model.LastErrorCode == 0 && !handlers.Contains(Proto.DRAGON_WHISPER_ERROR));
+                }
                 Debug.Log("CLIVERIFY dragon-whisper VERDICT pass=" + pass);
-                return pass ? 0 : 3;
             }
             finally
             {
-                if (controller.IsInitialized) controller.Dispose();
-                model.Reset();
-                if (oldInfo) model.Replace(oldLeft, oldAll, oldMaps);
-                if (oldDropLog) model.ReplaceDropLog(oldDrops);
-                if (wasInitialized) controller.Init();
-                if (intercept != null) intercept.SetValue(null, oldIntercept);
+                bool restoreSucceeded = true;
+                try
+                {
+                    if (controller.IsInitialized) controller.Dispose();
+                }
+                catch (Exception e)
+                {
+                    restoreSucceeded = false;
+                    Debug.LogError("CLIVERIFY dragon-whisper restore-dispose " + e);
+                }
+
+                try
+                {
+                    model.Reset();
+                    model.Replace(oldLeft, oldAll, oldMaps);
+                    model.ReplaceDropLog(oldDrops);
+                    model.ReplaceError(oldErrorCode);
+                    RestoreModelProperty(model, "HasSnapshot", oldInfo);
+                    RestoreModelProperty(model, "HasDropLog", oldDropLog);
+                    RestoreModelProperty(model, "HasError", oldHasError);
+                }
+                catch (Exception e)
+                {
+                    restoreSucceeded = false;
+                    Debug.LogError("CLIVERIFY dragon-whisper restore-model " + e);
+                }
+
+                try
+                {
+                    if (wasInitialized) controller.Init();
+                }
+                catch (Exception e)
+                {
+                    restoreSucceeded = false;
+                    Debug.LogError("CLIVERIFY dragon-whisper restore-init " + e);
+                }
+
+                try
+                {
+                    if (intercept != null) intercept.SetValue(null, oldIntercept);
+                }
+                catch (Exception e)
+                {
+                    restoreSucceeded = false;
+                    Debug.LogError("CLIVERIFY dragon-whisper restore-interceptor " + e);
+                }
+
+                try
+                {
+                    for (int proto = 65100; proto <= 65107; proto++) RestoreHandler(handlers, savedHandlers[proto], proto);
+                }
+                catch (Exception e)
+                {
+                    restoreSucceeded = false;
+                    Debug.LogError("CLIVERIFY dragon-whisper restore-handlers " + e);
+                }
+
+                restored = restoreSucceeded
+                    && ReferenceEquals(DragonWhisperController.Instance, controller)
+                    && ReferenceEquals(DragonWhisperModel.Instance, model)
+                    && controller.IsInitialized == wasInitialized
+                    && model.HasSnapshot == oldInfo && model.LeftCount == oldLeft && model.AllCount == oldAll && SameReferences(model.Maps, oldMaps)
+                    && model.HasDropLog == oldDropLog && SameReferences(model.DropLogs, oldDrops)
+                    && model.HasError == oldHasError && model.LastErrorCode == oldErrorCode
+                    && (intercept == null || ReferenceEquals(intercept.GetValue(null), oldIntercept));
+                for (int proto = 65100; proto <= 65107; proto++) restored &= HandlerMatches(handlers, savedHandlers[proto], proto);
+                Debug.Log("CLIVERIFY dragon-whisper restored=" + restored);
             }
+
+            return pass && restored ? 0 : 3;
         }
 
         private static void Invoke(MethodInfo method, DragonWhisperController controller, byte[] bytes, out NetReader reader)
@@ -121,11 +226,47 @@ namespace Shenxiao.EditorTools
 
         private static void Check(ref bool pass, string tag, bool ok) { Debug.Log("CLIVERIFY dragon-whisper " + tag + " ok=" + ok); if (!ok) pass = false; }
 
+        private static void SaveHandler(IDictionary handlers, IDictionary<int, HandlerState> savedHandlers, int proto)
+        {
+            bool exists = handlers != null && handlers.Contains(proto);
+            savedHandlers[proto] = new HandlerState { Exists = exists, Value = exists ? handlers[proto] : null };
+        }
+
+        private static void RestoreHandler(IDictionary handlers, HandlerState savedHandler, int proto)
+        {
+            if (handlers == null) return;
+            if (savedHandler.Exists) handlers[proto] = savedHandler.Value;
+            else handlers.Remove(proto);
+        }
+
+        private static bool HandlerMatches(IDictionary handlers, HandlerState savedHandler, int proto)
+        {
+            return handlers != null && handlers.Contains(proto) == savedHandler.Exists
+                && (!savedHandler.Exists || ReferenceEquals(handlers[proto], savedHandler.Value));
+        }
+
+        private static void RestoreModelProperty(DragonWhisperModel model, string propertyName, object value)
+        {
+            typeof(DragonWhisperModel).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance)?.SetValue(model, value);
+        }
+
+        private static bool SameReferences<T>(IReadOnlyList<T> actual, IReadOnlyList<T> expected)
+        {
+            if (actual.Count != expected.Count) return false;
+            for (int i = 0; i < actual.Count; i++) if (!ReferenceEquals(actual[i], expected[i])) return false;
+            return true;
+        }
+
         private static bool ExactFrames(IReadOnlyList<byte[]> frames, params int[] protoIds)
         {
             if (frames.Count != protoIds.Length) return false;
             for (int i = 0; i < protoIds.Length; i++) { byte[] frame = frames[i]; if (frame == null || frame.Length != 6 || frame[0] != 0 || frame[1] != 6 || frame[2] != 3 || frame[3] != 232 || frame[4] != (byte)(protoIds[i] >> 8) || frame[5] != (byte)(protoIds[i] & 0xFF)) return false; }
             return true;
+        }
+
+        private static byte[] ErrorPacket(uint errorCode)
+        {
+            return new CliVerify.Pkt().I(errorCode).Bytes();
         }
 
         private static byte[] InfoPacket(byte left, byte all, MapSpec[] maps)

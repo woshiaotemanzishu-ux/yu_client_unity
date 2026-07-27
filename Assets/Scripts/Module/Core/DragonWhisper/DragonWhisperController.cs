@@ -4,21 +4,28 @@ using Shenxiao.Framework.Net;
 
 namespace Shenxiao.Module.Core.DragonWhisper
 {
-    /// <summary>龙语秘境仅接管 65101 主面板快照，不附加启动、开放门或 UI 行为。</summary>
+    /// <summary>龙语秘境当前接管 65100 共享错误、65101 主面板快照与 65106 掉落记录，
+    /// 不附加启动、开放门或 UI 行为。</summary>
     public sealed class DragonWhisperController : BaseController
     {
         public static readonly DragonWhisperController Instance = new DragonWhisperController();
 
 #if UNITY_EDITOR
-        private static Func<byte[], bool> s_outboundIntercept;
+        private static Func<byte[], bool> s_outboundIntercept = null;
 #endif
 
         private DragonWhisperController() { }
 
         protected override void Register()
         {
+            RegisterProtocal(Proto.DRAGON_WHISPER_ERROR, On65100);
             RegisterProtocal(Proto.DRAGON_WHISPER_INFO, On65101);
             RegisterProtocal(Proto.DRAGON_WHISPER_DROP_LOG, On65106);
+        }
+
+        private void On65100(NetReader reader)
+        {
+            DragonWhisperModel.Instance.ReplaceError(reader.ReadU32());
         }
 
         /// <summary>显式拉取 65101；服务端无本号操作回包约定。</summary>

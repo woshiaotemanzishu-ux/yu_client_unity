@@ -6,6 +6,8 @@
     /// </summary>
     public static class Proto
     {
+        /// <summary>龙语秘境统一失败出口。无 C2S；S2C code:u32，由服务端真实 send_error 链仅在失败时下发。</summary>
+        public const int DRAGON_WHISPER_ERROR = 65100;
         /// <summary>龙语秘境主面板快照。C2S 严格空包；S2C 为剩余次数、总次数及地图/怪物列表。</summary>
         public const int DRAGON_WHISPER_INFO = 65101;
         /// <summary>龙语秘境掉落记录快照。C2S 严格空包；S2C 为完整掉落记录列表。</summary>

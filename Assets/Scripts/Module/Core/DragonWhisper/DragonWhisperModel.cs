@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Shenxiao.Module.Core.DragonWhisper
 {
-    /// <summary>65101 服务端主面板快照；保留原始 map/monster 顺序及重复项。</summary>
+    /// <summary>65100/65101/65106 原始数据切片；列表保留服务端顺序及重复项。</summary>
     public sealed class DragonWhisperModel
     {
         public sealed class MonsterEntry
@@ -100,6 +100,8 @@ namespace Shenxiao.Module.Core.DragonWhisper
         public IReadOnlyList<MapEntry> Maps => _readOnlyMaps;
         public bool HasDropLog { get; private set; }
         public IReadOnlyList<DropLogEntry> DropLogs => _readOnlyDropLogs;
+        public bool HasError { get; private set; }
+        public uint LastErrorCode { get; private set; }
 
         public void Replace(byte leftCount, byte allCount, List<MapEntry> maps)
         {
@@ -118,6 +120,8 @@ namespace Shenxiao.Module.Core.DragonWhisper
             _dropLogs.Clear();
             HasSnapshot = false;
             HasDropLog = false;
+            HasError = false;
+            LastErrorCode = 0;
         }
 
         public void ReplaceDropLog(List<DropLogEntry> dropLogs)
@@ -125,6 +129,12 @@ namespace Shenxiao.Module.Core.DragonWhisper
             _dropLogs.Clear();
             if (dropLogs != null) _dropLogs.AddRange(dropLogs);
             HasDropLog = true;
+        }
+
+        public void ReplaceError(uint errorCode)
+        {
+            LastErrorCode = errorCode;
+            HasError = true;
         }
     }
 }
