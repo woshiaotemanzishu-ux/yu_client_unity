@@ -55,6 +55,16 @@ namespace Shenxiao.Editor.AssetHub
         }
         public int ParticleSoloIndex => _particleSoloIndex;
         public string[] ParticleOptions => _particleOptions;
+        public int LiveParticleCount
+        {
+            get
+            {
+                int count = 0;
+                foreach (ParticleSystem particle in _particles)
+                    if (particle != null) count += particle.particleCount;
+                return count;
+            }
+        }
         /// <summary>UI 特效使用与 UIEffectStage 一致的 720x1280 正交取景,避免透视/旋转预览误判方向。</summary>
         public bool IsUiEffect => _isUiEffect;
 
@@ -235,6 +245,9 @@ namespace Shenxiao.Editor.AssetHub
             else
                 GUI.DrawTexture(renderRect, tex, ScaleMode.StretchToFill, false);
             if (_isUiEffect)
+                GUI.Label(new Rect(renderRect.x + 6f, renderRect.y + 22f, 220f, 18f),
+                    $"粒子系统 {_particles.Length} / 当前粒子 {LiveParticleCount}", EditorStyles.miniLabel);
+            if (_isUiEffect)
                 GUI.Label(new Rect(renderRect.x + 6f, renderRect.y + 4f, 190f, 18f), "UI运行取景 720×1280（已镜像补偿）", EditorStyles.miniLabel);
         }
 
@@ -261,6 +274,9 @@ namespace Shenxiao.Editor.AssetHub
             {
                 psys.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
                 psys.Clear(true);
+                // StopEmittingAndClear 会把系统留在 stopped 状态；随后仅调用
+                // Simulate(restart:false) 不会重新发射，导致重播、拖时间轴和单节点预览全黑。
+                psys.Play(true);
             }
             SampleEmbeddedAnimations(0f);
             float simulated = 0f;

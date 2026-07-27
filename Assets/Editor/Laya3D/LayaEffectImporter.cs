@@ -1585,7 +1585,11 @@ namespace Shenxiao.Editor.Laya3D
             switch (type)
             {
                 case 2:
-                    return RandomRangeCurve(F(bases, minKey, def), F(bases, maxKey, def));
+                    // Laya 会省略仍为引擎默认值的 *ConstantMin 字段。粒子的最小值默认是 0，
+                    // 不能沿用 Unity 单常量的默认值（例如 startSpeed 的 5），否则 0 速粒子会被
+                    // 错转成 0~5 的随机初速度。最大值缺失时再回退到导出的单常量。
+                    float constant = F(bases, constKey, def);
+                    return RandomRangeCurve(F(bases, minKey, 0f), F(bases, maxKey, constant));
                 case 1:
                 case 3:
                     if (gradKey != null)

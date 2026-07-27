@@ -29,6 +29,7 @@ namespace Shenxiao.Module.Core.MainUI
         private UIEffectStage.Handle _finishEffect;
         private bool _finishEffectLoading;
         private int _finishEffectVersion;
+        private Vector2 _finishEffectRenderSize;
         // 槽由 UiCreator 种进 prefab;缺槽=烤制缺口(队列在案),每次任务完成都刷警告只是噪音 → 全局一次
         private static bool s_finishSlotMissingLogged;
 
@@ -142,23 +143,33 @@ namespace Shenxiao.Module.Core.MainUI
         private void UpdateFinishEffect(bool finish)
         {
             if (_box_effect == null) return;
-            _finishEffectVersion++;
             _box_effect.gameObject.SetActive(finish);
             if (!finish)
             {
                 ClearFinishEffect();
                 return;
             }
+
+            Vector2 renderSize = GetFinishEffectRenderSize();
+            if ((_finishEffect != null || _finishEffectLoading)
+                && !Approximately(_finishEffectRenderSize, renderSize))
+            {
+                // 任务条会随描述行数改变高度，也会被列表复用。旧实例的缩放是按旧高度算的，
+                // 若继续复用，共享特效舞台还会再乘一次新高度，最终出现放大、偏移的大金框。
+                ClearFinishEffect();
+            }
             if (_finishEffect != null || _finishEffectLoading) return;
-            _ = LoadFinishEffectAsync(_finishEffectVersion);
+            _finishEffectRenderSize = renderSize;
+            int version = ++_finishEffectVersion;
+            _ = LoadFinishEffectAsync(version, renderSize);
         }
 
-        private async Task LoadFinishEffectAsync(int version)
+        private async Task LoadFinishEffectAsync(int version, Vector2 renderSize)
         {
             if (_box_effect == null || _finishEffectLoading || _finishEffect != null) return;
             _finishEffectLoading = true;
 
-            float boxHeight = Mathf.Max(1f, _box_effect.rect.height);
+            float boxHeight = renderSize.y;
             float itemHeight = _img_bg != null ? Mathf.Max(1f, _img_bg.rectTransform.rect.height) : 54f;
             float scale = 1280f / boxHeight * 0.96f;
             float yScale = scale * itemHeight / 54f;
@@ -177,8 +188,8 @@ namespace Shenxiao.Module.Core.MainUI
             Vector3 slotScale = slot.Scale;
             UIEffectStage.Handle effect = await UIEffectStage.AddByKeyAsync(slot.EffectName, slot.AddressKey,
                 _box_effect, slot.Position, new Vector3(slotScale.x * scale, slotScale.y * yScale, slotScale.z * scale),
-                slot.RotationY, default, slot.ProfileId);
-            _finishEffectLoading = false;
+                slot.RotationY, renderSize, slot.ProfileId);
+            if (version == _finishEffectVersion) _finishEffectLoading = false;
             if (version != _finishEffectVersion || _box_effect == null || !_box_effect.gameObject.activeSelf)
             {
                 effect?.Dispose();
@@ -196,6 +207,17 @@ namespace Shenxiao.Module.Core.MainUI
                 _finishEffect = null;
             }
             _finishEffectLoading = false;
+            _finishEffectRenderSize = default;
+        }
+
+        private Vector2 GetFinishEffectRenderSize()
+        {
+            return new Vector2(Mathf.Max(1f, _box_effect.rect.width), Mathf.Max(1f, _box_effect.rect.height));
+        }
+
+        private static bool Approximately(Vector2 left, Vector2 right)
+        {
+            return Mathf.Approximately(left.x, right.x) && Mathf.Approximately(left.y, right.y);
         }
 
         private UIEffectSlot FindFinishEffectSlot()
