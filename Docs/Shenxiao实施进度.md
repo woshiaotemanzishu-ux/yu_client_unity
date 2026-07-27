@@ -6,7 +6,7 @@
 > - [编码规范](Shenxiao编码规范.md)
 > - [Copilot 红线](../.github/copilot-instructions.md)
 
-**最近更新**：2026-07-15
+**最近更新**：2026-07-27
 
 **状态图例**：
 - ✅ 已完成
@@ -29,6 +29,7 @@
 | 1.4 | AGENTS.md 入口 | ✅ | [AGENTS.md](../AGENTS.md) | 多 AI 工具兼容 |
 | 1.5 | 实施进度表（本表） | ✅ | 本文件 | 持续更新 |
 | 1.6 | 地图加载重构方案 | ✅ | [Shenxiao地图加载重构方案.md](Shenxiao地图加载重构方案.md) | 2026-06-09 新增，Phase 1 场景地图前置设计 |
+| 1.7 | 文档总入口与持续沉淀规则 | ✅ | [README.md](README.md) | 2026-07-27：技术文档、经验文档、进度与 AI 规则同轮维护 |
 
 ### 2. Unity 工程基础
 
@@ -218,6 +219,7 @@ HttpUtil / GmApi(HTTP 参考)/ NetManager / ErlangParser / UserMsgAdapter / View
 | 2026-06-11 | 新增 | 转换器改版:Tab 分类 + 中英模块按钮(module_names_cn.json,211 模块)+ 一键流水线(散图→转换→编译后自动回填→分组)+ 验收闸门(ui_acceptance.json,验收模块重转弹确认)。|
 | 2026-06-11 | 清理 | 编辑器菜单收纳为 神霄/{LayaUI 转换器,资源,配置,配表,工具,调试};删除旧 UICreator 残留(英文根菜单清零)。|
 | 2026-06-11 | 规范 | 编码规范 §3.2 更新为 LayaUI 路线(Bind/UIUtil/alpha 红线/三层样式修改原则/查源码原则);补建 .github/copilot-instructions.md;AGENTS 必读清单加流水线与登录链路文档。|
+| 2026-07-27 | 规范 | 建立 `Docs/README.md` 文档总入口；AGENTS 与编码规范增加强制沉淀规则，要求架构、公共组件、工具/资源流水线、关键链路和复用型疑难修复在同一提交更新技术/经验文档。|
 
 ---
 
