@@ -1584,6 +1584,10 @@
         /// 4被邀请方不能进入),list[u16×{type:u8(1邀请方/2被邀请方),role_id:u64,figure:RecFigure}],
         /// dun_id:u32。每包为完整原始快照；本层不驱动 UI、事件、自动回应或本地邀请状态。</summary>
         public const int DUNGEON_INVITE_STATE = 61048;
+        /// <summary>神纹副本最佳记录显式查询。C2S dun_id:u32,wave:u8；S2C dun_id:u32,wave:u8,
+        /// my_time:u32,best_time:u32,role_list[u16×{role_id:u64,name:string,power:u32,server_num:u32,
+        /// server_id:u32}]。每包整体替换原始快照；不自动请求、不裁剪前三名或格式化时间。</summary>
+        public const int DUNGEON_DRAGON_BEST_RECORD = 61050;
         /// <summary>异兽入侵 领取阶段奖励(轮22 族错误出口批;对标老端 BaseDungeonController.ts:1848-1857
         /// 内联handler:error_code==1 分支 setMonsterInvasionReward 调用**已被老端注释**[纯死代码,运行时
         /// 无副作用],否则 ErrorCodeShow(error_code)——本端如实镜像"成功也不做事",不臆造奖励消费)。

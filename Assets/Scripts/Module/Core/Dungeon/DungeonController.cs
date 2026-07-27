@@ -52,6 +52,7 @@ namespace Shenxiao.Module.Core.Dungeon
 #if UNITY_EDITOR
         private static Func<byte[], bool> s_cooldownOutboundIntercept = null;
         private static Func<byte[], bool> s_inviteOutboundIntercept = null;
+        private static Func<byte[], bool> s_dragonBestRecordOutboundIntercept = null;
 #endif
 
         private DungeonController() { }
@@ -70,6 +71,7 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_INVITE, On61046);
             RegisterProtocal(Proto.DUNGEON_INVITE_RESPOND, On61047);
             RegisterProtocal(Proto.DUNGEON_INVITE_STATE, On61048);
+            RegisterProtocal(Proto.DUNGEON_DRAGON_BEST_RECORD, On61050);
             RegisterProtocal(Proto.DUNGEON_MONSTER_INVASION_REWARD, On61092);
             // 61002(DUNGEON_EXIT)已由 AutoBrushController 注册,红线不可重复注册;Exit() 只发不接。
             RegisterProtocal(Proto.DUNGEON_INFO, On61004);
@@ -266,6 +268,20 @@ namespace Shenxiao.Module.Core.Dungeon
             }
 #endif
             SendFmt(Proto.DUNGEON_INVITE, "cil", type, dunId, wireOtherId);
+        }
+
+        /// <summary>显式查询神纹副本指定波次的个人/最佳记录；不由生命周期或 UI 自动触发。</summary>
+        public void RequestDragonBestRecord(uint dunId, byte wave)
+        {
+#if UNITY_EDITOR
+            if (s_dragonBestRecordOutboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(Proto.DUNGEON_DRAGON_BEST_RECORD, "ic",
+                    new object[] { dunId, wave });
+                if (s_dragonBestRecordOutboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(Proto.DUNGEON_DRAGON_BEST_RECORD, "ic", dunId, wave);
         }
 
         /// <summary>请求坐标触发情况表 61019(发 "i" scene_id;进副本场景对账用)。</summary>
@@ -886,6 +902,24 @@ namespace Shenxiao.Module.Core.Dungeon
             });
             uint dunId = r.ReadU32();
             DungeonModel.Instance.ApplyInviteState(code, list, dunId);
+        }
+
+        /// <summary>61050 神纹副本个人/最佳记录完整原始快照；不派事件或做展示层变换。</summary>
+        private void On61050(NetReader r)
+        {
+            uint dunId = r.ReadU32();
+            byte wave = r.ReadU8();
+            uint myTime = r.ReadU32();
+            uint bestTime = r.ReadU32();
+            List<DungeonModel.DragonBestRecordRole> roles = r.ReadArray(rr => new DungeonModel.DragonBestRecordRole
+            {
+                RoleId = unchecked((ulong)rr.ReadU64()),
+                Name = rr.ReadString(),
+                Power = rr.ReadU32(),
+                ServerNum = rr.ReadU32(),
+                ServerId = rr.ReadU32(),
+            });
+            DungeonModel.Instance.ApplyDragonBestRecord(dunId, wave, myTime, bestTime, roles);
         }
 
         /// <summary>61092 异兽入侵 领取阶段奖励(对标老端 BaseDungeonController.ts:1848-1857 内联 handler:

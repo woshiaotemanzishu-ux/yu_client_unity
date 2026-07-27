@@ -18,7 +18,8 @@ namespace Shenxiao.Module.Core.Dungeon
     ///
     /// 轮9 副本家族补全一期:61004 副本信息/61005·61030 波次/61007·61019 坐标事件状态机/61011 助战次数/
     /// 61018 退出倒计时/61021 购买/61022 扫荡/61023 时间评分/61025·61026 鼓舞/61044 经验本面板推送/
-    /// 61045 冷却时间/61046 邀请发送者原始消息/61048 双方邀请状态/61120·61121 资源本一键与次数。
+    /// 61045 冷却时间/61046 邀请发送者原始消息/61048 双方邀请状态/61050 神纹最佳记录/
+    /// 61120·61121 资源本一键与次数。
     /// 周本(50801/50802)是独立数据线,见 <see cref="PolarModel"/>——勿塞进 DunStatesByType(r9 侦察结论)。
     /// </summary>
     public sealed class DungeonModel
@@ -168,6 +169,28 @@ namespace Shenxiao.Module.Core.Dungeon
         public bool HasInviteState { get; private set; }
         public InviteStateSnapshot LastInviteState { get; private set; }
 
+        public sealed class DragonBestRecordRole
+        {
+            public ulong RoleId;
+            public string Name;
+            public uint Power;
+            public uint ServerNum;
+            public uint ServerId;
+        }
+
+        public sealed class DragonBestRecordSnapshot
+        {
+            public uint DunId;
+            public byte Wave;
+            public uint MyTime;
+            public uint BestTime;
+            public List<DragonBestRecordRole> RoleList;
+        }
+
+        /// <summary>是否收到过 61050；空角色表和全零字段仍是合法完整快照。</summary>
+        public bool HasDragonBestRecord { get; private set; }
+        public DragonBestRecordSnapshot LastDragonBestRecord { get; private set; }
+
         public void ApplyExpDungeonInfo(ushort killCount, ulong totalExp)
         {
             HasExpDungeonInfo = true;
@@ -189,6 +212,20 @@ namespace Shenxiao.Module.Core.Dungeon
                 Code = code,
                 List = list ?? new List<InviteStateEntry>(),
                 DunId = dunId,
+            };
+        }
+
+        public void ApplyDragonBestRecord(uint dunId, byte wave, uint myTime, uint bestTime,
+            List<DragonBestRecordRole> roles)
+        {
+            HasDragonBestRecord = true;
+            LastDragonBestRecord = new DragonBestRecordSnapshot
+            {
+                DunId = dunId,
+                Wave = wave,
+                MyTime = myTime,
+                BestTime = bestTime,
+                RoleList = roles ?? new List<DragonBestRecordRole>(),
             };
         }
 
@@ -478,6 +515,8 @@ namespace Shenxiao.Module.Core.Dungeon
             InviteResponseMessage = null;
             HasInviteState = false;
             LastInviteState = null;
+            HasDragonBestRecord = false;
+            LastDragonBestRecord = null;
             SceneInfo = null;
             CurrWaveType = 0;
             CurrWaveNum = 1;
