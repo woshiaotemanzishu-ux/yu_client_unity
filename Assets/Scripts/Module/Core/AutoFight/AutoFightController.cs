@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.AutoBrush;
+using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene;
 using Shenxiao.Module.Core.Scene.Vo;
 using Shenxiao.Module.Core.Skill;
@@ -178,6 +180,18 @@ namespace Shenxiao.Module.Core.AutoFight
             if (task.TaskTipsType == TaskModel.TIP_PASS_MAIN_DUNGEON)
             {
                 MonsterVo autoBrushTarget = SceneCombat.Instance.GetClickTarget();
+                if (RoleModel.Instance.DunId != 0)
+                {
+                    if (autoBrushTarget != null
+                        && autoBrushTarget.IsBoss
+                        && autoBrushTarget.CanAttack == 1
+                        && autoBrushTarget.Hp > 0
+                        && (AutoBrushBattleFlow.BossInstanceId == 0
+                            || autoBrushTarget.InstanceId == AutoBrushBattleFlow.BossInstanceId))
+                        return true;
+                    return AutoBrushBattleFlow.TryLockBossTarget();
+                }
+
                 if (autoBrushTarget != null && autoBrushTarget.CanAttack == 1 && autoBrushTarget.Hp > 0) return true;
 
                 if (task.Id > 0 && SceneCombat.Instance.TrySetNearestMonsterByType(task.Id, task.SceneX, task.SceneY)) return true;

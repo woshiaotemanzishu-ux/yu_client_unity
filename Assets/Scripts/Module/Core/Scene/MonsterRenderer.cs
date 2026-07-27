@@ -122,10 +122,14 @@ namespace Shenxiao.Module.Core.Scene
         private static async void OnMonsterAdded(MonsterVo vo)
         {
             if (vo == null) return;
+            int spawnEpoch = _epoch;
 
             // 主线副本大妖:服务端只下发占位(type=7001 "主线副本"),真实 模型/名字/缩放 由客户端按挂机层级覆盖
             // (对标老端 Monster.InitAutoBrushMoster)。须在去重/建视图/加载模型前改 vo,后续才读到正确 res/name/scale。
             float autoBrushScale = await ApplyAutoBrushBossOverrideAsync(vo);
+            if (spawnEpoch != _epoch
+                || !object.ReferenceEquals(SceneManager.Instance.GetMonster(vo.InstanceId), vo))
+                return;
 
             // 大妖(副本 BOSS)入场「大妖来袭」表现(对标老端 ShowBossBornEffect;内部按 IsBoss + 在副本内 + 去重判)。
             BossBornEffectFlow.NotifyMonsterAdded(vo);

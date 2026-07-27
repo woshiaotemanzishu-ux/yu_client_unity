@@ -87,6 +87,46 @@ namespace Shenxiao.Module.Core.Scene
             return true;
         }
 
+        /// <summary>按实例 id 锁定仍存活且可攻击的 Boss；普通怪不会被大妖副本流程误选。</summary>
+        public bool TrySetAttackableBoss(int monsterInstanceId)
+        {
+            MonsterVo target = SceneManager.Instance.GetMonster(monsterInstanceId);
+            if (!IsAttackableBoss(target)) return false;
+
+            SetClickTarget(target.InstanceId);
+            GameLog.Info("Combat", "boss target locked exact ins={0} type={1} pos=({2},{3})",
+                target.InstanceId, target.TypeId, target.X, target.Y);
+            return true;
+        }
+
+        /// <summary>从当前场景选择距离指定点最近的可攻击 Boss；仅作为实例绑定失效时的兜底。</summary>
+        public bool TrySetNearestBoss(int centerX, int centerY)
+        {
+            MonsterVo best = null;
+            float bestDist2 = float.MaxValue;
+            foreach (MonsterVo vo in SceneManager.Instance.AllMonsters)
+            {
+                if (!IsAttackableBoss(vo)) continue;
+                float dx = vo.X - centerX;
+                float dy = vo.Y - centerY;
+                float dist2 = dx * dx + dy * dy;
+                if (dist2 >= bestDist2) continue;
+                bestDist2 = dist2;
+                best = vo;
+            }
+            if (best == null) return false;
+
+            SetClickTarget(best.InstanceId);
+            GameLog.Info("Combat", "boss target locked nearest ins={0} type={1} pos=({2},{3})",
+                best.InstanceId, best.TypeId, best.X, best.Y);
+            return true;
+        }
+
+        private static bool IsAttackableBoss(MonsterVo vo)
+        {
+            return vo != null && vo.IsBoss && !vo.IsCollect && vo.CanAttack == 1 && vo.Hp > 0;
+        }
+
         /// <summary>Scene object click entry: lock a real monster instance and release a learned combat skill.</summary>
         public bool MainRoleAttackMonster(int monsterInstanceId, int skillId = 0, int attackType = SkillManager.ONLY_FIRE_ATTACK)
         {

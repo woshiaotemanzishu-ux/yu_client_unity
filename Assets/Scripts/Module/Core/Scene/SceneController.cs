@@ -271,6 +271,10 @@ namespace Shenxiao.Module.Core.Scene
             role.Y = y;
             role.DunId = dunId;
 
+            // 12005 已切到服务端权威落点，必须同步 MainRoleAgent 自己维护的浮点坐标并废弃上一场景的
+            // 自动接近回调。否则地图就绪前的短窗口仍会从旧坐标继续追上一只怪，视觉上表现为进副本后先折返。
+            MainRoleAgent.Current?.ApplyAuthoritativeScenePosition(x, y);
+
             // 真正换场景(场景实例或副本状态变化)才压黑幕过渡;同场景位置校正类 12005 不闪屏。
             // 没有过渡时"角色瞬移+全场实体重刷"会被玩家误读成断线重连(第24轮 test.log 实证)。
             // 黑幕不在这里拉:同图切换(打大妖/进出同图副本)老端是无感的——是否真换图要等地图数据

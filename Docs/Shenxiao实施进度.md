@@ -1278,6 +1278,13 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
   使用图形设备实测生成 4 张有效截图，locator 位置误差约 `0.0000014`、旋转误差 `0°`。
 - **主工程导入闸门**：资产管理继续保留一次设置 Art 项目根目录、每模型手选并显示具体目录、点击即整夹替换；
   `ImportPart` 导入后新增最终 prefab 结构硬检查，失败时不自动写入 `model_replacement.json`。
+
+## 2026-07-27：大妖入场演出 Missing Script 与第二只大妖折返修复
+
+- **演出不播放根因已修**：`BossBornEffectPlayer` 从 `BossBornEffectFlow.cs` 拆为同名独立脚本，修复 Unity 按文件 GUID 解析到静态主类型后把 Prefab 组件保存成 Missing Script 的问题；`BossBornIntro.prefab` 已绑定播放器独立 GUID。
+- **完整预览入口**：新增 `神霄/特效/播放完整 BossBornIntro`，Play Mode 主界面可一次播放遮罩与全部粒子，不再逐粒子预览；错误条件改为明确弹窗。
+- **进场折返修复**：`12005` 立即同步 `MainRoleAgent` 的权威坐标并清理旧自动接近；大妖实体绑定本轮 Boss 实例，演出结束前先锁 Boss 再解冻；副本内主线大妖任务禁止回退选择普通怪，野外刷怪逻辑不变；怪物异步生成增加场景 epoch/实体引用闸门。
+- **验证**：`dotnet build Shenxiao.Module.Core.csproj --no-restore` 与 `dotnet build Shenxiao.Editor.csproj --no-restore` 均 0 error；Prefab 的 `m_Script` 为 `BossBornEffectPlayer.cs.meta` 非零 GUID。活服完整演出与第二只大妖无折返待用户在 Unity 实跑复验。
 - **整链路验证**：从 `E:/Project/ArtsProject` 重新导入 role_1213/head_1213/weapon_1200，
   三类模板结构、7/2/1 动作、Addressables、运行时补偿 0/0/1、头饰/武器正式 locator 拼装全部通过；
   武器定位误差约 `0.0000014`、旋转误差 `0°`。

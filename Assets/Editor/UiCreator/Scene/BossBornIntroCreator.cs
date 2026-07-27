@@ -80,9 +80,31 @@ namespace Shenxiao.Editor.UiCreator.Scene
             }
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
             Transform parent = ViewManager.GetLayer(UILayer.Top);
-            if (prefab == null || parent == null) return;
+            if (prefab == null)
+            {
+                EditorUtility.DisplayDialog("预览大妖来袭", $"找不到 prefab：\n{PrefabPath}", "好");
+                return;
+            }
+            if (parent == null)
+            {
+                EditorUtility.DisplayDialog("预览大妖来袭", "UI Top 层尚未初始化，请先进入游戏主界面。", "好");
+                return;
+            }
             GameObject go = Object.Instantiate(prefab, parent);
-            go.GetComponent<BossBornEffectPlayer>()?.Begin(() => Object.Destroy(go));
+            BossBornEffectPlayer player = go.GetComponent<BossBornEffectPlayer>();
+            if (player == null)
+            {
+                Object.Destroy(go);
+                EditorUtility.DisplayDialog("预览大妖来袭", "BossBornIntro 缺少 BossBornEffectPlayer，请重新生成。", "好");
+                return;
+            }
+            player.Begin(() => Object.Destroy(go));
+        }
+
+        [MenuItem("神霄/特效/播放完整 BossBornIntro", priority = 20)]
+        private static void PreviewFromMenu()
+        {
+            Preview();
         }
     }
 }

@@ -289,6 +289,28 @@ namespace Shenxiao.Module.Core.Scene
         }
 
         /// <summary>
+        /// 接受 12005 的服务端权威落点，并同时废弃上一场景遗留的自动接近、动作与内部浮点坐标。
+        /// 不回发 12001；新地图就绪后由 MainRoleFlow.Init 负责相机与屏幕位置的最终同步。
+        /// </summary>
+        public void ApplyAuthoritativeScenePosition(int x, int y)
+        {
+            _actionVersion++;
+            _posX = Mathf.Max(0, x);
+            _posY = Mathf.Max(0, y);
+            _sendTimer = 0f;
+            _moving = false;
+            _collecting = false;
+            _autoMoving = false;
+            _onArrive = null;
+            _autoElapsed = 0f;
+            _autoStuckTime = 0f;
+            _autoInvokeOnFail = true;
+            if (_model != null) EffectBinder.ClearTag(_model, "action");
+            ResetModelVisualOffset();
+            PlayAction(ActionIdle);
+        }
+
+        /// <summary>
         /// 全向转向:让主角连续朝向移动方向(对标老客户端 atan2 全向转身,非左右翻面)。
         /// 输入 dir 为舞台坐标(x 右、y 下,已归一化)。合成台相机看向世界 +Z、俯角 24°:
         /// 屏右=世界+X、屏下(朝相机)=世界-Z;模型美术正脸朝本地 -Z(故 yaw=180 静止背对相机)。

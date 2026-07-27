@@ -138,6 +138,12 @@ GameLog.Error("Net", "decode failed proto={0}", protoId);
 - 业务模块第一参数是模块标签（`Login` / `Bag` / `Skill`）
 - Release 构建会按等级裁剪，禁止字符串拼接日志（用格式串）
 
+### 2.6 Unity 序列化脚本
+
+- 会挂到 Scene/Prefab 的 `MonoBehaviour` / `ScriptableObject` 必须独占同名 `.cs` 文件。
+- 禁止把可序列化组件写在“首个类型是静态类、抽象类或其他不同名类型”的脚本中。Unity 的脚本 GUID 绑定按文件资产解析，C# 能编译不代表 Prefab 能保存出有效组件。
+- Editor 生成器调用 `AddComponent<T>()` 并保存 Prefab 后，必须静态核对 `m_Script.fileID=11500000`、GUID 非零且对应 `T` 的同名脚本；出现 `m_Script: {fileID: 0}` 直接判为生成失败。
+
 ---
 
 ## 三、框架层使用规范

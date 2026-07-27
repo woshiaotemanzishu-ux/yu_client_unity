@@ -894,9 +894,17 @@ namespace Shenxiao.Module.Core.Tasks
             if (task == null) return false;
             if (task.TaskTipsType != TIP_PASS_MAIN_DUNGEON && task.Id <= 0) return false;
 
-            bool locked = task.Id > 0
-                ? SceneCombat.Instance.TrySetNearestMonsterByType(task.Id, task.SceneX, task.SceneY)
-                : SceneCombat.Instance.TrySetNearestAttackableMonster(task.SceneX, task.SceneY);
+            bool locked;
+            if (task.TaskTipsType == TIP_PASS_MAIN_DUNGEON && RoleModel.Instance.DunId != 0)
+            {
+                locked = AutoBrushBattleFlow.TryLockBossTarget();
+            }
+            else
+            {
+                locked = task.Id > 0
+                    ? SceneCombat.Instance.TrySetNearestMonsterByType(task.Id, task.SceneX, task.SceneY)
+                    : SceneCombat.Instance.TrySetNearestAttackableMonster(task.SceneX, task.SceneY);
+            }
             if (!locked)
             {
                 GameLog.Warn("Task", "auto task kill waiting: task={0} monsterType={1} no attackable monster yet, monsterCount={2}",

@@ -25,6 +25,9 @@ namespace Shenxiao.Module.Core.AutoBrush
 
         public static Phase Current { get; private set; }
 
+        /// <summary>当前大妖副本由场景快照下发的 Boss 实例 id；0 表示尚未绑定。</summary>
+        public static int BossInstanceId { get; private set; }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
         {
@@ -35,9 +38,18 @@ namespace Shenxiao.Module.Core.AutoBrush
 
         public static void BeginEntering()
         {
+            BossInstanceId = 0;
             SetPhase(Phase.Entering, freeze: true);
             AutoFightModel.Instance.SetAutoFightWeight(AutoFightModel.AUTO_WEIGHT_TASK);
             AutoFightController.Instance.EnsureRunning();
+        }
+
+        public static void BindBoss(int instanceId)
+        {
+            if (instanceId <= 0) return;
+            if (BossInstanceId == instanceId) return;
+            BossInstanceId = instanceId;
+            GameLog.Info("AutoBrush", "battle boss bound ins={0}", instanceId);
         }
 
         public static void OnEnterRejected()
@@ -76,7 +88,19 @@ namespace Shenxiao.Module.Core.AutoBrush
 
         public static void Reset()
         {
+            BossInstanceId = 0;
             SetPhase(Phase.Idle, freeze: false);
+        }
+
+        /// <summary>优先锁定本轮已绑定实例，绑定失效时只在可攻击 Boss 集合中兜底。</summary>
+        public static bool TryLockBossTarget()
+        {
+            if (BossInstanceId > 0 && SceneCombat.Instance.TrySetAttackableBoss(BossInstanceId)) return true;
+
+            RoleModel role = RoleModel.Instance;
+            if (!SceneCombat.Instance.TrySetNearestBoss(role.X, role.Y)) return false;
+            BossInstanceId = SceneCombat.Instance.CurrentTargetId;
+            return true;
         }
 
         private static void BeginFighting(string reason)
@@ -86,6 +110,8 @@ namespace Shenxiao.Module.Core.AutoBrush
                 SetPhase(Phase.Idle, freeze: false);
                 return;
             }
+            if (!TryLockBossTarget())
+                GameLog.Warn("AutoBrush", "battle presentation cannot lock boss before unfreeze boundIns={0}", BossInstanceId);
             SetPhase(Phase.Fighting, freeze: false);
             AutoFightModel.Instance.SetAutoFightWeight(AutoFightModel.AUTO_WEIGHT_TASK);
             AutoFightController.Instance.EnsureRunning();
