@@ -1290,3 +1290,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
   武器定位误差约 `0.0000014`、旋转误差 `0°`。
 - **经验文档**：[Art模板验收与挂点排查经验.md](Art模板验收与挂点排查经验.md)。核心教训：
   “错误变换稳定”不等于视觉挂点正确，自动矩阵验收必须和四方向、多动作视觉验收同时存在。
+
+## 2026-07-27：大妖特效退场时序与服务端自动入场冻结补全
+
+- **横底残留修复**：重新核对老端 `DungeonFightSceneMaskView + UIEffect.AddUIEffect`，确认正常时序为 `0.15s` 滑入、资源加载完成后播放 `1.5s`、先销毁特效、`0.15s` 滑出；`3s` 仅为加载失败兜底。`BossBornIntro.prefab` 已拆为四个可编辑时长，循环的 `liutizuo/liutiyou` 不再跟随兜底时长残留。
+- **第二只大妖折返根因收口**：活服日志确认 `12005` 后副本快照只有 Boss，问题是服务端自动进场跳过客户端 `BeginEntering`，导致切入前最后一次野外小怪动作跨进同图副本。`AutoBrushBattleFlow` 现从权威场景清理事件补入 `Entering`，在 Toast/Boss 快照前统一冻结和收脚。
+- **预览约束**：单特效继续走“神霄/资源/特效管理”通用预览；组合演出注册到 UiCreator/Prefab 预览入口，专用菜单仅作快捷入口，不按特效复制预览相机和窗口。
+- **离线验证**：`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 串行编译均 0 error；活服视觉结果待 Unity 连续推进到第二只大妖复验。

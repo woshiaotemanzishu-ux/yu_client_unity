@@ -3,6 +3,7 @@ using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene;
+using Shenxiao.Module.Core.Tasks;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.AutoBrush
@@ -32,6 +33,7 @@ namespace Shenxiao.Module.Core.AutoBrush
         private static void Install()
         {
             EventDispatcher.On(GlobalEvent.EVT_SCENE_MAP_READY, OnSceneMapReady);
+            EventDispatcher.On(GlobalEvent.EVT_SCENE_OBJECTS_CLEARED, OnSceneObjectsCleared);
             EventDispatcher.On(GlobalEvent.EVT_NET_DISCONNECTED, Reset);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, Reset);
         }
@@ -128,6 +130,23 @@ namespace Shenxiao.Module.Core.AutoBrush
 
             if (Current == Phase.Entering || Current == Phase.Intro || Current == Phase.Exiting)
                 FreezeActor();
+        }
+
+        private static void OnSceneObjectsCleared()
+        {
+            TaskVo task = TaskModel.Instance.MainLineTaskVo;
+            if (RoleModel.Instance.DunId == 0
+                || !AutoBrushModel.Instance.AutoBrushState
+                || task == null
+                || task.TaskTipsType != TaskModel.TIP_PASS_MAIN_DUNGEON) return;
+
+            // 服务端可在野外最后一击后直接用 12005 拉入同图大妖副本，此路径不会经过客户端
+            // RequestEnterOrExit/BeginEntering。以权威换场事件补齐 Entering，立即取消上一场景的
+            // 自动接近、攻击目标和动作表现，避免旧小怪的最后一拍跨到副本画面里。
+            BossInstanceId = 0;
+            SetPhase(Phase.Entering, freeze: true);
+            GameLog.Info("AutoBrush", "battle presentation entering from scene switch dunId={0} task={1}",
+                RoleModel.Instance.DunId, task.TaskId);
         }
 
         private static void SetPhase(Phase next, bool freeze)

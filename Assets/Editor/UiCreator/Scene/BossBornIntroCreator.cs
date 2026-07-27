@@ -56,7 +56,8 @@ namespace Shenxiao.Editor.UiCreator.Scene
                 "old host=2000x1280 centerY=-300; old AddUIEffect scale=1.5",
                 Vector2.zero, Vector3.one * 1.5f, 0f, false, "dungeon_boss_intro");
 
-            player.ConfigurePrefab(top.rectTransform, bottom.rectTransform, host, slot, 0.15f, 3f, 0.15f);
+            player.ConfigurePrefab(top.rectTransform, bottom.rectTransform, host, slot,
+                0.15f, 1.5f, 3f, 0.15f);
             GameObject saved = UiCreatorKit.SavePrefab(root.gameObject, PrefabPath);
             Selection.activeObject = saved;
             EditorGUIUtility.PingObject(saved);

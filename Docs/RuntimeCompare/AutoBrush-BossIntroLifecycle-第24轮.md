@@ -21,7 +21,8 @@
   - `ShowBossBornEffect` 先 `SetAutoFight(false)`，再打开 `DungeonFightSceneMaskView`。
 - `yu_client/h5/src/dungeon/DungeonFightSceneMaskView.ts`
   - 隐藏 Main/Activity 层。
-  - 上下遮罩各用 `0.15s` 滑入，播放 `effect_ui_dayaolaixi`，约 `3s` 后各用 `0.15s` 滑出。
+  - 上下遮罩各用 `0.15s` 滑入；`effect_ui_dayaolaixi` 从加载完成起播放 `1.5s` 后先被移除，再各用 `0.15s` 滑出。
+  - 独立的 `3s` 定时器只是特效加载或回调异常时的退场兜底，不是正常展示时长。
   - 收尾后恢复 UI 层并触发 `STARTAUTOFIGHT`。
 - `yu_client/h5/laya/pages/resource/game/dungeonCommon/DungeonFightSceneMaskView.scene`
   - 上下遮罩设计尺寸 `870×670`。
@@ -45,7 +46,7 @@
 - `MaskTop` / `MaskBottom` 的尺寸、位置和贴图；
 - `BannerHost` 的位置与尺寸；
 - `UIEffectSlot._scale`（基线 `1.5`）；
-- `BossBornEffectPlayer` 的滑入、停留、滑出时间。
+- `BossBornEffectPlayer` 的滑入、特效播放、加载兜底和滑出时间。
 
 生成器只用于需要重建结构时；日常美术微调直接改 prefab，不要重新生成覆盖手调结果。
 
@@ -71,7 +72,7 @@
 4. 横幅滑出并恢复 HUD 后，自动战斗正常开始，不触发 20 秒无输出判负。
 5. `13306` 到达瞬间角色收脚；成功结果页背后无继续跑动。
 6. 点击完成或倒计时结束才发 `61002`；回野外后任务链继续，角色不继承副本内旧目标。
-7. 编辑器中直接打开 prefab 能调整遮罩、横幅宿主、缩放与三个时段。
+7. 编辑器中直接打开 prefab 能调整遮罩、横幅宿主、缩放与四个时序参数。
 
 ## 离线验证
 
@@ -101,3 +102,23 @@
 2. 连续进入第二个大妖副本：`12005` 后角色保持新落点；演出期间冻结；演出结束后第一目标必须是日志中的 `battle boss bound ins=...` / `boss target locked exact ...`，不能再锁野外普通怪。
 3. Prefab 静态检查必须满足 `m_Script.fileID=11500000` 且 GUID 指向 `BossBornEffectPlayer.cs.meta`；禁止再把可挂载组件与不同名静态主类型放在同一个 `.cs`。
 4. 本轮离线验证：`Shenxiao.Module.Core.csproj` 与 `Shenxiao.Editor.csproj` 均为 0 error；活服视觉与第二只大妖的移动链由 Unity 操作复验。
+
+## 2026-07-27 补充：循环底残留与服务端自动入场漏冻结
+
+### 循环底残留
+
+- `effect_ui_dayaolaixi` 的文字、线条和底板粒子约在 1 秒左右完成，但 `liutizuo`、`liutiyou` 是持续发射的网格粒子；Unity 组合播放器此前误把老端的 `3s` 兜底当正常 Hold，因此文字消失后会长时间只剩橙色横底。
+- 老端 `UIEffect.AddUIEffect(..., last_time=1.5, callback)` 会在 1.5 秒先从宿主移除特效，再回调遮罩退场；外层 `setTimeout(3000)` 只防资源回调丢失。
+- `BossBornEffectPlayer` 现改为四个 Prefab 参数：滑入 `0.15s`、资源加载完成后的特效时长 `1.5s`、加载兜底 `3s`、滑出 `0.15s`。正常到时先释放 `UIEffectStage.Handle`，再退遮罩；异步加载晚于兜底时会立刻释放迟到 Handle，不会复活残留底。
+
+### 服务端自动入场漏冻结
+
+- 活服日志证明，野外最后一次攻击目标是普通怪 `ins=1149 type=10001004`，随后才收到 `12005 dunId=50000`；副本 `12002` 只有 Boss `ins=9884 type=7001`，且 `12005` 后全部攻击都指向 `9884`。因此副本没有残留小怪，问题是切入前最后一拍的本地移动/攻击表现跨进了同图副本。
+- 日志同时显示旧状态直接从 `Idle → Intro`，说明服务端自动拉入副本没有经过客户端 `RequestEnterOrExit → BeginEntering`，原冻结只覆盖显式请求路径。
+- `AutoBrushBattleFlow` 现监听权威 `EVT_SCENE_OBJECTS_CLEARED`：当 `DunId!=0`、自动大妖开启且主线仍为 `TIP_PASS_MAIN_DUNGEON` 时，统一补入 `Entering`，立即清目标、停止上一场景动作并打开 `CombatFreeze`。该点发生在 Boss 快照和入场 Toast 之前，覆盖显式与服务端自动入场两条路径。
+
+### 本次验证
+
+- `dotnet build Shenxiao.Module.Core.csproj --no-restore`：0 error。
+- `dotnet build Shenxiao.Editor.csproj --no-restore`：0 error。
+- 活服视觉复验仍需在 Unity 中连续推进到第二只大妖：应先看到 `battle presentation entering from scene switch`，再看到 `Entering → Intro`；Toast 后不得再延续野外小怪的移动/攻击动作。
