@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
@@ -23,9 +24,10 @@ namespace Shenxiao.Module.Core.AutoBrush
             _ = OpenMainAsync();
         }
 
-        public static void OpenResult(IReadOnlyList<AutoBrushModel.RewardEntry> rewards, int coin, int exp)
+        public static void OpenResult(IReadOnlyList<AutoBrushModel.RewardEntry> rewards, int coin, int exp,
+            Action onCompleted)
         {
-            _ = OpenResultAsync(rewards, coin, exp);
+            _ = OpenResultAsync(rewards, coin, exp, onCompleted);
         }
 
         public static void CloseMain()
@@ -35,7 +37,7 @@ namespace Shenxiao.Module.Core.AutoBrush
 
         public static void CloseResult()
         {
-            _resultView?.Hide();
+            _resultView?.Complete();
         }
 
         private static async Task OpenMainAsync()
@@ -45,11 +47,17 @@ namespace Shenxiao.Module.Core.AutoBrush
             _mainView?.Show();
         }
 
-        private static async Task OpenResultAsync(IReadOnlyList<AutoBrushModel.RewardEntry> rewards, int coin, int exp)
+        private static async Task OpenResultAsync(IReadOnlyList<AutoBrushModel.RewardEntry> rewards, int coin, int exp,
+            Action onCompleted)
         {
-            if (!await EnsureLoaded()) return;
+            if (!await EnsureLoaded())
+            {
+                GameLog.Warn("AutoBrush", "result view unavailable;continue dungeon exit to avoid presentation deadlock");
+                onCompleted?.Invoke();
+                return;
+            }
             _mainView?.Hide();
-            _resultView?.Show(rewards, coin, exp);
+            _resultView?.Show(rewards, coin, exp, onCompleted);
         }
 
         private static async Task<bool> EnsureLoaded()

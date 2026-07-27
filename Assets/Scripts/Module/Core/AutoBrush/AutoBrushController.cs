@@ -18,6 +18,8 @@ namespace Shenxiao.Module.Core.AutoBrush
     {
         public static readonly AutoBrushController Instance = new AutoBrushController();
 
+        private int _exitRetryCount;
+
         private AutoBrushController() { }
 
         protected override void Register()
@@ -55,6 +57,16 @@ namespace Shenxiao.Module.Core.AutoBrush
         /// </summary>
         public void RequestEnterOrExit(byte type = 0)
         {
+            if (type == 0 && RoleModel.Instance.DunId == 0)
+            {
+                if (AutoBrushBattleFlow.Current == AutoBrushBattleFlow.Phase.Entering
+                    || AutoBrushBattleFlow.Current == AutoBrushBattleFlow.Phase.Intro)
+                {
+                    GameLog.Info("AutoBrush", "ignore duplicate enter request phase={0}", AutoBrushBattleFlow.Current);
+                    return;
+                }
+                AutoBrushBattleFlow.BeginEntering();
+            }
             SendFmt(Proto.AUTOBRUSH_ENTER_EXIT, "c", type);
             GameLog.Info("AutoBrush", "request auto-brush dungeon proto={0} type={1}",
                 Proto.AUTOBRUSH_ENTER_EXIT, type);
@@ -125,6 +137,7 @@ namespace Shenxiao.Module.Core.AutoBrush
             int code = r.ReadI32();
             if (code != 1)
             {
+                AutoBrushBattleFlow.OnEnterRejected();
                 GameLog.Warn("AutoBrush", "13305 enter/exit failed code={0}", code);
                 return;
             }
@@ -152,26 +165,30 @@ namespace Shenxiao.Module.Core.AutoBrush
             // (errorCode=1200001 当前场景不能进入)。
             // ★门禁按"当前是否在副本(DunId!=0)"判,而非按当前主线任务类型——对标老端 IsMainLineDungeonScene
             //   (看场景而非任务):实测玩家通关过副本任务后,主线任务已推进到找NPC,但 auto-brush 又farm了下一关
-            //   并失败,此时若按任务类型 gate(已非过副本)就不会退→卡死。AutoExitDungeonAfterResultAsync 内部
+            //   并失败,此时若按任务类型 gate(已非过副本)就不会退→卡死。ExitDungeonAfterResultAsync 内部
             //   再按 DunId!=0 复判,不在副本则跳过,安全。
             if (state == 0)
             {
+                _exitRetryCount = 0;
+                AutoBrushBattleFlow.BeginSettling();
                 AutoBrushModel.Instance.SetFailureState(false);
                 AutoBrushModel.Instance.SetLevel(AutoBrushModel.Instance.Level + 1);
                 if (coin > 0) rewards.Add(new AutoBrushModel.RewardEntry(3, 0, coin));
                 if (exp > 0) rewards.Add(new AutoBrushModel.RewardEntry(5, 0, exp));
-                AutoBrushFlow.OpenResult(rewards, coin, exp);
+                AutoBrushFlow.OpenResult(rewards, coin, exp,
+                    () => _ = ExitDungeonAfterResultAsync(true, 0));
                 GameLog.Info("AutoBrush", "13306 pass success level={0} rewards={1} coin={2} exp={3}",
                     AutoBrushModel.Instance.Level, rewards.Count, coin, exp);
-                _ = AutoExitDungeonAfterResultAsync(true);
                 return;
             }
 
             if (state == 1)
             {
+                _exitRetryCount = 0;
+                AutoBrushBattleFlow.BeginSettling();
                 AutoBrushModel.Instance.SetFailureState(true, AutoBrushModel.Instance.Level + 1);
                 GameLog.Warn("AutoBrush", "13306 pass failed nextLevel={0}", AutoBrushModel.Instance.LastFailureLevel);
-                _ = AutoExitDungeonAfterResultAsync(false);
+                _ = ExitDungeonAfterResultAsync(false, 2000);
                 return;
             }
 
@@ -179,21 +196,22 @@ namespace Shenxiao.Module.Core.AutoBrush
         }
 
         /// <summary>
-        /// 主线过副本结算(成功/失败)后自动退出副本,发 **61002**(对标老端 AutoBrushResultView/DungeonFailureView
-        /// 关闭时 Fire(SCMD_REQUEST,61002),而非 13305——13305 在老端只用于"进"副本)。给结算/失败一个短暂展示窗口后
-        /// 再退;退出前若已不在副本(已退/重连)则跳过。服务端收 61002 后用 12005 把玩家切回野外(dunId=0)。
+        /// 主线过副本结算后发 61002 退出。成功分支由结果页点击/10 秒倒计时触发；失败页尚未迁移，保留 2 秒降级窗口。
+        /// 退出前若已不在副本(已退/重连)则跳过。服务端收 61002 后用 12005 把玩家切回野外(dunId=0)。
         /// fire-and-forget,异常只记录。
         /// </summary>
-        private async Task AutoExitDungeonAfterResultAsync(bool success)
+        private async Task ExitDungeonAfterResultAsync(bool success, int delayMs)
         {
             try
             {
-                await Shenxiao.Framework.Util.TimeUtil.Delay(2000);
+                if (delayMs > 0) await Shenxiao.Framework.Util.TimeUtil.Delay(delayMs);
                 if (RoleModel.Instance.DunId == 0)
                 {
                     GameLog.Info("AutoBrush", "auto exit dungeon skip: 已不在副本(dunId=0)");
                     return;
                 }
+                if (AutoBrushBattleFlow.Current == AutoBrushBattleFlow.Phase.Exiting) return;
+                AutoBrushBattleFlow.BeginExiting();
                 GameLog.Info("AutoBrush", "主线过副本{0} → 发 61002 退出副本(dunId={1}),等服务端 12005 切回野外",
                     success ? "通关" : "失败", RoleModel.Instance.DunId);
                 SendFmt(Proto.DUNGEON_EXIT);
@@ -226,6 +244,7 @@ namespace Shenxiao.Module.Core.AutoBrush
             int errorCode = r.Remaining >= 4 ? r.ReadI32() : -1;
             if (errorCode == 1)
             {
+                _exitRetryCount = 0;
                 // 对标老端 BaseDungeonController 61002 成功分支:重置副本波数(curr_wave_num=1)。
                 // 61002 是 AutoBrush 与 Dungeon 两条链唯一共用的出口协议(轮9 副本家族),波数状态挂 DungeonModel。
                 Shenxiao.Module.Core.Dungeon.DungeonModel.Instance.ResetWaveNum();
@@ -234,6 +253,35 @@ namespace Shenxiao.Module.Core.AutoBrush
             else
             {
                 GameLog.Warn("AutoBrush", "61002 退副本失败 errorCode={0}", errorCode);
+                if (AutoBrushBattleFlow.Current == AutoBrushBattleFlow.Phase.Exiting && _exitRetryCount < 1)
+                {
+                    _exitRetryCount++;
+                    _ = RetryExitDungeonAsync();
+                }
+                else
+                {
+                    AutoBrushBattleFlow.Reset();
+                }
+            }
+        }
+
+        private async Task RetryExitDungeonAsync()
+        {
+            try
+            {
+                await Shenxiao.Framework.Util.TimeUtil.Delay(1000);
+                if (RoleModel.Instance.DunId == 0)
+                {
+                    AutoBrushBattleFlow.Reset();
+                    return;
+                }
+                GameLog.Warn("AutoBrush", "61002 退副本自动重试 retry={0}", _exitRetryCount);
+                SendFmt(Proto.DUNGEON_EXIT);
+            }
+            catch (Exception e)
+            {
+                AutoBrushBattleFlow.Reset();
+                GameLog.Warn("AutoBrush", "61002 退副本重试异常:{0}", e.Message);
             }
         }
 

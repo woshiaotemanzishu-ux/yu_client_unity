@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using Shenxiao.Generated.UI.AutoBrush;
 using Shenxiao.Module.Core.Common;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace Shenxiao.Module.Core.AutoBrush
 {
@@ -26,6 +28,7 @@ namespace Shenxiao.Module.Core.AutoBrush
         private int _exp;
         private int _rewardEpoch;
         private int _leftTime;
+        private Action _onCompleted;
 
         public AutoBrushResultView(AutoBrushResultViewBind bind)
         {
@@ -35,12 +38,13 @@ namespace Shenxiao.Module.Core.AutoBrush
 
         public bool IsShown => _bind != null && _bind.gameObject.activeSelf;
 
-        public void Show(IReadOnlyList<AutoBrushModel.RewardEntry> rewards, int coin, int exp)
+        public void Show(IReadOnlyList<AutoBrushModel.RewardEntry> rewards, int coin, int exp, Action onCompleted)
         {
             if (_bind == null) return;
             _rewards = rewards ?? new List<AutoBrushModel.RewardEntry>();
             _coin = coin;
             _exp = exp;
+            _onCompleted = onCompleted;
             _bind.Show();
             _bind.transform.SetAsLastSibling();
             Render();
@@ -50,6 +54,7 @@ namespace Shenxiao.Module.Core.AutoBrush
         public void Hide()
         {
             CancelTimer();
+            _onCompleted = null;
             ClearRewardCells();
             if (_bind != null) _bind.Hide();
         }
@@ -63,8 +68,8 @@ namespace Shenxiao.Module.Core.AutoBrush
             if (_bind._lb_now_coin != null) _bind._lb_now_coin.text = _coin > 0 ? _coin.ToString() : "0";
             if (_bind._lb_exit != null) _bind._lb_exit.text = "完成";
 
-            BindClick(_bind._box_exit, Hide);
-            BindClick(_bind._img_exit, Hide);
+            BindClick(_bind._box_exit, Complete);
+            BindClick(_bind._img_exit, Complete);
             _ = BuildRewardCells(_rewards);
         }
 
@@ -142,12 +147,23 @@ namespace Shenxiao.Module.Core.AutoBrush
                 catch (TaskCanceledException) { return; }
 
                 _leftTime--;
-                if (_leftTime < 0)
+                if (_leftTime <= 0)
                 {
-                    Hide();
+                    Complete();
                     return;
                 }
             }
+        }
+
+        public void Complete()
+        {
+            if (!IsShown) return;
+            Action callback = _onCompleted;
+            _onCompleted = null;
+            CancelTimer();
+            ClearRewardCells();
+            if (_bind != null) _bind.Hide();
+            callback?.Invoke();
         }
 
         private void CancelTimer()

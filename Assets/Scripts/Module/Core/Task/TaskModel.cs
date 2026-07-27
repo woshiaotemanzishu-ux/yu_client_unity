@@ -806,11 +806,7 @@ namespace Shenxiao.Module.Core.Tasks
             if (IsAutoBrushProgressReady())
             {
                 GameLog.Info("Task", "PassMainDungeon request dungeon enter: task={0} proto=13305 type=0", task.TaskId);
-                // ★活服实证修复(100170 卡点):进副本前武装自动战斗——老端靠「全局自动挂机常开」的隐含状态
-                // 驱动副本内输出;Unity 自动化链此前没人置 AutoFightState → 副本内 20001 从未发出 →
-                // 20s wave_timeout 判负(13306 state=1)无限重试。对标老端语义:任务驱动进副本=有仗要打。
-                AutoFight.AutoFightModel.Instance.SetAutoFightWeight(AutoFight.AutoFightModel.AUTO_WEIGHT_TASK);
-                AutoFight.AutoFightController.Instance.EnsureRunning(); // 同值早退不发事件时的环存活保证
+                // 进入请求统一由 AutoBrushBattleFlow 先收脚/清旧目标并冻结，横幅结束后才真正开打。
                 AutoBrushController.Instance.RequestEnterOrExit(0);
                 return;
             }

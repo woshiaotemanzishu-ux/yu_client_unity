@@ -268,6 +268,27 @@ namespace Shenxiao.Module.Core.Scene
         }
 
         /// <summary>
+        /// 副本进入/入场/结算演出统一收脚。取消在途自动接近和异步动作，清掉动作粒子并回到 idle；
+        /// 若角色确实在移动则补发一次最终坐标，避免服务端仍认为角色在跑。
+        /// </summary>
+        public void StopForPresentation()
+        {
+            _actionVersion++;
+            _autoMoving = false;
+            _onArrive = null;
+            _autoInvokeOnFail = true;
+            if (_collecting)
+            {
+                _collecting = false;
+                EventDispatcher.Emit(GlobalEvent.EVT_COLLECT_MOVE_CANCEL);
+            }
+            if (_model != null) EffectBinder.ClearTag(_model, "action");
+            ResetModelVisualOffset();
+            if (_moving) StopMove();
+            else PlayAction(ActionIdle);
+        }
+
+        /// <summary>
         /// 全向转向:让主角连续朝向移动方向(对标老客户端 atan2 全向转身,非左右翻面)。
         /// 输入 dir 为舞台坐标(x 右、y 下,已归一化)。合成台相机看向世界 +Z、俯角 24°:
         /// 屏右=世界+X、屏下(朝相机)=世界-Z;模型美术正脸朝本地 -Z(故 yaw=180 静止背对相机)。

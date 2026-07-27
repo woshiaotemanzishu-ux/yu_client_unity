@@ -29,7 +29,7 @@ namespace Shenxiao.Common.UI3D
         private int _autoVersion;
 
         public void ConfigureEffect(string slotId, string effectName, string addressKey, string source, string note,
-            Vector2 position, Vector3 scale, float rotationY, bool autoPlay = false)
+            Vector2 position, Vector3 scale, float rotationY, bool autoPlay = false, string profileId = "")
         {
             Configure(UIDynamicResourceKind.UIEffect, slotId, addressKey, source, note);
             _effectName = effectName ?? "";
@@ -37,6 +37,7 @@ namespace Shenxiao.Common.UI3D
             _scale = scale == default ? Vector3.one : scale;
             _rotationY = rotationY;
             _autoPlay = autoPlay;
+            _profileId = profileId ?? "";
         }
 
         private void OnEnable()
