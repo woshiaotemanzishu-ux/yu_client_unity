@@ -1,7 +1,11 @@
 using System.Globalization;
+using System.Threading.Tasks;
+using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
+using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
+using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.OnHook;
@@ -15,10 +19,19 @@ namespace Shenxiao.Module.Core.MainUI
     /// </summary>
     public sealed class MainUIOnHookView : MainUIOnHookViewBind
     {
+        public const string AUTO_FIGHTING_EFFECT_SLOT_ID = "mainui_onhook_auto_fighting";
+        public const string AUTO_PATHING_EFFECT_SLOT_ID = "mainui_onhook_auto_pathing";
+
         private int _refreshVersion;
+        private UIEffectSlot _autoFightingEffectSlot;
+        private UIEffectSlot _autoPathingEffectSlot;
+        private UIEffectStage.Handle _autoStateEffect;
+        private string _autoStateEffectSlotId;
+        private int _autoStateEffectVersion;
 
         protected override void OnInit()
         {
+            ResolveAutoStateEffectSlots();
             if (_box_outline_exp != null) _box_outline_exp.gameObject.SetActive(false);
             if (_box_old_outline_exp != null) _box_old_outline_exp.gameObject.SetActive(false);
 
@@ -35,6 +48,9 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, Refresh);
             EventDispatcher.On(GlobalEvent.EVT_SCENE_MAP_READY, Refresh);
             EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, Refresh);
+            EventDispatcher.On<bool>(GlobalEvent.EVT_AUTO_FIGHT_STATE, OnAutoStateChanged);
+            EventDispatcher.On<bool>(GlobalEvent.EVT_AUTO_FIND_WAY_STATE, OnAutoStateChanged);
+            ApplyAutoStateEffect();
             Refresh();
         }
 
@@ -46,6 +62,72 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, Refresh);
             EventDispatcher.Off(GlobalEvent.EVT_SCENE_MAP_READY, Refresh);
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, Refresh);
+            EventDispatcher.Off<bool>(GlobalEvent.EVT_AUTO_FIGHT_STATE, OnAutoStateChanged);
+            EventDispatcher.Off<bool>(GlobalEvent.EVT_AUTO_FIND_WAY_STATE, OnAutoStateChanged);
+            ClearAutoStateEffect();
+        }
+
+        private void ResolveAutoStateEffectSlots()
+        {
+            UIEffectSlot[] slots = GetComponentsInChildren<UIEffectSlot>(true);
+            for (int i = 0; i < slots.Length; i++)
+            {
+                UIEffectSlot slot = slots[i];
+                if (slot == null) continue;
+                if (slot.SlotId == AUTO_FIGHTING_EFFECT_SLOT_ID) _autoFightingEffectSlot = slot;
+                else if (slot.SlotId == AUTO_PATHING_EFFECT_SLOT_ID) _autoPathingEffectSlot = slot;
+            }
+
+            if (_autoFightingEffectSlot == null || _autoPathingEffectSlot == null)
+                GameLog.Error("MainUI", "MainUIOnHookView 缺自动战斗/寻路特效槽,请重新生成 HudOnHook");
+        }
+
+        private void OnAutoStateChanged(bool ignored)
+        {
+            ApplyAutoStateEffect();
+        }
+
+        private void ApplyAutoStateEffect()
+        {
+            AutoFightModel model = AutoFightModel.Instance;
+            UIEffectSlot target = model.AutoFindWayState
+                ? _autoPathingEffectSlot
+                : model.AutoFightState ? _autoFightingEffectSlot : null;
+            string targetSlotId = target != null ? target.SlotId : null;
+            if (_autoStateEffectSlotId == targetSlotId) return;
+
+            _autoStateEffectSlotId = targetSlotId;
+            int version = ++_autoStateEffectVersion;
+            DisposeAutoStateEffectHandle();
+            if (target != null) _ = LoadAutoStateEffectAsync(target, version);
+        }
+
+        private async Task LoadAutoStateEffectAsync(UIEffectSlot slot, int version)
+        {
+            RectTransform host = slot != null ? slot.transform.parent as RectTransform : null;
+            UIEffectStage.Handle handle = host != null ? await UIEffectStage.AddAsync(slot, host) : null;
+            if (this == null || version != _autoStateEffectVersion || slot == null || _autoStateEffectSlotId != slot.SlotId)
+            {
+                handle?.Dispose();
+                return;
+            }
+
+            _autoStateEffect = handle;
+            if (handle == null) _autoStateEffectSlotId = null;
+        }
+
+        private void ClearAutoStateEffect()
+        {
+            _autoStateEffectVersion++;
+            _autoStateEffectSlotId = null;
+            DisposeAutoStateEffectHandle();
+        }
+
+        private void DisposeAutoStateEffectHandle()
+        {
+            if (_autoStateEffect == null) return;
+            _autoStateEffect.Dispose();
+            _autoStateEffect = null;
         }
 
         private async void Refresh()

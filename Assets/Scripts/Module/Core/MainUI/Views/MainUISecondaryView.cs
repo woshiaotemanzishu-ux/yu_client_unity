@@ -1,13 +1,10 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Module.Core.Game;
 using Shenxiao.Module.Core.Guild;
-using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,29 +20,14 @@ namespace Shenxiao.Module.Core.MainUI
     /// </summary>
     public sealed class MainUISecondaryView : MainUISecondaryViewBind
     {
-        public const string AUTO_FIGHTING_EFFECT_SLOT_ID = "mainui_secondary_auto_fighting";
-        public const string AUTO_PATHING_EFFECT_SLOT_ID = "mainui_secondary_auto_pathing";
-
-        private const int AUTO_STATE_REFRESH_DELAY_MS = 440;
-
         private readonly Dictionary<string, ActivityIcon> _leftIcons = new Dictionary<string, ActivityIcon>();
         private readonly Dictionary<string, ActivityIcon> _rightIcons = new Dictionary<string, ActivityIcon>();
         // 太极收起态(对标老端 SecondaryView 也消费 CHANGE_ACTIVITY_STATE):折叠时两簇容器整体收起,
         // 且周期刷新不得把它们弹回(见 RefreshSlotsAsync 守卫)。
         private bool _activityFolded;
 
-        private UIEffectSlot _autoFightingEffectSlot;
-        private UIEffectSlot _autoPathingEffectSlot;
-        private UIEffectStage.Handle _autoStateEffect;
-        private string _autoStateEffectSlotId;
-        private int _autoStateEffectVersion;
-        private int _autoStateRefreshVersion;
-        private bool _autoStateRefreshPending;
-
         protected override void OnInit()
         {
-            ResolveAutoStateEffectSlots();
-
             // Old client hides these entries until data/events open them.
             _box_god.gameObject.SetActive(false);
             _gp_t_map.gameObject.SetActive(false);
@@ -125,12 +107,9 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
             EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
             EventDispatcher.On<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
-            EventDispatcher.On<bool>(GlobalEvent.EVT_AUTO_FIGHT_STATE, OnAutoStateChanged);
-            EventDispatcher.On<bool>(GlobalEvent.EVT_AUTO_FIND_WAY_STATE, OnAutoStateChanged);
             // 对标老端 MainUISecondaryView.ts:777-781(DAY_CHANGE)+:784-790(REFRESH_SERVER_TIME,一次性)。
             EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             EventDispatcher.On(GlobalEvent.EVT_SERVER_TIME_REFRESH, OnServerTimeRefreshOnce);
-            ApplyAutoStateEffect();
             RefreshSlotsAsync();
         }
 
@@ -142,86 +121,9 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnOpenConditionChanged);
             EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnOpenConditionChanged);
             EventDispatcher.Off<bool>(GlobalEvent.EVT_MAINUI_ACTIVITY_FOLD, OnActivityFold);
-            EventDispatcher.Off<bool>(GlobalEvent.EVT_AUTO_FIGHT_STATE, OnAutoStateChanged);
-            EventDispatcher.Off<bool>(GlobalEvent.EVT_AUTO_FIND_WAY_STATE, OnAutoStateChanged);
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             // 老端为一次性订阅(用完即解绑),但视图可能在其触发前就被关闭——这里兜底注销,防止 Off 未配对残留。
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_TIME_REFRESH, OnServerTimeRefreshOnce);
-            ClearAutoStateEffect();
-        }
-
-        private void ResolveAutoStateEffectSlots()
-        {
-            UIEffectSlot[] slots = _box_auto_effect.GetComponentsInChildren<UIEffectSlot>(true);
-            for (int i = 0; i < slots.Length; i++)
-            {
-                UIEffectSlot slot = slots[i];
-                if (slot == null) continue;
-                if (slot.SlotId == AUTO_FIGHTING_EFFECT_SLOT_ID) _autoFightingEffectSlot = slot;
-                else if (slot.SlotId == AUTO_PATHING_EFFECT_SLOT_ID) _autoPathingEffectSlot = slot;
-            }
-
-            if (_autoFightingEffectSlot == null || _autoPathingEffectSlot == null)
-                GameLog.Error("MainUI", "MainUISecondaryView 缺自动战斗/寻路特效槽,请重新生成 HudSecondary");
-        }
-
-        private void OnAutoStateChanged(bool ignored)
-        {
-            if (_autoStateRefreshPending) return;
-            _autoStateRefreshPending = true;
-            int version = ++_autoStateRefreshVersion;
-            _ = RefreshAutoStateEffectDelayedAsync(version);
-        }
-
-        private async Task RefreshAutoStateEffectDelayedAsync(int version)
-        {
-            await TimeUtil.Delay(AUTO_STATE_REFRESH_DELAY_MS);
-            if (this == null || version != _autoStateRefreshVersion) return;
-            _autoStateRefreshPending = false;
-            ApplyAutoStateEffect();
-        }
-
-        private void ApplyAutoStateEffect()
-        {
-            AutoFightModel model = AutoFightModel.Instance;
-            UIEffectSlot target = model.AutoFindWayState
-                ? _autoPathingEffectSlot
-                : model.AutoFightState ? _autoFightingEffectSlot : null;
-            string targetSlotId = target != null ? target.SlotId : null;
-            if (_autoStateEffectSlotId == targetSlotId) return;
-
-            _autoStateEffectSlotId = targetSlotId;
-            int version = ++_autoStateEffectVersion;
-            DisposeAutoStateEffectHandle();
-            if (target != null) _ = LoadAutoStateEffectAsync(target, version);
-        }
-
-        private async Task LoadAutoStateEffectAsync(UIEffectSlot slot, int version)
-        {
-            UIEffectStage.Handle handle = await UIEffectStage.AddAsync(slot, _box_auto_effect);
-            if (this == null || version != _autoStateEffectVersion || _autoStateEffectSlotId != slot.SlotId)
-            {
-                handle?.Dispose();
-                return;
-            }
-
-            _autoStateEffect = handle;
-        }
-
-        private void ClearAutoStateEffect()
-        {
-            _autoStateRefreshVersion++;
-            _autoStateRefreshPending = false;
-            _autoStateEffectVersion++;
-            _autoStateEffectSlotId = null;
-            DisposeAutoStateEffectHandle();
-        }
-
-        private void DisposeAutoStateEffectHandle()
-        {
-            if (_autoStateEffect == null) return;
-            _autoStateEffect.Dispose();
-            _autoStateEffect = null;
         }
 
         // 增/删任一活动图标 → 两簇按顺序整体重填槽位(槽位式无增量,全量重填最简单稳妥,两簇常年个位数开销可忽略)。

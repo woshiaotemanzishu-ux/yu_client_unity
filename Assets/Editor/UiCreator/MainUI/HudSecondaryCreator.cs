@@ -1,5 +1,3 @@
-using Shenxiao.Common.UI3D;
-using Shenxiao.Framework.Res;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -214,16 +212,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
 
             RectTransform boxAutoEffect = UiCreatorKit.NewNode("AutoStateEffectSlot", root); // 老端: _box_auto_effect
             PlaceBottomCenterX(boxAutoEffect, 235f, -350f, 250f, 200f); // 老端 centerX=0(实测中心 235+125=360)
-            view._box_auto_effect = boxAutoEffect;
-
-            // 老端 UpdateAutoStateEffect:寻路优先于自动战斗,二者互斥挂到同一 250x200 宿主。
-            // 静态 offset/scale 归 prefab/Creator,运行时只按 slotId 选择并维护 Handle。
-            RectTransform autoDynamicResources = UiCreatorKit.NewNode("__DynamicResources", boxAutoEffect);
-            UiCreatorKit.Stretch(autoDynamicResources);
-            BuildAutoStateEffectSlot(autoDynamicResources, MainUISecondaryView.AUTO_PATHING_EFFECT_SLOT_ID,
-                "ui_zidongxunluzhong", "存在未完成寻路时优先显示;与自动战斗态互斥");
-            BuildAutoStateEffectSlot(autoDynamicResources, MainUISecondaryView.AUTO_FIGHTING_EFFECT_SLOT_ID,
-                "ui_zidongzhandouzhong", "无寻路且自动战斗开启时显示;与寻路态互斥");
+            view._box_auto_effect = boxAutoEffect; // 纯特效容器,老端无常驻子节点,内容留空
 
             view._box_outline_exp = BuildOutlineExp(root, view);
             // 老端 json:_box_outline_exp 默认 "visible":false;MainUISecondaryView.RefOutlineExp 三条件
@@ -539,16 +528,6 @@ namespace Shenxiao.Editor.UiCreator.MainUI
                 case "GiftPushNoticeSlot": return "GiftPushNoticeIcon"; // 老端: _box_gift_push -> _img_gift_push
                 default: return "NoticeIcon"; // 老端: _img
             }
-        }
-
-        private static void BuildAutoStateEffectSlot(Transform parent, string slotId, string effectName, string note)
-        {
-            RectTransform holder = UiCreatorKit.NewNode(slotId, parent);
-            UiCreatorKit.Place(holder, 0f, 0f, 32f, 32f);
-            UIEffectSlot slot = holder.gameObject.AddComponent<UIEffectSlot>();
-            slot.ConfigureEffect(slotId, effectName, GameResPath.GetUIEffectPrefabPath(effectName),
-                "yu_client mainUI/MainUISecondaryView.ts:1943-1969", note,
-                new Vector2(6.8f, -4f), Vector3.one * 6.4f, 0f);
         }
 
         // ---- _box_outline_exp(231,-180 257x61): 经验丸 ----

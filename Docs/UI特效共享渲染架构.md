@@ -111,7 +111,7 @@ UIEffectStage（兼容入口）
 ## 主界面自动战斗 / 自动寻路状态特效
 
 - 权威行为来自老端 `MainUISecondaryView.UpdateAutoStateEffect/TryUpdateAutoStateEffect`：存在未完成寻路时显示 `ui_zidongxunluzhong`；否则自动战斗开启时显示 `ui_zidongzhandouzhong`；两者都不成立时释放特效。寻路优先级高于自动战斗。
-- 状态变化沿用老端 `Scene.auto_find_and_attack_interval * 1100` 的 440ms 合并刷新，避免“寻路结束→进入攻击”边沿连续装卸造成闪烁；视图首次显示仍立即按当前状态补齐。
+- 状态事件到达后立即刷新，不再沿用老端 440ms 合并延迟；Unity 异步 Handle 仍用版本号收编，保证快速切换时旧加载结果不会回挂。
 - Unity 由 `MainRoleAgent` 在自动移动/任务跳跃开始、到达、取消、采集、技能、切场景、演出冻结和销毁等边沿写入 `AutoFightModel.AutoFindWayState`，并通过 `EVT_AUTO_FIND_WAY_STATE` 通知 UI。禁止让 View 通过轮询角色坐标猜寻路状态。
-- `HudSecondary/AutoStateEffectSlot` 保持老端 250×200 宿主；`__DynamicResources` 下两个 `UIEffectSlot` 互斥手动消费，固定 `position=(6.8,-4)`、`scale=6.4`、`autoPlay=false`。这些静态参数同时维护在 `HudSecondaryCreator` 与 prefab，业务 View 不写布局魔法数。
+- 自动状态特效必须挂在实际进入 `MainUIModule` 的 `HudOnHook/AutoStateEffectSlot`；`HudSecondary` 已退出 `MainUIModuleCreator.Parts` 和 `MainUIFlow.FirstPassViews`，不得再向其接入运行时行为。宿主保持老端 250×200 尺寸，`__DynamicResources` 下两个 `UIEffectSlot` 互斥手动消费；共享 RT 横向镜像后，老端 X 偏移需要反号，固定 `position=(-6.8,-4)`、`scale=6.4`、`autoPlay=false`。这些静态参数同时维护在 `HudAuxiliaryCreator.GenerateOnHook` 与 prefab，业务 View 不写布局魔法数。
 - 状态切换、View 隐藏、异步加载过期时必须 `Dispose` 旧 Handle；加载中的旧状态完成后也必须自弃，不能留下双特效或离屏常驻实例。

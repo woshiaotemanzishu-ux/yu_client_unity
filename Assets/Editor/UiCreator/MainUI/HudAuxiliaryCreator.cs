@@ -1,3 +1,5 @@
+using Shenxiao.Common.UI3D;
+using Shenxiao.Framework.Res;
 using Shenxiao.Module.Core.MainUI;
 using TMPro;
 using UnityEditor;
@@ -122,6 +124,17 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         {
             RectTransform root = NewBottomCenterRoot("HudOnHook", 415f, 118f, 352f);
             var view = root.gameObject.AddComponent<MainUIOnHookView>();
+
+            // HudSecondary 已退役；运行时屏幕中下部的绿色挂机经验文字由本 HudOnHook 承载。
+            // 对齐老端 _box_auto_effect 的屏幕终态：250×200，位于经验文字上方，并先于经验节点渲染。
+            RectTransform autoStateEffect = UiCreatorKit.NewNode("AutoStateEffectSlot", root);
+            PlaceTopLeft(autoStateEffect, 82.5f, -170f, 250f, 200f);
+            RectTransform autoDynamicResources = UiCreatorKit.NewNode("__DynamicResources", autoStateEffect);
+            UiCreatorKit.Stretch(autoDynamicResources);
+            BuildAutoStateEffectSlot(autoDynamicResources, MainUIOnHookView.AUTO_PATHING_EFFECT_SLOT_ID,
+                "ui_zidongxunluzhong", "存在未完成寻路时优先显示;与自动战斗态互斥");
+            BuildAutoStateEffectSlot(autoDynamicResources, MainUIOnHookView.AUTO_FIGHTING_EFFECT_SLOT_ID,
+                "ui_zidongzhandouzhong", "无寻路且自动战斗开启时显示;与寻路态互斥");
 
             RectTransform box = UiCreatorKit.NewNode("OnHookExpOrbBox", root);
             PlaceTopLeft(box, 79f, 0f, 257f, 61f);
@@ -275,6 +288,17 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             countBadge.gameObject.SetActive(false);
 
             return item;
+        }
+
+        private static void BuildAutoStateEffectSlot(Transform parent, string slotId, string effectName, string note)
+        {
+            RectTransform holder = UiCreatorKit.NewNode(slotId, parent);
+            UiCreatorKit.Place(holder, 0f, 0f, 32f, 32f);
+            UIEffectSlot slot = holder.gameObject.AddComponent<UIEffectSlot>();
+            slot.ConfigureEffect(slotId, effectName, GameResPath.GetUIEffectPrefabPath(effectName),
+                "yu_client mainUI/MainUISecondaryView.ts:1943-1969", note,
+                // UIEffectStage 的共享 RT 在 X 轴做了镜像；旧端 +6.8 要反号后才落回屏幕中轴。
+                new Vector2(-6.8f, -4f), Vector3.one * 6.4f, 0f);
         }
 
         private static RectTransform NewBottomCenterRoot(string name, float width, float height, float bottom)
