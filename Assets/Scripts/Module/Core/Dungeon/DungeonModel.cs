@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Shenxiao.Common.Proto;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
 
@@ -17,7 +18,7 @@ namespace Shenxiao.Module.Core.Dungeon
     ///
     /// 轮9 副本家族补全一期:61004 副本信息/61005·61030 波次/61007·61019 坐标事件状态机/61011 助战次数/
     /// 61018 退出倒计时/61021 购买/61022 扫荡/61023 时间评分/61025·61026 鼓舞/61044 经验本面板推送/
-    /// 61045 冷却时间/61046 邀请发送者原始消息/61120·61121 资源本一键与次数。
+    /// 61045 冷却时间/61046 邀请发送者原始消息/61048 双方邀请状态/61120·61121 资源本一键与次数。
     /// 周本(50801/50802)是独立数据线,见 <see cref="PolarModel"/>——勿塞进 DunStatesByType(r9 侦察结论)。
     /// </summary>
     public sealed class DungeonModel
@@ -149,6 +150,24 @@ namespace Shenxiao.Module.Core.Dungeon
         public bool HasInviteResponse { get; private set; }
         public string InviteResponseMessage { get; private set; }
 
+        public sealed class InviteStateEntry
+        {
+            public byte Type;
+            public ulong RoleId;
+            public FigureProto Figure;
+        }
+
+        public sealed class InviteStateSnapshot
+        {
+            public uint Code;
+            public List<InviteStateEntry> List;
+            public uint DunId;
+        }
+
+        /// <summary>是否收到过 61048；空列表和全零字段仍是合法完整快照。</summary>
+        public bool HasInviteState { get; private set; }
+        public InviteStateSnapshot LastInviteState { get; private set; }
+
         public void ApplyExpDungeonInfo(ushort killCount, ulong totalExp)
         {
             HasExpDungeonInfo = true;
@@ -160,6 +179,17 @@ namespace Shenxiao.Module.Core.Dungeon
         {
             HasInviteResponse = true;
             InviteResponseMessage = message;
+        }
+
+        public void ApplyInviteState(uint code, List<InviteStateEntry> list, uint dunId)
+        {
+            HasInviteState = true;
+            LastInviteState = new InviteStateSnapshot
+            {
+                Code = code,
+                List = list ?? new List<InviteStateEntry>(),
+                DunId = dunId,
+            };
         }
 
         /// <summary>61045 按 dun_id 保存的服务器绝对冷却结束时间；0 也是合法回包。</summary>
@@ -446,6 +476,8 @@ namespace Shenxiao.Module.Core.Dungeon
             ExpDungeonTotalExp = 0;
             HasInviteResponse = false;
             InviteResponseMessage = null;
+            HasInviteState = false;
+            LastInviteState = null;
             SceneInfo = null;
             CurrWaveType = 0;
             CurrWaveNum = 1;

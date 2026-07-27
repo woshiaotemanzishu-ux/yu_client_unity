@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Proto;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
@@ -42,7 +43,7 @@ namespace Shenxiao.Module.Core.Dungeon
     ///
     /// 轮22 族错误出口批补 61000(家族统一错误壳)+ 61047(回应邀请进入副本)+ 61092(异兽入侵领取阶段奖励,
     /// 老端成功分支已注释,纯错误出口)。
-    /// 轮231 补 61046 邀请/取消请求与发送者原始消息；完整双方状态仍归 61048，禁止把本号当可靠 ACK。
+    /// 轮231 补 61046 邀请/取消请求与发送者原始消息；轮232 补 61048 双方完整原始状态快照。
     /// </summary>
     public sealed class DungeonController : BaseController
     {
@@ -68,6 +69,7 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_STATE, On61020);
             RegisterProtocal(Proto.DUNGEON_INVITE, On61046);
             RegisterProtocal(Proto.DUNGEON_INVITE_RESPOND, On61047);
+            RegisterProtocal(Proto.DUNGEON_INVITE_STATE, On61048);
             RegisterProtocal(Proto.DUNGEON_MONSTER_INVASION_REWARD, On61092);
             // 61002(DUNGEON_EXIT)已由 AutoBrushController 注册,红线不可重复注册;Exit() 只发不接。
             RegisterProtocal(Proto.DUNGEON_INFO, On61004);
@@ -870,6 +872,20 @@ namespace Shenxiao.Module.Core.Dungeon
                 TipsManager.Toast("操作失败(" + code + ")");
                 GameLog.Warn("Dungeon", "61047 回应邀请进入副本失败 code={0}", code);
             }
+        }
+
+        /// <summary>61048 双方邀请状态完整原始快照；不解释 code，不触发 UI/事件或自动回应。</summary>
+        private void On61048(NetReader r)
+        {
+            uint code = r.ReadU32();
+            List<DungeonModel.InviteStateEntry> list = r.ReadArray(rr => new DungeonModel.InviteStateEntry
+            {
+                Type = rr.ReadU8(),
+                RoleId = unchecked((ulong)rr.ReadU64()),
+                Figure = FigureProto.Read(rr),
+            });
+            uint dunId = r.ReadU32();
+            DungeonModel.Instance.ApplyInviteState(code, list, dunId);
         }
 
         /// <summary>61092 异兽入侵 领取阶段奖励(对标老端 BaseDungeonController.ts:1848-1857 内联 handler:

@@ -49,9 +49,10 @@ namespace Shenxiao.EditorTools
 
                 MethodInfo on61046 = typeof(DungeonController).GetMethod("On61046", IF);
                 MethodInfo on61048 = typeof(DungeonController).GetMethod("On61048", IF);
-                pass = Proto.DUNGEON_INVITE == 61046 && on61046 != null && on61048 == null
+                pass = Proto.DUNGEON_INVITE == 61046 && Proto.DUNGEON_INVITE_STATE == 61048
+                    && on61046 != null && on61048 != null
                     && interceptField != null;
-                Check(ref pass, "seams/no 61048", pass);
+                Check(ref pass, "seams/61048 receiver present", pass);
 
                 var frames = new List<byte[]>();
                 interceptField.SetValue(null, new Func<byte[], bool>(frame =>
