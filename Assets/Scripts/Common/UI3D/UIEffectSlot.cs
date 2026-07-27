@@ -10,6 +10,8 @@ namespace Shenxiao.Common.UI3D
         [SerializeField] private Vector2 _position;
         [SerializeField] private Vector3 _scale = Vector3.one;
         [SerializeField] private float _rotationY;
+        [SerializeField, Tooltip("可选差异表 ID；留空时按 effectName 匹配，最终回退到 default。")]
+        private string _profileId = "";
         // 配置化自动挂载:开启后 OnEnable 自己挂特效、OnDisable 自己收。已有专属业务代码手动消费本槽
         // (如 MainUITaskItem 完成光效、MainUIGuideManager 引导手指/选中框)的场景必须保持 false,防止双挂。
         [SerializeField] private bool _autoPlay;
@@ -18,6 +20,7 @@ namespace Shenxiao.Common.UI3D
         public Vector2 Position => _position;
         public Vector3 Scale => _scale == default ? Vector3.one : _scale;
         public float RotationY => _rotationY;
+        public string ProfileId => _profileId;
         public bool AutoPlay => _autoPlay;
 
         // 自动挂载状态:参照 MainUIDownView.AddExpEffectAsync 的防重入/防脏写法(loading 标志 + 版本号自弃)。

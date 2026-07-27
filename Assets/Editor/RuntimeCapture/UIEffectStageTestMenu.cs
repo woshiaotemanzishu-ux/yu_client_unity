@@ -11,7 +11,7 @@ namespace Shenxiao.Editor.RuntimeCapture
     ///   · 两个都显示 → 真画布没问题,业务特效不显示是「盒太小 / 宿主图标 inactive」之类的摆位/激活问题;
     ///   · 只有 Overlay 显示、Main 不显示 → 真 Main 画布上 additive RawImage 被某种东西(Mask/材质/排序)挡了,得查真画布;
     ///   · 两个都不显示 → additive 整体回归了。
-    /// 配合 神霄/调试/UI运行态/截图+节点Dump:看 screenshot.png + ui_effects.txt(每特效 parentActive/imageActive)。
+    /// 配合 神霄/调试/UI运行态/截图+节点Dump:看 screenshot.png + ui_effects.txt(共享通道和实例状态)。
     /// </summary>
     public static class UIEffectStageTestMenu
     {

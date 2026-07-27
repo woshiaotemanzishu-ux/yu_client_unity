@@ -144,7 +144,7 @@ namespace Shenxiao.Module.Core.MainUI
                     {
                         _selectEffect = await UIEffectStage.AddByKeyAsync(slot.EffectName, slot.AddressKey,
                             _selectHolder, slot.Position, ScaleSlot(slot, GetSelectEffectScale(data, isTaskItem)),
-                            slot.RotationY, guideRenderSize);
+                            slot.RotationY, guideRenderSize, slot.ProfileId);
                     }
                     if (!IsCurrent(version))
                     {

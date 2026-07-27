@@ -177,7 +177,7 @@ namespace Shenxiao.Module.Core.MainUI
             Vector3 slotScale = slot.Scale;
             UIEffectStage.Handle effect = await UIEffectStage.AddByKeyAsync(slot.EffectName, slot.AddressKey,
                 _box_effect, slot.Position, new Vector3(slotScale.x * scale, slotScale.y * yScale, slotScale.z * scale),
-                slot.RotationY);
+                slot.RotationY, default, slot.ProfileId);
             _finishEffectLoading = false;
             if (version != _finishEffectVersion || _box_effect == null || !_box_effect.gameObject.activeSelf)
             {

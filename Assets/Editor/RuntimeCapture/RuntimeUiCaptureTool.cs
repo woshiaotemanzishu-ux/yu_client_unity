@@ -201,10 +201,8 @@ namespace Shenxiao.Editor.RuntimeCapture
         }
 
         /// <summary>
-        /// 把 UIEffectStage 的每个存活离屏特效的运行态指标 + RT 内容导出。
-        /// effect_&lt;i&gt;.png 是该特效相机渲到 RenderTexture 的真实内容(已强制不透明:纯黑=相机没渲染到任何东西)。
-        /// 这样一次截图就能区分:特效根本没 spawn(liveEffects=0 + recentFailures)/ spawn 了但 RT 空(渲染端问题)
-        /// / RT 有内容但屏幕上看不到(RawImage 摆位/排序/父级未激活问题)。
+        /// 把 UIEffectStage 的共享通道和存活实例诊断导出。
+        /// channel_&lt;i&gt;.png 是每条共享通道 RT 的真实内容；多个实例引用同一张图，不再重复导出。
         /// </summary>
         private static void WriteEffectDiagnostics(string sessionDir, bool isPlaying)
         {
@@ -220,9 +218,11 @@ namespace Shenxiao.Editor.RuntimeCapture
             }
 
             List<UIEffectStage.EffectDiagnostic> diags = UIEffectStage.CollectDiagnostics();
+            List<UIEffectStage.ChannelDiagnostic> channels = UIEffectStage.CollectChannelDiagnostics();
             List<string> failures = UIEffectStage.CollectRecentFailures();
             List<string> notes = UIEffectStage.CollectNotes();
             sb.AppendLine("liveEffects  : " + diags.Count);
+            sb.AppendLine("sharedChannels: " + UIEffectStage.ChannelCount);
             sb.AppendLine("recentFails  : " + failures.Count);
             sb.AppendLine("notes        : " + notes.Count);
             sb.AppendLine();
@@ -245,10 +245,33 @@ namespace Shenxiao.Editor.RuntimeCapture
                 sb.AppendLine();
             }
 
+            var channelPngByName = new Dictionary<string, string>(StringComparer.Ordinal);
+            for (int i = 0; i < channels.Count; i++)
+            {
+                UIEffectStage.ChannelDiagnostic channel = channels[i];
+                string pngName = string.Empty;
+                if (channel.Texture != null)
+                {
+                    pngName = "channel_" + i + ".png";
+                    SaveRenderTextureOpaque(channel.Texture, Path.Combine(sessionDir, pngName));
+                    if (!string.IsNullOrEmpty(channel.Name)) channelPngByName[channel.Name] = pngName;
+                }
+
+                sb.AppendLine("CHANNEL[" + i + "] " + channel.Name +
+                              " root=" + channel.UIRootName +
+                              " band=" + channel.Band +
+                              " handles=" + channel.HandleCount +
+                              " cameraEnabled=" + channel.CameraEnabled +
+                              " rt=" + channel.RtWidth + "x" + channel.RtHeight +
+                              (string.IsNullOrEmpty(pngName) ? string.Empty : " rtPng=" + pngName));
+            }
+            if (channels.Count > 0) sb.AppendLine();
+
             for (int i = 0; i < diags.Count; i++)
             {
                 UIEffectStage.EffectDiagnostic d = diags[i];
                 sb.AppendLine("[" + i + "] " + d.Label + "  key=" + d.Key);
+                sb.AppendLine("    channel=" + (string.IsNullOrEmpty(d.Channel) ? "<none>" : d.Channel) + " channelHandles=" + d.ChannelHandleCount + " sharedResources=" + d.SharedRenderResources);
                 sb.AppendLine("    effectAlive=" + d.EffectAlive + " activeInHierarchy=" + d.EffectActiveInHierarchy + " localScale=" + F3(d.LocalScale));
                 sb.AppendLine("    particleSystems=" + d.ParticleSystemCount + " aliveParticles=" + d.AliveParticleCount + " anyPlaying=" + d.AnyParticlePlaying);
                 sb.AppendLine("    renderers=" + d.RendererCount + " anyVisible=" + d.AnyRendererVisible + " shader=" + (string.IsNullOrEmpty(d.FirstShader) ? "<none>" : d.FirstShader) + " worldBoundsSize=" + F3(d.WorldBoundsSize));
@@ -256,12 +279,8 @@ namespace Shenxiao.Editor.RuntimeCapture
                 sb.AppendLine("    rt=" + d.RtWidth + "x" + d.RtHeight + " cameraEnabled=" + d.CameraEnabled + " cameraOrtho=" + F(d.CameraOrthoSize) + " cameraPos=" + F3(d.CameraWorldPos));
                 sb.AppendLine("    image=" + d.ImageAlive + " imageActive=" + d.ImageActiveInHierarchy + " imageRect=" + F2(d.ImageRectSize) + " imageColor=" + F4(d.ImageColor) + " imageHasTexture=" + d.ImageHasTexture);
 
-                if (d.Texture != null)
-                {
-                    string png = Path.Combine(sessionDir, "effect_" + i + ".png");
-                    SaveRenderTextureOpaque(d.Texture, png);
-                    sb.AppendLine("    rtPng=effect_" + i + ".png");
-                }
+                if (!string.IsNullOrEmpty(d.Channel) && channelPngByName.TryGetValue(d.Channel, out string channelPng))
+                    sb.AppendLine("    rtPng=" + channelPng + " (shared channel)");
                 sb.AppendLine();
             }
 

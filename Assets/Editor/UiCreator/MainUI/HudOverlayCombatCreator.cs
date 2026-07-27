@@ -612,12 +612,11 @@ namespace Shenxiao.Editor.UiCreator.MainUI
                 outline: new Color32(0x1F, 0x4D, 0x0A, 0xFF), outlineStrokePx: 2f);
             view._lb_add_fight = lbAddFight;
 
-            // 老端 _box_effect 在 open_callback 里被临时改成"铺满整个 stage"再贴 ui_zhanli 特效(centerX=-125,
-            // centerY=0),这样特效能溢出 385x115 的小飘字框、铺出一片光效。Unity 侧不依赖运行时读 Canvas 尺寸,
-            // 直接在建树期把挂点做成一个比飘字框大得多、以设计分辨率宽度为准的锚框(720x480,居中),效果等价
-            // 且不用在 View 里现改 RectTransform(那属于"样式/结构",建树期定好更符合本文件约定)。
+            // 老端 open_callback 会把 _box_effect 精确改成 stage 尺寸 720x1280,并设置 centerX=-125、centerY=0。
+            // UIEffect 的 RenderTexture 与正交相机取景都依赖这个宿主尺寸；不能用 385x115 或 720x480 近似,
+            // 否则 ui_zhanli 复合粒子里的横向扫光、左侧旋光和末段爆闪会被裁切或缩小。
             RectTransform boxEffect = UiCreatorKit.NewNode("FightPowerEffectAnchor", root); // 老端: _box_effect
-            UiCreatorKit.Place(boxEffect, 0f, 0f, UiCreatorKit.DesignWidth, 480f);
+            UiCreatorKit.Place(boxEffect, -125f, 0f, UiCreatorKit.DesignWidth, UiCreatorKit.DesignHeight);
             view._box_effect = boxEffect;
 
             root.gameObject.SetActive(true);
@@ -629,6 +628,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
                       "(独立 prefab,MainUIFlow.ShowFightingUpAsync 按精确文件名加载;真机包前记得跑 Addressable 自动分组)");
         }
 
+        [MenuItem("神霄/调试/UI运行态/预览战力提升（共享通道）", priority = 116)]
         public static void PreviewFightingUp()
         {
             if (!Application.isPlaying)
@@ -643,7 +643,8 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private static async Task PreviewFightingUpAsync()
         {
             string key = GameResPath.GetUIPrefab("mainUI", "FightingUpView");
-            GameObject go = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Window));
+            // 与真实 MainUIFlow 完全相同地挂 Main 层，预览同时承担共享通道视觉回归。
+            GameObject go = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Main));
             if (go == null)
             {
                 Debug.LogWarning("[UiCreator] FightingUpView 预览加载失败: " + key + "(检查 addressable/是否已生成)");
@@ -656,6 +657,8 @@ namespace Shenxiao.Editor.UiCreator.MainUI
                 return;
             }
             view.Show(new FightUpData { OldFight = 1000, NewFight = 1580 });
+            await Task.Delay(3000);
+            if (go != null) ResManager.ReleaseInstance(go);
         }
 
         // ============================================================ 本文件私有 helper(UiCreatorKit 禁止改,缺的写这里)
