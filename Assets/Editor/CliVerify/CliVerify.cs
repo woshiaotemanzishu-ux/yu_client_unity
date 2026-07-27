@@ -747,6 +747,10 @@ namespace Shenxiao.EditorTools
         {
             Run(PrayCase.Run, 60.0);
         }
+        public static void HolySeal()
+        {
+            Run(HolySealCase.Run, 60.0);
+        }
         public static void JjcRecords()
         {
             Run(JjcRecordsCase.Run, 60.0);
