@@ -17,8 +17,8 @@ namespace Shenxiao.Module.Core.MainUI
     /// MonoBehaviour.Update 每帧 +1 计"帧"(gameObject 只在弹层显示期间才 active,故只在显示时跑),
     /// 与老端"1 次引擎帧 = 1 帧"的耦合方式一致,不额外发明"模拟帧率"换算。
     ///
-    /// 位图字体 fight_up/fight_up2 未转换成 TMP FontAsset → 视觉近似(渐变色+描边+粗斜体)在
-    /// HudOverlayCombatCreator.StyleFightNumberLabel 里做(建树期样式,运行时这里不碰颜色/字号)。
+    /// 位图字体 fight_up/fight_up2 由 BitmapFontAssetBuilder 按老端 BMFont 图集原样生成 TMP 静态字体；
+    /// 字形、逐字符 advance 和颜色均来自原图，运行时这里只更新字符内容和动画位置。
     /// </summary>
     public sealed class FightingUpView : FightingUpViewBind
     {
@@ -134,7 +134,8 @@ namespace Shenxiao.Module.Core.MainUI
                 RectTransform rt = _lb_add_fight.rectTransform;
                 _addFightPivotOffsetX = rt.rect.width * rt.pivot.x;
                 _cachedAddY = rt.anchoredPosition.y;   // cache_add_y
-                _endAddY = _cachedAddY - FightAddFontMoveDistance; // end_add_y
+                // 老端坐标 y 向下，y-30 是上移；Unity anchoredPosition.y 向上，等价变换必须是 +30。
+                _endAddY = _cachedAddY + FightAddFontMoveDistance; // end_add_y
             }
         }
 

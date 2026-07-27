@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &346472369473079158
+--- !u!1 &393556979649904151
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,23 +8,125 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 8151964990822407188}
-  - component: {fileID: 2884825055771349658}
-  - component: {fileID: 7889750476264633478}
+  - component: {fileID: 2436863440859492418}
+  - component: {fileID: 6511595648199163943}
   m_Layer: 0
-  m_Name: _lb_fight
+  m_Name: mainui_fightingup_flash
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!224 &8151964990822407188
+--- !u!224 &2436863440859492418
 RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 346472369473079158}
+  m_GameObject: {fileID: 393556979649904151}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2750778853957458075}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 32, y: 32}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &6511595648199163943
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 393556979649904151}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfac8b9ef2963264d95e63907418724c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Common::Shenxiao.Common.UI3D.UIEffectSlot
+  _kind: 2
+  _slotId: mainui_fightingup_flash
+  _addressKey: effect/objs/ui_effect/ui_zhanli/ui_zhanli
+  _source: yu_client mainUI/FightingUpView.ts:256-267
+  _note: "trigger=condition:\u8001\u7AEF\u5728\u6218\u529B\u6570\u5B57\u6EDA\u52A8\u5230\u8FBE\u9608\u503C\u5E27\u65F6\u64AD\u4E00\u6B21\u30013\u79D2\u540E\u81EA\u52A8\u6E05\u9664\u3002Unity
+    \u7248 FightingUpView.PlayFightEffectAsync \u5DF2\u5728\u4EE3\u7801\u91CC\u6309\u5E27\u9A71\u52A8\u624B\u52A8\u8C03\u7528
+    UIEffectStage.AddAsync(ui_zhanli, _box_effect, ...)\u63A5\u7EBF(\u5BF9\u6807
+    has_set_effect/can_replay_fight_effect \u7684\u8282\u6D41\u8BED\u4E49);autoPlay
+    \u7EE7\u7EED\u4FDD\u6301 false,\u907F\u514D\u69FD\u7684 OnEnable \u81EA\u52A8\u6302\u8F7D\u548C\u4EE3\u7801\u91CC\u7684\u624B\u52A8\u65F6\u5E8F\u64AD\u653E\u91CD\u590D\u89E6\u53D1\u3002position/scale
+    \u6CBF\u7528\u8FD9\u91CC\u7684\u5360\u4F4D\u503C,\u4EE3\u7801\u91CC\u53E6\u6309
+    EffectScale=12.8(UIEffectStage \u76F8\u673A\u56FA\u5B9A\u53D6\u666F\u6362\u7B97\u57FA\u51C6)\u4F20\u53C2,\u4E0D\u8BFB\u8FD9\u6761
+    JSON\u3002"
+  _effectName: ui_zhanli
+  _position: {x: 0, y: 0}
+  _scale: {x: 1, y: 1, z: 1}
+  _rotationY: 0
+  _profileId: 
+  _autoPlay: 0
+--- !u!1 &2184472937448259299
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2750778853957458075}
+  m_Layer: 0
+  m_Name: __DynamicResources
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2750778853957458075
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2184472937448259299}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2436863440859492418}
+  m_Father: {fileID: 5852497463533055720}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &3120277144393100844
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6830229007734758643}
+  - component: {fileID: 7820715898944271199}
+  - component: {fileID: 379351186355716987}
+  m_Layer: 0
+  m_Name: FightPowerDeltaLabel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6830229007734758643
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3120277144393100844}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -34,24 +136,24 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 119, y: -33}
-  m_SizeDelta: {x: 25, y: 29}
+  m_AnchoredPosition: {x: 187.6, y: 5.9}
+  m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0, y: 1}
---- !u!222 &2884825055771349658
+--- !u!222 &7820715898944271199
 CanvasRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 346472369473079158}
+  m_GameObject: {fileID: 3120277144393100844}
   m_CullTransparentMesh: 1
---- !u!114 &7889750476264633478
+--- !u!114 &379351186355716987
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 346472369473079158}
+  m_GameObject: {fileID: 3120277144393100844}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
@@ -65,10 +167,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: +0
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: b1564091d91122b44af8c23be2da2334, type: 2}
-  m_sharedMaterial: {fileID: -8391506023515104131, guid: b1564091d91122b44af8c23be2da2334, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 6fcfd1f209b687346b959e24e467e399, type: 2}
+  m_sharedMaterial: {fileID: -7480764138890570086, guid: 6fcfd1f209b687346b959e24e467e399, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -92,12 +194,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 50
+  m_fontSizeBase: 50
   m_fontWeight: 400
   m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMin: 0
+  m_fontSizeMax: 0
   m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
@@ -115,7 +217,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
-  m_ActiveFontFeatures: 6e72656b
+  m_ActiveFontFeatures: 
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
@@ -166,15 +268,15 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 922401725557634896}
-  - {fileID: 8151964990822407188}
-  - {fileID: 7235528271140128367}
-  - {fileID: 8211178782993259395}
+  - {fileID: 1778409526598889214}
+  - {fileID: 2951979683267929480}
+  - {fileID: 6830229007734758643}
+  - {fileID: 5852497463533055720}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 457.5}
   m_SizeDelta: {x: 385, y: 115}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &982541166484837940
@@ -189,12 +291,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 367f813dc9ca8cd48a90a093f6090dc2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.MainUI.FightingUpView
-  _img_bg: {fileID: 2441869016537471733}
-  _lb_fight: {fileID: 7889750476264633478}
-  _lb_add_fight: {fileID: 6960860148448344814}
-  _box_effect: {fileID: 8211178782993259395}
+  _img_bg: {fileID: 8149077145427982782}
+  _lb_fight: {fileID: 204508586716580878}
+  _lb_add_fight: {fileID: 379351186355716987}
+  _box_effect: {fileID: 5852497463533055720}
   _waitSeconds: 1.8
---- !u!1 &5185724265189117912
+--- !u!1 &5324425805096035111
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -202,23 +304,59 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7235528271140128367}
-  - component: {fileID: 8589720420407526983}
-  - component: {fileID: 6960860148448344814}
+  - component: {fileID: 5852497463533055720}
   m_Layer: 0
-  m_Name: _lb_add_fight
+  m_Name: FightPowerEffectAnchor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!224 &7235528271140128367
+--- !u!224 &5852497463533055720
 RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5185724265189117912}
+  m_GameObject: {fileID: 5324425805096035111}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2750778853957458075}
+  m_Father: {fileID: 8547691969116311931}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -125, y: 0}
+  m_SizeDelta: {x: 720, y: 1280}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &8939370180075095880
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2951979683267929480}
+  - component: {fileID: 3566665596743099606}
+  - component: {fileID: 204508586716580878}
+  m_Layer: 0
+  m_Name: FightPowerValueLabel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2951979683267929480
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8939370180075095880}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -228,24 +366,24 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 231, y: -18}
-  m_SizeDelta: {x: 25, y: 29}
+  m_AnchoredPosition: {x: 136, y: -26.7136}
+  m_SizeDelta: {x: 213.8302, y: 56.2864}
   m_Pivot: {x: 0, y: 1}
---- !u!222 &8589720420407526983
+--- !u!222 &3566665596743099606
 CanvasRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5185724265189117912}
+  m_GameObject: {fileID: 8939370180075095880}
   m_CullTransparentMesh: 1
---- !u!114 &6960860148448344814
+--- !u!114 &204508586716580878
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5185724265189117912}
+  m_GameObject: {fileID: 8939370180075095880}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
@@ -259,10 +397,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: 0
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: b1564091d91122b44af8c23be2da2334, type: 2}
-  m_sharedMaterial: {fileID: -8391506023515104131, guid: b1564091d91122b44af8c23be2da2334, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 848133a1a9bdf79479a56d4519b17525, type: 2}
+  m_sharedMaterial: {fileID: -5446501709566725191, guid: 848133a1a9bdf79479a56d4519b17525, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -286,12 +424,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 50
+  m_fontSizeBase: 50
   m_fontWeight: 400
   m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMin: 0
+  m_fontSizeMax: 0
   m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
@@ -309,7 +447,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
-  m_ActiveFontFeatures: 6e72656b
+  m_ActiveFontFeatures: 
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
@@ -331,7 +469,7 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!1 &5513819886825787001
+--- !u!1 &9119102683745475782
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -339,59 +477,23 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 5206352911660411032}
+  - component: {fileID: 1778409526598889214}
+  - component: {fileID: 5799246784729507100}
+  - component: {fileID: 8149077145427982782}
   m_Layer: 0
-  m_Name: __DynamicResources
+  m_Name: FightingUpBackgroundImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!224 &5206352911660411032
+--- !u!224 &1778409526598889214
 RectTransform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5513819886825787001}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 8428003187039005712}
-  m_Father: {fileID: 8211178782993259395}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &5571716620580842718
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 922401725557634896}
-  - component: {fileID: 2354909419003802612}
-  - component: {fileID: 2441869016537471733}
-  m_Layer: 0
-  m_Name: _img_bg
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &922401725557634896
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5571716620580842718}
+  m_GameObject: {fileID: 9119102683745475782}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -402,23 +504,23 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 386, y: 116}
+  m_SizeDelta: {x: 340, y: 96}
   m_Pivot: {x: 0, y: 1}
---- !u!222 &2354909419003802612
+--- !u!222 &5799246784729507100
 CanvasRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5571716620580842718}
+  m_GameObject: {fileID: 9119102683745475782}
   m_CullTransparentMesh: 1
---- !u!114 &2441869016537471733
+--- !u!114 &8149077145427982782
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5571716620580842718}
+  m_GameObject: {fileID: 9119102683745475782}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
@@ -432,7 +534,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: b4af581dd102eee4e8565cc46b065de0, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b4c88ca9e6c16634c85aea54b6275ce1, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -442,104 +544,3 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!1 &7356805871177353930
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8428003187039005712}
-  - component: {fileID: 7175427054592451777}
-  m_Layer: 0
-  m_Name: mainui_fightingup_flash
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &8428003187039005712
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7356805871177353930}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5206352911660411032}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 32, y: 32}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &7175427054592451777
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7356805871177353930}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cfac8b9ef2963264d95e63907418724c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Shenxiao.Common::Shenxiao.Common.UI3D.UIEffectSlot
-  _kind: 2
-  _slotId: mainui_fightingup_flash
-  _addressKey: effect/objs/ui_effect/ui_zhanli/ui_zhanli
-  _source: yu_client mainUI/FightingUpView.ts:256-267
-  _note: "trigger=condition:\u8001\u7AEF\u5728\u6218\u529B\u6570\u5B57\u6EDA\u52A8\u5230\u8FBE\u9608\u503C\u5E27\u65F6\u64AD\u4E00\u6B21\u30013\u79D2\u540E\u81EA\u52A8\u6E05\u9664\u3002Unity
-    \u7248 FightingUpView.PlayFightEffectAsync \u5DF2\u5728\u4EE3\u7801\u91CC\u6309\u5E27\u9A71\u52A8\u624B\u52A8\u8C03\u7528
-    UIEffectStage.AddAsync(ui_zhanli, _box_effect, ...)\u63A5\u7EBF(\u5BF9\u6807
-    has_set_effect/can_replay_fight_effect \u7684\u8282\u6D41\u8BED\u4E49);autoPlay
-    \u7EE7\u7EED\u4FDD\u6301 false,\u907F\u514D\u69FD\u7684 OnEnable \u81EA\u52A8\u6302\u8F7D\u548C\u4EE3\u7801\u91CC\u7684\u624B\u52A8\u65F6\u5E8F\u64AD\u653E\u91CD\u590D\u89E6\u53D1\u3002position/scale
-    \u6CBF\u7528\u8FD9\u91CC\u7684\u5360\u4F4D\u503C,\u4EE3\u7801\u91CC\u53E6\u6309
-    EffectScale=12.8(UIEffectStage \u76F8\u673A\u56FA\u5B9A\u53D6\u666F\u6362\u7B97\u57FA\u51C6)\u4F20\u53C2,\u4E0D\u8BFB\u8FD9\u6761
-    JSON\u3002"
-  _effectName: ui_zhanli
-  _position: {x: 0, y: 0}
-  _scale: {x: 1, y: 1, z: 1}
-  _rotationY: 0
-  _autoPlay: 0
---- !u!1 &7963333175450431421
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8211178782993259395}
-  m_Layer: 0
-  m_Name: _box_effect
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &8211178782993259395
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7963333175450431421}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 5206352911660411032}
-  m_Father: {fileID: 8547691969116311931}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -125, y: 0}
-  m_SizeDelta: {x: 720, y: 1280}
-  m_Pivot: {x: 0.5, y: 0.5}

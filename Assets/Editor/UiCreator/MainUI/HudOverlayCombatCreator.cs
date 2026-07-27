@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Shenxiao.Editor.UiCreator;
 using Shenxiao.Editor.LayaUI;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
@@ -77,6 +78,8 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private const string CollectBarPrefabPath = "Assets/Prefabs/UI/MainUI/CollectBarView.prefab";
         private const string FightingUpPrefabPath = "Assets/Prefabs/UI/MainUI/FightingUpView.prefab";
         private const string CustomHeadItemPrefabPath = "Assets/Prefabs/UI/Common/CustomHeadItem.prefab";
+        private const string FightUpFontPath = "Assets/GameRes/Fonts/Bitmap/fight_up.fnt";
+        private const string FightUpDeltaFontPath = "Assets/GameRes/Fonts/Bitmap/fight_up2.fnt";
 
         // 老端源图(GameRes 相对路径;均已确认在 Assets/GameRes 下)
         private const string IMG_HITER_BG = "resource/game/mainUI/texture/mainui_ui_20.png";
@@ -581,35 +584,33 @@ namespace Shenxiao.Editor.UiCreator.MainUI
 
         public static void GenerateFightingUp()
         {
+            TMP_FontAsset fightFont = BitmapFontAssetBuilder.BuildOrUpdate(FightUpFontPath);
+            TMP_FontAsset fightDeltaFont = BitmapFontAssetBuilder.BuildOrUpdate(FightUpDeltaFontPath);
+
             GameObject go = new GameObject("FightingUpView", typeof(RectTransform));
             RectTransform root = (RectTransform)go.transform;
             root.gameObject.SetActive(false);
-            // 运行态佐证:老端 x=168,y=765(720x1280 全屏画布下),385x115 → 中心锚 cx=0.5,cy=-182.5。
-            UiCreatorKit.Place(root, 0.5f, -182.5f, 385f, 115f);
+            // 老端运行时不是固定 centerY，而是 centerX=0 + bottom=400；底边锚能在不同纵横比下保持同一底距。
+            root.anchorMin = root.anchorMax = new Vector2(0.5f, 0f);
+            root.pivot = new Vector2(0.5f, 0.5f);
+            root.sizeDelta = new Vector2(385f, 115f);
+            root.anchoredPosition = new Vector2(0f, 457.5f);
             var view = root.gameObject.AddComponent<FightingUpView>();
 
             Image imgBg = UiCreatorKit.NewImage("FightingUpBackgroundImage", root); // 老端: _img_bg
-            // 老端 JSON 里 _img_bg 无 x/y/width/height,实际按原图 398x95 原生尺寸贴在 x=0,y=0(左上锚)。
-            // 按文件头换算公式: cx = 0 + 398*(0.5-0) - 385/2 = 6.5, cy = 115/2 - 0 - 95*(0.5-0) = 10。
-            UiCreatorKit.Place(imgBg.rectTransform, 6.5f, 10f, 398f, 95f);
+            PlaceTopLeft(imgBg.rectTransform, 0f, 0f, 398f, 95f);
             imgBg.raycastTarget = false;
             UiCreatorKit.TrySetSprite(imgBg, IMG_FIGHTING_BG, UiCreatorKit.Palette.Panel);
             view._img_bg = imgBg;
 
             TextMeshProUGUI lbFight = UiCreatorKit.NewText("FightPowerValueLabel", root, "0"); // 老端: _lb_fight
-            UiCreatorKit.Place(lbFight.rectTransform, -73.5f, 24.5f, 160f, 60f);
-            lbFight.fontSize = 36f; // 老端走位图字体 fight_up(未转换),这里用 TMP 渐变+描边近似其金色数字观感
-            StyleFightNumberLabel(lbFight,
-                top: new Color32(0xFF, 0xF3, 0xC8, 0xFF), bottom: new Color32(0xFF, 0x8A, 0x1E, 0xFF),
-                outline: new Color32(0x6B, 0x2E, 0x0D, 0xFF), outlineStrokePx: 2f);
+            PlaceTopLeft(lbFight.rectTransform, 119f, 33f, 200f, 50f);
+            ApplyBitmapNumberFont(lbFight, fightFont);
             view._lb_fight = lbFight;
 
             TextMeshProUGUI lbAddFight = UiCreatorKit.NewText("FightPowerDeltaLabel", root, "+0"); // 老端: _lb_add_fight
-            UiCreatorKit.Place(lbAddFight.rectTransform, 38.5f, 39.5f, 120f, 40f);
-            lbAddFight.fontSize = 26f; // 老端走位图字体 fight_up2(未转换),这里用 TMP 渐变+描边近似其绿色数字观感
-            StyleFightNumberLabel(lbAddFight,
-                top: new Color32(0xD9, 0xFF, 0x9E, 0xFF), bottom: new Color32(0x4C, 0x9A, 0x1E, 0xFF),
-                outline: new Color32(0x1F, 0x4D, 0x0A, 0xFF), outlineStrokePx: 2f);
+            PlaceTopLeft(lbAddFight.rectTransform, 231f, 18f, 200f, 50f);
+            ApplyBitmapNumberFont(lbAddFight, fightDeltaFont);
             view._lb_add_fight = lbAddFight;
 
             // 老端 open_callback 会把 _box_effect 精确改成 stage 尺寸 720x1280,并设置 centerX=-125、centerY=0。
@@ -680,29 +681,25 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             if (text != null && ColorUtility.TryParseHtmlString(hex, out Color c)) text.color = c;
         }
 
-        /// <summary>喂给 LayaTextStyles.ApplyOutline 复用其"按(字体,颜色,粗细)缓存描边材质"逻辑用;
-        /// 只取用它的材质生成/去重能力,不调用 Save() 落报告文件(这里不是批量转换流程)。</summary>
-        private static readonly LayaUIReport FightUpStyleReport = new LayaUIReport("MainUI_FightingUp");
-
-        /// <summary>
-        /// 战力飘字位图字体(fight_up/fight_up2)近似:项目里这两款老端位图字体资产还没转换成 TMP FontAsset,
-        /// 这里用 TMP 渐变色(顶浅底深)+ SDF 描边模拟老端"金色/绿色数字带深色描边"的观感,粗体+斜体贴近老端
-        /// 字形的倾斜手感(实测 fight_up.png 是暖金渐变+棕色描边,fight_up2.png 是绿色渐变+深绿描边)。
-        /// 描边材质直接复用 LayaTextStyles.ApplyOutline(和批量转换器同一套按字体/颜色/粗细去重缓存到
-        /// Assets/GameRes/Fonts/Materials/ 的做法,不在这里另起一套内嵌材质的写法)。
-        /// </summary>
-        private static void StyleFightNumberLabel(TextMeshProUGUI label, Color32 top, Color32 bottom, Color outline, float outlineStrokePx)
+        private static void ApplyBitmapNumberFont(TextMeshProUGUI label, TMP_FontAsset font)
         {
             if (label == null) return;
-            label.alignment = TextAlignmentOptions.Left;
-            label.fontStyle = FontStyles.Bold | FontStyles.Italic;
+            if (font != null) label.font = font;
+            label.fontSize = 50f;
+            label.alignment = TextAlignmentOptions.TopLeft;
+            label.fontStyle = FontStyles.Normal;
             label.enableWordWrapping = false;
             label.overflowMode = TextOverflowModes.Overflow;
-            label.enableVertexGradient = true;
-            label.colorGradient = new VertexGradient(top, top, bottom, bottom);
-            label.color = Color.white; // 用 vertex gradient 上色时基色保持白,避免和渐变相乘变暗
+            label.enableVertexGradient = false;
+            label.color = Color.white;
+            label.raycastTarget = false;
+        }
 
-            LayaTextStyles.ApplyOutline(label, outline, outlineStrokePx, FightUpStyleReport, label.name);
+        private static void PlaceTopLeft(RectTransform rt, float x, float y, float width, float height)
+        {
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0f, 1f);
+            rt.sizeDelta = new Vector2(width, height);
+            rt.anchoredPosition = new Vector2(x, -y);
         }
 
         /// <summary>建一个默认关闭的隐藏容器,专门收纳 _tpl_XXX 克隆模板节点,不与可见/运行时挂点混放。</summary>

@@ -64,3 +64,27 @@
 - BOSS 大血条 MainUIHiterBigBloodView 仍是空壳(SHOW_HITER_BIG_BLOOD_VIEW/hiter_vo 链未接)。
 - 受击击退位移、尸体透明淡出、结算演出动画(经验条/宝箱/倒计时)。
 - TaskModule 被外因销毁的第一现场未抓到(本轮 Error 日志已布防,复现即见栈)。
+
+## 2026-07-27 补充：FightingUpView 战力数字与定位精确复原
+
+### 用户可见问题与根因
+
+- Unity 的当前战力和绿色增量使用普通 TMP 字体叠加渐变/描边，只是早期临时近似；老端实际分别加载 `fight_up.fnt/png` 与 `fight_up2.fnt/png` 彩色 BMFont，所以字形、宽度、颜色和右对齐都不可能一致。
+- Creator 把老端 Label 的左上坐标直接当成中心坐标，漏算了文本矩形的半宽/半高；现有 prefab 又仍保留转换期的 `25×29/fontSize=24` 起步值，导致主数值与增量挤在一起。
+- 老端根节点使用 `centerX=0 + bottom=400`，不是固定 `centerY`。Unity 旧 prefab 位于父层中心，在不同屏幕纵横比下底距会变化。
+- 老端增量执行 `y-30` 是向上移动；Unity 坐标向上为正，旧实现仍做 `anchoredPosition.y-30`，实际方向相反。
+
+### 最终方案
+
+- 原样纳入老端 `fight_up`/`fight_up2` 的 `.fnt + .png`，由可复用的 `BitmapFontAssetBuilder` 解析 BMFont glyph rect、bearing 与 advance，生成使用 `TextMeshPro/Bitmap Custom Atlas` 的静态 TMP 字体资产；不再用 SDF 字体模拟图片数字。
+- `FightingUpView` 根节点改成底部中心锚，固定 `bottom=400`；背景保持老端 `x=0,y=0,398×95`。
+- 主数值按老端 `x=119,y=33,fontSize=50`，增量按 `x=231,y=18,fontSize=50` 建树；两个 RectTransform 均使用左上锚，运行时继续按原 BMFont advance 做右边缘对齐。
+- 增量动画改成 Unity `Y+30`，语义等价于老端顶部坐标 `Y-30`。
+- 以上布局全部写入 `HudOverlayCombatCreator.GenerateFightingUp` 和生成后的 prefab；业务代码只更新文字和播放动画。
+
+### 生成与验收
+
+1. 退出 Play Mode，打开“神霄/重构 UI 生成器”，选择 `MainUI / FightingUpView(战力飘字)`，点击①生成。
+2. 重新进入 Play Mode 后点②预览，检查金色当前战力、绿色 `+580` 均为原图字形；绿色增量在主数值上方并与其右边缘对齐。
+3. 在实际战力变化中确认提示水平居中、距屏幕底部保持老端 400 设计单位，不再随屏幕高度漂到任务框附近。
+4. 离线编译：`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 均 0 error；最终视觉结果以生成后的 Play Mode 预览截图为准。

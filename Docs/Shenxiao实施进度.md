@@ -1304,3 +1304,9 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **冻结前移**：`13300` 进度达到 `need_times` 时立即进入 `Entering`；`13307` 开启后严格对齐老端，只有进度快照存在且尚未满足时才恢复野外打怪，进度已满或快照未知均保持停止并等待权威入场。
 - **双闸保留**：进度满足处负责覆盖服务端 `send_after(1000, do_info_enter)` 的等待窗口，`12005` 场景清理处继续作为权威切场安全闸；Boss 演出结束后才锁 Boss、解冻开打。
 - **验证状态**：`Shenxiao.Module.Core.csproj` 离线编译 0 error；活服验收需要再次推进到第二只大妖，确认 `13307/13300 ready` 与 `12005` 之间不再出现野外小怪锁定、追击或攻击日志。
+
+## 2026-07-27：战力提升数字与布局复原
+
+- **位图数字**：老端 `fight_up/fight_up2` 的 BMFont XML 与彩色 PNG 已纳入 Unity；新增 `BitmapFontAssetBuilder` 生成 TMP 静态彩色位图字体，替换普通 TMP 渐变描边近似方案。
+- **布局与定位**：Creator 按老端左上坐标恢复主数值 `119,33`、增量 `231,18` 与 50px 字号；根节点使用底部中心锚固定 `bottom=400`，不再固定在父层中心；绿色增量方向修正为 Unity `Y+30` 向上。
+- **验证状态**：Core/Editor 离线编译均 0 error；需退出 Play Mode 后在重构 UI 生成器重新生成 `MainUI / FightingUpView(战力飘字)`，再用②预览完成图片字形和实际屏幕位置验收。
