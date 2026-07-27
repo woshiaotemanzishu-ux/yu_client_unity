@@ -1,3 +1,4 @@
+using System;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
@@ -14,12 +15,16 @@ namespace Shenxiao.Module.Core.Kf1vn
     /// stage>=1 且 stage!=6 显示(报名中/进行中),否则删除。等级变化(EVT_ROLE_INFO_UPDATE)复请求 62101
     /// (对标老端 CHANGE_LEVEL→InitRequest→发 62101),让升到开启等级后图标及时出现;实际是否显示由图标
     /// 配置门(open_lv/open_day,ActivityIconManager.AddIcon 内校验)与 stage 共同把控。
-    /// 本期只做图标:报名/竞猜/战斗/结算/兑换等玩法协议(62100/62102~62136)与所有面板均未移植,待用户验收。
-    /// 轮22 族错误出口批补 62103/62132(均无条件 ErrorCodeShow,老端无 if 守卫)。
+    /// 当前除图标、62103/62132错误出口及下述62107单向退出外，报名/竞猜/战斗/结算/兑换等玩法协议
+    /// 与所有面板均未移植。R222仅补62107 C2S-only严格空包退出请求，未绑定UI；服务端从不下发
+    /// 62107，严禁接收、结果模型或等待回执。
     /// </summary>
     public sealed class Kf1vnController : BaseController
     {
         public static readonly Kf1vnController Instance = new Kf1vnController();
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_exitOutboundIntercept = null;
+#endif
         private Kf1vnController() { }
 
         public const string ICON_TYPE = Kf1vnModel.ICON_TYPE;
@@ -55,6 +60,16 @@ namespace Shenxiao.Module.Core.Kf1vn
             // read(62101,_)->{ok,[]}:请求无字段,裸发。老端 InitRequest 会先按 open_lv/open_day 门判再发,
             // 此处统一裸发——是否显示图标最终由 AddIconAsync 内的图标配置门(open_lv/open_day)+ stage 决定。
             SendFmt(Proto.KF1VN_STAGE_INFO);
+        }
+
+        /// <summary>62107 退出诸天王者场景。仅 C2S 严格空包；场景切换是服务端权威结果，无专属回执。</summary>
+        public void RequestExit()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.KF1VN_EXIT, null, null);
+            if (s_exitOutboundIntercept != null && s_exitOutboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.KF1VN_EXIT);
         }
 
         // 62101(stage push,老端 Handler62101→ShowIcon 的驱动协议):

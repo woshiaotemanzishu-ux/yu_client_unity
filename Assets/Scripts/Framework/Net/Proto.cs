@@ -900,6 +900,12 @@
         /// <summary>诸天王者错误出口(轮22 族错误出口批;对标老端 Kf1vnController.ts:242-245 Handler62103:
         /// 无条件 ErrorCodeShow(error_code),无其它副作用)。回包(pt_621.erl write(62103,[ErrorCode])):code:i。</summary>
         public const int KF1VN_ERROR = 62103;
+        /// <summary>诸天王者退出场景，C2S 严格空包。老端等待场景/战斗场景/结算页均真实发送
+        /// (Kf1vnWaitSceneView.ts:139,145；Kf1vnFightSceneView.ts:155,159；Kf1vnFightResultView.ts:78)，
+        /// 服务端 pp_kf_1vN.erl:78-80 转入 quit 链，缺少角色/区域状态也直接切回主场景
+        /// (mod_kf_1vN.erl:435-448；lib_kf_1vN.erl:377-378)。S2C error_code:u32 虽在
+        /// pt_621.erl:165-171 定义 writer，但全服务端无调用点；严禁注册 On62107 或等待回执。</summary>
+        public const int KF1VN_EXIT = 62107;
         /// <summary>诸天王者竞猜/匹配相关错误出口(轮22 族错误出口批;对标老端 Kf1vnController.ts:444-447
         /// Handler62132:无条件 ErrorCodeShow(error_code),忽略 error_args,无其它副作用)。
         /// 回包(pt_621.erl write(62132,[ErrorCode,ErrorArgs])):code:i, args:s。</summary>
