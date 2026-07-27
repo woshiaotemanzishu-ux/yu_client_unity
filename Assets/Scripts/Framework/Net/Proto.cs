@@ -1073,6 +1073,8 @@
         public const int MONDAYS_AWARD_POOLS = 17908;
         /// <summary>周一嘉礼抽奖窗口与累计次数。C2S 空包；S2C: code:u8,draw_times:u16。</summary>
         public const int MONDAYS_AWARD_DRAW_STATE = 17907;
+        /// <summary>午时狂欢统一错误出口。无 C2S；S2C(pt_285): code:u32。</summary>
+        public const int NOON_PARTY_ERROR = 28500;
         /// <summary>午时狂欢累计经验。C2S 空包；S2C: exp:u32（每包为累计绝对值）。</summary>
         public const int NOON_PARTY_TOTAL_EXP = 28503;
         /// <summary>午时狂欢普通/高级宝箱已采集绝对计数。C2S 空包；S2C: low_box:u32,high_box:u32。</summary>

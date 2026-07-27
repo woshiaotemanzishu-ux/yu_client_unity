@@ -15,10 +15,16 @@ namespace Shenxiao.Module.Core.NoonParty
 
         protected override void Register()
         {
+            RegisterProtocal(Proto.NOON_PARTY_ERROR, On28500);
             RegisterProtocal(Proto.NOON_PARTY_TOTAL_EXP, On28503);
             RegisterProtocal(Proto.NOON_PARTY_BOX_COUNTS, On28504);
             RegisterProtocal(Proto.NOON_PARTY_REBORN_DEADLINE, On28505);
             RegisterProtocal(Proto.NOON_PARTY_END_DEADLINE, On28506);
+        }
+
+        private void On28500(NetReader reader)
+        {
+            NoonPartyModel.Instance.ReplaceError(reader.ReadU32());
         }
 
         public void RequestExp()

@@ -6,6 +6,8 @@ namespace Shenxiao.Module.Core.NoonParty
 
         private NoonPartyModel() { }
 
+        public bool HasError { get; private set; }
+        public uint LastErrorCode { get; private set; }
         public bool HasData { get; private set; }
         public uint TotalExp { get; private set; }
         public bool HasBoxCounts { get; private set; }
@@ -15,6 +17,12 @@ namespace Shenxiao.Module.Core.NoonParty
         public uint RebornDeadline { get; private set; }
         public bool HasEndDeadline { get; private set; }
         public uint EndDeadline { get; private set; }
+
+        public void ReplaceError(uint code)
+        {
+            LastErrorCode = code;
+            HasError = true;
+        }
 
         public void Replace(uint totalExp)
         {
@@ -43,6 +51,8 @@ namespace Shenxiao.Module.Core.NoonParty
 
         public void Reset()
         {
+            LastErrorCode = 0;
+            HasError = false;
             TotalExp = 0;
             HasData = false;
             LowBoxCount = 0;
