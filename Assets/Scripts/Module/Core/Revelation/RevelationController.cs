@@ -8,7 +8,8 @@ namespace Shenxiao.Module.Core.Revelation
         private static Func<byte[], bool> s_outboundIntercept;
 #endif
         private RevelationController() { }
-        protected override void Register() { RegisterProtocal(Proto.REVELATION_INFO, On28606); RegisterProtocal(Proto.REVELATION_POWER, On28609); }
+        protected override void Register() { RegisterProtocal(Proto.REVELATION_ERROR, On28600); RegisterProtocal(Proto.REVELATION_INFO, On28606); RegisterProtocal(Proto.REVELATION_POWER, On28609); }
+        private void On28600(NetReader r) { RevelationModel.Instance.ReplaceError(r.ReadU32()); }
         public void RequestStartup()
         {
 #if UNITY_EDITOR

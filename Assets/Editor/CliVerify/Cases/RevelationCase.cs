@@ -1,21 +1,313 @@
-using System; using System.Collections; using System.Collections.Generic; using System.Reflection; using System.Threading.Tasks; using Shenxiao.Framework.Net; using Shenxiao.Module.Core.Revelation; using UnityEngine;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Threading.Tasks;
+using Shenxiao.Framework.Net;
+using Shenxiao.Module.Core.Revelation;
+using UnityEngine;
+
 namespace Shenxiao.EditorTools
 {
     public static class RevelationCase
     {
-        private const BindingFlags F = BindingFlags.NonPublic | BindingFlags.Instance, SF = BindingFlags.NonPublic | BindingFlags.Static;
-        public static Task<int> Run() { try { return Task.FromResult(RunSync()); } catch (Exception e) { Debug.LogError("CLIVERIFY revelation EXCEPTION " + e); return Task.FromResult(3); } }
+        private const BindingFlags F = BindingFlags.NonPublic | BindingFlags.Instance;
+        private const BindingFlags SF = BindingFlags.NonPublic | BindingFlags.Static;
+
+        private sealed class HandlerState
+        {
+            public bool Exists;
+            public object Value;
+        }
+
+        public static Task<int> Run()
+        {
+            try
+            {
+                return Task.FromResult(RunSync());
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("CLIVERIFY revelation EXCEPTION " + e);
+                return Task.FromResult(3);
+            }
+        }
+
         private static int RunSync()
         {
-            RevelationController c = RevelationController.Instance; RevelationModel m = RevelationModel.Instance; bool was = c.IsInitialized, oldHas = m.HasData; ushort oldMax = m.MaxFigureId, oldCurrent = m.CurrentFigureId; ulong oldPower = m.Power; var og = new List<RevelationModel.Gathering>(m.Gatherings); var os = new List<RevelationModel.Suit>(m.Suits); var ok = new List<RevelationModel.Skill>(m.Skills); FieldInfo fi = typeof(RevelationController).GetField("s_outboundIntercept", SF); object oldIntercept = fi?.GetValue(null);
-            try { c.Init(); m.Reset(); MethodInfo on = typeof(RevelationController).GetMethod("On28606", F); MethodInfo power = typeof(RevelationController).GetMethod("On28609", F); var h = typeof(NetManager).GetField("_handlers", SF)?.GetValue(null) as IDictionary; bool pass = fi != null && on != null && power != null && h != null && h.Contains(Proto.REVELATION_INFO) && h.Contains(Proto.REVELATION_POWER); for (int id = 28600; id <= 28609; id++) if (id != 28606 && id != 28609) pass &= !h.Contains(id); void Check(string t, bool v) { Debug.Log("CLIVERIFY revelation " + t + " ok=" + v); if (!v) pass = false; } Check("seams/register", pass); if (!pass) return 3;
-                var frames = new List<byte[]>(); fi.SetValue(null, new Func<byte[], bool>(x => { frames.Add(x); return true; })); c.RequestStartup(); Check("startup exact empty frame", Frame(frames, Proto.REVELATION_INFO)); frames.Clear(); c.RequestPower(); Check("power exact empty frame", Frame(frames, Proto.REVELATION_POWER)); frames.Clear(); byte[] pre = new CliVerify.Pkt().L(5000000001L).Bytes(); var pr = new NetReader(pre, 0, pre.Length); power.Invoke(c, new object[] { pr }); Check("preload power ignored", pr.Remaining == 0 && !m.HasData && m.Power == 0 && frames.Count == 0);
-                byte[] first = new CliVerify.Pkt().H(65535).H(65534).L(5000000000L).H(2).C(0).H(65535).I(4000000000L).C(255).C(255).H(1).I(2).C(0).H(2).I(4000000000L).I(3).I(4).I(5).H(2).I(6).H(65535).I(7).H(1).Bytes(); var r = new NetReader(first, 0, first.Length); on.Invoke(c, new object[] { r }); Check("fields/order/read-to-end/no-outbound", r.Remaining == 0 && m.HasData && m.MaxFigureId == 65535 && m.CurrentFigureId == 65534 && m.Power == 5000000000UL && m.Gatherings.Count == 2 && m.Gatherings[0].Pos == 0 && m.Gatherings[0].Level == 65535 && m.Gatherings[0].Experience == 4000000000U && m.Gatherings[0].Flag == 255 && m.Gatherings[1].Pos == 255 && m.Gatherings[1].Level == 1 && m.Gatherings[1].Experience == 2 && m.Gatherings[1].Flag == 0 && m.Suits.Count == 2 && m.Suits[0].Star == 4000000000U && m.Suits[0].Number == 3 && m.Suits[1].Star == 4 && m.Suits[1].Number == 5 && m.Skills.Count == 2 && m.Skills[0].SkillId == 6 && m.Skills[0].Level == 65535 && m.Skills[1].SkillId == 7 && m.Skills[1].Level == 1 && frames.Count == 0);
-                var loadedPowerReader = new NetReader(new CliVerify.Pkt().L(5000000001L).Bytes(), 0, 8); power.Invoke(c, new object[] { loadedPowerReader }); Check("power loaded replace", loadedPowerReader.Remaining == 0 && m.Power == 5000000001UL && m.MaxFigureId == 65535 && m.CurrentFigureId == 65534 && m.Gatherings.Count == 2 && m.Suits.Count == 2 && m.Skills.Count == 2 && frames.Count == 0); var loadedMaxReader = new NetReader(new CliVerify.Pkt().L(unchecked((long)ulong.MaxValue)).Bytes(), 0, 8); power.Invoke(c, new object[] { loadedMaxReader }); Check("power u64 max", loadedMaxReader.Remaining == 0 && m.Power == ulong.MaxValue && m.MaxFigureId == 65535 && m.CurrentFigureId == 65534 && m.Gatherings.Count == 2 && m.Suits.Count == 2 && m.Skills.Count == 2 && frames.Count == 0);
-                byte[] empty = new CliVerify.Pkt().H(2).H(1).L(7).H(0).H(0).H(0).Bytes(); var e = new NetReader(empty, 0, empty.Length); on.Invoke(c, new object[] { e }); Check("whole replace empty lists", e.Remaining == 0 && m.MaxFigureId == 2 && m.CurrentFigureId == 1 && m.Power == 7 && m.Gatherings.Count == 0 && m.Suits.Count == 0 && m.Skills.Count == 0 && frames.Count == 0);
-                c.Dispose(); Check("dispose reset", !c.IsInitialized && !m.HasData && m.MaxFigureId == 0 && m.CurrentFigureId == 0 && m.Power == 0 && m.Gatherings.Count == 0 && m.Suits.Count == 0 && m.Skills.Count == 0); Debug.Log("CLIVERIFY revelation VERDICT pass=" + pass); return pass ? 0 : 3; }
-            finally { if (c.IsInitialized) c.Dispose(); m.Reset(); if (oldHas) m.Replace(oldMax, oldCurrent, oldPower, og, os, ok); if (was) c.Init(); if (fi != null) fi.SetValue(null, oldIntercept); }
+            RevelationController controller = RevelationController.Instance;
+            RevelationModel model = RevelationModel.Instance;
+            bool wasInitialized = controller.IsInitialized;
+            bool oldHasError = model.HasError;
+            uint oldErrorCode = model.LastErrorCode;
+            bool oldHasData = model.HasData;
+            ushort oldMax = model.MaxFigureId;
+            ushort oldCurrent = model.CurrentFigureId;
+            ulong oldPower = model.Power;
+            var oldGatherings = new List<RevelationModel.Gathering>(model.Gatherings);
+            var oldSuits = new List<RevelationModel.Suit>(model.Suits);
+            var oldSkills = new List<RevelationModel.Skill>(model.Skills);
+            FieldInfo interceptor = typeof(RevelationController).GetField("s_outboundIntercept", SF);
+            object oldInterceptor = interceptor?.GetValue(null);
+            var handlers = typeof(NetManager).GetField("_handlers", SF)?.GetValue(null) as IDictionary;
+            var savedHandlers = new Dictionary<int, HandlerState>();
+            for (int id = 28600; id <= 28609; id++)
+            {
+                SaveHandler(handlers, savedHandlers, id);
+            }
+
+            bool pass = false;
+            bool restored = false;
+            try
+            {
+                if (controller.IsInitialized)
+                {
+                    controller.Dispose();
+                }
+
+                if (handlers != null)
+                {
+                    for (int id = 28600; id <= 28609; id++)
+                    {
+                        handlers.Remove(id);
+                    }
+                }
+
+                controller.Init();
+                model.Reset();
+                MethodInfo on28600 = typeof(RevelationController).GetMethod("On28600", F);
+                MethodInfo on28606 = typeof(RevelationController).GetMethod("On28606", F);
+                MethodInfo on28609 = typeof(RevelationController).GetMethod("On28609", F);
+                pass = interceptor != null && on28600 != null && on28606 != null && on28609 != null && handlers != null
+                    && handlers.Contains(28600) && handlers.Contains(28606) && handlers.Contains(28609);
+                for (int id = 28600; id <= 28609; id++)
+                {
+                    if (id != 28600 && id != 28606 && id != 28609)
+                    {
+                        pass &= !handlers.Contains(id);
+                    }
+                }
+
+                bool registrationPass = pass;
+                Check("seams/register", registrationPass, ref pass);
+                var frames = new List<byte[]>();
+                if (pass)
+                {
+                    interceptor.SetValue(null, new Func<byte[], bool>(frame =>
+                    {
+                        frames.Add(frame);
+                        return true;
+                    }));
+
+                    controller.RequestStartup();
+                    Check("startup exact empty frame", Frame(frames, Proto.REVELATION_INFO), ref pass);
+                    frames.Clear();
+                    controller.RequestPower();
+                    Check("power exact empty frame", Frame(frames, Proto.REVELATION_POWER), ref pass);
+                    frames.Clear();
+
+                    byte[] pre = new CliVerify.Pkt().L(5000000001L).Bytes();
+                    var preReader = new NetReader(pre, 0, pre.Length);
+                    on28609.Invoke(controller, new object[] { preReader });
+                    Check("preload power ignored", preReader.Remaining == 0 && !model.HasData && model.Power == 0 && !model.HasError && frames.Count == 0, ref pass);
+
+                    Check("error zero", FeedError(on28600, controller, 0)
+                        && model.HasError && model.LastErrorCode == 0 && !model.HasData && model.Power == 0 && frames.Count == 0, ref pass);
+                    Check("error ordinary overwrite", FeedError(on28600, controller, 1012)
+                        && model.HasError && model.LastErrorCode == 1012 && !model.HasData && model.Power == 0 && frames.Count == 0, ref pass);
+                    Check("error u32 max overwrite", FeedError(on28600, controller, uint.MaxValue)
+                        && model.HasError && model.LastErrorCode == uint.MaxValue && !model.HasData && model.Power == 0 && frames.Count == 0, ref pass);
+
+                    byte[] first = new CliVerify.Pkt()
+                        .H(65535).H(65534).L(5000000000L).H(2)
+                        .C(0).H(65535).I(4000000000L).C(255)
+                        .C(255).H(1).I(2).C(0)
+                        .H(2).I(4000000000L).I(3).I(4).I(5)
+                        .H(2).I(6).H(65535).I(7).H(1)
+                        .Bytes();
+                    var firstReader = new NetReader(first, 0, first.Length);
+                    on28606.Invoke(controller, new object[] { firstReader });
+                    Check("fields/order/read-to-end/no-outbound", firstReader.Remaining == 0
+                        && model.HasData && model.MaxFigureId == 65535 && model.CurrentFigureId == 65534 && model.Power == 5000000000UL
+                        && model.Gatherings.Count == 2
+                        && model.Gatherings[0].Pos == 0 && model.Gatherings[0].Level == 65535
+                        && model.Gatherings[0].Experience == 4000000000U && model.Gatherings[0].Flag == 255
+                        && model.Gatherings[1].Pos == 255 && model.Gatherings[1].Level == 1
+                        && model.Gatherings[1].Experience == 2 && model.Gatherings[1].Flag == 0
+                        && model.Suits.Count == 2
+                        && model.Suits[0].Star == 4000000000U && model.Suits[0].Number == 3
+                        && model.Suits[1].Star == 4 && model.Suits[1].Number == 5
+                        && model.Skills.Count == 2
+                        && model.Skills[0].SkillId == 6 && model.Skills[0].Level == 65535
+                        && model.Skills[1].SkillId == 7 && model.Skills[1].Level == 1
+                        && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0, ref pass);
+
+                    byte[] loadedPower = new CliVerify.Pkt().L(5000000001L).Bytes();
+                    var loadedPowerReader = new NetReader(loadedPower, 0, loadedPower.Length);
+                    on28609.Invoke(controller, new object[] { loadedPowerReader });
+                    Check("power loaded replace", loadedPowerReader.Remaining == 0 && model.Power == 5000000001UL
+                        && model.MaxFigureId == 65535 && model.CurrentFigureId == 65534
+                        && model.Gatherings.Count == 2 && model.Suits.Count == 2 && model.Skills.Count == 2
+                        && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0, ref pass);
+
+                    byte[] loadedMax = new CliVerify.Pkt().L(unchecked((long)ulong.MaxValue)).Bytes();
+                    var loadedMaxReader = new NetReader(loadedMax, 0, loadedMax.Length);
+                    on28609.Invoke(controller, new object[] { loadedMaxReader });
+                    Check("power u64 max", loadedMaxReader.Remaining == 0 && model.Power == ulong.MaxValue
+                        && model.MaxFigureId == 65535 && model.CurrentFigureId == 65534
+                        && model.Gatherings.Count == 2 && model.Suits.Count == 2 && model.Skills.Count == 2
+                        && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0, ref pass);
+
+                    Check("error preserves loaded snapshot", FeedError(on28600, controller, 1012)
+                        && model.HasError && model.LastErrorCode == 1012 && model.HasData && model.Power == ulong.MaxValue
+                        && model.MaxFigureId == 65535 && model.CurrentFigureId == 65534
+                        && model.Gatherings.Count == 2 && model.Suits.Count == 2 && model.Skills.Count == 2 && frames.Count == 0, ref pass);
+
+                    byte[] empty = new CliVerify.Pkt().H(2).H(1).L(7).H(0).H(0).H(0).Bytes();
+                    var emptyReader = new NetReader(empty, 0, empty.Length);
+                    on28606.Invoke(controller, new object[] { emptyReader });
+                    Check("whole replace empty lists", emptyReader.Remaining == 0
+                        && model.MaxFigureId == 2 && model.CurrentFigureId == 1 && model.Power == 7
+                        && model.Gatherings.Count == 0 && model.Suits.Count == 0 && model.Skills.Count == 0
+                        && model.HasError && model.LastErrorCode == 1012 && frames.Count == 0, ref pass);
+
+                    var finalReader = new NetReader(first, 0, first.Length);
+                    on28606.Invoke(controller, new object[] { finalReader });
+                    Check("nonempty snapshot before dispose", finalReader.Remaining == 0 && model.HasData
+                        && model.MaxFigureId == 65535 && model.CurrentFigureId == 65534 && model.Power == 5000000000UL
+                        && model.Gatherings.Count == 2 && model.Suits.Count == 2 && model.Skills.Count == 2
+                        && model.HasError && model.LastErrorCode == 1012 && frames.Count == 0, ref pass);
+
+                    controller.Dispose();
+                    Check("dispose reset/unregister", !controller.IsInitialized
+                        && !model.HasError && model.LastErrorCode == 0
+                        && !model.HasData && model.MaxFigureId == 0 && model.CurrentFigureId == 0 && model.Power == 0
+                        && model.Gatherings.Count == 0 && model.Suits.Count == 0 && model.Skills.Count == 0
+                        && !handlers.Contains(28600) && !handlers.Contains(28606) && !handlers.Contains(28609), ref pass);
+                }
+
+                Debug.Log("CLIVERIFY revelation VERDICT pass=" + pass);
+            }
+            finally
+            {
+                if (controller.IsInitialized)
+                {
+                    controller.Dispose();
+                }
+
+                model.Reset();
+                model.Replace(oldMax, oldCurrent, oldPower, oldGatherings, oldSuits, oldSkills);
+                RestoreModelProperty(model, "HasData", oldHasData);
+                RestoreModelProperty(model, "HasError", oldHasError);
+                RestoreModelProperty(model, "LastErrorCode", oldErrorCode);
+                if (wasInitialized)
+                {
+                    controller.Init();
+                }
+
+                for (int id = 28600; id <= 28609; id++)
+                {
+                    RestoreHandler(handlers, savedHandlers[id], id);
+                }
+
+                if (interceptor != null)
+                {
+                    interceptor.SetValue(null, oldInterceptor);
+                }
+
+                restored = controller.IsInitialized == wasInitialized
+                    && model.HasError == oldHasError && model.LastErrorCode == oldErrorCode
+                    && model.HasData == oldHasData && model.MaxFigureId == oldMax
+                    && model.CurrentFigureId == oldCurrent && model.Power == oldPower
+                    && SameReferences(model.Gatherings, oldGatherings)
+                    && SameReferences(model.Suits, oldSuits)
+                    && SameReferences(model.Skills, oldSkills)
+                    && (interceptor == null || ReferenceEquals(interceptor.GetValue(null), oldInterceptor));
+                for (int id = 28600; id <= 28609; id++)
+                {
+                    restored &= HandlerMatches(handlers, savedHandlers[id], id);
+                }
+
+                Debug.Log("CLIVERIFY revelation restored=" + restored);
+            }
+
+            return pass && restored ? 0 : 3;
         }
-        private static bool Frame(IReadOnlyList<byte[]> a, int proto) { return a.Count == 1 && a[0] != null && a[0].Length == 6 && a[0][0] == 0 && a[0][1] == 6 && a[0][2] == 3 && a[0][3] == 232 && a[0][4] == (byte)(proto >> 8) && a[0][5] == (byte)(proto & 0xFF); }
+
+        private static void Check(string title, bool value, ref bool pass)
+        {
+            Debug.Log("CLIVERIFY revelation " + title + " ok=" + value);
+            if (!value)
+            {
+                pass = false;
+            }
+        }
+
+        private static bool FeedError(MethodInfo handler, RevelationController controller, uint code)
+        {
+            byte[] bytes = new CliVerify.Pkt().I(code).Bytes();
+            var reader = new NetReader(bytes, 0, bytes.Length);
+            handler.Invoke(controller, new object[] { reader });
+            return reader.Remaining == 0;
+        }
+
+        private static bool Frame(IReadOnlyList<byte[]> frames, int proto)
+        {
+            return frames.Count == 1 && frames[0] != null && frames[0].Length == 6
+                && frames[0][0] == 0 && frames[0][1] == 6 && frames[0][2] == 3 && frames[0][3] == 232
+                && frames[0][4] == (byte)(proto >> 8) && frames[0][5] == (byte)(proto & 0xFF);
+        }
+
+        private static void SaveHandler(IDictionary handlers, IDictionary<int, HandlerState> savedHandlers, int id)
+        {
+            bool exists = handlers != null && handlers.Contains(id);
+            savedHandlers[id] = new HandlerState { Exists = exists, Value = exists ? handlers[id] : null };
+        }
+
+        private static void RestoreHandler(IDictionary handlers, HandlerState savedHandler, int id)
+        {
+            if (handlers == null)
+            {
+                return;
+            }
+
+            if (savedHandler.Exists)
+            {
+                handlers[id] = savedHandler.Value;
+            }
+            else
+            {
+                handlers.Remove(id);
+            }
+        }
+
+        private static bool HandlerMatches(IDictionary handlers, HandlerState savedHandler, int id)
+        {
+            return handlers != null && handlers.Contains(id) == savedHandler.Exists
+                && (!savedHandler.Exists || ReferenceEquals(handlers[id], savedHandler.Value));
+        }
+
+        private static void RestoreModelProperty(RevelationModel model, string propertyName, object value)
+        {
+            typeof(RevelationModel).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance)?.SetValue(model, value);
+        }
+
+        private static bool SameReferences<T>(IReadOnlyList<T> actual, IReadOnlyList<T> expected) where T : class
+        {
+            if (actual.Count != expected.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < actual.Count; i++)
+            {
+                if (!ReferenceEquals(actual[i], expected[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }
