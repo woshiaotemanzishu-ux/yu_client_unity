@@ -1572,6 +1572,9 @@
         /// <summary>资源副本次数信息(对标老端 RequestDungeonNum;61020 处理完资源副本类型后补发本号)。
         /// 发 "c"(dun_type;0=查全部资源副本类型);回包 count_list[u16×{dun_type:c,sweep_count:h,challenge_count:h}]。</summary>
         public const int DUNGEON_RESOURCE_COUNT = 61121;
+        /// <summary>邀请/取消邀请进入副本。C2S type:u8,dun_id:u32,other_id:u64；S2C code_msg:string。
+        /// 61046 并非可靠 ACK，完整双方邀请状态由 61048 承载，本端仅保存实际收到的原始消息。</summary>
+        public const int DUNGEON_INVITE = 61046;
         /// <summary>回应邀请进入副本(轮22 族错误出口批;对标老端 BaseDungeonController.ts:1593-1601 内联
         /// handler:code==1 空分支/否则 ErrorCodeShow(code),无其它副作用)。回包(lib_dungeon.erl:2988
         /// offline_answer_invite_dun/1;pt_610.erl write(61047,[Code,Answer])):code:i, answer:c

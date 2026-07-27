@@ -42,6 +42,7 @@ namespace Shenxiao.Module.Core.Dungeon
     ///
     /// 轮22 族错误出口批补 61000(家族统一错误壳)+ 61047(回应邀请进入副本)+ 61092(异兽入侵领取阶段奖励,
     /// 老端成功分支已注释,纯错误出口)。
+    /// 轮231 补 61046 邀请/取消请求与发送者原始消息；完整双方状态仍归 61048，禁止把本号当可靠 ACK。
     /// </summary>
     public sealed class DungeonController : BaseController
     {
@@ -49,6 +50,7 @@ namespace Shenxiao.Module.Core.Dungeon
 
 #if UNITY_EDITOR
         private static Func<byte[], bool> s_cooldownOutboundIntercept = null;
+        private static Func<byte[], bool> s_inviteOutboundIntercept = null;
 #endif
 
         private DungeonController() { }
@@ -64,6 +66,7 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_ENTER, On61001);
             RegisterProtocal(Proto.DUNGEON_SETTLE_UI, On61003);
             RegisterProtocal(Proto.DUNGEON_STATE, On61020);
+            RegisterProtocal(Proto.DUNGEON_INVITE, On61046);
             RegisterProtocal(Proto.DUNGEON_INVITE_RESPOND, On61047);
             RegisterProtocal(Proto.DUNGEON_MONSTER_INVASION_REWARD, On61092);
             // 61002(DUNGEON_EXIT)已由 AutoBrushController 注册,红线不可重复注册;Exit() 只发不接。
@@ -245,6 +248,22 @@ namespace Shenxiao.Module.Core.Dungeon
             }
 #endif
             SendFmt(Proto.DUNGEON_COOLDOWN, "i", dunId);
+        }
+
+        /// <summary>邀请(type=1)/取消邀请(type=2)。不等待 ACK；邀请状态另由 61048 承载。</summary>
+        public void RequestInvite(byte type, uint dunId, ulong otherId)
+        {
+            if (type != 1 && type != 2) return;
+            long wireOtherId = unchecked((long)otherId);
+#if UNITY_EDITOR
+            if (s_inviteOutboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(Proto.DUNGEON_INVITE, "cil",
+                    new object[] { type, dunId, wireOtherId });
+                if (s_inviteOutboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(Proto.DUNGEON_INVITE, "cil", type, dunId, wireOtherId);
         }
 
         /// <summary>请求坐标触发情况表 61019(发 "i" scene_id;进副本场景对账用)。</summary>
@@ -831,6 +850,12 @@ namespace Shenxiao.Module.Core.Dungeon
                 ServerNum = rr.ReadU16(),
             });
             return e;
+        }
+
+        /// <summary>61046 邀请发送者原始消息；不解释为空串/成功，也不等待该包作为 ACK。</summary>
+        private void On61046(NetReader r)
+        {
+            DungeonModel.Instance.ApplyInviteResponse(r.ReadString());
         }
 
         /// <summary>61047 回应邀请进入副本(对标老端 BaseDungeonController.ts:1593-1601 内联 handler:
