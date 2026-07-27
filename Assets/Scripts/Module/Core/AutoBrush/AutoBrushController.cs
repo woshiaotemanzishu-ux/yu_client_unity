@@ -99,7 +99,22 @@ namespace Shenxiao.Module.Core.AutoBrush
             });
 
             AutoBrushModel.BrushStrangeInfo info = AutoBrushModel.Instance.BrushInfo;
-            GameLog.Info("AutoBrush", "13300 progress={0}/{1}", info.CurrentTimes, info.NeedTimes);
+            GameLog.Info("AutoBrush", "13300 code={0} progress={1}/{2}",
+                info.Code, info.CurrentTimes, info.NeedTimes);
+
+            // 服务端在最后一只小怪计数达到 NeedTimes 时先推 13300，再延迟 1 秒执行 do_info_enter。
+            // 这 1 秒已经是“等待进副本”，不能继续选下一只野外怪；否则组合演出前后会夹一段追怪动作。
+            TaskVo task = TaskModel.Instance.MainLineTaskVo;
+            if (info.Code == 1
+                && info.CurrentTimes == info.NeedTimes
+                && AutoBrushModel.Instance.AutoBrushState
+                && RoleModel.Instance.DunId == 0
+                && task?.TaskTipsType == TaskModel.TIP_PASS_MAIN_DUNGEON)
+            {
+                AutoBrushBattleFlow.BeginEntering();
+                GameLog.Info("AutoBrush", "13300 progress ready -> wait authoritative dungeon enter task={0}",
+                    task.TaskId);
+            }
         }
 
         private void On13301(NetReader r)
@@ -319,8 +334,26 @@ namespace Shenxiao.Module.Core.AutoBrush
             AutoBrushModel.Instance.SetAutoBrushStrangeState(enabled);
             if (enabled && TaskModel.Instance.MainLineTaskVo?.TaskTipsType == TaskModel.TIP_PASS_MAIN_DUNGEON)
             {
+                AutoBrushModel.BrushStrangeInfo info = AutoBrushModel.Instance.BrushInfo;
+                // 对标老端 AutoBrushModel.SetAutoBrushStrangeState：只有 current_times != need_times
+                // 才启动野外自动战斗。相等表示服务端会在 1 秒后自动拉入副本，此时直接进入等待态。
+                if (info == null)
+                {
+                    GameLog.Warn("AutoBrush", "13307 opened without progress snapshot -> keep field fight stopped");
+                    return;
+                }
+
+                if (info.CurrentTimes == info.NeedTimes)
+                {
+                    AutoBrushBattleFlow.BeginEntering();
+                    GameLog.Info("AutoBrush", "13307 opened with progress ready {0}/{1} -> wait dungeon enter",
+                        info.CurrentTimes, info.NeedTimes);
+                    return;
+                }
+
                 bool resumed = TaskModel.Instance.ResumeCurrentTaskAutoFight();
-                GameLog.Info("AutoBrush", "13307 opened -> resume PassMainDungeon auto fight resumed={0}", resumed);
+                GameLog.Info("AutoBrush", "13307 opened with progress pending {0}/{1} -> resume field fight={2}",
+                    info.CurrentTimes, info.NeedTimes, resumed);
             }
         }
     }

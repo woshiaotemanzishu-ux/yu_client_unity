@@ -122,3 +122,31 @@
 - `dotnet build Shenxiao.Module.Core.csproj --no-restore`：0 error。
 - `dotnet build Shenxiao.Editor.csproj --no-restore`：0 error。
 - 活服视觉复验仍需在 Unity 中连续推进到第二只大妖：应先看到 `battle presentation entering from scene switch`，再看到 `Entering → Intro`；Toast 后不得再延续野外小怪的移动/攻击动作。
+
+## 2026-07-27 纠正：真正缺口在 13307 后、12005 前
+
+### 日志确认的错误顺序
+
+用户复验后，最新活服日志给出了完整顺序：
+
+1. `13307` 返回自动大妖已开启；
+2. Unity 立即调用 `ResumeCurrentTaskAutoFight`，锁定野外小怪 `ins=1164 type=10001006`，并连续执行三次追击；
+3. 之后才进入 `AutoBrushBattleFlow.Entering`，收到 `12005` 并清理场景；
+4. Boss 快照到达后进入 `Intro`，播放组合演出。
+
+因此，上一节“只在权威场景清理时补冻结”的处理仍然太晚。它能防止旧动作跨过 `12005`，但不能阻止客户端在服务端等待进副本的 1 秒内重新选择下一只野外小怪。用户指出的本质确实是进场顺序，而不是副本内目标筛选。
+
+### 老端与服务端依据
+
+- 老端 `AutoBrushModel.SetAutoBrushStrangeState` 只有在刷怪进度存在且 `current_times != need_times` 时才启动野外自动战斗；进度已满足或快照不存在时都不会恢复打小怪。
+- 服务端在最后一次计数满足后先推送 `13300`，再通过 `send_after(1000, do_info_enter)` 延迟一秒执行真正入场；开启 `13307` 时若服务端进度已满足，同样会安排延迟入场。
+- 这 1 秒已经属于“等待进副本”阶段。正确表现是立即停止野外选怪，随后由 `12005` 清掉野外实体，再生成 Boss、播放组合演出，最后开始打 Boss。
+
+### 最终修复顺序
+
+- `13300` 成功且 `current_times == need_times`：立即 `BeginEntering()`，收脚、清目标并冻结，等待服务端权威 `12005`。
+- `13307` 开启：只有进度快照明确存在且 `current_times != need_times` 时才恢复野外自动战斗；进度已满足时进入等待态，快照不存在时保持停止，均不再盲目选怪。
+- `12005`/场景清理处的冻结继续保留，作为显式进场和服务端自动进场的第二道安全闸。
+- Boss 实体到达后播放 `Intro`；演出结束先锁定本轮 Boss，再解冻进入 `Fighting`。
+
+复验日志应出现 `13307 opened with progress ready ... -> wait dungeon enter`（或 `13300 progress ready -> wait authoritative dungeon enter`），随后才是 `12005` 与 `Entering → Intro`；两者之间不得再出现野外小怪的 `auto-brush target locked` / `MainRoleAttackMonster`。
