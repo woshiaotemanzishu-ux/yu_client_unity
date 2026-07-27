@@ -5,6 +5,7 @@ using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Module.Core.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.MainUI
 {
@@ -24,13 +25,23 @@ namespace Shenxiao.Module.Core.MainUI
         [SerializeField] private float _bobDistance = 10f;
         [SerializeField] private float _bobDuration = 1f;
 
+        [Header("Target Placement (edit in ArrowComponent.prefab)")]
+        [SerializeField] private Vector2 _downTargetOffset = new Vector2(55f, 60f);
+        [SerializeField] private Vector2 _leftTargetOffset = new Vector2(55f, 17f);
+        [SerializeField] private Vector2 _upTargetOffset = new Vector2(55f, -40f);
+        [SerializeField] private Vector2 _rightTargetOffset = new Vector2(-30f, -25f);
+
+        [Header("Prefab Layout (edit anchors in ArrowComponent.prefab)")]
+        public RectTransform arrowDownAnchor;
+        public RectTransform arrowLeftAnchor;
+        public RectTransform arrowUpAnchor;
+        public RectTransform arrowRightAnchor;
+
         private Vector2 _aniBasePos;
         private bool _hasBase;
         private Coroutine _bob;
         private Coroutine _auto;
         private Action _autoAction;
-        private float _initRectWidth;
-        private float _initRectHeight;
 
         protected override void OnInit()
         {
@@ -38,11 +49,6 @@ namespace Shenxiao.Module.Core.MainUI
             {
                 _aniBasePos = aniGp.anchoredPosition;
                 _hasBase = true;
-            }
-            if (rect_conta != null)
-            {
-                _initRectWidth = rect_conta.rect.width;
-                _initRectHeight = rect_conta.rect.height;
             }
             HideAutoCountdown();
         }
@@ -77,7 +83,9 @@ namespace Shenxiao.Module.Core.MainUI
             }
             if (contentImg != null) contentImg.gameObject.SetActive(false);
 
-            ResizeToOldClientText(data.Direction);
+            // 字号、颜色、内边距、气泡尺寸和倒计时位置都由 prefab 上的 TMP/Layout 组件负责。
+            // 这里只刷新布局结果，不能把用户在 Inspector 中的视觉调整重新写掉。
+            if (rect_conta != null) LayoutRebuilder.ForceRebuildLayoutImmediate(rect_conta);
 
             if (data.Target != null) PlaceNearTarget(data.Target, data.Direction, data.Offset);
             ShowEffect(data.Direction);
@@ -91,54 +99,30 @@ namespace Shenxiao.Module.Core.MainUI
             GameLog.Info("MainUI", "guide arrow shown: dir={0} auto={1}", data.Direction, data.AutoCountdown);
         }
 
-        private void ResizeToOldClientText(int direction)
-        {
-            if (content == null || rect_conta == null || content_bg == null) return;
-
-            content.ForceMeshUpdate();
-            float textW = Mathf.Max(1f, content.preferredWidth);
-            float textH = Mathf.Max(1f, content.preferredHeight);
-            RectTransform contentRt = content.rectTransform;
-            contentRt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, textW);
-            contentRt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, textH);
-
-            float bgW = textW + 53f; // old client: text_w + 155 - 102 when contentImg is hidden.
-            float bgH = Mathf.Max(textH + 10f, 97f);
-            rect_conta.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, bgW);
-            rect_conta.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, bgH);
-            content_bg.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, bgW);
-            content_bg.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, bgH);
-
-            float gapWidth = _initRectWidth - bgW;
-            float gapHeight = _initRectHeight - bgH;
-            if (arrow_effect != null)
-            {
-                if (direction == DIR_LEFT)
-                    arrow_effect.anchoredPosition = new Vector2(35f, -(120f - gapHeight * 0.5f));
-                else if (direction == DIR_RIGHT)
-                    arrow_effect.anchoredPosition = new Vector2(405f - gapWidth, -(110f - gapHeight * 0.5f));
-                else if (direction == DIR_UP)
-                    arrow_effect.anchoredPosition = new Vector2(rect_conta.anchoredPosition.x + bgW * 0.5f, -35f);
-                else
-                    arrow_effect.anchoredPosition = new Vector2(rect_conta.anchoredPosition.x + bgW * 0.5f, -(205f - gapHeight));
-            }
-
-            if (autoImg != null)
-            {
-                Vector2 pos = autoImg.rectTransform.anchoredPosition;
-                pos.y = -(bgH - 9f);
-                autoImg.rectTransform.anchoredPosition = pos;
-            }
-        }
-
         private void ShowEffect(int direction)
         {
             if (arrow_effect == null) return;
+            RectTransform anchor = GetArrowAnchor(direction);
+            if (anchor != null)
+            {
+                arrow_effect.SetParent(anchor, false);
+                arrow_effect.anchorMin = arrow_effect.anchorMax = arrow_effect.pivot = new Vector2(0.5f, 0.5f);
+                arrow_effect.anchoredPosition = Vector2.zero;
+            }
+
             float rot = 0f;
             if (direction == DIR_DOWN) rot = -90f;
             else if (direction == DIR_RIGHT) rot = 180f;
             else if (direction == DIR_UP) rot = 90f;
             arrow_effect.localRotation = Quaternion.Euler(0f, 0f, rot);
+        }
+
+        private RectTransform GetArrowAnchor(int direction)
+        {
+            if (direction == DIR_LEFT) return arrowLeftAnchor;
+            if (direction == DIR_RIGHT) return arrowRightAnchor;
+            if (direction == DIR_UP) return arrowUpAnchor;
+            return arrowDownAnchor;
         }
 
         private void StartBob(int direction)
@@ -186,6 +170,7 @@ namespace Shenxiao.Module.Core.MainUI
             StopAutoCountdown();
             _autoAction = action;
             if (autoImg != null) autoImg.gameObject.SetActive(true);
+            if (autoLb2 != null) autoLb2.text = "秒后自动继续";
             _auto = StartCoroutine(AutoCountdownRoutine(seconds));
         }
 
@@ -194,7 +179,8 @@ namespace Shenxiao.Module.Core.MainUI
             int left = Mathf.Max(1, seconds);
             while (left > 0)
             {
-                if (autoLb != null) autoLb.text = "<color=#FFFF00>" + left + "</color>秒后自动继续";
+                // 数字和后缀拆成两个 TMP 节点，颜色、字号和间距全部在 prefab 中调整。
+                if (autoLb != null) autoLb.text = left.ToString();
                 yield return new WaitForSeconds(1f);
                 left--;
             }
@@ -240,13 +226,13 @@ namespace Shenxiao.Module.Core.MainUI
             Vector3 contentTopLeft = GetTopLeftInParent(content_bg != null ? content_bg.rectTransform : rt, rt);
             Vector3 desiredContentTopLeft;
             if (direction == DIR_LEFT)
-                desiredContentTopLeft = targetTopLeft + new Vector3(targetW + 55f, 17f, 0f);
+                desiredContentTopLeft = targetTopLeft + new Vector3(targetW + _leftTargetOffset.x, _leftTargetOffset.y, 0f);
             else if (direction == DIR_RIGHT)
-                desiredContentTopLeft = targetTopLeft + new Vector3(-selfW - 30f, targetH * 0.5f - 25f, 0f);
+                desiredContentTopLeft = targetTopLeft + new Vector3(-selfW + _rightTargetOffset.x, targetH * 0.5f + _rightTargetOffset.y, 0f);
             else if (direction == DIR_UP)
-                desiredContentTopLeft = targetTopLeft + new Vector3((targetW - selfW) * 0.5f + 55f, -targetH - 40f, 0f);
+                desiredContentTopLeft = targetTopLeft + new Vector3((targetW - selfW) * 0.5f + _upTargetOffset.x, -targetH + _upTargetOffset.y, 0f);
             else
-                desiredContentTopLeft = targetTopLeft + new Vector3((targetW - selfW) * 0.5f + 55f, selfH + 60f, 0f);
+                desiredContentTopLeft = targetTopLeft + new Vector3((targetW - selfW) * 0.5f + _downTargetOffset.x, selfH + _downTargetOffset.y, 0f);
 
             Vector3 rootPos = desiredContentTopLeft - contentTopLeft + new Vector3(offset.x, offset.y, 0f);
             rt.localPosition = new Vector3(rootPos.x, rootPos.y, 0f);

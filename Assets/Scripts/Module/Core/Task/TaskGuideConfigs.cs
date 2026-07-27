@@ -10,7 +10,8 @@ namespace Shenxiao.Module.Core.Tasks
 {
     /// <summary>
     /// Reads old-client ConfigTaskArrow. Missing config means no guide; do not
-    /// synthesize task guide text or directions in code.
+    /// synthesize task guide text or directions in code. Task 100010 is the one
+    /// explicit exception hard-coded by the old client's TaskModel.
     /// </summary>
     public static class TaskGuideConfigs
     {
@@ -49,17 +50,26 @@ namespace Shenxiao.Module.Core.Tasks
 
         public static TaskModel.TaskGuideStep GetNowGuideCfg(bool isMainUiArrow, TaskVo task)
         {
-            if (task == null || _root == null) return null;
+            if (task == null) return null;
+
+            // yu_client TaskModel.GetNowGuideCfg explicitly seeds the first task before reading
+            // ConfigTaskArrow. Its tips type has an empty in_main_ui entry, so this is runtime
+            // behavior rather than a guessed fallback for missing configuration.
+            TaskModel.TaskGuideStep firstTaskGuide = isMainUiArrow
+                ? BuildFirstTaskMainUiGuide(task)
+                : null;
+            if (_root == null) return firstTaskGuide;
+
             JObject nowCfg = ReadObj(_root[task.TaskTipsType.ToString(CultureInfo.InvariantCulture)]);
             if (nowCfg == null)
             {
                 LogMissingOnce(task.TaskTipsType, "missing task_tips_type config");
-                return null;
+                return firstTaskGuide;
             }
 
             if (isMainUiArrow)
             {
-                return ReadMainUiGuide(nowCfg, task);
+                return ReadMainUiGuide(nowCfg, task, firstTaskGuide == null) ?? firstTaskGuide;
             }
 
             return null;
@@ -100,7 +110,23 @@ namespace Shenxiao.Module.Core.Tasks
             return null;
         }
 
-        private static TaskModel.TaskGuideStep ReadMainUiGuide(JObject nowCfg, TaskVo task)
+        private static TaskModel.TaskGuideStep BuildFirstTaskMainUiGuide(TaskVo task)
+        {
+            if (task.TaskId != TaskModel.FIRST_TASK_ID) return null;
+
+            return new TaskModel.TaskGuideStep
+            {
+                Direction = 4,
+                Text = "点击此处完成任务吧",
+                CloseTime = 10,
+                AutoCountdown = true,
+                EffectScaleX = 1f,
+                EffectScaleY = 1f,
+                EffectScaleZ = 1f,
+            };
+        }
+
+        private static TaskModel.TaskGuideStep ReadMainUiGuide(JObject nowCfg, TaskVo task, bool logWhenMissing)
         {
             JObject mainUiCfg = ReadObj(nowCfg["in_main_ui"]);
             if (mainUiCfg == null) return null;
@@ -134,7 +160,7 @@ namespace Shenxiao.Module.Core.Tasks
             TaskModel.TaskGuideStep step = ReadStep(arrowCfg);
             // 无步骤≠缺配置:如 tipsType=10 按具体任务 ID 配子表(sub_dun_type_in_main_ui),
             // 不在表内的任务老端就是静默无箭头——每类型一次 Info 留痕即可,别当告警刷。
-            if (step == null && _noStepLogged.Add(task.TaskTipsType))
+            if (step == null && logWhenMissing && _noStepLogged.Add(task.TaskTipsType))
                 GameLog.Info("Task", "ConfigTaskArrow no main-ui guide step: tipsType={0} task={1}(老端同为无箭头,非缺配)",
                     task.TaskTipsType, task.TaskId);
             return step;

@@ -576,38 +576,80 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             RectTransform aniGp = UiCreatorKit.NewNode("aniGp", root);
             UiCreatorKit.Place(aniGp, 0f, 0f, 435f, 209f);
 
-            RectTransform arrowEffect = UiCreatorKit.NewNode("arrow_effect", aniGp);
-            UiCreatorKit.Place(arrowEffect, 6.5f, -62.5f, 0f, 0f);
-            Image image1 = Img("ArrowHeadImage", arrowEffect, 0f, 5f, 52f, 52f, IMG_ARROW_HEAD, UiCreatorKit.Palette.BtnPrimary); // 老端: _Image1
-
             RectTransform rectConta = UiCreatorKit.NewNode("rect_conta", aniGp);
-            UiCreatorKit.Place(rectConta, 0f, -1.6f, 325f, 92.13f);
+            UiCreatorKit.Place(rectConta, 0f, -1.6f, 262f, 97f);
 
-            Image contentBg = Img("content_bg", rectConta, -31.5f, 6.1f, 262f, 80f, IMG_ARROW_BG, UiCreatorKit.Palette.Panel, sliced: true);
+            // 气泡宽度由 TMP preferred width + 可编辑 padding 自动得出；运行时代码不再写尺寸。
+            // 以后调文字在框内的位置，直接改这里序列化到 prefab 的 Padding 即可。
+            HorizontalLayoutGroup bubbleLayout = rectConta.gameObject.AddComponent<HorizontalLayoutGroup>();
+            bubbleLayout.padding = new RectOffset(26, 27, 5, 5);
+            bubbleLayout.childAlignment = TextAnchor.MiddleCenter;
+            bubbleLayout.spacing = 0f;
+            bubbleLayout.childControlWidth = true;
+            bubbleLayout.childControlHeight = true;
+            bubbleLayout.childForceExpandWidth = false;
+            bubbleLayout.childForceExpandHeight = false;
+            ContentSizeFitter bubbleFitter = rectConta.gameObject.AddComponent<ContentSizeFitter>();
+            bubbleFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            bubbleFitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
 
-            RectTransform contentHBox = UiCreatorKit.NewNode("ContentHBox", contentBg.transform);
-            UiCreatorKit.Place(contentHBox, -10f, 0f, 200f, 40f);
+            Image contentBg = ImgFull("content_bg", rectConta, IMG_ARROW_BG, UiCreatorKit.Palette.Panel, sliced: true);
+            IgnoreLayout(contentBg.rectTransform);
+
+            RectTransform contentHBox = UiCreatorKit.NewNode("ContentHBox", rectConta);
+            UiCreatorKit.Place(contentHBox, 0f, 0f, 200f, 40f);
+            HorizontalLayoutGroup contentLayout = contentHBox.gameObject.AddComponent<HorizontalLayoutGroup>();
+            contentLayout.childAlignment = TextAnchor.MiddleCenter;
+            contentLayout.childControlWidth = true;
+            contentLayout.childControlHeight = true;
+            contentLayout.childForceExpandWidth = false;
+            contentLayout.childForceExpandHeight = false;
             TextMeshProUGUI content = UiCreatorKit.NewText("content", contentHBox, "指引文案");
-            UiCreatorKit.Place(content.rectTransform, 0f, 0f, 200f, 40f);
-            content.fontSize = 22f;
-            content.color = Color.white;
+            UiCreatorKit.Place(content.rectTransform, 0f, 0f, 100f, 40f);
+            content.fontSize = 18f;
+            if (ColorUtility.TryParseHtmlString("#824141", out Color guideTextColor)) content.color = guideTextColor;
+            content.alignment = TextAlignmentOptions.Center;
+            content.textWrappingMode = TextWrappingModes.NoWrap;
             content.richText = true; // 业务 SetData 每次也会重新置 true
 
             TextMeshProUGUI content3 = Txt("content3", rectConta, -102.5f, 0f, 80f, 26f, "指引精灵", 22f, "#ffffff");
             content3.gameObject.SetActive(false); // 源 visible:false(纯文本备用展示,业务按需显示)
+            IgnoreLayout(content3.rectTransform);
 
             Image contentImg = Img("contentImg", rectConta, 98.5f, 13.1f, 122f, 104f, IMG_ARROW_CONTENT_IMG, UiCreatorKit.Palette.BtnSecond);
+            IgnoreLayout(contentImg.rectTransform);
 
-            Image autoImg = Img("autoImg", rectConta, 0f, -54.9f, 230f, 26f, IMG_ARROW_AUTO_BG, UiCreatorKit.Palette.BtnNeutral);
+            Image autoImg = Img("autoImg", rectConta, 0f, 0f, 230f, 26f, IMG_ARROW_AUTO_BG, UiCreatorKit.Palette.BtnNeutral);
+            autoImg.rectTransform.anchorMin = autoImg.rectTransform.anchorMax = new Vector2(0.5f, 0f);
+            autoImg.rectTransform.pivot = new Vector2(0.5f, 1f);
+            autoImg.rectTransform.anchoredPosition = new Vector2(0f, 9f);
+            IgnoreLayout(autoImg.rectTransform);
             RectTransform autoLbHBox = UiCreatorKit.NewNode("AutoLbHBox", autoImg.transform);
             UiCreatorKit.Place(autoLbHBox, 0f, 0f, 206f, 23f);
-            TextMeshProUGUI autoLb = UiCreatorKit.NewText("autoLb", autoLbHBox, "");
-            UiCreatorKit.Place(autoLb.rectTransform, 0f, 0f, 206f, 23f);
-            autoLb.fontSize = 18f;
-            autoLb.color = Color.white;
-            autoLb.richText = true;
+            HorizontalLayoutGroup countdownLayout = autoLbHBox.gameObject.AddComponent<HorizontalLayoutGroup>();
+            countdownLayout.childAlignment = TextAnchor.MiddleCenter;
+            countdownLayout.spacing = 0f;
+            countdownLayout.childControlWidth = false;
+            countdownLayout.childControlHeight = false;
+            countdownLayout.childForceExpandWidth = false;
+            countdownLayout.childForceExpandHeight = false;
 
-            TextMeshProUGUI autoLb2 = Txt("autoLb2", rectConta, 0f, -55.9f, 120f, 24f, "", 20f, "#0a9f42");
+            TextMeshProUGUI autoLb = Txt("autoLb", autoLbHBox, 0f, 0f, 24f, 23f, "10", 18f, "#ffff00");
+            autoLb.fontSize = 18f;
+            autoLb.textWrappingMode = TextWrappingModes.NoWrap;
+
+            TextMeshProUGUI autoLb2 = Txt("autoLb2", autoLbHBox, 0f, 0f, 126f, 23f, "秒后自动继续", 18f, "#ffffff");
+            autoLb2.textWrappingMode = TextWrappingModes.NoWrap;
+
+            // 四个方向各有一个纯 prefab 锚点。运行时只选择锚点和旋转，不再计算箭头坐标。
+            RectTransform arrowDownAnchor = NewArrowAnchor("ArrowDownAnchor", rectConta, new Vector2(0.5f, 0f), new Vector2(0f, -26f));
+            RectTransform arrowLeftAnchor = NewArrowAnchor("ArrowLeftAnchor", rectConta, new Vector2(0f, 0.5f), new Vector2(-26f, 0f));
+            RectTransform arrowUpAnchor = NewArrowAnchor("ArrowUpAnchor", rectConta, new Vector2(0.5f, 1f), new Vector2(0f, 26f));
+            RectTransform arrowRightAnchor = NewArrowAnchor("ArrowRightAnchor", rectConta, new Vector2(1f, 0.5f), new Vector2(26f, 0f));
+
+            RectTransform arrowEffect = UiCreatorKit.NewNode("arrow_effect", arrowLeftAnchor);
+            UiCreatorKit.Place(arrowEffect, 0f, 0f, 52f, 52f);
+            Image image1 = Img("ArrowHeadImage", arrowEffect, 0f, 0f, 52f, 52f, IMG_ARROW_HEAD, UiCreatorKit.Palette.BtnPrimary); // 老端: _Image1
 
             // circle_effect: 源 JSON 有此节点但 ArrowComponentBind 未收录字段(无引用),保留为空占位盒。
             RectTransform circleEffect = UiCreatorKit.NewNode("circle_effect", root);
@@ -624,6 +666,10 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             view.autoImg = autoImg;
             view.autoLb = autoLb;
             view.autoLb2 = autoLb2;
+            view.arrowDownAnchor = arrowDownAnchor;
+            view.arrowLeftAnchor = arrowLeftAnchor;
+            view.arrowUpAnchor = arrowUpAnchor;
+            view.arrowRightAnchor = arrowRightAnchor;
 
             root.gameObject.SetActive(true);
             GameObject saved = UiCreatorKit.SavePrefab(root.gameObject, ArrowPrefabPath);
@@ -674,6 +720,25 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             if (ColorUtility.TryParseHtmlString(hexColor, out Color c)) t.color = c;
             t.alignment = align;
             return t;
+        }
+
+        /// <summary>让装饰节点脱离父 LayoutGroup，RectTransform 可直接在 prefab 中拖动。</summary>
+        private static void IgnoreLayout(RectTransform rect)
+        {
+            LayoutElement element = rect.gameObject.AddComponent<LayoutElement>();
+            element.ignoreLayout = true;
+        }
+
+        /// <summary>建立跟随气泡边缘的方向锚点；用户可在 prefab 中直接拖锚点微调箭头。</summary>
+        private static RectTransform NewArrowAnchor(string name, Transform parent, Vector2 anchor, Vector2 offset)
+        {
+            RectTransform rect = UiCreatorKit.NewNode(name, parent);
+            rect.anchorMin = rect.anchorMax = anchor;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = Vector2.zero;
+            rect.anchoredPosition = offset;
+            IgnoreLayout(rect);
+            return rect;
         }
 
         /// <summary>

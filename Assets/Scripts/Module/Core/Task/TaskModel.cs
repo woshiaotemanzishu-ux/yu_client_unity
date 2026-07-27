@@ -23,6 +23,8 @@ namespace Shenxiao.Module.Core.Tasks
         public const int NORMAL_DAILY = 8;
         public const int EUDAEMON_TASK = 9;
         public const int KFHOLYAREA_TASK = 10;
+        // 老端 TaskModel.FIRST_TASK_ID：首个主线任务不走 ConfigTaskArrow，客户端直接展示任务框引导。
+        public const int FIRST_TASK_ID = 100010;
         public const int GUIDE_TASK = 101870;
         // —— task_tips_type(服务端 pt_300 下发的提示类型;对标老端 TaskTipType,yu_client TaskModel.ts:52-243)——
         public const int TIP_KILL = 1;
@@ -137,6 +139,16 @@ namespace Shenxiao.Module.Core.Tasks
             if (task == null)
             {
                 GameLog.Info("Task", "FindNextAutoFightTask: no main-line task");
+                return;
+            }
+
+            // 老端 FindNextAutoFightTask 在真正 DoTask 前先取主界面引导配置；有引导时由任务框
+            // 的点击/倒计时接管，自动任务必须停住。把门禁放在统一入口，覆盖登录点火、30001
+            // 续跑和 MainUI 兜底轮询，避免其中任一路径抢先触发选中事件并隐藏引导。
+            if (ShouldHoldAutoTaskForMainLineGuide(task))
+            {
+                GameLog.Info("Task", "FindNextAutoFightTask held by main-ui guide: task={0} tipsType={1}",
+                    task.TaskId, task.TaskTipsType);
                 return;
             }
 
