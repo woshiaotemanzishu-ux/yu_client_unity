@@ -35,9 +35,10 @@ namespace Shenxiao.Module.Core.MainUI
         /// 1.3s 内不重挂特效(避免 ui_zhanli 一次性粒子被疯狂重播)。这里用时间戳惰性判断代替 setTimeout。</summary>
         private const float EffectReplayCooldown = 1.3f;
 
-        /// <summary>对标老端 AddUIEffect("ui_zhanli", box, null, 1, ...) 的 scale=1;12.8 是 UIEffectStage
-        /// 相机固定取景 12.8 世界单位的换算基准(同 ActivityIcon/MainUIDownView 的既有用法),不是新发明的值。</summary>
-        private const float EffectScale = 12.8f;
+        /// <summary>对标老端 AddUIEffect("ui_zhanli", box, null, 1, ...) 的 scale=1(FightingUpView.ts:261)。
+        /// 曾误用 12.8「取景基准」:ui_zhanli 的 Glow 粒子 startSize=7 世界单位,×12.8=89.6 是取景全高 12.8 的 7 倍,
+        /// 整个弹层被橙色 glow 灌满成矩形(主界面截图实锤)。特效缩放无通用基准,必须逐个对账老端调用点。</summary>
+        private const float EffectScale = 1f;
         private const string EffectName = "ui_zhanli";
 
         /// <summary>整体停留多少秒后自动关闭(对标老端 wait_time=1.8)。</summary>

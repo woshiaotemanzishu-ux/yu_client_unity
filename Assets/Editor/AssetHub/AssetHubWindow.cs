@@ -77,6 +77,29 @@ namespace Shenxiao.Editor.AssetHub
             w.SelectDomainByName("特效");
         }
 
+        /// <summary>供调试入口/命令行精确打开一个特效；同时修正列表筛选，避免在上千条资源里停留在错误条目。</summary>
+        public static bool OpenEffect(string idOrName)
+        {
+            var w = GetWindow<AssetHubWindow>("资产管理");
+            w.minSize = new Vector2(900f, 520f);
+            w._mode = HubMode.Library;
+            w.SelectDomainByName("特效");
+
+            string needle = (idOrName ?? string.Empty).Replace('\\', '/').Trim().ToLowerInvariant();
+            string shortName = Path.GetFileNameWithoutExtension(needle);
+            AssetEntry entry = w._entries.FirstOrDefault(e =>
+                string.Equals(e.Id, needle, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(Path.GetFileNameWithoutExtension(e.LhPath), shortName, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(Path.GetFileNameWithoutExtension(e.PrefabPath), shortName, StringComparison.OrdinalIgnoreCase));
+            if (entry == null) return false;
+
+            w._search = entry.Id;
+            w.SelectEntry(entry);
+            w.Focus();
+            w.Repaint();
+            return true;
+        }
+
         /// <summary>按域名定位左栏(供独立菜单入口用)。</summary>
         public void SelectDomainByName(string name)
         {
@@ -1068,10 +1091,13 @@ namespace Shenxiao.Editor.AssetHub
                     return;
                 }
 
-                _search = EditorGUILayout.TextField(_search, EditorStyles.toolbarSearchField);
+                string nextSearch = EditorGUILayout.TextField(_search, EditorStyles.toolbarSearchField);
+                bool searchChanged = nextSearch != _search;
+                _search = nextSearch;
                 List<AssetEntry> shown = string.IsNullOrEmpty(_search)
                     ? _entries
                     : _entries.Where(e => e.SearchText.Contains(_search.ToLowerInvariant())).ToList();
+                if (searchChanged && shown.Count == 1) SelectEntry(shown[0]);
                 var shownPending = shown.Where(e =>
                     StatusOf(e) == EntryStatus.NotConverted || StatusOf(e) == EntryStatus.Stale).ToList();
                 var shownResettableEffects = shown.Where(e => e.Kind == AssetKind.Effect
@@ -1124,13 +1150,20 @@ namespace Shenxiao.Editor.AssetHub
                         EditorGUI.DrawRect(row, new Color(0.24f, 0.49f, 0.91f, 0.35f));
                     if (GUI.Button(row, label, RowStyle) && _selected != e)
                     {
-                        _selected = e;
-                        _laniFoldout = false;
-                        GUI.FocusControl(null);
+                        SelectEntry(e);
                     }
                 }
                 EditorGUILayout.EndScrollView();
             }
+        }
+
+        private void SelectEntry(AssetEntry entry)
+        {
+            _selected = entry;
+            _laniFoldout = false;
+            _listScroll = Vector2.zero;
+            _detailScroll = Vector2.zero;
+            GUI.FocusControl(null);
         }
 
         // 新模型(美术成品)交付状态缓存(GetPartArtStatus 要给几 MB 的 prefab 算 MD5,不能每帧调)
@@ -1666,6 +1699,14 @@ namespace Shenxiao.Editor.AssetHub
                 else if (e.Kind == AssetKind.Effect)
                 {
                     DrawEffectStructure(e, s);
+                    using (new EditorGUI.DisabledScope(s != EntryStatus.Converted && s != EntryStatus.Stale))
+                    {
+                        if (GUILayout.Button("打开真实运行 Prefab（可编辑）", GUILayout.Height(24f)))
+                        {
+                            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(e.PrefabPath);
+                            if (prefab != null) AssetDatabase.OpenAsset(prefab);
+                        }
+                    }
                 }
 
                 EditorGUILayout.Space(4f);
@@ -1711,9 +1752,64 @@ namespace Shenxiao.Editor.AssetHub
                 }
                 EditorGUILayout.EndScrollView();
 
-                // 可播放预览(拖拽旋转/滚轮缩放;点上面的动作行即播)
+                if (_preview.HasParticles) DrawParticlePreviewControls();
+
+                // 可播放预览(模型:拖拽旋转/滚轮缩放;UI特效:锁定运行时正交方向、滚轮缩放)
                 Rect previewRect = GUILayoutUtility.GetRect(200f, 280f, GUILayout.ExpandWidth(true));
                 _preview.OnGUI(previewRect);
+            }
+        }
+
+        private void DrawParticlePreviewControls()
+        {
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+            {
+                EditorGUILayout.LabelField(
+                    _preview.IsUiEffect ? "粒子预览（UI运行时同方向）" : "粒子预览",
+                    EditorStyles.boldLabel);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button(_preview.ParticlePlaying ? "❚❚ 暂停" : "▶ 播放", GUILayout.Width(74f)))
+                        _preview.ToggleParticles();
+                    if (GUILayout.Button("↺ 重播", GUILayout.Width(60f)))
+                        _preview.RestartParticles();
+                    if (GUILayout.Button("-1帧", GUILayout.Width(52f)))
+                        _preview.StepParticles(-1f / 60f);
+                    if (GUILayout.Button("+1帧", GUILayout.Width(52f)))
+                        _preview.StepParticles(1f / 60f);
+                    GUILayout.FlexibleSpace();
+                }
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField("速度预设", GUILayout.Width(54f));
+                    if (GUILayout.Button("0.1×", GUILayout.Width(44f))) _preview.ParticlePlaybackSpeed = 0.1f;
+                    if (GUILayout.Button("0.25×", GUILayout.Width(48f))) _preview.ParticlePlaybackSpeed = 0.25f;
+                    if (GUILayout.Button("0.5×", GUILayout.Width(44f))) _preview.ParticlePlaybackSpeed = 0.5f;
+                    if (GUILayout.Button("1×", GUILayout.Width(36f))) _preview.ParticlePlaybackSpeed = 1f;
+                    GUILayout.FlexibleSpace();
+                }
+
+                _preview.ParticlePlaybackSpeed = EditorGUILayout.Slider(
+                    "播放速度", _preview.ParticlePlaybackSpeed, 0.05f, 2f);
+
+                EditorGUI.BeginChangeCheck();
+                float time = EditorGUILayout.Slider(
+                    $"时间  {_preview.ParticleTime:0.000}s / {_preview.ParticleDuration:0.000}s",
+                    _preview.ParticleTime, 0f, _preview.ParticleDuration);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (_preview.ParticlePlaying) _preview.ToggleParticles();
+                    _preview.SetParticleTime(time);
+                }
+
+                EditorGUI.BeginChangeCheck();
+                int solo = EditorGUILayout.Popup("单独查看节点", _preview.ParticleSoloIndex, _preview.ParticleOptions);
+                if (EditorGUI.EndChangeCheck()) _preview.SetParticleSolo(solo);
+
+                if (_preview.IsUiEffect)
+                    EditorGUILayout.LabelField("固定 720×1280 正交相机 + Laya 横向镜像补偿；滚轮仅缩放。", EditorStyles.miniLabel);
             }
         }
 
