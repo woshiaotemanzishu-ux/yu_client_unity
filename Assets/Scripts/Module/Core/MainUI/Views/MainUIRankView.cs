@@ -245,6 +245,12 @@ namespace Shenxiao.Module.Core.MainUI
             GameObject inst = Instantiate(prefab);
             _cycleModelStage.PlaceInstance(model_gp, inst, mp.Scale, mp.Position, mp.Rotate);
             _ = PlayModelAction(inst, module, showId, mp.Action);
+            // 老端 SetRoleModel 在模型本体加载完成后还会读取
+            // SceneObjectParticle.{FaBao/Horse/Wing/...}[showId].always 并挂到对应骨骼。
+            // 模型 prefab 本身不内嵌这些粒子；只送进 UIModelStage 会得到“有模型、无光效”的残缺画面。
+            // 先让模型上台，再异步补挂常驻特效，保持老端“模型先出现、特效随后加载”的时序；
+            // Stage/活动切换销毁宿主时 EffectBinder 会自弃加载结果并归还资源。
+            _ = EffectBinder.AttachAlways(inst, module, showId);
             GameLog.Info("CycleModel", "模型上台 key={0} scale={1} action={2}", key, mp.Scale, mp.Action);
         }
 

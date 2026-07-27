@@ -99,3 +99,11 @@ UIEffectStage（兼容入口）
 - 单个转换特效统一使用 `神霄/资源/特效管理`：直接选择任意特效 Prefab，支持播放、暂停、重播、倍速和逐帧，不为每个资源新增菜单。
 - `BossBornIntro` 这类“遮罩 + UI 层显隐 + 动态特效 + 业务完成回调”的组合演出不是单个特效资源，应预览最终业务 Prefab；当前可从“神霄/重构 UI 生成器”选择对应条目，专用菜单只是同一 Preview 回调的快捷入口。
 - 后续再出现组合演出，优先注册到统一 UiCreator/Prefab 预览入口；若数量明显增长，再把该入口提升为“选择任意组合 Prefab 的通用预览台”。禁止长期按每个特效复制一套相机、场景或独立预览窗口。
+
+## UI 中的 3D 模型骨骼特效边界
+
+- `UIEffectStage/UIEffectSlot` 只负责独立的 UI 特效；随 3D 模型骨骼运动的常驻粒子不走这条通道。
+- 老端 `SetRoleModel` 不只加载模型和动作，还会读取 `SceneObjectParticle.{Body/Horse/Wing/FaBao/...}[modelId].always`。Unity 中对应职责是：实例化模型后调用 `EffectBinder.AttachAlways(model, module, modelId)`，再由 `UIModelStage` 展示整棵模型树。
+- 禁止因为模型 prefab 已能显示，就假定附属粒子已内嵌。转换后的模型 prefab 与 `effect/objs/{type}` 特效 prefab 是分离资产，漏掉 `EffectBinder` 会稳定表现为“模型和动画正常、光效完全缺失”。
+- MainUI 循环冲榜卡 `MainUIRankView` 已按此规则接入。截图中的古法符相 `FaBao[1011]` 会挂 `effect_fabao_1011_Bone_06` 与 `effect_fabao_1011_Bone_14`；同一入口的坐骑、剑魄、翅膀、神兵和背饰也复用同一配置链。
+- `RankEffectSlot` 上的 `ui_cb01` 属于头号玩家榜的独立全屏 UI 特效，与循环冲榜 3D 模型的骨骼特效不是同一条链，排查和接入时不得混用。

@@ -6,7 +6,7 @@
 > - [编码规范](Shenxiao编码规范.md)
 > - [Copilot 红线](../.github/copilot-instructions.md)
 
-**最近更新**：2026-07-27
+**最近更新**：2026-07-28
 
 **状态图例**：
 - ✅ 已完成
@@ -1324,3 +1324,16 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **根因**：`FightingUpView` 位于 `Window` 层，任务对话会临时禁用该父层；Unity 自动关闭 Coroutine 随父层失活被终止，但旧 `_autoClose` 句柄仍非空，恢复后既显示旧提示又无法重启关闭计时。
 - **修复**：自动关闭改为 `Time.unscaledTime` 绝对截止时间，不再依赖会被父层生命周期中断的 Coroutine；父层恢复后若已超时，首帧立即关闭。连续战力更新仍会重新延后 1.8 秒。
 - **验证状态**：`Shenxiao.Module.Core.csproj` 离线编译 0 error；待 Play Mode 复验“战力提示期间进入任务对话再返回”的交叉路径。
+
+## 2026-07-28：主界面循环冲榜 3D 模型常驻特效
+
+- **根因**：老端 `SetRoleModel` 会在模型和动作之外继续读取 `SceneObjectParticle` 并挂载骨骼常驻特效；
+  Unity `MainUIRankView` 的轻量模型路径只执行 prefab 实例化、`UIModelStage` 上台和动作播放，漏掉了
+  `EffectBinder`，所以稳定表现为“模型正常、附属光效消失”。
+- **修复**：循环冲榜模型上台后按 `module + showId` 调用 `EffectBinder.AttachAlways`。古法符相
+  `FaBao[1011]` 的 `Bone_06/Bone_14` 两套特效以及坐骑、剑魄、翅膀、神兵、背饰均复用同一配置链；
+  活动关闭或模型切换时继续随模型宿主统一销毁。
+- **边界**：该链属于 3D 模型骨骼特效，不启用头号玩家榜独立的 `RankEffectSlot/ui_cb01`，也不走
+  `UIEffectStage` 共享 UI 特效通道。
+- **验证状态**：模型、目标骨骼、对应特效 prefab 与 Addressables 地址静态核对通过；离线编译通过后，
+  仍需 Play Mode 打开古法符相竞榜卡，确认书卷周围的两层常驻光效随模型旋转且关闭活动后无残留。
