@@ -3538,9 +3538,9 @@
         public const int FASHION_FIGURE_PUSH = 41311;
 
         // ----- 公会晚宴 GuildActivity(pt_402 主体,yu_server src/guild_act/;老端 commonController/
-        // GuildActivityController.ts。自动循环 轮22 PK1:26 号(公会BOSS 40201/03/04/08/09 + 晚宴主流程
+        // GuildActivityController.ts。自动循环 轮22 PK1 + R217:27 号(公会BOSS 40201/03/04/08/09 + 晚宴主流程
         // 40211/12/14/17/20/21/22 + 篝火/答题/龙魂/菜肴 40255/56/57/58/59/60/62/64/65/66/67 + 族错误出口
-        // 40200)。结社守卫(40230-32)按主控裁决2 全部 killlist,不在此列;40263(召唤远古巨龙)三层死透
+        // 40200 + 结社守卫40230)。40230 经 R217 真实发送链翻案接入,仅 40231/40232 继续 killlist;40263(召唤远古巨龙)三层死透
         // (c2s pp_guild_act.erl:624-643 整段注释,S2C 唯一调用链 lib_guild_feast.erl:1096-1127→
         // mod_guild_feast_mgr.erl:240-241,1240-1247 均只被该已注释 c2s 触达,kf 模块 mod_kf_guild_feast_topic
         // 核实与 dragon/fire 无关——全仓 grep 零命中,无接管),发送/接收均不实现,不建常量,归 PK3 killlist。 -----
@@ -3593,6 +3593,9 @@
         /// <summary>40222 当日轮换小游戏类型(GameType:8,1=答题/2=消消乐)。C2S 空包。
         /// server handle(40222,_)(L279)。</summary>
         public const int GUILDFEAST_GAME_TYPE = 40222;
+        /// <summary>进入结社守卫。C2S 严格空包；S2C errcode:u32。前置/活动失败真实走共享 40200，
+        /// 40230 仅作成功确认(mod_guild_guard.erl:194-195,234-235)，副本/场景状态由权威链另行承载。</summary>
+        public const int GUILD_GUARD_ENTER = 40230;
         /// <summary>40255 经验/贡献推送(Type:8,Exp:64)。**纯被动收,老端从未主动发送**(全仓 zero
         /// Fire(REQUEST_PROTO,40255)/SendFmtToGame(40255)),真正驱动号是玩家在晚宴场景获得经验时
         /// player/lib_player.erl:460 内部直调 mod_guild_feast_mgr:send_exp_by_cast,不经 c2s。

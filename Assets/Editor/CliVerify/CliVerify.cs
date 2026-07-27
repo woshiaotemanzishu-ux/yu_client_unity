@@ -604,6 +604,11 @@ namespace Shenxiao.EditorTools
             Run(GuildActivityCase.Run, 300.0);
         }
 
+        public static void GuildGuardEnter()
+        {
+            Run(GuildGuardEnterCase.Run, 60.0);
+        }
+
         /// <summary>轮23 PK1 星宿核心数据层(pt_232 23200-23209/23250-23257,17号)合成包驱动
         /// StarEquipController 反射喂包,断言 StarEquipModel 落地字段/事件 + config 17 表计数 +
         /// 23201/23250 尾哨兵字节游标核对 + 23204 killlist 死号断言(详见 StarEquipCase 注释)。

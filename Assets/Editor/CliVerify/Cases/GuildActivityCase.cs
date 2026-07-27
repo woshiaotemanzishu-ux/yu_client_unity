@@ -9,7 +9,7 @@ namespace Shenxiao.EditorTools
     /// <summary>
     /// 公会晚宴(pt_402 主体,自动循环 轮22 PK1)实证:公会BOSS(40201/03/04/08/09)+ 晚宴主流程
     /// (40211/12/14/17/20/21/22)+ 篝火/答题/龙魂/菜肴(40255/56/57/58/59/60/62/64/65/66/67)+ 族错误出口
-    /// 40200,共 26 号合成包驱动 GuildActivityController 反射喂包,断言 GuildActivityModel 落地字段/事件 +
+    /// 40200,共 26 个原有号合成包驱动 GuildActivityController 反射喂包,断言 GuildActivityModel 落地字段/事件 +
     /// config 六项计数(模板 MarriageCase,纯逻辑段)。
     ///
     /// 重点覆盖:40208 结算奖励 Gnum:**16**独例(勿与40257/40262/40266标准ObjectList的Num:32混淆);
@@ -22,7 +22,7 @@ namespace Shenxiao.EditorTools
     /// GuildActivityController 类注释②③④与主控裁决3/4)。
     ///
     /// UI 层:33 个 EveningXXX 相关 View 里 prefab 只烤了 4 个,本轮数据层only不接 View(同 15a/15b Boss
-    /// 先例,纯数据层轮无渲染段);结社守卫(40230-32)按裁决2 全部 killlist,不在本 Case 覆盖范围。
+    /// 先例,纯数据层轮无渲染段);结社守卫 40230 经 R217 翻案由 GuildGuardEnterCase 聚焦覆盖，仅 40231/40232 继续 killlist。
     /// </summary>
     public static class GuildActivityCase
     {

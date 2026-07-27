@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
@@ -9,12 +10,12 @@ namespace Shenxiao.Module.Core.GuildActivity
     /// <summary>
     /// 公会晚宴(pt_402 主体,自动循环 轮22 PK1)控制器:老端 GuildActivityController.ts 全实现的活玩法,
     /// 公会日常社交主入口。本轮 26 号纯数据层接入(公会BOSS 40201/03/04/08/09 + 晚宴主流程
-    /// 40211/12/14/17/20/21/22 + 篝火/答题/龙魂/菜肴 40255/56/57/58/59/60/62/64/65/66/67 + 族错误出口
-    /// 40200)。UI(33 个 view,prefab 只烤了 4 个)与场景内交互本轮不接(主控裁决11),数据从
+    /// 40211/12/14/17/20/21/22 + 结社守卫40230 + 篝火/答题/龙魂/菜肴 40255/56/57/58/59/60/62/64/65/66/67
+    /// + 族错误出口40200，共27号)。UI(33 个 view,prefab 只烤了 4 个)与场景内交互本轮不接(主控裁决11),数据从
     /// GuildActivityModel 取,消费方留 port-view-bindings 尾包,同 15a/15b Boss 先例。
     ///
     /// 新建独立模块(不并入 GuildController,老端就是独立 GuildActivityController.ts,主控裁决12)。
-    /// 结社守卫(40230-32)按主控裁决2 全部 killlist,不在此模块范围内。
+    /// 结社守卫 40230 经 R217 真实请求及专属成功 writer 翻案接入；仅 40231/40232 继续 killlist。
     ///
     /// 纪律/存疑核实结论(逐条附证据行号,供 PK3 落 killlist/baseline):
     /// ①**40218(裁决3 核实)**:c2s"退出晚宴场景"请求会被真实处理(pp_guild_act.erl:242-251,内部调
@@ -62,6 +63,9 @@ namespace Shenxiao.Module.Core.GuildActivity
     public sealed class GuildActivityController : BaseController
     {
         public static readonly GuildActivityController Instance = new GuildActivityController();
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_guardEnterOutboundIntercept = null;
+#endif
         private GuildActivityController() { }
 
         private static void ShowError(int errorCode) => TipsManager.Toast("错误(" + errorCode + ")"); // 错误码表未移植,显码降级
@@ -82,6 +86,7 @@ namespace Shenxiao.Module.Core.GuildActivity
             RegisterProtocal(Proto.GUILDFEAST_MY_RANK, On40220);
             RegisterProtocal(Proto.GUILDFEAST_MINI_GAME_STATUS, On40221);
             RegisterProtocal(Proto.GUILDFEAST_GAME_TYPE, On40222);
+            RegisterProtocal(Proto.GUILD_GUARD_ENTER, On40230);
             RegisterProtocal(Proto.GUILDFEAST_EXP_PUSH, On40255);
             RegisterProtocal(Proto.GUILDFEAST_FIRE_INFO, On40256);
             RegisterProtocal(Proto.GUILDFEAST_FIRE_REWARD, On40257);
@@ -303,6 +308,21 @@ namespace Shenxiao.Module.Core.GuildActivity
             GuildActivityModel.Instance.SetGameType(gameType);
             EventDispatcher.Emit(GlobalEvent.EVT_GUILDACT_GAME_TYPE_UPDATE, gameType);
             GameLog.Info("GuildActivity", "40222 当日小游戏类型 gameType={0}", gameType);
+        }
+
+        /// <summary>40230 进入结社守卫，严格空包；失败由 40200 返回，40230 仅作成功确认。</summary>
+        public void RequestGuardEnter()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.GUILD_GUARD_ENTER, null, null);
+            if (s_guardEnterOutboundIntercept != null && s_guardEnterOutboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.GUILD_GUARD_ENTER);
+        }
+
+        private void On40230(NetReader r)
+        {
+            GuildActivityModel.Instance.ReplaceGuardEnterResult(r.ReadU32());
         }
 
         // ---------------------------------------------------------------------------------------

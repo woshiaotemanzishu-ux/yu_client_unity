@@ -4,10 +4,10 @@ namespace Shenxiao.Module.Core.GuildActivity
 {
     /// <summary>
     /// 公会晚宴(pt_402 主体,自动循环 轮22 PK1)数据层:公会BOSS(40201/03/04/08/09)+ 晚宴主流程
-    /// (40211/12/14/17/20/21/22)+ 篝火/答题/龙魂/菜肴(40255/56/57/58/59/60/62/64/65/66/67)+
-    /// 族错误出口 40200,共 26 号纯数据落地,不含表现层逻辑(对标老端 GuildActivityModel.ts 的数据子集;
+    /// (40211/12/14/17/20/21/22)+ 结社守卫40230 + 篝火/答题/龙魂/菜肴(40255/56/57/58/59/60/62/64/65/66/67)+
+    /// 族错误出口 40200,共 27 号纯数据落地,不含表现层逻辑(对标老端 GuildActivityModel.ts 的数据子集;
     /// UI 33 个 view 里 prefab 只烤了 4 个,消费方留尾包,见 GuildActivityController 类注释)。
-    /// 结社守卫(40230-32)按主控裁决2 全部 killlist,不在此模块范围内。
+    /// 结社守卫 40230 经 R217 翻案接入原始成功确认快照；仅 40231/40232 继续 killlist。
     /// </summary>
     public sealed class GuildActivityModel
     {
@@ -144,6 +144,19 @@ namespace Shenxiao.Module.Core.GuildActivity
         public int GameType { get; private set; }
         public void SetGameType(int type) => GameType = type;
 
+        public bool HasGuardEnterResult { get; private set; }
+        public uint GuardEnterResultCode { get; private set; }
+        public void ReplaceGuardEnterResult(uint code)
+        {
+            HasGuardEnterResult = true;
+            GuardEnterResultCode = code;
+        }
+        public void ResetGuardEnterResult()
+        {
+            HasGuardEnterResult = false;
+            GuardEnterResultCode = 0;
+        }
+
         // ============================================================================================
         // §3 篝火/答题/龙魂/菜肴(40255 经验推送/40256 火苗信息/40257 采集火苗奖励/40258 阶段推送/
         // 40259 答题/40260 龙魂信息/40262 战斗结果/40264 购买菜肴/40265 菜肴状态/40266 排名奖励/
@@ -239,6 +252,7 @@ namespace Shenxiao.Module.Core.GuildActivity
             MyRank = 0; MyPoint = 0; HasMyRank = false;
             MiniGameFinished = false; HasMiniGameStatus = false;
             GameType = 0;
+            ResetGuardEnterResult();
             LastExpPushType = 0; LastExpPushValue = 0;
             Fire = null;
             LastFireReward.Clear();
