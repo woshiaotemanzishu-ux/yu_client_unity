@@ -1598,6 +1598,9 @@
         /// new_goods_type_id:i)。主线 100990(ctype33)=镶嵌一次(孔位1无条件开放)。</summary>
         public const int RUNE_WEAR = 16701;
 
+        /// <summary>小游戏家族统一错误出口。无 C2S；S2C(pt_399): errcode:u32, msg:string。</summary>
+        public const int MINI_GAME_ERROR = 39900;
+
         // ----- 结社/公会(pt_400,yu_server guild;老端 GuildJoinView.ts/GuildBuildView.ts) -----
         /// <summary>结社列表(发 "shh" name,pageSize,pageNo;回包 page_total:h, page_no:h, guild_list[u16×{guild_id:l,
         /// guild_name:s, guild_lv:h, guild_exp:i, chief_id:l, chief_name:s, member_num:h, member_capacity:h,

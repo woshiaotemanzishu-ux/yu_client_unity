@@ -724,6 +724,10 @@ namespace Shenxiao.EditorTools
         {
             Run(HotPointCase.Run, 60.0);
         }
+        public static void MiniGame()
+        {
+            Run(MiniGameCase.Run, 60.0);
+        }
         public static void JjcRecords()
         {
             Run(JjcRecordsCase.Run, 60.0);
