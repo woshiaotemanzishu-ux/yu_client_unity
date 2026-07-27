@@ -1318,3 +1318,9 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **实例预建**：`ReplaceableRoleModel.PrepareActionsAsync` 在角色正式显示前静默预建新动作实例和未替换动作的旧模型分支；`MainRoleFlow` 对新建与同形象复用都执行首战动作准备，预热期间不改变当前 `idle`。
 - **验证状态**：`Shenxiao.Module.Core.csproj` 与 `Shenxiao.Editor.csproj` 离线编译均 0 error；`SceneMixDriverCase` 已增加“run/attack 已预建且 idle 未被抢台”的回归断言。活服需要停止并重新进入 Play Mode，以第一次普攻和第一次主动技能做冷启动复验。
 - **经验文档**：[战斗表现首次施法卡顿-经验与排障.md](战斗表现首次施法卡顿-经验与排障.md)。
+
+## 2026-07-27：战力提示偶发不关闭
+
+- **根因**：`FightingUpView` 位于 `Window` 层，任务对话会临时禁用该父层；Unity 自动关闭 Coroutine 随父层失活被终止，但旧 `_autoClose` 句柄仍非空，恢复后既显示旧提示又无法重启关闭计时。
+- **修复**：自动关闭改为 `Time.unscaledTime` 绝对截止时间，不再依赖会被父层生命周期中断的 Coroutine；父层恢复后若已超时，首帧立即关闭。连续战力更新仍会重新延后 1.8 秒。
+- **验证状态**：`Shenxiao.Module.Core.csproj` 离线编译 0 error；待 Play Mode 复验“战力提示期间进入任务对话再返回”的交叉路径。

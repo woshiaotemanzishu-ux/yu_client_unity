@@ -192,6 +192,9 @@ var go = Object.Instantiate(prefab); // 来源不是 ResManager 的禁止
   布局改 yu_client 源头后重转，prefab 手调是最后手段且模块要标记验收
 - 运行时动态换图统一 `ResManager.SetImageAsync`（Laya `SetTexture` 对等物）
 - 事件订阅在 `OnShow`，反订阅在 `OnHide`，资源释放在 `OnDispose`
+- 会被父级 UI Layer 临时 `SetActive(false)` 的提示窗，自动关闭不得只依赖 `WaitForSeconds` Coroutine；
+  父层失活会终止协程且可能留下非空句柄。应保存 `Time.unscaledTime` 绝对截止时间，恢复后的首帧补关，
+  同时避免受 `timeScale` 影响。
 - 不要把业务数据存在 View 上，View 只渲染；数据放对应 Module 的 Model
 - 业务行为对齐老客户端时**必须查 yu_client TS 源码**，不要凭记忆/猜测
   （协议时机、弹窗条件、状态持久化口径都以源码为准）

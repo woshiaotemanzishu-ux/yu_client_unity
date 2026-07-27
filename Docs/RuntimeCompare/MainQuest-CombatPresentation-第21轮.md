@@ -88,3 +88,10 @@
 2. 重新进入 Play Mode 后点②预览，检查金色当前战力、绿色 `+580` 均为原图字形；绿色增量在主数值上方并与其右边缘对齐。
 3. 在实际战力变化中确认提示水平居中、距屏幕底部保持老端 400 设计单位，不再随屏幕高度漂到任务框附近。
 4. 离线编译：`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 均 0 error；最终视觉结果以生成后的 Play Mode 预览截图为准。
+
+## 2026-07-27 补充：FightingUpView 偶发不自动关闭
+
+- **复现条件**：战力动画完成并启动 1.8 秒关闭协程后，任务对话调用 `DialogueView.SetMainLayersVisible(false)`，把 `Window` 父层临时设为 inactive；对话结束后恢复该层。
+- **根因**：Unity 在父层失活时终止子节点 Coroutine，但 `_autoClose` 仍保留非空句柄。窗口恢复后继续显示，`StartAutoClose` 又被非空守卫拦截，因此永久不关。老端使用浏览器 `setTimeout`，不受显示树和游戏 `timeScale` 影响。
+- **修复**：去掉自动关闭 Coroutine，改存 `Time.unscaledTime + waitSeconds` 的绝对截止时间；正常显示时到点关闭，父层被隐藏时继续计时，恢复后的第一帧发现超时立即补关。连续战力增长仍由 `StopAutoClose/StartAutoClose` 重置截止时间，累加动画语义不变。
+- **验证**：`dotnet build Shenxiao.Module.Core.csproj --no-restore` 0 error；运行态需覆盖“战力提示出现 → 立刻进入任务对话 → 对话结束”路径，确认提示不会复活并常驻。

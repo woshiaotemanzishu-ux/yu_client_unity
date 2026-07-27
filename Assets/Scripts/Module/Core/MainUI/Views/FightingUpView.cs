@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Threading.Tasks;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Generated.UI.MainUI;
@@ -78,7 +77,10 @@ namespace Shenxiao.Module.Core.MainUI
         private float _effectPlayedAt = -EffectReplayCooldown;
         private UIEffectStage.Handle _effectHandle;
 
-        private Coroutine _autoClose;
+        // 老端 setTimeout 不受战斗暂停/UI 层显隐影响。Unity Coroutine 会在祖先 Window 层
+        // SetActive(false) 时被终止，句柄却仍非空，恢复后会误判“计时仍在”而永久不关。
+        // 改存非缩放绝对截止时间：层恢复后的第一帧立即补关，也不受 timeScale 影响。
+        private float _autoCloseAt = -1f;
 
         protected override void OnInit()
         {
@@ -186,7 +188,15 @@ namespace Shenxiao.Module.Core.MainUI
 
         private void Update()
         {
-            if (!_isPlaying) return;
+            if (!_isPlaying)
+            {
+                if (_autoCloseAt >= 0f && Time.unscaledTime >= _autoCloseAt)
+                {
+                    _autoCloseAt = -1f;
+                    Hide();
+                }
+                return;
+            }
             _nowFrame++;
 
             if (_nowFrame >= PlayEffectFrame && !_hasSetEffect)
@@ -295,24 +305,13 @@ namespace Shenxiao.Module.Core.MainUI
 
         private void StartAutoClose()
         {
-            if (_autoClose != null) return; // 对标老端 StartTime 的 if(!this.time_id) 守卫
-            _autoClose = StartCoroutine(AutoCloseRoutine());
+            if (_autoCloseAt >= 0f) return; // 对标老端 StartTime 的 if(!this.time_id) 守卫
+            _autoCloseAt = Time.unscaledTime + Mathf.Max(0f, _waitSeconds);
         }
 
         private void StopAutoClose()
         {
-            if (_autoClose != null)
-            {
-                StopCoroutine(_autoClose);
-                _autoClose = null;
-            }
-        }
-
-        private IEnumerator AutoCloseRoutine()
-        {
-            yield return new WaitForSeconds(_waitSeconds);
-            _autoClose = null;
-            Hide();
+            _autoCloseAt = -1f;
         }
 
         /// <summary>对标老端 Remove():关闭/销毁时把累加状态清零,下次重开当"首次打开"处理。</summary>
