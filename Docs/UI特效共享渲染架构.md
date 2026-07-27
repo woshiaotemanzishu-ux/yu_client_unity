@@ -54,6 +54,7 @@ UIEffectStage（兼容入口）
 
 - 全局项：RT 渲染倍率、最小/最大 RT 尺寸、闲置通道回收时间。
 - 差异项：按 effectName 选择 UI 层覆盖、渲染带、额外位置、缩放、Y 旋转和镜像修正。
+- `clipToRenderRect`：仅给依赖旧端实例私有 RT 边界的资源开启。共享通道通过实例级 shader 裁剪复刻旧视锥，不增加 Camera 或 RenderTexture。
 - `UIEffectSlot` 可选 profileId，常规特效保持 `default`，不需要业务代码。
 
 配置只描述差异。公共相机、材质、坐标和生命周期规则由服务统一维护。
@@ -88,6 +89,7 @@ UIEffectStage（兼容入口）
 ## 任务完成态特效约束
 
 - MainUI 左侧任务条的 `ui_renwulan` 只允许在 `IsAllStepFinish(taskId)` 为真时播放，未完成任务必须释放实例。
-- 任务条会按描述行数改变高度，并被列表循环复用。创建特效时必须把当次任务框尺寸作为固定 `renderSize` 传入共享舞台；尺寸变化后释放并按新尺寸重建，禁止让旧实例缩放继续乘新宿主高度。
+- 任务条会按描述行数改变高度，并被列表循环复用，但老端 `_box_effect` 始终保持 192×57；任务高度只参与特效 Y 缩放。Unity 必须保留这个固定宿主和固定 `renderSize`，不能把特效宿主跟随文字行数拉高。
 - 老端 `ui_renwulan` 的两组粒子初速度均为 0，移动只来自 `Velocity over Lifetime` 的 ±0.3。Laya 的双常量最小值可能因等于默认值 0 而不写入 `.lh`；转换器不得用 Unity 单常量默认值（如 `startSpeed=5`）代替缺失的最小值。
 - 当前运行资源允许保留针对 `ui_renwulan` 的 prefab 修正；以后重转时，转换器必须生成同样的 0 初速度，不能把修正覆盖回 0～5。
+- `ui_renwulan` 的网格实际宽于 192×57 宿主；老端依靠实例私有 RT 自动裁边。共享通道必须通过 `task_completion_frame` 差异项开启 `clipToRenderRect`，禁止缩放整套资源来掩盖偏差（会连带改变两组粒子）。

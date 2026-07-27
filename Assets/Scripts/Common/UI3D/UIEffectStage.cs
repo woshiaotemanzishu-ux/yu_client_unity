@@ -22,6 +22,9 @@ namespace Shenxiao.Common.UI3D
         private const float STAGE_DEPTH_SPACING = 4096f;
         private const int EFFECT_LAYER = 31;
         private static readonly int EffectLayerMask = 1 << EFFECT_LAYER;
+        private static readonly int ClipEnabledId = Shader.PropertyToID("_UIEffectClipEnabled");
+        private static readonly int ClipRectId = Shader.PropertyToID("_UIEffectClipRect");
+        private static readonly int ClipWorldToLocalId = Shader.PropertyToID("_UIEffectClipWorldToLocal");
 
         private static readonly List<Handle> s_live = new List<Handle>();
         private static readonly Dictionary<ChannelKey, Channel> s_channels = new Dictionary<ChannelKey, Channel>();
@@ -94,6 +97,8 @@ namespace Shenxiao.Common.UI3D
             internal float RotationY;
             internal Vector2 RenderSize;
             internal UIEffectProfile Profile;
+            internal Renderer[] Renderers;
+            internal MaterialPropertyBlock ClipPropertyBlock;
             internal bool Visible;
             internal bool Loading = true;
             private bool _disposed;
@@ -208,7 +213,8 @@ namespace Shenxiao.Common.UI3D
             effectTransform.localRotation = Quaternion.Euler(0f, rotationY + profile.rotationYOffset, 0f);
             effectTransform.localScale = finalScale;
 
-            ApplyRenderDefaults(effect);
+            handle.Renderers = effect.GetComponentsInChildren<Renderer>(true);
+            ApplyRenderDefaults(handle.Renderers);
             Play(effect);
             effect.SetActive(true);
             UpdateHandleTransform(handle);
@@ -397,6 +403,38 @@ namespace Shenxiao.Common.UI3D
                 instanceFactor * relativeScaleX,
                 instanceFactor * relativeScaleY,
                 instanceFactor * relativeScaleZ);
+            UpdateHandleClip(handle, stageHeight);
+        }
+
+        private static void UpdateHandleClip(Handle handle, float stageHeight)
+        {
+            if (handle.Profile == null || !handle.Profile.clipToRenderRect || handle.Renderers == null
+                || handle.Wrapper == null || handle.Parent == null)
+                return;
+
+            Vector2 clipSize = GetPositiveSize(handle.RenderSize);
+            if (clipSize == default) clipSize = GetPositiveSize(handle.Parent.rect.size);
+            if (clipSize == default) return;
+
+            // 旧端每个 UIEffect 的相机纵向视野固定为 stageHeight*0.01，RT 宽高比由宿主决定。
+            // 共享相机下把同一个视锥边界变成实例级 shader 裁剪，保留旧画面而不增加 Camera/RT。
+            float halfHeight = Mathf.Max(0.01f, stageHeight * LAYA_STAGE_TO_WORLD * 0.5f);
+            float halfWidth = halfHeight * clipSize.x / clipSize.y;
+            Vector4 clipRect = new Vector4(-halfWidth, -halfHeight, halfWidth, halfHeight);
+            Matrix4x4 worldToLocal = handle.Wrapper.worldToLocalMatrix;
+            MaterialPropertyBlock block = handle.ClipPropertyBlock ??= new MaterialPropertyBlock();
+
+            for (int i = 0; i < handle.Renderers.Length; i++)
+            {
+                Renderer renderer = handle.Renderers[i];
+                if (renderer == null) continue;
+                block.Clear();
+                renderer.GetPropertyBlock(block);
+                block.SetFloat(ClipEnabledId, 1f);
+                block.SetVector(ClipRectId, clipRect);
+                block.SetMatrix(ClipWorldToLocalId, worldToLocal);
+                renderer.SetPropertyBlock(block);
+            }
         }
 
         private static bool HasVisibleCanvasGroups(Transform target)
@@ -533,6 +571,8 @@ namespace Shenxiao.Common.UI3D
             handle.Wrapper = null;
             handle.Parent = null;
             handle.SharedChannel = null;
+            handle.Renderers = null;
+            handle.ClipPropertyBlock = null;
         }
 
         private static void DestroyChannel(Channel channel)
@@ -665,11 +705,11 @@ namespace Shenxiao.Common.UI3D
             return new Vector2(Mathf.Max(1f, size.x), Mathf.Max(1f, size.y));
         }
 
-        private static void ApplyRenderDefaults(GameObject go)
+        private static void ApplyRenderDefaults(Renderer[] renderers)
         {
-            Renderer[] renderers = go.GetComponentsInChildren<Renderer>(true);
             for (int i = 0; i < renderers.Length; i++)
             {
+                if (renderers[i] == null) continue;
                 renderers[i].shadowCastingMode = ShadowCastingMode.Off;
                 renderers[i].receiveShadows = false;
             }
@@ -793,6 +833,7 @@ namespace Shenxiao.Common.UI3D
             public string ParentName;
             public bool ParentActiveInHierarchy;
             public Vector2 ParentRectSize;
+            public bool ClipToRenderRect;
             public int RtWidth;
             public int RtHeight;
             public bool CameraEnabled;
@@ -862,6 +903,7 @@ namespace Shenxiao.Common.UI3D
                     ChannelHandleCount = channel?.Handles.Count ?? 0,
                     SharedRenderResources = true
                 };
+                diagnostic.ClipToRenderRect = handle.Profile != null && handle.Profile.clipToRenderRect;
 
                 GameObject effect = handle.Effect;
                 diagnostic.EffectAlive = effect != null;

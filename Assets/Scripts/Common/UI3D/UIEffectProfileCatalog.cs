@@ -49,6 +49,9 @@ namespace Shenxiao.Common.UI3D
         [Tooltip("仅翻转本资源，不改变共享通道的老端全局镜像规则。")]
         public bool mirrorX;
 
+        [Tooltip("按旧端实例私有 RenderTexture 的尺寸裁剪本特效。仅给资源确实依赖 RT 边界的差异项开启。")]
+        public bool clipToRenderRect;
+
         internal Vector3 SafeScaleMultiplier => scaleMultiplier == default ? Vector3.one : scaleMultiplier;
     }
 

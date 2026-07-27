@@ -296,7 +296,8 @@ namespace Shenxiao.Module.Core.MainUI
             SetHeight(_img_bg != null ? _img_bg.rectTransform : null, CurrentHeight);
             SetHeight(_img_select != null ? _img_select.rectTransform : null, CurrentHeight);
             SetHeight(_box_finger_con, CurrentHeight);
-            SetHeight(_box_effect, CurrentHeight + 3f);
+            // 老端 _box_effect 始终保持设计尺寸 192x57，只按任务条高度调整特效 Y 缩放；
+            // 不能跟随文本行数改宿主尺寸，否则共享通道的裁剪范围会偏离旧端 RT。
             if (taskTips != null) SetHeight(taskTips.rectTransform, tipsHeight);
         }
 
