@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shenxiao.Common.Proto;
 using Shenxiao.Common.UI3D;
@@ -6,6 +8,7 @@ using Shenxiao.Framework.Scene3D.Map;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.Skill;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Scene
@@ -75,6 +78,10 @@ namespace Shenxiao.Module.Core.Scene
                 return;
             }
 
+            SkillVisualWarmupPlan combatPlan =
+                await SkillMovieConfigs.BuildCareerWarmupPlanAsync(role.Career);
+            if (version != _buildVersion) return;
+
             // 同形象且模型仍活着(同图副本进出/跨图传送/重连同帧重进):不整只销毁重建——
             // 老端这里角色原地不动,重建等于白重载 衣/头/武器/翅膀+动作 一整套。Init 本身是复位函数,
             // 复位坐标/动作/移动状态即可。形象真变了(换装)照走完整重建。
@@ -83,6 +90,9 @@ namespace Shenxiao.Module.Core.Scene
                 MainRoleAgent existing = _mainRoleRoot.GetComponent<MainRoleAgent>();
                 if (existing != null)
                 {
+                    await PrepareFirstCombatActionsAsync(
+                        _mainRoleModel, role.Career, spec.ClotheRes, combatPlan);
+                    if (version != _buildVersion) return;
                     existing.Init(_mainRoleModel, role.X, role.Y, role.Career, role.Figure?.sex ?? 0, spec.ClotheRes);
                     GameLog.Info("Scene", "main role reused (same figure): pos=({0},{1})", role.X, role.Y);
                     return;
@@ -102,8 +112,9 @@ namespace Shenxiao.Module.Core.Scene
                 return;
             }
 
-            // 跑动用 run 动作(idle 已由装配器自动播放;这里再补 run 的 clip,不自动播)。
-            await RoleModelAssembler.PrepareRoleActions(model, role.Career, spec.ClotheRes, new[] { ACTION_RUN });
+            // idle 已由装配器自动播放；正式交给战斗状态机前，把跑动、普攻和当前职业技能动作
+            // 一次性准备好。混合模型还会在这里预建未替换动作所需的老模型兼容分支。
+            await PrepareFirstCombatActionsAsync(model, role.Career, spec.ClotheRes, combatPlan);
             if (version != _buildVersion)
             {
                 UnityEngine.Object.Destroy(model);
@@ -143,6 +154,29 @@ namespace Shenxiao.Module.Core.Scene
                 && a.HeadRes == b.HeadRes
                 && a.WingId == b.WingId
                 && a.BackOrnamentId == b.BackOrnamentId;
+        }
+
+        private static async Task PrepareFirstCombatActionsAsync(GameObject model, int career,
+            int clotheRes, SkillVisualWarmupPlan combatPlan)
+        {
+            if (model == null) return;
+            var actions = new List<string> { ACTION_RUN };
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ACTION_RUN };
+            string[] configured = combatPlan?.Actions ?? Array.Empty<string>();
+            for (int i = 0; i < configured.Length; i++)
+            {
+                string action = configured[i];
+                if (!string.IsNullOrEmpty(action) && seen.Add(action)) actions.Add(action);
+            }
+
+            ReplaceableRoleModel driver = model.GetComponent<ReplaceableRoleModel>();
+            if (driver != null)
+            {
+                await driver.PrepareActionsAsync(actions);
+                return;
+            }
+
+            await RoleModelAssembler.PrepareRoleActions(model, career, clotheRes, actions.ToArray());
         }
 
         private static async Task<RoleModelSpec> BuildSpecAsync(RoleModel role)

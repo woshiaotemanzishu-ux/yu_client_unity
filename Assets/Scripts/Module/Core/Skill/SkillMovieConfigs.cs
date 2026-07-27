@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -69,6 +70,44 @@ namespace Shenxiao.Module.Core.Skill
                 });
             }
             return list;
+        }
+
+        /// <summary>
+        /// 从当前职业的真实技能栏配置生成首战表现预热清单。这里只收集动作与粒子资源，
+        /// 不硬编码职业技能 ID；配置新增/替换技能后，预热范围会自动跟随。
+        /// </summary>
+        public static async Task<SkillVisualWarmupPlan> BuildCareerWarmupPlanAsync(int career)
+        {
+            await EnsureLoaded();
+            await SkillUIConfigs.EnsureLoaded();
+
+            var actions = new List<string>();
+            var effectKeys = new List<string>();
+            var seenActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var seenEffects = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            List<SkillUIConfigs.CareerSkill> skills = SkillUIConfigs.GetCareerSkills(career);
+            for (int i = 0; i < skills.Count; i++)
+            {
+                int skillId = skills[i].SkillId;
+                if (skillId <= 0 || GetMovie(skillId) == null) continue;
+
+                string action = GetActionName(skillId);
+                if (!string.IsNullOrEmpty(action) && seenActions.Add(action))
+                    actions.Add(action);
+
+                IReadOnlyList<SkillMovieParticle> particles = GetParticles(skillId);
+                for (int j = 0; j < particles.Count; j++)
+                {
+                    string res = particles[j]?.Res;
+                    if (string.IsNullOrEmpty(res)) continue;
+                    string key = GameResPath.GetEffectPrefabPath("skills_effect", res);
+                    if (!string.IsNullOrEmpty(key) && seenEffects.Add(key))
+                        effectKeys.Add(key);
+                }
+            }
+
+            return new SkillVisualWarmupPlan(actions.ToArray(), effectKeys.ToArray());
         }
 
         private static JObject GetMovie(int skillId)
@@ -202,5 +241,21 @@ namespace Shenxiao.Module.Core.Skill
         public float StartTime;
         public float PlayTimeLen;
         public float Scale = 1f;
+    }
+
+    /// <summary>当前职业首战所需的最小表现资源集合。</summary>
+    public sealed class SkillVisualWarmupPlan
+    {
+        public static readonly SkillVisualWarmupPlan Empty =
+            new SkillVisualWarmupPlan(Array.Empty<string>(), Array.Empty<string>());
+
+        public SkillVisualWarmupPlan(string[] actions, string[] effectKeys)
+        {
+            Actions = actions ?? Array.Empty<string>();
+            EffectKeys = effectKeys ?? Array.Empty<string>();
+        }
+
+        public string[] Actions { get; }
+        public string[] EffectKeys { get; }
     }
 }

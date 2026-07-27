@@ -15,9 +15,10 @@ namespace Shenxiao.EditorTools
     ///   1 清单命中 role/1111(配置前提);
     ///   2 BuildAsync 返回容器挂 ReplaceableRoleModel;
     ///   3 MainRoleAgent.Init 后私有 _driver 非空(接线存在);
-    ///   4 TryPlayAction("run")(清单已配)返回 true,等待后激活子树=新模型实例(带 PlayableDirector);
-    ///   5 GetActionLength("run") > 0(新实例加载后 Timeline 时长可读,技能节拍依赖);
-    ///   6 TryPlayAction("attack")(清单未配)回落老拼装模型(激活子树=_oldModel,带 Animation)。
+    ///   4 PrepareActionsAsync 预建 run 新实例和 attack 老分支，但保持 idle 仍在台上;
+    ///   5 TryPlayAction("run")(清单已配)返回 true,立即切换到预建新模型实例;
+    ///   6 GetActionLength("run") > 0(预热后 Timeline 时长可读,技能节拍依赖);
+    ///   7 TryPlayAction("attack")(清单未配)切到预建老拼装模型(激活子树=_oldModel,带 attack clip)。
     /// 日志前缀 "CLIVERIFY mixdriver"。
     /// </summary>
     public static class SceneMixDriverCase
@@ -93,7 +94,24 @@ namespace Shenxiao.EditorTools
             }
             Debug.Log("CLIVERIFY mixdriver 3 MainRoleAgent._driver 已接线");
 
-            // 4/5:run 已配新模型 → 出口返回 true,激活子树切到带 Timeline 的新实例,时长可读
+            // 4:模拟 MainRoleFlow 的首战预热。预建不能抢走当前 idle 画面。
+            var activeBeforeWarmup = fActive.GetValue(driver) as GameObject;
+            await driver.PrepareActionsAsync(new[] { "run", "attack" });
+            var newInstances = (System.Collections.IDictionary)fNewInstances.GetValue(driver);
+            var warmedRun = newInstances["run"] as GameObject;
+            var warmedOld = fOldModel.GetValue(driver) as GameObject;
+            var activeAfterWarmup = fActive.GetValue(driver) as GameObject;
+            if (warmedRun == null || warmedRun.activeSelf
+                || warmedOld == null || warmedOld.activeSelf
+                || warmedOld.GetComponent<Animation>()?.GetClip("attack") == null
+                || activeAfterWarmup != activeBeforeWarmup || activeAfterWarmup == null || !activeAfterWarmup.activeSelf)
+            {
+                Debug.LogError("CLIVERIFY mixdriver PrepareActionsAsync 未静默预建 run/attack 或改变了当前 idle");
+                return 3;
+            }
+            Debug.Log("CLIVERIFY mixdriver 4 首战动作已静默预建,当前 idle 未改变");
+
+            // 5/6:run 已配新模型 → 出口返回 true,激活子树切到带 Timeline 的预建实例,时长可读
             bool runAccepted = (bool)mTryPlay.Invoke(agent, new object[] { "run", 0.1f, true, 1f });
             if (!runAccepted)
             {
@@ -102,7 +120,6 @@ namespace Shenxiao.EditorTools
             }
             // BuildAsync 初始已播 idle(同为带 Timeline 的新实例),必须认准 run 自己的实例加载完并上台,
             // 否则条件被 idle 实例秒满足 → 紧跟的时长断言撞上 run 未加载的竞态
-            var newInstances = (System.Collections.IDictionary)fNewInstances.GetValue(driver);
             bool runActive = await WaitUntil(() =>
             {
                 if (!newInstances.Contains("run")) return false;
@@ -116,7 +133,7 @@ namespace Shenxiao.EditorTools
                 Debug.LogError("CLIVERIFY mixdriver run 未切到新模型实例(激活子树无 PlayableDirector)");
                 return 3;
             }
-            Debug.Log("CLIVERIFY mixdriver 4 run → 新模型实例已激活");
+            Debug.Log("CLIVERIFY mixdriver 5 run → 预建新模型实例已激活");
 
             float runLength = (float)mLength.Invoke(agent, new object[] { "run" });
             if (runLength <= 0f)
@@ -124,9 +141,9 @@ namespace Shenxiao.EditorTools
                 Debug.LogError("CLIVERIFY mixdriver GetActionLength(run)=" + runLength + "(新实例已加载,应>0)");
                 return 3;
             }
-            Debug.Log("CLIVERIFY mixdriver 5 GetActionLength(run)=" + runLength.ToString("F2") + "s");
+            Debug.Log("CLIVERIFY mixdriver 6 GetActionLength(run)=" + runLength.ToString("F2") + "s");
 
-            // 6:attack 清单未配 → 回落老拼装模型(懒建,激活子树=_oldModel 且带 Animation)
+            // 7:attack 清单未配 → 切到预建老拼装模型,不再在首次攻击帧临时构建
             bool attackAccepted = (bool)mTryPlay.Invoke(agent, new object[] { "attack", 0.1f, true, 1f });
             if (!attackAccepted)
             {
@@ -144,7 +161,7 @@ namespace Shenxiao.EditorTools
                 Debug.LogError("CLIVERIFY mixdriver attack 未回落老拼装模型(_oldModel 未建或未激活)");
                 return 3;
             }
-            Debug.Log("CLIVERIFY mixdriver 6 attack → 老拼装模型已回落激活");
+            Debug.Log("CLIVERIFY mixdriver 7 attack → 预建老拼装模型已激活");
 
             Debug.Log("CLIVERIFY mixdriver ALL PASS");
             return 0;

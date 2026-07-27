@@ -145,6 +145,39 @@ namespace Shenxiao.Common.UI3D
             _oldAnim.CrossFade(action, 0.15f);
         }
 
+        /// <summary>
+        /// 在角色正式交给战斗状态机前构建会用到的动作实例，但不切换当前显示动作：
+        /// 清单命中的动作预建新模型实例；未命中的动作统一预建一次老模型并补齐 clip。
+        /// 这样第一次攻击不会在战斗帧里临时装配整套兼容模型。
+        /// </summary>
+        public async Task PrepareActionsAsync(IEnumerable<string> actions)
+        {
+            if (_spec == null || actions == null) return;
+
+            var fallbackActions = new List<string>();
+            var seen = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
+            foreach (string action in actions)
+            {
+                if (string.IsNullOrEmpty(action) || !seen.Add(action)) continue;
+                string key = ModelReplacement.GetPrefabKey("role", _spec.ClotheRes, action);
+                if (key != null)
+                {
+                    await EnsureNewInstance(action, key);
+                }
+                else
+                {
+                    fallbackActions.Add(action);
+                }
+                if (this == null) return;
+            }
+
+            if (fallbackActions.Count == 0) return;
+            GameObject old = await EnsureOldModel();
+            if (this == null || old == null) return;
+            await RoleModelAssembler.PrepareRoleActions(
+                old, _spec.Career, _spec.ClotheRes, fallbackActions.ToArray());
+        }
+
         private void Activate(GameObject target)
         {
             if (_active == target)

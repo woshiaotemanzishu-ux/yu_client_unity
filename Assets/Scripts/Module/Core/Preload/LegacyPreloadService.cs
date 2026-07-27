@@ -12,6 +12,7 @@ using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene;
+using Shenxiao.Module.Core.Skill;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -221,7 +222,13 @@ namespace Shenxiao.Module.Core.Preload
             RoleModel role = RoleModel.Instance;
             if (role.HasBaseInfo && role.Figure != null)
             {
-                await AddRoleModelSpecAsync(entries, await BuildMainRoleSpecAsync(role));
+                RoleModelSpec roleSpec = await BuildMainRoleSpecAsync(role);
+                SkillVisualWarmupPlan combatPlan =
+                    await SkillMovieConfigs.BuildCareerWarmupPlanAsync(role.Career);
+                roleSpec.Actions = MergeActions(roleSpec.Actions, combatPlan.Actions);
+                await AddRoleModelSpecAsync(entries, roleSpec);
+                for (int i = 0; i < combatPlan.EffectKeys.Length; i++)
+                    AddEntry(entries, combatPlan.EffectKeys[i], PreloadAssetKind.Prefab);
                 await AddSceneMapEntriesAsync(entries, role.SceneId, role.X, role.Y);
             }
 
@@ -588,6 +595,59 @@ namespace Shenxiao.Module.Core.Preload
             }
 
             AddProfileEffectEntries(entries, profile);
+            await ModelReplacement.EnsureLoaded();
+            AddReplacementActionEntries(entries, spec, spec.Actions);
+        }
+
+        private static void AddReplacementActionEntries(Dictionary<string, PreloadEntry> entries,
+            RoleModelSpec spec, IEnumerable<string> actions)
+        {
+            if (spec == null || actions == null) return;
+            foreach (string action in actions)
+            {
+                if (string.IsNullOrEmpty(action)) continue;
+                string bodyKey = ModelReplacement.GetPrefabKey("role", spec.ClotheRes, action);
+                if (string.IsNullOrEmpty(bodyKey)) continue;
+
+                AddEntry(entries, bodyKey, PreloadAssetKind.Prefab);
+                AddReplacementPartEntry(entries, "head", spec.HeadRes, action,
+                    spec.HeadRes > 0 ? RoleModelKey("head", "model_head_" + spec.HeadRes) : null);
+                AddReplacementPartEntry(entries, "weapon", spec.WeaponRes, action,
+                    spec.WeaponRes > 0 ? RoleModelKey("weapon", "model_weapon_r_" + spec.WeaponRes) : null);
+                AddReplacementPartEntry(entries, "wing", spec.WingId, action,
+                    spec.WingId > 0 ? RoleModelKey("wing", "model_wing_" + spec.WingId) : null);
+                AddReplacementPartEntry(entries, "back", spec.BackOrnamentId, action,
+                    spec.BackOrnamentId > 0 ? RoleModelKey("back", "model_back_" + spec.BackOrnamentId) : null);
+            }
+        }
+
+        private static void AddReplacementPartEntry(Dictionary<string, PreloadEntry> entries,
+            string module, int id, string action, string legacyKey)
+        {
+            if (id <= 0) return;
+            string key = ModelReplacement.GetPrefabKey(module, id, action)
+                ?? ModelReplacement.GetPrefabKey(module, id, "idle")
+                ?? legacyKey;
+            AddEntry(entries, key, PreloadAssetKind.Prefab);
+        }
+
+        private static string[] MergeActions(IEnumerable<string> first, IEnumerable<string> second)
+        {
+            var merged = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            void Append(IEnumerable<string> source)
+            {
+                if (source == null) return;
+                foreach (string action in source)
+                {
+                    if (!string.IsNullOrEmpty(action) && seen.Add(action)) merged.Add(action);
+                }
+            }
+
+            Append(first);
+            Append(second);
+            return merged.ToArray();
         }
 
         private static void AddProfileEffectEntries(Dictionary<string, PreloadEntry> entries, AssetAssemblyEntry profile)

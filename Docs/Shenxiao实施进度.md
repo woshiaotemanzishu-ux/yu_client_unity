@@ -1310,3 +1310,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **位图数字**：老端 `fight_up/fight_up2` 的 BMFont XML 与彩色 PNG 已纳入 Unity；新增 `BitmapFontAssetBuilder` 生成 TMP 静态彩色位图字体，替换普通 TMP 渐变描边近似方案。
 - **布局与定位**：Creator 按老端左上坐标恢复主数值 `119,33`、增量 `231,18` 与 50px 字号；根节点使用底部中心锚固定 `bottom=400`，不再固定在父层中心；绿色增量方向修正为 Unity `Y+30` 向上。
 - **验证状态**：Core/Editor 离线编译均 0 error；需退出 Play Mode 后在重构 UI 生成器重新生成 `MainUI / FightingUpView(战力飘字)`，再用②预览完成图片字形和实际屏幕位置验收。
+
+## 2026-07-27：首次技能与刀光冷加载前移
+
+- **根因**：GameStart 原来只预热主角 `idle/run`；首次技能仍在战斗帧加载动作和 `skills_effect`。对 `role/1111` 这类逐动作替换角色，`attack/skill*` 未配置新 Prefab 时还会在首刀临时拼装整套旧模型兼容分支，之后因缓存命中才恢复正常。
+- **配置驱动预热**：`SkillMovieConfigs` 现从 `ConfigSkillUI + ConfigCareerSkillMovies` 生成当前职业动作/粒子最小集合；既有 GameStart 预加载服务负责下载、加载并保留这些资源，同时纳入动作替换身体和部件 Prefab，不恢复老端数千条全量启动预热。
+- **实例预建**：`ReplaceableRoleModel.PrepareActionsAsync` 在角色正式显示前静默预建新动作实例和未替换动作的旧模型分支；`MainRoleFlow` 对新建与同形象复用都执行首战动作准备，预热期间不改变当前 `idle`。
+- **验证状态**：`Shenxiao.Module.Core.csproj` 与 `Shenxiao.Editor.csproj` 离线编译均 0 error；`SceneMixDriverCase` 已增加“run/attack 已预建且 idle 未被抢台”的回归断言。活服需要停止并重新进入 Play Mode，以第一次普攻和第一次主动技能做冷启动复验。
+- **经验文档**：[战斗表现首次施法卡顿-经验与排障.md](战斗表现首次施法卡顿-经验与排障.md)。
