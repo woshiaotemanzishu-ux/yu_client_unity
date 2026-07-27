@@ -60,6 +60,7 @@ using Shenxiao.Module.Core.Eyou;
 using Shenxiao.Module.Core.Boss;
 using Shenxiao.Module.Core.Marriage;
 using Shenxiao.Module.Core.GuildActivity;
+using Shenxiao.Module.Core.GuildFight;
 using Shenxiao.Module.Core.ActivityForeshow;
 using Shenxiao.Module.Core.SnatchTreasure;
 using Shenxiao.Module.Core.Banquet;
@@ -154,6 +155,7 @@ namespace Shenxiao.Module.Core.Game
             KfBossController.Instance,
             MarriageController.Instance,
             GuildActivityController.Instance, // 公会晚宴(pt_402),自动循环 轮22 PK1
+            GuildFightController.Instance,
             ActivityForeshowController.Instance,
             SnatchTreasureController.Instance,
             BanquetController.Instance,

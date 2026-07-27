@@ -1006,6 +1006,10 @@
         public const int MON_BOOK_PREVIEW_POWER = 44207;
         /// <summary>怪物图鉴按类型全量快照。C2S: type:u16；S2C: type+分组表+图鉴表+总战力。</summary>
         public const int MON_BOOK_TYPE_INFO = 44201;
+        /// <summary>领地战进入请求/结果。C2S: type:u8，当前仅发送进入 type=1；S2C: error_code:u32,type:u8。
+        /// 真实回包由 mod_territory_war.erl 的异步进入校验写 50603；pp_territory_war.erl 前置失败分支
+        /// 历史误写 pt_506:write(50503,...)，会落 pt_506 的 cmd=0 兜底，本端不臆造该失败回包。</summary>
+        public const int GUILD_FIGHT_ENTER = 50603;
         /// <summary>跨服单人排行副本个人状态。C2S 空包；S2C: start_level:u8,reward_state:u8,levels:u16×{u8,u32}。</summary>
         public const int KF_SINGLE_RANK_INFO = 50701;
         /// <summary>跨服单人排行副本指定区域榜单。C2S: area_id:u8；S2C: area_id+完整排行表。</summary>
