@@ -76,12 +76,14 @@ namespace Shenxiao.EditorTools
         {
             FieldInfo fDriver = typeof(MainRoleAgent).GetField("_driver", F);
             MethodInfo mTryPlay = typeof(MainRoleAgent).GetMethod("TryPlayAction", F);
+            MethodInfo mTryPlayAsync = typeof(MainRoleAgent).GetMethod("TryPlayActionAsync", F);
+            MethodInfo mEffectHost = typeof(MainRoleAgent).GetMethod("GetActiveActionEffectHost", F);
             MethodInfo mLength = typeof(MainRoleAgent).GetMethod("GetActionLength", F);
             FieldInfo fActive = typeof(ReplaceableRoleModel).GetField("_active", F);
             FieldInfo fOldModel = typeof(ReplaceableRoleModel).GetField("_oldModel", F);
             FieldInfo fNewInstances = typeof(ReplaceableRoleModel).GetField("_newInstances", F);
-            if (fDriver == null || mTryPlay == null || mLength == null || fActive == null || fOldModel == null
-                || fNewInstances == null)
+            if (fDriver == null || mTryPlay == null || mTryPlayAsync == null || mEffectHost == null
+                || mLength == null || fActive == null || fOldModel == null || fNewInstances == null)
             {
                 Debug.LogError("CLIVERIFY mixdriver 反射目标缺失(字段/方法被改名?)");
                 return 3;
@@ -144,7 +146,9 @@ namespace Shenxiao.EditorTools
             Debug.Log("CLIVERIFY mixdriver 6 GetActionLength(run)=" + runLength.ToString("F2") + "s");
 
             // 7:attack 清单未配 → 切到预建老拼装模型,不再在首次攻击帧临时构建
-            bool attackAccepted = (bool)mTryPlay.Invoke(agent, new object[] { "attack", 0.1f, true, 1f });
+            var attackTask = (Task<bool>)mTryPlayAsync.Invoke(
+                agent, new object[] { "attack", 0.1f, true, 1f });
+            bool attackAccepted = await attackTask;
             if (!attackAccepted)
             {
                 Debug.LogError("CLIVERIFY mixdriver TryPlayAction(attack) 返回 false(应回落老模型)");
@@ -162,6 +166,14 @@ namespace Shenxiao.EditorTools
                 return 3;
             }
             Debug.Log("CLIVERIFY mixdriver 7 attack → 预建老拼装模型已激活");
+
+            var effectHost = mEffectHost.Invoke(agent, null) as GameObject;
+            if (effectHost == null || effectHost != driver.ActiveModel || effectHost != warmedOld)
+            {
+                Debug.LogError("CLIVERIFY mixdriver attack 特效宿主未指向当前激活的老模型");
+                return 3;
+            }
+            Debug.Log("CLIVERIFY mixdriver 8 attack 特效宿主已锁定当前激活模型");
 
             Debug.Log("CLIVERIFY mixdriver ALL PASS");
             return 0;

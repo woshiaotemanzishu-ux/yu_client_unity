@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Shenxiao.Common.UI;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
@@ -22,12 +24,23 @@ namespace Shenxiao.Module.Core.Bag
     /// </summary>
     public static class ItemUseFlow
     {
+        // 对标老端 ClientConfigDefaultVo.ClientItemUse；当前 Unity 同步表不包含默认值文件，
+        // 这里作为 clientitemuse 缺字段时的配置语义，而不是业务特判。
+        private const int DefaultMinLevel = 1;
+        private const int DefaultMaxLevel = 999;
+        private const int DefaultAutoUseSeconds = 10;
+        // 悬浮只表达演出位移，不参与布局：静止基准始终取 CommonModule.prefab 中 _gp_con 的位置。
+        // 单程 0.8 秒、向上 12 单位，完整往返 1.6 秒；GameView 缩放到 0.5x 时仍能明确看见。
+        private const float HoverDistance = 12f;
+        private const float HoverHalfCycle = 0.8f;
+
         private sealed class ItemUseCfg
         {
             public bool FirstShow;
             public bool OnlyFirstShow;
-            public int MinLevel;
-            public int MaxLevel = int.MaxValue;
+            public int MinLevel = DefaultMinLevel;
+            public int MaxLevel = DefaultMaxLevel;
+            public int AutoUseSeconds = DefaultAutoUseSeconds;
         }
 
         private static readonly Dictionary<long, BagGoods> Candidates = new Dictionary<long, BagGoods>();
@@ -41,6 +54,12 @@ namespace Shenxiao.Module.Core.Bag
         private static ItemUseViewBind _bind;
         private static EquipmentItem _item;
         private static BagGoods _current;
+        private static int _presentationVersion;
+        private static Coroutine _presentationCoroutine;
+        private static bool _isAnimating;
+        private static Vector2 _restingPosition;
+        private static bool _hasRestingPosition;
+        private static string _actionLabel = string.Empty;
 
         /// <summary>
         /// 新装备推荐存在时暂停自动任务的自动穿戴，避免 15201 抢先改变穿戴态，
@@ -114,6 +133,12 @@ namespace Shenxiao.Module.Core.Bag
             CandidateOrder.Clear();
             _current = null;
             _opening = false;
+            _presentationVersion++;
+            StopPresentation();
+            _isAnimating = false;
+            _hasRestingPosition = false;
+            _restingPosition = default;
+            _actionLabel = string.Empty;
             _item = null;
             _bind = null;
             if (_moduleRoot != null)
@@ -228,8 +253,13 @@ namespace Shenxiao.Module.Core.Bag
                 _bind.Show(goods);
                 _bind.transform.SetAsLastSibling();
                 RefreshView(goods);
-                GameLog.Info("ItemUse", "show typeId={0} goodsId={1} rating={2}",
-                    goods.TypeId, goods.GoodsId, goods.Rating);
+                TryGetConfig(goods.TypeId, out ItemUseCfg cfg);
+                int autoUseSeconds = cfg?.AutoUseSeconds ?? 0;
+                StopPresentation();
+                _presentationCoroutine = _bind.StartCoroutine(
+                    PlayPresentation(++_presentationVersion, autoUseSeconds));
+                GameLog.Info("ItemUse", "show typeId={0} goodsId={1} rating={2} autoUse={3}s",
+                    goods.TypeId, goods.GoodsId, goods.Rating, autoUseSeconds);
             }
             catch (Exception ex)
             {
@@ -245,10 +275,10 @@ namespace Shenxiao.Module.Core.Bag
         {
             if (_moduleRoot != null && _bind != null) return true;
 
-            Transform parent = ViewManager.GetLayer(UILayer.Window);
+            Transform parent = ViewManager.GetLayer(UILayer.Popup);
             if (parent == null)
             {
-                GameLog.Error("ItemUse", "Window layer missing");
+                GameLog.Error("ItemUse", "Popup layer missing");
                 return false;
             }
 
@@ -275,18 +305,34 @@ namespace Shenxiao.Module.Core.Bag
 
             if (_bind.enter_btn != null) UIUtil.AddClick(_bind.enter_btn, OnConfirm);
             if (_bind.close_btn != null) UIUtil.AddClick(_bind.close_btn, OnClose);
+            // 烤制快照来自关闭态：ItemUseView 根虽然会被 BaseView.Show 激活，真正承载全部视觉的
+            // _gp_con 却被存成 inactive，结果日志显示 show、屏幕仍完全空白。它是窗口内容而非模板，
+            // 每次装载都必须保持激活；具体位置/字号继续由 Prefab 节点负责。
+            if (_bind._gp_con != null) _bind._gp_con.gameObject.SetActive(true);
+            if (_bind._gp_con != null && !_hasRestingPosition)
+            {
+                _restingPosition = _bind._gp_con.anchoredPosition;
+                _hasRestingPosition = true;
+            }
             _moduleRoot.SetActive(false);
             return true;
         }
 
         private static void RefreshView(BagGoods goods)
         {
+            if (_bind?._gp_con != null) _bind._gp_con.gameObject.SetActive(true);
             GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(goods.TypeId);
             if (basic == null) return;
 
-            if (_bind.name_label != null) _bind.name_label.text = basic.Name;
-            if (_bind.enter_btn_text != null) _bind.enter_btn_text.text = basic.Type == 10 ? "装备" : "使用";
-            if (_bind.bottom_label != null) _bind.bottom_label.text = string.Empty;
+            if (_bind.name_label != null)
+            {
+                _bind.name_label.text = basic.Name;
+                _bind.name_label.color = LegacyUiColor.GetColor(basic.Color, light: false);
+            }
+            _actionLabel = basic.Type == 10 ? "装备" : "使用";
+            if (_bind.enter_btn_text != null) _bind.enter_btn_text.text = _actionLabel;
+            if (_bind.bottom_label != null)
+                _bind.bottom_label.text = basic.Type == 10 ? "合成可获更强装备！" : string.Empty;
             if (_bind.up_arrow != null) _bind.up_arrow.gameObject.SetActive(basic.Type == 10);
 
             if (_item == null && _bind._tpl_EquipmentItem != null && _bind.item_group != null)
@@ -308,6 +354,7 @@ namespace Shenxiao.Module.Core.Bag
 
         private static void OnConfirm()
         {
+            if (_isAnimating) return;
             BagGoods goods = _current;
             if (goods == null) return;
 
@@ -323,12 +370,16 @@ namespace Shenxiao.Module.Core.Bag
 
         private static void OnClose()
         {
+            if (_isAnimating) return;
             CloseCurrent(removeCandidate: true);
         }
 
         private static void CloseCurrent(bool removeCandidate)
         {
             long id = _current?.GoodsId ?? 0L;
+            _presentationVersion++;
+            StopPresentation();
+            _isAnimating = false;
             _current = null;
             if (removeCandidate && id > 0) RemoveCandidate(id);
             if (_bind != null) _bind.Hide();
@@ -399,8 +450,9 @@ namespace Shenxiao.Module.Core.Bag
             {
                 FirstShow = ReadBool(obj, "first_show"),
                 OnlyFirstShow = ReadBool(obj, "only_first_show"),
-                MinLevel = ReadInt(obj, "min_lv", 0),
-                MaxLevel = ReadInt(obj, "max_lv", int.MaxValue),
+                MinLevel = ReadInt(obj, "min_lv", DefaultMinLevel),
+                MaxLevel = ReadInt(obj, "max_lv", DefaultMaxLevel),
+                AutoUseSeconds = ReadInt(obj, "auto_use_sec", DefaultAutoUseSeconds),
             };
             return true;
         }
@@ -419,6 +471,81 @@ namespace Shenxiao.Module.Core.Bag
             JToken token = obj[key];
             if (token == null || token.Type == JTokenType.Null) return fallback;
             return int.TryParse(token.ToString(), out int value) ? value : fallback;
+        }
+
+        private static IEnumerator PlayPresentation(int version, int autoUseSeconds)
+        {
+            if (_bind?._gp_con == null) yield break;
+
+            RectTransform panel = _bind._gp_con;
+            // UnityEngine.Object 的“缺失组件”使用重载 == null 判定；不能用 C# ??，否则会保留
+            // MissingComponent 代理并在首次访问 alpha 时终止整个协程。
+            CanvasGroup group = panel.GetComponent<CanvasGroup>();
+            if (group == null) group = panel.gameObject.AddComponent<CanvasGroup>();
+            Vector2 end = _hasRestingPosition ? _restingPosition : panel.anchoredPosition;
+            Vector2 start = end + Vector2.down * 244f;
+            panel.anchoredPosition = start;
+            group.alpha = 0f;
+            group.blocksRaycasts = false;
+            _isAnimating = true;
+
+            const float duration = 0.3f;
+            float startedAt = Time.unscaledTime;
+            while (version == _presentationVersion && _current != null)
+            {
+                float t = Mathf.Clamp01((Time.unscaledTime - startedAt) / duration);
+                float eased = 1f - Mathf.Pow(1f - t, 3f);
+                panel.anchoredPosition = Vector2.LerpUnclamped(start, end, eased);
+                group.alpha = eased;
+                if (t >= 1f) break;
+                yield return null;
+            }
+
+            if (version != _presentationVersion || _current == null) yield break;
+            panel.anchoredPosition = end;
+            group.alpha = 1f;
+            group.blocksRaycasts = true;
+            _isAnimating = false;
+
+            float hoverStartedAt = Time.unscaledTime;
+            int remaining = Mathf.Max(0, autoUseSeconds);
+            float nextCountdownAt = Time.unscaledTime;
+            while (version == _presentationVersion && _current != null && panel != null)
+            {
+                float elapsed = Time.unscaledTime - hoverStartedAt;
+                float ping = Mathf.PingPong(elapsed / HoverHalfCycle, 1f);
+                float eased = ping * ping * (3f - 2f * ping);
+                panel.anchoredPosition = end + Vector2.up * (HoverDistance * eased);
+
+                if (remaining > 0 && Time.unscaledTime >= nextCountdownAt)
+                {
+                    remaining--;
+                    if (_bind?.enter_btn_text != null)
+                        _bind.enter_btn_text.text = _actionLabel + "(" + remaining + "s)";
+                    if (remaining <= 0)
+                    {
+                        _presentationCoroutine = null;
+                        OnConfirm();
+                        yield break;
+                    }
+                    nextCountdownAt += 1f;
+                }
+
+                yield return null;
+            }
+
+            _presentationCoroutine = null;
+        }
+
+        private static void StopPresentation()
+        {
+            if (_presentationCoroutine != null && _bind != null)
+            {
+                _bind.StopCoroutine(_presentationCoroutine);
+            }
+            _presentationCoroutine = null;
+            if (_bind?._gp_con != null && _hasRestingPosition)
+                _bind._gp_con.anchoredPosition = _restingPosition;
         }
     }
 }

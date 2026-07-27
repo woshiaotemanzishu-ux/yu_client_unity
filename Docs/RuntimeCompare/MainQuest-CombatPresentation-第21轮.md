@@ -95,3 +95,11 @@
 - **根因**：Unity 在父层失活时终止子节点 Coroutine，但 `_autoClose` 仍保留非空句柄。窗口恢复后继续显示，`StartAutoClose` 又被非空守卫拦截，因此永久不关。老端使用浏览器 `setTimeout`，不受显示树和游戏 `timeScale` 影响。
 - **修复**：去掉自动关闭 Coroutine，改存 `Time.unscaledTime + waitSeconds` 的绝对截止时间；正常显示时到点关闭，父层被隐藏时继续计时，恢复后的第一帧发现超时立即补关。连续战力增长仍由 `StopAutoClose/StartAutoClose` 重置截止时间，累加动画语义不变。
 - **验证**：`dotnet build Shenxiao.Module.Core.csproj --no-restore` 0 error；运行态需覆盖“战力提示出现 → 立刻进入任务对话 → 对话结束”路径，确认提示不会复活并常驻。
+
+## 2026-07-27 补充：混合角色普攻刀光延迟到收招后出现
+
+- **现象勘误**：首次施法卡顿前移后，动作本身已不卡，但普通攻击期间基本看不到刀光，反而在攻击结束、角色停下或面板弹出的瞬间出现一次。这不是粒子速度或资源仍未预热。
+- **根因**：`role/1111` 的 `idle/run` 是新动作 Prefab，`attack/skill*` 回退旧拼装模型。技能代码先把粒子挂到混合容器；容器递归查找 `root` 时先命中新 `idle` 子树。攻击期间该子树 inactive，收招切回 idle 后错误粒子才随之显示。
+- **老端依据**：`FightMovieInfo.Update` 在 `past_time >= particle.start_time` 时播放粒子；职业普攻配置 `start_time=0,pos_type=2`，即动作起始立即在攻击者坐标播放，不存在收招补播语义。
+- **修复**：`ReplaceableRoleModel` 公开只读 `ActiveModel`；技能播放改为等待 `PlayAsync` 完成新旧实例切换，再将动作特效及技能粒子挂到本次激活子模型。延时粒子显式捕获本次动作宿主，避免延时结束时角色已回待机又挂错。`RoleModelAssembler.PrepareRoleActions/PlayActionAsync` 同步补齐混合模型公共路径。
+- **验证**：Common/Core/Editor 三工程串行离线编译均 0 error；`SceneMixDriverCase` 新增“attack 特效宿主等于当前激活旧模型”的断言。视觉验收需退出并重新进入 Play Mode，观察普攻刀光在挥刀阶段出现，收招后不再补闪。

@@ -42,9 +42,10 @@
 |---|---|---|
 | `10000` | `iiss` | GAME_CONNECT 后立刻发:`pid, time_stamp, account_id, plat_name`。**踩坑(2026-06-12)**:account_id/time_stamp/pid 必须用 `get_server_info` 下发的 `accname`/`time`/`pid`(LoginManager PLAYER_SERVER_INFO),游戏服按 accname 认账号——发 GM 的 player_id 会被当成另一个空账号,满角色的号也会落进创角页 |
 | (回包) | — | 角色列表 → 进 LoginSelectRoleView / 无角色进 LoginCreateRoleView |
-| `10003` | `cccsslsscscc` | 创角:career, sex, role_name, plat_name, inviter_id, ... |
+| `10003` | `cccsslsscscc` | 创角:career, sex, role_name, plat_name, inviter_id, ...；失败结果必须以玩家可见 Toast 展示，不能只写 Console |
 | `10004` | `lsisisscscsh` | 选角进游戏:role_id, ... → 成功后事件 `GAME_START` |
 | `10006` | —— | 心跳/确认类(LoginController.ts:363) |
+| `10007` | `s` | 随机角色名展示前的服务器权威校验；回包 `c`：1成功、3重名、4非法字符、5长度、6已有角色、7敏感词。名字类失败静默换名，其他失败提示玩家 |
 
 - `10006` 心跳节奏必须按老客户端 `LoginController.On10006` 复刻: `10000` 回包后先发一次,
   收到 `10006` 回包后取消旧延迟并重新排一个 5 秒后发送的任务。不要在 `NetManager.Pump()`
@@ -115,7 +116,25 @@
 - **创角页**(LoginCreateRoleView.ts):进入按 `random_weight` **加权随机预选职业** +
   自动随机名(ConfigRandomName 姓+性别名);右侧三张职业介绍图 img1/2/3
   (login/other/ 下,随职业切换);模型动作=ConfigModelAni 的 create2→create3。
+- **随机名不能只在本地拼接后直接创角**：老端每次生成候选名后先发 `10007`，失败自动继续随机，
+  最多 10 次。服务端敏感词包含运行时数据库 `config_word`，客户端配置无法可靠预判；Unity 必须保留
+  这道服务器校验。手动输入名仍由最终 `10003` 裁决，但所有失败码都必须弹出玩家可见提示。
 - 以上配置全部运行时读(LoginConfigs),编辑器菜单「神霄/配表/同步客户端配置(JSON)」
   负责把 JSON 从 yu_client 带进 GameRes。
 - 未对齐(记账):入场 Tween(条目飞入/按钮浮入)、角色头像 CustomHeadItem、
   创角音效+骨骼特效、选角页形象线换装、创角视频(LoginCreatRoleVideoView)。
+
+## 连接等待、超时与玩家反馈（2026-07-28）
+
+- 老客户端在 `START_GAME_CONNECT` 时给 `WaitforOpenViewLoading` 注册 loading 源，收到
+  `GAME_CONNECT` 后才撤销；等待层延迟 `0.15s` 显形、旋转圈 `2s` 一圈、单源 `15s` 过期。
+  Unity 的 `WaitforOpenViewLoading` 保留相同时序，由“重构UI 生成器 → Login”生成独立 Prefab，
+  不再依赖 Laya 转换器生成的 `WaitforOpenViewLoadingBind`，也不得重烤现有登录页面。
+- Unity 连接等待覆盖三个阶段：`get_server_info` 获取入口、WebSocket 建连并发送 `10000`、等待
+  `10000` 角色列表回包。阶段切换使用同一个 loading source 刷新过期时间；角色列表到达、失败、
+  超时、主动返回和登录模块退役都必须移除该 source，禁止遗留常驻转圈。
+- HTTP 入口解析、WebSocket 建连、`10000` 回包各自以 `15s` 为失败边界；连接任务超时后必须
+  主动 `DisconnectAsync` 取消底层 socket，不能只把 UI 撤掉后让旧任务继续占用连接。
+- 玩家反馈不能只写 Console 或短 Toast：入口失败、连接失败、等待角色数据超时、等待期间断线，
+  均显示“是否重新连接”的确认弹窗；详细异常只写日志，弹窗使用可理解的网络提示。新等待 Prefab
+  尚未生成时只降级为文字 Toast，不得阻断登录页其余功能。

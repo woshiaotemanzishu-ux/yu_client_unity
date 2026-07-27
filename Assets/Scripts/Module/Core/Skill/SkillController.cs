@@ -7,6 +7,7 @@ using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Scene;
+using Shenxiao.Module.Core.FunctionOpen;
 
 namespace Shenxiao.Module.Core.Skill
 {
@@ -34,6 +35,7 @@ namespace Shenxiao.Module.Core.Skill
 
         protected override void Register()
         {
+            FunctionOpenAutoFlow.Initialize();
             RegisterProtocal(Proto.SKILL_LIST, On21002);
             RegisterProtocal(Proto.SKILL_SHORTCUT_BAR, On13007);
 
@@ -56,6 +58,7 @@ namespace Shenxiao.Module.Core.Skill
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.Off<int, int>(GlobalEvent.EVT_SKILL_SHORTCUT_CLICK, PressSkillHandler);
             SkillManager.Instance.Clear();
+            FunctionOpenAutoFlow.Reset();
             SkillTalentModel.Instance.Clear();
             AutoFightModel.Instance.Reset();
             base.Dispose();

@@ -1,14 +1,16 @@
 using System.Collections.Generic;
-using Shenxiao.Generated.UI.Login;
+using Shenxiao.Framework.UI;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Login
 {
     /// <summary>
     /// 等待开服 Loading(对标老客户端 login/WaitforOpenViewLoading.ts)。
     ///
-    /// data-only:结构(旋转圈 _img_circle + loading 文字 _lb_loading)已烤进 prefab,这里【只绑数据/驱动表现】——
-    /// 不运行时 new 节点、不摆位置。prefab 里只有 _img_circle、_lb_loading 两个节点(Bind 已绑),老端没有 Item 列表,
+    /// data-only:结构(旋转圈 _img_circle + loading 文字 _lb_loading)由重构 UI 生成器建进 prefab,
+    /// 这里【只绑数据/驱动表现】——不运行时 new 节点、不摆位置。老端没有 Item 列表,
     /// 故无「数据驱动列表」一节。
     ///
     /// 旋转:老端用 Laya.TimeLine 让 _img_circle 2000ms 转一圈(rotation -360),等价为每帧 Rotate(-180°/s)。
@@ -25,8 +27,12 @@ namespace Shenxiao.Module.Core.Login
     /// 真·运行时(平台 WX/Eyou 防沉迷的点点动画 UpdateTimer/_dot_accout、PlatformManager 判定、th_text 泰语文案)
     /// 属平台特化分支,本轮不译(项目无 PlatformManager 对等;见 risks),只保留主线旋转圈 + 文字。
     /// </summary>
-    public sealed class WaitforOpenViewLoading : WaitforOpenViewLoadingBind
+    public sealed class WaitforOpenViewLoading : BaseView
     {
+        [Header("Prefab 引用（由 WaitforOpenViewLoadingCreator 回填）")]
+        public Image _img_circle;
+        public TextMeshProUGUI _lb_loading;
+
         /// <summary>旋转速度(度/秒;对标老端 TimeLine 2000ms 一圈 = 180°/s,负向)。</summary>
         [SerializeField] private float _rotateSpeed = 180f;
 
@@ -45,6 +51,12 @@ namespace Shenxiao.Module.Core.Login
 
         /// <summary>圈是否在转(对应老端 circle_time_line 存活与否)。</summary>
         private bool _spinning;
+
+        protected override void BindNodes()
+        {
+            EnsureBound(nameof(_img_circle), _img_circle);
+            EnsureBound(nameof(_lb_loading), _lb_loading);
+        }
 
         protected override void OnInit()
         {

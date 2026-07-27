@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
@@ -43,6 +44,7 @@ namespace Shenxiao.Module.Core.Login
     public sealed class RoleCreateView : BaseView
     {
         private const float MODEL_SCALE = 0.5f; // 老客户端字面量 show_model_data.scale
+        private const int MAX_RANDOM_NAME_VERIFY_ATTEMPTS = 10; // 老端 max_random_count
 
         // 创角展示视频:object/role/video_create/{RoleRes}@create2.mp4(出场,播完接待机)
         // + {RoleRes}@create3.mp4(待机,循环)。对应老整模 prefab 的 create2/create3 两段
@@ -84,6 +86,7 @@ namespace Shenxiao.Module.Core.Login
         private List<LoginConfigs.CareerOption> _options = new List<LoginConfigs.CareerOption>();
         private int _selectedIndex;
         private bool _creating;
+        private bool _verifyingRandomName;
 
         private VideoPlayer _videoPlayer;        // 挂在 videoImage 上,懒建,全职业共用
         private RenderTexture _videoTexture;     // 视频画布,按 clip 尺寸懒建,OnDispose 释放
@@ -491,19 +494,60 @@ namespace Shenxiao.Module.Core.Login
 
         // ---------------------------------------------------------------- 事件
 
-        private void OnClickRandomName()
+        private async void OnClickRandomName()
         {
-            string name = LoginConfigs.RandomRoleName(_options.Count > 0 ? _options[_selectedIndex].Sex : 1);
-            if (nameInput != null) nameInput.text = name;
+            if (_verifyingRandomName || _options.Count == 0) return;
+            _verifyingRandomName = true;
+            try
+            {
+                int sex = _options[_selectedIndex].Sex;
+                for (int attempt = 1; attempt <= MAX_RANDOM_NAME_VERIFY_ATTEMPTS; attempt++)
+                {
+                    string candidate = LoginConfigs.RandomRoleName(sex);
+                    int result = await LoginController.Instance.VerifyRoleNameAsync(candidate);
+                    if (this == null || !gameObject.activeInHierarchy) return;
+
+                    if (result == 1)
+                    {
+                        if (nameInput != null) nameInput.text = candidate;
+                        return;
+                    }
+
+                    GameLog.Info("Login", "随机名候选被拒绝 attempt={0} name={1} result={2}",
+                        attempt, candidate, result);
+                    if (!LoginController.IsRetryableRandomNameResult(result))
+                    {
+                        TipsManager.Toast(LoginController.GetRoleNameResultMessage(result));
+                        return;
+                    }
+                }
+
+                TipsManager.Toast("暂时没有生成可用角色名，请点击随机按钮重试或手动输入");
+            }
+            catch (System.Exception e)
+            {
+                GameLog.Warn("Login", "随机名验证失败: {0}", e.Message);
+                TipsManager.Toast("角色名验证失败，请稍后重试");
+            }
+            finally
+            {
+                _verifyingRandomName = false;
+            }
         }
 
         private void OnClickEnter()
         {
             if (_creating) return;
+            if (_verifyingRandomName)
+            {
+                TipsManager.Toast("正在生成可用角色名，请稍候");
+                return;
+            }
             string roleName = (nameInput != null ? nameInput.text : string.Empty).Trim();
             if (string.IsNullOrEmpty(roleName))
             {
                 GameLog.Warn("Login", "角色名为空");
+                TipsManager.Toast("请输入角色名");
                 return;
             }
             _creating = true;
@@ -514,15 +558,11 @@ namespace Shenxiao.Module.Core.Login
         private void OnCreateResult(int result)
         {
             _creating = false;
-            switch (result)
-            {
-                case 1: break; // 成功:LoginController 已自动 10004 进入游戏
-                case 3: GameLog.Warn("Login", "创角失败:角色名称已被使用"); break;
-                case 4: GameLog.Warn("Login", "创角失败:含敏感字符"); break;
-                case 5: GameLog.Warn("Login", "创角失败:名称长度需 2~6 个汉字"); break;
-                case 6: GameLog.Warn("Login", "创角失败:该账号已创建角色"); break;
-                default: GameLog.Warn("Login", "创角失败:未知错误({0})", result); break;
-            }
+            if (result == 1) return; // 成功:LoginController 已自动 10004 进入游戏
+
+            string message = LoginController.GetRoleNameResultMessage(result);
+            GameLog.Warn("Login", "创角失败: {0} result={1}", message, result);
+            TipsManager.Toast(message);
         }
 
         /// <summary>对标老客户端:有角色 → 回选角页;无角色 → 断线回踏入仙界页。</summary>

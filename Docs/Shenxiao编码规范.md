@@ -295,6 +295,8 @@ public partial class LoginView : LoginViewBind {
 - 显示文本一律走 `Lang.Get(key)` 或 TMP 默认值
 - 写死中文文案只允许在临时占位（必须 `// TODO i18n`）
 - 字体走统一字体引用，不要每个 View 配自己的字体
+- 老端配置中的 `<color@N>` 属于数据颜色语义，统一经 `LegacyUiColor` 转换为 TMP 富文本；禁止各 View 复制一份 `ColorUtil` 调色板或直接把标签剥掉
+- 组合弹层的布局、字体、颜色、尺寸和演出时长保存在可编辑 Prefab/Presenter 序列化字段中；业务 Flow 只传真实数据、管理队列和生命周期
 
 ---
 
@@ -617,6 +619,7 @@ public class LoginController : BaseController {
   electron main.py PARTICLE_SECTION_BY_TYPE。
 - 运行时挂特效统一走 `EffectBinder`(查表挂骨骼 + ResetTransform + tag 成组清理),
   禁止业务自己 Instantiate 特效 prefab。
+- `ReplaceableRoleModel` 混合容器下可同时存在多个带同名骨骼的新/旧动作实例；动作和技能特效必须先完成动作切换，再以 `ActiveModel` 为宿主挂载。禁止直接从混合容器递归找骨骼；延时特效必须捕获本次动作宿主，不能在触发时重新猜当前子模型。
 
 **协议线(详见 Docs/Shenxiao协议架构.md):**
 

@@ -316,6 +316,13 @@ namespace Shenxiao.Common.UI3D
 
         public static async Task PrepareRoleActions(GameObject root, int career, int clotheRes, string[] actions)
         {
+            if (root == null || actions == null || actions.Length == 0) return;
+            var driver = root.GetComponent<ReplaceableRoleModel>();
+            if (driver != null)
+            {
+                await driver.PrepareActionsAsync(actions);
+                return;
+            }
             AssetAssemblyEntry profile = await AssetAssemblyProfiles.GetAsync(AssetAssemblyProfiles.RoleProfileId(clotheRes));
             await PrepareActions(root, career, actions, profile);
         }
@@ -326,13 +333,18 @@ namespace Shenxiao.Common.UI3D
             var driver = root.GetComponent<ReplaceableRoleModel>();
             if (driver != null)
             {
-                driver.Play(actionName, restart: true); // 混合模型:按清单新老互切
+                await driver.PlayAsync(actionName, restart: true); // 先完成新老互切，特效才能挂到本次动作实例
+                if (driver == null || driver.ActiveModel == null) return;
+                root = driver.ActiveModel;
             }
-            var anim = root.GetComponent<Animation>();
-            if (anim != null && anim.GetClip(actionName) != null)
+            else
             {
-                anim.Stop();
-                anim.Play(actionName);
+                var anim = root.GetComponent<Animation>();
+                if (anim != null && anim.GetClip(actionName) != null)
+                {
+                    anim.Stop();
+                    anim.Play(actionName);
+                }
             }
             if (profile?.ActionEffects != null
                 && profile.ActionEffects.TryGetValue(actionName, out var bindings))

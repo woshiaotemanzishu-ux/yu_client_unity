@@ -37,8 +37,8 @@
         /// <summary>心跳(无字段)。</summary>
         public const int HEARTBEAT = 10006;
 
-        /// <summary>角色名验证(创角前查重)。发 "s" 名字;回包 "c" 结果
-        /// (1成功/2失败/4已使用/5非法字符/6长度1-5,对标老客户端 On10007)。
+        /// <summary>角色名验证(随机名展示前校验)。发 "s" 名字;回包 "c" 结果
+        /// (1成功/2未知/3已使用/4非法字符/5长度/6已有角色/7敏感词,对标 yu_server validate_name)。
         /// 注:此前误标为「踢下线通知」,已按 yu_server pt_100.erl 纠正。</summary>
         public const int NAME_VERIFY = 10007;
         public const int SERVER_TIME = 10201;

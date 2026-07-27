@@ -788,7 +788,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: -1, y: -68}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 78, y: 78}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7201093924363667536
 CanvasRenderer:
@@ -1062,7 +1062,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &5590887092400303895
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1137,7 +1137,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &6199193442267848952
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1416,6 +1416,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6232390270290380547}
+  - component: {fileID: 8904612573840192201}
+  - component: {fileID: 8904612573840192202}
   m_Layer: 0
   m_Name: click_bg
   m_TagString: Untagged
@@ -1442,6 +1444,44 @@ RectTransform:
   m_AnchoredPosition: {x: -360, y: 640}
   m_SizeDelta: {x: 720, y: 1280}
   m_Pivot: {x: 0, y: 1}
+--- !u!222 &8904612573840192201
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2554887853378094339}
+  m_CullTransparentMesh: 1
+--- !u!114 &8904612573840192202
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2554887853378094339}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.72}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &2659591377491156810
 GameObject:
   m_ObjectHideFlags: 0
@@ -1782,7 +1822,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &4216135081066792412
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1839,7 +1879,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278935495
   m_fontColor: {r: 0.78039217, g: 0.37254903, b: 0.043137256, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -2688,8 +2728,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: -98, y: -275}
-  m_SizeDelta: {x: 7, y: 12}
+  m_AnchoredPosition: {x: -90.86929, y: -149.8324}
+  m_SizeDelta: {x: 333.0539, y: 76.3024}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &7215108553450655370
 CanvasRenderer:
@@ -2719,7 +2759,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 1
+  m_text: 1111111111111111111111111111111111111111111111111111111111111111111111111111
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b1564091d91122b44af8c23be2da2334, type: 2}
   m_sharedMaterial: {fileID: -8391506023515104131, guid: b1564091d91122b44af8c23be2da2334, type: 2}
@@ -2728,8 +2768,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4278234623
+  m_fontColor: {r: 1, g: 0.67976373, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2741,13 +2781,13 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 22
+  m_fontSizeBase: 22
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2763,7 +2803,7 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_TextWrappingMode: 0
+  m_TextWrappingMode: 1
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
@@ -2962,8 +3002,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 196, y: -272}
-  m_SizeDelta: {x: 90, y: 90}
+  m_AnchoredPosition: {x: 196, y: -315}
+  m_SizeDelta: {x: 328, y: 98}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &8843459331486993530
 CanvasRenderer:
@@ -2993,7 +3033,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: eeb4e31ea0c69be4f999f0f756508bf5, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b30a84f7074e8e44588072747d6a5e60, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3748,7 +3788,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4284677990
   m_fontColor: {r: 0.4, g: 1, b: 0.38431373, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -4178,6 +4218,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4785393524647525201}
   - component: {fileID: 2592341417224637673}
+  - component: {fileID: 8904612573840192203}
   m_Layer: 0
   m_Name: FunctionOpenAutoView
   m_TagString: Untagged
@@ -4243,6 +4284,24 @@ MonoBehaviour:
   close_tip: {fileID: 3510488690489640638}
   skillLab: {fileID: 80661860095940114}
   _tpl_BaseAwardItem: {fileID: 4695434279381907747}
+--- !u!114 &8904612573840192203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7347527435046431878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ac60ba9c77e44efa2d9dfce2889ac45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Shenxiao.Module.Core::Shenxiao.Module.Core.FunctionOpen.FunctionOpenAutoView
+  view: {fileID: 2592341417224637673}
+  openDuration: 0.22
+  openStartScale: 0.82
+  clickEnableDelay: 0.5
+  autoCloseSeconds: 10
+  backdropColor: {r: 0, g: 0, b: 0, a: 0.72}
 --- !u!1 &7497336900025001116
 GameObject:
   m_ObjectHideFlags: 0
@@ -4440,7 +4499,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2

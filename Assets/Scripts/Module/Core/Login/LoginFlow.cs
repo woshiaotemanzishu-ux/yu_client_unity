@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Config;
@@ -11,7 +12,7 @@ using UnityEngine;
 namespace Shenxiao.Module.Core.Login
 {
     /// <summary>
-    /// 登录模块 UI 流程编排(重构版:独立 LoginStage 外壳 + 6 个原样页面 prefab)。
+    /// 登录模块 UI 流程编排(重构版:独立 LoginStage 外壳 + 6 个页面 prefab + 1 个连接等待层)。
     /// 链路严格对齐老客户端:
     ///   ① 加载页 LoadingView(真实资源下载进度)
     ///   ② 登录/注册页 LoginPanelView(登录⇄注册子面板)
@@ -31,7 +32,13 @@ namespace Shenxiao.Module.Core.Login
         private static ServerSelectView _selectView;   // ④ 选服
         private static RoleSelectView _selectRoleView; // ⑤ 选角
         private static RoleCreateView _createRoleView; // ⑤ 创角
+        private static WaitforOpenViewLoading _waitConnectView; // ⑤ 解析入口/连服/等待 10000 的小转圈
+        private static TaskCompletionSource<bool> _roleListCompletion;
+        private static bool _awaitingRoleListResponse;
         private static bool _busy;
+
+        private const int ConnectLoadingSource = 0x4C4F474E; // "LOGN",稳定标识 LoginFlow 的 loading 源
+        private const int ConnectTimeoutMs = 15000;
 
         /// <summary>
         /// 用户协议勾选状态(会话内)。持久化按账号记录,对标老客户端:进入踏入仙界页瞬间,该账号同意过 →
@@ -58,6 +65,7 @@ namespace Shenxiao.Module.Core.Login
             Shenxiao.Framework.UI.BootOverlay.Report(0.94f, "正在加载登录界面…");
             _enterView = await LoadViewAsync<ServerEnterView>("ServerEnterView");
             _selectView = await LoadViewAsync<ServerSelectView>("ServerSelectView");
+            _waitConnectView = await LoadViewAsync<WaitforOpenViewLoading>("WaitforOpenViewLoading", false);
             Shenxiao.Framework.UI.BootOverlay.Report(0.97f, "正在加载登录界面…");
             _selectRoleView = await LoadViewAsync<RoleSelectView>("RoleSelectView");
             _createRoleView = await LoadViewAsync<RoleCreateView>("RoleCreateView");
@@ -72,6 +80,7 @@ namespace Shenxiao.Module.Core.Login
             _loginPanel.RegisterSubmit = (a, p) => SubmitRegisterAsync(a, p);
 
             EventDispatcher.On<int>(GlobalEvent.EVT_GAME_ROLE_LIST, OnRoleList);
+            EventDispatcher.On(GlobalEvent.EVT_NET_DISCONNECTED, OnNetDisconnectedDuringLogin);
             EventDispatcher.On(GlobalEvent.EVT_GAME_ENTERED, OnGameEntered);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.On(GlobalEvent.EVT_SCENE_ENTITIES_READY, OnSceneEntitiesReady);
@@ -109,14 +118,17 @@ namespace Shenxiao.Module.Core.Login
         }
 
         /// <summary>按视图名实例化对应独立 prefab 并取组件(失败返回 null)。</summary>
-        private static async Task<T> LoadViewAsync<T>(string viewName) where T : BaseView
+        private static async Task<T> LoadViewAsync<T>(string viewName, bool required = true) where T : BaseView
         {
             string key = GameResPath.GetUIPrefab("login", viewName);
             GameObject go = await ResManager.InstantiateAsync(key, _stage.viewport);
             T view = go != null ? go.GetComponent<T>() : null;
             if (view == null)
             {
-                GameLog.Error("Login", "{0} prefab 加载失败(key={1})。先在「神霄/重构UI 生成器」里生成它", viewName, key);
+                if (required)
+                    GameLog.Error("Login", "{0} prefab 加载失败(key={1})。先在「神霄/重构UI 生成器」里生成它", viewName, key);
+                else
+                    GameLog.Warn("Login", "{0} prefab 尚未生成(key={1})，连接过程暂退回文字提示", viewName, key);
                 return null;
             }
             view.gameObject.SetActive(false);
@@ -228,14 +240,21 @@ namespace Shenxiao.Module.Core.Login
 
         private static async Task<LoginRequestResult> WithTimeout(Task<LoginRequestResult> task, string what)
         {
+            return await WithTimeout(task, what, _config != null ? _config.gmApiUrl : string.Empty,
+                what + "超时:账号服务器不可达");
+        }
+
+        private static async Task<LoginRequestResult> WithTimeout(
+            Task<LoginRequestResult> task, string what, string target, string timeoutMessage)
+        {
             // ⚠ Task.Delay 在 WebGL 永不醒 → 超时保护会失效(接口挂了就永等);用跨平台 Delay。
-            Task finished = await Task.WhenAny(task, Shenxiao.Framework.Util.TimeUtil.Delay(15000));
+            Task finished = await Task.WhenAny(task, TimeUtil.Delay(ConnectTimeoutMs));
             if (finished != task)
             {
-                GameLog.Error("Login", "{0}超时:{1} 不可达(浏览器应能打开并显示 API is ready)", what, _config.gmApiUrl);
-                return LoginRequestResult.Fail(what + "超时:账号服务器不可达");
+                GameLog.Error("Login", "{0}超时:target={1}", what, target);
+                return LoginRequestResult.Fail(timeoutMessage);
             }
-            return task.Result;
+            return await task;
         }
 
         // ---------------------------------------------------------------- ④ 选服 / ⑤ 进服
@@ -269,35 +288,135 @@ namespace Shenxiao.Module.Core.Login
             }
             if (_busy) return;
             _busy = true;
+            TaskCompletionSource<bool> roleListCompletion = null;
             try
             {
-                TipsManager.Toast("解析服务器入口 ...");
-                LoginRequestResult result = await LoginController.Instance.ResolveSelectedServerEndpointAsync();
+                ShowConnectLoading("正在获取服务器入口...");
+                LoginRequestResult result = await WithTimeout(
+                    LoginController.Instance.ResolveSelectedServerEndpointAsync(),
+                    "解析服务器入口",
+                    _config != null ? _config.gmApiUrl : string.Empty,
+                    "获取服务器入口超时");
                 if (!result.success)
                 {
-                    TipsManager.Toast("入口解析失败: " + result.message);
+                    ShowConnectRetry("获取服务器入口失败。", result.message);
                     return;
                 }
 
-                TipsManager.Toast("连接游戏服 ...");
-                result = await LoginController.Instance.ConnectGameAsync();
+                // 必须在发 10000 前建 waiter：本机服回包可能快于 ConnectGameAsync 的主线程续体。
+                roleListCompletion = new TaskCompletionSource<bool>();
+                _roleListCompletion = roleListCompletion;
+                _awaitingRoleListResponse = false;
+
+                LoginServerInfo server = LoginController.Instance.Model.SelectedServer;
+                string endpoint = server != null ? server.host + ":" + server.port : "unknown";
+                ShowConnectLoading("正在连接服务器...");
+                result = await WithTimeout(
+                    LoginController.Instance.ConnectGameAsync(),
+                    "连接游戏服",
+                    endpoint,
+                    "连接游戏服超时");
                 if (!result.success)
                 {
-                    TipsManager.Toast("连接失败: " + result.message);
+                    ClearRoleListWaiter(roleListCompletion);
+                    await Shenxiao.Framework.Net.NetManager.DisconnectAsync();
+                    ShowConnectRetry("服务器连接失败，请检查网络连接。", result.message);
                     return;
                 }
-                TipsManager.Toast("已连接,等待角色数据 ...");
+
+                // 极快回包可能已由 OnRoleList 完成；此时不要把刚撤下的转圈再次显示出来。
+                if (roleListCompletion.Task.IsCompleted)
+                {
+                    await roleListCompletion.Task;
+                    return;
+                }
+
+                _awaitingRoleListResponse = true;
+                ShowConnectLoading("正在获取角色数据...");
+                Task finished = await Task.WhenAny(roleListCompletion.Task, TimeUtil.Delay(ConnectTimeoutMs));
+                if (finished != roleListCompletion.Task)
+                {
+                    GameLog.Error("Login", "账号登录 10000 回包超时:target={0}", endpoint);
+                    _awaitingRoleListResponse = false;
+                    ClearRoleListWaiter(roleListCompletion);
+                    await Shenxiao.Framework.Net.NetManager.DisconnectAsync();
+                    ShowConnectRetry("服务器响应超时，请检查网络连接。", "15 秒内未收到角色列表");
+                    return;
+                }
+
+                bool received = await roleListCompletion.Task;
+                if (!received)
+                {
+                    ShowConnectRetry("与服务器的连接已中断，请检查网络连接。", "等待角色列表期间连接断开");
+                }
+            }
+            catch (Exception e)
+            {
+                GameLog.Error("Login", "进入游戏连接流程异常: {0}", e);
+                ClearRoleListWaiter(roleListCompletion);
+                await Shenxiao.Framework.Net.NetManager.DisconnectAsync();
+                ShowConnectRetry("服务器连接失败，请检查网络连接。", e.Message);
             }
             finally
             {
+                ClearRoleListWaiter(roleListCompletion);
+                if (!_awaitingRoleListResponse) HideConnectLoading();
                 _busy = false;
             }
+        }
+
+        private static void ShowConnectLoading(string text)
+        {
+            if (_waitConnectView == null)
+            {
+                TipsManager.Toast(text);
+                return;
+            }
+
+            _waitConnectView.SetText(text);
+            _waitConnectView.Show(ConnectLoadingSource); // 同源重复 Show 会刷新 15s 过期时间
+        }
+
+        private static void HideConnectLoading()
+        {
+            _waitConnectView?.Hide(ConnectLoadingSource);
+        }
+
+        private static void ShowConnectRetry(string playerMessage, string detail)
+        {
+            HideConnectLoading();
+            GameLog.Warn("Login", "{0} detail={1}", playerMessage, detail);
+            TipsManager.Confirm(playerMessage + "\n\n是否重新连接？",
+                () => { _ = EnterGameAsync(); });
+        }
+
+        private static void ClearRoleListWaiter(TaskCompletionSource<bool> expected)
+        {
+            if (expected == null || _roleListCompletion != expected) return;
+            _roleListCompletion = null;
+            _awaitingRoleListResponse = false;
         }
 
         /// <summary>角色列表到达 → 有角色进选角页,无角色进创角页(对标老客户端 On10000 分流)。</summary>
         private static void OnRoleList(int roleCount)
         {
+            _awaitingRoleListResponse = false;
+            HideConnectLoading();
+            TaskCompletionSource<bool> completion = _roleListCompletion;
+            _roleListCompletion = null;
+            completion?.TrySetResult(true);
             _ = OnRoleListAsync(roleCount);
+        }
+
+        private static void OnNetDisconnectedDuringLogin()
+        {
+            if (!_awaitingRoleListResponse) return;
+
+            _awaitingRoleListResponse = false;
+            HideConnectLoading();
+            TaskCompletionSource<bool> completion = _roleListCompletion;
+            _roleListCompletion = null;
+            completion?.TrySetResult(false);
         }
 
         private static async Task OnRoleListAsync(int roleCount)
@@ -333,6 +452,9 @@ namespace Shenxiao.Module.Core.Login
         /// <summary>选角/创角页的返回:回到踏入仙界页(断开游戏服重选)。</summary>
         public static void BackToEnter()
         {
+            _awaitingRoleListResponse = false;
+            _roleListCompletion = null;
+            HideConnectLoading();
             _selectRoleView.Hide();
             _createRoleView.Hide();
             LoginController.Instance.ClearInGameReconnectState();
@@ -348,6 +470,7 @@ namespace Shenxiao.Module.Core.Login
         private static void OnGameEntered()
         {
             // 10004 成功后:隐藏所有登录页,起加载页等 GAME_START 资源接管完成。
+            HideConnectLoading();
             HideView(_loginPanel);
             HideView(_enterView);
             HideView(_selectView);
@@ -368,6 +491,7 @@ namespace Shenxiao.Module.Core.Login
             HideView(_selectView);
             HideView(_selectRoleView);
             HideView(_createRoleView);
+            HideConnectLoading();
             if (_loadingView != null) _loadingView.SetProgress(1f, "进入场景");
             _ = HideLoadingFallbackAsync();
             GameLog.Info("Login", "—— 🎉 GAME_START:登录模块退下,等场景首屏就绪揭幕 ——");
@@ -394,12 +518,16 @@ namespace Shenxiao.Module.Core.Login
             ReleaseView(ref _selectView);
             ReleaseView(ref _selectRoleView);
             ReleaseView(ref _createRoleView);
+            ReleaseView(ref _waitConnectView);
             ReleaseView(ref _loadingView);
             if (_stage != null)
             {
                 ResManager.ReleaseInstance(_stage.gameObject);
                 _stage = null;
             }
+            EventDispatcher.Off(GlobalEvent.EVT_NET_DISCONNECTED, OnNetDisconnectedDuringLogin);
+            _roleListCompletion = null;
+            _awaitingRoleListResponse = false;
             LegacyPreloadService.ProgressChanged -= OnPreloadProgress;
             GameLog.Info("Login", "login views released(进世界,登录模块退役归还纹理/bundle)");
         }
@@ -430,6 +558,7 @@ namespace Shenxiao.Module.Core.Login
 
         private static void HideAllViews()
         {
+            HideConnectLoading();
             HideView(_loadingView);
             HideView(_loginPanel);
             HideView(_enterView);

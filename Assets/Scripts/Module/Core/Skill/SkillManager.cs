@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.FunctionOpen;
 using Shenxiao.Module.Core.Role;
 
 namespace Shenxiao.Module.Core.Skill
@@ -40,6 +41,7 @@ namespace Shenxiao.Module.Core.Skill
         private const int DefaultRigidityMs = 850;
 
         private readonly Dictionary<int, SkillVo> _mySkillList = new Dictionary<int, SkillVo>();
+        private readonly Dictionary<int, int> _cachedShortcutLevels = new Dictionary<int, int>();
         private int _autoFightShortcutIndex;
 
         /// <summary>技能僵直结束时间(NowMs 毫秒,对标老端 SkillManager.skill_rigidity)。
@@ -75,6 +77,7 @@ namespace Shenxiao.Module.Core.Skill
             }
 
             UpdateShortcutList();
+            CheckShortcutSkillOpenState();
             EventDispatcher.Emit(GlobalEvent.EVT_SKILL_LIST_UPDATED);
         }
 
@@ -127,6 +130,22 @@ namespace Shenxiao.Module.Core.Skill
 
         public SkillVo GetSkill(int skillId)
             => _mySkillList.TryGetValue(skillId, out SkillVo v) ? v : null;
+
+        /// <summary>
+        /// 对标老端 CheckShortCutSkillOpenState：首个 21002 只缓存等级，后续快捷栏技能等级上升才进入
+        /// FunctionOpenAutoView 队列。服务端若把未学技能以 level=0 下发，0→1 即“获得新技能”。
+        /// </summary>
+        private void CheckShortcutSkillOpenState()
+        {
+            for (int i = 0; i < ShortcutList.Count; i++)
+            {
+                SkillVo vo = ShortcutList[i];
+                if (vo == null) continue;
+                if (_cachedShortcutLevels.TryGetValue(vo.Id, out int oldLevel) && vo.Level > oldLevel)
+                    FunctionOpenAutoFlow.EnqueueSkillUpgrade(vo.Id, vo.Level);
+                _cachedShortcutLevels[vo.Id] = vo.Level;
+            }
+        }
 
         /// <summary>13020 被动技能解锁推送并入(对标老端 SkillManager.AddSkillToSkillList):仅
         /// config_skill[id].type==2(被动)才并入,level 恒置 1(照抄老端行为,不管是否已有更高等级);
@@ -286,6 +305,7 @@ namespace Shenxiao.Module.Core.Skill
         public void Clear()
         {
             _mySkillList.Clear();
+            _cachedShortcutLevels.Clear();
             ShortcutList = new List<SkillVo>();
             BarInfo = null;
             _autoFightShortcutIndex = 0;

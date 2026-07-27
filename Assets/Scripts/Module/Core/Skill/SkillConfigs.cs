@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Shenxiao.Common.UI;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
@@ -229,6 +230,19 @@ namespace Shenxiao.Module.Core.Skill
             if (lv == null || idx < 0 || idx >= lv.Count || !(lv[idx] is JObject lvo)) return "";
             string desc = lvo.Value<string>("desc") ?? "";
             return SanitizeDesc(desc);
+        }
+
+        /// <summary>
+        /// 技能获得等富文本展示专用：把老端 &lt;color@N&gt; 颜色标记转换为 TMP 标签。
+        /// 普通列表仍可继续使用 <see cref="GetDescForLevel"/> 的纯文本结果。
+        /// </summary>
+        public static string GetDescRichForLevel(int skillId, int level)
+        {
+            JArray lv = GetLvData(skillId);
+            int idx = (level > 0 ? level : 1) - 1;
+            if (lv == null || idx < 0 || idx >= lv.Count || !(lv[idx] is JObject lvo)) return "";
+            string desc = lvo.Value<string>("desc") ?? "";
+            return LegacyUiColor.ToTmpRichText(desc, light: false);
         }
 
         private static string SanitizeDesc(string desc)

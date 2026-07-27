@@ -1325,6 +1325,79 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **修复**：自动关闭改为 `Time.unscaledTime` 绝对截止时间，不再依赖会被父层生命周期中断的 Coroutine；父层恢复后若已超时，首帧立即关闭。连续战力更新仍会重新延后 1.8 秒。
 - **验证状态**：`Shenxiao.Module.Core.csproj` 离线编译 0 error；待 Play Mode 复验“战力提示期间进入任务对话再返回”的交叉路径。
 
+## 2026-07-27：普攻刀光错误挂到待机模型
+
+- **根因**：主角使用逐动作新旧混合模型，`idle/run` 和 `attack/skill` 并非同一实例；技能粒子原先从混合容器递归找 `root`，总是先挂到隐藏的 idle 子树，导致攻击时不可见、收招切回 idle 后才补闪。
+- **修复**：技能动作改为可等待切换；切换完成后统一从 `ReplaceableRoleModel.ActiveModel` 取得本次动作特效宿主，动作绑定和 `pos_type=0/2` 技能粒子均挂该实例；延时粒子捕获同一宿主。公共装配器也补齐混合模型的动作准备与切换等待。
+- **验证状态**：`Shenxiao.Common.csproj`、`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 串行离线编译均 0 error（仅既有 warning）；`SceneMixDriverCase` 已增加攻击特效宿主断言。需退出当前 Play Mode、等待 Unity 编译后重新进入，活服确认刀光与挥刀同步且收招不再补闪。
+
+## 2026-07-27：物品/高阶装备与获得技能基础弹层
+
+- **物品弹层补齐**：既有 `ItemUseFlow` 继续只消费 15010/15017/15018 已落地的真实背包实例，并按 `clientitemuse` 与穿戴评分筛选；补齐老端 0.3 秒下方淡入、质量名称色、`ClientConfigDefaultVo` 缺字段默认值（默认 10 秒）和 Popup 层生命周期。更高评分装备确认走 15201，普通物品确认走 15050。
+- **获得技能弹层**：新增 `FunctionOpenAutoFlow + FunctionOpenAutoView`，严格以首份 21002 建基线、后续快捷栏技能等级上升入 FIFO 队列；复用 `FunctionOpenModule.prefab`，暗幕、布局、字号、图标尺寸、开场和关闭时长均可在 Prefab 调整。新增 Play Mode 菜单 `神霄/调试/UI弹层/预览获得技能`。
+- **颜色公共语义**：新增 `LegacyUiColor`，集中承接老端 ColorUtil 深/浅色板与 `<color@N>`→TMP 转换，物品质量色和技能描述不再各自猜色。
+- **声音审计**：Unity 当前音频文件为 0，`AudioManager` 未初始化且无播放调用；老端 676 个物理音频文件合并为 310 个逻辑声音、293 个逻辑名有多格式重复。批量去重导入和运行时服务接线已形成方案，但本轮未擅自新增 Addressables 资源或启动接线。
+- **验证状态**：临时纳入 Unity 生成 csproj 后，`Shenxiao.Module.Core.csproj` 与 `Shenxiao.Editor.csproj` 均离线编译 0 error；临时 csproj 条目已移除，等待 Unity 自动刷新正式工程。物品真实触发与技能获得视觉仍需 Play Mode 活服验收。
+- **专题文档**：[基础弹层与声音迁移.md](基础弹层与声音迁移.md)。
+
+## 2026-07-28：创角随机名服务器预校验与失败提示
+
+- **根因**：Unity 直接把 `ConfigRandomName` 的“姓+名”组合提交给 `10003`，遗漏老客户端生成后先发
+  `10007`、失败自动换名的流程；当候选名命中服务端动态敏感词库时返回 7，Unity 又因错误码映射缺失
+  只打印“未知错误(7)”，玩家没有任何可见反馈。
+- **修复**：随机名恢复最多 10 次的串行 `10007` 权威校验，3/4/5/7 静默换候选；断线、登录状态等
+  非名字错误直接提示。`10003` 的所有失败结果统一 Toast，同时纠正 `10007` 的 3~7 错误码映射。
+- **架构约束**：`10007` 没有请求序号，客户端同一时刻只保留一个在途验证，避免回包与候选名错配；
+  服务端词库含运行时 `config_word`，不得以客户端静态过滤替代服务器校验。
+- **验证状态**：`Shenxiao.Module.Core.csproj` 与 `Shenxiao.Editor.csproj` 离线编译均 0 error；活服需用
+  新账号确认随机名先出现 `10007` 日志，再发送 `10003`，并用手动敏感名确认玩家可见 Toast。
+
+## 2026-07-28：登录连接等待动画与网络失败反馈
+
+- **缺失根因**：老端 `START_GAME_CONNECT/GAME_CONNECT` 会驱动全局 `WaitforOpenViewLoading`，Unity
+  虽已有旋转、延迟显形和 15 秒 source 过期代码，但没有 Prefab、没有资源地址，`LoginFlow` 也未接入；
+  原流程只弹短 Toast，socket 连不上或 `10000` 不回时玩家看不到持续状态和可操作提示。
+- **UI 架构修正**：新增 `WaitforOpenViewLoadingCreator` 到“重构UI 生成器 → Login”，只拥有新路径
+  `Assets/Prefabs/UI/Login/WaitforOpenViewLoading.prefab`，不会重建任何现有登录 Prefab；View 改为直接
+  `BaseView + public prefab 引用`，切断旧 `Generated WaitforOpenViewLoadingBind` 依赖。
+- **连接状态机**：入口解析、WebSocket 建连、等待角色列表三阶段持续刷新同一转圈 source；在发
+  `10000` 前建立 waiter，消除本机服极速回包竞态。各阶段 15 秒超时，连接任务超时会主动断开；
+  等待 10000 期间收到断线事件会立即结束等待，不再傻等到超时。
+- **玩家反馈**：入口失败、连服失败、10000 超时和中途断线均撤下转圈并弹出“是否重新连接”确认框，
+  详细技术异常仅写日志。Prefab 未生成时保留 Toast 降级，登录流程本身不被新资源硬依赖阻断。
+- **验证状态**：`Shenxiao.Module.Core.csproj` 串行离线编译 0 error；Editor 新生成器需等待 Unity 刷新
+  工程后编译，并由用户在“重构UI 生成器 → Login”仅生成新增等待层，再跑 Addressable 自动分组和
+  Play Mode 断服/停服实测。
+
+## 2026-07-28：获得技能样式权威与物品弹层不可见修复
+
+- **获得技能可编辑性**：确认弹层是 `FunctionOpenModule.prefab/FunctionOpenAutoView`，不是独立文件；
+  移除运行时对 `tips` 字号、颜色、对齐、尺寸/位置及 `icon` 尺寸的强制覆盖，并禁止标题图片加载后
+  `SetNativeSize`。`title`、`skillLab`、`tips`、`close_tip`、`icon` 现均以 Prefab 为视觉权威。
+- **物品弹层根因**：背包协议、`clientitemuse` 筛选和候选队列均已正常执行，日志可见
+  `[ItemUse] show ...`；真正不可见原因是 `CommonModule.prefab/ItemUseView/_gp_con` 被转换为 inactive，
+  而 `BaseView.Show()` 只激活 `ItemUseView` 根节点。
+- **修复**：恢复 `_gp_con` 的 Prefab 激活状态，并在加载/刷新时防御性激活；静止位置按老端
+  `centerX=150, centerY=150` 对应到 Unity 的 `(150,-150)`，入场动画继续相对该人工位置从下方滑入，
+  不再把布局写死在代码中。
+- **验证状态**：`Shenxiao.Module.Core.csproj --no-restore` 编译 0 warning / 0 error；需要停止并重新进入
+  Play Mode，实测下一件符合 `clientitemuse` 的物品和下一件高评分装备均能出现弹层。
+
+## 2026-07-28：物品使用/穿戴弹层悬浮表现
+
+- **老端取证**：`ItemUseView.ts` 的原始演出只有 `_gp_con` 从下方 244 单位、透明度 0 在 0.3 秒内
+  `EASE_OUT` 入场；`ItemUseView.scene` 的 `ani1` 节点表为空，没有持续循环动画。
+- **补充表现**：按本轮视觉要求，在入场完成后增加 1.6 秒一轮的轻微悬浮，面板从静止位向上 8 单位
+  平滑往返；关闭、换候选和重置继续使用 `presentationVersion` 终止旧动画。
+- **布局边界**：动画基准始终读取 `CommonModule.prefab/ItemUseView/_gp_con` 的 RectTransform，代码不保存
+  屏幕绝对位置，后续人工拖动 Prefab 不需要同步修改动画代码。
+- **活服复验修正**：`101011010/101021010` 的配置均明确为 `auto_use_sec=5`，但 `async Task + Task.Yield`
+  逐帧演出未可靠持续，表现为悬浮和倒计时同时缺失。现已改为 `ItemUseViewBind.StartCoroutine` 统一驱动
+  入场、12 单位悬浮和倒计时，并恢复装备卡底部“合成可获更强装备！”提示；日志追加实际 autoUse 秒数。
+- **二次复验根因**：Editor.log 捕获到 `_gp_con` 缺少 `CanvasGroup` 后，C# `??` 未按 Unity 假空语义补挂，
+  协程首帧抛 `MissingComponentException`。现改为 `GetComponent` 后用 Unity `== null` 显式判断并补挂；
+  该异常正是“底部文案正常、悬浮和倒计时均不运行”的共同原因。
+
 ## 2026-07-28：主界面循环冲榜 3D 模型常驻特效
 
 - **根因**：老端 `SetRoleModel` 会在模型和动作之外继续读取 `SceneObjectParticle` 并挂载骨骼常驻特效；

@@ -52,6 +52,7 @@ namespace Shenxiao.Module.Core.Login
         private int _heartbeatSerial;
         private bool _heartbeatWaitingResponse;
         private bool _stallNotified;
+        private TaskCompletionSource<int> _pendingNameVerify;
         private DateTime _lastHeartbeatSentAt;
         private DateTime _lastHeartbeatResponseAt;
         private CancellationTokenSource _autoReconnectCts;
@@ -255,6 +256,7 @@ namespace Shenxiao.Module.Core.Login
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_NET_DISCONNECTED, OnNetDisconnected);
+            CompletePendingNameVerify(9);
             ResetHeartbeatState();
             StopLinkWatchdog();
             CancelAutoReconnect();
@@ -328,6 +330,50 @@ namespace Shenxiao.Module.Core.Login
                 0, 0);     // create_role_change_career / change_name
             GameLog.Info("Login", "发送创角: name={0} career={1} sex={2}", roleName, career, sex);
         }
+
+        /// <summary>
+        /// 用 10007 让服务器校验一个随机角色名。创角页同一时刻只允许一个在途请求，避免无请求序号的
+        /// 10007 回包与候选名错配；断线/销毁时统一以登录状态错误结束等待。
+        /// </summary>
+        public Task<int> VerifyRoleNameAsync(string roleName)
+        {
+            if (string.IsNullOrWhiteSpace(roleName)) return Task.FromResult(11);
+            if (!NetManager.IsConnected) return Task.FromResult(9);
+            if (_pendingNameVerify != null)
+            {
+                GameLog.Warn("Login", "角色名验证仍有在途请求,拒绝并发发送: {0}", roleName);
+                return Task.FromResult(2);
+            }
+
+            _pendingNameVerify = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+            SendFmt(Proto.NAME_VERIFY, "s", roleName);
+            GameLog.Info("Login", "发送角色名验证: {0}", roleName);
+            return _pendingNameVerify.Task;
+        }
+
+        /// <summary>10003/10007 共用服务端 validate_name 结果码。</summary>
+        public static string GetRoleNameResultMessage(int result)
+        {
+            switch (result)
+            {
+                case 1: return "验证成功";
+                case 2: return "创角失败，请稍后重试";
+                case 3: return "角色名称已被使用";
+                case 4: return "角色名含非法字符";
+                case 5: return "角色名称长度需为2~6个汉字";
+                case 6: return "该账号已经创建角色";
+                case 7: return "角色名存在敏感字符";
+                case 8: return "所选职业尚未开放";
+                case 9: return "登录状态已失效，请重新登录";
+                case 10: return "账号格式错误";
+                case 11: return "角色名格式错误";
+                default: return "创角失败（错误码" + result + "）";
+            }
+        }
+
+        /// <summary>这些结果只与候选名字有关，随机名流程可以静默换一个继续验证。</summary>
+        public static bool IsRetryableRandomNameResult(int result)
+            => result == 3 || result == 4 || result == 5 || result == 7;
 
         /// <summary>选角进入游戏(对标 TRY_LOGIN_GAME 的 10004 "lsisisscscsh")。</summary>
         public void EnterGameWithRole(long roleId, bool isNewCareer = false)
@@ -629,6 +675,7 @@ namespace Shenxiao.Module.Core.Login
 
         private void OnNetDisconnected()
         {
+            CompletePendingNameVerify(9);
             ResetHeartbeatState();
             StopLinkWatchdog();
             _inGameEntered = false;
@@ -722,17 +769,17 @@ namespace Shenxiao.Module.Core.Login
         private void OnNameVerify(NetReader reader)
         {
             int code = reader.ReadU8();
-            string msg = code switch
-            {
-                1 => "验证成功",
-                2 => "验证失败",
-                4 => "角色名称已被使用",
-                5 => "含非法字符",
-                6 => "名称长度需 1~5",
-                _ => "未知结果 " + code,
-            };
-            GameLog.Info("Login", "角色名验证(10007): {0}", msg);
-            if (code != 1) TipsManager.Toast(msg);   // 失败码给玩家提示(文案对标老端)
+            string msg = GetRoleNameResultMessage(code);
+            GameLog.Info("Login", "角色名验证(10007): code={0} {1}", code, msg);
+            CompletePendingNameVerify(code);
+            // 随机候选被拒绝是正常分支，由 RoleCreateView 静默换名；不在控制器逐次弹 Toast。
+        }
+
+        private void CompletePendingNameVerify(int result)
+        {
+            TaskCompletionSource<int> pending = _pendingNameVerify;
+            _pendingNameVerify = null;
+            pending?.TrySetResult(result);
         }
 
         private async Task<LoginRequestResult> PlayerLoginAsync(string account, string token)

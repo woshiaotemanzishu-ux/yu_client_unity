@@ -32,6 +32,12 @@ namespace Shenxiao.Common.UI3D
         /// <summary>激活的新/老实例发生切换。展示台用它同步环境光、Renderer 与 RT 合成配置。</summary>
         public event System.Action ActiveModelChanged;
 
+        /// <summary>
+        /// 当前真正参与渲染和播放动作的子模型。动作/技能特效必须挂到这里，不能从混合容器根节点
+        /// 递归找同名骨骼，否则会命中已隐藏的 idle/run 实例，直到切回该实例时才错误露出。
+        /// </summary>
+        public GameObject ActiveModel => _active;
+
         public void Init(RoleModelSpec spec)
         {
             _spec = spec;

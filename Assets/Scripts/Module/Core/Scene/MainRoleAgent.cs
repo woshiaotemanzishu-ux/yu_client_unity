@@ -699,23 +699,27 @@ namespace Shenxiao.Module.Core.Scene
                 int version = ++_actionVersion;
                 _moving = false;
                 _autoMoving = false;
+                EffectBinder.ClearTag(_model, "action");
+
+                GameObject actionEffectHost = _model;
 
                 if (!string.IsNullOrEmpty(actionName))
                 {
                     await RoleModelAssembler.PrepareRoleActions(_model, _career, _clotheRes, new[] { actionName });
                     if (version != _actionVersion || _model == null) return;
-                    await EffectBinder.AttachAction(_model, "role", _clotheRes.ToString(), actionName);
-                    if (!TryPlayAction(actionName, 0.08f, true))
+                    if (!await TryPlayActionAsync(actionName, 0.08f, true))
                     {
                         GameLog.Warn("Scene", "skill action missing skill={0} action={1}", skillId, actionName);
                     }
-                }
-                else
-                {
-                    EffectBinder.ClearTag(_model, "action");
+                    if (version != _actionVersion || _model == null) return;
+
+                    // 混合角色的 idle/run 与 attack/skill 可能是不同的子模型。必须等动作切换完成后，
+                    // 再把刀光挂到本次攻击真正显示的模型；从容器根递归找 root 会优先命中隐藏的 idle。
+                    actionEffectHost = GetActiveActionEffectHost();
+                    await EffectBinder.AttachAction(actionEffectHost, "role", _clotheRes.ToString(), actionName);
                 }
 
-                PlaySkillParticles(skillId, particles, version, hitMonsterIds);
+                PlaySkillParticles(skillId, particles, version, hitMonsterIds, actionEffectHost);
 
                 float wait = Mathf.Max(GetActionLength(actionName), SkillMovieConfigs.GetConfiguredDurationSeconds(skillId));
                 if (wait > 0f)
@@ -785,14 +789,14 @@ namespace Shenxiao.Module.Core.Scene
         }
 
         private void PlaySkillParticles(int skillId, IReadOnlyList<SkillMovieParticle> particles, int version,
-            IReadOnlyList<int> hitMonsterIds)
+            IReadOnlyList<int> hitMonsterIds, GameObject actionEffectHost)
         {
             if (particles == null || particles.Count == 0) return;
             for (int i = 0; i < particles.Count; i++)
             {
                 SkillMovieParticle particle = particles[i];
                 if (particle == null || string.IsNullOrEmpty(particle.Res)) continue;
-                _ = PlaySkillParticleAsync(skillId, particle, version, hitMonsterIds);
+                _ = PlaySkillParticleAsync(skillId, particle, version, hitMonsterIds, actionEffectHost);
             }
         }
 
@@ -808,7 +812,7 @@ namespace Shenxiao.Module.Core.Scene
         /// dir_type(特效朝向)未接,记录为后续。
         /// </summary>
         private async Task PlaySkillParticleAsync(int skillId, SkillMovieParticle particle, int version,
-            IReadOnlyList<int> hitMonsterIds)
+            IReadOnlyList<int> hitMonsterIds, GameObject actionEffectHost)
         {
             try
             {
@@ -838,7 +842,8 @@ namespace Shenxiao.Module.Core.Scene
                         return; // 老端 default 分支不播
                 }
 
-                GameObject effect = await EffectBinder.AttachOne(_model, "root", "skills_effect", particle.Res, "action", false);
+                GameObject host = actionEffectHost != null ? actionEffectHost : GetActiveActionEffectHost();
+                GameObject effect = await EffectBinder.AttachOne(host, "root", "skills_effect", particle.Res, "action", false);
                 if (effect == null) return;
                 if (particle.Scale > 0f && Mathf.Abs(particle.Scale - 1f) > 0.001f)
                     effect.transform.localScale = Vector3.one * particle.Scale;
@@ -1096,6 +1101,26 @@ namespace Shenxiao.Module.Core.Scene
             if (state != null) state.speed = Mathf.Max(0.01f, speed);
             _anim.CrossFade(action, fade);
             return true;
+        }
+
+        /// <summary>
+        /// 技能专用的可等待动作切换。普通移动允许异步切换并保持上一帧，但技能特效必须等混合模型
+        /// 明确切到 attack/skill 实例后再挂载，否则同名 root 会落到隐藏的待机实例。
+        /// </summary>
+        private async Task<bool> TryPlayActionAsync(string action, float fade, bool restart, float speed = 1f)
+        {
+            if (string.IsNullOrEmpty(action)) return false;
+            if (_driver == null) return TryPlayAction(action, fade, restart, speed);
+            if (!_driver.CanPlay(action)) return false;
+
+            await _driver.PlayAsync(action, restart, speed);
+            return _driver != null && _driver.ActiveModel != null;
+        }
+
+        private GameObject GetActiveActionEffectHost()
+        {
+            if (_driver != null && _driver.ActiveModel != null) return _driver.ActiveModel;
+            return _model;
         }
 
         /// <summary>循环播放动作(采集等需持续到外部停止的动作)。设 WrapMode.Loop 后 CrossFade。</summary>
