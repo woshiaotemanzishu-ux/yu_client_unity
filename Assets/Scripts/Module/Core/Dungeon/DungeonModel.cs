@@ -16,7 +16,8 @@ namespace Shenxiao.Module.Core.Dungeon
     /// 61020 副本状态(次数/进度)。
     ///
     /// 轮9 副本家族补全一期:61004 副本信息/61005·61030 波次/61007·61019 坐标事件状态机/61011 助战次数/
-    /// 61018 退出倒计时/61021 购买/61022 扫荡/61023 时间评分/61025·61026 鼓舞/61120·61121 资源本一键与次数。
+    /// 61018 退出倒计时/61021 购买/61022 扫荡/61023 时间评分/61025·61026 鼓舞/61045 冷却时间/
+    /// 61120·61121 资源本一键与次数。
     /// 周本(50801/50802)是独立数据线,见 <see cref="PolarModel"/>——勿塞进 DunStatesByType(r9 侦察结论)。
     /// </summary>
     public sealed class DungeonModel
@@ -138,6 +139,17 @@ namespace Shenxiao.Module.Core.Dungeon
         public int InDungeonId { get; private set; }
 
         public bool HasData { get; private set; }
+
+        /// <summary>61045 按 dun_id 保存的服务器绝对冷却结束时间；0 也是合法回包。</summary>
+        public readonly Dictionary<uint, uint> CooldownEndTimes = new Dictionary<uint, uint>();
+
+        public void ApplyCooldown(uint dunId, uint nextTime)
+        {
+            CooldownEndTimes[dunId] = nextTime;
+        }
+
+        public bool TryGetCooldown(uint dunId, out uint nextTime) =>
+            CooldownEndTimes.TryGetValue(dunId, out nextTime);
 
         /// <summary>61001 进入成功回包套值(对标老端 on61001 error_code==1 分支)。</summary>
         public void Apply61001(int dunId)
@@ -419,6 +431,7 @@ namespace Shenxiao.Module.Core.Dungeon
             InspiritGoldCount = 0;
             _resourceCounts.Clear();
             _dunInitState.Clear();
+            CooldownEndTimes.Clear();
         }
     }
 

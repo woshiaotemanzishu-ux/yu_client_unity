@@ -1540,6 +1540,9 @@
         /// <summary>下一波怪物生成时间(进副本场景固定三连之一,对标老端 mod_dungeon:get_next_wave_time)。
         /// 无 send 字段,裸发;回包 wave_num:i, time:i。</summary>
         public const int DUNGEON_NEXT_WAVE_TIME = 61030;
+        /// <summary>副本冷却时间查询(经验副本入口与倒计时归零时使用)。发 "i"(dun_id);
+        /// 回包 dun_id:i,next_time:i。服务端只读副本记录与 data_dungeon 的 cd 条件。</summary>
+        public const int DUNGEON_COOLDOWN = 61045;
         /// <summary>购买副本次数。发 "ih"(dun_id, count;UI 恒传 count=1,无批量购买入口);
         /// 回包 error_code:i, dun_id:i, buy_count:h。成功后按 dun_type 分支:NEW_*/Material_*/Unreal/Soul/
         /// AdvancedExp 全组共享一个 vip_count 广播给同 type 所有条目,其余类型仅更新对应 dun_id 那条;
