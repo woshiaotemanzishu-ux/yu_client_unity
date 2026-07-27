@@ -224,6 +224,7 @@ namespace Shenxiao.EditorTools
         }
         public static void DungeonPartner() { Run(DungeonPartnerCase.Run, 60.0); }
         public static void DungeonCooldown() { Run(DungeonCooldownCase.Run, 60.0); }
+        public static void DungeonExpPanel() { Run(DungeonExpPanelCase.Run, 60.0); }
         public static void SentientAct() { Run(SentientActCase.Run, 60.0); }
         public static void BrightSea() { Run(BrightSeaCase.Run, 60.0); }
         public static void SettingWxSubscription() { Run(SettingWxSubscriptionCase.Run, 60.0); }

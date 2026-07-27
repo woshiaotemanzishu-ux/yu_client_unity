@@ -1540,6 +1540,8 @@
         /// <summary>下一波怪物生成时间(进副本场景固定三连之一,对标老端 mod_dungeon:get_next_wave_time)。
         /// 无 send 字段,裸发;回包 wave_num:i, time:i。</summary>
         public const int DUNGEON_NEXT_WAVE_TIME = 61030;
+        /// <summary>经验副本面板信息。C2S 旧端无发送；S2C kill_num:u16,exp:u64，由服务端进度变化主动推送。</summary>
+        public const int DUNGEON_EXP_PANEL = 61044;
         /// <summary>副本冷却时间查询(经验副本入口与倒计时归零时使用)。发 "i"(dun_id);
         /// 回包 dun_id:i,next_time:i。服务端只读副本记录与 data_dungeon 的 cd 条件。</summary>
         public const int DUNGEON_COOLDOWN = 61045;

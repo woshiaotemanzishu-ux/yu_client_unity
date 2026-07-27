@@ -28,7 +28,7 @@ namespace Shenxiao.Module.Core.Dungeon
     ///   接:61004 副本信息(双路:loading 白名单服务端主动推/其余 61001 成功补发)+ 61005·61030 波次 +
     ///      61007·61019 坐标事件状态机 + 61009 剧情推送→事件 + 61011 助战次数 + 61018 退出倒计时 +
     ///      61021 购买(全组共享 vip_count 分支+6100043 婚姻本专文案)+ 61022 扫荡 + 61023 时间评分 +
-    ///      61025·61026 鼓舞 + 61045 冷却时间 + 61120·61121 资源本一键与次数 +
+    ///      61025·61026 鼓舞 + 61044 经验本面板推送 + 61045 冷却时间 + 61120·61121 资源本一键与次数 +
     ///      50801·50802 周本(独立 PolarModel 数据线)。
     ///   发送封装:61010 剧情事件("iic",老端 StoryController 直发序,勿抄 BaseDungeonController 死分支 ilc)。
     ///   跳过:61006/61014/61015/61016/61017/61024/61027(老端 h5/src 全树零引用 UNUSED)、
@@ -80,6 +80,7 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_INSPIRIT, On61025);
             RegisterProtocal(Proto.DUNGEON_INSPIRIT_STATE, On61026);
             RegisterProtocal(Proto.DUNGEON_NEXT_WAVE_TIME, On61030);
+            RegisterProtocal(Proto.DUNGEON_EXP_PANEL, On61044);
             RegisterProtocal(Proto.DUNGEON_COOLDOWN, On61045);
             RegisterProtocal(Proto.DUNGEON_RESOURCE_ONEKEY, On61120);
             RegisterProtocal(Proto.DUNGEON_RESOURCE_COUNT, On61121);
@@ -717,6 +718,12 @@ namespace Shenxiao.Module.Core.Dungeon
             DungeonModel.Instance.SetNextWaveTime(waveNum, time);
             GameLog.Info("Dungeon", "61030 next wave num={0} time={1}", waveNum, time);
             EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_NEXT_WAVE, waveNum, time);
+        }
+
+        /// <summary>61044 经验副本面板主动推送:kill_num:h,exp:l。</summary>
+        private void On61044(NetReader r)
+        {
+            DungeonModel.Instance.ApplyExpDungeonInfo(r.ReadU16(), unchecked((ulong)r.ReadU64()));
         }
 
         /// <summary>61045 副本冷却时间:dun_id:i,next_time:i；每个 id 独立覆盖。</summary>
