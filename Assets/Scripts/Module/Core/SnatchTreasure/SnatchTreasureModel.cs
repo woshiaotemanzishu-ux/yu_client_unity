@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Shenxiao.Module.Core.SnatchTreasure
 {
-    /// <summary>领地夺宝 65201 的入口只读快照；不承载进入、战斗、奖励或 65208 预告。</summary>
+    /// <summary>领地夺宝 65201 入口快照与 65206 退出结果；不承载进入、战斗、奖励或 65208 预告。</summary>
     public sealed class SnatchTreasureModel
     {
         public static readonly SnatchTreasureModel Instance = new SnatchTreasureModel();
@@ -20,6 +20,8 @@ namespace Shenxiao.Module.Core.SnatchTreasure
         public ushort TerritoryScore { get; private set; }
         public byte HaveTerritory { get; private set; }
         public List<BelongEntry> BelongList { get; private set; } = new List<BelongEntry>();
+        public bool HasExitResult { get; private set; }
+        public uint ExitResultCode { get; private set; }
 
         public void ReplaceEntryInfo(List<BelongEntry> belongList, ushort territoryScore, byte haveTerritory)
         {
@@ -29,12 +31,20 @@ namespace Shenxiao.Module.Core.SnatchTreasure
             HasEntryInfo = true;
         }
 
+        public void ReplaceExitResult(uint code)
+        {
+            ExitResultCode = code;
+            HasExitResult = true;
+        }
+
         public void Clear()
         {
             HasEntryInfo = false;
             TerritoryScore = 0;
             HaveTerritory = 0;
             BelongList = new List<BelongEntry>();
+            HasExitResult = false;
+            ExitResultCode = 0;
         }
     }
 }
