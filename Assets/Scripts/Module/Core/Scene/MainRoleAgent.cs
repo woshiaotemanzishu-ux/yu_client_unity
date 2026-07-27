@@ -96,6 +96,7 @@ namespace Shenxiao.Module.Core.Scene
             _posY = spawnY;
             _actionVersion++;
             _moving = false;
+            SetAutoFindWayState(false);
             _sendTimer = 0f;
             PlayAction(ActionIdle);
             SyncModelScreenOffset(); // 出生点可能就在地图边缘:按相机夹边量先把模型摆到正确屏幕位
@@ -180,6 +181,8 @@ namespace Shenxiao.Module.Core.Scene
 
         private void StepMove(SceneMapData map)
         {
+            // 手动摇杆会打断任务跳跃等异步寻路；普通自动接近走 AutoStep，不经过这里。
+            SetAutoFindWayState(false);
             Vector2 dir = SceneInput.Dir; // 舞台坐标:x 右、y 下,与地图像素一致
             float dt = Mathf.Min(Time.deltaTime, MaxDeltaTime);
             float moveDist = MoveSpeed * dt;
@@ -275,6 +278,7 @@ namespace Shenxiao.Module.Core.Scene
         {
             _actionVersion++;
             _autoMoving = false;
+            SetAutoFindWayState(false);
             _onArrive = null;
             _autoInvokeOnFail = true;
             if (_collecting)
@@ -301,6 +305,7 @@ namespace Shenxiao.Module.Core.Scene
             _moving = false;
             _collecting = false;
             _autoMoving = false;
+            SetAutoFindWayState(false);
             _onArrive = null;
             _autoElapsed = 0f;
             _autoStuckTime = 0f;
@@ -391,6 +396,7 @@ namespace Shenxiao.Module.Core.Scene
             if (ReachedTarget())
             {
                 _autoMoving = false;
+                SetAutoFindWayState(false);
                 _onArrive = null;
                 FaceTowardPixel(targetX, targetY);
                 // 回调语义由调用方决定(对话/杀怪/采集),别在这写死"开对话"——曾把杀怪链误导成对话链。
@@ -401,6 +407,7 @@ namespace Shenxiao.Module.Core.Scene
 
             _onArrive = onArrive;
             _autoMoving = true;
+            SetAutoFindWayState(true);
             _autoElapsed = 0f;
             _autoStuckTime = 0f;
             _autoLastX = _posX;
@@ -472,6 +479,7 @@ namespace Shenxiao.Module.Core.Scene
         private void FinishAutoMove(bool arrived, string reason)
         {
             _autoMoving = false;
+            SetAutoFindWayState(false);
             Action cb = _onArrive;
             bool invokeOnFail = _autoInvokeOnFail;
             _onArrive = null;
@@ -497,6 +505,7 @@ namespace Shenxiao.Module.Core.Scene
         {
             if (!_autoMoving) return;
             _autoMoving = false;
+            SetAutoFindWayState(false);
             _onArrive = null;
             _autoInvokeOnFail = true;
             GameLog.Info("Scene", "MoveToNpc 取消:{0}", why);
@@ -513,6 +522,7 @@ namespace Shenxiao.Module.Core.Scene
         public void DoCollect()
         {
             _autoMoving = false;
+            SetAutoFindWayState(false);
             _onArrive = null;
             _moving = false;
             _collecting = true;
@@ -593,6 +603,7 @@ namespace Shenxiao.Module.Core.Scene
                 int version = ++_actionVersion;
                 _moving = false;
                 _autoMoving = false;
+                SetAutoFindWayState(true);
                 _onArrive = null;
                 EffectBinder.ClearTag(_model, "action");
                 ResetModelVisualOffset();
@@ -651,6 +662,7 @@ namespace Shenxiao.Module.Core.Scene
 
                 ResetModelVisualOffset();
                 PlayAction(ActionIdle);
+                SetAutoFindWayState(false);
                 onArrive?.Invoke();
             }
             catch (Exception ex)
@@ -699,6 +711,7 @@ namespace Shenxiao.Module.Core.Scene
                 int version = ++_actionVersion;
                 _moving = false;
                 _autoMoving = false;
+                SetAutoFindWayState(false);
                 EffectBinder.ClearTag(_model, "action");
 
                 GameObject actionEffectHost = _model;
@@ -743,6 +756,7 @@ namespace Shenxiao.Module.Core.Scene
                 int version = ++_actionVersion;
                 _moving = false;
                 _autoMoving = false;
+                SetAutoFindWayState(false);
                 EffectBinder.ClearTag(_model, "action");
                 ResetModelVisualOffset();
 
@@ -1059,8 +1073,17 @@ namespace Shenxiao.Module.Core.Scene
 
         private void OnDestroy()
         {
-            if (Current == this) Current = null;
+            if (Current == this)
+            {
+                SetAutoFindWayState(false);
+                Current = null;
+            }
             _model = null;
+        }
+
+        private static void SetAutoFindWayState(bool active)
+        {
+            AutoFightModel.Instance.SetAutoFindWay(active);
         }
 
         private void PlayAction(string action)

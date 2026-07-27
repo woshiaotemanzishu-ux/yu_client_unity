@@ -53,9 +53,11 @@ namespace Shenxiao.Module.Core.AutoFight
         {
             if (weight < AUTO_WEIGHT_CLOSE) weight = AUTO_WEIGHT_CLOSE;
             bool next = on && weight > AUTO_WEIGHT_CLOSE;
-            if (AutoFindWayState == next && AutoFindWayWeight == weight) return;
+            int nextWeight = next ? weight : AUTO_WEIGHT_CLOSE;
+            if (AutoFindWayState == next && AutoFindWayWeight == nextWeight) return;
             AutoFindWayState = next;
-            AutoFindWayWeight = next ? weight : AUTO_WEIGHT_CLOSE;
+            AutoFindWayWeight = nextWeight;
+            EventDispatcher.Emit(GlobalEvent.EVT_AUTO_FIND_WAY_STATE, AutoFindWayState);
         }
 
         /// <summary>战斗演出冻结闸:BOSS 入场「大妖来袭」横幅等演出期间,玩家与怪物的移动/寻路/自动攻击/朝向全部冻结。
@@ -63,7 +65,11 @@ namespace Shenxiao.Module.Core.AutoFight
         /// 单一开关,多处读它:MainRoleAgent.Update(玩家移动)、AutoFightController.TryAutoAttack(自动攻击)、MonsterRenderer.UpdateViewPosition(怪跟位/朝向)。</summary>
         public bool CombatFreeze { get; private set; }
 
-        public void SetCombatFreeze(bool on) => CombatFreeze = on;
+        public void SetCombatFreeze(bool on)
+        {
+            CombatFreeze = on;
+            if (on) SetAutoFindWay(false);
+        }
 
         /// <summary>对标老端 AutoFightManager.SetTempMode:临时手动模式变化才发事件 EVT_AUTO_FIGHT_TEMP_MODE。
         /// 只在自动战斗中有意义(老端由场景拖拽计时进/退);本轮暴露入口供未来场景层调用,触发计时未移植(差异记录)。</summary>
@@ -87,8 +93,7 @@ namespace Shenxiao.Module.Core.AutoFight
             // 旧实现直改字段是"静默翻状态"的合法入口,曾造成 state=true 而环死 / state=false 而环空转的分叉
             // (任务杀怪永动死循环成因之一:Reset 落在首次点火后,静默灭状态,后续同值 SetAutoFightWeight 早退不发事件)。
             SetAutoFightWeight(AUTO_WEIGHT_CLOSE);
-            AutoFindWayState = false;
-            AutoFindWayWeight = AUTO_WEIGHT_CLOSE;
+            SetAutoFindWay(false);
             TempMode = false;
             CombatFreeze = false;
         }

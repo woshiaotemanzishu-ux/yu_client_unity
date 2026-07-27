@@ -107,3 +107,11 @@ UIEffectStage（兼容入口）
 - 禁止因为模型 prefab 已能显示，就假定附属粒子已内嵌。转换后的模型 prefab 与 `effect/objs/{type}` 特效 prefab 是分离资产，漏掉 `EffectBinder` 会稳定表现为“模型和动画正常、光效完全缺失”。
 - MainUI 循环冲榜卡 `MainUIRankView` 已按此规则接入。截图中的古法符相 `FaBao[1011]` 会挂 `effect_fabao_1011_Bone_06` 与 `effect_fabao_1011_Bone_14`；同一入口的坐骑、剑魄、翅膀、神兵和背饰也复用同一配置链。
 - `RankEffectSlot` 上的 `ui_cb01` 属于头号玩家榜的独立全屏 UI 特效，与循环冲榜 3D 模型的骨骼特效不是同一条链，排查和接入时不得混用。
+
+## 主界面自动战斗 / 自动寻路状态特效
+
+- 权威行为来自老端 `MainUISecondaryView.UpdateAutoStateEffect/TryUpdateAutoStateEffect`：存在未完成寻路时显示 `ui_zidongxunluzhong`；否则自动战斗开启时显示 `ui_zidongzhandouzhong`；两者都不成立时释放特效。寻路优先级高于自动战斗。
+- 状态变化沿用老端 `Scene.auto_find_and_attack_interval * 1100` 的 440ms 合并刷新，避免“寻路结束→进入攻击”边沿连续装卸造成闪烁；视图首次显示仍立即按当前状态补齐。
+- Unity 由 `MainRoleAgent` 在自动移动/任务跳跃开始、到达、取消、采集、技能、切场景、演出冻结和销毁等边沿写入 `AutoFightModel.AutoFindWayState`，并通过 `EVT_AUTO_FIND_WAY_STATE` 通知 UI。禁止让 View 通过轮询角色坐标猜寻路状态。
+- `HudSecondary/AutoStateEffectSlot` 保持老端 250×200 宿主；`__DynamicResources` 下两个 `UIEffectSlot` 互斥手动消费，固定 `position=(6.8,-4)`、`scale=6.4`、`autoPlay=false`。这些静态参数同时维护在 `HudSecondaryCreator` 与 prefab，业务 View 不写布局魔法数。
+- 状态切换、View 隐藏、异步加载过期时必须 `Dispose` 旧 Handle；加载中的旧状态完成后也必须自弃，不能留下双特效或离屏常驻实例。

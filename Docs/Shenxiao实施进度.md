@@ -1410,3 +1410,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
   `UIEffectStage` 共享 UI 特效通道。
 - **验证状态**：模型、目标骨骼、对应特效 prefab 与 Addressables 地址静态核对通过；离线编译通过后，
   仍需 Play Mode 打开古法符相竞榜卡，确认书卷周围的两层常驻光效随模型旋转且关闭活动后无残留。
+
+## 2026-07-28：主界面自动战斗 / 自动寻路状态特效
+
+- **老端取证**：`MainUISecondaryView` 在 `_box_auto_effect` 播放 `ui_zidongzhandouzhong` / `ui_zidongxunluzhong`，寻路中的 `SourceOperateMove` 优先于自动战斗；状态事件按 440ms 合并刷新。对应宿主在野外固定于屏幕中下部、离线经验文字上方。
+- **缺失根因**：Unity 已导入两套特效 prefab、动画、材质、Addressables key，`HudSecondary.prefab` 也预埋了两个槽，但 `MainUISecondaryView` 没有消费代码；`AutoFightModel.AutoFindWayState` 没有事件，也没有由 `MainRoleAgent` 在寻路边沿写入；槽位 position/scale 仍是待调占位值。
+- **修复**：补 `EVT_AUTO_FIND_WAY_STATE`，由主角自动移动/任务跳跃的开始与各类结束边沿维护寻路状态；SecondaryView 按“寻路 > 自动战斗 > 隐藏”选择互斥特效并用版本号收编异步 Handle。Creator 与现网 prefab 同步落老端 `offset=(6.8,-4), scale=6.4`，布局继续归 prefab 管理。
+- **验证状态**：`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 串行离线编译均 0 error；两套 effect prefab 与 Addressables 主 key 静态命中。仍需 Play Mode 实跑“开启自动战斗→任务寻路→到达开打→关闭自动战斗”，确认文案依次为“自动战斗中→自动寻路中→自动战斗中→隐藏”且无残留。
