@@ -630,6 +630,12 @@
     "note": "情缘副本怪物性别快照：C2S 空，S2C len:u16×{mid:u32,mtid:u32,sex:u8}。老端注释声称查询与主动更新，但仅声明 send null 且源码零接线；服务端显式查询只在副本内纯读，当前通常返回空列表。性别切换、内存状态更新与广播函数虽保留，出生/血量配置接线已注释且无其他调用，主动链不可达。未来须先恢复并验证服务端触发，再随情缘玩法整体迁移。R259复核。"
   },
   {
+    "cmd": 61099,
+    "reason": "dead_server_never_writes",
+    "evidence": "h5/libs/proto610.d.ts:1618-1639;h5/src逐号检索零handler;yu_server/src/dungeon/lib_dungeon_guild_guard.erl:28,306-328;yu_server/src/pt/pt_610.erl:1221-1245;Assets/Scripts/Framework/Net/Proto.cs:1641-1642;Assets/Scripts/Module/Core/Dungeon/DungeonController.cs:35-37",
+    "note": "守卫公会结算界面纯 S2C：u8,u8,u32,u8,u32,两个 ObjectList(u16×u8/u32/u32),u8。老端仅声明 send null 且源码零 handler；服务端 push_settlement 导出、函数及唯一 writer 调用整段注释，无 61099 handle，永远不会发包。Unity 既有 DEAD 注释正确，无需生产改动。R260复核。"
+  },
+  {
     "cmd": 62107,
     "reason": "dead_server_never_writes",
     "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
