@@ -654,6 +654,12 @@
     "note": "使魔副本扫荡纯 C2S：u32。两套 sender 壳无 Fire/UI/model；服务端委托61022真实扣费、发奖、记次数，回61022或61000。未来须随使魔全系统整体迁移。R264复核。"
   },
   {
+    "cmd": 61107,
+    "reason": "dead_server_call_site_commented",
+    "evidence": "h5/libs/proto611.d.ts:124-143;h5/src/commonController/DungeonPartnerController.ts:32-61,158-160,205-210;yu_server/src/dungeon/pp_dungeon_sec.erl:36-37;yu_server/src/pt/pt_611.erl:30-32,154-166",
+    "note": "伙伴副本首通：C2S u32，S2C u32,u64,string。老端 sender 无 Fire 且 handler 只解包丢弃；服务端唯一 handler/call 整段注释、writer 定义无调用，永不发包。R265复核。"
+  },
+  {
     "cmd": 62107,
     "reason": "dead_server_never_writes",
     "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
