@@ -73,7 +73,7 @@ namespace Shenxiao.Editor.UiCreator.MainUI
         private const string IMG_FRIEND = "resource/game/mainUI/texture/mainui_friend_icon.png";
         private const string IMG_RED_DOT_MAINUI = "resource/game/mainUI/texture/com_red_point.png";
         private const string IMG_SHOP = "resource/game/icon/texture/22.png";
-        private const string IMG_CHAT_WELCOME_ICON = "resource/game/mainUI/texture/mainUI_chat_1.png"; // 系统频道图标(欢迎语),对标 CreateWelcomeSystemMessage
+        private const string IMG_CHAT_WELCOME_ICON = "resource/game/mainUI/texture/mainUI_chat_1.png"; // 系统频道图标(欢迎语),对标 ChatModel.EnsureWelcomeSystemMessage
         private const string IMG_ACTIVITY_SAMPLE = "resource/game/icon/texture/158.png"; // 变强 ActivityIcon 恒定 icon_type=158,直接用真实代表图
 
         // ActivityIcon 内部子结构源图(与 HudActivityCreator 一致)
@@ -123,12 +123,12 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             UiCreatorKit.TrySetSprite(bg, IMG_CHAT_BG, UiCreatorKit.Palette.Panel);
             view._img_bg = bg;
 
-            // 聊天频道滚动区(世界/结社等,当前业务不造假消息,容器建好即可)
+            // 聊天频道滚动区(世界/仙宗/跨服等由 MainUIChatView 从 ChatModel 实时填充)
             view._panel_chat = BuildMessageScroll("ChatMessagesScroll", "ChatMessagesContent", viewRoot,
                 148f, 3f, 396f, 65f, out RectTransform chatCon); // 老端: _panel_chat / _box_chat_con
             view._box_chat_con = chatCon;
 
-            // 系统消息滚动区(欢迎语走这里,唯一实装的静态内容)
+            // 系统消息滚动区(欢迎语与 11001 系统频道消息统一走 ChatModel)
             view._panel_sys = BuildMessageScroll("SystemMessagesScroll", "SystemMessagesContent", viewRoot,
                 148f, 83f, 397f, 65f, out RectTransform sysCon); // 老端: _panel_sys / _box_sys_con
             view._box_sys_con = sysCon;
@@ -241,15 +241,18 @@ namespace Shenxiao.Editor.UiCreator.MainUI
 
         /// <summary>
         /// 建 MainUIChatItem 模板(对标 MainUIChatItem.json + MainUIChatItemBind),挂业务类,建完即禁用。
-        /// 只有一份共享模板(_tpl_MainUIChatItem),CreateWelcomeSystemMessage 用它 Instantiate 克隆到 _box_sys_con;
-        /// 频道聊天(_box_chat_con)依赖未移植的 ChatModel,当前不生成静态消息,模板留空占位即可。
+        /// 只有一份共享模板(_tpl_MainUIChatItem),MainUIChatView 按真实 ChatModel 消息克隆到聊天/系统容器。
+        /// 老端根高 29；多行消息由 MainUIChatItem 根据 TMP preferred height 扩高。
         /// </summary>
         private static GameObject BuildChatItemTemplate(Transform parent)
         {
-            const float itemW = 390f, itemH = 50f;
+            const float itemW = 390f, itemH = MainUIChatItem.SingleLineHeight;
             RectTransform item = UiCreatorKit.NewNode("MainUIChatItem", parent);
             PlaceTL(item, 0f, 0f, itemW, itemH, itemW, itemH);
             var view = item.gameObject.AddComponent<MainUIChatItem>();
+            var itemLayout = item.gameObject.AddComponent<LayoutElement>();
+            itemLayout.minHeight = itemH;
+            itemLayout.preferredHeight = itemH;
 
             // LegacyMarkerGroup:老端空标记组,零尺寸,只占层级位不出图形
             RectTransform group1 = UiCreatorKit.NewNode("LegacyMarkerGroup", item); // 老端: _Group1
@@ -267,19 +270,22 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             view.titleBg = titleBg;
 
             TextMeshProUGUI title = UiCreatorKit.NewText("title", gpTitle, "系统");
-            PlaceTL(title.rectTransform, 2f, 3f, 72f, 36f, 40f, 22f);
-            title.fontSize = 18f;
+            UiCreatorKit.Stretch(title.rectTransform);
+            title.fontSize = 15f;
+            title.alignment = TextAlignmentOptions.Center;
             title.gameObject.SetActive(false); // 老端场景声明 visible=false,有频道名才显示(SetData 控制)
             view.title = title;
 
             RectTransform gpContent = UiCreatorKit.NewNode("MessageContentGroup", item); // 老端: _gp_content
-            PlaceTL(gpContent, 4f, 0f, 381f, 51f, itemW, itemH);
+            PlaceTL(gpContent, 4f, 0f, 381f, itemH, itemW, itemH);
             view._gp_content = gpContent;
 
             TextMeshProUGUI content = UiCreatorKit.NewText("contentLabel", gpContent, "欢迎踏入九州大荒。");
             UiCreatorKit.Stretch(content.rectTransform);
-            content.fontSize = 20f;
-            content.alignment = TextAlignmentOptions.Left;
+            content.fontSize = 18f;
+            content.alignment = TextAlignmentOptions.TopLeft;
+            content.overflowMode = TextOverflowModes.Overflow;
+            content.textWrappingMode = TextWrappingModes.Normal;
             content.raycastTarget = false;
             view.contentLabel = content;
 

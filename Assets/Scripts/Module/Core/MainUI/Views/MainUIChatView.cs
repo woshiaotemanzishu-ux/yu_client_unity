@@ -1,8 +1,9 @@
+using System.Collections.Generic;
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Framework.Event;
-using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
+using Shenxiao.Module.Core.Chat;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,26 +11,23 @@ namespace Shenxiao.Module.Core.MainUI
 {
     /// <summary>
     /// 主界面聊天/系统消息条 + 设置/好友/商城入口(对标老客户端 MainUIChatView.ts:LoadSuccess + GetComponents)。
-    /// 本轮只还原源码支持的静态/默认态,不造假消息与图标:
+    /// 聊天内容直接消费 ChatModel 的真实协议数据:
     /// - 关掉两个滚动面板的滚动条(对标 GetComponents 末尾的 _panel_chat/_panel_sys.vScrollBar.visible = false)。
+    /// - 上半区合并世界/仙宗/跨服等普通频道,下半区显示系统频道；两区都实时响应 11001/11010。
     /// - 好友红点 _img_friend_red、商城红点 _img_shop_red、限购商城特效盒 _box_shop_effect 在拿到数据/特效前隐藏
     ///   (老客户端由 MainUIModel.friend_red / ShopModel 红点 / ActivityIcon 特效驱动可见性,这些模型尚未移植)。
-    /// 待移植不在本轮:
-    /// - 聊天/系统消息项(MainUIChatItem)依赖 ChatModel 真数据,不造假消息。
-    /// - 强化活动图标 ActivityIcon("158")依赖 ActivityIconManager(CreateStrengthenIcon),留给活动图标切片。
     /// </summary>
     public sealed class MainUIChatView : MainUIChatViewBind
     {
-        private const string WelcomeSystemMessage = "欢迎踏入九州大荒。神霄崩灭后，天殒遗骸化作道痕，秘境引劫而生——愿君融痕证道，历尽九天梯劫！";
         private ActivityIcon _strengthenIcon;
-        private MainUIChatItemBind _welcomeSysItem;
+        private readonly List<GameObject> _renderedChatItems = new List<GameObject>();
+        private readonly List<GameObject> _renderedSystemItems = new List<GameObject>();
 
         protected override void OnInit()
         {
             HideScrollBars();
             HideUnbackedIndicators();
             HideTemplates();
-            CreateWelcomeSystemMessage();
             CreateStrengthenIcon();
             WireHudEntries();
         }
@@ -37,11 +35,23 @@ namespace Shenxiao.Module.Core.MainUI
         protected override void OnShow(object args)
         {
             EventDispatcher.On<bool>(GlobalEvent.EVT_SHOP_RED_DOT, OnShopRedDot);
+            EventDispatcher.On<int>(GlobalEvent.EVT_CHAT_MESSAGES_UPDATED, OnChatMessagesUpdated);
+            ChatModel.Instance.EnsureWelcomeSystemMessage();
+            RenderAllMessages();
         }
 
         protected override void OnHide()
         {
             EventDispatcher.Off<bool>(GlobalEvent.EVT_SHOP_RED_DOT, OnShopRedDot);
+            EventDispatcher.Off<int>(GlobalEvent.EVT_CHAT_MESSAGES_UPDATED, OnChatMessagesUpdated);
+        }
+
+        protected override void OnDispose()
+        {
+            EventDispatcher.Off<bool>(GlobalEvent.EVT_SHOP_RED_DOT, OnShopRedDot);
+            EventDispatcher.Off<int>(GlobalEvent.EVT_CHAT_MESSAGES_UPDATED, OnChatMessagesUpdated);
+            ClearRendered(_renderedChatItems);
+            ClearRendered(_renderedSystemItems);
         }
 
         private void OnShopRedDot(bool show)
@@ -120,53 +130,84 @@ namespace Shenxiao.Module.Core.MainUI
             if (_tpl_ActivityIcon != null) _tpl_ActivityIcon.SetActive(false);
         }
 
-        /// <summary>
-        /// Old-client ChatModel.WelcomeChat inserts one client-side SYSTEM message on GAME_START.
-        /// This is the first bottom-center/system strip content and does not depend on server chat data.
-        /// </summary>
-        private void CreateWelcomeSystemMessage()
+        private void OnChatMessagesUpdated(int channel)
         {
-            if (_welcomeSysItem != null)
+            if (!IsShown) return;
+            if (channel == ChatModel.ChannelSystem) RenderSystemMessages();
+            else if (channel != ChatModel.ChannelPrivate) RenderChatMessages();
+        }
+
+        private void RenderAllMessages()
+        {
+            RenderChatMessages();
+            RenderSystemMessages();
+        }
+
+        private void RenderChatMessages()
+        {
+            RenderMessages(ChatModel.Instance.GetMainHudMessages(), _box_chat_con, _panel_chat, _renderedChatItems, "chat");
+        }
+
+        private void RenderSystemMessages()
+        {
+            RenderMessages(ChatModel.Instance.GetSystemHudMessages(), _box_sys_con, _panel_sys, _renderedSystemItems, "system");
+        }
+
+        private void RenderMessages(IReadOnlyList<ChatMessage> messages, RectTransform parent, ScrollRect scroll,
+            List<GameObject> rendered, string kind)
+        {
+            ClearRendered(rendered);
+            HideTemplates();
+
+            if (_tpl_MainUIChatItem == null || parent == null)
             {
-                _welcomeSysItem.gameObject.SetActive(true);
+                GameLog.Error("MainUI", "MainUIChatView missing MainUIChatItem template or " + kind + " content");
                 return;
             }
 
-            if (_tpl_MainUIChatItem == null || _box_sys_con == null)
+            for (int i = 0; i < messages.Count; i++)
             {
-                GameLog.Error("MainUI", "MainUIChatView missing MainUIChatItem template or _box_sys_con");
-                return;
+                ChatMessage message = messages[i];
+                if (message == null) continue;
+
+                GameObject go = Instantiate(_tpl_MainUIChatItem, parent);
+                go.name = "MainUIChatItem_runtime_" + kind + "_" + i;
+                go.SetActive(true);
+
+                MainUIChatItem item = go.GetComponent<MainUIChatItem>();
+                if (item == null)
+                {
+                    GameLog.Error("MainUI", "MainUIChatItem template missing business component");
+                    DestroyUiObject(go);
+                    continue;
+                }
+
+                item.SetData(message);
+                rendered.Add(go);
             }
 
-            GameObject go = Instantiate(_tpl_MainUIChatItem, _box_sys_con);
-            go.SetActive(true);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(parent);
+            Canvas.ForceUpdateCanvases();
+            if (scroll != null) scroll.verticalNormalizedPosition = 0f;
+        }
 
-            MainUIChatItemBind item = go.GetComponent<MainUIChatItemBind>();
-            if (item == null)
+        private static void ClearRendered(List<GameObject> rendered)
+        {
+            for (int i = rendered.Count - 1; i >= 0; i--)
+                DestroyUiObject(rendered[i]);
+            rendered.Clear();
+        }
+
+        private static void DestroyUiObject(GameObject target)
+        {
+            if (target == null) return;
+            if (Application.isPlaying)
             {
-                GameLog.Error("MainUI", "MainUIChatItem template missing bind component");
-                Destroy(go);
-                return;
+                // Destroy 延迟到帧末执行；先退出布局，避免实时消息刷新时同一帧短暂出现新旧两批条目。
+                target.SetActive(false);
+                Destroy(target);
             }
-
-            RectTransform rt = (RectTransform)go.transform;
-            rt.anchorMin = rt.anchorMax = new UnityEngine.Vector2(0f, 1f);
-            rt.pivot = new UnityEngine.Vector2(0f, 1f);
-            rt.anchoredPosition = UnityEngine.Vector2.zero;
-
-            if (item.title != null) item.title.gameObject.SetActive(false);
-            if (item._img_trumpet != null) item._img_trumpet.gameObject.SetActive(false);
-            if (item.titleBg != null)
-            {
-                _ = ResManager.SetImageAsync(item.titleBg, GameResPath.GetIcon("mainUI", "mainUI_chat_1"), nativeSize: false);
-            }
-            if (item.contentLabel != null)
-            {
-                item.contentLabel.text = WelcomeSystemMessage;
-                item.contentLabel.richText = true;
-            }
-
-            _welcomeSysItem = item;
+            else DestroyImmediate(target);
         }
 
         /// <summary>

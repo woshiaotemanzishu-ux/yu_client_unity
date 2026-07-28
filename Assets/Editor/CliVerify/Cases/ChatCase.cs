@@ -13,6 +13,7 @@ namespace Shenxiao.EditorTools
     ///   11001 世界频道分桶(验证 ChatModel.ChannelWorld 由错误值0纠正为1后,消息真的能落对桶——这是本轮
     ///     发现并修复的一个真实 bug,老实现下世界聊天会永远收不到消息);
     ///   11002 私聊桶(发送者/接收者分流、未读数只在"对方发来"时+1、50条裁剪);
+    ///   11010 公共/私聊缓存(服务端新→旧线序翻转、百煞冲霄20→小跨服17映射、私聊双玩家保留);
     ///   11029 喇叭队列(按 HornType 落对应公共频道桶 + 独立 HornQueue);
     ///   11023 小跨服开关;11027 消红点(发送侧本地立即清 + 失败码 toast);11028 私聊玩家信息;
     ///   11046 黑名单清理(公共频道消息 + 私聊 dict 双清,且跳过自己);
@@ -47,6 +48,7 @@ namespace Shenxiao.EditorTools
 
             MethodInfo m11001 = GetM("On11001");
             MethodInfo m11002 = GetM("On11002");
+            MethodInfo m11010 = GetM("On11010");
             MethodInfo m11023 = GetM("On11023");
             MethodInfo m11027 = GetM("On11027");
             MethodInfo m11028 = GetM("On11028");
@@ -58,7 +60,7 @@ namespace Shenxiao.EditorTools
             MethodInfo m11061 = GetM("On11061");
             MethodInfo m11063 = GetM("On11063");
             MethodInfo m11064 = GetM("On11064");
-            if (m11001 == null || m11002 == null || m11023 == null || m11027 == null || m11028 == null
+            if (m11001 == null || m11002 == null || m11010 == null || m11023 == null || m11027 == null || m11028 == null
                 || m11029 == null || m11042 == null || m11046 == null || m11050 == null
                 || m11060 == null || m11061 == null || m11063 == null || m11064 == null)
             {
@@ -84,6 +86,7 @@ namespace Shenxiao.EditorTools
             await Shenxiao.Module.Core.Common.GoodsModel.EnsureLoaded();
 
             bool worldBucketOk = TestWorldBucket(m11001, Feed, model);
+            bool cacheOk = TestCache(m11010, Feed, model);
             bool privateOk = TestPrivateChat(m11002, Feed, model);
             bool hornOk = TestHorn(m11029, Feed, model);
             bool zoneOk = TestZoneOpen(m11023, Feed, model);
@@ -101,10 +104,10 @@ namespace Shenxiao.EditorTools
             model.Reset();
             bag.Clear();
 
-            bool pass = worldBucketOk && privateOk && hornOk && zoneOk && clickCacheOk && playerInfoOk
+            bool pass = worldBucketOk && cacheOk && privateOk && hornOk && zoneOk && clickCacheOk && playerInfoOk
                 && blacklistOk && noticeOk && goodsGainOk && objectGainOk && flowerOk
                 && bannedOk && robotOk && sendChatOk;
-            Debug.Log("CLIVERIFY chat VERDICT worldBucket=" + worldBucketOk + " private=" + privateOk
+            Debug.Log("CLIVERIFY chat VERDICT worldBucket=" + worldBucketOk + " cache=" + cacheOk + " private=" + privateOk
                 + " horn=" + hornOk + " zone=" + zoneOk + " clickCache=" + clickCacheOk
                 + " playerInfo=" + playerInfoOk + " blacklist=" + blacklistOk + " notice=" + noticeOk
                 + " goodsGain=" + goodsGainOk + " objectGain=" + objectGainOk + " flower=" + flowerOk
@@ -125,9 +128,74 @@ namespace Shenxiao.EditorTools
                 .Bytes();
             feed(m, pkt);
             var list = model.GetMessages(Shenxiao.Module.Core.Chat.ChatModel.ChannelWorld);
-            bool ok = list.Count == 1 && list[0].PlayerId == 6001 && list[0].Message == "大家好";
-            Debug.Log("CLIVERIFY chat 11001 worldBucketCount=" + list.Count + " ok=" + ok);
+            bool worldOk = list.Count == 1 && list[0].PlayerId == 6001 && list[0].Message == "大家好";
+
+            byte[] ghostPkt = new CliVerify.Pkt()
+                .C(Shenxiao.Module.Core.Chat.ChatModel.ChannelGhostWalk).H(0).S("").H(0).S("").S("").S("")
+                .L(6002).AppendMinimalFigure("百煞玩家")
+                .S("百煞实时消息").S("").C(1).I(1780000001)
+                .Bytes();
+            feed(m, ghostPkt);
+            var zone = model.GetMessages(Shenxiao.Module.Core.Chat.ChatModel.ChannelSmallKuafu);
+            bool ghostMapOk = zone.Count == 1 && zone[0].Channel == Shenxiao.Module.Core.Chat.ChatModel.ChannelSmallKuafu;
+
+            bool ok = worldOk && ghostMapOk;
+            Debug.Log("CLIVERIFY chat 11001 worldBucketCount=" + list.Count + " ghostMap=" + ghostMapOk + " ok=" + ok);
             return ok;
+        }
+
+        // ---- 11010:服务端缓存为新→旧；本端须翻成旧→新，并保留私聊双玩家/百煞冲霄映射 ----
+        private static bool TestCache(MethodInfo m, System.Action<MethodInfo, byte[]> feed,
+            Shenxiao.Module.Core.Chat.ChatModel model)
+        {
+            const long self = 5001;
+            const long other = 7002;
+            model.Reset();
+
+            var world = new CliVerify.Pkt().H(2);
+            AppendCacheMessage(world, Shenxiao.Module.Core.Chat.ChatModel.ChannelWorld, 6002, 0, "新消息", 200, true);
+            AppendCacheMessage(world, Shenxiao.Module.Core.Chat.ChatModel.ChannelWorld, 6001, 0, "旧消息", 100, true);
+            feed(m, world.Bytes());
+            var worldMessages = model.GetMessages(Shenxiao.Module.Core.Chat.ChatModel.ChannelWorld);
+            bool orderOk = worldMessages.Count == 2
+                && worldMessages[0].Message == "旧消息"
+                && worldMessages[1].Message == "新消息";
+
+            var ghost = new CliVerify.Pkt().H(1);
+            AppendCacheMessage(ghost, Shenxiao.Module.Core.Chat.ChatModel.ChannelGhostWalk, 6003, 0, "百煞消息", 300, true);
+            feed(m, ghost.Bytes());
+            var zoneMessages = model.GetMessages(Shenxiao.Module.Core.Chat.ChatModel.ChannelSmallKuafu);
+            bool ghostMapOk = zoneMessages.Count == 1
+                && zoneMessages[0].Channel == Shenxiao.Module.Core.Chat.ChatModel.ChannelSmallKuafu
+                && zoneMessages[0].Message == "百煞消息"
+                && model.GetMessages(Shenxiao.Module.Core.Chat.ChatModel.ChannelGhostWalk).Count == 0;
+
+            var privateCache = new CliVerify.Pkt().H(2);
+            AppendCacheMessage(privateCache, Shenxiao.Module.Core.Chat.ChatModel.ChannelPrivate, other, self, "私聊新", 400, false);
+            AppendCacheMessage(privateCache, Shenxiao.Module.Core.Chat.ChatModel.ChannelPrivate, other, self, "私聊旧", 350, true);
+            feed(m, privateCache.Bytes());
+            var privateMessages = model.GetPrivateMessages(other);
+            bool privateCacheOk = privateMessages.Count == 2
+                && privateMessages[0].Message == "私聊旧"
+                && privateMessages[1].Message == "私聊新"
+                && model.GetPrivateUnread(other) == 1;
+
+            bool ok = orderOk && ghostMapOk && privateCacheOk;
+            Debug.Log("CLIVERIFY chat 11010 order=" + orderOk + " ghostMap=" + ghostMapOk
+                + " privateCache=" + privateCacheOk + " ok=" + ok);
+            model.Reset();
+            return ok;
+        }
+
+        private static void AppendCacheMessage(CliVerify.Pkt p, int channel, long senderId, long receiverId,
+            string message, uint time, bool isRead)
+        {
+            int playerCount = receiverId != 0 ? 2 : 1;
+            p.C(channel).H(playerCount)
+                .H(1).S("").H(1).S("一服").L(senderId).AppendMinimalFigure("发送者");
+            if (receiverId != 0)
+                p.H(1).S("").H(1).S("一服").L(receiverId).AppendMinimalFigure("接收者");
+            p.S(message).S("").C(1).I(time).C(isRead ? 1 : 0).L(0).H(0);
         }
 
         // ---- 11002:私聊分桶(发送者/接收者互换、未读数只在"对方发来"才+1) ----

@@ -7,6 +7,7 @@ using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Game;
 using Shenxiao.Module.Core.Marriage;
 using Shenxiao.Module.Core.Role;
 
@@ -100,14 +101,23 @@ namespace Shenxiao.Module.Core.Chat
         private void OnGameStart()
         {
             ChatModel.Instance.Reset();
-            RequestCache(ChatModel.ChannelGuild);
-            RequestCache(ChatModel.ChannelWorld);
-            ChatModel.Instance.EnsureWelcomeSystemMessage();
 
-            // 11023/11050/11064 均对标老端 GAME_START 空参发一次(11023 跨天复触发见 OnServerDayChange)。
-            SendFmt(Proto.CHAT_ZONE_OPEN);
+            // 严格对标老端 GAME_START 的聊天缓存请求。11010 回包本身不带请求频道，空列表也没有
+            // channel 尾字段，因此服务端不满足门禁时会静默不回；这里不能靠回包反推漏发频道。
+            RequestCache(ChatModel.ChannelGuild);
+            RequestCache(ChatModel.ChannelPrivate);
+            RequestCache(ChatModel.ChannelWorld);
+            if (ServerTimeModel.GetOpenServerDay() != 1)
+            {
+                RequestCache(ChatModel.ChannelSmallKuafu);
+                RequestCache(ChatModel.ChannelGhostWalk);
+            }
+
+            // 发送顺序与老端一致：缓存 → 11050 → 11064 → 11023 → 本地欢迎语。
             SendFmt(Proto.CHAT_NOTICE);
             SendFmt(Proto.CHAT_ROBOT);
+            SendFmt(Proto.CHAT_ZONE_OPEN);
+            ChatModel.Instance.EnsureWelcomeSystemMessage();
         }
 
         /// <summary>跨天(对标老端 ChatController.ts:130-137 day_change,两个独立 if,非 if/else):
@@ -253,6 +263,7 @@ namespace Shenxiao.Module.Core.Chat
         private void On11001(NetReader r)
         {
             ChatMessage message = ReadMessage(r);
+            RemapGhostWalkChannel(message);
             ChatModel.Instance.AddMessage(message);
             GameLog.Info("Chat", "11001 channel={0} player={1} msg={2}", message.Channel, message.PlayerName, message.Message);
         }
@@ -300,23 +311,52 @@ namespace Shenxiao.Module.Core.Chat
         private void On11010(NetReader r)
         {
             int count = r.ReadU16();
-            List<ChatMessage> messages = new List<ChatMessage>(count);
-            int channel = -1;
+            var entries = new List<CachedMessage>(count);
+            int wireChannel = -1;
             for (int i = 0; i < count; i++)
             {
-                ChatMessage message = ReadCacheMessage(r);
-                if (channel < 0) channel = message.Channel;
-                messages.Add(message);
+                CachedMessage entry = ReadCacheMessage(r);
+                if (wireChannel < 0) wireChannel = entry.Message.Channel;
+                entries.Add(entry);
             }
 
-            if (channel < 0)
+            if (wireChannel < 0)
             {
                 GameLog.Info("Chat", "11010 empty cache");
                 return;
             }
 
-            ChatModel.Instance.SetCache(channel, messages);
-            GameLog.Info("Chat", "11010 cache channel={0} count={1}", channel, count);
+            // 服务端 mod_chat_cache 把新消息插在列表头，11010 下发顺序是“新→旧”；老端倒序回放成
+            // “旧→新”。私聊缓存还需要完整保留 player_list[0/1] 才能得到正确会话对象与未读数。
+            if (wireChannel == ChatModel.ChannelPrivate)
+            {
+                long selfId = RoleModel.Instance.RoleId;
+                for (int i = entries.Count - 1; i >= 0; i--)
+                {
+                    CachedMessage entry = entries[i];
+                    if (entry.Players.Count == 0) continue;
+                    long senderId = entry.Players[0].PlayerId;
+                    long receiverId = entry.Players.Count > 1 ? entry.Players[1].PlayerId : senderId;
+                    ChatModel.Instance.AddPrivateMessage(
+                        selfId, senderId, receiverId, entry.Message, showTips: !entry.Message.IsRead);
+                }
+
+                GameLog.Info("Chat", "11010 private cache count={0}", count);
+                return;
+            }
+
+            var messages = new List<ChatMessage>(entries.Count);
+            for (int i = entries.Count - 1; i >= 0; i--)
+            {
+                ChatMessage message = entries[i].Message;
+                RemapGhostWalkChannel(message);
+                messages.Add(message);
+            }
+
+            int displayChannel = messages.Count > 0 ? messages[0].Channel : wireChannel;
+            ChatModel.Instance.SetCache(displayChannel, messages);
+            GameLog.Info("Chat", "11010 cache wireChannel={0} displayChannel={1} count={2}",
+                wireChannel, displayChannel, count);
         }
 
         /// <summary>11023 是否开启小跨服聊天。</summary>
@@ -559,14 +599,16 @@ namespace Shenxiao.Module.Core.Chat
             return message;
         }
 
-        private static ChatMessage ReadCacheMessage(NetReader r)
+        private static CachedMessage ReadCacheMessage(NetReader r)
         {
             var message = new ChatMessage();
             message.Channel = r.ReadU8();
             int playerCount = r.ReadU16();
+            var players = new List<ChatPlayer>(playerCount);
             for (int i = 0; i < playerCount; i++)
             {
                 ChatPlayer player = ReadPlayer(r);
+                players.Add(player);
                 if (i == 0)
                 {
                     message.ServerNum = player.ServerNum;
@@ -585,7 +627,13 @@ namespace Shenxiao.Module.Core.Chat
             message.IsRead = r.ReadU8() != 0;
             message.VoiceId = r.ReadU64();
             message.VoiceTime = r.ReadU16();
-            return message;
+            return new CachedMessage { Message = message, Players = players };
+        }
+
+        private static void RemapGhostWalkChannel(ChatMessage message)
+        {
+            if (message != null && message.Channel == ChatModel.ChannelGhostWalk)
+                message.Channel = ChatModel.ChannelSmallKuafu;
         }
 
         private static ChatPlayer ReadPlayer(NetReader r)
@@ -608,6 +656,12 @@ namespace Shenxiao.Module.Core.Chat
             public string ServerName = "";
             public long PlayerId;
             public FigureProto Figure;
+        }
+
+        private sealed class CachedMessage
+        {
+            public ChatMessage Message;
+            public List<ChatPlayer> Players;
         }
     }
 }

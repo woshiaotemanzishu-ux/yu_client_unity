@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
 using UnityEngine;
@@ -27,11 +28,16 @@ namespace Shenxiao.Module.Core.Chat
         /// ?CHAT_CHANNEL_CAMP=18 纠正)。</summary>
         public const int ChannelCamp = 18;
         public const int ChannelSea = 19;
+        /// <summary>百煞冲霄/百鬼夜行专用发送与缓存频道。老端收到后统一映射进小跨服频道展示。</summary>
+        public const int ChannelGhostWalk = 20;
+
+        /// <summary>主界面每个消息区最多保留的渲染条数，对标老端 MainUIChatView.MAX_SHOW_ITEM_NUM。</summary>
+        public const int MainHudMessageCap = 30;
 
         public static readonly ChatModel Instance = new ChatModel();
 
         public const string WelcomeSystemMessage =
-            "欢迎踏入九州大荒。神霄崖灭后，天残遗骸化作道痕，秘境引劫而生——愿君融痕证道，历尽九天梯劫。";
+            "欢迎踏入九州大荒。神霄崩灭后，天殒遗骸化作道痕，秘境引劫而生——愿君融痕证道，历尽九天梯劫！";
 
         private static readonly ChatMessage[] EmptyMessages = new ChatMessage[0];
         private readonly Dictionary<int, List<ChatMessage>> _messages = new Dictionary<int, List<ChatMessage>>();
@@ -52,6 +58,32 @@ namespace Shenxiao.Module.Core.Chat
         public IReadOnlyList<ChatMessage> GetMessages(int channel)
         {
             return _messages.TryGetValue(channel, out List<ChatMessage> list) ? list : EmptyMessages;
+        }
+
+        /// <summary>
+        /// 主界面上半区的合并聊天流。对标老端 allChat():排除系统、私聊和仙宗答题频道，
+        /// 按服务端时间升序后只取末尾 30 条。返回新列表，调用方不能改写频道原始缓存。
+        /// </summary>
+        public IReadOnlyList<ChatMessage> GetMainHudMessages(int maxCount = MainHudMessageCap)
+        {
+            IEnumerable<ChatMessage> query = _messages
+                .Where(kv => kv.Key != ChannelSystem && kv.Key != ChannelPrivate && kv.Key != 16)
+                .SelectMany(kv => kv.Value)
+                .Where(message => message != null)
+                .OrderBy(message => message.Time);
+
+            List<ChatMessage> result = query.ToList();
+            TrimToLast(result, maxCount);
+            return result;
+        }
+
+        /// <summary>主界面下半区的系统消息流，对标老端 sysChat()，只取末尾 30 条。</summary>
+        public IReadOnlyList<ChatMessage> GetSystemHudMessages(int maxCount = MainHudMessageCap)
+        {
+            var result = new List<ChatMessage>(GetMessages(ChannelSystem));
+            result.Sort((a, b) => (a?.Time ?? 0).CompareTo(b?.Time ?? 0));
+            TrimToLast(result, maxCount);
+            return result;
         }
 
         public void SetCache(int channel, List<ChatMessage> messages)
@@ -101,8 +133,16 @@ namespace Shenxiao.Module.Core.Chat
                 case ChannelSmallKuafu: return "跨服";
                 case ChannelCamp: return "阵营";
                 case ChannelSea: return "沧海舆图";
+                case ChannelGhostWalk: return "百煞冲霄";
                 default: return channel.ToString();
             }
+        }
+
+        private static void TrimToLast(List<ChatMessage> messages, int maxCount)
+        {
+            if (maxCount < 0) maxCount = 0;
+            int removeCount = messages.Count - maxCount;
+            if (removeCount > 0) messages.RemoveRange(0, removeCount);
         }
 
         private List<ChatMessage> GetMutable(int channel)
