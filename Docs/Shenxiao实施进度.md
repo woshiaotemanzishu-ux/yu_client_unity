@@ -1532,7 +1532,7 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 
 ## 2026-07-29：新模型任务跑动拖尾空间校正
 
-- **形态根因**：新动作 prefab 的空 `root` 留在美术原始原点；`ArtModelStager` 按 `landingOffset/landingScale` 把人物落点归零后，1111 run 的该挂点落到人物后方约 3.94 世界单位、1213 run 约 1.50 单位。同时拖尾继承约 0.371/0.392 的模型归一缩放，导致老端覆盖人物周身的御风流光在新模型上缩成脱离人物的小尾巴。
+- **形态根因**：新动作 prefab 的空 `root` 留在美术原始原点；`ArtModelStager` 按 `landingOffset/landingScale` 把人物落点归零，并叠加主角场景缩放 0.85 后，运行时实测 1111 run 的旧挂点偏离人物 3.476、世界缩放 0.315，1213 run 偏离 1.284、世界缩放 0.333，导致老端覆盖人物周身的御风流光在新模型上缩成脱离人物的小尾巴。
 - **挂载修复**：`SceneCharacterStage` 新增 `MainRoleAttachedEffects`，作为模型容器下的稳定随身宿主；它继承主角 yaw 和 2.5D 倾斜，但以逆缩放抵消 0.85 场景体量，保持世界缩放 1。任务拖尾改挂该宿主，不再递归命中新动作内部 `root`，idle/run/skill 切换也不再销毁重挂。
 - **边界**：骨骼技能/动作特效仍挂 `ActiveModel`，升级和采集完成仍挂直立的 `MainRoleDetachedEffects`，世界位置型跳跃特效仍挂 `SceneEffectAnchor`；未修改公共 `char_acceleratebuff01` 资源，老模型表现不受单独缩放补偿污染。
-- **回归**：`RolePresentationEffectsCase` 增加 0.85 模型缩放下的宿主落点、世界缩放 1 和真实任务拖尾挂载断言。
+- **回归**：`RolePresentationEffectsCase` 增加 0.85 模型缩放下的宿主落点、世界缩放 1 和真实任务拖尾挂载断言，返回 `0 / ALL PASS`。实际 1111/1213 新 run 与 1111 老模型探针均确认新宿主 `distance=0 / worldScale=1`；Unity 强编译 `completed/failed=false`。
