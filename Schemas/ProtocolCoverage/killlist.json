@@ -636,6 +636,12 @@
     "note": "守卫公会结算界面纯 S2C：u8,u8,u32,u8,u32,两个 ObjectList(u16×u8/u32/u32),u8。老端仅声明 send null 且源码零 handler；服务端 push_settlement 导出、函数及唯一 writer 调用整段注释，无 61099 handle，永远不会发包。Unity 既有 DEAD 注释正确，无需生产改动。R260复核。"
   },
   {
+    "cmd": 61102,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/libs/proto611.d.ts:16-33;h5/src/commonController/BaseDungeonController.ts:291-294,356-383;h5/src/commonController/DungeonPartnerController.ts:32-61;yu_server/src/dungeon/pp_dungeon_sec.erl:19-20;yu_server/src/dungeon/lib_dun_demon.erl:76-169,211-225",
+    "note": "使魔副本进入纯 C2S：u32+u16×u32。两套 serializer 壳均已接线，但全 h5/src 无 Fire/真实入口；服务端写编队进 DB、切场景、建战斗使魔并在结算更新通关。未来须连 UI、61000/61001、场景与结算整体迁移。R262复核。"
+  },
+  {
     "cmd": 62107,
     "reason": "dead_server_never_writes",
     "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
