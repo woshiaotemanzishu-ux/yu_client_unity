@@ -8,6 +8,7 @@ using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene.Vo;
 using Shenxiao.Module.Core.Skill;
+using UnityEngine;
 
 namespace Shenxiao.Module.Core.Scene
 {
@@ -17,13 +18,13 @@ namespace Shenxiao.Module.Core.Scene
     /// (12002/12007 下发的 <see cref="MonsterVo"/>)+ <see cref="RoleModel"/> 主角坐标,不造假怪/假伤/假 CD/假目标。
     ///
     /// 链路(对标老端 SkillManager.PressSkillHandler 的 else 分支 → Scene.GetInstance().MainRoleAttackTarget()):
-    ///   1. <see cref="MainRoleAttackTarget"/>:取当前点击目标(<see cref="GetClickTarget"/>),无则按老端
-    ///      FindTargets(attack_type_all, 1, ., 10000) 取最近可攻击怪(<see cref="FindNearestAttackableMonster"/>)。
+    ///   1. <see cref="MainRoleAttackTarget"/>:手动技能优先取当前点击目标；无目标时按老端原地释放并只在技能
+    ///      局部范围内预选。自动战斗入口才允许全场找最近可攻击怪并接近。
     ///   2. 有怪 → <see cref="MainRoleAttackMonster"/>:范围判定(dist²≤range²,对标老端 GetDistance 平方比较)。
     ///        · 命中范围:朝向目标(MainRoleAgent.FaceTowardPixel,对标 SetDirection+DoStand)→ 本地释放边界。
     ///        · 超范围:自动接近(MainRoleAgent.MoveToNpc,对标老端 oper_mgr.StartTargetAction)→ 到达后释放。
-    ///   3. 无任何可攻击怪 → 只记录真实阻塞(对标老端无 click_target 时 Fire(RELEASE_MAIN_SKILL) 空放;
-    ///      空放/AOE 命中需 fight 系统,本轮不假放、不假伤)。
+    ///   3. 手动无目标 → 以当前朝向原地释放；圆形技能先在施法者 area 内预选最近怪，仍无怪则把圆心放在
+    ///      前方 distance 处。自动战斗无怪才真实阻塞。
     ///
     /// 真实服务端攻击请求 20001(老端 FightController.ts:800 WriteBegin(20001):
     ///   h+i×N 怪 + h+l×N 人 + ihhh skill/x/y/angle);另有 20024 "c"(1 进/2 出战斗态)。
@@ -31,8 +32,8 @@ namespace Shenxiao.Module.Core.Scene
     ///   · 单体技能(config_skill.mod==1):怪列表=[主目标]。
     ///   · 圆形 AOE(mod!=1 且 aoe_mode==1,如首杀技能 御剑一式 area=350/num=[1,4]):center=主目标坐标,
     ///     收集半径 area 内可攻击怪取 num[1] 只(对标 Scene.FindMonsters 圆形分支 + target_hiter 置首)。
-    ///   · 直线/扇形 AOE(aoe_mode 2/3):需朝向几何收集链(未移植)→ 只记 blocker 不发(不猜范围)。
-    /// x/y=主目标坐标、angle=0(见 FightController.ts:1187/1238/1351-1356)。
+    ///   · 直线/扇形 AOE(aoe_mode 2/3):严格复刻老端前向矩形/角度点积几何和 100px 近身豁免。
+    /// x/y=实际技能中心点、angle=0(见 FightController.ts:1170-1238/1351-1356)。
     /// 本地 <see cref="GlobalEvent.EVT_RELEASE_MAIN_SKILL"/> 边界保留(供 UI/表现订阅),与真实发包并存。
     /// </summary>
     public sealed class SceneCombat
@@ -40,10 +41,12 @@ namespace Shenxiao.Module.Core.Scene
         public static readonly SceneCombat Instance = new SceneCombat();
         private SceneCombat() { }
 
-        /// <summary>攻击范围下限(对标老端 SkillManager.GetCurrentAttackRange = Math.max(100, skill_distance*0.8) 的下限项)。
-        /// 第 9 轮已接 config_skill 真实攻击距离(<see cref="AttackRange"/>):range = max(100, distance*0.8);
-        /// distance 取自 config_skill lv_data[level-1].distance(缺省 50,对标 SkillVo.GetDistance)。</summary>
+        /// <summary>攻击范围下限(对标老端 SkillManager.GetCurrentAttackRange 的下限项)。
+        /// <see cref="AttackRange"/> 对 mode1 使用 max(100,(distance+area)*0.8)，其他模式使用
+        /// max(100,distance*0.8)；distance 缺省 50。</summary>
         private const float AttackRangeFloor = 100f;
+        private const float CloseRangeGeometryBypass = 100f;
+        private const int UnlimitedTargetCount = 99;
 
         /// <summary>
         /// 寻怪/发起接近的最小间隔,毫秒(对标老端 Scene.ts:142 auto_find_and_attack_interval=0.4,
@@ -185,19 +188,37 @@ namespace Shenxiao.Module.Core.Scene
 
         /// <summary>
         /// 对标老端 Scene.MainRoleAttackTarget:目标型技能(career!=52 且 obj!=1)点击后由 SkillController 调入。
-        /// 取当前点击目标 → 无则寻最近可攻击怪 → 有怪走 MainRoleAttackMonster;无怪只记真实阻塞。
+        /// 手动入口无目标时原地释放；自动战斗入口可传 <paramref name="findNearestWhenNoTarget"/>，全场寻敌并接近。
         /// </summary>
-        public void MainRoleAttackTarget(int skillId, int attackType)
+        public void MainRoleAttackTarget(int skillId, int attackType, bool findNearestWhenNoTarget = true)
         {
-            MonsterVo target = GetClickTarget() ?? FindNearestAttackableMonster();
+            MonsterVo target = GetClickTarget();
+            if (target == null && findNearestWhenNoTarget)
+                target = FindNearestAttackableMonster();
+
             if (target == null)
             {
+                if (!findNearestWhenNoTarget)
+                {
+                    GameLog.Info("Combat",
+                        "MainRoleAttackTarget skill={0}: 手动无锁定目标 → 按当前朝向原地释放(对标老端空 target RELEASE_MAIN_SKILL)",
+                        skillId);
+                    ReleaseMainSkill(skillId, null, attackType);
+                    return;
+                }
+
                 GameLog.Info("Combat",
-                    "MainRoleAttackTarget skill={0}: 无当前点击目标且 SceneManager 无可攻击怪(monsters={1}) → 真实阻塞,不假放(对标老端无 click_target 分支)",
+                    "MainRoleAttackTarget skill={0}: 自动战斗无当前目标且 SceneManager 无可攻击怪(monsters={1}) → 阻塞",
                     skillId, SceneManager.Instance.MonsterCount);
                 return;
             }
             MainRoleAttackMonster(target, skillId, attackType);
+        }
+
+        /// <summary>自我选择技能按当前朝向原地释放，不依赖怪物目标。</summary>
+        public void MainRoleReleaseInPlace(int skillId, int attackType)
+        {
+            ReleaseMainSkill(skillId, null, attackType);
         }
 
         /// <summary>
@@ -359,7 +380,7 @@ namespace Shenxiao.Module.Core.Scene
         /// <summary>
         /// 技能释放边界:① 本地等价事件 EVT_RELEASE_MAIN_SKILL(skillId, targetInstanceId)(对标老端
         /// Fire(FightEvent.RELEASE_MAIN_SKILL, ..., monster.compress_id),供 UI/表现订阅,保留不动);
-        /// ② 真实服务端攻击请求(单体 20001/进战斗态 20024,经 <see cref="FightController"/>,见 <see cref="SendRealAttackOrBlock"/>)。
+        /// ② 真实服务端攻击请求(20001/进战斗态 20024,经 <see cref="FightController"/>)。
         /// 老端真实 20001 在技能动作帧 skill_damage_time 由 fight-movie 触发;本端无动作帧系统,在释放边界即发(时序差异,非字段差异)。
         ///
         /// 僵直(对标老端 FightMovieInfo.ts:190-191 is_main_role_attack 分支 SetSkillRigidity(rigidity_time),
@@ -373,79 +394,144 @@ namespace Shenxiao.Module.Core.Scene
             // CD 起点(对标老端 FightMovieInfo.ts:191-207:预播/托管即 ResetSkill → startCD → START_SKILL_CD 遮罩)。
             SkillManager.Instance.ResetSkill(skillId);
 
-            // 目标列表先算(与 20001 发包同一份,见 BuildAttackTargets),表现层据此把"受击者/落点"特效落到怪身上。
-            List<int> monsterIds = BuildAttackTargets(skillId, mon, out bool aoeGeometryBlocked);
-            MainRoleAgent.Current?.PlaySkill(skillId, monsterIds);
-            EventDispatcher.Emit(GlobalEvent.EVT_RELEASE_MAIN_SKILL, skillId, mon.InstanceId);
+            AttackPlan plan = BuildAttackPlan(skillId, mon);
+            MainRoleAgent.Current?.PlaySkill(skillId, plan.MonsterIds);
+            int targetInstanceId = plan.Primary?.InstanceId ?? 0;
+            EventDispatcher.Emit(GlobalEvent.EVT_RELEASE_MAIN_SKILL, skillId, targetInstanceId);
             GameLog.Info("Combat",
-                "RELEASE_MAIN_SKILL(本地) skill={0} target ins={1}(compress_id 等价) attackType={2}",
-                skillId, mon.InstanceId, attackType);
+                "RELEASE_MAIN_SKILL(本地) skill={0} target ins={1}(0=无锁定) center=({2:F0},{3:F0}) attackType={4} targets=[{5}]",
+                skillId, targetInstanceId, plan.CenterX, plan.CenterY, attackType, string.Join(",", plan.MonsterIds));
 
-            SendRealAttackOrBlock(skillId, mon, monsterIds, aoeGeometryBlocked);
+            SendRealAttack(skillId, plan);
+        }
+
+        private sealed class AttackPlan
+        {
+            public MonsterVo Primary;
+            public List<int> MonsterIds;
+            public float CenterX;
+            public float CenterY;
+        }
+
+        private readonly struct TargetCandidate
+        {
+            public readonly MonsterVo Monster;
+            public readonly double DistanceSquared;
+            public readonly int WireOrder;
+
+            public TargetCandidate(MonsterVo monster, double distanceSquared, int wireOrder)
+            {
+                Monster = monster;
+                DistanceSquared = distanceSquared;
+                WireOrder = wireOrder;
+            }
         }
 
         /// <summary>
-        /// 计算本次攻击的怪物目标列表(20001 发包与技能特效共用同一份,保证"打谁、特效落谁"一致):
-        ///   · 单体(mod==1):[主目标];
-        ///   · 圆形 AOE(aoe_mode==1):center=主目标坐标收集(<see cref="CollectCircleMonsters"/>);
-        ///   · 直线/扇形 AOE(aoe_mode 2/3):几何收集链未移植 → 返回 [主目标] 供表现用,
-        ///     <paramref name="aoeGeometryBlocked"/>=true(发包侧只记 blocker 不发,行为与第 9 轮一致)。
+        /// 计算技能中心与怪物目标。字段语义逐项对标老端 FightController.AttackRequest + Scene.FindMonsters：
+        /// mode1 圆形、mode2 前向矩形、mode3 扇形；近身 100px 对直线/扇形免角度和长度判断。
         /// </summary>
-        private static List<int> BuildAttackTargets(int skillId, MonsterVo primary, out bool aoeGeometryBlocked)
+        private static AttackPlan BuildAttackPlan(int skillId, MonsterVo selectedPrimary)
         {
-            aoeGeometryBlocked = false;
+            RoleModel role = RoleModel.Instance;
+            int level = SkillManager.Instance.GetSkill(skillId)?.Level ?? 0;
+            int area = SkillConfigs.GetAreaForLevel(skillId, level);
+            int distance = SkillConfigs.GetDistanceForLevel(skillId, level);
+            int maxMon = SkillConfigs.GetAttackNumForLevel(skillId, level)[1];
+            if (maxMon <= 0) maxMon = UnlimitedTargetCount;
+
+            MonsterVo primary = selectedPrimary;
+            int selectType = SkillConfigs.GetSelectType(skillId);
+            if (primary == null && selectType != 1)
+            {
+                // 老端无 target_compress_id 时先以施法者为中心、find_area=area 预选最近目标；
+                // area==0 表示不限半径。这里只复刻当前已接的 PvE 怪物子集。
+                primary = FindNearestAttackableMonsterInRadius(role.X, role.Y, area);
+                if (primary != null) FaceTarget(primary);
+            }
+
+            Vector2 direction = ResolveAttackDirection(primary);
+            float centerX = role.X;
+            float centerY = role.Y;
+
             if (!SkillConfigs.IsAoe(skillId))
             {
-                return new List<int> { primary.InstanceId };
+                if (primary != null)
+                {
+                    centerX = primary.X;
+                    centerY = primary.Y;
+                }
+                return new AttackPlan
+                {
+                    Primary = primary,
+                    MonsterIds = primary != null ? new List<int> { primary.InstanceId } : new List<int>(),
+                    CenterX = centerX,
+                    CenterY = centerY,
+                };
             }
 
             int aoeMode = SkillConfigs.GetAoeMode(skillId);
-            if (aoeMode != 1)
+            List<TargetCandidate> candidates;
+            switch (aoeMode)
             {
-                aoeGeometryBlocked = true;
-                return new List<int> { primary.InstanceId };
+                case 1:
+                    // 圆形:有目标时圆心=目标；无目标或 att_obj==1 时圆心=施法者前方 distance。
+                    if (primary == null || SkillConfigs.GetAttObj(skillId) == 1)
+                    {
+                        float ellipseDistance = ChangeEllipseValue(direction, distance);
+                        centerX += direction.x * ellipseDistance;
+                        centerY += direction.y * ellipseDistance;
+                    }
+                    else
+                    {
+                        centerX = primary.X;
+                        centerY = primary.Y;
+                    }
+                    candidates = CollectCircleMonsters(centerX, centerY, area);
+                    break;
+                case 2:
+                    candidates = CollectLineMonsters(role.X, role.Y, direction, distance, area);
+                    break;
+                case 3:
+                    candidates = CollectSectorMonsters(role.X, role.Y, direction, distance, area);
+                    break;
+                default:
+                    // 老端 switch default 不设置方向几何，最终回落 FindMonsters 的圆形 area 分支（含 mode4）。
+                    candidates = CollectCircleMonsters(role.X, role.Y, area);
+                    break;
             }
 
-            int level = SkillManager.Instance.GetSkill(skillId)?.Level ?? 0;
-            int area = SkillConfigs.GetAreaForLevel(skillId, level);
-            int maxMon = SkillConfigs.GetAttackNumForLevel(skillId, level)[1];
-            if (maxMon <= 0) maxMon = 99; // 对标老端 att_num==0 → 99(不限)
-            List<int> ids = CollectCircleMonsters(primary, area, maxMon);
+            List<int> ids = BuildOrderedTargetIds(primary, candidates, maxMon);
             GameLog.Info("Combat",
-                "圆形 AOE 收集: skill={0} center=主目标({1},{2}) 半径area={3} 上限num={4} → 命中 {5} 只: [{6}]",
-                skillId, primary.X, primary.Y, area, maxMon, ids.Count, string.Join(",", ids));
-            return ids;
+                "AOE 收集: skill={0} mode={1} center=({2:F0},{3:F0}) distance={4} area={5} num={6} → [{7}]",
+                skillId, aoeMode, centerX, centerY, distance, area, maxMon, string.Join(",", ids));
+            return new AttackPlan
+            {
+                Primary = primary,
+                MonsterIds = ids,
+                CenterX = centerX,
+                CenterY = centerY,
+            };
         }
 
         /// <summary>
-        /// 真实服务端攻击请求(对标老端 AttackRequest → onRoleRequestToFightHandler → 20001)。字段全部来自真实数据,不补假字段:
-        ///   · 单体技能(config_skill.mod==1):怪列表=[主目标](对标 FightController.ts:1351-1356)。
-        ///   · 圆形 AOE(mod!=1 且 aoe_mode==1,如首杀技能 御剑一式 area=350/num=[1,4]):center=主目标坐标
-        ///     (FightController.ts:1187),收集 center 半径=config_skill area 内可攻击怪、按距离升序取 num[1] 只
-        ///     (对标 Scene.FindMonsters 圆形分支 3348-3351 + target_hiter 置首 3351-1356)。
-        ///   · 直线/扇形 AOE(aoe_mode 2/3):需主角朝向 + 直线/扇形几何(Scene.FindMonsters 3313-3347),未移植 → 只记 blocker。
-        /// x/y=center=主目标坐标;angle=0(FightController.ts:1238);人列表本期空(PvE 首杀无敌方玩家;PvP FindRoles 链下一轮)。
+        /// 真实服务端攻击请求。怪列表与 center 均来自 <see cref="BuildAttackPlan"/>；
+        /// 人列表仍为空（PvP FindRoles 链未接），angle 对标老端固定 0。
         /// </summary>
-        private static void SendRealAttackOrBlock(int skillId, MonsterVo primary, List<int> monsterIds, bool aoeGeometryBlocked)
+        private static void SendRealAttack(int skillId, AttackPlan plan)
         {
-            if (aoeGeometryBlocked)
-            {
-                GameLog.Info("Combat",
-                    "20001 未发(AOE blocker): skill={0} aoe_mode={1}(直线/扇形)需主角朝向+直线/扇形几何收集链(未移植),不猜范围。主目标 ins={2} 已锁定。",
-                    skillId, SkillConfigs.GetAoeMode(skillId), primary.InstanceId);
-                return;
-            }
-
             // 进战斗态(每段战斗一次)→ 真实攻击请求(经 FightController/NetManager,逐字段对齐老端)。
             FightController.Instance.EnterFightingState();
-            FightController.Instance.SendMainSkillAttack(skillId, monsterIds, Array.Empty<long>(), primary.X, primary.Y, 0);
+            int centerX = (int)Math.Floor(plan.CenterX);
+            int centerY = (int)Math.Floor(plan.CenterY);
+            FightController.Instance.SendMainSkillAttack(skillId, plan.MonsterIds, Array.Empty<long>(), centerX, centerY, 0);
 
             // 第14轮真实伤害链闭合:普攻主技能(如 御剑一式 59100001)is_att=0/calc=0,服务端 mod_battle.erl 的
             // is_att=0 分支只回一个 damage=0 的"进战斗 engage 帧"(NoHurtDerList),真正扣血的是它的 combo 副技能
             // (如 59100002)is_att=1/calc=1。老端 fight-movie 在 comboSkills 时点对同目标补发副技能 20001(实测老端
             // 运行态 send 20001 后约 +300ms 再 send 20001);本端据 config_skill[skill].combo 链补发副技能(id/延迟全
             // 从配置读,不 hardcode),闭合真实伤害链。无 combo 链(真实主动技能/链尾)则不补发,行为不变。
-            ScheduleComboFollowUp(skillId, monsterIds, primary.X, primary.Y);
+            ScheduleComboFollowUp(skillId, plan.MonsterIds, centerX, centerY);
         }
 
         /// <summary>
@@ -507,43 +593,197 @@ namespace Shenxiao.Module.Core.Scene
             }
         }
 
-        /// <summary>
-        /// 圆形 AOE 怪物收集(对标 Scene.FindMonsters 圆形分支 3348-3351 + AttackRequest target_hiter 置首 3351-1356):
-        /// 从真实 <see cref="SceneManager.AllMonsters"/> 取以 center(主目标坐标)为圆心、area 为半径内的可攻击怪
-        /// (非采集 + can_attack==1 + hp&gt;0),按到 center 像素距离平方升序;主目标恒置首(距圆心 0,本就最近),
-        /// 再补到 maxMon 上限。area&lt;=0 视为不限半径(对标老端 area_pw==null)。
-        /// </summary>
-        private static List<int> CollectCircleMonsters(MonsterVo primary, int area, int maxMon)
+        private static MonsterVo FindNearestAttackableMonsterInRadius(int centerX, int centerY, int radius)
         {
-            long areaPw = (long)area * area;
-            var cands = new List<KeyValuePair<int, long>>();
-            foreach (MonsterVo m in SceneManager.Instance.AllMonsters)
+            MonsterVo best = null;
+            long bestDistanceSquared = long.MaxValue;
+            long radiusSquared = (long)radius * radius;
+            foreach (MonsterVo monster in SceneManager.Instance.AllMonsters)
             {
-                if (m.IsCollect || m.CanAttack != 1 || m.Hp <= 0) continue;
-                long dx = m.X - primary.X, dy = m.Y - primary.Y;
-                long d2 = dx * dx + dy * dy;
-                if (area <= 0 || d2 <= areaPw) cands.Add(new KeyValuePair<int, long>(m.InstanceId, d2));
-            }
-            cands.Sort((a, b) => a.Value.CompareTo(b.Value));
+                if (!IsAttackableMonster(monster)) continue;
 
-            var ids = new List<int> { primary.InstanceId }; // target_hiter 置首(对标 FightController.ts:1351)
-            foreach (KeyValuePair<int, long> c in cands)
+                long dx = monster.X - centerX;
+                long dy = monster.Y - centerY;
+                long distanceSquared = dx * dx + dy * dy;
+                if (radius > 0 && distanceSquared > radiusSquared) continue;
+                if (distanceSquared >= bestDistanceSquared) continue;
+
+                best = monster;
+                bestDistanceSquared = distanceSquared;
+            }
+            return best;
+        }
+
+        /// <summary>优先指向主目标；无目标时使用当前主角模型朝向，headless 场景回落舞台向下。</summary>
+        private static Vector2 ResolveAttackDirection(MonsterVo primary)
+        {
+            RoleModel role = RoleModel.Instance;
+            Vector2 direction;
+            if (primary != null)
+            {
+                direction = new Vector2(primary.X - role.X, primary.Y - role.Y);
+                if (direction.sqrMagnitude > 0.0001f) return direction.normalized;
+            }
+
+            MainRoleAgent agent = MainRoleAgent.Current;
+            if (agent != null && agent.TryGetFacingPixelDirection(out direction) &&
+                direction.sqrMagnitude > 0.0001f)
+            {
+                return direction.normalized;
+            }
+
+            return Vector2.up;
+        }
+
+        /// <summary>
+        /// 对标老端 GameMath.ChangeEllipseValue(dir,value)：舞台横向保持原距离，纵向压到 0.5，
+        /// 斜向按 |cos| 连续插值，用于无目标圆形技能的前方圆心。
+        /// </summary>
+        private static float ChangeEllipseValue(Vector2 direction, int value)
+        {
+            if (value <= 0 || direction.sqrMagnitude <= 0.0001f) return value;
+            direction.Normalize();
+            return value * (0.5f + Mathf.Abs(direction.x) * 0.5f);
+        }
+
+        /// <summary>
+        /// 圆形 AOE：以技能中心和 area 半径筛选，按距离稳定升序；area&lt;=0 对标老端 null 半径（不限制）。
+        /// </summary>
+        private static List<TargetCandidate> CollectCircleMonsters(float centerX, float centerY, int area)
+        {
+            double areaSquared = (double)area * area;
+            var candidates = new List<TargetCandidate>();
+            int wireOrder = 0;
+            foreach (MonsterVo monster in SceneManager.Instance.AllMonsters)
+            {
+                int currentOrder = wireOrder++;
+                if (!IsAttackableMonster(monster)) continue;
+
+                double dx = monster.X - centerX;
+                double dy = monster.Y - centerY;
+                double distanceSquared = dx * dx + dy * dy;
+                if (area > 0 && distanceSquared > areaSquared) continue;
+                candidates.Add(new TargetCandidate(monster, distanceSquared, currentOrder));
+            }
+            SortCandidates(candidates);
+            return candidates;
+        }
+
+        /// <summary>
+        /// 直线 AOE：前向长度 distance、总宽 area；100px 内目标对标老端直接命中，不受方向与长度限制。
+        /// </summary>
+        private static List<TargetCandidate> CollectLineMonsters(
+            int originX, int originY, Vector2 direction, int distance, int area)
+        {
+            if (distance <= 0 || area <= 0)
+                return CollectCircleMonsters(originX, originY, area);
+
+            double distanceSquaredLimit = (double)distance * distance;
+            double closeSquared = CloseRangeGeometryBypass * CloseRangeGeometryBypass;
+            double halfWidthSquared = area * 0.5 * area * 0.5;
+            var candidates = new List<TargetCandidate>();
+            int wireOrder = 0;
+            foreach (MonsterVo monster in SceneManager.Instance.AllMonsters)
+            {
+                int currentOrder = wireOrder++;
+                if (!IsAttackableMonster(monster)) continue;
+
+                double dx = monster.X - originX;
+                double dy = monster.Y - originY;
+                double distanceSquared = dx * dx + dy * dy;
+                if (distanceSquared > closeSquared)
+                {
+                    if (distanceSquared > distanceSquaredLimit) continue;
+                    double forward = dx * direction.x + dy * direction.y;
+                    if (forward <= 0) continue;
+                    double perpendicular = dx * direction.y - dy * direction.x;
+                    if (perpendicular * perpendicular > halfWidthSquared) continue;
+                }
+                candidates.Add(new TargetCandidate(monster, distanceSquared, currentOrder));
+            }
+            SortCandidates(candidates);
+            return candidates;
+        }
+
+        /// <summary>
+        /// 扇形 AOE：前向长度 distance、总角度 area（度）；100px 内目标对标老端直接命中。
+        /// </summary>
+        private static List<TargetCandidate> CollectSectorMonsters(
+            int originX, int originY, Vector2 direction, int distance, int area)
+        {
+            if (distance <= 0 || area == 0)
+                return CollectCircleMonsters(originX, originY, area);
+
+            double distanceSquaredLimit = (double)distance * distance;
+            double closeSquared = CloseRangeGeometryBypass * CloseRangeGeometryBypass;
+            double minimumDot = Math.Cos(area * Math.PI / 360.0);
+            var candidates = new List<TargetCandidate>();
+            int wireOrder = 0;
+            foreach (MonsterVo monster in SceneManager.Instance.AllMonsters)
+            {
+                int currentOrder = wireOrder++;
+                if (!IsAttackableMonster(monster)) continue;
+
+                double dx = monster.X - originX;
+                double dy = monster.Y - originY;
+                double distanceSquared = dx * dx + dy * dy;
+                if (distanceSquared > closeSquared)
+                {
+                    if (distanceSquared > distanceSquaredLimit) continue;
+                    double length = Math.Sqrt(distanceSquared);
+                    double dot = (dx * direction.x + dy * direction.y) / length;
+                    if (dot < minimumDot) continue;
+                }
+                candidates.Add(new TargetCandidate(monster, distanceSquared, currentOrder));
+            }
+            SortCandidates(candidates);
+            return candidates;
+        }
+
+        private static bool IsAttackableMonster(MonsterVo monster)
+        {
+            return monster != null && !monster.IsCollect && monster.CanAttack == 1 && monster.Hp > 0;
+        }
+
+        private static void SortCandidates(List<TargetCandidate> candidates)
+        {
+            candidates.Sort((left, right) =>
+            {
+                int byDistance = left.DistanceSquared.CompareTo(right.DistanceSquared);
+                return byDistance != 0 ? byDistance : left.WireOrder.CompareTo(right.WireOrder);
+            });
+        }
+
+        /// <summary>老端 target_hiter 强制置首，再从距离序列补齐到怪物数量上限。</summary>
+        private static List<int> BuildOrderedTargetIds(
+            MonsterVo primary, List<TargetCandidate> candidates, int maxMon)
+        {
+            if (maxMon <= 0) maxMon = UnlimitedTargetCount;
+            var ids = new List<int>(Math.Min(maxMon, candidates.Count + (primary != null ? 1 : 0)));
+            var seen = new HashSet<int>();
+            if (primary != null && seen.Add(primary.InstanceId))
+                ids.Add(primary.InstanceId);
+
+            foreach (TargetCandidate candidate in candidates)
             {
                 if (ids.Count >= maxMon) break;
-                if (c.Key == primary.InstanceId) continue;
-                ids.Add(c.Key);
+                if (seen.Add(candidate.Monster.InstanceId))
+                    ids.Add(candidate.Monster.InstanceId);
             }
             return ids;
         }
 
         /// <summary>
-        /// 真实攻击范围(对标老端 SkillManager.GetCurrentAttackRange = max(100, skill_distance*0.8))。
-        /// skill_distance 取 config_skill lv_data[level-1].distance(缺省 50);level 取真实已学等级。
+        /// 真实接敌/接近范围（对标老端 SkillManager.UpdateAttackDistance）：
+        /// mode1 先把圆形 area 加到 distance，再统一乘 0.8；其他模式只取 distance；最终下限 100px。
+        /// skill distance 缺省 50，level 取真实已学等级。
         /// </summary>
         private static float AttackRange(int skillId)
         {
             int level = SkillManager.Instance.GetSkill(skillId)?.Level ?? 0;
             int distance = SkillConfigs.GetDistanceForLevel(skillId, level);
+            if (SkillConfigs.GetAoeMode(skillId) == 1)
+                distance += SkillConfigs.GetAreaForLevel(skillId, level);
             return Math.Max(AttackRangeFloor, distance * 0.8f);
         }
     }

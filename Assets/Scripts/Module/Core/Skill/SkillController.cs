@@ -147,13 +147,14 @@ namespace Shenxiao.Module.Core.Skill
             }
             else if (selectType == 1)
             {
-                GameLog.Info("Skill", "PressSkill skill={0} 自我释放(obj=1)→ 老端 Fire(RELEASE_MAIN_SKILL, type={1}) 边界(技能释放/特效链路未移植,差异记录)", skillId, attackType);
+                GameLog.Info("Skill", "PressSkill skill={0} 自我释放(obj=1)→ 原地释放", skillId);
+                SceneCombat.Instance.MainRoleReleaseInPlace(skillId, attackType);
             }
             else
             {
-                // 主线最常见:职业输出技能(obj=2 最近敌方 / obj=3 最近队友),对应老端 else 分支 Scene.GetInstance().MainRoleAttackTarget()。
-                GameLog.Info("Skill", "PressSkill skill={0} 目标技能(obj={1})→ SceneCombat.MainRoleAttackTarget(真实 SceneManager 怪物寻敌)", skillId, selectType);
-                SceneCombat.Instance.MainRoleAttackTarget(skillId, attackType);
+                // 手点技能无锁定目标时按老端原地空放/局部预选，不跨场景表强行找最近怪后自动贴近。
+                GameLog.Info("Skill", "PressSkill skill={0} 目标技能(obj={1})→ SceneCombat.MainRoleAttackTarget(manual)", skillId, selectType);
+                SceneCombat.Instance.MainRoleAttackTarget(skillId, attackType, false);
             }
         }
 

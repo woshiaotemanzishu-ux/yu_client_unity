@@ -361,6 +361,20 @@ namespace Shenxiao.Module.Core.Scene
             _modelTr.localEulerAngles = new Vector3(e.x, yaw, e.z);
         }
 
+        /// <summary>返回主角当前朝向对应的舞台像素方向(x 右、y 下)。</summary>
+        public bool TryGetFacingPixelDirection(out Vector2 direction)
+        {
+            if (_modelTr == null)
+            {
+                direction = Vector2.zero;
+                return false;
+            }
+
+            float yaw = _modelTr.localEulerAngles.y * Mathf.Deg2Rad;
+            direction = new Vector2(Mathf.Sin(yaw), -Mathf.Cos(yaw));
+            return direction.sqrMagnitude > 0.0001f;
+        }
+
         // ===================== 自动接近目标 NPC(对标 Scene.MainRoleToNpc → MainRoleMove)=====================
 
         /// <summary>

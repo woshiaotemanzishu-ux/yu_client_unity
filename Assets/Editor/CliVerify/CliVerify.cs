@@ -152,6 +152,12 @@ namespace Shenxiao.EditorTools
             EditorApplication.Exit(0);
         }
 
+        /// <summary>MainUI 技能点击、接敌距离与圆/直线/扇形范围专项。</summary>
+        public static void SkillTargeting()
+        {
+            Run(SkillTargetingCase.Run, 60.0);
+        }
+
         /// <summary>挂机收益信息协议回归。</summary>
         public static void OnHook()
         {

@@ -1,9 +1,10 @@
 using Shenxiao.Generated.UI.MainUI;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
-using Shenxiao.Module.Core.AutoFight;
+using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Skill;
 using TMPro;
 using UnityEngine;
@@ -23,7 +24,8 @@ namespace Shenxiao.Module.Core.MainUI
     ///     <see cref="SkillManager.GetCdLeftMs"/>(CD 起点=SceneCombat.ReleaseMainSkill → ResetSkill,自动/手动同路,
     ///     对标老端 FightMovieInfo 预播即 ResetSkill)。老端遮罩是圆形 pie、本端是方形图标 radial(图标本就方形,
     ///     视觉等价);僵直不显遮罩、CD 结束无闪光(老端 ActiveSkill 为空实现)——同老端。
-    ///   · 点击:自动战斗中 → 提示不发;CD 中不发(对标老端 cd_mask 挡点);否则发 EVT_SKILL_SHORTCUT_CLICK。
+    ///   · 点击:仅服务端 13017 托管态提示并拦截；普通 AutoFight 仍允许手动释放；CD 中不发
+    ///     (对标老端 cd_mask 挡点)；否则发 EVT_SKILL_SHORTCUT_CLICK。
     /// 克隆件不经 Show→OnInit 不自动跑,Bind 字段序列化即就绪 → 点击绑定在 SetData 内幂等兜底。
     /// </summary>
     public sealed class MainUISkillItem : MainUISkillItemBind
@@ -85,10 +87,11 @@ namespace Shenxiao.Module.Core.MainUI
                 return;
             }
 
-            // 自动战斗中拦截(对标 GetMainRoleDepositState → Message「自动战斗中」)。
-            if (AutoFightModel.Instance.AutoFightState)
+            // 老端只拦服务端 13017 下发的真正托管态；普通 AutoFight 开启时仍允许手点技能。
+            if (RoleModel.Instance.DepositState)
             {
-                GameLog.Info("MainUI", "自动战斗中,手点技能 {0} 拦截(对标 Message『自动战斗中』,toast 待接)", _vo.Id);
+                TipsManager.Toast("自动战斗中");
+                GameLog.Info("MainUI", "托管态(deposit_state)中,手点技能 {0} 拦截", _vo.Id);
                 return;
             }
 

@@ -75,8 +75,8 @@ namespace Shenxiao.Module.Core.Skill
 
         /// <summary>
         /// 是否群攻(AOE)模式(逐字段对标 SkillVo.IsAoeMode:config_skill[id].mod==1 → 单体非 AOE,
-        /// 其余值/缺省 → AOE)。单体技能的 20001 目标列表=[主目标],可逐字段确定;AOE 需 distance/area/num
-        /// + FindTargets 几何收集链(未移植),本轮 AOE 不发包,见 SceneCombat。
+        /// 其余值/缺省 → AOE)。单体技能的 20001 目标列表=[主目标]；AOE 由 SceneCombat 使用
+        /// distance/area/num/range 完成圆形、直线和扇形几何收集。
         /// </summary>
         public static bool IsAoe(int skillId)
         {
@@ -123,7 +123,7 @@ namespace Shenxiao.Module.Core.Skill
         }
 
         /// <summary>攻击目标数量(对标 SkillVo.GetAttackNum:lv_data[level-1].num=[玩家数, 怪物数],缺省 [0,0])。
-        /// 0 表示不限(对标老端 att_num==0 → 99)。怪物数用于圆形 AOE 收集上限。</summary>
+        /// 0 表示不限(对标老端 att_num==0 → 99)。怪物数用于 PvE AOE 收集上限。</summary>
         public static int[] GetAttackNumForLevel(int skillId, int level)
         {
             JArray lv = GetLvData(skillId);
