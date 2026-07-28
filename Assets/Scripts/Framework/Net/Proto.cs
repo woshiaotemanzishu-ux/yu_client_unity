@@ -1644,8 +1644,10 @@
         //   照 r9_server §DEAD 清单),双向皆死不移植。
         // 61031-61041:守卫公会本(GuildGuard)专属(击杀数/伤害榜/怪物血量/波数/摘要),老端注册在
         //   GuildController.ts 非 BaseDungeonController——归公会包,本轮不碰。
-        // 61112-61116:灵魄本(Rune)专属奖励系统(通用奖励领取/列表 61112-13+符文每日奖励/状态/解锁 61114-16),
-        //   非"塔"——归灵魄奖励包(老端 InitDunData Rune 分支的 61113/61115 触发一并留待该包)。
+        // 61112/61114-61116:灵魄本(Rune)专属奖励系统(通用奖励领取+符文每日奖励/状态/解锁),
+        //   非"塔"——归灵魄奖励包；61113 仅接只读奖励状态快照。
+        /// <summary>灵魄副本奖励状态快照。C2S dun_type:u8；S2C dun_type:u8,dun_list:u16×{dun_id:u32,reward_type:u8,reward_status:u8}。</summary>
+        public const int DUNGEON_RUNE_REWARD_INFO = 61113;
         // 61117 已接(BaseDungeonController 限时爬塔图标);61118(限时爬塔大奖领取)塔二期。
         // 50805(周本专属结算推送,不复用 61003):DungeonPolarBalance 结算面板未移植,周本二期。
 

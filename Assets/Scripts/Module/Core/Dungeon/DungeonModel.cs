@@ -231,6 +231,31 @@ namespace Shenxiao.Module.Core.Dungeon
         public IReadOnlyList<HeartSkillInfoEntry> HeartSkillInfo { get; private set; } =
             new List<HeartSkillInfoEntry>();
 
+        public sealed class RuneRewardEntry
+        {
+            public uint DunId { get; }
+            public byte RewardType { get; }
+            public byte RewardStatus { get; }
+
+            public RuneRewardEntry(uint dunId, byte rewardType, byte rewardStatus)
+            {
+                DunId = dunId;
+                RewardType = rewardType;
+                RewardStatus = rewardStatus;
+            }
+        }
+
+        public sealed class RuneRewardSnapshot
+        {
+            public bool Loaded { get; internal set; }
+            public IReadOnlyList<RuneRewardEntry> Entries { get; internal set; } =
+                new List<RuneRewardEntry>().AsReadOnly();
+        }
+
+        /// <summary>61113 按 dun_type 分桶；每个包独立整表替换，绝不混入 61020。</summary>
+        public readonly Dictionary<byte, RuneRewardSnapshot> DungeonRuneRewardInfoByType =
+            new Dictionary<byte, RuneRewardSnapshot>();
+
         public sealed class DragonJumpRewardEntry
         {
             public byte Type;
@@ -386,6 +411,20 @@ namespace Shenxiao.Module.Core.Dungeon
                 if (HeartSkillInfo[i].SkillId == skillId) return HeartSkillInfo[i].SkillLv;
             return 0;
         }
+
+        public void ApplyDungeonRuneRewardInfo(byte dunType, List<RuneRewardEntry> entries)
+        {
+            DungeonRuneRewardInfoByType[dunType] = new RuneRewardSnapshot
+            {
+                Loaded = true,
+                Entries = new List<RuneRewardEntry>(entries ?? new List<RuneRewardEntry>()).AsReadOnly(),
+            };
+        }
+
+        public bool TryGetDungeonRuneRewardInfo(byte dunType, out RuneRewardSnapshot snapshot) =>
+            DungeonRuneRewardInfoByType.TryGetValue(dunType, out snapshot);
+
+        public void ClearDungeonRuneRewardInfo() => DungeonRuneRewardInfoByType.Clear();
 
         public void ApplyDragonJumpReward(uint wave, List<DragonJumpRewardEntry> rewards)
         {
@@ -737,6 +776,7 @@ namespace Shenxiao.Module.Core.Dungeon
             DragonSkillInfo.Clear();
             HasHeartSkillInfo = false;
             HeartSkillInfo = new List<HeartSkillInfoEntry>();
+            ClearDungeonRuneRewardInfo();
             HasDragonJumpReward = false;
             LastDragonJumpReward = null;
             HasAdvancedExpInfo = false;
