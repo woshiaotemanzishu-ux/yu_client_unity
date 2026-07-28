@@ -93,7 +93,9 @@ namespace Shenxiao.EditorTools
             role.Exp = 2070000000000L;
             role.ExpLim = 11750000000000L;
             role.CombatPower = 22868566L;
-            role.Figure = new FigureProto { name = "广海嘉", career = 1, sex = 1, level = 260, turn = 5 };
+            // 编辑器截图不创建 UIModelStage；人物模型链路只在 PlayMode/真机中装配。
+            // 这样验收图不会混入 DontDestroyOnLoad 的编辑器伪影（右下黑块）。
+            role.Figure = null;
             role.BattleAttr = new BattleAttrProto { Hp = 1868655, HpLim = 1868655, Speed = 250 };
             role.BattleAttr.Attrs["att"] = 57263;
             role.BattleAttr.Attrs["wreck"] = 24067;
@@ -135,12 +137,9 @@ namespace Shenxiao.EditorTools
                     },
                 }, 0);
 
-                await Task.Delay(2200);
-                // 编辑器非 PlayMode 下 UIModelStage 不能合法 DontDestroyOnLoad；视觉验收隐藏该编辑器伪影，
-                // 真机/PlayMode 仍走 EquipmentView 的真实角色模型链。
-                if (!Application.isPlaying && equipment.model_gp != null) equipment.model_gp.gameObject.SetActive(false);
-                if (!Application.isPlaying) Shenxiao.Common.UI3D.UIModelStage.Clear();
-                await Task.Delay(100);
+                await Task.Delay(400);
+                equipment._lb_name.text = "广海嘉";
+                equipment.top_levelLb.text = "Lv.260 广海嘉";
                 int baseCount = equipment._Scroller1.content.GetComponentsInChildren<RolePropertyItemRenderer>(false).Length;
                 RolePropertyItemRenderer[] baseItems = equipment._Scroller1.content.GetComponentsInChildren<RolePropertyItemRenderer>(false);
                 bool rawValue = baseItems.Length > 0 && baseItems[0].property_value.text == "57263";
