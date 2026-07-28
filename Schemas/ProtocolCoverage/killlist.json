@@ -606,6 +606,12 @@
     "note": "Wake 副本减速状态查询：C2S 空，S2C end_time:u32。老端仅协议声明 send null，源码零接线；服务端仅在 Wake 副本纯读查询，Time=0 时仍回配置 Seconds。减速成功主动推送同一结束时间的是 61095；未来两个号随玩法整体迁移。R255复核。"
   },
   {
+    "cmd": 61095,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/libs/proto610.d.ts:1571-1579;h5/src逐号检索零sender/handler;yu_server/src/dungeon/pp_dungeon.erl:689-709;yu_server/src/dungeon/lib_dungeon_wake.erl:90-124,127-158",
+    "note": "Wake 副本怪物减速：C2S 空，S2C end_time:u32。老端协议声明 send null 且源码零接线；服务端真实校验副本/Wake/未结算/冷却/资源并异步权威扣费，修改怪物速度、定时恢复，成功才单推61095，失败走61000或静默。无 DB、奖励或结算。禁止裸开放，未来与61094及配置、确认、防连点、错误和倒计时整体迁移。R256复核。"
+  },
+  {
     "cmd": 62107,
     "reason": "dead_server_never_writes",
     "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
