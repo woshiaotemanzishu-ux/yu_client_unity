@@ -666,6 +666,12 @@
     "note": "延迟加载完成通知仅为空 C2S、无 S2C。老端确在场景切换时发送，但服务端 is_need_delay_load_dun 恒 false，按 DELAY_DUN_LIST 分流的整段逻辑已注释，普通初始化默认 HAD_LOAD；61111 投递最终恒为 no-op，仅冗余 send_dungeon_info(61004)。Unity 已在 OnSceneMapReady 直接请求61004，禁止新增 Proto、61111 sender 或 handler。若未来恢复延迟加载，须连场景时序、服务端初始化与伙伴副本整体复审。R269复核。"
   },
   {
+    "cmd": 61119,
+    "reason": "dead_server_never_writes",
+    "evidence": "h5/libs/proto611.d.ts:354-362;h5/src/commonController/BaseDungeonController.ts:1942-1948;h5/src/dungeon/DungeonFightSceneView.ts:270-275,743-747,1228-1235;yu_server/src/dungeon/pp_dungeon_sec.erl:100-104;yu_server/src/dungeon/lib_dungeon_exp.erl:396-416,431-441;yu_server/src/pt/pt_611.erl:68-69,314-320;Assets/Scripts/Framework/Net/Proto.cs:1643-1644;Assets/Scripts/Module/Core/Dungeon/DungeonController.cs:36",
+    "note": "经验副本下一次经验时间：C2S 空，S2C next_time:u64(ms)。服务端入口恒 skip 且两个发送链均已注释，老端仅遗留无效定时轮询；Unity 已有 DEAD 注释且无接入。恢复前提：服务端先恢复权威经验定时、反刷和实际 u64 毫秒 push，再整体接入客户端。R276复核。"
+  },
+  {
     "cmd": 62107,
     "reason": "dead_server_never_writes",
     "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
