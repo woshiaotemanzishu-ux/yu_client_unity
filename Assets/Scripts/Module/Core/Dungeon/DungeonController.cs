@@ -46,6 +46,7 @@ namespace Shenxiao.Module.Core.Dungeon
     /// 轮231 补 61046 邀请/取消请求与发送者原始消息；轮232 补 61048 双方完整原始状态快照。
     /// 轮241 补 61058 神纹跳关奖励 S2C-only 原始快照，不触发 UI 或本地发奖。
     /// 轮242 补 61059 高级经验副本波数面板 S2C-only 原始快照，不公开服务端空查询。
+    /// 轮244 补 61061 高级经验副本跳关进入 S2C-only 原始快照，与 61059 独立。
     /// </summary>
     public sealed class DungeonController : BaseController
     {
@@ -82,6 +83,7 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_DRAGON_SKILL_INFO, On61055);
             RegisterProtocal(Proto.DUNGEON_DRAGON_JUMP_REWARD, On61058);
             RegisterProtocal(Proto.DUNGEON_ADVANCED_EXP_INFO, On61059);
+            RegisterProtocal(Proto.DUNGEON_ADVANCED_EXP_JUMP_INFO, On61061);
             RegisterProtocal(Proto.DUNGEON_MONSTER_INVASION_REWARD, On61092);
             // 61002(DUNGEON_EXIT)已由 AutoBrushController 注册,红线不可重复注册;Exit() 只发不接。
             RegisterProtocal(Proto.DUNGEON_INFO, On61004);
@@ -1016,6 +1018,15 @@ namespace Shenxiao.Module.Core.Dungeon
             DungeonModel.Instance.ApplyAdvancedExpInfo(
                 r.ReadU32(),
                 r.ReadU32(),
+                r.ReadU32(),
+                r.ReadU32(),
+                unchecked((ulong)r.ReadU64()));
+        }
+
+        /// <summary>61061 高级经验副本跳关进入通知；不合并或覆盖 61059 面板快照。</summary>
+        private void On61061(NetReader r)
+        {
+            DungeonModel.Instance.ApplyAdvancedExpJumpInfo(
                 r.ReadU32(),
                 r.ReadU32(),
                 unchecked((ulong)r.ReadU64()));

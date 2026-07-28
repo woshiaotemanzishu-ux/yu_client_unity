@@ -1605,6 +1605,9 @@
         /// wave:u32,wave_start_time:u32,wave_end_time:u32,history_wave:u32,exp:u64。每包整体替换原始快照，
         /// 不派生倒计时、结算修正或本地经验。</summary>
         public const int DUNGEON_ADVANCED_EXP_INFO = 61059;
+        /// <summary>高级经验副本跳关进入通知（S2C-only，无 C2S 请求）。S2C wave:u32,
+        /// history_wave:u32,exp:u64。奖励和经验由服务端在推送前落账；本端保存独立于 61059 的原始快照。</summary>
+        public const int DUNGEON_ADVANCED_EXP_JUMP_INFO = 61061;
         /// <summary>异兽入侵 领取阶段奖励(轮22 族错误出口批;对标老端 BaseDungeonController.ts:1848-1857
         /// 内联handler:error_code==1 分支 setMonsterInvasionReward 调用**已被老端注释**[纯死代码,运行时
         /// 无副作用],否则 ErrorCodeShow(error_code)——本端如实镜像"成功也不做事",不臆造奖励消费)。

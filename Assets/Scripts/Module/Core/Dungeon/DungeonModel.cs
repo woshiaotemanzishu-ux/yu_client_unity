@@ -20,6 +20,7 @@ namespace Shenxiao.Module.Core.Dungeon
     /// 61018 退出倒计时/61021 购买/61022 扫荡/61023 时间评分/61025·61026 鼓舞/61044 经验本面板推送/
     /// 61045 冷却时间/61046 邀请发送者原始消息/61048 双方邀请状态/61050 神纹最佳记录/61051 阶段奖励领取情况/
     /// 61053 快速出怪权威状态/61055 临时技能数量/61058 跳关奖励通知/61059 高级经验波数面板/
+    /// 61061 高级经验跳关进入通知/
     /// 61120·61121 资源本一键与次数。
     /// 周本(50801/50802)是独立数据线,见 <see cref="PolarModel"/>——勿塞进 DunStatesByType(r9 侦察结论)。
     /// </summary>
@@ -249,6 +250,17 @@ namespace Shenxiao.Module.Core.Dungeon
         public bool HasAdvancedExpInfo { get; private set; }
         public AdvancedExpInfoSnapshot LastAdvancedExpInfo { get; private set; }
 
+        public sealed class AdvancedExpJumpInfoSnapshot
+        {
+            public uint Wave;
+            public uint HistoryWave;
+            public ulong Exp;
+        }
+
+        /// <summary>是否收到过 61061；与 61059 独立，三字段全零仍是合法完整快照。</summary>
+        public bool HasAdvancedExpJumpInfo { get; private set; }
+        public AdvancedExpJumpInfoSnapshot LastAdvancedExpJumpInfo { get; private set; }
+
         public void ApplyExpDungeonInfo(ushort killCount, ulong totalExp)
         {
             HasExpDungeonInfo = true;
@@ -332,6 +344,17 @@ namespace Shenxiao.Module.Core.Dungeon
                 Wave = wave,
                 WaveStartTime = waveStartTime,
                 WaveEndTime = waveEndTime,
+                HistoryWave = historyWave,
+                Exp = exp,
+            };
+        }
+
+        public void ApplyAdvancedExpJumpInfo(uint wave, uint historyWave, ulong exp)
+        {
+            HasAdvancedExpJumpInfo = true;
+            LastAdvancedExpJumpInfo = new AdvancedExpJumpInfoSnapshot
+            {
+                Wave = wave,
                 HistoryWave = historyWave,
                 Exp = exp,
             };
@@ -636,6 +659,8 @@ namespace Shenxiao.Module.Core.Dungeon
             LastDragonJumpReward = null;
             HasAdvancedExpInfo = false;
             LastAdvancedExpInfo = null;
+            HasAdvancedExpJumpInfo = false;
+            LastAdvancedExpJumpInfo = null;
             SceneInfo = null;
             CurrWaveType = 0;
             CurrWaveNum = 1;
