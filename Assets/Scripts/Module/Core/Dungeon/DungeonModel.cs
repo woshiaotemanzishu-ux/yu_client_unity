@@ -18,7 +18,7 @@ namespace Shenxiao.Module.Core.Dungeon
     ///
     /// 轮9 副本家族补全一期:61004 副本信息/61005·61030 波次/61007·61019 坐标事件状态机/61011 助战次数/
     /// 61018 退出倒计时/61021 购买/61022 扫荡/61023 时间评分/61025·61026 鼓舞/61044 经验本面板推送/
-    /// 61045 冷却时间/61046 邀请发送者原始消息/61048 双方邀请状态/61050 神纹最佳记录/
+    /// 61045 冷却时间/61046 邀请发送者原始消息/61048 双方邀请状态/61050 神纹最佳记录/61051 阶段奖励领取情况/
     /// 61120·61121 资源本一键与次数。
     /// 周本(50801/50802)是独立数据线,见 <see cref="PolarModel"/>——勿塞进 DunStatesByType(r9 侦察结论)。
     /// </summary>
@@ -191,6 +191,16 @@ namespace Shenxiao.Module.Core.Dungeon
         public bool HasDragonBestRecord { get; private set; }
         public DragonBestRecordSnapshot LastDragonBestRecord { get; private set; }
 
+        public sealed class DragonStageRewardSnapshot
+        {
+            public byte HistoryWave;
+            public List<byte> ClaimedWaves;
+        }
+
+        /// <summary>61051 按 dun_id 保存；TryGet=false 表示从未收到，同键回包整体替换。</summary>
+        public readonly Dictionary<uint, DragonStageRewardSnapshot> DragonStageRewardsByDunId =
+            new Dictionary<uint, DragonStageRewardSnapshot>();
+
         public void ApplyExpDungeonInfo(ushort killCount, ulong totalExp)
         {
             HasExpDungeonInfo = true;
@@ -228,6 +238,18 @@ namespace Shenxiao.Module.Core.Dungeon
                 RoleList = roles ?? new List<DragonBestRecordRole>(),
             };
         }
+
+        public void ApplyDragonStageReward(uint dunId, byte historyWave, List<byte> claimedWaves)
+        {
+            DragonStageRewardsByDunId[dunId] = new DragonStageRewardSnapshot
+            {
+                HistoryWave = historyWave,
+                ClaimedWaves = claimedWaves ?? new List<byte>(),
+            };
+        }
+
+        public bool TryGetDragonStageReward(uint dunId, out DragonStageRewardSnapshot snapshot) =>
+            DragonStageRewardsByDunId.TryGetValue(dunId, out snapshot);
 
         /// <summary>61045 按 dun_id 保存的服务器绝对冷却结束时间；0 也是合法回包。</summary>
         public readonly Dictionary<uint, uint> CooldownEndTimes = new Dictionary<uint, uint>();
@@ -517,6 +539,7 @@ namespace Shenxiao.Module.Core.Dungeon
             LastInviteState = null;
             HasDragonBestRecord = false;
             LastDragonBestRecord = null;
+            DragonStageRewardsByDunId.Clear();
             SceneInfo = null;
             CurrWaveType = 0;
             CurrWaveNum = 1;

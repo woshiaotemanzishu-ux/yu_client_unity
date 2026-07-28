@@ -53,6 +53,7 @@ namespace Shenxiao.Module.Core.Dungeon
         private static Func<byte[], bool> s_cooldownOutboundIntercept = null;
         private static Func<byte[], bool> s_inviteOutboundIntercept = null;
         private static Func<byte[], bool> s_dragonBestRecordOutboundIntercept = null;
+        private static Func<byte[], bool> s_dragonStageRewardOutboundIntercept = null;
 #endif
 
         private DungeonController() { }
@@ -72,6 +73,7 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_INVITE_RESPOND, On61047);
             RegisterProtocal(Proto.DUNGEON_INVITE_STATE, On61048);
             RegisterProtocal(Proto.DUNGEON_DRAGON_BEST_RECORD, On61050);
+            RegisterProtocal(Proto.DUNGEON_DRAGON_STAGE_REWARD, On61051);
             RegisterProtocal(Proto.DUNGEON_MONSTER_INVASION_REWARD, On61092);
             // 61002(DUNGEON_EXIT)已由 AutoBrushController 注册,红线不可重复注册;Exit() 只发不接。
             RegisterProtocal(Proto.DUNGEON_INFO, On61004);
@@ -282,6 +284,19 @@ namespace Shenxiao.Module.Core.Dungeon
             }
 #endif
             SendFmt(Proto.DUNGEON_DRAGON_BEST_RECORD, "ic", dunId, wave);
+        }
+
+        /// <summary>显式查询神纹副本阶段奖励领取情况；不由 GAME_START 或入口自动触发。</summary>
+        public void RequestDragonStageRewardInfo(uint dunId)
+        {
+#if UNITY_EDITOR
+            if (s_dragonStageRewardOutboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(Proto.DUNGEON_DRAGON_STAGE_REWARD, "i", dunId);
+                if (s_dragonStageRewardOutboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(Proto.DUNGEON_DRAGON_STAGE_REWARD, "i", dunId);
         }
 
         /// <summary>请求坐标触发情况表 61019(发 "i" scene_id;进副本场景对账用)。</summary>
@@ -920,6 +935,15 @@ namespace Shenxiao.Module.Core.Dungeon
                 ServerId = rr.ReadU32(),
             });
             DungeonModel.Instance.ApplyDragonBestRecord(dunId, wave, myTime, bestTime, roles);
+        }
+
+        /// <summary>61051 神纹副本阶段奖励领取情况完整原始快照；不派生领取状态或红点。</summary>
+        private void On61051(NetReader r)
+        {
+            uint dunId = r.ReadU32();
+            byte historyWave = r.ReadU8();
+            List<byte> claimedWaves = r.ReadArray(rr => rr.ReadU8());
+            DungeonModel.Instance.ApplyDragonStageReward(dunId, historyWave, claimedWaves);
         }
 
         /// <summary>61092 异兽入侵 领取阶段奖励(对标老端 BaseDungeonController.ts:1848-1857 内联 handler:
