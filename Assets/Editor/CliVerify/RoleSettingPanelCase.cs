@@ -139,6 +139,8 @@ namespace Shenxiao.EditorTools
                 // 编辑器非 PlayMode 下 UIModelStage 不能合法 DontDestroyOnLoad；视觉验收隐藏该编辑器伪影，
                 // 真机/PlayMode 仍走 EquipmentView 的真实角色模型链。
                 if (!Application.isPlaying && equipment.model_gp != null) equipment.model_gp.gameObject.SetActive(false);
+                if (!Application.isPlaying) Shenxiao.Common.UI3D.UIModelStage.Clear();
+                await Task.Delay(100);
                 int baseCount = equipment._Scroller1.content.GetComponentsInChildren<RolePropertyItemRenderer>(false).Length;
                 RolePropertyItemRenderer[] baseItems = equipment._Scroller1.content.GetComponentsInChildren<RolePropertyItemRenderer>(false);
                 bool rawValue = baseItems.Length > 0 && baseItems[0].property_value.text == "57263";
