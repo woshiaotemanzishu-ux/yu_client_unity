@@ -23,7 +23,7 @@ namespace Shenxiao.Editor.Laya3D
     public static class LayaEffectImporter
     {
         /// <summary>特效转换逻辑版本(独立于模型线 Laya3DImporter.TOOL_VERSION)。</summary>
-        public const int TOOL_VERSION = 25; // v25: normalize Laya random min/max ranges before writing Unity ParticleSystem curves.
+        public const int TOOL_VERSION = 26; // v26: keep Laya numeric gradient segments linear; Unity auto tangents can overshoot below zero.
 
         private const string RuntimeEffectRoot = "Assets/GameRes/effect/objs";
         private const string GeneratedEffectRoot = "Assets/GameRes/_Generated/effect/objs";
@@ -1539,6 +1539,15 @@ namespace Shenxiao.Editor.Laya3D
             {
                 curve.AddKey(0f, 0f);
                 curve.AddKey(1f, scale);
+            }
+            // Laya GradientDataNumber 按相邻关键点线性插值。AnimationCurve.AddKey(time, value)
+            // 会让 Unity 自动生成平滑切线；关键点很密、后段很长时会严重下冲，甚至把本应约
+            // 0.5 的尺寸曲线算成负数并被粒子系统钳到 0（effect_xemlvup 的“升级”文字因此消失）。
+            // 显式锁为 Linear，既保持源数据语义，也避免速度/尺寸/贴图帧等数值曲线过冲。
+            for (int i = 0; i < curve.length; i++)
+            {
+                AnimationUtility.SetKeyLeftTangentMode(curve, i, AnimationUtility.TangentMode.Linear);
+                AnimationUtility.SetKeyRightTangentMode(curve, i, AnimationUtility.TangentMode.Linear);
             }
             return new ParticleSystem.MinMaxCurve(1f, curve);
         }

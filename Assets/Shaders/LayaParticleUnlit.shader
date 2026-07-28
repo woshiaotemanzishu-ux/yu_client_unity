@@ -42,6 +42,7 @@ Shader "Shenxiao/Effect/LayaParticleUnlit"
             #pragma fragment Frag
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
             sampler2D _MainTex;
 
@@ -91,7 +92,16 @@ Shader "Shenxiao/Effect/LayaParticleUnlit"
                         _UIEffectClipRect.w - input.clipPosition.y);
                     clip(min(min(distanceToEdge.x, distanceToEdge.y), min(distanceToEdge.z, distanceToEdge.w)));
                 }
-                half4 color = tex2D(_MainTex, input.uv) * _BaseColor * input.color;
+                // Laya 粒子材质按 Gamma 数值制作：大量材质用 tint=0.5，再由原 shader 的 *2
+                // 还原为中性色。项目切到 Linear 后，Unity 会在上传 Color 属性时先把 0.5
+                // 转成约 0.214；若直接乘 2，整套旧特效只剩约 43% 强度（升级文字/光柱一起发淡）。
+                // 纹理仍按 sRGB 正常采样；这里只把材质 tint 恢复成 Laya 制作时使用的数值，
+                // 保留项目 Linear 光照与新角色材质，不做全局色彩空间回退。
+                half4 layaTint = _BaseColor;
+                #if !defined(UNITY_COLORSPACE_GAMMA)
+                    layaTint.rgb = LinearToSRGB(layaTint.rgb);
+                #endif
+                half4 color = tex2D(_MainTex, input.uv) * layaTint * input.color;
                 clip(color.a - 0.001h);
                 return color * 2.0h;
             }

@@ -22,6 +22,10 @@ namespace Shenxiao.Module.Core.Tasks
         private bool _taskFinishPendingAuto;
         private int _taskOneAutoEpoch;
         private const int TaskSuccessEffectDurationMs = 1500;
+        // 老端 UIEffect 的 RenderTexture 最终贴到 Laya Image 时纵向采样方向与 Unity RawImage 相反。
+        // 老端传入 (0,+4) 后显示在屏幕上方；Unity 共享通道不做全局 Y 翻转（已有界面按现口径验收），
+        // 因此本条全屏演出只在业务边界映射为 (0,-4)，不能继续原样传 +4 落到屏幕下部。
+        private static readonly Vector2 TaskSuccessEffectPosition = new Vector2(0f, -4f);
         private int _taskSuccessEffectEpoch;
         private UIEffectStage.Handle _taskSuccessEffect;
 
@@ -234,7 +238,7 @@ namespace Shenxiao.Module.Core.Tasks
                 }
 
                 handle = await UIEffectStage.AddAsync("ui_renwuwancheng", parent,
-                    new Vector2(0f, 4f), Vector3.one);
+                    TaskSuccessEffectPosition, Vector3.one);
                 if (epoch != _taskSuccessEffectEpoch)
                 {
                     handle?.Dispose();
