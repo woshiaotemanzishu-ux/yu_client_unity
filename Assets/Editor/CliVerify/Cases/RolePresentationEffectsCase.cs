@@ -129,7 +129,14 @@ namespace Shenxiao.EditorTools
                     Debug.LogError("CLIVERIFY role-effects task speed trail did not use stable unit-scale host");
                     return 3;
                 }
-                Debug.Log("CLIVERIFY role-effects 4b task speed trail attached at stable world scale 1");
+                if (!VerifyTaskSpeedFlowAnimation(speedTrail, out string speedFlowDiagnostic))
+                {
+                    Debug.LogError("CLIVERIFY role-effects task speed flow animation invalid: " +
+                        speedFlowDiagnostic);
+                    return 3;
+                }
+                Debug.Log("CLIVERIFY role-effects 4b task speed trail attached at stable world scale 1; " +
+                    speedFlowDiagnostic);
 
                 MethodInfo eligible = typeof(MainRoleAgent).GetMethod("IsTaskSpeedEligible",
                     BindingFlags.NonPublic | BindingFlags.Static);
@@ -229,6 +236,44 @@ namespace Shenxiao.EditorTools
             return Mathf.Abs(main.startDelay.constant - 0.1f) <= 0.001f &&
                    Mathf.Abs(main.startLifetime.constant - 1.1f) <= 0.001f &&
                    count == 1 && currentSize >= 1.5f;
+        }
+
+        /// <summary>
+        /// 老端的御风“隐现”来自透明流光贴图沿 U 方向循环滚动，不是固定三角形常亮。
+        /// Laya 动画写 _MainTex_ST，而实际效果 shader 也读取 _MainTex_ST；若资源只保留
+        /// _BaseMap_ST，Unity 会把贴图定格在首帧，跑动时便一直显示成实心尾巴。
+        /// </summary>
+        private static bool VerifyTaskSpeedFlowAnimation(GameObject effect, out string diagnostic)
+        {
+            Animation animation = effect != null
+                ? effect.GetComponentInChildren<Animation>(true)
+                : null;
+            AnimationClip clip = animation != null ? animation.clip : null;
+            if (clip == null)
+            {
+                diagnostic = "Animation/clip missing";
+                return false;
+            }
+
+            EditorCurveBinding binding = Array.Find(AnimationUtility.GetCurveBindings(clip), item =>
+                item.type == typeof(MeshRenderer) &&
+                item.propertyName == "material._MainTex_ST.z");
+            AnimationCurve scroll = string.IsNullOrEmpty(binding.propertyName)
+                ? null
+                : AnimationUtility.GetEditorCurve(clip, binding);
+            if (scroll == null)
+            {
+                diagnostic = "material._MainTex_ST.z missing";
+                return false;
+            }
+
+            float start = scroll.Evaluate(0f);
+            float middle = scroll.Evaluate(0.5f);
+            float end = scroll.Evaluate(1f);
+            diagnostic = $"uvU={start:F2}->{middle:F2}->{end:F2}, wrap={clip.wrapMode}";
+            return clip.wrapMode == WrapMode.Loop && scroll.length >= 2 &&
+                   Mathf.Abs(start) <= 0.001f && Mathf.Abs(middle - 1.5f) <= 0.01f &&
+                   Mathf.Abs(end - 3f) <= 0.01f;
         }
 
         /// <summary>

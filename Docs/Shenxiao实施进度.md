@@ -1536,3 +1536,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **挂载修复**：`SceneCharacterStage` 新增 `MainRoleAttachedEffects`，作为模型容器下的稳定随身宿主；它继承主角 yaw 和 2.5D 倾斜，但以逆缩放抵消 0.85 场景体量，保持世界缩放 1。任务拖尾改挂该宿主，不再递归命中新动作内部 `root`，idle/run/skill 切换也不再销毁重挂。
 - **边界**：骨骼技能/动作特效仍挂 `ActiveModel`，升级和采集完成仍挂直立的 `MainRoleDetachedEffects`，世界位置型跳跃特效仍挂 `SceneEffectAnchor`；未修改公共 `char_acceleratebuff01` 资源，老模型表现不受单独缩放补偿污染。
 - **回归**：`RolePresentationEffectsCase` 增加 0.85 模型缩放下的宿主落点、世界缩放 1 和真实任务拖尾挂载断言，返回 `0 / ALL PASS`。实际 1111/1213 新 run 与 1111 老模型探针均确认新宿主 `distance=0 / worldScale=1`；Unity 强编译 `completed/failed=false`。
+
+## 2026-07-29：任务跑动流光动画恢复
+
+- **纠正方向**：撤销对 `char_acceleratebuff01` 增加固定 Z 后移的尝试，恢复资源原始局部位置；新旧模型继续共用稳定、单位缩放的 `MainRoleAttachedEffects`，不再按舞姬或其他单个模型做位置特判。
+- **表现根因**：老端网格材质用 1 秒循环动画把 `_MainTex_ST.z` 从 0 线性滚到 3；`lyz_trail_117` 自身包含透明—亮—透明分布，因此运行中自然形成流光和周期隐现。Unity 旧转换资源只留下 `_BaseMap_ST` 曲线，而 `LayaParticleUnlit` 实际采样 `_MainTex_ST`，导致 UV 停在首帧，三角光带从起跑起持续常亮。
+- **资源修复**：将当前 `char_acceleratebuff01.anim` 的 UV 四分量绑定恢复到 `material._MainTex_ST`，保留原始 `0→3/1s`、线性切线和 `WrapMode.Loop`，不修改贴图、颜色、网格、粒子或空间位置。
+- **回归**：`RolePresentationEffectsCase` 增加真实动画资源断言，要求 `_MainTex_ST.z` 在 `0s/0.5s/1s` 分别为 `0/1.5/3` 且循环；防止资源再次退化成只写 `_BaseMap_ST` 的常亮尾片。
