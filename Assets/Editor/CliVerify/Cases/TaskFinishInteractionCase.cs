@@ -26,7 +26,7 @@ namespace Shenxiao.EditorTools
             GameObject cameraGo = null;
             GameObject eventSystemGo = null;
             GameObject instance = null;
-            RenderTexture renderTexture = null;
+            RenderTexture warmupTexture = null;
             try
             {
                 GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
@@ -46,8 +46,8 @@ namespace Shenxiao.EditorTools
                 camera.transform.position = new Vector3(0f, 0f, -10f);
                 camera.orthographic = true;
                 camera.orthographicSize = 800f;
-                renderTexture = new RenderTexture(720, 1600, 0);
-                camera.targetTexture = renderTexture;
+                camera.pixelRect = new Rect(0f, 0f, Screen.width, Screen.height);
+                camera.aspect = 720f / 1600f;
                 canvas.renderMode = RenderMode.WorldSpace;
                 canvas.worldCamera = camera;
                 GraphicRaycaster raycaster = canvasGo.GetComponent<GraphicRaycaster>();
@@ -84,6 +84,15 @@ namespace Shenxiao.EditorTools
                     return 3;
                 }
                 configure.Invoke(runtime, null);
+                canvas.enabled = false;
+                canvas.enabled = true;
+                Canvas.ForceUpdateCanvases();
+                warmupTexture = new RenderTexture(Mathf.Max(1, Screen.width), Mathf.Max(1, Screen.height), 0);
+                camera.targetTexture = warmupTexture;
+                camera.Render();
+                camera.targetTexture = null;
+                camera.pixelRect = new Rect(0f, 0f, Screen.width, Screen.height);
+                camera.aspect = 720f / 1600f;
 
                 Graphic moduleGraphic = instance.GetComponent<Graphic>();
                 Graphic viewGraphic = bind.GetComponent<Graphic>();
@@ -135,7 +144,15 @@ namespace Shenxiao.EditorTools
                     }
                     if (!semanticHit.HasValue)
                     {
-                        Debug.LogError("CLIVERIFY task-finish-interaction point " + i + " missed semantic surface");
+                        var hitNames = new List<string>();
+                        for (int hitIndex = 0; hitIndex < hits.Count; hitIndex++)
+                            hitNames.Add(hits[hitIndex].gameObject != null ? hits[hitIndex].gameObject.name : "<null>");
+                        Debug.LogError("CLIVERIFY task-finish-interaction point " + i
+                            + " missed semantic surface; screen=" + pointer.position
+                            + " screenSize=" + Screen.width + "x" + Screen.height
+                            + " cameraRect=" + camera.pixelRect
+                            + " moduleRect=" + moduleRt.rect
+                            + " hits=[" + string.Join(",", hitNames) + "]");
                         return 3;
                     }
 
@@ -160,7 +177,7 @@ namespace Shenxiao.EditorTools
                 if (instance != null) UnityEngine.Object.DestroyImmediate(instance);
                 if (eventSystemGo != null) UnityEngine.Object.DestroyImmediate(eventSystemGo);
                 if (cameraGo != null) UnityEngine.Object.DestroyImmediate(cameraGo);
-                if (renderTexture != null) UnityEngine.Object.DestroyImmediate(renderTexture);
+                if (warmupTexture != null) UnityEngine.Object.DestroyImmediate(warmupTexture);
                 if (canvasGo != null) UnityEngine.Object.DestroyImmediate(canvasGo);
             }
         }

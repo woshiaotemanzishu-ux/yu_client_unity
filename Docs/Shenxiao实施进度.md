@@ -1528,7 +1528,8 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
   720×1280 顶对齐，长竖屏多出的逻辑高度全部留在下方，导致底栏被抬高。三者现改为全伸展，
   `_box_bottom` 继续锚底；未在运行时代码加入分辨率坐标特判。
 - **交互修复**：对话恢复老端背景、底栏、继续、领取和跳过统一进入当前语义动作；Module 根为唯一
-  Raycast/Button 点击面，子 Graphic 不截射线，手点和倒计时共用入口并防重复执行。任务完成弹层的
+  Raycast/Button 点击面，且显式创建根透明 Image，避免布局首帧零尺寸时 `UIUtil` 退用局部子 Graphic；
+  子 Graphic 不截射线，手点和倒计时共用入口并防重复执行。任务完成弹层的
   屏外遮罩与面板点击全部提交 30004，关闭图标不再只隐藏，`_submitSent` 防止连点多发；未改用户正在
   调整的 `TaskModule.prefab` 布局。
 - **选中反馈**：补 `SceneTargetSelection`，NPC/怪物共用老端真实 `function_selection`，按老端缩放 0.7，
@@ -1537,8 +1538,9 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **验证状态**：`DialogueInteractionCase` 已加入真实 prefab 的 720×1600 锚定与
   `GraphicRaycaster → PointerClick` 三点验收；`TaskFinishInteractionCase` 增加真实任务 prefab 的面板内外
   语义点击验收；`RolePresentationEffectsCase` 增加选中资源可播放、0.7 缩放和倾斜抵消断言。
-  代码仍需在合入主工作树后由当前 Unity Editor 强编译并运行三项专项，
-  最终长竖屏位置与选中观感需真机确认。
+  当前 Unity Editor 强编译通过；对话专项为 `3/3` 真 PointerClick、任务完成专项为 `2/2` 真 PointerClick，
+  `function_selection` 另经 `EffectBinder` 实际加载/播放探针验证 Renderer、Animation、0.7 缩放与 +38° 均通过。
+  最终长竖屏位置与选中观感仍需真机确认。
 - **专题文档**：[NPC对话与场景选中-经验与排障.md](NPC对话与场景选中-经验与排障.md)。
 
 ## 2026-07-28：升级文字/整套特效亮度与任务完成位置二次校正

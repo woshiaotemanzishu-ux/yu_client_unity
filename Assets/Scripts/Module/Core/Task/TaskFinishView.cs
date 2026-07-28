@@ -192,16 +192,26 @@ namespace Shenxiao.Module.Core.Tasks
         {
             if (_moduleRoot == null || _bind == null) return;
 
-            UIUtil.AddClick(_moduleRoot, OnSubmit);
-            _moduleClickSurface = _moduleRoot.GetComponent<Graphic>();
-            UIUtil.AddClick(_bind, OnSubmit);
-            _viewClickSurface = _bind.GetComponent<Graphic>();
+            _moduleClickSurface = EnsureRootClickSurface(_moduleRoot);
+            UIUtil.AddClick(_moduleClickSurface, OnSubmit);
+            _viewClickSurface = EnsureRootClickSurface(_bind.gameObject);
+            UIUtil.AddClick(_viewClickSurface, OnSubmit);
 
             foreach (Graphic graphic in _moduleRoot.GetComponentsInChildren<Graphic>(true))
             {
                 if (graphic != null && graphic != _moduleClickSurface && graphic != _viewClickSurface)
                     graphic.raycastTarget = false;
             }
+        }
+
+        private static Graphic EnsureRootClickSurface(GameObject root)
+        {
+            Graphic graphic = root != null ? root.GetComponent<Graphic>() : null;
+            if (graphic != null) return graphic;
+
+            Image image = root.AddComponent<Image>();
+            image.color = new Color(1f, 1f, 1f, 0f);
+            return image;
         }
 
         private async Task BuildRewardCells(IReadOnlyList<TaskReward.Entry> rewards)

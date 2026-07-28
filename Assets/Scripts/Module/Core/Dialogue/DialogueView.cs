@@ -237,12 +237,22 @@ namespace Shenxiao.Module.Core.Dialogue
         {
             if (_moduleRoot == null) return;
 
-            UIUtil.AddClick(_moduleRoot, TriggerCurrentClick);
-            _clickSurface = _moduleRoot.GetComponent<Graphic>();
+            _clickSurface = EnsureRootClickSurface(_moduleRoot);
+            UIUtil.AddClick(_clickSurface, TriggerCurrentClick);
             foreach (Graphic graphic in _moduleRoot.GetComponentsInChildren<Graphic>(true))
             {
                 if (graphic != null && graphic != _clickSurface) graphic.raycastTarget = false;
             }
+        }
+
+        private static Graphic EnsureRootClickSurface(GameObject root)
+        {
+            Graphic graphic = root != null ? root.GetComponent<Graphic>() : null;
+            if (graphic != null) return graphic;
+
+            Image image = root.AddComponent<Image>();
+            image.color = new Color(1f, 1f, 1f, 0f);
+            return image;
         }
 
         private void TriggerCurrentClick()
