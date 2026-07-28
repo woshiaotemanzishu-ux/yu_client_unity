@@ -690,6 +690,12 @@
     "note": "C2S 为空，S2C 为 score:u32 + exp_sum:u64 + is_def:u8。服务端虽有活跃 query/push banner，老端 handler 仅 GetSCMD 后保留两行注释，无 Model/Event/UI 消费，属于解包即丢弃的幽灵数据；Unity 不接。未来仅在真实恢复等待/战场 banner 消费时重审；接入必须无损处理 u64，且 PRE side 的 is_def 原始值存在语义风险。R287。"
   },
   {
+    "cmd": 62114,
+    "reason": "deprecated_orphaned",
+    "evidence": "h5/libs/proto621.d.ts:352-353;h5/src/commonController/Kf1vnController.ts:499-513;yu_server/src/pt/pt_621.erl:29-30,340-353,782-818;yu_server/src/kf_1vN/pp_kf_1vN.erl:103-105;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:225-238",
+    "note": "旧 d.ts 明确标记为『挑战赛擂主排行榜(目前废弃)』。h5/src 无发送、注册或消费，Controller 注册流程跳过；服务端残留空 query→local get_def_rank，仅已报名时回纯内存榜，不能反推产品需求。Unity 不接。未来仅在产品明确恢复独立擂主榜时重审。R290。"
+  },
+  {
     "cmd": 65207,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/SnatchTreasureController.ts:130",
