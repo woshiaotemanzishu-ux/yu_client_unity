@@ -19,13 +19,13 @@ namespace Shenxiao.Module.Core.Login
     ///   ③ 登录成功 → ServerEnterView(显示当前服 + 踏入仙界 + 用户协议弹层)
     ///   ④ 点服务器名 → ServerSelectView 列表选服
     ///   ⑤ 踏入仙界 → get_server_info → WebSocket → 10000 → 选角 RoleSelectView / 创角 RoleCreateView → 进游戏
-    /// 页面自身仍按 720x1280 原样渲染;LoginStage 只在外部补 Web 背景和居中视口。
+    /// 页面自身保持 720 设计宽;LoginStage 在长竖屏扩展高度,横向宽屏才在左右补背景。
     /// 协议弹层并进 ServerEnterView。
     /// </summary>
     public static class LoginFlow
     {
         private static AppConfig _config;
-        private static LoginStage _stage;             // 全屏 Web 背景 + 居中 720x1280 视口
+        private static LoginStage _stage;             // 全屏 Web 背景 + 居中 720 宽自适应高度视口
         private static LoginPanelView _loginPanel;     // ② 登录 + 注册
         private static LoadingView _loadingView;       // ① 加载
         private static ServerEnterView _enterView;     // ③ 踏入仙界 + 协议弹层
@@ -52,7 +52,7 @@ namespace Shenxiao.Module.Core.Login
         {
             _config = config;
 
-            // LoginStage 自身铺满 Window 层;6 个原有页面只加载到固定 720x1280 视口内。
+            // LoginStage 自身铺满 Window 层;6 个页面加载到固定宽720、纵向铺满的居中视口内。
             Shenxiao.Framework.UI.BootOverlay.Report(0.90f, "正在加载登录界面…");
             _stage = await LoadStageAsync();
             if (_stage == null)

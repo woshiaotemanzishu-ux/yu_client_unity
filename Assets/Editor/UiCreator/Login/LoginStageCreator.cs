@@ -7,7 +7,8 @@ namespace Shenxiao.Editor.UiCreator.Login
 {
     /// <summary>
     /// 新建独立的登录展示舞台,不修改任何现有登录 prefab。
-    /// WebBackground 铺满实际屏幕;Viewport 固定 720x1280 居中,承载原有六个登录页面。
+    /// WebBackground 铺满实际屏幕;Viewport 固定宽 720、纵向铺满父级,承载原有六个登录页面。
+    /// Expand 画布下,长竖屏会扩展 Viewport 高度;横向宽屏画布高度仍为 1280,只在左右露出背景。
     /// </summary>
     public static class LoginStageCreator
     {
@@ -21,8 +22,8 @@ namespace Shenxiao.Editor.UiCreator.Login
             UiRebuildRegistry.Register(new UiCreatorEntry
             {
                 Module = "Login",
-                Name = "LoginStage(Web 背景 + 居中视口)",
-                Note = "新增外壳,不修改现有登录 prefab;背景图当前为占位图",
+                Name = "LoginStage(宽屏补边 + 长屏铺满)",
+                Note = "视口固定宽720并纵向拉伸;宽屏只补左右,长竖屏不再补上下",
                 Order = 5,
                 Generate = Generate,
                 PrefabPath = PREFAB_PATH,
@@ -48,7 +49,11 @@ namespace Shenxiao.Editor.UiCreator.Login
                 : FALLBACK_BACKGROUND_ASPECT;
 
             RectTransform viewport = UiCreatorKit.NewNode("Viewport720x1280", root);
-            UiCreatorKit.Place(viewport, 0f, 0f, UiCreatorKit.DesignWidth, UiCreatorKit.DesignHeight);
+            viewport.anchorMin = new Vector2(0.5f, 0f);
+            viewport.anchorMax = new Vector2(0.5f, 1f);
+            viewport.pivot = new Vector2(0.5f, 0.5f);
+            viewport.anchoredPosition = Vector2.zero;
+            viewport.sizeDelta = new Vector2(UiCreatorKit.DesignWidth, 0f);
 
             stage.webBackground = background;
             stage.backgroundFitter = fitter;
@@ -59,7 +64,7 @@ namespace Shenxiao.Editor.UiCreator.Login
             Selection.activeObject = saved;
             EditorGUIUtility.PingObject(saved);
             Debug.Log("[UiCreator] LoginStage.prefab 已生成: " + PREFAB_PATH
-                + "(只新增外部背景/视口,没有重建原登录页)");
+                + "(视口固定宽720、纵向铺满;没有重建原登录页)");
         }
     }
 }

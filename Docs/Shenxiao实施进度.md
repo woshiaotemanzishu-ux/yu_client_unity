@@ -1423,3 +1423,17 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **缺失根因与返修**：Unity 已导入两套特效 prefab、动画、材质和 Addressables key，但首轮误把消费逻辑接到已退役的 `HudSecondary/MainUISecondaryView`；该 View 不在 `MainUIModuleCreator.Parts` 或 `MainUIFlow.FirstPassViews` 中，运行时根本不会实例化，因此即使编译和静态资源检查通过也不会显示。现已迁到实际承载绿色挂机经验文字的 `HudOnHook/MainUIOnHookView`，并撤销退役 View 上的运行时代码与槽位。
 - **修复**：补 `EVT_AUTO_FIND_WAY_STATE`，由主角自动移动/任务跳跃的开始与各类结束边沿维护寻路状态；`MainUIOnHookView` 按“寻路 > 自动战斗 > 隐藏”选择互斥特效并用版本号收编异步 Handle。根据 Play 画面返修，共享 RT 横向镜像后的 X 偏移由 `+6.8` 反号为 `-6.8`，让文字回到屏幕中轴；同时移除 440ms 人为合并延迟，状态事件到达即切换。Creator 与现网 prefab 同步落 `offset=(-6.8,-4), scale=6.4`，布局继续归 prefab 管理。
 - **验证状态**：`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 编译通过；用户 Play 画面已确认 `MainUIOnHookView` 实际显示特效。返修后用真实 `HudOnHook.prefab` 和 `UIEffectStage` 分别实例化两套特效，渲染器包围盒经共享 Camera/横向镜像回算到 720 基准宽的中心分别为 `x=363.34`（自动战斗）和 `x=363.12`（自动寻路），与屏幕中轴 `x=360` 的误差均小于 4px；运行槽序列化偏移均为 `(-6.8,-4)`。状态事件处理已改为直接调用刷新，不再经过 440ms 延迟。
+
+## 2026-07-28：真机长竖屏登录页上下补边修复
+
+- **根因**：`Launch` 的 `CanvasScaler=Expand` 配置正确；异常来自 `LoginStage` 把内部视口固定为
+  720×1280。1224×2700 真机按宽度缩放 1.7 倍后，视口物理高度只有 2176px，剩余 524px 被居中
+  分到上下，表现为各约 262px 的深色外层背景，并非横竖屏识别或安全区错误。
+- **修复**：`LoginStage/Viewport720x1280` 改为固定设计宽 720、纵向铺满父级；长竖屏随逻辑画布增高，
+  横屏画布高度仍保持 1280，因此继续只在左右补边。`LoginPanel/Bg` 使用
+  `AspectRatioFitter.EnvelopeParent` 以当前 872×1560 竖图等比 cover，超宽部分裁切而不拉伸人物。
+  Creator 源与 `LoginStage.prefab`、`LoginPanel.prefab` 已同步，运行时不计算屏幕布局。
+- **验证状态**：静态矩阵覆盖 720×1280、1080×2400、1224×2700、750×1334、1280×720、
+  1920×1080；目标真机档的上下补边由约 262px/边降为 0，横屏两档仍只产生左右补边。
+  `Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 均为 0 error，prefab/Creator 一致性检查通过；
+  需重新出 Android 包在原真机做最终画面确认。

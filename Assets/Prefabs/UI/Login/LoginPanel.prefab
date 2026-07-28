@@ -1930,6 +1930,7 @@ GameObject:
   - component: {fileID: 4922464148930708435}
   - component: {fileID: 8256948211654384672}
   - component: {fileID: 8698940334546132538}
+  - component: {fileID: 9052174926418301161}
   m_Layer: 0
   m_Name: Bg
   m_TagString: Untagged
@@ -1994,6 +1995,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &9052174926418301161
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4788193240556616744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86710e43de46f6f4bac7c8e50813a599, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.AspectRatioFitter
+  m_AspectMode: 4
+  m_AspectRatio: 0.5589744
 --- !u!1 &4855869163442125726
 GameObject:
   m_ObjectHideFlags: 0

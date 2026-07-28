@@ -4,8 +4,8 @@ using UnityEngine.UI;
 namespace Shenxiao.Module.Core.Login
 {
     /// <summary>
-    /// 登录模块的外部展示舞台。全屏 Web 背景与居中 720x1280 视口都在这里,
-    /// 六个原有登录 prefab 只作为视口子节点加载,自身结构与人工调整不受影响。
+    /// 登录模块的外部展示舞台。全屏 Web 背景与居中 720 宽自适应高度视口都在这里,
+    /// 六个原有登录 prefab 只作为视口子节点加载:长竖屏纵向铺满,横向宽屏只补左右。
     /// </summary>
     public sealed class LoginStage : MonoBehaviour
     {

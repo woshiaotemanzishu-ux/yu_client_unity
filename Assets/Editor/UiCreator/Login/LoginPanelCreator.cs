@@ -22,7 +22,7 @@ namespace Shenxiao.Editor.UiCreator.Login
         private const string PrefabPath = "Assets/Prefabs/UI/Login/LoginPanel.prefab";
 
         // 老端源图(GameRes 相对路径;均已确认在 Assets/GameRes 下)
-        private const string IMG_BG = "resource/game/login/other/full_screen_bg.jpg";
+        private const string IMG_BG = "resource/game/login/other/组 1.png";
         private const string IMG_CARD = "resource/game/login/texture/ui_content_bg1.png";
         private const string IMG_INPUT = "resource/game/login/texture/bg_05.png";
         private const string IMG_BTN_PRIMARY = "resource/game/login/texture/ui_Login_btn_2.png"; // 登录/确定注册
@@ -64,6 +64,11 @@ namespace Shenxiao.Editor.UiCreator.Login
             UiCreatorKit.Stretch(bg.rectTransform);
             bg.raycastTarget = false;
             UiCreatorKit.TrySetSprite(bg, IMG_BG, UiCreatorKit.Palette.Bg);
+            var bgFitter = bg.gameObject.AddComponent<AspectRatioFitter>();
+            bgFitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+            bgFitter.aspectRatio = bg.sprite != null && bg.sprite.rect.height > 0f
+                ? bg.sprite.rect.width / bg.sprite.rect.height
+                : 9f / 16f;
 
             // 承载表单的卡片
             Image card = UiCreatorKit.NewImage("Card", root);
