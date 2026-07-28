@@ -1051,6 +1051,8 @@
         /// <summary>九魂圣殿秘宝持有者主动快照。S2C: index:u8,server_num:u16,role_id:u64,role_name:string,left_time:u32。</summary>
         public const int NINE_SKY_FLAG_INFO = 13504;
         public const int GHOST_WALK_INFO = 20601;
+        /// <summary>百鬼夜行 Boss 原始状态。C2S scene_id:u32；S2C scene_list:u16×{scene_id:u32,num:u8,boss_ids:u16×u32}。</summary>
+        public const int GHOST_WALK_BOSS_INFO = 20602;
         /// <summary>时空圣痕跨服世界列表。C2S 空包；S2C: status:u8,servers:u16×{server_num:u32,name:s,level:u16}。</summary>
         public const int TS_CRACK_WORLD_INFO = 20411;
         /// <summary>永恒圣殿活动时间。C2S 空包；S2C: open_time:u32,enter_time:u32,end_time:u32。</summary>

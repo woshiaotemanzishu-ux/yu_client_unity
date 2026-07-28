@@ -36,12 +36,13 @@ namespace Shenxiao.EditorTools
             bool oldHasError = model.HasError;
             uint oldErrorCode = model.LastErrorCode;
             string oldErrorArgs = model.LastErrorArgs;
+            bool oldHasBossInfo = model.HasBossInfo;
+            var oldBossScenes = new List<GhostWalkModel.SceneBossInfo>(model.BossScenes);
             FieldInfo interceptor = typeof(GhostWalkController).GetField("s_outboundIntercept", SF);
             object oldInterceptor = interceptor?.GetValue(null);
             var handlers = typeof(NetManager).GetField("_handlers", SF)?.GetValue(null) as IDictionary;
             var savedHandlers = new Dictionary<int, HandlerState>();
-            SaveHandler(handlers, savedHandlers, 20600);
-            SaveHandler(handlers, savedHandlers, 20601);
+            for (int id = 20600; id <= 20605; id++) SaveHandler(handlers, savedHandlers, id);
             bool pass = false;
             bool restored = false;
 
@@ -51,10 +52,20 @@ namespace Shenxiao.EditorTools
                 model.Reset();
                 MethodInfo on20600 = typeof(GhostWalkController).GetMethod("On20600", F);
                 MethodInfo on20601 = typeof(GhostWalkController).GetMethod("On20601", F);
-                pass = interceptor != null && handlers != null && on20600 != null && on20601 != null
-                    && handlers.Contains(20600) && handlers.Contains(20601)
-                    && !handlers.Contains(20602) && !handlers.Contains(20603)
+                MethodInfo on20602 = typeof(GhostWalkController).GetMethod("On20602", F);
+                pass = interceptor != null && handlers != null && on20600 != null && on20601 != null && on20602 != null
+                    && handlers.Contains(20600) && handlers.Contains(20601) && handlers.Contains(20602)
+                    && !handlers.Contains(20603)
                     && !handlers.Contains(20604) && !handlers.Contains(20605);
+
+                object firstErrorHandler = handlers != null && handlers.Contains(20600) ? handlers[20600] : null;
+                object firstInfoHandler = handlers != null && handlers.Contains(20601) ? handlers[20601] : null;
+                object firstBossHandler = handlers != null && handlers.Contains(20602) ? handlers[20602] : null;
+                controller.Init();
+                pass &= firstErrorHandler != null && firstInfoHandler != null && firstBossHandler != null
+                    && ReferenceEquals(handlers[20600], firstErrorHandler)
+                    && ReferenceEquals(handlers[20601], firstInfoHandler)
+                    && ReferenceEquals(handlers[20602], firstBossHandler);
 
                 var frames = new List<byte[]>();
                 if (pass)
@@ -63,6 +74,25 @@ namespace Shenxiao.EditorTools
                     controller.RequestInfo();
                     pass &= Frame(frames, Proto.GHOST_WALK_INFO);
                     frames.Clear();
+                    controller.RequestBossInfo(0);
+                    pass &= FrameU32(frames, Proto.GHOST_WALK_BOSS_INFO, 0);
+                    frames.Clear();
+                    controller.RequestBossInfo(uint.MaxValue);
+                    pass &= FrameU32(frames, Proto.GHOST_WALK_BOSS_INFO, uint.MaxValue);
+                    frames.Clear();
+
+                    byte[] bossManyBytes = new CliVerify.Pkt().H(2)
+                        .I(uint.MaxValue).C(255).H(3).I(0).I(uint.MaxValue).I(0)
+                        .I(7).C(0).H(2).I(1).I(1).Bytes();
+                    var bossManyReader = new NetReader(bossManyBytes, 0, bossManyBytes.Length);
+                    on20602.Invoke(controller, new object[] { bossManyReader });
+                    pass &= bossManyReader.Remaining == 0 && model.HasBossInfo && model.BossScenes.Count == 2
+                        && model.BossScenes[0].SceneId == uint.MaxValue && model.BossScenes[0].Num == byte.MaxValue
+                        && model.BossScenes[0].BossIds.Count == 3 && model.BossScenes[0].BossIds[0] == 0
+                        && model.BossScenes[0].BossIds[1] == uint.MaxValue && model.BossScenes[0].BossIds[2] == 0
+                        && model.BossScenes[1].SceneId == 7 && model.BossScenes[1].Num == 0
+                        && model.BossScenes[1].BossIds.Count == 2 && model.BossScenes[1].BossIds[0] == 1
+                        && model.BossScenes[1].BossIds[1] == 1 && !model.HasData && !model.HasError && frames.Count == 0;
 
                     const string chineseName = "百鬼中文服";
                     byte[] firstBytes = new CliVerify.Pkt()
@@ -82,7 +112,7 @@ namespace Shenxiao.EditorTools
                         && model.Servers[1].Id == ushort.MaxValue && model.Servers[1].Number == 0
                         && model.Servers[1].Name == "Second" && model.Servers[1].OpenDay == 1
                         && model.Servers[1].WorldLevel == ushort.MaxValue
-                        && model.AverageWorldLevel == ushort.MaxValue && !model.HasError && frames.Count == 0;
+                        && model.AverageWorldLevel == ushort.MaxValue && !model.HasError && model.HasBossInfo && model.BossScenes.Count == 2 && frames.Count == 0;
 
                     pass &= VerifyError(on20600, controller, 0, string.Empty, () => model.HasError
                         && model.LastErrorCode == 0 && model.LastErrorArgs == string.Empty
@@ -119,6 +149,17 @@ namespace Shenxiao.EditorTools
                         && model.AverageWorldLevel == 0 && model.HasError && model.LastErrorCode == 1
                         && model.LastErrorArgs == "\u6210\u529f" && frames.Count == 0;
 
+                    byte[] bossSingleBytes = new CliVerify.Pkt().H(1).I(3).C(2).H(1).I(4).Bytes();
+                    var bossSingleReader = new NetReader(bossSingleBytes, 0, bossSingleBytes.Length);
+                    on20602.Invoke(controller, new object[] { bossSingleReader });
+                    pass &= bossSingleReader.Remaining == 0 && model.HasBossInfo && model.BossScenes.Count == 1
+                        && model.BossScenes[0].SceneId == 3 && model.BossScenes[0].Num == 2 && model.BossScenes[0].BossIds.Count == 1
+                        && model.BossScenes[0].BossIds[0] == 4 && model.HasData && model.Servers.Count == 0 && model.HasError && frames.Count == 0;
+                    var bossEmptyReader = new NetReader(new CliVerify.Pkt().H(0).Bytes(), 0, 2);
+                    on20602.Invoke(controller, new object[] { bossEmptyReader });
+                    pass &= bossEmptyReader.Remaining == 0 && model.HasBossInfo && model.BossScenes.Count == 0
+                        && model.HasData && model.HasError && frames.Count == 0;
+
                     pass &= VerifyError(on20600, controller, uint.MaxValue, "\u6700\u7ec8", () => model.HasError
                         && model.LastErrorCode == uint.MaxValue && model.LastErrorArgs == "\u6700\u7ec8"
                         && model.State == 0 && model.EndTime == 0 && model.Servers.Count == 0 && frames.Count == 0);
@@ -127,7 +168,8 @@ namespace Shenxiao.EditorTools
                     pass &= !controller.IsInitialized && !model.HasData && model.State == 0 && model.EndTime == 0
                         && model.ServerModule == 0 && model.GroupId == 0 && model.Servers.Count == 0 && model.AverageWorldLevel == 0
                         && !model.HasError && model.LastErrorCode == 0 && model.LastErrorArgs == null
-                        && !handlers.Contains(20600) && !handlers.Contains(20601);
+                        && !model.HasBossInfo && model.BossScenes.Count == 0
+                        && !handlers.Contains(20600) && !handlers.Contains(20601) && !handlers.Contains(20602);
                 }
                 Debug.Log("CLIVERIFY ghostwalk VERDICT pass=" + pass);
             }
@@ -136,18 +178,19 @@ namespace Shenxiao.EditorTools
                 if (controller.IsInitialized) controller.Dispose();
                 model.Reset();
                 if (oldHasData) model.Replace(oldState, oldEndTime, oldServerModule, oldGroupId, oldServers, oldAverageWorldLevel);
+                if (oldHasBossInfo) model.ReplaceBossInfo(oldBossScenes);
                 RestoreModelProperty(model, "HasError", oldHasError);
                 RestoreModelProperty(model, "LastErrorCode", oldErrorCode);
                 RestoreModelProperty(model, "LastErrorArgs", oldErrorArgs);
                 if (wasInitialized) controller.Init();
-                RestoreHandler(handlers, savedHandlers[20600], 20600);
-                RestoreHandler(handlers, savedHandlers[20601], 20601);
+                for (int id = 20600; id <= 20605; id++) RestoreHandler(handlers, savedHandlers[id], id);
                 if (interceptor != null) interceptor.SetValue(null, oldInterceptor);
                 restored = controller.IsInitialized == wasInitialized && model.HasData == oldHasData
                     && model.State == oldState && model.EndTime == oldEndTime && model.ServerModule == oldServerModule
                     && model.GroupId == oldGroupId && model.AverageWorldLevel == oldAverageWorldLevel && ServersMatch(model.Servers, oldServers)
                     && model.HasError == oldHasError && model.LastErrorCode == oldErrorCode && model.LastErrorArgs == oldErrorArgs
-                    && HandlerMatches(handlers, savedHandlers[20600], 20600) && HandlerMatches(handlers, savedHandlers[20601], 20601)
+                    && model.HasBossInfo == oldHasBossInfo && BossScenesMatch(model.BossScenes, oldBossScenes)
+                    && HandlersMatch(handlers, savedHandlers, 20600, 20605)
                     && (interceptor == null || ReferenceEquals(interceptor.GetValue(null), oldInterceptor));
                 Debug.Log("CLIVERIFY ghostwalk restored=" + restored);
             }
@@ -193,12 +236,35 @@ namespace Shenxiao.EditorTools
             return true;
         }
 
+        private static bool BossScenesMatch(IReadOnlyList<GhostWalkModel.SceneBossInfo> actual, IReadOnlyList<GhostWalkModel.SceneBossInfo> expected)
+        {
+            if (actual.Count != expected.Count) return false;
+            for (int i = 0; i < actual.Count; i++) if (!ReferenceEquals(actual[i], expected[i])) return false;
+            return true;
+        }
+
+        private static bool HandlersMatch(IDictionary handlers, IDictionary<int, HandlerState> saved, int first, int last)
+        {
+            for (int id = first; id <= last; id++) if (!HandlerMatches(handlers, saved[id], id)) return false;
+            return true;
+        }
+
         private static bool Frame(IReadOnlyList<byte[]> frames, int id)
         {
             if (frames.Count != 1 || frames[0] == null) return false;
             byte[] frame = frames[0];
             return frame.Length == 6 && frame[0] == 0 && frame[1] == 6 && frame[2] == 3 && frame[3] == 232
                 && frame[4] == (byte)(id >> 8) && frame[5] == (byte)id;
+        }
+
+        private static bool FrameU32(IReadOnlyList<byte[]> frames, int id, uint value)
+        {
+            if (frames.Count != 1 || frames[0] == null || frames[0].Length != 10) return false;
+            byte[] frame = frames[0];
+            return frame[0] == 0 && frame[1] == 10 && frame[2] == 3 && frame[3] == 232
+                && frame[4] == (byte)(id >> 8) && frame[5] == (byte)id
+                && frame[6] == (byte)(value >> 24) && frame[7] == (byte)(value >> 16)
+                && frame[8] == (byte)(value >> 8) && frame[9] == (byte)value;
         }
     }
 }
