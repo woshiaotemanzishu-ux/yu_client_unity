@@ -39,6 +39,7 @@ namespace Shenxiao.Module.Core.Scene
         private bool _bannerStarted;
         private bool _bannerReady;
         private float _effectElapsed;
+        private float _resolvedEffectSeconds;
 
         private CanvasGroup _mainLayerGroup;
         private bool _addedMainLayerGroup;
@@ -78,6 +79,7 @@ namespace Shenxiao.Module.Core.Scene
             _phase = Phase.SlideIn;
             _time = 0f;
             _effectElapsed = 0f;
+            _resolvedEffectSeconds = _effectSeconds;
             MoveMasks(hidden: true);
             HideMainLayer();
         }
@@ -118,7 +120,7 @@ namespace Shenxiao.Module.Core.Scene
                 case Phase.Hold:
                     if (!_bannerStarted) StartBanner();
                     if (_bannerReady) _effectElapsed += deltaTime;
-                    if ((_bannerReady && _effectElapsed >= _effectSeconds)
+                    if ((_bannerReady && _effectElapsed >= _resolvedEffectSeconds)
                         || _time >= _loadFallbackSeconds)
                     {
                         BeginSlideOut();
@@ -160,6 +162,20 @@ namespace Shenxiao.Module.Core.Scene
             _banner = handle;
             _bannerReady = true;
             _effectElapsed = 0f;
+            _resolvedEffectSeconds = ResolveEffectSeconds(
+                _effectSeconds, handle.LongestLegacyAnimationSeconds);
+            GameLog.Info("Scene",
+                "大妖来袭:横幅时长 resolved={0:F3}s configured={1:F3}s legacyClip={2:F3}s",
+                _resolvedEffectSeconds, _effectSeconds, handle.LongestLegacyAnimationSeconds);
+        }
+
+        private static float ResolveEffectSeconds(float configuredSeconds, float legacyAnimationSeconds)
+        {
+            configuredSeconds = Mathf.Max(0f, configuredSeconds);
+            if (configuredSeconds <= 0f || legacyAnimationSeconds <= 0f) return configuredSeconds;
+            // effect_ui_dayaolaixi 的文字/主体动画 UI_2103 在 1.083s 同步退场；两侧流体是循环粒子。
+            // 取真实主体片段与配置上限的较短值，避免文字消失后只剩循环橙色底纹。
+            return Mathf.Min(configuredSeconds, legacyAnimationSeconds);
         }
 
         private void AnimateMasks(bool hiddenToShown, float progress)

@@ -16,6 +16,8 @@
 
 - 主角场景自身特效规则：运行时特效实例统一走 `EffectBinder`，禁止业务层手工 `LoadAsync + Instantiate`。老端 `attach_type=15` 必须挂 `MainRoleDetachedEffects`（与主角同落点、单位旋转、不得继承 `MainRoleTilt`/模型 yaw）；骨骼动作/技能特效仍挂 `ReplaceableRoleModel.ActiveModel`，任务跑动 `char_acceleratebuff01` 必须挂稳定单位空间 `MainRoleAttachedEffectHost`，不得随动作实例切换重挂。任务加速拖尾仅由任务导航触发，严格要求场景 `type∈{0,1,4}`、各轴按 `LogicRatioX/Y` 换算后的距离 `>7` 格并延时 150ms；手点 NPC、战斗接敌、摇杆和普通自动移动不得触发。任务跳跃 `show_effect=false`：中间段 `char_jumpfx_01`、最终段 `effect_jump_qitiaoyan`，禁止误播 `char_jumpfx_02`。场景主角关闭 `Body.always`，UI 模型继续加载，武器/翅膀/背饰常驻特效不受影响。`SceneCharacterStage` 的透明 RT 必须始终用 `Shenxiao/UI/StageComposite` 预乘合成，禁止随新旧模型或 `ArtModelRenderProfile` 切回默认 UI 材质，否则升级/跑动粒子会被二次乘 Alpha。30004 `code=1` 必须在 `UILayer.Top` 播 `ui_renwuwancheng` 1.5 秒；它不是 `TaskFinishView` 或角色自身粒子。
 
+- 大妖入场横幅规则：`effect_ui_dayaolaixi` 的文字/主体由 Legacy Animation `UI_2103` 驱动，真实结束时间为 1.083 秒；`liutizuo/liutiyou` 是循环底纹，必须在主体片段结束时随整个 `UIEffectStage.Handle` 一起释放。配置的 1.5 秒只能作为上限，3 秒只能作为资源加载/回调失败兜底，禁止让循环底纹单独残留到任一固定超时。
+
 - 旧 Laya 粒子兼容规则：项目保持 Linear，禁止为修复特效发淡而全局退回 Gamma；`LayaParticleUnlit` 必须恢复旧材质 `tint=0.5 × shader 2` 的中性数值。Laya `GradientDataNumber` 按相邻关键点线性插值，转换器禁止使用 Unity 自动平滑切线，否则尺寸/速度曲线会过冲甚至被钳为 0。材质 UV 动画必须绑定 shader 实际读取的属性；当前 `LayaParticleUnlit` 消费 `_MainTex_ST`，`char_acceleratebuff01` 必须保留该属性 `z:0→3/1s` 的循环曲线以形成流光隐现，禁止用固定位置偏移掩盖 UV 定格。任务完成仍走 UI 特效链，老端 `(0,+4)` 在 Unity 仅于该业务边界映射为 `(0,-4)`，不得改挂角色。
 - 旧 Laya 特效网格顶点色规则：排查流光硬边、矩形截断或“像放反”时，必须同时核对源 `.lm` 的 `COLOR` 通道与 Unity `Mesh.colors`，禁止只看贴图、UV 或挂点。`char_acceleratebuff01/eff_cys_sz01` 必须保留 32 个顶点色，Alpha 覆盖 `0..1` 且含中间渐变值；丢失顶点色会让 `_MainTex_ST` 扫光在网格边缘形成硬截断，不得用旋转、平移或按模型特判掩盖。
 

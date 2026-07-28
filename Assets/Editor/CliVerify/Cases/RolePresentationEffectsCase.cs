@@ -28,6 +28,7 @@ namespace Shenxiao.EditorTools
             "Assets/GameRes/effect/objs/other_effect/other_effect_caiji_02/other_effect_caiji_02.prefab",
             "Assets/GameRes/effect/objs/other_effect/function_selection/function_selection.prefab",
             "Assets/GameRes/effect/objs/buff_effect/buffparticle_106_1/buffparticle_106_1.prefab",
+            "Assets/GameRes/effect/objs/ui_effect/effect_ui_dayaolaixi/effect_ui_dayaolaixi.prefab",
             "Assets/GameRes/effect/objs/ui_effect/ui_renwuwancheng/ui_renwuwancheng.prefab",
         };
 
@@ -42,6 +43,7 @@ namespace Shenxiao.EditorTools
             GameObject selection = null;
             Transform selectionTilt = null;
             CliVerify.Stage ownedStage = null;
+            UIEffectStage.Handle bossIntroBanner = null;
             UIEffectStage.Handle taskSuccess = null;
             try
             {
@@ -228,6 +230,25 @@ namespace Shenxiao.EditorTools
                     return 3;
                 }
                 Debug.Log("CLIVERIFY role-effects 7 task success UI effect alive on Top layer");
+
+                bossIntroBanner = await UIEffectStage.AddAsync("effect_ui_dayaolaixi", top);
+                MethodInfo resolveBossIntroSeconds = typeof(BossBornEffectPlayer).GetMethod(
+                    "ResolveEffectSeconds", BindingFlags.NonPublic | BindingFlags.Static);
+                float resolvedBossIntroSeconds = resolveBossIntroSeconds != null
+                    ? (float)resolveBossIntroSeconds.Invoke(null,
+                        new object[] { 1.5f, bossIntroBanner?.LongestLegacyAnimationSeconds ?? 0f })
+                    : -1f;
+                if (bossIntroBanner == null || resolveBossIntroSeconds == null ||
+                    Mathf.Abs(bossIntroBanner.LongestLegacyAnimationSeconds - 1.083f) > 0.002f ||
+                    Mathf.Abs(resolvedBossIntroSeconds - bossIntroBanner.LongestLegacyAnimationSeconds) > 0.001f)
+                {
+                    Debug.LogError("CLIVERIFY role-effects boss intro banner lifetime mismatch: " +
+                        $"legacy={(bossIntroBanner?.LongestLegacyAnimationSeconds ?? -1f):F3}," +
+                        $"resolved={resolvedBossIntroSeconds:F3}");
+                    return 3;
+                }
+                Debug.Log("CLIVERIFY role-effects 7b boss intro body/background dispose together at " +
+                    $"{resolvedBossIntroSeconds:F3}s; 3s remains load fallback only");
                 Debug.Log("CLIVERIFY role-effects ALL PASS");
                 return 0;
             }
@@ -249,6 +270,7 @@ namespace Shenxiao.EditorTools
                     else UnityEngine.Object.DestroyImmediate(speedTrail);
                 }
                 if (selectionTilt != null) SceneCharacterStage.RemoveSceneCharacter(selectionTilt);
+                bossIntroBanner?.Dispose();
                 taskSuccess?.Dispose();
                 SceneCharacterStage.Clear();
                 ownedStage?.Dispose();

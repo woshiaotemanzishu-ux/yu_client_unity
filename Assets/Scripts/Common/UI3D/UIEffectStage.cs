@@ -104,6 +104,11 @@ namespace Shenxiao.Common.UI3D
             private bool _disposed;
 
             public bool IsDisposed => _disposed;
+            /// <summary>
+            /// 实例内最长的 Legacy Animation 片段时长。业务可用它把外层生命周期收口到真实文字/主体动画，
+            /// 但加载失败兜底仍应由业务自己的超时负责；循环粒子不会被误算成无限时长。
+            /// </summary>
+            public float LongestLegacyAnimationSeconds { get; internal set; }
 
             public void Dispose()
             {
@@ -202,6 +207,7 @@ namespace Shenxiao.Common.UI3D
 
             handle.Effect = effect;
             handle.Loading = false;
+            handle.LongestLegacyAnimationSeconds = MeasureLongestLegacyAnimation(effect);
             effect.name = "__ui_effect_" + SafeName(label);
             SetLayerRecursive(effect, EFFECT_LAYER);
 
@@ -219,6 +225,27 @@ namespace Shenxiao.Common.UI3D
             effect.SetActive(true);
             UpdateHandleTransform(handle);
             return handle;
+        }
+
+        private static float MeasureLongestLegacyAnimation(GameObject effect)
+        {
+            if (effect == null) return 0f;
+            float longest = 0f;
+            Animation[] animations = effect.GetComponentsInChildren<Animation>(true);
+            foreach (Animation animation in animations)
+            {
+                if (animation == null) continue;
+                bool foundState = false;
+                foreach (AnimationState state in animation)
+                {
+                    if (state?.clip == null) continue;
+                    foundState = true;
+                    longest = Mathf.Max(longest, state.clip.length);
+                }
+                if (!foundState && animation.clip != null)
+                    longest = Mathf.Max(longest, animation.clip.length);
+            }
+            return longest;
         }
 
         private static Channel GetOrCreateChannel(RectTransform uiRoot, UIEffectBand band)

@@ -25,6 +25,8 @@ UIEffectStage（兼容入口）
 
 `UIEffectStage` 只保留现有调用签名，底层不再创建实例私有 Camera、RenderTexture 或 RawImage。
 
+`UIEffectStage.Handle.LongestLegacyAnimationSeconds` 提供实例内最长 Legacy Animation 片段的只读时长，供组合演出把外层生命周期收口到真实主体动画。它不把循环粒子视为无限生命周期，也不替代业务加载失败兜底；例如“大妖来袭”必须在 `UI_2103=1.083s` 结束时连同循环流体底纹一起释放，而 3 秒仍只负责加载异常退场。
+
 ## 通道规则
 
 1. 默认按宿主 `RectTransform` 所属的 `UILayer` 自动选通道。

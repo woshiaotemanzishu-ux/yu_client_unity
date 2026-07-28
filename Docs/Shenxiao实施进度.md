@@ -1571,3 +1571,9 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **根因复核**：直接以老 Laya 引擎加载 `char_acceleratebuff01.lh` 并逐相位对照，确认空间朝向和 `_MainTex_ST.z:0→3/1s` 都没有放反。硬直线来自 Unity 现有 `eff_cys_sz01_mesh.asset` 丢失老 `.lm` 的 `COLOR` 通道：源网格 32 个顶点均有颜色，Alpha 包含 `0 / 0.133 / 0.467 / 0.733 / 0.8 / 1`，Unity 产物此前为 `colors=0`。
 - **资源修复**：只给 `eff_cys_sz01_mesh.asset` 恢复源网格的 32 个顶点色，不改人物挂点、特效 prefab 位置/旋转、贴图、材质和 UV 动画。这样流光亮区扫到网格端点时仍受逐顶点 Alpha 收束，不再形成方形硬截断。
 - **回归加固**：`RolePresentationEffectsCase` 在原有真实 `_MainTex_ST` 运行时采样之外，新增 `colors == vertexCount`、Alpha 最小值约 `0`、最大值约 `1` 且存在软渐变值的断言，防止历史资源重生成后再次丢失顶点渐隐。
+
+## 2026-07-29：大妖来袭文字与循环底纹同步退场
+
+- **根因**：前一轮已把错误的 3 秒正常停留改回 1.5 秒上限，但 `effect_ui_dayaolaixi` 的文字/主体动画 `UI_2103.anim` 实际在 `1.083s` 结束；`liutizuo/liutiyou` 为持续发射的循环粒子，因此固定等到 1.5 秒才释放会留下约 0.4 秒的单独橙色底纹。
+- **修复**：`UIEffectStage.Handle` 暴露实例内最长 Legacy Animation 片段时长；`BossBornEffectPlayer` 取配置上限与真实片段的较短值，在 `1.083s` 释放整个横幅 Handle 后再滑出遮罩。3 秒继续只作为资源加载/回调异常兜底。
+- **回归**：`RolePresentationEffectsCase` 真实加载 `effect_ui_dayaolaixi`，要求测得片段 `1.083±0.002s`，并断言组合演出的解析时长等于主体片段，避免循环底纹再次晚于字体图片消失。
