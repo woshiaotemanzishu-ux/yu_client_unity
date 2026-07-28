@@ -1614,6 +1614,9 @@
         /// <summary>副本开关设置更新。C2S dun_id:u32,type:u8,select_type:u8,is_open:u8,count:u8；
         /// S2C error_code:u32 后原样回显五个请求字段。成功后显式重查 61062，不乐观修改本地快照。</summary>
         public const int DUNGEON_SETTING_UPDATE = 61063;
+        /// <summary>入场自动鼓舞状态（S2C-only，无 C2S 请求）：coin_count:u8,gold_count:u8。
+        /// 服务端入场时已施加对应层数技能 Buff；本消息只同步权威计数。</summary>
+        public const int DUNGEON_INSPIRIT_ENTRY_STATE = 61065;
         /// <summary>异兽入侵 领取阶段奖励(轮22 族错误出口批;对标老端 BaseDungeonController.ts:1848-1857
         /// 内联handler:error_code==1 分支 setMonsterInvasionReward 调用**已被老端注释**[纯死代码,运行时
         /// 无副作用],否则 ErrorCodeShow(error_code)——本端如实镜像"成功也不做事",不臆造奖励消费)。

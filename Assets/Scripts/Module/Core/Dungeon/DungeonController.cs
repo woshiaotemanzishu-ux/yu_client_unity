@@ -49,6 +49,7 @@ namespace Shenxiao.Module.Core.Dungeon
     /// 轮244 补 61061 高级经验副本跳关进入 S2C-only 原始快照，与 61059 独立。
     /// 轮245 补 61062 副本开关设置显式查询与按 dun_id 原始快照，不派生 UI/鼓舞状态。
     /// 轮246 补 61063 副本开关设置更新；成功只重查 61062，失败只显码，不乐观改模型。
+    /// 轮248 补 61065 入场自动鼓舞 S2C 权威计数，复用 61026 被动状态语义。
     /// </summary>
     public sealed class DungeonController : BaseController
     {
@@ -90,6 +91,7 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_ADVANCED_EXP_JUMP_INFO, On61061);
             RegisterProtocal(Proto.DUNGEON_SETTING_INFO, On61062);
             RegisterProtocal(Proto.DUNGEON_SETTING_UPDATE, On61063);
+            RegisterProtocal(Proto.DUNGEON_INSPIRIT_ENTRY_STATE, On61065);
             RegisterProtocal(Proto.DUNGEON_MONSTER_INVASION_REWARD, On61092);
             // 61002(DUNGEON_EXIT)已由 AutoBrushController 注册,红线不可重复注册;Exit() 只发不接。
             RegisterProtocal(Proto.DUNGEON_INFO, On61004);
@@ -1093,6 +1095,15 @@ namespace Shenxiao.Module.Core.Dungeon
                 RequestDungeonSettingInfo(dunId);
             else
                 TipsManager.Toast("操作失败(" + errorCode + ")");
+        }
+
+        /// <summary>61065 入场自动鼓舞权威计数；与 61026 同为被动状态，不补请求或派生提示。</summary>
+        private void On61065(NetReader r)
+        {
+            int coinCount = r.ReadU8();
+            int goldCount = r.ReadU8();
+            DungeonModel.Instance.SetInspiritInfo(coinCount, goldCount);
+            EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_INSPIRIT_UPDATE, false);
         }
 
         /// <summary>61092 异兽入侵 领取阶段奖励(对标老端 BaseDungeonController.ts:1848-1857 内联 handler:
