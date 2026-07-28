@@ -1543,3 +1543,9 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **表现根因**：老端网格材质用 1 秒循环动画把 `_MainTex_ST.z` 从 0 线性滚到 3；`lyz_trail_117` 自身包含透明—亮—透明分布，因此运行中自然形成流光和周期隐现。Unity 旧转换资源只留下 `_BaseMap_ST` 曲线，而 `LayaParticleUnlit` 实际采样 `_MainTex_ST`，导致 UV 停在首帧，三角光带从起跑起持续常亮。
 - **资源修复**：将当前 `char_acceleratebuff01.anim` 的 UV 四分量绑定恢复到 `material._MainTex_ST`，保留原始 `0→3/1s`、线性切线和 `WrapMode.Loop`，不修改贴图、颜色、网格、粒子或空间位置。
 - **回归**：Unity 强制编译 `completed/failed=false`；`RolePresentationEffectsCase` 返回 `0 / ALL PASS`，同时要求 `_MainTex_ST.z` 原始曲线在 `0s/0.5s/1s` 分别为 `0/1.5/3` 且循环，并通过真实 `Animation.Sample + MaterialPropertyBlock` 验证运行时从 `0` 滚到 `1.5`，防止资源再次退化成只写 `_BaseMap_ST` 或曲线存在但未进入渲染器的常亮尾片。
+
+## 2026-07-29：任务跑动流光顶点渐隐恢复
+
+- **根因复核**：直接以老 Laya 引擎加载 `char_acceleratebuff01.lh` 并逐相位对照，确认空间朝向和 `_MainTex_ST.z:0→3/1s` 都没有放反。硬直线来自 Unity 现有 `eff_cys_sz01_mesh.asset` 丢失老 `.lm` 的 `COLOR` 通道：源网格 32 个顶点均有颜色，Alpha 包含 `0 / 0.133 / 0.467 / 0.733 / 0.8 / 1`，Unity 产物此前为 `colors=0`。
+- **资源修复**：只给 `eff_cys_sz01_mesh.asset` 恢复源网格的 32 个顶点色，不改人物挂点、特效 prefab 位置/旋转、贴图、材质和 UV 动画。这样流光亮区扫到网格端点时仍受逐顶点 Alpha 收束，不再形成方形硬截断。
+- **回归加固**：`RolePresentationEffectsCase` 在原有真实 `_MainTex_ST` 运行时采样之外，新增 `colors == vertexCount`、Alpha 最小值约 `0`、最大值约 `1` 且存在软渐变值的断言，防止历史资源重生成后再次丢失顶点渐隐。

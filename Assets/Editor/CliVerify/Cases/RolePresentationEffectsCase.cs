@@ -245,6 +245,8 @@ namespace Shenxiao.EditorTools
         /// </summary>
         private static bool VerifyTaskSpeedFlowAnimation(GameObject effect, out string diagnostic)
         {
+            // 既验证 UV 扫光真正进入运行时材质，也验证老 .lm 的逐顶点 Alpha 没有在历史资产中丢失；
+            // 后者缺失时，即使动画正常，亮区扫到矩形网格端点仍会形成用户看到的方形硬截断。
             Animation animation = effect != null
                 ? effect.GetComponentInChildren<Animation>(true)
                 : null;
@@ -278,6 +280,31 @@ namespace Shenxiao.EditorTools
                 return false;
             }
 
+            MeshFilter filter = renderer.GetComponent<MeshFilter>();
+            Mesh mesh = filter != null ? filter.sharedMesh : null;
+            Color[] vertexColors = mesh != null ? mesh.colors : Array.Empty<Color>();
+            if (mesh == null || vertexColors.Length != mesh.vertexCount)
+            {
+                diagnostic = $"flow mesh vertex fade missing: colors={vertexColors.Length}, " +
+                             $"vertices={(mesh != null ? mesh.vertexCount : 0)}";
+                return false;
+            }
+            float minVertexAlpha = 1f;
+            float maxVertexAlpha = 0f;
+            bool hasSoftVertexAlpha = false;
+            foreach (Color color in vertexColors)
+            {
+                minVertexAlpha = Mathf.Min(minVertexAlpha, color.a);
+                maxVertexAlpha = Mathf.Max(maxVertexAlpha, color.a);
+                hasSoftVertexAlpha |= color.a > 0.01f && color.a < 0.99f;
+            }
+            if (minVertexAlpha > 0.01f || maxVertexAlpha < 0.99f || !hasSoftVertexAlpha)
+            {
+                diagnostic = $"flow mesh vertex fade invalid: alpha={minVertexAlpha:F3}..{maxVertexAlpha:F3}, " +
+                             $"soft={hasSoftVertexAlpha}";
+                return false;
+            }
+
             EffectBinder.PlayEffect(effect);
             state.enabled = true;
             state.weight = 1f;
@@ -292,7 +319,8 @@ namespace Shenxiao.EditorTools
             float runtimeMiddle = properties.GetVector("_MainTex_ST").z;
 
             diagnostic = $"curve={start:F2}->{middle:F2}->{end:F2}, " +
-                         $"runtime={runtimeStart:F2}->{runtimeMiddle:F2}, wrap={clip.wrapMode}";
+                         $"runtime={runtimeStart:F2}->{runtimeMiddle:F2}, wrap={clip.wrapMode}, " +
+                         $"vertexAlpha={minVertexAlpha:F3}..{maxVertexAlpha:F3}";
             return clip.wrapMode == WrapMode.Loop && scroll.length >= 2 &&
                    Mathf.Abs(start) <= 0.001f && Mathf.Abs(middle - 1.5f) <= 0.01f &&
                    Mathf.Abs(end - 3f) <= 0.01f && Mathf.Abs(runtimeStart) <= 0.01f &&
