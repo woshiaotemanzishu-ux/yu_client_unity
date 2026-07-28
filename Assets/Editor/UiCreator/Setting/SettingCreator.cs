@@ -28,10 +28,8 @@ namespace Shenxiao.Editor.UiCreator.Setting
     /// 见 UiSnapshot 类注释)——.scene 设计值与运行时差异很大(HBox/centerX/代码改位,如 _btn_copy
     /// 设计 142×45 实际 33×33),手抄设计值必跑偏。快照没有的节点(隐藏页/门禁块/子窗/负缩放页签)
     /// 用 .scene 设计值兜底(SnapRect 的 fallback 参数)。
-    /// 基础设置页五个分块(_box_slider/_box_pick/_box_horse/_box_god/_box_task)用【左上锚+左上枢轴】——
-    /// 运行时 SettingView.ReflowBaseBlocks 按显隐纵向紧排,直接改 anchoredPosition.y(硬约束;
-    /// 紧排结果与快照一致:10+165+10=185 正是快照里 _box_pick 的 y)。
-    /// _list_pick/_list_shield 的 Content 不挂布局组件:运行时 PlaceShieldItem 自摆两列网格。
+    /// 基础设置页五个分块由 prefab 内 VerticalLayoutGroup 按显隐纵向紧排；各分块自己的横向偏移固化在 Row 内。
+    /// _list_pick/_list_shield 的 Content 使用 prefab 内 GridLayoutGroup。运行时只刷新数据和显隐，不写坐标。
     ///
     /// 模板:_tpl_SettingShieldItem/_tpl_SettingSubscriptionItem/_tpl_SettingHeadItem 重建并回填各自
     /// Bind;_tpl_WithBtnHSlider/_tpl_CustomHeadItem 嵌套引用既有 Common prefab(单一事实源,不重建);
@@ -108,7 +106,7 @@ namespace Shenxiao.Editor.UiCreator.Setting
         private const string IMG_HEAD_BG10 = "resource/game/setting/texture/bg_10.png";
         private const string IMG_TAKE_PHOTO = "resource/game/setting/texture/uightx_001.png";
         private const string IMG_HEAD_KUANG = "resource/game/setting/texture/head_circle_kuang.png";
-        private const string IMG_NAME_BG = "resource/game/setting/texture/uism_029b_jpg.png";
+        private const string IMG_NAME_BG = "resource/game/setting/texture/uism_029b.jpg";
         private const string IMG_SELECT = "resource/game/setting/texture/uixt_015.png";
         private const string IMG_USE_TAG = "resource/game/setting/texture/uixt_013.png";
         private const string IMG_NUM_BG = "resource/game/setting/texture/ui_num_bg.png";
@@ -253,6 +251,12 @@ namespace Shenxiao.Editor.UiCreator.Setting
             // 头像槽:烤入 CustomHeadItem 起步实例(快照里就有;运行时 RefreshHeadIcon 直接收编刷真数据)。
             RectTransform roleHead = SNode(top, "_role_head", "_box_top", 60f, 25f, 87f, 87f, W, H, out _);
             view._role_head = roleHead;
+            HorizontalLayoutGroup headLayout = roleHead.gameObject.AddComponent<HorizontalLayoutGroup>();
+            headLayout.childAlignment = TextAnchor.MiddleCenter;
+            headLayout.childControlWidth = false;
+            headLayout.childControlHeight = false;
+            headLayout.childForceExpandWidth = false;
+            headLayout.childForceExpandHeight = false;
             GameObject bakedHead = InstantiateExisting(CustomHeadItemPrefab, roleHead);
             if (bakedHead != null)
             {
@@ -274,21 +278,23 @@ namespace Shenxiao.Editor.UiCreator.Setting
             view.id_number = SLbl(top, "id_number", "4294967366", "_box_top", 306f, 120f, 116f, 24f, 24f, BlueId, W, H);   // 快照样例,运行时覆写
             view.id_ser_name = SLbl(top, "id_ser_name", "1-2区", "_box_top", 306f, 75f, 251f, 30f, 24f, BlueId, W, H);   // 快照样例,运行时覆写
 
-            // 更换头像钮(快照 80,112,70×45,内 35×35 小图;运行时无文字,_Label1 隐藏占位保 Bind)
-            RectTransform changeHead = SNode(top, "change_head_btn", "_box_top", 80f, 112f, 70f, 45f, W, H, out Rect rHead);
+            // 老端 scene/runtime 最终值:完整的 125×37 红色按钮，而不是过期快照里的 35×35 小图标。
+            RectTransform changeHead = UiCreatorKit.NewNode("change_head_btn", top);
+            PlaceLaya(changeHead, 46f, 116f, 125f, 37f, W, H);
             view.change_head_btn = changeHead;
-            view._Image4 = SImg(changeHead, "_Image4", IMG_BTN_RECT8, "change_head_btn", 0f, 0f, 35f, 35f, rHead.width, rHead.height);
+            view._Image4 = Img(changeHead, "_Image4", IMG_BTN_RECT8, 10f, 1f, 96f, 32f, 125f, 37f);
             view._Image4.raycastTarget = true;
-            view._Label1 = Lbl(changeHead, "_Label1", "更换头像", 0f, 8f, 80f, 22f, 16f, Hex("#a51c1c"), rHead.width, rHead.height, TextAlignmentOptions.Left);
-            view._Label1.gameObject.SetActive(false);
+            view._Label1 = Lbl(changeHead, "_Label1", "更换头像", 19f, 5f, 80f, 24f, 18f, Color.white, 125f, 37f);
+            view._Label1.fontStyle = FontStyles.Bold;
 
-            // 复制 ID 钮(快照 500,115,40×40,内 33×33 圆钮;运行时无文字,_Label41 隐藏占位保 Bind)
-            RectTransform btnCopy = SNode(top, "_btn_copy", "_box_top", 500f, 115f, 40f, 40f, W, H, out Rect rCopy);
+            // 老端 scene/runtime 最终值:100×34 青色按钮，图片原始 142×45 以 0.7 缩放后正好落入容器。
+            RectTransform btnCopy = UiCreatorKit.NewNode("_btn_copy", top);
+            PlaceLaya(btnCopy, 500f, 115f, 100f, 34f, W, H);
             view._btn_copy = btnCopy;
-            view._Image6 = SImg(btnCopy, "_Image6", IMG_BTN_RECT9, "_btn_copy", 0f, 0f, 33f, 33f, rCopy.width, rCopy.height);
+            view._Image6 = Img(btnCopy, "_Image6", IMG_BTN_RECT9, 0f, 1.25f, 99.4f, 31.5f, 100f, 34f);
             view._Image6.raycastTarget = true;
-            view._Label41 = Lbl(btnCopy, "_Label41", "复制", 0f, 6f, 44f, 22f, 16f, Hex("#186e74"), rCopy.width, rCopy.height);
-            view._Label41.gameObject.SetActive(false);
+            view._Label41 = Lbl(btnCopy, "_Label41", "复制", 23f, 4f, 54f, 24f, 18f, Color.white, 100f, 34f);
+            view._Label41.fontStyle = FontStyles.Bold;
 
             // 改名钮(单图,快照 477,28,44×44)
             view._btn_changename = SImg(top, "_btn_changename", IMG_GUILD_07, "_box_top", 477f, 28f, 44f, 44f, W, H);
@@ -342,13 +348,15 @@ namespace Shenxiao.Editor.UiCreator.Setting
             ScrollRect scroll = NewScrollPage("_box_base_setting", parent, out RectTransform content, 643f, 560f);
             PlaceLaya((RectTransform)scroll.transform, 0f, 226f, 643f, 530f, pw, ph);
             view._box_base_setting = scroll;
+            ConfigureVerticalFlow(content);
 
-            // 五个分块:左上锚+左上枢轴(运行时 ReflowBaseBlocks 改 y 紧排,硬约束)。
-            RectTransform sliderBox = TopLeftBlock("_box_slider", content, 32f, 10f, 562f, 165f);
+            // 五个分块交给 prefab 内 VerticalLayoutGroup 紧排。每行保留自己的横向偏移，
+            // 运行时只切换 Row 显隐，不再写 anchoredPosition，避免不同分辨率二次换算漂移。
+            RectTransform sliderBox = FlowBlock("_box_slider", content, 32f, 562f, 165f);
             view._box_slider = sliderBox;
             BuildSliderBlock(sliderBox, view);
 
-            RectTransform pickBox = TopLeftBlock("_box_pick", content, 60f, 185f, 556f, 148f);
+            RectTransform pickBox = FlowBlock("_box_pick", content, 60f, 556f, 148f);
             view._box_pick = pickBox;
             SImg(pickBox, "Image_112", IMG_FRIENDS_25, "_box_pick", 0f, 0f, 280f, 30f, 556f, 148f); // 快照名,分块头底
             TextMeshProUGUI pickHeader = SLbl(pickBox, "Label_83", "自动拾取", "_box_pick", 29f, 4f, 88f, 22f, 22f, BlockHeader, 556f, 148f);
@@ -357,20 +365,20 @@ namespace Shenxiao.Editor.UiCreator.Setting
             ScrollRect pickList = NewScrollPage("_list_pick", pickBox, out RectTransform pickContent, rPickList.width, rPickList.height);
             PlaceLaya((RectTransform)pickList.transform, rPickList.x, rPickList.y, rPickList.width, rPickList.height, 556f, 148f);
             view._list_pick = pickList;
+            ConfigureItemGrid(pickContent);
             BakeShieldItems(pickContent, new[] { 17, 18, 19 }); // 自动拾取三项静态预览(运行时收编刷真值)
 
-            // 三块勾选区初始 y 与运行时 ReflowBaseBlocks 公式一致(10+165+10+148+10=343,+88+10 递推),
-            // 静态打开即为紧排后的最终布局。
-            view._box_horse = BuildCheckBlock(content, "_box_horse", "坐骑设置", "自动上下坐骑", 343f,
+            // 三块勾选区由纵向流在静态 prefab 和运行时使用同一套排布。
+            view._box_horse = BuildCheckBlock(content, "_box_horse", "坐骑设置", "自动上下坐骑",
                 SettingRow(202).on, out Image horseCheck);
             view._img_horse_check = horseCheck;
 
-            view._box_god = BuildCheckBlock(content, "_box_god", "降神技能", "自动释放降神变身", 441f,
+            view._box_god = BuildCheckBlock(content, "_box_god", "降神技能", "自动释放降神变身",
                 SettingRow(201).on, out Image godCheck);
             view._img_god_check = godCheck;
 
             // 任务块:双勾(自动/手动)。
-            RectTransform taskBox = TopLeftBlock("_box_task", content, 60f, 539f, 565f, 88f);
+            RectTransform taskBox = FlowBlock("_box_task", content, 60f, 565f, 88f);
             view._box_task = taskBox;
             Img(taskBox, "TaskHeaderBg", IMG_FRIENDS_25, 0f, 0f, 280f, 31f, 565f, 88f);
             TextMeshProUGUI taskHeader = Lbl(taskBox, "TaskHeaderLabel", "任务设置", 30f, 4f, 110f, 24f, 22f, BlockHeader, 565f, 88f, TextAlignmentOptions.Left);
@@ -386,9 +394,9 @@ namespace Shenxiao.Editor.UiCreator.Setting
 
         /// <summary>坐骑/降神同构分块:分块头 + 描述 + 单勾选图(默认勾选态按 config_setting 烤入)。</summary>
         private static RectTransform BuildCheckBlock(Transform content, string name, string header, string desc,
-            float topY, bool isChecked, out Image check)
+            bool isChecked, out Image check)
         {
-            RectTransform box = TopLeftBlock(name, content, 60f, topY, 565f, 88f);
+            RectTransform box = FlowBlock(name, content, 60f, 565f, 88f);
             Img(box, name + "HeaderBg", IMG_FRIENDS_25, 0f, 0f, 280f, 31f, 565f, 88f);
             TextMeshProUGUI headerLbl = Lbl(box, name + "HeaderLabel", header, 30f, 4f, 110f, 24f, 22f, BlockHeader, 565f, 88f, TextAlignmentOptions.Left);
             headerLbl.fontStyle = FontStyles.Bold;
@@ -486,6 +494,7 @@ namespace Shenxiao.Editor.UiCreator.Setting
             ScrollRect list = NewScrollPage("_list_shield", shield, out RectTransform content, 554f, 390f);
             PlaceLaya((RectTransform)list.transform, 0f, 43f, 554f, 440f, 536f, 268f);
             view._list_shield = list;
+            ConfigureItemGrid(content);
             // 屏蔽 10 项静态预览(老端 ShowInShieldDic 顺序,跳过微信推送 24;运行时收编刷真值)。
             BakeShieldItems(content, new[] { 1, 2, 3, 10, 14, 20, 22, 25, 5, 26 });
         }
@@ -568,7 +577,7 @@ namespace Shenxiao.Editor.UiCreator.Setting
             return tpl;
         }
 
-        /// <summary>把列表项烤成静态预览(两列网格,同运行时 PlaceShieldItem 摆位;文案/勾选态读 config_setting.json)。
+        /// <summary>把列表项烤成静态预览(两列网格由 Content 的 GridLayoutGroup 排布;文案/勾选态读 config_setting.json)。
         /// 运行时 RebuildShieldItems 会按同顺序收编这些实例并刷服务器真值。</summary>
         private static void BakeShieldItems(RectTransform content, int[] subtypes)
         {
@@ -576,11 +585,6 @@ namespace Shenxiao.Editor.UiCreator.Setting
             {
                 (string name, bool on) = SettingRow(subtypes[i]);
                 GameObject go = BuildShieldItemNode(content, "SettingShieldItem_" + subtypes[i], name, on);
-                var rt = (RectTransform)go.transform;
-                rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
-                rt.pivot = new Vector2(0f, 1f);
-                rt.sizeDelta = new Vector2(250f, 50f);
-                rt.anchoredPosition = new Vector2(i % 2 * 250f, -(i / 2) * 50f);
             }
         }
 
@@ -829,15 +833,55 @@ namespace Shenxiao.Editor.UiCreator.Setting
             UiCreatorKit.Place(rt, cx, cy, w, h);
         }
 
-        /// <summary>左上锚+左上枢轴分块(基础设置页五分块专用;运行时 ReflowBaseBlocks 直接改 anchoredPosition.y)。</summary>
-        private static RectTransform TopLeftBlock(string name, Transform parent, float x, float y, float w, float h)
+        private static void ConfigureVerticalFlow(RectTransform content)
         {
-            RectTransform rt = UiCreatorKit.NewNode(name, parent);
-            rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
-            rt.pivot = new Vector2(0f, 1f);
-            rt.sizeDelta = new Vector2(w, h);
-            rt.anchoredPosition = new Vector2(x, -y);
-            return rt;
+            VerticalLayoutGroup layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(0, 0, 10, 0);
+            layout.spacing = 10f;
+            layout.childAlignment = TextAnchor.UpperLeft;
+            layout.childControlWidth = true;
+            layout.childControlHeight = false;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+
+            ContentSizeFitter fitter = content.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        }
+
+        /// <summary>纵向流的一行；Block 的横向偏移/尺寸仍由 Creator 固化，运行时只显隐整行。</summary>
+        private static RectTransform FlowBlock(string name, Transform content, float x, float w, float h)
+        {
+            RectTransform row = UiCreatorKit.NewNode(name + "_Row", content);
+            row.sizeDelta = new Vector2(643f, h);
+            LayoutElement element = row.gameObject.AddComponent<LayoutElement>();
+            element.minHeight = h;
+            element.preferredHeight = h;
+            element.flexibleHeight = 0f;
+
+            RectTransform block = UiCreatorKit.NewNode(name, row);
+            block.anchorMin = block.anchorMax = new Vector2(0f, 1f);
+            block.pivot = new Vector2(0f, 1f);
+            block.sizeDelta = new Vector2(w, h);
+            block.anchoredPosition = new Vector2(x, 0f);
+            return block;
+        }
+
+        private static void ConfigureItemGrid(RectTransform content)
+        {
+            GridLayoutGroup grid = content.gameObject.AddComponent<GridLayoutGroup>();
+            grid.padding = new RectOffset();
+            grid.cellSize = new Vector2(250f, 50f);
+            grid.spacing = Vector2.zero;
+            grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
+            grid.startAxis = GridLayoutGroup.Axis.Horizontal;
+            grid.childAlignment = TextAnchor.UpperLeft;
+            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = 2;
+
+            ContentSizeFitter fitter = content.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
         }
 
         /// <summary>快照几何 Image:矩形经 SnapRect(节点名, snapParent)取运行时结算值,快照缺失回退设计值。</summary>
@@ -895,8 +939,7 @@ namespace Shenxiao.Editor.UiCreator.Setting
         }
 
         /// <summary>
-        /// 无布局组件的 ScrollRect(Viewport+RectMask2D+Content):设置页的列表/页面运行时自摆位置
-        /// (PlaceShieldItem 两列网格 / ReflowBaseBlocks 纵向紧排),不能挂 LayoutGroup 抢位。
+        /// ScrollRect(Viewport+RectMask2D+Content) 基架；具体列表/页面的布局组件由调用方在 Creator 中配置。
         /// Content 左上锚(0,1)/枢轴(0,1),尺寸给起步值。
         /// </summary>
         private static ScrollRect NewScrollPage(string name, Transform parent, out RectTransform content,

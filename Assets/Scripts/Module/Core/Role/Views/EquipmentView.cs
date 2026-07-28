@@ -2,11 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shenxiao.Common.Proto;
+using Shenxiao.Common.Tips;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
+using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Role;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Login;
+using Shenxiao.Module.Core.MainUI;
+using Shenxiao.Module.Core.SuitCollect;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,43 +24,96 @@ namespace Shenxiao.Module.Core.Role
     public sealed class EquipmentView : EquipmentViewBind
     {
         private const float ModelScale = 0.5f;
-        private const float AttrItemHeight = 38f;
-        private const float AttrColumnWidth = 300f;
-        private const int AttrColumns = 2;
-
         private sealed class AttrRow
         {
             public readonly string Label;
             public readonly Func<BattleAttrProto, long> Value;
+            public readonly bool Percentage;
+            public readonly bool Spacer;
 
-            public AttrRow(string label, Func<BattleAttrProto, long> value)
+            public AttrRow(string label, Func<BattleAttrProto, long> value, bool percentage = false)
             {
                 Label = label;
                 Value = value;
+                Percentage = percentage;
             }
+
+            private AttrRow()
+            {
+                Label = string.Empty;
+                Value = _ => 0L;
+                Spacer = true;
+            }
+
+            public static readonly AttrRow Empty = new AttrRow();
         }
 
         private static readonly AttrRow[] BaseAttrs =
         {
             new AttrRow("\u653B\u51FB", a => a != null ? a.Get("att") : 0L),
-            new AttrRow("\u6C14\u8840", a => a != null ? a.HpLim : 0L),
+            new AttrRow("\u751F\u547D", a => a != null ? a.HpLim : 0L),
             new AttrRow("\u7834\u7532", a => a != null ? a.Get("wreck") : 0L),
             new AttrRow("\u9632\u5FA1", a => a != null ? a.Get("def") : 0L),
             new AttrRow("\u547D\u4E2D", a => a != null ? a.Get("hit") : 0L),
             new AttrRow("\u95EA\u907F", a => a != null ? a.Get("dodge") : 0L),
             new AttrRow("\u66B4\u51FB", a => a != null ? a.Get("crit") : 0L),
             new AttrRow("\u575A\u97E7", a => a != null ? a.Get("ten") : 0L),
+            new AttrRow("\u5143\u7D20\u653B\u51FB", a => a != null ? a.Get("abs_att") : 0L),
+            new AttrRow("\u5143\u7D20\u9632\u5FA1", a => a != null ? a.Get("abs_def") : 0L),
+            new AttrRow("\u7EDD\u5BF9\u653B\u51FB", a => a != null ? a.Get("real_abs_att") : 0L),
+            new AttrRow("\u7EDD\u5BF9\u9632\u5FA1", a => a != null ? a.Get("real_abs_def") : 0L),
+            new AttrRow("\u79FB\u52A8\u901F\u5EA6", a => a != null ? a.Speed : 0L),
+        };
+
+        // EquipmentView.ts spe_show_index 的原始顺序。空项不是遗漏，而是老端为了两列配对保留的占位。
+        private static readonly AttrRow[] SpecialAttrs =
+        {
+            new AttrRow("\u4F24\u5BB3\u52A0\u6DF1", a => a != null ? a.Get("hurt_add_ratio") : 0L, true),
+            new AttrRow("\u4F24\u5BB3\u51CF\u514D", a => a != null ? a.Get("hurt_del_ratio") : 0L, true),
+            new AttrRow("\u6280\u80FD\u4F24\u5BB3", a => a != null ? a.Get("skill_hurt_add_ratio") : 0L, true),
+            new AttrRow("\u6280\u80FD\u51CF\u514D", a => a != null ? a.Get("skill_hurt_del_ratio") : 0L, true),
+            new AttrRow("PVP\u4F24\u5BB3\u52A0\u6DF1", a => a != null ? a.Get("pvp_att_add") : 0L, true),
+            new AttrRow("PVP\u4F24\u5BB3\u51CF\u514D", a => a != null ? a.Get("pvp_att_reduece") : 0L, true),
+            new AttrRow("\u547D\u4E2D\u51E0\u7387", a => a != null ? a.Get("hit_ratio") : 0L, true),
+            new AttrRow("\u8EB2\u95EA\u51E0\u7387", a => a != null ? a.Get("dodge_ratio") : 0L, true),
+            new AttrRow("\u66B4\u51FB\u51E0\u7387", a => a != null ? a.Get("crit_ratio") : 0L, true),
+            new AttrRow("\u6297\u66B4\u51E0\u7387", a => a != null ? a.Get("uncrit_ratio") : 0L, true),
+            new AttrRow("\u4F1A\u5FC3\u51E0\u7387", a => a != null ? a.Get("hurt_float_ratio") : 0L, true),
+            new AttrRow("\u6297\u4F1A\u5FC3\u7387", a => a != null ? a.Get("DefHearHurtRatio") : 0L, true),
+            AttrRow.Empty,
+            new AttrRow("\u5353\u8D8A\u51E0\u7387", a => a != null ? a.Get("ex_ratio") : 0L, true),
+            new AttrRow("\u6297\u5353\u51E0\u7387", a => a != null ? a.Get("unex_ratio") : 0L, true),
+            new AttrRow("\u653B\u51FB\u52A0\u6210", a => a != null ? a.Get("att_add_ratio") : 0L, true),
+            new AttrRow("\u751F\u547D\u52A0\u6210", a => a != null ? a.Get("hp_add_ratio") : 0L, true),
+            new AttrRow("\u7834\u7532\u52A0\u6210", a => a != null ? a.Get("wreck_add_ratio") : 0L, true),
+            new AttrRow("\u9632\u5FA1\u52A0\u6210", a => a != null ? a.Get("def_add_ratio") : 0L, true),
+            new AttrRow("\u547D\u4E2D\u52A0\u6210", a => a != null ? a.Get("hit_add_ratio") : 0L, true),
+            new AttrRow("\u95EA\u907F\u52A0\u6210", a => a != null ? a.Get("dodge_add_ratio") : 0L, true),
+            new AttrRow("\u66B4\u51FB\u52A0\u6210", a => a != null ? a.Get("crit_add_ratio") : 0L, true),
+            new AttrRow("\u575A\u97E7\u52A0\u6210", a => a != null ? a.Get("ten_add_ratio") : 0L, true),
+            new AttrRow("\u66B4\u51FB\u52A0\u6DF1", a => a != null ? a.Get("crit_hurt_add_ratio") : 0L, true),
+            new AttrRow("\u66B4\u51FB\u51CF\u514D", a => a != null ? a.Get("crit_hurt_del_ratio") : 0L, true),
+            new AttrRow("\u4F1A\u5FC3\u52A0\u6DF1", a => a != null ? a.Get("HearHurtAddRatio") : 0L, true),
+            new AttrRow("\u4F1A\u5FC3\u51CF\u514D", a => a != null ? a.Get("HearHurtDelRatio") : 0L, true),
+            new AttrRow("\u5353\u8D8A\u52A0\u6DF1", a => a != null ? a.Get("ex_hurt_add_ratio") : 0L, true),
+            new AttrRow("\u5353\u8D8A\u51CF\u514D", a => a != null ? a.Get("unex_hurt_del_ratio") : 0L, true),
+            new AttrRow("\u683C\u6321\u51E0\u7387", a => a != null ? a.Get("parry_ratio") : 0L, true),
+            new AttrRow("\u683C\u6321\u5FFD\u89C6", a => a != null ? a.Get("neglect") : 0L, true),
         };
 
         private readonly List<RolePropertyItemRendererBind> _attrItems = new List<RolePropertyItemRendererBind>();
         private FightingShowSmallItem _fightingItem;
         private bool _subscribed;
+        private bool _showingBaseAttrs = true;
         private int _modelRequestId;
 
         protected override void OnInit()
         {
             HideReds();
             HideTemplates();
+            BindActions();
+            ShowAttributePage(true);
+            if (worldGp != null) worldGp.gameObject.SetActive(false);
             Subscribe();
         }
 
@@ -119,15 +176,6 @@ namespace Shenxiao.Module.Core.Role
 
             GameObject go = Instantiate(_tpl_FightingShowSmallItem, _gp_fight);
             go.name = "FightingShowSmallItem_Runtime";
-            var rt = go.transform as RectTransform;
-            if (rt != null)
-            {
-                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-                rt.pivot = new Vector2(0.5f, 0.5f);
-                rt.anchoredPosition = Vector2.zero;
-                rt.localScale = Vector3.one;
-            }
-
             _fightingItem = go.GetComponent<FightingShowSmallItem>();
             go.SetActive(true);
         }
@@ -141,12 +189,8 @@ namespace Shenxiao.Module.Core.Role
             }
 
             RectTransform content = _Scroller1.content;
-            content.anchorMin = new Vector2(content.anchorMin.x, 1f);
-            content.anchorMax = new Vector2(content.anchorMax.x, 1f);
-            content.pivot = new Vector2(content.pivot.x, 1f);
-            content.anchoredPosition = new Vector2(content.anchoredPosition.x, 0f);
-
-            for (int i = 0; i < BaseAttrs.Length; i++)
+            int count = Mathf.Max(BaseAttrs.Length, SpecialAttrs.Length);
+            for (int i = 0; i < count; i++)
             {
                 GameObject go = Instantiate(_tpl_RolePropertyItemRenderer, content);
                 go.name = "RolePropertyItemRenderer_Runtime_" + i;
@@ -161,22 +205,7 @@ namespace Shenxiao.Module.Core.Role
                     go.SetActive(true);
                 }
 
-                var rt = go.transform as RectTransform;
-                if (rt != null)
-                {
-                    rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
-                    rt.pivot = new Vector2(0f, 1f);
-                    int col = i % AttrColumns;
-                    int row = i / AttrColumns;
-                    rt.anchoredPosition = new Vector2(col * AttrColumnWidth, -row * AttrItemHeight);
-                    rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, AttrColumnWidth);
-                    rt.localScale = Vector3.one;
-                }
             }
-            int rows = Mathf.CeilToInt(BaseAttrs.Length / (float)AttrColumns);
-            content.sizeDelta = new Vector2(
-                Mathf.Max(content.sizeDelta.x, AttrColumnWidth * AttrColumns),
-                rows * AttrItemHeight + 12f);
         }
 
         private void RefreshRole()
@@ -192,23 +221,77 @@ namespace Shenxiao.Module.Core.Role
 
             if (_fightingItem != null) _fightingItem.SetFighting(hasInfo ? model.CombatPower : 0L);
             RefreshAttrs(model.BattleAttr, hasInfo);
+            RefreshWorldInfo(model, hasInfo);
         }
 
         private void RefreshAttrs(BattleAttrProto attrs, bool hasInfo)
         {
-            for (int i = 0; i < _attrItems.Count && i < BaseAttrs.Length; i++)
+            AttrRow[] rows = _showingBaseAttrs ? BaseAttrs : SpecialAttrs;
+            for (int i = 0; i < _attrItems.Count; i++)
             {
-                AttrRow row = BaseAttrs[i];
-                string value = hasInfo ? FormatNumber(row.Value(attrs)) : string.Empty;
+                bool visible = i < rows.Length;
+                _attrItems[i].gameObject.SetActive(visible);
+                if (!visible) continue;
+                AttrRow row = rows[i];
+                string value = row.Spacer || !hasInfo ? string.Empty : FormatAttribute(row.Value(attrs), row.Percentage);
                 RolePropertyItemRenderer renderer = _attrItems[i] as RolePropertyItemRenderer;
                 if (renderer != null)
                 {
-                    renderer.SetData(row.Label, value);
+                    renderer.SetData(row.Spacer ? string.Empty : row.Label, value);
                     continue;
                 }
                 if (_attrItems[i].property_name != null) _attrItems[i].property_name.text = row.Label + ":";
                 if (_attrItems[i].property_value != null) _attrItems[i].property_value.text = value;
             }
+        }
+
+        private void BindActions()
+        {
+            BindClick(_img_change_btn, () => ShowAttributePage(!_showingBaseAttrs));
+            BindClick(_Group1, () => RoleFlow.SelectTab(5));
+            BindClick(_Group5, SuitCollectShellView.Show);
+            BindClick(fashion_gp, () => MainUIRouter.Open("fashion"));
+            BindClick(_Group2, () => MainUIRouter.Open("AchvEnterView"));
+            BindClick(_Group3, () => MainUIRouter.Open("MedalEnterView"));
+            BindClick(_Group4, () => MainUIRouter.Open("DsgtWindowView"));
+            BindClick(_btn_attribute, () => MainUIRouter.Open("AttributePotionView"));
+            BindClick(_Group6, () => MainUIRouter.Open("UnrealEquipView"));
+            BindClick(_btn_fame, () => MainUIRouter.Open("MarriageHonourView"));
+            BindClick(tipsImg, () => TipsManager.Toast("点击属性切换按钮可查看基础属性和极品属性"));
+            BindClick(worldBtn, () => { if (worldGp != null) worldGp.gameObject.SetActive(true); });
+            BindClick(worldBg, () => { if (worldGp != null) worldGp.gameObject.SetActive(false); });
+        }
+
+        private void ShowAttributePage(bool showBase)
+        {
+            _showingBaseAttrs = showBase;
+            if (_img_title_base != null) _img_title_base.gameObject.SetActive(showBase);
+            if (_img_title_best != null) _img_title_best.gameObject.SetActive(!showBase);
+            RefreshAttrs(RoleModel.Instance.BattleAttr, RoleModel.Instance.HasBaseInfo);
+        }
+
+        private void RefreshWorldInfo(RoleModel model, bool hasInfo)
+        {
+            if (worldLb != null) worldLb.text = hasInfo && model.WorldLv > 0 ? model.WorldLv + "\u7EA7" : string.Empty;
+            if (worldTips != null)
+            {
+                worldTips.text = hasInfo && model.WorldLvExp != 0
+                    ? "\u4E16\u754C\u7B49\u7EA7\u7ECF\u9A8C\u52A0\u6210 " + model.WorldLvExp + "%"
+                    : "\u5F53\u89D2\u8272\u7B49\u7EA7\u4F4E\u4E8E\u4E16\u754C\u7B49\u7EA7\u65F6\uFF0C\u53EF\u83B7\u5F97\u989D\u5916\u7ECF\u9A8C\u52A0\u6210";
+            }
+        }
+
+        private static string FormatAttribute(long value, bool percentage)
+        {
+            if (!percentage) return value.ToString();
+            return (value / 100d).ToString("0.##") + "%";
+        }
+
+        private static void BindClick(Image image, Action action)
+        {
+            if (image == null || action == null) return;
+            image.raycastTarget = true;
+            UIUtil.AddClick(image, action);
         }
 
         private async void ShowRoleModel()

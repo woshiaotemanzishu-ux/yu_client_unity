@@ -36,8 +36,6 @@ namespace Shenxiao.Module.Core.Setting
         private const float DefaultEffectCount = 8f;
         private const float DefaultSoundVolume = 50f;
         private const float DefaultMusicVolume = 50f;
-        private const float SettingShieldItemWidth = 250f;
-        private const float SettingShieldItemHeight = 50f;
         private const string PrefLastRoleId = "login.lastRoleId";
         private const string CheckedSkin = "resource/game/common/texture/com_ui_gx1.png";
         private const string UncheckedSkin = "resource/game/common/texture/com_ui_gx.png";
@@ -279,17 +277,6 @@ namespace Shenxiao.Module.Core.Setting
                 go.name = _tpl_WithBtnHSlider.name + "_" + parent.name;
                 go.SetActive(true);
 
-                RectTransform rt = go.transform as RectTransform;
-                if (rt != null)
-                {
-                    // 老端 new WithBtnHSlider(parent) 落在容器 (0,0):左上锚+左上枢轴(快照里滑条克隆即容器左上角)。
-                    rt.anchorMin = new Vector2(0f, 1f);
-                    rt.anchorMax = new Vector2(0f, 1f);
-                    rt.pivot = new Vector2(0f, 1f);
-                    rt.anchoredPosition = Vector2.zero;
-                    rt.localScale = Vector3.one;
-                }
-
                 slider = go.GetComponent<WithBtnHSlider>();
                 if (slider != null)
                 {
@@ -369,16 +356,6 @@ namespace Shenxiao.Module.Core.Setting
 
                     go.name = "CustomHeadItem";
                     go.SetActive(true);
-                    RectTransform rt = go.transform as RectTransform;
-                    if (rt != null)
-                    {
-                        rt.anchorMin = new Vector2(0.5f, 0.5f);
-                        rt.anchorMax = new Vector2(0.5f, 0.5f);
-                        rt.pivot = new Vector2(0.5f, 0.5f);
-                        rt.anchoredPosition = Vector2.zero;
-                        rt.localScale = Vector3.one;
-                    }
-
                     _roleHeadItem = go.GetComponent<CustomHeadItem>();
                     if (_roleHeadItem == null) _roleHeadItem = go.GetComponentInChildren<CustomHeadItem>(true);
                     if (_roleHeadItem == null) return;
@@ -463,7 +440,6 @@ namespace Shenxiao.Module.Core.Setting
                 if (item == null) continue;
 
                 item.gameObject.SetActive(true);
-                PlaceShieldItem(item, used);
                 int captured = subtype;
                 item.SetData(cfg.Name, isOpen == 1, () => onToggle(captured));
                 used++;
@@ -473,9 +449,6 @@ namespace Shenxiao.Module.Core.Setting
                 if (items[i] != null) items[i].gameObject.SetActive(false);
             }
 
-            parent.sizeDelta = new Vector2(
-                Mathf.Max(parent.sizeDelta.x, SettingShieldItemWidth * 2f),
-                Mathf.Max((used + 1) / 2 * SettingShieldItemHeight, SettingShieldItemHeight));
         }
 
         private SettingShieldItem GetOrCreateShieldItem(List<SettingShieldItem> items, RectTransform parent, int index)
@@ -495,18 +468,6 @@ namespace Shenxiao.Module.Core.Setting
             item.Show();
             items[index] = item;
             return item;
-        }
-
-        private static void PlaceShieldItem(SettingShieldItem item, int index)
-        {
-            RectTransform rt = item.transform as RectTransform;
-            if (rt == null) return;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(0f, 1f);
-            rt.pivot = new Vector2(0f, 1f);
-            rt.anchoredPosition = new Vector2(index % 2 * SettingShieldItemWidth, -(index / 2) * SettingShieldItemHeight);
-            rt.sizeDelta = new Vector2(SettingShieldItemWidth, SettingShieldItemHeight);
-            rt.localScale = Vector3.one;
         }
 
         /// <summary>自动拾取项点击:150 级前禁取消(对标老端 CheckClickFun 的等级闸),其余走通用切换。</summary>
@@ -600,26 +561,8 @@ namespace Shenxiao.Module.Core.Setting
                 SetCheckSkin(_img_task_check2, taskOpen != 1);
             }
 
-            ReflowBaseBlocks();
-        }
-
-        /// <summary>基础设置页各块纵向紧排(对标老端 UpdateBaseSettingPanelHeight):隐藏块不占位。
-        /// 依赖各块 anchor(0,1)/pivot(0,1)(SettingCreator 保证),只改 y、保留各自 x。</summary>
-        private void ReflowBaseBlocks()
-        {
-            float y = 10f;
-            ReflowBlock(_box_slider, ref y);
-            ReflowBlock(_box_pick, ref y);
-            ReflowBlock(_box_horse, ref y);
-            ReflowBlock(_box_god, ref y);
-            ReflowBlock(_box_task, ref y);
-        }
-
-        private static void ReflowBlock(RectTransform block, ref float y)
-        {
-            if (block == null || !block.gameObject.activeSelf) return;
-            block.anchoredPosition = new Vector2(block.anchoredPosition.x, -y);
-            y += block.sizeDelta.y + 10f;
+            if (_box_base_setting != null && _box_base_setting.content != null)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(_box_base_setting.content);
         }
 
         private static void SetCheckSkin(Image img, bool isChecked)
@@ -674,7 +617,10 @@ namespace Shenxiao.Module.Core.Setting
 
         private static void SetNodeVisible(Component c, bool visible)
         {
-            if (c != null) c.gameObject.SetActive(visible);
+            if (c == null) return;
+            Transform parent = c.transform.parent;
+            if (parent != null && parent.name == c.name + "_Row") parent.gameObject.SetActive(visible);
+            else c.gameObject.SetActive(visible);
         }
     }
 }
