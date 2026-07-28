@@ -67,12 +67,20 @@ namespace Shenxiao.Module.Core.MainUI
         // SetPosition(Laya 坐标→anchoredPosition 换算)已删:布局改【槽位式】,克隆体由
         // MainUISkillView.PlaceIconInSlot 撑满所在槽,槽位在 HudSkillBar.prefab 的 SkillIconGrid 下。
 
-        // con 是 Box 无 Graphic,点在可见的 bg 上(对标老端 con 点击;Unity 在 bg 接 raycast)。幂等绑一次。
+        // 老端点击绑在整个 con。Unity 转换产物的 bg/icon/lock 默认都会接收 Raycast；若只把 Button
+        // 挂在 bg，位于它上方的 icon（以及与 con 同级的 lock）会先命中，事件无法走到 bg。
+        // 因此把所有装饰 Graphic 关闭 Raycast，再由 con 上唯一的透明命中面接收整块技能点击。
         private void EnsureClickBound()
         {
-            if (_clickBound || bg == null) return;
-            bg.raycastTarget = true;
-            UIUtil.AddClick(bg, OnClickSkill);
+            if (_clickBound || con == null) return;
+
+            Graphic[] graphics = GetComponentsInChildren<Graphic>(true);
+            for (int i = 0; i < graphics.Length; i++)
+            {
+                graphics[i].raycastTarget = false;
+            }
+
+            UIUtil.AddClick(con, OnClickSkill);
             _clickBound = true;
         }
 

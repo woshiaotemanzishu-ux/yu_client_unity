@@ -212,16 +212,19 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             Image bg = UiCreatorKit.NewImage("SkillIconBg", con); // 老端: bg
             UiCreatorKit.Place(bg.rectTransform, 0f, 0f, 63f, 63f);
             UiCreatorKit.TrySetSprite(bg, IMG_SKILL_ITEM_BG, UiCreatorKit.Palette.Panel);
+            bg.raycastTarget = false; // 整项只由 con 的透明点击面接收射线
             item.bg = bg;
 
             Image icon = UiCreatorKit.NewImage("SkillIconImage", con); // 老端: icon
             UiCreatorKit.Place(icon.rectTransform, 0.5f, -0.5f, 38f, 38f);
             UiCreatorKit.TrySetSprite(icon, IMG_SKILL_ICON_SAMPLE, Color.white);
+            icon.raycastTarget = false;
             item.icon = icon;
 
             Image lockImg = UiCreatorKit.NewImage("SkillLockOverlay", itemRt); // 老端: lock
             UiCreatorKit.Place(lockImg.rectTransform, 0.5f, -0.5f, 38f, 38f);
             UiCreatorKit.TrySetSprite(lockImg, IMG_SKILL_ITEM_LOCK, UiCreatorKit.Palette.BtnNeutral);
+            lockImg.raycastTarget = false;
             lockImg.gameObject.SetActive(false); // 默认已学会(对标快照 vis=false / UpdateLock(false))
             item.@lock = lockImg;
 

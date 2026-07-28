@@ -1454,9 +1454,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 
 ## 2026-07-28：主界面技能手点与范围规则对齐
 
-- **点击根因**：技能按钮 Prefab 的 Raycast 和运行时点击绑定均存在；真正偏差是 Unity 把普通
-  `AutoFightState` 当成老端 `deposit_state`，导致自动战斗期间手动点击被吞。现只在服务端 `13017`
-  的 `RoleModel.DepositState` 为真时拦截，普通自动战斗允许玩家插入手动技能。
+- **点击根因（二次核验）**：真实 `HudSkillBar.prefab` 的 `bg/icon/lock` 三层 Image 均开启
+  Raycast，但旧实现只把 Button 挂在底层 `bg`，实际点按先被上层 `icon` 或同级 `lock` 命中，
+  `OnClickSkill` 根本不可达；此前直接反射点击函数的用例漏掉了 UGUI 射线路径。现关闭全部装饰层
+  Raycast，由 45×47 的 `con` 生成唯一透明点击面和 Button。业务层同时保留前次修复：只在服务端
+  `13017` 的 `RoleModel.DepositState` 为真时拦截，普通自动战斗允许玩家插入手动技能。
 - **手动/自动分流**：手动无锁定目标时按当前朝向原地释放，只在技能 `area` 内局部预选，不再跨全场
   抢最近怪后自动贴近；自动战斗仍保留全场寻敌与接近。`obj==1` 自身技能补齐原地真实释放。
 - **范围根因**：旧实现只用 `distance*0.8` 作接敌距离，漏掉老端圆形模式的 `area`。现 `range==1`
@@ -1466,8 +1468,8 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
   距离稳定排序、主目标置首和 `num[1]` 怪物上限；无目标圆形的前方圆心同时恢复老端横向 1.0 /
   纵向 0.5 的椭圆距离修正。配置 `desc` 可能与 `range` 冲突，运行时严格以
   `range/distance/area/num` 为权威；PvP 玩家列表仍未迁移。
-- **验证状态**：Unity 6000.3.17f1 强编译 `completed/failed=false`；`SkillTargetingCase` 使用真实
-  `config_skill` 验证普通 AutoFight/托管门闩、360/440/480 三个接敌距离、圆/直线/扇形边界及手动
-  无目标局部预选，返回 `0`、`failures=0`。`Shenxiao.Module.Core.csproj` 与
-  `Shenxiao.Editor.csproj` 均 0 error（仅既有 warning）。
+- **验证状态**：Unity 6000.3.17f1 强编译 `completed/failed=false`；`SkillTargetingCase` 会克隆真实
+  `HudSkillBar.prefab`，用 `GraphicRaycaster` 验证顶层命中 `con`，再走 `PointerClick` 验证释放事件；
+  同时覆盖普通 AutoFight/托管门闩、360/440/480 三个接敌距离、圆/直线/扇形边界及手动无目标局部
+  预选，返回 `0`、`failures=0`。
 - **专题文档**：[技能点击与范围规则-经验与排障.md](技能点击与范围规则-经验与排障.md)。

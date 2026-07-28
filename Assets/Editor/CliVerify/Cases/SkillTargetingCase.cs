@@ -10,7 +10,10 @@ using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene;
 using Shenxiao.Module.Core.Scene.Vo;
 using Shenxiao.Module.Core.Skill;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Shenxiao.EditorTools
 {
@@ -37,6 +40,7 @@ namespace Shenxiao.EditorTools
 
                 int failures = 0;
                 VerifyConfiguredRanges(ref failures);
+                VerifyPointerSurface(ref failures);
                 VerifyClickGate(ref failures);
                 VerifyGeometry(ref failures);
                 Debug.Log("CLIVERIFY skill-targeting RESULT failures=" + failures);
@@ -65,6 +69,130 @@ namespace Shenxiao.EditorTools
                 "mode1 追魂一剑=(distance缺省50+area500)*0.8=440", ref failures);
             CheckClose((float)attackRange.Invoke(null, new object[] { 59810001 }), 480f,
                 "mode2 月华流辉=distance600*0.8=480", ref failures);
+        }
+
+        private static void VerifyPointerSurface(ref int failures)
+        {
+            const string prefabPath = "Assets/Prefabs/UI/MainUI/Regions/HudSkillBar.prefab";
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            MainUISkillItem template = prefab != null
+                ? prefab.GetComponentInChildren<MainUISkillItem>(true)
+                : null;
+            Check(template != null, "HudSkillBar 存在真实技能项模板", ref failures);
+            if (template == null) return;
+
+            AutoFightModel autoFight = AutoFightModel.Instance;
+            RoleModel role = RoleModel.Instance;
+            int oldWeight = autoFight.AutoFightWeight;
+            bool oldTempMode = autoFight.TempMode;
+            bool oldDeposit = role.DepositState;
+            GameObject canvasGo = null;
+            GameObject cameraGo = null;
+            GameObject eventSystemGo = null;
+            RenderTexture renderTexture = null;
+            MainUISkillItem item = null;
+            int clickCount = 0;
+            Action<int, int> onClick = (skillId, attackType) =>
+            {
+                if (skillId == 59100001 && attackType == SkillManager.ONLY_FIRE_ATTACK)
+                    clickCount++;
+            };
+
+            try
+            {
+                canvasGo = new GameObject("SkillTargetingCase_Canvas", typeof(RectTransform),
+                    typeof(Canvas), typeof(GraphicRaycaster));
+                Canvas canvas = canvasGo.GetComponent<Canvas>();
+                cameraGo = new GameObject("SkillTargetingCase_Camera", typeof(Camera));
+                Camera camera = cameraGo.GetComponent<Camera>();
+                camera.transform.position = new Vector3(0f, 0f, -10f);
+                camera.orthographic = true;
+                camera.orthographicSize = 50f;
+                renderTexture = new RenderTexture(256, 256, 0);
+                camera.targetTexture = renderTexture;
+                canvas.renderMode = RenderMode.WorldSpace;
+                canvas.worldCamera = camera;
+                RectTransform canvasRt = (RectTransform)canvasGo.transform;
+                canvasRt.sizeDelta = new Vector2(100f, 100f);
+                canvasRt.localScale = Vector3.one;
+                GraphicRaycaster raycaster = canvasGo.GetComponent<GraphicRaycaster>();
+                raycaster.ignoreReversedGraphics = false;
+                eventSystemGo = new GameObject("SkillTargetingCase_EventSystem", typeof(EventSystem));
+                EventSystem eventSystem = eventSystemGo.GetComponent<EventSystem>();
+
+                item = UnityEngine.Object.Instantiate(template, canvasGo.transform);
+                item.gameObject.name = "SkillTargetingCase_Item";
+                item.gameObject.SetActive(true);
+                RectTransform itemRt = (RectTransform)item.transform;
+                itemRt.anchorMin = itemRt.anchorMax = new Vector2(0.5f, 0.5f);
+                itemRt.anchoredPosition = Vector2.zero;
+                itemRt.sizeDelta = new Vector2(45f, 47f);
+                itemRt.localScale = Vector3.one;
+
+                SkillManager.Instance.Clear();
+                role.DepositState = false;
+                autoFight.SetAutoFight(true);
+                EventDispatcher.On<int, int>(GlobalEvent.EVT_SKILL_SHORTCUT_CLICK, onClick);
+                item.SetData(new SkillVo(59100001) { Level = 1 });
+                Canvas.ForceUpdateCanvases();
+                camera.Render();
+                Canvas.ForceUpdateCanvases();
+
+                Graphic clickSurface = item.con != null ? item.con.GetComponent<Graphic>() : null;
+                Button clickButton = item.con != null ? item.con.GetComponent<Button>() : null;
+                Check(clickSurface != null && clickSurface.raycastTarget && clickButton != null,
+                    "技能 con 生成唯一透明点击面和 Button", ref failures);
+
+                bool decorationsIgnoreRaycast = true;
+                foreach (Graphic graphic in item.GetComponentsInChildren<Graphic>(true))
+                {
+                    if (graphic != clickSurface && graphic.raycastTarget)
+                    {
+                        decorationsIgnoreRaycast = false;
+                        break;
+                    }
+                }
+                Check(decorationsIgnoreRaycast, "技能 bg/icon/lock/CD 装饰层不截获 Raycast", ref failures);
+
+                var pointer = new PointerEventData(eventSystem)
+                {
+                    button = PointerEventData.InputButton.Left,
+                    position = RectTransformUtility.WorldToScreenPoint(camera,
+                        item.con.TransformPoint(item.con.rect.center)),
+                };
+                var results = new List<RaycastResult>();
+                raycaster.Raycast(pointer, results);
+                RaycastResult? itemHit = null;
+                for (int i = 0; i < results.Count; i++)
+                {
+                    if (results[i].gameObject.transform.IsChildOf(item.transform))
+                    {
+                        itemHit = results[i];
+                        break;
+                    }
+                }
+
+                Check(itemHit.HasValue && itemHit.Value.gameObject == item.con.gameObject,
+                    "真实 UGUI Raycast 顶层命中技能 con", ref failures);
+                if (itemHit.HasValue)
+                {
+                    ExecuteEvents.ExecuteHierarchy<IPointerClickHandler>(itemHit.Value.gameObject,
+                        pointer, ExecuteEvents.pointerClickHandler);
+                }
+                Check(clickCount == 1, "真实 PointerClick 进入技能释放事件", ref failures);
+            }
+            finally
+            {
+                EventDispatcher.Off<int, int>(GlobalEvent.EVT_SKILL_SHORTCUT_CLICK, onClick);
+                role.DepositState = oldDeposit;
+                autoFight.SetAutoFightWeight(oldWeight);
+                autoFight.SetTempMode(oldTempMode);
+                if (item != null) UnityEngine.Object.DestroyImmediate(item.gameObject);
+                if (eventSystemGo != null) UnityEngine.Object.DestroyImmediate(eventSystemGo);
+                if (cameraGo != null) UnityEngine.Object.DestroyImmediate(cameraGo);
+                if (renderTexture != null) UnityEngine.Object.DestroyImmediate(renderTexture);
+                if (canvasGo != null) UnityEngine.Object.DestroyImmediate(canvasGo);
+            }
         }
 
         private static void VerifyClickGate(ref int failures)

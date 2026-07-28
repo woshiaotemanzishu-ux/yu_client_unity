@@ -187,6 +187,9 @@ var go = Object.Instantiate(prefab); // 来源不是 ResManager 的禁止
   模板上的 ItemBind 由转换器生成、回填器挂载,克隆自动重映射引用）
 - 交互统一 `UIUtil.AddClick`（转换产物默认无 Button）；
   **隐藏可点击元素用 `color` 透明度，禁止 `Graphic.enabled=false`（会同时关掉点击）**
+- 复合按钮只能保留一个顶层点击面；`bg/icon/lock/CD/文字` 等装饰 `Graphic` 必须
+  `raycastTarget=false`。禁止把 `Button` 只挂在底层装饰节点后让上层 Graphic 截点；点击验收必须至少
+  覆盖一次真实 Prefab 的 `GraphicRaycaster → PointerClick`，直接调用点击方法不能替代。
 - 业务 View 只负责状态、数据、事件和必要显隐；不要在运行时代码里改颜色、尺寸、
   位置、字体、描边、过渡等样式——样式改模板 prefab，图改 `ui_default_skins.json`，
   布局改 yu_client 源头后重转，prefab 手调是最后手段且模块要标记验收
