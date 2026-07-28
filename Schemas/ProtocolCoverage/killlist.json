@@ -784,5 +784,11 @@
     "reason": "old_client_never_wired",
     "evidence": "h5/src/commonController/SnatchTreasureController.ts:124-131(仅注册65201-65208);yu_server/src/territory_treasure/lib_territory_treasure_mod.erl:190-192(怪死广播);yu_server/src/pt/pt_652.erl:139-149(mon_id:u32,x:u16,y:u16)",
     "note": "怪物死亡坐标广播：服务端真实发包，但旧端无65209 handler/消费，Unity 不接。"
+  },
+  {
+    "cmd": 65404,
+    "reason": "old_client_never_sends",
+    "evidence": "h5/src/commonController/HolySealController.ts:53-55(仅serializer),161-164(空handler);h5/src全仓无65404 Fire/调用;yu_server/src/seal/pp_seal.erl:47-49;yu_server/src/seal/lib_seal.erl:248-254;yu_server/src/pt/pt_654.erl:18-20,79-83",
+    "note": "脱装备是真实背包、属性与战衣状态交易；旧端从未实际发送，禁止误迁为 Unity 裸请求。"
   }
 ]
