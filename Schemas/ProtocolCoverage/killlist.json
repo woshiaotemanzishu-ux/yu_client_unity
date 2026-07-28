@@ -594,6 +594,12 @@
     "note": "BossGuide 抢怪引导空请求。老端只有 handler，无 sender/UI；成功事件 GUIDE_FIGHT_SUCCESS 无订阅。服务端成功会把当前 HP 再乘随机70%-80%，同步场景并回61091；无防重，裸开放可重复损血。按老端不可达死号，不迁移。R253复核。"
   },
   {
+    "cmd": 61093,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/BaseDungeonController.ts:338-340,594-607,1859-1865;h5/src/commonModel/CustomActivityModel.ts:1019;h5/src/commonModel/TaskModel.ts:1210-1212;yu_server/src/dungeon/pp_dungeon.erl:656-678;yu_server/src/dungeon/lib_dungeon_mon_invade.erl:96-143",
+    "note": "异兽入侵界面快照。老端通用 sender 有分支但无调用，handler 模型写入、入口绑定和任务入口均已注释，无 UI/事件/模型消费；服务端查询纯读，副本成功更新记录后主动推送同号，另仅 GM 调用。按老端不可达死号不迁，未来恢复异兽入侵系统时整体迁移。R254复核。"
+  },
+  {
     "cmd": 62107,
     "reason": "dead_server_never_writes",
     "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
