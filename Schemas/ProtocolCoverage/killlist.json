@@ -576,6 +576,12 @@
     "note": "深渊BOSS场景内非本人死亡推送:唯一会调用 pt_460:write(46030,..) 的 mon_drop/5 的 BossType==?BOSS_TYPE_ABYSS 子句(含 :802 的 write 调用)从函数定义起被整段注释,ABYSS 类型实际落到 :838 空操作兜底子句。全仓 grep 46030 除 pt_460.erl 定义外零命中。轮21 PF 包实证,订正了审计把它列为『玩家可感知漏号』的误判。"
   },
   {
+    "cmd": 47011,
+    "reason": "dead_unreachable_push",
+    "evidence": "h5/src/commonController/BossController.ts:1210-1215(旧handler消费);yu_server/src/eudemons_land/pp_eudemons_land.erl(无handle(47011,...));yu_server/src/eudemons_land/mod_eudemons_land_zone_local.erl:151-155(唯一writer);mod_eudemons_land_zone_local:get_same_zone_servers/1全仓零caller;Assets/Editor/CliVerify/Cases/KfBossCase.cs:56-58(Unity死号未注册断言)",
+    "note": "同区服务器列表 push 只有不可达宿主 writer，服务端永不实际发送；Unity 保持不注册。"
+  },
+  {
     "cmd": 61057,
     "reason": "dead_server_never_writes",
     "evidence": "h5/src/commonController/BaseDungeonController.ts:1733-1737;yu_server/src/dungeon/pp_dungeon.erl:843-865;yu_server/src/pt/pt_610.erl:961-975",
