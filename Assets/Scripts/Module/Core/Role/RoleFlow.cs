@@ -71,6 +71,7 @@ namespace Shenxiao.Module.Core.Role
         private static GameObject _contentRoot;
         private static BaseWindowSkinView _window;
         private static bool _loading;
+        private static int _requestedTab = DefaultTab;
         // 第21轮:index1-4(翼影/古法符相/殒锋天刃/玄穹云披)各自独立的 PetModule.prefab 克隆根(用于 ResManager.ReleaseInstance)
         // + 从中抠出来的 OutWardBaseView(用于 ContentFactory 同步 reparent)。见 PreloadOutwardTabsAsync。
         private static readonly Dictionary<int, GameObject> _outwardRoots = new Dictionary<int, GameObject>();
@@ -83,6 +84,20 @@ namespace Shenxiao.Module.Core.Role
         }
 
         public static void Open() => _ = OpenAsync();
+
+        /// <summary>人物页内二级入口直达角色窗标签；窗口尚未创建时保留目标，异步加载完成后再选中。</summary>
+        public static void SelectTab(int index)
+        {
+            if (index < 0 || index >= TabContent.Length) return;
+            _requestedTab = index;
+            if (_window != null)
+            {
+                _window.Show();
+                _window.SelectTab(index);
+                return;
+            }
+            _ = OpenAsync();
+        }
 
         public static void Close()
         {
@@ -168,8 +183,10 @@ namespace Shenxiao.Module.Core.Role
             }
 
             _window.Show();
-            _window.Configure(specs, DefaultTab);
-            GameLog.Info("Role", "角色五标签窗打开(BaseWindowSkinView,默认 tab{0} 人物)", DefaultTab);
+            int initialTab = _requestedTab;
+            _requestedTab = DefaultTab;
+            _window.Configure(specs, initialTab);
+            GameLog.Info("Role", "角色标签窗打开(BaseWindowSkinView,tab={0})", initialTab);
         }
 
         /// <summary>把内容源里名为 viewName 的内容视图 reparent 进窗框内容区(保留其原始布局),返回其 BaseView。</summary>
@@ -256,6 +273,7 @@ namespace Shenxiao.Module.Core.Role
             _contentRoot = null;
             _window = null;
             _loading = false;
+            _requestedTab = DefaultTab;
         }
     }
 }
