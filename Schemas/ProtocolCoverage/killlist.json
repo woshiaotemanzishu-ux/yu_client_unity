@@ -660,6 +660,12 @@
     "note": "伙伴副本首通：C2S u32，S2C u32,u64,string。老端 sender 无 Fire 且 handler 只解包丢弃；服务端唯一 handler/call 整段注释、writer 定义无调用，永不发包。R265复核。"
   },
   {
+    "cmd": 61111,
+    "reason": "dead_server_feature_globally_disabled",
+    "evidence": "h5/libs/proto611.d.ts:208-213;h5/src/commonModel/BaseDungeonModel.ts:3282-3300;h5/src/commonController/BaseDungeonController.ts:292-294,2042-2046;yu_server/src/dungeon/lib_dungeon_mod.erl:2761-2773,2861-2862;yu_server/include/dungeon.hrl:864;Assets/Scripts/Module/Core/Dungeon/DungeonController.cs:OnSceneMapReady",
+    "note": "延迟加载完成通知仅为空 C2S、无 S2C。老端确在场景切换时发送，但服务端 is_need_delay_load_dun 恒 false，按 DELAY_DUN_LIST 分流的整段逻辑已注释，普通初始化默认 HAD_LOAD；61111 投递最终恒为 no-op，仅冗余 send_dungeon_info(61004)。Unity 已在 OnSceneMapReady 直接请求61004，禁止新增 Proto、61111 sender 或 handler。若未来恢复延迟加载，须连场景时序、服务端初始化与伙伴副本整体复审。R269复核。"
+  },
+  {
     "cmd": 62107,
     "reason": "dead_server_never_writes",
     "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
