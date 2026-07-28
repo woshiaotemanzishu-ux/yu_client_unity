@@ -684,6 +684,12 @@
     "note": "退出资格赛场景(轮22 PK3,S3 批复核)。C→S 请求处理链是活的(handle(62107,Status,_)(:78)非注释→mod_kf_1vN_local:quit/5(:71)→do_handle_cast({quit,...})(:390)→跨节点转发 mod_kf_1vN.erl:432 do_handle_cast({quit,Node,...})→lib_kf_1vN:quit_to_main_scene 或场景内部消息,均不产生任何 pt_621:write(62107,...) 调用),但 S→C 响应从未被服务端发出——全仓库 grep \"62107\" 除 handle 子句本身与 pt_621.erl:20(read)/165(write pack定义) 外零命中,含 send_to_sid/send_to_uid/send_error 等间接封装模式复核后仍确认无回包。老端 Kf1vnController.ts:274-277(Handler62107)注册点500,永远收不到这个号,是『请求有效但从无回执』的单向设计,注册接收 handler 不会被触发。"
   },
   {
+    "cmd": 62111,
+    "reason": "dead_empty_body",
+    "evidence": "yu_server/src/pt/pt_621.erl:25-26,231-242;yu_server/src/kf_1vN/mod_kf_1vN.erl:419-428,1393-1406,1432-1445;h5/src/commonController/Kf1vnController.ts:305-309,504",
+    "note": "C2S 为空，S2C 为 score:u32 + exp_sum:u64 + is_def:u8。服务端虽有活跃 query/push banner，老端 handler 仅 GetSCMD 后保留两行注释，无 Model/Event/UI 消费，属于解包即丢弃的幽灵数据；Unity 不接。未来仅在真实恢复等待/战场 banner 消费时重审；接入必须无损处理 u64，且 PRE side 的 is_def 原始值存在语义风险。R287。"
+  },
+  {
     "cmd": 65207,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/SnatchTreasureController.ts:130",
