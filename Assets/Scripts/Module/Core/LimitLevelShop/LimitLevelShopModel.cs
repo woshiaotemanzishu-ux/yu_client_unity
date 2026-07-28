@@ -10,12 +10,32 @@ namespace Shenxiao.Module.Core.LimitLevelShop
     /// 说明:老端每个礼包的真实图标类型来自 act_condition(erlang 串)里的 pic 字段(变体范围
     /// 61201..61225),经 ErlangParser 解析后 addIcon(cond.pic)。本期图标化只做主图标 61201,
     /// 暂不解析 act_condition;完整"一礼包一图标"的列表化待后续(见 Controller 的 TODO)。
-    /// 购买/礼包详情(61201 买结果、61202 活动信息、61203 礼包配置)属玩法,均未移植。
+    /// 61203 已接为显式原始只读配置查询，不随61200自动请求；61201/61202 与 UI 玩法仍未迁移。
     /// </summary>
     public sealed class LimitLevelShopModel
     {
         public static readonly LimitLevelShopModel Instance = new LimitLevelShopModel();
         private LimitLevelShopModel() { }
+
+        public sealed class GiftConfigEntry
+        {
+            public ushort Grade { get; } public string NormalCost { get; } public string Cost { get; } public string Show { get; }
+            public string PageString { get; } public string Reward { get; } public string Condition { get; }
+            public ushort RechargeId { get; } public ushort Discount { get; }
+            public GiftConfigEntry(ushort grade, string normalCost, string cost, string show, string pageString, string reward, string condition, ushort rechargeId, ushort discount)
+            { Grade = grade; NormalCost = normalCost; Cost = cost; Show = show; PageString = pageString; Reward = reward; Condition = condition; RechargeId = rechargeId; Discount = discount; }
+        }
+        public sealed class GiftConfigSnapshot
+        {
+            public ushort Type { get; } public ushort Subtype { get; } public bool Loaded { get; }
+            public IReadOnlyList<GiftConfigEntry> Entries { get; }
+            public GiftConfigSnapshot(ushort type, ushort subtype, IEnumerable<GiftConfigEntry> entries)
+            { Type = type; Subtype = subtype; Loaded = true; Entries = new List<GiftConfigEntry>(entries ?? new GiftConfigEntry[0]).AsReadOnly(); }
+        }
+        private readonly Dictionary<(ushort type, ushort subtype), GiftConfigSnapshot> _giftConfigs = new Dictionary<(ushort, ushort), GiftConfigSnapshot>();
+        public bool TryGetGiftConfig(ushort type, ushort subtype, out GiftConfigSnapshot snapshot) => _giftConfigs.TryGetValue((type, subtype), out snapshot);
+        public void ApplyGiftConfig(ushort type, ushort subtype, List<GiftConfigEntry> entries) => _giftConfigs[(type, subtype)] = new GiftConfigSnapshot(type, subtype, entries);
+        public void ClearGiftConfigs() => _giftConfigs.Clear();
 
         /// <summary>
         /// 主界面图标类型(主图标,对标老端 Type2Icon 首项 "61201")。
@@ -60,6 +80,7 @@ namespace Shenxiao.Module.Core.LimitLevelShop
 
         public void Reset()
         {
+            ClearGiftConfigs();
             _gifts.Clear();
         }
     }

@@ -775,6 +775,8 @@
         public const int COMPETE_ACT_LIST_DUOBAO_DRAW = 33803; // 连服夺宝抽奖结果(type/subtype/times/today_score/error/reward_list)
         public const int MARKET_ICON_INFO = 15121; // 市场跨服开放时间(图标151/151@1切换)。请求无参(read(15121,_)->{ok,
         public const int LIMITLEVELSHOP_LIST = 61200; // 限时等级抢购礼包列表(模块612,驱动图标61201)。请求无参(read(61200,_)->
+        /// <summary>限时等级抢购礼包配置。C2S type:u16,subtype:u16,grade:u16；S2C type:u16,subtype:u16,grade_list:u16×raw 配置项。</summary>
+        public const int LIMITLEVELSHOP_GIFT_CONFIG = 61203;
         public const int ACTIVITYFORESHOW_SNATCH_TIME = 65208; // 领地夺宝时间信息(预告图标 652@31@0 用)。请求无字段(read(65208,_)->{
         public const int SNATCH_TREASURE_ENTRY_INFO = 65201; // 领地夺宝入口全量只读快照；严格空请求，65208 保留给 ActivityForeshow。
         public const int SNATCH_TREASURE_EXIT = 65206; // 领地夺宝退出。C2S严格空包；S2C code:u32，服务端权威切场。

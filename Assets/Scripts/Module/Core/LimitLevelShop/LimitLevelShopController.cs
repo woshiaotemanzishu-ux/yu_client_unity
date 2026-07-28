@@ -17,12 +17,16 @@ namespace Shenxiao.Module.Core.LimitLevelShop
     /// 跨天(轮20 实接,EVT_SERVER_DAY_CHANGE)同样复请求 61200(对标老端 LimitLevelShopController.ts:46
     /// DAY_CHANGE→ResetData;该闭包命名具误导性,实际只 Fire(SCMD_REQUEST,61200)发包,并不重置本地模型——
     /// 模型重置 _model.ReSetModel() 是 GAME_START 专属,DAY_CHANGE 不带,见 OnServerDayChange)。
-    /// 购买/礼包详情(61201 买结果、61202 活动信息、61203 礼包配置)属玩法,均未移植,待用户验收。
+    /// 61203 已接为显式原始只读配置查询，不随61200自动请求；61201/61202 与 UI 玩法仍未迁移。
     /// </summary>
     public sealed class LimitLevelShopController : BaseController
     {
         public static readonly LimitLevelShopController Instance = new LimitLevelShopController();
         private LimitLevelShopController() { }
+
+#if UNITY_EDITOR
+        private static System.Func<byte[], bool> s_giftConfigOutboundIntercept = null;
+#endif
 
         public const string ICON_TYPE = LimitLevelShopModel.ICON_TYPE;
 
@@ -35,6 +39,7 @@ namespace Shenxiao.Module.Core.LimitLevelShop
         protected override void Register()
         {
             RegisterProtocal(Proto.LIMITLEVELSHOP_LIST, On61200);
+            RegisterProtocal(Proto.LIMITLEVELSHOP_GIFT_CONFIG, On61203);
             // 本端加强:等级变化时复请求(按等级开抢购),老端无对应绑定。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             // 对标老端 DAY_CHANGE→SCMD_REQUEST 61200(LimitLevelShopController.ts:46)。
@@ -57,6 +62,25 @@ namespace Shenxiao.Module.Core.LimitLevelShop
         {
             // read(61200,_)->{ok,[]}:请求无字段,裸发。
             SendFmt(Proto.LIMITLEVELSHOP_LIST);
+        }
+
+        public void RequestGiftConfig(ushort type, ushort subtype, ushort grade)
+        {
+#if UNITY_EDITOR
+            if (s_giftConfigOutboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(Proto.LIMITLEVELSHOP_GIFT_CONFIG, "hhh", new object[] { type, subtype, grade });
+                if (s_giftConfigOutboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(Proto.LIMITLEVELSHOP_GIFT_CONFIG, "hhh", type, subtype, grade);
+        }
+
+        private void On61203(NetReader r)
+        {
+            ushort type = r.ReadU16(); ushort subtype = r.ReadU16();
+            List<LimitLevelShopModel.GiftConfigEntry> entries = r.ReadArray(rr => new LimitLevelShopModel.GiftConfigEntry(rr.ReadU16(), rr.ReadString(), rr.ReadString(), rr.ReadString(), rr.ReadString(), rr.ReadString(), rr.ReadString(), rr.ReadU16(), rr.ReadU16()));
+            LimitLevelShopModel.Instance.ApplyGiftConfig(type, subtype, entries);
         }
 
         // 61200: gift_list[u16 count × {
