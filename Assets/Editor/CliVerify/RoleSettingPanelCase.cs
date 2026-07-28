@@ -55,10 +55,10 @@ namespace Shenxiao.EditorTools
 
         private static bool VerifySettingSprites()
         {
-            bool changeHead = SpriteSize("Assets/GameRes/resource/game/setting/texture/ui_button_rect8.png", 96, 32);
-            bool copy = SpriteSize("Assets/GameRes/resource/game/setting/texture/ui_button_rect9.png", 142, 45);
+            bool changeHead = SpriteSize("Assets/GameRes/resource/game/setting/texture/ui_button_rect8.png", 98, 28);
+            bool copy = SpriteSize("Assets/GameRes/resource/game/setting/texture/ui_button_rect9.png", 98, 28);
             bool baseTab = SpriteSize("Assets/GameRes/resource/game/setting/texture/ui_button_rect5.png", 150, 57);
-            bool shieldTab = SpriteSize("Assets/GameRes/resource/game/setting/texture/ui_button_mid_1.png", 152, 52);
+            bool shieldTab = SpriteSize("Assets/GameRes/resource/game/setting/texture/ui_button_mid_1.png", 124, 52);
             bool header = AssetDatabase.LoadAssetAtPath<Sprite>(
                 "Assets/GameRes/resource/game/setting/texture/ui_friends_25.png") != null;
             Debug.Log("CLIVERIFY rolesetting settingSprites head=" + changeHead + " copy=" + copy
@@ -136,6 +136,9 @@ namespace Shenxiao.EditorTools
                 }, 0);
 
                 await Task.Delay(2200);
+                // 编辑器非 PlayMode 下 UIModelStage 不能合法 DontDestroyOnLoad；视觉验收隐藏该编辑器伪影，
+                // 真机/PlayMode 仍走 EquipmentView 的真实角色模型链。
+                if (!Application.isPlaying && equipment.model_gp != null) equipment.model_gp.gameObject.SetActive(false);
                 int baseCount = equipment._Scroller1.content.GetComponentsInChildren<RolePropertyItemRenderer>(false).Length;
                 RolePropertyItemRenderer[] baseItems = equipment._Scroller1.content.GetComponentsInChildren<RolePropertyItemRenderer>(false);
                 bool rawValue = baseItems.Length > 0 && baseItems[0].property_value.text == "57263";
