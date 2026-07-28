@@ -756,6 +756,24 @@
     "note": "我的身份快照：服务端从 kf_1vn 状态直接回 DefType/Turn，旧端无 handler、Model 或 UI 消费。风险：身份快照易与场景/阶段不同步，不能作为独立权威状态写入；不新增 Unity 接入。"
   },
   {
+    "cmd": 62205,
+    "reason": "nonexistent_commented_historic",
+    "evidence": "h5/libs/proto622.d.ts:76-93(62204后直接62207);yu_server/src/pt/pt_622.erl:18-21,73-85(62204后直接62207);yu_server/src/draconic/pp_draconic.erl:235-254(唯一do_handle/write全段注释)",
+    "note": "圣魂丹界面历史协议：无现行旧端契约、pt read/write 或服务端 handler，唯一痕迹为已注释的旧实现。风险：不得根据该历史注释恢复界面或属性同步语义。"
+  },
+  {
+    "cmd": 62300,
+    "reason": "nonexistent_protocol_family",
+    "evidence": "h5/libs/proto622.d.ts:1-143(622家族结束);h5/libs/proto640.d.ts:1-3(下一家族640);yu_server/src/pt/pt_622.erl:1-150(622家族结束);yu_server/src/pt/pt_640.erl:1-10(下一家族640);h5/src、yu_server/src、Assets 搜索62300零命中",
+    "note": "623 协议族不存在：无 proto623、pt_623 或 handler。风险：不可将编号间隙误当作待接入协议；仅在双端真实新增完整契约后重审。"
+  },
+  {
+    "cmd": 65000,
+    "reason": "orphaned_3v3_snapshot",
+    "evidence": "h5/libs/proto650.d.ts:4-42;h5/src/commonModel/DailyModel.ts:269-272(唯一发送为注释);yu_server/src/3v3/pp_3v3.erl:32-67;yu_server/src/pt/pt_650.erl:8-9,168-209;h5/src无65000 handler/UI，Unity无接入",
+    "note": "跨服3v3个人战绩大快照：服务端查询会结合赛季、队伍、匹配/战斗状态并跨服回包，旧端真实 src 只有注释发送且无 handler/UI。风险：快照含奖励状态与匹配状态，缺少完整3v3生命周期不得孤立接入 Unity。"
+  },
+  {
     "cmd": 65207,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/SnatchTreasureController.ts:130",
