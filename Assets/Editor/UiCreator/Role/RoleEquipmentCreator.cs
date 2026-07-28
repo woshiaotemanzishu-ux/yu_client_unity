@@ -111,7 +111,8 @@ namespace Shenxiao.Editor.UiCreator.Role
 
             HorizontalLayoutGroup layout = GetOrAdd<HorizontalLayoutGroup>(item.property_group.gameObject);
             layout.padding = new RectOffset();
-            layout.spacing = 10f;
+            // TMP 中文 fallback 的 preferredWidth 比 Laya Label 略窄；留 24px 可避免长属性名覆盖数值。
+            layout.spacing = 24f;
             layout.childAlignment = TextAnchor.UpperLeft;
             layout.childControlWidth = false;
             layout.childControlHeight = false;
