@@ -588,6 +588,12 @@
     "note": "高级经验副本结束面板死号。老端 handler 非空，会更新 adExpPanelInfo 并发事件，但全 h5/src 无 61060 sender；服务端唯一 pt_610:write(61060,...) 与 send_to_uid 调用随 push_settlement 整段注释，pp_dungeon 无 handle(61060,...) 且无经 send_to_sid/send_to_uid/send_error/send_pt_data 等间接封装的真实调用。Unity Proto.cs 与 DungeonController.cs 已明确标为服务端 DEAD，继续不注册；killlist 防止老端非空 handler 被误报为 live gap。"
   },
   {
+    "cmd": 61091,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/BaseDungeonController.ts:1835-1844;h5/src/commonModel/BaseDungeonModel.ts:90;yu_server/src/dungeon/pp_dungeon.erl:620-621;yu_server/src/dungeon/lib_dungeon.erl:2881-2907",
+    "note": "BossGuide 抢怪引导空请求。老端只有 handler，无 sender/UI；成功事件 GUIDE_FIGHT_SUCCESS 无订阅。服务端成功会把当前 HP 再乘随机70%-80%，同步场景并回61091；无防重，裸开放可重复损血。按老端不可达死号，不迁移。R253复核。"
+  },
+  {
     "cmd": 62107,
     "reason": "dead_server_never_writes",
     "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
