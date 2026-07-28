@@ -612,6 +612,12 @@
     "note": "Wake 副本怪物减速：C2S 空，S2C end_time:u32。老端协议声明 send null 且源码零接线；服务端真实校验副本/Wake/未结算/冷却/资源并异步权威扣费，修改怪物速度、定时恢复，成功才单推61095，失败走61000或静默。无 DB、奖励或结算。禁止裸开放，未来与61094及配置、确认、防连点、错误和倒计时整体迁移。R256复核。"
   },
   {
+    "cmd": 61096,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/libs/proto610.d.ts:1581-1589;h5/src逐号检索零sender/handler;yu_server/src/dungeon/pp_dungeon.erl:711-747;yu_server/src/dungeon/lib_dungeon_evil.erl:116-143",
+    "note": "诛邪战场日常奖励领取：C2S 空，S2C res:u32。d.ts 误称奖励信息且仅声明 send null，源码零接线；服务端加载副本记录，按当日日最高分计算奖励，仅状态1且背包可容纳时真发奖、置状态2并持久化，其余分支回错，无主动 push。禁止裸开放，未来随61097权威状态及奖励 UI、容量校验、确认防连点、成功刷新和错误处理整体迁移。R257复核。"
+  },
+  {
     "cmd": 62107,
     "reason": "dead_server_never_writes",
     "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
