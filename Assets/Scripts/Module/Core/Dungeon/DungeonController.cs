@@ -44,6 +44,7 @@ namespace Shenxiao.Module.Core.Dungeon
     /// 轮22 族错误出口批补 61000(家族统一错误壳)+ 61047(回应邀请进入副本)+ 61092(异兽入侵领取阶段奖励,
     /// 老端成功分支已注释,纯错误出口)。
     /// 轮231 补 61046 邀请/取消请求与发送者原始消息；轮232 补 61048 双方完整原始状态快照。
+    /// 轮241 补 61058 神纹跳关奖励 S2C-only 原始快照，不触发 UI 或本地发奖。
     /// </summary>
     public sealed class DungeonController : BaseController
     {
@@ -78,6 +79,7 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_DRAGON_STAGE_REWARD, On61051);
             RegisterProtocal(Proto.DUNGEON_DRAGON_QUICK_INFO, On61053);
             RegisterProtocal(Proto.DUNGEON_DRAGON_SKILL_INFO, On61055);
+            RegisterProtocal(Proto.DUNGEON_DRAGON_JUMP_REWARD, On61058);
             RegisterProtocal(Proto.DUNGEON_MONSTER_INVASION_REWARD, On61092);
             // 61002(DUNGEON_EXIT)已由 AutoBrushController 注册,红线不可重复注册;Exit() 只发不接。
             RegisterProtocal(Proto.DUNGEON_INFO, On61004);
@@ -990,6 +992,20 @@ namespace Shenxiao.Module.Core.Dungeon
                     Num = rr.ReadU16(),
                 });
             DungeonModel.Instance.ApplyDragonSkillInfo(skills);
+        }
+
+        /// <summary>61058 神纹跳关奖励主动通知；仅保留服务端实际下发的有序原始快照。</summary>
+        private void On61058(NetReader r)
+        {
+            uint wave = r.ReadU32();
+            List<DungeonModel.DragonJumpRewardEntry> rewards = r.ReadArray(rr =>
+                new DungeonModel.DragonJumpRewardEntry
+                {
+                    Type = rr.ReadU8(),
+                    TypeId = rr.ReadU32(),
+                    Num = rr.ReadU32(),
+                });
+            DungeonModel.Instance.ApplyDragonJumpReward(wave, rewards);
         }
 
         /// <summary>61092 异兽入侵 领取阶段奖励(对标老端 BaseDungeonController.ts:1848-1857 内联 handler:

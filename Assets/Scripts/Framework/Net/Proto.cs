@@ -1597,6 +1597,10 @@
         /// <summary>神纹副本临时技能数量查询/推送。C2S 严格空包；S2C
         /// skill_list[u16×{skill_id:u32,num:u16}]。每包整体替换有序原始快照，保留重复项。</summary>
         public const int DUNGEON_DRAGON_SKILL_INFO = 61055;
+        /// <summary>神纹副本跳关奖励通知（S2C-only，无 C2S 请求）。S2C wave:u32,
+        /// reward_list[u16×{type:u8,type_id:u32,num:u32}]。服务端先持久发奖再主动推送；通知中的配置掉落
+        /// 未按副本次数倍乘，可能与实际发奖数量不同，本端只保存 wire 原值。</summary>
+        public const int DUNGEON_DRAGON_JUMP_REWARD = 61058;
         /// <summary>异兽入侵 领取阶段奖励(轮22 族错误出口批;对标老端 BaseDungeonController.ts:1848-1857
         /// 内联handler:error_code==1 分支 setMonsterInvasionReward 调用**已被老端注释**[纯死代码,运行时
         /// 无副作用],否则 ErrorCodeShow(error_code)——本端如实镜像"成功也不做事",不臆造奖励消费)。
