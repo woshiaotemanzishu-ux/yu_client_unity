@@ -220,6 +220,17 @@ namespace Shenxiao.Module.Core.Dungeon
         public List<DragonSkillInfoEntry> DragonSkillInfo { get; private set; } =
             new List<DragonSkillInfoEntry>();
 
+        public sealed class HeartSkillInfoEntry
+        {
+            public uint SkillId;
+            public ushort SkillLv;
+        }
+
+        /// <summary>是否收到过 61101；列表保留 wire 原序和重复项，空表仍是合法完整快照。</summary>
+        public bool HasHeartSkillInfo { get; private set; }
+        public IReadOnlyList<HeartSkillInfoEntry> HeartSkillInfo { get; private set; } =
+            new List<HeartSkillInfoEntry>();
+
         public sealed class DragonJumpRewardEntry
         {
             public byte Type;
@@ -360,6 +371,20 @@ namespace Shenxiao.Module.Core.Dungeon
         {
             HasDragonSkillInfo = true;
             DragonSkillInfo = skills ?? new List<DragonSkillInfoEntry>();
+        }
+
+        public void ApplyHeartSkillInfo(List<HeartSkillInfoEntry> skills)
+        {
+            HasHeartSkillInfo = true;
+            HeartSkillInfo = skills ?? new List<HeartSkillInfoEntry>();
+        }
+
+        /// <summary>重复 skill_id 按 wire 最后项生效；未收到或不存在均返回 0。</summary>
+        public ushort GetHeartSkillLevel(uint skillId)
+        {
+            for (int i = HeartSkillInfo.Count - 1; i >= 0; i--)
+                if (HeartSkillInfo[i].SkillId == skillId) return HeartSkillInfo[i].SkillLv;
+            return 0;
         }
 
         public void ApplyDragonJumpReward(uint wave, List<DragonJumpRewardEntry> rewards)
@@ -710,6 +735,8 @@ namespace Shenxiao.Module.Core.Dungeon
             NextQuickTime = 0;
             HasDragonSkillInfo = false;
             DragonSkillInfo.Clear();
+            HasHeartSkillInfo = false;
+            HeartSkillInfo = new List<HeartSkillInfoEntry>();
             HasDragonJumpReward = false;
             LastDragonJumpReward = null;
             HasAdvancedExpInfo = false;

@@ -64,6 +64,7 @@ namespace Shenxiao.Module.Core.Dungeon
         private static Func<byte[], bool> s_dragonStageRewardOutboundIntercept = null;
         private static Func<byte[], bool> s_dragonQuickInfoOutboundIntercept = null;
         private static Func<byte[], bool> s_dragonSkillInfoOutboundIntercept = null;
+        private static Func<byte[], bool> s_heartSkillInfoOutboundIntercept = null;
         private static Func<byte[], bool> s_dungeonSettingInfoOutboundIntercept = null;
         private static Func<byte[], bool> s_dungeonSettingUpdateOutboundIntercept = null;
         private static Func<byte[], bool> s_polarSpecialInfoOutboundIntercept = null;
@@ -89,6 +90,7 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_DRAGON_STAGE_REWARD, On61051);
             RegisterProtocal(Proto.DUNGEON_DRAGON_QUICK_INFO, On61053);
             RegisterProtocal(Proto.DUNGEON_DRAGON_SKILL_INFO, On61055);
+            RegisterProtocal(Proto.DUNGEON_HEART_SKILL_INFO, On61101);
             RegisterProtocal(Proto.DUNGEON_DRAGON_JUMP_REWARD, On61058);
             RegisterProtocal(Proto.DUNGEON_ADVANCED_EXP_INFO, On61059);
             RegisterProtocal(Proto.DUNGEON_ADVANCED_EXP_JUMP_INFO, On61061);
@@ -346,6 +348,19 @@ namespace Shenxiao.Module.Core.Dungeon
             }
 #endif
             SendFmt(Proto.DUNGEON_DRAGON_SKILL_INFO);
+        }
+
+        /// <summary>显式查询神殿觉醒副本技能；严格空包，不由生命周期或 UI 自动触发。</summary>
+        public void RequestHeartSkillInfo()
+        {
+#if UNITY_EDITOR
+            if (s_heartSkillInfoOutboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(Proto.DUNGEON_HEART_SKILL_INFO, null, null);
+                if (s_heartSkillInfoOutboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(Proto.DUNGEON_HEART_SKILL_INFO);
         }
 
         /// <summary>显式查询指定副本的开关设置；不由生命周期或 UI 自动触发。</summary>
@@ -1049,6 +1064,17 @@ namespace Shenxiao.Module.Core.Dungeon
                     Num = rr.ReadU16(),
                 });
             DungeonModel.Instance.ApplyDragonSkillInfo(skills);
+        }
+
+        private void On61101(NetReader r)
+        {
+            List<DungeonModel.HeartSkillInfoEntry> skills = r.ReadArray(rr =>
+                new DungeonModel.HeartSkillInfoEntry
+                {
+                    SkillId = rr.ReadU32(),
+                    SkillLv = rr.ReadU16(),
+                });
+            DungeonModel.Instance.ApplyHeartSkillInfo(skills);
         }
 
         /// <summary>61058 神纹跳关奖励主动通知；仅保留服务端实际下发的有序原始快照。</summary>
