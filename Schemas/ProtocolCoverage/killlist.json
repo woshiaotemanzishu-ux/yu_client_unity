@@ -576,6 +576,12 @@
     "note": "深渊BOSS场景内非本人死亡推送:唯一会调用 pt_460:write(46030,..) 的 mon_drop/5 的 BossType==?BOSS_TYPE_ABYSS 子句(含 :802 的 write 调用)从函数定义起被整段注释,ABYSS 类型实际落到 :838 空操作兜底子句。全仓 grep 46030 除 pt_460.erl 定义外零命中。轮21 PF 包实证,订正了审计把它列为『玩家可感知漏号』的误判。"
   },
   {
+    "cmd": 61057,
+    "reason": "dead_server_never_writes",
+    "evidence": "h5/src/commonController/BaseDungeonController.ts:1733-1737;yu_server/src/dungeon/pp_dungeon.erl:843-865;yu_server/src/pt/pt_610.erl:961-975",
+    "note": "神纹/龙纹副本波数数据死号。老端非注释注册体仅 GetSCMD(61057) 后丢弃，无 sender、UI 或 model 副作用；服务端只有生成的空 C2S read 与 S2C pack 子句，pp_dungeon 无 handle(61057,...) 且全 src 无真实 writer 调用。Unity Proto.cs:1612-1613 已明确判为服务端 DEAD 且未注册；ProtocolCoverageScanner 因 GetSCMD 解包壳去注释后非空而误报为 live gap。"
+  },
+  {
     "cmd": 62107,
     "reason": "dead_server_never_writes",
     "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
