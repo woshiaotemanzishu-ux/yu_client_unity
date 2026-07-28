@@ -1542,4 +1542,4 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **纠正方向**：撤销对 `char_acceleratebuff01` 增加固定 Z 后移的尝试，恢复资源原始局部位置；新旧模型继续共用稳定、单位缩放的 `MainRoleAttachedEffects`，不再按舞姬或其他单个模型做位置特判。
 - **表现根因**：老端网格材质用 1 秒循环动画把 `_MainTex_ST.z` 从 0 线性滚到 3；`lyz_trail_117` 自身包含透明—亮—透明分布，因此运行中自然形成流光和周期隐现。Unity 旧转换资源只留下 `_BaseMap_ST` 曲线，而 `LayaParticleUnlit` 实际采样 `_MainTex_ST`，导致 UV 停在首帧，三角光带从起跑起持续常亮。
 - **资源修复**：将当前 `char_acceleratebuff01.anim` 的 UV 四分量绑定恢复到 `material._MainTex_ST`，保留原始 `0→3/1s`、线性切线和 `WrapMode.Loop`，不修改贴图、颜色、网格、粒子或空间位置。
-- **回归**：`RolePresentationEffectsCase` 增加真实动画资源断言，要求 `_MainTex_ST.z` 在 `0s/0.5s/1s` 分别为 `0/1.5/3` 且循环；防止资源再次退化成只写 `_BaseMap_ST` 的常亮尾片。
+- **回归**：Unity 强制编译 `completed/failed=false`；`RolePresentationEffectsCase` 返回 `0 / ALL PASS`，同时要求 `_MainTex_ST.z` 原始曲线在 `0s/0.5s/1s` 分别为 `0/1.5/3` 且循环，并通过真实 `Animation.Sample + MaterialPropertyBlock` 验证运行时从 `0` 滚到 `1.5`，防止资源再次退化成只写 `_BaseMap_ST` 或曲线存在但未进入渲染器的常亮尾片。

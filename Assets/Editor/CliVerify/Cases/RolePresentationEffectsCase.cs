@@ -270,10 +270,33 @@ namespace Shenxiao.EditorTools
             float start = scroll.Evaluate(0f);
             float middle = scroll.Evaluate(0.5f);
             float end = scroll.Evaluate(1f);
-            diagnostic = $"uvU={start:F2}->{middle:F2}->{end:F2}, wrap={clip.wrapMode}";
+            MeshRenderer renderer = animation.GetComponentInChildren<MeshRenderer>(true);
+            AnimationState state = animation[clip.name];
+            if (renderer == null || state == null)
+            {
+                diagnostic = "flow MeshRenderer/AnimationState missing";
+                return false;
+            }
+
+            EffectBinder.PlayEffect(effect);
+            state.enabled = true;
+            state.weight = 1f;
+            var properties = new MaterialPropertyBlock();
+            state.time = 0f;
+            animation.Sample();
+            renderer.GetPropertyBlock(properties);
+            float runtimeStart = properties.GetVector("_MainTex_ST").z;
+            state.time = 0.5f;
+            animation.Sample();
+            renderer.GetPropertyBlock(properties);
+            float runtimeMiddle = properties.GetVector("_MainTex_ST").z;
+
+            diagnostic = $"curve={start:F2}->{middle:F2}->{end:F2}, " +
+                         $"runtime={runtimeStart:F2}->{runtimeMiddle:F2}, wrap={clip.wrapMode}";
             return clip.wrapMode == WrapMode.Loop && scroll.length >= 2 &&
                    Mathf.Abs(start) <= 0.001f && Mathf.Abs(middle - 1.5f) <= 0.01f &&
-                   Mathf.Abs(end - 3f) <= 0.01f;
+                   Mathf.Abs(end - 3f) <= 0.01f && Mathf.Abs(runtimeStart) <= 0.01f &&
+                   Mathf.Abs(runtimeMiddle - 1.5f) <= 0.01f;
         }
 
         /// <summary>
