@@ -615,7 +615,13 @@
     "cmd": 61096,
     "reason": "old_client_never_wired",
     "evidence": "h5/libs/proto610.d.ts:1581-1589;h5/src逐号检索零sender/handler;yu_server/src/dungeon/pp_dungeon.erl:711-747;yu_server/src/dungeon/lib_dungeon_evil.erl:116-143",
-    "note": "诛邪战场日常奖励领取：C2S 空，S2C res:u32。d.ts 误称奖励信息且仅声明 send null，源码零接线；服务端加载副本记录，按当日日最高分计算奖励，仅状态1且背包可容纳时真发奖、置状态2并持久化，其余分支回错，无主动 push。禁止裸开放，未来随61097权威状态及奖励 UI、容量校验、确认防连点、成功刷新和错误处理整体迁移。R257复核。"
+    "note": "诛邪战场日常奖励领取：C2S 空，S2C res:u32。d.ts 误称奖励信息且仅声明 send null，源码零接线；服务端加载副本记录，按当日最高分计算奖励，仅状态1且背包可容纳时真发奖、置状态2并持久化，其余分支回错，无主动 push。禁止裸开放，未来随61097权威状态及奖励 UI、容量校验、确认防连点、成功刷新和错误处理整体迁移。R257复核。"
+  },
+  {
+    "cmd": 61097,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/libs/proto610.d.ts:1591-1600;h5/src逐号检索零sender/handler;yu_server/src/dungeon/pp_dungeon.erl:749-767;yu_server/src/dungeon/lib_dungeon_evil.erl:116-135;yu_server/src/pt/pt_610.erl:1194-1204",
+    "note": "诛邪战场日常奖励权威状态查询：C2S 空，S2C state:u8 + reward_list:ObjectList(u16×type:u8,type_id:u32,num:u32)。老端仅声明 send null 且源码零接线；服务端加载记录后纯读当日最高分与评分奖励，跨天或异常回状态0和空列表，无 DB、物品或状态写，也无主动 push。虽与61096领取配套，但旧系统整体未接；未来须与领取及奖励 UI 整体迁移。R258复核。"
   },
   {
     "cmd": 62107,
