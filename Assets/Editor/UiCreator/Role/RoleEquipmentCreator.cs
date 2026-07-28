@@ -113,19 +113,26 @@ namespace Shenxiao.Editor.UiCreator.Role
             layout.padding = new RectOffset();
             layout.spacing = 10f;
             layout.childAlignment = TextAnchor.UpperLeft;
-            layout.childControlWidth = true;
+            layout.childControlWidth = false;
             layout.childControlHeight = false;
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
 
+            item.property_group.anchorMin = item.property_group.anchorMax = new Vector2(0f, 1f);
+            item.property_group.pivot = new Vector2(0f, 1f);
+            item.property_group.sizeDelta = new Vector2(286f, 30f);
+
             if (item.property_name != null)
             {
-                item.property_name.enableWordWrapping = false;
+                item.property_name.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
                 item.property_name.overflowMode = TMPro.TextOverflowModes.Overflow;
+                ContentSizeFitter nameFitter = GetOrAdd<ContentSizeFitter>(item.property_name.gameObject);
+                nameFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+                nameFitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
             }
             if (item.property_value != null)
             {
-                item.property_value.enableWordWrapping = false;
+                item.property_value.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
                 item.property_value.overflowMode = TMPro.TextOverflowModes.Overflow;
             }
         }
