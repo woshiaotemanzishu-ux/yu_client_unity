@@ -582,6 +582,12 @@
     "note": "神纹/龙纹副本波数数据死号。老端非注释注册体仅 GetSCMD(61057) 后丢弃，无 sender、UI 或 model 副作用；服务端只有生成的空 C2S read 与 S2C pack 子句，pp_dungeon 无 handle(61057,...) 且全 src 无真实 writer 调用。Unity Proto.cs:1612-1613 已明确判为服务端 DEAD 且未注册；ProtocolCoverageScanner 因 GetSCMD 解包壳去注释后非空而误报为 live gap。"
   },
   {
+    "cmd": 61060,
+    "reason": "dead_server_call_site_commented",
+    "evidence": "h5/src/commonController/BaseDungeonController.ts:1756-1762;yu_server/src/dungeon/lib_dungeon_high_exp.erl:138-152;yu_server/src/pt/pt_610.erl:1005-1015",
+    "note": "高级经验副本结束面板死号。老端 handler 非空，会更新 adExpPanelInfo 并发事件，但全 h5/src 无 61060 sender；服务端唯一 pt_610:write(61060,...) 与 send_to_uid 调用随 push_settlement 整段注释，pp_dungeon 无 handle(61060,...) 且无经 send_to_sid/send_to_uid/send_error/send_pt_data 等间接封装的真实调用。Unity Proto.cs 与 DungeonController.cs 已明确标为服务端 DEAD，继续不注册；killlist 防止老端非空 handler 被误报为 live gap。"
+  },
+  {
     "cmd": 62107,
     "reason": "dead_server_never_writes",
     "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
