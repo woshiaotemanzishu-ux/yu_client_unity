@@ -48,9 +48,10 @@ namespace Shenxiao.EditorTools
                 MethodInfo onCounts = Handler("On24107");
                 var handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
                 bool pass = interceptField != null && onInfo != null && onPortals != null && onCounts != null && handlers != null;
+                pass &= handlers != null && handlers.Contains(Proto.DUNGEON_SENTIENT_MONSTER_PROGRESS);
                 for (int id = 24100; id <= 24109; id++)
                     pass &= (id == 24101 || id == 24102 || id == 24107) ? handlers.Contains(id) : !handlers.Contains(id);
-                Chk(ref pass, "24100..24109 only 01/02/07 registered", pass);
+                Chk(ref pass, "24100..24109 only 01/02/07 plus 61066 registered", pass);
 
                 var frames = new List<byte[]>();
                 interceptField.SetValue(null, new Func<byte[], bool>(frame =>
@@ -122,7 +123,7 @@ namespace Shenxiao.EditorTools
                 frames.Clear();
                 controller.Dispose();
                 EventDispatcher.Emit(GlobalEvent.EVT_GAME_START);
-                Chk(ref pass, "dispose removes handlers/resets/no GAME_START frames", !controller.IsInitialized && !handlers.Contains(24101) && !handlers.Contains(24102) && !handlers.Contains(24107) && Empty(model) && frames.Count == 0);
+                Chk(ref pass, "dispose removes handlers/resets/no GAME_START frames", !controller.IsInitialized && !handlers.Contains(24101) && !handlers.Contains(24102) && !handlers.Contains(24107) && !handlers.Contains(Proto.DUNGEON_SENTIENT_MONSTER_PROGRESS) && Empty(model) && frames.Count == 0);
 
                 Debug.Log("CLIVERIFY sentient-act VERDICT pass=" + pass);
                 return pass ? 0 : 3;
@@ -155,7 +156,7 @@ namespace Shenxiao.EditorTools
 
         private static bool Empty(SentientActModel model)
         {
-            return !model.HasInfo && !model.HasPortals && !model.HasCounts && model.State == 0 && model.EndTime == 0 && model.Mod == 0 && model.GroupId == 0 && model.NextStartTime == 0 && model.AvgLevel == 0 && model.Servers.Count == 0 && model.Portals.Count == 0 && model.AssistNum == 0 && model.EnterNum == 0;
+            return !model.HasInfo && !model.HasPortals && !model.HasCounts && !model.HasMonsterProgress && model.LastMonsterProgress == null && model.State == 0 && model.EndTime == 0 && model.Mod == 0 && model.GroupId == 0 && model.NextStartTime == 0 && model.AvgLevel == 0 && model.Servers.Count == 0 && model.Portals.Count == 0 && model.AssistNum == 0 && model.EnterNum == 0;
         }
 
         private static bool Frames(List<byte[]> frames, params int[] ids)
@@ -233,6 +234,8 @@ namespace Shenxiao.EditorTools
             private readonly bool _hasCounts;
             private readonly uint _assist;
             private readonly uint _enter;
+            private readonly bool _hasMonsterProgress;
+            private readonly SentientActModel.MonsterProgressSnapshot _monsterProgress;
 
             public SavedState(SentientActModel model)
             {
@@ -249,6 +252,8 @@ namespace Shenxiao.EditorTools
                 _hasCounts = model.HasCounts;
                 _assist = model.AssistNum;
                 _enter = model.EnterNum;
+                _hasMonsterProgress = model.HasMonsterProgress;
+                _monsterProgress = model.LastMonsterProgress;
             }
 
             public void Restore(SentientActModel model)
@@ -257,6 +262,10 @@ namespace Shenxiao.EditorTools
                 if (_hasInfo) model.ReplaceInfo(_state, _endTime, _mod, _groupId, _nextStartTime, _servers, _avgLevel);
                 if (_hasPortals) model.ReplacePortals(_portals);
                 if (_hasCounts) model.ReplaceCounts(_assist, _enter);
+                typeof(SentientActModel).GetProperty("HasMonsterProgress", BindingFlags.Public | BindingFlags.Instance)
+                    ?.SetValue(model, _hasMonsterProgress);
+                typeof(SentientActModel).GetProperty("LastMonsterProgress", BindingFlags.Public | BindingFlags.Instance)
+                    ?.SetValue(model, _monsterProgress);
             }
         }
     }

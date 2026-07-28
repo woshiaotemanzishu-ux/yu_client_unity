@@ -34,6 +34,20 @@ namespace Shenxiao.Module.Core.SentientAct
             }
         }
 
+        public sealed class MonsterProgressSnapshot
+        {
+            public uint WaveNum { get; }
+            public uint DeadMonNum { get; }
+            public uint MonNum { get; }
+
+            public MonsterProgressSnapshot(uint waveNum, uint deadMonNum, uint monNum)
+            {
+                WaveNum = waveNum;
+                DeadMonNum = deadMonNum;
+                MonNum = monNum;
+            }
+        }
+
         public static readonly SentientActModel Instance = new SentientActModel();
 
         public bool HasInfo { get; private set; }
@@ -49,6 +63,8 @@ namespace Shenxiao.Module.Core.SentientAct
         public bool HasCounts { get; private set; }
         public uint AssistNum { get; private set; }
         public uint EnterNum { get; private set; }
+        public bool HasMonsterProgress { get; private set; }
+        public MonsterProgressSnapshot LastMonsterProgress { get; private set; }
 
         public void ReplaceInfo(byte s, uint e, uint mod, uint g, uint n, List<ServerEntry> servers, long avg)
         {
@@ -75,14 +91,22 @@ namespace Shenxiao.Module.Core.SentientAct
             HasCounts = true;
         }
 
+        public void ReplaceMonsterProgress(uint waveNum, uint deadMonNum, uint monNum)
+        {
+            LastMonsterProgress = new MonsterProgressSnapshot(waveNum, deadMonNum, monNum);
+            HasMonsterProgress = true;
+        }
+
         public void Reset()
         {
             HasInfo = HasPortals = HasCounts = false;
+            HasMonsterProgress = false;
             State = 0;
             EndTime = Mod = GroupId = NextStartTime = AssistNum = EnterNum = 0;
             AvgLevel = 0;
             Servers = new List<ServerEntry>().AsReadOnly();
             Portals = new List<PortalEntry>().AsReadOnly();
+            LastMonsterProgress = null;
         }
     }
 }
