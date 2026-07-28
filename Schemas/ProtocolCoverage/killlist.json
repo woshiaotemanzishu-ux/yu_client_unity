@@ -702,6 +702,60 @@
     "note": "旧 d.ts 明确标记为『挑战赛挑战者排行榜(目前废弃)』。h5/src 无发送、注册或消费，Controller 在 62113 后直接注册 62116；服务端残留 C2S 空包→local get_challenge_rank，仅已报名时回纯内存榜。榜项 wire 为 rank:u8 + player_id:u64 + server_num:u16 + name:string + gname:string + vip:u8 + score:u32 + combat_power:u64 + career:u8。Unity 不接。未来仅在产品明确恢复独立挑战者榜时重审。R291。"
   },
   {
+    "cmd": 62122,
+    "reason": "semantic_drift_dead_orphan",
+    "evidence": "h5/libs/proto621.d.ts:632-654;h5/src/commonController/Kf1vnController.ts:415-423,510-515(62121后直接62123);yu_server/src/kf_1vN/pp_kf_1vN.erl:164-166;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:276-280(旧处理整段注释);yu_server/src/pt/pt_621.erl:458-464",
+    "note": "累计经验更新：旧端仅有声明、无注册消费；服务端入口仍调用 get_def_daily_award，但 local 实现是注释遗留，现语义与声明/历史流程漂移。风险：ExpSum:u64 不可用陈旧注释推断结算或累计规则；不新增 Unity 接入。"
+  },
+  {
+    "cmd": 62124,
+    "reason": "orphaned_auction_query",
+    "evidence": "h5/libs/proto621.d.ts:656-675;h5/src/commonController/Kf1vnController.ts:510-515(无62124注册);yu_server/src/pt/pt_621.erl:49-50,478-493;yu_server/src/kf_1vN/pp_kf_1vN.erl:170-173",
+    "note": "拍卖信息查询：服务端仍转发集群拍卖模块，旧端无 handler、Model 或 UI 消费。风险：拍卖状态/截止时间不能在无完整拍卖生命周期时孤立缓存；不新增 Unity 接入。"
+  },
+  {
+    "cmd": 62125,
+    "reason": "orphaned_auction_rank",
+    "evidence": "h5/libs/proto621.d.ts:676-692;h5/src/commonController/Kf1vnController.ts:510-515(无62125注册);yu_server/src/pt/pt_621.erl:51-53,495-510;yu_server/src/kf_1vN/pp_kf_1vN.erl:177-180",
+    "note": "拍卖排行榜：服务端按 AuctionId 查询，旧端无 handler、Model 或 UI 消费。风险：排行归属必须与拍卖详情及阶段一致，不能单独迁移；不新增 Unity 接入。"
+  },
+  {
+    "cmd": 62126,
+    "reason": "orphaned_auction_transaction",
+    "evidence": "h5/libs/proto621.d.ts:693-720;h5/src/commonController/Kf1vnController.ts:510-515(无62126注册);yu_server/src/pt/pt_621.erl:54-58,512-518;yu_server/src/kf_1vN/pp_kf_1vN.erl:183-222",
+    "note": "追加竞拍交易：服务端涉及预扣/返还与错误回包，旧端无 handler、Model 或 UI 消费。风险：不得在缺少支付幂等、失败回滚和拍卖状态机时接入；不新增 Unity 接入。"
+  },
+  {
+    "cmd": 62127,
+    "reason": "orphaned_auction_follow",
+    "evidence": "h5/libs/proto621.d.ts:721-740;h5/src/commonController/Kf1vnController.ts:510-515(无62127注册);yu_server/src/pt/pt_621.erl:59-61,520-526;yu_server/src/kf_1vN/pp_kf_1vN.erl:229-232",
+    "note": "拍卖窗口关注：服务端把关注状态投递至集群拍卖模块，旧端无 handler、Model 或 UI 消费。风险：关注值须与窗口生命周期一致，不能孤立发送；不新增 Unity 接入。"
+  },
+  {
+    "cmd": 62128,
+    "reason": "orphaned_auction_history",
+    "evidence": "h5/libs/proto621.d.ts:741-759;h5/src/commonController/Kf1vnController.ts:510-515(无62128注册);yu_server/src/pt/pt_621.erl:62-63,528-541;yu_server/src/kf_1vN/pp_kf_1vN.erl:234-237",
+    "note": "拍卖往期记录：服务端仍查询集群拍卖历史，旧端无 handler、Model 或 UI 消费。风险：历史记录缺少拍卖详情上下文，不能单独展示；不新增 Unity 接入。"
+  },
+  {
+    "cmd": 62129,
+    "reason": "orphaned_auction_stage_broadcast",
+    "evidence": "h5/libs/proto621.d.ts:760-771;h5/src/commonController/Kf1vnController.ts:510-515(无62129注册);yu_server/src/pt/pt_621.erl:64-65,543-551;yu_server/src/kf_1vN/pp_kf_1vN.erl:239-241;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:403-414",
+    "note": "拍卖阶段广播：服务端既支持查询也会全服推送，旧端无 handler、Model 或 UI 消费。风险：晚到广播可能倒退阶段，未实现阶段机和去重前不得接入；不新增 Unity 接入。"
+  },
+  {
+    "cmd": 62130,
+    "reason": "orphaned_signup_roster",
+    "evidence": "h5/libs/proto621.d.ts:772-787;h5/src/commonController/Kf1vnController.ts:510-515(无62130注册);yu_server/src/pt/pt_621.erl:66-67,553-570;yu_server/src/kf_1vN/pp_kf_1vN.erl:243-245",
+    "note": "报名列表：服务端按战力查询前100名单，旧端无 handler、Model 或 UI 消费。风险：名单与报名/赛区快照强关联，不能孤立展示或写入身份状态；不新增 Unity 接入。"
+  },
+  {
+    "cmd": 62131,
+    "reason": "orphaned_role_identity_snapshot",
+    "evidence": "h5/libs/proto621.d.ts:788-802;h5/src/commonController/Kf1vnController.ts:510-515(无62131注册);yu_server/src/pt/pt_621.erl:68-69,572-580;yu_server/src/kf_1vN/pp_kf_1vN.erl:247-249",
+    "note": "我的身份快照：服务端从 kf_1vn 状态直接回 DefType/Turn，旧端无 handler、Model 或 UI 消费。风险：身份快照易与场景/阶段不同步，不能作为独立权威状态写入；不新增 Unity 接入。"
+  },
+  {
     "cmd": 65207,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/SnatchTreasureController.ts:130",
