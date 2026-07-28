@@ -256,6 +256,23 @@ namespace Shenxiao.Module.Core.Dungeon
         public readonly Dictionary<byte, RuneRewardSnapshot> DungeonRuneRewardInfoByType =
             new Dictionary<byte, RuneRewardSnapshot>();
 
+        public sealed class RuneDailyStatusSnapshot
+        {
+            public bool Loaded { get; }
+            public byte DailyStatus { get; }
+            public uint UnlockLevel { get; }
+
+            public RuneDailyStatusSnapshot(byte dailyStatus, uint unlockLevel)
+            {
+                Loaded = true;
+                DailyStatus = dailyStatus;
+                UnlockLevel = unlockLevel;
+            }
+        }
+
+        /// <summary>61115 独立于 61113 的单份权威原始快照。</summary>
+        public RuneDailyStatusSnapshot RuneDailyStatus { get; private set; }
+
         public sealed class DragonJumpRewardEntry
         {
             public byte Type;
@@ -425,6 +442,11 @@ namespace Shenxiao.Module.Core.Dungeon
             DungeonRuneRewardInfoByType.TryGetValue(dunType, out snapshot);
 
         public void ClearDungeonRuneRewardInfo() => DungeonRuneRewardInfoByType.Clear();
+
+        public void ApplyDungeonRuneDailyStatus(byte dailyStatus, uint unlockLevel) =>
+            RuneDailyStatus = new RuneDailyStatusSnapshot(dailyStatus, unlockLevel);
+
+        public void ClearDungeonRuneDailyStatus() => RuneDailyStatus = null;
 
         public void ApplyDragonJumpReward(uint wave, List<DragonJumpRewardEntry> rewards)
         {
@@ -777,6 +799,7 @@ namespace Shenxiao.Module.Core.Dungeon
             HasHeartSkillInfo = false;
             HeartSkillInfo = new List<HeartSkillInfoEntry>();
             ClearDungeonRuneRewardInfo();
+            ClearDungeonRuneDailyStatus();
             HasDragonJumpReward = false;
             LastDragonJumpReward = null;
             HasAdvancedExpInfo = false;

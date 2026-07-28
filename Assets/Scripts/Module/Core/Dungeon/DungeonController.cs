@@ -66,6 +66,7 @@ namespace Shenxiao.Module.Core.Dungeon
         private static Func<byte[], bool> s_dragonSkillInfoOutboundIntercept = null;
         private static Func<byte[], bool> s_heartSkillInfoOutboundIntercept = null;
         private static Func<byte[], bool> s_runeRewardInfoOutboundIntercept = null;
+        private static Func<byte[], bool> s_runeDailyStatusOutboundIntercept = null;
         private static Func<byte[], bool> s_dungeonSettingInfoOutboundIntercept = null;
         private static Func<byte[], bool> s_dungeonSettingUpdateOutboundIntercept = null;
         private static Func<byte[], bool> s_polarSpecialInfoOutboundIntercept = null;
@@ -93,6 +94,7 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_DRAGON_SKILL_INFO, On61055);
             RegisterProtocal(Proto.DUNGEON_HEART_SKILL_INFO, On61101);
             RegisterProtocal(Proto.DUNGEON_RUNE_REWARD_INFO, On61113);
+            RegisterProtocal(Proto.DUNGEON_RUNE_DAILY_STATUS, On61115);
             RegisterProtocal(Proto.DUNGEON_DRAGON_JUMP_REWARD, On61058);
             RegisterProtocal(Proto.DUNGEON_ADVANCED_EXP_INFO, On61059);
             RegisterProtocal(Proto.DUNGEON_ADVANCED_EXP_JUMP_INFO, On61061);
@@ -196,8 +198,8 @@ namespace Shenxiao.Module.Core.Dungeon
 
         /// <summary>500ms 防抖批量补 61020(对标 BaseDungeonController.ts:200-212)。
         /// ⚠老端 CheckDunInitState 还有 CheckDunOpenState(功能开放)门控——功能开放门控数据未接线,
-        /// 本端不拦(多发的 61020 服务端安全回空表);老端 InitDunData 里 Rune 额外发 61113/61115(灵魄
-        /// 奖励包,规格§0 归灵魄包跳过)、Heart 额外发 61101(技能列表,pp_dungeon_sec),均记 TODO 不发。</summary>
+        /// 本端不拦(多发的 61020 服务端安全回空表);老端 InitDunData 里 Rune 额外发 61113/61115、
+        /// Heart 额外发 61101。本端三者均只保留显式查询 API，不在此生命周期批次自动发送。</summary>
         private void CheckAllDunInitState()
         {
             _ = CheckAllDunInitStateAsync(++_checkEpoch);
@@ -376,6 +378,19 @@ namespace Shenxiao.Module.Core.Dungeon
             }
 #endif
             SendFmt(Proto.DUNGEON_RUNE_REWARD_INFO, "c", dunType);
+        }
+
+        /// <summary>显式查询灵魄副本每日状态；严格空包，不由 GAME_START、Shell 或其他协议自动触发。</summary>
+        public void RequestDungeonRuneDailyStatus()
+        {
+#if UNITY_EDITOR
+            if (s_runeDailyStatusOutboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(Proto.DUNGEON_RUNE_DAILY_STATUS, null, null);
+                if (s_runeDailyStatusOutboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(Proto.DUNGEON_RUNE_DAILY_STATUS);
         }
 
         /// <summary>显式查询指定副本的开关设置；不由生命周期或 UI 自动触发。</summary>
@@ -1099,6 +1114,9 @@ namespace Shenxiao.Module.Core.Dungeon
                 new DungeonModel.RuneRewardEntry(rr.ReadU32(), rr.ReadU8(), rr.ReadU8()));
             DungeonModel.Instance.ApplyDungeonRuneRewardInfo(dunType, rewards);
         }
+
+        private void On61115(NetReader r) =>
+            DungeonModel.Instance.ApplyDungeonRuneDailyStatus(r.ReadU8(), r.ReadU32());
 
         /// <summary>61058 神纹跳关奖励主动通知；仅保留服务端实际下发的有序原始快照。</summary>
         private void On61058(NetReader r)
