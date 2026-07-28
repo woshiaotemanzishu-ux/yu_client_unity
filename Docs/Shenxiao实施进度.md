@@ -1437,3 +1437,17 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
   1920×1080；目标真机档的上下补边由约 262px/边降为 0，横屏两档仍只产生左右补边。
   `Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 均为 0 error，prefab/Creator 一致性检查通过；
   需重新出 Android 包在原真机做最终画面确认。
+
+## 2026-07-28：Android 大妖入场永久冻结与模拟器视频花屏定位
+
+- **大妖卡死根因**：整包日志完整走到 Boss 生成和 `Entering -> Intro`，但没有 `-> Fighting`；
+  `BossBornIntro.prefab` 激活后的 `Start()` 抢先以空回调自动预览，异步加载续体再绑定战斗回调时被
+  `_started` 拒绝，最终 `CombatFreeze` 永不释放。
+- **修复**：生产 Prefab/Creator 关闭自动预览，播放器允许旧 Prefab 在已开始后补绑唯一完成回调，计时改用
+  非缩放时间；外层增加 epoch 隔离的真实时间看门狗，播放器或回调异常也会释放演出并进入 Fighting。
+- **视频结论**：8 段创角 MP4 均为 H.264/yuv420p；模拟器实录是 `OMX.qcom.video.decoder.avc` 向
+  `goldfish_vulkan` 输出时 `DynamicANWBuffer failed`，属于模拟器硬解码/Vulkan 表面桥接问题。先切模拟器
+  OpenGL/兼容模式并冷启动，最终以真机为准；未为不受 Unity 支持的模拟器全局改动 Android 图形 API。
+- **验证状态**：已完成旧包 logcat 与状态机日志取证；`Shenxiao.Module.Core.csproj`、
+  `Shenxiao.Editor.csproj` 串行编译均为 0 error，Prefab/Creator 的自动预览值一致为关闭。新整包仍需在
+  真机复验大妖正常进入 Fighting，并在模拟器切 OpenGL 后复验创角视频。

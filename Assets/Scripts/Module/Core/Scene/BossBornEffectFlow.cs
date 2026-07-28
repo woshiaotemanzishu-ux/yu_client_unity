@@ -20,6 +20,7 @@ namespace Shenxiao.Module.Core.Scene
     {
         private const string PrefabModule = "scene";
         private const string PrefabName = "BossBornIntro";
+        private const float CompletionWatchdogMarginSeconds = 0.75f;
 
         private static readonly HashSet<int> Shown = new HashSet<int>();
         private static GameObject _activeRoot;
@@ -102,14 +103,46 @@ namespace Shenxiao.Module.Core.Scene
 
             _activeRoot = root;
             root.name = PrefabName;
-            player.Begin(OnPlayerFinished);
+            player.Begin(() => OnPlayerFinished(epoch));
+            _ = WatchCompletionAsync(epoch, vo.InstanceId,
+                Mathf.Max(1f, player.MaxPlaybackSeconds + CompletionWatchdogMarginSeconds));
             GameLog.Info("Scene", "大妖来袭:play ins={0} type={1} name=\"{2}\"", vo.InstanceId, vo.TypeId, vo.Name);
         }
 
-        private static void OnPlayerFinished()
+        private static void OnPlayerFinished(int epoch)
         {
+            if (epoch != _epoch) return;
             ReleaseActive();
             AutoBrushBattleFlow.OnBossIntroFinished();
+        }
+
+        private static async Task WatchCompletionAsync(int epoch, int instanceId, float timeoutSeconds)
+        {
+            try
+            {
+                double deadline = Time.realtimeSinceStartupAsDouble + timeoutSeconds;
+                // ReferenceEquals 可识别 Unity 已销毁但仍留在字段里的 fake-null；这种异常销毁同样
+                // 必须等到超时后走 fail-open，不能被当成“正常完成”而继续冻结战斗。
+                while (epoch == _epoch && !ReferenceEquals(_activeRoot, null)
+                    && Time.realtimeSinceStartupAsDouble < deadline)
+                {
+                    await Task.Yield();
+                }
+
+                if (epoch != _epoch || ReferenceEquals(_activeRoot, null)) return;
+                GameLog.Warn("Scene",
+                    "大妖来袭:播放完成回调超时,强制解锁战斗 ins={0} timeout={1:F2}s",
+                    instanceId, timeoutSeconds);
+                ReleaseActive();
+                AutoBrushBattleFlow.OnBossIntroUnavailable();
+            }
+            catch (Exception e)
+            {
+                GameLog.Warn("Scene", "大妖来袭:完成看门狗异常 ins={0} error={1}", instanceId, e.Message);
+                if (epoch != _epoch || ReferenceEquals(_activeRoot, null)) return;
+                ReleaseActive();
+                AutoBrushBattleFlow.OnBossIntroUnavailable();
+            }
         }
 
         private static void ReleaseActive()

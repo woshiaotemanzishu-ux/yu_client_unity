@@ -150,3 +150,19 @@
 - Boss 实体到达后播放 `Intro`；演出结束先锁定本轮 Boss，再解冻进入 `Fighting`。
 
 复验日志应出现 `13307 opened with progress ready ... -> wait dungeon enter`（或 `13300 progress ready -> wait authoritative dungeon enter`），随后才是 `12005` 与 `Entering → Intro`；两者之间不得再出现野外小怪的 `auto-brush target locked` / `MainRoleAttackMonster`。
+
+## 2026-07-28：Android 整包入场后永久冻结
+
+- **现场证据**：真机与模拟器均能完成 `61005/12005`、地图复用、Boss 实体创建与锁定，日志到达
+  `battle presentation Entering -> Intro` 和 `大妖来袭:play` 后不再出现 `-> Fighting`。心跳、点击怪物和
+  任务点击仍持续工作，因此不是网络、场景或主线程卡死；角色不动来自 `CombatFreeze` 一直为真。
+- **根因**：Addressables 实例化会先激活 Prefab，Android 帧时序下 `BossBornEffectPlayer.Start()` 可能先按
+  `_previewOnPlay=1` 调用 `Begin(null)`；`PlayAsync` 的 await 续体随后调用 `Begin(OnPlayerFinished)` 时，旧实现
+  因 `_started` 直接返回。播放器视觉上仍会正常退场，但拥有战斗解冻职责的回调已永久丢失。
+- **修复**：生产 Prefab 与 Creator 默认关闭自动预览；`Begin` 改为幂等且允许给“已开始但尚无拥有者回调”
+  的旧 Prefab 补绑回调，兼容旧 Addressables 内容。播放器改用 `unscaledDeltaTime`，不受 `timeScale` 影响。
+- **独立失效保护**：`BossBornEffectFlow` 按本轮 epoch 启动真实时间看门狗，超过播放器理论最大时长加
+  0.75 秒仍未完成时，释放演出实例并走 `intro-unavailable` 解锁战斗；场景清理/断线会递增 epoch，旧看门狗
+  不得解锁下一场景。
+- **复验锚点**：正常包应出现 `Intro -> Fighting` 与 `reason=intro-finished`；如果播放器再次异常，应出现
+  `播放完成回调超时,强制解锁战斗` 与 `reason=intro-unavailable`，两条路径都不能永久停在 `Intro`。

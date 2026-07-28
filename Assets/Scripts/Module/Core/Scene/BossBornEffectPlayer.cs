@@ -8,7 +8,8 @@ namespace Shenxiao.Module.Core.Scene
 {
     /// <summary>
     /// Prefab 驱动的单次播放器。遮罩尺寸/位置、横幅宿主、横幅缩放与三个阶段时长均可在
-    /// Inspector 调整；拖入任意 UI 场景后进入 Play Mode 也会自动预览。
+    /// Inspector 调整。生产流程显式调用 Begin；编辑器预览由菜单入口显式触发，避免实例化后
+    /// Start 抢先以空回调启动，导致战斗流程永远收不到演出完成通知。
     /// </summary>
     public sealed class BossBornEffectPlayer : MonoBehaviour
     {
@@ -23,7 +24,7 @@ namespace Shenxiao.Module.Core.Scene
         [SerializeField, Min(0f)] private float _effectSeconds = 1.5f;
         [SerializeField, Min(0.01f)] private float _loadFallbackSeconds = 3f;
         [SerializeField, Min(0.01f)] private float _slideOutSeconds = 0.15f;
-        [SerializeField] private bool _previewOnPlay = true;
+        [SerializeField] private bool _previewOnPlay;
 
         private enum Phase { SlideIn, Hold, SlideOut, Done }
 
@@ -45,6 +46,9 @@ namespace Shenxiao.Module.Core.Scene
         private bool _savedMainInteractable;
         private bool _savedMainBlocksRaycasts;
 
+        /// <summary>播放器自身最迟应完成的真实时间，供外层独立看门狗使用。</summary>
+        public float MaxPlaybackSeconds => _slideInSeconds + _loadFallbackSeconds + _slideOutSeconds;
+
         private void Awake()
         {
             MoveMasks(hidden: true);
@@ -57,7 +61,18 @@ namespace Shenxiao.Module.Core.Scene
 
         public void Begin(Action onFinished)
         {
-            if (_started) return;
+            if (_finished)
+            {
+                onFinished?.Invoke();
+                return;
+            }
+            if (_started)
+            {
+                // 兼容已经打进旧 Addressables 的 _previewOnPlay=1：Start 可能先以 null 启动，
+                // 生产流程稍后仍必须能补绑唯一的拥有者回调。
+                if (_onFinished == null && onFinished != null) _onFinished = onFinished;
+                return;
+            }
             _started = true;
             _onFinished = onFinished;
             _phase = Phase.SlideIn;
@@ -69,7 +84,7 @@ namespace Shenxiao.Module.Core.Scene
 
         public void ConfigurePrefab(RectTransform maskTop, RectTransform maskBottom, RectTransform bannerHost,
             UIEffectSlot bannerSlot, float slideInSeconds, float effectSeconds, float loadFallbackSeconds,
-            float slideOutSeconds)
+            float slideOutSeconds, bool previewOnPlay = false)
         {
             _maskTop = maskTop;
             _maskBottom = maskBottom;
@@ -79,12 +94,14 @@ namespace Shenxiao.Module.Core.Scene
             _effectSeconds = Mathf.Max(0f, effectSeconds);
             _loadFallbackSeconds = Mathf.Max(_effectSeconds, loadFallbackSeconds);
             _slideOutSeconds = Mathf.Max(0.01f, slideOutSeconds);
+            _previewOnPlay = previewOnPlay;
         }
 
         private void Update()
         {
             if (!_started || _finished) return;
-            _time += Time.deltaTime;
+            float deltaTime = Time.unscaledDeltaTime;
+            _time += deltaTime;
 
             switch (_phase)
             {
@@ -100,7 +117,7 @@ namespace Shenxiao.Module.Core.Scene
                     break;
                 case Phase.Hold:
                     if (!_bannerStarted) StartBanner();
-                    if (_bannerReady) _effectElapsed += Time.deltaTime;
+                    if (_bannerReady) _effectElapsed += deltaTime;
                     if ((_bannerReady && _effectElapsed >= _effectSeconds)
                         || _time >= _loadFallbackSeconds)
                     {
