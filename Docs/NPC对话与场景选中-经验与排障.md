@@ -47,7 +47,9 @@
 
 `SceneCombat.CurrentTargetId` 已维护怪物锁定，但此前没有消费这条状态的表现层；NPC 点击甚至会先把怪物目标清零后直接寻路，因此也没有可复用的视觉状态。
 
-`SceneTargetSelection` 现统一管理 NPC/怪物选中：只加载真实 `other_effect/function_selection`，挂 `SceneCharacterStage` 的目标 `Tilt`，用 `+38°` 抵消舞台 `-38°`，缩放保持老端 `0.7`。异步加载通过 epoch 防止旧目标回包反挂，新目标未完成建模时由 Renderer 的 `On*Ready` 补挂。
+`SceneTargetSelection` 现统一管理 NPC/怪物选中：只加载真实 `other_effect/function_selection`，挂 `SceneCharacterStage` 的目标 `Tilt`，保持 `localRotation=identity`，使特效最终世界 X 倾角与老端一样为 `-38°`，缩放保持老端 `0.7`。异步加载通过 epoch 防止旧目标回包反挂，新目标未完成建模时由 Renderer 的 `On*Ready` 补挂。
+
+这里最容易误判的是“抵消 Tilt”。老端确实写了 `localRotation.x=-SceneObj.StartRotate.x=-38°`，但它的父级是未倾斜的 `SceneObj` 根；Unity 的选中宿主已经是 `-38°` 的目标 `Tilt`，所以等价迁移应是局部单位旋转，而不是再补 `+38°`。`function_selection` 的两个子网格自身已有约 `±90°` 的平面转换；若把宿主拉回世界单位旋转，正交平视相机看到的主要是地面 Quad 薄边，画面就会从完整蓝色椭圆退化成腿边的蓝色块状残片。
 
 ## 4. 生命周期硬边界
 
@@ -61,7 +63,7 @@
 
 - `DialogueInteractionCase`：在 720×1600 画布实例化真实 `DialogueModule.prefab`，断言根/背景/模型全屏、底栏贴底，并用 `GraphicRaycaster → PointerClick` 从中部、底栏和左上角三点进入生产代码的统一点击面。
 - `TaskFinishInteractionCase`：实例化真实 `TaskModule.prefab`，检查 Module/View 双语义点击面与装饰层射线归属，并从面板内外两点真实点击进入生产 `OnSubmit`；测试使用空任务保护分支，不会发送协议。
-- `RolePresentationEffectsCase`：检查 `function_selection` 真实 prefab 可播放，并验证 `0.7` 缩放和 `+38°` 倾斜抵消。
+- `RolePresentationEffectsCase`：检查 `function_selection` 真实 prefab 可播放，验证 `0.7` 缩放、局部单位旋转和最终 `-38°` 世界倾角；同时检查主圆环相对屏幕的投影高度与朝相机分量，防止只验证四元数却漏掉“数值正确、画面成薄边”。
 - 真机必须至少复验 720×1280 基准档和一档长竖屏；点击 NPC、普通怪、采集怪，确认切换/死亡/切场景无残留。
 
 ## 6. 禁止做法

@@ -151,19 +151,31 @@ namespace Shenxiao.EditorTools
                     Debug.LogError("CLIVERIFY role-effects function_selection failed through EffectBinder");
                     return 3;
                 }
-                selection.transform.localRotation = Quaternion.Euler(38f, 0f, 0f);
+                selection.transform.localRotation = Quaternion.identity;
                 selection.transform.localScale = Vector3.one * 0.7f;
                 EffectBinder.PlayEffect(selection);
+                Transform selectionRing = selection.transform.Find("eff/function_seclete_pring");
+                float ringScreenHeightRatio = selectionRing != null
+                    ? Mathf.Abs(Vector3.Dot(selectionRing.up.normalized, Vector3.up))
+                    : 0f;
+                float ringCameraFacing = selectionRing != null
+                    ? Mathf.Abs(Vector3.Dot(selectionRing.forward.normalized, Vector3.forward))
+                    : 0f;
                 bool selectionVisualReady = selection.GetComponentsInChildren<Renderer>(true).Length > 0
                     && selection.GetComponentsInChildren<Animation>(true).Length > 0
-                    && Quaternion.Angle(selection.transform.localRotation, Quaternion.Euler(38f, 0f, 0f)) < 0.01f
+                    && Quaternion.Angle(selection.transform.localRotation, Quaternion.identity) < 0.01f
+                    && Quaternion.Angle(selectionTilt.localRotation, Quaternion.Euler(-38f, 0f, 0f)) < 0.01f
+                    && Quaternion.Angle(selection.transform.rotation, selectionTilt.rotation) < 0.01f
                     && (selection.transform.localScale - Vector3.one * 0.7f).sqrMagnitude < 0.000001f;
-                if (!selectionVisualReady)
+                if (!selectionVisualReady || ringScreenHeightRatio < 0.45f || ringCameraFacing < 0.5f)
                 {
-                    Debug.LogError("CLIVERIFY role-effects function_selection visual/transform mismatch");
+                    Debug.LogError("CLIVERIFY role-effects function_selection visual/projection mismatch: " +
+                        $"screenHeightRatio={ringScreenHeightRatio:F3},cameraFacing={ringCameraFacing:F3}");
                     return 3;
                 }
-                Debug.Log("CLIVERIFY role-effects 4c function_selection playable with old-client 0.7 scale/tilt compensation");
+                Debug.Log("CLIVERIFY role-effects 4c function_selection playable with old-client 0.7 scale/" +
+                    $"-38deg screen projection; screenHeightRatio={ringScreenHeightRatio:F3}," +
+                    $"cameraFacing={ringCameraFacing:F3}");
 
                 MethodInfo eligible = typeof(MainRoleAgent).GetMethod("IsTaskSpeedEligible",
                     BindingFlags.NonPublic | BindingFlags.Static);

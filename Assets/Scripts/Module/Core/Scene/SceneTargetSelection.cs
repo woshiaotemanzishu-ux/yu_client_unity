@@ -20,8 +20,6 @@ namespace Shenxiao.Module.Core.Scene
 
         private const string EffectName = "function_selection";
         private const float EffectScale = 0.7f;
-        // SceneCharacterStage 的角色容器为 -38°；老端把选中特效挂角色根后用 -StartRotate.x 抵消。
-        private const float TiltCompensation = 38f;
 
         private static TargetKind _kind;
         private static int _targetId;
@@ -113,7 +111,10 @@ namespace Shenxiao.Module.Core.Scene
 
             effect.transform.SetParent(targetRoot, false);
             effect.transform.localPosition = Vector3.zero;
-            effect.transform.localRotation = Quaternion.Euler(TiltCompensation, 0f, 0f);
+            // 老端把特效挂在未倾斜的 SceneObj 根上，再设 local X=-StartRotate.x=-38°。
+            // Unity 的稳定目标根本身就是 -38° 的 Tilt，因此这里必须保持单位旋转，最终世界倾角才仍是 -38°。
+            // 若再补 +38° 会把资源内已转成地面的 Quad 拉回世界 XZ 平面；平视相机只能看到薄边，表现成块状残片。
+            effect.transform.localRotation = Quaternion.identity;
             effect.transform.localScale = Vector3.one * EffectScale;
             _effect = effect;
             _loading = false;

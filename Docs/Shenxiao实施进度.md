@@ -1533,13 +1533,14 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
   屏外遮罩与面板点击全部提交 30004，关闭图标不再只隐藏，`_submitSent` 防止连点多发；未改用户正在
   调整的 `TaskModule.prefab` 布局。
 - **选中反馈**：补 `SceneTargetSelection`，NPC/怪物共用老端真实 `function_selection`，按老端缩放 0.7，
-  挂目标稳定 `Tilt` 并以 +38° 抵消场景倾斜。点选、异步模型就绪、切换、移除/死亡、清目标、断线和
+  挂目标稳定 `Tilt` 并保持局部单位旋转，使最终世界倾角为 -38°。此前误加 +38° 抵消后，资源内已做
+  平面转换的圆环在正交平视相机下退化为薄边块状；现已按父级语义修正。点选、异步模型就绪、切换、移除/死亡、清目标、断线和
   切场景生命周期已闭合；不按不同新模型复制或手画选中圈。
 - **验证状态**：`DialogueInteractionCase` 已加入真实 prefab 的 720×1600 锚定与
   `GraphicRaycaster → PointerClick` 三点验收；`TaskFinishInteractionCase` 增加真实任务 prefab 的面板内外
-  语义点击验收；`RolePresentationEffectsCase` 增加选中资源可播放、0.7 缩放和倾斜抵消断言。
+  语义点击验收；`RolePresentationEffectsCase` 增加选中资源可播放、0.7 缩放、最终 -38° 倾角及圆环屏幕投影断言。
   当前 Unity Editor 强编译通过；对话专项为 `3/3` 真 PointerClick、任务完成专项为 `2/2` 真 PointerClick，
-  `function_selection` 另经 `EffectBinder` 实际加载/播放探针验证 Renderer、Animation、0.7 缩放与 +38° 均通过。
+  `function_selection` 另经 `EffectBinder` 实际加载/播放探针验证 Renderer、Animation、0.7 缩放、宿主层级与非薄边投影。
   最终长竖屏位置与选中观感仍需真机确认。
 - **专题文档**：[NPC对话与场景选中-经验与排障.md](NPC对话与场景选中-经验与排障.md)。
 
