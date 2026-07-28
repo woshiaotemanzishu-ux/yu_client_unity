@@ -648,6 +648,12 @@
     "note": "使魔副本状态查询为空请求，回 u32,u32,u16×u32,u8。唯一正常触发依赖已封存61102的 Pet 成功结算；setter整段和结果消费均注释，服务端只读活。未来须随使魔全系统整体迁移。R263复核。"
   },
   {
+    "cmd": 61104,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/libs/proto611.d.ts:53-68;h5/src/commonController/BaseDungeonController.ts:310-319;h5/src/commonController/DungeonPartnerController.ts:45-46;yu_server/src/dungeon/pp_dungeon_sec.erl:25-26;yu_server/src/dungeon/lib_dun_demon.erl:256-275;yu_server/src/dungeon/pp_dungeon.erl:169-266;yu_server/src/pt/pt_610.erl:506-529",
+    "note": "使魔副本扫荡纯 C2S：u32。两套 sender 壳无 Fire/UI/model；服务端委托61022真实扣费、发奖、记次数，回61022或61000。未来须随使魔全系统整体迁移。R264复核。"
+  },
+  {
     "cmd": 62107,
     "reason": "dead_server_never_writes",
     "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
