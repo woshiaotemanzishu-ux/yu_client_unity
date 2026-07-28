@@ -39,6 +39,9 @@ namespace Shenxiao.Module.Core.Scene
         private const float AutoStuckEpsilon = 0.5f; // 单帧像素位移进展阈值(< 此值视为无进展)
         private const float TaskSpeedLogicDistance = 7f;
         private const int TaskSpeedDelayMs = 150;
+        // char_acceleratebuff01 的主体网格本地 Z 范围约 [-2.4,+0.6]；宿主落在人物中心时，
+        // +0.6 的宽端会穿过人物。沿角色本地后方退 0.9 后，前沿约在 -0.3，贴人物后沿展开。
+        private const float TaskSpeedEffectBackOffset = 0.9f;
         private const float SceneOneShotAnchorLifetime = 5f;
 
         private const string ActionIdle = "idle";
@@ -568,6 +571,7 @@ namespace Shenxiao.Module.Core.Scene
                     return;
                 }
 
+                effect.transform.localPosition = new Vector3(0f, 0f, -TaskSpeedEffectBackOffset);
                 _taskSpeedEffect = effect;
                 _taskSpeedActive = true;
                 EffectBinder.PlayEffect(effect);
