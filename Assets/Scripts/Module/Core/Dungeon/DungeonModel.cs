@@ -19,6 +19,7 @@ namespace Shenxiao.Module.Core.Dungeon
     /// 轮9 副本家族补全一期:61004 副本信息/61005·61030 波次/61007·61019 坐标事件状态机/61011 助战次数/
     /// 61018 退出倒计时/61021 购买/61022 扫荡/61023 时间评分/61025·61026 鼓舞/61044 经验本面板推送/
     /// 61045 冷却时间/61046 邀请发送者原始消息/61048 双方邀请状态/61050 神纹最佳记录/61051 阶段奖励领取情况/
+    /// 61053 快速出怪权威状态/
     /// 61120·61121 资源本一键与次数。
     /// 周本(50801/50802)是独立数据线,见 <see cref="PolarModel"/>——勿塞进 DunStatesByType(r9 侦察结论)。
     /// </summary>
@@ -201,6 +202,12 @@ namespace Shenxiao.Module.Core.Dungeon
         public readonly Dictionary<uint, DragonStageRewardSnapshot> DragonStageRewardsByDunId =
             new Dictionary<uint, DragonStageRewardSnapshot>();
 
+        /// <summary>是否收到过 61053；全零字段仍是合法完整快照。</summary>
+        public bool HasDragonQuickInfo { get; private set; }
+        public ushort QuickCount { get; private set; }
+        public ushort TotalQuickCount { get; private set; }
+        public uint NextQuickTime { get; private set; }
+
         public void ApplyExpDungeonInfo(ushort killCount, ulong totalExp)
         {
             HasExpDungeonInfo = true;
@@ -250,6 +257,14 @@ namespace Shenxiao.Module.Core.Dungeon
 
         public bool TryGetDragonStageReward(uint dunId, out DragonStageRewardSnapshot snapshot) =>
             DragonStageRewardsByDunId.TryGetValue(dunId, out snapshot);
+
+        public void ApplyDragonQuickInfo(ushort quickCount, ushort totalQuickCount, uint nextQuickTime)
+        {
+            HasDragonQuickInfo = true;
+            QuickCount = quickCount;
+            TotalQuickCount = totalQuickCount;
+            NextQuickTime = nextQuickTime;
+        }
 
         /// <summary>61045 按 dun_id 保存的服务器绝对冷却结束时间；0 也是合法回包。</summary>
         public readonly Dictionary<uint, uint> CooldownEndTimes = new Dictionary<uint, uint>();
@@ -540,6 +555,10 @@ namespace Shenxiao.Module.Core.Dungeon
             HasDragonBestRecord = false;
             LastDragonBestRecord = null;
             DragonStageRewardsByDunId.Clear();
+            HasDragonQuickInfo = false;
+            QuickCount = 0;
+            TotalQuickCount = 0;
+            NextQuickTime = 0;
             SceneInfo = null;
             CurrWaveType = 0;
             CurrWaveNum = 1;
