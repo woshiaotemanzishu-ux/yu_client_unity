@@ -1,13 +1,17 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
+using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoFight;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Dialogue;
 using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Scene;
+using UnityEngine;
 
 namespace Shenxiao.Module.Core.Tasks
 {
@@ -17,6 +21,9 @@ namespace Shenxiao.Module.Core.Tasks
 
         private bool _taskFinishPendingAuto;
         private int _taskOneAutoEpoch;
+        private const int TaskSuccessEffectDurationMs = 1500;
+        private int _taskSuccessEffectEpoch;
+        private UIEffectStage.Handle _taskSuccessEffect;
 
         private TaskController() { }
 
@@ -34,6 +41,7 @@ namespace Shenxiao.Module.Core.Tasks
 
         public override void Dispose()
         {
+            ClearTaskSuccessEffect();
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.Off(GlobalEvent.EVT_COLLECT_ENDED, OnCollectEnded);
             TaskSystemAutoPilot.Shutdown();
@@ -57,6 +65,7 @@ namespace Shenxiao.Module.Core.Tasks
 
         private async void OnGameStart()
         {
+            ClearTaskSuccessEffect();
             _startupTaskListRequested = false;   // 配置加载期间到达的 30000 不点火(见 TryKickoffAutoTaskOnLogin)
             await TaskConfigs.EnsureLoaded();
             await TaskGuideConfigs.EnsureLoaded();
@@ -193,10 +202,73 @@ namespace Shenxiao.Module.Core.Tasks
             GameLog.Info("Task", "30004 finish reply task={0} code={1}", taskId, code);
             if (code != 1) return;
 
+            // 老端成功分支先 ShowSuccessEffect：在最高 ClickEffect 层播放 ui_renwuwancheng 1.5 秒。
+            // 这不是 TaskFinishView，也不是角色身上的粒子，不能由任务弹层或 30001 刷新间接代替。
+            PlayTaskSuccessEffect();
+
             TaskConfigs.TaskCfg cfg = TaskConfigs.Get(taskId);
             int taskType = cfg?.Type ?? 0;
             if (taskType == TaskModel.AWAKE_LINE || taskType == TaskModel.NORMAL_DAILY) return;
             _taskFinishPendingAuto = true;
+        }
+
+        private void PlayTaskSuccessEffect()
+        {
+            int epoch = ++_taskSuccessEffectEpoch;
+            UIEffectStage.Handle previous = _taskSuccessEffect;
+            _taskSuccessEffect = null;
+            previous?.Dispose();
+            _ = PlayTaskSuccessEffectAsync(epoch);
+        }
+
+        private async Task PlayTaskSuccessEffectAsync(int epoch)
+        {
+            UIEffectStage.Handle handle = null;
+            try
+            {
+                RectTransform parent = ViewManager.GetLayer(UILayer.Top) as RectTransform;
+                if (parent == null)
+                {
+                    GameLog.Warn("Task", "task success effect skipped: Top layer missing");
+                    return;
+                }
+
+                handle = await UIEffectStage.AddAsync("ui_renwuwancheng", parent,
+                    new Vector2(0f, 4f), Vector3.one);
+                if (epoch != _taskSuccessEffectEpoch)
+                {
+                    handle?.Dispose();
+                    return;
+                }
+                if (handle == null)
+                {
+                    GameLog.Warn("Task", "task success effect failed: ui_renwuwancheng");
+                    return;
+                }
+
+                _taskSuccessEffect = handle;
+                GameLog.Info("Task", "task success effect played: ui_renwuwancheng duration={0}ms",
+                    TaskSuccessEffectDurationMs);
+                await TimeUtil.Delay(TaskSuccessEffectDurationMs);
+            }
+            catch (Exception ex)
+            {
+                GameLog.Warn("Task", "task success effect failed: {0}", ex.Message);
+            }
+            finally
+            {
+                if (epoch == _taskSuccessEffectEpoch && ReferenceEquals(_taskSuccessEffect, handle))
+                    _taskSuccessEffect = null;
+                handle?.Dispose();
+            }
+        }
+
+        private void ClearTaskSuccessEffect()
+        {
+            _taskSuccessEffectEpoch++;
+            UIEffectStage.Handle handle = _taskSuccessEffect;
+            _taskSuccessEffect = null;
+            handle?.Dispose();
         }
 
         private void TryContinueAutoTaskAfterList()

@@ -1508,6 +1508,16 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **模型常驻边界**：场景主角关闭老端本就禁用的 `Body.always`，UI 模型默认行为不变；武器、翅膀、
   背饰常驻特效继续加载。其他玩家 `protect_time` 离线保护待其他玩家渲染实体链，通用战斗 Buff 仍归
   独立 `BuffListVo` 生命周期迁移，均未伪挂主角。
-- **验证状态**：Unity 强制编译 `completed/failed=false`；专项 `RolePresentationEffectsCase` 覆盖 7 个
-  已转换资源、attach_type=15 直立宿主、真实 EffectBinder 挂载、场景/7 格距离门禁和公开触发入口。
+- **淡化/不可见续查**：运行日志已证明 `effect_xemlvup` 和 `char_acceleratebuff01` 均真实进入播放态；
+  根因是 `SceneCharacterStage` 在切入无 `ArtModelRenderProfile` 的旧跑动模型时，把透明 RT 的 RawImage
+  切回默认 UI `SrcAlpha`，使已预乘进 RT 的粒子再次乘 Alpha。现统一固定为
+  `Shenxiao/UI/StageComposite`，不再由新旧模型/profile 决定；老端明确的跑动自身特效仍只有
+  `char_acceleratebuff01`，没有凭截图增加第二套橙色寻路特效。
+- **任务完成演出**：补齐老端 30004 `code=1` 成功分支的 `ui_renwuwancheng`：挂 `UILayer.Top`、位置
+  `(0,4)`、缩放 1、严格显示 1.5 秒；它独立于 `TaskFinishView` 和角色身上粒子，连续播放及会话退出均
+  会释放旧句柄。
+- **验证状态**：Unity 强制编译 `completed/failed=false`；专项 `RolePresentationEffectsCase` 覆盖 8 个
+  已转换资源、attach_type=15 直立宿主、真实 EffectBinder 挂载、预乘 RT shader、场景/7 格距离门禁，
+  并真实创建 Top 层任务完成实例，返回 `0 / ALL PASS`。运行时 RT 探针验证升级画面峰值 255，跑动资源
+  峰值 164/约 2.1 万个亮像素；30004 合成探针验证任务完成资源含 5 个粒子系统、6 个 Renderer，画面峰值 255。
 - **专题文档**：[主角场景自身特效-经验与排障.md](主角场景自身特效-经验与排障.md)。

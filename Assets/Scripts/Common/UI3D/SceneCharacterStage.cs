@@ -301,14 +301,15 @@ namespace Shenxiao.Common.UI3D
 
         /// <summary>
         /// 与 UIModelStage/创角整模共用同一渲染档案：按档案切换 renderer，并按需强制
-        /// Depth/Opaque Texture；带档案的模型贴回 UGUI 时统一使用预乘合成材质。
+        /// Depth/Opaque Texture。场景角色台始终使用预乘合成材质：角色与特效已经先混合进透明 RT，
+        /// 再用默认 UI SrcAlpha 贴回会把升级、跑动拖尾等半透明亮粒子二次乘 alpha。
         /// </summary>
         private static void ConfigureArtRender(ArtModelRenderProfile profile)
         {
             ArtModelRenderProfile.ApplyToCamera(_cam, profile);
             EnsureRenderTexture();
             if (_img != null)
-                _img.material = profile != null ? UIModelStage.CompositeMaterial() : null;
+                _img.material = UIModelStage.CompositeMaterial();
         }
 
         private static void EnsureStage()
@@ -392,7 +393,7 @@ namespace Shenxiao.Common.UI3D
             _img = go.GetComponent<RawImage>();
             _img.raycastTarget = false; // 不吃点击,场景输入照常落到下面的输入板
             _img.texture = _rt;
-            _img.material = _ambientHeld ? UIModelStage.CompositeMaterial() : null;
+            _img.material = UIModelStage.CompositeMaterial();
         }
 
         private static void EnsureRenderTexture()

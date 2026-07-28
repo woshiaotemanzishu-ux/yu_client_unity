@@ -3,9 +3,12 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Res;
+using Shenxiao.Framework.UI;
 using Shenxiao.Module.Core.Scene;
+using Shenxiao.Module.Core.Tasks;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.EditorTools
 {
@@ -24,6 +27,7 @@ namespace Shenxiao.EditorTools
             "Assets/GameRes/effect/objs/other_effect/effect_jump_qitiaoyan/effect_jump_qitiaoyan.prefab",
             "Assets/GameRes/effect/objs/other_effect/other_effect_caiji_02/other_effect_caiji_02.prefab",
             "Assets/GameRes/effect/objs/buff_effect/buffparticle_106_1/buffparticle_106_1.prefab",
+            "Assets/GameRes/effect/objs/ui_effect/ui_renwuwancheng/ui_renwuwancheng.prefab",
         };
 
         public static async Task<int> Run()
@@ -32,6 +36,8 @@ namespace Shenxiao.EditorTools
             ResManager.EditorPreferFallback = true;
             GameObject role = null;
             GameObject attached = null;
+            CliVerify.Stage ownedStage = null;
+            UIEffectStage.Handle taskSuccess = null;
             try
             {
                 foreach (string path in EffectPrefabs)
@@ -51,6 +57,9 @@ namespace Shenxiao.EditorTools
                 }
                 Debug.Log("CLIVERIFY role-effects 1 required prefabs ready=" + EffectPrefabs.Length);
 
+                if (ViewManager.GetLayer(UILayer.Scene) == null)
+                    ownedStage = CliVerify.Stage.Create();
+
                 role = new GameObject("RoleEffectsProbe");
                 SceneCharacterStage.SetMainRole(role);
                 GameObject detached = SceneCharacterStage.MainRoleDetachedEffectHost;
@@ -64,6 +73,17 @@ namespace Shenxiao.EditorTools
                 }
                 Debug.Log("CLIVERIFY role-effects 2 detached host upright and aligned");
 
+                RawImage[] images = UnityEngine.Object.FindObjectsByType<RawImage>(
+                    FindObjectsInactive.Include, FindObjectsSortMode.None);
+                RawImage sceneImage = Array.Find(images, image => image != null && image.name == "__SceneChars");
+                if (sceneImage == null || sceneImage.material == null || sceneImage.material.shader == null ||
+                    sceneImage.material.shader.name != "Shenxiao/UI/StageComposite")
+                {
+                    Debug.LogError("CLIVERIFY role-effects scene RT is not using premultiplied composite");
+                    return 3;
+                }
+                Debug.Log("CLIVERIFY role-effects 3 scene RT premultiplied composite ready");
+
                 attached = await EffectBinder.AttachOne(detached, "", "other_effect", "effect_xemlvup",
                     "verify_levelup", false);
                 if (attached == null || attached.transform.parent != detached.transform)
@@ -72,7 +92,7 @@ namespace Shenxiao.EditorTools
                     return 3;
                 }
                 EffectBinder.PlayEffect(attached);
-                Debug.Log("CLIVERIFY role-effects 3 level-up effect attached through EffectBinder");
+                Debug.Log("CLIVERIFY role-effects 4 level-up effect attached through EffectBinder");
 
                 MethodInfo eligible = typeof(MainRoleAgent).GetMethod("IsTaskSpeedEligible",
                     BindingFlags.NonPublic | BindingFlags.Static);
@@ -89,7 +109,7 @@ namespace Shenxiao.EditorTools
                     Debug.LogError("CLIVERIFY role-effects task speed scene/distance gate mismatch");
                     return 3;
                 }
-                Debug.Log("CLIVERIFY role-effects 4 task speed gate type=0/1/4 and distance>7");
+                Debug.Log("CLIVERIFY role-effects 5 task speed gate type=0/1/4 and distance>7");
 
                 if (typeof(MainRoleAgent).GetMethod("NotifyLevelUp", BindingFlags.Public | BindingFlags.Static) == null ||
                     typeof(MainRoleAgent).GetMethod("MoveToTaskTarget", BindingFlags.Public | BindingFlags.Instance) == null ||
@@ -99,7 +119,29 @@ namespace Shenxiao.EditorTools
                     Debug.LogError("CLIVERIFY role-effects trigger entry/spec default missing");
                     return 3;
                 }
-                Debug.Log("CLIVERIFY role-effects 5 trigger entries and UI body-always default ready");
+                MethodInfo successEffect = typeof(TaskController).GetMethod("PlayTaskSuccessEffectAsync",
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+                if (successEffect == null)
+                {
+                    Debug.LogError("CLIVERIFY role-effects task success effect entry missing");
+                    return 3;
+                }
+                Debug.Log("CLIVERIFY role-effects 6 trigger entries and UI body-always default ready");
+
+                RectTransform top = ViewManager.GetLayer(UILayer.Top) as RectTransform;
+                taskSuccess = await UIEffectStage.AddAsync("ui_renwuwancheng", top,
+                    new Vector2(0f, 4f), Vector3.one);
+                UIEffectStage.EffectDiagnostic taskSuccessDiagnostic = UIEffectStage.CollectDiagnostics()
+                    .Find(item => item.Label == "ui_renwuwancheng");
+                if (taskSuccess == null || !taskSuccessDiagnostic.EffectAlive ||
+                    !taskSuccessDiagnostic.EffectActiveInHierarchy ||
+                    taskSuccessDiagnostic.ParticleSystemCount <= 0 ||
+                    taskSuccessDiagnostic.ParentName != top?.name)
+                {
+                    Debug.LogError("CLIVERIFY role-effects task success Top-layer instance failed");
+                    return 3;
+                }
+                Debug.Log("CLIVERIFY role-effects 7 task success UI effect alive on Top layer");
                 Debug.Log("CLIVERIFY role-effects ALL PASS");
                 return 0;
             }
@@ -115,7 +157,9 @@ namespace Shenxiao.EditorTools
                     if (Application.isPlaying) UnityEngine.Object.Destroy(attached);
                     else UnityEngine.Object.DestroyImmediate(attached);
                 }
+                taskSuccess?.Dispose();
                 SceneCharacterStage.Clear();
+                ownedStage?.Dispose();
                 ResManager.EditorPreferFallback = fallbackBefore;
             }
         }

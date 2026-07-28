@@ -1,4 +1,5 @@
-// UIModelStage 的 RT 合成 shader(仅整模/ArtModelRenderProfile 模型启用,老模型仍走 UI 默认材质):
+// UIModelStage/SceneCharacterStage 的 RT 合成 shader。场景角色台始终启用；UI 模型台目前给
+// ArtModelRenderProfile 整模启用：
 // 展示相机把模型渲到透明底 RT,内容天然是"预乘 alpha"形式;默认 UI 材质按 SrcAlpha 混合会把
 // 加法混合的特效(写了 alpha 的光团)洗成一大块白。这里改用 One/OneMinusSrcAlpha 预乘合成:
 // 加法特效的光正确叠加到 UI 背景上,半透/不透明部分照常覆盖。
