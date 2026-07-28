@@ -8,7 +8,7 @@
 
 - 主界面技能规则：技能项只允许 `con` 作为唯一 Raycast/Button 点击面，`bg/icon/lock/CD/文字` 等装饰 Graphic 必须关闭 `raycastTarget`；点击验收必须走真实 Prefab 的 `GraphicRaycaster→PointerClick`，直接调用 `OnClickSkill` 不算点击链通过。普通 `AutoFight` 不得拦截玩家手点技能，只有服务端 `13017` 的 `RoleModel.DepositState` 托管态才拦截。手动无锁定目标时按当前朝向原地释放并只在技能 `area` 内局部预选，不得跨全场抢最近怪；自动战斗才允许全场寻敌并接近。接敌范围严格对标老端：`range==1` 使用 `max(100,(distance+area)*0.8)`，其他模式使用 `max(100,distance*0.8)`；命中几何由 `range/distance/area/num` 决定，禁止从 `desc` 文案猜圆形、直线或扇形。
 
-- 主角随身特效空间规则：按老模型世界单位制作、需要跟随主角 yaw/2.5D 倾斜的循环整体特效（当前任务跑动 `char_acceleratebuff01`）必须挂 `SceneCharacterStage.MainRoleAttachedEffectHost`。禁止挂 `ReplaceableRoleModel.ActiveModel` 或新动作 prefab 内部 `root`：`ArtModelStager` 的 `landingOffset/landingScale` 会把该 root 留在人物后方并缩小特效。任务跑动实例还必须使用角色本地 `Z=-0.9` 后向偏移，使宽端从人物后沿接出，禁止改公共 prefab 补偿。骨骼动作/技能特效仍挂 `ActiveModel`，`attach_type=15` 一次性特效仍挂 `MainRoleDetachedEffectHost`。
+- 主角随身特效空间规则：按老模型世界单位制作、需要跟随主角 yaw/2.5D 倾斜的循环整体特效（当前任务跑动 `char_acceleratebuff01`）必须挂 `SceneCharacterStage.MainRoleAttachedEffectHost`。禁止挂 `ReplaceableRoleModel.ActiveModel` 或新动作 prefab 内部 `root`：`ArtModelStager` 的 `landingOffset/landingScale` 会把该 root 留在人物后方并缩小特效。骨骼动作/技能特效仍挂 `ActiveModel`，`attach_type=15` 一次性特效仍挂 `MainRoleDetachedEffectHost`，禁止通过放大公共 prefab 针对单个模型补偿。
 
 - 主界面聊天规则：HUD 必须消费 `ChatModel` 并监听 `EVT_CHAT_MESSAGES_UPDATED`，禁止用硬编码欢迎条代替协议消息。`GAME_START` 的 11010 缓存请求、11050/11064/11023 顺序对标老端；11010 wire 为新→旧，展示前须逆序，私聊须保留发收双方与 `is_read`，频道 20 的 11001/11010 均映射到频道 17。频道徽标只占正文首行，模板基础高度 29，多行按 TMP preferred height 扩高。上下双栏、合并或 Tab 属设计决策，未明确前不得在功能修复中顺带改造。
 

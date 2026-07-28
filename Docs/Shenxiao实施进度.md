@@ -1536,4 +1536,3 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **挂载修复**：`SceneCharacterStage` 新增 `MainRoleAttachedEffects`，作为模型容器下的稳定随身宿主；它继承主角 yaw 和 2.5D 倾斜，但以逆缩放抵消 0.85 场景体量，保持世界缩放 1。任务拖尾改挂该宿主，不再递归命中新动作内部 `root`，idle/run/skill 切换也不再销毁重挂。
 - **边界**：骨骼技能/动作特效仍挂 `ActiveModel`，升级和采集完成仍挂直立的 `MainRoleDetachedEffects`，世界位置型跳跃特效仍挂 `SceneEffectAnchor`；未修改公共 `char_acceleratebuff01` 资源，老模型表现不受单独缩放补偿污染。
 - **回归**：`RolePresentationEffectsCase` 增加 0.85 模型缩放下的宿主落点、世界缩放 1 和真实任务拖尾挂载断言，返回 `0 / ALL PASS`。实际 1111/1213 新 run 与 1111 老模型探针均确认新宿主 `distance=0 / worldScale=1`；Unity 强编译 `completed/failed=false`。
-- **二次位置校正**：稳定宿主解决缩放与脱节后，`char_acceleratebuff01` 主体网格仍有约 `+0.6` 的前沿穿过人物。任务拖尾实例现沿角色本地后方追加 `Z=-0.9`，把网格前沿移到约 `-0.3`，形成“人物后沿接出流光”的关系；只改业务实例位置，不改公共 prefab。

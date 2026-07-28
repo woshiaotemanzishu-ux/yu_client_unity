@@ -129,15 +129,7 @@ namespace Shenxiao.EditorTools
                     Debug.LogError("CLIVERIFY role-effects task speed trail did not use stable unit-scale host");
                     return 3;
                 }
-                FieldInfo speedOffsetField = typeof(MainRoleAgent).GetField("TaskSpeedEffectBackOffset",
-                    BindingFlags.NonPublic | BindingFlags.Static);
-                if (speedOffsetField == null ||
-                    Mathf.Abs((float)speedOffsetField.GetRawConstantValue() - 0.9f) > 0.0001f)
-                {
-                    Debug.LogError("CLIVERIFY role-effects task speed trail rear offset mismatch");
-                    return 3;
-                }
-                Debug.Log("CLIVERIFY role-effects 4b task speed trail attached at world scale 1, rear offset=-0.9");
+                Debug.Log("CLIVERIFY role-effects 4b task speed trail attached at stable world scale 1");
 
                 MethodInfo eligible = typeof(MainRoleAgent).GetMethod("IsTaskSpeedEligible",
                     BindingFlags.NonPublic | BindingFlags.Static);
