@@ -1489,3 +1489,25 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
   徽标首行位置、29 高度、富文本、实时事件和滚动位置，返回 `pass=True`。
 - **边界**：本轮不调整上下双栏、合并聊天栏或 Tab 方案，待策划确认后单独处理。
 - **专题文档**：[主界面聊天消息链路-经验与排障.md](主界面聊天消息链路-经验与排障.md)。
+
+## 2026-07-28：主角升级、任务跑动与直接自身特效补齐
+
+- **升级根因**：13003 已真实到达、`effect_xemlvup` prefab/材质/Addressables 地址也可独立渲染；
+  旧实现却手工实例化到带 `-38°` 倾斜的 `MainRoleTilt`，不符合老端 `attach_type=15=SceneObj`
+  的“同位置但不受模型旋转”语义，并会在主角尚未装配时直接丢触发。
+- **挂载修复**：`SceneCharacterStage` 增加与 `MainRoleTilt` 同级、同落点、单位旋转的
+  `MainRoleDetachedEffects`；升级与采集完成统一通过 `EffectBinder` 挂载。升级协议支持最多两次待播，
+  主角装配后补播，不再业务层手工 `LoadAsync + Instantiate`。
+- **任务跑动拖尾**：新增任务专用 `MoveToTaskTarget`，严格按老端仅在场景 `type=0/1/4`、目标距离
+  `>7` 逻辑格时延时 150ms 播 `char_acceleratebuff01`；X/Y 分别按 `LogicRatioX/Y` 换算。拖尾挂当前
+  `ReplaceableRoleModel.ActiveModel`，动作实例切换时重挂；12001 活动态使用 `MoveType.Accelerate`，
+  到达、手动接管、技能、采集、跳跃、权威位置修正和销毁均完整清理。
+- **跳跃与采集**：任务多段跳在每段起点留下世界坐标特效，中间段用 `char_jumpfx_01`、最终段用
+  `effect_jump_qitiaoyan`，不误播任务 `show_effect=false` 时不应出现的 `char_jumpfx_02`；采集完成请求
+  `20008 flag=2` 前补 `other_effect_caiji_02`。
+- **模型常驻边界**：场景主角关闭老端本就禁用的 `Body.always`，UI 模型默认行为不变；武器、翅膀、
+  背饰常驻特效继续加载。其他玩家 `protect_time` 离线保护待其他玩家渲染实体链，通用战斗 Buff 仍归
+  独立 `BuffListVo` 生命周期迁移，均未伪挂主角。
+- **验证状态**：Unity 强制编译 `completed/failed=false`；专项 `RolePresentationEffectsCase` 覆盖 7 个
+  已转换资源、attach_type=15 直立宿主、真实 EffectBinder 挂载、场景/7 格距离门禁和公开触发入口。
+- **专题文档**：[主角场景自身特效-经验与排障.md](主角场景自身特效-经验与排障.md)。

@@ -137,7 +137,7 @@ namespace Shenxiao.Module.Core.Role
             GameLog.Info("Role", "13003 等级={0} 经验={1}/{2}", m.Level, m.Exp, m.ExpLim);
             if (oldLevel > 0 && m.Level > oldLevel)
             {
-                MainRoleAgent.Current?.PlayLevelUpEffect();
+                MainRoleAgent.NotifyLevelUp();
             }
             EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
         }

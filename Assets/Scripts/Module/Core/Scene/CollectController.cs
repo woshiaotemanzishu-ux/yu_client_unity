@@ -203,6 +203,7 @@ namespace Shenxiao.Module.Core.Scene
             await TimeUtil.Delay(ms);
             if (epoch != _epoch || !_collecting || !_started) return;
             if (!NetManager.IsConnected) { FinishVisualAndState(); return; }
+            MainRoleAgent.Current?.PlayCollectCompleteEffect();
             SendFmt(Proto.CS_COLLECT, "iic", _insId, _typeId, FLAG_COMPLETE);
             GameLog.Info("Collect", "采集计时满({0}s)→ send 20008 采集完成请求 ins={1} type={2}", pickTimeSec, _insId, _typeId);
         }

@@ -18,6 +18,11 @@ namespace Shenxiao.Common.UI3D
         public int BackOrnamentId;  // model_back_{id},0=无(挂 wing 骨,AttachNode.BackOrnament)
         public string[] Actions;    // 按 ConfigModelAni(顺序播放,最后一个循环与否由 .lani 决定)
         public bool AutoPlayActions = true;
+        /// <summary>
+        /// 是否装配 Body.always。老端 SceneObj.LoadModeParticle 明确不在场景角色上加载身体常驻特效，
+        /// 但 UIModelClass3D 仍会加载；因此默认保留 UI 语义，仅由场景主角 BuildSpec 关闭。
+        /// </summary>
+        public bool IncludeBodyAlwaysEffects = true;
     }
 
     /// <summary>
@@ -63,11 +68,11 @@ namespace Shenxiao.Common.UI3D
             }
             GameObject root = Object.Instantiate(prefab);
             LoadedAssetReleaser.Track(root, prefab);
-            if (profile != null && profile.AlwaysEffects != null)
+            if (spec.IncludeBodyAlwaysEffects && profile != null && profile.AlwaysEffects != null)
             {
                 await EffectBinder.AttachBindings(root, FilterEffects(profile.AlwaysEffects, "model"), "always");
             }
-            else
+            else if (spec.IncludeBodyAlwaysEffects)
             {
                 // 常驻特效(SceneObjectParticle.Body;默认装多无记录,时装 N125 家族有)
                 await EffectBinder.AttachAlways(root, "role", spec.ClotheRes.ToString());

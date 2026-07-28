@@ -651,7 +651,7 @@ namespace Shenxiao.Module.Core.Tasks
                 return;
             }
 
-            agent.MoveToNpcStrict(npc.X, npc.Y, 0f, () => DialogueController.Instance.ShowTask(npcId));
+            agent.MoveToTaskTarget(npc.X, npc.Y, 0f, () => DialogueController.Instance.ShowTask(npcId));
         }
 
         /// <summary>完成提交(对标 ts:2385:TaskFinishView/TaskCircleFinishView + 协议 30004)。</summary>
@@ -698,7 +698,7 @@ namespace Shenxiao.Module.Core.Tasks
                 "途中目标点附近怪物由九宫格(12012/12007)真实下发到 SceneManager,命中走技能点击(SceneCombat)。",
                 task.TaskId, task.SceneX, task.SceneY);
             if (TryStartTaskJumpToPoint(agent, task)) return;
-            agent.MoveToNpcStrict(task.SceneX, task.SceneY, TaskPointArriveLogicDist, () => OnArriveTaskPoint(task));
+            agent.MoveToTaskTarget(task.SceneX, task.SceneY, TaskPointArriveLogicDist, () => OnArriveTaskPoint(task));
         }
 
         /// <summary>正在等待跨场景落地后续接的任务(对标老端 fly_data.callback);null=无。</summary>
@@ -792,7 +792,7 @@ namespace Shenxiao.Module.Core.Tasks
                 GameLog.Info("Task", "PassMainDungeon move to entry: task={0} pos=({1},{2})",
                     task.TaskId, task.SceneX, task.SceneY);
                 if (TryStartTaskJumpToPoint(agent, task)) return;
-                agent.MoveToNpcStrict(task.SceneX, task.SceneY, TaskPointArriveLogicDist, () => StartPassMainDungeon(task));
+                agent.MoveToTaskTarget(task.SceneX, task.SceneY, TaskPointArriveLogicDist, () => StartPassMainDungeon(task));
                 return;
             }
 

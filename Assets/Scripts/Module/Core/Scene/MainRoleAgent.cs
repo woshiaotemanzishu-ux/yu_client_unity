@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Shenxiao.Common.Tips;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
-using Shenxiao.Framework.Res;
 using Shenxiao.Framework.Scene3D.Map;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.AutoFight;
@@ -38,6 +37,9 @@ namespace Shenxiao.Module.Core.Scene
         private const float AutoMoveTimeout = 8f;    // 直线接近兜底超时(无 A* 绕障:到不了也要把对话开出来)
         private const float AutoStuckSeconds = 0.6f; // 连续无位移进展达此时长 → 判定卡死兜底
         private const float AutoStuckEpsilon = 0.5f; // 单帧像素位移进展阈值(< 此值视为无进展)
+        private const float TaskSpeedLogicDistance = 7f;
+        private const int TaskSpeedDelayMs = 150;
+        private const float SceneOneShotAnchorLifetime = 5f;
 
         private const string ActionIdle = "idle";
         private const string ActionRun = "run";
@@ -49,6 +51,7 @@ namespace Shenxiao.Module.Core.Scene
 
         /// <summary>当前主角驱动(MainRoleFlow 装配后唯一存在;清主角时置空)。任务/对话用它让主角朝 NPC 转向。</summary>
         public static MainRoleAgent Current { get; private set; }
+        private static int _pendingLevelUpEffectCount;
 
         private Transform _modelTr;     // 模型子节点(用于转向)
         private Animation _anim;        // 老拼装管线在模型根挂的 Animation(混合容器根上没有,此时为 null)
@@ -61,6 +64,19 @@ namespace Shenxiao.Module.Core.Scene
         private Vector3 _modelBaseLocalPos;
         private int _jumpActionCursor;
         private int _levelUpEffectCount;
+        private int _taskSpeedEpoch;
+        private bool _taskSpeedRequested;
+        private bool _taskSpeedActive;
+        private GameObject _taskSpeedEffect;
+
+        private sealed class WorldEffectAnchor
+        {
+            public Transform Transform;
+            public float PixelX;
+            public float PixelY;
+        }
+
+        private readonly List<WorldEffectAnchor> _worldEffectAnchors = new List<WorldEffectAnchor>();
 
         private float _posX;            // 真实像素 X(real_pos.x)
         private float _posY;            // 真实像素 Y(real_pos.y)
@@ -83,11 +99,15 @@ namespace Shenxiao.Module.Core.Scene
         /// <summary>由 MainRoleFlow 在装配完成后初始化:传入模型子节点与出生坐标。</summary>
         public void Init(GameObject model, int spawnX, int spawnY, int career, int sex, int clotheRes)
         {
+            if (_driver != null) _driver.ActiveModelChanged -= OnActiveModelChanged;
+            ClearTaskSpeedEffect();
+            ClearWorldEffectAnchors();
             Current = this;
             _model = model;
             _modelTr = model != null ? model.transform : transform;
             _anim = model != null ? model.GetComponent<Animation>() : null;
             _driver = model != null ? model.GetComponent<ReplaceableRoleModel>() : null;
+            if (_driver != null) _driver.ActiveModelChanged += OnActiveModelChanged;
             _career = career;
             _sex = sex;
             _clotheRes = clotheRes;
@@ -100,6 +120,10 @@ namespace Shenxiao.Module.Core.Scene
             _sendTimer = 0f;
             PlayAction(ActionIdle);
             SyncModelScreenOffset(); // 出生点可能就在地图边缘:按相机夹边量先把模型摆到正确屏幕位
+
+            int pendingLevelUps = Mathf.Min(2, _pendingLevelUpEffectCount);
+            _pendingLevelUpEffectCount = 0;
+            for (int i = 0; i < pendingLevelUps; i++) PlayLevelUpEffect();
         }
 
         /// <summary>
@@ -117,6 +141,7 @@ namespace Shenxiao.Module.Core.Scene
 
         private void Update()
         {
+            UpdateWorldEffectAnchors();
             SceneMapData map = SceneMapLoader.Current;
             if (map == null) return;
 
@@ -183,6 +208,7 @@ namespace Shenxiao.Module.Core.Scene
         {
             // 手动摇杆会打断任务跳跃等异步寻路；普通自动接近走 AutoStep，不经过这里。
             SetAutoFindWayState(false);
+            ClearTaskSpeedEffect();
             Vector2 dir = SceneInput.Dir; // 舞台坐标:x 右、y 下,与地图像素一致
             float dt = Mathf.Min(Time.deltaTime, MaxDeltaTime);
             float moveDist = MoveSpeed * dt;
@@ -256,18 +282,20 @@ namespace Shenxiao.Module.Core.Scene
             if (_sendTimer >= SendInterval)
             {
                 _sendTimer = 0f;
-                SceneController.Instance.SendMoveRequest(role.X, role.Y, MoveTypeNormal, role.X, role.Y);
+                SceneController.Instance.SendMoveRequest(role.X, role.Y, CurrentMoveType, role.X, role.Y);
             }
         }
 
         private void StopMove()
         {
+            int moveType = CurrentMoveType;
             _moving = false;
+            ClearTaskSpeedEffect();
             ResetModelVisualOffset();
             PlayAction(ActionIdle);
             // 对标 MainRole.QuitStateMove:松手补发一次最终坐标
             RoleModel role = RoleModel.Instance;
-            SceneController.Instance.SendMoveRequest(role.X, role.Y, MoveTypeNormal, role.X, role.Y);
+            SceneController.Instance.SendMoveRequest(role.X, role.Y, moveType, role.X, role.Y);
         }
 
         /// <summary>
@@ -289,7 +317,11 @@ namespace Shenxiao.Module.Core.Scene
             if (_model != null) EffectBinder.ClearTag(_model, "action");
             ResetModelVisualOffset();
             if (_moving) StopMove();
-            else PlayAction(ActionIdle);
+            else
+            {
+                ClearTaskSpeedEffect();
+                PlayAction(ActionIdle);
+            }
         }
 
         /// <summary>
@@ -310,6 +342,7 @@ namespace Shenxiao.Module.Core.Scene
             _autoElapsed = 0f;
             _autoStuckTime = 0f;
             _autoInvokeOnFail = true;
+            ClearTaskSpeedEffect();
             if (_model != null) EffectBinder.ClearTag(_model, "action");
             ResetModelVisualOffset();
             PlayAction(ActionIdle);
@@ -391,15 +424,25 @@ namespace Shenxiao.Module.Core.Scene
         /// <param name="onArrive">到达或兜底后回调(对话入口 ShowTask)。</param>
         public void MoveToNpc(float targetX, float targetY, float arriveLogicDist, Action onArrive)
         {
-            MoveToNpcInternal(targetX, targetY, arriveLogicDist, onArrive, true);
+            MoveToNpcInternal(targetX, targetY, arriveLogicDist, onArrive, true, false);
         }
 
         public void MoveToNpcStrict(float targetX, float targetY, float arriveLogicDist, Action onArrive)
         {
-            MoveToNpcInternal(targetX, targetY, arriveLogicDist, onArrive, false);
+            MoveToNpcInternal(targetX, targetY, arriveLogicDist, onArrive, false, false);
         }
 
-        private void MoveToNpcInternal(float targetX, float targetY, float arriveLogicDist, Action onArrive, bool invokeOnFail)
+        /// <summary>
+        /// 任务导航专用接近入口。仅它会按老端 TaskModel 的“场景 type=0/1/4 且目标超过 7 逻辑格”
+        /// 打开 char_acceleratebuff01；手点 NPC、战斗接近与普通自动移动都不冒充任务加速。
+        /// </summary>
+        public void MoveToTaskTarget(float targetX, float targetY, float arriveLogicDist, Action onArrive)
+        {
+            MoveToNpcInternal(targetX, targetY, arriveLogicDist, onArrive, false, true);
+        }
+
+        private void MoveToNpcInternal(float targetX, float targetY, float arriveLogicDist, Action onArrive,
+            bool invokeOnFail, bool taskNavigation)
         {
             _autoTargetX = targetX;
             _autoTargetY = targetY;
@@ -409,6 +452,7 @@ namespace Shenxiao.Module.Core.Scene
             // 已在范围内:不移动,直接转身 + 触发(对标 MainRoleToNpc 的 GetDistance<=dist+1 早退分支)。
             if (ReachedTarget())
             {
+                ClearTaskSpeedEffect();
                 _autoMoving = false;
                 SetAutoFindWayState(false);
                 _onArrive = null;
@@ -426,6 +470,7 @@ namespace Shenxiao.Module.Core.Scene
             _autoStuckTime = 0f;
             _autoLastX = _posX;
             _autoLastY = _posY;
+            SetTaskSpeedEffectRequested(taskNavigation && ShouldUseTaskSpeed(targetX, targetY));
             GameLog.Info("Scene", "MoveToNpc: 自动直线接近目标 ({0:F0},{1:F0}),到达半径={2} 逻辑格", targetX, targetY, _autoArriveLogic);
         }
 
@@ -467,6 +512,85 @@ namespace Shenxiao.Module.Core.Scene
             float lx = (_autoTargetX - _posX) / SceneMapData.LogicRatioX;
             float ly = (_autoTargetY - _posY) / SceneMapData.LogicRatioY;
             return lx * lx + ly * ly <= _autoArriveLogic * _autoArriveLogic;
+        }
+
+        private int CurrentMoveType => _taskSpeedActive ? MoveType.Accelerate : MoveTypeNormal;
+
+        private bool ShouldUseTaskSpeed(float targetX, float targetY)
+        {
+            MainUIConfigs.SceneCfg cfg = MainUIConfigs.GetSceneCfg(RoleModel.Instance.SceneId);
+            return cfg != null && IsTaskSpeedEligible(cfg.Type, _posX, _posY, targetX, targetY);
+        }
+
+        private static bool IsTaskSpeedEligible(int sceneType, float fromX, float fromY, float targetX, float targetY)
+        {
+            if (sceneType != 0 && sceneType != 1 && sceneType != 4) return false;
+            float logicX = (targetX - fromX) / SceneMapData.LogicRatioX;
+            float logicY = (targetY - fromY) / SceneMapData.LogicRatioY;
+            return logicX * logicX + logicY * logicY > TaskSpeedLogicDistance * TaskSpeedLogicDistance;
+        }
+
+        private void SetTaskSpeedEffectRequested(bool requested)
+        {
+            ClearTaskSpeedEffect();
+            if (!requested) return;
+            _taskSpeedRequested = true;
+            int epoch = _taskSpeedEpoch;
+            _ = PlayTaskSpeedEffectAsync(epoch, TaskSpeedDelayMs);
+        }
+
+        private void ClearTaskSpeedEffect()
+        {
+            _taskSpeedEpoch++;
+            _taskSpeedRequested = false;
+            _taskSpeedActive = false;
+            if (_taskSpeedEffect == null) return;
+            _taskSpeedEffect.SetActive(false);
+            UnityEngine.Object.Destroy(_taskSpeedEffect);
+            _taskSpeedEffect = null;
+        }
+
+        private async Task PlayTaskSpeedEffectAsync(int epoch, int delayMs)
+        {
+            try
+            {
+                if (delayMs > 0) await TimeUtil.Delay(delayMs);
+                if (this == null || epoch != _taskSpeedEpoch || !_taskSpeedRequested || !_autoMoving) return;
+
+                GameObject host = GetActiveActionEffectHost();
+                GameObject effect = await EffectBinder.AttachOne(host, "root", "other_effect",
+                    "char_acceleratebuff01", "task_speed", false);
+                if (this == null || effect == null || epoch != _taskSpeedEpoch || !_taskSpeedRequested || !_autoMoving)
+                {
+                    if (effect != null) UnityEngine.Object.Destroy(effect);
+                    return;
+                }
+
+                _taskSpeedEffect = effect;
+                _taskSpeedActive = true;
+                EffectBinder.PlayEffect(effect);
+                GameLog.Info("Scene", "task speed effect attached: char_acceleratebuff01 scene={0}",
+                    RoleModel.Instance.SceneId);
+            }
+            catch (Exception ex)
+            {
+                GameLog.Warn("Scene", "play task speed effect failed: {0}", ex.Message);
+            }
+        }
+
+        private void OnActiveModelChanged()
+        {
+            // 混合角色 idle/run/skill 可能是不同实例。跑动拖尾必须跟随当前可见的 run 实例重挂。
+            if (!_taskSpeedRequested || !_autoMoving) return;
+            _taskSpeedEpoch++;
+            if (_taskSpeedEffect != null)
+            {
+                _taskSpeedEffect.SetActive(false);
+                UnityEngine.Object.Destroy(_taskSpeedEffect);
+                _taskSpeedEffect = null;
+            }
+            int epoch = _taskSpeedEpoch;
+            _ = PlayTaskSpeedEffectAsync(epoch, 0);
         }
 
         public bool IsDirectPathBlockedTo(float targetX, float targetY)
@@ -519,6 +643,7 @@ namespace Shenxiao.Module.Core.Scene
         {
             if (!_autoMoving) return;
             _autoMoving = false;
+            ClearTaskSpeedEffect();
             SetAutoFindWayState(false);
             _onArrive = null;
             _autoInvokeOnFail = true;
@@ -536,6 +661,7 @@ namespace Shenxiao.Module.Core.Scene
         public void DoCollect()
         {
             _autoMoving = false;
+            ClearTaskSpeedEffect();
             SetAutoFindWayState(false);
             _onArrive = null;
             _moving = false;
@@ -617,6 +743,7 @@ namespace Shenxiao.Module.Core.Scene
                 int version = ++_actionVersion;
                 _moving = false;
                 _autoMoving = false;
+                ClearTaskSpeedEffect();
                 SetAutoFindWayState(true);
                 _onArrive = null;
                 EffectBinder.ClearTag(_model, "action");
@@ -669,6 +796,10 @@ namespace Shenxiao.Module.Core.Scene
                     float segmentDuration = GetTaskJumpDuration(vspeed, gravity, segmentFallStay);
                     float actionSpeed = GetActionPlaybackSpeed(playedAction, segmentDuration, movieSpeedOff);
                     TryPlayAction(playedAction, i == 0 ? 0.08f : 0.02f, true, actionSpeed);
+                    // 老端任务跳跃 show_effect 固定 false：中间段用 char_jumpfx_01，最终段用起跳烟；
+                    // char_jumpfx_02 只属于 show_effect=true 的非任务跳跃，不能在这里误播。
+                    PlayWorldOneShot(isLastSegment ? "effect_jump_qitiaoyan" : "char_jumpfx_01",
+                        _posX, _posY);
                     await RunConfiguredJumpToAsync(jumpType, jumpTarget.x, jumpTarget.y, version, true, startX, startY,
                         hspeed, vspeed, gravity, segmentFallStay, true);
                     if (version != _actionVersion || _model == null) return;
@@ -725,6 +856,7 @@ namespace Shenxiao.Module.Core.Scene
                 int version = ++_actionVersion;
                 _moving = false;
                 _autoMoving = false;
+                ClearTaskSpeedEffect();
                 SetAutoFindWayState(false);
                 EffectBinder.ClearTag(_model, "action");
 
@@ -770,6 +902,7 @@ namespace Shenxiao.Module.Core.Scene
                 int version = ++_actionVersion;
                 _moving = false;
                 _autoMoving = false;
+                ClearTaskSpeedEffect();
                 SetAutoFindWayState(false);
                 EffectBinder.ClearTag(_model, "action");
                 ResetModelVisualOffset();
@@ -892,53 +1025,120 @@ namespace Shenxiao.Module.Core.Scene
             }
         }
 
-        public void PlayLevelUpEffect()
+        /// <summary>
+        /// 升级协议入口。13003 可能早于场景主角装配完成，先保留最多两次，Init 后补播；
+        /// 对标老端同屏最多两个升级特效的保护。
+        /// </summary>
+        public static void NotifyLevelUp()
         {
-            _ = PlayLevelUpEffectAsync();
+            if (Current != null) Current.PlayLevelUpEffect();
+            else _pendingLevelUpEffectCount = Mathf.Min(2, _pendingLevelUpEffectCount + 1);
         }
 
-        private async Task PlayLevelUpEffectAsync()
+        public void PlayLevelUpEffect()
         {
-            if (_model == null) return;
-            if (_levelUpEffectCount >= 2) return;
-
+            if (_model == null || _levelUpEffectCount >= 2) return;
             _levelUpEffectCount++;
+            _ = PlayDetachedOneShotAsync("effect_xemlvup", "levelup", true);
+        }
+
+        /// <summary>采集进度完成、发 flag=2 请求时播放主角自身的 other_effect_caiji_02。</summary>
+        public void PlayCollectCompleteEffect()
+        {
+            _ = PlayDetachedOneShotAsync("other_effect_caiji_02", "collect_complete", false);
+        }
+
+        private async Task PlayDetachedOneShotAsync(string effectName, string tag, bool levelUp)
+        {
             try
             {
-                string key = GameResPath.GetEffectPrefabPath("other_effect", "effect_xemlvup");
-                GameObject prefab = await ResManager.LoadAsync<GameObject>(key);
-                Transform host = GetDetachedEffectHost();
-                if (prefab == null || host == null)
+                GameObject host = SceneCharacterStage.MainRoleDetachedEffectHost;
+                GameObject effect = await EffectBinder.AttachOne(host, "", "other_effect", effectName, tag, false);
+                if (effect == null)
                 {
-                    GameLog.Warn("Scene", "level up effect missing or host destroyed: {0}", key);
-                    ResManager.Release(prefab); // 宿主没了也归还这次引用(prefab==null 时为空操作)
+                    GameLog.Warn("Scene", "detached role effect missing or host destroyed: {0}", effectName);
                     return;
                 }
 
-                GameObject effect = UnityEngine.Object.Instantiate(prefab, host);
-                LoadedAssetReleaser.Track(effect, prefab);
-                effect.name = "__fx_levelup_effect_xemlvup";
-                effect.transform.localPosition = Vector3.zero;
-                effect.transform.localRotation = Quaternion.identity;
-                effect.transform.localScale = Vector3.one;
-                if (effect != null) EffectBinder.PlayOneShot(effect);
-                await TimeUtil.Delay(1000);
+                EffectBinder.PlayOneShot(effect);
+                GameLog.Info("Scene", "detached role effect played: {0}", effectName);
+                if (levelUp) await TimeUtil.Delay(1000);
             }
             catch (Exception ex)
             {
-                GameLog.Warn("Scene", "play level up effect failed: {0}", ex.Message);
+                GameLog.Warn("Scene", "play detached role effect failed {0}: {1}", effectName, ex.Message);
             }
             finally
             {
-                _levelUpEffectCount = Mathf.Max(0, _levelUpEffectCount - 1);
+                if (levelUp) _levelUpEffectCount = Mathf.Max(0, _levelUpEffectCount - 1);
             }
         }
 
-        private Transform GetDetachedEffectHost()
+        private void PlayWorldOneShot(string effectName, float pixelX, float pixelY)
         {
-            if (_modelTr != null && _modelTr.parent != null) return _modelTr.parent;
-            if (_modelTr != null) return _modelTr;
-            return transform;
+            _ = PlayWorldOneShotAsync(effectName, pixelX, pixelY);
+        }
+
+        private async Task PlayWorldOneShotAsync(string effectName, float pixelX, float pixelY)
+        {
+            Transform anchor = SceneCharacterStage.AddSceneEffectAnchor();
+            if (anchor == null) return;
+            var tracked = new WorldEffectAnchor { Transform = anchor, PixelX = pixelX, PixelY = pixelY };
+            _worldEffectAnchors.Add(tracked);
+            UpdateWorldEffectAnchor(tracked);
+
+            try
+            {
+                GameObject host = anchor.childCount > 0 ? anchor.GetChild(0).gameObject : anchor.gameObject;
+                GameObject effect = await EffectBinder.AttachOne(host, "", "other_effect",
+                    effectName, "scene_once", false);
+                if (this == null || anchor == null || effect == null)
+                {
+                    if (effect != null) UnityEngine.Object.Destroy(effect);
+                    if (anchor != null) SceneCharacterStage.RemoveSceneCharacter(anchor);
+                    return;
+                }
+                EffectBinder.PlayOneShot(effect);
+                UnityEngine.Object.Destroy(anchor.gameObject, SceneOneShotAnchorLifetime);
+                GameLog.Info("Scene", "world role effect played: {0} pos=({1:F0},{2:F0})",
+                    effectName, pixelX, pixelY);
+            }
+            catch (Exception ex)
+            {
+                if (anchor != null) SceneCharacterStage.RemoveSceneCharacter(anchor);
+                GameLog.Warn("Scene", "play world role effect failed {0}: {1}", effectName, ex.Message);
+            }
+        }
+
+        private void UpdateWorldEffectAnchors()
+        {
+            for (int i = _worldEffectAnchors.Count - 1; i >= 0; i--)
+            {
+                WorldEffectAnchor tracked = _worldEffectAnchors[i];
+                if (tracked?.Transform == null)
+                {
+                    _worldEffectAnchors.RemoveAt(i);
+                    continue;
+                }
+                UpdateWorldEffectAnchor(tracked);
+            }
+        }
+
+        private void UpdateWorldEffectAnchor(WorldEffectAnchor tracked)
+        {
+            if (tracked?.Transform == null) return;
+            SceneCharacterStage.SetSceneCharacterPixelOffset(tracked.Transform,
+                new Vector2(tracked.PixelX - _posX, tracked.PixelY - _posY));
+        }
+
+        private void ClearWorldEffectAnchors()
+        {
+            for (int i = _worldEffectAnchors.Count - 1; i >= 0; i--)
+            {
+                Transform anchor = _worldEffectAnchors[i]?.Transform;
+                if (anchor != null) SceneCharacterStage.RemoveSceneCharacter(anchor);
+            }
+            _worldEffectAnchors.Clear();
         }
 
         private async Task RunConfiguredJumpToAsync(int moveAnim, int targetX, int targetY, int version,
@@ -1087,6 +1287,10 @@ namespace Shenxiao.Module.Core.Scene
 
         private void OnDestroy()
         {
+            _actionVersion++;
+            if (_driver != null) _driver.ActiveModelChanged -= OnActiveModelChanged;
+            ClearTaskSpeedEffect();
+            ClearWorldEffectAnchors();
             if (Current == this)
             {
                 SetAutoFindWayState(false);
@@ -1110,6 +1314,7 @@ namespace Shenxiao.Module.Core.Scene
         /// 返回 false 供调用方按需 log TODO,不硬造动画。</summary>
         public bool PlayDeadAnim()
         {
+            ClearTaskSpeedEffect();
             return TryPlayAction(ActionDeath, 0.15f, true);
         }
 

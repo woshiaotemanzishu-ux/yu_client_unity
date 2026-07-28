@@ -209,6 +209,8 @@ namespace Shenxiao.Module.Core.Scene
                 WingId = figure.WingId,
                 BackOrnamentId = figure.BackOrnamentId,
                 Actions = STAND_ACTIONS,
+                // 老端场景角色刻意关闭 Body.always；武器/翅膀/背饰自身的常驻特效仍照常装配。
+                IncludeBodyAlwaysEffects = false,
             };
         }
 

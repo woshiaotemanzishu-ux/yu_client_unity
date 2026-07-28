@@ -235,6 +235,7 @@ namespace Shenxiao.Common.UI3D
                     BackOrnamentId = _spec.BackOrnamentId,
                     Actions = _spec.Actions,
                     AutoPlayActions = false,
+                    IncludeBodyAlwaysEffects = _spec.IncludeBodyAlwaysEffects,
                 });
                 if (old == null) return null;
                 if (this == null)

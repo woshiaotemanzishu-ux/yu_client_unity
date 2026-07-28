@@ -347,6 +347,12 @@ namespace Shenxiao.EditorTools
             Run(SceneMixDriverCase.Run, 300.0);
         }
 
+        /// <summary>主角升级/任务跑动拖尾/任务跳跃/采集完成特效与挂载门禁专项。</summary>
+        public static void RolePresentationEffects()
+        {
+            Run(RolePresentationEffectsCase.Run, 120.0);
+        }
+
         /// <summary>技能成长线(自动循环 轮3)实证:21001/21010/21011/21012/13008/13010/12093/18401/20006 合成包驱动
         /// SkillController/FightController 反射喂包,纯逻辑断言(详见 SkillGrowthCase 注释)。</summary>
         public static void SkillGrowth()

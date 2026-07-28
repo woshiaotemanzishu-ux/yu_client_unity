@@ -62,6 +62,7 @@ namespace Shenxiao.Common.UI3D
         private static Transform _charsRoot;
         private static GameObject _mainRole;
         private static GameObject _mainRoleTilt; // 主角的 2.5D 后倾父容器(模型挂其下;销毁它即连模型一起清掉)
+        private static GameObject _mainRoleDetachedEffects;
         private static ReplaceableRoleModel _mainRoleDriver;
 
         /// <summary>场景角色挂载根(隔离区中心)。NPC/怪物后续按相对主角的偏移摆进来。</summary>
@@ -69,6 +70,12 @@ namespace Shenxiao.Common.UI3D
         {
             get { EnsureStage(); return _charsRoot; }
         }
+
+        /// <summary>
+        /// 主角位置型、但不应跟随身体 yaw/2.5D 倾斜的特效宿主（老端 attach_type=15 / SceneObj）。
+        /// 升级、采集完成等一次性特效必须挂这里，不能挂 MainRoleTilt 或当前动作模型。
+        /// </summary>
+        public static GameObject MainRoleDetachedEffectHost => _mainRoleDetachedEffects;
 
         /// <summary>
         /// 把装配好的主角模型放上合成台:置于台中心、落地、面向相机。返回后由 MainRoleAgent 继续驱动
@@ -86,6 +93,11 @@ namespace Shenxiao.Common.UI3D
                 _mainRoleTilt.SetActive(false); // Destroy 延迟到帧末；先退台，避免旧档案干扰新模型的渲染口径
                 Object.Destroy(_mainRoleTilt); // 连同其下旧模型一起销毁
             }
+            if (_mainRoleDetachedEffects != null)
+            {
+                _mainRoleDetachedEffects.SetActive(false);
+                Object.Destroy(_mainRoleDetachedEffects);
+            }
             _mainRole = model;
 
             // 2.5D 后倾容器(对标老客户端 modelObj_transform 的世界 X 轴后倾 Rx(38)):
@@ -101,6 +113,14 @@ namespace Shenxiao.Common.UI3D
             tiltGo.transform.localPosition = new Vector3(0f, -feetDropWorld, 0f);
             tiltGo.transform.localRotation = Quaternion.Euler(MODEL_TILT, 0f, 0f);
             tiltGo.transform.localScale = Vector3.one;
+
+            // attach_type=15 在老端是 SceneObj 顶层节点：与主角同落点，但不继承角色模型的 X 倾斜与 yaw。
+            // 独立宿主仍位于 CharsRoot 下，所以 RawImage 的整图相机夹边偏移会自动与主角同步。
+            _mainRoleDetachedEffects = new GameObject("MainRoleDetachedEffects");
+            _mainRoleDetachedEffects.transform.SetParent(_charsRoot, false);
+            _mainRoleDetachedEffects.transform.localPosition = tiltGo.transform.localPosition;
+            _mainRoleDetachedEffects.transform.localRotation = Quaternion.identity;
+            _mainRoleDetachedEffects.transform.localScale = Vector3.one;
 
             model.transform.SetParent(tiltGo.transform, false);
             model.transform.localPosition = Vector3.zero;
@@ -171,6 +191,27 @@ namespace Shenxiao.Common.UI3D
         }
 
         /// <summary>
+        /// 创建固定在场景像素坐标上的一次性特效锚点。锚点使用与老端 AddPosEffect 等价的
+        /// 2.5D 朝向；调用方每帧通过 SetSceneCharacterPixelOffset 维持“世界坐标 - 主角坐标”。
+        /// 特效实例本身仍必须由 EffectBinder 挂入该空锚点。
+        /// </summary>
+        public static Transform AddSceneEffectAnchor()
+        {
+            EnsureStage();
+            EnsureView();
+            GameObject anchor = new GameObject("SceneEffectAnchor");
+            anchor.transform.SetParent(_charsRoot, false);
+            anchor.transform.localRotation = Quaternion.Euler(MODEL_TILT, 0f, 0f);
+            anchor.transform.localScale = Vector3.one;
+            GameObject host = new GameObject("EffectHost");
+            host.transform.SetParent(anchor.transform, false);
+            host.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+            UpdateArtAmbient();
+            if (_img != null) _img.gameObject.SetActive(true);
+            return anchor.transform;
+        }
+
+        /// <summary>
         /// 按"配角世界像素 - 主角世界像素"(舞台坐标:x 右、y 下)把配角摆到台内对应位置。
         /// 竖直基线与主角一致,故偏移 (0,0) 时配角与主角同一落地点。
         /// </summary>
@@ -204,6 +245,12 @@ namespace Shenxiao.Common.UI3D
                 _mainRole = null;
             }
             else if (_mainRole != null) { Object.Destroy(_mainRole); _mainRole = null; }
+            if (_mainRoleDetachedEffects != null)
+            {
+                _mainRoleDetachedEffects.SetActive(false);
+                Object.Destroy(_mainRoleDetachedEffects);
+                _mainRoleDetachedEffects = null;
+            }
             if (_ambientHeld) { ArtAmbient.Release(); _ambientHeld = false; } // Destroy 延后生效,这里直接放光
             ConfigureArtRender(null);
             if (_img != null)
