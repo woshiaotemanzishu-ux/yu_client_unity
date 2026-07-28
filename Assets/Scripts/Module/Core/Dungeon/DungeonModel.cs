@@ -20,7 +20,7 @@ namespace Shenxiao.Module.Core.Dungeon
     /// 61018 退出倒计时/61021 购买/61022 扫荡/61023 时间评分/61025·61026 鼓舞/61044 经验本面板推送/
     /// 61045 冷却时间/61046 邀请发送者原始消息/61048 双方邀请状态/61050 神纹最佳记录/61051 阶段奖励领取情况/
     /// 61053 快速出怪权威状态/61055 临时技能数量/61058 跳关奖励通知/61059 高级经验波数面板/
-    /// 61061 高级经验跳关进入通知/
+    /// 61061 高级经验跳关进入通知/61062 副本开关设置/
     /// 61120·61121 资源本一键与次数。
     /// 周本(50801/50802)是独立数据线,见 <see cref="PolarModel"/>——勿塞进 DunStatesByType(r9 侦察结论)。
     /// </summary>
@@ -261,6 +261,23 @@ namespace Shenxiao.Module.Core.Dungeon
         public bool HasAdvancedExpJumpInfo { get; private set; }
         public AdvancedExpJumpInfoSnapshot LastAdvancedExpJumpInfo { get; private set; }
 
+        public sealed class DungeonSettingInfoEntry
+        {
+            public byte Type;
+            public byte SelectType;
+            public byte IsOpen;
+            public byte Count;
+        }
+
+        public sealed class DungeonSettingInfoSnapshot
+        {
+            public List<DungeonSettingInfoEntry> SettingList;
+        }
+
+        /// <summary>61062 按 dun_id 保存；同键整包替换，列表保留 wire 原序、重复项与零值。</summary>
+        public readonly Dictionary<uint, DungeonSettingInfoSnapshot> DungeonSettingInfoByDunId =
+            new Dictionary<uint, DungeonSettingInfoSnapshot>();
+
         public void ApplyExpDungeonInfo(ushort killCount, ulong totalExp)
         {
             HasExpDungeonInfo = true;
@@ -359,6 +376,17 @@ namespace Shenxiao.Module.Core.Dungeon
                 Exp = exp,
             };
         }
+
+        public void ApplyDungeonSettingInfo(uint dunId, List<DungeonSettingInfoEntry> settings)
+        {
+            DungeonSettingInfoByDunId[dunId] = new DungeonSettingInfoSnapshot
+            {
+                SettingList = settings ?? new List<DungeonSettingInfoEntry>(),
+            };
+        }
+
+        public bool TryGetDungeonSettingInfo(uint dunId, out DungeonSettingInfoSnapshot snapshot) =>
+            DungeonSettingInfoByDunId.TryGetValue(dunId, out snapshot);
 
         /// <summary>61045 按 dun_id 保存的服务器绝对冷却结束时间；0 也是合法回包。</summary>
         public readonly Dictionary<uint, uint> CooldownEndTimes = new Dictionary<uint, uint>();
@@ -661,6 +689,7 @@ namespace Shenxiao.Module.Core.Dungeon
             LastAdvancedExpInfo = null;
             HasAdvancedExpJumpInfo = false;
             LastAdvancedExpJumpInfo = null;
+            DungeonSettingInfoByDunId.Clear();
             SceneInfo = null;
             CurrWaveType = 0;
             CurrWaveNum = 1;
