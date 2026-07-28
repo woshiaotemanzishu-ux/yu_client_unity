@@ -208,6 +208,17 @@ namespace Shenxiao.Module.Core.Dungeon
         public ushort TotalQuickCount { get; private set; }
         public uint NextQuickTime { get; private set; }
 
+        public sealed class DragonSkillInfoEntry
+        {
+            public uint SkillId;
+            public ushort Num;
+        }
+
+        /// <summary>是否收到过 61055；列表保留 wire 原序和重复项，空表仍是合法完整快照。</summary>
+        public bool HasDragonSkillInfo { get; private set; }
+        public List<DragonSkillInfoEntry> DragonSkillInfo { get; private set; } =
+            new List<DragonSkillInfoEntry>();
+
         public void ApplyExpDungeonInfo(ushort killCount, ulong totalExp)
         {
             HasExpDungeonInfo = true;
@@ -264,6 +275,12 @@ namespace Shenxiao.Module.Core.Dungeon
             QuickCount = quickCount;
             TotalQuickCount = totalQuickCount;
             NextQuickTime = nextQuickTime;
+        }
+
+        public void ApplyDragonSkillInfo(List<DragonSkillInfoEntry> skills)
+        {
+            HasDragonSkillInfo = true;
+            DragonSkillInfo = skills ?? new List<DragonSkillInfoEntry>();
         }
 
         /// <summary>61045 按 dun_id 保存的服务器绝对冷却结束时间；0 也是合法回包。</summary>
@@ -559,6 +576,8 @@ namespace Shenxiao.Module.Core.Dungeon
             QuickCount = 0;
             TotalQuickCount = 0;
             NextQuickTime = 0;
+            HasDragonSkillInfo = false;
+            DragonSkillInfo.Clear();
             SceneInfo = null;
             CurrWaveType = 0;
             CurrWaveNum = 1;

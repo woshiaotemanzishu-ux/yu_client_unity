@@ -55,6 +55,7 @@ namespace Shenxiao.Module.Core.Dungeon
         private static Func<byte[], bool> s_dragonBestRecordOutboundIntercept = null;
         private static Func<byte[], bool> s_dragonStageRewardOutboundIntercept = null;
         private static Func<byte[], bool> s_dragonQuickInfoOutboundIntercept = null;
+        private static Func<byte[], bool> s_dragonSkillInfoOutboundIntercept = null;
 #endif
 
         private DungeonController() { }
@@ -76,6 +77,7 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_DRAGON_BEST_RECORD, On61050);
             RegisterProtocal(Proto.DUNGEON_DRAGON_STAGE_REWARD, On61051);
             RegisterProtocal(Proto.DUNGEON_DRAGON_QUICK_INFO, On61053);
+            RegisterProtocal(Proto.DUNGEON_DRAGON_SKILL_INFO, On61055);
             RegisterProtocal(Proto.DUNGEON_MONSTER_INVASION_REWARD, On61092);
             // 61002(DUNGEON_EXIT)已由 AutoBrushController 注册,红线不可重复注册;Exit() 只发不接。
             RegisterProtocal(Proto.DUNGEON_INFO, On61004);
@@ -312,6 +314,19 @@ namespace Shenxiao.Module.Core.Dungeon
             }
 #endif
             SendFmt(Proto.DUNGEON_DRAGON_QUICK_INFO);
+        }
+
+        /// <summary>显式查询神纹副本临时技能数量；严格空包，不由生命周期或 UI 自动触发。</summary>
+        public void RequestDragonSkillInfo()
+        {
+#if UNITY_EDITOR
+            if (s_dragonSkillInfoOutboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(Proto.DUNGEON_DRAGON_SKILL_INFO, null, null);
+                if (s_dragonSkillInfoOutboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(Proto.DUNGEON_DRAGON_SKILL_INFO);
         }
 
         /// <summary>请求坐标触发情况表 61019(发 "i" scene_id;进副本场景对账用)。</summary>
@@ -964,6 +979,17 @@ namespace Shenxiao.Module.Core.Dungeon
         private void On61053(NetReader r)
         {
             DungeonModel.Instance.ApplyDragonQuickInfo(r.ReadU16(), r.ReadU16(), r.ReadU32());
+        }
+
+        private void On61055(NetReader r)
+        {
+            List<DungeonModel.DragonSkillInfoEntry> skills = r.ReadArray(rr =>
+                new DungeonModel.DragonSkillInfoEntry
+                {
+                    SkillId = rr.ReadU32(),
+                    Num = rr.ReadU16(),
+                });
+            DungeonModel.Instance.ApplyDragonSkillInfo(skills);
         }
 
         /// <summary>61092 异兽入侵 领取阶段奖励(对标老端 BaseDungeonController.ts:1848-1857 内联 handler:

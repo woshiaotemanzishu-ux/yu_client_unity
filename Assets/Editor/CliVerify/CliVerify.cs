@@ -230,6 +230,7 @@ namespace Shenxiao.EditorTools
         public static void DungeonDragonBestRecord() { Run(DungeonDragonBestRecordCase.Run, 60.0); }
         public static void DungeonDragonStageReward() { Run(DungeonDragonStageRewardCase.Run, 60.0); }
         public static void DungeonDragonQuickInfo() { Run(DungeonDragonQuickInfoCase.Run, 60.0); }
+        public static void DungeonDragonSkillInfo() { Run(DungeonDragonSkillInfoCase.Run, 60.0); }
         public static void SentientAct() { Run(SentientActCase.Run, 60.0); }
         public static void BrightSea() { Run(BrightSeaCase.Run, 60.0); }
         public static void SettingWxSubscription() { Run(SettingWxSubscriptionCase.Run, 60.0); }
