@@ -48,6 +48,7 @@ namespace Shenxiao.Editor.UiCreator.Role
                 }
 
                 ConfigureAttributeGrid(view);
+                ConfigurePropertyItem(view);
                 ConfigureFightLayout(view);
                 if (view._img_title_base != null) view._img_title_base.gameObject.SetActive(true);
                 if (view._img_title_best != null) view._img_title_best.gameObject.SetActive(false);
@@ -100,6 +101,33 @@ namespace Shenxiao.Editor.UiCreator.Role
             layout.childControlHeight = false;
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
+        }
+
+        private static void ConfigurePropertyItem(EquipmentView view)
+        {
+            if (view._tpl_RolePropertyItemRenderer == null) return;
+            RolePropertyItemRenderer item = view._tpl_RolePropertyItemRenderer.GetComponent<RolePropertyItemRenderer>();
+            if (item == null || item.property_group == null) return;
+
+            HorizontalLayoutGroup layout = GetOrAdd<HorizontalLayoutGroup>(item.property_group.gameObject);
+            layout.padding = new RectOffset();
+            layout.spacing = 10f;
+            layout.childAlignment = TextAnchor.UpperLeft;
+            layout.childControlWidth = true;
+            layout.childControlHeight = false;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+
+            if (item.property_name != null)
+            {
+                item.property_name.enableWordWrapping = false;
+                item.property_name.overflowMode = TMPro.TextOverflowModes.Overflow;
+            }
+            if (item.property_value != null)
+            {
+                item.property_value.enableWordWrapping = false;
+                item.property_value.overflowMode = TMPro.TextOverflowModes.Overflow;
+            }
         }
 
         private static T GetOrAdd<T>(GameObject go) where T : Component
