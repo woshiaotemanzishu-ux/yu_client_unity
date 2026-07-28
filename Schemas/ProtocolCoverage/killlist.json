@@ -642,6 +642,12 @@
     "note": "使魔副本进入纯 C2S：u32+u16×u32。两套 serializer 壳均已接线，但全 h5/src 无 Fire/真实入口；服务端写编队进 DB、切场景、建战斗使魔并在结算更新通关。未来须连 UI、61000/61001、场景与结算整体迁移。R262复核。"
   },
   {
+    "cmd": 61103,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/libs/proto611.d.ts:35-51;h5/src/commonController/BaseDungeonController.ts:291-294,951-959,1875-1881;h5/src/commonModel/BaseDungeonModel.ts:2554-2587;h5/src/dungeon/DungeonVictoryView.ts:521-526;yu_server/src/dungeon/pp_dungeon_sec.erl:22-23;yu_server/src/dungeon/lib_dun_demon.erl:231-250;yu_server/src/pt/pt_611.erl:95-114,368-374",
+    "note": "使魔副本状态查询为空请求，回 u32,u32,u16×u32,u8。唯一正常触发依赖已封存61102的 Pet 成功结算；setter整段和结果消费均注释，服务端只读活。未来须随使魔全系统整体迁移。R263复核。"
+  },
+  {
     "cmd": 62107,
     "reason": "dead_server_never_writes",
     "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
