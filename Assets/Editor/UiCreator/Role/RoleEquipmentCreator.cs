@@ -91,7 +91,8 @@ namespace Shenxiao.Editor.UiCreator.Role
         private static void ConfigureFightLayout(EquipmentView view)
         {
             if (view._gp_fight == null) return;
-            HorizontalLayoutGroup layout = GetOrAdd<HorizontalLayoutGroup>(view._gp_fight.gameObject);
+            HorizontalOrVerticalLayoutGroup layout = view._gp_fight.GetComponent<HorizontalOrVerticalLayoutGroup>();
+            if (layout == null) layout = view._gp_fight.gameObject.AddComponent<HorizontalLayoutGroup>();
             layout.padding = new RectOffset();
             layout.spacing = 0f;
             layout.childAlignment = TextAnchor.MiddleCenter;
