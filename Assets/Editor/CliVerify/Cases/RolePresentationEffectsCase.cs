@@ -26,6 +26,7 @@ namespace Shenxiao.EditorTools
             "Assets/GameRes/effect/objs/other_effect/char_jumpfx_02/char_jumpfx_02.prefab",
             "Assets/GameRes/effect/objs/other_effect/effect_jump_qitiaoyan/effect_jump_qitiaoyan.prefab",
             "Assets/GameRes/effect/objs/other_effect/other_effect_caiji_02/other_effect_caiji_02.prefab",
+            "Assets/GameRes/effect/objs/other_effect/function_selection/function_selection.prefab",
             "Assets/GameRes/effect/objs/buff_effect/buffparticle_106_1/buffparticle_106_1.prefab",
             "Assets/GameRes/effect/objs/ui_effect/ui_renwuwancheng/ui_renwuwancheng.prefab",
         };
@@ -37,6 +38,9 @@ namespace Shenxiao.EditorTools
             GameObject role = null;
             GameObject attached = null;
             GameObject speedTrail = null;
+            GameObject selectionTarget = null;
+            GameObject selection = null;
+            Transform selectionTilt = null;
             CliVerify.Stage ownedStage = null;
             UIEffectStage.Handle taskSuccess = null;
             try
@@ -138,6 +142,29 @@ namespace Shenxiao.EditorTools
                 Debug.Log("CLIVERIFY role-effects 4b task speed trail attached at stable world scale 1; " +
                     speedFlowDiagnostic);
 
+                selectionTarget = new GameObject("SelectionTargetProbe");
+                selectionTilt = SceneCharacterStage.AddSceneCharacter(selectionTarget);
+                selection = await EffectBinder.AttachOne(selectionTilt.gameObject, "", "other_effect",
+                    "function_selection", "verify_selection", false);
+                if (selection == null)
+                {
+                    Debug.LogError("CLIVERIFY role-effects function_selection failed through EffectBinder");
+                    return 3;
+                }
+                selection.transform.localRotation = Quaternion.Euler(38f, 0f, 0f);
+                selection.transform.localScale = Vector3.one * 0.7f;
+                EffectBinder.PlayEffect(selection);
+                bool selectionVisualReady = selection.GetComponentsInChildren<Renderer>(true).Length > 0
+                    && selection.GetComponentsInChildren<Animation>(true).Length > 0
+                    && Quaternion.Angle(selection.transform.localRotation, Quaternion.Euler(38f, 0f, 0f)) < 0.01f
+                    && (selection.transform.localScale - Vector3.one * 0.7f).sqrMagnitude < 0.000001f;
+                if (!selectionVisualReady)
+                {
+                    Debug.LogError("CLIVERIFY role-effects function_selection visual/transform mismatch");
+                    return 3;
+                }
+                Debug.Log("CLIVERIFY role-effects 4c function_selection playable with old-client 0.7 scale/tilt compensation");
+
                 MethodInfo eligible = typeof(MainRoleAgent).GetMethod("IsTaskSpeedEligible",
                     BindingFlags.NonPublic | BindingFlags.Static);
                 if (eligible == null)
@@ -209,6 +236,7 @@ namespace Shenxiao.EditorTools
                     if (Application.isPlaying) UnityEngine.Object.Destroy(speedTrail);
                     else UnityEngine.Object.DestroyImmediate(speedTrail);
                 }
+                if (selectionTilt != null) SceneCharacterStage.RemoveSceneCharacter(selectionTilt);
                 taskSuccess?.Dispose();
                 SceneCharacterStage.Clear();
                 ownedStage?.Dispose();

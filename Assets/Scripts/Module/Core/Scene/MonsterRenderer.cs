@@ -200,6 +200,7 @@ namespace Shenxiao.Module.Core.Scene
             view.Loaded = true;
             CreateNameplate(view, cfg); // 名字(config/vo)+ 血条(非采集);无可显内容则跳过
             UpdateViewPosition(view);    // 立即摆一次位(含名牌),driver 之后每帧维持
+            SceneTargetSelection.OnMonsterReady(vo.InstanceId);
             // BOSS(大妖)一进场就面向玩家(横幅停顿期间也正对玩家,对标老端 birth 朝向 + 战斗 SetDirection)。
             if (vo.IsBoss) FaceMonster(vo.InstanceId, RoleModel.Instance.X, RoleModel.Instance.Y);
 
@@ -246,6 +247,7 @@ namespace Shenxiao.Module.Core.Scene
 
         private static void OnMonsterRemoved(int instanceId)
         {
+            SceneTargetSelection.OnMonsterRemoved(instanceId);
             bool killed = _killedPending.Remove(instanceId);
             if (!_views.TryGetValue(instanceId, out MonView view)) return;
             if (killed && view.Loaded && view.Model != null)
@@ -350,6 +352,7 @@ namespace Shenxiao.Module.Core.Scene
         /// 旧场景几十只挤在切图那一帧就是主线程尖刺。</summary>
         private static void ClearAll()
         {
+            SceneTargetSelection.Clear();
             _epoch++; // 让在途加载全部过期
             _killedPending.Clear();
             if (_dying.Count > 0)
@@ -850,6 +853,16 @@ namespace Shenxiao.Module.Core.Scene
 
             monster = best?.Vo;
             return monster != null;
+        }
+
+        internal static bool TryGetSelectionRoot(int instanceId, out Transform root)
+        {
+            root = null;
+            if (!_views.TryGetValue(instanceId, out MonView view)
+                || view == null || !view.Loaded || view.Tilt == null) return false;
+
+            root = view.Tilt;
+            return true;
         }
 
         private static bool IsBodyHit(Vector2 sceneLocal, Vector2 foot)

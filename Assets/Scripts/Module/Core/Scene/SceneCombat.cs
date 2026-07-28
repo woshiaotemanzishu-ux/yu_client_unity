@@ -65,7 +65,12 @@ namespace Shenxiao.Module.Core.Scene
         public int CurrentTargetId { get; private set; }
 
         /// <summary>对标老端 Scene.SetClickTarget:玩家点怪或自动寻敌后锁定目标。</summary>
-        public void SetClickTarget(int monsterInstanceId) => CurrentTargetId = monsterInstanceId;
+        public void SetClickTarget(int monsterInstanceId)
+        {
+            CurrentTargetId = monsterInstanceId;
+            if (monsterInstanceId > 0) SceneTargetSelection.SelectMonster(monsterInstanceId);
+            else SceneTargetSelection.Clear();
+        }
 
         public bool TrySetNearestMonsterByType(int monsterTypeId, int centerX, int centerY)
         {
@@ -136,7 +141,7 @@ namespace Shenxiao.Module.Core.Scene
             MonsterVo target = SceneManager.Instance.GetMonster(monsterInstanceId);
             if (target == null)
             {
-                if (CurrentTargetId == monsterInstanceId) CurrentTargetId = 0;
+                if (CurrentTargetId == monsterInstanceId) SetClickTarget(0);
                 GameLog.Info("Combat", "click attack blocked: monster ins={0} no longer exists", monsterInstanceId);
                 return false;
             }
@@ -180,7 +185,7 @@ namespace Shenxiao.Module.Core.Scene
             MonsterVo vo = SceneManager.Instance.GetMonster(CurrentTargetId);
             if (vo == null || vo.Hp <= 0)
             {
-                CurrentTargetId = 0;
+                SetClickTarget(0);
                 return null;
             }
             return vo;
@@ -367,7 +372,7 @@ namespace Shenxiao.Module.Core.Scene
                 MonsterVo cur = SceneManager.Instance.GetMonster(mon.InstanceId);
                 if (cur == null || cur.Hp <= 0)
                 {
-                    if (CurrentTargetId == mon.InstanceId) CurrentTargetId = 0;
+                    if (CurrentTargetId == mon.InstanceId) SetClickTarget(0);
                     GameLog.Info("Combat", "接近完成但目标怪 ins={0} 已不在/已死 → 清目标,不释放", mon.InstanceId);
                     return;
                 }

@@ -9,6 +9,7 @@ using Shenxiao.Generated.UI.Task;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Tasks
 {
@@ -26,12 +27,15 @@ namespace Shenxiao.Module.Core.Tasks
         private GameObject _moduleRoot;
         private TaskFinishViewBind _bind;
         private Task<bool> _loadTask;
+        private Graphic _moduleClickSurface;
+        private Graphic _viewClickSurface;
         private readonly List<GameObject> _rewardCells = new List<GameObject>();
         private CancellationTokenSource _timerCts;
         private TaskVo _task;
         private int _openEpoch;
         private int _rewardEpoch;
         private int _closeTime;
+        private bool _submitSent;
 
         public void Open(TaskVo task)
         {
@@ -45,6 +49,7 @@ namespace Shenxiao.Module.Core.Tasks
                 return;
             }
 
+            _submitSent = false;
             _task = task;
             _ = OpenAsync(++_openEpoch);
         }
@@ -136,6 +141,7 @@ namespace Shenxiao.Module.Core.Tasks
             }
 
             if (_bind._tpl_EquipmentItem != null) _bind._tpl_EquipmentItem.SetActive(false);
+            ConfigureUniversalSubmitSurface();
             if (_bind._panel_reward != null)
             {
                 if (_bind._panel_reward.verticalScrollbar != null)
@@ -174,22 +180,27 @@ namespace Shenxiao.Module.Core.Tasks
             if (_bind._lb_finish != null) _bind._lb_finish.text = hasReward ? "领取奖励" : "提交任务";
             _ = BuildRewardCells(rewards);
 
-            BindClicks();
             GameLog.Info("Task", "TaskFinishView reward: task={0} count={1} {2}",
                 _task.TaskId, rewards.Count, TaskReward.ToText(rewards, " / "));
         }
 
-        private void BindClicks()
+        /// <summary>
+        /// 完成弹层的任何点击都代表领取/提交。Module 根点击面覆盖屏外遮罩，View 根点击面覆盖面板；
+        /// 子 Graphic 关闭射线，保证关闭图标、文字、奖励区不会把语义点击截走。
+        /// </summary>
+        private void ConfigureUniversalSubmitSurface()
         {
-            if (_bind?._img_finish != null)
+            if (_moduleRoot == null || _bind == null) return;
+
+            UIUtil.AddClick(_moduleRoot, OnSubmit);
+            _moduleClickSurface = _moduleRoot.GetComponent<Graphic>();
+            UIUtil.AddClick(_bind, OnSubmit);
+            _viewClickSurface = _bind.GetComponent<Graphic>();
+
+            foreach (Graphic graphic in _moduleRoot.GetComponentsInChildren<Graphic>(true))
             {
-                UIUtil.ClearClicks(_bind._img_finish);
-                UIUtil.AddClick(_bind._img_finish, OnSubmit);
-            }
-            if (_bind?._img_close != null)
-            {
-                UIUtil.ClearClicks(_bind._img_close);
-                UIUtil.AddClick(_bind._img_close, Close);
+                if (graphic != null && graphic != _moduleClickSurface && graphic != _viewClickSurface)
+                    graphic.raycastTarget = false;
             }
         }
 
@@ -225,6 +236,8 @@ namespace Shenxiao.Module.Core.Tasks
                 rt.anchoredPosition = new Vector2(i * 80f, 0f);
                 cell.SetScale(0.6f);
                 cell.SetData(rewards[i].TypeId, rewards[i].Count);
+                foreach (Graphic graphic in cellGo.GetComponentsInChildren<Graphic>(true))
+                    graphic.raycastTarget = false;
                 _rewardCells.Add(cellGo);
 
                 await Task.Yield();
@@ -234,6 +247,7 @@ namespace Shenxiao.Module.Core.Tasks
 
         private void OnSubmit()
         {
+            if (_submitSent) return;
             CancelTimer();
             if (_task == null)
             {
@@ -241,6 +255,7 @@ namespace Shenxiao.Module.Core.Tasks
                 return;
             }
 
+            _submitSent = true;
             TaskController.Instance.SubmitFinish(_task.TaskId);
             Close();
         }

@@ -353,6 +353,18 @@ namespace Shenxiao.EditorTools
             Run(RolePresentationEffectsCase.Run, 120.0);
         }
 
+        /// <summary>NPC 对话全面屏底部锚定与任意位置真实 PointerClick 专项。</summary>
+        public static void DialogueInteraction()
+        {
+            Run(DialogueInteractionCase.Run, 120.0);
+        }
+
+        /// <summary>任务完成弹层任意位置真实 PointerClick 进入领取/提交语义专项。</summary>
+        public static void TaskFinishInteraction()
+        {
+            Run(TaskFinishInteractionCase.Run, 120.0);
+        }
+
         /// <summary>技能成长线(自动循环 轮3)实证:21001/21010/21011/21012/13008/13010/12093/18401/20006 合成包驱动
         /// SkillController/FightController 反射喂包,纯逻辑断言(详见 SkillGrowthCase 注释)。</summary>
         public static void SkillGrowth()

@@ -112,6 +112,7 @@ namespace Shenxiao.Module.Core.Scene
             if (npc == null) return false;
 
             SceneCombat.Instance.SetClickTarget(0);
+            SceneTargetSelection.SelectNpc(npc.NpcId);
             MainRoleAgent agent = MainRoleAgent.Current;
             if (agent == null)
             {

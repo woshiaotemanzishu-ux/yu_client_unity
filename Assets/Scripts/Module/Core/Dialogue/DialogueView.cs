@@ -10,6 +10,7 @@ using Shenxiao.Generated.UI.Dialogue;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Dialogue
 {
@@ -26,6 +27,8 @@ namespace Shenxiao.Module.Core.Dialogue
         private Task<bool> _loadTask;
         private CancellationTokenSource _timerCts;
         private Action _timerAction;
+        private Graphic _clickSurface;
+        private Action _currentClickAction;
         private readonly List<GameObject> _rewardCells = new List<GameObject>();
 
         private NpcDialogVo _vo;
@@ -35,6 +38,7 @@ namespace Shenxiao.Module.Core.Dialogue
         private int _rewardEpoch;
         private int _time;
         private bool _layersHidden;
+        private bool _actionConsumed;
         private bool _mainLayerWasActive;
         private bool _windowLayerWasActive;
 
@@ -54,6 +58,8 @@ namespace Shenxiao.Module.Core.Dialogue
         {
             ++_openEpoch;
             CancelTimer();
+            _currentClickAction = null;
+            _actionConsumed = true;
             ClearRewardCells();
             _modelEpoch++;
             UIModelStage.Clear();
@@ -121,6 +127,7 @@ namespace Shenxiao.Module.Core.Dialogue
                 return false;
             }
             if (_bind._tpl_EquipmentItem != null) _bind._tpl_EquipmentItem.SetActive(false);
+            ConfigureUniversalClickSurface();
 
             _moduleRoot.SetActive(false);
             return true;
@@ -130,6 +137,8 @@ namespace Shenxiao.Module.Core.Dialogue
         {
             if (_vo == null || _bind == null) return;
             CancelTimer();
+            _currentClickAction = null;
+            _actionConsumed = false;
             BindStaticClicks();
 
             if (_bind._lb_name != null) _bind._lb_name.text = DialogueModel.Instance.GetNpcName(_vo.NpcId);
@@ -191,15 +200,7 @@ namespace Shenxiao.Module.Core.Dialogue
 
         private void BindStaticClicks()
         {
-            if (_bind._img_skip != null)
-            {
-                UIUtil.ClearClicks(_bind._img_skip);
-                UIUtil.AddClick(_bind._img_skip, Close);
-            }
             if (_bind._lb_skip != null) _bind._lb_skip.text = "跳过";
-
-            if (_bind._img_go_on_bg != null) UIUtil.ClearClicks(_bind._img_go_on_bg);
-            if (_bind._img_get_click_bg != null) UIUtil.ClearClicks(_bind._img_get_click_bg);
         }
 
         private void ShowGetButton(string text, Action onClick, bool isTaskFinish)
@@ -210,13 +211,9 @@ namespace Shenxiao.Module.Core.Dialogue
             SetActive(_bind._box_skip, true);
 
             if (_bind._lb_get_click != null) _bind._lb_get_click.text = text;
-            if (_bind._img_get_click_bg != null) UIUtil.AddClick(_bind._img_get_click_bg, () =>
-            {
-                CancelTimer();
-                onClick?.Invoke();
-            });
+            _currentClickAction = onClick;
 
-            StartAutoTimer(isTaskFinish, onClick, AutoSeconds);
+            StartAutoTimer(isTaskFinish, TriggerCurrentClick, AutoSeconds);
         }
 
         private void ShowContinueButton(Action onClick)
@@ -227,13 +224,36 @@ namespace Shenxiao.Module.Core.Dialogue
             SetActive(_bind._box_skip, true);
 
             if (_bind._lb_go_on_desc != null) _bind._lb_go_on_desc.text = "继续";
-            if (_bind._img_go_on_bg != null) UIUtil.AddClick(_bind._img_go_on_bg, () =>
-            {
-                CancelTimer();
-                onClick?.Invoke();
-            });
+            _currentClickAction = onClick;
 
-            StartAutoTimer(false, onClick, AutoSeconds);
+            StartAutoTimer(false, TriggerCurrentClick, AutoSeconds);
+        }
+
+        /// <summary>
+        /// 老端把全屏背景、底部面板、继续、领取和跳过都汇总到 OnTaskSelect。
+        /// Unity 只保留一个铺满 Module 根节点的点击面，子 Graphic 仅负责显示，避免同一手势执行两次。
+        /// </summary>
+        private void ConfigureUniversalClickSurface()
+        {
+            if (_moduleRoot == null) return;
+
+            UIUtil.AddClick(_moduleRoot, TriggerCurrentClick);
+            _clickSurface = _moduleRoot.GetComponent<Graphic>();
+            foreach (Graphic graphic in _moduleRoot.GetComponentsInChildren<Graphic>(true))
+            {
+                if (graphic != null && graphic != _clickSurface) graphic.raycastTarget = false;
+            }
+        }
+
+        private void TriggerCurrentClick()
+        {
+            if (_actionConsumed || _currentClickAction == null) return;
+
+            _actionConsumed = true;
+            Action action = _currentClickAction;
+            _currentClickAction = null;
+            CancelTimer();
+            action.Invoke();
         }
 
         private void NextDialog()
@@ -279,6 +299,8 @@ namespace Shenxiao.Module.Core.Dialogue
                 rt.anchoredPosition = new Vector2(i * 90f, 0f);
                 cell.SetScale(0.6f);
                 cell.SetData(rewards[i].TypeId, rewards[i].Count);
+                foreach (Graphic graphic in cellGo.GetComponentsInChildren<Graphic>(true))
+                    graphic.raycastTarget = false;
                 _rewardCells.Add(cellGo);
 
                 await Task.Yield();

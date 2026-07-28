@@ -632,6 +632,9 @@ namespace Shenxiao.Module.Core.Tasks
             }
 
             int npcId = task.Id;
+            // 对标老端 Scene.MainRoleToNpc：起步时即把 NPC 设为当前可视目标，到达后仍保持同一选中效果。
+            SceneCombat.Instance.SetClickTarget(0);
+            SceneTargetSelection.SelectNpc(npcId);
             MainRoleAgent agent = MainRoleAgent.Current;
             if (agent == null)
             {

@@ -144,6 +144,7 @@ namespace Shenxiao.Module.Core.Scene
             view.Loaded = true;
             CreateNameplate(view, cfg); // 屏幕跟随名牌(名字/称号);无名则跳过(降级)
             UpdateViewPosition(view);   // 立即摆一次位(含名牌),driver 之后每帧维持
+            SceneTargetSelection.OnNpcReady(vo.NpcId);
 
             await PlayIdle(model, modelModule, modelResId);
             if (IsStale(view)) return; // PlayIdle 期间被清场:模型已随 tilt 销毁,放弃后续
@@ -153,6 +154,7 @@ namespace Shenxiao.Module.Core.Scene
 
         private static void OnNpcRemoved(int npcId)
         {
+            SceneTargetSelection.OnNpcRemoved(npcId);
             if (_views.TryGetValue(npcId, out NpcView view)) RemoveView(view);
         }
 
@@ -169,6 +171,7 @@ namespace Shenxiao.Module.Core.Scene
         /// 当帧只做隐藏(便宜),真正的 Destroy 分帧摊开,避免与怪物清场/新场景加载挤在切图那一帧(同 MonsterRenderer)。</summary>
         private static void ClearAll()
         {
+            SceneTargetSelection.Clear();
             _epoch++; // 让在途加载全部过期
             if (_views.Count == 0) return;
             var doomed = new List<NpcView>(_views.Values);
@@ -350,6 +353,16 @@ namespace Shenxiao.Module.Core.Scene
 
             npc = best?.Vo;
             return npc != null;
+        }
+
+        internal static bool TryGetSelectionRoot(int npcId, out Transform root)
+        {
+            root = null;
+            if (!_views.TryGetValue(npcId, out NpcView view)
+                || view == null || !view.Loaded || view.Tilt == null) return false;
+
+            root = view.Tilt;
+            return true;
         }
 
         private static bool IsBodyHit(Vector2 sceneLocal, Vector2 foot)

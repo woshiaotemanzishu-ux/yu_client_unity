@@ -1522,6 +1522,25 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
   峰值 164/约 2.1 万个亮像素；30004 合成探针验证任务完成资源含 5 个粒子系统、6 个 Renderer，画面峰值 255。
 - **专题文档**：[主角场景自身特效-经验与排障.md](主角场景自身特效-经验与排障.md)。
 
+## 2026-07-29：NPC 对话真机位置、语义点击与场景选中反馈
+
+- **位置根因与修复**：`DialogueModule` 外层虽已全屏，内部 `DialogueView/_img_bg/_box_model` 仍固定
+  720×1280 顶对齐，长竖屏多出的逻辑高度全部留在下方，导致底栏被抬高。三者现改为全伸展，
+  `_box_bottom` 继续锚底；未在运行时代码加入分辨率坐标特判。
+- **交互修复**：对话恢复老端背景、底栏、继续、领取和跳过统一进入当前语义动作；Module 根为唯一
+  Raycast/Button 点击面，子 Graphic 不截射线，手点和倒计时共用入口并防重复执行。任务完成弹层的
+  屏外遮罩与面板点击全部提交 30004，关闭图标不再只隐藏，`_submitSent` 防止连点多发；未改用户正在
+  调整的 `TaskModule.prefab` 布局。
+- **选中反馈**：补 `SceneTargetSelection`，NPC/怪物共用老端真实 `function_selection`，按老端缩放 0.7，
+  挂目标稳定 `Tilt` 并以 +38° 抵消场景倾斜。点选、异步模型就绪、切换、移除/死亡、清目标、断线和
+  切场景生命周期已闭合；不按不同新模型复制或手画选中圈。
+- **验证状态**：`DialogueInteractionCase` 已加入真实 prefab 的 720×1600 锚定与
+  `GraphicRaycaster → PointerClick` 三点验收；`TaskFinishInteractionCase` 增加真实任务 prefab 的面板内外
+  语义点击验收；`RolePresentationEffectsCase` 增加选中资源可播放、0.7 缩放和倾斜抵消断言。
+  代码仍需在合入主工作树后由当前 Unity Editor 强编译并运行三项专项，
+  最终长竖屏位置与选中观感需真机确认。
+- **专题文档**：[NPC对话与场景选中-经验与排障.md](NPC对话与场景选中-经验与排障.md)。
+
 ## 2026-07-28：升级文字/整套特效亮度与任务完成位置二次校正
 
 - **分类确认**：`ui_renwuwancheng` 是 30004 成功后挂 `UILayer.Top` 的全屏 UI 特效；“升级”图片虽是文字，实际是 `effect_xemlvup` 内的粒子 Billboard，整套特效按老端 `attach_type=15` 挂角色同位的直立场景宿主，二者不能合并为同一条 UI/角色链。
