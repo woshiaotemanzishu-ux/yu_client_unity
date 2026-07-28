@@ -36,6 +36,7 @@ namespace Shenxiao.EditorTools
             ResManager.EditorPreferFallback = true;
             GameObject role = null;
             GameObject attached = null;
+            GameObject speedTrail = null;
             CliVerify.Stage ownedStage = null;
             UIEffectStage.Handle taskSuccess = null;
             try
@@ -61,8 +62,9 @@ namespace Shenxiao.EditorTools
                     ownedStage = CliVerify.Stage.Create();
 
                 role = new GameObject("RoleEffectsProbe");
-                SceneCharacterStage.SetMainRole(role);
+                SceneCharacterStage.SetMainRole(role, 0.85f);
                 GameObject detached = SceneCharacterStage.MainRoleDetachedEffectHost;
+                GameObject attachedHost = SceneCharacterStage.MainRoleAttachedEffectHost;
                 Transform tilt = role.transform.parent;
                 if (detached == null || tilt == null || detached.transform.parent != tilt.parent ||
                     (detached.transform.localPosition - tilt.localPosition).sqrMagnitude > 0.000001f ||
@@ -72,6 +74,17 @@ namespace Shenxiao.EditorTools
                     return 3;
                 }
                 Debug.Log("CLIVERIFY role-effects 2 detached host upright and aligned");
+
+                if (attachedHost == null || attachedHost.transform.parent != role.transform ||
+                    attachedHost.transform.localPosition.sqrMagnitude > 0.000001f ||
+                    Quaternion.Angle(attachedHost.transform.localRotation, Quaternion.identity) > 0.001f ||
+                    (attachedHost.transform.lossyScale - Vector3.one).sqrMagnitude > 0.000001f ||
+                    (attachedHost.transform.position - role.transform.position).sqrMagnitude > 0.000001f)
+                {
+                    Debug.LogError("CLIVERIFY role-effects attached host does not cancel model scale/alignment");
+                    return 3;
+                }
+                Debug.Log("CLIVERIFY role-effects 2b attached host follows role at world scale 1");
 
                 RawImage[] images = UnityEngine.Object.FindObjectsByType<RawImage>(
                     FindObjectsInactive.Include, FindObjectsSortMode.None);
@@ -107,6 +120,16 @@ namespace Shenxiao.EditorTools
                     return 3;
                 }
                 Debug.Log("CLIVERIFY role-effects 4 level-up effect attached; " + levelTextDiagnostic);
+
+                speedTrail = await EffectBinder.AttachOne(attachedHost, "", "other_effect",
+                    "char_acceleratebuff01", "verify_task_speed", false);
+                if (speedTrail == null || speedTrail.transform.parent != attachedHost.transform ||
+                    (speedTrail.transform.lossyScale - Vector3.one).sqrMagnitude > 0.000001f)
+                {
+                    Debug.LogError("CLIVERIFY role-effects task speed trail did not use stable unit-scale host");
+                    return 3;
+                }
+                Debug.Log("CLIVERIFY role-effects 4b task speed trail attached at stable world scale 1");
 
                 MethodInfo eligible = typeof(MainRoleAgent).GetMethod("IsTaskSpeedEligible",
                     BindingFlags.NonPublic | BindingFlags.Static);
@@ -173,6 +196,11 @@ namespace Shenxiao.EditorTools
                 {
                     if (Application.isPlaying) UnityEngine.Object.Destroy(attached);
                     else UnityEngine.Object.DestroyImmediate(attached);
+                }
+                if (speedTrail != null)
+                {
+                    if (Application.isPlaying) UnityEngine.Object.Destroy(speedTrail);
+                    else UnityEngine.Object.DestroyImmediate(speedTrail);
                 }
                 taskSuccess?.Dispose();
                 SceneCharacterStage.Clear();

@@ -99,7 +99,6 @@ namespace Shenxiao.Module.Core.Scene
         /// <summary>由 MainRoleFlow 在装配完成后初始化:传入模型子节点与出生坐标。</summary>
         public void Init(GameObject model, int spawnX, int spawnY, int career, int sex, int clotheRes)
         {
-            if (_driver != null) _driver.ActiveModelChanged -= OnActiveModelChanged;
             ClearTaskSpeedEffect();
             ClearWorldEffectAnchors();
             Current = this;
@@ -107,7 +106,6 @@ namespace Shenxiao.Module.Core.Scene
             _modelTr = model != null ? model.transform : transform;
             _anim = model != null ? model.GetComponent<Animation>() : null;
             _driver = model != null ? model.GetComponent<ReplaceableRoleModel>() : null;
-            if (_driver != null) _driver.ActiveModelChanged += OnActiveModelChanged;
             _career = career;
             _sex = sex;
             _clotheRes = clotheRes;
@@ -557,8 +555,12 @@ namespace Shenxiao.Module.Core.Scene
                 if (delayMs > 0) await TimeUtil.Delay(delayMs);
                 if (this == null || epoch != _taskSpeedEpoch || !_taskSpeedRequested || !_autoMoving) return;
 
-                GameObject host = GetActiveActionEffectHost();
-                GameObject effect = await EffectBinder.AttachOne(host, "root", "other_effect",
+                // 任务跑动拖尾是按老模型世界单位制作的角色整体特效，不属于某个动作骨架。
+                // 新动作 prefab 内部的 root 会被 landingOffset 后移并继承 landingScale，挂在那里会
+                // 变成缩小且脱离人物的“尾巴”；使用场景台稳定宿主才能与老模型保持同一空间口径。
+                GameObject host = SceneCharacterStage.MainRoleAttachedEffectHost;
+                if (host == null) host = _model; // 非标准测试/降级场景仍保持可用，且不再递归命中内部 root
+                GameObject effect = await EffectBinder.AttachOne(host, "", "other_effect",
                     "char_acceleratebuff01", "task_speed", false);
                 if (this == null || effect == null || epoch != _taskSpeedEpoch || !_taskSpeedRequested || !_autoMoving)
                 {
@@ -576,21 +578,6 @@ namespace Shenxiao.Module.Core.Scene
             {
                 GameLog.Warn("Scene", "play task speed effect failed: {0}", ex.Message);
             }
-        }
-
-        private void OnActiveModelChanged()
-        {
-            // 混合角色 idle/run/skill 可能是不同实例。跑动拖尾必须跟随当前可见的 run 实例重挂。
-            if (!_taskSpeedRequested || !_autoMoving) return;
-            _taskSpeedEpoch++;
-            if (_taskSpeedEffect != null)
-            {
-                _taskSpeedEffect.SetActive(false);
-                UnityEngine.Object.Destroy(_taskSpeedEffect);
-                _taskSpeedEffect = null;
-            }
-            int epoch = _taskSpeedEpoch;
-            _ = PlayTaskSpeedEffectAsync(epoch, 0);
         }
 
         public bool IsDirectPathBlockedTo(float targetX, float targetY)
@@ -1288,7 +1275,6 @@ namespace Shenxiao.Module.Core.Scene
         private void OnDestroy()
         {
             _actionVersion++;
-            if (_driver != null) _driver.ActiveModelChanged -= OnActiveModelChanged;
             ClearTaskSpeedEffect();
             ClearWorldEffectAnchors();
             if (Current == this)

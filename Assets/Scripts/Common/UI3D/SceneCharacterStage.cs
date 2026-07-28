@@ -62,6 +62,7 @@ namespace Shenxiao.Common.UI3D
         private static Transform _charsRoot;
         private static GameObject _mainRole;
         private static GameObject _mainRoleTilt; // 主角的 2.5D 后倾父容器(模型挂其下;销毁它即连模型一起清掉)
+        private static GameObject _mainRoleAttachedEffects;
         private static GameObject _mainRoleDetachedEffects;
         private static ReplaceableRoleModel _mainRoleDriver;
 
@@ -76,6 +77,13 @@ namespace Shenxiao.Common.UI3D
         /// 升级、采集完成等一次性特效必须挂这里，不能挂 MainRoleTilt 或当前动作模型。
         /// </summary>
         public static GameObject MainRoleDetachedEffectHost => _mainRoleDetachedEffects;
+
+        /// <summary>
+        /// 跟随主角落点、yaw 与 2.5D 倾斜，但不继承模型体量归一缩放的稳定特效宿主。
+        /// 跑动拖尾等按老模型单位制作的循环特效必须挂这里，不能挂新动作 prefab 内部的 root：
+        /// 该 root 会随 ArtModelStager 的 landingOffset 后移，并把老特效再乘一次 landingScale。
+        /// </summary>
+        public static GameObject MainRoleAttachedEffectHost => _mainRoleAttachedEffects;
 
         /// <summary>
         /// 把装配好的主角模型放上合成台:置于台中心、落地、面向相机。返回后由 MainRoleAgent 继续驱动
@@ -93,6 +101,7 @@ namespace Shenxiao.Common.UI3D
                 _mainRoleTilt.SetActive(false); // Destroy 延迟到帧末；先退台，避免旧档案干扰新模型的渲染口径
                 Object.Destroy(_mainRoleTilt); // 连同其下旧模型一起销毁
             }
+            _mainRoleAttachedEffects = null; // 随旧模型/tilt 一起销毁；先断开静态引用
             if (_mainRoleDetachedEffects != null)
             {
                 _mainRoleDetachedEffects.SetActive(false);
@@ -128,6 +137,16 @@ namespace Shenxiao.Common.UI3D
             // 移动时由 MainRoleAgent.Face 改模型自身 yaw 覆盖(后倾在父容器上,Face 改 yaw 不受影响)。
             model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
             model.transform.localScale = new Vector3(modelScale, modelScale, modelScale);
+
+            // 跑动拖尾既要跟随角色 yaw/倾斜，又必须继续使用老模型的世界单位。把稳定宿主放在模型
+            // 容器根下可自动继承 Face() 的 yaw；反向抵消场景体量缩放后，外部老特效始终保持 scale=1。
+            // 混合模型的 idle/run/skill 子实例如何切换，都不会再把特效带进各自的 landingScale/root 空间。
+            _mainRoleAttachedEffects = new GameObject("MainRoleAttachedEffects");
+            _mainRoleAttachedEffects.transform.SetParent(model.transform, false);
+            _mainRoleAttachedEffects.transform.localPosition = Vector3.zero;
+            _mainRoleAttachedEffects.transform.localRotation = Quaternion.identity;
+            float inverseModelScale = Mathf.Abs(modelScale) > 0.0001f ? 1f / modelScale : 1f;
+            _mainRoleAttachedEffects.transform.localScale = Vector3.one * inverseModelScale;
 
             BindMainRoleDriver(model);
             UpdateArtAmbient();
@@ -245,6 +264,7 @@ namespace Shenxiao.Common.UI3D
                 _mainRole = null;
             }
             else if (_mainRole != null) { Object.Destroy(_mainRole); _mainRole = null; }
+            _mainRoleAttachedEffects = null;
             if (_mainRoleDetachedEffects != null)
             {
                 _mainRoleDetachedEffects.SetActive(false);

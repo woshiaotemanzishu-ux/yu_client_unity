@@ -1529,3 +1529,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **升级文字消失根因**：旧转换器用 Unity 自动平滑切线承接 Laya 的线性尺寸关键点，`other_xemshenji01` 在 0.55 秒处曲线从应有约 `0.503` 下冲到 `-0.083`，粒子尺寸被钳为 0。转换器升到 v26，所有 Laya 数值渐变明确使用 Linear 切线；当前升级 prefab 定点恢复三处源 `0.1s` 延迟并线性化文字尺寸曲线，保留此前人工修正的图片引用。修后文字粒子在 0.55 秒处尺寸为 `2.015`，1.1/0.8 秒源寿命未被擅自延长。
 - **任务完成位置**：老端 UIEffect 的 RenderTexture 最终贴图纵向与 Unity 通道相反；老端输入 `(0,+4)` 在屏幕上方，Unity 原样传入却落到下方。现仅在任务成功业务边界映射为 `(0,-4)`，探针中心由 `y≈1040/1280` 校正到 `y≈240/1280`，颜色和 1.5 秒时长不改。
 - **验证状态**：Unity shader 编译 `errors=false/supported=true`，中性色真实 RT 采样 `RGBA(1,1,1,1)`；升级完整 RT 在 0.55 秒已同时显示“升级”、法阵、光柱和粒子，任务完成完整 RT 位于屏幕上方。`RolePresentationEffectsCase` 新增 RGB 三通道、shader error、升级文字延迟/寿命/中段尺寸及任务坐标回归。
+
+## 2026-07-29：新模型任务跑动拖尾空间校正
+
+- **形态根因**：新动作 prefab 的空 `root` 留在美术原始原点；`ArtModelStager` 按 `landingOffset/landingScale` 把人物落点归零后，1111 run 的该挂点落到人物后方约 3.94 世界单位、1213 run 约 1.50 单位。同时拖尾继承约 0.371/0.392 的模型归一缩放，导致老端覆盖人物周身的御风流光在新模型上缩成脱离人物的小尾巴。
+- **挂载修复**：`SceneCharacterStage` 新增 `MainRoleAttachedEffects`，作为模型容器下的稳定随身宿主；它继承主角 yaw 和 2.5D 倾斜，但以逆缩放抵消 0.85 场景体量，保持世界缩放 1。任务拖尾改挂该宿主，不再递归命中新动作内部 `root`，idle/run/skill 切换也不再销毁重挂。
+- **边界**：骨骼技能/动作特效仍挂 `ActiveModel`，升级和采集完成仍挂直立的 `MainRoleDetachedEffects`，世界位置型跳跃特效仍挂 `SceneEffectAnchor`；未修改公共 `char_acceleratebuff01` 资源，老模型表现不受单独缩放补偿污染。
+- **回归**：`RolePresentationEffectsCase` 增加 0.85 模型缩放下的宿主落点、世界缩放 1 和真实任务拖尾挂载断言。
