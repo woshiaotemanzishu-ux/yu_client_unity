@@ -1611,6 +1611,9 @@
         /// <summary>副本开关设置显式查询。C2S dun_id:u32；S2C dun_id:u32,
         /// setting_list[u16×{type:u8,select_type:u8,is_open:u8,count:u8}]。按 dun_id 保存有序原始快照。</summary>
         public const int DUNGEON_SETTING_INFO = 61062;
+        /// <summary>副本开关设置更新。C2S dun_id:u32,type:u8,select_type:u8,is_open:u8,count:u8；
+        /// S2C error_code:u32 后原样回显五个请求字段。成功后显式重查 61062，不乐观修改本地快照。</summary>
+        public const int DUNGEON_SETTING_UPDATE = 61063;
         /// <summary>异兽入侵 领取阶段奖励(轮22 族错误出口批;对标老端 BaseDungeonController.ts:1848-1857
         /// 内联handler:error_code==1 分支 setMonsterInvasionReward 调用**已被老端注释**[纯死代码,运行时
         /// 无副作用],否则 ErrorCodeShow(error_code)——本端如实镜像"成功也不做事",不臆造奖励消费)。

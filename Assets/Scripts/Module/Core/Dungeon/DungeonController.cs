@@ -48,6 +48,7 @@ namespace Shenxiao.Module.Core.Dungeon
     /// 轮242 补 61059 高级经验副本波数面板 S2C-only 原始快照，不公开服务端空查询。
     /// 轮244 补 61061 高级经验副本跳关进入 S2C-only 原始快照，与 61059 独立。
     /// 轮245 补 61062 副本开关设置显式查询与按 dun_id 原始快照，不派生 UI/鼓舞状态。
+    /// 轮246 补 61063 副本开关设置更新；成功只重查 61062，失败只显码，不乐观改模型。
     /// </summary>
     public sealed class DungeonController : BaseController
     {
@@ -61,6 +62,7 @@ namespace Shenxiao.Module.Core.Dungeon
         private static Func<byte[], bool> s_dragonQuickInfoOutboundIntercept = null;
         private static Func<byte[], bool> s_dragonSkillInfoOutboundIntercept = null;
         private static Func<byte[], bool> s_dungeonSettingInfoOutboundIntercept = null;
+        private static Func<byte[], bool> s_dungeonSettingUpdateOutboundIntercept = null;
 #endif
 
         private DungeonController() { }
@@ -87,6 +89,7 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_ADVANCED_EXP_INFO, On61059);
             RegisterProtocal(Proto.DUNGEON_ADVANCED_EXP_JUMP_INFO, On61061);
             RegisterProtocal(Proto.DUNGEON_SETTING_INFO, On61062);
+            RegisterProtocal(Proto.DUNGEON_SETTING_UPDATE, On61063);
             RegisterProtocal(Proto.DUNGEON_MONSTER_INVASION_REWARD, On61092);
             // 61002(DUNGEON_EXIT)已由 AutoBrushController 注册,红线不可重复注册;Exit() 只发不接。
             RegisterProtocal(Proto.DUNGEON_INFO, On61004);
@@ -349,6 +352,20 @@ namespace Shenxiao.Module.Core.Dungeon
             }
 #endif
             SendFmt(Proto.DUNGEON_SETTING_INFO, "i", dunId);
+        }
+
+        /// <summary>显式更新指定副本开关；服务端成功后由 61063 回包触发 61062 权威重查。</summary>
+        public void RequestDungeonSetting(uint dunId, byte type, byte selectType, byte isOpen, byte count)
+        {
+#if UNITY_EDITOR
+            if (s_dungeonSettingUpdateOutboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(Proto.DUNGEON_SETTING_UPDATE, "icccc",
+                    new object[] { dunId, type, selectType, isOpen, count });
+                if (s_dungeonSettingUpdateOutboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(Proto.DUNGEON_SETTING_UPDATE, "icccc", dunId, type, selectType, isOpen, count);
         }
 
         /// <summary>请求坐标触发情况表 61019(发 "i" scene_id;进副本场景对账用)。</summary>
@@ -1061,6 +1078,21 @@ namespace Shenxiao.Module.Core.Dungeon
                     Count = rr.ReadU8(),
                 });
             DungeonModel.Instance.ApplyDungeonSettingInfo(dunId, settings);
+        }
+
+        /// <summary>61063 设置结果；成功仅重查 61062，失败仅显码，回显字段只消费不落模型。</summary>
+        private void On61063(NetReader r)
+        {
+            uint errorCode = r.ReadU32();
+            uint dunId = r.ReadU32();
+            r.ReadU8(); // type
+            r.ReadU8(); // select_type
+            r.ReadU8(); // is_open
+            r.ReadU8(); // count
+            if (errorCode == 1)
+                RequestDungeonSettingInfo(dunId);
+            else
+                TipsManager.Toast("操作失败(" + errorCode + ")");
         }
 
         /// <summary>61092 异兽入侵 领取阶段奖励(对标老端 BaseDungeonController.ts:1848-1857 内联 handler:

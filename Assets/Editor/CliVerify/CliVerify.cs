@@ -235,6 +235,7 @@ namespace Shenxiao.EditorTools
         public static void DungeonAdvancedExpInfo() { Run(DungeonAdvancedExpInfoCase.Run, 60.0); }
         public static void DungeonAdvancedExpJumpInfo() { Run(DungeonAdvancedExpJumpInfoCase.Run, 60.0); }
         public static void DungeonSettingInfo() { Run(DungeonSettingInfoCase.Run, 60.0); }
+        public static void DungeonSettingUpdate() { Run(DungeonSettingUpdateCase.Run, 60.0); }
         public static void SentientAct() { Run(SentientActCase.Run, 60.0); }
         public static void BrightSea() { Run(BrightSeaCase.Run, 60.0); }
         public static void SettingWxSubscription() { Run(SettingWxSubscriptionCase.Run, 60.0); }
