@@ -905,6 +905,9 @@
         /// <summary>灵玉大战"进入准备场景"错误出口(轮22 族错误出口批;对标老端 DiamondFightController.ts:298-303
         /// On13704:code!=1→ErrorCodeShow,无其它副作用)。回包(pt_137.erl write(13704,[Code])):code:i。</summary>
         public const int DIAMONDFIGHT_ENTER_ERROR = 13704;
+        /// <summary>诸天王者活动报名快照。C2S严格空包；S2C:
+        /// is_sign:u8,sign_num:u32,def_num:u16,zone:u8。仅由62101首包/阶段变化查询。</summary>
+        public const int KF1VN_ACTIVITY_INFO = 62100;
         public const int KF1VN_STAGE_INFO = 62101; // 诸天王者(跨服1vn)活动阶段。请求无字段裸发;回包 stage:c, turn:h, edti
         /// <summary>诸天王者错误出口(轮22 族错误出口批;对标老端 Kf1vnController.ts:242-245 Handler62103:
         /// 无条件 ErrorCodeShow(error_code),无其它副作用)。回包(pt_621.erl write(62103,[ErrorCode])):code:i。</summary>

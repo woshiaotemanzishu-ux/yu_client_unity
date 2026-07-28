@@ -638,6 +638,11 @@ namespace Shenxiao.EditorTools
         {
             Run(Kf1vnExitCase.Run, 60.0);
         }
+        /// <summary>诸天王者 62100 原始活动信息与阶段变化查询回归。</summary>
+        public static void Kf1vnActivityInfo()
+        {
+            Run(Kf1vnActivityInfoCase.Run, 60.0);
+        }
 
         /// <summary>轮23 PK1 星宿核心数据层(pt_232 23200-23209/23250-23257,17号)合成包驱动
         /// StarEquipController 反射喂包,断言 StarEquipModel 落地字段/事件 + config 17 表计数 +

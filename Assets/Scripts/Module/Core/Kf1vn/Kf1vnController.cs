@@ -15,7 +15,7 @@ namespace Shenxiao.Module.Core.Kf1vn
     /// stage>=1 且 stage!=6 显示(报名中/进行中),否则删除。等级变化(EVT_ROLE_INFO_UPDATE)复请求 62101
     /// (对标老端 CHANGE_LEVEL→InitRequest→发 62101),让升到开启等级后图标及时出现;实际是否显示由图标
     /// 配置门(open_lv/open_day,ActivityIconManager.AddIcon 内校验)与 stage 共同把控。
-    /// 当前除图标、62103/62132错误出口及下述62107单向退出外，报名/竞猜/战斗/结算/兑换等玩法协议
+    /// 62100 活动报名快照只补齐既有图标精度；62102 报名交易、竞猜/战斗/结算/兑换等玩法协议
     /// 与所有面板均未移植。R222仅补62107 C2S-only严格空包退出请求，未绑定UI；服务端从不下发
     /// 62107，严禁接收、结果模型或等待回执。
     /// </summary>
@@ -24,6 +24,7 @@ namespace Shenxiao.Module.Core.Kf1vn
         public static readonly Kf1vnController Instance = new Kf1vnController();
 #if UNITY_EDITOR
         private static Func<byte[], bool> s_exitOutboundIntercept = null;
+        private static Func<byte[], bool> s_activityInfoOutboundIntercept = null;
 #endif
         private Kf1vnController() { }
 
@@ -35,6 +36,7 @@ namespace Shenxiao.Module.Core.Kf1vn
         protected override void Register()
         {
             RegisterProtocal(Proto.KF1VN_STAGE_INFO, On62101);
+            RegisterProtocal(Proto.KF1VN_ACTIVITY_INFO, On62100);
             RegisterProtocal(Proto.KF1VN_ERROR, On62103);
             RegisterProtocal(Proto.KF1VN_QUIZ_ERROR, On62132);
             // 对标老端 CHANGE_LEVEL→InitRequest 发 62101:等级变化时复请求(达开启等级后图标出现)。
@@ -83,7 +85,10 @@ namespace Shenxiao.Module.Core.Kf1vn
             long subEdtime = r.ReadU32();
 
             Kf1vnModel m = Kf1vnModel.Instance;
+            int oldStage = m.Stage;
+            bool hadStage = m.HasStageInfo;
             m.SetStageInfo(stage, turn, edtime, subStage, subEdtime);
+            if (!hadStage || oldStage != stage) RequestActivityInfo();
 
             // 对标老端 ShowIcon:stage>=1 且 stage!=6 → addIcon(带阶段文字),否则 deleteIcon。
             if (m.GetEntranceOpenState()) _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE, 0, m.GetIconText());
@@ -91,6 +96,30 @@ namespace Shenxiao.Module.Core.Kf1vn
 
             GameLog.Info("Kf1vn", "62101 诸天王者: stage={0} turn={1} sub={2} open={3}",
                 stage, turn, subStage, m.GetEntranceOpenState());
+        }
+
+        /// <summary>62100 活动报名原始快照：is_sign:u8, sign_num:u32, def_num:u16, zone:u8。</summary>
+        private void On62100(NetReader r)
+        {
+            Kf1vnModel m = Kf1vnModel.Instance;
+            m.SetActivityInfo(r.ReadU8(), r.ReadU32(), r.ReadU16(), r.ReadU8());
+            if (m.GetEntranceOpenState())
+                _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE, 0, m.GetIconText());
+            else
+                ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
+        }
+
+        /// <summary>62100 仅由 62101 首包或阶段变化后的内部对账触发。</summary>
+        private void RequestActivityInfo()
+        {
+#if UNITY_EDITOR
+            if (s_activityInfoOutboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(Proto.KF1VN_ACTIVITY_INFO, null, null);
+                if (s_activityInfoOutboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(Proto.KF1VN_ACTIVITY_INFO);
         }
 
         // 对标老端 DAY_CHANGE(见 Register 内注释):老端读 Config.PRELOAD_CLIENT_CONFIG.ConfigFuncOpenCondition
