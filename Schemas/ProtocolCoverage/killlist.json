@@ -696,6 +696,12 @@
     "note": "旧 d.ts 明确标记为『挑战赛擂主排行榜(目前废弃)』。h5/src 无发送、注册或消费，Controller 注册流程跳过；服务端残留空 query→local get_def_rank，仅已报名时回纯内存榜，不能反推产品需求。Unity 不接。未来仅在产品明确恢复独立擂主榜时重审。R290。"
   },
   {
+    "cmd": 62115,
+    "reason": "deprecated_orphaned",
+    "evidence": "h5/libs/proto621.d.ts:388-390;h5/src/commonController/Kf1vnController.ts:499-513;yu_server/src/pt/pt_621.erl:31-32,355-368,819-845;yu_server/src/kf_1vN/pp_kf_1vN.erl:109-111;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:240-251",
+    "note": "旧 d.ts 明确标记为『挑战赛挑战者排行榜(目前废弃)』。h5/src 无发送、注册或消费，Controller 在 62113 后直接注册 62116；服务端残留 C2S 空包→local get_challenge_rank，仅已报名时回纯内存榜。榜项 wire 为 rank:u8 + player_id:u64 + server_num:u16 + name:string + gname:string + vip:u8 + score:u32 + combat_power:u64 + career:u8。Unity 不接。未来仅在产品明确恢复独立挑战者榜时重审。R291。"
+  },
+  {
     "cmd": 65207,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/SnatchTreasureController.ts:130",
