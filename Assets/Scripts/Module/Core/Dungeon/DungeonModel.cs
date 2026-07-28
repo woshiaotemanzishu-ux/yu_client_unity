@@ -261,6 +261,26 @@ namespace Shenxiao.Module.Core.Dungeon
         public bool HasAdvancedExpJumpInfo { get; private set; }
         public AdvancedExpJumpInfoSnapshot LastAdvancedExpJumpInfo { get; private set; }
 
+        public sealed class MarriageQuestionSnapshot
+        {
+            public uint DunId { get; }
+            public ushort QuestionId { get; }
+            public byte Type { get; }
+            public uint EndTime { get; }
+
+            public MarriageQuestionSnapshot(uint dunId, ushort questionId, byte type, uint endTime)
+            {
+                DunId = dunId;
+                QuestionId = questionId;
+                Type = type;
+                EndTime = endTime;
+            }
+        }
+
+        /// <summary>是否收到过 61089；所有字段零与未知 type 均是合法完整快照。</summary>
+        public bool HasMarriageQuestionState { get; private set; }
+        public MarriageQuestionSnapshot LastMarriageQuestionState { get; private set; }
+
         public sealed class DungeonSettingInfoEntry
         {
             public byte Type;
@@ -375,6 +395,13 @@ namespace Shenxiao.Module.Core.Dungeon
                 HistoryWave = historyWave,
                 Exp = exp,
             };
+        }
+
+        public void ApplyMarriageQuestionState(uint dunId, ushort questionId, byte type, uint endTime)
+        {
+            LastMarriageQuestionState = new MarriageQuestionSnapshot(
+                dunId, questionId, type, endTime);
+            HasMarriageQuestionState = true;
         }
 
         public void ApplyDungeonSettingInfo(uint dunId, List<DungeonSettingInfoEntry> settings)
@@ -689,6 +716,8 @@ namespace Shenxiao.Module.Core.Dungeon
             LastAdvancedExpInfo = null;
             HasAdvancedExpJumpInfo = false;
             LastAdvancedExpJumpInfo = null;
+            HasMarriageQuestionState = false;
+            LastMarriageQuestionState = null;
             DungeonSettingInfoByDunId.Clear();
             SceneInfo = null;
             CurrWaveType = 0;

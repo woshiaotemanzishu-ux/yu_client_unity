@@ -1623,6 +1623,9 @@
         /// <summary>周本副本特殊信息。C2S 严格空包；S2C dun_id:u32,dun_type:u8,push_type:u8,
         /// content:string。push_type=1 是查询全量 term，2 可为主动局部 term；只保存原始整包，禁止解析合并。</summary>
         public const int DUNGEON_POLAR_SPECIAL_INFO = 61088;
+        /// <summary>伴侣副本答题状态（S2C-only）：dun_id:u32,question_id:u16,type:u8,end_time:u32。
+        /// 生成器空 read 是 dormant 壳，无服务端 handle 或老端 sender，禁止公开 Request。</summary>
+        public const int DUNGEON_MARRIAGE_QUESTION_STATE = 61089;
         /// <summary>异兽入侵 领取阶段奖励(轮22 族错误出口批;对标老端 BaseDungeonController.ts:1848-1857
         /// 内联handler:error_code==1 分支 setMonsterInvasionReward 调用**已被老端注释**[纯死代码,运行时
         /// 无副作用],否则 ErrorCodeShow(error_code)——本端如实镜像"成功也不做事",不臆造奖励消费)。

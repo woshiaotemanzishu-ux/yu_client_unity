@@ -51,6 +51,7 @@ namespace Shenxiao.Module.Core.Dungeon
     /// 轮246 补 61063 副本开关设置更新；成功只重查 61062，失败只显码，不乐观改模型。
     /// 轮248 补 61065 入场自动鼓舞 S2C 权威计数，复用 61026 被动状态语义。
     /// 轮250 补 61088 周本特殊信息显式查询与按 dun_id 原始整包快照，不解析或合并 term。
+    /// 轮251 补 61089 伴侣副本答题 S2C 原始状态，不派生 UI、倒计时或答案逻辑。
     /// </summary>
     public sealed class DungeonController : BaseController
     {
@@ -95,6 +96,7 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_SETTING_UPDATE, On61063);
             RegisterProtocal(Proto.DUNGEON_INSPIRIT_ENTRY_STATE, On61065);
             RegisterProtocal(Proto.DUNGEON_POLAR_SPECIAL_INFO, On61088);
+            RegisterProtocal(Proto.DUNGEON_MARRIAGE_QUESTION_STATE, On61089);
             RegisterProtocal(Proto.DUNGEON_MONSTER_INVASION_REWARD, On61092);
             // 61002(DUNGEON_EXIT)已由 AutoBrushController 注册,红线不可重复注册;Exit() 只发不接。
             RegisterProtocal(Proto.DUNGEON_INFO, On61004);
@@ -1130,6 +1132,16 @@ namespace Shenxiao.Module.Core.Dungeon
             byte pushType = r.ReadU8();
             string content = r.ReadString();
             PolarModel.Instance.ApplySpecialInfo(dunId, dunType, pushType, content);
+        }
+
+        /// <summary>61089 伴侣副本答题原始状态；type 只按 wire 保存，不解释开关或倒计时。</summary>
+        private void On61089(NetReader r)
+        {
+            DungeonModel.Instance.ApplyMarriageQuestionState(
+                r.ReadU32(),
+                r.ReadU16(),
+                r.ReadU8(),
+                r.ReadU32());
         }
 
         /// <summary>61092 异兽入侵 领取阶段奖励(对标老端 BaseDungeonController.ts:1848-1857 内联 handler:
