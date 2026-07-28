@@ -17,6 +17,34 @@ namespace Shenxiao.Module.Core.Dungeon
         /// <summary>老端 polarRankMax=10(50802 固定查第 1~10 名;服务端 guard Rank1&lt;Rank2 且 Rank2≤30)。</summary>
         public const int RANK_MAX = 10;
 
+        public sealed class SpecialInfoSnapshot
+        {
+            public uint DunId { get; }
+            public byte DunType { get; }
+            public byte PushType { get; }
+            public string Content { get; }
+
+            public SpecialInfoSnapshot(uint dunId, byte dunType, byte pushType, string content)
+            {
+                DunId = dunId;
+                DunType = dunType;
+                PushType = pushType;
+                Content = content ?? string.Empty;
+            }
+        }
+
+        /// <summary>61088 按 dun_id 保存最后一个完整原始包；局部 push_type=2 也不与旧 term 合并。</summary>
+        public readonly Dictionary<uint, SpecialInfoSnapshot> SpecialInfoByDunId =
+            new Dictionary<uint, SpecialInfoSnapshot>();
+
+        public void ApplySpecialInfo(uint dunId, byte dunType, byte pushType, string content)
+        {
+            SpecialInfoByDunId[dunId] = new SpecialInfoSnapshot(dunId, dunType, pushType, content);
+        }
+
+        public bool TryGetSpecialInfo(uint dunId, out SpecialInfoSnapshot snapshot) =>
+            SpecialInfoByDunId.TryGetValue(dunId, out snapshot);
+
         // ===================================================================================
         // 50801 周常本信息(对标老端 setPolarInfo → polarInfo_[week_dun_id])
         // ===================================================================================
@@ -101,6 +129,7 @@ namespace Shenxiao.Module.Core.Dungeon
         {
             _weekInfos.Clear();
             _ranks.Clear();
+            SpecialInfoByDunId.Clear();
         }
     }
 }
