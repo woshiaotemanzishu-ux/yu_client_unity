@@ -189,6 +189,11 @@
 - GAME_START 必须先清空神庭全部原始切片，再严格空发 `23301 -> 23306`；`EVT_ROLE_INFO_UPDATE` 只在角色等级真实变化且新等级精确等于490时补发同一序列，等级跳过490、同级事件或基础角色包未到均不得发送。
 - 23301是神庭总览全量：`courts:u16×{court_id:u32,court_lv:u16,power:u64,attrs:u16×{attr_id:u16,value:u32},is_active:u8,equips:u16×{pos:u8,equip_id:u64,stage:u8},suits:u16×{stage:u8,num:u16}}`。保留所有层级的wire顺序、重复ID和u64位型；空表loaded清旧。23306是独立水晶屋全量：`reward_lv:u16,sum_num:u32,crystal_color:u8,daily_num:u32,house_lv:u16,house_exp:u16,grand_status:u16×{times:u16,status:u8}`，raw状态和重复项必须保留，空表仅清本切片。
 - 23310是S2C-only单神庭完整更新，结构与23301中的Court相同；必须按 `court_id` 保存独立keyed覆盖切片，同ID替换、异ID共存、早包有效，禁止patch或重排23301的原始有序总览。23300是S2C-only `error_code:u32,error_code_args:string` 原始覆盖；四类切片互不交叉清理，不接UI、提示、配置、事件或红点。
+
+## VIP 45000/45004/45005/45006（R489）
+- GAME_START必须先清空VIP全部切片，再严格空发 `45000 -> 45004 -> 15800`；跨天只重拉同一只读子序列但不得清旧值。15901继续显式按需，15803未迁移，禁止借启动或跨天恢复旧端的15901/15803自动请求。
+- 45000是完整基础快照：`vip_lv:u16,vip_exp:u32,need_exp:u32,vip_hide:u8,got_rewards:u16×u16,can_rewards:u16×u16,use_cards:u16×{card_type:u8,time:u32}`；45004是独立完整特权卡表 `cards:u16×{card_type:u8,is_temp_card:u8,is_active:u8,is_forever:u8,time:u32}`。两者保留wire顺序、重复ID和raw零/最大值，空表loaded清旧，请求无回包保留旧值。
+- 45005是S2C-only激活通知，45006是S2C-only超时通知，二者均只覆盖各自最后一份 `card_type:u8,is_temp_card:u8` 原始切片，不得直接patch 45004；45006每包随后严格空查一次45004。四个450切片及15800/15801/15901互相隔离，不改Role/Figure，不接45001/02奖励、45003购买、45007领免费卡、45008隐藏VIP，也不接UI、配置、红点、提示、计时器、背包货币或本地奖励。
 - 23302-23305与23307-23309会真实解锁、穿戴、升阶、强化、开水晶或领奖，必须等待背包/装备、配置、货币、奖励和UI结果闭环整体迁移；当前禁止公开sender、孤立成功handler、本地扣物或发奖。
 
 ## TopVip 45101/45102/45104/45109/45110/45111/45112（R487）

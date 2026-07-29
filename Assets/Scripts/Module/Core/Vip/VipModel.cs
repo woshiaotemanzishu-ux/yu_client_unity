@@ -4,7 +4,8 @@ using System.Collections.Generic;
 namespace Shenxiao.Module.Core.Vip
 {
     /// <summary>
-    /// VIP/充值商品与福利卡只读运行时状态。入口固定显示在 MainUITopView；本模型不负责创建 HudActivity 图标。
+    /// VIP、充值商品与福利卡只读运行时状态。各协议切片互不改写；入口固定显示在 MainUITopView，
+    /// 本模型不负责创建 HudActivity 图标、派生红点或执行交易。
     /// </summary>
     public sealed class VipModel
     {
@@ -25,12 +26,86 @@ namespace Shenxiao.Module.Core.Vip
         private readonly Dictionary<int, RechargeProduct> _productById =
             new Dictionary<int, RechargeProduct>();
         private IReadOnlyList<WelfareCard> _welfareCards = Array.AsReadOnly(Array.Empty<WelfareCard>());
+        private IReadOnlyList<PrivilegeCard> _privilegeCards = Array.AsReadOnly(Array.Empty<PrivilegeCard>());
 
         private VipModel() { }
 
         public IReadOnlyDictionary<int, RechargeProduct> ProductById => _productById;
         public IReadOnlyList<WelfareCard> WelfareCards => _welfareCards;
         public bool HasWelfareCardList { get; private set; }
+        public VipInfoSnapshot VipInfo { get; private set; }
+        public bool HasVipInfo => VipInfo != null;
+        public IReadOnlyList<PrivilegeCard> PrivilegeCards => _privilegeCards;
+        public bool HasPrivilegeCards { get; private set; }
+        public CardNotice LastActivationNotice { get; private set; }
+        public bool HasActivationNotice => LastActivationNotice != null;
+        public CardNotice LastTimeoutNotice { get; private set; }
+        public bool HasTimeoutNotice => LastTimeoutNotice != null;
+
+        public sealed class VipInfoSnapshot
+        {
+            public readonly ushort VipLevel;
+            public readonly uint VipExp;
+            public readonly uint NeedExp;
+            public readonly byte VipHide;
+            public readonly IReadOnlyList<ushort> GotRewards;
+            public readonly IReadOnlyList<ushort> CanRewards;
+            public readonly IReadOnlyList<UseCard> UseCards;
+
+            public VipInfoSnapshot(ushort vipLevel, uint vipExp, uint needExp, byte vipHide,
+                IReadOnlyList<ushort> gotRewards, IReadOnlyList<ushort> canRewards, IReadOnlyList<UseCard> useCards)
+            {
+                VipLevel = vipLevel;
+                VipExp = vipExp;
+                NeedExp = needExp;
+                VipHide = vipHide;
+                GotRewards = FreezeU16(gotRewards);
+                CanRewards = FreezeU16(canRewards);
+                UseCards = FreezeUseCards(useCards);
+            }
+        }
+
+        public sealed class UseCard
+        {
+            public readonly byte CardType;
+            public readonly uint Time;
+
+            public UseCard(byte cardType, uint time)
+            {
+                CardType = cardType;
+                Time = time;
+            }
+        }
+
+        public sealed class PrivilegeCard
+        {
+            public readonly byte CardType;
+            public readonly byte IsTempCard;
+            public readonly byte IsActive;
+            public readonly byte IsForever;
+            public readonly uint Time;
+
+            public PrivilegeCard(byte cardType, byte isTempCard, byte isActive, byte isForever, uint time)
+            {
+                CardType = cardType;
+                IsTempCard = isTempCard;
+                IsActive = isActive;
+                IsForever = isForever;
+                Time = time;
+            }
+        }
+
+        public sealed class CardNotice
+        {
+            public readonly byte CardType;
+            public readonly byte IsTempCard;
+
+            public CardNotice(byte cardType, byte isTempCard)
+            {
+                CardType = cardType;
+                IsTempCard = isTempCard;
+            }
+        }
 
         public sealed class WelfareCard
         {
@@ -80,6 +155,39 @@ namespace Shenxiao.Module.Core.Vip
             HasWelfareCardList = true;
         }
 
+        public void ReplaceVipInfo(VipInfoSnapshot snapshot)
+        {
+            if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
+            VipInfo = new VipInfoSnapshot(snapshot.VipLevel, snapshot.VipExp, snapshot.NeedExp, snapshot.VipHide,
+                snapshot.GotRewards, snapshot.CanRewards, snapshot.UseCards);
+        }
+
+        public void ReplacePrivilegeCards(IReadOnlyList<PrivilegeCard> cards)
+        {
+            int count = cards?.Count ?? 0;
+            var copy = new PrivilegeCard[count];
+            for (int i = 0; i < count; i++)
+            {
+                PrivilegeCard card = cards[i];
+                copy[i] = new PrivilegeCard(card.CardType, card.IsTempCard, card.IsActive, card.IsForever, card.Time);
+            }
+
+            _privilegeCards = Array.AsReadOnly(copy);
+            HasPrivilegeCards = true;
+        }
+
+        public void ReplaceActivationNotice(CardNotice notice)
+        {
+            if (notice == null) throw new ArgumentNullException(nameof(notice));
+            LastActivationNotice = new CardNotice(notice.CardType, notice.IsTempCard);
+        }
+
+        public void ReplaceTimeoutNotice(CardNotice notice)
+        {
+            if (notice == null) throw new ArgumentNullException(nameof(notice));
+            LastTimeoutNotice = new CardNotice(notice.CardType, notice.IsTempCard);
+        }
+
         public bool HaveFirstRecharge()
         {
             foreach (RechargeProduct product in _productById.Values)
@@ -94,6 +202,27 @@ namespace Shenxiao.Module.Core.Vip
             _productById.Clear();
             _welfareCards = Array.AsReadOnly(Array.Empty<WelfareCard>());
             HasWelfareCardList = false;
+            VipInfo = null;
+            _privilegeCards = Array.AsReadOnly(Array.Empty<PrivilegeCard>());
+            HasPrivilegeCards = false;
+            LastActivationNotice = null;
+            LastTimeoutNotice = null;
+        }
+
+        private static IReadOnlyList<ushort> FreezeU16(IReadOnlyList<ushort> source)
+        {
+            int count = source?.Count ?? 0;
+            var copy = new ushort[count];
+            for (int i = 0; i < count; i++) copy[i] = source[i];
+            return Array.AsReadOnly(copy);
+        }
+
+        private static IReadOnlyList<UseCard> FreezeUseCards(IReadOnlyList<UseCard> source)
+        {
+            int count = source?.Count ?? 0;
+            var copy = new UseCard[count];
+            for (int i = 0; i < count; i++) copy[i] = new UseCard(source[i].CardType, source[i].Time);
+            return Array.AsReadOnly(copy);
         }
     }
 }

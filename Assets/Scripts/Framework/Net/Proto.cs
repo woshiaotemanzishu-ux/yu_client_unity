@@ -721,6 +721,16 @@
         /// <summary>S2C 推送/兜底:140xx 系列通用错误码。回包 Code:i,非0/真值才弹提示。</summary>
         public const int FRIEND_ERROR = 14099;
 
+        // ----- VIP privilege cards (450xx read-side subset, yu_server pt_450.erl / pp_vip.erl) -----
+        /// <summary>VIP 基础信息。请求无参；回包 VIP 等级/经验/隐藏态、奖励列表和免费卡列表的完整快照。</summary>
+        public const int VIP_INFO = 45000;
+        /// <summary>VIP 特权卡列表。请求无参；回包 h + {CardType:c, IsTemp:c, IsActive:c, IsForever:c, Time:i} x N。</summary>
+        public const int VIP_PRIVILEGE_CARD_LIST = 45004;
+        /// <summary>VIP 特权卡激活通知。S2C-only：CardType:c, IsTemp:c。</summary>
+        public const int VIP_CARD_ACTIVATED = 45005;
+        /// <summary>VIP 特权卡超时通知。S2C-only：CardType:c, IsTemp:c；收到后重拉 45004。</summary>
+        public const int VIP_CARD_EXPIRED = 45006;
+
         // ----- Recharge/VIP (158xx, yu_server pt_158.erl / pp_recharge.erl) -----
         /// <summary>充值商品列表。请求无参;回包 h + {ProductId:i, ReturnType:c} x N。</summary>
         public const int RECHARGE_PRODUCT_LIST = 15800;

@@ -93,7 +93,7 @@ namespace Shenxiao.Module.Core.Game
             SendFirstOpenStateRequest();
             SendFmt(Proto.SETTING_LIST, "c", SYS_SETTING);
             RoleController.Instance.RequestGrowthPackets(); // 轮5:13011/13017/13046/13080/13086
-            VipController.Instance.RequestRechargeProducts();
+            VipController.Instance.RequestStartup();
             FirstRechargeController.Instance.RequestStartupState();
             CustomActivityController.Instance.RequestActivityList();
             HotPointController.Instance.RequestActivityList();
@@ -149,7 +149,7 @@ namespace Shenxiao.Module.Core.Game
             DepositController.Instance.RequestActivityOnhook();
             OnHookController.Instance.RequestInfo();
             FunctionOpenController.Instance.RequestList();
-            GameLog.Info("Game", "requested startup packets: 13001,10201,30005,13088,10202,15800,15905,15908,33101,45120,22700,13800,13011,13017,13046,13080,13086");
+            GameLog.Info("Game", "requested startup packets: 13001,10201,30005,13088,10202,45000,45004,15800,15905,15908,33101,45120,22700,13800,13011,13017,13046,13080,13086");
         }
 
         private void SendFirstOpenStateRequest()
