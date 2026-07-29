@@ -1598,3 +1598,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **根因实证**：对同一正式装配、同一相机做透明 RT 同帧 A/B，`ARGB32` 会把 Panda 的 HDR/半透明红绿色截成发灰发暗的中间色，只剩光环与高亮长条明显；`ARGBHalf` 能保留完整红绿上翼。选角 `UIModelStage` 与游戏 `SceneCharacterStage` 原先都创建 `ARGB32`，所以两处表现一致。
 - **修复**：两条模型台统一改为带 Alpha 的 `ARGBHalf`，相机显式开启 HDR，格式不对的同尺寸历史 RT 也强制重建。`StageComposite` 撤销 `max(原始 Alpha, RGB 最大亮度)`，恢复只透传原始预乘颜色/Alpha，避免 `guanghuan` 等加法粒子被错误放大成实心遮罩。灯光、贴图、Panda 材质与项目 Linear 色彩空间均未改变。
 - **验证状态**：已完成真实 `wing_1005` 的 `ARGB32/ARGBHalf` 同帧取证；`dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 为 59 个既有 warning、0 error，Unity 强制编译 `completed/failed=false`。`RolePresentationEffectsCase` 新增步骤实跑得到 `scene=ARGBHalf/True,ui=ARGBHalf/True`；整套用例直接 eval 的后半段仍依赖其官方 batch 舞台，核心 HDR 断言已通过。
+
+## 2026-07-29：1005 `wing-2` 结构层 Alpha 修复
+
+- **对象没有漏导**：主工程 `1005@idle.prefab` 直接引用与美术工程相同 GUID 的 `wing.FBX/wing-1.FBX/wing-2.FBX`；运行时正式装配路径为 `1005@idle(Clone)/wing_content/wing/wing-2`，节点 active，两个 `SkinnedMeshRenderer` 均 enabled 且未 `forceRenderingOff`。Hierarchy 的 `+` 是源 Prefab 自带的嵌套 FBX 新增对象 Override，不是错误。
+- **根因实证**：`wing-2` 两个 Renderer 共用 Panda `10.mat`，RGB 为 `One/One`，美术 `_MainColor.a=0.937`。旧导入器仅按 `_Dst=One` 把 Alpha 统一成 `Zero/One`，隔离渲染得到 `maxAlpha=0、nonzeroAlpha=0`，因此对象存在但最终合成没有结构覆盖度。
+- **修复**：`10.mat` 的 RGB 混合保持美术原值，仅把 Alpha 改成 `One/OneMinusSrcAlpha`。导入器同步增加规则：加法 `SkinnedMeshRenderer` 且 `_MainColor.a<1` 视为结构层并保留 Alpha；普通加法 ParticleSystem 继续 `Zero/One`，不会再次放大 `guanghuan`。
+- **验证状态**：修复后同一 `wing-2` 隔离渲染为 `maxAlpha=0.9902344、nonzeroAlpha=25681`；亮色合成中红绿膜片轮廓恢复。`Shenxiao.Editor.csproj` 离线编译 59 个既有 warning、0 error，Unity 强制编译 `completed/failed=false`；专项回归为 `wing2Renderers=2, wing2Alpha=1/10, haloAlpha=0/1`，导入分类只命中 `Materials/10.mat`，未把光环材质纳入结构层。

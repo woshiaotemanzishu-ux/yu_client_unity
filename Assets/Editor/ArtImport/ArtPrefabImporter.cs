@@ -1209,11 +1209,15 @@ namespace Shenxiao.EditorTools.ArtImport
 
                 // 2.8 PandaShader 特效材质 alpha 规范化:该 shader 混合因子是材质属性 [_Scr][_Dst],
                 // alpha 通道跟着同因子写会污染展示台 RT 的覆盖度(加法特效把 alpha 加满,
-                // 合成后把 UI 背景压暗)。规则:加法族(_Dst=One)不写 alpha;半透族写覆盖度。
+                // 合成后把 UI 背景压暗)。普通加法光效不写 alpha；但美术明确给半透明 Alpha 的
+                // SkinnedMesh 结构层必须写覆盖度，否则整层进透明 RT 后 alpha 恒为 0（1005 wing-2 实锤）。
+                HashSet<string> structuralAlphaMaterials = AnalyzeStructuralAlphaMaterials(
+                    plan.RootPrefabDsts, notes);
                 foreach (PlannedFile f in plan.Files
                              .Where(f => f.Dst.EndsWith(".mat", StringComparison.OrdinalIgnoreCase)))
                 {
-                    NormalizePandaAlpha(f.Dst);
+                    NormalizePandaAlpha(f.Dst,
+                        structuralAlphaMaterials.Contains(f.Dst.Replace('\\', '/')));
                 }
                 AssetDatabase.SaveAssets();
 
@@ -1582,11 +1586,48 @@ namespace Shenxiao.EditorTools.ArtImport
         }
 
         /// <summary>
-        /// PandaShader 材质的 alpha 混合规范化(shader 已加 [_ScrA][_DstA] 通道):
-        /// 加法族(_Dst=One)不写 alpha(Zero/One),否则光团把 RT alpha 加满,预乘合成后压暗 UI 背景;
-        /// 半透族(_Dst=OneMinusSrcAlpha)正常写覆盖度(One/OneMinusSrcAlpha),否则亮背景上发白。
+        /// 找出“RGB 仍为加法、但美术明确给了半透明 Alpha”的蒙皮结构材质。
+        /// 这类材质不是粒子光团：1005 的 wing-2 用 One/One 叠色，同时 MainColor.a=0.937；
+        /// 若按普通加法族清空 alpha，透明模型 RT 中整层覆盖度恒为 0，最终看起来像漏挂了该层。
         /// </summary>
-        private static void NormalizePandaAlpha(string matPath)
+        private static HashSet<string> AnalyzeStructuralAlphaMaterials(
+            IEnumerable<string> prefabPaths, List<string> notes)
+        {
+            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string prefabPath in prefabPaths.Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+                if (prefab == null) continue;
+                foreach (SkinnedMeshRenderer renderer in prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
+                    foreach (Material material in renderer.sharedMaterials)
+                    {
+                        if (material == null || material.shader == null ||
+                            !material.shader.name.StartsWith("VFX/Pandavfx", StringComparison.OrdinalIgnoreCase) ||
+                            !material.HasProperty("_Scr") || !material.HasProperty("_Dst") ||
+                            !material.HasProperty("_MainColor"))
+                            continue;
+                        bool additive = Mathf.Approximately(material.GetFloat("_Scr"),
+                                                (float)UnityEngine.Rendering.BlendMode.One) &&
+                                        Mathf.Approximately(material.GetFloat("_Dst"),
+                                                (float)UnityEngine.Rendering.BlendMode.One);
+                        if (!additive || material.GetColor("_MainColor").a >= 0.999f) continue;
+                        string materialPath = AssetDatabase.GetAssetPath(material).Replace('\\', '/');
+                        if (string.IsNullOrEmpty(materialPath) || !result.Add(materialPath)) continue;
+                        notes.Add($"加法蒙皮结构层保留 Alpha {Path.GetFileName(prefabPath)} → " +
+                                  $"{renderer.name}/{material.name}");
+                    }
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// PandaShader 材质的 alpha 混合规范化(shader 已加 [_ScrA][_DstA] 通道):
+        /// 普通加法族(_Dst=One)不写 alpha(Zero/One),否则光团把 RT alpha 加满,预乘合成后压暗 UI 背景;
+        /// 半透族和加法蒙皮结构层写覆盖度(One/OneMinusSrcAlpha)。RGB 混合因子始终保留美术原值。
+        /// </summary>
+        private static void NormalizePandaAlpha(string matPath, bool structuralAlpha)
         {
             var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
             if (mat == null || mat.shader == null) return;
@@ -1596,12 +1637,13 @@ namespace Shenxiao.EditorTools.ArtImport
             float dst = mat.HasProperty("_Dst")
                 ? mat.GetFloat("_Dst") : (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha;
             bool additive = Mathf.Approximately(dst, (float)UnityEngine.Rendering.BlendMode.One);
-            mat.SetFloat("_ScrA", additive
-                ? (float)UnityEngine.Rendering.BlendMode.Zero
-                : (float)UnityEngine.Rendering.BlendMode.One);
-            mat.SetFloat("_DstA", additive
+            bool writeCoverage = !additive || structuralAlpha;
+            mat.SetFloat("_ScrA", writeCoverage
                 ? (float)UnityEngine.Rendering.BlendMode.One
-                : (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                : (float)UnityEngine.Rendering.BlendMode.Zero);
+            mat.SetFloat("_DstA", writeCoverage
+                ? (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha
+                : (float)UnityEngine.Rendering.BlendMode.One);
             EditorUtility.SetDirty(mat);
         }
 

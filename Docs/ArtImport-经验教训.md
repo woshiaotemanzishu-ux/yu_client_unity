@@ -32,6 +32,11 @@
    HDR/半透明层次。选角和场景恰好共用该错误 RT 精度，因此现象一致。正确修复是两条模型台统一
    `ARGBHalf + Camera.allowHDR`，`StageComposite` 只做 `One/OneMinusSrcAlpha` 预乘贴回；禁止用 RGB
    最大亮度补 Alpha，那会把 `guanghuan` 等加法粒子错误变成实心遮罩。
+8. **“加法材质不写 Alpha”不能一刀切到蒙皮结构层**：1005 `wing-2` 的两个
+   `SkinnedMeshRenderer` 共用 `10.mat`，RGB 明确为 `One/One`，但美术同时把 `_MainColor.a` 设为
+   `0.937`。旧导入器仅按 `_Dst=One` 把 `_ScrA/_DstA` 统一成 `Zero/One`，导致该层在透明 RT 中
+   `maxAlpha=0`，视觉上像整个节点没挂。导入器现把“加法 + SkinnedMesh + MainColor.a<1”识别为
+   结构层，保留 `One/OneMinusSrcAlpha` 覆盖；ParticleSystem 加法仍不写 Alpha，避免光环成为实心遮罩。
 
 ## 排查心法(按这个顺序,别跳)
 
@@ -58,6 +63,7 @@
 | 部件运动/轨迹与美术 prefab 不一致 | 公共上台逻辑误改部件 Animator；只允许角色主体开启 Root Motion，部件保留原值 |
 | 翅膀白/黄硬块、纹理和色相丢失 | 先确认场景台复用 `ArtModelRenderProfile` 的独立 Renderer、Depth/Opaque Texture，再确认模型透明 RT 为 `ARGBHalf`、相机 HDR 已开、StageComposite 原样预乘贴回 |
 | 翅膀上翼褪色但光环/长亮条仍清楚 | `ARGB32` 已截断 Panda HDR/半透明中间色；改回两条模型台统一 `ARGBHalf`，不要加灯，也不要用 RGB 亮度伪造 Alpha |
+| Prefab/运行层级中有 `wing-2`，画面却像少了该层 | 检查该蒙皮结构材质的 Alpha 混合；1005 `10.mat` 必须为 `_ScrA=One/_DstA=OneMinusSrcAlpha`。若为 `Zero/One`，对象和 Renderer 都正常也会因 RT Alpha 恒为 0 而失去覆盖 |
 | 镜像/换手 | uvRect 翻转错用在原生模型上(按档案分流,已内建) |
 | 原地做动作 | applyRootMotion 没开 / 位移沿 Z 被正交吃掉(均已内建) |
 | 巨大/悬空/怼镜头 | 落点采样错:静态盒≠动画停放、猜错 clip、单位错配 2.54×(逐 prefab 末帧采样,已内建) |

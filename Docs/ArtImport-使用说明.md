@@ -77,9 +77,10 @@
 |---|---|
 | 模型全白(贴图丢) | 根因(1111 实锤):身体用 **FBX 内嵌材质**,贴图按 FBX 里记录的**美术机文件名/路径搜索**(如 `\男1\新建文件夹\服饰.tga`),GUID 闭包看不见 → 贴图没进工程=白模。修复(已内建,**[导入/更新] 一次即可**):① 整文件夹导入把 Tex/Materials 全量搬入;② 内嵌材质自动换外置:同名 .mat → **同主贴图**的 .mat(内嵌名常是 Max 默认名"21 - Default"对不上,按贴图对)→ 都没有就现生成 URP/Unlit;③ FBX 二次导入兜底 |
 | 整体偏黑/发蓝 | 先查运行实例的常规表面是否已切到 `Universal Render Pipeline/Unlit`，再查有色贴图是否真正进入 `_BaseMap`。禁止为了补亮重新加平行光、环境光或预览灯 |
-| 特效台上发暗/压黑背景 | PandaShader 的混合因子写 alpha 污染 RT 覆盖度(加法光团把 alpha 加满→合成时把 UI 背景压暗)。修复=shader 加 `[_ScrA][_DstA]` alpha 通道(主工程和美术工程**两份同步改,须保持一致**),导入时按材质自动设:加法族不写 alpha,半透族写覆盖度 |
-| 翅膀在 prefab 预览正常、进选角/游戏后上翼褪色或不明显 | 先确认 `UIModelStageRT` 与 `SceneCharStageRT` 均为 `ARGBHalf` 且相机开启 HDR；`ARGB32` 会在透明中间 RT 截断 Panda HDR/半透明色。`StageComposite` 必须原样保留 Alpha，禁止用 RGB 亮度补 Alpha，否则只会把加法光环放大成实心遮罩 |
+| 特效台上发暗/压黑背景 | PandaShader 的混合因子写 alpha 污染 RT 覆盖度(加法光团把 alpha 加满→合成时把 UI 背景压暗)。修复=shader 加 `[_ScrA][_DstA]` alpha 通道(主工程和美术工程**两份同步改,须保持一致**)。普通加法粒子不写 Alpha；半透族以及美术明确设置半透明 Alpha 的加法蒙皮结构层写覆盖度 |
+| 翅膀在 prefab 预览正常、进选角/游戏后上翼褪色或不明显 | 先确认 `UIModelStageRT` 与 `SceneCharStageRT` 均为 `ARGBHalf` 且相机开启 HDR；再查结构层 Alpha：1005 `wing-2/10.mat` 必须为 RGB `One/One`、Alpha `One/OneMinusSrcAlpha`，而 `guanghuan` 等粒子仍为 Alpha `Zero/One`。`StageComposite` 必须原样保留 Alpha，禁止用 RGB 亮度补 Alpha |
 | 游戏里模型左右镜像 | 展示台为 Laya 老模型做了 RT 水平翻转补偿(老端几何是镜像的);新成品模型是原生朝向,带渲染档案的模型已自动**不翻转**。发现镜像=该 prefab 没挂 ArtModelRenderProfile(重新 [导入/更新]) |
+| Prefab 子节点前显示 `+` | 表示它是嵌套 Prefab/FBX 实例上的新增对象 Override，不是丢资源或导入失败。1005 的 `wing-1/wing-2/shanshi` 在美术源 Prefab 中本来就是加在 `wing.FBX` 实例下的对象，导入时保留该结构和 GUID，不能为消除 `+` 擅自 Unpack |
 | 模型全紫 | shader 缺/编译失败:确认 `object/artshared/PandaShaderV2.3/` 在,点开 shader 看 Console 报错 |
 | 游戏里看不到模型 | 先确认跑过 Addressable 自动分组;归一化已兜底大小/位置,若仍取不到景=该 prefab 没有蒙皮网格(锚点退化),报给程序 |
 | 特效在台上洗成白块(场景里正常) | 已修:带渲染档案的模型自动使用独立 Renderer、Depth/Opaque Texture 和 `Shenxiao/UI/StageComposite` 预乘合成；老模型仍走默认路径。若仍异常先确认运行时实际取到 `ArtModelRenderProfile`，再查材质 `_ScrA/_DstA` |

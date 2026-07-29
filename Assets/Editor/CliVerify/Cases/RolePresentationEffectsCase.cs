@@ -112,13 +112,21 @@ namespace Shenxiao.EditorTools
                 }
                 Debug.Log("CLIVERIFY role-effects 3a UI/scene model stages preserve HDR alpha; " + hdrDiagnostic);
 
+                if (!VerifyWingStructuralAlpha(out string wingAlphaDiagnostic))
+                {
+                    Debug.LogError("CLIVERIFY role-effects wing structural alpha invalid: " +
+                        wingAlphaDiagnostic);
+                    return 3;
+                }
+                Debug.Log("CLIVERIFY role-effects 3b wing structural alpha preserved; " + wingAlphaDiagnostic);
+
                 if (!VerifyLegacyLinearTint(out Color neutralTintSample))
                 {
                     Debug.LogError("CLIVERIFY role-effects Laya neutral tint is dim/invalid in Linear space, sample=" +
                         neutralTintSample);
                     return 3;
                 }
-                Debug.Log("CLIVERIFY role-effects 3b Laya neutral tint sample=" + neutralTintSample);
+                Debug.Log("CLIVERIFY role-effects 3c Laya neutral tint sample=" + neutralTintSample);
 
                 attached = await EffectBinder.AttachOne(detached, "", "other_effect", "effect_xemlvup",
                     "verify_levelup", false);
@@ -337,6 +345,44 @@ namespace Shenxiao.EditorTools
                 if (model != null) UnityEngine.Object.DestroyImmediate(model);
                 return false;
             }
+        }
+
+        private static bool VerifyWingStructuralAlpha(out string diagnostic)
+        {
+            const string path = "Assets/GameRes/object/wing/wing_1005/1005@idle.prefab";
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefab == null)
+            {
+                diagnostic = "1005@idle prefab missing";
+                return false;
+            }
+
+            Transform wing2 = Array.Find(prefab.GetComponentsInChildren<Transform>(true),
+                item => item != null && item.name == "wing-2");
+            SkinnedMeshRenderer[] renderers = wing2 != null
+                ? wing2.GetComponentsInChildren<SkinnedMeshRenderer>(true)
+                : Array.Empty<SkinnedMeshRenderer>();
+            Material structural = renderers.Length > 0 ? renderers[0].sharedMaterial : null;
+            ParticleSystemRenderer halo = Array.Find(prefab.GetComponentsInChildren<ParticleSystemRenderer>(true),
+                item => item != null && item.name == "guanghuan");
+            Material haloMaterial = halo != null ? halo.sharedMaterial : null;
+
+            float scrA = structural != null && structural.HasProperty("_ScrA")
+                ? structural.GetFloat("_ScrA") : -1f;
+            float dstA = structural != null && structural.HasProperty("_DstA")
+                ? structural.GetFloat("_DstA") : -1f;
+            float haloScrA = haloMaterial != null && haloMaterial.HasProperty("_ScrA")
+                ? haloMaterial.GetFloat("_ScrA") : -1f;
+            float haloDstA = haloMaterial != null && haloMaterial.HasProperty("_DstA")
+                ? haloMaterial.GetFloat("_DstA") : -1f;
+            diagnostic = $"wing2Renderers={renderers.Length},wing2Alpha={scrA}/{dstA}," +
+                         $"haloAlpha={haloScrA}/{haloDstA}";
+            return wing2 != null && wing2.gameObject.activeSelf && renderers.Length == 2 &&
+                   Array.TrueForAll(renderers, renderer => renderer.enabled) &&
+                   Mathf.Approximately(scrA, (float)UnityEngine.Rendering.BlendMode.One) &&
+                   Mathf.Approximately(dstA, (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha) &&
+                   Mathf.Approximately(haloScrA, (float)UnityEngine.Rendering.BlendMode.Zero) &&
+                   Mathf.Approximately(haloDstA, (float)UnityEngine.Rendering.BlendMode.One);
         }
 
         private static bool VerifyLevelUpTextParticle(GameObject effect, out string diagnostic)
