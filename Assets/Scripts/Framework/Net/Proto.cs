@@ -1011,6 +1011,16 @@
         public const int GOD_COURT_HOUSE = 23306;
         /// <summary>单个神庭完整状态更新。S2C-only，条目结构与23301中的单个神庭相同，按 court_id 独立替换。</summary>
         public const int GOD_COURT_UPDATE = 23310;
+        /// <summary>幻饰统一原始错误。S2C-only: code:u32,message:string。</summary>
+        public const int UNREAL_ERROR = 14900;
+        /// <summary>幻饰单部位强化信息。C2S: cell:u8；S2C: result:u32,cell:u8,level:u16,point:u32。</summary>
+        public const int UNREAL_STRENGTH_INFO = 14904;
+        /// <summary>幻饰进阶属性显式预览。C2S: goods_id:u64；S2C为评分与附加属性有序表。</summary>
+        public const int UNREAL_STAGE_PREVIEW = 14906;
+        /// <summary>幻饰分解属性显式预览。C2S: goods_id:u64；S2C为评分与附加属性有序表。</summary>
+        public const int UNREAL_DECOMPOSE_PREVIEW = 14907;
+        /// <summary>幻饰已解锁部位全量。C2S严格空包，也接受服务端装备/进阶后的同号推送。</summary>
+        public const int UNREAL_UNLOCKED_CELLS = 14908;
         /// <summary>龙珠雕像总览。C2S 空包；S2C: status:u8,power:u64。</summary>
         public const int DRAGONBALL_STATUE_OVERVIEW = 14310;
         /// <summary>龙珠套装概览。C2S 空包；S2C: wear_type:u8,items:u16×{type:u8,lv:u8,power:u64,next_power:u64}。</summary>

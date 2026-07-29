@@ -96,6 +96,7 @@ using Shenxiao.Module.Core.KfStage;
 using Shenxiao.Module.Core.Reincarnation;
 using Shenxiao.Module.Core.GodBeast;
 using Shenxiao.Module.Core.GodCourt;
+using Shenxiao.Module.Core.Unreal;
 using Shenxiao.Module.Core.Designation;
 using Shenxiao.Module.Core.Mask;
 using Shenxiao.Module.Core.Dress;
@@ -240,6 +241,7 @@ namespace Shenxiao.Module.Core.Game
             ReincarnationController.Instance,
             GodBeastController.Instance,
             GodCourtController.Instance,
+            UnrealController.Instance,
             DesignationController.Instance,
             MaskController.Instance,
             DressController.Instance,

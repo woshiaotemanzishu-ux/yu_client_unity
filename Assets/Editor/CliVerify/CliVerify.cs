@@ -194,6 +194,11 @@ namespace Shenxiao.EditorTools
             Run(GodBeastCase.Run, 60.0);
         }
 
+        public static void Unreal()
+        {
+            Run(UnrealCase.Run, 60.0);
+        }
+
         public static void Designation()
         {
             Run(DesignationCase.Run, 60.0);

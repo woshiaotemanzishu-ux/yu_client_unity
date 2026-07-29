@@ -44,6 +44,7 @@ using Shenxiao.Module.Core.KfStage;
 using Shenxiao.Module.Core.Reincarnation;
 using Shenxiao.Module.Core.GodBeast;
 using Shenxiao.Module.Core.GodCourt;
+using Shenxiao.Module.Core.Unreal;
 using Shenxiao.Module.Core.Designation;
 using Shenxiao.Module.Core.Mask;
 using Shenxiao.Module.Core.TempleAwaken;
@@ -132,6 +133,7 @@ namespace Shenxiao.Module.Core.Game
             ReincarnationController.Instance.RequestStartup();
             GodBeastController.Instance.RequestStartup();
             GodCourtController.Instance.RequestStartup();
+            UnrealController.Instance.RequestStartup();
             DesignationController.Instance.RequestStartup();
             MaskController.Instance.RequestStartup();
             TempleAwakenController.Instance.RequestStartup();

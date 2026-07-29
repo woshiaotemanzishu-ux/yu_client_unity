@@ -176,6 +176,12 @@
 - 四号均正式KILL。21101虽被老端GAME_START空发且服务端能返回完整奥术表，但老端handler只解包即丢弃；`SkillSubView` 的“远古奥术”页签/视图和 `SkillUIModel` 的整段消费均已注释。Unity禁止恢复21101启动请求、常量、handler、模型桶、事件或UI。
 - 21102升级、21103突破和21104选核心的服务端链仍会真实扣物、写DB、改技能/快捷栏/属性或场景状态，但老端全仓只有通用序列化与结果回调，没有任何可达发送点。不可因服务端写事务存活而反造客户端入口；禁止裸sender、孤立成功回执、本地扣物或21002/21101跟随重拉。
 
+## Unreal 14900/14904/14906/14907/14908（R492）
+
+- GAME_START先清全部幻饰原始切片，再严格依次发送14904的 `cell:u8=1..6` 六帧，最后空发14908。14904按回包cell键控完整替换 `res:u32,cell:u8,level:u16,point:u32`；14908是已解锁槽位有序全量，保留wire顺序/重复/任意raw u8，空表loaded清旧，并接受装备或进阶后的服务端同号推送。
+- 14906进阶预览和14907分解预览仅允许业务显式按 `goods_id:u64` 查询；回包按goods id在各自独立字典覆盖，完整保留评分及 `color:u8,type_id:u8,attr_id:u16,attr_val:u32,plus_interval:u8,plus_unit:u32` 有序属性表。14900只保存独立raw错误码/字符串；五切片互不交叉清理，请求无回复保留旧值。
+- 14901穿戴、14902卸下、14903进阶和14905强化都会修改真实装备/背包/DB/属性并触发多系统，必须随幻饰UI、配置、背包、角色属性、错误/成功提示和权威刷新整体迁移；当前禁止常量、sender、孤立结果handler、本地扣物/换装或红点推导。
+
 ## KfStage 10200（轮111）
 
 - GAME_START 发送10200严格空包。服务端回 `open_day:u32,server_info:u16×{server_id:u16,server_num:u16,server_name:string,world_lv:u16},modules:u16×{module_id:u16,mod:u8,avg_lv:u16,server_ids:u16×u16,next_server_ids:u16×u16}`，并在跨服分组或服务器名变化时主动重推同号。当前按完整快照替换并允许空列表清旧，只建查询数据底座；不迁老端 Cookie、ViewOrder/KfStart UI，也不接10204/10205/10208/10209。
