@@ -12,6 +12,7 @@ using Shenxiao.Module.Core.Market;
 using Shenxiao.Module.Core.LimitLevelShop;
 using Shenxiao.Module.Core.Eyou;
 using Shenxiao.Module.Core.Boss;
+using Shenxiao.Module.Core.GuildFight;
 using Shenxiao.Module.Core.ActivityForeshow;
 using Shenxiao.Module.Core.Banquet;
 using Shenxiao.Module.Core.Kaifu;
@@ -112,6 +113,7 @@ namespace Shenxiao.Module.Core.Game
             LimitLevelShopController.Instance.RequestStartup();
             EyouController.Instance.RequestStartup();
             BossController.Instance.RequestStartup();
+            GuildFightController.Instance.RequestStartup();
             ActivityForeshowController.Instance.RequestStartup();
             BanquetController.Instance.RequestStartup();
             KaifuController.Instance.RequestStartup();

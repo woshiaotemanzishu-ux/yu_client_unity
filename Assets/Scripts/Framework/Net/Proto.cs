@@ -1209,10 +1209,42 @@
         public const int MON_BOOK_PREVIEW_POWER = 44207;
         /// <summary>怪物图鉴按类型全量快照。C2S: type:u16；S2C: type+分组表+图鉴表+总战力。</summary>
         public const int MON_BOOK_TYPE_INFO = 44201;
+        /// <summary>领地战世界状态。C2S 空包；S2C: war_state:u8,ready_time:u32,start_time:u32,end_time:u32。</summary>
+        public const int GUILD_FIGHT_STATE = 50600;
+        /// <summary>领地战总览。C2S 空包；S2C 为胜方、公服、连胜与奖励归属原始字段。</summary>
+        public const int GUILD_FIGHT_OVERVIEW = 50601;
         /// <summary>领地战进入请求/结果。C2S: type:u8，当前仅发送进入 type=1；S2C: error_code:u32,type:u8。
         /// 真实回包由 mod_territory_war.erl 的异步进入校验写 50603；pp_territory_war.erl 前置失败分支
         /// 历史误写 pt_506:write(50503,...)，会落 pt_506 的 cmd=0 兜底，本端不臆造该失败回包。</summary>
         public const int GUILD_FIGHT_ENTER = 50603;
+        /// <summary>领地战场完整快照。C2S 空包；S2C 为战区、结束时间、个人分、公会/阶段/据点表。</summary>
+        public const int GUILD_FIGHT_BATTLE = 50604;
+        /// <summary>领地战公会积分/占领表增量。S2C-only；只更新 50604 已知公会。</summary>
+        public const int GUILD_FIGHT_GUILD_UPDATE = 50606;
+        /// <summary>领地战据点状态增量。S2C-only；只更新 50604 已知据点。</summary>
+        public const int GUILD_FIGHT_OWN_UPDATE = 50607;
+        /// <summary>领地战结算快照。S2C-only；含战区、模式与有序公会结果。</summary>
+        public const int GUILD_FIGHT_RESULT = 50611;
+        /// <summary>领地战个人积分绝对值推送。S2C-only: role_score:u32。</summary>
+        public const int GUILD_FIGHT_ROLE_SCORE = 50612;
+        /// <summary>领地战会长召集目标原始推送。S2C-only: mon_id:u32。</summary>
+        public const int GUILD_FIGHT_CONVENE = 50617;
+        /// <summary>领地战连杀者原始快照。S2C-only。</summary>
+        public const int GUILD_FIGHT_KILL_STREAK = 50619;
+        /// <summary>领地战轮次快照。C2S 空包；S2C: round:u8,round_start_time:u32,round_end_time:u32。</summary>
+        public const int GUILD_FIGHT_ROUND = 50620;
+        /// <summary>领地战对阵全量快照。C2S 空包；S2C 为有序对阵表。</summary>
+        public const int GUILD_FIGHT_WARS = 50621;
+        /// <summary>领地战跨服分组快照。C2S 空包；S2C 为模式、平均世界等级与有序服务器表。</summary>
+        public const int GUILD_FIGHT_SERVERS = 50622;
+        /// <summary>领地战参赛资格快照。C2S 空包；S2C: qualification:u8,is_choose_terri_id:u8。</summary>
+        public const int GUILD_FIGHT_QUALIFICATION = 50624;
+        /// <summary>领地战参赛资格更新。S2C-only: qualification:u8。</summary>
+        public const int GUILD_FIGHT_QUALIFICATION_UPDATE = 50625;
+        /// <summary>领地战对阵表刷新提示。S2C-only: up_war_list:u8；只存原始值。</summary>
+        public const int GUILD_FIGHT_WAR_LIST_NOTICE = 50626;
+        /// <summary>领地战战区提醒。S2C-only: territory_id:u32；只存原始值。</summary>
+        public const int GUILD_FIGHT_TERRITORY_NOTICE = 50627;
         /// <summary>跨服单人排行副本个人状态。C2S 空包；S2C: start_level:u8,reward_state:u8,levels:u16×{u8,u32}。</summary>
         public const int KF_SINGLE_RANK_INFO = 50701;
         /// <summary>跨服单人排行副本指定区域榜单。C2S: area_id:u8；S2C: area_id+完整排行表。</summary>

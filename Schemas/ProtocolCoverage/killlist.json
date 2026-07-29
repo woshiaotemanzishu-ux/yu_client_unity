@@ -702,6 +702,18 @@
     "note": "同区服务器列表 push 只有不可达宿主 writer，服务端永不实际发送；Unity 保持不注册。"
   },
   {
+    "cmd": 50605,
+    "reason": "dead_empty_body",
+    "evidence": "h5/src/commonController/GuildFightController.ts:306-308,532(注册handler仅GetSCMD后结束);yu_server/src/territory_war/lib_territory_war.erl:386-402(服务端已先发奖再推新增阶段);yu_server/src/pt/pt_506.erl:145-155(role_score:u32,add_stage_list:u16×keyid:u8)",
+    "note": "50605只是服务端完成实际发奖后的展示提示，老端明确解包即丢弃，不保存、不事件、不UI；真实当前个人分另由50612覆盖，阶段初始表由50604提供。Unity不注册无消费者提示，也不本地发奖或补丁阶段表。R500。"
+  },
+  {
+    "cmd": 50613,
+    "reason": "old_client_never_wired",
+    "evidence": "h5/src/commonController/GuildFightController.ts:527-547(注册表从50612直接到50617，无50613);h5/src全仓无50613消费;yu_server/src/territory_war/lib_territory_war_fight.erl:433-440(据点归属变化同时广播50613，随后完整50607链仍存活);yu_server/src/pt/pt_506.erl(50613仅mon_id:u32,guild_id:u64)",
+    "note": "据点归属提示是服务端真实冗余广播，但老端没有handler、模型或UI消费；权威当前据点状态已由同一归属变化链的50607完整增量覆盖。Unity不为覆盖率恢复无消费者提示，也不据此触发UI、移动或自动战斗。R500。"
+  },
+  {
     "cmd": 51001,
     "reason": "dead_server_family_route_disabled",
     "evidence": "h5/src/commonController/TreasureMapController.ts:35-40,183-188,220(启动/整点请求已注释但保留接收);yu_server/src/server/mod_server.erl:786(整个510前缀恒skip);yu_server/src/boss_rotary/pp_boss_rotary.erl:20-21;yu_server/src/boss_rotary/lib_boss_rotary.erl:189-194(唯一writer仅由被禁路由调用)",
