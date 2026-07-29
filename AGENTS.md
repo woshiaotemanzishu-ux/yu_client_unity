@@ -182,6 +182,12 @@
 - 14906进阶预览和14907分解预览仅允许业务显式按 `goods_id:u64` 查询；回包按goods id在各自独立字典覆盖，完整保留评分及 `color:u8,type_id:u8,attr_id:u16,attr_val:u32,plus_interval:u8,plus_unit:u32` 有序属性表。14900只保存独立raw错误码/字符串；五切片互不交叉清理，请求无回复保留旧值。
 - 14901穿戴、14902卸下、14903进阶和14905强化都会修改真实装备/背包/DB/属性并触发多系统，必须随幻饰UI、配置、背包、角色属性、错误/成功提示和权威刷新整体迁移；当前禁止常量、sender、孤立结果handler、本地扣物/换装或红点推导。
 
+## Auction 15401/15402/15407/15408/15409/15410/15411（R493）
+
+- GAME_START先清全部拍卖原始切片，再严格发送15401参数 `(auction_type=2,type=0,module_id=0)`。15401回包仅携auction_type与商品有序全量，每个auction_type独立替换，保留重复goods_id和wire顺序，空表loaded清该类型；显式15401请求无回复时保留旧值。
+- 15402是S2C-only商品更新，按 `(auction_type,goods_id)` 独立键控完整覆盖；它不得补丁15401商品表，也不得自动追发15407/15409。15407是显式 `(auction_type,module_id)` 预计分红查询并按同复合键覆盖；15408是S2C-only生命周期raw广播并按同复合键覆盖。三类字典及15401彼此隔离。
+- 15409个人竞拍记录和15410分红记录均为显式严格空请求，每包分别全量替换其有序列表，保留重复项，空表仍为loaded。15411是S2C-only `all_close:u8` raw快照，不因值为1而清任何其他拍卖切片。15400目录与15404退款通知因旧端解包即丢弃正式KILL；15405/15406因服务端入口注释且旧端丢弃正式KILL；15403竞价是真实扣费事务，继续DEFER。禁止接拍卖UI、配置、红点、Toast、钱包/邮件修改、自动跟随查询或本地状态机。
+
 ## KfStage 10200（轮111）
 
 - GAME_START 发送10200严格空包。服务端回 `open_day:u32,server_info:u16×{server_id:u16,server_num:u16,server_name:string,world_lv:u16},modules:u16×{module_id:u16,mod:u8,avg_lv:u16,server_ids:u16×u16,next_server_ids:u16×u16}`，并在跨服分组或服务器名变化时主动重推同号。当前按完整快照替换并允许空列表清旧，只建查询数据底座；不迁老端 Cookie、ViewOrder/KfStart UI，也不接10204/10205/10208/10209。

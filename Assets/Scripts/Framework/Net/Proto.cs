@@ -1021,6 +1021,20 @@
         public const int UNREAL_DECOMPOSE_PREVIEW = 14907;
         /// <summary>幻饰已解锁部位全量。C2S严格空包，也接受服务端装备/进阶后的同号推送。</summary>
         public const int UNREAL_UNLOCKED_CELLS = 14908;
+        /// <summary>拍卖商品全量。C2S: auction_type:u32,type:u32,module_id:u32；S2C按auction_type替换有序商品表。</summary>
+        public const int AUCTION_GOODS = 15401;
+        /// <summary>拍卖商品状态更新。S2C-only，按auction_type+goods_id独立覆盖。</summary>
+        public const int AUCTION_GOODS_UPDATE = 15402;
+        /// <summary>拍卖预计分红。C2S: auction_type:u32,module_id:u32；S2C同键完整快照。</summary>
+        public const int AUCTION_ESTIMATE = 15407;
+        /// <summary>拍卖生命周期广播。S2C-only: auction_type:u32,module_id:u32,type:u8。</summary>
+        public const int AUCTION_LIFECYCLE = 15408;
+        /// <summary>个人拍卖记录全量。C2S严格空包；S2C保留wire顺序与重复项。</summary>
+        public const int AUCTION_PERSONAL_RECORDS = 15409;
+        /// <summary>个人分红记录及已领信息全量。C2S严格空包；两张表独立保留wire顺序。</summary>
+        public const int AUCTION_BONUS_RECORDS = 15410;
+        /// <summary>全部拍卖关闭广播。S2C-only: all_close:u8，仅保存raw值。</summary>
+        public const int AUCTION_ALL_CLOSE = 15411;
         /// <summary>龙珠雕像总览。C2S 空包；S2C: status:u8,power:u64。</summary>
         public const int DRAGONBALL_STATUE_OVERVIEW = 14310;
         /// <summary>龙珠套装概览。C2S 空包；S2C: wear_type:u8,items:u16×{type:u8,lv:u8,power:u64,next_power:u64}。</summary>

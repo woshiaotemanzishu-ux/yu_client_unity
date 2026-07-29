@@ -199,6 +199,11 @@ namespace Shenxiao.EditorTools
             Run(UnrealCase.Run, 60.0);
         }
 
+        public static void Auction()
+        {
+            Run(AuctionCase.Run, 60.0);
+        }
+
         public static void Designation()
         {
             Run(DesignationCase.Run, 60.0);
