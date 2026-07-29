@@ -258,6 +258,24 @@
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
   {
+    "cmd": 22102,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/rank/pp_common_rank.erl:94-100(公会排行榜入口整段注释);yu_server/src/rank/lib_common_rank_mod.erl:1036-1078(残留writer只由该入口调用);h5/src/commonController/RankController.ts:76-80,100-104",
+    "note": "公会排行榜已被服务端明确从通用排行榜剥离；旧端虽仍发送并注册接收，但唯一网络入口被注释，底层22102 writer无其他调用者。Unity保持零常量、零注册、零发送，不以残留底层函数复活废弃链。R478复核。"
+  },
+  {
+    "cmd": 22103,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/rank/pp_common_rank.erl:94-109(点赞信息入口及唯一writer整段注释);h5/src/commonController/RankController.ts:106-111",
+    "note": "点赞次数信息的服务端handler和唯一22103写包同时被注释，不存在主动推送链；旧端残留注册不能证明现网可达。Unity不注册、不缓存、不恢复点赞UI。R478复核。"
+  },
+  {
+    "cmd": 22104,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/rank/pp_common_rank.erl:94-131(膜拜入口整段注释，唯一rank_praise调用位于:121);yu_server/src/rank/lib_common_rank_mod.erl:1601-1612(残留DB/write链);h5/src/commonController/RankController.ts:82-86,113-124",
+    "note": "膜拜底层仍会写点赞计数、DB并回22104，但唯一网络调用入口已被注释；这是不可达的真实写事务，禁止客户端单方面恢复发送、奖励、Toast或本地点赞扣减。R478复核。"
+  },
+  {
     "cmd": 22601,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/CustomActivityController.ts:2949",
