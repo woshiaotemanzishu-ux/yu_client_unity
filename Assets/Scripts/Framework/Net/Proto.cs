@@ -760,6 +760,9 @@
         /// <summary>昨日竞榜榜单。发无参;回包
         /// type:h, subtype:h, score:i, rank:h, push_type:c, rank_list[u16×{rank:h, server_id:i, role_id:l, role_name:s, role_score:i}]。</summary>
         public const int CYCLE_RANK_YESTERDAY = 22703;
+        /// <summary>竞榜进度变化服务端主动推送。仅接收；回包
+        /// rank_type:h, rank_subtype:h, type:i, rank:i, value:i。不得暴露会清服务端通知冷却的同号空请求。</summary>
+        public const int CYCLE_RANK_PROGRESS_NOTICE = 22705;
         /// <summary>竞榜第一名变化服务端主动推送。回包
         /// rank_type:h, rank_subtype:h, server_id:i, role_id:l, role_name:s, role_score:i。</summary>
         public const int CYCLE_RANK_FIRST_CHANGE = 22706;

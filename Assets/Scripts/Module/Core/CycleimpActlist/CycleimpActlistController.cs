@@ -8,9 +8,9 @@ namespace Shenxiao.Module.Core.CycleimpActlist
     /// <summary>
     /// 循环冲榜 / 竞榜协议(对标老端 CycleimpActlistController.On22700/22701/22702/22703,字节格式见 yu_server pt_227)。
     ///   22700 当前开启活动(GAME_START 拉一次):type/subtype 非0 → 拉 22701/22702/22703 并 Emit EVT_CYCLEIMP_DATA;=0 → Clear + EVT_CYCLEIMP_CLOSE。
-    ///   22702 榜单 → 落榜首,Emit EVT_CYCLEIMP_DATA。22706 榜首变更推送 → 刷榜首。
+    ///   22702 榜单 → 落榜首,Emit EVT_CYCLEIMP_DATA。22705 榜单进度变化只落原始推送；22706 榜首变更推送 → 刷榜首。
     /// 主界面 _box_rank 的竞榜展示(3D模型+名次+倒计时)由 MainUIRankView 监听 EVT_CYCLEIMP_DATA 渲染。
-    /// 22701(个人信息)/22703(昨日榜)先只消费字节防错位,完整活动面板后续切片。
+    /// 22701(个人信息)/22703(昨日榜)先只消费字节防错位,完整活动面板后续切片。22704 领奖事务不接。
     /// </summary>
     public sealed class CycleimpActlistController : BaseController
     {
@@ -23,6 +23,7 @@ namespace Shenxiao.Module.Core.CycleimpActlist
             RegisterProtocal(Proto.CYCLE_RANK_PANEL, On22701);
             RegisterProtocal(Proto.CYCLE_RANK_LIST, On22702);
             RegisterProtocal(Proto.CYCLE_RANK_YESTERDAY, On22703);
+            RegisterProtocal(Proto.CYCLE_RANK_PROGRESS_NOTICE, On22705);
             RegisterProtocal(Proto.CYCLE_RANK_FIRST_CHANGE, On22706);
         }
 
@@ -95,6 +96,13 @@ namespace Shenxiao.Module.Core.CycleimpActlist
             for (int i = 0; i < n; i++) ReadRankItem(r);
         }
 
+        // 22705: rank_type:h, rank_subtype:h, type:i, rank:i, value:i —— 服务端主动推送；不得回发同号请求。
+        private void On22705(NetReader r)
+        {
+            CycleimpActlistModel.Instance.ReplaceRankProgressNotice(
+                r.ReadU16(), r.ReadU16(), r.ReadU32(), r.ReadU32(), r.ReadU32());
+        }
+
         // 22706: rank_type:h, rank_subtype:h, server_id:i, role_id:l, role_name:s, role_score:i
         private void On22706(NetReader r)
         {
@@ -122,6 +130,12 @@ namespace Shenxiao.Module.Core.CycleimpActlist
                 RoleName = r.ReadString(),
                 RoleScore = r.ReadU32(),
             };
+        }
+
+        public override void Dispose()
+        {
+            CycleimpActlistModel.Instance.Reset();
+            base.Dispose();
         }
     }
 }

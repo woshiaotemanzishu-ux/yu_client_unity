@@ -796,6 +796,10 @@ namespace Shenxiao.EditorTools
         {
             Run(PrayCase.Run, 60.0);
         }
+        public static void CycleRankProgress()
+        {
+            Run(CycleRankProgressCase.Run, 60.0);
+        }
         public static void HolySeal()
         {
             Run(HolySealCase.Run, 60.0);
