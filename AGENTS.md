@@ -166,10 +166,10 @@
 
 - GAME_START 必须发送14401的 `stage:u8=0,type:u8=0` 基础请求。回包为 `stage_list:u16×{stage:u8,type_list:u16×{type:u8,status:u8,pos_list:u16×{gtype_id:u32,pos:u8,status:u8}}}` 全量树；每包替换并允许空包清旧，保存前按stage/type/pos升序，`gtype_id` 必须保留u32。当前只建数据地基，不按角色等级/config过滤，不启用红点/列表/14402打造。
 
-## Medal 13401（轮110）
+## Medal 13400/13401/13405（R110/R114/R226/R490）
 
-- GAME_START 发送13401严格空包。回包依次为 `id:u32,stren_lv:u32,stren_exp:u32,honour:u64,power:u32,pass_layers:u32`，每包完整覆盖；服务端也会主动重推同号，接收时只更新 MedalModel，不得回环请求或把 `power` 擅自写入 RoleModel。当前不接13400错误出口、13402-13404/13406-13407操作协议、配置、红点或UI。
-- 轮114补13405后，GAME_START固定按13401→13405连续发两个严格空包。13405回 `titles:u16×{id:u32,level:u16,power:u32,is_equip:u8}`，服务端会把已拥有与未拥有（level=0）称号都放进完整列表；每包全量替换且空列表清旧。仍不接13403/04/06佩戴升级、13407强化、称号配置、红点或UI。
+- GAME_START固定按13401→13405连续发送两个严格空包。13401回 `id:u32,stren_lv:u32,stren_exp:u32,honour:u64,power:u32,pass_layers:u32` 并逐包完整覆盖；不得把power擅自写入RoleModel。13405回 `titles:u16×{id:u32,level:u16,power:u32,is_equip:u8}`，同时包含未激活level=0项，保留wire顺序并以空表loaded清旧。13400是S2C-only raw `code:u32` 错误切片；三者互相隔离，不接配置、红点或UI。
+- 13402勋章晋升会扣配置物品、写DB、改Figure/Scene/属性并触发任务、成就、礼包、神殿、活动和至尊VIP链；13403称号激活/升级会扣物、写DB、改属性，首次激活还会自动佩戴并广播场景；13404佩戴和13406卸下都会持久化称号状态并同步Role/Figure/Scene；13407按 `cost_list:u16×{goods_auto_id:u64,num:u32}` 删除背包实例、写强化等级经验、重算属性并同步场景战斗属性。五号必须随配置、背包货币、角色/场景、提示、UI和结果重拉闭环整体迁移，禁止只注册结果、裸sender、本地乐观修改或自动操作。
 
 ## KfStage 10200（轮111）
 
