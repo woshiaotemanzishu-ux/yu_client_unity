@@ -993,6 +993,14 @@
         public const int TOPVIP_CURRENCY_TASK_UPDATE = 45111;
         /// <summary>免战保护状态。服务端可响应空查询或主动推送；S2C: is_free:u8。</summary>
         public const int TOPVIP_FREE_PROTECT = 45112;
+        /// <summary>神庭统一错误切片。S2C-only: error_code:u32,error_code_args:string；仅保留原始值。</summary>
+        public const int GOD_COURT_ERROR = 23300;
+        /// <summary>神庭总览全量快照。C2S严格空包；S2C为保持 wire 顺序/重复项的神庭有序表。</summary>
+        public const int GOD_COURT_OVERVIEW = 23301;
+        /// <summary>神庭水晶屋全量快照。C2S严格空包；S2C为水晶、屋等级与大奖状态有序表。</summary>
+        public const int GOD_COURT_HOUSE = 23306;
+        /// <summary>单个神庭完整状态更新。S2C-only，条目结构与23301中的单个神庭相同，按 court_id 独立替换。</summary>
+        public const int GOD_COURT_UPDATE = 23310;
         /// <summary>龙珠雕像总览。C2S 空包；S2C: status:u8,power:u64。</summary>
         public const int DRAGONBALL_STATUE_OVERVIEW = 14310;
         /// <summary>龙珠套装概览。C2S 空包；S2C: wear_type:u8,items:u16×{type:u8,lv:u8,power:u64,next_power:u64}。</summary>

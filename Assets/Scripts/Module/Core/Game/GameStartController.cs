@@ -43,6 +43,7 @@ using Shenxiao.Module.Core.Medal;
 using Shenxiao.Module.Core.KfStage;
 using Shenxiao.Module.Core.Reincarnation;
 using Shenxiao.Module.Core.GodBeast;
+using Shenxiao.Module.Core.GodCourt;
 using Shenxiao.Module.Core.Designation;
 using Shenxiao.Module.Core.Mask;
 using Shenxiao.Module.Core.TempleAwaken;
@@ -130,6 +131,7 @@ namespace Shenxiao.Module.Core.Game
             KfStageController.Instance.RequestStartup();
             ReincarnationController.Instance.RequestStartup();
             GodBeastController.Instance.RequestStartup();
+            GodCourtController.Instance.RequestStartup();
             DesignationController.Instance.RequestStartup();
             MaskController.Instance.RequestStartup();
             TempleAwakenController.Instance.RequestStartup();

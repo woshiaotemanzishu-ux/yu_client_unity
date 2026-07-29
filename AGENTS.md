@@ -185,6 +185,12 @@
 - 17308是显式强化预览，C2S为 `goods_id:u64,is_double:u8,goods_list:u16×u64`，S2C为 `goods_id:u64,stren:u16,exp:u32`，每包完整替换独立预览切片。17309是显式部分属性战力试算，C2S为 `module_id:u16,sub_module_id:u8,attrs:u16×{attr_id:u16,attr_value:u32}`，S2C为 `module_id:u16,sub_module_id:u8,combat_power:u32`；按module/sub复合键缓存，同键替换、异键共存，真实0值有效。无回复不得清旧。
 - 17300错误、17301总览、17308预览和17309键控战力互不交叉清理。当前不接17303-17307、17310-17312装备/出战/扩位/强化/合成操作，不做配置排序、装备字典/GoodsModel映射、背包消耗、派生战斗数、事件、红点、UI或3D资源。
 
+## GodCourt 23300/23301/23306/23310（R488）
+- GAME_START 必须先清空神庭全部原始切片，再严格空发 `23301 -> 23306`；`EVT_ROLE_INFO_UPDATE` 只在角色等级真实变化且新等级精确等于490时补发同一序列，等级跳过490、同级事件或基础角色包未到均不得发送。
+- 23301是神庭总览全量：`courts:u16×{court_id:u32,court_lv:u16,power:u64,attrs:u16×{attr_id:u16,value:u32},is_active:u8,equips:u16×{pos:u8,equip_id:u64,stage:u8},suits:u16×{stage:u8,num:u16}}`。保留所有层级的wire顺序、重复ID和u64位型；空表loaded清旧。23306是独立水晶屋全量：`reward_lv:u16,sum_num:u32,crystal_color:u8,daily_num:u32,house_lv:u16,house_exp:u16,grand_status:u16×{times:u16,status:u8}`，raw状态和重复项必须保留，空表仅清本切片。
+- 23310是S2C-only单神庭完整更新，结构与23301中的Court相同；必须按 `court_id` 保存独立keyed覆盖切片，同ID替换、异ID共存、早包有效，禁止patch或重排23301的原始有序总览。23300是S2C-only `error_code:u32,error_code_args:string` 原始覆盖；四类切片互不交叉清理，不接UI、提示、配置、事件或红点。
+- 23302-23305与23307-23309会真实解锁、穿戴、升阶、强化、开水晶或领奖，必须等待背包/装备、配置、货币、奖励和UI结果闭环整体迁移；当前禁止公开sender、孤立成功handler、本地扣物或发奖。
+
 ## TopVip 45101/45102/45104/45109/45110/45111/45112（R487）
 
 - GAME_START 固定按 `45101 -> 45102 -> 45104` 连续发送三个严格空包；角色等级或 `vip_flag` 变化只复判图标，不得重拉协议。45101是完整基础信息快照：`supvip_type:u8,supvip_time:u32,right_list:u16×{right_type:u8,data_str:string,utime:u32},charge_day:u8,today_gold:u32,is_free_protect:u8`；权益保留wire顺序/重复项，空表loaded清旧。
