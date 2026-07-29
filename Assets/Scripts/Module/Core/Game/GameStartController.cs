@@ -27,6 +27,7 @@ using Shenxiao.Module.Core.BaseDungeon;
 using Shenxiao.Module.Core.FirstRecharge;
 using Shenxiao.Module.Core.FunctionOpen;
 using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.Rune;
 using Shenxiao.Module.Core.Setting;
 using Shenxiao.Module.Core.Svip;
 using Shenxiao.Module.Core.Vip;
@@ -144,6 +145,7 @@ namespace Shenxiao.Module.Core.Game
             UnrealController.Instance.RequestStartup();
             AuctionController.Instance.RequestStartup();
             LonglangController.Instance.RequestStartup();
+            RuneController.Instance.RequestStartup();
             RuneTreasureController.Instance.RequestStartup();
             TopPkController.Instance.RequestStartup();
             DesignationController.Instance.RequestStartup();

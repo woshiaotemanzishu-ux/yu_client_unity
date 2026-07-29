@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Shenxiao.Module.Core.Rune
@@ -26,6 +27,64 @@ namespace Shenxiao.Module.Core.Rune
             public bool IsWorn => GoodsId > 0;
         }
 
+        public sealed class ObjectEntry
+        {
+            public byte Style { get; }
+            public uint TypeId { get; }
+            public uint Count { get; }
+
+            public ObjectEntry(byte style, uint typeId, uint count)
+            {
+                Style = style;
+                TypeId = typeId;
+                Count = count;
+            }
+        }
+
+        public sealed class DungeonLevelSnapshot
+        {
+            public ushort Level { get; }
+            public DungeonLevelSnapshot(ushort level) => Level = level;
+        }
+
+        public sealed class ComposePreviewSnapshot
+        {
+            public uint Code { get; }
+            public uint Level { get; }
+
+            public ComposePreviewSnapshot(uint code, uint level)
+            {
+                Code = code;
+                Level = level;
+            }
+        }
+
+        public sealed class DecomposePreviewSnapshot
+        {
+            public uint Code { get; }
+            public ulong Experience { get; }
+            public IReadOnlyList<ObjectEntry> Result { get; }
+
+            public DecomposePreviewSnapshot(uint code, ulong experience, List<ObjectEntry> result)
+            {
+                Code = code;
+                Experience = experience;
+                Result = Freeze(result);
+            }
+        }
+
+        public sealed class DismantlePreviewSnapshot
+        {
+            public uint Code { get; }
+            public IReadOnlyList<ObjectEntry> Result { get; }
+
+            public DismantlePreviewSnapshot(uint code, List<ObjectEntry> result)
+            {
+                Code = code;
+                Result = Freeze(result);
+            }
+        }
+
         /// <summary>符文背包(货物 loc=rune_bag,pos=11)单项——由 <see cref="SetRuneBag"/> 落库(controller 解 15010 回填)。</summary>
         public readonly struct BagGoodsVo
         {
@@ -43,6 +102,12 @@ namespace Shenxiao.Module.Core.Rune
 
         public readonly List<BagGoodsVo> RuneBagGoods = new List<BagGoodsVo>();
         public bool HasRuneBag { get; private set; }
+
+        /// <summary>16704/05/06/09 各自独立的最后一份原始读侧快照；null 表示尚未收到。</summary>
+        public DungeonLevelSnapshot DungeonLevel { get; private set; }
+        public ComposePreviewSnapshot ComposePreview { get; private set; }
+        public DecomposePreviewSnapshot DecomposePreview { get; private set; }
+        public DismantlePreviewSnapshot DismantlePreview { get; private set; }
 
         public SlotVo GetSlot(int posId) => Slots.Find(s => s.PosId == posId);
 
@@ -72,6 +137,25 @@ namespace Shenxiao.Module.Core.Rune
             RunePoint = runePoint;
         }
 
+        public void ReplaceDungeonLevel(ushort level) => DungeonLevel = new DungeonLevelSnapshot(level);
+
+        public void ReplaceComposePreview(uint code, uint level) =>
+            ComposePreview = new ComposePreviewSnapshot(code, level);
+
+        public void ReplaceDecomposePreview(uint code, ulong experience, List<ObjectEntry> result) =>
+            DecomposePreview = new DecomposePreviewSnapshot(code, experience, result);
+
+        public void ReplaceDismantlePreview(uint code, List<ObjectEntry> result) =>
+            DismantlePreview = new DismantlePreviewSnapshot(code, result);
+
+        public void ClearReadSnapshots()
+        {
+            DungeonLevel = null;
+            ComposePreview = null;
+            DecomposePreview = null;
+            DismantlePreview = null;
+        }
+
         /// <summary>符文背包落库(15010 pos==rune_bag 的 goods_list;经 BagController 例外分支转存,见该文件第19轮工单注释)。</summary>
         public void SetRuneBag(List<BagGoodsVo> list)
         {
@@ -89,6 +173,10 @@ namespace Shenxiao.Module.Core.Rune
             HasData = false;
             RuneBagGoods.Clear();
             HasRuneBag = false;
+            ClearReadSnapshots();
         }
+
+        private static IReadOnlyList<T> Freeze<T>(List<T> source) =>
+            Array.AsReadOnly((source ?? new List<T>()).ToArray());
     }
 }

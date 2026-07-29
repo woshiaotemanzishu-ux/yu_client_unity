@@ -1982,6 +1982,16 @@
         /// <summary>镶嵌符文(发 "cl" pos_id, goods_id;回包 code:i, pos_id:c, new_goods_id:l, old_goods_id:l,
         /// new_goods_type_id:i)。主线 100990(ctype33)=镶嵌一次(孔位1无条件开放)。</summary>
         public const int RUNE_WEAR = 16701;
+        /// <summary>灵魄副本解锁层。C2S 严格空包；S2C rune_dungeon_level:u16。GAME_START 在 16700 后查询。</summary>
+        public const int RUNE_DUNGEON_LEVEL = 16704;
+        /// <summary>符文合成预览。C2S rule_id:u64 + goods_ids:u16×u64；S2C code:u32,lv:u32。</summary>
+        public const int RUNE_COMPOSE_PREVIEW = 16705;
+        /// <summary>符文分解预览。C2S goods_ids:u16×u64；S2C code:u32,exp:u64,result:ObjectList。</summary>
+        public const int RUNE_DECOMPOSE_PREVIEW = 16706;
+        /// <summary>觉醒符文拆解预览。C2S goods_ids:u16×u64；S2C code:u32,result:ObjectList。</summary>
+        public const int RUNE_DISMANTLE_PREVIEW = 16709;
+        // 16703兑换、16707觉醒、16708拆解、16710技能升级、16711卸下均会权威写资产/角色状态，
+        // 必须随对应 UI、门禁、防重、错误与背包/属性闭环整体迁移，禁止暴露裸操作 API。
 
         /// <summary>小游戏家族统一错误出口。无 C2S；S2C(pt_399): errcode:u32, msg:string。</summary>
         public const int MINI_GAME_ERROR = 39900;

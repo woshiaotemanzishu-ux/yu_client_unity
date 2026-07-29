@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
@@ -18,6 +19,7 @@ namespace Shenxiao.Module.Core.Rune
     public sealed class RuneController : BaseController
     {
         public static readonly RuneController Instance = new RuneController();
+        private static Func<byte[], bool> s_outboundIntercept = null;
 
         /// <summary>符文背包 pos 值(老端 GOODS_POS_TYPE.rune_bag=11,h5/src/commonModel/GoodsModel.ts:312)。</summary>
         public const int RUNE_BAG_POS = 11;
@@ -29,6 +31,10 @@ namespace Shenxiao.Module.Core.Rune
             RegisterProtocal(Proto.RUNE_INFO, On16700);
             RegisterProtocal(Proto.RUNE_WEAR, On16701);
             RegisterProtocal(Proto.RUNE_UPGRADE, On16702);
+            RegisterProtocal(Proto.RUNE_DUNGEON_LEVEL, On16704);
+            RegisterProtocal(Proto.RUNE_COMPOSE_PREVIEW, On16705);
+            RegisterProtocal(Proto.RUNE_DECOMPOSE_PREVIEW, On16706);
+            RegisterProtocal(Proto.RUNE_DISMANTLE_PREVIEW, On16709);
         }
 
         public override void Dispose()
@@ -40,9 +46,34 @@ namespace Shenxiao.Module.Core.Rune
         /// <summary>请求符文全量(对标打开面板时发 16700,无参)。</summary>
         public void RequestInfo()
         {
-            SendFmt(Proto.RUNE_INFO);
+            SendRequest(Proto.RUNE_INFO);
             GameLog.Info("Rune", "request 16700 rune info(灵魄镶嵌)");
         }
+
+        /// <summary>GAME_START 对标老端 RuneController：严格按 16700 → 16704 查询，不清已有快照。</summary>
+        public void RequestStartup()
+        {
+            RequestInfo();
+            RequestDungeonLevel();
+        }
+
+        public void RequestDungeonLevel() => SendRequest(Proto.RUNE_DUNGEON_LEVEL);
+
+        public void RequestComposePreview(ulong ruleId, IReadOnlyList<ulong> goodsIds)
+        {
+            int count = CheckedCount(goodsIds);
+            var args = new object[count + 2];
+            args[0] = unchecked((long)ruleId);
+            args[1] = count;
+            for (int i = 0; i < count; i++) args[i + 2] = unchecked((long)goodsIds[i]);
+            SendRequest(Proto.RUNE_COMPOSE_PREVIEW, "lh" + new string('l', count), args);
+        }
+
+        public void RequestDecomposePreview(IReadOnlyList<ulong> goodsIds) =>
+            RequestGoodsListPreview(Proto.RUNE_DECOMPOSE_PREVIEW, goodsIds);
+
+        public void RequestDismantlePreview(IReadOnlyList<ulong> goodsIds) =>
+            RequestGoodsListPreview(Proto.RUNE_DISMANTLE_PREVIEW, goodsIds);
 
         /// <summary>请求符文背包(发 15010 "h" pos=rune_bag;回包经 BagController.On15010 例外分支转存)。</summary>
         public void RequestRuneBag()
@@ -129,6 +160,49 @@ namespace Shenxiao.Module.Core.Rune
             EventDispatcher.Emit(GlobalEvent.EVT_RUNE_UPDATE);
 
             RequestInfo();   // 强化后再拉一次全量刷新(对标既有镶嵌成功后刷面板约定)
+        }
+
+        private void On16704(NetReader r) => RuneModel.Instance.ReplaceDungeonLevel(r.ReadU16());
+
+        private void On16705(NetReader r) =>
+            RuneModel.Instance.ReplaceComposePreview(r.ReadU32(), r.ReadU32());
+
+        private void On16706(NetReader r) =>
+            RuneModel.Instance.ReplaceDecomposePreview(
+                r.ReadU32(), unchecked((ulong)r.ReadU64()), r.ReadArray(ReadObjectEntry));
+
+        private void On16709(NetReader r) =>
+            RuneModel.Instance.ReplaceDismantlePreview(r.ReadU32(), r.ReadArray(ReadObjectEntry));
+
+        private static RuneModel.ObjectEntry ReadObjectEntry(NetReader r) =>
+            new RuneModel.ObjectEntry(r.ReadU8(), r.ReadU32(), r.ReadU32());
+
+        private void RequestGoodsListPreview(int protocolId, IReadOnlyList<ulong> goodsIds)
+        {
+            int count = CheckedCount(goodsIds);
+            var args = new object[count + 1];
+            args[0] = count;
+            for (int i = 0; i < count; i++) args[i + 1] = unchecked((long)goodsIds[i]);
+            SendRequest(protocolId, "h" + new string('l', count), args);
+        }
+
+        private static int CheckedCount(IReadOnlyList<ulong> goodsIds)
+        {
+            int count = goodsIds?.Count ?? 0;
+            if (count > ushort.MaxValue) throw new ArgumentOutOfRangeException(nameof(goodsIds));
+            return count;
+        }
+
+        private void SendRequest(int protocolId, string format = null, params object[] args)
+        {
+            if (s_outboundIntercept == null)
+            {
+                SendFmt(protocolId, format, args);
+                return;
+            }
+            byte[] frame = UserMsgAdapter.Encode(protocolId, format, args);
+            if (s_outboundIntercept(frame)) return;
+            SendFmt(protocolId, format, args);
         }
 
         /// <summary>读 16700 rune_list 单项:pos_id:c, if_open:c, goods_id:l, goods_type_id:i, color:c, lv:h, attr_list[u16×6项]。</summary>
