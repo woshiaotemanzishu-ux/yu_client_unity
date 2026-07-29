@@ -2252,6 +2252,22 @@
         public const int JJC_CHALLENGE_RECORDS = 28009;
         /// <summary>巅峰对决通用错误。仅 S2C: code:u32,args:string；原样覆盖错误快照，不发送请求或接入其他 281xx 操作。</summary>
         public const int TOP_PK_ERROR = 28100;
+        /// <summary>巅峰对决基本信息全量。C2S空包；S2C含赛季、段位、次数、每日奖励状态和昨日段位。</summary>
+        public const int TOP_PK_INFO = 28101;
+        /// <summary>巅峰对决段位奖励状态全量。C2S空包；S2C got_list:u16×{rank_lv:u8,state:u8}。</summary>
+        public const int TOP_PK_LEVEL_REWARDS = 28105;
+        /// <summary>巅峰对决活动状态。C2S空包；S2C state:u8,start_time:u32,end_time:u32，也可由服务端主动推送。</summary>
+        public const int TOP_PK_ACTIVITY = 28107;
+        /// <summary>巅峰对决匹配结果通知。S2C-only: res:u8,my_rank_lv:u8,enemy_rank_lv:u8,fake_man_power:u64。</summary>
+        public const int TOP_PK_MATCHED = 28111;
+        /// <summary>巅峰对决阶段通知。S2C-only: stage:u8,time:u32；保存原始阶段与绝对时间。</summary>
+        public const int TOP_PK_STAGE = 28112;
+        /// <summary>巅峰对决结算通知。S2C-only: res:u8,honor:u32,flag:u8,point:u32；point是带flag的变化量。</summary>
+        public const int TOP_PK_RESULT = 28113;
+        /// <summary>巅峰对决排行榜全量。C2S空包；S2C保留服务器wire顺序与重复角色。</summary>
+        public const int TOP_PK_RANKS = 28115;
+        /// <summary>巅峰对决段位提升通知。S2C-only: old_rank_lv:u8,old_point:u32,new_rank_lv:u8,new_point:u32。</summary>
+        public const int TOP_PK_PROMOTION = 28117;
         /// <summary>神陨禁区通用错误。pt_283.erl 仅定义 S2C code:u32，无 28300 C2S；仅保留原始错误码快照。</summary>
         public const int HOLY_TERRITORY_ERROR = 28300;
 
