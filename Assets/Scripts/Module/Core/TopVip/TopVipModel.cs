@@ -1,44 +1,150 @@
+using System;
+using System.Collections.Generic;
+
 namespace Shenxiao.Module.Core.TopVip
 {
-    /// <summary>
-    /// 至尊VIP(TopVip)数据(对标老客户端 TopVipModel)。承载 45101 下发的至尊vip基础信息,
-    /// 供主界面图标(451)显隐判定与后续面板展示用。
-    /// 图标门槛不看 45101,而是看主角 vip_flag/level(对标老端 TopVipController 里 vip_flag 闭包:
-    /// vip_flag>=4 且 level>=160 才 addIcon(451))——GetEntranceOpenState 承载该判定。
-    /// 面板/技能/任务/商店等 UI 待用户验收,本期只做图标。
-    /// </summary>
+    /// <summary>至尊VIP 451xx 原始协议状态；列表保持服务端 wire 顺序与重复项。</summary>
     public sealed class TopVipModel
     {
-        public static readonly TopVipModel Instance = new TopVipModel();
-        private TopVipModel() { }
-
-        /// <summary>主界面图标类型(对标老端 addIcon(451)/getIconInfo(451))。</summary>
-        public const string ICON_TYPE = "451";
-
-        // 图标开启门槛(对标老端 TopVipController.vip_flag 闭包:vip_flag>=4 且 level>=160)。
-        public const int RequireVipFlag = 4;   // 需激活 vip4(老端 "需激活vip4才可购买至尊vip")
-        public const int RequireLevel = 160;   // 需达到 160 级
-
-        // 45101 至尊vip基础信息(对标老端 SetMyTopVipVo,面板用;图标判定不依赖这些字段)。
-        public int SupvipType;    // 至尊vip类型/档位
-        public int SupvipTime;    // 到期时间戳(0/永久)
-        public int ChargeDay;     // 累计充值天数
-        public int TodayGold;     // 今日已领勾玉
-        public int IsFreeProtect; // 免费保护标记
-
-        public void SetInfo(int supvipType, int supvipTime, int chargeDay, int todayGold, int isFreeProtect)
+        public sealed class RightEntry
         {
-            SupvipType = supvipType;
-            SupvipTime = supvipTime;
-            ChargeDay = chargeDay;
-            TodayGold = todayGold;
-            IsFreeProtect = isFreeProtect;
+            public byte RightType { get; }
+            public string Data { get; }
+            public uint UpdateTime { get; }
+
+            public RightEntry(byte rightType, string data, uint updateTime)
+            {
+                RightType = rightType;
+                Data = data;
+                UpdateTime = updateTime;
+            }
         }
 
-        /// <summary>
-        /// 入口开启状态(对标老端 vip_flag 闭包判定:vip_flag>=4 且 level>=160)。
-        /// 与 45101 回包无关,纯看主角 vip_flag/level;由控制器从 RoleModel 取值后传入。
-        /// </summary>
+        public sealed class InfoSnapshot
+        {
+            public byte SupvipType { get; }
+            public uint SupvipTime { get; }
+            public IReadOnlyList<RightEntry> Rights { get; }
+            public byte ChargeDay { get; }
+            public uint TodayGold { get; }
+            public byte IsFreeProtect { get; }
+
+            public InfoSnapshot(
+                byte supvipType,
+                uint supvipTime,
+                IReadOnlyList<RightEntry> rights,
+                byte chargeDay,
+                uint todayGold,
+                byte isFreeProtect)
+            {
+                SupvipType = supvipType;
+                SupvipTime = supvipTime;
+                Rights = Freeze(rights);
+                ChargeDay = chargeDay;
+                TodayGold = todayGold;
+                IsFreeProtect = isFreeProtect;
+            }
+        }
+
+        public sealed class TaskEntry
+        {
+            public ushort TaskId { get; }
+            public byte IsFinish { get; }
+            public byte IsCommit { get; }
+            public string Content { get; }
+
+            public TaskEntry(ushort taskId, byte isFinish, byte isCommit, string content)
+            {
+                TaskId = taskId;
+                IsFinish = isFinish;
+                IsCommit = isCommit;
+                Content = content;
+            }
+        }
+
+        public sealed class SkillTaskSnapshot
+        {
+            public byte Stage { get; }
+            public byte SubStage { get; }
+            public IReadOnlyList<TaskEntry> Tasks { get; }
+
+            public SkillTaskSnapshot(byte stage, byte subStage, IReadOnlyList<TaskEntry> tasks)
+            {
+                Stage = stage;
+                SubStage = subStage;
+                Tasks = Freeze(tasks);
+            }
+        }
+
+        public sealed class TaskListSnapshot
+        {
+            public IReadOnlyList<TaskEntry> Tasks { get; }
+
+            public TaskListSnapshot(IReadOnlyList<TaskEntry> tasks)
+            {
+                Tasks = Freeze(tasks);
+            }
+        }
+
+        public static readonly TopVipModel Instance = new TopVipModel();
+
+        private TopVipModel() { }
+
+        public const string ICON_TYPE = "451";
+        public const int RequireVipFlag = 4;
+        public const int RequireLevel = 160;
+
+        public InfoSnapshot Info { get; private set; }
+        public SkillTaskSnapshot SkillTasks { get; private set; }
+        public TaskListSnapshot CurrencyTasks { get; private set; }
+        public TaskListSnapshot LastSkillTaskUpdate { get; private set; }
+        public TaskListSnapshot LastCurrencyTaskUpdate { get; private set; }
+        public bool HasFreeProtectUpdate { get; private set; }
+        public byte FreeProtectUpdate { get; private set; }
+
+        public bool HasInfo => Info != null;
+        public bool HasSkillTasks => SkillTasks != null;
+        public bool HasCurrencyTasks => CurrencyTasks != null;
+        public bool HasSkillTaskUpdate => LastSkillTaskUpdate != null;
+        public bool HasCurrencyTaskUpdate => LastCurrencyTaskUpdate != null;
+
+        public void ReplaceInfo(
+            byte supvipType,
+            uint supvipTime,
+            IReadOnlyList<RightEntry> rights,
+            byte chargeDay,
+            uint todayGold,
+            byte isFreeProtect)
+        {
+            Info = new InfoSnapshot(supvipType, supvipTime, rights, chargeDay, todayGold, isFreeProtect);
+        }
+
+        public void ReplaceSkillTasks(byte stage, byte subStage, IReadOnlyList<TaskEntry> tasks)
+        {
+            SkillTasks = new SkillTaskSnapshot(stage, subStage, tasks);
+        }
+
+        public void ReplaceCurrencyTasks(IReadOnlyList<TaskEntry> tasks)
+        {
+            CurrencyTasks = new TaskListSnapshot(tasks);
+        }
+
+        public void ReplaceSkillTaskUpdate(IReadOnlyList<TaskEntry> tasks)
+        {
+            LastSkillTaskUpdate = new TaskListSnapshot(tasks);
+        }
+
+        public void ReplaceCurrencyTaskUpdate(IReadOnlyList<TaskEntry> tasks)
+        {
+            LastCurrencyTaskUpdate = new TaskListSnapshot(tasks);
+        }
+
+        public void ReplaceFreeProtectUpdate(byte isFree)
+        {
+            HasFreeProtectUpdate = true;
+            FreeProtectUpdate = isFree;
+        }
+
         public bool GetEntranceOpenState(int vipFlag, int level)
         {
             return vipFlag >= RequireVipFlag && level >= RequireLevel;
@@ -46,11 +152,21 @@ namespace Shenxiao.Module.Core.TopVip
 
         public void Reset()
         {
-            SupvipType = 0;
-            SupvipTime = 0;
-            ChargeDay = 0;
-            TodayGold = 0;
-            IsFreeProtect = 0;
+            Info = null;
+            SkillTasks = null;
+            CurrencyTasks = null;
+            LastSkillTaskUpdate = null;
+            LastCurrencyTaskUpdate = null;
+            HasFreeProtectUpdate = false;
+            FreeProtectUpdate = 0;
+        }
+
+        private static IReadOnlyList<T> Freeze<T>(IReadOnlyList<T> source)
+        {
+            if (source == null || source.Count == 0) return Array.Empty<T>();
+            var copy = new List<T>(source.Count);
+            for (int i = 0; i < source.Count; i++) copy.Add(source[i]);
+            return copy.AsReadOnly();
         }
     }
 }

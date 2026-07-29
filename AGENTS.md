@@ -185,6 +185,13 @@
 - 17308是显式强化预览，C2S为 `goods_id:u64,is_double:u8,goods_list:u16×u64`，S2C为 `goods_id:u64,stren:u16,exp:u32`，每包完整替换独立预览切片。17309是显式部分属性战力试算，C2S为 `module_id:u16,sub_module_id:u8,attrs:u16×{attr_id:u16,attr_value:u32}`，S2C为 `module_id:u16,sub_module_id:u8,combat_power:u32`；按module/sub复合键缓存，同键替换、异键共存，真实0值有效。无回复不得清旧。
 - 17300错误、17301总览、17308预览和17309键控战力互不交叉清理。当前不接17303-17307、17310-17312装备/出战/扩位/强化/合成操作，不做配置排序、装备字典/GoodsModel映射、背包消耗、派生战斗数、事件、红点、UI或3D资源。
 
+## TopVip 45101/45102/45104/45109/45110/45111/45112（R487）
+
+- GAME_START 固定按 `45101 -> 45102 -> 45104` 连续发送三个严格空包；角色等级或 `vip_flag` 变化只复判图标，不得重拉协议。45101是完整基础信息快照：`supvip_type:u8,supvip_time:u32,right_list:u16×{right_type:u8,data_str:string,utime:u32},charge_day:u8,today_gold:u32,is_free_protect:u8`；权益保留wire顺序/重复项，空表loaded清旧。
+- 45102是技能任务全量 `stage:u8,sub_stage:u8,task_list:u16×{task_id:u16,is_finish:u8,is_commit:u8,content:string}`；45104是同Task结构的至尊币任务全量。45110/45111为各自Task子集的S2C-only变化通知：保存独立最后通知后，分别精确空查45102/45104，不直接改全量；空通知同样loaded且仍重查。45109是S2C-only空升级通知，只空查45101。
+- 45112虽有服务端空查询分支，但老端没有sender；Unity只注册接收 `is_free:u8`，保存独立raw覆盖切片，不公开请求，也不与45101尾部 `is_free_protect` 合并。45101/02/04全量、45110/11最后通知和45112状态互不交叉清理；45120继续由SvipController独立持有，禁止双注册。
+- 45103/45105任务领奖、45106/45107购买和45108权益领奖均会真实写状态、扣货币或发奖，必须等UI/配置/背包与结果闭环一起迁移；当前不公开sender、不接孤立成功回执，也不新增红点、弹窗、商店转发或本地奖励。
+
 ## Designation 41101（轮115）
 
 - 老端在背包初始化完成后空发41101；本端沿用 Fashion 同类迁移经验，简化为 GAME_START 空发一次（请求自身无背包参数）。回包为 `current_used:u32,items:u16×{id:u32,order:u8,end_time:u32}` 完整快照，服务端已负责清过期与特殊称号过滤，本端只全量替换、空列表清旧。不得与 Medal 13405 普通标题表混为一体；当前不接41102-41110、配置、背包数量、红点、事件、UI或场景广播。

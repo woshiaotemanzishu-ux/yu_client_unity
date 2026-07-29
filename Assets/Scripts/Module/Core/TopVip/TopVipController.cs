@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -6,30 +8,29 @@ using Shenxiao.Module.Core.Role;
 
 namespace Shenxiao.Module.Core.TopVip
 {
-    /// <summary>
-    /// 至尊VIP(TopVip)控制器(对标老客户端 TopVipController,模块 451)。进游戏请求 45101 拉至尊vip信息;
-    /// 主界面图标(451)门槛不看回包,而是看主角 vip_flag/level(对标老端 vip_flag 闭包:绑 GAME_START/
-    /// CHANGE_LEVEL/vip_flag 变化 → vip_flag>=4 且 level>=160 才 addIcon(451))——故等级/vip_flag 任一
-    /// 变化(EVT_ROLE_INFO_UPDATE)时复判图标并复请求 45101。老端 addIcon(451) 走配置门(open_lv 等),
-    /// 故用 AddIconAsync(内含 FunIsOpenByIconType 配置门),叠加本控制器的 vip_flag/level 门。
-    /// 注意:同模块的 45120(SVIP 活动,图标 "45120")已由 SvipController 单独承载,与本图标 451 互不重叠。
-    /// 本期只做图标,45102/45103/45104 等技能/任务/商店协议与面板待用户验收。
-    /// </summary>
+    /// <summary>至尊VIP 451xx 读侧控制器；45120 SVIP活动仍由独立 SvipController 持有。</summary>
     public sealed class TopVipController : BaseController
     {
         public static readonly TopVipController Instance = new TopVipController();
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_outboundIntercept;
+#endif
         private TopVipController() { }
 
         public const string ICON_TYPE = TopVipModel.ICON_TYPE;
 
-        // 复判/复请求去抖:EVT_ROLE_INFO_UPDATE 亦随经验/货币变化触发,只在等级或 vip_flag 真变时处理。
         private int _lastLevel = -1;
         private int _lastVipFlag = -1;
 
         protected override void Register()
         {
             RegisterProtocal(Proto.TOPVIP_INFO, On45101);
-            // 对标老端 vip_flag 闭包绑 CHANGE_LEVEL/vip_flag 变化:等级或 vip_flag 变化时复判图标(160级+vip4 开启)。
+            RegisterProtocal(Proto.TOPVIP_SKILL_TASKS, On45102);
+            RegisterProtocal(Proto.TOPVIP_CURRENCY_TASKS, On45104);
+            RegisterProtocal(Proto.TOPVIP_UPGRADE_NOTICE, On45109);
+            RegisterProtocal(Proto.TOPVIP_SKILL_TASK_UPDATE, On45110);
+            RegisterProtocal(Proto.TOPVIP_CURRENCY_TASK_UPDATE, On45111);
+            RegisterProtocal(Proto.TOPVIP_FREE_PROTECT, On45112);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
         }
 
@@ -43,37 +44,92 @@ namespace Shenxiao.Module.Core.TopVip
             base.Dispose();
         }
 
-        /// <summary>进游戏请求(GameStartController.RequestStartupPackets 调用,对标老端 GAME_START 延迟发 45101)。</summary>
+        /// <summary>对标老端 GAME_START 的固定顺序：45101 → 45102 → 45104。</summary>
         public void RequestStartup()
         {
-            SendFmt(Proto.TOPVIP_INFO);
+            RequestInfo();
+            RequestSkillTasks();
+            RequestCurrencyTasks();
         }
 
-        // 45101: supvip_type:c, supvip_time:i, right_list[u16×{right_type:c, data_str:s, utime:i}], charge_day:c, today_gold:i, is_free_protect:c
+        public void RequestInfo() => SendEmpty(Proto.TOPVIP_INFO);
+        public void RequestSkillTasks() => SendEmpty(Proto.TOPVIP_SKILL_TASKS);
+        public void RequestCurrencyTasks() => SendEmpty(Proto.TOPVIP_CURRENCY_TASKS);
+
+        private void SendEmpty(int protoId)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(protoId, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(protoId);
+        }
+
         private void On45101(NetReader r)
         {
-            int supvipType = r.ReadU8();
-            int supvipTime = (int)r.ReadU32();
-            int rightCount = r.ReadU16();
-            for (int i = 0; i < rightCount; i++)
-            {
-                r.ReadU8();     // right_type(权益类型,面板用,本期不存)
-                r.ReadString(); // data_str(权益内容 json)
-                r.ReadU32();    // utime(权益到期时间)
-            }
-            int chargeDay = r.ReadU8();
-            int todayGold = (int)r.ReadU32();
-            int isFreeProtect = r.ReadU8();
+            byte supvipType = r.ReadU8();
+            uint supvipTime = r.ReadU32();
+            int count = r.ReadU16();
+            var rights = new List<TopVipModel.RightEntry>(count);
+            for (int i = 0; i < count; i++)
+                rights.Add(new TopVipModel.RightEntry(r.ReadU8(), r.ReadString(), r.ReadU32()));
+            byte chargeDay = r.ReadU8();
+            uint todayGold = r.ReadU32();
+            byte isFreeProtect = r.ReadU8();
 
-            TopVipModel.Instance.SetInfo(supvipType, supvipTime, chargeDay, todayGold, isFreeProtect);
-            // 图标门槛看主角 vip_flag/level(与本回包无关),回包到后一并复判保持同步。
-            RefreshIcon();
-
-            GameLog.Info("TopVip", "45101 至尊vip: type={0} time={1} chargeDay={2} open={3}",
-                supvipType, supvipTime, chargeDay, IsEntranceOpen());
+            TopVipModel.Instance.ReplaceInfo(
+                supvipType,
+                supvipTime,
+                rights,
+                chargeDay,
+                todayGold,
+                isFreeProtect);
+            GameLog.Info("TopVip", "45101 type={0} rights={1} chargeDay={2}", supvipType, rights.Count, chargeDay);
         }
 
-        /// <summary>据主角 vip_flag/level 复判图标(对标老端 vip_flag 闭包:满足即 addIcon(451),配置门交给 AddIconAsync)。</summary>
+        private void On45102(NetReader r)
+        {
+            byte stage = r.ReadU8();
+            byte subStage = r.ReadU8();
+            TopVipModel.Instance.ReplaceSkillTasks(stage, subStage, ReadTasks(r));
+        }
+
+        private void On45104(NetReader r)
+        {
+            TopVipModel.Instance.ReplaceCurrencyTasks(ReadTasks(r));
+        }
+
+        private void On45109(NetReader r)
+        {
+            RequestInfo();
+        }
+
+        private void On45110(NetReader r)
+        {
+            TopVipModel.Instance.ReplaceSkillTaskUpdate(ReadTasks(r));
+            RequestSkillTasks();
+        }
+
+        private void On45111(NetReader r)
+        {
+            TopVipModel.Instance.ReplaceCurrencyTaskUpdate(ReadTasks(r));
+            RequestCurrencyTasks();
+        }
+
+        private void On45112(NetReader r)
+        {
+            TopVipModel.Instance.ReplaceFreeProtectUpdate(r.ReadU8());
+        }
+
+        private static List<TopVipModel.TaskEntry> ReadTasks(NetReader r)
+        {
+            int count = r.ReadU16();
+            var tasks = new List<TopVipModel.TaskEntry>(count);
+            for (int i = 0; i < count; i++)
+                tasks.Add(new TopVipModel.TaskEntry(r.ReadU16(), r.ReadU8(), r.ReadU8(), r.ReadString()));
+            return tasks;
+        }
+
         private void RefreshIcon()
         {
             if (IsEntranceOpen()) _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE);
@@ -87,7 +143,7 @@ namespace Shenxiao.Module.Core.TopVip
             return TopVipModel.Instance.GetEntranceOpenState(GetVipFlag(), level);
         }
 
-        // 对标老端:主角 vip_flag/等级变化 → 复判图标 + 复请求 45101(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在真变时处理)。
+        /// <summary>老端角色变化只复判入口，不额外重拉451xx；全量查询只由GAME_START或显式页面触发。</summary>
         private void OnRoleInfoUpdate()
         {
             RoleModel role = RoleModel.Instance;
@@ -97,15 +153,13 @@ namespace Shenxiao.Module.Core.TopVip
             _lastLevel = role.Level;
             _lastVipFlag = vipFlag;
             RefreshIcon();
-            RequestStartup();
         }
 
-        // 主角 vip_flag(至尊vip门槛之一;来自 13001 figure 块 Raw["vip_flag"],对标老端 mainRoleVo.vip_flag)。
         private static int GetVipFlag()
         {
-            var fig = RoleModel.Instance.Figure;
-            if (fig == null) return 0;
-            return fig.Raw.TryGetValue("vip_flag", out object v) ? System.Convert.ToInt32(v) : 0;
+            var figure = RoleModel.Instance.Figure;
+            if (figure == null) return 0;
+            return figure.Raw.TryGetValue("vip_flag", out object value) ? Convert.ToInt32(value) : 0;
         }
     }
 }

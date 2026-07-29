@@ -99,9 +99,9 @@ namespace Shenxiao.Module.Core.Shop
         private static readonly List<GoodsVo> EmptyGoodsList = new List<GoodsVo>();
 
         /// <summary>type==TopVipShop(10) 劫持专槽:不进 <see cref="_allGoodsList"/> 主表。
-        /// Unity TopVip 模块(TopVipController/TopVipModel)目前无 SetSupremeVipShopGoodsList 等价接收方
-        /// (仅接 45101),故本端只存槽待用,不转发/不双注册 45102(规格§0 严禁双注册)。TODO:TopVip 模块补
-        /// 至尊VIP商城 UI 后,把这个槽接过去。</summary>
+        /// Unity TopVip 商城UI目前无 SetSupremeVipShopGoodsList 等价接收方，故本端只存槽待用；
+        /// 不转发/不双注册 45102，因为45102已明确是TopVip技能任务全量，与15301商品结构无关。
+        /// TODO:补至尊VIP商城 UI 后，把这个槽接过去。</summary>
         public List<GoodsVo> TopVipShopGoodsList { get; private set; } = new List<GoodsVo>();
 
         /// <summary>15301 落地(对标 SetShopData):按 shop_type 分槽存 + 按 Rank 升序排 + 解析 series_list。</summary>

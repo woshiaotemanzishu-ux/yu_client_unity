@@ -13,7 +13,7 @@
 ## 已移植(图标优先)进度
 - ✅ **Festival 祭典(223)** — 范式模板,逐字节验证。
 - ✅ **批次1(8个,已编译)**:GrowthBenefits 成长福利(41720)、FriendInvite 分享(340,⚠️受 ShareOpen 客户端渠道开关控制,默认关→需置真才显)、SurpriseGift 惊喜礼包(490)、TopVip 至尊Vip(451)、DragonBall 龙玉(143)、SevenDay 七天登录(175)、PushGift 礼包推送(191)、Adventure 天天冒险(42701/42702)。
-- 均为「图标优先」:活动开着才显示,点击弹「功能待接入」;个别条件近似(GrowthBenefits 开启等级135硬编码/战力福利分支TODO、TopVip vip>=4&lv>=160)。
+- 均从「图标优先」起步：活动开着才显示，点击弹「功能待接入」；个别条件近似(GrowthBenefits 开启等级135硬编码/战力福利分支TODO、TopVip vip>=4&lv>=160)。TopVip 后续已补45101/02/04全量和45109-12读侧通知/状态，但面板、红点及付费领奖操作仍未迁移。
 
 
 ## 批次2/3/动态族(已编译)
@@ -35,7 +35,7 @@
 | ❌未移植 | PushGiftModel | `191`=礼包推送(loc2) | 19101, 19102, 19103, 19104 | Not ported. Only an auto-generated prefab bind exists: Assets/Scripts/Generated/UI/MainUI/GiftPushIconBind.cs (source cdn/resource/game/main |
 | ❌未移植 | QuestionNaireModel | `90@331`=问卷调查(loc2) | 33104, 33190, 33191, base_type 90 | none — A CustomActivity framework exists in Unity (Assets/Scripts/Module/Core/CustomActivity/CustomActivityController.cs, CustomActivityConf |
 | ❌未移植 | SevenDayController | `175`=七天登录(loc2)<br>`175@8`=14天登录(loc2)<br>`175_1`=合服七天登录(loc2) | 17500, 17501, 17502, 17503 | none — no SevenDay/SevenDayModel/SevenDayView, no icon 175/175@8/175_1 handler, and no 17500-17503 protocol handler under Assets/Scripts (th |
-| ❌未移植 | TopVipController | `451`=至尊Vip(loc2) | 45101, 45102, 45103, 45104, 45105, 45106, 45107, 45108 | No logic port for TopVip/icon 451. Only a stray baked-prefab bind exists: Assets/Scripts/Generated/UI/TopVip/TopVipShopItemBind.cs (one shop |
+| 🟡部分 | TopVipController | `451`=至尊Vip(loc2) | 45101, 45102, 45103, 45104, 45105, 45106, 45107, 45108, 45109, 45110, 45111, 45112 | Icon门槛与45101/02/04全量、45109-12读侧通知/状态已接；面板/红点及45103/05领奖、45106/07购买、45108权益领奖未接。TopVipShopItem仅有生成Bind，商城type10商品仍保存在ShopModel专槽。 |
 | ❌未移植 | VipModel | `450@1`=直升V4(loc2) | 45000, 45003, 45004, 45001, 45002, 45005, 45006, 45007 | Assets/Scripts/Module/Core/Vip/VipController.cs + VipModel.cs exist but are an explicit "minimal slice" that only registers Proto.RECHARGE_P |
 | 🟡部分 | AddVipServiceModel | `114`=关注有礼(loc2) | 15908 | Only an auto-generated data-only view stub exists: Assets/Scripts/Generated/UI/AddVipService/AddVipServiceViewBind.cs (BaseView node binding |
 | 🟡部分 | AttentionModel (关注 / 收藏小程序) | `113`=收藏小程序(loc3)<br>`113113`=关注(loc2) | none — AttentionController.RegisterAllProtocals | Only auto-generated scaffolding exists, no runtime logic. Config: Assets/Scripts/Generated/Config/ConfigClientAttention.cs + AttentionCfg.cs |

@@ -17,7 +17,7 @@ namespace Shenxiao.Module.Core.Shop
     /// 15307 失败分支字段错位(第2/3字段与协议注释名错位)——本端与老端 Handler15307 一致,失败分支只读
     /// errcode 做提示,不使用错位的第2/3字段做业务判断(注释存档,不强行"修正"一个从未被消费的错位字段)。
     /// **TopVipShop(10) 劫持**:15301 收到该类型只落 ShopModel.TopVipShopGoodsList 专槽,不进主表、不转发
-    /// TopVip 模块(该模块目前无对应接收方)、不发 45102(该号属 TopVipController 自己的协议)。
+    /// TopVip 模块(商城商品UI尚无对应接收方)、不发 45102(该号是 TopVipController 自己的技能任务协议)。
     /// **64001 双编码体系**:errcode 0-7 走老端专用文案表,≥100000 走全局 ERRCODE 显码降级 toast。
     /// **64000 left_time**:客户端自算"下一个游戏日0点",使用服务器墙钟(SERVER_ZONE_HOURS=8,轮10 血训)。
     /// </summary>
@@ -170,7 +170,7 @@ namespace Shenxiao.Module.Core.Shop
             {
                 ShopModel.Instance.SetShopData(type, list);
                 GameLog.Info("Shop", "15301 type=TopVipShop(10) count={0} → 落 TopVipShopGoodsList 专槽" +
-                    "(TopVip 模块现无对应接收方,不转发/不发45102,TODO)", list.Count);
+                    "(商城商品UI尚无接收方,不转发/不伪造45102任务包)", list.Count);
                 return;
             }
 

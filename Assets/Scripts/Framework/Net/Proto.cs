@@ -979,7 +979,20 @@
         /// 多处失败分支共享的错误壳,首字段 Pt 标识触发协议号,老端不消费该字段,本端同样只读不透出)。
         /// 回包(pt_340.erl write(34000,[Pt,Code,Args])):pt:h, code:i, args:s。</summary>
         public const int FRIENDINVITE_ERROR = 34000;
-        public const int TOPVIP_INFO = 45101;              // 至尊VIP基础信息
+        /// <summary>至尊VIP基础信息。C2S空包；S2C为档位、权益有序表、充值天数和免费保护状态。</summary>
+        public const int TOPVIP_INFO = 45101;
+        /// <summary>至尊VIP技能任务全量快照。C2S空包；S2C为阶段、子阶段和任务有序表。</summary>
+        public const int TOPVIP_SKILL_TASKS = 45102;
+        /// <summary>至尊币任务全量快照。C2S空包；S2C为任务有序表。</summary>
+        public const int TOPVIP_CURRENCY_TASKS = 45104;
+        /// <summary>充值自动升永久VIP通知。S2C-only空载荷；收到后重查45101。</summary>
+        public const int TOPVIP_UPGRADE_NOTICE = 45109;
+        /// <summary>技能任务变化通知。S2C-only任务子集；收到后重查45102。</summary>
+        public const int TOPVIP_SKILL_TASK_UPDATE = 45110;
+        /// <summary>至尊币任务变化通知。S2C-only任务子集；收到后重查45104。</summary>
+        public const int TOPVIP_CURRENCY_TASK_UPDATE = 45111;
+        /// <summary>免战保护状态。服务端可响应空查询或主动推送；S2C: is_free:u8。</summary>
+        public const int TOPVIP_FREE_PROTECT = 45112;
         /// <summary>龙珠雕像总览。C2S 空包；S2C: status:u8,power:u64。</summary>
         public const int DRAGONBALL_STATUE_OVERVIEW = 14310;
         /// <summary>龙珠套装概览。C2S 空包；S2C: wear_type:u8,items:u16×{type:u8,lv:u8,power:u64,next_power:u64}。</summary>
