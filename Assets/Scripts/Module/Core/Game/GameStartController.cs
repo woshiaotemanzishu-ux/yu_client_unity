@@ -20,6 +20,7 @@ using Shenxiao.Module.Core.AddVipService;
 using Shenxiao.Module.Core.DiamondFight;
 using Shenxiao.Module.Core.Kf1vn;
 using Shenxiao.Module.Core.SeaHegemony;
+using Shenxiao.Module.Core.HolyTerritory;
 using Shenxiao.Module.Core.KfHolyArea;
 using Shenxiao.Module.Core.Lung;
 using Shenxiao.Module.Core.BaseDungeon;
@@ -121,6 +122,7 @@ namespace Shenxiao.Module.Core.Game
             DiamondFightController.Instance.RequestStartup();
             Kf1vnController.Instance.RequestStartup();
             SeaHegemonyController.Instance.RequestStartup();
+            HolyTerritoryController.Instance.RequestStartup();
             KfHolyAreaController.Instance.RequestStartup();
             LungController.Instance.RequestStartup();
             BaseDungeonController.Instance.RequestStartup();

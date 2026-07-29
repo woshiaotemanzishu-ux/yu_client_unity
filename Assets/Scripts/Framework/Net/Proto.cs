@@ -2435,6 +2435,36 @@
         public const int TOP_PK_PROMOTION = 28117;
         /// <summary>神陨禁区通用错误。pt_283.erl 仅定义 S2C code:u32，无 28300 C2S；仅保留原始错误码快照。</summary>
         public const int HOLY_TERRITORY_ERROR = 28300;
+        /// <summary>神陨禁区分层领地全量。C2S sanctuary_id:u8；S2C 按回包层号独立替换。</summary>
+        public const int HOLY_TERRITORY_INFO = 28301;
+        /// <summary>神陨禁区公会排行全量。C2S 严格空包；空表也是已加载快照。</summary>
+        public const int HOLY_TERRITORY_GUILD_RANK = 28302;
+        /// <summary>神陨禁区活动结束时间推送。S2C-only end_time:u32。</summary>
+        public const int HOLY_TERRITORY_ACTIVITY_END = 28306;
+        /// <summary>神陨禁区 Boss 复活提醒。S2C-only sanctuary_id:u8,boss_id:u32。</summary>
+        public const int HOLY_TERRITORY_REBORN_NOTICE = 28307;
+        /// <summary>神陨禁区死亡/疲劳全量。C2S 严格空包；无记录时服务端可能不回包。</summary>
+        public const int HOLY_TERRITORY_DEATH_FATIGUE = 28308;
+        /// <summary>神陨禁区 Boss 击杀推送。保留原始事件，并只修补已加载同层首个匹配 Boss。</summary>
+        public const int HOLY_TERRITORY_BOSS_DEFEATED = 28309;
+        /// <summary>神陨禁区本公会成员排行全量。C2S 严格空包。</summary>
+        public const int HOLY_TERRITORY_GUILD_MEMBER_RANK = 28310;
+        /// <summary>神陨禁区击杀记录。C2S sanctuary_id:u8,boss_id:u32；按回包复合键替换。</summary>
+        public const int HOLY_TERRITORY_KILL_LOG = 28311;
+        /// <summary>神陨禁区分层成员排行。C2S sanctuary_id:u8；按回包层号替换。</summary>
+        public const int HOLY_TERRITORY_SANCTUARY_RANK = 28312;
+        /// <summary>神陨禁区 Boss 受击提醒。S2C-only sanctuary_id:u8,boss_id:u32。</summary>
+        public const int HOLY_TERRITORY_UNDER_ATTACK = 28313;
+        /// <summary>神陨禁区上次结算全量。C2S 严格空包。</summary>
+        public const int HOLY_TERRITORY_LAST_SETTLEMENT = 28314;
+        /// <summary>神陨禁区每日首次打开状态。C2S 严格空包；S2C code:u8 原样保存。</summary>
+        public const int HOLY_TERRITORY_FIRST_OPEN = 28316;
+        /// <summary>神陨禁区积分获得通知。S2C-only point:u32，不合并 28301 绝对积分。</summary>
+        public const int HOLY_TERRITORY_POINT_GAIN = 28317;
+        /// <summary>神陨禁区绝对疲劳值。C2S 严格空包；S2C fatigue:u32。</summary>
+        public const int HOLY_TERRITORY_FATIGUE = 28318;
+        /// <summary>神陨禁区疲劳获得通知。S2C-only fatigue:u32，不合并 28318 绝对值。</summary>
+        public const int HOLY_TERRITORY_FATIGUE_GAIN = 28319;
 
         /// <summary>无尽之海主快照(C2S 严格空包；S2C pic:s,pic_ver:u32,reward_times:u8,total_reward_times:u8,
         /// rob_times:u8,total_rob_times:u8,auto_id:u64,status:u8,send_list:u16×完整航运项)。</summary>

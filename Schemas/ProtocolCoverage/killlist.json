@@ -384,6 +384,12 @@
     "note": "获取活动剩余次数虽有服务端只读实现，S2C为type:u8,left_time:u8，但旧端从未发送，收到后也不保存、不触发事件、不渲染；按玩家行为事实源封存。Unity不增加请求、快照、次数推导或活动UI。R479复核。"
   },
   {
+    "cmd": 28315,
+    "reason": "old_client_unreachable_and_server_never_writes",
+    "evidence": "h5/src/commonController/HolyTerritoryController.ts:91-95,278-295;yu_server/src/sanctuary/pp_sanctuary.erl:153-156;yu_server/src/pt/pt_283.erl:36-37,245-249;yu_server全仓零28315 writer调用",
+    "note": "旧端唯一28315发送位于整段注释，且从未注册同号handler；服务端若被外部调用只增加283族daily打开计数并返回原PS，不发送28315。pt_283理论空writer没有调用方。Unity不请求、不注册、不模拟daily或首开副作用。R503。"
+  },
+  {
     "cmd": 28406,
     "reason": "dead_server_never_writes_same_cmd",
     "evidence": "yu_server/src/server/mod_server.erl:735;sanctuary_cluster2/pp_sanctuary_cluster.erl:59-61;lib_sanctuary_cluster.erl:188-211;pt/pt_284.erl:23-24,151-158;h5/src/commonController/KfHolyAreaController.ts:262-269",
