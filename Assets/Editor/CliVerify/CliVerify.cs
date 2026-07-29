@@ -811,6 +811,11 @@ namespace Shenxiao.EditorTools
             Run(DiamondFightCase.Run, 60.0);
         }
 
+        public static void SeaHegemony()
+        {
+            Run(SeaHegemonyCase.Run, 60.0);
+        }
+
         public static void HolyTerritory()
         {
             Run(HolyTerritoryCase.Run, 60.0);

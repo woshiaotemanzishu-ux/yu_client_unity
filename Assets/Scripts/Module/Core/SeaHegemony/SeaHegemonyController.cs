@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
@@ -8,34 +10,46 @@ using Shenxiao.Module.Core.Role;
 namespace Shenxiao.Module.Core.SeaHegemony
 {
     /// <summary>
-    /// 四海争霸(海域)控制器(对标老客户端 SeaHegemonyController,大系统只移植主界面图标 18601)。
-    /// 进游戏请求 18600 拿阵营(报名态),回包后据老端流程再请求 18625 拿报名结束时间;
-    /// 18625 回包据报名窗口(结束前 24h)增删图标 18601,文字取 "报名中"/"已报名"(GetIconText)。
-    /// 等级变化(EVT_ROLE_INFO_UPDATE)复请求 18600(对标老端 GAME_START/等级变化重发链),
-    /// 让升到 400 级、开服 30 天开启四海争霸后图标及时出现。
-    /// 砖块/攻防/阵营/官职/特权等所有玩法协议(18601-18624 玩法段/18650-18715)一律不注册,本期只做图标。
-    /// 注:老端图标由 18625(报名/结束时间)驱动 addIcon(18601);18607(活动开始/时间)只刷红点、不增删图标,故不注册。
-    /// 轮22 族错误出口批补 18614/18616(舰船/职务错误壳)+ 18700(pt_187 日常家族错误壳,老端也共用本控制器,
-    /// 不新建 187 族 Controller)。
+    /// 四海争霸186家族安全读侧。审批、申请、任命、切舰、进退场、加入/退出势力、领奖和特权操作
+    /// 等真实写事务不暴露；战场数据只保存原始快照，不接场景、技能、自动战斗、UI或本地发奖。
     /// </summary>
     public sealed class SeaHegemonyController : BaseController
     {
         public static readonly SeaHegemonyController Instance = new SeaHegemonyController();
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_outboundIntercept;
+#endif
         private SeaHegemonyController() { }
 
         public const string ICON_TYPE = SeaHegemonyModel.ICON_TYPE;
-
-        // 复请求 18600 的等级去抖:EVT_ROLE_INFO_UPDATE 亦随经验/货币变化触发,只在等级真变时重发。
         private int _lastLevel = -1;
 
         protected override void Register()
         {
             RegisterProtocal(Proto.SEAHEGEMONY_INFO, On18600);
-            RegisterProtocal(Proto.SEAHEGEMONY_SIGNUP, On18625);
+            RegisterProtocal(Proto.SEAHEGEMONY_GUARD, On18601);
+            RegisterProtocal(Proto.SEAHEGEMONY_APPLICATIONS, On18604);
+            RegisterProtocal(Proto.SEAHEGEMONY_ACTIVITY, On18607);
+            RegisterProtocal(Proto.SEAHEGEMONY_GUILDS, On18608);
+            RegisterProtocal(Proto.SEAHEGEMONY_MONSTERS, On18609);
+            RegisterProtocal(Proto.SEAHEGEMONY_SCORE, On18611);
+            RegisterProtocal(Proto.SEAHEGEMONY_RESULT, On18612);
             RegisterProtocal(Proto.SEACRAFT_ERROR_18614, On18614);
+            RegisterProtocal(Proto.SEAHEGEMONY_KING, On18615);
             RegisterProtocal(Proto.SEACRAFT_ERROR_18616, On18616);
+            RegisterProtocal(Proto.SEAHEGEMONY_SIDES, On18617);
+            RegisterProtocal(Proto.SEAHEGEMONY_CAMPS, On18618);
+            RegisterProtocal(Proto.SEAHEGEMONY_APPLY_LIMIT, On18622);
+            RegisterProtocal(Proto.SEAHEGEMONY_ACTIVITY_NOTICE, On18623);
+            RegisterProtocal(Proto.SEAHEGEMONY_NEXT_TIMES, On18624);
+            RegisterProtocal(Proto.SEAHEGEMONY_SIGNUP, On18625);
+            RegisterProtocal(Proto.SEAHEGEMONY_JOB_NOTICE, On18626);
+            RegisterProtocal(Proto.SEAHEGEMONY_PRIVILEGES, On18651);
+            RegisterProtocal(Proto.SEAHEGEMONY_MERIT, On18653);
+            RegisterProtocal(Proto.SEAHEGEMONY_MEMBERS, On18654);
+            RegisterProtocal(Proto.SEAHEGEMONY_DISTRIBUTION, On18655);
+            RegisterProtocal(Proto.SEAHEGEMONY_OLD_JOB, On18656);
             RegisterProtocal(Proto.SEACRAFT_DAILY_ERROR, On18700);
-            // 对标老端 GAME_START→发 18600、等级变化重发链:等级变化时复请求(400级/开服30天开启)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
         }
 
@@ -49,74 +63,142 @@ namespace Shenxiao.Module.Core.SeaHegemony
             base.Dispose();
         }
 
-        /// <summary>进游戏请求(GameStartController.RequestStartupPackets 调用,对标老端 GAME_START 发 18600)。</summary>
+        /// <summary>
+        /// 镜像旧端GAME_START内186家族子序列：18600→18607→18615→18617→18624→18654(1,1)。
+        /// 旧端没有ResetData，因此请求前不清旧快照；18712属于日常族，留到187整族轮次。
+        /// </summary>
         public void RequestStartup()
         {
-            // read(18600,_)->{ok,[]}:请求无字段,裸发。
-            SendFmt(Proto.SEAHEGEMONY_INFO);
+            RequestInfo();
+            RequestActivity();
+            RequestKing();
+            RequestSides();
+            RequestNextTimes();
+            RequestMembers(1, 1);
         }
 
-        // 18600: camp:i, server_id:i, server_num:h, guild_id:l, guild_name:string, king_name:string,
-        //        fight:l, count:l, self_level:h, reward_status:c。只取 camp 判报名态,余为面板/玩法字段读掉。
-        // 对标老端 18600 handler 里在收到基础信息后 SendFmtToGame(18625) 拿报名结束时间(驱动图标)。
+        public void RequestInfo() => SendRequest(Proto.SEAHEGEMONY_INFO);
+        public void RequestGuard() => SendRequest(Proto.SEAHEGEMONY_GUARD);
+        public void RequestApplications() => SendRequest(Proto.SEAHEGEMONY_APPLICATIONS);
+        public void RequestActivity() => SendRequest(Proto.SEAHEGEMONY_ACTIVITY);
+        public void RequestGuilds(uint camp) => SendRequest(Proto.SEAHEGEMONY_GUILDS, "i", camp);
+        public void RequestMonsters() => SendRequest(Proto.SEAHEGEMONY_MONSTERS);
+        public void RequestScore() => SendRequest(Proto.SEAHEGEMONY_SCORE);
+        public void RequestKing() => SendRequest(Proto.SEAHEGEMONY_KING);
+        public void RequestSides() => SendRequest(Proto.SEAHEGEMONY_SIDES);
+        public void RequestCamps() => SendRequest(Proto.SEAHEGEMONY_CAMPS);
+        public void RequestApplyLimit() => SendRequest(Proto.SEAHEGEMONY_APPLY_LIMIT);
+        public void RequestNextTimes() => SendRequest(Proto.SEAHEGEMONY_NEXT_TIMES);
+        public void RequestSignup() => SendRequest(Proto.SEAHEGEMONY_SIGNUP);
+        public void RequestPrivileges() => SendRequest(Proto.SEAHEGEMONY_PRIVILEGES);
+        public void RequestMerit() => SendRequest(Proto.SEAHEGEMONY_MERIT);
+        public void RequestMembers(ushort pageSize, ushort pageNumber) =>
+            SendRequest(Proto.SEAHEGEMONY_MEMBERS, "hh", pageSize, pageNumber);
+        public void RequestDistribution() => SendRequest(Proto.SEAHEGEMONY_DISTRIBUTION);
+        public void RequestOldJob() => SendRequest(Proto.SEAHEGEMONY_OLD_JOB);
+
+        private void SendRequest(int protoId, string format = null, params object[] args)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(protoId, format, args);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(protoId, format, args);
+        }
+
         private void On18600(NetReader r)
         {
-            int camp = (int)r.ReadU32();
-            r.ReadU32();     // server_id(跨服id,本期图标不需)
-            r.ReadU16();     // server_num(跨服编号)
-            r.ReadU64();     // guild_id(所属公会id)
-            r.ReadString();  // guild_name(公会名)
-            r.ReadString();  // king_name(海王名)
-            r.ReadU64();     // fight(战功/积分)
-            r.ReadU64();     // count(计数)
-            r.ReadU16();     // self_level(海域官职等级)
-            int rewardStatus = r.ReadU8(); // 0=每日奖励可领
-
-            SeaHegemonyModel.Instance.SetSeaInfo(camp, rewardStatus);
+            SeaHegemonyModel.InfoSnapshot snapshot = new SeaHegemonyModel.InfoSnapshot(
+                r.ReadU32(), r.ReadU32(), r.ReadU16(), unchecked((ulong)r.ReadU64()),
+                r.ReadString(), r.ReadString(), unchecked((ulong)r.ReadU64()),
+                unchecked((ulong)r.ReadU64()), r.ReadU16(), r.ReadU8());
+            SeaHegemonyModel.Instance.ReplaceInfo(snapshot);
             ActivityIconManager.Instance.SetIconRedDot(
                 SeaHegemonyModel.RED_ICON_TYPE, SeaHegemonyModel.Instance.DailyRewardRed);
 
-            // 拿报名结束时间(驱动图标 18601)。read(18625,_)->{ok,[]}:裸发。
-            SendFmt(Proto.SEAHEGEMONY_SIGNUP);
+            // 对标旧端18600 handler：先报名截止；海王再查申请；最后查凌晨4点职位。
+            RequestSignup();
+            if (snapshot.SelfLevel == 1) RequestApplications();
+            RequestOldJob();
         }
 
-        // 18625: end_time:i(报名结束时间戳)。据报名窗口(结束前 24h)增删图标 18601(对标老端 18625 handler)。
-        private void On18625(NetReader r)
+        private void On18601(NetReader r)
         {
-            long endTime = r.ReadU32();
-            SeaHegemonyModel.Instance.SetSignupEndTime(endTime);
-            RefreshIcon();
+            ushort limitNumber = r.ReadU16();
+            ushort number = r.ReadU16();
+            byte hasJoin = r.ReadU8();
+            List<SeaHegemonyModel.GuardMember> members = r.ReadArray(rr =>
+                new SeaHegemonyModel.GuardMember(rr.ReadU16(), rr.ReadU32(), rr.ReadU16(),
+                    unchecked((ulong)rr.ReadU64()), rr.ReadString(), rr.ReadU16(), rr.ReadString(),
+                    rr.ReadU16(), unchecked((ulong)rr.ReadU64())));
+            SeaHegemonyModel.Instance.ReplaceGuard(
+                new SeaHegemonyModel.GuardSnapshot(limitNumber, number, hasJoin, members));
         }
 
-        private void RefreshIcon()
+        private void On18604(NetReader r)
         {
-            SeaHegemonyModel m = SeaHegemonyModel.Instance;
-            bool open = m.GetEntranceOpenState();
-            // 18601 图标配置 controll_by_own_fun=true(通用扫描跳过,由本控制器负责增删);
-            // open_lv=400/open_day=30 为真实门槛,故走 AddIconAsync 过一遍图标配置门(与老端 addIcon 一致),
-            // 不用 AddOwnerIcon(那是给 open_lv=999 这类"配置永关、纯自管理"图标绕门用的)。
-            if (open) _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE, 0, m.GetIconText());
-            else ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
-
-            GameLog.Info("SeaHegemony", "18625 四海争霸: camp={0} endTime={1} open={2}",
-                m.Camp, m.SignupEndTime, open);
+            List<SeaHegemonyModel.ApplicationEntry> entries = r.ReadArray(rr =>
+                new SeaHegemonyModel.ApplicationEntry(rr.ReadString(), rr.ReadU16(), rr.ReadU16(),
+                    unchecked((ulong)rr.ReadU64()), rr.ReadString(), unchecked((ulong)rr.ReadU64())));
+            SeaHegemonyModel.Instance.ReplaceApplications(
+                new SeaHegemonyModel.ApplicationsSnapshot(entries));
         }
 
-        // 对标老端:主角等级变化复请求 18600(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。
-        private void OnRoleInfoUpdate()
+        private void On18607(NetReader r) =>
+            SeaHegemonyModel.Instance.ReplaceActivity(new SeaHegemonyModel.ActivitySnapshot(
+                r.ReadU8(), r.ReadU8(), r.ReadU32(), r.ReadU32(), r.ReadU8()));
+
+        private void On18608(NetReader r)
         {
-            RoleModel role = RoleModel.Instance;
-            if (!role.HasBaseInfo) return;
-            if (role.Level == _lastLevel) return;
-            _lastLevel = role.Level;
-            RequestStartup();
+            uint camp = r.ReadU32();
+            List<SeaHegemonyModel.GuildEntry> guilds = r.ReadArray(rr =>
+                new SeaHegemonyModel.GuildEntry(rr.ReadU16(), rr.ReadU32(), rr.ReadU16(),
+                    unchecked((ulong)rr.ReadU64()), rr.ReadString(), unchecked((ulong)rr.ReadU64()),
+                    rr.ReadString(), unchecked((ulong)rr.ReadU64())));
+            SeaHegemonyModel.Instance.ReplaceGuilds(new SeaHegemonyModel.GuildsSnapshot(camp, guilds));
         }
 
-        /// <summary>18614 舰船错误出口(对标老端 SeaHegemonyController.ts:301-308:
-        /// scmd&amp;&amp;code!=1→ErrorCodeShow,无其它副作用)。错误码表未移植,显码降级。</summary>
+        private void On18609(NetReader r)
+        {
+            List<SeaHegemonyModel.MonsterEntry> entries = r.ReadArray(rr =>
+                new SeaHegemonyModel.MonsterEntry(rr.ReadU32(), unchecked((ulong)rr.ReadU64()),
+                    unchecked((ulong)rr.ReadU64()), rr.ReadU8(), rr.ReadU32()));
+            SeaHegemonyModel.Instance.ApplyMonsterPacket(entries);
+        }
+
+        private void On18611(NetReader r)
+        {
+            List<SeaHegemonyModel.ScoreGroup> groups = r.ReadArray(rr =>
+            {
+                ulong guildId = unchecked((ulong)rr.ReadU64());
+                string guildName = rr.ReadString();
+                byte isAttacker = rr.ReadU8();
+                byte guildRank = rr.ReadU8();
+                ushort guildScore = rr.ReadU16();
+                List<SeaHegemonyModel.ScoreMember> members = rr.ReadArray(mr =>
+                    new SeaHegemonyModel.ScoreMember(mr.ReadU16(), unchecked((ulong)mr.ReadU64()),
+                        mr.ReadString(), mr.ReadU16(), mr.ReadU16()));
+                return new SeaHegemonyModel.ScoreGroup(guildId, guildName, isAttacker,
+                    guildRank, guildScore, members);
+            });
+            SeaHegemonyModel.Instance.ReplaceScore(new SeaHegemonyModel.ScoreSnapshot(groups));
+        }
+
+        private void On18612(NetReader r)
+        {
+            byte status = r.ReadU8();
+            ushort guildRank = r.ReadU16();
+            ushort selfRank = r.ReadU16();
+            List<SeaHegemonyModel.ObjectEntry> rankReward = ReadObjectList(r);
+            List<SeaHegemonyModel.ObjectEntry> reward = ReadObjectList(r);
+            SeaHegemonyModel.Instance.ReplaceResult(new SeaHegemonyModel.ResultSnapshot(
+                status, guildRank, selfRank, rankReward, reward));
+        }
+
         private void On18614(NetReader r)
         {
-            int code = (int)r.ReadU32();
+            uint code = r.ReadU32();
+            SeaHegemonyModel.Instance.SetExitResult(code);
             if (code != 1)
             {
                 TipsManager.Toast("操作失败(" + code + ")");
@@ -124,11 +206,26 @@ namespace Shenxiao.Module.Core.SeaHegemony
             }
         }
 
-        /// <summary>18616 舰船职务/分配错误出口(对标老端 SeaHegemonyController.ts:318-325:
-        /// scmd&amp;&amp;code!=1→ErrorCodeShow,无其它副作用)。错误码表未移植,显码降级。</summary>
+        private void On18615(NetReader r)
+        {
+            uint camp = r.ReadU32();
+            uint serverId = r.ReadU32();
+            ushort serverNumber = r.ReadU16();
+            ulong guildId = unchecked((ulong)r.ReadU64());
+            string guildName = r.ReadString();
+            ushort times = r.ReadU16();
+            uint startTime = r.ReadU32();
+            uint endTime = r.ReadU32();
+            List<SeaHegemonyModel.KingRewardStatus> statuses = r.ReadArray(rr =>
+                new SeaHegemonyModel.KingRewardStatus(rr.ReadU8(), rr.ReadU8()));
+            SeaHegemonyModel.Instance.ReplaceKing(new SeaHegemonyModel.KingSnapshot(
+                camp, serverId, serverNumber, guildId, guildName, times, startTime, endTime, statuses));
+        }
+
         private void On18616(NetReader r)
         {
-            int code = (int)r.ReadU32();
+            uint code = r.ReadU32();
+            SeaHegemonyModel.Instance.SetDivideResult(code);
             if (code != 1)
             {
                 TipsManager.Toast("操作失败(" + code + ")");
@@ -136,14 +233,136 @@ namespace Shenxiao.Module.Core.SeaHegemony
             }
         }
 
-        /// <summary>18700 四海争霸日常(pt_187)家族统一错误出口(对标老端 SeaHegemonyController.ts:590-595:
-        /// 无条件 ErrorCodeShow(code)——服务端 send_error/2(pp_seacraft_daily.erl:373-376)只在错误分支
-        /// 调用,回包恒为错误码,故老端无 if 守卫直接显码,本端如实镜像)。错误码表未移植,显码降级。</summary>
+        private void On18617(NetReader r)
+        {
+            List<SeaHegemonyModel.SideEntry> attackers = ReadSides(r);
+            List<SeaHegemonyModel.SideEntry> defenders = ReadSides(r);
+            SeaHegemonyModel.Instance.ReplaceSides(
+                new SeaHegemonyModel.SidesSnapshot(attackers, defenders));
+        }
+
+        private void On18618(NetReader r)
+        {
+            List<SeaHegemonyModel.CampEntry> camps = r.ReadArray(rr =>
+                new SeaHegemonyModel.CampEntry(rr.ReadU32(), rr.ReadU32(), rr.ReadU16(),
+                    unchecked((ulong)rr.ReadU64()), rr.ReadString(), unchecked((ulong)rr.ReadU64()),
+                    unchecked((ulong)rr.ReadU64()), rr.ReadString()));
+            SeaHegemonyModel.Instance.ReplaceCamps(new SeaHegemonyModel.CampsSnapshot(camps));
+        }
+
+        private void On18622(NetReader r) =>
+            SeaHegemonyModel.Instance.ReplaceApplyLimit(new SeaHegemonyModel.ApplyLimitSnapshot(
+                r.ReadU16(), unchecked((ulong)r.ReadU64()), r.ReadU8()));
+
+        private void On18623(NetReader r)
+        {
+            uint code = r.ReadU32();
+            SeaHegemonyModel.Instance.ReplaceActivityNotice(
+                new SeaHegemonyModel.ActivityNoticeSnapshot(code));
+            if (code == 0) return;
+            RequestActivity();
+            RequestNextTimes();
+            RequestSignup();
+        }
+
+        private void On18624(NetReader r)
+        {
+            List<SeaHegemonyModel.ActivityTimeEntry> times = r.ReadArray(rr =>
+                new SeaHegemonyModel.ActivityTimeEntry(rr.ReadU8(), rr.ReadU32(), rr.ReadU32()));
+            SeaHegemonyModel.Instance.ReplaceActivityTimes(
+                new SeaHegemonyModel.ActivityTimesSnapshot(times));
+        }
+
+        private void On18625(NetReader r)
+        {
+            SeaHegemonyModel.Instance.SetSignupEndTime(r.ReadU32());
+            RefreshIcon();
+        }
+
+        private void On18626(NetReader r)
+        {
+            byte code = r.ReadU8();
+            SeaHegemonyModel.Instance.ReplaceJobNotice(new SeaHegemonyModel.JobNoticeSnapshot(code));
+            if (code != 0) RequestInfo();
+        }
+
+        private void On18651(NetReader r)
+        {
+            List<SeaHegemonyModel.PrivilegeEntry> privileges = r.ReadArray(rr =>
+            {
+                ushort privilegeId = rr.ReadU16();
+                ushort remainingNumber = rr.ReadU16();
+                byte status = rr.ReadU8();
+                ulong endTime = unchecked((ulong)rr.ReadU64());
+                List<ushort> needJobs = rr.ReadArray(jr => jr.ReadU16());
+                return new SeaHegemonyModel.PrivilegeEntry(
+                    privilegeId, remainingNumber, status, endTime, needJobs);
+            });
+            SeaHegemonyModel.Instance.ReplacePrivileges(
+                new SeaHegemonyModel.PrivilegesSnapshot(privileges));
+        }
+
+        private void On18653(NetReader r) =>
+            SeaHegemonyModel.Instance.ReplaceMerit(
+                new SeaHegemonyModel.MeritSnapshot(r.ReadU16(), r.ReadU32()));
+
+        private void On18654(NetReader r)
+        {
+            ushort pageTotal = r.ReadU16();
+            ushort pageSize = r.ReadU16();
+            ushort pageNumber = r.ReadU16();
+            List<SeaHegemonyModel.MemberEntry> members = r.ReadArray(rr =>
+                new SeaHegemonyModel.MemberEntry(rr.ReadU16(), unchecked((ulong)rr.ReadU64()),
+                    rr.ReadString(), rr.ReadU32(), rr.ReadU16(), rr.ReadU32(),
+                    unchecked((ulong)rr.ReadU64()), rr.ReadU32(), rr.ReadString()));
+            SeaHegemonyModel.Instance.ReplaceMemberPage(new SeaHegemonyModel.MemberPageSnapshot(
+                pageTotal, pageSize, pageNumber, members));
+        }
+
+        private void On18655(NetReader r)
+        {
+            List<SeaHegemonyModel.DistributionEntry> guilds = r.ReadArray(rr =>
+                new SeaHegemonyModel.DistributionEntry(rr.ReadU32(), rr.ReadU32(), rr.ReadString(),
+                    unchecked((ulong)rr.ReadU64()), rr.ReadString(), unchecked((ulong)rr.ReadU64()),
+                    rr.ReadU32()));
+            SeaHegemonyModel.Instance.ReplaceDistribution(
+                new SeaHegemonyModel.DistributionSnapshot(guilds));
+        }
+
+        private void On18656(NetReader r) => SeaHegemonyModel.Instance.SetOldJob(r.ReadU16());
+
         private void On18700(NetReader r)
         {
-            int code = (int)r.ReadU32();
+            uint code = r.ReadU32();
+            SeaHegemonyModel.Instance.SetDailyError(code);
             TipsManager.Toast("操作失败(" + code + ")");
             GameLog.Warn("SeaHegemony", "18700 日常错误壳 code={0}", code);
         }
+
+        private void RefreshIcon()
+        {
+            SeaHegemonyModel model = SeaHegemonyModel.Instance;
+            bool open = model.GetEntranceOpenState();
+            if (open) _ = ActivityIconManager.Instance.AddIconAsync(ICON_TYPE, 0, model.GetIconText());
+            else ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
+            GameLog.Info("SeaHegemony", "18625 四海争霸: camp={0} endTime={1} open={2}",
+                model.Camp, model.SignupEndTime, open);
+        }
+
+        private void OnRoleInfoUpdate()
+        {
+            RoleModel role = RoleModel.Instance;
+            if (!role.HasBaseInfo || role.Level == _lastLevel) return;
+            _lastLevel = role.Level;
+            // 这是Unity现有图标门补拉，只查18600；不得把完整GAME_START六包放大到每次等级变化。
+            RequestInfo();
+        }
+
+        private static List<SeaHegemonyModel.ObjectEntry> ReadObjectList(NetReader r) =>
+            r.ReadArray(rr => new SeaHegemonyModel.ObjectEntry(rr.ReadU8(), rr.ReadU32(), rr.ReadU32()));
+
+        private static List<SeaHegemonyModel.SideEntry> ReadSides(NetReader r) =>
+            r.ReadArray(rr => new SeaHegemonyModel.SideEntry(rr.ReadU32(), rr.ReadU16(),
+                unchecked((ulong)rr.ReadU64()), rr.ReadString()));
     }
 }

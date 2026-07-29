@@ -276,6 +276,12 @@
     "note": "族错误出口候选(轮22 PK3,S3 批复核)。老端 DemonController.ts:190-193(On18300)非注释错误码壳,注册点467。服务端 pp_demons.erl 全仓库 grep \"18300\" 零命中——该模块 do_handle 是每号各自内联发送自己的错误码(如18304/18305/18306等,均 send_to_sid(...,pt_183,各自Cmd,...)),不共用18300;经 send_error/send_pt_data 等间接封装模式复核后仍确认18300零真实调用点,catch-all handle(_Code,_,_)->{error,...} 也不对外发包。族路由 mod_server.erl:695 \"183\"->pp_demons Live,但该号本身从未被 write。⚠订正:S3 侦察稿同批给出的另外9个候选中,8个(13400/17900/18905/18918/18920/20600/27909/28012)经本包逐条打开原文复核,实为服务端经 lib_server_send:send_to_sid/send_to_uid(Id,Mod,Cmd,Args) 或 send_error(Id,Args,Cmd)/send_pt_data(Id,Cmd,Args) 等『Cmd 作为参数传入的间接封装』真实调用,简单 grep 'write(cmd' 或 'Mod:write(cmd' 会漏掉这类调用点——本条 18300 与 62107(单独一条)是复核后唯一维持『真死』结论的两个号,不属于该方法论漏洞,详见返回值订正声明表。"
   },
   {
+    "cmd": 18650,
+    "reason": "dead_empty_body",
+    "evidence": "h5/src/commonController/SeaHegemonyController.ts:505-509;h5/src全仓仅该空handler且无18650 sender;yu_server/src/seacraft/pp_seacraft_extra.erl:25-28;yu_server/src/pt/pt_186.erl:422-438",
+    "note": "海域信息2.0服务端查询仍可返回，但老端handler只取SCMD后不保存、不派事件、不驱动UI，且全h5/src没有任何发送入口；不得为覆盖率复活孤立快照。R498复核。"
+  },
+  {
     "cmd": 19007,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/FriendController.ts:578",

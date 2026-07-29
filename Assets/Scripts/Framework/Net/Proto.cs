@@ -970,8 +970,48 @@
         /// Handler62132:无条件 ErrorCodeShow(error_code),忽略 error_args,无其它副作用)。
         /// 回包(pt_621.erl write(62132,[ErrorCode,ErrorArgs])):code:i, args:s。</summary>
         public const int KF1VN_QUIZ_ERROR = 62132;
-        public const int SEAHEGEMONY_INFO = 18600; // 四海争霸基础信息(阵营/报名态)。请求无参 read(18600,_)->{ok,[]};回包
-        public const int SEAHEGEMONY_SIGNUP = 18625; // 四海争霸报名结束时间。请求无参 read(18625,_)->{ok,[]};回包 end_ti
+        /// <summary>四海争霸基础信息。C2S空包；S2C为阵营、公会、海王、战力、人数、职位和每日奖励状态全量。</summary>
+        public const int SEAHEGEMONY_INFO = 18600;
+        /// <summary>海王禁卫军信息。C2S空包；S2C为人数、加入状态及有序职位成员全量。</summary>
+        public const int SEAHEGEMONY_GUARD = 18601;
+        /// <summary>禁卫申请列表。C2S空包；S2C为有序全量，也可由服务端主动推送。</summary>
+        public const int SEAHEGEMONY_APPLICATIONS = 18604;
+        /// <summary>争夺活动时间与进入资格。C2S空包；S2C为五字段完整快照。</summary>
+        public const int SEAHEGEMONY_ACTIVITY = 18607;
+        /// <summary>指定阵营公会列表。C2S camp:u32；S2C按回包camp键控有序全量。</summary>
+        public const int SEAHEGEMONY_GUILDS = 18608;
+        /// <summary>海战怪物状态。C2S空包；S2C为增量条目数组，按mon_id覆盖，空包保留旧字典。</summary>
+        public const int SEAHEGEMONY_MONSTERS = 18609;
+        /// <summary>战场统计。C2S空包；S2C为公会/阵营与成员两层有序全量。</summary>
+        public const int SEAHEGEMONY_SCORE = 18611;
+        /// <summary>战斗结算，S2C-only；只保存原始结果与两个ObjectList，不接结算UI或本地发奖。</summary>
+        public const int SEAHEGEMONY_RESULT = 18612;
+        /// <summary>海域霸主信息。C2S空包；S2C为霸主、连胜、时间与分配状态全量。</summary>
+        public const int SEAHEGEMONY_KING = 18615;
+        /// <summary>攻守双方。C2S空包；S2C为两份有序全量。</summary>
+        public const int SEAHEGEMONY_SIDES = 18617;
+        /// <summary>势力列表。C2S空包；S2C为有序全量。</summary>
+        public const int SEAHEGEMONY_CAMPS = 18618;
+        /// <summary>本阵营申请限制。C2S空包；S2C role_lv:u16,power:u64,auto:u8。</summary>
+        public const int SEAHEGEMONY_APPLY_LIMIT = 18622;
+        /// <summary>活动时间更新通知，S2C-only code:u32；非零时只重查18607/18624/18625。</summary>
+        public const int SEAHEGEMONY_ACTIVITY_NOTICE = 18623;
+        /// <summary>后续活动时间。C2S空包；S2C为有序全量。</summary>
+        public const int SEAHEGEMONY_NEXT_TIMES = 18624;
+        /// <summary>报名结束时间。C2S空包；S2C end_time:u32。</summary>
+        public const int SEAHEGEMONY_SIGNUP = 18625;
+        /// <summary>职位变化通知，S2C-only code:u8；非零时只重查18600。</summary>
+        public const int SEAHEGEMONY_JOB_NOTICE = 18626;
+        /// <summary>势力特权列表。C2S空包；S2C为特权及所需职位的两层有序全量。</summary>
+        public const int SEAHEGEMONY_PRIVILEGES = 18651;
+        /// <summary>功勋。C2S空包；S2C lv:u16,exploit:u32。</summary>
+        public const int SEAHEGEMONY_MERIT = 18653;
+        /// <summary>内政成员页。C2S page_size:u16,page_num:u16；S2C回显分页参数并返回有序全量。</summary>
+        public const int SEAHEGEMONY_MEMBERS = 18654;
+        /// <summary>势力分布。C2S空包；S2C为有序公会全量；不复制旧UI本地排序/排名。</summary>
+        public const int SEAHEGEMONY_DISTRIBUTION = 18655;
+        /// <summary>凌晨4点职位。C2S空包；S2C four_level:u16。</summary>
+        public const int SEAHEGEMONY_OLD_JOB = 18656;
         /// <summary>四海争霸(舰船)错误出口(轮22 族错误出口批;对标老端 SeaHegemonyController.ts:301-308,
         /// scmd&amp;&amp;code!=1→ErrorCodeShow,无其它副作用)。回包(pp_seacraft.erl:261;pt_186.erl
         /// write(18614,[Code])):code:i。</summary>
