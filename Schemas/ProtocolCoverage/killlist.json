@@ -666,6 +666,12 @@
     "note": "公会神像脱铭文:take_off/3 与 wear/4 同构,所有分支只 send_error(→40500)或追发 40502,从不 write(40507)。同 40505 一并由轮21 PF 包实证。Unity GuildController.cs:103/220 既有『DEAD,严禁注册』文档本就正确。"
   },
   {
+    "cmd": 41611,
+    "reason": "dead_empty_body",
+    "evidence": "h5/src/commonController/RuneTreasureController.ts:225-232,310;yu_server/src/treasure_hunt/lib_treasure_hunt_mod.erl:150-158;yu_server/src/pt/pt_416.erl:226-233",
+    "note": "第一次装备寻宝通知虽由服务端真实发送 code:u8，老端 handler 的唯一 if 分支去掉注释后没有赋值、事件、UI 或重查，玩家行为上是纯空消费。Unity 不注册、不建立无消费者状态桶。R495。"
+  },
+  {
     "cmd": 41717,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/WelfareController.ts:391",

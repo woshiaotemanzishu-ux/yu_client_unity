@@ -194,6 +194,12 @@
 - 62207总评分与62209当前套装表只允许页面显式空包查询；62208只允许按 `goods_type_id:u32` 显式预览。62208/09套装项真实wire均为 `suit_id:u32,num:u16`，62208尾部 `code` 真实为u32且仅 `code==1` 表示有效预览；回包不回显goods_type_id，因此只保存最后raw预览，不得虚构键控字典。所有列表保留wire顺序/重复项，空表loaded；请求无回复保留旧值。
 - 62200是S2C-only `error_code:u32,error_code_args:string` 原始错误切片，只保存最后值，不弹Toast、不改其他切片。62202强化、62203穿戴、62204脱下均为真实资产/装备/DB/属性事务，继续DEFER且禁止裸sender或孤立成功回执；62205/06当前无可达wire，不得按历史注释复活。五个读侧切片互相隔离，不接配置、背包、角色属性、事件、红点、UI或本地评分/套装推导。
 
+## RuneTreasure 41600/41601/41603/41608/41610/41612/41613/41615/41620/41621（R495）
+
+- GAME_START先清全部416读侧状态，再严格依次请求41601(type4)、41608的(1,1)(2,1)(3,1)(1,2)(2,2)(3,2)、41610的1/2/3；开服天>=8时再请求41612的1/2/3；随后请求41608(5,1)、41613的1/2/3、41620(type5)。41601只在type4回复，两个时间字段均为u64；41608按(htype,rtype)完整替换；41610/12/13/20按htype替换。空表均是loaded清本键，请求无回复保留旧键。
+- 41612条目真实wire为`server_id:u32,server_num:u32,role_id:u64,name:string,type:u8,gtyp_id:u32,goods_num:u16,time:u32,is_rare:u8`，禁止把goods_num照通用记录误读为u32。41603只保存最后原始推送，并仅在rtype=1且列表非空时用首项htype重查41608；41608仅在该htype首次出现或draw_weapon变化时重查41613；41615保存最后htype并重查41613。上述重查不得直接补丁其他切片。
+- 41621是41620任务表的增量：仅修改已加载列表中的同task_id，保留原顺序和重复项；delta重复id以最后一项生效，未知id忽略，空delta不清全量。41611虽然服务端真实发送，但旧端handler为空消费，正式KILL；41602旧端无sender/handler，不复活。41604/05/06/07/09/14/22是真实扣费、物品搬移、领奖、兑换或状态写事务，继续DEFER，禁止裸sender、孤立ACK、乐观扣费/发奖及UI/配置/红点联动。
+
 ## KfStage 10200（轮111）
 
 - GAME_START 发送10200严格空包。服务端回 `open_day:u32,server_info:u16×{server_id:u16,server_num:u16,server_name:string,world_lv:u16},modules:u16×{module_id:u16,mod:u8,avg_lv:u16,server_ids:u16×u16,next_server_ids:u16×u16}`，并在跨服分组或服务器名变化时主动重推同号。当前按完整快照替换并允许空列表清旧，只建查询数据底座；不迁老端 Cookie、ViewOrder/KfStart UI，也不接10204/10205/10208/10209。

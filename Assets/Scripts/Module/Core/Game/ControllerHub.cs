@@ -99,6 +99,7 @@ using Shenxiao.Module.Core.GodCourt;
 using Shenxiao.Module.Core.Unreal;
 using Shenxiao.Module.Core.Auction;
 using Shenxiao.Module.Core.Longlang;
+using Shenxiao.Module.Core.RuneTreasure;
 using Shenxiao.Module.Core.Designation;
 using Shenxiao.Module.Core.Mask;
 using Shenxiao.Module.Core.Dress;
@@ -246,6 +247,7 @@ namespace Shenxiao.Module.Core.Game
             UnrealController.Instance,
             AuctionController.Instance,
             LonglangController.Instance,
+            RuneTreasureController.Instance,
             DesignationController.Instance,
             MaskController.Instance,
             DressController.Instance,

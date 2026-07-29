@@ -47,6 +47,7 @@ using Shenxiao.Module.Core.GodCourt;
 using Shenxiao.Module.Core.Unreal;
 using Shenxiao.Module.Core.Auction;
 using Shenxiao.Module.Core.Longlang;
+using Shenxiao.Module.Core.RuneTreasure;
 using Shenxiao.Module.Core.Designation;
 using Shenxiao.Module.Core.Mask;
 using Shenxiao.Module.Core.TempleAwaken;
@@ -138,6 +139,7 @@ namespace Shenxiao.Module.Core.Game
             UnrealController.Instance.RequestStartup();
             AuctionController.Instance.RequestStartup();
             LonglangController.Instance.RequestStartup();
+            RuneTreasureController.Instance.RequestStartup();
             DesignationController.Instance.RequestStartup();
             MaskController.Instance.RequestStartup();
             TempleAwakenController.Instance.RequestStartup();

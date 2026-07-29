@@ -209,6 +209,11 @@ namespace Shenxiao.EditorTools
             Run(LonglangCase.Run, 60.0);
         }
 
+        public static void RuneTreasure()
+        {
+            Run(RuneTreasureCase.Run, 60.0);
+        }
+
         public static void Designation()
         {
             Run(DesignationCase.Run, 60.0);

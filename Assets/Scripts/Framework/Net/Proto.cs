@@ -1021,6 +1021,26 @@
         public const int UNREAL_DECOMPOSE_PREVIEW = 14907;
         /// <summary>幻饰已解锁部位全量。C2S严格空包，也接受服务端装备/进阶后的同号推送。</summary>
         public const int UNREAL_UNLOCKED_CELLS = 14908;
+        /// <summary>寻宝统一错误切片。S2C-only: error_code:u32；仅保留原始值。</summary>
+        public const int RUNE_TREASURE_ERROR = 41600;
+        /// <summary>符文寻宝主状态。C2S: type:u8(仅4会回复)；S2C为次数、轮次、阶段奖励与两个u64绝对时间。</summary>
+        public const int RUNE_TREASURE_RUNE_INFO = 41601;
+        /// <summary>新增寻宝记录推送。S2C-only，保留原始有序记录并按老端安全重查41608。</summary>
+        public const int RUNE_TREASURE_RECORD_PUSH = 41603;
+        /// <summary>装备类寻宝页。C2S: htype:u8,rtype:u8；S2C按同一复合键完整替换。</summary>
+        public const int RUNE_TREASURE_PAGE = 41608;
+        /// <summary>寻宝幸运值查询/推送。C2S: htype:u8；S2C: htype:u8,value:u32,percent:u16。</summary>
+        public const int RUNE_TREASURE_LUCKY = 41610;
+        /// <summary>跨服寻宝记录。C2S: htype:u8；S2C按htype替换有序列表，goods_num实际为u16。</summary>
+        public const int RUNE_TREASURE_CROSS_RECORDS = 41612;
+        /// <summary>神兵自选页打开状态。C2S: htype:u8；S2C: htype:u8,open:u8。</summary>
+        public const int RUNE_TREASURE_OPEN_STATE = 41613;
+        /// <summary>抽中宝物分类240通知。S2C-only: htype:u8；收到后按老端重查41613。</summary>
+        public const int RUNE_TREASURE_WEAPON_NOTICE = 41615;
+        /// <summary>寻宝任务全量。C2S: htype:u8；S2C: code:u32,htype:u8,tasks有序表。</summary>
+        public const int RUNE_TREASURE_TASKS = 41620;
+        /// <summary>寻宝任务增量。S2C-only；仅更新已加载41620中的同task_id条目。</summary>
+        public const int RUNE_TREASURE_TASK_UPDATE = 41621;
         /// <summary>拍卖商品全量。C2S: auction_type:u32,type:u32,module_id:u32；S2C按auction_type替换有序商品表。</summary>
         public const int AUCTION_GOODS = 15401;
         /// <summary>拍卖商品状态更新。S2C-only，按auction_type+goods_id独立覆盖。</summary>
