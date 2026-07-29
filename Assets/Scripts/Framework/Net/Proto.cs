@@ -1004,6 +1004,12 @@
         public const int GODBEAST_OVERVIEW = 17301;
         /// <summary>幻兽操作错误。S2C: code:u32,args:string；仅接收保留原始值。</summary>
         public const int GODBEAST_ERROR = 17300;
+        /// <summary>单只幻兽状态更新。S2C-only，字段结构与 17301 的单只幻兽条目一致。</summary>
+        public const int GODBEAST_UPDATE = 17302;
+        /// <summary>幻兽装备强化预览。C2S: goods_id:u64,is_double:u8,goods_list:u16×u64；S2C: goods_id:u64,stren:u16,exp:u32。</summary>
+        public const int GODBEAST_STRENGTH_PREVIEW = 17308;
+        /// <summary>幻兽部分属性战力试算。C2S: module_id:u16,sub_module_id:u8,attrs:u16×{attr_id:u16,attr_value:u32}；S2C 追加 combat_power:u32。</summary>
+        public const int GODBEAST_ATTRIBUTE_POWER = 17309;
         /// <summary>百鬼夜行错误。S2C: code:u32,args:string；仅接收保留原始值。</summary>
         public const int GHOST_WALK_ERROR = 20600;
         /// <summary>称号列表快照。C2S 空包；S2C: current_id:u32,items:u16×{id:u32,order:u8,end_time:u32}。</summary>

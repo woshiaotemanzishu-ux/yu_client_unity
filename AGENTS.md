@@ -179,9 +179,11 @@
 
 - GAME_START 发送16400严格空包，回包为 `active_ids:u16×u32`。当前仅按包全量替换并保留服务端顺序/重复项，空列表清旧；不接16401激活、13040/13041角色转生阶段，不做配置派生 last/next、等级重拉、事件、红点、UI或角色属性修改。
 
-## GodBeast 17301（轮113）
+## GodBeast 17300/17301/17302/17308/17309（R486）
 
-- GAME_START 发送17301严格空包。回包为 `fight_count:u8,eudemons:u16×{id:u32,state:u8,score:u32,equips:u16×{pos:u8,goods_id:u64,stren:u16,exp:u32},attrs:u16×{attr_type:u16,attr_value:u32}}` 权威全量快照，空列表清旧，`goods_id` 保留u64。当前不接17300错误出口、17302-17312养成操作，不做配置排序、装备字典/GoodsModel映射、派生战斗数、红点、UI或3D资源。
+- GAME_START 只发送17301严格空包。17301回包为 `fight_count:u8,eudemons:u16×{id:u32,state:u8,score:u32,equips:u16×{pos:u8,goods_id:u64,stren:u16,exp:u32},attrs:u16×{attr_type:u16,attr_value:u32}}` 权威全量快照，空列表清旧，保留wire顺序、重复ID和u64位型。17302是S2C-only同结构单兽更新：仅当17301已加载且存在同ID时替换首个匹配项，早包和未知ID均忽略，不创建新项、不改FightCount。
+- 17308是显式强化预览，C2S为 `goods_id:u64,is_double:u8,goods_list:u16×u64`，S2C为 `goods_id:u64,stren:u16,exp:u32`，每包完整替换独立预览切片。17309是显式部分属性战力试算，C2S为 `module_id:u16,sub_module_id:u8,attrs:u16×{attr_id:u16,attr_value:u32}`，S2C为 `module_id:u16,sub_module_id:u8,combat_power:u32`；按module/sub复合键缓存，同键替换、异键共存，真实0值有效。无回复不得清旧。
+- 17300错误、17301总览、17308预览和17309键控战力互不交叉清理。当前不接17303-17307、17310-17312装备/出战/扩位/强化/合成操作，不做配置排序、装备字典/GoodsModel映射、背包消耗、派生战斗数、事件、红点、UI或3D资源。
 
 ## Designation 41101（轮115）
 
