@@ -806,6 +806,11 @@ namespace Shenxiao.EditorTools
             Run(TopPkCase.Run, 60.0);
         }
 
+        public static void DiamondFight()
+        {
+            Run(DiamondFightCase.Run, 60.0);
+        }
+
         public static void HolyTerritory()
         {
             Run(HolyTerritoryCase.Run, 60.0);

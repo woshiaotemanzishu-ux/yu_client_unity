@@ -923,10 +923,36 @@
         /// On42000:无条件 ErrorCodeShow(code,args)。服务端 send_error/2(lib_investment.erl:413-417)是投资
         /// 相关多处失败分支共享的错误壳,回包恒为错误码)。回包(pt_420.erl write(42000,[Code,Args])):code:i, args:s。</summary>
         public const int KAIFU_INVEST_ERROR = 42000;
-        public const int DIAMONDFIGHT_INFO = 13700; // 灵玉/勾玉大战活动状态(war_state 驱动图标137);请求裸发 read(13700,_
-        /// <summary>灵玉大战"进入准备场景"错误出口(轮22 族错误出口批;对标老端 DiamondFightController.ts:298-303
-        /// On13704:code!=1→ErrorCodeShow,无其它副作用)。回包(pt_137.erl write(13704,[Code])):code:i。</summary>
-        public const int DIAMONDFIGHT_ENTER_ERROR = 13704;
+        /// <summary>灵玉大战活动状态。C2S空包；S2C war_state:u8,end_time:u32。</summary>
+        public const int DIAMOND_FIGHT_STAGE = 13700;
+        /// <summary>灵玉大战报名状态。C2S空包；S2C is_sign:u8。</summary>
+        public const int DIAMOND_FIGHT_SIGN = 13701;
+        /// <summary>灵玉大战小阶段。C2S空包；S2C action:u8,type:u8,end_time:u32。</summary>
+        public const int DIAMOND_FIGHT_COUNTDOWN = 13703;
+        /// <summary>进入准备场景结果。S2C code:u32；本轮不暴露对应写请求。</summary>
+        public const int DIAMOND_FIGHT_ENTER_RESULT = 13704;
+        /// <summary>等待场小面板，S2C-only六个u8原始字段。</summary>
+        public const int DIAMOND_FIGHT_WAITING = 13705;
+        /// <summary>单场战斗结果，S2C-only settlement/result/action_id三个u8。</summary>
+        public const int DIAMOND_FIGHT_BATTLE_RESULT = 13708;
+        /// <summary>双方命数。C2S空包；S2C self_life:u8,other_life:u8。</summary>
+        public const int DIAMOND_FIGHT_LIVES = 13710;
+        /// <summary>历史战报。C2S war_no:u8；S2C同号键控有序全量。</summary>
+        public const int DIAMOND_FIGHT_HISTORY = 13711;
+        /// <summary>假人对手信息，S2C-only power:u64,server_id:u32,server_num:u32,server_name:string。</summary>
+        public const int DIAMOND_FIGHT_FAKE_ROLE = 13714;
+        /// <summary>当前赛区。C2S空包；S2C zone:u8。</summary>
+        public const int DIAMOND_FIGHT_ZONE = 13716;
+        /// <summary>竞猜面板更新通知，S2C-only end_time:u32,update:u8。</summary>
+        public const int DIAMOND_FIGHT_UPDATE_NOTICE = 13718;
+        /// <summary>竞猜对阵面板。C2S空包；S2C为截止时间及两层有序全量。</summary>
+        public const int DIAMOND_FIGHT_BETTING = 13719;
+        /// <summary>本人全部竞猜记录。C2S空包；S2C有序全量。</summary>
+        public const int DIAMOND_FIGHT_BET_RECORDS = 13721;
+        /// <summary>新增竞猜记录，S2C-only单条增量。</summary>
+        public const int DIAMOND_FIGHT_BET_RECORD_DELTA = 13722;
+        /// <summary>竞猜胜者，S2C-only zone:u8,action:u8,winner:u64。</summary>
+        public const int DIAMOND_FIGHT_WINNER = 13724;
         /// <summary>诸天王者活动报名快照。C2S严格空包；S2C:
         /// is_sign:u8,sign_num:u32,def_num:u16,zone:u8。仅由62101首包/阶段变化查询。</summary>
         public const int KF1VN_ACTIVITY_INFO = 62100;
