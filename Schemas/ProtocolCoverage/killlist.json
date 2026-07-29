@@ -276,6 +276,30 @@
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
   {
+    "cmd": 21101,
+    "reason": "dead_empty_body",
+    "evidence": "h5/src/skill/SkillController.ts:27-30,146-148,270;h5/src/role/SkillSubView.ts:40-50;h5/src/commonModel/SkillUIModel.ts:637-870;yu_server/src/arcana/pp_arcana.erl:7,14-16;yu_server/src/arcana/lib_arcana.erl:211-218",
+    "note": "远古奥术信息查询虽被老端 GAME_START 空发、服务端也会返回完整列表，但老端 on21101 只 GetSCMD 后立即结束，奥术页签/视图和整段模型消费均已注释。按玩家行为事实源判 dead_empty_body；Unity 不复刻启动空耗，不注册、不缓存无消费者快照。R491 复核。"
+  },
+  {
+    "cmd": 21102,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/skill/SkillController.ts:39-43,149-158,271;h5/src/role/SkillSubView.ts:40-50;h5/src/commonModel/SkillUIModel.ts:637-870;yu_server/src/arcana/pp_arcana.erl:7,18-20;yu_server/src/arcana/lib_arcana.erl:221-288",
+    "note": "远古奥术升级服务端仍会扣物、写DB、重算属性并同步技能/场景，但老端只剩通用序列化和结果 Toast/刷新21002，真实 h5/src 没有21102发送点；唯一奥术页签与模型链已整体注释。Unity 不反造入口、不暴露裸 sender、不接孤立结果回执。R491 复核。"
+  },
+  {
+    "cmd": 21103,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/skill/SkillController.ts:39-43,159-168,272;h5/src/role/SkillSubView.ts:40-50;h5/src/commonModel/SkillUIModel.ts:637-870;yu_server/src/arcana/pp_arcana.erl:7,22-24;yu_server/src/arcana/lib_arcana.erl:381-443",
+    "note": "远古奥术突破服务端仍会扣物、持久化突破、替换快捷栏并同步属性/场景，但老端只有通用序列化和结果回调，全 h5/src 无21103实际发送点，奥术页面与数据模型已删除/注释。Unity 不单独恢复写事务。R491 复核。"
+  },
+  {
+    "cmd": 21104,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/skill/SkillController.ts:39-43,169-178,273;h5/src/role/SkillSubView.ts:40-50;h5/src/commonModel/SkillUIModel.ts:637-870;yu_server/src/arcana/pp_arcana.erl:7,26-28;yu_server/src/arcana/lib_arcana.erl:445-477",
+    "note": "远古奥术核心选择会在服务端持久化一次性核心类型，但老端无任何21104发送点；仅残留结果回调在成功后再次触发无消费者的21101，真实入口、视图和模型均已注释。Unity 不复活该不可达选择事务。R491 复核。"
+  },
+  {
     "cmd": 22102,
     "reason": "dead_server_handle_commented",
     "evidence": "yu_server/src/rank/pp_common_rank.erl:94-100(公会排行榜入口整段注释);yu_server/src/rank/lib_common_rank_mod.erl:1036-1078(残留writer只由该入口调用);h5/src/commonController/RankController.ts:76-80,100-104",

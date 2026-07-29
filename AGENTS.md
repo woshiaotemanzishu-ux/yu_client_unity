@@ -171,6 +171,11 @@
 - GAME_START固定按13401→13405连续发送两个严格空包。13401回 `id:u32,stren_lv:u32,stren_exp:u32,honour:u64,power:u32,pass_layers:u32` 并逐包完整覆盖；不得把power擅自写入RoleModel。13405回 `titles:u16×{id:u32,level:u16,power:u32,is_equip:u8}`，同时包含未激活level=0项，保留wire顺序并以空表loaded清旧。13400是S2C-only raw `code:u32` 错误切片；三者互相隔离，不接配置、红点或UI。
 - 13402勋章晋升会扣配置物品、写DB、改Figure/Scene/属性并触发任务、成就、礼包、神殿、活动和至尊VIP链；13403称号激活/升级会扣物、写DB、改属性，首次激活还会自动佩戴并广播场景；13404佩戴和13406卸下都会持久化称号状态并同步Role/Figure/Scene；13407按 `cost_list:u16×{goods_auto_id:u64,num:u32}` 删除背包实例、写强化等级经验、重算属性并同步场景战斗属性。五号必须随配置、背包货币、角色/场景、提示、UI和结果重拉闭环整体迁移，禁止只注册结果、裸sender、本地乐观修改或自动操作。
 
+## Arcana 21101/21102/21103/21104（R491）
+
+- 四号均正式KILL。21101虽被老端GAME_START空发且服务端能返回完整奥术表，但老端handler只解包即丢弃；`SkillSubView` 的“远古奥术”页签/视图和 `SkillUIModel` 的整段消费均已注释。Unity禁止恢复21101启动请求、常量、handler、模型桶、事件或UI。
+- 21102升级、21103突破和21104选核心的服务端链仍会真实扣物、写DB、改技能/快捷栏/属性或场景状态，但老端全仓只有通用序列化与结果回调，没有任何可达发送点。不可因服务端写事务存活而反造客户端入口；禁止裸sender、孤立成功回执、本地扣物或21002/21101跟随重拉。
+
 ## KfStage 10200（轮111）
 
 - GAME_START 发送10200严格空包。服务端回 `open_day:u32,server_info:u16×{server_id:u16,server_num:u16,server_name:string,world_lv:u16},modules:u16×{module_id:u16,mod:u8,avg_lv:u16,server_ids:u16×u16,next_server_ids:u16×u16}`，并在跨服分组或服务器名变化时主动重推同号。当前按完整快照替换并允许空列表清旧，只建查询数据底座；不迁老端 Cookie、ViewOrder/KfStart UI，也不接10204/10205/10208/10209。

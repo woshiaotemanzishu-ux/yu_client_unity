@@ -23,7 +23,8 @@ namespace Shenxiao.Module.Core.Skill
     ///   CanAttack 子集闸 + career/obj 三分支;目标型技能进 SceneCombat.MainRoleAttackTarget(真实 SceneManager 怪物寻敌 →
     ///   范围/朝向/接近 → 本地 RELEASE_MAIN_SKILL 边界)。真实 20001 攻击请求(fight-movie/AOE 链)= 下一轮 blocker。
     ///
-    /// 老端 GAME_START 还批量请求 21101/21010/18401(远古奥术/天赋/模块加成),属深水区(P4 只记录),本轮不请求不解析。
+    /// 当前 GAME_START 已接21002/13007/21010/18401等有效读侧；21101-21104经R491逐号正式KILL：
+    /// 21101老端解包即丢弃且页面/模型被注释，21102-21104虽有服务端写事务但老端无可达sender，严禁恢复请求或空handler。
     /// </summary>
     public sealed class SkillController : BaseController
     {
