@@ -688,7 +688,7 @@ namespace Shenxiao.EditorTools
         {
             Run(Kf1vnExitCase.Run, 60.0);
         }
-        /// <summary>诸天王者 62100 原始活动信息与阶段变化查询回归。</summary>
+        /// <summary>诸天王者621族安全读侧、键控榜、竞猜增量与启动序列回归。</summary>
         public static void Kf1vnActivityInfo()
         {
             Run(Kf1vnActivityInfoCase.Run, 60.0);

@@ -960,16 +960,44 @@
         /// <summary>诸天王者错误出口(轮22 族错误出口批;对标老端 Kf1vnController.ts:242-245 Handler62103:
         /// 无条件 ErrorCodeShow(error_code),无其它副作用)。回包(pt_621.erl write(62103,[ErrorCode])):code:i。</summary>
         public const int KF1VN_ERROR = 62103;
+        /// <summary>等待场景战绩全量。C2S空；S2C:left_times:u8,score:u32,time:u32,win:u16,lose:u8,exp_sum:u64,def_num:u16。</summary>
+        public const int KF1VN_WAIT_INFO = 62104;
+        /// <summary>资格赛战斗实例全量。C2S空；S2C为选手列表及loading_time/battle_time绝对时间。</summary>
+        public const int KF1VN_QUALIFICATION_BATTLE = 62105;
         /// <summary>诸天王者退出场景，C2S 严格空包。老端等待场景/战斗场景/结算页均真实发送
         /// (Kf1vnWaitSceneView.ts:139,145；Kf1vnFightSceneView.ts:155,159；Kf1vnFightResultView.ts:78)，
         /// 服务端 pp_kf_1vN.erl:78-80 转入 quit 链，缺少角色/区域状态也直接切回主场景
         /// (mod_kf_1vN.erl:435-448；lib_kf_1vN.erl:377-378)。S2C error_code:u32 虽在
         /// pt_621.erl:165-171 定义 writer，但全服务端无调用点；严禁注册 On62107 或等待回执。</summary>
         public const int KF1VN_EXIT = 62107;
+        /// <summary>资格赛单场结果，S2C-only原始快照。</summary>
+        public const int KF1VN_QUALIFICATION_RESULT = 62108;
+        /// <summary>资格赛届次结算，S2C-only；award仅为展示预览。</summary>
+        public const int KF1VN_QUALIFICATION_SETTLEMENT = 62109;
+        /// <summary>资格赛排行榜，C2S area:u8；按回包area键控全量。</summary>
+        public const int KF1VN_QUALIFICATION_RANK = 62110;
+        /// <summary>擂主战斗实例全量。C2S空；S2C为擂主、挑战者列表及两个绝对时间。</summary>
+        public const int KF1VN_LEADER_BATTLE = 62112;
+        /// <summary>擂主战单场结果，S2C-only；award仅为展示预览。</summary>
+        public const int KF1VN_LEADER_RESULT = 62113;
+        /// <summary>擂主战排行榜，C2S area:u8；按回包area键控全量。</summary>
+        public const int KF1VN_LEADER_RANK = 62116;
+        /// <summary>竞猜战斗列表全量，C2S空；保留嵌套挑战者线序与请求者下注原始态。</summary>
+        public const int KF1VN_QUIZ_INFO = 62117;
+        /// <summary>等待场景名次快照，C2S空；S2C rank:u8,top_name:string。</summary>
+        public const int KF1VN_WAITING_RANK = 62119;
+        /// <summary>擂主战届次结算，S2C-only；award仅为展示预览。</summary>
+        public const int KF1VN_LEADER_SETTLEMENT = 62120;
+        /// <summary>竞猜结果增量，S2C-only battle_id:u16,battle_result:u8,bet_result:u8。</summary>
+        public const int KF1VN_QUIZ_RESULT = 62123;
         /// <summary>诸天王者竞猜/匹配相关错误出口(轮22 族错误出口批;对标老端 Kf1vnController.ts:444-447
         /// Handler62132:无条件 ErrorCodeShow(error_code),忽略 error_args,无其它副作用)。
         /// 回包(pt_621.erl write(62132,[ErrorCode,ErrorArgs])):code:i, args:s。</summary>
         public const int KF1VN_QUIZ_ERROR = 62132;
+        /// <summary>竞猜历史全量，C2S空；GAME_START与62101同批查询。</summary>
+        public const int KF1VN_QUIZ_HISTORY = 62133;
+        /// <summary>赛事战斗结果增量，S2C-only battle_id:u16,battle_result:u8。</summary>
+        public const int KF1VN_BATTLE_RESULT = 62135;
         /// <summary>四海争霸基础信息。C2S空包；S2C为阵营、公会、海王、战力、人数、职位和每日奖励状态全量。</summary>
         public const int SEAHEGEMONY_INFO = 18600;
         /// <summary>海王禁卫军信息。C2S空包；S2C为人数、加入状态及有序职位成员全量。</summary>
