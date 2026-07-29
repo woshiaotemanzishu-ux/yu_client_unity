@@ -103,6 +103,15 @@ namespace Shenxiao.EditorTools
                 }
                 Debug.Log("CLIVERIFY role-effects 3 scene RT premultiplied composite ready");
 
+                if (!VerifyStageCompositeCoverage(out string compositeDiagnostic))
+                {
+                    Debug.LogError("CLIVERIFY role-effects stage composite brightness coverage invalid: " +
+                        compositeDiagnostic);
+                    return 3;
+                }
+                Debug.Log("CLIVERIFY role-effects 3a stage composite preserves alpha and gives additive RGB " +
+                    "soft coverage; " + compositeDiagnostic);
+
                 if (!VerifyLegacyLinearTint(out Color neutralTintSample))
                 {
                     Debug.LogError("CLIVERIFY role-effects Laya neutral tint is dim/invalid in Linear space, sample=" +
@@ -275,6 +284,83 @@ namespace Shenxiao.EditorTools
                 SceneCharacterStage.Clear();
                 ownedStage?.Dispose();
                 ResManager.EditorPreferFallback = fallbackBefore;
+            }
+        }
+
+        /// <summary>
+        /// Additive wing/effect materials can write visible RGB with zero alpha. StageComposite must derive
+        /// soft coverage from that RGB so it remains readable over bright UI/world backgrounds, while never
+        /// reducing alpha already written by opaque or conventionally transparent model materials.
+        /// </summary>
+        private static bool VerifyStageCompositeCoverage(out string diagnostic)
+        {
+            bool additiveOk = RenderStageCompositeSample(new Color(0.6f, 0.2f, 0.1f, 0f), out Color additive);
+            bool alphaOk = RenderStageCompositeSample(new Color(0.2f, 0.1f, 0.05f, 0.8f), out Color alpha);
+            diagnostic = $"additive={additive}, alpha={alpha}";
+            return additiveOk && alphaOk &&
+                   additive.r >= 0.5f && additive.a >= 0.5f && additive.a <= 0.7f &&
+                   alpha.a >= 0.75f;
+        }
+
+        private static bool RenderStageCompositeSample(Color sourceColor, out Color sample)
+        {
+            sample = Color.clear;
+            Shader shader = Shader.Find("Shenxiao/UI/StageComposite");
+            if (shader == null || ShaderUtil.ShaderHasError(shader)) return false;
+
+            Material material = null;
+            Texture2D source = null;
+            Texture2D readback = null;
+            RenderTexture rt = null;
+            GameObject cameraObject = null;
+            GameObject quad = null;
+            RenderTexture previous = RenderTexture.active;
+            try
+            {
+                source = new Texture2D(1, 1, TextureFormat.RGBA32, false, true);
+                source.SetPixel(0, 0, sourceColor);
+                source.Apply();
+                material = new Material(shader);
+                material.SetTexture("_MainTex", source);
+
+                rt = new RenderTexture(16, 16, 16, RenderTextureFormat.ARGB32);
+                rt.Create();
+                cameraObject = new GameObject("StageCompositeCoverageProbeCamera");
+                Camera camera = cameraObject.AddComponent<Camera>();
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = Color.clear;
+                camera.orthographic = true;
+                camera.orthographicSize = 1f;
+                camera.transform.position = new Vector3(0f, 0f, -10f);
+                camera.targetTexture = rt;
+                camera.cullingMask = 1 << 31;
+
+                quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                quad.layer = 31;
+                quad.transform.localScale = new Vector3(2f, 2f, 1f);
+                quad.GetComponent<Renderer>().sharedMaterial = material;
+                camera.Render();
+
+                RenderTexture.active = rt;
+                readback = new Texture2D(16, 16, TextureFormat.RGBA32, false, true);
+                readback.ReadPixels(new Rect(0f, 0f, 16f, 16f), 0, 0);
+                readback.Apply();
+                sample = readback.GetPixel(8, 8);
+                return true;
+            }
+            finally
+            {
+                RenderTexture.active = previous;
+                if (readback != null) UnityEngine.Object.DestroyImmediate(readback);
+                if (quad != null) UnityEngine.Object.DestroyImmediate(quad);
+                if (cameraObject != null) UnityEngine.Object.DestroyImmediate(cameraObject);
+                if (rt != null)
+                {
+                    rt.Release();
+                    UnityEngine.Object.DestroyImmediate(rt);
+                }
+                if (material != null) UnityEngine.Object.DestroyImmediate(material);
+                if (source != null) UnityEngine.Object.DestroyImmediate(source);
             }
         }
 

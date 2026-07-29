@@ -6,7 +6,7 @@
 > - [编码规范](Shenxiao编码规范.md)
 > - [Copilot 红线](../.github/copilot-instructions.md)
 
-**最近更新**：2026-07-28
+**最近更新**：2026-07-29
 
 **状态图例**：
 - ✅ 已完成
@@ -1591,3 +1591,9 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **实现**：删除会全局改写 `RenderSettings.ambientMode/ambientLight` 的 `ArtAmbient`及 UI/场景引用计数；`ArtModelStager` 在新模型实例上把 Standard/URP Lit 常规表面转为 URP Unlit，保留贴图、颜色、透明剪裁/混合参数，并关闭阴影投射/接收。原资产材质不改，Panda/粒子特效材质不转换。
 - **工具同步**：`AssetHubPreview`/`AssetAssemblyPreview` 的 `PreviewRenderUtility` 灯强制为 0、环境色为黑；`NewPartImportCase` 和 `PoseProbe` 删除截图方向光，截图前复用同一无光照材质策略。
 - **验证状态**：`Shenxiao.Common.csproj`、`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 离线编译均 0 error；Unity 强制编译 `completed/failed=false`。`SceneMixDriverCase` 实跑 `ALL PASS`，确认 UI/场景台不改写环境光、运行中新模型无 Lit 表面且无启用的 Light，并保持 run/attack 混合替换链路正常。
+
+## 2026-07-29：亮背景上的翅膀加法覆盖修复
+
+- **根因取证**：主工程与 `E:/GitProject/ArtsProject` 的 `wing_1005` 共 176 个文件中 139 个内容完全一致；差异只含 Panda Alpha 混合补丁、渲染档案和目录 Meta，FBX、贴图、Timeline、材质 RGB 参数一致。33 个翅膀材质均非 Lit，Prefab 内无灯，因此关灯不会改变其颜色。用同一实例实渲确认暗灰底完整、金底发淡、白底近乎消失，根因是加法材质只写 RGB、几乎不写 Alpha。
+- **修复**：选角与场景角色台共用的 `Shenxiao/UI/StageComposite` 保持 `Blend One OneMinusSrcAlpha`，把输出覆盖度改为 `max(原始 Alpha, RGB 最大亮度)`；普通角色/半透材质的既有 Alpha 不降低，纯加法翅膀和光效用自身亮度形成软覆盖。未改灯光、贴图、材质参数、ARGB32 RT 或色彩空间。
+- **验证状态**：Unity 强制编译 `completed/failed=false`；真实 Shader/ARGB32 RT 回读中，零 Alpha 加法样本 `RGBA(0.6,0.2,0.1,0)` 得到 `A=0.6`，已有 Alpha 样本保持 `A=0.8`。真实 `wing_1005` 经修改后 Shader 合成到金底/白底，红橙轮廓和中心层次不再整片融入背景。`RolePresentationEffectsCase` 已加入上述亮度覆盖断言。

@@ -1,8 +1,5 @@
-// UIModelStage/SceneCharacterStage 的 RT 合成 shader。场景角色台始终启用；UI 模型台目前给
-// ArtModelRenderProfile 整模启用：
-// 展示相机把模型渲到透明底 RT,内容天然是"预乘 alpha"形式;默认 UI 材质按 SrcAlpha 混合会把
-// 加法混合的特效(写了 alpha 的光团)洗成一大块白。这里改用 One/OneMinusSrcAlpha 预乘合成:
-// 加法特效的光正确叠加到 UI 背景上,半透/不透明部分照常覆盖。
+// UIModelStage/SceneCharacterStage 的透明 RT 合成 shader。RT 中的 RGB 已经是预乘结果；
+// 这里以 One/OneMinusSrcAlpha 贴回 UI，并给只写 RGB 的加法光效补亮度覆盖，避免其融入金白色背景。
 Shader "Shenxiao/UI/StageComposite"
 {
     Properties
@@ -62,8 +59,13 @@ Shader "Shenxiao/UI/StageComposite"
 
             fixed4 frag(v2f i) : SV_Target
             {
-                // 直接输出,不再乘 alpha——预乘内容乘了就双重衰减/加法光被洗掉
-                return tex2D(_MainTex, i.texcoord) * i.color;
+                // RT 的 RGB 已经是预乘结果，不能再乘 alpha。纯加法材质通常只写 RGB、几乎不写 Alpha；
+                // 若直接透传，在金白色背景上会被背景亮度吞掉。用自身亮度补一个软覆盖，同时保留原始 Alpha，
+                // 让光效在亮底仍有轮廓，角色本体和普通透明材质的既有遮罩语义保持不变。
+                fixed4 color = tex2D(_MainTex, i.texcoord) * i.color;
+                fixed brightnessCoverage = saturate(max(color.r, max(color.g, color.b)));
+                color.a = max(color.a, brightnessCoverage);
+                return color;
             }
             ENDCG
         }
