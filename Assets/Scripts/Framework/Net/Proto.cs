@@ -3166,6 +3166,14 @@
         /// pp_custom_act.erl:632-639)且 33101 列表层整体过滤 HI_POINT(lib_custom_act.erl:2314 起)——
         /// **P5 只注册防御 recv,不提供发送方法**。</summary>
         public const int CUSTOM_ACT_HI_POINT_INFO = 33140;
+        /// <summary>嗨点活动表。C2S 严格空帧；S2C 为有序完整活动列表。</summary>
+        public const int HI_POINT_ACTIVITY_LIST = 33300;
+        /// <summary>嗨点键控完整明细。C2S base_type:u16,sub_type:u16。</summary>
+        public const int HI_POINT_DETAIL = 33302;
+        /// <summary>嗨点键控完整奖励状态。C2S base_type:u16,sub_type:u16。</summary>
+        public const int HI_POINT_REWARD_STATUS = 33303;
+        /// <summary>嗨点进度推送。S2C-only；原始增量按活动键保存并合并已加载明细。</summary>
+        public const int HI_POINT_PROGRESS_PUSH = 33305;
         /// <summary>嗨点家族统一错误出口。无 C2S；S2C(pt_333): error_code:u32。</summary>
         public const int HI_POINT_ERROR = 33306;
         public const int CUSTOM_ACT_MARRIAGE_ACT_INFO = 33115;   // 完美情缘(actMarriage=25):Code开头+WeddingTypeList;C2S "hc" SubType,Opr(固定1)
