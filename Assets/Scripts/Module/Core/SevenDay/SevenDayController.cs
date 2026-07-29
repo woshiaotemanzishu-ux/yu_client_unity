@@ -13,7 +13,7 @@ namespace Shenxiao.Module.Core.SevenDay
     /// (对标老端 frist_open_view:GetOpenType(act)==icon 对应 key 则加,否则删)。
     /// 等级变化(EVT_ROLE_INFO_UPDATE)时复请求 17500/17502(对标老端 CHANGE_LEVEL→LevelChange,
     /// 让等级到 open_lv 后图标及时出现),用 _lastLevel 去抖(该事件亦随经验/货币触发)。
-    /// 本期只做图标,面板/领奖(17501/17503)待用户验收。
+    /// 当前只做图标；17501/17503 会真实发奖并持久化领取态，精确日档/配置/页面/奖励链未完整迁移前保持无常量、无注册、无发送。
     /// </summary>
     public sealed class SevenDayController : BaseController
     {

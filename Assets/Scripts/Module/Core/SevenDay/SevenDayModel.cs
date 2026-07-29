@@ -8,7 +8,7 @@ namespace Shenxiao.Module.Core.SevenDay
     /// 老端 icon 映射:openType "0@0"→175、"0@1"→175@8、"1@0"→175_1(iconToType 反向)。
     /// openType(act_type)=该 act_type 下「仍有未领奖励(status&lt;2)的最小 day 分组」= act_type@day_type;
     /// 全部领完则无(-1)。某图标显示当且仅当其对应 openType 命中(对标老端 frist_open_view)。
-    /// 面板/领奖(17501/17503)等 UI 待用户验收,本期只做图标。
+    /// 只保存图标派生态，不足以安全校验日档领奖；17501/17503 真实发奖事务须与精确状态、配置和页面整链迁移。
     /// </summary>
     public sealed class SevenDayModel
     {
