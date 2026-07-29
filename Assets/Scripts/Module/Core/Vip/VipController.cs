@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
@@ -6,13 +7,17 @@ using Shenxiao.Framework.Util;
 namespace Shenxiao.Module.Core.Vip
 {
     /// <summary>
-    /// 充值商品状态控制器。15800/15801 只更新充值数据，实际入口使用 MainUITopView 的固定充值按钮。
+    /// 充值商品与福利卡只读状态控制器。15800/15801 只更新充值数据，实际入口使用 MainUITopView 的固定充值按钮；
+    /// 15901 仅提供显式福利卡列表查询，不接入口、红点或领奖行为。
     /// 老客户端虽把 158@0/158@3 写入 ActivityIconManager，但 location_type=7 没有任何 View 消费；
     /// Unity 不再把这两个历史死入口注册进 HudActivity，避免与顶部固定入口重复显示。
     /// </summary>
     public sealed class VipController : BaseController
     {
         public static readonly VipController Instance = new VipController();
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_welfareCardOutboundIntercept = null;
+#endif
 
         private VipController() { }
 
@@ -20,9 +25,10 @@ namespace Shenxiao.Module.Core.Vip
         {
             RegisterProtocal(Proto.RECHARGE_PRODUCT_LIST, On15800);
             RegisterProtocal(Proto.RECHARGE_PRODUCT_UPDATE, On15801);
+            RegisterProtocal(Proto.WELFARE_CARD_LIST, On15901);
             // 对标老端 VipController.ts:532-534:DAY_CHANGE→ResetData()复发 45000/45004/15800/15901/15803。
-            // 本类现只是充值图标切片(15800/15801),45000/45004/15901/15803 均未落地(无 Proto 常量/处理器,
-            // 越权新增不在本包范围内)——照接事件骨架,只复发本类已有的 15800,其余四个协议留 todos_left。
+            // 本类现仅落地充值图标切片(15800/15801)和显式福利卡快照(15901)。
+            // 受控范围不复刻老端 DAY_CHANGE 的15901；事件仍只复发15800，45000/45004/15803留待各自闭环。
             EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
         }
 
@@ -36,6 +42,15 @@ namespace Shenxiao.Module.Core.Vip
         public void RequestRechargeProducts()
         {
             SendFmt(Proto.RECHARGE_PRODUCT_LIST);
+        }
+
+        public void RequestWelfareCards()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.WELFARE_CARD_LIST, null, null);
+            if (s_welfareCardOutboundIntercept != null && s_welfareCardOutboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.WELFARE_CARD_LIST);
         }
 
         private void OnServerDayChange() => RequestRechargeProducts();
@@ -61,6 +76,19 @@ namespace Shenxiao.Module.Core.Vip
             int returnType = r.ReadU8();
             VipModel.Instance.SetRechargeOneProduct(productId, returnType);
             GameLog.Info("Vip", "15801 recharge product changed: productId={0} returnType={1}", productId, returnType);
+        }
+
+        private void On15901(NetReader r)
+        {
+            int count = r.ReadU16();
+            var cards = new List<VipModel.WelfareCard>(count);
+            for (int i = 0; i < count; i++)
+            {
+                cards.Add(new VipModel.WelfareCard(r.ReadU32(), r.ReadU32(), r.ReadU32(), r.ReadU8(), r.ReadU16()));
+            }
+
+            VipModel.Instance.ReplaceWelfareCards(cards);
+            GameLog.Info("Vip", "15901 welfare cards: {0}", count);
         }
     }
 }

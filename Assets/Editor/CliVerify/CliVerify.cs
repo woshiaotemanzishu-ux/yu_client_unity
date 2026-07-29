@@ -800,6 +800,10 @@ namespace Shenxiao.EditorTools
         {
             Run(HolySealCase.Run, 60.0);
         }
+        public static void VipWelfareCard()
+        {
+            Run(VipWelfareCardCase.Run, 60.0);
+        }
         public static void JjcRecords()
         {
             Run(JjcRecordsCase.Run, 60.0);
