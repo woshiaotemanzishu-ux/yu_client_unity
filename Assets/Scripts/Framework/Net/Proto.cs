@@ -3195,7 +3195,7 @@
         // 骨架轮(P0)只落协议常量+wire摘要,业务/UI留 PK1-PK5 各包实现;侦察材料见
         // scratchpad spec_cheapwins_round18.md + r18_oldclient_cheapwins.md + r18_unity_cheapwins.md,
         // erl 行号已按本轮实读 yu_server/src/pt/pt_{440,514,513,339,188,194,417,193,120}.erl 原文核对
-        // (非抄侦察稿估读)。§1 死号(33903/33905/41702/41706/41710-41714/41717/41718/15104/15105/
+        // (非抄侦察稿估读)。§1 排除号(33903/33905/41702/41706/41710-41714/41717/41718/15104/15105/
         // 12089/12091/12024消费侧空转/18802 type96&&subtype==2 禁发/51303 禁发/51302 无回包/19405 无回执)
         // 严禁在此新增常量或改动既有寄存;交叉见各常量注释断言。
 
@@ -3289,8 +3289,9 @@
         /// 回包 ClickList[u16×{FairyId:32,Times:8}]。</summary>
         public const int FAIRYWISH_CLICK_PUSH = 51303;
 
-        // ---- PK2 三小合包:RedPacket 公会红包(339xx,pt_339.erl;7 号活,33903/33905 死号不注册
-        //        [老端零调用+handler 读体存在但业务空转,r18_oldclient_cheapwins §3 实证]) ----
+        // ---- PK2 三小合包:RedPacket 公会红包(339xx,pt_339.erl;7 号已接) ----
+        // 33903 服务端查询链存活，但老端无发送点且 handler 解包后直接丢弃；33905 是会扣真实道具、创建红包的
+        // 存活写事务，但老端只有结果 handler、无任何发送点。两号均按玩家可达行为排除，严禁注册或为覆盖率复活。
         /// <summary>339 通用错误码(纯推送)。pt_339.erl:33-39:客户端严禁发;回包 Errcode:32。</summary>
         public const int REDPACKET_ERROR = 33900;
         /// <summary>红包列表(RedPacketMainView.ts:94;33904/33906 成功后回补)。pt_339.erl:8,41-63:发空;

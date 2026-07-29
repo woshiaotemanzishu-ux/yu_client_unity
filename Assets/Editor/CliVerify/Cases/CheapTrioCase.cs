@@ -8,7 +8,8 @@ namespace Shenxiao.EditorTools
 {
     /// <summary>
     /// Halo(514xx)+FairyWish(513xx)+RedPacket(339xx)三小合包实证(自动循环 轮18 PK2)。反射喂包驱动三个
-    /// Controller 的私有 On 处理体,断言 Model 落地字段/事件 + 注册线(含死号 33903/33905 严禁注册的负向核实)
+    /// Controller 的私有 On 处理体,断言 Model 落地字段/事件 + 注册线(含 33903 空消费、33905 老端不可达事务
+    /// 严禁注册的负向核实)
     /// + config 计数。纯逻辑用例(无壳渲染/截图),复用 CliVerify.Stage/Pkt(均已 public),不改 CliVerify.cs
     /// 本体(主控统一接 RenderAll)。独立文件避免多代理改 CliVerify.cs 冲突。日志前缀统一 "CLIVERIFY cheaptrio"。
     /// </summary>
@@ -249,7 +250,7 @@ namespace Shenxiao.EditorTools
             var baseCtrl = (Shenxiao.Framework.Net.BaseController)ctrl;
             if (!baseCtrl.IsInitialized) baseCtrl.Init();
 
-            // 正向注册线 + 负向核实(33903/33905 死号严禁注册,本轮 spec 重点关切项)。
+            // 正向注册线 + 负向核实(33903 空消费、33905 老端不可达写事务均严禁注册)。
             bool regOk = CheckRegistered("redpacket", new[]
             {
                 Shenxiao.Framework.Net.Proto.REDPACKET_ERROR, Shenxiao.Framework.Net.Proto.REDPACKET_LIST,

@@ -336,6 +336,18 @@
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
   {
+    "cmd": 33903,
+    "reason": "dead_empty_body",
+    "evidence": "h5/src/commonController/RedPacketController.ts:78-80,151(全 h5/src 无 C2S 发送点);yu_server/src/red_envelopes/pp_red_envelopes.erl:44-53;yu_server/src/pt/pt_339.erl:13-16,114-126",
+    "note": "红包拆分数量信息查询的服务端链和 5 字节结果包均存活，但老端没有发送入口，注册的 on33903 只 GetSCMD 后立即结束，不保存、不发事件、不渲染。按玩家行为事实源判 dead_empty_body；Unity 不注册、不请求、不建立无消费者快照。R482 复核。"
+  },
+  {
+    "cmd": 33905,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/RedPacketController.ts:92-100,153(全 h5/src 只有接收/注册，无 C2S 发送点);yu_server/src/red_envelopes/pp_red_envelopes.erl:67-110;yu_server/src/pt/pt_339.erl:21-25,136-142",
+    "note": "使用红包道具发送红包是存活写事务：服务端校验公会/配置/次数与拆分数，删除真实道具，创建红包并增加日计数。老端虽保留结果 handler，却没有任何玩家可达的发送入口；Unity 严禁为覆盖率复活该交易，也不得只接回执、乐观扣物或本地造红包。R482 复核。"
+  },
+  {
     "cmd": 39931,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/MiniGameController.ts:353",
