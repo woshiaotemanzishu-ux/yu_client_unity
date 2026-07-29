@@ -1947,6 +1947,8 @@
 
         /// <summary>祈愿家族统一错误出口。无 C2S；S2C(pt_415): errcode:u32。</summary>
         public const int PRAY_ERROR = 41500;
+        /// <summary>祈愿状态显式查询。C2S 空包；S2C: u16×{type:u8,remain_times:u8,free_times:u8,endtime:u32}。</summary>
+        public const int PRAY_INFO = 41501;
 
         // ----- 薄增量六件套(第20轮工单;详见 Docs/工单-薄增量六件套.md) -----
         /// <summary>OutWard 通用一键升星(type_id∉{1,2}:3翼影/4圣器/5神兵;发 "c" type_id;
