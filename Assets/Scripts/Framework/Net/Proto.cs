@@ -1831,6 +1831,28 @@
         /// <summary>下一波怪物生成时间(进副本场景固定三连之一,对标老端 mod_dungeon:get_next_wave_time)。
         /// 无 send 字段,裸发;回包 wave_num:i, time:i。</summary>
         public const int DUNGEON_NEXT_WAVE_TIME = 61030;
+        /// <summary>结社守卫累计击杀数。C2S 严格空包；S2C kill_count:u32。查询无回包时保留旧值，
+        /// 服务端推送与查询回包均整体替换该绝对值。</summary>
+        public const int DUNGEON_GUILD_GUARD_KILL_COUNT = 61031;
+        /// <summary>结社守卫伤害榜。C2S 严格空包；S2C my_rank:u8,my_hurt:u64,
+        /// rank_list[u16×{role_id:u64,role_name:string,hurt_value:u64}]。每包完整替换，保留榜单 wire 顺序和重复角色。</summary>
+        public const int DUNGEON_GUILD_GUARD_DAMAGE_RANK = 61032;
+        /// <summary>结社守卫单怪血量增量（S2C-only）：auto_id:u32,mon_type_id:u32,hp:u64,hp_limit:u64。
+        /// 按 auto_id 替换当前 61034 表首个同键项，未知键追加；不公开客户端请求。</summary>
+        public const int DUNGEON_GUILD_GUARD_BOSS_HP_PUSH = 61033;
+        /// <summary>结社守卫怪物血量全表。C2S 严格空包；S2C
+        /// object_list[u16×{auto_id:u32,mon_type_id:u32,hp:u64,hp_limit:u64}]。每包整表替换，空表也是已加载状态。</summary>
+        public const int DUNGEON_GUILD_GUARD_BOSS_HP = 61034;
+        /// <summary>结社守卫波次全表。C2S 严格空包；S2C dun_id:u32,
+        /// wave_list[u16×{wave_type:u16,wave_type_args:string,wave_subtype:u16,cycle_num:u16,
+        /// max_cycle_num:u16,next_wave_time:u32}]。按返回 dun_id 保存有序完整快照。</summary>
+        public const int DUNGEON_GUILD_GUARD_WAVE_INFO = 61035;
+        /// <summary>副本内累计获得经验。C2S dun_id:u32；S2C dun_id:u32,exp:u64。
+        /// 按返回 dun_id 保存绝对值；服务端可能在经验变化时主动推送。</summary>
+        public const int DUNGEON_ACCUMULATED_EXP = 61041;
+        /// <summary>副本额外奖励状态。C2S dun_type:u8；S2C dun_type:u8,
+        /// dun_list[u16×{dun_id:u32,reward_type:u8,reward_status:u8}]。按返回类型整表替换，保留 wire 顺序与重复项。</summary>
+        public const int DUNGEON_EXTRA_REWARD_INFO = 61042;
         /// <summary>经验副本面板信息。C2S 旧端无发送；S2C kill_num:u16,exp:u64，由服务端进度变化主动推送。</summary>
         public const int DUNGEON_EXP_PANEL = 61044;
         /// <summary>副本冷却时间查询(经验副本入口与倒计时归零时使用)。发 "i"(dun_id);
@@ -1928,11 +1950,10 @@
         // 61006(事件触发)/61014(剧情播放列表)/61016(结算界面2关卡)/61017(跳过副本)/61024(副本可用性)/
         //   61027(副本重置):服务端全活,但老端 h5/src 全树零引用(无注册无发送),UNUSED 不移植。
         //   61024 被 61121+61042+前端本地算取代;61014 被单条 61009 取代;61016 配套的 61015 同样零引用。
-        // 61028(按类型批量扫荡):老端 registered 但无任何 UI 触达路径,被 61120+61121 取代的死协议,不移植。
-        // 61012/61029/61057/61060/61099(610段)+61119(611段):服务端 DEAD(write 调用点全被注释/handle 直接 skip,
-        //   照 r9_server §DEAD 清单),双向皆死不移植。
-        // 61031-61041:守卫公会本(GuildGuard)专属(击杀数/伤害榜/怪物血量/波数/摘要),老端注册在
-        //   GuildController.ts 非 BaseDungeonController——归公会包,本轮不碰。
+        // 61028(按类型批量扫荡):服务端仍会扣次数/扫荡券并发奖，属于资产交易，不能按历史“已替代”注释误判为死号。
+        // 61012/61029/61099(610段)+61119(611段):服务端 DEAD，不移植。61057 老端空 handler 且无 writer 调用，
+        // 61060 唯一 writer 调用已注释，61093 虽有活服推送但老端 handler/唯一消费均为空或注释，三者见 killlist 的 R504 裁决。
+        // 61031-61035/61041 已在 R504 以只读原始快照接入；不迁移守卫 UI、事件、配置、红点、战斗或场景逻辑。
         // 61112/61114/61116:灵魄本(Rune)专属奖励系统(通用奖励领取+符文每日奖励/解锁),
         //   非"塔"——归灵魄奖励包；61113/61115 仅接只读原始状态快照。
         /// <summary>灵魄副本奖励状态快照。C2S dun_type:u8；S2C dun_type:u8,dun_list:u16×{dun_id:u32,reward_type:u8,reward_status:u8}。</summary>

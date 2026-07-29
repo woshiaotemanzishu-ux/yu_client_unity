@@ -21,6 +21,8 @@ namespace Shenxiao.Module.Core.Dungeon
     /// 61045 冷却时间/61046 邀请发送者原始消息/61048 双方邀请状态/61050 神纹最佳记录/61051 阶段奖励领取情况/
     /// 61053 快速出怪权威状态/61055 临时技能数量/61058 跳关奖励通知/61059 高级经验波数面板/
     /// 61061 高级经验跳关进入通知/61062 副本开关设置/
+    /// R504 只读续接:61031/32 击杀与伤害榜、61033/34 守卫怪物血量增量/全表、61035 波次、
+    /// 61041 累计经验、61042 额外奖励状态；均不派生公会 UI、事件、配置、红点、战斗或场景行为。
     /// 61120·61121 资源本一键与次数。
     /// 周本(50801/50802)是独立数据线,见 <see cref="PolarModel"/>——勿塞进 DunStatesByType(r9 侦察结论)。
     /// </summary>
@@ -148,6 +150,121 @@ namespace Shenxiao.Module.Core.Dungeon
         public bool HasExpDungeonInfo { get; private set; }
         public ushort ExpDungeonKillCount { get; private set; }
         public ulong ExpDungeonTotalExp { get; private set; }
+
+        // ===================================================================================
+        // R504 61031/32/33/34/35/41/42：结社守卫与副本只读续接
+        // ===================================================================================
+
+        /// <summary>61031 全零仍是已加载绝对值。</summary>
+        public bool HasGuildGuardKillCount { get; private set; }
+        public uint GuildGuardKillCount { get; private set; }
+
+        public sealed class GuildGuardDamageRankEntry
+        {
+            public ulong RoleId { get; }
+            public string RoleName { get; }
+            public ulong HurtValue { get; }
+
+            public GuildGuardDamageRankEntry(ulong roleId, string roleName, ulong hurtValue)
+            {
+                RoleId = roleId;
+                RoleName = roleName ?? string.Empty;
+                HurtValue = hurtValue;
+            }
+        }
+
+        public sealed class GuildGuardDamageRankSnapshot
+        {
+            public bool Loaded { get; internal set; }
+            public byte MyRank { get; internal set; }
+            public ulong MyHurt { get; internal set; }
+            public IReadOnlyList<GuildGuardDamageRankEntry> RankList { get; internal set; } =
+                new List<GuildGuardDamageRankEntry>().AsReadOnly();
+        }
+
+        /// <summary>61032 单份完整快照；null 表示从未收到。</summary>
+        public GuildGuardDamageRankSnapshot GuildGuardDamageRank { get; private set; }
+
+        public sealed class GuildGuardBossHpEntry
+        {
+            public uint AutoId { get; }
+            public uint MonTypeId { get; }
+            public ulong Hp { get; }
+            public ulong HpLimit { get; }
+
+            public GuildGuardBossHpEntry(uint autoId, uint monTypeId, ulong hp, ulong hpLimit)
+            {
+                AutoId = autoId;
+                MonTypeId = monTypeId;
+                Hp = hp;
+                HpLimit = hpLimit;
+            }
+        }
+
+        /// <summary>61034 是否已收到全表，或 61033 是否已建立增量表；空表也保持 true。</summary>
+        public bool HasGuildGuardBossHp { get; private set; }
+        public IReadOnlyList<GuildGuardBossHpEntry> GuildGuardBossHp { get; private set; } =
+            new List<GuildGuardBossHpEntry>().AsReadOnly();
+
+        public sealed class GuildGuardWaveEntry
+        {
+            public ushort WaveType { get; }
+            public string WaveTypeArgs { get; }
+            public ushort WaveSubtype { get; }
+            public ushort CycleNum { get; }
+            public ushort MaxCycleNum { get; }
+            public uint NextWaveTime { get; }
+
+            public GuildGuardWaveEntry(ushort waveType, string waveTypeArgs, ushort waveSubtype,
+                ushort cycleNum, ushort maxCycleNum, uint nextWaveTime)
+            {
+                WaveType = waveType;
+                WaveTypeArgs = waveTypeArgs ?? string.Empty;
+                WaveSubtype = waveSubtype;
+                CycleNum = cycleNum;
+                MaxCycleNum = maxCycleNum;
+                NextWaveTime = nextWaveTime;
+            }
+        }
+
+        public sealed class GuildGuardWaveSnapshot
+        {
+            public bool Loaded { get; internal set; }
+            public IReadOnlyList<GuildGuardWaveEntry> WaveList { get; internal set; } =
+                new List<GuildGuardWaveEntry>().AsReadOnly();
+        }
+
+        /// <summary>61035 按服务端回显 dun_id 分桶；同键整表替换。</summary>
+        public readonly Dictionary<uint, GuildGuardWaveSnapshot> GuildGuardWavesByDunId =
+            new Dictionary<uint, GuildGuardWaveSnapshot>();
+
+        /// <summary>61041 按服务端返回 dun_id 保存；TryGet 区分真实 0 与未加载。</summary>
+        public readonly Dictionary<uint, ulong> AccumulatedExpByDunId = new Dictionary<uint, ulong>();
+
+        public sealed class ExtraRewardEntry
+        {
+            public uint DunId { get; }
+            public byte RewardType { get; }
+            public byte RewardStatus { get; }
+
+            public ExtraRewardEntry(uint dunId, byte rewardType, byte rewardStatus)
+            {
+                DunId = dunId;
+                RewardType = rewardType;
+                RewardStatus = rewardStatus;
+            }
+        }
+
+        public sealed class ExtraRewardSnapshot
+        {
+            public bool Loaded { get; internal set; }
+            public IReadOnlyList<ExtraRewardEntry> DunList { get; internal set; } =
+                new List<ExtraRewardEntry>().AsReadOnly();
+        }
+
+        /// <summary>61042 按服务端返回 dun_type 分桶；同键整表替换，空表仍 Loaded。</summary>
+        public readonly Dictionary<byte, ExtraRewardSnapshot> ExtraRewardsByDunType =
+            new Dictionary<byte, ExtraRewardSnapshot>();
 
         /// <summary>是否实际收到过 61046 发送者消息；不代表邀请成功或完成。</summary>
         public bool HasInviteResponse { get; private set; }
@@ -356,6 +473,94 @@ namespace Shenxiao.Module.Core.Dungeon
             HasExpDungeonInfo = true;
             ExpDungeonKillCount = killCount;
             ExpDungeonTotalExp = totalExp;
+        }
+
+        public void ApplyGuildGuardKillCount(uint killCount)
+        {
+            HasGuildGuardKillCount = true;
+            GuildGuardKillCount = killCount;
+        }
+
+        public void ApplyGuildGuardDamageRank(byte myRank, ulong myHurt,
+            List<GuildGuardDamageRankEntry> rankList)
+        {
+            GuildGuardDamageRank = new GuildGuardDamageRankSnapshot
+            {
+                Loaded = true,
+                MyRank = myRank,
+                MyHurt = myHurt,
+                RankList = new List<GuildGuardDamageRankEntry>(rankList ??
+                    new List<GuildGuardDamageRankEntry>()).AsReadOnly(),
+            };
+        }
+
+        public void ApplyGuildGuardBossHp(List<GuildGuardBossHpEntry> entries)
+        {
+            HasGuildGuardBossHp = true;
+            GuildGuardBossHp = new List<GuildGuardBossHpEntry>(entries ??
+                new List<GuildGuardBossHpEntry>()).AsReadOnly();
+        }
+
+        /// <summary>镜像服务端 lists:keystore(AutoId,1,...):替换首个同 auto_id 项，未知键追加到末尾。</summary>
+        public void ApplyGuildGuardBossHpPatch(GuildGuardBossHpEntry entry)
+        {
+            if (entry == null) return;
+            var copy = new List<GuildGuardBossHpEntry>(GuildGuardBossHp ??
+                new List<GuildGuardBossHpEntry>());
+            int index = -1;
+            for (int i = 0; i < copy.Count; i++)
+            {
+                if (copy[i].AutoId != entry.AutoId) continue;
+                index = i;
+                break;
+            }
+            if (index >= 0) copy[index] = entry;
+            else copy.Add(entry);
+            HasGuildGuardBossHp = true;
+            GuildGuardBossHp = copy.AsReadOnly();
+        }
+
+        public void ApplyGuildGuardWaves(uint dunId, List<GuildGuardWaveEntry> waves)
+        {
+            GuildGuardWavesByDunId[dunId] = new GuildGuardWaveSnapshot
+            {
+                Loaded = true,
+                WaveList = new List<GuildGuardWaveEntry>(waves ??
+                    new List<GuildGuardWaveEntry>()).AsReadOnly(),
+            };
+        }
+
+        public bool TryGetGuildGuardWaves(uint dunId, out GuildGuardWaveSnapshot snapshot) =>
+            GuildGuardWavesByDunId.TryGetValue(dunId, out snapshot);
+
+        public void ApplyAccumulatedExp(uint dunId, ulong exp) => AccumulatedExpByDunId[dunId] = exp;
+
+        public bool TryGetAccumulatedExp(uint dunId, out ulong exp) =>
+            AccumulatedExpByDunId.TryGetValue(dunId, out exp);
+
+        public void ApplyExtraRewardInfo(byte dunType, List<ExtraRewardEntry> entries)
+        {
+            ExtraRewardsByDunType[dunType] = new ExtraRewardSnapshot
+            {
+                Loaded = true,
+                DunList = new List<ExtraRewardEntry>(entries ??
+                    new List<ExtraRewardEntry>()).AsReadOnly(),
+            };
+        }
+
+        public bool TryGetExtraRewardInfo(byte dunType, out ExtraRewardSnapshot snapshot) =>
+            ExtraRewardsByDunType.TryGetValue(dunType, out snapshot);
+
+        public void ClearDungeonReadContinuationState()
+        {
+            HasGuildGuardKillCount = false;
+            GuildGuardKillCount = 0;
+            GuildGuardDamageRank = null;
+            HasGuildGuardBossHp = false;
+            GuildGuardBossHp = new List<GuildGuardBossHpEntry>().AsReadOnly();
+            GuildGuardWavesByDunId.Clear();
+            AccumulatedExpByDunId.Clear();
+            ExtraRewardsByDunType.Clear();
         }
 
         public void ApplyInviteResponse(string message)
@@ -783,6 +988,7 @@ namespace Shenxiao.Module.Core.Dungeon
             HasExpDungeonInfo = false;
             ExpDungeonKillCount = 0;
             ExpDungeonTotalExp = 0;
+            ClearDungeonReadContinuationState();
             HasInviteResponse = false;
             InviteResponseMessage = null;
             HasInviteState = false;

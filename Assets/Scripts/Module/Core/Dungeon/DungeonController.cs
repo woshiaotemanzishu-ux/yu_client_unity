@@ -33,8 +33,9 @@ namespace Shenxiao.Module.Core.Dungeon
     ///      50801·50802 周本(独立 PolarModel 数据线)。
     ///   发送封装:61010 剧情事件("iic",老端 StoryController 直发序,勿抄 BaseDungeonController 死分支 ilc)。
     ///   跳过:61006/61014/61015/61016/61017/61024/61027(老端 h5/src 全树零引用 UNUSED)、
-    ///      61028(被 61120+61121 取代的死协议)、61012/61029/61057/61060/61099/61119(服务端 DEAD)、
-    ///      61031-41(守卫公会本,归公会包)、61112-16(灵魄本奖励系统,记灵魄包)、61118(限时爬塔二期)、
+    ///      61028/61043/61052/61054/61056/61090(资产、次数、战斗或交互操作,待完整业务链)、
+    ///      61012/61029/61057/61060/61091/61093/61099/61119(服务端 DEAD 或既有 killlist)、
+    ///      61112-16(灵魄本奖励系统)、
     ///      50805(周本专属结算推送,DungeonPolarBalance 面板未移植,TODO 周本二期)。
     ///   连锁:61001 成功→按类型乐观计数/Equip·Dragon 补发 61020/非 loading 类型补发 61004;
     ///      61003·61020 →补发 61121(对标老端 RequestDungeonNum);GAME_START/等级变化/任务推进→
@@ -52,6 +53,8 @@ namespace Shenxiao.Module.Core.Dungeon
     /// 轮248 补 61065 入场自动鼓舞 S2C 权威计数，复用 61026 被动状态语义。
     /// 轮250 补 61088 周本特殊信息显式查询与按 dun_id 原始整包快照，不解析或合并 term。
     /// 轮251 补 61089 伴侣副本答题 S2C 原始状态，不派生 UI、倒计时或答案逻辑。
+    /// R504 补 61031/32/33/34/35/41/42 结社守卫与副本额外奖励只读原始状态；显式查询不挂
+    /// GAME_START/场景/公会入口，61033 只接受服务端推送，不派生 UI、事件、配置、红点或战斗行为。
     /// </summary>
     public sealed class DungeonController : BaseController
     {
@@ -70,6 +73,7 @@ namespace Shenxiao.Module.Core.Dungeon
         private static Func<byte[], bool> s_dungeonSettingInfoOutboundIntercept = null;
         private static Func<byte[], bool> s_dungeonSettingUpdateOutboundIntercept = null;
         private static Func<byte[], bool> s_polarSpecialInfoOutboundIntercept = null;
+        private static Func<byte[], bool> s_dungeonReadContinuationOutboundIntercept = null;
 #endif
 
         private DungeonController() { }
@@ -118,6 +122,13 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_INSPIRIT, On61025);
             RegisterProtocal(Proto.DUNGEON_INSPIRIT_STATE, On61026);
             RegisterProtocal(Proto.DUNGEON_NEXT_WAVE_TIME, On61030);
+            RegisterProtocal(Proto.DUNGEON_GUILD_GUARD_KILL_COUNT, On61031);
+            RegisterProtocal(Proto.DUNGEON_GUILD_GUARD_DAMAGE_RANK, On61032);
+            RegisterProtocal(Proto.DUNGEON_GUILD_GUARD_BOSS_HP_PUSH, On61033);
+            RegisterProtocal(Proto.DUNGEON_GUILD_GUARD_BOSS_HP, On61034);
+            RegisterProtocal(Proto.DUNGEON_GUILD_GUARD_WAVE_INFO, On61035);
+            RegisterProtocal(Proto.DUNGEON_ACCUMULATED_EXP, On61041);
+            RegisterProtocal(Proto.DUNGEON_EXTRA_REWARD_INFO, On61042);
             RegisterProtocal(Proto.DUNGEON_EXP_PANEL, On61044);
             RegisterProtocal(Proto.DUNGEON_COOLDOWN, On61045);
             RegisterProtocal(Proto.DUNGEON_RESOURCE_ONEKEY, On61120);
@@ -271,6 +282,63 @@ namespace Shenxiao.Module.Core.Dungeon
 
         /// <summary>请求下一波怪物时间 61030(裸发,无参)。</summary>
         public void RequestNextWaveTime() => SendFmt(Proto.DUNGEON_NEXT_WAVE_TIME);
+
+        private static bool TryInterceptDungeonReadContinuation(int command, string format,
+            params object[] args)
+        {
+#if UNITY_EDITOR
+            if (s_dungeonReadContinuationOutboundIntercept != null)
+            {
+                byte[] frame = string.IsNullOrEmpty(format)
+                    ? UserMsgAdapter.Encode(command, null, null)
+                    : UserMsgAdapter.Encode(command, format, args);
+                if (s_dungeonReadContinuationOutboundIntercept(frame)) return true;
+            }
+#endif
+            return false;
+        }
+
+        /// <summary>显式查询结社守卫累计击杀数；严格空包，不挂生命周期或场景入口。</summary>
+        public void RequestGuildGuardKillCount()
+        {
+            if (TryInterceptDungeonReadContinuation(Proto.DUNGEON_GUILD_GUARD_KILL_COUNT, null)) return;
+            SendFmt(Proto.DUNGEON_GUILD_GUARD_KILL_COUNT);
+        }
+
+        /// <summary>显式查询结社守卫伤害榜；严格空包。</summary>
+        public void RequestGuildGuardDamageRank()
+        {
+            if (TryInterceptDungeonReadContinuation(Proto.DUNGEON_GUILD_GUARD_DAMAGE_RANK, null)) return;
+            SendFmt(Proto.DUNGEON_GUILD_GUARD_DAMAGE_RANK);
+        }
+
+        /// <summary>显式查询结社守卫怪物血量全表；严格空包。61033 不公开请求。</summary>
+        public void RequestGuildGuardBossHp()
+        {
+            if (TryInterceptDungeonReadContinuation(Proto.DUNGEON_GUILD_GUARD_BOSS_HP, null)) return;
+            SendFmt(Proto.DUNGEON_GUILD_GUARD_BOSS_HP);
+        }
+
+        /// <summary>显式查询结社守卫波次全表；严格空包。</summary>
+        public void RequestGuildGuardWaveInfo()
+        {
+            if (TryInterceptDungeonReadContinuation(Proto.DUNGEON_GUILD_GUARD_WAVE_INFO, null)) return;
+            SendFmt(Proto.DUNGEON_GUILD_GUARD_WAVE_INFO);
+        }
+
+        /// <summary>显式查询指定副本内累计获得经验；服务端按当前副本决定是否回包。</summary>
+        public void RequestAccumulatedExp(uint dunId)
+        {
+            if (TryInterceptDungeonReadContinuation(Proto.DUNGEON_ACCUMULATED_EXP, "i", dunId)) return;
+            SendFmt(Proto.DUNGEON_ACCUMULATED_EXP, "i", dunId);
+        }
+
+        /// <summary>显式查询指定副本类型的额外奖励状态；不触发领取或本地状态推导。</summary>
+        public void RequestExtraRewardInfo(byte dunType)
+        {
+            if (TryInterceptDungeonReadContinuation(Proto.DUNGEON_EXTRA_REWARD_INFO, "c", dunType)) return;
+            SendFmt(Proto.DUNGEON_EXTRA_REWARD_INFO, "c", dunType);
+        }
 
         /// <summary>查询指定副本的绝对冷却结束时间。0/最大 u32 均按 wire 原样发送。</summary>
         public void RequestCooldown(uint dunId)
@@ -904,6 +972,64 @@ namespace Shenxiao.Module.Core.Dungeon
             DungeonModel.Instance.SetNextWaveTime(waveNum, time);
             GameLog.Info("Dungeon", "61030 next wave num={0} time={1}", waveNum, time);
             EventDispatcher.Emit(GlobalEvent.EVT_DUNGEON_NEXT_WAVE, waveNum, time);
+        }
+
+        /// <summary>61031 结社守卫累计击杀绝对值；查询回包与主动推送语义一致。</summary>
+        private void On61031(NetReader r)
+        {
+            DungeonModel.Instance.ApplyGuildGuardKillCount(r.ReadU32());
+        }
+
+        /// <summary>61032 结社守卫伤害榜完整快照；不在模型层排序或去重。</summary>
+        private void On61032(NetReader r)
+        {
+            byte myRank = r.ReadU8();
+            ulong myHurt = unchecked((ulong)r.ReadU64());
+            List<DungeonModel.GuildGuardDamageRankEntry> rankList = r.ReadArray(rr =>
+                new DungeonModel.GuildGuardDamageRankEntry(
+                    unchecked((ulong)rr.ReadU64()), rr.ReadString(), unchecked((ulong)rr.ReadU64())));
+            DungeonModel.Instance.ApplyGuildGuardDamageRank(myRank, myHurt, rankList);
+        }
+
+        /// <summary>61033 单怪血量推送；镜像服务端按 auto_id 的首项替换/未知追加。</summary>
+        private void On61033(NetReader r)
+        {
+            DungeonModel.Instance.ApplyGuildGuardBossHpPatch(ReadGuildGuardBossHp(r));
+        }
+
+        /// <summary>61034 结社守卫怪物血量全表；空表也清旧并保持已加载。</summary>
+        private void On61034(NetReader r)
+        {
+            DungeonModel.Instance.ApplyGuildGuardBossHp(r.ReadArray(ReadGuildGuardBossHp));
+        }
+
+        private static DungeonModel.GuildGuardBossHpEntry ReadGuildGuardBossHp(NetReader r) =>
+            new DungeonModel.GuildGuardBossHpEntry(
+                r.ReadU32(), r.ReadU32(), unchecked((ulong)r.ReadU64()), unchecked((ulong)r.ReadU64()));
+
+        /// <summary>61035 结社守卫波次按返回 dun_id 完整替换。</summary>
+        private void On61035(NetReader r)
+        {
+            uint dunId = r.ReadU32();
+            List<DungeonModel.GuildGuardWaveEntry> waves = r.ReadArray(rr =>
+                new DungeonModel.GuildGuardWaveEntry(
+                    rr.ReadU16(), rr.ReadString(), rr.ReadU16(), rr.ReadU16(), rr.ReadU16(), rr.ReadU32()));
+            DungeonModel.Instance.ApplyGuildGuardWaves(dunId, waves);
+        }
+
+        /// <summary>61041 按回显 dun_id 保存副本累计经验；0 是合法绝对值。</summary>
+        private void On61041(NetReader r)
+        {
+            DungeonModel.Instance.ApplyAccumulatedExp(r.ReadU32(), unchecked((ulong)r.ReadU64()));
+        }
+
+        /// <summary>61042 按返回 dun_type 保存额外奖励状态完整表。</summary>
+        private void On61042(NetReader r)
+        {
+            byte dunType = r.ReadU8();
+            List<DungeonModel.ExtraRewardEntry> entries = r.ReadArray(rr =>
+                new DungeonModel.ExtraRewardEntry(rr.ReadU32(), rr.ReadU8(), rr.ReadU8()));
+            DungeonModel.Instance.ApplyExtraRewardInfo(dunType, entries);
         }
 
         /// <summary>61044 经验副本面板主动推送:kill_num:h,exp:l。</summary>
