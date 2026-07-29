@@ -1,50 +1,273 @@
+using System;
+using System.Collections.Generic;
 using Shenxiao.Framework.Util;
 
 namespace Shenxiao.Module.Core.KfHolyArea
 {
-    /// <summary>
-    /// 神陨禁区(跨服圣域)数据(对标老客户端 KfHolyAreaModel,模块 KfHolyAreaDefine.Module_Id=284)。
-    /// 本期只做主界面图标(284)显隐:承载 28410 下发的活动时间窗(act_start/act_end)。
-    /// 老端 RefreshIcon 用 GetOpenState()(配置 open_lv + 开服天窗 open_min/open_max + 每日时段)判显隐——
-    /// 那套阈值 Unity 侧尚未导入(config_c_sanctuary_type/kv),故图标的"等级/开服天"门槛改由 ActivityIconManager
-    /// 的图标配置(config_c_function_icon "284" 的 open_lv/open_day)在 AddIcon 时统一把控;
-    /// 本模型只承载服务端下发的"本期活动窗是否存在"这一驱动信号(act_end>0),对标 Festival 的 uid>0。
-    /// 场景/建筑/积分/排行/拍卖等玩法协议(28400-28423)与面板均未移植,待用户验收。
-    /// </summary>
+    /// <summary>神陨禁区284族原始读侧状态。所有列表保留服务器线序与重复项。</summary>
     public sealed class KfHolyAreaModel
     {
+        public sealed class ServerEntry
+        {
+            public uint ServerId { get; internal set; }
+            public ushort ServerNum { get; internal set; }
+            public string ServerName { get; internal set; }
+            public ushort OpenDay { get; internal set; }
+            public byte Camp { get; internal set; }
+        }
+
+        public sealed class OverviewSnapshot
+        {
+            public byte SanctuaryType { get; internal set; }
+            public IReadOnlyList<ServerEntry> Servers { get; internal set; }
+        }
+
+        public sealed class CampScoreEntry
+        {
+            public byte Camp { get; internal set; }
+            public ushort Score { get; internal set; }
+        }
+
+        public sealed class BossEntry
+        {
+            public uint BossId { get; internal set; }
+            public byte MonsterType { get; internal set; }
+            public ushort BossLevel { get; internal set; }
+            public uint RebornTime { get; internal set; }
+        }
+
+        public sealed class SceneRankEntry
+        {
+            public ulong PlayerId { get; internal set; }
+            public string RoleName { get; internal set; }
+            public uint ServerId { get; internal set; }
+            public ushort ServerNum { get; internal set; }
+            public uint Score { get; internal set; }
+            public ulong KillNum { get; internal set; }
+            public byte Rank { get; internal set; }
+        }
+
+        public sealed class BuildingSnapshot
+        {
+            public uint SceneId { get; internal set; }
+            public byte ConstructionType { get; internal set; }
+            public uint BelongCamp { get; internal set; }
+            public uint PreviousBelongCamp { get; internal set; }
+            public IReadOnlyList<CampScoreEntry> CampScores { get; internal set; }
+            public byte BelongRewardState { get; internal set; }
+            public ushort PersonCount { get; internal set; }
+            public IReadOnlyList<BossEntry> Bosses { get; internal set; }
+            public IReadOnlyList<SceneRankEntry> RankEntries { get; internal set; }
+
+            internal BuildingSnapshot WithRanks(byte belongCamp, IReadOnlyList<SceneRankEntry> ranks)
+            {
+                return new BuildingSnapshot
+                {
+                    SceneId = SceneId,
+                    ConstructionType = ConstructionType,
+                    BelongCamp = belongCamp,
+                    PreviousBelongCamp = PreviousBelongCamp,
+                    CampScores = CampScores,
+                    BelongRewardState = BelongRewardState,
+                    PersonCount = PersonCount,
+                    Bosses = Bosses,
+                    RankEntries = ranks
+                };
+            }
+        }
+
+        public sealed class BossDamageEntry
+        {
+            public uint ServerId { get; internal set; }
+            public ushort ServerNum { get; internal set; }
+            public string ServerName { get; internal set; }
+            public uint RoleId { get; internal set; }
+            public string Name { get; internal set; }
+            public ushort Hurt { get; internal set; }
+        }
+
+        public sealed class BossDamageSnapshot
+        {
+            public uint BossId { get; internal set; }
+            public IReadOnlyList<BossDamageEntry> Entries { get; internal set; }
+        }
+
+        public sealed class ScoreRewardEntry
+        {
+            public ushort ScoreConfig { get; internal set; }
+            public byte State { get; internal set; }
+        }
+
+        public sealed class ScoreSnapshot
+        {
+            public uint Score { get; internal set; }
+            public byte Cost { get; internal set; }
+            public ushort Anger { get; internal set; }
+            public IReadOnlyList<ScoreRewardEntry> Rewards { get; internal set; }
+        }
+
+        public sealed class OccupyEvent
+        {
+            public uint SceneId { get; internal set; }
+            public byte ConstructionType { get; internal set; }
+        }
+
+        public sealed class KillLogEntry
+        {
+            public uint ServerId { get; internal set; }
+            public uint ServerNum { get; internal set; }
+            public uint RoleId { get; internal set; }
+            public string RoleName { get; internal set; }
+            public uint Time { get; internal set; }
+        }
+
+        public sealed class KillLogSnapshot
+        {
+            public uint SceneId { get; internal set; }
+            public uint MonsterId { get; internal set; }
+            public IReadOnlyList<KillLogEntry> Entries { get; internal set; }
+        }
+
+        public sealed class BossRefreshEvent
+        {
+            public byte Code { get; internal set; }
+        }
+
+        public sealed class DeathFatigueSnapshot
+        {
+            public ushort DieTimes { get; internal set; }
+            public uint FreeReviveTime { get; internal set; }
+            public uint DebuffEndTime { get; internal set; }
+            public uint SafeTime { get; internal set; }
+        }
+
+        public sealed class BossLifeEvent
+        {
+            public uint BossId { get; internal set; }
+            public uint RebornTime { get; internal set; }
+        }
+
+        public sealed class ExitCountdownEvent
+        {
+            public uint OutTime { get; internal set; }
+        }
+
+        public sealed class SceneRankEvent
+        {
+            public uint SceneId { get; internal set; }
+            public byte Camp { get; internal set; }
+            public IReadOnlyList<SceneRankEntry> Entries { get; internal set; }
+        }
+
+        public sealed class RoleRankSnapshot
+        {
+            public ushort SceneId { get; internal set; }
+            public byte Rank { get; internal set; }
+            public ushort Score { get; internal set; }
+            public ushort KillScore { get; internal set; }
+        }
+
+        public sealed class BelongRefreshEvent
+        {
+            public ushort SceneId { get; internal set; }
+        }
+
         public static readonly KfHolyAreaModel Instance = new KfHolyAreaModel();
         private KfHolyAreaModel() { }
 
-        /// <summary>主界面图标类型(对标老端 KfHolyAreaDefine.Module_Id=284,神陨禁区,loc5)。</summary>
         public const string ICON_TYPE = "284";
 
-        // 28410 活动时间窗(对标老端 time_data = {act_start, act_end})
-        public long ActStart; // u32 Unix 秒
-        public long ActEnd;   // u32 Unix 秒(>0 表示本期神陨禁区已配置/开启)
+        private readonly Dictionary<uint, BuildingSnapshot> _buildings =
+            new Dictionary<uint, BuildingSnapshot>();
+        private readonly Dictionary<ulong, KillLogSnapshot> _killLogs =
+            new Dictionary<ulong, KillLogSnapshot>();
+        private readonly Dictionary<ushort, RoleRankSnapshot> _roleRanks =
+            new Dictionary<ushort, RoleRankSnapshot>();
 
-        /// <summary>写入 28410 下发的活动时间窗。</summary>
+        public long ActStart { get; private set; }
+        public long ActEnd { get; private set; }
+        public OverviewSnapshot Overview { get; private set; }
+        public IReadOnlyDictionary<uint, BuildingSnapshot> Buildings => _buildings;
+        public BossDamageSnapshot LastBossDamage { get; private set; }
+        public ScoreSnapshot Score { get; private set; }
+        public OccupyEvent LastOccupy { get; private set; }
+        public IReadOnlyDictionary<ulong, KillLogSnapshot> KillLogs => _killLogs;
+        public BossRefreshEvent LastBossRefresh { get; private set; }
+        public DeathFatigueSnapshot DeathFatigue { get; private set; }
+        public BossLifeEvent LastBossLife { get; private set; }
+        public ExitCountdownEvent LastExitCountdown { get; private set; }
+        public SceneRankEvent LastSceneRank { get; private set; }
+        public IReadOnlyDictionary<ushort, RoleRankSnapshot> RoleRanks => _roleRanks;
+        public BelongRefreshEvent LastBelongRefresh { get; private set; }
+
         public void SetActTime(long actStart, long actEnd)
         {
             ActStart = actStart;
             ActEnd = actEnd;
         }
 
-        /// <summary>
-        /// 入口开启状态(对标老端 GetOpenState() 的"活动本期在运行"这一支)。
-        /// 服务端 do_handle(28410):仅在开服天数 > 1 才 get_act_opentime 下发窗口,并在活动状态变化时广播 28410;
-        /// 故 act_end>0 即"本期神陨禁区已开启"的服务端驱动信号(对标 Festival 的 uid>0)。
-        /// 主角等级/开服天门槛由 ActivityIconManager 的图标配置(284)在 AddIcon 时另行把控,此处不重复计算。
-        /// </summary>
-        public bool GetEntranceOpenState()
+        public void ReplaceOverview(OverviewSnapshot value)
         {
-            return ActEnd > 0;
+            value.Servers = Freeze(value.Servers);
+            Overview = value;
         }
 
-        /// <summary>
-        /// 28410 下发的是当天 09:00~次日 02:00 的绝对活动窗。入口存在但尚未进入时段时不显示状态，
-        /// 当前时间落在服务端窗口内则显示运行态；文案通过 IconInfo 交给通用模板，不在 prefab 写死。
-        /// </summary>
+        public void ReplaceBuilding(BuildingSnapshot value)
+        {
+            value.CampScores = Freeze(value.CampScores);
+            value.Bosses = Freeze(value.Bosses);
+            value.RankEntries = Freeze(value.RankEntries);
+            _buildings[value.SceneId] = value;
+        }
+
+        public void ReplaceBossDamage(BossDamageSnapshot value)
+        {
+            value.Entries = Freeze(value.Entries);
+            LastBossDamage = value;
+        }
+
+        public void ReplaceScore(ScoreSnapshot value)
+        {
+            value.Rewards = Freeze(value.Rewards);
+            Score = value;
+        }
+
+        public void ReplaceOccupy(OccupyEvent value) => LastOccupy = value;
+
+        public void ReplaceKillLog(KillLogSnapshot value)
+        {
+            value.Entries = Freeze(value.Entries);
+            _killLogs[KillLogKey(value.SceneId, value.MonsterId)] = value;
+        }
+
+        public void ReplaceBossRefresh(BossRefreshEvent value) => LastBossRefresh = value;
+        public void ReplaceDeathFatigue(DeathFatigueSnapshot value) => DeathFatigue = value;
+        public void ReplaceBossLife(BossLifeEvent value) => LastBossLife = value;
+        public void ReplaceExitCountdown(ExitCountdownEvent value) => LastExitCountdown = value;
+
+        /// <summary>保存28421 raw，并只更新已加载的同场景28401；早包/未知场景不创建建筑。</summary>
+        public void ApplySceneRank(SceneRankEvent value)
+        {
+            value.Entries = Freeze(value.Entries);
+            LastSceneRank = value;
+            if (_buildings.TryGetValue(value.SceneId, out BuildingSnapshot building))
+                _buildings[value.SceneId] = building.WithRanks(value.Camp, value.Entries);
+        }
+
+        public void ReplaceRoleRank(RoleRankSnapshot value) => _roleRanks[value.SceneId] = value;
+        public void ReplaceBelongRefresh(BelongRefreshEvent value) => LastBelongRefresh = value;
+
+        public bool TryGetBuilding(uint sceneId, out BuildingSnapshot value) =>
+            _buildings.TryGetValue(sceneId, out value);
+
+        public bool TryGetKillLog(uint sceneId, uint monsterId, out KillLogSnapshot value) =>
+            _killLogs.TryGetValue(KillLogKey(sceneId, monsterId), out value);
+
+        public bool TryGetRoleRank(ushort sceneId, out RoleRankSnapshot value) =>
+            _roleRanks.TryGetValue(sceneId, out value);
+
+        public bool GetEntranceOpenState() => ActEnd > 0;
+
         public string GetIconStatusText()
         {
             long now = TimeUtil.NowSec();
@@ -55,6 +278,30 @@ namespace Shenxiao.Module.Core.KfHolyArea
         {
             ActStart = 0;
             ActEnd = 0;
+            Overview = null;
+            _buildings.Clear();
+            LastBossDamage = null;
+            Score = null;
+            LastOccupy = null;
+            _killLogs.Clear();
+            LastBossRefresh = null;
+            DeathFatigue = null;
+            LastBossLife = null;
+            LastExitCountdown = null;
+            LastSceneRank = null;
+            _roleRanks.Clear();
+            LastBelongRefresh = null;
+        }
+
+        private static ulong KillLogKey(uint sceneId, uint monsterId) =>
+            ((ulong)sceneId << 32) | monsterId;
+
+        private static IReadOnlyList<T> Freeze<T>(IReadOnlyList<T> source)
+        {
+            if (source == null || source.Count == 0) return Array.Empty<T>();
+            var copy = new T[source.Count];
+            for (int i = 0; i < source.Count; i++) copy[i] = source[i];
+            return Array.AsReadOnly(copy);
         }
     }
 }

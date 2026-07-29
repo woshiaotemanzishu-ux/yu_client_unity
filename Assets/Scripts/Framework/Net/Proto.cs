@@ -1069,16 +1069,39 @@
         public const int SEACRAFT_DAILY_KICK = 18714;
         /// <summary>各海域统治公会。C2S空包；S2C为有序全量。</summary>
         public const int SEACRAFT_DAILY_GUILDS = 18715;
-        public const int KFHOLYAREA_ACT_STATE = 28410; // 神陨禁区(跨服圣域)活动状态/时间窗——驱动主界面图标284。请求裸发 read(28410,_
-        /// <summary>神陨禁区"退出"错误出口(轮22 族错误出口批;对标老端 KfHolyAreaController.ts:272-275,
-        /// 无条件 ErrorCodeShow(code),无其它副作用)。回包(pp_c_sanctuary.erl:147-165;pt_284.erl
-        /// write(28407,[ErrCode])):code:i(成功/失败均回此号,老端也是无条件显码)。</summary>
+        /// <summary>神陨禁区服务器分组/模式有序全量。C2S严格空包。</summary>
+        public const int KFHOLYAREA_OVERVIEW = 28400;
+        /// <summary>神陨禁区指定场景建筑全量。C2S scene:u32，按回包scene键控。</summary>
+        public const int KFHOLYAREA_BUILDING = 28401;
+        /// <summary>神陨禁区指定Boss伤害榜。C2S scene:u32,boss_id:u32；S2C不回显scene。</summary>
+        public const int KFHOLYAREA_BOSS_DAMAGE = 28403;
+        /// <summary>神陨禁区个人积分/怒气/阶段状态完整快照。C2S严格空包。</summary>
+        public const int KFHOLYAREA_SCORE = 28405;
+        /// <summary>神陨禁区遗留退出结果接收边界。当前active cluster2成功/失败均不写28407，
+        /// 但保留既有handler兼容旧服；不公开退出sender。</summary>
         public const int KFHOLYAREA_EXIT_ERROR = 28407;
-        /// <summary>神陨禁区(pt_284)家族统一错误出口(轮22 族错误出口批;对标老端 KfHolyAreaController.ts:354-357
-        /// "错误返回",无条件 ErrorCodeShow(code)。服务端 send_error/2(pp_c_sanctuary.erl:16-31,等级不足时
-        /// 触发)+ lib_sanctuary_cluster_util.erl:162/166 共用此号,回包恒为错误码)。
-        /// 回包(pt_284.erl write(28414,[Code])):code:i。</summary>
+        /// <summary>神陨禁区活动绝对时间窗。C2S严格空包，也接受服务端状态推送。</summary>
+        public const int KFHOLYAREA_ACT_STATE = 28410;
+        /// <summary>建筑占领S2C-only通知；保存raw后按旧端语义安全重查28400。</summary>
+        public const int KFHOLYAREA_OCCUPY = 28411;
+        /// <summary>指定场景/Boss击杀记录。C2S scene:u32,monster_id:u32，按回包复合键全量替换。</summary>
+        public const int KFHOLYAREA_KILL_LOG = 28412;
+        /// <summary>Boss批次刷新S2C-only原始通知。</summary>
+        public const int KFHOLYAREA_BOSS_REFRESH = 28413;
+        /// <summary>神陨禁区active cluster2家族统一错误出口，S2C code:u32。</summary>
         public const int KFHOLYAREA_ERROR = 28414;
+        /// <summary>死亡疲劳权威快照。C2S严格空包，也接受死亡后的服务端主动推送。</summary>
+        public const int KFHOLYAREA_DEATH_FATIGUE = 28415;
+        /// <summary>Boss死亡/复活S2C-only绝对时间通知。</summary>
+        public const int KFHOLYAREA_BOSS_LIFE = 28416;
+        /// <summary>场景踢出绝对倒计时S2C-only通知。</summary>
+        public const int KFHOLYAREA_EXIT_COUNTDOWN = 28417;
+        /// <summary>建筑归属方排行S2C-only全量增量，按scene更新已加载28401。</summary>
+        public const int KFHOLYAREA_SCENE_RANK = 28421;
+        /// <summary>指定场景个人排行。C2S scene_id:u16，按回包scene_id键控完整替换。</summary>
+        public const int KFHOLYAREA_ROLE_RANK = 28422;
+        /// <summary>归属服Boss击杀S2C-only通知；保存raw后安全重查对应28401。</summary>
+        public const int KFHOLYAREA_BELONG_REFRESH = 28423;
         /// <summary>神纹/龙纹基础快照。C2S 严格空包；S2C 为属性、部位与战力的全量替换快照。</summary>
         public const int LUNG_INFO = 18100;
         public const int LUNG_STOVE_INFO = 18105; // 神纹熔炉数据(stove_data);回包驱动主界面图标181显隐;请求 read(18105,

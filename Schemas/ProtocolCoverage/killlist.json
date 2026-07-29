@@ -384,10 +384,28 @@
     "note": "获取活动剩余次数虽有服务端只读实现，S2C为type:u8,left_time:u8，但旧端从未发送，收到后也不保存、不触发事件、不渲染；按玩家行为事实源封存。Unity不增加请求、快照、次数推导或活动UI。R479复核。"
   },
   {
+    "cmd": 28406,
+    "reason": "dead_server_never_writes_same_cmd",
+    "evidence": "yu_server/src/server/mod_server.erl:735;sanctuary_cluster2/pp_sanctuary_cluster.erl:59-61;lib_sanctuary_cluster.erl:188-211;pt/pt_284.erl:23-24,151-158;h5/src/commonController/KfHolyAreaController.ts:262-269",
+    "note": "28406 C2S是真实付费解锁事务，仍须等待确认UI/钱包/single-flight闭环；但active cluster2成功后只权威重推28405，失败只发28414，全仓没有28406 writer调用。旧端同号成功/失败handler永远不可达，Unity不注册伪ACK；未来实现C2S时以28405/28414收口。R502。"
+  },
+  {
     "cmd": 28418,
-    "reason": "dead_empty_body",
-    "evidence": "h5/src/commonController/KfHolyAreaController.ts:379",
-    "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
+    "reason": "dead_orphaned_legacy_family",
+    "evidence": "yu_server/src/server/mod_server.erl:735;sanctuary_cluster2/pp_sanctuary_cluster.erl;sanctuary_cluster2全仓零28418 writer;旧orphan sanctuary_cluster/mod_c_sanctuary_local.erl:669;h5/src/commonController/KfHolyAreaController.ts:379-384",
+    "note": "当前284路由固定到cluster2，active家族没有28418入口或writer；唯一writer属于已废弃且未路由的pp_c_sanctuary旧实现。老端handler也只有注释、无任何消费。Unity不恢复拍卖品提示、红点、物品或资产修改。R502复核。"
+  },
+  {
+    "cmd": 28419,
+    "reason": "dead_orphaned_legacy_family",
+    "evidence": "yu_server/src/server/mod_server.erl:735;sanctuary_cluster2/pp_sanctuary_cluster.erl:36-95及cluster2全仓零28419 writer;旧orphan sanctuary_cluster/pp_c_sanctuary.erl:252-262,mod_c_sanctuary_local.erl:581;h5/src/kfHolyArea/KfHolyAreaAuctionIntroduceView.ts:66-72",
+    "note": "老端排行按钮仍会空发28419，但当前active cluster2没有handler和writer，请求只落默认ERR ROUTE；可回包实现仅存在未路由的旧pp_c_sanctuary家族。Unity不建立永不返回的查询、排行缓存或拍卖UI。R502。"
+  },
+  {
+    "cmd": 28420,
+    "reason": "dead_server_explicit_skip",
+    "evidence": "yu_server/src/server/mod_server.erl:735;sanctuary_cluster2/pp_sanctuary_cluster.erl:89-90及cluster2全仓零28420 writer;旧orphan sanctuary_cluster/mod_c_sanctuary_local.erl:591,760;h5/src/commonController/KfHolyAreaController.ts:393-397",
+    "note": "active cluster2对28420请求显式skip且无任何同号writer；拍卖结束时间实现只存在未路由旧家族，老端两个请求点也均已注释。Unity不注册时间戳handler、不请求、不恢复拍卖倒计时。R502。"
   },
   {
     "cmd": 30008,
