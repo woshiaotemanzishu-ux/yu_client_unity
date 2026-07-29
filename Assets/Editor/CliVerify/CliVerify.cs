@@ -204,6 +204,11 @@ namespace Shenxiao.EditorTools
             Run(AuctionCase.Run, 60.0);
         }
 
+        public static void Longlang()
+        {
+            Run(LonglangCase.Run, 60.0);
+        }
+
         public static void Designation()
         {
             Run(DesignationCase.Run, 60.0);

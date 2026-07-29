@@ -1035,6 +1035,16 @@
         public const int AUCTION_BONUS_RECORDS = 15410;
         /// <summary>全部拍卖关闭广播。S2C-only: all_close:u8，仅保存raw值。</summary>
         public const int AUCTION_ALL_CLOSE = 15411;
+        /// <summary>龙语统一原始错误。S2C-only: error_code:u32,error_code_args:string。</summary>
+        public const int LONGLANG_ERROR = 62200;
+        /// <summary>龙语装备/强化全量。C2S严格空包；S2C保留装备wire顺序与重复部位。</summary>
+        public const int LONGLANG_EQUIPMENT = 62201;
+        /// <summary>龙语总评分显式查询。C2S严格空包；S2C: rating:u32。</summary>
+        public const int LONGLANG_RATING = 62207;
+        /// <summary>龙语套装显式预览。C2S: goods_type_id:u32；S2C为套装表加raw code:u32。</summary>
+        public const int LONGLANG_SUIT_PREVIEW = 62208;
+        /// <summary>龙语当前套装信息显式查询。C2S严格空包；S2C保留wire顺序与重复套装。</summary>
+        public const int LONGLANG_SUIT_INFO = 62209;
         /// <summary>龙珠雕像总览。C2S 空包；S2C: status:u8,power:u64。</summary>
         public const int DRAGONBALL_STATUE_OVERVIEW = 14310;
         /// <summary>龙珠套装概览。C2S 空包；S2C: wear_type:u8,items:u16×{type:u8,lv:u8,power:u64,next_power:u64}。</summary>

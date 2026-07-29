@@ -188,6 +188,12 @@
 - 15402是S2C-only商品更新，按 `(auction_type,goods_id)` 独立键控完整覆盖；它不得补丁15401商品表，也不得自动追发15407/15409。15407是显式 `(auction_type,module_id)` 预计分红查询并按同复合键覆盖；15408是S2C-only生命周期raw广播并按同复合键覆盖。三类字典及15401彼此隔离。
 - 15409个人竞拍记录和15410分红记录均为显式严格空请求，每包分别全量替换其有序列表，保留重复项，空表仍为loaded。15411是S2C-only `all_close:u8` raw快照，不因值为1而清任何其他拍卖切片。15400目录与15404退款通知因旧端解包即丢弃正式KILL；15405/15406因服务端入口注释且旧端丢弃正式KILL；15403竞价是真实扣费事务，继续DEFER。禁止接拍卖UI、配置、红点、Toast、钱包/邮件修改、自动跟随查询或本地状态机。
 
+## Longlang 62200/62201/62207/62208/62209（R494）
+
+- GAME_START先清全部龙语读侧切片，再只发送62201严格空包。62201是 `equip_list:u16×{pos:u8,goods_id:u64,stren:u16}` 有序全量；每包完整替换，保留wire顺序和重复部位，空表仍loaded清旧。兼容老端按部位读取时，重复pos以wire最后一项生效；不得把缺失部位伪造成协议项。
+- 62207总评分与62209当前套装表只允许页面显式空包查询；62208只允许按 `goods_type_id:u32` 显式预览。62208/09套装项真实wire均为 `suit_id:u32,num:u16`，62208尾部 `code` 真实为u32且仅 `code==1` 表示有效预览；回包不回显goods_type_id，因此只保存最后raw预览，不得虚构键控字典。所有列表保留wire顺序/重复项，空表loaded；请求无回复保留旧值。
+- 62200是S2C-only `error_code:u32,error_code_args:string` 原始错误切片，只保存最后值，不弹Toast、不改其他切片。62202强化、62203穿戴、62204脱下均为真实资产/装备/DB/属性事务，继续DEFER且禁止裸sender或孤立成功回执；62205/06当前无可达wire，不得按历史注释复活。五个读侧切片互相隔离，不接配置、背包、角色属性、事件、红点、UI或本地评分/套装推导。
+
 ## KfStage 10200（轮111）
 
 - GAME_START 发送10200严格空包。服务端回 `open_day:u32,server_info:u16×{server_id:u16,server_num:u16,server_name:string,world_lv:u16},modules:u16×{module_id:u16,mod:u8,avg_lv:u16,server_ids:u16×u16,next_server_ids:u16×u16}`，并在跨服分组或服务器名变化时主动重推同号。当前按完整快照替换并允许空列表清旧，只建查询数据底座；不迁老端 Cookie、ViewOrder/KfStart UI，也不接10204/10205/10208/10209。

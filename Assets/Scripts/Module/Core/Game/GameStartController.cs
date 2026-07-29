@@ -46,6 +46,7 @@ using Shenxiao.Module.Core.GodBeast;
 using Shenxiao.Module.Core.GodCourt;
 using Shenxiao.Module.Core.Unreal;
 using Shenxiao.Module.Core.Auction;
+using Shenxiao.Module.Core.Longlang;
 using Shenxiao.Module.Core.Designation;
 using Shenxiao.Module.Core.Mask;
 using Shenxiao.Module.Core.TempleAwaken;
@@ -136,6 +137,7 @@ namespace Shenxiao.Module.Core.Game
             GodCourtController.Instance.RequestStartup();
             UnrealController.Instance.RequestStartup();
             AuctionController.Instance.RequestStartup();
+            LonglangController.Instance.RequestStartup();
             DesignationController.Instance.RequestStartup();
             MaskController.Instance.RequestStartup();
             TempleAwakenController.Instance.RequestStartup();
