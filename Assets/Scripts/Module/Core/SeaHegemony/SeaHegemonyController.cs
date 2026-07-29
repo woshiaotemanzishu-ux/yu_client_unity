@@ -10,8 +10,9 @@ using Shenxiao.Module.Core.Role;
 namespace Shenxiao.Module.Core.SeaHegemony
 {
     /// <summary>
-    /// 四海争霸186家族安全读侧。审批、申请、任命、切舰、进退场、加入/退出势力、领奖和特权操作
-    /// 等真实写事务不暴露；战场数据只保存原始快照，不接场景、技能、自动战斗、UI或本地发奖。
+    /// 四海争霸186与沧溟日常187家族安全读侧。审批、申请、任命、切舰、进退场、搬运、升级、
+    /// 加入/退出势力、领奖和特权操作等真实写事务不暴露；只保存原始快照，不接场景、技能、
+    /// 自动战斗、UI或本地发奖。
     /// </summary>
     public sealed class SeaHegemonyController : BaseController
     {
@@ -50,6 +51,14 @@ namespace Shenxiao.Module.Core.SeaHegemony
             RegisterProtocal(Proto.SEAHEGEMONY_DISTRIBUTION, On18655);
             RegisterProtocal(Proto.SEAHEGEMONY_OLD_JOB, On18656);
             RegisterProtocal(Proto.SEACRAFT_DAILY_ERROR, On18700);
+            RegisterProtocal(Proto.SEACRAFT_DAILY_OVERVIEW, On18701);
+            RegisterProtocal(Proto.SEACRAFT_DAILY_SCENE, On18703);
+            RegisterProtocal(Proto.SEACRAFT_DAILY_SEA_RANK, On18704);
+            RegisterProtocal(Proto.SEACRAFT_DAILY_CARRY_REWARD, On18710);
+            RegisterProtocal(Proto.SEACRAFT_DAILY_ALL_RANK, On18711);
+            RegisterProtocal(Proto.SEACRAFT_DAILY_TASKS, On18712);
+            RegisterProtocal(Proto.SEACRAFT_DAILY_KICK, On18714);
+            RegisterProtocal(Proto.SEACRAFT_DAILY_GUILDS, On18715);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
         }
 
@@ -64,8 +73,8 @@ namespace Shenxiao.Module.Core.SeaHegemony
         }
 
         /// <summary>
-        /// 镜像旧端GAME_START内186家族子序列：18600→18607→18615→18617→18624→18654(1,1)。
-        /// 旧端没有ResetData，因此请求前不清旧快照；18712属于日常族，留到187整族轮次。
+        /// 镜像旧端GAME_START子序列：18600→18607→18615→18617→18624→18712→18654(1,1)。
+        /// 旧端没有ResetData，因此请求前不清任何186/187旧快照。
         /// </summary>
         public void RequestStartup()
         {
@@ -74,6 +83,7 @@ namespace Shenxiao.Module.Core.SeaHegemony
             RequestKing();
             RequestSides();
             RequestNextTimes();
+            RequestDailyTasks();
             RequestMembers(1, 1);
         }
 
@@ -96,6 +106,13 @@ namespace Shenxiao.Module.Core.SeaHegemony
             SendRequest(Proto.SEAHEGEMONY_MEMBERS, "hh", pageSize, pageNumber);
         public void RequestDistribution() => SendRequest(Proto.SEAHEGEMONY_DISTRIBUTION);
         public void RequestOldJob() => SendRequest(Proto.SEAHEGEMONY_OLD_JOB);
+        public void RequestDailyOverview() => SendRequest(Proto.SEACRAFT_DAILY_OVERVIEW);
+        public void RequestDailyScene() => SendRequest(Proto.SEACRAFT_DAILY_SCENE);
+        public void RequestDailySeaRank(byte seaId) =>
+            SendRequest(Proto.SEACRAFT_DAILY_SEA_RANK, "c", seaId);
+        public void RequestDailyAllRank() => SendRequest(Proto.SEACRAFT_DAILY_ALL_RANK);
+        public void RequestDailyTasks() => SendRequest(Proto.SEACRAFT_DAILY_TASKS);
+        public void RequestDailyGuilds() => SendRequest(Proto.SEACRAFT_DAILY_GUILDS);
 
         private void SendRequest(int protoId, string format = null, params object[] args)
         {
@@ -337,6 +354,84 @@ namespace Shenxiao.Module.Core.SeaHegemony
             SeaHegemonyModel.Instance.SetDailyError(code);
             TipsManager.Toast("操作失败(" + code + ")");
             GameLog.Warn("SeaHegemony", "18700 日常错误壳 code={0}", code);
+        }
+
+        private void On18701(NetReader r)
+        {
+            List<SeaHegemonyModel.DailySeaEntry> seas = r.ReadArray(rr =>
+                new SeaHegemonyModel.DailySeaEntry(rr.ReadU8(), rr.ReadU32(), rr.ReadU32(),
+                    rr.ReadU32(), rr.ReadU8()));
+            SeaHegemonyModel.Instance.ReplaceDailyOverview(
+                new SeaHegemonyModel.DailyOverviewSnapshot(seas));
+        }
+
+        private void On18703(NetReader r)
+        {
+            uint seaId = r.ReadU32();
+            uint brickNumber = r.ReadU32();
+            ushort carryCount = r.ReadU16();
+            ushort defendCount = r.ReadU16();
+            List<SeaHegemonyModel.DailyBossEntry> bosses = r.ReadArray(rr =>
+                new SeaHegemonyModel.DailyBossEntry(
+                    rr.ReadU32(), rr.ReadU16(), rr.ReadString(), rr.ReadU32()));
+            SeaHegemonyModel.Instance.ReplaceDailyScene(
+                new SeaHegemonyModel.DailySceneSnapshot(
+                    seaId, brickNumber, carryCount, defendCount, bosses));
+        }
+
+        private void On18704(NetReader r)
+        {
+            uint seaId = r.ReadU32();
+            uint myBrickNumber = r.ReadU32();
+            uint myRank = r.ReadU32();
+            ulong myPower = unchecked((ulong)r.ReadU64());
+            byte myPosition = r.ReadU8();
+            List<SeaHegemonyModel.DailySeaRankEntry> ranks = r.ReadArray(rr =>
+                new SeaHegemonyModel.DailySeaRankEntry(rr.ReadU8(), rr.ReadU32(),
+                    rr.ReadString(), unchecked((ulong)rr.ReadU64()), rr.ReadU32()));
+            SeaHegemonyModel.Instance.ReplaceDailySeaRank(
+                new SeaHegemonyModel.DailySeaRankSnapshot(
+                    seaId, myBrickNumber, myRank, myPower, myPosition, ranks));
+        }
+
+        private void On18710(NetReader r) =>
+            SeaHegemonyModel.Instance.ReplaceDailyCarryReward(
+                new SeaHegemonyModel.DailyCarryRewardSnapshot(r.ReadU8(), ReadObjectList(r)));
+
+        private void On18711(NetReader r)
+        {
+            uint myBrickNumber = r.ReadU32();
+            byte mySea = r.ReadU8();
+            uint myRank = r.ReadU32();
+            ulong myPower = unchecked((ulong)r.ReadU64());
+            byte myPosition = r.ReadU8();
+            List<SeaHegemonyModel.DailyAllRankEntry> ranks = r.ReadArray(rr =>
+                new SeaHegemonyModel.DailyAllRankEntry(rr.ReadU8(), rr.ReadU8(), rr.ReadU32(),
+                    rr.ReadString(), unchecked((ulong)rr.ReadU64()), rr.ReadU32()));
+            SeaHegemonyModel.Instance.ReplaceDailyAllRank(
+                new SeaHegemonyModel.DailyAllRankSnapshot(
+                    myBrickNumber, mySea, myRank, myPower, myPosition, ranks));
+        }
+
+        private void On18712(NetReader r)
+        {
+            List<SeaHegemonyModel.DailyTaskEntry> tasks = r.ReadArray(rr =>
+                new SeaHegemonyModel.DailyTaskEntry(rr.ReadU8(), rr.ReadU16(), rr.ReadU8()));
+            SeaHegemonyModel.Instance.ReplaceDailyTasks(
+                new SeaHegemonyModel.DailyTasksSnapshot(tasks));
+        }
+
+        private void On18714(NetReader r) =>
+            SeaHegemonyModel.Instance.ReplaceDailyKick(
+                new SeaHegemonyModel.DailyKickSnapshot(r.ReadU8()));
+
+        private void On18715(NetReader r)
+        {
+            List<SeaHegemonyModel.DailyGuildEntry> seas = r.ReadArray(rr =>
+                new SeaHegemonyModel.DailyGuildEntry(
+                    rr.ReadU8(), unchecked((ulong)rr.ReadU64()), rr.ReadString()));
+            SeaHegemonyModel.Instance.ReplaceDailyGuilds(
+                new SeaHegemonyModel.DailyGuildsSnapshot(seas));
         }
 
         private void RefreshIcon()

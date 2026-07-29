@@ -1025,6 +1025,22 @@
         /// do_handle 共享的错误壳,回包恒为错误码——对标老端无 if 守卫直接显码)。回包(pp_seacraft_daily.erl:375
         /// send_error/2;pt_187.erl write(18700,[Code])):code:i。</summary>
         public const int SEACRAFT_DAILY_ERROR = 18700;
+        /// <summary>沧溟日常海域概览。C2S空包；S2C为海域时间、砖数和品质有序全量。</summary>
+        public const int SEACRAFT_DAILY_OVERVIEW = 18701;
+        /// <summary>沧溟日常当前场景信息。C2S空包；S2C为海域、次数及Boss有序全量。</summary>
+        public const int SEACRAFT_DAILY_SCENE = 18703;
+        /// <summary>沧溟日常指定海域榜。C2S sea_id:u8；S2C按回包sea_id键控完整榜单。</summary>
+        public const int SEACRAFT_DAILY_SEA_RANK = 18704;
+        /// <summary>完成搬砖奖励，S2C-only；只保存次数与ObjectList，不改背包或界面。</summary>
+        public const int SEACRAFT_DAILY_CARRY_REWARD = 18710;
+        /// <summary>沧溟日常全海域榜。C2S空包；S2C为完整榜单，真实wire无c_server_msg。</summary>
+        public const int SEACRAFT_DAILY_ALL_RANK = 18711;
+        /// <summary>沧溟日常任务全量。C2S空包；GAME_START请求，也接受任务进度主动推送。</summary>
+        public const int SEACRAFT_DAILY_TASKS = 18712;
+        /// <summary>海域封边踢出通知，S2C-only code:u8；只保存raw，不接场景或提示。</summary>
+        public const int SEACRAFT_DAILY_KICK = 18714;
+        /// <summary>各海域统治公会。C2S空包；S2C为有序全量。</summary>
+        public const int SEACRAFT_DAILY_GUILDS = 18715;
         public const int KFHOLYAREA_ACT_STATE = 28410; // 神陨禁区(跨服圣域)活动状态/时间窗——驱动主界面图标284。请求裸发 read(28410,_
         /// <summary>神陨禁区"退出"错误出口(轮22 族错误出口批;对标老端 KfHolyAreaController.ts:272-275,
         /// 无条件 ErrorCodeShow(code),无其它副作用)。回包(pp_c_sanctuary.erl:147-165;pt_284.erl

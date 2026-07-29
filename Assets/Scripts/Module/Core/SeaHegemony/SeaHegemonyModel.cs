@@ -507,6 +507,206 @@ namespace Shenxiao.Module.Core.SeaHegemony
             public DistributionSnapshot(IReadOnlyList<DistributionEntry> guilds) => Guilds = Freeze(guilds);
         }
 
+        public sealed class DailySeaEntry
+        {
+            public byte SeaId { get; }
+            public uint StatueTime { get; }
+            public uint BossTime { get; }
+            public uint BrickNumber { get; }
+            public byte BrickColor { get; }
+
+            public DailySeaEntry(byte seaId, uint statueTime, uint bossTime,
+                uint brickNumber, byte brickColor)
+            {
+                SeaId = seaId;
+                StatueTime = statueTime;
+                BossTime = bossTime;
+                BrickNumber = brickNumber;
+                BrickColor = brickColor;
+            }
+        }
+
+        public sealed class DailyOverviewSnapshot
+        {
+            public IReadOnlyList<DailySeaEntry> Seas { get; }
+            public DailyOverviewSnapshot(IReadOnlyList<DailySeaEntry> seas) => Seas = Freeze(seas);
+        }
+
+        public sealed class DailyBossEntry
+        {
+            public uint Id { get; }
+            public ushort Level { get; }
+            public string Name { get; }
+            public uint RebornTime { get; }
+
+            public DailyBossEntry(uint id, ushort level, string name, uint rebornTime)
+            {
+                Id = id;
+                Level = level;
+                Name = name ?? string.Empty;
+                RebornTime = rebornTime;
+            }
+        }
+
+        public sealed class DailySceneSnapshot
+        {
+            public uint SeaId { get; }
+            public uint BrickNumber { get; }
+            public ushort CarryCount { get; }
+            public ushort DefendCount { get; }
+            public IReadOnlyList<DailyBossEntry> Bosses { get; }
+
+            public DailySceneSnapshot(uint seaId, uint brickNumber, ushort carryCount,
+                ushort defendCount, IReadOnlyList<DailyBossEntry> bosses)
+            {
+                SeaId = seaId;
+                BrickNumber = brickNumber;
+                CarryCount = carryCount;
+                DefendCount = defendCount;
+                Bosses = Freeze(bosses);
+            }
+        }
+
+        public sealed class DailySeaRankEntry
+        {
+            public byte Position { get; }
+            public uint ServerNumber { get; }
+            public string RoleName { get; }
+            public ulong Power { get; }
+            public uint BrickNumber { get; }
+
+            public DailySeaRankEntry(byte position, uint serverNumber, string roleName,
+                ulong power, uint brickNumber)
+            {
+                Position = position;
+                ServerNumber = serverNumber;
+                RoleName = roleName ?? string.Empty;
+                Power = power;
+                BrickNumber = brickNumber;
+            }
+        }
+
+        public sealed class DailySeaRankSnapshot
+        {
+            public uint SeaId { get; }
+            public uint MyBrickNumber { get; }
+            public uint MyRank { get; }
+            public ulong MyPower { get; }
+            public byte MyPosition { get; }
+            public IReadOnlyList<DailySeaRankEntry> Ranks { get; }
+
+            public DailySeaRankSnapshot(uint seaId, uint myBrickNumber, uint myRank,
+                ulong myPower, byte myPosition, IReadOnlyList<DailySeaRankEntry> ranks)
+            {
+                SeaId = seaId;
+                MyBrickNumber = myBrickNumber;
+                MyRank = myRank;
+                MyPower = myPower;
+                MyPosition = myPosition;
+                Ranks = Freeze(ranks);
+            }
+        }
+
+        public sealed class DailyAllRankEntry
+        {
+            public byte SeaId { get; }
+            public byte Position { get; }
+            public uint ServerNumber { get; }
+            public string RoleName { get; }
+            public ulong Power { get; }
+            public uint BrickNumber { get; }
+
+            public DailyAllRankEntry(byte seaId, byte position, uint serverNumber,
+                string roleName, ulong power, uint brickNumber)
+            {
+                SeaId = seaId;
+                Position = position;
+                ServerNumber = serverNumber;
+                RoleName = roleName ?? string.Empty;
+                Power = power;
+                BrickNumber = brickNumber;
+            }
+        }
+
+        public sealed class DailyAllRankSnapshot
+        {
+            public uint MyBrickNumber { get; }
+            public byte MySea { get; }
+            public uint MyRank { get; }
+            public ulong MyPower { get; }
+            public byte MyPosition { get; }
+            public IReadOnlyList<DailyAllRankEntry> Ranks { get; }
+
+            public DailyAllRankSnapshot(uint myBrickNumber, byte mySea, uint myRank,
+                ulong myPower, byte myPosition, IReadOnlyList<DailyAllRankEntry> ranks)
+            {
+                MyBrickNumber = myBrickNumber;
+                MySea = mySea;
+                MyRank = myRank;
+                MyPower = myPower;
+                MyPosition = myPosition;
+                Ranks = Freeze(ranks);
+            }
+        }
+
+        public sealed class DailyCarryRewardSnapshot
+        {
+            public byte CarryCount { get; }
+            public IReadOnlyList<ObjectEntry> Reward { get; }
+
+            public DailyCarryRewardSnapshot(byte carryCount, IReadOnlyList<ObjectEntry> reward)
+            {
+                CarryCount = carryCount;
+                Reward = Freeze(reward);
+            }
+        }
+
+        public sealed class DailyTaskEntry
+        {
+            public byte TaskId { get; }
+            public ushort Count { get; }
+            public byte Status { get; }
+
+            public DailyTaskEntry(byte taskId, ushort count, byte status)
+            {
+                TaskId = taskId;
+                Count = count;
+                Status = status;
+            }
+        }
+
+        public sealed class DailyTasksSnapshot
+        {
+            public IReadOnlyList<DailyTaskEntry> Tasks { get; }
+            public DailyTasksSnapshot(IReadOnlyList<DailyTaskEntry> tasks) => Tasks = Freeze(tasks);
+        }
+
+        public sealed class DailyKickSnapshot
+        {
+            public byte Code { get; }
+            public DailyKickSnapshot(byte code) => Code = code;
+        }
+
+        public sealed class DailyGuildEntry
+        {
+            public byte SeaId { get; }
+            public ulong GuildId { get; }
+            public string GuildName { get; }
+
+            public DailyGuildEntry(byte seaId, ulong guildId, string guildName)
+            {
+                SeaId = seaId;
+                GuildId = guildId;
+                GuildName = guildName ?? string.Empty;
+            }
+        }
+
+        public sealed class DailyGuildsSnapshot
+        {
+            public IReadOnlyList<DailyGuildEntry> Seas { get; }
+            public DailyGuildsSnapshot(IReadOnlyList<DailyGuildEntry> seas) => Seas = Freeze(seas);
+        }
+
         public static readonly SeaHegemonyModel Instance = new SeaHegemonyModel();
 
         private readonly Dictionary<uint, GuildsSnapshot> _guildsByCamp =
@@ -515,6 +715,8 @@ namespace Shenxiao.Module.Core.SeaHegemony
             new Dictionary<uint, MonsterEntry>();
         private readonly Dictionary<uint, MemberPageSnapshot> _memberPages =
             new Dictionary<uint, MemberPageSnapshot>();
+        private readonly Dictionary<uint, DailySeaRankSnapshot> _dailyRanksBySea =
+            new Dictionary<uint, DailySeaRankSnapshot>();
 
         private SeaHegemonyModel() { }
 
@@ -539,6 +741,13 @@ namespace Shenxiao.Module.Core.SeaHegemony
         public PrivilegesSnapshot Privileges { get; private set; }
         public MeritSnapshot Merit { get; private set; }
         public DistributionSnapshot Distribution { get; private set; }
+        public DailyOverviewSnapshot DailyOverview { get; private set; }
+        public DailySceneSnapshot DailyScene { get; private set; }
+        public DailyCarryRewardSnapshot LastDailyCarryReward { get; private set; }
+        public DailyAllRankSnapshot DailyAllRank { get; private set; }
+        public DailyTasksSnapshot DailyTasks { get; private set; }
+        public DailyKickSnapshot LastDailyKick { get; private set; }
+        public DailyGuildsSnapshot DailyGuilds { get; private set; }
 
         public bool HasSignupEndTime { get; private set; }
         public long SignupEndTime { get; private set; }
@@ -568,6 +777,13 @@ namespace Shenxiao.Module.Core.SeaHegemony
         public bool HasPrivileges => Privileges != null;
         public bool HasMerit => Merit != null;
         public bool HasDistribution => Distribution != null;
+        public bool HasDailyOverview => DailyOverview != null;
+        public bool HasDailyScene => DailyScene != null;
+        public bool HasDailyCarryReward => LastDailyCarryReward != null;
+        public bool HasDailyAllRank => DailyAllRank != null;
+        public bool HasDailyTasks => DailyTasks != null;
+        public bool HasDailyKick => LastDailyKick != null;
+        public bool HasDailyGuilds => DailyGuilds != null;
 
         public uint Camp => Info != null ? Info.Camp : 0;
         public bool HasJoinSea => Camp != 0;
@@ -591,6 +807,14 @@ namespace Shenxiao.Module.Core.SeaHegemony
         public void ReplacePrivileges(PrivilegesSnapshot snapshot) => Privileges = snapshot;
         public void ReplaceMerit(MeritSnapshot snapshot) => Merit = snapshot;
         public void ReplaceDistribution(DistributionSnapshot snapshot) => Distribution = snapshot;
+        public void ReplaceDailyOverview(DailyOverviewSnapshot snapshot) => DailyOverview = snapshot;
+        public void ReplaceDailyScene(DailySceneSnapshot snapshot) => DailyScene = snapshot;
+        public void ReplaceDailyCarryReward(DailyCarryRewardSnapshot snapshot) =>
+            LastDailyCarryReward = snapshot;
+        public void ReplaceDailyAllRank(DailyAllRankSnapshot snapshot) => DailyAllRank = snapshot;
+        public void ReplaceDailyTasks(DailyTasksSnapshot snapshot) => DailyTasks = snapshot;
+        public void ReplaceDailyKick(DailyKickSnapshot snapshot) => LastDailyKick = snapshot;
+        public void ReplaceDailyGuilds(DailyGuildsSnapshot snapshot) => DailyGuilds = snapshot;
 
         public void ReplaceGuilds(GuildsSnapshot snapshot) => _guildsByCamp[snapshot.Camp] = snapshot;
         public bool TryGetGuilds(uint camp, out GuildsSnapshot snapshot) =>
@@ -616,6 +840,12 @@ namespace Shenxiao.Module.Core.SeaHegemony
 
         public bool TryGetMemberPage(ushort pageSize, ushort pageNumber, out MemberPageSnapshot snapshot) =>
             _memberPages.TryGetValue(MemberPageKey(pageSize, pageNumber), out snapshot);
+
+        public void ReplaceDailySeaRank(DailySeaRankSnapshot snapshot) =>
+            _dailyRanksBySea[snapshot.SeaId] = snapshot;
+
+        public bool TryGetDailySeaRank(uint seaId, out DailySeaRankSnapshot snapshot) =>
+            _dailyRanksBySea.TryGetValue(seaId, out snapshot);
 
         public void SetSignupEndTime(uint endTime)
         {
@@ -676,6 +906,13 @@ namespace Shenxiao.Module.Core.SeaHegemony
             Privileges = null;
             Merit = null;
             Distribution = null;
+            DailyOverview = null;
+            DailyScene = null;
+            LastDailyCarryReward = null;
+            DailyAllRank = null;
+            DailyTasks = null;
+            LastDailyKick = null;
+            DailyGuilds = null;
             HasSignupEndTime = false;
             SignupEndTime = 0;
             HasOldJob = false;
@@ -689,6 +926,7 @@ namespace Shenxiao.Module.Core.SeaHegemony
             _guildsByCamp.Clear();
             _monsters.Clear();
             _memberPages.Clear();
+            _dailyRanksBySea.Clear();
         }
 
         private static uint MemberPageKey(ushort pageSize, ushort pageNumber) =>

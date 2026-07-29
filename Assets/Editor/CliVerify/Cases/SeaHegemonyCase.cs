@@ -20,11 +20,15 @@ namespace Shenxiao.EditorTools
         private static readonly int[] RegisteredIds =
         {
             18600, 18601, 18604, 18607, 18608, 18609, 18611, 18612, 18614, 18615, 18616,
-            18617, 18618, 18622, 18623, 18624, 18625, 18626, 18651, 18653, 18654, 18655, 18656
+            18617, 18618, 18622, 18623, 18624, 18625, 18626, 18651, 18653, 18654, 18655, 18656,
+            18700, 18701, 18703, 18704, 18710, 18711, 18712, 18714, 18715
         };
 
         private static readonly int[] ExcludedIds =
-            { 18602, 18603, 18605, 18606, 18610, 18613, 18619, 18620, 18621, 18650, 18652 };
+        {
+            18602, 18603, 18605, 18606, 18610, 18613, 18619, 18620, 18621, 18650, 18652,
+            18702, 18705, 18706, 18707, 18708, 18709, 18713
+        };
 
         private sealed class EntryState
         {
@@ -71,7 +75,7 @@ namespace Shenxiao.EditorTools
             IDictionary handlers = typeof(NetManager).GetField("_handlers", SF)?.GetValue(null) as IDictionary;
             var savedHandlers = new Dictionary<int, EntryState>();
             for (int id = 18600; id <= 18656; id++) SaveEntry(handlers, savedHandlers, id);
-            SaveEntry(handlers, savedHandlers, 18700);
+            for (int id = 18700; id <= 18715; id++) SaveEntry(handlers, savedHandlers, id);
 
             var events = typeof(EventDispatcher).GetField("_handlers", SF)?.GetValue(null)
                 as Dictionary<string, List<Delegate>>;
@@ -113,7 +117,7 @@ namespace Shenxiao.EditorTools
                 bool a = handlers != null && interceptor != null;
                 foreach (int id in RegisteredIds) a &= methods[id] != null && handlers.Contains(id);
                 foreach (int id in ExcludedIds) a &= !handlers.Contains(id);
-                a &= handlers.Contains(18700) && OnlySafePublicRequests();
+                a &= OnlySafePublicRequests();
 
                 bool oldRed = iconManager.GetIconRedDot(SeaHegemonyModel.RED_ICON_TYPE);
                 byte rewardStatus = oldRed ? (byte)0 : (byte)1;
@@ -263,10 +267,96 @@ namespace Shenxiao.EditorTools
                     && model.Distribution.Guilds[0].Fight == 1
                     && model.Distribution.Guilds[1].Fight == ulong.MaxValue;
 
+                bool i = Invoke(methods[18701], controller, DailyOverviewPacket(2))
+                    && model.HasDailyOverview && model.DailyOverview.Seas.Count == 2
+                    && model.DailyOverview.Seas[0].SeaId == byte.MaxValue
+                    && model.DailyOverview.Seas[0].StatueTime == uint.MaxValue
+                    && model.DailyOverview.Seas[0].BossTime == 4000000000U
+                    && model.DailyOverview.Seas[0].BrickNumber == uint.MaxValue
+                    && model.DailyOverview.Seas[0].BrickColor == byte.MaxValue
+                    && model.DailyOverview.Seas[1].SeaId == byte.MaxValue;
+                i &= Invoke(methods[18703], controller, DailyScenePacket(2))
+                    && model.HasDailyScene && model.DailyScene.SeaId == uint.MaxValue
+                    && model.DailyScene.BrickNumber == 4000000000U
+                    && model.DailyScene.CarryCount == ushort.MaxValue
+                    && model.DailyScene.DefendCount == 40000
+                    && model.DailyScene.Bosses.Count == 2
+                    && model.DailyScene.Bosses[0].Id == uint.MaxValue
+                    && model.DailyScene.Bosses[0].Level == ushort.MaxValue
+                    && model.DailyScene.Bosses[0].Name == "boss"
+                    && model.DailyScene.Bosses[0].RebornTime == uint.MaxValue
+                    && model.DailyScene.Bosses[1].Id == uint.MaxValue;
+
+                SeaHegemonyModel.DailySeaRankSnapshot dailyRank7 = null;
+                i &= Invoke(methods[18704], controller, DailySeaRankPacket(7, 2))
+                    && model.TryGetDailySeaRank(7, out dailyRank7)
+                    && dailyRank7.MyBrickNumber == uint.MaxValue
+                    && dailyRank7.MyRank == 4000000000U
+                    && dailyRank7.MyPower == ulong.MaxValue
+                    && dailyRank7.MyPosition == byte.MaxValue
+                    && dailyRank7.Ranks.Count == 2
+                    && dailyRank7.Ranks[0].Position == byte.MaxValue
+                    && dailyRank7.Ranks[0].ServerNumber == uint.MaxValue
+                    && dailyRank7.Ranks[0].RoleName == "ranker"
+                    && dailyRank7.Ranks[0].Power == 0xFEDCBA9876543210UL
+                    && dailyRank7.Ranks[0].BrickNumber == uint.MaxValue
+                    && dailyRank7.Ranks[1].ServerNumber == uint.MaxValue;
+                SeaHegemonyModel.DailySeaRankSnapshot oldDailyRank7 = dailyRank7;
+                i &= Invoke(methods[18704], controller, DailySeaRankPacket(8, 0))
+                    && model.TryGetDailySeaRank(8, out SeaHegemonyModel.DailySeaRankSnapshot dailyRank8)
+                    && dailyRank8.Ranks.Count == 0
+                    && model.TryGetDailySeaRank(7, out dailyRank7)
+                    && ReferenceEquals(dailyRank7, oldDailyRank7);
+                i &= Invoke(methods[18704], controller, DailySeaRankPacket(7, 0))
+                    && model.TryGetDailySeaRank(7, out dailyRank7)
+                    && dailyRank7.Ranks.Count == 0 && !ReferenceEquals(dailyRank7, oldDailyRank7);
+
+                i &= Invoke(methods[18710], controller, DailyCarryRewardPacket())
+                    && model.HasDailyCarryReward
+                    && model.LastDailyCarryReward.CarryCount == byte.MaxValue
+                    && model.LastDailyCarryReward.Reward.Count == 2
+                    && model.LastDailyCarryReward.Reward[0].Type == byte.MaxValue
+                    && model.LastDailyCarryReward.Reward[0].TypeId == uint.MaxValue
+                    && model.LastDailyCarryReward.Reward[0].Num == 4000000000U;
+                i &= Invoke(methods[18711], controller, DailyAllRankPacket(2))
+                    && model.HasDailyAllRank
+                    && model.DailyAllRank.MyBrickNumber == uint.MaxValue
+                    && model.DailyAllRank.MySea == byte.MaxValue
+                    && model.DailyAllRank.MyRank == 4000000000U
+                    && model.DailyAllRank.MyPower == ulong.MaxValue
+                    && model.DailyAllRank.MyPosition == byte.MaxValue
+                    && model.DailyAllRank.Ranks.Count == 2
+                    && model.DailyAllRank.Ranks[0].SeaId == byte.MaxValue
+                    && model.DailyAllRank.Ranks[0].Position == byte.MaxValue
+                    && model.DailyAllRank.Ranks[0].ServerNumber == uint.MaxValue
+                    && model.DailyAllRank.Ranks[0].RoleName == "all-ranker"
+                    && model.DailyAllRank.Ranks[0].Power == 0xFEDCBA9876543210UL
+                    && model.DailyAllRank.Ranks[0].BrickNumber == uint.MaxValue
+                    && model.DailyAllRank.Ranks[1].SeaId == byte.MaxValue;
+                i &= Invoke(methods[18712], controller, DailyTasksPacket(2))
+                    && model.HasDailyTasks && model.DailyTasks.Tasks.Count == 2
+                    && model.DailyTasks.Tasks[0].TaskId == byte.MaxValue
+                    && model.DailyTasks.Tasks[0].Count == ushort.MaxValue
+                    && model.DailyTasks.Tasks[0].Status == byte.MaxValue
+                    && model.DailyTasks.Tasks[1].TaskId == byte.MaxValue;
+                i &= Invoke(methods[18712], controller, DailyTasksPacket(0))
+                    && model.HasDailyTasks && model.DailyTasks.Tasks.Count == 0;
+                i &= Invoke(methods[18714], controller, new CliVerify.Pkt().C(byte.MaxValue).Bytes())
+                    && model.HasDailyKick && model.LastDailyKick.Code == byte.MaxValue;
+                i &= Invoke(methods[18715], controller, DailyGuildsPacket(2))
+                    && model.HasDailyGuilds && model.DailyGuilds.Seas.Count == 2
+                    && model.DailyGuilds.Seas[0].SeaId == byte.MaxValue
+                    && model.DailyGuilds.Seas[0].GuildId == ulong.MaxValue
+                    && model.DailyGuilds.Seas[0].GuildName == "daily-guild"
+                    && model.DailyGuilds.Seas[1].GuildId == ulong.MaxValue;
+                i &= Invoke(methods[18715], controller, DailyGuildsPacket(0))
+                    && model.HasDailyGuilds && model.DailyGuilds.Seas.Count == 0;
+
                 frames.Clear();
                 controller.RequestStartup();
                 bool f = FramesAre(frames, EmptyFrame(18600), EmptyFrame(18607), EmptyFrame(18615),
-                    EmptyFrame(18617), EmptyFrame(18624), U16U16Frame(18654, 1, 1));
+                    EmptyFrame(18617), EmptyFrame(18624), EmptyFrame(18712),
+                    U16U16Frame(18654, 1, 1));
 
                 frames.Clear();
                 controller.RequestInfo();
@@ -287,12 +377,20 @@ namespace Shenxiao.EditorTools
                 controller.RequestMembers(ushort.MaxValue, 40000);
                 controller.RequestDistribution();
                 controller.RequestOldJob();
+                controller.RequestDailyOverview();
+                controller.RequestDailyScene();
+                controller.RequestDailySeaRank(byte.MaxValue);
+                controller.RequestDailyAllRank();
+                controller.RequestDailyTasks();
+                controller.RequestDailyGuilds();
                 f &= FramesAre(frames,
                     EmptyFrame(18600), EmptyFrame(18601), EmptyFrame(18604), EmptyFrame(18607),
                     U32Frame(18608, uint.MaxValue), EmptyFrame(18609), EmptyFrame(18611),
                     EmptyFrame(18615), EmptyFrame(18617), EmptyFrame(18618), EmptyFrame(18622),
                     EmptyFrame(18624), EmptyFrame(18625), EmptyFrame(18651), EmptyFrame(18653),
-                    U16U16Frame(18654, ushort.MaxValue, 40000), EmptyFrame(18655), EmptyFrame(18656));
+                    U16U16Frame(18654, ushort.MaxValue, 40000), EmptyFrame(18655), EmptyFrame(18656),
+                    EmptyFrame(18701), EmptyFrame(18703), U8Frame(18704, byte.MaxValue),
+                    EmptyFrame(18711), EmptyFrame(18712), EmptyFrame(18715));
 
                 frames.Clear();
                 f &= Invoke(methods[18623], controller, new CliVerify.Pkt().I(1).Bytes())
@@ -312,19 +410,26 @@ namespace Shenxiao.EditorTools
                 controller.RequestGuard();
                 controller.RequestScore();
                 controller.RequestPrivileges();
+                controller.RequestDailyOverview();
+                controller.RequestDailyScene();
+                controller.RequestDailySeaRank(7);
+                controller.RequestDailyAllRank();
+                controller.RequestDailyTasks();
+                controller.RequestDailyGuilds();
                 bool g = immutable.Camps.Count == 1 && ModelMatches(model, beforeRequests)
-                    && FramesAre(frames, EmptyFrame(18601), EmptyFrame(18611), EmptyFrame(18651));
+                    && FramesAre(frames, EmptyFrame(18601), EmptyFrame(18611), EmptyFrame(18651),
+                        EmptyFrame(18701), EmptyFrame(18703), U8Frame(18704, 7),
+                        EmptyFrame(18711), EmptyFrame(18712), EmptyFrame(18715));
 
                 controller.Dispose();
                 bool h = !controller.IsInitialized && IsModelEmpty(model);
                 foreach (int id in RegisteredIds) h &= !handlers.Contains(id);
                 foreach (int id in ExcludedIds) h &= !handlers.Contains(id);
-                h &= !handlers.Contains(18700);
 
-                pass = a && b && c && d && e && f && g && h;
+                pass = a && b && c && d && e && f && g && h && i;
                 Debug.Log("CLIVERIFY seahegemony A=" + a + " B=" + b + " C=" + c
                     + " D=" + d + " E=" + e + " F=" + f + " G=" + g + " H=" + h
-                    + " pass=" + pass);
+                    + " I=" + i + " pass=" + pass);
             }
             finally
             {
@@ -333,7 +438,8 @@ namespace Shenxiao.EditorTools
                 if (wasInitialized) controller.Init();
                 for (int id = 18600; id <= 18656; id++)
                     RestoreEntry(handlers, id, savedHandlers[id]);
-                RestoreEntry(handlers, 18700, savedHandlers[18700]);
+                for (int id = 18700; id <= 18715; id++)
+                    RestoreEntry(handlers, id, savedHandlers[id]);
                 interceptor?.SetValue(null, oldInterceptor);
                 lastLevel?.SetValue(controller, oldLastLevel);
                 RestoreEvent(events, hadRoleEvent, oldRoleSubscribers);
@@ -355,7 +461,8 @@ namespace Shenxiao.EditorTools
                     && EntryMatches(redDots, SeaHegemonyModel.RED_ICON_TYPE, oldRedDot);
                 for (int id = 18600; id <= 18656; id++)
                     restored &= EntryMatches(handlers, id, savedHandlers[id]);
-                restored &= EntryMatches(handlers, 18700, savedHandlers[18700]);
+                for (int id = 18700; id <= 18715; id++)
+                    restored &= EntryMatches(handlers, id, savedHandlers[id]);
                 Debug.Log("CLIVERIFY seahegemony restored=" + restored);
             }
 
@@ -370,7 +477,9 @@ namespace Shenxiao.EditorTools
                 "RequestActivity", "RequestGuilds", "RequestMonsters", "RequestScore",
                 "RequestKing", "RequestSides", "RequestCamps", "RequestApplyLimit",
                 "RequestNextTimes", "RequestSignup", "RequestPrivileges", "RequestMerit",
-                "RequestMembers", "RequestDistribution", "RequestOldJob", "Dispose"
+                "RequestMembers", "RequestDistribution", "RequestOldJob",
+                "RequestDailyOverview", "RequestDailyScene", "RequestDailySeaRank",
+                "RequestDailyAllRank", "RequestDailyTasks", "RequestDailyGuilds", "Dispose"
             };
             foreach (MethodInfo method in typeof(SeaHegemonyController).GetMethods(
                          BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
@@ -492,7 +601,69 @@ namespace Shenxiao.EditorTools
             .S("强会长").L(unchecked((long)ulong.MaxValue)).I(uint.MaxValue)
             .Bytes();
 
+        private static byte[] DailyOverviewPacket(int count)
+        {
+            var p = new CliVerify.Pkt().H(count);
+            for (int i = 0; i < count; i++)
+                p.C(byte.MaxValue).I(uint.MaxValue).I(4000000000L)
+                    .I(uint.MaxValue).C(byte.MaxValue);
+            return p.Bytes();
+        }
+
+        private static byte[] DailyScenePacket(int count)
+        {
+            var p = new CliVerify.Pkt().I(uint.MaxValue).I(4000000000L)
+                .H(ushort.MaxValue).H(40000).H(count);
+            for (int i = 0; i < count; i++)
+                p.I(uint.MaxValue).H(ushort.MaxValue).S("boss").I(uint.MaxValue);
+            return p.Bytes();
+        }
+
+        private static byte[] DailySeaRankPacket(uint seaId, int count)
+        {
+            var p = new CliVerify.Pkt().I(seaId).I(uint.MaxValue).I(4000000000L)
+                .L(unchecked((long)ulong.MaxValue)).C(byte.MaxValue).H(count);
+            for (int i = 0; i < count; i++)
+                p.C(byte.MaxValue).I(uint.MaxValue).S("ranker")
+                    .L(unchecked((long)0xFEDCBA9876543210UL)).I(uint.MaxValue);
+            return p.Bytes();
+        }
+
+        private static byte[] DailyCarryRewardPacket() => new CliVerify.Pkt()
+            .C(byte.MaxValue).H(2)
+            .C(byte.MaxValue).I(uint.MaxValue).I(4000000000L)
+            .C(byte.MaxValue).I(uint.MaxValue).I(4000000000L)
+            .Bytes();
+
+        private static byte[] DailyAllRankPacket(int count)
+        {
+            var p = new CliVerify.Pkt().I(uint.MaxValue).C(byte.MaxValue).I(4000000000L)
+                .L(unchecked((long)ulong.MaxValue)).C(byte.MaxValue).H(count);
+            for (int i = 0; i < count; i++)
+                p.C(byte.MaxValue).C(byte.MaxValue).I(uint.MaxValue).S("all-ranker")
+                    .L(unchecked((long)0xFEDCBA9876543210UL)).I(uint.MaxValue);
+            return p.Bytes();
+        }
+
+        private static byte[] DailyTasksPacket(int count)
+        {
+            var p = new CliVerify.Pkt().H(count);
+            for (int i = 0; i < count; i++)
+                p.C(byte.MaxValue).H(ushort.MaxValue).C(byte.MaxValue);
+            return p.Bytes();
+        }
+
+        private static byte[] DailyGuildsPacket(int count)
+        {
+            var p = new CliVerify.Pkt().H(count);
+            for (int i = 0; i < count; i++)
+                p.C(byte.MaxValue).L(unchecked((long)ulong.MaxValue)).S("daily-guild");
+            return p.Bytes();
+        }
+
         private static byte[] EmptyFrame(int id) => new CliVerify.Pkt().H(6).H(1000).H(id).Bytes();
+        private static byte[] U8Frame(int id, byte value) =>
+            new CliVerify.Pkt().H(7).H(1000).H(id).C(value).Bytes();
         private static byte[] U32Frame(int id, uint value) =>
             new CliVerify.Pkt().H(10).H(1000).H(id).I(value).Bytes();
         private static byte[] U16U16Frame(int id, ushort first, ushort second) =>
@@ -527,14 +698,19 @@ namespace Shenxiao.EditorTools
                 as IDictionary;
             IDictionary members = typeof(SeaHegemonyModel).GetField("_memberPages", F)?.GetValue(model)
                 as IDictionary;
+            IDictionary dailyRanks = typeof(SeaHegemonyModel).GetField("_dailyRanksBySea", F)?.GetValue(model)
+                as IDictionary;
             return !model.HasInfo && !model.HasGuard && !model.HasApplications && !model.HasActivity
                 && !model.HasMonsters && !model.HasScore && !model.HasResult && !model.HasKing
                 && !model.HasSides && !model.HasCamps && !model.HasApplyLimit && !model.HasActivityNotice
                 && !model.HasActivityTimes && !model.HasJobNotice && !model.HasPrivileges
                 && !model.HasMerit && !model.HasDistribution && !model.HasSignupEndTime
                 && !model.HasOldJob && !model.HasExitResult && !model.HasDivideResult
-                && !model.HasDailyError && model.Monsters.Count == 0
-                && guilds != null && guilds.Count == 0 && members != null && members.Count == 0;
+                && !model.HasDailyError && !model.HasDailyOverview && !model.HasDailyScene
+                && !model.HasDailyCarryReward && !model.HasDailyAllRank && !model.HasDailyTasks
+                && !model.HasDailyKick && !model.HasDailyGuilds && model.Monsters.Count == 0
+                && guilds != null && guilds.Count == 0 && members != null && members.Count == 0
+                && dailyRanks != null && dailyRanks.Count == 0;
         }
 
         private static ModelState CaptureModel(SeaHegemonyModel model)
