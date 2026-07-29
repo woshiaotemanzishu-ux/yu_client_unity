@@ -1,5 +1,11 @@
 [
   {
+    "cmd": 10204,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/setting/SettingController.ts:209-214,248(仅结果 handler；全 h5/src 无 sender);yu_server/src/game/pp_game.erl:107-111;yu_server/src/pt/pt_102.erl:18-20,94-98",
+    "note": "客户端版本上传 C2S client_ver:u64、S2C error_code:u32；服务端会写入当前玩家进程的临时 client_ver 并回成功，但老端没有任何发送入口。Unity 不注册、不发送、不加入 GAME_START/登录/设置链，也不为覆盖率孤立接收回执。R484 复核。"
+  },
+  {
     "cmd": 11005,
     "reason": "dead_server_param_shape_mismatch",
     "evidence": "yu_server/src/chat/mod_chat_voice.erl:138 + pt_110.erl:279-285,773",

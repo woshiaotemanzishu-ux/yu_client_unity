@@ -17,8 +17,8 @@
 
 ## 当前协议迁移口径（2026-07-30）
 
-- 最新完成轮次：R483，完成 Market 15104/15105 机器治理与历史注释订正：商品名搜索和上架推荐价的服务端查询主链均存活，但旧端都无 sender，注册 handler 也都解包即丢弃；15105 不可售错误分支还存在单参数调用三字段 writer 的在产形状 bug。两号均按 `dead_empty_body` 进入 killlist，Unity 保持现有 17 个 Market 注册协议，不复活无消费者查询或伪造错误兜底。
-- Unity ProtocolCoverage：`registered=1060`，`liveDefined=1468`，`liveGap=530`，未注册族错误出口10个；真实活协议覆盖 `938/1468=63.9%`，A～E 治理断言全通过。
+- 最新完成轮次：R484，接入服务端 `lib_game:send_error*` 共用的 10205 S2C-only 全局错误出口，完整消费 `error_code:u32,args:string` 并按老端无条件显错；10204 因旧端无 sender 纳入机器治理，10207 CDN 公告刷新与 10211 配置弹窗保留整体迁移门槛。Unity实编译、ServerClock A～L、KfStage回归和覆盖扫描均通过。
+- Unity ProtocolCoverage：`registered=1061`，`liveDefined=1468`，`liveGap=529`，未注册族错误出口10个；真实活协议覆盖 `939/1468=64.0%`，A～E 治理断言全通过。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

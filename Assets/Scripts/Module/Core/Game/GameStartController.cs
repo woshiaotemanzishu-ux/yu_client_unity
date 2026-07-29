@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -79,6 +80,7 @@ namespace Shenxiao.Module.Core.Game
         {
             RegisterProtocal(Proto.SERVER_TIME, On10201);
             RegisterProtocal(Proto.SETTING_LIST, On10202);
+            RegisterProtocal(Proto.GLOBAL_ERROR, On10205);
             RegisterProtocal(Proto.ROLE_LIFELONG_COUNT, On13088);
         }
 
@@ -201,6 +203,17 @@ namespace Shenxiao.Module.Core.Game
             {
                 EventDispatcher.Emit(GlobalEvent.EVT_GAME_START_FLAG_READY, "10202@3");
             }
+        }
+
+        /// <summary>10205 是 lib_game:send_error* 的全局 S2C-only 出口。
+        /// 老端 ServerTimeController 无条件调用 ErrorCodeShow；错误码表与 args 模板尚未迁移，当前显码降级，
+        /// 但完整消费并记录原始 args，禁止把它误作成功回执、请求或模型状态。</summary>
+        private void On10205(NetReader reader)
+        {
+            uint errorCode = reader.ReadU32();
+            string args = reader.ReadString();
+            TipsManager.Toast("操作失败(" + errorCode + ")");
+            GameLog.Warn("Game", "10205 全局错误 code={0} args={1}", errorCode, args);
         }
 
         private void On13088(NetReader reader)

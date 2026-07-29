@@ -56,6 +56,9 @@
         /// <summary>批量写设置(对标老端 SETTING_REQUEST_PROTO_10203):发 h 条数 + 每条 c type/c subtype/c is_open;
         /// 回包 error_code:i(==1 成功后客户端把缓存列表落地 SettingModel)。</summary>
         public const int SETTING_WRITE = 10203;
+        /// <summary>全局通用错误推送。无 C2S；S2C error_code:u32,args:string。
+        /// 服务端所有 lib_game:send_error* 最终统一写入本号，老端 ServerTimeController 无条件显错。</summary>
+        public const int GLOBAL_ERROR = 10205;
         /// <summary>脱离卡死(对标老端 confirm_flee):发 "i"(scene_id);回包 code:i(!=1 显错误码,==1 服务端拉人切场景)。</summary>
         public const int SETTING_FLEE = 10210;
         public const int SETTING_WX_SUBSCRIPTION_SWITCH = 11307; // 微信订阅总开关：空请求，回包 res:u8。

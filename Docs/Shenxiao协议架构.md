@@ -108,7 +108,14 @@
 
 **下一步**:① 真机验证 13001 链路(进游戏 Console 看到主角名/等级/货币 + 不刷未注册错误);② 场景段 120xx 最小接入(出生场景);③ Phase B 协议代码生成器(schema→常量/VO/读取/桩)。
 
-### 7.1 聊天 110xx 的 GAME_START 与缓存语义（2026-07-28 核对）
+### 7.1 全局错误 10205（2026-07-30 核对）
+
+- `10205` 无 C2S，是 `lib_game:send_error/2..4 -> make_error_bin_data -> pt_102:write(10205, ...)` 的全局错误出口；wire 固定为 `error_code:u32,args:string`。
+- `GameStartController` 随控制器初始化常驻注册，但绝不主动发送、不加入 GAME_START。每包完整消费两个字段并无条件显示错误，对标老端 `ServerTimeController.On10205 -> Util.ErrorCodeShow`。
+- Unity 尚未迁移 `data_error_code` 与 args 模板替换器，因此用户提示降级为 `操作失败(code)`，原始 args 只写诊断日志；不得把 args 原样冒充最终本地化文案。
+- 相邻号不能顺手并入：10204 的版本 setter 在老端无 sender；10207 依赖 CDN 登录公告版本/正文/红点；10211 依赖服务端 `data_popup`、登录/定时/神殿条件和真实弹窗消费。三者分别按 KILL/DEFER 治理，不注册空 handler。
+
+### 7.2 聊天 110xx 的 GAME_START 与缓存语义（2026-07-28 核对）
 
 - `ChatController` 在 `GAME_START` 依次请求 `11010(仙宗) -> 11010(私聊) -> 11010(世界)`；非开服第 1 天
   再请求 `11010(小跨服17) -> 11010(百煞冲霄20)`，随后空发 `11050 -> 11064 -> 11023`，最后插入本地欢迎语。
