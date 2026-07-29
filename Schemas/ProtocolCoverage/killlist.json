@@ -300,6 +300,18 @@
     "note": "单星宿总属性查询:老端注册了 On23204(handler 非空)且服务端 pp_constellation_equip.erl:267-277 handle 真实处理,但老端全仓零发送点=请求方向死、响应永不触发(半死活尸型)。按 40218/40263 先例:Unity 不发不收。轮23 主控裁决1。"
   },
   {
+    "cmd": 24011,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/common/CommonManager.ts:80-81(ShowPlayerMenu空函数);h5/src/team/TeamHallItem.ts:74、TeamRoleItem.ts:97(头像入口只调用该空函数);h5/src全仓无PlayerMenuView源码且无24011发送点;yu_server/src/team/pp_team.erl:134-141、mod_team_cast.erl:633-663",
+    "note": "委任队长的服务端写链真实存在，成功还会广播24015；但旧端唯一人物菜单入口为空、菜单类不存在且全仓零发送，玩家不可达。Unity已通过24015消费权威队长变化，不得补裸24011请求、回执、错误Toast或本地委任。R207/R479复核。"
+  },
+  {
+    "cmd": 24042,
+    "reason": "dead_empty_body",
+    "evidence": "h5/src/commonController/TeamController.ts:305-307(handler仅GetSCMD后丢弃),431(注册);h5/src全仓无24042发送点;yu_server/src/team/pp_team.erl:400-409、lib_team.erl:375-411",
+    "note": "获取活动剩余次数虽有服务端只读实现，S2C为type:u8,left_time:u8，但旧端从未发送，收到后也不保存、不触发事件、不渲染；按玩家行为事实源封存。Unity不增加请求、快照、次数推导或活动UI。R479复核。"
+  },
+  {
     "cmd": 28418,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/KfHolyAreaController.ts:379",
