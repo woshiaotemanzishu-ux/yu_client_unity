@@ -9,7 +9,8 @@ namespace Shenxiao.Module.Core.Partner
     /// <summary>
     /// 剑魄同修协议控制器(对标老端 commonController/PartnerController.ts;服务端 pt_142/pp_partner)。
     /// 进游戏发 14202 求全量列表;14205 培养(发 "i" companion_id)、14204 激活(发 "i");
-    /// 14201 单个推送/请求回包 upsert。14203(跟随)/14206(妖核)/14207(传记)未移植(老端有,后续按需)。
+    /// 14200 单向场景外观推送落独立原始通知，14201 单个推送/请求回包 upsert。
+    /// 14203(跟随)/14206(妖核)/14207(传记)涉及技能/场景、物品消耗或奖励链，未完整迁移前保持不注册。
     /// 培养消耗与阶星条件在服务端结算(config_companion_stage);背包/货币扣减经 15017/15018 增量刷新。
     /// </summary>
     public sealed class PartnerController : BaseController
@@ -20,6 +21,7 @@ namespace Shenxiao.Module.Core.Partner
 
         protected override void Register()
         {
+            RegisterProtocal(Proto.PARTNER_SCENE_FIGURE, On14200);
             RegisterProtocal(Proto.PARTNER_INFO, On14201);
             RegisterProtocal(Proto.PARTNER_LIST, On14202);
             RegisterProtocal(Proto.PARTNER_ACTIVE, On14204);
@@ -55,6 +57,19 @@ namespace Shenxiao.Module.Core.Partner
             if (companionId <= 0) return;
             SendFmt(Proto.PARTNER_ACTIVE, "i", companionId);
             GameLog.Info("Partner", "activate 14204 companion={0}", companionId);
+        }
+
+        /// <summary>14200 场景伙伴外观变化(S2C only):type_id:c,role_id:l,figure_id:i。
+        /// 当前场景角色模型尚无伙伴外观消费 API，因此先保存不可变原始通知并发专用事件，不污染同修面板切片。</summary>
+        private void On14200(NetReader r)
+        {
+            byte typeId = r.ReadU8();
+            long roleId = r.ReadU64();
+            uint figureId = r.ReadU32();
+            PartnerModel.SceneFigureNotice notice = PartnerModel.Instance.ReplaceSceneFigureNotice(typeId, roleId, figureId);
+            GameLog.Info("Partner", "14200 scene figure role_id={0} type_id={1} figure_id={2} remaining={3}B(TODO 场景角色渲染)",
+                roleId, typeId, figureId, r.Remaining);
+            EventDispatcher.Emit(GlobalEvent.EVT_PARTNER_SCENE_FIGURE_CHANGE, notice);
         }
 
         /// <summary>14202 同修全量:fight_id:i + sum_attr[u16×{attr_id:c,attr_val:i}] + companion_list[u16×单项]。</summary>

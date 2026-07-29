@@ -2088,6 +2088,9 @@
         public const int GUBAO_ACTIVE = 13321;
 
         // ----- 剑魄同修(142xx,yu_server pt_142.erl + pp_partner;老端 PartnerController.ts) -----
+        /// <summary>场景伙伴外观变化(S2C only):type_id:c, role_id:l, figure_id:i。
+        /// 服务端在默认伙伴激活/出战切换时单发或场景广播；客户端不得发送同号请求。</summary>
+        public const int PARTNER_SCENE_FIGURE = 14200;
         /// <summary>同修单个信息(请求发 "i" companion_id;推送/回包:sum_attr[u16×{attr_id:c,attr_val:i}],
         /// companion_id:i, stage:h, star:h, is_active:c, blessing:i, train_num:i, attr[同上], combat:l, fight_id:i)。</summary>
         public const int PARTNER_INFO = 14201;

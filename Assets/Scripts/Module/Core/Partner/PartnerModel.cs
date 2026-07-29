@@ -33,9 +33,26 @@ namespace Shenxiao.Module.Core.Partner
             public List<(int attrId, long val)> Attrs; // attr(属性,本轮只按序读出留存)
         }
 
+        /// <summary>14200 最近一包原始场景外观通知；不可变，避免后包覆盖时污染历史事件参数。</summary>
+        public sealed class SceneFigureNotice
+        {
+            public byte TypeId { get; }
+            public long RoleId { get; }
+            public uint FigureId { get; }
+
+            public SceneFigureNotice(byte typeId, long roleId, uint figureId)
+            {
+                TypeId = typeId;
+                RoleId = roleId;
+                FigureId = figureId;
+            }
+        }
+
         public readonly List<CompanionVo> Companions = new List<CompanionVo>();
         public int FightId;
         public bool HasData { get; private set; }
+        public SceneFigureNotice LastSceneFigureNotice { get; private set; }
+        public bool HasSceneFigureNotice => LastSceneFigureNotice != null;
 
         public CompanionVo Get(int companionId)
         {
@@ -82,11 +99,19 @@ namespace Shenxiao.Module.Core.Partner
             return changed;
         }
 
+        /// <summary>14200 每包完整替换独立通知切片，不改 14201/14202 的同修列表与 FightId。</summary>
+        public SceneFigureNotice ReplaceSceneFigureNotice(byte typeId, long roleId, uint figureId)
+        {
+            LastSceneFigureNotice = new SceneFigureNotice(typeId, roleId, figureId);
+            return LastSceneFigureNotice;
+        }
+
         public void Clear()
         {
             Companions.Clear();
             FightId = 0;
             HasData = false;
+            LastSceneFigureNotice = null;
         }
     }
 

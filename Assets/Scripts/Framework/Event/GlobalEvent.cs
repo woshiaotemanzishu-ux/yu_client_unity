@@ -129,6 +129,8 @@ namespace Shenxiao.Framework.Event
         // ----- Partner(剑魄同修) -----
         /// <summary>同修数据变动(14202 全量/14201 单个/14205 培养/14204 激活后)。对标老端 PartnerModel.UPDATE_VIEW。</summary>
         public const string EVT_PARTNER_UPDATE = "EVT_PARTNER_UPDATE";
+        /// <summary>伙伴场景外观变化(14200 S2C only)。参数为 PartnerModel.SceneFigureNotice；场景角色渲染消费方待接。</summary>
+        public const string EVT_PARTNER_SCENE_FIGURE_CHANGE = "EVT_PARTNER_SCENE_FIGURE_CHANGE";
 
         // ----- SuitCollect(套装收集)/ RushGift(冲级豪礼)/ OutWard(幻化外观) -----
         /// <summary>套装收集数据变动(15256 全量/15257 激活后)。</summary>

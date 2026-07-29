@@ -302,6 +302,12 @@ namespace Shenxiao.EditorTools
             Run(PartnerCaseAsync, 240.0);
         }
 
+        /// <summary>伙伴 14200 单向场景外观通知、独立切片和 14203/06/07 排除边界实证。</summary>
+        public static void PartnerSceneFigure()
+        {
+            Run(PartnerSceneFigureCase.Run, 60.0);
+        }
+
         /// <summary>套装收集 15256-15259 数据、出站与轻量 UI 验证。</summary>
         public static void SuitCollect()
         {
@@ -821,6 +827,7 @@ namespace Shenxiao.EditorTools
                 int p = ProtoDeltaCase();
                 int d = await DoTaskCoverageAsync();
                 int e = await PartnerCaseAsync();
+                int psf = await PartnerSceneFigureCase.Run();
                 int s = await SuitCollectCase.Run();
                 int g = await RushGiftCase.Run();
                 int o = await OutWardCase.Run();
@@ -915,7 +922,7 @@ namespace Shenxiao.EditorTools
                 int wxsub = await SettingWxSubscriptionCase.Run();
                 int st = await SnatchTreasureCase.Run();
                 int fil = await FriendInviteLevelCase.Run();
-                Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e
+                Debug.Log("CLIVERIFY ALL protoDelta=" + p + " dotask=" + d + " partner=" + e + " partnerSceneFigure=" + psf
                     + " suitclt=" + s + " rushgift=" + g + " outward=" + o + " snatchtreasure=" + st + " friendinvitelevel=" + fil + " wxsub=" + wxsub
                     + " templeawaken=" + t + " equipstren=" + q + " gubao=" + u
                     + " guildjoin=" + j + " rune=" + n + " dungeon=" + v + " thinslice=" + w + " finalslice=" + f
@@ -932,7 +939,7 @@ namespace Shenxiao.EditorTools
                     + " lookover=" + lo + " fashion=" + fa + " listduobao=" + ld + " protocolcoverage=" + pc + " guildactivity=" + ga
                     + " starequip=" + se + " starforge=" + sf + " banquet=" + bq
                     + " petequip=" + pe + " petequipinventory=" + pi + " petequipui=" + pu + " baby=" + by + " lung=" + lu + " dragonball=" + db + " attributepotion=" + ap + " armor=" + ar + " medal=" + me + " kfstage=" + ks + " reincarnation=" + re + " godbeast=" + gb + " designation=" + ds + " mask=" + ma + " dress=" + dr + " demon=" + dm + " demontalentpower=" + dmp + " revelation=" + rv + " achievement=" + ac + " guard=" + gd + " ninesky=" + ns + " ghostwalk=" + gw + " tscrack=" + tc + " eternity=" + et + " holybattle=" + hb + " mondaysaward=" + mwa + " noonparty=" + np + " deposit=" + dp + " monbook=" + mb + " kfsinglerank=" + ksr + " brightsea=" + bsea);
-                foreach (int r in new[] { p, d, e, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, ld, pc, ga, se, sf, bq, pe, pi, pu, by, lu, db, ap, ar, me, ks, re, gb, ds, ma, dr, dm, dmp, rv, ac, gd, ns, gw, tc, et, hb, mwa, np, dp, mb, ksr, jjc, jjcr, bsea, st, fil, wxsub })
+                foreach (int r in new[] { p, d, e, psf, s, g, o, t, q, u, j, n, v, w, f, a, b, c, k, m, gp, rl, sg, iv, eg, jw, rg, ch, fm, tm, df, dh, cv, sh, rk, gc, ge, bs, kb, mr, md, c0, c2, c3, c4, c5, c6, g1, g2, g3, g4, g5, mk, sc, lo, fa, ld, pc, ga, se, sf, bq, pe, pi, pu, by, lu, db, ap, ar, me, ks, re, gb, ds, ma, dr, dm, dmp, rv, ac, gd, ns, gw, tc, et, hb, mwa, np, dp, mb, ksr, jjc, jjcr, bsea, st, fil, wxsub })
                     if (r != 0) return r;
                 return 0;
             }, 1500.0);
