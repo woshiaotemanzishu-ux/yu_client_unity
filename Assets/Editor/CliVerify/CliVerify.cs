@@ -219,6 +219,11 @@ namespace Shenxiao.EditorTools
             Run(DesignationCase.Run, 60.0);
         }
 
+        public static void DesignationReadContinuation()
+        {
+            Run(DesignationReadContinuationCase.Run, 60.0);
+        }
+
         public static void Mask()
         {
             Run(MaskCase.Run, 60.0);

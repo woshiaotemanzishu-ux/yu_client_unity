@@ -1232,6 +1232,16 @@
         public const int GHOST_WALK_ERROR = 20600;
         /// <summary>称号列表快照。C2S 空包；S2C: current_id:u32,items:u16×{id:u32,order:u8,end_time:u32}。</summary>
         public const int DESIGNATION_LIST = 41101;
+        /// <summary>称号激活结果通知（S2C-only）。S2C: code:u32,id:u32,end_time:u32；只保留原始通知，不自动佩戴。</summary>
+        public const int DESIGNATION_ACTIVATED = 41104;
+        /// <summary>场景角色称号变更通知（S2C-only）。S2C: player_id:u64,id:u32；只保留原始通知，不接场景表现。</summary>
+        public const int DESIGNATION_SCENE_NOTICE = 41105;
+        /// <summary>称号战力显式查询。C2S: id:u32；S2C: errcode:u32,power:u32。</summary>
+        public const int DESIGNATION_POWER = 41107;
+        /// <summary>称号移除通知（S2C-only）。S2C: id:u32；只保留原始通知，不改写 41101 列表。</summary>
+        public const int DESIGNATION_REMOVED = 41108;
+        // 41102/41103 佩戴与卸下、41106 升阶、41109 道具激活、41110 过期取消均为真实写操作；
+        // 禁止暴露裸操作 API，也不得复刻旧端 41104 首次激活后自动发送 41102 的写链。
         /// <summary>面具状态快照。C2S 空包；S2C: mask_id:u8,end_time:u32。</summary>
         public const int MASK_INFO = 51101;
         /// <summary>使魔实体核心快照。C2S 空包；S2C 为开放状态和完整实体列表。</summary>

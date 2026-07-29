@@ -23,6 +23,7 @@
 - 旧 Laya 粒子兼容规则：项目保持 Linear，禁止为修复特效发淡而全局退回 Gamma；`LayaParticleUnlit` 必须恢复旧材质 `tint=0.5 × shader 2` 的中性数值。Laya `GradientDataNumber` 按相邻关键点线性插值，转换器禁止使用 Unity 自动平滑切线，否则尺寸/速度曲线会过冲甚至被钳为 0。材质 UV 动画必须绑定 shader 实际读取的属性；当前 `LayaParticleUnlit` 消费 `_MainTex_ST`，`char_acceleratebuff01` 必须保留该属性 `z:0→3/1s` 的循环曲线以形成流光隐现，禁止用固定位置偏移掩盖 UV 定格。任务完成仍走 UI 特效链，老端 `(0,+4)` 在 Unity 仅于该业务边界映射为 `(0,-4)`，不得改挂角色。
 - 旧 Laya 特效网格顶点色规则：排查流光硬边、矩形截断或“像放反”时，必须同时核对源 `.lm` 的 `COLOR` 通道与 Unity `Mesh.colors`，禁止只看贴图、UV 或挂点。`char_acceleratebuff01/eff_cys_sz01` 必须保留 32 个顶点色，Alpha 覆盖 `0..1` 且含中间渐变值；丢失顶点色会让 `_MainTex_ST` 扫光在网格边缘形成硬截断，不得用旋转、平移或按模型特判掩盖。
 
+- R507 Designation 41104/41105/41107/41108：41104 是 S2C-only 激活通知 `code:u32,id:u32,end_time:u32`，不得复刻旧端首次激活后自动发送 41102；41105 是 S2C-only 场景称号通知 `player_id:u64,id:u32`，当前只保留原始最后通知，不改场景角色；41107 是显式 `id:u32` 纯战力查询及独立 `errcode:u32,power:u32` 最后快照，不加入 GAME_START，无回复保留旧值；41108 是 S2C-only 移除通知 `id:u32`，不得补丁式改写 41101 权威列表。四份切片逐包完整替换并与 41101 双向隔离，零值/最大值有效。41102/41103 佩戴卸下、41106 升阶、41109 道具激活、41110 过期取消均为真实写操作，继续 DEFER；不得接 UI、场景表现、配置、背包、属性、事件、红点、Toast、自动重拉或乐观状态。
 - R506 JJC 28000/28010/28013/28014：28000 是 S2C-only 原始错误 `errcode:u32`；28010 是显式严格空查询及独立 `errcode:u32,honour:u32` 快照，不得回写 28001 的 Honour；28013 是显式严格空查询及 `self_robot_id:u64,self_role_id:u64,rival_robot_id:u64,rival_role_id:u64` 完整快照；28014 是 S2C-only `stage:u8,time:u32`，time 保留服务端 Unix 绝对截止时刻。四号均逐包完整替换自己的最后原始切片，零值/最大值有效，无回复保留旧值；GAME_START 仍严格为 `28004→28001`。28005 购买次数、28012 退出战斗、28015 跳过战斗、28017 突破领奖继续 DEFER；28008 的服务端请求入口已注释，维持 KILL。不得接 UI、场景、货币、奖励、Toast、事件、红点、自动发送或其余 280xx 操作。
 - R505 Rune 16704/16705/16706/16709：GAME_START 保持精确 `16700→16704`；16704 是严格空请求及 `rune_dungeon_level:u16` 绝对快照。16705 合成预览请求为 `rule_id:u64,goods_ids:u16×u64`，回包为 `code:u32,lv:u32`；16706 分解预览请求为 `goods_ids:u16×u64`，回包为 `code:u32,exp:u64,result:ObjectList`；16709 觉醒符文拆解预览请求同为 `goods_ids:u16×u64`，回包为 `code:u32,result:ObjectList`。后三号不回显请求键，只保存彼此隔离的最后一份原始预览；失败码、零值、重复 ObjectList 和空表都完整替换，无回复保留旧切片。不得接 16703 兑换、16707 觉醒、16708 拆解、16710 技能升级、16711 卸下，亦不得附带 UI、配置、事件、红点、本地资产变更或乐观成功。
 - R484 Game 10205 is the S2C-only global error exit `error_code:u32,args:string` used by every `lib_game:send_error*` overload. Register it unconditionally with the game-start/server-time controller, consume both fields, and mirror the old client's unconditional error display; until the error-code table/template formatter is migrated, show the numeric fallback and retain raw args only in diagnostics. Never expose a request, treat it as a success receipt, write model state, emit business events, retry, or attach it to GAME_START. Keep 10204 absent as `old_client_unreachable`: its `client_ver:u64` setter is live server-side but the old client has no sender. Keep 10207 deferred with the CDN login-notice data/red-dot flow, and 10211 deferred with `data_popup`, login/timer/Temple conditions and real popup consumers; do not register either as a no-op.
@@ -290,9 +291,9 @@
 - 45112虽有服务端空查询分支，但老端没有sender；Unity只注册接收 `is_free:u8`，保存独立raw覆盖切片，不公开请求，也不与45101尾部 `is_free_protect` 合并。45101/02/04全量、45110/11最后通知和45112状态互不交叉清理；45120继续由SvipController独立持有，禁止双注册。
 - 45103/45105任务领奖、45106/45107购买和45108权益领奖均会真实写状态、扣货币或发奖，必须等UI/配置/背包与结果闭环一起迁移；当前不公开sender、不接孤立成功回执，也不新增红点、弹窗、商店转发或本地奖励。
 
-## Designation 41101（轮115）
+## Designation 41101/41104/41105/41107/41108（轮115/R507）
 
-- 老端在背包初始化完成后空发41101；本端沿用 Fashion 同类迁移经验，简化为 GAME_START 空发一次（请求自身无背包参数）。回包为 `current_used:u32,items:u16×{id:u32,order:u8,end_time:u32}` 完整快照，服务端已负责清过期与特殊称号过滤，本端只全量替换、空列表清旧。不得与 Medal 13405 普通标题表混为一体；当前不接41102-41110、配置、背包数量、红点、事件、UI或场景广播。
+- 老端在背包初始化完成后空发41101；本端沿用 Fashion 同类迁移经验，简化为 GAME_START 空发一次（请求自身无背包参数）。回包为 `current_used:u32,items:u16×{id:u32,order:u8,end_time:u32}` 完整快照，服务端已负责清过期与特殊称号过滤，本端只全量替换、空列表清旧。R507 增加 41104/41105/41107/41108 独立原始读侧，边界以前述 R507 硬约束为准。不得与 Medal 13405 普通标题表混为一体；仍不接写操作、配置、背包数量、红点、事件、UI或场景表现。
 
 ## Mask 51101（轮116）
 
