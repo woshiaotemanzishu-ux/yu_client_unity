@@ -444,6 +444,18 @@
     "note": "使用红包道具发送红包是存活写事务：服务端校验公会/配置/次数与拆分数，删除真实道具，创建红包并增加日计数。老端虽保留结果 handler，却没有任何玩家可达的发送入口；Unity 严禁为覆盖率复活该交易，也不得只接回执、乐观扣物或本地造红包。R482 复核。"
   },
   {
+    "cmd": 39903,
+    "reason": "dead_empty_body",
+    "evidence": "h5/src/commonController/MiniGameController.ts:61-65;yu_server/src/mini_game/pp_mini_game.erl:38-41;yu_server/src/pt/pt_399.erl:143-149",
+    "note": "小游戏信息反馈的 S2C 是空壳；老端 handler 只取空包后结束，当前服务器也只有 C2S 玩法反馈入口和孤立空 writer，没有真实下发消费语义。Unity 不注册、不恢复空回执；同号 C2S 会改玩法分数，继续禁止。R508。"
+  },
+  {
+    "cmd": 39905,
+    "reason": "dead_server_never_writes",
+    "evidence": "h5/src/commonController/MiniGameController.ts:75-79;yu_server/src/pt/pt_399.erl:163-182;yu_server/src/mini_game/lib_note_crash_mod.erl:164-176;yu_server/src/mini_game/lib_rhythm_talent_mod.erl:108-124;yu_server/src/guild_act/lib_guild_feast_mod.erl:167-174",
+    "note": "小游戏结算壳只剩 pt writer；当前两个玩法结束链都仅把结果同步到公会晚宴进程，晚宴侧只写内存 game_finished，不存在任何 39905 发送点。老端收到后也只停本地计时器。Unity 不注册该死号，不据此恢复计时器、结算 UI 或玩法状态。R508。"
+  },
+  {
     "cmd": 39931,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/MiniGameController.ts:353",

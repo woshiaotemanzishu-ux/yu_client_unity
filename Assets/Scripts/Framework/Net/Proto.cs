@@ -2005,6 +2005,10 @@
 
         /// <summary>小游戏家族统一错误出口。无 C2S；S2C(pt_399): errcode:u32, msg:string。</summary>
         public const int MINI_GAME_ERROR = 39900;
+        public const int MINI_GAME_START_NOTICE = 39901;
+        public const int MINI_GAME_CURRENT = 39902;
+        public const int MINI_GAME_RANK = 39904;
+        public const int MINI_GAME_ELIM_RECONNECT = 39922;
 
         // ----- 结社/公会(pt_400,yu_server guild;老端 GuildJoinView.ts/GuildBuildView.ts) -----
         /// <summary>结社列表(发 "shh" name,pageSize,pageNo;回包 page_total:h, page_no:h, guild_list[u16×{guild_id:l,

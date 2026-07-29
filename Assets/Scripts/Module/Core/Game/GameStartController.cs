@@ -68,6 +68,7 @@ using Shenxiao.Module.Core.MondaysAward;
 using Shenxiao.Module.Core.Deposit;
 using Shenxiao.Module.Core.OnHook;
 using Shenxiao.Module.Core.HotPoint;
+using Shenxiao.Module.Core.MiniGame;
 
 namespace Shenxiao.Module.Core.Game
 {
@@ -105,6 +106,7 @@ namespace Shenxiao.Module.Core.Game
             FirstRechargeController.Instance.RequestStartupState();
             CustomActivityController.Instance.RequestActivityList();
             HotPointController.Instance.RequestActivityList();
+            MiniGameController.Instance.RequestStartup();
             SvipController.Instance.RequestSvipInfo();
             WeekCardController.Instance.RequestStartup();
             FestivalController.Instance.RequestStartup();
