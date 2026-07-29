@@ -35,6 +35,14 @@ namespace Shenxiao.Module.Core.TreasureMap
 
         public bool HasDrawLog { get; private set; }
         public IReadOnlyList<DrawLogEntry> DrawLogs => _readOnlyDrawLogs;
+        public bool HasError { get; private set; }
+        public uint LastErrorCode { get; private set; }
+
+        public void ReplaceError(uint errorCode)
+        {
+            HasError = true;
+            LastErrorCode = errorCode;
+        }
 
         public void ReplaceDrawLog(List<DrawLogEntry> drawLogs)
         {
@@ -47,6 +55,8 @@ namespace Shenxiao.Module.Core.TreasureMap
         {
             _drawLogs.Clear();
             HasDrawLog = false;
+            HasError = false;
+            LastErrorCode = 0;
         }
     }
 }

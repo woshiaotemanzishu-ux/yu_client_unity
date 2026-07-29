@@ -16,6 +16,8 @@
         public const int HOLY_SEAL_ERROR = 65400;
         /// <summary>影骸战衣原始评分。C2S 严格空包；S2C rating:u32。</summary>
         public const int HOLY_SEAL_RATING = 65407;
+        /// <summary>藏宝图家族统一错误出口。S2C-only：code:u32。</summary>
+        public const int TREASURE_MAP_ERROR = 20300;
         /// <summary>藏宝图开奖记录快照。C2S 严格空包；S2C 为完整记录及奖励列表。</summary>
         public const int TREASURE_MAP_DRAW_LOG = 20303;
         /// <summary>神殿觉醒副本技能快照。C2S 严格空包；S2C skill_list:u16×{skill_id:u32,skill_lv:u16}。</summary>
