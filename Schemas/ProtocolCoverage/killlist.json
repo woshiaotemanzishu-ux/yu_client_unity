@@ -582,6 +582,30 @@
     "note": "同区服务器列表 push 只有不可达宿主 writer，服务端永不实际发送；Unity 保持不注册。"
   },
   {
+    "cmd": 51001,
+    "reason": "dead_server_family_route_disabled",
+    "evidence": "h5/src/commonController/TreasureMapController.ts:35-40,183-188,220(启动/整点请求已注释但保留接收);yu_server/src/server/mod_server.erl:786(整个510前缀恒skip);yu_server/src/boss_rotary/pp_boss_rotary.erl:20-21;yu_server/src/boss_rotary/lib_boss_rotary.erl:189-194(唯一writer仅由被禁路由调用)",
+    "note": "Boss转盘列表查询虽残留完整编解码和旧端消费，但服务器在家族路由层硬禁用，唯一回包链不可达。Unity 不新增 Proto、请求、handler、模型或UI。恢复前必须先由服务端启用整族路由并整体复审51001-51005。R476。"
+  },
+  {
+    "cmd": 51002,
+    "reason": "dead_server_family_route_disabled",
+    "evidence": "h5/src/commonController/TreasureMapController.ts:189-196,221(旧端仅接收新转盘推送);yu_server/src/server/mod_server.erl:786(整个510前缀恒skip);yu_server/src/boss_rotary/lib_boss_rotary.erl:128-184(boss_be_kill当前直接ok，原51002 writer整段注释)",
+    "note": "新转盘推送的触发器已被硬替换为空操作，唯一writer留在注释中；即使Boss击杀调用仍存在也不会生成状态或发包。Unity 保持不注册。R476。"
+  },
+  {
+    "cmd": 51003,
+    "reason": "dead_server_family_route_disabled",
+    "evidence": "h5/src/commonController/TreasureMapController.ts:48-51,197-205,222(旧端仍可发放弃并消费结果);yu_server/src/server/mod_server.erl:786(整个510前缀恒skip);yu_server/src/boss_rotary/pp_boss_rotary.erl:23-29(唯一handler/writer位于被禁路由);yu_server/src/boss_rotary/lib_boss_rotary.erl:196-208(若直调会写DB)",
+    "note": "放弃转盘是会更新数据库的真实操作，但网络前缀在进入pp层前恒skip，现网请求无业务效果且无回包。禁止客户端单方面复活裸sender；恢复须与整个Boss转盘产品链一起重启。R476。"
+  },
+  {
+    "cmd": 51004,
+    "reason": "dead_server_family_route_disabled",
+    "evidence": "h5/src/commonController/TreasureMapController.ts:51-54,206-213,223(旧端仍可发抽奖并消费奖励);yu_server/src/server/mod_server.erl:786(整个510前缀恒skip);yu_server/src/boss_rotary/pp_boss_rotary.erl:32-40(唯一handler/writer位于被禁路由);yu_server/src/boss_rotary/lib_boss_rotary.erl:211-249(若直调会扣费、落状态并发奖)",
+    "note": "转盘抽奖内部仍是扣费、持久化和发奖交易，但网络路由完全禁用。Unity 严禁新增sender、回执缓存、本地扣费或奖励展示；未来仅可在服务端明确恢复并提供完整交易/UI闭环后整体迁移。R476。"
+  },
+  {
     "cmd": 61057,
     "reason": "dead_server_never_writes",
     "evidence": "h5/src/commonController/BaseDungeonController.ts:1733-1737;yu_server/src/dungeon/pp_dungeon.erl:843-865;yu_server/src/pt/pt_610.erl:961-975",
