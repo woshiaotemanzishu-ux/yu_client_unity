@@ -48,6 +48,7 @@ namespace Shenxiao.Common.UI3D
         // 角色相对世界的大小请改这里。对标老客户端 default_model_scale = 1.1(其 .lh 模型),Unity 导入模型素体尺寸不同,
         // 先取 1.0,实跑对比老版后微调(偏大调小、偏小调大)。
         private const float MODEL_SCALE = 1.0f;
+        private const RenderTextureFormat MODEL_RT_FORMAT = RenderTextureFormat.ARGBHalf;
         // 100 像素 = 1 世界单位(对标老客户端 orthoVerticalSize = stageH*0.01;与 ORTHO_SIZE 同源)。
         private const float PIXELS_PER_UNIT = 100f;
         // 模型根点若不在脚底,用它做竖直微调(屏幕参考像素;>0 把脚底再往下挪)。默认 0:
@@ -342,6 +343,7 @@ namespace Shenxiao.Common.UI3D
             _cam = camGo.AddComponent<Camera>();
             _cam.clearFlags = CameraClearFlags.SolidColor;
             _cam.backgroundColor = new Color(0f, 0f, 0f, 0f); // 透明底,地图透出
+            _cam.allowHDR = true;
             _cam.orthographic = true;
             _cam.orthographicSize = ORTHO_SIZE; // 随后 SyncProjection 按实际画布高度覆盖
             _cam.nearClipPlane = 0.3f;
@@ -409,14 +411,16 @@ namespace Shenxiao.Common.UI3D
         {
             int w = Mathf.Clamp(Screen.width, 64, 4096);
             int h = Mathf.Clamp(Screen.height, 64, 4096);
-            if (_rt != null && _rt.width == w && _rt.height == h) return;
+            if (_rt != null && _rt.width == w && _rt.height == h && _rt.format == MODEL_RT_FORMAT) return;
             if (_rt != null)
             {
                 if (_cam != null) _cam.targetTexture = null;
                 _rt.Release();
                 Object.Destroy(_rt);
             }
-            _rt = new RenderTexture(w, h, 16, RenderTextureFormat.ARGB32) { name = "SceneCharStageRT" };
+            // 与 UI 模型台保持同一 HDR 透明口径。ARGB32 会截断 Panda 翅膀的 HDR/半透明中间色，
+            // 表现为光环仍亮、上翼有色膜片却褪色或消失。
+            _rt = new RenderTexture(w, h, 16, MODEL_RT_FORMAT) { name = "SceneCharStageRT" };
             ClearRenderTexture(_rt);
             if (_cam != null) _cam.targetTexture = _rt;
             if (_img != null) _img.texture = _rt;

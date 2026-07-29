@@ -1,5 +1,5 @@
-// UIModelStage/SceneCharacterStage 的透明 RT 合成 shader。RT 中的 RGB 已经是预乘结果；
-// 这里以 One/OneMinusSrcAlpha 贴回 UI，并给只写 RGB 的加法光效补亮度覆盖，避免其融入金白色背景。
+// UIModelStage/SceneCharacterStage 的透明 HDR RT 合成 shader。RT 中的 RGB 已经是预乘结果；
+// 这里只以 One/OneMinusSrcAlpha 原样贴回 UI，不再二次乘 Alpha，也不从亮度伪造覆盖度。
 Shader "Shenxiao/UI/StageComposite"
 {
     Properties
@@ -59,13 +59,9 @@ Shader "Shenxiao/UI/StageComposite"
 
             fixed4 frag(v2f i) : SV_Target
             {
-                // RT 的 RGB 已经是预乘结果，不能再乘 alpha。纯加法材质通常只写 RGB、几乎不写 Alpha；
-                // 若直接透传，在金白色背景上会被背景亮度吞掉。用自身亮度补一个软覆盖，同时保留原始 Alpha，
-                // 让光效在亮底仍有轮廓，角色本体和普通透明材质的既有遮罩语义保持不变。
-                fixed4 color = tex2D(_MainTex, i.texcoord) * i.color;
-                fixed brightnessCoverage = saturate(max(color.r, max(color.g, color.b)));
-                color.a = max(color.a, brightnessCoverage);
-                return color;
+                // RGB 已在模型 RT 内按各材质自己的混合方式生成。再次乘 Alpha 会双重衰减；
+                // 用 RGB 反推 Alpha 又会把纯加法光环错误变成实心遮罩，因此必须原样返回。
+                return tex2D(_MainTex, i.texcoord) * i.color;
             }
             ENDCG
         }

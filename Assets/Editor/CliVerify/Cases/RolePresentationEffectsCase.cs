@@ -43,6 +43,8 @@ namespace Shenxiao.EditorTools
             GameObject selection = null;
             Transform selectionTilt = null;
             CliVerify.Stage ownedStage = null;
+            UIModelStage hdrUiStage = null;
+            GameObject hdrUiContainer = null;
             UIEffectStage.Handle bossIntroBanner = null;
             UIEffectStage.Handle taskSuccess = null;
             try
@@ -103,14 +105,12 @@ namespace Shenxiao.EditorTools
                 }
                 Debug.Log("CLIVERIFY role-effects 3 scene RT premultiplied composite ready");
 
-                if (!VerifyStageCompositeCoverage(out string compositeDiagnostic))
+                if (!VerifyModelStageHdr(out hdrUiStage, out hdrUiContainer, out string hdrDiagnostic))
                 {
-                    Debug.LogError("CLIVERIFY role-effects stage composite brightness coverage invalid: " +
-                        compositeDiagnostic);
+                    Debug.LogError("CLIVERIFY role-effects model stage HDR target invalid: " + hdrDiagnostic);
                     return 3;
                 }
-                Debug.Log("CLIVERIFY role-effects 3a stage composite preserves alpha and gives additive RGB " +
-                    "soft coverage; " + compositeDiagnostic);
+                Debug.Log("CLIVERIFY role-effects 3a UI/scene model stages preserve HDR alpha; " + hdrDiagnostic);
 
                 if (!VerifyLegacyLinearTint(out Color neutralTintSample))
                 {
@@ -281,86 +281,61 @@ namespace Shenxiao.EditorTools
                 if (selectionTilt != null) SceneCharacterStage.RemoveSceneCharacter(selectionTilt);
                 bossIntroBanner?.Dispose();
                 taskSuccess?.Dispose();
+                hdrUiStage?.Dispose();
+                if (hdrUiContainer != null)
+                {
+                    if (Application.isPlaying) UnityEngine.Object.Destroy(hdrUiContainer);
+                    else UnityEngine.Object.DestroyImmediate(hdrUiContainer);
+                }
                 SceneCharacterStage.Clear();
                 ownedStage?.Dispose();
                 ResManager.EditorPreferFallback = fallbackBefore;
             }
         }
 
-        /// <summary>
-        /// Additive wing/effect materials can write visible RGB with zero alpha. StageComposite must derive
-        /// soft coverage from that RGB so it remains readable over bright UI/world backgrounds, while never
-        /// reducing alpha already written by opaque or conventionally transparent model materials.
-        /// </summary>
-        private static bool VerifyStageCompositeCoverage(out string diagnostic)
+        private static bool VerifyModelStageHdr(out UIModelStage uiStage, out GameObject uiContainer,
+            out string diagnostic)
         {
-            bool additiveOk = RenderStageCompositeSample(new Color(0.6f, 0.2f, 0.1f, 0f), out Color additive);
-            bool alphaOk = RenderStageCompositeSample(new Color(0.2f, 0.1f, 0.05f, 0.8f), out Color alpha);
-            diagnostic = $"additive={additive}, alpha={alpha}";
-            return additiveOk && alphaOk &&
-                   additive.r >= 0.5f && additive.a >= 0.5f && additive.a <= 0.7f &&
-                   alpha.a >= 0.75f;
-        }
-
-        private static bool RenderStageCompositeSample(Color sourceColor, out Color sample)
-        {
-            sample = Color.clear;
-            Shader shader = Shader.Find("Shenxiao/UI/StageComposite");
-            if (shader == null || ShaderUtil.ShaderHasError(shader)) return false;
-
-            Material material = null;
-            Texture2D source = null;
-            Texture2D readback = null;
-            RenderTexture rt = null;
-            GameObject cameraObject = null;
-            GameObject quad = null;
-            RenderTexture previous = RenderTexture.active;
+            uiStage = null;
+            uiContainer = null;
+            GameObject model = null;
             try
             {
-                source = new Texture2D(1, 1, TextureFormat.RGBA32, false, true);
-                source.SetPixel(0, 0, sourceColor);
-                source.Apply();
-                material = new Material(shader);
-                material.SetTexture("_MainTex", source);
+                FieldInfo sceneRtField = typeof(SceneCharacterStage).GetField("_rt",
+                    BindingFlags.NonPublic | BindingFlags.Static);
+                FieldInfo sceneCameraField = typeof(SceneCharacterStage).GetField("_cam",
+                    BindingFlags.NonPublic | BindingFlags.Static);
+                RenderTexture sceneRt = sceneRtField?.GetValue(null) as RenderTexture;
+                Camera sceneCamera = sceneCameraField?.GetValue(null) as Camera;
 
-                rt = new RenderTexture(16, 16, 16, RenderTextureFormat.ARGB32);
-                rt.Create();
-                cameraObject = new GameObject("StageCompositeCoverageProbeCamera");
-                Camera camera = cameraObject.AddComponent<Camera>();
-                camera.clearFlags = CameraClearFlags.SolidColor;
-                camera.backgroundColor = Color.clear;
-                camera.orthographic = true;
-                camera.orthographicSize = 1f;
-                camera.transform.position = new Vector3(0f, 0f, -10f);
-                camera.targetTexture = rt;
-                camera.cullingMask = 1 << 31;
+                uiContainer = new GameObject("UIModelHdrProbe", typeof(RectTransform));
+                RectTransform rect = (RectTransform)uiContainer.transform;
+                rect.sizeDelta = new Vector2(128f, 256f);
+                model = new GameObject("UIModelHdrProbeModel");
+                uiStage = new UIModelStage();
+                uiStage.PlaceInstance(rect, model);
+                model = null; // ownership transferred to UIModelStage
 
-                quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                quad.layer = 31;
-                quad.transform.localScale = new Vector3(2f, 2f, 1f);
-                quad.GetComponent<Renderer>().sharedMaterial = material;
-                camera.Render();
+                FieldInfo uiRtField = typeof(UIModelStage).GetField("_rt",
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+                FieldInfo uiCameraField = typeof(UIModelStage).GetField("_cam",
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+                RenderTexture uiRt = uiRtField?.GetValue(uiStage) as RenderTexture;
+                Camera uiCamera = uiCameraField?.GetValue(uiStage) as Camera;
 
-                RenderTexture.active = rt;
-                readback = new Texture2D(16, 16, TextureFormat.RGBA32, false, true);
-                readback.ReadPixels(new Rect(0f, 0f, 16f, 16f), 0, 0);
-                readback.Apply();
-                sample = readback.GetPixel(8, 8);
-                return true;
+                diagnostic = $"scene={sceneRt?.format}/{sceneCamera?.allowHDR}," +
+                             $"ui={uiRt?.format}/{uiCamera?.allowHDR}";
+                return sceneRt != null && uiRt != null &&
+                       sceneRt.format == RenderTextureFormat.ARGBHalf &&
+                       uiRt.format == RenderTextureFormat.ARGBHalf &&
+                       sceneCamera != null && sceneCamera.allowHDR &&
+                       uiCamera != null && uiCamera.allowHDR;
             }
-            finally
+            catch (Exception ex)
             {
-                RenderTexture.active = previous;
-                if (readback != null) UnityEngine.Object.DestroyImmediate(readback);
-                if (quad != null) UnityEngine.Object.DestroyImmediate(quad);
-                if (cameraObject != null) UnityEngine.Object.DestroyImmediate(cameraObject);
-                if (rt != null)
-                {
-                    rt.Release();
-                    UnityEngine.Object.DestroyImmediate(rt);
-                }
-                if (material != null) UnityEngine.Object.DestroyImmediate(material);
-                if (source != null) UnityEngine.Object.DestroyImmediate(source);
+                diagnostic = ex.GetType().Name + ":" + ex.Message;
+                if (model != null) UnityEngine.Object.DestroyImmediate(model);
+                return false;
             }
         }
 

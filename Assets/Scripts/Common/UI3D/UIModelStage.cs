@@ -28,6 +28,7 @@ namespace Shenxiao.Common.UI3D
         private const float BODY_SCALE_MUL = 5f;       // Set3DLocalScale(transform, 5 * data.scale, ...)
         private const float BASE_Y = -5f;              // pos_y = ... - 5(模型根在相机中心下方 5,再加 position.y 配置)
         public const float MODEL_YAW = 180f;           // 默认 rotate = (0, 180, 0),模型转身面向相机
+        private const RenderTextureFormat MODEL_RT_FORMAT = RenderTextureFormat.ARGBHalf;
 
         // Laya UI 相机 rotY180 → 屏幕x = 世界-X;Unity 相机屏幕x = +X,同一几何互为镜像 → 渲染层把 RT 水平翻转补偿。
         private static readonly Rect FLIP_HORIZONTAL = new Rect(1f, 0f, -1f, 1f);
@@ -314,6 +315,7 @@ namespace Shenxiao.Common.UI3D
             _cam = camGo.AddComponent<Camera>();
             _cam.clearFlags = CameraClearFlags.SolidColor;
             _cam.backgroundColor = new Color(0f, 0f, 0f, 0f); // 透明底,UI 背景透出
+            _cam.allowHDR = true;
             _cam.orthographic = true;
             _cam.orthographicSize = ORTHO_FULL_HEIGHT * 0.5f;
             _cam.nearClipPlane = 0.3f;
@@ -375,14 +377,16 @@ namespace Shenxiao.Common.UI3D
         {
             int w = Mathf.Clamp(Mathf.RoundToInt(container.rect.width), 64, 2048);
             int h = Mathf.Clamp(Mathf.RoundToInt(container.rect.height), 64, 2048);
-            if (_rt != null && _rt.width == w && _rt.height == h) return;
+            if (_rt != null && _rt.width == w && _rt.height == h && _rt.format == MODEL_RT_FORMAT) return;
             if (_rt != null)
             {
                 _cam.targetTexture = null;
                 _rt.Release();
                 Object.Destroy(_rt);
             }
-            _rt = new RenderTexture(w, h, 16, RenderTextureFormat.ARGB32) { name = "UIModelStageRT" };
+            // 美术 Panda 材质包含 HDR 颜色和多层半透明。ARGB32 会在透明 RT 的中间结果阶段截断 HDR，
+            // 上翼膜片会先褪色，再经 UGUI 合成变得不明显；必须保留带 Alpha 的半浮点缓冲。
+            _rt = new RenderTexture(w, h, 16, MODEL_RT_FORMAT) { name = "UIModelStageRT" };
             ClearRenderTexture(_rt);
             _cam.targetTexture = _rt;
             if (_img != null) _img.texture = _rt;

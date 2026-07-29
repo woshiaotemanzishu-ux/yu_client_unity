@@ -26,12 +26,12 @@
    翅膀等独立 prefab 必须保留美术设置。1005 翅膀三个 Animator 在源 prefab 都明确为 false；公共上台
    逻辑曾把它们全部改成 true。运行时应以最近的 `ArtModelRenderProfile` 划分主体与部件，只有根档案所属
    Animator 才启用 Root Motion；这是保持源 prefab 运动设置的正确性修复，不应再把它当作渲染异常根因。
-7. **不能只凭 HDR 数值推断要换 RT/后处理**:1005 材质 `_MainColor` 很高，但已验收的创角 `create2`
-   材质峰值更高，仍使用 ARGB32 正常显示。2026-07-29 进一步用同一 `wing_1005` 实物渲染确认：暗底完整、
-   金底发淡、白底近乎消失，根因是纯加法材质只写 RGB、几乎不写 Alpha，透明 RT 直接贴亮底时前景没有
-   足够覆盖度；不是灯光，也不是贴图/FBX 差异。`StageComposite` 现以 `max(原始 Alpha, RGB 最大亮度)`
-   生成软覆盖，同时继续使用 ARGB32 与预乘混合。排查时先对齐完整渲染路径，不能另加 ARGBHalf/ACES；
-   后者会改变全套模型的既有观感。
+7. **HDR 数值必须在真实中间 RT 上做 A/B，不能凭材质峰值猜**：2026-07-29 对正式装配后的同一
+   `wing_1005`、同一相机做 `ARGB32` / `ARGBHalf` 同帧对照；9 个非粒子 Renderer 均启用、材质和包围盒
+   正常，但 `ARGB32` 会把红绿上翼截成发灰发暗的 LDR 中间色，`ARGBHalf` 则保留与 prefab 预览一致的
+   HDR/半透明层次。选角和场景恰好共用该错误 RT 精度，因此现象一致。正确修复是两条模型台统一
+   `ARGBHalf + Camera.allowHDR`，`StageComposite` 只做 `One/OneMinusSrcAlpha` 预乘贴回；禁止用 RGB
+   最大亮度补 Alpha，那会把 `guanghuan` 等加法粒子错误变成实心遮罩。
 
 ## 排查心法(按这个顺序,别跳)
 
@@ -56,8 +56,8 @@
 | 整体偏黑 | 运行实例漏转 URP Unlit，或美术有色贴图未进 `_BaseMap`；不得用平行光/环境光补亮 |
 | 特效洗白/压黑 | shader 丢 _ScrA/_DstA 补丁(导入自愈已内建)或材质 alpha 参数没跑 NormalizePandaAlpha |
 | 部件运动/轨迹与美术 prefab 不一致 | 公共上台逻辑误改部件 Animator；只允许角色主体开启 Root Motion，部件保留原值 |
-| 翅膀白/黄硬块、纹理和色相丢失 | 先确认场景台复用 `ArtModelRenderProfile` 的独立 Renderer、Depth/Opaque Texture；再确认使用当前 StageComposite 的预乘+亮度软覆盖贴回 UI |
-| 翅膀暗底清楚、金白底不明显 | 纯加法 RGB 没有对应 Alpha 覆盖度；使用 StageComposite 的 `max(原 Alpha, RGB 最大亮度)`，禁止用加灯或全局 ARGBHalf/ACES 掩盖 |
+| 翅膀白/黄硬块、纹理和色相丢失 | 先确认场景台复用 `ArtModelRenderProfile` 的独立 Renderer、Depth/Opaque Texture，再确认模型透明 RT 为 `ARGBHalf`、相机 HDR 已开、StageComposite 原样预乘贴回 |
+| 翅膀上翼褪色但光环/长亮条仍清楚 | `ARGB32` 已截断 Panda HDR/半透明中间色；改回两条模型台统一 `ARGBHalf`，不要加灯，也不要用 RGB 亮度伪造 Alpha |
 | 镜像/换手 | uvRect 翻转错用在原生模型上(按档案分流,已内建) |
 | 原地做动作 | applyRootMotion 没开 / 位移沿 Z 被正交吃掉(均已内建) |
 | 巨大/悬空/怼镜头 | 落点采样错:静态盒≠动画停放、猜错 clip、单位错配 2.54×(逐 prefab 末帧采样,已内建) |

@@ -1592,8 +1592,9 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **工具同步**：`AssetHubPreview`/`AssetAssemblyPreview` 的 `PreviewRenderUtility` 灯强制为 0、环境色为黑；`NewPartImportCase` 和 `PoseProbe` 删除截图方向光，截图前复用同一无光照材质策略。
 - **验证状态**：`Shenxiao.Common.csproj`、`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 离线编译均 0 error；Unity 强制编译 `completed/failed=false`。`SceneMixDriverCase` 实跑 `ALL PASS`，确认 UI/场景台不改写环境光、运行中新模型无 Lit 表面且无启用的 Light，并保持 run/attack 混合替换链路正常。
 
-## 2026-07-29：亮背景上的翅膀加法覆盖修复
+## 2026-07-29：选角/场景 1005 翅膀上翼褪色修复
 
-- **根因取证**：主工程与 `E:/GitProject/ArtsProject` 的 `wing_1005` 共 176 个文件中 139 个内容完全一致；差异只含 Panda Alpha 混合补丁、渲染档案和目录 Meta，FBX、贴图、Timeline、材质 RGB 参数一致。33 个翅膀材质均非 Lit，Prefab 内无灯，因此关灯不会改变其颜色。用同一实例实渲确认暗灰底完整、金底发淡、白底近乎消失，根因是加法材质只写 RGB、几乎不写 Alpha。
-- **修复**：选角与场景角色台共用的 `Shenxiao/UI/StageComposite` 保持 `Blend One OneMinusSrcAlpha`，把输出覆盖度改为 `max(原始 Alpha, RGB 最大亮度)`；普通角色/半透材质的既有 Alpha 不降低，纯加法翅膀和光效用自身亮度形成软覆盖。未改灯光、贴图、材质参数、ARGB32 RT 或色彩空间。
-- **验证状态**：Unity 强制编译 `completed/failed=false`；真实 Shader/ARGB32 RT 回读中，零 Alpha 加法样本 `RGBA(0.6,0.2,0.1,0)` 得到 `A=0.6`，已有 Alpha 样本保持 `A=0.8`。真实 `wing_1005` 经修改后 Shader 合成到金底/白底，红橙轮廓和中心层次不再整片融入背景。`RolePresentationEffectsCase` 已加入上述亮度覆盖断言。
+- **排除项**：主工程与 `E:/GitProject/ArtsProject` 的 `wing_1005` 共 176 个文件中 139 个内容完全一致；FBX、贴图、Timeline 和关键材质参数一致。正式装配后 9 个非粒子 Renderer 全部启用，材质、包围盒、双面和 180° 朝向均正常；单独直拍能完整显示上翼，因此不是灯光、挂点、正反面或运行时禁用。
+- **根因实证**：对同一正式装配、同一相机做透明 RT 同帧 A/B，`ARGB32` 会把 Panda 的 HDR/半透明红绿色截成发灰发暗的中间色，只剩光环与高亮长条明显；`ARGBHalf` 能保留完整红绿上翼。选角 `UIModelStage` 与游戏 `SceneCharacterStage` 原先都创建 `ARGB32`，所以两处表现一致。
+- **修复**：两条模型台统一改为带 Alpha 的 `ARGBHalf`，相机显式开启 HDR，格式不对的同尺寸历史 RT 也强制重建。`StageComposite` 撤销 `max(原始 Alpha, RGB 最大亮度)`，恢复只透传原始预乘颜色/Alpha，避免 `guanghuan` 等加法粒子被错误放大成实心遮罩。灯光、贴图、Panda 材质与项目 Linear 色彩空间均未改变。
+- **验证状态**：已完成真实 `wing_1005` 的 `ARGB32/ARGBHalf` 同帧取证；`dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 为 59 个既有 warning、0 error，Unity 强制编译 `completed/failed=false`。`RolePresentationEffectsCase` 新增步骤实跑得到 `scene=ARGBHalf/True,ui=ARGBHalf/True`；整套用例直接 eval 的后半段仍依赖其官方 batch 舞台，核心 HDR 断言已通过。
