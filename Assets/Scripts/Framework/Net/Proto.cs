@@ -2428,6 +2428,8 @@
         /// 发 "i" rule_id + "h"+n×"l" regular_glist(固定材料) + "h"+m×"l" specify_glist(指定材料);
         /// 回包 code:i, compose_type:c, rule_id:i, goods_id:l;code==1 成功)。解主线 101725(ctype73)。</summary>
         public const int GOODS_COMPOSE = 15020;
+        /// <summary>JJC家族原始错误。无C2S；S2C errcode:u32。</summary>
+        public const int JJC_ERROR = 28000;
         /// <summary>排位赛(竞技场)页面信息(请求无参;回包 rank:i, history_rank:i, reward_rank:i, combat:l, hp:i,
         /// num:h, num_refresh:i, honour:i, is_reward:c, pet_id:i, break_id_list[u16×{break_id:i}])。
         /// ⚠服务端计数断链(mod_jjc_cast.erl:87),挑战不推进主线 101465(ctype35)任务,待服务端修复。</summary>
@@ -2446,6 +2448,14 @@
         /// record_list:u16×{role_id:u64,picture:s,picture_ver:u32,name:s,career:u8,sex:u8,turn:u8,vip_lv:u8,
         /// lv:u16,combat_power:u64,result:u8,state:u8,rank_range:u32,time:u32})。</summary>
         public const int JJC_CHALLENGE_RECORDS = 28009;
+        /// <summary>荣誉值显式查询。C2S严格空包；S2C errcode:u32,honour:u32。</summary>
+        public const int JJC_HONOUR = 28010;
+        /// <summary>战斗假人ID显式查询。C2S严格空包；S2C self_robot/self_role/rival_robot/rival_role:u64。</summary>
+        public const int JJC_BATTLE_PARTICIPANTS = 28013;
+        /// <summary>JJC战斗阶段时刻S2C-only推送。S2C stage:u8,time:u32。</summary>
+        public const int JJC_BATTLE_STAGE = 28014;
+        // 28005购买次数、28012退出、28015跳过战斗、28017突破领奖均为真实写操作；
+        // 28008服务端请求入口已注释。禁止暴露裸操作API或伪造结果切片。
         /// <summary>巅峰对决通用错误。仅 S2C: code:u32,args:string；原样覆盖错误快照，不发送请求或接入其他 281xx 操作。</summary>
         public const int TOP_PK_ERROR = 28100;
         /// <summary>巅峰对决基本信息全量。C2S空包；S2C含赛季、段位、次数、每日奖励状态和昨日段位。</summary>

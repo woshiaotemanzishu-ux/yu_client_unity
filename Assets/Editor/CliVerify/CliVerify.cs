@@ -857,6 +857,11 @@ namespace Shenxiao.EditorTools
             Run(JjcRecordsCase.Run, 60.0);
         }
 
+        public static void JjcReadContinuation()
+        {
+            Run(JjcReadContinuationCase.Run, 60.0);
+        }
+
         /// <summary>全部用例(一次 Unity 启动跑完;任一失败进程码非 0)。</summary>
         public static void RenderAll()
         {

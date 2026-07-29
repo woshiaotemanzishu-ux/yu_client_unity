@@ -8,7 +8,7 @@ using Shenxiao.Framework.Util;
 namespace Shenxiao.Module.Core.Jjc
 {
     /// <summary>
-    /// 排位赛(竞技场 JJC)协议控制器(对标老端 ArenaController.ts;服务端 pt_280 段内 28001/28002/28003/28004/28009)。
+    /// 排位赛(竞技场 JJC)协议控制器(对标老端 ArenaController.ts;服务端 pt_280)。
     /// 解主线 101465(ctype35「挑战对手」)。⚠服务端计数断链见 <see cref="JjcModel"/> 类注释——挑战本身能正常
     /// 发起并拿结果,但任务判定读的次数不会自然增长,需服务端修复 mod_jjc_cast.erl:87 后才能真正推进任务。
     /// </summary>
@@ -24,11 +24,15 @@ namespace Shenxiao.Module.Core.Jjc
 
         protected override void Register()
         {
+            RegisterProtocal(Proto.JJC_ERROR, On28000);
             RegisterProtocal(Proto.JJC_INFO, On28001);
             RegisterProtocal(Proto.JJC_RIVALS, On28002);
             RegisterProtocal(Proto.JJC_CHALLENGE, On28003);
             RegisterProtocal(Proto.JJC_TIMES_INFO, On28004);
             RegisterProtocal(Proto.JJC_CHALLENGE_RECORDS, On28009);
+            RegisterProtocal(Proto.JJC_HONOUR, On28010);
+            RegisterProtocal(Proto.JJC_BATTLE_PARTICIPANTS, On28013);
+            RegisterProtocal(Proto.JJC_BATTLE_STAGE, On28014);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
@@ -73,6 +77,12 @@ namespace Shenxiao.Module.Core.Jjc
             GameLog.Info("Jjc", "request 28009 jjc challenge records");
         }
 
+        /// <summary>显式查询最后一份荣誉值快照；不加入 GAME_START。</summary>
+        public void RequestHonour() => SendEmpty(Proto.JJC_HONOUR);
+
+        /// <summary>仅由未来已确认的 JJC 战斗场景显式查询；当前不挂场景钩子。</summary>
+        public void RequestBattleParticipants() => SendEmpty(Proto.JJC_BATTLE_PARTICIPANTS);
+
         private void SendEmpty(int protoId)
         {
 #if UNITY_EDITOR
@@ -93,6 +103,8 @@ namespace Shenxiao.Module.Core.Jjc
             SendFmt(Proto.JJC_CHALLENGE, "ilic", selfRank, rivalId, rivalRank, 0);
             GameLog.Info("Jjc", "challenge 28003 selfRank={0} rivalId={1} rivalRank={2}", selfRank, rivalId, rivalRank);
         }
+
+        private void On28000(NetReader r) => JjcModel.Instance.ReplaceError(r.ReadU32());
 
         /// <summary>28001 页面信息:rank:i, history_rank:i, reward_rank:i, combat:l, hp:i, num:h, num_refresh:i,
         /// honour:i, is_reward:c, pet_id:i, break_id_list[u16×{break_id:i}]。字段序 1:1 摘自 ClientProtocol.json:2732。</summary>
@@ -169,6 +181,17 @@ namespace Shenxiao.Module.Core.Jjc
             GameLog.Info("Jjc", "28009 err={0} records={1} remaining={2}B", errCode, records.Count, r.Remaining);
             EventDispatcher.Emit(GlobalEvent.EVT_JJC_UPDATE);
         }
+
+        private void On28010(NetReader r) =>
+            JjcModel.Instance.ReplaceHonourQuery(r.ReadU32(), r.ReadU32());
+
+        private void On28013(NetReader r) =>
+            JjcModel.Instance.ReplaceBattleParticipants(
+                unchecked((ulong)r.ReadU64()), unchecked((ulong)r.ReadU64()),
+                unchecked((ulong)r.ReadU64()), unchecked((ulong)r.ReadU64()));
+
+        private void On28014(NetReader r) =>
+            JjcModel.Instance.ReplaceBattleStage(r.ReadU8(), r.ReadU32());
 
         private static JjcModel.RecordVo ReadRecord28009(NetReader r)
         {

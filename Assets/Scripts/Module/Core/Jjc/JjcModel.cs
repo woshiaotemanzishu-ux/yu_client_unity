@@ -4,7 +4,7 @@ using Shenxiao.Common.Proto;
 namespace Shenxiao.Module.Core.Jjc
 {
     /// <summary>
-    /// 排位赛(竞技场 JJC,yu_server pt_280 段内 28001/28002/28003/28004/28009;老端 ArenaController.ts/ArenaModel.ts)数据层。
+    /// 排位赛(竞技场 JJC,yu_server pt_280;老端 ArenaController.ts/ArenaModel.ts)数据层。
     /// ⚠服务端计数断链(mod_jjc_cast.erl:87 唯一 increment 被注释)——挑战流程(28003)可正常发起并拿到结果,
     /// 但 mod_daily ?JJC_USE_NUM 永不增长,主线 101465(ctype35「挑战对手」)判定无法自然完成,待服务端修复
     /// (与大妖 63 guard 并列服务端工单)。客户端侧本类/控制器/壳先备好,服务端修复后即可用。
@@ -23,6 +23,42 @@ namespace Shenxiao.Module.Core.Jjc
             public int Hp;             // hp:i(28003 无此字段,默认0)
             public int PetId;          // pet_id:i(28003 无此字段,默认0)
             public FigureProto Figure; // figure:RecFigure
+        }
+
+        public sealed class ErrorSnapshot
+        {
+            public uint Code { get; }
+            public ErrorSnapshot(uint code) => Code = code;
+        }
+
+        public sealed class HonourQuerySnapshot
+        {
+            public uint Code { get; }
+            public uint Honour { get; }
+            public HonourQuerySnapshot(uint code, uint honour) { Code = code; Honour = honour; }
+        }
+
+        public sealed class BattleParticipantsSnapshot
+        {
+            public ulong SelfRobotId { get; }
+            public ulong SelfRoleId { get; }
+            public ulong RivalRobotId { get; }
+            public ulong RivalRoleId { get; }
+
+            public BattleParticipantsSnapshot(ulong selfRobotId, ulong selfRoleId, ulong rivalRobotId, ulong rivalRoleId)
+            {
+                SelfRobotId = selfRobotId;
+                SelfRoleId = selfRoleId;
+                RivalRobotId = rivalRobotId;
+                RivalRoleId = rivalRoleId;
+            }
+        }
+
+        public sealed class BattleStageSnapshot
+        {
+            public byte Stage { get; }
+            public uint EndTime { get; }
+            public BattleStageSnapshot(byte stage, uint endTime) { Stage = stage; EndTime = endTime; }
         }
 
         // ---- 28001 页面信息 ----
@@ -69,6 +105,12 @@ namespace Shenxiao.Module.Core.Jjc
         public int RecordsErrCode { get; private set; }
         public bool HasChallengeRecords { get; private set; }
         public readonly List<RecordVo> ChallengeRecords = new List<RecordVo>();
+
+        /// <summary>28000/10/13/14 彼此隔离的最后原始切片；null 表示尚未收到。</summary>
+        public ErrorSnapshot Error { get; private set; }
+        public HonourQuerySnapshot HonourQuery { get; private set; }
+        public BattleParticipantsSnapshot BattleParticipants { get; private set; }
+        public BattleStageSnapshot BattleStage { get; private set; }
 
         /// <summary>28001 全量套值(对标老端 On28001 → arena_model.SetPageInfo)。</summary>
         public void Apply28001(int rank, int historyRank, int rewardRank, long combat, int hp, int num,
@@ -126,6 +168,20 @@ namespace Shenxiao.Module.Core.Jjc
             HasChallengeRecords = true;
         }
 
+        public void ReplaceError(uint code) => Error = new ErrorSnapshot(code);
+        public void ReplaceHonourQuery(uint code, uint honour) => HonourQuery = new HonourQuerySnapshot(code, honour);
+        public void ReplaceBattleParticipants(ulong selfRobotId, ulong selfRoleId, ulong rivalRobotId, ulong rivalRoleId) =>
+            BattleParticipants = new BattleParticipantsSnapshot(selfRobotId, selfRoleId, rivalRobotId, rivalRoleId);
+        public void ReplaceBattleStage(byte stage, uint endTime) => BattleStage = new BattleStageSnapshot(stage, endTime);
+
+        public void ClearReadContinuationSnapshots()
+        {
+            Error = null;
+            HonourQuery = null;
+            BattleParticipants = null;
+            BattleStage = null;
+        }
+
         public void Clear()
         {
             Rank = HistoryRank = RewardRank = Hp = Num = NumRefresh = Honour = PetId = 0;
@@ -146,6 +202,7 @@ namespace Shenxiao.Module.Core.Jjc
             RecordsErrCode = 0;
             ChallengeRecords.Clear();
             HasChallengeRecords = false;
+            ClearReadContinuationSnapshots();
         }
     }
 }
