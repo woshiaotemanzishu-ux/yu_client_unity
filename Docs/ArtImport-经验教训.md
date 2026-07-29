@@ -11,8 +11,9 @@
    运行时猜过三版(静态包围盒/末帧 Evaluate/达标阈值)全部翻车。导入期用 `clip.SampleAnimation` 拨到
    末帧 + BakeMesh + **骨骼锚点**(脚骨最低点/骨盆XZ;包围盒会被武器披风污染),clip 来源=解析 prefab
    自己的 Timeline 引用(**不许按文件名猜**:1300 的出场动画在 1300.fbx 总轨里,没有 create2.fbx)。
-2. **老模型零改动是硬约束**:所有新行为按 `ArtModelRenderProfile` 有无分流。翻转(FLIP_HORIZONTAL)是给
-   Laya 镜像几何的补偿,原生模型翻了=左右反;环境光/合成材质/透视相机都只在整模上台时生效。
+2. **模型统一无光照，老模型零改动**:美术贴图直接提供最终颜色；新模型上台时仅在实例上把
+   Standard/URP Lit 表面改为 URP Unlit，关闭投射/接收阴影，不写 `RenderSettings`、不创建灯。Panda/粒子特效材质保留。
+   翻转(FLIP_HORIZONTAL)仍只给 Laya 镜像几何补偿；原生模型翻了=左右反。合成材质/透视相机继续按档案分流。
 3. **整模用透视相机(FOV60,距离 6.4/tan30°)**:出场位移主要沿 Z 轴,正交投影下深度移动几何不可见
    (=看着原地做动作,曾连续多轮误判为播放 bug)。美术工程就是透视 FOV60 预览的。
 4. **每个 prefab 用自己动作的末帧采样自己的落点/体量**:同一角色两个 FBX 单位错配 2.54×(英寸/厘米,
@@ -50,7 +51,7 @@
 | 症状 | 根因 |
 |---|---|
 | 白模 | 内嵌材质贴图按名引用没搬进来 / FBX 导入时贴图未就位(重导全部 FBX) |
-| 整体偏黑 | Lit 材质+登录场景无灯(整模上台切 Flat 白环境光,已内建) |
+| 整体偏黑 | 运行实例漏转 URP Unlit，或美术有色贴图未进 `_BaseMap`；不得用平行光/环境光补亮 |
 | 特效洗白/压黑 | shader 丢 _ScrA/_DstA 补丁(导入自愈已内建)或材质 alpha 参数没跑 NormalizePandaAlpha |
 | 部件运动/轨迹与美术 prefab 不一致 | 公共上台逻辑误改部件 Animator；只允许角色主体开启 Root Motion，部件保留原值 |
 | 翅膀白/黄硬块、纹理和色相丢失 | 场景台未复用创角整模档案；按 `ArtModelRenderProfile` 切独立 Renderer、Depth/Opaque Texture，并使用原版 StageComposite 预乘贴回 UI |

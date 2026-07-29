@@ -73,10 +73,10 @@ namespace Shenxiao.EditorTools
             if (!zeroRuntimeCompensation)
                 Debug.LogError("CLIVERIFY newpart runtime compensation 不是 0/0/1；模板问题不应转成游戏逐件偏移");
 
-            // ⑤ 拼装冒烟 + 截图(空场景+补光,自适应取景;batch 不播 Timeline,静态姿势即可):
+            // ⑤ 拼装冒烟 + 截图(空场景+无光照材质,自适应取景;batch 不播 Timeline,静态姿势即可):
             //    身体 + 头饰 locator 对齐 head_mount + 武器 locator 对齐 rhand，三件全挂上才过。
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            bool bodyOk = false, headAttached = false, weaponAttached = false;
+            bool bodyOk = false, headAttached = false, weaponAttached = false, lightingDisabled = false;
             var bodyPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{RoleDir}/1213@idle.prefab");
             if (bodyPrefab != null)
             {
@@ -102,9 +102,12 @@ namespace Shenxiao.EditorTools
                         + " weaponPrefab=" + (weaponPrefab != null) + ")");
                 }
 
+                ArtModelStager.DisableSurfaceLighting(body);
+                lightingDisabled = !HasLitSurface(body) && !HasEnabledLight(body);
                 string png = CaptureModel(body, "Temp/newpart_1213_assembled.png");
                 Debug.Log("CLIVERIFY newpart body=" + bodyOk + " headAttached=" + headAttached
-                    + " weaponAttached=" + weaponAttached + " shot=" + png);
+                    + " weaponAttached=" + weaponAttached + " lightingDisabled=" + lightingDisabled
+                    + " shot=" + png);
             }
             else
             {
@@ -113,11 +116,12 @@ namespace Shenxiao.EditorTools
 
             bool pass = roleOk && headOk && weaponOk && addrRole && addrHead && addrWeapon
                 && zeroRuntimeCompensation
-                && mountsOk && bodyOk && headAttached && weaponAttached;
+                && mountsOk && bodyOk && headAttached && weaponAttached && lightingDisabled;
             Debug.Log("CLIVERIFY newpart VERDICT assets=" + (roleOk && headOk && weaponOk)
                 + " addr=" + (addrRole && addrHead && addrWeapon) + " mounts=" + mountsOk
                 + " compensation0/0/1=" + zeroRuntimeCompensation
                 + " body=" + bodyOk + " headAttached=" + headAttached + " weaponAttached=" + weaponAttached
+                + " lightingDisabled=" + lightingDisabled
                 + " pass=" + pass);
             return Task.FromResult(pass ? 0 : 3);
         }
@@ -184,11 +188,6 @@ namespace Shenxiao.EditorTools
             }
             if (!has) bounds = new Bounds(root.transform.position, Vector3.one);
 
-            var lightGo = new GameObject("KeyLight");
-            Light light = lightGo.AddComponent<Light>();
-            light.type = LightType.Directional;
-            lightGo.transform.rotation = Quaternion.Euler(35f, -30f, 0f);
-
             var rt = new RenderTexture(720, 1280, 24);
             var camGo = new GameObject("NewPartCam");
             Camera cam = camGo.AddComponent<Camera>();
@@ -216,8 +215,35 @@ namespace Shenxiao.EditorTools
             cam.targetTexture = null;
             Object.DestroyImmediate(camGo);
             Object.DestroyImmediate(rt);
-            Object.DestroyImmediate(lightGo);
             return full;
+        }
+
+        private static bool HasLitSurface(GameObject root)
+        {
+            foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+            {
+                if (renderer is ParticleSystemRenderer) continue;
+                foreach (Material material in renderer.sharedMaterials)
+                {
+                    string shader = material != null && material.shader != null ? material.shader.name : string.Empty;
+                    if (shader == "Standard" || shader == "Standard (Specular setup)" ||
+                        shader == "Universal Render Pipeline/Lit" ||
+                        shader == "Universal Render Pipeline/Simple Lit" ||
+                        shader == "Universal Render Pipeline/Complex Lit" ||
+                        shader == "Universal Render Pipeline/Baked Lit")
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool HasEnabledLight(GameObject root)
+        {
+            foreach (Light light in root.GetComponentsInChildren<Light>(true))
+            {
+                if (light != null && light.enabled) return true;
+            }
+            return false;
         }
     }
 }

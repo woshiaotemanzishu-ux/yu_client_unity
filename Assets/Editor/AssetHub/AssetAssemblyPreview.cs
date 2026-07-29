@@ -127,12 +127,6 @@ namespace Shenxiao.Editor.AssetHub
             _pru.camera.transform.LookAt(_bounds.center);
             _pru.camera.nearClipPlane = dist * 0.01f;
             _pru.camera.farClipPlane = dist * 10f;
-            if (_pru.lights.Length > 0)
-            {
-                _pru.lights[0].transform.rotation = _pru.camera.transform.rotation;
-                _pru.lights[0].intensity = 1.2f;
-            }
-
             _pru.BeginPreview(rect, GUIStyle.none);
             _pru.camera.Render();
             Texture tex = _pru.EndPreview();

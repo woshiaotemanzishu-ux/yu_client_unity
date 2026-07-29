@@ -149,7 +149,7 @@ namespace Shenxiao.Common.UI3D
             _mainRoleAttachedEffects.transform.localScale = Vector3.one * inverseModelScale;
 
             BindMainRoleDriver(model);
-            UpdateArtAmbient();
+            UpdateArtRenderProfile();
             if (_img != null) _img.gameObject.SetActive(true);
         }
 
@@ -204,7 +204,7 @@ namespace Shenxiao.Common.UI3D
             model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
             model.transform.localScale = new Vector3(modelScale, modelScale, modelScale);
 
-            UpdateArtAmbient();
+            UpdateArtRenderProfile();
             if (_img != null) _img.gameObject.SetActive(true);
             return tiltGo.transform;
         }
@@ -225,7 +225,7 @@ namespace Shenxiao.Common.UI3D
             GameObject host = new GameObject("EffectHost");
             host.transform.SetParent(anchor.transform, false);
             host.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
-            UpdateArtAmbient();
+            UpdateArtRenderProfile();
             if (_img != null) _img.gameObject.SetActive(true);
             return anchor.transform;
         }
@@ -249,7 +249,7 @@ namespace Shenxiao.Common.UI3D
             if (sceneCharTilt == null) return;
             sceneCharTilt.gameObject.SetActive(false);
             Object.Destroy(sceneCharTilt.gameObject);
-            UpdateArtAmbient();
+            UpdateArtRenderProfile();
         }
 
         /// <summary>清掉主角并隐藏合成画面(切场景/断线时调)。</summary>
@@ -271,7 +271,6 @@ namespace Shenxiao.Common.UI3D
                 Object.Destroy(_mainRoleDetachedEffects);
                 _mainRoleDetachedEffects = null;
             }
-            if (_ambientHeld) { ArtAmbient.Release(); _ambientHeld = false; } // Destroy 延后生效,这里直接放光
             ConfigureArtRender(null);
             if (_img != null)
             {
@@ -280,10 +279,6 @@ namespace Shenxiao.Common.UI3D
                 _img.gameObject.SetActive(false);
             }
         }
-
-        // —— 场景环境光(用户定案:场景内也像创角/UI台一样给新模型上亮平光):
-        // 台上有任何带渲染档案的新模型(激活中)→ 持有 ArtAmbient;老模型全是 unlit 不吃光,零影响。
-        private static bool _ambientHeld;
 
         private static void BindMainRoleDriver(GameObject model)
         {
@@ -301,22 +296,16 @@ namespace Shenxiao.Common.UI3D
 
         private static void OnMainRoleActiveModelChanged()
         {
-            // idle(新)→run(老)时释放整模光照/相机配置；run(老)→idle(新)时必须同帧恢复。
-            // 之前只有 NPC/怪物进出台时才重算，导致跑动期间释放后回 idle 永远不再 Retain。
-            UpdateArtAmbient();
+            // 新老动作实例切换时，展示相机的 renderer/Depth/Opaque 口径必须同帧跟随。
+            UpdateArtRenderProfile();
         }
 
-        private static void UpdateArtAmbient()
+        private static void UpdateArtRenderProfile()
         {
             ArtModelRenderProfile profile = _charsRoot != null
                 ? _charsRoot.GetComponentInChildren<ArtModelRenderProfile>(false)
                 : null;
-            bool need = profile != null;
             ConfigureArtRender(profile);
-            if (need == _ambientHeld) return;
-            _ambientHeld = need;
-            if (need) ArtAmbient.Retain();
-            else ArtAmbient.Release();
         }
 
         /// <summary>
@@ -336,7 +325,7 @@ namespace Shenxiao.Common.UI3D
         {
             if (_root != null) return;
             _root = new GameObject("__SceneCharStage");
-            Object.DontDestroyOnLoad(_root);
+            if (Application.isPlaying) Object.DontDestroyOnLoad(_root);
             _root.transform.position = STAGE_POS;
 
             var charsGo = new GameObject("Chars");

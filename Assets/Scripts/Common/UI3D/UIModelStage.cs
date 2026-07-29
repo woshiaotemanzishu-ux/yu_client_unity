@@ -105,7 +105,6 @@ namespace Shenxiao.Common.UI3D
             _model.transform.localRotation = Quaternion.identity;
             _model.transform.localScale = Vector3.one * (BODY_SCALE_MUL * scale);
             bool isArtModel = ApplyRenderProfile(_model);
-            SetArtAmbient(isArtModel);
             _displayFlipped = !isArtModel; // 老模型 FLIP 镜像展示 → 拖拽转身方向取反(见 AddUserYaw)
             _isArt = isArtModel;
             _container = container;
@@ -284,7 +283,6 @@ namespace Shenxiao.Common.UI3D
         public void ClearStage()
         {
             if (_model != null) { Object.Destroy(_model); _model = null; }
-            SetArtAmbient(false);
             if (_img != null) _img.gameObject.SetActive(false);
         }
 
@@ -292,7 +290,6 @@ namespace Shenxiao.Common.UI3D
         public void Dispose()
         {
             ClearStage();
-            SetArtAmbient(false);
             if (_img != null) { Object.Destroy(_img.gameObject); _img = null; }
             if (_rt != null)
             {
@@ -308,7 +305,7 @@ namespace Shenxiao.Common.UI3D
         {
             if (_root != null) return;
             _root = new GameObject("__UIModelStage");
-            Object.DontDestroyOnLoad(_root);
+            if (Application.isPlaying) Object.DontDestroyOnLoad(_root);
             _root.transform.position = _stagePos;
 
             var camGo = new GameObject("StageCamera");
@@ -371,18 +368,6 @@ namespace Shenxiao.Common.UI3D
                 : Mathf.Repeat(_userYaw + 180f, 360f) - 180f;           // 归一到 ±180
             Shenxiao.Framework.Util.GameLog.Info("UI3D",
                 "拖拽朝向偏移 {0}°(固定它:填进 configlogin 该页 NewModel.yaw)", Mathf.Round(offset));
-        }
-
-        // —— 整模环境光(定案:用环境光,不用平行光;实现收编进 ArtAmbient 引用计数,
-        // UI 台+场景台共用,谁有新模型谁持有,全放光了才恢复)——
-        private bool _ambientHeld;
-
-        private void SetArtAmbient(bool on)
-        {
-            if (on == _ambientHeld) return;
-            _ambientHeld = on;
-            if (on) ArtAmbient.Retain();
-            else ArtAmbient.Release();
         }
 
         /// <summary>RT 尺寸跟随容器(老客户端 createFromPool(parent.width, parent.height)),保证不拉伸变形。</summary>

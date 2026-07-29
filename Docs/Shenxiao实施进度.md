@@ -1584,3 +1584,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **根因**：前一轮已把错误的 3 秒正常停留改回 1.5 秒上限，但 `effect_ui_dayaolaixi` 的文字/主体动画 `UI_2103.anim` 实际在 `1.083s` 结束；`liutizuo/liutiyou` 为持续发射的循环粒子，因此固定等到 1.5 秒才释放会留下约 0.4 秒的单独橙色底纹。
 - **修复**：`UIEffectStage.Handle` 暴露实例内最长 Legacy Animation 片段时长；`BossBornEffectPlayer` 取配置上限与真实片段的较短值，在 `1.083s` 释放整个横幅 Handle 后再滑出遮罩。3 秒继续只作为资源加载/回调异常兜底。
 - **回归**：`RolePresentationEffectsCase` 真实加载 `effect_ui_dayaolaixi`，要求测得片段 `1.083±0.002s`，并断言组合演出的解析时长等于主体片段，避免循环底纹再次晚于字体图片消失。
+
+## 2026-07-29：选角与场景模型统一关闭光照
+
+- **决策**：美术改为直接提供有色贴图，模型不再需要程序补光。选角/UI 模型台、游戏内 `SceneCharacterStage` 和资产管理预览统一无模型灯。
+- **实现**：删除会全局改写 `RenderSettings.ambientMode/ambientLight` 的 `ArtAmbient`及 UI/场景引用计数；`ArtModelStager` 在新模型实例上把 Standard/URP Lit 常规表面转为 URP Unlit，保留贴图、颜色、透明剪裁/混合参数，并关闭阴影投射/接收。原资产材质不改，Panda/粒子特效材质不转换。
+- **工具同步**：`AssetHubPreview`/`AssetAssemblyPreview` 的 `PreviewRenderUtility` 灯强制为 0、环境色为黑；`NewPartImportCase` 和 `PoseProbe` 删除截图方向光，截图前复用同一无光照材质策略。
+- **验证状态**：`Shenxiao.Common.csproj`、`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 离线编译均 0 error；Unity 强制编译 `completed/failed=false`。`SceneMixDriverCase` 实跑 `ALL PASS`，确认 UI/场景台不改写环境光、运行中新模型无 Lit 表面且无启用的 Light，并保持 run/attack 混合替换链路正常。

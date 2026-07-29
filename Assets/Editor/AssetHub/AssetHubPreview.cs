@@ -230,12 +230,6 @@ namespace Shenxiao.Editor.AssetHub
                 _pru.camera.nearClipPlane = dist * 0.01f;
                 _pru.camera.farClipPlane = dist * 10f;
             }
-            if (_pru.lights.Length > 0)
-            {
-                _pru.lights[0].transform.rotation = _pru.camera.transform.rotation;
-                _pru.lights[0].intensity = 1.2f;
-            }
-
             EditorGUI.DrawRect(rect, new Color(0.10f, 0.11f, 0.13f, 1f));
             _pru.BeginPreview(renderRect, GUIStyle.none);
             _pru.camera.Render();
@@ -418,17 +412,22 @@ namespace Shenxiao.Editor.AssetHub
         }
     }
 
-    /// <summary>让资产管理预览相机复用游戏内 ArtModelRenderProfile，而不是按裸 Scene 相机渲染。</summary>
+    /// <summary>让资产管理预览复用游戏内的无光照材质与 ArtModelRenderProfile 相机口径。</summary>
     internal static class AssetHubArtPreview
     {
         public static void Apply(PreviewRenderUtility preview, GameObject instance)
         {
             if (preview == null || preview.camera == null) return;
+            ArtModelStager.DisableSurfaceLighting(instance);
             ArtModelRenderProfile profile = instance != null
                 ? instance.GetComponentInChildren<ArtModelRenderProfile>(false)
                 : null;
             ArtModelRenderProfile.ApplyToCamera(preview.camera, profile);
-            preview.ambientColor = profile != null ? Color.white : new Color(0.2f, 0.2f, 0.2f, 0f);
+            preview.ambientColor = Color.black;
+            foreach (Light light in preview.lights)
+            {
+                if (light != null) light.intensity = 0f;
+            }
         }
     }
 }

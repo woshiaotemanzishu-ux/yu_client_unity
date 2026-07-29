@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.RegularExpressions;
+using Shenxiao.Common.UI3D;
 using UnityEditor;
 using UnityEngine;
 
@@ -99,11 +100,7 @@ namespace ArtDelivery
                 Object.DestroyImmediate(baked);
             }
             if (!has) b = new Bounds(root.transform.position, Vector3.one);
-
-            var lightGo = new GameObject("__probeLight");
-            var light = lightGo.AddComponent<Light>();
-            light.type = LightType.Directional;
-            lightGo.transform.rotation = Quaternion.Euler(35f, 180f, 0f); // 从 +Z 侧照向模型正面
+            ArtModelStager.DisableSurfaceLighting(root);
 
             var rt = new RenderTexture(560, 900, 24);
             var camGo = new GameObject("__probeCam");
@@ -129,7 +126,6 @@ namespace ArtDelivery
             cam.targetTexture = null;
             Object.DestroyImmediate(camGo);
             Object.DestroyImmediate(rt);
-            Object.DestroyImmediate(lightGo);
         }
 
         private static AnimationClip FindClipFromTimeline(string folder, string action)

@@ -17,8 +17,9 @@ namespace Shenxiao.EditorTools
     ///   3 MainRoleAgent.Init 后私有 _driver 非空(接线存在);
     ///   4 PrepareActionsAsync 预建 run 新实例和 attack 老分支，但保持 idle 仍在台上;
     ///   5 TryPlayAction("run")(清单已配)返回 true,立即切换到预建新模型实例;
-    ///   6 GetActionLength("run") > 0(预热后 Timeline 时长可读,技能节拍依赖);
-    ///   7 TryPlayAction("attack")(清单未配)切到预建老拼装模型(激活子树=_oldModel,带 attack clip)。
+    ///   6 新模型表面统一 Unlit，UI/场景台均不改写全局环境光;
+    ///   7 GetActionLength("run") > 0(预热后 Timeline 时长可读,技能节拍依赖);
+    ///   8 TryPlayAction("attack")(清单未配)切到预建老拼装模型(激活子树=_oldModel,带 attack clip)。
     /// 日志前缀 "CLIVERIFY mixdriver"。
     /// </summary>
     public static class SceneMixDriverCase
@@ -28,6 +29,7 @@ namespace Shenxiao.EditorTools
 
         public static async Task<int> Run()
         {
+            if (!VerifyStagesDoNotChangeAmbient()) return 3;
             await ModelReplacement.EnsureLoaded();
             if (!ModelReplacement.HasEntry("role", ClotheRes))
             {
@@ -137,15 +139,23 @@ namespace Shenxiao.EditorTools
             }
             Debug.Log("CLIVERIFY mixdriver 5 run → 预建新模型实例已激活");
 
+            GameObject activeRun = fActive.GetValue(driver) as GameObject;
+            if (activeRun == null || HasLitSurface(activeRun) || HasEnabledLight(activeRun))
+            {
+                Debug.LogError("CLIVERIFY mixdriver 新模型仍含 Lit 表面或 Light 组件");
+                return 3;
+            }
+            Debug.Log("CLIVERIFY mixdriver 6 新模型表面已 Unlit,无 Light 组件");
+
             float runLength = (float)mLength.Invoke(agent, new object[] { "run" });
             if (runLength <= 0f)
             {
                 Debug.LogError("CLIVERIFY mixdriver GetActionLength(run)=" + runLength + "(新实例已加载,应>0)");
                 return 3;
             }
-            Debug.Log("CLIVERIFY mixdriver 6 GetActionLength(run)=" + runLength.ToString("F2") + "s");
+            Debug.Log("CLIVERIFY mixdriver 7 GetActionLength(run)=" + runLength.ToString("F2") + "s");
 
-            // 7:attack 清单未配 → 切到预建老拼装模型,不再在首次攻击帧临时构建
+            // 8:attack 清单未配 → 切到预建老拼装模型,不再在首次攻击帧临时构建
             var attackTask = (Task<bool>)mTryPlayAsync.Invoke(
                 agent, new object[] { "attack", 0.1f, true, 1f });
             bool attackAccepted = await attackTask;
@@ -165,7 +175,7 @@ namespace Shenxiao.EditorTools
                 Debug.LogError("CLIVERIFY mixdriver attack 未回落老拼装模型(_oldModel 未建或未激活)");
                 return 3;
             }
-            Debug.Log("CLIVERIFY mixdriver 7 attack → 预建老拼装模型已激活");
+            Debug.Log("CLIVERIFY mixdriver 8 attack → 预建老拼装模型已激活");
 
             var effectHost = mEffectHost.Invoke(agent, null) as GameObject;
             if (effectHost == null || effectHost != driver.ActiveModel || effectHost != warmedOld)
@@ -173,10 +183,128 @@ namespace Shenxiao.EditorTools
                 Debug.LogError("CLIVERIFY mixdriver attack 特效宿主未指向当前激活的老模型");
                 return 3;
             }
-            Debug.Log("CLIVERIFY mixdriver 8 attack 特效宿主已锁定当前激活模型");
+            Debug.Log("CLIVERIFY mixdriver 9 attack 特效宿主已锁定当前激活模型");
 
             Debug.Log("CLIVERIFY mixdriver ALL PASS");
             return 0;
+        }
+
+        private static bool VerifyStagesDoNotChangeAmbient()
+        {
+            UnityEngine.Rendering.AmbientMode savedMode = RenderSettings.ambientMode;
+            Color savedColor = RenderSettings.ambientLight;
+            Color probeColor = new Color(0.13f, 0.27f, 0.41f, 1f);
+            UIModelStage uiStage = null;
+            GameObject container = null;
+            try
+            {
+                RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+                RenderSettings.ambientLight = probeColor;
+
+                container = new GameObject("mixdriver_ui_stage", typeof(RectTransform));
+                RectTransform rect = container.GetComponent<RectTransform>();
+                rect.sizeDelta = new Vector2(128f, 128f);
+                GameObject uiModel = new GameObject("mixdriver_ui_art");
+                uiModel.AddComponent<ArtModelRenderProfile>();
+                uiStage = new UIModelStage();
+                uiStage.PlaceInstance(rect, uiModel);
+                bool uiUntouched = RenderSettings.ambientMode == UnityEngine.Rendering.AmbientMode.Flat &&
+                                   RenderSettings.ambientLight == probeColor;
+                DisposeUiStageImmediate(uiStage);
+                uiStage = null;
+
+                RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+                RenderSettings.ambientLight = probeColor;
+                GameObject sceneModel = new GameObject("mixdriver_scene_art");
+                sceneModel.AddComponent<ArtModelRenderProfile>();
+                SceneCharacterStage.SetMainRole(sceneModel);
+                bool sceneUntouched = RenderSettings.ambientMode == UnityEngine.Rendering.AmbientMode.Flat &&
+                                      RenderSettings.ambientLight == probeColor;
+                ResetSceneStageImmediate();
+
+                if (!uiUntouched || !sceneUntouched)
+                {
+                    Debug.LogError("CLIVERIFY mixdriver UI/场景模型台仍在改写 RenderSettings 环境光");
+                    return false;
+                }
+                Debug.Log("CLIVERIFY mixdriver 0 UI/场景模型台均不改写环境光");
+                return true;
+            }
+            finally
+            {
+                if (uiStage != null) DisposeUiStageImmediate(uiStage);
+                ResetSceneStageImmediate();
+                if (container != null) UnityEngine.Object.DestroyImmediate(container);
+                RenderSettings.ambientMode = savedMode;
+                RenderSettings.ambientLight = savedColor;
+            }
+        }
+
+        private static void DisposeUiStageImmediate(UIModelStage stage)
+        {
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            Type type = typeof(UIModelStage);
+            var image = type.GetField("_img", flags)?.GetValue(stage) as Component;
+            var root = type.GetField("_root", flags)?.GetValue(stage) as GameObject;
+            var target = type.GetField("_rt", flags)?.GetValue(stage) as RenderTexture;
+            if (image != null) UnityEngine.Object.DestroyImmediate(image.gameObject);
+            if (root != null) UnityEngine.Object.DestroyImmediate(root);
+            if (target != null)
+            {
+                target.Release();
+                UnityEngine.Object.DestroyImmediate(target);
+            }
+        }
+
+        private static void ResetSceneStageImmediate()
+        {
+            const BindingFlags flags = BindingFlags.Static | BindingFlags.NonPublic;
+            Type type = typeof(SceneCharacterStage);
+            var image = type.GetField("_img", flags)?.GetValue(null) as Component;
+            var root = type.GetField("_root", flags)?.GetValue(null) as GameObject;
+            var target = type.GetField("_rt", flags)?.GetValue(null) as RenderTexture;
+            if (image != null) UnityEngine.Object.DestroyImmediate(image.gameObject);
+            if (root != null) UnityEngine.Object.DestroyImmediate(root);
+            if (target != null)
+            {
+                target.Release();
+                UnityEngine.Object.DestroyImmediate(target);
+            }
+
+            foreach (string fieldName in new[]
+                     {
+                         "_root", "_cam", "_rt", "_img", "_charsRoot", "_mainRole", "_mainRoleTilt",
+                         "_mainRoleAttachedEffects", "_mainRoleDetachedEffects", "_mainRoleDriver"
+                     })
+                type.GetField(fieldName, flags)?.SetValue(null, null);
+        }
+
+        private static bool HasLitSurface(GameObject root)
+        {
+            foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+            {
+                if (renderer is ParticleSystemRenderer) continue;
+                foreach (Material material in renderer.sharedMaterials)
+                {
+                    string shader = material != null && material.shader != null ? material.shader.name : string.Empty;
+                    if (shader == "Standard" || shader == "Standard (Specular setup)" ||
+                        shader == "Universal Render Pipeline/Lit" ||
+                        shader == "Universal Render Pipeline/Simple Lit" ||
+                        shader == "Universal Render Pipeline/Complex Lit" ||
+                        shader == "Universal Render Pipeline/Baked Lit")
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool HasEnabledLight(GameObject root)
+        {
+            foreach (Light light in root.GetComponentsInChildren<Light>(true))
+            {
+                if (light != null && light.enabled) return true;
+            }
+            return false;
         }
 
         private static async Task<bool> WaitUntil(Func<bool> cond, int maxTicks = 3000)

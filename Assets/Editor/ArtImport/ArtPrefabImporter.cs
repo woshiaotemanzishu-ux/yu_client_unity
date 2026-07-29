@@ -1197,8 +1197,8 @@ namespace Shenxiao.EditorTools.ArtImport
                 // 不能让业务代码把 idle 当 create3 硬播；生成独立 prefab + Timeline 后仍按标准动作清单接管。
                 EnsureRoleCreate3Alias(plan, notes);
 
-                // 2.7 材质策略:身体材质保留 FBX 内嵌(=美术工程原样:Lit 材质+舞台补光,
-                // 见 UIModelStage.StageLight)。顺手清理历史版本盲生成的 _gen_* 替身材质。
+                // 2.7 材质策略:材质资产保留美术工程原样；运行时 ArtModelStager 只在实例上把
+                // Standard/URP Lit 表面换成 URP Unlit，不再给 UI/场景模型补光。顺手清理历史版本的 _gen_* 材质。
                 bool cleaned = false;
                 foreach (string folder in plan.RootPrefabDsts
                              .Select(p => Path.GetDirectoryName(p)?.Replace('\\', '/')).Distinct())

@@ -16,6 +16,8 @@ namespace Shenxiao.Common.UI3D
     /// </summary>
     public static class ArtModelStager
     {
+        private const string URP_UNLIT_SHADER = "Universal Render Pipeline/Unlit";
+
         /// <summary>
         /// 包装新模型实例:Timeline 循环模式 + 根位移 + 粒子缩放 + 透明分流 + 落点归一。
         /// 返回包着实例的 pivot(把它交给 UIModelStage/场景台摆放)。
@@ -48,6 +50,7 @@ namespace Shenxiao.Common.UI3D
                 if (owner == profile)
                     animator.applyRootMotion = true;
             }
+            DisableSurfaceLighting(inst);
             // 透明处理:美术把透明信息画在贴图 alpha 里,但 FBX 内嵌材质默认 Opaque 不读 alpha
             // → 该透的地方渲成白块。按导入时烤好的判定分流(只改实例不动资产):
             //   缺口/破洞(alpha 二值)→ Alpha Clipping(硬边,无排序问题);
@@ -131,6 +134,136 @@ namespace Shenxiao.Common.UI3D
                     inst.name);
             }
             return pivot;
+        }
+
+        /// <summary>关闭模型内置灯，并把常规 Lit 表面改为 URP Unlit；保留贴图、颜色、剪裁和混合参数。</summary>
+        public static void DisableSurfaceLighting(GameObject root)
+        {
+            if (root == null) return;
+            foreach (Light light in root.GetComponentsInChildren<Light>(true))
+            {
+                if (light != null) light.enabled = false;
+            }
+
+            Shader unlit = Shader.Find(URP_UNLIT_SHADER);
+            if (unlit == null)
+            {
+                GameLog.Error("UI3D", "找不到 {0},无法关闭模型表面光照", URP_UNLIT_SHADER);
+                return;
+            }
+
+            foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+            {
+                if (renderer is ParticleSystemRenderer) continue;
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                renderer.receiveShadows = false;
+
+                bool needsConversion = false;
+                foreach (Material shared in renderer.sharedMaterials)
+                {
+                    if (shared != null && shared.shader != null && UsesSurfaceLighting(shared.shader.name))
+                    {
+                        needsConversion = true;
+                        break;
+                    }
+                }
+                if (!needsConversion) continue;
+
+                Material[] materials = renderer.sharedMaterials;
+                bool changed = false;
+                for (int i = 0; i < materials.Length; i++)
+                {
+                    Material source = materials[i];
+                    if (source == null || source.shader == null || !UsesSurfaceLighting(source.shader.name))
+                        continue;
+
+                    Material material = new Material(source);
+                    Texture baseMap = material.HasProperty("_BaseMap")
+                        ? material.GetTexture("_BaseMap")
+                        : material.mainTexture;
+                    Vector2 textureScale = material.mainTextureScale;
+                    Vector2 textureOffset = material.mainTextureOffset;
+                    Color baseColor = material.HasProperty("_BaseColor")
+                        ? material.GetColor("_BaseColor")
+                        : material.color;
+                    string renderType = material.GetTag("RenderType", false, string.Empty);
+                    int renderQueue = material.renderQueue;
+                    float standardMode = GetFloat(material, "_Mode");
+                    float surface = material.HasProperty("_Surface")
+                        ? material.GetFloat("_Surface")
+                        : (standardMode >= 2f || string.Equals(renderType, "Transparent", System.StringComparison.OrdinalIgnoreCase) ? 1f : 0f);
+                    bool hasBlend = material.HasProperty("_Blend");
+                    float blend = GetFloat(material, "_Blend");
+                    float alphaClip = material.HasProperty("_AlphaClip")
+                        ? material.GetFloat("_AlphaClip")
+                        : (standardMode == 1f || material.IsKeywordEnabled("_ALPHATEST_ON") ? 1f : 0f);
+                    bool hasCutoff = material.HasProperty("_Cutoff");
+                    float cutoff = GetFloat(material, "_Cutoff");
+                    bool hasCull = material.HasProperty("_Cull");
+                    float cull = GetFloat(material, "_Cull");
+                    bool hasSrcBlend = material.HasProperty("_SrcBlend");
+                    float srcBlend = GetFloat(material, "_SrcBlend");
+                    bool hasDstBlend = material.HasProperty("_DstBlend");
+                    float dstBlend = GetFloat(material, "_DstBlend");
+                    bool hasSrcBlendAlpha = material.HasProperty("_SrcBlendAlpha");
+                    float srcBlendAlpha = GetFloat(material, "_SrcBlendAlpha");
+                    bool hasDstBlendAlpha = material.HasProperty("_DstBlendAlpha");
+                    float dstBlendAlpha = GetFloat(material, "_DstBlendAlpha");
+                    bool hasZWrite = material.HasProperty("_ZWrite");
+                    float zWrite = GetFloat(material, "_ZWrite");
+                    bool hasAlphaToMask = material.HasProperty("_AlphaToMask");
+                    float alphaToMask = GetFloat(material, "_AlphaToMask");
+
+                    material.shader = unlit;
+                    if (baseMap != null && material.HasProperty("_BaseMap"))
+                    {
+                        material.SetTexture("_BaseMap", baseMap);
+                        material.SetTextureScale("_BaseMap", textureScale);
+                        material.SetTextureOffset("_BaseMap", textureOffset);
+                    }
+                    if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", baseColor);
+                    SetFloat(material, "_Surface", surface);
+                    if (hasBlend) SetFloat(material, "_Blend", blend);
+                    SetFloat(material, "_AlphaClip", alphaClip);
+                    if (hasCutoff) SetFloat(material, "_Cutoff", cutoff);
+                    if (hasCull) SetFloat(material, "_Cull", cull);
+                    if (hasSrcBlend) SetFloat(material, "_SrcBlend", srcBlend);
+                    if (hasDstBlend) SetFloat(material, "_DstBlend", dstBlend);
+                    if (hasSrcBlendAlpha) SetFloat(material, "_SrcBlendAlpha", srcBlendAlpha);
+                    if (hasDstBlendAlpha) SetFloat(material, "_DstBlendAlpha", dstBlendAlpha);
+                    if (hasZWrite) SetFloat(material, "_ZWrite", zWrite);
+                    if (hasAlphaToMask) SetFloat(material, "_AlphaToMask", alphaToMask);
+                    material.SetOverrideTag("RenderType", renderType);
+                    material.renderQueue = renderQueue;
+                    if (surface > 0.5f) material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    else material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    if (alphaClip > 0.5f) material.EnableKeyword("_ALPHATEST_ON");
+                    else material.DisableKeyword("_ALPHATEST_ON");
+                    materials[i] = material;
+                    changed = true;
+                }
+                if (changed) renderer.sharedMaterials = materials;
+            }
+        }
+
+        private static bool UsesSurfaceLighting(string shaderName)
+        {
+            return string.Equals(shaderName, "Standard", System.StringComparison.Ordinal) ||
+                   string.Equals(shaderName, "Standard (Specular setup)", System.StringComparison.Ordinal) ||
+                   string.Equals(shaderName, "Universal Render Pipeline/Lit", System.StringComparison.Ordinal) ||
+                   string.Equals(shaderName, "Universal Render Pipeline/Simple Lit", System.StringComparison.Ordinal) ||
+                   string.Equals(shaderName, "Universal Render Pipeline/Complex Lit", System.StringComparison.Ordinal) ||
+                   string.Equals(shaderName, "Universal Render Pipeline/Baked Lit", System.StringComparison.Ordinal);
+        }
+
+        private static float GetFloat(Material material, string property)
+        {
+            return material.HasProperty(property) ? material.GetFloat(property) : 0f;
+        }
+
+        private static void SetFloat(Material material, string property, float value)
+        {
+            if (material.HasProperty(property)) material.SetFloat(property, value);
         }
     }
 }
