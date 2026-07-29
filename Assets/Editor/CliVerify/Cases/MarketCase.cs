@@ -9,7 +9,7 @@ namespace Shenxiao.EditorTools
     /// 市场/交易行(151xx补全)实证(自动循环 轮19)。反射喂包 MarketController 全 16 号新增协议
     /// (15100/15101/15102/15106/15108/15109/15111/15112/15114/15115-15119/15120/15122;既有 15121
     /// 图标逻辑仅做一次轻量回归),断言 MarketModel 落地字段/嵌套数组(15102/15109/15112 EquipExtraAttr
-    /// 二层嵌套探针,15118 ServerNum:64 独例探针)、EVT_MARKET_UPDATE/EVT_MARKET_RESULT 事件、死号
+    /// 二层嵌套探针,15118 ServerNum:64 独例探针)、EVT_MARKET_UPDATE/EVT_MARKET_RESULT 事件、排除号
     /// (15103/15104/15105/15107/15110/15113)禁注册反射断言、注册线核实(NetManager._handlers 直查,
     /// 同 CustomActCoreCase/WelfareCase 先例)。15106/15108/15111 成功后重发镜像(15109/15109/15114)
     /// 用 "send while disconnected: proto=X" 日志计数验证(CliVerify 全程不建立真实连接,NetManager.
@@ -64,7 +64,7 @@ namespace Shenxiao.EditorTools
                     return n;
                 }
 
-                // ---- 0. 死号(15103/15104/15105/15107/15110/15113)禁注册反射断言 ----
+                // ---- 0. 排除号(含15104/15105老端无sender且空消费)禁注册反射断言 ----
                 int[] deadNums = { 15103, 15104, 15105, 15107, 15110, 15113 };
                 bool deadOk = true;
                 var deadHits = new List<int>();
