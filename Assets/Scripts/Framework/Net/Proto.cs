@@ -1063,6 +1063,20 @@
         public const int GHOST_WALK_INFO = 20601;
         /// <summary>百鬼夜行 Boss 原始状态。C2S scene_id:u32；S2C scene_list:u16×{scene_id:u32,num:u8,boss_ids:u16×u32}。</summary>
         public const int GHOST_WALK_BOSS_INFO = 20602;
+        /// <summary>时空圣痕主快照。C2S 空包；S2C 为个人/本服争夺值与有序据点全量。</summary>
+        public const int TS_CRACK_MAIN_INFO = 20401;
+        /// <summary>时空圣痕单据点快照/推送。C2S: castle_id:u16；S2C 为同据点完整信息。</summary>
+        public const int TS_CRACK_CASTLE_INFO = 20402;
+        /// <summary>时空圣痕每日争夺来源。C2S 空包；S2C: activities:u16×{module:u16,sub_module:u16,value:u32}。</summary>
+        public const int TS_CRACK_DAILY_ACTIVITY = 20404;
+        /// <summary>时空圣痕每日奖励状态。C2S 空包；S2C: value:u32,total_value:u32,rewards:u16×{stage:u8,status:u8}。</summary>
+        public const int TS_CRACK_DAILY_REWARD = 20405;
+        /// <summary>时空圣痕赛季目标。C2S 空包；S2C: goals:u16×{goal_id:u16,value:u32,status:u8}。</summary>
+        public const int TS_CRACK_SEASON_GOAL = 20407;
+        /// <summary>时空圣痕个人排行。C2S 空包；S2C: roles:u16×{server_num:u32,role_id:u64,name:s,value:u32}。</summary>
+        public const int TS_CRACK_PERSON_RANK = 20409;
+        /// <summary>时空圣痕当前据点。C2S 空包；S2C: castle_id:u32。</summary>
+        public const int TS_CRACK_CURRENT_CASTLE = 20410;
         /// <summary>时空圣痕跨服世界列表。C2S 空包；S2C: status:u8,servers:u16×{server_num:u32,name:s,level:u16}。</summary>
         public const int TS_CRACK_WORLD_INFO = 20411;
         /// <summary>永恒圣殿活动时间。C2S 空包；S2C: open_time:u32,enter_time:u32,end_time:u32。</summary>
