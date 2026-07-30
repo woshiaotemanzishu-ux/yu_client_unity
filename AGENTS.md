@@ -6,6 +6,12 @@
 
 - 协议覆盖 baseline 收口规则：`Schemas/ProtocolCoverage/baseline.json` 的历史 `unityRegistered/liveGap` 数值用于防倒退，禁止为追当前报告逐轮改写；但当最新运行时扫描的某家族全部活缺口已由注册或带 evidence 的 killlist 完整治理时，必须在同轮把人工 `status` 转为 `done` 并写 `statusNote`，再以 `ProtocolCoverageCase` 的C段验收。禁止长期保留 `pending/legacy_unverified` 逃避C段，也禁止把真实玩家可达写事务塞进killlist来伪收口。
 
+- 协议负约束优先规则：`AGENTS.md` 对某协议明确写了“不接/No/Do not attach”时，后续轮次不得用“补覆盖率”推翻；若审计发现晚于该规则的常量、注册、sender、模型或用例，必须撤销违规增量并让家族保持 `pending`，不得靠违规注册把 raw 缺口清零后标 `done`。R517 已按此撤销20600/20602与28500。
+
+- Unity Pipeline 许可证恢复规则：仅出现 entitlement 404、命令超时但同 PID/Pipeline 仍为 `ready` 时继续等待重试，禁止重启；只有 Editor 日志明确写出 `Application will terminate with return code 198`、Pipeline 已注销，且该精确 canonical batchmode PID 卡在退出态持续占用 `Temp/UnityLockfile` 时，才可先确认 CLI license 已恢复 active，再只终止这个已退出项目 PID、删除已核实的残留锁并按原参数重启。禁止扩大到健康 Editor、Hub 或全局 Unity 进程。
+
+- R517 Skill 21003/21004/21005：三号在当前服务器 `pp_skill` 的唯一请求入口均整段注释；`lib_skill` 中残留的查询、扣物、DB和属性实现及 `pt_210` writer 没有可达调用方。老端21003启动请求也已注释，21004/05只剩通用sender分支和孤立结果回调。三号保持KILL：禁止新增常量、注册、请求、raw模型、技能强化UI/配置/背包/属性/事件或孤立ACK；只有服务端恢复handler且产品明确恢复完整技能强化链时才成族重审。
+
 - Unity 序列化脚本规则：会挂到 Scene/Prefab 的 `MonoBehaviour` / `ScriptableObject` 必须独占同名 `.cs` 文件，禁止把它放在“首个类型为静态类、抽象类或其他不同名类型”的文件里；Editor 生成器 `AddComponent<T>()` 后必须核对产物 `m_Script` 为非零 GUID 且 GUID 指向 `T` 的同名脚本。否则即使 C# 编译通过，Unity 仍可能把组件保存成 Missing Script。
 
 - 主界面技能规则：技能项只允许 `con` 作为唯一 Raycast/Button 点击面，`bg/icon/lock/CD/文字` 等装饰 Graphic 必须关闭 `raycastTarget`；点击验收必须走真实 Prefab 的 `GraphicRaycaster→PointerClick`，直接调用 `OnClickSkill` 不算点击链通过。普通 `AutoFight` 不得拦截玩家手点技能，只有服务端 `13017` 的 `RoleModel.DepositState` 托管态才拦截。手动无锁定目标时按当前朝向原地释放并只在技能 `area` 内局部预选，不得跨全场抢最近怪；自动战斗才允许全场寻敌并接近。接敌范围严格对标老端：`range==1` 使用 `max(100,(distance+area)*0.8)`，其他模式使用 `max(100,distance*0.8)`；命中几何由 `range/distance/area/num` 决定，禁止从 `desc` 文案猜圆形、直线或扇形。

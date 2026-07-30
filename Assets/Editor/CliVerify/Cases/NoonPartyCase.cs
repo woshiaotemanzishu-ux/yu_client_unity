@@ -38,8 +38,6 @@ namespace Shenxiao.EditorTools
             NoonPartyController controller = NoonPartyController.Instance;
             NoonPartyModel model = NoonPartyModel.Instance;
             bool wasInitialized = controller.IsInitialized;
-            bool oldHasError = model.HasError;
-            uint oldLastErrorCode = model.LastErrorCode;
             bool oldHasData = model.HasData;
             uint oldTotalExp = model.TotalExp;
             bool oldHasBoxCounts = model.HasBoxCounts;
@@ -79,16 +77,15 @@ namespace Shenxiao.EditorTools
                 controller.Init();
                 model.Reset();
 
-                MethodInfo on28500 = typeof(NoonPartyController).GetMethod("On28500", InstanceNonPublic);
                 MethodInfo on28503 = typeof(NoonPartyController).GetMethod("On28503", InstanceNonPublic);
                 MethodInfo on28504 = typeof(NoonPartyController).GetMethod("On28504", InstanceNonPublic);
                 MethodInfo on28505 = typeof(NoonPartyController).GetMethod("On28505", InstanceNonPublic);
                 MethodInfo on28506 = typeof(NoonPartyController).GetMethod("On28506", InstanceNonPublic);
-                pass = interceptField != null && on28500 != null && on28503 != null && on28504 != null && on28505 != null && on28506 != null && handlers != null
-                    && handlers.Contains(28500) && handlers.Contains(28503) && handlers.Contains(28504) && handlers.Contains(28505) && handlers.Contains(28506);
+                pass = interceptField != null && on28503 != null && on28504 != null && on28505 != null && on28506 != null && handlers != null
+                    && handlers.Contains(28503) && handlers.Contains(28504) && handlers.Contains(28505) && handlers.Contains(28506);
                 for (int proto = 28500; proto <= 28506; proto++)
                 {
-                    if (proto != 28500 && proto != 28503 && proto != 28504 && proto != 28505 && proto != 28506)
+                    if (proto != 28503 && proto != 28504 && proto != 28505 && proto != 28506)
                     {
                         pass &= !handlers.Contains(proto);
                     }
@@ -115,42 +112,29 @@ namespace Shenxiao.EditorTools
                     pass &= IsExactRequest(frames.Count == 1 ? frames[0] : null, Proto.NOON_PARTY_END_DEADLINE);
                     frames.Clear();
 
-                    pass &= Feed(on28500, controller, 0) && model.HasError && model.LastErrorCode == 0
-                        && !model.HasData && !model.HasBoxCounts && !model.HasRebornDeadline && !model.HasEndDeadline && frames.Count == 0;
-                    pass &= Feed(on28500, controller, 1012) && model.HasError && model.LastErrorCode == 1012
-                        && !model.HasData && !model.HasBoxCounts && !model.HasRebornDeadline && !model.HasEndDeadline && frames.Count == 0;
-                    pass &= Feed(on28500, controller, uint.MaxValue) && model.HasError && model.LastErrorCode == uint.MaxValue
-                        && !model.HasData && !model.HasBoxCounts && !model.HasRebornDeadline && !model.HasEndDeadline && frames.Count == 0;
-
-                    pass &= Feed(on28503, controller, 0) && model.HasData && model.TotalExp == 0 && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0;
+                    pass &= Feed(on28503, controller, 0) && model.HasData && model.TotalExp == 0 && frames.Count == 0;
                     pass &= Feed(on28503, controller, 100) && model.TotalExp == 100 && frames.Count == 0;
                     pass &= Feed(on28503, controller, 150) && model.TotalExp == 150 && frames.Count == 0;
-                    pass &= Feed(on28503, controller, uint.MaxValue) && model.TotalExp == uint.MaxValue && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0;
-                    pass &= FeedBoxCounts(on28504, controller, 0, 0) && model.HasBoxCounts && model.LowBoxCount == 0 && model.HighBoxCount == 0 && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0;
+                    pass &= Feed(on28503, controller, uint.MaxValue) && model.TotalExp == uint.MaxValue && frames.Count == 0;
+                    pass &= FeedBoxCounts(on28504, controller, 0, 0) && model.HasBoxCounts && model.LowBoxCount == 0 && model.HighBoxCount == 0 && frames.Count == 0;
                     pass &= FeedBoxCounts(on28504, controller, 1, 0) && model.LowBoxCount == 1 && model.HighBoxCount == 0 && frames.Count == 0;
                     pass &= FeedBoxCounts(on28504, controller, 1, 1) && model.LowBoxCount == 1 && model.HighBoxCount == 1 && frames.Count == 0;
                     pass &= FeedBoxCounts(on28504, controller, uint.MaxValue, 4000000000U) && model.LowBoxCount == uint.MaxValue && model.HighBoxCount == 4000000000U && frames.Count == 0;
-                    pass &= FeedBoxCounts(on28504, controller, 0, 0) && model.LowBoxCount == 0 && model.HighBoxCount == 0 && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0;
-                    pass &= Feed(on28505, controller, 0) && model.HasRebornDeadline && model.RebornDeadline == 0 && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0;
+                    pass &= FeedBoxCounts(on28504, controller, 0, 0) && model.LowBoxCount == 0 && model.HighBoxCount == 0 && frames.Count == 0;
+                    pass &= Feed(on28505, controller, 0) && model.HasRebornDeadline && model.RebornDeadline == 0 && frames.Count == 0;
                     pass &= Feed(on28505, controller, 200) && model.RebornDeadline == 200 && frames.Count == 0;
                     pass &= Feed(on28505, controller, 250) && model.RebornDeadline == 250 && frames.Count == 0;
-                    pass &= Feed(on28505, controller, uint.MaxValue) && model.RebornDeadline == uint.MaxValue && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0;
-                    pass &= Feed(on28506, controller, 0) && model.HasEndDeadline && model.EndDeadline == 0 && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0;
+                    pass &= Feed(on28505, controller, uint.MaxValue) && model.RebornDeadline == uint.MaxValue && frames.Count == 0;
+                    pass &= Feed(on28506, controller, 0) && model.HasEndDeadline && model.EndDeadline == 0 && frames.Count == 0;
                     pass &= Feed(on28506, controller, 300) && model.EndDeadline == 300 && frames.Count == 0;
                     pass &= Feed(on28506, controller, 350) && model.EndDeadline == 350 && frames.Count == 0;
-                    pass &= Feed(on28506, controller, uint.MaxValue) && model.EndDeadline == uint.MaxValue && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0;
+                    pass &= Feed(on28506, controller, uint.MaxValue) && model.EndDeadline == uint.MaxValue && frames.Count == 0;
 
-                    pass &= Feed(on28500, controller, 1012) && model.HasError && model.LastErrorCode == 1012
-                        && model.HasData && model.TotalExp == uint.MaxValue
-                        && model.HasBoxCounts && model.LowBoxCount == 0 && model.HighBoxCount == 0
-                        && model.HasRebornDeadline && model.RebornDeadline == uint.MaxValue
-                        && model.HasEndDeadline && model.EndDeadline == uint.MaxValue && frames.Count == 0;
                     pass &= FeedBoxCounts(on28504, controller, 7, 8) && model.LowBoxCount == 7 && model.HighBoxCount == 8
-                        && model.HasError && model.LastErrorCode == 1012 && frames.Count == 0;
+                        && frames.Count == 0;
 
                     controller.Dispose();
-                    pass &= !controller.IsInitialized && !model.HasError && model.LastErrorCode == 0
-                        && !model.HasData && model.TotalExp == 0
+                    pass &= !controller.IsInitialized && !model.HasData && model.TotalExp == 0
                         && !model.HasBoxCounts && model.LowBoxCount == 0 && model.HighBoxCount == 0
                         && !model.HasRebornDeadline && model.RebornDeadline == 0
                         && !model.HasEndDeadline && model.EndDeadline == 0
@@ -168,8 +152,6 @@ namespace Shenxiao.EditorTools
                 }
 
                 model.Reset();
-                RestoreModelProperty(model, "HasError", oldHasError);
-                RestoreModelProperty(model, "LastErrorCode", oldLastErrorCode);
                 RestoreModelProperty(model, "HasData", oldHasData);
                 RestoreModelProperty(model, "TotalExp", oldTotalExp);
                 RestoreModelProperty(model, "HasBoxCounts", oldHasBoxCounts);
@@ -196,7 +178,6 @@ namespace Shenxiao.EditorTools
                 }
 
                 restored = controller.IsInitialized == wasInitialized
-                    && model.HasError == oldHasError && model.LastErrorCode == oldLastErrorCode
                     && model.HasData == oldHasData && model.TotalExp == oldTotalExp
                     && model.HasBoxCounts == oldHasBoxCounts && model.LowBoxCount == oldLowBoxCount && model.HighBoxCount == oldHighBoxCount
                     && model.HasRebornDeadline == oldHasRebornDeadline && model.RebornDeadline == oldRebornDeadline

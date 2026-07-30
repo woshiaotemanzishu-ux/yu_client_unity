@@ -1245,8 +1245,6 @@
         public const int GODBEAST_STRENGTH_PREVIEW = 17308;
         /// <summary>幻兽部分属性战力试算。C2S: module_id:u16,sub_module_id:u8,attrs:u16×{attr_id:u16,attr_value:u32}；S2C 追加 combat_power:u32。</summary>
         public const int GODBEAST_ATTRIBUTE_POWER = 17309;
-        /// <summary>百鬼夜行错误。S2C: code:u32,args:string；仅接收保留原始值。</summary>
-        public const int GHOST_WALK_ERROR = 20600;
         /// <summary>称号列表快照。C2S 空包；S2C: current_id:u32,items:u16×{id:u32,order:u8,end_time:u32}。</summary>
         public const int DESIGNATION_LIST = 41101;
         /// <summary>称号激活结果通知（S2C-only）。S2C: code:u32,id:u32,end_time:u32；只保留原始通知，不自动佩戴。</summary>
@@ -1348,8 +1346,6 @@
         /// <summary>九魂圣殿秘宝持有者主动快照。S2C: index:u8,server_num:u16,role_id:u64,role_name:string,left_time:u32。</summary>
         public const int NINE_SKY_FLAG_INFO = 13504;
         public const int GHOST_WALK_INFO = 20601;
-        /// <summary>百鬼夜行 Boss 原始状态。C2S scene_id:u32；S2C scene_list:u16×{scene_id:u32,num:u8,boss_ids:u16×u32}。</summary>
-        public const int GHOST_WALK_BOSS_INFO = 20602;
         /// <summary>时空圣痕主快照。C2S 空包；S2C 为个人/本服争夺值与有序据点全量。</summary>
         public const int TS_CRACK_MAIN_INFO = 20401;
         /// <summary>时空圣痕单据点快照/推送。C2S: castle_id:u16；S2C 为同据点完整信息。</summary>
@@ -1412,8 +1408,6 @@
         public const int MONDAYS_AWARD_POOLS = 17908;
         /// <summary>周一嘉礼抽奖窗口与累计次数。C2S 空包；S2C: code:u8,draw_times:u16。</summary>
         public const int MONDAYS_AWARD_DRAW_STATE = 17907;
-        /// <summary>午时狂欢统一错误出口。无 C2S；S2C(pt_285): code:u32。</summary>
-        public const int NOON_PARTY_ERROR = 28500;
         /// <summary>午时狂欢累计经验。C2S 空包；S2C: exp:u32（每包为累计绝对值）。</summary>
         public const int NOON_PARTY_TOTAL_EXP = 28503;
         /// <summary>午时狂欢普通/高级宝箱已采集绝对计数。C2S 空包；S2C: low_box:u32,high_box:u32。</summary>

@@ -324,6 +324,24 @@
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
   {
+    "cmd": 21003,
+    "reason": "dead_server_handle_commented",
+    "evidence": "h5/src/skill/SkillController.ts:27-35,123-125,267;yu_server/src/skill/pp_skill.erl:29-31;yu_server/src/skill/lib_skill.erl:1019-1027",
+    "note": "技能强化信息的服务端 pp_skill 请求入口整段注释，当前全服源码只有该注释调用点，残留 lib_skill writer 无可达调用者；老端 GAME_START 的唯一请求也已注释，结果 handler 只解包即结束。Unity 不注册、不请求、不缓存孤立强化信息；只有服务端恢复入口并由产品恢复完整技能强化页时才重审。R517。"
+  },
+  {
+    "cmd": 21004,
+    "reason": "dead_server_handle_commented",
+    "evidence": "h5/src/skill/SkillController.ts:39-41,126-135,268;yu_server/src/skill/pp_skill.erl:33-35;yu_server/src/skill/lib_skill.erl:1029-1053",
+    "note": "单技能强化会扣真实资产、写 DB、重算属性，但当前 pp_skill 的唯一请求入口已注释，服务器全仓没有其他调用方；老端只剩通用 sender 分支和成功后重拉死号21003的结果回调。Unity 不公开裸 sender、不接孤立 ACK，不恢复配置、背包、属性、Toast 或 UI。R517。"
+  },
+  {
+    "cmd": 21005,
+    "reason": "dead_server_handle_commented",
+    "evidence": "h5/src/skill/SkillController.ts:136-145,269;yu_server/src/skill/pp_skill.erl:37-39;yu_server/src/skill/lib_skill.erl:1102-1130",
+    "note": "一键技能强化同样会扣真实资产并写技能/属性状态，但 pp_skill 的唯一请求入口已注释，服务器全仓没有其他调用方；老端没有专用发送参数路径，只剩结果回调。Unity 不注册、不发送、不接孤立 ACK，也不复活技能强化产品链。R517。"
+  },
+  {
     "cmd": 21101,
     "reason": "dead_empty_body",
     "evidence": "h5/src/skill/SkillController.ts:27-30,146-148,270;h5/src/role/SkillSubView.ts:40-50;h5/src/commonModel/SkillUIModel.ts:637-870;yu_server/src/arcana/pp_arcana.erl:7,14-16;yu_server/src/arcana/lib_arcana.erl:211-218",

@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-07-30）
 
-- 最新完成轮次：R516，Equip新增15217神装全量、15219最后战力试算、15220共鸣全量、15223回包装备/打造类型键控还原预览和15262回包位置/类型/等级键控战力表；补回老端十次15210后的GAME_START 15261，装备族内部启动顺序为 `15214→15217→15220→15210(pos1..10)→15261`。
-- 五切片保持原始位宽、重复项、空表loaded与互相隔离；15202按无老端发送入口加入逐号killlist，15218/21/22真实资产写事务继续DEFER。未接装备UI、配置、背包/货币、属性、事件、红点、Toast或乐观扣物。
-- `dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 为71条既有/Editor-only warning、0 error；同一Unity进程完成1467节点编译与真实域重载，`EquipReadCase=0/pass=True/restored=True`、既有 `EquipGrowthCase=0`。`coverage_20260730_104507.md` A～E全PASS，当前 `registered=1260 / liveDefined=1468 / liveGap=330 / errorExit=10 / active=1138/1468=77.5%`，152族 `registered29/liveGap4/dead10/legacy_unverified`。
+- 最新完成轮次：R517。21003/21004/21005 的服务器 `pp_skill` 唯一入口均整段注释，已以双端逐号证据写入 killlist；210、217、508 三个家族的当前 raw 缺口已分别由证据或注册完整治理，baseline 转为 `done`。冻结的历史 `unityRegistered/liveGap` 数字未改。
+- 同轮发现并纠正历史违规：20600/20602 和28500均晚于现行 `AGENTS.md` 的明确“不接”规则落入代码，现已连同常量、注册、sender、raw模型和专项断言撤销；GhostWalk只保留20601，NoonParty只保留28503/04/05/06，206/285家族继续 `pending`，不得用违规接入伪造零缺口。
+- `dotnet build Shenxiao.Editor.csproj -m:1` restore后为71条既有/Editor-only warning、0 error；Unity PID 51800真实重编译 `completed/failed=false/errors=[]`，`GhostWalkCase=0/pass=True/restored=True`、`NoonPartyCase=0/pass=True/restored=True`。`coverage_20260730_111918.md` A～E全PASS，当前 `registered=1257 / liveDefined=1468 / liveGap=333 / errorExit=12 / active=1135/1468=77.3%`；210=`5/3/0 done`、217=`3/0/0 done`、508=`3/0/0 done`，206=`1/2/2 pending`、285=`4/1/1 pending`。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---
