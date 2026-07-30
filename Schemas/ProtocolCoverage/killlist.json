@@ -6,6 +6,18 @@
     "note": "客户端版本上传 C2S client_ver:u64、S2C error_code:u32；服务端会写入当前玩家进程的临时 client_ver 并回成功，但老端没有任何发送入口。Unity 不注册、不发送、不加入 GAME_START/登录/设置链，也不为覆盖率孤立接收回执。R484 复核。"
   },
   {
+    "cmd": 11003,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/ChatController.ts:375-402,709-777,849-863;h5/src/chat/ChatParentView.ts:436-450;h5/src/chat/VoiceChatView.ts:118-203;yu_server/src/chat/pp_chat.erl + yu_server/src/pt/pt_110.erl",
+    "note": "语音消息上传在服务器侧会写语音缓存、聊天记录并广播，但老端唯一录音面板入口、手势绑定、SDK 录音/回调和实际 Fire 均已注释，现产品链无法产生 11003。Unity 不注册、不发送，也不为覆盖率恢复麦克风/SDK/音频/二进制缓存、语音 Figure 大包或 UI；只有产品明确恢复完整语音链时才成族重审。R509。"
+  },
+  {
+    "cmd": 11004,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/ChatController.ts:253-264,849-887;h5/src/chat/ChatParentView.ts:436-450;yu_server/src/chat/pp_chat.erl + yu_server/src/pt/pt_110.erl",
+    "note": "语音数据下载的服务器查询/回包有效，但老端所有点击、自动播放和补拉调用点都已注释，服务器只响应显式 11004 请求而不会独立推送。Unity 不注册、不公开 sender，不恢复语音缓存、播放器或 UI；只有产品明确恢复完整语音链时才与 11003/11005 一并重审。R509。"
+  },
+  {
     "cmd": 11005,
     "reason": "dead_server_param_shape_mismatch",
     "evidence": "yu_server/src/chat/mod_chat_voice.erl:138 + pt_110.erl:279-285,773",

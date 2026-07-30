@@ -17,8 +17,8 @@
 
 ## 当前协议迁移口径（2026-07-30）
 
-- 最新完成轮次：R508，在既有 MiniGame 39900 错误切片上新增四个安全读侧：S2C-only 39901 开始通知、GAME_START 严格空查询及最后当前态 39902、显式三字段复合键排行查询 39904、S2C-only 39922 消消乐重连嵌套快照。39901/02/22 逐包完整替换彼此隔离的最后原始切片；39904 按 `(game_type,module_id,sub_id)` 共存，完整保留排行 wire 原序、重复角色和空表。请求无回复保留旧值；GAME_START 只新增一张 39902 空帧。
-- 39903 空反馈、39905 无真实 writer、39931 全注释旧 handler 均有双端证据并维持 KILL；39901 同号手动开局、39903 玩法反馈、39921 棋盘上传、39923 主动结算均为真实写操作，继续 DEFER。未接小游戏 UI、配置、场景、倒计时、事件、排行排序或自动开局。Unity 专项、真实编译和覆盖治理均通过；当前 `registered=1241 / liveDefined=1468 / liveGap=349 / errorExit=10 / effective=1119/1468=76.2%`，399 族 `registered5/liveGap2/dead1/pending`，报告 `coverage_20260730_075440.md`。
+- 最新完成轮次：R509，完成 Chat 11003/11004/11005 旧语音死链的机器治理。11003 的服务器上传、缓存、聊天记录与广播链以及 11004 的显式下载回包虽仍有效，但老端唯一录音面板入口、手势绑定、SDK 录音/回调、实际 Fire、点击补拉和自动播放调用均已注释，当前产品不可达；11005 维持服务器参数形状不匹配、实际落 `cmd=0` 空包的既有 KILL。三号均不得注册、发送或孤立恢复，只有产品明确恢复完整语音功能时才成族重审。
+- 本轮只新增 11003/11004 killlist evidence，并纠正过期 GapMap；未改生产 C#，既有文字聊天与通知仍精确注册 21 号，11015/11018/11020 继续由 `NoticeController` 消费，GAME_START、频道映射和私聊规则不变。`ProtocolCoverageCase=0`，报告 `coverage_20260730_080631.md` A～E 全 PASS；全局保持 `registered=1241 / liveDefined=1468 / liveGap=349 / errorExit=10 / effective=1119/1468=76.2%`，110 族 raw 为 `registered21/liveGap3/dead21/legacy_unverified`，三个 liveGap 均已机器裁决。JSON/文档轮不触发 C# 编译、Unity 域重载或聊天运行时专项，baseline 不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---
