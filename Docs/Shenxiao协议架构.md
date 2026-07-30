@@ -183,3 +183,9 @@
 - `AutoBrushController` 收到 GAME_START 后先清全部模块模型，再严格空发 `13300→13301→13309→13323→13324`；后续号不得改序、条件跳过或替代既有刷怪/排行请求。
 - 13309 保存原始 `code:u32,next_stage_reward_gate:u64`，gate=0 仍是 raw 0，不在数据层复刻旧 UI 的 99999 展示哨兵；13323 保存 `node:u8`；13324 原子保存 `daily_ask_time:u16,next_ask_time:u32`，并允许服务器在公会协助状态变化后主动推送覆盖。三份 loaded 切片及既有刷怪/排行/战斗状态互相隔离，Reset/Dispose 全清。
 - 13310 是 `gate:u64` 阶段领奖事务，会真实发奖、写 DB 并重查 13309；13322 是 `node:u8` 新手流程持久化写入。两号必须随完整 UI、配置门禁、single-flight、奖励/背包邮件或教程状态机整体迁移，当前禁止公开 sender、孤立 ACK 或乐观状态。
+
+### 7.12 周本 50805 的专属结算切片（2026-07-30 核对）
+
+- 50805由周本成功/失败事件主动推送，Unity只注册接收器，不提供请求方法、不加入GAME_START或场景轮询。它与61003通用副本结算不是同一数据线，禁止复用或互相覆盖。
+- 每包按 `result_type:u8,dun_id:u32,go_time:u32,dun_rewards:u16×{type:u8,times:u16,rewards:ObjectList},role_boss_list:u16×{boss_id:u32,reward_st:u8,reward_list:ObjectList}` 完整替换最后loaded快照。所有列表保留wire原序和重复ID，空表清旧，零值和u32最大值有效。
+- 50801周本信息、50802榜单和50805结算普通包互不清理；只有模块断线/注销的 `PolarModel.Clear()` 统一清空。raw层不得据result_type推场景退出、打开结算页、展示/发放奖励、补查50801/02或本地修改背包。

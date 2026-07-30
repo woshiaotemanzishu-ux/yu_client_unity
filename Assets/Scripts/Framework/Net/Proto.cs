@@ -1988,8 +1988,6 @@
         /// <summary>灵魄副本每日状态快照。C2S 严格空包；S2C daily_status:u8,unlock_level:u32。</summary>
         public const int DUNGEON_RUNE_DAILY_STATUS = 61115;
         // 61117 已接(BaseDungeonController 限时爬塔图标);61118(限时爬塔大奖领取)塔二期。
-        // 50805(周本专属结算推送,不复用 61003):DungeonPolarBalance 结算面板未移植,周本二期。
-
         // ----- 周常副本(pt_508,yu_server week_dungeon;老端 DungeonPolarView.ts/DungeonPolarRankView.ts。
         //        周本(Polar,dun_type=36)是独立于 61xxx 通用副本的数据线,不挂 DungeonModel.DunStatesByType) -----
         /// <summary>玩家的周常副本信息。无 send 字段,裸发(老端周本大厅加载完成时查一次);
@@ -2000,6 +1998,11 @@
         /// 回包 team_dun_id:i, self_rank:c, self_pass_time:h,
         /// rank_list[u16×{pass_time:h,time:i,rank:c,role_list[u16×{role_id:l,role_name:s,server_id:h,server_num:h}]}]。</summary>
         public const int POLAR_RANK = 50802;
+        /// <summary>周本专属结算，S2C-only；只保存原始完整快照，不复用61003、不接结算UI或本地发奖。
+        /// S2C result_type:u8,dun_id:u32,go_time:u32,
+        /// dun_rewards:u16×{type:u8,times:u16,rewards:ObjectList},
+        /// role_boss_list:u16×{boss_id:u32,reward_st:u8,reward_list:ObjectList}。</summary>
+        public const int POLAR_SETTLEMENT = 50805;
 
         // ----- 灵魄/符文(pt_167,yu_server rune;老端 RuneBagItem.ts/SecretTreasureMainView) -----
         /// <summary>符文全量(请求无参;回包 rune_point:i, rune_chip:i, skill_lv:h, rune_list[u16×{pos_id:c, if_open:c,

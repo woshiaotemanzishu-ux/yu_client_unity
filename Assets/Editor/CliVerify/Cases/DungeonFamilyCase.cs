@@ -9,7 +9,7 @@ namespace Shenxiao.EditorTools
     /// 副本家族补全一期(自动循环 轮9)实证:61004(尾哨兵读序)/61007+61019(坐标事件状态机 1→2→3 流转与
     /// 对账)/61011/61018(type 分支)/61020→61001(进入乐观计数连锁)/61021(全组共享 vip_count 分支 +
     /// 6100043 婚姻本专文案)/61022(扫荡成功计数+奖励事件+32位 count 读序)/61023/61025/61026(鼓舞
-    /// ×5/×10 分流)/61030/61120/61121(资源本次数)/50801/50802(周本独立 PolarModel 数据线) 合成包
+    /// ×5/×10 分流)/61030/61120/61121(资源本次数)/50801/50802/50805(周本独立 PolarModel 数据线) 合成包
     /// 驱动 DungeonController 反射喂包;失败码各一发断言不抛异常+显码 toast。
     /// 渲染段:DungeonBuyTimeView(壳=DungeonCommonModule.prefab 的 DungeonBuyTimeViewBind,本轮接真)
     /// 拉起断言 _lb_msg 文案;编辑期 prefab 加载不可用时优雅降级(log 标注,不挡门禁——同 TeamCase 先例)。
@@ -59,11 +59,11 @@ namespace Shenxiao.EditorTools
                     m61011 = H("On61011"), m61018 = H("On61018"), m61019 = H("On61019"), m61020 = H("On61020"),
                     m61021 = H("On61021"), m61022 = H("On61022"), m61023 = H("On61023"), m61025 = H("On61025"),
                     m61026 = H("On61026"), m61030 = H("On61030"), m61120 = H("On61120"), m61121 = H("On61121"),
-                    m50801 = H("On50801"), m50802 = H("On50802");
+                    m50801 = H("On50801"), m50802 = H("On50802"), m50805 = H("On50805");
                 if (m61001 == null || m61004 == null || m61007 == null || m61011 == null || m61018 == null
                     || m61019 == null || m61020 == null || m61021 == null || m61022 == null || m61023 == null
                     || m61025 == null || m61026 == null || m61030 == null || m61120 == null || m61121 == null
-                    || m50801 == null || m50802 == null)
+                    || m50801 == null || m50802 == null || m50805 == null)
                 {
                     return 3;
                 }
@@ -238,8 +238,34 @@ namespace Shenxiao.EditorTools
                 bool polarRankOk = rk != null && rk.SelfRank == 3 && rk.SelfPassTime == 120
                     && rk.Entries.Count == 1 && rk.Entries[0].Roles.Count == 2
                     && rk.Entries[0].Roles[0].RoleName == "剑仙一" && rk.Entries[0].Roles[1].RoleId == 222;
-                Debug.Log("CLIVERIFY dungeonfam polar info=" + polarInfoOk + " isolated=" + polarIsolatedOk + " rank=" + polarRankOk);
-                bool polarOk = polarInfoOk && polarIsolatedOk && polarRankOk;
+                Feed(m50805, new CliVerify.Pkt()
+                    .C(2).I(uint.MaxValue).I(123456)
+                    .H(2)
+                        .C(1).H(3).H(2).C(4).I(4001).I(5).C(4).I(4001).I(6)
+                        .C(2).H(0).H(0)
+                    .H(2)
+                        .I(5001).C(1).H(1).C(5).I(50001).I(uint.MaxValue)
+                        .I(5001).C(0).H(0)
+                    .Bytes());
+                Shenxiao.Module.Core.Dungeon.PolarModel.SettlementSnapshot settlement = polar.Settlement;
+                bool settlementOk = polar.HasSettlement && settlement != null
+                    && settlement.ResultType == 2 && settlement.DunId == uint.MaxValue && settlement.GoTime == 123456
+                    && settlement.DungeonRewards.Count == 2 && settlement.DungeonRewards[0].Times == 3
+                    && settlement.DungeonRewards[0].Rewards.Count == 2
+                    && settlement.DungeonRewards[0].Rewards[0].TypeId == 4001
+                    && settlement.DungeonRewards[0].Rewards[1].Num == 6
+                    && settlement.DungeonRewards[1].Rewards.Count == 0
+                    && settlement.RoleBosses.Count == 2 && settlement.RoleBosses[0].Rewards[0].Num == uint.MaxValue
+                    && settlement.RoleBosses[0].BossId == settlement.RoleBosses[1].BossId
+                    && ReferenceEquals(polar.GetWeekInfo(36001), wi) && ReferenceEquals(polar.GetRank(36001), rk);
+                Feed(m50805, new CliVerify.Pkt().C(0).I(0).I(0).H(0).H(0).Bytes());
+                bool emptySettlementOk = polar.HasSettlement && polar.Settlement != null
+                    && polar.Settlement.ResultType == 0 && polar.Settlement.DunId == 0 && polar.Settlement.GoTime == 0
+                    && polar.Settlement.DungeonRewards.Count == 0 && polar.Settlement.RoleBosses.Count == 0
+                    && ReferenceEquals(polar.GetWeekInfo(36001), wi) && ReferenceEquals(polar.GetRank(36001), rk);
+                Debug.Log("CLIVERIFY dungeonfam polar info=" + polarInfoOk + " isolated=" + polarIsolatedOk
+                    + " rank=" + polarRankOk + " settlement=" + settlementOk + " empty=" + emptySettlementOk);
+                bool polarOk = polarInfoOk && polarIsolatedOk && polarRankOk && settlementOk && emptySettlementOk;
 
                 // ---- J. 渲染段:DungeonBuyTimeView 壳接真(prefab 编辑期加载不可用则优雅降级,不挡门禁) ----
                 Shenxiao.Module.Core.Dungeon.DungeonBuyTimeView.Instance.Show(12001);

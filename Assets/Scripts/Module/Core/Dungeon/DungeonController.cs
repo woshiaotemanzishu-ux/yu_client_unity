@@ -135,6 +135,7 @@ namespace Shenxiao.Module.Core.Dungeon
             RegisterProtocal(Proto.DUNGEON_RESOURCE_COUNT, On61121);
             RegisterProtocal(Proto.POLAR_WEEK_INFO, On50801);
             RegisterProtocal(Proto.POLAR_RANK, On50802);
+            RegisterProtocal(Proto.POLAR_SETTLEMENT, On50805);
 
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
@@ -1144,6 +1145,47 @@ namespace Shenxiao.Module.Core.Dungeon
             });
             return e;
         }
+
+        /// <summary>50805 周本专属结算推送；逐包完整替换独立 raw 快照，不驱动结算 UI、奖励或副本流程。</summary>
+        private void On50805(NetReader r)
+        {
+            var snapshot = new PolarModel.SettlementSnapshot
+            {
+                ResultType = r.ReadU8(),
+                DunId = r.ReadU32(),
+                GoTime = r.ReadU32(),
+            };
+            snapshot.DungeonRewards = r.ReadArray(ReadPolarSettlementReward);
+            snapshot.RoleBosses = r.ReadArray(ReadPolarSettlementBoss);
+            PolarModel.Instance.ReplaceSettlement(snapshot);
+            GameLog.Info("Dungeon", "50805 polar settlement result={0} dun={1} rewards={2} bosses={3}",
+                snapshot.ResultType, snapshot.DunId, snapshot.DungeonRewards.Count, snapshot.RoleBosses.Count);
+        }
+
+        private static PolarModel.SettlementRewardVo ReadPolarSettlementReward(NetReader r)
+        {
+            var entry = new PolarModel.SettlementRewardVo
+            {
+                Type = r.ReadU8(),
+                Times = r.ReadU16(),
+            };
+            entry.Rewards = r.ReadArray(ReadPolarObjectReward);
+            return entry;
+        }
+
+        private static PolarModel.SettlementBossVo ReadPolarSettlementBoss(NetReader r)
+        {
+            var entry = new PolarModel.SettlementBossVo
+            {
+                BossId = r.ReadU32(),
+                RewardState = r.ReadU8(),
+            };
+            entry.Rewards = r.ReadArray(ReadPolarObjectReward);
+            return entry;
+        }
+
+        private static PolarModel.ObjectRewardVo ReadPolarObjectReward(NetReader r) =>
+            new PolarModel.ObjectRewardVo(r.ReadU8(), r.ReadU32(), r.ReadU32());
 
         /// <summary>61046 邀请发送者原始消息；不解释为空串/成功，也不等待该包作为 ACK。</summary>
         private void On61046(NetReader r)

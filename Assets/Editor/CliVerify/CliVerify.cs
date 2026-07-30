@@ -269,6 +269,7 @@ namespace Shenxiao.EditorTools
         public static void DungeonSettingUpdate() { Run(DungeonSettingUpdateCase.Run, 60.0); }
         public static void DungeonInspiritEntry() { Run(DungeonInspiritEntryCase.Run, 60.0); }
         public static void DungeonPolarSpecialInfo() { Run(DungeonPolarSpecialInfoCase.Run, 60.0); }
+        public static void DungeonPolarSettlement() { Run(DungeonPolarSettlementCase.Run, 30.0); }
         public static void DungeonMarriageQuestionState() { Run(DungeonMarriageQuestionStateCase.Run, 60.0); }
         public static void DungeonRuneRewardInfo() { Run(DungeonRuneRewardInfoCase.Run, 60.0); }
         public static void DungeonRuneDailyStatus() { Run(DungeonRuneDailyStatusCase.Run, 60.0); }

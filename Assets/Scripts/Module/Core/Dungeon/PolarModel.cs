@@ -4,10 +4,10 @@ namespace Shenxiao.Module.Core.Dungeon
 {
     /// <summary>
     /// 周本(极·boss,DUN_TYPE=36 Polar,pt_508)数据层——对标老端 BaseDungeonModel 的
-    /// polarInfo_[week_dun_id] / polarRank_[team_dun_id] 两张独立索引表。
+    /// polarInfo_[week_dun_id] / polarRank_[team_dun_id] 两张独立索引表，以及50805最后完整结算快照。
     /// ⚠r9 侦察结论:周本与 61xxx 通用副本是两条完全独立的数据/事件线,老端 GetDungeonInfo(Polar)
     /// 事实上走不到 DunStatesByType 那条路——**勿把周本状态塞进 DungeonModel.DunStatesByType[36]**。
-    /// 收发在 DungeonController(50801/50802);50805 周本专属结算(不复用 61003)本轮未接,见控制器 TODO。
+    /// 收发在 DungeonController(50801/50802/50805)；结算只落 raw，不复用61003，也不驱动UI或本地发奖。
     /// </summary>
     public sealed class PolarModel
     {
@@ -124,12 +124,64 @@ namespace Shenxiao.Module.Core.Dungeon
             _ranks[vo.TeamDunId] = vo;
         }
 
+        // ===================================================================================
+        // 50805 周本专属结算(S2C-only，逐包完整替换)
+        // ===================================================================================
+
+        public sealed class ObjectRewardVo
+        {
+            public byte Type { get; }
+            public uint TypeId { get; }
+            public uint Num { get; }
+
+            public ObjectRewardVo(byte type, uint typeId, uint num)
+            {
+                Type = type;
+                TypeId = typeId;
+                Num = num;
+            }
+        }
+
+        public sealed class SettlementRewardVo
+        {
+            public byte Type;
+            public ushort Times;
+            public List<ObjectRewardVo> Rewards = new List<ObjectRewardVo>();
+        }
+
+        public sealed class SettlementBossVo
+        {
+            public uint BossId;
+            public byte RewardState;
+            public List<ObjectRewardVo> Rewards = new List<ObjectRewardVo>();
+        }
+
+        public sealed class SettlementSnapshot
+        {
+            public byte ResultType;
+            public uint DunId;
+            public uint GoTime;
+            public List<SettlementRewardVo> DungeonRewards = new List<SettlementRewardVo>();
+            public List<SettlementBossVo> RoleBosses = new List<SettlementBossVo>();
+        }
+
+        public bool HasSettlement { get; private set; }
+        public SettlementSnapshot Settlement { get; private set; }
+
+        public void ReplaceSettlement(SettlementSnapshot snapshot)
+        {
+            Settlement = snapshot;
+            HasSettlement = snapshot != null;
+        }
+
         /// <summary>断线/登出清空。</summary>
         public void Clear()
         {
             _weekInfos.Clear();
             _ranks.Clear();
             SpecialInfoByDunId.Clear();
+            HasSettlement = false;
+            Settlement = null;
         }
     }
 }
