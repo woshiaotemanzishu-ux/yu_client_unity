@@ -41,6 +41,9 @@ namespace Shenxiao.Module.Core.Vip
         public bool HasActivationNotice => LastActivationNotice != null;
         public CardNotice LastTimeoutNotice { get; private set; }
         public bool HasTimeoutNotice => LastTimeoutNotice != null;
+        public bool HasRechargeSuccessNotice { get; private set; }
+        public bool HasTotalRechargeGold { get; private set; }
+        public uint TotalRechargeGold { get; private set; }
 
         public sealed class VipInfoSnapshot
         {
@@ -188,6 +191,17 @@ namespace Shenxiao.Module.Core.Vip
             LastTimeoutNotice = new CardNotice(notice.CardType, notice.IsTempCard);
         }
 
+        public void MarkRechargeSuccessNotice()
+        {
+            HasRechargeSuccessNotice = true;
+        }
+
+        public void ReplaceTotalRechargeGold(uint totalGold)
+        {
+            TotalRechargeGold = totalGold;
+            HasTotalRechargeGold = true;
+        }
+
         public bool HaveFirstRecharge()
         {
             foreach (RechargeProduct product in _productById.Values)
@@ -207,6 +221,9 @@ namespace Shenxiao.Module.Core.Vip
             HasPrivilegeCards = false;
             LastActivationNotice = null;
             LastTimeoutNotice = null;
+            HasRechargeSuccessNotice = false;
+            HasTotalRechargeGold = false;
+            TotalRechargeGold = 0;
         }
 
         private static IReadOnlyList<ushort> FreezeU16(IReadOnlyList<ushort> source)

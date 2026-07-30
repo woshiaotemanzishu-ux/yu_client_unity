@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-07-30）
 
-- 最新完成轮次：R519。Goods新增15014同服和15015跨服显式战力分项查询，两条成功链统一由15014返回；按回包服务器/角色复合键保存双方原序raw表，并接入现有look_over资料卡真实“战力对比”按钮。缺少旧端分项名称配置时只显示wire索引和值，不猜分组、求和或总战力。
-- 15023经双端复核为老端无任何Fire触发且回包handler为空，服务端资格检查又硬编码恒返FAIL，已以 `old_client_unreachable` 逐号KILL。15011旧资料卡装备查询与15028真实合成事务继续保持raw活缺口，150家族不转done、不靠孤立协议清零。
-- `dotnet build` 为71条既有warning、0 error；同一Unity PID 51800编译/域重载成功，扩展 `LookOverCase` 实跑 `compare=True/pass=True/result=0`。`coverage_20260730_115623.md` A～E全PASS，运行时口径为 `registered=1258 / liveDefined=1468 / liveGap=332 / errorExit=12 / active=1136/1468=77.4%`，150族=`30/3/8 legacy_unverified`；baseline冻结不更新。
+- 最新完成轮次：R520。Recharge新增15802空体充值成功通知与15803累计充值绝对快照：15802每包标记loaded、显示一次成功提示并发一次事件；15803只允许显式空查询，同时接受真实充值入账后的主动推送，`total_gold:u32` 含0都完整覆盖，无回复保留。
+- VIP启动与跨天序列继续精确 `45000→45004→15800`，15803和15901均不自动夹带。15804会真实扣直购币并派发礼包，继续等待支付确认、配置、钱包/背包、single-flight和结果UI闭环，158族保持pending。
+- `dotnet build` 为71条既有warning、0 error；同一Unity PID 51800域重载成功，扩展 `VipWelfareCardCase` 实跑 `pass=True/restored=True/result=0`。`coverage_20260730_120801.md` A～E全PASS，运行时口径为 `registered=1260 / liveDefined=1468 / liveGap=330 / errorExit=12 / active=1138/1468=77.5%`，158族=`4/1/1 pending`；baseline冻结不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

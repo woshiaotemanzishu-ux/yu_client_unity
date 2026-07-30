@@ -753,6 +753,10 @@
         public const int RECHARGE_PRODUCT_LIST = 15800;
         /// <summary>充值商品返利状态变更。回包 ProductId:i, ReturnType:c。</summary>
         public const int RECHARGE_PRODUCT_UPDATE = 15801;
+        /// <summary>充值入账成功通知。S2C-only，严格空体；每次到包都是一次独立成功通知。</summary>
+        public const int RECHARGE_SUCCESS_NOTICE = 15802;
+        /// <summary>充值总额。C2S严格空请求；S2C TotalGold:u32，为当前绝对累计钻石数。</summary>
+        public const int RECHARGE_TOTAL_GOLD = 15803;
 
         // ----- 首充/福利卡(159xx 子集,yu_server pt_159.erl) -----
         /// <summary>福利卡列表。请求无参；回包 h + {ProductType:i, ProductSubtype:i, ProductId:i, State:c, LeftCount:h} x N。</summary>

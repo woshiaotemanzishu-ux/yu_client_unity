@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Module.Core.Vip;
 using UnityEngine;
@@ -38,16 +39,26 @@ namespace Shenxiao.EditorTools
             VipModel.CardNotice oldActivation = model.LastActivationNotice;
             bool oldHasTimeout = model.HasTimeoutNotice;
             VipModel.CardNotice oldTimeout = model.LastTimeoutNotice;
+            bool oldHasRechargeSuccess = model.HasRechargeSuccessNotice;
+            bool oldHasTotalRecharge = model.HasTotalRechargeGold;
+            uint oldTotalRecharge = model.TotalRechargeGold;
             FieldInfo vipInterceptor = typeof(VipController).GetField("s_vipOutboundIntercept", SF);
             FieldInfo welfareInterceptor = typeof(VipController).GetField("s_welfareCardOutboundIntercept", SF);
             object oldVipInterceptor = vipInterceptor?.GetValue(null);
             object oldWelfareInterceptor = welfareInterceptor?.GetValue(null);
             var handlers = typeof(NetManager).GetField("_handlers", SF)?.GetValue(null) as IDictionary;
             var saved = new Dictionary<int, HandlerState>();
-            int[] ownedProtocolIds = { 45000, 45001, 45002, 45003, 45004, 45005, 45006, 45007, 45008, 15800, 15801, 15901, 15902 };
+            int[] ownedProtocolIds = { 45000, 45001, 45002, 45003, 45004, 45005, 45006, 45007, 45008,
+                15800, 15801, 15802, 15803, 15804, 15901, 15902 };
             foreach (int id in ownedProtocolIds) SaveHandler(handlers, saved, id);
             bool pass = false;
             bool restored = false;
+            int rechargeSuccessEvents = 0;
+            int rechargeTotalEvents = 0;
+            uint lastRechargeTotalEvent = 0;
+            Action rechargeSuccessListener = () => rechargeSuccessEvents++;
+            Action<uint> rechargeTotalListener = value => { rechargeTotalEvents++; lastRechargeTotalEvent = value; };
+            bool listenersAttached = false;
 
             try
             {
@@ -62,17 +73,22 @@ namespace Shenxiao.EditorTools
                 MethodInfo on45006 = typeof(VipController).GetMethod("On45006", F);
                 MethodInfo on15800 = typeof(VipController).GetMethod("On15800", F);
                 MethodInfo on15801 = typeof(VipController).GetMethod("On15801", F);
+                MethodInfo on15802 = typeof(VipController).GetMethod("On15802", F);
+                MethodInfo on15803 = typeof(VipController).GetMethod("On15803", F);
                 MethodInfo on15901 = typeof(VipController).GetMethod("On15901", F);
                 MethodInfo onDayChange = typeof(VipController).GetMethod("OnServerDayChange", F);
                 pass = handlers != null && vipInterceptor != null && welfareInterceptor != null
                     && on45000 != null && on45004 != null && on45005 != null && on45006 != null
-                    && on15800 != null && on15801 != null && on15901 != null && onDayChange != null
+                    && on15800 != null && on15801 != null && on15802 != null && on15803 != null
+                    && on15901 != null && onDayChange != null
                     && handlers.Contains(45000) && handlers.Contains(45004) && handlers.Contains(45005) && handlers.Contains(45006)
                     && !handlers.Contains(45001) && !handlers.Contains(45002) && !handlers.Contains(45003)
                     && !handlers.Contains(45007) && !handlers.Contains(45008)
-                    && handlers.Contains(15800) && handlers.Contains(15801) && handlers.Contains(15901) && !handlers.Contains(15902);
+                    && handlers.Contains(15800) && handlers.Contains(15801) && handlers.Contains(15802)
+                    && handlers.Contains(15803) && !handlers.Contains(15804)
+                    && handlers.Contains(15901) && !handlers.Contains(15902);
 
-                int[] registeredIds = { 45000, 45004, 45005, 45006, 15800, 15801, 15901 };
+                int[] registeredIds = { 45000, 45004, 45005, 45006, 15800, 15801, 15802, 15803, 15901 };
                 var registeredHandlers = new Dictionary<int, object>();
                 foreach (int id in registeredIds) registeredHandlers[id] = handlers[id];
                 controller.Init();
@@ -91,11 +107,18 @@ namespace Shenxiao.EditorTools
                 model.ReplaceTimeoutNotice(new VipModel.CardNotice(8, 9));
                 model.SetRechargeOneProduct(10, 11);
                 model.ReplaceWelfareCards(new[] { new VipModel.WelfareCard(12, 13, 14, 15, 16) });
+                model.MarkRechargeSuccessNotice();
+                model.ReplaceTotalRechargeGold(17);
                 controller.RequestStartup();
                 pass &= StrictEmptyFrames(vipFrames, 45000, 45004, 15800)
                     && !model.HasVipInfo && !model.HasPrivilegeCards && !model.HasActivationNotice && !model.HasTimeoutNotice
                     && model.PrivilegeCards.Count == 0 && model.ProductById.Count == 0
-                    && !model.HasWelfareCardList && model.WelfareCards.Count == 0;
+                    && !model.HasWelfareCardList && model.WelfareCards.Count == 0
+                    && !model.HasRechargeSuccessNotice && !model.HasTotalRechargeGold && model.TotalRechargeGold == 0;
+                vipFrames.Clear();
+
+                controller.RequestTotalRechargeGold();
+                pass &= StrictEmptyFrames(vipFrames, 15803) && !model.HasTotalRechargeGold;
                 vipFrames.Clear();
 
                 controller.RequestWelfareCards();
@@ -186,6 +209,24 @@ namespace Shenxiao.EditorTools
 
                 Feed(on15800, controller, new CliVerify.Pkt().H(1).I(9).C(2).Bytes());
                 pass &= model.ProductById.Count == 1 && model.ProductById[9].ReturnType == 2 && model.HasVipInfo;
+                EventDispatcher.On(GlobalEvent.EVT_RECHARGE_SUCCESS, rechargeSuccessListener);
+                EventDispatcher.On(GlobalEvent.EVT_RECHARGE_TOTAL_UPDATED, rechargeTotalListener);
+                listenersAttached = true;
+                Feed(on15802, controller, Array.Empty<byte>());
+                Feed(on15802, controller, Array.Empty<byte>());
+                pass &= model.HasRechargeSuccessNotice && rechargeSuccessEvents == 2
+                    && !model.HasTotalRechargeGold && rechargeTotalEvents == 0 && model.ProductById.Count == 1;
+                Feed(on15803, controller, new CliVerify.Pkt().I(uint.MaxValue).Bytes());
+                pass &= model.HasTotalRechargeGold && model.TotalRechargeGold == uint.MaxValue
+                    && rechargeTotalEvents == 1 && lastRechargeTotalEvent == uint.MaxValue
+                    && model.HasRechargeSuccessNotice && model.ProductById.Count == 1;
+                controller.RequestTotalRechargeGold();
+                pass &= StrictEmptyFrames(vipFrames, 15803) && model.TotalRechargeGold == uint.MaxValue
+                    && rechargeTotalEvents == 1;
+                vipFrames.Clear();
+                Feed(on15803, controller, new CliVerify.Pkt().I(0).Bytes());
+                pass &= model.HasTotalRechargeGold && model.TotalRechargeGold == 0
+                    && rechargeTotalEvents == 2 && lastRechargeTotalEvent == 0 && model.HasRechargeSuccessNotice;
                 var manyWelfare = new CliVerify.Pkt().H(3)
                     .I(uint.MaxValue).I(0).I(7).C(byte.MaxValue).H(ushort.MaxValue)
                     .I(0).I(1).I(uint.MaxValue).C(0).H(0)
@@ -209,11 +250,14 @@ namespace Shenxiao.EditorTools
                 controller.Dispose();
                 pass &= !controller.IsInitialized && model.ProductById.Count == 0
                     && !model.HasVipInfo && !model.HasPrivilegeCards && !model.HasActivationNotice && !model.HasTimeoutNotice
+                    && !model.HasRechargeSuccessNotice && !model.HasTotalRechargeGold && model.TotalRechargeGold == 0
                     && !model.HasWelfareCardList && model.WelfareCards.Count == 0
                     && !handlers.Contains(45000) && !handlers.Contains(45001) && !handlers.Contains(45002)
                     && !handlers.Contains(45003) && !handlers.Contains(45004) && !handlers.Contains(45005)
                     && !handlers.Contains(45006) && !handlers.Contains(45007) && !handlers.Contains(45008)
-                    && !handlers.Contains(15800) && !handlers.Contains(15801) && !handlers.Contains(15901) && !handlers.Contains(15902);
+                    && !handlers.Contains(15800) && !handlers.Contains(15801) && !handlers.Contains(15802)
+                    && !handlers.Contains(15803) && !handlers.Contains(15804)
+                    && !handlers.Contains(15901) && !handlers.Contains(15902);
                 Debug.Log("CLIVERIFY vipWelfareCard VERDICT pass=" + pass);
             }
             finally
@@ -226,16 +270,26 @@ namespace Shenxiao.EditorTools
                 if (oldHasPrivilegeCards) model.ReplacePrivilegeCards(oldPrivilegeCards);
                 if (oldHasActivation) model.ReplaceActivationNotice(oldActivation);
                 if (oldHasTimeout) model.ReplaceTimeoutNotice(oldTimeout);
+                if (oldHasRechargeSuccess) model.MarkRechargeSuccessNotice();
+                if (oldHasTotalRecharge) model.ReplaceTotalRechargeGold(oldTotalRecharge);
                 if (wasInitialized) controller.Init();
                 foreach (int id in ownedProtocolIds) RestoreHandler(handlers, saved[id], id);
                 if (vipInterceptor != null) vipInterceptor.SetValue(null, oldVipInterceptor);
                 if (welfareInterceptor != null) welfareInterceptor.SetValue(null, oldWelfareInterceptor);
+                if (listenersAttached)
+                {
+                    EventDispatcher.Off(GlobalEvent.EVT_RECHARGE_SUCCESS, rechargeSuccessListener);
+                    EventDispatcher.Off(GlobalEvent.EVT_RECHARGE_TOTAL_UPDATED, rechargeTotalListener);
+                }
                 restored = controller.IsInitialized == wasInitialized && ProductsMatch(model.ProductById, oldProducts)
                     && model.HasWelfareCardList == oldHasWelfareCards && WelfareCardsMatch(model.WelfareCards, oldWelfareCards)
                     && model.HasVipInfo == oldHasVipInfo && (!oldHasVipInfo || VipInfoEquals(model.VipInfo, oldVipInfo))
                     && model.HasPrivilegeCards == oldHasPrivilegeCards && PrivilegeCardsMatch(model.PrivilegeCards, oldPrivilegeCards)
                     && model.HasActivationNotice == oldHasActivation && (!oldHasActivation || NoticeEquals(model.LastActivationNotice, oldActivation))
                     && model.HasTimeoutNotice == oldHasTimeout && (!oldHasTimeout || NoticeEquals(model.LastTimeoutNotice, oldTimeout))
+                    && model.HasRechargeSuccessNotice == oldHasRechargeSuccess
+                    && model.HasTotalRechargeGold == oldHasTotalRecharge
+                    && (!oldHasTotalRecharge || model.TotalRechargeGold == oldTotalRecharge)
                     && (vipInterceptor == null || ReferenceEquals(vipInterceptor.GetValue(null), oldVipInterceptor))
                     && (welfareInterceptor == null || ReferenceEquals(welfareInterceptor.GetValue(null), oldWelfareInterceptor));
                 foreach (int id in ownedProtocolIds) restored &= HandlerMatches(handlers, saved[id], id);

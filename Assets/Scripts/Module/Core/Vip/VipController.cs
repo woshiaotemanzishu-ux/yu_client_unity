@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
@@ -8,7 +9,8 @@ namespace Shenxiao.Module.Core.Vip
 {
     /// <summary>
     /// VIP、充值商品与福利卡只读状态控制器。45000/45004 是启动与跨天快照，45005/45006 是独立原始通知；
-    /// 15800/15801 只更新充值数据，15901 仅提供显式福利卡列表查询，不接入口、红点或领奖行为。
+    /// 15800/15801 更新充值商品，15802接收入账成功通知，15803只提供显式累计充值查询；
+    /// 15901 仅提供显式福利卡列表查询，不接入口、红点或领奖行为。
     /// 老客户端虽把 158@0/158@3 写入 ActivityIconManager，但 location_type=7 没有任何 View 消费；
     /// Unity 不再把这两个历史死入口注册进 HudActivity，避免与顶部固定入口重复显示。
     /// </summary>
@@ -30,9 +32,11 @@ namespace Shenxiao.Module.Core.Vip
             RegisterProtocal(Proto.VIP_CARD_EXPIRED, On45006);
             RegisterProtocal(Proto.RECHARGE_PRODUCT_LIST, On15800);
             RegisterProtocal(Proto.RECHARGE_PRODUCT_UPDATE, On15801);
+            RegisterProtocal(Proto.RECHARGE_SUCCESS_NOTICE, On15802);
+            RegisterProtocal(Proto.RECHARGE_TOTAL_GOLD, On15803);
             RegisterProtocal(Proto.WELFARE_CARD_LIST, On15901);
-            // 对标老端 VipController.ResetData 的读侧安全子集：跨天固定重拉 45000→45004→15800。
-            // 15901 继续显式查询，15803 尚未迁移；禁止借日切接入领取、购买、UI 或红点链。
+            // 对标老端 VipController.ResetData 的受控读侧子集：跨天仍固定重拉 45000→45004→15800。
+            // 15901/15803 均只允许显式查询；禁止借日切接入领取、购买、UI 或红点链。
             EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
         }
 
@@ -58,6 +62,12 @@ namespace Shenxiao.Module.Core.Vip
         public void RequestRechargeProducts()
         {
             SendVipEmpty(Proto.RECHARGE_PRODUCT_LIST);
+        }
+
+        /// <summary>显式查询累计充值钻石；不得加入启动或跨天序列。</summary>
+        public void RequestTotalRechargeGold()
+        {
+            SendVipEmpty(Proto.RECHARGE_TOTAL_GOLD);
         }
 
         public void RequestWelfareCards()
@@ -161,6 +171,22 @@ namespace Shenxiao.Module.Core.Vip
             int returnType = r.ReadU8();
             VipModel.Instance.SetRechargeOneProduct(productId, returnType);
             GameLog.Info("Vip", "15801 recharge product changed: productId={0} returnType={1}", productId, returnType);
+        }
+
+        private void On15802(NetReader r)
+        {
+            VipModel.Instance.MarkRechargeSuccessNotice();
+            TipsManager.Toast("充值成功");
+            EventDispatcher.Emit(GlobalEvent.EVT_RECHARGE_SUCCESS);
+            GameLog.Info("Vip", "15802 recharge success notice");
+        }
+
+        private void On15803(NetReader r)
+        {
+            uint totalGold = r.ReadU32();
+            VipModel.Instance.ReplaceTotalRechargeGold(totalGold);
+            EventDispatcher.Emit(GlobalEvent.EVT_RECHARGE_TOTAL_UPDATED, totalGold);
+            GameLog.Info("Vip", "15803 total recharge gold: {0}", totalGold);
         }
 
         private void On15901(NetReader r)

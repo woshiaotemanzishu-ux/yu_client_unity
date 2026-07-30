@@ -463,6 +463,10 @@ namespace Shenxiao.Framework.Event
         public const string EVT_FUNC_OPEN_UPDATE = "EVT_FUNC_OPEN_UPDATE";
 
         // ----- FirstRecharge / 首充 -----
+        /// <summary>充值入账成功通知(无参)，每个15802包发一次。</summary>
+        public const string EVT_RECHARGE_SUCCESS = "EVT_RECHARGE_SUCCESS";
+        /// <summary>累计充值钻石更新(参数:uint totalGold)，15803发。</summary>
+        public const string EVT_RECHARGE_TOTAL_UPDATED = "EVT_RECHARGE_TOTAL_UPDATED";
         /// <summary>首充信息/状态(15905/15906/15908)变化,读 FirstRechargeModel。</summary>
         public const string EVT_FIRST_RECHARGE_UPDATE = "EVT_FIRST_RECHARGE_UPDATE";
 
