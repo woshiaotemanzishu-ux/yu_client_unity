@@ -156,7 +156,7 @@ MainUI 或进入场景。
 #### HudNavBar 经验条可视化维护（2026-07-30）
 
 - `ExpBarFill` 的 RectTransform 始终保存完整轨道尺寸，图片使用从左向右的 `Image.Type.Filled`。`MainUIDownView` 只同步 `fillAmount`，禁止再按经验比例写 `sizeDelta.x`；否则中心 Pivot 会让图片左右同时缩短，并覆盖 Prefab 中的尺寸调整。
-- 经验特效定位由 `ExpBarFill` 上不可交互的 Slider 驱动：`ExpBarEffectTrack/ExpBarEffectHandle` 是纯机械定位结构，真实 `ExpBarSparkleSlot` 是 Handle 下的普通子节点。Slider 只改 Handle anchors，特效挂点的 Size、Pivot、Pos X/Y 均可在 Prefab 中直接调整。
+- 经验特效定位由 `ExpBarFill` 上不可交互的 Slider 驱动：`ExpBarEffectTrack/ExpBarEffectHandle` 是纯机械定位结构，真实 `ExpBarSparkleSlot` 是 Handle 下的普通子节点。`UIEffectStage` 取 Slot 的 `rect.center` 作为特效位置，因此端标默认使用中心 Pivot、Pos=`(0,0)`，使光点中心与当前进度端点重合；Slider 只改 Handle anchors，特效挂点的 Size、Pivot、Pos X/Y 仍可在 Prefab 中直接调整。
 - `HudNavBar.prefab` 已进入人工维护阶段并作为唯一视觉源；页面 `HudNavBarCreator` 已删除，`MainUIModuleCreator` 只嵌套现有 Region。资产缺失时必须从 Git 恢复，不得自动重生成覆盖人工界面。
 - `HudNavBarCase` 覆盖 0/25/50/100%、越界夹取和轨道改宽，逐次断言填充图片与真实特效挂点的位置、尺寸及 Anchors 不被运行时进度覆盖。
 
