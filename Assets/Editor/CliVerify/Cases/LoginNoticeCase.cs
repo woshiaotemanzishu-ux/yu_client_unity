@@ -215,13 +215,30 @@ namespace Shenxiao.EditorTools
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ServerEnterPrefab);
             ServerEnterView view = prefab != null ? prefab.GetComponent<ServerEnterView>() : null;
-            if (view == null || view.noticeBtn == null || view.noticeBtnLabel == null) return false;
+            if (view == null) return false;
 
             Transform root = prefab.transform;
             Transform enterLabel = root.Find("EnterBtn/Label");
             Transform title = root.Find("AgreementAlert/Frame/Title");
             Transform alert = root.Find("AgreementAlert");
-            return IsImage(root, "Bg", ServerEnterBackground)
+            bool functionalBindingsOk = IsBound(view.serverBtn, root, "ServerBtn")
+                && IsBound(view.serverStateIcon, root, "ServerBtn/ServerStateIcon")
+                && IsBound(view.serverNameLabel, root, "ServerBtn/ServerNameLabel")
+                && IsBound(view.tipLabel, root, "ServerBtn/TipLabel")
+                && IsBound(view.enterBtn, root, "EnterBtn")
+                && IsBound(view.enterBtnLabel, root, "EnterBtn/Label")
+                && IsBound(view.noticeBtn, root, "NoticeBtn")
+                && IsBound(view.noticeBtnLabel, root, "NoticeBtn/Label")
+                && IsBound(view.agreementCheckBg, root, "AgreementCheckBg")
+                && IsBound(view.agreementCheckMark, root, "AgreementCheckBg/AgreementCheckMark")
+                && IsBound(view.agreementLabel, root, "AgreementLabel")
+                && IsBoundObject(view.agreementAlert, root, "AgreementAlert")
+                && IsBound(view.agreementContent, root, "AgreementAlert/Frame/Content")
+                && IsBound(view.agreementCancelBtn, root, "AgreementAlert/Frame/CancelBtn")
+                && IsBound(view.agreementOkBtn, root, "AgreementAlert/Frame/OkBtn");
+
+            return functionalBindingsOk
+                && IsImage(root, "Bg", ServerEnterBackground)
                 && IsImage(root, "Logo", ServerEnterLogo)
                 && IsImage(root, "ServerBtn", ServerEnterServerBar)
                 && IsImage(root, "AgreementAlert/Frame", ServerEnterAlertFrame)
@@ -241,6 +258,18 @@ namespace Shenxiao.EditorTools
                 && alert != null && !alert.gameObject.activeSelf
                 && enterLabel != null && !enterLabel.gameObject.activeSelf
                 && title != null && !title.gameObject.activeSelf;
+        }
+
+        private static bool IsBound(Component component, Transform root, string path)
+        {
+            Transform target = root.Find(path);
+            return component != null && target != null && component.transform == target;
+        }
+
+        private static bool IsBoundObject(GameObject gameObject, Transform root, string path)
+        {
+            Transform target = root.Find(path);
+            return gameObject != null && target != null && gameObject.transform == target;
         }
 
         private static bool IsImage(Transform root, string path, string expectedAssetPath)

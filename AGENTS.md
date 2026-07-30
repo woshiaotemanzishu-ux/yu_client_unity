@@ -4,6 +4,8 @@
 
 - 文档与经验沉淀规则：开始任务先从 [Docs/README.md](Docs/README.md) 找对应权威文档；凡新增或调整架构、公共组件、工具/资源流水线、协议/登录/进游戏主链、构建发布方式，或解决具有复用价值的疑难问题，必须在同一轮、同一提交中新增或更新技术文档/经验文档，并把新文档加入索引。已验证进度同步更新 `Docs/Shenxiao实施进度.md`；形成 AI 硬约束的决策同步更新 `AGENTS.md`，编码约定同步更新 `Docs/Shenxiao编码规范.md`。纯错字、无行为变化的机械修改可不写，但最终报告必须说明“不触发文档更新”的理由。禁止只把结论留在聊天、外部记忆或临时输出目录中。
 
+- 人工 UI 保护规则：用户已手工调整或已验收的 Prefab 是当前视觉事实，功能开发、协议接入和问题修复只能在该版本上增量增加节点、引用或状态，不得用旧快照、旧 Prefab、早期 `UiCreator` 输出或整页重生成覆盖现有布局。"恢复界面"只恢复视觉与资源，不授权回滚 `View/Controller/Model/Flow`、事件、协议、点击语义或已有序列化绑定。若界面存在 Creator，人工调整必须同步回 Creator 后才允许再次生成；生成前关闭旧 Prefab 编辑页签，生成后必须审计 Prefab 语义差异，并验证全部功能引用、默认显隐及真实 `GraphicRaycaster→PointerClick` 链。发现任务范围外的位置、尺寸、锚点、图片、文字、层级或显隐变化时立即停止覆盖并恢复现有人工版。
+
 - 协议覆盖 baseline 收口规则：`Schemas/ProtocolCoverage/baseline.json` 的历史 `unityRegistered/liveGap` 数值用于防倒退，禁止为追当前报告逐轮改写；但当最新运行时扫描的某家族全部活缺口已由注册或带 evidence 的 killlist 完整治理时，必须在同轮把人工 `status` 转为 `done` 并写 `statusNote`，再以 `ProtocolCoverageCase` 的C段验收。禁止长期保留 `pending/legacy_unverified` 逃避C段，也禁止把真实玩家可达写事务塞进killlist来伪收口。
 
 - 协议负约束优先规则：`AGENTS.md` 对某协议明确写了“不接/No/Do not attach”时，后续轮次不得用“补覆盖率”推翻；若审计发现晚于该规则的常量、注册、sender、模型或用例，必须撤销违规增量并让家族保持 `pending`，不得靠违规注册把 raw 缺口清零后标 `done`。R517 已按此撤销20600/20602与28500。

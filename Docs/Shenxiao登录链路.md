@@ -148,6 +148,12 @@
   `login/other/组 1.png`，Logo 使用 `login/other/logo.png`，服务器条使用 `ui_Login_18.png`；
   协议弹层恢复 `bg_03.png + uildzdz_008d.png`，既有人工几何与底部锚定全部同步进 Creator。
   `ServerEnterView.prefab` 保留同一布局，并继续包含 10207 的 `NoticeBtn`，不得为恢复旧视觉删除公告入口。
+- 界面恢复与功能回滚严格分离：视觉恢复不得修改或撤销 `ServerEnterView/LoginFlow/LoginController`
+  的公告、协议勾选、选服、进入游戏等行为，也不得丢失任何序列化引用。后续功能只能在当前人工版
+  Prefab 上增量增加，再把最终视觉同步回 Creator；禁止先重生成早期布局再补功能。
+- `LoginNoticeCase.VerifyServerEnterPrefab` 同时锁定关键人工资源/几何、默认显隐和全部功能字段到真实节点的
+  绑定关系。Creator 或 Prefab 发生改动后必须重新生成到隔离工作树并运行该用例；出现范围外视觉差异或
+  任一绑定为空/指错时不得收口。
 - 修改该页 Creator 后，生成前必须先对比已入库 Prefab；除本轮明确新增/调整的节点外，既有节点的
   RectTransform、Sprite、active 状态必须保持不变。专项门禁在 `LoginNoticeCase.VerifyServerEnterPrefab`，
   会校验关键资源、几何、默认显隐和公告字段，防止再次以“新增一个入口”为由整页回退。
