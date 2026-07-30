@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-07-30）
 
-- 最新完成轮次：R518。机器筛选后仅160/182/405三个家族满足“当前全部raw缺口均已有逐号证据但baseline仍未done”；逐号回查老端、服务端与Unity现状后，将三族人工status转为 `done`，冻结的历史 `unityRegistered/liveGap` 数字未改。
-- 16013/16021、18202均只有老端接收壳而没有玩家可达C2S入口，16021还被服务端外观类型门禁二次阻断；40505/40507的真实穿脱事务成功只推40502、失败只走40500，服务端从不写专属结果号。五号继续KILL，不新增伪接收、伪快照或孤立ACK。
-- 同一Unity PID 51800主线程完成覆盖扫描，`coverage_20260730_112917.md` A～E全PASS；运行时口径保持 `registered=1257 / liveDefined=1468 / liveGap=333 / errorExit=12 / active=1135/1468=77.3%`，其中160=`25/2/3 done`、182=`22/1/1 done`、405=`7/2/0 done`。生产C#、Prefab与资源均无变化，因此未触发dotnet/Unity重编译或业务专项Case。
+- 最新完成轮次：R519。Goods新增15014同服和15015跨服显式战力分项查询，两条成功链统一由15014返回；按回包服务器/角色复合键保存双方原序raw表，并接入现有look_over资料卡真实“战力对比”按钮。缺少旧端分项名称配置时只显示wire索引和值，不猜分组、求和或总战力。
+- 15023经双端复核为老端无任何Fire触发且回包handler为空，服务端资格检查又硬编码恒返FAIL，已以 `old_client_unreachable` 逐号KILL。15011旧资料卡装备查询与15028真实合成事务继续保持raw活缺口，150家族不转done、不靠孤立协议清零。
+- `dotnet build` 为71条既有warning、0 error；同一Unity PID 51800编译/域重载成功，扩展 `LookOverCase` 实跑 `compare=True/pass=True/result=0`。`coverage_20260730_115623.md` A～E全PASS，运行时口径为 `registered=1258 / liveDefined=1468 / liveGap=332 / errorExit=12 / active=1136/1468=77.4%`，150族=`30/3/8 legacy_unverified`；baseline冻结不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

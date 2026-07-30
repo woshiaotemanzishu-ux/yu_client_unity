@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Shenxiao.Common.Proto;
 using Shenxiao.Framework.Event;
@@ -428,6 +429,47 @@ namespace Shenxiao.Module.Core.Friend
             EventDispatcher.Emit(GlobalEvent.EVT_PLAYER_CARD, card);
         }
 
+        public sealed class FightCompareSnapshot
+        {
+            public readonly ushort ServerId;
+            public readonly ulong RoleId;
+            public readonly IReadOnlyList<uint> OtherPower;
+            public readonly IReadOnlyList<uint> SelfPower;
+
+            public FightCompareSnapshot(ushort serverId, ulong roleId, IList<uint> otherPower, IList<uint> selfPower)
+            {
+                ServerId = serverId;
+                RoleId = roleId;
+                OtherPower = Freeze(otherPower);
+                SelfPower = Freeze(selfPower);
+            }
+        }
+
+        private readonly Dictionary<ushort, Dictionary<ulong, FightCompareSnapshot>> _fightComparisons
+            = new Dictionary<ushort, Dictionary<ulong, FightCompareSnapshot>>();
+
+        public int FightCompareCount { get; private set; }
+
+        public bool TryGetFightCompare(ushort serverId, ulong roleId, out FightCompareSnapshot snapshot)
+        {
+            snapshot = null;
+            return _fightComparisons.TryGetValue(serverId, out Dictionary<ulong, FightCompareSnapshot> byRole)
+                && byRole.TryGetValue(roleId, out snapshot);
+        }
+
+        public void SetFightCompare(FightCompareSnapshot snapshot)
+        {
+            if (!_fightComparisons.TryGetValue(snapshot.ServerId,
+                    out Dictionary<ulong, FightCompareSnapshot> byRole))
+            {
+                byRole = new Dictionary<ulong, FightCompareSnapshot>();
+                _fightComparisons[snapshot.ServerId] = byRole;
+            }
+            if (!byRole.ContainsKey(snapshot.RoleId)) FightCompareCount++;
+            byRole[snapshot.RoleId] = snapshot;
+            EventDispatcher.Emit(GlobalEvent.EVT_LOOKOVER_FIGHT_COMPARE, snapshot);
+        }
+
         // ===================================================================================
         // 私聊对象展示信息缓存(对标老端 privateChatTabList_ 里随手存的 role_id/picture/dress_list/lv/career/
         // role_name 快照——本端 ChatModel.PrivateChatTabList 只存 role_id,展示字段(名字/职业/转生/等级)另存于此,
@@ -467,8 +509,18 @@ namespace Shenxiao.Module.Core.Friend
             _menuDataDic.Clear();
             LastOperateType = 0;
             LastPlayerCard = null;
+            _fightComparisons.Clear();
+            FightCompareCount = 0;
             ClearLookOverModules();
             _chatPartners.Clear();
+        }
+
+        private static IReadOnlyList<T> Freeze<T>(IList<T> source)
+        {
+            if (source == null || source.Count == 0) return Array.AsReadOnly(new T[0]);
+            var copy = new T[source.Count];
+            source.CopyTo(copy, 0);
+            return Array.AsReadOnly(copy);
         }
     }
 }

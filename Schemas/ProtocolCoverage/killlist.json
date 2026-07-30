@@ -54,6 +54,12 @@
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
   {
+    "cmd": 15023,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/GoodsController.ts:779-781,1038,1205-1209;h5/src/commonModel/GoodsModel.ts:377(全h5/src只有常量、绑定sender和空回包handler，无任何Fire触发);yu_server/src/goods/pp_goods.erl:229-238;yu_server/src/goods/lib_goods_check.erl:816-817",
+    "note": "神装背包/保护箱子位置切换在老端只有事件绑定而没有任何玩家触发点，结果handler也解包即丢弃；服务端入口虽存活，但资格检查已硬编码恒返FAIL，所以只会回失败包，成功事务不可达。Unity不注册、不发送、不补保护箱UI或孤立失败ACK。R519复核。"
+  },
+  {
     "cmd": 15104,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/MarketController.ts:150-152,312(全 h5/src 无 C2S 发送点);yu_server/src/sell/pp_sell.erl:48-50;yu_server/src/pt/pt_151.erl:18-20,129-142",

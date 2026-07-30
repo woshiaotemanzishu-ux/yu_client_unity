@@ -22,6 +22,7 @@ namespace Shenxiao.Module.Core.Friend
 
         private void RegisterLookOverProtocols()
         {
+            RegisterProtocal(Proto.GOODS_POWER_COMPARE_RESULT, On15014);
             RegisterProtocal(Proto.LOOKOVER_DRAGONBALL, On19503);
             RegisterProtocal(Proto.LOOKOVER_SEAL_OR_DRACONIC, On19504);
             RegisterProtocal(Proto.LOOKOVER_REVELATION, On19505);
@@ -52,6 +53,41 @@ namespace Shenxiao.Module.Core.Friend
             if (s_lookOverOutboundIntercept != null && s_lookOverOutboundIntercept(frame)) return;
 #endif
             NetManager.SendFmt(Proto.LOOKOVER_REQUEST, "hlh", serverId, roleId, moduleId);
+        }
+
+        /// <summary>
+        /// 请求战力分项对比：同服发15014的u64角色号，跨服发15015的u16服务器号+u64角色号；
+        /// 两条成功链都由15014返回。自己/非正角色号会被服务端静默丢弃，本端在唯一公开入口先拦截。
+        /// </summary>
+        public bool RequestFightCompare(long roleId, int serverId = 0)
+        {
+            if (roleId <= 0 || roleId == Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId
+                || serverId < 0 || serverId > ushort.MaxValue) return false;
+            int protocol = serverId > 0 ? Proto.GOODS_POWER_COMPARE_CROSS : Proto.GOODS_POWER_COMPARE;
+            string format = serverId > 0 ? "hl" : "l";
+            object[] args = serverId > 0
+                ? new object[] { serverId, roleId }
+                : new object[] { roleId };
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(protocol, format, args);
+            if (s_lookOverOutboundIntercept != null && s_lookOverOutboundIntercept(frame)) return true;
+#endif
+            NetManager.SendFmt(protocol, format, args);
+            return true;
+        }
+
+        private void On15014(NetReader r)
+        {
+            ushort serverId = r.ReadU16();
+            ulong roleId = unchecked((ulong)r.ReadU64());
+            int otherCount = r.ReadU16();
+            var otherPower = new List<uint>(otherCount);
+            for (int i = 0; i < otherCount; i++) otherPower.Add(r.ReadU32());
+            int selfCount = r.ReadU16();
+            var selfPower = new List<uint>(selfCount);
+            for (int i = 0; i < selfCount; i++) selfPower.Add(r.ReadU32());
+            FriendModel.Instance.SetFightCompare(
+                new FriendModel.FightCompareSnapshot(serverId, roleId, otherPower, selfPower));
         }
 
         private T Stamp<T>(T snapshot, int moduleId) where T : LookOverModuleSnapshot

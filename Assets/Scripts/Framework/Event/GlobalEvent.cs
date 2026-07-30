@@ -413,6 +413,8 @@ namespace Shenxiao.Framework.Event
         public const string EVT_PLAYER_CARD = "EVT_PLAYER_CARD";
         /// <summary>资料卡扩展模块就绪(参数: LookOverModuleSnapshot)。19503-19512 发。</summary>
         public const string EVT_LOOKOVER_MODULE = "EVT_LOOKOVER_MODULE";
+        /// <summary>他人资料卡战力分项对比就绪(参数: FriendModel.FightCompareSnapshot)。15014 发。</summary>
+        public const string EVT_LOOKOVER_FIGHT_COMPARE = "EVT_LOOKOVER_FIGHT_COMPARE";
 
         // ----- Team / 组队(自动循环 轮8;24xxx,yu_server pt_240.erl / pp_team.erl) -----
         /// <summary>队伍信息变化(创建/加入/退出/成员增删/队长变更/助战广播/场景/在线,统一走这一条,

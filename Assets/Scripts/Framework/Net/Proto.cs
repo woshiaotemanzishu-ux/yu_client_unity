@@ -1511,6 +1511,17 @@
         /// type_id==0 → toast 错误码 1500001;player_id 不等于自己才落缓存(防串数据,对标老端 If vo.player_id != mainRoleId)。</summary>
         public const int GOODS_DETAIL_OTHERS = 15001;
 
+        /// <summary>同服玩家战力分项对比查询。C2S role_id:u64；S2C 统一由
+        /// <see cref="GOODS_POWER_COMPARE_RESULT"/> 返回。</summary>
+        public const int GOODS_POWER_COMPARE = 15014;
+
+        /// <summary>跨服玩家战力分项对比查询。C2S server_id:u16,role_id:u64；服务端仍回 15014。</summary>
+        public const int GOODS_POWER_COMPARE_CROSS = 15015;
+
+        /// <summary>战力分项对比结果(与同服请求同号)。S2C server_id:u16,role_id:u64,
+        /// other_power:u16×u32,self_power:u16×u32；两表均保留原始 wire 顺序。</summary>
+        public const int GOODS_POWER_COMPARE_RESULT = GOODS_POWER_COMPARE;
+
         /// <summary>玩家开启背包/仓库格子(对标 On15002 → CHANGE_BAG_MAX_CELL)。发 "hh"(pos, 要开的格数);
         /// 回包(ClientProtocol.json "15002"):code:i, pos:h, cell_num:h(开启后**总**格数,字段名虽是 cell_num 但语义=总容量)。
         /// code==1 → toast「扩容成功」+ <see cref="Bag.BagModel.SetMaxCell"/> + Emit EVT_BAG_MAX_CELL(pos,total)。</summary>
@@ -1612,8 +1623,8 @@
 
         // 以下号跳过(仅存说明,不写代码;主控三路侦察定案):
         // 15004/15005/15006:服务端 pt_150 对应 handle 子句整段注释掉,死号(服务端不会下发,客户端也无对应发送口)。
-        // 15023(更改物品子位置/神装武器放入保护箱):服务端 check_good_change_sub_pos 已硬编码 {fail,?FAIL} 永远失败,
-        //   老端 On15023 回包处理体也是空函数,双端皆废,不移植。
+        // 15023(更改物品子位置/神装武器放入保护箱):老端只有事件绑定且全仓无 Fire 触发,On15023 也为空;
+        //   服务端 check_good_change_sub_pos 硬编码 {fail,?FAIL},只会回失败包,成功事务不可达。R519 已进 killlist。
         // 15085(礼包每天使用次数):老端 h5/src 全仓库零引用(UNUSED,无 SendFmtToGame(15085,...) 调用点),
         //   且服务端该号缺 count 条件分支时静默不回包,不移植。
 

@@ -35,6 +35,7 @@ namespace Shenxiao.EditorTools
             public bool Filter;
             public bool Cache;
             public bool Clear;
+            public bool Compare;
         }
 
         /// <summary>自带批处理泵循环的独立入口(不依赖 CliVerify.cs 的 Run helper,后者是 private)。</summary>
@@ -82,9 +83,10 @@ namespace Shenxiao.EditorTools
                 CheckResult checks = await RunRenderAsync(stage);
                 bool modulesOk = selfGuardOk && checks.Modules;
 
-                bool pass = modulesOk && checks.Wire && checks.Filter && checks.Cache && checks.Clear;
+                bool pass = modulesOk && checks.Wire && checks.Filter && checks.Cache && checks.Clear && checks.Compare;
                 Debug.Log("CLIVERIFY lookover VERDICT modules=" + modulesOk + " wire=" + checks.Wire
-                    + " filter=" + checks.Filter + " cache=" + checks.Cache + " clear=" + checks.Clear + " pass=" + pass);
+                    + " filter=" + checks.Filter + " cache=" + checks.Cache + " clear=" + checks.Clear
+                    + " compare=" + checks.Compare + " pass=" + pass);
                 return pass ? 0 : 3;
             }
             finally
@@ -197,6 +199,7 @@ namespace Shenxiao.EditorTools
             checks.Filter = extended.Filter;
             checks.Cache = extended.Cache;
             checks.Clear = extended.Clear;
+            checks.Compare = extended.Compare;
 
             string png = stage.Capture("Temp/round21_lookover_card.png");
             Debug.Log("CLIVERIFY lookover render renderedOk=" + renderedOk + " rowCount=" + rowCount + " rowsOk=" + rowsOk
@@ -218,8 +221,10 @@ namespace Shenxiao.EditorTools
             Shenxiao.Module.Core.Friend.FriendModel model = Shenxiao.Module.Core.Friend.FriendModel.Instance;
             Type controllerType = ctrl.GetType();
             FieldInfo interceptField = controllerType.GetField("s_lookOverOutboundIntercept", SF);
+            MethodInfo compareHandler = controllerType.GetMethod("On15014", F);
+            FieldInfo compareButtonField = view.GetType().GetField("_compareButton", F);
             var handlers = new Dictionary<int, MethodInfo>();
-            bool reflectionOk = interceptField != null;
+            bool reflectionOk = interceptField != null && compareHandler != null && compareButtonField != null;
             for (int cmd = 19503; cmd <= 19512; cmd++)
             {
                 MethodInfo handler = controllerType.GetMethod("On" + cmd, F);
@@ -250,6 +255,22 @@ namespace Shenxiao.EditorTools
                 ctrl.RequestPlayerCard(roleId, 0, 7);
                 ctrl.RequestPlayerCard(roleId, 13, 7);
                 result.Filter = outbound.Count == validCount;
+
+                int beforeCompare = outbound.Count;
+                bool compareLocal = ctrl.RequestFightCompare(roleId);
+                bool compareCross = ctrl.RequestFightCompare(roleId, serverId);
+                result.Wire &= compareLocal && compareCross && outbound.Count == beforeCompare + 2
+                    && FrameEquals(outbound[beforeCompare], 15014, new CliVerify.Pkt().L(roleId).Bytes())
+                    && FrameEquals(outbound[beforeCompare + 1], 15015,
+                        new CliVerify.Pkt().H(serverId).L(roleId).Bytes());
+                long savedSelf = Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId;
+                Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId = roleId;
+                bool selfRejected = !ctrl.RequestFightCompare(roleId, serverId);
+                Shenxiao.Module.Core.Role.RoleModel.Instance.RoleId = savedSelf;
+                result.Filter &= selfRejected && !ctrl.RequestFightCompare(0, serverId)
+                    && !ctrl.RequestFightCompare(roleId, -1)
+                    && !ctrl.RequestFightCompare(roleId, ushort.MaxValue + 1)
+                    && outbound.Count == beforeCompare + 2;
 
                 var cases = new (int Cmd, int Variant, int ModuleId)[]
                 {
@@ -297,13 +318,47 @@ namespace Shenxiao.EditorTools
                     && cached2 != null && cached3 != null && !ReferenceEquals(cached2, cached3)
                     && cached2.ModuleId == 2 && cached3.ModuleId == 3;
 
+                var compareButton = compareButtonField.GetValue(view) as UnityEngine.UI.Button;
+                compareButton?.onClick.Invoke();
+                await Task.Delay(20);
+                bool compareLoading = compareButton != null
+                    && view.lblLoading != null && view.lblLoading.gameObject.activeSelf;
+                const ushort compareUiServer = 0; // LookOverFlow.Show(roleId) 本例以同服目标打开
+                byte[] comparePayload = new CliVerify.Pkt().H(compareUiServer).L(roleId).H(3)
+                    .I(uint.MaxValue).I(7).I(7).H(2).I(9).I(9).Bytes();
+                Feed(compareHandler, ctrl, comparePayload, out bool compareConsumed);
+                await Task.Delay(50);
+                bool compareModel = model.TryGetFightCompare(compareUiServer, unchecked((ulong)roleId),
+                        out Shenxiao.Module.Core.Friend.FriendModel.FightCompareSnapshot comparison)
+                    && comparison.OtherPower.Count == 3 && comparison.SelfPower.Count == 2
+                    && comparison.OtherPower[0] == uint.MaxValue && comparison.OtherPower[1] == 7
+                    && comparison.OtherPower[2] == 7 && comparison.SelfPower[0] == 9
+                    && comparison.SelfPower[1] == 9;
+                int compareRows = view.listDetail != null && view.listDetail.content != null
+                    ? ActiveChildCount(view.listDetail.content) : -1;
+                bool compareRendered = view.lblTitle != null && view.lblTitle.text == "战力对比"
+                    && LabelEndsWith(view.lblRoleId, roleId.ToString())
+                    && view.lblCombat != null && view.lblCombat.text == "战力分项 3"
+                    && compareRows == 3;
+                Shenxiao.Module.Core.Friend.FriendModel.FightCompareSnapshot stableComparison = comparison;
+                ctrl.RequestFightCompare(roleId);
+                bool noReplyPreserves = model.TryGetFightCompare(compareUiServer, unchecked((ulong)roleId),
+                        out Shenxiao.Module.Core.Friend.FriendModel.FightCompareSnapshot afterRequest)
+                    && ReferenceEquals(stableComparison, afterRequest);
+                Debug.Log("CLIVERIFY lookover compare loading=" + compareLoading + " consumed=" + compareConsumed
+                    + " model=" + compareModel + " rendered=" + compareRendered + " rows=" + compareRows
+                    + " noReply=" + noReplyPreserves + " title=" + view.lblTitle?.text
+                    + " role=" + view.lblRoleId?.text + " combat=" + view.lblCombat?.text);
+                result.Compare = compareLoading && compareConsumed && compareModel && compareRendered && noReplyPreserves;
+
                 view.SelectModule(1);
                 await Task.Delay(50);
                 model.Reset();
                 bool clearOk = model.LastLookOverModule == null;
                 for (int moduleId = 2; moduleId <= 12; moduleId++)
                     clearOk &= model.GetLookOverModule(roleId, moduleId) == null;
-                result.Clear = clearOk;
+                result.Clear = clearOk && model.FightCompareCount == 0
+                    && !model.TryGetFightCompare(compareUiServer, unchecked((ulong)roleId), out _);
             }
             catch (Exception e)
             {
@@ -391,6 +446,13 @@ namespace Shenxiao.EditorTools
 
         private static bool LabelEndsWith(TMPro.TextMeshProUGUI label, string suffix) =>
             label != null && label.text != null && label.text.EndsWith(suffix, StringComparison.Ordinal);
+
+        private static int ActiveChildCount(Transform parent)
+        {
+            int count = 0;
+            for (int i = 0; i < parent.childCount; i++) if (parent.GetChild(i).gameObject.activeSelf) count++;
+            return count;
+        }
 
         private static bool FrameEquals(byte[] frame, int protoId, byte[] payload)
         {

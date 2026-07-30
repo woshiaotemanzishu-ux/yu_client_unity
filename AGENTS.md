@@ -14,6 +14,8 @@
 
 - R518 OutWard/Baby/GuildGod 收口规则：16013技能战力查询、16021法阵广播、18202他人宝宝信息虽有服务端实现或回包定义，但老端全仓只有接收注册、没有玩家可达C2S入口；16021还被服务端 `APPERENCE=[1,2,3,4,5,12]` 排除法阵 `TypeId=8`。40505/40507的穿戴/卸下事务真实存在，但服务端成功只推40502、失败只写40500，全仓从不写两份专属结果。五号保持KILL，禁止为清覆盖率新增接收器、请求、raw结果、场景法阵、宝宝他人资料或专属ACK等待；只有老端/产品恢复真实入口或服务端恢复专属writer后才逐号重审。
 
+- R519 Goods 15014/15015 战力分项对比：同服显式请求15014为 `role_id:u64`，跨服显式请求15015为 `server_id:u16,role_id:u64`，两条成功链统一回15014：`server_id:u16,role_id:u64,other_power:u16×u32,self_power:u16×u32`。只允许从他人资料卡显式触发；按回包服务器/角色复合键完整替换不可变raw快照，保序保重、空表loaded、请求无回复保留旧值。当前缺旧端 `CLIENTFIGHTCOM` 权威配置，UI只按wire索引并排显示双方数值，禁止猜名称、分组、求和或总战力，也不得加入GAME_START。15023只有老端无触发的事件绑定与空handler，服务端检查又恒返FAIL，保持KILL；15011和15028继续待完整业务闭环。
+
 - Unity 序列化脚本规则：会挂到 Scene/Prefab 的 `MonoBehaviour` / `ScriptableObject` 必须独占同名 `.cs` 文件，禁止把它放在“首个类型为静态类、抽象类或其他不同名类型”的文件里；Editor 生成器 `AddComponent<T>()` 后必须核对产物 `m_Script` 为非零 GUID 且 GUID 指向 `T` 的同名脚本。否则即使 C# 编译通过，Unity 仍可能把组件保存成 Missing Script。
 
 - 主界面技能规则：技能项只允许 `con` 作为唯一 Raycast/Button 点击面，`bg/icon/lock/CD/文字` 等装饰 Graphic 必须关闭 `raycastTarget`；点击验收必须走真实 Prefab 的 `GraphicRaycaster→PointerClick`，直接调用 `OnClickSkill` 不算点击链通过。普通 `AutoFight` 不得拦截玩家手点技能，只有服务端 `13017` 的 `RoleModel.DepositState` 托管态才拦截。手动无锁定目标时按当前朝向原地释放并只在技能 `area` 内局部预选，不得跨全场抢最近怪；自动战斗才允许全场寻敌并接近。接敌范围严格对标老端：`range==1` 使用 `max(100,(distance+area)*0.8)`，其他模式使用 `max(100,distance*0.8)`；命中几何由 `range/distance/area/num` 决定，禁止从 `desc` 文案猜圆形、直线或扇形。

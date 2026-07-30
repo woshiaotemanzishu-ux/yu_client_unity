@@ -49,6 +49,7 @@ namespace Shenxiao.Module.Core.LookOver.Views
         private readonly List<GameObject> _rows = new List<GameObject>();
         private Button _moduleButton;
         private TextMeshProUGUI _moduleLabel;
+        private Button _compareButton;
         private string _baseTitle;
 
         private static readonly string[] ModuleNames =
@@ -63,6 +64,7 @@ namespace Shenxiao.Module.Core.LookOver.Views
             UIUtil.AddClick(spClose, Hide);
             _baseTitle = lblTitle != null ? lblTitle.text : string.Empty;
             BuildModuleButton();
+            BuildCompareButton();
         }
 
         protected override void OnShow(object args)
@@ -116,12 +118,32 @@ namespace Shenxiao.Module.Core.LookOver.Views
             FriendController.Instance.RequestPlayerCard(_pendingRoleId, moduleId, _pendingServerId);
         }
 
+        /// <summary>切到15014原始战力分项对比；不依赖缺失的旧端CLIENTFIGHTCOM配置做名称归类或总和推导。</summary>
+        public void SelectFightCompare()
+        {
+            if (_pendingRoleId <= 0) return;
+            _pendingModuleId = 0;
+            RefreshModuleLabel();
+            ushort serverId = unchecked((ushort)Mathf.Clamp(_pendingServerId, 0, ushort.MaxValue));
+            ulong roleId = unchecked((ulong)_pendingRoleId);
+            if (FriendModel.Instance.TryGetFightCompare(serverId, roleId,
+                    out FriendModel.FightCompareSnapshot snapshot))
+            {
+                Render(snapshot);
+                return;
+            }
+            ShowLoading();
+            FriendController.Instance.RequestFightCompare(_pendingRoleId, _pendingServerId);
+        }
+
         private void Subscribe()
         {
             if (_subscribed) return;
             _subscribed = true;
             EventDispatcher.On<FriendModel.PlayerCard>(GlobalEvent.EVT_PLAYER_CARD, OnPlayerCard);
             EventDispatcher.On<LookOverModuleSnapshot>(GlobalEvent.EVT_LOOKOVER_MODULE, OnLookOverModule);
+            EventDispatcher.On<FriendModel.FightCompareSnapshot>(
+                GlobalEvent.EVT_LOOKOVER_FIGHT_COMPARE, OnFightCompare);
         }
 
         private void Unsubscribe()
@@ -130,6 +152,8 @@ namespace Shenxiao.Module.Core.LookOver.Views
             _subscribed = false;
             EventDispatcher.Off<FriendModel.PlayerCard>(GlobalEvent.EVT_PLAYER_CARD, OnPlayerCard);
             EventDispatcher.Off<LookOverModuleSnapshot>(GlobalEvent.EVT_LOOKOVER_MODULE, OnLookOverModule);
+            EventDispatcher.Off<FriendModel.FightCompareSnapshot>(
+                GlobalEvent.EVT_LOOKOVER_FIGHT_COMPARE, OnFightCompare);
         }
 
         private void OnPlayerCard(FriendModel.PlayerCard card)
@@ -145,6 +169,14 @@ namespace Shenxiao.Module.Core.LookOver.Views
             Render(snapshot);
         }
 
+        private void OnFightCompare(FriendModel.FightCompareSnapshot snapshot)
+        {
+            if (snapshot == null || _pendingModuleId != 0 || !IsShown
+                || snapshot.RoleId != unchecked((ulong)_pendingRoleId)
+                || snapshot.ServerId != unchecked((ushort)Mathf.Clamp(_pendingServerId, 0, ushort.MaxValue))) return;
+            Render(snapshot);
+        }
+
         private void ShowLoading()
         {
             if (lblLoading != null) lblLoading.gameObject.SetActive(true);
@@ -152,12 +184,13 @@ namespace Shenxiao.Module.Core.LookOver.Views
             if (infoGroup != null) infoGroup.SetActive(_pendingModuleId != 1);
             if (_pendingModuleId != 1)
             {
-                if (lblTitle != null) lblTitle.text = ModuleNames[_pendingModuleId];
+                string title = _pendingModuleId == 0 ? "战力对比" : ModuleNames[_pendingModuleId];
+                if (lblTitle != null) lblTitle.text = title;
                 if (lblName != null) lblName.text = "加载中";
                 if (lblServer != null) lblServer.text = "服务器 " + _pendingServerId;
                 if (lblRoleId != null) lblRoleId.text = "ID " + _pendingRoleId;
                 if (lblCombat != null) lblCombat.text = "战力 --";
-                if (lblAchv != null) lblAchv.text = "模块 " + _pendingModuleId;
+                if (lblAchv != null) lblAchv.text = _pendingModuleId == 0 ? "分项对比" : "模块 " + _pendingModuleId;
             }
             ClearRows();
         }
@@ -199,6 +232,28 @@ namespace Shenxiao.Module.Core.LookOver.Views
             foreach (string row in rows) AddRow(listDetail.content, string.IsNullOrEmpty(row) ? "ID 0" : row);
         }
 
+        private void Render(FriendModel.FightCompareSnapshot snapshot)
+        {
+            if (lblLoading != null) lblLoading.gameObject.SetActive(false);
+            if (infoGroup != null) infoGroup.SetActive(true);
+            if (lblTitle != null) lblTitle.text = "战力对比";
+            if (lblName != null) lblName.text = "我方 / 对方";
+            if (lblServer != null) lblServer.text = "服务器 " + snapshot.ServerId;
+            if (lblRoleId != null) lblRoleId.text = "ID " + snapshot.RoleId;
+            if (lblCombat != null) lblCombat.text = "战力分项 " + Mathf.Max(snapshot.SelfPower.Count, snapshot.OtherPower.Count);
+            if (lblAchv != null) lblAchv.text = "原始对比";
+
+            ClearRows();
+            if (listDetail == null || listDetail.content == null || rowTemplate == null) return;
+            int count = Mathf.Max(snapshot.SelfPower.Count, snapshot.OtherPower.Count);
+            for (int i = 0; i < count; i++)
+            {
+                string self = i < snapshot.SelfPower.Count ? snapshot.SelfPower[i].ToString() : "--";
+                string other = i < snapshot.OtherPower.Count ? snapshot.OtherPower[i].ToString() : "--";
+                AddRow(listDetail.content, string.Format("分项{0}  我方 {1} / 对方 {2}", i + 1, self, other));
+            }
+        }
+
         private void BuildRows(FriendModel.PlayerCard card)
         {
             ClearRows();
@@ -232,7 +287,13 @@ namespace Shenxiao.Module.Core.LookOver.Views
 
         private void ClearRows()
         {
-            foreach (GameObject r in _rows) if (r != null) Destroy(r);
+            // Destroy 在帧尾才真正移除；先隐藏可避免快速切模块时旧行与新行同帧叠显。
+            foreach (GameObject r in _rows)
+            {
+                if (r == null) continue;
+                r.SetActive(false);
+                Destroy(r);
+            }
             _rows.Clear();
         }
 
@@ -270,9 +331,44 @@ namespace Shenxiao.Module.Core.LookOver.Views
             RefreshModuleLabel();
         }
 
+        private void BuildCompareButton()
+        {
+            if (infoGroup == null || _compareButton != null) return;
+            var go = new GameObject("BtnFightCompare", typeof(RectTransform), typeof(Image), typeof(Button));
+            go.transform.SetParent(infoGroup.transform, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(1f, 1f);
+            rt.pivot = new Vector2(1f, 1f);
+            rt.anchoredPosition = new Vector2(-256f, -12f);
+            rt.sizeDelta = new Vector2(150f, 48f);
+            Image image = go.GetComponent<Image>();
+            image.color = new Color(0.35f, 0.24f, 0.12f, 0.96f);
+            _compareButton = go.GetComponent<Button>();
+            _compareButton.targetGraphic = image;
+            _compareButton.onClick.AddListener(SelectFightCompare);
+
+            var labelGo = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            labelGo.transform.SetParent(go.transform, false);
+            var labelRt = (RectTransform)labelGo.transform;
+            labelRt.anchorMin = Vector2.zero; labelRt.anchorMax = Vector2.one;
+            labelRt.offsetMin = labelRt.offsetMax = Vector2.zero;
+            TextMeshProUGUI label = labelGo.GetComponent<TextMeshProUGUI>();
+            label.text = "战力对比";
+            label.alignment = TextAlignmentOptions.Center;
+            label.fontSize = 22f;
+            label.color = Color.white;
+            label.raycastTarget = false;
+            if (lblTitle != null)
+            {
+                label.font = lblTitle.font;
+                label.fontSharedMaterial = lblTitle.fontSharedMaterial;
+            }
+        }
+
         private void RefreshModuleLabel()
         {
-            if (_moduleLabel != null) _moduleLabel.text = "模块：" + ModuleNames[_pendingModuleId] + " ▸";
+            if (_moduleLabel != null)
+                _moduleLabel.text = _pendingModuleId == 0 ? "模块：基础 ▸" : "模块：" + ModuleNames[_pendingModuleId] + " ▸";
         }
 
         private void ClearTarget()
