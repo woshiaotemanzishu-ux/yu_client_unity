@@ -205,6 +205,10 @@ namespace Shenxiao.Framework.Event
         /// <summary>宝石(骸珀镶嵌)雕刻数据变动(15210 查询/15211 雕刻后)。自动循环 轮4 下半(4b)。
         /// 镶嵌/拆除(15208/09,EquipStoneController)仍复用既有 EVT_EQUIP_STREN_UPDATE,Jewel UI 需同时订阅两个事件。</summary>
         public const string EVT_EQUIP_JEWEL_UPDATE = "EVT_EQUIP_JEWEL_UPDATE";
+        /// <summary>14401 全量或 14402 成功权威切片已落地。</summary>
+        public const string EVT_ARMOR_UPDATED = "EVT_ARMOR_UPDATED";
+        /// <summary>14402 打造回执到达，参数为原始 uint code。</summary>
+        public const string EVT_ARMOR_MAKE_RESULT = "EVT_ARMOR_MAKE_RESULT";
         /// <summary>古宝数据变动(13320 全量/13321 激活后)。</summary>
         public const string EVT_GUBAO_UPDATE = "EVT_GUBAO_UPDATE";
         /// <summary>副本状态变动(61020 状态/61001 进入回包/61013 结算)。</summary>

@@ -1231,6 +1231,8 @@
         public const int DRAGONBALL_TOTAL_POWER = 14306;
         /// <summary>不朽圣骸基础快照。C2S: stage:u8,type:u8；S2C 为阶段/类型/部位全量树。</summary>
         public const int ARMOR_INFO = 14401;
+        /// <summary>不朽圣骸打造。C2S: stage:u8,type:u8,pos:u8；S2C: code:u32 + 受影响阶段/类型权威切片。</summary>
+        public const int ARMOR_MAKE = 14402;
         /// <summary>勋章基础快照。C2S 空包；S2C: id,stren_lv,stren_exp,honour,power,pass_layers。</summary>
         public const int MEDAL_INFO = 13401;
         /// <summary>勋章统一错误切片。仅 S2C: code:u32；服务端虽有空 read 分支，但旧端不发送且 pp 默认忽略，绝不请求本号。</summary>

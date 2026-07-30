@@ -200,6 +200,9 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_constellation_evolution_rate",    // ⚠源表实测0条(空表存疑,见 StarEquipConfigs.GetEvolutionRateRaw 注释),轮23 PK2 占位加载
             "config_constellation_spirit",             // 星宿锻造-启灵表(30条,复合键"type@pos"),轮23 PK2 消费
             "config_constellation_forge_kv",           // 星宿锻造杂项KV(10条,数字键 id;四子系统开放等级580+类型码),轮23 PK1/PK2 共用
+            "config_armour_equipment",                 // 不朽圣骸 14402 部位、前阶、展示消耗与属性
+            "config_armour_suit",                      // 不朽圣骸阶段/类型开启等级与套装属性
+            "config_armour_kv",                        // 不朽圣骸两类型的权威部位列表
             "config_wedding_info",              // 婚宴(Banquet pt_172)婚礼类型主表(3条,数字键=wedding_type),轮24 PB BanquetConfigs.GetInfo 用
             "config_wedding_time",               // 婚宴预约时段表(12条,数字键=time_id;begin/end_time 为内嵌JSON字符串{"0":H,"1":M}),轮24 PB BanquetConfigs.GetTime 用
             "config_wedding_time_stage",          // 婚宴预约阶段流程表(3条,数字键=stage_id),轮24 PB BanquetConfigs.GetTimeStage 用

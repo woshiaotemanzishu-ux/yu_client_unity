@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-07-30）
 
-- 最新完成轮次：R521。10207从延期转为S2C-only真实公告链：非0广播与ServerEnter初查共用平台CDN版本/正文串行刷新，成功才原子提交；按belong线序、source前缀、时间窗和open_login/open_inside分流，无效数据保留旧快照。
-- 登录自动弹出已接new_reg/show_rule；游戏内红点按角色ID隔离并接red_dot_rule，主动选角开始会话、自动重连不重复重置。ServerEnter新增公告入口，真实GameNotice Prefab支持登录/游戏内模式及唯一标题点击面；417在Welfare外壳未迁移期间受控直达公告子页并聚合双方红点。10211继续延期。
-- `dotnet build` 的Module.Core/Editor分别为58/60条既有warning、0 error；同一Unity PID 51800域重载，`LoginNoticeCase`连续两次均为0，覆盖模型、10207、序列化引用、窗口退订及真实`GraphicRaycaster→PointerClick`。实网公告版本`20240402`加载成功，测试平台无belong项得到合法空快照。`coverage_20260730_125300.md` A～E全PASS，运行时口径为 `registered=1261 / liveDefined=1468 / liveGap=329 / errorExit=12 / active=1139/1468=77.6%`；baseline冻结不更新。
+- 最新完成轮次：R522。14402从DEFER转为完整圣骸打造事务：精确导入equipment/suit/kv三份配置，前置校验对齐服务端的配置→等级→同部位前阶→未打造→真实材料顺序；配置中的前阶圣骸状态项不作为背包消耗。
+- EquipArmor现有Prefab已接阶段/类型/部位、材料、属性总览与页内红点。确认框冻结选择/配置/模型/背包指纹并在确认时二次校验；请求单飞且无乐观改树/扣物，失败保留旧树，只有成功才按回包stage/type权威局部合并。打造按钮通过真实`GraphicRaycaster→PointerClick`。
+- Unity实编译与 `dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 均0 error（60条既有warning）；`ArmorCase` batch结果0，覆盖配置/协议/前置条件/失败与成功更新语义/真实Prefab点击/确认快照/single-flight。`coverage_20260730_133316.md` A～E全PASS，运行时口径为 `registered=1262 / liveDefined=1468 / liveGap=328 / errorExit=12 / active=1140/1468=77.7%`；baseline冻结不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---
