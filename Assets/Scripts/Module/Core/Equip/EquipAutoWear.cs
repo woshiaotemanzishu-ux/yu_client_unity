@@ -23,10 +23,6 @@ namespace Shenxiao.Module.Core.Equip
         /// <summary>GOODS_POS_TYPE.equip(老端 GoodsModel.ts:306)。</summary>
         public const int POS_EQUIP = 1;
 
-        // 已穿戴:equip_type(部位 1..10)→ 装备实例(15010 pos=1 通道全量转存)。
-        private static readonly Dictionary<int, BagGoods> _worn = new Dictionary<int, BagGoods>();
-        private static bool _wornLoaded;
-
         // 防重:近期已发 15201 的 goods_id(回包/超时前不重发)。
         private static readonly Dictionary<long, double> _pendingUntil = new Dictionary<long, double>();
         private static bool _debouncing;
@@ -34,23 +30,7 @@ namespace Shenxiao.Module.Core.Equip
         /// <summary>取指定部位当前穿戴装备实例(15010 pos=equip 通道转存;未穿/通道未到 → null)。
         /// 补口子(自动循环 轮4 队列#4):精炼/洗魄/神炼等新面板暂无「选中态」数据源,借用「当前穿戴」当占位选中,
         /// 同 EquipStrenView 既有的 equip_type 固定武器槽先例。</summary>
-        public static BagGoods GetWorn(int equipType) => _worn.TryGetValue(equipType, out BagGoods g) ? g : null;
-
-        /// <summary>15010 pos=equip 全量转存(BagController 例外分支调)。</summary>
-        public static void SetWornList(List<BagGoods> list)
-        {
-            _worn.Clear();
-            if (list != null)
-            {
-                foreach (BagGoods g in list)
-                {
-                    GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(g.TypeId);
-                    if (basic != null && basic.EquipType > 0) _worn[basic.EquipType] = g;
-                }
-            }
-            _wornLoaded = true;
-            GameLog.Info("Equip", "auto-wear worn list loaded: {0} 件", _worn.Count);
-        }
+        public static BagGoods GetWorn(int equipType) => BagModel.Instance.GetEquipmentAt(equipType);
 
         /// <summary>EVT_BAG_UPDATE 防抖入口(EquipWearController 挂)。自动任务开着才代行一键穿戴。</summary>
         public static void OnBagUpdate()
@@ -76,7 +56,7 @@ namespace Shenxiao.Module.Core.Equip
                 GameLog.Info("Equip", "auto-wear skip: ItemUseView has pending equipment");
                 return;
             }
-            if (!_wornLoaded)
+            if (!BagModel.Instance.HasEquipmentData)
             {
                 GameLog.Info("Equip", "auto-wear skip: 装备通道(15010 pos=1)未到,先请求");
                 EquipWearController.Instance.RequestWornList();
@@ -104,13 +84,14 @@ namespace Shenxiao.Module.Core.Equip
             int sent = 0;
             foreach (KeyValuePair<int, BagGoods> kv in best)
             {
-                bool wear = !_worn.TryGetValue(kv.Key, out BagGoods worn)      // 空槽直接穿(老端 !info 分支)
+                BagGoods worn = BagModel.Instance.GetEquipmentAt(kv.Key);
+                bool wear = worn == null                                      // 空槽直接穿(老端 !info 分支)
                             || kv.Value.Rating > worn.Rating;                  // 严格大于才换(老端 strongest.rating > info.rating)
                 if (!wear) continue;
                 _pendingUntil[kv.Value.GoodsId] = now + 10d;
                 GameLog.Info("Equip", "auto-wear: pos={0} goods={1} type={2} rating={3}(worn={4})",
                     kv.Key, kv.Value.GoodsId, kv.Value.TypeId, kv.Value.Rating,
-                    _worn.TryGetValue(kv.Key, out BagGoods w2) ? w2.Rating.ToString() : "空");
+                    worn != null ? worn.Rating.ToString() : "空");
                 EquipWearController.Instance.Wear(kv.Value.GoodsId);
                 sent++;
             }
@@ -119,8 +100,6 @@ namespace Shenxiao.Module.Core.Equip
 
         public static void Clear()
         {
-            _worn.Clear();
-            _wornLoaded = false;
             _pendingUntil.Clear();
             _debouncing = false;
         }

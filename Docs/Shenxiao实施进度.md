@@ -1639,3 +1639,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **修复**：公共 Prefab 将标题改为中心 Pivot、固定老端 `centerX=-66` 对应中心，禁用会在换图后锁死左边缘的单子项 `HorizontalLayoutGroup`；公共 View 按标题图片原始尺寸换图。新增 `BaseWindowSkinRefiner` 注册到「重构UI 生成器 / Common」，只幂等精修现有公共 Prefab，不重跑 Laya 批量转换。
 - **流程收口**：明确当前为按需首转、Prefab 精修落袋阶段；批量转换只用于尚无 Prefab 界面的首次导入，已落袋页面不得靠重转修视觉问题，跨页面问题优先修改共享 Prefab / 公共 View / 幂等公共升级器。
 - **验证状态**：`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 均为 0 error（仅既有 warning）；同一 Unity PID 42148 强制编译 `completed/failed=false/errors=[]`。Pipeline 实跑 `BaseWindowSkinRefiner.Generate()` 返回 `true`；实例化真实 Prefab 后分别换入背包和锻造标题，结果为 `bag=72×44 / forge=132×40`，两者水平中心均为 `x=238`，且 `layoutEnabled=False`，确认比例恢复且换图不漂移。
+
+## 2026-07-30：背包装备/物品展示链与公共顶栏底色补齐
+
+- **协议根因**：活服日志已出现 `15010 pos=1 goods=8`、`15010 pos=4 goods=11`，服务端 `pp_goods/lib_goods_api/pt_150` 也确认15010全量、15017全字段增量和15018数量增量都按真实location下发。Unity原实现却只把pos1全量临时塞进自动穿戴字典，且配置早到竞态会映射成0件；pos1的15017/15018直接落入“未接容器”，背包页面又固定把10个装备槽设为空。
+- **逻辑修复**：`BagModel` 新增独立已穿戴装备权威容器，完整消费pos1的15010/15017/15018并发 `EVT_EQUIPMENT_UPDATE`；自动穿戴改为读取同一模型，消除双份状态。槽位优先按 `config_goods.equip_type`、配置未就绪时按协议cell兜底，配置加载完成后背包格和装备槽统一重绑。
+- **表现接通**：`BagComponentView` 的左右装备列继续使用Prefab上的 `VerticalLayoutGroup`，不再运行时写死坐标；`BagEquipmentIcon` 克隆通用 `EquipmentItem` 显示真实品质底、图标、数量与锁定态，点击进入携实例属性的物品tips。主背包继续按服务端cell虚拟化铺格，并在Goods配置到齐后刷新真实图标。
+- **公共窗框**：`BaseWindowSkinRefiner` 在共享 `BaseWindowSkin.prefab` 的 `_img_title_bg` 后方新增720×90、不拦点击的深紫实色 `_img_title_backdrop`，作为当前临时顶栏底色。修改由“重构UI生成器 / Common”幂等落袋，未给背包页增加专用Creator或重新批量转换。
+- **验证状态**：同一Unity编辑器强制编译 `completed/failed=false/errors=[]`；`BaseWindowSkinRefiner.Generate()` 返回true。合成协议包覆盖pos1的15010全量、15017更新、15018删除与事件次数，`ProtoDeltaCase` 返回0；实例化真实 `BagModule.prefab` 并注入第7槽装备后，页面生成10个装备槽，第7槽的通用 `EquipmentItem` 激活、加号关闭、物品容器显示。

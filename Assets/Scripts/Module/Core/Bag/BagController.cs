@@ -125,8 +125,8 @@ namespace Shenxiao.Module.Core.Bag
 
         /// <summary>
         /// 15017 物品容器增量·全字段(对标 GoodsController.On15017)。pos:h + goods_list[u16 × 同 15010 单项 schema,
-        /// 复用 <see cref="ReadGoods"/>]。背包 pos 落 <see cref="BagModel.Upsert"/>；22/32/23/33 落 PetEquip 四容器；
-        /// equip 等其它 pos 仍按序读完跳过。
+        /// 复用 <see cref="ReadGoods"/>]。背包 pos 落 <see cref="BagModel.Upsert"/>；装备 pos=1 落已穿戴容器；
+        /// 22/32/23/33 落 PetEquip 四容器，其它 pos 按各自业务分流。
         /// </summary>
         private void On15017(NetReader r)
         {
@@ -148,6 +148,15 @@ namespace Shenxiao.Module.Core.Bag
                 ItemUseFlow.OnReceived(received);
                 ItemUseFlow.OnInventoryStateChanged();
                 EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
+                return;
+            }
+            if (pos == BagModel.POS_EQUIP)
+            {
+                foreach (BagGoods g in list) BagModel.Instance.UpsertEquipment(g);
+                ItemUseFlow.OnInventoryStateChanged();
+                EventDispatcher.Emit(GlobalEvent.EVT_EQUIPMENT_UPDATE);
+                GameLog.Info("Bag", "15017 equip delta: goods={0} equipped={1} remaining={2}B",
+                    list.Count, BagModel.Instance.EquipmentGoodsList.Count, r.Remaining);
                 return;
             }
             if (BagModel.IsPetEquipContainer(pos))
@@ -199,6 +208,16 @@ namespace Shenxiao.Module.Core.Bag
                 ItemUseFlow.OnReceived(received);
                 ItemUseFlow.OnInventoryStateChanged();
                 EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
+                return;
+            }
+            if (pos == BagModel.POS_EQUIP)
+            {
+                foreach ((long goodsId, long num, int typeId) it in list)
+                    BagModel.Instance.UpdateEquipmentNum(it.goodsId, it.typeId, it.num);
+                ItemUseFlow.OnInventoryStateChanged();
+                EventDispatcher.Emit(GlobalEvent.EVT_EQUIPMENT_UPDATE);
+                GameLog.Info("Bag", "15018 equip num delta: goods={0} equipped={1} remaining={2}B",
+                    list.Count, BagModel.Instance.EquipmentGoodsList.Count, r.Remaining);
                 return;
             }
             if (BagModel.IsPetEquipContainer(pos))
@@ -853,7 +872,7 @@ namespace Shenxiao.Module.Core.Bag
 
         /// <summary>
         /// 15010 物品容器全量。读 pos/cell_num/max_cell/cell_gold + goods_list(u16 计数 + 逐项)。
-        /// 每个回包对应一个 pos；主背包及 PetEquip 四容器落 <see cref="BagModel"/>。每项须按 ClientProtocol.json 顺序读完
+        /// 每个回包对应一个 pos；主背包、角色已穿戴装备及 PetEquip 四容器落 <see cref="BagModel"/>。每项须按 ClientProtocol.json 顺序读完
         /// (含 addition_attrlist / equip_extra_attr / awake_list 3 个嵌套数组)否则错位。
         /// </summary>
         private void On15010(NetReader r)
@@ -902,11 +921,11 @@ namespace Shenxiao.Module.Core.Bag
                 Rune.RuneModel.Instance.SetRuneBag(runeBag);
                 GameLog.Info("Bag", "15010 rune_bag: goods={0} remaining={1}B", list.Count, r.Remaining);
             }
-            else if (pos == Equip.EquipAutoWear.POS_EQUIP)
+            else if (pos == BagModel.POS_EQUIP)
             {
-                // 例外(活服实证-自动穿戴):已穿戴装备通道(pos=equip=1)转存 EquipAutoWear 供 rating 比较(同 rune_bag 模式)。
-                Equip.EquipAutoWear.SetWornList(list);
+                BagModel.Instance.SetEquipmentFull(maxCell, list);
                 ItemUseFlow.OnInventoryStateChanged();
+                EventDispatcher.Emit(GlobalEvent.EVT_EQUIPMENT_UPDATE);
                 GameLog.Info("Bag", "15010 equip: goods={0} remaining={1}B", list.Count, r.Remaining);
             }
             else

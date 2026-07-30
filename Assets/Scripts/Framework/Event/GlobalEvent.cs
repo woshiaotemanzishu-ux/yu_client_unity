@@ -73,6 +73,8 @@ namespace Shenxiao.Framework.Event
 
         // ----- Bag -----
         public const string EVT_BAG_UPDATE = "EVT_BAG_UPDATE";
+        /// <summary>角色已穿戴装备容器(pos=1)变化。15010 全量、15017 全字段增量、15018 数量增量落模型后触发。</summary>
+        public const string EVT_EQUIPMENT_UPDATE = "EVT_EQUIPMENT_UPDATE";
         public const string EVT_BABY_EQUIP_BAG_UPDATE = "EVT_BABY_EQUIP_BAG_UPDATE";
         public const string EVT_BABY_EQUIP_UPDATE = "EVT_BABY_EQUIP_UPDATE";
         /// <summary>使用物品成功(参数: int goods_type_id)。对标老端 GoodsModel.USE_BAG_GOODS_SUCCESS

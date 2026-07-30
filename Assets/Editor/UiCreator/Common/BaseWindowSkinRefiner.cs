@@ -18,6 +18,8 @@ namespace Shenxiao.Editor.UiCreator.Common
         private static readonly Vector2 TitlePivot = new Vector2(0.5f, 1f);
         private static readonly Vector2 TitlePosition = new Vector2(-66f, -11f);
         private static readonly Vector2 PlaceholderSize = new Vector2(132f, 40f);
+        private const string TopBackdropName = "_img_title_backdrop";
+        private static readonly Color32 TopBackdropColor = new Color32(35, 38, 74, 255);
 
         [InitializeOnLoadMethod]
         private static void Register()
@@ -25,8 +27,8 @@ namespace Shenxiao.Editor.UiCreator.Common
             UiRebuildRegistry.Register(new UiCreatorEntry
             {
                 Module = "Common",
-                Name = "BaseWindowSkin(公共窗框标题精修)",
-                Note = "精修现有公共 Prefab：标题按原图尺寸显示并固定中心；不运行 Laya 批量转换",
+                Name = "BaseWindowSkin(公共窗框精修)",
+                Note = "精修现有公共 Prefab：标题按原图尺寸显示，并给顶栏补通用实色底；不运行 Laya 批量转换",
                 Order = 5,
                 Generate = () => Generate(),
                 PrefabPath = PrefabPath,
@@ -57,6 +59,15 @@ namespace Shenxiao.Editor.UiCreator.Common
                     Debug.LogError("[UiCreator] BaseWindowSkin/_img_title 缺 Image");
                     return false;
                 }
+
+                Transform titleBgNode = FindDeep(root.transform, "_img_title_bg");
+                if (titleBgNode == null || !(titleBgNode is RectTransform titleBgRect))
+                {
+                    Debug.LogError("[UiCreator] BaseWindowSkin 缺 _img_title_bg RectTransform");
+                    return false;
+                }
+
+                EnsureTopBackdrop(titleBgRect);
 
                 titleRect.anchorMin = TitleAnchor;
                 titleRect.anchorMax = TitleAnchor;
@@ -96,8 +107,13 @@ namespace Shenxiao.Editor.UiCreator.Common
         {
             GameObject saved = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
             Transform titleNode = saved != null ? FindDeep(saved.transform, "_img_title") : null;
+            Transform titleBgNode = saved != null ? FindDeep(saved.transform, "_img_title_bg") : null;
+            Transform backdropNode = saved != null ? FindDeep(saved.transform, TopBackdropName) : null;
             RectTransform titleRect = titleNode as RectTransform;
+            RectTransform titleBgRect = titleBgNode as RectTransform;
+            RectTransform backdropRect = backdropNode as RectTransform;
             Image titleImage = titleNode != null ? titleNode.GetComponent<Image>() : null;
+            Image backdropImage = backdropNode != null ? backdropNode.GetComponent<Image>() : null;
             HorizontalLayoutGroup layout = titleNode != null && titleNode.parent != null
                 ? titleNode.parent.GetComponent<HorizontalLayoutGroup>()
                 : null;
@@ -111,7 +127,52 @@ namespace Shenxiao.Editor.UiCreator.Common
                    && Nearly(titleRect.sizeDelta, PlaceholderSize)
                    && titleImage.preserveAspect
                    && !titleImage.raycastTarget
+                   && titleBgRect != null
+                   && backdropRect != null
+                   && backdropImage != null
+                   && backdropNode.parent == titleBgNode.parent
+                   && backdropNode.GetSiblingIndex() < titleBgNode.GetSiblingIndex()
+                   && Nearly(backdropRect.anchorMin, titleBgRect.anchorMin)
+                   && Nearly(backdropRect.anchorMax, titleBgRect.anchorMax)
+                   && Nearly(backdropRect.pivot, titleBgRect.pivot)
+                   && Nearly(backdropRect.anchoredPosition, titleBgRect.anchoredPosition)
+                   && Nearly(backdropRect.sizeDelta, titleBgRect.sizeDelta)
+                   && backdropImage.sprite == null
+                   && backdropImage.color == (Color)TopBackdropColor
+                   && !backdropImage.raycastTarget
                    && (layout == null || !layout.enabled);
+        }
+
+        private static void EnsureTopBackdrop(RectTransform titleBgRect)
+        {
+            Transform existing = titleBgRect.parent.Find(TopBackdropName);
+            GameObject go;
+            if (existing != null)
+            {
+                go = existing.gameObject;
+            }
+            else
+            {
+                go = new GameObject(TopBackdropName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                go.transform.SetParent(titleBgRect.parent, false);
+            }
+
+            var rect = (RectTransform)go.transform;
+            rect.anchorMin = titleBgRect.anchorMin;
+            rect.anchorMax = titleBgRect.anchorMax;
+            rect.pivot = titleBgRect.pivot;
+            rect.anchoredPosition = titleBgRect.anchoredPosition;
+            rect.sizeDelta = titleBgRect.sizeDelta;
+            rect.localRotation = Quaternion.identity;
+            rect.localScale = Vector3.one;
+            rect.SetSiblingIndex(titleBgRect.GetSiblingIndex());
+
+            Image image = go.GetComponent<Image>();
+            image.sprite = null;
+            image.type = Image.Type.Simple;
+            image.color = TopBackdropColor;
+            image.preserveAspect = false;
+            image.raycastTarget = false;
         }
 
         private static bool Nearly(Vector2 a, Vector2 b)

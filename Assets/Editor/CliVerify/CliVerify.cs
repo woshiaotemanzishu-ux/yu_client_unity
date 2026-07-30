@@ -1329,11 +1329,12 @@ namespace Shenxiao.EditorTools
             object ctrl = Shenxiao.Module.Core.Bag.BagController.Instance;
             const System.Reflection.BindingFlags F =
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            System.Reflection.MethodInfo m10 = ctrl.GetType().GetMethod("On15010", F);
             System.Reflection.MethodInfo m17 = ctrl.GetType().GetMethod("On15017", F);
             System.Reflection.MethodInfo m18 = ctrl.GetType().GetMethod("On15018", F);
             System.Reflection.MethodInfo m08 = ctrl.GetType().GetMethod("On15008", F);
             System.Reflection.MethodInfo m09 = ctrl.GetType().GetMethod("On15009", F);
-            if (m17 == null || m18 == null || m08 == null || m09 == null)
+            if (m10 == null || m17 == null || m18 == null || m08 == null || m09 == null)
             {
                 Debug.LogError("CLIVERIFY proto handlers missing (reflection)");
                 return 3;
@@ -1357,9 +1358,27 @@ namespace Shenxiao.EditorTools
             // 15009 全量重建(旧 777 应被清)
             Feed(m09, new Pkt().H(2).I(1001).I(5).I(2002).I(9).Bytes());
             bool scoreList = bag.SpecialScores.Count == 2 && bag.GetSpecialScore(1001) == 5 && bag.GetSpecialScore(2002) == 9;
-            // 15017 非背包 pos → 跳过不落
-            Feed(m17, Goods17(1, 9002, 520100, 3));
-            bool skip = bag.BagGoodsList.Count == 0;
+            // 装备容器 pos=1：15010 全量 + 15017 全字段增量 + 15018 数量删除均落独立模型并发事件。
+            int equipmentEvents = 0;
+            System.Action onEquipment = () => equipmentEvents++;
+            Shenxiao.Framework.Event.EventDispatcher.On(
+                Shenxiao.Framework.Event.GlobalEvent.EVT_EQUIPMENT_UPDATE, onEquipment);
+            bool equipment;
+            try
+            {
+                Feed(m10, Goods10(1, 9002, 520100, 1));
+                bool full = bag.HasEquipmentData && bag.EquipmentGoodsList.Count == 1
+                            && bag.GetEquipmentAt(7)?.GoodsId == 9002;
+                Feed(m17, Goods17(1, 9002, 520100, 3));
+                bool delta = bag.EquipmentGoodsList.Count == 1 && bag.EquipmentGoodsList[0].GoodsNum == 3;
+                Feed(m18, Num18(1, 9002, 0, 520100));
+                equipment = full && delta && bag.EquipmentGoodsList.Count == 0 && equipmentEvents == 3;
+            }
+            finally
+            {
+                Shenxiao.Framework.Event.EventDispatcher.Off(
+                    Shenxiao.Framework.Event.GlobalEvent.EVT_EQUIPMENT_UPDATE, onEquipment);
+            }
 
             // 15021 出售回包读序烟测(res=1 + 1 项所得;UI 层未起 → toast 走 log-only,不炸即过)
             System.Reflection.MethodInfo m21 = ctrl.GetType().GetMethod("On15021", F);
@@ -1367,9 +1386,17 @@ namespace Shenxiao.EditorTools
             if (sell) Feed(m21, new Pkt().I(1).H(1).I(520100).I(3).Bytes());
 
             Debug.Log("CLIVERIFY proto delta add=" + add + " chg=" + chg + " del=" + del
-                + " score=" + score + " scoreList=" + scoreList + " skipPos=" + skip + " sell21=" + sell);
+                + " score=" + score + " scoreList=" + scoreList + " equipment=" + equipment + " sell21=" + sell);
             bag.Clear();
-            return (add && chg && del && score && scoreList && skip && sell) ? 0 : 3;
+            return (add && chg && del && score && scoreList && equipment && sell) ? 0 : 3;
+        }
+
+        private static byte[] Goods10(int pos, long gid, int typeId, long num)
+        {
+            byte[] delta = Goods17(pos, gid, typeId, num);
+            var packet = new Pkt().H(pos).H(1).H(10).C(0);
+            for (int i = 2; i < delta.Length; i++) packet.C(delta[i]);
+            return packet.Bytes();
         }
 
         /// <summary>15017 包:pos:h + 1 项全字段(字段序照 ClientProtocol.json "15010"/"15017",嵌套数组计数 0)。</summary>

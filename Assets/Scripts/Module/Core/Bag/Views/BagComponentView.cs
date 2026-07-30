@@ -25,7 +25,6 @@ namespace Shenxiao.Module.Core.Bag
         private const float Gap = 10f;
         private const int DefaultVisibleCells = 24;
         private const int EquipmentSlotCount = 10;
-        private const float EquipmentSlotStep = 113f;
         private const float ModelScale = 0.78f;
 
         private BagItemRenderer _itemTemplate;
@@ -53,12 +52,14 @@ namespace Shenxiao.Module.Core.Bag
 
         protected override void OnShow(object args)
         {
+            Subscribe();
             BuildEquipmentSlots();
+            RefreshEquipmentSlots();
             BuildGrid();
             EnsureFightingItem();
             RefreshRoleInfo();
             ShowRoleModel();
-            Subscribe();
+            _ = RefreshAfterGoodsConfigAsync();
         }
 
         protected override void OnHide()
@@ -86,6 +87,7 @@ namespace Shenxiao.Module.Core.Bag
         {
             if (_subscribed) return;
             EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, BuildGrid);
+            EventDispatcher.On(GlobalEvent.EVT_EQUIPMENT_UPDATE, RefreshEquipmentSlots);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             _subscribed = true;
         }
@@ -94,6 +96,7 @@ namespace Shenxiao.Module.Core.Bag
         {
             if (!_subscribed) return;
             EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, BuildGrid);
+            EventDispatcher.Off(GlobalEvent.EVT_EQUIPMENT_UPDATE, RefreshEquipmentSlots);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             _subscribed = false;
         }
@@ -102,6 +105,15 @@ namespace Shenxiao.Module.Core.Bag
         {
             RefreshRoleInfo();
             if (gameObject.activeInHierarchy) ShowRoleModel();
+        }
+
+        /// <summary>登录时 15010 可能早于 config_goods；配置到齐后重绑一次，恢复真实图标和 equip_type 槽位。</summary>
+        private async Task RefreshAfterGoodsConfigAsync()
+        {
+            await GoodsModel.EnsureLoaded();
+            if (!IsShown) return;
+            RefreshEquipmentSlots();
+            BuildGrid();
         }
 
         private void EnsureFightingItem()
@@ -349,29 +361,24 @@ namespace Shenxiao.Module.Core.Bag
             for (int pos = 1; pos <= EquipmentSlotCount; pos++)
             {
                 RectTransform parent = pos % 2 == 0 ? rightGp : leftGp;
-                int row = (pos - 1) / 2;
                 GameObject go = Instantiate(_tpl_BagEquipmentIcon, parent);
                 go.name = "BagEquipmentIcon_" + pos;
                 go.SetActive(true);
-
-                var rt = go.transform as RectTransform;
-                if (rt != null)
-                {
-                    rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
-                    rt.pivot = new Vector2(0f, 1f);
-                    rt.anchoredPosition = new Vector2(0f, -row * EquipmentSlotStep);
-                    rt.localScale = Vector3.one;
-                }
 
                 BagEquipmentIcon icon = go.GetComponent<BagEquipmentIcon>();
                 if (icon != null)
                 {
                     icon.Show();
-                    icon.SetEmpty(true);
                     _equipmentSlots.Add(icon);
                 }
             }
             GameLog.Info("Bag", "equipment slots built: {0}", _equipmentSlots.Count);
+        }
+
+        private void RefreshEquipmentSlots()
+        {
+            for (int i = 0; i < _equipmentSlots.Count; i++)
+                _equipmentSlots[i]?.SetData(BagModel.Instance.GetEquipmentAt(i + 1));
         }
 
         private void HideReds()

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Shenxiao.Module.Core.Common;
 
 namespace Shenxiao.Module.Core.Bag
 {
@@ -60,6 +61,11 @@ namespace Shenxiao.Module.Core.Bag
 
         /// <summary>背包物品(对标 GoodsModel.bag_goods_list;满包 15010 全量装入,顺序即服务端下发序)。</summary>
         public readonly List<BagGoods> BagGoodsList = new List<BagGoods>();
+
+        /// <summary>角色当前已穿戴装备(pos=1)。保留服务端实例字段，槽位在读取时按 config_goods.equip_type 解析。</summary>
+        private readonly List<BagGoods> _equipment = new List<BagGoods>();
+        public IReadOnlyList<BagGoods> EquipmentGoodsList => _equipment;
+        public bool HasEquipmentData { get; private set; }
 
         /// <summary>坐骑/伙伴装备四容器。只收 pos=22/32/23/33，不把其它容器混入主背包。</summary>
         private readonly Dictionary<int, List<BagGoods>> _petEquipContainers = new Dictionary<int, List<BagGoods>>();
@@ -154,9 +160,48 @@ namespace Shenxiao.Module.Core.Bag
         public IReadOnlyList<BagGoods> GetContainer(int pos)
         {
             if (pos == POS_BAG) return BagGoodsList;
+            if (pos == POS_EQUIP) return _equipment;
             if (pos == POS_BABY_EQUIP) return _babyEquip;
             if (pos == POS_BABY_BAG) return _babyEquipBag;
             return _petEquipContainers.TryGetValue(pos, out List<BagGoods> list) ? list : EmptyContainer;
+        }
+
+        /// <summary>15010 pos=1 全量。列表本身是协议事实源，不在配置尚未加载时提前丢弃槽位信息。</summary>
+        internal void SetEquipmentFull(int maxCell, List<BagGoods> goods)
+        {
+            _equipment.Clear();
+            if (goods != null) _equipment.AddRange(goods);
+            SetMaxCell(POS_EQUIP, maxCell);
+            HasEquipmentData = true;
+        }
+
+        /// <summary>15017 pos=1 全字段增量。goods_id 相同则替换，数量归零则移除。</summary>
+        internal void UpsertEquipment(BagGoods vo) => UpsertList(_equipment, vo);
+
+        /// <summary>15018 pos=1 数量增量。未知正数项先保留最小协议事实，等待后续全字段包补齐。</summary>
+        internal void UpdateEquipmentNum(long goodsId, int typeId, long num) =>
+            UpdateListNum(_equipment, goodsId, typeId, num);
+
+        /// <summary>
+        /// 按装备部位(1..10)取当前穿戴实例。老端全量以 config_goods.equip_type 为准；
+        /// 配置尚未加载或缺项时退回服务端装备容器 cell，避免登录早到包被永久映射为空。
+        /// </summary>
+        public BagGoods GetEquipmentAt(int equipType)
+        {
+            for (int i = 0; i < _equipment.Count; i++)
+            {
+                BagGoods goods = _equipment[i];
+                if (ResolveEquipmentType(goods) == equipType) return goods;
+            }
+            return null;
+        }
+
+        private static int ResolveEquipmentType(BagGoods goods)
+        {
+            if (goods == null) return 0;
+            GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(goods.TypeId);
+            if (basic != null && basic.EquipType > 0) return basic.EquipType;
+            return goods.Cell >= 1 && goods.Cell <= 10 ? goods.Cell : 0;
         }
 
         internal void SetBabyEquipFull(int maxCell, List<BagGoods> goods)
@@ -323,11 +368,13 @@ namespace Shenxiao.Module.Core.Bag
         public void Clear()
         {
             BagGoodsList.Clear();
+            _equipment.Clear();
             _petEquipContainers.Clear();
             _babyEquip.Clear();
             _babyEquipBag.Clear();
             HasBabyEquipData = false;
             HasBabyEquipBagData = false;
+            HasEquipmentData = false;
             SpecialScores.Clear();
             _maxCellByPos.Clear();
             CellNum = 0;
