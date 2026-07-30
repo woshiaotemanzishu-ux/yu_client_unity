@@ -14,8 +14,16 @@
         public const int DRAGON_WHISPER_DROP_LOG = 65106;
         /// <summary>影骸战衣家族统一错误出口。无 C2S；S2C error_code:u32,error_code_args:string。</summary>
         public const int HOLY_SEAL_ERROR = 65400;
+        /// <summary>影骸战衣装备快照。C2S 严格空包；S2C u16×{pos:u8,goods_id:u64,stren:u16}。</summary>
+        public const int HOLY_SEAL_EQUIPS = 65401;
+        /// <summary>影骸战衣魂珠快照。C2S 严格空包；S2C u16×{goods_type_id:u32,num:u16,limit:u16}。</summary>
+        public const int HOLY_SEAL_PILLS = 65405;
         /// <summary>影骸战衣原始评分。C2S 严格空包；S2C rating:u32。</summary>
         public const int HOLY_SEAL_RATING = 65407;
+        /// <summary>影骸战衣套装预览。C2S goods_type_id:u32；S2C u16×{suit_id:u32,num:u16},code:u32，不回显请求键。</summary>
+        public const int HOLY_SEAL_SUIT_PREVIEW = 65408;
+        /// <summary>当前影骸战衣套装快照。C2S 严格空包；S2C u16×{suit_id:u32,num:u16}。</summary>
+        public const int HOLY_SEAL_SUITS = 65409;
         /// <summary>藏宝图家族统一错误出口。S2C-only：code:u32。</summary>
         public const int TREASURE_MAP_ERROR = 20300;
         /// <summary>藏宝图开奖记录快照。C2S 严格空包；S2C 为完整记录及奖励列表。</summary>

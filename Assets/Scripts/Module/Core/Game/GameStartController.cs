@@ -58,6 +58,7 @@ using Shenxiao.Module.Core.TempleAwaken;
 using Shenxiao.Module.Core.Dress;
 using Shenxiao.Module.Core.Demon;
 using Shenxiao.Module.Core.Revelation;
+using Shenxiao.Module.Core.HolySeal;
 using Shenxiao.Module.Core.Achievement;
 using Shenxiao.Module.Core.NineSky;
 using Shenxiao.Module.Core.GhostWalk;
@@ -156,6 +157,7 @@ namespace Shenxiao.Module.Core.Game
             DressController.Instance.RequestStartup();
             DemonController.Instance.RequestStartup();
             RevelationController.Instance.RequestStartup();
+            HolySealController.Instance.RequestStartup();
             AchievementController.Instance.RequestStartup();
             NineSkyController.Instance.RequestInfo();
             GhostWalkController.Instance.RequestInfo();

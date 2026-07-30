@@ -17,8 +17,8 @@
 
 ## 当前协议迁移口径（2026-07-30）
 
-- 最新完成轮次：R510，在既有天命觉醒 42900/42901/42909 上补齐四个安全读侧：显式 `chapter:u16` 键控全量查询 42902，以及 S2C-only 章节状态 42903、子章状态 42904、阶段进度 42905。42903 在更新章节状态后严格补查同 chapter 的 42902；42904/05 不自动发包。42902 保留全量 `is_wear`，嵌套列表保留 wire 原序、重复键和空表；三层增量替换首个同键项、未知追加，早包不伪造全量 HasInfo，42905 process 保留 u64。
-- GAME_START 仍严格 42901→42909，42900 成功仍只重拉 42901；42906/07 领奖、42908 穿戴、42910 切场景继续排除，未接资产、外形、场景、红点或新 UI。真实编译与域重载 0 error，`TempleAwakenCase=0/pass=True/restored=True`；`ProtocolCoverageCase=0`，报告 `coverage_20260730_081711.md` A～E 全 PASS。当前 `registered=1245 / liveDefined=1468 / liveGap=345 / errorExit=10 / effective=1123/1468=76.5%`，429 族 `registered7/liveGap3/dead1/pending`，baseline 不更新。
+- 最新完成轮次：R511，扩展影骸战衣 HolySeal 654 家族安全读侧：GAME_START 清本家族后严格空发 65401→65405，分别完整保存装备表 `u16×{pos:u8,goods_id:u64,stren:u16}` 与魂珠表 `u16×{goods_type_id:u32,num:u16,limit:u16}`；65408 显式发送 `goods_type_id:u32`，只保存不回显请求键的最后套装预览及 raw code；65409 显式空查询并完整保存当前套装表。四份快照保留 wire 原序、重复项、零/最大值与 loaded 空表，请求无回复保留，彼此及既有 65400/65407 双向隔离。
+- 65402 强化、65403 穿戴、65406 使用魂珠仍按真实资产写操作排除，65404 维持 `old_client_never_sends` kill；未接 UI、配置、背包、属性、事件、红点或乐观状态。编译和同一 PID 真实域重载 0 error，`HolySealCase=0/pass=True/restored=True`；`ProtocolCoverageCase=0`，报告 `coverage_20260730_082553.md` A～E 全 PASS。当前 `registered=1249 / liveDefined=1468 / liveGap=341 / errorExit=10 / effective=1127/1468=76.8%`，654 族 `registered6/liveGap4/dead0/pending`，baseline 不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---
