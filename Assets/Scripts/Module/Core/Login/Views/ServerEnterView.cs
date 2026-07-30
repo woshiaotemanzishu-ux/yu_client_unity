@@ -57,6 +57,7 @@ namespace Shenxiao.Module.Core.Login
         [Header("用户协议弹层(默认隐)")]
         public GameObject agreementAlert;        // 弹层根
         public TextMeshProUGUI agreementContent; // 协议正文
+        public TmpLinkClickHandler agreementLinkHandler; // 正文内《用户协议》《隐私保护指引》链接
         public Image agreementCancelBtn;         // 拒绝(命中体)
         public Image agreementOkBtn;             // 同意(命中体)
 
@@ -68,6 +69,11 @@ namespace Shenxiao.Module.Core.Login
             RefreshAgreement();
             // 进入本页:未同意协议则自动弹协议弹层(同意后才可踏入仙界)。
             if (!LoginFlow.AgreementAgreed) ShowAgreementAlert();
+        }
+
+        protected override void OnHide()
+        {
+            agreementLinkHandler?.ClearHandler();
         }
 
         private void BindClicks()
@@ -90,6 +96,7 @@ namespace Shenxiao.Module.Core.Login
             // 弹层按钮:拒绝/同意(转交注入的回调)
             ClearAndAddClick(agreementCancelBtn, OnClickAlertCancel);
             ClearAndAddClick(agreementOkBtn, OnClickAlertOk);
+            agreementLinkHandler?.SetHandler(OnClickAgreementLink);
         }
 
         // ---------------------------------------------------------------- 数据绑定 / 功能性状态切换
@@ -150,6 +157,19 @@ namespace Shenxiao.Module.Core.Login
         {
             HideAgreementAlert();
             LoginFlow.SetAgreement(false);   // 不同意:不勾选(踏入仙界会被拦截)
+        }
+
+        private static void OnClickAgreementLink(string linkId)
+        {
+            switch (linkId)
+            {
+                case "agreement":
+                    LoginFlow.OpenAgreementDocument(LoginUserAgreementView.TypeAgreement);
+                    break;
+                case "privacy":
+                    LoginFlow.OpenAgreementDocument(LoginUserAgreementView.TypePrivacy);
+                    break;
+            }
         }
 
         private static void ClearAndAddClick(Graphic target, Action onClick)

@@ -1606,3 +1606,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **根因实证**：`wing-2` 两个 Renderer 共用 Panda `10.mat`，RGB 为 `One/One`，美术 `_MainColor.a=0.937`。旧导入器仅按 `_Dst=One` 把 Alpha 统一成 `Zero/One`，隔离渲染得到 `maxAlpha=0、nonzeroAlpha=0`，因此对象存在但最终合成没有结构覆盖度。
 - **修复**：`10.mat` 的 RGB 混合保持美术原值，仅把 Alpha 改成 `One/OneMinusSrcAlpha`。导入器同步增加规则：加法 `SkinnedMeshRenderer` 且 `_MainColor.a<1` 视为结构层并保留 Alpha；普通加法 ParticleSystem 继续 `Zero/One`，不会再次放大 `guanghuan`。
 - **验证状态**：修复后同一 `wing-2` 隔离渲染为 `maxAlpha=0.9902344、nonzeroAlpha=25681`；亮色合成中红绿膜片轮廓恢复。`Shenxiao.Editor.csproj` 离线编译 59 个既有 warning、0 error，Unity 强制编译 `completed/failed=false`；专项回归为 `wing2Renderers=2, wing2Alpha=1/10, haloAlpha=0/1`，导入分类只命中 `Materials/10.mat`，未把光环材质纳入结构层。
+
+## 2026-07-30：登录协议详情与服务器条文字自适应
+
+- **协议详情**：`AgreementAlert` 的《用户协议》《隐私保护指引》改为 TMP link 独立命中区，分别打开同一独立 `LoginUserAgreementView` 的协议/隐私模式；正文按平台 cfg 导入的 `agreement_type/agreement_name_suffix` 读取，当前为 `ConfigAgreement2_shenhai`，并保留基础 `ConfigAgreement2` 回退。
+- **布局修复**：移除 `ServerBtn` 根上的 `HorizontalLayoutGroup`，状态图独立定位；新增纯文字 `TextRow`，只控制服名和“(点击换区)”的 preferred width 与 22～32 字号自适应。人工公告图标 `uidl_notice.png`、`72×72`、无 Label 的样式继续保留，Creator 与 Prefab 已同步。
+- **功能边界**：协议同意/拒绝、勾选持久化、选服、公告 10207 和进入游戏链均未回滚；登录模块退役时新增详情页与其余登录页一起隐藏并释放。
+- **验证状态**：`dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 为 2 条既有 warning、0 error；同一 Unity PID 42148 强制编译 `completed/failed=false/errors=[]`。扩展 `LoginNoticeCase` 返回 0，`serverEnter=True/agreementPrefab=True/agreementPointer=True/pass=True`；两条链接真实射线命中 `Content/Frame/Mask`，回调顺序为 `agreement,privacy`，同时验证渠道表两个标题与非空正文数组、独立滚动面板和全部序列化引用。

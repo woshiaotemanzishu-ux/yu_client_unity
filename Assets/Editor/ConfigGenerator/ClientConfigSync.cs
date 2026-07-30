@@ -19,6 +19,8 @@ namespace Shenxiao.EditorTools.ConfigGen
         private static readonly string[] SYNC_LIST =
         {
             "ConfigLogin",
+            "ConfigAgreement2",
+            "ConfigAgreement2_shenhai",
             "ConfigModelAni",
             "ConfigRandomName",
             "ConfigPreloadResList",

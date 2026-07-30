@@ -158,6 +158,22 @@
   RectTransform、Sprite、active 状态必须保持不变。专项门禁在 `LoginNoticeCase.VerifyServerEnterPrefab`，
   会校验关键资源、几何、默认显隐和公告字段，防止再次以“新增一个入口”为由整页回退。
 
+## 登录协议详情与服务器条自适应（2026-07-30）
+
+- `AgreementAlert/Frame/Content` 使用 TMP `<link>` 标记提供两个独立命中区域：`agreement` 对应
+  《用户协议》，`privacy` 对应《隐私保护指引》。点击后由 `LoginFlow` 置顶显示独立
+  `LoginUserAgreementView.prefab`；详情页关闭后仍返回原协议确认弹层，不改变同意/拒绝状态。
+- 协议详情按 `AppConfig.agreementType/agreementNameSuffix` 选择渠道表；当前 jzy/shenhai 环境读取
+  `ConfigAgreement2_shenhai.json`，缺渠道表时才回退 `ConfigAgreement2.json`。正文保留源数组顺序，
+  仅在滚动文本中逐行拼接；配置值由平台 cfg 的 `agreement_type/agreement_name_suffix` 导入，禁止把
+  8 万字协议正文硬编码进 View 或 Prefab。
+- `ServerBtn` 的背景 Image/唯一点击面与 `ServerStateIcon` 不参与自动布局。只有
+  `ServerBtn/TextRow` 挂 `HorizontalLayoutGroup`，其两个 TMP 子项启用 preferred width 与字号下限；
+  可用宽度不足时只压缩文字，不得把 LayoutGroup 挂回 `ServerBtn` 根导致背景或状态图被拉伸。
+- 人工确认的公告入口继续使用 `uidl_notice.png`、`72×72` 且不再叠加文字 Label；协议和服务器条修改
+  已同步进两个 Login Creator。`LoginNoticeCase` 同时校验富文本 link、独立详情 Prefab、渠道配表、
+  文字容器布局参数和序列化绑定。
+
 ## 运营公告 10207 与登录/游戏内消费（2026-07-30）
 
 - `10207` 只有S2C `type:u8`，没有C2S；PHP/GM广播中非0表示重新检查运营公告。Unity常驻注册并完整读尾，但绝不主动发送或加入GAME_START。

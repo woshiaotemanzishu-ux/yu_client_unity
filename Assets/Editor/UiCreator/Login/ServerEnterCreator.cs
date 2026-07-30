@@ -26,6 +26,7 @@ namespace Shenxiao.Editor.UiCreator.Login
         private const string IMG_SERVER_BG = "resource/game/login/other/ui_Login_18.png";         // 当前服条底图
         private const string IMG_SERVER_STATE = "resource/game/login/texture/ui_Login_27.png";   // 当前服状态图标
         private const string IMG_ENTER = "resource/game/login/texture/ui_Login_07.png";          // 踏入仙界按钮
+        private const string IMG_NOTICE = "resource/game/login/texture/uidl_notice.png";          // 公告图标(人工确认样式)
         private const string IMG_CHECK_BG = "resource/game/login/texture/ui_22.png";             // 协议勾选框底
         private const string IMG_CHECK_MARK = "resource/game/login/texture/ui_23.png";           // 协议勾选标记
         // 协议弹层(对标 LoginAlertView.scene)
@@ -39,7 +40,7 @@ namespace Shenxiao.Editor.UiCreator.Login
         private const float ServerBtnW = 470f, ServerBtnH = 58f, ServerBtnY = 0f;
         private const float EnterW = 378f, EnterH = 140f, EnterY = -200f;
         private const float AgreementCheckX = -186f, AgreementLabelX = 24f, AgreementBottomY = 60f;
-        private const float NoticeBtnX = 275f, NoticeBtnY = 545f, NoticeBtnW = 120f, NoticeBtnH = 58f;
+        private const float NoticeBtnX = 275f, NoticeBtnY = 545f, NoticeBtnW = 72f, NoticeBtnH = 72f;
 
         // 协议弹层布局(弹层中心为原点)
         private const float AlertW = 720f, AlertH = 434f;
@@ -90,20 +91,35 @@ namespace Shenxiao.Editor.UiCreator.Login
             server.label.gameObject.SetActive(false);   // 不用按钮自带的整块 Label,改用下面分块布局
             view.serverBtn = server.bg;
 
+            // 状态图是独立视觉节点，不参与文字自适应布局。
             Image stateIcon = UiCreatorKit.NewImage("ServerStateIcon", server.root);
-            PlaceAnchored(stateIcon.rectTransform, Vector2.zero, 0f, 0f, 67f, 38f);
+            UiCreatorKit.Place(stateIcon.rectTransform, -201.5f, 0f, 67f, 38f);
             stateIcon.raycastTarget = false;
             UiCreatorKit.TrySetSprite(stateIcon, IMG_SERVER_STATE, UiCreatorKit.Palette.Mark);
             view.serverStateIcon = stateIcon;
 
-            TextMeshProUGUI serverName = UiCreatorKit.NewText("ServerNameLabel", server.root, "A1-妖兽契约");
-            PlaceAnchored(serverName.rectTransform, new Vector2(0f, 1f), 188.5f, -29f, 141.01f, 50f);
+            // LayoutGroup 只能挂在纯文字容器上；背景、点击面和状态图留在 ServerBtn 根，避免被拉伸。
+            RectTransform textRow = UiCreatorKit.NewNode("TextRow", server.root);
+            UiCreatorKit.Place(textRow, 33.5f, 0f, 403f, 50f);
+            HorizontalLayoutGroup textLayout = textRow.gameObject.AddComponent<HorizontalLayoutGroup>();
+            textLayout.childAlignment = TextAnchor.MiddleLeft;
+            textLayout.spacing = 0f;
+            textLayout.childControlWidth = true;
+            textLayout.childControlHeight = true;
+            textLayout.childForceExpandWidth = false;
+            textLayout.childForceExpandHeight = false;
+
+            TextMeshProUGUI serverName = UiCreatorKit.NewText("ServerNameLabel", textRow, "A1-妖兽契约");
+            UiCreatorKit.Place(serverName.rectTransform, 0f, 0f, 206f, 50f);
             serverName.alignment = TextAlignmentOptions.Center;
+            ConfigureAdaptiveServerText(serverName);
             view.serverNameLabel = serverName;
 
-            TextMeshProUGUI tip = UiCreatorKit.NewText("TipLabel", server.root, "(点击换区)");
-            PlaceAnchored(tip.rectTransform, new Vector2(0f, 1f), 339.005f, -29f, 160f, 50f);
+            TextMeshProUGUI tip = UiCreatorKit.NewText("TipLabel", textRow, "(点击换区)");
+            UiCreatorKit.Place(tip.rectTransform, 0f, 0f, 171f, 50f);
             tip.alignment = TextAlignmentOptions.Left;
+            tip.color = new Color(1f, 0.34484458f, 0f, 1f);
+            ConfigureAdaptiveServerText(tip);
             view.tipLabel = tip;
 
             // ---------- 踏入仙界按钮 ----------
@@ -117,8 +133,10 @@ namespace Shenxiao.Editor.UiCreator.Login
             // ---------- 运营公告入口（登录初查与 10207 共用同一 CDN 快照） ----------
             UiCreatorKit.ButtonParts notice = UiCreatorKit.NewButton("NoticeBtn", root, "公告");
             UiCreatorKit.Place(notice.root, NoticeBtnX, NoticeBtnY, NoticeBtnW, NoticeBtnH);
+            UiCreatorKit.TrySetSprite(notice.bg, IMG_NOTICE, UiCreatorKit.Palette.BtnNeutral);
+            Object.DestroyImmediate(notice.label.gameObject);
             view.noticeBtn = notice.bg;
-            view.noticeBtnLabel = notice.label;
+            view.noticeBtnLabel = null;
 
             // ---------- 协议勾选行(勾选框 + 标记 + 文案) ----------
             UiCreatorKit.ButtonParts check = UiCreatorKit.NewButton("AgreementCheckBg", root, string.Empty);
@@ -186,14 +204,18 @@ namespace Shenxiao.Editor.UiCreator.Login
 
             // 协议正文(对标 LoginAlertView _html_content)
             TextMeshProUGUI content = UiCreatorKit.NewText("Content", frame.transform,
-                "请你务必审慎阅读、充分理解“用户协议”和“隐私保护指引”各条款,包括但不限于:" +
-                "为了向你提供即时通讯、内容分享等服务,我们需要收集你的设备信息、操作日志等个人信息。" +
+                "请你务必审慎阅读、充分理解" +
+                "<link=\"agreement\"><color=#FF4F50>《用户协议》</color></link>和" +
+                "<link=\"privacy\"><color=#FF4F50>《隐私保护指引》</color></link>各条款，包括但不限于：" +
+                "为了向你提供即时通讯、内容分享等服务，我们需要收集你的设备信息、操作日志等个人信息。" +
                 "你可以在“设置”中查看、变更、删除个人信息并管理你的授权。" +
-                "你可阅读《用户协议》、《隐私保护指引》了解详细信息。如你同意,请点击“同意”开始接受我们的服务。");
+                "如你同意，请点击“同意”开始接受我们的服务。");
             UiCreatorKit.Place(content.rectTransform, AlertContentX, AlertContentY, AlertContentW, AlertContentH);
             content.alignment = TextAlignmentOptions.TopLeft;
             content.fontSize = 24f;
+            content.raycastTarget = true;
             view.agreementContent = content;
+            view.agreementLinkHandler = content.gameObject.AddComponent<TmpLinkClickHandler>();
 
             // 拒绝(左) | 同意(右)
             UiCreatorKit.ButtonParts cancel = UiCreatorKit.NewButton("CancelBtn", frame.transform, "拒绝");
@@ -216,6 +238,15 @@ namespace Shenxiao.Editor.UiCreator.Login
             rect.anchorMin = anchor;
             rect.anchorMax = anchor;
             rect.anchoredPosition = new Vector2(x, y);
+        }
+
+        private static void ConfigureAdaptiveServerText(TextMeshProUGUI text)
+        {
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.overflowMode = TextOverflowModes.Ellipsis;
+            text.enableAutoSizing = true;
+            text.fontSizeMin = 22f;
+            text.fontSizeMax = 32f;
         }
 
         public static void Preview()

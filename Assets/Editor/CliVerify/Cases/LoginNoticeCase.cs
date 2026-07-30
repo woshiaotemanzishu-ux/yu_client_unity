@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Shenxiao.Common.Prefs;
 using Shenxiao.Framework.Net;
+using Shenxiao.Framework.UI;
 using Shenxiao.Module.Core.GameNotice;
 using Shenxiao.Module.Core.Login;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -22,11 +24,15 @@ namespace Shenxiao.EditorTools
     {
         private const string NoticePrefab = "Assets/Prefabs/UI/GameNotice/GameNoticeModule.prefab";
         private const string ServerEnterPrefab = "Assets/Prefabs/UI/Login/ServerEnterView.prefab";
+        private const string AgreementPrefab = "Assets/Prefabs/UI/Login/LoginUserAgreementView.prefab";
         private const string ServerEnterBackground = "Assets/GameRes/resource/game/login/other/组 1.png";
         private const string ServerEnterLogo = "Assets/GameRes/resource/game/login/other/logo.png";
         private const string ServerEnterServerBar = "Assets/GameRes/resource/game/login/other/ui_Login_18.png";
         private const string ServerEnterAlertFrame = "Assets/GameRes/resource/game/login/other/bg_03.png";
         private const string ServerEnterAlertTitle = "Assets/GameRes/resource/game/login/other/uildzdz_008d.png";
+        private const string ServerEnterNoticeIcon = "Assets/GameRes/resource/game/login/texture/uidl_notice.png";
+        private const string AgreementTitle = "Assets/GameRes/resource/game/login/texture/user_xieyi.png";
+        private const string PrivacyTitle = "Assets/GameRes/resource/game/login/texture/user_privacy.png";
         private const string Account = "__cliverify_login_notice__";
         private const string Platform = "jzy_case";
         private const long RoleId = 91521001;
@@ -37,6 +43,7 @@ namespace Shenxiao.EditorTools
             GameObject cameraGo = null;
             GameObject eventSystemGo = null;
             GameObject noticeRoot = null;
+            GameObject serverEnterRoot = null;
             GameNoticeView noticeView = null;
             RenderTexture warmupTexture = null;
             try
@@ -73,6 +80,7 @@ namespace Shenxiao.EditorTools
 
                 bool protocolOk = VerifyProtocol(model);
                 bool serverEnterOk = VerifyServerEnterPrefab();
+                bool agreementPrefabOk = VerifyAgreementPrefab();
 
                 GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(NoticePrefab);
                 if (prefab == null) throw new InvalidOperationException("公告 prefab 不存在: " + NoticePrefab);
@@ -95,6 +103,19 @@ namespace Shenxiao.EditorTools
                 raycaster.ignoreReversedGraphics = false;
                 eventSystemGo = new GameObject("LoginNoticeCase_EventSystem", typeof(EventSystem));
                 EventSystem eventSystem = eventSystemGo.GetComponent<EventSystem>();
+
+                GameObject serverEnterPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(ServerEnterPrefab);
+                serverEnterRoot = PrefabUtility.InstantiatePrefab(serverEnterPrefab, canvasGo.transform) as GameObject;
+                ServerEnterView serverEnterView = serverEnterRoot != null
+                    ? serverEnterRoot.GetComponent<ServerEnterView>()
+                    : null;
+                bool agreementLinkPointerOk = VerifyAgreementLinksByPointer(serverEnterView,
+                    canvas, camera, raycaster, eventSystem, out string agreementPointerDetail);
+                if (serverEnterRoot != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(serverEnterRoot);
+                    serverEnterRoot = null;
+                }
 
                 noticeRoot = PrefabUtility.InstantiatePrefab(prefab, canvasGo.transform) as GameObject;
                 noticeView = noticeRoot != null
@@ -163,13 +184,16 @@ namespace Shenxiao.EditorTools
                 }
                 bool uiOk = clickSurfaceOk && pointerOk && !model.HasUnreadInside;
                 bool pass = modelOk && invalidRejected && firstReadKeepsAggregate && allReadClearsAggregate
-                    && sessionRule && popupRule && protocolOk && serverEnterOk && uiOk;
+                    && sessionRule && popupRule && protocolOk && serverEnterOk && agreementPrefabOk
+                    && agreementLinkPointerOk && uiOk;
                 Debug.Log("CLIVERIFY login-notice VERDICT model=" + modelOk
                     + " detail=[" + initialModelDetail + "]"
                     + " invalidPreserves=" + invalidRejected + " redAggregate=" + firstReadKeepsAggregate
                     + "/" + allReadClearsAggregate + " sessionRule=" + sessionRule
                     + " popupRule=" + popupRule + " protocol10207=" + protocolOk
-                    + " serverEnter=" + serverEnterOk + " clickSurface=" + clickSurfaceOk
+                    + " serverEnter=" + serverEnterOk + " agreementPrefab=" + agreementPrefabOk
+                    + " agreementPointer=" + agreementLinkPointerOk + "[" + agreementPointerDetail + "]"
+                    + " clickSurface=" + clickSurfaceOk
                     + " pointerClick=" + pointerOk + " ui=" + uiOk + " pass=" + pass);
                 await Task.CompletedTask;
                 return pass ? 0 : 3;
@@ -183,6 +207,7 @@ namespace Shenxiao.EditorTools
             {
                 noticeView?.Hide();
                 if (noticeRoot != null) UnityEngine.Object.DestroyImmediate(noticeRoot);
+                if (serverEnterRoot != null) UnityEngine.Object.DestroyImmediate(serverEnterRoot);
                 if (eventSystemGo != null) UnityEngine.Object.DestroyImmediate(eventSystemGo);
                 if (cameraGo != null) UnityEngine.Object.DestroyImmediate(cameraGo);
                 if (warmupTexture != null)
@@ -211,6 +236,102 @@ namespace Shenxiao.EditorTools
             return reader.Remaining == 0 && model.HasPush && model.LastPushType == 0;
         }
 
+        private static bool VerifyAgreementLinksByPointer(ServerEnterView view, Canvas canvas,
+            Camera camera, GraphicRaycaster raycaster, EventSystem eventSystem, out string detail)
+        {
+            detail = "view=null";
+            if (view == null || view.agreementContent == null || view.agreementLinkHandler == null) return false;
+
+            var clicked = new List<string>();
+            view.gameObject.SetActive(true);
+            view.Show();
+            view.agreementLinkHandler.SetHandler(clicked.Add);
+            canvas.enabled = false;
+            canvas.enabled = true;
+            Canvas.ForceUpdateCanvases();
+            view.agreementContent.ForceMeshUpdate();
+
+            var descriptor = new RenderTextureDescriptor(Mathf.Max(1, Screen.width),
+                Mathf.Max(1, Screen.height), RenderTextureFormat.ARGB32, 24)
+            {
+                msaaSamples = 1,
+            };
+            RenderTexture warmup = new RenderTexture(descriptor);
+            if (!warmup.Create())
+            {
+                detail = "warmup-create-failed";
+                return false;
+            }
+            camera.targetTexture = warmup;
+            camera.Render();
+            camera.targetTexture = null;
+            warmup.Release();
+            UnityEngine.Object.DestroyImmediate(warmup);
+
+            bool agreement = ClickTmpLink("agreement", view.agreementContent, camera, raycaster, eventSystem,
+                out string agreementDetail);
+            bool privacy = ClickTmpLink("privacy", view.agreementContent, camera, raycaster, eventSystem,
+                out string privacyDetail);
+            bool callbacks = clicked.Count == 2 && clicked[0] == "agreement" && clicked[1] == "privacy";
+            detail = "ray=" + agreement + "/" + privacy + ",ids=" + string.Join(",", clicked)
+                + ",a=" + agreementDetail + ",p=" + privacyDetail;
+            view.Hide();
+            return agreement && privacy && callbacks;
+        }
+
+        private static bool ClickTmpLink(string linkId, TMP_Text text, Camera camera,
+            GraphicRaycaster raycaster, EventSystem eventSystem, out string detail)
+        {
+            detail = "link-missing";
+            int linkIndex = -1;
+            for (int i = 0; i < text.textInfo.linkCount; i++)
+            {
+                if (text.textInfo.linkInfo[i].GetLinkID() == linkId)
+                {
+                    linkIndex = i;
+                    break;
+                }
+            }
+            if (linkIndex < 0) return false;
+
+            TMP_LinkInfo link = text.textInfo.linkInfo[linkIndex];
+            int characterIndex = link.linkTextfirstCharacterIndex;
+            int end = characterIndex + link.linkTextLength;
+            while (characterIndex < end && !text.textInfo.characterInfo[characterIndex].isVisible)
+                characterIndex++;
+            if (characterIndex >= end)
+            {
+                detail = "no-visible-char";
+                return false;
+            }
+
+            TMP_CharacterInfo character = text.textInfo.characterInfo[characterIndex];
+            Vector3 localCenter = (character.bottomLeft + character.topRight) * 0.5f;
+            Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(camera,
+                text.transform.TransformPoint(localCenter));
+            var pointer = new PointerEventData(eventSystem)
+            {
+                button = PointerEventData.InputButton.Left,
+                position = screenPoint,
+            };
+            var hits = new List<RaycastResult>();
+            raycaster.Raycast(pointer, hits);
+            int intersecting = TMP_TextUtilities.FindIntersectingLink(text, screenPoint, camera);
+            var hitNames = new List<string>();
+            for (int i = 0; i < hits.Count; i++) hitNames.Add(hits[i].gameObject.name);
+            detail = "screen=" + screenPoint + ",tmp=" + intersecting + ",hits=" + string.Join("/", hitNames);
+            for (int i = 0; i < hits.Count; i++)
+            {
+                if (hits[i].gameObject != text.gameObject) continue;
+                pointer.pointerPressRaycast = hits[i];
+                pointer.pointerCurrentRaycast = hits[i];
+                ExecuteEvents.ExecuteHierarchy<IPointerClickHandler>(hits[i].gameObject,
+                    pointer, ExecuteEvents.pointerClickHandler);
+                return true;
+            }
+            return false;
+        }
+
         private static bool VerifyServerEnterPrefab()
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ServerEnterPrefab);
@@ -221,32 +342,56 @@ namespace Shenxiao.EditorTools
             Transform enterLabel = root.Find("EnterBtn/Label");
             Transform title = root.Find("AgreementAlert/Frame/Title");
             Transform alert = root.Find("AgreementAlert");
+            Transform textRow = root.Find("ServerBtn/TextRow");
+            HorizontalLayoutGroup textLayout = textRow != null
+                ? textRow.GetComponent<HorizontalLayoutGroup>()
+                : null;
             bool functionalBindingsOk = IsBound(view.serverBtn, root, "ServerBtn")
                 && IsBound(view.serverStateIcon, root, "ServerBtn/ServerStateIcon")
-                && IsBound(view.serverNameLabel, root, "ServerBtn/ServerNameLabel")
-                && IsBound(view.tipLabel, root, "ServerBtn/TipLabel")
+                && IsBound(view.serverNameLabel, root, "ServerBtn/TextRow/ServerNameLabel")
+                && IsBound(view.tipLabel, root, "ServerBtn/TextRow/TipLabel")
                 && IsBound(view.enterBtn, root, "EnterBtn")
                 && IsBound(view.enterBtnLabel, root, "EnterBtn/Label")
                 && IsBound(view.noticeBtn, root, "NoticeBtn")
-                && IsBound(view.noticeBtnLabel, root, "NoticeBtn/Label")
+                && view.noticeBtnLabel == null && root.Find("NoticeBtn/Label") == null
                 && IsBound(view.agreementCheckBg, root, "AgreementCheckBg")
                 && IsBound(view.agreementCheckMark, root, "AgreementCheckBg/AgreementCheckMark")
                 && IsBound(view.agreementLabel, root, "AgreementLabel")
                 && IsBoundObject(view.agreementAlert, root, "AgreementAlert")
                 && IsBound(view.agreementContent, root, "AgreementAlert/Frame/Content")
+                && view.agreementLinkHandler != null
+                && view.agreementLinkHandler.transform == root.Find("AgreementAlert/Frame/Content")
                 && IsBound(view.agreementCancelBtn, root, "AgreementAlert/Frame/CancelBtn")
                 && IsBound(view.agreementOkBtn, root, "AgreementAlert/Frame/OkBtn");
 
+            bool adaptiveTextLayoutOk = root.Find("ServerBtn").GetComponent<HorizontalLayoutGroup>() == null
+                && textLayout != null
+                && textLayout.childControlWidth && textLayout.childControlHeight
+                && !textLayout.childForceExpandWidth && !textLayout.childForceExpandHeight
+                && view.serverNameLabel.enableAutoSizing && view.tipLabel.enableAutoSizing
+                && view.serverNameLabel.textWrappingMode == TextWrappingModes.NoWrap
+                && view.tipLabel.textWrappingMode == TextWrappingModes.NoWrap;
+
+            string agreementRichText = view.agreementContent != null ? view.agreementContent.text : string.Empty;
+            bool linksOk = agreementRichText.Contains("<link=\"agreement\">")
+                && agreementRichText.Contains("<link=\"privacy\">")
+                && agreementRichText.Contains("《用户协议》")
+                && agreementRichText.Contains("《隐私保护指引》");
+
             return functionalBindingsOk
+                && adaptiveTextLayoutOk && linksOk
                 && IsImage(root, "Bg", ServerEnterBackground)
                 && IsImage(root, "Logo", ServerEnterLogo)
                 && IsImage(root, "ServerBtn", ServerEnterServerBar)
+                && IsImage(root, "NoticeBtn", ServerEnterNoticeIcon)
                 && IsImage(root, "AgreementAlert/Frame", ServerEnterAlertFrame)
                 && IsImage(root, "AgreementAlert/Frame/TitleImg", ServerEnterAlertTitle)
                 && IsRect(root, "Logo", new Vector2(0.5f, 0.5f), new Vector2(0f, 430f),
                     new Vector2(506f, 166f))
                 && IsRect(root, "ServerBtn", new Vector2(0.5f, 0.5f), Vector2.zero,
                     new Vector2(470f, 58f))
+                && IsRect(root, "ServerBtn/TextRow", new Vector2(0.5f, 0.5f), new Vector2(33.5f, 0f),
+                    new Vector2(403f, 50f))
                 && IsRect(root, "EnterBtn", new Vector2(0.5f, 0.5f), new Vector2(0f, -200f),
                     new Vector2(378f, 140f))
                 && IsRect(root, "AgreementCheckBg", new Vector2(0.5f, 0f), new Vector2(-186f, 60f),
@@ -258,6 +403,55 @@ namespace Shenxiao.EditorTools
                 && alert != null && !alert.gameObject.activeSelf
                 && enterLabel != null && !enterLabel.gameObject.activeSelf
                 && title != null && !title.gameObject.activeSelf;
+        }
+
+        private static bool VerifyAgreementPrefab()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AgreementPrefab);
+            LoginUserAgreementView view = prefab != null ? prefab.GetComponent<LoginUserAgreementView>() : null;
+            if (view == null) return false;
+
+            Transform root = prefab.transform;
+            Transform contentTransform = root.Find("_img_bg/_panel_content/_lb_content");
+            ContentSizeFitter fitter = contentTransform != null
+                ? contentTransform.GetComponent<ContentSizeFitter>()
+                : null;
+            bool bindingsOk = IsBound(view.closeMask, root, "CloseMask")
+                && IsBound(view._img_bg, root, "_img_bg")
+                && IsBound(view._img_close, root, "_img_bg/_img_close")
+                && IsBound(view._panel_content, root, "_img_bg/_panel_content")
+                && IsBound(view._lb_content, root, "_img_bg/_panel_content/_lb_content")
+                && IsBound(view._img_xieyi, root, "_img_bg/_img_xieyi")
+                && IsBound(view._img_privacy, root, "_img_bg/_img_privacy");
+            bool scrollOk = view._panel_content != null && view._lb_content != null
+                && view._panel_content.viewport == view._panel_content.transform
+                && view._panel_content.content == view._lb_content.rectTransform
+                && !view._panel_content.horizontal && view._panel_content.vertical
+                && fitter != null && fitter.verticalFit == ContentSizeFitter.FitMode.PreferredSize;
+            TextAsset baseConfig = AssetDatabase.LoadAssetAtPath<TextAsset>(
+                "Assets/GameRes/resource/config/client/configagreement2.json");
+            TextAsset channelConfig = AssetDatabase.LoadAssetAtPath<TextAsset>(
+                "Assets/GameRes/resource/config/client/configagreement2_shenhai.json");
+            bool configOk = baseConfig != null && channelConfig != null;
+            if (configOk)
+            {
+                JObject json = JObject.Parse(channelConfig.text);
+                configOk = (string)json["agreenment"]?["title"] == "用户协议"
+                    && (string)json["privacy"]?["title"] == "隐私保护指引"
+                    && json["agreenment"]?["content"] is JArray agreementLines
+                    && agreementLines.Count > 0
+                    && json["privacy"]?["content"] is JArray privacyLines
+                    && privacyLines.Count > 0;
+            }
+
+            return bindingsOk && scrollOk && configOk
+                && IsImage(root, "_img_bg", ServerEnterAlertFrame)
+                && IsImage(root, "_img_bg/_img_xieyi", AgreementTitle)
+                && IsImage(root, "_img_bg/_img_privacy", PrivacyTitle)
+                && IsRect(root, "_img_bg", new Vector2(0.5f, 0.5f), Vector2.zero,
+                    new Vector2(650f, 800f))
+                && IsRect(root, "_img_bg/_panel_content", new Vector2(0.5f, 0.5f),
+                    new Vector2(0.5f, -2f), new Vector2(485f, 566f));
         }
 
         private static bool IsBound(Component component, Transform root, string path)

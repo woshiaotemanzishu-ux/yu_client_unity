@@ -13,7 +13,7 @@ using UnityEngine;
 namespace Shenxiao.Module.Core.Login
 {
     /// <summary>
-    /// 登录模块 UI 流程编排(重构版:独立 LoginStage 外壳 + 6 个页面 prefab + 1 个连接等待层)。
+    /// 登录模块 UI 流程编排(重构版:独立 LoginStage 外壳 + 7 个页面 prefab + 1 个连接等待层)。
     /// 链路严格对齐老客户端:
     ///   ① 加载页 LoadingView(真实资源下载进度)
     ///   ② 登录/注册页 LoginPanelView(登录⇄注册子面板)
@@ -21,7 +21,7 @@ namespace Shenxiao.Module.Core.Login
     ///   ④ 点服务器名 → ServerSelectView 列表选服
     ///   ⑤ 踏入仙界 → get_server_info → WebSocket → 10000 → 选角 RoleSelectView / 创角 RoleCreateView → 进游戏
     /// 页面自身保持 720 设计宽;LoginStage 在长竖屏扩展高度,横向宽屏才在左右补背景。
-    /// 协议弹层并进 ServerEnterView。
+    /// 协议确认弹层并进 ServerEnterView；用户协议/隐私正文使用独立 LoginUserAgreementView。
     /// </summary>
     public static class LoginFlow
     {
@@ -30,6 +30,7 @@ namespace Shenxiao.Module.Core.Login
         private static LoginPanelView _loginPanel;     // ② 登录 + 注册
         private static LoadingView _loadingView;       // ① 加载
         private static ServerEnterView _enterView;     // ③ 踏入仙界 + 协议弹层
+        private static LoginUserAgreementView _agreementView; // ③ 协议/隐私独立正文面板
         private static ServerSelectView _selectView;   // ④ 选服
         private static RoleSelectView _selectRoleView; // ⑤ 选角
         private static RoleCreateView _createRoleView; // ⑤ 创角
@@ -65,12 +66,13 @@ namespace Shenxiao.Module.Core.Login
             _loadingView = await LoadViewAsync<LoadingView>("LoadingView");
             Shenxiao.Framework.UI.BootOverlay.Report(0.94f, "正在加载登录界面…");
             _enterView = await LoadViewAsync<ServerEnterView>("ServerEnterView");
+            _agreementView = await LoadViewAsync<LoginUserAgreementView>("LoginUserAgreementView");
             _selectView = await LoadViewAsync<ServerSelectView>("ServerSelectView");
             _waitConnectView = await LoadViewAsync<WaitforOpenViewLoading>("WaitforOpenViewLoading", false);
             Shenxiao.Framework.UI.BootOverlay.Report(0.97f, "正在加载登录界面…");
             _selectRoleView = await LoadViewAsync<RoleSelectView>("RoleSelectView");
             _createRoleView = await LoadViewAsync<RoleCreateView>("RoleCreateView");
-            if (_loginPanel == null || _loadingView == null || _enterView == null
+            if (_loginPanel == null || _loadingView == null || _enterView == null || _agreementView == null
                 || _selectView == null || _selectRoleView == null || _createRoleView == null)
             {
                 GameLog.Error("Login", "登录页 prefab 缺失——在「神霄/重构UI 生成器」面板里把 Login 各页都生成一遍");
@@ -241,6 +243,15 @@ namespace Shenxiao.Module.Core.Login
         {
             GameLog.Info("Login", "弹出用户协议弹层(ServerEnterView 内置)");
             _enterView?.ShowAgreementAlert();
+        }
+
+        /// <summary>从 AgreementAlert 的富文本链接打开独立协议/隐私详情页。</summary>
+        public static void OpenAgreementDocument(int type)
+        {
+            if (_agreementView == null) return;
+            int style = _config != null ? _config.agreementType : 2;
+            string suffix = _config != null ? _config.agreementNameSuffix : "shenhai";
+            _agreementView.Show(new LoginAgreementArgs(style, type, suffix));
         }
 
         /// <summary>协议弹层 同意/不同意 的结果:同意→勾选 + 按账号持久化;不同意→不勾选。不勾选无法踏入仙界。</summary>
@@ -449,6 +460,7 @@ namespace Shenxiao.Module.Core.Login
 
             _enterView.RefreshServer();
             _enterView.Hide();
+            HideView(_agreementView);
             _selectRoleView.Hide();
             _createRoleView.Hide();
             if (roleCount > 0) _selectRoleView.Show();  // OnShow 自动 Refresh
@@ -494,6 +506,7 @@ namespace Shenxiao.Module.Core.Login
             HideConnectLoading();
             HideView(_loginPanel);
             HideView(_enterView);
+            HideView(_agreementView);
             HideView(_selectView);
             HideView(_selectRoleView);
             HideView(_createRoleView);
@@ -509,6 +522,7 @@ namespace Shenxiao.Module.Core.Login
             // 盯着黑地图等瓦片/怪物蹦出来(实测 5-10s 裸奔)。等 EVT_SCENE_FIRST_SCREEN_READY 揭幕。
             HideView(_loginPanel);
             HideView(_enterView);
+            HideView(_agreementView);
             HideView(_selectView);
             HideView(_selectRoleView);
             HideView(_createRoleView);
@@ -536,6 +550,7 @@ namespace Shenxiao.Module.Core.Login
             if (_stage == null && _loginPanel == null && _loadingView == null) return;
             ReleaseView(ref _loginPanel);
             ReleaseView(ref _enterView);
+            ReleaseView(ref _agreementView);
             ReleaseView(ref _selectView);
             ReleaseView(ref _selectRoleView);
             ReleaseView(ref _createRoleView);
@@ -583,6 +598,7 @@ namespace Shenxiao.Module.Core.Login
             HideView(_loadingView);
             HideView(_loginPanel);
             HideView(_enterView);
+            HideView(_agreementView);
             HideView(_selectView);
             HideView(_selectRoleView);
             HideView(_createRoleView);

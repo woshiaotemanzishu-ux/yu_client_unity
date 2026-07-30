@@ -63,6 +63,8 @@ namespace Shenxiao.Editor.PlatformCfg
 
             appConfig.platBelong = (string)cfg["plat_belong"] ?? string.Empty;
             appConfig.noticeCdnBaseUrl = NormalizeUrl((string)cfg["url_cdn_path"] ?? string.Empty);
+            appConfig.agreementType = (int?)cfg["agreement_type"] ?? 2;
+            appConfig.agreementNameSuffix = (string)cfg["agreement_name_suffix"] ?? string.Empty;
 
             string resUrl = (string)cfg["ResUrl"] ?? "";
             string alphaCdnUrl = (string)cfg["AlphaCdnUrl"] ?? "";
@@ -75,7 +77,8 @@ namespace Shenxiao.Editor.PlatformCfg
 
             EditorUtility.SetDirty(appConfig);
             AssetDatabase.SaveAssets();
-            Debug.Log($"[PlatformCfg] 已导入: gmApiUrl={appConfig.gmApiUrl} platName={appConfig.platName}(来源 {Path.GetFileName(path)})");
+            Debug.Log($"[PlatformCfg] 已导入: gmApiUrl={appConfig.gmApiUrl} platName={appConfig.platName} " +
+                      $"agreement={appConfig.agreementType}_{appConfig.agreementNameSuffix}(来源 {Path.GetFileName(path)})");
         }
 
         private static string NormalizeUrl(string url)

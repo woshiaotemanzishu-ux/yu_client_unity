@@ -38,6 +38,12 @@ namespace Shenxiao.Framework.Config
         [Tooltip("运营公告 CDN 根地址，导自平台 cfg.url_cdn_path；10207 只通知客户端从此地址重查版本/正文。")]
         public string noticeCdnBaseUrl = "http://userpic.suyougame.com/";
 
+        [Tooltip("登录协议配置类型，导自平台 cfg.agreement_type；当前渠道为 ConfigAgreement2。")]
+        public int agreementType = 2;
+
+        [Tooltip("登录协议渠道后缀，导自平台 cfg.agreement_name_suffix；如 shenhai 对应 ConfigAgreement2_shenhai。")]
+        public string agreementNameSuffix = "shenhai";
+
         [Header("Game Server")]
         [Tooltip("Login / lobby server endpoint host (overridden by API in production).")]
         public string serverHost = "127.0.0.1";
