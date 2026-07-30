@@ -45,7 +45,9 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             ("Assets/Prefabs/UI/MainUI/Regions/HudAutoBrush.prefab", "HudAutoBrush", HudAutoBrushCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudJoystick.prefab", "HudJoystick", HudJoystickCreator.Generate),
             ("Assets/Prefabs/UI/MainUI/Regions/HudChatBar.prefab", "HudChatBar", HudChatBarCreator.Generate),
-            ("Assets/Prefabs/UI/MainUI/Regions/HudNavBar.prefab", "HudNavBar", HudNavBarCreator.Generate),
+            // HudNavBar 已进入人工可视化维护阶段：Prefab 是唯一视觉源，不再保留页面 Creator。
+            // 总装只嵌套现有资产；若资产缺失则按下方 null 分支中止，禁止自动重建覆盖。
+            ("Assets/Prefabs/UI/MainUI/Regions/HudNavBar.prefab", "HudNavBar", null),
             ("Assets/Prefabs/UI/MainUI/Regions/HudNotification.prefab", "HudNotification", HudAuxiliaryCreator.GenerateNotification),
             ("Assets/Prefabs/UI/MainUI/Regions/HudOnHook.prefab", "HudOnHook", HudAuxiliaryCreator.GenerateOnHook),
             ("Assets/Prefabs/UI/MainUI/Regions/HudSceneAssist.prefab", "HudSceneAssist", HudAuxiliaryCreator.GenerateSceneAssist),
@@ -93,6 +95,13 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             foreach (var part in Parts)
             {
                 if (AssetDatabase.LoadAssetAtPath<GameObject>(part.path) != null) continue;
+                if (part.generate == null)
+                {
+                    Debug.LogError("[UiCreator] 总装:缺 " + part.label
+                        + "，该区域以人工 Prefab 为唯一视觉源，禁止自动重建；请从 Git 恢复资产。");
+                    continue;
+                }
+
                 Debug.Log("[UiCreator] 总装:缺 " + part.label + ",先补生成…");
                 try { part.generate(); }
                 catch (System.Exception e)

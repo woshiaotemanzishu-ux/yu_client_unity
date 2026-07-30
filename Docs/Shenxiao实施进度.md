@@ -1626,3 +1626,9 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **根因**：老端 `mask_width-55` 定位的是 `65×43` 端标图片左边缘；Unity 旧代码却把结果当中心坐标并把偏移改成 0，同时写死 635 像素轨道和 35 像素低进度夹取，端标因此整体向右多出 22.5 像素，且运行时持续覆盖 Inspector 坐标。
 - **修复**：`BarFront` 新增不可交互 Slider；Slider 只驱动零高度 `ProgressEndTrack` 下的零尺寸 `ProgressEndHandle`，真实 `ProgressEnd` 图片改为 Handle 子节点，因此不会再被 Slider 改写 Anchors 或纵向拉伸。图片 Prefab Pos X=`-22.5`，并保留用户调整的 Pos Y=`18`；View 只设置 `fillAmount/Slider.value` 与显隐，轨道宽度、端标尺寸、Pivot 和偏移全部保存在 Prefab。删除 `LoadingCreator` 及注册入口，避免重建覆盖人工界面。
 - **验证状态**：`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 顺序编译均 0 error；Unity 强制编译 `completed/failed=false/errors=[]`。`LoadingViewCase` 返回 0，覆盖 `binding/zero/quarter/half/full/clamp/resized/creatorRemoved`，并逐进度断言图片位置、`65×43` 实际尺寸和 Anchors 均不被 Slider 回写；额外把轨道临时改为 700 像素后，50% Handle 仍自动落在实际中点。
+
+## 2026-07-30：HudNavBar 经验填充与特效定位隔离
+
+- **根因**：`MainUIDownView.SetExpBarWidth` 按比例直接写 `ExpBarFill.sizeDelta.x`，但图片使用中心 Pivot，低经验时左右边缘同时向内收，Prefab 中看到的满宽 Rect 也会在运行时变短；`ExpBarSparkleSlot` 又锚在该可变宽图片右侧，因此特效跟随的是错误右边缘。
+- **修复**：`ExpBarFill` 改为固定满宽、从左向右的 Filled Image；View 只同步 `fillAmount`。新增零高度 `ExpBarEffectTrack` 与机械 `ExpBarEffectHandle`，不可交互 Slider 只按同一 0～1 值移动 Handle；真实 `ExpBarSparkleSlot` 作为普通子节点保留 `(-25,0)`、`50×50` 的 Prefab 可调布局。删除 `HudNavBarCreator`，总装缺失该 Region 时中止并要求从 Git 恢复，避免人工界面被重建覆盖。
+- **验证状态**：Unity 强制编译 `completed/failed=false/errors=[]`；`HudNavBarCase` 返回 0，日志为 `binding/zero/quarter/half/full/clamp/resized/creatorRemoved=True`，并确认每个进度下填充图片保持 `722×12`、特效挂点保持 `(-25,0)` 与 `50×50`，轨道改宽后 Handle 仍落在实际 50% 位置。

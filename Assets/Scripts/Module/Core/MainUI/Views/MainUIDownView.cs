@@ -15,9 +15,9 @@ namespace Shenxiao.Module.Core.MainUI
     /// <summary>
     /// 底部经验条/功能图标条(对标老客户端 MainUIDownView.ts:LoadSuccess + RefreshExpWithoutLevelUp)。
     /// 只还原源码支持的首屏静态态与经验刷新:
-    /// - _img_bg 底图 uizjmv3_001 已烤进 prefab(HudNavBarCreator),不再运行时换图(原对标 LoadSuccess 的 SetTexture 已删)。
-    /// - 经验条宽度按 Exp/ExpLim 比例填充(对标 PlayAnim 的 width = max_len * persent,这里去掉补间直接取终值);
-    ///   老客户端 max_len 明确写死为 722,转换产物初始宽度不是运行时满宽,这里按旧端常量走。
+    /// - _img_bg 底图 uizjmv3_001 已保存在 HudNavBar.prefab,不再运行时换图(原对标 LoadSuccess 的 SetTexture 已删)。
+    /// - 经验条按 Exp/ExpLim 比例填充(对标 PlayAnim 的 width = max_len * persent,这里去掉补间直接取终值);
+    ///   Prefab 保留固定满宽 Rect,运行时只同步 Image.fillAmount 与特效定位 Slider.value,不改 RectTransform。
     /// - _lb_exp 文案 "exp / exp_lim"(对标 onComleted 的 tb.exp + " / " + tb.exp_lim);ExpLim<=0 时 persent=0、
     ///   文案 "0 / 0"(对标 RefreshExpWithoutLevelUp 的 exp_lim==0 → persent=0 分支)。
     /// 数据只读 RoleModel(唯一真相源),监听 EVT_ROLE_INFO_UPDATE 刷新(对标老客户端 EXP_CHANGE_WITHOUT_ANIMATION)。
@@ -29,8 +29,6 @@ namespace Shenxiao.Module.Core.MainUI
     /// </summary>
     public sealed class MainUIDownView : MainUIDownViewBind
     {
-        // 老客户端 MainUIDownView.ts 明确写死 max_len = 722,经验条目标宽度按它计算。
-        private const float EXP_BAR_MAX_WIDTH = 722f;
         // 功能图标改【槽位式】:105 间距等布局烤在 HudNavBar.prefab 的
         // FuncIconRow 槽位(Slot_*)里,View 只按顺序把图标填进槽,不再算坐标。
 
@@ -48,7 +46,7 @@ namespace Shenxiao.Module.Core.MainUI
 
         protected override void OnInit()
         {
-            // 底图 uizjmv3_001 烤在 prefab(HudNavBarCreator),不再运行时换图。
+            // 底图 uizjmv3_001 保存在 HudNavBar.prefab,不再运行时换图。
 
             HideUnbackedIndicators();
             HideTemplates();
@@ -206,7 +204,7 @@ namespace Shenxiao.Module.Core.MainUI
             // 对标 RefreshExpWithoutLevelUp: exp 截顶到 exp_lim;exp_lim==0 → persent=0
             if (expLim <= 0)
             {
-                SetExpBarWidth(0f);
+                SetExpProgress(0f);
                 _lb_exp.text = "0 / 0";
                 return;
             }
@@ -218,25 +216,27 @@ namespace Shenxiao.Module.Core.MainUI
 
             // 对标旧端: let a = exp / exp_lim * 100; persent = Math.floor(a) / 100
             float persent = Mathf.Floor((float)((double)exp / expLim * 100.0)) / 100f;
-            SetExpBarWidth(EXP_BAR_MAX_WIDTH * persent);
+            SetExpProgress(persent);
             // 对标 onComleted: this._lb_exp.text = tb.exp + " / " + tb.exp_lim
             _lb_exp.text = exp + " / " + expLim;
         }
 
-        /// <summary>设经验条宽度(对标老客户端 this._img_exp.width = ...),只改宽不动高。</summary>
-        private void SetExpBarWidth(float width)
+        /// <summary>
+        /// 同步经验填充与特效进度。布局、满宽和特效相对偏移均保存在 HudNavBar.prefab；
+        /// 这里只写 0～1 状态值，避免运行时改短 ExpBarFill 或覆盖 Inspector 调整。
+        /// </summary>
+        private void SetExpProgress(float progress)
         {
-            if (width < 0f)
+            float value = Mathf.Clamp01(progress);
+            _img_exp.fillAmount = value;
+
+            // Slider 不负责绘制，只驱动零尺寸 ExpBarEffectHandle；真实特效挂点是其普通子节点。
+            // 因此 Slider 改写的仅是机械 Handle anchors，不会改 ExpBarFill 或 ExpBarSparkleSlot 的布局。
+            UnityEngine.UI.Slider slider = _img_exp.GetComponent<UnityEngine.UI.Slider>();
+            if (slider != null)
             {
-                width = 0f;
+                slider.SetValueWithoutNotify(value);
             }
-            else if (width > EXP_BAR_MAX_WIDTH)
-            {
-                width = EXP_BAR_MAX_WIDTH;
-            }
-            Vector2 size = _img_exp.rectTransform.sizeDelta;
-            size.x = width;
-            _img_exp.rectTransform.sizeDelta = size;
         }
 
         /// <summary>
