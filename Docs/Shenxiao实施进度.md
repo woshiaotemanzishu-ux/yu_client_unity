@@ -1651,6 +1651,6 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 ## 2026-07-30：公共顶栏与登录背景改为 Prefab 唯一视觉源
 
 - **公共顶栏**：共享 `BaseWindowSkin.prefab/TopBackground` 直接保存临时底图、深紫 Tint、720×90 Rect 和不拦截点击等显示参数；当前 Source Image 使用既有通用 `subbg.png`，以后只需在 Prefab Inspector 替换。`BaseWindowSkinRefiner` 已撤销背景节点创建、图片和颜色校验，只继续处理跨面板的标题原图比例问题。
-- **登录背景**：`LoginStage.prefab/WebBackground` 继续直接保存 `full_screen_bg.jpg`、`Image.Type=Simple` 与 `AspectRatioFitter.EnvelopeParent/16:9`。`LoginStage` 删除背景图片和 Fitter 的代码引用及 `Awake/OnValidate` 回写，页面专用 `LoginStageCreator` 与重建注册入口一并删除。
+- **登录背景**：`LoginStage.prefab/WebBackground` 继续直接保存 `full_screen_bg.jpg`、`Image.Type=Simple` 与 `AspectRatioFitter.EnvelopeParent/16:9`；实际登录、创角、选角和选服页也分别由各自 Prefab 的全屏 `Bg` 直接持有图片与显示参数。`LoginStage` 删除背景图片和 Fitter 的代码引用及 `Awake/OnValidate` 回写；`LoginStageCreator`、`LoginPanelCreator`、`RoleCreateCreator`、`RoleSelectCreator`、`ServerSelectCreator` 及重建入口全部删除。
 - **流程边界**：两张背景都以可视化 Prefab 为唯一事实源，运行时只消费登录视口和业务数据；后续换图不改 C#、不跑批量转换，也不会被“全部重建”覆盖。
-- **验证状态**：`Shenxiao.Module.Core.csproj` 与 `Shenxiao.Editor.csproj` 均 0 error（仅既有 warning）；同一 Unity PID 42148 强制编译 `completed/failed=false/errors=[]`。新增 `PrefabBackgroundOwnershipCase` 返回 0，确认两份 Prefab 均无 Missing Script、两张 Source Image 非空、公共底图位于标题装饰后方且不拦点击、登录仍为 `Simple + EnvelopeParent`、Viewport 引用有效，并锁定运行时背景字段与 `LoginStageCreator` 不得恢复。
+- **验证状态**：`Shenxiao.Module.Core.csproj` 与 `Shenxiao.Editor.csproj` 均 0 error（仅既有 warning）；同一 Unity PID 42148 强制编译 `completed/failed=false/errors=[]`。`PrefabBackgroundOwnershipCase` 返回 0，确认公共顶栏、登录舞台及四个可见登录页面均存在 Prefab 序列化背景且无 Missing Script，登录舞台仍为 `Simple + EnvelopeParent`、Viewport 引用有效，并锁定运行时背景字段与五个页面 Creator 不得恢复。

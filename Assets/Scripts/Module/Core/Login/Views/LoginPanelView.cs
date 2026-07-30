@@ -14,11 +14,11 @@ namespace Shenxiao.Module.Core.Login
     ///
     /// 结构(对标用户给的截图):一张卡片承载表单,「账号/密码」标签在输入框左侧,记住密码居中,
     /// 底部两按钮并排(登录页:注册 | 登录;注册页:确定注册 | 返回),两子面板同 prefab 内 SetActive 切换。
-    /// prefab 由 LoginPanelCreator 纯代码建树生成并回填下列 public 引用。
+    /// 当前 Prefab 是唯一视觉事实源，背景、布局及下列 public 引用均直接序列化保存。
     ///
     /// 本类只做:① 数据绑定 ② 功能性状态切换(切子面板 / 记住勾选指示)。不写颜色/字号/尺寸等样式。
     /// 接入流程:LoginFlow 注入 LoginSubmit/RegisterSubmit,走完整登录链路(校验→选服→EnterLobby);
-    /// 未注入时走独立兜底(仅供「重构UI 生成器」面板的运行时预览自测)。
+    /// 未注入时走独立兜底，仅供隔离运行时预览自测。
     /// </summary>
     [UIView("prefabs/ui/login/loginpanel")]
     public sealed class LoginPanelView : BaseView
