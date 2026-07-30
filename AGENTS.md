@@ -6,6 +6,8 @@
 
 - 人工 UI 保护规则：用户已手工调整或已验收的 Prefab 是唯一视觉事实源；位置、尺寸、锚点、图片、字号、颜色、间距和布局组参数必须直接保存在可视化 Prefab 中，禁止再用页面专用 `UiCreator` 代码建树作为长期界面源。Creator 只允许在界面首次成形前一次性搭骨架；交付手调后必须从重建注册表移除，后续功能只在当前 Prefab 上增量加节点/序列化引用，运行时 `View/Controller/Model/Flow` 只负责数据、事件、协议、点击语义和必要显隐。"恢复界面"只恢复视觉与资源，不授权回滚功能或序列化绑定；发现任务范围外视觉变化时立即停止覆盖，并以当前人工 Prefab 恢复。
 
+- UI 精修落袋规则：当前阶段按需迁移、逐面板精修；只有首次需要且尚无可编辑 Prefab 的界面，才允许用 LayaUI 批量转换器做一次初始导入，禁止为了修已存在界面而重转模块或全量覆盖。初始产物必须进入「神霄/重构UI 生成器」补齐并落成可编辑 Prefab；进入精修后，页面问题直接增量修改当前 Prefab，跨页面问题优先改共享 Prefab / 公共 View / 幂等公共升级器。页面专用 Creator 只负责首次搭骨架，人工接管后必须退出重建注册表；不得让运行时页面代码或批量转换产物重新成为视觉事实源。
+
 - 复合按钮自适应布局规则：按钮背景/唯一点击面和状态图标不得作为 LayoutGroup 子项被控制；只有需要按 preferred width 或可用宽度缩放的文字放进独立内层容器，并把 Horizontal/VerticalLayoutGroup 挂在该纯文字容器上。禁止把 LayoutGroup 直接挂在带 Image 的按钮根，或用 childForceExpand 拉伸图片来换取文字排布。
 
 - 协议覆盖 baseline 收口规则：`Schemas/ProtocolCoverage/baseline.json` 的历史 `unityRegistered/liveGap` 数值用于防倒退，禁止为追当前报告逐轮改写；但当最新运行时扫描的某家族全部活缺口已由注册或带 evidence 的 killlist 完整治理时，必须在同轮把人工 `status` 转为 `done` 并写 `statusNote`，再以 `ProtocolCoverageCase` 的C段验收。禁止长期保留 `pending/legacy_unverified` 逃避C段，也禁止把真实玩家可达写事务塞进killlist来伪收口。

@@ -1632,3 +1632,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **根因**：`MainUIDownView.SetExpBarWidth` 按比例直接写 `ExpBarFill.sizeDelta.x`，但图片使用中心 Pivot，低经验时左右边缘同时向内收，Prefab 中看到的满宽 Rect 也会在运行时变短；`ExpBarSparkleSlot` 又锚在该可变宽图片右侧，因此特效跟随的是错误右边缘。
 - **修复**：`ExpBarFill` 改为固定满宽、从左向右的 Filled Image；View 只同步 `fillAmount`。新增零高度 `ExpBarEffectTrack` 与机械 `ExpBarEffectHandle`，不可交互 Slider 只按同一 0～1 值移动 Handle；真实 `ExpBarSparkleSlot` 作为普通子节点保持 `50×50`。复核 `UIEffectStage` 使用 `parent.TransformPoint(parent.rect.center)` 定位后，将 Slot 从右 Pivot/Pos X=`-25`（实际中心落在端点左侧 50）校正为中心 Pivot/Pos=`(0,0)`，光点中心与进度端点重合。删除 `HudNavBarCreator`，总装缺失该 Region 时中止并要求从 Git 恢复，避免人工界面被重建覆盖。
 - **验证状态**：Unity 强制编译 `completed/failed=false/errors=[]`；`HudNavBarCase` 返回 0，日志为 `binding/zero/quarter/half/full/clamp/resized/creatorRemoved=True`，并确认每个进度下填充图片保持 `722×12`、特效挂点保持 `(0,0)` 与 `50×50`，轨道改宽后 Handle 仍落在实际 50% 位置；Prefab 实物测得 Slot 中心与 Handle 中心差值为 `(0,0,0)`。
+
+## 2026-07-30：公共窗框标题恢复原图比例
+
+- **根因**：`BaseWindowSkin.prefab/_img_title` 固定使用锻造占位图的 `132×40` Rect，`BaseWindowSkinView.ApplyTitle` 换图时又显式关闭 `nativeSize`；因此背包标题原图 `72×44` 被横向拉伸，所有复用公共窗框且标题尺寸不同的面板都存在同类风险。
+- **修复**：公共 Prefab 将标题改为中心 Pivot、固定老端 `centerX=-66` 对应中心，禁用会在换图后锁死左边缘的单子项 `HorizontalLayoutGroup`；公共 View 按标题图片原始尺寸换图。新增 `BaseWindowSkinRefiner` 注册到「重构UI 生成器 / Common」，只幂等精修现有公共 Prefab，不重跑 Laya 批量转换。
+- **流程收口**：明确当前为按需首转、Prefab 精修落袋阶段；批量转换只用于尚无 Prefab 界面的首次导入，已落袋页面不得靠重转修视觉问题，跨页面问题优先修改共享 Prefab / 公共 View / 幂等公共升级器。
+- **验证状态**：`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 均为 0 error（仅既有 warning）；同一 Unity PID 42148 强制编译 `completed/failed=false/errors=[]`。Pipeline 实跑 `BaseWindowSkinRefiner.Generate()` 返回 `true`；实例化真实 Prefab 后分别换入背包和锻造标题，结果为 `bag=72×44 / forge=132×40`，两者水平中心均为 `x=238`，且 `layoutEnabled=False`，确认比例恢复且换图不漂移。

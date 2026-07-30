@@ -382,7 +382,10 @@ namespace Shenxiao.Module.Core.Common
         private void ApplyTitle(string titleImagePath)
         {
             if (_img_title == null || string.IsNullOrEmpty(titleImagePath)) return;
-            _ = ResManager.SetImageAsync(_img_title, titleImagePath, nativeSize: false);
+            // 老端 BaseWindowSkin 的标题 Image 不写 width/height，换图后使用图片原始尺寸。
+            // 公共 Prefab 用中心 Pivot 固定标题中心；这里仅恢复内容图片自身尺寸，避免把
+            // 72x44 的“背包”等标题强行拉成占位图 ui_title_forge 的 132x40。
+            _ = ResManager.SetImageAsync(_img_title, titleImagePath, nativeSize: true);
         }
 
         private void ApplyBackground(string backgroundImagePath)
