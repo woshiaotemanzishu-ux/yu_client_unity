@@ -1620,3 +1620,9 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **功能边界**：View/Flow 仍只负责选服、公告、协议链接、同意/拒绝、渠道正文加载和显隐，布局、图片、字号、颜色、间距及 LayoutGroup 参数全部直接保存在 Prefab。
 - **门禁调整**：`LoginNoticeCase` 新增 `prefabOwned=True` 并校验两个 Creator 资产不存在；保留序列化绑定、必需节点、服务器条文字容器结构、默认显隐和真实点击链验收，不再锁死 RectTransform 数值或具体 Sprite 路径。
 - **验证状态**：`dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 为 0 error（仅既有 warning）；同一 Unity PID 42148 强制编译 `completed/failed=false/errors=[]`。Pipeline 调用 `LoginNoticeCase.Run()` 返回 0，最终 `serverEnter=True/agreementPrefab=True/prefabOwned=True/agreementPointer=True/pass=True`，两条协议链接仍真实命中并按 `agreement,privacy` 回调。
+
+## 2026-07-30：LoadingView 进度端标改为 Prefab Slider
+
+- **根因**：老端 `mask_width-55` 定位的是 `65×43` 端标图片左边缘；Unity 旧代码却把结果当中心坐标并把偏移改成 0，同时写死 635 像素轨道和 35 像素低进度夹取，端标因此整体向右多出 22.5 像素，且运行时持续覆盖 Inspector 坐标。
+- **修复**：`BarFront` 新增不可交互 Slider，`ProgressEnd` 作为 handle、Prefab Pos X=`-22.5`；View 只设置 `fillAmount/Slider.value` 与显隐，轨道宽度、端标尺寸、Pivot 和偏移全部保存在 Prefab。删除 `LoadingCreator` 及注册入口，避免重建覆盖人工界面。
+- **验证状态**：`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 顺序编译均 0 error；Unity 强制编译 `completed/failed=false/errors=[]`。`LoadingViewCase` 返回 0，日志为 `binding/zero/quarter/half/full/clamp/resized/creatorRemoved=True`；额外把轨道临时改为 700 像素后，50% 端标仍自动落在实际中点并保持 Prefab 偏移。

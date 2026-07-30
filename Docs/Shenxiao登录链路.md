@@ -177,3 +177,10 @@
 - 登录公告在账号就绪后的ServerEnter页异步初查并提供手动“公告”入口。自动弹出规则为：新账号遇 `new_reg=0` 不弹；`show_rule=1` 新版本一次、2每日首次、3每次账号会话、4不弹。窗口复用真实 `GameNoticeModule`，正文按 `\n\n##` 分段显示。
 - 游戏内公告红点以正文MD5为键，持久化根按角色ID隔离：规则1/2在新公告或正文变化时置红，3每次主动选角登录重置，4每天首次重置且未读状态会延续；自动重连不重新开始角色会话。标题项根透明Image是唯一点击面，选择后落已读并刷新聚合红点。
 - `WelfareView`外壳尚未迁移，417入口目前受控直达已完成的游戏公告子页；417红点为“公告未读或既有福利可领”。这只是外壳边界，后续嵌回福利页时不得改公告模型或协议语义。10211属于独立配置弹窗链，不能并入10207。
+
+## LoadingView 进度端标可视化维护（2026-07-30）
+
+- 老端 `_img_progress_end.x = mask_width - 55` 的 `x` 是图片左边缘；素材实际为 `65×43`，因此端标中心应在填充边缘左侧 `22.5`。旧 Unity 实现误把 Laya `x` 当成中心点，并另写死 `635/35`，导致端标整体多向右 `22.5`，低进度又会被强制推到 35 像素处；Inspector 中修改 X 还会被下一次 `SetProgress` 覆盖。
+- `LoadingView.prefab/BarBack/BarFront` 现直接挂不可交互的 `Slider`，只把 `ProgressEnd` 作为 `handleRect`；`fillRect` 仍为空，前景继续使用 `Image.fillAmount`，避免缩放填充纹理。View 只同步两个 0～1 值和端标显隐，不再计算像素坐标。
+- Prefab 以 50% 值保存便于所见即所得预览。端标相对填充尖端的视觉位置直接调整 `ProgressEnd/RectTransform/Pos X`，当前 `-22.5` 对齐老端；Size、Pivot、Y 均同样在 Prefab 中调整。修改 `BarFront` 宽度后 Slider 会按实际 Rect 自动重算，不需要同步任何代码常量。
+- 页面专用 `LoadingCreator` 及重建注册入口已删除，LoadingView 与其他已人工调整的登录页一样以 Prefab 为唯一视觉事实源。`LoadingViewCase` 覆盖 0/25/50/100%、越界夹取、端标偏移不被覆盖、轨道改宽自适应及 Creator 不存在。

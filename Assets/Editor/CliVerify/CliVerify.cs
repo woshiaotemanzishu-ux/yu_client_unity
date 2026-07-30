@@ -174,6 +174,12 @@ namespace Shenxiao.EditorTools
             Run(LoginNoticeCase.Run, 60.0);
         }
 
+        /// <summary>登录加载页进度、端标 Slider 绑定与宽度自适应回归。</summary>
+        public static void LoadingView()
+        {
+            Run(LoadingViewCase.Run, 60.0);
+        }
+
         public static void Armor()
         {
             Run(ArmorCase.Run, 60.0);
