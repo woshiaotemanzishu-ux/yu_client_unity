@@ -9,6 +9,7 @@ namespace Shenxiao.Module.Core.TempleAwaken
     /// 天命觉醒(神殿觉醒之路)协议控制器(对标老端 TempleAwakenEnterView.ts:220-223 点击发 42900;
     /// 服务端 pt_429 lib_temple_awaken:finish_initial_task → lib_task_api:open_temple_awaken)。
     /// 42900 完成初始任务(C2S 无参)，42901 是全量章节/子章/阶段快照，42909 是前置完成态。
+    /// 42902 是显式章节全量查询；42903/04/05 是章节、子章、阶段的服务端增量。
     /// GAME_START 空发 42901→42909；领奖、穿戴、场景同步和完整界面仍留后。
     /// </summary>
     public sealed class TempleAwakenController : BaseController
@@ -24,6 +25,10 @@ namespace Shenxiao.Module.Core.TempleAwaken
         {
             RegisterProtocal(Proto.TEMPLE_AWAKEN_FINISH_INITIAL, On42900);
             RegisterProtocal(Proto.TEMPLE_AWAKEN_INFO, On42901);
+            RegisterProtocal(Proto.TEMPLE_AWAKEN_CHAPTER_INFO, On42902);
+            RegisterProtocal(Proto.TEMPLE_AWAKEN_CHAPTER_STATUS, On42903);
+            RegisterProtocal(Proto.TEMPLE_AWAKEN_SUB_STATUS, On42904);
+            RegisterProtocal(Proto.TEMPLE_AWAKEN_STAGE_PROGRESS, On42905);
             RegisterProtocal(Proto.TEMPLE_AWAKEN_PRE_STATE, On42909);
         }
 
@@ -39,6 +44,15 @@ namespace Shenxiao.Module.Core.TempleAwaken
             if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
 #endif
             SendFmt(protoId);
+        }
+
+        public void RequestChapter(ushort chapter)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.TEMPLE_AWAKEN_CHAPTER_INFO, "h", new object[] { (int)chapter });
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.TEMPLE_AWAKEN_CHAPTER_INFO, "h", (int)chapter);
         }
 
         public override void Dispose()
@@ -84,6 +98,54 @@ namespace Shenxiao.Module.Core.TempleAwaken
                 chapters.Add(new TempleAwakenModel.ChapterEntry(chapter, status, isWear, subs));
             }
             TempleAwakenModel.Instance.ReplaceInfo(taskComplete, chapters);
+            EventDispatcher.Emit(GlobalEvent.EVT_TEMPLE_AWAKEN_UPDATE);
+        }
+
+        private void On42902(NetReader r)
+        {
+            ushort chapter = r.ReadU16();
+            byte status = r.ReadU8();
+            int subCount = r.ReadU16();
+            var subs = new System.Collections.Generic.List<TempleAwakenModel.SubChapterEntry>(subCount);
+            for (int i = 0; i < subCount; i++)
+            {
+                ushort subChapter = r.ReadU16();
+                byte subStatus = r.ReadU8();
+                int stageCount = r.ReadU16();
+                var stages = new System.Collections.Generic.List<TempleAwakenModel.StageEntry>(stageCount);
+                for (int j = 0; j < stageCount; j++)
+                    stages.Add(new TempleAwakenModel.StageEntry(r.ReadU16(), r.ReadU8(), unchecked((ulong)r.ReadU64())));
+                subs.Add(new TempleAwakenModel.SubChapterEntry(subChapter, subStatus, stages));
+            }
+            TempleAwakenModel.Instance.ReplaceChapterDetail(chapter, status, subs);
+            EventDispatcher.Emit(GlobalEvent.EVT_TEMPLE_AWAKEN_UPDATE);
+        }
+
+        private void On42903(NetReader r)
+        {
+            ushort chapter = r.ReadU16();
+            byte status = r.ReadU8();
+            TempleAwakenModel.Instance.ApplyChapterStatus(chapter, status);
+            RequestChapter(chapter);
+        }
+
+        private void On42904(NetReader r)
+        {
+            ushort chapter = r.ReadU16();
+            ushort subChapter = r.ReadU16();
+            byte status = r.ReadU8();
+            TempleAwakenModel.Instance.ApplySubStatus(chapter, subChapter, status);
+            EventDispatcher.Emit(GlobalEvent.EVT_TEMPLE_AWAKEN_UPDATE);
+        }
+
+        private void On42905(NetReader r)
+        {
+            ushort chapter = r.ReadU16();
+            ushort subChapter = r.ReadU16();
+            ushort stage = r.ReadU16();
+            ulong process = unchecked((ulong)r.ReadU64());
+            byte status = r.ReadU8();
+            TempleAwakenModel.Instance.ApplyStageProgress(chapter, subChapter, stage, process, status);
             EventDispatcher.Emit(GlobalEvent.EVT_TEMPLE_AWAKEN_UPDATE);
         }
 

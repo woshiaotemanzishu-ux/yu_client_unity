@@ -2325,6 +2325,14 @@
         public const int TEMPLE_AWAKEN_FINISH_INITIAL = 42900;
         /// <summary>天命觉醒全量状态树。C2S 空包；S2C 为章节/子章/阶段进度。</summary>
         public const int TEMPLE_AWAKEN_INFO = 42901;
+        /// <summary>显式章节全量查询。C2S chapter:u16；S2C 回显 chapter/status 及完整子章/阶段树。</summary>
+        public const int TEMPLE_AWAKEN_CHAPTER_INFO = 42902;
+        /// <summary>S2C-only 章节状态增量 chapter:u16,status:u8；收到后按老端补查同章节 42902。</summary>
+        public const int TEMPLE_AWAKEN_CHAPTER_STATUS = 42903;
+        /// <summary>S2C-only 子章节状态增量 chapter:u16,sub_chapter:u16,sub_status:u8。</summary>
+        public const int TEMPLE_AWAKEN_SUB_STATUS = 42904;
+        /// <summary>S2C-only 阶段进度增量 chapter/sub/stage:u16,process:u64,stage_status:u8。</summary>
+        public const int TEMPLE_AWAKEN_STAGE_PROGRESS = 42905;
         /// <summary>觉醒之路前置任务完成态推送(is_finish:c)。</summary>
         public const int TEMPLE_AWAKEN_PRE_STATE = 42909;
 

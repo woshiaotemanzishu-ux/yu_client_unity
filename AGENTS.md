@@ -144,9 +144,11 @@
 - GAME_START sends four `11200 + dress_type:u8` requests in the fixed order `1(Bubble) -> 2(Photo) -> 3(Foot) -> 5(Head)`; do not attach 11201-11205.
 - The reply is a type-local full snapshot: `type:u8,used_dress_id:u32,enable_list:u16×{dress_id:u32,dress_lv:u16,cur_power:u64,next_power:u64}`. The U16 is the list count, not a second business field. Same type replaces (an empty list clears only that type); different types coexist. Keep it query-only: no config, wear, activation, upgrade, preview, UI, resources, or scene sync.
 
-## TempleAwaken 42901（R117）
-- GAME_START 顺序空发 42901→42909；42901 为章节/子章/阶段全量树，process 是 u64，空列表清旧。
-- 42900 成功后仅重拉 42901；同号推送只替换模型并发更新事件，不接领奖、UI 或配置推导。
+## TempleAwaken 42901/42902/42903/42904/42905/42909（R117/R510）
+- GAME_START 顺序仍严格空发 42901→42909；42901 为章节/子章/阶段全量树，process 是 u64，空列表清旧。42900 成功后仍仅重拉 42901。
+- 42902 是显式 `chapter:u16` 纯查询，回包为 `chapter:u16,status:u8,subs:u16×{sub_chapter:u16,sub_status:u8,stages:u16×{stage:u16,stage_status:u8,process:u64}}`；按 chapter 替换首个同键章节并保留 42901 已有 `is_wear`，重复子章/阶段和 wire 原序不去重，空子章表有效。章节锁定或不存在时服务器不回复，请求不得清旧。
+- 42903/42904/42905 都是 S2C-only 权威增量，分别为章节状态、子章状态和阶段进度。每包先记录完整 raw 最后增量，再替换树中首个同键项，未知键按老端语义追加占位，后续 42901 全量可覆盖；42905 process 必须保留 u64。42903 后无条件补查同 chapter 的 42902，42904/05 不自动发包。普通增量不得把全量 `HasInfo` 伪造为已加载。
+- 42906 章节领奖、42907 阶段领奖、42908 穿戴/脱下外形均为真实资产/外形写操作，42910 是场景进入/退出且老端控制器未注册，继续排除；不得接领奖 UI、奖励/背包、本地发奖、外形/场景、红点或乐观状态。10211 仍属于通用 `data_popup` 链，不并入本族。
 
 ## DragonBall 14311（轮101）
 

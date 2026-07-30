@@ -28,11 +28,141 @@ namespace Shenxiao.Module.Core.TempleAwaken
         public sealed class SubChapterEntry { public ushort SubChapter { get; } public byte Status { get; } public IReadOnlyList<StageEntry> Stages { get; } public SubChapterEntry(ushort subChapter, byte status, List<StageEntry> stages) { SubChapter = subChapter; Status = status; Stages = (stages ?? new List<StageEntry>()).AsReadOnly(); } }
         public sealed class ChapterEntry { public ushort Chapter { get; } public byte Status { get; } public byte IsWear { get; } public IReadOnlyList<SubChapterEntry> Subs { get; } public ChapterEntry(ushort chapter, byte status, byte isWear, List<SubChapterEntry> subs) { Chapter = chapter; Status = status; IsWear = isWear; Subs = (subs ?? new List<SubChapterEntry>()).AsReadOnly(); } }
         private readonly List<ChapterEntry> _chapters = new List<ChapterEntry>();
+        private readonly HashSet<ushort> _loadedChapterDetails = new HashSet<ushort>();
         public byte TaskComplete { get; private set; }
         public IReadOnlyList<ChapterEntry> Chapters => _chapters.AsReadOnly();
         public bool IsTaskComplete => TaskComplete != 0;
         public bool HasInfo { get; private set; }
-        public void ReplaceInfo(byte taskComplete, List<ChapterEntry> chapters) { TaskComplete = taskComplete; _chapters.Clear(); if (chapters != null) _chapters.AddRange(chapters); HasInfo = true; }
+        public bool HasChapterStatusDelta { get; private set; }
+        public ushort LastChapterStatusChapter { get; private set; }
+        public byte LastChapterStatus { get; private set; }
+        public bool HasSubStatusDelta { get; private set; }
+        public ushort LastSubStatusChapter { get; private set; }
+        public ushort LastSubStatusSubChapter { get; private set; }
+        public byte LastSubStatus { get; private set; }
+        public bool HasStageProgressDelta { get; private set; }
+        public ushort LastStageProgressChapter { get; private set; }
+        public ushort LastStageProgressSubChapter { get; private set; }
+        public ushort LastStageProgressStage { get; private set; }
+        public ulong LastStageProgress { get; private set; }
+        public byte LastStageProgressStatus { get; private set; }
+
+        public bool HasChapterDetail(ushort chapter) => _loadedChapterDetails.Contains(chapter);
+
+        public void ReplaceInfo(byte taskComplete, List<ChapterEntry> chapters)
+        {
+            TaskComplete = taskComplete;
+            _chapters.Clear();
+            _loadedChapterDetails.Clear();
+            if (chapters != null)
+            {
+                _chapters.AddRange(chapters);
+                foreach (ChapterEntry chapter in chapters) _loadedChapterDetails.Add(chapter.Chapter);
+            }
+            HasInfo = true;
+        }
+
+        public void ReplaceChapterDetail(ushort chapter, byte status, List<SubChapterEntry> subs)
+        {
+            int index = FindChapterIndex(chapter);
+            byte isWear = index >= 0 ? _chapters[index].IsWear : (byte)0;
+            var replacement = new ChapterEntry(chapter, status, isWear, subs);
+            if (index >= 0) _chapters[index] = replacement;
+            else _chapters.Add(replacement);
+            _loadedChapterDetails.Add(chapter);
+        }
+
+        public void ApplyChapterStatus(ushort chapter, byte status)
+        {
+            HasChapterStatusDelta = true;
+            LastChapterStatusChapter = chapter;
+            LastChapterStatus = status;
+            int index = FindChapterIndex(chapter);
+            if (index < 0)
+            {
+                _chapters.Add(new ChapterEntry(chapter, status, 0, null));
+                return;
+            }
+            ChapterEntry old = _chapters[index];
+            _chapters[index] = new ChapterEntry(chapter, status, old.IsWear,
+                new List<SubChapterEntry>(old.Subs));
+        }
+
+        public void ApplySubStatus(ushort chapter, ushort subChapter, byte status)
+        {
+            HasSubStatusDelta = true;
+            LastSubStatusChapter = chapter;
+            LastSubStatusSubChapter = subChapter;
+            LastSubStatus = status;
+            int chapterIndex = EnsureChapter(chapter);
+            ChapterEntry oldChapter = _chapters[chapterIndex];
+            var subs = new List<SubChapterEntry>(oldChapter.Subs);
+            int subIndex = FindSubIndex(subs, subChapter);
+            if (subIndex < 0) subs.Add(new SubChapterEntry(subChapter, status, null));
+            else
+            {
+                SubChapterEntry oldSub = subs[subIndex];
+                subs[subIndex] = new SubChapterEntry(subChapter, status, new List<StageEntry>(oldSub.Stages));
+            }
+            _chapters[chapterIndex] = new ChapterEntry(chapter, oldChapter.Status, oldChapter.IsWear, subs);
+        }
+
+        public void ApplyStageProgress(ushort chapter, ushort subChapter, ushort stage, ulong process, byte status)
+        {
+            HasStageProgressDelta = true;
+            LastStageProgressChapter = chapter;
+            LastStageProgressSubChapter = subChapter;
+            LastStageProgressStage = stage;
+            LastStageProgress = process;
+            LastStageProgressStatus = status;
+            int chapterIndex = EnsureChapter(chapter);
+            ChapterEntry oldChapter = _chapters[chapterIndex];
+            var subs = new List<SubChapterEntry>(oldChapter.Subs);
+            int subIndex = FindSubIndex(subs, subChapter);
+            SubChapterEntry oldSub;
+            if (subIndex < 0)
+            {
+                oldSub = new SubChapterEntry(subChapter, 0, null);
+                subs.Add(oldSub);
+                subIndex = subs.Count - 1;
+            }
+            else oldSub = subs[subIndex];
+            var stages = new List<StageEntry>(oldSub.Stages);
+            int stageIndex = -1;
+            for (int i = 0; i < stages.Count; i++)
+            {
+                if (stages[i].Stage != stage) continue;
+                stageIndex = i;
+                break;
+            }
+            var replacement = new StageEntry(stage, status, process);
+            if (stageIndex < 0) stages.Add(replacement);
+            else stages[stageIndex] = replacement;
+            subs[subIndex] = new SubChapterEntry(subChapter, oldSub.Status, stages);
+            _chapters[chapterIndex] = new ChapterEntry(chapter, oldChapter.Status, oldChapter.IsWear, subs);
+        }
+
+        private int EnsureChapter(ushort chapter)
+        {
+            int index = FindChapterIndex(chapter);
+            if (index >= 0) return index;
+            _chapters.Add(new ChapterEntry(chapter, 0, 0, null));
+            return _chapters.Count - 1;
+        }
+
+        private int FindChapterIndex(ushort chapter)
+        {
+            for (int i = 0; i < _chapters.Count; i++)
+                if (_chapters[i].Chapter == chapter) return i;
+            return -1;
+        }
+
+        private static int FindSubIndex(List<SubChapterEntry> subs, ushort subChapter)
+        {
+            for (int i = 0; i < subs.Count; i++)
+                if (subs[i].SubChapter == subChapter) return i;
+            return -1;
+        }
 
         public void SetPreTaskFinished(bool finished)
         {
@@ -50,7 +180,21 @@ namespace Shenxiao.Module.Core.TempleAwaken
             Opened = false;
             TaskComplete = 0;
             _chapters.Clear();
+            _loadedChapterDetails.Clear();
             HasInfo = false;
+            HasChapterStatusDelta = false;
+            LastChapterStatusChapter = 0;
+            LastChapterStatus = 0;
+            HasSubStatusDelta = false;
+            LastSubStatusChapter = 0;
+            LastSubStatusSubChapter = 0;
+            LastSubStatus = 0;
+            HasStageProgressDelta = false;
+            LastStageProgressChapter = 0;
+            LastStageProgressSubChapter = 0;
+            LastStageProgressStage = 0;
+            LastStageProgress = 0;
+            LastStageProgressStatus = 0;
         }
     }
 
