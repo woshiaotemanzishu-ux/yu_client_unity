@@ -452,6 +452,15 @@
         /// <summary>Toggle auto-brush. Send "c"; reply "ic".</summary>
         public const int AUTOBRUSH_TOGGLE = 13307;
 
+        /// <summary>Next stage-reward gate. Send empty; reply code:u32,next_stage_reward_gate:u64.</summary>
+        public const int AUTOBRUSH_NEXT_STAGE_REWARD = 13309;
+
+        /// <summary>Current tutorial/process node. Send empty; reply node:u8.</summary>
+        public const int AUTOBRUSH_TUTORIAL_NODE = 13323;
+
+        /// <summary>Assist-times snapshot. Send empty; reply daily_ask_time:u16,next_ask_time:u32.</summary>
+        public const int AUTOBRUSH_ASSIST_INFO = 13324;
+
         /// <summary>退出副本(通用,对标老端 BaseDungeonController 61002)。发空;回包 error_code:i(==1 成功)。
         /// 主线副本(AutoBrush)结算/失败后由客户端主动发此包退副本,服务端再用 12005 把玩家切回野外野场景。</summary>
         public const int DUNGEON_EXIT = 61002;

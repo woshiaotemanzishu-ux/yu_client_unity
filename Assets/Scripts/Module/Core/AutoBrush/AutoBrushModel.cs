@@ -49,6 +49,14 @@ namespace Shenxiao.Module.Core.AutoBrush
         public int MaxLevel { get; private set; }
         public bool FailureState { get; private set; }
         public int LastFailureLevel { get; private set; }
+        public bool HasNextStageReward { get; private set; }
+        public uint NextStageRewardCode { get; private set; }
+        public ulong NextStageRewardGate { get; private set; }
+        public bool HasTutorialNode { get; private set; }
+        public byte TutorialNode { get; private set; }
+        public bool HasAssistInfo { get; private set; }
+        public ushort AssistDailyCount { get; private set; }
+        public uint AssistNextTime { get; private set; }
 
         public void ResetData()
         {
@@ -62,6 +70,14 @@ namespace Shenxiao.Module.Core.AutoBrush
             MaxLevel = 0;
             FailureState = false;
             LastFailureLevel = 0;
+            HasNextStageReward = false;
+            NextStageRewardCode = 0;
+            NextStageRewardGate = 0;
+            HasTutorialNode = false;
+            TutorialNode = 0;
+            HasAssistInfo = false;
+            AssistDailyCount = 0;
+            AssistNextTime = 0;
             EventDispatcher.Emit(GlobalEvent.EVT_AUTOBRUSH_INFO_UPDATED);
             EventDispatcher.Emit(GlobalEvent.EVT_AUTOBRUSH_LEVEL_UPDATED);
             EventDispatcher.Emit(GlobalEvent.EVT_AUTOBRUSH_STATE_UPDATED);
@@ -105,6 +121,26 @@ namespace Shenxiao.Module.Core.AutoBrush
         {
             FailureState = failure;
             if (failure) LastFailureLevel = level;
+        }
+
+        public void ReplaceNextStageReward(uint code, ulong gate)
+        {
+            HasNextStageReward = true;
+            NextStageRewardCode = code;
+            NextStageRewardGate = gate;
+        }
+
+        public void ReplaceTutorialNode(byte node)
+        {
+            HasTutorialNode = true;
+            TutorialNode = node;
+        }
+
+        public void ReplaceAssistInfo(ushort dailyCount, uint nextTime)
+        {
+            HasAssistInfo = true;
+            AssistDailyCount = dailyCount;
+            AssistNextTime = nextTime;
         }
 
         public bool CheckDoneState()

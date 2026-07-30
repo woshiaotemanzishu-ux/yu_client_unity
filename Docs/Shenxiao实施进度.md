@@ -17,8 +17,8 @@
 
 ## 当前协议迁移口径（2026-07-30）
 
-- 最新完成轮次：R511，扩展影骸战衣 HolySeal 654 家族安全读侧：GAME_START 清本家族后严格空发 65401→65405，分别完整保存装备表 `u16×{pos:u8,goods_id:u64,stren:u16}` 与魂珠表 `u16×{goods_type_id:u32,num:u16,limit:u16}`；65408 显式发送 `goods_type_id:u32`，只保存不回显请求键的最后套装预览及 raw code；65409 显式空查询并完整保存当前套装表。四份快照保留 wire 原序、重复项、零/最大值与 loaded 空表，请求无回复保留，彼此及既有 65400/65407 双向隔离。
-- 65402 强化、65403 穿戴、65406 使用魂珠仍按真实资产写操作排除，65404 维持 `old_client_never_sends` kill；未接 UI、配置、背包、属性、事件、红点或乐观状态。编译和同一 PID 真实域重载 0 error，`HolySealCase=0/pass=True/restored=True`；`ProtocolCoverageCase=0`，报告 `coverage_20260730_082553.md` A～E 全 PASS。当前 `registered=1249 / liveDefined=1468 / liveGap=341 / errorExit=10 / effective=1127/1468=76.8%`，654 族 `registered6/liveGap4/dead0/pending`，baseline 不更新。
+- 最新完成轮次：R512，补齐结界守护 AutoBrush 三条安全启动读侧：GAME_START 先 Reset，再严格空发 `13300→13301→13309→13323→13324`。13309 完整保存 `code:u32,next_stage_reward_gate:u64`，不把 raw gate=0 改写成旧 UI 的 99999 哨兵；13323 保存 `node:u8`；13324 原子保存 `daily_ask_time:u16,next_ask_time:u32`，并接受公会协助链的同号主动刷新。三切片逐包完整替换、零/最大值有效，与既有刷怪/排行/战斗状态互相隔离，Dispose 全清。
+- 13310 阶段领奖和 13322 教程节点写入仍按真实奖励/DB 写操作排除；Arcana 21101-04 复核后维持 R491 机器 KILL，不重复实现。未接奖励、教程 UI、配置、红点、公会协助操作或本地推导。编译和同一 PID 真实域重载 0 error，`AutoBrushReadCase=0/pass=True/restored=True`；`ProtocolCoverageCase=0`，报告 `coverage_20260730_083524.md` A～E 全 PASS。当前 `registered=1252 / liveDefined=1468 / liveGap=338 / errorExit=10 / effective=1130/1468=77.0%`，133 族 `registered10/liveGap2/dead5/pending`，baseline 不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

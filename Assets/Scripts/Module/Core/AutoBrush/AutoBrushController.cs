@@ -17,6 +17,9 @@ namespace Shenxiao.Module.Core.AutoBrush
     public sealed class AutoBrushController : BaseController
     {
         public static readonly AutoBrushController Instance = new AutoBrushController();
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_startupOutboundIntercept = null;
+#endif
 
         private int _exitRetryCount;
 
@@ -29,6 +32,9 @@ namespace Shenxiao.Module.Core.AutoBrush
             RegisterProtocal(Proto.AUTOBRUSH_ENTER_EXIT, On13305);
             RegisterProtocal(Proto.AUTOBRUSH_RESULT, On13306);
             RegisterProtocal(Proto.AUTOBRUSH_TOGGLE, On13307);
+            RegisterProtocal(Proto.AUTOBRUSH_NEXT_STAGE_REWARD, On13309);
+            RegisterProtocal(Proto.AUTOBRUSH_TUTORIAL_NODE, On13323);
+            RegisterProtocal(Proto.AUTOBRUSH_ASSIST_INFO, On13324);
             RegisterProtocal(Proto.DUNGEON_EXIT, On61002);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
@@ -75,16 +81,30 @@ namespace Shenxiao.Module.Core.AutoBrush
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
+            AutoBrushModel.Instance.ResetData();
             base.Dispose();
         }
 
         private void OnGameStart()
         {
             AutoBrushModel.Instance.ResetData();
-            SendFmt(Proto.AUTOBRUSH_INFO);
-            SendFmt(Proto.AUTOBRUSH_RANK);
-            GameLog.Info("AutoBrush", "request auto-brush info proto={0},{1}",
-                Proto.AUTOBRUSH_INFO, Proto.AUTOBRUSH_RANK);
+            SendStartupRequest(Proto.AUTOBRUSH_INFO);
+            SendStartupRequest(Proto.AUTOBRUSH_RANK);
+            SendStartupRequest(Proto.AUTOBRUSH_NEXT_STAGE_REWARD);
+            SendStartupRequest(Proto.AUTOBRUSH_TUTORIAL_NODE);
+            SendStartupRequest(Proto.AUTOBRUSH_ASSIST_INFO);
+            GameLog.Info("AutoBrush", "request startup proto={0},{1},{2},{3},{4}",
+                Proto.AUTOBRUSH_INFO, Proto.AUTOBRUSH_RANK, Proto.AUTOBRUSH_NEXT_STAGE_REWARD,
+                Proto.AUTOBRUSH_TUTORIAL_NODE, Proto.AUTOBRUSH_ASSIST_INFO);
+        }
+
+        private void SendStartupRequest(int protocol)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(protocol, null, null);
+            if (s_startupOutboundIntercept != null && s_startupOutboundIntercept(frame)) return;
+#endif
+            SendFmt(protocol);
         }
 
         private void On13300(NetReader r)
@@ -145,6 +165,21 @@ namespace Shenxiao.Module.Core.AutoBrush
             AutoBrushModel.Instance.SetRankInfo(rankType, roleRank, level, topRankName, topRankLevel);
             GameLog.Info("AutoBrush", "13301 level={0} rankType={1} roleRank={2} top={3}/{4}",
                 level, rankType, roleRank, topRankName, topRankLevel);
+        }
+
+        private void On13309(NetReader r)
+        {
+            AutoBrushModel.Instance.ReplaceNextStageReward(r.ReadU32(), unchecked((ulong)r.ReadU64()));
+        }
+
+        private void On13323(NetReader r)
+        {
+            AutoBrushModel.Instance.ReplaceTutorialNode(r.ReadU8());
+        }
+
+        private void On13324(NetReader r)
+        {
+            AutoBrushModel.Instance.ReplaceAssistInfo(r.ReadU16(), r.ReadU32());
         }
 
         private void On13305(NetReader r)
