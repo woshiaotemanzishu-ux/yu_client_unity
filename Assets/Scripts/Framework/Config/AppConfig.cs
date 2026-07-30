@@ -35,6 +35,9 @@ namespace Shenxiao.Framework.Config
         [Tooltip("Old-client raw resource CDN imported from yu_client platform cfg. Kept for comparison/tools, not used as Unity Addressables CDN.")]
         public string legacyResourceCdnBaseUrl = "";
 
+        [Tooltip("运营公告 CDN 根地址，导自平台 cfg.url_cdn_path；10207 只通知客户端从此地址重查版本/正文。")]
+        public string noticeCdnBaseUrl = "http://userpic.suyougame.com/";
+
         [Header("Game Server")]
         [Tooltip("Login / lobby server endpoint host (overridden by API in production).")]
         public string serverHost = "127.0.0.1";
@@ -50,6 +53,9 @@ namespace Shenxiao.Framework.Config
 
         [Tooltip("Platform name sent to GM API as 'site'. Mirrors Laya ClientConfig.plat_name.")]
         public string platName = "jzy_sh921_test";
+
+        [Tooltip("运营公告平台归属键，导自平台 cfg.plat_belong，用于 belong 表筛选公告。")]
+        public string platBelong = "test";
 
         [Tooltip("Account used in dev to skip the OAuth/SDK step. Empty disables auto-login.")]
         public string devAccount = "unity_dev_001";

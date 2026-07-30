@@ -61,6 +61,9 @@ namespace Shenxiao.Editor.PlatformCfg
             }
             appConfig.platName = platName;
 
+            appConfig.platBelong = (string)cfg["plat_belong"] ?? string.Empty;
+            appConfig.noticeCdnBaseUrl = NormalizeUrl((string)cfg["url_cdn_path"] ?? string.Empty);
+
             string resUrl = (string)cfg["ResUrl"] ?? "";
             string alphaCdnUrl = (string)cfg["AlphaCdnUrl"] ?? "";
             appConfig.legacyResourceCdnBaseUrl = NormalizeUrl(string.IsNullOrEmpty(alphaCdnUrl) ? resUrl : alphaCdnUrl);

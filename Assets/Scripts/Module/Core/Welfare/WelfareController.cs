@@ -7,6 +7,7 @@ using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.MainUI;
+using Shenxiao.Module.Core.GameNotice;
 using Shenxiao.Module.Core.Role;
 
 namespace Shenxiao.Module.Core.Welfare
@@ -65,7 +66,7 @@ namespace Shenxiao.Module.Core.Welfare
         private async void OnGameStart()
         {
             WelfareModel.Instance.Reset();
-            ActivityIconManager.Instance.SetIconRedDot("417", false);
+            GameNoticeBootstrap.RefreshEntranceRedDot();
             await WelfareConfigs.EnsureLoaded();
             await KeyValueConfigs.EnsureLoaded(); // 41708 明细要用 config_key_value[1],GAME_START 时提前备好(见 On41708)
             SendFmt(Proto.WELFARE_CHECKIN_INFO);
@@ -278,7 +279,7 @@ namespace Shenxiao.Module.Core.Welfare
 
         private static void RefreshEntranceRedDot()
         {
-            ActivityIconManager.Instance.SetIconRedDot("417", WelfareModel.Instance.HasEntranceRedDot());
+            GameNoticeBootstrap.RefreshEntranceRedDot();
         }
 
         /// <summary>41716 领取在线福利(二层嵌套 SendList{RewardId,Rewards(ObjectList),OtherRewards(ObjectList)})。

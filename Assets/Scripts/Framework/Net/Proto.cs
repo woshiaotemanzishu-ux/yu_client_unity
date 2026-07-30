@@ -67,6 +67,8 @@
         /// <summary>全局通用错误推送。无 C2S；S2C error_code:u32,args:string。
         /// 服务端所有 lib_game:send_error* 最终统一写入本号，老端 ServerTimeController 无条件显错。</summary>
         public const int GLOBAL_ERROR = 10205;
+        /// <summary>运营公告刷新通知。S2C-only type:u8；type!=0 时重查公告 CDN 版本，禁止发送客户端请求。</summary>
+        public const int LOGIN_NOTICE_REFRESH = 10207;
         /// <summary>脱离卡死(对标老端 confirm_flee):发 "i"(scene_id);回包 code:i(!=1 显错误码,==1 服务端拉人切场景)。</summary>
         public const int SETTING_FLEE = 10210;
         public const int SETTING_WX_SUBSCRIPTION_SWITCH = 11307; // 微信订阅总开关：空请求，回包 res:u8。

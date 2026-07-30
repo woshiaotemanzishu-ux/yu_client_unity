@@ -18,6 +18,9 @@ namespace Shenxiao.Framework.Config
             public string cdnBaseUrl;
             public string astcCdnBaseUrl;
             public string gmApiUrl;
+            public string noticeCdnBaseUrl;
+            public string platName;
+            public string platBelong;
         }
 
         /// <summary>拉取并覆盖 config 的可部署字段(仅内存,不落盘)。任何失败静默走烧包默认,绝不挡启动。</summary>
@@ -53,6 +56,9 @@ namespace Shenxiao.Framework.Config
                 if (!string.IsNullOrEmpty(dto.cdnBaseUrl)) config.addressablesCdnBaseUrl = dto.cdnBaseUrl.TrimEnd('/');
                 if (!string.IsNullOrEmpty(dto.astcCdnBaseUrl)) config.astcCdnBaseUrl = dto.astcCdnBaseUrl.TrimEnd('/');
                 if (!string.IsNullOrEmpty(dto.gmApiUrl)) config.gmApiUrl = dto.gmApiUrl;
+                if (!string.IsNullOrEmpty(dto.noticeCdnBaseUrl)) config.noticeCdnBaseUrl = dto.noticeCdnBaseUrl.TrimEnd('/') + "/";
+                if (!string.IsNullOrEmpty(dto.platName)) config.platName = dto.platName;
+                if (!string.IsNullOrEmpty(dto.platBelong)) config.platBelong = dto.platBelong;
                 GameLog.Info("Boot", "boot_config.json applied: cdn={0}", config.addressablesCdnBaseUrl);
             }
             catch (Exception e)

@@ -72,6 +72,7 @@ namespace Shenxiao.Module.Core.Login
 
             GmApi.BaseUrl = _config.gmApiUrl;
             GmApi.LoginKey = _config.gmLoginKey;
+            LoginNoticeService.Setup(_config);
             Init();
         }
 
@@ -250,6 +251,7 @@ namespace Shenxiao.Module.Core.Login
             RegisterProtocal(Proto.HEARTBEAT, OnHeartbeat);
             RegisterProtocal(Proto.NAME_VERIFY, OnNameVerify);
             RegisterProtocal(Proto.LOGIN_KICK_REASON, OnKickReason);
+            RegisterProtocal(Proto.LOGIN_NOTICE_REFRESH, OnLoginNoticeRefresh);
             EventDispatcher.On(GlobalEvent.EVT_NET_DISCONNECTED, OnNetDisconnected);
         }
 
@@ -261,6 +263,14 @@ namespace Shenxiao.Module.Core.Login
             StopLinkWatchdog();
             CancelAutoReconnect();
             base.Dispose();
+        }
+
+        /// <summary>10207 为 PHP/GM 广播的 S2C-only 通知；type=1 表示重新检查运营公告 CDN。</summary>
+        private void OnLoginNoticeRefresh(NetReader reader)
+        {
+            byte type = reader.ReadU8();
+            LoginNoticeModel.Instance.ApplyPush(type);
+            if (type != 0) _ = LoginNoticeService.RefreshAsync();
         }
 
         /// <summary>
@@ -381,6 +391,7 @@ namespace Shenxiao.Module.Core.Login
             // 对标老客户端 cookie LAST_LOGIN_ROLE_ID:选角页下次默认选中它
             Shenxiao.Common.Prefs.PrefsManager.SetString(RoleSelectView.PREF_LAST_ROLE_ID, roleId.ToString());
             Model.SetNewCareer(isNewCareer);
+            LoginNoticeModel.Instance.BeginRoleSession(roleId);
             _activeRoleId = roleId;
             if (!NetManager.IsConnected)
             {
@@ -787,6 +798,7 @@ namespace Shenxiao.Module.Core.Login
             string deviceId = GetOrCreateDeviceId();
             string platName = GetPlatName();
             Model.ResetSession(account, platName, token);
+            LoginNoticeModel.Instance.BeginSession(account, platName);
 
             JObject loginInfo = await GmApi.PlayerLogin(account, platName, deviceId, token);
             if (!IsOk(loginInfo, out string loginError))

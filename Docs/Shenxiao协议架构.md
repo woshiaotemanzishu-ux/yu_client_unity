@@ -113,7 +113,7 @@
 - `10205` 无 C2S，是 `lib_game:send_error/2..4 -> make_error_bin_data -> pt_102:write(10205, ...)` 的全局错误出口；wire 固定为 `error_code:u32,args:string`。
 - `GameStartController` 随控制器初始化常驻注册，但绝不主动发送、不加入 GAME_START。每包完整消费两个字段并无条件显示错误，对标老端 `ServerTimeController.On10205 -> Util.ErrorCodeShow`。
 - Unity 尚未迁移 `data_error_code` 与 args 模板替换器，因此用户提示降级为 `操作失败(code)`，原始 args 只写诊断日志；不得把 args 原样冒充最终本地化文案。
-- 相邻号不能顺手并入：10204 的版本 setter 在老端无 sender；10207 依赖 CDN 登录公告版本/正文/红点；10211 依赖服务端 `data_popup`、登录/定时/神殿条件和真实弹窗消费。三者分别按 KILL/DEFER 治理，不注册空 handler。
+- 相邻号不能顺手并入：10204 的版本 setter 在老端无 sender，继续KILL；10207已在R521随CDN正文/红点/真实页面完整落地，见7.16；10211仍依赖服务端 `data_popup`、登录/定时/神殿条件和真实弹窗消费，继续DEFER且不得注册空handler。
 
 ### 7.2 时空圣痕 204xx 只读切片（2026-07-30 核对）
 
@@ -208,3 +208,10 @@
 - 同服显式请求15014只写 `role_id:u64`；跨服显式请求15015写 `server_id:u16,role_id:u64`。两条服务器成功链都统一下发15014：`server_id:u16,role_id:u64,other_power:u16×u32,self_power:u16×u32`。客户端以回包键为准，按服务器/角色复合键完整替换不可变快照；两表保留wire原序和重复值，空表是loaded，请求无回复不清旧。
 - 唯一公开入口位于现有他人资料卡，先拦截非正角色号、自己和越界服务器号；不加入GAME_START、不自动轮询。资料卡缓存命中直接渲染，未命中才请求，事件消费必须再次核对当前服务器/角色和“战力对比”页状态，避免乱序包串页。
 - 当前仓库没有旧端 `CLIENTFIGHTCOM` 分项名称/归类的权威配置，表现层只能以wire位置并排展示我方/对方原始数值；禁止猜名称、分组、相加、补齐缺项或把分项和冒充总战力。15023继续按老端无触发且服务端恒失败治理；15011与15028仍分别等待资料卡权威链取舍和真实合成资产闭环。
+
+### 7.16 运营公告 10207 的协议/CDN双段链（2026-07-30 核对）
+
+- 服务器wire只有S2C `type:u8`，PHP/GM通过 `notify_handle` 广播；Unity无请求方法、不加入GAME_START。每包保存最后raw type，0只记录，非0进入与登录页初查共用的串行CDN刷新，避免并发版本/正文交错提交。
+- 版本与正文分别来自平台 `url_cdn_path/login_notice/jzy/login_notice.json.cfg.v` 和 `.json.cfg`。正文必须同时具备 `belong`、`notice` 对象，成功后才原子替换并提交版本；网络失败、版本JSON或正文JSON/结构失败都保留旧快照。冷启动内存无正文时，即使持久版本相同也必须重新取正文。
+- `belong[plat_belong]` 是公告ID线序权威；重复ID按线序保留，缺失ID跳过。公告再按source对plat_name前缀和服务器时间窗筛选，内容只识别 `open_login/open_inside`。登录弹出状态按账号隔离，游戏内MD5已读/红点按角色ID隔离；主动选角开始角色会话，自动重连不重复重置。
+- `GameNoticeModule`同时消费登录和游戏内切片；标题根透明Image是唯一命中体，选择游戏内条目即持久化已读。417入口红点聚合公告与Welfare模型；在WelfareView外壳迁移前只允许直达公告子页。不得把10207当成功ACK、从资源CDN加载、解析失败清旧、跨角色共享红点或混接10211。

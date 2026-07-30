@@ -1,5 +1,7 @@
 using System.Text.RegularExpressions;
 using Shenxiao.Generated.UI.GameNotice;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.GameNotice
 {
@@ -15,9 +17,15 @@ namespace Shenxiao.Module.Core.GameNotice
         {
             if (_lb_title == null) return;
             if (string.IsNullOrEmpty(content)) { _lb_title.text = ""; return; }
-            string plain = content.Replace("\n@@", "\n");
+            string plain = Regex.Replace(content, "<br\\s*/?>", "\n", RegexOptions.IgnoreCase);
+            plain = Regex.Replace(plain, "<[^>]+>", "");
+            plain = plain.Replace("\n@@", "\n");
             plain = Regex.Replace(plain, "0x[0-9a-fA-F]{6}", "");
-            _lb_title.text = plain;
+            _lb_title.text = System.Net.WebUtility.HtmlDecode(plain);
+            _lb_title.ForceMeshUpdate();
+            var layout = GetComponent<LayoutElement>();
+            if (layout == null) layout = gameObject.AddComponent<LayoutElement>();
+            layout.preferredHeight = Mathf.Max(54f, _lb_title.preferredHeight + 24f);
         }
     }
 }

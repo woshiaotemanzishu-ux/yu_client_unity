@@ -37,6 +37,7 @@ namespace Shenxiao.Editor.UiCreator.Login
         private const float ServerBtnW = 470f, ServerBtnH = 58f, ServerBtnY = -360f;
         private const float EnterW = 378f, EnterH = 140f, EnterY = -470f;
         private const float AgreementY = -560f;
+        private const float NoticeBtnX = 275f, NoticeBtnY = 545f, NoticeBtnW = 120f, NoticeBtnH = 58f;
 
         // 协议弹层布局(弹层中心为原点)
         private const float AlertW = 581f, AlertH = 583f;
@@ -107,6 +108,12 @@ namespace Shenxiao.Editor.UiCreator.Login
             UiCreatorKit.TrySetSprite(enter.bg, IMG_ENTER, UiCreatorKit.Palette.BtnPrimary);
             view.enterBtn = enter.bg;
             view.enterBtnLabel = enter.label;
+
+            // ---------- 运营公告入口（登录初查与 10207 共用同一 CDN 快照） ----------
+            UiCreatorKit.ButtonParts notice = UiCreatorKit.NewButton("NoticeBtn", root, "公告");
+            UiCreatorKit.Place(notice.root, NoticeBtnX, NoticeBtnY, NoticeBtnW, NoticeBtnH);
+            view.noticeBtn = notice.bg;
+            view.noticeBtnLabel = notice.label;
 
             // ---------- 协议勾选行(勾选框 + 标记 + 文案) ----------
             UiCreatorKit.ButtonParts check = UiCreatorKit.NewButton("AgreementCheckBg", root, string.Empty);

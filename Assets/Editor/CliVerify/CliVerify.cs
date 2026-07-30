@@ -169,6 +169,11 @@ namespace Shenxiao.EditorTools
             Run(DragonBallCase.Run, 60.0);
         }
 
+        public static void LoginNotice()
+        {
+            Run(LoginNoticeCase.Run, 60.0);
+        }
+
         public static void Armor()
         {
             Run(ArmorCase.Run, 60.0);

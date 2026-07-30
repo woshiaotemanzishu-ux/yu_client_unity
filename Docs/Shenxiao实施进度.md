@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-07-30）
 
-- 最新完成轮次：R520。Recharge新增15802空体充值成功通知与15803累计充值绝对快照：15802每包标记loaded、显示一次成功提示并发一次事件；15803只允许显式空查询，同时接受真实充值入账后的主动推送，`total_gold:u32` 含0都完整覆盖，无回复保留。
-- VIP启动与跨天序列继续精确 `45000→45004→15800`，15803和15901均不自动夹带。15804会真实扣直购币并派发礼包，继续等待支付确认、配置、钱包/背包、single-flight和结果UI闭环，158族保持pending。
-- `dotnet build` 为71条既有warning、0 error；同一Unity PID 51800域重载成功，扩展 `VipWelfareCardCase` 实跑 `pass=True/restored=True/result=0`。`coverage_20260730_120801.md` A～E全PASS，运行时口径为 `registered=1260 / liveDefined=1468 / liveGap=330 / errorExit=12 / active=1138/1468=77.5%`，158族=`4/1/1 pending`；baseline冻结不更新。
+- 最新完成轮次：R521。10207从延期转为S2C-only真实公告链：非0广播与ServerEnter初查共用平台CDN版本/正文串行刷新，成功才原子提交；按belong线序、source前缀、时间窗和open_login/open_inside分流，无效数据保留旧快照。
+- 登录自动弹出已接new_reg/show_rule；游戏内红点按角色ID隔离并接red_dot_rule，主动选角开始会话、自动重连不重复重置。ServerEnter新增公告入口，真实GameNotice Prefab支持登录/游戏内模式及唯一标题点击面；417在Welfare外壳未迁移期间受控直达公告子页并聚合双方红点。10211继续延期。
+- `dotnet build` 的Module.Core/Editor分别为58/60条既有warning、0 error；同一Unity PID 51800域重载，`LoginNoticeCase`连续两次均为0，覆盖模型、10207、序列化引用、窗口退订及真实`GraphicRaycaster→PointerClick`。实网公告版本`20240402`加载成功，测试平台无belong项得到合法空快照。`coverage_20260730_125300.md` A～E全PASS，运行时口径为 `registered=1261 / liveDefined=1468 / liveGap=329 / errorExit=12 / active=1139/1468=77.6%`；baseline冻结不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

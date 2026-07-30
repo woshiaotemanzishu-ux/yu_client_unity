@@ -1006,5 +1006,11 @@ namespace Shenxiao.Framework.Event
         public const string EVT_STARFORGE_ACTION_RESULT = "EVT_STARFORGE_ACTION_RESULT";
         /// <summary>23213/23233 点亮大师结果(参数: int chcType[1/3], int code[1=成功])。</summary>
         public const string EVT_STARFORGE_MASTER_RESULT = "EVT_STARFORGE_MASTER_RESULT";
+
+        // ----- 运营公告(登录初查 + 10207 S2C 刷新通知) -----
+        /// <summary>公告 CDN 快照或时间窗/已读态变化(无参)。</summary>
+        public const string EVT_LOGIN_NOTICE_UPDATED = "EVT_LOGIN_NOTICE_UPDATED";
+        /// <summary>游戏内公告未读聚合变化(参数 bool)。</summary>
+        public const string EVT_LOGIN_NOTICE_RED_CHANGED = "EVT_LOGIN_NOTICE_RED_CHANGED";
     }
 }

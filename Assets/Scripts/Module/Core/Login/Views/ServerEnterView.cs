@@ -45,6 +45,10 @@ namespace Shenxiao.Module.Core.Login
         public Image enterBtn;                   // 踏入仙界按钮(命中体)
         public TextMeshProUGUI enterBtnLabel;
 
+        [Header("运营公告")]
+        public Image noticeBtn;
+        public TextMeshProUGUI noticeBtnLabel;
+
         [Header("用户协议勾选")]
         public Image agreementCheckBg;           // 勾选框底图(命中体)
         public Image agreementCheckMark;         // 勾选标记(按勾选态 SetActive)
@@ -75,6 +79,8 @@ namespace Shenxiao.Module.Core.Login
 
             ClearAndAddClick(enterBtn, OnClickEnter);
             ClearAndAddClick(enterBtnLabel, OnClickEnter);
+            ClearAndAddClick(noticeBtn, LoginFlow.OpenLoginNotice);
+            ClearAndAddClick(noticeBtnLabel, LoginFlow.OpenLoginNotice);
 
             // 协议勾选:框 / 文案 任意一处切换
             ClearAndAddClick(agreementCheckBg, OnClickAgreement);

@@ -7,6 +7,7 @@ using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Preload;
+using Shenxiao.Module.Core.GameNotice;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Login
@@ -171,7 +172,7 @@ namespace Shenxiao.Module.Core.Login
                     return;
                 }
                 TipsManager.Toast("恭喜登录成功");   // 对标老端 LoginState:321
-                EnterLobby();
+                EnterLobby(false);
             }
             finally
             {
@@ -196,7 +197,7 @@ namespace Shenxiao.Module.Core.Login
                     return;
                 }
                 TipsManager.Toast("恭喜注册成功");   // 对标老端 RegisterState:105
-                EnterLobby();
+                EnterLobby(true);
             }
             finally
             {
@@ -206,7 +207,7 @@ namespace Shenxiao.Module.Core.Login
         }
 
         /// <summary>登录/注册成功 → ③ 踏入仙界页;协议勾选态按账号回读,未同意则由 OnShow 自动弹协议层。</summary>
-        private static void EnterLobby()
+        private static void EnterLobby(bool isNewPlayer)
         {
             GameLog.Info("Login", "账号就绪 player_id={0} 服务器数={1} 大区数={2}",
                 LoginController.Instance.Model.PlayerId, LoginController.Instance.Model.Servers.Count,
@@ -215,6 +216,25 @@ namespace Shenxiao.Module.Core.Login
             // 该账号是否同意过协议(持久化,对标老客户端):同意过→自动勾选;否则进入页 OnShow 自动弹协议层。
             AgreementAgreed = Shenxiao.Common.Prefs.PrefsManager.GetBool(AgreedPrefKey, false);
             _enterView.Show();   // OnShow 会 RefreshAgreement + 未同意时自动弹协议弹层
+            _ = RefreshLobbyNoticeAsync(isNewPlayer);
+        }
+
+        public static void OpenLoginNotice()
+        {
+            _ = OpenLoginNoticeAsync();
+        }
+
+        private static async Task OpenLoginNoticeAsync()
+        {
+            await LoginNoticeService.RefreshAsync();
+            GameNoticeFlow.OpenLogin();
+        }
+
+        private static async Task RefreshLobbyNoticeAsync(bool isNewPlayer)
+        {
+            await LoginNoticeService.RefreshAsync();
+            if (_enterView != null && _enterView.IsShown && LoginNoticeModel.Instance.ShouldAutoOpenLogin(isNewPlayer))
+                GameNoticeFlow.OpenLogin();
         }
 
         public static void ShowAgreement()
@@ -469,6 +489,7 @@ namespace Shenxiao.Module.Core.Login
 
         private static void OnGameEntered()
         {
+            GameNoticeFlow.Close();
             // 10004 成功后:隐藏所有登录页,起加载页等 GAME_START 资源接管完成。
             HideConnectLoading();
             HideView(_loginPanel);
