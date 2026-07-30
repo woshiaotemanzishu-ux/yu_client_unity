@@ -193,9 +193,11 @@ var go = Object.Instantiate(prefab); // 来源不是 ResManager 的禁止
 - 复合按钮内只有部分文字需要按 preferred width/字号自适应时，`Horizontal/VerticalLayoutGroup` 必须
   挂在纯文字内层容器；背景 Image、唯一点击面、状态图标等留在按钮根并独立定位。禁止把 LayoutGroup
   直接挂到带背景或图标的按钮根，再依靠 `childForceExpand` 修补图片拉伸。
+- 用户已手调或已验收的页面以 Prefab 为唯一视觉事实源；布局、图片、字体样式和 LayoutGroup
+  参数直接在 Unity 中编辑并保存。页面专用 Creator 只可作为首次搭建脚手架；界面交付手调后必须
+  移除其重建入口，禁止为了“防覆盖”继续双向维护 Creator 视觉常量和 Prefab。
 - 业务 View 只负责状态、数据、事件和必要显隐；不要在运行时代码里改颜色、尺寸、
-  位置、字体、描边、过渡等样式——样式改模板 prefab，图改 `ui_default_skins.json`，
-  布局改 yu_client 源头后重转，prefab 手调是最后手段且模块要标记验收
+  位置、字体、描边、过渡等样式。已手调/已验收页面直接改其 Prefab；仅尚未交付的生成页可以修源头后重转。
 - 运行时动态换图统一 `ResManager.SetImageAsync`（Laya `SetTexture` 对等物）
 - 事件订阅在 `OnShow`，反订阅在 `OnHide`，资源释放在 `OnDispose`
 - 会被父级 UI Layer 临时 `SetActive(false)` 的提示窗，自动关闭不得只依赖 `WaitForSeconds` Coroutine；

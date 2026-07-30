@@ -139,24 +139,20 @@
   均显示“是否重新连接”的确认弹窗；详细异常只写日志，弹窗使用可理解的网络提示。新等待 Prefab
   尚未生成时只降级为文字 Toast，不得阻断登录页其余功能。
 
-## 踏入仙界页 Creator 覆盖保护（2026-07-30）
+## 踏入仙界页 Prefab 唯一视觉源（2026-07-30）
 
 - `ServerEnterView.prefab` 曾在人工完成背景、Logo、服务器条、主按钮、协议勾选行和协议弹层调整后，
   只保留 Prefab 产物，`ServerEnterCreator` 仍是早期起步值。后续为 10207 新增“公告”按钮时重跑
   Creator，整页被早期值覆盖，表现为服务器条、主按钮和协议行重叠，协议弹层退回纯文字原始样式。
-- 当前事实源已收回 `Assets/Editor/UiCreator/Login/ServerEnterCreator.cs`：背景使用
-  `login/other/组 1.png`，Logo 使用 `login/other/logo.png`，服务器条使用 `ui_Login_18.png`；
-  协议弹层恢复 `bg_03.png + uildzdz_008d.png`，既有人工几何与底部锚定全部同步进 Creator。
-  `ServerEnterView.prefab` 保留同一布局，并继续包含 10207 的 `NoticeBtn`，不得为恢复旧视觉删除公告入口。
+- 用户明确要求所见即所得后，`ServerEnterView.prefab` 与 `LoginUserAgreementView.prefab`
+  改为唯一视觉事实源。两个页面专用 Creator 及其 `UiRebuildRegistry` 入口已删除，
+  不再出现在 Login “全部重建”范围内；位置、尺寸、锚点、图片、字号、颜色、间距和 LayoutGroup
+  参数一律直接在 Unity Prefab 中修改。
 - 界面恢复与功能回滚严格分离：视觉恢复不得修改或撤销 `ServerEnterView/LoginFlow/LoginController`
-  的公告、协议勾选、选服、进入游戏等行为，也不得丢失任何序列化引用。后续功能只能在当前人工版
-  Prefab 上增量增加，再把最终视觉同步回 Creator；禁止先重生成早期布局再补功能。
-- `LoginNoticeCase.VerifyServerEnterPrefab` 同时锁定关键人工资源/几何、默认显隐和全部功能字段到真实节点的
-  绑定关系。Creator 或 Prefab 发生改动后必须重新生成到隔离工作树并运行该用例；出现范围外视觉差异或
-  任一绑定为空/指错时不得收口。
-- 修改该页 Creator 后，生成前必须先对比已入库 Prefab；除本轮明确新增/调整的节点外，既有节点的
-  RectTransform、Sprite、active 状态必须保持不变。专项门禁在 `LoginNoticeCase.VerifyServerEnterPrefab`，
-  会校验关键资源、几何、默认显隐和公告字段，防止再次以“新增一个入口”为由整页回退。
+  的公告、协议勾选、选服、进入游戏等行为，也不得丢失任何序列化引用。后续功能只能在当前人工
+  Prefab 上增量加节点和引用，禁止以任何生成器恢复或重建整页。
+- `LoginNoticeCase` 只校验功能绑定、必需结构、默认显隐、链接真实点击链和“不存在 Creator
+  覆盖入口”；不再锁死具体 RectTransform 数值或 Sprite 路径，避免用户在 Inspector 中的合法视觉调整被测试拦住。
 
 ## 登录协议详情与服务器条自适应（2026-07-30）
 
@@ -170,9 +166,8 @@
 - `ServerBtn` 的背景 Image/唯一点击面与 `ServerStateIcon` 不参与自动布局。只有
   `ServerBtn/TextRow` 挂 `HorizontalLayoutGroup`，其两个 TMP 子项启用 preferred width 与字号下限；
   可用宽度不足时只压缩文字，不得把 LayoutGroup 挂回 `ServerBtn` 根导致背景或状态图被拉伸。
-- 人工确认的公告入口继续使用 `uidl_notice.png`、`72×72` 且不再叠加文字 Label；协议和服务器条修改
-  已同步进两个 Login Creator。`LoginNoticeCase` 同时校验富文本 link、独立详情 Prefab、渠道配表、
-  文字容器布局参数和序列化绑定。
+- 公告入口、协议弹层和服务器条的全部视觉参数都只存在两个 Login Prefab 中。
+  `LoginNoticeCase` 校验富文本 link、独立详情 Prefab、渠道配表、文字容器结构和序列化绑定，不锁死可视化数值。
 
 ## 运营公告 10207 与登录/游戏内消费（2026-07-30）
 

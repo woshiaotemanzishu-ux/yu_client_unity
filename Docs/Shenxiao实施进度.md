@@ -1613,3 +1613,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **布局修复**：移除 `ServerBtn` 根上的 `HorizontalLayoutGroup`，状态图独立定位；新增纯文字 `TextRow`，只控制服名和“(点击换区)”的 preferred width 与 22～32 字号自适应。人工公告图标 `uidl_notice.png`、`72×72`、无 Label 的样式继续保留，Creator 与 Prefab 已同步。
 - **功能边界**：协议同意/拒绝、勾选持久化、选服、公告 10207 和进入游戏链均未回滚；登录模块退役时新增详情页与其余登录页一起隐藏并释放。
 - **验证状态**：`dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 为 2 条既有 warning、0 error；同一 Unity PID 42148 强制编译 `completed/failed=false/errors=[]`。扩展 `LoginNoticeCase` 返回 0，`serverEnter=True/agreementPrefab=True/agreementPointer=True/pass=True`；两条链接真实射线命中 `Content/Frame/Mask`，回调顺序为 `agreement,privacy`，同时验证渠道表两个标题与非空正文数组、独立滚动面板和全部序列化引用。
+
+## 2026-07-30：登录界面改为 Prefab 唯一视觉源
+
+- **所见即所得**：`ServerEnterView.prefab` 与 `LoginUserAgreementView.prefab` 不再由页面专用 Creator 维护视觉常量；两个 Creator 及 `.meta` 已删除，因而不会再出现在 Login 重建列表或“全部重建”中。当前 `ServerEnterView.prefab` 上用户保存的可视化调整未被重生成或回写。
+- **功能边界**：View/Flow 仍只负责选服、公告、协议链接、同意/拒绝、渠道正文加载和显隐，布局、图片、字号、颜色、间距及 LayoutGroup 参数全部直接保存在 Prefab。
+- **门禁调整**：`LoginNoticeCase` 新增 `prefabOwned=True` 并校验两个 Creator 资产不存在；保留序列化绑定、必需节点、服务器条文字容器结构、默认显隐和真实点击链验收，不再锁死 RectTransform 数值或具体 Sprite 路径。
+- **验证状态**：`dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 为 0 error（仅既有 warning）；同一 Unity PID 42148 强制编译 `completed/failed=false/errors=[]`。Pipeline 调用 `LoginNoticeCase.Run()` 返回 0，最终 `serverEnter=True/agreementPrefab=True/prefabOwned=True/agreementPointer=True/pass=True`，两条协议链接仍真实命中并按 `agreement,privacy` 回调。

@@ -12,7 +12,7 @@ namespace Shenxiao.Module.Core.Login
 {
     /// <summary>
     /// 用户协议/隐私保护指引独立详情面板。
-    /// 结构和滚动区域由 LoginUserAgreementCreator 烤进 prefab；运行时只按渠道配置加载正文。
+    /// LoginUserAgreementView.prefab 是唯一视觉事实源；运行时只按渠道配置加载正文。
     /// </summary>
     [UIView("prefabs/ui/login/loginuseragreementview")]
     public sealed class LoginUserAgreementView : LoginUserAgreementViewBind
