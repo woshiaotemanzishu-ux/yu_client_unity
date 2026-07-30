@@ -40,7 +40,9 @@
   Viewport 保持 720×1280，只在左右露出 `WebBackground`。
 - `LoginPanel/Bg` 使用 `AspectRatioFitter.EnvelopeParent` 按原图比例 cover：允许裁掉超出的左右画面，
   不允许拉伸人物，也不允许露出上下空隙。
-- 这套适配必须同时落在 `LoginStageCreator` / `LoginPanelCreator` 和对应 prefab；不得改全局
+- `LoginStage` 已进入人工精修阶段，背景的 `Source Image`、`Image.Type`、颜色及
+  `AspectRatioFitter` 全部直接保存在 `LoginStage.prefab/WebBackground`；页面专用
+  `LoginStageCreator` 已删除，运行时代码不得重新计算或覆盖这些参数。不得改全局
   `CanvasScaler`，也不得在 `LoginFlow` 里按平台或屏幕尺寸计算布局。
 
 | 屏幕 | Expand 后逻辑画布 | 登录视口结果 |
@@ -85,7 +87,9 @@
    是老端 bug。遇到 `top=GetLiuhaiHeight()` 一律折算成 0,**绝不烤成 60px 偏移**
    (会与 SafeAreaRoot 叠成双倍内缩)。**后续轮次不要把这条当 diff 改回去。**
 5. **快照优先**:`.scene` 设计值会跑偏,以运行时快照为准。
-6. **改 UI 一律改 Creator/转换器,不手改 prefab**;布局归 prefab,运行时 C# 不写位置。
+6. **区分首转与精修**：尚无可编辑 Prefab 的界面才通过转换器或 Creator 首次成形；已落袋、
+   已人工调整的界面直接修改 Prefab，页面专用 Creator 必须退出重建注册表。跨页面公共问题
+   修改共享 Prefab 或幂等公共升级器；布局和静态图片归 Prefab，运行时 C# 不写视觉参数。
 7. **不要扩 `LayerManager.SafeAreaLayers` 把 Window 整层内缩** —— 该文件注释已记录整层内缩
    会让满铺遮罩盖不住刘海角。安全区只挂到需要的 view 根上。
 

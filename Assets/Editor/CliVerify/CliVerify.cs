@@ -180,6 +180,12 @@ namespace Shenxiao.EditorTools
             Run(LoadingViewCase.Run, 60.0);
         }
 
+        /// <summary>公共顶栏与登录背景的 Prefab 所有权回归。</summary>
+        public static void PrefabBackgrounds()
+        {
+            Run(PrefabBackgroundOwnershipCase.Run, 60.0);
+        }
+
         public static void Armor()
         {
             Run(ArmorCase.Run, 60.0);

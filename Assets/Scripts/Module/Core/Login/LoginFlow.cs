@@ -111,7 +111,7 @@ namespace Shenxiao.Module.Core.Login
             LoginStage stage = go != null ? go.GetComponent<LoginStage>() : null;
             if (stage == null || stage.viewport == null)
             {
-                GameLog.Error("Login", "LoginStage prefab 加载失败或缺 Viewport(key={0})。在「神霄/重构UI 生成器」里只重建 LoginStage", key);
+                GameLog.Error("Login", "LoginStage prefab 加载失败或缺 Viewport(key={0})。请检查 LoginStage.prefab 的 LoginStage/Viewport 引用", key);
                 if (go != null) ResManager.ReleaseInstance(go);
                 return null;
             }

@@ -184,3 +184,9 @@
 - `LoadingView.prefab/BarBack/BarFront` 现直接挂不可交互的 `Slider`；`handleRect` 指向零尺寸的 `ProgressEndTrack/ProgressEndHandle`，真实图片 `ProgressEnd` 是 Handle 下的普通子节点，不再被 Slider 改写 Anchors。Track 高度为 0，避免 Slider 的纵向拉伸语义叠加图片高度；`fillRect` 仍为空，前景继续使用 `Image.fillAmount`，避免缩放填充纹理。View 只同步两个 0～1 值和端标显隐，不再计算像素坐标。
 - Prefab 以 50% 值保存便于所见即所得预览。端标相对填充尖端的视觉位置直接调整 `ProgressEnd/RectTransform/Pos X`，当前 `-22.5` 对齐老端；Size、Pivot、Y 均同样在 Prefab 中调整。修改 `BarFront` 宽度后 Slider 会按实际 Rect 自动重算，不需要同步任何代码常量。
 - 页面专用 `LoadingCreator` 及重建注册入口已删除，LoadingView 与其他已人工调整的登录页一样以 Prefab 为唯一视觉事实源。`LoadingViewCase` 覆盖 0/25/50/100%、越界夹取、端标位置/尺寸/Anchors 不被 Slider 覆盖、轨道改宽自适应及 Creator 不存在。
+
+## 登录舞台背景由 Prefab 维护（2026-07-30）
+
+- 登录外层背景的唯一视觉事实源为 `Assets/Prefabs/UI/Login/LoginStage.prefab/WebBackground`。替换背景时直接修改该节点的 `Image/Source Image`；铺放方式、颜色和宽高比分别由同节点的 `Image` 与 `AspectRatioFitter` 序列化保存。
+- `LoginStage` 运行时组件只保留各登录页所需的 `Viewport720x1280` 引用，不再在 `Awake` 或 `OnValidate` 中读取图片尺寸、改写宽高比。`LoginFlow` 也不查找或设置背景图片。
+- 页面专用 `LoginStageCreator` 及重建注册入口已删除。当前 Prefab 已进入精修落袋阶段，后续不得通过重建页面恢复背景；需要换图时在 Prefab Inspector 中完成并直接预览。
