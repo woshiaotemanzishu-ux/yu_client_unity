@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-07-30）
 
-- 最新完成轮次：R517。21003/21004/21005 的服务器 `pp_skill` 唯一入口均整段注释，已以双端逐号证据写入 killlist；210、217、508 三个家族的当前 raw 缺口已分别由证据或注册完整治理，baseline 转为 `done`。冻结的历史 `unityRegistered/liveGap` 数字未改。
-- 同轮发现并纠正历史违规：20600/20602 和28500均晚于现行 `AGENTS.md` 的明确“不接”规则落入代码，现已连同常量、注册、sender、raw模型和专项断言撤销；GhostWalk只保留20601，NoonParty只保留28503/04/05/06，206/285家族继续 `pending`，不得用违规接入伪造零缺口。
-- `dotnet build Shenxiao.Editor.csproj -m:1` restore后为71条既有/Editor-only warning、0 error；Unity PID 51800真实重编译 `completed/failed=false/errors=[]`，`GhostWalkCase=0/pass=True/restored=True`、`NoonPartyCase=0/pass=True/restored=True`。`coverage_20260730_111918.md` A～E全PASS，当前 `registered=1257 / liveDefined=1468 / liveGap=333 / errorExit=12 / active=1135/1468=77.3%`；210=`5/3/0 done`、217=`3/0/0 done`、508=`3/0/0 done`，206=`1/2/2 pending`、285=`4/1/1 pending`。
+- 最新完成轮次：R518。机器筛选后仅160/182/405三个家族满足“当前全部raw缺口均已有逐号证据但baseline仍未done”；逐号回查老端、服务端与Unity现状后，将三族人工status转为 `done`，冻结的历史 `unityRegistered/liveGap` 数字未改。
+- 16013/16021、18202均只有老端接收壳而没有玩家可达C2S入口，16021还被服务端外观类型门禁二次阻断；40505/40507的真实穿脱事务成功只推40502、失败只走40500，服务端从不写专属结果号。五号继续KILL，不新增伪接收、伪快照或孤立ACK。
+- 同一Unity PID 51800主线程完成覆盖扫描，`coverage_20260730_112917.md` A～E全PASS；运行时口径保持 `registered=1257 / liveDefined=1468 / liveGap=333 / errorExit=12 / active=1135/1468=77.3%`，其中160=`25/2/3 done`、182=`22/1/1 done`、405=`7/2/0 done`。生产C#、Prefab与资源均无变化，因此未触发dotnet/Unity重编译或业务专项Case。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

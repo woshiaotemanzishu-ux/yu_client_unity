@@ -230,8 +230,8 @@
   {
     "cmd": 18202,
     "reason": "old_client_unreachable",
-    "evidence": "h5/src/commonController/BabyController.ts:68-74,599(全 h5/src 仅 handler/注册，无 C2S 请求点)",
-    "note": "服务端虽保留他人宝宝信息协议，老端玩家路径没有发起 18202 的入口；按老端行为事实源不迁移。轮29复核。"
+    "evidence": "h5/src/commonController/BabyController.ts:68-74,599(全 h5/src 仅 handler/注册，无 C2S 请求点);yu_server/src/baby/pp_baby.erl:36-38;yu_server/src/baby/lib_baby.erl:953-966;yu_server/src/pt/pt_182.erl:10-12,101-114",
+    "note": "服务端保留 role_id:u64 他人宝宝查询及完整回包，但老端玩家路径没有发起 18202 的入口；按老端行为事实源不迁移。轮29初判，R518双端复核。"
   },
   {
     "cmd": 18208,
