@@ -22,6 +22,11 @@ namespace Shenxiao.EditorTools
     {
         private const string NoticePrefab = "Assets/Prefabs/UI/GameNotice/GameNoticeModule.prefab";
         private const string ServerEnterPrefab = "Assets/Prefabs/UI/Login/ServerEnterView.prefab";
+        private const string ServerEnterBackground = "Assets/GameRes/resource/game/login/other/组 1.png";
+        private const string ServerEnterLogo = "Assets/GameRes/resource/game/login/other/logo.png";
+        private const string ServerEnterServerBar = "Assets/GameRes/resource/game/login/other/ui_Login_18.png";
+        private const string ServerEnterAlertFrame = "Assets/GameRes/resource/game/login/other/bg_03.png";
+        private const string ServerEnterAlertTitle = "Assets/GameRes/resource/game/login/other/uildzdz_008d.png";
         private const string Account = "__cliverify_login_notice__";
         private const string Platform = "jzy_case";
         private const long RoleId = 91521001;
@@ -210,7 +215,56 @@ namespace Shenxiao.EditorTools
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ServerEnterPrefab);
             ServerEnterView view = prefab != null ? prefab.GetComponent<ServerEnterView>() : null;
-            return view != null && view.noticeBtn != null && view.noticeBtnLabel != null;
+            if (view == null || view.noticeBtn == null || view.noticeBtnLabel == null) return false;
+
+            Transform root = prefab.transform;
+            Transform enterLabel = root.Find("EnterBtn/Label");
+            Transform title = root.Find("AgreementAlert/Frame/Title");
+            Transform alert = root.Find("AgreementAlert");
+            return IsImage(root, "Bg", ServerEnterBackground)
+                && IsImage(root, "Logo", ServerEnterLogo)
+                && IsImage(root, "ServerBtn", ServerEnterServerBar)
+                && IsImage(root, "AgreementAlert/Frame", ServerEnterAlertFrame)
+                && IsImage(root, "AgreementAlert/Frame/TitleImg", ServerEnterAlertTitle)
+                && IsRect(root, "Logo", new Vector2(0.5f, 0.5f), new Vector2(0f, 430f),
+                    new Vector2(506f, 166f))
+                && IsRect(root, "ServerBtn", new Vector2(0.5f, 0.5f), Vector2.zero,
+                    new Vector2(470f, 58f))
+                && IsRect(root, "EnterBtn", new Vector2(0.5f, 0.5f), new Vector2(0f, -200f),
+                    new Vector2(378f, 140f))
+                && IsRect(root, "AgreementCheckBg", new Vector2(0.5f, 0f), new Vector2(-186f, 60f),
+                    new Vector2(34f, 36f))
+                && IsRect(root, "AgreementLabel", new Vector2(0.5f, 0f), new Vector2(24f, 60f),
+                    new Vector2(360f, 36f))
+                && IsRect(root, "AgreementAlert/Frame", new Vector2(0.5f, 0.5f), Vector2.zero,
+                    new Vector2(720f, 434f))
+                && alert != null && !alert.gameObject.activeSelf
+                && enterLabel != null && !enterLabel.gameObject.activeSelf
+                && title != null && !title.gameObject.activeSelf;
+        }
+
+        private static bool IsImage(Transform root, string path, string expectedAssetPath)
+        {
+            Transform target = root.Find(path);
+            Image image = target != null ? target.GetComponent<Image>() : null;
+            return image != null && image.sprite != null
+                && AssetDatabase.GetAssetPath(image.sprite) == expectedAssetPath;
+        }
+
+        private static bool IsRect(Transform root, string path, Vector2 anchor,
+            Vector2 anchoredPosition, Vector2 sizeDelta)
+        {
+            RectTransform rect = root.Find(path) as RectTransform;
+            return rect != null
+                && Approximately(rect.anchorMin, anchor)
+                && Approximately(rect.anchorMax, anchor)
+                && Approximately(rect.anchoredPosition, anchoredPosition)
+                && Approximately(rect.sizeDelta, sizeDelta);
+        }
+
+        private static bool Approximately(Vector2 left, Vector2 right)
+        {
+            return (left - right).sqrMagnitude < 0.0001f;
         }
 
         private static JObject BuildSnapshot(long now)

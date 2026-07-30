@@ -139,6 +139,19 @@
   均显示“是否重新连接”的确认弹窗；详细异常只写日志，弹窗使用可理解的网络提示。新等待 Prefab
   尚未生成时只降级为文字 Toast，不得阻断登录页其余功能。
 
+## 踏入仙界页 Creator 覆盖保护（2026-07-30）
+
+- `ServerEnterView.prefab` 曾在人工完成背景、Logo、服务器条、主按钮、协议勾选行和协议弹层调整后，
+  只保留 Prefab 产物，`ServerEnterCreator` 仍是早期起步值。后续为 10207 新增“公告”按钮时重跑
+  Creator，整页被早期值覆盖，表现为服务器条、主按钮和协议行重叠，协议弹层退回纯文字原始样式。
+- 当前事实源已收回 `Assets/Editor/UiCreator/Login/ServerEnterCreator.cs`：背景使用
+  `login/other/组 1.png`，Logo 使用 `login/other/logo.png`，服务器条使用 `ui_Login_18.png`；
+  协议弹层恢复 `bg_03.png + uildzdz_008d.png`，既有人工几何与底部锚定全部同步进 Creator。
+  `ServerEnterView.prefab` 保留同一布局，并继续包含 10207 的 `NoticeBtn`，不得为恢复旧视觉删除公告入口。
+- 修改该页 Creator 后，生成前必须先对比已入库 Prefab；除本轮明确新增/调整的节点外，既有节点的
+  RectTransform、Sprite、active 状态必须保持不变。专项门禁在 `LoginNoticeCase.VerifyServerEnterPrefab`，
+  会校验关键资源、几何、默认显隐和公告字段，防止再次以“新增一个入口”为由整页回退。
+
 ## 运营公告 10207 与登录/游戏内消费（2026-07-30）
 
 - `10207` 只有S2C `type:u8`，没有C2S；PHP/GM广播中非0表示重新检查运营公告。Unity常驻注册并完整读尾，但绝不主动发送或加入GAME_START。

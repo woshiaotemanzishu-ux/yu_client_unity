@@ -21,27 +21,31 @@ namespace Shenxiao.Editor.UiCreator.Login
         private const string PrefabPath = "Assets/Prefabs/UI/Login/ServerEnterView.prefab";
 
         // 老端源图(GameRes 相对路径;均已确认在 Assets/GameRes 下)
-        private const string IMG_BG = "resource/game/login/other/full_screen_bg.jpg";
-        private const string IMG_LOGO = "resource/game/login/texture/logo.png";                  // 「九州神霄录」logo
+        private const string IMG_BG = "resource/game/login/other/组 1.png";
+        private const string IMG_LOGO = "resource/game/login/other/logo.png";                    // 「九州神霄录」logo
+        private const string IMG_SERVER_BG = "resource/game/login/other/ui_Login_18.png";         // 当前服条底图
         private const string IMG_SERVER_STATE = "resource/game/login/texture/ui_Login_27.png";   // 当前服状态图标
         private const string IMG_ENTER = "resource/game/login/texture/ui_Login_07.png";          // 踏入仙界按钮
         private const string IMG_CHECK_BG = "resource/game/login/texture/ui_22.png";             // 协议勾选框底
         private const string IMG_CHECK_MARK = "resource/game/login/texture/ui_23.png";           // 协议勾选标记
         // 协议弹层(对标 LoginAlertView.scene)
-        private const string IMG_ALERT_FRAME = "resource/game/login/texture/ui_content_bg1.png"; // 弹层框(scene bg_03 缺,沿用 alert 内 _img_bg2 的同款)
+        private const string IMG_ALERT_FRAME = "resource/game/login/other/bg_03.png";             // 协议弹层框
+        private const string IMG_ALERT_TITLE = "resource/game/login/other/uildzdz_008d.png";       // 协议弹层标题图
         private const string IMG_BTN_OK = "resource/game/alert/texture/com_rect_btn12.png";      // 同意
         private const string IMG_BTN_CANCEL = "resource/game/alert/texture/com_rect_btn13.png";  // 拒绝
 
         // 主页布局(屏幕中心为原点,720×1280)
-        private const float LogoW = 500f, LogoH = 305f, LogoY = 430f;
-        private const float ServerBtnW = 470f, ServerBtnH = 58f, ServerBtnY = -360f;
-        private const float EnterW = 378f, EnterH = 140f, EnterY = -470f;
-        private const float AgreementY = -560f;
+        private const float LogoW = 506f, LogoH = 166f, LogoY = 430f;
+        private const float ServerBtnW = 470f, ServerBtnH = 58f, ServerBtnY = 0f;
+        private const float EnterW = 378f, EnterH = 140f, EnterY = -200f;
+        private const float AgreementCheckX = -186f, AgreementLabelX = 24f, AgreementBottomY = 60f;
         private const float NoticeBtnX = 275f, NoticeBtnY = 545f, NoticeBtnW = 120f, NoticeBtnH = 58f;
 
         // 协议弹层布局(弹层中心为原点)
-        private const float AlertW = 581f, AlertH = 583f;
-        private const float AlertContentW = 525f, AlertContentH = 360f, AlertContentY = 20f;
+        private const float AlertW = 720f, AlertH = 434f;
+        private const float AlertTitleW = 288f, AlertTitleH = 52f, AlertTitleY = 184f;
+        private const float AlertContentW = 578.4084f, AlertContentH = 320.3071f;
+        private const float AlertContentX = 2.4276f, AlertContentY = -21.773499f;
         private const float AlertBtnW = 175f, AlertBtnH = 70f, AlertBtnY = -230f;
         private const float AlertBtnLeftX = -130f, AlertBtnRightX = 130f;
 
@@ -82,23 +86,23 @@ namespace Shenxiao.Editor.UiCreator.Login
             // ---------- 当前服务器按钮(状态图标 + 服名 + 提示) ----------
             UiCreatorKit.ButtonParts server = UiCreatorKit.NewButton("ServerBtn", root, string.Empty);
             UiCreatorKit.Place(server.root, 0f, ServerBtnY, ServerBtnW, ServerBtnH);
-            UiCreatorKit.TrySetSprite(server.bg, IMG_SERVER_STATE, UiCreatorKit.Palette.Panel);
+            UiCreatorKit.TrySetSprite(server.bg, IMG_SERVER_BG, UiCreatorKit.Palette.Panel);
             server.label.gameObject.SetActive(false);   // 不用按钮自带的整块 Label,改用下面分块布局
             view.serverBtn = server.bg;
 
             Image stateIcon = UiCreatorKit.NewImage("ServerStateIcon", server.root);
-            UiCreatorKit.Place(stateIcon.rectTransform, -180f, 0f, 42f, 56f);
+            PlaceAnchored(stateIcon.rectTransform, Vector2.zero, 0f, 0f, 67f, 38f);
             stateIcon.raycastTarget = false;
             UiCreatorKit.TrySetSprite(stateIcon, IMG_SERVER_STATE, UiCreatorKit.Palette.Mark);
             view.serverStateIcon = stateIcon;
 
             TextMeshProUGUI serverName = UiCreatorKit.NewText("ServerNameLabel", server.root, "A1-妖兽契约");
-            UiCreatorKit.Place(serverName.rectTransform, -40f, 0f, 220f, 50f);
-            serverName.alignment = TextAlignmentOptions.Left;
+            PlaceAnchored(serverName.rectTransform, new Vector2(0f, 1f), 188.5f, -29f, 141.01f, 50f);
+            serverName.alignment = TextAlignmentOptions.Center;
             view.serverNameLabel = serverName;
 
             TextMeshProUGUI tip = UiCreatorKit.NewText("TipLabel", server.root, "(点击换区)");
-            UiCreatorKit.Place(tip.rectTransform, 150f, 0f, 160f, 50f);
+            PlaceAnchored(tip.rectTransform, new Vector2(0f, 1f), 339.005f, -29f, 160f, 50f);
             tip.alignment = TextAlignmentOptions.Left;
             view.tipLabel = tip;
 
@@ -106,6 +110,7 @@ namespace Shenxiao.Editor.UiCreator.Login
             UiCreatorKit.ButtonParts enter = UiCreatorKit.NewButton("EnterBtn", root, "踏入仙界");
             UiCreatorKit.Place(enter.root, 0f, EnterY, EnterW, EnterH);
             UiCreatorKit.TrySetSprite(enter.bg, IMG_ENTER, UiCreatorKit.Palette.BtnPrimary);
+            enter.label.gameObject.SetActive(false);
             view.enterBtn = enter.bg;
             view.enterBtnLabel = enter.label;
 
@@ -117,20 +122,21 @@ namespace Shenxiao.Editor.UiCreator.Login
 
             // ---------- 协议勾选行(勾选框 + 标记 + 文案) ----------
             UiCreatorKit.ButtonParts check = UiCreatorKit.NewButton("AgreementCheckBg", root, string.Empty);
-            UiCreatorKit.Place(check.root, -150f, AgreementY, 34f, 36f);
+            PlaceAnchored(check.root, new Vector2(0.5f, 0f), AgreementCheckX, AgreementBottomY, 34f, 36f);
             UiCreatorKit.TrySetSprite(check.bg, IMG_CHECK_BG, UiCreatorKit.Palette.Input);
             check.label.gameObject.SetActive(false);
             view.agreementCheckBg = check.bg;
 
             Image checkMark = UiCreatorKit.NewImage("AgreementCheckMark", check.root);
-            UiCreatorKit.Place(checkMark.rectTransform, 0f, 0f, 30f, 30f);
+            UiCreatorKit.Place(checkMark.rectTransform, 2.8f, 4.5f, 30f, 30f);
             checkMark.raycastTarget = false;
             UiCreatorKit.TrySetSprite(checkMark, IMG_CHECK_MARK, UiCreatorKit.Palette.Mark);
             view.agreementCheckMark = checkMark;
 
             TextMeshProUGUI agreementLabel = UiCreatorKit.NewText(
-                "AgreementLabel", root, "我已仔细阅读并同意 速游用户协议");
-            UiCreatorKit.Place(agreementLabel.rectTransform, 60f, AgreementY, 360f, 36f);
+                "AgreementLabel", root, "我已仔细阅读并同意 思橙用户协议");
+            PlaceAnchored(agreementLabel.rectTransform, new Vector2(0.5f, 0f),
+                AgreementLabelX, AgreementBottomY, 360f, 36f);
             agreementLabel.alignment = TextAlignmentOptions.Left;
             agreementLabel.fontSize = 24f;
             agreementLabel.raycastTarget = true;   // 文案可点(对标老端 _lb_agrement mouseEnabled)
@@ -169,17 +175,22 @@ namespace Shenxiao.Editor.UiCreator.Login
 
             // 标题
             TextMeshProUGUI title = UiCreatorKit.NewText("Title", frame.transform, "用户协议和隐私保护指引");
-            UiCreatorKit.Place(title.rectTransform, 0f, AlertH * 0.5f - 50f, AlertW - 60f, 44f);
+            UiCreatorKit.Place(title.rectTransform, 0f, 185f, AlertW - 199f, 44f);
             title.fontSize = 30f;
+            title.gameObject.SetActive(false);
+
+            Image titleImage = UiCreatorKit.NewImage("TitleImg", frame.transform);
+            UiCreatorKit.Place(titleImage.rectTransform, 0f, AlertTitleY, AlertTitleW, AlertTitleH);
+            titleImage.raycastTarget = true;
+            UiCreatorKit.TrySetSprite(titleImage, IMG_ALERT_TITLE, UiCreatorKit.Palette.Panel);
 
             // 协议正文(对标 LoginAlertView _html_content)
             TextMeshProUGUI content = UiCreatorKit.NewText("Content", frame.transform,
-                "用户协议和隐私保护指引\n\n" +
                 "请你务必审慎阅读、充分理解“用户协议”和“隐私保护指引”各条款,包括但不限于:" +
                 "为了向你提供即时通讯、内容分享等服务,我们需要收集你的设备信息、操作日志等个人信息。" +
                 "你可以在“设置”中查看、变更、删除个人信息并管理你的授权。" +
                 "你可阅读《用户协议》、《隐私保护指引》了解详细信息。如你同意,请点击“同意”开始接受我们的服务。");
-            UiCreatorKit.Place(content.rectTransform, 0f, AlertContentY, AlertContentW, AlertContentH);
+            UiCreatorKit.Place(content.rectTransform, AlertContentX, AlertContentY, AlertContentW, AlertContentH);
             content.alignment = TextAlignmentOptions.TopLeft;
             content.fontSize = 24f;
             view.agreementContent = content;
@@ -196,6 +207,15 @@ namespace Shenxiao.Editor.UiCreator.Login
             view.agreementOkBtn = ok.bg;
 
             alert.gameObject.SetActive(false);
+        }
+
+        private static void PlaceAnchored(RectTransform rect, Vector2 anchor,
+            float x, float y, float width, float height)
+        {
+            UiCreatorKit.Place(rect, x, y, width, height);
+            rect.anchorMin = anchor;
+            rect.anchorMax = anchor;
+            rect.anchoredPosition = new Vector2(x, y);
         }
 
         public static void Preview()
