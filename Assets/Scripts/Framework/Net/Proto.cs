@@ -2394,13 +2394,22 @@
         public const int EQUIP_WHOLE_ACTIVE = 15260;
         /// <summary>全身奖励列表查询(无参;回包 list[u16×{type:c, whole_lv:h}])。</summary>
         public const int EQUIP_WHOLE_LIST = 15261;
+        /// <summary>神装等级/总战力完整快照。C2S空包；S2C total_power:u32,god_info:u16×{pos:u8,level:u16}。</summary>
+        public const int EQUIP_GOD_INFO = 15217;
+        /// <summary>神装单位置下一阶战力试算。C2S pos:u8；S2C power:u32且不回显pos。</summary>
+        public const int EQUIP_GOD_POWER_PREVIEW = 15219;
+        /// <summary>共鸣套装位置完整快照。C2S空包；S2C suit_list:u16×{equip_type:u8,type:u8,slv:u16}。</summary>
+        public const int EQUIP_SUIT_INFO = 15220;
+        /// <summary>共鸣套装还原奖励预览。C2S make_type:u8,equip_type:u8；S2C回显两键并带原始奖励表。</summary>
+        public const int EQUIP_SUIT_RETURN_PREVIEW = 15223;
+        /// <summary>共鸣套装战力明细。C2S pos:u8,type:u8,lv:u16；S2C回显三键并带num/u64 combat表。</summary>
+        public const int EQUIP_SUIT_POWER = 15262;
         // 跳过(规格 §0 本轮不加常量不写代码,只在 Runbook 由主控记队列):
-        // 15202 卸下装备:老端无发送入口(UI 已砍),跳过。
+        // 15202 卸下装备:老端无发送入口(UI 已砍),R516正式KILL。
         // 15206/15207 进阶装备/进阶属性预览:老端零 UI 参照,跳过。
         // 15242/15243 唤魔信息(旧):pp_equip.erl 整段注释、pt_152 无 read/write,服务端 DEAD,跳过。
         // 15253 神装升阶重复号:协议 read/write 都在但 pp_equip.erl 无 handle 分支,服务端 DEAD,跳过。
-        // 15217-15219 神装信息/升阶/升阶预览:独立合成窗(RedEnterView 神兵铸造页签),与本模块无关,归后续包。
-        // 15220-15223/15262 共鸣套装:独立窗(EquipSuitBaseView),归后续包。
+        // 15218神装升阶、15221/15222共鸣打造/还原是真实资产写事务，等待对应UI/配置/背包闭环。
         // 15230-15233(铸灵/护灵)、15241/15244/15245(觉醒/唤魔技能):归后续包,本轮不加常量。
 
         // ----- 宝石(骸珀镶嵌,自动循环 轮4 下半/4b;pt_152 段内 15210/15211/15215/15216;

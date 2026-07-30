@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-07-30）
 
-- 最新完成轮次：R515，Demon新增18315/18317两个仅接收raw切片。18315保存每日黑市打开状态但不公开“请求即写每日计数”的C2S入口；18317按使魔/技能复合键保存服务端权威生活技能进度推送，不反写18301实体树。
-- 两切片与18301/03/07/11/14/50901互相隔离，零值和全位值有效，Reset/Dispose统一清理；未接使魔UI、配置、红点、事件、属性推导、18316激活或其他资产写操作。
-- `dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 为70条既有/Editor-only warning、0 error；同一Unity PID完成1467节点编译/域重载，两个Demon专项均 `result=0/pass=True/restored=True`。`coverage_20260730_101203.md` A～E全PASS，当前 `registered=1255 / liveDefined=1468 / liveGap=335 / errorExit=10 / effective=1133/1468=77.2%`，183族 `registered8/liveGap9/dead1/pending`。
+- 最新完成轮次：R516，Equip新增15217神装全量、15219最后战力试算、15220共鸣全量、15223回包装备/打造类型键控还原预览和15262回包位置/类型/等级键控战力表；补回老端十次15210后的GAME_START 15261，装备族内部启动顺序为 `15214→15217→15220→15210(pos1..10)→15261`。
+- 五切片保持原始位宽、重复项、空表loaded与互相隔离；15202按无老端发送入口加入逐号killlist，15218/21/22真实资产写事务继续DEFER。未接装备UI、配置、背包/货币、属性、事件、红点、Toast或乐观扣物。
+- `dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 为71条既有/Editor-only warning、0 error；同一Unity进程完成1467节点编译与真实域重载，`EquipReadCase=0/pass=True/restored=True`、既有 `EquipGrowthCase=0`。`coverage_20260730_104507.md` A～E全PASS，当前 `registered=1260 / liveDefined=1468 / liveGap=330 / errorExit=10 / active=1138/1468=77.5%`，152族 `registered29/liveGap4/dead10/legacy_unverified`。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

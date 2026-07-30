@@ -46,6 +46,8 @@ namespace Shenxiao.Module.Core.Equip
         private void RequestAllCraveInfo()
         {
             for (int pos = 1; pos <= 10; pos++) QueryCraveInfo(pos);
+            // 对标老端 EquipController.ts:221-224：十个15210之后紧跟一次15261。
+            EquipStrenController.Instance.QueryWholeAward();
         }
 
         /// <summary>15210 查询指定装备位雕刻信息(发 "c" equip_pos)。</summary>

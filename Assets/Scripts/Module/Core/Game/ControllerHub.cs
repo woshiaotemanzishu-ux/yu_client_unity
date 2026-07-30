@@ -200,6 +200,7 @@ namespace Shenxiao.Module.Core.Game
             EquipStrenController.Instance,
             EquipSmeltController.Instance,
             EquipWashController.Instance,
+            EquipReadController.Instance,
             EquipRefinementController.Instance,
             GuBaoController.Instance,
             GuildJoinController.Instance,

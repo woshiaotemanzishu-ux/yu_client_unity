@@ -244,6 +244,11 @@ namespace Shenxiao.EditorTools
             Run(DemonTalentPowerCase.Run, 60.0);
         }
 
+        public static void EquipRead()
+        {
+            Run(EquipReadCase.Run, 60.0);
+        }
+
         public static void DragonWhisper()
         {
             Run(DragonWhisperCase.Run, 60.0);

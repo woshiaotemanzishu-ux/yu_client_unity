@@ -66,6 +66,12 @@
     "note": "上架页推荐价查询的服务端主链存活，但老端没有发送入口，注册的 on15105 同样解包即丢弃；不可售错误分支还以单参数调用要求 GoodsId/Type/RecommendPrice 三字段的 writer，无法形成有效15105错误包。Unity 不复活该无消费者查询，也不绕过服务端错误分支。R483 复核。"
   },
   {
+    "cmd": 15202,
+    "reason": "old_client_unreachable",
+    "evidence": "h5/src/commonController/EquipController.ts:301-310,774-776（仅结果handler/注册；全h5/src无15202发送点）;yu_server/src/goods/pp_equip.erl:37-48;yu_server/src/pt/pt_152.erl:18-20,179-189",
+    "note": "卸下装备会真实移动物品、派发EVENT_UNEQUIP、刷新装备排行并回15202，但当前老端没有任何可达sender或UI入口，只有孤立结果handler。Unity不注册、不公开裸卸装API，也不为覆盖率恢复资产写操作；未来必须随装备详情/背包选择、确认、防连点、150xx权威刷新和错误闭环整体迁移。R516。"
+  },
+  {
     "cmd": 15400,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/AuctionController.ts:on15400;yu_server/src/auction/pp_auction.erl:18-23;yu_server/src/pt/pt_154.erl",
