@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-07-30）
 
-- 最新完成轮次：R514，治理十个“实现或killlist证据已完整、但baseline仍误留pending”的家族：`110/151/211/221/240/339/399/460/470/510`。仅把人工策展状态转为done并启用覆盖断言C，不改变生产注册、冻结历史计数或raw覆盖率；39900已注册，旧 `errorExitPending` 标记同时移除。
-- 187日常海域余下四个活缺口经双端复核均为真实写链：18705开始搬砖、18706结束搬砖、18707扣料/自动购买升级砖色、18713任务领奖；18702/08/09是无同号结果包的场景操作。本轮全部保持DEFER/排除，禁止为覆盖率暴露裸sender或伪造场景/资产状态。
-- `coverage_20260730_093558.md` 已验证A～E全PASS，C段接受十个新done家族；运行时口径仍为 `registered=1253 / liveDefined=1468 / liveGap=337 / errorExit=10 / effective=1131/1468=77.0%`。本轮无C#、Prefab或资源变化，故不触发重编译或业务专项Case。
+- 最新完成轮次：R515，Demon新增18315/18317两个仅接收raw切片。18315保存每日黑市打开状态但不公开“请求即写每日计数”的C2S入口；18317按使魔/技能复合键保存服务端权威生活技能进度推送，不反写18301实体树。
+- 两切片与18301/03/07/11/14/50901互相隔离，零值和全位值有效，Reset/Dispose统一清理；未接使魔UI、配置、红点、事件、属性推导、18316激活或其他资产写操作。
+- `dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 为70条既有/Editor-only warning、0 error；同一Unity PID完成1467节点编译/域重载，两个Demon专项均 `result=0/pass=True/restored=True`。`coverage_20260730_101203.md` A～E全PASS，当前 `registered=1255 / liveDefined=1468 / liveGap=335 / errorExit=10 / effective=1133/1468=77.2%`，183族 `registered8/liveGap9/dead1/pending`。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

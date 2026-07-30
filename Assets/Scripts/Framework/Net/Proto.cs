@@ -1269,6 +1269,10 @@
         public const int DEMON_TALENT_SHOP = 18311;
         /// <summary>使魔天赋真实战力查询。C2S: demons_id:u32,sign:u8,id:u32,skill_lv:u16；S2C: power:u32,demons_id:u32,sign:u8,skill_id:u32,skill_lv:u16,code:u32。</summary>
         public const int DEMON_TALENT_POWER = 18314;
+        /// <summary>使魔天赋商店当日打开状态（仅接收）。S2C: open_state:u8；显式请求会写每日计数，禁止公开 sender。</summary>
+        public const int DEMON_TALENT_SHOP_OPEN_STATE = 18315;
+        /// <summary>使魔生活技能进度推送（S2C-only）。S2C: demons_id:u32,skill_id:u32,skill_lv:u16,process:u32,is_active:u8。</summary>
+        public const int DEMON_LIFE_SKILL_PROGRESS = 18317;
         /// <summary>使魔羁绊全量快照。C2S 空包；S2C: fetters:u16×fetter_id:u32。</summary>
         public const int DEMON_FETTERS = 18303;
         /// <summary>使魔上卷/绘卷全量快照。C2S 空包；S2C: paintings:u16×painting_id:u8。</summary>

@@ -8,7 +8,7 @@ namespace Shenxiao.Module.Core.Demon
         private static Func<byte[], bool> s_outboundIntercept;
 #endif
         private DemonController() { }
-        protected override void Register() { RegisterProtocal(Proto.DEMON_INFO, On18301); RegisterProtocal(Proto.DEMON_POWER, On18302); RegisterProtocal(Proto.DEMON_FETTERS, On18303); RegisterProtocal(Proto.DEMON_PAINTINGS, On18307); RegisterProtocal(Proto.DEMON_BLESSING, On50901); RegisterProtocal(Proto.DEMON_TALENT_SHOP, On18311); RegisterProtocal(Proto.DEMON_TALENT_POWER, On18314); }
+        protected override void Register() { RegisterProtocal(Proto.DEMON_INFO, On18301); RegisterProtocal(Proto.DEMON_POWER, On18302); RegisterProtocal(Proto.DEMON_FETTERS, On18303); RegisterProtocal(Proto.DEMON_PAINTINGS, On18307); RegisterProtocal(Proto.DEMON_BLESSING, On50901); RegisterProtocal(Proto.DEMON_TALENT_SHOP, On18311); RegisterProtocal(Proto.DEMON_TALENT_POWER, On18314); RegisterProtocal(Proto.DEMON_TALENT_SHOP_OPEN_STATE, On18315); RegisterProtocal(Proto.DEMON_LIFE_SKILL_PROGRESS, On18317); }
         /// <summary>受控简化：当前未移植 DemonMainView 开放门控，18301/18303/18307/50901 均为无参只读快照，故登录各拉取一次。</summary>
         public void RequestStartup() { SendEmpty(Proto.DEMON_INFO); SendEmpty(Proto.DEMON_FETTERS); SendEmpty(Proto.DEMON_PAINTINGS); SendEmpty(Proto.DEMON_BLESSING); }
         public void RequestTalentShop() => SendEmpty(Proto.DEMON_TALENT_SHOP);
@@ -58,6 +58,8 @@ namespace Shenxiao.Module.Core.Demon
             uint power = r.ReadU32(); uint demonsId = r.ReadU32(); byte sign = r.ReadU8(); uint skillId = r.ReadU32(); ushort skillLv = r.ReadU16(); uint code = r.ReadU32();
             if (code == 1) DemonModel.Instance.ReplaceTalentPower(new DemonModel.TalentPower(power, demonsId, sign, skillId, skillLv, code));
         }
+        private void On18315(NetReader r) { DemonModel.Instance.ReplaceTalentShopOpenState(r.ReadU8()); }
+        private void On18317(NetReader r) { DemonModel.Instance.ReplaceLifeSkillProgress(new DemonModel.LifeSkillProgress(r.ReadU32(), r.ReadU32(), r.ReadU16(), r.ReadU32(), r.ReadU8())); }
         private static DemonModel.Entry ReadEntry(NetReader r)
         {
             uint id = r.ReadU32(); ushort level = r.ReadU16(); uint exp = r.ReadU32(); byte star = r.ReadU8(); byte slotNumber = r.ReadU8(); int skillCount = r.ReadU16(); var skills = new List<DemonModel.Skill>(skillCount);
