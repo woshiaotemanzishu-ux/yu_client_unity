@@ -181,6 +181,6 @@
 ## LoadingView 进度端标可视化维护（2026-07-30）
 
 - 老端 `_img_progress_end.x = mask_width - 55` 的 `x` 是图片左边缘；素材实际为 `65×43`，因此端标中心应在填充边缘左侧 `22.5`。旧 Unity 实现误把 Laya `x` 当成中心点，并另写死 `635/35`，导致端标整体多向右 `22.5`，低进度又会被强制推到 35 像素处；Inspector 中修改 X 还会被下一次 `SetProgress` 覆盖。
-- `LoadingView.prefab/BarBack/BarFront` 现直接挂不可交互的 `Slider`，只把 `ProgressEnd` 作为 `handleRect`；`fillRect` 仍为空，前景继续使用 `Image.fillAmount`，避免缩放填充纹理。View 只同步两个 0～1 值和端标显隐，不再计算像素坐标。
+- `LoadingView.prefab/BarBack/BarFront` 现直接挂不可交互的 `Slider`；`handleRect` 指向零尺寸的 `ProgressEndTrack/ProgressEndHandle`，真实图片 `ProgressEnd` 是 Handle 下的普通子节点，不再被 Slider 改写 Anchors。Track 高度为 0，避免 Slider 的纵向拉伸语义叠加图片高度；`fillRect` 仍为空，前景继续使用 `Image.fillAmount`，避免缩放填充纹理。View 只同步两个 0～1 值和端标显隐，不再计算像素坐标。
 - Prefab 以 50% 值保存便于所见即所得预览。端标相对填充尖端的视觉位置直接调整 `ProgressEnd/RectTransform/Pos X`，当前 `-22.5` 对齐老端；Size、Pivot、Y 均同样在 Prefab 中调整。修改 `BarFront` 宽度后 Slider 会按实际 Rect 自动重算，不需要同步任何代码常量。
-- 页面专用 `LoadingCreator` 及重建注册入口已删除，LoadingView 与其他已人工调整的登录页一样以 Prefab 为唯一视觉事实源。`LoadingViewCase` 覆盖 0/25/50/100%、越界夹取、端标偏移不被覆盖、轨道改宽自适应及 Creator 不存在。
+- 页面专用 `LoadingCreator` 及重建注册入口已删除，LoadingView 与其他已人工调整的登录页一样以 Prefab 为唯一视觉事实源。`LoadingViewCase` 覆盖 0/25/50/100%、越界夹取、端标位置/尺寸/Anchors 不被 Slider 覆盖、轨道改宽自适应及 Creator 不存在。

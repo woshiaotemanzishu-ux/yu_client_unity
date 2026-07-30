@@ -1624,5 +1624,5 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 ## 2026-07-30：LoadingView 进度端标改为 Prefab Slider
 
 - **根因**：老端 `mask_width-55` 定位的是 `65×43` 端标图片左边缘；Unity 旧代码却把结果当中心坐标并把偏移改成 0，同时写死 635 像素轨道和 35 像素低进度夹取，端标因此整体向右多出 22.5 像素，且运行时持续覆盖 Inspector 坐标。
-- **修复**：`BarFront` 新增不可交互 Slider，`ProgressEnd` 作为 handle、Prefab Pos X=`-22.5`；View 只设置 `fillAmount/Slider.value` 与显隐，轨道宽度、端标尺寸、Pivot 和偏移全部保存在 Prefab。删除 `LoadingCreator` 及注册入口，避免重建覆盖人工界面。
-- **验证状态**：`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 顺序编译均 0 error；Unity 强制编译 `completed/failed=false/errors=[]`。`LoadingViewCase` 返回 0，日志为 `binding/zero/quarter/half/full/clamp/resized/creatorRemoved=True`；额外把轨道临时改为 700 像素后，50% 端标仍自动落在实际中点并保持 Prefab 偏移。
+- **修复**：`BarFront` 新增不可交互 Slider；Slider 只驱动零高度 `ProgressEndTrack` 下的零尺寸 `ProgressEndHandle`，真实 `ProgressEnd` 图片改为 Handle 子节点，因此不会再被 Slider 改写 Anchors 或纵向拉伸。图片 Prefab Pos X=`-22.5`，并保留用户调整的 Pos Y=`18`；View 只设置 `fillAmount/Slider.value` 与显隐，轨道宽度、端标尺寸、Pivot 和偏移全部保存在 Prefab。删除 `LoadingCreator` 及注册入口，避免重建覆盖人工界面。
+- **验证状态**：`Shenxiao.Module.Core.csproj`、`Shenxiao.Editor.csproj` 顺序编译均 0 error；Unity 强制编译 `completed/failed=false/errors=[]`。`LoadingViewCase` 返回 0，覆盖 `binding/zero/quarter/half/full/clamp/resized/creatorRemoved`，并逐进度断言图片位置、`65×43` 实际尺寸和 Anchors 均不被 Slider 回写；额外把轨道临时改为 700 像素后，50% Handle 仍自动落在实际中点。
