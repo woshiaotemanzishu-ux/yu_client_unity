@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Shenxiao.Common.Tips;
@@ -16,6 +17,9 @@ namespace Shenxiao.Module.Core.Bag
     public sealed class BagFusionController : BaseController
     {
         public static readonly BagFusionController Instance = new BagFusionController();
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_outboundIntercept;
+#endif
 
         private BagFusionController() { }
 
@@ -25,24 +29,38 @@ namespace Shenxiao.Module.Core.Bag
         /// <summary>当前熔炼经验(15024 落库)。</summary>
         public static long FusionExp { get; private set; }
 
+        private double _pendingUntil;
+        public bool IsPending => UnityEngine.Time.realtimeSinceStartupAsDouble < _pendingUntil;
+
         protected override void Register()
         {
             RegisterProtocal(Proto.BAG_FUSION_INFO, On15024);
             RegisterProtocal(Proto.BAG_FUSION, On15025);
         }
 
+        public override void Dispose()
+        {
+            _pendingUntil = 0d;
+            base.Dispose();
+        }
+
         /// <summary>15024 查询熔炼信息(无参)。</summary>
         public void RequestInfo()
         {
-            SendFmt(Proto.BAG_FUSION_INFO);
+            SendRequest(Proto.BAG_FUSION_INFO);
             GameLog.Info("Bag", "fusion requestInfo 15024");
         }
 
         /// <summary>15025 熔炼(发 h count + 逐项 l goods_id/i num,对标 OnDevourEquipment WriteBegin(15025)写法,
         /// 同 <see cref="BagController.SellGoods"/> 动态 fmt 构造)。</summary>
-        public void Fuse(IReadOnlyList<(long goodsId, long num)> list)
+        public bool Fuse(IReadOnlyList<(long goodsId, long num)> list)
         {
-            if (list == null || list.Count == 0) return;
+            if (list == null || list.Count == 0) return false;
+            if (IsPending)
+            {
+                TipsManager.Toast("吞噬请求处理中");
+                return false;
+            }
             var fmt = new StringBuilder("h");
             var args = new List<object>(1 + list.Count * 2) { list.Count };
             foreach ((long goodsId, long num) it in list)
@@ -51,8 +69,20 @@ namespace Shenxiao.Module.Core.Bag
                 args.Add(it.goodsId);
                 args.Add(it.num);
             }
-            SendFmt(Proto.BAG_FUSION, fmt.ToString(), args.ToArray());
+            _pendingUntil = UnityEngine.Time.realtimeSinceStartupAsDouble + 10d;
+            SendRequest(Proto.BAG_FUSION, fmt.ToString(), args.ToArray());
             GameLog.Info("Bag", "fuse 15025 items={0}", list.Count);
+            return true;
+        }
+
+        private void SendRequest(int protocol, string format = null, params object[] args)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(protocol, format, args);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            if (string.IsNullOrEmpty(format)) SendFmt(protocol);
+            else SendFmt(protocol, format, args);
         }
 
         /// <summary>15024 回包:level:h, exp:i。落静态 FusionLv/FusionExp + EVT_BAG_UPDATE(复用背包更新事件联动刷新)。</summary>
@@ -70,6 +100,7 @@ namespace Shenxiao.Module.Core.Bag
         /// (随后服务端另推 15024 落最新等级/经验);else 显码降级(错误码表未移植)。</summary>
         private void On15025(NetReader r)
         {
+            _pendingUntil = 0d;
             int code = (int)r.ReadU32();
             List<(int addExp, int ratio)> expList = r.ReadArray(ReadExp);
             if (code != 1)
@@ -79,6 +110,7 @@ namespace Shenxiao.Module.Core.Bag
                 return;
             }
             TipsManager.Toast("熔炼成功");
+            EventDispatcher.Emit(GlobalEvent.EVT_BAG_FUSION_SUCCESS);
             GameLog.Info("Bag", "15025 ok exp_list={0} remaining={1}B", expList.Count, r.Remaining);
         }
 

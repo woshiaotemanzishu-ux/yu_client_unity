@@ -73,6 +73,10 @@ namespace Shenxiao.Framework.Event
 
         // ----- Bag -----
         public const string EVT_BAG_UPDATE = "EVT_BAG_UPDATE";
+        /// <summary>角色仓库(pos=5)全量、物品或容量变化。</summary>
+        public const string EVT_WAREHOUSE_UPDATE = "EVT_WAREHOUSE_UPDATE";
+        /// <summary>装备吞噬 15025 成功；用于界面清选择与服务器设置开启后的连续吞噬。</summary>
+        public const string EVT_BAG_FUSION_SUCCESS = "EVT_BAG_FUSION_SUCCESS";
         /// <summary>角色已穿戴装备容器(pos=1)变化。15010 全量、15017 全字段增量、15018 数量增量落模型后触发。</summary>
         public const string EVT_EQUIPMENT_UPDATE = "EVT_EQUIPMENT_UPDATE";
         public const string EVT_BABY_EQUIP_BAG_UPDATE = "EVT_BABY_EQUIP_BAG_UPDATE";

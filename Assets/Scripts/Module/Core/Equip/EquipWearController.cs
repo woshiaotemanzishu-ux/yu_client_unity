@@ -1,3 +1,4 @@
+using System;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
@@ -13,6 +14,9 @@ namespace Shenxiao.Module.Core.Equip
     public sealed class EquipWearController : BaseController
     {
         public static readonly EquipWearController Instance = new EquipWearController();
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_outboundIntercept;
+#endif
 
         private EquipWearController() { }
 
@@ -37,15 +41,24 @@ namespace Shenxiao.Module.Core.Equip
         /// <summary>请求已穿戴装备全量(15010 pos=equip=1;回包经 BagController.On15010 转存 EquipAutoWear)。</summary>
         public void RequestWornList()
         {
-            SendFmt(Proto.GOODS_CONTAINER_INFO, "h", EquipAutoWear.POS_EQUIP);
+            SendRequest(Proto.GOODS_CONTAINER_INFO, "h", EquipAutoWear.POS_EQUIP);
             GameLog.Info("Equip", "request 15010 equip pos={0}(自动穿戴 rating 比较用)", EquipAutoWear.POS_EQUIP);
         }
 
         /// <summary>15201 穿戴(发 "l" goodsId 实例id)。</summary>
         public void Wear(long goodsId)
         {
-            SendFmt(Proto.EQUIP_WEAR, "l", goodsId);
+            SendRequest(Proto.EQUIP_WEAR, "l", goodsId);
             GameLog.Info("Equip", "wear 15201 goodsId={0}", goodsId);
+        }
+
+        private void SendRequest(int protocol, string format, params object[] args)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(protocol, format, args);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(protocol, format, args);
         }
 
         /// <summary>15200 装备家族统一错误码出口(对标老端 EquipController.ts:274-282 On15200:

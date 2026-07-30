@@ -1,74 +1,301 @@
 using System;
-using Shenxiao.Generated.UI.Bag;
-using Shenxiao.Framework.Util;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
+using Shenxiao.Framework.Event;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
+using Shenxiao.Framework.Util;
+using Shenxiao.Generated.UI.Bag;
+using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Equip;
+using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.Setting;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Bag
 {
-    /// <summary>
-    /// 背包熔炼弹窗(对标老客户端 bag/BagSmeltView.ts):熔炼物品换经验,含物品列表、经验条/等级、
-    /// 自动选择/一星 过滤勾选、属性按钮、熔炼按钮。
-    ///
-    /// 降级:熔炼数据(SmeltModel)+ 物品列表(_Scroller1 勾选源)未移植 → 模板隐藏、列表空 + nothingLb 空提示、
-    /// propBtn 点击打日志「待对接」;两个过滤勾选(自动/一星)做成本地视觉切换(select/Unselect 互显)。
-    /// 薄增量六件套(第20轮工单):15024/15025 协议已由 <see cref="BagFusionController"/> 打通(查询/熔炼发包+回包落库),
-    /// 但本 View 尚无「选中物品」数据源(列表未建)→ useBtn 暂不接 Fuse(需要 goods_id/num 列表,不臆造选择逻辑);
-    /// 打开时改发 15024 查询当前等级/经验(对标老端 LoadSuccess 首查),真实但只读,不影响现有降级展示。
-    /// close → Hide。事件驱动弹窗,默认关闭、不进 FirstPass。
-    /// </summary>
+    /// <summary>装备吞噬：配置过滤可吞噬物，默认安全选择低评分 0/1 星装备，确认后发送真实 15025 列表。</summary>
     public sealed class BagSmeltView : BagSmeltViewBind
     {
-        private bool _autoOn;
-        private bool _oneStarOn;
+        private const int EssenceTypeId = 38250022;
+        private const int MaxItems = 50;
+        private const int Columns = 6;
+        private const float CellStep = 92f;
+        private const float ItemScale = 0.72f;
+
+        private readonly List<BagGoods> _eligible = new List<BagGoods>();
+        private readonly Dictionary<long, long> _selected = new Dictionary<long, long>();
+        private readonly List<BaseAwardItem> _itemPool = new List<BaseAwardItem>();
+        private bool _autoOn = true;
+        private bool _oneStarOn = true;
+        private bool _subscribed;
+        private int _refreshEpoch;
+        private int _autoFuseEpoch;
 
         protected override void OnInit()
         {
             HideNode(_tpl_DownDropBtn);
             HideNode(_tpl_FightingShowSmallItem);
-
-            BindBtn(closeBtn, () => Hide());
-            BindBtn(propBtn, () => GameLog.Info("Bag", "熔炼属性 → 待对接 SmeltPropView/属性数据"));
-            BindBtn(useBtn, () => GameLog.Info("Bag", "熔炼 → BagFusionController.Fuse 协议已打通,但物品选中列表未建(_Scroller1 无数据源),待接 UI"));
-            BindBtn(autoGp, () => SetAuto(!_autoOn));
+            BindBtn(closeBtn, Hide);
+            BindBtn(propBtn, ShowProperties);
+            BindBtn(useBtn, FuseSelected);
+            BindBtn(autoGp, () => RequestAutoSmelt(!_autoOn));
             BindBtn(oneStarGp, () => SetOneStar(!_oneStarOn));
-
-            SetAuto(false);
-            SetOneStar(false);
+            RefreshAutoSetting();
+            SetOneStar(true);
         }
 
         protected override void OnShow(object args)
         {
-            if (nothingLb != null) nothingLb.gameObject.SetActive(true);
-            BagFusionController.Instance.RequestInfo();   // 15024 查询当前熔炼等级/经验(对标老端 LoadSuccess 首查),真实只读
-            GameLog.Info("Bag", "熔炼打开 → 已发 15024 查询;可熔炼物品列表(BagModel/SmeltModel)待对接");
+            Subscribe();
+            RefreshAutoSetting();
+            BagFusionController.Instance.RequestInfo();
+            _ = RefreshAsync(true);
         }
 
-        /// <summary>自动选择 勾选切换(本地视觉:select0/Unselect0 互显)。</summary>
-        private void SetAuto(bool on)
+        protected override void OnHide()
         {
-            _autoOn = on;
-            if (select0 != null) select0.gameObject.SetActive(on);
-            if (Unselect0 != null) Unselect0.gameObject.SetActive(!on);
+            _refreshEpoch++;
+            _autoFuseEpoch++;
+            Unsubscribe();
         }
 
-        /// <summary>一星 勾选切换(本地视觉:select1/Unselect1 互显)。</summary>
+        protected override void OnDispose()
+        {
+            _refreshEpoch++;
+            _autoFuseEpoch++;
+            Unsubscribe();
+            foreach (BaseAwardItem item in _itemPool)
+                if (item != null) ResManager.ReleaseInstance(item.gameObject);
+            _itemPool.Clear();
+        }
+
+        private void Subscribe()
+        {
+            if (_subscribed) return;
+            EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, OnBagUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_SETTING_UPDATED, RefreshAutoSetting);
+            EventDispatcher.On(GlobalEvent.EVT_BAG_FUSION_SUCCESS, OnFusionSuccess);
+            _subscribed = true;
+        }
+
+        private void Unsubscribe()
+        {
+            if (!_subscribed) return;
+            EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, OnBagUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_SETTING_UPDATED, RefreshAutoSetting);
+            EventDispatcher.Off(GlobalEvent.EVT_BAG_FUSION_SUCCESS, OnFusionSuccess);
+            _subscribed = false;
+        }
+
+        private void OnBagUpdate() => _ = RefreshAsync(false);
+
+        private void RefreshAutoSetting()
+        {
+            _autoOn = SettingModel.Get(4, 1, 0) == 1;
+            if (select0 != null) select0.gameObject.SetActive(_autoOn);
+            if (Unselect0 != null) Unselect0.gameObject.SetActive(!_autoOn);
+        }
+
+        private void RequestAutoSmelt(bool on)
+        {
+            if (on)
+            {
+                TipsManager.Confirm("勾选后将会自动吞噬橙色一星及以下、评分不高于身上装备的装备，是否开启？",
+                    () => SettingController.Instance.SendSetting(4, 1, 1));
+            }
+            else
+            {
+                SettingController.Instance.SendSetting(4, 1, 0);
+            }
+        }
+
+        private void OnFusionSuccess()
+        {
+            _selected.Clear();
+            Render();
+            if (!_autoOn) return;
+            int epoch = ++_autoFuseEpoch;
+            _ = ContinueAutoFuse(epoch);
+        }
+
+        private async Task ContinueAutoFuse(int epoch)
+        {
+            await TimeUtil.Delay(800);
+            if (epoch != _autoFuseEpoch || !IsShown || !_autoOn) return;
+            await RefreshAsync(true);
+            if (epoch != _autoFuseEpoch || !IsShown || !_autoOn || _selected.Count == 0) return;
+            FuseSelected();
+        }
+
+        private async Task RefreshAsync(bool resetSelection)
+        {
+            int epoch = ++_refreshEpoch;
+            await Task.WhenAll(GoodsModel.EnsureLoaded(), BagFusionConfigs.EnsureLoaded());
+            if (epoch != _refreshEpoch || !IsShown) return;
+
+            _eligible.Clear();
+            foreach (BagGoods goods in BagModel.Instance.BagGoodsList)
+                if (BagFusionConfigs.TryGetFusionExp(goods.TypeId, out _)) _eligible.Add(goods);
+
+            if (resetSelection || _autoOn) SelectSafeDefaults();
+            else
+            {
+                var valid = new HashSet<long>();
+                foreach (BagGoods goods in _eligible) valid.Add(goods.GoodsId);
+                var remove = new List<long>();
+                foreach (long id in _selected.Keys) if (!valid.Contains(id)) remove.Add(id);
+                foreach (long id in remove) _selected.Remove(id);
+            }
+
+            await EnsurePoolAsync(_eligible.Count, epoch);
+            if (epoch != _refreshEpoch || !IsShown) return;
+            Render();
+        }
+
+        private void SelectSafeDefaults()
+        {
+            _selected.Clear();
+            int career = RoleModel.Instance.Career;
+            int sex = RoleModel.Instance.Sex;
+            foreach (BagGoods goods in _eligible)
+            {
+                if (_selected.Count >= MaxItems) break;
+                if (goods.TypeId == EssenceTypeId)
+                {
+                    _selected[goods.GoodsId] = goods.GoodsNum;
+                    continue;
+                }
+
+                GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(goods.TypeId);
+                GoodsModel.EquipAttr equip = GoodsModel.GetEquipAttr(goods.TypeId);
+                if (basic == null || equip == null || basic.EquipType == 7 || basic.EquipType == 9) continue;
+                if (equip.Stage > 99 || equip.Star > 1 || (equip.Star == 1 && !_oneStarOn) || basic.Color > 4) continue;
+
+                bool incompatible = (basic.CareerId != 0 && basic.CareerId != career)
+                                    || (basic.Sex != 0 && basic.Sex != sex);
+                BagGoods worn = EquipAutoWear.GetWorn(basic.EquipType);
+                bool weakerThanWorn = worn != null && worn.Rating >= goods.Rating;
+                if (incompatible || weakerThanWorn) _selected[goods.GoodsId] = goods.GoodsNum;
+            }
+        }
+
+        private async Task EnsurePoolAsync(int count, int epoch)
+        {
+            if (_Scroller1 == null || _Scroller1.content == null) return;
+            string key = GameResPath.GetUIPrefab("common", "BaseAwardItem");
+            while (_itemPool.Count < count)
+            {
+                GameObject go = await ResManager.InstantiateAsync(key, _Scroller1.content);
+                if (epoch != _refreshEpoch)
+                {
+                    if (go != null) ResManager.ReleaseInstance(go);
+                    return;
+                }
+                if (go == null) return;
+                BaseAwardItem item = go.GetComponent<BaseAwardItem>();
+                if (item == null)
+                {
+                    ResManager.ReleaseInstance(go);
+                    return;
+                }
+                go.name = "BagSmeltItem_" + _itemPool.Count;
+                item.SetScale(ItemScale);
+                _itemPool.Add(item);
+            }
+        }
+
+        private void Render()
+        {
+            int rows = Mathf.CeilToInt(_eligible.Count / (float)Columns);
+            if (_Scroller1 != null && _Scroller1.content != null)
+                _Scroller1.content.sizeDelta = new Vector2(_Scroller1.content.sizeDelta.x, rows * CellStep);
+            for (int i = 0; i < _itemPool.Count; i++)
+            {
+                BaseAwardItem item = _itemPool[i];
+                bool active = i < _eligible.Count;
+                item.gameObject.SetActive(active);
+                if (!active) continue;
+                BagGoods goods = _eligible[i];
+                var rt = (RectTransform)item.transform;
+                rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
+                rt.pivot = new Vector2(0f, 1f);
+                rt.anchoredPosition = new Vector2(i % Columns * CellStep, -(i / Columns) * CellStep);
+                BagGoods captured = goods;
+                item.SetClickCallBack(() => Toggle(captured));
+                item.SetData(goods.TypeId, goods.GoodsNum, goods.Bind != 0, _selected.ContainsKey(goods.GoodsId));
+            }
+            if (nothingLb != null) nothingLb.gameObject.SetActive(_eligible.Count == 0);
+            RefreshExpText();
+        }
+
+        private void Toggle(BagGoods goods)
+        {
+            if (goods == null) return;
+            if (_selected.ContainsKey(goods.GoodsId)) _selected.Remove(goods.GoodsId);
+            else if (_selected.Count >= MaxItems) TipsManager.Toast("单次最多选择 " + MaxItems + " 件");
+            else _selected[goods.GoodsId] = goods.GoodsNum;
+            Render();
+        }
+
+        private void RefreshExpText()
+        {
+            long add = 0;
+            foreach (BagGoods goods in _eligible)
+            {
+                if (!_selected.TryGetValue(goods.GoodsId, out long num)) continue;
+                if (BagFusionConfigs.TryGetFusionExp(goods.TypeId, out long exp))
+                    add += exp * (goods.TypeId == EssenceTypeId ? num : 1L);
+            }
+            long need = BagFusionConfigs.GetLevelNeed(BagFusionController.FusionLv);
+            if (lvLb != null) lvLb.text = "Lv." + BagFusionController.FusionLv;
+            if (expLb != null) expLb.text = need > 0 ? BagFusionController.FusionExp + "/" + need : BagFusionController.FusionExp.ToString();
+            if (curLb != null) curLb.text = "本次吞噬经验：<color=#00b11d>" + add + "</color>";
+        }
+
+        private void FuseSelected()
+        {
+            if (_selected.Count == 0)
+            {
+                TipsManager.Toast("当前没有选择可以吞噬的道具");
+                return;
+            }
+            var list = new List<(long goodsId, long num)>();
+            foreach (BagGoods goods in _eligible)
+                if (_selected.TryGetValue(goods.GoodsId, out long num)) list.Add((goods.GoodsId, num));
+            BagFusionController.Instance.Fuse(list);
+        }
+
+        private void ShowProperties()
+        {
+            long need = BagFusionConfigs.GetLevelNeed(BagFusionController.FusionLv);
+            TipsManager.Toast("熔炼等级 " + BagFusionController.FusionLv + "，经验 " + BagFusionController.FusionExp
+                              + (need > 0 ? "/" + need : ""));
+        }
+
         private void SetOneStar(bool on)
         {
             _oneStarOn = on;
             if (select1 != null) select1.gameObject.SetActive(on);
             if (Unselect1 != null) Unselect1.gameObject.SetActive(!on);
+            if (IsShown) _ = RefreshAsync(true);
         }
 
-        private void BindBtn(Component target, Action onClick)
+        private static void BindBtn(Component target, Action onClick)
         {
             if (target == null) return;
-            Image img = target as Image;
-            if (img == null) img = target.GetComponentInChildren<Image>(true);
-            if (img == null) return;
-            img.raycastTarget = true;
-            UIUtil.AddClick(img, onClick);
+            GameObject go = target.gameObject;
+            foreach (Graphic graphic in go.GetComponentsInChildren<Graphic>(true)) graphic.raycastTarget = false;
+            Image image = go.GetComponent<Image>();
+            if (image == null)
+            {
+                image = go.AddComponent<Image>();
+                image.color = new Color(1f, 1f, 1f, 0f);
+            }
+            image.raycastTarget = true;
+            UIUtil.AddClick(image, onClick);
         }
 
         private static void HideNode(GameObject go)

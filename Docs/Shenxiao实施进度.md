@@ -1654,3 +1654,12 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **登录背景**：`LoginStage.prefab/WebBackground` 继续直接保存 `full_screen_bg.jpg`、`Image.Type=Simple` 与 `AspectRatioFitter.EnvelopeParent/16:9`。恢复并保留原有 `Awake/OnValidate` 比例同步，它只根据 Prefab 当前图片的原始尺寸更新 Fitter，不加载或替换背景资源；页面专用 `LoginStageCreator` 与重建注册入口仍保持删除。
 - **流程边界**：两张背景图片都以可视化 Prefab 的 `Image/Source Image` 为唯一事实源；后续换图只改 Prefab Inspector，不改 C# 资源路径、不跑批量转换。除 `LoginStageCreator` 外，本轮误删的其他登录页 Creator 已全部恢复，不再扩大本次背景修正范围。
 - **验证状态**：`PrefabBackgroundOwnershipCase` 校验两份 Prefab 均无 Missing Script、两张 Source Image 非空、公共底图位于标题装饰后方且不拦点击、登录仍为 `Simple + EnvelopeParent`，并确认 `LoginStage` 的 Image/Fitter/Viewport 序列化引用与当前图片比例一致。
+
+## 2026-07-30：背包、仓库与物品操作基础链闭环
+
+- **容器与操作**：仓库 `pos=5` 已完整消费 `15010/15017/15018`，与背包 `pos=4`、已穿戴 `pos=1` 隔离；穿戴/换装走 `15201`，仓库存取走 `15003`，扩容走 `15002`，普通使用走 `15050`，装备吞噬走 `15024/15025`。老端不可达的普通卸下 `15202` 未恢复。
+- **界面接通**：背包和仓库格支持详情；仓库单击延时详情、双击存取。详情复用 `CommonModule.prefab`，补齐基础/实例属性、装备对比、穿戴、使用、存入和取出；堆叠使用复用 `GoodsFuncView` 数量滑杆。右侧一键装备、装备吞噬、容量扩充、一键使用已接真实逻辑，复合按钮与物品格统一为根节点唯一点击面。
+- **吞噬与配置**：导入 `config_equip_fusion/config_equip_fusion_attr`，按老端安全条件选择最多 50 项，并接 `10203 type=4,subtype=1` 自动吞噬设置与成功后的延时续批。
+- **共鸣 blocker**：`EquipSuitBaseView` 尚无可编辑 Prefab，老端 `127.0.0.1:8090` 运行快照服务当前不可达；`15218/15221/15222` 又是真实资产写事务，因此未接裸协议或临时 Toast，共鸣按钮暂时关闭射线，等待运行快照后按完整模块转换闭环。
+- **验证状态**：Unity 强制编译 0 error；`BagInteractionCase` 返回 0，覆盖六条出站协议、背包/仓库真实 Raycaster 按钮，以及详情窗使用/穿戴/对比/存取；`PetEquipInventoryCase` 返回 0，新增仓库全量/增量/数量/隔离断言；`GoodsProtoCase` 返回 0。
+- **专题文档**：[背包装备仓库交互闭环.md](背包装备仓库交互闭环.md)。

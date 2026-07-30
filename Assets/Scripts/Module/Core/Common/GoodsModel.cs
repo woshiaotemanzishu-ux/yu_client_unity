@@ -50,6 +50,7 @@ namespace Shenxiao.Module.Core.Common
             public string Getway = ""; // getway(获取途径/来源文本,key "3",对标 GoodsTooltips.ways=basic.getway)
             public string BaseAttrList = ""; // base_attrlist(装备基础属性 Erlang term [{attr_id,val},...],key "26",对标 EquipToolTips basic.base_attrlist)
             public int Use;            // use(可使用标记,key "22";==0 不显使用按钮,对标 GoodsTooltips useBtn 隐藏条件 basic.use==0)
+            public int UseOneKey;      // use_one_key(key "25";!=0 可进入一键使用列表)
         }
 
         /// <summary>装备配置行(config_equip_attr[type_id];字段下标见 config_table_default.json:1=stage 2=star 3=base_rating)。
@@ -73,6 +74,7 @@ namespace Shenxiao.Module.Core.Common
         private const string K_LEVEL = "16";       // level(需求等级)
         private const string K_COLOR = "18";       // color/品质 0..8
         private const string K_USE = "22";         // use(可使用标记;==0 → GoodsTooltips 不显使用按钮)
+        private const string K_USE_ONE_KEY = "25"; // use_one_key(老端 OneKeyUseView 过滤条件)
         private const string K_BASE_ATTR = "26";   // base_attrlist(装备基础属性 Erlang term)
         private const string K_SEX = "30";         // sex(性别需求 0=通用)
         private const string K_TURN = "31";        // turn(转生需求)
@@ -182,6 +184,7 @@ namespace Shenxiao.Module.Core.Common
                 Getway = ReadString(obj, K_GETWAY),
                 BaseAttrList = ReadString(obj, K_BASE_ATTR),
                 Use = ReadInt(obj, K_USE),
+                UseOneKey = ReadInt(obj, K_USE_ONE_KEY),
             };
             _cache[typeId] = basic;
             return basic;

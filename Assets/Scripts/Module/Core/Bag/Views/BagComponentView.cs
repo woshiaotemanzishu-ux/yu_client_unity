@@ -7,6 +7,7 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Equip;
 using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
@@ -400,11 +401,11 @@ namespace Shenxiao.Module.Core.Bag
 
         private void BindButtons()
         {
-            BindToggle(onekeyBtn, "OneKeyUseView", "one key use");
+            BindAction(onekeyBtn, () => EquipAutoWear.TryManualWear(), "one key equip");
             BindToggle(smeltBtn, "BagSmeltView", "smelt");
-            BindToggle(expandBtn, "ExpandBagView", "expand bag");
-            BindBtn(redequipBtn, "red equip");
-            BindBtn(useBtn, "use");
+            BindAction(expandBtn, () => BagFlow.OpenSub("ExpandBagView", BagModel.POS_BAG), "expand bag");
+            DisableClickSurface(redequipBtn);
+            BindToggle(useBtn, "OneKeyUseView", "one key use");
             BindBtn(_btn_guard1, "guard 1");
             BindBtn(_btn_guard2, "guard 2");
             BindBtn(_btn_dragonball, "dragon ball");
@@ -412,11 +413,8 @@ namespace Shenxiao.Module.Core.Bag
 
         private void BindToggle(Component target, string viewType, string label)
         {
-            if (target == null) return;
-            Image img = target as Image;
-            if (img == null) img = target.GetComponentInChildren<Image>(true);
+            Image img = PrepareClickSurface(target);
             if (img == null) return;
-            img.raycastTarget = true;
             UIUtil.AddClick(img, () =>
             {
                 GameLog.Info("Bag", "click bag button [{0}] -> toggle {1}", label, viewType);
@@ -424,14 +422,45 @@ namespace Shenxiao.Module.Core.Bag
             });
         }
 
+        private void BindAction(Component target, System.Action action, string label)
+        {
+            Image img = PrepareClickSurface(target);
+            if (img == null) return;
+            UIUtil.AddClick(img, () =>
+            {
+                GameLog.Info("Bag", "click bag button [{0}]", label);
+                action?.Invoke();
+            });
+        }
+
         private void BindBtn(Component target, string label)
         {
-            if (target == null) return;
-            Image img = target as Image;
-            if (img == null) img = target.GetComponentInChildren<Image>(true);
+            Image img = PrepareClickSurface(target);
             if (img == null) return;
-            img.raycastTarget = true;
             UIUtil.AddClick(img, () => GameLog.Info("Bag", "click bag button [{0}] -> TODO", label));
+        }
+
+        /// <summary>复合按钮根为唯一命中面；所有图标/文字装饰 Graphic 都关闭 Raycast。</summary>
+        private static Image PrepareClickSurface(Component target)
+        {
+            if (target == null) return null;
+            GameObject go = target.gameObject;
+            foreach (Graphic graphic in go.GetComponentsInChildren<Graphic>(true)) graphic.raycastTarget = false;
+            Image image = go.GetComponent<Image>();
+            if (image == null)
+            {
+                image = go.AddComponent<Image>();
+                image.color = new Color(1f, 1f, 1f, 0f);
+            }
+            image.raycastTarget = true;
+            return image;
+        }
+
+        private static void DisableClickSurface(Component target)
+        {
+            if (target == null) return;
+            foreach (Graphic graphic in target.GetComponentsInChildren<Graphic>(true))
+                graphic.raycastTarget = false;
         }
 
         private static void HideNode(Component c)

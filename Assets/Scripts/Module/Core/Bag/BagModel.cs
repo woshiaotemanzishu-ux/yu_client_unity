@@ -67,6 +67,12 @@ namespace Shenxiao.Module.Core.Bag
         public IReadOnlyList<BagGoods> EquipmentGoodsList => _equipment;
         public bool HasEquipmentData { get; private set; }
 
+        /// <summary>角色仓库(pos=5)。与主背包分片保存，15010 全量替换，15017/15018 按实例增量更新。</summary>
+        private readonly List<BagGoods> _warehouse = new List<BagGoods>();
+        public IReadOnlyList<BagGoods> WarehouseGoodsList => _warehouse;
+        public bool HasWarehouseData { get; private set; }
+        public int WarehouseCellNum { get; private set; }
+
         /// <summary>坐骑/伙伴装备四容器。只收 pos=22/32/23/33，不把其它容器混入主背包。</summary>
         private readonly Dictionary<int, List<BagGoods>> _petEquipContainers = new Dictionary<int, List<BagGoods>>();
         // pos36=宝宝已穿戴装备实例；pos37=待穿候选背包，二者不可混用。
@@ -161,6 +167,7 @@ namespace Shenxiao.Module.Core.Bag
         {
             if (pos == POS_BAG) return BagGoodsList;
             if (pos == POS_EQUIP) return _equipment;
+            if (pos == POS_WAREHOUSE) return _warehouse;
             if (pos == POS_BABY_EQUIP) return _babyEquip;
             if (pos == POS_BABY_BAG) return _babyEquipBag;
             return _petEquipContainers.TryGetValue(pos, out List<BagGoods> list) ? list : EmptyContainer;
@@ -181,6 +188,20 @@ namespace Shenxiao.Module.Core.Bag
         /// <summary>15018 pos=1 数量增量。未知正数项先保留最小协议事实，等待后续全字段包补齐。</summary>
         internal void UpdateEquipmentNum(long goodsId, int typeId, long num) =>
             UpdateListNum(_equipment, goodsId, typeId, num);
+
+        /// <summary>15010 pos=5 仓库全量。保留服务器顺序与真实 cell。</summary>
+        internal void SetWarehouseFull(int cellNum, int maxCell, List<BagGoods> goods)
+        {
+            _warehouse.Clear();
+            if (goods != null) _warehouse.AddRange(goods);
+            WarehouseCellNum = cellNum;
+            SetMaxCell(POS_WAREHOUSE, maxCell);
+            HasWarehouseData = true;
+        }
+
+        internal void UpsertWarehouse(BagGoods vo) => UpsertList(_warehouse, vo);
+        internal void UpdateWarehouseNum(long goodsId, int typeId, long num) =>
+            UpdateListNum(_warehouse, goodsId, typeId, num);
 
         /// <summary>
         /// 按装备部位(1..10)取当前穿戴实例。老端全量以 config_goods.equip_type 为准；
@@ -369,15 +390,18 @@ namespace Shenxiao.Module.Core.Bag
         {
             BagGoodsList.Clear();
             _equipment.Clear();
+            _warehouse.Clear();
             _petEquipContainers.Clear();
             _babyEquip.Clear();
             _babyEquipBag.Clear();
             HasBabyEquipData = false;
             HasBabyEquipBagData = false;
             HasEquipmentData = false;
+            HasWarehouseData = false;
             SpecialScores.Clear();
             _maxCellByPos.Clear();
             CellNum = 0;
+            WarehouseCellNum = 0;
             HasData = false;
         }
     }

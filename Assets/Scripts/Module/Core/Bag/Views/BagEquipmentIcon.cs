@@ -52,7 +52,7 @@ namespace Shenxiao.Module.Core.Bag
             _item.SetData(goods.TypeId, goods.GoodsNum, goods.Bind != 0);
             _item.SetClickCallBack(() =>
             {
-                if (_goods != null) ItemTipsView.Show(_goods);
+                if (_goods != null) ItemTipsView.ShowEquipped(_goods);
             });
         }
 

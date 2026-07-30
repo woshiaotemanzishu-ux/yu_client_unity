@@ -35,6 +35,8 @@ namespace Shenxiao.Module.Core.Bag
 #if UNITY_EDITOR
         /// <summary>CliVerify 启动出站截获缝：返回 true 时记录但不真发；Player 构建不包含。</summary>
         private static Func<int, bool> s_startupContainerIntercept;
+        /// <summary>CliVerify 交互出站截获缝：仅覆盖本轮背包/仓库按钮的 15002/15003/15050。</summary>
+        private static Func<byte[], bool> s_outboundIntercept;
 #endif
 
         protected override void Register()
@@ -83,6 +85,7 @@ namespace Shenxiao.Module.Core.Bag
             GoodsBuffModel.Instance.Clear();
             DropOrderModel.Instance.Clear();
             ItemUseFlow.Reset();
+            _pendingUse.Clear();
             _expiredConfirmEpoch++;
             base.Dispose();
         }
@@ -92,7 +95,7 @@ namespace Shenxiao.Module.Core.Bag
             // 背包格的真实图标/品质底板走 config_goods(同 TaskController 预载;EnsureLoaded 幂等)。
             await Task.WhenAll(GoodsModel.EnsureLoaded(), ItemUseFlow.EnsureConfigs());
             RequestStartupContainers();
-            GameLog.Info("Bag", "request 15010 startup pos=4,22,32,23,33(主背包+坐骑/伙伴装备四容器)");
+            GameLog.Info("Bag", "request 15010 startup pos=4,5,22,32,23,33,37(主背包+仓库+坐骑/伙伴装备+宝宝装备背包)");
 
 #if UNITY_EDITOR
             // 截获缝只会由 CliVerify 临时设置；测试启动请求时不再挂一个 2.5 秒后的 15027 真发送任务。
@@ -108,6 +111,7 @@ namespace Shenxiao.Module.Core.Bag
         private void RequestStartupContainers()
         {
             RequestContainerInfo(BagModel.POS_BAG);
+            RequestContainerInfo(BagModel.POS_WAREHOUSE);
             RequestContainerInfo(BagModel.POS_HORSE);
             RequestContainerInfo(BagModel.POS_HORSE_BAG);
             RequestContainerInfo(BagModel.POS_PARTNER);
@@ -122,6 +126,9 @@ namespace Shenxiao.Module.Core.Bag
 #endif
             SendFmt(Proto.GOODS_CONTAINER_INFO, "h", pos);
         }
+
+        /// <summary>显式重查一个物品容器；仓库面板在启动快照尚未返回时使用。</summary>
+        public void RequestContainer(int pos) => RequestContainerInfo(pos);
 
         /// <summary>
         /// 15017 物品容器增量·全字段(对标 GoodsController.On15017)。pos:h + goods_list[u16 × 同 15010 单项 schema,
@@ -157,6 +164,14 @@ namespace Shenxiao.Module.Core.Bag
                 EventDispatcher.Emit(GlobalEvent.EVT_EQUIPMENT_UPDATE);
                 GameLog.Info("Bag", "15017 equip delta: goods={0} equipped={1} remaining={2}B",
                     list.Count, BagModel.Instance.EquipmentGoodsList.Count, r.Remaining);
+                return;
+            }
+            if (pos == BagModel.POS_WAREHOUSE)
+            {
+                foreach (BagGoods g in list) BagModel.Instance.UpsertWarehouse(g);
+                EventDispatcher.Emit(GlobalEvent.EVT_WAREHOUSE_UPDATE);
+                GameLog.Info("Bag", "15017 warehouse delta: goods={0} warehouse={1} remaining={2}B",
+                    list.Count, BagModel.Instance.WarehouseGoodsList.Count, r.Remaining);
                 return;
             }
             if (BagModel.IsPetEquipContainer(pos))
@@ -218,6 +233,15 @@ namespace Shenxiao.Module.Core.Bag
                 EventDispatcher.Emit(GlobalEvent.EVT_EQUIPMENT_UPDATE);
                 GameLog.Info("Bag", "15018 equip num delta: goods={0} equipped={1} remaining={2}B",
                     list.Count, BagModel.Instance.EquipmentGoodsList.Count, r.Remaining);
+                return;
+            }
+            if (pos == BagModel.POS_WAREHOUSE)
+            {
+                foreach ((long goodsId, long num, int typeId) it in list)
+                    BagModel.Instance.UpdateWarehouseNum(it.goodsId, it.typeId, it.num);
+                EventDispatcher.Emit(GlobalEvent.EVT_WAREHOUSE_UPDATE);
+                GameLog.Info("Bag", "15018 warehouse num delta: goods={0} warehouse={1} remaining={2}B",
+                    list.Count, BagModel.Instance.WarehouseGoodsList.Count, r.Remaining);
                 return;
             }
             if (BagModel.IsPetEquipContainer(pos))
@@ -410,6 +434,8 @@ namespace Shenxiao.Module.Core.Bag
                 BagModel.Instance.SetMaxCell(pos, cellNum);
                 TipsManager.Toast("扩容成功");
                 EventDispatcher.Emit(GlobalEvent.EVT_BAG_MAX_CELL, pos, cellNum);
+                if (pos == BagModel.POS_WAREHOUSE) EventDispatcher.Emit(GlobalEvent.EVT_WAREHOUSE_UPDATE);
+                else if (pos == BagModel.POS_BAG) EventDispatcher.Emit(GlobalEvent.EVT_BAG_UPDATE);
             }
             else
             {
@@ -421,7 +447,7 @@ namespace Shenxiao.Module.Core.Bag
         /// ExpandBagView 现有壳未接线,先留发送封装。</summary>
         public void ExpandBag(int pos, int cellNum)
         {
-            SendFmt(Proto.BAG_EXPAND, "hh", pos, cellNum);
+            SendAction(Proto.BAG_EXPAND, "hh", pos, cellNum);
             GameLog.Info("Bag", "expand 15002 pos={0} cell_num={1}", pos, cellNum);
         }
 
@@ -437,7 +463,7 @@ namespace Shenxiao.Module.Core.Bag
         public void MoveGoods(long goodsId, int fromPos, int toPos)
         {
             if (goodsId <= 0) return;
-            SendFmt(Proto.GOODS_MOVE_POS, "lhh", goodsId, fromPos, toPos);
+            SendAction(Proto.GOODS_MOVE_POS, "lhh", goodsId, fromPos, toPos);
             GameLog.Info("Bag", "move 15003 goods_id={0} {1}->{2}", goodsId, fromPos, toPos);
         }
 
@@ -809,8 +835,17 @@ namespace Shenxiao.Module.Core.Bag
                 return;
             }
             _pendingUse.Add(goodsId);
-            SendFmt(Proto.USE_GOODS, "li", goodsId, num);
+            SendAction(Proto.USE_GOODS, "li", goodsId, num);
             GameLog.Info("Bag", "use 15050 goods_id={0} num={1}", goodsId, num);
+        }
+
+        private void SendAction(int protocol, string format, params object[] args)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(protocol, format, args);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(protocol, format, args);
         }
 
         /// <summary>
@@ -901,6 +936,13 @@ namespace Shenxiao.Module.Core.Bag
                 GameLog.Info("Bag", "15010 PetEquip container pos={0} cellNum={1} maxCell={2} goods={3} remaining={4}B",
                     pos, cellNum, maxCell, list.Count, r.Remaining);
                 EventDispatcher.Emit(GlobalEvent.EVT_PET_EQUIP_BAG_UPDATE, pos);
+            }
+            else if (pos == BagModel.POS_WAREHOUSE)
+            {
+                BagModel.Instance.SetWarehouseFull(cellNum, maxCell, list);
+                EventDispatcher.Emit(GlobalEvent.EVT_WAREHOUSE_UPDATE);
+                GameLog.Info("Bag", "15010 warehouse: cellNum={0} maxCell={1} goods={2} remaining={3}B",
+                    cellNum, maxCell, list.Count, r.Remaining);
             }
             else if (pos == BagModel.POS_BABY_BAG)
             {

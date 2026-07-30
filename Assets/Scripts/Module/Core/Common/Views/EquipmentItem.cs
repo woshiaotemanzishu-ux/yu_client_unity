@@ -20,9 +20,17 @@ namespace Shenxiao.Module.Core.Common
     {
         private Action _clickCb;
         private int _typeId;
+        private bool _inited;
 
         protected override void OnInit()
         {
+            EnsureInit();
+        }
+
+        private void EnsureInit()
+        {
+            if (_inited) return;
+            _inited = true;
             // 所有动态覆盖层默认隐藏(数据接上后按需开),保留底板 item_bg + 图标 icon
             HideAll(@lock, select_image, stren, _img_grade_bg, grade, num_text, red_dot, up_image,
                 lung_con, star_bg, _Group1, lung_star_num, skillImg, _bad_icon, _img_awaken, _img_tips,
@@ -35,6 +43,7 @@ namespace Shenxiao.Module.Core.Common
         /// <summary>填装备/物品(对标 SetData 核心:type_id + 数量 + 锁 + 选中)。</summary>
         public void SetData(int typeId, long num, bool isLock = false, bool select = false)
         {
+            EnsureInit();
             _typeId = typeId;
             SetCount(num);
             SetLock(isLock);
@@ -118,6 +127,8 @@ namespace Shenxiao.Module.Core.Common
         private void BindClick()
         {
             if (click_group == null) return;
+            foreach (Graphic graphic in GetComponentsInChildren<Graphic>(true))
+                graphic.raycastTarget = false;
             Image img = click_group.GetComponent<Image>();
             if (img == null) img = click_group.GetComponentInChildren<Image>(true);
             if (img == null) return;

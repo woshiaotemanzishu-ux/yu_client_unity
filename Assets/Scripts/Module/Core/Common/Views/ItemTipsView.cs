@@ -6,6 +6,7 @@ using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
+using Shenxiao.Generated.UI.Common;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,8 +14,8 @@ using UnityEngine.UI;
 namespace Shenxiao.Module.Core.Common
 {
     /// <summary>
-    /// 物品详情 tips —— 临时原生 uGUI 壳(TEMP SHELL),对标老端 common/UIToolTipMgr.DefaultAppendTips →
-    /// GoodsTooltips(普通物品)/ EquipToolTips(装备 type==10)。
+    /// 物品详情 tips —— 复用 CommonModule.prefab 中可编辑的 GoodsTooltips/EquipToolTips，
+    /// 数据、点击与协议由本类绑定，不在运行时代码重建视觉树。对标老端 common/UIToolTipMgr.DefaultAppendTips。
     ///
     /// 链路:点任意 <see cref="BaseAwardItem"/> 物品格(完成弹层/背包),未设点击回调 → 默认弹本 tips(对标 UIToolTipMgr 默认分支);
     /// 数量由格子透传(<see cref="BaseAwardItem.OnClick"/> → Show(typeId,num))。
@@ -29,39 +30,66 @@ namespace Shenxiao.Module.Core.Common
     /// 图标 + 品质底板【复用通用 BaseAwardItem.prefab】(同 TaskFinishView:InstantiateAsync + SetData)。
     /// 实例透传:<see cref="Show(Bag.BagGoods)"/> 带 BagGoods → 极品 equip_extra_attr 真值 / 强化 stren(对标 EquipToolTips goods_vo);
     /// 无实例(缺活服)则装备走 config 极品预览 + 基础/专有属性(真实 config,精确 blocker 仅标实例极品/强化加值需活服,不画假属性)。
-    /// 老端 GoodsTooltips.lh/EquipToolTips.lh 无 Unity 转换产物,故按任务包许可做最小原生壳(同 TaskFinishView TEMP 壳约定);
-    /// 字体复用场景中已打开文本的 TMP 字体(含中文字形)。
+    /// 视觉参数以 CommonModule.prefab 为唯一事实源；本类只切必要显隐并填充真实数据。
     /// </summary>
     public static class ItemTipsView
     {
-        private static GameObject _root;
+        private static GameObject _moduleRoot;
+        private static BaseView _activeView;
+        private static GoodsTooltipsBind _goodsView;
+        private static EquipToolTipsBind _equipView;
         private static TextMeshProUGUI _nameText;
         private static TextMeshProUGUI _bodyText;
         private static RectTransform _iconSlot;
         private static GameObject _iconCell;
         private static GameObject _useBtn;
         private static GameObject _wearBtn;
-        private static RectTransform _closeRt;
+        private static GameObject _moveBtn;
+        private static TextMeshProUGUI _moveLabel;
         private static Bag.BagGoods _goods;   // 当前实例(使用按钮用;无实例=纯 config 展示,无按钮)
+        private static ItemContext _context;
         private static int _epoch;
 
-        private static TMP_FontAsset _font;
-        private static Material _fontMat;
+        public enum ItemContext
+        {
+            Bag,
+            Equipped,
+            WarehouseBag,
+            WarehouseStorage,
+        }
 
         /// <summary>弹物品详情(对标 UIToolTipMgr.DefaultAppendTips):typeId 不在 config_goods 则不弹(对标 if(!basic) return)。
         /// num=堆叠数量(对标 GoodsTooltips quantity_text,由格子透传;默认 1)。无实例 → 装备走 config 极品预览/基础属性。</summary>
-        public static void Show(int typeId, long num = 1) => ShowInternal(typeId, num, null);
+        public static void Show(int typeId, long num = 1) => _ = ShowInternal(typeId, num, null, ItemContext.Bag);
 
         /// <summary>弹装备实例详情(对标 EquipToolTips.SetData(goods_vo)):带 <see cref="Bag.BagGoods"/> 实例 →
         /// 极品 equip_extra_attr / 强化 stren 实例属性行(缺活服实例字段则回落 config 极品预览);typeId/数量取自实例。</summary>
         public static void Show(Bag.BagGoods goods)
         {
             if (goods == null) return;
-            ShowInternal(goods.TypeId, goods.GoodsNum, goods);
+            _ = ShowInternal(goods.TypeId, goods.GoodsNum, goods, ItemContext.Bag);
         }
 
-        private static void ShowInternal(int typeId, long num, Bag.BagGoods goods)
+        /// <summary>已穿戴装备详情。老端没有可达的普通卸下 sender，因此只展示，不暴露“卸下/穿戴”。</summary>
+        public static void ShowEquipped(Bag.BagGoods goods)
         {
+            if (goods == null) return;
+            _ = ShowInternal(goods.TypeId, goods.GoodsNum, goods, ItemContext.Equipped);
+        }
+
+        /// <summary>仓库双栏详情：只提供存入/取出，实际移动走 15003。</summary>
+        public static void ShowWarehouse(Bag.BagGoods goods, bool inStorage)
+        {
+            if (goods == null) return;
+            _ = ShowInternal(goods.TypeId, goods.GoodsNum, goods,
+                inStorage ? ItemContext.WarehouseStorage : ItemContext.WarehouseBag);
+        }
+
+        private static async Task ShowInternal(int typeId, long num, Bag.BagGoods goods, ItemContext context)
+        {
+            int epoch = ++_epoch;
+            await GoodsModel.EnsureLoaded();
+            if (epoch != _epoch) return;
             GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(typeId);
             if (basic == null)
             {
@@ -69,25 +97,33 @@ namespace Shenxiao.Module.Core.Common
                 return;
             }
 
-            EnsureBuilt();
-            if (_root == null) return;
-            _root.SetActive(true);
-            _root.transform.SetAsLastSibling();
+            if (!await EnsureBuilt()) return;
+            if (epoch != _epoch) return;
+
+            bool isEquip = GoodsModel.IsEquip(typeId);
+            if (!ActivatePrefabView(isEquip)) return;
+            _activeView.transform.SetAsLastSibling();
 
             _goods = goods;
+            _context = context;
             // 使用按钮:仅背包实例 + config use!=0(对标 GoodsTooltips useBtn 隐藏条件 basic.use==0;
             // isTreasure/takeout/deposite/put/isSoul 等特殊容器态未移植,普通背包物品恒 false)。
-            bool useVisible = goods != null && basic.Use != 0;
+            bool useVisible = goods != null && context == ItemContext.Bag && basic.Use != 0;
             // 穿戴按钮(薄增量六件套第20轮):仅背包实例 + 装备类物品(IsEquip),发 15201。
-            bool wearVisible = goods != null && GoodsModel.IsEquip(typeId);
+            bool wearVisible = goods != null && context == ItemContext.Bag && isEquip;
+            bool moveVisible = goods != null && (context == ItemContext.WarehouseBag || context == ItemContext.WarehouseStorage);
+            ConfigurePrefabButtons(isEquip, useVisible, wearVisible, moveVisible, context);
             if (_useBtn != null) _useBtn.SetActive(useVisible);
             if (_wearBtn != null) _wearBtn.SetActive(wearVisible);
-            LayoutButtons(useVisible, wearVisible);
+            if (_moveBtn != null) _moveBtn.SetActive(moveVisible);
+            if (_moveLabel != null && moveVisible)
+                _moveLabel.text = context == ItemContext.WarehouseStorage ? "取出" : "存入";
 
             _nameText.text = string.IsNullOrEmpty(basic.Name) ? ("#" + typeId) : basic.Name;
             _bodyText.text = BuildBody(typeId, num, basic, goods);
+            if (context == ItemContext.Bag && goods != null && isEquip)
+                _bodyText.text += BuildEquipmentComparison(goods, basic);
 
-            int epoch = ++_epoch;   // 本次打开的竞态令牌:图标异步加载 + 详情回包共用,任何后续 Show/Close 都会使其失效
             _ = BuildIcon(typeId, epoch);
             if (goods != null && goods.GoodsId > 0)
                 RequestDetailSection(goods.GoodsId, epoch);
@@ -151,14 +187,23 @@ namespace Shenxiao.Module.Core.Common
         {
             _epoch++;
             _goods = null;
+            _context = ItemContext.Bag;
             if (_iconCell != null) { ResManager.ReleaseInstance(_iconCell); _iconCell = null; }
-            if (_root != null) _root.SetActive(false);
+            if (_activeView != null) _activeView.Hide();
+            _activeView = null;
+            _nameText = null;
+            _bodyText = null;
+            _iconSlot = null;
+            _useBtn = null;
+            _wearBtn = null;
+            _moveBtn = null;
+            _moveLabel = null;
         }
 
         /// <summary>
         /// 使用按钮点击(对标 GoodsTooltips useBtn_fun → CheckSecondView() + Close):
         /// 老端按 type/subtype 分流到各专属界面(礼包选择/经验符比较/藏宝图…),这些界面未移植 → 明确提示不移植假发协议;
-        /// 普通可用物品走默认分支:数量 1 直接发 15050,多个则确认后先用 1 个(BatchUseView 未移植)。
+        /// 普通可用物品走默认分支:数量 1 直接发 15050,堆叠物复用 GoodsFuncView 数量滑杆后按选择数量发送。
         /// </summary>
         private static void OnUseClick()
         {
@@ -200,12 +245,8 @@ namespace Shenxiao.Module.Core.Common
             }
             else
             {
-                // 老端多个走 BatchUseView(批量选数界面,未移植)→ 确认后先用 1 个,不臆造批量行为。
-                TipsManager.Confirm("批量使用界面未移植,先使用 1 个?", () =>
-                {
-                    Bag.BagController.Instance.UseGoods(goods.GoodsId, 1);
-                    Close();
-                });
+                BatchUseFlow.Show(goods);
+                Close();
             }
         }
 
@@ -219,44 +260,65 @@ namespace Shenxiao.Module.Core.Common
             Close();
         }
 
-        /// <summary>按钮布局(使用/穿戴/关闭 最多三按钮一排;仅关闭时居中,二按钮双档位(200 宽),
-        /// 三按钮收窄间距均分(140 宽,避免 480 宽面板溢出)。</summary>
-        private static void LayoutButtons(bool useVisible, bool wearVisible)
+        private static void OnMoveClick()
         {
-            int visibleCount = (useVisible ? 1 : 0) + (wearVisible ? 1 : 0) + 1;   // +1 = 关闭恒显示
-            if (visibleCount >= 3)
-            {
-                // 三按钮:收窄宽度 + 收窄间距均分(使用 / 穿戴 / 关闭,从左到右)。
-                SetBtnRect(_useBtn, -150f, 140f);
-                SetBtnRect(_wearBtn, 0f, 140f);
-                SetBtnRect(_closeRt, 150f, 140f);
-            }
-            else if (visibleCount == 2)
-            {
-                // 双按钮:使用/穿戴其一 + 关闭,原有使用/关闭双档位布局(200 宽)。
-                float otherX = -110f;
-                SetBtnRect(_useBtn, otherX, 200f);
-                SetBtnRect(_wearBtn, otherX, 200f);
-                SetBtnRect(_closeRt, 110f, 200f);
-            }
-            else
-            {
-                // 仅关闭:居中(200 宽)。
-                SetBtnRect(_closeRt, 0f, 200f);
-            }
+            Bag.BagGoods goods = _goods;
+            if (goods == null) return;
+            int from = _context == ItemContext.WarehouseStorage ? Bag.BagModel.POS_WAREHOUSE : Bag.BagModel.POS_BAG;
+            int to = from == Bag.BagModel.POS_WAREHOUSE ? Bag.BagModel.POS_BAG : Bag.BagModel.POS_WAREHOUSE;
+            Bag.BagController.Instance.MoveGoods(goods.GoodsId, from, to);
+            Close();
         }
 
-        private static void SetBtnRect(GameObject go, float x, float width)
+        private static string BuildEquipmentComparison(Bag.BagGoods candidate, GoodsModel.GoodsBasic basic)
         {
-            if (go == null) return;
-            SetBtnRect((RectTransform)go.transform, x, width);
-        }
+            if (basic == null || basic.EquipType <= 0) return "";
+            Bag.BagGoods worn = Bag.BagModel.Instance.GetEquipmentAt(basic.EquipType);
+            if (worn == null || worn.GoodsId == candidate.GoodsId)
+                return "\n\n<color=#7fd0ff>【装备对比】</color>\n当前部位未穿戴装备";
 
-        private static void SetBtnRect(RectTransform rt, float x, float width)
-        {
-            if (rt == null) return;
-            rt.anchoredPosition = new Vector2(x, 18f);
-            rt.sizeDelta = new Vector2(width, rt.sizeDelta.y);
+            GoodsModel.GoodsBasic wornBasic = GoodsModel.GetGoodsBasicByTypeId(worn.TypeId);
+            string wornName = wornBasic != null && !string.IsNullOrEmpty(wornBasic.Name) ? wornBasic.Name : ("#" + worn.TypeId);
+            long diff = candidate.Rating - worn.Rating;
+            string color = diff > 0 ? "#63df72" : diff < 0 ? "#ff6b6b" : "#ffe222";
+            string sign = diff > 0 ? "+" : "";
+            var sb = new StringBuilder();
+            sb.Append("\n\n<color=#7fd0ff>【装备对比】</color>")
+              .Append("\n当前：<color=#ffe222>").Append(wornName).Append("</color>");
+
+            GoodsModel.EquipAttr wornEquip = GoodsModel.GetEquipAttr(worn.TypeId);
+            if (wornEquip != null)
+            {
+                sb.Append("　").Append(wornEquip.Stage).Append("阶");
+                if (wornEquip.Star > 0) sb.Append(wornEquip.Star).Append("星");
+            }
+            if (worn.Stren > 0) sb.Append("　强化+").Append(worn.Stren);
+            sb.Append("\n评分：当前 ").Append(worn.Rating)
+              .Append(" / 候选 ").Append(candidate.Rating)
+              .Append("　<color=").Append(color).Append(">").Append(sign).Append(diff).Append("</color>");
+
+            var currentAttrs = new Dictionary<string, long>();
+            foreach ((string name, long val) row in GoodsModel.GetBaseAttrs(worn.TypeId))
+                currentAttrs[row.name] = row.val;
+            var candidateAttrs = new Dictionary<string, long>();
+            foreach ((string name, long val) row in GoodsModel.GetBaseAttrs(candidate.TypeId))
+                candidateAttrs[row.name] = row.val;
+
+            var orderedNames = new List<string>();
+            foreach (string name in candidateAttrs.Keys) orderedNames.Add(name);
+            foreach (string name in currentAttrs.Keys)
+                if (!candidateAttrs.ContainsKey(name)) orderedNames.Add(name);
+            foreach (string name in orderedNames)
+            {
+                currentAttrs.TryGetValue(name, out long current);
+                candidateAttrs.TryGetValue(name, out long next);
+                long attrDiff = next - current;
+                string attrColor = attrDiff > 0 ? "#63df72" : attrDiff < 0 ? "#ff6b6b" : "#ffe222";
+                sb.Append("\n").Append(name).Append("：当前 ").Append(current)
+                  .Append(" / 候选 ").Append(next).Append("　<color=").Append(attrColor).Append(">")
+                  .Append(attrDiff > 0 ? "+" : "").Append(attrDiff).Append("</color>");
+            }
+            return sb.ToString();
         }
 
         /// <summary>老端 CheckSecondView 专属界面分支表:命中返回目标界面名(未移植),null=可走默认 15050 分支。</summary>
@@ -444,138 +506,174 @@ namespace Shenxiao.Module.Core.Common
             return s;
         }
 
-        // ===================== 构建(代码建 uGUI,居中弹层;同 TaskFinishView TEMP 壳)=====================
+        // ===================== 现有 CommonModule Prefab 绑定 =====================
 
-        private static void EnsureBuilt()
+        private static async Task<bool> EnsureBuilt()
         {
-            if (_root != null) return;
+            if (_moduleRoot != null && _goodsView != null && _equipView != null) return true;
             Transform parent = ViewManager.GetLayer(UILayer.Popup);
             if (parent == null)
             {
-                GameLog.Error("Common", "ItemTipsView 无法构建:UI Popup 层未就绪");
+                GameLog.Error("Common", "ItemTipsView 无法打开：UI Popup 层未就绪");
+                return false;
+            }
+
+            _moduleRoot = await ResManager.InstantiateAsync(
+                GameResPath.GetUIPrefab("common", "CommonModule"), parent);
+            if (_moduleRoot == null)
+            {
+                GameLog.Error("Common", "ItemTipsView 无法打开：CommonModule addressable 加载失败");
+                return false;
+            }
+            _moduleRoot.name = "CommonModule(ItemTips)";
+            _goodsView = _moduleRoot.GetComponentInChildren<GoodsTooltipsBind>(true);
+            _equipView = _moduleRoot.GetComponentInChildren<EquipToolTipsBind>(true);
+            if (_goodsView == null || _equipView == null)
+            {
+                GameLog.Error("Common", "CommonModule 缺 GoodsTooltipsBind/EquipToolTipsBind");
+                ResManager.ReleaseInstance(_moduleRoot);
+                _moduleRoot = null;
+                _goodsView = null;
+                _equipView = null;
+                return false;
+            }
+            _goodsView.gameObject.SetActive(false);
+            _equipView.gameObject.SetActive(false);
+            return true;
+        }
+
+        private static bool ActivatePrefabView(bool equip)
+        {
+            if (_activeView != null) _activeView.Hide();
+            if (equip)
+            {
+                _activeView = _equipView;
+                _nameText = _equipView.equip_name;
+                _bodyText = _equipView.basePro;
+                _iconSlot = _equipView.icon;
+                _useBtn = null;
+                _wearBtn = _equipView.replaceBtn != null ? _equipView.replaceBtn.gameObject : null;
+
+                SetActive(_equipView.best_conta, false);
+                SetActive(_equipView.refine, false);
+                SetActive(_equipView.refine_pro_conta, false);
+                SetActive(_equipView.spec_conta, false);
+                SetActive(_equipView.god_conta, false);
+                SetActive(_equipView.stone_conta, false);
+                SetActive(_equipView.wash_conta, false);
+                SetActive(_equipView.smelt_conta, false);
+                SetActive(_equipView.suit_conta, false);
+                SetActive(_equipView.suit_conta2, false);
+                SetActive(_equipView.base_pro_conta, true);
+                ClearText(_equipView.score, _equipView.level, _equipView.career,
+                    _equipView.pos, _equipView.grade, _equipView.lb_level);
+                _equipView.Show();
+            }
+            else
+            {
+                _activeView = _goodsView;
+                _nameText = _goodsView.goods_name;
+                _bodyText = _goodsView.intro;
+                _iconSlot = _goodsView.item_group;
+                _useBtn = _goodsView.useBtn != null ? _goodsView.useBtn.gameObject : null;
+                _wearBtn = null;
+
+                ClearText(_goodsView.type_text, _goodsView.quantity_text, _goodsView.level_text,
+                    _goodsView.level_text_value, _goodsView.tips, _goodsView.ways);
+                SetActive(_goodsView.rewardsList, false);
+                SetActive(_goodsView.sourceGp, false);
+                SetActive(_goodsView._gp_cooling, false);
+                _goodsView.Show();
+            }
+            return _activeView != null && _nameText != null && _bodyText != null && _iconSlot != null;
+        }
+
+        private static void ClearText(params TextMeshProUGUI[] texts)
+        {
+            foreach (TextMeshProUGUI text in texts)
+                if (text != null) text.text = "";
+        }
+
+        private static void ConfigurePrefabButtons(bool equip, bool useVisible, bool wearVisible,
+            bool moveVisible, ItemContext context)
+        {
+            if (equip)
+            {
+                RectTransform move = context == ItemContext.WarehouseStorage
+                    ? _equipView.takeoutBtn : _equipView.depositBtn;
+                _moveBtn = moveVisible && move != null ? move.gameObject : null;
+                _moveLabel = _moveBtn != null ? _moveBtn.GetComponentInChildren<TextMeshProUGUI>(true) : null;
+                SetActive(_equipView.replaceBtn, wearVisible);
+                SetActive(_equipView.closeBtn, true);
+                SetActive(_equipView.depositBtn, moveVisible && context == ItemContext.WarehouseBag);
+                SetActive(_equipView.takeoutBtn, moveVisible && context == ItemContext.WarehouseStorage);
+                SetActive(_equipView.donateBtn, false);
+                SetActive(_equipView.destroyBtn, false);
+                SetActive(_equipView.exchangeBtn, false);
+                SetActive(_equipView.UninstallBtn, false);
+                SetActive(_equipView.upShelfBtn, false);
+                SetActive(_equipView.outShelfBtn, false);
+                SetActive(_equipView.UninstallBtn_spirit, false);
+                SetActive(_equipView.sellBtn, false);
+                SetActive(_equipView.treasureReceiveBtn, false);
+                SetActive(_equipView.guild_conta, false);
+
+                BindUnique(_equipView.replaceBtn, wearVisible ? OnWearClick : null);
+                BindUnique(_equipView.closeBtn, Close);
+                BindUnique(_equipView.depositBtn,
+                    moveVisible && context == ItemContext.WarehouseBag ? OnMoveClick : null);
+                BindUnique(_equipView.takeoutBtn,
+                    moveVisible && context == ItemContext.WarehouseStorage ? OnMoveClick : null);
                 return;
             }
 
-            _root = NewRect("ItemTipsView(TempShell)", parent, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-
-            GameObject bg = NewRect("Backdrop", _root.transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            Image bgImg = bg.AddComponent<Image>();
-            bgImg.color = new Color(0f, 0f, 0f, 0.45f);
-            bgImg.raycastTarget = true;
-            UIUtil.AddClick(bgImg, Close);
-
-            GameObject panel = NewRect("Panel", _root.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
-            var panelRt = (RectTransform)panel.transform;
-            panelRt.pivot = new Vector2(0.5f, 0.5f);
-            // 装备 tips 内容较长(基础+极品预览+专有+blocker),面板加高避免正文压到关闭按钮(TEMP 壳无滚动)。
-            panelRt.sizeDelta = new Vector2(480f, 820f);
-            panelRt.anchoredPosition = Vector2.zero;
-            Image panelImg = panel.AddComponent<Image>();
-            panelImg.color = new Color(0.07f, 0.09f, 0.14f, 0.97f);
-
-            // 物品名(顶部居中)
-            _nameText = NewText("Name", panel.transform, 30, TextAlignmentOptions.Top);
-            var nameRt = _nameText.rectTransform;
-            nameRt.anchorMin = new Vector2(0f, 1f); nameRt.anchorMax = new Vector2(1f, 1f); nameRt.pivot = new Vector2(0.5f, 1f);
-            nameRt.anchoredPosition = new Vector2(0f, -20f); nameRt.sizeDelta = new Vector2(-40f, 44f);
-            _nameText.color = new Color(1f, 0.86f, 0.45f);
-            _nameText.fontStyle = FontStyles.Bold;
-
-            // 图标位(品质底板 + 真实图标,复用 BaseAwardItem,127px)
-            GameObject slot = NewRect("IconSlot", panel.transform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, Vector2.zero);
-            _iconSlot = (RectTransform)slot.transform;
-            _iconSlot.pivot = new Vector2(0.5f, 1f);
-            _iconSlot.sizeDelta = new Vector2(127f, 127f);
-            _iconSlot.anchoredPosition = new Vector2(0f, -76f);
-
-            // 正文(类型/数量 + 装备属性 或 描述 + 获取途径)
-            _bodyText = NewText("Body", panel.transform, 22, TextAlignmentOptions.TopLeft);
-            var bodyRt = _bodyText.rectTransform;
-            bodyRt.anchorMin = new Vector2(0f, 0f); bodyRt.anchorMax = new Vector2(1f, 1f);
-            bodyRt.offsetMin = new Vector2(28f, 88f); bodyRt.offsetMax = new Vector2(-28f, -218f);
-            _bodyText.textWrappingMode = TextWrappingModes.Normal;
-            _bodyText.color = new Color(0.86f, 0.91f, 1f);
-
-            // 使用按钮(底部左;仅背包实例且 config use!=0 时显示,对标 GoodsTooltips useBtn)
-            _useBtn = NewRect("Use", panel.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
-            var useRt = (RectTransform)_useBtn.transform;
-            useRt.pivot = new Vector2(0.5f, 0f);
-            useRt.sizeDelta = new Vector2(200f, 56f);
-            useRt.anchoredPosition = new Vector2(-110f, 18f);
-            Image useImg = _useBtn.AddComponent<Image>();
-            useImg.color = new Color(0.22f, 0.42f, 0.24f, 1f);
-            TextMeshProUGUI useLbl = NewText("Label", _useBtn.transform, 26, TextAlignmentOptions.Center);
-            var ulRt = useLbl.rectTransform;
-            ulRt.anchorMin = Vector2.zero; ulRt.anchorMax = Vector2.one; ulRt.offsetMin = Vector2.zero; ulRt.offsetMax = Vector2.zero;
-            useLbl.text = "使用";
-            useLbl.color = Color.white;
-            UIUtil.AddClick(useImg, OnUseClick);
-            _useBtn.SetActive(false);
-
-            // 穿戴按钮(薄增量六件套第20轮;仅背包实例且装备类物品时显示,对标使用按钮同款布局)
-            _wearBtn = NewRect("Wear", panel.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
-            var wearRt = (RectTransform)_wearBtn.transform;
-            wearRt.pivot = new Vector2(0.5f, 0f);
-            wearRt.sizeDelta = new Vector2(200f, 56f);
-            wearRt.anchoredPosition = new Vector2(-110f, 18f);
-            Image wearImg = _wearBtn.AddComponent<Image>();
-            wearImg.color = new Color(0.42f, 0.33f, 0.18f, 1f);
-            TextMeshProUGUI wearLbl = NewText("Label", _wearBtn.transform, 26, TextAlignmentOptions.Center);
-            var wlRt = wearLbl.rectTransform;
-            wlRt.anchorMin = Vector2.zero; wlRt.anchorMax = Vector2.one; wlRt.offsetMin = Vector2.zero; wlRt.offsetMax = Vector2.zero;
-            wearLbl.text = "穿戴";
-            wearLbl.color = Color.white;
-            UIUtil.AddClick(wearImg, OnWearClick);
-            _wearBtn.SetActive(false);
-
-            // 关闭按钮(底部;使用/穿戴按钮可见时让位,三按钮同显时收窄间距,见 LayoutButtons)
-            GameObject closeBtn = NewRect("Close", panel.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, Vector2.zero);
-            _closeRt = (RectTransform)closeBtn.transform;
-            _closeRt.pivot = new Vector2(0.5f, 0f);
-            _closeRt.sizeDelta = new Vector2(200f, 56f);
-            _closeRt.anchoredPosition = new Vector2(0f, 18f);
-            Image closeImg = closeBtn.AddComponent<Image>();
-            closeImg.color = new Color(0.20f, 0.30f, 0.48f, 1f);
-            TextMeshProUGUI closeLbl = NewText("Label", closeBtn.transform, 26, TextAlignmentOptions.Center);
-            var clRt = closeLbl.rectTransform;
-            clRt.anchorMin = Vector2.zero; clRt.anchorMax = Vector2.one; clRt.offsetMin = Vector2.zero; clRt.offsetMax = Vector2.zero;
-            closeLbl.text = "关闭";
-            closeLbl.color = Color.white;
-            UIUtil.AddClick(closeImg, Close);
+            ConfigureGoodsButtons(useVisible, moveVisible, context);
         }
 
-        // ---- uGUI 构建小工具(同 TaskFinishView 的 TEMP 壳约定)----
-
-        private static GameObject NewRect(string name, Transform parent, Vector2 aMin, Vector2 aMax, Vector2 offMin, Vector2 offMax)
+        private static void ConfigureGoodsButtons(bool useVisible, bool moveVisible, ItemContext context)
         {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = aMin; rt.anchorMax = aMax; rt.offsetMin = offMin; rt.offsetMax = offMax;
-            return go;
+            RectTransform move = context == ItemContext.WarehouseStorage
+                ? _goodsView.takeoutBtn : _goodsView.depositBtn;
+            _moveBtn = moveVisible && move != null ? move.gameObject : null;
+            _moveLabel = _moveBtn != null ? _moveBtn.GetComponentInChildren<TextMeshProUGUI>(true) : null;
+            SetActive(_goodsView.useBtn, useVisible);
+            SetActive(_goodsView.okBtn, true);
+            SetActive(_goodsView.depositBtn, moveVisible && context == ItemContext.WarehouseBag);
+            SetActive(_goodsView.takeoutBtn, moveVisible && context == ItemContext.WarehouseStorage);
+            SetActive(_goodsView.sellBtn, false);
+            SetActive(_goodsView.upShelfBtn, false);
+            SetActive(_goodsView.outShelfBtn, false);
+            SetActive(_goodsView.treasureReceiveBtn, false);
+            SetActive(_goodsView.putBtn, false);
+
+            BindUnique(_goodsView.useBtn, useVisible ? OnUseClick : null);
+            BindUnique(_goodsView.okBtn, Close);
+            BindUnique(_goodsView.depositBtn,
+                moveVisible && context == ItemContext.WarehouseBag ? OnMoveClick : null);
+            BindUnique(_goodsView.takeoutBtn,
+                moveVisible && context == ItemContext.WarehouseStorage ? OnMoveClick : null);
         }
 
-        private static TextMeshProUGUI NewText(string name, Transform parent, float size, TextAlignmentOptions align)
+        private static void BindUnique(Component target, System.Action action)
         {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            var t = go.AddComponent<TextMeshProUGUI>();
-            t.fontSize = size;
-            t.alignment = align;
-            t.richText = true;
-            ApplyFont(t);
-            return t;
-        }
-
-        private static void ApplyFont(TextMeshProUGUI t)
-        {
-            if (_font == null)
+            if (target == null) return;
+            GameObject go = target.gameObject;
+            foreach (Graphic graphic in go.GetComponentsInChildren<Graphic>(true)) graphic.raycastTarget = false;
+            Image image = go.GetComponent<Image>();
+            if (image == null)
             {
-                TextMeshProUGUI src = Object.FindAnyObjectByType<TextMeshProUGUI>();
-                if (src != null) { _font = src.font; _fontMat = src.fontSharedMaterial; }
+                image = go.AddComponent<Image>();
+                image.color = new Color(1f, 1f, 1f, 0f);
             }
-            if (_font != null) t.font = _font;
-            if (_fontMat != null) t.fontSharedMaterial = _fontMat;
+            image.raycastTarget = action != null;
+            UIUtil.ClearClicks(image);
+            if (action != null) UIUtil.AddClick(image, action);
         }
+
+        private static void SetActive(Component component, bool active)
+        {
+            if (component != null) component.gameObject.SetActive(active);
+        }
+
     }
 }

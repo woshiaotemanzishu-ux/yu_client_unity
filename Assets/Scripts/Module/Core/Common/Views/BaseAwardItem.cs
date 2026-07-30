@@ -146,6 +146,9 @@ namespace Shenxiao.Module.Core.Common
         private void BindClick()
         {
             if (click_group == null) return;
+            // 格子只能由 click_group 命中；图标、底板、数量和选中框都是装饰层，不能截走 PointerClick。
+            foreach (Graphic graphic in GetComponentsInChildren<Graphic>(true))
+                graphic.raycastTarget = false;
             Image img = click_group.GetComponent<Image>();
             if (img == null) img = click_group.GetComponentInChildren<Image>(true);
             if (img == null) return;

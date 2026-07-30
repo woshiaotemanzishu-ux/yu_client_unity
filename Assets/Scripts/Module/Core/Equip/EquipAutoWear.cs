@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Common;
@@ -50,17 +51,33 @@ namespace Shenxiao.Module.Core.Equip
         /// <summary>对标 GetStrongestEquips:逐部位选最强候选并发 15201(空槽直接穿/严格更优才换)。</summary>
         public static void TryAutoWear()
         {
-            if (!TaskModel.Instance.GetAutoTaskSetting()) return;
+            TryWearBest(true, false);
+        }
+
+        /// <summary>背包中央“一键装备”的玩家点击入口；与老端按钮一致，不依赖自动任务开关。</summary>
+        public static int TryManualWear()
+        {
+            int sent = TryWearBest(false, true);
+            if (sent == 0 && BagModel.Instance.HasEquipmentData)
+                TipsManager.Toast("当前没有可替换的更强装备");
+            return sent;
+        }
+
+        private static int TryWearBest(bool requireAutoTask, bool manual)
+        {
+            if (requireAutoTask && !TaskModel.Instance.GetAutoTaskSetting()) return 0;
             if (ItemUseFlow.HasPendingEquipment)
             {
-                GameLog.Info("Equip", "auto-wear skip: ItemUseView has pending equipment");
-                return;
+                GameLog.Info("Equip", "one-key wear skip: ItemUseView has pending equipment");
+                if (manual) TipsManager.Toast("请先处理待确认装备");
+                return 0;
             }
             if (!BagModel.Instance.HasEquipmentData)
             {
-                GameLog.Info("Equip", "auto-wear skip: 装备通道(15010 pos=1)未到,先请求");
+                GameLog.Info("Equip", "one-key wear skip: 装备通道(15010 pos=1)未到,先请求");
                 EquipWearController.Instance.RequestWornList();
-                return;
+                if (manual) TipsManager.Toast("装备数据加载中，请稍后再试");
+                return 0;
             }
 
             int career = RoleModel.Instance.Career;
@@ -76,7 +93,8 @@ namespace Shenxiao.Module.Core.Equip
                 if (cfg == null || !GoodsModel.IsEquip(g.TypeId) || cfg.EquipType <= 0) continue;
                 if (cfg.CareerId != 0 && cfg.CareerId != career) continue;   // 职业
                 if (level < cfg.Level) continue;                              // 等级
-                // 性别:config_goods sex 列 Unity GoodsBasic 未读(turn 同)→ 交服务端校验,失败显码(保守可穿)。
+                if (cfg.Sex != 0 && cfg.Sex != sex) continue;                // 性别
+                // 转生:Unity RoleModel 暂无 turn 字段，继续交服务端权威校验，失败显码。
                 if (_pendingUntil.TryGetValue(g.GoodsId, out double until) && now < until) continue;
                 if (!best.TryGetValue(cfg.EquipType, out BagGoods cur) || g.Rating > cur.Rating) best[cfg.EquipType] = g;
             }
@@ -96,6 +114,7 @@ namespace Shenxiao.Module.Core.Equip
                 sent++;
             }
             if (sent > 0) GameLog.Info("Equip", "auto-wear sent {0} 件(对标一键穿戴批量 15201)", sent);
+            return sent;
         }
 
         public static void Clear()

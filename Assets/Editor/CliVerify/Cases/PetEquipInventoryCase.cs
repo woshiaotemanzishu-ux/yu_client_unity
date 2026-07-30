@@ -79,6 +79,7 @@ namespace Shenxiao.EditorTools
                 int[] expectedStartup =
                 {
                     BagModel.POS_BAG,
+                    BagModel.POS_WAREHOUSE,
                     BagModel.POS_HORSE,
                     BagModel.POS_HORSE_BAG,
                     BagModel.POS_PARTNER,
@@ -93,6 +94,42 @@ namespace Shenxiao.EditorTools
                 bool mainFullOk = TailOk(mainFullReader, 0xA10A10A1)
                     && bag.HasData && bag.CellNum == 1 && bag.MaxCell == 40
                     && bag.BagGoodsList.Count == 1 && bag.BagGoodsList[0].GoodsId == mainId;
+
+                int warehouseEvents = 0;
+                System.Action onWarehouse = () => warehouseEvents++;
+                EventDispatcher.On(GlobalEvent.EVT_WAREHOUSE_UPDATE, onWarehouse);
+                bool warehouseOk;
+                try
+                {
+                    const long warehouseFirst = 0x100000005L;
+                    const long warehouseSecond = 0x200000005L;
+                    NetReader warehouseFull = Feed(m15010, ctrl,
+                        FullPacket(BagModel.POS_WAREHOUSE, 1, 72, warehouseFirst, 700005, 1, 6, 4005, 4, 5, 0xA10A1005));
+                    warehouseOk = TailOk(warehouseFull, 0xA10A1005)
+                        && bag.HasWarehouseData && bag.WarehouseCellNum == 1
+                        && bag.GetMaxCell(BagModel.POS_WAREHOUSE) == 72
+                        && bag.WarehouseGoodsList.Count == 1
+                        && GoodsFieldsOk(bag.WarehouseGoodsList[0], warehouseFirst, 700005, 1, 6, 4005, 4, 5, BagModel.POS_WAREHOUSE);
+
+                    NetReader warehouseUpdate = Feed(m15017, ctrl,
+                        DeltaFullPacket(BagModel.POS_WAREHOUSE, warehouseFirst, 710005, 2, 8, 4105, 6, 7).I(0xDADA0005).Bytes());
+                    NetReader warehouseAdd = Feed(m15017, ctrl,
+                        DeltaFullPacket(BagModel.POS_WAREHOUSE, warehouseSecond, 720005, 3, 9, 4205, 8, 9).I(0xDADB0005).Bytes());
+                    NetReader warehouseDelete = Feed(m15018, ctrl,
+                        NumPacket(BagModel.POS_WAREHOUSE, warehouseFirst, 0, 710005).I(0xEAEC0005).Bytes());
+                    NetReader warehouseNum = Feed(m15018, ctrl,
+                        NumPacket(BagModel.POS_WAREHOUSE, warehouseSecond, 99, 720005).I(0xEAEA0005).Bytes());
+                    warehouseOk &= TailOk(warehouseUpdate, 0xDADA0005)
+                        && TailOk(warehouseAdd, 0xDADB0005)
+                        && TailOk(warehouseDelete, 0xEAEC0005)
+                        && TailOk(warehouseNum, 0xEAEA0005)
+                        && bag.WarehouseGoodsList.Count == 1
+                        && bag.WarehouseGoodsList[0].GoodsId == warehouseSecond
+                        && bag.WarehouseGoodsList[0].GoodsNum == 99
+                        && bag.BagGoodsList.Count == 1 && bag.BagGoodsList[0].GoodsId == mainId
+                        && warehouseEvents == 5;
+                }
+                finally { EventDispatcher.Off(GlobalEvent.EVT_WAREHOUSE_UPDATE, onWarehouse); }
 
                 bool fullOk = true;
                 var firstIds = new Dictionary<int, long>();
@@ -210,13 +247,14 @@ namespace Shenxiao.EditorTools
                     && main.OverallRating == 4104 && main.EquipStage == 2 && main.EquipStar == 3;
                 bag.Clear();
                 bool babyClearOk = !bag.HasBabyEquipData && bag.BabyEquipMaxCell == 0 && bag.GetContainer(BagModel.POS_BABY_EQUIP).Count == 0
-                    && !bag.HasBabyEquipBagData && bag.BabyEquipBagMaxCell == 0 && bag.GetContainer(BagModel.POS_BABY_BAG).Count == 0;
+                    && !bag.HasBabyEquipBagData && bag.BabyEquipBagMaxCell == 0 && bag.GetContainer(BagModel.POS_BABY_BAG).Count == 0
+                    && !bag.HasWarehouseData && bag.WarehouseCellNum == 0 && bag.WarehouseGoodsList.Count == 0;
 
                 bool pass = startupOk && mainFullOk && fullOk && mainIsolatedAfterFull
-                    && deltaOk && numDeleteOk && syncOk && mainDeltaOk && babyOk && wornBabyOk && babyClearOk;
+                    && warehouseOk && deltaOk && numDeleteOk && syncOk && mainDeltaOk && babyOk && wornBabyOk && babyClearOk;
                 Debug.Log("CLIVERIFY pet-equip inventory startup=" + startupOk
                     + " mainFull=" + mainFullOk + " fourFull=" + fullOk + " isolated=" + mainIsolatedAfterFull
-                    + " delta=" + deltaOk + " numDelete=" + numDeleteOk + " sync=" + syncOk
+                    + " warehouse=" + warehouseOk + " delta=" + deltaOk + " numDelete=" + numDeleteOk + " sync=" + syncOk
                     + " mainRegression=" + mainDeltaOk + " baby=" + babyOk + " wornBaby=" + wornBabyOk + " babyClear=" + babyClearOk + " pass=" + pass);
                 return pass ? 0 : 3;
             }

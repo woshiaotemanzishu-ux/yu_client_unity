@@ -1,65 +1,144 @@
 using System;
+using Shenxiao.Common.Tips;
 using Shenxiao.Generated.UI.Bag;
-using Shenxiao.Framework.Util;
+using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
+using Shenxiao.Module.Core.Common;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Bag
 {
-    /// <summary>
-    /// 扩展背包格子弹窗(对标老客户端 bag/ExpandBagView.ts):购买/扩展背包格子,含数量加减/最大、消耗物品、确定/取消。
-    ///
-    /// 数量加减是自包含 UI 逻辑(无后端)→ 做成可用(本地计数,reduce/increase/max,钳 ≥1);取消/关闭 → Hide;
-    /// 确定 → 打日志(购买/扩展协议未移植)。降级:扩展上限/消耗/cost 依赖 BagModel,先按默认上限;消耗物品模板隐藏。
-    /// 事件驱动弹窗,默认关闭、不进 FirstPass。
-    /// </summary>
+    /// <summary>背包/仓库扩容。每扩一格消耗 2 个 38250026；材料不足时由服务端自动购买链补足，最终以 15002 为准。</summary>
     public sealed class ExpandBagView : ExpandBagViewBind
     {
-        /// <summary>数量上限(待 BagModel 扩展上限;先给默认)。</summary>
-        [SerializeField] private int _maxCount = 99;
+        public const int ExpandGoodsTypeId = 38250026;
+        public const int ExpandNeedPerCell = 2;
 
+        [SerializeField] private int _inputLimit = 9999;
         private int _count = 1;
+        private int _bagPos = BagModel.POS_BAG;
+        private BaseAwardItem _item;
+        private bool _subscribed;
 
         protected override void OnInit()
         {
             if (_tpl_BaseAwardItem != null) _tpl_BaseAwardItem.SetActive(false);
+            EnsureItem();
 
-            BindBtn(cancel_btn, OnClose);
-            BindBtn(close_btn, OnClose);
+            BindBtn(cancel_btn, Hide);
+            BindBtn(close_btn, Hide);
             BindBtn(enter_btn, OnEnter);
-            BindBtn(reduce_btn, () => SetCount(_count - 1));
-            BindBtn(increase_btn, () => SetCount(_count + 1));
-            BindBtn(maxBtn, () => SetCount(_maxCount));
+            BindBtn(reduce_btn, () => SetCount(_count - 1, true));
+            BindBtn(increase_btn, () => SetCount(_count + 1, true));
+            BindBtn(maxBtn, SetMaximumFromOwnedKeys);
         }
 
         protected override void OnShow(object args)
         {
-            SetCount(1);
+            _bagPos = args is int pos && pos == BagModel.POS_WAREHOUSE ? BagModel.POS_WAREHOUSE : BagModel.POS_BAG;
+            long available = BagModel.Instance.GetTypeGoodsNum(ExpandGoodsTypeId);
+            int maxByItem = (int)Math.Min(_inputLimit, available / ExpandNeedPerCell);
+            SetCount(maxByItem > 0 ? maxByItem : 1, false);
+            Subscribe();
         }
 
-        /// <summary>本地数量加减(对标 reduce/increase/max 步进),钳 [1, _maxCount]。</summary>
-        private void SetCount(int n)
+        protected override void OnHide() => Unsubscribe();
+        protected override void OnDispose() => Unsubscribe();
+
+        private void Subscribe()
         {
-            _count = Mathf.Clamp(n, 1, Mathf.Max(1, _maxCount));
-            if (input_text != null) input_text.text = _count.ToString();
+            if (_subscribed) return;
+            EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, RefreshCost);
+            _subscribed = true;
         }
 
-        private void OnClose() => Hide();
+        private void Unsubscribe()
+        {
+            if (!_subscribed) return;
+            EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, RefreshCost);
+            _subscribed = false;
+        }
+
+        private void EnsureItem()
+        {
+            if (_item != null || _tpl_BaseAwardItem == null || itemGp == null) return;
+            GameObject go = Instantiate(_tpl_BaseAwardItem, itemGp);
+            go.name = "ExpandCostItem_Runtime";
+            go.SetActive(true);
+            _item = go.GetComponent<BaseAwardItem>();
+            if (_item == null) return;
+            _item.SetScale(0.7f);
+            _item.SetData(ExpandGoodsTypeId, 1);
+            _item.SetClickCallBack(() => ItemTipsView.Show(ExpandGoodsTypeId));
+        }
+
+        private void SetCount(int n, bool showBoundaryTip)
+        {
+            if (n < 1)
+            {
+                if (showBoundaryTip) TipsManager.Toast("已达最小扩充容量");
+                n = 1;
+            }
+            _count = Mathf.Clamp(n, 1, Mathf.Max(1, _inputLimit));
+            RefreshCost();
+        }
+
+        private void SetMaximumFromOwnedKeys()
+        {
+            int max = (int)Math.Min(_inputLimit,
+                BagModel.Instance.GetTypeGoodsNum(ExpandGoodsTypeId) / ExpandNeedPerCell);
+            if (max <= 0)
+            {
+                TipsManager.Toast("扩容道具不足");
+                return;
+            }
+            SetCount(max, false);
+        }
+
+        private void RefreshCost()
+        {
+            long owned = BagModel.Instance.GetTypeGoodsNum(ExpandGoodsTypeId);
+            long need = (long)_count * ExpandNeedPerCell;
+            if (input_text != null) input_text.text = _count.ToString();
+            if (left_cost != null) left_cost.text = "拥有";
+            if (right_cost != null)
+                right_cost.text = owned >= need ? owned + "/" + need : "<color=#ff4f50>" + owned + "/" + need + "</color>";
+            if (tip_text != null) tip_text.text = _bagPos == BagModel.POS_WAREHOUSE ? "扩充仓库容量" : "扩充背包容量";
+        }
 
         private void OnEnter()
         {
-            GameLog.Info("Bag", "扩展背包 确定 count={0} → 待对接 购买/扩展协议(BagModel)", _count);
+            long owned = BagModel.Instance.GetTypeGoodsNum(ExpandGoodsTypeId);
+            long need = (long)_count * ExpandNeedPerCell;
+            Action send = () =>
+            {
+                BagController.Instance.ExpandBag(_bagPos, _count);
+                Hide();
+            };
+            if (owned >= need)
+            {
+                send();
+                return;
+            }
+
+            long shortage = need - owned;
+            TipsManager.Confirm("当前扩容道具不足 " + shortage + " 个，是否使用自动购买补足？", send);
         }
 
-        private void BindBtn(Component target, Action onClick)
+        private static void BindBtn(Component target, Action onClick)
         {
             if (target == null) return;
-            Image img = target as Image;
-            if (img == null) img = target.GetComponentInChildren<Image>(true);
-            if (img == null) return;
-            img.raycastTarget = true;
-            UIUtil.AddClick(img, onClick);
+            GameObject go = target.gameObject;
+            foreach (Graphic graphic in go.GetComponentsInChildren<Graphic>(true)) graphic.raycastTarget = false;
+            Image image = go.GetComponent<Image>();
+            if (image == null)
+            {
+                image = go.AddComponent<Image>();
+                image.color = new Color(1f, 1f, 1f, 0f);
+            }
+            image.raycastTarget = true;
+            UIUtil.AddClick(image, onClick);
         }
     }
 }

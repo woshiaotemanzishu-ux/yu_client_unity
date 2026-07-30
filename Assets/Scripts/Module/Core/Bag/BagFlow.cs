@@ -94,9 +94,15 @@ namespace Shenxiao.Module.Core.Bag
         /// <summary>打开背包模块内子窗;在所有已加载内容源里按 View 子类名查找。未移植 → 日志降级。</summary>
         public static void OpenSub(string viewTypeName)
         {
+            OpenSub(viewTypeName, null);
+        }
+
+        /// <summary>打开子窗并透传参数；扩容窗用它区分背包(pos=4)与仓库(pos=5)。</summary>
+        public static void OpenSub(string viewTypeName, object args)
+        {
             BaseView v = FindSub(viewTypeName);
             if (v == null) { GameLog.Info("Bag", "背包子窗 [{0}] 未移植 View,待对接", viewTypeName); return; }
-            v.Show();
+            v.Show(args);
         }
 
         private static BaseView FindSub(string viewTypeName)
