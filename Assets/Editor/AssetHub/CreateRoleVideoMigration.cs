@@ -17,7 +17,7 @@ namespace Shenxiao.EditorTools.AssetHub
     ///  ③ 登记 object/role/video_create/ 下的创角视频(地址=GameRes 相对路径小写去扩展,
     ///     同 AddressableSetup 约定;视频文件命名 {RoleRes}@create2.mp4 / {RoleRes}@create3.mp4)
     ///  ④ 给 RoleCreateView.prefab 原位补 VideoImage 节点并回填引用——不整树重生成,保住手调布局
-    ///     页面进入精修后以该 Prefab 为唯一视觉事实源，不再整树重生成。
+    ///     (Creator 已同步加该节点,下次整树重生成也一致)
     /// 批处理:Unity.exe -batchmode -projectPath . -executeMethod
     ///        Shenxiao.EditorTools.AssetHub.CreateRoleVideoMigration.Run -logFile Temp/create_video_migration.log
     /// 这是已完成迁移后的对账/批处理入口,不再占用日常 Unity 菜单。
@@ -127,7 +127,7 @@ namespace Shenxiao.EditorTools.AssetHub
         }
 
         /// <summary>给现有 prefab 补 VideoImage(紧跟 Bg 之后:盖背景、垫所有 UI 之下)并回填 view.videoImage。
-        /// 结构与当前 Prefab 保持一致;已有节点/引用则跳过(幂等)。</summary>
+        /// 结构与 RoleCreateCreator 生成的一致;已有节点/引用则跳过(幂等)。</summary>
         private static bool EnsureVideoImageInPrefab()
         {
             GameObject root = PrefabUtility.LoadPrefabContents(PrefabPath);

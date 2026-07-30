@@ -19,7 +19,7 @@ namespace Shenxiao.Module.Core.Login
     /// 结构(对标截图 5/6):全屏背景 + 全屏展示视频(VideoImage) + 左侧职业选择列(4 张固定职业卡 careerItems)
     /// + 中央 3D 角色模型(ModelCon,无视频职业的拼装链兜底) + 职业名 + 职业描述三连图(诗句)
     /// + 随机名(名字输入 + ⟳ 随机)+ 底部「踏入仙界」+ 返回。
-    /// 当前 Prefab 是唯一视觉事实源并直接保存背景、布局及下列 public 引用；职业卡固定 4 张(不用模板克隆),
+    /// prefab 由 RoleCreateCreator 纯代码建树生成并回填下列 public 引用;职业卡固定 4 张(不用模板克隆),
     /// 每张卡内直接持有 bg/icon/label 引用,位置各自手调;职业数不足则运行时隐藏多余卡。
     ///
     /// 本类只做:① 数据绑定(职业列表/展示视频或 3D 模型/随机名,逻辑原样搬自旧 LoginCreateRoleView.cs)

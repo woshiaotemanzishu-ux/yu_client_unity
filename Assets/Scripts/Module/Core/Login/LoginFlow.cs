@@ -75,7 +75,7 @@ namespace Shenxiao.Module.Core.Login
             if (_loginPanel == null || _loadingView == null || _enterView == null || _agreementView == null
                 || _selectView == null || _selectRoleView == null || _createRoleView == null)
             {
-                GameLog.Error("Login", "登录页 prefab 缺失——请从 Git 恢复对应 Prefab 并检查序列化引用");
+                GameLog.Error("Login", "登录页 prefab 缺失——在「神霄/重构UI 生成器」面板里把 Login 各页都生成一遍");
                 return;
             }
 
@@ -129,7 +129,7 @@ namespace Shenxiao.Module.Core.Login
             if (view == null)
             {
                 if (required)
-                    GameLog.Error("Login", "{0} prefab 加载失败(key={1})。请从 Git 恢复该 Prefab 并检查 Addressable 配置", viewName, key);
+                    GameLog.Error("Login", "{0} prefab 加载失败(key={1})。先在「神霄/重构UI 生成器」里生成它", viewName, key);
                 else
                     GameLog.Warn("Login", "{0} prefab 尚未生成(key={1})，连接过程暂退回文字提示", viewName, key);
                 return null;

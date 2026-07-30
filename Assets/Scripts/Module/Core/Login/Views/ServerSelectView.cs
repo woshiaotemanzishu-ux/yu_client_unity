@@ -13,13 +13,13 @@ namespace Shenxiao.Module.Core.Login
     /// 结构(对标截图4):背景 + 面板框 + 标题图「选择服务器」+ 右上关闭按钮;
     ///   左侧 tabContainer = 区服分组 tab 列(最近登录 / 各大区),右侧 itemContainer = 当前区服务器行。
     ///   tabTemplate / itemTemplate 是 prefab 内默认隐藏的克隆源(运行时 Instantiate 填数据)。
-    /// 当前 Prefab 是唯一视觉事实源，背景、模板结构及下列 public 引用均直接序列化保存。
+    /// prefab 由 ServerSelectCreator 纯代码建树生成并回填下列 public 引用。
     ///
     /// 选中态规则照搬老 LoginSelectServerView/LoginSelectServerTabItem:
     ///   选中 tab = 亮底(白)+ 字色 #FFEEE4;未选中 = 透明底(保持可点)+ 字色 #81452B。
     ///
     /// 本类只做:① 数据绑定(从 LoginController.Instance.Model.Areas/Servers 建 tab/列表)
-    ///   ② 功能性状态切换(选中态换底/换字色 / 模板项 SetActive)。不写颜色字号尺寸样式(由 Prefab 维护;
+    ///   ② 功能性状态切换(选中态换底/换字色 / 模板项 SetActive)。不写颜色字号尺寸样式(那是 Creator + 手调的事;
     ///   选中态色值是功能性指示,照抄老端常量,允许)。
     ///
     /// ---- 对接说明(给主控 LoginFlow)----
@@ -32,7 +32,7 @@ namespace Shenxiao.Module.Core.Login
     [UIView("prefabs/ui/login/serverselectview")]
     public sealed class ServerSelectView : BaseView
     {
-        // 模板项内部子节点名直接保存在 Prefab；运行时按名取,保持 data-only。
+        // 模板项内部子节点名(由 ServerSelectCreator 按这些名字建树;运行时按名取,保持 data-only)
         private const string TAB_BG = "_img_bg";
         private const string TAB_NAME = "_lb_name";
         private const string ITEM_NAME = "_lb_server_name";

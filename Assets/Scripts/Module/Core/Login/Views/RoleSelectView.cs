@@ -16,14 +16,14 @@ namespace Shenxiao.Module.Core.Login
     /// <summary>
     /// 选角页(重构版,自包含独立 prefab)——取代老端碎片化的 LoginSelectRoleView + LoginSelectRoleItem。
     ///
-    /// 结构(直接保存在 Prefab):全屏背景 / 3D 模型容器 modelCon(内含编辑器占位 modelPlaceholder)/
+    /// 结构(由 RoleSelectCreator 纯代码建树):全屏背景 / 3D 模型容器 modelCon(内含编辑器占位 modelPlaceholder)/
     /// 4 张固定角色卡 roleCards(每张位置各自手调,不再用模板克隆)/ 踏入仙界 enterBtn / 返回 returnBtn。
     /// 每张卡内直接持有子控件引用(bg 底图 / selectedFrame 选中胶囊 / head 头像 / nameLabel / turnLabel /
-    /// ascendMark 升仙角标 / levelLabel),均由 Prefab 序列化绑定,运行时不再按名查找。
+    /// ascendMark 升仙角标 / levelLabel),由 Creator 建树时回填,运行时不再按名查找。
     ///
     /// 本类只做:① 数据绑定(把角色数据填进 4 张卡,空卡=创建入口) ② 功能性状态切换(选中态换图 / 显示 3D 模型)。
-    /// 不写颜色/字号/尺寸样式，这些参数全部由 Prefab 维护。
-    /// 卡片数量现由 prefab 上的 roleCards 决定(默认 4);要增减槽位就在 prefab 上直接加/删卡并补引用。
+    /// 不写颜色/字号/尺寸样式(建树期 Creator + 用户手调的事)。
+    /// 卡片数量现由 prefab 上的 roleCards 决定(默认 4);要增减槽位就在 prefab 上加/删卡(或改 Creator 重生成)。
     ///
     /// ── 对接(供主控改写 LoginFlow 时对照)─────────────────────────────────────────────
     /// 暴露给 LoginFlow 回调的 public 方法:

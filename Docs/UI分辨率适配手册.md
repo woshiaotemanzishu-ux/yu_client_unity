@@ -40,11 +40,10 @@
   Viewport 保持 720×1280，只在左右露出 `WebBackground`。
 - `LoginPanel/Bg` 使用 `AspectRatioFitter.EnvelopeParent` 按原图比例 cover：允许裁掉超出的左右画面，
   不允许拉伸人物，也不允许露出上下空隙。
-- `LoginPanel`、`RoleCreateView`、`RoleSelectView`、`ServerSelectView` 的全屏 `Bg` 均直接保存在
-  各自 Prefab；这些已落袋页面的专用 Creator 已退役，换图和显示方式只改 Prefab Inspector。
 - `LoginStage` 已进入人工精修阶段，背景的 `Source Image`、`Image.Type`、颜色及
   `AspectRatioFitter` 全部直接保存在 `LoginStage.prefab/WebBackground`；页面专用
-  `LoginStageCreator` 已删除，运行时代码不得重新计算或覆盖这些参数。不得改全局
+  `LoginStageCreator` 已删除。原有宽高比适配保持不变：`LoginStage` 只按 Prefab 当前图片的原始尺寸
+  同步 `AspectRatioFitter.aspectRatio`，不加载或替换图片。不得改全局
   `CanvasScaler`，也不得在 `LoginFlow` 里按平台或屏幕尺寸计算布局。
 
 | 屏幕 | Expand 后逻辑画布 | 登录视口结果 |

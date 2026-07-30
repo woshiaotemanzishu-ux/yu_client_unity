@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Threading.Tasks;
 using Shenxiao.Module.Core.Login;
 using UnityEditor;
@@ -7,27 +6,12 @@ using UnityEngine.UI;
 
 namespace Shenxiao.EditorTools
 {
-    /// <summary>公共顶栏与登录背景必须由 Prefab 直接持有，不能退回运行时或页面 Creator 管理。</summary>
+    /// <summary>公共顶栏与登录背景图片必须由 Prefab 直接持有，运行时不得加载或替换图片资源。</summary>
     public static class PrefabBackgroundOwnershipCase
     {
         private const string CommonPrefabPath = "Assets/Prefabs/UI/Common/BaseWindowSkin.prefab";
         private const string LoginPrefabPath = "Assets/Prefabs/UI/Login/LoginStage.prefab";
-        private static readonly string[] LoginPagePrefabPaths =
-        {
-            "Assets/Prefabs/UI/Login/LoginPanel.prefab",
-            "Assets/Prefabs/UI/Login/RoleCreateView.prefab",
-            "Assets/Prefabs/UI/Login/RoleSelectView.prefab",
-            "Assets/Prefabs/UI/Login/ServerSelectView.prefab",
-        };
-
-        private static readonly string[] RemovedLoginCreatorPaths =
-        {
-            "Assets/Editor/UiCreator/Login/LoginStageCreator.cs",
-            "Assets/Editor/UiCreator/Login/LoginPanelCreator.cs",
-            "Assets/Editor/UiCreator/Login/RoleCreateCreator.cs",
-            "Assets/Editor/UiCreator/Login/RoleSelectCreator.cs",
-            "Assets/Editor/UiCreator/Login/ServerSelectCreator.cs",
-        };
+        private const string RemovedLoginCreatorPath = "Assets/Editor/UiCreator/Login/LoginStageCreator.cs";
 
         public static Task<int> Run()
         {
@@ -49,15 +33,11 @@ namespace Shenxiao.EditorTools
             Image webImage = web != null ? web.GetComponent<Image>() : null;
             AspectRatioFitter fitter = web != null ? web.GetComponent<AspectRatioFitter>() : null;
             LoginStage stage = login != null ? login.GetComponent<LoginStage>() : null;
-            bool hasRuntimeBackgroundField = false;
-            foreach (FieldInfo field in typeof(LoginStage).GetFields(
-                         BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-            {
-                hasRuntimeBackgroundField |= typeof(Image).IsAssignableFrom(field.FieldType)
-                    || typeof(AspectRatioFitter).IsAssignableFrom(field.FieldType);
-            }
+            float spriteAspect = webImage != null && webImage.sprite != null && webImage.sprite.rect.height > 0f
+                ? webImage.sprite.rect.width / webImage.sprite.rect.height
+                : 0f;
 
-            bool loginStageOk = login != null
+            bool loginOk = login != null
                 && GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(login) == 0
                 && webImage != null
                 && webImage.sprite != null
@@ -65,46 +45,21 @@ namespace Shenxiao.EditorTools
                 && fitter != null
                 && fitter.aspectMode == AspectRatioFitter.AspectMode.EnvelopeParent
                 && stage != null
+                && stage.webBackground == webImage
+                && stage.backgroundFitter == fitter
                 && stage.viewport != null
-                && !hasRuntimeBackgroundField;
+                && Mathf.Approximately(fitter.aspectRatio, spriteAspect)
+                && AssetDatabase.LoadAssetAtPath<MonoScript>(RemovedLoginCreatorPath) == null;
 
-            bool loginPagesOk = true;
-            foreach (string prefabPath in LoginPagePrefabPaths)
-                loginPagesOk &= HasSerializedFullScreenBackground(prefabPath);
-
-            bool creatorsRemoved = true;
-            foreach (string creatorPath in RemovedLoginCreatorPaths)
-                creatorsRemoved &= AssetDatabase.LoadAssetAtPath<MonoScript>(creatorPath) == null;
-
-            bool pass = commonOk && loginStageOk && loginPagesOk && creatorsRemoved;
+            bool pass = commonOk && loginOk;
             Debug.Log("CLIVERIFY prefab-backgrounds common=" + commonOk
-                + " loginStage=" + loginStageOk
-                + " loginPages=" + loginPagesOk
-                + " creatorsRemoved=" + creatorsRemoved
+                + " login=" + loginOk
                 + " commonSprite=" + (topImage != null && topImage.sprite != null ? topImage.sprite.name : "null")
                 + " loginSprite=" + (webImage != null && webImage.sprite != null ? webImage.sprite.name : "null")
-                + " runtimeBackgroundField=" + hasRuntimeBackgroundField
+                + " loginAspect=" + (fitter != null ? fitter.aspectRatio.ToString("0.####") : "null")
+                + " spriteAspect=" + spriteAspect.ToString("0.####")
                 + " pass=" + pass);
             return Task.FromResult(pass ? 0 : 3);
-        }
-
-        private static bool HasSerializedFullScreenBackground(string prefabPath)
-        {
-            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-            if (prefab == null || GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(prefab) != 0)
-                return false;
-
-            foreach (Image image in prefab.GetComponentsInChildren<Image>(true))
-            {
-                RectTransform rect = image.rectTransform;
-                if (image.name == "Bg"
-                    && image.sprite != null
-                    && !image.raycastTarget
-                    && Near(rect.anchorMin, Vector2.zero)
-                    && Near(rect.anchorMax, Vector2.one))
-                    return true;
-            }
-            return false;
         }
 
         private static Transform FindDeep(Transform root, string nodeName)
@@ -114,8 +69,5 @@ namespace Shenxiao.EditorTools
                 if (child.name == nodeName) return child;
             return null;
         }
-
-        private static bool Near(Vector2 a, Vector2 b) =>
-            Mathf.Abs(a.x - b.x) < 0.001f && Mathf.Abs(a.y - b.y) < 0.001f;
     }
 }
