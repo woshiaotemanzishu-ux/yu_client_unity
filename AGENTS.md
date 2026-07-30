@@ -4,6 +4,8 @@
 
 - 文档与经验沉淀规则：开始任务先从 [Docs/README.md](Docs/README.md) 找对应权威文档；凡新增或调整架构、公共组件、工具/资源流水线、协议/登录/进游戏主链、构建发布方式，或解决具有复用价值的疑难问题，必须在同一轮、同一提交中新增或更新技术文档/经验文档，并把新文档加入索引。已验证进度同步更新 `Docs/Shenxiao实施进度.md`；形成 AI 硬约束的决策同步更新 `AGENTS.md`，编码约定同步更新 `Docs/Shenxiao编码规范.md`。纯错字、无行为变化的机械修改可不写，但最终报告必须说明“不触发文档更新”的理由。禁止只把结论留在聊天、外部记忆或临时输出目录中。
 
+- 协议覆盖 baseline 收口规则：`Schemas/ProtocolCoverage/baseline.json` 的历史 `unityRegistered/liveGap` 数值用于防倒退，禁止为追当前报告逐轮改写；但当最新运行时扫描的某家族全部活缺口已由注册或带 evidence 的 killlist 完整治理时，必须在同轮把人工 `status` 转为 `done` 并写 `statusNote`，再以 `ProtocolCoverageCase` 的C段验收。禁止长期保留 `pending/legacy_unverified` 逃避C段，也禁止把真实玩家可达写事务塞进killlist来伪收口。
+
 - Unity 序列化脚本规则：会挂到 Scene/Prefab 的 `MonoBehaviour` / `ScriptableObject` 必须独占同名 `.cs` 文件，禁止把它放在“首个类型为静态类、抽象类或其他不同名类型”的文件里；Editor 生成器 `AddComponent<T>()` 后必须核对产物 `m_Script` 为非零 GUID 且 GUID 指向 `T` 的同名脚本。否则即使 C# 编译通过，Unity 仍可能把组件保存成 Missing Script。
 
 - 主界面技能规则：技能项只允许 `con` 作为唯一 Raycast/Button 点击面，`bg/icon/lock/CD/文字` 等装饰 Graphic 必须关闭 `raycastTarget`；点击验收必须走真实 Prefab 的 `GraphicRaycaster→PointerClick`，直接调用 `OnClickSkill` 不算点击链通过。普通 `AutoFight` 不得拦截玩家手点技能，只有服务端 `13017` 的 `RoleModel.DepositState` 托管态才拦截。手动无锁定目标时按当前朝向原地释放并只在技能 `area` 内局部预选，不得跨全场抢最近怪；自动战斗才允许全场寻敌并接近。接敌范围严格对标老端：`range==1` 使用 `max(100,(distance+area)*0.8)`，其他模式使用 `max(100,distance*0.8)`；命中几何由 `range/distance/area/num` 决定，禁止从 `desc` 文案猜圆形、直线或扇形。

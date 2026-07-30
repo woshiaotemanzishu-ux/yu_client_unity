@@ -920,7 +920,8 @@
       "prefix": 110,
       "unityRegistered": 21,
       "liveGap": 3,
-      "status": "legacy_unverified"
+      "status": "done",
+      "statusNote": "R514：当前三个活缺口11003/11004/11005均已逐号进入killlist，文字聊天21个运行时注册保持不变，正式启用断言C防倒退。"
     },
     {
       "prefix": 111,
@@ -1064,7 +1065,8 @@
       "prefix": 151,
       "unityRegistered": 17,
       "liveGap": 2,
-      "status": "pending"
+      "status": "done",
+      "statusNote": "R514：15104/15105均为旧端空消费并已有killlist证据；当前17个Market运行时注册覆盖其余活号。"
     },
     {
       "prefix": 152,
@@ -1375,7 +1377,8 @@
       "prefix": 211,
       "unityRegistered": 0,
       "liveGap": 4,
-      "status": "pending"
+      "status": "done",
+      "statusNote": "R514：21101空消费、21102/03/04旧端不可达均已逐号killlist；远古奥术保持零运行时接入。"
     },
     {
       "prefix": 215,
@@ -1418,7 +1421,8 @@
       "prefix": 221,
       "unityRegistered": 2,
       "liveGap": 3,
-      "status": "pending"
+      "status": "done",
+      "statusNote": "R514：22102/03/04服务端handler整段注释且均已killlist；22100/01保持现有运行时接入。"
     },
     {
       "prefix": 222,
@@ -1473,7 +1477,8 @@
       "prefix": 240,
       "unityRegistered": 38,
       "liveGap": 2,
-      "status": "pending"
+      "status": "done",
+      "statusNote": "R514：24011旧端不可达、24042空消费均已有killlist证据；当前38个Team运行时注册覆盖其余活号。"
     },
     {
       "prefix": 241,
@@ -1583,7 +1588,8 @@
       "prefix": 339,
       "unityRegistered": 7,
       "liveGap": 2,
-      "status": "pending"
+      "status": "done",
+      "statusNote": "R514：33903空消费、33905旧端不可达均已有killlist证据；当前7个红包运行时注册覆盖其余活号。"
     },
     {
       "prefix": 340,
@@ -1601,11 +1607,8 @@
       "prefix": 399,
       "unityRegistered": 0,
       "liveGap": 7,
-      "status": "pending",
-      "errorExitPending": true,
-      "errorExitCmd": [
-        39900
-      ]
+      "status": "done",
+      "statusNote": "R514：R508已接39900/01/02/04/22，余下39903/05/31均有逐号killlist证据；39900错误出口已注册，正式启用断言C防倒退。"
     },
     {
       "prefix": 400,
@@ -1809,13 +1812,15 @@
       "prefix": 460,
       "unityRegistered": 38,
       "liveGap": 1,
-      "status": "legacy_unverified"
+      "status": "done",
+      "statusNote": "R514：唯一活缺口46030的服务端调用点整段注释并已有killlist证据；当前38个Boss运行时注册保持不变。"
     },
     {
       "prefix": 470,
       "unityRegistered": 20,
       "liveGap": 1,
-      "status": "pending"
+      "status": "done",
+      "statusNote": "R514：唯一活缺口47011的服务端writer宿主不可达并已有killlist证据；当前20个跨服大妖运行时注册覆盖其余活号。"
     },
     {
       "prefix": 471,
@@ -1879,7 +1884,8 @@
       "prefix": 510,
       "unityRegistered": 0,
       "liveGap": 4,
-      "status": "pending"
+      "status": "done",
+      "statusNote": "R514：51001-51004整个服务端族路由关闭且均已killlist；51005为扫描器判定的死号，家族保持零运行时接入。"
     },
     {
       "prefix": 511,

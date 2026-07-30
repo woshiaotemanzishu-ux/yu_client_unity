@@ -17,8 +17,9 @@
 
 ## 当前协议迁移口径（2026-07-30）
 
-- 最新完成轮次：R513，补齐周本 `50805` 专属S2C结算快照。完整保存 `result_type/dun_id/go_time`、成功奖励组与Boss奖励组及其标准ObjectList；每包全量替换，原序重复项、u32最大值、零值和空表均有效。50805只落独立raw，不复用61003，也不改50801周本信息或50802榜单。
-- 14402圣骸打造和13213挂机赎回经双端复核均为真实资产/货币写事务，继续DEFER；未接结算UI、场景退出、配置、事件、奖励展示/发放或自动请求。同一PID完成1467节点Unity编译/域重载且0 error，`DungeonPolarSettlementCase pass=True/restored=True`；`ProtocolCoverageCase`报告`coverage_20260730_091649.md` A～E全PASS。当前 `registered=1253 / liveDefined=1468 / liveGap=337 / errorExit=10 / effective=1131/1468=77.0%`，508族 `registered3/liveGap0/dead0/pending`，baseline不更新。
+- 最新完成轮次：R514，治理十个“实现或killlist证据已完整、但baseline仍误留pending”的家族：`110/151/211/221/240/339/399/460/470/510`。仅把人工策展状态转为done并启用覆盖断言C，不改变生产注册、冻结历史计数或raw覆盖率；39900已注册，旧 `errorExitPending` 标记同时移除。
+- 187日常海域余下四个活缺口经双端复核均为真实写链：18705开始搬砖、18706结束搬砖、18707扣料/自动购买升级砖色、18713任务领奖；18702/08/09是无同号结果包的场景操作。本轮全部保持DEFER/排除，禁止为覆盖率暴露裸sender或伪造场景/资产状态。
+- `coverage_20260730_093558.md` 已验证A～E全PASS，C段接受十个新done家族；运行时口径仍为 `registered=1253 / liveDefined=1468 / liveGap=337 / errorExit=10 / effective=1131/1468=77.0%`。本轮无C#、Prefab或资源变化，故不触发重编译或业务专项Case。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

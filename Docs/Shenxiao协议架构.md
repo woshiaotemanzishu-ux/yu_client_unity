@@ -189,3 +189,9 @@
 - 50805由周本成功/失败事件主动推送，Unity只注册接收器，不提供请求方法、不加入GAME_START或场景轮询。它与61003通用副本结算不是同一数据线，禁止复用或互相覆盖。
 - 每包按 `result_type:u8,dun_id:u32,go_time:u32,dun_rewards:u16×{type:u8,times:u16,rewards:ObjectList},role_boss_list:u16×{boss_id:u32,reward_st:u8,reward_list:ObjectList}` 完整替换最后loaded快照。所有列表保留wire原序和重复ID，空表清旧，零值和u32最大值有效。
 - 50801周本信息、50802榜单和50805结算普通包互不清理；只有模块断线/注销的 `PolarModel.Clear()` 统一清空。raw层不得据result_type推场景退出、打开结算页、展示/发放奖励、补查50801/02或本地修改背包。
+
+### 7.13 协议覆盖 baseline 的证据收口规则（2026-07-30 核对）
+
+- `baseline.json` 的 `unityRegistered/liveGap` 是冻结比较基线，不能为了显示当前数字逐轮重写；`status` 则是人工策展门禁。当前扫描中某族的全部 raw 活缺口都已被运行时注册或带非空 evidence 的 killlist 覆盖时，必须把该族转为 `done`，让断言C持续阻止新缺口；继续保留 `pending/legacy_unverified` 会让真实完工家族逃逸C段检查。
+- R514按最新运行时报告与killlist交集一次收口 `110/151/211/221/240/339/399/460/470/510` 十族。状态上调不增加注册、不改变raw liveGap或对外有效覆盖率；每族 `statusNote` 必须写明具体剩余号和证据边界。以后若协议重新变活，应先更新双端证据和实现/killlist，再由C段决定是否允许done。
+- 187日常海域不能用baseline收口替代实现：18705/06/07/13都是玩家可达的真实写事务，18702/08/09是场景操作且没有同号S2C handler。它们必须随场景session、配置、资产/任务和结果闭环整体迁移；禁止把写操作加入killlist，或注册不存在的回执来清数字。
