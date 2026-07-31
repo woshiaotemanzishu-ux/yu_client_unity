@@ -62,6 +62,32 @@ namespace Shenxiao.Module.Core.Common
             public int BaseRating;       // 基础评分(对标 EquipToolTips score 兜底 base_rating)
         }
 
+        public readonly struct EquipBaseAttrRow
+        {
+            public readonly int AttrId;
+            public readonly string Name;
+            public readonly long Value;
+            public EquipBaseAttrRow(int attrId, string name, long value)
+            {
+                AttrId = attrId;
+                Name = name;
+                Value = value;
+            }
+        }
+
+        public readonly struct EquipRecommendAttrRow
+        {
+            public readonly int Color;
+            public readonly string Name;
+            public readonly string Value;
+            public EquipRecommendAttrRow(int color, string name, string value)
+            {
+                Color = color;
+                Name = name;
+                Value = value;
+            }
+        }
+
         // config_goods 数字索引键(权威序见 config_table_default.json config_goods 字段列表;改这里=对齐配表字段顺序,勿散落魔法字符串)。
         private const string K_NAME = "1";
         private const string K_INTRO = "2";        // intro(物品介绍/描述)
@@ -256,6 +282,15 @@ namespace Shenxiao.Module.Core.Common
         public static List<(string name, long val)> GetBaseAttrs(int typeId)
         {
             var result = new List<(string, long)>();
+            foreach (EquipBaseAttrRow row in GetBaseAttrRows(typeId))
+                result.Add((row.Name, row.Value));
+            return result;
+        }
+
+        /// <summary>装备详情专用的基础属性行，保留 attr_id 供强化列与基础列逐项对齐。</summary>
+        public static List<EquipBaseAttrRow> GetBaseAttrRows(int typeId)
+        {
+            var result = new List<EquipBaseAttrRow>();
             string raw = GetGoodsBasicByTypeId(typeId)?.BaseAttrList;
             if (string.IsNullOrEmpty(raw)) return result;
 
@@ -268,7 +303,7 @@ namespace Shenxiao.Module.Core.Common
                 long val = pair.Get<long>(1);
                 string name = GetAttrName(attrId);
                 if (string.IsNullOrEmpty(name)) name = "属性" + attrId;
-                result.Add((name, val));
+                result.Add(new EquipBaseAttrRow(attrId, name, val));
             }
             return result;
         }
@@ -352,6 +387,15 @@ namespace Shenxiao.Module.Core.Common
         public static List<(string name, string val)> GetEquipRecommendAttrs(int typeId)
         {
             var result = new List<(string, string)>();
+            foreach (EquipRecommendAttrRow row in GetEquipRecommendAttrRows(typeId))
+                result.Add((row.Name, row.Value));
+            return result;
+        }
+
+        /// <summary>装备详情专用的极品预览行，保留每条属性的品质色。</summary>
+        public static List<EquipRecommendAttrRow> GetEquipRecommendAttrRows(int typeId)
+        {
+            var result = new List<EquipRecommendAttrRow>();
             ErlangTerm list = ErlangParser.Parse(GetEquipAttrRaw(typeId, KE_RECOMMEND));
             if (list?.Items == null) return result;
             foreach (ErlangTerm elem in list.Items)
@@ -368,7 +412,7 @@ namespace Shenxiao.Module.Core.Common
                 long rawVal = IsGrowthProType(attrId)
                     ? (inner.Items.Count >= 5 ? inner.Get<long>(4) : 0L)
                     : inner.Get<long>(2);
-                result.Add((name, FormatAttrValue(attrId, rawVal)));
+                result.Add(new EquipRecommendAttrRow(inner.Get<int>(0), name, FormatAttrValue(attrId, rawVal)));
             }
             return result;
         }

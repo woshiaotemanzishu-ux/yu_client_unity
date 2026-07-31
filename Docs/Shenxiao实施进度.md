@@ -1670,3 +1670,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **根因**：`ItemTipsView` 独立实例化整份 `CommonModule.prefab` 时只关闭了 `GoodsTooltips/EquipToolTips`，未关闭同级 `ItemUseView`。详情模块根被激活后，转换快照里的 ItemUse 烤制数据随同显示；这一份同级 View 不属于 `ItemUseFlow`，因此也没有生产点击绑定。
 - **修复**：详情 CommonModule 加载后先统一关闭全部同级 `BaseView`，打开时只激活目标 Tooltip；详情关闭时同时失活 `CommonModule(ItemTips)` 根。未修改人工 Prefab、主界面布局、真实 `ItemUseFlow` 候选队列或协议行为。
 - **验证状态**：Unity 强制编译 `completed/failed=false/errors=[]`；`BagInteractionCase` 返回 0，新增 `isolated=True/closeRoot=True`，并保留详情、使用、穿戴、对比、存取及六条出站协议的真实 Raycaster 回归。
+
+## 2026-07-31：装备详情层级、属性与双板对比对齐老端
+
+- **Prefab 与层级**：`CommonModule.prefab` 增量落成普通半透明遮罩、对比透明拦截层、单装备详情和当前/候选两份独立对比板。普通详情居中；对比板固定为当前 `(-125,+80)`、候选 `(+150,-105)`。遮罩位于背包之上，面板外点击先关闭整组详情，底层背包关闭和导航不会被穿透触发。
+- **同级隔离修正**：详情实例初始化只关闭最外层同级 `BaseView`，不再把详情板内的 `EquipmentItem` 一并失活；因此既保留 `ItemUseView` 隔离，也恢复了标题区真实品质底、装备图标、强化和阶数覆盖层。
+- **内容对齐**：装备详情按老端顺序显示极品、基础/强化、专有、宝石、洗炼五类属性；补入强化、宝石孔解锁、宝石等级属性和转生职业四张配置。品质标题图补齐 1～7 品质；字体、Light/Dark 品质色、职业/部位、等级与阶数口径按老端实现。宝石六孔区支持已镶嵌图标与两列属性、未镶嵌、5/7/9/11 阶和 VIP4 解锁，空孔使用半高行。
+- **滚动与对比**：详情滚动区在 Prefab 中保存 `RectMask2D`，动态内容从顶部开始且只在面板内部滚动。背包同部位已有装备时不再输出单板“装备对比”拼接文本，而是左侧当前装备仅“关闭”、右侧候选装备仅“穿戴”；无当前装备、已穿戴详情和仓库存取继续走各自单板按钮语义。
+- **验证状态**：Unity 强制编译 `completed/failed=false/errors=[]`；`BagInteractionCase=0`，最终日志为 `isolated=True/closeRoot=True/detail=True/use=True/True/compare=True/icons=True/configGroups=True/wear=True/True/blocker=True/deposit=True/True/takeout=True/True/pass=True`。用例真实渲染双板并验证六个宝石孔，且通过 `GraphicRaycaster→PointerClick` 证明遮罩先于底层背包关闭按钮命中。

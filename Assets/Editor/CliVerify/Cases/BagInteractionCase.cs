@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
+using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Equip;
+using Shenxiao.Module.Core.Tasks;
 using Shenxiao.Generated.UI.Common;
 using UnityEditor;
 using UnityEngine;
@@ -32,7 +35,8 @@ namespace Shenxiao.EditorTools
             try
             {
                 ResManager.EditorPreferFallback = true;
-                await Task.WhenAll(GoodsModel.EnsureLoaded(), BagFusionConfigs.EnsureLoaded());
+                await Task.WhenAll(GoodsModel.EnsureLoaded(), EquipmentTipsConfig.EnsureLoaded(),
+                    FuncOpenConfig.EnsureLoaded(), BagFusionConfigs.EnsureLoaded());
                 int core = RunSync();
                 if (core != 0) return core;
                 return await VerifyItemTipsClicksAsync();
@@ -280,6 +284,8 @@ namespace Shenxiao.EditorTools
             GameObject cameraGo = null;
             GameObject eventSystemGo = null;
             RenderTexture renderTarget = null;
+            GameObject underlyingButton = null;
+            int oldNewestTaskId = TaskModel.Instance.NewestFinishTaskId;
             try
             {
                 bagIntercept.SetValue(null, new Func<byte[], bool>(frame => { bagFrames.Add(frame); return true; }));
@@ -333,30 +339,111 @@ namespace Shenxiao.EditorTools
                     && U64(bagFrames[0], 6) == (ulong)normal.GoodsId && U32(bagFrames[0], 14) == 1;
                 bool closeDeactivatesModule = itemTipsRoot != null && !itemTipsRoot.activeInHierarchy;
 
-                const int equipTypeId = 319;
-                GoodsModel.GoodsBasic equipBasic = GoodsModel.GetGoodsBasicByTypeId(equipTypeId);
-                if (equipBasic == null || !GoodsModel.IsEquip(equipTypeId) || equipBasic.EquipType <= 0) return 3;
+                const int wornTypeId = 101015142;
+                const int candidateTypeId = 101011010;
+                GoodsModel.GoodsBasic wornBasic = GoodsModel.GetGoodsBasicByTypeId(wornTypeId);
+                GoodsModel.GoodsBasic candidateBasic = GoodsModel.GetGoodsBasicByTypeId(candidateTypeId);
+                if (wornBasic == null || candidateBasic == null || !GoodsModel.IsEquip(candidateTypeId)
+                    || wornBasic.EquipType != candidateBasic.EquipType) return 3;
                 var worn = new BagGoods
                 {
-                    GoodsId = 0x5200000000000001L, TypeId = equipTypeId, GoodsNum = 1,
-                    Cell = equipBasic.EquipType, Rating = 10,
+                    GoodsId = 0x5200000000000001L, TypeId = wornTypeId, GoodsNum = 1,
+                    Cell = wornBasic.EquipType, Rating = 331970, Stren = 180,
+                    ExtraAttrs = new List<EquipExtraAttr>
+                    {
+                        new EquipExtraAttr { Color = 5, AttrId = 17, AttrVal = 250, AttrTypeId = 0 },
+                    },
                 };
                 var candidate = new BagGoods
                 {
-                    GoodsId = 0x5200000000000002L, TypeId = equipTypeId, GoodsNum = 1,
-                    Cell = 2, Rating = 20,
+                    GoodsId = 0x5200000000000002L, TypeId = candidateTypeId, GoodsNum = 1,
+                    Cell = 2, Rating = 700,
                 };
                 setEquipment.Invoke(BagModel.Instance, new object[] { 10, new List<BagGoods> { worn } });
                 BagModel.Instance.SetBagFull(1, 40, new List<BagGoods> { candidate });
+                TaskModel.Instance.SetNewestFinishTaskId(101170);
+                GoodsDynamicModel.Instance.Store(new GoodsDetailVo
+                {
+                    GoodsId = worn.GoodsId,
+                    TypeId = worn.TypeId,
+                    Stren = worn.Stren,
+                    Rating = worn.Rating,
+                    ExtraAttrs = worn.ExtraAttrs,
+                    WashAttrs = new List<GoodsWashAttr>
+                    {
+                        new GoodsWashAttr { Color = 1, AttrId = 9, AttrVal = 250 },
+                    },
+                    StoneList = new List<GoodsStoneSlot>
+                    {
+                        new GoodsStoneSlot { Pos = 1, TypeId = 14010001 },
+                        new GoodsStoneSlot { Pos = 2, TypeId = 14020001 },
+                    },
+                });
 
                 equipFrames.Clear();
                 ItemTipsView.Show(candidate);
-                EquipToolTipsBind equipView = await WaitActiveView<EquipToolTipsBind>(camera);
-                bool compare = equipView != null && equipView.basePro != null
-                    && equipView.basePro.text.Contains("装备对比");
-                bool wearClick = equipView != null && Click(equipView.replaceBtn, camera, raycaster, eventSystem);
+                await WaitActiveView<EquipToolTipsBind>(camera);
+                itemTipsRoot = (GameObject)itemTipsRootField.GetValue(null);
+                ItemTipsModalLayout tipsLayout = itemTipsRoot != null ? itemTipsRoot.GetComponent<ItemTipsModalLayout>() : null;
+                EquipToolTipsBind currentView = tipsLayout?.compareCurrent;
+                EquipToolTipsBind candidateView = tipsLayout?.compareCandidate;
+                bool compare = tipsLayout != null && tipsLayout.compareBlocker.gameObject.activeInHierarchy
+                    && currentView != null && currentView.gameObject.activeInHierarchy
+                    && candidateView != null && candidateView.gameObject.activeInHierarchy
+                    && !tipsLayout.equipSingle.gameObject.activeInHierarchy
+                    && ((RectTransform)currentView.transform).anchoredPosition == new Vector2(-125f, 80f)
+                    && ((RectTransform)candidateView.transform).anchoredPosition == new Vector2(150f, -105f)
+                    && currentView.closeBtn.gameObject.activeInHierarchy && !currentView.replaceBtn.gameObject.activeInHierarchy
+                    && candidateView.replaceBtn.gameObject.activeInHierarchy && !candidateView.closeBtn.gameObject.activeInHierarchy
+                    && currentView.score.text.Contains("331970") && candidateView.score.text.Contains("700")
+                    && currentView.basePro.text.Contains("24550") && candidateView.basePro.text.Contains("50")
+                    && currentView._html_stren.text.Contains("强化 +1800")
+                    && currentView.best_conta.gameObject.activeInHierarchy
+                    && currentView.spec_conta.gameObject.activeInHierarchy
+                    && currentView.wash_conta.gameObject.activeInHierarchy
+                    && !currentView.basePro.text.Contains("装备对比") && !candidateView.basePro.text.Contains("装备对比");
+
+                bool configGroups = EquipmentTipsConfig.GetStoneUnlock(1, 2).Stage == 5
+                    && EquipmentTipsConfig.GetStoneUnlock(1, 6).Vip == 4
+                    && EquipmentTipsConfig.GetStoneAttrs(14010001).Count == 2
+                    && currentView.stone_conta.gameObject.activeInHierarchy
+                    && candidateView.stone_conta.gameObject.activeInHierarchy
+                    && currentView.stone_pro_conta.childCount == 6
+                    && candidateView.stone_pro_conta.childCount == 6
+                    && currentView.content_scroll.GetComponent<RectMask2D>() != null
+                    && candidateView.content_scroll.GetComponent<RectMask2D>() != null
+                    && Mathf.Abs(currentView.content_group.anchoredPosition.y) < 0.1f
+                    && Mathf.Abs(candidateView.content_group.anchoredPosition.y) < 0.1f;
+                await Task.Delay(500);
+                bool compareIcons = IsEquipmentIconVisible(tipsLayout?.compareCurrentIcon, "1011401")
+                    && IsEquipmentIconVisible(tipsLayout?.compareCandidateIcon, "1010101");
+                string comparePng = Capture(camera, renderTarget, "Temp/itemtips_equip_compare.png");
+                bool compareCaptured = !string.IsNullOrEmpty(comparePng) && File.Exists(comparePng);
+                bool wearClick = candidateView != null && Click(candidateView.replaceBtn, camera, raycaster, eventSystem);
                 bool wearFrame = FrameHeader(equipFrames, Proto.EQUIP_WEAR, 8)
                     && U64(equipFrames[0], 6) == (ulong)candidate.GoodsId;
+
+                int underlyingClicks = 0;
+                underlyingButton = new GameObject("UnderlyingBagClose", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                RectTransform underlyingRect = (RectTransform)underlyingButton.transform;
+                underlyingRect.SetParent(ViewManager.GetLayer(UILayer.Window), false);
+                underlyingRect.anchorMin = Vector2.zero;
+                underlyingRect.anchorMax = Vector2.one;
+                underlyingRect.offsetMin = Vector2.zero;
+                underlyingRect.offsetMax = Vector2.zero;
+                Image underlyingImage = underlyingButton.GetComponent<Image>();
+                underlyingImage.color = new Color(1f, 1f, 1f, 0f);
+                underlyingImage.raycastTarget = true;
+                UIUtil.AddClick(underlyingImage, () => underlyingClicks++);
+
+                ItemTipsView.Show(candidate);
+                await WaitActiveView<EquipToolTipsBind>(camera);
+                itemTipsRoot = (GameObject)itemTipsRootField.GetValue(null);
+                tipsLayout = itemTipsRoot != null ? itemTipsRoot.GetComponent<ItemTipsModalLayout>() : null;
+                bool blockerClick = tipsLayout != null && ClickBlockerCorner(tipsLayout.compareBlocker,
+                    camera, raycaster, eventSystem);
+                bool blockerClosedFirst = blockerClick && underlyingClicks == 0
+                    && itemTipsRoot != null && !itemTipsRoot.activeInHierarchy;
 
                 bagFrames.Clear();
                 ItemTipsView.ShowWarehouse(normal, false);
@@ -377,12 +464,15 @@ namespace Shenxiao.EditorTools
                     && U16(bagFrames[0], 16) == BagModel.POS_BAG;
 
                 bool pass = noSiblingLeak && closeDeactivatesModule
-                    && detailText && useClick && useFrame && compare && wearClick && wearFrame
+                    && detailText && useClick && useFrame && compare && compareIcons && configGroups && compareCaptured && wearClick && wearFrame
+                    && blockerClosedFirst
                     && depositClick && depositFrame && takeoutClick && takeoutFrame;
                 Debug.Log("CLIVERIFY bag-interaction tips isolated=" + noSiblingLeak
                     + " closeRoot=" + closeDeactivatesModule + " detail=" + detailText
                     + " use=" + useClick + "/" + useFrame
-                    + " compare=" + compare + " wear=" + wearClick + "/" + wearFrame
+                    + " compare=" + compare + " icons=" + compareIcons
+                    + " configGroups=" + configGroups + " screenshot=" + comparePng
+                    + " wear=" + wearClick + "/" + wearFrame + " blocker=" + blockerClosedFirst
                     + " deposit=" + depositClick + "/" + depositFrame
                     + " takeout=" + takeoutClick + "/" + takeoutFrame + " pass=" + pass);
                 return pass ? 0 : 3;
@@ -394,7 +484,10 @@ namespace Shenxiao.EditorTools
                 equipIntercept.SetValue(null, oldEquipIntercept);
                 ((HashSet<long>)pendingUseField.GetValue(BagController.Instance)).Clear();
                 BagModel.Instance.Clear();
+                GoodsDynamicModel.Instance.Clear();
+                TaskModel.Instance.SetNewestFinishTaskId(oldNewestTaskId);
                 ViewManager.Init(null);
+                if (underlyingButton != null) UnityEngine.Object.DestroyImmediate(underlyingButton);
                 if (eventSystemGo != null) UnityEngine.Object.DestroyImmediate(eventSystemGo);
                 if (cameraGo != null) UnityEngine.Object.DestroyImmediate(cameraGo);
                 if (canvasGo != null) UnityEngine.Object.DestroyImmediate(canvasGo);
@@ -462,6 +555,30 @@ namespace Shenxiao.EditorTools
             return false;
         }
 
+        private static bool ClickBlockerCorner(Image blocker, Camera camera,
+            GraphicRaycaster raycaster, EventSystem eventSystem)
+        {
+            if (blocker == null || !blocker.gameObject.activeInHierarchy || !blocker.raycastTarget) return false;
+            RectTransform rect = blocker.rectTransform;
+            Vector3 world = rect.TransformPoint(new Vector3(rect.rect.xMin + 12f, rect.rect.yMin + 12f, 0f));
+            var pointer = new PointerEventData(eventSystem)
+            {
+                button = PointerEventData.InputButton.Left,
+                position = RectTransformUtility.WorldToScreenPoint(camera, world),
+            };
+            var hits = new List<RaycastResult>();
+            raycaster.Raycast(pointer, hits);
+            if (hits.Count == 0 || hits[0].gameObject != blocker.gameObject)
+            {
+                Debug.LogError("CLIVERIFY bag-interaction blocker not first hit: "
+                    + string.Join(",", hits.ConvertAll(h => h.gameObject != null ? h.gameObject.name : "null")));
+                return false;
+            }
+            ExecuteEvents.ExecuteHierarchy<IPointerClickHandler>(blocker.gameObject, pointer,
+                ExecuteEvents.pointerClickHandler);
+            return true;
+        }
+
         private static void Warmup(Canvas canvas, Camera camera, RenderTexture target)
         {
             canvas.enabled = false;
@@ -470,6 +587,24 @@ namespace Shenxiao.EditorTools
             camera.targetTexture = target;
             camera.Render();
             camera.targetTexture = null;
+        }
+
+        private static string Capture(Camera camera, RenderTexture target, string relativePath)
+        {
+            Canvas.ForceUpdateCanvases();
+            camera.targetTexture = target;
+            camera.Render();
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = target;
+            var texture = new Texture2D(target.width, target.height, TextureFormat.RGBA32, false);
+            texture.ReadPixels(new Rect(0f, 0f, target.width, target.height), 0, 0);
+            texture.Apply();
+            RenderTexture.active = previous;
+            string fullPath = Path.GetFullPath(relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+            File.WriteAllBytes(fullPath, texture.EncodeToPNG());
+            UnityEngine.Object.DestroyImmediate(texture);
+            return fullPath;
         }
 
         private static int ReadBagPos(ExpandBagView view) =>
@@ -481,6 +616,14 @@ namespace Shenxiao.EditorTools
             foreach (Graphic graphic in target.GetComponentsInChildren<Graphic>(true))
                 if (graphic.raycastTarget) return false;
             return true;
+        }
+
+        private static bool IsEquipmentIconVisible(EquipmentItem item, string expectedSprite)
+        {
+            return item != null && item.gameObject.activeInHierarchy
+                && item.item_bg != null && item.item_bg.enabled && item.item_bg.sprite != null
+                && item.icon != null && item.icon.enabled && item.icon.sprite != null
+                && item.icon.sprite.name == expectedSprite;
         }
 
         private static bool FrameContainerInfo(IReadOnlyList<byte[]> frames, int pos) =>

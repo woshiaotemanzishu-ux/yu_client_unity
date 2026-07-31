@@ -103,6 +103,9 @@ namespace Shenxiao.EditorTools.ConfigGen
             "config_equip_stren_lv",          // 强化消耗+属性(⚠数字键,列序 part/stren/object_list/attr_list,主键 "part@stren")
             "config_equip_stren_lv_key",      // 强化等级索引
             "config_equip_strengthen_max",    // 强化上限(主键 "stage@color@pos")
+            "config_equip_stone_pos_unlock",  // 装备详情 6 个宝石孔位的阶数/VIP解锁条件
+            "config_equip_stone_lv",          // 已镶嵌宝石的属性展示
+            "config_reincarnation_cfg",       // 装备职业/性别/转生限制文案
             "config_enchantment_guard_soap",        // 古宝本体(soap_id/soap_name/condition;主线 100811 幽瞳)
             "config_enchantment_guard_soap_debris", // 古宝碎片(主键 "soap@debris":cost/attr)
             "config_dungeon",         // 副本配置(⚠数字键,39 列序在 config_table_default;御魂本 12001~,主线 100980/101522)

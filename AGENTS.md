@@ -8,6 +8,8 @@
 
 - UI 精修落袋规则：当前阶段按需迁移、逐面板精修；只有首次需要且尚无可编辑 Prefab 的界面，才允许用 LayaUI 批量转换器做一次初始导入，禁止为了修已存在界面而重转模块或全量覆盖。初始产物必须进入「神霄/重构UI 生成器」补齐并落成可编辑 Prefab；进入精修后，页面问题直接增量修改当前 Prefab，跨页面问题优先改共享 Prefab / 公共 View / 幂等公共升级器。页面专用 Creator 只负责首次搭骨架，人工接管后必须退出重建注册表；不得让运行时页面代码或批量转换产物重新成为视觉事实源。
 
+- 物品/装备详情层级规则：`CommonModule.prefab` 必须直接保存普通半透明遮罩、对比透明拦截层、单装备板和当前/候选双装备板；详情位于背包之上并拦截背包关闭与导航点击，必须先关闭详情。装备对比保持老端两份独立面板，当前板 `(-125,+80)`、候选板 `(+150,-105)`，禁止运行时拼成单板、另写坐标或自创层级。独立实例化合并模块时只关闭最外层同级 `BaseView`，禁止误关详情板内的 `EquipmentItem` 等嵌套展示组件。
+
 - 复合按钮自适应布局规则：按钮背景/唯一点击面和状态图标不得作为 LayoutGroup 子项被控制；只有需要按 preferred width 或可用宽度缩放的文字放进独立内层容器，并把 Horizontal/VerticalLayoutGroup 挂在该纯文字容器上。禁止把 LayoutGroup 直接挂在带 Image 的按钮根，或用 childForceExpand 拉伸图片来换取文字排布。
 
 - 协议覆盖 baseline 收口规则：`Schemas/ProtocolCoverage/baseline.json` 的历史 `unityRegistered/liveGap` 数值用于防倒退，禁止为追当前报告逐轮改写；但当最新运行时扫描的某家族全部活缺口已由注册或带 evidence 的 killlist 完整治理时，必须在同轮把人工 `status` 转为 `done` 并写 `statusNote`，再以 `ProtocolCoverageCase` 的C段验收。禁止长期保留 `pending/legacy_unverified` 逃避C段，也禁止把真实玩家可达写事务塞进killlist来伪收口。
