@@ -1663,3 +1663,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **共鸣 blocker**：`EquipSuitBaseView` 尚无可编辑 Prefab，老端 `127.0.0.1:8090` 运行快照服务当前不可达；`15218/15221/15222` 又是真实资产写事务，因此未接裸协议或临时 Toast，共鸣按钮暂时关闭射线，等待运行快照后按完整模块转换闭环。
 - **验证状态**：Unity 强制编译 0 error；`BagInteractionCase` 返回 0，覆盖六条出站协议、背包/仓库真实 Raycaster 按钮，以及详情窗使用/穿戴/对比/存取；`PetEquipInventoryCase` 返回 0，新增仓库全量/增量/数量/隔离断言；`GoodsProtoCase` 返回 0。
 - **专题文档**：[背包装备仓库交互闭环.md](背包装备仓库交互闭环.md)。
+
+## 2026-07-31：物品详情实例泄漏 ItemUseView 修复
+
+- **用户可见症状**：打开过背包物品详情后，主界面长期残留一张“神级藏宝图 / 1111”卡片；它看似物品使用/穿戴提示，但关闭和使用都没有真实响应。
+- **根因**：`ItemTipsView` 独立实例化整份 `CommonModule.prefab` 时只关闭了 `GoodsTooltips/EquipToolTips`，未关闭同级 `ItemUseView`。详情模块根被激活后，转换快照里的 ItemUse 烤制数据随同显示；这一份同级 View 不属于 `ItemUseFlow`，因此也没有生产点击绑定。
+- **修复**：详情 CommonModule 加载后先统一关闭全部同级 `BaseView`，打开时只激活目标 Tooltip；详情关闭时同时失活 `CommonModule(ItemTips)` 根。未修改人工 Prefab、主界面布局、真实 `ItemUseFlow` 候选队列或协议行为。
+- **验证状态**：Unity 强制编译 `completed/failed=false/errors=[]`；`BagInteractionCase` 返回 0，新增 `isolated=True/closeRoot=True`，并保留详情、使用、穿戴、对比、存取及六条出站协议的真实 Raycaster 回归。

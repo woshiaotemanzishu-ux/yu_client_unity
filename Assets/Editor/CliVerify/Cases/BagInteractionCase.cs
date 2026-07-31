@@ -270,6 +270,7 @@ namespace Shenxiao.EditorTools
             FieldInfo bagIntercept = typeof(BagController).GetField("s_outboundIntercept", SF);
             FieldInfo equipIntercept = typeof(EquipWearController).GetField("s_outboundIntercept", SF);
             FieldInfo pendingUseField = typeof(BagController).GetField("_pendingUse", F);
+            FieldInfo itemTipsRootField = typeof(ItemTipsView).GetField("_moduleRoot", SF);
             MethodInfo setEquipment = typeof(BagModel).GetMethod("SetEquipmentFull", F);
             object oldBagIntercept = bagIntercept.GetValue(null);
             object oldEquipIntercept = equipIntercept.GetValue(null);
@@ -321,10 +322,16 @@ namespace Shenxiao.EditorTools
                 bagFrames.Clear();
                 ItemTipsView.Show(normal);
                 GoodsTooltipsBind goodsView = await WaitActiveView<GoodsTooltipsBind>(camera);
+                GameObject itemTipsRoot = (GameObject)itemTipsRootField.GetValue(null);
+                ItemUseViewBind siblingItemUse = itemTipsRoot != null
+                    ? itemTipsRoot.GetComponentInChildren<ItemUseViewBind>(true)
+                    : null;
+                bool noSiblingLeak = siblingItemUse != null && !siblingItemUse.gameObject.activeInHierarchy;
                 bool detailText = goodsView != null && goodsView.intro != null && !string.IsNullOrEmpty(goodsView.intro.text);
                 bool useClick = goodsView != null && Click(goodsView.useBtn, camera, raycaster, eventSystem);
                 bool useFrame = FrameHeader(bagFrames, Proto.USE_GOODS, 12)
                     && U64(bagFrames[0], 6) == (ulong)normal.GoodsId && U32(bagFrames[0], 14) == 1;
+                bool closeDeactivatesModule = itemTipsRoot != null && !itemTipsRoot.activeInHierarchy;
 
                 const int equipTypeId = 319;
                 GoodsModel.GoodsBasic equipBasic = GoodsModel.GetGoodsBasicByTypeId(equipTypeId);
@@ -369,9 +376,11 @@ namespace Shenxiao.EditorTools
                     && U16(bagFrames[0], 14) == BagModel.POS_WAREHOUSE
                     && U16(bagFrames[0], 16) == BagModel.POS_BAG;
 
-                bool pass = detailText && useClick && useFrame && compare && wearClick && wearFrame
+                bool pass = noSiblingLeak && closeDeactivatesModule
+                    && detailText && useClick && useFrame && compare && wearClick && wearFrame
                     && depositClick && depositFrame && takeoutClick && takeoutFrame;
-                Debug.Log("CLIVERIFY bag-interaction tips detail=" + detailText
+                Debug.Log("CLIVERIFY bag-interaction tips isolated=" + noSiblingLeak
+                    + " closeRoot=" + closeDeactivatesModule + " detail=" + detailText
                     + " use=" + useClick + "/" + useFrame
                     + " compare=" + compare + " wear=" + wearClick + "/" + wearFrame
                     + " deposit=" + depositClick + "/" + depositFrame

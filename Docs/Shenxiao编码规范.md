@@ -182,6 +182,9 @@ var go = Object.Instantiate(prefab); // 来源不是 ResManager 的禁止
 - 窗口模型分两种：独立 prefab 走 `ViewManager.Open<T>/Close<T>`；
   **模块合并 prefab**（LayaUI 主路线）由该模块的流程类（如 `LoginFlow`）统一
   `Show()/Hide()` 子窗口——`Show()` 自带置顶，背景窗启动时固定垫底
+- 从合并模块 prefab 独立复用单个子 View 时，实例加载后必须先把全部同级 `BaseView` 设为 inactive，
+  再只 `Show()` 当前归属的 View；关闭时还要失活该模块实例根。禁止依赖 Prefab 的默认 active 状态，
+  否则转换快照中的同级页面和烤制数据会作为无业务绑定的常驻 UI 泄漏。
 - 节点引用必须用生成的 Bind 字段（`_btn_xxx` / codeNodes），禁止运行时 `transform.Find`
   （列表项:Instantiate `_tpl_*` 模板后 `GetComponent<{Item}Bind>()` 取字段,
   模板上的 ItemBind 由转换器生成、回填器挂载,克隆自动重映射引用）

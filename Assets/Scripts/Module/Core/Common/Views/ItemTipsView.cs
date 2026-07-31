@@ -190,6 +190,7 @@ namespace Shenxiao.Module.Core.Common
             _context = ItemContext.Bag;
             if (_iconCell != null) { ResManager.ReleaseInstance(_iconCell); _iconCell = null; }
             if (_activeView != null) _activeView.Hide();
+            if (_moduleRoot != null) _moduleRoot.SetActive(false);
             _activeView = null;
             _nameText = null;
             _bodyText = null;
@@ -526,6 +527,9 @@ namespace Shenxiao.Module.Core.Common
                 return false;
             }
             _moduleRoot.name = "CommonModule(ItemTips)";
+            BaseView[] siblingViews = _moduleRoot.GetComponentsInChildren<BaseView>(true);
+            for (int i = 0; i < siblingViews.Length; i++)
+                siblingViews[i].gameObject.SetActive(false);
             _goodsView = _moduleRoot.GetComponentInChildren<GoodsTooltipsBind>(true);
             _equipView = _moduleRoot.GetComponentInChildren<EquipToolTipsBind>(true);
             if (_goodsView == null || _equipView == null)
@@ -537,13 +541,14 @@ namespace Shenxiao.Module.Core.Common
                 _equipView = null;
                 return false;
             }
-            _goodsView.gameObject.SetActive(false);
-            _equipView.gameObject.SetActive(false);
+            _moduleRoot.SetActive(false);
             return true;
         }
 
         private static bool ActivatePrefabView(bool equip)
         {
+            if (_moduleRoot == null) return false;
+            _moduleRoot.SetActive(true);
             if (_activeView != null) _activeView.Hide();
             if (equip)
             {
