@@ -149,11 +149,12 @@ namespace Shenxiao.Common.UI3D
                 string replacementWingKey = ModelReplacement.GetPrefabKey("wing", spec.WingId, action)
                     ?? ModelReplacement.GetPrefabKey("wing", spec.WingId, "idle");
                 string wingKey = replacementWingKey ?? Key("wing", "model_wing_" + spec.WingId);
-                await AttachPartOptional(inst, "wing", wingKey,
+                GameObject wing = await AttachPartOptional(inst, "wing", wingKey,
                     attachmentLocatorName: replacementWingKey != null ? "wing_attach" : null,
                     attachmentPositionOffset: ModelReplacement.GetAttachmentPositionOffset("wing", spec.WingId),
                     attachmentRotationOffset: ModelReplacement.GetAttachmentRotationOffset("wing", spec.WingId),
                     attachmentScale: ModelReplacement.GetAttachmentScale("wing", spec.WingId));
+                ApplyWingActionVisibility(wing, action);
             }
             if (spec.BackOrnamentId > 0)
             {
@@ -174,7 +175,7 @@ namespace Shenxiao.Common.UI3D
         }
 
         /// <summary>新模型部件挂接:资源缺失只警告不阻塞(对标 AttachPart,不带特效绑定)。</summary>
-        private static async Task AttachPartOptional(GameObject root, string boneName, string key,
+        private static async Task<GameObject> AttachPartOptional(GameObject root, string boneName, string key,
             string legacyBoneName = null, bool attachAnimatedAtHeadSocket = false,
             Vector3 animatedPositionOffset = default, Vector3 animatedRotationOffset = default,
             float animatedScale = 1f, string attachmentLocatorName = null,
@@ -185,7 +186,7 @@ namespace Shenxiao.Common.UI3D
             if (prefab == null)
             {
                 GameLog.Warn("UI3D", "新模型部件缺失,跳过:{0}", key);
-                return;
+                return null;
             }
             // 动态头饰的 Bone_head 根不参与自身 Timeline，实际动画只在发丝/装饰子骨。
             // 因此动态件和静态件都挂 head_mount：父级负责身体头骨完整变换，头饰 Timeline 负责内部子骨动画。
@@ -203,7 +204,7 @@ namespace Shenxiao.Common.UI3D
             {
                 GameLog.Warn("UI3D", "挂点骨骼缺失:{0}(模型 {1},美术工程跑[交付/补挂点]后重导)", boneName, root.name);
                 ResManager.Release(prefab); // 借了没用上,当场归还
-                return;
+                return null;
             }
             GameObject part = Object.Instantiate(prefab, anchor);
             LoadedAssetReleaser.Track(part, prefab);
@@ -262,6 +263,19 @@ namespace Shenxiao.Common.UI3D
                     GameLog.Warn("UI3D", "部件定位点缺失:{0}({1});已按旧 prefab 根兼容,请从 Art 模板重导",
                         attachmentLocatorName, key);
                 }
+            }
+            return part;
+        }
+
+        private static void ApplyWingActionVisibility(GameObject wing, string action)
+        {
+            if (wing == null) return;
+            bool visible = !string.Equals(action, "run", System.StringComparison.OrdinalIgnoreCase);
+            Transform[] nodes = wing.GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                if (nodes[i].name == "yincang")
+                    nodes[i].gameObject.SetActive(visible);
             }
         }
 

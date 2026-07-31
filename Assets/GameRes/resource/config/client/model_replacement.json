@@ -346,6 +346,10 @@
                 {
                     "action": "create3",
                     "prefabKey": "object/role/role_1202/1202@create3"
+                },
+                {
+                    "action": "run",
+                    "prefabKey": "object/role/role_1202/1202@run"
                 }
             ]
         },
@@ -370,26 +374,10 @@
                 {
                     "action": "create3",
                     "prefabKey": "object/role/role_1202/1202@create3"
-                }
-            ]
-        },
-        {
-            "key": "wing/1005",
-            "attachmentPositionOffset": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "attachmentRotationOffset": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-            },
-            "attachmentScale": 1.0,
-            "actions": [
+                },
                 {
-                    "action": "idle",
-                    "prefabKey": "object/wing/wing_1005/1005@idle"
+                    "action": "run",
+                    "prefabKey": "object/role/role_1202/1202@run"
                 }
             ]
         },
@@ -490,6 +478,26 @@
                 {
                     "action": "walk",
                     "prefabKey": "object/role/role_1111/1111@walk"
+                }
+            ]
+        },
+        {
+            "key": "wing/1005",
+            "attachmentPositionOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentRotationOffset": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "attachmentScale": 1.0,
+            "actions": [
+                {
+                    "action": "idle",
+                    "prefabKey": "object/wing/wing_1005/1005@idle"
                 }
             ]
         }

@@ -447,7 +447,40 @@ namespace Shenxiao.Module.Core.Login
             }
             _videoPlayer.targetTexture = _videoTexture;
             image.texture = _videoTexture;
+            ApplyVideoAspectFill(image, w, h);
             return _videoPlayer;
+        }
+
+        /// <summary>保持视频原始比例铺满显示区域；长屏裁左右，宽屏裁上下，不做非等比拉伸。</summary>
+        private static void ApplyVideoAspectFill(RawImage image, int sourceWidth, int sourceHeight)
+        {
+            if (image == null || sourceWidth <= 0 || sourceHeight <= 0) return;
+
+            Rect targetRect = image.rectTransform.rect;
+            float targetWidth = Mathf.Abs(targetRect.width);
+            float targetHeight = Mathf.Abs(targetRect.height);
+            if (targetWidth <= 0f || targetHeight <= 0f) return;
+
+            float sourceAspect = (float)sourceWidth / sourceHeight;
+            float targetAspect = targetWidth / targetHeight;
+            Rect uvRect = new Rect(0f, 0f, 1f, 1f);
+            if (targetAspect < sourceAspect)
+            {
+                uvRect.width = targetAspect / sourceAspect;
+                uvRect.x = (1f - uvRect.width) * 0.5f;
+            }
+            else if (targetAspect > sourceAspect)
+            {
+                uvRect.height = sourceAspect / targetAspect;
+                uvRect.y = (1f - uvRect.height) * 0.5f;
+            }
+            image.uvRect = uvRect;
+        }
+
+        private void OnRectTransformDimensionsChange()
+        {
+            if (_videoTexture == null || videoImage == null) return;
+            ApplyVideoAspectFill(videoImage, _videoTexture.width, _videoTexture.height);
         }
 
         /// <summary>出场段播完接待机段;待机段自循环时 _pendingIdleClip 已清,直接忽略。</summary>
@@ -474,7 +507,10 @@ namespace Shenxiao.Module.Core.Login
         private void OnVideoFrameReady(VideoPlayer vp, long frameIdx)
         {
             vp.sendFrameReadyEvents = false;
-            if (videoImage != null) videoImage.enabled = true;
+            if (videoImage == null) return;
+            if (_videoTexture != null)
+                ApplyVideoAspectFill(videoImage, _videoTexture.width, _videoTexture.height);
+            videoImage.enabled = true;
         }
 
         private void StopVideo()

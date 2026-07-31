@@ -1586,6 +1586,13 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **修复**：`UIEffectStage.Handle` 暴露实例内最长 Legacy Animation 片段时长；`BossBornEffectPlayer` 取配置上限与真实片段的较短值，在 `1.083s` 释放整个横幅 Handle 后再滑出遮罩。3 秒继续只作为资源加载/回调异常兜底。
 - **回归**：`RolePresentationEffectsCase` 真实加载 `effect_ui_dayaolaixi`，要求测得片段 `1.083±0.002s`，并断言组合演出的解析时长等于主体片段，避免循环底纹再次晚于字体图片消失。
 
+## 2026-07-29：重构 UI 生成器选取体验整理
+
+- **问题**：原窗口把全部模块纵向折叠在同一滚动区，条目又压成紧密单行；不同模块的重建、预览、定位按钮落在相近坐标，长列表中容易看错行、点错按钮。
+- **调整**：模块改为顶部自适应多行 Tab，平时只显示当前模块；生成器改成单列卡片，并固定“界面 / 状态 / 操作”三列和按钮宽度。当前模块 Tab 会记忆，切换时回到列表顶部；全局搜索仍跨模块，但结果沿用相同卡片结构。
+- **安全边界**：`全部重建` 只保留在当前模块标题处，单项覆盖与批量覆盖的二次确认均未取消；注册表、Creator 回调、动态资源 Slot 自动回填及 prefab 产物均未改变。
+- **验证状态**：`Shenxiao.Editor.csproj` 编译与 Unity 编辑器实窗布局待本轮验证。
+
 ## 2026-07-29：选角与场景模型统一关闭光照
 
 - **决策**：美术改为直接提供有色贴图，模型不再需要程序补光。选角/UI 模型台、游戏内 `SceneCharacterStage` 和资产管理预览统一无模型灯。
@@ -1686,3 +1693,9 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **重复穿戴根因与修复**：Unity 曾额外把 `EVT_BAG_UPDATE` 接到 `EquipAutoWear`，自动任务开启时会在登录背包快照后主动发送多条 `15201`，这条行为老端不存在。现已删除背包更新防抖与自动穿戴入口；一键装备仅保留玩家点击。登录只请求 `15010 pos=1`，供人工一键装备与装备推荐比较。
 - **ItemUse 修复**：背包 `pos=4` 早于穿戴 `pos=1` 到达时，装备候选先暂存，穿戴快照到齐后仅在评分严格更高时展示，等分/低分不弹。普通物品先按老端 `EnterFunc` 分流；通用物品确认发送 `15050`，藏宝图、时装等专属流程物品不再错误弹出并收到服务端失败码。
 - **验证状态**：Unity 强制编译 `completed/failed=false/errors=[]`；`BagInteractionCase=0`。真实 Prefab 点击覆盖吞噬/扩容/一键使用均位于 Popup，`com_sub_bg_7` 遮罩为第一命中并能关闭子窗；协议回归为 `itemUseRouting=True/manualWearOnly=True`，同时验证普通使用精确发送 `15050`、专属物品不走通用入口、穿戴快照等待与严格高分比较。
+
+## 2026-07-31：新模型翅膀 `yincang` 跑动显隐
+
+- **规则**：新模型逐动作实例装配翅膀后，递归查找翅膀内精确名 `yincang` 的节点；动作名为 `run` 时隐藏，其他动作显示。节点名本身是资源侧的选择性标记，不写死 1005 或具体 Renderer；老模型装配链保持不变。
+- **实现**：`RoleModelAssembler.BuildNewModelAsync` 取得本次动作实际挂载的翅膀实例后应用显隐，因此与 `ReplaceableRoleModel` 的 idle/run 独立实例缓存一致，动作切换不会改动源 Prefab 或其他部件。
+- **验证状态**：`dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 为 77 个既有 warning、0 error；Unity 强制编译 `completed/failed=false/errors=[]`。扩展 `SceneMixDriverCase` 使用真实 `wing_1005/1005@idle` 装配并实跑 `ALL PASS`，日志确认 `idle` 实例的 `yincang` 显示、`run` 实例隐藏，同时保留 run 新模型切换、0.80 秒动作时长、attack 老模型回落和当前实例特效宿主断言。

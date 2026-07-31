@@ -19,12 +19,14 @@ namespace Shenxiao.EditorTools
     ///   5 TryPlayAction("run")(清单已配)返回 true,立即切换到预建新模型实例;
     ///   6 新模型表面统一 Unlit，UI/场景台均不改写全局环境光;
     ///   7 GetActionLength("run") > 0(预热后 Timeline 时长可读,技能节拍依赖);
-    ///   8 TryPlayAction("attack")(清单未配)切到预建老拼装模型(激活子树=_oldModel,带 attack clip)。
+    ///   8 新模型翅膀的 yincang 节点在 idle 显示、run 隐藏;
+    ///   9 TryPlayAction("attack")(清单未配)切到预建老拼装模型(激活子树=_oldModel,带 attack clip)。
     /// 日志前缀 "CLIVERIFY mixdriver"。
     /// </summary>
     public static class SceneMixDriverCase
     {
         private const int ClotheRes = 1111; // 职业1(剑士,sex=1)创角默认衣服,本轮新导入并登记清单
+        private const int WingId = 1005;
         private const BindingFlags F = BindingFlags.NonPublic | BindingFlags.Instance;
 
         public static async Task<int> Run()
@@ -42,6 +44,7 @@ namespace Shenxiao.EditorTools
             {
                 Career = 1,
                 ClotheRes = ClotheRes,
+                WingId = WingId,
                 Actions = new[] { "idle" },
             });
             if (model == null)
@@ -105,6 +108,10 @@ namespace Shenxiao.EditorTools
             var warmedRun = newInstances["run"] as GameObject;
             var warmedOld = fOldModel.GetValue(driver) as GameObject;
             var activeAfterWarmup = fActive.GetValue(driver) as GameObject;
+            Transform idleWingMarker = activeBeforeWarmup != null
+                ? RoleModelAssembler.FindBone(activeBeforeWarmup.transform, "yincang") : null;
+            Transform runWingMarker = warmedRun != null
+                ? RoleModelAssembler.FindBone(warmedRun.transform, "yincang") : null;
             if (warmedRun == null || warmedRun.activeSelf
                 || warmedOld == null || warmedOld.activeSelf
                 || warmedOld.GetComponent<Animation>()?.GetClip("attack") == null
@@ -114,6 +121,13 @@ namespace Shenxiao.EditorTools
                 return 3;
             }
             Debug.Log("CLIVERIFY mixdriver 4 首战动作已静默预建,当前 idle 未改变");
+            if (idleWingMarker == null || !idleWingMarker.gameObject.activeSelf
+                || runWingMarker == null || runWingMarker.gameObject.activeSelf)
+            {
+                Debug.LogError("CLIVERIFY mixdriver 1005 翅膀 yincang 未按 idle显示/run隐藏");
+                return 3;
+            }
+            Debug.Log("CLIVERIFY mixdriver 4b 1005 翅膀 yincang idle显示/run隐藏");
 
             // 5/6:run 已配新模型 → 出口返回 true,激活子树切到带 Timeline 的预建实例,时长可读
             bool runAccepted = (bool)mTryPlay.Invoke(agent, new object[] { "run", 0.1f, true, 1f });
@@ -155,7 +169,7 @@ namespace Shenxiao.EditorTools
             }
             Debug.Log("CLIVERIFY mixdriver 7 GetActionLength(run)=" + runLength.ToString("F2") + "s");
 
-            // 8:attack 清单未配 → 切到预建老拼装模型,不再在首次攻击帧临时构建
+            // 9:attack 清单未配 → 切到预建老拼装模型,不再在首次攻击帧临时构建
             var attackTask = (Task<bool>)mTryPlayAsync.Invoke(
                 agent, new object[] { "attack", 0.1f, true, 1f });
             bool attackAccepted = await attackTask;

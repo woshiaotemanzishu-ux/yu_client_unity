@@ -37,6 +37,10 @@
    `0.937`。旧导入器仅按 `_Dst=One` 把 `_ScrA/_DstA` 统一成 `Zero/One`，导致该层在透明 RT 中
    `maxAlpha=0`，视觉上像整个节点没挂。导入器现把“加法 + SkinnedMesh + MainColor.a<1”识别为
    结构层，保留 `One/OneMinusSrcAlpha` 覆盖；ParticleSystem 加法仍不写 Alpha，避免光环成为实心遮罩。
+9. **新模型翅膀可用 `yincang` 节点声明跑动隐藏层**：`RoleModelAssembler.BuildNewModelAsync` 在每个
+   新动作实例装配完翅膀后，递归查找翅膀内精确名 `yincang` 的节点；`run` 动作实例将其隐藏，其他动作
+   实例将其显示。规则只作用于新模型逐动作装配链，老模型 `BuildOldModelAsync` 不变；需要跑动隐藏的
+   翅膀由美术直接在可编辑 Prefab 中建立该命名节点，不在代码里写具体翅膀 ID 或子网格名。
 
 ## 排查心法(按这个顺序,别跳)
 

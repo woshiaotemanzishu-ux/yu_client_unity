@@ -20,6 +20,14 @@
   - 用户调完预制体 → 标记验收。
   - 之后我**只动 View 逻辑（.cs），绝不重转 prefab**（除非用户明确同意、知道手调会丢）。
 
+### 1.1 重构 UI 生成器面板
+
+- 菜单 **神霄/重构UI 生成器** 用于运行已注册的纯代码 Creator。顶部按模块分为 Tab，默认只展示当前模块，避免不同模块的同位置按钮混在同一长列表中。
+- 当前模块内每个生成器独占一张纵向卡片，固定分成“界面 / 状态 / 操作”三列；`生成/重建`、`预览`、`定位` 只作用于同一张卡片。
+- 搜索会临时跨全部模块显示匹配卡片；清空搜索后回到上次选中的模块 Tab。
+- `全部重建` 只位于当前模块标题处，并保留覆盖人工调整的二次确认。重建前仍须关闭相关 Prefab 编辑页签，避免旧页签自动保存覆盖新产物。
+- 面板实现：`Assets/Editor/UiCreator/UiRebuildWindow.cs`；条目来源：`UiRebuildRegistry`。新增页面只注册条目，不在窗口内写模块特判。
+
 ## 2. 模块结构模板（照抄 LoginModule）
 `Assets/Scripts/Module/{域}/{Name}/`：
 - `{Name}Bootstrap.cs`（static）：`[RuntimeInitializeOnLoadMethod(BeforeSceneLoad)]` → 订阅入口事件（如 EVT_FRAMEWORK_READY / EVT_GAME_START）→ setup Controller + 启动 Flow。
