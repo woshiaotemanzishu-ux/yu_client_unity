@@ -74,13 +74,14 @@ namespace Shenxiao.Editor.MapTools
         public static MapStat Inspect(int sceneId)
         {
             var stat = new MapStat { SceneId = sceneId, MapResId = sceneId };
-            ResolveBytes(sceneId, ref stat);
+            SceneMapData mapData = ResolveBytes(sceneId, ref stat);
 
             string srcTile = Path.Combine(SrcMapRoot, stat.MapResId.ToString(), "tile");
-            stat.TileTotal = CountTiles(srcTile, ".jxr");
+            List<string> tileNames = GetActiveTileNames(mapData, srcTile);
+            stat.TileTotal = tileNames.Count;
 
             string dstTile = Path.Combine(GameResMapRoot, stat.MapResId.ToString(), "tile");
-            stat.TileConverted = CountTiles(dstTile, ".jpg");
+            stat.TileConverted = CountTiles(dstTile, ".jpg", tileNames);
             stat.PreviewConverted = File.Exists(Path.Combine(dstTile, stat.MapResId + ".jpg"));
 
             SceneMeta meta = GetSceneMeta(sceneId);
@@ -173,6 +174,22 @@ namespace Shenxiao.Editor.MapTools
         public static MapStat Convert(int sceneId, Func<float, string, bool> onProgress,
             out int copied, out int skipped, out bool canceled)
         {
+            return CopyMapAssets(sceneId, false, onProgress, out copied, out skipped, out canceled);
+        }
+
+        /// <summary>
+        /// 从老客户端强制更新一张地图:覆盖 .bytes、底图和 .bytes 声明的有效瓦片。
+        /// 只改资源文件本身,不删除/改写 Unity .meta,所以已有 GUID 与 Addressables 引用保持稳定。
+        /// </summary>
+        public static MapStat Update(int sceneId, Func<float, string, bool> onProgress,
+            out int updated, out int skipped, out bool canceled)
+        {
+            return CopyMapAssets(sceneId, true, onProgress, out updated, out skipped, out canceled);
+        }
+
+        private static MapStat CopyMapAssets(int sceneId, bool overwrite,
+            Func<float, string, bool> onProgress, out int copied, out int skipped, out bool canceled)
+        {
             copied = 0;
             skipped = 0;
             canceled = false;
@@ -182,9 +199,9 @@ namespace Shenxiao.Editor.MapTools
 
             // 1) 场景 .bytes(按 sceneId)
             string bytesRel = sceneId + "/" + sceneId + ".bytes";
-            CopyBytesAsset(Path.Combine(SrcMapRoot, bytesRel), "resource/game/scene/map/" + bytesRel);
+            CopyBytesAsset(Path.Combine(SrcMapRoot, bytesRel), "resource/game/scene/map/" + bytesRel, overwrite);
 
-            // 2) 瓦片 + 底图(按 mapResId)
+            // 2) 瓦片 + 底图(按 mapResId)。只处理 .bytes 声明的有效瓦片,忽略源目录历史残片。
             string srcTile = Path.Combine(SrcMapRoot, mapResId, "tile");
             if (!Directory.Exists(srcTile))
             {
@@ -192,31 +209,39 @@ namespace Shenxiao.Editor.MapTools
                 return Inspect(sceneId);
             }
 
-            string[] files = Directory.GetFiles(srcTile);
+            var dataStat = new MapStat { SceneId = sceneId, MapResId = sceneId };
+            SceneMapData mapData = ResolveBytes(sceneId, ref dataStat);
+            List<string> tileNames = GetActiveTileNames(mapData, srcTile);
+            var assets = new List<(string src, string name)>();
+            assets.Add((Path.Combine(srcTile, mapResId + ".jpg"), mapResId));
+            foreach (string tileName in tileNames)
+                assets.Add((Path.Combine(srcTile, tileName + ".jxr"), tileName));
+
             AssetDatabase.StartAssetEditing();
             try
             {
-                for (int i = 0; i < files.Length; i++)
+                for (int i = 0; i < assets.Count; i++)
                 {
-                    string src = files[i];
-                    string ext = Path.GetExtension(src).ToLowerInvariant();
-                    string name = Path.GetFileNameWithoutExtension(src);
-
-                    // 底图 {mapResId}.jpg 和瓦片 RRCC.jxr 都收;其余(.ktx/.bat 等)忽略。
-                    bool isPreview = ext == ".jpg" && name == mapResId;
-                    bool isTile = ext == ".jxr" && IsTileName(name);
-                    if (!isPreview && !isTile) { skipped++; continue; }
+                    string src = assets[i].src;
+                    string name = assets[i].name;
 
                     if (onProgress != null &&
-                        onProgress((float)(i + 1) / files.Length, name + ext + "  (" + (i + 1) + "/" + files.Length + ")"))
+                        onProgress((float)(i + 1) / assets.Count,
+                            Path.GetFileName(src) + "  (" + (i + 1) + "/" + assets.Count + ")"))
                     {
                         canceled = true;
                         break;
                     }
 
+                    if (!File.Exists(src))
+                    {
+                        skipped++;
+                        continue;
+                    }
+
                     string dstRel = "resource/game/scene/map/" + mapResId + "/tile/" + name + ".jpg";
                     string dstAbs = Path.Combine(Application.dataPath, "GameRes", dstRel.Replace('/', Path.DirectorySeparatorChar));
-                    if (File.Exists(dstAbs)) { skipped++; continue; } // 增量:已转跳过
+                    if (!overwrite && File.Exists(dstAbs)) { skipped++; continue; } // 转换模式:已有即跳过
 
                     byte[] bytes = File.ReadAllBytes(src);
                     if (bytes.Length < 3 || bytes[0] != 0xFF || bytes[1] != 0xD8 || bytes[2] != 0xFF)
@@ -242,10 +267,14 @@ namespace Shenxiao.Editor.MapTools
         public static string GameResMapDir(int mapResId) =>
             "Assets/GameRes/resource/game/scene/map/" + mapResId;
 
-        private static void ResolveBytes(int sceneId, ref MapStat stat)
+        /// <summary>老客户端地图源目录(供更新确认框显示)。</summary>
+        public static string SourceMapDir(int mapResId) =>
+            Path.Combine(SrcMapRoot, mapResId.ToString());
+
+        private static SceneMapData ResolveBytes(int sceneId, ref MapStat stat)
         {
             string bytesPath = Path.Combine(SrcMapRoot, sceneId.ToString(), sceneId + ".bytes");
-            if (!File.Exists(bytesPath)) return;
+            if (!File.Exists(bytesPath)) return null;
             stat.HasBytes = true;
             try
             {
@@ -257,21 +286,47 @@ namespace Shenxiao.Editor.MapTools
                     stat.MapHeight = d.MapHeight;
                     stat.TileSize = d.TileSize;
                 }
+                return d;
             }
             catch (Exception e)
             {
                 Debug.LogWarning("[MapTileConverter] 解析 .bytes 失败 sceneId=" + sceneId + ": " + e.Message);
+                return null;
             }
         }
 
-        private static void CopyBytesAsset(string srcAbs, string rel)
+        private static void CopyBytesAsset(string srcAbs, string rel, bool overwrite)
         {
             if (!File.Exists(srcAbs)) return;
             string dstAbs = Path.Combine(Application.dataPath, "GameRes", rel.Replace('/', Path.DirectorySeparatorChar));
-            if (File.Exists(dstAbs)) return;
+            if (!overwrite && File.Exists(dstAbs)) return;
             Directory.CreateDirectory(Path.GetDirectoryName(dstAbs));
             File.Copy(srcAbs, dstAbs, true);
             AssetDatabase.ImportAsset("Assets/GameRes/" + rel);
+        }
+
+        private static List<string> GetActiveTileNames(SceneMapData data, string srcTile)
+        {
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            if (data?.Tiles != null)
+            {
+                foreach (SceneMapTileCoord tile in data.Tiles)
+                    names.Add(tile.Y.ToString("00") + tile.X.ToString("00"));
+            }
+
+            // 没有可解析 .bytes 时保留旧工具的目录扫描兜底。
+            if (names.Count == 0 && Directory.Exists(srcTile))
+            {
+                foreach (string f in Directory.EnumerateFiles(srcTile, "*.jxr"))
+                {
+                    string name = Path.GetFileNameWithoutExtension(f);
+                    if (IsTileName(name)) names.Add(name);
+                }
+            }
+
+            var result = new List<string>(names);
+            result.Sort(StringComparer.Ordinal);
+            return result;
         }
 
         private static int CountTiles(string dir, string ext)
@@ -281,6 +336,17 @@ namespace Shenxiao.Editor.MapTools
             foreach (string f in Directory.EnumerateFiles(dir, "*" + ext))
             {
                 if (IsTileName(Path.GetFileNameWithoutExtension(f))) n++;
+            }
+            return n;
+        }
+
+        private static int CountTiles(string dir, string ext, IReadOnlyList<string> tileNames)
+        {
+            if (!Directory.Exists(dir) || tileNames == null) return 0;
+            int n = 0;
+            foreach (string tileName in tileNames)
+            {
+                if (File.Exists(Path.Combine(dir, tileName + ext))) n++;
             }
             return n;
         }

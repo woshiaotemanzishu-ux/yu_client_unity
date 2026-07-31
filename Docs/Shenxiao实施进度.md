@@ -1699,3 +1699,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **规则**：新模型逐动作实例装配翅膀后，递归查找翅膀内精确名 `yincang` 的节点；动作名为 `run` 时隐藏，其他动作显示。节点名本身是资源侧的选择性标记，不写死 1005 或具体 Renderer；老模型装配链保持不变。
 - **实现**：`RoleModelAssembler.BuildNewModelAsync` 取得本次动作实际挂载的翅膀实例后应用显隐，因此与 `ReplaceableRoleModel` 的 idle/run 独立实例缓存一致，动作切换不会改动源 Prefab 或其他部件。
 - **验证状态**：`dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 为 77 个既有 warning、0 error；Unity 强制编译 `completed/failed=false/errors=[]`。扩展 `SceneMixDriverCase` 使用真实 `wing_1005/1005@idle` 装配并实跑 `ALL PASS`，日志确认 `idle` 实例的 `yincang` 显示、`run` 实例隐藏，同时保留 run 新模型切换、0.80 秒动作时长、attack 老模型回落和当前实例特效宿主断言。
+
+## 2026-07-31：地图管理器支持从老端强制更新
+
+- **问题**：原“转换”只补缺失，地图在老客户端更新后，Unity 已存在的瓦片和缩略图会被直接跳过；同时旧 CDN 目录可能保留改版前瓦片，按目录计数会把 `10000.bytes` 声明的 1548 块误报成 3016 块。
+- **实现**：`MapTileConverter` 改为按 `.bytes` 瓦片坐标清单盘点有效瓦片；保留增量“转换”，新增强制 `Update`，覆盖选中场景的 `.bytes`、缩略图和有效瓦片但不碰 `.meta`、不删除历史残片。`MapAssetWindow` 增加“从老端更新”按钮、覆盖确认、进度、结果统计和可选 Addressable 自动分组。
+- **边界**：源仍为 `yu_client/cdn/resource/game/scene/map`；老端资源工具负责双写 H5 源与 CDN，Unity 工具只读取老端并更新本项目，不反向修改老客户端。
+- **验证状态**：`dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 为 77 个既有 warning、0 error；Unity 真实窗口选中 `10000 云来镇` 后显示有效瓦片 `1548/1548`，并实点“从老端更新”，完成提示为“本次更新 1549 张资源、跳过 0、有效瓦片 1548/1548、已执行 Addressable 自动分组”。更新后老客户端两份 `10000` 目录与 Unity 地图目录均无 Git 差分，Unity 缩略图 SHA-256 保持 `090AF4F54ED0DF5BA694D459CB21D9F7F9F27B27E7FF01D912A312FF837A6DD3`；验收产生的 Addressable 重分组现场已回收，不纳入本轮工具提交。

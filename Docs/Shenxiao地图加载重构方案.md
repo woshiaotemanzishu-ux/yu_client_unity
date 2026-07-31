@@ -3,7 +3,7 @@
 > 本方案用于把 `yu_client` 的地图加载机制重构到 Shenxiao Unity 客户端。
 > 目标是先对齐资源语义、加载链路和工程边界，再开始写运行时代码。
 
-**更新时间**：2026-06-09
+**更新时间**：2026-07-31
 
 **参考项目**：
 - `D:/git_res/yu_client`：本机实际存在的 LayaAir 客户端，仅作只读参考。
@@ -325,6 +325,15 @@ Assets/GameRes/resource/game/scene/map/{id}/
 | `MapBytesValidator` | 解析 `.bytes` 并校验格式、grid 长度、resId、动态区域 |
 | `MapTextureImporter` | 验证 / 转换 `.jxr/.ktx/.jpg` 为 Unity 可加载纹理 |
 | `MapAddressableReport` | 检查 Addressable key 是否符合无扩展名、小写、路径风格 |
+
+### 6.3 已有地图更新
+
+Unity 菜单 `神霄/资源/地图资源` 对选中地图提供两种明确分开的操作：
+
+1. `转换(补齐缺失)`：只创建 Unity 中尚不存在的 `.bytes`、底图和瓦片，已有产物不覆盖。
+2. `从老端更新`：以 `yu_client/cdn/resource/game/scene/map` 为源，强制覆盖 Unity 中对应的 `.bytes`、底图和有效瓦片。
+
+“有效瓦片”必须以场景 `.bytes` 内的瓦片坐标清单为准，不能按源目录全部 `.jxr` 计数；旧 CDN 目录可能残留地图改版前的多余文件。更新操作只覆盖有效资源文件，不改写 Unity `.meta`，因此已有 GUID 和 Addressables 引用保持稳定；也不自动删除历史多余瓦片，避免产生无关 GUID/分组变更。更新完成后按窗口开关执行 Addressable 自动分组，以接入首次新增的资源。
 
 ---
 

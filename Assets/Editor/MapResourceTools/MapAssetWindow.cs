@@ -234,13 +234,15 @@ namespace Shenxiao.Editor.MapTools
                 EditorGUILayout.Space(6f);
                 EditorGUILayout.LabelField("操作", EditorStyles.boldLabel);
                 bool autoGroup = LayaUISettings.AutoGroupAfterConvert;
-                bool newAutoGroup = EditorGUILayout.ToggleLeft("转换后顺便 Addressable 自动分组(推荐)", autoGroup);
+                bool newAutoGroup = EditorGUILayout.ToggleLeft("转换/更新后顺便 Addressable 自动分组(推荐)", autoGroup);
                 if (newAutoGroup != autoGroup) LayaUISettings.AutoGroupAfterConvert = newAutoGroup;
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     if (GUILayout.Button(s.TileConverted > 0 ? "转换(补齐缺失)" : "转换", GUILayout.Height(28f)))
                         ConvertSelected();
+                    if (GUILayout.Button("从老端更新", GUILayout.Height(28f)))
+                        UpdateSelected();
                     using (new EditorGUI.DisabledScope(s.TileConverted == 0 && !s.PreviewConverted))
                     {
                         if (GUILayout.Button("定位产物", GUILayout.Height(28f)))
@@ -289,6 +291,46 @@ namespace Shenxiao.Editor.MapTools
 
             EditorUtility.DisplayDialog("转换地图",
                 $"场景 {sceneId}(底图 {st.MapResId})\n本次新转 {copied} 张,跳过 {skipped}\n瓦片合计 {st.TileConverted}/{st.TileTotal}" +
+                (canceled ? "\n(中途取消)" : (LayaUISettings.AutoGroupAfterConvert ? "\n已执行 Addressable 自动分组" : "")),
+                "好");
+        }
+
+        private void UpdateSelected()
+        {
+            int sceneId = _selected;
+            MapStat before = StatOf(sceneId);
+            if (!EditorUtility.DisplayDialog("从老端更新地图",
+                    $"将用老客户端资源强制覆盖场景 {sceneId}(底图 {before.MapResId})。\n\n" +
+                    $"源: {MapTileConverter.SourceMapDir(before.MapResId)}\n" +
+                    $"目标: {MapTileConverter.GameResMapDir(before.MapResId)}\n\n" +
+                    "会更新 .bytes、缩略图和 .bytes 声明的有效瓦片；已有 Unity .meta/GUID 保留，历史多余瓦片不删除。",
+                    "更新", "取消"))
+                return;
+
+            int updated, skipped;
+            bool canceled;
+            MapStat st;
+            try
+            {
+                st = MapTileConverter.Update(sceneId,
+                    (f, msg) => EditorUtility.DisplayCancelableProgressBar("从老端更新地图 " + sceneId, msg, f),
+                    out updated, out skipped, out canceled);
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+            _stats[sceneId] = st;
+
+            if (!canceled && LayaUISettings.AutoGroupAfterConvert)
+            {
+                try { AddressableSetup.AutoGroupAll(); }
+                catch (System.Exception e) { Debug.LogWarning("[MapAsset] Addressable 分组失败: " + e.Message); }
+            }
+
+            EditorUtility.DisplayDialog("从老端更新地图",
+                $"场景 {sceneId}(底图 {st.MapResId})\n本次更新 {updated} 张资源,跳过 {skipped}\n" +
+                $"有效瓦片 {st.TileConverted}/{st.TileTotal}" +
                 (canceled ? "\n(中途取消)" : (LayaUISettings.AutoGroupAfterConvert ? "\n已执行 Addressable 自动分组" : "")),
                 "好");
         }
