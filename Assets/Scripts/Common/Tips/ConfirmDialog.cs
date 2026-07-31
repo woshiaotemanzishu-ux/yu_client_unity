@@ -1,138 +1,144 @@
 using System;
+using System.Threading.Tasks;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
-using TMPro;
+using Shenxiao.Generated.UI.Alert;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Shenxiao.Common.Tips
 {
     /// <summary>
-    /// 双按钮确认框(对标老客户端 Alert.Show(text, Alert_Type.Two, onYes, onNo, "确认", "取消")):
-    /// 全屏遮罩 + 居中面板 + 文案 + 确认/取消。代码建树(无 prefab 依赖),挂 Tip 层置顶;
-    /// 单实例复用,再次 Show 覆盖文案与回调(老端 Alert 同为单例)。点遮罩等价取消。
-    /// 样式为可用起步值;后续要皮肤化可移到 UiCreator 出 prefab,这里的调用方不变。
+    /// 双按钮确认框。视觉唯一来源为 Alert/AlertModule.prefab 内的 AlertTypeTwo；
+    /// 本类只负责懒加载、填文字、绑定点击和复用生命周期。
     /// </summary>
     public static class ConfirmDialog
     {
-        private static GameObject _root;
-        private static TextMeshProUGUI _body;
+        private const string Module = "alert";
+        private const string Prefab = "AlertModule";
+
+        private static GameObject _moduleRoot;
+        private static AlertTypeTwoBind _view;
         private static Action _onYes;
         private static Action _onNo;
+        private static string _pendingText;
+        private static bool _loading;
 
         public static void Show(string text, Action onYes, Action onNo)
         {
-            EnsureCreated();
-            if (_root == null)
+            _pendingText = text ?? string.Empty;
+            _onYes = onYes;
+            _onNo = onNo;
+
+            if (_view != null)
             {
-                onYes?.Invoke(); // 层缺失兜底(理论上 Confirm 已挡,双保险)
+                ShowLoaded();
                 return;
             }
 
-            _onYes = onYes;
-            _onNo = onNo;
-            _body.text = text ?? "";
-            _root.SetActive(true);
-            _root.transform.SetAsLastSibling();
+            if (!_loading)
+            {
+                _loading = true;
+                _ = LoadAndShowAsync();
+            }
+        }
+
+        private static async Task LoadAndShowAsync()
+        {
+            string key = GameResPath.GetUIPrefab(Module, Prefab);
+            GameObject root = await ResManager.InstantiateAsync(key, ViewManager.GetLayer(UILayer.Tip));
+            _loading = false;
+            if (root == null)
+            {
+                GameLog.Error("Tip", "确认框 Prefab 加载失败: {0}", key);
+                Action fallback = _onNo;
+                ClearCallbacks();
+                fallback?.Invoke();
+                return;
+            }
+
+            _moduleRoot = root;
+            _moduleRoot.name = "ConfirmDialog";
+            Image blocker = _moduleRoot.GetComponent<Image>();
+            if (blocker == null) blocker = _moduleRoot.AddComponent<Image>();
+            blocker.color = Color.clear;
+            Bind(blocker, () => Close(false));
+            foreach (BaseView candidate in root.GetComponentsInChildren<BaseView>(true))
+            {
+                candidate.gameObject.SetActive(false);
+                if (candidate is AlertTypeTwoBind alert)
+                {
+                    _view = alert;
+                }
+            }
+
+            if (_view == null)
+            {
+                GameLog.Error("Tip", "确认框 Prefab 缺 AlertTypeTwoBind: {0}", key);
+                ResManager.ReleaseInstance(root);
+                _moduleRoot = null;
+                Action fallback = _onNo;
+                ClearCallbacks();
+                fallback?.Invoke();
+                return;
+            }
+
+            BindClicks();
+            ShowLoaded();
+        }
+
+        private static void BindClicks()
+        {
+            Bind(_view._ok_btn, () => Close(true));
+            Bind(_view._cancel_btn, () => Close(false));
+            Bind(_view._close_btn, () => Close(false));
+            Bind(_view.bg, () => Close(false));
+        }
+
+        private static void Bind(Image target, Action action)
+        {
+            if (target == null) return;
+            target.raycastTarget = true;
+            UIUtil.ClearClicks(target);
+            UIUtil.AddClick(target, action);
+        }
+
+        private static void ShowLoaded()
+        {
+            if (_view == null) return;
+            _moduleRoot.SetActive(true);
+            _moduleRoot.transform.SetAsLastSibling();
+            _view.Show();
+            if (_view._content_html != null) _view._content_html.text = _pendingText;
+            if (_view.ok_label != null) _view.ok_label.text = "确认";
+            if (_view.cancel_label != null) _view.cancel_label.text = "取消";
         }
 
         private static void Close(bool yes)
         {
-            if (_root != null) _root.SetActive(false);
-            Action cb = yes ? _onYes : _onNo;
+            _view?.Hide();
+            if (_moduleRoot != null) _moduleRoot.SetActive(false);
+            Action callback = yes ? _onYes : _onNo;
+            ClearCallbacks();
+            callback?.Invoke();
+        }
+
+        private static void ClearCallbacks()
+        {
             _onYes = null;
             _onNo = null;
-            cb?.Invoke();
+            _pendingText = null;
         }
 
-        private static void EnsureCreated()
+        /// <summary>编辑器预览或资源更新后释放缓存，下次从最新 Prefab 重载。</summary>
+        public static void ReloadView()
         {
-            if (_root != null) return;
-            Transform layer = ViewManager.GetLayer(UILayer.Tip);
-            if (layer == null) return;
-
-            _root = NewRect("ConfirmDialog", layer);
-            var rootRt = (RectTransform)_root.transform;
-            rootRt.anchorMin = Vector2.zero;
-            rootRt.anchorMax = Vector2.one;
-            rootRt.offsetMin = Vector2.zero;
-            rootRt.offsetMax = Vector2.zero;
-            Image shade = _root.AddComponent<Image>();
-            shade.color = new Color(0f, 0f, 0f, 0.5f);
-            UIUtil.AddClick(shade, () => Close(false)); // 点遮罩=取消(老端 click_bg 关闭)
-
-            GameObject panel = NewRect("Panel", _root.transform);
-            var panelRt = (RectTransform)panel.transform;
-            panelRt.anchorMin = panelRt.anchorMax = panelRt.pivot = new Vector2(0.5f, 0.5f);
-            panelRt.sizeDelta = new Vector2(520f, 260f);
-            Image panelBg = panel.AddComponent<Image>();
-            panelBg.color = new Color(0.12f, 0.09f, 0.05f, 0.96f);
-            panelBg.raycastTarget = true; // 面板体吞点击,别漏给遮罩当取消
-
-            _body = NewText("Body", panel.transform, 26f);
-            var bodyRt = (RectTransform)_body.transform;
-            bodyRt.anchorMin = new Vector2(0f, 0.35f);
-            bodyRt.anchorMax = new Vector2(1f, 1f);
-            bodyRt.offsetMin = new Vector2(30f, 0f);
-            bodyRt.offsetMax = new Vector2(-30f, -24f);
-            _body.color = new Color(0.95f, 0.90f, 0.80f, 1f);
-
-            MakeButton(panel.transform, "Yes", "确 认", new Vector2(-110f, 44f), new Color(0.72f, 0.45f, 0.12f, 1f), () => Close(true));
-            MakeButton(panel.transform, "No", "取 消", new Vector2(110f, 44f), new Color(0.35f, 0.37f, 0.42f, 1f), () => Close(false));
-
-            _root.SetActive(false);
-        }
-
-        private static void MakeButton(Transform parent, string name, string label, Vector2 pos, Color color, Action onClick)
-        {
-            GameObject go = NewRect(name, parent);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = new Vector2(170f, 58f);
-            Image bg = go.AddComponent<Image>();
-            bg.color = color;
-            UIUtil.AddClick(bg, onClick);
-
-            TextMeshProUGUI text = NewText("Label", go.transform, 26f);
-            var textRt = (RectTransform)text.transform;
-            textRt.anchorMin = Vector2.zero;
-            textRt.anchorMax = Vector2.one;
-            textRt.offsetMin = Vector2.zero;
-            textRt.offsetMax = Vector2.zero;
-            text.text = label;
-            text.color = Color.white;
-        }
-
-        private static GameObject NewRect(string name, Transform parent)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            return go;
-        }
-
-        private static TextMeshProUGUI NewText(string name, Transform parent, float size)
-        {
-            GameObject go = NewRect(name, parent);
-            var text = go.AddComponent<TextMeshProUGUI>();
-            text.fontSize = size;
-            text.alignment = TextAlignmentOptions.Center;
-            text.raycastTarget = false;
-            ApplyFont(text);
-            return text;
-        }
-
-        /// <summary>复用场景中已打开文本的 CJK 字体(同 TipsManager.ApplyFont 约定)。</summary>
-        private static void ApplyFont(TextMeshProUGUI target)
-        {
-            foreach (TextMeshProUGUI candidate in UnityEngine.Object.FindObjectsByType<TextMeshProUGUI>(FindObjectsSortMode.None))
-            {
-                if (candidate == target) continue;
-                target.font = candidate.font;
-                target.fontSharedMaterial = candidate.fontSharedMaterial;
-                break;
-            }
+            if (_moduleRoot != null) ResManager.ReleaseInstance(_moduleRoot);
+            _moduleRoot = null;
+            _view = null;
+            _loading = false;
+            ClearCallbacks();
         }
     }
 }

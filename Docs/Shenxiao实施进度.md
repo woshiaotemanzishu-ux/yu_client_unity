@@ -1713,3 +1713,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **实现**：保留两个入口的双按钮确认弹窗。确认后统一禁用游戏内自动重连并断线；新增登录模块恢复入口，切账号重建后显示真实账号登录页，切角色重建后显示连接等待层、复用当前服重连并发送 `10000`，角色列表回包后进入真实选角页。角色重连失败可见提示并回退登录页。
 - **生命周期**：登录模块释放时补齐角色列表、进游戏、`GAME_START`、场景首屏等事件注销，重建时重新注册，避免切换后残留或重复回调。
 - **验证状态**：`dotnet build Shenxiao.Module.Core.csproj --no-restore -m:1` 为 0 error（仅既有 warning）；未重建或覆盖用户人工调整的 `SettingModule.prefab`。
+
+## 2026-07-31：公共确认框恢复老端 Prefab 样式
+
+- **问题**：切换账号/角色功能虽然闭环，但 `ConfirmDialog` 仍使用代码建树的深色纯色临时框，与设置页及老端美术不一致，也无法在 Prefab 中可视化调整。
+- **实现**：公共 `TipsManager.Confirm` 改为按需加载并复用 `AlertModule.prefab/AlertTypeTwo`；恢复老端山水窗框、内容底板、标题纹、关闭钮和两张真实按钮图。正文与回调仍由公共逻辑填写，确认、取消、关闭、框外点击语义保持完整。
+- **影响范围**：切换账号、切换角色及项目内其他所有 `TipsManager.Confirm` 调用统一获得同一可编辑样式；不再保留运行时纯色框视觉。
+- **验证状态**：`Shenxiao.Common.csproj` 与 `Shenxiao.Module.Core.csproj` 离线编译均为 0 error（仅既有 warning）；`AlertModule` 已存在 Addressable `prefabs/ui/alert/alertmodule`，窗框 Sprite 直接落在 Prefab。
