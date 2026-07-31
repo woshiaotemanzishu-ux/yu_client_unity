@@ -1720,3 +1720,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **实现**：公共 `TipsManager.Confirm` 改为按需加载并复用 `AlertModule.prefab/AlertTypeTwo`；恢复老端山水窗框、内容底板、标题纹、关闭钮和两张真实按钮图。正文与回调仍由公共逻辑填写，确认、取消、关闭、框外点击语义保持完整。
 - **影响范围**：切换账号、切换角色及项目内其他所有 `TipsManager.Confirm` 调用统一获得同一可编辑样式；不再保留运行时纯色框视觉。
 - **验证状态**：`Shenxiao.Common.csproj` 与 `Shenxiao.Module.Core.csproj` 离线编译均为 0 error（仅既有 warning）；`AlertModule` 已存在 Addressable `prefabs/ui/alert/alertmodule`，窗框 Sprite 直接落在 Prefab。
+
+## 2026-07-31：人物页背景、重开模型、配置页签与基础入口补齐
+
+- **背景与模型**：导入老端 `ui_role_new_bg_1.jpg`，清除 `RoleModule.prefab/EquipmentView/model_bg` 上误用的圆形舞台图，人物模型区恢复老端楼阁背景。人物窗缓存重开时重新选择当前页，强制重走 `EquipmentView.OnShow()`，共享 `UIModelStage` 被其他页面清理后也会重新装配角色，不再只在第一次打开时出现。
+- **底部页签**：一级页签收口为老端五项“人物 / 垂神翼影 / 古法符相 / 殒锋天刃 / 玄穹云披”，后四项逐项读取 `configfuncopencondition` 的同名开放条件；未开放项不生成按钮，已开放项显示真实文字与外观页面，移除误放在一级栏的技能/天赋空页签。
+- **圈选入口**：称号按钮打开真实 `DsgtModule` 并消费 41101 权威列表与 `config_dsgt`；“名”按钮打开 `MarriageHonourView`，显示服务端名誉值与 `config_fame_lv` 等级；“世”按钮沿用角色世界等级说明层；属性问号打开 `CommonModule/InstructionView`，按 `configinstruction[453]` 生成完整说明。称号佩戴/激活等写事务继续遵守既有 DEFER 约束，不伪造本地成功。
+- **Prefab 保护**：移除人物页专用 `RoleEquipmentCreator` 的生成逻辑与重建注册（保留兼容工程文件的同名空壳），`RoleSettingPanelCase` 改为只读验收当前人工 Prefab，并新增 `model_bg` 必须为空 Sprite 的断言。
+- **验证状态**：新增资源/config 均已登记 Addressables；Unity Editor 实际刷新编译后 Console 为 0 error（保留 4 条既有 warning），`dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 复编译同样为 0 error。称号资源额外校验为 103 张 PNG 均可解码、103 个 Addressables 地址与 GUID 均唯一；老端配置中另有 41 个图标源文件本身缺失，当前不伪造图片，仍保留称号名称、说明与属性展示。

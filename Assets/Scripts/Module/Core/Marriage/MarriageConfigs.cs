@@ -29,6 +29,7 @@ namespace Shenxiao.Module.Core.Marriage
         private static JObject _ringStar;
         private static JObject _flowerTools;
         private static JObject _loveDsgt;
+        private static JObject _fameLv;
 
         public static bool IsLoaded => _constant != null;
 
@@ -39,8 +40,9 @@ namespace Shenxiao.Module.Core.Marriage
             _ringStar = await LoadServer("config_ring_star");
             _flowerTools = await LoadServer("config_flower_tools");
             _loveDsgt = await LoadServer("config_love_dsgt_cfg");
-            GameLog.Info("Marriage", "MarriageConfigs 加载: constant={0} ringStar={1} flowerTools={2} loveDsgt={3}",
-                _constant.Count, _ringStar.Count, _flowerTools.Count, _loveDsgt.Count);
+            _fameLv = await LoadServer("config_fame_lv");
+            GameLog.Info("Marriage", "MarriageConfigs 加载: constant={0} ringStar={1} flowerTools={2} loveDsgt={3} fameLv={4}",
+                _constant.Count, _ringStar.Count, _flowerTools.Count, _loveDsgt.Count, _fameLv.Count);
         }
 
         private static async Task<JObject> LoadServer(string cfg)
@@ -146,6 +148,33 @@ namespace Shenxiao.Module.Core.Marriage
         public static int FlowerToolsCount => _flowerTools?.Count ?? 0;
         public static int LoveDsgtCount => _loveDsgt?.Count ?? 0;
 
+        public sealed class FameLevelRow
+        {
+            public int Lv;
+            public string Name = "";
+            public long Fame;
+            public string Attr = "[]";
+        }
+
+        public static System.Collections.Generic.List<FameLevelRow> GetFameLevels()
+        {
+            var result = new System.Collections.Generic.List<FameLevelRow>();
+            if (_fameLv == null) return result;
+            foreach (JProperty property in _fameLv.Properties())
+            {
+                if (!(property.Value is JObject row)) continue;
+                result.Add(new FameLevelRow
+                {
+                    Lv = ReadInt(row, "lv"),
+                    Name = ReadString(row, "name"),
+                    Fame = ReadLong(row, "fame"),
+                    Attr = ReadRaw(row, "attr"),
+                });
+            }
+            result.Sort((a, b) => a.Lv.CompareTo(b.Lv));
+            return result;
+        }
+
         // ---------- JSON 读取小工具(同 BossConfigs/RankConfigs 套路,自成一份不跨模块耦合) ----------
 
         private static int ReadInt(JObject obj, string key)
@@ -156,6 +185,18 @@ namespace Shenxiao.Module.Core.Marriage
             if (token.Type == JTokenType.Integer) return token.Value<int>();
             if (token.Type == JTokenType.Float) return (int)token.Value<double>();
             return int.TryParse(token.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out int v) ? v : 0;
+        }
+
+        private static long ReadLong(JObject obj, string key)
+        {
+            if (obj == null) return 0L;
+            JToken token = obj[key];
+            if (token == null || token.Type == JTokenType.Null) return 0L;
+            if (token.Type == JTokenType.Integer) return token.Value<long>();
+            if (token.Type == JTokenType.Float) return (long)token.Value<double>();
+            return long.TryParse(token.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out long v)
+                ? v
+                : 0L;
         }
 
         private static string ReadString(JObject obj, string key)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 
 namespace Shenxiao.Module.Core.Designation
@@ -56,6 +57,7 @@ namespace Shenxiao.Module.Core.Designation
             for (int i = 0; i < count; i++)
                 entries.Add(new DesignationModel.Entry(reader.ReadU32(), reader.ReadU8(), reader.ReadU32()));
             DesignationModel.Instance.ReplaceData(current, entries);
+            EventDispatcher.Emit(GlobalEvent.EVT_DESIGNATION_LIST_UPDATE);
         }
 
         private void On41104(NetReader reader)

@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shenxiao.Common.Proto;
-using Shenxiao.Common.Tips;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Role;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Designation;
 using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.MainUI;
+using Shenxiao.Module.Core.Marriage;
 using Shenxiao.Module.Core.SuitCollect;
 using UnityEngine;
 using UnityEngine.UI;
@@ -253,11 +254,11 @@ namespace Shenxiao.Module.Core.Role
             BindClick(fashion_gp, () => MainUIRouter.Open("fashion"));
             BindClick(_Group2, () => MainUIRouter.Open("AchvEnterView"));
             BindClick(_Group3, () => MainUIRouter.Open("MedalEnterView"));
-            BindClick(_Group4, () => MainUIRouter.Open("DsgtWindowView"));
+            BindClick(_Group4, DesignationFlow.Open);
             BindClick(_btn_attribute, () => MainUIRouter.Open("AttributePotionView"));
             BindClick(_Group6, () => MainUIRouter.Open("UnrealEquipView"));
-            BindClick(_btn_fame, () => MainUIRouter.Open("MarriageHonourView"));
-            BindClick(tipsImg, () => TipsManager.Toast("点击属性切换按钮可查看基础属性和极品属性"));
+            BindClick(_btn_fame, MarriageHonourFlow.Show);
+            BindClick(tipsImg, () => InstructionFlow.Show(453));
             BindClick(worldBtn, () => { if (worldGp != null) worldGp.gameObject.SetActive(true); });
             BindClick(worldBg, () => { if (worldGp != null) worldGp.gameObject.SetActive(false); });
         }
@@ -272,12 +273,23 @@ namespace Shenxiao.Module.Core.Role
 
         private void RefreshWorldInfo(RoleModel model, bool hasInfo)
         {
-            if (worldLb != null) worldLb.text = hasInfo && model.WorldLv > 0 ? model.WorldLv + "\u7EA7" : string.Empty;
+            if (worldLb != null)
+            {
+                worldLb.richText = true;
+                worldLb.rectTransform.SetSizeWithCurrentAnchors(
+                    RectTransform.Axis.Horizontal, 276f);
+                string level = model.WorldLv > 370
+                    ? "神创" + (model.WorldLv - 370)
+                    : model.WorldLv.ToString();
+                worldLb.text = hasInfo && model.WorldLv > 0
+                    ? "世界等级:<color=#96ff25>" + level
+                        + "</color>级\n经验加成:<color=#96ff25>"
+                        + model.WorldLvExp + "%</color>"
+                    : string.Empty;
+            }
             if (worldTips != null)
             {
-                worldTips.text = hasInfo && model.WorldLvExp != 0
-                    ? "\u4E16\u754C\u7B49\u7EA7\u7ECF\u9A8C\u52A0\u6210 " + model.WorldLvExp + "%"
-                    : "\u5F53\u89D2\u8272\u7B49\u7EA7\u4F4E\u4E8E\u4E16\u754C\u7B49\u7EA7\u65F6\uFF0C\u53EF\u83B7\u5F97\u989D\u5916\u7ECF\u9A8C\u52A0\u6210";
+                worldTips.text = "玩家达到120级后，若低于世界等级一定等级，获得经验加成";
             }
         }
 

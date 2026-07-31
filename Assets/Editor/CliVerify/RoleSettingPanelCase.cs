@@ -1,7 +1,6 @@
 using System.Reflection;
 using System.Threading.Tasks;
 using Shenxiao.Common.Proto;
-using Shenxiao.Editor.UiCreator.Role;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Module.Core.Common;
@@ -21,17 +20,19 @@ namespace Shenxiao.EditorTools
         public static async Task<int> Run()
         {
             ResManager.EditorPreferFallback = true;
-            RoleEquipmentCreator.Generate();
 
             bool settingLayoutOk = VerifySettingPrefab();
             bool settingSpritesOk = VerifySettingSprites();
             bool rolePrefabOk = VerifyRolePrefab();
+            bool roleAssetsOk = VerifyRoleAssets();
             bool roleRuntimeOk = await VerifyRoleRuntime();
 
-            bool pass = settingLayoutOk && settingSpritesOk && rolePrefabOk && roleRuntimeOk;
+            bool pass = settingLayoutOk && settingSpritesOk && rolePrefabOk
+                && roleAssetsOk && roleRuntimeOk;
             Debug.Log("CLIVERIFY rolesetting VERDICT settingLayout=" + settingLayoutOk
                 + " settingSprites=" + settingSpritesOk + " rolePrefab=" + rolePrefabOk
-                + " roleRuntime=" + roleRuntimeOk + " pass=" + pass);
+                + " roleAssets=" + roleAssetsOk + " roleRuntime=" + roleRuntimeOk
+                + " pass=" + pass);
             return pass ? 0 : 3;
         }
 
@@ -78,9 +79,56 @@ namespace Shenxiao.EditorTools
             bool fight = view._gp_fight != null && view._gp_fight.GetComponent<HorizontalOrVerticalLayoutGroup>() != null;
             bool title = view._img_title_base != null && view._img_title_base.gameObject.activeSelf
                 && view._img_title_best != null && !view._img_title_best.gameObject.activeSelf;
+            bool modelBackground = view.model_bg != null && view.model_bg.sprite == null;
             Debug.Log("CLIVERIFY rolesetting rolePrefab grid=" + gridOk + " fitter=" + fitter
-                + " fight=" + fight + " title=" + title);
-            return gridOk && fitter && fight && title;
+                + " fight=" + fight + " title=" + title + " modelBackground=" + modelBackground);
+            return gridOk && fitter && fight && title && modelBackground;
+        }
+
+        private static bool VerifyRoleAssets()
+        {
+            Texture2D roleBackground = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                "Assets/GameRes/resource/game/bigBg/ui_role_new_bg_1.jpg");
+            Texture2D designationBackground = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                "Assets/GameRes/resource/game/bigBg/ui_role_bg5.jpg");
+            bool backgrounds = roleBackground != null
+                && roleBackground.width == 720 && roleBackground.height == 1200
+                && designationBackground != null;
+            bool configs =
+                AssetDatabase.LoadAssetAtPath<TextAsset>(
+                    "Assets/GameRes/resource/config/client/configinstruction.json") != null
+                && AssetDatabase.LoadAssetAtPath<TextAsset>(
+                    "Assets/GameRes/resource/config/server/config_dsgt.json") != null
+                && AssetDatabase.LoadAssetAtPath<TextAsset>(
+                    "Assets/GameRes/resource/config/server/config_fame_lv.json") != null;
+            int designationIconCount = AssetDatabase.FindAssets(
+                "t:Sprite",
+                new[] { "Assets/GameRes/resource/game/dsgtIcon" }).Length;
+            bool popupPrefabs =
+                HasComponent(
+                    "Assets/Prefabs/UI/Common/CommonModule.prefab",
+                    "InstructionViewBind")
+                && HasComponent(
+                    "Assets/Prefabs/UI/Marriage/MarriageModule.prefab",
+                    "MarriageHonourViewBind")
+                && HasComponent(
+                    "Assets/Prefabs/UI/Dsgt/DsgtModule.prefab",
+                    "DsgtViewBind");
+            Debug.Log("CLIVERIFY rolesetting roleAssets backgrounds=" + backgrounds
+                + " configs=" + configs + " designationIcons=" + designationIconCount
+                + " popupPrefabs=" + popupPrefabs);
+            return backgrounds && configs && designationIconCount == 103 && popupPrefabs;
+        }
+
+        private static bool HasComponent(string prefabPath, string typeName)
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null) return false;
+            foreach (MonoBehaviour component in prefab.GetComponentsInChildren<MonoBehaviour>(true))
+            {
+                if (component != null && component.GetType().Name == typeName) return true;
+            }
+            return false;
         }
 
         private static async Task<bool> VerifyRoleRuntime()

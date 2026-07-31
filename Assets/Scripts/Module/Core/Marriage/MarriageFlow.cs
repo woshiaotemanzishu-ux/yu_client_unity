@@ -23,6 +23,7 @@ namespace Shenxiao.Module.Core.Marriage
         private static GameObject _moduleRoot;
         private static MarriageBaseView _mainView;
         private static bool _loading;
+        private static string _pendingSubView;
 
         public static void Toggle()
         {
@@ -36,6 +37,20 @@ namespace Shenxiao.Module.Core.Marriage
 
         public static void Open()
         {
+            _ = OpenAsync();
+        }
+
+        public static void OpenSubDeferred(string viewTypeName)
+        {
+            if (string.IsNullOrEmpty(viewTypeName)) return;
+            _pendingSubView = viewTypeName;
+            if (_moduleRoot != null)
+            {
+                string pending = _pendingSubView;
+                _pendingSubView = null;
+                OpenSub(pending);
+                return;
+            }
             _ = OpenAsync();
         }
 
@@ -123,6 +138,12 @@ namespace Shenxiao.Module.Core.Marriage
             }
 
             _mainView.Show();
+            if (!string.IsNullOrEmpty(_pendingSubView))
+            {
+                string pending = _pendingSubView;
+                _pendingSubView = null;
+                OpenSub(pending);
+            }
             GameLog.Info("Marriage", "婚恋面板打开: {0}", key);
         }
 
@@ -135,6 +156,7 @@ namespace Shenxiao.Module.Core.Marriage
             _moduleRoot = null;
             _mainView = null;
             _loading = false;
+            _pendingSubView = null;
         }
     }
 }
