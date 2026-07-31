@@ -16,6 +16,8 @@ namespace Shenxiao.Module.Core.Bag
     /// <summary>一键使用：按 config_goods.use_one_key 过滤，三个分类页签独立全选/取消，物品可逐个勾选。</summary>
     public sealed class OneKeyUseView : OneKeyUseViewBind
     {
+        public override UILayer Layer => UILayer.Popup;
+
         private const int Columns = 6;
         private const float CellStep = 92f;
         private const float ItemScale = 0.72f;
@@ -58,6 +60,7 @@ namespace Shenxiao.Module.Core.Bag
         {
             _refreshEpoch++;
             Unsubscribe();
+            BagFlow.NotifyActivitySubHidden(this);
         }
 
         protected override void OnDispose()

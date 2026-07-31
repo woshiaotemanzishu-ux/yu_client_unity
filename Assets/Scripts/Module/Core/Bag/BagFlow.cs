@@ -88,7 +88,12 @@ namespace Shenxiao.Module.Core.Bag
         {
             BaseView v = FindSub(viewTypeName);
             if (v == null) { GameLog.Info("Bag", "背包子窗 [{0}] 未移植 View,待对接", viewTypeName); return; }
-            if (v.IsShown) v.Hide(); else v.Show();
+            if (v.IsShown) v.Hide();
+            else
+            {
+                RaiseSubViewRoot(v);
+                v.Show();
+            }
         }
 
         /// <summary>打开背包模块内子窗;在所有已加载内容源里按 View 子类名查找。未移植 → 日志降级。</summary>
@@ -102,7 +107,44 @@ namespace Shenxiao.Module.Core.Bag
         {
             BaseView v = FindSub(viewTypeName);
             if (v == null) { GameLog.Info("Bag", "背包子窗 [{0}] 未移植 View,待对接", viewTypeName); return; }
+            RaiseSubViewRoot(v);
             v.Show(args);
+        }
+
+        /// <summary>
+        /// 老端 BagSmelt/OneKeyUse/ExpandBag 均在 Activity 层，必须整体高于背包 Window。
+        /// 这些子窗仍属于 BagModule prefab；提升承载它们的模块根而不是把子节点拆出 prefab，
+        /// 既保留序列化层级，也保证 BagFlow.Reset 能随模块根完整释放。
+        /// </summary>
+        private static void RaiseSubViewRoot(BaseView view)
+        {
+            if (view == null) return;
+            Transform layer = ViewManager.GetLayer(view.Layer);
+            if (layer == null) return;
+
+            foreach (GameObject root in _contentRoots.Values)
+            {
+                if (root == null || (view.transform != root.transform && !view.transform.IsChildOf(root.transform)))
+                    continue;
+                if (root.transform.parent != layer) root.transform.SetParent(layer, false);
+                root.transform.SetAsLastSibling();
+                root.GetComponent<BagActivityModalLayout>()?.Show(view.Hide);
+                return;
+            }
+
+            GameLog.Warn("Bag", "背包子窗 [{0}] 未找到所属模块根，无法提升到 {1} 层", view.GetType().Name, view.Layer);
+        }
+
+        internal static void NotifyActivitySubHidden(BaseView view)
+        {
+            if (view == null) return;
+            foreach (GameObject root in _contentRoots.Values)
+            {
+                if (root == null || (view.transform != root.transform && !view.transform.IsChildOf(root.transform)))
+                    continue;
+                root.GetComponent<BagActivityModalLayout>()?.Hide();
+                return;
+            }
         }
 
         private static BaseView FindSub(string viewTypeName)

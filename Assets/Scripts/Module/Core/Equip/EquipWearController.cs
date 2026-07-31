@@ -24,15 +24,13 @@ namespace Shenxiao.Module.Core.Equip
         {
             RegisterProtocal(Proto.EQUIP_ERROR, On15200);
             RegisterProtocal(Proto.EQUIP_WEAR, On15201);
-            // 自动穿戴(对标老端一键穿戴,自动任务模式代行;见 EquipAutoWear 头注释):
-            // 背包变化防抖触发;进游戏后请求装备通道(15010 pos=1)供 rating 比较。
-            EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, EquipAutoWear.OnBagUpdate);
+            // 老端一键穿戴只由玩家点击触发。登录只请求已穿戴快照供 ItemUse/一键装备做评分比较，
+            // 严禁把 EVT_BAG_UPDATE 接成自动 15201。
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, RequestWornList);
         }
 
         public override void Dispose()
         {
-            EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, EquipAutoWear.OnBagUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, RequestWornList);
             EquipAutoWear.Clear();
             base.Dispose();

@@ -92,6 +92,9 @@ namespace Shenxiao.Module.Core.Bag
 
         private async void OnGameStart()
         {
+            // 对标老端 ItemUseController.GAME_START：每次登录先清候选/展示记录，再等待本次真实背包与穿戴快照。
+            ItemUseFlow.Reset();
+            ItemUseFlow.Initialize();
             // 背包格的真实图标/品质底板走 config_goods(同 TaskController 预载;EnsureLoaded 幂等)。
             await Task.WhenAll(GoodsModel.EnsureLoaded(), ItemUseFlow.EnsureConfigs());
             RequestStartupContainers();

@@ -12,6 +12,8 @@ namespace Shenxiao.Module.Core.Bag
     /// <summary>背包/仓库扩容。每扩一格消耗 2 个 38250026；材料不足时由服务端自动购买链补足，最终以 15002 为准。</summary>
     public sealed class ExpandBagView : ExpandBagViewBind
     {
+        public override UILayer Layer => UILayer.Popup;
+
         public const int ExpandGoodsTypeId = 38250026;
         public const int ExpandNeedPerCell = 2;
 
@@ -43,7 +45,11 @@ namespace Shenxiao.Module.Core.Bag
             Subscribe();
         }
 
-        protected override void OnHide() => Unsubscribe();
+        protected override void OnHide()
+        {
+            Unsubscribe();
+            BagFlow.NotifyActivitySubHidden(this);
+        }
         protected override void OnDispose() => Unsubscribe();
 
         private void Subscribe()

@@ -19,6 +19,8 @@ namespace Shenxiao.Module.Core.Bag
     /// <summary>装备吞噬：配置过滤可吞噬物，默认安全选择低评分 0/1 星装备，确认后发送真实 15025 列表。</summary>
     public sealed class BagSmeltView : BagSmeltViewBind
     {
+        public override UILayer Layer => UILayer.Popup;
+
         private const int EssenceTypeId = 38250022;
         private const int MaxItems = 50;
         private const int Columns = 6;
@@ -60,6 +62,7 @@ namespace Shenxiao.Module.Core.Bag
             _refreshEpoch++;
             _autoFuseEpoch++;
             Unsubscribe();
+            BagFlow.NotifyActivitySubHidden(this);
         }
 
         protected override void OnDispose()

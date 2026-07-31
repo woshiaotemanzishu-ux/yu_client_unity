@@ -10,6 +10,8 @@
 
 - 物品/装备详情层级规则：`CommonModule.prefab` 必须直接保存普通半透明遮罩、对比透明拦截层、单装备板和当前/候选双装备板；详情位于背包之上并拦截背包关闭与导航点击，必须先关闭详情。装备对比保持老端两份独立面板，当前板 `(-125,+80)`、候选板 `(+150,-105)`，禁止运行时拼成单板、另写坐标或自创层级。独立实例化合并模块时只关闭最外层同级 `BaseView`，禁止误关详情板内的 `EquipmentItem` 等嵌套展示组件。
 
+- 背包 Activity 子窗与装备推荐规则：老端 `BagSmeltView/OneKeyUseView/ExpandBagView` 均为 Activity 层，Unity 必须等价放在 `Popup`、整体高于背包 `Window`；共用遮罩必须直接保存在 `BagModule.prefab`，使用 `common/texture/com_sub_bg_7`，点击遮罩只关闭当前子窗且不得穿透背包，禁止只在背包内部提 sibling 或自创层级。老端一键装备只由玩家点击触发，严禁把登录或 `EVT_BAG_UPDATE` 接成自动 `15201`。`ItemUseFlow` 的装备候选必须等待 `15010 pos=1` 权威快照并仅在评分严格更高时展示；藏宝图、时装、选择礼包等有专属流程的物品不得误走通用 `15050`。
+
 - 复合按钮自适应布局规则：按钮背景/唯一点击面和状态图标不得作为 LayoutGroup 子项被控制；只有需要按 preferred width 或可用宽度缩放的文字放进独立内层容器，并把 Horizontal/VerticalLayoutGroup 挂在该纯文字容器上。禁止把 LayoutGroup 直接挂在带 Image 的按钮根，或用 childForceExpand 拉伸图片来换取文字排布。
 
 - 协议覆盖 baseline 收口规则：`Schemas/ProtocolCoverage/baseline.json` 的历史 `unityRegistered/liveGap` 数值用于防倒退，禁止为追当前报告逐轮改写；但当最新运行时扫描的某家族全部活缺口已由注册或带 evidence 的 killlist 完整治理时，必须在同轮把人工 `status` 转为 `done` 并写 `statusNote`，再以 `ProtocolCoverageCase` 的C段验收。禁止长期保留 `pending/legacy_unverified` 逃避C段，也禁止把真实玩家可达写事务塞进killlist来伪收口。

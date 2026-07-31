@@ -61,8 +61,9 @@ namespace Shenxiao.EditorTools
             FieldInfo pendingUseField = typeof(BagController).GetField("_pendingUse", F);
             FieldInfo fusionPendingField = typeof(BagFusionController).GetField("_pendingUntil", F);
             MethodInfo setWarehouse = typeof(BagModel).GetMethod("SetWarehouseFull", F);
+            MethodInfo setEquipment = typeof(BagModel).GetMethod("SetEquipmentFull", F);
             if (bagIntercept == null || fusionIntercept == null || equipIntercept == null || rootsField == null
-                || pendingUseField == null || fusionPendingField == null || setWarehouse == null)
+                || pendingUseField == null || fusionPendingField == null || setWarehouse == null || setEquipment == null)
                 return 3;
 
             object oldBagIntercept = bagIntercept.GetValue(null);
@@ -78,6 +79,7 @@ namespace Shenxiao.EditorTools
             GameObject cameraGo = null;
             GameObject eventSystemGo = null;
             GameObject prefabRoot = null;
+            GameObject frameHost = null;
             RenderTexture warmup = null;
             try
             {
@@ -86,6 +88,9 @@ namespace Shenxiao.EditorTools
                 equipIntercept.SetValue(null, new Func<byte[], bool>(frame => { equipFrames.Add(frame); return true; }));
 
                 bool protocolOk = VerifyProtocolFrames(bagFrames, fusionFrames, equipFrames);
+                bool itemUseRouting = VerifyItemUseRouting(setEquipment, bagFrames);
+                bool manualWearOnly = typeof(EquipAutoWear).GetMethod("OnBagUpdate",
+                    BindingFlags.Public | BindingFlags.Static) == null;
                 fusionPendingField.SetValue(BagFusionController.Instance, 0d);
                 ((HashSet<long>)pendingUseField.GetValue(BagController.Instance)).Clear();
 
@@ -99,6 +104,9 @@ namespace Shenxiao.EditorTools
                 canvasGo = new GameObject("BagInteractionCase_Canvas", typeof(RectTransform), typeof(Canvas), typeof(GraphicRaycaster));
                 ((RectTransform)canvasGo.transform).sizeDelta = new Vector2(720f, 1280f);
                 Canvas canvas = canvasGo.GetComponent<Canvas>();
+                var layers = new LayerManager();
+                layers.Init(canvas);
+                ViewManager.Init(layers);
                 cameraGo = new GameObject("BagInteractionCase_Camera", typeof(Camera));
                 Camera camera = cameraGo.GetComponent<Camera>();
                 camera.transform.position = new Vector3(0f, 0f, -10f);
@@ -117,19 +125,31 @@ namespace Shenxiao.EditorTools
                     eventSystem = eventSystemGo.GetComponent<EventSystem>();
                 }
 
-                prefabRoot = PrefabUtility.InstantiatePrefab(prefab, canvasGo.transform) as GameObject;
+                prefabRoot = PrefabUtility.InstantiatePrefab(prefab, ViewManager.GetLayer(UILayer.Window)) as GameObject;
                 if (prefabRoot == null) return 3;
                 BagComponentView bagView = prefabRoot.GetComponentInChildren<BagComponentView>(true);
                 WarehouseView warehouseView = prefabRoot.GetComponentInChildren<WarehouseView>(true);
                 ExpandBagView expandView = prefabRoot.GetComponentInChildren<ExpandBagView>(true);
                 OneKeyUseView useView = prefabRoot.GetComponentInChildren<OneKeyUseView>(true);
                 BagSmeltView smeltView = prefabRoot.GetComponentInChildren<BagSmeltView>(true);
+                BagActivityModalLayout activityModal = prefabRoot.GetComponent<BagActivityModalLayout>();
                 if (bagView == null || warehouseView == null || expandView == null || useView == null || smeltView == null)
                     return 3;
+                if (activityModal == null || activityModal.Blocker == null) return 3;
 
                 foreach (BaseView view in prefabRoot.GetComponentsInChildren<BaseView>(true))
                     view.gameObject.SetActive(false);
                 prefabRoot.SetActive(true);
+                frameHost = new GameObject("BagInteractionCase_FrameHost", typeof(RectTransform));
+                RectTransform frameRect = (RectTransform)frameHost.transform;
+                frameRect.SetParent(ViewManager.GetLayer(UILayer.Window), false);
+                frameRect.anchorMin = Vector2.zero;
+                frameRect.anchorMax = Vector2.one;
+                frameRect.offsetMin = Vector2.zero;
+                frameRect.offsetMax = Vector2.zero;
+                // 生产 BagFlow 会把背包/仓库内容移进 BaseWindowSkin；测试同步复现，留下 BagModule 根承载 Activity 子窗。
+                bagView.transform.SetParent(frameRect, false);
+                warehouseView.transform.SetParent(frameRect, false);
                 roots.Clear();
                 roots["BagModule"] = prefabRoot;
                 Transform bagItemTemplate = prefabRoot.transform.Find("bagItemRenderer");
@@ -150,22 +170,30 @@ namespace Shenxiao.EditorTools
                 fusionFrames.Clear();
                 bool smeltClick = Click(bagView.smeltBtn, camera, raycaster, eventSystem);
                 bool smeltOpen = smeltView.IsShown;
+                bool smeltLayer = smeltView.transform.IsChildOf(ViewManager.GetLayer(UILayer.Popup));
                 bool smeltFrame = FrameEmpty(fusionFrames, Proto.BAG_FUSION_INFO);
-                smeltView.Hide();
+                bool smeltBlocker = activityModal.Blocker.gameObject.activeInHierarchy
+                    && activityModal.Blocker.transform.GetSiblingIndex() == 0
+                    && ClickBlockerCorner(activityModal.Blocker, camera, raycaster, eventSystem)
+                    && !smeltView.IsShown && !activityModal.Blocker.gameObject.activeSelf;
+                if (smeltView.IsShown) smeltView.Hide();
 
                 bool expandClick = Click(bagView.expandBtn, camera, raycaster, eventSystem);
                 bool expandOpen = expandView.IsShown && ReadBagPos(expandView) == BagModel.POS_BAG;
+                bool expandLayer = expandView.transform.IsChildOf(ViewManager.GetLayer(UILayer.Popup));
                 expandView.Hide();
 
                 bool useClick = Click(bagView.useBtn, camera, raycaster, eventSystem);
                 bool useOpen = useView.IsShown;
+                bool useLayer = useView.transform.IsChildOf(ViewManager.GetLayer(UILayer.Popup));
                 useView.Hide();
-                bool bagClicks = oneKeyClick && oneKeyFrame && smeltClick && smeltOpen && smeltFrame
-                    && expandClick && expandOpen && useClick && useOpen;
+                bool bagClicks = oneKeyClick && oneKeyFrame && smeltClick && smeltOpen && smeltLayer && smeltFrame && smeltBlocker
+                    && expandClick && expandOpen && expandLayer && useClick && useOpen && useLayer;
                 bool bagSuitDisabled = AllRaycastsDisabled(bagView.redequipBtn);
                 Debug.Log("CLIVERIFY bag-interaction bag oneKey=" + oneKeyClick + "/" + oneKeyFrame
-                    + " smelt=" + smeltClick + "/" + smeltOpen + "/" + smeltFrame
-                    + " expand=" + expandClick + "/" + expandOpen + " use=" + useClick + "/" + useOpen);
+                    + " smelt=" + smeltClick + "/" + smeltOpen + "/" + smeltLayer + "/" + smeltFrame + "/" + smeltBlocker
+                    + " expand=" + expandClick + "/" + expandOpen + "/" + expandLayer
+                    + " use=" + useClick + "/" + useOpen + "/" + useLayer);
                 bagView.Hide();
 
                 warehouseView.gameObject.SetActive(true);
@@ -196,8 +224,10 @@ namespace Shenxiao.EditorTools
                     + " smelt=" + warehouseSmeltClick + "/" + warehouseSmeltOpen + "/" + warehouseSmeltFrame
                     + " use=" + warehouseUseClick + "/" + warehouseUseOpen);
 
-                bool pass = protocolOk && bagClicks && warehouseClicks && bagSuitDisabled && warehouseSuitDisabled;
+                bool pass = protocolOk && itemUseRouting && manualWearOnly
+                    && bagClicks && warehouseClicks && bagSuitDisabled && warehouseSuitDisabled;
                 Debug.Log("CLIVERIFY bag-interaction protocol=" + protocolOk
+                    + " itemUseRouting=" + itemUseRouting + " manualWearOnly=" + manualWearOnly
                     + " bagClicks=" + bagClicks + " warehouseClicks=" + warehouseClicks
                     + " blockedSuitRaycast=" + (bagSuitDisabled && warehouseSuitDisabled) + " pass=" + pass);
                 return pass ? 0 : 3;
@@ -218,6 +248,7 @@ namespace Shenxiao.EditorTools
                         foreach (KeyValuePair<string, GameObject> pair in savedRoots) roots[pair.Key] = pair.Value;
                 }
                 if (prefabRoot != null) UnityEngine.Object.DestroyImmediate(prefabRoot);
+                if (frameHost != null) UnityEngine.Object.DestroyImmediate(frameHost);
                 if (eventSystemGo != null) UnityEngine.Object.DestroyImmediate(eventSystemGo);
                 if (cameraGo != null) UnityEngine.Object.DestroyImmediate(cameraGo);
                 if (warmup != null)
@@ -226,7 +257,55 @@ namespace Shenxiao.EditorTools
                     UnityEngine.Object.DestroyImmediate(warmup);
                 }
                 if (canvasGo != null) UnityEngine.Object.DestroyImmediate(canvasGo);
+                ViewManager.Init(null);
             }
+        }
+
+        private static bool VerifyItemUseRouting(MethodInfo setEquipment, List<byte[]> bagFrames)
+        {
+            MethodInfo resolve = typeof(ItemUseFlow).GetMethod("ResolveAction", SF);
+            MethodInfo better = typeof(ItemUseFlow).GetMethod("IsBetterEquipment", SF);
+            MethodInfo confirm = typeof(ItemUseFlow).GetMethod("OnConfirm", SF);
+            FieldInfo currentField = typeof(ItemUseFlow).GetField("_current", SF);
+            FieldInfo animatingField = typeof(ItemUseFlow).GetField("_isAnimating", SF);
+            if (resolve == null || better == null || confirm == null || currentField == null || animatingField == null)
+                return false;
+
+            GoodsModel.GoodsBasic normal = GoodsModel.GetGoodsBasicByTypeId(520100);
+            GoodsModel.GoodsBasic map = GoodsModel.GetGoodsBasicByTypeId(38340002);
+            GoodsModel.GoodsBasic fashion = GoodsModel.GetGoodsBasicByTypeId(12010002);
+            GoodsModel.GoodsBasic equip = GoodsModel.GetGoodsBasicByTypeId(101011010);
+            if (normal == null || map == null || fashion == null || equip == null) return false;
+
+            bool routes = resolve.Invoke(null, new object[] { normal }).ToString() == "Use"
+                && resolve.Invoke(null, new object[] { map }).ToString() == "None"
+                && resolve.Invoke(null, new object[] { fashion }).ToString() == "None"
+                && resolve.Invoke(null, new object[] { equip }).ToString() == "Wear";
+
+            var candidate = new BagGoods { GoodsId = 81001, TypeId = equip.TypeId, GoodsNum = 1, Rating = 700 };
+            BagModel.Instance.Clear();
+            bool waitsForWorn = !(bool)better.Invoke(null, new object[] { candidate, equip });
+
+            var lowWorn = new BagGoods
+            {
+                GoodsId = 81002, TypeId = 101015142, GoodsNum = 1,
+                Cell = equip.EquipType, Rating = 600,
+            };
+            setEquipment.Invoke(BagModel.Instance, new object[] { 10, new List<BagGoods> { lowWorn } });
+            bool strictlyBetter = (bool)better.Invoke(null, new object[] { candidate, equip });
+            lowWorn.Rating = 700;
+            setEquipment.Invoke(BagModel.Instance, new object[] { 10, new List<BagGoods> { lowWorn } });
+            bool equalRejected = !(bool)better.Invoke(null, new object[] { candidate, equip });
+            BagModel.Instance.Clear();
+
+            var usable = new BagGoods { GoodsId = 0x5100000000000099L, TypeId = normal.TypeId, GoodsNum = 1 };
+            bagFrames.Clear();
+            currentField.SetValue(null, usable);
+            animatingField.SetValue(null, false);
+            confirm.Invoke(null, null);
+            bool confirmUses = FrameHeader(bagFrames, Proto.USE_GOODS, 12)
+                && U64(bagFrames[0], 6) == (ulong)usable.GoodsId && U32(bagFrames[0], 14) == 1;
+            return routes && waitsForWorn && strictlyBetter && equalRejected && confirmUses;
         }
 
         private static bool VerifyProtocolFrames(List<byte[]> bagFrames, List<byte[]> fusionFrames, List<byte[]> equipFrames)
@@ -559,6 +638,8 @@ namespace Shenxiao.EditorTools
             GraphicRaycaster raycaster, EventSystem eventSystem)
         {
             if (blocker == null || !blocker.gameObject.activeInHierarchy || !blocker.raycastTarget) return false;
+            Canvas.ForceUpdateCanvases();
+            camera.Render();
             RectTransform rect = blocker.rectTransform;
             Vector3 world = rect.TransformPoint(new Vector3(rect.rect.xMin + 12f, rect.rect.yMin + 12f, 0f));
             var pointer = new PointerEventData(eventSystem)
@@ -570,7 +651,11 @@ namespace Shenxiao.EditorTools
             raycaster.Raycast(pointer, hits);
             if (hits.Count == 0 || hits[0].gameObject != blocker.gameObject)
             {
-                Debug.LogError("CLIVERIFY bag-interaction blocker not first hit: "
+                Debug.LogError("CLIVERIFY bag-interaction blocker not first hit screen=" + pointer.position
+                    + " rect=" + rect.rect + " world=" + world + ": "
+                    + "enabled=" + blocker.enabled + " depth=" + blocker.depth
+                    + " cull=" + blocker.canvasRenderer.cull + " alpha=" + blocker.color.a
+                    + " canvas=" + (blocker.canvas != null ? blocker.canvas.name : "null") + " hits="
                     + string.Join(",", hits.ConvertAll(h => h.gameObject != null ? h.gameObject.name : "null")));
                 return false;
             }

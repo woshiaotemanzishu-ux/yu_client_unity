@@ -43,8 +43,19 @@ namespace Shenxiao.Module.Core.Bag
             public int AutoUseSeconds = DefaultAutoUseSeconds;
         }
 
+        private enum CandidateAction
+        {
+            None,
+            Use,
+            Wear,
+        }
+
         private static readonly Dictionary<long, BagGoods> Candidates = new Dictionary<long, BagGoods>();
         private static readonly List<long> CandidateOrder = new List<long>();
+        // 登录时主背包快照可能早于已穿戴快照返回。装备必须先暂存，等 pos=1 权威快照到齐后再比较，
+        // 不能把“穿戴数据尚未到”误判成空槽并弹窗/自动穿戴。
+        private static readonly Dictionary<long, BagGoods> DeferredEquipment = new Dictionary<long, BagGoods>();
+        private static readonly List<long> DeferredEquipmentOrder = new List<long>();
 
         private static JObject _config;
         private static Task _configTask;
@@ -61,10 +72,7 @@ namespace Shenxiao.Module.Core.Bag
         private static bool _hasRestingPosition;
         private static string _actionLabel = string.Empty;
 
-        /// <summary>
-        /// 新装备推荐存在时暂停自动任务的自动穿戴，避免 15201 抢先改变穿戴态，
-        /// 导致 ItemUseView 刚创建便因“不再更优”而被关闭。
-        /// </summary>
+        /// <summary>存在待确认装备时，玩家的一键装备先提示处理弹层，避免两个明确操作同时发送 15201。</summary>
         public static bool HasPendingEquipment
         {
             get
@@ -112,6 +120,7 @@ namespace Shenxiao.Module.Core.Bag
         /// <summary>背包或穿戴状态变化后剔除已不存在、已不再更优的候选。</summary>
         public static void OnInventoryStateChanged()
         {
+            PromoteDeferredEquipment();
             RemoveInvalidCandidates();
             if (_current != null && !IsEligible(_current))
             {
@@ -131,6 +140,8 @@ namespace Shenxiao.Module.Core.Bag
 
             Candidates.Clear();
             CandidateOrder.Clear();
+            DeferredEquipment.Clear();
+            DeferredEquipmentOrder.Clear();
             _current = null;
             _opening = false;
             _presentationVersion++;
@@ -192,6 +203,14 @@ namespace Shenxiao.Module.Core.Bag
                 if (!TryGetConfig(goodsVo.TypeId, out ItemUseCfg cfg)) continue;
                 if (initialSnapshot && !cfg.FirstShow) continue;
                 if (!initialSnapshot && cfg.OnlyFirstShow) continue;
+                GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(goodsVo.TypeId);
+                CandidateAction action = ResolveAction(basic);
+                if (action == CandidateAction.None) continue;
+                if (action == CandidateAction.Wear && !BagModel.Instance.HasEquipmentData)
+                {
+                    AddOrReplaceDeferredEquipment(goodsVo);
+                    continue;
+                }
                 if (!IsEligible(goodsVo, cfg)) continue;
                 AddOrReplaceCandidate(goodsVo);
             }
@@ -224,6 +243,42 @@ namespace Shenxiao.Module.Core.Bag
             }
             Candidates[incoming.GoodsId] = incoming;
             CandidateOrder.Add(incoming.GoodsId);
+        }
+
+        private static void AddOrReplaceDeferredEquipment(BagGoods incoming)
+        {
+            GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(incoming.TypeId);
+            if (basic == null || basic.EquipType <= 0) return;
+            for (int i = DeferredEquipmentOrder.Count - 1; i >= 0; i--)
+            {
+                long id = DeferredEquipmentOrder[i];
+                if (!DeferredEquipment.TryGetValue(id, out BagGoods old)) continue;
+                GoodsModel.GoodsBasic oldBasic = GoodsModel.GetGoodsBasicByTypeId(old.TypeId);
+                if (oldBasic == null || oldBasic.EquipType != basic.EquipType) continue;
+                if (old.Rating >= incoming.Rating) return;
+                DeferredEquipment.Remove(id);
+                DeferredEquipmentOrder.RemoveAt(i);
+            }
+
+            DeferredEquipment[incoming.GoodsId] = incoming;
+            if (!DeferredEquipmentOrder.Contains(incoming.GoodsId))
+                DeferredEquipmentOrder.Add(incoming.GoodsId);
+        }
+
+        private static void PromoteDeferredEquipment()
+        {
+            if (!BagModel.Instance.HasEquipmentData || DeferredEquipmentOrder.Count == 0) return;
+            long[] ids = DeferredEquipmentOrder.ToArray();
+            DeferredEquipment.Clear();
+            DeferredEquipmentOrder.Clear();
+            for (int i = 0; i < ids.Length; i++)
+            {
+                long id = ids[i];
+                BagGoods goods = BagModel.Instance.FindContainerGoods(BagModel.POS_BAG, id);
+                if (goods == null || !TryGetConfig(goods.TypeId, out ItemUseCfg cfg) || !IsEligible(goods, cfg))
+                    continue;
+                AddOrReplaceCandidate(goods);
+            }
         }
 
         private static async Task TryShowNext()
@@ -359,10 +414,11 @@ namespace Shenxiao.Module.Core.Bag
             if (goods == null) return;
 
             GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(goods.TypeId);
+            CandidateAction action = ResolveAction(basic);
             CloseCurrent(removeCandidate: true);
-            if (basic == null) return;
+            if (action == CandidateAction.None) return;
 
-            if (basic.Type == 10)
+            if (action == CandidateAction.Wear)
                 EquipWearController.Instance.Wear(goods.GoodsId);
             else
                 BagController.Instance.UseGoods(goods.GoodsId, 1);
@@ -436,10 +492,45 @@ namespace Shenxiao.Module.Core.Bag
             if (basic.Sex != 0 && basic.Sex != role.Sex) return false;
             if (basic.Turn > (role.Figure?.turn ?? 0)) return false;
 
-            if (basic.Type != 10) return true;
-            if (basic.EquipType <= 0) return false;
+            CandidateAction action = ResolveAction(basic);
+            if (action == CandidateAction.None) return false;
+            if (action == CandidateAction.Use) return true;
+            return IsBetterEquipment(goods, basic);
+        }
+
+        private static bool IsBetterEquipment(BagGoods goods, GoodsModel.GoodsBasic basic)
+        {
+            if (!BagModel.Instance.HasEquipmentData || basic == null || basic.EquipType <= 0) return false;
             BagGoods worn = EquipAutoWear.GetWorn(basic.EquipType);
             return worn == null || goods.Rating > worn.Rating;
+        }
+
+        /// <summary>
+        /// 老端 ItemUseView.EnterFunc 并非所有非装备都直发 15050；藏宝图、时装、选择礼包、称号、外观、
+        /// 影装等都有专属页面/协议。Unity 尚未形成这些专属闭环时必须从通用候选中排除，避免展示一个
+        /// 点击后必然失败的“使用”按钮。这里只放行真实通用 15050 与 15201 穿戴。
+        /// </summary>
+        private static CandidateAction ResolveAction(GoodsModel.GoodsBasic basic)
+        {
+            if (basic == null) return CandidateAction.None;
+            if (basic.Type == 10)
+                return basic.EquipType > 0 ? CandidateAction.Wear : CandidateAction.None;
+            if (basic.Use == 0 || RequiresDedicatedAction(basic)) return CandidateAction.None;
+            return CandidateAction.Use;
+        }
+
+        private static bool RequiresDedicatedAction(GoodsModel.GoodsBasic basic)
+        {
+            int type = basic.Type;
+            int subtype = basic.Subtype;
+            if (type == 12 || type == 22 || type == 25 || type == 26 || type == 33 || type == 34
+                || type == 55 || type == 56 || type == 60 || type == 68 || type == 75 || type == 76)
+                return true;
+            if (type == 38 && subtype == 6) return true;
+            if (type == 40 && subtype == 6) return true;
+            if (type >= 16 && type < 22 && subtype == 3) return true;
+            if (type == 69 && subtype == 1) return true;
+            return false;
         }
 
         private static bool TryGetConfig(int typeId, out ItemUseCfg cfg)

@@ -1678,3 +1678,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **内容对齐**：装备详情按老端顺序显示极品、基础/强化、专有、宝石、洗炼五类属性；补入强化、宝石孔解锁、宝石等级属性和转生职业四张配置。品质标题图补齐 1～7 品质；字体、Light/Dark 品质色、职业/部位、等级与阶数口径按老端实现。宝石六孔区支持已镶嵌图标与两列属性、未镶嵌、5/7/9/11 阶和 VIP4 解锁，空孔使用半高行。
 - **滚动与对比**：详情滚动区在 Prefab 中保存 `RectMask2D`，动态内容从顶部开始且只在面板内部滚动。背包同部位已有装备时不再输出单板“装备对比”拼接文本，而是左侧当前装备仅“关闭”、右侧候选装备仅“穿戴”；无当前装备、已穿戴详情和仓库存取继续走各自单板按钮语义。
 - **验证状态**：Unity 强制编译 `completed/failed=false/errors=[]`；`BagInteractionCase=0`，最终日志为 `isolated=True/closeRoot=True/detail=True/use=True/True/compare=True/icons=True/configGroups=True/wear=True/True/blocker=True/deposit=True/True/takeout=True/True/pass=True`。用例真实渲染双板并验证六个宝石孔，且通过 `GraphicRaycaster→PointerClick` 证明遮罩先于底层背包关闭按钮命中。
+
+## 2026-07-31：背包 Activity 子窗层级与 ItemUse 触发修正
+
+- **吞噬层级根因**：Unity 原实现只把 `BagSmeltView` 提到所属 `BagModule` 内部的最后 sibling，但生产背包内容已经移入 `BaseWindowSkin`，外框仍位于更高的 Window 根；因此吞噬页实际被整个背包压住。老端 `BagSmeltView/OneKeyUseView/ExpandBagView` 都是 Activity 层并启用点击背景关闭。
+- **层级修复**：三类子窗统一映射到 `UILayer.Popup`，打开时提升承载子窗的 `BagModule` 根。`BagModule.prefab` 增量保存全屏 `BagActivityBlocker`，复用老端 `common/texture/com_sub_bg_7`；遮罩位于子窗下方，点击先关闭当前子窗并阻止背包关闭、导航和物品格穿透。未重转 Prefab，也未改人工布局。
+- **重复穿戴根因与修复**：Unity 曾额外把 `EVT_BAG_UPDATE` 接到 `EquipAutoWear`，自动任务开启时会在登录背包快照后主动发送多条 `15201`，这条行为老端不存在。现已删除背包更新防抖与自动穿戴入口；一键装备仅保留玩家点击。登录只请求 `15010 pos=1`，供人工一键装备与装备推荐比较。
+- **ItemUse 修复**：背包 `pos=4` 早于穿戴 `pos=1` 到达时，装备候选先暂存，穿戴快照到齐后仅在评分严格更高时展示，等分/低分不弹。普通物品先按老端 `EnterFunc` 分流；通用物品确认发送 `15050`，藏宝图、时装等专属流程物品不再错误弹出并收到服务端失败码。
+- **验证状态**：Unity 强制编译 `completed/failed=false/errors=[]`；`BagInteractionCase=0`。真实 Prefab 点击覆盖吞噬/扩容/一键使用均位于 Popup，`com_sub_bg_7` 遮罩为第一命中并能关闭子窗；协议回归为 `itemUseRouting=True/manualWearOnly=True`，同时验证普通使用精确发送 `15050`、专属物品不走通用入口、穿戴快照等待与严格高分比较。
