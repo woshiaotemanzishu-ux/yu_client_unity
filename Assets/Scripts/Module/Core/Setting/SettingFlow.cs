@@ -155,11 +155,17 @@ namespace Shenxiao.Module.Core.Setting
             Close();
             LoginController.Instance.ClearInGameReconnectState();
             await NetManager.DisconnectAsync();
+            if (!await LoginFlow.RestoreAfterLogoutAsync(showLogin: false))
+            {
+                TipsManager.Toast("角色选择界面加载失败，请重新启动游戏");
+                return;
+            }
+
             LoginRequestResult result = await LoginController.Instance.ConnectGameAsync();
             if (!result.success)
             {
                 TipsManager.Toast("连接失败: " + result.message);
-                LoginFlow.ShowLogin();
+                await LoginFlow.RestoreAfterLogoutAsync(showLogin: true);
             }
         }
 
@@ -174,7 +180,10 @@ namespace Shenxiao.Module.Core.Setting
             Close();
             LoginController.Instance.ClearInGameReconnectState();
             await NetManager.DisconnectAsync();
-            LoginFlow.ShowLogin();
+            if (!await LoginFlow.RestoreAfterLogoutAsync(showLogin: true))
+            {
+                TipsManager.Toast("登录界面加载失败，请重新启动游戏");
+            }
         }
 
         /// <summary>修复异常(老端 = window.location.reload):保留游戏内自动重连状态直接断线,

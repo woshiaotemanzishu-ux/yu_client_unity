@@ -1706,3 +1706,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **实现**：`MapTileConverter` 改为按 `.bytes` 瓦片坐标清单盘点有效瓦片；保留增量“转换”，新增强制 `Update`，覆盖选中场景的 `.bytes`、缩略图和有效瓦片但不碰 `.meta`、不删除历史残片。`MapAssetWindow` 增加“从老端更新”按钮、覆盖确认、进度、结果统计和可选 Addressable 自动分组。
 - **边界**：源仍为 `yu_client/cdn/resource/game/scene/map`；老端资源工具负责双写 H5 源与 CDN，Unity 工具只读取老端并更新本项目，不反向修改老客户端。
 - **验证状态**：`dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 为 77 个既有 warning、0 error；Unity 真实窗口选中 `10000 云来镇` 后显示有效瓦片 `1548/1548`，并实点“从老端更新”，完成提示为“本次更新 1549 张资源、跳过 0、有效瓦片 1548/1548、已执行 Addressable 自动分组”。更新后老客户端两份 `10000` 目录与 Unity 地图目录均无 Git 差分，Unity 缩略图 SHA-256 保持 `090AF4F54ED0DF5BA694D459CB21D9F7F9F27B27E7FF01D912A312FF837A6DD3`；验收产生的 Addressable 重分组现场已回收，不纳入本轮工具提交。
+
+## 2026-07-31：设置页切换账号/角色黑屏修复
+
+- **根因**：场景首屏就绪后登录舞台和登录/选角 Prefab 已按内存策略释放；设置页确认后的旧流程仍直接操作空登录引用，断线清场后 Window 层没有任何可见页面。
+- **实现**：保留两个入口的双按钮确认弹窗。确认后统一禁用游戏内自动重连并断线；新增登录模块恢复入口，切账号重建后显示真实账号登录页，切角色重建后显示连接等待层、复用当前服重连并发送 `10000`，角色列表回包后进入真实选角页。角色重连失败可见提示并回退登录页。
+- **生命周期**：登录模块释放时补齐角色列表、进游戏、`GAME_START`、场景首屏等事件注销，重建时重新注册，避免切换后残留或重复回调。
+- **验证状态**：`dotnet build Shenxiao.Module.Core.csproj --no-restore -m:1` 为 0 error（仅既有 warning）；未重建或覆盖用户人工调整的 `SettingModule.prefab`。

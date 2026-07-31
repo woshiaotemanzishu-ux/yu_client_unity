@@ -153,6 +153,44 @@ namespace Shenxiao.Module.Core.Login
             _loginPanel.ShowLogin();   // 切登录子面板
         }
 
+        /// <summary>
+        /// 游戏内切换账号/角色时恢复已经在首屏就绪后释放的整套登录 UI。
+        /// showLogin=true 直接显示账号登录页；false 先保持页面隐藏，等待 10000 角色列表回包后进入选角页。
+        /// </summary>
+        public static async Task<bool> RestoreAfterLogoutAsync(bool showLogin)
+        {
+            if (_stage == null)
+            {
+                if (_config == null)
+                {
+                    GameLog.Error("Login", "无法恢复登录界面: AppConfig 尚未初始化");
+                    return false;
+                }
+
+                await StartAsync(_config);
+            }
+
+            bool ready = _stage != null && _loginPanel != null && _loadingView != null
+                && _enterView != null && _selectRoleView != null && _createRoleView != null;
+            if (!ready)
+            {
+                GameLog.Error("Login", "恢复登录界面失败: 登录 Prefab 未完整加载");
+                return false;
+            }
+
+            if (showLogin)
+            {
+                HideAllViews();
+                ShowLogin();
+            }
+            else
+            {
+                HideAllViews();
+                ShowConnectLoading("正在返回角色选择界面");
+            }
+            return true;
+        }
+
         public static void ShowRegister()
         {
             _loginPanel?.ShowRegister();
@@ -561,7 +599,11 @@ namespace Shenxiao.Module.Core.Login
                 ResManager.ReleaseInstance(_stage.gameObject);
                 _stage = null;
             }
+            EventDispatcher.Off<int>(GlobalEvent.EVT_GAME_ROLE_LIST, OnRoleList);
             EventDispatcher.Off(GlobalEvent.EVT_NET_DISCONNECTED, OnNetDisconnectedDuringLogin);
+            EventDispatcher.Off(GlobalEvent.EVT_GAME_ENTERED, OnGameEntered);
+            EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
+            EventDispatcher.Off(GlobalEvent.EVT_SCENE_ENTITIES_READY, OnSceneEntitiesReady);
             _roleListCompletion = null;
             _awaitingRoleListResponse = false;
             LegacyPreloadService.ProgressChanged -= OnPreloadProgress;
