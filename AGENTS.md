@@ -14,6 +14,8 @@
 
 - 复合按钮自适应布局规则：按钮背景/唯一点击面和状态图标不得作为 LayoutGroup 子项被控制；只有需要按 preferred width 或可用宽度缩放的文字放进独立内层容器，并把 Horizontal/VerticalLayoutGroup 挂在该纯文字容器上。禁止把 LayoutGroup 直接挂在带 Image 的按钮根，或用 childForceExpand 拉伸图片来换取文字排布。
 
+- Laya 空 Image 迁移规则：老端 `Image` 节点没有 `skin` 且运行时赋图链明确不存在或已注释时，Unity Prefab 若为保留节点/序列化绑定而继续挂 `Image`，必须将该组件禁用或把颜色 Alpha 明确设为 0；禁止只清空 Sprite。Unity UGUI 的启用态空 Sprite `Image` 仍会按不透明颜色绘制白色矩形，视觉验收和只读用例必须同时校验 Sprite 为空与组件禁用/透明。
+
 - 协议覆盖 baseline 收口规则：`Schemas/ProtocolCoverage/baseline.json` 的历史 `unityRegistered/liveGap` 数值用于防倒退，禁止为追当前报告逐轮改写；但当最新运行时扫描的某家族全部活缺口已由注册或带 evidence 的 killlist 完整治理时，必须在同轮把人工 `status` 转为 `done` 并写 `statusNote`，再以 `ProtocolCoverageCase` 的C段验收。禁止长期保留 `pending/legacy_unverified` 逃避C段，也禁止把真实玩家可达写事务塞进killlist来伪收口。
 
 - 协议负约束优先规则：`AGENTS.md` 对某协议明确写了“不接/No/Do not attach”时，后续轮次不得用“补覆盖率”推翻；若审计发现晚于该规则的常量、注册、sender、模型或用例，必须撤销违规增量并让家族保持 `pending`，不得靠违规注册把 raw 缺口清零后标 `done`。R517 已按此撤销20600/20602与28500。

@@ -36,6 +36,22 @@ namespace Shenxiao.EditorTools
             return pass ? 0 : 3;
         }
 
+        [MenuItem("神霄/验收/人物页视觉")]
+        public static async void RunFromEditorMenu()
+        {
+            ResManager.EditorPreferFallback = true;
+            bool prefab = VerifyRolePrefab();
+            bool runtime = await VerifyRoleRuntime();
+            if (prefab && runtime)
+            {
+                Debug.Log("CLIVERIFY rolevisual EDITOR PASS prefab=True runtime=True");
+            }
+            else
+            {
+                Debug.LogError("CLIVERIFY rolevisual EDITOR FAIL prefab=" + prefab + " runtime=" + runtime);
+            }
+        }
+
         private static bool VerifySettingPrefab()
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/Setting/SettingModule.prefab");
@@ -79,7 +95,9 @@ namespace Shenxiao.EditorTools
             bool fight = view._gp_fight != null && view._gp_fight.GetComponent<HorizontalOrVerticalLayoutGroup>() != null;
             bool title = view._img_title_base != null && view._img_title_base.gameObject.activeSelf
                 && view._img_title_best != null && !view._img_title_best.gameObject.activeSelf;
-            bool modelBackground = view.model_bg != null && view.model_bg.sprite == null;
+            bool modelBackground = view.model_bg != null
+                && view.model_bg.sprite == null
+                && !view.model_bg.enabled;
             Debug.Log("CLIVERIFY rolesetting rolePrefab grid=" + gridOk + " fitter=" + fitter
                 + " fight=" + fight + " title=" + title + " modelBackground=" + modelBackground);
             return gridOk && fitter && fight && title && modelBackground;
@@ -176,6 +194,7 @@ namespace Shenxiao.EditorTools
                         Enabled = true,
                         Label = "人物",
                         TitleImagePath = GameResPath.GetIcon("role", "title_name"),
+                        BackgroundImagePath = GameResPath.GetBigBgPath("ui_role_new_bg_1.jpg"),
                         ContentFactory = parent =>
                         {
                             equipment.transform.SetParent(parent, false);
