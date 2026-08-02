@@ -12,6 +12,30 @@
     "note": "10211既有严格空请求，也承载登录、周期定时和Temple完成触发的uid主动推送；服务端依赖data_popup筛选、定时器生命周期和功能消费者路由，Unity缺整套编排，禁止孤立常量、sender、raw uid或无消费者handler。"
   },
   {
+    "cmd": 11201,
+    "rule": "R118/R540/R584 Dress activation asset transaction boundary",
+    "evidence": "AGENTS.md:R584 Dress 11201/11202/11203/11204完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R584",
+    "note": "11201会按配置真实扣料、写装扮等级DB、重算被动技能与角色属性并同步场景；旧端首次激活还按条件串发11202及外观变化页，禁止孤立sender、raw结果或乐观激活升级。"
+  },
+  {
+    "cmd": 11202,
+    "rule": "R118/R540/R584 Dress use persistence and scene boundary",
+    "evidence": "AGENTS.md:R584 Dress 11201/11202/11203/11204完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R584",
+    "note": "11202会切换同类装扮DB使用态、更新figure/dress_list和头像、广播11204并刷新聊天缓存；缺场景、头像、聊天和完整装扮页时禁止sender、ACK或本地use_id补丁。"
+  },
+  {
+    "cmd": 11203,
+    "rule": "R118/R540/R584 Dress unuse persistence and fallback boundary",
+    "evidence": "AGENTS.md:R584 Dress 11201/11202/11203/11204完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R584",
+    "note": "11203会持久化卸下、广播11204并刷新聊天缓存，头像类型成功后服务端还串行调用11202穿默认头像；旧端handler误读11202不可照搬，禁止孤立sender或乐观卸下。"
+  },
+  {
+    "cmd": 11204,
+    "rule": "R118/R540/R584 Dress scene broadcast consumer boundary",
+    "evidence": "AGENTS.md:R584 Dress 11201/11202/11203/11204完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R584",
+    "note": "11204是11202/11203成功后向周围广播的role_id加dress_list场景状态；Unity缺其他角色气泡/相框/足迹/头像资源与场景消费者，禁止no-op注册、raw最后通知或只改RoleVo。"
+  },
+  {
     "cmd": 11205,
     "rule": "R118/R540 Dress boundary",
     "evidence": "AGENTS.md:协议负约束优先规则;Docs/差距分析-协议接入GapMap-20260711.md:Dress",
