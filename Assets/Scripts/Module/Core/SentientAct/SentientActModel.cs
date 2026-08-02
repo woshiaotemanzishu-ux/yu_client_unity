@@ -48,6 +48,16 @@ namespace Shenxiao.Module.Core.SentientAct
             }
         }
 
+        public sealed class PortalRemovedSnapshot
+        {
+            public long PortalId { get; }
+
+            public PortalRemovedSnapshot(long portalId)
+            {
+                PortalId = portalId;
+            }
+        }
+
         public static readonly SentientActModel Instance = new SentientActModel();
 
         public bool HasInfo { get; private set; }
@@ -60,6 +70,8 @@ namespace Shenxiao.Module.Core.SentientAct
         public IReadOnlyList<ServerEntry> Servers { get; private set; } = new List<ServerEntry>().AsReadOnly();
         public bool HasPortals { get; private set; }
         public IReadOnlyList<PortalEntry> Portals { get; private set; } = new List<PortalEntry>().AsReadOnly();
+        public bool HasPortalRemoved { get; private set; }
+        public PortalRemovedSnapshot LastPortalRemoved { get; private set; }
         public bool HasCounts { get; private set; }
         public uint AssistNum { get; private set; }
         public uint EnterNum { get; private set; }
@@ -84,6 +96,12 @@ namespace Shenxiao.Module.Core.SentientAct
             HasPortals = true;
         }
 
+        public void ReplacePortalRemoved(long portalId)
+        {
+            LastPortalRemoved = new PortalRemovedSnapshot(portalId);
+            HasPortalRemoved = true;
+        }
+
         public void ReplaceCounts(uint assist, uint enter)
         {
             AssistNum = assist;
@@ -99,13 +117,14 @@ namespace Shenxiao.Module.Core.SentientAct
 
         public void Reset()
         {
-            HasInfo = HasPortals = HasCounts = false;
+            HasInfo = HasPortals = HasPortalRemoved = HasCounts = false;
             HasMonsterProgress = false;
             State = 0;
             EndTime = Mod = GroupId = NextStartTime = AssistNum = EnterNum = 0;
             AvgLevel = 0;
             Servers = new List<ServerEntry>().AsReadOnly();
             Portals = new List<PortalEntry>().AsReadOnly();
+            LastPortalRemoved = null;
             LastMonsterProgress = null;
         }
     }

@@ -20,6 +20,7 @@ namespace Shenxiao.Module.Core.SentientAct
         {
             RegisterProtocal(Proto.SENTIENT_ACT_INFO, On24101);
             RegisterProtocal(Proto.SENTIENT_ACT_PORTALS, On24102);
+            RegisterProtocal(Proto.SENTIENT_ACT_PORTAL_REMOVED, On24106);
             RegisterProtocal(Proto.SENTIENT_ACT_COUNTS, On24107);
             RegisterProtocal(Proto.DUNGEON_SENTIENT_MONSTER_PROGRESS, On61066);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
@@ -81,6 +82,12 @@ namespace Shenxiao.Module.Core.SentientAct
         {
             SentientActModel.Instance.ReplacePortals(r.ReadArray(x => new SentientActModel.PortalEntry(
                 x.ReadU64(), x.ReadU32(), x.ReadU32())));
+        }
+
+        private void On24106(NetReader r)
+        {
+            SentientActModel.Instance.ReplacePortalRemoved(r.ReadU64());
+            RequestPortals();
         }
 
         private void On24107(NetReader r)

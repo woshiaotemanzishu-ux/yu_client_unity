@@ -38,6 +38,8 @@
         public const int SENTIENT_ACT_INFO = 24101;
         /// <summary>尘世门门户快照。C2S 空包；S2C portals:u16×{portal_id:u64,x:u32,y:u32}。</summary>
         public const int SENTIENT_ACT_PORTALS = 24102;
+        /// <summary>尘世门门户销毁通知。S2C-only portal_id:u64；收到后只重查 24102 权威全量。</summary>
+        public const int SENTIENT_ACT_PORTAL_REMOVED = 24106;
         /// <summary>尘世门人数快照。C2S 空包；S2C assist_num:u32,enter_num:u32。</summary>
         public const int SENTIENT_ACT_COUNTS = 24107;
 

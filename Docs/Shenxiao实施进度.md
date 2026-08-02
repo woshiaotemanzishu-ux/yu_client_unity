@@ -1742,3 +1742,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **状态语义**：两号每包分别替换自己的不可变最后raw增量。40904仅在40903已加载时更新首个同ID缓存条目，保留category、未知ID不补项、重复ID按wire最后生效；40907仅在40901已加载时按stage覆盖/追加奖励并更新阶段字段，空增量不清奖励。早到包只存raw，后到40901/40903全量可整体收权威且不清raw切片。
 - **延期边界**：40902/40905领奖会真实发奖并写领取状态，继续等待成就配置、页面门禁、奖励/背包和错误闭环；40909仍只属于尚未迁移的分类详情页。本轮不接UI、事件、红点、Toast、自动重查或本地奖励。
 - **验证状态**：Unity 6000.3.17f1权威编译0 error（11条既有warning）；`AchievementCase=0/pass=True`，覆盖精确注册/启动帧、早包隔离、u32/u64边界、未知与重复ID、空增量、先前raw不可变、后到全量覆盖及Dispose/环境恢复。`coverage_20260802_122044.md` A～E全PASS，运行时为 `registered=1265 / liveDefined=1468 / liveGap=325 / errorExit=12 / active=1143/1468=77.9%`；409族为`registered6/liveGap3/dead1/pending`，冻结baseline未改。
+
+## 2026-08-02：众生之门 24106 门户销毁通知闭环（R525）
+
+- **协议边界**：24106是服务端销毁门户后向场景广播的S2C-only `portal_id:u64`，没有客户端同号操作入口。Unity每包保存独立不可变最后raw通知，并精确空发一次24102；GAME_START仍严格为 `24101→24107→24102`，活动态24101原有追查不变。
+- **权威状态**：24106不按ID补丁式修改24102缓存，重复ID、零值与`u64 max`都只按原值记录。重查无回复保留旧门户；后到24102继续保序保重整体覆盖且不清24106 raw。Reset/Dispose清理新旧切片，未接场景销毁、UI、事件、配置、红点或Toast。
+- **候选审计**：曾核对BrightSea 18910/18911的服务端增量语义，但项目既有“Do not attach 18903/18905-18914”负约束优先，相关试验代码与文档已全部撤销，未进入本轮成果。164/191/509/511/612/622等单缺口均为真实写事务或既有延期项，未以覆盖率为由裸接。
+- **验证状态**：Unity 6000.3.17f1编译0 error（77条既有warning）；`SentientActPortalRemovedCase=0/pass=True/restored=True`覆盖S2C-only、早包、重复ID、u64极值、单次24102重查、无本地全量变更、后到全量覆盖与环境恢复，既有`SentientActCase=0/pass=True`确认注册、启动序列及原切片无回归。`coverage_20260802_124100.md` A～E全PASS，运行时为 `registered=1266 / liveDefined=1468 / liveGap=324 / errorExit=12 / active=1144/1468=77.9%`；241族为`registered4/liveGap5/dead0/pending`，冻结baseline未改。

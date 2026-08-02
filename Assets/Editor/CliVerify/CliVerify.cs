@@ -299,6 +299,7 @@ namespace Shenxiao.EditorTools
         public static void RuneReadContinuation() { Run(RuneReadContinuationCase.Run, 60.0); }
         public static void LimitLevelShopGiftConfig() { Run(LimitLevelShopGiftConfigCase.Run, 60.0); }
         public static void SentientAct() { Run(SentientActCase.Run, 60.0); }
+        public static void SentientActPortalRemoved() { Run(SentientActPortalRemovedCase.Run, 60.0); }
         public static void SentientActMonsterProgress() { Run(SentientActMonsterProgressCase.Run, 60.0); }
         public static void BrightSea() { Run(BrightSeaCase.Run, 60.0); }
         public static void SettingWxSubscription() { Run(SettingWxSubscriptionCase.Run, 60.0); }

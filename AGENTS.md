@@ -36,6 +36,8 @@
 
 - R524 Achievement 40904/40907：两号均为S2C-only，禁止公开请求或加入GAME_START。40904 wire为 `updates:u16×{id:u32,status:u8,progress:u64}`；每包完整替换不可变raw增量，只有40903权威列表已加载时才按wire顺序替换首个同ID条目并保留category，未知ID不得补项，重复ID最后一条生效，空增量不得清全量。40907 wire为 `rewards:u16×{stage:u32,status:u8},cur_stage:u8,new_cur_stage:u16`；每包保存独立不可变raw增量，只有40901已加载时才按stage顺序覆盖或追加奖励并更新两个阶段字段，空增量只更新阶段、不清奖励。后续40901/40903全量仍可覆盖合并结果，且不得清两份最后raw增量。40902/40905领奖事务与40909分类查询继续等待成就配置/UI/奖励闭环，不得顺带接sender、事件、红点、Toast或本地发奖。
 
+- R525 SentientAct 24106：本号是S2C-only门户销毁通知 `portal_id:u64`，每包完整替换独立不可变最后raw通知，并严格空发一次24102获取权威门户全量。24106不得补丁式删除或清空当前24102缓存；重查无回包必须保留旧全量，后到24102正常整体覆盖且不清最后raw通知。禁止公开24106 sender、加入GAME_START、发场景/页面事件、直接销毁场景对象、接UI/配置/红点/Toast；启动仍严格为 `24101→24107→24102`，活动态24101仍只追发一次24102。
+
 - Unity 序列化脚本规则：会挂到 Scene/Prefab 的 `MonoBehaviour` / `ScriptableObject` 必须独占同名 `.cs` 文件，禁止把它放在“首个类型为静态类、抽象类或其他不同名类型”的文件里；Editor 生成器 `AddComponent<T>()` 后必须核对产物 `m_Script` 为非零 GUID 且 GUID 指向 `T` 的同名脚本。否则即使 C# 编译通过，Unity 仍可能把组件保存成 Missing Script。
 
 - 主界面技能规则：技能项只允许 `con` 作为唯一 Raycast/Button 点击面，`bg/icon/lock/CD/文字` 等装饰 Graphic 必须关闭 `raycastTarget`；点击验收必须走真实 Prefab 的 `GraphicRaycaster→PointerClick`，直接调用 `OnClickSkill` 不算点击链通过。普通 `AutoFight` 不得拦截玩家手点技能，只有服务端 `13017` 的 `RoleModel.DepositState` 托管态才拦截。手动无锁定目标时按当前朝向原地释放并只在技能 `area` 内局部预选，不得跨全场抢最近怪；自动战斗才允许全场寻敌并接近。接敌范围严格对标老端：`range==1` 使用 `max(100,(distance+area)*0.8)`，其他模式使用 `max(100,distance*0.8)`；命中几何由 `range/distance/area/num` 决定，禁止从 `desc` 文案猜圆形、直线或扇形。
@@ -416,9 +418,9 @@
 
 - 两号均显式发送 `level:u8`；61105 S2C 为 `level:u8,sweep_count:u16,dun_list:u16×{dun_id:u32,score:u8}`，61106 S2C 为 `level:u8,stage_reward:u16×{score:u16,status:u8}`。61105 的 SweepCount 是跨章节全局日计数，每个05包覆盖全局值；两类列表分别按 level 完整替换、保序保重、空表仍 loaded，不同 level 与05/06相互隔离。无效 level 服务端静默无响应，客户端保留旧桶；仅 Reset/Dispose 全清。不接依赖章节配置的 GAME_START/日切遍历，也不接61107-61110、配置/UI/红点/奖励操作。
 
-## SentientAct 24101 / 24102 / 24107（R164）
+## SentientAct 24101 / 24102 / 24106 / 24107（R164 / R525）
 
-- GAME_START 无门槛固定空发24101→24107→24102。24101 是活动状态完整快照并兼具服务端主动广播，S2C 为 `state:u8,end_time:u32,mod:u32,group_id:u32,next_start_time:u32,servers:u16×{server_id:u64,server_num:u64,name:string,world_lv:u64},avg_lv:u64`；每个 state 非0包都追发24102，state=0不清旧门户。24102完整替换 `portals:u16×{portal_id:u64,x:u32,y:u32}`；24107按 wire `assist_num:u32,enter_num:u32` 完整覆盖。三slice普通包互不清，仅登录Reset/Dispose全清；24106删除门户delta及24103-05/08/09场景/操作链不在本轮。
+- GAME_START 无门槛固定空发24101→24107→24102。24101 是活动状态完整快照并兼具服务端主动广播，S2C 为 `state:u8,end_time:u32,mod:u32,group_id:u32,next_start_time:u32,servers:u16×{server_id:u64,server_num:u64,name:string,world_lv:u64},avg_lv:u64`；每个 state 非0包都追发24102，state=0不清旧门户。24102完整替换 `portals:u16×{portal_id:u64,x:u32,y:u32}`；24107按 wire `assist_num:u32,enter_num:u32` 完整覆盖。24106是S2C-only `portal_id:u64`，只保存独立raw最后通知并精确重查一次24102，不本地删除全量；无回复保留旧门户，后到24102整体收权威。四slice普通包互不清，仅登录Reset/Dispose全清；24103-05/08/09场景/操作链继续不接。
 
 - 宝宝装备的通用物品容器必须分开：`pos=36` 是已穿戴装备实例库，供 18205/18218 槽位里的装备实例 id 反查；`pos=37` 是待穿候选背包。二者都接收 15010/15017/15018，但使用独立存储与事件；老端登录批量请求中 36/37 均被注释，Unity 当前只主动请求 37，36 保持被动接收，未经实证不要擅自加入启动请求。182xx 槽位包与 pos36 物品包没有固定先后，UI 必须同时监听两条更新链，实例未到或 id 不匹配时先降级显示槽位包的 `GoodsTypeId`。候选变强红点严格比较 `BagGoods.Rating`（不用 `OverallRating`）：空槽或候选更高即红；红点节点是 `BabyEquipSubItem.redImg`，槽位 `BabyEquipIcon.effectGp` 只表示选中。
 - 宝宝装备强化 18219 上行只有 `pos_id:u8`；回包是 `code:i,pos:u8,id:u64,type:i,stage:u16,stage_lv:u16,stage_exp:i,power:i`。服务端会自行挑选强化经验材料或按升阶配置直接扣固定 cost，客户端不发送材料列表；扣包另走 15017/15018。实际消费必须放在 Forge 子面板，并走“实时预览足够 → 列出材料名×数量 → 二次确认 → 回调再次校验同槽位/实例/消费快照 → pending 防连点 → 发 18219”的链路，不能把主页入口直接绑定到 `RequestEquipUpgrade`。
