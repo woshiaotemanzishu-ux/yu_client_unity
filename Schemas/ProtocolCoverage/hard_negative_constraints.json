@@ -96,6 +96,24 @@
     "note": "17503按day_id校验合服七日状态并经背包或邮件真实发奖，写领取DB后返回展示列表；必须与三份七日页面、配置、资格、单飞、错误、奖励、图标红点及背包/邮件整链一起恢复。"
   },
   {
+    "cmd": 17901,
+    "rule": "R532/R579 MondaysAward pool-selection state boundary",
+    "evidence": "AGENTS.md:R579 MondaysAward 17901/17903/17906状态资产事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R579",
+    "note": "17901收发嵌套u16奖池表，服务端按类型、数量和可选奖励校验后替换角色now_pool，后续抽奖会将该选择持久化；Unity只有17908当前池raw，缺可编辑选池页和权威配置，禁止孤立sender或本地替换池。"
+  },
+  {
+    "cmd": 17903,
+    "rule": "R532/R579 MondaysAward draw asset transaction boundary",
+    "evidence": "AGENTS.md:R579 MondaysAward 17901/17903/17906状态资产事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R579",
+    "note": "17903严格空请求会按当前池随机、真实扣抽奖成本、发奖、累计次数、写个人记录和角色DB，并推17902及跨服记录/福利链；禁止孤立常量、sender、抽奖raw、乐观扣券或本地发奖。"
+  },
+  {
+    "cmd": 17906,
+    "rule": "R532/R579 MondaysAward task-reward claim boundary",
+    "evidence": "AGENTS.md:R579 MondaysAward 17901/17903/17906状态资产事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R579",
+    "note": "17906按task_id校验已完成未领取，真实发奖励、写任务已领状态/DB并主动推17904；Unity任务raw缺配置、领取按钮、单飞、奖励与背包刷新，禁止孤立sender、code ACK或局部state补丁。"
+  },
+  {
     "cmd": 18905,
     "rule": "R179/R545 BrightSea operation boundary",
     "evidence": "AGENTS.md:R545 BrightSea 18905纠偏",
