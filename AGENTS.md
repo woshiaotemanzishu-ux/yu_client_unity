@@ -18,9 +18,11 @@
 
 - 协议覆盖 baseline 收口规则：`Schemas/ProtocolCoverage/baseline.json` 的历史 `unityRegistered/liveGap` 数值用于防倒退，禁止为追当前报告逐轮改写；但当最新运行时扫描的某家族全部活缺口已由注册或带 evidence 的 killlist 完整治理时，必须在同轮把人工 `status` 转为 `done` 并写 `statusNote`，再以 `ProtocolCoverageCase` 的C段验收。禁止长期保留 `pending/legacy_unverified` 逃避C段，也禁止把真实玩家可达写事务塞进killlist来伪收口。
 
-- 协议负约束优先规则：`AGENTS.md` 对某协议明确写了“不接/No/Do not attach”时，后续轮次不得用“补覆盖率”推翻；若审计发现晚于该规则的常量、注册、sender、模型或用例，必须撤销违规增量并让家族保持 `pending`，不得靠违规注册把 raw 缺口清零后标 `done`。在文件别处追加一条正向实现记录不构成豁免；只有先基于本轮明确产品授权与新证据同步改写原负约束，后续实现才可进入。R517已撤销20600/20602与28500，R539撤销28600，R540撤销11205、13507、21600/21606与27904-27909，R541撤销10205、18918/18920与65206，R545补撤18905。负约束交叉审计必须展开`A-B`、`A/B-C`等区间写法中的每个协议号，禁止只比较显式端点；机器命中后仍须按完整句义裁决：R542确认13217段的“Do not attach 13218”原义是禁止13217与13218联动，不是禁止全局注册既有13218主动推送。
+- 协议负约束优先规则：`AGENTS.md` 对某协议明确写了“不接/No/Do not attach”时，后续轮次不得用“补覆盖率”推翻；若审计发现晚于该规则的常量、注册、sender、模型或用例，必须撤销违规增量并让家族保持 `pending`，不得靠违规注册把 raw 缺口清零后标 `done`。在文件别处追加一条正向实现记录不构成豁免；只有先基于本轮明确产品授权与新证据同步改写原负约束，后续实现才可进入。R517已撤销20600/20602与28500，R539撤销28600，R540撤销11205、13507、21600/21606与27904-27909，R541撤销10205、18918/18920与65206，R545补撤18905，R546补撤42704。负约束交叉审计必须展开`A-B`、`A/B-C`等区间写法中的每个协议号，禁止只比较显式端点；机器命中后仍须按完整句义裁决：R542确认13217段的“Do not attach 13218”原义是禁止13217与13218联动，不是禁止全局注册既有13218主动推送。
 
 - R545 BrightSea 18905纠偏：R179/R167-R179在提交`4b57af7795`已明确“不接18903/18905-18914 operations or deltas”；18905常量、注册、S2C结果handler、raw模型与正向用例由更晚的`aa9eb068f0`追加，原负约束从未改写。R541因未展开区间而误把18905列入保留集合，现已补撤；BrightSea只保留18900/18901/18902/18904/18915/18916/18917。18905服务端事务真实启动掠夺/复仇并进入场景战斗，继续作为真实活缺口pending，不得写入killlist、注册孤立结果、公开sender或建立raw占位；只有先恢复完整航运/抢夺入口、场景、配置、结果与奖励消费者并同步改写原禁令后才可重审。
+
+- R546 Adventure 42704纠偏：R155提交`57327cc843`先明确“本轮不接42704-06商店”并在AGENTS写`Do not attach ... 42702-06`；六分钟后的R156提交`a73889d26a`才追加42704常量、注册、显式sender、handler、商店raw模型与正向用例，且只在下一行追加正向记录，没有改写原负约束。现已全部撤销；Adventure只保留42700活动时间/图标链与42701显式主状态快照，42702-42706整体继续pending。42704当前服务端查询虽为只读活链，也不得写入killlist、恢复raw占位或以安全查询为由绕过原禁令；只有产品明确恢复商店页面、配置和消费者并同步改写本条边界后才可重审。
 
 - R544 Game 10208：历史“深海订阅信息”保持KILL。老端只有`proto102.d.ts`与`ClientProtocol.json`的S2C `subscribe_type:u8`声明，真实`h5/src`及两份`bundle.js`均无注册、请求或消费者；当前服务器`pp_game`唯一10208查询handler及其唯一`pt_102:write(10208,...)`调用整段注释，只有codec残留。禁止新增常量、注册、严格空请求、raw订阅切片、GAME_START或UI/事件；不得把11307微信订阅总开关、11306模板状态或10209历史写入协议别名到10208。只有服务器恢复真实handler且产品恢复对应订阅消费者后才重审。10205仍受R111/R541负约束保持DEFER，10211继续等待完整弹窗链，102族保持pending。
 
@@ -156,10 +158,9 @@
 
 - 42001 is an explicit `type:u8` investment-state request/reply snapshot: `type:u8,cur_lv:u16,buy_time:u32,get_time:u32,login_days:u16,rewards:u16*{id:u8,got_lv:u16}`. Cache only the received Type; each full packet preserves reward wire order and duplicate IDs, and an empty reward list clears that Type while remaining loaded. Do not attach GAME_START, day/level/UI triggers, 42002 purchase, 42003 claim/Type2 refetch, investment UI, config, or red dots.
 
-## Adventure 42701 (R155)
+## Adventure 42701 (R155/R546)
 
-- 42701 is an explicit parameterless board-state snapshot: `circle:u16,location:u16,left_times:u16,throw_times:u16,free_reset_times:u16,free_throw_times:u16`; every packet is the full current absolute state. `left_times` is the server ADVEN_RESET_NUM value, not a client-side derivation. Do not attach GAME_START, day/level hooks, 42700 follow-ups, 42702-06 operations, UI, config, or red dots.
-- 42704 is an explicit parameterless shop snapshot: `times:u32,refresh_cost:ObjectList,goods:u16×{id:u16,type:u8,reward:ObjectList,show_price:u32,price:u32,over:u8,state:u8}`. Every packet replaces the complete state; retain duplicate objects and IDs and ObjectList wire order, while exposing goods in the old-client-compatible reversed wire order. Do not attach GAME_START, day hooks, 42700/01 follow-ups, operations, UI, config, or red dots.
+- 42701 is an explicit parameterless board-state snapshot: `circle:u16,location:u16,left_times:u16,throw_times:u16,free_reset_times:u16,free_throw_times:u16`; every packet is the full current absolute state. `left_times` is the server ADVEN_RESET_NUM value, not a client-side derivation. Do not attach GAME_START, day/level hooks, 42700 follow-ups, any 42702-42706 protocol, UI, config, or red dots. R546已撤销晚于本边界的42704商店raw增量；42704不得注册、请求或建立模型占位。
 
 ## HolyBattle 21801/21804/21805/21807/21808/21809/21810/21811/21813 (R130/R146/R147/R151/R152/R154/R186/R187/R188)
 

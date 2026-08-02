@@ -897,6 +897,10 @@ namespace Shenxiao.EditorTools
         {
             Run(AutoBrushReadCase.Run, 60.0);
         }
+        public static void Adventure()
+        {
+            Run(AdventureCase.Run, 60.0);
+        }
         public static void VipWelfareCard()
         {
             Run(VipWelfareCardCase.Run, 60.0);

@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R545。R179在`4b57af7795`已明确排除18905-18914，18905实现`aa9eb068f0`晚于禁令且未改写原裁决；R541因未展开区间误将它列入保留集合，本轮已补撤常量、注册、handler、raw模型与正向用例。
-- BrightSea现只保留18900/01/02/04/15/16/17七份只读快照；GAME_START仍清全状态后只发18900。18905及其余被禁操作保持真实活缺口pending，不进killlist。负约束审计现强制逐号展开协议区间。
-- R545验收已完成：dotnet restore+build 0 error，Unity `BrightSeaCase`与`ProtocolCoverageCase`均退出码0；`coverage_20260802_164539.md`为`registered=1261/liveDefined=1468/liveGap=330/errorExit=20/active=1138/1468=77.5%`，A～E全PASS。冻结baseline未随纠偏计数下降而改写。
+- 最新完成轮次：R546。逐号展开1261个真实运行时注册号与全部负约束区间后，除已明确的所有权/方向语义例外外，唯一剩余冲突是42704：R155在`57327cc843`先排除42704-06商店，R156的`a73889d26a`六分钟后晚增且未改写原裁决。
+- Adventure现只保留42700活动时间/图标链与42701显式主状态；42704常量、注册、sender、handler、商店raw模型与正向用例已撤销，42702-42706保持真实活缺口pending且不进killlist。
+- R546验收已完成：标准dotnet restore+build为79条既有warning、0 error，Unity `AdventureCase`与`ProtocolCoverageCase`均退出码0；`coverage_20260802_165621.md`为`registered=1260/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A～E全PASS。冻结baseline未随纠偏计数下降而改写。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---
@@ -1802,3 +1802,9 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **时序结论**：`4b57af7795`在7月26日19:06已把18905-18914操作/增量列为不接；`aa9eb068f0`到23:11才新增18905接收切片，原禁令没有同步改写。R541仅撤销18918/18920并误保留18905，根因是负约束审计没有展开范围表达。
 - **代码收口**：删除18905常量、注册、S2C结果handler与`BattleStart*`模型状态；`BrightSeaCase`反向断言18905无handler/无私有方法，同时完整保留18900/01/02/04/15/16/17、GAME_START唯一18900、七切片隔离和环境恢复。
 - **验证状态**：标准dotnet restore+build通过（79条既有warning、0 error）；Unity 6000.3.17f1独立批处理`BrightSeaCase`为`restored=True/pass=True/EXIT 0`，`ProtocolCoverageCase`为`EXIT 0`。`coverage_20260802_164539.md`记录`registered=1261/liveDefined=1468/liveGap=330/errorExit=20/active=1138/1468=77.5%`且A～E全PASS；189族继续pending，18905不进killlist，冻结baseline不改。
+
+## 2026-08-02：Adventure 42704 晚增负约束补漏（R546）
+
+- **全量审计**：以覆盖产物中的1261个真实运行时注册号为集合，规范化展开AGENTS内完整与缩写区间。`39901`只禁C2S手动开局而保留S2C通知，`65208`由同句明确归ActivityForeshow独占，`18315`只禁C2S日计数写而保留S2C推送；唯一未消歧交集为42704。
+- **时序与代码收口**：R155提交`57327cc843`先明确不接42704-06商店；R156提交`a73889d26a`六分钟后才追加42704且没有改写原禁令。现删除常量、注册、sender、handler及`HasShopSnapshot/ShopTimes/RefreshCost/ShopGoods`模型树；`AdventureCase`反向断言42702-42706均无handler且`On42704`不存在，42700/42701行为不变。
+- **验证状态**：标准dotnet restore+build为79条既有warning、0 error；Unity 6000.3.17f1独立批处理`AdventureCase`为`pass=True/EXIT 0`，`ProtocolCoverageCase`为`EXIT 0`。`coverage_20260802_165621.md`记录`registered=1260/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`且A～E全PASS；427族为`2/5/0 pending`，42704不进killlist，冻结baseline不改。

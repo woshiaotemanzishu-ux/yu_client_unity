@@ -15,7 +15,7 @@ namespace Shenxiao.Module.Core.Adventure
     /// 对标老端 SetTimeInfo:先删两个图标,再在开启时加当天那一个(默认 42701)。
     /// 等级变化(EVT_ROLE_INFO_UPDATE)时复请求 42700——对标老端 CHANGE_LEVEL 复算开启态
     /// (神装门槛依赖等级),让升级达标后图标及时出现。
-    /// 本期只做图标,明细/投掷/商店等协议(42701-42706)与面板待用户验收。
+    /// 本期保留图标与42701主状态；42702-42706投掷/重置/商店/购买链与面板待用户验收。
     /// </summary>
     public sealed class AdventureController : BaseController
     {
@@ -32,12 +32,11 @@ namespace Shenxiao.Module.Core.Adventure
         {
             RegisterProtocal(Proto.ADVENTURE_INFO, On42700);
             RegisterProtocal(Proto.ADVENTURE_BOARD_STATE, On42701);
-            RegisterProtocal(Proto.ADVENTURE_SHOP_SNAPSHOT, On42704);
             // 对标老端 CHANGE_LEVEL→复算开启态:等级变化时复请求 42700(神装功能等级门槛)。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             // 对标老端 AdventureController.ts:52:DAY_CHANGE→ref_func 发 42700,并在 model.shop_data 已加载时
-            // 延迟发 42704(商店刷新)。42704/商店(shop_data)本期未移植(面板/协议 42701-42706 待用户验收),
-            // 故只复请求 42700,42704 留 todos_left,不发明数据流。
+            // 延迟发 42704(商店刷新)。42704/商店(shop_data)受R155/R546边界排除且页面链未迁，
+            // 故只复请求42700，不恢复商店查询或派生数据流。
             EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
         }
 
@@ -84,28 +83,6 @@ namespace Shenxiao.Module.Core.Adventure
         private void On42701(NetReader reader)
         {
             AdventureModel.Instance.ReplaceBoardState(reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16(), reader.ReadU16());
-        }
-
-        public void RequestShopSnapshot()
-        {
-#if UNITY_EDITOR
-            byte[] frame = UserMsgAdapter.Encode(Proto.ADVENTURE_SHOP_SNAPSHOT, null, null);
-            if (s_boardStateOutboundIntercept != null && s_boardStateOutboundIntercept(frame)) return;
-#endif
-            SendFmt(Proto.ADVENTURE_SHOP_SNAPSHOT);
-        }
-
-        private void On42704(NetReader reader)
-        {
-            uint times = reader.ReadU32();
-            var refreshCost = reader.ReadArray(ReadObjectEntry);
-            var goods = reader.ReadArray(r => new AdventureModel.ShopGoodsEntry(r.ReadU16(), r.ReadU8(), r.ReadArray(ReadObjectEntry), r.ReadU32(), r.ReadU32(), r.ReadU8(), r.ReadU8()));
-            AdventureModel.Instance.ReplaceShopSnapshot(times, refreshCost, goods);
-        }
-
-        private static AdventureModel.ObjectEntry ReadObjectEntry(NetReader reader)
-        {
-            return new AdventureModel.ObjectEntry(reader.ReadU8(), reader.ReadU32(), reader.ReadU32());
         }
 
         // 对标老端 SetTimeInfo:先删两个图标,开启时只加当天那一个(默认 42701)。
