@@ -1344,7 +1344,11 @@
         public const int KF_SINGLE_RANK_AREA_TOWERS = 50702;
         public const int ACHIEVEMENT_STAGE = 40901;
         public const int ACHIEVEMENT_ENTRIES = 40903;
+        /// <summary>成就条目状态增量。S2C-only: list:u16×{id:u32,status:u8,progress:u64}。</summary>
+        public const int ACHIEVEMENT_ENTRY_UPDATES = 40904;
         public const int ACHIEVEMENT_STAR = 40906;
+        /// <summary>成就阶段奖励增量。S2C-only: rewards:u16×{stage:u32,status:u8},cur_stage:u8,new_cur_stage:u16。</summary>
+        public const int ACHIEVEMENT_STAGE_REWARD_UPDATE = 40907;
         public const int ACHIEVEMENT_TYPES = 40908;
         /// <summary>守护操作错误推送。S2C: errcode:u32；仅接收并保留原始码，不触发 UI。</summary>
         public const int GUARD_ERROR = 21600;

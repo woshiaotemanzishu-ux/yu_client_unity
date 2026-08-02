@@ -34,6 +34,8 @@
 
 - R522 Armor 14402：这是完整圣骸打造事务，C2S固定为 `stage:u8,type:u8,pos:u8`，S2C为 `code:u32 + stage_list`。点击前必须按服务端顺序校验配置、等级、同部位前阶、当前未打造与真实背包材料；配置中的前阶圣骸状态项只参与前置判断，不得当成背包消耗。确认框必须冻结选择/配置/模型/背包指纹，确认时二次校验；请求期间同一页面只允许单飞且禁止乐观改模型或扣材料。只有 `code==1` 才按回包中的阶段/类型权威切片局部合并，失败和无回包都保留旧树；页面打造入口必须走真实 Prefab 的唯一 Graphic 点击面并用 `GraphicRaycaster→PointerClick` 验收。
 
+- R524 Achievement 40904/40907：两号均为S2C-only，禁止公开请求或加入GAME_START。40904 wire为 `updates:u16×{id:u32,status:u8,progress:u64}`；每包完整替换不可变raw增量，只有40903权威列表已加载时才按wire顺序替换首个同ID条目并保留category，未知ID不得补项，重复ID最后一条生效，空增量不得清全量。40907 wire为 `rewards:u16×{stage:u32,status:u8},cur_stage:u8,new_cur_stage:u16`；每包保存独立不可变raw增量，只有40901已加载时才按stage顺序覆盖或追加奖励并更新两个阶段字段，空增量只更新阶段、不清奖励。后续40901/40903全量仍可覆盖合并结果，且不得清两份最后raw增量。40902/40905领奖事务与40909分类查询继续等待成就配置/UI/奖励闭环，不得顺带接sender、事件、红点、Toast或本地发奖。
+
 - Unity 序列化脚本规则：会挂到 Scene/Prefab 的 `MonoBehaviour` / `ScriptableObject` 必须独占同名 `.cs` 文件，禁止把它放在“首个类型为静态类、抽象类或其他不同名类型”的文件里；Editor 生成器 `AddComponent<T>()` 后必须核对产物 `m_Script` 为非零 GUID 且 GUID 指向 `T` 的同名脚本。否则即使 C# 编译通过，Unity 仍可能把组件保存成 Missing Script。
 
 - 主界面技能规则：技能项只允许 `con` 作为唯一 Raycast/Button 点击面，`bg/icon/lock/CD/文字` 等装饰 Graphic 必须关闭 `raycastTarget`；点击验收必须走真实 Prefab 的 `GraphicRaycaster→PointerClick`，直接调用 `OnClickSkill` 不算点击链通过。普通 `AutoFight` 不得拦截玩家手点技能，只有服务端 `13017` 的 `RoleModel.DepositState` 托管态才拦截。手动无锁定目标时按当前朝向原地释放并只在技能 `area` 内局部预选，不得跨全场抢最近怪；自动战斗才允许全场寻敌并接近。接敌范围严格对标老端：`range==1` 使用 `max(100,(distance+area)*0.8)`，其他模式使用 `max(100,distance*0.8)`；命中几何由 `range/distance/area/num` 决定，禁止从 `desc` 文案猜圆形、直线或扇形。
@@ -157,9 +159,11 @@
 
 - 21601 is an on-demand, parameterless authoritative circle snapshot; it is deliberately not a GAME_START request. Same-number responses/pushes atomically replace the ordered list, including empty-list clear. Do not attach 21600, 21602-21606, maintenance, operations, dialogs, scene appearance, config, red dots, UI, or resources.
 
-## Achievement 40901/03/06/08 (R124)
+## Achievement 40901/03/04/06/07/08 (R124/R524)
 
-- GAME_START sends four empty frames in order 40901->40903->40906->40908. Each reply owns an independent full snapshot (stage rewards, achievement entries, scalar star, type stars); all lists replace atomically and empty lists clear old values. Do not attach 40900/02/04/05/07/09, configuration derivation, red dots, UI, or reward operations.
+- GAME_START sends four empty frames in order 40901->40903->40906->40908. Each reply owns an independent full snapshot (stage rewards, achievement entries, scalar star, type stars); all lists replace atomically and empty lists clear old values. Do not add 40904/40907 to this request sequence or let their deltas clear a full snapshot.
+- 40904 and 40907 are receive-only ordered deltas and never change the startup sequence. Every packet first replaces its own immutable raw last-delta slice. 40904 merges only into an already-loaded 40903 list, updates the first cached matching ID while preserving category, applies duplicates in wire order, and never fabricates an unknown entry. 40907 merges only into an already-loaded 40901 stage snapshot, replaces or appends rewards by the wire `stage` key in order, and updates its two stage fields; an empty update never clears the existing reward list. A later 40903/40901 full snapshot remains authoritative and may replace the merged state without clearing either raw-delta slice.
+- Keep 40900/02/05/09 absent. In particular, do not attach reward claims, category UI/config, events, red dots, Toasts, local rewards, automatic requery, or optimistic state.
 
 ## Revelation 28606/28609 (R123/R137)
 

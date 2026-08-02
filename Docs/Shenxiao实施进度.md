@@ -1735,3 +1735,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **权威状态**：客户端不预扣材料、不本地激活或佩戴，也不拿回包的currentused补丁41101。每个回包保留独立raw结果；失败保持旧列表，只有成功提示并精确重查一次41101；全量回包到达前同一称号显示刷新中并阻止重复激活，激活阶数、过期时间与佩戴态继续由服务端全量决定。
 - **界面消费**：沿用已验收 `DsgtModule.prefab`，恢复未激活称号的真实激活按钮、材料格、持有/需求数量和足量红点；按钮根透明Image为唯一点击面，子背景/文字不截射线。未重转Prefab、未新增页面Creator，佩戴/卸下、升阶和过期取消仍按缺失的场景/阶级配置闭环保持DEFER。
 - **验证状态**：Unity 6000.3.17f1编译0 error（仅既有warning）；`DesignationCase` 与 `DesignationReadContinuationCase` 均为0且 `pass/restored=True`，前者包含真实Prefab `GraphicRaycaster→PointerClick`、精确帧、single-flight、成功唯一重查及无本地资产/列表变更。`coverage_20260802_120637.md` A～E全PASS，运行时为 `registered=1263 / liveDefined=1468 / liveGap=327 / errorExit=12 / active=1141/1468=77.7%`，冻结baseline未改。
+
+## 2026-08-02：成就 40904/40907 主动增量闭环（R524）
+
+- **协议边界**：40904为S2C-only成就条目增量 `u16×{id:u32,status:u8,progress:u64}`，40907为S2C-only阶段奖励增量 `u16×{stage:u32,status:u8}+cur_stage:u8+new_cur_stage:u16`。两号不公开请求，GAME_START仍只空发 `40901→40903→40906→40908`。
+- **状态语义**：两号每包分别替换自己的不可变最后raw增量。40904仅在40903已加载时更新首个同ID缓存条目，保留category、未知ID不补项、重复ID按wire最后生效；40907仅在40901已加载时按stage覆盖/追加奖励并更新阶段字段，空增量不清奖励。早到包只存raw，后到40901/40903全量可整体收权威且不清raw切片。
+- **延期边界**：40902/40905领奖会真实发奖并写领取状态，继续等待成就配置、页面门禁、奖励/背包和错误闭环；40909仍只属于尚未迁移的分类详情页。本轮不接UI、事件、红点、Toast、自动重查或本地奖励。
+- **验证状态**：Unity 6000.3.17f1权威编译0 error（11条既有warning）；`AchievementCase=0/pass=True`，覆盖精确注册/启动帧、早包隔离、u32/u64边界、未知与重复ID、空增量、先前raw不可变、后到全量覆盖及Dispose/环境恢复。`coverage_20260802_122044.md` A～E全PASS，运行时为 `registered=1265 / liveDefined=1468 / liveGap=325 / errorExit=12 / active=1143/1468=77.9%`；409族为`registered6/liveGap3/dead1/pending`，冻结baseline未改。
