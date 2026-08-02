@@ -25,8 +25,8 @@ namespace Shenxiao.EditorTools
     ///   F 硬负约束防复发:hard_negative_constraints.json 中的协议号不得重新出现为运行时注册、
     ///     源码静态注册或 Proto 常量；清单缺失、重复或无 evidence 同样挂红。它不改变活缺口与
     ///     killlist 口径，只把 AGENTS 的现行禁止边界变成机器门禁。
-    ///   G killlist 防复活:killlist 中的协议号不得拥有运行时 handler。允许 40218/62107 这类
-    ///     C2S-only 单向操作保留发送常量，但不存在的 S2C 回执不能再注册；清单重复也挂红。
+    ///   G killlist 防复活:killlist 中的协议号不得拥有运行时 handler。只有显式 clientMode=send_only
+    ///     的 C2S 单向操作允许且必须保留 Proto 常量，其余死号不得残留常量；模式非法或清单重复也挂红。
     ///
     /// 收尾落 Reports/ProtocolCoverage/coverage_&lt;date&gt;.md + baseline.next.json(裁决5:
     /// 绝不自动覆盖 Schemas/ProtocolCoverage/baseline.json,基线上调必须人工确认后手动覆盖)。
@@ -340,12 +340,38 @@ namespace Shenxiao.EditorTools
                 .Where(scan.UnityRegistered.Contains)
                 .OrderBy(c => c)
                 .ToList();
+            List<int> invalidModes = killlist
+                .Where(k => k.ClientMode != KillEntry.CLIENT_MODE_ABSENT
+                    && k.ClientMode != KillEntry.CLIENT_MODE_SEND_ONLY)
+                .Select(k => k.Cmd)
+                .OrderBy(c => c)
+                .ToList();
+            List<int> forbiddenConstants = killlist
+                .Where(k => k.ClientMode == KillEntry.CLIENT_MODE_ABSENT
+                    && scan.UnityProtocolConstants.Contains(k.Cmd))
+                .Select(k => k.Cmd)
+                .OrderBy(c => c)
+                .ToList();
+            List<int> missingSendOnlyConstants = killlist
+                .Where(k => k.ClientMode == KillEntry.CLIENT_MODE_SEND_ONLY
+                    && !scan.UnityProtocolConstants.Contains(k.Cmd))
+                .Select(k => k.Cmd)
+                .OrderBy(c => c)
+                .ToList();
+            int sendOnlyCount = killlist.Count(k => k.ClientMode == KillEntry.CLIENT_MODE_SEND_ONLY);
 
-            bool pass = duplicates.Count == 0 && registeredKill.Count == 0;
+            bool pass = duplicates.Count == 0
+                && registeredKill.Count == 0
+                && invalidModes.Count == 0
+                && forbiddenConstants.Count == 0
+                && missingSendOnlyConstants.Count == 0;
             var details = new List<string>();
             if (duplicates.Count > 0) details.Add("重复协议号:" + string.Join(",", duplicates));
             if (registeredKill.Count > 0) details.Add("死号仍有运行时handler:" + string.Join(",", registeredKill));
-            if (pass) details.Add(killlist.Count + "条killlist与运行时注册零交集");
+            if (invalidModes.Count > 0) details.Add("clientMode非法:" + string.Join(",", invalidModes));
+            if (forbiddenConstants.Count > 0) details.Add("absent死号仍有Proto常量:" + string.Join(",", forbiddenConstants));
+            if (missingSendOnlyConstants.Count > 0) details.Add("send_only缺Proto常量:" + string.Join(",", missingSendOnlyConstants));
+            if (pass) details.Add(killlist.Count + "条killlist与运行时注册零交集;send_only=" + sendOnlyCount);
             outcome.Add("G死号防复活", pass, string.Join(";", details));
         }
     }

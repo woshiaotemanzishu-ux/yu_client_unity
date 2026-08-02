@@ -32,6 +32,7 @@
   {
     "cmd": 11101,
     "reason": "dead_empty_body",
+    "clientMode": "send_only",
     "evidence": "h5/src/commonController/CheatController.ts:38",
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
@@ -428,6 +429,7 @@
   {
     "cmd": 30008,
     "reason": "dead_empty_body",
+    "clientMode": "send_only",
     "evidence": "h5/src/commonController/TaskController.ts:633",
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
@@ -512,6 +514,7 @@
   {
     "cmd": 40029,
     "reason": "dead_empty_body",
+    "clientMode": "send_only",
     "evidence": "h5/src/commonController/GuildController.ts:1419",
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
@@ -602,6 +605,7 @@
   {
     "cmd": 40218,
     "reason": "dead_server_never_writes",
+    "clientMode": "send_only",
     "evidence": "yu_server/src/guild_act/pp_guild_act.erl:242-251 + mod_guild_feast_mgr.erl:416-433",
     "note": "退出晚宴场景:C2S handle 活(真会退场景,Unity 实现为只发送 RequestExitScene),但 exit_scene 实现从不回写 40218,全仓 grep write(40218 仅命中 pt_402.erl:288-294 定义本身。接收侧死——老端 on40218(GuildActivityController.ts:177-184)是死接收。轮22 PK1 按裁决3 核实。"
   },
@@ -722,12 +726,14 @@
   {
     "cmd": 40505,
     "reason": "dead_server_never_writes",
+    "clientMode": "send_only",
     "evidence": "yu_server/src/guild_god/lib_guild_god.erl:271-365",
     "note": "公会神像穿戴铭文:服务端 wear/4 的成功分支追发 40502 刷新(:348)、失败分支一律 pp_guild_god:send_error→write(40500)(:289/351/355/359/363),从未调用 pt_405:write(40505,..)。全仓 grep pt_405:write 只命中 40500/501/502/503/504/508/509。该族真正的错误码出口是 40500(GuildController.cs:28/96 早已注册)。轮21 PF 包实证,订正了轮21 覆盖率审计把它列为『未申报族错误出口』的误判。"
   },
   {
     "cmd": 40507,
     "reason": "dead_server_never_writes",
+    "clientMode": "send_only",
     "evidence": "yu_server/src/guild_god/lib_guild_god.erl:369-422",
     "note": "公会神像脱铭文:take_off/3 与 wear/4 同构,所有分支只 send_error(→40500)或追发 40502,从不 write(40507)。同 40505 一并由轮21 PF 包实证。Unity GuildController.cs:103/220 既有『DEAD,严禁注册』文档本就正确。"
   },
@@ -902,6 +908,7 @@
   {
     "cmd": 62107,
     "reason": "dead_server_never_writes",
+    "clientMode": "send_only",
     "evidence": "yu_server/src/kf_1vN/pp_kf_1vN.erl:78;yu_server/src/kf_1vN/mod_kf_1vN_local.erl:71,390;yu_server/src/kf_1vN/mod_kf_1vN.erl:432",
     "note": "退出资格赛场景(轮22 PK3,S3 批复核)。C→S 请求处理链是活的(handle(62107,Status,_)(:78)非注释→mod_kf_1vN_local:quit/5(:71)→do_handle_cast({quit,...})(:390)→跨节点转发 mod_kf_1vN.erl:432 do_handle_cast({quit,Node,...})→lib_kf_1vN:quit_to_main_scene 或场景内部消息,均不产生任何 pt_621:write(62107,...) 调用),但 S→C 响应从未被服务端发出——全仓库 grep \"62107\" 除 handle 子句本身与 pt_621.erl:20(read)/165(write pack定义) 外零命中,含 send_to_sid/send_to_uid/send_error 等间接封装模式复核后仍确认无回包。老端 Kf1vnController.ts:274-277(Handler62107)注册点500,永远收不到这个号,是『请求有效但从无回执』的单向设计,注册接收 handler 不会被触发。"
   },

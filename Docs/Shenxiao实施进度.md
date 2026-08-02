@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R548。已把killlist与运行时注册的13个交集全部裁决：从过期killlist移除Baby 18208/09/16/17/18/19/20/24、19501、40230；删除无消费者的13802、19007、33225、33226常量/handler/孤立模型，正式killlist由182条降为172条。
-- `ProtocolCoverageCase`由A～F扩展为A～G：A/B允许冻结baseline中带evidence的具体历史注册号被裁决移除，但未裁决总量/家族减少继续失败；G校验killlist唯一且与运行时handler零交集。C2S-only发送常量不被误判为S2C复活。
-- R548最终报告`coverage_20260802_173442.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A/B明确列出13802、19007、33225、33226，A～G全PASS、`EXIT 0`。反向探针临时把现役10201加入killlist，G段精确失败并`EXIT 3`；探针随后移除。LotteryB现役12组协议专项保持`pass=True/EXIT 0`。
+- 最新完成轮次：R549。killlist正式172条不变，但默认客户端模式收紧为`absent`：除无运行时handler外，也不得残留Proto常量；只有11101、30008、40029、40218、40505、40507、62107七个真实C2S/死亡S2C半死号显式标为`send_only`。
+- `ProtocolCoverageCase`的G段现在同时校验运行时零交集、cmd唯一、clientMode合法、absent无常量以及send-only必须有常量。16个1-gap pending家族和全部2～3 gap家族已复扫，没有绕过现有写事务/产品边界强接新号。
+- R549最终报告`coverage_20260802_174537.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，正式172条与`send_only=7`、A～G全PASS、`EXIT 0`。反向探针撤掉11101声明后，G精确报`absent死号仍有Proto常量:11101`并`EXIT 3`；探针随后恢复。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

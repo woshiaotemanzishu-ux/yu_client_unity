@@ -40,13 +40,18 @@ namespace Shenxiao.Editor.ProtocolCoverage
 
     /// <summary>killlist.json 一条 = 一个被判定「不必登记」的协议号(死号 / 团队裁决跳过)。
     /// evidence 强制填(文件:行号,或明确的裁决出处),这是整个防复发机制的支点——
-    /// 没有它,"判死"就只是嘴说,C 段就没法机检。</summary>
+    /// 没有它,"判死"就只是嘴说,C 段就没法机检。clientMode 默认 absent；只有 C2S 真实可达、
+    /// 但 S2C handler 判死的半死号才能显式标 send_only 并保留 Proto 发送常量。</summary>
     public sealed class KillEntry
     {
+        public const string CLIENT_MODE_ABSENT = "absent";
+        public const string CLIENT_MODE_SEND_ONLY = "send_only";
+
         [JsonProperty("cmd")] public int Cmd;
         [JsonProperty("reason")] public string Reason; // dead_empty_body | dead_no_old_handler | skip_decision | legacy_unverified_seed
         [JsonProperty("evidence")] public string Evidence; // "文件:行号" 或裁决出处
         [JsonProperty("note")] public string Note;
+        [JsonProperty("clientMode")] public string ClientMode = CLIENT_MODE_ABSENT;
     }
 
     /// <summary>当前产品边界明确禁止出现在 Unity 协议层的协议号。
