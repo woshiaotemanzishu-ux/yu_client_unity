@@ -187,9 +187,9 @@
 - 40904 and 40907 are receive-only ordered deltas and never change the startup sequence. Every packet first replaces its own immutable raw last-delta slice. 40904 merges only into an already-loaded 40903 list, updates the first cached matching ID while preserving category, applies duplicates in wire order, and never fabricates an unknown entry. 40907 merges only into an already-loaded 40901 stage snapshot, replaces or appends rewards by the wire `stage` key in order, and updates its two stage fields; an empty update never clears the existing reward list. A later 40903/40901 full snapshot remains authoritative and may replace the merged state without clearing either raw-delta slice.
 - Keep 40900/02/05/09 absent. In particular, do not attach reward claims, category UI/config, events, red dots, Toasts, local rewards, automatic requery, or optimistic state.
 
-## Revelation 28606/28609 (R123/R137)
+## Revelation 28606/28609 (R123/R137/R539)
 
-- 28606 is the parameterless full main-state snapshot: raw figure IDs/power plus ordered gathering, suit, and skill lists. Every packet atomically replaces all fields and empty lists clear prior state. 28609 is an on-demand `power:u64` refresh: ignore it before a 28606 snapshot; otherwise replace only Power, preserving every other field/list. Do not attach 28600-05/07/08, configuration, red dots, bag, appearance resources, 3D, or UI.
+- 28606 is the parameterless full main-state snapshot: raw figure IDs/power plus ordered gathering, suit, and skill lists. Every packet atomically replaces all fields and empty lists clear prior state. 28609 is an on-demand `power:u64` refresh: ignore it before a 28606 snapshot; otherwise replace only Power, preserving every other field/list. 28608 has no server handler or writer caller and stays KILL; do not register or use it to patch the 28606 suit list. Keep 28600 and 28601-05/07 absent under the original negative constraint: the late 28600 raw-error increment was removed in R539, while the rest remain real asset/appearance writes. Do not attach configuration, red dots, bag, appearance resources, 3D, or UI.
 
 ## Demon 18301 / 18303 / 18307 / 18311 / 18315 / 18317 / 50901 (R119-R122/R158/R515)
 

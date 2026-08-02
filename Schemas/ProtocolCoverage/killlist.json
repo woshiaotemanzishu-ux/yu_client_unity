@@ -468,6 +468,12 @@
     "note": "active cluster2对28420请求显式skip且无任何同号writer；拍卖结束时间实现只存在未路由旧家族，老端两个请求点也均已注释。Unity不注册时间戳handler、不请求、不恢复拍卖倒计时。R502。"
   },
   {
+    "cmd": 28608,
+    "reason": "dead_server_never_writes",
+    "evidence": "yu_server/src/revelation/pp_revelation_equip.erl:25-120(无28608 handler);yu_server/src/pt/pt_286.erl:34,159-172(仅空read与writer定义);yu_server/src全仓无28608 writer调用;h5/src/commonController/RevelationController.ts:255-261,279",
+    "note": "套装更改理论S2C为有序suit表，老端注册后会替换28606内的套装切片；但当前服务端pp_revelation_equip没有同号请求入口或主动推送链，全业务源码只有pt codec定义，writer零调用。Unity保持无常量、无注册、无模型补丁，不用永远收不到的旧通知覆盖28606权威全量。只有服务端恢复真实推送调用并明确套装变化时序后才重审。R539。"
+  },
+  {
     "cmd": 30008,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/TaskController.ts:633",

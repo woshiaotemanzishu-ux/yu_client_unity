@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R538。FriendInvite 34010红包领取信息与34011领取红包的唯一服务端网络handler在`pp_invite`中整段注释，全服务端只有不可达转发壳、底层writer/资产实现和codec，没有其它调用者或主动推送；两号已逐号加入killlist，保持KILL。
-- 老端34010虽注册接收，但`SetRedInfo`中的模型写入与红点刷新均已注释；34011全仓没有实际页面触发点，残留通用sender还把服务端要求的`invitee_id:u64`错发成`u16`。Unity不注册、不请求、不缓存红包列表、不接孤立结果或本地发奖；只有服务端恢复handler且产品恢复完整红包页、参数、确认、single-flight、奖励与错误闭环时才成对重审。其余34002-04/07/09仍为真实写事务，继续DEFER。
-- 本轮运行时代码零行为变化，只补负约束、逐号证据与控制器边界注释；既有`FriendInviteLevelCase`仍断言34010/34011不注册。`coverage_20260802_144300.md` A～E全PASS，全局保持`registered=1276 / liveDefined=1468 / liveGap=315 / errorExit=12 / active=1153/1468=78.5%`。家族表是raw扫描口径，故340族仍显示`6/7/0 pending`；killlist治理只进入证据闸门和未申报缺口判定，不改写raw计数，baseline冻结不更新。
+- 最新完成轮次：R539。Revelation原始硬约束在R137已明确禁止接入28600-05/07/08；提交历史确认28600统一错误快照到五天后的7月28日才增加，属于晚于负约束的违规增量。本轮已撤销28600常量、注册、handler、模型字段和正向用例，286族继续保持pending，不能用覆盖率推翻既有业务边界。
+- 28608理论S2C为套装列表，老端注册后会补丁28606套装；但当前服务端`pp_revelation_equip`没有同号handler，全业务源码只有`pt_286`空read/writer定义且writer零调用，现已逐号证据化KILL。Unity不注册、不缓存、不用永远收不到的旧通知覆盖28606权威全量；28601-05/07仍为真实装备、吞噬、升级、技能和形象写操作，继续DEFER。
+- `dotnet build Assembly-CSharp-Editor.csproj -m:1`为78条既有warning、0 error；Unity `RevelationCase=0/pass=True/restored=True`确认只注册28606/28609且既有快照语义完整。`coverage_20260802_145427.md` A～E全PASS，全局为`registered=1275 / liveDefined=1468 / liveGap=316 / errorExit=13 / active=1152/1468=78.5%`，286族raw为`2/8/0 pending`。28608 killlist不改写raw计数，baseline冻结不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

@@ -1303,8 +1303,6 @@
         public const int DEMON_PAINTINGS = 18307;
         /// <summary>使魔转盘祝福值快照。C2S 空包；S2C: bless_value:u32。</summary>
         public const int DEMON_BLESSING = 50901;
-        /// <summary>天启装备统一错误出口。无 C2S；S2C(pt_286): res:u32。</summary>
-        public const int REVELATION_ERROR = 28600;
         /// <summary>天启主状态快照。C2S 空包；S2C 为标量与三类全量列表。</summary>
         public const int REVELATION_INFO = 28606;
         /// <summary>天启装备战力刷新。C2S 空包；S2C: power:u64，仅在已有28606快照时覆盖。</summary>

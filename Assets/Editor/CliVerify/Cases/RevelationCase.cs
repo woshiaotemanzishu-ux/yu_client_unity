@@ -38,8 +38,6 @@ namespace Shenxiao.EditorTools
             RevelationController controller = RevelationController.Instance;
             RevelationModel model = RevelationModel.Instance;
             bool wasInitialized = controller.IsInitialized;
-            bool oldHasError = model.HasError;
-            uint oldErrorCode = model.LastErrorCode;
             bool oldHasData = model.HasData;
             ushort oldMax = model.MaxFigureId;
             ushort oldCurrent = model.CurrentFigureId;
@@ -75,14 +73,13 @@ namespace Shenxiao.EditorTools
 
                 controller.Init();
                 model.Reset();
-                MethodInfo on28600 = typeof(RevelationController).GetMethod("On28600", F);
                 MethodInfo on28606 = typeof(RevelationController).GetMethod("On28606", F);
                 MethodInfo on28609 = typeof(RevelationController).GetMethod("On28609", F);
-                pass = interceptor != null && on28600 != null && on28606 != null && on28609 != null && handlers != null
-                    && handlers.Contains(28600) && handlers.Contains(28606) && handlers.Contains(28609);
+                pass = interceptor != null && on28606 != null && on28609 != null && handlers != null
+                    && handlers.Contains(28606) && handlers.Contains(28609);
                 for (int id = 28600; id <= 28609; id++)
                 {
-                    if (id != 28600 && id != 28606 && id != 28609)
+                    if (id != 28606 && id != 28609)
                     {
                         pass &= !handlers.Contains(id);
                     }
@@ -109,14 +106,7 @@ namespace Shenxiao.EditorTools
                     byte[] pre = new CliVerify.Pkt().L(5000000001L).Bytes();
                     var preReader = new NetReader(pre, 0, pre.Length);
                     on28609.Invoke(controller, new object[] { preReader });
-                    Check("preload power ignored", preReader.Remaining == 0 && !model.HasData && model.Power == 0 && !model.HasError && frames.Count == 0, ref pass);
-
-                    Check("error zero", FeedError(on28600, controller, 0)
-                        && model.HasError && model.LastErrorCode == 0 && !model.HasData && model.Power == 0 && frames.Count == 0, ref pass);
-                    Check("error ordinary overwrite", FeedError(on28600, controller, 1012)
-                        && model.HasError && model.LastErrorCode == 1012 && !model.HasData && model.Power == 0 && frames.Count == 0, ref pass);
-                    Check("error u32 max overwrite", FeedError(on28600, controller, uint.MaxValue)
-                        && model.HasError && model.LastErrorCode == uint.MaxValue && !model.HasData && model.Power == 0 && frames.Count == 0, ref pass);
+                    Check("preload power ignored", preReader.Remaining == 0 && !model.HasData && model.Power == 0 && frames.Count == 0, ref pass);
 
                     byte[] first = new CliVerify.Pkt()
                         .H(65535).H(65534).L(5000000000L).H(2)
@@ -140,7 +130,7 @@ namespace Shenxiao.EditorTools
                         && model.Skills.Count == 2
                         && model.Skills[0].SkillId == 6 && model.Skills[0].Level == 65535
                         && model.Skills[1].SkillId == 7 && model.Skills[1].Level == 1
-                        && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0, ref pass);
+                        && frames.Count == 0, ref pass);
 
                     byte[] loadedPower = new CliVerify.Pkt().L(5000000001L).Bytes();
                     var loadedPowerReader = new NetReader(loadedPower, 0, loadedPower.Length);
@@ -148,7 +138,7 @@ namespace Shenxiao.EditorTools
                     Check("power loaded replace", loadedPowerReader.Remaining == 0 && model.Power == 5000000001UL
                         && model.MaxFigureId == 65535 && model.CurrentFigureId == 65534
                         && model.Gatherings.Count == 2 && model.Suits.Count == 2 && model.Skills.Count == 2
-                        && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0, ref pass);
+                        && frames.Count == 0, ref pass);
 
                     byte[] loadedMax = new CliVerify.Pkt().L(unchecked((long)ulong.MaxValue)).Bytes();
                     var loadedMaxReader = new NetReader(loadedMax, 0, loadedMax.Length);
@@ -156,12 +146,7 @@ namespace Shenxiao.EditorTools
                     Check("power u64 max", loadedMaxReader.Remaining == 0 && model.Power == ulong.MaxValue
                         && model.MaxFigureId == 65535 && model.CurrentFigureId == 65534
                         && model.Gatherings.Count == 2 && model.Suits.Count == 2 && model.Skills.Count == 2
-                        && model.HasError && model.LastErrorCode == uint.MaxValue && frames.Count == 0, ref pass);
-
-                    Check("error preserves loaded snapshot", FeedError(on28600, controller, 1012)
-                        && model.HasError && model.LastErrorCode == 1012 && model.HasData && model.Power == ulong.MaxValue
-                        && model.MaxFigureId == 65535 && model.CurrentFigureId == 65534
-                        && model.Gatherings.Count == 2 && model.Suits.Count == 2 && model.Skills.Count == 2 && frames.Count == 0, ref pass);
+                        && frames.Count == 0, ref pass);
 
                     byte[] empty = new CliVerify.Pkt().H(2).H(1).L(7).H(0).H(0).H(0).Bytes();
                     var emptyReader = new NetReader(empty, 0, empty.Length);
@@ -169,18 +154,17 @@ namespace Shenxiao.EditorTools
                     Check("whole replace empty lists", emptyReader.Remaining == 0
                         && model.MaxFigureId == 2 && model.CurrentFigureId == 1 && model.Power == 7
                         && model.Gatherings.Count == 0 && model.Suits.Count == 0 && model.Skills.Count == 0
-                        && model.HasError && model.LastErrorCode == 1012 && frames.Count == 0, ref pass);
+                        && frames.Count == 0, ref pass);
 
                     var finalReader = new NetReader(first, 0, first.Length);
                     on28606.Invoke(controller, new object[] { finalReader });
                     Check("nonempty snapshot before dispose", finalReader.Remaining == 0 && model.HasData
                         && model.MaxFigureId == 65535 && model.CurrentFigureId == 65534 && model.Power == 5000000000UL
                         && model.Gatherings.Count == 2 && model.Suits.Count == 2 && model.Skills.Count == 2
-                        && model.HasError && model.LastErrorCode == 1012 && frames.Count == 0, ref pass);
+                        && frames.Count == 0, ref pass);
 
                     controller.Dispose();
                     Check("dispose reset/unregister", !controller.IsInitialized
-                        && !model.HasError && model.LastErrorCode == 0
                         && !model.HasData && model.MaxFigureId == 0 && model.CurrentFigureId == 0 && model.Power == 0
                         && model.Gatherings.Count == 0 && model.Suits.Count == 0 && model.Skills.Count == 0
                         && !handlers.Contains(28600) && !handlers.Contains(28606) && !handlers.Contains(28609), ref pass);
@@ -198,8 +182,6 @@ namespace Shenxiao.EditorTools
                 model.Reset();
                 model.Replace(oldMax, oldCurrent, oldPower, oldGatherings, oldSuits, oldSkills);
                 RestoreModelProperty(model, "HasData", oldHasData);
-                RestoreModelProperty(model, "HasError", oldHasError);
-                RestoreModelProperty(model, "LastErrorCode", oldErrorCode);
                 if (wasInitialized)
                 {
                     controller.Init();
@@ -216,7 +198,6 @@ namespace Shenxiao.EditorTools
                 }
 
                 restored = controller.IsInitialized == wasInitialized
-                    && model.HasError == oldHasError && model.LastErrorCode == oldErrorCode
                     && model.HasData == oldHasData && model.MaxFigureId == oldMax
                     && model.CurrentFigureId == oldCurrent && model.Power == oldPower
                     && SameReferences(model.Gatherings, oldGatherings)
@@ -241,14 +222,6 @@ namespace Shenxiao.EditorTools
             {
                 pass = false;
             }
-        }
-
-        private static bool FeedError(MethodInfo handler, RevelationController controller, uint code)
-        {
-            byte[] bytes = new CliVerify.Pkt().I(code).Bytes();
-            var reader = new NetReader(bytes, 0, bytes.Length);
-            handler.Invoke(controller, new object[] { reader });
-            return reader.Remaining == 0;
         }
 
         private static bool Frame(IReadOnlyList<byte[]> frames, int proto)
