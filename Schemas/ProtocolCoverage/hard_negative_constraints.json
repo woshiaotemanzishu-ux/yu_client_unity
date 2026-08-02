@@ -276,6 +276,54 @@
     "note": "16711把穿戴符文移回符文背包、重算属性/技能/场景/排行，旧端还用它串行解锁合成；禁止孤立sender、只重拉16700或本地卸下。"
   },
   {
+    "cmd": 17303,
+    "rule": "R486/R619 GodBeast equipment wear boundary",
+    "evidence": "AGENTS.md:R619 GodBeast 17303/17304/17305/17306/17307/17310/17311/17312资产场景边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R619",
+    "note": "17303按真实goods_id/eudemon_id/replace事务穿装并换回旧实例，重算幻兽与人物战力；成功空包不能替代背包/17301权威，禁止sender或乐观换装。"
+  },
+  {
+    "cmd": 17304,
+    "rule": "R486/R619 GodBeast equipment remove boundary",
+    "evidence": "AGENTS.md:R619 GodBeast 17303/17304/17305/17306/17307/17310/17311/17312资产场景边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R619",
+    "note": "17304按幻兽/部位事务脱下真实装备实例、校验背包容量并重算属性；成功为空包，禁止裸sender、乐观移物或孤立ACK。"
+  },
+  {
+    "cmd": 17305,
+    "rule": "R486/R619 GodBeast battle deployment boundary",
+    "evidence": "AGENTS.md:R619 GodBeast 17303/17304/17305/17306/17307/17310/17311/17312资产场景边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R619",
+    "note": "17305持久化幻兽出战/脱战，重算battle_attr并触发成就、神殿觉醒和场景表现；禁止孤立sender、乐观状态或无3D/技能消费者的结果。"
+  },
+  {
+    "cmd": 17306,
+    "rule": "R486/R619 GodBeast battle-slot purchase boundary",
+    "evidence": "AGENTS.md:R619 GodBeast 17303/17304/17305/17306/17307/17310/17311/17312资产场景边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R619",
+    "note": "17306严格空请求按等级/配置真实扣费、写永久出战槽计数并触发成就；禁止裸sender、乐观扩位或用回显count替代资产/17301权威。"
+  },
+  {
+    "cmd": 17307,
+    "rule": "R486/R619 GodBeast equipment strengthen material boundary",
+    "evidence": "AGENTS.md:R619 GodBeast 17303/17304/17305/17306/17307/17310/17311/17312资产场景边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R619",
+    "note": "17307按目标实例、双倍标记和材料实例表真实删除材料，写强化/溢出经验并通知装备与战力；禁止sender、乐观扣料/强化或只信回显。"
+  },
+  {
+    "cmd": 17310,
+    "rule": "R486/R619 GodBeast equipment composition boundary",
+    "evidence": "AGENTS.md:R619 GodBeast 17303/17304/17305/17306/17307/17310/17311/17312资产场景边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R619",
+    "note": "17310按合成规则和指定材料实例真实删物、生成装备并推进成就，结果表仅展示；禁止裸sender、客户端合成、本地发货或二次发奖。"
+  },
+  {
+    "cmd": 17311,
+    "rule": "R486/R619 GodBeast equipment-feed strengthen boundary",
+    "evidence": "AGENTS.md:R619 GodBeast 17303/17304/17305/17306/17307/17310/17311/17312资产场景边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R619",
+    "note": "17311用另一真实装备实例强化目标，删除素材、写强化经验并通知背包/属性；禁止sender、乐观删装/强化或孤立结果。"
+  },
+  {
+    "cmd": 17312,
+    "rule": "R486/R619 GodBeast batch equipment wear boundary",
+    "evidence": "AGENTS.md:R619 GodBeast 17303/17304/17305/17306/17307/17310/17311/17312资产场景边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R619",
+    "note": "17312按真实装备实例数组/replace/eudemon_id批量穿装并换回旧实例，成功为空包；禁止裸sender、客户端批量换装或用ACK替代背包/17301权威。"
+  },
+  {
     "cmd": 17501,
     "rule": "R481/R577 SevenDay normal-reward claim boundary",
     "evidence": "AGENTS.md:R577 10211/13213/13322/17501/17503编排与状态事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R577",
