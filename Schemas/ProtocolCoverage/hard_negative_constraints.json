@@ -480,6 +480,18 @@
     "note": "28017按历史最高排名、配置、已领表和背包容量校验，持久化break_id_list并真实发奖；禁止孤立u32 sender、奖励raw、本地追加已领ID、二次发奖或乐观领取。"
   },
   {
+    "cmd": 28303,
+    "rule": "R503/R593 HolyTerritory scene-entry lifecycle boundary",
+    "evidence": "AGENTS.md:R593 HolyTerritory 28303/28305完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R593",
+    "note": "28303按层号校验场景与活动后把角色加入圣域进程，按归属公会决定PK模式并切入对应场景、恢复满血；Unity缺圣域入口与场景生命周期，禁止孤立常量、sender、code ACK或乐观入场。"
+  },
+  {
+    "cmd": 28305,
+    "rule": "R503/R593 HolyTerritory boss-reminder persistence boundary",
+    "evidence": "AGENTS.md:R593 HolyTerritory 28303/28305完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R593",
+    "note": "28305按层/Boss/remind修改服务进程关注列表并持久化Boss提醒角色集合，成功回显后旧端补丁28301 Boss项；Unity缺配置、关注UI、通知消费者和权威刷新闭环，禁止裸sender、echo handler或乐观is_remind。"
+  },
+  {
     "cmd": 28500,
     "rule": "R517 NoonParty boundary",
     "evidence": "AGENTS.md:协议负约束优先规则;Docs/差距分析-协议接入GapMap-20260711.md:NoonParty",
