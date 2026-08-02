@@ -323,6 +323,8 @@
 - 反向探针把144零缺口族和400全killlist族临时改为`pending`，H精确报告`144[零活缺口]`与`400[全killlist:...]`并`EXIT 3`；逐行恢复正式baseline后的`coverage_20260802_182556.md`为A～H全PASS、`EXIT 0`，运行时指标仍为`1256/331/20/77.5%`。
 - R554继续收紧正式baseline的人工编辑完整性：H要求`families[].prefix`唯一；对当前仍有活缺口的`done`家族要求非空`statusNote`，使killlist收口理由不会在后续人工整理时被静默抹掉。零缺口done族不强制补历史说明，避免为90个已自然全覆盖的旧族制造无信息文本。
 - 当前正式baseline共179族且无重复；17个“仍有当前活缺口但已done”的家族全部有说明。反向探针临时复制144条目并清空400说明，H同时报告`baseline家族重复:144`与`带活缺口done族缺statusNote:400`并`EXIT 3`；恢复后的`coverage_20260802_183414.md`为A～H全PASS。
+- R555补齐G段自身的killlist schema门禁：清单必须非空，每条`cmd`必须在10000～99999且`reason/evidence`非空。此前G只检查重复、运行时交集、clientMode、常量和发送引用，空证据只会在C/H计算有效kill集合时被间接忽略，pending家族中的坏条目可能不挂红且仍被正向计数。
+- 当前172条均通过五位cmd、reason和evidence审计。反向探针清空10204的evidence与10208的reason后，G精确报告`cmd/reason/evidence不完整:10204,10208`并`EXIT 3`；恢复后的`coverage_20260802_184050.md`为A～H全PASS，G明确显示172条字段/evidence完整、7个send-only发送证据齐全。
 
 ### 7.30 AutoBrush 13310 阶段奖励事务（2026-08-02 核对）
 

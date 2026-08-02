@@ -25,9 +25,9 @@ namespace Shenxiao.EditorTools
     ///   F 硬负约束防复发:hard_negative_constraints.json 中的协议号不得重新出现为运行时注册、
     ///     源码静态注册、Proto 常量、具名发送或五位数字直发；清单缺失、重复或无 evidence 同样挂红。它不改变活缺口与
     ///     killlist 口径，只把 AGENTS 的现行禁止边界变成机器门禁。
-    ///   G killlist 防复活:killlist 中的协议号不得拥有运行时 handler。只有显式 clientMode=send_only
-    ///     的 C2S 单向操作允许且必须保留 Proto 常量及生产 `Send*(Proto.X,...)` 直接引用，其余死号不得
-    ///     残留常量或发送引用；模式非法或清单重复也挂红。
+    ///   G killlist 防复活:killlist 必须非空且每条为五位cmd并带reason/evidence；其中协议号不得拥有
+    ///     运行时 handler。只有显式 clientMode=send_only 的 C2S 单向操作允许且必须保留 Proto 常量及
+    ///     生产 `Send*(Proto.X,...)` 直接引用，其余死号不得残留常量或发送引用；模式非法或清单重复也挂红。
     ///   H baseline状态收口:当前零活缺口、或剩余活缺口已全部由带evidence的killlist治理的家族，
     ///     正式baseline必须人工标为done；家族重复、未知status、漏入当前家族，或仍有活缺口的done族
     ///     缺少statusNote同样挂红。
@@ -354,6 +354,14 @@ namespace Shenxiao.EditorTools
             List<KillEntry> killlist,
             AssertionOutcome outcome)
         {
+            List<int> malformed = killlist
+                .Where(k => k.Cmd < 10000
+                    || k.Cmd > 99999
+                    || string.IsNullOrWhiteSpace(k.Reason)
+                    || string.IsNullOrWhiteSpace(k.Evidence))
+                .Select(k => k.Cmd)
+                .OrderBy(c => c)
+                .ToList();
             List<int> duplicates = killlist
                 .GroupBy(k => k.Cmd)
                 .Where(g => g.Count() > 1)
@@ -399,7 +407,9 @@ namespace Shenxiao.EditorTools
                 .ToList();
             int sendOnlyCount = killlist.Count(k => k.ClientMode == KillEntry.CLIENT_MODE_SEND_ONLY);
 
-            bool pass = duplicates.Count == 0
+            bool pass = killlist.Count > 0
+                && malformed.Count == 0
+                && duplicates.Count == 0
                 && registeredKill.Count == 0
                 && invalidModes.Count == 0
                 && forbiddenConstants.Count == 0
@@ -407,6 +417,8 @@ namespace Shenxiao.EditorTools
                 && forbiddenSendReferences.Count == 0
                 && missingSendOnlyReferences.Count == 0;
             var details = new List<string>();
+            if (killlist.Count == 0) details.Add("清单缺失或为空");
+            if (malformed.Count > 0) details.Add("cmd/reason/evidence不完整:" + string.Join(",", malformed));
             if (duplicates.Count > 0) details.Add("重复协议号:" + string.Join(",", duplicates));
             if (registeredKill.Count > 0) details.Add("死号仍有运行时handler:" + string.Join(",", registeredKill));
             if (invalidModes.Count > 0) details.Add("clientMode非法:" + string.Join(",", invalidModes));
@@ -414,7 +426,7 @@ namespace Shenxiao.EditorTools
             if (missingSendOnlyConstants.Count > 0) details.Add("send_only缺Proto常量:" + string.Join(",", missingSendOnlyConstants));
             if (forbiddenSendReferences.Count > 0) details.Add("absent死号仍有生产发送引用:" + string.Join(",", forbiddenSendReferences));
             if (missingSendOnlyReferences.Count > 0) details.Add("send_only缺生产发送引用:" + string.Join(",", missingSendOnlyReferences));
-            if (pass) details.Add(killlist.Count + "条killlist与运行时注册零交集;send_only=" + sendOnlyCount
+            if (pass) details.Add(killlist.Count + "条killlist字段/evidence完整且与运行时注册零交集;send_only=" + sendOnlyCount
                 + ";发送引用=" + sendOnlyCount + ";数字直发=" + scan.UnityStaticLiteralSendSites.Count);
             outcome.Add("G死号防复活", pass, string.Join(";", details));
         }
