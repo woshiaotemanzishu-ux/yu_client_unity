@@ -516,6 +516,48 @@
     "note": "22704会按type/subtype/reward_id校验阶段状态，写DB领取态并真实发奖；Unity只保留CycleRank读侧raw，禁止孤立常量、sender、结果handler或本地领奖。"
   },
   {
+    "cmd": 23302,
+    "rule": "R488/R614 GodCourt unlock and attribute boundary",
+    "evidence": "AGENTS.md:R614 GodCourt 23302/23303/23304/23305/23307/23308/23309状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R614",
+    "note": "23302按神之所等级配置解锁指定神庭，持久化激活态、重算神庭与人物属性、通知属性并推23310权威单庭状态；Unity缺完整主页面、配置与属性消费者，禁止孤立sender/ACK或乐观激活。"
+  },
+  {
+    "cmd": 23303,
+    "rule": "R488/R614 GodCourt equipment inventory and core cascade boundary",
+    "evidence": "AGENTS.md:R614 GodCourt 23302/23303/23304/23305/23307/23308/23309状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R614",
+    "note": "23303事务移动真实神庭装备实例、可能替换旧装；低品质替换还可能自动脱核心，随后通知物品、重算套装/属性、触发使魔下游并推23310。缺47/48容器、确认和对账时禁止sender、echo handler或本地换装。"
+  },
+  {
+    "cmd": 23304,
+    "rule": "R488/R614 GodCourt equipment stage asset boundary",
+    "evidence": "AGENTS.md:R614 GodCourt 23302/23303/23304/23305/23307/23308/23309状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R614",
+    "note": "23304按部位阶数配置真实扣料、持久化装备阶段、重算套装与人物属性，可能发全服传闻并推23310；禁止孤立sender、stage结果补丁、乐观扣料或本地套装推演。"
+  },
+  {
+    "cmd": 23305,
+    "rule": "R488/R614 GodCourt strengthen asset and attribute boundary",
+    "evidence": "AGENTS.md:R614 GodCourt 23302/23303/23304/23305/23307/23308/23309状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R614",
+    "note": "23305按神庭强化配置真实扣资源、写等级DB、重算神庭与人物属性并推23310；Unity缺强化配置、货币/背包与主页面，禁止sender、结果handler或乐观升阶。"
+  },
+  {
+    "cmd": 23307,
+    "rule": "R488/R614 GodCourt crystal-origin cost and progress boundary",
+    "evidence": "AGENTS.md:R614 GodCourt 23302/23303/23304/23305/23307/23308/23309状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R614",
+    "note": "23307严格空请求会真实扣升橙成本，增加总/日次数、把水晶置橙、刷新累计奖励状态并推进活动；缺神之所页面、配置与资产对账时禁止sender、局部状态handler或乐观升橙。"
+  },
+  {
+    "cmd": 23308,
+    "rule": "R488/R614 GodCourt crystal draw random reward boundary",
+    "evidence": "AGENTS.md:R614 GodCourt 23302/23303/23304/23305/23307/23308/23309状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R614",
+    "note": "23308严格空请求会扣开晶物品、按服务端权重和橙晶日计数随机奖励，写神之所等级/经验/下一颜色并真实发奖；回包ObjectList只供展示，禁止客户端随机、二次发奖或孤立sender。"
+  },
+  {
+    "cmd": 23309,
+    "rule": "R488/R614 GodCourt cumulative random reward claim boundary",
+    "evidence": "AGENTS.md:R614 GodCourt 23302/23303/23304/23305/23307/23308/23309状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R614",
+    "note": "23309按times校验可领态，从当前总次数对应奖池随机奖励，先持久化已领再真实发奖，成功后服务端另推23306权威全量；禁止孤立sender/ACK、乐观领态或按结果清单再次加资产。"
+  },
+  {
     "cmd": 24103,
     "rule": "R164/R525/R589 SentientAct portal and team-entry orchestration boundary",
     "evidence": "AGENTS.md:R589 SentientAct 24103/24104/24105/24108/24109场景与组队边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R589",
