@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R528。新增13507九魂圣殿S2C-only活动结算raw快照；没有同号请求，也不改变GAME_START、场景路由或既有13500/03/04三份快照。
-- 13507严格解析`max_floor:u8 + ObjectList + first_server_num:u16 + first_player:string + 逐层首占表`，逐包替换深只读独立快照，保序保重且空表loaded；未接结算UI、奖励二次发放、背包、事件、红点或Toast。13502/05场景写操作、13509场景连杀继续DEFER，13508另行复审。
-- Unity实编译与`dotnet build Assembly-CSharp-Editor.csproj`均0 error；`NineSkyCase=0/pass=True/restored=True`。`coverage_20260802_132823.md` A～E全PASS，运行时口径为`registered=1269 / liveDefined=1468 / liveGap=321 / errorExit=12 / active=1147/1468=78.1%`；baseline冻结不更新。
+- 最新完成轮次：R529。13508九魂圣殿即时积分通知已完成逐号死活审计：服务端积分累计与13503权威总分仍活，但两处13508 writer/send均整组注释且全仓无其它发送点，已证据化KILL。
+- Unity继续不注册13508、不保存孤立增量、不弹积分Toast，也不补丁13503分数。R528的13507结算快照不变；13502/05场景写操作与13509场景连杀继续DEFER。
+- killlist共176项，严格升序且无重复；`coverage_20260802_133706.md` A～E全PASS，运行时raw口径保持`registered=1269 / liveDefined=1468 / liveGap=321 / errorExit=12 / active=1147/1468=78.1%`。本轮无C#行为变更，baseline冻结不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

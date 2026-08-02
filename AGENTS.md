@@ -42,6 +42,8 @@
 
 - R528 NineSky 13507：这是S2C-only九魂圣殿活动结算，wire固定为`max_floor:u8,reward:ObjectList,first_server_num:u16,first_player:string,get_list:u16×{index:u8,server_num:u16,role_name:string}`，其中ObjectList为`u16×{type:u8,type_id:u32,num:u32}`。每包必须原子替换独立不可变最后快照，保留wire原序、重复奖励/层号、空名、空表及全部零/最大值；不得公开同号请求、加入GAME_START、把返回奖励当成客户端二次发放，亦不得附带结算UI、场景退出、事件、配置、红点、Toast或背包修改。13502参战、13505离场仍是场景写操作，13509连杀仍依赖场景角色/Figure表现，继续DEFER；13508积分writer当前可达性另行逐号复审，不得随13507顺带注册。
 
+- R529 NineSky 13508：本号保持KILL。服务端`score_ref`和`after_kill_player`仍正常累计积分/发服务端奖励，13503也会返回权威总分，但两处`pt_135:write(13508,...)`及其`send_to_uid`均整组注释；全仓没有其它直接或动态Cmd发送点，只有pt writer定义和老端孤立接收器。禁止新增13508常量、注册、raw切片、积分Toast、事件或对13503分数的补丁；只有服务端恢复活跃writer且产品明确恢复即时积分提示时才重审。13502/13505/13509继续DEFER，13507结算规则不变。
+
 - Unity 序列化脚本规则：会挂到 Scene/Prefab 的 `MonoBehaviour` / `ScriptableObject` 必须独占同名 `.cs` 文件，禁止把它放在“首个类型为静态类、抽象类或其他不同名类型”的文件里；Editor 生成器 `AddComponent<T>()` 后必须核对产物 `m_Script` 为非零 GUID 且 GUID 指向 `T` 的同名脚本。否则即使 C# 编译通过，Unity 仍可能把组件保存成 Missing Script。
 
 - 主界面技能规则：技能项只允许 `con` 作为唯一 Raycast/Button 点击面，`bg/icon/lock/CD/文字` 等装饰 Graphic 必须关闭 `raycastTarget`；点击验收必须走真实 Prefab 的 `GraphicRaycaster→PointerClick`，直接调用 `OnClickSkill` 不算点击链通过。普通 `AutoFight` 不得拦截玩家手点技能，只有服务端 `13017` 的 `RoleModel.DepositState` 托管态才拦截。手动无锁定目标时按当前朝向原地释放并只在技能 `area` 内局部预选，不得跨全场抢最近怪；自动战斗才允许全场寻敌并接近。接敌范围严格对标老端：`range==1` 使用 `max(100,(distance+area)*0.8)`，其他模式使用 `max(100,distance*0.8)`；命中几何由 `range/distance/area/num` 决定，禁止从 `desc` 文案猜圆形、直线或扇形。

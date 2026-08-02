@@ -42,6 +42,12 @@
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
   {
+    "cmd": 13508,
+    "reason": "dead_server_call_sites_commented",
+    "evidence": "yu_server/src/nine/lib_nine_battle.erl:827-828,923-924;yu_server/src/pt/pt_135.erl:162-170;h5/src/commonController/NineSkyController.ts:123-129",
+    "note": "九魂积分仍在服务端score_ref与after_kill_player内权威累计，并由13503战斗面板返回总分；但两处13508专属writer与紧随的send_to_uid调用均整组注释。服务端全仓pt_135:write调用复核后仅剩这两处注释和pt序列化定义，无动态Cmd封装或其它活跃发送点。老端虽注册积分提示/SetScore消费者，现网永远收不到13508。Unity不新增常量、注册、raw切片、提示或分数补丁；继续以13503权威快照为准。R529。"
+  },
+  {
     "cmd": 13712,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/DiamondFightController.ts:360",
