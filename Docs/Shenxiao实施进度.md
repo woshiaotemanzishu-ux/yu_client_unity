@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R539。Revelation原始硬约束在R137已明确禁止接入28600-05/07/08；提交历史确认28600统一错误快照到五天后的7月28日才增加，属于晚于负约束的违规增量。本轮已撤销28600常量、注册、handler、模型字段和正向用例，286族继续保持pending，不能用覆盖率推翻既有业务边界。
-- 28608理论S2C为套装列表，老端注册后会补丁28606套装；但当前服务端`pp_revelation_equip`没有同号handler，全业务源码只有`pt_286`空read/writer定义且writer零调用，现已逐号证据化KILL。Unity不注册、不缓存、不用永远收不到的旧通知覆盖28606权威全量；28601-05/07仍为真实装备、吞噬、升级、技能和形象写操作，继续DEFER。
-- `dotnet build Assembly-CSharp-Editor.csproj -m:1`为78条既有warning、0 error；Unity `RevelationCase=0/pass=True/restored=True`确认只注册28606/28609且既有快照语义完整。`coverage_20260802_145427.md` A～E全PASS，全局为`registered=1275 / liveDefined=1468 / liveGap=316 / errorExit=13 / active=1152/1468=78.5%`，286族raw为`2/8/0 pending`。28608 killlist不改写raw计数，baseline冻结不更新。
+- 最新完成轮次：R544。历史深海订阅10208只有老端协议声明，没有真实源码或两份编译产物中的注册、请求和消费者；当前服务器唯一查询handler及唯一writer调用也整段注释，现已逐号证据化KILL。Unity不注册、不请求、不加入GAME_START，也不把11306/11307微信订阅域或10209历史写入别名到10208。
+- 10205继续受R111/R541负约束排除，10211继续等待`data_popup`、登录/定时/Temple条件与真实弹窗消费者；102族保持pending。R543已闭环13310现有Prefab阶段奖励事务，133族只余13322教程状态写入。
+- R544仅更新killlist与权威文档，无运行时代码变化；`coverage_20260802_162714.md` A～E全PASS，raw口径保持`registered=1262/liveDefined=1468/liveGap=329/errorExit=19/active=1139/1468=77.6%`，killlist增至182条且排序唯一。冻结baseline未改。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---
@@ -1790,3 +1790,9 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **权威状态**：每包完整替换独立不可变raw结果，保序保重并保留0/全位最大值。失败不改13309且不回查；成功展示实际回包奖励并精确空发一次13309。客户端不本地推进gate、不操作背包或重复发奖，GAME_START仍只发原五个读包。
 - **界面边界**：增量复用已存在的可编辑`AutoBrushModule.prefab`，给`_box_show/_box_click`绑定同一领取语义，容器根透明Image是实际点击面；按13309权威gate显示完成/待领状态。未重转、未改Prefab视觉或引入页面Creator。
 - **验证状态**：`dotnet build Shenxiao.Editor.csproj`为79条既有warning、0 error；Unity 6000.3.17f1独立批处理`AutoBrushReadCase pass=True/restored=True/EXIT 0`，覆盖非法门禁、精确u64帧、无回复保留、失败/成功、raw极值/重复、成功唯一13309回查、刷新前锁定、Dispose恢复及真实Prefab `GraphicRaycaster→PointerClick`单飞。`coverage_20260802_160129.md` A～E全PASS，运行时为`registered=1262/liveDefined=1468/liveGap=329/errorExit=19/active=1139/1468=77.6%`；133族只余13322写事务，冻结baseline未改。
+
+## 2026-08-02：Game 10208 历史深海订阅死链治理（R544）
+
+- **双端证据**：10208历史S2C仅`subscribe_type:u8`。老端现仓除`proto102.d.ts`和`ClientProtocol.json`声明外，`h5/src`及开发/发布两份`bundle.js`均无注册、请求或消费者；当前服务器`pp_game`唯一严格空查询handler与唯一10208 writer调用整段注释，全业务只余不可达codec。
+- **治理边界**：`killlist.json`按序新增10208证据并在`AGENTS.md`固化KILL。Unity不得注册、请求、加入GAME_START或建立raw/UI/事件切片；10209历史写入不得别名复活，11306/11307现役微信订阅域保持独立。10205和10211继续按既有边界DEFER，102族仍为pending。
+- **验证状态**：本轮没有运行时代码、Prefab、配置或冻结baseline变化，不触发dotnet与业务专项。Unity 6000.3.17f1独立批处理`ProtocolCoverageCase`正常退出；`coverage_20260802_162714.md` A～E全PASS，raw口径保持`registered=1262/liveDefined=1468/liveGap=329/errorExit=19/active=1139/1468=77.6%`，killlist为182条且cmd严格递增、无重复。

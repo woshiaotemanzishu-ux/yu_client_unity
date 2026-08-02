@@ -6,6 +6,12 @@
     "note": "客户端版本上传 C2S client_ver:u64、S2C error_code:u32；服务端会写入当前玩家进程的临时 client_ver 并回成功，但老端没有任何发送入口。Unity 不注册、不发送、不加入 GAME_START/登录/设置链，也不为覆盖率孤立接收回执。R484 复核。"
   },
   {
+    "cmd": 10208,
+    "reason": "dead_server_handle_commented",
+    "evidence": "h5/libs/proto102.d.ts:138-147;h5/laya/assets/resource/config/client/ClientProtocol.json:22-23;h5/src全仓无10208注册/请求/消费者;h5/bin/js/bundle.js与cdn/js/bundle.js无10208;yu_server/src/game/pp_game.erl:113-117(唯一handler/writer调用整段注释);yu_server/src/pt/pt_102.erl:28-29,148-154",
+    "note": "历史深海订阅查询只剩协议声明与codec。当前服务器唯一10208 handler及唯一业务writer调用整段注释，老端源码和两份编译产物均没有发送、注册或消费；Unity保持不注册、不请求、不加入GAME_START，也不得把11307微信订阅总开关或11306模板状态误映射到本号。R544。"
+  },
+  {
     "cmd": 11003,
     "reason": "old_client_unreachable",
     "evidence": "h5/src/commonController/ChatController.ts:375-402,709-777,849-863;h5/src/chat/ChatParentView.ts:436-450;h5/src/chat/VoiceChatView.ts:118-203;yu_server/src/chat/pp_chat.erl + yu_server/src/pt/pt_110.erl",
