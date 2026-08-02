@@ -312,6 +312,8 @@
 - 负向探针临时把现役10201加入killlist，G段精确报告`死号仍有运行时handler:10201`并以`EXIT 3`失败；移除探针后正式172条清单零交集，`coverage_20260802_173442.md` A～G全PASS。
 - R549进一步把常量例外从“G一概不检查”改为逐条声明。`KillEntry.clientMode`缺省为`absent`，该模式既不能注册handler也不能保留Proto常量；`send_only`表示C2S真实可达但S2C死亡，必须有常量且仍不得注册。当前七个例外固定为11101秘籍执行、30008加入结社任务事件、40029调戏成员、40218退出晚宴、40505/40507神像铭文穿脱、62107退出资格赛；每号均已有生产发送方法和服务端处理链。
 - `clientMode`未知值、absent残留常量、send-only缺常量都会让G失败。临时撤掉11101声明后，正式常量被判为`absent死号仍有Proto常量:11101`并`EXIT 3`；恢复后的`coverage_20260802_174537.md`显示172条、`send_only=7`、A～G全PASS。不得用send-only为没有真实C2S消费者的死号保留常量。
+- R550把“已有生产发送方法”的人工事实也变成静态门禁。Scanner只遍历`Assets/Scripts/**/*.cs`，复用去行/块注释结果并识别跨行`Send*(Proto.X,...)`；Editor测试、注释、handler注册、常量定义、局部变量间接传参和普通引用均不计入`UnityStaticSendSites`。G要求send-only存在直接发送点，absent不得存在。
+- 11101反向探针临时改为`int command=Proto.GM_CHEAT_EXEC; SendFmt(command,...)`：代码仍可编译、常量仍存在、发送行为也未消失，但可审计的直接引用断开，G以`send_only缺生产发送引用:11101`和`EXIT 3`拒绝；恢复后的`coverage_20260802_175259.md`显示七号各有发送引用且A～G全PASS。新增例外应保持直接常量调用形式，不得用别名绕过机检。
 
 ### 7.30 AutoBrush 13310 阶段奖励事务（2026-08-02 核对）
 

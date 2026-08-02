@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R549。killlist正式172条不变，但默认客户端模式收紧为`absent`：除无运行时handler外，也不得残留Proto常量；只有11101、30008、40029、40218、40505、40507、62107七个真实C2S/死亡S2C半死号显式标为`send_only`。
-- `ProtocolCoverageCase`的G段现在同时校验运行时零交集、cmd唯一、clientMode合法、absent无常量以及send-only必须有常量。16个1-gap pending家族和全部2～3 gap家族已复扫，没有绕过现有写事务/产品边界强接新号。
-- R549最终报告`coverage_20260802_174537.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，正式172条与`send_only=7`、A～G全PASS、`EXIT 0`。反向探针撤掉11101声明后，G精确报`absent死号仍有Proto常量:11101`并`EXIT 3`；探针随后恢复。
+- 最新完成轮次：R550。killlist仍为165个默认absent、7个显式send-only；在R549常量门禁之上，新增生产`Send*(Proto.X,...)`直接引用门禁，避免“常量存在但真实sender已删除”仍误判合法。
+- Scanner只扫描去注释后的`Assets/Scripts`生产源码，支持跨行调用；注释、Editor测试、handler注册、局部变量与普通常量引用都不算发送证据。G现在要求七个send-only同时具备七份常量和七组生产发送引用，absent则两者都不得有。
+- R550最终报告`coverage_20260802_175259.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，G显示`send_only=7;发送引用=7`，A～G全PASS、`EXIT 0`。11101局部变量反向探针保留常量与行为却失去直发证据，G精确失败并`EXIT 3`；探针随后恢复。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

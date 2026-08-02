@@ -22,8 +22,9 @@ namespace Shenxiao.Editor.ProtocolCoverage
     ///  4) 服务端族级路由 = 解析 mod_server.erl 的 "NNN" -&gt; pp_xxx; 分发(族级粗判,见
     ///     ProtocolCoverageServerParser 顶部注释:号级死号判定留 killlist.json 人工填 evidence)。
     ///
-    /// 另外静态扫描 Unity C# 源码里的 RegisterProtocal 调用点(仅用于 D 段双注册检查——运行时字典是
-    /// 覆盖语义,同号注册两次在 Dictionary 里看不出来,必须回源码才能抓到)。
+    /// 另外静态扫描 Unity C# 源码里的 RegisterProtocal 调用点(用于 D 段双注册检查)和直接
+    /// `Send*(Proto.X,...)` 调用点(用于 G 段 send_only 发送证据)。运行时字典是覆盖语义,
+    /// 同号注册两次在 Dictionary 里看不出来,必须回源码才能抓到。
     /// </summary>
     public static class ProtocolCoverageScanner
     {
@@ -78,6 +79,11 @@ namespace Shenxiao.Editor.ProtocolCoverage
 
             /// <summary>Unity C# 源码里全部 RegisterProtocal 静态调用点(含单次注册的,过滤重复见 DuplicateRegistrations)。</summary>
             public readonly Dictionary<int, List<DuplicateSite>> UnityStaticSites = new Dictionary<int, List<DuplicateSite>>();
+
+            /// <summary>生产 C# 源码里去注释后的直接 `Send*(Proto.X,...)` 调用点。
+            /// 只作为 killlist send_only 的静态发送证据，不参与覆盖率分子。</summary>
+            public readonly Dictionary<int, List<DuplicateSite>> UnityStaticSendSites =
+                new Dictionary<int, List<DuplicateSite>>();
 
             /// <summary>老端活协议里,函数体裁定为「仅 Util.ErrorCodeShow」的号(裁决7 收紧规则)。</summary>
             public readonly HashSet<int> ErrorExitCandidates = new HashSet<int>();
@@ -214,7 +220,7 @@ namespace Shenxiao.Editor.ProtocolCoverage
             }
         }
 
-        // ---- D 段:Unity C# 源码静态扫描(双注册检查专用,不作为已注册集合的权威来源)----
+        // ---- D/G 段:Unity C# 源码静态扫描(注册/发送证据,不作为已注册集合的权威来源)----
 
         private static Dictionary<string, int> ParseProtoConsts()
         {
@@ -243,10 +249,29 @@ namespace Shenxiao.Editor.ProtocolCoverage
                 }
 
                 string src = File.ReadAllText(path);
-                if (!src.Contains("RegisterProtocal")) continue;
-
                 string cls = ExtractClassName(src);
                 string[] lines = StripLineComments(src);
+                string clean = string.Join("\n", lines);
+
+                foreach (Match m in Regex.Matches(
+                    clean,
+                    @"\bSend\w*\s*\(\s*Proto\s*\.\s*(\w+)\b"))
+                {
+                    if (!protoConsts.TryGetValue(m.Groups[1].Value, out int cmd)) continue;
+                    int line = 1;
+                    for (int i = 0; i < m.Index; i++)
+                    {
+                        if (clean[i] == '\n') line++;
+                    }
+                    if (!r.UnityStaticSendSites.TryGetValue(cmd, out List<DuplicateSite> sendSites))
+                    {
+                        sendSites = new List<DuplicateSite>();
+                        r.UnityStaticSendSites[cmd] = sendSites;
+                    }
+                    sendSites.Add(new DuplicateSite { File = rel, Line = line, Class = cls });
+                }
+
+                if (!clean.Contains("RegisterProtocal")) continue;
                 for (int i = 0; i < lines.Length; i++)
                 {
                     foreach (Match m in Regex.Matches(lines[i], @"RegisterProtocal\s*\(\s*([^,]+?)\s*,"))
