@@ -30,21 +30,32 @@ namespace Shenxiao.Module.Core.Designation
             public string Name = "";
             public string Description = "";
             public string ResourceId = "";
+            public int MainType;
             public int Location;
             public int OrderLimit;
             public readonly List<Attr> Attrs = new List<Attr>();
             public readonly List<Cost> GoodsConsume = new List<Cost>();
         }
 
+        public sealed class OrderRow
+        {
+            public uint Id;
+            public int Order;
+            public readonly List<Attr> Attrs = new List<Attr>();
+            public readonly List<Cost> Consume = new List<Cost>();
+        }
+
         private static readonly List<Row> Rows = new List<Row>();
+        private static readonly Dictionary<string, OrderRow> OrderRows = new Dictionary<string, OrderRow>();
         private static JObject _config;
+        private static JObject _orderConfig;
         private static Task _loading;
 
         public static IReadOnlyList<Row> All => Rows;
 
         public static Task EnsureLoaded()
         {
-            if (_config != null) return Task.CompletedTask;
+            if (_config != null && _orderConfig != null) return Task.CompletedTask;
             return _loading ?? (_loading = LoadAsync());
         }
 
@@ -74,38 +85,120 @@ namespace Shenxiao.Module.Core.Designation
             return false;
         }
 
-        private static async Task LoadAsync()
+        /// <summary>
+        /// 对齐服务端 lib_designation:check_up_designation_order/2：当前阶与下一阶都必须有配置，
+        /// 实际扣除当前阶配置的 consume；这里只接受一条 type=0 的真实背包物品。
+        /// </summary>
+        public static bool TryGetUpgradeCost(uint id, int currentOrder, out Cost cost)
         {
-            string key = GameResPath.GetServerConfigPath("config_dsgt");
-            UnityEngine.TextAsset asset = await ResManager.LoadAsync<UnityEngine.TextAsset>(key);
-            if (asset == null)
+            Row row = Get(id);
+            if (row == null || row.MainType != 3 || currentOrder <= 0
+                || row.OrderLimit <= currentOrder
+                || !OrderRows.TryGetValue(OrderKey(id, currentOrder), out OrderRow current)
+                || !OrderRows.ContainsKey(OrderKey(id, currentOrder + 1))
+                || current.Consume.Count != 1)
             {
-                GameLog.Error("Designation", "称号配置缺失: {0}", key);
-                _loading = null;
-                return;
+                cost = null;
+                return false;
             }
 
-            _config = JObject.Parse(asset.text);
-            Rows.Clear();
-            foreach (JProperty property in _config.Properties())
+            Cost value = current.Consume[0];
+            if (value.Type != 0 || value.TypeId <= 0 || value.Num <= 0)
             {
-                if (!(property.Value is JObject row)) continue;
-                var parsed = new Row
-                {
-                    Id = (uint)ReadLong(row, "id"),
-                    Name = ReadString(row, "name"),
-                    Description = ReadString(row, "description"),
-                    ResourceId = ReadString(row, "resource_id"),
-                    Location = (int)ReadLong(row, "location"),
-                    OrderLimit = (int)ReadLong(row, "order_limit"),
-                };
-                ParseAttrs(ReadString(row, "attr_list"), parsed.Attrs);
-                ParseCosts(ReadString(row, "goods_consume"), parsed.GoodsConsume);
-                Rows.Add(parsed);
+                cost = null;
+                return false;
             }
-            Rows.Sort((a, b) => a.Location.CompareTo(b.Location));
-            ResManager.Release(asset);
+            cost = value;
+            return true;
         }
+
+        public static IReadOnlyList<Attr> GetDisplayAttrs(uint id, int currentOrder)
+        {
+            Row row = Get(id);
+            if (row != null && row.MainType == 3 && currentOrder > 0
+                && OrderRows.TryGetValue(OrderKey(id, currentOrder), out OrderRow order)
+                && order.Attrs.Count > 0)
+                return order.Attrs;
+            return row?.Attrs;
+        }
+
+        private static async Task LoadAsync()
+        {
+            string baseKey = GameResPath.GetServerConfigPath("config_dsgt");
+            string orderKey = GameResPath.GetServerConfigPath("config_dsgt_order");
+            UnityEngine.TextAsset baseAsset = null;
+            UnityEngine.TextAsset orderAsset = null;
+            try
+            {
+                Task<UnityEngine.TextAsset> baseTask = ResManager.LoadAsync<UnityEngine.TextAsset>(baseKey);
+                Task<UnityEngine.TextAsset> orderTask = ResManager.LoadAsync<UnityEngine.TextAsset>(orderKey);
+                await Task.WhenAll(baseTask, orderTask);
+                baseAsset = baseTask.Result;
+                orderAsset = orderTask.Result;
+                if (baseAsset == null || orderAsset == null)
+                {
+                    GameLog.Error("Designation", "称号配置缺失: base={0} order={1}",
+                        baseAsset != null, orderAsset != null);
+                    return;
+                }
+
+                JObject parsedBase = JObject.Parse(baseAsset.text);
+                JObject parsedOrder = JObject.Parse(orderAsset.text);
+                var rows = new List<Row>();
+                var orderRows = new Dictionary<string, OrderRow>();
+                foreach (JProperty property in parsedBase.Properties())
+                {
+                    if (!(property.Value is JObject row)) continue;
+                    var parsed = new Row
+                    {
+                        Id = (uint)ReadLong(row, "id"),
+                        Name = ReadString(row, "name"),
+                        Description = ReadString(row, "description"),
+                        ResourceId = ReadString(row, "resource_id"),
+                        MainType = (int)ReadLong(row, "main_type"),
+                        Location = (int)ReadLong(row, "location"),
+                        OrderLimit = (int)ReadLong(row, "order_limit"),
+                    };
+                    ParseAttrs(ReadString(row, "attr_list"), parsed.Attrs);
+                    ParseCosts(ReadString(row, "goods_consume"), parsed.GoodsConsume);
+                    rows.Add(parsed);
+                }
+                foreach (JProperty property in parsedOrder.Properties())
+                {
+                    if (!(property.Value is JObject row)) continue;
+                    var parsed = new OrderRow
+                    {
+                        Id = (uint)ReadLong(row, "0"),
+                        Order = (int)ReadLong(row, "2"),
+                    };
+                    ParseCosts(ReadString(row, "1"), parsed.Consume);
+                    ParseAttrs(ReadString(row, "3"), parsed.Attrs);
+                    if (parsed.Id != 0 && parsed.Order > 0)
+                        orderRows[OrderKey(parsed.Id, parsed.Order)] = parsed;
+                }
+
+                rows.Sort((a, b) => a.Location.CompareTo(b.Location));
+                Rows.Clear();
+                Rows.AddRange(rows);
+                OrderRows.Clear();
+                foreach (KeyValuePair<string, OrderRow> pair in orderRows)
+                    OrderRows[pair.Key] = pair.Value;
+                _config = parsedBase;
+                _orderConfig = parsedOrder;
+            }
+            catch (System.Exception e)
+            {
+                GameLog.Error("Designation", "称号配置解析失败: {0}", e.Message);
+            }
+            finally
+            {
+                if (baseAsset != null) ResManager.Release(baseAsset);
+                if (orderAsset != null) ResManager.Release(orderAsset);
+                _loading = null;
+            }
+        }
+
+        private static string OrderKey(uint id, int order) => id + "@" + order;
 
         private static void ParseAttrs(string raw, List<Attr> target)
         {

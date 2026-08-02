@@ -1261,14 +1261,16 @@
         public const int DESIGNATION_ACTIVATED = 41104;
         /// <summary>场景角色称号变更通知（S2C-only）。S2C: player_id:u64,id:u32；只保留原始通知，不接场景表现。</summary>
         public const int DESIGNATION_SCENE_NOTICE = 41105;
+        /// <summary>称号升阶事务。C2S: id:u32；S2C: errcode:u32,order:u8,power:u32,currentused:u32,dsgtid:u32。</summary>
+        public const int DESIGNATION_UPGRADE = 41106;
         /// <summary>称号战力显式查询。C2S: id:u32；S2C: errcode:u32,power:u32。</summary>
         public const int DESIGNATION_POWER = 41107;
         /// <summary>称号移除通知（S2C-only）。S2C: id:u32；只保留原始通知，不改写 41101 列表。</summary>
         public const int DESIGNATION_REMOVED = 41108;
         /// <summary>称号道具激活事务。C2S: id:u32；S2C: errcode:u32,power:u32,currentused:u32,dsgtid:u32。</summary>
         public const int DESIGNATION_ACTIVATE_BY_GOODS = 41109;
-        // 41102/41103 佩戴与卸下、41106 升阶、41110 过期取消仍为未闭环写操作；禁止暴露裸操作 API。
-        // 41109 只允许从真实称号详情页，经权威列表、配置和背包二次校验后单飞发送；不得复刻旧端
+        // 41102/41103 佩戴与卸下、41110 过期取消仍为未闭环写操作；禁止暴露裸操作 API。
+        // 41106/41109 只允许从真实称号详情页，经权威列表、配置和背包二次校验后单飞发送；不得复刻旧端
         // 41104 首次激活后自动发送 41102 的写链。
         /// <summary>面具状态快照。C2S 空包；S2C: mask_id:u8,end_time:u32。</summary>
         public const int MASK_INFO = 51101;

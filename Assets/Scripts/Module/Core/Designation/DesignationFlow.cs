@@ -123,6 +123,7 @@ namespace Shenxiao.Module.Core.Designation
             if (_subscribed) return;
             EventDispatcher.On(GlobalEvent.EVT_DESIGNATION_LIST_UPDATE, OnListUpdated);
             EventDispatcher.On(GlobalEvent.EVT_DESIGNATION_ACTIVATION_RESULT, OnAuxiliaryUpdated);
+            EventDispatcher.On(GlobalEvent.EVT_DESIGNATION_UPGRADE_RESULT, OnAuxiliaryUpdated);
             EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, OnAuxiliaryUpdated);
             _subscribed = true;
         }
@@ -132,6 +133,7 @@ namespace Shenxiao.Module.Core.Designation
             if (!_subscribed) return;
             EventDispatcher.Off(GlobalEvent.EVT_DESIGNATION_LIST_UPDATE, OnListUpdated);
             EventDispatcher.Off(GlobalEvent.EVT_DESIGNATION_ACTIVATION_RESULT, OnAuxiliaryUpdated);
+            EventDispatcher.Off(GlobalEvent.EVT_DESIGNATION_UPGRADE_RESULT, OnAuxiliaryUpdated);
             EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, OnAuxiliaryUpdated);
             _subscribed = false;
         }
@@ -255,23 +257,35 @@ namespace Shenxiao.Module.Core.Designation
             if (_details.dsgt_full_order_image != null)
                 _details.dsgt_full_order_image.gameObject.SetActive(
                     entry != null && row.OrderLimit > 0 && entry.Order >= row.OrderLimit);
-            SetAttrs(row.Attrs, _details.attr1, _details.attr2, _details.attr3, _details.attr4);
+            SetAttrs(entry != null ? DesignationConfigs.GetDisplayAttrs(row.Id, entry.Order) : row.Attrs,
+                _details.attr1, _details.attr2, _details.attr3, _details.attr4);
         }
 
         private static void RenderActivation(DesignationConfigs.Row row, DesignationModel.Entry entry)
         {
-            bool hasCost = DesignationConfigs.TryGetActivationCost(row.Id, out DesignationConfigs.Cost cost);
-            bool show = DesignationModel.Instance.HasData && entry == null && hasCost
-                && !DesignationController.Instance.IsAwaitingActivationRefresh(row.Id);
+            DesignationConfigs.Cost cost = null;
+            bool upgrading = entry != null
+                && DesignationConfigs.TryGetUpgradeCost(row.Id, entry.Order, out cost);
+            bool activating = false;
+            if (!upgrading && entry == null)
+                activating = DesignationConfigs.TryGetActivationCost(row.Id, out cost);
+            bool waiting = entry == null
+                ? DesignationController.Instance.IsAwaitingActivationRefresh(row.Id)
+                : DesignationController.Instance.IsAwaitingUpgradeRefresh(row.Id);
+            bool show = DesignationModel.Instance.HasData && (activating || upgrading) && !waiting;
             if (_details.dsgt_Activate_button != null)
             {
                 _details.dsgt_Activate_button.gameObject.SetActive(show);
-                if (show) BindActivationClick(_details.dsgt_Activate_button, row.Id);
+                if (show)
+                {
+                    if (upgrading) BindUpgradeClick(_details.dsgt_Activate_button, row.Id);
+                    else BindActivationClick(_details.dsgt_Activate_button, row.Id);
+                }
             }
             if (_details.dsgt_expend_label != null)
             {
                 _details.dsgt_expend_label.gameObject.SetActive(show);
-                if (show) _details.dsgt_expend_label.text = "激活消耗：";
+                if (show) _details.dsgt_expend_label.text = upgrading ? "升阶消耗：" : "激活消耗：";
             }
             if (_details.dsgt_awarditem_group != null)
                 _details.dsgt_awarditem_group.gameObject.SetActive(show);
@@ -296,14 +310,14 @@ namespace Shenxiao.Module.Core.Designation
             }
             if (_details.dsgt_red_image != null)
                 _details.dsgt_red_image.gameObject.SetActive(enough);
-            if (_details.labelDisplay1 != null) _details.labelDisplay1.text = "激活";
+            if (_details.labelDisplay1 != null) _details.labelDisplay1.text = upgrading ? "升阶" : "激活";
 
             if (_costItem == null && _details._tpl_BaseAwardItem != null
                 && _details.dsgt_awarditem_group != null)
             {
                 GameObject go = UnityEngine.Object.Instantiate(
                     _details._tpl_BaseAwardItem, _details.dsgt_awarditem_group, false);
-                go.name = "BaseAwardItem_ActivationCost";
+                go.name = "BaseAwardItem_DesignationCost";
                 go.SetActive(true);
                 _costItem = go.GetComponent<BaseAwardItem>();
             }
@@ -316,8 +330,14 @@ namespace Shenxiao.Module.Core.Designation
         }
 
         private static void BindActivationClick(RectTransform container, uint designationId)
+            => BindActionClick(container, () => DesignationController.Instance.TryActivateByGoods(designationId));
+
+        private static void BindUpgradeClick(RectTransform container, uint designationId)
+            => BindActionClick(container, () => DesignationController.Instance.TryUpgrade(designationId));
+
+        private static void BindActionClick(RectTransform container, Action action)
         {
-            if (container == null) return;
+            if (container == null || action == null) return;
             foreach (Graphic graphic in container.GetComponentsInChildren<Graphic>(true))
                 graphic.raycastTarget = false;
             Image surface = container.GetComponent<Image>();
@@ -325,7 +345,7 @@ namespace Shenxiao.Module.Core.Designation
             surface.color = new Color(1f, 1f, 1f, 0f);
             surface.raycastTarget = true;
             UIUtil.ClearClicks(surface);
-            UIUtil.AddClick(surface, () => DesignationController.Instance.TryActivateByGoods(designationId));
+            UIUtil.AddClick(surface, action);
         }
 
         private static async Task ApplyIconAsync(Image image, string resourceId)

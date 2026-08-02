@@ -1749,3 +1749,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **权威状态**：24106不按ID补丁式修改24102缓存，重复ID、零值与`u64 max`都只按原值记录。重查无回复保留旧门户；后到24102继续保序保重整体覆盖且不清24106 raw。Reset/Dispose清理新旧切片，未接场景销毁、UI、事件、配置、红点或Toast。
 - **候选审计**：曾核对BrightSea 18910/18911的服务端增量语义，但项目既有“Do not attach 18903/18905-18914”负约束优先，相关试验代码与文档已全部撤销，未进入本轮成果。164/191/509/511/612/622等单缺口均为真实写事务或既有延期项，未以覆盖率为由裸接。
 - **验证状态**：Unity 6000.3.17f1编译0 error（77条既有warning）；`SentientActPortalRemovedCase=0/pass=True/restored=True`覆盖S2C-only、早包、重复ID、u64极值、单次24102重查、无本地全量变更、后到全量覆盖与环境恢复，既有`SentientActCase=0/pass=True`确认注册、启动序列及原切片无回归。`coverage_20260802_124100.md` A～E全PASS，运行时为 `registered=1266 / liveDefined=1468 / liveGap=324 / errorExit=12 / active=1144/1468=77.9%`；241族为`registered4/liveGap5/dead0/pending`，冻结baseline未改。
+
+## 2026-08-02：称号 41106 升阶事务闭环（R526）
+
+- **事务边界**：41106请求为`id:u32`，回包为`errcode:u32,order:u8,power:u32,currentused:u32,dsgtid:u32`。发送前要求41101权威实例已激活、基础配置`main_type=3`、未满阶、当前阶与下一阶配置同时存在，且当前阶consume恰好一条type=0真实背包物品并足量；41106与41109共用10秒互斥单飞。
+- **配置与界面**：从与现有`config_dsgt`哈希一致的老端当前CDN源迁入4772条`config_dsgt_order`，登记到`ClientConfigSync`；复用已验收`DsgtModule.prefab`的同一动作按钮和材料区，激活后按41101当前阶显示阶级属性、下一阶材料、数量、红点与“升阶”文案，满阶隐藏动作并显示原满阶标记。未重转、未改Prefab视觉。
+- **权威状态**：每包保存独立不可变raw结果并解除单飞；失败不动列表，成功只提示并精确重查一次41101。客户端不预扣材料、不本地改阶/佩戴/属性/战力，也不采用回包order/currentused补丁；全量回包前同一称号保持刷新门禁，后到41101整体收权威。
+- **验证状态**：`dotnet build Shenxiao.Editor.csproj -m:1`为77条既有warning、0 error。`DesignationUpgradeCase=0/pass=True/restored=True`覆盖4772条配置门禁、当前/下一阶、精确帧、跨41109单飞、成败/u32边界、无本地扣物/列表补丁、成功唯一41101重查、满阶拒发及真实Prefab `GraphicRaycaster→PointerClick`；既有`DesignationCase`与`DesignationReadContinuationCase`均为0且`pass/restored=True`。`coverage_20260802_125804.md` A～E全PASS，运行时为`registered=1267 / liveDefined=1468 / liveGap=323 / errorExit=12 / active=1145/1468=78.0%`；411族为`registered7/liveGap2/dead1/pending`，冻结baseline未改。

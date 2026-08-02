@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace Shenxiao.EditorTools
 {
-    /// <summary>R523：称号 41101 权威列表、41109 道具激活事务及真实 Prefab 点击链。</summary>
+    /// <summary>R523/R526：称号 41101 权威列表、41109 激活、41106 升阶注册边界及真实 Prefab 点击链。</summary>
     public static class DesignationCase
     {
         private const BindingFlags IF = BindingFlags.NonPublic | BindingFlags.Instance;
@@ -78,14 +78,17 @@ namespace Shenxiao.EditorTools
                 });
 
                 MethodInfo on01 = typeof(DesignationController).GetMethod("On41101", IF);
+                MethodInfo on06 = typeof(DesignationController).GetMethod("On41106", IF);
                 MethodInfo on09 = typeof(DesignationController).GetMethod("On41109", IF);
                 Check(ref pass, "constants/handlers/registration boundary",
                     Proto.DESIGNATION_LIST == 41101 && Proto.DESIGNATION_ACTIVATE_BY_GOODS == 41109
-                    && intercept != null && on01 != null && on09 != null && handlers != null
+                    && Proto.DESIGNATION_UPGRADE == 41106
+                    && intercept != null && on01 != null && on06 != null && on09 != null && handlers != null
                     && handlers.Contains(41101) && handlers.Contains(41104) && handlers.Contains(41105)
-                    && handlers.Contains(41107) && handlers.Contains(41108) && handlers.Contains(41109)
+                    && handlers.Contains(41106) && handlers.Contains(41107)
+                    && handlers.Contains(41108) && handlers.Contains(41109)
                     && !handlers.Contains(41100) && !handlers.Contains(41102) && !handlers.Contains(41103)
-                    && !handlers.Contains(41106) && !handlers.Contains(41110));
+                    && !handlers.Contains(41110));
 
                 var frames = new List<byte[]>();
                 intercept.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
@@ -151,7 +154,8 @@ namespace Shenxiao.EditorTools
                 controller.Dispose();
                 Check(ref pass, "dispose reset", !controller.IsInitialized && !model.HasData
                     && model.CurrentUsedId == 0 && model.Entries.Count == 0
-                    && model.GoodsActivationResult == null && !controller.HasPendingActivation
+                    && model.GoodsActivationResult == null && model.UpgradeResult == null
+                    && !controller.HasPendingActivation && !controller.HasPendingUpgrade
                     && !controller.IsAwaitingActivationRefresh(row.Id));
             }
             finally

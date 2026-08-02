@@ -80,6 +80,24 @@ namespace Shenxiao.Module.Core.Designation
             }
         }
 
+        public sealed class UpgradeResultSnapshot
+        {
+            public uint Code { get; }
+            public byte Order { get; }
+            public uint Power { get; }
+            public uint CurrentUsedId { get; }
+            public uint Id { get; }
+
+            public UpgradeResultSnapshot(uint code, byte order, uint power, uint currentUsedId, uint id)
+            {
+                Code = code;
+                Order = order;
+                Power = power;
+                CurrentUsedId = currentUsedId;
+                Id = id;
+            }
+        }
+
         public static readonly DesignationModel Instance = new DesignationModel();
 
         private readonly List<Entry> _entries = new List<Entry>();
@@ -94,6 +112,7 @@ namespace Shenxiao.Module.Core.Designation
         public PowerQuerySnapshot PowerQuery { get; private set; }
         public RemovalSnapshot Removal { get; private set; }
         public GoodsActivationResultSnapshot GoodsActivationResult { get; private set; }
+        public UpgradeResultSnapshot UpgradeResult { get; private set; }
 
         public void ReplaceData(uint currentUsedId, List<Entry> entries)
         {
@@ -117,6 +136,9 @@ namespace Shenxiao.Module.Core.Designation
         public void ReplaceGoodsActivationResult(uint code, uint power, uint currentUsedId, uint id)
             => GoodsActivationResult = new GoodsActivationResultSnapshot(code, power, currentUsedId, id);
 
+        public void ReplaceUpgradeResult(uint code, byte order, uint power, uint currentUsedId, uint id)
+            => UpgradeResult = new UpgradeResultSnapshot(code, order, power, currentUsedId, id);
+
         public Entry GetEntry(uint id)
         {
             for (int i = 0; i < _entries.Count; i++)
@@ -139,6 +161,7 @@ namespace Shenxiao.Module.Core.Designation
             HasData = false;
             ClearReadContinuationSnapshots();
             GoodsActivationResult = null;
+            UpgradeResult = null;
         }
     }
 }
