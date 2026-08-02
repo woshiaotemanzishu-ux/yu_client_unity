@@ -630,6 +630,24 @@
     "note": "42908持久化神殿外形穿戴，互斥卸下其他坐骑/时装/神兵，更新角色展示、队伍与场景并广播；其他外形也可反向取消。Unity缺外形所有权和场景消费者，禁止孤立sender/ACK、自动串穿或乐观SetWear。"
   },
   {
+    "cmd": 44202,
+    "rule": "R138/R143/R603 MonBook activation asset and attribute boundary",
+    "evidence": "AGENTS.md:R603 MonBook 44202/44203/44204图鉴资产与属性事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R603",
+    "note": "44202扣图鉴配置材料、写激活DB、重算属性并触发成就/PushGift/战力榜，随后推44201；Unity缺图鉴页、配置和资产消费者，禁止孤立sender/result或乐观激活。"
+  },
+  {
+    "cmd": 44203,
+    "rule": "R138/R143/R603 MonBook level-up asset and attribute boundary",
+    "evidence": "AGENTS.md:R603 MonBook 44202/44203/44204图鉴资产与属性事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R603",
+    "note": "44203按下一等级配置扣料、写DB、重算人物属性/战力并推44201；结果战力字段不能替代背包、图鉴和属性权威，禁止孤立sender/ACK或本地升级。"
+  },
+  {
+    "cmd": 44204,
+    "rule": "R138/R143/R603 MonBook group persistence and attribute boundary",
+    "evidence": "AGENTS.md:R603 MonBook 44202/44203/44204图鉴资产与属性事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R603",
+    "note": "44204虽不扣资产，但会持久化组合等级、重算图鉴/装备/人物属性并推44201；Unity缺组合配置/UI和属性闭环，禁止孤立sender/result或乐观组升级。"
+  },
+  {
     "cmd": 45001,
     "rule": "R520/R576 VIP level reward claim boundary",
     "evidence": "AGENTS.md:R576 VIP 45001/45002/45003/45007/45008写事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R576",
