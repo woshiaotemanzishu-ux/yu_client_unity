@@ -1460,6 +1460,8 @@
         public const int DEPOSIT_RECORDS = 19206;
         /// <summary>装扮类型快照。C2S: dress_type:u8；S2C 为该类型已启用装扮全量列表。</summary>
         public const int DRESS_INFO = 11200;
+        /// <summary>未激活装扮一级预期战力。仅显式查询；C2S: dress_type:u8,dress_id:u32；S2C 回显复合键并返回 active_power:u64。</summary>
+        public const int DRESS_INACTIVE_POWER = 11205;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)
         public const int SEVENDAY_OPEN_INFO = 17500;       // 七天登录信息
         public const int SEVENDAY_MERGE_INFO = 17502;      // 合服七天信息

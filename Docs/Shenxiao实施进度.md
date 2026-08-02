@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R536。覆盖治理复核发现144圣骸族最新运行时已经是`registered=2/liveGap=0/dead=0`，但人工baseline仍残留R109前的`pending`；现已按零活缺口收口规则转为`done`并写明证据。
-- 老端144族只有14401权威全量与14402打造两个活handler；Unity两号均已完整注册，14401由GAME_START拉全量，14402已有真实配置、背包材料、确认指纹、single-flight、失败保留、成功权威局部合并和`ArmorCase`覆盖。本轮不改任何运行时代码、Prefab、配置或协议行为。
-- 冻结的baseline历史`unityRegistered=0/liveGap=2`保持不变，只更新人工`status/statusNote`。`coverage_20260802_142728.md` A～E全PASS，C段已正式接管144族防倒退；全局仍为`registered=1275 / liveDefined=1468 / liveGap=316 / errorExit=12 / active=1152/1468=78.5%`。
+- 最新完成轮次：R537。Dress 11205现作为显式按需只读查询接入，C2S为`dress_type:u8,dress_id:u32`，S2C回显复合键并返回`active_power:u64`；模型按复合键保存独立不可变快照，不同键共存，同键全量替换，零值有效，请求无回复保留旧值。
+- 11205不加入GAME_START、11200回包或类型遍历，不改11200已激活装扮快照、RoleModel、配置、UI、事件、红点或资源。11201激活、11202使用、11203卸下仍属真实事务；11204仍需他人场景装扮消费者，四号继续DEFER。
+- `dotnet build Assembly-CSharp-Editor.csproj --no-restore`为78条既有warning、0 error；Unity `DressCase=0/pass=True`覆盖精确出站帧、u64、复合键共存/替换、旧对象不可变、零值、无回复保留、读到尾与Dispose。`coverage_20260802_143547.md` A～E全PASS，112族`2/4/0 pending`；全局为`registered=1276 / liveDefined=1468 / liveGap=315 / errorExit=12 / active=1153/1468=78.5%`，baseline冻结不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---
