@@ -306,6 +306,30 @@
     "note": "17906按task_id校验已完成未领取，真实发奖励、写任务已领状态/DB并主动推17904；Unity任务raw缺配置、领取按钮、单飞、奖励与背包刷新，禁止孤立sender、code ACK或局部state补丁。"
   },
   {
+    "cmd": 18705,
+    "rule": "R499/R514/R604 SeaHegemonyDaily start-carry scene boundary",
+    "evidence": "AGENTS.md:R604 SeaHegemonyDaily 18705/18706/18707/18713搬运与领奖事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R604",
+    "note": "18705经跨服异步启动搬运，成功回调写搬运/砖色DB、重算HP属性/被动技能并同步场景外观；禁止孤立sender、code ACK或乐观开始搬运。"
+  },
+  {
+    "cmd": 18706,
+    "rule": "R499/R514/R604 SeaHegemonyDaily end-carry scene boundary",
+    "evidence": "AGENTS.md:R604 SeaHegemonyDaily 18705/18706/18707/18713搬运与领奖事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R604",
+    "note": "18706经跨服异步结束搬运并清DB/砖色/扣血，重算属性技能、广播场景，且可由服务端自动调用；禁止裸sender、ACK或只关本地UI。"
+  },
+  {
+    "cmd": 18707,
+    "rule": "R499/R514/R604 SeaHegemonyDaily brick upgrade asset boundary",
+    "evidence": "AGENTS.md:R604 SeaHegemonyDaily 18705/18706/18707/18713搬运与领奖事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R604",
+    "note": "18707按旧砖色到目标档计算成本并自动补购扣费，随后写砖色DB；Unity缺配置、钱包/背包和确认，禁止孤立sender、u8 ACK或乐观升级。"
+  },
+  {
+    "cmd": 18713,
+    "rule": "R499/R514/R604 SeaHegemonyDaily task reward boundary",
+    "evidence": "AGENTS.md:R604 SeaHegemonyDaily 18705/18706/18707/18713搬运与领奖事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R604",
+    "note": "18713区分日/周任务，先写已领状态再经背包或邮件真实发奖；ObjectList仅展示，禁止孤立sender/result、局部领态或二次发奖。"
+  },
+  {
     "cmd": 18905,
     "rule": "R179/R545 BrightSea operation boundary",
     "evidence": "AGENTS.md:R545 BrightSea 18905纠偏",
