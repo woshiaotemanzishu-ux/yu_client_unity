@@ -306,6 +306,42 @@
     "note": "17906按task_id校验已完成未领取，真实发奖励、写任务已领状态/DB并主动推17904；Unity任务raw缺配置、领取按钮、单飞、奖励与背包刷新，禁止孤立sender、code ACK或局部state补丁。"
   },
   {
+    "cmd": 18101,
+    "rule": "R510/R527/R611 Lung equipment upgrade asset boundary",
+    "evidence": "AGENTS.md:R611 Lung 18101/18102/18103/18104/18106/18107装备与熔炉资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R611",
+    "note": "18101按龙纹实例、等级/星级配置真实扣材料并事务提升物品level；穿戴态还解锁部位、重算属性、刷新排行/养成下游并推物品。Unity缺完整升级页与配置，禁止裸sender、乐观扣料/升级或只接结果ACK。"
+  },
+  {
+    "cmd": 18102,
+    "rule": "R510/R527/R611 Lung equipment wear and replacement boundary",
+    "evidence": "AGENTS.md:R611 Lung 18101/18102/18103/18104/18106/18107装备与熔炉资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R611",
+    "note": "18102校验职业、部位许可、总等级和同类唯一性，事务把目标移入穿戴容器并可能将原装备换回背包，随后重算属性并推进排行/至尊VIP/养成；禁止孤立sender、乐观换装或局部容器补丁。"
+  },
+  {
+    "cmd": 18103,
+    "rule": "R510/R527/R611 Lung equipment unequip boundary",
+    "evidence": "AGENTS.md:R611 Lung 18101/18102/18103/18104/18106/18107装备与熔炉资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R611",
+    "note": "18103把真实穿戴实例事务移回龙纹背包、通知物品并重算属性/排行/养成下游；Unity虽有34/35只读容器但无操作页和权威回查闭环，禁止裸sender、乐观卸下或只按cell改本地列表。"
+  },
+  {
+    "cmd": 18104,
+    "rule": "R510/R527/R611 Lung bulk-decompose asset boundary",
+    "evidence": "AGENTS.md:R611 Lung 18101/18102/18103/18104/18106/18107装备与熔炉资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R611",
+    "note": "18104读取u16×u64实例，服务端去重并截到50件、跳过不可分解项，批量删除龙纹背包实物后聚合并真实发放分解奖励；禁止孤立数组sender、乐观删物/发奖、依回包重复入账或忽略部分有效语义。"
+  },
+  {
+    "cmd": 18106,
+    "rule": "R510/R527/R611 Lung crucible random-draw asset boundary",
+    "evidence": "AGENTS.md:R611 Lung 18101/18102/18103/18104/18106/18107装备与熔炉资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R611",
+    "note": "18106按活动时间、次数配置和免费次数校验；付费时可自动补购，随后按权重/保底随机、持久化次数/免费态/历史并真实发奖，可能广播传闻。禁止裸sender、客户端随机、乐观扣费/发奖或把ObjectList再次入背包。"
+  },
+  {
+    "cmd": 18107,
+    "rule": "R510/R527/R611 Lung crucible-count reward claim boundary",
+    "evidence": "AGENTS.md:R611 Lung 18101/18102/18103/18104/18106/18107装备与熔炉资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R611",
+    "note": "18107按当前熔炉、累计次数、档位配置和未领状态校验，先持久化count_award再真实发奖；Unity未保存18105完整次数/档位态且无奖励页，禁止孤立sender、乐观已领、二次发奖或用结果替代18105权威刷新。"
+  },
+  {
     "cmd": 18705,
     "rule": "R499/R514/R604 SeaHegemonyDaily start-carry scene boundary",
     "evidence": "AGENTS.md:R604 SeaHegemonyDaily 18705/18706/18707/18713搬运与领奖事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R604",
