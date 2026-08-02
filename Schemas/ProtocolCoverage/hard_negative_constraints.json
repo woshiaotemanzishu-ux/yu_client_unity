@@ -612,6 +612,30 @@
     "note": "61201会自动购买并扣成本、发奖、写档位已购DB与活动内存，也会在充值到账路径主动推送成功；Unity的61200/61203只读地基缺完整档位状态、充值分流、去重和资产闭环，禁止孤立常量、sender或handler。"
   },
   {
+    "cmd": 62102,
+    "rule": "R501/R595 Kf1vn enrollment transaction boundary",
+    "evidence": "AGENTS.md:R595 Kf1vn 62102/62118/62121/62134完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R595",
+    "note": "62102会在报名阶段写跨服报名表、人数、本服镜像、DB与日志，且旧端Daily预约可隐式触发；Unity缺显式授权和赛事闭环，禁止孤立常量、sender、ACK或自动报名。"
+  },
+  {
+    "cmd": 62118,
+    "rule": "R501/R595 Kf1vn bet asset transaction boundary",
+    "evidence": "AGENTS.md:R595 Kf1vn 62102/62118/62121/62134完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R595",
+    "note": "62118按轮次/场次/选项/成本类型真实扣资产，记录跨服竞猜、DB与日志；Unity缺配置、确认、钱包和权威刷新闭环，禁止孤立常量、sender、结果handler或乐观下注。"
+  },
+  {
+    "cmd": 62121,
+    "rule": "R501/R595 Kf1vn spectator scene transaction boundary",
+    "evidence": "AGENTS.md:R595 Kf1vn 62102/62118/62121/62134完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R595",
+    "note": "62121成功会切入ghost观战副本、登记观战者并请求战斗信息且不写同号成功ACK；Unity缺观战场景生命周期，禁止孤立常量、sender、伪成功handler或乐观is_vistor。"
+  },
+  {
+    "cmd": 62134,
+    "rule": "R501/R595 Kf1vn bet reward claim boundary",
+    "evidence": "AGENTS.md:R595 Kf1vn 62102/62118/62121/62134完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R595",
+    "note": "62134按竞猜结果持久化已领并通过背包或邮件发奖，成功回key、失败走62132；Unity缺历史领奖与资产闭环，禁止孤立常量、sender、回显handler或本地发奖。"
+  },
+  {
     "cmd": 62202,
     "rule": "R494/R573 Draconic strengthen asset transaction boundary",
     "evidence": "AGENTS.md:R573 16401/50902/51102/62202资产事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R573",
