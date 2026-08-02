@@ -30,6 +30,36 @@
     "note": "13322会把教程node写入enchantment_guard并持久化后回显；老端还会在发送时乐观SetStep。Unity缺教程页面、权威节点与失败恢复闭环，禁止孤立常量、sender、echo handler或复制乐观状态。"
   },
   {
+    "cmd": 13402,
+    "rule": "R490/R580 Medal promotion asset and scene boundary",
+    "evidence": "AGENTS.md:R580 Medal 13402/13403/13404/13406/13407写事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R580",
+    "note": "13402严格空请求会扣勋章配置成本、写等级DB、改figure/scene、重算属性，并推进任务/成就/礼包/Temple/活动/至尊VIP；禁止孤立sender或id/honour结果。"
+  },
+  {
+    "cmd": 13403,
+    "rule": "R490/R580 Medal title activation and upgrade boundary",
+    "evidence": "AGENTS.md:R580 Medal 13402/13403/13404/13406/13407写事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R580",
+    "note": "13403会扣头衔配置物品、激活或升星、写DB并重算属性；首次激活还自动佩戴、更新role/figure/scene并广播。Unity仅有13405 raw，禁止裸sender、结果handler或本地列表补丁。"
+  },
+  {
+    "cmd": 13404,
+    "rule": "R490/R580 Medal title equip scene boundary",
+    "evidence": "AGENTS.md:R580 Medal 13402/13403/13404/13406/13407写事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R580",
+    "note": "13404会把旧头衔写未佩戴、目标写佩戴，更新role/figure/scene并广播属性12；缺头衔页和场景NameBoard消费者时禁止sender、raw结果或乐观佩戴。"
+  },
+  {
+    "cmd": 13406,
+    "rule": "R490/R580 Medal title unequip scene boundary",
+    "evidence": "AGENTS.md:R580 Medal 13402/13403/13404/13406/13407写事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R580",
+    "note": "13406严格空请求会持久化当前头衔未佩戴、清figure.title_id、同步场景并广播；必须与13404及13405权威刷新成组恢复，禁止裸sender或乐观清空。"
+  },
+  {
+    "cmd": 13407,
+    "rule": "R490/R580 Medal instance-goods strengthen boundary",
+    "evidence": "AGENTS.md:R580 Medal 13402/13403/13404/13406/13407写事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R580",
+    "note": "13407按goods_auto_id/num删除具体背包实例，写强化等级经验、通知背包、重算属性并同步场景战斗属性；禁止孤立sender、lv/exp/power结果或本地删物。"
+  },
+  {
     "cmd": 13507,
     "rule": "R126/R540 NineSky boundary",
     "evidence": "AGENTS.md:R540 NineSky 13507纠偏",
