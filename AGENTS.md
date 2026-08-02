@@ -46,6 +46,8 @@
 
 - R530 Fight 20003：本号保持KILL。老端确实注册并以完整FightVo消费怪物攻击玩家广播，但当前服务端`pp_battle`没有20003 handler，`pt_200`没有同号read/write/pack，全业务源码也没有直接或间接发送点，属于旧服务端遗留协议。禁止新增20003常量、注册、复用20001解码、战斗队列投递、受击表现、Buff/伤害事件或任何C2S；只有当前服务端恢复权威writer并重新定义与现役20001的分工后，才按完整战斗链成族重审。
 
+- R531 Scene 12019：本号是S2C-only场景掉落消失广播，wire固定为`count:u16 + drop_id:u64×count`。服务端在单个、批量自动及跨服拾取成功后向同场景广播；Unity必须按wire顺序逐项调用`SceneManager.RemoveDrop`，未知或重复ID幂等忽略，只有真实存在的掉落才触发既有`DropRemoved`事件，空表不改变现场。禁止公开同号sender、加入GAME_START、推导拾取奖励、修改BagModel或绕过`SceneManager`自造删除链。12010角色属性样式广播仍须随外观/采集等完整消费者另审，12091仍按既有死writer约束不注册。
+
 - Unity 序列化脚本规则：会挂到 Scene/Prefab 的 `MonoBehaviour` / `ScriptableObject` 必须独占同名 `.cs` 文件，禁止把它放在“首个类型为静态类、抽象类或其他不同名类型”的文件里；Editor 生成器 `AddComponent<T>()` 后必须核对产物 `m_Script` 为非零 GUID 且 GUID 指向 `T` 的同名脚本。否则即使 C# 编译通过，Unity 仍可能把组件保存成 Missing Script。
 
 - 主界面技能规则：技能项只允许 `con` 作为唯一 Raycast/Button 点击面，`bg/icon/lock/CD/文字` 等装饰 Graphic 必须关闭 `raycastTarget`；点击验收必须走真实 Prefab 的 `GraphicRaycaster→PointerClick`，直接调用 `OnClickSkill` 不算点击链通过。普通 `AutoFight` 不得拦截玩家手点技能，只有服务端 `13017` 的 `RoleModel.DepositState` 托管态才拦截。手动无锁定目标时按当前朝向原地释放并只在技能 `area` 内局部预选，不得跨全场抢最近怪；自动战斗才允许全场寻敌并接近。接敌范围严格对标老端：`range==1` 使用 `max(100,(distance+area)*0.8)`，其他模式使用 `max(100,distance*0.8)`；命中几何由 `range/distance/area/num` 决定，禁止从 `desc` 文案猜圆形、直线或扇形。

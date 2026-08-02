@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R530。20003怪物攻击玩家广播已完成双端逐号审计：老端有完整FightVo消费者，但当前服务端`pp_battle`与`pt_200`均无同号协议子句，全业务源码也无发送点，裁决为旧服务端遗留并证据化KILL。
-- Unity继续不注册20003、不把它别名到20001、不复制解码或接受击/Buff/伤害表现。Deposit 19202/03/04/05/07均为真实落库/资产写事务，继续DEFER；15722/40109已是正确的send-only实现，不为覆盖率伪造接收器。
-- killlist共177项，严格升序且无重复；`coverage_20260802_134347.md` A～E全PASS，200族为`22/0/0 done`，运行时raw口径保持`registered=1269 / liveDefined=1468 / liveGap=321 / errorExit=12 / active=1147/1468=78.1%`。本轮无C#行为变更，baseline冻结不更新。
+- 最新完成轮次：R531。12019场景掉落消失广播已按老端消费者、当前`pt_120` writer及`mod_drop/lib_drop/lib_goods_drop`活跃发送点完成接入；wire固定为`u16 + N×u64 drop_id`，只接收、不公开同号请求。
+- Unity按wire顺序复用`SceneManager.RemoveDrop`：未知或重复ID幂等忽略，只有真实存在的掉落才触发既有`DropRemoved`，空表不改现场；不推导奖励、不写BagModel、不加入GAME_START。12010多样式角色属性广播继续等待完整场景消费者，12091维持既有死writer排除。
+- `SceneMiscCase=0/allPass=True`，覆盖注册边界、顺序、未知/重复ID、空表、无sender与读到尾；`coverage_20260802_135006.md` A～E全PASS，120族`44/0/0 done`。12019不在`ClientProtocol.json`分母内，因此raw口径为`registered=1270 / liveDefined=1468 / liveGap=321 / errorExit=12 / active=1147/1468=78.1%`，baseline冻结不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

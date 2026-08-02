@@ -63,6 +63,7 @@ namespace Shenxiao.Module.Core.Scene
             RegisterProtocal(Proto.SC_VIEW_ROLE_REFRESH, On12011);
             RegisterProtocal(Proto.SC_VIEW_OBJ_REFRESH, On12012);
             RegisterProtocal(Proto.SC_DROP_LIST, On12018);
+            RegisterProtocal(Proto.SC_DROP_DISMISS, On12019);
             RegisterProtocal(Proto.SC_NPC_ICON_REFRESH, On12020);
             RegisterProtocal(Proto.SC_NPC_LIST, On12100);
             RegisterProtocal(Proto.SC_NPC_DYNAMIC, On12103);
@@ -617,6 +618,24 @@ namespace Shenxiao.Module.Core.Scene
                 SceneManager.Instance.AddDrop(vo);
             }
             GameLog.Info("Scene", "12018 drop list: count={0} remaining={1}B", dropCount, reader.Remaining);
+        }
+
+        /// <summary>
+        /// 12019 场景掉落消失广播：u16 数量 + N×u64 drop_id。
+        /// 服务端在单个拾取、批量自动拾取与跨服拾取完成后向同场景广播；按 wire 顺序逐项删除
+        /// <see cref="SceneManager"/> 权威掉落表。未知/重复 id 幂等忽略，只有真实存在的项才触发
+        /// <see cref="SceneManager.DropRemoved"/>，与老端 DismissSceneDrop + Sap 注销语义一致。
+        /// </summary>
+        private void On12019(NetReader reader)
+        {
+            int count = reader.ReadU16();
+            int removed = 0;
+            for (int i = 0; i < count; i++)
+            {
+                long dropId = reader.ReadU64();
+                if (SceneManager.Instance.RemoveDrop(dropId)) removed++;
+            }
+            GameLog.Info("Scene", "12019 drop dismiss: count={0} removed={1} remaining={2}B", count, removed, reader.Remaining);
         }
 
         private void On12020(NetReader reader)

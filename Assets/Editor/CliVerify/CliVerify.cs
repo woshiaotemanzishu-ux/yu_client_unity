@@ -663,7 +663,7 @@ namespace Shenxiao.EditorTools
             Run(WelfareCase.Run, 300.0);
         }
 
-        /// <summary>轮18 PK5 场景散件(pt_120,22号,12024保游标/12089·12091双端死不注册)。</summary>
+        /// <summary>轮18 PK5 场景散件(pt_120,23号,含R531 12019掉落消失；12024保游标/12089·12091双端死不注册)。</summary>
         public static void SceneMisc()
         {
             Run(SceneMiscCase.Run, 300.0);

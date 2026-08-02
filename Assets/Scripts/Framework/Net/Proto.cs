@@ -226,6 +226,9 @@
         public const int SC_CHANGE_SCENE = 12005;
         /// <summary>Request current scene drop list. Send empty; reply starts with u16 count.</summary>
         public const int SC_DROP_LIST = 12018;
+        /// <summary>场景掉落消失广播(S2C only)。回包为 u16 数量 + N×u64 drop_id；
+        /// 服务端在单个/批量拾取成功后向同场景广播，客户端严禁发送同号请求。</summary>
+        public const int SC_DROP_DISMISS = 12019;
         /// <summary>NPC task icon refresh. Send empty or receive pushed u16 count + {u32 npcId, u8 iconFlag}.</summary>
         public const int SC_NPC_ICON_REFRESH = 12020;
 

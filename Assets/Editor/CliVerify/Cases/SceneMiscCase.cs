@@ -13,7 +13,7 @@ namespace Shenxiao.EditorTools
 {
     /// <summary>
     /// Scene 散件(120xx 补全,pt_120.erl)验收(自动循环 轮18 PK5 实现)。反射喂 SceneController 私有
-    /// On12xxx handler + 断言 SceneManager/SceneMiscModel/RoleModel 落地状态,并对 12017/12088/12092
+    /// On12xxx handler + 断言 SceneManager/SceneMiscModel/RoleModel 落地状态,并对 12017/12019/12088/12092
     /// (变长数组/嵌套结构重点)、12024(自空)做游标(NetReader.Remaining==0)探针,对 12089/12091
     /// 做"禁注册"反射断言(NetManager._handlers 不含这两个 key)。
     /// 日志前缀 "CLIVERIFY scenemisc"。⚠与并行会话的 SceneMixDriverCase(角色模型混合驱动器验收)
@@ -46,10 +46,12 @@ namespace Shenxiao.EditorTools
             FieldInfo fHandlers = typeof(NetManager).GetField("_handlers", BindingFlags.NonPublic | BindingFlags.Static);
             if (fHandlers == null) { Debug.LogError("CLIVERIFY scenemisc NetManager._handlers 反射目标缺失"); return 3; }
             var handlers = (IDictionary)fHandlers.GetValue(null);
+            bool has12019 = handlers.Contains(12019);
             bool has12089 = handlers.Contains(12089);
             bool has12091 = handlers.Contains(12091);
-            bool deadOk = !has12089 && !has12091;
-            Debug.Log("CLIVERIFY scenemisc 0 死号禁注册: 12089注册=" + has12089 + " 12091注册=" + has12091 + " ok=" + deadOk);
+            bool registrationOk = has12019 && !has12089 && !has12091;
+            Debug.Log("CLIVERIFY scenemisc 0 注册边界: 12019注册=" + has12019 + " 12089注册=" + has12089
+                + " 12091注册=" + has12091 + " ok=" + registrationOk);
 
             Type t = ctrl.GetType();
             MethodInfo M(string name)
@@ -59,13 +61,13 @@ namespace Shenxiao.EditorTools
                 return m;
             }
 
-            MethodInfo m12015 = M("On12015"), m12017 = M("On12017"), m12022 = M("On12022"), m12023 = M("On12023"),
+            MethodInfo m12015 = M("On12015"), m12017 = M("On12017"), m12019 = M("On12019"), m12022 = M("On12022"), m12023 = M("On12023"),
                 m12024 = M("On12024"), m12025 = M("On12025"), m12026 = M("On12026"), m12027 = M("On12027"),
                 m12028 = M("On12028"), m12030 = M("On12030"), m12036 = M("On12036"), m12043 = M("On12043"),
                 m12044 = M("On12044"), m12045 = M("On12045"), m12078 = M("On12078"), m12080 = M("On12080"),
                 m12083 = M("On12083"), m12085 = M("On12085"), m12087 = M("On12087"), m12088 = M("On12088"),
                 m12090 = M("On12090"), m12092 = M("On12092");
-            if (m12015 == null || m12017 == null || m12022 == null || m12023 == null || m12024 == null
+            if (m12015 == null || m12017 == null || m12019 == null || m12022 == null || m12023 == null || m12024 == null
                 || m12025 == null || m12026 == null || m12027 == null || m12028 == null || m12030 == null
                 || m12036 == null || m12043 == null || m12044 == null || m12045 == null || m12078 == null
                 || m12080 == null || m12083 == null || m12085 == null || m12087 == null || m12088 == null
@@ -81,7 +83,7 @@ namespace Shenxiao.EditorTools
                 return r;
             }
 
-            bool allPass = deadOk;
+            bool allPass = registrationOk;
             void Check(string tag, bool ok)
             {
                 Debug.Log("CLIVERIFY scenemisc " + tag + " ok=" + ok);
@@ -124,6 +126,28 @@ namespace Shenxiao.EditorTools
                 Check("2 12017", drop1 != null && drop1.TypeId == 2001 && drop1.DropNum == 5 && drop1.DropEffect == "eff"
                     && drop1.PutIcon == "icon" && drop1.MonId == 555 && drop1.MonPosX == 300 && drop1.MonPosY == 400
                     && drop2 != null && drop2.TypeId == 2002 && r12017.Remaining == 0);
+
+                // ---- 2b. 12019 掉落消失(S2C-only;wire顺序逐项幂等删除,未知/重复不重复发事件) ----
+                var removedIds = new List<long>();
+                void OnDropRemoved(long id) => removedIds.Add(id);
+                sm.DropRemoved += OnDropRemoved;
+                try
+                {
+                    byte[] p12019 = new CliVerify.Pkt().H(4).L(7002).L(9999).L(7002).L(7001).Bytes();
+                    NetReader r12019 = Feed(m12019, p12019);
+                    bool removedKnownInWireOrder = sm.GetDrop(7001) == null && sm.GetDrop(7002) == null
+                        && removedIds.Count == 2 && removedIds[0] == 7002 && removedIds[1] == 7001;
+
+                    sm.AddDrop(new DropVo { DropId = 7003, TypeId = 2003 });
+                    NetReader r12019Empty = Feed(m12019, new CliVerify.Pkt().H(0).Bytes());
+                    Check("2b 12019", removedKnownInWireOrder && sm.GetDrop(7003) != null
+                        && removedIds.Count == 2 && r12019.Remaining == 0 && r12019Empty.Remaining == 0
+                        && t.GetMethod("RequestDropDismiss") == null);
+                }
+                finally
+                {
+                    sm.DropRemoved -= OnDropRemoved;
+                }
 
                 // ---- 3. 12022 Boss归属(复用既有 RoleVo.BossOwner) ----
                 sm.AddRole(new RoleVo { RoleId = 555001, X = 1, Y = 1 });
