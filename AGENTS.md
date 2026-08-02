@@ -137,6 +137,8 @@
 
 - R573 16401/50902/51102/62202资产事务边界：16401会优先扣配置物品、否则扣角色经验，持久化命格、重算属性并推进任务；50902会按普通/高级及1/10次真实扣费、生成随机奖励、持久化祝福值/累计次数并发奖或邮件；51102严格空请求会取消蒙面计时、写DB、清角色外观、更新场景广播并派发装备事件；62202会消耗龙语币、事务写强化等级、通知物品并重算属性，自动强化还可能部分成功后才因材料不足停止。四号全部进入hard-negative：现有16400、50901、51101及62200/01/07/08/09只读地基不构成写操作授权；只有各自可编辑业务页、权威配置、消耗/资产冻结、确认与单飞、错误、奖励/背包/经验/属性/场景外观及结果刷新整链闭环时才逐号重审。禁止孤立常量、sender、raw ACK、乐观扣费/点亮/强化或本地发奖。
 
+- R574 50704/15804/22704/33304/41502奖励购买事务边界：50704会按排行副本起始层校验每日奖励、背包/邮件发奖并写`rw_state`与DB；15804会校验直购币商品、真实扣费并走`pay_by_goods2`发充值礼包；22704会按活动/子类/档位校验阶段状态、写领取DB并发奖；33304会校验活动档位和背包容量、在嗨点进程写已领状态并发奖，失败只走33306；41502会消费免费次数或货币、更新日计数/祈愿DB、随机暴击发资源并触发活动/成就/嗨点事件。五号全部进入hard-negative：50701-03/05、15800-03、22700-03/05/06、33300/02/03/05/06和41500/01读侧不授权领奖/购买。只有对应可编辑页面、权威配置/资格、资产或次数冻结、确认与单飞、错误、奖励/背包/钱包/状态刷新和重复领取防护完整闭环时才逐号重审；禁止孤立常量、sender、raw结果、乐观领态或本地发奖。
+
 - R180 PushGift 19102 is an explicit keyed detail query: C2S `gift_id:u16,sub_id:u16`; S2C `gift_id:u16,sub_id:u16,gift_name:string,end_time:u32,conditions:string,reward_list:u16×{grade_id:u16,grade_name:string,buy_cnt:u8,buy_time:u32,rewards_conditions:string,rewards:string}`. Replace only the matching composite key, retain wire order/duplicate grades, and treat an empty reward list as a loaded detail. Missing/expired gifts silently do not reply, so requests never clear cached detail. Keep GAME_START exactly `19104 -> 19101`; do not attach 19103 purchase, UI, events, red dots or popups.
 
 - R166 JJC 28009 is an explicit empty-query full snapshot, not the 28016 live push: `errcode` is a u32 wire bit-pattern stored through unchecked int cast; retain all 14 record fields, duplicate ids and wire order; only UI may sort by time. Empty and err=-1 replies still replace/load the record slice.

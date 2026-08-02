@@ -42,6 +42,12 @@
     "note": "15222会降级套装、写DB、重算属性并真实返物/邮件，且换装不兼容时可由服务端主动下发；必须与共鸣模型、背包/邮件、预览确认和主动还原消费一起接，禁止孤立常量、sender或raw handler。"
   },
   {
+    "cmd": 15804,
+    "rule": "R520/R574 Recharge direct-coin purchase boundary",
+    "evidence": "AGENTS.md:R574 50704/15804/22704/33304/41502奖励购买事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R574",
+    "note": "15804会校验直购币商品、真实扣除Cost并走pay_by_goods2发放充值礼包；Unity缺产品配置、支付确认、钱包/奖励与结果UI闭环，禁止裸sender、errcode ACK或乐观成功。"
+  },
+  {
     "cmd": 16401,
     "rule": "R112/R573 Reincarnation awakening activation boundary",
     "evidence": "AGENTS.md:R573 16401/50902/51102/62202资产事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R573",
@@ -88,6 +94,12 @@
     "rule": "R125/R540 Guard boundary",
     "evidence": "AGENTS.md:协议负约束优先规则;Docs/差距分析-协议接入GapMap-20260711.md:Guard",
     "note": "维护结果链晚增量已撤销。"
+  },
+  {
+    "cmd": 22704,
+    "rule": "R473/R574 CycleRank stage reward claim boundary",
+    "evidence": "AGENTS.md:R574 50704/15804/22704/33304/41502奖励购买事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R574",
+    "note": "22704会按type/subtype/reward_id校验阶段状态，写DB领取态并真实发奖；Unity只保留CycleRank读侧raw，禁止孤立常量、sender、结果handler或本地领奖。"
   },
   {
     "cmd": 27904,
@@ -138,10 +150,28 @@
     "note": "天启错误出口晚增量已撤销。"
   },
   {
+    "cmd": 33304,
+    "rule": "R474/R574 HotPoint reward claim boundary",
+    "evidence": "AGENTS.md:R574 50704/15804/22704/33304/41502奖励购买事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R574",
+    "note": "33304会校验活动/档位/背包容量，通过服务进程写领取状态并真实发奖；同号只回成功键，失败走33306。Unity读侧不得接孤立成功包、sender或乐观状态。"
+  },
+  {
+    "cmd": 41502,
+    "rule": "R472/R574 Pray cost/reward transaction boundary",
+    "evidence": "AGENTS.md:R574 50704/15804/22704/33304/41502奖励购买事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R574",
+    "note": "41502会消费免费次数或货币、更新日计数/祈愿DB、随机暴击发资源并触发活动/成就/嗨点事件；Unity只有显式41501快照，禁止孤立常量、sender或奖励raw。"
+  },
+  {
     "cmd": 42704,
     "rule": "R155/R546 Adventure shop boundary",
     "evidence": "AGENTS.md:R546 Adventure 42704纠偏",
     "note": "商店查询虽只读，但原产品边界未改写前禁止恢复。"
+  },
+  {
+    "cmd": 50704,
+    "rule": "R533/R574 KfSingleRank daily reward claim boundary",
+    "evidence": "AGENTS.md:R574 50704/15804/22704/33304/41502奖励购买事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R574",
+    "note": "50704严格空请求会按起始层校验每日奖励、通过背包或邮件发奖、写rw_state与DB；Unity读侧缺领取入口、配置、单飞、错误和奖励刷新，禁止孤立常量、sender或ACK。"
   },
   {
     "cmd": 50902,
