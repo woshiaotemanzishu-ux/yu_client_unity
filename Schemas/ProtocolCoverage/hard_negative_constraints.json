@@ -354,6 +354,36 @@
     "note": "19103校验礼包激活/期限/档位/购买上限，真实扣费、发奖、写购买次数DB并更新活动内存；Unity只有19101/19102读侧，禁止孤立常量、sender、buy_cnt补丁或本地奖励。"
   },
   {
+    "cmd": 19202,
+    "rule": "R133/R530/R609 Deposit module-selection and fake-client boundary",
+    "evidence": "AGENTS.md:R609 Deposit 19202/19203/19204/19205/19207托管设置与兑换资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R609",
+    "note": "19202持久化活动模块选择并推进托管任务；选择会在活动开始时为离线角色启动fake-client、按分钟扣币并生成记录。Unity缺模块配置、活动行为和操作页，禁止孤立sender/ACK或乐观选择。"
+  },
+  {
+    "cmd": 19203,
+    "rule": "R133/R530/R609 Deposit module-cancel persistence boundary",
+    "evidence": "AGENTS.md:R609 Deposit 19202/19203/19204/19205/19207托管设置与兑换资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R609",
+    "note": "19203删除模块及其全部行为DB，取消未来活动托管；现有19201只读快照和空Prefab骨架不能承载该设置事务，禁止孤立sender/result或乐观删除。"
+  },
+  {
+    "cmd": 19204,
+    "rule": "R133/R530/R609 Deposit behaviour-selection strategy boundary",
+    "evidence": "AGENTS.md:R609 Deposit 19202/19203/19204/19205/19207托管设置与兑换资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R609",
+    "note": "19204现服真实请求含四个u16，旧d.ts漏times；服务端校验配置/参与条件并持久化行为和次数，供巅峰竞技、公会晚宴等fake-client策略消费。缺配置和活动消费者时禁止按旧声明少发、孤立ACK或乐观设置。"
+  },
+  {
+    "cmd": 19205,
+    "rule": "R133/R530/R609 Deposit behaviour-cancel persistence boundary",
+    "evidence": "AGENTS.md:R609 Deposit 19202/19203/19204/19205/19207托管设置与兑换资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R609",
+    "note": "19205删除指定托管行为DB并改变后续fake-client活动策略；Unity没有可工作的行为设置页、配置与权威刷新链，禁止孤立sender/ACK或乐观取消。"
+  },
+  {
+    "cmd": 19207,
+    "rule": "R133/R530/R609 Deposit coin-to-bound-gold asset boundary",
+    "evidence": "AGENTS.md:R609 Deposit 19202/19203/19204/19205/19207托管设置与兑换资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R609",
+    "note": "19207服务端按托管币数量经背包或邮件真实发放绑钻、扣币并持久化后回绝对余额；Unity兑换子窗只有Bind骨架且按钮待对接，禁止裸sender、乐观扣币/加钻、本地二次发奖或盲重试。"
+  },
+  {
     "cmd": 20301,
     "rule": "R475/R591 TreasureMap location and navigation orchestration boundary",
     "evidence": "AGENTS.md:R591 TreasureMap 20301/20302完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R591",
