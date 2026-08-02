@@ -40,6 +40,8 @@
 
 - R527 Lung 18113/龙纹容器：GAME_START的15010容器序列在伙伴装备后必须精确请求`pos=34→35`。15010对龙纹穿戴/背包分别全量替换；15017遇34/35不得直接落普通物品项，必须逐件按`goods_id:u64,location:u16`显式请求18113；15018只更新数量并保留详情字段。18113 S2C为`location:u16 + goods_list`，物品主体近似15017，但`awake_list`单项只有`attr_type:u16,awake_lv:u32`、没有`awake_exp:u32`，每件末尾还有`next_power:u64`，禁止直接复用通用尾部造成错位或截断。穿戴容器按cell唯一替换，背包按goods_id增量；空列表不清旧但仍发对应事件，未知location读完后隔离丢弃。18101-18104、18106-18110真实写操作继续DEFER，18111维持旧端不可达；不得借此接UI、配置、红点、Toast、乐观资产状态或其它sender。
 
+- R528 NineSky 13507：这是S2C-only九魂圣殿活动结算，wire固定为`max_floor:u8,reward:ObjectList,first_server_num:u16,first_player:string,get_list:u16×{index:u8,server_num:u16,role_name:string}`，其中ObjectList为`u16×{type:u8,type_id:u32,num:u32}`。每包必须原子替换独立不可变最后快照，保留wire原序、重复奖励/层号、空名、空表及全部零/最大值；不得公开同号请求、加入GAME_START、把返回奖励当成客户端二次发放，亦不得附带结算UI、场景退出、事件、配置、红点、Toast或背包修改。13502参战、13505离场仍是场景写操作，13509连杀仍依赖场景角色/Figure表现，继续DEFER；13508积分writer当前可达性另行逐号复审，不得随13507顺带注册。
+
 - Unity 序列化脚本规则：会挂到 Scene/Prefab 的 `MonoBehaviour` / `ScriptableObject` 必须独占同名 `.cs` 文件，禁止把它放在“首个类型为静态类、抽象类或其他不同名类型”的文件里；Editor 生成器 `AddComponent<T>()` 后必须核对产物 `m_Script` 为非零 GUID 且 GUID 指向 `T` 的同名脚本。否则即使 C# 编译通过，Unity 仍可能把组件保存成 Missing Script。
 
 - 主界面技能规则：技能项只允许 `con` 作为唯一 Raycast/Button 点击面，`bg/icon/lock/CD/文字` 等装饰 Graphic 必须关闭 `raycastTarget`；点击验收必须走真实 Prefab 的 `GraphicRaycaster→PointerClick`，直接调用 `OnClickSkill` 不算点击链通过。普通 `AutoFight` 不得拦截玩家手点技能，只有服务端 `13017` 的 `RoleModel.DepositState` 托管态才拦截。手动无锁定目标时按当前朝向原地释放并只在技能 `area` 内局部预选，不得跨全场抢最近怪；自动战斗才允许全场寻敌并接近。接敌范围严格对标老端：`range==1` 使用 `max(100,(distance+area)*0.8)`，其他模式使用 `max(100,distance*0.8)`；命中几何由 `range/distance/area/num` 决定，禁止从 `desc` 文案猜圆形、直线或扇形。

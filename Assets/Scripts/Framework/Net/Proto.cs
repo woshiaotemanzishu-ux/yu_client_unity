@@ -1366,6 +1366,8 @@
         public const int NINE_SKY_BATTLE_INFO = 13503;
         /// <summary>九魂圣殿秘宝持有者主动快照。S2C: index:u8,server_num:u16,role_id:u64,role_name:string,left_time:u32。</summary>
         public const int NINE_SKY_FLAG_INFO = 13504;
+
+        public const int NINE_SKY_SETTLEMENT = 13507;
         public const int GHOST_WALK_INFO = 20601;
         /// <summary>时空圣痕主快照。C2S 空包；S2C 为个人/本服争夺值与有序据点全量。</summary>
         public const int TS_CRACK_MAIN_INFO = 20401;

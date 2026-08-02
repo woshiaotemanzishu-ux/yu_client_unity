@@ -19,6 +19,7 @@ namespace Shenxiao.Module.Core.NineSky
             RegisterProtocal(Proto.NINE_SKY_INFO, On13500);
             RegisterProtocal(Proto.NINE_SKY_BATTLE_INFO, On13503);
             RegisterProtocal(Proto.NINE_SKY_FLAG_INFO, On13504);
+            RegisterProtocal(Proto.NINE_SKY_SETTLEMENT, On13507);
         }
 
         public void RequestInfo()
@@ -72,6 +73,27 @@ namespace Shenxiao.Module.Core.NineSky
         {
             NineSkyModel.Instance.ReplaceFlagInfo(r.ReadU8(), r.ReadU16(), unchecked((ulong)r.ReadU64()), r.ReadString(), r.ReadU32());
         }
+
+        private void On13507(NetReader r)
+        {
+            byte maxFloor = r.ReadU8();
+            List<NineSkyModel.ObjectRewardEntry> rewards = r.ReadArray(ReadObjectReward);
+            ushort firstServerNumber = r.ReadU16();
+            string firstPlayer = r.ReadString();
+            List<NineSkyModel.FloorOwnerEntry> floorOwners = r.ReadArray(ReadFloorOwner);
+            NineSkyModel.Instance.ReplaceSettlement(new NineSkyModel.SettlementSnapshot(
+                maxFloor,
+                rewards,
+                firstServerNumber,
+                firstPlayer,
+                floorOwners));
+        }
+
+        private static NineSkyModel.ObjectRewardEntry ReadObjectReward(NetReader r) =>
+            new NineSkyModel.ObjectRewardEntry(r.ReadU8(), r.ReadU32(), r.ReadU32());
+
+        private static NineSkyModel.FloorOwnerEntry ReadFloorOwner(NetReader r) =>
+            new NineSkyModel.FloorOwnerEntry(r.ReadU8(), r.ReadU16(), r.ReadString());
 
         public override void Dispose()
         {

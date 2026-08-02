@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R527。18113从DEFER转为龙纹物品详情只读闭环，正式接通15010/15017/15018的pos34/35容器语义；GAME_START在伙伴装备后精确加入`34→35`。
-- 18113沿用通用物品主体但使用dragon专用尾部：觉醒项没有`awake_exp`且每件追加`next_power:u64`。15010全量替换，15017逐件补查详情且不提前落普通项，15018仅改数量；未扩展龙纹UI、红点或任何写操作。
-- Unity实编译与`dotnet build Assembly-CSharp-Editor.csproj`均0 error；`LungCase`和`PetEquip` batch均为0。`coverage_20260802_131912.md` A～E全PASS，运行时口径为`registered=1268 / liveDefined=1468 / liveGap=322 / errorExit=12 / active=1146/1468=78.1%`；baseline冻结不更新。
+- 最新完成轮次：R528。新增13507九魂圣殿S2C-only活动结算raw快照；没有同号请求，也不改变GAME_START、场景路由或既有13500/03/04三份快照。
+- 13507严格解析`max_floor:u8 + ObjectList + first_server_num:u16 + first_player:string + 逐层首占表`，逐包替换深只读独立快照，保序保重且空表loaded；未接结算UI、奖励二次发放、背包、事件、红点或Toast。13502/05场景写操作、13509场景连杀继续DEFER，13508另行复审。
+- Unity实编译与`dotnet build Assembly-CSharp-Editor.csproj`均0 error；`NineSkyCase=0/pass=True/restored=True`。`coverage_20260802_132823.md` A～E全PASS，运行时口径为`registered=1269 / liveDefined=1468 / liveGap=321 / errorExit=12 / active=1147/1468=78.1%`；baseline冻结不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---
