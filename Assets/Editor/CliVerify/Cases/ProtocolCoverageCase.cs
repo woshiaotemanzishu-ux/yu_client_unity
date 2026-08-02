@@ -9,13 +9,14 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 协议覆盖率核验器(PG 包,第21轮/R547-R559):八段断言 A-H,照 CliVerify.cs 既有惯例,日志前缀
+    /// 协议覆盖率核验器(PG 包,第21轮/R547-R560):八段断言 A-H,照 CliVerify.cs 既有惯例,日志前缀
     /// "CLIVERIFY protocolcoverage"。纯静态分析 + 一次运行时反射,不建 Stage/不渲染。
     ///
     ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline；baseline.registeredCmds 必须与历史总量
     ///     等长、五位、唯一且严格升序。具体号消失默认算红，只有带 evidence 的killlist/硬负约束
     ///     裁决可按号豁免，且打印全部消失号。
-    ///   B 家族防倒退:冻结家族unityRegistered必须与registeredCmds逐前缀分组精确一致；当前逐前缀
+    ///   B 家族防倒退:冻结家族unityRegistered必须与registeredCmds逐前缀分组精确一致；各家族历史
+    ///     liveGap 必须非负且汇总精确等于顶层 totalLiveGap，顶层值不得越过 totalLiveDefined；当前逐前缀
     ///     已注册数不许降，同一证据裁决号仅补偿所属家族。
     ///   C 完工家族零未申报(防虚假完工正主):baseline 里 status=="done" 的家族,其「活缺口」必须
     ///     整体落在 killlist.json 里(且每条 killlist 记录必须带非空 evidence,否则不算数)。
@@ -232,6 +233,14 @@ namespace Shenxiao.EditorTools
                 .Where(prefix => !baselinePrefixes.Contains(prefix))
                 .OrderBy(prefix => prefix)
                 .ToList();
+            List<int> negativeFamilyLiveGaps = baseline.Families
+                .Where(f => f.LiveGap < 0)
+                .Select(f => f.Prefix)
+                .OrderBy(prefix => prefix)
+                .ToList();
+            int familyLiveGapSum = baseline.Families.Sum(f => f.LiveGap);
+            bool totalLiveGapValid = baseline.TotalLiveGap >= 0
+                && baseline.TotalLiveGap <= baseline.TotalLiveDefined;
             HashSet<int> sanctionedRemovals = BuildSanctionedRemovalSet(killlist, hardNegativeConstraints);
             var sanctionedBaselineMissingByFamily = baselineCmds
                 .Where(c => sanctionedRemovals.Contains(c) && !scan.UnityRegistered.Contains(c))
@@ -256,15 +265,27 @@ namespace Shenxiao.EditorTools
                 }
             }
             bool baselineFamiliesValid = baselineFamilyMismatches.Count == 0
-                && manifestFamiliesMissingBaseline.Count == 0;
+                && manifestFamiliesMissingBaseline.Count == 0
+                && negativeFamilyLiveGaps.Count == 0
+                && totalLiveGapValid
+                && familyLiveGapSum == baseline.TotalLiveGap;
             bool pass = baselineFamiliesValid && regressed.Count == 0;
             var details = new List<string>();
             if (baselineFamilyMismatches.Count > 0)
                 details.Add("baseline家族计数不一致:" + string.Join(";", baselineFamilyMismatches));
             if (manifestFamiliesMissingBaseline.Count > 0)
                 details.Add("逐号清单家族未入baseline:" + string.Join(",", manifestFamiliesMissingBaseline));
+            if (negativeFamilyLiveGaps.Count > 0)
+                details.Add("baseline家族liveGap为负:" + string.Join(",", negativeFamilyLiveGaps));
+            if (!totalLiveGapValid)
+                details.Add("baseline历史liveGap总量非法:" + baseline.TotalLiveGap
+                    + "/liveDefined=" + baseline.TotalLiveDefined);
+            if (familyLiveGapSum != baseline.TotalLiveGap)
+                details.Add("baseline家族liveGap汇总" + familyLiveGapSum
+                    + "!=历史总量" + baseline.TotalLiveGap);
             if (regressed.Count > 0) details.Add(string.Join(";", regressed));
-            if (pass) details.Add("baseline家族冻结计数与" + baselineCmds.Count + "条逐号清单一致;全部家族未降");
+            if (pass) details.Add("baseline家族冻结计数与" + baselineCmds.Count + "条逐号清单一致;"
+                + "历史liveGap分项/总量" + familyLiveGapSum + "一致;全部家族未降");
             string detail = string.Join(";", details);
             if (compensated.Count > 0) detail += ";有证据裁决移除=" + string.Join(";", compensated);
             outcome.Add("B家族防倒退", pass, detail);
