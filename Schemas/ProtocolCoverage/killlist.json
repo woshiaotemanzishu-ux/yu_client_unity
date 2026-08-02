@@ -486,6 +486,12 @@
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
   {
+    "cmd": 33807,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/race_act/pp_race_act.erl:95-106;yu_server/src/pt/pt_338.erl:38-41,213-225;h5/src/commonController/CompeteListController.ts:108-118",
+    "note": "许愿秘钥数量查询的唯一服务端 handle、get_wish_num 调用、33807 writer 调用与 send_to_uid 整段注释；全服务端只剩协议 codec，没有其它活跃发送点。老端虽注册结果事件，当前服务器无法下发。Unity 不注册、不请求、不建立 key-data 快照，也不恢复许愿/充值/UI 链。R535。"
+  },
+  {
     "cmd": 33903,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/RedPacketController.ts:78-80,151(全 h5/src 无 C2S 发送点);yu_server/src/red_envelopes/pp_red_envelopes.erl:44-53;yu_server/src/pt/pt_339.erl:13-16,114-126",

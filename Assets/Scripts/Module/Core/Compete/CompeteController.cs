@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
@@ -15,13 +16,17 @@ namespace Shenxiao.Module.Core.Compete
     /// 老端 SetActList 对每条活动 addIcon(icon_type, buy_end_time),不在列表内的老图标删除;
     /// 本控制器用 _ownedIcons 做增量 diff(对标 CustomActivityController)。
     ///
-    /// 本期只做图标(icon-only)。面板/榜单/抽奖/积分领取(33801-33807)与对应 View 未移植,待验收。
+    /// 33801/33802 只提供显式查询和独立 raw 快照，不恢复老端按活动自动扇出，也不接 UI/配置；
+    /// 33803 仍由 CustomActivityController 持有，33804 领奖继续延期，33805/06/07 当前服务端发送链不可达。
     /// 等级变化(EVT_ROLE_INFO_UPDATE)复请求 33800(对标老端 CHANGE_LEVEL→game_star),
     /// 让升到活动开启等级后图标及时出现。
     /// </summary>
     public sealed class CompeteController : BaseController
     {
         public static readonly CompeteController Instance = new CompeteController();
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_readOutboundIntercept;
+#endif
         private CompeteController() { }
 
         // 已由本控制器添加的竞榜图标(用于增量 diff:回包后删掉不再活跃的,添加新活跃的)。
@@ -34,6 +39,8 @@ namespace Shenxiao.Module.Core.Compete
         protected override void Register()
         {
             RegisterProtocal(Proto.COMPETE_ACT_LIST, On33800);
+            RegisterProtocal(Proto.COMPETE_VIEW_INFO, On33801);
+            RegisterProtocal(Proto.COMPETE_RANK_INFO, On33802);
             // 对标老端 CHANGE_LEVEL→game_star:等级变化时复请求 33800。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             // ServerClock(轮20 P4)补 DAY_CHANGE 复拉钩子(对标老端 CompeteListController.ts:206,
@@ -78,6 +85,63 @@ namespace Shenxiao.Module.Core.Compete
             CompeteModel.Instance.SetActList(list);
             _ = ApplyActivityIconsAsync(list, ++_applyVersion);
             GameLog.Info("Compete", "33800 赛事活动列表: {0}", count);
+        }
+
+        /// <summary>显式查询指定活动的界面快照；请求无回包时保留同键旧值。</summary>
+        public void RequestViewInfo(ushort type, ushort subtype)
+        {
+            SendReadRequest(Proto.COMPETE_VIEW_INFO, type, subtype);
+        }
+
+        /// <summary>显式查询指定活动的榜单快照；请求无回包时保留同键旧值。</summary>
+        public void RequestRankInfo(ushort type, ushort subtype)
+        {
+            SendReadRequest(Proto.COMPETE_RANK_INFO, type, subtype);
+        }
+
+        private static void SendReadRequest(int protocol, ushort type, ushort subtype)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(protocol, "hh", new object[] { type, subtype });
+            if (s_readOutboundIntercept != null && s_readOutboundIntercept(frame)) return;
+#endif
+            Instance.SendFmt(protocol, "hh", type, subtype);
+        }
+
+        private void On33801(NetReader r)
+        {
+            ushort type = r.ReadU16();
+            ushort subtype = r.ReadU16();
+            byte isOpen = r.ReadU8();
+            uint score = r.ReadU32();
+            uint todayScore = r.ReadU32();
+            List<CompeteModel.ObjectEntry> cost = r.ReadArray(ReadObjectEntry);
+            List<CompeteModel.ObjectEntry> tenCost = r.ReadArray(ReadObjectEntry);
+            List<ushort> rewardIds = r.ReadArray(rr => rr.ReadU16());
+            List<CompeteModel.StageEntry> stages = r.ReadArray(rr =>
+                new CompeteModel.StageEntry(rr.ReadU16(), rr.ReadU8()));
+            uint worldLevel = r.ReadU32();
+
+            CompeteModel.Instance.ReplaceViewInfo(new CompeteModel.ViewSnapshot(
+                type, subtype, isOpen, score, todayScore, cost, tenCost, rewardIds, stages, worldLevel));
+        }
+
+        private void On33802(NetReader r)
+        {
+            ushort type = r.ReadU16();
+            ushort subtype = r.ReadU16();
+            uint score = r.ReadU32();
+            ushort rank = r.ReadU16();
+            List<CompeteModel.RankEntry> entries = r.ReadArray(rr => new CompeteModel.RankEntry(
+                rr.ReadU16(), rr.ReadU32(), unchecked((ulong)rr.ReadU64()), rr.ReadString(), rr.ReadU32()));
+
+            CompeteModel.Instance.ReplaceRankInfo(
+                new CompeteModel.RankSnapshot(type, subtype, score, rank, entries));
+        }
+
+        private static CompeteModel.ObjectEntry ReadObjectEntry(NetReader r)
+        {
+            return new CompeteModel.ObjectEntry(r.ReadU8(), r.ReadU32(), r.ReadU32());
         }
 
         // 对每条活动解析 338@type@subtype,增量增删图标(对标老端 SetActList + CustomActivityController.ApplyActivityIconsAsync)。
@@ -140,8 +204,8 @@ namespace Shenxiao.Module.Core.Compete
 
         /// <summary>跨天(对标老端 CompeteListController.ts:206,绑定与 GAME_START 同一个 game_star 处理函数,
         /// ts:196-204):game_star 清空 actList/CompeteOpenActive/CompeteViewData/CompeteRankData/
-        /// CompeteKeyData 五个字段(后四个是面板专用字典,本端未建——面板/榜单/抽奖/积分领取[33801-33807]与
-        /// 对应 View 本期不移植,同 icon-only 类注释,不镜像)+ await InitConfig()(重载 confRaceActInfo
+        /// CompeteKeyData 五个字段；本端已建立 33801/33802 两份 raw 字典，其余抽奖/领奖/key data 不镜像
+        /// + await InitConfig()(重载 confRaceActInfo
         /// 面板配置,本端同样未建,不镜像)+ 无条件重发 33800。本端对应清
         /// <see cref="CompeteModel.Reset"/>(清 actList,与老端 actList=[] 等价)+ 重发 33800。</summary>
         private void OnServerDayChange()

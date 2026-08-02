@@ -1,12 +1,13 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Shenxiao.Module.Core.Compete
 {
     /// <summary>
     /// 竞榜(赛事活动)数据(对标老客户端 commonModel/CompeteListModel)。承载 33800 下发的
     /// "正在开启的赛事活动列表"(玄鸢千寻/圣殿狮鹫/急速飞车/背饰… 100+ 种,由同一份列表驱动),
-    /// 供主界面图标(338@type@subtype 家族)显隐用。本期只做图标,面板/榜单/抽奖/积分等
-    /// (33801-33807)待用户验收,不移植。
+    /// 供主界面图标(338@type@subtype 家族)显隐用；33801/33802 另存按 type/subtype 键控的
+    /// 不可变原始快照，不接 UI、配置、红点、抽奖或领奖语义。
     ///
     /// 图标类型解析:老端为 Trim(config_race_act_info[type@subtype].icon),该配置属数据侧,
     /// 本工程未导入 → 直接按字面量 "338@"+type+"@"+subtype 组装(已核对 configfunctionicon.json
@@ -17,7 +18,112 @@ namespace Shenxiao.Module.Core.Compete
     public sealed class CompeteModel
     {
         public static readonly CompeteModel Instance = new CompeteModel();
-        private CompeteModel() { }
+
+        public sealed class ObjectEntry
+        {
+            public byte Style { get; }
+            public uint TypeId { get; }
+            public uint Num { get; }
+
+            public ObjectEntry(byte style, uint typeId, uint num)
+            {
+                Style = style;
+                TypeId = typeId;
+                Num = num;
+            }
+        }
+
+        public sealed class StageEntry
+        {
+            public ushort Id { get; }
+            public byte GotType { get; }
+
+            public StageEntry(ushort id, byte gotType)
+            {
+                Id = id;
+                GotType = gotType;
+            }
+        }
+
+        public sealed class ViewSnapshot
+        {
+            public ushort Type { get; }
+            public ushort Subtype { get; }
+            public byte IsOpen { get; }
+            public uint Score { get; }
+            public uint TodayScore { get; }
+            public IReadOnlyList<ObjectEntry> Cost { get; }
+            public IReadOnlyList<ObjectEntry> TenCost { get; }
+            public IReadOnlyList<ushort> RewardIds { get; }
+            public IReadOnlyList<StageEntry> Stages { get; }
+            public uint WorldLevel { get; }
+
+            public ViewSnapshot(
+                ushort type,
+                ushort subtype,
+                byte isOpen,
+                uint score,
+                uint todayScore,
+                List<ObjectEntry> cost,
+                List<ObjectEntry> tenCost,
+                List<ushort> rewardIds,
+                List<StageEntry> stages,
+                uint worldLevel)
+            {
+                Type = type;
+                Subtype = subtype;
+                IsOpen = isOpen;
+                Score = score;
+                TodayScore = todayScore;
+                Cost = new List<ObjectEntry>(cost ?? new List<ObjectEntry>()).AsReadOnly();
+                TenCost = new List<ObjectEntry>(tenCost ?? new List<ObjectEntry>()).AsReadOnly();
+                RewardIds = new List<ushort>(rewardIds ?? new List<ushort>()).AsReadOnly();
+                Stages = new List<StageEntry>(stages ?? new List<StageEntry>()).AsReadOnly();
+                WorldLevel = worldLevel;
+            }
+        }
+
+        public sealed class RankEntry
+        {
+            public ushort Rank { get; }
+            public uint ServerId { get; }
+            public ulong RoleId { get; }
+            public string RoleName { get; }
+            public uint RoleScore { get; }
+
+            public RankEntry(ushort rank, uint serverId, ulong roleId, string roleName, uint roleScore)
+            {
+                Rank = rank;
+                ServerId = serverId;
+                RoleId = roleId;
+                RoleName = roleName;
+                RoleScore = roleScore;
+            }
+        }
+
+        public sealed class RankSnapshot
+        {
+            public ushort Type { get; }
+            public ushort Subtype { get; }
+            public uint Score { get; }
+            public ushort Rank { get; }
+            public IReadOnlyList<RankEntry> Entries { get; }
+
+            public RankSnapshot(ushort type, ushort subtype, uint score, ushort rank, List<RankEntry> entries)
+            {
+                Type = type;
+                Subtype = subtype;
+                Score = score;
+                Rank = rank;
+                Entries = new List<RankEntry>(entries ?? new List<RankEntry>()).AsReadOnly();
+            }
+        }
+
+        private CompeteModel()
+        {
+            _readOnlyViews = new ReadOnlyDictionary<uint, ViewSnapshot>(_views);
+            _readOnlyRanks = new ReadOnlyDictionary<uint, RankSnapshot>(_ranks);
+        }
 
         /// <summary>竞榜图标家族号(对标老端 CompeteListModel.IsBillboardAct 判定 "338")。</summary>
         public const string ICON_FAMILY = "338";
@@ -34,13 +140,46 @@ namespace Shenxiao.Module.Core.Compete
         }
 
         private readonly List<RaceActInfo> _actList = new List<RaceActInfo>();
+        private readonly Dictionary<uint, ViewSnapshot> _views = new Dictionary<uint, ViewSnapshot>();
+        private readonly IReadOnlyDictionary<uint, ViewSnapshot> _readOnlyViews;
+        private readonly Dictionary<uint, RankSnapshot> _ranks = new Dictionary<uint, RankSnapshot>();
+        private readonly IReadOnlyDictionary<uint, RankSnapshot> _readOnlyRanks;
 
         public IReadOnlyList<RaceActInfo> ActList => _actList;
+        public IReadOnlyDictionary<uint, ViewSnapshot> Views => _readOnlyViews;
+        public IReadOnlyDictionary<uint, RankSnapshot> Ranks => _readOnlyRanks;
 
         public void SetActList(List<RaceActInfo> list)
         {
             _actList.Clear();
             if (list != null) _actList.AddRange(list);
+        }
+
+        public static uint MakeKey(ushort type, ushort subtype)
+        {
+            return ((uint)type << 16) | subtype;
+        }
+
+        public bool TryGetViewInfo(ushort type, ushort subtype, out ViewSnapshot snapshot)
+        {
+            return _views.TryGetValue(MakeKey(type, subtype), out snapshot);
+        }
+
+        public bool TryGetRankInfo(ushort type, ushort subtype, out RankSnapshot snapshot)
+        {
+            return _ranks.TryGetValue(MakeKey(type, subtype), out snapshot);
+        }
+
+        public void ReplaceViewInfo(ViewSnapshot snapshot)
+        {
+            if (snapshot == null) return;
+            _views[MakeKey(snapshot.Type, snapshot.Subtype)] = snapshot;
+        }
+
+        public void ReplaceRankInfo(RankSnapshot snapshot)
+        {
+            if (snapshot == null) return;
+            _ranks[MakeKey(snapshot.Type, snapshot.Subtype)] = snapshot;
         }
 
         /// <summary>
@@ -56,6 +195,8 @@ namespace Shenxiao.Module.Core.Compete
         public void Reset()
         {
             _actList.Clear();
+            _views.Clear();
+            _ranks.Clear();
         }
     }
 }

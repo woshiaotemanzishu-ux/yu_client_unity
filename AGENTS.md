@@ -54,6 +54,8 @@
 
 - R534 DragonWhisper 65105：这是服务端在进入龙语秘境及分区变化后主动推送、也可由场景内严格空查询返回的场景现值，S2C固定为`map_id:u8,mon_list:u16×{mon_id:u32,reborn_time:u32},role_num:u16,time:u32`。Unity当前只注册接收并逐包原子替换独立不可变快照，怪物表保序保重、空表loaded，零/最大值有效；与65101主面板、65106掉落记录及65100错误双向隔离。场景session与入口尚未迁移前禁止公开65105 sender，禁止复刻老端收到65105后自动重查65101，也不得接GAME_START、倒计时、场景/UI/配置/红点或本地怪物状态。65102进入、65103退出、65104购买次数、65107购买时长继续DEFER。
 
+- R535 Compete 33801/33802/33807：33801和33802只允许玩家入口显式按`type:u16,subtype:u16`查询；不得加入GAME_START、33800回包、活动列表遍历、跨天或33803抽奖结果的自动扇出。33801按复合键完整替换`is_open/score/today_score/cost/ten_cost/reward_list/stage_list/world_lv`不可变raw，33802按同键完整替换自身积分/排名与wire原序排行；保序保重、空表loaded，请求无回复保留旧值，两类快照及33800/33803双向隔离。33804会真实发奖并写领取状态，继续DEFER；33807唯一服务端handler、writer调用和发送链整段注释，保持KILL，禁止注册、请求、key-data模型或许愿/充值/UI复活。33803仍由CustomActivity的33191→33803非对称链独占，Compete不得重复注册。
+
 - Unity 序列化脚本规则：会挂到 Scene/Prefab 的 `MonoBehaviour` / `ScriptableObject` 必须独占同名 `.cs` 文件，禁止把它放在“首个类型为静态类、抽象类或其他不同名类型”的文件里；Editor 生成器 `AddComponent<T>()` 后必须核对产物 `m_Script` 为非零 GUID 且 GUID 指向 `T` 的同名脚本。否则即使 C# 编译通过，Unity 仍可能把组件保存成 Missing Script。
 
 - 主界面技能规则：技能项只允许 `con` 作为唯一 Raycast/Button 点击面，`bg/icon/lock/CD/文字` 等装饰 Graphic 必须关闭 `raycastTarget`；点击验收必须走真实 Prefab 的 `GraphicRaycaster→PointerClick`，直接调用 `OnClickSkill` 不算点击链通过。普通 `AutoFight` 不得拦截玩家手点技能，只有服务端 `13017` 的 `RoleModel.DepositState` 托管态才拦截。手动无锁定目标时按当前朝向原地释放并只在技能 `area` 内局部预选，不得跨全场抢最近怪；自动战斗才允许全场寻敌并接近。接敌范围严格对标老端：`range==1` 使用 `max(100,(distance+area)*0.8)`，其他模式使用 `max(100,distance*0.8)`；命中几何由 `range/distance/area/num` 决定，禁止从 `desc` 文案猜圆形、直线或扇形。

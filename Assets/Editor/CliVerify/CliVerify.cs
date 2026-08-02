@@ -276,6 +276,11 @@ namespace Shenxiao.EditorTools
             Run(DragonWhisperCase.Run, 60.0);
         }
 
+        public static void CompeteRead()
+        {
+            Run(CompeteReadCase.Run, 60.0);
+        }
+
         public static void TreasureMap()
         {
             Run(TreasureMapCase.Run, 60.0);

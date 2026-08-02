@@ -824,6 +824,10 @@
         public const int CUSTOM_ACTIVITY_FTVINVEST = 33211; // 节日投资(FTVINVEST=62)信息。请求 "hh"(base_type,sub_t
         public const int CUSTOM_ACTIVITY_RED_ENVELOPE_REBATE = 33255; // 红包返利(RED_ENVELOPE_REBATE=117)信息。请求 "hh"(type
         public const int COMPETE_ACT_LIST = 33800; // 竞榜/赛事活动正在开启列表(模块338,驱动图标 338@type@subtype 家族
+        /// <summary>竞榜界面只读快照。C2S type:u16,subtype:u16；S2C 返回开启态、积分、消耗、阶段奖励状态与世界等级。</summary>
+        public const int COMPETE_VIEW_INFO = 33801;
+        /// <summary>竞榜榜单只读快照。C2S type:u16,subtype:u16；S2C 返回自身积分/排名及原序排行项。</summary>
+        public const int COMPETE_RANK_INFO = 33802;
         public const int COMPETE_ACT_LIST_DUOBAO_DRAW = 33803; // 连服夺宝抽奖结果(type/subtype/times/today_score/error/reward_list)
         public const int MARKET_ICON_INFO = 15121; // 市场跨服开放时间(图标151/151@1切换)。请求无参(read(15121,_)->{ok,
         public const int LIMITLEVELSHOP_LIST = 61200; // 限时等级抢购礼包列表(模块612,驱动图标61201)。请求无参(read(61200,_)->
