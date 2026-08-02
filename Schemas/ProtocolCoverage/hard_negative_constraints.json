@@ -342,6 +342,66 @@
     "note": "18107按当前熔炉、累计次数、档位配置和未领状态校验，先持久化count_award再真实发奖；Unity未保存18105完整次数/档位态且无奖励页，禁止孤立sender、乐观已领、二次发奖或用结果替代18105权威刷新。"
   },
   {
+    "cmd": 18602,
+    "rule": "R498/R617 SeaHegemony approval-setting boundary",
+    "evidence": "AGENTS.md:R617 SeaHegemony 18602/18603/18605/18606/18610/18613/18619/18620/18621/18652状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R617",
+    "note": "18602按level/power/auto写跨服海军禁卫审批门槛和自动审批策略，仅会长可操作；缺审批页面、职位与18601/04权威刷新时禁止sender、孤立code ACK或乐观设置。"
+  },
+  {
+    "cmd": 18603,
+    "rule": "R498/R617 SeaHegemony guard application boundary",
+    "evidence": "AGENTS.md:R617 SeaHegemony 18602/18603/18605/18606/18610/18613/18619/18620/18621/18652状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R617",
+    "note": "18603严格空请求会把角色资料写入跨服禁卫申请并受人数、审批门槛和活动状态裁决；禁止裸sender、乐观申请态或以code结果替代18604权威申请表。"
+  },
+  {
+    "cmd": 18605,
+    "rule": "R498/R617 SeaHegemony application decision boundary",
+    "evidence": "AGENTS.md:R617 SeaHegemony 18602/18603/18605/18606/18610/18613/18619/18620/18621/18652状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R617",
+    "note": "18605按agree/role_id由会长批准或拒绝禁卫申请，跨服修改申请和职位成员状态；旧端结果重查18604，禁止孤立ACK、局部删申请或乐观任命。"
+  },
+  {
+    "cmd": 18606,
+    "rule": "R498/R617 SeaHegemony job assignment boundary",
+    "evidence": "AGENTS.md:R617 SeaHegemony 18602/18603/18605/18606/18610/18613/18619/18620/18621/18652状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R617",
+    "note": "18606按job_id和角色ID列表批量任命/撤销阵营职位，校验职位人数并跨服持久化成员职位；禁止sender、孤立code、乐观职位修改或绕过会长/限额。"
+  },
+  {
+    "cmd": 18610,
+    "rule": "R498/R617 SeaHegemony in-scene ship switch boundary",
+    "evidence": "AGENTS.md:R617 SeaHegemony 18602/18603/18605/18606/18610/18613/18619/18620/18621/18652状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R617",
+    "note": "18610在海域争夺场景切换战舰/战斗分组并受冷却控制，回type/code/绝对截止时间；缺场景角色、技能、自动战斗与冷却消费者时禁止孤立sender/raw或乐观切舰。"
+  },
+  {
+    "cmd": 18613,
+    "rule": "R498/R617 SeaHegemony cross-server scene entry boundary",
+    "evidence": "AGENTS.md:R617 SeaHegemony 18602/18603/18605/18606/18610/18613/18619/18620/18621/18652状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R617",
+    "note": "18613按scene:u32校验公会/阵营/活动/可传送状态，给角色加动作锁并异步跨服进入海域争夺场景；同号code不是scene-ready，禁止裸sender、自动入场或乐观切场。"
+  },
+  {
+    "cmd": 18619,
+    "rule": "R498/R617 SeaHegemony guild camp join boundary",
+    "evidence": "AGENTS.md:R617 SeaHegemony 18602/18603/18605/18606/18610/18613/18619/18620/18621/18652状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R617",
+    "note": "18619由会长按camp:u32把整个公会加入海域阵营，跨公会/跨服写realm及阵营成员状态；禁止裸sender、乐观改公会阵营或用code替代18600/18权威刷新。"
+  },
+  {
+    "cmd": 18620,
+    "rule": "R498/R617 SeaHegemony guild camp exit boundary",
+    "evidence": "AGENTS.md:R617 SeaHegemony 18602/18603/18605/18606/18610/18613/18619/18620/18621/18652状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R617",
+    "note": "18620严格空请求由会长退出整个公会阵营并跨服改公会/成员状态；现服两个早期失败分支误写18619，客户端不得自造18620失败包、裸sender或乐观退阵营。"
+  },
+  {
+    "cmd": 18621,
+    "rule": "R498/R617 SeaHegemony daily welfare reward boundary",
+    "evidence": "AGENTS.md:R617 SeaHegemony 18602/18603/18605/18606/18610/18613/18619/18620/18621/18652状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R617",
+    "note": "18621严格空请求按阵营职位/配置写每日已领态并真实发奖，ObjectList只展示；现服无公会/阵营早期失败误写协议1621，禁止客户端修包、裸sender、乐观领态或二次发奖。"
+  },
+  {
+    "cmd": 18652,
+    "rule": "R498/R617 SeaHegemony global privilege operation boundary",
+    "evidence": "AGENTS.md:R617 SeaHegemony 18602/18603/18605/18606/18610/18613/18619/18620/18621/18652状态资产边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R617",
+    "note": "18652按privilege_id/option开启或关闭整个阵营特权，校验职位/次数/状态并持久化绝对end_time，部分特权会广播全服且改变战斗规则；禁止孤立sender/ACK或乐观特权态。"
+  },
+  {
     "cmd": 18705,
     "rule": "R499/R514/R604 SeaHegemonyDaily start-carry scene boundary",
     "evidence": "AGENTS.md:R604 SeaHegemonyDaily 18705/18706/18707/18713搬运与领奖事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R604",
