@@ -432,6 +432,30 @@
     "note": "27902-27909整体保持不接。"
   },
   {
+    "cmd": 28005,
+    "rule": "R506/R590 JJC challenge-times purchase transaction boundary",
+    "evidence": "AGENTS.md:R590 JJC 28005/28008/28012/28015/28017资产与战斗边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R590",
+    "note": "28005按购买序号配置计算真实资源成本，扣货币/物品、写daily购买计数、增加挑战次数并记资源找回与消费日志；禁止孤立u16 sender、code ACK、乐观加次数或本地扣费。"
+  },
+  {
+    "cmd": 28012,
+    "rule": "R208/R506/R590 JJC battle-stop lifecycle boundary",
+    "evidence": "AGENTS.md:R590 JJC 28005/28008/28012/28015/28017资产与战斗边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R590",
+    "note": "28012会停止存活竞技场battle；退出回调发送成功、清jjc_battle_pid并释放动作锁，terminate还清场景房间和战斗占用态。缺完整竞技场场景时禁止孤立严格空sender、raw ACK或本地退出。"
+  },
+  {
+    "cmd": 28015,
+    "rule": "R506/R590 JJC battle-skip and settlement boundary",
+    "evidence": "AGENTS.md:R590 JJC 28005/28008/28012/28015/28017资产与战斗边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R590",
+    "note": "28015命令battle立即结算挑战结果、标记clear_status并清假人，同时推28014结算截止与28015结果；禁止孤立严格空sender、no-op ACK、客户端直接判胜负或跳过场景战斗。"
+  },
+  {
+    "cmd": 28017,
+    "rule": "R506/R590 JJC breakthrough reward claim boundary",
+    "evidence": "AGENTS.md:R590 JJC 28005/28008/28012/28015/28017资产与战斗边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R590",
+    "note": "28017按历史最高排名、配置、已领表和背包容量校验，持久化break_id_list并真实发奖；禁止孤立u32 sender、奖励raw、本地追加已领ID、二次发奖或乐观领取。"
+  },
+  {
     "cmd": 28500,
     "rule": "R517 NoonParty boundary",
     "evidence": "AGENTS.md:协议负约束优先规则;Docs/差距分析-协议接入GapMap-20260711.md:NoonParty",

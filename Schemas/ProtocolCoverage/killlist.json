@@ -397,6 +397,12 @@
     "note": "获取活动剩余次数虽有服务端只读实现，S2C为type:u8,left_time:u8，但旧端从未发送，收到后也不保存、不触发事件、不渲染；按玩家行为事实源封存。Unity不增加请求、快照、次数推导或活动UI。R479复核。"
   },
   {
+    "cmd": 28008,
+    "reason": "dead_server_handle_commented",
+    "evidence": "h5/src/commonController/ArenaController.ts:210-221,269(仅结果handler/注册，h5/src全仓无28008发送点);yu_server/src/jjc/pp_jjc.erl:122-142(唯一handle及唯一get_reward调度整段注释);yu_server/src/jjc/mod_jjc_cast.erl:218-240(残留不可达领取/邮件/writer实现);yu_server/src/pt/pt_280.erl:27-28,180-197",
+    "note": "28008历史严格空领奖请求与errcode/is_reward/ObjectList结果只剩codec、老端接收壳及不可达服务端内部实现。当前请求落pp_jjc catch-all且全仓没有非注释get_reward调用方；Unity不注册、不请求、不恢复排行结算领奖、邮件/奖励展示、is_reward补丁或本地发奖。R590。"
+  },
+  {
     "cmd": 28315,
     "reason": "old_client_unreachable_and_server_never_writes",
     "evidence": "h5/src/commonController/HolyTerritoryController.ts:91-95,278-295;yu_server/src/sanctuary/pp_sanctuary.erl:153-156;yu_server/src/pt/pt_283.erl:36-37,245-249;yu_server全仓零28315 writer调用",
