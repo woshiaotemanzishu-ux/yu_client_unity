@@ -17,6 +17,8 @@ namespace Shenxiao.Editor.ProtocolCoverage
         [JsonProperty("prefix")] public int Prefix;
         [JsonProperty("unityRegistered")] public int UnityRegistered;
         [JsonProperty("liveGap")] public int LiveGap;
+        /// <summary>候选基线的逐号活缺口，便于后续审计直接选号；历史正式baseline缺此字段也可兼容读取。</summary>
+        [JsonProperty("liveGapCmds")] public List<int> LiveGapCmds = new List<int>();
         [JsonProperty("status")] public string Status = "pending";
     }
 
@@ -122,6 +124,7 @@ namespace Shenxiao.Editor.ProtocolCoverage
                     Prefix = fs.Prefix,
                     UnityRegistered = fs.UnityRegistered,
                     LiveGap = fs.LiveGap,
+                    LiveGapCmds = fs.LiveGapCmds.ToList(),
                     Status = fs.LiveGap == 0 ? "done" : "pending",
                 });
             }

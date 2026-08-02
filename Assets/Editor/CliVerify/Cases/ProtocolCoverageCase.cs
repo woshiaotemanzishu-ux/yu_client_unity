@@ -59,7 +59,12 @@ namespace Shenxiao.EditorTools
 
                 CoverageBaseline candidate = ProtocolCoverageBaseline.BuildCandidate(scan, ProtocolCoverageReport.DenominatorNote(scan));
                 string nextPath = ProtocolCoverageBaseline.WriteBaselineNext(candidate);
-                string md = ProtocolCoverageReport.BuildMarkdown(scan, baseline ?? candidate, killlist, outcome);
+                string md = ProtocolCoverageReport.BuildMarkdown(
+                    scan,
+                    baseline ?? candidate,
+                    killlist,
+                    hardNegativeConstraints,
+                    outcome);
                 string reportPath = ProtocolCoverageReport.WriteReport(md);
 
                 int oldAliveCount = scan.OldActiveKeys().Count;

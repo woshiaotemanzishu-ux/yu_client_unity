@@ -31,6 +31,7 @@ namespace Shenxiao.Editor.ProtocolCoverage
             ProtocolCoverageScanner.ScanResult scan,
             CoverageBaseline baseline,
             List<KillEntry> killlist,
+            List<HardNegativeConstraintEntry> hardNegativeConstraints,
             AssertionOutcome assertions)
         {
             var sb = new StringBuilder();
@@ -75,9 +76,33 @@ namespace Shenxiao.Editor.ProtocolCoverage
             }
 
             sb.AppendLine();
+            sb.AppendLine("## 活缺口逐号清单");
+            sb.AppendLine();
+            sb.AppendLine("> `killlist`与`硬负约束`是机器治理子集；`未落机器清单`仍可能已有DEFER文档，不等于允许直接接入。");
+            sb.AppendLine();
+            sb.AppendLine("| 前缀 | 活缺口总数 | killlist | 硬负约束(排除killlist重叠) | 未落机器清单 |");
+            sb.AppendLine("|---|---:|---|---|---|");
+            var killSet = new HashSet<int>(killlist.Select(k => k.Cmd));
+            var hardNegativeSet = new HashSet<int>(hardNegativeConstraints.Select(k => k.Cmd));
+            foreach (ProtocolCoverageScanner.FamilyStat fs in scan.BuildFamilyTable()
+                .Where(f => f.LiveGap > 0)
+                .OrderByDescending(f => f.LiveGap)
+                .ThenBy(f => f.Prefix))
+            {
+                List<int> killed = fs.LiveGapCmds.Where(killSet.Contains).ToList();
+                List<int> hardNegative = fs.LiveGapCmds
+                    .Where(c => !killSet.Contains(c) && hardNegativeSet.Contains(c))
+                    .ToList();
+                List<int> unlisted = fs.LiveGapCmds
+                    .Where(c => !killSet.Contains(c) && !hardNegativeSet.Contains(c))
+                    .ToList();
+                string Format(List<int> values) => values.Count == 0 ? "—" : string.Join(",", values);
+                sb.AppendLine($"| {fs.Prefix} | {fs.LiveGap} | {Format(killed)} | {Format(hardNegative)} | {Format(unlisted)} |");
+            }
+
+            sb.AppendLine();
             sb.AppendLine("## legacy_unverified 家族的未申报活缺口(报告级,不挂红,见裁决3)");
             sb.AppendLine();
-            var killSet = new HashSet<int>(killlist.Select(k => k.Cmd));
             bool anyLegacy = false;
             foreach (FamilyBaseline fb in baseline.Families.Where(f => f.Status == "legacy_unverified"))
             {

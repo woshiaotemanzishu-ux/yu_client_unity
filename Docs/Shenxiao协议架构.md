@@ -316,6 +316,8 @@
 - 11101反向探针临时改为`int command=Proto.GM_CHEAT_EXEC; SendFmt(command,...)`：代码仍可编译、常量仍存在、发送行为也未消失，但可审计的直接引用断开，G以`send_only缺生产发送引用:11101`和`EXIT 3`拒绝；恢复后的`coverage_20260802_175259.md`显示七号各有发送引用且A～G全PASS。新增例外应保持直接常量调用形式，不得用别名绕过机检。
 - R551补上数字字面量旁路：Scanner新增`UnityStaticLiteralSendSites`，识别生产源码中的五位协议号`Send*(12345,...)`，它只能作为F/G负向证据，永远不能替代send-only所需的`Proto.X`具名直发。为避免把日志/XML文案中的发送样例误报，扫描前先把普通、逐字字符串和字符字面量等长替换为空格，再去行/块注释，行号仍可精确回报。
 - 10205反向探针临时加入不可达`SendFmt(10205)`，F精确报告`literalSend@Assets/Scripts/Module/Core/Gm/GmCheatController.cs:55`并以`EXIT 3`失败，G同步显示`数字直发=1`；移除后`coverage_20260802_180703.md`显示`数字直发=0`、七个send-only仍有七组具名发送引用且A～G全PASS。生产协议发送必须直接引用`Proto`常量，不得以数字或别名规避审计。
+- R552把活缺口从“只有族级计数”升级为逐号清单。`FamilyStat.LiveGapCmds`与`baseline.next.json.families[].liveGapCmds`按升序保存每族真实`LiveDefined-UnityRegistered`；正式`baseline.json`的历史计数与状态不自动改写，旧基线缺字段仍可兼容读取。
+- 覆盖报告新增“活缺口逐号清单”，按killlist、硬负约束（排除与killlist重叠）和未落机器清单三桶列出。`coverage_20260802_181516.md`核对85族/331号，79+20+232恰好等于331；“未落机器清单”只表示尚未进入两份机器治理表，可能已有DEFER文档，绝不构成接入授权。
 
 ### 7.30 AutoBrush 13310 阶段奖励事务（2026-08-02 核对）
 

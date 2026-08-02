@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R551。killlist仍为165个默认absent、7个显式send-only；在具名生产发送门禁上新增五位协议号`Send*(12345,...)`数字直发扫描，阻断绕过`Proto`常量的发送入口。
-- Scanner对`Assets/Scripts`先等长剥离普通/逐字字符串与字符字面量、再去注释，避免日志文案误报并保留精确行号。数字直发只作F/G负向证据，不能充当send-only正向发送证据；七个例外仍必须直接`Send*(Proto.X,...)`。
-- R551最终报告`coverage_20260802_180703.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，G显示`send_only=7;发送引用=7;数字直发=0`，A～G全PASS、`EXIT 0`。临时10205数字直发探针被F精确定位并`EXIT 3`，移除后恢复全绿。
+- 最新完成轮次：R552。覆盖产物不再只给家族计数：每个`FamilyStat`和候选`baseline.next.json`都带升序`liveGapCmds`，报告按族逐号拆成killlist、硬负约束、未落机器清单三桶；冻结`baseline.json`未改。
+- 当前85个有缺口家族共331号，候选逐号数与所有家族`liveGap`完全一致；其中79号命中killlist、20号命中硬负约束、232号未落机器清单。后者仍须先查已有DEFER文档和双端事实，不代表可直接接入。
+- R552最终报告`coverage_20260802_181516.md`仍为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A～G全PASS、`EXIT 0`；`dotnet build Shenxiao.Editor.csproj`为79条既有warning、0 error，报告与候选基线逐号合计均为331。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

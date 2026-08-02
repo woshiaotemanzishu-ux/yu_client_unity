@@ -49,6 +49,7 @@ namespace Shenxiao.Editor.ProtocolCoverage
             public int Prefix;
             public int UnityRegistered;
             public int LiveGap;
+            public readonly List<int> LiveGapCmds = new List<int>();
             public int DeadGap;
             public string ServerRouteTarget;
             public string ServerRouteStatus = "NoRoute";
@@ -164,11 +165,17 @@ namespace Shenxiao.Editor.ProtocolCoverage
                 }
 
                 foreach (int cmd in UnityRegistered) Get(Family(cmd)).UnityRegistered++;
-                foreach (int cmd in LiveGap()) Get(Family(cmd)).LiveGap++;
+                foreach (int cmd in LiveGap())
+                {
+                    FamilyStat family = Get(Family(cmd));
+                    family.LiveGap++;
+                    family.LiveGapCmds.Add(cmd);
+                }
                 foreach (int cmd in DeadGap()) Get(Family(cmd)).DeadGap++;
 
                 foreach (KeyValuePair<int, FamilyStat> kv in byPrefix)
                 {
+                    kv.Value.LiveGapCmds.Sort();
                     if (ServerRoutes.TryGetValue(kv.Key, out ProtocolCoverageServerParser.RouteEntry route))
                     {
                         kv.Value.ServerRouteTarget = route.Target;
