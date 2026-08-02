@@ -325,6 +325,8 @@
 - 当前正式baseline共179族且无重复；17个“仍有当前活缺口但已done”的家族全部有说明。反向探针临时复制144条目并清空400说明，H同时报告`baseline家族重复:144`与`带活缺口done族缺statusNote:400`并`EXIT 3`；恢复后的`coverage_20260802_183414.md`为A～H全PASS。
 - R555补齐G段自身的killlist schema门禁：清单必须非空，每条`cmd`必须在10000～99999且`reason/evidence`非空。此前G只检查重复、运行时交集、clientMode、常量和发送引用，空证据只会在C/H计算有效kill集合时被间接忽略，pending家族中的坏条目可能不挂红且仍被正向计数。
 - 当前172条均通过五位cmd、reason和evidence审计。反向探针清空10204的evidence与10208的reason后，G精确报告`cmd/reason/evidence不完整:10204,10208`并`EXIT 3`；恢复后的`coverage_20260802_184050.md`为A～H全PASS，G明确显示172条字段/evidence完整、7个send-only发送证据齐全。
+- R556把hard-negative与killlist的语义分离也变成F段硬门禁：前者是“真实活但当前产品禁止接”的pending边界，后者是“死亡/半死亡”裁决，任何同号重叠都会让报告分桶和baseline收口理由产生矛盾，不能再只在Markdown展示时从硬负约束桶静默排除。
+- F同时把hard-negative的cmd从旧`>0`收紧为10000～99999，并保留非空`rule/evidence`要求。当前20条硬负约束与172条killlist零交集；反向探针加入204和10204后，F精确报告`cmd/rule/evidence不完整:204;与killlist重叠:10204`并`EXIT 3`。恢复后的`coverage_20260802_184844.md`为A～H全PASS，两份正式清单均未改。
 
 ### 7.30 AutoBrush 13310 阶段奖励事务（2026-08-02 核对）
 
