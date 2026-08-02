@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 协议覆盖率核验器(PG 包,第21轮/R547-R565):十段断言 A-J,照 CliVerify.cs 既有惯例,日志前缀
+    /// 协议覆盖率核验器(PG 包,第21轮/R547-R566):十一段断言 A-K,照 CliVerify.cs 既有惯例,日志前缀
     /// "CLIVERIFY protocolcoverage"。纯静态分析 + 一次运行时反射,不建 Stage/不渲染。
     ///
     ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline；baseline.registeredCmds 必须与历史总量
@@ -43,6 +43,8 @@ namespace Shenxiao.EditorTools
     ///     suggestedStatus必须与当前liveGap/有效killlist机械判断一致。
     ///   J 报告正文自洽:Markdown抬头、七项当前总量、错误出口当前/历史对比、动态断言范围及每条
     ///     断言正文必须与同次扫描和AssertionOutcome一致，禁止把baseline历史值伪装成本次值。
+    ///   K 报告明细表自洽:家族表必须逐族精确反映注册/活缺口/死缺口/路由/策展状态；活缺口表
+    ///     必须逐族完整列出killlist、硬负约束和未落机器清单三类互斥分组，行数、顺序和总量均一致。
     ///
     /// 收尾落 Reports/ProtocolCoverage/coverage_&lt;date&gt;.md + baseline.next.json(裁决5:
     /// 绝不自动覆盖 Schemas/ProtocolCoverage/baseline.json,基线上调必须人工确认后手动覆盖)。
@@ -93,11 +95,25 @@ namespace Shenxiao.EditorTools
                     killlist,
                     hardNegativeConstraints,
                     outcome);
-                List<string> finalReportProblems = FindReportProblems(scan, baseline ?? candidate, md, outcome);
-                bool reportProblemsCapturedByJ = outcome.Lines.Count > 0
-                    && outcome.Lines[outcome.Lines.Count - 1]
-                        .StartsWith("[FAIL] J报告正文自洽", StringComparison.Ordinal);
-                if (finalReportProblems.Count > 0 && !reportProblemsCapturedByJ)
+                AssertK(scan, baseline ?? candidate, killlist, hardNegativeConstraints, md, outcome);
+                md = ProtocolCoverageReport.BuildMarkdown(
+                    scan,
+                    baseline ?? candidate,
+                    killlist,
+                    hardNegativeConstraints,
+                    outcome);
+                var finalReportProblems = new List<string>();
+                finalReportProblems.AddRange(FindReportProblems(scan, baseline ?? candidate, md, outcome));
+                finalReportProblems.AddRange(FindReportTableProblems(
+                    scan,
+                    baseline ?? candidate,
+                    killlist,
+                    hardNegativeConstraints,
+                    md));
+                bool reportProblemsCaptured = outcome.Lines.Any(line =>
+                    line.StartsWith("[FAIL] J报告正文自洽", StringComparison.Ordinal)
+                    || line.StartsWith("[FAIL] K报告明细表自洽", StringComparison.Ordinal));
+                if (finalReportProblems.Count > 0 && !reportProblemsCaptured)
                 {
                     throw new InvalidOperationException("最终报告自检失败:" + string.Join(";", finalReportProblems));
                 }
@@ -981,6 +997,181 @@ namespace Shenxiao.EditorTools
             if (actualAssertionLineCount != assertionCount)
                 problems.Add("断言正文计数" + actualAssertionLineCount + "!=" + assertionCount);
             return problems;
+        }
+
+        private static void AssertK(
+            ProtocolCoverageScanner.ScanResult scan,
+            CoverageBaseline baseline,
+            List<KillEntry> killlist,
+            List<HardNegativeConstraintEntry> hardNegativeConstraints,
+            string markdown,
+            AssertionOutcome outcome)
+        {
+            List<string> problems = FindReportTableProblems(
+                scan,
+                baseline,
+                killlist,
+                hardNegativeConstraints,
+                markdown);
+            List<ProtocolCoverageScanner.FamilyStat> families = scan.BuildFamilyTable();
+            int liveGapFamilyCount = families.Count(f => f.LiveGap > 0);
+            bool pass = problems.Count == 0;
+            string detail = pass
+                ? "家族表" + families.Count + "行(注册" + families.Sum(f => f.UnityRegistered)
+                    + "/liveGap" + families.Sum(f => f.LiveGap) + "/deadGap" + families.Sum(f => f.DeadGap)
+                    + ")、活缺口表" + liveGapFamilyCount + "行/" + scan.LiveGap().Count + "号完整"
+                : string.Join(";", problems);
+            outcome.Add("K报告明细表自洽", pass, detail);
+        }
+
+        private static List<string> FindReportTableProblems(
+            ProtocolCoverageScanner.ScanResult scan,
+            CoverageBaseline baseline,
+            List<KillEntry> killlist,
+            List<HardNegativeConstraintEntry> hardNegativeConstraints,
+            string markdown)
+        {
+            var problems = new List<string>();
+            List<ProtocolCoverageScanner.FamilyStat> expectedFamilies = scan.BuildFamilyTable()
+                .OrderByDescending(f => f.LiveGap)
+                .ToList();
+            List<string> familySection = ExtractSectionLines(
+                markdown,
+                "## 家族表(前缀 = 协议号/100)",
+                "## 活缺口逐号清单");
+            List<string> familyRows = familySection.Where(IsNumericTableRow).ToList();
+            List<int> actualFamilyOrder = familyRows.Select(ParseTablePrefix).ToList();
+            List<int> expectedFamilyOrder = expectedFamilies.Select(f => f.Prefix).ToList();
+            if (familyRows.Count != expectedFamilies.Count)
+                problems.Add("家族表行数" + familyRows.Count + "!=" + expectedFamilies.Count);
+            if (!actualFamilyOrder.SequenceEqual(expectedFamilyOrder))
+                problems.Add("家族表前缀顺序/完整性不一致");
+
+            var familyRowMismatches = new List<int>();
+            long reportedRegistered = 0;
+            long reportedLiveGap = 0;
+            long reportedDeadGap = 0;
+            bool familyNumbersParsed = true;
+            foreach (ProtocolCoverageScanner.FamilyStat family in expectedFamilies)
+            {
+                FamilyBaseline curated = baseline?.FindFamily(family.Prefix);
+                string status = curated?.Status ?? "(未入baseline)";
+                string route = family.ServerRouteTarget != null
+                    ? family.ServerRouteTarget + "/" + family.ServerRouteStatus
+                    : "NoRoute";
+                string expectedRow = "| " + family.Prefix + " | " + family.UnityRegistered + " | "
+                    + family.LiveGap + " | " + family.DeadGap + " | " + route + " | " + status + " |";
+                if (familyRows.Count(row => string.Equals(row, expectedRow, StringComparison.Ordinal)) != 1)
+                    familyRowMismatches.Add(family.Prefix);
+            }
+            foreach (string row in familyRows)
+            {
+                string[] cells = row.Split('|');
+                if (cells.Length < 6
+                    || !long.TryParse(cells[2].Trim(), out long registered)
+                    || !long.TryParse(cells[3].Trim(), out long liveGap)
+                    || !long.TryParse(cells[4].Trim(), out long deadGap))
+                {
+                    familyNumbersParsed = false;
+                    continue;
+                }
+                reportedRegistered += registered;
+                reportedLiveGap += liveGap;
+                reportedDeadGap += deadGap;
+            }
+            if (familyRowMismatches.Count > 0)
+                problems.Add("家族表字段不一致:" + string.Join(",", familyRowMismatches));
+            if (!familyNumbersParsed)
+                problems.Add("家族表数值列不可解析");
+            else if (reportedRegistered != scan.UnityRegistered.Count
+                || reportedLiveGap != scan.LiveGap().Count
+                || reportedDeadGap != scan.DeadGap().Count)
+            {
+                problems.Add("家族表汇总" + reportedRegistered + "/" + reportedLiveGap + "/" + reportedDeadGap
+                    + "!=扫描" + scan.UnityRegistered.Count + "/" + scan.LiveGap().Count + "/" + scan.DeadGap().Count);
+            }
+
+            var killSet = new HashSet<int>((killlist ?? new List<KillEntry>()).Select(k => k.Cmd));
+            var hardNegativeSet = new HashSet<int>((hardNegativeConstraints ?? new List<HardNegativeConstraintEntry>())
+                .Select(k => k.Cmd));
+            List<ProtocolCoverageScanner.FamilyStat> expectedGapFamilies = expectedFamilies
+                .Where(f => f.LiveGap > 0)
+                .OrderByDescending(f => f.LiveGap)
+                .ThenBy(f => f.Prefix)
+                .ToList();
+            List<string> gapSection = ExtractSectionLines(
+                markdown,
+                "## 活缺口逐号清单",
+                "## legacy_unverified 家族的未申报活缺口(报告级,不挂红,见裁决3)");
+            List<string> gapRows = gapSection.Where(IsNumericTableRow).ToList();
+            List<int> actualGapOrder = gapRows.Select(ParseTablePrefix).ToList();
+            List<int> expectedGapOrder = expectedGapFamilies.Select(f => f.Prefix).ToList();
+            if (gapRows.Count != expectedGapFamilies.Count)
+                problems.Add("活缺口表行数" + gapRows.Count + "!=" + expectedGapFamilies.Count);
+            if (!actualGapOrder.SequenceEqual(expectedGapOrder))
+                problems.Add("活缺口表前缀顺序/完整性不一致");
+
+            var gapRowMismatches = new List<int>();
+            long reportedGapTotal = 0;
+            bool gapNumbersParsed = true;
+            foreach (ProtocolCoverageScanner.FamilyStat family in expectedGapFamilies)
+            {
+                List<int> killed = family.LiveGapCmds.Where(killSet.Contains).ToList();
+                List<int> hardNegative = family.LiveGapCmds
+                    .Where(c => !killSet.Contains(c) && hardNegativeSet.Contains(c))
+                    .ToList();
+                List<int> unlisted = family.LiveGapCmds
+                    .Where(c => !killSet.Contains(c) && !hardNegativeSet.Contains(c))
+                    .ToList();
+                string Format(List<int> values) => values.Count == 0 ? "—" : string.Join(",", values);
+                string expectedRow = "| " + family.Prefix + " | " + family.LiveGap + " | " + Format(killed)
+                    + " | " + Format(hardNegative) + " | " + Format(unlisted) + " |";
+                if (gapRows.Count(row => string.Equals(row, expectedRow, StringComparison.Ordinal)) != 1)
+                    gapRowMismatches.Add(family.Prefix);
+            }
+            foreach (string row in gapRows)
+            {
+                string[] cells = row.Split('|');
+                if (cells.Length < 4 || !long.TryParse(cells[2].Trim(), out long liveGap))
+                {
+                    gapNumbersParsed = false;
+                    continue;
+                }
+                reportedGapTotal += liveGap;
+            }
+            if (gapRowMismatches.Count > 0)
+                problems.Add("活缺口表字段/分组不一致:" + string.Join(",", gapRowMismatches));
+            if (!gapNumbersParsed)
+                problems.Add("活缺口表数值列不可解析");
+            else if (reportedGapTotal != scan.LiveGap().Count)
+                problems.Add("活缺口表汇总" + reportedGapTotal + "!=扫描" + scan.LiveGap().Count);
+            return problems;
+        }
+
+        private static List<string> ExtractSectionLines(string markdown, string heading, string nextHeading)
+        {
+            if (string.IsNullOrEmpty(markdown)) return new List<string>();
+            int start = markdown.IndexOf(heading, StringComparison.Ordinal);
+            if (start < 0) return new List<string>();
+            start += heading.Length;
+            int end = markdown.IndexOf(nextHeading, start, StringComparison.Ordinal);
+            if (end < 0) end = markdown.Length;
+            return markdown.Substring(start, end - start)
+                .Split(new[] { "\r\n", "\n" }, StringSplitOptions.None)
+                .ToList();
+        }
+
+        private static bool IsNumericTableRow(string line)
+        {
+            if (string.IsNullOrEmpty(line) || !line.StartsWith("| ", StringComparison.Ordinal)) return false;
+            string[] cells = line.Split('|');
+            return cells.Length > 2 && int.TryParse(cells[1].Trim(), out _);
+        }
+
+        private static int ParseTablePrefix(string line)
+        {
+            string[] cells = line.Split('|');
+            return cells.Length > 2 && int.TryParse(cells[1].Trim(), out int prefix) ? prefix : -1;
         }
     }
 }
