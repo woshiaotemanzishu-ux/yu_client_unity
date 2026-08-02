@@ -360,6 +360,18 @@
     "note": "维护结果链晚增量已撤销。"
   },
   {
+    "cmd": 21802,
+    "rule": "R130/R188/R592 HolyBattle scene-entry lifecycle boundary",
+    "evidence": "AGENTS.md:R592 HolyBattle 21802/21806完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R592",
+    "note": "21802会校验活动、等级和动作后把玩家编入本服或跨服战场，切入等待场景、恢复满血、设置动作锁并触发参与活动事件；Unity缺完整圣灵战场场景生命周期，禁止孤立常量、sender、code ACK或乐观入场。"
+  },
+  {
+    "cmd": 21806,
+    "rule": "R130/R188/R592 HolyBattle point-reward transaction boundary",
+    "evidence": "AGENTS.md:R592 HolyBattle 21802/21806完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R592",
+    "note": "21806按stage和21805权威积分/领取态校验，成功先持久化已领状态再通过背包或邮件真实发奖，旧端重查21805并展示奖励；禁止裸sender、reward raw、乐观领取或把ObjectList二次发放。"
+  },
+  {
     "cmd": 22704,
     "rule": "R473/R574 CycleRank stage reward claim boundary",
     "evidence": "AGENTS.md:R574 50704/15804/22704/33304/41502奖励购买事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R574",
