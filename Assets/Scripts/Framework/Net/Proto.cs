@@ -68,9 +68,6 @@
         /// <summary>批量写设置(对标老端 SETTING_REQUEST_PROTO_10203):发 h 条数 + 每条 c type/c subtype/c is_open;
         /// 回包 error_code:i(==1 成功后客户端把缓存列表落地 SettingModel)。</summary>
         public const int SETTING_WRITE = 10203;
-        /// <summary>全局通用错误推送。无 C2S；S2C error_code:u32,args:string。
-        /// 服务端所有 lib_game:send_error* 最终统一写入本号，老端 ServerTimeController 无条件显错。</summary>
-        public const int GLOBAL_ERROR = 10205;
         /// <summary>运营公告刷新通知。S2C-only type:u8；type!=0 时重查公告 CDN 版本，禁止发送客户端请求。</summary>
         public const int LOGIN_NOTICE_REFRESH = 10207;
         /// <summary>脱离卡死(对标老端 confirm_flee):发 "i"(scene_id);回包 code:i(!=1 显错误码,==1 服务端拉人切场景)。</summary>
@@ -835,7 +832,6 @@
         public const int LIMITLEVELSHOP_GIFT_CONFIG = 61203;
         public const int ACTIVITYFORESHOW_SNATCH_TIME = 65208; // 领地夺宝时间信息(预告图标 652@31@0 用)。请求无字段(read(65208,_)->{
         public const int SNATCH_TREASURE_ENTRY_INFO = 65201; // 领地夺宝入口全量只读快照；严格空请求，65208 保留给 ActivityForeshow。
-        public const int SNATCH_TREASURE_EXIT = 65206; // 领地夺宝退出。C2S严格空包；S2C code:u32，服务端权威切场。
         public const int BANQUET_WEDDING_STATE = 17249; // 婚礼状态(→172@2 宾客管理图标)。read(17249,_)->{ok,[]} 裸请求;w(与婚姻172xx同属pt_172号段,归Banquet占用,自动循环轮16婚姻段不重复定义,交叉见下方"婚姻"段头注释)
         public const int BANQUET_CALL = 17256; // 婚礼召集/婚礼列表(→172@1 婚礼图标)。read(17256,_)->{ok,[]} 裸请(与婚姻172xx同属pt_172号段,归Banquet占用,自动循环轮16婚姻段不重复定义,交叉见下方"婚姻"段头注释)
 
@@ -2601,10 +2597,6 @@
         public const int BRIGHT_SEA_ASSIST_BGOLD_INFO = 18916;
         /// <summary>无尽之海本人巡航状态快照(C2S 严格空包；S2C auto_id:u64,status:u8,reward_times:u8,total_reward_times:u8)。</summary>
         public const int BRIGHT_SEA_SHIP_STATUS = 18917;
-        /// <summary>无尽之海退出战场失败切片。仅 S2C: code:u32；code==1 严格无本地动作，本轮不发送退出请求或接场景链。</summary>
-        public const int BRIGHT_SEA_EXIT_ERROR = 18918;
-        /// <summary>无尽之海异步战斗错误。仅 S2C: code:u32；所有原始 code 均为有效结果，本轮不接超时或场景链。</summary>
-        public const int BRIGHT_SEA_BATTLE_ERROR = 18920;
 
         // ----- 组队(24xxx,yu_server pt_240.erl / pp_team.erl;老端 commonController/TeamController.ts,
         // 自动循环 轮8) -----

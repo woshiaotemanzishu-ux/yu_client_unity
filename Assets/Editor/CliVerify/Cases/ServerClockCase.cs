@@ -36,7 +36,7 @@ namespace Shenxiao.EditorTools
     ///     CliVerify 超时(EXIT 2)而非返回失败码,看到 serverclock 段超时优先查 ErlangParser.ParseList;
     ///     同段回归:合法 Erlang term 仍要正常解析(护栏不能误伤正常路径);
     ///   J config_key_value 落地 + key1 JSON 形态;K 41708 奖励明细解析(老端此路产出 1000 个空串垃圾对象,
-    ///     本端订正为 JSON 解析);L 10205 全局错误注册、相邻号排除、u32/string读尾、显错与零发送。
+    ///     本端订正为 JSON 解析);L 10205 负约束注册矩阵。
     ///
     /// 日志前缀统一 "CLIVERIFY serverclock"。独立文件复用 CliVerify.Pkt,不改 CliVerify.cs 本体。
     /// </summary>
@@ -98,10 +98,10 @@ namespace Shenxiao.EditorTools
             MethodInfo m10000 = lc.GetType().GetMethod("OnAccountLogin", FI);
             object wc = Shenxiao.Module.Core.Welfare.WelfareController.Instance;
             MethodInfo mParseGift = wc.GetType().GetMethod("ParseDownloadGiftReward", FS);
-            if (m10201 == null || m10205 == null || m10000 == null || mParseGift == null)
+            if (m10201 == null || m10205 != null || m10000 == null || mParseGift == null)
             {
                 Debug.LogError("CLIVERIFY serverclock handler missing(reflection): On10201="
-                    + (m10201 != null) + " On10205=" + (m10205 != null)
+                    + (m10201 != null) + " On10205Absent=" + (m10205 == null)
                     + " OnAccountLogin=" + (m10000 != null)
                     + " ParseDownloadGiftReward=" + (mParseGift != null));
                 if (!gameStartWasInitialized) gsc.Dispose();
@@ -283,28 +283,14 @@ namespace Shenxiao.EditorTools
                             : "(空)"));
                 }
 
-                // ---- L 10205 全局错误:注册、完整 u32/string 消费、无条件显错，且不误接相邻业务号 ----
+                // ---- L R541 纠偏:10205 晚于 KfStage 原负约束的增量必须保持无 handler/无注册 ----
                 var handlers = typeof(NetManager).GetField("_handlers", FS)?.GetValue(null) as System.Collections.IDictionary;
-                var errorLogs = new List<string>();
-                Application.LogCallback errorLogCallback = (msg, stack, type) => errorLogs.Add(msg);
-                byte[] p10205 = new CliVerify.Pkt().I(uint.MaxValue).S("参数甲").Bytes();
-                var errorReader = new NetReader(p10205, 0, p10205.Length);
-                Application.logMessageReceived += errorLogCallback;
-                try { m10205.Invoke(gsc, new object[] { errorReader }); }
-                finally { Application.logMessageReceived -= errorLogCallback; }
-                bool lOk = handlers != null
-                           && handlers.Contains(Proto.GLOBAL_ERROR)
-                           && !handlers.Contains(10204) && !handlers.Contains(10207) && !handlers.Contains(10211)
-                           && errorReader.Remaining == 0
-                           && errorLogs.Exists(x => x.Contains("toast: 操作失败(4294967295)"))
-                           && errorLogs.Exists(x => x.Contains("10205 全局错误 code=4294967295 args=参数甲"))
-                           && !errorLogs.Exists(x => x.Contains("send while disconnected"));
+                bool lOk = handlers != null && !handlers.Contains(10205) && m10205 == null;
                 if (!lOk)
                 {
                     fail++;
-                    Debug.LogError("CLIVERIFY serverclock L 10205 全局错误失败 registered="
-                        + (handlers != null && handlers.Contains(Proto.GLOBAL_ERROR)) + " remaining=" + errorReader.Remaining
-                        + " logs=" + string.Join(" | ", errorLogs));
+                    Debug.LogError("CLIVERIFY serverclock L 10205 负约束失败 registered="
+                        + (handlers != null && handlers.Contains(10205)) + " handlerAbsent=" + (m10205 == null));
                 }
 
                 Debug.Log("CLIVERIFY serverclock A=" + aOk + " B=" + bOk + " C=" + cOk + " D=" + dOk

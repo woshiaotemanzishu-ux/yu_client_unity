@@ -1770,3 +1770,9 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **代码收口**：撤销十号Proto常量、注册、sender、handler、raw模型与正向用例；Dress只保留11200，NineSky只保留13500/03/04，Guard只保留21601，Eternity只保留27900/01。各族原启动、显式请求、全量替换和环境恢复语义不变，真实活链不写入killlist。
 - **规则固化**：AGENTS新增“别处追加正向实现记录不构成豁免”；未来恢复必须先基于本轮明确产品授权和新双端证据直接改写原负约束，再进入实现。覆盖率允许因纠偏诚实下降，baseline历史计数保持冻结。
 - **验证状态**：`dotnet build Assembly-CSharp-Editor.csproj -m:1`为0 error；Unity 6000.3.17f1独立批处理`Dress/NineSky/Guard/Eternity`均`VERDICT pass=True / EXIT 0`。`coverage_20260802_151239.md` A～E全PASS，运行时为`registered=1265 / liveDefined=1468 / liveGap=326 / errorExit=16 / active=1142/1468=77.8%`；112、135、216、279族分别为`1/5/0`、`3/5/3`、`1/5/0`、`2/8/0`且均保持pending，冻结baseline未改。
+
+## 2026-08-02：10205/18918/18920/65206 晚增协议纠偏（R541）
+
+- **时序结论**：R111在7月23日先明确不接10205，R179在7月26日19:06先明确不接18918-18920，R170在7月23日先明确不接65206；四号实现分别到7月30日、7月26日23时后和7月28日才追加，原禁令均未改。13218实现早于后来范围说明，不属于本轮“晚增”自动撤销集合。
+- **代码收口**：撤销四号Proto常量、注册、sender、handler、Toast/日志或raw模型与正向用例。GameStart保留10201/10202/13088及其它既有链；BrightSea保留18900/01/02/04/05/15/16/17；SnatchTreasure只保留65201，65208继续由ActivityForeshow独占。四条真实活链不进killlist。
+- **验证状态**：`dotnet build Assembly-CSharp-Editor.csproj -m:1`为79 warning、0 error；Unity 6000.3.17f1独立批处理`ServerClock` A～L全PASS，`BrightSea/SnatchTreasure`均`VERDICT pass=True / restored=True / EXIT 0`。`coverage_20260802_153115.md` A～E全PASS，运行时为`registered=1261 / liveDefined=1468 / liveGap=330 / errorExit=19 / active=1138/1468=77.5%`；102、189、652族分别为`6/3/2`、`8/12/0`、`2/5/2`且均保持pending，冻结baseline未改。

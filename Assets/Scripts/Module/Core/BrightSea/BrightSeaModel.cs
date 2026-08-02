@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Shenxiao.Module.Core.BrightSea
 {
-    /// <summary>无尽之海各快照、18905启动结果、18918退出失败与18920异步战斗错误的独立原始状态；列表保留服务端 wire 顺序与重复项。</summary>
+    /// <summary>无尽之海各快照与18905启动结果的独立原始状态；列表保留服务端 wire 顺序与重复项。</summary>
     public sealed class BrightSeaModel
     {
         public sealed class ShippingEntry
@@ -129,14 +129,6 @@ namespace Shenxiao.Module.Core.BrightSea
         public ulong BattleStartRoleId { get; private set; }
         public byte BattleStartType { get; private set; }
 
-        // ---- 18918 退出战场失败（成功 code=1 不落地）----
-        public bool HasExitError { get; private set; }
-        public uint LastExitErrorCode { get; private set; }
-
-        // ---- 18920 异步战斗错误（所有 code 原样落地）----
-        public bool HasBattleError { get; private set; }
-        public uint LastBattleErrorCode { get; private set; }
-
         /// <summary>每个 18900 包无条件整体替换；空列表也为已加载快照。</summary>
         public void Replace(string picture, uint pictureVersion, byte rewardTimes, byte totalRewardTimes,
             byte robTimes, byte totalRobTimes, ulong autoId, byte status, List<ShippingEntry> sendList)
@@ -227,18 +219,6 @@ namespace Shenxiao.Module.Core.BrightSea
             HasBattleStartResult = true;
         }
 
-        public void SetExitError(uint code)
-        {
-            LastExitErrorCode = code;
-            HasExitError = true;
-        }
-
-        public void SetBattleError(uint code)
-        {
-            LastBattleErrorCode = code;
-            HasBattleError = true;
-        }
-
         public void Clear()
         {
             Picture = null;
@@ -270,10 +250,6 @@ namespace Shenxiao.Module.Core.BrightSea
             BattleStartCode = BattleStartServerId = 0;
             BattleStartAutoId = BattleStartRoleId = 0;
             BattleStartType = 0;
-            HasExitError = false;
-            LastExitErrorCode = 0;
-            HasBattleError = false;
-            LastBattleErrorCode = 0;
         }
     }
 }
