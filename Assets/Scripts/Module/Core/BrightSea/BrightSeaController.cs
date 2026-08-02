@@ -6,7 +6,7 @@ using Shenxiao.Framework.Util;
 
 namespace Shenxiao.Module.Core.BrightSea
 {
-    /// <summary>无尽之海原始状态切片：接收既有七份快照及18905掠夺启动结果；不开放航运/抢夺操作请求，也不接场景或UI链。</summary>
+    /// <summary>无尽之海七份只读原始快照；不开放航运/抢夺操作请求，也不接场景或UI链。</summary>
     public sealed class BrightSeaController : BaseController
     {
         public static readonly BrightSeaController Instance = new BrightSeaController();
@@ -23,7 +23,6 @@ namespace Shenxiao.Module.Core.BrightSea
             RegisterProtocal(Proto.BRIGHT_SEA_CRUISE_LOGS, On18901);
             RegisterProtocal(Proto.BRIGHT_SEA_SHIP_INFO, On18902);
             RegisterProtocal(Proto.BRIGHT_SEA_CRUISE_DETAIL, On18904);
-            RegisterProtocal(Proto.BRIGHT_SEA_BATTLE_START_RESULT, On18905);
             RegisterProtocal(Proto.BRIGHT_SEA_SERVER_INFO, On18915);
             RegisterProtocal(Proto.BRIGHT_SEA_ASSIST_BGOLD_INFO, On18916);
             RegisterProtocal(Proto.BRIGHT_SEA_SHIP_STATUS, On18917);
@@ -210,11 +209,6 @@ namespace Shenxiao.Module.Core.BrightSea
             BrightSeaModel.Instance.ReplaceCruiseDetail(autoId, roberServerId, roberServerNumber, roberId, roberName,
                 roberPower, shippingId, reward, robReward, time);
             GameLog.Info("BrightSea", "18904 detail autoId={0} reward={1} robReward={2} remaining={3}B", autoId, reward.Count, robReward.Count, r.Remaining);
-        }
-
-        private void On18905(NetReader r)
-        {
-            BrightSeaModel.Instance.ReplaceBattleStartResult(r.ReadU32(), unchecked((ulong)r.ReadU64()), r.ReadU32(), unchecked((ulong)r.ReadU64()), r.ReadU8());
         }
 
         private static BrightSeaModel.ObjectEntry ReadObjectEntry(NetReader r)

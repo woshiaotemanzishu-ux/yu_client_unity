@@ -2592,8 +2592,6 @@
         public const int BRIGHT_SEA_SHIP_INFO = 18902;
         /// <summary>无尽之海巡航结算详情(C2S auto_id:u64；S2C 掠夺者、奖励及掠夺奖励快照)。</summary>
         public const int BRIGHT_SEA_CRUISE_DETAIL = 18904;
-        /// <summary>无尽之海掠夺/复仇启动结果。C2S: auto_id:u64,server_id:u32,role_id:u64,type:u8；S2C: code:u32 加同四字段。本轮仅接收，不发送、不接场景链。</summary>
-        public const int BRIGHT_SEA_BATTLE_START_RESULT = 18905;
         /// <summary>无尽之海跨服信息快照(C2S 严格空包；S2C 模式/世界等级及 enemy、un_satisfy 服务器列表)。</summary>
         public const int BRIGHT_SEA_SERVER_INFO = 18915;
         /// <summary>无尽之海协助绑元次数快照(C2S 严格空包；S2C daily_num:u16,max_bgold_num:u16)。</summary>

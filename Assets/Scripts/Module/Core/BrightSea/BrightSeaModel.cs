@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Shenxiao.Module.Core.BrightSea
 {
-    /// <summary>无尽之海各快照与18905启动结果的独立原始状态；列表保留服务端 wire 顺序与重复项。</summary>
+    /// <summary>无尽之海七份独立只读原始快照；列表保留服务端 wire 顺序与重复项。</summary>
     public sealed class BrightSeaModel
     {
         public sealed class ShippingEntry
@@ -121,14 +121,6 @@ namespace Shenxiao.Module.Core.BrightSea
         public readonly List<ObjectEntry> CruiseDetailRobReward = new List<ObjectEntry>();
         public uint CruiseDetailTime { get; private set; }
 
-        // ---- 18905 掠夺/复仇启动结果（独立于全部快照）----
-        public bool HasBattleStartResult { get; private set; }
-        public uint BattleStartCode { get; private set; }
-        public ulong BattleStartAutoId { get; private set; }
-        public uint BattleStartServerId { get; private set; }
-        public ulong BattleStartRoleId { get; private set; }
-        public byte BattleStartType { get; private set; }
-
         /// <summary>每个 18900 包无条件整体替换；空列表也为已加载快照。</summary>
         public void Replace(string picture, uint pictureVersion, byte rewardTimes, byte totalRewardTimes,
             byte robTimes, byte totalRobTimes, ulong autoId, byte status, List<ShippingEntry> sendList)
@@ -209,16 +201,6 @@ namespace Shenxiao.Module.Core.BrightSea
             CruiseDetailTime = time; HasCruiseDetail = true;
         }
 
-        public void ReplaceBattleStartResult(uint code, ulong autoId, uint serverId, ulong roleId, byte type)
-        {
-            BattleStartCode = code;
-            BattleStartAutoId = autoId;
-            BattleStartServerId = serverId;
-            BattleStartRoleId = roleId;
-            BattleStartType = type;
-            HasBattleStartResult = true;
-        }
-
         public void Clear()
         {
             Picture = null;
@@ -246,10 +228,6 @@ namespace Shenxiao.Module.Core.BrightSea
             CruiseDetailRoberServerId = CruiseDetailRoberServerNumber = CruiseDetailTime = 0;
             CruiseDetailRoberName = null; CruiseDetailShippingId = 0;
             CruiseDetailReward.Clear(); CruiseDetailRobReward.Clear(); HasCruiseDetail = false;
-            HasBattleStartResult = false;
-            BattleStartCode = BattleStartServerId = 0;
-            BattleStartAutoId = BattleStartRoleId = 0;
-            BattleStartType = 0;
         }
     }
 }
