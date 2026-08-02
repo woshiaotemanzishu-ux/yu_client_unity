@@ -18,7 +18,7 @@
 
 - 协议覆盖 baseline 收口规则：`Schemas/ProtocolCoverage/baseline.json` 的历史 `unityRegistered/liveGap` 数值用于防倒退，禁止为追当前报告逐轮改写；但当最新运行时扫描的某家族全部活缺口已由注册或带 evidence 的 killlist 完整治理时，必须在同轮把人工 `status` 转为 `done` 并写 `statusNote`，再以 `ProtocolCoverageCase` 的C段验收。禁止长期保留 `pending/legacy_unverified` 逃避C段，也禁止把真实玩家可达写事务塞进killlist来伪收口。
 
-- 协议负约束优先规则：`AGENTS.md` 对某协议明确写了“不接/No/Do not attach”时，后续轮次不得用“补覆盖率”推翻；若审计发现晚于该规则的常量、注册、sender、模型或用例，必须撤销违规增量并让家族保持 `pending`，不得靠违规注册把 raw 缺口清零后标 `done`。在文件别处追加一条正向实现记录不构成豁免；只有先基于本轮明确产品授权与新证据同步改写原负约束，后续实现才可进入。R517已撤销20600/20602与28500，R539撤销28600，R540撤销11205、13507、21600/21606与27904-27909，R541撤销10205、18918/18920与65206。实现早于后来范围说明的既有号不按“晚增”自动撤销，必须另做业务裁决；当前13218即属此类。
+- 协议负约束优先规则：`AGENTS.md` 对某协议明确写了“不接/No/Do not attach”时，后续轮次不得用“补覆盖率”推翻；若审计发现晚于该规则的常量、注册、sender、模型或用例，必须撤销违规增量并让家族保持 `pending`，不得靠违规注册把 raw 缺口清零后标 `done`。在文件别处追加一条正向实现记录不构成豁免；只有先基于本轮明确产品授权与新证据同步改写原负约束，后续实现才可进入。R517已撤销20600/20602与28500，R539撤销28600，R540撤销11205、13507、21600/21606与27904-27909，R541撤销10205、18918/18920与65206。机器交集命中后仍须按完整句义裁决：R542确认13217段的“Do not attach 13218”原义是禁止13217与13218联动，不是禁止全局注册既有13218主动推送。
 
 - Unity Pipeline 许可证恢复规则：仅出现 entitlement 404、命令超时但同 PID/Pipeline 仍为 `ready` 时继续等待重试，禁止重启；只有 Editor 日志明确写出 `Application will terminate with return code 198`、Pipeline 已注销，且该精确 canonical batchmode PID 卡在退出态持续占用 `Temp/UnityLockfile` 时，才可先确认 CLI license 已恢复 active，再只终止这个已退出项目 PID、删除已核实的残留锁并按原参数重启。禁止扩大到健康 Editor、Hub 或全局 Unity 进程。
 
@@ -230,7 +230,7 @@
 ## OnHook 13218（轮104）
 
 - 13218 是物品自动熔炼成功后与15024并列下发的服务端主动推送，不是挂机请求。格式为 `exp_list:u16 count × {add_exp:u16,ratio:u8}`；老端只把全部 `add_exp` 相加后覆盖 `auto_smelt_exp`，空列表覆盖为0。`ratio` 当前不入模但必须读到尾；不得因此主动请求或抢占15024，也不得污染13212快照、13215经验效率或奖励列表。
-- 13217 is an explicit parameterless exp-addition snapshot: `count:u16×{type:u32,ratio:u64,end_time:u32}`. Every packet replaces the complete list, retaining wire order and duplicate types; an empty list clears old items while remaining loaded. Do not attach GAME_START, 13218, UI, red dots, config, or operations.
+- 13217 is an explicit parameterless exp-addition snapshot: `count:u16×{type:u32,ratio:u64,end_time:u32}`. Every packet replaces the complete list, retaining wire order and duplicate types; an empty list clears old items while remaining loaded. Do not attach GAME_START or any 13218 request/trigger/clear linkage, UI, red dots, config, or operations. This does not prohibit the independently registered S2C-only 13218 push above.
 
 ## Armor 14401/14402（轮109/R522）
 

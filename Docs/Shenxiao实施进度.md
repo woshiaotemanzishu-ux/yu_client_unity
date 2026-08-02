@@ -1776,3 +1776,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **时序结论**：R111在7月23日先明确不接10205，R179在7月26日19:06先明确不接18918-18920，R170在7月23日先明确不接65206；四号实现分别到7月30日、7月26日23时后和7月28日才追加，原禁令均未改。13218实现早于后来范围说明，不属于本轮“晚增”自动撤销集合。
 - **代码收口**：撤销四号Proto常量、注册、sender、handler、Toast/日志或raw模型与正向用例。GameStart保留10201/10202/13088及其它既有链；BrightSea保留18900/01/02/04/05/15/16/17；SnatchTreasure只保留65201，65208继续由ActivityForeshow独占。四条真实活链不进killlist。
 - **验证状态**：`dotnet build Assembly-CSharp-Editor.csproj -m:1`为79 warning、0 error；Unity 6000.3.17f1独立批处理`ServerClock` A～L全PASS，`BrightSea/SnatchTreasure`均`VERDICT pass=True / restored=True / EXIT 0`。`coverage_20260802_153115.md` A～E全PASS，运行时为`registered=1261 / liveDefined=1468 / liveGap=330 / errorExit=19 / active=1138/1468=77.5%`；102、189、652族分别为`6/3/2`、`8/12/0`、`2/5/2`且均保持pending，冻结baseline未改。
+
+## 2026-08-02：扩展负约束全量审计与13218消歧（R542）
+
+- **全量交叉**：解析Proto直接/别名常量和全部生产`RegisterProtocal`，覆盖1261个运行时注册号；与AGENTS中“不接/不注册/排除/KILL/absent/exclude/do not attach”等表达逐句交叉，再人工剔除同句正向保留号、仅禁sender/GAME_START/UI/跨切片联动等假阳性。R541之外未发现新的全局注册冲突。
+- **13218裁决**：`48fd16be92`先接入自动熔炼后的独立S2C主动推送；`14ec2c02c6`后接13217时，同一提交明确写“在13211/12/14/15/16/18数据底座上接入13217”以及“不接13218联动”。因此现有13218不是负约束冲突，AGENTS已改成明确禁止13217请求/触发/清理13218，同时保留独立13218注册。
+- **影响边界**：本轮只消除权威文档歧义，不改Proto、Controller、Model、用例、Prefab、配置、killlist或baseline；13218继续无sender并与13217双向隔离。
+- **验证状态**：Unity 6000.3.17f1独立批处理`OnHookCase pass=True / EXIT 0`；`coverage_20260802_153930.md` A～E全PASS，运行时仍为`registered=1261 / liveDefined=1468 / liveGap=330 / errorExit=19 / active=1138/1468=77.5%`，证明本轮只消歧、不改行为；冻结baseline未改。
