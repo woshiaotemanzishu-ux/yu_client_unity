@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R552。覆盖产物不再只给家族计数：每个`FamilyStat`和候选`baseline.next.json`都带升序`liveGapCmds`，报告按族逐号拆成killlist、硬负约束、未落机器清单三桶；冻结`baseline.json`未改。
-- 当前85个有缺口家族共331号，候选逐号数与所有家族`liveGap`完全一致；其中79号命中killlist、20号命中硬负约束、232号未落机器清单。后者仍须先查已有DEFER文档和双端事实，不代表可直接接入。
-- R552最终报告`coverage_20260802_181516.md`仍为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A～G全PASS、`EXIT 0`；`dotnet build Shenxiao.Editor.csproj`为79条既有warning、0 error，报告与候选基线逐号合计均为331。
+- 最新完成轮次：R553。覆盖验收新增H段，非`done`家族若当前零活缺口或全部活缺口都已有evidence-killlist，会立即失败；与C段组成状态双向门禁，不能再用`pending/legacy_unverified`逃避完工收口。
+- 候选`baseline.next.json`现在保留正式baseline的人工`status/statusNote`，另写机器计算的`suggestedStatus`；正式`baseline.json`的冻结计数与人工状态仍不自动改写。当前150/152保留`legacy_unverified`且机器建议`pending`，属于可见差异而非候选丢字段。
+- 反向探针同时命中144零缺口和400全killlist两条路径并`EXIT 3`；恢复后的`coverage_20260802_182556.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A～H全PASS、`EXIT 0`。R552的85族331号逐号清单及79+20+232分桶保持不变。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

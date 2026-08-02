@@ -304,7 +304,7 @@
 - 首批范围为`10205,11205,13507,18905/18918/18920,20600/20602,21600/21606,27904-27909,28500,28600,42704,65206`。13218不在清单：R542已证明它只受“禁止与13217联动”的局部约束，独立S2C注册合法。未来产品若解禁某号，必须同轮改写原AGENTS裁决、移除/调整清单项并完成真实消费者；清单不能单独替代产品授权。
 - 反向验收临时把已注册10201加入清单，F段同时从运行时handler、`Proto`常量和`GameStartController.cs:91`静态调用点命中并以`EXIT 3`失败；移除探针后的`coverage_20260802_171521.md`加载正式20条约束，A～F全PASS、`EXIT 0`。这验证了三层检查均参与最终裁决。
 
-### 7.29 killlist 与运行时/发送边界对账门禁（2026-08-02 核对，R548-R549）
+### 7.29 killlist、baseline 与运行时/发送边界对账门禁（2026-08-02 核对，R548-R553）
 
 - `killlist.json`描述的是当前不应存在S2C消费者的死号或半死号，不等价于“协议号在Unity完全不存在”。40218/62107等真实C2S操作可以保留发送常量，但服务端从不写的专属同号结果不得挂handler；G段因此以运行时`NetManager._handlers`为裁决面，同时检查killlist重复号。
 - R548逐项审计原182条killlist与13个运行时交集。Baby 18208/09/16/17/18/19/20/24已被后续完整UI/事务轮次恢复，19501已有真实角色卡查询链，40230当前服务器守卫成功分支仍写专属结果，十号属于过期死亡裁决并从清单删除。13802唯一writer调用已注释；19007只有老端不可达查询和空handler；33225/26老端零sender且handler体注释，四号删除常量、注册和孤立模型并继续留在killlist。
@@ -318,6 +318,9 @@
 - 10205反向探针临时加入不可达`SendFmt(10205)`，F精确报告`literalSend@Assets/Scripts/Module/Core/Gm/GmCheatController.cs:55`并以`EXIT 3`失败，G同步显示`数字直发=1`；移除后`coverage_20260802_180703.md`显示`数字直发=0`、七个send-only仍有七组具名发送引用且A～G全PASS。生产协议发送必须直接引用`Proto`常量，不得以数字或别名规避审计。
 - R552把活缺口从“只有族级计数”升级为逐号清单。`FamilyStat.LiveGapCmds`与`baseline.next.json.families[].liveGapCmds`按升序保存每族真实`LiveDefined-UnityRegistered`；正式`baseline.json`的历史计数与状态不自动改写，旧基线缺字段仍可兼容读取。
 - 覆盖报告新增“活缺口逐号清单”，按killlist、硬负约束（排除与killlist重叠）和未落机器清单三桶列出。`coverage_20260802_181516.md`核对85族/331号，79+20+232恰好等于331；“未落机器清单”只表示尚未进入两份机器治理表，可能已有DEFER文档，绝不构成接入授权。
+- R553新增H段反向状态门禁：对正式baseline中每个非`done`家族按当前扫描重算活缺口；若已是零缺口，或全部缺口都被带非空evidence的killlist覆盖，则必须失败并要求同轮转`done`。H同时拒绝非法状态和正式baseline漏掉当前家族，和C段共同形成“未治理不得done、已治理不得继续pending”的双向约束。
+- `baseline.next.json`不再机械覆盖人工策展：候选保留正式baseline的`status/statusNote`，并独立输出由当前逐号缺口和有效killlist计算的`suggestedStatus`。因此150/152仍可如实保留`legacy_unverified`，同时显示机器建议`pending`；候选仅供审阅，禁止据此改写冻结计数或跳过人工裁决。
+- 反向探针把144零缺口族和400全killlist族临时改为`pending`，H精确报告`144[零活缺口]`与`400[全killlist:...]`并`EXIT 3`；逐行恢复正式baseline后的`coverage_20260802_182556.md`为A～H全PASS、`EXIT 0`，运行时指标仍为`1256/331/20/77.5%`。
 
 ### 7.30 AutoBrush 13310 阶段奖励事务（2026-08-02 核对）
 

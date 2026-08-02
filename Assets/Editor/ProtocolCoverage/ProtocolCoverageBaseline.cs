@@ -9,9 +9,10 @@ namespace Shenxiao.Editor.ProtocolCoverage
     ///   done             = 断言 C 生效,该族「活缺口」必须 ⊆ killlist(每条带 evidence),否则红。
     ///   legacy_unverified = 历史 [x] 包留下的未申报缺口(裁决3),报告里列出但不挂红,后续逐包消化。
     ///   pending           = 从未被任何包声明过 done,C 不对它生效(纯观察)。
-    /// status 是人工策展字段——工具产出的 baseline.next.json 只按「活缺口是否为 0」给出机械初值
-    /// (done/pending 二态),legacy_unverified 的判定与写入必须人工核对后才落进正式 baseline.json
-    /// (裁决5:Case 绝不自动覆盖 baseline.json)。</summary>
+    /// status 是人工策展字段——工具产出的 baseline.next.json 原样保留正式基线的 status/statusNote，
+    /// 并把「零活缺口或全部缺口均有 evidence-killlist」算出的二态建议另写入 suggestedStatus。
+    /// legacy_unverified 的判定与正式状态变更必须人工核对后才落进 baseline.json
+    /// (裁决5:Case 绝不自动覆盖正式 baseline)。</summary>
     public sealed class FamilyBaseline
     {
         [JsonProperty("prefix")] public int Prefix;
@@ -20,6 +21,10 @@ namespace Shenxiao.Editor.ProtocolCoverage
         /// <summary>候选基线的逐号活缺口，便于后续审计直接选号；历史正式baseline缺此字段也可兼容读取。</summary>
         [JsonProperty("liveGapCmds")] public List<int> LiveGapCmds = new List<int>();
         [JsonProperty("status")] public string Status = "pending";
+        /// <summary>人工策展说明。正式baseline已有字段此前被模型静默丢弃，候选文件必须原样保留。</summary>
+        [JsonProperty("statusNote", NullValueHandling = NullValueHandling.Ignore)] public string StatusNote;
+        /// <summary>候选文件的机器建议，不覆盖人工status；正式baseline可不含此字段。</summary>
+        [JsonProperty("suggestedStatus", NullValueHandling = NullValueHandling.Ignore)] public string SuggestedStatus;
     }
 
     public sealed class CoverageBaseline
@@ -93,9 +98,14 @@ namespace Shenxiao.Editor.ProtocolCoverage
             return list ?? new List<HardNegativeConstraintEntry>();
         }
 
-        /// <summary>从本次扫描机械算出一份候选基线(status 只给 done/pending 二态——liveGap==0 才 done;
-        /// legacy_unverified 需要人工核对台账后才能标,工具不猜)。</summary>
-        public static CoverageBaseline BuildCandidate(ProtocolCoverageScanner.ScanResult scan, string denominatorNote)
+        /// <summary>从本次扫描生成候选基线。正式基线的人工 status/statusNote 原样保留；
+        /// suggestedStatus 只按当前逐号缺口是否全部由带 evidence 的 killlist 治理机械计算，
+        /// 供人工核对而不替代策展裁决。</summary>
+        public static CoverageBaseline BuildCandidate(
+            ProtocolCoverageScanner.ScanResult scan,
+            string denominatorNote,
+            CoverageBaseline curatedBaseline,
+            IReadOnlyCollection<KillEntry> killlist)
         {
             var baseline = new CoverageBaseline
             {
@@ -116,16 +126,23 @@ namespace Shenxiao.Editor.ProtocolCoverage
             baseline.ErrorExitUnregisteredCount = unregisteredErrorExits.Count;
 
             baseline.RegisteredCmds = scan.UnityRegistered.OrderBy(c => c).ToList();
+            var validKillSet = new HashSet<int>((killlist ?? new List<KillEntry>())
+                .Where(k => !string.IsNullOrWhiteSpace(k.Evidence))
+                .Select(k => k.Cmd));
 
             foreach (ProtocolCoverageScanner.FamilyStat fs in scan.BuildFamilyTable())
             {
+                FamilyBaseline curated = curatedBaseline?.FindFamily(fs.Prefix);
+                string suggestedStatus = fs.LiveGapCmds.All(validKillSet.Contains) ? "done" : "pending";
                 baseline.Families.Add(new FamilyBaseline
                 {
                     Prefix = fs.Prefix,
                     UnityRegistered = fs.UnityRegistered,
                     LiveGap = fs.LiveGap,
                     LiveGapCmds = fs.LiveGapCmds.ToList(),
-                    Status = fs.LiveGap == 0 ? "done" : "pending",
+                    Status = curated?.Status ?? suggestedStatus,
+                    StatusNote = curated?.StatusNote,
+                    SuggestedStatus = suggestedStatus,
                 });
             }
 

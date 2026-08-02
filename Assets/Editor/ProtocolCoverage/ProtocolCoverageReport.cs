@@ -58,7 +58,7 @@ namespace Shenxiao.Editor.ProtocolCoverage
             }
 
             sb.AppendLine();
-            sb.AppendLine("## 断言结果 A-G");
+            sb.AppendLine("## 断言结果 A-H");
             sb.AppendLine();
             foreach (string line in assertions.Lines) sb.AppendLine("- " + line);
 

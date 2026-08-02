@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 协议覆盖率核验器(PG 包,第21轮/R547-R548):七段断言 A-G,照 CliVerify.cs 既有惯例,日志前缀
+    /// 协议覆盖率核验器(PG 包,第21轮/R547-R553):八段断言 A-H,照 CliVerify.cs 既有惯例,日志前缀
     /// "CLIVERIFY protocolcoverage"。纯静态分析 + 一次运行时反射,不建 Stage/不渲染。
     ///
     ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline；具体号消失默认算红，只有带 evidence 的
@@ -28,6 +28,8 @@ namespace Shenxiao.EditorTools
     ///   G killlist 防复活:killlist 中的协议号不得拥有运行时 handler。只有显式 clientMode=send_only
     ///     的 C2S 单向操作允许且必须保留 Proto 常量及生产 `Send*(Proto.X,...)` 直接引用，其余死号不得
     ///     残留常量或发送引用；模式非法或清单重复也挂红。
+    ///   H baseline状态收口:当前零活缺口、或剩余活缺口已全部由带evidence的killlist治理的家族，
+    ///     正式baseline必须人工标为done；未知status或漏入baseline的当前家族同样挂红。
     ///
     /// 收尾落 Reports/ProtocolCoverage/coverage_&lt;date&gt;.md + baseline.next.json(裁决5:
     /// 绝不自动覆盖 Schemas/ProtocolCoverage/baseline.json,基线上调必须人工确认后手动覆盖)。
@@ -56,8 +58,13 @@ namespace Shenxiao.EditorTools
                 AssertE(scan, baseline, outcome);
                 AssertF(scan, hardNegativeConstraints, outcome);
                 AssertG(scan, killlist, outcome);
+                AssertH(scan, baseline, killlist, outcome);
 
-                CoverageBaseline candidate = ProtocolCoverageBaseline.BuildCandidate(scan, ProtocolCoverageReport.DenominatorNote(scan));
+                CoverageBaseline candidate = ProtocolCoverageBaseline.BuildCandidate(
+                    scan,
+                    ProtocolCoverageReport.DenominatorNote(scan),
+                    baseline,
+                    killlist);
                 string nextPath = ProtocolCoverageBaseline.WriteBaselineNext(candidate);
                 string md = ProtocolCoverageReport.BuildMarkdown(
                     scan,
@@ -409,6 +416,59 @@ namespace Shenxiao.EditorTools
             if (pass) details.Add(killlist.Count + "条killlist与运行时注册零交集;send_only=" + sendOnlyCount
                 + ";发送引用=" + sendOnlyCount + ";数字直发=" + scan.UnityStaticLiteralSendSites.Count);
             outcome.Add("G死号防复活", pass, string.Join(";", details));
+        }
+
+        private static void AssertH(
+            ProtocolCoverageScanner.ScanResult scan,
+            CoverageBaseline baseline,
+            List<KillEntry> killlist,
+            AssertionOutcome outcome)
+        {
+            if (baseline == null)
+            {
+                outcome.Add("Hbaseline状态收口", true, "无 baseline.json,首次运行不挂红");
+                return;
+            }
+
+            var validStatuses = new HashSet<string> { "done", "pending", "legacy_unverified" };
+            List<int> invalidStatuses = baseline.Families
+                .Where(f => !validStatuses.Contains(f.Status))
+                .Select(f => f.Prefix)
+                .OrderBy(p => p)
+                .ToList();
+            var baselinePrefixes = new HashSet<int>(baseline.Families.Select(f => f.Prefix));
+            List<int> missingFamilies = scan.BuildFamilyTable()
+                .Select(f => f.Prefix)
+                .Where(p => !baselinePrefixes.Contains(p))
+                .OrderBy(p => p)
+                .ToList();
+            var validKillSet = new HashSet<int>(killlist
+                .Where(k => !string.IsNullOrWhiteSpace(k.Evidence))
+                .Select(k => k.Cmd));
+            HashSet<int> liveGap = scan.LiveGap();
+            var notClosed = new List<string>();
+            foreach (FamilyBaseline family in baseline.Families.Where(f => f.Status != "done"))
+            {
+                List<int> gaps = liveGap
+                    .Where(c => ProtocolCoverageScanner.ScanResult.Family(c) == family.Prefix)
+                    .OrderBy(c => c)
+                    .ToList();
+                List<int> ungoverned = gaps.Where(c => !validKillSet.Contains(c)).ToList();
+                if (ungoverned.Count == 0)
+                {
+                    notClosed.Add(family.Prefix + (gaps.Count == 0
+                        ? "[零活缺口]"
+                        : "[全killlist:" + string.Join(",", gaps) + "]"));
+                }
+            }
+
+            bool pass = invalidStatuses.Count == 0 && missingFamilies.Count == 0 && notClosed.Count == 0;
+            var details = new List<string>();
+            if (invalidStatuses.Count > 0) details.Add("status非法:" + string.Join(",", invalidStatuses));
+            if (missingFamilies.Count > 0) details.Add("当前家族未入baseline:" + string.Join(",", missingFamilies));
+            if (notClosed.Count > 0) details.Add("已完整治理但未done:" + string.Join(";", notClosed));
+            if (pass) details.Add("无零缺口/全killlist仍滞留pending或legacy_unverified的家族");
+            outcome.Add("Hbaseline状态收口", pass, string.Join(";", details));
         }
     }
 }
