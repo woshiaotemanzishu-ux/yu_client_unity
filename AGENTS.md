@@ -52,6 +52,8 @@
 
 - R533 KfSingleRank 50705：这是S2C-only跨服单人排行副本结算，wire固定为`result_type:u8,level:u8,go_time:u32,become_challengers:u8,reward:ObjectList`，ObjectList为`u16×{type:u8,type_id:u32,num:u32}`。成功链已在服务端先用`send_reward_with_mail`发奖，再发送本包；失败链发送空奖励。Unity每包原子替换独立不可变最后快照，保序保重、空表loaded、零/最大值有效；不得公开同号请求、二次发奖、修改背包/50701、自动离场、打开胜负页或发业务事件。50704每日排行奖励领取仍是真实发奖/DB事务，继续DEFER。
 
+- R534 DragonWhisper 65105：这是服务端在进入龙语秘境及分区变化后主动推送、也可由场景内严格空查询返回的场景现值，S2C固定为`map_id:u8,mon_list:u16×{mon_id:u32,reborn_time:u32},role_num:u16,time:u32`。Unity当前只注册接收并逐包原子替换独立不可变快照，怪物表保序保重、空表loaded，零/最大值有效；与65101主面板、65106掉落记录及65100错误双向隔离。场景session与入口尚未迁移前禁止公开65105 sender，禁止复刻老端收到65105后自动重查65101，也不得接GAME_START、倒计时、场景/UI/配置/红点或本地怪物状态。65102进入、65103退出、65104购买次数、65107购买时长继续DEFER。
+
 - Unity 序列化脚本规则：会挂到 Scene/Prefab 的 `MonoBehaviour` / `ScriptableObject` 必须独占同名 `.cs` 文件，禁止把它放在“首个类型为静态类、抽象类或其他不同名类型”的文件里；Editor 生成器 `AddComponent<T>()` 后必须核对产物 `m_Script` 为非零 GUID 且 GUID 指向 `T` 的同名脚本。否则即使 C# 编译通过，Unity 仍可能把组件保存成 Missing Script。
 
 - 主界面技能规则：技能项只允许 `con` 作为唯一 Raycast/Button 点击面，`bg/icon/lock/CD/文字` 等装饰 Graphic 必须关闭 `raycastTarget`；点击验收必须走真实 Prefab 的 `GraphicRaycaster→PointerClick`，直接调用 `OnClickSkill` 不算点击链通过。普通 `AutoFight` 不得拦截玩家手点技能，只有服务端 `13017` 的 `RoleModel.DepositState` 托管态才拦截。手动无锁定目标时按当前朝向原地释放并只在技能 `area` 内局部预选，不得跨全场抢最近怪；自动战斗才允许全场寻敌并接近。接敌范围严格对标老端：`range==1` 使用 `max(100,(distance+area)*0.8)`，其他模式使用 `max(100,distance*0.8)`；命中几何由 `range/distance/area/num` 决定，禁止从 `desc` 文案猜圆形、直线或扇形。
@@ -419,10 +421,11 @@
 
 ## 协议迁移补充记忆
 
-## DragonWhisper 65101 / 65106（R160/R161）
+## DragonWhisper 65101 / 65105 / 65106（R160/R161/R534）
 
-- 65101 是龙语秘境主面板的显式空包请求和完整 S2C 快照：`left_count:u8, all_count:u8, map_lists:u16×{map_id:u8,role_num:u16,mon_list:u16×{mon_id:u32,reborn_time:u32}}`。每包完整替换，必须保留服务端 map/monster 原始顺序和重复 ID，空列表清旧；不得绑定 GAME_START、等级/开放门、VIP、UI、场景、配置、红点或 65102-65107。
-- 65106 是显式空包请求的掉落记录完整快照：`drop_log:u16×{time:u32,server_id:u32,server_num:u32,role_id:u64,name:string,boss_id:u32,goods_id:u32,num:u32,rating:u32,equip_extra_attr:u16×{color:u8,type_id:u8,attr_id:u16,attr_val:u32,plus_interval:u8,plus_unit:u32},is_top:u8}`。保留记录与属性原始顺序/重复项，空表清旧且 loaded；与 65101 双向隔离，仅 Reset/Dispose 同时清空。
+- 65101 是龙语秘境主面板的显式空包请求和完整 S2C 快照：`left_count:u8, all_count:u8, map_lists:u16×{map_id:u8,role_num:u16,mon_list:u16×{mon_id:u32,reborn_time:u32}}`。每包完整替换，必须保留服务端 map/monster 原始顺序和重复 ID，空列表清旧；不得绑定 GAME_START、等级/开放门、VIP、UI、场景、配置、红点或操作协议。
+- 65105 是接收侧场景现值：`map_id:u8,mon_list:u16×{mon_id:u32,reborn_time:u32},role_num:u16,time:u32`。服务端进入场景及分区变化会主动推送；Unity每包完整替换场景slice，不公开查询入口，不因收包自动重查65101。与65100/65101/65106双向隔离，仅Reset/Dispose同时清空。
+- 65106 是显式空包请求的掉落记录完整快照：`drop_log:u16×{time:u32,server_id:u32,server_num:u32,role_id:u64,name:string,boss_id:u32,goods_id:u32,num:u32,rating:u32,equip_extra_attr:u16×{color:u8,type_id:u8,attr_id:u16,attr_val:u32,plus_interval:u8,plus_unit:u32},is_top:u8}`。保留记录与属性原始顺序/重复项，空表清旧且 loaded；与 65101/65105 双向隔离，仅 Reset/Dispose 同时清空。
 
 ## TreasureMap 20303（R162）
 

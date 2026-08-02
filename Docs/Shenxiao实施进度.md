@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R533。50705跨服单人排行副本结算已按服务端“先发奖、后通知”链与老端只展示消费者接为S2C-only raw；wire完整保存胜负、层数、耗时、是否成为擂主及ObjectList奖励，不公开同号请求。
-- 50705逐包原子替换独立不可变结算，奖励保序保重、空表loaded、零/最大值有效；与50701个人状态、50702区域擂主、50703区域榜双向隔离。未接结果页、失败页、自动离场、业务事件、二次发奖或背包修改；50704每日奖励领取继续DEFER。
-- `KfSingleRankCase=0/pass=True`，覆盖无sender、边界、重复/空奖励、旧对象不可变、四slice隔离、读到尾与清理；`coverage_20260802_140304.md` A～E全PASS，507族`4/1/0 pending`。全局raw口径为`registered=1272 / liveDefined=1468 / liveGap=319 / errorExit=12 / active=1149/1468=78.3%`，baseline冻结不更新。
+- 最新完成轮次：R534。65105龙语秘境场景现值已接为receive-only raw；服务端在进入场景及分区变化后会主动推送，严格空查询又只允许场景内角色使用，因此Unity当前不公开缺少scene-session约束的同号sender。
+- 65105逐包原子替换独立不可变快照，完整保存`map_id + 怪物重生表 + role_num + time`，怪物表保序保重、空表loaded、零/最大值有效；与65100错误、65101主面板、65106掉落记录双向隔离，不复刻老端收包后自动重查65101。65102/03/04/07场景与资产操作继续DEFER。
+- `DragonWhisperCase=0/pass=True/restored=True`，覆盖注册/无sender、边界、重复/空怪物、旧对象不可变、四slice隔离、零出站、读到尾与清理；`coverage_20260802_140927.md` A～E全PASS，651族`4/3/0 pending`。全局raw口径为`registered=1273 / liveDefined=1468 / liveGap=318 / errorExit=12 / active=1150/1468=78.3%`，baseline冻结不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

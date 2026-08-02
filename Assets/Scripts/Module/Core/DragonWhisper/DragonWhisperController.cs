@@ -4,7 +4,7 @@ using Shenxiao.Framework.Net;
 
 namespace Shenxiao.Module.Core.DragonWhisper
 {
-    /// <summary>龙语秘境当前接管 65100 共享错误、65101 主面板快照与 65106 掉落记录，
+    /// <summary>龙语秘境当前接管 65100 共享错误、65101 主面板、65105 场景快照与 65106 掉落记录，
     /// 不附加启动、开放门或 UI 行为。</summary>
     public sealed class DragonWhisperController : BaseController
     {
@@ -20,6 +20,7 @@ namespace Shenxiao.Module.Core.DragonWhisper
         {
             RegisterProtocal(Proto.DRAGON_WHISPER_ERROR, On65100);
             RegisterProtocal(Proto.DRAGON_WHISPER_INFO, On65101);
+            RegisterProtocal(Proto.DRAGON_WHISPER_SCENE_INFO, On65105);
             RegisterProtocal(Proto.DRAGON_WHISPER_DROP_LOG, On65106);
         }
 
@@ -63,6 +64,19 @@ namespace Shenxiao.Module.Core.DragonWhisper
             ushort roleNum = reader.ReadU16();
             var monsters = reader.ReadArray(r => new DragonWhisperModel.MonsterEntry(r.ReadU32(), r.ReadU32()));
             return new DragonWhisperModel.MapEntry(mapId, roleNum, monsters);
+        }
+
+        /// <summary>
+        /// 65105 场景权威快照；服务端会在入场/分区变化后主动推送。本阶段只接收，
+        /// 不暴露缺少scene-session约束的主动查询，也不复刻老端自动追发65101。
+        /// </summary>
+        private void On65105(NetReader reader)
+        {
+            byte mapId = reader.ReadU8();
+            var monsters = reader.ReadArray(r => new DragonWhisperModel.MonsterEntry(r.ReadU32(), r.ReadU32()));
+            ushort roleNum = reader.ReadU16();
+            uint time = reader.ReadU32();
+            DragonWhisperModel.Instance.ReplaceSceneSnapshot(mapId, roleNum, time, monsters);
         }
 
         private void On65106(NetReader reader)

@@ -12,6 +12,8 @@
         public const int DRAGON_WHISPER_INFO = 65101;
         /// <summary>龙语秘境掉落记录快照。C2S 严格空包；S2C 为完整掉落记录列表。</summary>
         public const int DRAGON_WHISPER_DROP_LOG = 65106;
+        /// <summary>龙语秘境场景快照。当前仅接收S2C: map_id:u8,mon_list:u16×{mon_id:u32,reborn_time:u32},role_num:u16,time:u32；无公开sender。</summary>
+        public const int DRAGON_WHISPER_SCENE_INFO = 65105;
         /// <summary>影骸战衣家族统一错误出口。无 C2S；S2C error_code:u32,error_code_args:string。</summary>
         public const int HOLY_SEAL_ERROR = 65400;
         /// <summary>影骸战衣装备快照。C2S 严格空包；S2C u16×{pos:u8,goods_id:u64,stren:u16}。</summary>

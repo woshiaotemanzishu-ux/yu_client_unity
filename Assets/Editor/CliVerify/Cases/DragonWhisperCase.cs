@@ -37,6 +37,11 @@ namespace Shenxiao.EditorTools
             var oldMaps = new List<DragonWhisperModel.MapEntry>(model.Maps);
             bool oldDropLog = model.HasDropLog;
             var oldDrops = new List<DragonWhisperModel.DropLogEntry>(model.DropLogs);
+            bool oldScene = model.HasSceneSnapshot;
+            byte oldSceneMapId = model.SceneMapId;
+            ushort oldSceneRoleNum = model.SceneRoleNum;
+            uint oldSceneTime = model.SceneTime;
+            var oldSceneMonsters = new List<DragonWhisperModel.MonsterEntry>(model.SceneMonsters);
             bool oldHasError = model.HasError;
             uint oldErrorCode = model.LastErrorCode;
             FieldInfo intercept = typeof(DragonWhisperController).GetField("s_outboundIntercept", StaticPrivate);
@@ -54,19 +59,27 @@ namespace Shenxiao.EditorTools
                 controller.Init();
                 MethodInfo onError = typeof(DragonWhisperController).GetMethod("On65100", InstancePrivate);
                 MethodInfo onInfo = typeof(DragonWhisperController).GetMethod("On65101", InstancePrivate);
+                MethodInfo onScene = typeof(DragonWhisperController).GetMethod("On65105", InstancePrivate);
                 MethodInfo onDropLog = typeof(DragonWhisperController).GetMethod("On65106", InstancePrivate);
                 MethodInfo request65100 = typeof(DragonWhisperController).GetMethod("Request65100", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-                pass = intercept != null && onError != null && onInfo != null && onDropLog != null && request65100 == null && handlers != null && handlers.Contains(Proto.DRAGON_WHISPER_ERROR) && handlers.Contains(Proto.DRAGON_WHISPER_INFO) && handlers.Contains(Proto.DRAGON_WHISPER_DROP_LOG);
-                for (int proto = 65100; proto <= 65107; proto++) if (proto != Proto.DRAGON_WHISPER_ERROR && proto != Proto.DRAGON_WHISPER_INFO && proto != Proto.DRAGON_WHISPER_DROP_LOG) pass &= !handlers.Contains(proto);
-                Check(ref pass, "seams/register-only-65101-65106", pass);
-                Check(ref pass, "register-only-65100-65101-65106/no-request-65100", handlers != null && handlers.Contains(65100) && handlers.Contains(65101) && handlers.Contains(65106) && !handlers.Contains(65102) && !handlers.Contains(65103) && !handlers.Contains(65104) && !handlers.Contains(65105) && !handlers.Contains(65107) && request65100 == null);
+                MethodInfo request65105 = typeof(DragonWhisperController).GetMethod("RequestSceneInfo", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                pass = intercept != null && onError != null && onInfo != null && onScene != null && onDropLog != null && request65100 == null && request65105 == null
+                    && handlers != null && handlers.Contains(Proto.DRAGON_WHISPER_ERROR) && handlers.Contains(Proto.DRAGON_WHISPER_INFO)
+                    && handlers.Contains(Proto.DRAGON_WHISPER_SCENE_INFO) && handlers.Contains(Proto.DRAGON_WHISPER_DROP_LOG);
+                for (int proto = 65100; proto <= 65107; proto++) if (proto != Proto.DRAGON_WHISPER_ERROR && proto != Proto.DRAGON_WHISPER_INFO && proto != Proto.DRAGON_WHISPER_SCENE_INFO && proto != Proto.DRAGON_WHISPER_DROP_LOG) pass &= !handlers.Contains(proto);
+                Check(ref pass, "seams/register-only-65100-65101-65105-65106", pass);
+                Check(ref pass, "65105 receive-only/no-public-request", handlers != null && handlers.Contains(65105)
+                    && !handlers.Contains(65102) && !handlers.Contains(65103) && !handlers.Contains(65104) && !handlers.Contains(65107)
+                    && request65100 == null && request65105 == null);
                 object firstErrorHandler = handlers != null && handlers.Contains(65100) ? handlers[65100] : null;
                 object firstInfoHandler = handlers != null && handlers.Contains(65101) ? handlers[65101] : null;
+                object firstSceneHandler = handlers != null && handlers.Contains(65105) ? handlers[65105] : null;
                 object firstDropHandler = handlers != null && handlers.Contains(65106) ? handlers[65106] : null;
                 controller.Init();
-                Check(ref pass, "init idempotent preserves all three handlers", controller.IsInitialized
+                Check(ref pass, "init idempotent preserves all four handlers", controller.IsInitialized
                     && firstErrorHandler != null && ReferenceEquals(handlers[65100], firstErrorHandler)
                     && firstInfoHandler != null && ReferenceEquals(handlers[65101], firstInfoHandler)
+                    && firstSceneHandler != null && ReferenceEquals(handlers[65105], firstSceneHandler)
                     && firstDropHandler != null && ReferenceEquals(handlers[65106], firstDropHandler));
                 if (pass)
                 {
@@ -75,7 +88,7 @@ namespace Shenxiao.EditorTools
                 intercept.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
 
                 Invoke(onError, controller, ErrorPacket(0), out NetReader errorZeroReader);
-                Check(ref pass, "65100 zero/read-to-end/no-outbound", errorZeroReader.Remaining == 0 && model.HasError && model.LastErrorCode == 0 && !model.HasSnapshot && !model.HasDropLog && frames.Count == 0);
+                Check(ref pass, "65100 zero/read-to-end/no-outbound", errorZeroReader.Remaining == 0 && model.HasError && model.LastErrorCode == 0 && !model.HasSnapshot && !model.HasSceneSnapshot && !model.HasDropLog && frames.Count == 0);
                 Invoke(onError, controller, ErrorPacket(1), out NetReader errorOneReader);
                 Check(ref pass, "65100 one/read-to-end", errorOneReader.Remaining == 0 && model.HasError && model.LastErrorCode == 1 && frames.Count == 0);
                 Invoke(onError, controller, ErrorPacket(uint.MaxValue), out NetReader errorMaxReader);
@@ -103,6 +116,17 @@ namespace Shenxiao.EditorTools
                 Check(ref pass, "65101 no-response preserves snapshot", ExactFrames(frames, Proto.DRAGON_WHISPER_INFO) && model.Maps.Count == 3 && model.Maps[0].Monsters.Count == 2 && !model.HasDropLog);
                 frames.Clear();
 
+                Invoke(onScene, controller, ScenePacket(byte.MaxValue, ushort.MaxValue, uint.MaxValue,
+                    new[] { new MonsterSpec(uint.MaxValue, uint.MaxValue), new MonsterSpec(0, 0), new MonsterSpec(uint.MaxValue, uint.MaxValue) }), out NetReader sceneManyReader);
+                DragonWhisperModel.MonsterEntry oldSceneMonster = model.SceneMonsters.Count > 0 ? model.SceneMonsters[0] : null;
+                Check(ref pass, "65105 full/boundary/order/duplicates/no-outbound", sceneManyReader.Remaining == 0
+                    && model.HasSceneSnapshot && model.SceneMapId == byte.MaxValue && model.SceneRoleNum == ushort.MaxValue
+                    && model.SceneTime == uint.MaxValue && model.SceneMonsters.Count == 3
+                    && model.SceneMonsters[0].MonsterId == uint.MaxValue && model.SceneMonsters[0].RebornTime == uint.MaxValue
+                    && model.SceneMonsters[1].MonsterId == 0 && model.SceneMonsters[1].RebornTime == 0
+                    && model.SceneMonsters[2].MonsterId == uint.MaxValue && model.SceneMonsters[2].RebornTime == uint.MaxValue
+                    && model.Maps.Count == 3 && !model.HasDropLog && frames.Count == 0);
+
                 Invoke(onDropLog, controller, DropPacket(new DropSpec[0]), out NetReader dropEmptyReader);
                 Check(ref pass, "65106 empty loaded/read-to-end/no-outbound", dropEmptyReader.Remaining == 0 && model.HasDropLog && model.DropLogs.Count == 0 && model.Maps.Count == 3 && frames.Count == 0);
 
@@ -120,7 +144,9 @@ namespace Shenxiao.EditorTools
                 var mapsBeforeError = new List<DragonWhisperModel.MapEntry>(model.Maps);
                 var dropsBeforeError = new List<DragonWhisperModel.DropLogEntry>(model.DropLogs);
                 Invoke(onError, controller, ErrorPacket(9), out NetReader errorIsolatedReader);
-                Check(ref pass, "65100 isolated-from-maps-dropLogs", errorIsolatedReader.Remaining == 0 && model.HasError && model.LastErrorCode == 9 && SameReferences(model.Maps, mapsBeforeError) && SameReferences(model.DropLogs, dropsBeforeError) && frames.Count == 0);
+                Check(ref pass, "65100 isolated-from-maps-scene-dropLogs", errorIsolatedReader.Remaining == 0 && model.HasError && model.LastErrorCode == 9
+                    && SameReferences(model.Maps, mapsBeforeError) && SameReferences(model.DropLogs, dropsBeforeError)
+                    && model.HasSceneSnapshot && model.SceneMonsters.Count == 3 && ReferenceEquals(model.SceneMonsters[0], oldSceneMonster) && frames.Count == 0);
                 Check(ref pass, "65106 multiple/chinese-empty-name/boundaries/duplicate-extra-order", dropManyReader.Remaining == 0 && model.HasDropLog && model.DropLogs.Count == 2 && first != null && first.Time == uint.MaxValue && first.ServerId == uint.MaxValue && first.ServerNum == uint.MaxValue && first.RoleId == -1 && first.Name == "中文" && first.BossId == uint.MaxValue && first.GoodsId == uint.MaxValue && first.Num == uint.MaxValue && first.Rating == uint.MaxValue && first.EquipExtraAttrs.Count == 3 && Eq(first.EquipExtraAttrs[0], manyDrops[0].Extras[0]) && Eq(first.EquipExtraAttrs[1], manyDrops[0].Extras[1]) && Eq(first.EquipExtraAttrs[2], manyDrops[0].Extras[2]) && first.IsTop == byte.MaxValue && second != null && second.Name == "" && second.RoleId == 0 && second.EquipExtraAttrs.Count == 1 && Eq(second.EquipExtraAttrs[0], manyDrops[1].Extras[0]) && second.IsTop == 0 && model.Maps.Count == 3 && frames.Count == 0);
 
                 controller.RequestDropLog();
@@ -136,10 +162,16 @@ namespace Shenxiao.EditorTools
 
                 Invoke(onDropLog, controller, DropPacket(new DropSpec[0]), out NetReader dropClearReader);
                 Invoke(onInfo, controller, InfoPacket(0, 0, new MapSpec[0]), out NetReader infoClearReader);
-                Check(ref pass, "both full-to-less-to-empty clear", dropClearReader.Remaining == 0 && infoClearReader.Remaining == 0 && model.HasDropLog && model.DropLogs.Count == 0 && model.HasSnapshot && model.Maps.Count == 0 && frames.Count == 0);
+                Invoke(onScene, controller, ScenePacket(0, 0, 0, new MonsterSpec[0]), out NetReader sceneClearReader);
+                Check(ref pass, "all full-to-less-to-empty clear/old-scene-object-immutable", dropClearReader.Remaining == 0 && infoClearReader.Remaining == 0 && sceneClearReader.Remaining == 0
+                    && model.HasDropLog && model.DropLogs.Count == 0 && model.HasSnapshot && model.Maps.Count == 0
+                    && model.HasSceneSnapshot && model.SceneMapId == 0 && model.SceneRoleNum == 0 && model.SceneTime == 0 && model.SceneMonsters.Count == 0
+                    && oldSceneMonster != null && oldSceneMonster.MonsterId == uint.MaxValue && oldSceneMonster.RebornTime == uint.MaxValue && frames.Count == 0);
 
                 controller.Dispose();
-                Check(ref pass, "dispose unregisters-both-and-clears-both", !controller.IsInitialized && !model.HasSnapshot && !model.HasDropLog && model.Maps.Count == 0 && model.DropLogs.Count == 0 && !handlers.Contains(Proto.DRAGON_WHISPER_INFO) && !handlers.Contains(Proto.DRAGON_WHISPER_DROP_LOG));
+                Check(ref pass, "dispose unregisters-and-clears-all-slices", !controller.IsInitialized && !model.HasSnapshot && !model.HasSceneSnapshot && !model.HasDropLog
+                    && model.Maps.Count == 0 && model.SceneMonsters.Count == 0 && model.DropLogs.Count == 0
+                    && !handlers.Contains(Proto.DRAGON_WHISPER_INFO) && !handlers.Contains(Proto.DRAGON_WHISPER_SCENE_INFO) && !handlers.Contains(Proto.DRAGON_WHISPER_DROP_LOG));
                 Check(ref pass, "dispose unregisters-65100-and-clears-error", !model.HasError && model.LastErrorCode == 0 && !handlers.Contains(Proto.DRAGON_WHISPER_ERROR));
                 }
                 Debug.Log("CLIVERIFY dragon-whisper VERDICT pass=" + pass);
@@ -161,9 +193,11 @@ namespace Shenxiao.EditorTools
                 {
                     model.Reset();
                     model.Replace(oldLeft, oldAll, oldMaps);
+                    model.ReplaceSceneSnapshot(oldSceneMapId, oldSceneRoleNum, oldSceneTime, oldSceneMonsters);
                     model.ReplaceDropLog(oldDrops);
                     model.ReplaceError(oldErrorCode);
                     RestoreModelProperty(model, "HasSnapshot", oldInfo);
+                    RestoreModelProperty(model, "HasSceneSnapshot", oldScene);
                     RestoreModelProperty(model, "HasDropLog", oldDropLog);
                     RestoreModelProperty(model, "HasError", oldHasError);
                 }
@@ -208,6 +242,8 @@ namespace Shenxiao.EditorTools
                     && ReferenceEquals(DragonWhisperModel.Instance, model)
                     && controller.IsInitialized == wasInitialized
                     && model.HasSnapshot == oldInfo && model.LeftCount == oldLeft && model.AllCount == oldAll && SameReferences(model.Maps, oldMaps)
+                    && model.HasSceneSnapshot == oldScene && model.SceneMapId == oldSceneMapId && model.SceneRoleNum == oldSceneRoleNum
+                    && model.SceneTime == oldSceneTime && SameReferences(model.SceneMonsters, oldSceneMonsters)
                     && model.HasDropLog == oldDropLog && SameReferences(model.DropLogs, oldDrops)
                     && model.HasError == oldHasError && model.LastErrorCode == oldErrorCode
                     && (intercept == null || ReferenceEquals(intercept.GetValue(null), oldIntercept));
@@ -286,6 +322,13 @@ namespace Shenxiao.EditorTools
                 packet.C(drop.IsTop);
             }
             return packet.Bytes();
+        }
+
+        private static byte[] ScenePacket(byte mapId, ushort roleNum, uint time, MonsterSpec[] monsters)
+        {
+            var packet = new CliVerify.Pkt().C(mapId).H(monsters.Length);
+            foreach (MonsterSpec monster in monsters) packet.I(monster.MonsterId).I(monster.RebornTime);
+            return packet.H(roleNum).I(time).Bytes();
         }
 
         private static bool Eq(DragonWhisperModel.EquipExtraAttr actual, ExtraSpec expected) => actual.Color == expected.Color && actual.TypeId == expected.TypeId && actual.AttrId == expected.AttrId && actual.AttrValue == expected.AttrValue && actual.PlusInterval == expected.PlusInterval && actual.PlusUnit == expected.PlusUnit;

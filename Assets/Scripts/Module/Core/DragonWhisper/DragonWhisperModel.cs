@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Shenxiao.Module.Core.DragonWhisper
 {
-    /// <summary>65100/65101/65106 原始数据切片；列表保留服务端顺序及重复项。</summary>
+    /// <summary>65100/65101/65105/65106 原始数据切片；列表保留服务端顺序及重复项。</summary>
     public sealed class DragonWhisperModel
     {
         public sealed class MonsterEntry
@@ -85,13 +85,16 @@ namespace Shenxiao.Module.Core.DragonWhisper
 
         private readonly List<MapEntry> _maps = new List<MapEntry>();
         private readonly List<DropLogEntry> _dropLogs = new List<DropLogEntry>();
+        private readonly List<MonsterEntry> _sceneMonsters = new List<MonsterEntry>();
         private readonly IReadOnlyList<MapEntry> _readOnlyMaps;
         private readonly IReadOnlyList<DropLogEntry> _readOnlyDropLogs;
+        private readonly IReadOnlyList<MonsterEntry> _readOnlySceneMonsters;
 
         private DragonWhisperModel()
         {
             _readOnlyMaps = _maps.AsReadOnly();
             _readOnlyDropLogs = _dropLogs.AsReadOnly();
+            _readOnlySceneMonsters = _sceneMonsters.AsReadOnly();
         }
 
         public bool HasSnapshot { get; private set; }
@@ -100,6 +103,11 @@ namespace Shenxiao.Module.Core.DragonWhisper
         public IReadOnlyList<MapEntry> Maps => _readOnlyMaps;
         public bool HasDropLog { get; private set; }
         public IReadOnlyList<DropLogEntry> DropLogs => _readOnlyDropLogs;
+        public bool HasSceneSnapshot { get; private set; }
+        public byte SceneMapId { get; private set; }
+        public ushort SceneRoleNum { get; private set; }
+        public uint SceneTime { get; private set; }
+        public IReadOnlyList<MonsterEntry> SceneMonsters => _readOnlySceneMonsters;
         public bool HasError { get; private set; }
         public uint LastErrorCode { get; private set; }
 
@@ -118,8 +126,13 @@ namespace Shenxiao.Module.Core.DragonWhisper
             AllCount = 0;
             _maps.Clear();
             _dropLogs.Clear();
+            _sceneMonsters.Clear();
             HasSnapshot = false;
             HasDropLog = false;
+            HasSceneSnapshot = false;
+            SceneMapId = 0;
+            SceneRoleNum = 0;
+            SceneTime = 0;
             HasError = false;
             LastErrorCode = 0;
         }
@@ -129,6 +142,16 @@ namespace Shenxiao.Module.Core.DragonWhisper
             _dropLogs.Clear();
             if (dropLogs != null) _dropLogs.AddRange(dropLogs);
             HasDropLog = true;
+        }
+
+        public void ReplaceSceneSnapshot(byte mapId, ushort roleNum, uint time, List<MonsterEntry> monsters)
+        {
+            SceneMapId = mapId;
+            SceneRoleNum = roleNum;
+            SceneTime = time;
+            _sceneMonsters.Clear();
+            if (monsters != null) _sceneMonsters.AddRange(monsters);
+            HasSceneSnapshot = true;
         }
 
         public void ReplaceError(uint errorCode)
