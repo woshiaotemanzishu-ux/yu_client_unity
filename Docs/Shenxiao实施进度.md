@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R535。竞榜33801界面信息与33802榜单已接为显式按`type/subtype`查询的键控raw；两条服务端链只读角色赛事内存/跨服排行，不发奖、不扣费、不写持久状态。
-- 两类快照均按同键原子替换并深只读，保留wire原序、重复项、空表、零/最大值与中文/空字符串；请求无回复保留旧值，33801/33802/33800/33803双向隔离。禁止恢复老端在活动列表或抽奖结果后的自动扇出，GAME_START与跨天仍只发33800。
-- 33807唯一服务端handler、writer调用和发送链整段注释，已证据化KILL；33804真实领奖事务继续DEFER，33803仍由CustomActivity的33191→33803链持有。`CompeteReadCase=0/pass=True`，`coverage_20260802_142230.md` A～E全PASS，338族`4/2/4 pending`；全局raw口径为`registered=1275 / liveDefined=1468 / liveGap=316 / errorExit=12 / active=1152/1468=78.5%`，baseline冻结不更新。
+- 最新完成轮次：R536。覆盖治理复核发现144圣骸族最新运行时已经是`registered=2/liveGap=0/dead=0`，但人工baseline仍残留R109前的`pending`；现已按零活缺口收口规则转为`done`并写明证据。
+- 老端144族只有14401权威全量与14402打造两个活handler；Unity两号均已完整注册，14401由GAME_START拉全量，14402已有真实配置、背包材料、确认指纹、single-flight、失败保留、成功权威局部合并和`ArmorCase`覆盖。本轮不改任何运行时代码、Prefab、配置或协议行为。
+- 冻结的baseline历史`unityRegistered=0/liveGap=2`保持不变，只更新人工`status/statusNote`。`coverage_20260802_142728.md` A～E全PASS，C段已正式接管144族防倒退；全局仍为`registered=1275 / liveDefined=1468 / liveGap=316 / errorExit=12 / active=1152/1468=78.5%`。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---
