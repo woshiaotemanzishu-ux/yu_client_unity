@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R550。killlist仍为165个默认absent、7个显式send-only；在R549常量门禁之上，新增生产`Send*(Proto.X,...)`直接引用门禁，避免“常量存在但真实sender已删除”仍误判合法。
-- Scanner只扫描去注释后的`Assets/Scripts`生产源码，支持跨行调用；注释、Editor测试、handler注册、局部变量与普通常量引用都不算发送证据。G现在要求七个send-only同时具备七份常量和七组生产发送引用，absent则两者都不得有。
-- R550最终报告`coverage_20260802_175259.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，G显示`send_only=7;发送引用=7`，A～G全PASS、`EXIT 0`。11101局部变量反向探针保留常量与行为却失去直发证据，G精确失败并`EXIT 3`；探针随后恢复。
+- 最新完成轮次：R551。killlist仍为165个默认absent、7个显式send-only；在具名生产发送门禁上新增五位协议号`Send*(12345,...)`数字直发扫描，阻断绕过`Proto`常量的发送入口。
+- Scanner对`Assets/Scripts`先等长剥离普通/逐字字符串与字符字面量、再去注释，避免日志文案误报并保留精确行号。数字直发只作F/G负向证据，不能充当send-only正向发送证据；七个例外仍必须直接`Send*(Proto.X,...)`。
+- R551最终报告`coverage_20260802_180703.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，G显示`send_only=7;发送引用=7;数字直发=0`，A～G全PASS、`EXIT 0`。临时10205数字直发探针被F精确定位并`EXIT 3`，移除后恢复全绿。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

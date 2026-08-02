@@ -85,6 +85,11 @@ namespace Shenxiao.Editor.ProtocolCoverage
             public readonly Dictionary<int, List<DuplicateSite>> UnityStaticSendSites =
                 new Dictionary<int, List<DuplicateSite>>();
 
+            /// <summary>生产 C# 源码里去注释后的直接五位数字 `Send*(12345,...)` 调用点。
+            /// 这类调用不能作为 send_only 正向证据，只用于 F/G 抓绕过 Proto 常量的违规发送。</summary>
+            public readonly Dictionary<int, List<DuplicateSite>> UnityStaticLiteralSendSites =
+                new Dictionary<int, List<DuplicateSite>>();
+
             /// <summary>老端活协议里,函数体裁定为「仅 Util.ErrorCodeShow」的号(裁决7 收紧规则)。</summary>
             public readonly HashSet<int> ErrorExitCandidates = new HashSet<int>();
 
@@ -250,7 +255,7 @@ namespace Shenxiao.Editor.ProtocolCoverage
 
                 string src = File.ReadAllText(path);
                 string cls = ExtractClassName(src);
-                string[] lines = StripLineComments(src);
+                string[] lines = StripLineComments(StripCSharpStringLiterals(src));
                 string clean = string.Join("\n", lines);
 
                 foreach (Match m in Regex.Matches(
@@ -258,17 +263,13 @@ namespace Shenxiao.Editor.ProtocolCoverage
                     @"\bSend\w*\s*\(\s*Proto\s*\.\s*(\w+)\b"))
                 {
                     if (!protoConsts.TryGetValue(m.Groups[1].Value, out int cmd)) continue;
-                    int line = 1;
-                    for (int i = 0; i < m.Index; i++)
-                    {
-                        if (clean[i] == '\n') line++;
-                    }
-                    if (!r.UnityStaticSendSites.TryGetValue(cmd, out List<DuplicateSite> sendSites))
-                    {
-                        sendSites = new List<DuplicateSite>();
-                        r.UnityStaticSendSites[cmd] = sendSites;
-                    }
-                    sendSites.Add(new DuplicateSite { File = rel, Line = line, Class = cls });
+                    AddStaticSite(r.UnityStaticSendSites, cmd, rel, FindLine(clean, m.Index), cls);
+                }
+
+                foreach (Match m in Regex.Matches(clean, @"\bSend\w*\s*\(\s*(\d{5})\b"))
+                {
+                    int cmd = int.Parse(m.Groups[1].Value);
+                    AddStaticSite(r.UnityStaticLiteralSendSites, cmd, rel, FindLine(clean, m.Index), cls);
                 }
 
                 if (!clean.Contains("RegisterProtocal")) continue;
@@ -289,6 +290,113 @@ namespace Shenxiao.Editor.ProtocolCoverage
                     }
                 }
             }
+        }
+
+        private static int FindLine(string source, int index)
+        {
+            int line = 1;
+            for (int i = 0; i < index; i++)
+            {
+                if (source[i] == '\n') line++;
+            }
+            return line;
+        }
+
+        private static void AddStaticSite(
+            Dictionary<int, List<DuplicateSite>> target,
+            int cmd,
+            string file,
+            int line,
+            string cls)
+        {
+            if (!target.TryGetValue(cmd, out List<DuplicateSite> sites))
+            {
+                sites = new List<DuplicateSite>();
+                target[cmd] = sites;
+            }
+            sites.Add(new DuplicateSite { File = file, Line = line, Class = cls });
+        }
+
+        /// <summary>把普通/逐字字符串与字符字面量替换为空格，保留总长度和换行位置。
+        /// 发送扫描不能把 GameLog/XML 文案里的 `SendFmt(12345)` 当成生产调用。</summary>
+        private static string StripCSharpStringLiterals(string source)
+        {
+            char[] chars = source.ToCharArray();
+            bool inString = false;
+            bool inChar = false;
+            bool verbatim = false;
+            bool escaped = false;
+
+            for (int i = 0; i < chars.Length; i++)
+            {
+                char c = source[i];
+                if (!inString && !inChar)
+                {
+                    if (c == '"')
+                    {
+                        inString = true;
+                        verbatim = (i > 0 && source[i - 1] == '@')
+                            || (i > 1 && source[i - 2] == '@' && source[i - 1] == '$');
+                        escaped = false;
+                        chars[i] = ' ';
+                        continue;
+                    }
+                    else if (c == '\'')
+                    {
+                        inChar = true;
+                        escaped = false;
+                        chars[i] = ' ';
+                        continue;
+                    }
+                    continue;
+                }
+
+                if (c != '\n' && c != '\r') chars[i] = ' ';
+                if (inString)
+                {
+                    if (verbatim)
+                    {
+                        if (c == '"')
+                        {
+                            if (i + 1 < source.Length && source[i + 1] == '"')
+                            {
+                                chars[++i] = ' ';
+                            }
+                            else
+                            {
+                                inString = false;
+                                verbatim = false;
+                            }
+                        }
+                    }
+                    else if (escaped)
+                    {
+                        escaped = false;
+                    }
+                    else if (c == '\\')
+                    {
+                        escaped = true;
+                    }
+                    else if (c == '"')
+                    {
+                        inString = false;
+                    }
+                }
+                else if (escaped)
+                {
+                    escaped = false;
+                }
+                else if (c == '\\')
+                {
+                    escaped = true;
+                }
+                else if (c == '\'')
+                {
+                    inChar = false;
+                }
+            }
+
+            return new string(chars);
         }
 
         private static int? ResolveArgNumber(string arg, Dictionary<string, int> protoConsts)
