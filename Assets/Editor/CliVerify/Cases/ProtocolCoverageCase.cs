@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 协议覆盖率核验器(PG 包,第21轮):五段断言 A-E,照 CliVerify.cs 既有惯例,日志前缀
+    /// 协议覆盖率核验器(PG 包,第21轮/R547):六段断言 A-F,照 CliVerify.cs 既有惯例,日志前缀
     /// "CLIVERIFY protocolcoverage"。纯静态分析 + 一次运行时反射,不建 Stage/不渲染。
     ///
     ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline;降了或有具体号消失都算红,打印消失的号。
@@ -21,6 +21,9 @@ namespace Shenxiao.EditorTools
     ///   E 族错误出口专项:老端「函数体除 Util.ErrorCodeShow 外无其它副作用」的协议号
     ///     (裁决7 收紧规则)里,未在 Unity 注册的数量不得比 baseline 记录的多(非回归,不强求清零——
     ///     清零是其它包的活,这里只守住不再变多)。
+    ///   F 硬负约束防复发:hard_negative_constraints.json 中的协议号不得重新出现为运行时注册、
+    ///     源码静态注册或 Proto 常量；清单缺失、重复或无 evidence 同样挂红。它不改变活缺口与
+    ///     killlist 口径，只把 AGENTS 的现行禁止边界变成机器门禁。
     ///
     /// 收尾落 Reports/ProtocolCoverage/coverage_&lt;date&gt;.md + baseline.next.json(裁决5:
     /// 绝不自动覆盖 Schemas/ProtocolCoverage/baseline.json,基线上调必须人工确认后手动覆盖)。
@@ -38,6 +41,8 @@ namespace Shenxiao.EditorTools
                 }
                 CoverageBaseline baseline = ProtocolCoverageBaseline.LoadBaseline();
                 List<KillEntry> killlist = ProtocolCoverageBaseline.LoadKilllist();
+                List<HardNegativeConstraintEntry> hardNegativeConstraints =
+                    ProtocolCoverageBaseline.LoadHardNegativeConstraints();
 
                 var outcome = new AssertionOutcome();
                 AssertA(scan, baseline, outcome);
@@ -45,6 +50,7 @@ namespace Shenxiao.EditorTools
                 AssertC(scan, baseline, killlist, outcome);
                 AssertD(scan, outcome);
                 AssertE(scan, baseline, outcome);
+                AssertF(scan, hardNegativeConstraints, outcome);
 
                 CoverageBaseline candidate = ProtocolCoverageBaseline.BuildCandidate(scan, ProtocolCoverageReport.DenominatorNote(scan));
                 string nextPath = ProtocolCoverageBaseline.WriteBaselineNext(candidate);
@@ -61,6 +67,7 @@ namespace Shenxiao.EditorTools
                     + " handwrittenExtra=" + scan.HandwrittenExtra().Count
                     + " oldAllRaw=" + scan.OldAll.Count + " oldAlive=" + oldAliveCount + " oldDead=" + oldDeadInAllCount
                     + " oldCommentedOnlyCmds=" + scan.OldCommentedOnly.Count
+                    + " hardNegativeConstraints=" + hardNegativeConstraints.Count
                     + " report=" + reportPath + " baselineNext=" + nextPath);
                 foreach (string line in outcome.Lines) Debug.Log("CLIVERIFY protocolcoverage " + line);
                 Debug.Log("CLIVERIFY protocolcoverage VERDICT pass=" + outcome.Pass);
@@ -210,6 +217,58 @@ namespace Shenxiao.EditorTools
             string detail = "当前" + unregistered.Count + (firstRun ? "(无baseline,首次运行不挂红)" : " vs baseline" + baselineCount);
             if (unregistered.Count > 0) detail += ";号=" + string.Join(",", unregistered.OrderBy(x => x));
             outcome.Add("E族错误出口未注册非回归", pass, detail);
+        }
+
+        private static void AssertF(
+            ProtocolCoverageScanner.ScanResult scan,
+            List<HardNegativeConstraintEntry> constraints,
+            AssertionOutcome outcome)
+        {
+            var malformed = constraints
+                .Where(c => c.Cmd <= 0 || string.IsNullOrWhiteSpace(c.Rule) || string.IsNullOrWhiteSpace(c.Evidence))
+                .Select(c => c.Cmd)
+                .OrderBy(c => c)
+                .ToList();
+            var duplicates = constraints
+                .GroupBy(c => c.Cmd)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .OrderBy(c => c)
+                .ToList();
+            var violations = new List<string>();
+
+            foreach (HardNegativeConstraintEntry constraint in constraints
+                .GroupBy(c => c.Cmd)
+                .Select(g => g.First())
+                .OrderBy(c => c.Cmd))
+            {
+                var locations = new List<string>();
+                if (scan.UnityRegistered.Contains(constraint.Cmd)) locations.Add("runtime");
+                if (scan.UnityProtocolConstants.Contains(constraint.Cmd)) locations.Add("ProtoConst");
+                if (scan.UnityStaticSites.TryGetValue(
+                    constraint.Cmd,
+                    out List<ProtocolCoverageScanner.DuplicateSite> sites))
+                {
+                    locations.Add("static@" + string.Join(",", sites.Select(s => s.File + ":" + s.Line)));
+                }
+
+                if (locations.Count > 0)
+                {
+                    violations.Add(constraint.Cmd + "[" + string.Join("+", locations) + "]");
+                }
+            }
+
+            bool pass = constraints.Count > 0
+                && malformed.Count == 0
+                && duplicates.Count == 0
+                && violations.Count == 0;
+            var details = new List<string>();
+            if (constraints.Count == 0) details.Add("清单缺失或为空");
+            if (malformed.Count > 0) details.Add("字段/evidence不完整:" + string.Join(",", malformed));
+            if (duplicates.Count > 0) details.Add("重复协议号:" + string.Join(",", duplicates));
+            if (violations.Count > 0) details.Add("违规出现:" + string.Join(";", violations));
+            if (pass) details.Add(constraints.Count + "条约束均无常量或注册");
+            outcome.Add("F硬负约束防复发", pass, string.Join(";", details));
         }
     }
 }

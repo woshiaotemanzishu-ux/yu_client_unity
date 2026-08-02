@@ -297,7 +297,14 @@
 - R155提交`57327cc843`在工单中明确“本轮不接42704-06商店”，并把AGENTS边界写为`Do not attach ... 42702-06`。R156提交`a73889d26a`六分钟后追加42704完整只读快照，却只在原句下一行追加正向记录，没有同步改写原负约束或记录产品授权；按负约束优先规则必须撤销。
 - Unity删除42704常量、注册、显式sender、handler、`HasShopSnapshot/ShopTimes/RefreshCost/ShopGoods`模型树及正向用例；`AdventureCase`改为断言42702-42706全部无handler且`On42704`不存在。42700活动时间/图标和42701显式主状态保持不变；42704仍是服务端只读活缺口，家族继续pending且不进killlist。
 
-### 7.27 AutoBrush 13310 阶段奖励事务（2026-08-02 核对）
+### 7.28 协议硬负约束机器门禁（2026-08-02 核对，R547）
+
+- `hard_negative_constraints.json` 只表达“现行产品裁决禁止 Unity 定义/注册”的边界，不判定协议死亡。R517与R539-R546撤销的20号仍按双端事实留在liveGap/pending，不进入killlist，也不改变baseline历史分子或分母。
+- `ProtocolCoverageCase`新增F段：逐条要求`cmd/rule/evidence`完整且协议号唯一，并同时检查运行时`NetManager._handlers`、源码静态`RegisterProtocal`调用点和`Proto.cs`公开常量。任一层重新出现都失败并打印具体位置；清单缺失或空表同样失败，避免删除门禁文件绕过检查。
+- 首批范围为`10205,11205,13507,18905/18918/18920,20600/20602,21600/21606,27904-27909,28500,28600,42704,65206`。13218不在清单：R542已证明它只受“禁止与13217联动”的局部约束，独立S2C注册合法。未来产品若解禁某号，必须同轮改写原AGENTS裁决、移除/调整清单项并完成真实消费者；清单不能单独替代产品授权。
+- 反向验收临时把已注册10201加入清单，F段同时从运行时handler、`Proto`常量和`GameStartController.cs:91`静态调用点命中并以`EXIT 3`失败；移除探针后的`coverage_20260802_171521.md`加载正式20条约束，A～F全PASS、`EXIT 0`。这验证了三层检查均参与最终裁决。
+
+### 7.29 AutoBrush 13310 阶段奖励事务（2026-08-02 核对）
 
 - 13310不是读查询。C2S固定为`gate:u64`，S2C固定为`code:u32,u16×{style:u8,type_id:u32,count:u32}`；服务端要求请求gate等于角色下一阶段奖励gate且当前关卡已达标，成功后向客户端回实际奖励、发奖并写入新的阶段gate。
 - Unity只允许用户点击现有`AutoBrushModule.prefab`的`_box_show/_box_click`触发；发送前必须已有`13309 code==1`、gate非0且不超`long.MaxValue`、当前关卡达到gate。容器根由`UIUtil`补透明Image并作为点击面，业务代码不重建或改写Prefab视觉。

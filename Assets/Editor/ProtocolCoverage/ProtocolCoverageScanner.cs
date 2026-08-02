@@ -62,6 +62,10 @@ namespace Shenxiao.Editor.ProtocolCoverage
             public readonly HashSet<int> UnityRegistered = new HashSet<int>();
             public readonly Dictionary<int, string> UnityHandlerSource = new Dictionary<int, string>();
 
+            /// <summary>Proto.cs 中 public const int 协议号全集。只用于硬负约束防复发，
+            /// 不参与覆盖率分子；运行时注册集合仍是覆盖率唯一真值。</summary>
+            public readonly HashSet<int> UnityProtocolConstants = new HashSet<int>();
+
             /// <summary>老端每个协议号的「最新已知状态」——同号多处注册时,任一处真活则整体判活
             /// (与 scan_old.py 的 setdefault 语义一致,外加本轮新增的空体转 DEAD 升级判断)。</summary>
             public readonly Dictionary<int, OldHandlerInfo> OldAll = new Dictionary<int, OldHandlerInfo>();
@@ -170,6 +174,7 @@ namespace Shenxiao.Editor.ProtocolCoverage
             var r = new ScanResult { GeneratedAt = DateTime.Now };
             ReflectUnityRegistered(r);
             Dictionary<string, int> protoConsts = ParseProtoConsts();
+            r.UnityProtocolConstants.UnionWith(protoConsts.Values);
             ScanUnityStaticSites(r, protoConsts);
             ScanOldClient(r);
             ScanClientProtocolJson(r);

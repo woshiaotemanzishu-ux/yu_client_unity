@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R546。逐号展开1261个真实运行时注册号与全部负约束区间后，除已明确的所有权/方向语义例外外，唯一剩余冲突是42704：R155在`57327cc843`先排除42704-06商店，R156的`a73889d26a`六分钟后晚增且未改写原裁决。
-- Adventure现只保留42700活动时间/图标链与42701显式主状态；42704常量、注册、sender、handler、商店raw模型与正向用例已撤销，42702-42706保持真实活缺口pending且不进killlist。
-- R546验收已完成：标准dotnet restore+build为79条既有warning、0 error，Unity `AdventureCase`与`ProtocolCoverageCase`均退出码0；`coverage_20260802_165621.md`为`registered=1260/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A～E全PASS。冻结baseline未随纠偏计数下降而改写。
+- 最新完成轮次：R547。已把R517与R539-R546纠偏的20个现行禁号落入`hard_negative_constraints.json`；这些真实活协议仍保留liveGap/pending，不进入killlist、不改baseline。
+- `ProtocolCoverageCase`新增F段，清单缺失、重复、无rule/evidence，或任一禁号重新出现为运行时handler、源码静态注册、Proto常量都会失败并打印位置。未来解禁必须同轮改原AGENTS裁决、机器清单和完整消费者。
+- R547最终报告`coverage_20260802_171521.md`保持`registered=1260/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A～F全PASS、`EXIT 0`。反向探针临时把已注册10201加入清单，F段同时命中`runtime+ProtoConst+static@GameStartController.cs:91`并以`EXIT 3`失败；探针随后移除，正式清单恢复20条。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

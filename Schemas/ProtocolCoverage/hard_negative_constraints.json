@@ -1,0 +1,122 @@
+[
+  {
+    "cmd": 10205,
+    "rule": "R111/R541 global error boundary",
+    "evidence": "AGENTS.md:协议负约束优先规则;Docs/Shenxiao协议架构.md:7.1",
+    "note": "晚增全局错误出口已撤销；保持真实活缺口，不进killlist。"
+  },
+  {
+    "cmd": 11205,
+    "rule": "R118/R540 Dress boundary",
+    "evidence": "AGENTS.md:协议负约束优先规则;Docs/差距分析-协议接入GapMap-20260711.md:Dress",
+    "note": "装扮预期战力晚增量已撤销。"
+  },
+  {
+    "cmd": 13507,
+    "rule": "R126/R540 NineSky boundary",
+    "evidence": "AGENTS.md:R540 NineSky 13507纠偏",
+    "note": "结算包须等待完整结算UI、场景退出和奖励消费链。"
+  },
+  {
+    "cmd": 18905,
+    "rule": "R179/R545 BrightSea operation boundary",
+    "evidence": "AGENTS.md:R545 BrightSea 18905纠偏",
+    "note": "掠夺/复仇开战事务不得恢复孤立结果。"
+  },
+  {
+    "cmd": 18918,
+    "rule": "R179/R541 BrightSea boundary",
+    "evidence": "AGENTS.md:R167-R179 BrightSea",
+    "note": "场景退出链晚增量已撤销。"
+  },
+  {
+    "cmd": 18920,
+    "rule": "R179/R541 BrightSea boundary",
+    "evidence": "AGENTS.md:R167-R179 BrightSea",
+    "note": "战斗错误链晚增量已撤销。"
+  },
+  {
+    "cmd": 20600,
+    "rule": "R127/R517 GhostWalk boundary",
+    "evidence": "AGENTS.md:协议负约束优先规则;AGENTS.md:GhostWalk 20601",
+    "note": "族错误出口不得绕过20601单快照边界。"
+  },
+  {
+    "cmd": 20602,
+    "rule": "R127/R517 GhostWalk boundary",
+    "evidence": "AGENTS.md:协议负约束优先规则;AGENTS.md:GhostWalk 20601",
+    "note": "Boss详情自动链晚增量已撤销。"
+  },
+  {
+    "cmd": 21600,
+    "rule": "R125/R540 Guard boundary",
+    "evidence": "AGENTS.md:协议负约束优先规则;Docs/差距分析-协议接入GapMap-20260711.md:Guard",
+    "note": "魔法阵错误链晚增量已撤销。"
+  },
+  {
+    "cmd": 21606,
+    "rule": "R125/R540 Guard boundary",
+    "evidence": "AGENTS.md:协议负约束优先规则;Docs/差距分析-协议接入GapMap-20260711.md:Guard",
+    "note": "维护结果链晚增量已撤销。"
+  },
+  {
+    "cmd": 27904,
+    "rule": "R129/R540 Eternity boundary",
+    "evidence": "AGENTS.md:Eternity 27900/27901",
+    "note": "27902-27909整体保持不接。"
+  },
+  {
+    "cmd": 27905,
+    "rule": "R129/R540 Eternity boundary",
+    "evidence": "AGENTS.md:Eternity 27900/27901",
+    "note": "27902-27909整体保持不接。"
+  },
+  {
+    "cmd": 27906,
+    "rule": "R129/R540 Eternity boundary",
+    "evidence": "AGENTS.md:Eternity 27900/27901",
+    "note": "27902-27909整体保持不接。"
+  },
+  {
+    "cmd": 27907,
+    "rule": "R129/R540 Eternity boundary",
+    "evidence": "AGENTS.md:Eternity 27900/27901",
+    "note": "27902-27909整体保持不接。"
+  },
+  {
+    "cmd": 27908,
+    "rule": "R129/R540 Eternity boundary",
+    "evidence": "AGENTS.md:Eternity 27900/27901",
+    "note": "27902-27909整体保持不接。"
+  },
+  {
+    "cmd": 27909,
+    "rule": "R129/R540 Eternity boundary",
+    "evidence": "AGENTS.md:Eternity 27900/27901",
+    "note": "27902-27909整体保持不接。"
+  },
+  {
+    "cmd": 28500,
+    "rule": "R517 NoonParty boundary",
+    "evidence": "AGENTS.md:协议负约束优先规则;Docs/差距分析-协议接入GapMap-20260711.md:NoonParty",
+    "note": "午间派对错误出口保持撤销。"
+  },
+  {
+    "cmd": 28600,
+    "rule": "R123/R539 Revelation boundary",
+    "evidence": "AGENTS.md:协议负约束优先规则;Docs/差距分析-协议接入GapMap-20260711.md:Revelation",
+    "note": "天启错误出口晚增量已撤销。"
+  },
+  {
+    "cmd": 42704,
+    "rule": "R155/R546 Adventure shop boundary",
+    "evidence": "AGENTS.md:R546 Adventure 42704纠偏",
+    "note": "商店查询虽只读，但原产品边界未改写前禁止恢复。"
+  },
+  {
+    "cmd": 65206,
+    "rule": "R170/R541 SnatchTreasure boundary",
+    "evidence": "AGENTS.md:R170/R541 SnatchTreasure 65201",
+    "note": "结算/错误晚增量已撤销。"
+  }
+]

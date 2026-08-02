@@ -16,6 +16,8 @@ namespace Shenxiao.Editor.ProtocolCoverage
 
         public const string BASELINE_PATH = "Schemas/ProtocolCoverage/baseline.json";
         public const string KILLLIST_PATH = "Schemas/ProtocolCoverage/killlist.json";
+        public const string HARD_NEGATIVE_CONSTRAINTS_PATH =
+            "Schemas/ProtocolCoverage/hard_negative_constraints.json";
         public const string REPORT_ROOT = "Reports/ProtocolCoverage";
 
         private static string ProjectKey(string key)

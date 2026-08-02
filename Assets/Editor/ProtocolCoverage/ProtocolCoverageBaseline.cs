@@ -49,6 +49,17 @@ namespace Shenxiao.Editor.ProtocolCoverage
         [JsonProperty("note")] public string Note;
     }
 
+    /// <summary>当前产品边界明确禁止出现在 Unity 协议层的协议号。
+    /// 与 killlist 不同：这些号可以是服务端真实活协议或延期事务，仍保留在活缺口分母；
+    /// 本表只防止在原负约束尚未被明确改写时重新加入常量或注册。</summary>
+    public sealed class HardNegativeConstraintEntry
+    {
+        [JsonProperty("cmd")] public int Cmd;
+        [JsonProperty("rule")] public string Rule;
+        [JsonProperty("evidence")] public string Evidence;
+        [JsonProperty("note")] public string Note;
+    }
+
     public static class ProtocolCoverageBaseline
     {
         public static CoverageBaseline LoadBaseline()
@@ -64,6 +75,15 @@ namespace Shenxiao.Editor.ProtocolCoverage
             if (!File.Exists(path)) return new List<KillEntry>();
             List<KillEntry> list = JsonConvert.DeserializeObject<List<KillEntry>>(File.ReadAllText(path));
             return list ?? new List<KillEntry>();
+        }
+
+        public static List<HardNegativeConstraintEntry> LoadHardNegativeConstraints()
+        {
+            string path = ProtocolCoverageSettings.HARD_NEGATIVE_CONSTRAINTS_PATH;
+            if (!File.Exists(path)) return new List<HardNegativeConstraintEntry>();
+            List<HardNegativeConstraintEntry> list =
+                JsonConvert.DeserializeObject<List<HardNegativeConstraintEntry>>(File.ReadAllText(path));
+            return list ?? new List<HardNegativeConstraintEntry>();
         }
 
         /// <summary>从本次扫描机械算出一份候选基线(status 只给 done/pending 二态——liveGap==0 才 done;

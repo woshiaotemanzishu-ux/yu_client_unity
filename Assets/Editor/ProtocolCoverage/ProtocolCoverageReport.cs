@@ -57,7 +57,7 @@ namespace Shenxiao.Editor.ProtocolCoverage
             }
 
             sb.AppendLine();
-            sb.AppendLine("## 断言结果 A-E");
+            sb.AppendLine("## 断言结果 A-F");
             sb.AppendLine();
             foreach (string line in assertions.Lines) sb.AppendLine("- " + line);
 
@@ -102,7 +102,7 @@ namespace Shenxiao.Editor.ProtocolCoverage
         }
     }
 
-    /// <summary>五段断言的人类可读结果行 + 总体是否通过。</summary>
+    /// <summary>六段断言的人类可读结果行 + 总体是否通过。</summary>
     public sealed class AssertionOutcome
     {
         public readonly List<string> Lines = new List<string>();
