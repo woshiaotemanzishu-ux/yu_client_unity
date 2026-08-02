@@ -324,6 +324,12 @@
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
   {
+    "cmd": 20003,
+    "reason": "dead_server_never_writes",
+    "evidence": "h5/src/scene/fight/FightController.ts:288-294,367-377,704-705;yu_server/src/battle/pp_battle.erl:33-119;yu_server/src/pt/pt_200.erl:18-45,91-138",
+    "note": "老端把20003作为怪物攻击玩家的完整FightVo广播注册并消费，但当前服务端pp_battle没有同号handle，pt_200也没有同号read/write/pack，全业务源码无直接或间接发送点；这是旧服务端协议遗留。Unity保持无常量、无注册、无模型投递，不得复制20001解码器伪造一个当前服务器永远不会下发的广播。R530。"
+  },
+  {
     "cmd": 20603,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/GhostWalkController.ts:258",
