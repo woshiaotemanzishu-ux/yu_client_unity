@@ -324,6 +324,18 @@
     "note": "22704会按type/subtype/reward_id校验阶段状态，写DB领取态并真实发奖；Unity只保留CycleRank读侧raw，禁止孤立常量、sender、结果handler或本地领奖。"
   },
   {
+    "cmd": 27902,
+    "rule": "R129/R540/R587 Eternity enter scene transaction boundary",
+    "evidence": "AGENTS.md:R587 Eternity 27902/27903场景生命周期边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R587",
+    "note": "27902按scene进入本服或跨服永恒圣殿，写参与表、触发任务/至尊VIP/活动日历并切换场景及PK状态；禁止孤立sender、code ACK或乐观入场。"
+  },
+  {
+    "cmd": 27903,
+    "rule": "R129/R540/R587 Eternity exit scene and malformed receipt boundary",
+    "evidence": "AGENTS.md:R587 Eternity 27902/27903场景生命周期边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R587",
+    "note": "27903会切回默认场景、恢复和平PK并清本地/跨服参与表；当前服务端误用pt_284写27903而落cmd=0空包，禁止客户端伪造成功回执或只关UI。"
+  },
+  {
     "cmd": 27904,
     "rule": "R129/R540 Eternity boundary",
     "evidence": "AGENTS.md:Eternity 27900/27901",
