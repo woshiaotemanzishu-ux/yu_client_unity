@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R531。12019场景掉落消失广播已按老端消费者、当前`pt_120` writer及`mod_drop/lib_drop/lib_goods_drop`活跃发送点完成接入；wire固定为`u16 + N×u64 drop_id`，只接收、不公开同号请求。
-- Unity按wire顺序复用`SceneManager.RemoveDrop`：未知或重复ID幂等忽略，只有真实存在的掉落才触发既有`DropRemoved`，空表不改现场；不推导奖励、不写BagModel、不加入GAME_START。12010多样式角色属性广播继续等待完整场景消费者，12091维持既有死writer排除。
-- `SceneMiscCase=0/allPass=True`，覆盖注册边界、顺序、未知/重复ID、空表、无sender与读到尾；`coverage_20260802_135006.md` A～E全PASS，120族`44/0/0 done`。12019不在`ClientProtocol.json`分母内，因此raw口径为`registered=1270 / liveDefined=1468 / liveGap=321 / errorExit=12 / active=1147/1468=78.1%`，baseline冻结不更新。
+- 最新完成轮次：R532。17902周一嘉礼个人开奖记录已按老端按需入口与当前服务端纯读取链接入；C2S严格空包，S2C完整保存`role_id/name/type/pool/utime/picture/version/career`原始列表，不加入GAME_START、日切或自动后续。
+- 个人17902与跨服17905记录使用独立loaded切片，逐包全量替换、保序保重、空表清旧、无回复保留，中文/空字符串及全整数边界有效。17901换奖池、17903抽奖、17906领奖均为真实状态/资产写事务，继续DEFER。
+- `MondaysAwardCase=0/pass=True`，覆盖精确请求、边界、全量/空表、无回复、双记录隔离、读到尾、Dispose与环境恢复；`coverage_20260802_135750.md` A～E全PASS，179族`6/3/0 pending`。全局raw口径为`registered=1271 / liveDefined=1468 / liveGap=320 / errorExit=12 / active=1148/1468=78.2%`，baseline冻结不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

@@ -5,7 +5,7 @@ using Shenxiao.Framework.Net;
 namespace Shenxiao.Module.Core.MondaysAward
 {
     /// <summary>
-    /// 周一嘉礼原始协议切片：17900 仅保存服务端错误码，17904/17905/17907/17908 保存独立快照；
+    /// 周一嘉礼原始协议切片：17900 仅保存服务端错误码，17902/17904/17905/17907/17908 保存独立快照；
     /// 不迁移 17901/17903/17906 操作链，也不复刻老端首次回包后自动请求 17907。
     /// </summary>
     public sealed class MondaysAwardController : BaseController
@@ -21,6 +21,7 @@ namespace Shenxiao.Module.Core.MondaysAward
         protected override void Register()
         {
             RegisterProtocal(Proto.MONDAYS_AWARD_ERROR, On17900);
+            RegisterProtocal(Proto.MONDAYS_AWARD_PERSONAL_RECORDS, On17902);
             RegisterProtocal(Proto.MONDAYS_AWARD_TASK_STATE, On17904);
             RegisterProtocal(Proto.MONDAYS_AWARD_RECORDS, On17905);
             RegisterProtocal(Proto.MONDAYS_AWARD_POOLS, On17908);
@@ -30,6 +31,30 @@ namespace Shenxiao.Module.Core.MondaysAward
         private void On17900(NetReader reader)
         {
             MondaysAwardModel.Instance.SetError(reader.ReadU32());
+        }
+
+        /// <summary>显式查询个人开奖记录；请求无回复时保留已有快照。</summary>
+        public void RequestPersonalRecords()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.MONDAYS_AWARD_PERSONAL_RECORDS, null, null);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.MONDAYS_AWARD_PERSONAL_RECORDS);
+        }
+
+        private void On17902(NetReader reader)
+        {
+            int count = reader.ReadU16();
+            var records = new List<MondaysAwardModel.PersonalRecordEntry>(count);
+            for (int i = 0; i < count; i++)
+            {
+                records.Add(new MondaysAwardModel.PersonalRecordEntry(
+                    unchecked((ulong)reader.ReadU64()), reader.ReadString(), reader.ReadU8(), reader.ReadU16(),
+                    reader.ReadU32(), reader.ReadString(), reader.ReadU32(), reader.ReadU16()));
+            }
+
+            MondaysAwardModel.Instance.ReplacePersonalRecords(records);
         }
 
         public void RequestTaskState()

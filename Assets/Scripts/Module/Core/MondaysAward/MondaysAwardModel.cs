@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Shenxiao.Module.Core.MondaysAward
 {
-    /// <summary>周一嘉礼错误、任务、记录、抽奖状态与奖池的独立原始状态；不驱动 UI 或操作成功链。</summary>
+    /// <summary>周一嘉礼错误、任务、个人/跨服记录、抽奖状态与奖池的独立原始状态；不驱动 UI 或操作成功链。</summary>
     public sealed class MondaysAwardModel
     {
         public sealed class TaskStateEntry
@@ -47,6 +47,30 @@ namespace Shenxiao.Module.Core.MondaysAward
             }
         }
 
+        public sealed class PersonalRecordEntry
+        {
+            public ulong RoleId { get; }
+            public string RoleName { get; }
+            public byte Type { get; }
+            public ushort PoolId { get; }
+            public uint Utime { get; }
+            public string Picture { get; }
+            public uint PictureVer { get; }
+            public ushort Career { get; }
+
+            public PersonalRecordEntry(ulong roleId, string roleName, byte type, ushort poolId, uint utime, string picture, uint pictureVer, ushort career)
+            {
+                RoleId = roleId;
+                RoleName = roleName;
+                Type = type;
+                PoolId = poolId;
+                Utime = utime;
+                Picture = picture;
+                PictureVer = pictureVer;
+                Career = career;
+            }
+        }
+
         public sealed class PoolEntry
         {
             private readonly IReadOnlyList<ushort> _rids;
@@ -67,6 +91,8 @@ namespace Shenxiao.Module.Core.MondaysAward
         private readonly IReadOnlyList<TaskStateEntry> _readOnlyTaskStates;
         private readonly List<RecordEntry> _records = new List<RecordEntry>();
         private readonly IReadOnlyList<RecordEntry> _readOnlyRecords;
+        private readonly List<PersonalRecordEntry> _personalRecords = new List<PersonalRecordEntry>();
+        private readonly IReadOnlyList<PersonalRecordEntry> _readOnlyPersonalRecords;
         private readonly List<PoolEntry> _pools = new List<PoolEntry>();
         private readonly IReadOnlyList<PoolEntry> _readOnlyPools;
 
@@ -74,6 +100,7 @@ namespace Shenxiao.Module.Core.MondaysAward
         {
             _readOnlyTaskStates = _taskStates.AsReadOnly();
             _readOnlyRecords = _records.AsReadOnly();
+            _readOnlyPersonalRecords = _personalRecords.AsReadOnly();
             _readOnlyPools = _pools.AsReadOnly();
         }
 
@@ -81,6 +108,8 @@ namespace Shenxiao.Module.Core.MondaysAward
         public IReadOnlyList<TaskStateEntry> TaskStates => _readOnlyTaskStates;
         public bool HasRecords { get; private set; }
         public IReadOnlyList<RecordEntry> Records => _readOnlyRecords;
+        public bool HasPersonalRecords { get; private set; }
+        public IReadOnlyList<PersonalRecordEntry> PersonalRecords => _readOnlyPersonalRecords;
         public bool HasPools { get; private set; }
         public IReadOnlyList<PoolEntry> Pools => _readOnlyPools;
         public bool HasDrawState { get; private set; }
@@ -112,6 +141,17 @@ namespace Shenxiao.Module.Core.MondaysAward
             HasRecords = true;
         }
 
+        public void ReplacePersonalRecords(List<PersonalRecordEntry> records)
+        {
+            _personalRecords.Clear();
+            if (records != null)
+            {
+                _personalRecords.AddRange(records);
+            }
+
+            HasPersonalRecords = true;
+        }
+
         public void ReplacePools(List<PoolEntry> pools)
         {
             _pools.Clear();
@@ -140,9 +180,11 @@ namespace Shenxiao.Module.Core.MondaysAward
         {
             _taskStates.Clear();
             _records.Clear();
+            _personalRecords.Clear();
             _pools.Clear();
             HasData = false;
             HasRecords = false;
+            HasPersonalRecords = false;
             HasPools = false;
             HasDrawState = false;
             DrawStateCode = 0;
