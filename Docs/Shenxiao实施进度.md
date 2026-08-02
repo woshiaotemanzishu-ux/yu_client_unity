@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R564。覆盖门禁由A～H扩为A～I；新增I段在写`baseline.next.json`前独立复核候选顶层机器字段、1256条注册号、20条当前错误出口与179族机器字段均精确等于同次扫描。
-- I同时要求179个正式策展家族不从候选消失，人工`status/statusNote`逐族原样保留，`suggestedStatus`按当前活缺口/有效killlist机械结果一致。当前候选保留179/179族策展字段。
-- `candidate.liveGap+1 + StatusNote=null`故障注入被I精确报为`totalLiveGap/liveCoveragePercent`漂移及21族说明丢失。恢复后的`coverage_20260802_195105.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A～I全PASS、`EXIT 0`，正式baseline未改。
+- 最新完成轮次：R565。修复coverage Markdown把历史错误出口34写成当前值、断言标题硬编码A～H两处报告漂移；现显示`当前20`及`20 vs baseline34(delta -14)`，标题按实际断言动态生成A～J。
+- 新增J段在写报告前校验抬头、七项当前总量、错误出口当前/历史对比、动态断言范围及全部既有断言正文；加入J重建后的最终文本还会再自检，避免自检本身改变报告后失真。
+- 恢复旧错误“写34+标题A-H”的反向探针被J精确报为缺当前20行、标题非A-I。恢复后的`coverage_20260802_195841.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A～J全PASS、`EXIT 0`，正式baseline未改。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

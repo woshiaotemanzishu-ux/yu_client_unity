@@ -343,6 +343,8 @@
 - E除继续守当前未注册数不超过34外，还要求当前20号全部是历史集合子集，并拒绝“按历史注册清单重建”时出现清单外候选；历史项后续被实现或语义不再识别允许减少。候选baseline同步输出当前20条逐号清单。`count=35 + 10204→204`探针同时命中计数失配、非五位号及当前/重建新增10204；恢复后的`coverage_20260802_194320.md`为A～H全PASS。
 - R564新增I段“候选基线完整性”，把A～H扩为A～I。I重新从同次扫描计算`generatedAt/denominatorNote`、六项顶层计数与覆盖率，逐项比对1256条`registeredCmds`、20条当前错误出口，以及179族`unityRegistered/liveGap/liveGapCmds`；候选家族必须与当前扫描精确同构，正式策展家族不得丢失。
 - 人工`status/statusNote`按正式baseline逐族字面保留，新族才用机器建议初始化；`suggestedStatus`独立按当前`liveGapCmds`是否全属于带evidence killlist计算。故障注入让候选`liveGap+1`并清空`StatusNote`，I同时命中顶层`totalLiveGap/liveCoveragePercent`和21个说明丢失家族；恢复后的`coverage_20260802_195105.md`为A～I全PASS。
+- R565修复报告生成器的两个真实漂移：总量表原来读`baseline.ErrorExitUnregisteredCount`，把历史34误写成本次值，而E/日志实际为20；断言标题又硬编码A～H，已漏掉I。现在总量表明确写“当前20”，baseline对比另列`20 vs 34(delta -14)`，断言范围按实际条数动态生成。
+- 新增J段“报告正文自洽”，先检查抬头、七项当前总量、错误出口当前/历史对比、动态断言范围和已有九条正文，再加入J并重建最终报告；最终文本若仍有未被J捕获的问题则异常退出。故障注入恢复“写34+标题A-H”时，J精确报缺当前20行及标题非A-I；恢复后的`coverage_20260802_195841.md`为A～J全PASS。
 
 ### 7.30 AutoBrush 13310 阶段奖励事务（2026-08-02 核对）
 

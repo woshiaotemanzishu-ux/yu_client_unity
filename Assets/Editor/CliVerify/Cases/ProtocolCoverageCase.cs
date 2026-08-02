@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 协议覆盖率核验器(PG 包,第21轮/R547-R564):九段断言 A-I,照 CliVerify.cs 既有惯例,日志前缀
+    /// 协议覆盖率核验器(PG 包,第21轮/R547-R565):十段断言 A-J,照 CliVerify.cs 既有惯例,日志前缀
     /// "CLIVERIFY protocolcoverage"。纯静态分析 + 一次运行时反射,不建 Stage/不渲染。
     ///
     ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline；baseline.registeredCmds 必须与历史总量
@@ -41,6 +41,8 @@ namespace Shenxiao.EditorTools
     ///   I 候选基线完整性:baseline.next 的顶层机器计数、注册/错误出口逐号清单与家族机器字段必须
     ///     精确等于当前扫描；正式基线家族不得静默丢失，人工status/statusNote必须逐族原样保留，
     ///     suggestedStatus必须与当前liveGap/有效killlist机械判断一致。
+    ///   J 报告正文自洽:Markdown抬头、七项当前总量、错误出口当前/历史对比、动态断言范围及每条
+    ///     断言正文必须与同次扫描和AssertionOutcome一致，禁止把baseline历史值伪装成本次值。
     ///
     /// 收尾落 Reports/ProtocolCoverage/coverage_&lt;date&gt;.md + baseline.next.json(裁决5:
     /// 绝不自动覆盖 Schemas/ProtocolCoverage/baseline.json,基线上调必须人工确认后手动覆盖)。
@@ -84,6 +86,21 @@ namespace Shenxiao.EditorTools
                     killlist,
                     hardNegativeConstraints,
                     outcome);
+                AssertJ(scan, baseline ?? candidate, md, outcome);
+                md = ProtocolCoverageReport.BuildMarkdown(
+                    scan,
+                    baseline ?? candidate,
+                    killlist,
+                    hardNegativeConstraints,
+                    outcome);
+                List<string> finalReportProblems = FindReportProblems(scan, baseline ?? candidate, md, outcome);
+                bool reportProblemsCapturedByJ = outcome.Lines.Count > 0
+                    && outcome.Lines[outcome.Lines.Count - 1]
+                        .StartsWith("[FAIL] J报告正文自洽", StringComparison.Ordinal);
+                if (finalReportProblems.Count > 0 && !reportProblemsCapturedByJ)
+                {
+                    throw new InvalidOperationException("最终报告自检失败:" + string.Join(";", finalReportProblems));
+                }
                 string reportPath = ProtocolCoverageReport.WriteReport(md);
 
                 int oldAliveCount = scan.OldActiveKeys().Count;
@@ -886,6 +903,84 @@ namespace Shenxiao.EditorTools
                     + curatedPreservedCount + "族;suggestedStatus一致");
             }
             outcome.Add("I候选基线完整性", pass, string.Join(";", details));
+        }
+
+        private static void AssertJ(
+            ProtocolCoverageScanner.ScanResult scan,
+            CoverageBaseline baseline,
+            string markdown,
+            AssertionOutcome outcome)
+        {
+            int assertionCountBeforeJ = outcome.Lines.Count;
+            List<string> problems = FindReportProblems(scan, baseline, markdown, outcome);
+            bool pass = problems.Count == 0;
+            string detail = pass
+                ? "报告抬头/七项当前总量/错误出口当前与baseline对比/" + assertionCountBeforeJ
+                    + "条断言正文自洽"
+                : string.Join(";", problems);
+            outcome.Add("J报告正文自洽", pass, detail);
+        }
+
+        private static List<string> FindReportProblems(
+            ProtocolCoverageScanner.ScanResult scan,
+            CoverageBaseline baseline,
+            string markdown,
+            AssertionOutcome outcome)
+        {
+            var problems = new List<string>();
+            if (string.IsNullOrEmpty(markdown))
+            {
+                problems.Add("Markdown为空");
+                return problems;
+            }
+
+            var currentErrorExits = new HashSet<int>(scan.ErrorExitCandidates);
+            currentErrorExits.ExceptWith(scan.UnityRegistered);
+            var requiredFragments = new[]
+            {
+                "# 协议覆盖率核验报告 " + scan.GeneratedAt.ToString("yyyy-MM-dd HH:mm:ss"),
+                "> " + ProtocolCoverageReport.DenominatorNote(scan),
+                "| Unity 已注册(运行时真值) | " + scan.UnityRegistered.Count + " |",
+                "| ClientProtocol.json 全集 | " + scan.ClientProtocolDefined.Count + " |",
+                "| 老端活协议全集(定义∩老端活handler) | " + scan.LiveDefinedSet().Count + " |",
+                "| 活缺口(需要接) | " + scan.LiveGap().Count + " |",
+                "| 死号(粗口径) | " + scan.DeadGap().Count + " |",
+                "| 手写号(不在CP.json,场景/战斗) | " + scan.HandwrittenExtra().Count + " |",
+                "| 族错误出口候选未注册数(当前) | " + currentErrorExits.Count + " |",
+            };
+            foreach (string fragment in requiredFragments)
+            {
+                if (!markdown.Contains(fragment)) problems.Add("缺正文:" + fragment);
+            }
+
+            if (baseline != null && baseline.TotalUnityRegistered > 0)
+            {
+                string baselineErrorComparison = "错误出口 " + currentErrorExits.Count
+                    + " vs baseline " + baseline.ErrorExitUnregisteredCount;
+                if (!markdown.Contains(baselineErrorComparison))
+                    problems.Add("缺错误出口当前/历史对比");
+            }
+
+            int assertionCount = outcome?.Lines?.Count ?? 0;
+            string expectedRange = assertionCount == 0
+                ? "(无)"
+                : "A-" + (char)('A' + assertionCount - 1);
+            if (!markdown.Contains("## 断言结果 " + expectedRange))
+                problems.Add("断言标题非" + expectedRange);
+
+            List<string> expectedAssertionLines = outcome?.Lines ?? new List<string>();
+            List<string> missingAssertionLines = expectedAssertionLines
+                .Where(line => !markdown.Contains("- " + line))
+                .ToList();
+            if (missingAssertionLines.Count > 0)
+                problems.Add("缺断言正文" + missingAssertionLines.Count + "条");
+            int actualAssertionLineCount = markdown
+                .Split(new[] { "\r\n", "\n" }, StringSplitOptions.None)
+                .Count(line => line.StartsWith("- [PASS] ", StringComparison.Ordinal)
+                    || line.StartsWith("- [FAIL] ", StringComparison.Ordinal));
+            if (actualAssertionLineCount != assertionCount)
+                problems.Add("断言正文计数" + actualAssertionLineCount + "!=" + assertionCount);
+            return problems;
         }
     }
 }

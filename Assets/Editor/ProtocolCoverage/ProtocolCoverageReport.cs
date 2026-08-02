@@ -49,6 +49,8 @@ namespace Shenxiao.Editor.ProtocolCoverage
             AssertionOutcome assertions)
         {
             var sb = new StringBuilder();
+            var currentUnregisteredErrorExits = new HashSet<int>(scan.ErrorExitCandidates);
+            currentUnregisteredErrorExits.ExceptWith(scan.UnityRegistered);
             sb.AppendLine("# 协议覆盖率核验报告 " + scan.GeneratedAt.ToString("yyyy-MM-dd HH:mm:ss"));
             sb.AppendLine();
             sb.AppendLine("> " + DenominatorNote(scan));
@@ -63,18 +65,24 @@ namespace Shenxiao.Editor.ProtocolCoverage
             sb.AppendLine($"| 活缺口(需要接) | {scan.LiveGap().Count} |");
             sb.AppendLine($"| 死号(粗口径) | {scan.DeadGap().Count} |");
             sb.AppendLine($"| 手写号(不在CP.json,场景/战斗) | {scan.HandwrittenExtra().Count} |");
-            sb.AppendLine($"| 族错误出口候选未注册数 | {baseline.ErrorExitUnregisteredCount} |");
+            sb.AppendLine($"| 族错误出口候选未注册数(当前) | {currentUnregisteredErrorExits.Count} |");
             if (baseline.TotalUnityRegistered > 0)
             {
                 sb.AppendLine();
                 sb.AppendLine($"baseline 对比:注册 {scan.UnityRegistered.Count} vs baseline {baseline.TotalUnityRegistered}" +
-                               $"(delta {scan.UnityRegistered.Count - baseline.TotalUnityRegistered:+0;-0;0})");
+                               $"(delta {scan.UnityRegistered.Count - baseline.TotalUnityRegistered:+0;-0;0});" +
+                               $"错误出口 {currentUnregisteredErrorExits.Count} vs baseline {baseline.ErrorExitUnregisteredCount}" +
+                               $"(delta {currentUnregisteredErrorExits.Count - baseline.ErrorExitUnregisteredCount:+0;-0;0})");
             }
 
             sb.AppendLine();
-            sb.AppendLine("## 断言结果 A-H");
+            int assertionCount = assertions?.Lines?.Count ?? 0;
+            string assertionRange = assertionCount == 0
+                ? "(无)"
+                : "A-" + (char)('A' + assertionCount - 1);
+            sb.AppendLine("## 断言结果 " + assertionRange);
             sb.AppendLine();
-            foreach (string line in assertions.Lines) sb.AppendLine("- " + line);
+            foreach (string line in assertions?.Lines ?? new List<string>()) sb.AppendLine("- " + line);
 
             sb.AppendLine();
             sb.AppendLine("## 家族表(前缀 = 协议号/100)");
