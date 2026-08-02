@@ -1365,18 +1365,12 @@
         /// <summary>成就阶段奖励增量。S2C-only: rewards:u16×{stage:u32,status:u8},cur_stage:u8,new_cur_stage:u16。</summary>
         public const int ACHIEVEMENT_STAGE_REWARD_UPDATE = 40907;
         public const int ACHIEVEMENT_TYPES = 40908;
-        /// <summary>守护操作错误推送。S2C: errcode:u32；仅接收并保留原始码，不触发 UI。</summary>
-        public const int GUARD_ERROR = 21600;
         public const int GUARD_INFO = 21601;
-        /// <summary>守护登录到期检查结果。S2C: result_code:u32；1 为服务端成功确认，仅接收不主动发送。</summary>
-        public const int GUARD_LOGIN_CHECK_RESULT = 21606;
         public const int NINE_SKY_INFO = 13500;
         /// <summary>九魂圣殿战斗小面板。C2S 空包；S2C: cur_floor:u8,max_floor:u8,left_time:u32,kill_num:u16,score:u32,first_server_num:u16,first_player:string。</summary>
         public const int NINE_SKY_BATTLE_INFO = 13503;
         /// <summary>九魂圣殿秘宝持有者主动快照。S2C: index:u8,server_num:u16,role_id:u64,role_name:string,left_time:u32。</summary>
         public const int NINE_SKY_FLAG_INFO = 13504;
-
-        public const int NINE_SKY_SETTLEMENT = 13507;
         public const int GHOST_WALK_INFO = 20601;
         /// <summary>时空圣痕主快照。C2S 空包；S2C 为个人/本服争夺值与有序据点全量。</summary>
         public const int TS_CRACK_MAIN_INFO = 20401;
@@ -1398,18 +1392,6 @@
         public const int ETERNITY_TIME_INFO = 27900;
         /// <summary>永恒圣殿参与人数与资格快照。C2S 空包；S2C: can_enter_scene:u8,join_list:u16×{scene:u32,self_server_num:u16,scene_num:u16}。</summary>
         public const int ETERNITY_JOIN_INFO = 27901;
-        /// <summary>永恒圣殿怪物信息。C2S: scene:u16；S2C: scene:u16,monsters:u16×{mon_id:u32,mon_lv:u16,mon_type:u8,bl_server:u32,bl_server_name:s,bl_server_num:u32,reborn_time:u32}。</summary>
-        public const int ETERNITY_MONSTER_INFO = 27904;
-        /// <summary>永恒圣殿怪物伤害排行。C2S: scene:u16,mon_id:u32；S2C: scene:u16,mon_id:u32,hurt_list:u16×{server_id:u32,server_num:u16,server_name:s,player_id:u32,player_name:s,damage:u16}。</summary>
-        public const int ETERNITY_DAMAGE_RANK = 27905;
-        /// <summary>永恒圣殿怪物复活推送。仅 S2C：mon_id:u32。</summary>
-        public const int ETERNITY_MONSTER_REBORN = 27907;
-        /// <summary>永恒圣殿 Boss 状态推送。仅 S2C：mon_id:u32,reborn_time:u32,bl_server:u32,bl_server_num:u32,bl_server_name:s。</summary>
-        public const int ETERNITY_BOSS_STATE = 27908;
-        /// <summary>永恒圣殿进入前置条件拒绝。仅 S2C：code:u32；code==1 不表示本端可确认的进入成功。</summary>
-        public const int ETERNITY_ERROR = 27909;
-        /// <summary>永恒圣殿复活状态快照。显式 C2S 空包；S2C: die_times:u16,time:u32,die_time:u32,safe_time:u32。</summary>
-        public const int ETERNITY_RELIVE_INFO = 27906;
         /// <summary>圣灵战场通用错误出口。仅 S2C：error_code:u32；原样记录，不推断操作成功。</summary>
         public const int HOLY_BATTLE_ERROR = 21800;
         /// <summary>圣灵战场世界信息。C2S 空包；S2C: mod:u8,status:u8,end_time:u32,servers:u16×{id:u32,num:u32,name:s,level:u32}。</summary>
@@ -1458,8 +1440,6 @@
         public const int DEPOSIT_RECORDS = 19206;
         /// <summary>装扮类型快照。C2S: dress_type:u8；S2C 为该类型已启用装扮全量列表。</summary>
         public const int DRESS_INFO = 11200;
-        /// <summary>未激活装扮一级预期战力。仅显式查询；C2S: dress_type:u8,dress_id:u32；S2C 回显复合键并返回 active_power:u64。</summary>
-        public const int DRESS_INACTIVE_POWER = 11205;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)
         public const int SEVENDAY_OPEN_INFO = 17500;       // 七天登录信息
         public const int SEVENDAY_MERGE_INFO = 17502;      // 合服七天信息

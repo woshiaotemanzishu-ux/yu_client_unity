@@ -6,9 +6,8 @@ using Shenxiao.Module.Core.Role;
 namespace Shenxiao.Module.Core.Eternity
 {
     /// <summary>
-    /// 永恒圣殿原始数据底座：时间、参与资格、怪物信息及复活增量、伤害排行、角色复活状态与 Boss 状态推送。
-    /// 老端仅在 GAME_START 时等级达到门槛请求时间快照，并且只在等级精确升至 480 时补发；
-    /// 27907/27908/27909 仅接收服务端推送，不增加请求、等级或启动链。
+    /// 永恒圣殿的时间快照。老端仅在 GAME_START 时等级达到门槛请求，
+    /// 并且只在等级精确升至 480 时补发；跳过 480 不补发。
     /// </summary>
     public sealed class EternityController : BaseController
     {
@@ -28,12 +27,6 @@ namespace Shenxiao.Module.Core.Eternity
         {
             RegisterProtocal(Proto.ETERNITY_TIME_INFO, On27900);
             RegisterProtocal(Proto.ETERNITY_JOIN_INFO, On27901);
-            RegisterProtocal(Proto.ETERNITY_MONSTER_INFO, On27904);
-            RegisterProtocal(Proto.ETERNITY_DAMAGE_RANK, On27905);
-            RegisterProtocal(Proto.ETERNITY_RELIVE_INFO, On27906);
-            RegisterProtocal(Proto.ETERNITY_MONSTER_REBORN, On27907);
-            RegisterProtocal(Proto.ETERNITY_BOSS_STATE, On27908);
-            RegisterProtocal(Proto.ETERNITY_ERROR, On27909);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
         }
 
@@ -68,33 +61,6 @@ namespace Shenxiao.Module.Core.Eternity
             SendFmt(Proto.ETERNITY_JOIN_INFO);
         }
 
-        public void RequestReliveInfo()
-        {
-#if UNITY_EDITOR
-            byte[] frame = UserMsgAdapter.Encode(Proto.ETERNITY_RELIVE_INFO, null, null);
-            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
-#endif
-            SendFmt(Proto.ETERNITY_RELIVE_INFO);
-        }
-
-        public void RequestDamageRank(ushort scene, uint monId)
-        {
-#if UNITY_EDITOR
-            byte[] frame = UserMsgAdapter.Encode(Proto.ETERNITY_DAMAGE_RANK, "hi", new object[] { scene, monId });
-            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
-#endif
-            SendFmt(Proto.ETERNITY_DAMAGE_RANK, "hi", scene, monId);
-        }
-
-        public void RequestMonsterInfo(ushort scene)
-        {
-#if UNITY_EDITOR
-            byte[] frame = UserMsgAdapter.Encode(Proto.ETERNITY_MONSTER_INFO, "h", new object[] { scene });
-            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
-#endif
-            SendFmt(Proto.ETERNITY_MONSTER_INFO, "h", scene);
-        }
-
         private void On27900(NetReader reader)
         {
             uint openTime = reader.ReadU32();
@@ -108,45 +74,6 @@ namespace Shenxiao.Module.Core.Eternity
             byte canEnterScene = reader.ReadU8();
             var joins = reader.ReadArray(r => new EternityModel.JoinEntry(r.ReadU32(), r.ReadU16(), r.ReadU16()));
             EternityModel.Instance.ReplaceJoinInfo(canEnterScene, joins);
-        }
-
-        private void On27904(NetReader reader)
-        {
-            ushort scene = reader.ReadU16();
-            var entries = reader.ReadArray(r => new EternityModel.MonsterEntry(r.ReadU32(), r.ReadU16(), r.ReadU8(), r.ReadU32(), r.ReadString(), r.ReadU32(), r.ReadU32()));
-            EternityModel.Instance.ReplaceMonsterInfo(scene, entries);
-        }
-
-        private void On27905(NetReader reader)
-        {
-            ushort scene = reader.ReadU16();
-            uint monId = reader.ReadU32();
-            var entries = reader.ReadArray(r => new EternityModel.DamageEntry(r.ReadU32(), r.ReadU16(), r.ReadString(), r.ReadU32(), r.ReadString(), r.ReadU16()));
-            EternityModel.Instance.ReplaceDamageRank(scene, monId, entries);
-        }
-
-        private void On27906(NetReader reader)
-        {
-            EternityModel.Instance.ReplaceReliveInfo(reader.ReadU16(), reader.ReadU32(), reader.ReadU32(), reader.ReadU32());
-        }
-
-        private void On27907(NetReader reader)
-        {
-            EternityModel.Instance.ApplyMonsterReborn(reader.ReadU32());
-        }
-
-        private void On27908(NetReader reader)
-        {
-            EternityModel.Instance.ReplaceBossState(new EternityModel.BossStateEntry(reader.ReadU32(), reader.ReadU32(), reader.ReadU32(), reader.ReadU32(), reader.ReadString()));
-        }
-
-        private void On27909(NetReader reader)
-        {
-            uint code = reader.ReadU32();
-            if (code != 1)
-            {
-                EternityModel.Instance.SetError(code);
-            }
         }
 
         private void OnRoleInfoUpdate()

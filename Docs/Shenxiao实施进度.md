@@ -1763,3 +1763,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **容器链**：BagModel新增互相隔离的龙纹穿戴/背包容器、loaded与容量；GAME_START的15010序列在伙伴装备后加入`34→35`。15010全量替换，15017严格按老端逐件请求18113且不提前落普通项，15018只改数量并保留详情字段；穿戴容器按cell替换，背包按goods_id增量。空18113保留旧数据，未知location读完后隔离丢弃。
 - **未扩范围**：未创建龙纹页面、配置、红点、Toast或玩法操作；18101-18104、18106-18110仍是真实资产/玩法写事务，18111仍为旧端不可达，全部保持既有DEFER/KILL边界。
 - **验证状态**：`dotnet build Assembly-CSharp-Editor.csproj` 0 error；Unity 6000.3.17f1 `LungCase=0/pass=True`覆盖精确请求帧、双容器全量、15017延迟落库、dragon嵌套字段/u64、空表、cell替换、15018和未知location；`PetEquip=0`的协议/库存/UI三段回归全绿并验证启动序列。`coverage_20260802_131912.md` A～E全PASS，运行时为`registered=1268 / liveDefined=1468 / liveGap=322 / errorExit=12 / active=1146/1468=78.1%`；181族为`registered4/liveGap6/dead4/pending`，冻结baseline未改。
+
+## 2026-08-02：跨族晚增协议负约束纠偏（R540）
+
+- **时序结论**：`git blame/log`确认11205、13507、21600/21606与27904-27909共十号均晚于R118/R126/R125/R129仍有效的明确不接规则；对应实现轮只在AGENTS别处追加正向说明，没有改写原禁令，按R517/R539的负约束优先规则不具备豁免。
+- **代码收口**：撤销十号Proto常量、注册、sender、handler、raw模型与正向用例；Dress只保留11200，NineSky只保留13500/03/04，Guard只保留21601，Eternity只保留27900/01。各族原启动、显式请求、全量替换和环境恢复语义不变，真实活链不写入killlist。
+- **规则固化**：AGENTS新增“别处追加正向实现记录不构成豁免”；未来恢复必须先基于本轮明确产品授权和新双端证据直接改写原负约束，再进入实现。覆盖率允许因纠偏诚实下降，baseline历史计数保持冻结。
+- **验证状态**：`dotnet build Assembly-CSharp-Editor.csproj -m:1`为0 error；Unity 6000.3.17f1独立批处理`Dress/NineSky/Guard/Eternity`均`VERDICT pass=True / EXIT 0`。`coverage_20260802_151239.md` A～E全PASS，运行时为`registered=1265 / liveDefined=1468 / liveGap=326 / errorExit=16 / active=1142/1468=77.8%`；112、135、216、279族分别为`1/5/0`、`3/5/3`、`1/5/0`、`2/8/0`且均保持pending，冻结baseline未改。
