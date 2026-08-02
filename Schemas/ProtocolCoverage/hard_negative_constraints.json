@@ -642,6 +642,24 @@
     "note": "62202会消耗龙语币、事务写强化等级、通知物品并重算属性；自动强化可能部分成功后才结束，失败走62200。Unity读侧没有强化业务闭环，禁止孤立常量、sender、最终等级handler或乐观扣币。"
   },
   {
+    "cmd": 65102,
+    "rule": "R534/R597 DragonWhisper entry asset and scene transaction boundary",
+    "evidence": "AGENTS.md:R597 DragonWhisper 65102/65104/65107完整事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R597",
+    "note": "65102按入场序号真实扣物品或自动补购，设置动作锁、推进任务并异步登记跨服角色和切场景；同号回包早于scene-ready。Unity缺入口确认、资产指纹和完整场景生命周期，禁止孤立常量、sender、ACK、自动入场或乐观扣料。"
+  },
+  {
+    "cmd": 65104,
+    "rule": "R534/R597 DragonWhisper VIP count purchase transaction boundary",
+    "evidence": "AGENTS.md:R597 DragonWhisper 65102/65104/65107完整事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R597",
+    "note": "65104按VIP上限校验后真实扣绑钻并增加日购买次数，回绝对剩余/总次数；Unity缺VIP成本、确认、钱包和对账闭环，禁止孤立常量、sender、计数handler或乐观扣钻增次。"
+  },
+  {
+    "cmd": 65107,
+    "rule": "R534/R597 DragonWhisper in-scene time purchase and refund boundary",
+    "evidence": "AGENTS.md:R597 DragonWhisper 65102/65104/65107完整事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R597",
+    "note": "65107先扣物品或自动补购并占用次数，再异步延长跨服定时器；分区竞态会回退次数、邮件退款、发65100错误并仍发恢复后的65107。Unity缺场景session、资产/邮件和错误对账闭环，禁止孤立常量、sender、成功handler或乐观加时。"
+  },
+  {
     "cmd": 65206,
     "rule": "R170/R541 SnatchTreasure boundary",
     "evidence": "AGENTS.md:R170/R541 SnatchTreasure 65201",
