@@ -9,13 +9,14 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 协议覆盖率核验器(PG 包,第21轮/R547-R558):八段断言 A-H,照 CliVerify.cs 既有惯例,日志前缀
+    /// 协议覆盖率核验器(PG 包,第21轮/R547-R559):八段断言 A-H,照 CliVerify.cs 既有惯例,日志前缀
     /// "CLIVERIFY protocolcoverage"。纯静态分析 + 一次运行时反射,不建 Stage/不渲染。
     ///
     ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline；baseline.registeredCmds 必须与历史总量
     ///     等长、五位、唯一且严格升序。具体号消失默认算红，只有带 evidence 的killlist/硬负约束
     ///     裁决可按号豁免，且打印全部消失号。
-    ///   B 家族防倒退:逐前缀(协议号/100)已注册数不许降；同一证据裁决号仅补偿所属家族。
+    ///   B 家族防倒退:冻结家族unityRegistered必须与registeredCmds逐前缀分组精确一致；当前逐前缀
+    ///     已注册数不许降，同一证据裁决号仅补偿所属家族。
     ///   C 完工家族零未申报(防虚假完工正主):baseline 里 status=="done" 的家族,其「活缺口」必须
     ///     整体落在 killlist.json 里(且每条 killlist 记录必须带非空 evidence,否则不算数)。
     ///     status=="legacy_unverified" 的家族缺口只进报告,不挂红(裁决3)。
@@ -212,8 +213,27 @@ namespace Shenxiao.EditorTools
             }
 
             Dictionary<int, int> curFamilies = scan.BuildFamilyTable().ToDictionary(f => f.Prefix, f => f.UnityRegistered);
+            List<int> baselineCmds = baseline.RegisteredCmds ?? new List<int>();
+            Dictionary<int, int> baselineManifestCounts = baselineCmds
+                .GroupBy(ProtocolCoverageScanner.ScanResult.Family)
+                .ToDictionary(g => g.Key, g => g.Count());
+            var baselinePrefixes = new HashSet<int>(baseline.Families.Select(f => f.Prefix));
+            var baselineFamilyMismatches = new List<string>();
+            foreach (FamilyBaseline fb in baseline.Families)
+            {
+                int manifestCount = baselineManifestCounts.TryGetValue(fb.Prefix, out int count) ? count : 0;
+                if (fb.UnityRegistered != manifestCount)
+                {
+                    baselineFamilyMismatches.Add(fb.Prefix + ":族计数" + fb.UnityRegistered
+                        + "!=逐号清单" + manifestCount);
+                }
+            }
+            List<int> manifestFamiliesMissingBaseline = baselineManifestCounts.Keys
+                .Where(prefix => !baselinePrefixes.Contains(prefix))
+                .OrderBy(prefix => prefix)
+                .ToList();
             HashSet<int> sanctionedRemovals = BuildSanctionedRemovalSet(killlist, hardNegativeConstraints);
-            var sanctionedBaselineMissingByFamily = (baseline.RegisteredCmds ?? new List<int>())
+            var sanctionedBaselineMissingByFamily = baselineCmds
                 .Where(c => sanctionedRemovals.Contains(c) && !scan.UnityRegistered.Contains(c))
                 .GroupBy(ProtocolCoverageScanner.ScanResult.Family)
                 .ToDictionary(g => g.Key, g => g.OrderBy(c => c).ToList());
@@ -235,9 +255,19 @@ namespace Shenxiao.EditorTools
                     compensated.Add(fb.Prefix + "[" + string.Join(",", sanctioned) + "]");
                 }
             }
-            string detail = regressed.Count == 0 ? "全部家族未降" : string.Join(";", regressed);
+            bool baselineFamiliesValid = baselineFamilyMismatches.Count == 0
+                && manifestFamiliesMissingBaseline.Count == 0;
+            bool pass = baselineFamiliesValid && regressed.Count == 0;
+            var details = new List<string>();
+            if (baselineFamilyMismatches.Count > 0)
+                details.Add("baseline家族计数不一致:" + string.Join(";", baselineFamilyMismatches));
+            if (manifestFamiliesMissingBaseline.Count > 0)
+                details.Add("逐号清单家族未入baseline:" + string.Join(",", manifestFamiliesMissingBaseline));
+            if (regressed.Count > 0) details.Add(string.Join(";", regressed));
+            if (pass) details.Add("baseline家族冻结计数与" + baselineCmds.Count + "条逐号清单一致;全部家族未降");
+            string detail = string.Join(";", details);
             if (compensated.Count > 0) detail += ";有证据裁决移除=" + string.Join(";", compensated);
-            outcome.Add("B家族防倒退", regressed.Count == 0, detail);
+            outcome.Add("B家族防倒退", pass, detail);
         }
 
         private static HashSet<int> BuildSanctionedRemovalSet(
