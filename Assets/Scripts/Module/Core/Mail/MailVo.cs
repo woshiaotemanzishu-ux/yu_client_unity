@@ -4,7 +4,7 @@ using Shenxiao.Framework.Net;
 namespace Shenxiao.Module.Core.Mail
 {
     /// <summary>
-    /// 邮件摘要（对标 yu_server pt_190 item_to_bin_0 / write(19007)）：
+    /// 邮件摘要（对标 yu_server pt_190 item_to_bin_0 / 19001、19004）：
     /// MailId(l) Type(c) State(c) Title(s) IsAttach(c) Time(i) EffectEt(i)。
     /// State:1=已读 2=未读 3=已领取附件(is_attach 独立标记是否带附件,对标 r7_oldfriend 状态机勘误)。
     /// </summary>

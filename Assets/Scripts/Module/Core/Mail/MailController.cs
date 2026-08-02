@@ -15,8 +15,7 @@ namespace Shenxiao.Module.Core.Mail
     ///   19001 邮件列表；19002 详情(缓存优先,命中不发协议)；19003 批量删除(手写变长包,GetNoGetRewardEmailList
     ///   过滤保护)；19004 新邮件到达增量推送(轮21 PF 补漏批,追加/upsert 语义,别与 19001 全量混)；
     ///   19005 批量领取(手写变长包,背包容量前置校验)；19006 公会邮件发送(功能已被服务端硬编码禁用,
-    ///   UI 归公会模块 TODO)；19007 非推送,是"取单条邮件信息"C2S 请求/回,老端从未发送恒不可达(见 MAIL_NEW
-    ///   注释)；19008 是否有未读；19009 可发剩余(服务端 handle 整段被注释,DEAD,既有 handler 保留)；
+    ///   UI 归公会模块 TODO)；19008 是否有未读；19009 可发剩余(服务端 handle 整段被注释,DEAD,既有 handler 保留)；
     ///   19010 意见反馈(非"联系客服"聊天,是工单提交,30s 服务端硬编码 CD)。
     /// </summary>
     public sealed class MailController : BaseController
@@ -32,7 +31,6 @@ namespace Shenxiao.Module.Core.Mail
             RegisterProtocal(Proto.MAIL_ADD_PUSH, On19004);
             RegisterProtocal(Proto.MAIL_RECEIVE, On19005);
             RegisterProtocal(Proto.MAIL_GUILD_SEND, On19006);
-            RegisterProtocal(Proto.MAIL_NEW, On19007);
             RegisterProtocal(Proto.MAIL_UNREAD, On19008);
             RegisterProtocal(Proto.MAIL_LEFT_NUM, On19009);
             RegisterProtocal(Proto.MAIL_FEEDBACK, On19010);
@@ -259,15 +257,6 @@ namespace Shenxiao.Module.Core.Mail
             bool success = errorCode == 1;
             EventDispatcher.Emit(GlobalEvent.EVT_MAIL_GUILD_SEND_RESULT, success);
             GameLog.Info("Mail", "19006 公会邮件发送结果 errorCode={0}", errorCode);
-        }
-
-        private void On19007(NetReader r)
-        {
-            var vo = new MailVo();
-            vo.ReadFromProtocal(r);
-            MailModel.Instance.AddOrUpdate(vo);
-            GameLog.Info("Mail", "19007 新邮件: id={0} {1}", vo.MailId, vo.Title);
-            EventDispatcher.Emit(GlobalEvent.EVT_MAIL_LIST_UPDATE);
         }
 
         private void On19008(NetReader r)

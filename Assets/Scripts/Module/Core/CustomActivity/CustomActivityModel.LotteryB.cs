@@ -229,7 +229,7 @@ namespace Shenxiao.Module.Core.CustomActivity
             _luctreaDraw.TryGetValue(Key(baseType, subType), out LuctreaDrawResult v) ? v : null;
 
         // ============================================================================================
-        // §5 FORTUNECAT(87):33224 信息 / 33225 转盘(抽奖) / 33226 转盘记录(pt_332.erl:717-749/751-767/769-795)
+        // §5 FORTUNECAT(87):33224 信息(pt_332.erl:717-749)；33225/33226 为死号，不建raw模型
         // ============================================================================================
 
         public sealed class FortunecatRound { public long Rounds; public long MaxNum; public long MinNum; public long RewardId; } // item_to_bin_16,RewardId:64
@@ -253,28 +253,6 @@ namespace Shenxiao.Module.Core.CustomActivity
         public void SetFortunecatInfo(FortunecatInfo info) => _fortunecatInfo[Key(info.BaseType, info.SubType)] = info;
         public FortunecatInfo GetFortunecatInfo(int baseType, int subType) =>
             _fortunecatInfo.TryGetValue(Key(baseType, subType), out FortunecatInfo v) ? v : null;
-
-        public sealed class FortunecatDrawResult { public int Code; public int BaseType; public int SubType; public int GradeId; public int GoodsId; public int GoodsNum; }
-
-        private readonly Dictionary<long, FortunecatDrawResult> _fortunecatDraw = new Dictionary<long, FortunecatDrawResult>();
-        public void SetFortunecatDrawResult(FortunecatDrawResult result) => _fortunecatDraw[Key(result.BaseType, result.SubType)] = result;
-        public FortunecatDrawResult GetFortunecatDrawResult(int baseType, int subType) =>
-            _fortunecatDraw.TryGetValue(Key(baseType, subType), out FortunecatDrawResult v) ? v : null;
-
-        public sealed class FortunecatRecordEntry { public long RoleId; public string RoleName = ""; public int GoodsId; public int GoodsNum; } // item_to_bin_18/19,同构
-
-        public sealed class FortunecatRecord
-        {
-            public int BaseType;
-            public int SubType;
-            public readonly List<FortunecatRecordEntry> SelfList = new List<FortunecatRecordEntry>();
-            public readonly List<FortunecatRecordEntry> GolbList = new List<FortunecatRecordEntry>();
-        }
-
-        private readonly Dictionary<long, FortunecatRecord> _fortunecatRecord = new Dictionary<long, FortunecatRecord>();
-        public void SetFortunecatRecord(FortunecatRecord record) => _fortunecatRecord[Key(record.BaseType, record.SubType)] = record;
-        public FortunecatRecord GetFortunecatRecord(int baseType, int subType) =>
-            _fortunecatRecord.TryGetValue(Key(baseType, subType), out FortunecatRecord v) ? v : null;
 
         // ============================================================================================
         // §6 BIND_JAGE_WISH(127):33260 心愿单信息 / 33262 开抽 / 33263 免费礼(pt_332.erl:1526-1544/1552-1568/1570-1580)
@@ -315,7 +293,7 @@ namespace Shenxiao.Module.Core.CustomActivity
             _luctrea2Info.Clear(); _luctrea2Draw.Clear();
             _onlineDrawInfo.Clear(); _goodsPower.Clear();
             _luctreaPool.Clear(); _luctreaDraw.Clear();
-            _fortunecatInfo.Clear(); _fortunecatDraw.Clear(); _fortunecatRecord.Clear();
+            _fortunecatInfo.Clear();
             _bindJageInfo.Clear(); _bindJageDraw.Clear(); _bindJageFreeGift.Clear();
         }
     }

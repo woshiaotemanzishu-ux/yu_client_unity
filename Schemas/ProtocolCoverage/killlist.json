@@ -252,58 +252,10 @@
     "note": "服务端保留 role_id:u64 他人宝宝查询及完整回包，但老端玩家路径没有发起 18202 的入口；按老端行为事实源不迁移。轮29初判，R518双端复核。"
   },
   {
-    "cmd": 18208,
-    "reason": "old_client_unreachable",
-    "evidence": "h5/src/commonController/BabyController.ts:220-224,605(全 h5/src 仅 handler/注册，无 C2S 请求点)",
-    "note": "点赞排行只有接收壳，老端玩家路径没有发起 18208 的入口；按老端行为事实源不迁移。轮29复核。"
-  },
-  {
-    "cmd": 18209,
-    "reason": "old_client_unreachable",
-    "evidence": "h5/src/commonController/BabyController.ts:226-240,401-409,606(唯一请求位于不可达的 18217 成功分支)",
-    "note": "点赞记录的唯一请求依赖服务端 handle 已注释的 18217 点赞链，玩家实际不可达；不迁移。轮29复核。"
-  },
-  {
     "cmd": 18212,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/BabyController.ts:309-311,609",
     "note": "老端虽注册 18212，但 handler 去注释后为空；无玩家行为需要迁移。轮29复核。"
-  },
-  {
-    "cmd": 18216,
-    "reason": "dead_server_handle_commented",
-    "evidence": "yu_server/src/baby/pp_baby.erl:209-216;h5/src/commonController/BabyController.ts:614",
-    "note": "服务端展示宝宝 handle 整段注释，老端注册点也被注释；不迁移。轮29复核。"
-  },
-  {
-    "cmd": 18217,
-    "reason": "dead_server_handle_commented",
-    "evidence": "yu_server/src/baby/pp_baby.erl:218-226;h5/src/commonController/BabyController.ts:401-416,613",
-    "note": "服务端点赞/逗弄 handle 整段注释，请求落入 no-match；老端接收壳不可达，不迁移。轮29复核。"
-  },
-  {
-    "cmd": 18218,
-    "reason": "old_client_unreachable",
-    "evidence": "h5/src/commonController/BabyController.ts:418-482,615(全 h5/src 仅 handler/注册，无 C2S 请求点)",
-    "note": "装备穿戴回包存在，但老端玩家路径没有发起 18218 的入口；按老端事实源不迁移。轮29复核。"
-  },
-  {
-    "cmd": 18219,
-    "reason": "old_client_unreachable",
-    "evidence": "h5/src/commonController/BabyController.ts:484-513,616(除红点枚举外无 C2S 请求点)",
-    "note": "装备锻造回包存在，但老端没有可达请求入口；按老端事实源不迁移。轮29复核。"
-  },
-  {
-    "cmd": 18220,
-    "reason": "old_client_unreachable",
-    "evidence": "h5/src/commonController/BabyController.ts:515-545,617,662-675(IMP_GOODS 绑定存在但全 h5/src 无触发点)",
-    "note": "装备注灵写包桥存在，但其唯一 IMP_GOODS 事件无任何 Fire 调用，玩家实际不可达；不迁移。轮29复核。"
-  },
-  {
-    "cmd": 18224,
-    "reason": "dead_server_call_site_commented",
-    "evidence": "yu_server/src/baby/mod_baby_mgr.erl:200-259;yu_server/src/baby/lib_baby.erl:668-696;yu_server/src/baby/pp_baby.erl:218-226",
-    "note": "被点赞推送的唯一调用链起点是已整段注释的 18217 handle；服务端无法进入 praise_player_baby 链，18224 实际不可达。轮29复核。"
   },
   {
     "cmd": 18300,
@@ -321,12 +273,6 @@
     "cmd": 19007,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/FriendController.ts:578",
-    "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
-  },
-  {
-    "cmd": 19501,
-    "reason": "dead_empty_body",
-    "evidence": "h5/src/commonController/FriendController.ts:666",
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
   {
@@ -664,12 +610,6 @@
     "reason": "old_client_never_wired",
     "evidence": "yu_server/src/guild_act/pp_guild_act.erl:254;老端 h5/src 全仓库 grep \"40219\" 零命中",
     "note": "是否能采集宴席奖励(轮22 PK3,S2 批复核)。server handle(40219,...)(:254)非注释,校验发奖条件。老端从未注册/发送,全仓库零命中。孤儿协议,与40210/40213/40215/40216 同属『个人奖励采集』被弃用子玩法。"
-  },
-  {
-    "cmd": 40230,
-    "reason": "old_client_unreachable",
-    "evidence": "h5/src/guild/GuildMainItem.ts:104-106(case10→ClickGuard),277-282(ClickGuard函数体整段注释)",
-    "note": "进入守卫公会(结社守卫副本,轮22 PK3 裁决2,note引#14)。维持工单 #14(2026-07-13)既有裁决:老端唯一入口 GuildMainItem.ClickGuard()(:277-282)函数体整段注释=死(仅剩注释掉的 DailyModel.GetAcCfg 判断与 Fire(OPEN_VIEW,'GuildGuardBaseView') 两行),main_func 配置(ConfigGuild.json 及 xianxia 变体)main_func 数组无 id=10(实测 ids=[1,3,4,5,8,9,11,12,13]),按钮不渲染;数据层零消费方(r13_oldguild §F 已存档九号字段表供将来复活)。服务端三层判定活(pp_guild_act.erl:284-303 handle(40230,[])非注释→mod_guild_guard:enter_act 真实进入副本,mod_guild_guard 进程 gsrv_server_base.erl:132 start_link 活)但不构成翻案理由——按第4层判定标准(老端UI可达性,轮22立,先例即本条#14)不移植。"
   },
   {
     "cmd": 40231,

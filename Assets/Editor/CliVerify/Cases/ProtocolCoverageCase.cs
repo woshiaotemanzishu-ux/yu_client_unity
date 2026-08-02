@@ -9,11 +9,12 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 协议覆盖率核验器(PG 包,第21轮/R547):六段断言 A-F,照 CliVerify.cs 既有惯例,日志前缀
+    /// 协议覆盖率核验器(PG 包,第21轮/R547-R548):七段断言 A-G,照 CliVerify.cs 既有惯例,日志前缀
     /// "CLIVERIFY protocolcoverage"。纯静态分析 + 一次运行时反射,不建 Stage/不渲染。
     ///
-    ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline;降了或有具体号消失都算红,打印消失的号。
-    ///   B 家族防倒退:逐前缀(协议号/100)已注册数不许降。
+    ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline；具体号消失默认算红，只有带 evidence 的
+    ///     killlist/硬负约束裁决可按号豁免，且打印全部消失号。
+    ///   B 家族防倒退:逐前缀(协议号/100)已注册数不许降；同一证据裁决号仅补偿所属家族。
     ///   C 完工家族零未申报(防虚假完工正主):baseline 里 status=="done" 的家族,其「活缺口」必须
     ///     整体落在 killlist.json 里(且每条 killlist 记录必须带非空 evidence,否则不算数)。
     ///     status=="legacy_unverified" 的家族缺口只进报告,不挂红(裁决3)。
@@ -24,6 +25,8 @@ namespace Shenxiao.EditorTools
     ///   F 硬负约束防复发:hard_negative_constraints.json 中的协议号不得重新出现为运行时注册、
     ///     源码静态注册或 Proto 常量；清单缺失、重复或无 evidence 同样挂红。它不改变活缺口与
     ///     killlist 口径，只把 AGENTS 的现行禁止边界变成机器门禁。
+    ///   G killlist 防复活:killlist 中的协议号不得拥有运行时 handler。允许 40218/62107 这类
+    ///     C2S-only 单向操作保留发送常量，但不存在的 S2C 回执不能再注册；清单重复也挂红。
     ///
     /// 收尾落 Reports/ProtocolCoverage/coverage_&lt;date&gt;.md + baseline.next.json(裁决5:
     /// 绝不自动覆盖 Schemas/ProtocolCoverage/baseline.json,基线上调必须人工确认后手动覆盖)。
@@ -45,12 +48,13 @@ namespace Shenxiao.EditorTools
                     ProtocolCoverageBaseline.LoadHardNegativeConstraints();
 
                 var outcome = new AssertionOutcome();
-                AssertA(scan, baseline, outcome);
-                AssertB(scan, baseline, outcome);
+                AssertA(scan, baseline, killlist, hardNegativeConstraints, outcome);
+                AssertB(scan, baseline, killlist, hardNegativeConstraints, outcome);
                 AssertC(scan, baseline, killlist, outcome);
                 AssertD(scan, outcome);
                 AssertE(scan, baseline, outcome);
                 AssertF(scan, hardNegativeConstraints, outcome);
+                AssertG(scan, killlist, outcome);
 
                 CoverageBaseline candidate = ProtocolCoverageBaseline.BuildCandidate(scan, ProtocolCoverageReport.DenominatorNote(scan));
                 string nextPath = ProtocolCoverageBaseline.WriteBaselineNext(candidate);
@@ -116,7 +120,12 @@ namespace Shenxiao.EditorTools
             System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "debug_oldall.txt"), sb.ToString());
         }
 
-        private static void AssertA(ProtocolCoverageScanner.ScanResult scan, CoverageBaseline baseline, AssertionOutcome outcome)
+        private static void AssertA(
+            ProtocolCoverageScanner.ScanResult scan,
+            CoverageBaseline baseline,
+            List<KillEntry> killlist,
+            List<HardNegativeConstraintEntry> hardNegativeConstraints,
+            AssertionOutcome outcome)
         {
             int cur = scan.UnityRegistered.Count;
             if (baseline == null)
@@ -126,20 +135,32 @@ namespace Shenxiao.EditorTools
             }
 
             int prev = baseline.TotalUnityRegistered;
-            List<int> missing = baseline.RegisteredCmds
+            HashSet<int> sanctionedRemovals = BuildSanctionedRemovalSet(killlist, hardNegativeConstraints);
+            List<int> allMissing = baseline.RegisteredCmds
                 .Where(c => !scan.UnityRegistered.Contains(c))
                 .OrderBy(c => c)
                 .ToList();
+            List<int> missing = allMissing.Where(c => !sanctionedRemovals.Contains(c)).ToList();
+            List<int> sanctionedMissing = allMissing.Where(sanctionedRemovals.Contains).ToList();
             bool pass = cur >= prev && missing.Count == 0;
             string detail = "当前" + cur + " vs baseline" + prev;
             if (missing.Count > 0)
             {
                 detail += ";消失的号(" + missing.Count + "):" + string.Join(",", missing.Take(50)) + (missing.Count > 50 ? "..." : "");
             }
+            if (sanctionedMissing.Count > 0)
+            {
+                detail += ";有证据裁决移除(" + sanctionedMissing.Count + "):" + string.Join(",", sanctionedMissing);
+            }
             outcome.Add("A总量防倒退", pass, detail);
         }
 
-        private static void AssertB(ProtocolCoverageScanner.ScanResult scan, CoverageBaseline baseline, AssertionOutcome outcome)
+        private static void AssertB(
+            ProtocolCoverageScanner.ScanResult scan,
+            CoverageBaseline baseline,
+            List<KillEntry> killlist,
+            List<HardNegativeConstraintEntry> hardNegativeConstraints,
+            AssertionOutcome outcome)
         {
             if (baseline == null)
             {
@@ -148,13 +169,44 @@ namespace Shenxiao.EditorTools
             }
 
             Dictionary<int, int> curFamilies = scan.BuildFamilyTable().ToDictionary(f => f.Prefix, f => f.UnityRegistered);
+            HashSet<int> sanctionedRemovals = BuildSanctionedRemovalSet(killlist, hardNegativeConstraints);
+            var sanctionedBaselineMissingByFamily = baseline.RegisteredCmds
+                .Where(c => sanctionedRemovals.Contains(c) && !scan.UnityRegistered.Contains(c))
+                .GroupBy(ProtocolCoverageScanner.ScanResult.Family)
+                .ToDictionary(g => g.Key, g => g.OrderBy(c => c).ToList());
             var regressed = new List<string>();
+            var compensated = new List<string>();
             foreach (FamilyBaseline fb in baseline.Families)
             {
                 int cur = curFamilies.TryGetValue(fb.Prefix, out int v) ? v : 0;
-                if (cur < fb.UnityRegistered) regressed.Add(fb.Prefix + ":" + cur + "<" + fb.UnityRegistered);
+                List<int> sanctioned = sanctionedBaselineMissingByFamily.TryGetValue(fb.Prefix, out List<int> cmds)
+                    ? cmds
+                    : new List<int>();
+                int effective = cur + sanctioned.Count;
+                if (effective < fb.UnityRegistered)
+                {
+                    regressed.Add(fb.Prefix + ":" + cur + "+裁决" + sanctioned.Count + "<" + fb.UnityRegistered);
+                }
+                else if (sanctioned.Count > 0)
+                {
+                    compensated.Add(fb.Prefix + "[" + string.Join(",", sanctioned) + "]");
+                }
             }
-            outcome.Add("B家族防倒退", regressed.Count == 0, regressed.Count == 0 ? "全部家族未降" : string.Join(";", regressed));
+            string detail = regressed.Count == 0 ? "全部家族未降" : string.Join(";", regressed);
+            if (compensated.Count > 0) detail += ";有证据裁决移除=" + string.Join(";", compensated);
+            outcome.Add("B家族防倒退", regressed.Count == 0, detail);
+        }
+
+        private static HashSet<int> BuildSanctionedRemovalSet(
+            IEnumerable<KillEntry> killlist,
+            IEnumerable<HardNegativeConstraintEntry> hardNegativeConstraints)
+        {
+            var result = new HashSet<int>(
+                killlist.Where(k => !string.IsNullOrWhiteSpace(k.Evidence)).Select(k => k.Cmd));
+            result.UnionWith(hardNegativeConstraints
+                .Where(k => !string.IsNullOrWhiteSpace(k.Evidence))
+                .Select(k => k.Cmd));
+            return result;
         }
 
         private static void AssertC(
@@ -269,6 +321,32 @@ namespace Shenxiao.EditorTools
             if (violations.Count > 0) details.Add("违规出现:" + string.Join(";", violations));
             if (pass) details.Add(constraints.Count + "条约束均无常量或注册");
             outcome.Add("F硬负约束防复发", pass, string.Join(";", details));
+        }
+
+        private static void AssertG(
+            ProtocolCoverageScanner.ScanResult scan,
+            List<KillEntry> killlist,
+            AssertionOutcome outcome)
+        {
+            List<int> duplicates = killlist
+                .GroupBy(k => k.Cmd)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .OrderBy(c => c)
+                .ToList();
+            List<int> registeredKill = killlist
+                .Select(k => k.Cmd)
+                .Distinct()
+                .Where(scan.UnityRegistered.Contains)
+                .OrderBy(c => c)
+                .ToList();
+
+            bool pass = duplicates.Count == 0 && registeredKill.Count == 0;
+            var details = new List<string>();
+            if (duplicates.Count > 0) details.Add("重复协议号:" + string.Join(",", duplicates));
+            if (registeredKill.Count > 0) details.Add("死号仍有运行时handler:" + string.Join(",", registeredKill));
+            if (pass) details.Add(killlist.Count + "条killlist与运行时注册零交集");
+            outcome.Add("G死号防复活", pass, string.Join(";", details));
         }
     }
 }

@@ -28,11 +28,6 @@ namespace Shenxiao.Module.Core.FunctionOpen
 
         public void SetState(int id, int state) => FinishState[id] = state;
 
-        public void AddNew(int id)
-        {
-            if (!FinishState.ContainsKey(id)) FinishState[id] = 0;
-        }
-
         public void Clear()
         {
             FinishState.Clear();

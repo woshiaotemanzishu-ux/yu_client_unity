@@ -8,8 +8,7 @@ namespace Shenxiao.Module.Core.FunctionOpen
     /// <summary>
     /// 功能开放达成奖励协议（对标老客户端 FunctionOpenController / yu_server pt_138）：
     ///   13800 已完成功能列表（h + {Id:h, State:c}×N）；
-    ///   13801 领奖结果（Code:i, Id:h, State:c）；
-    ///   13802 新功能开放推送（h + {Id:h}×N）。
+    ///   13801 领奖结果（Code:i, Id:h, State:c）。
     /// 解析落 <see cref="FunctionOpenModel"/> 并发 EVT_FUNC_OPEN_UPDATE；红点/领取 UI 待用户验收。
     /// </summary>
     public sealed class FunctionOpenController : BaseController
@@ -21,7 +20,6 @@ namespace Shenxiao.Module.Core.FunctionOpen
         {
             RegisterProtocal(Proto.FUNC_OPEN_LIST, On13800);
             RegisterProtocal(Proto.FUNC_OPEN_CLAIM, On13801);
-            RegisterProtocal(Proto.FUNC_OPEN_NEW, On13802);
         }
 
         /// <summary>请求已完成功能列表（无参，回 13800）。</summary>
@@ -62,16 +60,5 @@ namespace Shenxiao.Module.Core.FunctionOpen
             }
         }
 
-        private void On13802(NetReader r)
-        {
-            int count = r.ReadU16();
-            for (int i = 0; i < count; i++)
-            {
-                int id = r.ReadU16();
-                FunctionOpenModel.Instance.AddNew(id);
-            }
-            GameLog.Info("FuncOpen", "13802 新功能开放: {0} 项", count);
-            EventDispatcher.Emit(GlobalEvent.EVT_FUNC_OPEN_UPDATE);
-        }
     }
 }

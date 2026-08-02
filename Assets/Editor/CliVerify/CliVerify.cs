@@ -705,8 +705,8 @@ namespace Shenxiao.EditorTools
             Run(ListDuobaoCase.Run, 300.0);
         }
 
-        /// <summary>轮21/R547 协议覆盖率核验(防虚假完工与禁号复发):A总量防倒退/B家族防倒退/
-        /// C完工家族零未申报/D双注册/E族错误出口/F硬负约束。
+        /// <summary>轮21/R547-R548 协议覆盖率核验(防虚假完工与禁号复发):A总量防倒退/B家族防倒退/
+        /// C完工家族零未申报/D双注册/E族错误出口/F硬负约束/G死号防复活。
         /// 基线 Schemas/ProtocolCoverage/baseline.json,报告落 Reports/(已 gitignore)。</summary>
         public static void ProtocolCoverage()
         {

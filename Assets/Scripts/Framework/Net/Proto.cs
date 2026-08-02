@@ -479,8 +479,6 @@
         public const int FUNC_OPEN_LIST = 13800;
         /// <summary>领取功能开放奖励。发 "hc"(id, state);回包 Code:i, Id:h, State:c。</summary>
         public const int FUNC_OPEN_CLAIM = 13801;
-        /// <summary>新功能开放推送(S2C)。h + {Id:h}×N。</summary>
-        public const int FUNC_OPEN_NEW = 13802;
 
         // ----- 玩家信息(130xx,yu_server pt_130.erl)进游戏后服务端主动推送 -----
         /// <summary>主角全量信息(进游戏首推)。回包见 pt_130 write(13001):
@@ -631,9 +629,9 @@
         /// <summary>新邮件到达增量推送(S2C 主动,轮21 PF 补漏批;对标老端 FriendController.ts:546-551
         /// On19004 `_model.addEmail(scmd.mail_list)`——**与 19001 全量列表不同,是追加/upsert 语义**,新邮件
         /// 到达时(如 GM 邮件、任务完成邮件)服务端立即推送本号,不追加就永远进不了列表。回包 mail_list
-        /// [h + {MailId:l,Type:c,State:c,Title:s,IsAttach:c,Time:i,EffectEt:i}](字段同 19001/<see cref="MAIL_NEW"/>)。
+        /// [h + {MailId:l,Type:c,State:c,Title:s,IsAttach:c,Time:i,EffectEt:i}](字段同 19001)。
         /// 服务端唯一发送点 lib_mail.erl:172-186 `add_mail/2`,发完本号必紧跟着发一次 19008(HasUnread=true)。
-        /// 轮7 已发现此缺口并留 TODO(见 <see cref="MAIL_NEW"/> 旧注),本轮补齐。</summary>
+        /// 轮7 已发现此缺口并留 TODO，轮21补齐。</summary>
         public const int MAIL_ADD_PUSH = 19004;
         /// <summary>批量领取附件(自动循环 轮7)。**手写变长包**同 <see cref="MAIL_DELETE"/> 结构;
         /// 回包 ErrorCode:i + MailIds[h+{MailId:l}] + Reward(ObjectList,老端 CongratulationObtainView 展示用)。
@@ -644,13 +642,6 @@
         /// 服务端 check_send_guild_mail_on_server 当前版本硬编码恒返回 not_open(lib_mail.erl:741-742),
         /// 功能实际不可用;UI 归属公会模块(GuildMailView),本轮只补 API,TODO 见汇报。</summary>
         public const int MAIL_GUILD_SEND = 19006;
-        /// <summary>⚠命名历史遗留,非推送:服务端 19007 实为"取单条邮件基本信息"C2S 请求/回(read MailId:l,
-        /// pp_mail.erl:83-92 `handle(19007,PS,[MailId])`),回包字段同列表项(同 <see cref="MAIL_NEW"/> 自身
-        /// 即字段,非推送触发)。**老端从未发送该号**(FriendController.ts 全仓库零 SendFmtToGame(19007,...)
-        /// 调用点,只注册了空 On19007),故对老端而言恒不可达。真正的"新邮件到达"推送号是
-        /// <see cref="MAIL_ADD_PUSH"/>(19004),轮21 已补齐。本号既有 handler 保留(防御性,若未来真被请求触发
-        /// 仍可正确落地单条数据),不提供发送 API。</summary>
-        public const int MAIL_NEW = 19007;
         /// <summary>是否有未读邮件(S2C "c")。</summary>
         public const int MAIL_UNREAD = 19008;
         /// <summary>可发邮件剩余次数(S2C "c")。服务端 pp_mail.erl:98-104 handle(19009,...) 整段被注释——
@@ -3523,8 +3514,6 @@
         public const int CUSTOM_ACT_LUCTREA_PANEL = 33213;        // Pool=Obj[],ErrorCode 在**末尾**
         public const int CUSTOM_ACT_LUCTREA_DRAW = 33214;
         public const int CUSTOM_ACT_FORTUNECAT_INFO = 33224;
-        public const int CUSTOM_ACT_FORTUNECAT_DRAW = 33225;
-        public const int CUSTOM_ACT_FORTUNECAT_RECORD = 33226;
         public const int CUSTOM_ACT_BINDJAGE_INFO = 33260;        // 心愿单信息
         public const int CUSTOM_ACT_BINDJAGE_DRAW = 33262;        // Errcode 末尾
         public const int CUSTOM_ACT_BINDJAGE_FREEGIFT = 33263;    // Errcode 末尾

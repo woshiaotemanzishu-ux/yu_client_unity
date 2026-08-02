@@ -7,12 +7,12 @@ namespace Shenxiao.EditorTools
 {
     /// <summary>
     /// P3 抽奖B(自动循环 轮17,spec §4,14号)实证:GASHAPON(103) 33245/33246、LUC_TREA_TWO(102) 33243/33244、
-    /// ONLINE_DRAW(81) 33217/33266、LUC_TREA(80) 33213/33214、FORTUNECAT(87) 33224/33225/33226、
+    /// ONLINE_DRAW(81) 33217/33266、LUC_TREA(80) 33213/33214、FORTUNECAT(87) 33224、
     /// BIND_JAGE_WISH(127) 33260/33262/33263。合成包驱动 CustomActivityController 反射喂包,断言
     /// CustomActivityModel 落地字段/事件(模板 CustomActCoreCase/MarriageCase)。
     ///
     /// 每号覆盖:成功包(落 Model + 事件)+ 失败/边界包(ShowError 降级,Model 不被覆盖,事件仍发,no-throw)。
-    /// 嵌套数组段(33214 item_to_bin_6 嵌套三元组、33224 双数组、33226 双记录列表)额外断言游标读完
+    /// 嵌套数组段(33214 item_to_bin_6 嵌套三元组、33224 双数组)额外断言游标读完
     /// (count + 末条探针),证明 NetReader 没有因为字段顺序错读而错位。
     /// </summary>
     public static class CustomActLotteryBCase
@@ -48,7 +48,7 @@ namespace Shenxiao.EditorTools
                     }
                 }
 
-                // ---- 0. 注册线核实(NetManager._handlers 全 14 号都真挂上,不仅仅是反射能调到方法体) ----
+                // ---- 0. 注册线核实：12个活号挂上，33225/33226常量、handler与注册均不存在 ----
                 var baseCtrl = (Shenxiao.Framework.Net.BaseController)ctrl;
                 if (!baseCtrl.IsInitialized) baseCtrl.Init();
                 FieldInfo handlersField = typeof(Shenxiao.Framework.Net.NetManager).GetField("_handlers", BindingFlags.NonPublic | BindingFlags.Static);
@@ -59,8 +59,7 @@ namespace Shenxiao.EditorTools
                     Shenxiao.Framework.Net.Proto.CUSTOM_ACT_LUCTREA2_PANEL, Shenxiao.Framework.Net.Proto.CUSTOM_ACT_LUCTREA2_DRAW,
                     Shenxiao.Framework.Net.Proto.CUSTOM_ACT_ONLINEDRAW_PANEL, Shenxiao.Framework.Net.Proto.CUSTOM_ACT_ONLINEDRAW_GOODS_POWER,
                     Shenxiao.Framework.Net.Proto.CUSTOM_ACT_LUCTREA_PANEL, Shenxiao.Framework.Net.Proto.CUSTOM_ACT_LUCTREA_DRAW,
-                    Shenxiao.Framework.Net.Proto.CUSTOM_ACT_FORTUNECAT_INFO, Shenxiao.Framework.Net.Proto.CUSTOM_ACT_FORTUNECAT_DRAW,
-                    Shenxiao.Framework.Net.Proto.CUSTOM_ACT_FORTUNECAT_RECORD, Shenxiao.Framework.Net.Proto.CUSTOM_ACT_BINDJAGE_INFO,
+                    Shenxiao.Framework.Net.Proto.CUSTOM_ACT_FORTUNECAT_INFO, Shenxiao.Framework.Net.Proto.CUSTOM_ACT_BINDJAGE_INFO,
                     Shenxiao.Framework.Net.Proto.CUSTOM_ACT_BINDJAGE_DRAW, Shenxiao.Framework.Net.Proto.CUSTOM_ACT_BINDJAGE_FREEGIFT,
                 };
                 bool bRegistered = handlers != null;
@@ -72,7 +71,13 @@ namespace Shenxiao.EditorTools
                         if (!handlers.Contains(id)) { bRegistered = false; missingReg.Add(id); }
                     }
                 }
-                Debug.Log("CLIVERIFY customact_lotteryB 注册线核实 missing=[" + string.Join(",", missingReg) + "] ok=" + bRegistered);
+                bool dead33225_33226Absent = handlers != null && !handlers.Contains(33225) && !handlers.Contains(33226)
+                    && t.GetMethod("On33225", F) == null && t.GetMethod("On33226", F) == null
+                    && typeof(Shenxiao.Framework.Net.Proto).GetField("CUSTOM_ACT_FORTUNECAT_DRAW") == null
+                    && typeof(Shenxiao.Framework.Net.Proto).GetField("CUSTOM_ACT_FORTUNECAT_RECORD") == null;
+                bRegistered &= dead33225_33226Absent;
+                Debug.Log("CLIVERIFY customact_lotteryB 注册线核实 missing=[" + string.Join(",", missingReg)
+                    + "] dead33225_33226Absent=" + dead33225_33226Absent + " ok=" + bRegistered);
 
                 int detailN = 0, resultN = 0; int lastResultCode = 0;
                 System.Action<int, int> onDetail = (b, s) => detailN++;
@@ -196,8 +201,7 @@ namespace Shenxiao.EditorTools
                 bool b33214 = b33214ok && b33214fail;
                 Debug.Log("CLIVERIFY customact_lotteryB 33214 幸运抽奖抽奖(嵌套item_to_bin_6) ok=" + b33214ok + " failNotOverwrite=" + b33214fail + " pass=" + b33214);
 
-                // ---- E. FORTUNECAT(87):33224 信息(无 ErrorCode,RewardId:64,双数组)/ 33225 转盘(ErrorCode 开头,
-                // 纯标量)/ 33226 转盘记录(无 ErrorCode,双记录列表) ----
+                // ---- E. FORTUNECAT(87):仅33224信息；33225/33226已按killlist彻底移除 ----
                 byte[] p33224 = new CliVerify.Pkt().H(87).H(5).I(50).I(8001).I(2)
                     .H(1).I(10).I(100).I(1).L(999999999999L)
                     .H(2).H(1).I(8100).I(1).C(1).H(2).I(8200).I(2).C(0)
@@ -210,36 +214,12 @@ namespace Shenxiao.EditorTools
                 Debug.Log("CLIVERIFY customact_lotteryB 33224 招财猫信息(RewardId:64+双数组) roundsN=" + (fcInfo?.RoundsList.Count ?? -1)
                     + " rewardN=" + (fcInfo?.RewardList.Count ?? -1) + " ok=" + b33224);
 
-                byte[] p33225ok = new CliVerify.Pkt().I(1).H(87).H(5).H(3).I(8300).I(1).Bytes();
-                Feed("On33225", p33225ok);
-                var draw225ok = model.GetFortunecatDrawResult(87, 5);
-                bool b33225ok = draw225ok != null && draw225ok.GoodsId == 8300;
-                byte[] p33225fail = new CliVerify.Pkt().I(1720007).H(87).H(5).H(0).I(0).I(0).Bytes();
-                Feed("On33225", p33225fail);
-                var draw225fail = model.GetFortunecatDrawResult(87, 5);
-                bool b33225fail = draw225fail != null && draw225fail.GoodsId == 8300; // 失败不覆盖
-                bool b33225 = b33225ok && b33225fail;
-                Debug.Log("CLIVERIFY customact_lotteryB 33225 招财猫转盘 ok=" + b33225ok + " failNotOverwrite=" + b33225fail + " pass=" + b33225);
-
-                byte[] p33226 = new CliVerify.Pkt().H(87).H(5)
-                    .H(1).L(111).S("自己").I(8400).I(1)
-                    .H(2).L(222).S("全服甲").I(8500).I(2).L(333).S("全服乙").I(8600).I(3)
-                    .Bytes();
-                Feed("On33226", p33226);
-                var fcRecord = model.GetFortunecatRecord(87, 5);
-                bool b33226 = fcRecord != null && fcRecord.SelfList.Count == 1 && fcRecord.GolbList.Count == 2
-                    && fcRecord.GolbList[1].RoleName == "全服乙" && fcRecord.SelfList[0].RoleName == "自己";
-                Debug.Log("CLIVERIFY customact_lotteryB 33226 招财猫转盘记录(双列表) selfN=" + (fcRecord?.SelfList.Count ?? -1)
-                    + " golbN=" + (fcRecord?.GolbList.Count ?? -1) + " ok=" + b33226);
-
-                // 33225/33226 死活口径订正(自动循环 轮17三镜头验收):老端 On33225/On33226 函数体整段注释+
-                // 全仓零发送调用点=客户端侧死号(服务端 handle 仍活,pp_custom_act_list.erl:252/261)。反射断言
-                // 两号均无公开 Request 方法(仿 CustomActBizCase noSend33251/noSend33257 先例),喂包防御断言
-                // (b33225/b33226,已在上方)保留不动。
+                // 两号也不得残留公开发送方法。
                 bool noSend33225 = t.GetMethod("RequestFortunecatDraw", PF) == null;
                 bool noSend33226 = t.GetMethod("RequestFortunecatRecord", PF) == null;
-                bool bDead33225_33226 = noSend33225 && noSend33226;
-                Debug.Log("CLIVERIFY customact_lotteryB 33225/33226 死号防御 noSend33225=" + noSend33225 + " noSend33226=" + noSend33226 + " ok=" + bDead33225_33226);
+                bool bDead33225_33226 = dead33225_33226Absent && noSend33225 && noSend33226;
+                Debug.Log("CLIVERIFY customact_lotteryB 33225/33226 死号彻底排除 noSend33225=" + noSend33225
+                    + " noSend33226=" + noSend33226 + " ok=" + bDead33225_33226);
 
                 // ---- F. BIND_JAGE_WISH(127):33260 信息(无 ErrorCode)/ 33262 开抽(ErrorCode 末尾)/
                 // 33263 免费礼(ErrorCode 末尾) ----
@@ -273,10 +253,10 @@ namespace Shenxiao.EditorTools
 
                 Shenxiao.Framework.Event.EventDispatcher.Off(Shenxiao.Framework.Event.GlobalEvent.EVT_CUSTOMACT_DETAIL_UPDATE, onDetail);
                 Shenxiao.Framework.Event.EventDispatcher.Off(Shenxiao.Framework.Event.GlobalEvent.EVT_CUSTOMACT_RESULT, onResult);
-                bool bEvents = detailN >= 7 && resultN >= 12; // 7 个纯信息号(含33217成功+失败共2次)+ 12 次成败操作回执
+                bool bEvents = detailN >= 8 && resultN >= 12;
                 Debug.Log("CLIVERIFY customact_lotteryB 事件计数 detailN=" + detailN + " resultN=" + resultN + " lastResultCode=" + lastResultCode + " ok=" + bEvents);
 
-                // ---- G. 公开发送方法存在且 no-throw(反射校验 + 直接调用,12 组;33225/33226 已改死号见上方) ----
+                // ---- G. 公开发送方法存在且 no-throw(12组；33225/33226死号不在其中) ----
                 string[] sendMethods =
                 {
                     "RequestGashaponInfo", "RequestGashaponDraw", "RequestLuctrea2Info", "RequestLuctrea2Draw",
@@ -312,13 +292,13 @@ namespace Shenxiao.EditorTools
                 Debug.Log("CLIVERIFY customact_lotteryB 12组发送方法 missing=[" + string.Join(",", missingSend) + "] noThrow=" + sendNoThrow + " ok=" + bSend);
 
                 bool pass = !anyThrew && bRegistered && b33245 && b33246 && b33243 && b33244 && b33217 && b33266
-                    && b33213 && b33214 && b33224 && b33225 && b33226 && b33260 && b33262 && b33263 && bEvents
+                    && b33213 && b33214 && b33224 && b33260 && b33262 && b33263 && bEvents
                     && bDead33225_33226 && bSend;
 
                 Debug.Log("CLIVERIFY customact_lotteryB VERDICT registered=" + bRegistered
                     + " 33245=" + b33245 + " 33246=" + b33246 + " 33243=" + b33243 + " 33244=" + b33244
                     + " 33217=" + b33217 + " 33266=" + b33266 + " 33213=" + b33213 + " 33214=" + b33214
-                    + " 33224=" + b33224 + " 33225=" + b33225 + " 33226=" + b33226
+                    + " 33224=" + b33224 + " dead33225_33226=" + bDead33225_33226
                     + " 33260=" + b33260 + " 33262=" + b33262 + " 33263=" + b33263
                     + " events=" + bEvents + " sendApi=" + bSend + " anyThrew=" + anyThrew + " pass=" + pass);
 

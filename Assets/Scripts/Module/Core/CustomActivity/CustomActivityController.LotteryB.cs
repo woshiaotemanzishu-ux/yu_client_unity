@@ -7,7 +7,7 @@ namespace Shenxiao.Module.Core.CustomActivity
 {
     /// <summary>
     /// P3 抽奖B(自动循环 轮17,spec §4,14号):GASHAPON(103) 33245/33246、LUC_TREA_TWO(102) 33243/33244、
-    /// ONLINE_DRAW(81) 33217/33266、LUC_TREA(80) 33213/33214、FORTUNECAT(87) 33224/33225/33226、
+    /// ONLINE_DRAW(81) 33217/33266、LUC_TREA(80) 33213/33214、FORTUNECAT(87) 33224、
     /// BIND_JAGE_WISH(127) 33260/33262/33263。数据落 CustomActivityModel.LotteryB.cs。
     ///
     /// wire 全部逐字段回 yu_server\src\pt\pt_332.erl 原文核对(read/2 与 write/2 两侧,含 item_to_bin_N 辅助
@@ -38,8 +38,6 @@ namespace Shenxiao.Module.Core.CustomActivity
             RegisterProtocal(Proto.CUSTOM_ACT_LUCTREA_PANEL, On33213);
             RegisterProtocal(Proto.CUSTOM_ACT_LUCTREA_DRAW, On33214);
             RegisterProtocal(Proto.CUSTOM_ACT_FORTUNECAT_INFO, On33224);
-            RegisterProtocal(Proto.CUSTOM_ACT_FORTUNECAT_DRAW, On33225);
-            RegisterProtocal(Proto.CUSTOM_ACT_FORTUNECAT_RECORD, On33226);
             RegisterProtocal(Proto.CUSTOM_ACT_BINDJAGE_INFO, On33260);
             RegisterProtocal(Proto.CUSTOM_ACT_BINDJAGE_DRAW, On33262);
             RegisterProtocal(Proto.CUSTOM_ACT_BINDJAGE_FREEGIFT, On33263);
@@ -227,15 +225,13 @@ namespace Shenxiao.Module.Core.CustomActivity
         }
 
         // ---------------------------------------------------------------------------------------
-        // FORTUNECAT(87):33224 信息(无 ErrorCode,RewardId:64)/ 33225 转盘抽奖(ErrorCode 开头,纯标量无数组)/
-        // 33226 转盘记录(无 ErrorCode)。pt_332.erl write 33224:717-749 / 33225:751-767 / 33226:769-795
-        // (item_to_bin_16/17/18/19)。
+        // FORTUNECAT(87):33224 信息(无 ErrorCode,RewardId:64)。pt_332.erl write 33224:717-749
+        // (item_to_bin_16/17)。
         // **33225/33226 死活口径订正**(自动循环 轮17三镜头验收):老端 On33225/On33226(ts:2267-2282)函数体
         // 整段被注释掉(连 GetSCMD 都没调),且全仓 grep `SCMD_REQUEST, *3322[56]` 零命中——C2S 客户端侧
         // 彻底死(老端不发送、收到也不处理)。但服务端 handle(33225)/handle(33226) 仍活着
         // (pp_custom_act_list.erl:252/261),不是协议本身失效。按"死活以老端客户端为准"的项目铁律,这两号
-        // 属死号:本文件删除对应的公开 RequestFortunecatDraw/RequestFortunecatRecord 发送方法,只保留
-        // On33225/On33226 防御性 recv(万一服务端主动推送,安全解析落地不崩,但客户端从不主动索取)。
+        // 属死号:R548进一步删除Proto常量、运行时注册、handler与raw模型，避免防御性接收壳伪装成协议覆盖。
         // 33224 仍活(老端 On33224 有完整实现且被 RequestActDetail ACT_ID_FORTUNECAT 分支自动追发),不动。
         // ---------------------------------------------------------------------------------------
 
@@ -259,40 +255,6 @@ namespace Shenxiao.Module.Core.CustomActivity
             GameLog.Info("CustomActivity", "33224 招财猫信息 base={0} sub={1} roundsN={2} rewardN={3}",
                 info.BaseType, info.SubType, info.RoundsList.Count, info.RewardList.Count);
         }
-
-        /// <summary>**recv-only 防御**(死号,见本文件 §FORTUNECAT 头注释死活口径订正):老端从不发送 33225,
-        /// 这里仅安全解析防御万一的服务端主动推送,不提供 Request 方法。</summary>
-        private void On33225(NetReader r)
-        {
-            var result = new CustomActivityModel.FortunecatDrawResult
-            {
-                Code = r.ReadI32(), BaseType = r.ReadU16(), SubType = r.ReadU16(),
-                GradeId = r.ReadU16(), GoodsId = r.ReadI32(), GoodsNum = r.ReadI32(),
-            };
-            if (result.Code == 1) CustomActivityModel.Instance.SetFortunecatDrawResult(result);
-            else ShowError(result.Code);
-            EventDispatcher.Emit(GlobalEvent.EVT_CUSTOMACT_RESULT, result.BaseType, result.SubType, result.Code);
-            GameLog.Info("CustomActivity", "33225 招财猫转盘 code={0} base={1} sub={2} gradeId={3} goodsId={4} goodsNum={5}",
-                result.Code, result.BaseType, result.SubType, result.GradeId, result.GoodsId, result.GoodsNum);
-        }
-
-        /// <summary>**recv-only 防御**(死号,见本文件 §FORTUNECAT 头注释死活口径订正):老端从不发送 33226,
-        /// 这里仅安全解析防御万一的服务端主动推送,不提供 Request 方法。</summary>
-        private void On33226(NetReader r)
-        {
-            var record = new CustomActivityModel.FortunecatRecord { BaseType = r.ReadU16(), SubType = r.ReadU16() };
-            record.SelfList.AddRange(r.ReadArray(ReadFortunecatRecordEntry));
-            record.GolbList.AddRange(r.ReadArray(ReadFortunecatRecordEntry));
-            CustomActivityModel.Instance.SetFortunecatRecord(record);
-            EventDispatcher.Emit(GlobalEvent.EVT_CUSTOMACT_DETAIL_UPDATE, record.BaseType, record.SubType);
-            GameLog.Info("CustomActivity", "33226 招财猫转盘记录 base={0} sub={1} selfN={2} golbN={3}",
-                record.BaseType, record.SubType, record.SelfList.Count, record.GolbList.Count);
-        }
-
-        private static CustomActivityModel.FortunecatRecordEntry ReadFortunecatRecordEntry(NetReader r) => new CustomActivityModel.FortunecatRecordEntry
-        {
-            RoleId = r.ReadU64(), RoleName = r.ReadString(), GoodsId = r.ReadI32(), GoodsNum = r.ReadI32(),
-        };
 
         // ---------------------------------------------------------------------------------------
         // BIND_JAGE_WISH(127):33260 心愿单信息(无 ErrorCode)/ 33262 开抽(ErrorCode 末尾)/
@@ -375,8 +337,7 @@ namespace Shenxiao.Module.Core.CustomActivity
         public void RequestFortunecatInfo(int baseType, int subType, int isNext) =>
             SendFmt(Proto.CUSTOM_ACT_FORTUNECAT_INFO, "hhc", baseType, subType, isNext);
 
-        // 33225(RequestFortunecatDraw)/33226(RequestFortunecatRecord)严禁提供发送方法——死号,见本文件
-        // §FORTUNECAT 头注释死活口径订正(老端 On33225/On33226 函数体整段注释+全仓零发送调用点)。
+        // 33225/33226 为死号：严禁恢复发送方法、Proto常量、handler或raw模型。
 
         public void RequestBindJageInfo(int type, int subtype) => SendFmt(Proto.CUSTOM_ACT_BINDJAGE_INFO, "hh", type, subtype);
 
