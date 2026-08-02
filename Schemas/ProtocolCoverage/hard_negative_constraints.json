@@ -192,6 +192,36 @@
     "note": "商店查询虽只读，但原产品边界未改写前禁止恢复。"
   },
   {
+    "cmd": 45001,
+    "rule": "R520/R576 VIP level reward claim boundary",
+    "evidence": "AGENTS.md:R576 VIP 45001/45002/45003/45007/45008写事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R576",
+    "note": "45001按VIP等级校验并写已领取列表，可能扣奖励成本后真实发奖；服务器当前先落领取DB再校验成本，Unity缺配置、确认、资产/称号和异常顺序闭环，禁止孤立常量、sender或res ACK。"
+  },
+  {
+    "cmd": 45002,
+    "rule": "R520/R576 VIP weekly reward claim boundary",
+    "evidence": "AGENTS.md:R576 VIP 45001/45002/45003/45007/45008写事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R576",
+    "note": "45002校验VIP周礼包资格、写周领取DB并真实发奖；Unity只有45000/04/05/06读侧与通知raw，禁止孤立常量、sender、成功Toast或本地奖励。"
+  },
+  {
+    "cmd": 45003,
+    "rule": "R520/R576 VIP privilege-card purchase boundary",
+    "evidence": "AGENTS.md:R576 VIP 45001/45002/45003/45007/45008写事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R576",
+    "note": "45003会扣勾玉、启用特权卡、事务写卡/VIP等级经验/周奖励状态并派发购买事件和首次权益；禁止孤立常量、sender、res ACK、乐观扣费或本地激活。"
+  },
+  {
+    "cmd": 45007,
+    "rule": "R520/R576 VIP free-card claim boundary",
+    "evidence": "AGENTS.md:R576 VIP 45001/45002/45003/45007/45008写事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R576",
+    "note": "45007校验免费卡资格后启用卡片，事务写卡/VIP等级经验/周奖励和免费领取状态并派发事件；Unity缺免费卡配置、条件、状态和场景权益闭环，禁止孤立常量、sender或ACK。"
+  },
+  {
+    "cmd": 45008,
+    "rule": "R520/R576 VIP visibility state transaction boundary",
+    "evidence": "AGENTS.md:R576 VIP 45001/45002/45003/45007/45008写事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R576",
+    "note": "45008会写vip_hide DB、角色figure、场景代理与12010广播并更新角色展示；Unity缺设置入口和场景角色消费者，禁止孤立常量、sender、回显handler或本地隐藏补丁。"
+  },
+  {
     "cmd": 50704,
     "rule": "R533/R574 KfSingleRank daily reward claim boundary",
     "evidence": "AGENTS.md:R574 50704/15804/22704/33304/41502奖励购买事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R574",
