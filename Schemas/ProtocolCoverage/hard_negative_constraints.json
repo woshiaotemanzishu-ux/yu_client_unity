@@ -42,6 +42,12 @@
     "note": "15222会降级套装、写DB、重算属性并真实返物/邮件，且换装不兼容时可由服务端主动下发；必须与共鸣模型、背包/邮件、预览确认和主动还原消费一起接，禁止孤立常量、sender或raw handler。"
   },
   {
+    "cmd": 16401,
+    "rule": "R112/R573 Reincarnation awakening activation boundary",
+    "evidence": "AGENTS.md:R573 16401/50902/51102/62202资产事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R573",
+    "note": "16401会优先扣配置物品、否则扣角色经验，持久化命格、重算属性并推进任务；Unity仅有16400激活列表地基，禁止孤立常量、sender、code ACK或乐观点亮。"
+  },
+  {
     "cmd": 18905,
     "rule": "R179/R545 BrightSea operation boundary",
     "evidence": "AGENTS.md:R545 BrightSea 18905纠偏",
@@ -136,6 +142,24 @@
     "rule": "R155/R546 Adventure shop boundary",
     "evidence": "AGENTS.md:R546 Adventure 42704纠偏",
     "note": "商店查询虽只读，但原产品边界未改写前禁止恢复。"
+  },
+  {
+    "cmd": 50902,
+    "rule": "R122/R573 Demon rotary asset transaction boundary",
+    "evidence": "AGENTS.md:R573 16401/50902/51102/62202资产事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R573",
+    "note": "50902会按普通/高级和1/10次真实扣费、生成随机奖励、持久化祝福值/累计次数并发奖或邮件；Unity只有50901祝福值地基，禁止孤立常量、sender、奖励ACK或本地资产推演。"
+  },
+  {
+    "cmd": 51102,
+    "rule": "R116/R573 Mask cancellation state transaction boundary",
+    "evidence": "AGENTS.md:R573 16401/50902/51102/62202资产事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R573",
+    "note": "51102严格空请求会取消计时、写DB、清角色mask_id、更新场景并广播外观和派发装备事件；Unity只有51101状态地基，禁止孤立常量、sender或0/0结果handler。"
+  },
+  {
+    "cmd": 62202,
+    "rule": "R494/R573 Draconic strengthen asset transaction boundary",
+    "evidence": "AGENTS.md:R573 16401/50902/51102/62202资产事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R573",
+    "note": "62202会消耗龙语币、事务写强化等级、通知物品并重算属性；自动强化可能部分成功后才结束，失败走62200。Unity读侧没有强化业务闭环，禁止孤立常量、sender、最终等级handler或乐观扣币。"
   },
   {
     "cmd": 65206,
