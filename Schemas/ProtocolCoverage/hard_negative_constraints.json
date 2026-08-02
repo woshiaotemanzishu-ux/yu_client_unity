@@ -852,6 +852,42 @@
     "note": "41502会消费免费次数或货币、更新日计数/祈愿DB、随机暴击发资源并触发活动/成就/嗨点事件；Unity只有显式41501快照，禁止孤立常量、sender或奖励raw。"
   },
   {
+    "cmd": 41604,
+    "rule": "R495/R615 RuneTreasure draw cost random reward boundary",
+    "evidence": "AGENTS.md:R615 RuneTreasure 41604/41605/41606/41607/41609/41622资产事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R615",
+    "note": "41604按寻宝类型/次数消费免费次数或真实道具且可自动补购，服务端随机/保底、持久化次数幸运值和阶段态，并把奖励发到寻宝背包或通过背包/邮件发放；禁止孤立sender、客户端随机、乐观扣费或按结果清单二次发奖。"
+  },
+  {
+    "cmd": 41605,
+    "rule": "R495/R615 RuneTreasure single-instance inventory move boundary",
+    "evidence": "AGENTS.md:R615 RuneTreasure 41604/41605/41606/41607/41609/41622资产事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R615",
+    "note": "41605按goods_id/from_pos/to_pos事务移动寻宝背包真实实例到物品配置对应容器，回数量和类型仅供提示；缺实例、容量和背包通知闭环时禁止sender、echo handler或乐观移物。"
+  },
+  {
+    "cmd": 41606,
+    "rule": "R495/R615 RuneTreasure bulk inventory move boundary",
+    "evidence": "AGENTS.md:R615 RuneTreasure 41604/41605/41606/41607/41609/41622资产事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R615",
+    "note": "41606严格空请求会校验容量并把寻宝容器全部真实实例移到各自配置的原始背包，返回物品摘要用于展示；禁止裸sender、局部清容器、按摘要重新加物或忽略失败时的原状态。"
+  },
+  {
+    "cmd": 41607,
+    "rule": "R495/R615 RuneTreasure rune stage reward boundary",
+    "evidence": "AGENTS.md:R615 RuneTreasure 41604/41605/41606/41607/41609/41622资产事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R615",
+    "note": "41607按stage校验符文寻宝可领态，通过背包或邮件真实发奖、持久化已领状态并可能推进下一轮；成功包只有ObjectList，失败走41600。禁止孤立sender/handler、乐观领态或二次发奖。"
+  },
+  {
+    "cmd": 41609,
+    "rule": "R495/R615 RuneTreasure score exchange asset boundary",
+    "evidence": "AGENTS.md:R615 RuneTreasure 41604/41605/41606/41607/41609/41622资产事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R615",
+    "note": "41609按shop_id与等级配置真实扣寻宝积分并发放商品奖励，回code与绝对剩余score；缺商城配置、积分权威和背包对账时禁止sender、乐观扣分或按配置本地发奖。"
+  },
+  {
+    "cmd": 41622,
+    "rule": "R495/R615 RuneTreasure task reward persistence boundary",
+    "evidence": "AGENTS.md:R615 RuneTreasure 41604/41605/41606/41607/41609/41622资产事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R615",
+    "note": "41622按htype/task_id校验完成态，先持久化任务state=2再真实发奖，回任务绝对字段和ObjectList；旧端成功重查41620。禁止孤立sender/ACK、乐观领态或按结果清单二次发奖。"
+  },
+  {
     "cmd": 42002,
     "rule": "R150/R472/R598 Kaifu investment purchase and payment boundary",
     "evidence": "AGENTS.md:R598 Kaifu 42002/42003投资购买与领奖边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R598",
