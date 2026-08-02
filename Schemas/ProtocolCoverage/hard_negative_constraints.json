@@ -696,6 +696,42 @@
     "note": "天启错误出口晚增量已撤销。"
   },
   {
+    "cmd": 28601,
+    "rule": "R123/R137/R539/R613 Revelation equip and figure cascade boundary",
+    "evidence": "AGENTS.md:R613 Revelation 28601/28602/28603/28604/28605/28607装备养成与外形边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R613",
+    "note": "28601事务移动真实装备实例并可能替换旧装，重算套装/属性/被动技能；新套装形象还会自动穿戴、脱其它时装并广播场景/公会。Unity降级页缺完整容器、配置和外形链，禁止孤立sender/ACK或乐观换装。"
+  },
+  {
+    "cmd": 28602,
+    "rule": "R123/R137/R539/R613 Revelation unequip inventory boundary",
+    "evidence": "AGENTS.md:R613 Revelation 28601/28602/28603/28604/28605/28607装备养成与外形边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R613",
+    "note": "28602事务把穿戴实例移回其默认背包，更新容器/套装属性、人物属性与被动技能并推28606权威总览；缺背包容量、实例和技能对账时禁止sender、结果handler或本地搬物。"
+  },
+  {
+    "cmd": 28603,
+    "rule": "R123/R137/R539/R613 Revelation devour destructive asset boundary",
+    "evidence": "AGENTS.md:R613 Revelation 28601/28602/28603/28604/28605/28607装备养成与外形边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R613",
+    "note": "28603按pos:u8与u64实例表批量删除服务端找到的真实物品，再按配置折算经验并持久化聚灵槽；服务端前置只校验pos和实例存在，客户端选择过滤不可缺失。禁止裸数组sender、乐观删物或只缓存lv/exp结果。"
+  },
+  {
+    "cmd": 28604,
+    "rule": "R123/R137/R539/R613 Revelation gathering level and attribute boundary",
+    "evidence": "AGENTS.md:R613 Revelation 28601/28602/28603/28604/28605/28607装备养成与外形边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R613",
+    "note": "28604消耗已存聚灵经验、写槽位等级/余量DB，重算人物属性和战力并同步场景；旧端成功还重查28606。Unity缺聚灵配置和完整页面，禁止孤立sender、局部lv/exp补丁或自动连升。"
+  },
+  {
+    "cmd": 28605,
+    "rule": "R123/R137/R539/R613 Revelation passive-skill scene boundary",
+    "evidence": "AGENTS.md:R613 Revelation 28601/28602/28603/28604/28605/28607装备养成与外形边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R613",
+    "note": "28605按最低聚灵等级配置提升并持久化被动技能，重算属性/战力，删除旧场景技能后加入新技能；旧端成功重查28606。缺技能配置、有效槽位和场景技能所有权时禁止sender/ACK或本地升技。"
+  },
+  {
+    "cmd": 28607,
+    "rule": "R123/R137/R539/R613 Revelation appearance persistence boundary",
+    "evidence": "AGENTS.md:R613 Revelation 28601/28602/28603/28604/28605/28607装备养成与外形边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R613",
+    "note": "28607校验已解锁形象后写current_figure，更新figure/revelation_suit并同步场景代理、角色展示、周围广播和公会成员；Unity缺形象资源与主角/他人消费者，禁止孤立sender、raw结果或乐观换形。"
+  },
+  {
     "cmd": 33304,
     "rule": "R474/R574 HotPoint reward claim boundary",
     "evidence": "AGENTS.md:R574 50704/15804/22704/33304/41502奖励购买事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R574",
