@@ -18,6 +18,12 @@
     "note": "结算包须等待完整结算UI、场景退出和奖励消费链。"
   },
   {
+    "cmd": 15028,
+    "rule": "R519/R569 Goods compose transaction boundary",
+    "evidence": "AGENTS.md:R569 Goods 15011/15028;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R569",
+    "note": "15028会按规则和材料清单真实扣料、产出物品并回奖励；Unity合成页仍明确缺CompositeModel/config_compound/材料选择/资产与结果闭环，禁止先接孤立常量、sender或ACK。"
+  },
+  {
     "cmd": 18905,
     "rule": "R179/R545 BrightSea operation boundary",
     "evidence": "AGENTS.md:R545 BrightSea 18905纠偏",

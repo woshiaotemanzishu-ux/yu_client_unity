@@ -67,6 +67,12 @@
     "note": "老端 RegisterProtocal 注册调用点同文件内的 handler 函数体去注释后为空(如 GuildController.ts:729 on40029 -> () => {});ProtocolCoverageScanner 自动判死(裁决4:族级路由自动/号级 evidence 人工填,这批是自动判死后由本包核对落库)。"
   },
   {
+    "cmd": 15011,
+    "reason": "current_product_flow_superseded",
+    "evidence": "yu_server/src/goods/pp_goods.erl:128-130,765-795;yu_server/src/pt/pt_150.erl:541-568;yu_server/src/goods/pp_look_over.erl:17-18;yu_server/src/goods/lib_player_look_over.erl:155-203;yu_server/src/pt/pt_195.erl:23-66;Assets/Scripts/Module/Core/LookOver/LookOverFlow.cs:16-28;Assets/Scripts/Module/Core/Friend/FriendController.cs:47-48,140-145,359-409;Assets/Editor/CliVerify/Cases/LookOverCase.cs:134-207",
+    "note": "旧15011与现役19502都从同一GoodsStatus/lib_goods_util装备源构造相同九字段装备元组；19502额外携带法阵与仙灵，并由19501的同服/跨服统一入口驱动。Unity所有头像资料入口已收口到LookOverFlow→19501，19502有真实模型、页面消费者及合成包实证；恢复15011会制造两条基础资料权威链。保持无常量、无sender、无handler，不加入GAME_START。R569。"
+  },
+  {
     "cmd": 15023,
     "reason": "old_client_unreachable",
     "evidence": "h5/src/commonController/GoodsController.ts:779-781,1038,1205-1209;h5/src/commonModel/GoodsModel.ts:377(全h5/src只有常量、绑定sender和空回包handler，无任何Fire触发);yu_server/src/goods/pp_goods.erl:229-238;yu_server/src/goods/lib_goods_check.erl:816-817",
