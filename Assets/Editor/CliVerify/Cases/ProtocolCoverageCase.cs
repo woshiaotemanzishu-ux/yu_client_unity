@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 协议覆盖率核验器(PG 包,第21轮/R547-R556):八段断言 A-H,照 CliVerify.cs 既有惯例,日志前缀
+    /// 协议覆盖率核验器(PG 包,第21轮/R547-R557):八段断言 A-H,照 CliVerify.cs 既有惯例,日志前缀
     /// "CLIVERIFY protocolcoverage"。纯静态分析 + 一次运行时反射,不建 Stage/不渲染。
     ///
     ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline；具体号消失默认算红，只有带 evidence 的
@@ -23,8 +23,9 @@ namespace Shenxiao.EditorTools
     ///     (裁决7 收紧规则)里,未在 Unity 注册的数量不得比 baseline 记录的多(非回归,不强求清零——
     ///     清零是其它包的活,这里只守住不再变多)。
     ///   F 硬负约束防复发:hard_negative_constraints.json 中的五位协议号不得重新出现为运行时注册、
-    ///     源码静态注册、Proto 常量、具名发送或五位数字直发，也不得与killlist重叠；清单缺失、重复或无 evidence
-    ///     同样挂红。它不改变活缺口与killlist口径，只把 AGENTS 的现行禁止边界变成机器门禁。
+    ///     源码静态注册、Proto 常量、具名发送或五位数字直发，也不得与killlist重叠；每号必须仍属于当前liveGap，
+    ///     清单缺失、重复、陈旧或无 evidence 同样挂红。它不改变活缺口与killlist口径，只把 AGENTS 的现行禁止
+    ///     边界变成机器门禁。
     ///   G killlist 防复活:killlist 必须非空且每条为五位cmd并带reason/evidence；其中协议号不得拥有
     ///     运行时 handler。只有显式 clientMode=send_only 的 C2S 单向操作允许且必须保留 Proto 常量及
     ///     生产 `Send*(Proto.X,...)` 直接引用，其余死号不得残留常量或发送引用；模式非法或清单重复也挂红。
@@ -312,6 +313,13 @@ namespace Shenxiao.EditorTools
                 .Where(killSet.Contains)
                 .OrderBy(c => c)
                 .ToList();
+            HashSet<int> liveGap = scan.LiveGap();
+            List<int> outsideLiveGap = constraints
+                .Select(c => c.Cmd)
+                .Distinct()
+                .Where(c => !liveGap.Contains(c))
+                .OrderBy(c => c)
+                .ToList();
             var violations = new List<string>();
 
             foreach (HardNegativeConstraintEntry constraint in constraints
@@ -351,14 +359,16 @@ namespace Shenxiao.EditorTools
                 && malformed.Count == 0
                 && duplicates.Count == 0
                 && killlistOverlaps.Count == 0
+                && outsideLiveGap.Count == 0
                 && violations.Count == 0;
             var details = new List<string>();
             if (constraints.Count == 0) details.Add("清单缺失或为空");
             if (malformed.Count > 0) details.Add("cmd/rule/evidence不完整:" + string.Join(",", malformed));
             if (duplicates.Count > 0) details.Add("重复协议号:" + string.Join(",", duplicates));
             if (killlistOverlaps.Count > 0) details.Add("与killlist重叠:" + string.Join(",", killlistOverlaps));
+            if (outsideLiveGap.Count > 0) details.Add("不在当前liveGap:" + string.Join(",", outsideLiveGap));
             if (violations.Count > 0) details.Add("违规出现:" + string.Join(";", violations));
-            if (pass) details.Add(constraints.Count + "条约束均无常量、注册或发送入口且与"
+            if (pass) details.Add(constraints.Count + "条约束均属于当前liveGap、无常量/注册/发送入口且与"
                 + killlist.Count + "条killlist零交集");
             outcome.Add("F硬负约束防复发", pass, string.Join(";", details));
         }
