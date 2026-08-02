@@ -13,18 +13,32 @@ namespace Shenxiao.Editor.ProtocolCoverage
         public static string DenominatorNote(ProtocolCoverageScanner.ScanResult scan)
         {
             int liveDefined = scan.LiveDefinedSet().Count;
-            int liveCovered = liveDefined - scan.LiveGap().Count;
-            int handwritten = scan.HandwrittenExtra().Count;
+            return DenominatorNote(
+                scan.UnityRegistered.Count,
+                scan.ClientProtocolDefined.Count,
+                liveDefined,
+                scan.LiveGap().Count,
+                scan.HandwrittenExtra().Count);
+        }
+
+        public static string DenominatorNote(
+            int unityRegistered,
+            int clientProtocolDefined,
+            int liveDefined,
+            int liveGap,
+            int handwritten)
+        {
+            int liveCovered = liveDefined - liveGap;
             double pctB = liveDefined == 0 ? 0 : Math.Round(100.0 * liveCovered / liveDefined, 1);
             double pctC = (liveDefined + handwritten) == 0
                 ? 0
                 : Math.Round(100.0 * (liveCovered + handwritten) / (liveDefined + handwritten), 1);
-            double pctA = scan.ClientProtocolDefined.Count == 0
+            double pctA = clientProtocolDefined == 0
                 ? 0
-                : Math.Round(100.0 * scan.UnityRegistered.Count / scan.ClientProtocolDefined.Count, 1);
+                : Math.Round(100.0 * unityRegistered / clientProtocolDefined, 1);
             return $"对外只报口径B=活口径:Unity已覆盖{liveCovered}/活协议全集{liveDefined}={pctB}%" +
                    $"(脚注口径C=含手写:{liveCovered + handwritten}/{liveDefined + handwritten}={pctC}%;" +
-                   $"口径A=全集口径{scan.UnityRegistered.Count}/{scan.ClientProtocolDefined.Count}={pctA}% 分母含死号,禁止对外报)";
+                   $"口径A=全集口径{unityRegistered}/{clientProtocolDefined}={pctA}% 分母含死号,禁止对外报)";
         }
 
         public static string BuildMarkdown(

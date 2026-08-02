@@ -9,12 +9,13 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 协议覆盖率核验器(PG 包,第21轮/R547-R561):八段断言 A-H,照 CliVerify.cs 既有惯例,日志前缀
+    /// 协议覆盖率核验器(PG 包,第21轮/R547-R562):八段断言 A-H,照 CliVerify.cs 既有惯例,日志前缀
     /// "CLIVERIFY protocolcoverage"。纯静态分析 + 一次运行时反射,不建 Stage/不渲染。
     ///
     ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline；baseline.registeredCmds 必须与历史总量
-    ///     等长、五位、唯一且严格升序。具体号消失默认算红，只有带 evidence 的killlist/硬负约束
-    ///     裁决可按号豁免，且打印全部消失号。
+    ///     等长、五位、唯一且严格升序；顶层总量必须能分解为活覆盖/活缺口/非活已注册/死缺口/手写，
+    ///     denominatorNote 必须由该冻结分区精确生成。具体号消失默认算红，只有带 evidence 的
+    ///     killlist/硬负约束裁决可按号豁免，且打印全部消失号。
     ///   B 家族防倒退:冻结家族unityRegistered必须与registeredCmds逐前缀分组精确一致；各家族历史
     ///     liveGap 必须非负且汇总精确等于顶层 totalLiveGap，顶层值不得越过 totalLiveDefined；冻结的
     ///     liveCoveragePercent 必须等于两项总量按一位小数推导的百分比；当前逐前缀已注册数不许降，
@@ -173,6 +174,32 @@ namespace Shenxiao.EditorTools
                 && duplicateBaselineCmds.Count == 0
                 && invalidBaselineCmds.Count == 0
                 && strictlyIncreasing;
+            long historicalLiveCovered = (long)baseline.TotalLiveDefined - baseline.TotalLiveGap;
+            long historicalDefinedRegistered = (long)baseline.TotalClientProtocolDefined
+                - baseline.TotalLiveGap - baseline.TotalDeadGap;
+            long historicalNonLiveRegistered = (long)baseline.TotalClientProtocolDefined
+                - baseline.TotalLiveDefined - baseline.TotalDeadGap;
+            long historicalHandwritten = (long)baseline.TotalUnityRegistered - historicalDefinedRegistered;
+            bool baselinePartitionValid = baseline.TotalUnityRegistered >= 0
+                && baseline.TotalClientProtocolDefined >= 0
+                && baseline.TotalLiveDefined >= 0
+                && baseline.TotalLiveDefined <= baseline.TotalClientProtocolDefined
+                && baseline.TotalLiveGap >= 0
+                && baseline.TotalLiveGap <= baseline.TotalLiveDefined
+                && baseline.TotalDeadGap >= 0
+                && baseline.TotalDeadGap <= (long)baseline.TotalClientProtocolDefined - baseline.TotalLiveDefined
+                && historicalDefinedRegistered >= 0
+                && historicalDefinedRegistered <= baseline.TotalUnityRegistered;
+            string expectedDenominatorNote = baselinePartitionValid
+                ? ProtocolCoverageReport.DenominatorNote(
+                    baseline.TotalUnityRegistered,
+                    baseline.TotalClientProtocolDefined,
+                    baseline.TotalLiveDefined,
+                    baseline.TotalLiveGap,
+                    (int)historicalHandwritten)
+                : string.Empty;
+            bool denominatorNoteValid = baselinePartitionValid
+                && string.Equals(baseline.DenominatorNote, expectedDenominatorNote, StringComparison.Ordinal);
             HashSet<int> sanctionedRemovals = BuildSanctionedRemovalSet(killlist, hardNegativeConstraints);
             List<int> allMissing = baselineCmds
                 .Where(c => !scan.UnityRegistered.Contains(c))
@@ -180,7 +207,11 @@ namespace Shenxiao.EditorTools
                 .ToList();
             List<int> missing = allMissing.Where(c => !sanctionedRemovals.Contains(c)).ToList();
             List<int> sanctionedMissing = allMissing.Where(sanctionedRemovals.Contains).ToList();
-            bool pass = baselineCmdsValid && cur >= prev && missing.Count == 0;
+            bool pass = baselineCmdsValid
+                && baselinePartitionValid
+                && denominatorNoteValid
+                && cur >= prev
+                && missing.Count == 0;
             string detail = "当前" + cur + " vs baseline" + prev;
             if (baselineCmds.Count != prev)
                 detail += ";registeredCmds计数" + baselineCmds.Count + "!=历史总量" + prev;
@@ -189,6 +220,19 @@ namespace Shenxiao.EditorTools
             if (invalidBaselineCmds.Count > 0)
                 detail += ";registeredCmds非五位:" + string.Join(",", invalidBaselineCmds);
             if (!strictlyIncreasing) detail += ";registeredCmds非严格升序";
+            if (!baselinePartitionValid)
+            {
+                detail += ";baseline冻结分区非法:client=" + baseline.TotalClientProtocolDefined
+                    + ",live=" + baseline.TotalLiveDefined
+                    + ",liveGap=" + baseline.TotalLiveGap
+                    + ",deadGap=" + baseline.TotalDeadGap
+                    + ",definedRegistered=" + historicalDefinedRegistered
+                    + ",handwritten=" + historicalHandwritten;
+            }
+            else if (!denominatorNoteValid)
+            {
+                detail += ";denominatorNote与冻结总量不一致";
+            }
             if (missing.Count > 0)
             {
                 detail += ";消失的号(" + missing.Count + "):" + string.Join(",", missing.Take(50)) + (missing.Count > 50 ? "..." : "");
@@ -198,6 +242,14 @@ namespace Shenxiao.EditorTools
                 detail += ";有证据裁决移除(" + sanctionedMissing.Count + "):" + string.Join(",", sanctionedMissing);
             }
             if (baselineCmdsValid) detail += ";baseline注册号清单" + baselineCmds.Count + "条完整";
+            if (denominatorNoteValid)
+            {
+                detail += ";历史分区=live覆盖" + historicalLiveCovered
+                    + "+liveGap" + baseline.TotalLiveGap
+                    + "+非活已注册" + historicalNonLiveRegistered
+                    + "+deadGap" + baseline.TotalDeadGap
+                    + ";手写" + historicalHandwritten + ";denominatorNote一致";
+            }
             outcome.Add("A总量防倒退", pass, detail);
         }
 

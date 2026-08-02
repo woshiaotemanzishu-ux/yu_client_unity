@@ -337,6 +337,8 @@
 - 反向探针只把100族`liveGap`从0改为-1，B同时精确报告`baseline家族liveGap为负:100`和`baseline家族liveGap汇总696!=历史总量697`，总判决失败；恢复后的`coverage_20260802_191606.md`为A～H全PASS，正式baseline未改。
 - R561继续校验顶层派生字段：`liveCoveragePercent`必须等于`round(100*(totalLiveDefined-totalLiveGap)/totalLiveDefined,1)`，零分母时约定为0。正式冻结总量表示`771/1468=52.5%`；只把百分比改成52.6的探针被B精确报告`baseline历史覆盖率52.6!=总量推导52.5`。
 - 恢复后的`coverage_20260802_192317.md`为A～H全PASS，B详情同时显示893条冻结注册号、历史活缺口分项/总量697与覆盖率52.5%一致；正式baseline未改。
+- R562把全部顶层历史总量还原成互斥分区：`2371=活覆盖771+活缺口697+非活已注册24+deadGap879`，定义内历史注册共795；再由`totalUnityRegistered=893`推出手写98。`ProtocolCoverageReport.DenominatorNote`新增数值重载，扫描报告与A段基线核验复用同一生成函数，避免两份格式逻辑漂移。
+- A先校验上述分区均非负且不越界，再要求冻结`denominatorNote`逐字等于统一函数输出。`deadGap=904`探针被报为非法分区；数学仍合法的878探针则被精确报为口径文案与冻结总量不一致。恢复后的`coverage_20260802_193328.md`为A～H全PASS，正式baseline未改。
 
 ### 7.30 AutoBrush 13310 阶段奖励事务（2026-08-02 核对）
 

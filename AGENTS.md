@@ -18,7 +18,7 @@
 
 - 协议覆盖 baseline 收口规则：`Schemas/ProtocolCoverage/baseline.json` 的历史 `unityRegistered/liveGap` 数值用于防倒退，禁止为追当前报告逐轮改写；`registeredCmds`必须与`totalUnityRegistered`等长、全部为五位协议号、唯一且严格升序，每个`families[].unityRegistered`又必须精确等于该逐号清单按`cmd/100`分组后的数量，禁止删空、损坏逐号清单或下调家族计数来弱化A/B。但当最新运行时扫描的某家族全部活缺口已由注册或带 evidence 的 killlist 完整治理时，必须在同轮把人工 `status` 转为 `done` 并写 `statusNote`。`ProtocolCoverageCase` 的A段负责历史注册号逐号防退，B段负责家族冻结计数与逐号清单一致及当前家族不倒退，C段负责阻止已完工族重开未治理缺口，H段反向阻止零活缺口或全量 evidence-killlist 家族继续滞留 `pending/legacy_unverified`；正式baseline的家族前缀必须唯一，任何仍有当前活缺口的`done`家族都必须保留非空`statusNote`。禁止借状态逃逸门禁，也禁止把真实玩家可达写事务塞进killlist来伪收口。候选 `baseline.next.json` 必须保留正式基线的人工 `status/statusNote`，另以 `suggestedStatus` 输出本次机器建议；不得用候选覆盖人工策展状态或冻结历史计数。
 
-- 协议 baseline 活缺口汇总规则：正式`baseline.json`的每个`families[].liveGap`都必须非负，179族分项总和必须精确等于顶层`totalLiveGap`，顶层值必须位于`0..totalLiveDefined`；`liveCoveragePercent`必须精确等于两项总量按一位小数推导的历史活覆盖率。B段必须在当前家族回归比较前校验这组冻结事实。禁止单改家族分项、顶层汇总或百分比制造自相矛盾的历史基线，也禁止为追当前扫描结果逐轮重写这些历史值。
+- 协议 baseline 活缺口汇总规则：正式`baseline.json`的每个`families[].liveGap`都必须非负，179族分项总和必须精确等于顶层`totalLiveGap`，顶层值必须位于`0..totalLiveDefined`；`liveCoveragePercent`必须精确等于两项总量按一位小数推导的历史活覆盖率。顶层总量还必须能分解为活覆盖、活缺口、非活已注册、死缺口与手写号，`denominatorNote`必须由这组冻结值通过统一函数精确生成。A/B段必须在当前回归比较前校验这些冻结事实。禁止单改家族分项、顶层汇总、百分比或口径文案制造自相矛盾的历史基线，也禁止为追当前扫描结果逐轮重写这些历史值。
 
 - 协议负约束优先规则：`AGENTS.md` 对某协议明确写了“不接/No/Do not attach”时，后续轮次不得用“补覆盖率”推翻；若审计发现晚于该规则的常量、注册、sender、模型或用例，必须撤销违规增量并让家族保持 `pending`，不得靠违规注册把 raw 缺口清零后标 `done`。在文件别处追加一条正向实现记录不构成豁免；只有先基于本轮明确产品授权与新证据同步改写原负约束，后续实现才可进入。R517已撤销20600/20602与28500，R539撤销28600，R540撤销11205、13507、21600/21606与27904-27909，R541撤销10205、18918/18920与65206，R545补撤18905，R546补撤42704。负约束交叉审计必须展开`A-B`、`A/B-C`等区间写法中的每个协议号，禁止只比较显式端点；机器命中后仍须按完整句义裁决：R542确认13217段的“Do not attach 13218”原义是禁止13217与13218联动，不是禁止全局注册既有13218主动推送。
 
