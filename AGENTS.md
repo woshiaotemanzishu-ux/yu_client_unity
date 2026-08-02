@@ -22,6 +22,8 @@
 
 - 协议 baseline 错误出口逐号规则：`errorExitUnregisteredCmds`冻结2026-07-19轮22留下的34个未注册族错误出口，必须与`errorExitUnregisteredCount`等长、全部五位、唯一且严格升序；E段必须要求当前未注册错误出口均属于该历史清单，并以当前语义候选减去893条冻结`registeredCmds`重建历史集合，拒绝任何清单外新号。历史候选后续已实现或语义不再识别可以减少但不得换号；候选`baseline.next.json`必须写出当前逐号清单。禁止只抬高计数或替换号码来弱化非回归门槛。
 
+- 协议候选 baseline 完整性规则：`ProtocolCoverageCase`必须在写出`baseline.next.json`前以独立I段复核候选；顶层机器字段、`registeredCmds`、`errorExitUnregisteredCmds`和全部家族`unityRegistered/liveGap/liveGapCmds`必须精确等于同次扫描，正式baseline里的每个家族不得从候选静默消失，人工`status/statusNote`必须逐族原样保留，`suggestedStatus`必须按当前活缺口是否全部进入带evidence killlist机械计算。任何候选生成器改动都必须通过I段正向及故障注入，禁止把“文件成功写出”当作候选正确。
+
 - 协议负约束优先规则：`AGENTS.md` 对某协议明确写了“不接/No/Do not attach”时，后续轮次不得用“补覆盖率”推翻；若审计发现晚于该规则的常量、注册、sender、模型或用例，必须撤销违规增量并让家族保持 `pending`，不得靠违规注册把 raw 缺口清零后标 `done`。在文件别处追加一条正向实现记录不构成豁免；只有先基于本轮明确产品授权与新证据同步改写原负约束，后续实现才可进入。R517已撤销20600/20602与28500，R539撤销28600，R540撤销11205、13507、21600/21606与27904-27909，R541撤销10205、18918/18920与65206，R545补撤18905，R546补撤42704。负约束交叉审计必须展开`A-B`、`A/B-C`等区间写法中的每个协议号，禁止只比较显式端点；机器命中后仍须按完整句义裁决：R542确认13217段的“Do not attach 13218”原义是禁止13217与13218联动，不是禁止全局注册既有13218主动推送。
 
 - 协议硬负约束机检规则：`Schemas/ProtocolCoverage/hard_negative_constraints.json` 是“当前禁止出现常量、注册或发送入口”的机器清单，与死号 `killlist.json` 分离且协议号必须零交集；清单内每号都必须仍属于最新扫描的真实 liveGap/pending，已实现、已判死或退出活集合的陈旧条目必须同轮重审移除，禁止借清单伪造覆盖收口。`ProtocolCoverageCase` 的 F 段必须要求清单非空、每条为五位cmd并带`rule/evidence`，同时检查当前liveGap归属、运行时 handler、源码 `RegisterProtocal`、`Proto` 常量、具名`Send*(Proto.X,...)`、五位数字`Send*(12345,...)`及与killlist重叠；清单缺失、重复、无 evidence、陈旧条目或两表矛盾均挂红。R547首批固化R517及R539-R546已纠偏的20号，R551补齐生产sender旁路扫描，R556补齐两表互斥，R557补齐liveGap归属。未来若产品明确解禁，必须在同一轮先改写原负约束和本清单，再实现完整消费者并验收；只删清单或只追加正向说明都不构成授权。

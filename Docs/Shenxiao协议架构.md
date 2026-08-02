@@ -341,6 +341,8 @@
 - A先校验上述分区均非负且不越界，再要求冻结`denominatorNote`逐字等于统一函数输出。`deadGap=904`探针被报为非法分区；数学仍合法的878探针则被精确报为口径文案与冻结总量不一致。恢复后的`coverage_20260802_193328.md`为A～H全PASS，正式baseline未改。
 - R563追溯轮22提交`2b281f943`的“族错误出口欠账50→34”，用当前错误出口语义候选减去冻结893条`registeredCmds`，精确重建出34号历史集合。正式baseline新增只读证据`errorExitUnregisteredCmds`，不改34这一冻结计数；字段要求等长、五位、唯一、严格升序。
 - E除继续守当前未注册数不超过34外，还要求当前20号全部是历史集合子集，并拒绝“按历史注册清单重建”时出现清单外候选；历史项后续被实现或语义不再识别允许减少。候选baseline同步输出当前20条逐号清单。`count=35 + 10204→204`探针同时命中计数失配、非五位号及当前/重建新增10204；恢复后的`coverage_20260802_194320.md`为A～H全PASS。
+- R564新增I段“候选基线完整性”，把A～H扩为A～I。I重新从同次扫描计算`generatedAt/denominatorNote`、六项顶层计数与覆盖率，逐项比对1256条`registeredCmds`、20条当前错误出口，以及179族`unityRegistered/liveGap/liveGapCmds`；候选家族必须与当前扫描精确同构，正式策展家族不得丢失。
+- 人工`status/statusNote`按正式baseline逐族字面保留，新族才用机器建议初始化；`suggestedStatus`独立按当前`liveGapCmds`是否全属于带evidence killlist计算。故障注入让候选`liveGap+1`并清空`StatusNote`，I同时命中顶层`totalLiveGap/liveCoveragePercent`和21个说明丢失家族；恢复后的`coverage_20260802_195105.md`为A～I全PASS。
 
 ### 7.30 AutoBrush 13310 阶段奖励事务（2026-08-02 核对）
 

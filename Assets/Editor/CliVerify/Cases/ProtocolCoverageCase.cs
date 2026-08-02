@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 协议覆盖率核验器(PG 包,第21轮/R547-R563):八段断言 A-H,照 CliVerify.cs 既有惯例,日志前缀
+    /// 协议覆盖率核验器(PG 包,第21轮/R547-R564):九段断言 A-I,照 CliVerify.cs 既有惯例,日志前缀
     /// "CLIVERIFY protocolcoverage"。纯静态分析 + 一次运行时反射,不建 Stage/不渲染。
     ///
     ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline；baseline.registeredCmds 必须与历史总量
@@ -38,6 +38,9 @@ namespace Shenxiao.EditorTools
     ///   H baseline状态收口:当前零活缺口、或剩余活缺口已全部由带evidence的killlist治理的家族，
     ///     正式baseline必须人工标为done；家族重复、未知status、漏入当前家族，或仍有活缺口的done族
     ///     缺少statusNote同样挂红。
+    ///   I 候选基线完整性:baseline.next 的顶层机器计数、注册/错误出口逐号清单与家族机器字段必须
+    ///     精确等于当前扫描；正式基线家族不得静默丢失，人工status/statusNote必须逐族原样保留，
+    ///     suggestedStatus必须与当前liveGap/有效killlist机械判断一致。
     ///
     /// 收尾落 Reports/ProtocolCoverage/coverage_&lt;date&gt;.md + baseline.next.json(裁决5:
     /// 绝不自动覆盖 Schemas/ProtocolCoverage/baseline.json,基线上调必须人工确认后手动覆盖)。
@@ -73,6 +76,7 @@ namespace Shenxiao.EditorTools
                     ProtocolCoverageReport.DenominatorNote(scan),
                     baseline,
                     killlist);
+                AssertI(scan, baseline, candidate, killlist, outcome);
                 string nextPath = ProtocolCoverageBaseline.WriteBaselineNext(candidate);
                 string md = ProtocolCoverageReport.BuildMarkdown(
                     scan,
@@ -727,6 +731,161 @@ namespace Shenxiao.EditorTools
             if (pass) details.Add("baseline家族唯一且带活缺口done族均有statusNote;"
                 + "无零缺口/全killlist仍滞留pending或legacy_unverified的家族");
             outcome.Add("Hbaseline状态收口", pass, string.Join(";", details));
+        }
+
+        private static void AssertI(
+            ProtocolCoverageScanner.ScanResult scan,
+            CoverageBaseline curatedBaseline,
+            CoverageBaseline candidate,
+            List<KillEntry> killlist,
+            AssertionOutcome outcome)
+        {
+            if (candidate == null)
+            {
+                outcome.Add("I候选基线完整性", false, "BuildCandidate返回null");
+                return;
+            }
+
+            var topMismatches = new List<string>();
+            string expectedGeneratedAt = scan.GeneratedAt.ToString("yyyy-MM-dd HH:mm:ss");
+            string expectedDenominatorNote = ProtocolCoverageReport.DenominatorNote(scan);
+            int expectedLiveDefined = scan.LiveDefinedSet().Count;
+            int expectedLiveGap = scan.LiveGap().Count;
+            double expectedCoverage = expectedLiveDefined == 0
+                ? 0.0
+                : Math.Round(100.0 * (expectedLiveDefined - expectedLiveGap) / expectedLiveDefined, 1);
+            if (!string.Equals(candidate.GeneratedAt, expectedGeneratedAt, StringComparison.Ordinal))
+                topMismatches.Add("generatedAt");
+            if (!string.Equals(candidate.DenominatorNote, expectedDenominatorNote, StringComparison.Ordinal))
+                topMismatches.Add("denominatorNote");
+            if (candidate.TotalUnityRegistered != scan.UnityRegistered.Count)
+                topMismatches.Add("totalUnityRegistered");
+            if (candidate.TotalClientProtocolDefined != scan.ClientProtocolDefined.Count)
+                topMismatches.Add("totalClientProtocolDefined");
+            if (candidate.TotalLiveDefined != expectedLiveDefined) topMismatches.Add("totalLiveDefined");
+            if (candidate.TotalLiveGap != expectedLiveGap) topMismatches.Add("totalLiveGap");
+            if (candidate.TotalDeadGap != scan.DeadGap().Count) topMismatches.Add("totalDeadGap");
+            if (double.IsNaN(candidate.LiveCoveragePercent)
+                || double.IsInfinity(candidate.LiveCoveragePercent)
+                || Math.Abs(candidate.LiveCoveragePercent - expectedCoverage) >= 0.0001)
+                topMismatches.Add("liveCoveragePercent");
+
+            List<int> expectedRegistered = scan.UnityRegistered.OrderBy(c => c).ToList();
+            List<int> candidateRegistered = candidate.RegisteredCmds ?? new List<int>();
+            bool registeredManifestValid = candidateRegistered.SequenceEqual(expectedRegistered);
+            var expectedErrorExits = new HashSet<int>(scan.ErrorExitCandidates);
+            expectedErrorExits.ExceptWith(scan.UnityRegistered);
+            List<int> expectedErrorManifest = expectedErrorExits.OrderBy(c => c).ToList();
+            List<int> candidateErrorManifest = candidate.ErrorExitUnregisteredCmds ?? new List<int>();
+            bool errorManifestValid = candidate.ErrorExitUnregisteredCount == expectedErrorManifest.Count
+                && candidateErrorManifest.SequenceEqual(expectedErrorManifest);
+
+            List<ProtocolCoverageScanner.FamilyStat> expectedFamilies = scan.BuildFamilyTable();
+            List<FamilyBaseline> candidateFamilies = candidate.Families ?? new List<FamilyBaseline>();
+            Dictionary<int, List<FamilyBaseline>> candidateGroups = candidateFamilies
+                .GroupBy(f => f.Prefix)
+                .ToDictionary(g => g.Key, g => g.ToList());
+            var expectedPrefixes = new HashSet<int>(expectedFamilies.Select(f => f.Prefix));
+            List<int> duplicateCandidatePrefixes = candidateGroups
+                .Where(kv => kv.Value.Count > 1)
+                .Select(kv => kv.Key)
+                .OrderBy(p => p)
+                .ToList();
+            List<int> missingCandidateFamilies = expectedPrefixes
+                .Where(p => !candidateGroups.ContainsKey(p))
+                .OrderBy(p => p)
+                .ToList();
+            List<int> extraCandidateFamilies = candidateGroups.Keys
+                .Where(p => !expectedPrefixes.Contains(p))
+                .OrderBy(p => p)
+                .ToList();
+            List<int> droppedCuratedFamilies = (curatedBaseline?.Families ?? new List<FamilyBaseline>())
+                .Select(f => f.Prefix)
+                .Distinct()
+                .Where(p => !candidateGroups.ContainsKey(p))
+                .OrderBy(p => p)
+                .ToList();
+
+            var validKillSet = new HashSet<int>((killlist ?? new List<KillEntry>())
+                .Where(k => !string.IsNullOrWhiteSpace(k.Evidence))
+                .Select(k => k.Cmd));
+            var familyMachineMismatches = new List<int>();
+            var suggestedStatusMismatches = new List<int>();
+            var curatedFieldMismatches = new List<int>();
+            int curatedPreservedCount = 0;
+            foreach (ProtocolCoverageScanner.FamilyStat expected in expectedFamilies)
+            {
+                if (!candidateGroups.TryGetValue(expected.Prefix, out List<FamilyBaseline> matches)
+                    || matches.Count != 1)
+                {
+                    continue;
+                }
+
+                FamilyBaseline actual = matches[0];
+                if (actual.UnityRegistered != expected.UnityRegistered
+                    || actual.LiveGap != expected.LiveGap
+                    || !(actual.LiveGapCmds ?? new List<int>()).SequenceEqual(expected.LiveGapCmds))
+                {
+                    familyMachineMismatches.Add(expected.Prefix);
+                }
+
+                string expectedSuggestedStatus = expected.LiveGapCmds.All(validKillSet.Contains)
+                    ? "done"
+                    : "pending";
+                if (!string.Equals(actual.SuggestedStatus, expectedSuggestedStatus, StringComparison.Ordinal))
+                {
+                    suggestedStatusMismatches.Add(expected.Prefix);
+                }
+
+                FamilyBaseline curated = curatedBaseline?.FindFamily(expected.Prefix);
+                string expectedStatus = curated?.Status ?? expectedSuggestedStatus;
+                string expectedStatusNote = curated?.StatusNote;
+                if (!string.Equals(actual.Status, expectedStatus, StringComparison.Ordinal)
+                    || !string.Equals(actual.StatusNote, expectedStatusNote, StringComparison.Ordinal))
+                {
+                    curatedFieldMismatches.Add(expected.Prefix);
+                }
+                else if (curated != null)
+                {
+                    curatedPreservedCount++;
+                }
+            }
+
+            bool pass = topMismatches.Count == 0
+                && registeredManifestValid
+                && errorManifestValid
+                && duplicateCandidatePrefixes.Count == 0
+                && missingCandidateFamilies.Count == 0
+                && extraCandidateFamilies.Count == 0
+                && droppedCuratedFamilies.Count == 0
+                && familyMachineMismatches.Count == 0
+                && suggestedStatusMismatches.Count == 0
+                && curatedFieldMismatches.Count == 0;
+            var details = new List<string>();
+            if (topMismatches.Count > 0) details.Add("顶层机器字段不一致:" + string.Join(",", topMismatches));
+            if (!registeredManifestValid) details.Add("registeredCmds未精确反映当前扫描");
+            if (!errorManifestValid) details.Add("错误出口计数/逐号清单未精确反映当前扫描");
+            if (duplicateCandidatePrefixes.Count > 0)
+                details.Add("候选家族重复:" + string.Join(",", duplicateCandidatePrefixes));
+            if (missingCandidateFamilies.Count > 0)
+                details.Add("候选漏当前家族:" + string.Join(",", missingCandidateFamilies));
+            if (extraCandidateFamilies.Count > 0)
+                details.Add("候选多余家族:" + string.Join(",", extraCandidateFamilies));
+            if (droppedCuratedFamilies.Count > 0)
+                details.Add("候选丢正式策展家族:" + string.Join(",", droppedCuratedFamilies));
+            if (familyMachineMismatches.Count > 0)
+                details.Add("家族机器字段不一致:" + string.Join(",", familyMachineMismatches));
+            if (suggestedStatusMismatches.Count > 0)
+                details.Add("suggestedStatus不一致:" + string.Join(",", suggestedStatusMismatches));
+            if (curatedFieldMismatches.Count > 0)
+                details.Add("人工status/statusNote未保留:" + string.Join(",", curatedFieldMismatches));
+            if (pass)
+            {
+                details.Add("候选顶层/" + expectedRegistered.Count + "注册号/" + expectedErrorManifest.Count
+                    + "错误出口/" + expectedFamilies.Count + "家族机器字段准确;人工策展字段保留"
+                    + curatedPreservedCount + "族;suggestedStatus一致");
+            }
+            outcome.Add("I候选基线完整性", pass, string.Join(";", details));
         }
     }
 }

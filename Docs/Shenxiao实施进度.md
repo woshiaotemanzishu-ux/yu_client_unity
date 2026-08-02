@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R563。正式baseline新增`errorExitUnregisteredCmds`逐号证据，冻结轮22留下的34个未注册族错误出口；既有`errorExitUnregisteredCount=34`及其余历史数值不变。
-- E段要求历史清单与计数等长、五位、唯一、严格升序；当前20个未注册错误出口必须是历史集合子集，当前语义候选减去893条冻结注册号后也不得出现清单外新号。候选baseline正确输出当前20/20清单。
-- `count=35 + 10204→204`反向探针同时命中计数失配、非五位号以及当前/重建新增10204。恢复后的`coverage_20260802_194320.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A～H全PASS、`EXIT 0`。
+- 最新完成轮次：R564。覆盖门禁由A～H扩为A～I；新增I段在写`baseline.next.json`前独立复核候选顶层机器字段、1256条注册号、20条当前错误出口与179族机器字段均精确等于同次扫描。
+- I同时要求179个正式策展家族不从候选消失，人工`status/statusNote`逐族原样保留，`suggestedStatus`按当前活缺口/有效killlist机械结果一致。当前候选保留179/179族策展字段。
+- `candidate.liveGap+1 + StatusNote=null`故障注入被I精确报为`totalLiveGap/liveCoveragePercent`漂移及21族说明丢失。恢复后的`coverage_20260802_195105.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A～I全PASS、`EXIT 0`，正式baseline未改。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---
