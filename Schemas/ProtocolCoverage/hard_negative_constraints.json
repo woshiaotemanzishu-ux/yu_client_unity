@@ -642,6 +642,36 @@
     "note": "45008会写vip_hide DB、角色figure、场景代理与12010广播并更新角色展示；Unity缺设置入口和场景角色消费者，禁止孤立常量、sender、回显handler或本地隐藏补丁。"
   },
   {
+    "cmd": 45103,
+    "rule": "R487/R601 TopVip skill-task reward and progression boundary",
+    "evidence": "AGENTS.md:R601 TopVip 45103/45105/45106/45107/45108任务、购买与权益事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R601",
+    "note": "45103事务写技能任务/子阶段，真实发奖、重算属性和被动技能、同步场景并触发Buff，且可能自动升大阶清任务；Unity缺任务页、奖励与技能消费者，禁止孤立sender/ACK、乐观提交或本地发奖。"
+  },
+  {
+    "cmd": 45105,
+    "rule": "R487/R601 TopVip currency-task reward boundary",
+    "evidence": "AGENTS.md:R601 TopVip 45103/45105/45106/45107/45108任务、购买与权益事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R601",
+    "note": "45105校验日任务与背包容量，先持久化至尊币任务已提交再真实发奖；Unity缺任务配置/UI与奖励闭环，禁止孤立sender/result handler、乐观领态或按配置二次发奖。"
+  },
+  {
+    "cmd": 45106,
+    "rule": "R487/R601 TopVip trial purchase and expiry boundary",
+    "evidence": "AGENTS.md:R601 TopVip 45103/45105/45106/45107/45108任务、购买与权益事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R601",
+    "note": "45106真实扣体验配置资产，写至尊体验态/绝对到期和当日充值数据，广播场景标记、派发事件并建立到期引用；禁止孤立常量、sender、code ACK、乐观扣费/激活或客户端自判最终态。"
+  },
+  {
+    "cmd": 45107,
+    "rule": "R487/R601 TopVip permanent purchase and attribute boundary",
+    "evidence": "AGENTS.md:R601 TopVip 45103/45105/45106/45107/45108任务、购买与权益事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R601",
+    "note": "45107只允许体验态，真实扣永久升级资产、取消到期计时并写永久态，重算属性/被动技能/Buff且同步场景；Unity缺购买、钱包和场景闭环，禁止孤立sender/ACK或乐观永久化。"
+  },
+  {
+    "cmd": 45108,
+    "rule": "R487/R601 TopVip daily-right reward claim boundary",
+    "evidence": "AGENTS.md:R601 TopVip 45103/45105/45106/45107/45108任务、购买与权益事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R601",
+    "note": "45108现服只接受权益8，校验日领态后先写权益DB/时间再真实发奖；Unity缺权益页、配置和45101刷新闭环，禁止孤立sender/result handler、乐观领取或按配置二次发奖。"
+  },
+  {
     "cmd": 50704,
     "rule": "R533/R574 KfSingleRank daily reward claim boundary",
     "evidence": "AGENTS.md:R574 50704/15804/22704/33304/41502奖励购买事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R574",
