@@ -582,6 +582,42 @@
     "note": "28017按历史最高排名、配置、已领表和背包容量校验，持久化break_id_list并真实发奖；禁止孤立u32 sender、奖励raw、本地追加已领ID、二次发奖或乐观领取。"
   },
   {
+    "cmd": 28102,
+    "rule": "R496/R610 TopPk daily-honour reward claim boundary",
+    "evidence": "AGENTS.md:R610 TopPk 28102/28103/28104/28106/28110/28114领奖购买与匹配边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R610",
+    "note": "28102按昨日排行与每日领取态先写已领，再计算并真实发放荣誉奖励，成功只回ObjectList、失败走28100；Unity缺奖励配置和领取页，禁止严格空sender、孤立奖励raw、乐观已领或本地二次发奖。"
+  },
+  {
+    "cmd": 28103,
+    "rule": "R496/R610 TopPk daily-count reward claim boundary",
+    "evidence": "AGENTS.md:R610 TopPk 28102/28103/28104/28106/28110/28114领奖购买与匹配边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R610",
+    "note": "28103按挑战次数档位、活动与日bit状态校验，持久化已领位并经背包或邮件真实发奖；禁止孤立count sender/奖励结果、本地补丁领取态或把展示列表再次发入背包。"
+  },
+  {
+    "cmd": 28104,
+    "rule": "R496/R610 TopPk challenge-times purchase asset boundary",
+    "evidence": "AGENTS.md:R610 TopPk 28102/28103/28104/28106/28110/28114领奖购买与匹配边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R610",
+    "note": "28104按配置和日购买上限校验buy_count，真实扣绑元并持久化新购买次数；Unity缺购买页、价格配置和钱包闭环，禁止裸sender、乐观扣费/加次数、盲重试或伪造成功回执。"
+  },
+  {
+    "cmd": 28106,
+    "rule": "R496/R610 TopPk season-rank reward claim boundary",
+    "evidence": "AGENTS.md:R610 TopPk 28102/28103/28104/28106/28110/28114领奖购买与匹配边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R610",
+    "note": "28106按赛季段位、配置及已领bit校验，真实发放本服或跨服段位奖励并持久化领取态；禁止孤立rank_lv sender、乐观bit、按回包二次发奖或绕过背包/邮件与错误恢复。"
+  },
+  {
+    "cmd": 28110,
+    "rule": "R496/R610 TopPk matchmaking and battle-entry lifecycle boundary",
+    "evidence": "AGENTS.md:R610 TopPk 28102/28103/28104/28106/28110/28114领奖购买与匹配边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R610",
+    "note": "28110会校验活动/动作/次数，进入真实或AI匹配队列，注册死亡断线监听、设置匹配动作锁和pk_state；匹配成功再建战斗进程、切战斗锁并进入场景。Unity缺匹配与战场生命周期，禁止严格空sender、把res当scene-ready、自动匹配或本地切场。"
+  },
+  {
+    "cmd": 28114,
+    "rule": "R496/R610 TopPk match-cancel action-lock boundary",
+    "evidence": "AGENTS.md:R610 TopPk 28102/28103/28104/28106/28110/28114领奖购买与匹配边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R610",
+    "note": "28114只对match态生效，会从本服或跨服队列移除角色、取消AI计时、清pk_state并解除匹配动作锁；禁止孤立严格空sender、乐观取消、无session接收晚匹配结果或把u8结果当完整恢复。"
+  },
+  {
     "cmd": 28303,
     "rule": "R503/R593 HolyTerritory scene-entry lifecycle boundary",
     "evidence": "AGENTS.md:R593 HolyTerritory 28303/28305完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R593",
