@@ -20,6 +20,7 @@ namespace Shenxiao.Module.Core.KfSingleRank
             RegisterProtocal(Proto.KF_SINGLE_RANK_INFO, On50701);
             RegisterProtocal(Proto.KF_SINGLE_RANK_AREA_TOWERS, On50702);
             RegisterProtocal(Proto.KF_SINGLE_RANK_AREA_TOP, On50703);
+            RegisterProtocal(Proto.KF_SINGLE_RANK_SETTLEMENT, On50705);
             EventDispatcher.On(GlobalEvent.EVT_GAME_START, OnGameStart);
         }
 
@@ -108,6 +109,25 @@ namespace Shenxiao.Module.Core.KfSingleRank
             }
 
             KfSingleRankModel.Instance.ReplaceAreaTowers(areaId, entries);
+        }
+
+        /// <summary>
+        /// 50705 是服务端发奖后的S2C-only结算通知；只保存原始展示数据，不二次发奖、不退出场景。
+        /// </summary>
+        private void On50705(NetReader reader)
+        {
+            byte resultType = reader.ReadU8();
+            byte level = reader.ReadU8();
+            uint goTime = reader.ReadU32();
+            byte becameChallenger = reader.ReadU8();
+            int count = reader.ReadU16();
+            var rewards = new List<KfSingleRankModel.SettlementReward>(count);
+            for (int i = 0; i < count; i++)
+            {
+                rewards.Add(new KfSingleRankModel.SettlementReward(reader.ReadU8(), reader.ReadU32(), reader.ReadU32()));
+            }
+
+            KfSingleRankModel.Instance.ReplaceSettlement(resultType, level, goTime, becameChallenger, rewards);
         }
 
         public override void Dispose()

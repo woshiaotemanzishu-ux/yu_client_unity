@@ -50,6 +50,8 @@
 
 - R532 MondaysAward 17902：这是显式按需、严格空包的个人开奖记录查询；S2C固定为`records:u16×{role_id:u64,role_name:string,type:u8,pool_id:u16,utime:u32,picture:string,picture_ver:u32,career:u16}`。每包完整替换独立不可变快照，保留wire原序、重复角色、空名/图片、零值和最大值；空表loaded清旧，请求无回复保留旧值。个人17902与跨服17905记录必须双向隔离，不加入GAME_START、日切或页面自动查询。17901换奖池、17903抽奖、17906领奖都是真实状态/资产写事务，继续DEFER；禁止借查询接配置、红点、UI、奖励、背包或乐观状态。
 
+- R533 KfSingleRank 50705：这是S2C-only跨服单人排行副本结算，wire固定为`result_type:u8,level:u8,go_time:u32,become_challengers:u8,reward:ObjectList`，ObjectList为`u16×{type:u8,type_id:u32,num:u32}`。成功链已在服务端先用`send_reward_with_mail`发奖，再发送本包；失败链发送空奖励。Unity每包原子替换独立不可变最后快照，保序保重、空表loaded、零/最大值有效；不得公开同号请求、二次发奖、修改背包/50701、自动离场、打开胜负页或发业务事件。50704每日排行奖励领取仍是真实发奖/DB事务，继续DEFER。
+
 - Unity 序列化脚本规则：会挂到 Scene/Prefab 的 `MonoBehaviour` / `ScriptableObject` 必须独占同名 `.cs` 文件，禁止把它放在“首个类型为静态类、抽象类或其他不同名类型”的文件里；Editor 生成器 `AddComponent<T>()` 后必须核对产物 `m_Script` 为非零 GUID 且 GUID 指向 `T` 的同名脚本。否则即使 C# 编译通过，Unity 仍可能把组件保存成 Missing Script。
 
 - 主界面技能规则：技能项只允许 `con` 作为唯一 Raycast/Button 点击面，`bg/icon/lock/CD/文字` 等装饰 Graphic 必须关闭 `raycastTarget`；点击验收必须走真实 Prefab 的 `GraphicRaycaster→PointerClick`，直接调用 `OnClickSkill` 不算点击链通过。普通 `AutoFight` 不得拦截玩家手点技能，只有服务端 `13017` 的 `RoleModel.DepositState` 托管态才拦截。手动无锁定目标时按当前朝向原地释放并只在技能 `area` 内局部预选，不得跨全场抢最近怪；自动战斗才允许全场寻敌并接近。接敌范围严格对标老端：`range==1` 使用 `max(100,(distance+area)*0.8)`，其他模式使用 `max(100,distance*0.8)`；命中几何由 `range/distance/area/num` 决定，禁止从 `desc` 文案猜圆形、直线或扇形。
@@ -118,9 +120,9 @@
 
 - R171 Setting 11307: GAME_START clears only the wx-subscription slice then sends the strict empty request. Reply is raw `res:u8`; preserve raw and derive enabled only as `res==1`, replacing every packet. Do not attach 11305/11306/11308, SDK, UI, events, red dots or config.
 
-## KfSingleRank 50701/50702/50703 (R142/R144/R145)
+## KfSingleRank 50701/50702/50703/50705 (R142/R144/R145/R533)
 
-- GAME_START clears main, 50703 area-top, and 50702 area-tower state, then sends parameterless 50701 once; server owns the rank-dungeon open gate. Normal 50701/50702/50703 packets replace only their own snapshot and must not clear the other caches. 50702 and 50703 are explicit `area_id:u8` requests with independent ordered per-area full snapshots; preserve duplicates and empty snapshots. Do not hardcode a 460 level catch-up or bind role updates; exclude 50704/05, UI, scene, sorting, config, red dots, and auto-fight.
+- GAME_START clears main, 50703 area-top, 50702 area-tower and 50705 settlement state, then sends parameterless 50701 once; server owns the rank-dungeon open gate. Normal 50701/50702/50703 packets replace only their own snapshot and must not clear the other caches. 50702 and 50703 are explicit `area_id:u8` requests with independent ordered per-area full snapshots; preserve duplicates and empty snapshots. 50705 is S2C-only `result_type:u8,level:u8,go_time:u32,become_challengers:u8,reward:u16×{type:u8,type_id:u32,num:u32}` after the server has already issued any reward; every packet fully replaces only the independent settlement slice. Do not hardcode a 460 level catch-up or bind role updates; exclude 50704, settlement UI/events/scene exit, duplicate rewards, sorting, config, red dots, and auto-fight.
 
 ## MonBook 44201/44205/44207 (R138/R139/R143)
 

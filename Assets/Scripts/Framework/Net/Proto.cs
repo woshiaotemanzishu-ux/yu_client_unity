@@ -1351,6 +1351,8 @@
         public const int KF_SINGLE_RANK_AREA_TOP = 50703;
         /// <summary>跨服单人排行副本指定区域可挑战擂主表。C2S: area_id:u8；S2C: area_id:u8,entries:u16×{level:u8,role_id:u64,role_name:string,server_id:u16,server_num:u16,lv:u16,career:u8,sex:u8,turn:u8,picture:string,picture_ver:u8,go_time:u32}。</summary>
         public const int KF_SINGLE_RANK_AREA_TOWERS = 50702;
+        /// <summary>跨服单人排行副本结算通知。仅S2C: result_type:u8,level:u8,go_time:u32,become_challengers:u8,reward:ObjectList；奖励已由服务端发放。</summary>
+        public const int KF_SINGLE_RANK_SETTLEMENT = 50705;
         public const int ACHIEVEMENT_STAGE = 40901;
         public const int ACHIEVEMENT_ENTRIES = 40903;
         /// <summary>成就条目状态增量。S2C-only: list:u16×{id:u32,status:u8,progress:u64}。</summary>

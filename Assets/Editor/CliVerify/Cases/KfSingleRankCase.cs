@@ -36,6 +36,12 @@ namespace Shenxiao.EditorTools
             var oldLevels = new List<KfSingleRankModel.LevelEntry>(model.Levels);
             var oldAreaTops = new Dictionary<byte, KfSingleRankModel.AreaSnapshot>(model.AreaTops);
             var oldAreaTowers = new Dictionary<byte, KfSingleRankModel.AreaTowerSnapshot>(model.AreaTowers);
+            bool oldHasSettlement = model.HasSettlement;
+            byte oldSettlementResultType = model.SettlementResultType;
+            byte oldSettlementLevel = model.SettlementLevel;
+            uint oldSettlementGoTime = model.SettlementGoTime;
+            byte oldSettlementBecameChallenger = model.SettlementBecameChallenger;
+            var oldSettlementRewards = new List<KfSingleRankModel.SettlementReward>(model.SettlementRewards);
             FieldInfo interceptField = typeof(KfSingleRankController).GetField("s_outboundIntercept", StaticNonPublic);
             object oldIntercept = interceptField == null ? null : interceptField.GetValue(null);
 
@@ -47,15 +53,18 @@ namespace Shenxiao.EditorTools
                 MethodInfo on50701 = Handler("On50701");
                 MethodInfo on50702 = Handler("On50702");
                 MethodInfo on50703 = Handler("On50703");
+                MethodInfo on50705 = Handler("On50705");
                 IDictionary protocols = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
                 IDictionary events = typeof(EventDispatcher).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
                 IList gameStartHandlers = events?[GlobalEvent.EVT_GAME_START] as IList;
-                bool pass = interceptField != null && onGameStart != null && on50701 != null && on50702 != null && on50703 != null
+                bool pass = interceptField != null && onGameStart != null && on50701 != null && on50702 != null && on50703 != null && on50705 != null
                     && protocols != null && protocols.Contains(Proto.KF_SINGLE_RANK_INFO)
                     && protocols.Contains(Proto.KF_SINGLE_RANK_AREA_TOWERS)
                     && protocols.Contains(Proto.KF_SINGLE_RANK_AREA_TOP)
+                    && protocols.Contains(Proto.KF_SINGLE_RANK_SETTLEMENT)
+                    && typeof(KfSingleRankController).GetMethod("RequestSettlement", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly) == null
                     && CountHandler(gameStartHandlers, controller, "OnGameStart") == 1;
-                foreach (int protocol in new[] { 50700, 50704, 50705 }) pass &= !protocols.Contains(protocol);
+                foreach (int protocol in new[] { 50700, 50704 }) pass &= !protocols.Contains(protocol);
                 if (!pass) return 3;
 
                 var frames = new List<byte[]>();
@@ -63,9 +72,11 @@ namespace Shenxiao.EditorTools
                 model.Replace(9, 8, new List<KfSingleRankModel.LevelEntry> { new KfSingleRankModel.LevelEntry(7, 6) });
                 model.ReplaceAreaTop(9, new List<KfSingleRankModel.AreaRankEntry> { new KfSingleRankModel.AreaRankEntry(5, 4, "old", 3, 2) });
                 model.ReplaceAreaTowers(9, new List<KfSingleRankModel.AreaTowerEntry> { Tower(5, 4, "old", 3, 2, 1, 1, 1, 1, "pic", 1, 2) });
+                model.ReplaceSettlement(1, 2, 3, 4, new List<KfSingleRankModel.SettlementReward> { Reward(5, 6, 7) });
                 onGameStart.Invoke(controller, null);
                 pass &= !model.HasData && model.StartLevel == 0 && model.RewardState == 0
                     && model.Levels.Count == 0 && model.AreaTops.Count == 0 && model.AreaTowers.Count == 0
+                    && !model.HasSettlement && model.SettlementRewards.Count == 0
                     && InfoFrame(frames.Count == 1 ? frames[0] : null);
                 frames.Clear();
 
@@ -90,6 +101,20 @@ namespace Shenxiao.EditorTools
                     && model.Levels[2].Level == byte.MaxValue && model.Levels[2].GoTime == uint.MaxValue
                     && model.TryGetAreaTowers(1, out emptyTowers) && emptyTowers.Entries.Count == 0
                     && model.TryGetAreaTop(1, out emptyTop) && emptyTop.Entries.Count == 0;
+
+                byte[] settlementMax = new CliVerify.Pkt().C(byte.MaxValue).C(byte.MaxValue).I(uint.MaxValue).C(byte.MaxValue).H(3)
+                    .C(0).I(0).I(0)
+                    .C(byte.MaxValue).I(uint.MaxValue).I(uint.MaxValue)
+                    .C(byte.MaxValue).I(uint.MaxValue).I(uint.MaxValue).Bytes();
+                pass &= Feed(on50705, controller, settlementMax)
+                    && model.HasSettlement && model.SettlementResultType == byte.MaxValue && model.SettlementLevel == byte.MaxValue
+                    && model.SettlementGoTime == uint.MaxValue && model.SettlementBecameChallenger == byte.MaxValue
+                    && model.SettlementRewards.Count == 3
+                    && SameReward(model.SettlementRewards[0], 0, 0, 0)
+                    && SameReward(model.SettlementRewards[1], byte.MaxValue, uint.MaxValue, uint.MaxValue)
+                    && SameReward(model.SettlementRewards[2], byte.MaxValue, uint.MaxValue, uint.MaxValue)
+                    && model.HasData && model.Levels.Count == 3 && frames.Count == 0;
+                KfSingleRankModel.SettlementReward oldFirstReward = model.SettlementRewards[0];
 
                 const string chinese = "\u4e2d\u6587";
                 byte[] areaTen = new CliVerify.Pkt().C(10).H(2)
@@ -137,13 +162,26 @@ namespace Shenxiao.EditorTools
                     && model.TryGetAreaTop(10, out KfSingleRankModel.AreaSnapshot clearedTop) && clearedTop.Entries.Count == 0
                     && model.TryGetAreaTowers(10, out towers) && towers.Entries.Count == 0 && frames.Count == 0;
 
+                pass &= model.HasSettlement && model.SettlementRewards.Count == 3
+                    && SameReward(oldFirstReward, 0, 0, 0);
+
+                pass &= Feed(on50705, controller, new CliVerify.Pkt().C(0).C(0).I(0).C(0).H(0).Bytes())
+                    && model.HasSettlement && model.SettlementResultType == 0 && model.SettlementLevel == 0
+                    && model.SettlementGoTime == 0 && model.SettlementBecameChallenger == 0 && model.SettlementRewards.Count == 0
+                    && SameReward(oldFirstReward, 0, 0, 0)
+                    && model.HasData && model.Levels.Count == 1 && model.AreaTops.Count == 2 && model.AreaTowers.Count == 2
+                    && frames.Count == 0;
+
                 controller.Dispose();
                 gameStartHandlers = events?[GlobalEvent.EVT_GAME_START] as IList;
                 pass &= !controller.IsInitialized && !protocols.Contains(Proto.KF_SINGLE_RANK_INFO)
                     && !protocols.Contains(Proto.KF_SINGLE_RANK_AREA_TOWERS) && !protocols.Contains(Proto.KF_SINGLE_RANK_AREA_TOP)
+                    && !protocols.Contains(Proto.KF_SINGLE_RANK_SETTLEMENT)
                     && CountHandler(gameStartHandlers, controller, "OnGameStart") == 0
                     && !model.HasData && model.StartLevel == 0 && model.RewardState == 0
-                    && model.Levels.Count == 0 && model.AreaTops.Count == 0 && model.AreaTowers.Count == 0;
+                    && model.Levels.Count == 0 && model.AreaTops.Count == 0 && model.AreaTowers.Count == 0
+                    && !model.HasSettlement && model.SettlementResultType == 0 && model.SettlementLevel == 0
+                    && model.SettlementGoTime == 0 && model.SettlementBecameChallenger == 0 && model.SettlementRewards.Count == 0;
                 Debug.Log("CLIVERIFY kfsinglerank VERDICT pass=" + pass);
                 return pass ? 0 : 3;
             }
@@ -156,6 +194,8 @@ namespace Shenxiao.EditorTools
                     model.ReplaceAreaTop(pair.Key, new List<KfSingleRankModel.AreaRankEntry>(pair.Value.Entries));
                 foreach (KeyValuePair<byte, KfSingleRankModel.AreaTowerSnapshot> pair in oldAreaTowers)
                     model.ReplaceAreaTowers(pair.Key, new List<KfSingleRankModel.AreaTowerEntry>(pair.Value.Entries));
+                if (oldHasSettlement)
+                    model.ReplaceSettlement(oldSettlementResultType, oldSettlementLevel, oldSettlementGoTime, oldSettlementBecameChallenger, oldSettlementRewards);
                 if (wasInitialized) controller.Init();
                 if (interceptField != null) interceptField.SetValue(null, oldIntercept);
             }
@@ -164,6 +204,10 @@ namespace Shenxiao.EditorTools
         private static MethodInfo Handler(string name) => typeof(KfSingleRankController).GetMethod(name, InstanceNonPublic);
         private static KfSingleRankModel.AreaTowerEntry Tower(byte level, ulong id, string name, ushort serverId, ushort serverNum, ushort lv, byte career, byte sex, byte turn, string picture, byte version, uint time)
             => new KfSingleRankModel.AreaTowerEntry(level, id, name, serverId, serverNum, lv, career, sex, turn, picture, version, time);
+        private static KfSingleRankModel.SettlementReward Reward(byte type, uint typeId, uint num)
+            => new KfSingleRankModel.SettlementReward(type, typeId, num);
+        private static bool SameReward(KfSingleRankModel.SettlementReward reward, byte type, uint typeId, uint num)
+            => reward != null && reward.Type == type && reward.TypeId == typeId && reward.Num == num;
         private static byte[] TowerPacket(byte area, KfSingleRankModel.AreaTowerEntry entry)
             => new CliVerify.Pkt().C(area).H(1).C(entry.Level).L(unchecked((long)entry.RoleId)).S(entry.RoleName).H(entry.ServerId).H(entry.ServerNum).H(entry.LevelValue).C(entry.Career).C(entry.Sex).C(entry.Turn).S(entry.Picture).C(entry.PictureVer).I(entry.GoTime).Bytes();
         private static bool Feed(MethodInfo method, KfSingleRankController controller, byte[] payload) { var reader = new NetReader(payload, 0, payload.Length); method.Invoke(controller, new object[] { reader }); return reader.Remaining == 0; }

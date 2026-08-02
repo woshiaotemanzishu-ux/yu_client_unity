@@ -102,6 +102,20 @@ namespace Shenxiao.Module.Core.KfSingleRank
             }
         }
 
+        public sealed class SettlementReward
+        {
+            public byte Type { get; }
+            public uint TypeId { get; }
+            public uint Num { get; }
+
+            public SettlementReward(byte type, uint typeId, uint num)
+            {
+                Type = type;
+                TypeId = typeId;
+                Num = num;
+            }
+        }
+
         public static readonly KfSingleRankModel Instance = new KfSingleRankModel();
 
         private readonly List<LevelEntry> _levels = new List<LevelEntry>();
@@ -110,12 +124,15 @@ namespace Shenxiao.Module.Core.KfSingleRank
         private readonly IReadOnlyDictionary<byte, AreaSnapshot> _readOnlyAreaTops;
         private readonly Dictionary<byte, AreaTowerSnapshot> _areaTowers = new Dictionary<byte, AreaTowerSnapshot>();
         private readonly IReadOnlyDictionary<byte, AreaTowerSnapshot> _readOnlyAreaTowers;
+        private readonly List<SettlementReward> _settlementRewards = new List<SettlementReward>();
+        private readonly IReadOnlyList<SettlementReward> _readOnlySettlementRewards;
 
         private KfSingleRankModel()
         {
             _readOnlyLevels = _levels.AsReadOnly();
             _readOnlyAreaTops = new ReadOnlyDictionary<byte, AreaSnapshot>(_areaTops);
             _readOnlyAreaTowers = new ReadOnlyDictionary<byte, AreaTowerSnapshot>(_areaTowers);
+            _readOnlySettlementRewards = _settlementRewards.AsReadOnly();
         }
 
         public bool HasData { get; private set; }
@@ -124,6 +141,12 @@ namespace Shenxiao.Module.Core.KfSingleRank
         public IReadOnlyList<LevelEntry> Levels => _readOnlyLevels;
         public IReadOnlyDictionary<byte, AreaSnapshot> AreaTops => _readOnlyAreaTops;
         public IReadOnlyDictionary<byte, AreaTowerSnapshot> AreaTowers => _readOnlyAreaTowers;
+        public bool HasSettlement { get; private set; }
+        public byte SettlementResultType { get; private set; }
+        public byte SettlementLevel { get; private set; }
+        public uint SettlementGoTime { get; private set; }
+        public byte SettlementBecameChallenger { get; private set; }
+        public IReadOnlyList<SettlementReward> SettlementRewards => _readOnlySettlementRewards;
         public bool TryGetAreaTowers(byte areaId, out AreaTowerSnapshot snapshot)
         {
             return _areaTowers.TryGetValue(areaId, out snapshot);
@@ -153,6 +176,17 @@ namespace Shenxiao.Module.Core.KfSingleRank
             HasData = true;
         }
 
+        public void ReplaceSettlement(byte resultType, byte level, uint goTime, byte becameChallenger, List<SettlementReward> rewards)
+        {
+            SettlementResultType = resultType;
+            SettlementLevel = level;
+            SettlementGoTime = goTime;
+            SettlementBecameChallenger = becameChallenger;
+            _settlementRewards.Clear();
+            if (rewards != null) _settlementRewards.AddRange(rewards);
+            HasSettlement = true;
+        }
+
         public void Reset()
         {
             StartLevel = 0;
@@ -160,7 +194,13 @@ namespace Shenxiao.Module.Core.KfSingleRank
             _levels.Clear();
             _areaTops.Clear();
             _areaTowers.Clear();
+            _settlementRewards.Clear();
             HasData = false;
+            HasSettlement = false;
+            SettlementResultType = 0;
+            SettlementLevel = 0;
+            SettlementGoTime = 0;
+            SettlementBecameChallenger = 0;
         }
     }
 }
