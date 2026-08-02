@@ -366,6 +366,30 @@
     "note": "20302校验地图类型、场景、距离和实例坐标后真实删除藏宝图、写挖宝次数、发奖或邮件、推进活动并重置剩余同类图坐标；Unity缺背包实例/奖励/活动/展示闭环，禁止裸sender、raw回执、客户端删图发奖或把ObjectList二次发放。"
   },
   {
+    "cmd": 20400,
+    "rule": "R128/R485/R606 TSCrack operation error-chain boundary",
+    "evidence": "AGENTS.md:R606 TSCrack 20400/20403/20406/20408驻扎与领奖事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R606",
+    "note": "20400是20403跨服驻扎和20406/20408领奖校验失败的统一code错误出口；三条操作链及错误UI未闭环前禁止孤立常量、raw handler或Toast。"
+  },
+  {
+    "cmd": 20403,
+    "rule": "R128/R485/R606 TSCrack cross-server station persistence boundary",
+    "evidence": "AGENTS.md:R606 TSCrack 20400/20403/20406/20408驻扎与领奖事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R606",
+    "note": "20403异步跨服校验据点连通/占领后更新旧新据点角色表、持久化当前据点并推20401/20410；Unity缺据点页、传送表现和跨服生命周期，禁止sender、ACK或乐观驻扎。"
+  },
+  {
+    "cmd": 20406,
+    "rule": "R128/R485/R606 TSCrack daily-stage reward transaction boundary",
+    "evidence": "AGENTS.md:R606 TSCrack 20400/20403/20406/20408驻扎与领奖事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R606",
+    "note": "20406按每日争夺值和未领态校验，先持久化阶段已领，再经背包或邮件发奖并推20405；禁止孤立sender/result、乐观领态或按配置二次发奖。"
+  },
+  {
+    "cmd": 20408,
+    "rule": "R128/R485/R606 TSCrack season-goal reward transaction boundary",
+    "evidence": "AGENTS.md:R606 TSCrack 20400/20403/20406/20408驻扎与领奖事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R606",
+    "note": "20408经本服/跨服目标进程校验赛季进度后发真实奖励、按目标类型持久化已领并回结果；Unity缺目标页、配置、奖励和20407刷新闭环，禁止sender、ACK或本地发奖。"
+  },
+  {
     "cmd": 20600,
     "rule": "R127/R517 GhostWalk boundary",
     "evidence": "AGENTS.md:协议负约束优先规则;AGENTS.md:GhostWalk 20601",
