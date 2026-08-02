@@ -42,10 +42,22 @@
     "note": "15222会降级套装、写DB、重算属性并真实返物/邮件，且换装不兼容时可由服务端主动下发；必须与共鸣模型、背包/邮件、预览确认和主动还原消费一起接，禁止孤立常量、sender或raw handler。"
   },
   {
+    "cmd": 15403,
+    "rule": "R493/R575 Auction bid transaction boundary",
+    "evidence": "AGENTS.md:R575 15403/15902/19103/33804/61201资产交易事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R575",
+    "note": "15403按拍卖类型、商品、竞价方式及绑定/非绑货币执行跨进程竞价，成功后真实扣款并由拍卖状态/广播/退款或邮件链收口；Unity仅有拍卖读侧raw，禁止孤立常量、sender、成功Toast或乐观扣款。"
+  },
+  {
     "cmd": 15804,
     "rule": "R520/R574 Recharge direct-coin purchase boundary",
     "evidence": "AGENTS.md:R574 50704/15804/22704/33304/41502奖励购买事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R574",
     "note": "15804会校验直购币商品、真实扣除Cost并走pay_by_goods2发放充值礼包；Unity缺产品配置、支付确认、钱包/奖励与结果UI闭环，禁止裸sender、errcode ACK或乐观成功。"
+  },
+  {
+    "cmd": 15902,
+    "rule": "R471/R575 WelfareCard daily reward claim boundary",
+    "evidence": "AGENTS.md:R575 15403/15902/19103/33804/61201资产交易事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R575",
+    "note": "15902会校验福利卡、购买态、当日未领和背包，扣减剩余天数、写DB并按双倍周通过背包或邮件发奖；Unity只有显式15901列表快照，禁止孤立常量、sender或errcode ACK。"
   },
   {
     "cmd": 16401,
@@ -70,6 +82,12 @@
     "rule": "R179/R541 BrightSea boundary",
     "evidence": "AGENTS.md:R167-R179 BrightSea",
     "note": "战斗错误链晚增量已撤销。"
+  },
+  {
+    "cmd": 19103,
+    "rule": "R180/R575 PushGift purchase transaction boundary",
+    "evidence": "AGENTS.md:R575 15403/15902/19103/33804/61201资产交易事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R575",
+    "note": "19103校验礼包激活/期限/档位/购买上限，真实扣费、发奖、写购买次数DB并更新活动内存；Unity只有19101/19102读侧，禁止孤立常量、sender、buy_cnt补丁或本地奖励。"
   },
   {
     "cmd": 20600,
@@ -156,6 +174,12 @@
     "note": "33304会校验活动/档位/背包容量，通过服务进程写领取状态并真实发奖；同号只回成功键，失败走33306。Unity读侧不得接孤立成功包、sender或乐观状态。"
   },
   {
+    "cmd": 33804,
+    "rule": "R535/R575 Compete stage reward claim boundary",
+    "evidence": "AGENTS.md:R575 15403/15902/19103/33804/61201资产交易事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R575",
+    "note": "33804校验竞榜活动、未领取和当日积分，按世界等级计算并真实发奖，写score_reward DB与内存；Unity只有33801/33802读侧raw，禁止孤立常量、sender或局部领取态。"
+  },
+  {
     "cmd": 41502,
     "rule": "R472/R574 Pray cost/reward transaction boundary",
     "evidence": "AGENTS.md:R574 50704/15804/22704/33304/41502奖励购买事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R574",
@@ -184,6 +208,12 @@
     "rule": "R116/R573 Mask cancellation state transaction boundary",
     "evidence": "AGENTS.md:R573 16401/50902/51102/62202资产事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R573",
     "note": "51102严格空请求会取消计时、写DB、清角色mask_id、更新场景并广播外观和派发装备事件；Unity只有51101状态地基，禁止孤立常量、sender或0/0结果handler。"
+  },
+  {
+    "cmd": 61201,
+    "rule": "R277/R470/R575 LimitLevelShop purchase and push boundary",
+    "evidence": "AGENTS.md:R575 15403/15902/19103/33804/61201资产交易事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R575",
+    "note": "61201会自动购买并扣成本、发奖、写档位已购DB与活动内存，也会在充值到账路径主动推送成功；Unity的61200/61203只读地基缺完整档位状态、充值分流、去重和资产闭环，禁止孤立常量、sender或handler。"
   },
   {
     "cmd": 62202,
