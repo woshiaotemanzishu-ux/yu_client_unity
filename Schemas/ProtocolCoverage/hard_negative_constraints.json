@@ -102,10 +102,28 @@
     "note": "13407按goods_auto_id/num删除具体背包实例，写强化等级经验、通知背包、重算属性并同步场景战斗属性；禁止孤立sender、lv/exp/power结果或本地删物。"
   },
   {
+    "cmd": 13502,
+    "rule": "R126/R540/R586 NineSky enter battle scene and reward transaction boundary",
+    "evidence": "AGENTS.md:R586 NineSky 13502/13505/13509战场生命周期边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R586",
+    "note": "13502会建立或恢复九魂战场状态、可能真实发首登/层数奖励，推13502/03/04、切本服或跨服场景、加动作锁并触发活动事件；禁止孤立sender、ACK或乐观入场。"
+  },
+  {
+    "cmd": 13505,
+    "rule": "R126/R540/R586 NineSky leave battle scene transaction boundary",
+    "evidence": "AGENTS.md:R586 NineSky 13502/13505/13509战场生命周期边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R586",
+    "note": "13505会修改战场在线态和房间人数，持宝者还会清旗、重建秘宝、广播13504并强制切回普通场景；禁止孤立sender、结果码或本地关闭战场UI。"
+  },
+  {
     "cmd": 13507,
     "rule": "R126/R540 NineSky boundary",
     "evidence": "AGENTS.md:R540 NineSky 13507纠偏",
     "note": "结算包须等待完整结算UI、场景退出和奖励消费链。"
+  },
+  {
+    "cmd": 13509,
+    "rule": "R126/R540/R586 NineSky kill-streak scene presentation boundary",
+    "evidence": "AGENTS.md:R586 NineSky 13502/13505/13509战场生命周期边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R586",
+    "note": "13509向战场广播role_id、完整Figure和dkill，旧端按本人连续击杀或他人每五杀排队展示头像、姓名、次数与动效；缺完整Figure和战场UI消费者时禁止no-op或raw占位。"
   },
   {
     "cmd": 14203,
