@@ -329,6 +329,8 @@
 - F同时把hard-negative的cmd从旧`>0`收紧为10000～99999，并保留非空`rule/evidence`要求。当前20条硬负约束与172条killlist零交集；反向探针加入204和10204后，F精确报告`cmd/rule/evidence不完整:204;与killlist重叠:10204`并`EXIT 3`。恢复后的`coverage_20260802_184844.md`为A～H全PASS，两份正式清单均未改。
 - R557再要求每条hard-negative必须属于本次扫描的`LiveDefined-UnityRegistered`。一旦某号已实现、被新证据判死或从老端活集合退出，继续留表会错误参与A/B历史移除豁免和报告分桶；F因此把“不在当前liveGap”视为陈旧约束并要求同轮重审，而不是自动迁移到killlist。
 - 当前20条全部在331个liveGap中。反向探针加入字段合法、无注册且不与killlist重叠的99999后，F只以`不在当前liveGap:99999`精确失败并`EXIT 3`；恢复后的`coverage_20260802_185443.md`为A～H全PASS，F显示20条均属于当前liveGap且其余边界不变。
+- R558保护A/B所依赖的冻结`registeredCmds`逐号清单。正式baseline的`totalUnityRegistered=893`与893个历史注册号一一对应；数组必须等长、五位、唯一并严格升序。否则即使当前1256仍高于历史总数，A也必须失败，避免人工删空数组后只剩宽松的总量比较，或让同家族换号绕过B的族级计数。
+- B读取显式空/损坏数组时改为安全空集合，不因null异常中断报告，但A会把结构损坏挂红。反向探针把10003改为重复10000并删除10004，A精确报告`registeredCmds计数892!=历史总量893;registeredCmds重复:10000;registeredCmds非严格升序`并`EXIT 3`；恢复后的`coverage_20260802_190102.md`为A～H全PASS，正式baseline未改。
 
 ### 7.30 AutoBrush 13310 阶段奖励事务（2026-08-02 核对）
 

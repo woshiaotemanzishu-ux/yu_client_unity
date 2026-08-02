@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R557。F段要求hard-negative每号都仍属于最新扫描的当前liveGap；已实现、已判死或退出活集合的陈旧条目必须重审，不能继续参与A/B豁免与报告分桶。
-- 当前20条全部命中331个liveGap。字段合法、无注册且不与killlist重叠的99999反向探针被精确报为`不在当前liveGap`并`EXIT 3`。
-- 恢复后的`coverage_20260802_185443.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A～H全PASS、`EXIT 0`。F显示20条均属于当前liveGap并与172条killlist零交集；正式清单和baseline未改。
+- 最新完成轮次：R558。A段现要求冻结`registeredCmds`与历史总量等长、五位、唯一且严格升序，防止清单删空/损坏后退化为只看`1256>=893`的宽松总量门禁。
+- 正式baseline当前893个历史注册号与`totalUnityRegistered=893`精确一致。重复10000并删除10004的反向探针同时命中计数、重复和顺序三项，当前注册总量更高也仍`EXIT 3`。
+- 恢复后的`coverage_20260802_190102.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A～H全PASS、`EXIT 0`，A显示`baseline注册号清单893条完整`。正式baseline未改。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

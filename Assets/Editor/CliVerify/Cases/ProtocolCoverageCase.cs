@@ -9,11 +9,12 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 协议覆盖率核验器(PG 包,第21轮/R547-R557):八段断言 A-H,照 CliVerify.cs 既有惯例,日志前缀
+    /// 协议覆盖率核验器(PG 包,第21轮/R547-R558):八段断言 A-H,照 CliVerify.cs 既有惯例,日志前缀
     /// "CLIVERIFY protocolcoverage"。纯静态分析 + 一次运行时反射,不建 Stage/不渲染。
     ///
-    ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline；具体号消失默认算红，只有带 evidence 的
-    ///     killlist/硬负约束裁决可按号豁免，且打印全部消失号。
+    ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline；baseline.registeredCmds 必须与历史总量
+    ///     等长、五位、唯一且严格升序。具体号消失默认算红，只有带 evidence 的killlist/硬负约束
+    ///     裁决可按号豁免，且打印全部消失号。
     ///   B 家族防倒退:逐前缀(协议号/100)已注册数不许降；同一证据裁决号仅补偿所属家族。
     ///   C 完工家族零未申报(防虚假完工正主):baseline 里 status=="done" 的家族,其「活缺口」必须
     ///     整体落在 killlist.json 里(且每条 killlist 记录必须带非空 evidence,否则不算数)。
@@ -150,15 +151,41 @@ namespace Shenxiao.EditorTools
             }
 
             int prev = baseline.TotalUnityRegistered;
+            List<int> baselineCmds = baseline.RegisteredCmds ?? new List<int>();
+            List<int> duplicateBaselineCmds = baselineCmds
+                .GroupBy(c => c)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .OrderBy(c => c)
+                .ToList();
+            List<int> invalidBaselineCmds = baselineCmds
+                .Where(c => c < 10000 || c > 99999)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToList();
+            bool strictlyIncreasing = baselineCmds
+                .Zip(baselineCmds.Skip(1), (left, right) => left < right)
+                .All(inOrder => inOrder);
+            bool baselineCmdsValid = baselineCmds.Count == prev
+                && duplicateBaselineCmds.Count == 0
+                && invalidBaselineCmds.Count == 0
+                && strictlyIncreasing;
             HashSet<int> sanctionedRemovals = BuildSanctionedRemovalSet(killlist, hardNegativeConstraints);
-            List<int> allMissing = baseline.RegisteredCmds
+            List<int> allMissing = baselineCmds
                 .Where(c => !scan.UnityRegistered.Contains(c))
                 .OrderBy(c => c)
                 .ToList();
             List<int> missing = allMissing.Where(c => !sanctionedRemovals.Contains(c)).ToList();
             List<int> sanctionedMissing = allMissing.Where(sanctionedRemovals.Contains).ToList();
-            bool pass = cur >= prev && missing.Count == 0;
+            bool pass = baselineCmdsValid && cur >= prev && missing.Count == 0;
             string detail = "当前" + cur + " vs baseline" + prev;
+            if (baselineCmds.Count != prev)
+                detail += ";registeredCmds计数" + baselineCmds.Count + "!=历史总量" + prev;
+            if (duplicateBaselineCmds.Count > 0)
+                detail += ";registeredCmds重复:" + string.Join(",", duplicateBaselineCmds);
+            if (invalidBaselineCmds.Count > 0)
+                detail += ";registeredCmds非五位:" + string.Join(",", invalidBaselineCmds);
+            if (!strictlyIncreasing) detail += ";registeredCmds非严格升序";
             if (missing.Count > 0)
             {
                 detail += ";消失的号(" + missing.Count + "):" + string.Join(",", missing.Take(50)) + (missing.Count > 50 ? "..." : "");
@@ -167,6 +194,7 @@ namespace Shenxiao.EditorTools
             {
                 detail += ";有证据裁决移除(" + sanctionedMissing.Count + "):" + string.Join(",", sanctionedMissing);
             }
+            if (baselineCmdsValid) detail += ";baseline注册号清单" + baselineCmds.Count + "条完整";
             outcome.Add("A总量防倒退", pass, detail);
         }
 
@@ -185,7 +213,7 @@ namespace Shenxiao.EditorTools
 
             Dictionary<int, int> curFamilies = scan.BuildFamilyTable().ToDictionary(f => f.Prefix, f => f.UnityRegistered);
             HashSet<int> sanctionedRemovals = BuildSanctionedRemovalSet(killlist, hardNegativeConstraints);
-            var sanctionedBaselineMissingByFamily = baseline.RegisteredCmds
+            var sanctionedBaselineMissingByFamily = (baseline.RegisteredCmds ?? new List<int>())
                 .Where(c => sanctionedRemovals.Contains(c) && !scan.UnityRegistered.Contains(c))
                 .GroupBy(ProtocolCoverageScanner.ScanResult.Family)
                 .ToDictionary(g => g.Key, g => g.OrderBy(c => c).ToList());
