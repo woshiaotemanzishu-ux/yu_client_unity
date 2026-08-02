@@ -81,6 +81,10 @@ namespace Shenxiao.Framework.Event
         public const string EVT_EQUIPMENT_UPDATE = "EVT_EQUIPMENT_UPDATE";
         public const string EVT_BABY_EQUIP_BAG_UPDATE = "EVT_BABY_EQUIP_BAG_UPDATE";
         public const string EVT_BABY_EQUIP_UPDATE = "EVT_BABY_EQUIP_UPDATE";
+        /// <summary>龙纹背包(pos=35)全量、数量增量或18113详情到达。</summary>
+        public const string EVT_LUNG_BAG_UPDATE = "EVT_LUNG_BAG_UPDATE";
+        /// <summary>已穿戴龙纹(pos=34)全量、数量增量或18113详情到达。</summary>
+        public const string EVT_LUNG_EQUIP_UPDATE = "EVT_LUNG_EQUIP_UPDATE";
         /// <summary>使用物品成功(参数: int goods_type_id)。对标老端 GoodsModel.USE_BAG_GOODS_SUCCESS
         /// (On15050 res==1 时 Fire;CongratulationObtainView 等据此刷新)。BagController.On15050 发。</summary>
         public const string EVT_GOODS_USE_SUCCESS = "EVT_GOODS_USE_SUCCESS";

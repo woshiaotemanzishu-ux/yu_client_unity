@@ -12,7 +12,7 @@ namespace Shenxiao.Module.Core.Bag
 {
     /// <summary>
     /// 背包协议控制器(对标老客户端 commonController/GoodsController.ts 的 15010 收/送 + BagController.ts 编排)。
-    /// 进游戏(EVT_GAME_START)请求主背包 + 坐骑/伙伴装备四容器(15010 "h" pos=4/22/32/23/33)，
+    /// 进游戏(EVT_GAME_START)请求主背包、仓库、坐骑/伙伴装备及龙纹容器(15010 "h" pos=4/5/22/32/23/33/34/35)，
     /// 收 15010/15017/15018 后按 pos 落 <see cref="BagModel"/>；主背包仍独占 EVT_BAG_UPDATE。
     /// 镜像 <see cref="Tasks.TaskController"/>/<see cref="Scene.SceneController"/> 的「一模块一控制器」范式,注册进 ControllerHub。
     ///
@@ -98,7 +98,7 @@ namespace Shenxiao.Module.Core.Bag
             // 背包格的真实图标/品质底板走 config_goods(同 TaskController 预载;EnsureLoaded 幂等)。
             await Task.WhenAll(GoodsModel.EnsureLoaded(), ItemUseFlow.EnsureConfigs());
             RequestStartupContainers();
-            GameLog.Info("Bag", "request 15010 startup pos=4,5,22,32,23,33,37(主背包+仓库+坐骑/伙伴装备+宝宝装备背包)");
+            GameLog.Info("Bag", "request 15010 startup pos=4,5,22,32,23,33,34,35,37(主背包+仓库+坐骑/伙伴装备+龙纹+宝宝装备背包)");
 
 #if UNITY_EDITOR
             // 截获缝只会由 CliVerify 临时设置；测试启动请求时不再挂一个 2.5 秒后的 15027 真发送任务。
@@ -119,6 +119,8 @@ namespace Shenxiao.Module.Core.Bag
             RequestContainerInfo(BagModel.POS_HORSE_BAG);
             RequestContainerInfo(BagModel.POS_PARTNER);
             RequestContainerInfo(BagModel.POS_PARTNER_BAG);
+            RequestContainerInfo(BagModel.POS_LUNG_EQUIP);
+            RequestContainerInfo(BagModel.POS_LUNG_BAG);
             RequestContainerInfo(BagModel.POS_BABY_BAG);
         }
 
@@ -183,6 +185,13 @@ namespace Shenxiao.Module.Core.Bag
                 GameLog.Info("Bag", "15017 PetEquip container pos={0} delta={1} count={2} remaining={3}B",
                     pos, list.Count, BagModel.Instance.GetContainer(pos).Count, r.Remaining);
                 EventDispatcher.Emit(GlobalEvent.EVT_PET_EQUIP_BAG_UPDATE, pos);
+                return;
+            }
+            if (BagModel.IsLungContainer(pos))
+            {
+                // 老端不直接落15017的普通物品项，而是逐件查询18113以取得dragon专有next_power。
+                foreach (BagGoods g in list) Lung.LungController.Instance.RequestGoodsDetail(g.GoodsId, pos);
+                GameLog.Info("Bag", "15017 lung container pos={0} request details={1} remaining={2}B", pos, list.Count, r.Remaining);
                 return;
             }
             if (pos == BagModel.POS_BABY_BAG)
@@ -254,6 +263,15 @@ namespace Shenxiao.Module.Core.Bag
                 GameLog.Info("Bag", "15018 PetEquip container pos={0} delta={1} count={2} remaining={3}B",
                     pos, list.Count, BagModel.Instance.GetContainer(pos).Count, r.Remaining);
                 EventDispatcher.Emit(GlobalEvent.EVT_PET_EQUIP_BAG_UPDATE, pos);
+                return;
+            }
+            if (BagModel.IsLungContainer(pos))
+            {
+                foreach ((long goodsId, long num, int typeId) it in list)
+                    BagModel.Instance.UpdateLungContainerNum(pos, it.goodsId, it.typeId, it.num);
+                EventDispatcher.Emit(pos == BagModel.POS_LUNG_BAG ? GlobalEvent.EVT_LUNG_BAG_UPDATE : GlobalEvent.EVT_LUNG_EQUIP_UPDATE);
+                GameLog.Info("Bag", "15018 lung container pos={0} delta={1} count={2} remaining={3}B",
+                    pos, list.Count, BagModel.Instance.GetContainer(pos).Count, r.Remaining);
                 return;
             }
             if (pos == BagModel.POS_BABY_BAG)
@@ -947,6 +965,13 @@ namespace Shenxiao.Module.Core.Bag
                 GameLog.Info("Bag", "15010 warehouse: cellNum={0} maxCell={1} goods={2} remaining={3}B",
                     cellNum, maxCell, list.Count, r.Remaining);
             }
+            else if (BagModel.IsLungContainer(pos))
+            {
+                BagModel.Instance.SetLungContainerFull(pos, maxCell, list);
+                EventDispatcher.Emit(pos == BagModel.POS_LUNG_BAG ? GlobalEvent.EVT_LUNG_BAG_UPDATE : GlobalEvent.EVT_LUNG_EQUIP_UPDATE);
+                GameLog.Info("Bag", "15010 lung container pos={0} cellNum={1} maxCell={2} goods={3} remaining={4}B",
+                    pos, cellNum, maxCell, list.Count, r.Remaining);
+            }
             else if (pos == BagModel.POS_BABY_BAG)
             {
                 BagModel.Instance.SetBabyEquipBagFull(maxCell, list);
@@ -983,7 +1008,12 @@ namespace Shenxiao.Module.Core.Bag
         /// 读一项 goods_list(字段名/顺序/嵌套照抄 ClientProtocol.json "15010")。显示字段 + 装备实例态(强化/评分 +
         /// 极品/附加/觉醒 3 数组)均暂存进 <see cref="BagGoods"/>(第 9 轮:从「读过即弃」改为「按序读出并留存」,为装备 tips 实例行做地基)。
         /// </summary>
-        private static BagGoods ReadGoods(NetReader r)
+        private static BagGoods ReadGoods(NetReader r) => ReadGoodsCore(r, false);
+
+        /// <summary>18113 dragon goods 与通用物品共享主体，但 awake 项没有 awake_exp，末尾另有 next_power:u64。</summary>
+        internal static BagGoods ReadDragonGoods(NetReader r) => ReadGoodsCore(r, true);
+
+        private static BagGoods ReadGoodsCore(NetReader r, bool dragon)
         {
             var g = new BagGoods
             {
@@ -1046,9 +1076,10 @@ namespace Shenxiao.Module.Core.Bag
                 {
                     AttrType = r.ReadU16(),      // attr_type:h
                     AwakeLv = r.ReadU32(),       // awake_lv:i
-                    AwakeExp = r.ReadU32(),      // awake_exp:i
+                    AwakeExp = dragon ? 0 : r.ReadU32(), // dragon wire 无 awake_exp
                 });
             }
+            if (dragon) g.NextPower = unchecked((ulong)r.ReadU64());
             return g;
         }
     }

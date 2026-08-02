@@ -1,6 +1,7 @@
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Role;
 
@@ -34,6 +35,7 @@ namespace Shenxiao.Module.Core.Lung
             RegisterProtocal(Proto.LUNG_INFO, On18100);
             RegisterProtocal(Proto.LUNG_STOVE_INFO, On18105);
             RegisterProtocal(Proto.LUNG_STOVE_OPEN_STATE, On18112);
+            RegisterProtocal(Proto.LUNG_GOODS_DETAIL, On18113);
             // 对标老端 CHANGE_LEVEL→Fire LUNG_REQUEST_PROTO 18105:等级变化时复请求。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.On(GlobalEvent.EVT_SERVER_TIME_REFRESH, OnServerTimeRefresh);
@@ -66,6 +68,20 @@ namespace Shenxiao.Module.Core.Lung
 
         /// <summary>18112 严格空包，服务端返回下一炉开启快照。</summary>
         public void RequestOpenSchedule() => SendEmpty(Proto.LUNG_STOVE_OPEN_STATE);
+
+        /// <summary>18113 显式物品详情查询，只接受龙纹已穿戴/背包两个真实容器。</summary>
+        public void RequestGoodsDetail(long goodsId, int location)
+        {
+            if (!BagModel.IsLungContainer(location)) return;
+#if UNITY_EDITOR
+            if (s_outboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(Proto.LUNG_GOODS_DETAIL, "lh", new object[] { goodsId, location });
+                if (s_outboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(Proto.LUNG_GOODS_DETAIL, "lh", goodsId, location);
+        }
 
         private void SendEmpty(int protoId)
         {
@@ -133,6 +149,23 @@ namespace Shenxiao.Module.Core.Lung
             long startTime = r.ReadU32();
             LungModel.Instance.ApplyOpenSchedule(crucibleId, startTime);
             RequestStoveInfo();
+        }
+
+        // 18113: location:u16 + goods_list。dragon单项较15017少awake_exp:u32，末尾多next_power:u64。
+        private void On18113(NetReader r)
+        {
+            int location = r.ReadU16();
+            System.Collections.Generic.List<BagGoods> goods = r.ReadArray(BagController.ReadDragonGoods);
+            if (!BagModel.IsLungContainer(location))
+            {
+                GameLog.Warn("Lung", "18113 ignored unknown location={0} goods={1}", location, goods.Count);
+                return;
+            }
+
+            foreach (BagGoods item in goods) BagModel.Instance.UpsertLungContainer(location, item);
+            EventDispatcher.Emit(location == BagModel.POS_LUNG_BAG ? GlobalEvent.EVT_LUNG_BAG_UPDATE : GlobalEvent.EVT_LUNG_EQUIP_UPDATE);
+            GameLog.Info("Lung", "18113 location={0} goods={1} container={2} remaining={3}B",
+                location, goods.Count, BagModel.Instance.GetContainer(location).Count, r.Remaining);
         }
 
         // 对标老端:主角等级变化复请求 18105(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。

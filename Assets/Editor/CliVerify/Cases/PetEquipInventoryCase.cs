@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// PetEquip 四装备容器前置实证：启动精确请求 4/22/32/23/33，15010/15017/15018 按容器落库，
+    /// PetEquip 四装备容器前置实证：启动精确请求主背包、仓库、四装备、龙纹与宝宝背包，15010/15017/15018 按容器落库，
     /// 并验证 PetEquip 16017 成功后的已穿戴实例同步 API。独立文件，不改 CliVerify.cs 调度本体。
     /// </summary>
     public static class PetEquipInventoryCase
@@ -84,6 +84,8 @@ namespace Shenxiao.EditorTools
                     BagModel.POS_HORSE_BAG,
                     BagModel.POS_PARTNER,
                     BagModel.POS_PARTNER_BAG,
+                    BagModel.POS_LUNG_EQUIP,
+                    BagModel.POS_LUNG_BAG,
                     BagModel.POS_BABY_BAG,
                 };
                 bool startupOk = SequenceEqual(startupTrace, expectedStartup);

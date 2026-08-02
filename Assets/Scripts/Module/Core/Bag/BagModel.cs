@@ -78,6 +78,8 @@ namespace Shenxiao.Module.Core.Bag
         // pos36=宝宝已穿戴装备实例；pos37=待穿候选背包，二者不可混用。
         private readonly List<BagGoods> _babyEquip = new List<BagGoods>();
         private readonly List<BagGoods> _babyEquipBag = new List<BagGoods>();
+        private readonly List<BagGoods> _lungEquip = new List<BagGoods>();
+        private readonly List<BagGoods> _lungBag = new List<BagGoods>();
         private static readonly IReadOnlyList<BagGoods> EmptyContainer = new BagGoods[0];
 
         /// <summary>各槽位容量(对标 GoodsModel.xxx_max_cell 系列字段;15002 扩容成功后按 pos 更新,见 BagController.On15002)。</summary>
@@ -89,6 +91,8 @@ namespace Shenxiao.Module.Core.Bag
         public int BabyEquipMaxCell => GetMaxCell(POS_BABY_EQUIP);
         public bool HasBabyEquipData { get; private set; }
         public bool HasBabyEquipBagData { get; private set; }
+        public bool HasLungEquipData { get; private set; }
+        public bool HasLungBagData { get; private set; }
 
         /// <summary>取任意槽位当前容量(未收到过 15010/15002 则 0)。</summary>
         public int GetMaxCell(int pos) => _maxCellByPos.TryGetValue(pos, out int v) ? v : 0;
@@ -170,7 +174,52 @@ namespace Shenxiao.Module.Core.Bag
             if (pos == POS_WAREHOUSE) return _warehouse;
             if (pos == POS_BABY_EQUIP) return _babyEquip;
             if (pos == POS_BABY_BAG) return _babyEquipBag;
+            if (pos == POS_LUNG_EQUIP) return _lungEquip;
+            if (pos == POS_LUNG_BAG) return _lungBag;
             return _petEquipContainers.TryGetValue(pos, out List<BagGoods> list) ? list : EmptyContainer;
+        }
+
+        public static bool IsLungContainer(int pos) => pos == POS_LUNG_EQUIP || pos == POS_LUNG_BAG;
+
+        /// <summary>15010 龙纹容器全量；服务端 wire 顺序是事实源。</summary>
+        internal void SetLungContainerFull(int pos, int maxCell, List<BagGoods> goods)
+        {
+            if (!IsLungContainer(pos)) return;
+            List<BagGoods> target = pos == POS_LUNG_EQUIP ? _lungEquip : _lungBag;
+            target.Clear();
+            if (goods != null) target.AddRange(goods);
+            SetMaxCell(pos, maxCell);
+            if (pos == POS_LUNG_EQUIP) HasLungEquipData = true;
+            else HasLungBagData = true;
+        }
+
+        /// <summary>18113 详情增量。已穿戴容器按 cell 唯一，背包按 goods_id 唯一。</summary>
+        internal void UpsertLungContainer(int pos, BagGoods vo)
+        {
+            if (!IsLungContainer(pos) || vo == null) return;
+            List<BagGoods> target = pos == POS_LUNG_EQUIP ? _lungEquip : _lungBag;
+            int idx = target.FindIndex(g => g.GoodsId == vo.GoodsId);
+            if (idx >= 0)
+            {
+                if (vo.GoodsNum <= 0) target.RemoveAt(idx);
+                else target[idx] = vo;
+                return;
+            }
+            if (vo.GoodsNum <= 0) return;
+            if (pos == POS_LUNG_EQUIP && vo.Cell > 0)
+            {
+                int cellIdx = target.FindIndex(g => g.Cell == vo.Cell);
+                if (cellIdx >= 0) { target[cellIdx] = vo; return; }
+            }
+            target.Add(vo);
+        }
+
+        /// <summary>15018 龙纹数量增量；保留18113补齐的 next_power 与其它实例字段。</summary>
+        internal void UpdateLungContainerNum(int pos, long goodsId, int typeId, long num)
+        {
+            if (!IsLungContainer(pos)) return;
+            List<BagGoods> target = pos == POS_LUNG_EQUIP ? _lungEquip : _lungBag;
+            UpdateListNum(target, goodsId, typeId, num);
         }
 
         /// <summary>15010 pos=1 全量。列表本身是协议事实源，不在配置尚未加载时提前丢弃槽位信息。</summary>
@@ -394,8 +443,12 @@ namespace Shenxiao.Module.Core.Bag
             _petEquipContainers.Clear();
             _babyEquip.Clear();
             _babyEquipBag.Clear();
+            _lungEquip.Clear();
+            _lungBag.Clear();
             HasBabyEquipData = false;
             HasBabyEquipBagData = false;
+            HasLungEquipData = false;
+            HasLungBagData = false;
             HasEquipmentData = false;
             HasWarehouseData = false;
             SpecialScores.Clear();
@@ -429,6 +482,7 @@ namespace Shenxiao.Module.Core.Bag
         public long CombatPower; // combat_power:i(战力)
         public int EquipStage;   // equipStage:c(坐骑/伙伴装备阶)
         public int EquipStar;    // equipStar:c(坐骑/伙伴装备星)
+        public ulong NextPower;  // 18113 dragon goods 专有尾字段；15010/15017 通用物品包为0
         public List<EquipExtraAttr> ExtraAttrs;     // equip_extra_attr(极品属性,对标 EquipToolTips SetBestPro)
         public List<EquipAdditionAttr> AdditionAttrs; // addition_attrlist(附加属性)
         public List<EquipAwakeAttr> AwakeList;        // awake_list(觉醒)

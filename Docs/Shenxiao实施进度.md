@@ -6,7 +6,7 @@
 > - [编码规范](Shenxiao编码规范.md)
 > - [Copilot 红线](../.github/copilot-instructions.md)
 
-**最近更新**：2026-07-30
+**最近更新**：2026-08-02
 
 **状态图例**：
 - ✅ 已完成
@@ -15,11 +15,11 @@
 - 🟠 需求变更/范围调整
 - ⛔ 已废弃/暂缓
 
-## 当前协议迁移口径（2026-07-30）
+## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R522。14402从DEFER转为完整圣骸打造事务：精确导入equipment/suit/kv三份配置，前置校验对齐服务端的配置→等级→同部位前阶→未打造→真实材料顺序；配置中的前阶圣骸状态项不作为背包消耗。
-- EquipArmor现有Prefab已接阶段/类型/部位、材料、属性总览与页内红点。确认框冻结选择/配置/模型/背包指纹并在确认时二次校验；请求单飞且无乐观改树/扣物，失败保留旧树，只有成功才按回包stage/type权威局部合并。打造按钮通过真实`GraphicRaycaster→PointerClick`。
-- Unity实编译与 `dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 均0 error（60条既有warning）；`ArmorCase` batch结果0，覆盖配置/协议/前置条件/失败与成功更新语义/真实Prefab点击/确认快照/single-flight。`coverage_20260730_133316.md` A～E全PASS，运行时口径为 `registered=1262 / liveDefined=1468 / liveGap=328 / errorExit=12 / active=1140/1468=77.7%`；baseline冻结不更新。
+- 最新完成轮次：R527。18113从DEFER转为龙纹物品详情只读闭环，正式接通15010/15017/15018的pos34/35容器语义；GAME_START在伙伴装备后精确加入`34→35`。
+- 18113沿用通用物品主体但使用dragon专用尾部：觉醒项没有`awake_exp`且每件追加`next_power:u64`。15010全量替换，15017逐件补查详情且不提前落普通项，15018仅改数量；未扩展龙纹UI、红点或任何写操作。
+- Unity实编译与`dotnet build Assembly-CSharp-Editor.csproj`均0 error；`LungCase`和`PetEquip` batch均为0。`coverage_20260802_131912.md` A～E全PASS，运行时口径为`registered=1268 / liveDefined=1468 / liveGap=322 / errorExit=12 / active=1146/1468=78.1%`；baseline冻结不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---
@@ -1756,3 +1756,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **配置与界面**：从与现有`config_dsgt`哈希一致的老端当前CDN源迁入4772条`config_dsgt_order`，登记到`ClientConfigSync`；复用已验收`DsgtModule.prefab`的同一动作按钮和材料区，激活后按41101当前阶显示阶级属性、下一阶材料、数量、红点与“升阶”文案，满阶隐藏动作并显示原满阶标记。未重转、未改Prefab视觉。
 - **权威状态**：每包保存独立不可变raw结果并解除单飞；失败不动列表，成功只提示并精确重查一次41101。客户端不预扣材料、不本地改阶/佩戴/属性/战力，也不采用回包order/currentused补丁；全量回包前同一称号保持刷新门禁，后到41101整体收权威。
 - **验证状态**：`dotnet build Shenxiao.Editor.csproj -m:1`为77条既有warning、0 error。`DesignationUpgradeCase=0/pass=True/restored=True`覆盖4772条配置门禁、当前/下一阶、精确帧、跨41109单飞、成败/u32边界、无本地扣物/列表补丁、成功唯一41101重查、满阶拒发及真实Prefab `GraphicRaycaster→PointerClick`；既有`DesignationCase`与`DesignationReadContinuationCase`均为0且`pass/restored=True`。`coverage_20260802_125804.md` A～E全PASS，运行时为`registered=1267 / liveDefined=1468 / liveGap=323 / errorExit=12 / active=1145/1468=78.0%`；411族为`registered7/liveGap2/dead1/pending`，冻结baseline未改。
+
+## 2026-08-02：龙纹 18113 物品详情与 pos34/35 容器闭环（R527）
+
+- **协议边界**：18113是纯读取详情，C2S为`goods_id:u64,location:u16`且只允许34/35；S2C以location回显并返回dragon物品列表。dragon物品主体与15010/15017共享，但觉醒单项没有`awake_exp`，每件尾部另有`next_power:u64`，现已用专用尾部解码并保留64位值。
+- **容器链**：BagModel新增互相隔离的龙纹穿戴/背包容器、loaded与容量；GAME_START的15010序列在伙伴装备后加入`34→35`。15010全量替换，15017严格按老端逐件请求18113且不提前落普通项，15018只改数量并保留详情字段；穿戴容器按cell替换，背包按goods_id增量。空18113保留旧数据，未知location读完后隔离丢弃。
+- **未扩范围**：未创建龙纹页面、配置、红点、Toast或玩法操作；18101-18104、18106-18110仍是真实资产/玩法写事务，18111仍为旧端不可达，全部保持既有DEFER/KILL边界。
+- **验证状态**：`dotnet build Assembly-CSharp-Editor.csproj` 0 error；Unity 6000.3.17f1 `LungCase=0/pass=True`覆盖精确请求帧、双容器全量、15017延迟落库、dragon嵌套字段/u64、空表、cell替换、15018和未知location；`PetEquip=0`的协议/库存/UI三段回归全绿并验证启动序列。`coverage_20260802_131912.md` A～E全PASS，运行时为`registered=1268 / liveDefined=1468 / liveGap=322 / errorExit=12 / active=1146/1468=78.1%`；181族为`registered4/liveGap6/dead4/pending`，冻结baseline未改。
