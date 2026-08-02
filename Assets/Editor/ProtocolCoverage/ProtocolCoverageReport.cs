@@ -51,6 +51,19 @@ namespace Shenxiao.Editor.ProtocolCoverage
             var sb = new StringBuilder();
             var currentUnregisteredErrorExits = new HashSet<int>(scan.ErrorExitCandidates);
             currentUnregisteredErrorExits.ExceptWith(scan.UnityRegistered);
+            var killSet = new HashSet<int>(killlist
+                .Where(k => !string.IsNullOrWhiteSpace(k.Evidence))
+                .Select(k => k.Cmd));
+            var hardNegativeSet = new HashSet<int>(hardNegativeConstraints
+                .Where(k => k.Cmd >= 10000
+                    && k.Cmd <= 99999
+                    && !string.IsNullOrWhiteSpace(k.Rule)
+                    && !string.IsNullOrWhiteSpace(k.Evidence))
+                .Select(k => k.Cmd));
+            HashSet<int> liveGap = scan.LiveGap();
+            int killedLiveGapCount = liveGap.Count(killSet.Contains);
+            int hardNegativeLiveGapCount = liveGap.Count(c => !killSet.Contains(c) && hardNegativeSet.Contains(c));
+            int unlistedLiveGapCount = liveGap.Count - killedLiveGapCount - hardNegativeLiveGapCount;
             sb.AppendLine("# 协议覆盖率核验报告 " + scan.GeneratedAt.ToString("yyyy-MM-dd HH:mm:ss"));
             sb.AppendLine();
             sb.AppendLine("> " + DenominatorNote(scan));
@@ -85,6 +98,16 @@ namespace Shenxiao.Editor.ProtocolCoverage
             foreach (string line in assertions?.Lines ?? new List<string>()) sb.AppendLine("- " + line);
 
             sb.AppendLine();
+            sb.AppendLine("## 活缺口治理分类汇总");
+            sb.AppendLine();
+            sb.AppendLine("| 分类 | 当前数量 |");
+            sb.AppendLine("|---|---:|");
+            sb.AppendLine($"| killlist(带evidence) | {killedLiveGapCount} |");
+            sb.AppendLine($"| 硬负约束(有效且排除killlist重叠) | {hardNegativeLiveGapCount} |");
+            sb.AppendLine($"| 未落机器清单 | {unlistedLiveGapCount} |");
+            sb.AppendLine($"| 合计 | {liveGap.Count} |");
+
+            sb.AppendLine();
             sb.AppendLine("## 家族表(前缀 = 协议号/100)");
             sb.AppendLine();
             sb.AppendLine("| 前缀 | Unity已注册 | 活缺口 | 死号 | 服务端路由 | baseline状态 |");
@@ -104,15 +127,6 @@ namespace Shenxiao.Editor.ProtocolCoverage
             sb.AppendLine();
             sb.AppendLine("| 前缀 | 活缺口总数 | killlist | 硬负约束(排除killlist重叠) | 未落机器清单 |");
             sb.AppendLine("|---|---:|---|---|---|");
-            var killSet = new HashSet<int>(killlist
-                .Where(k => !string.IsNullOrWhiteSpace(k.Evidence))
-                .Select(k => k.Cmd));
-            var hardNegativeSet = new HashSet<int>(hardNegativeConstraints
-                .Where(k => k.Cmd >= 10000
-                    && k.Cmd <= 99999
-                    && !string.IsNullOrWhiteSpace(k.Rule)
-                    && !string.IsNullOrWhiteSpace(k.Evidence))
-                .Select(k => k.Cmd));
             foreach (ProtocolCoverageScanner.FamilyStat fs in scan.BuildFamilyTable()
                 .Where(f => f.LiveGap > 0)
                 .OrderByDescending(f => f.LiveGap)
@@ -156,7 +170,7 @@ namespace Shenxiao.Editor.ProtocolCoverage
         }
     }
 
-    /// <summary>七段断言的人类可读结果行 + 总体是否通过。</summary>
+    /// <summary>断言的人类可读结果行 + 总体是否通过。</summary>
     public sealed class AssertionOutcome
     {
         public readonly List<string> Lines = new List<string>();
