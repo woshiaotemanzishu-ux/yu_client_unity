@@ -150,10 +150,12 @@ namespace Shenxiao.Editor.ProtocolCoverage
             foreach (FamilyBaseline fb in baseline.Families.Where(f => f.Status == "legacy_unverified"))
             {
                 List<int> gapCmds = scan.LiveGap().Where(c => ProtocolCoverageScanner.ScanResult.Family(c) == fb.Prefix).OrderBy(c => c).ToList();
-                List<int> unkilled = gapCmds.Where(c => !killSet.Contains(c)).ToList();
-                if (unkilled.Count == 0) continue;
+                List<int> ungoverned = gapCmds
+                    .Where(c => !killSet.Contains(c) && !hardNegativeSet.Contains(c))
+                    .ToList();
+                if (ungoverned.Count == 0) continue;
                 anyLegacy = true;
-                sb.AppendLine($"- 家族 {fb.Prefix}:未申报 {unkilled.Count} 个 -> {string.Join(",", unkilled)}");
+                sb.AppendLine($"- 家族 {fb.Prefix}:未申报 {ungoverned.Count} 个 -> {string.Join(",", ungoverned)}");
             }
             if (!anyLegacy) sb.AppendLine("- (无)");
 

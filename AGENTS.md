@@ -28,7 +28,7 @@
 
 - 协议覆盖报告明细表规则：`coverage_*.md`家族表必须按活缺口降序逐族精确写出当前`unityRegistered/liveGap/deadGap`、服务端路由和正式策展状态，行数、前缀顺序与三项汇总必须等于扫描；活缺口逐号表必须覆盖每个`liveGap>0`家族，并将每号互斥分到killlist、硬负约束或未落机器清单。K段必须逐行重建两张表并校验顺序、字段、分组和汇总，禁止总量正确但明细漏族、漏号或换分组。
 
-- 协议 legacy 报告规则：`coverage_*.md`的`legacy_unverified`区必须按正式baseline顺序，逐族列出当前仍未被有效killlist治理的活缺口；只有带非空`evidence`的killlist项才算已治理，无证据坏项必须重新落入未申报清单。L段必须独立重建该区，校验行数、顺序、逐族数量与逐号集合；报告生成器、K/L和候选策展判断必须共用“有效证据”口径，禁止失败报告仍把坏清单项算作已治理，或漏掉legacy族而不挂红。
+- 协议 legacy 报告规则：`coverage_*.md`的`legacy_unverified`区必须按正式baseline顺序，逐族列出当前仍未被有效killlist或有效hard-negative治理的活缺口；killlist必须带非空`evidence`，hard-negative必须是五位cmd且`rule/evidence`完整，字段不全的坏项必须重新落入未申报清单。L段必须独立重建该区，校验行数、顺序、逐族数量与逐号集合；报告生成器、K/L/M必须共用这两类“有效机器治理”口径，禁止失败报告仍把坏清单项算作已治理，或漏掉legacy族而不挂红。hard-negative只表示真实活协议当前禁止接入，仍须保留liveGap/pending，不能用于C/H的`done`收口或候选`suggestedStatus=done`；后两者继续只认有效killlist。
 
 - 协议活缺口治理汇总规则：`coverage_*.md`必须显式汇总同次扫描活缺口中的有效killlist、有效硬负约束（排除killlist重叠）和未落机器清单三类数量，并给出等于当前`liveGap`的合计。M段必须独立按逐号集合重建四行，拒绝历史常量、分类互换、重复计数或仅保证合计正确；K继续负责逐族明细，M负责跨族分类总量，两者必须同时通过。
 
