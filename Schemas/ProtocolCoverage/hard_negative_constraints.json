@@ -276,6 +276,24 @@
     "note": "魔法阵错误链晚增量已撤销。"
   },
   {
+    "cmd": 21602,
+    "rule": "R125/R540/R585 Guard summon asset and scene transaction boundary",
+    "evidence": "AGENTS.md:R585 Guard 21602/21603/21604完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R585",
+    "note": "21602会按lv/type/auto校验并真实扣料、绑玉、钻石或免费次数，写DB、重算属性、触发任务、推21601/21602并广播21604；禁止孤立sender、ACK或乐观激活。"
+  },
+  {
+    "cmd": 21603,
+    "rule": "R125/R540/R585 Guard free-experience orchestration boundary",
+    "evidence": "AGENTS.md:R585 Guard 21602/21603/21604完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R585",
+    "note": "21603由任务完成、登录和重登推送免费体验资格，旧端跨场景缓存体验弹窗且关闭或确认会串发21602；缺弹窗编排、免费次数和资产闭环时禁止no-op或raw通知。"
+  },
+  {
+    "cmd": 21604,
+    "rule": "R125/R540/R585 Guard scene appearance broadcast boundary",
+    "evidence": "AGENTS.md:R585 Guard 21602/21603/21604完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R585",
+    "note": "21604向周围广播role_id和magic_circle_id，旧端直接更新场景角色fazhen_id；Unity缺魔法阵资源及其他角色场景生命周期，禁止no-op注册或最后raw占位。"
+  },
+  {
     "cmd": 21606,
     "rule": "R125/R540 Guard boundary",
     "evidence": "AGENTS.md:协议负约束优先规则;Docs/差距分析-协议接入GapMap-20260711.md:Guard",
