@@ -321,6 +321,8 @@
 - R553新增H段反向状态门禁：对正式baseline中每个非`done`家族按当前扫描重算活缺口；若已是零缺口，或全部缺口都被带非空evidence的killlist覆盖，则必须失败并要求同轮转`done`。H同时拒绝非法状态和正式baseline漏掉当前家族，和C段共同形成“未治理不得done、已治理不得继续pending”的双向约束。
 - `baseline.next.json`不再机械覆盖人工策展：候选保留正式baseline的`status/statusNote`，并独立输出由当前逐号缺口和有效killlist计算的`suggestedStatus`。因此150/152仍可如实保留`legacy_unverified`，同时显示机器建议`pending`；候选仅供审阅，禁止据此改写冻结计数或跳过人工裁决。
 - 反向探针把144零缺口族和400全killlist族临时改为`pending`，H精确报告`144[零活缺口]`与`400[全killlist:...]`并`EXIT 3`；逐行恢复正式baseline后的`coverage_20260802_182556.md`为A～H全PASS、`EXIT 0`，运行时指标仍为`1256/331/20/77.5%`。
+- R554继续收紧正式baseline的人工编辑完整性：H要求`families[].prefix`唯一；对当前仍有活缺口的`done`家族要求非空`statusNote`，使killlist收口理由不会在后续人工整理时被静默抹掉。零缺口done族不强制补历史说明，避免为90个已自然全覆盖的旧族制造无信息文本。
+- 当前正式baseline共179族且无重复；17个“仍有当前活缺口但已done”的家族全部有说明。反向探针临时复制144条目并清空400说明，H同时报告`baseline家族重复:144`与`带活缺口done族缺statusNote:400`并`EXIT 3`；恢复后的`coverage_20260802_183414.md`为A～H全PASS。
 
 ### 7.30 AutoBrush 13310 阶段奖励事务（2026-08-02 核对）
 

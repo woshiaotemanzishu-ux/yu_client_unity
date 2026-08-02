@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R553。覆盖验收新增H段，非`done`家族若当前零活缺口或全部活缺口都已有evidence-killlist，会立即失败；与C段组成状态双向门禁，不能再用`pending/legacy_unverified`逃避完工收口。
-- 候选`baseline.next.json`现在保留正式baseline的人工`status/statusNote`，另写机器计算的`suggestedStatus`；正式`baseline.json`的冻结计数与人工状态仍不自动改写。当前150/152保留`legacy_unverified`且机器建议`pending`，属于可见差异而非候选丢字段。
-- 反向探针同时命中144零缺口和400全killlist两条路径并`EXIT 3`；恢复后的`coverage_20260802_182556.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A～H全PASS、`EXIT 0`。R552的85族331号逐号清单及79+20+232分桶保持不变。
+- 最新完成轮次：R554。H段在R553状态双向收口之上，新增正式baseline家族前缀唯一性，以及“当前仍有活缺口的done家族必须有非空statusNote”两项策展完整性约束。
+- 当前正式baseline共179族、零重复；17个带当前活缺口的done家族全部有说明。零缺口done族不强制补历史说明；候选仍保留正式`status/statusNote`并独立输出`suggestedStatus`，冻结计数不自动更新。
+- 重复144家族并清空400说明的反向探针同时命中两项并`EXIT 3`；恢复后的`coverage_20260802_183414.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`，A～H全PASS、`EXIT 0`。R552的331号逐号清单与R553状态建议语义保持不变。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

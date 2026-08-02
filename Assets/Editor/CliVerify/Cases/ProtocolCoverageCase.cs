@@ -29,7 +29,8 @@ namespace Shenxiao.EditorTools
     ///     的 C2S 单向操作允许且必须保留 Proto 常量及生产 `Send*(Proto.X,...)` 直接引用，其余死号不得
     ///     残留常量或发送引用；模式非法或清单重复也挂红。
     ///   H baseline状态收口:当前零活缺口、或剩余活缺口已全部由带evidence的killlist治理的家族，
-    ///     正式baseline必须人工标为done；未知status或漏入baseline的当前家族同样挂红。
+    ///     正式baseline必须人工标为done；家族重复、未知status、漏入当前家族，或仍有活缺口的done族
+    ///     缺少statusNote同样挂红。
     ///
     /// 收尾落 Reports/ProtocolCoverage/coverage_&lt;date&gt;.md + baseline.next.json(裁决5:
     /// 绝不自动覆盖 Schemas/ProtocolCoverage/baseline.json,基线上调必须人工确认后手动覆盖)。
@@ -431,6 +432,12 @@ namespace Shenxiao.EditorTools
             }
 
             var validStatuses = new HashSet<string> { "done", "pending", "legacy_unverified" };
+            List<int> duplicatePrefixes = baseline.Families
+                .GroupBy(f => f.Prefix)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .OrderBy(p => p)
+                .ToList();
             List<int> invalidStatuses = baseline.Families
                 .Where(f => !validStatuses.Contains(f.Status))
                 .Select(f => f.Prefix)
@@ -446,6 +453,13 @@ namespace Shenxiao.EditorTools
                 .Where(k => !string.IsNullOrWhiteSpace(k.Evidence))
                 .Select(k => k.Cmd));
             HashSet<int> liveGap = scan.LiveGap();
+            List<int> doneWithGapMissingNote = baseline.Families
+                .Where(f => f.Status == "done" && string.IsNullOrWhiteSpace(f.StatusNote))
+                .Where(f => liveGap.Any(c => ProtocolCoverageScanner.ScanResult.Family(c) == f.Prefix))
+                .Select(f => f.Prefix)
+                .Distinct()
+                .OrderBy(p => p)
+                .ToList();
             var notClosed = new List<string>();
             foreach (FamilyBaseline family in baseline.Families.Where(f => f.Status != "done"))
             {
@@ -462,12 +476,20 @@ namespace Shenxiao.EditorTools
                 }
             }
 
-            bool pass = invalidStatuses.Count == 0 && missingFamilies.Count == 0 && notClosed.Count == 0;
+            bool pass = duplicatePrefixes.Count == 0
+                && invalidStatuses.Count == 0
+                && missingFamilies.Count == 0
+                && doneWithGapMissingNote.Count == 0
+                && notClosed.Count == 0;
             var details = new List<string>();
+            if (duplicatePrefixes.Count > 0) details.Add("baseline家族重复:" + string.Join(",", duplicatePrefixes));
             if (invalidStatuses.Count > 0) details.Add("status非法:" + string.Join(",", invalidStatuses));
             if (missingFamilies.Count > 0) details.Add("当前家族未入baseline:" + string.Join(",", missingFamilies));
+            if (doneWithGapMissingNote.Count > 0)
+                details.Add("带活缺口done族缺statusNote:" + string.Join(",", doneWithGapMissingNote));
             if (notClosed.Count > 0) details.Add("已完整治理但未done:" + string.Join(";", notClosed));
-            if (pass) details.Add("无零缺口/全killlist仍滞留pending或legacy_unverified的家族");
+            if (pass) details.Add("baseline家族唯一且带活缺口done族均有statusNote;"
+                + "无零缺口/全killlist仍滞留pending或legacy_unverified的家族");
             outcome.Add("Hbaseline状态收口", pass, string.Join(";", details));
         }
     }
