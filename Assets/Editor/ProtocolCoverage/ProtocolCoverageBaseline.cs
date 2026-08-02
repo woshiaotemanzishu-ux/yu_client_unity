@@ -38,6 +38,8 @@ namespace Shenxiao.Editor.ProtocolCoverage
         [JsonProperty("totalDeadGap")] public int TotalDeadGap;
         [JsonProperty("liveCoveragePercent")] public double LiveCoveragePercent;
         [JsonProperty("errorExitUnregisteredCount")] public int ErrorExitUnregisteredCount;
+        /// <summary>冻结时未注册的族错误出口逐号清单(升序),与计数共同防止门槛被调大或换号。</summary>
+        [JsonProperty("errorExitUnregisteredCmds")] public List<int> ErrorExitUnregisteredCmds = new List<int>();
         /// <summary>本次快照的 Unity 已注册号全集(升序),供断言 A 在总量倒退时精确打印「消失的号」用。</summary>
         [JsonProperty("registeredCmds")] public List<int> RegisteredCmds = new List<int>();
         [JsonProperty("families")] public List<FamilyBaseline> Families = new List<FamilyBaseline>();
@@ -124,6 +126,7 @@ namespace Shenxiao.Editor.ProtocolCoverage
             HashSet<int> unregisteredErrorExits = new HashSet<int>(scan.ErrorExitCandidates);
             unregisteredErrorExits.ExceptWith(scan.UnityRegistered);
             baseline.ErrorExitUnregisteredCount = unregisteredErrorExits.Count;
+            baseline.ErrorExitUnregisteredCmds = unregisteredErrorExits.OrderBy(c => c).ToList();
 
             baseline.RegisteredCmds = scan.UnityRegistered.OrderBy(c => c).ToList();
             var validKillSet = new HashSet<int>((killlist ?? new List<KillEntry>())

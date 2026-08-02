@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 协议覆盖率核验器(PG 包,第21轮/R547-R562):八段断言 A-H,照 CliVerify.cs 既有惯例,日志前缀
+    /// 协议覆盖率核验器(PG 包,第21轮/R547-R563):八段断言 A-H,照 CliVerify.cs 既有惯例,日志前缀
     /// "CLIVERIFY protocolcoverage"。纯静态分析 + 一次运行时反射,不建 Stage/不渲染。
     ///
     ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline；baseline.registeredCmds 必须与历史总量
@@ -26,7 +26,8 @@ namespace Shenxiao.EditorTools
     ///   D 双注册检查:静态扫描 Unity C# 源码(运行时字典是覆盖语义,同号注册两次看不出来)。
     ///   E 族错误出口专项:老端「函数体除 Util.ErrorCodeShow 外无其它副作用」的协议号
     ///     (裁决7 收紧规则)里,未在 Unity 注册的数量不得比 baseline 记录的多(非回归,不强求清零——
-    ///     清零是其它包的活,这里只守住不再变多)。
+    ///     清零是其它包的活,这里只守住不再变多)；冻结逐号清单必须完整，当前或按历史注册清单
+    ///     重建出的候选不得出现清单外新号。
     ///   F 硬负约束防复发:hard_negative_constraints.json 中的五位协议号不得重新出现为运行时注册、
     ///     源码静态注册、Proto 常量、具名发送或五位数字直发，也不得与killlist重叠；每号必须仍属于当前liveGap，
     ///     清单缺失、重复、陈旧或无 evidence 同样挂红。它不改变活缺口与killlist口径，只把 AGENTS 的现行禁止
@@ -421,12 +422,67 @@ namespace Shenxiao.EditorTools
         {
             var unregistered = new HashSet<int>(scan.ErrorExitCandidates);
             unregistered.ExceptWith(scan.UnityRegistered);
-
             int baselineCount = baseline?.ErrorExitUnregisteredCount ?? unregistered.Count;
             bool firstRun = baseline == null;
-            bool pass = firstRun || unregistered.Count <= baselineCount;
+            List<int> historicalManifest = baseline?.ErrorExitUnregisteredCmds ?? new List<int>();
+            List<int> duplicateManifestCmds = historicalManifest
+                .GroupBy(c => c)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .OrderBy(c => c)
+                .ToList();
+            List<int> invalidManifestCmds = historicalManifest
+                .Where(c => c < 10000 || c > 99999)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToList();
+            bool strictlyIncreasing = historicalManifest
+                .Zip(historicalManifest.Skip(1), (left, right) => left < right)
+                .All(inOrder => inOrder);
+            bool manifestValid = firstRun || (baselineCount >= 0
+                && historicalManifest.Count == baselineCount
+                && duplicateManifestCmds.Count == 0
+                && invalidManifestCmds.Count == 0
+                && strictlyIncreasing);
+            var historicalManifestSet = new HashSet<int>(historicalManifest);
+            List<int> currentOutsideManifest = unregistered
+                .Where(c => !historicalManifestSet.Contains(c))
+                .OrderBy(c => c)
+                .ToList();
+            var historicalUnregistered = new HashSet<int>(scan.ErrorExitCandidates);
+            historicalUnregistered.ExceptWith(baseline?.RegisteredCmds ?? new List<int>());
+            List<int> rebuiltOutsideManifest = historicalUnregistered
+                .Where(c => !historicalManifestSet.Contains(c))
+                .OrderBy(c => c)
+                .ToList();
+            List<int> historicalNowAbsent = historicalManifest
+                .Where(c => !historicalUnregistered.Contains(c))
+                .OrderBy(c => c)
+                .ToList();
+            bool pass = firstRun || (manifestValid
+                && unregistered.Count <= baselineCount
+                && currentOutsideManifest.Count == 0
+                && rebuiltOutsideManifest.Count == 0);
             string detail = "当前" + unregistered.Count + (firstRun ? "(无baseline,首次运行不挂红)" : " vs baseline" + baselineCount);
             if (unregistered.Count > 0) detail += ";号=" + string.Join(",", unregistered.OrderBy(x => x));
+            if (!firstRun && historicalManifest.Count != baselineCount)
+                detail += ";历史清单计数" + historicalManifest.Count + "!=baseline" + baselineCount;
+            if (duplicateManifestCmds.Count > 0)
+                detail += ";历史清单重复:" + string.Join(",", duplicateManifestCmds);
+            if (invalidManifestCmds.Count > 0)
+                detail += ";历史清单非五位:" + string.Join(",", invalidManifestCmds);
+            if (!firstRun && !strictlyIncreasing) detail += ";历史清单非严格升序";
+            if (!firstRun && currentOutsideManifest.Count > 0)
+                detail += ";当前新增未治理:" + string.Join(",", currentOutsideManifest);
+            if (!firstRun && rebuiltOutsideManifest.Count > 0)
+                detail += ";按baseline注册清单重建新增:" + string.Join(",", rebuiltOutsideManifest);
+            if (!firstRun) detail += manifestValid
+                ? ";历史逐号清单" + historicalManifest.Count + "条完整;按baseline注册清单重建="
+                    + historicalUnregistered.Count
+                : ";历史逐号清单项数" + historicalManifest.Count + ";按baseline注册清单重建="
+                    + historicalUnregistered.Count;
+            if (!firstRun && historicalNowAbsent.Count > 0)
+                detail += ";历史候选当前已不再识别:" + string.Join(",", historicalNowAbsent);
             outcome.Add("E族错误出口未注册非回归", pass, detail);
         }
 
