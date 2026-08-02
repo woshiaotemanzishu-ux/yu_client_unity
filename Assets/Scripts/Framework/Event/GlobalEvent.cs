@@ -278,6 +278,8 @@ namespace Shenxiao.Framework.Event
         // ----- Role -----
         public const string EVT_ROLE_INFO_UPDATE = "EVT_ROLE_INFO_UPDATE";
         public const string EVT_DESIGNATION_LIST_UPDATE = "EVT_DESIGNATION_LIST_UPDATE";
+        /// <summary>称号 41109 道具激活结果已落原始切片；不代表 41101 权威列表已刷新。</summary>
+        public const string EVT_DESIGNATION_ACTIVATION_RESULT = "EVT_DESIGNATION_ACTIVATION_RESULT";
         /// <summary>主角全量(13001)到齐,可进主城/场景。GameEntryFlow 发。</summary>
         public const string EVT_ROLE_READY = "EVT_ROLE_READY";
         /// <summary>主角战力上升(参数: long 旧战力, long 新战力)。对标老端 mainRoleVo "fighting" 变化 → FightingUpView 弹层。

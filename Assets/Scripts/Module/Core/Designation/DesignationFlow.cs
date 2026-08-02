@@ -6,6 +6,7 @@ using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.Dsgt;
+using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Common;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,6 +24,7 @@ namespace Shenxiao.Module.Core.Designation
         private static DsgtItemRendererBind _itemTemplate;
         private static DsgtDetailsItemBind _detailsTemplate;
         private static DsgtDetailsItemBind _details;
+        private static BaseAwardItem _costItem;
         private static bool _loading;
         private static bool _subscribed;
         private static uint _selectedId;
@@ -120,6 +122,8 @@ namespace Shenxiao.Module.Core.Designation
         {
             if (_subscribed) return;
             EventDispatcher.On(GlobalEvent.EVT_DESIGNATION_LIST_UPDATE, OnListUpdated);
+            EventDispatcher.On(GlobalEvent.EVT_DESIGNATION_ACTIVATION_RESULT, OnAuxiliaryUpdated);
+            EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, OnAuxiliaryUpdated);
             _subscribed = true;
         }
 
@@ -127,10 +131,17 @@ namespace Shenxiao.Module.Core.Designation
         {
             if (!_subscribed) return;
             EventDispatcher.Off(GlobalEvent.EVT_DESIGNATION_LIST_UPDATE, OnListUpdated);
+            EventDispatcher.Off(GlobalEvent.EVT_DESIGNATION_ACTIVATION_RESULT, OnAuxiliaryUpdated);
+            EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, OnAuxiliaryUpdated);
             _subscribed = false;
         }
 
         private static void OnListUpdated()
+        {
+            if (_window != null && _window.IsShown) Render();
+        }
+
+        private static void OnAuxiliaryUpdated()
         {
             if (_window != null && _window.IsShown) Render();
         }
@@ -232,10 +243,7 @@ namespace Shenxiao.Module.Core.Designation
                 _details.dsgt_unactivate_image.gameObject.SetActive(entry == null);
             if (_details.dsgt_adorn_button != null)
                 _details.dsgt_adorn_button.gameObject.SetActive(false);
-            if (_details.dsgt_Activate_button != null)
-                _details.dsgt_Activate_button.gameObject.SetActive(false);
-            if (_details.dsgt_red_image != null)
-                _details.dsgt_red_image.gameObject.SetActive(false);
+            RenderActivation(row, entry);
             if (_details.dsgt_icon_image != null)
             {
                 int requestId = ++_detailIconRequestId;
@@ -248,6 +256,76 @@ namespace Shenxiao.Module.Core.Designation
                 _details.dsgt_full_order_image.gameObject.SetActive(
                     entry != null && row.OrderLimit > 0 && entry.Order >= row.OrderLimit);
             SetAttrs(row.Attrs, _details.attr1, _details.attr2, _details.attr3, _details.attr4);
+        }
+
+        private static void RenderActivation(DesignationConfigs.Row row, DesignationModel.Entry entry)
+        {
+            bool hasCost = DesignationConfigs.TryGetActivationCost(row.Id, out DesignationConfigs.Cost cost);
+            bool show = DesignationModel.Instance.HasData && entry == null && hasCost
+                && !DesignationController.Instance.IsAwaitingActivationRefresh(row.Id);
+            if (_details.dsgt_Activate_button != null)
+            {
+                _details.dsgt_Activate_button.gameObject.SetActive(show);
+                if (show) BindActivationClick(_details.dsgt_Activate_button, row.Id);
+            }
+            if (_details.dsgt_expend_label != null)
+            {
+                _details.dsgt_expend_label.gameObject.SetActive(show);
+                if (show) _details.dsgt_expend_label.text = "激活消耗：";
+            }
+            if (_details.dsgt_awarditem_group != null)
+                _details.dsgt_awarditem_group.gameObject.SetActive(show);
+            if (_details.dsgt_number_label != null)
+                _details.dsgt_number_label.gameObject.SetActive(show);
+
+            if (!show)
+            {
+                if (_details.dsgt_red_image != null) _details.dsgt_red_image.gameObject.SetActive(false);
+                if (_costItem != null) _costItem.gameObject.SetActive(false);
+                return;
+            }
+
+            long own = BagModel.Instance.GetTypeGoodsNum(cost.TypeId);
+            bool enough = BagModel.Instance.HasData && own >= cost.Num;
+            if (_details.dsgt_number_label != null)
+            {
+                _details.dsgt_number_label.text = own + "/" + cost.Num;
+                _details.dsgt_number_label.color = enough
+                    ? new Color32(70, 145, 58, 255)
+                    : new Color32(196, 55, 45, 255);
+            }
+            if (_details.dsgt_red_image != null)
+                _details.dsgt_red_image.gameObject.SetActive(enough);
+            if (_details.labelDisplay1 != null) _details.labelDisplay1.text = "激活";
+
+            if (_costItem == null && _details._tpl_BaseAwardItem != null
+                && _details.dsgt_awarditem_group != null)
+            {
+                GameObject go = UnityEngine.Object.Instantiate(
+                    _details._tpl_BaseAwardItem, _details.dsgt_awarditem_group, false);
+                go.name = "BaseAwardItem_ActivationCost";
+                go.SetActive(true);
+                _costItem = go.GetComponent<BaseAwardItem>();
+            }
+            if (_costItem != null)
+            {
+                _costItem.gameObject.SetActive(true);
+                _costItem.SetScale(0.7f);
+                _costItem.SetData(cost.TypeId, cost.Num);
+            }
+        }
+
+        private static void BindActivationClick(RectTransform container, uint designationId)
+        {
+            if (container == null) return;
+            foreach (Graphic graphic in container.GetComponentsInChildren<Graphic>(true))
+                graphic.raycastTarget = false;
+            Image surface = container.GetComponent<Image>();
+            if (surface == null) surface = container.gameObject.AddComponent<Image>();
+            surface.color = new Color(1f, 1f, 1f, 0f);
+            surface.raycastTarget = true;
+            UIUtil.ClearClicks(surface);
+            UIUtil.AddClick(surface, () => DesignationController.Instance.TryActivateByGoods(designationId));
         }
 
         private static async Task ApplyIconAsync(Image image, string resourceId)
@@ -320,6 +398,7 @@ namespace Shenxiao.Module.Core.Designation
             _itemTemplate = null;
             _detailsTemplate = null;
             _details = null;
+            _costItem = null;
             _loading = false;
             _selectedId = 0;
             _detailIconRequestId++;

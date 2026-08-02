@@ -9,14 +9,14 @@ using UnityEngine;
 
 namespace Shenxiao.EditorTools
 {
-    /// <summary>R507：称号 41104/41105/41107/41108 只读续接、隔离、边界与 ambient 恢复。</summary>
+    /// <summary>R507/R523：称号只读续接与 41109 已闭环事务的注册边界、隔离和 ambient 恢复。</summary>
     public static class DesignationReadContinuationCase
     {
         private const BindingFlags IF = BindingFlags.Instance | BindingFlags.NonPublic;
         private const BindingFlags SF = BindingFlags.Static | BindingFlags.NonPublic;
         private static readonly int[] AllCommands =
             { 41100, 41101, 41102, 41103, 41104, 41105, 41106, 41107, 41108, 41109, 41110 };
-        private static readonly int[] RegisteredCommands = { 41101, 41104, 41105, 41107, 41108 };
+        private static readonly int[] RegisteredCommands = { 41101, 41104, 41105, 41107, 41108, 41109 };
 
         public static Task<int> Run()
         {
@@ -52,13 +52,15 @@ namespace Shenxiao.EditorTools
                 MethodInfo h05 = Handler("On41105");
                 MethodInfo h07 = Handler("On41107");
                 MethodInfo h08 = Handler("On41108");
+                MethodInfo h09 = Handler("On41109");
                 pass = Proto.DESIGNATION_ACTIVATED == 41104
                     && Proto.DESIGNATION_SCENE_NOTICE == 41105
                     && Proto.DESIGNATION_POWER == 41107
                     && Proto.DESIGNATION_REMOVED == 41108
-                    && h04 != null && h05 != null && h07 != null && h08 != null
+                    && Proto.DESIGNATION_ACTIVATE_BY_GOODS == 41109
+                    && h04 != null && h05 != null && h07 != null && h08 != null && h09 != null
                     && intercept != null && RegistrationsExact(handlers) && RequestSurfaceExact();
-                Check(ref pass, "constants/registration/write-operations-excluded", pass);
+                Check(ref pass, "constants/registration/only-closed-write-registered", pass);
 
                 model.Reset();
                 model.ReplaceData(10, new List<DesignationModel.Entry>
@@ -67,10 +69,12 @@ namespace Shenxiao.EditorTools
                 model.ReplaceSceneNotice(17, 18);
                 model.ReplacePowerQuery(19, 20);
                 model.ReplaceRemoval(21);
+                model.ReplaceGoodsActivationResult(22, 23, 24, 25);
                 DesignationModel.ActivationSnapshot sentinelActivation = model.Activation;
                 DesignationModel.SceneNoticeSnapshot sentinelScene = model.SceneNotice;
                 DesignationModel.PowerQuerySnapshot sentinelPower = model.PowerQuery;
                 DesignationModel.RemovalSnapshot sentinelRemoval = model.Removal;
+                DesignationModel.GoodsActivationResultSnapshot sentinelGoodsActivation = model.GoodsActivationResult;
 
                 var frames = new List<byte[]>();
                 intercept.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
@@ -83,7 +87,8 @@ namespace Shenxiao.EditorTools
                     && ReferenceEquals(model.Activation, sentinelActivation)
                     && ReferenceEquals(model.SceneNotice, sentinelScene)
                     && ReferenceEquals(model.PowerQuery, sentinelPower)
-                    && ReferenceEquals(model.Removal, sentinelRemoval));
+                    && ReferenceEquals(model.Removal, sentinelRemoval)
+                    && ReferenceEquals(model.GoodsActivationResult, sentinelGoodsActivation));
                 frames.Clear();
 
                 Check(ref pass, "41104 full overwrite/zero-max/read-end/no-auto-wear",
@@ -122,6 +127,7 @@ namespace Shenxiao.EditorTools
                 model.ClearReadContinuationSnapshots();
                 Check(ref pass, "slice clear preserves authoritative list", model.Activation == null
                     && model.SceneNotice == null && model.PowerQuery == null && model.Removal == null
+                    && ReferenceEquals(model.GoodsActivationResult, sentinelGoodsActivation)
                     && model.HasData && model.CurrentUsedId == 10 && model.Entries.Count == 1
                     && model.Entries[0].Id == 11);
 
@@ -131,7 +137,7 @@ namespace Shenxiao.EditorTools
                 Check(ref pass, "dispose owns slices and handlers", !controller.IsInitialized
                     && !model.HasData && model.CurrentUsedId == 0 && model.Entries.Count == 0
                     && model.Activation == null && model.SceneNotice == null
-                    && model.PowerQuery == null && model.Removal == null
+                    && model.PowerQuery == null && model.Removal == null && model.GoodsActivationResult == null
                     && NoRegisteredHandlers(handlers));
             }
             finally

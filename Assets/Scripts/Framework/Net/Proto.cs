@@ -1263,8 +1263,11 @@
         public const int DESIGNATION_POWER = 41107;
         /// <summary>称号移除通知（S2C-only）。S2C: id:u32；只保留原始通知，不改写 41101 列表。</summary>
         public const int DESIGNATION_REMOVED = 41108;
-        // 41102/41103 佩戴与卸下、41106 升阶、41109 道具激活、41110 过期取消均为真实写操作；
-        // 禁止暴露裸操作 API，也不得复刻旧端 41104 首次激活后自动发送 41102 的写链。
+        /// <summary>称号道具激活事务。C2S: id:u32；S2C: errcode:u32,power:u32,currentused:u32,dsgtid:u32。</summary>
+        public const int DESIGNATION_ACTIVATE_BY_GOODS = 41109;
+        // 41102/41103 佩戴与卸下、41106 升阶、41110 过期取消仍为未闭环写操作；禁止暴露裸操作 API。
+        // 41109 只允许从真实称号详情页，经权威列表、配置和背包二次校验后单飞发送；不得复刻旧端
+        // 41104 首次激活后自动发送 41102 的写链。
         /// <summary>面具状态快照。C2S 空包；S2C: mask_id:u8,end_time:u32。</summary>
         public const int MASK_INFO = 51101;
         /// <summary>使魔实体核心快照。C2S 空包；S2C 为开放状态和完整实体列表。</summary>

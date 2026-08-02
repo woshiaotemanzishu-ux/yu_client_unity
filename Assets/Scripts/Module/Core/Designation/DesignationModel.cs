@@ -64,6 +64,22 @@ namespace Shenxiao.Module.Core.Designation
             public RemovalSnapshot(uint id) { Id = id; }
         }
 
+        public sealed class GoodsActivationResultSnapshot
+        {
+            public uint Code { get; }
+            public uint Power { get; }
+            public uint CurrentUsedId { get; }
+            public uint Id { get; }
+
+            public GoodsActivationResultSnapshot(uint code, uint power, uint currentUsedId, uint id)
+            {
+                Code = code;
+                Power = power;
+                CurrentUsedId = currentUsedId;
+                Id = id;
+            }
+        }
+
         public static readonly DesignationModel Instance = new DesignationModel();
 
         private readonly List<Entry> _entries = new List<Entry>();
@@ -77,6 +93,7 @@ namespace Shenxiao.Module.Core.Designation
         public SceneNoticeSnapshot SceneNotice { get; private set; }
         public PowerQuerySnapshot PowerQuery { get; private set; }
         public RemovalSnapshot Removal { get; private set; }
+        public GoodsActivationResultSnapshot GoodsActivationResult { get; private set; }
 
         public void ReplaceData(uint currentUsedId, List<Entry> entries)
         {
@@ -97,6 +114,16 @@ namespace Shenxiao.Module.Core.Designation
 
         public void ReplaceRemoval(uint id) => Removal = new RemovalSnapshot(id);
 
+        public void ReplaceGoodsActivationResult(uint code, uint power, uint currentUsedId, uint id)
+            => GoodsActivationResult = new GoodsActivationResultSnapshot(code, power, currentUsedId, id);
+
+        public Entry GetEntry(uint id)
+        {
+            for (int i = 0; i < _entries.Count; i++)
+                if (_entries[i].Id == id) return _entries[i];
+            return null;
+        }
+
         public void ClearReadContinuationSnapshots()
         {
             Activation = null;
@@ -111,6 +138,7 @@ namespace Shenxiao.Module.Core.Designation
             _entries.Clear();
             HasData = false;
             ClearReadContinuationSnapshots();
+            GoodsActivationResult = null;
         }
     }
 }

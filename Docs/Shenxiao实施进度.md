@@ -1728,3 +1728,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **圈选入口**：称号按钮打开真实 `DsgtModule` 并消费 41101 权威列表与 `config_dsgt`；“名”按钮打开 `MarriageHonourView`，显示服务端名誉值与 `config_fame_lv` 等级；“世”按钮沿用角色世界等级说明层；属性问号打开 `CommonModule/InstructionView`，按 `configinstruction[453]` 生成完整说明。称号佩戴/激活等写事务继续遵守既有 DEFER 约束，不伪造本地成功。
 - **Prefab 保护**：移除人物页专用 `RoleEquipmentCreator` 的生成逻辑与重建注册（保留兼容工程文件的同名空壳），`RoleSettingPanelCase` 改为只读验收当前人工 Prefab，并新增 `model_bg` 必须为空 Sprite 且 `Image` 禁用的断言。
 - **验证状态**：新增资源/config 均已登记 Addressables；Unity Editor 实际刷新编译后 Console 为 0 error（保留既有 warning），`dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 复编译同样为 0 error。`RoleSettingPanelCase` 增加“人物页视觉”编辑器专项入口，并在真实 `ui_role_new_bg_1.jpg` 窗底上渲染人物页截图；本轮实跑输出 `CLIVERIFY rolevisual EDITOR PASS prefab=True runtime=True`，防止空 `Image` 白块回归。称号资源额外校验为 103 张 PNG 均可解码、103 个 Addressables 地址与 GUID 均唯一；老端配置中另有 41 个图标源文件本身缺失，当前不伪造图片，仍保留称号名称、说明与属性展示。
+
+## 2026-08-02：称号 41109 道具激活闭环（R523）
+
+- **事务边界**：41109请求为 `id:u32`，回包为 `errcode:u32,power:u32,currentused:u32,dsgtid:u32`。真实称号详情页点击前后均核对41101权威未激活状态、`config_dsgt.goods_consume`单条type=0物品和BagModel持有量；同一页面单飞，10秒无回包才允许重试。
+- **权威状态**：客户端不预扣材料、不本地激活或佩戴，也不拿回包的currentused补丁41101。每个回包保留独立raw结果；失败保持旧列表，只有成功提示并精确重查一次41101；全量回包到达前同一称号显示刷新中并阻止重复激活，激活阶数、过期时间与佩戴态继续由服务端全量决定。
+- **界面消费**：沿用已验收 `DsgtModule.prefab`，恢复未激活称号的真实激活按钮、材料格、持有/需求数量和足量红点；按钮根透明Image为唯一点击面，子背景/文字不截射线。未重转Prefab、未新增页面Creator，佩戴/卸下、升阶和过期取消仍按缺失的场景/阶级配置闭环保持DEFER。
+- **验证状态**：Unity 6000.3.17f1编译0 error（仅既有warning）；`DesignationCase` 与 `DesignationReadContinuationCase` 均为0且 `pass/restored=True`，前者包含真实Prefab `GraphicRaycaster→PointerClick`、精确帧、single-flight、成功唯一重查及无本地资产/列表变更。`coverage_20260802_120637.md` A～E全PASS，运行时为 `registered=1263 / liveDefined=1468 / liveGap=327 / errorExit=12 / active=1141/1468=77.7%`，冻结baseline未改。
