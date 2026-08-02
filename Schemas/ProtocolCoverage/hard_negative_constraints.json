@@ -1356,6 +1356,48 @@
     "note": "61090请求answer:string并写副本答案表；首个有效答案通常无回包，双方齐答后才广播同异结果、关闭61089并立即结算，答案还影响奖励倍率。禁止把结果当个人ACK、自动提交、乐观锁答案或客户端结算/发奖。"
   },
   {
+    "cmd": 61108,
+    "rule": "R505/R622 DungeonPartner stage reward asset boundary",
+    "evidence": "AGENTS.md:R622 DungeonSec 61108/61109/61110/61112/61114/61116/61118业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R622",
+    "note": "61108请求level:u8,score:u8，服务端按章节总分/领态校验，成功经背包或邮件发奖并把该score持久化为已领；禁止孤立sender、乐观领态、raw奖励或本地发奖。"
+  },
+  {
+    "cmd": 61109,
+    "rule": "R505/R622 DungeonPartner sweep asset and malformed-error boundary",
+    "evidence": "AGENTS.md:R622 DungeonSec 61108/61109/61110/61112/61114/61116/61118业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R622",
+    "note": "61109请求level:u8，会真实扣费、增加日扫荡次数、按分数/倍率发奖并更新VIP；现服多个失败分支以两参数调用四参数writer而不能形成有效回包，禁止客户端补包、裸sender、乐观扣费/次数或本地发奖。"
+  },
+  {
+    "cmd": 61110,
+    "rule": "R505/R622 DungeonPartner scene-session monster progress boundary",
+    "evidence": "AGENTS.md:R622 DungeonSec 61108/61109/61110/61112/61114/61116/61118业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R622",
+    "note": "61110严格空查询且怪物死亡会主动推完整进度表，但包内无dun_id/session；Unity尚未接伙伴实战场景、退出清理和晚包隔离，禁止孤立常量、Request、raw最后值、跨副本接受或本地模拟击杀。"
+  },
+  {
+    "cmd": 61112,
+    "rule": "R505/R622 DungeonRune target reward asset transaction boundary",
+    "evidence": "AGENTS.md:R622 DungeonSec 61108/61109/61110/61112/61114/61116/61118业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R622",
+    "note": "61112请求u16×{dun_id:u32,reward_type:u8}，整批校验后批量写领取counter并真实发奖；任一项失败原子拒绝，回显列表/奖励只用于展示，禁止自动领取、乐观领态或二次发奖。"
+  },
+  {
+    "cmd": 61114,
+    "rule": "R505/R622 DungeonRune daily reward asset transaction boundary",
+    "evidence": "AGENTS.md:R622 DungeonSec 61108/61109/61110/61112/61114/61116/61118业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R622",
+    "note": "61114严格空请求会校验61115日状态，成功发物、写领取时间DB并回展示奖励；日切补偿还可由邮件独立更新状态，禁止GAME_START/自动领取、孤立sender、乐观置2或本地发奖。"
+  },
+  {
+    "cmd": 61116,
+    "rule": "R505/R622 DungeonRune unlock persistence and failure-payload boundary",
+    "evidence": "AGENTS.md:R622 DungeonSec 61108/61109/61110/61112/61114/61116/61118业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R622",
+    "note": "61116请求level:u32并持久化灵魄解锁层、随后推16704；服务端不校验配置节点，失败回包level还是当前通关层而非旧解锁层。禁止通用任意层sender、采用失败level、乐观解锁或客户端补配置校验结果。"
+  },
+  {
+    "cmd": 61118,
+    "rule": "R505/R622 DungeonTower grand reward and server-condition boundary",
+    "evidence": "AGENTS.md:R622 DungeonSec 61108/61109/61110/61112/61114/61116/61118业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R622",
+    "note": "61118请求round:u8，成功先持久化reward_mode=2再发大奖/传闻；现服资格条件混用orelse与list可能badarg/case_clause。Unity只消费61117图标子集，禁止裸领奖、客户端修异常、乐观置2或本地发奖。"
+  },
+  {
     "cmd": 61201,
     "rule": "R277/R470/R575 LimitLevelShop purchase and push boundary",
     "evidence": "AGENTS.md:R575 15403/15902/19103/33804/61201资产交易事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R575",
