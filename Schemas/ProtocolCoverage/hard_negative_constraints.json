@@ -306,6 +306,18 @@
     "note": "19103校验礼包激活/期限/档位/购买上限，真实扣费、发奖、写购买次数DB并更新活动内存；Unity只有19101/19102读侧，禁止孤立常量、sender、buy_cnt补丁或本地奖励。"
   },
   {
+    "cmd": 20301,
+    "rule": "R475/R591 TreasureMap location and navigation orchestration boundary",
+    "evidence": "AGENTS.md:R591 TreasureMap 20301/20302完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R591",
+    "note": "20301按背包实例读取或首次随机生成并持久化藏宝场景坐标；旧端成功后跨场景切换、寻路、播放采集动作并在结束时续发20302。Unity缺专属物品入口、权威配置、场景寻路与采集编排，禁止孤立常量、sender、坐标raw或乐观开始寻路。"
+  },
+  {
+    "cmd": 20302,
+    "rule": "R475/R591 TreasureMap consume and reward transaction boundary",
+    "evidence": "AGENTS.md:R591 TreasureMap 20301/20302完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R591",
+    "note": "20302校验地图类型、场景、距离和实例坐标后真实删除藏宝图、写挖宝次数、发奖或邮件、推进活动并重置剩余同类图坐标；Unity缺背包实例/奖励/活动/展示闭环，禁止裸sender、raw回执、客户端删图发奖或把ObjectList二次发放。"
+  },
+  {
     "cmd": 20600,
     "rule": "R127/R517 GhostWalk boundary",
     "evidence": "AGENTS.md:协议负约束优先规则;AGENTS.md:GhostWalk 20601",
