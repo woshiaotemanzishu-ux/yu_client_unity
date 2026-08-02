@@ -354,6 +354,36 @@
     "note": "22704会按type/subtype/reward_id校验阶段状态，写DB领取态并真实发奖；Unity只保留CycleRank读侧raw，禁止孤立常量、sender、结果handler或本地领奖。"
   },
   {
+    "cmd": 24103,
+    "rule": "R164/R525/R589 SentientAct portal and team-entry orchestration boundary",
+    "evidence": "AGENTS.md:R589 SentientAct 24103/24104/24105/24108/24109场景与组队边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R589",
+    "note": "24103由队长提交portal_id，服务端校验门户后持久化到玩家状态，旧端紧接24020让组队入本条件消费该值；禁止孤立sender、code ACK、本地选门或拆散跨族编排。"
+  },
+  {
+    "cmd": 24104,
+    "rule": "R164/R525/R589 SentientAct scene-enter transaction boundary",
+    "evidence": "AGENTS.md:R589 SentientAct 24103/24104/24105/24108/24109场景与组队边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R589",
+    "note": "24104会在动作与重复入场校验后把角色切入本服或跨服众生之门场景，并重置group/ghost场景参数；禁止孤立严格空sender、code ACK或乐观入场。"
+  },
+  {
+    "cmd": 24105,
+    "rule": "R164/R525/R589 SentientAct scene-exit transaction boundary",
+    "evidence": "AGENTS.md:R589 SentientAct 24103/24104/24105/24108/24109场景与组队边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R589",
+    "note": "24105只在众生之门场景内成功，会把角色切回默认场景并按100%血量恢复；禁止孤立严格空sender、code ACK、只关UI或乐观退场。"
+  },
+  {
+    "cmd": 24108,
+    "rule": "R164/R525/R589 SentientAct team summon and scene orchestration boundary",
+    "evidence": "AGENTS.md:R589 SentientAct 24103/24104/24105/24108/24109场景与组队边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R589",
+    "note": "24108先为发起者触发24104入场，再把成功通知广播给其余队员；旧端队员确认后各自发送24104，禁止no-op通知、自动同意、孤立sender或绕过队伍确认。"
+  },
+  {
+    "cmd": 24109,
+    "rule": "R164/R525/R589 SentientAct random display-dungeon consumer boundary",
+    "evidence": "AGENTS.md:R589 SentientAct 24103/24104/24105/24108/24109场景与组队边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R589",
+    "note": "24109只为旧端队伍装备聚合页随机返回一个展示副本ID；实际组队检查和入本会独立再次选取，不能把它当权威目标快照，缺页面/config/队伍消费者时禁止孤立raw或自动查询。"
+  },
+  {
     "cmd": 27902,
     "rule": "R129/R540/R587 Eternity enter scene transaction boundary",
     "evidence": "AGENTS.md:R587 Eternity 27902/27903场景生命周期边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R587",
