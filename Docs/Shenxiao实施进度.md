@@ -17,8 +17,8 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R571。修复legacy报告与L段晚于K/M的治理口径漂移：有效hard-negative同样证明该活缺口已有机器裁决，因此15028与15218/15221/15222不再被误列为“未申报”；报告生成器和L均按五位cmd、非空`rule/evidence`独立重建有效集合。
-- hard-negative仍代表真实活协议暂禁接，不能被用于C/H的`done`收口，也不能让候选`suggestedStatus`变为done；liveGap与pending业务欠账均保持不变。临时恢复旧生成器时，L精准报出150、152两行及4号错误；恢复后`coverage_20260802_205055.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`、A～M全PASS，L为`0族/0号`，治理分类仍为`80+24+227=331`。
+- 最新完成轮次：R572。正式baseline中的150、152两族已从陈旧`legacy_unverified`转为`pending`：两族当前活缺口都已完整进入有效killlist/hard-negative，故不再是“未分类遗留”；其中15028与15218/21/22仍是真实资产事务，业务没有完成，严禁转done。历史`unityRegistered/liveGap`计数及`statusNote`均保持冻结/原样。
+- H段新增反向门禁：legacy族若全部当前活缺口已分类且至少一项是有效hard-negative，必须转pending。临时把两族退回legacy时，H精确列出150的`15011/15023/15028`与152的`15202/15218/15221/15222`并令总判决FAIL；恢复后`coverage_20260802_205858.md`为`registered=1256/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`、A～M全PASS，L为`0族/0号`，治理分类仍为`80+24+227=331`。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---

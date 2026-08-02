@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 协议覆盖率核验器(PG 包,第21轮/R547-R571):十三段断言 A-M,照 CliVerify.cs 既有惯例,日志前缀
+    /// 协议覆盖率核验器(PG 包,第21轮/R547-R572):十三段断言 A-M,照 CliVerify.cs 既有惯例,日志前缀
     /// "CLIVERIFY protocolcoverage"。纯静态分析 + 一次运行时反射,不建 Stage/不渲染。
     ///
     ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline；baseline.registeredCmds 必须与历史总量
@@ -36,8 +36,8 @@ namespace Shenxiao.EditorTools
     ///     运行时 handler。只有显式 clientMode=send_only 的 C2S 单向操作允许且必须保留 Proto 常量及
     ///     生产 `Send*(Proto.X,...)` 直接引用，其余死号不得残留常量或发送引用；模式非法或清单重复也挂红。
     ///   H baseline状态收口:当前零活缺口、或剩余活缺口已全部由带evidence的killlist治理的家族，
-    ///     正式baseline必须人工标为done；家族重复、未知status、漏入当前家族，或仍有活缺口的done族
-    ///     缺少statusNote同样挂红。
+    ///     正式baseline必须人工标为done；legacy族若全部活缺口均已进入有效killlist/hard-negative且至少
+    ///     一项是hard-negative，必须人工转pending。家族重复、未知status、漏族或带活缺口done族缺说明也挂红。
     ///   I 候选基线完整性:baseline.next 的顶层机器计数、注册/错误出口逐号清单与家族机器字段必须
     ///     精确等于当前扫描；正式基线家族不得静默丢失，人工status/statusNote必须逐族原样保留，
     ///     suggestedStatus必须与当前liveGap/有效killlist机械判断一致。
@@ -77,7 +77,7 @@ namespace Shenxiao.EditorTools
                 AssertE(scan, baseline, outcome);
                 AssertF(scan, hardNegativeConstraints, killlist, outcome);
                 AssertG(scan, killlist, outcome);
-                AssertH(scan, baseline, killlist, outcome);
+                AssertH(scan, baseline, killlist, hardNegativeConstraints, outcome);
 
                 CoverageBaseline candidate = ProtocolCoverageBaseline.BuildCandidate(
                     scan,
@@ -727,6 +727,7 @@ namespace Shenxiao.EditorTools
             ProtocolCoverageScanner.ScanResult scan,
             CoverageBaseline baseline,
             List<KillEntry> killlist,
+            List<HardNegativeConstraintEntry> hardNegativeConstraints,
             AssertionOutcome outcome)
         {
             if (baseline == null)
@@ -756,6 +757,13 @@ namespace Shenxiao.EditorTools
             var validKillSet = new HashSet<int>(killlist
                 .Where(k => !string.IsNullOrWhiteSpace(k.Evidence))
                 .Select(k => k.Cmd));
+            var validHardNegativeSet = new HashSet<int>((hardNegativeConstraints
+                    ?? new List<HardNegativeConstraintEntry>())
+                .Where(k => k.Cmd >= 10000
+                    && k.Cmd <= 99999
+                    && !string.IsNullOrWhiteSpace(k.Rule)
+                    && !string.IsNullOrWhiteSpace(k.Evidence))
+                .Select(k => k.Cmd));
             HashSet<int> liveGap = scan.LiveGap();
             List<int> doneWithGapMissingNote = baseline.Families
                 .Where(f => f.Status == "done" && string.IsNullOrWhiteSpace(f.StatusNote))
@@ -779,12 +787,28 @@ namespace Shenxiao.EditorTools
                         : "[全killlist:" + string.Join(",", gaps) + "]"));
                 }
             }
+            var staleLegacy = new List<string>();
+            foreach (FamilyBaseline family in baseline.Families.Where(f => f.Status == "legacy_unverified"))
+            {
+                List<int> gaps = liveGap
+                    .Where(c => ProtocolCoverageScanner.ScanResult.Family(c) == family.Prefix)
+                    .OrderBy(c => c)
+                    .ToList();
+                bool hasHardNegative = gaps.Any(validHardNegativeSet.Contains);
+                bool fullyClassified = gaps.Count > 0
+                    && gaps.All(c => validKillSet.Contains(c) || validHardNegativeSet.Contains(c));
+                if (hasHardNegative && fullyClassified)
+                {
+                    staleLegacy.Add(family.Prefix + "[kill/hard-negative:" + string.Join(",", gaps) + "]");
+                }
+            }
 
             bool pass = duplicatePrefixes.Count == 0
                 && invalidStatuses.Count == 0
                 && missingFamilies.Count == 0
                 && doneWithGapMissingNote.Count == 0
-                && notClosed.Count == 0;
+                && notClosed.Count == 0
+                && staleLegacy.Count == 0;
             var details = new List<string>();
             if (duplicatePrefixes.Count > 0) details.Add("baseline家族重复:" + string.Join(",", duplicatePrefixes));
             if (invalidStatuses.Count > 0) details.Add("status非法:" + string.Join(",", invalidStatuses));
@@ -792,8 +816,10 @@ namespace Shenxiao.EditorTools
             if (doneWithGapMissingNote.Count > 0)
                 details.Add("带活缺口done族缺statusNote:" + string.Join(",", doneWithGapMissingNote));
             if (notClosed.Count > 0) details.Add("已完整治理但未done:" + string.Join(";", notClosed));
+            if (staleLegacy.Count > 0)
+                details.Add("legacy活缺口已全分类但未转pending:" + string.Join(";", staleLegacy));
             if (pass) details.Add("baseline家族唯一且带活缺口done族均有statusNote;"
-                + "无零缺口/全killlist仍滞留pending或legacy_unverified的家族");
+                + "无零缺口/全killlist滞留非done，且无已全分类legacy族");
             outcome.Add("Hbaseline状态收口", pass, string.Join(";", details));
         }
 

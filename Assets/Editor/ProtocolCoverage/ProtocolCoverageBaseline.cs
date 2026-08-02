@@ -7,11 +7,12 @@ namespace Shenxiao.Editor.ProtocolCoverage
 {
     /// <summary>baseline.json 的族级条目。status 三态:
     ///   done             = 断言 C 生效,该族「活缺口」必须 ⊆ killlist(每条带 evidence),否则红。
-    ///   legacy_unverified = 历史 [x] 包留下的未申报缺口(裁决3),报告里列出但不挂红,后续逐包消化。
+    ///   legacy_unverified = 历史 [x] 包仍有未落入有效killlist/hard-negative的缺口,报告列出并逐包消化。
     ///   pending           = 从未被任何包声明过 done,C 不对它生效(纯观察)。
     /// status 是人工策展字段——工具产出的 baseline.next.json 原样保留正式基线的 status/statusNote，
     /// 并把「零活缺口或全部缺口均有 evidence-killlist」算出的二态建议另写入 suggestedStatus。
-    /// legacy_unverified 的判定与正式状态变更必须人工核对后才落进 baseline.json
+    /// legacy_unverified 的判定与正式状态变更必须人工核对后才落进 baseline.json；当全部缺口已被
+    /// killlist/hard-negative分类且至少一项仍为hard-negative时，应转pending而不是done
     /// (裁决5:Case 绝不自动覆盖正式 baseline)。</summary>
     public sealed class FamilyBaseline
     {

@@ -355,6 +355,8 @@
 - 临时加入15011/15028常量时，G分别报告`15011[ProtoConst]`死号复活、F报告`15028[ProtoConst]`硬负约束违规，总判决为FAIL；撤回后`LookOverCase`的modules/wire/filter/cache/clear/compare全PASS，`coverage_20260802_203222.md`为A～M全PASS。注册/活缺口保持`1256/331`，治理分类变为`80+21+230=331`，legacy区收敛为150族15028与152族三号，共2族/4号；baseline历史机器计数未改，仅补150族人工状态说明。
 - R571修复legacy报告晚于K/M形成的语义漂移：hard-negative虽不表示业务完成，却已经是带规则和证据的机器治理，故报告生成器与L都必须把五位cmd、非空`rule/evidence`的有效项从“未申报”中排除。L从原始清单独立重建集合，字段损坏仍会回落为未治理；C/H的done收口和候选`suggestedStatus`继续只认有效killlist，禁止用hard-negative把真实活事务伪装成完工。
 - 负向探针临时恢复旧生成器后，报告重新出现150/152两行和15028、15218/21/22四号，L精确报`legacy行数2!=0`、前缀不一致及缺`(无)`标记。恢复后的`coverage_20260802_205055.md`为A～M全PASS，L为`0族/0号`，治理分类仍为`80+24+227=331`，注册、liveGap、baseline及两份治理清单均未改。
+- R572进一步收口人工状态三态：`legacy_unverified`只允许当前仍有未落入有效killlist/hard-negative的未分类活缺口；若非空活缺口已全分类且至少一项仍为hard-negative，则业务尚未完成但证据已核清，必须转`pending`。零缺口或全killlist仍必须转`done`，hard-negative始终不能充当完工证据。
+- 正式baseline只把150/152从legacy改为pending，冻结的历史`unityRegistered/liveGap`与既有`statusNote`均不变。H现独立重建有效hard-negative集合；回退两族时精准列出150的三号和152的四号并FAIL，L仍PASS。恢复后的`coverage_20260802_205858.md`为A～M全PASS，家族表150/152均为pending，L=`0族/0号`，治理分类与raw指标不变。
 
 ### 7.30 AutoBrush 13310 阶段奖励事务（2026-08-02 核对）
 
