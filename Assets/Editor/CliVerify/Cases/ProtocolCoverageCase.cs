@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 协议覆盖率核验器(PG 包,第21轮/R547-R566):十一段断言 A-K,照 CliVerify.cs 既有惯例,日志前缀
+    /// 协议覆盖率核验器(PG 包,第21轮/R547-R567):十二段断言 A-L,照 CliVerify.cs 既有惯例,日志前缀
     /// "CLIVERIFY protocolcoverage"。纯静态分析 + 一次运行时反射,不建 Stage/不渲染。
     ///
     ///   A 总量防倒退:Unity 运行时已注册数 &gt;= baseline；baseline.registeredCmds 必须与历史总量
@@ -45,6 +45,8 @@ namespace Shenxiao.EditorTools
     ///     断言正文必须与同次扫描和AssertionOutcome一致，禁止把baseline历史值伪装成本次值。
     ///   K 报告明细表自洽:家族表必须逐族精确反映注册/活缺口/死缺口/路由/策展状态；活缺口表
     ///     必须逐族完整列出killlist、硬负约束和未落机器清单三类互斥分组，行数、顺序和总量均一致。
+    ///   L legacy报告自洽:legacy_unverified区必须逐族列出当前仍未被带evidence killlist治理的活缺口；
+    ///     行数、顺序、数量和逐号集合精确一致，失败报告也不得把无evidence清单项算作已治理。
     ///
     /// 收尾落 Reports/ProtocolCoverage/coverage_&lt;date&gt;.md + baseline.next.json(裁决5:
     /// 绝不自动覆盖 Schemas/ProtocolCoverage/baseline.json,基线上调必须人工确认后手动覆盖)。
@@ -102,6 +104,13 @@ namespace Shenxiao.EditorTools
                     killlist,
                     hardNegativeConstraints,
                     outcome);
+                AssertL(scan, baseline ?? candidate, killlist, md, outcome);
+                md = ProtocolCoverageReport.BuildMarkdown(
+                    scan,
+                    baseline ?? candidate,
+                    killlist,
+                    hardNegativeConstraints,
+                    outcome);
                 var finalReportProblems = new List<string>();
                 finalReportProblems.AddRange(FindReportProblems(scan, baseline ?? candidate, md, outcome));
                 finalReportProblems.AddRange(FindReportTableProblems(
@@ -110,9 +119,15 @@ namespace Shenxiao.EditorTools
                     killlist,
                     hardNegativeConstraints,
                     md));
+                finalReportProblems.AddRange(FindLegacyReportProblems(
+                    scan,
+                    baseline ?? candidate,
+                    killlist,
+                    md));
                 bool reportProblemsCaptured = outcome.Lines.Any(line =>
                     line.StartsWith("[FAIL] J报告正文自洽", StringComparison.Ordinal)
-                    || line.StartsWith("[FAIL] K报告明细表自洽", StringComparison.Ordinal));
+                    || line.StartsWith("[FAIL] K报告明细表自洽", StringComparison.Ordinal)
+                    || line.StartsWith("[FAIL] Llegacy报告自洽", StringComparison.Ordinal));
                 if (finalReportProblems.Count > 0 && !reportProblemsCaptured)
                 {
                     throw new InvalidOperationException("最终报告自检失败:" + string.Join(";", finalReportProblems));
@@ -1091,8 +1106,14 @@ namespace Shenxiao.EditorTools
                     + "!=扫描" + scan.UnityRegistered.Count + "/" + scan.LiveGap().Count + "/" + scan.DeadGap().Count);
             }
 
-            var killSet = new HashSet<int>((killlist ?? new List<KillEntry>()).Select(k => k.Cmd));
+            var killSet = new HashSet<int>((killlist ?? new List<KillEntry>())
+                .Where(k => !string.IsNullOrWhiteSpace(k.Evidence))
+                .Select(k => k.Cmd));
             var hardNegativeSet = new HashSet<int>((hardNegativeConstraints ?? new List<HardNegativeConstraintEntry>())
+                .Where(k => k.Cmd >= 10000
+                    && k.Cmd <= 99999
+                    && !string.IsNullOrWhiteSpace(k.Rule)
+                    && !string.IsNullOrWhiteSpace(k.Evidence))
                 .Select(k => k.Cmd));
             List<ProtocolCoverageScanner.FamilyStat> expectedGapFamilies = expectedFamilies
                 .Where(f => f.LiveGap > 0)
@@ -1145,6 +1166,86 @@ namespace Shenxiao.EditorTools
                 problems.Add("活缺口表数值列不可解析");
             else if (reportedGapTotal != scan.LiveGap().Count)
                 problems.Add("活缺口表汇总" + reportedGapTotal + "!=扫描" + scan.LiveGap().Count);
+            return problems;
+        }
+
+        private static void AssertL(
+            ProtocolCoverageScanner.ScanResult scan,
+            CoverageBaseline baseline,
+            List<KillEntry> killlist,
+            string markdown,
+            AssertionOutcome outcome)
+        {
+            List<string> problems = FindLegacyReportProblems(scan, baseline, killlist, markdown);
+            var validKillSet = new HashSet<int>((killlist ?? new List<KillEntry>())
+                .Where(k => !string.IsNullOrWhiteSpace(k.Evidence))
+                .Select(k => k.Cmd));
+            HashSet<int> liveGap = scan.LiveGap();
+            List<FamilyBaseline> legacyFamilies = (baseline?.Families ?? new List<FamilyBaseline>())
+                .Where(f => f.Status == "legacy_unverified")
+                .ToList();
+            int reportedFamilyCount = legacyFamilies.Count(f => liveGap
+                .Where(c => ProtocolCoverageScanner.ScanResult.Family(c) == f.Prefix)
+                .Any(c => !validKillSet.Contains(c)));
+            int reportedCmdCount = legacyFamilies.Sum(f => liveGap
+                .Where(c => ProtocolCoverageScanner.ScanResult.Family(c) == f.Prefix)
+                .Count(c => !validKillSet.Contains(c)));
+            bool pass = problems.Count == 0;
+            string detail = pass
+                ? "legacy_unverified区" + reportedFamilyCount + "族/" + reportedCmdCount
+                    + "号逐项完整;仅带evidence killlist计入治理"
+                : string.Join(";", problems);
+            outcome.Add("Llegacy报告自洽", pass, detail);
+        }
+
+        private static List<string> FindLegacyReportProblems(
+            ProtocolCoverageScanner.ScanResult scan,
+            CoverageBaseline baseline,
+            List<KillEntry> killlist,
+            string markdown)
+        {
+            var problems = new List<string>();
+            var validKillSet = new HashSet<int>((killlist ?? new List<KillEntry>())
+                .Where(k => !string.IsNullOrWhiteSpace(k.Evidence))
+                .Select(k => k.Cmd));
+            HashSet<int> liveGap = scan.LiveGap();
+            var expectedRows = new List<string>();
+            foreach (FamilyBaseline family in (baseline?.Families ?? new List<FamilyBaseline>())
+                .Where(f => f.Status == "legacy_unverified"))
+            {
+                List<int> ungoverned = liveGap
+                    .Where(c => ProtocolCoverageScanner.ScanResult.Family(c) == family.Prefix)
+                    .Where(c => !validKillSet.Contains(c))
+                    .OrderBy(c => c)
+                    .ToList();
+                if (ungoverned.Count == 0) continue;
+                expectedRows.Add("- 家族 " + family.Prefix + ":未申报 " + ungoverned.Count
+                    + " 个 -> " + string.Join(",", ungoverned));
+            }
+
+            List<string> section = ExtractSectionLines(
+                markdown,
+                "## legacy_unverified 家族的未申报活缺口(报告级,不挂红,见裁决3)",
+                "\uFFFF");
+            List<string> actualRows = section
+                .Where(line => line.StartsWith("- 家族 ", StringComparison.Ordinal))
+                .ToList();
+            if (actualRows.Count != expectedRows.Count)
+                problems.Add("legacy行数" + actualRows.Count + "!=" + expectedRows.Count);
+            if (!actualRows.SequenceEqual(expectedRows))
+            {
+                List<int> mismatchedPrefixes = (baseline?.Families ?? new List<FamilyBaseline>())
+                    .Where(f => f.Status == "legacy_unverified")
+                    .Select(f => f.Prefix)
+                    .Where(prefix => !actualRows.Any(row => row.StartsWith("- 家族 " + prefix + ":", StringComparison.Ordinal))
+                        || !expectedRows.Any(row => row.StartsWith("- 家族 " + prefix + ":", StringComparison.Ordinal)))
+                    .ToList();
+                problems.Add("legacy顺序/逐号内容不一致"
+                    + (mismatchedPrefixes.Count > 0 ? ":" + string.Join(",", mismatchedPrefixes) : ""));
+            }
+            bool hasEmptyMarker = section.Any(line => string.Equals(line, "- (无)", StringComparison.Ordinal));
+            if (expectedRows.Count == 0 && !hasEmptyMarker) problems.Add("legacy空集缺(无)标记");
+            if (expectedRows.Count > 0 && hasEmptyMarker) problems.Add("legacy非空却写(无)");
             return problems;
         }
 
