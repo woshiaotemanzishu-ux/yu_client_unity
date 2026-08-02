@@ -210,6 +210,18 @@
     "note": "33804校验竞榜活动、未领取和当日积分，按世界等级计算并真实发奖，写score_reward DB与内存；Unity只有33801/33802读侧raw，禁止孤立常量、sender或局部领取态。"
   },
   {
+    "cmd": 41102,
+    "rule": "R507/R578 Designation equip state and scene boundary",
+    "evidence": "AGENTS.md:R578 Designation 41102/41103佩戴事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R578",
+    "note": "41102会校验权威称号、时效和当前佩戴，写新旧称号状态DB、更新角色figure与场景代理并广播41105；Unity详情页明确隐藏佩戴按钮，NameBoard仍只有血条，禁止孤立常量、sender、code/id ACK或本地CurrentUsed补丁。"
+  },
+  {
+    "cmd": 41103,
+    "rule": "R507/R578 Designation unequip state and scene boundary",
+    "evidence": "AGENTS.md:R578 Designation 41102/41103佩戴事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R578",
+    "note": "41103只允许卸下当前且仍存在的称号，会写状态DB、清角色figure、更新场景代理并广播41105；必须与佩戴按钮、41101权威刷新及主角/他人NameBoard表现整链恢复，禁止孤立sender、raw code或乐观清空。"
+  },
+  {
     "cmd": 41502,
     "rule": "R472/R574 Pray cost/reward transaction boundary",
     "evidence": "AGENTS.md:R574 50704/15804/22704/33304/41502奖励购买事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R574",
