@@ -335,6 +335,8 @@
 - B在当前注册回归比较前先报告基线内部不一致，并检查逐号清单中的任一前缀都存在正式家族条目。反向探针只把100族历史计数5下调到4，B精确报告`100:族计数4!=逐号清单5`并`EXIT 3`；恢复后的`coverage_20260802_190831.md`为A～H全PASS，B显示179族冻结计数与893条清单一致。
 - R560把另一组冻结事实也纳入B：179个`families[].liveGap`必须全部非负且总和精确等于顶层`totalLiveGap`，顶层历史活缺口还必须位于`0..totalLiveDefined`。正式baseline的分项总和当前为697，与顶层697一致；这阻止人工单改某族历史缺口或顶层汇总后留下彼此矛盾的防退基线。
 - 反向探针只把100族`liveGap`从0改为-1，B同时精确报告`baseline家族liveGap为负:100`和`baseline家族liveGap汇总696!=历史总量697`，总判决失败；恢复后的`coverage_20260802_191606.md`为A～H全PASS，正式baseline未改。
+- R561继续校验顶层派生字段：`liveCoveragePercent`必须等于`round(100*(totalLiveDefined-totalLiveGap)/totalLiveDefined,1)`，零分母时约定为0。正式冻结总量表示`771/1468=52.5%`；只把百分比改成52.6的探针被B精确报告`baseline历史覆盖率52.6!=总量推导52.5`。
+- 恢复后的`coverage_20260802_192317.md`为A～H全PASS，B详情同时显示893条冻结注册号、历史活缺口分项/总量697与覆盖率52.5%一致；正式baseline未改。
 
 ### 7.30 AutoBrush 13310 阶段奖励事务（2026-08-02 核对）
 
