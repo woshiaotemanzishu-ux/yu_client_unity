@@ -1783,3 +1783,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **13218裁决**：`48fd16be92`先接入自动熔炼后的独立S2C主动推送；`14ec2c02c6`后接13217时，同一提交明确写“在13211/12/14/15/16/18数据底座上接入13217”以及“不接13218联动”。因此现有13218不是负约束冲突，AGENTS已改成明确禁止13217请求/触发/清理13218，同时保留独立13218注册。
 - **影响边界**：本轮只消除权威文档歧义，不改Proto、Controller、Model、用例、Prefab、配置、killlist或baseline；13218继续无sender并与13217双向隔离。
 - **验证状态**：Unity 6000.3.17f1独立批处理`OnHookCase pass=True / EXIT 0`；`coverage_20260802_153930.md` A～E全PASS，运行时仍为`registered=1261 / liveDefined=1468 / liveGap=330 / errorExit=19 / active=1138/1468=77.5%`，证明本轮只消歧、不改行为；冻结baseline未改。
+
+## 2026-08-02：AutoBrush 13310 阶段奖励事务闭环（R543）
+
+- **事务边界**：13310请求为`gate:u64`，回包为`code:u32,u16×{style:u8,type_id:u32,count:u32}`。只允许在13309已加载且`code==1`、gate非0/不超`long.MaxValue`、当前关卡达到gate时由用户显式点击；请求10秒单飞，成功后继续锁到13309权威刷新到达。
+- **权威状态**：每包完整替换独立不可变raw结果，保序保重并保留0/全位最大值。失败不改13309且不回查；成功展示实际回包奖励并精确空发一次13309。客户端不本地推进gate、不操作背包或重复发奖，GAME_START仍只发原五个读包。
+- **界面边界**：增量复用已存在的可编辑`AutoBrushModule.prefab`，给`_box_show/_box_click`绑定同一领取语义，容器根透明Image是实际点击面；按13309权威gate显示完成/待领状态。未重转、未改Prefab视觉或引入页面Creator。
+- **验证状态**：`dotnet build Shenxiao.Editor.csproj`为79条既有warning、0 error；Unity 6000.3.17f1独立批处理`AutoBrushReadCase pass=True/restored=True/EXIT 0`，覆盖非法门禁、精确u64帧、无回复保留、失败/成功、raw极值/重复、成功唯一13309回查、刷新前锁定、Dispose恢复及真实Prefab `GraphicRaycaster→PointerClick`单飞。`coverage_20260802_160129.md` A～E全PASS，运行时为`registered=1262/liveDefined=1468/liveGap=329/errorExit=19/active=1139/1468=77.6%`；133族只余13322写事务，冻结baseline未改。

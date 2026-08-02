@@ -461,6 +461,9 @@
         /// <summary>Next stage-reward gate. Send empty; reply code:u32,next_stage_reward_gate:u64.</summary>
         public const int AUTOBRUSH_NEXT_STAGE_REWARD = 13309;
 
+        /// <summary>Claim next stage reward. Send gate:u64; reply code:u32 + ObjectList.</summary>
+        public const int AUTOBRUSH_STAGE_REWARD = 13310;
+
         /// <summary>Current tutorial/process node. Send empty; reply node:u8.</summary>
         public const int AUTOBRUSH_TUTORIAL_NODE = 13323;
 

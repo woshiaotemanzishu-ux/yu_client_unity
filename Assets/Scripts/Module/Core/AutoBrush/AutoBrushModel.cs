@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 
 namespace Shenxiao.Module.Core.AutoBrush
@@ -39,6 +40,32 @@ namespace Shenxiao.Module.Core.AutoBrush
             }
         }
 
+        public readonly struct StageRewardEntry
+        {
+            public byte Style { get; }
+            public uint TypeId { get; }
+            public uint Count { get; }
+
+            public StageRewardEntry(byte style, uint typeId, uint count)
+            {
+                Style = style;
+                TypeId = typeId;
+                Count = count;
+            }
+        }
+
+        public sealed class StageRewardResult
+        {
+            public uint Code { get; }
+            public IReadOnlyList<StageRewardEntry> Rewards { get; }
+
+            public StageRewardResult(uint code, List<StageRewardEntry> rewards)
+            {
+                Code = code;
+                Rewards = (rewards ?? new List<StageRewardEntry>()).ToArray();
+            }
+        }
+
         public BrushStrangeInfo BrushInfo { get; private set; }
         public bool AutoBrushState { get; private set; }
         public int Level { get; private set; }
@@ -52,6 +79,7 @@ namespace Shenxiao.Module.Core.AutoBrush
         public bool HasNextStageReward { get; private set; }
         public uint NextStageRewardCode { get; private set; }
         public ulong NextStageRewardGate { get; private set; }
+        public StageRewardResult LastStageRewardResult { get; private set; }
         public bool HasTutorialNode { get; private set; }
         public byte TutorialNode { get; private set; }
         public bool HasAssistInfo { get; private set; }
@@ -73,6 +101,7 @@ namespace Shenxiao.Module.Core.AutoBrush
             HasNextStageReward = false;
             NextStageRewardCode = 0;
             NextStageRewardGate = 0;
+            LastStageRewardResult = null;
             HasTutorialNode = false;
             TutorialNode = 0;
             HasAssistInfo = false;
@@ -81,6 +110,7 @@ namespace Shenxiao.Module.Core.AutoBrush
             EventDispatcher.Emit(GlobalEvent.EVT_AUTOBRUSH_INFO_UPDATED);
             EventDispatcher.Emit(GlobalEvent.EVT_AUTOBRUSH_LEVEL_UPDATED);
             EventDispatcher.Emit(GlobalEvent.EVT_AUTOBRUSH_STATE_UPDATED);
+            EventDispatcher.Emit(GlobalEvent.EVT_AUTOBRUSH_STAGE_REWARD_UPDATED);
         }
 
         public void SetBrushStrangeInfo(BrushStrangeInfo info)
@@ -128,6 +158,13 @@ namespace Shenxiao.Module.Core.AutoBrush
             HasNextStageReward = true;
             NextStageRewardCode = code;
             NextStageRewardGate = gate;
+            EventDispatcher.Emit(GlobalEvent.EVT_AUTOBRUSH_STAGE_REWARD_UPDATED);
+        }
+
+        public void ReplaceStageRewardResult(uint code, List<StageRewardEntry> rewards)
+        {
+            LastStageRewardResult = new StageRewardResult(code, rewards);
+            EventDispatcher.Emit(GlobalEvent.EVT_AUTOBRUSH_STAGE_REWARD_UPDATED);
         }
 
         public void ReplaceTutorialNode(byte node)

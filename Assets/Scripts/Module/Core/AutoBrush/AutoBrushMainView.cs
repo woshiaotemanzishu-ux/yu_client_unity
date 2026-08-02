@@ -52,6 +52,7 @@ namespace Shenxiao.Module.Core.AutoBrush
             EventDispatcher.On(GlobalEvent.EVT_AUTOBRUSH_INFO_UPDATED, Refresh);
             EventDispatcher.On(GlobalEvent.EVT_AUTOBRUSH_LEVEL_UPDATED, Refresh);
             EventDispatcher.On(GlobalEvent.EVT_AUTOBRUSH_STATE_UPDATED, Refresh);
+            EventDispatcher.On(GlobalEvent.EVT_AUTOBRUSH_STAGE_REWARD_UPDATED, Refresh);
             _eventsBound = true;
         }
 
@@ -61,6 +62,7 @@ namespace Shenxiao.Module.Core.AutoBrush
             EventDispatcher.Off(GlobalEvent.EVT_AUTOBRUSH_INFO_UPDATED, Refresh);
             EventDispatcher.Off(GlobalEvent.EVT_AUTOBRUSH_LEVEL_UPDATED, Refresh);
             EventDispatcher.Off(GlobalEvent.EVT_AUTOBRUSH_STATE_UPDATED, Refresh);
+            EventDispatcher.Off(GlobalEvent.EVT_AUTOBRUSH_STAGE_REWARD_UPDATED, Refresh);
             _eventsBound = false;
         }
 
@@ -85,10 +87,10 @@ namespace Shenxiao.Module.Core.AutoBrush
             if (_bind._html_exp != null) _bind._html_exp.text = AutoBrushConfigs.BuildExpText(_showLevel, done);
             if (_bind._lb_first_level != null) _bind._lb_first_level.text = model.TopRankLevel > 0 ? model.TopRankLevel + "关" : "暂无排名";
             if (_bind._lb_first_name != null) _bind._lb_first_name.text = model.TopRankName;
-            if (_bind._lb_level_reward != null) _bind._lb_level_reward.text = "";
             if (_bind._lb_go != null) _bind._lb_go.text = "前往";
 
             RefreshBrushInfo();
+            RefreshStageReward();
             await BuildRewardCells(epoch, AutoBrushConfigs.BuildBossRewards(_showLevel, RoleModel.Instance.Career));
         }
 
@@ -104,8 +106,6 @@ namespace Shenxiao.Module.Core.AutoBrush
             SetActive(_bind._lb_go, hasInfo && !ready);
             SetActive(_bind._box_assist, false);
             SetActive(_bind._img_assist_tips, false);
-            SetActive(_bind._box_show_effect, false);
-            SetActive(_bind._img_show_red, false);
 
             if (_bind._html_desc != null)
             {
@@ -113,6 +113,26 @@ namespace Shenxiao.Module.Core.AutoBrush
                 _bind._html_desc.text = hasInfo ? "还需要击败" + left + "个野外妖怪才可闯关" : "";
             }
             if (_bind._lb_enter != null) _bind._lb_enter.text = "挑战";
+        }
+
+        private void RefreshStageReward()
+        {
+            AutoBrushModel model = AutoBrushModel.Instance;
+            bool valid = model.HasNextStageReward && model.NextStageRewardCode == 1;
+            ulong gate = model.NextStageRewardGate;
+            bool claimable = valid && gate > 0 && gate <= long.MaxValue
+                && (ulong)Mathf.Max(0, model.Level) >= gate
+                && !AutoBrushController.Instance.IsStageRewardPending
+                && !AutoBrushController.Instance.IsStageRewardRefreshPending;
+
+            if (_bind._lb_level_reward != null)
+            {
+                _bind._lb_level_reward.text = !valid ? ""
+                    : gate == 0 ? "阶段奖励已全部领取"
+                    : "第" + gate + "关阶段奖励";
+            }
+            SetActive(_bind._box_show_effect, claimable);
+            SetActive(_bind._img_show_red, claimable);
         }
 
         private async Task BuildRewardCells(int epoch, IReadOnlyList<AutoBrushModel.RewardEntry> rewards)
@@ -173,6 +193,22 @@ namespace Shenxiao.Module.Core.AutoBrush
             BindClick(_bind._lb_go, GoBrushMonster);
             BindClick(_bind._img_rank, () => GameLog.Info("AutoBrush", "AutoBrushRankView not migrated yet"));
             BindClick(_bind._box_assist, () => GameLog.Info("AutoBrush", "guild assist not migrated yet"));
+            BindClick(_bind._box_show, ClaimStageReward);
+            BindClick(_bind._box_click, ClaimStageReward);
+        }
+
+        private void ClaimStageReward()
+        {
+            if (!AutoBrushController.Instance.RequestStageReward())
+            {
+                GameLog.Info("AutoBrush", "stage reward click blocked loaded={0} code={1} gate={2} level={3} pending={4}/{5}",
+                    AutoBrushModel.Instance.HasNextStageReward,
+                    AutoBrushModel.Instance.NextStageRewardCode,
+                    AutoBrushModel.Instance.NextStageRewardGate,
+                    AutoBrushModel.Instance.Level,
+                    AutoBrushController.Instance.IsStageRewardPending,
+                    AutoBrushController.Instance.IsStageRewardRefreshPending);
+            }
         }
 
         private void EnterDungeon()

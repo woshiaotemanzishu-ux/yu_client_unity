@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
+using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
+using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Tasks;
+using UnityEngine;
 
 namespace Shenxiao.Module.Core.AutoBrush
 {
@@ -22,6 +26,13 @@ namespace Shenxiao.Module.Core.AutoBrush
 #endif
 
         private int _exitRetryCount;
+        private const double StageRewardPendingSeconds = 10d;
+        private double _stageRewardPendingUntil;
+        private bool _stageRewardRefreshPending;
+        private ulong _stageRewardRequestGate;
+
+        public bool IsStageRewardPending => Time.realtimeSinceStartupAsDouble < _stageRewardPendingUntil;
+        public bool IsStageRewardRefreshPending => _stageRewardRefreshPending;
 
         private AutoBrushController() { }
 
@@ -33,6 +44,7 @@ namespace Shenxiao.Module.Core.AutoBrush
             RegisterProtocal(Proto.AUTOBRUSH_RESULT, On13306);
             RegisterProtocal(Proto.AUTOBRUSH_TOGGLE, On13307);
             RegisterProtocal(Proto.AUTOBRUSH_NEXT_STAGE_REWARD, On13309);
+            RegisterProtocal(Proto.AUTOBRUSH_STAGE_REWARD, On13310);
             RegisterProtocal(Proto.AUTOBRUSH_TUTORIAL_NODE, On13323);
             RegisterProtocal(Proto.AUTOBRUSH_ASSIST_INFO, On13324);
             RegisterProtocal(Proto.DUNGEON_EXIT, On61002);
@@ -78,15 +90,50 @@ namespace Shenxiao.Module.Core.AutoBrush
                 Proto.AUTOBRUSH_ENTER_EXIT, type);
         }
 
+        /// <summary>
+        /// Claim the authoritative next stage gate. No local reward or gate mutation is allowed;
+        /// a successful 13310 is followed by exactly one empty 13309 refresh.
+        /// </summary>
+        public bool RequestStageReward()
+        {
+            AutoBrushModel model = AutoBrushModel.Instance;
+            ulong gate = model.NextStageRewardGate;
+            if (!model.HasNextStageReward || model.NextStageRewardCode != 1 || gate == 0
+                || gate > long.MaxValue || (ulong)Math.Max(0, model.Level) < gate
+                || IsStageRewardPending || _stageRewardRefreshPending)
+            {
+                return false;
+            }
+
+            _stageRewardRequestGate = gate;
+            _stageRewardPendingUntil = Time.realtimeSinceStartupAsDouble + StageRewardPendingSeconds;
+            _ = ReleaseStageRewardTimeoutAsync(gate, _stageRewardPendingUntil);
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.AUTOBRUSH_STAGE_REWARD, "l", unchecked((long)gate));
+            if (s_startupOutboundIntercept != null && s_startupOutboundIntercept(frame))
+            {
+                EventDispatcher.Emit(GlobalEvent.EVT_AUTOBRUSH_STAGE_REWARD_UPDATED);
+                return true;
+            }
+#endif
+            SendFmt(Proto.AUTOBRUSH_STAGE_REWARD, "l", unchecked((long)gate));
+            EventDispatcher.Emit(GlobalEvent.EVT_AUTOBRUSH_STAGE_REWARD_UPDATED);
+            GameLog.Info("AutoBrush", "request stage reward proto={0} gate={1}",
+                Proto.AUTOBRUSH_STAGE_REWARD, gate);
+            return true;
+        }
+
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
+            ResetStageRewardTransaction();
             AutoBrushModel.Instance.ResetData();
             base.Dispose();
         }
 
         private void OnGameStart()
         {
+            ResetStageRewardTransaction();
             AutoBrushModel.Instance.ResetData();
             SendStartupRequest(Proto.AUTOBRUSH_INFO);
             SendStartupRequest(Proto.AUTOBRUSH_RANK);
@@ -169,7 +216,82 @@ namespace Shenxiao.Module.Core.AutoBrush
 
         private void On13309(NetReader r)
         {
-            AutoBrushModel.Instance.ReplaceNextStageReward(r.ReadU32(), unchecked((ulong)r.ReadU64()));
+            uint code = r.ReadU32();
+            ulong gate = unchecked((ulong)r.ReadU64());
+            if (_stageRewardRefreshPending)
+            {
+                ResetStageRewardTransaction();
+            }
+            else if (!IsStageRewardPending)
+            {
+                _stageRewardRequestGate = 0;
+                _stageRewardPendingUntil = 0d;
+            }
+            AutoBrushModel.Instance.ReplaceNextStageReward(code, gate);
+        }
+
+        private void On13310(NetReader r)
+        {
+            uint code = r.ReadU32();
+            int count = r.ReadU16();
+            var rewards = new List<AutoBrushModel.StageRewardEntry>(count);
+            for (int i = 0; i < count; i++)
+            {
+                rewards.Add(new AutoBrushModel.StageRewardEntry(r.ReadU8(), r.ReadU32(), r.ReadU32()));
+            }
+
+            AutoBrushModel.Instance.ReplaceStageRewardResult(code, rewards);
+            _stageRewardPendingUntil = 0d;
+            if (code != 1)
+            {
+                _stageRewardRefreshPending = false;
+                _stageRewardRequestGate = 0;
+                EventDispatcher.Emit(GlobalEvent.EVT_AUTOBRUSH_STAGE_REWARD_UPDATED);
+                TipsManager.Toast("阶段奖励领取失败：" + code);
+                GameLog.Warn("AutoBrush", "13310 stage reward failed code={0}", code);
+                return;
+            }
+
+            _stageRewardRefreshPending = true;
+            TipsManager.Toast(BuildStageRewardToast(rewards));
+            SendStartupRequest(Proto.AUTOBRUSH_NEXT_STAGE_REWARD);
+            GameLog.Info("AutoBrush", "13310 stage reward success gate={0} rewards={1}; refresh 13309",
+                _stageRewardRequestGate, rewards.Count);
+        }
+
+        private static string BuildStageRewardToast(IReadOnlyList<AutoBrushModel.StageRewardEntry> rewards)
+        {
+            if (rewards == null || rewards.Count == 0) return "阶段奖励领取成功";
+            var text = new StringBuilder("获得");
+            for (int i = 0; i < rewards.Count; i++)
+            {
+                AutoBrushModel.StageRewardEntry reward = rewards[i];
+                if (i > 0) text.Append('、');
+                int rawTypeId = reward.TypeId <= int.MaxValue ? (int)reward.TypeId : 0;
+                (int goodsId, int _) = GoodsModel.GetMappingTypeId(reward.Style, rawTypeId);
+                string name = GoodsModel.GetGoodsName(goodsId);
+                if (string.IsNullOrEmpty(name))
+                    name = reward.TypeId > 0 ? "物品" + reward.TypeId : "类型" + reward.Style;
+                text.Append(name).Append('×').Append(reward.Count);
+            }
+            return text.ToString();
+        }
+
+        private void ResetStageRewardTransaction()
+        {
+            _stageRewardPendingUntil = 0d;
+            _stageRewardRefreshPending = false;
+            _stageRewardRequestGate = 0;
+        }
+
+        private async Task ReleaseStageRewardTimeoutAsync(ulong gate, double deadline)
+        {
+            await TimeUtil.Delay((int)(StageRewardPendingSeconds * 1000d));
+            if (_stageRewardRefreshPending || _stageRewardRequestGate != gate
+                || _stageRewardPendingUntil != deadline || IsStageRewardPending) return;
+            _stageRewardPendingUntil = 0d;
+            _stageRewardRequestGate = 0;
+            EventDispatcher.Emit(GlobalEvent.EVT_AUTOBRUSH_STAGE_REWARD_UPDATED);
         }
 
         private void On13323(NetReader r)
