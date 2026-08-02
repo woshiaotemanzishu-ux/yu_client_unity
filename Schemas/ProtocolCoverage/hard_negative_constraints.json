@@ -646,5 +646,23 @@
     "rule": "R170/R541 SnatchTreasure boundary",
     "evidence": "AGENTS.md:R170/R541 SnatchTreasure 65201",
     "note": "结算/错误晚增量已撤销。"
+  },
+  {
+    "cmd": 65402,
+    "rule": "R511/R596 HolySeal strengthen asset transaction boundary",
+    "evidence": "AGENTS.md:R596 HolySeal 65402/65403/65406完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R596",
+    "note": "65402按部位和配置真实扣影印币、写装备强化/DB、推成就并重算属性，自动强化还可能材料不足前部分成功；Unity缺强化配置、钱包和单飞闭环，禁止孤立常量、sender、结果handler或自动连发。"
+  },
+  {
+    "cmd": 65403,
+    "rule": "R511/R596 HolySeal equip inventory transaction boundary",
+    "evidence": "AGENTS.md:R596 HolySeal 65402/65403/65406完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R596",
+    "note": "65403按物品实例subtype在背包与穿戴位间事务移动，更新多条任务/属性链，空ACK后另推65401权威全量；Unity缺实例与背包闭环，禁止孤立常量、sender、空handler或乐观移装。"
+  },
+  {
+    "cmd": 65406,
+    "rule": "R511/R596 HolySeal pill asset transaction boundary",
+    "evidence": "AGENTS.md:R596 HolySeal 65402/65403/65406完整业务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R596",
+    "note": "65406按人物等级上限截断实际数量，真实扣圣魂丹、持久化累计使用并重算属性；Unity缺魂丹配置、背包和属性闭环，禁止孤立常量、sender、回包补丁或乐观增量。"
   }
 ]
