@@ -66,6 +66,24 @@
     "note": "结算包须等待完整结算UI、场景退出和奖励消费链。"
   },
   {
+    "cmd": 14203,
+    "rule": "R480/R581 Partner follow scene and skill transaction boundary",
+    "evidence": "AGENTS.md:R581 Partner 14203/14206/14207场景培养奖励边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R581",
+    "note": "14203会持久化出战伙伴，重算属性，更新场景训练对象，广播14200并触发21002技能刷新；Unity缺场景伙伴消费者且21002已有SkillController所有权，禁止孤立常量、sender、raw结果或乐观跟随。"
+  },
+  {
+    "cmd": 14206,
+    "rule": "R480/R581 Partner nucleus item-cost training boundary",
+    "evidence": "AGENTS.md:R581 Partner 14203/14206/14207场景培养奖励边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R581",
+    "note": "14206会按培养配置真实耗尽背包物品、事务写培养次数、重算伙伴和角色属性、通知属性并推14201；缺配置、背包、培养页及权威刷新闭环时禁止裸sender、ACK、乐观扣物或属性推演。"
+  },
+  {
+    "cmd": 14207,
+    "rule": "R480/R581 Partner biography reward transaction boundary",
+    "evidence": "AGENTS.md:R581 Partner 14203/14206/14207场景培养奖励边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R581",
+    "note": "14207会持久化传记解锁、重算属性并真实发奖，成功时先推14202权威全量再回结果；缺传记配置、奖励/背包表现和防重闭环时禁止孤立sender、结果handler、乐观解锁或本地发奖。"
+  },
+  {
     "cmd": 15028,
     "rule": "R519/R569 Goods compose transaction boundary",
     "evidence": "AGENTS.md:R569 Goods 15011/15028;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R569",
