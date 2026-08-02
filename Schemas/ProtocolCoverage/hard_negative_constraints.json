@@ -558,6 +558,24 @@
     "note": "33804校验竞榜活动、未领取和当日积分，按世界等级计算并真实发奖，写score_reward DB与内存；Unity只有33801/33802读侧raw，禁止孤立常量、sender或局部领取态。"
   },
   {
+    "cmd": 40902,
+    "rule": "R524/R602 Achievement stage-up cost and attribute boundary",
+    "evidence": "AGENTS.md:R602 Achievement 40902/40905/40909升阶、领奖与分类消费者边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R602",
+    "note": "40902请求u32在现服实际是下一stage而非旧注释total_star；事务扣成就点、写阶段/已领表、改figure和人物属性并同步场景，禁止孤立sender、ACK或乐观升阶。"
+  },
+  {
+    "cmd": 40905,
+    "rule": "R524/R602 Achievement reward claim asset boundary",
+    "evidence": "AGENTS.md:R602 Achievement 40902/40905/40909升阶、领奖与分类消费者边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R602",
+    "note": "40905先持久化领态和分类星数，再真实发成就点与配置奖励并推40908/06/03；结果不回显ID，禁止孤立sender/result、局部领态或二次发奖。"
+  },
+  {
+    "cmd": 40909,
+    "rule": "R524/R602 Achievement category page consumer boundary",
+    "evidence": "AGENTS.md:R602 Achievement 40902/40905/40909升阶、领奖与分类消费者边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R602",
+    "note": "40909虽为显式纯查询，但请求category为u16而现服回包写u8，且Unity缺完整分类页/配置消费者；禁止孤立sender、无页面raw缓存或按请求键伪造回包分类。"
+  },
+  {
     "cmd": 41102,
     "rule": "R507/R578 Designation equip state and scene boundary",
     "evidence": "AGENTS.md:R578 Designation 41102/41103佩戴事务;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R578",
