@@ -504,6 +504,18 @@
     "note": "使用红包道具发送红包是存活写事务：服务端校验公会/配置/次数与拆分数，删除真实道具，创建红包并增加日计数。老端虽保留结果 handler，却没有任何玩家可达的发送入口；Unity 严禁为覆盖率复活该交易，也不得只接回执、乐观扣物或本地造红包。R482 复核。"
   },
   {
+    "cmd": 34010,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/invite/pp_invite.erl:50-56;yu_server/src/invite/mod_invite.erl:65-71;yu_server/src/invite/lib_invite_mod.erl:230-248;h5/src/commonController/FriendInviteController.ts:197-205,302-303;h5/src/commonModel/FriendInviteModel.ts:117-123",
+    "note": "红包领取信息的唯一网络入口与紧邻34011入口一起整段注释；全服务端仅余mod_invite转发壳、lib_invite_mod底层writer和pt codec，没有其它调用者或主动推送链。老端虽注册On34010，但SetRedInfo中的模型写入和红点刷新也已注释，收到后无可见状态。Unity保持不注册、不请求、不缓存红包列表；只有服务端恢复入口且产品恢复完整红包页时才与34011成对重审。R538。"
+  },
+  {
+    "cmd": 34011,
+    "reason": "dead_server_handle_commented",
+    "evidence": "yu_server/src/invite/pp_invite.erl:50-56;yu_server/src/invite/mod_invite.erl:65-71;yu_server/src/invite/lib_invite_mod.erl:250-269;h5/src/commonController/FriendInviteController.ts:101-115,202-205,302-303(全h5/src无实际34011 Fire调用)",
+    "note": "红包领取底层会写充值领取进度、发奖励并回34011，但唯一pp_invite网络handler已注释，底层mod/lib函数没有其它调用者；老端没有任何页面触发点，通用sender残留还以u16(h)发送服务端要求的invitee_id:u64。Unity不修复或复活该资产事务，不注册孤立结果、不请求34010、不本地发奖。未来必须先恢复服务端handler，并随红包列表、u64参数、确认/single-flight、奖励与错误闭环整体迁移。R538。"
+  },
+  {
     "cmd": 39903,
     "reason": "dead_empty_body",
     "evidence": "h5/src/commonController/MiniGameController.ts:61-65;yu_server/src/mini_game/pp_mini_game.erl:38-41;yu_server/src/pt/pt_399.erl:143-149",

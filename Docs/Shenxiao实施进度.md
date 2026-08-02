@@ -17,9 +17,9 @@
 
 ## 当前协议迁移口径（2026-08-02）
 
-- 最新完成轮次：R537。Dress 11205现作为显式按需只读查询接入，C2S为`dress_type:u8,dress_id:u32`，S2C回显复合键并返回`active_power:u64`；模型按复合键保存独立不可变快照，不同键共存，同键全量替换，零值有效，请求无回复保留旧值。
-- 11205不加入GAME_START、11200回包或类型遍历，不改11200已激活装扮快照、RoleModel、配置、UI、事件、红点或资源。11201激活、11202使用、11203卸下仍属真实事务；11204仍需他人场景装扮消费者，四号继续DEFER。
-- `dotnet build Assembly-CSharp-Editor.csproj --no-restore`为78条既有warning、0 error；Unity `DressCase=0/pass=True`覆盖精确出站帧、u64、复合键共存/替换、旧对象不可变、零值、无回复保留、读到尾与Dispose。`coverage_20260802_143547.md` A～E全PASS，112族`2/4/0 pending`；全局为`registered=1276 / liveDefined=1468 / liveGap=315 / errorExit=12 / active=1153/1468=78.5%`，baseline冻结不更新。
+- 最新完成轮次：R538。FriendInvite 34010红包领取信息与34011领取红包的唯一服务端网络handler在`pp_invite`中整段注释，全服务端只有不可达转发壳、底层writer/资产实现和codec，没有其它调用者或主动推送；两号已逐号加入killlist，保持KILL。
+- 老端34010虽注册接收，但`SetRedInfo`中的模型写入与红点刷新均已注释；34011全仓没有实际页面触发点，残留通用sender还把服务端要求的`invitee_id:u64`错发成`u16`。Unity不注册、不请求、不缓存红包列表、不接孤立结果或本地发奖；只有服务端恢复handler且产品恢复完整红包页、参数、确认、single-flight、奖励与错误闭环时才成对重审。其余34002-04/07/09仍为真实写事务，继续DEFER。
+- 本轮运行时代码零行为变化，只补负约束、逐号证据与控制器边界注释；既有`FriendInviteLevelCase`仍断言34010/34011不注册。`coverage_20260802_144300.md` A～E全PASS，全局保持`registered=1276 / liveDefined=1468 / liveGap=315 / errorExit=12 / active=1153/1468=78.5%`。家族表是raw扫描口径，故340族仍显示`6/7/0 pending`；killlist治理只进入证据闸门和未申报缺口判定，不改写raw计数，baseline冻结不更新。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
 ---
