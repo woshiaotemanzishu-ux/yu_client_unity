@@ -654,10 +654,34 @@
     "note": "42003按等级/天数/登录/前置/每日条件校验并计算补领奖差额，先持久化领取态与时间，再通过背包或邮件真实发奖；Unity缺领奖UI、42001重查和资产展示闭环，禁止孤立常量、sender、奖励handler、乐观领取或按ObjectList二次发奖。"
   },
   {
+    "cmd": 42702,
+    "rule": "R155/R546/R607 Adventure dice cost and reward transaction boundary",
+    "evidence": "AGENTS.md:R607 Adventure 42702/42703/42705/42706骰子与商店资产事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R607",
+    "note": "42702会按优惠券选择成本并自动补购，随机点数/沿途奖励，持久化位置和累计奖励、增加日投掷次数并真实发奖；Unity缺棋盘动画、配置、钱包背包和单飞闭环，禁止sender、结果handler、客户端随机或乐观走格/发奖。"
+  },
+  {
+    "cmd": 42703,
+    "rule": "R155/R546/R607 Adventure reset cost and state transaction boundary",
+    "evidence": "AGENTS.md:R607 Adventure 42702/42703/42705/42706骰子与商店资产事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R607",
+    "note": "42703按VIP/光环次数和终点状态校验，免费或扣配置成本后写新圈/起点、清累计奖励并增加日计数；禁止孤立空sender、ACK或照搬旧端对42701计数的乐观补丁。"
+  },
+  {
     "cmd": 42704,
-    "rule": "R155/R546 Adventure shop boundary",
-    "evidence": "AGENTS.md:R546 Adventure 42704纠偏",
-    "note": "商店查询虽只读，但原产品边界未改写前禁止恢复。"
+    "rule": "R155/R546/R607 Adventure shop product boundary",
+    "evidence": "AGENTS.md:R546 Adventure 42704纠偏;AGENTS.md:R607 Adventure 42702/42703/42705/42706骰子与商店资产事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R607",
+    "note": "42704查询虽主要返回商店快照，但跨天首次查询会随机重建商品并写DB；原产品边界未改写且商店配置/UI/操作消费者未闭环前，禁止恢复sender、raw占位或handler。"
+  },
+  {
+    "cmd": 42705,
+    "rule": "R155/R546/R607 Adventure shop purchase asset transaction boundary",
+    "evidence": "AGENTS.md:R607 Adventure 42702/42703/42705/42706骰子与商店资产事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R607",
+    "note": "42705免费项直接发奖、付费项扣勾玉后发奖，再持久化已购状态；旧端ACK后从配置展示奖励并本地改态，Unity缺钱包/背包/奖励与42704权威刷新，禁止sender、ACK、乐观购买或二次发奖。"
+  },
+  {
+    "cmd": 42706,
+    "rule": "R155/R546/R607 Adventure shop refresh asset and random-state boundary",
+    "evidence": "AGENTS.md:R607 Adventure 42702/42703/42705/42706骰子与商店资产事务边界;Docs/工单-自动循环-协议与逻辑接入-20260711.md:R607",
+    "note": "42706真实扣刷新成本、随机重建商品、增加日刷新计数并写DB，回包还给下一次成本和完整商品表；缺确认、钱包、配置和商店消费者时禁止空sender、结果raw、客户端随机或乐观扣费。"
   },
   {
     "cmd": 42906,
