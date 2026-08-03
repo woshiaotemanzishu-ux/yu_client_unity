@@ -262,6 +262,11 @@ namespace Shenxiao.EditorTools
             Run(DressCase.Run, 60.0);
         }
 
+        public static void SettingFashionCurrent()
+        {
+            Run(SettingFashionCurrentCase.Run, 60.0);
+        }
+
         public static void Demon()
         {
             Run(DemonCase.Run, 60.0);

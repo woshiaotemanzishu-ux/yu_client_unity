@@ -17,7 +17,7 @@ namespace Shenxiao.Module.Core.Fashion
     ///
     /// 覆盖 8 活号:41300(全量)/41301(Type2解锁颜色)/41302(穿戴)/41303(卸下)/41304(激活)/
     /// 41306(基础色进阶)/41312(战力,请求即可,展示留 TODO)/41316(彩色进阶)。
-    /// 41305(部位等级)由 _img_grade 打开 FashionLevelView；41313-15 套装由 FashionFlow 第三个页签承载。
+    /// 41305(部位等级)由 _img_grade 打开 FashionLevelView；41313-15 套装由 FashionFlow 第四个页签承载。
     ///
     /// "能点能用即可,不求像素级"(spec 裁决12):列表按横排铺开,不做虚拟滚动/裁剪遮罩;
     /// 未激活/灰显用透明度代替灰阶滤镜(GuildRBItem.cs 先例);3D 模型预览(_box_model)/染色贴图
@@ -38,6 +38,8 @@ namespace Shenxiao.Module.Core.Fashion
         private readonly List<FashionColorItem> _colorPool = new List<FashionColorItem>();
         private readonly List<FashionAttrItem> _attrPool = new List<FashionAttrItem>();
         private Common.BaseAwardItem _awardItem;
+
+        public int PosId => _posId;
 
         /// <summary>切换穿戴位(1=衣服/3=头饰),FashionFlow 页签驱动(对标老端"同一个类不同 fashion_pos_id")。</summary>
         public void SetPos(int posId)

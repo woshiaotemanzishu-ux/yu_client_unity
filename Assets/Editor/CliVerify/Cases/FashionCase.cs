@@ -300,7 +300,7 @@ namespace Shenxiao.EditorTools
 
                 // 第二刀 UI：套装页必须是真业务类并吃到真实 config_fashion_suit；部位升级弹窗同理。
                 Feed(m41313, new CliVerify.Pkt().H(1).C(1).C(1).C(4).C(4).I(1200).I(2400).Bytes());
-                Shenxiao.Module.Core.Fashion.FashionFlow.Open(2);
+                Shenxiao.Module.Core.Fashion.FashionFlow.Open(3);
                 await Task.Delay(300);
                 Transform suitT = CliVerify.FindDeep(stage.CanvasRoot, "FashionSuitView");
                 var suitView = suitT != null ? suitT.GetComponent<Shenxiao.Module.Core.Fashion.FashionSuitView>() : null;

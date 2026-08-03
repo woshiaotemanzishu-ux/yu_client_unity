@@ -109,6 +109,7 @@ namespace Shenxiao.Module.Core.Common
         private string[] _sharedTitleImages;
         private string[] _sharedTitleTexts;
         private string _sharedBackground;
+        private string[] _sharedBackgrounds;
         private string[] _sharedUpImages;
         private string[] _sharedDownImages;
         private TMPro.TextMeshProUGUI _titleOverlay;
@@ -125,7 +126,7 @@ namespace Shenxiao.Module.Core.Common
         /// 图标式标签只能渲染纯色矩形;现按 <see cref="BuildTabs"/> 同款 7 参数补齐,不改既有形态①路径)。</summary>
         public void ConfigureShared(int tabCount, Func<RectTransform, BaseView> contentFactory, Action<int> onTabSelected, int defaultIndex = 0, Func<int, bool> isEnabled = null, Dictionary<int, Func<RectTransform, BaseView>> overrides = null,
             string[] labels = null, string[] titleImages = null, string backgroundImage = null, string[] titleTexts = null,
-            string[] upImages = null, string[] downImages = null)
+            string[] upImages = null, string[] downImages = null, string[] backgroundImages = null)
         {
             _sharedCount = tabCount;
             _sharedFactory = contentFactory;
@@ -136,6 +137,7 @@ namespace Shenxiao.Module.Core.Common
             _sharedTitleImages = titleImages;
             _sharedTitleTexts = titleTexts;
             _sharedBackground = backgroundImage;
+            _sharedBackgrounds = backgroundImages;
             _sharedUpImages = upImages;
             _sharedDownImages = downImages;
             BuildSharedTabs();
@@ -199,7 +201,10 @@ namespace Shenxiao.Module.Core.Common
             }
 
             ApplySharedTitle(index);
-            ApplyBackground(_sharedBackground);
+            string background = _sharedBackgrounds != null && index < _sharedBackgrounds.Length
+                ? _sharedBackgrounds[index]
+                : _sharedBackground;
+            ApplyBackground(background);
             for (int i = 0; i < _tabs.Count; i++) if (_tabs[i] != null) _tabs[i].SetSelected(_tabIndices[i] == index);
             _current = index;
         }

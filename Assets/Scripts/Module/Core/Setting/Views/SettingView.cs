@@ -177,7 +177,7 @@ namespace Shenxiao.Module.Core.Setting
             {
                 GameLog.Info("Setting", "点击[更换头像] → 打开时装头像页");
                 SettingFlow.Close();
-                FashionFlow.Open(1);
+                FashionFlow.OpenDress(Shenxiao.Module.Core.Dress.DressView.HeadType);
             });
             BindClick(_btn_changename, () =>
             {

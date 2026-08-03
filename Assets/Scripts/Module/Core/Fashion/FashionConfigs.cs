@@ -92,9 +92,23 @@ namespace Shenxiao.Module.Core.Fashion
                     }
                 }
             }
+            set.RemoveWhere(fashionId => !HasAnyModelRow(posId, fashionId));
             var list = new List<int>(set);
             _idsByPos[posId] = list;
             return list;
+        }
+
+        /// <summary>
+        /// 老端列表只展示有 config_fashion_model 展示行的条目。仅存在培养配置、没有任何模型行的历史号
+        /// 不应进入 UI；否则会在首开时逐项触发缺图导入，也无法形成有效角色预览。
+        /// </summary>
+        private static bool HasAnyModelRow(int posId, int fashionId)
+        {
+            if (_fashionModel == null) return false;
+            string prefix = posId + "@" + fashionId + "@";
+            foreach (KeyValuePair<string, JToken> pair in _fashionModel)
+                if (pair.Key.StartsWith(prefix, StringComparison.Ordinal)) return true;
+            return false;
         }
 
         /// <summary>某 fashion 在 config_fashion_color 里已配置的颜色 id 集合(升序,不含 0——0 是基础色,
