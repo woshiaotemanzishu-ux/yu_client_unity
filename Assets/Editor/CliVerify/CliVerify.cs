@@ -545,8 +545,8 @@ namespace Shenxiao.EditorTools
             Run(NewPartImportCase.Run, 900.0);
         }
 
-        /// <summary>1201 天然体型 + 角色级附件空间实证：全动作按 idle 固定体量，1213 标准头饰
-        /// 跨 1201/1213 身体的最终世界比例一致；会幂等重导 role_1201，故不入 RenderAll。</summary>
+        /// <summary>1201 天然体型 + 角色级附件空间实证：只读现有产物，确认全动作按 idle 固定体量，
+        /// 1213 标准头饰跨 1201/1213 身体的最终世界比例一致。</summary>
         public static void RoleAttachmentSpace()
         {
             Run(RoleAttachmentSpaceCase.Run, 900.0);

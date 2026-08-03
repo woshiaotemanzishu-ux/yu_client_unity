@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Shenxiao.Common.UI3D;
-using Shenxiao.EditorTools.ArtImport;
 using Shenxiao.Framework.Res;
 using UnityEditor;
 using UnityEngine;
@@ -13,7 +12,7 @@ namespace Shenxiao.EditorTools
     /// <summary>
     /// 角色骨架级附件空间回归：1201 保持自身天然体型，以 idle 固定全动作体量；1213 标准头饰挂到
     /// 1201 时由角色档案统一换算，最终世界比例必须与挂到 1213 基准身体时一致。日志前缀
-    /// "CLIVERIFY attachmentspace"。本用例会幂等重导 role_1201，故不进入 RenderAll。
+    /// "CLIVERIFY attachmentspace"。本用例只读现有导入产物，不重导、不改 Addressables。
     /// </summary>
     public static class RoleAttachmentSpaceCase
     {
@@ -36,9 +35,12 @@ namespace Shenxiao.EditorTools
 
         public static async Task<int> Run()
         {
-            bool imported = ArtPrefabImporter.ImportPart("role", "role_1201", out string summary);
-            Debug.Log("CLIVERIFY attachmentspace import=" + imported + " → " + summary);
-            if (!imported) return 3;
+            string assemblyProfilePath = $"{Role1201Dir}/role_assembly_profile.json";
+            if (!File.Exists(assemblyProfilePath))
+            {
+                Debug.LogError("CLIVERIFY attachmentspace 缺角色装配档案:" + assemblyProfilePath);
+                return 3;
+            }
 
             string[] actionPrefabs = Directory.GetFiles(Role1201Dir, "1201@*.prefab", SearchOption.TopDirectoryOnly)
                 .Select(path => path.Replace('\\', '/')).OrderBy(path => path).ToArray();
