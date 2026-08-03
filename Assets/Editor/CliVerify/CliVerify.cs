@@ -545,6 +545,13 @@ namespace Shenxiao.EditorTools
             Run(NewPartImportCase.Run, 900.0);
         }
 
+        /// <summary>1201 天然体型 + 角色级附件空间实证：全动作按 idle 固定体量，1213 标准头饰
+        /// 跨 1201/1213 身体的最终世界比例一致；会幂等重导 role_1201，故不入 RenderAll。</summary>
+        public static void RoleAttachmentSpace()
+        {
+            Run(RoleAttachmentSpaceCase.Run, 900.0);
+        }
+
         /// <summary>商店(自动循环 轮11)实证:15301 分槽+SoldOut已购次数语义+TopVipShop劫持扇出不炸/
         /// 15305 BuyType状态语义/15306 刷新联动/15307 失败包错位兼容(第二字段=Id)/64000 left_time
         /// 服务器墙钟自算/64001 双编码分流(0-7文案表/≥100000显码)/64003 真删/失败码各一发;

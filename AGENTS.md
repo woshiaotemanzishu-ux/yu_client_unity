@@ -94,6 +94,8 @@
 
 - 主角随身特效空间规则：按老模型世界单位制作、需要跟随主角 yaw/2.5D 倾斜的循环整体特效（当前任务跑动 `char_acceleratebuff01`）必须挂 `SceneCharacterStage.MainRoleAttachedEffectHost`。禁止挂 `ReplaceableRoleModel.ActiveModel` 或新动作 prefab 内部 `root`：`ArtModelStager` 的 `landingOffset/landingScale` 会把该 root 留在人物后方并缩小特效。骨骼动作/技能特效仍挂 `ActiveModel`，`attach_type=15` 一次性特效仍挂 `MainRoleDetachedEffectHost`，禁止通过放大公共 prefab 针对单个模型补偿。
 
+- 角色附件装配空间规则：角色本身体型是视觉事实源；标准头饰、武器、翅膀、背饰跨 Role 出现倍数级差异时，禁止放大/缩小身体、全局修改共享附件或给单个“角色×附件”组合写补丁。先比较目标/基准 Role 的 `idle landingScale`；由 `role_assembly_profile.json` 记录角色级 `attachmentSpaceScale`，运行时统一乘到四类附件。带该档案的角色所有动作必须共用 `canonicalAction`（默认 idle）的 `landingScale`，各动作只保留自己的落点，禁止 death/jump/run 等姿势包围盒改变体型。验收必须用同一附件跨基准/目标 Role 比较最终世界尺度，并检查全部动作一致性。
+
 - 模型无光照规则：选角、游戏内场景、UI 模型台和资产预览统一不创建模型灯、不改写 `RenderSettings.ambientLight`。美术贴图自带最终颜色；新模型常规 Standard/URP Lit 表面只在运行实例上转为 URP Unlit，并关闭投射/接收阴影。禁止恢复 `ArtAmbient`、平行光、PreviewRenderUtility 灯或按页面补光；Panda/粒子特效材质及 Depth/Opaque/StageComposite 渲染口径不受此规则影响。
 
 - 主界面聊天规则：HUD 必须消费 `ChatModel` 并监听 `EVT_CHAT_MESSAGES_UPDATED`，禁止用硬编码欢迎条代替协议消息。`GAME_START` 的 11010 缓存请求、11050/11064/11023 顺序对标老端；11010 wire 为新→旧，展示前须逆序，私聊须保留发收双方与 `is_read`，频道 20 的 11001/11010 均映射到频道 17。频道徽标只占正文首行，模板基础高度 29，多行按 TMP preferred height 扩高。上下双栏、合并或 Tab 属设计决策，未明确前不得在功能修复中顺带改造。

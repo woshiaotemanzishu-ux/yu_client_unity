@@ -1,4 +1,4 @@
-# Art 模板验收与挂点排查经验（2026-07-15）
+# Art 模板验收与挂点排查经验（2026-08-03）
 
 ## 目标与边界
 
@@ -8,8 +8,8 @@ Art 项目 `E:\Project\ArtsProject` 是美术直接复制使用的模板工程�
 
 ## 三类模板的真值来源
 
-- Role：`role_mount_profile.json` 是该骨架 `rhand` 的唯一真值；所有动作由工具烘焙同一份 profile。
-  `head_mount` 由实际头骨绑定姿态逆矩阵生成，`root` 作为特效挂点。
+- Role：`role_mount_profile.json` 是该骨架 `rhand` 的唯一真值；`role_assembly_profile.json` 是该角色
+  跨动作体量和标准附件空间倍率的唯一真值。`head_mount` 由实际头骨绑定姿态逆矩阵生成，`root` 作为特效挂点。
 - Head：`head_attach` 是对接点，`head_content` 承载 FBX/骨架/动画。新资源从单位模板开始。
 - Weapon：`weapon_attach` 是握柄中心和轴向，`weapon_content` 保持单位变换。存在 `Bone_wq_r` 时二者必须一致。
 
@@ -24,16 +24,24 @@ Art 项目 `E:\Project\ArtsProject` 是美术直接复制使用的模板工程�
    导致剑尖朝上。现在运行时同时解算 locator 的位置和旋转。
 3. prefab 根位移可能只是 Art 单独预览摆位。1200 的 `(0.9067,-1.10961,-0.98606)` 烘焙后会把剑推到肩部，
    因此丢弃；不能看到非零根变换就认定它是单位或挂点补偿。
-4. 缩放问题要分层判断：Role 展示缩放影响角色和其子挂件整体，不应再给 Head/Weapon 反向补一次；部件自身大小错误
-   应回到 `head_content` 或武器 FBX/模板处理。运行时配置保持 `0/0/1`。
+4. 缩放问题要分层判断：同一个 Role 内，展示缩放会同时作用于身体和子挂件，不应给单件 Head/Weapon 反向补；
+   但同一标准附件跨不同 Role 时，如果两套角色 prefab 的 `landingScale` 不同，装配后的公共父缩放也不同，必须由
+   Role 的 `attachmentSpaceScale` 统一换算，不能全局缩放共享附件。部件自身包络错误仍回到 `head_content` 或 FBX。
+5. 1201/1213 实锤：1201 `idle landingScale=1.3540467`、1213 为 `0.364421`。1213 头饰直接挂 1201 会被
+   额外放大 `3.7156×`；1201 角色级倍率应为其倒数 `0.26913473`。1201 身体保持原体型，只缩放标准附件空间。
+6. death、jump、run 等姿势包围盒高度不是角色身高。已标准化角色必须以 `idle` 固定所有动作的 `landingScale`，
+   各动作只保留各自落点；否则死亡卧倒会把同一身体错误放大数倍。
 
 ## 固定排查顺序
 
 1. 确认游戏实际加载的是新 prefab，而不是旧资源回退。
 2. 检查 Role socket：唯一性、父骨、局部位置/轴向、所有动作一致性。
 3. 检查附件 locator：握柄/头部中心、轴向、scale1；若有作者骨则做矩阵一致性比较。
-4. 使用正式运行时对齐器测 locator→socket 的位置和旋转误差。
-5. 最后做正/背/左/右四方向和动作多时刻视觉验收。数值检查只能证明规则被执行，不能替代刀刃方向、穿掌、露头皮判断。
+4. 对跨 Role 异常，比较目标 Role 与标准 Role 的 `idle landingScale`，检查 `role_assembly_profile.json`，再比较
+   `landingScale × attachmentSpaceScale` 是否回到同一标准附件世界尺度。
+5. 检查同一 Role 所有动作是否共享 canonical `landingScale`；若只在 death/jump/run 跳变，优先判定姿势采样污染。
+6. 使用正式运行时对齐器测 locator→socket 的位置和旋转误差。
+7. 最后做正/背/左/右四方向和动作多时刻视觉验收。数值检查只能证明规则被执行，不能替代刀刃方向、穿掌、露头皮判断。
 
 ## 自动检查与导入闸门
 

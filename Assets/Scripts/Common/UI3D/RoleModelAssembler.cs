@@ -121,6 +121,10 @@ namespace Shenxiao.Common.UI3D
             }
             GameObject inst = Object.Instantiate(bodyPrefab);
             LoadedAssetReleaser.Track(inst, bodyPrefab);
+            ArtModelRenderProfile bodyRenderProfile = inst.GetComponent<ArtModelRenderProfile>();
+            float roleAttachmentScale = bodyRenderProfile != null
+                ? Mathf.Max(0.01f, bodyRenderProfile.attachmentSpaceScale)
+                : 1f;
 
             if (spec.HeadRes > 0)
             {
@@ -131,7 +135,8 @@ namespace Shenxiao.Common.UI3D
                     attachAnimatedAtHeadSocket: true,
                     animatedPositionOffset: ModelReplacement.GetAttachmentPositionOffset("head", spec.HeadRes),
                     animatedRotationOffset: ModelReplacement.GetAttachmentRotationOffset("head", spec.HeadRes),
-                    animatedScale: ModelReplacement.GetAttachmentScale("head", spec.HeadRes));
+                    animatedScale: CombinedAttachmentScale(roleAttachmentScale,
+                        ModelReplacement.GetAttachmentScale("head", spec.HeadRes)));
             }
             if (spec.WeaponRes > 0)
             {
@@ -142,7 +147,8 @@ namespace Shenxiao.Common.UI3D
                     attachmentLocatorName: "weapon_attach",
                     attachmentPositionOffset: ModelReplacement.GetAttachmentPositionOffset("weapon", spec.WeaponRes),
                     attachmentRotationOffset: ModelReplacement.GetAttachmentRotationOffset("weapon", spec.WeaponRes),
-                    attachmentScale: ModelReplacement.GetAttachmentScale("weapon", spec.WeaponRes));
+                    attachmentScale: CombinedAttachmentScale(roleAttachmentScale,
+                        ModelReplacement.GetAttachmentScale("weapon", spec.WeaponRes)));
             }
             if (spec.WingId > 0)
             {
@@ -153,7 +159,8 @@ namespace Shenxiao.Common.UI3D
                     attachmentLocatorName: replacementWingKey != null ? "wing_attach" : null,
                     attachmentPositionOffset: ModelReplacement.GetAttachmentPositionOffset("wing", spec.WingId),
                     attachmentRotationOffset: ModelReplacement.GetAttachmentRotationOffset("wing", spec.WingId),
-                    attachmentScale: ModelReplacement.GetAttachmentScale("wing", spec.WingId));
+                    attachmentScale: CombinedAttachmentScale(roleAttachmentScale,
+                        ModelReplacement.GetAttachmentScale("wing", spec.WingId)));
                 ApplyWingActionVisibility(wing, action);
             }
             if (spec.BackOrnamentId > 0)
@@ -165,13 +172,20 @@ namespace Shenxiao.Common.UI3D
                     attachmentLocatorName: replacementBackKey != null ? "back_attach" : null,
                     attachmentPositionOffset: ModelReplacement.GetAttachmentPositionOffset("back", spec.BackOrnamentId),
                     attachmentRotationOffset: ModelReplacement.GetAttachmentRotationOffset("back", spec.BackOrnamentId),
-                    attachmentScale: ModelReplacement.GetAttachmentScale("back", spec.BackOrnamentId));
+                    attachmentScale: CombinedAttachmentScale(roleAttachmentScale,
+                        ModelReplacement.GetAttachmentScale("back", spec.BackOrnamentId)));
             }
 
             GameObject staged = ArtModelStager.Stage(inst, bodyPrefab, UnityEngine.Playables.DirectorWrapMode.Loop);
-            GameLog.Info("UI3D", "新模型上台:{0}(action={1},head={2},weapon={3},wing={4},back={5})",
-                bodyKey, action, spec.HeadRes, spec.WeaponRes, spec.WingId, spec.BackOrnamentId);
+            GameLog.Info("UI3D", "新模型上台:{0}(action={1},head={2},weapon={3},wing={4},back={5},attachmentSpaceScale={6})",
+                bodyKey, action, spec.HeadRes, spec.WeaponRes, spec.WingId, spec.BackOrnamentId,
+                roleAttachmentScale);
             return staged;
+        }
+
+        private static float CombinedAttachmentScale(float roleAttachmentScale, float partScale)
+        {
+            return Mathf.Max(0.01f, roleAttachmentScale) * Mathf.Max(0.01f, partScale);
         }
 
         /// <summary>新模型部件挂接:资源缺失只警告不阻塞(对标 AttachPart,不带特效绑定)。</summary>
@@ -224,6 +238,7 @@ namespace Shenxiao.Common.UI3D
                 part.transform.localScale = Vector3.one;
             }
 
+            bool animatedScaleHandled = false;
             if (attachAnimatedAtSocket)
             {
                 Transform bodyHead = FindSkinnedBone(root, "head", "Bip001 Head", "Bip001_Head");
@@ -236,6 +251,7 @@ namespace Shenxiao.Common.UI3D
                     var follower = part.AddComponent<AnimatedAttachmentPositionFollower>();
                     follower.Initialize(bodyHead, attachmentHead, root.transform, animatedPositionOffset,
                         animatedRotationOffset, animatedScale);
+                    animatedScaleHandled = true;
                 }
                 else
                 {
@@ -243,6 +259,16 @@ namespace Shenxiao.Common.UI3D
                         "动态头饰定位骨缺失:身体 head={0},头饰 head_attach/Bone_head={1}({2});已挂 head_mount 但无法做局部校准",
                         bodyHead != null, attachmentHead != null, key);
                 }
+            }
+
+            // 静态头饰没有 Timeline；动态头饰若缺定位节点也无法创建 follower。两种情况都仍需
+            // 吃到角色级附件空间倍率，否则同一标准头饰挂到不同原生骨架单位的身体上会骤然放大/缩小。
+            if (attachAnimatedAtHeadSocket && !animatedScaleHandled)
+            {
+                part.transform.localPosition += animatedPositionOffset;
+                part.transform.localRotation *= Quaternion.Euler(animatedRotationOffset);
+                part.transform.localScale = Vector3.Scale(part.transform.localScale,
+                    Vector3.one * Mathf.Max(0.01f, animatedScale));
             }
 
             if (!string.IsNullOrEmpty(attachmentLocatorName))
@@ -263,6 +289,15 @@ namespace Shenxiao.Common.UI3D
                     GameLog.Warn("UI3D", "部件定位点缺失:{0}({1});已按旧 prefab 根兼容,请从 Art 模板重导",
                         attachmentLocatorName, key);
                 }
+            }
+            else if (!attachAnimatedAtHeadSocket)
+            {
+                // 旧翅膀/背饰没有 locator，但角色级附件空间仍必须生效；否则只有新资源会缩放，
+                // 同一角色换 legacy 部件后又回到错误比例。位置/旋转同样沿用既有配置语义。
+                part.transform.localPosition += attachmentPositionOffset;
+                part.transform.localRotation *= Quaternion.Euler(attachmentRotationOffset);
+                part.transform.localScale = Vector3.Scale(part.transform.localScale,
+                    Vector3.one * Mathf.Max(0.01f, attachmentScale));
             }
             return part;
         }

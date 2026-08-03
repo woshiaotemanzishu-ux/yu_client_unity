@@ -16,8 +16,10 @@
    翻转(FLIP_HORIZONTAL)仍只给 Laya 镜像几何补偿；原生模型翻了=左右反。合成材质/透视相机继续按档案分流。
 3. **整模用透视相机(FOV60,距离 6.4/tan30°)**:出场位移主要沿 Z 轴,正交投影下深度移动几何不可见
    (=看着原地做动作,曾连续多轮误判为播放 bug)。美术工程就是透视 FOV60 预览的。
-4. **每个 prefab 用自己动作的末帧采样自己的落点/体量**:同一角色两个 FBX 单位错配 2.54×(英寸/厘米,
-   美术惯犯,已发生两次)时也能各自归一、切换无缝,不阻塞在美术侧。
+4. **每个 prefab 仍用自己动作的末帧采样落点和原始体量，但标准化角色的最终体量必须锁 canonical 动作**：
+   legacy 角色没有装配档案时保留逐动作归一兼容；一旦角色需要跨身体复用标准头饰/武器/翅膀/背饰，就必须提供
+   `role_assembly_profile.json`，通常以 `idle` 的 `landingScale` 固定所有动作，并把角色级
+   `attachmentSpaceScale` 烤入 prefab。death 卧倒、jump 腾空和披风展开会污染姿势包围盒，不能当角色身高。
 5. **跨工程的手工 shader 补丁必须做成导入时的幂等变换**:Pandavfx 的 `_ScrA/_DstA`(alpha 通道混合,
    没它特效把 alpha 写进展示台 RT,预乘合成被污染=发白/压黑)曾靠"两边工程都改过"维持——美术调贴图时
    shader 被换回原版,导入忠实 Replace,主工程补丁被覆盖,特效全线异常。现在 `EnsurePandaAlphaChannels`
@@ -56,6 +58,9 @@
    有没有"落点采样"记录是铁证。连续两轮无效果,换取证手段,不要换假设硬猜。
 5. **展示链路绝不手动碰 PlayableDirector**(RebuildGraph/拨帧 Evaluate 禁止),只设 extrapolationMode
    和读 time;采样统一放导入期(SampleAnimation 不走 Director)。
+6. **看到“同一头饰换身体后突然巨大/极小”，先查装配空间，不先改身体或共享头饰**：比较两套 Role 的
+   canonical `landingScale`。若比例正好等于视觉差异，给目标 Role 建 `role_assembly_profile.json`，并验证
+   `目标 landingScale × attachmentSpaceScale = 标准 Role landingScale`。再查所有动作是否共用 canonical scale。
 
 ## 症状→根因速查
 
@@ -71,6 +76,8 @@
 | 镜像/换手 | uvRect 翻转错用在原生模型上(按档案分流,已内建) |
 | 原地做动作 | applyRootMotion 没开 / 位移沿 Z 被正交吃掉(均已内建) |
 | 巨大/悬空/怼镜头 | 落点采样错:静态盒≠动画停放、猜错 clip、单位错配 2.54×(逐 prefab 末帧采样,已内建) |
+| 同一附件换角色后大数倍/小数倍 | 角色原生骨架单位不同但缺 `role_assembly_profile.json`；比较 canonical landingScale 比例，按角色统一附件空间 |
+| 同一角色换 death/jump/run 后体型跳变 | 姿势包围盒污染了逐动作 scale；标准化角色用 canonicalAction（通常 idle）固定全部动作体量 |
 | 三职业落点不一致 | 包围盒锚点被武器披风污染(骨骼锚点,已内建) |
 | 改完没变化 | 没点[替换新模型]重烤档案 / 没重编译 |
 

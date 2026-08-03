@@ -635,6 +635,10 @@ public class LoginController : BaseController {
 - 运行时挂特效统一走 `EffectBinder`(查表挂骨骼 + ResetTransform + tag 成组清理),
   禁止业务自己 Instantiate 特效 prefab。
 - `ReplaceableRoleModel` 混合容器下可同时存在多个带同名骨骼的新/旧动作实例；动作和技能特效必须先完成动作切换，再以 `ActiveModel` 为宿主挂载。禁止直接从混合容器递归找骨骼；延时特效必须捕获本次动作宿主，不能在触发时重新猜当前子模型。
+- 角色本身体型是视觉事实源。标准头饰、武器、翅膀、背饰跨不同 Role 复用时，不得放大/缩小身体或全局修改共享部件；
+  用 Role 根 `ArtModelRenderProfile.attachmentSpaceScale` 做骨架级换算，并与部件自身配置倍率相乘。带
+  `role_assembly_profile.json` 的角色所有动作必须采用 `canonicalAction`（通常 `idle`）的 `landingScale`，
+  各动作只独立保留落点，禁止让 death/jump/run 姿势包围盒改变角色体型。
 
 **协议线(详见 Docs/Shenxiao协议架构.md):**
 

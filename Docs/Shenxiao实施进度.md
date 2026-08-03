@@ -1835,3 +1835,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **Editor 导入**：`神霄/资源/地图资源` 新增“只同步帧动画（不更新瓦片）”；既有“从老端更新”和“转换(补齐缺失)”也分别按覆盖/补缺语义接入。导入器按当前 `mapResId` 只复制实际引用的图集，生成共享 `MapFrameAnimationClipAsset`，保留已有 `.meta/GUID`；单独同步只把本轮产物定向登记到既有 `Remote_resource`，不扫描其它 `GameRes`、不新建 Group、不自动删除陈旧共享资源。
 - **运行时链路**：`SceneMapView` 按 `mapResId` 异步加载 manifest、地图实例和 Clip；同资源多实例共享纹理、Sprite 数组及播放时钟。位置、非等比缩放、旋转、透明度、pivot、随机起帧和 `map_back/map_front` 层级均已接入，换图/清场会取消旧加载并释放资源；Editor Existing Build 模式可对刚同步、尚未重建 catalog 的资源走本地兜底预览。
 - **验证状态**：当前用户正在使用的 Unity Editor 已自动刷新并成功重载 `Shenxiao.Framework.dll` 与 `Shenxiao.Editor.dll`，日志无 C# 编译错误；本轮按用户要求没有点击同步、没有生成 `Assets/GameRes` 帧动画资源，也没有运行或打包地图。首次真实导入、10000 地图视觉对齐及 Addressables 构建验收待用户手动测试。
+
+## 2026-08-03：1201 天然体型与 1213 标准附件空间统一
+
+- **根因**：1201/1213 的 `idle landingScale` 分别为 `1.3540467/0.364421`。1213 头饰先挂身体、再随身体统一上台缩放，跨挂 1201 时因此被额外放大 `3.7156×`；此前 1213 标准化只覆盖自身 Role+Head+Weapon 的 socket、旋转和 `0/0/1`，没有覆盖跨 Role 的附件空间。
+- **修复**：新增 `role_assembly_profile.json` 与 `ArtModelRenderProfile.attachmentSpaceScale`。1201 记录 `0.26913473`，运行时统一乘到头饰、武器、翅膀、背饰；身体保持当前天然体型，共享附件不做全局补丁。1201 的 create3/death/idle/jump/run/walk 全部固定采用 idle 的 `landingScale=1.3540467`，只保留各自动作落点。
+- **门禁**：导入器识别角色装配档案，按 canonical 动作统一体量并把角色级倍率烤入每个 prefab；新增 `CliVerify.RoleAttachmentSpace`，验证同一 1213 头饰跨 1201/1213 的最终世界尺度一致、1201 本体未改和全动作不跳体型。
+- **验证状态**：`dotnet build Assembly-CSharp-Editor.csproj` 完成，80 条既有 warning、0 error；现有 Unity 编辑器持续检测到用户前台输入，本轮未抢占窗口执行 GUI 专项，专用菜单「神霄/验证/1201 角色附件空间」已保留供同进程复跑。

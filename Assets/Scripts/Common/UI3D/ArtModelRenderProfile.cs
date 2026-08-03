@@ -38,6 +38,9 @@ namespace Shenxiao.Common.UI3D
         [Tooltip("体量归一系数(采样身高→老角色身高 2.33)")]
         public float landingScale = 1f;
 
+        [Tooltip("角色本体的标准附件空间倍率。身体体型保持不变，头饰/武器/翅膀/背饰在挂接时统一乘此值；非角色或未标准化角色为 1")]
+        public float attachmentSpaceScale = 1f;
+
         [Tooltip("需要【半透渐变混合】的材质名(导入时分析贴图 alpha 直方图:有中间值=轻纱/雾状渐变," +
                  "运行时设 Transparent+ZWrite;其余身体材质走 Alpha Clipping 镂空)")]
         public string[] blendMaterials;

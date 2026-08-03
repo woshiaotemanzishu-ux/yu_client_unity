@@ -33,6 +33,7 @@ namespace Shenxiao.EditorTools.ArtImport
         private const string LedgerPath = "Assets/Editor/ArtImport/ArtImportLedger.json";
         private const string RendererAssetPath = "Assets/Settings/ArtFx_Renderer.asset";
         private const string RendererTemplatePath = "Assets/Settings/Mobile_Renderer.asset";
+        private const string RoleAssemblyProfileFile = "role_assembly_profile.json";
 
         private static readonly Regex GuidRegex = new Regex(@"guid:\s*([0-9a-f]{32})", RegexOptions.Compiled);
 
@@ -109,6 +110,15 @@ namespace Shenxiao.EditorTools.ArtImport
         private class Ledger
         {
             public List<LedgerRun> runs = new List<LedgerRun>();
+        }
+
+        [Serializable]
+        private sealed class RoleAssemblyProfileData
+        {
+            public int version = 1;
+            public string skeletonTemplate;
+            public string canonicalAction = "idle";
+            public float attachmentSpaceScale = 1f;
         }
 
         // ---------------- 泛化部件导入(2026-07-11:创角整模已退役改视频,导入线泛化到任意部件) ----------------
@@ -1227,18 +1237,43 @@ namespace Shenxiao.EditorTools.ArtImport
                     rendererIndex = EnsureDedicatedRenderer(notes);
                 if (_renderMode != RenderMode.None)
                 {
-                    foreach (string dst in plan.RootPrefabDsts.Distinct())
+                    string[] rootPrefabs = plan.RootPrefabDsts.Distinct().ToArray();
+                    var landingSamples = new Dictionary<string, (bool hasLanding, Vector3 landing, float scale)>();
+                    foreach (string dst in rootPrefabs)
                     {
-                        // 每个 prefab 用【自己动作的末帧】采样自己的落点/体量:即使两段动作的
-                        // FBX 导出单位错配(1213 实锤 2.54×),各自归一后都精确落在
-                        // 原点、身高 2.33,切换依旧无缝——单位错配被自动中和,不阻塞在美术侧。
-                        // 头饰/武器等部件不采(挂到本体骨骼上随本体,身高归一无意义)。
-                        (bool hasLanding, Vector3 landing, float scale) = _sampleLanding
+                        landingSamples[dst] = _sampleLanding
                             ? SamplePrefabLanding(dst, notes)
                             : (false, Vector3.zero, 1f);
+                    }
+
+                    RoleAssemblyProfileData assemblyProfile = _sampleLanding
+                        ? LoadRoleAssemblyProfile(rootPrefabs, landingSamples, notes)
+                        : null;
+                    float canonicalLandingScale = 1f;
+                    if (assemblyProfile != null)
+                    {
+                        string canonicalPrefab = rootPrefabs.FirstOrDefault(path =>
+                            string.Equals(ActionFromPrefab(path), assemblyProfile.canonicalAction,
+                                StringComparison.OrdinalIgnoreCase));
+                        canonicalLandingScale = landingSamples[canonicalPrefab].scale;
+                    }
+
+                    foreach (string dst in rootPrefabs)
+                    {
+                        (bool hasLanding, Vector3 landing, float sampledScale) = landingSamples[dst];
+                        float landingScale = assemblyProfile != null ? canonicalLandingScale : sampledScale;
+                        float attachmentSpaceScale = assemblyProfile != null
+                            ? assemblyProfile.attachmentSpaceScale
+                            : 1f;
+                        if (assemblyProfile != null && hasLanding
+                            && Mathf.Abs(sampledScale / canonicalLandingScale - 1f) > 0.03f)
+                        {
+                            notes.Add($"动作体量统一 {Path.GetFileName(dst)}:姿势采样 scale={sampledScale:F6}," +
+                                      $"按 {assemblyProfile.canonicalAction} 固定为 {canonicalLandingScale:F6}");
+                        }
                         string[] blendMats = AnalyzeBlendMaterials(dst, notes);
                         InjectProfile(dst, _renderMode == RenderMode.Dedicated, rendererIndex,
-                            hasLanding, landing, scale, blendMats, notes);
+                            hasLanding, landing, landingScale, attachmentSpaceScale, blendMats, notes);
                     }
                 }
 
@@ -1700,10 +1735,10 @@ namespace Shenxiao.EditorTools.ArtImport
 
         /// <summary>
         /// 落点/体量精确采样(按 prefab 自身):实例化后把【它自己的动作】用 SampleAnimation 拨到
-        /// 末帧,BakeMesh 紧致盒量出脚底中心与身高。要点:
+        /// 末帧,BakeMesh 紧致盒量出脚底中心与姿势包围盒高度。要点:
         /// ① 不能用静态包围盒猜——嵌套 FBX 的默认姿势是绑定姿势,和动画停放点不是一回事;
-        /// ② 每个 prefab 采自己的动作(1213@create2 采 create2 末帧),而不是共用 create3——
-        ///    这样 create2/create3 即使 FBX 单位错配(1213 实锤 2.54×)也各自归一,切换无缝。
+        /// ② 每个动作仍独立采落点；体量 scale 默认沿用本动作，带 role_assembly_profile 的角色则
+        ///    统一采用 canonicalAction，避免 death/跃起/披风等姿势包围盒把同一身体缩放成不同体型。
         /// </summary>
         private static (bool, Vector3, float) SamplePrefabLanding(string prefabPath, List<string> notes)
         {
@@ -1778,6 +1813,72 @@ namespace Shenxiao.EditorTools.ArtImport
             {
                 UnityEngine.Object.DestroyImmediate(inst);
             }
+        }
+
+        private static RoleAssemblyProfileData LoadRoleAssemblyProfile(
+            string[] rootPrefabs,
+            Dictionary<string, (bool hasLanding, Vector3 landing, float scale)> landingSamples,
+            List<string> notes)
+        {
+            if (rootPrefabs == null || rootPrefabs.Length == 0) return null;
+            string folder = Path.GetDirectoryName(rootPrefabs[0])?.Replace('\\', '/');
+            string profilePath = string.IsNullOrEmpty(folder) ? null : $"{folder}/{RoleAssemblyProfileFile}";
+            if (string.IsNullOrEmpty(profilePath) || !File.Exists(profilePath))
+            {
+                float[] validScales = landingSamples.Values
+                    .Where(sample => sample.hasLanding && sample.scale > 0.01f)
+                    .Select(sample => sample.scale).ToArray();
+                if (validScales.Length > 1 && validScales.Max() / validScales.Min() > 1.10f)
+                {
+                    notes.Add($"角色动作采样体量差异 {validScales.Max() / validScales.Min():F2}×，但缺少 " +
+                              $"{RoleAssemblyProfileFile}；请确认是否为姿势包围盒误差或骨架单位差异");
+                }
+                return null;
+            }
+
+            try
+            {
+                RoleAssemblyProfileData profile = JsonUtility.FromJson<RoleAssemblyProfileData>(
+                    File.ReadAllText(profilePath));
+                if (profile == null || profile.version != 1
+                    || string.IsNullOrWhiteSpace(profile.canonicalAction)
+                    || profile.attachmentSpaceScale < 0.01f)
+                {
+                    notes.Add($"角色装配档案无效:{profilePath}(version=1、canonicalAction 非空、" +
+                              "attachmentSpaceScale>=0.01)");
+                    return null;
+                }
+
+                string canonicalPrefab = rootPrefabs.FirstOrDefault(path =>
+                    string.Equals(ActionFromPrefab(path), profile.canonicalAction,
+                        StringComparison.OrdinalIgnoreCase));
+                if (canonicalPrefab == null || !landingSamples.TryGetValue(canonicalPrefab, out var canonical)
+                    || !canonical.hasLanding || canonical.scale < 0.01f)
+                {
+                    notes.Add($"角色装配档案 canonicalAction={profile.canonicalAction} 没有有效采样:" +
+                              profilePath);
+                    return null;
+                }
+
+                notes.Add($"角色装配空间 {Path.GetFileName(folder)}:template={profile.skeletonTemplate}," +
+                          $"canonical={profile.canonicalAction},landingScale={canonical.scale:F6}," +
+                          $"attachmentSpaceScale={profile.attachmentSpaceScale:F6}");
+                return profile;
+            }
+            catch (Exception e)
+            {
+                notes.Add($"读取角色装配档案失败({profilePath}):{e.Message}");
+                return null;
+            }
+        }
+
+        private static string ActionFromPrefab(string prefabPath)
+        {
+            string stem = Path.GetFileNameWithoutExtension(prefabPath);
+            int at = stem.IndexOf('@');
+            return at >= 0 && at < stem.Length - 1
+                ? stem.Substring(at + 1).ToLowerInvariant()
+                : "create3";
         }
 
         /// <summary>
@@ -1867,7 +1968,8 @@ namespace Shenxiao.EditorTools.ArtImport
         }
 
         private static void InjectProfile(string prefabPath, bool dedicated, int rendererIndex,
-            bool hasLanding, Vector3 landing, float landingScale, string[] blendMaterials, List<string> notes)
+            bool hasLanding, Vector3 landing, float landingScale, float attachmentSpaceScale,
+            string[] blendMaterials, List<string> notes)
         {
             GameObject contents = null;
             try
@@ -1882,6 +1984,7 @@ namespace Shenxiao.EditorTools.ArtImport
                 p.hasLanding = hasLanding;
                 p.landingOffset = landing;
                 p.landingScale = landingScale;
+                p.attachmentSpaceScale = attachmentSpaceScale;
                 p.blendMaterials = blendMaterials;
                 PrefabUtility.SaveAsPrefabAsset(contents, prefabPath);
             }
