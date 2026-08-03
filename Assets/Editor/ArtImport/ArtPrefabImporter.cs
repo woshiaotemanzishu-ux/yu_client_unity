@@ -116,7 +116,7 @@ namespace Shenxiao.EditorTools.ArtImport
         private sealed class RoleAssemblyProfileData
         {
             public int version = 1;
-            public string skeletonTemplate;
+            public string skeletonTemplate = "";
             public string canonicalAction = "idle";
             public float attachmentSpaceScale = 1f;
         }

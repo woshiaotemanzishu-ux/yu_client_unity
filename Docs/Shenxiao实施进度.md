@@ -1841,4 +1841,4 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **根因**：1201/1213 的 `idle landingScale` 分别为 `1.3540467/0.364421`。1213 头饰先挂身体、再随身体统一上台缩放，跨挂 1201 时因此被额外放大 `3.7156×`；此前 1213 标准化只覆盖自身 Role+Head+Weapon 的 socket、旋转和 `0/0/1`，没有覆盖跨 Role 的附件空间。
 - **修复**：新增 `role_assembly_profile.json` 与 `ArtModelRenderProfile.attachmentSpaceScale`。1201 记录 `0.26913473`，运行时统一乘到头饰、武器、翅膀、背饰；身体保持当前天然体型，共享附件不做全局补丁。1201 的 create3/death/idle/jump/run/walk 全部固定采用 idle 的 `landingScale=1.3540467`，只保留各自动作落点。
 - **门禁**：导入器识别角色装配档案，按 canonical 动作统一体量并把角色级倍率烤入每个 prefab；新增 `CliVerify.RoleAttachmentSpace`，验证同一 1213 头饰跨 1201/1213 的最终世界尺度一致、1201 本体未改和全动作不跳体型。
-- **验证状态**：`dotnet build Assembly-CSharp-Editor.csproj` 完成，80 条既有 warning、0 error；现有 Unity 编辑器持续检测到用户前台输入，本轮未抢占窗口执行 GUI 专项，专用菜单「神霄/验证/1201 角色附件空间」已保留供同进程复跑。
+- **验证状态**：`dotnet build Assembly-CSharp-Editor.csproj` 完成，既有 warning、0 error；现有 Unity 编辑器持续检测到用户前台输入，本轮未抢占窗口执行 GUI 专项，专用菜单「神霄/验证/1201 角色附件空间」已保留供同进程复跑。
