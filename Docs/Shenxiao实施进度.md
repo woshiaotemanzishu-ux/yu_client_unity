@@ -1807,3 +1807,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **全量审计**：以覆盖产物中的1261个真实运行时注册号为集合，规范化展开AGENTS内完整与缩写区间。`39901`只禁C2S手动开局而保留S2C通知，`65208`由同句明确归ActivityForeshow独占，`18315`只禁C2S日计数写而保留S2C推送；唯一未消歧交集为42704。
 - **时序与代码收口**：R155提交`57327cc843`先明确不接42704-06商店；R156提交`a73889d26a`六分钟后才追加42704且没有改写原禁令。现删除常量、注册、sender、handler及`HasShopSnapshot/ShopTimes/RefreshCost/ShopGoods`模型树；`AdventureCase`反向断言42702-42706均无handler且`On42704`不存在，42700/42701行为不变。
 - **验证状态**：标准dotnet restore+build为79条既有warning、0 error；Unity 6000.3.17f1独立批处理`AdventureCase`为`pass=True/EXIT 0`，`ProtocolCoverageCase`为`EXIT 0`。`coverage_20260802_165621.md`记录`registered=1260/liveDefined=1468/liveGap=331/errorExit=20/active=1137/1468=77.5%`且A～E全PASS；427族为`2/5/0 pending`，42704不进killlist，冻结baseline不改。
+
+## 2026-08-03：主界面固定设置入口无人巡检试跑
+
+- **老端运行基线**：通过 Browser MCP 使用 `111111` 账号真实登录，验证主界面设置、两页签、10个屏蔽项、复制ID、改名弹窗、更换头像和底部五个确认链；可恢复屏蔽开关已改回原值，破坏性操作只到确认框。更换头像的权威语义为关闭设置后打开完整时装页的“头像”页签。
+- **问题与修复**：Unity WebGL 修复前稳定复现齿轮可见但无路由；根因是 `MainUIChatView` 只给外层 `_box_*` 动态补点击，未把语义挂到实际命中的 `_img_setting/_img_friend/_img_shop`。现已改为可见 Graphic 直接路由；设置“更换头像”从占位子窗改为 `SettingFlow.Close()→FashionFlow.Open(1)`，页签文案对齐“头像”。未重转或覆盖任何人工 Prefab。
+- **验证与边界**：`dotnet build Assembly-CSharp-Editor.csproj -m:1` 为79条既有warning、0 error；`CliVerify.MainUIChatHud` 加载真实 `HudChatBar.prefab`，通过 `GraphicRaycaster→PointerClick` 确认设置/好友/商城各路由1次且聊天滚动无回归。隔离新 worktree 的只打壳产物因本地 Addressables catalog 不完整未通过 Web 运行态验收，线上已回滚并由 Browser MCP 确认恢复登录页；不把该路由标记为“修复后 Web 已验收”。
+- **流程沉淀**：新增 `.agents/skills/audit-game-ui-route`，将日常循环定为“老端 Browser MCP 运行基线 + Unity 真实 Prefab CLI 点击”，多条路由累计后再批次打 Web 收口；同步更新打包手册，禁止新 worktree 在无匹配 Addressables 状态时直接发只打壳产物，Windows PowerShell 下改用本地 tar + scp + 远端校验解包。

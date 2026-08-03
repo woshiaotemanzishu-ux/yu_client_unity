@@ -6,6 +6,7 @@ using Shenxiao.Common.Audio;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Fashion;
 using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Generated.UI.Setting;
@@ -27,7 +28,8 @@ namespace Shenxiao.Module.Core.Setting
     /// 音量滑条实时改 AudioManager,数值在面板关闭时统一上报(对标老端 close_callback → SendSetSliderNum);
     /// 勾选项点击即单条上报(对标 SendProtocal)。文案/默认值读 SettingConfigs(config_setting.json)。
     /// 拾取项 150 级前禁取消(对标 CheckClickFun);极简模式下改屏蔽项先确认退出(对标老端 Alert)。
-    /// 改头像/改名子窗仍为壳(13080/13083/42601 未移植),经 SettingFlow.OpenSub 打开。
+    /// 更换头像对标老端 OpenFun(203,[DressType.Head])，关闭设置后直达时装页的“头像”页签；
+    /// 改名子窗仍走 42602 查询资格后打开。
     /// </summary>
     public sealed class SettingView : SettingViewBind
     {
@@ -167,10 +169,16 @@ namespace Shenxiao.Module.Core.Setting
             BindTab(_box_tab_base_setting, true);
             BindTab(_box_tab_shield_setting, false);
 
-            // 顶部头像/角色信息:改头像 → 直接打开子窗(SettingFlow.OpenSub 叠在主面板上);
+            // 顶部头像/角色信息:更换头像 → 对标老端 OpenFun(203,[DressType.Head])，
+            // 关闭设置并打开完整时装页的“头像”页签，而不是设置模块内的占位子窗；
             // 改名 → 先发 42602 查免费资格,回包到达后由 RoleController.On42602 打开子窗(带 is_free 参数,
             // 对标老端 _btn_changename 点击 Fire(REQUEST_ROLE_PROTO,42602));复制ID → 系统剪贴板。
-            BindOpen(change_head_btn, "SettingChangeHeadView", "更换头像");
+            BindClick(change_head_btn, () =>
+            {
+                GameLog.Info("Setting", "点击[更换头像] → 打开时装头像页");
+                SettingFlow.Close();
+                FashionFlow.Open(1);
+            });
             BindClick(_btn_changename, () =>
             {
                 GameLog.Info("Setting", "点击[修改名字] → 发 42602 查免费资格");
@@ -573,16 +581,6 @@ namespace Shenxiao.Module.Core.Setting
         }
 
         // ---------------------------------------------------------------- 通用绑定/页签
-
-        /// <summary>按钮 → 打开设置模块内子窗(SettingFlow.OpenSub 按 View 子类名查找并叠在主面板上)。</summary>
-        private void BindOpen(Component target, string viewType, string label)
-        {
-            BindClick(target, () =>
-            {
-                GameLog.Info("Setting", "点击[{0}] → 打开 {1}", label, viewType);
-                SettingFlow.OpenSub(viewType);
-            });
-        }
 
         /// <summary>关闭按钮(Image 或含 Image 容器)→ Hide(关闭本窗)。</summary>
         private void BindClose(Component target)

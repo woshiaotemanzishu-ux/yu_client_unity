@@ -23,7 +23,8 @@ namespace Shenxiao.Module.Core.Fashion
         private const string FRAME_MODULE = "common";
         private const string FRAME_PREFAB = "BaseWindowSkin";
 
-        private static readonly string[] Tabs = { "衣服", "头饰", "套装" };
+        // 老端运行态页签文案是“头像”，底层仍对应 dress/head 的 posId=3。
+        private static readonly string[] Tabs = { "衣服", "头像", "套装" };
         private static readonly int[] TabPosId = { 1, 3 };
         // 标题文字覆盖(BaseWindowSkin 默认标题位图是共享占位图,不覆盖会露出上一个用它的模块的字样)。
         private static readonly string[] TitleTexts = { "时装", "时装", "时装套装" };
@@ -46,7 +47,7 @@ namespace Shenxiao.Module.Core.Fashion
 
         public static void Open() => _ = OpenAsync(0);
 
-        /// <summary>直达指定页签(0=衣服 1=头饰 2=套装)。</summary>
+        /// <summary>直达指定页签(0=衣服 1=头像/头饰位 2=套装)。</summary>
         public static void Open(int tabIndex) => _ = OpenAsync(tabIndex);
 
         public static void Close()
@@ -123,7 +124,7 @@ namespace Shenxiao.Module.Core.Fashion
             var overrides = new Dictionary<int, Func<RectTransform, BaseView>> { [2] = ReparentSuit };
             _window.ConfigureShared(Tabs.Length, ReparentFashion, OnFashionTab, tabIndex,
                 null, overrides, Tabs, null, WindowBg, TitleTexts);
-            GameLog.Info("Fashion", "时装窗打开(衣服/头饰共享主视图 + 套装页,默认 tab{0} {1})", tabIndex, Tabs[tabIndex]);
+            GameLog.Info("Fashion", "时装窗打开(衣服/头像共享主视图 + 套装页,默认 tab{0} {1})", tabIndex, Tabs[tabIndex]);
         }
 
         private static void OnFashionTab(int index)

@@ -76,9 +76,11 @@ namespace Shenxiao.Module.Core.MainUI
             RouteClick(_panel_sys, "chat");
             RouteClick(_box_chat_con, "chat");
             RouteClick(_box_sys_con, "chat");
-            RouteClick(_box_setting, "setting");
-            RouteClick(_box_friend, "friend");
-            RouteClick(_box_shop, "shop");
+            // 固定入口必须把 Button 挂在玩家实际看到并命中的 Graphic 上。只给外层 box 补透明
+            // Image/Button 时，WebGL 的可见子图可能先吃掉射线，导致齿轮可见却没有点击回调。
+            RouteClick(_img_setting, "setting");
+            RouteClick(_img_friend, "friend");
+            RouteClick(_img_shop, "shop");
         }
 
         private static void RouteClick(Component target, string viewKey)

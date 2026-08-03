@@ -195,7 +195,8 @@ var go = Object.Instantiate(prefab); // 来源不是 ResManager 的禁止
   **隐藏可点击元素用 `color` 透明度，禁止 `Graphic.enabled=false`（会同时关掉点击）**
 - 复合按钮只能保留一个顶层点击面；`bg/icon/lock/CD/文字` 等装饰 `Graphic` 必须
   `raycastTarget=false`。禁止把 `Button` 只挂在底层装饰节点后让上层 Graphic 截点；点击验收必须至少
-  覆盖一次真实 Prefab 的 `GraphicRaycaster → PointerClick`，直接调用点击方法不能替代。
+  覆盖一次真实 Prefab 的 `GraphicRaycaster → PointerClick`，直接调用点击方法不能替代。固定 HUD 入口若
+  可见子图本身就是玩家命中面，`Button` 必须挂在该可见 `Graphic`，不得只给外层空 `_box_*` 动态补透明点击面。
 - 复合按钮内只有部分文字需要按 preferred width/字号自适应时，`Horizontal/VerticalLayoutGroup` 必须
   挂在纯文字内层容器；背景 Image、唯一点击面、状态图标等留在按钮根并独立定位。禁止把 LayoutGroup
   直接挂到带背景或图标的按钮根，再依靠 `childForceExpand` 修补图片拉伸。

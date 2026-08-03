@@ -180,6 +180,12 @@ namespace Shenxiao.EditorTools
             Run(LoadingViewCase.Run, 60.0);
         }
 
+        /// <summary>主界面聊天条与设置/好友/商城固定入口真实点击回归。</summary>
+        public static void MainUIChatHud()
+        {
+            Run(MainUIChatHudCase.Run, 60.0);
+        }
+
         /// <summary>公共顶栏与登录背景的 Prefab 所有权回归。</summary>
         public static void PrefabBackgrounds()
         {

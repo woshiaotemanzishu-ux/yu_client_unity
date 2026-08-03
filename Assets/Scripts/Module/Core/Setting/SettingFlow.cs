@@ -13,10 +13,10 @@ namespace Shenxiao.Module.Core.Setting
     /// <summary>
     /// 设置模块编排:按需打开/关闭设置面板(对标老端 主 HUD 设置按钮 → SettingView)。
     ///
-    /// SettingModule 合并 prefab 含 SettingView(主) + SettingChangeHeadView(改头像)/SettingChangeNameView(改名)子窗;
+    /// SettingModule 合并 prefab 含 SettingView(主) + SettingChangeHeadView(历史占位)/SettingChangeNameView(改名)子窗;
     /// 本 tick 三窗 View 全写,打开时隐藏所有顶层窗口再只 Show 主窗(默认 active 的是子窗,需隐藏)。入口注册见
     /// <see cref="SettingBootstrap"/>(MainUIRouter "setting",由 HUD 设置按钮 MainUIChatView 触发)。
-    /// 子窗经 <see cref="OpenSub"/> 叠在主面板上(主面板 改头像/改名 按钮调用)。
+    /// 子窗经 <see cref="OpenSub"/> 叠在主面板上；主面板改名使用该链，更换头像则关闭设置并直达完整时装页。
     /// </summary>
     public static class SettingFlow
     {
@@ -50,9 +50,8 @@ namespace Shenxiao.Module.Core.Setting
             }
         }
 
-        /// <summary>打开设置模块内子窗(改头像/改名),叠在主面板上;按 View 子类名查找。未移植查不到 → 日志降级。
-        /// args 透传给 View.Show(object),供需要开窗即带参数的子窗用(如改名窗需要 42602 的 is_free 结果;
-        /// 无参调用方(如改头像)args 缺省 null,子窗 OnShow 忽略即可,向后兼容)。</summary>
+        /// <summary>打开设置模块内子窗(当前用于改名等),叠在主面板上;按 View 子类名查找。未移植查不到 → 日志降级。
+        /// args 透传给 View.Show(object),供需要开窗即带参数的子窗用(如改名窗需要 42602 的 is_free 结果)。</summary>
         public static void OpenSub(string viewTypeName, object args = null)
         {
             if (_moduleRoot == null)

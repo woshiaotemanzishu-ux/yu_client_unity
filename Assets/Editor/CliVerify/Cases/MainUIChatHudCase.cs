@@ -4,13 +4,15 @@ using Shenxiao.Module.Core.Chat;
 using Shenxiao.Module.Core.MainUI;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Shenxiao.EditorTools
 {
     /// <summary>
     /// 主界面聊天条真实 prefab 验收：ChatModel 初始渲染、30 条裁剪、实时事件刷新、系统/普通分区、
-    /// 频道徽标首行留位和旧富文本转换。直接加载 HudChatBar.prefab，不以手调 OnClick/私有方法代替链路。
+    /// 频道徽标首行留位、旧富文本转换，以及设置/好友/商城三个固定入口的
+    /// GraphicRaycaster→PointerClick 真点击。直接加载 HudChatBar.prefab，不以手调 OnClick/私有方法代替链路。
     /// </summary>
     public static class MainUIChatHudCase
     {
@@ -21,7 +23,9 @@ namespace Shenxiao.EditorTools
             bool fallbackBefore = Shenxiao.Framework.Res.ResManager.EditorPreferFallback;
             Shenxiao.Framework.Res.ResManager.EditorPreferFallback = true;
             GameObject instance = null;
+            GameObject eventSystemGo = null;
             MainUIChatView view = null;
+            CliVerify.Stage stage = null;
 
             try
             {
@@ -54,7 +58,8 @@ namespace Shenxiao.EditorTools
                     return 3;
                 }
 
-                instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+                stage = CliVerify.Stage.Create();
+                instance = PrefabUtility.InstantiatePrefab(prefab, stage.CanvasRoot) as GameObject;
                 view = instance != null ? instance.GetComponentInChildren<MainUIChatView>(true) : null;
                 if (view == null)
                 {
@@ -64,6 +69,25 @@ namespace Shenxiao.EditorTools
 
                 view.Show();
                 ForceLayout(view);
+
+                EventSystem eventSystem = EventSystem.current;
+                if (eventSystem == null)
+                {
+                    eventSystemGo = new GameObject("MainUIChatHudCase_EventSystem", typeof(EventSystem));
+                    eventSystem = eventSystemGo.GetComponent<EventSystem>();
+                }
+
+                int settingClicks = 0;
+                int friendClicks = 0;
+                int shopClicks = 0;
+                MainUIRouter.Register("setting", () => settingClicks++);
+                MainUIRouter.Register("friend", () => friendClicks++);
+                MainUIRouter.Register("shop", () => shopClicks++);
+                bool settingClickOk = ClickVisibleEntry(view._img_setting, stage, eventSystem);
+                bool friendClickOk = ClickVisibleEntry(view._img_friend, stage, eventSystem);
+                bool shopClickOk = ClickVisibleEntry(view._img_shop, stage, eventSystem);
+                bool entryClicksOk = settingClickOk && friendClickOk && shopClickOk
+                    && settingClicks == 1 && friendClicks == 1 && shopClicks == 1;
 
                 List<MainUIChatItem> chatItems = GetDirectItems(view._box_chat_con);
                 List<MainUIChatItem> systemItems = GetDirectItems(view._box_sys_con);
@@ -102,18 +126,20 @@ namespace Shenxiao.EditorTools
                 lastChat = chatItems.Count > 0 ? chatItems[chatItems.Count - 1] : null;
                 bool realtimeOk = chatItems.Count == ChatModel.MainHudMessageCap
                     && lastChat != null && lastChat.contentLabel.text.Contains("实时刷新");
-                bool scrollBottomOk = view._panel_chat != null
-                    && Mathf.Approximately(view._panel_chat.verticalNormalizedPosition, 0f)
-                    && view._panel_sys != null
-                    && Mathf.Approximately(view._panel_sys.verticalNormalizedPosition, 0f);
+                bool scrollBottomOk = AtBottomOrNotScrollable(view._panel_chat)
+                    && AtBottomOrNotScrollable(view._panel_sys);
+                Debug.Log("CLIVERIFY mainui-chat scroll chat=" + DescribeScroll(view._panel_chat)
+                    + " system=" + DescribeScroll(view._panel_sys));
 
                 bool pass = countOk && latestOk && badgeInlineOk && singleLineHeightOk && welcomeOk
-                    && richTextOk && realtimeOk && scrollBottomOk;
+                    && richTextOk && realtimeOk && scrollBottomOk && entryClicksOk;
                 Debug.Log("CLIVERIFY mainui-chat VERDICT count=" + countOk
                     + " latest=" + latestOk + " badgeInline=" + badgeInlineOk
                     + " singleLineHeight=" + singleLineHeightOk + " welcome=" + welcomeOk
                     + " richText=" + richTextOk
                     + " realtime=" + realtimeOk + " scrollBottom=" + scrollBottomOk
+                    + " entryClicks=" + entryClicksOk
+                    + " entryCounts=" + settingClicks + "/" + friendClicks + "/" + shopClicks
                     + " chatCount=" + chatItems.Count + " systemCount=" + systemItems.Count
                     + " lastHeight=" + lastHeight + " pass=" + pass);
                 await Task.CompletedTask;
@@ -121,11 +147,73 @@ namespace Shenxiao.EditorTools
             }
             finally
             {
+                MainUIRouter.Unregister("setting");
+                MainUIRouter.Unregister("friend");
+                MainUIRouter.Unregister("shop");
                 if (view != null && view.IsShown) view.Hide();
                 if (instance != null) Object.DestroyImmediate(instance);
+                if (eventSystemGo != null) Object.DestroyImmediate(eventSystemGo);
+                if (stage != null) stage.Dispose();
                 ChatModel.Instance.Reset();
                 Shenxiao.Framework.Res.ResManager.EditorPreferFallback = fallbackBefore;
             }
+        }
+
+        private static bool ClickVisibleEntry(Image surface, CliVerify.Stage stage, EventSystem eventSystem)
+        {
+            if (surface == null || stage == null || eventSystem == null) return false;
+
+            Button button = surface.GetComponent<Button>();
+            bool directSurface = surface.enabled && surface.raycastTarget && button != null;
+            Canvas canvas = stage.CanvasRoot.GetComponent<Canvas>();
+            GraphicRaycaster raycaster = stage.CanvasRoot.GetComponent<GraphicRaycaster>();
+            Camera camera = canvas != null ? canvas.worldCamera : null;
+            if (!directSurface || raycaster == null || camera == null) return false;
+
+            Canvas.ForceUpdateCanvases();
+            camera.Render();
+            Vector2 point = RectTransformUtility.WorldToScreenPoint(
+                camera, surface.rectTransform.TransformPoint(surface.rectTransform.rect.center));
+            var pointer = new PointerEventData(eventSystem)
+            {
+                button = PointerEventData.InputButton.Left,
+                position = point,
+            };
+            var hits = new List<RaycastResult>();
+            raycaster.Raycast(pointer, hits);
+            for (int i = 0; i < hits.Count; i++)
+            {
+                Transform hit = hits[i].gameObject.transform;
+                if (hit != surface.transform && !hit.IsChildOf(surface.transform)) continue;
+                ExecuteEvents.ExecuteHierarchy(hits[i].gameObject, pointer, ExecuteEvents.pointerClickHandler);
+                Debug.Log("CLIVERIFY mainui-chat entry=" + surface.name + " point=" + point
+                    + " hits=" + hits.Count + " directSurface=" + directSurface);
+                return true;
+            }
+
+            Debug.LogError("CLIVERIFY mainui-chat entry raycast miss: " + surface.name
+                + " point=" + point + " hits=" + hits.Count + " directSurface=" + directSurface);
+            return false;
+        }
+
+        private static bool AtBottomOrNotScrollable(ScrollRect scroll)
+        {
+            if (scroll == null || scroll.content == null) return false;
+            RectTransform viewport = scroll.viewport != null ? scroll.viewport : scroll.transform as RectTransform;
+            if (viewport == null) return false;
+            bool overflows = scroll.content.rect.height > viewport.rect.height + 0.5f;
+            // ScrollRect 在真实 Canvas 几何下会留下 1e-6 量级浮点残差；视觉上仍是精确底部。
+            return !overflows || scroll.verticalNormalizedPosition <= 0.0001f;
+        }
+
+        private static string DescribeScroll(ScrollRect scroll)
+        {
+            if (scroll == null || scroll.content == null) return "missing";
+            RectTransform viewport = scroll.viewport != null ? scroll.viewport : scroll.transform as RectTransform;
+            return "norm:" + scroll.verticalNormalizedPosition
+                + ",content:" + scroll.content.rect.height
+                + ",viewport:" + (viewport != null ? viewport.rect.height : -1f)
+                + ",vertical:" + scroll.vertical;
         }
 
         private static void ForceLayout(MainUIChatView view)
