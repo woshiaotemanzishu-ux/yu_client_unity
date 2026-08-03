@@ -261,6 +261,9 @@ namespace Shenxiao.Editor.MapTools
                     }
                 }
 
+                if (GUILayout.Button("只同步帧动画（不更新瓦片）", GUILayout.Height(24f)))
+                    SyncFrameAnimationsSelected();
+
                 EditorGUILayout.EndScrollView();
             }
         }
@@ -283,6 +286,10 @@ namespace Shenxiao.Editor.MapTools
             }
             _stats[sceneId] = st;
 
+            MapFrameAnimationImportResult frameResult = null;
+            if (!canceled) frameResult = MapFrameAnimationImporter.ImportForMap(
+                st.MapResId, false, LayaUISettings.ClientRoot);
+
             if (!canceled && LayaUISettings.AutoGroupAfterConvert)
             {
                 try { AddressableSetup.AutoGroupAll(); }
@@ -291,6 +298,7 @@ namespace Shenxiao.Editor.MapTools
 
             EditorUtility.DisplayDialog("转换地图",
                 $"场景 {sceneId}(底图 {st.MapResId})\n本次新转 {copied} 张,跳过 {skipped}\n瓦片合计 {st.TileConverted}/{st.TileTotal}" +
+                (frameResult == null ? "" : "\n\n" + frameResult.FormatSummary()) +
                 (canceled ? "\n(中途取消)" : (LayaUISettings.AutoGroupAfterConvert ? "\n已执行 Addressable 自动分组" : "")),
                 "好");
         }
@@ -303,7 +311,7 @@ namespace Shenxiao.Editor.MapTools
                     $"将用老客户端资源强制覆盖场景 {sceneId}(底图 {before.MapResId})。\n\n" +
                     $"源: {MapTileConverter.SourceMapDir(before.MapResId)}\n" +
                     $"目标: {MapTileConverter.GameResMapDir(before.MapResId)}\n\n" +
-                    "会更新 .bytes、缩略图和 .bytes 声明的有效瓦片；已有 Unity .meta/GUID 保留，历史多余瓦片不删除。",
+                    "会更新 .bytes、缩略图、有效瓦片和该 mapResId 的帧动画；已有 Unity .meta/GUID 保留，历史多余资源不删除。",
                     "更新", "取消"))
                 return;
 
@@ -322,6 +330,10 @@ namespace Shenxiao.Editor.MapTools
             }
             _stats[sceneId] = st;
 
+            MapFrameAnimationImportResult frameResult = null;
+            if (!canceled) frameResult = MapFrameAnimationImporter.ImportForMap(
+                st.MapResId, true, LayaUISettings.ClientRoot);
+
             if (!canceled && LayaUISettings.AutoGroupAfterConvert)
             {
                 try { AddressableSetup.AutoGroupAll(); }
@@ -331,7 +343,39 @@ namespace Shenxiao.Editor.MapTools
             EditorUtility.DisplayDialog("从老端更新地图",
                 $"场景 {sceneId}(底图 {st.MapResId})\n本次更新 {updated} 张资源,跳过 {skipped}\n" +
                 $"有效瓦片 {st.TileConverted}/{st.TileTotal}" +
+                (frameResult == null ? "" : "\n\n" + frameResult.FormatSummary()) +
                 (canceled ? "\n(中途取消)" : (LayaUISettings.AutoGroupAfterConvert ? "\n已执行 Addressable 自动分组" : "")),
+                "好");
+        }
+
+        private void SyncFrameAnimationsSelected()
+        {
+            int sceneId = _selected;
+            MapStat stat = StatOf(sceneId);
+            if (!EditorUtility.DisplayDialog("同步地图帧动画",
+                    $"只同步底图资源 {stat.MapResId} 的帧动画，不更新 .bytes、底图或瓦片。\n\n" +
+                    $"源: {LayaUISettings.ClientRoot}\\cdn\\resource\n" +
+                    "目标: Assets/GameRes/resource\n\n" +
+                    "将覆盖同名 JSON、PNG 图集和 Unity Clip；已有 .meta/GUID 保留。",
+                    "同步", "取消"))
+                return;
+
+            MapFrameAnimationImportResult result = MapFrameAnimationImporter.ImportForMap(
+                stat.MapResId, true, LayaUISettings.ClientRoot);
+            if (result.Succeeded && LayaUISettings.AutoGroupAfterConvert)
+            {
+                try { MapFrameAnimationImporter.RegisterAddressables(result); }
+                catch (System.Exception e)
+                {
+                    result.Errors.Add("Addressable 定向登记失败: " + e.Message);
+                    Debug.LogWarning("[MapAsset] Addressable 定向登记失败: " + e.Message);
+                }
+            }
+
+            EditorUtility.DisplayDialog("同步地图帧动画",
+                result.FormatSummary()
+                + (result.Succeeded && LayaUISettings.AutoGroupAfterConvert
+                    ? "\n只登记了本次帧动画产物，未扫描其它 GameRes" : ""),
                 "好");
         }
 

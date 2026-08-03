@@ -1828,3 +1828,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **叶子功能**：气泡、相框、头像三类均由 `config_dress_up_cfg` 生成；头像条目可切换当前预览，同装扮的非零技能按 2/5/10 级展示真实图标，点击复用 `CommonModule/SkillTipsView` 展示配置中的技能名和说明。`SettingFashionCurrentCase` 从真实设置按钮开始，经 `GraphicRaycaster→PointerClick` 点完四个外层页签、三个内层页签、头像条目、技能详情和关闭，结果 `pass=True`。
 - **资源首点治理**：新增 `DressAssetPreflight`，按装扮、物品和时装模型配置计算 154 项资源闭包，验证文件、`.meta` GUID 与 Addressables；定向补 128 条 Addressables，既有 33812 条目删除 0、语义变化 0。最终复验冷开 1810ms、热开 69ms，巡检前后 `addedResources=none`，不再接受点击时生成 `goodsicon/120200xx` 等资源。
 - **协议边界与回归**：R540 仍禁止 11201～11203，激活/升级/穿戴按钮只显示明确提示且抓帧确认零发送，不以裸协议伪造功能完成。`CliVerify.Dress`、`CliVerify.Fashion` 均通过；改名即时刷新和设置其余分支仍待后续，设置父节点不标完成。
+
+## 2026-08-03：Electron 地图帧动画同步到 Unity
+
+- **生产边界**：美术仍只在 `yu_client` 的 Electron 地图编辑器中导入多帧 PNG、设置帧率并在地图上调整位置/大小/旋转；Unity 只消费其中央资源 JSON、单张 PNG 图集、地图实例 JSON 和 manifest，不要求美术进入 Unity 工程，也不复制每帧散图。
+- **Editor 导入**：`神霄/资源/地图资源` 新增“只同步帧动画（不更新瓦片）”；既有“从老端更新”和“转换(补齐缺失)”也分别按覆盖/补缺语义接入。导入器按当前 `mapResId` 只复制实际引用的图集，生成共享 `MapFrameAnimationClipAsset`，保留已有 `.meta/GUID`；单独同步只把本轮产物定向登记到既有 `Remote_resource`，不扫描其它 `GameRes`、不新建 Group、不自动删除陈旧共享资源。
+- **运行时链路**：`SceneMapView` 按 `mapResId` 异步加载 manifest、地图实例和 Clip；同资源多实例共享纹理、Sprite 数组及播放时钟。位置、非等比缩放、旋转、透明度、pivot、随机起帧和 `map_back/map_front` 层级均已接入，换图/清场会取消旧加载并释放资源；Editor Existing Build 模式可对刚同步、尚未重建 catalog 的资源走本地兜底预览。
+- **验证状态**：当前用户正在使用的 Unity Editor 已自动刷新并成功重载 `Shenxiao.Framework.dll` 与 `Shenxiao.Editor.dll`，日志无 C# 编译错误；本轮按用户要求没有点击同步、没有生成 `Assets/GameRes` 帧动画资源，也没有运行或打包地图。首次真实导入、10000 地图视觉对齐及 Addressables 构建验收待用户手动测试。

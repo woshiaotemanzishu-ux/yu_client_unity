@@ -3,11 +3,10 @@
 > 本方案用于把 `yu_client` 的地图加载机制重构到 Shenxiao Unity 客户端。
 > 目标是先对齐资源语义、加载链路和工程边界，再开始写运行时代码。
 
-**更新时间**：2026-07-31
+**更新时间**：2026-08-03
 
 **参考项目**：
-- `D:/git_res/yu_client`：本机实际存在的 LayaAir 客户端，仅作只读参考。
-- 文档历史路径 `D:/GitProject/yu_client` 当前本机不存在，后续排查以实际路径为准。
+- `E:/GitProject/yu_client`：当前 LayaAir 老客户端与 Electron 地图资源工具，作为地图资源生产源。
 
 ---
 
@@ -334,6 +333,29 @@ Unity 菜单 `神霄/资源/地图资源` 对选中地图提供两种明确分�
 2. `从老端更新`：以 `yu_client/cdn/resource/game/scene/map` 为源，强制覆盖 Unity 中对应的 `.bytes`、底图和有效瓦片。
 
 “有效瓦片”必须以场景 `.bytes` 内的瓦片坐标清单为准，不能按源目录全部 `.jxr` 计数；旧 CDN 目录可能残留地图改版前的多余文件。更新操作只覆盖有效资源文件，不改写 Unity `.meta`，因此已有 GUID 和 Addressables 引用保持稳定；也不自动删除历史多余瓦片，避免产生无关 GUID/分组变更。更新完成后按窗口开关执行 Addressable 自动分组，以接入首次新增的资源。
+
+### 6.4 Electron 地图帧动画进入 Unity
+
+帧动画继续由美术在 Electron 地图编辑器中导入多张 PNG、调整帧率，并在地图上调整位置、缩放和旋转。Electron 保存后的 CDN 产物是唯一交换格式：
+
+```text
+resource/effect/map_frame_animations/map_frame_animations.json
+resource/effect/map_frame_animations/{assetId}/{assetId}.png
+resource/game/scene/map/map_effects_manifest.json
+resource/game/scene/map/{mapResId}/map_effects.json
+```
+
+Unity 菜单 `神霄/资源/地图资源` 提供三条接入路径：
+
+1. `只同步帧动画（不更新瓦片）`：只覆盖选中 `mapResId` 的 JSON、所用 PNG 图集和 Unity Clip，不扫描或更新瓦片；日常效果调整优先使用。
+2. `从老端更新`：更新地图瓦片的同时同步对应帧动画。
+3. `转换(补齐缺失)`：首次补图时仅创建缺失的帧动画产物，不覆盖 Unity 已有内容。
+
+导入器读取中央 JSON 中的帧矩形并生成 `{assetId}_clip.asset`。Unity 不读取 Laya `.atlas`，也不把每帧拆成独立图片；PNG 图集只保留一份，同一 `assetId` 的多个地图实例共享纹理、Sprite 数组和播放时钟。重复同步覆盖资源内容但保留现有 `.meta`，因此 GUID 与 Addressables 引用稳定；源文件消失时不自动删除旧产物，避免误删共享资源。
+
+运行时以 `mapResId`（不是 `sceneId`）加载清单和实例。`map_back` 位于底图预览与瓦片之间，默认 `map_front` 位于瓦片之上；坐标使用地图左上角原点，`(x,y)` 映射为 UGUI `(x,-y)`，缩放、透明度和资源 pivot 原样使用，旋转取反以匹配 Laya 的屏幕顺时针方向。切换底图或清场时必须取消旧异步加载、销毁临时 Sprite 并释放 Clip；复用同一 `mapResId` 时保留已有播放实例。
+
+单独同步成功后若窗口启用了“转换/更新后顺便 Addressable 自动分组”，只把本轮 JSON、PNG 和 Clip 定向登记到既有远端 `Remote_resource`，不会扫描其它 `GameRes`，也不得创建新 Group；地图的完整转换/更新仍沿用原有全量自动分组。Editor 即使处于 Existing Build 模式，也允许刚同步的帧动画走现有 AssetDatabase 兜底直接进图预览；正式构建前仍须统一执行一次 Addressables 自动分组与拆包校验，并发布和 Player 同批的内容。
 
 ---
 

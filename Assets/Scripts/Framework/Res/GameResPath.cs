@@ -36,6 +36,21 @@ namespace Shenxiao.Framework.Res
         public static string GetSceneMapTile(int mapResId, int row, int col, string ext)
             => "resource/game/scene/map/" + mapResId + "/tile/" + row.ToString("00") + col.ToString("00") + ext;
 
+        public static string GetSceneMapEffectsManifest()
+            => "resource/game/scene/map/map_effects_manifest.json";
+
+        public static string GetSceneMapEffects(int mapResId)
+            => "resource/game/scene/map/" + mapResId + "/map_effects.json";
+
+        public static string GetMapFrameAnimationLibrary()
+            => "resource/effect/map_frame_animations/map_frame_animations.json";
+
+        public static string GetMapFrameAnimationTexture(string assetId)
+            => "resource/effect/map_frame_animations/" + assetId + "/" + assetId + ".png";
+
+        public static string GetMapFrameAnimationClip(string assetId)
+            => "resource/effect/map_frame_animations/" + assetId + "/" + assetId + "_clip.asset";
+
         public static string GetObjectPath(string mName, string resName)
             => "resource/object/" + mName + "/objs/" + resName + ".lh";
 

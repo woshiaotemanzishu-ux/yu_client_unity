@@ -91,6 +91,7 @@ namespace Shenxiao.Framework.Scene3D.Map
                 return;
             }
 
+            SceneMapFrameEffectLayer.Clear();
             int version = ++_version;
             EnsureRoot();
             if (_root == null || _preview == null) return;
@@ -129,6 +130,7 @@ namespace Shenxiao.Framework.Scene3D.Map
             _lastFocusY = int.MinValue;
             EnsureTilePool(data);
             SetFocus(focusX, focusY);
+            _ = SceneMapFrameEffectLayer.ShowAsync(data.MapResId, _root.transform, _tileRoot);
             GameLog.Info("SceneMap", "map preview ready: sceneId={0} mapResId={1} focus=({2},{3}) pool={4}x{5}",
                 data.SceneId, data.MapResId, focusX, focusY, _poolCols, _poolRows);
         }
@@ -153,6 +155,7 @@ namespace Shenxiao.Framework.Scene3D.Map
 
         public static void Clear()
         {
+            SceneMapFrameEffectLayer.Clear();
             ++_version;
             _data = null;
             _lastFocusX = int.MinValue;
