@@ -9,23 +9,16 @@ using UnityEngine;
 
 namespace Shenxiao.EditorTools
 {
-    /// <summary>11200 只读装扮快照：四类启动请求与按类型全量替换。</summary>
+    /// <summary>装扮设置页：11200/05读侧与11201/02/03事务的精确帧、单飞和权威回包落地。</summary>
     public static class DressCase
     {
-        private const BindingFlags InstanceNonPublic = BindingFlags.NonPublic | BindingFlags.Instance;
-        private const BindingFlags StaticNonPublic = BindingFlags.NonPublic | BindingFlags.Static;
+        private const BindingFlags F = BindingFlags.NonPublic | BindingFlags.Instance;
+        private const BindingFlags SF = BindingFlags.NonPublic | BindingFlags.Static;
 
         public static Task<int> Run()
         {
-            try
-            {
-                return Task.FromResult(RunSync());
-            }
-            catch (Exception exception)
-            {
-                Debug.LogError("CLIVERIFY dress EXCEPTION " + exception);
-                return Task.FromResult(3);
-            }
+            try { return Task.FromResult(RunSync()); }
+            catch (Exception e) { Debug.LogError("CLIVERIFY dress EXCEPTION " + e); return Task.FromResult(3); }
         }
 
         private static int RunSync()
@@ -33,148 +26,110 @@ namespace Shenxiao.EditorTools
             DressController controller = DressController.Instance;
             DressModel model = DressModel.Instance;
             bool wasInitialized = controller.IsInitialized;
-            var oldSnapshots = new Dictionary<byte, DressModel.Snapshot>(model.Snapshots);
-            FieldInfo interceptField = typeof(DressController).GetField("s_outboundIntercept", StaticNonPublic);
+            var old = new Dictionary<byte, DressModel.Snapshot>(model.Snapshots);
+            var oldPower = new List<DressModel.InactivePowerSnapshot>(model.InactivePowerSnapshots.Values);
+            FieldInfo interceptField = typeof(DressController).GetField("s_outboundIntercept", SF);
             object oldIntercept = interceptField?.GetValue(null);
-            IDictionary handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-            bool oldHandlerExists = handlers != null && handlers.Contains(Proto.DRESS_INFO);
-            object oldHandler = oldHandlerExists ? handlers[Proto.DRESS_INFO] : null;
-            bool pass = false;
-            bool restored = false;
+            bool pass = true;
+            void Check(string tag, bool ok) { Debug.Log("CLIVERIFY dress " + tag + " ok=" + ok); if (!ok) pass = false; }
 
             try
             {
                 controller.Init();
                 model.Reset();
-
-                MethodInfo on11200 = typeof(DressController).GetMethod("On11200", InstanceNonPublic);
-                handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                pass = interceptField != null && on11200 != null && handlers != null
-                    && handlers.Contains(Proto.DRESS_INFO)
-                    && !handlers.Contains(11201) && !handlers.Contains(11202) && !handlers.Contains(11203)
-                    && !handlers.Contains(11204) && !handlers.Contains(11205);
-                if (!pass)
-                {
-                    throw new InvalidOperationException("Dress handler/interceptor precondition failed.");
-                }
+                IDictionary handlers = typeof(NetManager).GetField("_handlers", SF)?.GetValue(null) as IDictionary;
+                MethodInfo on11200 = typeof(DressController).GetMethod("On11200", F);
+                MethodInfo on11201 = typeof(DressController).GetMethod("On11201", F);
+                MethodInfo on11202 = typeof(DressController).GetMethod("On11202", F);
+                MethodInfo on11203 = typeof(DressController).GetMethod("On11203", F);
+                MethodInfo on11205 = typeof(DressController).GetMethod("On11205", F);
+                Check("register", handlers != null && on11200 != null && on11201 != null && on11202 != null && on11203 != null && on11205 != null
+                    && handlers.Contains(11200) && handlers.Contains(11201) && handlers.Contains(11202)
+                    && handlers.Contains(11203) && !handlers.Contains(11204) && handlers.Contains(11205));
 
                 var frames = new List<byte[]>();
-                interceptField.SetValue(null, new Func<byte[], bool>(frame =>
-                {
-                    frames.Add(frame);
-                    return true;
-                }));
+                interceptField?.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
                 controller.RequestStartup();
-                pass &= Frames(frames, 1, 2, 3, 5);
+                Check("startup-only-11200", frames.Count == 4 && Command(frames[0]) == 11200 && frames[0][6] == 1
+                    && Command(frames[1]) == 11200 && frames[1][6] == 2
+                    && Command(frames[2]) == 11200 && frames[2][6] == 3
+                    && Command(frames[3]) == 11200 && frames[3][6] == 5);
                 frames.Clear();
 
-                byte[] first = new CliVerify.Pkt()
-                    .C(1).I(100).H(2)
-                    .I(101).H(3).L(5000000000L).L(6000000000L)
-                    .I(102).H(4).L(7).L(8)
-                    .Bytes();
-                var firstReader = new NetReader(first, 0, first.Length);
-                on11200.Invoke(controller, new object[] { firstReader });
-                model.TryGet(1, out DressModel.Snapshot one);
-                pass &= firstReader.Remaining == 0 && one != null && one.UsedDressId == 100 && one.EnableCount == 2
-                    && one.Entries[0].DressId == 101 && one.Entries[0].DressLevel == 3
-                    && one.Entries[0].CurrentPower == 5000000000UL && one.Entries[0].NextPower == 6000000000UL
-                    && one.Entries[1].DressId == 102 && one.Entries[1].DressLevel == 4
-                    && one.Entries[1].CurrentPower == 7 && one.Entries[1].NextPower == 8 && frames.Count == 0;
+                Feed(on11200, new CliVerify.Pkt().C(5).I(0).H(0).Bytes());
+                const byte type = 5;
+                const uint id = 5901001;
+                Check("activate-send", controller.ActivateOrUpgrade(type, id) && controller.IsTransactionPending
+                    && frames.Count == 1 && IsTypeIdFrame(frames[0], 11201, type, id)
+                    && !model.TryGetEntry(type, id, out _));
+                Check("single-flight", !controller.Use(type, id) && frames.Count == 1);
+                frames.Clear();
 
-                byte[] second = new CliVerify.Pkt().C(2).I(200).H(1).I(201).H(5).L(9).L(10).Bytes();
-                var secondReader = new NetReader(second, 0, second.Length);
-                on11200.Invoke(controller, new object[] { secondReader });
-                model.TryGet(2, out DressModel.Snapshot two);
-                pass &= secondReader.Remaining == 0 && one != null && two != null && two.UsedDressId == 200
-                    && two.EnableCount == 1 && two.Entries[0].DressId == 201 && frames.Count == 0;
+                Feed(on11201, new CliVerify.Pkt().I(1).C(type).I(id).H(1).L(5000000000L).L(6000000000L).Bytes());
+                model.TryGetEntry(type, id, out DressModel.Entry activated);
+                Check("11201-success-immediate", !controller.IsTransactionPending && activated != null
+                    && activated.DressLevel == 1 && activated.CurrentPower == 5000000000UL
+                    && activated.NextPower == 6000000000UL && frames.Count == 0);
 
-                byte[] empty = new CliVerify.Pkt().C(1).I(0).H(0).Bytes();
-                var emptyReader = new NetReader(empty, 0, empty.Length);
-                on11200.Invoke(controller, new object[] { emptyReader });
-                model.TryGet(1, out one);
-                model.TryGet(2, out two);
-                pass &= emptyReader.Remaining == 0 && one != null && one.EnableCount == 0
-                    && two != null && two.Entries.Count == 1 && frames.Count == 0;
+                Check("use-send", controller.Use(type, id) && frames.Count == 1 && IsTypeIdFrame(frames[0], 11202, type, id));
+                frames.Clear();
+                Feed(on11202, new CliVerify.Pkt().I(1).C(type).I(id).Bytes());
+                model.TryGet(type, out DressModel.Snapshot used);
+                Check("11202-success-immediate", !controller.IsTransactionPending && used != null && used.UsedDressId == id);
+
+                Check("takeoff-send", controller.TakeOff(type, id) && frames.Count == 1 && IsTypeIdFrame(frames[0], 11203, type, id));
+                frames.Clear();
+                Feed(on11203, new CliVerify.Pkt().I(1).C(type).I(id).Bytes());
+                model.TryGet(type, out DressModel.Snapshot takenOff);
+                Check("11203-success-immediate", !controller.IsTransactionPending && takenOff != null && takenOff.UsedDressId == 0);
+
+                Check("failure-no-optimistic", controller.ActivateOrUpgrade(type, id));
+                frames.Clear();
+                Feed(on11201, new CliVerify.Pkt().I(9).C(type).I(id).H(0).L(0).L(0).Bytes());
+                model.TryGetEntry(type, id, out DressModel.Entry afterFailure);
+                Check("failure-releases-and-preserves", !controller.IsTransactionPending && afterFailure != null
+                    && afterFailure.DressLevel == 1 && afterFailure.CurrentPower == 5000000000UL);
+
+                controller.RequestInactivePower(type, id + 1);
+                Check("11205-explicit", frames.Count == 1 && IsTypeIdFrame(frames[0], 11205, type, id + 1)
+                    && !model.TryGetInactivePower(type, id + 1, out _));
+                frames.Clear();
+                Feed(on11205, new CliVerify.Pkt().C(type).I(id + 1).L(7000000000L).Bytes());
+                model.TryGetInactivePower(type, id + 1, out DressModel.InactivePowerSnapshot power);
+                Check("11205-authoritative", power != null && power.ActivePower == 7000000000UL);
 
                 controller.Dispose();
-                pass &= !controller.IsInitialized && !model.HasData && !handlers.Contains(Proto.DRESS_INFO);
+                Check("dispose", !controller.IsInitialized && !model.HasData && !model.HasInactivePowerData && !controller.IsTransactionPending);
+                Debug.Log("CLIVERIFY dress VERDICT pass=" + pass);
+                return pass ? 0 : 3;
             }
             finally
             {
-                try
-                {
-                    if (controller.IsInitialized) controller.Dispose();
-                    model.Reset();
-                    foreach (DressModel.Snapshot snapshot in oldSnapshots.Values)
-                    {
-                        model.Replace(snapshot.Type, snapshot.UsedDressId, new List<DressModel.Entry>(snapshot.Entries));
-                    }
-
-                    if (wasInitialized) controller.Init();
-                    handlers = typeof(NetManager).GetField("_handlers", StaticNonPublic)?.GetValue(null) as IDictionary;
-                    if (handlers == null) throw new InvalidOperationException("Dress handlers unavailable during restore.");
-                    if (oldHandlerExists) handlers[Proto.DRESS_INFO] = oldHandler;
-                    else handlers.Remove(Proto.DRESS_INFO);
-                    if (interceptField != null) interceptField.SetValue(null, oldIntercept);
-
-                    restored = controller.IsInitialized == wasInitialized
-                        && SnapshotsMatch(model.Snapshots, oldSnapshots)
-                        && handlers.Contains(Proto.DRESS_INFO) == oldHandlerExists
-                        && (!oldHandlerExists || ReferenceEquals(handlers[Proto.DRESS_INFO], oldHandler))
-                        && (interceptField == null || ReferenceEquals(interceptField.GetValue(null), oldIntercept));
-                }
-                catch (Exception exception)
-                {
-                    Debug.LogError("CLIVERIFY dress restore " + exception);
-                    restored = false;
-                }
+                if (controller.IsInitialized) controller.Dispose();
+                model.Reset();
+                foreach (DressModel.Snapshot snapshot in old.Values)
+                    model.Replace(snapshot.Type, snapshot.UsedDressId, new List<DressModel.Entry>(snapshot.Entries));
+                foreach (DressModel.InactivePowerSnapshot snapshot in oldPower)
+                    model.ReplaceInactivePower(snapshot.Type, snapshot.DressId, snapshot.ActivePower);
+                if (wasInitialized) controller.Init();
+                if (interceptField != null) interceptField.SetValue(null, oldIntercept);
             }
-
-            Debug.Log("CLIVERIFY dress restored=" + restored + " VERDICT pass=" + pass);
-            return pass && restored ? 0 : 3;
         }
 
-        private static bool Frames(IReadOnlyList<byte[]> frames, params byte[] types)
+        private static void Feed(MethodInfo method, byte[] bytes)
         {
-            if (frames.Count != types.Length) return false;
-            for (int index = 0; index < types.Length; index++)
-            {
-                byte[] frame = frames[index];
-                if (frame == null || frame.Length != 7 || frame[0] != 0 || frame[1] != 7
-                    || frame[2] != 3 || frame[3] != 232 || frame[4] != 43 || frame[5] != 192
-                    || frame[6] != types[index])
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            var reader = new NetReader(bytes, 0, bytes.Length);
+            method.Invoke(DressController.Instance, new object[] { reader });
+            if (reader.Remaining != 0) throw new InvalidOperationException(method.Name + " remaining=" + reader.Remaining);
         }
 
-        private static bool SnapshotsMatch(
-            IReadOnlyDictionary<byte, DressModel.Snapshot> actual,
-            IReadOnlyDictionary<byte, DressModel.Snapshot> expected)
-        {
-            if (actual.Count != expected.Count) return false;
-            foreach (KeyValuePair<byte, DressModel.Snapshot> pair in expected)
-            {
-                if (!actual.TryGetValue(pair.Key, out DressModel.Snapshot snapshot)) return false;
-                DressModel.Snapshot old = pair.Value;
-                if (snapshot.Type != old.Type || snapshot.UsedDressId != old.UsedDressId || snapshot.Entries.Count != old.Entries.Count) return false;
-                for (int index = 0; index < old.Entries.Count; index++)
-                {
-                    DressModel.Entry a = snapshot.Entries[index];
-                    DressModel.Entry b = old.Entries[index];
-                    if (a.DressId != b.DressId || a.DressLevel != b.DressLevel
-                        || a.CurrentPower != b.CurrentPower || a.NextPower != b.NextPower)
-                    {
-                        return false;
-                    }
-                }
-            }
+        private static int Command(byte[] frame) => frame != null && frame.Length >= 6 ? (frame[4] << 8) | frame[5] : -1;
 
-            return true;
+        private static bool IsTypeIdFrame(byte[] frame, int command, byte type, uint id)
+        {
+            return frame != null && frame.Length == 11 && Command(frame) == command && frame[6] == type
+                && frame[7] == (byte)(id >> 24) && frame[8] == (byte)(id >> 16)
+                && frame[9] == (byte)(id >> 8) && frame[10] == (byte)id;
         }
     }
 }

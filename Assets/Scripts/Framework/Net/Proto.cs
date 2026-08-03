@@ -1430,6 +1430,14 @@
         public const int DEPOSIT_RECORDS = 19206;
         /// <summary>装扮类型快照。C2S: dress_type:u8；S2C 为该类型已启用装扮全量列表。</summary>
         public const int DRESS_INFO = 11200;
+        /// <summary>激活/升级装扮。C2S: type:u8,id:u32；成功后按回包权威更新等级和战力。</summary>
+        public const int DRESS_ACTIVATE = 11201;
+        /// <summary>使用装扮。C2S: type:u8,id:u32；成功后更新同类型 use_id。</summary>
+        public const int DRESS_USE = 11202;
+        /// <summary>卸下装扮。C2S: type:u8,id:u32；头像默认值以后续 11202 为准。</summary>
+        public const int DRESS_TAKE_OFF = 11203;
+        /// <summary>未激活装扮一级预期战力。仅选中项显式查询；C2S: type:u8,id:u32。</summary>
+        public const int DRESS_INACTIVE_POWER = 11205;
         public const int DRAGONBALL_GIFT_INFO = 14311;     // 龙玉礼包信息(图标143)
         public const int SEVENDAY_OPEN_INFO = 17500;       // 七天登录信息
         public const int SEVENDAY_MERGE_INFO = 17502;      // 合服七天信息

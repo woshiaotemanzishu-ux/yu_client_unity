@@ -19,6 +19,7 @@ namespace Shenxiao.Module.Core.Common
     public sealed class CustomHeadItem : CustomHeadItemBind
     {
         private Action _clickCb;
+        private int _headRequestVersion;
 
         protected override void OnInit()
         {
@@ -46,7 +47,9 @@ namespace Shenxiao.Module.Core.Common
 
         public async void SetDefaultHead(int career, int turn)
         {
+            int version = ++_headRequestVersion;
             await LoginConfigs.EnsureLoaded();
+            if (this == null || version != _headRequestVersion) return;
             string path = LoginConfigs.HeadIconPath(career, turn);
             if (string.IsNullOrEmpty(path))
             {
@@ -64,6 +67,21 @@ namespace Shenxiao.Module.Core.Common
                 HideSystemHeadOverlay();
                 _ = ResManager.SetImageAsync(icon_sys_head, path, nativeSize: false);
             }
+        }
+
+        /// <summary>显示装扮系统当前穿戴头像；加载失败时保留此前默认头像。</summary>
+        public async void SetCustomHead(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return;
+            int version = ++_headRequestVersion;
+            if (icon != null) icon.gameObject.SetActive(false);
+            bool loaded = icon != null && await ResManager.SetImageAsync(icon, path, nativeSize: false);
+            if (this == null || version != _headRequestVersion || !loaded) return;
+            if (icon_sys_head != null) icon_sys_head.gameObject.SetActive(false);
+            icon.gameObject.SetActive(true);
+            icon.enabled = true;
+            icon.color = Color.white;
+            icon.preserveAspect = true;
         }
 
         private void HideSystemHeadOverlay()

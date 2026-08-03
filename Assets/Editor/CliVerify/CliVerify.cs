@@ -267,6 +267,39 @@ namespace Shenxiao.EditorTools
             Run(SettingFashionCurrentCase.Run, 60.0);
         }
 
+        public static void SettingFullRoute()
+        {
+            Run(SettingFullRouteCase.Run, 120.0);
+        }
+
+        /// <summary>设置整树低开销批次：一个Unity进程串行跑协议、真实点击、头像路由、时装和既有视觉回归。</summary>
+        public static void SettingsFullSuite()
+        {
+            Run(async () =>
+            {
+                var cases = new (string Name, Func<Task<int>> Run)[]
+                {
+                    ("Dress", DressCase.Run),
+                    ("SettingFullRoute", SettingFullRouteCase.Run),
+                    ("SettingFashionCurrent", SettingFashionCurrentCase.Run),
+                    ("Fashion", FashionCase.Run),
+                    ("SettingPk", SettingPkCase.Run),
+                    ("ProtocolCoverage", ProtocolCoverageCase.Run),
+                };
+                int result = 0;
+                foreach (var item in cases)
+                {
+                    int code;
+                    try { code = await item.Run(); }
+                    catch (Exception exception) { Debug.LogError("CLIVERIFY settings-suite " + item.Name + " EXCEPTION " + exception); code = 1; }
+                    Debug.Log("CLIVERIFY settings-suite " + item.Name + " code=" + code);
+                    if (code != 0) result = 3;
+                }
+                Debug.Log("CLIVERIFY settings-suite VERDICT pass=" + (result == 0));
+                return result;
+            }, 900.0);
+        }
+
         public static void Demon()
         {
             Run(DemonCase.Run, 60.0);
@@ -386,7 +419,7 @@ namespace Shenxiao.EditorTools
             Run(SuitCollectCase.Run, 300.0);
         }
 
-        /// <summary>设置面板 + PK 模式链路实证(SettingCreator 重建 + 10202/13012 合成包 + 双视图渲染断言)。</summary>
+        /// <summary>设置面板 + PK 模式链路实证(当前 Prefab + 10202/13012 合成包 + 双视图渲染断言)。</summary>
         public static void SettingPk()
         {
             Run(SettingPkCase.Run, 300.0);

@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Threading.Tasks;
-using Shenxiao.Editor.UiCreator.Setting;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.UI;
 using Shenxiao.Module.Core.Common;
@@ -15,7 +14,7 @@ namespace Shenxiao.EditorTools
 {
     /// <summary>
     /// 设置面板 + PK(战斗)模式链路 CLI 实证(无服务器,合成包驱动):
-    ///  ① SettingCreator.Generate 重建 SettingModule.prefab;
+    ///  ① 直接加载当前人工维护的 SettingModule.prefab，禁止测试重建覆盖视觉事实源;
     ///  ② config_scene requirement.pkstate_list 解析(7001→[1] / 10103→[0,1,2]);
     ///  ③ 13012 回包 → RoleModel.PkStatus / 和平冷却 / 错误码不炸;
     ///  ④ 10202 合成包 → SettingModel 落库;
@@ -31,8 +30,7 @@ namespace Shenxiao.EditorTools
         {
             Shenxiao.Framework.Res.ResManager.EditorPreferFallback = true;
 
-            // ① 重建 prefab(原地覆盖,GUID/地址不变)
-            SettingCreator.Generate();
+            // ① 当前 Prefab 是唯一视觉事实源；验收只读加载，不调用历史 Creator。
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/Setting/SettingModule.prefab");
             bool creatorOk = prefab != null && prefab.GetComponentInChildren<SettingView>(true) != null
                 && prefab.GetComponentInChildren<SettingChangeHeadView>(true) != null

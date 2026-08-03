@@ -6,6 +6,7 @@ using Shenxiao.Common.Audio;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Dress;
 using Shenxiao.Module.Core.Fashion;
 using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.Role;
@@ -63,6 +64,7 @@ namespace Shenxiao.Module.Core.Setting
         private bool _showingBaseTab = true;
         private CustomHeadItem _roleHeadItem;
         private bool _loadingRoleHead;
+        private int _headRefreshVersion;
         private readonly List<SettingShieldItem> _autoPickItems = new List<SettingShieldItem>();
         private readonly List<SettingShieldItem> _shieldItems = new List<SettingShieldItem>();
 
@@ -76,21 +78,26 @@ namespace Shenxiao.Module.Core.Setting
             if (dim != null) BindClose(dim);
             BindButtons();
             EventDispatcher.On(GlobalEvent.EVT_SETTING_UPDATED, OnSettingUpdated);
+            EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdated);
+            DressModel.Instance.Changed += OnDressChanged;
         }
 
         protected override void OnDispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_SETTING_UPDATED, OnSettingUpdated);
+            EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdated);
+            DressModel.Instance.Changed -= OnDressChanged;
         }
 
         private void OnDestroy()
         {
             EventDispatcher.Off(GlobalEvent.EVT_SETTING_UPDATED, OnSettingUpdated);
+            EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdated);
+            DressModel.Instance.Changed -= OnDressChanged;
         }
 
         protected override void OnShow(object args)
         {
-            BackfillRuntimeSkins();
             PopulateRoleInfo();
             RefreshHeadIcon();
             SelectTab(_showingBaseTab);
@@ -127,30 +134,17 @@ namespace Shenxiao.Module.Core.Setting
             RefreshToggleBlocks();
         }
 
-        // ---------------------------------------------------------------- 皮肤回填
-
-        /// <summary>克隆模板节点(滑条/屏蔽项/拾取项/自定义头像)在运行时由列表/容器复制,先全部隐藏。</summary>
-        private void BackfillRuntimeSkins()
+        /// <summary>12086 改名/头像等本人资料广播到达后立即刷新已打开设置页。</summary>
+        private void OnRoleInfoUpdated()
         {
-            SetSkin(_img_bg, "resource/game/setting/other/bg_03.png");
-            SetSkin(_Image1, "resource/game/setting/texture/com_title_bg_1_.png");
-            SetSkin(_Image4, "resource/game/setting/texture/ui_button_rect8.png");
-            SetSkin(_Image6, "resource/game/setting/texture/ui_button_rect9.png");
-            SetSkin(_btn_changename, "resource/game/setting/texture/ui_guild_07.png");
-            SetSkin(_Image15, "resource/game/setting/texture/uixxsz_006.png");
-            SetSkin(_Image16, "resource/game/setting/texture/uixxsz_007.png");
-            SetSkin(simple_mode_bg, "resource/game/setting/texture/uixxsz_005.png");
-            SetSkin(_Image14, "resource/game/setting/texture/uixxsz_009.png");
-            SetSkin(_Image141, "resource/game/setting/texture/uixxsz_008.png");
-            SetSkin(_img_tab_setting, "resource/game/setting/texture/ui_button_rect5.png");
-            SetSkin(_img_tab_shield, "resource/game/setting/texture/ui_button_mid_1.png");
-            SetSkin(_img_close, "resource/game/common/texture/uity_016k.png");
+            if (!IsShown) return;
+            PopulateRoleInfo();
+            RefreshHeadIcon();
         }
 
-        private static void SetSkin(Image target, string path)
+        private void OnDressChanged(byte type)
         {
-            if (target == null || string.IsNullOrEmpty(path)) return;
-            _ = ResManager.SetImageAsync(target, path, nativeSize: false);
+            if (IsShown && type == DressView.HeadType) RefreshHeadIcon();
         }
 
         private void HideTemplates()
@@ -199,6 +193,10 @@ namespace Shenxiao.Module.Core.Setting
             BindClick(confirm_flee, () => TipsManager.Confirm("是否脱离卡死？", () =>
                 SettingController.Instance.SendFlee(RoleModel.Instance.SceneId)));
             BindClick(confirm_res, () => TipsManager.Confirm("修复异常后，需要重新连接游戏", SettingFlow.ReconnectRepair));
+
+            // 对标老端底部《用户协议》《隐私保护指引》两条独立正文入口。
+            BindClick(_lb_agree, () => LoginFlow.OpenAgreementDocument(LoginUserAgreementView.TypeAgreement));
+            BindClick(_lb_privacy, () => LoginFlow.OpenAgreementDocument(LoginUserAgreementView.TypePrivacy));
         }
 
         private void CopyRoleId()
@@ -274,7 +272,7 @@ namespace Shenxiao.Module.Core.Setting
             if (slider == null)
             {
                 if (_tpl_WithBtnHSlider == null || parent == null) return;
-                // SettingCreator 烤的静态预览滑条(纯视觉件)在真滑条就位时移除(编辑期 harness 无 Play 态,走 Immediate)。
+                // Prefab 内的静态预览滑条只用于编辑器可视化，真滑条就位时移除。
                 Transform preview = parent.Find("__PreviewSlider");
                 if (preview != null)
                 {
@@ -338,6 +336,7 @@ namespace Shenxiao.Module.Core.Setting
 
         private async void RefreshHeadIcon()
         {
+            int version = ++_headRefreshVersion;
             RoleModel role = RoleModel.Instance;
             if (_role_head == null || role == null) return;
 
@@ -350,7 +349,7 @@ namespace Shenxiao.Module.Core.Setting
 
             if (_roleHeadItem == null)
             {
-                // 优先收编 SettingCreator 烤进 prefab 的 CustomHeadItem 静态预览实例。
+                // 优先收编 Prefab 中已经保存的 CustomHeadItem 实例。
                 _roleHeadItem = _role_head.GetComponentInChildren<CustomHeadItem>(true);
                 if (_roleHeadItem == null)
                 {
@@ -377,6 +376,15 @@ namespace Shenxiao.Module.Core.Setting
             }
 
             _roleHeadItem.SetRoleData(career, turn, level, showLevel: false);
+
+            await DressConfigs.EnsureLoaded();
+            if (this == null || version != _headRefreshVersion || !IsShown) return;
+            if (!DressModel.Instance.TryGet(DressView.HeadType, out DressModel.Snapshot snapshot)
+                || snapshot.UsedDressId == 0) return;
+            DressConfigs.Row row = DressConfigs.GetRow(DressView.HeadType, snapshot.UsedDressId, 1);
+            string customIcon = DressConfigs.GetHeadIcon(row, career);
+            if (!string.IsNullOrEmpty(customIcon))
+                _roleHeadItem.SetCustomHead(GameResPath.GetHeadPath(customIcon));
         }
 
         private static GameRoleInfo FindLoginRole(long roleId)
@@ -426,7 +434,7 @@ namespace Shenxiao.Module.Core.Setting
             if (parent == null) parent = listRoot.transform as RectTransform;
             if (parent == null) return;
 
-            // 收编 SettingCreator 烤进 prefab 的静态预览项(同顺序),避免克隆一份重复的。
+            // 收编 Prefab 中已经保存的列表项(同顺序)，避免克隆一份重复的。
             if (items.Count == 0)
             {
                 foreach (SettingShieldItem baked in parent.GetComponentsInChildren<SettingShieldItem>(true))
@@ -457,6 +465,7 @@ namespace Shenxiao.Module.Core.Setting
                 if (items[i] != null) items[i].gameObject.SetActive(false);
             }
 
+            RefreshScrollLayout(listRoot);
         }
 
         private SettingShieldItem GetOrCreateShieldItem(List<SettingShieldItem> items, RectTransform parent, int index)
@@ -592,11 +601,12 @@ namespace Shenxiao.Module.Core.Setting
         private static void BindClick(Component target, Action onClick)
         {
             if (target == null || onClick == null) return;
-            Image img = target as Image;
-            if (img == null) img = target.GetComponentInChildren<Image>(true);
-            if (img == null) return;
-            img.raycastTarget = true;
-            UIUtil.AddClick(img, onClick);
+            Graphic graphic = target as Graphic;
+            if (graphic == null) graphic = target.GetComponent<Graphic>();
+            if (graphic == null) graphic = target.GetComponentInChildren<Graphic>(true);
+            if (graphic == null) return;
+            graphic.raycastTarget = true;
+            UIUtil.AddClick(graphic, onClick);
         }
 
         private void BindTab(Component target, bool baseTab)
@@ -611,6 +621,26 @@ namespace Shenxiao.Module.Core.Setting
             if (_box_shield_setting != null) _box_shield_setting.gameObject.SetActive(!baseTab);
             if (_lb_tab_setting != null) _lb_tab_setting.color = baseTab ? Color.white : new Color(0.58f, 0.36f, 0.25f);
             if (_lb_tab_shield != null) _lb_tab_shield.color = !baseTab ? Color.white : new Color(0.58f, 0.36f, 0.25f);
+
+            // 屏蔽页内容在基础页显示期间生成，父节点失活时 Unity 不会完成 LayoutGroup/ScrollRect 的几何计算。
+            // 首次切页必须同步刷新，否则勾选框虽然可见，射线中心仍可能停在屏幕外的旧位置。
+            RefreshScrollLayout(baseTab ? _box_base_setting : _list_shield);
+        }
+
+        private static void RefreshScrollLayout(ScrollRect scroll)
+        {
+            if (scroll == null || scroll.content == null || !scroll.gameObject.activeInHierarchy) return;
+            scroll.StopMovement();
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(scroll.content);
+            if (scroll.viewport != null) LayoutRebuilder.ForceRebuildLayoutImmediate(scroll.viewport);
+            if (scroll.transform is RectTransform root) LayoutRebuilder.ForceRebuildLayoutImmediate(root);
+            Canvas.ForceUpdateCanvases();
+            scroll.verticalNormalizedPosition = 1f;
+            scroll.Rebuild(CanvasUpdate.Prelayout);
+            scroll.Rebuild(CanvasUpdate.Layout);
+            scroll.Rebuild(CanvasUpdate.PostLayout);
+            Canvas.ForceUpdateCanvases();
         }
 
         private static void SetNodeVisible(Component c, bool visible)

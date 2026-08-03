@@ -43,6 +43,12 @@ namespace Shenxiao.Module.Core.Login
             if (_lb_content != null) _lb_content.text = "正在加载…";
             if (_panel_content != null) _panel_content.verticalNormalizedPosition = 1f;
 
+            // 本面板也会在登录模块已释放后由设置页首次动态创建。同步完成首帧布局，保证关闭图标和
+            // 全屏关闭遮罩在 Open 返回时已经具备正确的射线区域，而不是等第二次打开才稳定。
+            Canvas.ForceUpdateCanvases();
+            if (transform is RectTransform root) LayoutRebuilder.ForceRebuildLayoutImmediate(root);
+            Canvas.ForceUpdateCanvases();
+
             int version = ++_loadVersion;
             _ = LoadContentAsync(version, _currentArgs);
         }

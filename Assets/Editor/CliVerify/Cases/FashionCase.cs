@@ -295,8 +295,14 @@ namespace Shenxiao.EditorTools
                 Transform lbNameT = mainViewT != null ? CliVerify.FindDeep(mainViewT, "_lb_name") : null;
                 TMP_Text lbName = lbNameT != null ? lbNameT.GetComponent<TMP_Text>() : null;
                 bool nameOk = lbName != null && !string.IsNullOrEmpty(lbName.text);
+                Transform fightRoot = mainViewT != null ? mainViewT.Find("_box_fight") : null;
+                var fightItem = fightRoot != null
+                    ? fightRoot.GetComponentInChildren<Shenxiao.Module.Core.Common.FightingShowSmallItem>(true)
+                    : null;
+                bool fightDisplayOk = fightItem != null && fightItem._lb_fighting != null
+                    && fightItem._lb_fighting.text == "100";
                 Debug.Log("CLIVERIFY fashion shell viewUpgraded=" + viewUpgradedOk + " lbName='" + (lbName?.text ?? "<null>")
-                    + "' nameOk=" + nameOk + " shot=" + png);
+                    + "' nameOk=" + nameOk + " fightDisplay=" + fightDisplayOk + " shot=" + png);
 
                 // 第二刀 UI：套装页必须是真业务类并吃到真实 config_fashion_suit；部位升级弹窗同理。
                 Feed(m41313, new CliVerify.Pkt().H(1).C(1).C(1).C(4).C(4).I(1200).I(2400).Bytes());
@@ -353,7 +359,7 @@ namespace Shenxiao.EditorTools
                 bool pass = secondKnifeConfigOk && secondKnifeC2sOk
                     && infoOk && posUpgradeOk && posUpgradeFailStable && activateOk && wearOk && takeOffOk && unlockOk
                     && baseUpOk && colorUpOk && powerOk && suitSnapshotOk && suitActivateOk && suitActivateFailStable
-                    && suitUpgradeOk && suitUpgradeFailStable && failNoThrow && figurePushNoThrow && viewUpgradedOk && nameOk
+                    && suitUpgradeOk && suitUpgradeFailStable && failNoThrow && figurePushNoThrow && viewUpgradedOk && nameOk && fightDisplayOk
                     && suitViewOk && suitConditionGateOk && levelViewOk;
                 Debug.Log("CLIVERIFY fashion VERDICT secondKnifeConfigOk=" + secondKnifeConfigOk
                     + " secondKnifeC2sOk=" + secondKnifeC2sOk + " infoOk=" + infoOk + " activateOk=" + activateOk + " wearOk=" + wearOk
@@ -362,7 +368,7 @@ namespace Shenxiao.EditorTools
                     + " suitSnapshotOk=" + suitSnapshotOk + " suitActivateOk=" + suitActivateOk
                     + " suitActivateFailStable=" + suitActivateFailStable + " suitUpgradeOk=" + suitUpgradeOk
                     + " suitUpgradeFailStable=" + suitUpgradeFailStable + " failNoThrow=" + failNoThrow + " figurePushNoThrow=" + figurePushNoThrow
-                    + " viewUpgradedOk=" + viewUpgradedOk + " nameOk=" + nameOk + " suitViewOk=" + suitViewOk
+                    + " viewUpgradedOk=" + viewUpgradedOk + " nameOk=" + nameOk + " fightDisplayOk=" + fightDisplayOk + " suitViewOk=" + suitViewOk
                     + " suitConditionGateOk=" + suitConditionGateOk
                     + " levelViewOk=" + levelViewOk + " pass=" + pass);
                 return pass ? 0 : 3;

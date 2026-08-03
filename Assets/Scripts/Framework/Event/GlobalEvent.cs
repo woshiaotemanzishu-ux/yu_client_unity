@@ -314,6 +314,9 @@ namespace Shenxiao.Framework.Event
         /// EventName.CAN_USE_THIS_NAME;SettingChangeNameView 监听后弹二次确认,确定才发 42601。
         /// RoleController.On42604 发。</summary>
         public const string EVT_ROLE_RENAME_CHECK_PASSED = "EVT_ROLE_RENAME_CHECK_PASSED";
+
+        /// <summary>42604 改名预检失败；设置改名窗据此解除单飞，允许修正后重试。</summary>
+        public const string EVT_ROLE_RENAME_CHECK_FAILED = "EVT_ROLE_RENAME_CHECK_FAILED";
         /// <summary>改名提交成功(无参)。42601 result==1 时发;Figure.Name 的更新走既有 12086 广播路径
         /// (SceneController.On12086 自身分流),此事件只负责关窗,勿在此重复改名。RoleController.On42601 发。</summary>
         public const string EVT_ROLE_RENAME_SUCCESS = "EVT_ROLE_RENAME_SUCCESS";

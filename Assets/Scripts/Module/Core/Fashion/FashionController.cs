@@ -24,6 +24,7 @@ namespace Shenxiao.Module.Core.Fashion
 #endif
 
         private FashionController() { }
+        private readonly HashSet<long> _pendingPowerRequests = new HashSet<long>();
 
         protected override void Register()
         {
@@ -46,6 +47,7 @@ namespace Shenxiao.Module.Core.Fashion
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
+            _pendingPowerRequests.Clear();
             FashionModel.Instance.Clear();
             base.Dispose();
         }
@@ -187,6 +189,8 @@ namespace Shenxiao.Module.Core.Fashion
         public void RequestPower(int posId, int fashionId)
         {
             if (posId <= 0 || fashionId <= 0) return;
+            long key = ((long)posId << 40) | (uint)fashionId;
+            if (!_pendingPowerRequests.Add(key)) return;
             SendFmt(Proto.FASHION_POWER, "ci", posId, fashionId);
         }
 
@@ -244,6 +248,7 @@ namespace Shenxiao.Module.Core.Fashion
             int code = (int)r.ReadU32();
             int posId = r.ReadU8();
             int fashionId = (int)r.ReadU32();
+            _pendingPowerRequests.Remove(((long)posId << 40) | (uint)fashionId);
             int colorId = r.ReadU8();
             int type = r.ReadU8();
             if (code != 1)

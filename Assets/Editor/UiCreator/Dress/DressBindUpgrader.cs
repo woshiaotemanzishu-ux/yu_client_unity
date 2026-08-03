@@ -15,20 +15,7 @@ namespace Shenxiao.Editor.UiCreator.Dress
     {
         private const string ModulePath = "Assets/Prefabs/UI/Dress/DressModule.prefab";
 
-        [InitializeOnLoadMethod]
-        private static void Register()
-        {
-            UiRebuildRegistry.Register(new UiCreatorEntry
-            {
-                Module = "Dress",
-                Name = "DressModule(装扮 Bind 升级)",
-                Note = "增量升级 6 个业务组件，并把列表布局与战力文字直接保存到 Prefab。",
-                Order = 98,
-                Generate = () => Generate(),
-                PrefabPath = ModulePath,
-            });
-        }
-
+        // DressModule 已由人工 Prefab 接管，不再进入批量重建注册表；本方法仅供显式修复旧产物。
         public static bool Generate()
         {
             if (!LayaBindFiller.FillPrefab(ModulePath))

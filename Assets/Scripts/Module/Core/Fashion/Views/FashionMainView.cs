@@ -16,7 +16,7 @@ namespace Shenxiao.Module.Core.Fashion
     /// (spec 裁决:FashionMainView + HeadFashionMainView 用同一个 View 类 + posId 参数)。
     ///
     /// 覆盖 8 活号:41300(全量)/41301(Type2解锁颜色)/41302(穿戴)/41303(卸下)/41304(激活)/
-    /// 41306(基础色进阶)/41312(战力,请求即可,展示留 TODO)/41316(彩色进阶)。
+    /// 41306(基础色进阶)/41312(按颜色展示当前与下一阶战力)/41316(彩色进阶)。
     /// 41305(部位等级)由 _img_grade 打开 FashionLevelView；41313-15 套装由 FashionFlow 第四个页签承载。
     ///
     /// "能点能用即可,不求像素级"(spec 裁决12):列表按横排铺开,不做虚拟滚动/裁剪遮罩;
@@ -38,6 +38,7 @@ namespace Shenxiao.Module.Core.Fashion
         private readonly List<FashionColorItem> _colorPool = new List<FashionColorItem>();
         private readonly List<FashionAttrItem> _attrPool = new List<FashionAttrItem>();
         private Common.BaseAwardItem _awardItem;
+        private FightingShowSmallItem _fightItem;
 
         public int PosId => _posId;
 
@@ -54,6 +55,8 @@ namespace Shenxiao.Module.Core.Fashion
 
         protected override void OnInit()
         {
+            _fightItem = transform.Find("_box_fight")?.GetComponentInChildren<FightingShowSmallItem>(true);
+            if (_fightItem == null) GameLog.Warn("Fashion", "FashionMainView Prefab 缺 _box_fight/FightingShowSmallItem");
             BindButtons();
             Subscribe();
         }
@@ -301,7 +304,19 @@ namespace Shenxiao.Module.Core.Fashion
             }
             RefreshAttrs(curRow, nextRow);
 
-            FashionController.Instance.RequestPower(_posId, _selectedFashionId);
+            List<FashionModel.PowerEntry> powers = FashionModel.Instance.GetPower(_posId, _selectedFashionId);
+            RefreshPower(powers);
+            if (powers == null) FashionController.Instance.RequestPower(_posId, _selectedFashionId);
+        }
+
+        private void RefreshPower(List<FashionModel.PowerEntry> powers)
+        {
+            if (_fightItem == null) return;
+            FashionModel.PowerEntry selected = powers?.Find(item => item.ColorId == _selectedColorId);
+            long power = selected?.Power ?? 0;
+            long increase = selected != null && selected.NextPower > selected.Power ? selected.NextPower - selected.Power : 0;
+            _fightItem.SetFighting(power);
+            _fightItem.SetFightingUp(increase);
         }
 
         /// <summary>颜色档位:index0=基础色(0) + 已配置的非0色,共"颜色数+1"格(对标老端排布说明)。</summary>
@@ -438,7 +453,7 @@ namespace Shenxiao.Module.Core.Fashion
             while (pool.Count < need) pool.Add(factory());
         }
 
-        // ---------------------------------------------------------------- TODO(本轮不做,记录给下一刀/资产组)
+        // ---------------------------------------------------------------- TODO(需要独立 3D 预览资产管线)
         // 1. 3D 角色预览(_box_model):老端 ResManager.SetRoleModel 把选中时装套到主角模型上展示,scale 1.2。
         //    Unity 没有等价"UI 内嵌 3D 预览台"组件,需要仿 SceneCharacterStage 搭一个,工作量超出"第一刀"。
         // 2. 染色贴图(GameResPath.GetFashionPath):3D 模型换色贴图管线,资产 1651 个 jpg 未导入
@@ -449,6 +464,6 @@ namespace Shenxiao.Module.Core.Fashion
         //    但主界面已在跑的 3D 模型不会热更(Scene/MainRoleFlow.cs 只在 EVT_SCENE_MAP_READY 时重建整只模型,
         //    没有"figure 变了就地刷新"的订阅通道,且该文件不在本包所有权内)——留给下一次碰 Scene 家族的人接上
         //    EVT_FASHION_UPDATE(或专门加一个更精确的形象刷新事件)。
-        // 4. 套装页(FashionSuitView,41313-15)与部位等级(FashionLevelView,41305)已由 FashionFlow 接线。
+        // 4. 41312 战力已由 Prefab 内 _box_fight/FightingShowSmallItem 消费；套装页与部位等级已接线。
     }
 }

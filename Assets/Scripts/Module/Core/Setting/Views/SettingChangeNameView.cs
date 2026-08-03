@@ -4,6 +4,7 @@ using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
 using Shenxiao.Framework.UI;
 using Shenxiao.Module.Core.Bag;
+using Shenxiao.Module.Core.Baby;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,9 +19,9 @@ namespace Shenxiao.Module.Core.Setting
     /// 协议链(轮5 接线,对标老端 RoleController.ts On42602/On42604/On42601):
     ///   打开:SettingView._btn_changename 点击 → RoleController.RequestRenameFreeCheck 发 42602 →
     ///        On42602 回包 → SettingFlow.OpenSub(本窗, result) 打开(is_free = result==1)。
-    ///   confirmBtn:本地预检(非空 + 长度 4~12,对标服务端 pt_426 not_enough_length 实测提示"4-12个字符",
-    ///        **与老端 TS 假设的"2~6个汉字"不同,以服务端为准**;老端本地敏感词过滤 Util.HasFilterWord 未移植,
-    ///        TODO 待敏感词表接入后补一道本地拦截)→ 按 is_free/改名卡(38210001)库存/勾玉(300)余额决定
+    ///   confirmBtn:本地预检(按老端字符宽度口径校验 4~12 + ConfigLanguageMask 敏感词，
+    ///        **与老端 TS 文案假设的"2~6个汉字"不同,以当前服务端 4~12 提示为准**)→
+    ///        按 is_free/改名卡(38210001)库存/勾玉(300)余额决定
     ///        type(免费优先,改名卡优先于勾玉,对标老端 ticket_enough_ 先判)→ 发 42604。
     ///   42604 result==1 → EVT_ROLE_RENAME_CHECK_PASSED(name,type)→ 二次确认弹窗 → 确定发 42601。
     ///   42601 result==1 → toast「改名成功」;Figure.Name 的更新走既有 12086 广播路径(勿双改,
@@ -35,10 +36,13 @@ namespace Shenxiao.Module.Core.Setting
         private const int GOLD_COST = 300;            // 勾玉花费(对标服务端 data_rename:get_cfg(3))
 
         private bool _isFree;
+        private bool _pending;
         private bool _subscribed;
+        private int _showVersion;
 
         protected override void OnInit()
         {
+            if (InptextDisplay != null) InptextDisplay.characterLimit = 12;
             HideTemplates();
             BindClose(_close_btn);
             BindClose(cancleBtn);
@@ -54,6 +58,7 @@ namespace Shenxiao.Module.Core.Setting
         {
             if (_subscribed) return;
             EventDispatcher.On<string, int>(GlobalEvent.EVT_ROLE_RENAME_CHECK_PASSED, OnCheckPassed);
+            EventDispatcher.On(GlobalEvent.EVT_ROLE_RENAME_CHECK_FAILED, OnRenameFailed);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_RENAME_SUCCESS, OnRenameSuccess);
             _subscribed = true;
         }
@@ -62,6 +67,7 @@ namespace Shenxiao.Module.Core.Setting
         {
             if (!_subscribed) return;
             EventDispatcher.Off<string, int>(GlobalEvent.EVT_ROLE_RENAME_CHECK_PASSED, OnCheckPassed);
+            EventDispatcher.Off(GlobalEvent.EVT_ROLE_RENAME_CHECK_FAILED, OnRenameFailed);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_RENAME_SUCCESS, OnRenameSuccess);
             _subscribed = false;
         }
@@ -69,6 +75,8 @@ namespace Shenxiao.Module.Core.Setting
         /// <summary>args = 42602 回包 result(1=免费/2=否,由 RoleController.On42602 透传)。</summary>
         protected override void OnShow(object args)
         {
+            _showVersion++;
+            _pending = false;
             _isFree = args is int freeResult && freeResult == 1;
             if (free_label != null) free_label.gameObject.SetActive(_isFree);
             if (cost_conta != null) cost_conta.gameObject.SetActive(!_isFree);
@@ -78,7 +86,18 @@ namespace Shenxiao.Module.Core.Setting
                 if (cost2 != null) cost2.text = GOLD_COST.ToString();
             }
             if (InptextDisplay != null) InptextDisplay.text = string.Empty;
+
+            Canvas.ForceUpdateCanvases();
+            if (transform is RectTransform root) LayoutRebuilder.ForceRebuildLayoutImmediate(root);
+            Canvas.ForceUpdateCanvases();
+            _ = BabyNameMask.EnsureLoaded();
             GameLog.Info("Setting", "SettingChangeNameView 打开: isFree={0}", _isFree);
+        }
+
+        protected override void OnHide()
+        {
+            _showVersion++;
+            _pending = false;
         }
 
         /// <summary>消耗道具模板(BaseAwardItem 克隆源)未移植先隐藏。GameObject 用 SetActive,不走 HideNode。</summary>
@@ -95,19 +114,24 @@ namespace Shenxiao.Module.Core.Setting
             UIUtil.AddClick(img, OnConfirmClick);
         }
 
-        private void OnConfirmClick()
+        private async void OnConfirmClick()
         {
-            string name = InptextDisplay != null ? (InptextDisplay.text ?? string.Empty).Trim() : string.Empty;
-            if (string.IsNullOrEmpty(name))
-            {
-                TipsManager.Toast("名字不能为空");
-                return;
-            }
-            // 服务端 guard 实测长度 4~12 个字符(对标 pt_426 not_enough_length,提示"长度为4-12个字符");
-            // 老端本地敏感词过滤(Util.HasFilterWord)未移植,TODO:接入敏感词表后此处补一道本地拦截。
-            if (name.Length < 4 || name.Length > 12)
+            if (_pending) return;
+            string name = BabyRenameView.NormalizeName(InptextDisplay != null ? InptextDisplay.text : string.Empty);
+            if (!BabyRenameView.IsValidLength(name))
             {
                 TipsManager.Toast("名字长度需为 4-12 个字符");
+                return;
+            }
+
+            int version = _showVersion;
+            _pending = true;
+            await BabyNameMask.EnsureLoaded();
+            if (!_pending || version != _showVersion || !IsShown) return;
+            if (BabyNameMask.Contains(name))
+            {
+                _pending = false;
+                TipsManager.Toast("内容含有敏感词");
                 return;
             }
 
@@ -126,7 +150,8 @@ namespace Shenxiao.Module.Core.Setting
             }
             else
             {
-                TipsManager.Toast("改名卡不足/勾玉不足");
+                _pending = false;
+                TipsManager.Toast("改名卡不足，元宝不足");
                 return;
             }
 
@@ -135,15 +160,23 @@ namespace Shenxiao.Module.Core.Setting
 
         private void OnCheckPassed(string name, int type)
         {
-            if (!IsShown) return;
+            if (!IsShown)
+            {
+                _pending = false;
+                return;
+            }
             TipsManager.Confirm("是否确定使用『" + name + "』作为新名字？",
-                () => RoleController.Instance.SubmitRename(name, type));
+                () => RoleController.Instance.SubmitRename(name, type),
+                () => _pending = false);
         }
 
         private void OnRenameSuccess()
         {
+            _pending = false;
             if (IsShown) Hide();
         }
+
+        private void OnRenameFailed() => _pending = false;
 
         /// <summary>关闭/取消按钮(Image 或含 Image 容器)→ Hide(关闭本窗)。</summary>
         private void BindClose(Component target)

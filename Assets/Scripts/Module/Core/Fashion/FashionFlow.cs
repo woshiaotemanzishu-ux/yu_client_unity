@@ -100,9 +100,13 @@ namespace Shenxiao.Module.Core.Fashion
             try
             {
                 Transform layer = ViewManager.GetLayer(UILayer.Window);
-                _frameRoot = await MainUIRouteFallback.InstantiateOrShowAsync(CONTENT_MODULE, "Fashion", frameKey, layer);
-                _contentRoot = await MainUIRouteFallback.InstantiateOrShowAsync(CONTENT_MODULE, "Fashion", contentKey, layer);
-                _dressRoot = await MainUIRouteFallback.InstantiateOrShowAsync(DRESS_MODULE, "Dress", dressKey, layer);
+                Task<GameObject> frameTask = MainUIRouteFallback.InstantiateOrShowAsync(CONTENT_MODULE, "Fashion", frameKey, layer);
+                Task<GameObject> contentTask = MainUIRouteFallback.InstantiateOrShowAsync(CONTENT_MODULE, "Fashion", contentKey, layer);
+                Task<GameObject> dressTask = MainUIRouteFallback.InstantiateOrShowAsync(DRESS_MODULE, "Dress", dressKey, layer);
+                await Task.WhenAll(frameTask, contentTask, dressTask);
+                _frameRoot = frameTask.Result;
+                _contentRoot = contentTask.Result;
+                _dressRoot = dressTask.Result;
             }
             catch (Exception exception)
             {

@@ -119,6 +119,7 @@ namespace Shenxiao.Module.Core.Fashion
         public void Apply41300(List<PosWire> posList)
         {
             if (posList == null) return;
+            _power.Clear();
             foreach (PosWire row in posList)
             {
                 PosInfo p = GetOrCreatePos(row.PosId);
@@ -146,6 +147,7 @@ namespace Shenxiao.Module.Core.Fashion
         /// (理论不该发生,41301 前提是已激活)先补一条基础壳,避免空引用。</summary>
         public void Apply41301(int posId, int fashionId, int colorId)
         {
+            InvalidatePower(posId, fashionId);
             PosInfo p = GetOrCreatePos(posId);
             if (p.WearFashionId <= 0) p.WearFashionId = fashionId;
             FashionEntry e = p.GetActive(fashionId);
@@ -179,6 +181,7 @@ namespace Shenxiao.Module.Core.Fashion
         /// 穿戴由 Controller 紧接着自动发的 41302 完成,这里不动 wear_fashion_id。</summary>
         public void Apply41304(int posId, int fashionId)
         {
+            InvalidatePower(posId, fashionId);
             PosInfo p = GetOrCreatePos(posId);
             FashionEntry e = p.GetActive(fashionId);
             if (e == null)
@@ -199,6 +202,7 @@ namespace Shenxiao.Module.Core.Fashion
             if (!_pos.TryGetValue(posId, out PosInfo p)) return false;
             p.PosLv = posLv;
             p.PosUpgradeNum = posUpgradeNum;
+            InvalidatePositionPower(posId);
             return true;
         }
 
@@ -206,6 +210,7 @@ namespace Shenxiao.Module.Core.Fashion
         /// 若该档正是当前穿的颜色,顶层 StarLv 同步刷新(对标老端"list.now_color_id==色id 才更新展示星级"分支)。</summary>
         public void Apply41306(int posId, int fashionId, int colorId, int newStarLv)
         {
+            InvalidatePower(posId, fashionId);
             FashionEntry e = GetActive(posId, fashionId);
             if (e == null) return;
             if (colorId == 0)
@@ -226,6 +231,15 @@ namespace Shenxiao.Module.Core.Fashion
         public void Apply41312(int posId, int fashionId, List<PowerEntry> colorPowers)
         {
             _power[PowerKey(posId, fashionId)] = colorPowers;
+        }
+
+        private void InvalidatePower(int posId, int fashionId) => _power.Remove(PowerKey(posId, fashionId));
+
+        private void InvalidatePositionPower(int posId)
+        {
+            var remove = new List<long>();
+            foreach (long key in _power.Keys) if ((int)(key >> 40) == posId) remove.Add(key);
+            for (int i = 0; i < remove.Count; i++) _power.Remove(remove[i]);
         }
 
         /// <summary>41313 套装全量快照。先清旧表再落地；服务端也会用同号主动推送最新快照。</summary>

@@ -13,6 +13,22 @@ description: 对照老 Web 客户端与 Unity，先枚举页面全部控件并�
 
 开始前读取 [references/yu-client-unity-runbook.md](references/yu-client-unity-runbook.md)。新建或重开路线时，同时读取 [references/route-ledger-schema.md](references/route-ledger-schema.md)并先生成台账。路径、账号或发布地址与项目权威文档冲突时，以当前文档和运行事实为准并更新参考文件。
 
+## 0. 低成本批处理通道
+
+把“发现”和“修复”拆成两种节奏，避免为每个按钮重复启动、截图、编译和重新加载上下文：
+
+1. **一次枚举**：老端运行态只负责确认页面身份、条件显隐、文本和交互语义；同一页面的固定控件列表随后从老端源码、Unity Bind/Prefab 和配置交叉生成，不逐按钮反复截图。
+2. **一次建账**：先写一个精简 manifest，再运行 `python scripts/route_ledger.py init <manifest.json> <route-ledger.json>`。每批测试只写实际跑过叶子的紧凑`results.json`，用`apply`合并并自动回卷父状态；每个节点只保存差异、风险、证据路径和闸口布尔值，用`validate`阻止父节点提前完成。
+3. **按风险分批**：只读叶子一批；可恢复写入逐项执行并立即还原；破坏性写入只在专用测试态或明确授权下执行。协议帧、状态更新和返回链可在同一次 Unity CLI 会话中批量验证。
+4. **按修改面编译**：纯 C# 先离线编译和定向 case；Prefab/资源累计到一批后再起一次隔离 Unity；Web 壳只在整条路线 CLI 收口后构建。禁止每修一个按钮就全量打包。
+5. **复用热状态**：Browser MCP 保持一个老端 tab；Unity route case 保持同一登录/模型快照。cold 只测一次，warm 至少测一次，不用重复登录制造无意义耗时。
+6. **证据去重**：页面级截图挂父节点，协议日志/断言挂叶子。多个叶子共用同一页面事实时引用同一路径，不复制大段截图或日志。
+7. **模型开销分层**：确定性的枚举、台账校验、资源闭包和协议帧解析交给脚本；模型只处理视觉判断、跨模块根因和修复决策。除非用户明确要求，不为机械枚举另开高成本代理。
+
+若用户要求“做完全部”，仍按深度优先逐叶收口；批处理只减少重复运行，不降低任何叶子闸口。
+
+Unity CLI 的成功依据必须是业务入口写出的 `VERDICT pass=True`，不能只看进程退出码。项目的 `CliVerify.Run` 会在用例完成后主动退出 Editor，调用这类入口时不要再传 `-quit`：代码刚改动触发 AssetDatabase 编译/域重载时，`-quit` 可能在 `executeMethod` 尚未执行前正常退出并返回 0。一次批次用一个 suite 串行跑多个 case，日志中既要有每段 `code=0`，也要有 suite 总 `VERDICT`。
+
 ## 1. 预检与隔离
 
 1. 按项目 `AGENTS.md` 读取全局记忆索引、项目记忆、`Docs/README.md` 及当前模块权威文档。
@@ -72,6 +88,13 @@ description: 对照老 Web 客户端与 Unity，先枚举页面全部控件并�
 8. 截取修复后同状态画面，并恢复所有可恢复的账号设置。
 
 任一层失败都保留日志并回到诊断。报告必须分开标记“CLI 真实 Prefab 点击已通过”和“部署后 Web 已通过”。
+
+台账提交或交付前运行：
+
+```powershell
+python .agents/skills/audit-game-ui-route/scripts/route_ledger.py apply <route-ledger.json> <results.json>
+python .agents/skills/audit-game-ui-route/scripts/route_ledger.py validate <route-ledger.json>
+```
 
 ## 7. 记录与收口
 

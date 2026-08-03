@@ -286,10 +286,22 @@ namespace Shenxiao.Module.Core.Login
         /// <summary>从 AgreementAlert 的富文本链接打开独立协议/隐私详情页。</summary>
         public static void OpenAgreementDocument(int type)
         {
-            if (_agreementView == null) return;
+            _ = OpenAgreementDocumentAsync(type);
+        }
+
+        private static async Task OpenAgreementDocumentAsync(int type)
+        {
             int style = _config != null ? _config.agreementType : 2;
             string suffix = _config != null ? _config.agreementNameSuffix : "shenhai";
-            _agreementView.Show(new LoginAgreementArgs(style, type, suffix));
+            var args = new LoginAgreementArgs(style, type, suffix);
+            if (_agreementView != null)
+            {
+                _agreementView.Show(args);
+                return;
+            }
+
+            // 场景首屏完成后登录模块会释放全部登录实例；设置页仍需独立打开协议正文。
+            await ViewManager.Open<LoginUserAgreementView>(args);
         }
 
         /// <summary>协议弹层 同意/不同意 的结果:同意→勾选 + 按账号持久化;不同意→不勾选。不勾选无法踏入仙界。</summary>

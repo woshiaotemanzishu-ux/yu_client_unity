@@ -1842,3 +1842,12 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **修复**：新增 `role_assembly_profile.json` 与 `ArtModelRenderProfile.attachmentSpaceScale`。1201 记录 `0.26913473`，运行时统一乘到头饰、武器、翅膀、背饰；身体保持当前天然体型，共享附件不做全局补丁。1201 的 create3/death/idle/jump/run/walk 全部固定采用 idle 的 `landingScale=1.3540467`，只保留各自动作落点。
 - **门禁**：导入器识别角色装配档案，按 canonical 动作统一体量并把角色级倍率烤入每个 prefab；新增 `CliVerify.RoleAttachmentSpace`，验证同一 1213 头饰跨 1201/1213 的最终世界尺度一致、1201 本体未改和全动作不跳体型。
 - **验证状态**：`dotnet build Assembly-CSharp-Editor.csproj` 完成，既有 warning、0 error；现有 Unity 编辑器持续检测到用户前台输入，本轮未抢占窗口执行 GUI 专项，专用菜单「神霄/验证/1201 角色附件空间」已保留供同进程复跑。
+
+## 2026-08-03：设置完整功能树与头像/Dress闭环（R623）
+
+- **设置主窗**：完成基础/屏蔽双页签、四滑杆、三项自动拾取、十项屏蔽、功能门控、自动任务、复制ID、用户协议/隐私、恢复默认、脱困以及三个危险操作确认取消。屏蔽页和动态协议页补首帧布局刷新，避免节点可见但射线仍停在旧位置；公共确认框同样在显示时完成布局。
+- **改名**：跑通42602资格→本地4～12宽度/敏感词校验→42604服务校验→二次确认→42601提交。成功后当前设置页立即刷新，子窗关闭，重新打开设置和改名窗仍保持权威名字；失败、取消和关闭均释放单飞锁。
+- **头像与时装**：设置稳定直达外层“装扮”/内层“头像”；外层时装/发饰/装扮/套装和内层气泡/相框/头像全部真实点击通过。三模块并行冷开2747ms、热开243ms，资源目录零新增。41312战力按复合键缓存与在途去重，Prefab直接保存战力展示锚点。
+- **Dress写事务**：按产品授权恢复11201/11202/11203/11205，完成配置/等级/材料双校验、确认指纹、同页互斥单飞、成功权威更新、失败保旧和预计战力复合键；11204其他玩家场景广播继续hard-negative。GAME_START仍只发11200的`1→2→3→5`。
+- **Prefab与流程**：`SettingModule/DressModule/FashionModule.prefab`继续作为视觉唯一事实源，设置Creator和Dress/Fashion升级器退出自动重建注册表。巡检Skill增加机器台账`init/apply/validate`、单Unity进程suite和“退出码0但无VERDICT不算通过”规则。
+- **验证状态**：设置路线54节点（46叶）全部`done`；`SettingsFullSuite`的`Dress/SettingFullRoute/SettingFashionCurrent/Fashion/SettingPk/ProtocolCoverage`全部code=0且总`VERDICT pass=True`。最终`coverage_20260803_221025.md`为A～M全PASS，`registered=1260/liveGap=327/errorExit=20`，治理分类`81+246+0=327`。

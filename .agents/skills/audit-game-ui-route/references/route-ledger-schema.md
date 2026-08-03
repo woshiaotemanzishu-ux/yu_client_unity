@@ -12,6 +12,20 @@
 
 父节点的状态由子节点推导。只要存在 `defect / fixing / needs-runtime-verify / blocked / not-run / baseline-only`，父节点就不得是 `done`。
 
+## 机器台账
+
+长表只用于最终报告；执行期优先维护 JSON。先准备只含 `route` 与 `nodes[]` 的 manifest，每个节点至少含 `id`，可选 `parent/type/risk`，然后运行：
+
+```powershell
+python .agents/skills/audit-game-ui-route/scripts/route_ledger.py init manifest.json route-ledger.json
+python .agents/skills/audit-game-ui-route/scripts/route_ledger.py apply route-ledger.json results.json
+python .agents/skills/audit-game-ui-route/scripts/route_ledger.py validate route-ledger.json
+```
+
+`results.json`只需列本批实际跑过的叶子，格式为`[{"id":"...","status":"done","applicable_gates":[...],"gates":{...},"evidence":[...]}]`。`apply`会合并证据并自底向上推导父节点，避免模型反复重写整张长表；未知ID、缺闸或错误父状态会直接失败。
+
+叶子标 `done` 时，`gates` 中所有适用闸必须为 `true`。默认闸名是 `click/result/protocol/immediate/reopen/return_chain/timing/visual_version/restore`；不适用项应从该节点的 `applicable_gates` 中显式移除，不得留空后宣称完成。父节点标 `done` 时所有直接子节点都必须是 `done`。
+
 ## 台账表
 
 | ID | 父节点 | 类型 | 叶子操作/结果 | 老端基线 | Unity 现状 | 即时 UI/Model | 关闭重开 | cold/warm | 版本视觉 | 写入风险 | 状态 | 证据 |

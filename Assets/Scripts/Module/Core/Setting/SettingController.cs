@@ -45,14 +45,7 @@ namespace Shenxiao.Module.Core.Setting
         private void OnGameStart() { SettingModel.ClearWxSubscriptionSwitch(); RequestWxSubscriptionSwitch(); }
         public void RequestWxSubscriptionSwitch()
         {
-#if UNITY_EDITOR
-            if (s_outboundIntercept != null)
-            {
-                byte[] frame = UserMsgAdapter.Encode(Proto.SETTING_WX_SUBSCRIPTION_SWITCH, null, null);
-                if (s_outboundIntercept(frame)) return;
-            }
-#endif
-            SendFmt(Proto.SETTING_WX_SUBSCRIPTION_SWITCH);
+            SendRequest(Proto.SETTING_WX_SUBSCRIPTION_SWITCH);
         }
 
         /// <summary>批量写设置(对标老端 PackageAndSend10203)。entries=(subtype,is_open)。</summary>
@@ -72,7 +65,7 @@ namespace Shenxiao.Module.Core.Setting
             }
 
             _pending.Enqueue(new KeyValuePair<int, List<KeyValuePair<int, int>>>(type, entries));
-            SendFmt(Proto.SETTING_WRITE, fmt.ToString(), args);
+            SendRequest(Proto.SETTING_WRITE, fmt.ToString(), args);
             GameLog.Info("Setting", "request 10203 写设置 {0} 项(type={1})", entries.Count, type);
         }
 
@@ -89,8 +82,20 @@ namespace Shenxiao.Module.Core.Setting
         public void SendFlee(int sceneId)
         {
             if (sceneId <= 0) return;
-            SendFmt(Proto.SETTING_FLEE, "i", sceneId);
+            SendRequest(Proto.SETTING_FLEE, "i", sceneId);
             GameLog.Info("Setting", "request 10210 脱离卡死 scene={0}", sceneId);
+        }
+
+        private void SendRequest(int command, string format = null, params object[] args)
+        {
+#if UNITY_EDITOR
+            if (s_outboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(command, format, args);
+                if (s_outboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(command, format, args);
         }
 
         private void On10203(NetReader r)

@@ -31,6 +31,9 @@ namespace Shenxiao.Module.Core.Role
 
         /// <summary>上一次 42604 校验发送时携带的 type,42604 通过后原样透传给二次确认→42601(单流程内无并发,足够)。</summary>
         private int _pendingRenameType;
+#if UNITY_EDITOR
+        private static System.Func<byte[], bool> s_renameOutboundIntercept;
+#endif
 
         protected override void Register()
         {
@@ -380,21 +383,33 @@ namespace Shenxiao.Module.Core.Role
         // ===================== 改名(轮5;42601/42602/42604)=====================
 
         /// <summary>查询是否免费改名(改名入口按钮点击发,裸请求)。</summary>
-        public void RequestRenameFreeCheck() => SendFmt(Proto.RENAME_FREE_CHECK);
+        public void RequestRenameFreeCheck() => SendRename(Proto.RENAME_FREE_CHECK);
 
         /// <summary>改名合法性预检(对标老端确认发送前的 42604)。type 见 RENAME_TYPE_*。</summary>
         public void CheckRename(string name, int type)
         {
             _pendingRenameType = type;
-            SendFmt(Proto.RENAME_CHECK, "si", name, type);
+            SendRename(Proto.RENAME_CHECK, "si", name, type);
             GameLog.Info("Role", "send 42604 改名校验 name={0} type={1}", name, type);
         }
 
         /// <summary>提交改名(42604 通过 + 二次确认后发)。</summary>
         public void SubmitRename(string name, int type)
         {
-            SendFmt(Proto.RENAME_SUBMIT, "si", name, type);
+            SendRename(Proto.RENAME_SUBMIT, "si", name, type);
             GameLog.Info("Role", "send 42601 改名提交 name={0} type={1}", name, type);
+        }
+
+        private void SendRename(int command, string format = null, params object[] args)
+        {
+#if UNITY_EDITOR
+            if (s_renameOutboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(command, format, args);
+                if (s_renameOutboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(command, format, args);
         }
 
         /// <summary>42602 是否免费改名 "i"。收到后打开改名窗(result 作为 is_free 参数透传),
@@ -420,6 +435,7 @@ namespace Shenxiao.Module.Core.Role
             else
             {
                 TipsManager.Toast(FormatRenameMsg(result));
+                EventDispatcher.Emit(GlobalEvent.EVT_ROLE_RENAME_CHECK_FAILED);
             }
         }
 
@@ -439,6 +455,7 @@ namespace Shenxiao.Module.Core.Role
             else
             {
                 TipsManager.Toast(FormatRenameMsg(result));
+                EventDispatcher.Emit(GlobalEvent.EVT_ROLE_RENAME_CHECK_FAILED);
             }
         }
 

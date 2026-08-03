@@ -127,21 +127,8 @@ namespace Shenxiao.Editor.UiCreator.Setting
 
         private static GameObject _previewInstance;
 
-        [InitializeOnLoadMethod]
-        private static void Register()
-        {
-            UiRebuildRegistry.Register(new UiCreatorEntry
-            {
-                Module = "Setting",
-                Name = "SettingModule(系统设置)",
-                Note = "主窗(角色信息+四滑条+自动拾取+勾选项+屏蔽列表+底部五钮) + 改头像/改名子窗 + 三模板",
-                Order = 10,
-                Generate = Generate,
-                Preview = Preview,
-                PrefabPath = PrefabPath,
-            });
-        }
-
+        // SettingModule 已进入人工精修阶段，不再注册到批量重建面板。
+        // Generate 仅保留为历史诊断/灾难恢复入口，日常修改必须直接编辑当前 Prefab。
         public static void Generate()
         {
             // 1:1 几何事实源:运行时快照(缺失只告警,全部几何回退设计值)。

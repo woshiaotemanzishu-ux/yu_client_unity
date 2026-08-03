@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Shenxiao.Framework.Res;
+using Shenxiao.Framework.Net;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Common;
 using Shenxiao.Module.Core.Common;
@@ -26,7 +27,7 @@ namespace Shenxiao.EditorTools
 {
     /// <summary>
     /// 设置 → 更换头像 → 当前版时装/装扮/头像的真实 Prefab 点击验收。
-    /// 同时覆盖外层四页签、装扮三子页、条目预览切换、写协议硬拦截与首次/热开耗时。
+    /// 同时覆盖外层四页签、装扮三子页、条目预览切换、穿戴/卸下即时刷新与首次/热开耗时。
     /// </summary>
     public static class SettingFashionCurrentCase
     {
@@ -151,22 +152,30 @@ namespace Shenxiao.EditorTools
                 bool itemChanged = itemClick && sub != null && sub.SelectedId != beforeSelected
                     && sub.model_img != null && sub.model_img.sprite != null && !string.IsNullOrWhiteSpace(sub.dress_name?.text);
 
-                // 11201/11202/11203 受项目硬约束：页面按钮可达，但本轮必须零发送，不能用孤立 ACK 伪完成。
-                Component blockedAction = sub?.activite_btn != null && sub.activite_btn.gameObject.activeInHierarchy
-                    ? sub.activite_btn
-                    : sub?.use_btn != null && sub.use_btn.gameObject.activeInHierarchy
-                        ? sub.use_btn
-                        : null;
+                // 返回已激活头像，真实点击“卸下→使用”，分别喂权威回包并断言父页即时刷新。
+                DressItem activeItem = items.FirstOrDefault(item => item.DressId == activeHead.Id);
+                bool activeItemClick = activeItem != null && Click(activeItem.ClickSurface, camera, raycaster, eventSystem);
+                await Task.Delay(150);
                 frames.Clear();
-                bool blockedButtonClick = itemChanged && blockedAction != null
-                    && Click(blockedAction, camera, raycaster, eventSystem);
-                await Task.Delay(100);
-                ushort[] observedCommands = frames
-                    .Where(frame => frame != null && frame.Length >= 6)
-                    .Select(frame => (ushort)((frame[4] << 8) | frame[5]))
-                    .ToArray();
-                bool blockedWrites = blockedButtonClick
-                    && !observedCommands.Any(command => command >= 11201 && command <= 11203);
+                bool takeOffClick = activeItemClick && sub != null && Click(sub.use_btn, camera, raycaster, eventSystem);
+                bool takeOffFrame = frames.Count == 1 && Command(frames[0]) == Proto.DRESS_TAKE_OFF;
+                MethodInfo on11203 = typeof(DressController).GetMethod("On11203", BindingFlags.Instance | BindingFlags.NonPublic);
+                Feed(on11203, new CliVerify.Pkt().I(1).C(DressView.HeadType).I(activeHead.Id).Bytes());
+                await Task.Delay(150);
+                bool takeOffImmediate = sub != null && sub.use_btn_label != null && sub.use_btn_label.text == "使用"
+                    && DressModel.Instance.TryGet(DressView.HeadType, out DressModel.Snapshot takenOff)
+                    && takenOff.UsedDressId == 0;
+
+                frames.Clear();
+                bool useClick = takeOffImmediate && Click(sub.use_btn, camera, raycaster, eventSystem);
+                bool useFrame = frames.Count == 1 && Command(frames[0]) == Proto.DRESS_USE;
+                MethodInfo on11202 = typeof(DressController).GetMethod("On11202", BindingFlags.Instance | BindingFlags.NonPublic);
+                Feed(on11202, new CliVerify.Pkt().I(1).C(DressView.HeadType).I(activeHead.Id).Bytes());
+                await Task.Delay(150);
+                bool useImmediate = sub.use_btn_label != null && sub.use_btn_label.text == "卸下"
+                    && DressModel.Instance.TryGet(DressView.HeadType, out DressModel.Snapshot wornAgain)
+                    && wornAgain.UsedDressId == activeHead.Id;
+                bool dressWrites = takeOffClick && takeOffFrame && takeOffImmediate && useClick && useFrame && useImmediate;
 
                 // 进入该窗口后，外层另外三个固定页签同样必须逐个走真实点击，不把“能看到页签”当验收。
                 TabButtonTwoSkin fashionTab = outerTabs.FirstOrDefault(tab => TabText(tab) == "时装");
@@ -210,7 +219,7 @@ namespace Shenxiao.EditorTools
                 bool pass = resourcePreflight && settingVisible && settingClick && outerOk && headOk && firstFast
                     && innerTabs.Length == 3 && bubbleOk && photoOk && headBackOk
                     && skillItemsOk && skillTipOk && skillTipClose
-                    && uniqueItemSurface && itemChanged && blockedWrites
+                    && uniqueItemSurface && itemChanged && dressWrites
                     && fashionOk && hairOk && suitOk && dressReturnOk && warmFast && noRuntimeImport;
                 Debug.Log("CLIVERIFY setting-fashion-current shots=" + settingShot + " | " + avatarShot
                     + " | " + skillTipShot
@@ -224,11 +233,8 @@ namespace Shenxiao.EditorTools
                     + " skills=" + skillItemsOk + "/" + skillTipOk + "/" + skillTipClose
                     + " bubble=" + bubbleOk + " photo=" + photoOk + " headBack=" + headBackOk
                     + " itemSurface=" + uniqueItemSurface + " itemChanged=" + itemChanged
-                    + " blockedClick=" + blockedButtonClick
-                    + " blockedWrites=" + blockedWrites
-                    + " observedAfterBlocked=" + (observedCommands.Length == 0
-                        ? "none"
-                        : string.Join(",", observedCommands.Select(command => command.ToString())))
+                    + " dressWrites=" + takeOffClick + "/" + takeOffFrame + "/" + takeOffImmediate
+                    + "/" + useClick + "/" + useFrame + "/" + useImmediate
                     + " outerChildren="
                     + fashionOk + "/" + hairOk + "/" + suitOk + "/" + dressReturnOk
                     + " firstFast=" + firstFast
@@ -273,6 +279,17 @@ namespace Shenxiao.EditorTools
                 await Task.Delay(50);
             }
             return null;
+        }
+
+        private static int Command(byte[] frame)
+            => frame != null && frame.Length >= 6 ? (frame[4] << 8) | frame[5] : -1;
+
+        private static void Feed(MethodInfo method, byte[] bytes)
+        {
+            if (method == null) throw new MissingMethodException("Dress response handler");
+            var reader = new NetReader(bytes, 0, bytes.Length);
+            method.Invoke(DressController.Instance, new object[] { reader });
+            if (reader.Remaining != 0) throw new InvalidDataException(method.Name + " remaining=" + reader.Remaining);
         }
 
         private static async Task<bool> WaitType(byte type, double timeoutSeconds)

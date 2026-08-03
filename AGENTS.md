@@ -84,7 +84,7 @@
 
 - R535 Compete 33801/33802/33807：33801和33802只允许玩家入口显式按`type:u16,subtype:u16`查询；不得加入GAME_START、33800回包、活动列表遍历、跨天或33803抽奖结果的自动扇出。33801按复合键完整替换`is_open/score/today_score/cost/ten_cost/reward_list/stage_list/world_lv`不可变raw，33802按同键完整替换自身积分/排名与wire原序排行；保序保重、空表loaded，请求无回复保留旧值，两类快照及33800/33803双向隔离。33804会真实发奖并写领取状态，继续DEFER；33807唯一服务端handler、writer调用和发送链整段注释，保持KILL，禁止注册、请求、key-data模型或许愿/充值/UI复活。33803仍由CustomActivity的33191→33803非对称链独占，Compete不得重复注册。
 
-- R540 Dress/Guard/Eternity负约束纠偏：R118、R125、R129分别明确保持11201-11205、21600/21602-21606、27902-27909不接；其后晚增的11205、21600/21606与27904-27909均未同步改写原禁令，现已撤销对应常量、注册、sender、模型和正向用例。三族只保留既有11200、21601与27900/27901；不得再以“只读raw/接收侧地基/错误出口”为由恢复这些号，也不得加入killlist伪装真实活链已治理。
+- R540 Dress/Guard/Eternity负约束纠偏：R118、R125、R129分别曾明确保持11201-11205、21600/21602-21606、27902-27909不接；其后晚增的11205、21600/21606与27904-27909因未同步改写原禁令而撤销。2026-08-03 用户在明确知悉装扮写事务边界后，授权“设置里面所有有东西做完为止”，因此 Dress 的原禁令现改写为：允许设置→更换头像/装扮页按完整页面事务闭环恢复11201/11202/11203，并允许未激活详情显式按需恢复只读11205；11204他人场景广播不属于该页面可达叶子，继续hard-negative。Guard/Eternity边界不变；不得把本次授权扩大到11204、21600/21602-21606或27902-27909。
 
 - Unity 序列化脚本规则：会挂到 Scene/Prefab 的 `MonoBehaviour` / `ScriptableObject` 必须独占同名 `.cs` 文件，禁止把它放在“首个类型为静态类、抽象类或其他不同名类型”的文件里；Editor 生成器 `AddComponent<T>()` 后必须核对产物 `m_Script` 为非零 GUID 且 GUID 指向 `T` 的同名脚本。否则即使 C# 编译通过，Unity 仍可能把组件保存成 Missing Script。
 
@@ -163,7 +163,7 @@
 
 - R583 DragonBall 14301/14302/14304/14305/14312事务边界：14301与14302均发`dragon_id:u32`，会按激活/下一等级配置真实扣料、写龙珠DB、重算被动技能与角色属性、同步场景并主动推14306总战力和14300权威列表；14301还发全服传闻。14304发`type:u8,op:u8`并回`code:u32,type:u8,op:u8`，会持久化套装穿戴态，以`figure.liveness`复用外观并同步角色、队伍、公会和活跃度广播。14305发`type:u8,lv:u8`并回同键code，会校验龙珠条件、写套装等级、重算属性并推14306/14300/14303；当前穿戴同类会刷新场景外观，旧端首次激活成功还串发14304穿戴。14312为S2C-only `reward:u16×{good_type:u32,good_id:u32,num:u32}`，仅在充值事件已真实发奖、写购买次数并推14311后下发，旧端弹奖励且关闭后可能重开直购页。五号进入hard-negative：现有14300/03/06/10/11读侧不授权操作。只有完整可编辑龙珠/套装/直购页、权威龙珠与礼包配置、背包资产指纹、材料确认与互斥单飞、被动技能/属性/场景外观/队伍/公会刷新、14300/03/06权威回查，以及支付确认、14311购买次数、奖励弹窗与背包消费全部闭环时才逐号恢复；禁止孤立常量/sender/raw结果、无消费者14312、乐观扣料/等级/穿戴/套装、自动串发14304或本地二次发奖。
 
-- R584 Dress 11201/11202/11203/11204完整业务边界：四号继续受R118“只接11200、不得接11201-11205”约束并进入hard-negative。11201 C2S为`dress_type:u8,dress_id:u32`，S2C为`res:u32,type:u8,id:u32,lv:u16,cur_power:u64,next_power:u64`；会按配置真实扣料、写装扮等级、重算被动技能/属性并同步场景，旧端首次激活还按条件串发11202和外观变化页。11202/11203收发同键并回`res:u32,type:u8,id:u32`，分别持久化使用/卸下、改`figure.dress_list`、广播11204和刷新聊天缓存；11202头像类型还更新在线头像，11203头像成功后服务器会再调用11202穿默认头像。11204为S2C-only `role_id:u64,dress_list:u16×{dress_type:u8,dress_id:u32}`场景广播，Unity没有其他角色气泡/相框/足迹/头像资源与消费者；旧端11203 handler还错误读取11202包，禁止照搬。只有完整可编辑装扮页、权威配置/开启条件/材料与背包指纹、确认和互斥单飞、11200权威刷新、被动技能/属性/头像/聊天缓存、主角及他人场景四类外观资源和生命周期全部闭环时才逐号恢复；禁止孤立常量/sender/raw ACK、no-op 11204、乐观扣料/等级/use_id、自动穿戴或复制旧端错读。
+- R584 Dress 11201/11202/11203/11204完整业务边界：11201 C2S为`dress_type:u8,dress_id:u32`，S2C为`res:u32,type:u8,id:u32,lv:u16,cur_power:u64,next_power:u64`；会按配置真实扣料、写装扮等级、重算被动技能/属性并同步场景。2026-08-03产品授权后，设置装扮页只允许在权威配置/开启条件/材料与背包指纹二次校验、确认和互斥单飞、成功回包即时刷新及关闭重开一致全部成立时发送11201，禁止乐观扣料/等级/use_id；首次激活不猜测自动穿戴，成功后由玩家显式选择使用。11202/11203收发同键并回`res:u32,type:u8,id:u32`，分别持久化使用/卸下；页面只按对应成功包更新当前类型use_id，失败保持旧态，头像卸下后的默认头像以服务器随后11202为准，禁止复制旧端11203错读。11205仅允许未激活选中项按`type:u8,id:u32`显式按需查询预期战力，不加入GAME_START或列表扇出。11204仍为hard-negative：Unity没有其他角色气泡/相框/足迹/头像资源与场景消费者，禁止no-op注册、raw最后通知或借本轮设置页授权扩大范围。
 
 - R585 Guard 21602/21603/21604完整业务边界：三号继续受R125“只接21601、不得接21600/21602-21606”约束并进入hard-negative。21602 C2S为`lv:u8,type:u8,auto:u8`、S2C为`code:u32`；服务端会按普通/免费体验和材料/绑玉/钻石分支真实扣资产或次数，写魔法阵DB、重算属性、触发永恒谷任务、推21601/21602、全服传闻并广播21604。21603为S2C-only `lv:u8`，由任务完成、登录检查和重登推免费体验资格；旧端在未进游戏或副本中缓存体验弹窗，体验窗关闭/确认还会自动串发21602。21604为S2C-only `role_id:u64,magic_circle_id:u32`周围场景广播，旧端直接更新场景角色`fazhen_id`。21600/21606沿用R540 hard-negative，21605虽不属于当前接收活缺口仍受R125禁止。只有完整可编辑魔法阵页、权威配置/开启条件、材料与货币资产指纹、免费次数/登录/跨场景弹窗编排、确认与互斥单飞、21601权威刷新、属性/任务/传闻、主角及他人场景魔法阵资源和生命周期全部闭环时才逐号恢复；禁止孤立常量/sender/raw ACK、no-op 21603/21604、自动体验、乐观扣费/激活/幻化或本地外观补丁。
 
@@ -333,7 +333,7 @@
 
 ## Dress 11200 (R118)
 
-- GAME_START sends four `11200 + dress_type:u8` requests in the fixed order `1(Bubble) -> 2(Photo) -> 3(Foot) -> 5(Head)`; do not attach 11201-11205.
+- GAME_START sends four `11200 + dress_type:u8` requests in the fixed order `1(Bubble) -> 2(Photo) -> 3(Foot) -> 5(Head)`. 11201/11202/11203 are reachable only from the explicit editable Dress page transaction flow, and 11205 only from an inactive selected item's explicit power query; do not attach 11204 or add any of 11201-11205 to startup fan-out.
 - The reply is a type-local full snapshot: `type:u8,used_dress_id:u32,enable_list:u16×{dress_id:u32,dress_lv:u16,cur_power:u64,next_power:u64}`. The U16 is the list count, not a second business field. Same type replaces (an empty list clears only that type); different types coexist. Keep it query-only: no config, wear, activation, upgrade, preview, UI, resources, or scene sync.
 
 ## TempleAwaken 42901/42902/42903/42904/42905/42909（R117/R510）

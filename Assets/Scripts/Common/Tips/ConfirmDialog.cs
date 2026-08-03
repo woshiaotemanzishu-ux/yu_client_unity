@@ -113,6 +113,9 @@ namespace Shenxiao.Common.Tips
             if (_view._content_html != null) _view._content_html.text = _pendingText;
             if (_view.ok_label != null) _view.ok_label.text = "确认";
             if (_view.cancel_label != null) _view.cancel_label.text = "取消";
+            Canvas.ForceUpdateCanvases();
+            if (_view.transform is RectTransform root) LayoutRebuilder.ForceRebuildLayoutImmediate(root);
+            Canvas.ForceUpdateCanvases();
         }
 
         private static void Close(bool yes)

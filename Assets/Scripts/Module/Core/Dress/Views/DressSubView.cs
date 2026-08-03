@@ -24,10 +24,18 @@ namespace Shenxiao.Module.Core.Dress
         private readonly List<DressProItem> _pros = new List<DressProItem>();
         private readonly List<DressSkillItem> _skills = new List<DressSkillItem>();
         private readonly Dictionary<byte, uint> _selectedByType = new Dictionary<byte, uint>();
+        private readonly HashSet<ulong> _requestedInactivePower = new HashSet<ulong>();
         private byte _type = DressView.BubbleType;
         private uint _selectedId;
         private int _refreshVersion;
         private TMP_Text _powerLabel;
+        private bool _confirming;
+        private byte _confirmType;
+        private uint _confirmId;
+        private int _confirmLevel;
+        private int _confirmGoodsId;
+        private long _confirmNeed;
+        private long _confirmHave;
 
         public byte Type => _type;
         public uint SelectedId => _selectedId;
@@ -46,11 +54,22 @@ namespace Shenxiao.Module.Core.Dress
             if (use_btn != null) UIUtil.AddClick(use_btn, OnUseOrTakeOff);
             if (model_img != null) model_img.raycastTarget = false;
             _powerLabel = _gp_fight != null ? _gp_fight.Find("dress_power_label")?.GetComponent<TMP_Text>() : null;
+            DressController.Instance.TransactionStateChanged += OnTransactionStateChanged;
         }
 
         protected override void OnShow(object args)
         {
             Refresh();
+        }
+
+        protected override void OnHide()
+        {
+            ClearConfirm();
+        }
+
+        protected override void OnDispose()
+        {
+            DressController.Instance.TransactionStateChanged -= OnTransactionStateChanged;
         }
 
         public void SetType(byte type)
@@ -140,7 +159,20 @@ namespace Shenxiao.Module.Core.Dress
         private void SetPower(DressModel.Entry entry)
         {
             if (_powerLabel == null) return;
-            _powerLabel.text = entry != null ? "战力" + entry.CurrentPower : "战力--";
+            if (entry != null)
+            {
+                _powerLabel.text = "战力" + entry.CurrentPower;
+                return;
+            }
+            if (DressModel.Instance.TryGetInactivePower(_type, _selectedId, out DressModel.InactivePowerSnapshot snapshot))
+            {
+                _powerLabel.text = "战力" + snapshot.ActivePower;
+                return;
+            }
+            _powerLabel.text = "战力--";
+            ulong key = ((ulong)_type << 32) | _selectedId;
+            if (_selectedId != 0 && _requestedInactivePower.Add(key))
+                DressController.Instance.RequestInactivePower(_type, _selectedId);
         }
 
         private void SetProperties(DressConfigs.Row current, DressConfigs.Row next)
@@ -201,6 +233,13 @@ namespace Shenxiao.Module.Core.Dress
                     mat_num.color = have >= cost.Num ? new Color32(25, 174, 74, 255) : new Color32(255, 79, 80, 255);
                 }
             }
+
+            bool pending = DressController.Instance.IsTransactionPending || _confirming;
+            Button activateButton = activite_btn != null ? activite_btn.GetComponent<Button>() : null;
+            Button useButton = use_btn != null ? use_btn.GetComponent<Button>() : null;
+            if (activateButton != null) activateButton.interactable = !pending && showAction;
+            if (useButton != null) useButton.interactable = !pending && active;
+            if (pending && active_btn_img != null) active_btn_img.color = new Color32(156, 156, 156, 255);
         }
 
         private void SetSkills(DressConfigs.Row display, int currentLevel)
@@ -254,12 +293,114 @@ namespace Shenxiao.Module.Core.Dress
 
         private void OnActivateOrUpgrade()
         {
-            TipsManager.Toast("装扮激活/升级协议 11201 按项目约束暂未开放");
+            if (_confirming || DressController.Instance.IsTransactionPending || _selectedId == 0) return;
+            DressModel.Instance.TryGet(_type, out DressModel.Snapshot snapshot);
+            DressModel.Entry entry = FindEntry(snapshot, _selectedId);
+            int level = entry?.DressLevel ?? 0;
+            DressConfigs.Row target = DressConfigs.GetRow(_type, _selectedId, level + 1);
+            if (target == null)
+            {
+                TipsManager.Toast(entry != null ? "已升至最高等级" : "装扮配置不存在");
+                return;
+            }
+            int turn = DressConfigs.GetTurnCondition(target);
+            int currentTurn = RoleModel.Instance.Figure != null ? RoleModel.Instance.Figure.turn : 0;
+            if (turn > currentTurn)
+            {
+                TipsManager.Toast(turn + "转可激活");
+                return;
+            }
+
+            DressConfigs.CostValue cost = DressConfigs.GetFirstCost(target);
+            int goodsId = 0;
+            long need = 0;
+            long have = 0;
+            if (cost != null && cost.TypeId > 0 && cost.Num > 0)
+            {
+                goodsId = GoodsModel.GetMappingTypeId(cost.Type, cost.TypeId).goodsId;
+                need = cost.Num;
+                have = BagModel.Instance.GetTypeGoodsNum(goodsId);
+                if (have < need)
+                {
+                    TipsManager.Toast("激活/升级材料不足");
+                    Refresh();
+                    return;
+                }
+            }
+
+            _confirming = true;
+            _confirmType = _type;
+            _confirmId = _selectedId;
+            _confirmLevel = level;
+            _confirmGoodsId = goodsId;
+            _confirmNeed = need;
+            _confirmHave = have;
+            Refresh();
+            string action = entry == null ? "激活" : "升级";
+            string costText = goodsId > 0 ? "，消耗材料 " + need : string.Empty;
+            TipsManager.Confirm("是否" + action + "该装扮" + costText + "？", ConfirmActivateOrUpgrade, CancelActivateOrUpgrade);
         }
 
         private void OnUseOrTakeOff()
         {
-            TipsManager.Toast("装扮穿戴协议 11202/11203 按项目约束暂未开放");
+            if (_confirming || DressController.Instance.IsTransactionPending || _selectedId == 0) return;
+            if (!DressModel.Instance.TryGet(_type, out DressModel.Snapshot snapshot)
+                || FindEntry(snapshot, _selectedId) == null)
+            {
+                TipsManager.Toast("请先激活该装扮");
+                return;
+            }
+            bool worn = snapshot.UsedDressId == _selectedId;
+            bool sent = worn
+                ? DressController.Instance.TakeOff(_type, _selectedId)
+                : DressController.Instance.Use(_type, _selectedId);
+            if (!sent) TipsManager.Toast("装扮操作正在处理中");
+        }
+
+        private void ConfirmActivateOrUpgrade()
+        {
+            if (!_confirming || DressController.Instance.IsTransactionPending) return;
+            DressModel.Instance.TryGet(_confirmType, out DressModel.Snapshot snapshot);
+            DressModel.Entry entry = FindEntry(snapshot, _confirmId);
+            int currentLevel = entry?.DressLevel ?? 0;
+            DressConfigs.Row target = DressConfigs.GetRow(_confirmType, _confirmId, currentLevel + 1);
+            long currentHave = _confirmGoodsId > 0 ? BagModel.Instance.GetTypeGoodsNum(_confirmGoodsId) : 0;
+            bool valid = _type == _confirmType && _selectedId == _confirmId && currentLevel == _confirmLevel
+                && target != null && currentHave == _confirmHave && currentHave >= _confirmNeed;
+            byte type = _confirmType;
+            uint id = _confirmId;
+            ClearConfirm();
+            if (!valid)
+            {
+                TipsManager.Toast("装扮状态或材料已变化，请重新确认");
+                Refresh();
+                return;
+            }
+            if (!DressController.Instance.ActivateOrUpgrade(type, id))
+                TipsManager.Toast("装扮操作正在处理中");
+            Refresh();
+        }
+
+        private void CancelActivateOrUpgrade()
+        {
+            ClearConfirm();
+            Refresh();
+        }
+
+        private void ClearConfirm()
+        {
+            _confirming = false;
+            _confirmType = 0;
+            _confirmId = 0;
+            _confirmLevel = 0;
+            _confirmGoodsId = 0;
+            _confirmNeed = 0;
+            _confirmHave = 0;
+        }
+
+        private void OnTransactionStateChanged()
+        {
+            if (this != null && IsShown) Refresh();
         }
 
         private void ClearItems()
