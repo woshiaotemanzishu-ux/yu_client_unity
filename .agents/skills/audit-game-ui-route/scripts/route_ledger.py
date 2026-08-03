@@ -33,8 +33,17 @@ LEAF_GATES = (
     "return_chain",
     "timing",
     "visual_version",
+    "visual_match",
+    "runtime_state",
+    "model_presentation",
+    "effect_match",
+    "resource_stable",
     "restore",
 )
+
+VISUAL_EVIDENCE_FIELDS = ("old", "unity", "diff")
+MODEL_EVIDENCE_FIELDS = ("old", "unity")
+RESOURCE_EVIDENCE_FIELDS = ("preflight_first", "preflight_second", "runtime_delta")
 
 
 def read_json(path: Path):
@@ -56,7 +65,7 @@ def init_ledger(manifest: Path, output: Path) -> int:
         raise ValueError("manifest must be a node array or contain nodes[]")
 
     ledger = {
-        "schema": 1,
+        "schema": 2,
         "route": source.get("route", output.stem) if isinstance(source, dict) else output.stem,
         "baseline": source.get("baseline", {}) if isinstance(source, dict) else {},
         "nodes": [],
@@ -91,7 +100,19 @@ def apply_results(ledger_path: Path, results_path: Path) -> int:
         if node_id not in by_id:
             raise ValueError(f"result references unknown id: {node_id}")
         node = by_id[node_id]
-        for key in ("status", "risk", "applicable_gates", "gates", "timing", "note"):
+        for key in (
+            "status",
+            "risk",
+            "applicable_gates",
+            "gates",
+            "timing",
+            "note",
+            "visual_evidence",
+            "state_evidence",
+            "model_evidence",
+            "effect_evidence",
+            "resource_evidence",
+        ):
             if key in result:
                 node[key] = result[key]
         if "evidence" in result:
@@ -160,9 +181,65 @@ def validate_ledger(path: Path, quiet: bool = False) -> int:
         if children[node_id] == 0 and status == "done":
             gates = node.get("gates") or {}
             applicable = node.get("applicable_gates", LEAF_GATES)
+            if not isinstance(applicable, list):
+                errors.append(f"{node_id}: applicable_gates must be an array")
+                applicable = []
             for gate in applicable:
+                if gate not in LEAF_GATES:
+                    errors.append(f"{node_id}: unknown gate {gate!r}")
                 if gates.get(gate) is not True:
                     errors.append(f"{node_id}: done leaf gate {gate!r} is not true")
+
+            if "timing" in applicable:
+                timing = node.get("timing")
+                if not isinstance(timing, dict):
+                    errors.append(f"{node_id}: timing requires timing object")
+                else:
+                    for field in ("cold_ms", "warm_ms"):
+                        value = timing.get(field)
+                        if not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
+                            errors.append(f"{node_id}: timing.{field} must be a non-negative number")
+
+            if "visual_match" in applicable:
+                visual = node.get("visual_evidence")
+                if not isinstance(visual, dict):
+                    errors.append(f"{node_id}: visual_match requires visual_evidence")
+                else:
+                    for field in VISUAL_EVIDENCE_FIELDS:
+                        if not isinstance(visual.get(field), str) or not visual[field].strip():
+                            errors.append(f"{node_id}: visual_evidence.{field} is required")
+
+            if "runtime_state" in applicable:
+                state = node.get("state_evidence")
+                if not isinstance(state, list) or not state or any(
+                    not isinstance(value, str) or not value.strip() for value in state
+                ):
+                    errors.append(f"{node_id}: runtime_state requires non-empty state_evidence[]")
+
+            if "model_presentation" in applicable:
+                model = node.get("model_evidence")
+                if not isinstance(model, dict):
+                    errors.append(f"{node_id}: model_presentation requires model_evidence")
+                else:
+                    for field in MODEL_EVIDENCE_FIELDS:
+                        if not isinstance(model.get(field), str) or not model[field].strip():
+                            errors.append(f"{node_id}: model_evidence.{field} is required")
+
+            if "effect_match" in applicable:
+                effect = node.get("effect_evidence")
+                if not isinstance(effect, list) or not effect or any(
+                    not isinstance(value, str) or not value.strip() for value in effect
+                ):
+                    errors.append(f"{node_id}: effect_match requires non-empty effect_evidence[]")
+
+            if "resource_stable" in applicable:
+                resource = node.get("resource_evidence")
+                if not isinstance(resource, dict):
+                    errors.append(f"{node_id}: resource_stable requires resource_evidence")
+                else:
+                    for field in RESOURCE_EVIDENCE_FIELDS:
+                        if not isinstance(resource.get(field), str) or not resource[field].strip():
+                            errors.append(f"{node_id}: resource_evidence.{field} is required")
 
         if children[node_id] > 0 and status == "done":
             unfinished = [
@@ -172,6 +249,35 @@ def validate_ledger(path: Path, quiet: bool = False) -> int:
             ]
             if unfinished:
                 errors.append(f"{node_id}: done parent has unfinished children: {', '.join(unfinished)}")
+
+            if node.get("type") == "page":
+                inventory = node.get("control_inventory")
+                if not isinstance(inventory, list) or not inventory:
+                    errors.append(f"{node_id}: done page requires non-empty control_inventory[]")
+                else:
+                    control_ids: set[str] = set()
+                    direct_children = {
+                        child_id for child_id, child in by_id.items() if child.get("parent") == node_id
+                    }
+                    for index, control in enumerate(inventory):
+                        if not isinstance(control, dict):
+                            errors.append(f"{node_id}: control_inventory[{index}] must be an object")
+                            continue
+                        control_id = control.get("id")
+                        kind = control.get("kind")
+                        child = control.get("child")
+                        if not isinstance(control_id, str) or not control_id.strip():
+                            errors.append(f"{node_id}: control_inventory[{index}].id is required")
+                        elif control_id in control_ids:
+                            errors.append(f"{node_id}: duplicate control id {control_id}")
+                        else:
+                            control_ids.add(control_id)
+                        if not isinstance(kind, str) or not kind.strip():
+                            errors.append(f"{node_id}: control_inventory[{index}].kind is required")
+                        if child not in direct_children:
+                            errors.append(
+                                f"{node_id}: control_inventory[{index}].child {child!r} is not a direct child"
+                            )
 
     if not quiet:
         counts = Counter(node.get("status", "missing") for node in nodes)

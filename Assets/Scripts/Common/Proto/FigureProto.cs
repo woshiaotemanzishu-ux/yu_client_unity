@@ -132,9 +132,17 @@ namespace Shenxiao.Common.Proto
         public int ClotheModelId => FromList("fashion_model_list", "part_pos", PART_CLOTHE, "fashion_model_id",
             FromList("level_model_list", "part_pos", PART_CLOTHE, "level_model_id", 0));
 
+        /// <summary>衣服当前染色贴图档，0=模型原贴图。</summary>
+        public int ClotheChartletId => FromList("fashion_model_list", "part_pos", PART_CLOTHE,
+            "fashion_chartlet_id", 0);
+
         /// <summary>头饰(发型):时装(part 3)优先,其次等级模型。</summary>
         public int HeadModelId => FromList("fashion_model_list", "part_pos", PART_HEAD, "fashion_model_id",
             FromList("level_model_list", "part_pos", PART_HEAD, "level_model_id", 0));
+
+        /// <summary>头饰当前染色贴图档，0=模型原贴图。</summary>
+        public int HeadChartletId => FromList("fashion_model_list", "part_pos", PART_HEAD,
+            "fashion_chartlet_id", 0);
 
         /// <summary>武器:时装(part 2)→ 幻化(type 5)→ 等级模型(part 2)。</summary>
         public int WeaponModelId => FromList("fashion_model_list", "part_pos", PART_WEAPON, "fashion_model_id",

@@ -1851,3 +1851,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **Dress写事务**：按产品授权恢复11201/11202/11203/11205，完成配置/等级/材料双校验、确认指纹、同页互斥单飞、成功权威更新、失败保旧和预计战力复合键；11204其他玩家场景广播继续hard-negative。GAME_START仍只发11200的`1→2→3→5`。
 - **Prefab与流程**：`SettingModule/DressModule/FashionModule.prefab`继续作为视觉唯一事实源，设置Creator和Dress/Fashion升级器退出自动重建注册表。巡检Skill增加机器台账`init/apply/validate`、单Unity进程suite和“退出码0但无VERDICT不算通过”规则。
 - **验证状态**：设置路线54节点（46叶）全部`done`；`SettingsFullSuite`的`Dress/SettingFullRoute/SettingFashionCurrent/Fashion/SettingPk/ProtocolCoverage`全部code=0且总`VERDICT pass=True`。最终`coverage_20260803_221025.md`为A～M全PASS，`registered=1260/liveGap=327/errorExit=20`，治理分类`81+246+0=327`。
+
+## 2026-08-04：设置视觉与运行态四层闸重验
+
+- **状态更正**：用户截图推翻第2轮“功能通过即可继承视觉完成”的假设。设置固定功能树结论保留，但时装/发饰/套装分支按功能、真实运行态、视觉、性能四层重新验收；台账新增页面`control_inventory[]`，页签不能代替页内状态按钮。
+- **视觉与模型**：当前可编辑Prefab增量修正2D布局、套装竖牌和列表；未激活项改用真灰阶。时装/发饰与四套装模型全部出现，部件、方向、位置比例和常驻特效符合新3D口径；切页先失活旧模型，避免部件累积。
+- **运行态与功能**：红点改为按下一阶配置和背包材料充足性动态计算；发饰选中与穿戴状态分离。套装“更换”真实点击、确认、两条41302、即时“已更换”和关闭重开全部通过。补回3D重构时误删的41312战力展示链。
+- **资源与性能**：Fashion闭包712项第二次预检`imported=0/configured=0/added=0/missing=0`，Dress闭包154项无缺失，点击后`addedResources=none`；冷开1867ms、热开71ms，并保留350ms/1000ms/ready证据。
+- **验证状态**：`mainui.settings.visual-reopen`机器台账8节点全部`done`；常驻Editor串行`SettingFashionCurrent/Fashion/SettingFullRoute`均code=0，runner19总PASS。未进行WebGL构建或部署后复验。

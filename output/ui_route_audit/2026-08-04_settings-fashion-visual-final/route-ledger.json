@@ -1,0 +1,293 @@
+{
+  "schema": 2,
+  "route": "mainui.settings.visual-reopen",
+  "baseline": {
+    "old": "output/ui_route_audit/2026-08-03_settings-fashion-visual",
+    "unity": "output/settings_fashion_current",
+    "resolution": "720x1280"
+  },
+  "nodes": [
+    {
+      "id": "mainui.settings.visual-reopen",
+      "type": "page",
+      "control_inventory": [
+        {
+          "id": "setting-change-avatar",
+          "kind": "button",
+          "child": "mainui.settings.visual-reopen.change-avatar"
+        },
+        {
+          "id": "fashion-tab",
+          "kind": "tab",
+          "child": "mainui.settings.visual-reopen.fashion"
+        },
+        {
+          "id": "hair-tab",
+          "kind": "tab",
+          "child": "mainui.settings.visual-reopen.hair"
+        },
+        {
+          "id": "dress-tab",
+          "kind": "tab",
+          "child": "mainui.settings.visual-reopen.dress-return"
+        },
+        {
+          "id": "suit-tab",
+          "kind": "tab",
+          "child": "mainui.settings.visual-reopen.suit"
+        }
+      ],
+      "parent": null,
+      "status": "done",
+      "risk": "read-only",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.settings.visual-reopen.change-avatar",
+      "parent": "mainui.settings.visual-reopen",
+      "type": "navigation",
+      "status": "done",
+      "risk": "read-only",
+      "gates": {
+        "click": true,
+        "result": true,
+        "return_chain": true,
+        "timing": true,
+        "visual_version": true,
+        "runtime_state": true,
+        "resource_stable": true
+      },
+      "evidence": [
+        "output/settings_fashion_current/setting.png",
+        "output/settings_fashion_current/avatar.png"
+      ],
+      "applicable_gates": [
+        "click",
+        "result",
+        "return_chain",
+        "timing",
+        "visual_version",
+        "runtime_state",
+        "resource_stable"
+      ],
+      "timing": {
+        "cold_ms": 1867,
+        "warm_ms": 71
+      },
+      "state_evidence": [
+        "output/ui_route_audit/2026-08-04_settings-fashion-real-play/unity_real_avatar_350ms.png",
+        "output/ui_route_audit/2026-08-04_settings-fashion-real-play/unity_real_avatar_1000ms.png",
+        "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/validation.log"
+      ],
+      "resource_evidence": {
+        "preflight_first": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/validation.log",
+        "preflight_second": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/validation.log",
+        "runtime_delta": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/validation.log"
+      }
+    },
+    {
+      "id": "mainui.settings.visual-reopen.fashion",
+      "parent": "mainui.settings.visual-reopen",
+      "type": "read",
+      "status": "done",
+      "risk": "read-only",
+      "gates": {
+        "click": true,
+        "result": true,
+        "visual_version": true,
+        "visual_match": true,
+        "runtime_state": true,
+        "model_presentation": true,
+        "effect_match": true
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "click",
+        "result",
+        "visual_version",
+        "visual_match",
+        "runtime_state",
+        "model_presentation",
+        "effect_match"
+      ],
+      "visual_evidence": {
+        "old": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/old_fashion_item0_content.png",
+        "unity": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/unity_fashion_item0_content.png",
+        "diff": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/diff_fashion_item0_content.png"
+      },
+      "state_evidence": [
+        "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/validation.log"
+      ],
+      "model_evidence": {
+        "old": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/old_fashion_color1_content.png",
+        "unity": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/unity_fashion_color1_content.png"
+      },
+      "effect_evidence": [
+        "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/overlay_fashion_color1_content.png"
+      ]
+    },
+    {
+      "id": "mainui.settings.visual-reopen.hair",
+      "parent": "mainui.settings.visual-reopen",
+      "type": "read",
+      "status": "done",
+      "risk": "read-only",
+      "gates": {
+        "click": true,
+        "result": true,
+        "visual_version": true,
+        "visual_match": true,
+        "runtime_state": true,
+        "model_presentation": true,
+        "effect_match": true
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "click",
+        "result",
+        "visual_version",
+        "visual_match",
+        "runtime_state",
+        "model_presentation",
+        "effect_match"
+      ],
+      "visual_evidence": {
+        "old": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/old_hair_content.png",
+        "unity": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/unity_hair_content.png",
+        "diff": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/diff_hair_content.png"
+      },
+      "state_evidence": [
+        "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/validation.log"
+      ],
+      "model_evidence": {
+        "old": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/old_hair_content.png",
+        "unity": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/unity_hair_content.png"
+      },
+      "effect_evidence": [
+        "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/overlay_hair_content.png"
+      ]
+    },
+    {
+      "id": "mainui.settings.visual-reopen.dress-return",
+      "parent": "mainui.settings.visual-reopen",
+      "type": "navigation",
+      "status": "done",
+      "risk": "read-only",
+      "gates": {
+        "click": true,
+        "result": true,
+        "return_chain": true,
+        "visual_version": true,
+        "runtime_state": true
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "click",
+        "result",
+        "return_chain",
+        "visual_version",
+        "runtime_state"
+      ],
+      "state_evidence": [
+        "output/settings_fashion_current/bubble.png",
+        "output/settings_fashion_current/photo.png",
+        "output/settings_fashion_current/avatar.png"
+      ]
+    },
+    {
+      "id": "mainui.settings.visual-reopen.suit",
+      "parent": "mainui.settings.visual-reopen",
+      "type": "page",
+      "control_inventory": [
+        {
+          "id": "four-suit-tabs",
+          "kind": "tab-list",
+          "child": "mainui.settings.visual-reopen.suit.visual"
+        },
+        {
+          "id": "suit-change",
+          "kind": "state-button",
+          "child": "mainui.settings.visual-reopen.suit.change"
+        }
+      ],
+      "status": "done",
+      "risk": "read-only",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.settings.visual-reopen.suit.visual",
+      "parent": "mainui.settings.visual-reopen.suit",
+      "type": "read",
+      "status": "done",
+      "risk": "read-only",
+      "gates": {
+        "click": true,
+        "result": true,
+        "visual_version": true,
+        "visual_match": true,
+        "runtime_state": true,
+        "model_presentation": true,
+        "effect_match": true
+      },
+      "evidence": [],
+      "applicable_gates": [
+        "click",
+        "result",
+        "visual_version",
+        "visual_match",
+        "runtime_state",
+        "model_presentation",
+        "effect_match"
+      ],
+      "visual_evidence": {
+        "old": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/old_suit_1_content.png",
+        "unity": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/unity_suit_1_content.png",
+        "diff": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/diff_suit_1_content.png"
+      },
+      "state_evidence": [
+        "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/validation.log"
+      ],
+      "model_evidence": {
+        "old": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/old_suit_4_content.png",
+        "unity": "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/unity_suit_4_content.png"
+      },
+      "effect_evidence": [
+        "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/overlay_suit_1_content.png",
+        "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/overlay_suit_4_content.png"
+      ]
+    },
+    {
+      "id": "mainui.settings.visual-reopen.suit.change",
+      "parent": "mainui.settings.visual-reopen.suit",
+      "type": "transaction",
+      "risk": "reversible-write",
+      "status": "done",
+      "gates": {
+        "click": true,
+        "result": true,
+        "protocol": true,
+        "immediate": true,
+        "reopen": true,
+        "runtime_state": true,
+        "restore": true
+      },
+      "evidence": [
+        "output/settings_fashion_current/suit_1.png"
+      ],
+      "applicable_gates": [
+        "click",
+        "result",
+        "protocol",
+        "immediate",
+        "reopen",
+        "runtime_state",
+        "restore"
+      ],
+      "state_evidence": [
+        "output/ui_route_audit/2026-08-04_settings-fashion-visual-final/validation.log"
+      ]
+    }
+  ]
+}

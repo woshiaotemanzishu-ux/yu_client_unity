@@ -1,0 +1,36 @@
+{
+  "route": "mainui.settings.visual-reopen",
+  "baseline": {
+    "old": "output/ui_route_audit/2026-08-03_settings-fashion-visual",
+    "unity": "output/settings_fashion_current",
+    "resolution": "720x1280"
+  },
+  "nodes": [
+    {
+      "id": "mainui.settings.visual-reopen",
+      "type": "page",
+      "control_inventory": [
+        { "id": "setting-change-avatar", "kind": "button", "child": "mainui.settings.visual-reopen.change-avatar" },
+        { "id": "fashion-tab", "kind": "tab", "child": "mainui.settings.visual-reopen.fashion" },
+        { "id": "hair-tab", "kind": "tab", "child": "mainui.settings.visual-reopen.hair" },
+        { "id": "dress-tab", "kind": "tab", "child": "mainui.settings.visual-reopen.dress-return" },
+        { "id": "suit-tab", "kind": "tab", "child": "mainui.settings.visual-reopen.suit" }
+      ]
+    },
+    { "id": "mainui.settings.visual-reopen.change-avatar", "parent": "mainui.settings.visual-reopen", "type": "navigation" },
+    { "id": "mainui.settings.visual-reopen.fashion", "parent": "mainui.settings.visual-reopen", "type": "read" },
+    { "id": "mainui.settings.visual-reopen.hair", "parent": "mainui.settings.visual-reopen", "type": "read" },
+    { "id": "mainui.settings.visual-reopen.dress-return", "parent": "mainui.settings.visual-reopen", "type": "navigation" },
+    {
+      "id": "mainui.settings.visual-reopen.suit",
+      "parent": "mainui.settings.visual-reopen",
+      "type": "page",
+      "control_inventory": [
+        { "id": "four-suit-tabs", "kind": "tab-list", "child": "mainui.settings.visual-reopen.suit.visual" },
+        { "id": "suit-change", "kind": "state-button", "child": "mainui.settings.visual-reopen.suit.change" }
+      ]
+    },
+    { "id": "mainui.settings.visual-reopen.suit.visual", "parent": "mainui.settings.visual-reopen.suit", "type": "read" },
+    { "id": "mainui.settings.visual-reopen.suit.change", "parent": "mainui.settings.visual-reopen.suit", "type": "transaction", "risk": "reversible-write" }
+  ]
+}

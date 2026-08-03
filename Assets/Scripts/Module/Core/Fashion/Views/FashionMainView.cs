@@ -1,11 +1,18 @@
 using System.Collections.Generic;
+using System.Linq;
+using Shenxiao.Common.Proto;
 using Shenxiao.Common.Tips;
+using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.Fashion;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Login;
+using Shenxiao.Module.Core.Role;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Fashion
 {
@@ -18,16 +25,13 @@ namespace Shenxiao.Module.Core.Fashion
     /// 覆盖 8 活号:41300(全量)/41301(Type2解锁颜色)/41302(穿戴)/41303(卸下)/41304(激活)/
     /// 41306(基础色进阶)/41312(按颜色展示当前与下一阶战力)/41316(彩色进阶)。
     /// 41305(部位等级)由 _img_grade 打开 FashionLevelView；41313-15 套装由 FashionFlow 第四个页签承载。
-    ///
-    /// "能点能用即可,不求像素级"(spec 裁决12):列表按横排铺开,不做虚拟滚动/裁剪遮罩;
-    /// 未激活/灰显用透明度代替灰阶滤镜(GuildRBItem.cs 先例);3D 模型预览(_box_model)/染色贴图
-    /// (GameResPath.GetFashionPath 3D换装贴图管线)本轮不做——见类尾 TODO。
+    /// 视觉与运行态必须对齐当前老端：布局由 FashionModule.prefab 保存；模型预览复用
+    /// RoleModelAssembler + UIModelStage，选中衣服/发饰及颜色时即时重建，染色走时装贴图。
     /// </summary>
     public sealed class FashionMainView : FashionMainViewBind
     {
-        private const float ItemW = 96f, ItemH = 97f, ItemGap = 8f;
-        private const float AttrRowH = 30f;
-        private const float ColorItemH = 115f;
+        private const float ModelScale = 1.2f;
+        private static readonly Vector2 ModelPosition = new Vector2(0f, -0.5f);
 
         private int _posId = 1;
         private int _selectedFashionId;
@@ -39,8 +43,20 @@ namespace Shenxiao.Module.Core.Fashion
         private readonly List<FashionAttrItem> _attrPool = new List<FashionAttrItem>();
         private Common.BaseAwardItem _awardItem;
         private FightingShowSmallItem _fightItem;
+        private int _modelRequestId;
+        private string _modelKey = "";
+        private int _renderedColorId = -1;
+        private string _renderedTextureName = "";
+        private bool _previewHasWeapon;
+        private int _previewEffectCount;
 
         public int PosId => _posId;
+        public int SelectedFashionId => _selectedFashionId;
+        public int SelectedColorId => _selectedColorId;
+        public int RenderedColorId => _renderedColorId;
+        public string RenderedTextureName => _renderedTextureName;
+        public bool PreviewHasWeapon => _previewHasWeapon;
+        public int PreviewEffectCount => _previewEffectCount;
 
         /// <summary>切换穿戴位(1=衣服/3=头饰),FashionFlow 页签驱动(对标老端"同一个类不同 fashion_pos_id")。</summary>
         public void SetPos(int posId)
@@ -76,15 +92,30 @@ namespace Shenxiao.Module.Core.Fashion
             Refresh();
         }
 
-        protected override void OnHide() => Unsubscribe();
-        protected override void OnDispose() => Unsubscribe();
-        private void OnDestroy() => Unsubscribe();
+        protected override void OnHide()
+        {
+            Unsubscribe();
+            ClearModelPreview();
+        }
+
+        protected override void OnDispose()
+        {
+            Unsubscribe();
+            ClearModelPreview();
+        }
+
+        private void OnDestroy()
+        {
+            Unsubscribe();
+            ClearModelPreview();
+        }
 
         private void Subscribe()
         {
             if (_subscribed) return;
             _subscribed = true;
             EventDispatcher.On(GlobalEvent.EVT_FASHION_UPDATE, OnFashionUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, OnFashionUpdate);
         }
 
         private void Unsubscribe()
@@ -92,6 +123,7 @@ namespace Shenxiao.Module.Core.Fashion
             if (!_subscribed) return;
             _subscribed = false;
             EventDispatcher.Off(GlobalEvent.EVT_FASHION_UPDATE, OnFashionUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, OnFashionUpdate);
         }
 
         private void OnFashionUpdate()
@@ -185,8 +217,16 @@ namespace Shenxiao.Module.Core.Fashion
 
             if (_selectedFashionId <= 0 || IndexOf(ids, _selectedFashionId) < 0)
             {
-                _selectedFashionId = (pos != null && pos.WearFashionId > 0) ? pos.WearFashionId
-                    : (ids.Count > 0 ? ids[0] : 0);
+                // 老端优先选第一个基础培养红点；没有可操作项时才固定选第 0 格。“使用中”只负责角标，
+                // 不会把列表自动跳到当前穿戴项。
+                _selectedFashionId = 0;
+                for (int i = 0; i < ids.Count; i++)
+                {
+                    if (!ComputeBaseRed(ids[i])) continue;
+                    _selectedFashionId = ids[i];
+                    break;
+                }
+                if (_selectedFashionId <= 0 && ids.Count > 0) _selectedFashionId = ids[0];
                 _selectedColorId = 0;
             }
 
@@ -217,25 +257,81 @@ namespace Shenxiao.Module.Core.Fashion
                 item.gameObject.SetActive(has);
                 if (!has) continue;
                 int fashionId = ids[i];
-                var rt = item.transform as RectTransform;
-                if (rt != null) rt.anchoredPosition = new Vector2(i * (ItemW + ItemGap), 0f);
 
                 bool activated = FashionModel.Instance.IsActivated(_posId, fashionId);
                 bool worn = pos != null && pos.WearFashionId == fashionId;
-                bool hasRed = ComputeItemRed(fashionId, activated);
+                bool hasRed = ComputeItemRed(fashionId);
                 int captured = fashionId;
                 item.SetClick(() => OnItemClick(captured));
                 item.SetData(fashionId, fashionId == _selectedFashionId, activated, worn, hasRed);
             }
         }
 
-        /// <summary>该件是否有可操作红点(可激活,或已激活但基础色可进阶——不算材料够不够,只算"有下一步可做")。</summary>
-        private bool ComputeItemRed(int fashionId, bool activated)
+        /// <summary>该件是否有可操作红点。老端红点必须同时满足“存在下一阶配置 + 背包材料足够”，
+        /// 不能把所有未激活/未满阶条目都标红。</summary>
+        private bool ComputeItemRed(int fashionId)
         {
-            if (!activated) return true;
-            FashionModel.FashionEntry e = FashionModel.Instance.GetActive(_posId, fashionId);
-            int order = e?.GetStarLv(0) ?? 0;
-            return FashionConfigs.GetRow(_posId, fashionId, 0, order + 1).Found;
+            if (ComputeBaseRed(fashionId)) return true;
+            FashionModel.FashionEntry entry = FashionModel.Instance.GetActive(_posId, fashionId);
+            IReadOnlyList<int> colorIds = FashionConfigs.GetColorIds(_posId, fashionId);
+            for (int i = 0; i < colorIds.Count; i++)
+                if (ComputeColorRed(fashionId, colorIds[i], entry)) return true;
+            return false;
+        }
+
+        private bool ComputeBaseRed(int fashionId)
+        {
+            FashionModel.FashionEntry entry = FashionModel.Instance.GetActive(_posId, fashionId);
+            int order = entry?.GetStarLv(0) ?? 0;
+            FashionConfigs.Row next = FashionConfigs.GetBaseRow(_posId, fashionId, order + 1);
+            return next.Found && HasEnoughCost(order == 0 ? next.ActiveCostJson : next.StarCostJson);
+        }
+
+        private bool ComputeColorRed(int fashionId, int colorId, FashionModel.FashionEntry entry)
+        {
+            int order = entry?.GetStarLv(colorId) ?? 0;
+            FashionConfigs.Row next = FashionConfigs.GetColorRow(_posId, fashionId, colorId, order + 1);
+            return next.Found && HasEnoughCost(order == 0 ? next.ActiveCostJson : next.StarCostJson);
+        }
+
+        private static bool HasEnoughCost(string json)
+        {
+            List<(int type, int typeId, long num)> costs = FashionConfigs.ParseCostList(json);
+            if (costs.Count == 0) return false;
+            for (int i = 0; i < costs.Count; i++)
+                if (Bag.BagModel.Instance.GetTypeGoodsNum(costs[i].typeId) < costs[i].num) return false;
+            return true;
+        }
+
+        private static bool HasAnyOwnedCost(string json)
+        {
+            List<(int type, int typeId, long num)> costs = FashionConfigs.ParseCostList(json);
+            for (int i = 0; i < costs.Count; i++)
+                if (Bag.BagModel.Instance.GetTypeGoodsNum(costs[i].typeId) > 0) return true;
+            return false;
+        }
+
+        private bool ComputeLevelRed(FashionModel.PosInfo pos)
+        {
+            if (_posId != 1 || pos == null || FashionConfigs.GetPositionRow(_posId, pos.PosLv + 1) == null)
+                return false;
+
+            IReadOnlyList<int> ids = FashionConfigs.GetFashionIds(_posId);
+            for (int i = 0; i < ids.Count; i++)
+            {
+                FashionModel.FashionEntry entry = FashionModel.Instance.GetActive(_posId, ids[i]);
+                if (entry == null) continue;
+                var colors = new List<int> { 0 };
+                colors.AddRange(FashionConfigs.GetColorIds(_posId, ids[i]));
+                for (int j = 0; j < colors.Count; j++)
+                {
+                    int level = entry.GetStarLv(colors[j]);
+                    if (level <= 0 || FashionConfigs.GetRow(_posId, ids[i], colors[j], level + 1).Found) continue;
+                    FashionConfigs.Row current = FashionConfigs.GetRow(_posId, ids[i], colors[j], level);
+                    if (current.Found && HasAnyOwnedCost(current.StarCostJson)) return true;
+                }
+            }
+            return false;
         }
 
         private void RefreshDetail(FashionModel.PosInfo pos)
@@ -249,6 +345,7 @@ namespace Shenxiao.Module.Core.Fashion
                 RefreshColors(null);
                 RefreshAttrs(FashionConfigs.Row.Empty, FashionConfigs.Row.Empty);
                 RefreshCost(FashionConfigs.Row.Empty, 0);
+                ClearModelPreview();
                 return;
             }
 
@@ -258,7 +355,7 @@ namespace Shenxiao.Module.Core.Fashion
 
             // 头饰位没有部位等级线(对标老端 pos==Head → _img_grade.visible=false)
             if (_img_grade != null) _img_grade.gameObject.SetActive(_posId == 1);
-            if (_img_grade_red != null) _img_grade_red.gameObject.SetActive(false);
+            if (_img_grade_red != null) _img_grade_red.gameObject.SetActive(ComputeLevelRed(pos));
 
             bool isWorn = pos != null && pos.WearFashionId == _selectedFashionId
                 && entry != null && entry.NowColorId == _selectedColorId;
@@ -307,6 +404,7 @@ namespace Shenxiao.Module.Core.Fashion
             List<FashionModel.PowerEntry> powers = FashionModel.Instance.GetPower(_posId, _selectedFashionId);
             RefreshPower(powers);
             if (powers == null) FashionController.Instance.RequestPower(_posId, _selectedFashionId);
+            RefreshModelPreview();
         }
 
         private void RefreshPower(List<FashionModel.PowerEntry> powers)
@@ -314,7 +412,9 @@ namespace Shenxiao.Module.Core.Fashion
             if (_fightItem == null) return;
             FashionModel.PowerEntry selected = powers?.Find(item => item.ColorId == _selectedColorId);
             long power = selected?.Power ?? 0;
-            long increase = selected != null && selected.NextPower > selected.Power ? selected.NextPower - selected.Power : 0;
+            long increase = selected != null && selected.NextPower > selected.Power
+                ? selected.NextPower - selected.Power
+                : 0;
             _fightItem.SetFighting(power);
             _fightItem.SetFightingUp(increase);
         }
@@ -343,16 +443,20 @@ namespace Shenxiao.Module.Core.Fashion
                 item.gameObject.SetActive(has);
                 if (!has) continue;
                 int colorId = i == 0 ? 0 : colorIds[i - 1];
-                var rt = item.transform as RectTransform;
-                if (rt != null) rt.anchoredPosition = new Vector2(0f, -i * ColorItemH);
 
                 bool locked = entry == null || !entry.IsColorUnlocked(colorId);
                 bool selected = colorId == _selectedColorId;
-                bool hasRed = locked ? entry != null /* 已激活基础但该色未解锁,可解锁 */
-                    : FashionConfigs.GetRow(_posId, _selectedFashionId, colorId, (entry.GetStarLv(colorId)) + 1).Found;
+                bool hasRed = colorId == 0
+                    ? ComputeBaseRed(_selectedFashionId)
+                    : ComputeColorRed(_selectedFashionId, colorId, entry);
+                FigureProto figure = RoleModel.Instance.Figure;
+                int career = figure != null && figure.career > 0 ? figure.career : Mathf.Max(1, RoleModel.Instance.Career);
+                int sex = figure != null && figure.sex > 0 ? figure.sex : ((career == 2 || career == 4) ? 2 : 1);
+                int showColor = FashionConfigs.GetModelRow(
+                    _posId, _selectedFashionId, career, sex, colorId)?.ShowColor ?? 0;
                 int captured = colorId;
                 item.SetClick(() => OnColorClick(captured));
-                item.SetData(locked, selected, hasRed);
+                item.SetData(colorId, showColor, locked, selected, hasRed);
             }
         }
 
@@ -403,8 +507,6 @@ namespace Shenxiao.Module.Core.Fashion
                 bool has = i < mainList.Count;
                 item.gameObject.SetActive(has);
                 if (!has) continue;
-                var rt = item.transform as RectTransform;
-                if (rt != null) rt.anchoredPosition = new Vector2(0f, -i * AttrRowH);
 
                 int attrId = mainList[i].attrId;
                 long curVal = i < curAttrs.Count ? curAttrs[i].val : 0;
@@ -453,17 +555,131 @@ namespace Shenxiao.Module.Core.Fashion
             while (pool.Count < need) pool.Add(factory());
         }
 
-        // ---------------------------------------------------------------- TODO(需要独立 3D 预览资产管线)
-        // 1. 3D 角色预览(_box_model):老端 ResManager.SetRoleModel 把选中时装套到主角模型上展示,scale 1.2。
-        //    Unity 没有等价"UI 内嵌 3D 预览台"组件,需要仿 SceneCharacterStage 搭一个,工作量超出"第一刀"。
-        // 2. 染色贴图(GameResPath.GetFashionPath):3D 模型换色贴图管线,资产 1651 个 jpg 未导入
-        //    (Assets/GameRes/resource/object/fashion/ 目录为空),且要给 RoleModelSpec 加 texture/chartlet 字段
-        //    (Scene/RoleModelAssembler.cs,不在本包 Module/Core/Fashion/** 所有权内)。染色能拿到数据、
-        //    能算战力、UI 能选,但角色模型上暂时看不出换色——如实记录,不假装连上。
-        // 3. 41311 到达后本人形象已在 FashionController 落地(RoleModel.Instance.Figure.Raw 就地改),
-        //    但主界面已在跑的 3D 模型不会热更(Scene/MainRoleFlow.cs 只在 EVT_SCENE_MAP_READY 时重建整只模型,
-        //    没有"figure 变了就地刷新"的订阅通道,且该文件不在本包所有权内)——留给下一次碰 Scene 家族的人接上
-        //    EVT_FASHION_UPDATE(或专门加一个更精确的形象刷新事件)。
-        // 4. 41312 战力已由 Prefab 内 _box_fight/FightingShowSmallItem 消费；套装页与部位等级已接线。
+        private async void RefreshModelPreview()
+        {
+            if (_box_model == null || _selectedFashionId <= 0 || !gameObject.activeInHierarchy) return;
+            await LoginConfigs.EnsureLoaded();
+            if (this == null || !gameObject.activeInHierarchy) return;
+
+            RoleModel role = RoleModel.Instance;
+            FigureProto figure = role.Figure;
+            int career = figure != null && figure.career > 0 ? figure.career : Mathf.Max(1, role.Career);
+            int sex = figure != null && figure.sex > 0 ? figure.sex : ((career == 2 || career == 4) ? 2 : 1);
+            LoginConfigs.CareerRes defaults = LoginConfigs.GetCreateRes(career, sex);
+            FashionConfigs.ModelRow selected = FashionConfigs.GetModelRow(
+                _posId, _selectedFashionId, career, sex, _selectedColorId);
+            if (selected == null || selected.ModelId <= 0)
+            {
+                ClearModelPreview();
+                return;
+            }
+
+            int currentClothe = figure != null && figure.ClotheModelId > 0
+                ? figure.ClotheModelId : (defaults != null ? defaults.RoleRes : 0);
+            int currentHead = figure != null && figure.HeadModelId > 0
+                ? figure.HeadModelId : (defaults != null ? defaults.HeadRes : 0);
+            int weapon = figure != null && figure.WeaponModelId > 0
+                ? figure.WeaponModelId : (defaults != null ? defaults.WeaponRes : 0);
+            int clothe = _posId == 1 ? selected.ModelId : currentClothe;
+            int head = _posId == 3 ? selected.ModelId : currentHead;
+            int clotheChartlet = _posId == 1 ? _selectedColorId : (figure?.ClotheChartletId ?? 0);
+            int headChartlet = _posId == 3 ? _selectedColorId : (figure?.HeadChartletId ?? 0);
+            if (clothe <= 0)
+            {
+                ClearModelPreview();
+                return;
+            }
+
+            string key = string.Join("|", _posId, _selectedFashionId, _selectedColorId, career, sex,
+                clothe, clotheChartlet, head, headChartlet, weapon);
+            if (_modelKey == key) return;
+            _modelKey = key;
+            int requestId = ++_modelRequestId;
+            _renderedColorId = -1;
+            // 切页或切色后必须先撤掉上一页/上一色的共享台画面。否则异步加载期间会把旧 RT
+            // 误认成本页模型已就绪，出现“测试通过但玩家看到空白/旧模型”的假阳性。
+            UIModelStage.Clear();
+
+            // 时装页的第一阶段目标是老端展示一致。这里明确走老模型组合链：既能保留服装贴图、
+            // 武器与常驻特效，也避免 ReplaceableRoleModel 的新整模冷加载拖慢切色预览。
+            GameObject model = await RoleModelAssembler.BuildOldModelAsync(new RoleModelSpec
+            {
+                Career = career,
+                ClotheRes = clothe,
+                ClotheChartletId = clotheChartlet,
+                HeadRes = head,
+                HeadChartletId = headChartlet,
+                WeaponRes = weapon,
+                Actions = LoginConfigs.RoleUIActions("FashionMainView"),
+            });
+            if (model == null)
+            {
+                if (requestId == _modelRequestId) _modelKey = "";
+                return;
+            }
+            if (requestId != _modelRequestId || this == null || !gameObject.activeInHierarchy)
+            {
+                Destroy(model);
+                return;
+            }
+
+            // 头饰会挂进身体骨骼层级，GetComponentInChildren 的“第一个 Renderer”并不保证是衣服；
+            // 染衣时若误读到头饰材质，就会出现画面已换色、运行态却仍报告 model_head_xxx 的假失败。
+            // 按本次实际请求的贴图名精确找命中的 Renderer，基础色才回退到首个有效材质。
+            string requestedTexture = _selectedColorId > 0
+                ? (_posId == 1 ? "model_clothe_" + clothe : "model_head_" + head) + "_" + _selectedColorId
+                : "";
+            string fallbackTexture = "";
+            foreach (SkinnedMeshRenderer renderer in model.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                Texture texture = renderer != null ? renderer.material.mainTexture : null;
+                if (texture == null) continue;
+                if (string.IsNullOrEmpty(fallbackTexture)) fallbackTexture = texture.name;
+                if (!string.IsNullOrEmpty(requestedTexture)
+                    && string.Equals(texture.name, requestedTexture, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    fallbackTexture = texture.name;
+                    break;
+                }
+            }
+            _renderedTextureName = fallbackTexture;
+            _previewHasWeapon = model.GetComponentsInChildren<Transform>(true)
+                .Any(node => node != null && node.name.StartsWith("model_weapon_r_",
+                    System.StringComparison.OrdinalIgnoreCase));
+            _previewEffectCount = model.GetComponentsInChildren<Transform>(true)
+                .Count(node => node != null && node.name.StartsWith("__fx_always_",
+                    System.StringComparison.Ordinal));
+
+            UIModelStage.SetDragRotate(false);
+            UIModelStage.ShowInstance(_box_model, model, ModelScale, ModelPosition, UIModelStage.MODEL_YAW);
+            // 编辑器验收不跑 PlayerLoop；换色时上一只模型要到下一次更新才真正销毁。
+            // 让出一次更新后再渲染，避免 RenderTexture 仍停留在上一色。真机也因此不会把
+            // “材质已换、画面未换”的中间态标记为 ready。
+            await System.Threading.Tasks.Task.Yield();
+            if (requestId != _modelRequestId || this == null || !gameObject.activeInHierarchy) return;
+            UIModelStage.RenderNow();
+            _renderedColorId = _selectedColorId;
+        }
+
+        private void ClearModelPreview()
+        {
+            ++_modelRequestId;
+            _modelKey = "";
+            _renderedColorId = -1;
+            _renderedTextureName = "";
+            _previewHasWeapon = false;
+            _previewEffectCount = 0;
+            UIModelStage.Clear();
+        }
+
+        public bool IsModelPreviewReady
+        {
+            get
+            {
+                if (_box_model == null || _renderedColorId < 0) return false;
+                RawImage image = _box_model.GetComponentInChildren<RawImage>(true);
+                return image != null && image.gameObject.activeInHierarchy && image.texture != null;
+            }
+        }
     }
 }

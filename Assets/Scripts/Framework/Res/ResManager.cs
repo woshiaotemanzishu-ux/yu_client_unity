@@ -586,11 +586,22 @@ namespace Shenxiao.Framework.Res
                     Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
                     File.Copy(src, assetPath, true);
                     AssetDatabase.ImportAsset(assetPath);
-                    if (AssetImporter.GetAtPath(assetPath) is TextureImporter ti
-                        && ti.textureType != TextureImporterType.Sprite)
+                    if (AssetImporter.GetAtPath(assetPath) is TextureImporter ti)
                     {
-                        ti.textureType = TextureImporterType.Sprite;
-                        ti.SaveAndReimport();
+                        bool isFashionMaterial = key.StartsWith("resource/object/fashion/", StringComparison.Ordinal);
+                        TextureImporterType expected = isFashionMaterial
+                            ? TextureImporterType.Default
+                            : TextureImporterType.Sprite;
+                        if (ti.textureType != expected || (isFashionMaterial && ti.mipmapEnabled))
+                        {
+                            // object/fashion 是 3D 材质贴图，不是 UGUI Sprite。误导成 Sprite 后编辑器兜底
+                            // 虽然能找到文件，Addressables/材质按 Texture2D 加载却可能类型不匹配，表现为
+                            // “颜色选中框变了，人物颜色没变”。
+                            ti.textureType = expected;
+                            ti.mipmapEnabled = !isFashionMaterial;
+                            if (isFashionMaterial) ti.npotScale = TextureImporterNPOTScale.None;
+                            ti.SaveAndReimport();
+                        }
                     }
                     GameLog.Warn("Res", "editor 兜底:已从 yu_client 导入散图 {0}{1}", key, ext);
                     InvalidateEditorPathCache(key); // 补图成功:清负缓存,随后的兜底重扫能找到

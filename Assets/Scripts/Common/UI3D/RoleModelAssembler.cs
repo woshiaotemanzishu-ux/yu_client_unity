@@ -7,13 +7,15 @@ using UnityEngine.Playables;
 
 namespace Shenxiao.Common.UI3D
 {
-    /// <summary>组装参数(老客户端 show_model_data 的最小子集;时装贴图 Clothe/坐骑待形象线)。</summary>
+    /// <summary>组装参数(老客户端 show_model_data 的角色形象子集)。</summary>
     public sealed class RoleModelSpec
     {
         public int Career;
         public int ClotheRes;       // model_clothe_{id}
+        public int ClotheChartletId;// model_clothe_{id}_{chartlet}.jpg，0=模型原贴图
         public int WeaponRes;       // model_weapon_r_{id},0=无
         public int HeadRes;         // model_head_{id},0=无
+        public int HeadChartletId;  // model_head_{id}_{chartlet}.jpg，0=模型原贴图
         public int WingId;          // model_wing_{id},0=无(挂 wing 骨)
         public int BackOrnamentId;  // model_back_{id},0=无(挂 wing 骨,AttachNode.BackOrnament)
         public string[] Actions;    // 按 ConfigModelAni(顺序播放,最后一个循环与否由 .lani 决定)
@@ -54,7 +56,11 @@ namespace Shenxiao.Common.UI3D
         }
 
         /// <summary>原始管线(老拼装):衣服+部件+老 clip。混合驱动器的老模型分支也走这里。</summary>
-        internal static async Task<GameObject> BuildOldModelAsync(RoleModelSpec spec)
+        /// <summary>
+        /// 强制使用老客户端的分件组装链。适用于迁移阶段必须保持旧端服装贴图、部件和特效语义，
+        /// 且不能被整模替换清单改变外观或冷加载时延的预览页。
+        /// </summary>
+        public static async Task<GameObject> BuildOldModelAsync(RoleModelSpec spec)
         {
             if (spec == null || spec.ClotheRes <= 0) return null;
             AssetAssemblyEntry profile = await AssetAssemblyProfiles.GetAsync(AssetAssemblyProfiles.RoleProfileId(spec.ClotheRes));
@@ -68,6 +74,7 @@ namespace Shenxiao.Common.UI3D
             }
             GameObject root = Object.Instantiate(prefab);
             LoadedAssetReleaser.Track(root, prefab);
+            await ApplyFashionTexture(root, "model_clothe_", spec.ClotheRes, spec.ClotheChartletId);
             if (spec.IncludeBodyAlwaysEffects && profile != null && profile.AlwaysEffects != null)
             {
                 await EffectBinder.AttachBindings(root, FilterEffects(profile.AlwaysEffects, "model"), "always");
@@ -79,7 +86,10 @@ namespace Shenxiao.Common.UI3D
             }
 
             if (spec.HeadRes > 0)
-                await AttachPart(root, "head", Key("head", "model_head_" + spec.HeadRes), null, null);
+            {
+                GameObject head = await AttachPart(root, "head", Key("head", "model_head_" + spec.HeadRes), null, null);
+                await ApplyFashionTexture(head, "model_head_", spec.HeadRes, spec.HeadChartletId);
+            }
             if (spec.WeaponRes > 0)
             {
                 GameObject weapon = await AttachPart(root, "rhand", Key("weapon", "model_weapon_r_" + spec.WeaponRes),
@@ -96,7 +106,43 @@ namespace Shenxiao.Common.UI3D
 
             await PrepareActions(root, spec.Career, spec.Actions, profile);
             if (spec.AutoPlayActions) PlayActions(root, spec.Actions);
+#if UNITY_EDITOR
+            // 非 PlayMode 截图验收没有 PlayerLoop 推进 Animation；显式采样一帧，避免把未采样的 T Pose
+            // 误报为运行时角度/姿势问题。真机/PlayMode 仍由正常动画循环驱动。
+            if (!Application.isPlaying)
+            {
+                Animation animation = root.GetComponent<Animation>();
+                if (animation != null && animation.isPlaying) animation.Sample();
+            }
+#endif
             return root;
+        }
+
+        /// <summary>
+        /// 对标老端 Clothe.LoadTexture：非零贴图档把角色/头饰的首个 SkinnedMeshRenderer
+        /// 换成 resource/object/fashion/{part}{model}_{chartlet}.jpg。材质取实例材质，避免污染
+        /// prefab 和其它角色；贴图引用挂在实例上，实例销毁时由 LoadedAssetReleaser 归还。
+        /// </summary>
+        private static async Task ApplyFashionTexture(GameObject owner, string partPrefix, int modelId, int chartletId)
+        {
+            if (owner == null || modelId <= 0 || chartletId <= 0) return;
+            string resName = partPrefix + modelId + "_" + chartletId;
+            Texture2D texture = await ResManager.LoadAsync<Texture2D>(GameResPath.GetFashionPath(resName));
+            if (texture == null) return;
+
+            SkinnedMeshRenderer renderer = owner.GetComponentInChildren<SkinnedMeshRenderer>(true);
+            if (renderer == null)
+            {
+                GameLog.Warn("UI3D", "时装贴图找不到蒙皮:{0}", resName);
+                ResManager.Release(texture);
+                return;
+            }
+
+            Material material = renderer.material;
+            if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", texture);
+            if (material.HasProperty("_MainTex")) material.SetTexture("_MainTex", texture);
+            material.mainTexture = texture;
+            LoadedAssetReleaser.Track(owner, texture);
         }
 
         private static string Key(string module, string name)

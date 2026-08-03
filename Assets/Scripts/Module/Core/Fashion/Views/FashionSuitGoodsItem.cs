@@ -1,6 +1,8 @@
 using Shenxiao.Generated.UI.Fashion;
 using Shenxiao.Module.Core.Common;
-using TMPro;
+using Shenxiao.Module.Core.OutWard;
+using Newtonsoft.Json.Linq;
+using System.Linq;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Fashion
@@ -9,62 +11,55 @@ namespace Shenxiao.Module.Core.Fashion
     public sealed class FashionSuitGoodsItem : FashionSuitGoodsItemBind
     {
         private BaseAwardItem _award;
-        private TextMeshProUGUI _label;
 
         public void SetData(FashionConfigs.SuitCondition condition, GameObject awardTemplate)
         {
-            // 先取模板自身文案；BaseAwardItem 内也有 TMP 数量文本，实例化后再泛查会误把它当条件名。
-            if (_label == null) _label = GetComponentInChildren<TextMeshProUGUI>(true);
-            bool isFashion = condition.Type == 1 && condition.TypeId > 0;
-            if (isFashion && _award == null && awardTemplate != null && _box_con != null)
+            if (_award == null && awardTemplate != null && _box_con != null)
             {
                 GameObject go = Instantiate(awardTemplate, _box_con);
                 go.SetActive(true);
                 _award = go.GetComponent<BaseAwardItem>();
                 if (_award != null) _award.SetScale(0.62f);
             }
+            int goodsId = ResolveGoodsId(condition);
             if (_award != null)
             {
-                _award.gameObject.SetActive(isFashion);
-                if (isFashion) _award.SetData(condition.TypeId, 1);
+                _award.gameObject.SetActive(goodsId > 0);
+                if (goodsId > 0)
+                {
+                    _award.SetData(goodsId, 1);
+                    _award.SetGray(GetStage(condition) < 0);
+                }
             }
-
-            if (_label == null && _box_con != null)
-            {
-                GameObject go = new GameObject("ConditionLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
-                go.transform.SetParent(_box_con, false);
-                RectTransform rt = (RectTransform)go.transform;
-                rt.anchorMin = new Vector2(0f, 0f);
-                rt.anchorMax = new Vector2(1f, 0f);
-                rt.pivot = new Vector2(0.5f, 0f);
-                rt.anchoredPosition = new Vector2(0f, 2f);
-                rt.sizeDelta = new Vector2(0f, 25f);
-                _label = go.GetComponent<TextMeshProUGUI>();
-                _label.alignment = TextAlignmentOptions.Center;
-                _label.fontSize = 17f;
-                _label.color = new Color32(102, 57, 21, 255);
-            }
-            if (_label != null) _label.text = ConditionText(condition);
         }
 
-        private static string ConditionText(FashionConfigs.SuitCondition c)
+        private static int GetStage(FashionConfigs.SuitCondition condition)
         {
-            if (c.Type == 1)
+            if (condition == null) return -1;
+            if (condition.Type == 1)
             {
-                string name = GoodsModel.GetGoodsName(c.TypeId);
-                return string.IsNullOrEmpty(name) ? (c.SubType == 3 ? "发饰" : "时装") : name;
+                FashionModel.FashionEntry fashion = FashionModel.Instance.GetActive(condition.SubType, condition.TypeId);
+                return fashion?.StarLv ?? -1;
             }
-            string kind = c.SubType switch
-            {
-                1 => "坐骑",
-                2 => "精灵",
-                3 => "羽翼",
-                4 => "圣器",
-                5 => "神兵",
-                12 => "背饰",
-                _ => "幻化",
-            };
-            return kind + " " + c.TypeId;
+            if (condition.Type != 2) return -1;
+            OutWardModel.IllusionListVo illusion = OutWardModel.Instance.GetIllusionList(condition.SubType);
+            OutWardModel.FigureBriefVo figure = illusion?.FigureList?.FirstOrDefault(
+                value => value != null && value.Id == condition.TypeId);
+            return figure?.Stage ?? -1;
+        }
+
+        private static int ResolveGoodsId(FashionConfigs.SuitCondition condition)
+        {
+            if (condition == null) return 0;
+            if (condition.Type == 1) return condition.TypeId;
+            if (condition.Type != 2) return 0;
+            int career = Mathf.Max(1, Shenxiao.Module.Core.Role.RoleModel.Instance.Career);
+            JObject row = OutWardConfigs.GetFigureRow(condition.SubType, condition.TypeId, career);
+            int goodsId = row?.Value<int?>("goods_id") ?? 0;
+            // 老端约定：碎片图标映射到实际物品图标（倒数第三位为 1 时减 100）。
+            string value = goodsId.ToString();
+            if (value.Length >= 3 && value[value.Length - 3] == '1') goodsId -= 100;
+            return goodsId;
         }
     }
 }

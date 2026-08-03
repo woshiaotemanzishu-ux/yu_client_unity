@@ -1,4 +1,4 @@
 interface:
   display_name: "游戏界面运行态巡检"
-  short_description: "深度优先点完 UI 功能树，核对状态、版本、性能并复验"
-  default_prompt: "Use $audit-game-ui-route to list one UI route tree, finish one branch to its leaf, fix every verified gap, and re-run the full state sequence."
+  short_description: "深度巡检 UI 功能、真实状态、像素视觉、模型特效与性能"
+  default_prompt: "Use $audit-game-ui-route to audit one UI route against the old client, including real runtime states, screenshot diffs, 3D presentation, interactions, and performance."

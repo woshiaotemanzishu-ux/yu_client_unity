@@ -34,11 +34,18 @@ namespace Shenxiao.Module.Core.Scene
         private static void Install()
         {
             EventDispatcher.On(GlobalEvent.EVT_SCENE_MAP_READY, OnSceneMapReady);
+            EventDispatcher.On(GlobalEvent.EVT_ROLE_FIGURE_UPDATE, OnRoleFigureUpdate);
             EventDispatcher.On(GlobalEvent.EVT_NET_DISCONNECTED, OnNetDisconnected);
         }
 
         private static async void OnSceneMapReady()
         {
+            await RebuildAsync();
+        }
+
+        private static async void OnRoleFigureUpdate()
+        {
+            if (SceneMapLoader.Current == null || _mainRoleRoot == null) return;
             await RebuildAsync();
         }
 
@@ -150,8 +157,10 @@ namespace Shenxiao.Module.Core.Scene
             return a != null && b != null
                 && a.Career == b.Career
                 && a.ClotheRes == b.ClotheRes
+                && a.ClotheChartletId == b.ClotheChartletId
                 && a.WeaponRes == b.WeaponRes
                 && a.HeadRes == b.HeadRes
+                && a.HeadChartletId == b.HeadChartletId
                 && a.WingId == b.WingId
                 && a.BackOrnamentId == b.BackOrnamentId;
         }
@@ -204,8 +213,10 @@ namespace Shenxiao.Module.Core.Scene
             {
                 Career = career,
                 ClotheRes = clotheRes,
+                ClotheChartletId = figure.ClotheChartletId,
                 WeaponRes = weaponRes,
                 HeadRes = headRes,
+                HeadChartletId = figure.HeadChartletId,
                 WingId = figure.WingId,
                 BackOrnamentId = figure.BackOrnamentId,
                 Actions = STAND_ACTIONS,

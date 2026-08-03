@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+"""Fault-injection checks for the UI route ledger completion gates."""
+
+from __future__ import annotations
+
+import json
+import tempfile
+from pathlib import Path
+
+from route_ledger import validate_ledger
+
+
+def write_case(folder: Path, name: str, node: dict) -> Path:
+    path = folder / f"{name}.json"
+    path.write_text(
+        json.dumps({"schema": 2, "route": name, "nodes": [node]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    return path
+
+
+def complete_node() -> dict:
+    gates = [
+        "click",
+        "result",
+        "timing",
+        "visual_version",
+        "visual_match",
+        "runtime_state",
+        "model_presentation",
+        "effect_match",
+        "resource_stable",
+    ]
+    return {
+        "id": "page.state",
+        "status": "done",
+        "applicable_gates": gates,
+        "gates": {gate: True for gate in gates},
+        "visual_evidence": {"old": "old.png", "unity": "unity.png", "diff": "diff.png"},
+        "state_evidence": ["state.json"],
+        "model_evidence": {"old": "old.png", "unity": "unity.png"},
+        "effect_evidence": ["effect-diff.png"],
+        "resource_evidence": {
+            "preflight_first": "preflight-first.log",
+            "preflight_second": "preflight-second.log",
+            "runtime_delta": "runtime-delta.json",
+        },
+        "timing": {"cold_ms": 1200, "warm_ms": 80},
+    }
+
+
+def main() -> int:
+    with tempfile.TemporaryDirectory() as temp:
+        folder = Path(temp)
+
+        good = complete_node()
+        assert validate_ledger(write_case(folder, "good", good), quiet=True) == 0
+
+        missing_diff = complete_node()
+        missing_diff["visual_evidence"].pop("diff")
+        assert validate_ledger(write_case(folder, "missing-diff", missing_diff), quiet=True) == 1
+
+        missing_state = complete_node()
+        missing_state["state_evidence"] = []
+        assert validate_ledger(write_case(folder, "missing-state", missing_state), quiet=True) == 1
+
+        missing_model = complete_node()
+        missing_model.pop("model_evidence")
+        assert validate_ledger(write_case(folder, "missing-model", missing_model), quiet=True) == 1
+
+        missing_timing = complete_node()
+        missing_timing.pop("timing")
+        assert validate_ledger(write_case(folder, "missing-timing", missing_timing), quiet=True) == 1
+
+        missing_resource = complete_node()
+        missing_resource["resource_evidence"].pop("preflight_second")
+        assert validate_ledger(write_case(folder, "missing-resource", missing_resource), quiet=True) == 1
+
+        no_model_page = complete_node()
+        no_model_page["applicable_gates"].remove("model_presentation")
+        no_model_page["gates"].pop("model_presentation")
+        no_model_page.pop("model_evidence")
+        assert validate_ledger(write_case(folder, "no-model-page", no_model_page), quiet=True) == 0
+
+        unknown_gate = complete_node()
+        unknown_gate["applicable_gates"].append("looks_fine")
+        unknown_gate["gates"]["looks_fine"] = True
+        assert validate_ledger(write_case(folder, "unknown-gate", unknown_gate), quiet=True) == 1
+
+        page = {
+            "id": "page",
+            "type": "page",
+            "status": "done",
+            "control_inventory": [{"id": "change", "kind": "button", "child": "page.change"}],
+        }
+        child = complete_node()
+        child["id"] = "page.change"
+        child["parent"] = "page"
+        page_path = folder / "page-good.json"
+        page_path.write_text(
+            json.dumps({"schema": 2, "route": "page-good", "nodes": [page, child]}), encoding="utf-8"
+        )
+        assert validate_ledger(page_path, quiet=True) == 0
+
+        bad_page = dict(page)
+        bad_page.pop("control_inventory")
+        bad_page_path = folder / "page-missing-inventory.json"
+        bad_page_path.write_text(
+            json.dumps({"schema": 2, "route": "page-missing-inventory", "nodes": [bad_page, child]}),
+            encoding="utf-8",
+        )
+        assert validate_ledger(bad_page_path, quiet=True) == 1
+
+    print("route_ledger self-test: PASS")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

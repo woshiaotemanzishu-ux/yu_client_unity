@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
+using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.Dress;
 using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Common;
@@ -28,6 +29,9 @@ namespace Shenxiao.Module.Core.Dress
         private byte _type = DressView.BubbleType;
         private uint _selectedId;
         private int _refreshVersion;
+        private int _previewVersion;
+        private bool _previewReady;
+        private double _previewElapsedMs;
         private TMP_Text _powerLabel;
         private bool _confirming;
         private byte _confirmType;
@@ -40,6 +44,8 @@ namespace Shenxiao.Module.Core.Dress
         public byte Type => _type;
         public uint SelectedId => _selectedId;
         public int VisibleItemCount => _items.Count;
+        public bool PreviewReady => _previewReady;
+        public double PreviewElapsedMs => _previewElapsedMs;
 
         public void Configure(GameObject itemTemplate, GameObject proTemplate, GameObject skillTemplate)
         {
@@ -65,10 +71,12 @@ namespace Shenxiao.Module.Core.Dress
         protected override void OnHide()
         {
             ClearConfirm();
+            CancelPreview();
         }
 
         protected override void OnDispose()
         {
+            CancelPreview();
             DressController.Instance.TransactionStateChanged -= OnTransactionStateChanged;
         }
 
@@ -100,8 +108,10 @@ namespace Shenxiao.Module.Core.Dress
             _selectedId = selected;
             _selectedByType[_type] = selected;
 
-            BuildItems(rows, snapshot);
+            // 先发起主预览，再创建列表项。头像列表会并发加载大量小图，若先建列表，主预览会被
+            // 排在整批请求后面，真实冷启动时会长时间露出 Prefab 占位图。
             RefreshSelected(snapshot);
+            BuildItems(rows, snapshot);
         }
 
         private void BuildItems(IReadOnlyList<DressConfigs.Row> rows, DressModel.Snapshot snapshot)
@@ -268,6 +278,10 @@ namespace Shenxiao.Module.Core.Dress
             if (model_img == null || row == null) return;
             uint requested = row.Id;
             byte requestedType = row.Type;
+            int previewVersion = ++_previewVersion;
+            double startedAt = Time.realtimeSinceStartupAsDouble;
+            _previewReady = false;
+            _previewElapsedMs = 0d;
             string path = "";
             if (row.Type == DressView.HeadType)
             {
@@ -285,10 +299,39 @@ namespace Shenxiao.Module.Core.Dress
             }
 
             model_img.gameObject.SetActive(false);
-            bool ok = !string.IsNullOrEmpty(path) && await ResManager.SetImageAsync(model_img, path, nativeSize: false);
-            if (this == null || _selectedId != requested || _type != requestedType) return;
+            Sprite sprite = !string.IsNullOrEmpty(path) ? await ResManager.LoadAsync<Sprite>(path) : null;
+            if (this == null || previewVersion != _previewVersion
+                || _selectedId != requested || _type != requestedType)
+            {
+                if (sprite != null) ResManager.Release(sprite);
+                return;
+            }
+            bool ok = sprite != null;
+            if (ok)
+            {
+                model_img.sprite = sprite;
+                model_img.enabled = true;
+                if (model_img.color.a < 1f)
+                {
+                    Color color = model_img.color;
+                    color.a = 1f;
+                    model_img.color = color;
+                }
+            }
             model_img.preserveAspect = true;
             model_img.gameObject.SetActive(ok);
+            _previewReady = ok;
+            _previewElapsedMs = (Time.realtimeSinceStartupAsDouble - startedAt) * 1000d;
+            GameLog.Info("Dress", "preview type={0} id={1} ready={2} elapsedMs={3:F0}",
+                requestedType, requested, ok, _previewElapsedMs);
+        }
+
+        private void CancelPreview()
+        {
+            _previewVersion++;
+            _previewReady = false;
+            _previewElapsedMs = 0d;
+            if (model_img != null) model_img.gameObject.SetActive(false);
         }
 
         private void OnActivateOrUpgrade()

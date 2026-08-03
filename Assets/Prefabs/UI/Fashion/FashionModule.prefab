@@ -399,7 +399,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &583188086730059401
 RectTransform:
   m_ObjectHideFlags: 0
@@ -537,6 +537,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1906997600682258789}
+  - component: {fileID: 900000000000000003}
   m_Layer: 0
   m_Name: Content
   m_TagString: Untagged
@@ -563,6 +564,32 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &900000000000000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 506923085243119189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 1
+  m_ChildScaleHeight: 1
+  m_ReverseArrangement: 0
 --- !u!1 &620112901730021626
 GameObject:
   m_ObjectHideFlags: 0
@@ -3098,6 +3125,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4924166060417653399}
   - component: {fileID: 3453922838621768945}
+  - component: {fileID: 900000000000000005}
+  - component: {fileID: 900000000000000004}
   m_Layer: 0
   m_Name: FashionColorItem
   m_TagString: Untagged
@@ -3144,6 +3173,44 @@ MonoBehaviour:
   select: {fileID: 6622526051212089002}
   red: {fileID: 5320298921874161675}
   lock: {fileID: 7100095834959689189}
+--- !u!222 &900000000000000005
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2169800186816086329}
+  m_CullTransparentMesh: 1
+--- !u!114 &900000000000000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2169800186816086329}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &2192021896282280103
 GameObject:
   m_ObjectHideFlags: 0
@@ -3402,6 +3469,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2039053268523509303}
+  - component: {fileID: 900000000000000002}
   m_Layer: 0
   m_Name: _box_color_item
   m_TagString: Untagged
@@ -3428,6 +3496,32 @@ RectTransform:
   m_AnchoredPosition: {x: 56, y: -15}
   m_SizeDelta: {x: 115, y: 342}
   m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &900000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2575339797292104406}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 1
+  m_ChildScaleHeight: 1
+  m_ReverseArrangement: 0
 --- !u!1 &2645784481621583372
 GameObject:
   m_ObjectHideFlags: 0
@@ -7330,6 +7424,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1441028986635825480}
+  - component: {fileID: 900000000000000001}
   m_Layer: 0
   m_Name: _list_fashion_item
   m_TagString: Untagged
@@ -7353,9 +7448,35 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 94, y: -610}
+  m_AnchoredPosition: {x: 95, y: -618}
   m_SizeDelta: {x: 550, y: 140}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &900000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4827049380489825444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 14
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 1
+  m_ChildScaleHeight: 1
+  m_ReverseArrangement: 0
 --- !u!1 &4829918674981610454
 GameObject:
   m_ObjectHideFlags: 0
@@ -9694,6 +9815,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8950538801021744613}
+  - component: {fileID: 900000000000000008}
   m_Layer: 0
   m_Name: _box_fighting
   m_TagString: Untagged
@@ -9720,6 +9842,32 @@ RectTransform:
   m_AnchoredPosition: {x: 238, y: -69}
   m_SizeDelta: {x: 244, y: 51}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &900000000000000008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6159380199860175800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 4
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 1
+  m_ChildScaleHeight: 1
+  m_ReverseArrangement: 0
 --- !u!1 &6178691636280936556
 GameObject:
   m_ObjectHideFlags: 0
@@ -10389,7 +10537,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -104}
   m_SizeDelta: {x: 720, y: 1200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2000911980156599878
@@ -10449,6 +10597,16 @@ MonoBehaviour:
   _tpl_FashionSuitTabItem: {fileID: 5228940747767478213}
   _tpl_BaseAwardItem: {fileID: 4427669192566055839}
   _tpl_FightingShowSmallItem: {fileID: 4278257768300574346}
+  _tabPositions:
+  - {x: 18, y: -32}
+  - {x: 134, y: -76}
+  - {x: 250, y: -76}
+  - {x: 366, y: -32}
+  _tabScales:
+  - 0.8
+  - 0.93333334
+  - 0.93333334
+  - 0.8
 --- !u!1 &6515222294937434815
 GameObject:
   m_ObjectHideFlags: 0
@@ -11008,6 +11166,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 250993826385884816}
+  - component: {fileID: 900000000000000007}
+  - component: {fileID: 900000000000000006}
   m_Layer: 0
   m_Name: fashion_group
   m_TagString: Untagged
@@ -11038,6 +11198,44 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 96, y: 97}
   m_Pivot: {x: 0, y: 1}
+--- !u!222 &900000000000000007
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7106519190241967612}
+  m_CullTransparentMesh: 1
+--- !u!114 &900000000000000006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7106519190241967612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &7124339483619638236
 GameObject:
   m_ObjectHideFlags: 0
@@ -13077,7 +13275,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -104, y: 0}
+  m_AnchoredPosition: {x: -45, y: 0}
   m_SizeDelta: {x: 103, y: 284}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &7645927685158943407

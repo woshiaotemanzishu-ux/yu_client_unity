@@ -345,7 +345,9 @@ namespace Shenxiao.Module.Core.Role
             {
                 Career = career,
                 ClotheRes = clothe,
+                ClotheChartletId = figure.ClotheChartletId,
                 HeadRes = figure.HeadModelId > 0 ? figure.HeadModelId : (defaults != null ? defaults.HeadRes : 0),
+                HeadChartletId = figure.HeadChartletId,
                 WeaponRes = figure.WeaponModelId > 0 ? figure.WeaponModelId : (defaults != null ? defaults.WeaponRes : 0),
                 WingId = figure.WingId,
                 BackOrnamentId = figure.BackOrnamentId,

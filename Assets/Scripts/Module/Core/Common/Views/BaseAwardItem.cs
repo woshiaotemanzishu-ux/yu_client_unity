@@ -87,6 +87,13 @@ namespace Shenxiao.Module.Core.Common
             transform.localScale = Vector3.one * scale;
         }
 
+        /// <summary>物品图标与品质底板同步灰阶，用于套装条件等未激活状态。</summary>
+        public void SetGray(bool gray)
+        {
+            UIGrayStyle.Apply(item_bg, gray);
+            UIGrayStyle.Apply(icon, gray);
+        }
+
         /// <summary>点击回调(对标 SetClickCallBack);未设则走默认 tips(待 UIToolTipMgr)。</summary>
         public void SetClickCallBack(Action callback)
         {

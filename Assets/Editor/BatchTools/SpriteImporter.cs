@@ -11,12 +11,26 @@ namespace Shenxiao.EditorTools.BatchTools
     public class SpriteImporter : AssetPostprocessor
     {
         private const string SpriteRoot = "Assets/GameRes/resource";
+        private const string FashionMaterialRoot = "Assets/GameRes/resource/object/fashion/";
 
         void OnPreprocessTexture()
         {
             if (!assetPath.StartsWith(SpriteRoot)) return;
 
             var importer = (TextureImporter)assetImporter;
+            // 时装染色图是模型材质贴图，不是 UGUI Sprite。这里必须先于通用 resource
+            // 规则返回，否则预检改成 Default 后会被本后处理器立刻改回 Sprite，导致
+            // 每轮 528 张贴图 SaveAndReimport，既慢又让首次点击验收失去意义。
+            if (assetPath.StartsWith(FashionMaterialRoot, System.StringComparison.OrdinalIgnoreCase))
+            {
+                importer.textureType = TextureImporterType.Default;
+                importer.mipmapEnabled = false;
+                importer.npotScale = TextureImporterNPOTScale.None;
+                importer.filterMode = FilterMode.Bilinear;
+                importer.maxTextureSize = 2048;
+                return;
+            }
+
             // Skip non-image textures (e.g. fonts atlas already configured).
             if (importer.textureType == TextureImporterType.Sprite) return;
 

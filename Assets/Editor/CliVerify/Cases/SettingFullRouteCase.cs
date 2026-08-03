@@ -62,6 +62,12 @@ namespace Shenxiao.EditorTools
                 await SettingConfigs.EnsureLoaded();
                 await FuncOpenConfig.EnsureLoaded();
                 SeedModels();
+                // 该用例会与其它设置/时装用例在同一个常驻 Editor 进程串行执行。上一次中断若留下
+                // 10203 pending，第一笔模拟成功回包会错误消费旧事务，导致后续“自动任务”看似点中
+                // 却因模型仍是旧值而不发包。这里仅清理编辑器验收残留，确保每条点击与自己的回包配对。
+                object pendingQueue = typeof(SettingController).GetField("_pending", PrivateInstance)
+                    ?.GetValue(SettingController.Instance);
+                pendingQueue?.GetType().GetMethod("Clear")?.Invoke(pendingQueue, null);
 
                 stage = CliVerify.Stage.Create();
                 eventSystemGo = new GameObject("SettingFullRoute_EventSystem", typeof(EventSystem));

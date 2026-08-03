@@ -922,6 +922,8 @@ namespace Shenxiao.Framework.Event
         /// <summary>时装数据变化(无参;41300/41301/41302/41303/41304/41306/41312/41316/41311 落地后发,
         /// 对标老端 FashionModel.Fire(UPDATEVIEW,...)/Fire(UPDATE_FIGHT,...) 的合并简化版)。</summary>
         public const string EVT_FASHION_UPDATE = "EVT_FASHION_UPDATE";
+        /// <summary>本人 FigureProto 外观块已权威更新，场景/UI 角色模型应原地热更。</summary>
+        public const string EVT_ROLE_FIGURE_UPDATE = "EVT_ROLE_FIGURE_UPDATE";
 
         // ----- 公会晚宴 GuildActivity(pt_402 主体,自动循环 轮22 PK1)-----
         /// <summary>40200 族错误出口(参数: int errcode)。</summary>

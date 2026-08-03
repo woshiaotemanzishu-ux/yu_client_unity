@@ -65,7 +65,7 @@ namespace Shenxiao.Module.Core.Fashion
         /// <summary>41300 全量拉取(发空)。</summary>
         public void RequestInfoAll()
         {
-            SendFmt(Proto.FASHION_INFO_ALL);
+            SendRequest(Proto.FASHION_INFO_ALL);
         }
 
         /// <summary>41305 衣服部位升级。goodsId 是背包物品实例id,不是物品类型id。</summary>
@@ -139,28 +139,28 @@ namespace Shenxiao.Module.Core.Fashion
         public void UnlockColor(int posId, int fashionId, int colorId)
         {
             if (posId <= 0 || fashionId <= 0) return;
-            SendFmt(Proto.FASHION_UNLOCK_COLOR, "cicc", posId, fashionId, colorId, 2);
+            SendRequest(Proto.FASHION_UNLOCK_COLOR, "cicc", posId, fashionId, colorId, 2);
         }
 
         /// <summary>41302 穿戴(发 "cic" PosId,FashionId,ColorId)。</summary>
         public void Wear(int posId, int fashionId, int colorId)
         {
             if (posId <= 0 || fashionId <= 0) return;
-            SendFmt(Proto.FASHION_WEAR, "cic", posId, fashionId, colorId);
+            SendRequest(Proto.FASHION_WEAR, "cic", posId, fashionId, colorId);
         }
 
         /// <summary>41303 卸下(发 "ci" PosId,FashionId)。</summary>
         public void TakeOff(int posId, int fashionId)
         {
             if (posId <= 0 || fashionId <= 0) return;
-            SendFmt(Proto.FASHION_TAKE_OFF, "ci", posId, fashionId);
+            SendRequest(Proto.FASHION_TAKE_OFF, "ci", posId, fashionId);
         }
 
         /// <summary>41304 激活(发 "ci" PosId,FashionId)。</summary>
         public void Activate(int posId, int fashionId)
         {
             if (posId <= 0 || fashionId <= 0) return;
-            SendFmt(Proto.FASHION_ACTIVE, "ci", posId, fashionId);
+            SendRequest(Proto.FASHION_ACTIVE, "ci", posId, fashionId);
         }
 
         /// <summary>41306 基础色(color 0)进阶(发 "cic" PosId,FashionId,ColorId;ColorId 只应传 0——
@@ -168,7 +168,7 @@ namespace Shenxiao.Module.Core.Fashion
         public void UpgradeBase(int posId, int fashionId)
         {
             if (posId <= 0 || fashionId <= 0) return;
-            SendFmt(Proto.FASHION_UPGRADE_BASE, "cic", posId, fashionId, 0);
+            SendRequest(Proto.FASHION_UPGRADE_BASE, "cic", posId, fashionId, 0);
         }
 
         /// <summary>41316 彩色(非0色)进阶(发 "cic" PosId,FashionId,ColorId)。⚠调用方必须保证 colorId 已解锁
@@ -182,7 +182,7 @@ namespace Shenxiao.Module.Core.Fashion
                 GameLog.Warn("Fashion", "UpgradeColor 拒发:pos={0} fashion={1} color={2} 未解锁(防服务端 badmatch)", posId, fashionId, colorId);
                 return;
             }
-            SendFmt(Proto.FASHION_UPGRADE_COLOR, "cic", posId, fashionId, colorId);
+            SendRequest(Proto.FASHION_UPGRADE_COLOR, "cic", posId, fashionId, colorId);
         }
 
         /// <summary>41312 时装战力(发 "ci" PosId,FashionId)。</summary>
@@ -191,7 +191,7 @@ namespace Shenxiao.Module.Core.Fashion
             if (posId <= 0 || fashionId <= 0) return;
             long key = ((long)posId << 40) | (uint)fashionId;
             if (!_pendingPowerRequests.Add(key)) return;
-            SendFmt(Proto.FASHION_POWER, "ci", posId, fashionId);
+            SendRequest(Proto.FASHION_POWER, "ci", posId, fashionId);
         }
 
         /// <summary>41300 回包:Code:i, PosList[u16×{PosId:c,WearFashionId:i,PosLv:h,PosUpgradeNum:i,
@@ -471,9 +471,8 @@ namespace Shenxiao.Module.Core.Fashion
         /// <summary>41311 外观形象增量广播(⚠仅活下行,本端永不主动请求):RoleId:l,
         /// FashionEquip[u16×{PartPos:c,FashionModelId:i,FashionChartletId:c}]。对标老端 On41311:
         /// role_vo.ChangeVar("fashion_model_list", scmd.fashion_equip)(有早退保护:双方都空则跳过)。
-        /// ⚠范围边界:本控制器只处理自身(RoleId==RoleModel.Instance.RoleId)——直接改 RoleModel.Instance.Figure.Raw,
-        /// 主界面已在跑的 3D 模型不会因此自动热更(Scene/MainRoleFlow.cs 只在 EVT_SCENE_MAP_READY 时重建,
-        /// 不在本包文件所有权内,未新增热更订阅——TODO 留给下一次碰 Scene 家族的人接上,详见任务归档 disagreements)。
+        /// ⚠范围边界:本控制器只处理自身(RoleId==RoleModel.Instance.RoleId)——直接改 RoleModel.Instance.Figure.Raw，
+        /// 并发 EVT_ROLE_FIGURE_UPDATE 让场景主角按新衣服/头饰/染色权威重建。
         /// 场景内其它角色(RoleId!=self)的形象合并需要 SceneController 的私有角色表,同理不在本包范围,只记日志。</summary>
         private void On41311(NetReader r)
         {
@@ -509,7 +508,8 @@ namespace Shenxiao.Module.Core.Fashion
             {
                 RoleModel.Instance.Figure.Raw["fashion_model_list"] = list;
             }
-            GameLog.Info("Fashion", "41311 本人形象增量落地 equip={0}(角色模型热更未接线,详见类注释 TODO)", list.Count);
+            GameLog.Info("Fashion", "41311 本人形象增量落地 equip={0}", list.Count);
+            EventDispatcher.Emit(GlobalEvent.EVT_ROLE_FIGURE_UPDATE);
             EventDispatcher.Emit(GlobalEvent.EVT_FASHION_UPDATE);
         }
 

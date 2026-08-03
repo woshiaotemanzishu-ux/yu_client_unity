@@ -1,11 +1,11 @@
 ---
 name: fix-view
-description: 修一个已转换的 Unity view(位置偏移/缺节点/换错图/绑定不对)。当用户指出某转换后的界面有问题、或拿着 diff 报告要逐项收尾时用。输入:view 名 + diff 报告或用户的具体描述。
+description: 增量修复已转换且已由 Prefab 接管的 Unity view，包括位置/尺寸/层级/裁剪/缺节点/错图/绑定、运行态状态、3D模型姿态与特效。用户指出界面与老端截图不一致、模型缺失或累积、像素偏移，或拿着 diff 报告逐项收尾时使用。
 ---
 
 # fix-view — 收尾修正一个转换后的 view
 
-转换流水线(见 `/convert-module`)产出的 prefab + View 代码,抽查发现问题时用这个逐项修。**优先改 prefab(可视化),其次改 View 代码,最后才动烤制器根因。**
+转换流水线(见 `/convert-module`)产出的 prefab + View 代码,抽查发现问题时用这个逐项修。**当前可编辑 Prefab 是视觉唯一事实源；优先增量改 Prefab，其次改运行态状态/绑定代码，跨页面共性才动公共链路。已接管页面禁止重转、重烤或整页覆盖。**
 
 ## 输入
 - view 名(如 `LoginCreateRoleView`)。
@@ -18,23 +18,25 @@ description: 修一个已转换的 Unity view(位置偏移/缺节点/换错图/�
 | 症状 | 多半的根因 | 怎么修 |
 |---|---|---|
 | `OFFSET` / `SIZE`(位置/尺寸偏) | prefab 节点的 RectTransform 锚点/位置 | **直接在 prefab 里拖/改 RectTransform**(节点都是真的);系统性偏移则回 `LayaRectMath` 或快照采集状态 |
-| `MISSING`(少节点) | 快照没采到(屏没到目标状态)/ 该节点运行时才加载 | 重采快照(到对的状态)重烤;或确认是真·运行时加载,在 View 里补 |
-| `RESOURCE`(换错图/没图) | 数据绑定的图路径/索引,或 sprite 名不对 | 改 View 的绑定逻辑(图路径/职业索引映射);编辑器里 tips 这种运行时加载的图本就空,Play 才有 |
+| `MISSING`(少节点) | 初始转换漏节点/条件节点/该节点运行时才加载 | 先核对老端运行态；在当前 Prefab 增量补可视节点和序列化引用。只有页面从未接管且尚无可编辑 Prefab 时才允许首次转换 |
+| `RESOURCE`(换错图/没图) | Prefab Sprite、数据路径/索引、资源闭包或 Addressables 错 | 静态图直接改 Prefab；动态图修绑定与配置闭包。首次点击才生成 PNG/.meta 仍是缺陷 |
+| 模型缺失/镜像/部件累积/特效不符 | 模型装配参数、RT 翻转、旧实例延迟销毁、`EffectBinder` 漏接 | 先对照老端同状态截图；核对模型存在、部件、朝向、镜像/翻转、角度、位置比例和骨骼常驻特效。换页先失活旧实例再销毁 |
 | 绑定字段 null / 点了没反应 | Bind 字段没回填,或 View 没绑事件 | 重跑 `LayaBindFiller.FillPrefab(<prefab>)`;容器字段(RectTransform)按【声明类型】解析(烤后 Box 多挂 Image 会置空);点击 ClearClicks+AddClick |
 | 输入框/文字**重叠** | 老端 TextInput/Label 内部文字节点被烤成常显子 Text,盖住输入值/真实文字 | 删该 TMP_Text/输入框下多余的子 TMP_Text(父权威、子冗余);烤制器 `AdaptSnapshotNode` 已跳 text-like 子节点 + TextInput 提示提到 placeholder(治本) |
 | 列表**显示了不该有的项 / 数量像写死**(如选角"1 角色却显 3 个") | 烤制快照**冻结了数据驱动列表**(烤时那个账号的真实项被当固定节点) | View 必须按**真实数据**建表(遍历/克隆),别信烤制数量。逐层查漏出:① item 有 `{Item}Bind` 且字段非空(漏挂→View `bind==null` 整列跳过)② 无冗余子 Text ③ 绑的是**可见**节点(头像是 `icon_sys_head` 不是空的 `icon`;路径因 `_box_con` 嵌套失效就递归按名找)④ 空槽用 `节点.SetActive(false)` 整块隐藏(连子节点),比 `组件.enabled=false` 稳 |
 
 ## 步骤
 1. 读问题来源(diff 报告或用户描述),定位到具体节点 + 判断改哪层(上表)。
-2. **prefab 改动**:用 Unity MCP `RunCommand` 改 RectTransform / sprite / 组件(`PrefabUtility.LoadPrefabContents` → 改 → `SaveAsPrefabAsset`);或让用户在编辑器里直接拖(节点都是真的,这是烤制的意义)。
-3. **View 代码改动**:改 `Assets/Scripts/Module/Core/<Module>/Views/<View>.cs`,然后 MCP 编译验证(`scriptCompilationFailed`)。
-4. **重新 diff** 确认该项清零(或让用户重新 Play+dump 后再 diff)。
+2. **Prefab 改动**：直接编辑当前 Prefab 的 RectTransform、Sprite、LayoutGroup 和可视组件；若用 Editor 工具，只允许对当前 Prefab 做一次幂等增量补丁并立即保存。
+3. **运行态改动**：View/Controller/Model 只负责数据、事件、协议、点击语义、序列化引用和必要显隐；不把位置、间距、字号、颜色写回代码。
+4. **重新 diff**：2D 在同逻辑分辨率保存 old/unity/diff；3D 不要求跨引擎逐像素相同，但必须有模型、无镜像翻转和明显错误角度，位置与比例大致正常且模型特效一致。
+5. **资源性能复验**：资源型页面连续跑两次预检，第二次 `imported=0、configured=0`；玩家 cold/warm 点击前后资源目录零新增。
 
 ## 原则
 - **"烤制数据漏出"是大类**(界面显示的是烤快照时那个账号的旧数据,不是当前账号的)。本质=有"View 没接管的可见节点"在漏:逐个找①没挂 Bind→跳过 ②同义冗余子节点 ③绑错/路径失效的可见节点 ④空槽没整块隐藏。一层层堵,别只堵一层就以为好了(选角踩过:Bind→子Text→头像三层叠着)。改完**在 monolith 嵌套实例上**验证(嵌套实例继承源 prefab 改动)。
 - 一次修一个 view、一组症状;改完给出"改了什么 + 怎么验证"。
 - 位置类优先 prefab 直改(可视化、可回退),别动代码绕。
-- 系统性、跨多 view 的同类偏移 → 回根因(`LayaRectMath` / 快照采集),别逐个 prefab 硬调。
+- 系统性、跨多 view 的同类偏移 → 修共享 Prefab、公共 View 或公共升级器；不得用批量重转覆盖已接管页面。
 - MCP 改 prefab/编译 OK;Addressables 写记得 `postEvent:false`;Play 验收靠用户。
 
 相关:`/convert-module`、[[runtime-ui-diff-oracle]]、[[conversion-architecture-and-plan]]。

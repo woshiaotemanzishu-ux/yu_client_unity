@@ -1,12 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json.Linq;
 using Shenxiao.Common.Tips;
+using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
+using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Fashion;
 using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.OutWard;
+using Shenxiao.Module.Core.Role;
 using TMPro;
 using UnityEngine;
 
@@ -21,9 +27,29 @@ namespace Shenxiao.Module.Core.Fashion
         private GameObject _goodsTemplate;
         private GameObject _awardTemplate;
         private BaseAwardItem _costItem;
+        private FightingShowSmallItem _fightingItem;
         private int _suitId;
         private bool _subscribed;
         private Color _upgradeButtonColor = Color.white;
+        private readonly UIModelStage _roleStage = new UIModelStage();
+        private readonly UIModelStage _mountStage = new UIModelStage();
+        private int _modelRequestId;
+        private int _renderedSuitId;
+        private bool _previewHasWeapon;
+        private bool _previewHasWing;
+        private bool _previewHasMount;
+        private int _previewEffectCount;
+        private int _wearConfirmSuitId;
+        [SerializeField] private Vector2[] _tabPositions = Array.Empty<Vector2>();
+        [SerializeField] private float[] _tabScales = Array.Empty<float>();
+
+        public int SelectedSuitId => _suitId;
+        public int RenderedSuitId => _renderedSuitId;
+        public bool PreviewHasWeapon => _previewHasWeapon;
+        public bool PreviewHasWing => _previewHasWing;
+        public bool PreviewHasMount => _previewHasMount;
+        public int PreviewEffectCount => _previewEffectCount;
+        public bool IsModelPreviewReady => _renderedSuitId == _suitId && _renderedSuitId > 0;
 
         public void SetTemplates(GameObject tabTemplate, GameObject goodsTemplate, GameObject awardTemplate)
         {
@@ -36,6 +62,7 @@ namespace Shenxiao.Module.Core.Fashion
 
         protected override void OnInit()
         {
+            EnsureFightingItem();
             if (_img_high_active != null) UIUtil.AddClick(_img_high_active, () => Activate(FashionModel.SUIT_HIGH_ACTIVE_COUNT));
             if (_img_per_active != null) UIUtil.AddClick(_img_per_active, () => Activate(FashionModel.SUIT_PERFECT_ACTIVE_COUNT));
             if (_img_up != null)
@@ -43,6 +70,8 @@ namespace Shenxiao.Module.Core.Fashion
                 _upgradeButtonColor = _img_up.color;
                 UIUtil.AddClick(_img_up, Upgrade);
             }
+            if (_img_change != null) UIUtil.AddClick(_img_change, ConfirmWearSuit);
+            if (_img_changed != null) _img_changed.raycastTarget = false;
         }
 
         protected override void OnShow(object args)
@@ -52,14 +81,30 @@ namespace Shenxiao.Module.Core.Fashion
             _ = LoadThenRefresh();
         }
 
-        protected override void OnHide() => Unsubscribe();
-        protected override void OnDispose() => Unsubscribe();
-        private void OnDestroy() => Unsubscribe();
+        protected override void OnHide()
+        {
+            Unsubscribe();
+            ClearModelPreview();
+        }
+
+        protected override void OnDispose()
+        {
+            Unsubscribe();
+            DisposeModelStages();
+        }
+
+        private void OnDestroy()
+        {
+            Unsubscribe();
+            DisposeModelStages();
+        }
 
         private async System.Threading.Tasks.Task LoadThenRefresh()
         {
             await FashionConfigs.EnsureLoaded();
             await GoodsModel.EnsureLoaded();
+            await OutWardConfigs.EnsureLoaded();
+            await LoginConfigs.EnsureLoaded();
             if (this == null || !gameObject.activeInHierarchy) return;
             IReadOnlyList<FashionConfigs.SuitRow> cfgs = FashionConfigs.GetSuits();
             if (_suitId <= 0 && cfgs.Count > 0) _suitId = cfgs[0].Id;
@@ -126,20 +171,34 @@ namespace Shenxiao.Module.Core.Fashion
             int lv = data?.Lv ?? 0;
             bool active = lv > 0 || activeNum >= FashionModel.SUIT_PERFECT_ACTIVE_COUNT;
 
-            if (_lb_name != null) _lb_name.text = cfg.Name;
+            EnsureFightingItem();
+            if (_fightingItem != null)
+            {
+                _fightingItem.SetFighting(data?.Power ?? 0L);
+                _fightingItem.SetFightingUp(data != null && data.NextPower > data.Power
+                    ? data.NextPower - data.Power
+                    : 0L);
+            }
+
+            if (_lb_name != null) _lb_name.text = string.Join("\n", cfg.Name.ToCharArray());
             if (_lb_stage != null) _lb_stage.text = lv + "阶";
             if (_img_active_state != null) _img_active_state.gameObject.SetActive(!active);
             if (_box_not_active != null) _box_not_active.gameObject.SetActive(!active);
             if (_box_active != null) _box_active.gameObject.SetActive(active);
+            RefreshWearButton(cfg, active);
             RefreshConditions(cfg);
             if (active) RefreshActive(cfg, data);
             else RefreshNotActive(cfg, activeNum, conformNum);
+            RefreshModelPreview(cfg);
+        }
 
-            // 3D 预览尚无等价 UI stage；明确隐藏空模型容器，协议与操作不受影响。
-            if (_box_model != null) _box_model.gameObject.SetActive(false);
-            if (_box_horse != null) _box_horse.gameObject.SetActive(false);
-            if (_box_sprite != null) _box_sprite.gameObject.SetActive(false);
-            if (_box_shengqi != null) _box_shengqi.gameObject.SetActive(false);
+        private void EnsureFightingItem()
+        {
+            if (_fightingItem != null || _tpl_FightingShowSmallItem == null || _box_fighting == null) return;
+            GameObject go = Instantiate(_tpl_FightingShowSmallItem, _box_fighting, false);
+            go.name = "FightingShowSmallItem_Runtime";
+            go.SetActive(true);
+            _fightingItem = go.GetComponent<FightingShowSmallItem>();
         }
 
         private void RefreshTabs(IReadOnlyList<FashionConfigs.SuitRow> cfgs)
@@ -172,8 +231,14 @@ namespace Shenxiao.Module.Core.Fashion
                     && HasCosts(next);
                 bool red = activationRed || upgradeRed;
                 int captured = cfg.Id;
+                _tabs[i].SetSuitId(cfg.Id);
                 _tabs[i].SetData(cfg.Name, cfg.Id == _suitId, red, () => Select(captured));
-                if (_tabs[i].transform is RectTransform rt) rt.anchoredPosition = new Vector2(i * 116f, 0f);
+                if (_tabs[i].transform is RectTransform rt
+                    && i < _tabPositions.Length && i < _tabScales.Length)
+                {
+                    rt.anchoredPosition = _tabPositions[i];
+                    rt.localScale = Vector3.one * _tabScales[i];
+                }
             }
         }
 
@@ -181,7 +246,238 @@ namespace Shenxiao.Module.Core.Fashion
         {
             if (_suitId == suitId) return;
             _suitId = suitId;
+            _wearConfirmSuitId = 0;
             Refresh();
+        }
+
+        private void RefreshWearButton(FashionConfigs.SuitRow cfg, bool active)
+        {
+            bool worn = active && IsWearingSuit(cfg);
+            if (_img_change != null) _img_change.gameObject.SetActive(active && !worn);
+            if (_img_changed != null) _img_changed.gameObject.SetActive(active && worn);
+        }
+
+        private static bool IsWearingSuit(FashionConfigs.SuitRow cfg)
+        {
+            if (cfg == null || cfg.Conditions.Count == 0) return false;
+            foreach (FashionConfigs.SuitCondition condition in cfg.Conditions)
+            {
+                if (condition.Type == 1)
+                {
+                    FashionModel.PosInfo pos = FashionModel.Instance.GetPos(condition.SubType);
+                    if (pos == null || pos.WearFashionId != condition.TypeId) return false;
+                    continue;
+                }
+                if (condition.Type == 2)
+                {
+                    OutWardModel.IllusionListVo illusion = OutWardModel.Instance.GetIllusionList(condition.SubType);
+                    if (illusion == null || illusion.IllusionId != condition.TypeId) return false;
+                }
+            }
+            return true;
+        }
+
+        private void ConfirmWearSuit()
+        {
+            FashionConfigs.SuitRow cfg = FashionConfigs.GetSuit(_suitId);
+            FashionModel.SuitEntry data = FashionModel.Instance.GetSuit(_suitId);
+            bool active = data != null
+                && (data.Lv > 0 || data.ActiveNum >= FashionModel.SUIT_PERFECT_ACTIVE_COUNT);
+            if (cfg == null || !active)
+            {
+                TipsManager.Toast("请先激活套装");
+                Refresh();
+                return;
+            }
+            _wearConfirmSuitId = _suitId;
+            TipsManager.Confirm("是否穿戴套装？", WearConfirmed, () => _wearConfirmSuitId = 0);
+        }
+
+        private void WearConfirmed()
+        {
+            int suitId = _wearConfirmSuitId;
+            _wearConfirmSuitId = 0;
+            if (suitId <= 0 || suitId != _suitId) return;
+
+            FashionConfigs.SuitRow cfg = FashionConfigs.GetSuit(suitId);
+            FashionModel.SuitEntry data = FashionModel.Instance.GetSuit(suitId);
+            bool active = data != null
+                && (data.Lv > 0 || data.ActiveNum >= FashionModel.SUIT_PERFECT_ACTIVE_COUNT);
+            if (cfg == null || !active)
+            {
+                TipsManager.Toast("套装状态已变化，请重新确认");
+                Refresh();
+                return;
+            }
+
+            bool missingSnapshot = false;
+            foreach (FashionConfigs.SuitCondition condition in cfg.Conditions)
+            {
+                if (condition.Type == 1)
+                {
+                    FashionModel.PosInfo pos = FashionModel.Instance.GetPos(condition.SubType);
+                    if (pos == null || FashionModel.Instance.GetActive(condition.SubType, condition.TypeId) == null)
+                    {
+                        missingSnapshot = true;
+                        FashionController.Instance.RequestInfoAll();
+                        continue;
+                    }
+                    if (pos.WearFashionId != condition.TypeId)
+                        FashionController.Instance.Wear(condition.SubType, condition.TypeId, 0);
+                    continue;
+                }
+
+                if (condition.Type != 2) continue;
+                OutWardModel.IllusionListVo illusion = OutWardModel.Instance.GetIllusionList(condition.SubType);
+                bool activated = illusion?.FigureList != null
+                    && illusion.FigureList.Any(figure => figure != null && figure.Id == condition.TypeId);
+                if (!activated)
+                {
+                    missingSnapshot = true;
+                    OutWardController.Instance.RequestIllusionList(condition.SubType);
+                    continue;
+                }
+                if (illusion.IllusionId != condition.TypeId)
+                    OutWardController.Instance.WearIllusion(condition.SubType, 2, condition.TypeId, 0);
+            }
+
+            if (missingSnapshot) TipsManager.Toast("套装状态同步中，请稍后重试");
+            RefreshWearButton(cfg, active);
+        }
+
+        private async void RefreshModelPreview(FashionConfigs.SuitRow cfg)
+        {
+            if (cfg == null || _box_model == null || !gameObject.activeInHierarchy) return;
+            int requestId = ++_modelRequestId;
+            _renderedSuitId = 0;
+            _previewHasWeapon = false;
+            _previewHasWing = false;
+            _previewHasMount = false;
+            _previewEffectCount = 0;
+            _roleStage.ClearStage();
+            _mountStage.ClearStage();
+
+            RoleModel role = RoleModel.Instance;
+            int career = Mathf.Max(1, role.Career);
+            int sex = role.Sex > 0 ? role.Sex : ((career == 2 || career == 4) ? 2 : 1);
+            int clothe = 0;
+            int head = 0;
+            int weapon = 0;
+            int wing = 0;
+            int back = 0;
+            int mount = 0;
+
+            foreach (FashionConfigs.SuitCondition condition in cfg.Conditions)
+            {
+                if (condition.Type == 1)
+                {
+                    FashionConfigs.ModelRow row = FashionConfigs.GetModelRow(
+                        condition.SubType, condition.TypeId, career, sex, 0);
+                    if (row == null) continue;
+                    if (condition.SubType == 1) clothe = row.ModelId;
+                    else if (condition.SubType == 3) head = row.ModelId;
+                    continue;
+                }
+                if (condition.Type != 2) continue;
+                JObject rowFigure = OutWardConfigs.GetFigureRow(condition.SubType, condition.TypeId, career);
+                int figureId = rowFigure?.Value<int?>("ride_figure") ?? 0;
+                switch (condition.SubType)
+                {
+                    case 1: mount = figureId; break;
+                    case 3: wing = figureId; break;
+                    case 5: weapon = figureId; break;
+                    case 12: back = figureId; break;
+                }
+            }
+
+            if (clothe <= 0)
+            {
+                if (requestId == _modelRequestId) ClearModelPreview();
+                return;
+            }
+
+            GameObject model = await RoleModelAssembler.BuildOldModelAsync(new RoleModelSpec
+            {
+                Career = career,
+                ClotheRes = clothe,
+                HeadRes = head,
+                WeaponRes = weapon,
+                WingId = wing,
+                BackOrnamentId = back,
+                Actions = LoginConfigs.RoleUIActions("FashionSuitView"),
+            });
+            if (requestId != _modelRequestId || this == null || !gameObject.activeInHierarchy)
+            {
+                if (model != null) Destroy(model);
+                return;
+            }
+            if (model == null) return;
+
+            _previewHasWeapon = weapon > 0 && model.GetComponentsInChildren<Transform>(true)
+                .Any(node => node != null && node.name.StartsWith("model_weapon_r_", StringComparison.OrdinalIgnoreCase));
+            _previewHasWing = wing > 0 && model.GetComponentsInChildren<Transform>(true)
+                .Any(node => node != null && node.name.StartsWith("model_wing_", StringComparison.OrdinalIgnoreCase));
+            _previewEffectCount = model.GetComponentsInChildren<Transform>(true)
+                .Count(node => node != null && node.name.StartsWith("__fx_", StringComparison.Ordinal));
+
+            _box_model.gameObject.SetActive(true);
+            _roleStage.PlaceInstance(_box_model, model, 0.8f, new Vector2(0f, 0.95f), UIModelStage.MODEL_YAW);
+
+            if (_box_horse != null) _box_horse.gameObject.SetActive(mount > 0);
+            if (_box_sprite != null) _box_sprite.gameObject.SetActive(false);
+            if (_box_shengqi != null) _box_shengqi.gameObject.SetActive(false);
+            if (mount > 0 && _box_horse != null)
+            {
+                string resName = "model_mount_" + mount;
+                GameObject mountPrefab = await ResManager.LoadAsync<GameObject>(
+                    "object/mount/" + resName + "/" + resName);
+                if (requestId != _modelRequestId || this == null || !gameObject.activeInHierarchy)
+                {
+                    if (mountPrefab != null) ResManager.Release(mountPrefab);
+                    return;
+                }
+                if (mountPrefab != null)
+                {
+                    GameObject mountModel = Instantiate(mountPrefab);
+                    LoadedAssetReleaser.Track(mountModel, mountPrefab);
+                    await EffectBinder.AttachAlways(mountModel, "mount", mount.ToString());
+                    if (requestId != _modelRequestId || this == null || !gameObject.activeInHierarchy)
+                    {
+                        Destroy(mountModel);
+                        return;
+                    }
+                    _mountStage.PlaceInstance(_box_horse, mountModel,
+                        0.5f * Mathf.Max(0.01f, cfg.Ratio), new Vector2(-4f, 1.6f), 160f);
+                    _previewHasMount = true;
+                    _previewEffectCount += mountModel.GetComponentsInChildren<Transform>(true)
+                        .Count(node => node != null && node.name.StartsWith("__fx_", StringComparison.Ordinal));
+                }
+            }
+
+            await System.Threading.Tasks.Task.Yield();
+            if (requestId != _modelRequestId || this == null || !gameObject.activeInHierarchy) return;
+            _roleStage.RenderStageNow();
+            if (_previewHasMount) _mountStage.RenderStageNow();
+            _renderedSuitId = cfg.Id;
+        }
+
+        private void ClearModelPreview()
+        {
+            ++_modelRequestId;
+            _renderedSuitId = 0;
+            _previewHasWeapon = false;
+            _previewHasWing = false;
+            _previewHasMount = false;
+            _previewEffectCount = 0;
+            _roleStage.ClearStage();
+            _mountStage.ClearStage();
+        }
+
+        private void DisposeModelStages()
+        {
+            ++_modelRequestId;
+            _roleStage.Dispose();
+            _mountStage.Dispose();
         }
 
         private void RefreshConditions(FashionConfigs.SuitRow cfg)
@@ -398,6 +694,13 @@ namespace Shenxiao.Module.Core.Fashion
             if (_lb_stage != null) _lb_stage.text = "0阶";
             if (_box_active != null) _box_active.gameObject.SetActive(false);
             if (_box_not_active != null) _box_not_active.gameObject.SetActive(false);
+            if (_img_change != null) _img_change.gameObject.SetActive(false);
+            if (_img_changed != null) _img_changed.gameObject.SetActive(false);
+            if (_fightingItem != null)
+            {
+                _fightingItem.SetFighting(0L);
+                _fightingItem.SetFightingUp(0L);
+            }
         }
     }
 }

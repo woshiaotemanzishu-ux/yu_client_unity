@@ -75,6 +75,9 @@ namespace Shenxiao.Common.UI3D
 
         public static void Clear() => Default.ClearStage();
 
+        /// <summary>立即把当前模型台渲染进 RT；供异步预览完成态和非 PlayMode 截图验收消除首帧空白。</summary>
+        public static void RenderNow() => Default.RenderStageNow();
+
         // ——————————————— 实例 API ———————————————
         /// <summary>实例化 prefab 上台(所有权交给本台)。</summary>
         public void Place(RectTransform container, GameObject modelPrefab,
@@ -96,7 +99,14 @@ namespace Shenxiao.Common.UI3D
             EnsureStage();
             EnsureRenderTexture(container);
 
-            if (_model != null) Object.Destroy(_model);
+            if (_model != null)
+            {
+                // Destroy 在 Editor 非 PlayMode 与运行时都延迟到帧尾。套装页连续换模型时，
+                // 旧翅膀/武器会被同一台相机再拍一帧，形成部件逐页累积。先失活再销毁，
+                // 保证本次 RenderNow 只包含新实例。
+                _model.SetActive(false);
+                Object.Destroy(_model);
+            }
             _baseYaw = yaw;
             _userYaw = 0f; // 换人/换模型回正,拖拽旋转从默认朝向重新开始(对标老端)
             _modelYaw.localRotation = Quaternion.Euler(0f, yaw, 0f);
@@ -283,8 +293,18 @@ namespace Shenxiao.Common.UI3D
         /// <summary>清掉当前模型并隐藏贴图(台子/相机/RT 保留,可再 Place)。</summary>
         public void ClearStage()
         {
-            if (_model != null) { Object.Destroy(_model); _model = null; }
+            if (_model != null)
+            {
+                _model.SetActive(false);
+                Object.Destroy(_model);
+                _model = null;
+            }
             if (_img != null) _img.gameObject.SetActive(false);
+        }
+
+        public void RenderStageNow()
+        {
+            if (_cam != null && _model != null && _rt != null) _cam.Render();
         }
 
         /// <summary>彻底销毁本台(独立实例的视图销毁时调用,释放相机/RT/RawImage)。</summary>
