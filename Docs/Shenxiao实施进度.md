@@ -1814,3 +1814,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **问题与修复**：Unity WebGL 修复前稳定复现齿轮可见但无路由；根因是 `MainUIChatView` 只给外层 `_box_*` 动态补点击，未把语义挂到实际命中的 `_img_setting/_img_friend/_img_shop`。现已改为可见 Graphic 直接路由；设置“更换头像”从占位子窗改为 `SettingFlow.Close()→FashionFlow.Open(1)`，页签文案对齐“头像”。未重转或覆盖任何人工 Prefab。
 - **验证与边界**：`dotnet build Assembly-CSharp-Editor.csproj -m:1` 为79条既有warning、0 error；`CliVerify.MainUIChatHud` 加载真实 `HudChatBar.prefab`，通过 `GraphicRaycaster→PointerClick` 确认设置/好友/商城各路由1次且聊天滚动无回归。隔离新 worktree 的只打壳产物因本地 Addressables catalog 不完整未通过 Web 运行态验收，线上已回滚并由 Browser MCP 确认恢复登录页；不把该路由标记为“修复后 Web 已验收”。
 - **流程沉淀**：新增 `.agents/skills/audit-game-ui-route`，将日常循环定为“老端 Browser MCP 运行基线 + Unity 真实 Prefab CLI 点击”，多条路由累计后再批次打 Web 收口；同步更新打包手册，禁止新 worktree 在无匹配 Addressables 状态时直接发只打壳产物，Windows PowerShell 下改用本地 tar + scp + 远端校验解包。
+
+## 2026-08-03：设置功能线用户复查后重开
+
+- **漏验收事实**：用户完整提交改名后，当前设置面板没有立即刷新角色名，只有退出后才更新；更换头像虽能跳转，但加载至少 5 秒，且 Unity 仍是城楼背景/旧三页签的旧版时装页，老端当前页已是角色居中+分类库格的新版结构。
+- **状态更正**：上一轮实际只验到改名弹窗和头像跳转，没有验证事务后即时状态、目标页版本与加载耗时。`settings.rename`、`settings.change-avatar` 和设置父路由均改为 `defect`，不得继续宣称设置功能线已完成。上一轮的 HUD 可见点击修复仍有效，但只是父路由的一个已验局部。
+- **新完成定义**：`.agents/skills/audit-game-ui-route` 已升级为“先枚举当前页全量功能树，再深度优先跑完一条叶子”。事务必须验提交/成败回包/当前父页即时刷新/重开；跳转必须验当前老端版本的页签、布局、功能库格与 cold/warm 耗时。任一子叶子未完成或 `blocked`，父节点都不得标 `done`。
+- **后续顺序**：不跳到好友/商城。先闭环改名的即时刷新链，再闭环头像的性能+整页新版迁移，然后按台账依次完成四滑条、自动拾取、条件块、10 个屏蔽项与底部五个操作。

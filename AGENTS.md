@@ -2,7 +2,7 @@
 
 - Git 收口规则：隔离 worktree / `codex/*` 分支只用于开发与验收；每轮已确认成果必须在停止前合并到本地 `main`，确认提交已包含后再删除临时分支和失效 worktree。若用户主工作树存在未提交改动，不得为切换 `main` 而覆盖、暂存或代提交这些现场；应在独立干净 worktree 更新 `main`，待用户改动完成并提交后再把主工作树切回 `main`。
 
-- UI 路由巡检分层规则：日常快速循环使用老端 Browser MCP 取运行基线，Unity 必须加载真实 Prefab 并用 `GraphicRaycaster→PointerClick` 验证点击面/路由；多条路由累计后再批次打 Web 收口，禁止把“CLI 真实点击已通过”写成“部署后 Web 已通过”。巡检中的可恢复写入必须还原，破坏性操作默认只到确认框。
+- UI 路由巡检深度优先规则：打开页面后必须先枚举当前页全部页签、按钮、列表、开关、输入、弹窗、条件显隐块和返回链，再选一个子节点跑到叶子；叶子事务必须验证提交、成败回包、当前父页即时刷新和关闭重开，跳转必须核对当前老端版本的页签/布局/功能并记录 cold/warm 耗时。只有所有应验叶子均 `done` 时父节点才能收口；“能打开”“协议已发”“退出重进后正确”都不能替代即时状态验收。日常快速循环使用老端 Browser MCP 基线 + Unity 真实 Prefab `GraphicRaycaster→PointerClick`，多条路由累计后再批次打 Web；禁止把 CLI 通过写成部署后 Web 通过。可恢复写入必须还原，未授权破坏性操作标 `blocked`，其父路由不得标完成。
 
 - Web 只打壳 Addressables 匹配规则：全新隔离 worktree 没有与当前线上内容成套验证的 Addressables 构建状态时，禁止直接用 `BuildWebShellOnlyCli` 产物发布；应使用持续构建工作区，或完整构建并成套发布内容+壳。不得手工拼接不同次的 `StreamingAssets/aa` 与 player 当成正式验收产物；Windows PowerShell 下不得用二进制 `tar | ssh` 管道，必须本地落 tar，经 `scp`、远端 `tar tf` 后解包并校验关键哈希。
 

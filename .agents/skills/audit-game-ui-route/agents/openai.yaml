@@ -1,4 +1,4 @@
-﻿interface:
+interface:
   display_name: "游戏界面运行态巡检"
-  short_description: "用老端与 Unity Web 逐路由点击、取证、修复并复验界面"
-  default_prompt: "Use $audit-game-ui-route to audit one game UI route against the old client, fix verified gaps, and re-run the same clicks."
+  short_description: "深度优先点完 UI 功能树，核对状态、版本、性能并复验"
+  default_prompt: "Use $audit-game-ui-route to list one UI route tree, finish one branch to its leaf, fix every verified gap, and re-run the full state sequence."
