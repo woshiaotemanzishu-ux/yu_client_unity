@@ -49,7 +49,8 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             // 总装只嵌套现有资产；若资产缺失则按下方 null 分支中止，禁止自动重建覆盖。
             ("Assets/Prefabs/UI/MainUI/Regions/HudNavBar.prefab", "HudNavBar", null),
             ("Assets/Prefabs/UI/MainUI/Regions/HudNotification.prefab", "HudNotification", HudAuxiliaryCreator.GenerateNotification),
-            ("Assets/Prefabs/UI/MainUI/Regions/HudOnHook.prefab", "HudOnHook", HudAuxiliaryCreator.GenerateOnHook),
+            // HudOnHook 已由人工 Prefab 接管并保存动态特效槽；缺失时必须从 Git 恢复，禁止 Creator 重建覆盖。
+            ("Assets/Prefabs/UI/MainUI/Regions/HudOnHook.prefab", "HudOnHook", null),
             ("Assets/Prefabs/UI/MainUI/Regions/HudSceneAssist.prefab", "HudSceneAssist", HudAuxiliaryCreator.GenerateSceneAssist),
         };
 

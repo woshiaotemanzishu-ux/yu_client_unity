@@ -192,6 +192,34 @@ namespace Shenxiao.EditorTools
             Run(MainUINotificationCase.Run, 90.0);
         }
 
+        /// <summary>主界面挂机收益条“提升”按钮 UI_tisheng 循环扫光专项。</summary>
+        public static void MainUIOnHookBoost()
+        {
+            Run(MainUIOnHookBoostCase.Run, 90.0);
+        }
+
+        [MenuItem("神霄/验证/MainUI 挂机提升扫光")]
+        private static async void MainUIOnHookBoostInCurrentEditor()
+        {
+            string previousScenePath = EditorSceneManager.GetActiveScene().path;
+            if (EditorSceneManager.GetActiveScene().isDirty)
+            {
+                Debug.LogError("CLIVERIFY mainui-onhook-boost current-editor blocked: 当前场景有未保存改动");
+                return;
+            }
+
+            try
+            {
+                int code = await MainUIOnHookBoostCase.Run();
+                Debug.Log("CLIVERIFY mainui-onhook-boost current-editor code=" + code);
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(previousScenePath))
+                    EditorSceneManager.OpenScene(previousScenePath, OpenSceneMode.Single);
+            }
+        }
+
         [MenuItem("神霄/验证/MainUI 活动与消息通知")]
         private static async void MainUINotificationInCurrentEditor()
         {

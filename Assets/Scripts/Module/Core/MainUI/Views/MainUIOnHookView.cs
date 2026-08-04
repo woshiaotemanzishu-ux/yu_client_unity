@@ -21,17 +21,22 @@ namespace Shenxiao.Module.Core.MainUI
     {
         public const string AUTO_FIGHTING_EFFECT_SLOT_ID = "mainui_onhook_auto_fighting";
         public const string AUTO_PATHING_EFFECT_SLOT_ID = "mainui_onhook_auto_pathing";
+        public const string BOOST_HINT_EFFECT_SLOT_ID = "mainui_onhook_boost_hint";
 
         private int _refreshVersion;
         private UIEffectSlot _autoFightingEffectSlot;
         private UIEffectSlot _autoPathingEffectSlot;
+        private UIEffectSlot _boostHintEffectSlot;
         private UIEffectStage.Handle _autoStateEffect;
         private string _autoStateEffectSlotId;
         private int _autoStateEffectVersion;
+        private UIEffectStage.Handle _boostHintEffect;
+        private bool _boostHintEffectRequested;
+        private int _boostHintEffectVersion;
 
         protected override void OnInit()
         {
-            ResolveAutoStateEffectSlots();
+            ResolveEffectSlots();
             if (_box_outline_exp != null) _box_outline_exp.gameObject.SetActive(false);
             if (_box_old_outline_exp != null) _box_old_outline_exp.gameObject.SetActive(false);
 
@@ -65,9 +70,10 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off<bool>(GlobalEvent.EVT_AUTO_FIGHT_STATE, OnAutoStateChanged);
             EventDispatcher.Off<bool>(GlobalEvent.EVT_AUTO_FIND_WAY_STATE, OnAutoStateChanged);
             ClearAutoStateEffect();
+            ClearBoostHintEffect();
         }
 
-        private void ResolveAutoStateEffectSlots()
+        private void ResolveEffectSlots()
         {
             UIEffectSlot[] slots = GetComponentsInChildren<UIEffectSlot>(true);
             for (int i = 0; i < slots.Length; i++)
@@ -76,10 +82,13 @@ namespace Shenxiao.Module.Core.MainUI
                 if (slot == null) continue;
                 if (slot.SlotId == AUTO_FIGHTING_EFFECT_SLOT_ID) _autoFightingEffectSlot = slot;
                 else if (slot.SlotId == AUTO_PATHING_EFFECT_SLOT_ID) _autoPathingEffectSlot = slot;
+                else if (slot.SlotId == BOOST_HINT_EFFECT_SLOT_ID) _boostHintEffectSlot = slot;
             }
 
             if (_autoFightingEffectSlot == null || _autoPathingEffectSlot == null)
                 GameLog.Error("MainUI", "MainUIOnHookView 缺自动战斗/寻路特效槽,请重新生成 HudOnHook");
+            if (_boostHintEffectSlot == null)
+                GameLog.Error("MainUI", "MainUIOnHookView 缺挂机提升扫光特效槽,请修复 HudOnHook");
         }
 
         private void OnAutoStateChanged(bool ignored)
@@ -130,6 +139,50 @@ namespace Shenxiao.Module.Core.MainUI
             _autoStateEffect = null;
         }
 
+        private void ApplyBoostHintEffect(bool shouldShow)
+        {
+            if (_boostHintEffectRequested == shouldShow) return;
+
+            _boostHintEffectRequested = shouldShow;
+            int version = ++_boostHintEffectVersion;
+            DisposeBoostHintEffectHandle();
+            if (!shouldShow) return;
+            if (_boostHintEffectSlot == null)
+            {
+                _boostHintEffectRequested = false;
+                return;
+            }
+            _ = LoadBoostHintEffectAsync(_boostHintEffectSlot, version);
+        }
+
+        private async Task LoadBoostHintEffectAsync(UIEffectSlot slot, int version)
+        {
+            RectTransform host = slot != null ? slot.transform.parent as RectTransform : null;
+            UIEffectStage.Handle handle = host != null ? await UIEffectStage.AddAsync(slot, host) : null;
+            if (this == null || version != _boostHintEffectVersion || !_boostHintEffectRequested)
+            {
+                handle?.Dispose();
+                return;
+            }
+
+            _boostHintEffect = handle;
+            if (handle == null) _boostHintEffectRequested = false;
+        }
+
+        private void ClearBoostHintEffect()
+        {
+            _boostHintEffectVersion++;
+            _boostHintEffectRequested = false;
+            DisposeBoostHintEffectHandle();
+        }
+
+        private void DisposeBoostHintEffectHandle()
+        {
+            if (_boostHintEffect == null) return;
+            _boostHintEffect.Dispose();
+            _boostHintEffect = null;
+        }
+
         private async void Refresh()
         {
             int version = ++_refreshVersion;
@@ -152,7 +205,11 @@ namespace Shenxiao.Module.Core.MainUI
 
             if (_box_outline_exp != null) _box_outline_exp.gameObject.SetActive(standardVisible);
             if (_box_old_outline_exp != null) _box_old_outline_exp.gameObject.SetActive(baseVisible && !standardVisible);
-            if (!baseVisible) return;
+            if (!baseVisible)
+            {
+                ApplyBoostHintEffect(false);
+                return;
+            }
 
             if (_lb_outline_exp != null)
             {
@@ -166,8 +223,15 @@ namespace Shenxiao.Module.Core.MainUI
             bool maxed = model.HasExpAdditions
                          && OnHookConfigs.TryGetMaxAdditionRatio(out long maxRatio)
                          && SumAdditionRatio(model) >= maxRatio;
+            bool hasExperienceBuff = HasExperienceBuff();
             if (add_btn != null) add_btn.gameObject.SetActive(!maxed);
-            if (_img_add != null) _img_add.gameObject.SetActive(!maxed && HasExperienceBuff());
+            if (_img_add != null) _img_add.gameObject.SetActive(!maxed && hasExperienceBuff);
+            ApplyBoostHintEffect(ShouldShowBoostHint(maxed, hasExperienceBuff));
+        }
+
+        private static bool ShouldShowBoostHint(bool maxed, bool hasExperienceBuff)
+        {
+            return !maxed && !hasExperienceBuff;
         }
 
         private static long SumAdditionRatio(OnHookModel model)

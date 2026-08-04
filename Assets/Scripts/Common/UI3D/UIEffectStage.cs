@@ -636,7 +636,10 @@ namespace Shenxiao.Common.UI3D
             {
                 var runnerObject = new GameObject("__UIEffectService");
                 existing = runnerObject.AddComponent<UIEffectServiceRunner>();
-                UnityEngine.Object.DontDestroyOnLoad(runnerObject);
+                // 运行时跨场景保留公共特效服务；Editor/CLI 处于非 PlayMode 时调用
+                // DontDestroyOnLoad 会直接抛异常，导致所有离屏出帧验收只剩空 RT。
+                if (Application.isPlaying)
+                    UnityEngine.Object.DontDestroyOnLoad(runnerObject);
             }
             AttachRunner(existing);
         }

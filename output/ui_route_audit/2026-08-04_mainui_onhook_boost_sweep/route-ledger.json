@@ -1,0 +1,48 @@
+{
+  "schema": 4,
+  "route": "mainui.onhook.boost-sweep",
+  "nodes": [
+    {
+      "id": "mainui.onhook",
+      "type": "page",
+      "risk": "read",
+      "control_inventory": [
+        {
+          "id": "boost-button",
+          "kind": "conditional-effect-button",
+          "child": "mainui.onhook.boost-button"
+        }
+      ]
+    },
+    {
+      "id": "mainui.onhook.boost-button",
+      "parent": "mainui.onhook",
+      "type": "page",
+      "risk": "read",
+      "control_inventory": [
+        {
+          "id": "visual-and-sweep",
+          "kind": "runtime-effect",
+          "child": "mainui.onhook.boost-button.sweep"
+        },
+        {
+          "id": "state-and-lifecycle",
+          "kind": "conditional-runtime-state",
+          "child": "mainui.onhook.boost-button.state"
+        }
+      ]
+    },
+    {
+      "id": "mainui.onhook.boost-button.sweep",
+      "parent": "mainui.onhook.boost-button",
+      "type": "assertion",
+      "risk": "read"
+    },
+    {
+      "id": "mainui.onhook.boost-button.state",
+      "parent": "mainui.onhook.boost-button",
+      "type": "assertion",
+      "risk": "read"
+    }
+  ]
+}

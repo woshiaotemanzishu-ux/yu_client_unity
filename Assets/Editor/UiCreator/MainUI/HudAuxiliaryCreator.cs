@@ -46,15 +46,6 @@ namespace Shenxiao.Editor.UiCreator.MainUI
             UiRebuildRegistry.Register(new UiCreatorEntry
             {
                 Module = "MainUI",
-                Name = "HudOnHook(挂机经验区)",
-                Note = "有界挂机经验丸区域；显隐等待权威数据，不在 MainUI 写等级兜底",
-                Order = 61,
-                Generate = GenerateOnHook,
-                PrefabPath = OnHookPath,
-            });
-            UiRebuildRegistry.Register(new UiCreatorEntry
-            {
-                Module = "MainUI",
                 Name = "HudSceneAssist(场景临时挂点)",
                 Note = "有界场景态特效/提示挂点；默认隐藏，由对应系统事件按需点亮",
                 Order = 62,

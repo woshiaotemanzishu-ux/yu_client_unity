@@ -6,6 +6,7 @@ Shader "Shenxiao/Effect/LayaParticleUnlit"
         _BaseMap ("Base Map", 2D) = "white" {}
         _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
         _Color ("Color", Color) = (1, 1, 1, 1)
+        [Toggle] _UseBaseMapST ("Use BaseMap UV Transform", Float) = 0
         _SrcBlend ("Src Blend", Float) = 5
         _DstBlend ("Dst Blend", Float) = 10
         _SrcBlendAlpha ("Src Blend Alpha", Float) = 1
@@ -48,8 +49,10 @@ Shader "Shenxiao/Effect/LayaParticleUnlit"
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _MainTex_ST;
+                float4 _BaseMap_ST;
                 half4 _BaseColor;
                 half4 _Color;
+                float _UseBaseMapST;
                 float4 _UIEffectClipRect;
                 float4x4 _UIEffectClipWorldToLocal;
                 float _UIEffectClipEnabled;
@@ -75,7 +78,10 @@ Shader "Shenxiao/Effect/LayaParticleUnlit"
                 Varyings output;
                 float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
                 output.positionHCS = TransformWorldToHClip(positionWS);
-                output.uv = input.uv * _MainTex_ST.xy + _MainTex_ST.zw;
+                // 少量旧资源仍驱动 _MainTex_ST；当前 Laya 导入器统一把 tilingOffset 动画
+                // 写到 _BaseMap_ST。由材质显式选择，避免为了修新资源破坏已验收的旧流光。
+                float4 uvTransform = lerp(_MainTex_ST, _BaseMap_ST, saturate(_UseBaseMapST));
+                output.uv = input.uv * uvTransform.xy + uvTransform.zw;
                 output.clipPosition = mul(_UIEffectClipWorldToLocal, float4(positionWS, 1.0)).xy;
                 output.color = input.color;
                 return output;

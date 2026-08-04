@@ -1874,3 +1874,12 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **动画**：`MainUINotificationView` 恢复老端共享摇摆，首段 `0→+20°`，之后每秒在 `±20°` 间 sine-in-out 往返；所有可见项同相，隐藏/复用/关闭时归零。未修改或重转人工 Prefab。
 - **门禁**：新增 `CliVerify.MainUINotification`，用真实 `HudActivity/HudNotification` 覆盖 612/621 边界、邮件启动顺序与 `ui_notice_3`、`GraphicRaycaster→PointerClick`、关键帧/同步/复位和截图。详细证据见 [专项记录](RuntimeCompare/MainUI-活动与消息通知-20260804.md)。
 - **验证状态**：常驻 Editor 与独立 worktree 批处理均 `VERDICT pass=True`，Editor 构建 0 error；`mainui.reported-defects` 台账 6/6 节点全部 `done`，验证后保持原 `Launch` 场景，未进行 WebGL 构建或部署后复验。
+
+## 2026-08-04：主界面挂机“提升”按钮与扫光补漏
+
+- **目标澄清**：用户指的是挂机经验条右侧绿色“提升”按钮本身，以及按钮内部循环扫光，不是下方通知图标或通知摇摆。近景、老端全图和修复前 Unity 全图已固化到 `output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/`。
+- **老端取证**：`MainUISecondaryView.AddOutlineEffect/RefOutlineExp` 在“加成未点满且没有 `buff_type=1` 经验 Buff”时以 `scale=35` 循环播放完整 `UI_tisheng`；已有 Buff 切回静态 `_img_add`，点满隐藏按钮。原始特效同时包含绿色按钮视觉、3 秒呼吸缩放和 1.333 秒材质 `_BaseMap_ST.z` 扫光。
+- **根因与修复**：活动 `HudOnHook.prefab/ExpBoostEffectAnchor` 为空，退役 `HudSecondary` 只留了未消费的旧占位槽。现把 canonical `UI_tisheng` 槽直接保存到当前可编辑 Prefab，`MainUIOnHookView` 按老端状态互斥消费并用版本号收编异步 Handle；隐藏、切态和过期结果均释放。扫光动画驱动 `_BaseMap_ST`、旧 Shader 只采 `_MainTex_ST` 的错配以材质级 `_UseBaseMapST` 兼容开关修复；`UIEffectStage` 同时补齐非 PlayMode 禁止 `DontDestroyOnLoad` 的编辑器门禁。`HudOnHook` 同轮退出 Creator 自动重建注册表，防止覆盖人工 Prefab。
+- **门禁**：新增 `CliVerify.MainUIOnHookBoost`，覆盖真实 Prefab 槽位与 35 倍缩放、状态真值表、Addressable、两段循环动画、`_BaseMap_ST.z` 曲线、真实 `UIEffectStage`、起始/中间 RT 非透明及变化像素、重复加载、隐藏释放和重开释放。详细证据见 [专项记录](RuntimeCompare/MainUI-挂机提升扫光-20260804.md)。
+- **验证状态**：最终独立 Unity 批处理退出码 0、`VERDICT pass=True`；起始/中间 RT 均为 733 个非透明像素、亮像素 997/995、变化像素 111。Editor 构建 0 error（66 条既有 warning），逐门禁结果见 `output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/results.json`。
+- **范围**：复用现有特效资源和 Addressables 分组，没有协议或网络请求改动；未进行 WebGL 构建或部署后复验。

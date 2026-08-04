@@ -117,3 +117,12 @@ UIEffectStage（兼容入口）
 - Unity 由 `MainRoleAgent` 在自动移动/任务跳跃开始、到达、取消、采集、技能、切场景、演出冻结和销毁等边沿写入 `AutoFightModel.AutoFindWayState`，并通过 `EVT_AUTO_FIND_WAY_STATE` 通知 UI。禁止让 View 通过轮询角色坐标猜寻路状态。
 - 自动状态特效必须挂在实际进入 `MainUIModule` 的 `HudOnHook/AutoStateEffectSlot`；`HudSecondary` 已退出 `MainUIModuleCreator.Parts` 和 `MainUIFlow.FirstPassViews`，不得再向其接入运行时行为。宿主保持老端 250×200 尺寸，`__DynamicResources` 下两个 `UIEffectSlot` 互斥手动消费；共享 RT 横向镜像后，老端 X 偏移需要反号，固定 `position=(-6.8,-4)`、`scale=6.4`、`autoPlay=false`。这些静态参数同时维护在 `HudAuxiliaryCreator.GenerateOnHook` 与 prefab，业务 View 不写布局魔法数。
 - 状态切换、View 隐藏、异步加载过期时必须 `Dispose` 旧 Handle；加载中的旧状态完成后也必须自弃，不能留下双特效或离屏常驻实例。
+
+## 主界面挂机“提升”按钮扫光
+
+- 权威行为来自老端 `MainUISecondaryView.AddOutlineEffect/RefOutlineExp`：挂机加成未点满且不存在 `buff_type == 1` 的经验 Buff 时，在 `add` 宿主以 `scale=35` 循环播放 `UI_tisheng`；已有经验 Buff 时切回静态 `_img_add`，点满时隐藏按钮，两种状态都必须释放特效。
+- `UI_tisheng` 是完整按钮视觉加动态扫光，不是单独的透明高亮层。它同时包含 3 秒循环缩放和 1.333 秒循环的材质 `_BaseMap_ST.z` 偏移动画；验收必须看到真实 RT 在两个时刻均有非透明像素且像素发生变化，不能用 Prefab 已加载或 Animator 已存在替代出帧证据。
+- 公共 `LayaParticleUnlit` 默认继续读取 `_MainTex_ST`，保障既有旧流光；由当前导入器产出的 `_BaseMap_ST` 动画必须在对应材质显式设置 `_UseBaseMapST=1`。禁止同时改全局默认值来碰运气，否则会让仍驱动 `_MainTex_ST` 的老资源定格。
+- `UIEffectStage` 的服务对象仅在 PlayMode 使用 `DontDestroyOnLoad`；Editor/CLI 非 PlayMode 仍走相同 Camera/RT/RawImage 渲染链，但不得调用 Unity 明确禁止的持久化 API。批处理出现空 RT 时必须先检查真实异常和 Renderer 视锥位置，不能降低非透明像素门禁。
+- 活动宿主固定为 `HudOnHook/ExpBoostEffectAnchor/mainui_onhook_boost_hint`，canonical key 为 `effect/objs/ui_effect/ui_tisheng/ui_tisheng`，`scale=(35,35,35)`、`autoPlay=false`。`MainUIOnHookView` 互斥消费该槽，版本号负责丢弃过期异步结果，状态切换和 View 隐藏均释放 Handle。
+- 退役 `HudSecondary` 中的旧占位槽不属于运行链，不得把行为重新接回退役 Prefab。`HudOnHook.prefab` 是当前视觉唯一事实源并已退出 Creator 自动重建注册表；缺失时从 Git 恢复，不得重跑生成器覆盖槽位。
