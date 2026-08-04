@@ -25,10 +25,14 @@ namespace Shenxiao.Editor.UiCreator.Fashion
             "Assets/GameRes/resource/config/server/config_fashion_suit.json";
         private const string MountFigureConfig =
             "Assets/GameRes/resource/config/server/config_mount_figure.json";
+        private const string IllusionModelConfig =
+            "Assets/GameRes/resource/config/client/configillusionmodel.json";
         private const string ResourceGroup = "Remote_resource";
         private const string ObjectGroup = "Remote_object";
         private const string GoodsLabel = "pack_resource_game_goodsicon";
+        private const string Common4Label = "pack_resource_game_common4";
         private const string FashionLabel = "pack_object_fashion";
+        private const string ConfigLabel = "pack_resource_config";
 
         public static bool EnsureAddressables()
         {
@@ -40,6 +44,7 @@ namespace Shenxiao.Editor.UiCreator.Fashion
                 JObject suits = JObject.Parse(File.ReadAllText(FashionSuitConfig));
                 JObject mountFigures = JObject.Parse(File.ReadAllText(MountFigureConfig));
                 HashSet<string> paths = BuildRequiredPaths(models, colors, goods, suits, mountFigures);
+                paths.Add(IllusionModelConfig);
                 int imported = 0;
                 int configured = 0;
                 foreach (string path in paths.OrderBy(value => value, StringComparer.Ordinal))
@@ -86,7 +91,9 @@ namespace Shenxiao.Editor.UiCreator.Fashion
                     {
                         entry = settings.CreateOrMoveEntry(guid, group, false, false);
                     }
-                    entry.SetLabel(isFashionTexture ? FashionLabel : GoodsLabel, true, true, false);
+                    entry.SetLabel(isFashionTexture ? FashionLabel : IsConfig(path) ? ConfigLabel
+                            : IsIllusionTipsBackground(path) ? Common4Label : GoodsLabel,
+                        true, true, false);
                     string address = AddressFor(path);
                     if (entry.address != address) entry.address = address;
                 }
@@ -109,6 +116,10 @@ namespace Shenxiao.Editor.UiCreator.Fashion
             JObject models, JObject colors, JObject goods, JObject suits, JObject mountFigures)
         {
             var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            // IllusionTips 的品质大底图是运行时按 goods.color 赋值，scene/prefab 本身没有 skin。
+            // 七档必须和页面一起预检，禁止第一次点套装条件时再从老端复制 400KB 级图片。
+            for (int color = 1; color <= 7; color++)
+                paths.Add("Assets/GameRes/resource/game/common4/other/ui_tips_pzbg_" + color + ".png");
             var fashionIds = new HashSet<int>();
             foreach (JObject row in models.Properties().Select(property => property.Value).OfType<JObject>())
             {
@@ -236,6 +247,12 @@ namespace Shenxiao.Editor.UiCreator.Fashion
 
         private static bool IsFashionTexture(string path) =>
             path.IndexOf("/resource/object/fashion/", StringComparison.OrdinalIgnoreCase) >= 0;
+
+        private static bool IsConfig(string path) =>
+            path.IndexOf("/resource/config/", StringComparison.OrdinalIgnoreCase) >= 0;
+
+        private static bool IsIllusionTipsBackground(string path) =>
+            path.IndexOf("/resource/game/common4/other/ui_tips_pzbg_", StringComparison.OrdinalIgnoreCase) >= 0;
 
         private static string AddressFor(string path)
         {

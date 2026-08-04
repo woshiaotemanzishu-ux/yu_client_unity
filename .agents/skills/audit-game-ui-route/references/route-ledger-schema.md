@@ -26,7 +26,7 @@ python .agents/skills/audit-game-ui-route/scripts/route_ledger.py validate route
 
 `results.json`只需列本批实际跑过的叶子，格式为`[{"id":"...","status":"done","applicable_gates":[...],"gates":{...},"timing":{"cold_ms":123,"warm_ms":45},"visual_evidence":{"old":"...","unity":"...","diff":"..."},"state_evidence":["..."],"model_evidence":{"old":"...","unity":"..."},"effect_evidence":["..."],"resource_evidence":{"preflight_first":"...","preflight_second":"...","runtime_delta":"..."},"evidence":["..."]}]`。`apply`会合并证据并自底向上推导父节点，避免模型反复重写整张长表；未知ID、缺闸或错误父状态会直接失败。
 
-叶子标 `done` 时，`gates` 中所有适用闸必须为 `true`。默认闸名是 `click/result/protocol/immediate/reopen/return_chain/timing/visual_version/visual_match/runtime_state/model_presentation/effect_match/resource_stable/restore`；不适用项应从该节点的 `applicable_gates` 中显式移除，不得留空后宣称完成。`timing`要求非负`cold_ms/warm_ms`，`visual_match`要求老端/Unity/diff三份路径，`runtime_state`要求非空`state_evidence[]`，`model_presentation`要求老端/Unity模型截图，`effect_match`要求非空特效证据。`resource_stable`要求首次预检、第二次幂等预检和玩家点击目录差异证据，第二次必须证明`imported=0、configured=0`。父节点标 `done` 时所有直接子节点都必须是 `done`；`type=page` 的完成父节点还要求 `control_inventory[]` 非空、控件 ID 唯一，且每个 `child` 都存在并确实是直接子节点。
+叶子标 `done` 时，`gates` 中所有适用闸必须为 `true`。默认闸名是 `click/result/protocol/immediate/reopen/return_chain/timing/visual_version/visual_match/target_identity/layout_structure/scroll_interaction/page_space_geometry/runtime_state/model_presentation/render_completion/effect_match/resource_stable/restore`；不适用项应从该节点的 `applicable_gates` 中显式移除，不得留空后宣称完成。`timing`要求非负`cold_ms/warm_ms`，`visual_match`要求老端/Unity/diff三份路径；`target_identity/layout_structure/scroll_interaction/page_space_geometry/render_completion`分别要求非空的`identity_evidence[]/layout_evidence[]/interaction_evidence[]/geometry_evidence[]/render_evidence[]`。`render_completion`不能只记录 RawImage 已绑定 RenderTexture；证据至少应包含本轮渲染完成标记和 RenderTexture 非透明像素探针。`runtime_state`要求非空`state_evidence[]`，`model_presentation`要求老端/Unity模型截图，`effect_match`要求非空特效证据。`resource_stable`要求首次预检、第二次幂等预检和玩家点击目录差异证据，第二次必须证明`imported=0、configured=0`。父节点标 `done` 时所有直接子节点都必须是 `done`；`type=page` 的完成父节点还要求 `control_inventory[]` 非空、控件 ID 唯一，且每个 `child` 都存在并确实是直接子节点。
 
 历史台账在新增证据或用户复查发现模型缺失、状态错误、明显视觉偏差时必须降级为`defect`。旧版台账只通过点击/协议/回包，不自动继承新的视觉完成资格。
 
@@ -54,8 +54,11 @@ python .agents/skills/audit-game-ui-route/scripts/route_ledger.py validate route
 11. 2D 页面有同分辨率老端/Unity/diff证据，位置、尺寸、层级、裁剪、图片、文字和间距没有未登记差异。
 12. 页面有3D展示位时，模型存在且职业/部件正确，不得镜像、翻转或角度明显错误，位置和比例须大致正常；不要求跨引擎逐像素重合，但明显构图差异必须修复。
 13. 模型骨骼常驻特效和独立UI特效分别核对；不存在特效的页面才可显式移除该闸。
+14. 详情/弹窗的具体 View 类型、主底图、根尺寸和遮罩层与老端一致；“打开了别的通用小窗”或底图 Sprite 为空均失败。
+15. 列表/滚动区域具备正确容器树、裁剪与自适应 Content，并以真实拖动证明 Content 位移及末项可达。
+16. 所有跨父容器的关键矩形都换算为页面根左上角坐标再比较，不用局部锚点数值冒充页面位置。
 
-## 设置路线树（2026-08-04 第 3 轮视觉重开后）
+## 设置路线树（2026-08-04 第 4 轮结构与叶子身份重开后）
 
 ```text
 mainui.settings
@@ -73,6 +76,9 @@ mainui.settings
 │  │  ├─ current-page-version
 │  │  ├─ avatar-select-and-refresh
 │  │  ├─ fashion-hair-suit-visual-states
+│  │  │  ├─ fashion-list-structure-and-real-drag
+│  │  │  ├─ suit-banner-page-space-geometry
+│  │  │  └─ four-suit-goods-illusion-tip-leaves
 │  │  └─ suit-change-confirm-and-immediate-state
 │  ├─ sliders
 │  │  ├─ same-screen-count
@@ -92,4 +98,4 @@ mainui.settings
 └─ repair-abnormal
 ```
 
-第 2 轮的功能、协议、即时刷新和重开结论仍有效，但用户截图推翻了“视觉已完成”的继承状态。第 3 轮重新补齐了时装/发饰染色、四套装模型与特效、战力条和资源幂等证据；历史功能绿灯只有在新四层闸全部补证后才能重新标 `done`。
+第 2 轮的功能、协议、即时刷新和重开结论仍有效；第 3 轮又被用户截图重开：列表只是横排、没有滚动容器，套装竖牌因跨父容器锚点错位，条件格误开通用小窗，且测试没有逐格点击。第 4 轮起历史绿灯只有补齐目标身份、结构、真实拖动和页面坐标四个新闸后才可重新标 `done`。

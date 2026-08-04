@@ -20,6 +20,7 @@ using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Setting;
 using Shenxiao.Editor.UiCreator.Dress;
 using Shenxiao.Editor.UiCreator.Fashion;
+using Shenxiao.EditorTools.ConfigGen;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -62,6 +63,7 @@ namespace Shenxiao.EditorTools
             {
                 ResManager.EditorPreferFallback = true;
                 FashionFlow.Reset();
+                IllusionTipsFlow.Reset();
                 ResetSettingFlow();
                 if (!controllerWasInitialized) DressController.Instance.Init();
                 if (interceptField == null) throw new MissingFieldException("DressController.s_outboundIntercept");
@@ -77,6 +79,7 @@ namespace Shenxiao.EditorTools
                     return true;
                 }));
 
+                ClientConfigSync.SyncIfStale();
                 bool resourcePreflight = DressAssetPreflight.EnsureAddressables()
                     && FashionAssetPreflight.EnsureAddressables();
                 if (!resourcePreflight) throw new InvalidOperationException("DressAssetPreflight failed");
@@ -109,7 +112,7 @@ namespace Shenxiao.EditorTools
                 SettingView setting = await WaitActive<SettingView>(8d);
                 bool settingVisible = setting != null && setting.change_head_btn != null;
                 stage.ForceCjkFont();
-                string settingShot = stage.Capture("output/settings_fashion_current/setting.png");
+                string settingShot = stage.Capture("output/settings_fashion_round4_delivery/setting.png");
 
                 Stopwatch firstWatch = Stopwatch.StartNew();
                 bool settingClick = settingVisible && Click(setting.change_head_btn, camera, raycaster, eventSystem);
@@ -132,7 +135,7 @@ namespace Shenxiao.EditorTools
                 bool firstFast = firstWatch.ElapsedMilliseconds < 5000;
 
                 stage.ForceCjkFont();
-                string avatarShot = stage.Capture("output/settings_fashion_current/avatar.png");
+                string avatarShot = stage.Capture("output/settings_fashion_round4_delivery/avatar.png");
 
                 DressSkillItem[] skillItems = sub != null
                     ? sub.GetComponentsInChildren<DressSkillItem>(false)
@@ -144,7 +147,7 @@ namespace Shenxiao.EditorTools
                     && !string.IsNullOrWhiteSpace(skillTip.name_text?.text)
                     && !string.IsNullOrWhiteSpace(skillTip.des_text?.text);
                 stage.ForceCjkFont();
-                string skillTipShot = stage.Capture("output/settings_fashion_current/skill_tip.png");
+                string skillTipShot = stage.Capture("output/settings_fashion_round4_delivery/skill_tip.png");
                 bool skillTipClose = skillTipOk && Click(skillTip._Image1, camera, raycaster, eventSystem);
                 await Task.Delay(100);
                 skillTipClose = skillTipClose && FindActive<SkillTipsViewBind>() == null;
@@ -159,12 +162,12 @@ namespace Shenxiao.EditorTools
                 bool bubbleClick = Click(bubble?._Image1, camera, raycaster, eventSystem);
                 bool bubbleOk = bubbleClick && await WaitType(DressView.BubbleType, 5d);
                 stage.ForceCjkFont();
-                string bubbleShot = stage.Capture("output/settings_fashion_current/bubble.png");
+                string bubbleShot = stage.Capture("output/settings_fashion_round4_delivery/bubble.png");
 
                 bool photoClick = Click(photo?._Image1, camera, raycaster, eventSystem);
                 bool photoOk = photoClick && await WaitType(DressView.PhotoType, 5d);
                 stage.ForceCjkFont();
-                string photoShot = stage.Capture("output/settings_fashion_current/photo.png");
+                string photoShot = stage.Capture("output/settings_fashion_round4_delivery/photo.png");
 
                 bool headClick = Click(head?._Image1, camera, raycaster, eventSystem);
                 bool headBackOk = headClick && await WaitType(DressView.HeadType, 5d);
@@ -214,10 +217,21 @@ namespace Shenxiao.EditorTools
                 bool fashionModel = fashionView != null && await WaitUntil(
                     () => fashionView.IsModelPreviewReady && fashionView.RenderedColorId == 0, 12d);
                 HorizontalLayoutGroup fashionLayout = fashionView?._list_fashion_item?.GetComponent<HorizontalLayoutGroup>();
+                ContentSizeFitter fashionFitter = fashionView?._list_fashion_item?.GetComponent<ContentSizeFitter>();
+                ScrollRect fashionScroll = fashionView?._list_fashion_item?.GetComponentInParent<ScrollRect>();
+                RectTransform fashionViewport = fashionScroll?.viewport;
                 VerticalLayoutGroup colorLayout = fashionView?._box_color_item?.GetComponent<VerticalLayoutGroup>();
                 Transform obsoleteFight = fashionView?.transform.Find("_box_fight");
-                bool fashionVisual = fashionView != null
-                    && Approximately(fashionView._list_fashion_item.anchoredPosition, new Vector2(95f, -618f))
+                Canvas.ForceUpdateCanvases();
+                Rect fashionViewportRect = PageRect(fashionViewport, fashionView?.transform as RectTransform);
+                bool fashionStructure = fashionView != null && fashionScroll != null
+                    && fashionScroll.content == fashionView._list_fashion_item
+                    && fashionScroll.horizontal && !fashionScroll.vertical
+                    && fashionViewport != null && fashionViewport.GetComponent<RectMask2D>() != null
+                    && fashionFitter != null
+                    && fashionFitter.horizontalFit == ContentSizeFitter.FitMode.PreferredSize
+                    && Approximately(fashionViewportRect, new Rect(95f, 618f, 550f, 140f), 1f);
+                bool fashionVisual = fashionView != null && fashionStructure
                     && fashionLayout != null && Mathf.Approximately(fashionLayout.spacing, 14f)
                     && colorLayout != null && Mathf.Approximately(colorLayout.spacing, 0f)
                     && (obsoleteFight == null || !obsoleteFight.gameObject.activeSelf);
@@ -225,7 +239,7 @@ namespace Shenxiao.EditorTools
                     && fashionModel && fashionVisual && fashionView.PreviewHasWeapon
                     && fashionView.PreviewEffectCount > 0;
                 stage.ForceCjkFont();
-                string fashionShot = stage.Capture("output/settings_fashion_current/fashion.png");
+                string fashionShot = stage.Capture("output/settings_fashion_round4_delivery/fashion.png");
 
                 FashionItem[] fashionItems = fashionView != null
                     ? fashionView.GetComponentsInChildren<FashionItem>(false)
@@ -233,6 +247,15 @@ namespace Shenxiao.EditorTools
                     : Array.Empty<FashionItem>();
                 FashionItem[] inactiveFashionItems = fashionItems.Where(item =>
                     FashionModel.Instance.GetActive(fashionView.PosId, item.FashionId) == null).ToArray();
+                bool fashionDrag = fashionStructure && fashionItems.Length > 5
+                    && DragHorizontal(fashionScroll, camera, raycaster, eventSystem);
+                await Task.Delay(100);
+                fashionDrag = fashionDrag && fashionView._list_fashion_item.anchoredPosition.x < -20f;
+                if (fashionScroll != null)
+                {
+                    fashionScroll.horizontalNormalizedPosition = 0f;
+                    Canvas.ForceUpdateCanvases();
+                }
                 bool fashionGray = UIGrayStyle.Material != null && inactiveFashionItems.Length > 0
                     && inactiveFashionItems.All(item => item.fashion_icon_image != null
                         && item.fashion_icon_image.material == UIGrayStyle.Material
@@ -267,7 +290,8 @@ namespace Shenxiao.EditorTools
                         || !redProbe.fashion_red_image.gameObject.activeSelf;
                     redStateDynamic = redAppears && redClears;
                 }
-                fashionOk = fashionOk && fashionGray && inactiveRedHidden && gradeRedHidden && redStateDynamic;
+                fashionOk = fashionOk && fashionDrag && fashionGray && inactiveRedHidden
+                    && gradeRedHidden && redStateDynamic;
                 bool secondFashionSelected = fashionItems.Length > 1
                     && Click(fashionItems[1].ClickSurface, camera, raycaster, eventSystem)
                     && await WaitUntil(() => fashionView.SelectedFashionId == fashionItems[1].FashionId
@@ -293,7 +317,7 @@ namespace Shenxiao.EditorTools
                     colorStates = colorStates && fashionView.RenderedTextureName.EndsWith(
                         "_" + expectedColor, StringComparison.Ordinal);
                     stage.ForceCjkFont();
-                    colorShots.Add(stage.Capture("output/settings_fashion_current/fashion_color" + colorIndex + ".png"));
+                    colorShots.Add(stage.Capture("output/settings_fashion_round4_delivery/fashion_color" + colorIndex + ".png"));
                 }
 
                 bool baseColorClick = colorStates && Click(colorItems[0].ClickSurface, camera, raycaster, eventSystem);
@@ -308,7 +332,7 @@ namespace Shenxiao.EditorTools
                 bool hairOk = hairClick && fashionView != null && fashionView.PosId == 3 && window.CurrentIndex == 1
                     && await WaitUntil(() => fashionView.IsModelPreviewReady, 12d);
                 stage.ForceCjkFont();
-                string hairShot = stage.Capture("output/settings_fashion_current/hair.png");
+                string hairShot = stage.Capture("output/settings_fashion_round4_delivery/hair.png");
 
                 bool suitClick = Click(suitTab?._Image1, camera, raycaster, eventSystem);
                 FashionSuitView suitView = suitClick ? await WaitActive<FashionSuitView>(5d) : null;
@@ -340,7 +364,72 @@ namespace Shenxiao.EditorTools
                 bool suitNameVertical = suitView != null && suitView._lb_name != null
                     && suitView._lb_name.text.Count(character => character == '\n')
                         == Mathf.Max(0, suitView._lb_name.text.Count(character => character != '\n') - 1);
-                suitOk = suitOk && suitFightOk && inactiveWearHidden && suitGoodsGray && suitNameVertical;
+                RectTransform suitBanner = suitView?._right_box?.Find("Image_130") as RectTransform;
+                Rect suitBannerRect = PageRect(suitBanner, suitView?.transform as RectTransform);
+                bool suitBannerOk = suitBanner != null
+                    && Approximately(suitBannerRect, new Rect(599f, 19f, 103f, 284f), 1f);
+                suitOk = suitOk && suitFightOk && inactiveWearHidden && suitGoodsGray
+                    && suitNameVertical && suitBannerOk;
+
+                // 套装条件是本路由真正的叶子。逐个从真实 GraphicRaycaster 点击，必须打开老端同类的
+                // IllusionTips 大卡，而不是“任意一个能打开的物品小窗”；同时验模型、尺寸、关闭链和耗时。
+                bool suitTipLeaves = suitGoods.Length == 4;
+                var suitTipShots = new List<string>();
+                var suitTipTimings = new List<long>();
+                for (int goodsIndex = 0; suitTipLeaves && goodsIndex < suitGoods.Length; goodsIndex++)
+                {
+                    FashionSuitGoodsItem goodsItem = suitGoods[goodsIndex];
+                    Stopwatch tipWatch = Stopwatch.StartNew();
+                    bool tipClick = goodsItem?.AwardItem != null
+                        && Click(goodsItem.AwardItem.click_group, camera, raycaster, eventSystem);
+                    bool tipReady = tipClick && await WaitUntil(
+                        () => IllusionTipsFlow.ActiveView != null && IllusionTipsFlow.IsVisualReady, 15d);
+                    tipWatch.Stop();
+                    IllusionTipsBind illusionTip = IllusionTipsFlow.ActiveView;
+                    GoodsTooltipsBind wrongSmallTip = FindActive<GoodsTooltipsBind>();
+                    RectTransform tipRoot = illusionTip?.transform as RectTransform;
+                    RawImage modelImage = illusionTip?.roleCon != null
+                        ? illusionTip.roleCon.GetComponentInChildren<RawImage>(true)
+                        : null;
+                    Rect detailRect = PageRect(illusionTip?.detail_scroller?.transform as RectTransform, tipRoot);
+                    Rect sourceRect = PageRect(illusionTip?.sourceGp?.transform as RectTransform, tipRoot);
+                    int renderedModelPixels = CountRenderedPixels(modelImage,
+                        "Temp/CodexFashionRefine/suit_tip_rt_" + goodsIndex + ".png");
+                    bool identityOk = tipReady && illusionTip != null && wrongSmallTip == null
+                        && Approximately(tipRoot?.rect.size ?? Vector2.zero, new Vector2(450f, 600f))
+                        && illusionTip._img_bg != null
+                        && Mathf.Abs(illusionTip._img_bg.rectTransform.rect.width - 426f) <= 1f
+                        && illusionTip._img_bg.enabled && illusionTip._img_bg.sprite != null
+                        && !illusionTip._img_bg.canvasRenderer.cull
+                        && modelImage != null && modelImage.gameObject.activeInHierarchy
+                        && !modelImage.canvasRenderer.cull && renderedModelPixels >= 64
+                        && illusionTip.sourceGp != null && illusionTip.sourceGp.gameObject.activeInHierarchy
+                        && sourceRect.y >= detailRect.yMax + 10f
+                        && illusionTip._img_bg.rectTransform.rect.height >= sourceRect.yMax + 5f
+                        && Approximately(illusionTip.intro.color, new Color32(0x66, 0x39, 0x15, 0xff))
+                        && Approximately(illusionTip.source_txt.color, new Color32(0xd1, 0x5e, 0x00, 0xff))
+                        && illusionTip.source_txt.alignment == TextAlignmentOptions.TopLeft
+                        && !string.IsNullOrWhiteSpace(illusionTip.goods_name?.text)
+                        && !string.IsNullOrWhiteSpace(illusionTip.intro?.text)
+                        && (IllusionTipsFlow.CurrentModelType == 0 || IllusionTipsFlow.CurrentEffectCount > 0)
+                        && tipWatch.ElapsedMilliseconds < 5000;
+                    Debug.Log("CLIVERIFY setting-fashion-current illusion leaf=" + goodsIndex
+                        + " typeId=" + IllusionTipsFlow.CurrentTypeId
+                        + " modelType=" + IllusionTipsFlow.CurrentModelType
+                        + " renderedPixels=" + renderedModelPixels
+                        + " rawCull=" + (modelImage != null && modelImage.canvasRenderer.cull)
+                        + " detail=" + detailRect + " source=" + sourceRect
+                        + " bgHeight=" + (illusionTip?._img_bg?.rectTransform.rect.height ?? 0f)
+                        + " identity=" + identityOk);
+                    stage.ForceCjkFont();
+                    suitTipShots.Add(stage.Capture("output/settings_fashion_round4_delivery/suit_tip_" + goodsIndex + ".png"));
+                    suitTipTimings.Add(tipWatch.ElapsedMilliseconds);
+                    ItemTipsModalLayout modal = FindActive<ItemTipsModalLayout>();
+                    bool tipClose = identityOk && modal?.dimBlocker != null
+                        && ClickOutside(modal.dimBlocker, camera, raycaster, eventSystem);
+                    tipClose = tipClose && await WaitUntil(() => IllusionTipsFlow.ActiveView == null, 2d);
+                    suitTipLeaves = suitTipLeaves && identityOk && tipClose;
+                }
                 for (int suitIndex = 0; suitOk && suitIndex < suitItems.Length; suitIndex++)
                 {
                     int expectedSuit = suitItems[suitIndex].SuitId;
@@ -361,9 +450,9 @@ namespace Shenxiao.EditorTools
                         + " partsOk=" + partsOk);
                     suitOk = suitOk && partsOk && suitView.PreviewEffectCount > 0;
                     stage.ForceCjkFont();
-                    suitShots.Add(stage.Capture("output/settings_fashion_current/suit_" + expectedSuit + ".png"));
+                    suitShots.Add(stage.Capture("output/settings_fashion_round4_delivery/suit_" + expectedSuit + ".png"));
                 }
-                string suitShot = suitShots.Count > 0 ? suitShots[0] : stage.Capture("output/settings_fashion_current/suit.png");
+                string suitShot = suitShots.Count > 0 ? suitShots[0] : stage.Capture("output/settings_fashion_round4_delivery/suit.png");
 
                 // 套装页不是只切四个预览：可见的“更换”必须真实点出确认框，发送两条 41302，
                 // 并在权威回包后由父页立即从“更换”切到“已更换”。其余两件幻化预置为已穿，
@@ -429,11 +518,13 @@ namespace Shenxiao.EditorTools
                     && skillItemsOk && skillTipOk && skillTipClose
                     && uniqueItemSurface && itemChanged && dressWrites
                     && fashionOk && colorStates && baseColorRestored
-                    && hairOk && suitOk && suitWear && dressReturnOk && warmFast && noRuntimeImport;
+                    && hairOk && suitOk && suitTipLeaves && suitWear && dressReturnOk && warmFast && noRuntimeImport;
                 Debug.Log("CLIVERIFY setting-fashion-current shots=" + settingShot + " | " + avatarShot
                     + " | " + skillTipShot
                     + " | " + bubbleShot + " | " + photoShot + " | " + fashionShot
                     + " | " + hairShot + " | " + suitShot);
+                Debug.Log("CLIVERIFY setting-fashion-current suitTips=" + string.Join(" | ", suitTipShots)
+                    + " timingsMs=" + string.Join(",", suitTipTimings));
                 Debug.Log("CLIVERIFY setting-fashion-current timing firstMs=" + firstWatch.ElapsedMilliseconds
                     + " warmMs=" + warmWatch.ElapsedMilliseconds + " addedResources="
                     + (addedResources.Length == 0 ? "none" : string.Join(",", addedResources)));
@@ -448,11 +539,13 @@ namespace Shenxiao.EditorTools
                     + fashionOk + "/item2=" + secondFashionSelected
                     + "/colors=" + colorStates + "/texture=" + fashionTextureDiag
                     + "/effects=" + fashionEffectDiag + "/base=" + baseColorRestored
+                    + "/container=" + fashionStructure + "/drag=" + fashionDrag
                     + "/" + hairOk + "/" + suitOk + "/fight=" + suitFightOk
                     + "/fashionGray=" + fashionGray + "/redHidden=" + inactiveRedHidden + "/" + colorRedHidden
                     + "/redDynamic=" + redStateDynamic
                     + "/gradeRedHidden=" + gradeRedHidden + "/inactiveWearHidden=" + inactiveWearHidden
                     + "/suitGoodsGray=" + suitGoodsGray + "/suitNameVertical=" + suitNameVertical
+                    + "/suitBanner=" + suitBannerOk + "/suitTipLeaves=" + suitTipLeaves
                     + "/suitWear=" + suitWear + "/" + dressReturnOk
                     + " firstFast=" + firstFast
                     + " warmFast=" + warmFast + " noRuntimeImport=" + noRuntimeImport + " pass=" + pass);
@@ -471,6 +564,7 @@ namespace Shenxiao.EditorTools
                 Shenxiao.Module.Core.Bag.BagModel.Instance.Clear();
                 RoleModel.Instance.Figure = oldFigure;
                 DressSkillTipFlow.Reset();
+                IllusionTipsFlow.Reset();
                 ResetSettingFlow();
                 if (!controllerWasInitialized && DressController.Instance.IsInitialized) DressController.Instance.Dispose();
                 interceptField?.SetValue(null, oldIntercept);
@@ -554,6 +648,40 @@ namespace Shenxiao.EditorTools
 
         private static bool Approximately(Vector2 actual, Vector2 expected)
             => Vector2.SqrMagnitude(actual - expected) < 0.01f;
+
+        private static bool Approximately(Rect actual, Rect expected, float tolerance)
+        {
+            return Mathf.Abs(actual.x - expected.x) <= tolerance
+                && Mathf.Abs(actual.y - expected.y) <= tolerance
+                && Mathf.Abs(actual.width - expected.width) <= tolerance
+                && Mathf.Abs(actual.height - expected.height) <= tolerance;
+        }
+
+        private static bool Approximately(Color actual, Color expected, float tolerance = 0.01f)
+        {
+            return Mathf.Abs(actual.r - expected.r) <= tolerance
+                && Mathf.Abs(actual.g - expected.g) <= tolerance
+                && Mathf.Abs(actual.b - expected.b) <= tolerance
+                && Mathf.Abs(actual.a - expected.a) <= tolerance;
+        }
+
+        /// <summary>
+        /// 把任意后代 RectTransform 换算为页面根左上角坐标。锚点不同但画面相同应得到同一结果，
+        /// 用它阻止“局部 anchoredPosition 看似相同，实际跨父容器整体偏移”的假通过。
+        /// </summary>
+        private static Rect PageRect(RectTransform target, RectTransform pageRoot)
+        {
+            if (target == null || pageRoot == null) return default;
+            var corners = new Vector3[4];
+            target.GetWorldCorners(corners);
+            Vector3 bottomLeft = pageRoot.InverseTransformPoint(corners[0]);
+            Vector3 topRight = pageRoot.InverseTransformPoint(corners[2]);
+            return new Rect(
+                bottomLeft.x - pageRoot.rect.xMin,
+                pageRoot.rect.yMax - topRight.y,
+                topRight.x - bottomLeft.x,
+                topRight.y - bottomLeft.y);
+        }
 
         private static void SeedFashionState()
         {
@@ -739,6 +867,90 @@ namespace Shenxiao.EditorTools
                 + " selfRaycast=" + surface.Raycast(pointer.position, camera)
                 + " hierarchy=" + GetHierarchy(surface.transform));
             return false;
+        }
+
+        private static bool DragHorizontal(ScrollRect scroll, Camera camera,
+            GraphicRaycaster raycaster, EventSystem eventSystem)
+        {
+            if (scroll?.viewport == null || scroll.content == null || camera == null
+                || raycaster == null || eventSystem == null) return false;
+            Canvas.ForceUpdateCanvases();
+            RectTransform viewport = scroll.viewport;
+            Vector3 worldStart = viewport.TransformPoint(new Vector3(
+                Mathf.Min(viewport.rect.xMax - 80f, viewport.rect.center.x + 150f), viewport.rect.center.y));
+            Vector2 start = RectTransformUtility.WorldToScreenPoint(camera, worldStart);
+            Vector2 end = start + new Vector2(-220f, 0f);
+            var pointer = new PointerEventData(eventSystem)
+            {
+                button = PointerEventData.InputButton.Left,
+                position = start,
+                pressPosition = start,
+            };
+            var hits = new List<RaycastResult>();
+            raycaster.Raycast(pointer, hits);
+            RaycastResult hit = hits.FirstOrDefault(result => result.gameObject != null
+                && result.gameObject.transform.IsChildOf(viewport));
+            if (hit.gameObject == null) return false;
+            ExecuteEvents.ExecuteHierarchy<IBeginDragHandler>(hit.gameObject, pointer,
+                ExecuteEvents.beginDragHandler);
+            pointer.delta = end - start;
+            pointer.position = end;
+            ExecuteEvents.ExecuteHierarchy<IDragHandler>(hit.gameObject, pointer, ExecuteEvents.dragHandler);
+            ExecuteEvents.ExecuteHierarchy<IEndDragHandler>(hit.gameObject, pointer, ExecuteEvents.endDragHandler);
+            Canvas.ForceUpdateCanvases();
+            return true;
+        }
+
+        private static int CountRenderedPixels(RawImage image, string evidencePath)
+        {
+            if (image == null || !(image.texture is RenderTexture renderTexture)
+                || !renderTexture.IsCreated()) return 0;
+            RenderTexture previous = RenderTexture.active;
+            Texture2D copy = null;
+            try
+            {
+                RenderTexture.active = renderTexture;
+                copy = new Texture2D(renderTexture.width, renderTexture.height,
+                    TextureFormat.RGBA32, false, true);
+                copy.ReadPixels(new Rect(0f, 0f, renderTexture.width, renderTexture.height), 0, 0, false);
+                copy.Apply(false, false);
+                Color32[] pixels = copy.GetPixels32();
+                int count = pixels.Count(pixel => pixel.a >= 8);
+                if (!string.IsNullOrEmpty(evidencePath))
+                {
+                    string fullPath = Path.GetFullPath(evidencePath);
+                    Directory.CreateDirectory(Path.GetDirectoryName(fullPath) ?? "Temp");
+                    File.WriteAllBytes(fullPath, copy.EncodeToPNG());
+                }
+                return count;
+            }
+            finally
+            {
+                RenderTexture.active = previous;
+                if (copy != null) Object.DestroyImmediate(copy);
+            }
+        }
+
+        private static bool ClickOutside(Image blocker, Camera camera,
+            GraphicRaycaster raycaster, EventSystem eventSystem)
+        {
+            if (blocker == null || camera == null || raycaster == null || eventSystem == null
+                || !blocker.gameObject.activeInHierarchy || !blocker.raycastTarget) return false;
+            Canvas.ForceUpdateCanvases();
+            RectTransform rect = blocker.rectTransform;
+            Vector3 worldPoint = rect.TransformPoint(new Vector3(rect.rect.xMin + 30f, rect.rect.yMin + 30f));
+            var pointer = new PointerEventData(eventSystem)
+            {
+                button = PointerEventData.InputButton.Left,
+                position = RectTransformUtility.WorldToScreenPoint(camera, worldPoint),
+            };
+            var hits = new List<RaycastResult>();
+            raycaster.Raycast(pointer, hits);
+            RaycastResult hit = hits.FirstOrDefault(result => result.gameObject == blocker.gameObject);
+            if (hit.gameObject == null) return false;
+            ExecuteEvents.ExecuteHierarchy<IPointerClickHandler>(hit.gameObject, pointer,
+                ExecuteEvents.pointerClickHandler);
+            return true;
         }
 
         private static string GetHierarchy(Transform value)

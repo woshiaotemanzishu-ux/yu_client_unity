@@ -12,6 +12,8 @@ namespace Shenxiao.Module.Core.Fashion
     {
         private BaseAwardItem _award;
 
+        public BaseAwardItem AwardItem => _award;
+
         public void SetData(FashionConfigs.SuitCondition condition, GameObject awardTemplate)
         {
             if (_award == null && awardTemplate != null && _box_con != null)
@@ -29,6 +31,8 @@ namespace Shenxiao.Module.Core.Fashion
                 {
                     _award.SetData(goodsId, 1);
                     _award.SetGray(GetStage(condition) < 0);
+                    int fashionPos = condition != null && condition.Type == 1 ? condition.SubType : 0;
+                    _award.SetClickCallBack(() => IllusionTipsFlow.Show(goodsId, fashionPos));
                 }
             }
         }

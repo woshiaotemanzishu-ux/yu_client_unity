@@ -34,8 +34,13 @@ LEAF_GATES = (
     "timing",
     "visual_version",
     "visual_match",
+    "target_identity",
+    "layout_structure",
+    "scroll_interaction",
+    "page_space_geometry",
     "runtime_state",
     "model_presentation",
+    "render_completion",
     "effect_match",
     "resource_stable",
     "restore",
@@ -44,6 +49,13 @@ LEAF_GATES = (
 VISUAL_EVIDENCE_FIELDS = ("old", "unity", "diff")
 MODEL_EVIDENCE_FIELDS = ("old", "unity")
 RESOURCE_EVIDENCE_FIELDS = ("preflight_first", "preflight_second", "runtime_delta")
+ARRAY_EVIDENCE_GATES = {
+    "target_identity": "identity_evidence",
+    "layout_structure": "layout_evidence",
+    "scroll_interaction": "interaction_evidence",
+    "page_space_geometry": "geometry_evidence",
+    "render_completion": "render_evidence",
+}
 
 
 def read_json(path: Path):
@@ -65,7 +77,7 @@ def init_ledger(manifest: Path, output: Path) -> int:
         raise ValueError("manifest must be a node array or contain nodes[]")
 
     ledger = {
-        "schema": 2,
+        "schema": 4,
         "route": source.get("route", output.stem) if isinstance(source, dict) else output.stem,
         "baseline": source.get("baseline", {}) if isinstance(source, dict) else {},
         "nodes": [],
@@ -108,6 +120,11 @@ def apply_results(ledger_path: Path, results_path: Path) -> int:
             "timing",
             "note",
             "visual_evidence",
+            "identity_evidence",
+            "layout_evidence",
+            "interaction_evidence",
+            "geometry_evidence",
+            "render_evidence",
             "state_evidence",
             "model_evidence",
             "effect_evidence",
@@ -215,6 +232,15 @@ def validate_ledger(path: Path, quiet: bool = False) -> int:
                     not isinstance(value, str) or not value.strip() for value in state
                 ):
                     errors.append(f"{node_id}: runtime_state requires non-empty state_evidence[]")
+
+            for gate, field in ARRAY_EVIDENCE_GATES.items():
+                if gate not in applicable:
+                    continue
+                values = node.get(field)
+                if not isinstance(values, list) or not values or any(
+                    not isinstance(value, str) or not value.strip() for value in values
+                ):
+                    errors.append(f"{node_id}: {gate} requires non-empty {field}[]")
 
             if "model_presentation" in applicable:
                 model = node.get("model_evidence")

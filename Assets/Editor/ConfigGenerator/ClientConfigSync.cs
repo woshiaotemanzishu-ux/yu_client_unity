@@ -48,6 +48,7 @@ namespace Shenxiao.EditorTools.ConfigGen
             "ClientConfigFiestaIntroduce", // Festival 介绍文案表,轮18 PK3
             "ClientFirstBloodShow", // FirstBlood 客户端展示表,轮18 PK3
             "ClientItemUse",       // 背包新增物品/更优装备推荐弹层的权威筛选表(ItemUseView)
+            "ConfigIllusionModel", // 幻化/时装大详情卡模型、角度、缩放与战力基线(IllusionTips)
             "ClientOnHooKInfo",    // 挂机效率加成项目及各项上限(OnHookAdditionView/MainUI)
             "ClientRedBagOpen",     // RedPacket 客户端展示表,轮18 PK2
             "ClientVipWelfare",     // Welfare/VIP 客户端展示表,轮18 PK4

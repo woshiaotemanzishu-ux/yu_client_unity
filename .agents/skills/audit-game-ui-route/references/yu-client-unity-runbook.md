@@ -52,6 +52,9 @@ screenY = rect.y + designY * rect.height / 1280
 3. 对事务执行“提交前 → 等待中 → 成功/失败 → 父页即时刷新 → 关闭重开”。
 4. 对跳转执行“点击 → 首屏可见 → 可交互就绪 → 目标页版本核对 → 冷/热再打开”。
 5. 只有这个叶子的所有阶段通过才标 `done`，然后回到父页选下一个兄弟节点。
+6. 对列表先验容器树，再从可见子项经 `GraphicRaycaster` 做真实拖动；只看横向排列和子项数量不能证明可滚动、可裁剪或末项可达。
+7. 对弹窗记录“触发格 → 目标 View 类型 → 主底图 Sprite → 根尺寸 → 遮罩关闭”的身份链。列表中每个可见格都逐个点击，不能由同排一个成功项代验。
+8. 关键位置统一输出页面根左上角矩形；局部 `anchoredPosition` 只用于解释锚点，不作为跨容器视觉结论。
 
 默认记录 `click→first-visible` 和 `click→interactive-ready`。首次打开为 cold，返回后立即再打为 warm。项目无明确阈值时，超过老端 2 倍或 2 秒是默认告警线；5 秒以上必须登记缺陷并拆出资源、配置、协议、建树和串行等待耗时。
 
@@ -75,6 +78,10 @@ Unity 主界面固定入口必须绑定到 `_img_setting/_img_friend/_img_shop` 
 - 时装资源预检必须覆盖 `config_fashion_color.active_cost/star_cost`，并与全局 `SpriteImporter` 的材质例外一致。连续第二次预检必须 `imported=0、configured=0`，玩家点击后 `addedResources=none`。
 - 当前第 3 轮实测：预检闭包 712 项，第二次 `imported=0、configured=0`；设置→头像首开 1867ms、热开 71ms；四套装模型、挂载部件、常驻特效和战力增量条已按老端截图复验。
 - 冷开头像还要在约350ms/1000ms留证，禁止用粉色占位图或固定延时冒充ready。套装页除四个预览页签外，还必须点“更换→确认”，验证41302及父页即时切到“已更换”。
+- 第 4 轮补充：`_list_fashion_item` 曾绑定到无 Viewport/Mask 的重叠横排节点，截图看似有列表但不能拖动；套装 `Image_130` 曾在父容器 x=599 下继续右锚 x=-45，最终页面坐标右偏 65；四个条件格曾继承 `BaseAwardItem` 默认点击，误开通用小物品窗。以后这三类问题分别由 `layout_structure+scroll_interaction`、`page_space_geometry`、`target_identity` 阻断。
+- `IllusionTips.scene` 的 `_img_bg` 本来就没有静态 skin，老端按 `goods.color` 运行时加载 `common4/other/ui_tips_pzbg_1..7`。Unity 验收必须等待 Sprite 实际绘制，并把七张背景纳入点击前资源闭包；只断言 426×772 尺寸会让“底图透明、文字浮在父页上”假通过。
+- `UIModelStage` 的 RawImage 拿到 RenderTexture、场景中存在 Renderer 都不等于已经出帧；必须在专用相机实际 `Render()` 完成后置 ready，并读取 RT 非透明像素形成 `render_evidence[]`。固定延时不能替代实际出帧探针。
+- 详情弹窗需同时记录配置字段语义、详情/来源等动态组矩形、preferred height 与背景包围盒；组间重叠或字段放错容器即回卷。最终截图使用新的不可变目录，不覆盖已被查看器映射的 PNG。
 
 ## 两级验收与 Web 构建边界
 

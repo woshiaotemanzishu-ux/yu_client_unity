@@ -1859,3 +1859,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **运行态与功能**：红点改为按下一阶配置和背包材料充足性动态计算；发饰选中与穿戴状态分离。套装“更换”真实点击、确认、两条41302、即时“已更换”和关闭重开全部通过。补回3D重构时误删的41312战力展示链。
 - **资源与性能**：Fashion闭包712项第二次预检`imported=0/configured=0/added=0/missing=0`，Dress闭包154项无缺失，点击后`addedResources=none`；冷开1867ms、热开71ms，并保留350ms/1000ms/ready证据。
 - **验证状态**：`mainui.settings.visual-reopen`机器台账8节点全部`done`；常驻Editor串行`SettingFashionCurrent/Fashion/SettingFullRoute`均code=0，runner19总PASS。未进行WebGL构建或部署后复验。
+
+## 2026-08-04：设置结构与套装条件叶子第4轮重开
+
+- **状态更正**：用户截图与实操推翻第3轮8/8完成结论。时装列表只横排不可滚动、套装竖牌跨父容器右偏、四个条件格误开通用小物品窗；历史功能结论保留，视觉父节点回卷。
+- **Prefab与功能**：`FashionModule.prefab`删除重叠假Content，Bind接入唯一横向`ScrollRect→Viewport/RectMask2D→Content/Layout/Fitter`；套装竖牌改页面等价左上锚。四格改进`CommonModule.prefab/IllusionTips`，按`ConfigIllusionModel`显示角色或幻化模型/特效。
+- **资源与性能**：`FashionAssetPreflight`新增`ConfigIllusionModel`和七张`common4/other/ui_tips_pzbg_1..7`品质底图闭包；动态底图 Sprite 与模型共同构成视觉ready，禁止首次点击导入。
+- **门禁与收口**：路由台账最终升至schema 4，在`target_identity/layout_structure/scroll_interaction/page_space_geometry`之外新增`render_completion`；自动用例逐格点击、真实拖动、页面坐标、遮罩关闭和RT实际像素。第一次新闸回归虽业务全绿（四格184/12/13/11ms），人工看图发现底图透明并主动判失败；最终`SettingFashionCurrentCase code=0/pass=True`，四格模型非透明像素为`20208/31165/24249/7126`，详情/来源动态布局无重叠，设置首开/热开`1888/76ms`，Fashion闭包720项且第二次预检零变更，证据位于`output/settings_fashion_round4_delivery/`。模块与Editor构建0 error；未进行WebGL构建或部署后复验。

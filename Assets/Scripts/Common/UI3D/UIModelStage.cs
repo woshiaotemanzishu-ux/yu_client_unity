@@ -307,6 +307,40 @@ namespace Shenxiao.Common.UI3D
             if (_cam != null && _model != null && _rt != null) _cam.Render();
         }
 
+        /// <summary>模型台实际渲染诊断；给截图验收区分“贴图已绑定”与“相机里真有可渲染物”。</summary>
+        public string GetRenderDiagnostics()
+        {
+            if (_cam == null || _model == null)
+                return "camera=" + (_cam != null) + ",model=" + (_model != null);
+            Renderer[] renderers = _model.GetComponentsInChildren<Renderer>(true);
+            Plane[] planes = GeometryUtility.CalculateFrustumPlanes(_cam);
+            int active = 0;
+            int inFrustum = 0;
+            Bounds combined = default;
+            bool hasBounds = false;
+            foreach (Renderer renderer in renderers)
+            {
+                if (renderer == null || !renderer.enabled || renderer.forceRenderingOff
+                    || !renderer.gameObject.activeInHierarchy) continue;
+                active++;
+                Bounds bounds = renderer.bounds;
+                if (!hasBounds) { combined = bounds; hasBounds = true; }
+                else combined.Encapsulate(bounds);
+                if (GeometryUtility.TestPlanesAABB(planes, bounds)) inFrustum++;
+            }
+            Vector3 viewport = hasBounds ? _cam.WorldToViewportPoint(combined.center) : Vector3.zero;
+            return "model=" + _model.name
+                + ",active=" + _model.activeInHierarchy
+                + ",renderers=" + renderers.Length
+                + ",enabled=" + active
+                + ",inFrustum=" + inFrustum
+                + ",boundsCenter=" + (hasBounds ? combined.center.ToString("F2") : "none")
+                + ",boundsSize=" + (hasBounds ? combined.size.ToString("F2") : "none")
+                + ",viewport=" + viewport.ToString("F2")
+                + ",camera=" + _cam.transform.position.ToString("F2")
+                + ",mask=" + _cam.cullingMask;
+        }
+
         /// <summary>彻底销毁本台(独立实例的视图销毁时调用,释放相机/RT/RawImage)。</summary>
         public void Dispose()
         {

@@ -264,7 +264,7 @@ namespace Shenxiao.EditorTools
 
         public static void SettingFashionCurrent()
         {
-            Run(SettingFashionCurrentCase.Run, 60.0);
+            Run(SettingFashionCurrentCase.Run, 120.0);
         }
 
         public static void SettingFullRoute()

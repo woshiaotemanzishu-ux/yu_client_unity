@@ -48,6 +48,7 @@ namespace Shenxiao.Module.Core.Common
             public int Sex;            // sex(性别需求 0=通用,key "30")
             public int Turn;           // turn(转生需求,key "31")
             public string Getway = ""; // getway(获取途径/来源文本,key "3",对标 GoodsTooltips.ways=basic.getway)
+            public string Source = ""; // 运营来源展示,key "35"；IllusionTips 底部“获取途径”使用
             public string BaseAttrList = ""; // base_attrlist(装备基础属性 Erlang term [{attr_id,val},...],key "26",对标 EquipToolTips basic.base_attrlist)
             public int Use;            // use(可使用标记,key "22";==0 不显使用按钮,对标 GoodsTooltips useBtn 隐藏条件 basic.use==0)
             public int UseOneKey;      // use_one_key(key "25";!=0 可进入一键使用列表)
@@ -92,6 +93,7 @@ namespace Shenxiao.Module.Core.Common
         private const string K_NAME = "1";
         private const string K_INTRO = "2";        // intro(物品介绍/描述)
         private const string K_GETWAY = "3";       // getway(获取途径/来源文本,对标 GoodsTooltips.ways)
+        private const string K_SOURCE = "35";      // 运营来源展示(世界BOSS/运营活动等)
         private const string K_TYPE = "9";         // type(物品大类;==10 装备)
         private const string K_SUBTYPE = "10";     // subtype(子类)
         private const string K_EQUIP_TYPE = "13";  // equip_type(装备部位 1..10)
@@ -208,6 +210,7 @@ namespace Shenxiao.Module.Core.Common
                 Sex = ReadInt(obj, K_SEX),
                 Turn = ReadInt(obj, K_TURN),
                 Getway = ReadString(obj, K_GETWAY),
+                Source = ReadString(obj, K_SOURCE),
                 BaseAttrList = ReadString(obj, K_BASE_ATTR),
                 Use = ReadInt(obj, K_USE),
                 UseOneKey = ReadInt(obj, K_USE_ONE_KEY),
@@ -234,6 +237,8 @@ namespace Shenxiao.Module.Core.Common
 
         /// <summary>获取途径/来源文本(config_goods key "3"=getway,对标 GoodsTooltips.ways=basic.getway);无则空串。</summary>
         public static string GetGoodsGetway(int typeId) => GetGoodsBasicByTypeId(typeId)?.Getway ?? "";
+
+        public static string GetGoodsSource(int typeId) => GetGoodsBasicByTypeId(typeId)?.Source ?? "";
 
         /// <summary>物品大类文案(GoodsType[type].type_name,如 10→"装备";对标 WordManager.GetGoodsStyle);无则空串。</summary>
         public static string GetGoodsTypeName(int type)

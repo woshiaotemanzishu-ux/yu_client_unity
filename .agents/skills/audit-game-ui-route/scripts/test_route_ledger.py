@@ -13,7 +13,7 @@ from route_ledger import validate_ledger
 def write_case(folder: Path, name: str, node: dict) -> Path:
     path = folder / f"{name}.json"
     path.write_text(
-        json.dumps({"schema": 2, "route": name, "nodes": [node]}, ensure_ascii=False),
+        json.dumps({"schema": 4, "route": name, "nodes": [node]}, ensure_ascii=False),
         encoding="utf-8",
     )
     return path
@@ -26,8 +26,13 @@ def complete_node() -> dict:
         "timing",
         "visual_version",
         "visual_match",
+        "target_identity",
+        "layout_structure",
+        "scroll_interaction",
+        "page_space_geometry",
         "runtime_state",
         "model_presentation",
+        "render_completion",
         "effect_match",
         "resource_stable",
     ]
@@ -37,8 +42,13 @@ def complete_node() -> dict:
         "applicable_gates": gates,
         "gates": {gate: True for gate in gates},
         "visual_evidence": {"old": "old.png", "unity": "unity.png", "diff": "diff.png"},
+        "identity_evidence": ["view-type-and-background.json"],
+        "layout_evidence": ["scrollrect-tree.json"],
+        "interaction_evidence": ["real-drag.log"],
+        "geometry_evidence": ["page-space-rects.json"],
         "state_evidence": ["state.json"],
         "model_evidence": {"old": "old.png", "unity": "unity.png"},
+        "render_evidence": ["rt-pixel-probe.json"],
         "effect_evidence": ["effect-diff.png"],
         "resource_evidence": {
             "preflight_first": "preflight-first.log",
@@ -64,9 +74,21 @@ def main() -> int:
         missing_state["state_evidence"] = []
         assert validate_ledger(write_case(folder, "missing-state", missing_state), quiet=True) == 1
 
+        missing_identity = complete_node()
+        missing_identity["identity_evidence"] = []
+        assert validate_ledger(write_case(folder, "missing-identity", missing_identity), quiet=True) == 1
+
+        missing_drag = complete_node()
+        missing_drag.pop("interaction_evidence")
+        assert validate_ledger(write_case(folder, "missing-drag", missing_drag), quiet=True) == 1
+
         missing_model = complete_node()
         missing_model.pop("model_evidence")
         assert validate_ledger(write_case(folder, "missing-model", missing_model), quiet=True) == 1
+
+        missing_render = complete_node()
+        missing_render["render_evidence"] = []
+        assert validate_ledger(write_case(folder, "missing-render", missing_render), quiet=True) == 1
 
         missing_timing = complete_node()
         missing_timing.pop("timing")
@@ -80,6 +102,9 @@ def main() -> int:
         no_model_page["applicable_gates"].remove("model_presentation")
         no_model_page["gates"].pop("model_presentation")
         no_model_page.pop("model_evidence")
+        no_model_page["applicable_gates"].remove("render_completion")
+        no_model_page["gates"].pop("render_completion")
+        no_model_page.pop("render_evidence")
         assert validate_ledger(write_case(folder, "no-model-page", no_model_page), quiet=True) == 0
 
         unknown_gate = complete_node()
@@ -98,7 +123,7 @@ def main() -> int:
         child["parent"] = "page"
         page_path = folder / "page-good.json"
         page_path.write_text(
-            json.dumps({"schema": 2, "route": "page-good", "nodes": [page, child]}), encoding="utf-8"
+            json.dumps({"schema": 4, "route": "page-good", "nodes": [page, child]}), encoding="utf-8"
         )
         assert validate_ledger(page_path, quiet=True) == 0
 
@@ -106,7 +131,7 @@ def main() -> int:
         bad_page.pop("control_inventory")
         bad_page_path = folder / "page-missing-inventory.json"
         bad_page_path.write_text(
-            json.dumps({"schema": 2, "route": "page-missing-inventory", "nodes": [bad_page, child]}),
+            json.dumps({"schema": 4, "route": "page-missing-inventory", "nodes": [bad_page, child]}),
             encoding="utf-8",
         )
         assert validate_ledger(bad_page_path, quiet=True) == 1
