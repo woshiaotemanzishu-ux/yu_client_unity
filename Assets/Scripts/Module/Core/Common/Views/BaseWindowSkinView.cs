@@ -49,6 +49,15 @@ namespace Shenxiao.Module.Core.Common
         private IList<TabSpec> _specs;
         private int _current = -1;
         private bool _windowOpenRaised;
+        private Action _returnAction;
+
+        /// <summary>
+        /// 覆盖共享窗框的返回语义。默认仍关闭窗口；角色等带二级页的模块可先返回父页。
+        /// </summary>
+        public void SetReturnAction(Action action)
+        {
+            _returnAction = action;
+        }
 
         protected override void OnInit()
         {
@@ -56,7 +65,7 @@ namespace Shenxiao.Module.Core.Common
             if (_img_return0 != null)
             {
                 _img_return0.raycastTarget = true;
-                UIUtil.AddClick(_img_return0, Hide);
+                UIUtil.AddClick(_img_return0, OnReturnClicked);
             }
             if (_img_instruction != null)
             {
@@ -64,6 +73,16 @@ namespace Shenxiao.Module.Core.Common
                 UIUtil.AddClick(_img_instruction, () => GameLog.Info("Window", "点击[说明] → 待对接 InstructionType"));
             }
             if (_img_red != null) _img_red.gameObject.SetActive(false);
+        }
+
+        private void OnReturnClicked()
+        {
+            if (_returnAction != null)
+            {
+                _returnAction();
+                return;
+            }
+            Hide();
         }
 
         /// <summary>配置标签页 + 默认页索引。在窗口 Show() 之后调用(此时 OnInit 已跑)。</summary>

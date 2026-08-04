@@ -1726,7 +1726,13 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **底部页签**：一级页签收口为老端五项“人物 / 垂神翼影 / 古法符相 / 殒锋天刃 / 玄穹云披”，后四项逐项读取 `configfuncopencondition` 的同名开放条件；未开放项不生成按钮，已开放项显示真实文字与外观页面，移除误放在一级栏的技能/天赋空页签。
 - **圈选入口**：称号按钮打开真实 `DsgtModule` 并消费 41101 权威列表与 `config_dsgt`；“名”按钮打开 `MarriageHonourView`，显示服务端名誉值与 `config_fame_lv` 等级；“世”按钮沿用角色世界等级说明层；属性问号打开 `CommonModule/InstructionView`，按 `configinstruction[453]` 生成完整说明。称号佩戴/激活等写事务继续遵守既有 DEFER 约束，不伪造本地成功。
 - **Prefab 保护**：移除人物页专用 `RoleEquipmentCreator` 的生成逻辑与重建注册（保留兼容工程文件的同名空壳），`RoleSettingPanelCase` 改为只读验收当前人工 Prefab，并新增 `model_bg` 必须为空 Sprite 且 `Image` 禁用的断言。
-- **验证状态**：新增资源/config 均已登记 Addressables；Unity Editor 实际刷新编译后 Console 为 0 error（保留既有 warning），`dotnet build Shenxiao.Editor.csproj --no-restore -m:1` 复编译同样为 0 error。`RoleSettingPanelCase` 增加“人物页视觉”编辑器专项入口，并在真实 `ui_role_new_bg_1.jpg` 窗底上渲染人物页截图；本轮实跑输出 `CLIVERIFY rolevisual EDITOR PASS prefab=True runtime=True`，防止空 `Image` 白块回归。称号资源额外校验为 103 张 PNG 均可解码、103 个 Addressables 地址与 GUID 均唯一；老端配置中另有 41 个图标源文件本身缺失，当前不伪造图片，仍保留称号名称、说明与属性展示。
+
+## 2026-08-04：角色界面 UI 精修路线清单（第 1 轮）
+
+- **范围盘点**：按 `MainUI → 角色` 建立深度优先机器台账，覆盖开关/重开、五个一级页签、人物页名称等级经验战力、13 项基础属性、31 项极品属性、滚动容器、角色模型、14 条二级入口/状态叶子，以及四个外观页的内容/模型/特效/返回链。
+- **事实源**：`RoleModule.prefab` 已由人工接管，本轮采用 `audit-game-ui-route → fix-view`；不重转模块，不运行人物页专用 `RoleEquipmentCreator`，不让运行时代码重新成为视觉布局源。
+- **首条路由修复**：人物页技能按钮已从无效的 `RoleFlow.SelectTab(5)` 改为 `RoleFlow.OpenSub("SkillInitiativeSubItem")`；共享窗框新增可覆盖的返回回调，角色二级页先返回人物页，再次返回才关闭角色窗。未改人工 `RoleModule.prefab` 布局，也未重跑 `RoleEquipmentCreator`。
+- **台账与专题清单**：`output/ui_route_audit/2026-08-04_role/role-route-ledger.json`、`Docs/RuntimeCompare/角色界面路线清单-第1轮.md`。当前 48 个节点中 14 个为老端基线、4 个为代码已修但待运行态复验、30 个尚未执行；Unity 真实账号链本轮在进入场景前被 `Account API did not become accessible within 30 seconds` 阻塞，不能把静态或编辑器验收结果当作运行通过。
 
 ## 2026-08-02：称号 41109 道具激活闭环（R523）
 
