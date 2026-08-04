@@ -1,6 +1,6 @@
 ---
 name: convert-module
-description: 把一个 Laya UI 模块端到端转成可编辑 Unity prefab + data-only View 代码,用运行时快照当源、diff 验收。当用户要"转某个模块/某些 view"、批量推进 Laya→Unity UI 移植时用。
+description: 作为项目统一“UI 对接 / UI 精修”流程中的首次落地环节，把尚无可编辑 Prefab 的 Laya UI 模块端到端转成 Unity prefab + data-only View 代码，并用运行时快照和 diff 验收。仅当用户要转某个模块/某些 view、批量推进 Laya→Unity，或 UI 对接目标确认尚无可编辑 Prefab 时使用；已有 Prefab 的页面精修不得重转，应改用 fix-view。
 ---
 
 # convert-module — Laya→Unity UI 模块转换流水线
