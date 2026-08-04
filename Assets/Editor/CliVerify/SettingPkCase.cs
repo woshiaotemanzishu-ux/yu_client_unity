@@ -35,7 +35,19 @@ namespace Shenxiao.EditorTools
             bool creatorOk = prefab != null && prefab.GetComponentInChildren<SettingView>(true) != null
                 && prefab.GetComponentInChildren<SettingChangeHeadView>(true) != null
                 && prefab.GetComponentInChildren<SettingChangeNameView>(true) != null;
-            Debug.Log("CLIVERIFY settingpk creator ok=" + creatorOk);
+            string[] modalPaths =
+            {
+                "SettingView/ModalDim",
+                "SettingChangeHeadView/ModalDim",
+                "SettingChangeNameView/ModalDim",
+            };
+            bool modalFitterOk = prefab != null;
+            foreach (string path in modalPaths)
+            {
+                Transform modal = prefab != null ? prefab.transform.Find(path) : null;
+                modalFitterOk &= modal != null && modal.GetComponent<RootCanvasRectFitter>() != null;
+            }
+            Debug.Log("CLIVERIFY settingpk creator ok=" + creatorOk + " modalFitter=" + modalFitterOk);
 
             // ② 场景 pkstate_list 解析
             await MainUIConfigs.EnsureSceneLoaded();
@@ -82,11 +94,19 @@ namespace Shenxiao.EditorTools
 
             // ⑤ 渲染设置面板
             CliVerify.Stage stage = CliVerify.Stage.Create();
-            bool slidersOk, pickOk, shieldOk, taskOk;
+            bool slidersOk, pickOk, shieldOk, taskOk, modalRuntimeOk;
             try
             {
                 await SettingConfigs.EnsureLoaded();
                 GameObject root = Object.Instantiate(prefab, ViewManager.GetLayer(UILayer.Window));
+                RootCanvasRectFitter[] modalFitters = root.GetComponentsInChildren<RootCanvasRectFitter>(true);
+                foreach (RootCanvasRectFitter fitter in modalFitters) fitter.RefreshNow();
+                Canvas.ForceUpdateCanvases();
+                modalRuntimeOk = modalFitters.Length == modalPaths.Length;
+                foreach (RootCanvasRectFitter fitter in modalFitters)
+                {
+                    modalRuntimeOk &= MatchesRootCanvas(fitter.transform as RectTransform);
+                }
                 foreach (Transform c in root.transform) c.gameObject.SetActive(false);
                 SettingView main = root.GetComponentInChildren<SettingView>(true);
                 main.Show();
@@ -156,13 +176,34 @@ namespace Shenxiao.EditorTools
             SettingModel.Reset();
             RoleModel.Instance.Reset();
 
-            bool pass = creatorOk && pkCfgOk && pkChangeOk && pkCdOk && pkErrNoThrow && settingDataOk
+            bool pass = creatorOk && modalFitterOk && modalRuntimeOk
+                && pkCfgOk && pkChangeOk && pkCdOk && pkErrNoThrow && settingDataOk
                 && slidersOk && pickOk && shieldOk && taskOk && fightModeOk;
             Debug.Log("CLIVERIFY settingpk VERDICT creator=" + creatorOk + " pkCfg=" + pkCfgOk
+                + " modalFitter=" + modalFitterOk + " modalRuntime=" + modalRuntimeOk
                 + " pkChange=" + pkChangeOk + " pkCd=" + pkCdOk + " pkErr=" + pkErrNoThrow
                 + " data=" + settingDataOk + " sliders=" + slidersOk + " pick=" + pickOk
                 + " shield=" + shieldOk + " task=" + taskOk + " fightmode=" + fightModeOk + " pass=" + pass);
             return pass ? 0 : 3;
+        }
+
+        private static bool MatchesRootCanvas(RectTransform rect)
+        {
+            Canvas canvas = rect != null ? rect.GetComponentInParent<Canvas>() : null;
+            RectTransform root = canvas != null && canvas.rootCanvas != null
+                ? canvas.rootCanvas.transform as RectTransform
+                : null;
+            if (rect == null || root == null) return false;
+
+            var actual = new Vector3[4];
+            var expected = new Vector3[4];
+            rect.GetWorldCorners(actual);
+            root.GetWorldCorners(expected);
+            for (int i = 0; i < 4; i++)
+            {
+                if ((actual[i] - expected[i]).sqrMagnitude > 0.01f) return false;
+            }
+            return true;
         }
 
         private static int CountActiveShieldItems(Transform content)

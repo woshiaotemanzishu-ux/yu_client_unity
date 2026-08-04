@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Shenxiao.Common.Prefs;
 using Shenxiao.Common.Proto;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Res;
@@ -12,7 +13,6 @@ using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene;
-using Shenxiao.Module.Core.Skill;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -147,44 +147,49 @@ namespace Shenxiao.Module.Core.Preload
             {
                 LoginConfigs.CareerOption option = options[i];
                 AddCreateRoleOptionEntries(entries, option);
-                LoginConfigs.CareerRes res = LoginConfigs.GetCreateRes(option.Career, option.Sex);
-                if (res != null)
-                {
-                    // 创角页优先加载展示视频(整模 model_create_* 已废弃删除),与 RoleCreateView.TryShowVideo
-                    // 的实际 key 对齐;不加则选职业时视频冷加载慢半拍。未交付视频的职业会被存在性过滤掉,无害。
-                    string videoBase = $"object/role/video_create/{res.RoleRes}@";
-                    AddEntry(entries, videoBase + "create2", PreloadAssetKind.Video);
-                    AddEntry(entries, videoBase + "create3", PreloadAssetKind.Video);
-
-                    await AddRoleModelSpecAsync(entries, new RoleModelSpec
-                    {
-                        Career = option.Career,
-                        ClotheRes = res.RoleRes,
-                        HeadRes = res.HeadRes,
-                        WeaponRes = res.WeaponRes,
-                        Actions = LoginConfigs.RoleUIActions("LoginCreateRoleView"),
-                        AutoPlayActions = false,
-                    });
-
-                    foreach ((string bone, string name) in LoginConfigs.CreateRoleEffects(option.Career, option.Sex))
-                    {
-                        if (!string.IsNullOrEmpty(name))
-                            AddEntry(entries, GameResPath.GetEffectPrefabPath("skills_effect", name), PreloadAssetKind.Prefab);
-                    }
-                }
             }
 
             IReadOnlyList<GameRoleInfo> roles = LoginModel.Instance.Roles;
+            var sortedRoles = new List<GameRoleInfo>(roles);
+            sortedRoles.Sort((a, b) => a.roleId.CompareTo(b.roleId));
             for (int i = 0; i < roles.Count; i++)
             {
                 GameRoleInfo role = roles[i];
                 string headIcon = LoginConfigs.HeadIconPath(role.Career, role.Turn);
                 if (!string.IsNullOrEmpty(headIcon)) AddEntry(entries, headIcon, PreloadAssetKind.Sprite);
+            }
+
+            // 选角首屏只需要默认选中的一个角色。旧逻辑在页面出现前把所有职业视频、全部职业模型、
+            // 创角特效和账号内每个角色形象一起下载/反序列化，WebGL 实测 83 项 279.5 MB，
+            // 网络完成后还会长时间卡在 55%。其余角色与创角职业保持点击时按需加载。
+            if (sortedRoles.Count > 0)
+            {
+                long lastRoleId = long.TryParse(
+                    PrefsManager.GetString(RoleSelectView.PREF_LAST_ROLE_ID, ""), out long parsed)
+                    ? parsed
+                    : 0;
+                GameRoleInfo role = sortedRoles[0];
+                for (int i = 0; i < sortedRoles.Count; i++)
+                {
+                    if (sortedRoles[i].roleId == lastRoleId)
+                    {
+                        role = sortedRoles[i];
+                        break;
+                    }
+                }
 
                 LoginConfigs.CareerOption option = FindOption(options, role.Career);
-                if (option == null) continue;
+                if (option == null)
+                {
+                    await RunStageAsync(LegacyPreloadStage.RoleSelection, entries, progress);
+                    return;
+                }
                 LoginConfigs.CareerRes res = LoginConfigs.GetCreateRes(option.Career, option.Sex);
-                if (res == null) continue;
+                if (res == null)
+                {
+                    await RunStageAsync(LegacyPreloadStage.RoleSelection, entries, progress);
+                    return;
+                }
 
                 FigureProto figure = role.figure;
                 await AddRoleModelSpecAsync(entries, new RoleModelSpec
@@ -223,12 +228,7 @@ namespace Shenxiao.Module.Core.Preload
             if (role.HasBaseInfo && role.Figure != null)
             {
                 RoleModelSpec roleSpec = await BuildMainRoleSpecAsync(role);
-                SkillVisualWarmupPlan combatPlan =
-                    await SkillMovieConfigs.BuildCareerWarmupPlanAsync(role.Career);
-                roleSpec.Actions = MergeActions(roleSpec.Actions, combatPlan.Actions);
                 await AddRoleModelSpecAsync(entries, roleSpec);
-                for (int i = 0; i < combatPlan.EffectKeys.Length; i++)
-                    AddEntry(entries, combatPlan.EffectKeys[i], PreloadAssetKind.Prefab);
                 await AddSceneMapEntriesAsync(entries, role.SceneId, role.X, role.Y);
             }
 
@@ -258,7 +258,7 @@ namespace Shenxiao.Module.Core.Preload
         {
             try
             {
-                Report(stage, progress, 0f, "检查资源");
+                Report(stage, progress, 0f, $"检查资源 ({entries.Count}项)");
                 List<PreloadEntry> valid = await FilterExistingAsync(entries.Values);
                 if (valid.Count == 0)
                 {
@@ -276,11 +276,12 @@ namespace Shenxiao.Module.Core.Preload
                 if (size > 0)
                 {
                     GameLog.Info("Preload", "{0}: download {1} keys, {2} KB", stage, keys.Count, size / 1024);
-                    await ResManager.DownloadAsync(keys, p => Report(stage, progress, 0.1f + p * 0.45f, "下载资源"));
+                    await ResManager.DownloadAsync(keys, p => Report(stage, progress, 0.1f + p * 0.45f,
+                        $"下载资源 ({keys.Count}项 / {FormatDownloadSize(size)})"));
                 }
                 else
                 {
-                    Report(stage, progress, 0.55f, "资源已缓存");
+                    Report(stage, progress, 0.55f, $"资源已缓存 ({valid.Count}项)");
                 }
 
                 await WarmAsync(stage, valid, progress, 0.55f, 1f);
@@ -362,6 +363,8 @@ namespace Shenxiao.Module.Core.Preload
                 return;
             }
 
+            Report(stage, progress, start, $"本地预热资源 (0/{toWarm.Count})");
+
             // 有界并发预热:逐个串行 await 同样会卡上百帧;并发上限封顶,避免一帧涌入太多真实资源加载/解码尖刺。
             // next/done 的自增都在 await 之间的同步段完成,主线程协作调度下天然原子,无需加锁。
             int done = 0;
@@ -376,7 +379,7 @@ namespace Shenxiao.Module.Core.Preload
                     await WarmOneAsync(stage, toWarm[i]);
                     done++;
                     float p = start + (end - start) * done / toWarm.Count;
-                    Report(stage, progress, p, "预热资源");
+                    Report(stage, progress, p, $"本地预热资源 ({done}/{toWarm.Count})");
                 }
             }
 
@@ -389,6 +392,10 @@ namespace Shenxiao.Module.Core.Preload
         private static bool ShouldWarm(LegacyPreloadStage stage, PreloadEntry entry)
         {
             if (entry == null || entry.Kind == PreloadAssetKind.DependencyOnly) return false;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // WebGL 创角视频走 CDN URL + 浏览器 video 解码，不加载 Addressables VideoClip。
+            if (entry.Kind == PreloadAssetKind.Video) return false;
+#endif
             // 3D 模型/动作原先被无差别拦掉 → 预热对它们等于 no-op,创角/选角/进场模型必然冷加载
             // (="模型慢半拍"的根因)。RoleSelection/GameStart 阶段的 3D 条目正是下一屏要展示的模型,
             // 放行真正 LoadOptionalAsync 进内存(ResManager 资产缓存接住,视图侧加载时同步命中)。
@@ -406,6 +413,9 @@ namespace Shenxiao.Module.Core.Preload
         private static bool ShouldDownload(LegacyPreloadStage stage, PreloadEntry entry)
         {
             if (entry == null) return false;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            if (entry.Kind == PreloadAssetKind.Video) return false;
+#endif
 #if UNITY_EDITOR
             if (Application.isEditor
                 && (entry.Kind == PreloadAssetKind.Animation || IsRuntime3DKey(entry.Key)))
@@ -447,6 +457,13 @@ namespace Shenxiao.Module.Core.Preload
             float clamped = Mathf.Clamp01(p);
             progress?.Invoke(clamped, hint);
             ProgressChanged?.Invoke(stage, clamped, hint);
+        }
+
+        private static string FormatDownloadSize(long bytes)
+        {
+            if (bytes < 1024) return bytes + " B";
+            if (bytes < 1024L * 1024L) return $"{bytes / 1024f:0.0} KB";
+            return $"{bytes / (1024f * 1024f):0.0} MB";
         }
 
         private static async Task<List<PreloadEntry>> GetLegacyCommonEntries()
@@ -562,6 +579,8 @@ namespace Shenxiao.Module.Core.Preload
                 WingId = figure.WingId,
                 BackOrnamentId = figure.BackOrnamentId,
                 Actions = new[] { "idle", "run" },
+                AutoPlayActions = false,
+                IncludeBodyAlwaysEffects = false,
             });
         }
 
@@ -594,7 +613,7 @@ namespace Shenxiao.Module.Core.Preload
                 }
             }
 
-            AddProfileEffectEntries(entries, profile);
+            AddProfileEffectEntries(entries, profile, spec.Actions);
             await ModelReplacement.EnsureLoaded();
             AddReplacementActionEntries(entries, spec, spec.Actions);
         }
@@ -631,33 +650,19 @@ namespace Shenxiao.Module.Core.Preload
             AddEntry(entries, key, PreloadAssetKind.Prefab);
         }
 
-        private static string[] MergeActions(IEnumerable<string> first, IEnumerable<string> second)
-        {
-            var merged = new List<string>();
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            void Append(IEnumerable<string> source)
-            {
-                if (source == null) return;
-                foreach (string action in source)
-                {
-                    if (!string.IsNullOrEmpty(action) && seen.Add(action)) merged.Add(action);
-                }
-            }
-
-            Append(first);
-            Append(second);
-            return merged.ToArray();
-        }
-
-        private static void AddProfileEffectEntries(Dictionary<string, PreloadEntry> entries, AssetAssemblyEntry profile)
+        private static void AddProfileEffectEntries(Dictionary<string, PreloadEntry> entries,
+            AssetAssemblyEntry profile, IEnumerable<string> actions)
         {
             if (profile == null) return;
             AddEffectBindings(entries, profile.AlwaysEffects);
-            if (profile.ActionEffects == null) return;
-            foreach (KeyValuePair<string, List<AssetEffectBinding>> kv in profile.ActionEffects)
+            if (profile.ActionEffects == null || actions == null) return;
+            foreach (string action in actions)
             {
-                AddEffectBindings(entries, kv.Value);
+                if (!string.IsNullOrEmpty(action)
+                    && profile.ActionEffects.TryGetValue(action, out List<AssetEffectBinding> bindings))
+                {
+                    AddEffectBindings(entries, bindings);
+                }
             }
         }
 

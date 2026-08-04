@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Shenxiao.Common.Loading;
 using Shenxiao.Common.Proto;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
@@ -309,31 +310,42 @@ namespace Shenxiao.Module.Core.Scene
             }
 #endif
             RoleModel role = RoleModel.Instance;
-            await LegacyPreloadService.PreloadSceneMapAsync(sceneId, role.X, role.Y);
+            await LegacyPreloadService.PreloadSceneMapAsync(sceneId, role.X, role.Y, (p, hint) =>
+            {
+                if (LoadingManager.IsVisible)
+                    LoadingManager.SetProgress(0.80f + p * 0.08f, "场景资源 · " + hint);
+            });
+            if (LoadingManager.IsVisible) LoadingManager.SetProgress(0.89f, "解析场景地图");
             SceneMapData data = await SceneMapLoader.LoadAsync(sceneId);
             if (version != _loadVersion) return;   // 更新的加载已接管(含黑幕的隐藏权)
             if (data == null)
             {
                 SceneTransitionMask.Hide();   // 地图加载失败别黑屏卡死(另有 8s 自动兜底)
+                if (LoadingManager.IsVisible) LoadingManager.SetProgress(1f, "场景加载失败，正在恢复");
                 EventDispatcher.Emit(GlobalEvent.EVT_SCENE_FIRST_SCREEN_READY); // 加载页同样别卡死
                 EventDispatcher.Emit(GlobalEvent.EVT_SCENE_ENTITIES_READY);
                 return;
             }
 
-            // 真换图才拉黑幕(盖住底图/瓦片整屏重铺);同图(副本进出)对齐老端无感,不黑一下。
-            if (!SceneMapView.IsSameMapShown(data)) SceneTransitionMask.Show();
+            // 首次进世界已有连续 LoadingView 时不能再叠黑幕，否则会出现
+            // “加载页→黑屏→加载页→场景”。登录加载退役后的普通真换图仍保留黑幕。
+            if (!SceneMapView.IsSameMapShown(data) && !LoadingManager.IsVisible)
+                SceneTransitionMask.Show();
+            if (LoadingManager.IsVisible) LoadingManager.SetProgress(0.92f, "构建场景");
             await SceneMapView.ShowAsync(data, role.X, role.Y);
             if (version != _loadVersion) return;
 
             SendFmt(Proto.SC_NPC_LIST, "i", sceneId);
             GameLog.Info("Scene", "request 12100: local map loaded sceneId={0}", sceneId);
             EventDispatcher.Emit(GlobalEvent.EVT_SCENE_MAP_READY);
+            if (LoadingManager.IsVisible) LoadingManager.SetProgress(0.95f, "绘制首屏地图", 5f);
             // 首屏瓦片真正画完再揭幕:此前在瓦片"入队"后就揭,12005→出怪全程裸奔(进世界盯黑地图数秒)。
             // 12100 已在上面发出,这段等待不拖慢出怪管线;5s 兜底防慢网压幕(黑幕自身另有 8s 兜底)。
             await SceneMapView.WaitTilesIdleAsync(5000);
             if (version != _loadVersion) return;
             SceneTransitionMask.Hide();
             EventDispatcher.Emit(GlobalEvent.EVT_SCENE_FIRST_SCREEN_READY);
+            if (LoadingManager.IsVisible) LoadingManager.SetProgress(0.97f, "生成角色与怪物", 2f);
             _ = EmitEntitiesReadyAsync(version);
         }
 

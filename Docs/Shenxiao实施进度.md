@@ -1889,3 +1889,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **门禁**：新增 `CliVerify.MainUIOnHookBoost`，覆盖真实 Prefab 槽位与 35 倍缩放、状态真值表、Addressable、两段循环动画、`_BaseMap_ST.z` 曲线、真实 `UIEffectStage`、起始/中间 RT 非透明及变化像素、重复加载、隐藏释放和重开释放。详细证据见 [专项记录](RuntimeCompare/MainUI-挂机提升扫光-20260804.md)。
 - **验证状态**：最终独立 Unity 批处理退出码 0、`VERDICT pass=True`；起始/中间 RT 均为 733 个非透明像素、亮像素 997/995、变化像素 111。Editor 构建 0 error（66 条既有 warning），逐门禁结果见 `output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/results.json`。
 - **范围**：复用现有特效资源和 Addressables 分组，没有协议或网络请求改动；未进行 WebGL 构建或部署后复验。
+
+## 2026-08-04：Web 加载链、首场景黑屏与宽屏遮罩收口
+
+- **根因**：角色选择阻塞预热了全部职业视频/模型及账号全部角色模型；`GAME_START` 又阻塞全职业战斗动作和公共资源，WebGL 单线程在网络完成后仍长时间反序列化。首次进场同时存在 `LoadingView` 与更高层纯黑 `SceneTransitionMask`，形成“加载→黑→加载→场景”。设置主窗及两个子窗遮罩分别写死 730×1290/2200×2600，宽屏根 Canvas 没有统一跟随。
+- **修复**：HTML 启动层和 Unity `LoadingManager` 连续显示真实阶段、百分比、资源项数/体积与 ETA；角色选择仅预热默认选中角色首屏，实包从 `83项/279.5MB` 降至 `34项/31.7MB`。首场景只阻塞当前角色 `idle/run`、地图和必要 UI，全战斗动作及公共预取在揭幕后后台执行。首进世界不再叠加黑幕，地图 95% 与实体 97% 分别显示约 5 秒/2 秒阶段预算。
+- **Web 适配**：模板 Canvas 铺满浏览器可视区，移动端 720×1280 主版式保持居中。新增通用 `RootCanvasRectFitter`，直接保存到 `SettingModule.prefab` 三个 `ModalDim`；1280×720 实包中主设置与改名弹窗均覆盖左右扩展区。
+- **构建与缓存**：先执行完整 `BuildAllWebCli`，生成 `2556` 文件、`2545` bundle、约 `1289MB` 内容及 `42MB` Web 壳；最后仅增量修改 Player ETA 后，在同一工作区重打壳。最终 `WebGL.wasm.gz` SHA256=`E5EF5CFE7FADCCB5ABF97CECC0B1A4AF3BA1B6D25797FB35C8AF4404105D21EA`，内容 `catalog_live.bin` SHA256=`4A8F36A7C048F755FA7203F55632A56739260E3AD267815C3579B3E4E2D8C824`、`catalog_live.hash` SHA256=`BF872267A9F7DD835312D73C5A7A73D46D85BDC144AB48246B0E3028F3556412`；条件请求返回 `304`。
+- **验证**：`CliVerify.SettingPk`（三个遮罩 Prefab/运行态根 Canvas）、`CliVerify.SceneMixDriver`（首屏/战斗动作后台预热后切换）、`CliVerify.LoadingView`（资源文案与 5 秒阶段 ETA）均 `pass=True`。浏览器连续过场采样无黑帧，暖刷新账号页上界约 6.9 秒；证据、日志和台账位于 `output/ui_route_audit/2026-08-04_web-foundation/`。本地服务保持在 `http://127.0.0.1:8090/?cdn=http%3A%2F%2F127.0.0.1%3A8090%2Fres`。

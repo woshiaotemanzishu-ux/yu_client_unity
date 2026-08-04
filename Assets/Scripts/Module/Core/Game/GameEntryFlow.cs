@@ -48,6 +48,8 @@ namespace Shenxiao.Module.Core.Game
         private static void OnGameEntered()
         {
             ResetGameStartGate();
+            LoadingManager.Show("同步角色数据");
+            LoadingManager.SetProgress(0.03f, "同步角色数据 (0/5)");
             GameLog.Info("Game", "enter-game ack: init in-game controllers and wait for startup packets");
             RoleModel.Instance.Reset();
             ControllerHub.InitAll();
@@ -74,6 +76,9 @@ namespace Shenxiao.Module.Core.Game
 
             GameLog.Info("Game", "startup flag ready: {0} ({1}/{2})",
                 flag, _receivedStartFlags.Count, RequiredStartFlags.Length);
+            float protocolProgress = 0.03f + 0.22f * _receivedStartFlags.Count / RequiredStartFlags.Length;
+            LoadingManager.SetProgress(protocolProgress,
+                $"同步角色数据 ({_receivedStartFlags.Count}/{RequiredStartFlags.Length})");
 
             if (_receivedStartFlags.Count < RequiredStartFlags.Length) return;
 
@@ -91,11 +96,12 @@ namespace Shenxiao.Module.Core.Game
         private static async Task CompleteGameStartAsync(int serial)
         {
             GameLog.Info("Game", "GAME_START gate complete: preload game resources");
-            LoadingManager.Show("加载游戏资源");
-            await LegacyPreloadService.PreloadGameStartAsync((p, hint) => LoadingManager.SetProgress(p, hint));
+            LoadingManager.SetProgress(0.25f, "游戏资源 · 检查资源");
+            await LegacyPreloadService.PreloadGameStartAsync((p, hint) =>
+                LoadingManager.SetProgress(0.25f + p * 0.55f, "游戏资源 · " + hint));
             if (serial != _gameStartSerial) return;
 
-            LoadingManager.Hide();
+            LoadingManager.SetProgress(0.80f, "准备场景");
             GameLog.Info("Game", "GAME_START ready: startup protocol gate complete");
             EventDispatcher.Emit(GlobalEvent.EVT_GAME_START);
         }
@@ -105,6 +111,7 @@ namespace Shenxiao.Module.Core.Game
             ++_gameStartSerial;
             _waitingGameStart = false;
             _receivedStartFlags.Clear();
+            LoadingManager.Hide();
             if (!ControllerHub.Initialized) return;
 
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfo);

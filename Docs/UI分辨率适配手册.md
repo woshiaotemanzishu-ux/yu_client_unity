@@ -3,6 +3,12 @@
 > 目标:像老端一样,同一套 UI 同时适应 web(宽屏)与手机(长屏)。
 > 本文是这条工作线的唯一事实源,动 UI 锚定前先读这里。
 
+## Web 画布与弹窗遮罩（2026-08-04）
+
+- Web 模板的 `html/body/#unity-container/#unity-canvas` 必须跟随 `100vw × 100dvh`，窗口变化时 Canvas 继续铺满浏览器可视区；竖版 720×1280 页面仍按移动端设计居中显示，左右由场景或外层背景补齐，不改全局 `CanvasScaler`。
+- “页面主体保持移动端版式”不等于“遮罩也只有 720 宽”。需要拦截整页点击的普通半透明遮罩使用通用 `RootCanvasRectFitter`，运行时把自身四个世界角精确贴合 `rootCanvas`；不得按 WebGL/移动平台分支写死尺寸，也不得在页面代码里重建视觉树。
+- `SettingModule.prefab` 的 `SettingView/ModalDim`、`SettingChangeHeadView/ModalDim`、`SettingChangeNameView/ModalDim` 均直接保存该通用组件。1280×720 浏览器实包已验证主设置与改名弹窗左右扩展区均完整压暗；CLI 同时校验三个遮罩的运行态世界角与根 Canvas 一致。
+
 ---
 
 ## 一、老端是怎么做到的
@@ -153,7 +159,7 @@ Laya 的 `centerX/left/right/top/bottom` 与 Unity 的 `anchorMin/anchorMax/offs
 |---|---|---|---|
 | **C-重转** | 按灰度重转 prefab,验收清单见下 | — | **需在编辑器里操作** |
 | **D** | 13 个全屏战斗 view 四边贴边 + 安全区落到 view 根;例外表人工裁决 | 1 人日 | C-重转 |
-| **E** | 平台面:WebGL 模板跟随窗口、宽屏底图、放行横屏、文档 | 1–2 人日 | **需用户在场实测** |
+| **E** | 平台面:WebGL 模板跟随窗口、宽屏底图、放行横屏、文档 | 1–2 人日 | **已完成 1280×720 Web 实包复验；更多设备档持续回归** |
 | 附 | 吸收 manifest 的 1190 条无关漂移(见下) | 0.5 人日 | 独立于主线 |
 
 #### 批次 C 重转的验收清单

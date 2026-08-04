@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>{{{ PRODUCT_NAME }}}</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
@@ -21,6 +22,8 @@
         <div id="unity-progress-bar-empty">
           <div id="unity-progress-bar-full"></div>
         </div>
+        <div id="unity-loading-status">正在准备游戏…</div>
+        <div id="unity-loading-meta">0.00% · 正在估算</div>
       </div>
       <div id="unity-warning"> </div>
       <div id="unity-footer">
@@ -35,12 +38,33 @@
       // SxBootDone(游戏加载页渲染出第一帧)才撤条——交接时序与原 sx-boot 层完全一致。
       var loadingBar = document.querySelector("#unity-loading-bar");
       var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var loadingStatus = document.querySelector("#unity-loading-status");
+      var loadingMeta = document.querySelector("#unity-loading-meta");
       var sxMax = 0;              // 进度只进不退
       var sxLastUpdate = Date.now();
+      var sxStartedAt = sxLastUpdate;
+      var sxRate = 0;
       window.SxBootUpdate = function (p, t) {
         sxLastUpdate = Date.now();
         if (p > sxMax) sxMax = p;
         if (progressBarFull) progressBarFull.style.width = (sxMax * 100) + "%";
+        if (loadingStatus && t) loadingStatus.textContent = t;
+        if (loadingMeta) {
+          var elapsed = Math.max(0, (sxLastUpdate - sxStartedAt) / 1000);
+          if (sxMax > 0 && elapsed >= 0.5) {
+            var observed = sxMax / elapsed;
+            sxRate = sxRate > 0 ? sxRate * 0.75 + observed * 0.25 : observed;
+          }
+          var eta = "正在估算";
+          if (sxMax >= 0.999) eta = "即将完成";
+          else if (sxRate > 0) {
+            var seconds = Math.max(0, (1 - sxMax) / sxRate);
+            eta = seconds < 1 ? "预计不到 1 秒" :
+              (seconds < 60 ? "预计约 " + Math.ceil(seconds) + " 秒" :
+                "预计约 " + Math.ceil(seconds / 60) + " 分钟");
+          }
+          loadingMeta.textContent = (sxMax * 100).toFixed(2) + "% · " + eta;
+        }
       };
       window.SxBootDone = function () {
         if (loadingBar) loadingBar.style.display = "none";
@@ -95,19 +119,11 @@
         },
       };
 
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // 移动端:游戏画布铺满浏览器可视区
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        document.querySelector("#unity-container").className = "unity-mobile";
-        canvas.className = "unity-mobile";
-      } else {
-        // 桌面:固定设计分辨率窗口(与老端 H5 一致的竖屏画布)
-        canvas.style.width = "{{{ WIDTH }}}px";
-        canvas.style.height = "{{{ HEIGHT }}}px";
-      }
+      // Web 本身就是自适应平台，不能再按 UA 把桌面浏览器锁成 720x1280。
+      // 画布始终跟随可视区，Unity CanvasScaler(720x1280 + Expand)负责把物理尺寸
+      // 换算为与老端 fixedauto 等价的逻辑舞台；各区域根再由 Prefab 锚点贴边。
+      document.querySelector("#unity-container").className = "unity-viewport";
+      canvas.className = "unity-viewport";
 
       // Unity 自带 loading bar 不启用,由 sx-boot 加载层全程接管进度显示。
 

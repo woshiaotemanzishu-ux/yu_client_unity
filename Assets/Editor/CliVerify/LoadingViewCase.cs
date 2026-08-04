@@ -64,6 +64,18 @@ namespace Shenxiao.EditorTools
                 bool clampOk = VerifyProgress(view, handle, 2f, 1f, true,
                     configuredPosition, configuredSize, configuredAnchorMin, configuredAnchorMax);
 
+                view.SetProgress(0.25f, "下载资源 (7项 / 3.7 MB)");
+                string progressText = view.progressLabel != null ? view.progressLabel.text : string.Empty;
+                bool progressTextOk = progressText.Contains("下载资源")
+                    && progressText.Contains("25.00%")
+                    && progressText.Contains("估算");
+
+                view.SetProgress(0.95f, "绘制首屏地图", 5f);
+                string stageEstimateText = view.progressLabel != null ? view.progressLabel.text : string.Empty;
+                bool stageEstimateOk = stageEstimateText.Contains("绘制首屏地图")
+                    && stageEstimateText.Contains("95.00%")
+                    && stageEstimateText.Contains("约 5 秒");
+
                 float originalWidth = front.rect.width;
                 front.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, originalWidth + 65f);
                 bool resizedOk = VerifyProgress(view, handle, 0.5f, 0.5f, true,
@@ -73,10 +85,12 @@ namespace Shenxiao.EditorTools
 
                 bool creatorRemoved = AssetDatabase.LoadAssetAtPath<MonoScript>(RemovedCreatorPath) == null;
                 bool pass = bindingOk && zeroOk && quarterOk && halfOk && fullOk && clampOk
-                    && resizedOk && creatorRemoved;
+                    && progressTextOk && stageEstimateOk && resizedOk && creatorRemoved;
                 Debug.Log("CLIVERIFY loadingview binding=" + bindingOk
                     + " zero=" + zeroOk + " quarter=" + quarterOk + " half=" + halfOk
                     + " full=" + fullOk + " clamp=" + clampOk + " resized=" + resizedOk
+                    + " progressText=" + progressTextOk + " text='" + progressText + "'"
+                    + " stageEstimate=" + stageEstimateOk + " estimateText='" + stageEstimateText + "'"
                     + " creatorRemoved=" + creatorRemoved + " position=" + configuredPosition
                     + " size=" + configuredSize
                     + " pass=" + pass);

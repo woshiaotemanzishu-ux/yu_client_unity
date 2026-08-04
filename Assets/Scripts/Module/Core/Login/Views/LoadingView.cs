@@ -23,6 +23,11 @@ namespace Shenxiao.Module.Core.Login
     [UIView("prefabs/ui/login/loadingview")]
     public sealed class LoadingView : BaseView
     {
+        private float _estimateStartTime;
+        private float _lastProgress;
+        private float _smoothedRate;
+        private bool _estimating;
+
         // 加载页必须压在 Tip(toast)之上:不设则落默认 Window 层,进世界加载期间"穿戴成功"等
         // toast 会穿透叠在加载页上(实测)。UILayer.Loading(5) 本就是为它预留的层。
         public override UILayer Layer => UILayer.Loading;
@@ -41,7 +46,8 @@ namespace Shenxiao.Module.Core.Login
 
         protected override void OnShow(object args)
         {
-            SetProgress(0f);
+            ResetEstimate();
+            SetProgress(0f, "准备加载");
         }
 
         // ---------------------------------------------------------------- 数据绑定(外部驱动)
@@ -51,9 +57,21 @@ namespace Shenxiao.Module.Core.Login
         /// 设前景 fillAmount、Slider 值、端标显隐并刷新文案。
         /// label 不传时显示 "loading......N%"(老端 _lb_load_progress 文案,N=progress*100 两位小数)。
         /// </summary>
-        public void SetProgress(float progress01, string label = null)
+        public void SetProgress(float progress01, string label = null, float? estimatedSeconds = null)
         {
             float p = Mathf.Clamp01(progress01);
+            if (!_estimating || p + 0.02f < _lastProgress) ResetEstimate();
+
+            float now = Time.realtimeSinceStartup;
+            float elapsed = Mathf.Max(0f, now - _estimateStartTime);
+            if (p > _lastProgress + 0.001f && elapsed >= 0.25f)
+            {
+                float observedRate = p / elapsed;
+                _smoothedRate = _smoothedRate <= 0f
+                    ? observedRate
+                    : Mathf.Lerp(_smoothedRate, observedRate, 0.25f);
+            }
+            if (p > _lastProgress) _lastProgress = p;
 
             // 填充类型/方向与端标 Slider handle 均由 prefab 配置，这里只驱动 0~1 数据。
             if (progressFront != null) progressFront.fillAmount = p;
@@ -66,10 +84,37 @@ namespace Shenxiao.Module.Core.Login
 
             if (progressLabel != null)
             {
-                // 老端 OnChange:loading......{progress*100}%
-                float pro = p * 100f;
-                progressLabel.text = label ?? $"loading......{pro:0.00}%";
+                string stage = string.IsNullOrWhiteSpace(label) ? "加载资源" : label.Trim();
+                progressLabel.text = BuildProgressText(stage, p, elapsed, estimatedSeconds);
             }
+        }
+
+        private void ResetEstimate()
+        {
+            _estimating = true;
+            _estimateStartTime = Time.realtimeSinceStartup;
+            _lastProgress = 0f;
+            _smoothedRate = 0f;
+        }
+
+        private string BuildProgressText(string stage, float progress, float elapsed, float? estimatedSeconds)
+        {
+            float percent = progress * 100f;
+            if (progress >= 0.999f) return $"{stage}  {percent:0.00}%";
+            if (estimatedSeconds.HasValue)
+                return $"{stage}  {percent:0.00}% · {FormatEta(estimatedSeconds.Value)}";
+            if (progress <= 0.001f || elapsed < 0.5f || _smoothedRate <= 0.0001f)
+                return $"{stage}  {percent:0.00}% · 正在估算";
+
+            float seconds = Mathf.Max(0f, (1f - progress) / _smoothedRate);
+            return $"{stage}  {percent:0.00}% · {FormatEta(seconds)}";
+        }
+
+        private static string FormatEta(float seconds)
+        {
+            if (seconds < 1f) return "预计不到 1 秒";
+            if (seconds < 60f) return $"预计约 {Mathf.CeilToInt(seconds)} 秒";
+            return $"预计约 {Mathf.CeilToInt(seconds / 60f)} 分钟";
         }
     }
 }

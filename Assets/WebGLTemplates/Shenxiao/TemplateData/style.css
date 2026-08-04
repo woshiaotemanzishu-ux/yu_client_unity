@@ -1,15 +1,14 @@
-body { padding: 0; margin: 0 }
-#unity-container { position: absolute }
-#unity-container.unity-desktop { left: 50%; top: 50%; transform: translate(-50%, -50%) }
-#unity-container.unity-mobile { position: fixed; width: 100%; height: 100% }
-#unity-canvas { background: {{{ BACKGROUND_COLOR }}} }
-.unity-mobile #unity-canvas { width: 100%; height: 100% }
-#unity-loading-bar { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: none }
-#unity-logo { width: 154px; height: 130px; background: url('unity-logo-{{{ SPLASH_SCREEN_STYLE.toLowerCase() }}}.png') no-repeat center }
-#unity-progress-bar-empty { width: 141px; height: 18px; margin-top: 10px; margin-left: 6.5px; background: url('progress-bar-empty-{{{ SPLASH_SCREEN_STYLE.toLowerCase() }}}.png') no-repeat center }
+html, body { width: 100%; height: 100%; padding: 0; margin: 0; overflow: hidden }
+#unity-container { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh }
+#unity-canvas { display: block; width: 100%; height: 100%; background: {{{ BACKGROUND_COLOR }}} }
+#unity-loading-bar { position: absolute; left: 50%; top: 50%; width: min(360px, 86vw); transform: translate(-50%, -50%); text-align: center; color: #fff; font-family: Arial, "Microsoft YaHei", sans-serif; display: none }
+#unity-logo { width: 154px; height: 130px; margin: 0 auto; background: url('unity-logo-{{{ SPLASH_SCREEN_STYLE.toLowerCase() }}}.png') no-repeat center }
+#unity-progress-bar-empty { width: 141px; height: 18px; margin: 10px auto 0; background: url('progress-bar-empty-{{{ SPLASH_SCREEN_STYLE.toLowerCase() }}}.png') no-repeat center }
 #unity-progress-bar-full { width: 0%; height: 18px; margin-top: 10px; background: url('progress-bar-full-{{{ SPLASH_SCREEN_STYLE.toLowerCase() }}}.png') no-repeat center }
+#unity-loading-status { margin-top: 14px; font-size: 16px; line-height: 24px; text-shadow: 0 1px 3px #000 }
+#unity-loading-meta { margin-top: 2px; font-size: 13px; line-height: 20px; color: rgba(255, 255, 255, 0.85); text-shadow: 0 1px 3px #000 }
 #unity-footer { position: relative }
-.unity-mobile #unity-footer { display: none }
+.unity-viewport #unity-footer { display: none }
 #unity-logo-title-footer { float:left; width: 102px; height: 38px; background: url('unity-logo-title-footer.png') no-repeat center }
 #unity-build-title { float: right; margin-right: 10px; line-height: 38px; font-family: arial; font-size: 18px }
 #unity-fullscreen-button { cursor:pointer; float: right; width: 38px; height: 38px; background: url('fullscreen-button.png') no-repeat center }

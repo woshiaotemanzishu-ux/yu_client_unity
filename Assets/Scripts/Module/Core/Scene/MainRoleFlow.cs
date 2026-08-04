@@ -22,7 +22,7 @@ namespace Shenxiao.Module.Core.Scene
         // 新美术模板保持统一的 0/0/1 资源规范；正式地图与旧场景角色的体量差在场景侧统一校准。
         // 0.85 表示相对模板原始体量缩小 15%，只作用于主角，不影响选角/创角/资产预览及 NPC。
         private const float NEW_ART_MAIN_ROLE_SCENE_SCALE = 0.85f;
-        private static readonly string[] STAND_ACTIONS = { "idle" };
+        private static readonly string[] FIRST_SCREEN_ACTIONS = { "idle", ACTION_RUN };
 
         private static GameObject _sceneRoot;
         private static GameObject _mainRoleRoot;
@@ -85,10 +85,6 @@ namespace Shenxiao.Module.Core.Scene
                 return;
             }
 
-            SkillVisualWarmupPlan combatPlan =
-                await SkillMovieConfigs.BuildCareerWarmupPlanAsync(role.Career);
-            if (version != _buildVersion) return;
-
             // 同形象且模型仍活着(同图副本进出/跨图传送/重连同帧重进):不整只销毁重建——
             // 老端这里角色原地不动,重建等于白重载 衣/头/武器/翅膀+动作 一整套。Init 本身是复位函数,
             // 复位坐标/动作/移动状态即可。形象真变了(换装)照走完整重建。
@@ -97,10 +93,9 @@ namespace Shenxiao.Module.Core.Scene
                 MainRoleAgent existing = _mainRoleRoot.GetComponent<MainRoleAgent>();
                 if (existing != null)
                 {
-                    await PrepareFirstCombatActionsAsync(
-                        _mainRoleModel, role.Career, spec.ClotheRes, combatPlan);
-                    if (version != _buildVersion) return;
                     existing.Init(_mainRoleModel, role.X, role.Y, role.Career, role.Figure?.sex ?? 0, spec.ClotheRes);
+                    _ = PrepareFirstCombatInBackgroundAsync(
+                        _mainRoleModel, role.Career, spec.ClotheRes, version);
                     GameLog.Info("Scene", "main role reused (same figure): pos=({0},{1})", role.X, role.Y);
                     return;
                 }
@@ -119,15 +114,7 @@ namespace Shenxiao.Module.Core.Scene
                 return;
             }
 
-            // idle 已由装配器自动播放；正式交给战斗状态机前，把跑动、普攻和当前职业技能动作
-            // 一次性准备好。混合模型还会在这里预建未替换动作所需的老模型兼容分支。
-            await PrepareFirstCombatActionsAsync(model, role.Career, spec.ClotheRes, combatPlan);
-            if (version != _buildVersion)
-            {
-                UnityEngine.Object.Destroy(model);
-                return;
-            }
-
+            // 模型和首屏动作已就绪，先交给场景；完整战斗动作在挂到场景后延迟预热。
             EnsureSceneRoot();
             ClearMainRole(false);
 
@@ -148,8 +135,31 @@ namespace Shenxiao.Module.Core.Scene
 
             _mainRoleModel = model;
             _lastSpec = spec;
+            // 首屏只阻塞 idle/run。技能动作在画面揭开后静默预热，避免 WebGL 在 55% 处
+            // 一次性反序列化整套职业技能与特效，造成“网络已结束但页面像卡死”的长停顿。
+            _ = PrepareFirstCombatInBackgroundAsync(model, role.Career, spec.ClotheRes, version);
             GameLog.Info("Scene", "main role ready: roleId={0} pos=({1},{2}) clothe={3} sceneScale={4:0.###}",
                 role.RoleId, role.X, role.Y, spec.ClotheRes, sceneScale);
+        }
+
+        private static async Task PrepareFirstCombatInBackgroundAsync(GameObject model, int career,
+            int clotheRes, int version)
+        {
+            try
+            {
+                await Task.Delay(1000);
+                if (version != _buildVersion || model == null || model != _mainRoleModel) return;
+                SkillVisualWarmupPlan combatPlan =
+                    await SkillMovieConfigs.BuildCareerWarmupPlanAsync(career);
+                if (version != _buildVersion || model == null || model != _mainRoleModel) return;
+                await PrepareFirstCombatActionsAsync(model, career, clotheRes, combatPlan);
+                if (version == _buildVersion && model != null && model == _mainRoleModel)
+                    GameLog.Info("Scene", "first combat actions warmed in background");
+            }
+            catch (System.Exception e)
+            {
+                GameLog.Warn("Scene", "background combat warmup skipped: {0}", e.Message);
+            }
         }
 
         private static bool SameFigure(RoleModelSpec a, RoleModelSpec b)
@@ -219,7 +229,8 @@ namespace Shenxiao.Module.Core.Scene
                 HeadChartletId = figure.HeadChartletId,
                 WingId = figure.WingId,
                 BackOrnamentId = figure.BackOrnamentId,
-                Actions = STAND_ACTIONS,
+                Actions = FIRST_SCREEN_ACTIONS,
+                AutoPlayActions = false,
                 // 老端场景角色刻意关闭 Body.always；武器/翅膀/背饰自身的常驻特效仍照常装配。
                 IncludeBodyAlwaysEffects = false,
             };

@@ -1,0 +1,112 @@
+[
+  {
+    "id": "web.foundation.loading-info",
+    "status": "done",
+    "applicable_gates": ["result", "timing", "visual_version", "runtime_state"],
+    "gates": {
+      "result": true,
+      "timing": true,
+      "visual_version": true,
+      "runtime_state": true
+    },
+    "timing": {"cold_ms": 6946, "warm_ms": 5000},
+    "state_evidence": [
+      "角色选择实包显示 34项/31.7MB，旧实包为83项/279.5MB",
+      "最终地图阶段显示 绘制首屏地图 95.00% · 预计约5秒"
+    ],
+    "evidence": [
+      "evidence/03-role-preload-34items-31.7MB.png",
+      "evidence/12-final-map-95-eta-5s.png",
+      "verification-summary.md"
+    ]
+  },
+  {
+    "id": "web.foundation.scene-entry-continuity",
+    "status": "done",
+    "applicable_gates": ["click", "result", "timing", "runtime_state"],
+    "gates": {
+      "click": true,
+      "result": true,
+      "timing": true,
+      "runtime_state": true
+    },
+    "timing": {"cold_ms": 16093, "warm_ms": 13500},
+    "state_evidence": [
+      "真实 Canvas 点击选中角色进入游戏",
+      "加载页保持到地图/实体首帧，连续6帧未出现纯黑过渡或加载页回跳"
+    ],
+    "evidence": [
+      "evidence/06-game-preload-map-95.png",
+      "evidence/07-transition-01.png",
+      "evidence/07-transition-02.png",
+      "evidence/07-transition-03.png",
+      "evidence/07-transition-04.png",
+      "evidence/07-transition-05.png",
+      "evidence/07-transition-06.png",
+      "evidence/13-final-scene-ready.png"
+    ]
+  },
+  {
+    "id": "web.foundation.setting-modal-fullscreen",
+    "status": "done",
+    "applicable_gates": ["click", "result", "target_identity", "page_space_geometry", "runtime_state"],
+    "gates": {
+      "click": true,
+      "result": true,
+      "target_identity": true,
+      "page_space_geometry": true,
+      "runtime_state": true
+    },
+    "identity_evidence": [
+      "SettingView/ModalDim",
+      "SettingChangeHeadView/ModalDim",
+      "SettingChangeNameView/ModalDim"
+    ],
+    "geometry_evidence": [
+      "CLI 读取三个 RectTransform 世界角并与 rootCanvas 四角逐点比较，modalRuntime=True",
+      "1280x720 浏览器主设置与改名弹窗左右扩展区均完整压暗"
+    ],
+    "state_evidence": ["真实主场景点击设置并进入改名子窗，遮罩层级与关闭链无穿透"],
+    "evidence": [
+      "evidence/08-setting-main-fullscreen-mask-1280x720.png",
+      "evidence/09-setting-rename-fullscreen-mask-1280x720.png",
+      "verification-summary.md"
+    ]
+  },
+  {
+    "id": "web.foundation.desktop-canvas",
+    "status": "done",
+    "applicable_gates": ["result", "page_space_geometry", "runtime_state"],
+    "gates": {
+      "result": true,
+      "page_space_geometry": true,
+      "runtime_state": true
+    },
+    "geometry_evidence": ["浏览器 Canvas 为1280x720并铺满可视区，720x1280移动端主体居中，左右扩展由场景/背景填充"],
+    "state_evidence": ["登录、角色选择、加载、主场景及设置弹窗均在同一1280x720根 Canvas 运行"],
+    "evidence": [
+      "evidence/02-login-ready-warm.png",
+      "evidence/04-role-select-ready.png",
+      "evidence/13-final-scene-ready.png"
+    ]
+  },
+  {
+    "id": "web.foundation.cache-warm-reload",
+    "status": "done",
+    "applicable_gates": ["result", "timing", "runtime_state"],
+    "gates": {
+      "result": true,
+      "timing": true,
+      "runtime_state": true
+    },
+    "timing": {"cold_ms": 12387, "warm_ms": 6932},
+    "state_evidence": [
+      "第二次整页刷新约0.9秒显示HTML引擎进度，截图调用上界6.9秒到账号页",
+      "WebGL.wasm.gz ETag 条件请求返回304，未重传正文"
+    ],
+    "evidence": [
+      "evidence/10-second-warm-boot.png",
+      "evidence/11-second-warm-login-ready.png"
+    ]
+  }
+]
