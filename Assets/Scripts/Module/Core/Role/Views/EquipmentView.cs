@@ -249,7 +249,7 @@ namespace Shenxiao.Module.Core.Role
         private void BindActions()
         {
             BindClick(_img_change_btn, () => ShowAttributePage(!_showingBaseAttrs));
-            BindClick(_Group1, () => RoleFlow.SelectTab(5));
+            BindClick(_Group1, () => RoleFlow.OpenSub("SkillInitiativeSubItem"));
             BindClick(_Group5, SuitCollectShellView.Show);
             BindClick(fashion_gp, () => MainUIRouter.Open("fashion"));
             BindClick(_Group2, () => MainUIRouter.Open("AchvEnterView"));

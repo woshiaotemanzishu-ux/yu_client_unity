@@ -77,6 +77,8 @@ namespace Shenxiao.Module.Core.Role
         private static BaseWindowSkinView _window;
         private static bool _loading;
         private static int _requestedTab = -1;
+        private static BaseView _activeSubView;
+        private static BaseView _returnView;
 
         private static readonly Dictionary<int, GameObject> OutwardRoots =
             new Dictionary<int, GameObject>();
@@ -112,7 +114,58 @@ namespace Shenxiao.Module.Core.Role
 
         public static void Close()
         {
+            HideSubView(false);
             if (_window != null) _window.Hide();
+        }
+
+        private static void HandleReturn()
+        {
+            if (HideSubView(true)) return;
+            if (_window != null) _window.Hide();
+        }
+
+        private static BaseView FindShownPrimaryView()
+        {
+            if (_frameRoot == null) return null;
+            foreach (BaseView view in _frameRoot.GetComponentsInChildren<BaseView>(true))
+            {
+                for (int i = 0; i < TabContent.Length; i++)
+                {
+                    if (view.GetType().Name == TabContent[i] && view.IsShown)
+                        return view;
+                }
+            }
+            return null;
+        }
+
+        private static void OpenSubView(BaseView target)
+        {
+            if (target == null) return;
+            if (_activeSubView != null && _activeSubView != target)
+                _activeSubView.Hide();
+            if (_activeSubView != target)
+            {
+                _returnView = FindShownPrimaryView();
+                _returnView?.Hide();
+                _activeSubView = target;
+            }
+            target.Show();
+        }
+
+        private static bool HideSubView(bool restoreParent)
+        {
+            if (_activeSubView == null)
+            {
+                _returnView = null;
+                return false;
+            }
+
+            _activeSubView.Hide();
+            BaseView parent = _returnView;
+            _activeSubView = null;
+            _returnView = null;
+            if (restoreParent) parent?.Show();
+            return true;
         }
 
         public static void OpenSub(string viewTypeName)
@@ -123,7 +176,7 @@ namespace Shenxiao.Module.Core.Role
                 foreach (BaseView view in _contentRoot.GetComponentsInChildren<BaseView>(true))
                 {
                     if (view.GetType().Name != viewTypeName) continue;
-                    view.Show();
+                    OpenSubView(view);
                     return;
                 }
             }
@@ -132,7 +185,7 @@ namespace Shenxiao.Module.Core.Role
                 foreach (BaseView view in _frameRoot.GetComponentsInChildren<BaseView>(true))
                 {
                     if (view.GetType().Name != viewTypeName) continue;
-                    view.Show();
+                    OpenSubView(view);
                     return;
                 }
             }
@@ -147,6 +200,8 @@ namespace Shenxiao.Module.Core.Role
                 _loading = true;
                 try
                 {
+                    HideSubView(false);
+                    _window.SetReturnAction(HandleReturn);
                     await FuncOpenConfig.EnsureLoaded();
                     bool[] enabledTabs = BuildEnabledTabs();
                     await PreloadOutwardTabsAsync(enabledTabs);
@@ -195,6 +250,7 @@ namespace Shenxiao.Module.Core.Role
                     return;
                 }
 
+                _window.SetReturnAction(HandleReturn);
                 await FuncOpenConfig.EnsureLoaded();
                 bool[] enabledTabs = BuildEnabledTabs();
                 await PreloadOutwardTabsAsync(enabledTabs);
@@ -311,6 +367,8 @@ namespace Shenxiao.Module.Core.Role
 
         internal static void Reset()
         {
+            HideSubView(false);
+            _window?.SetReturnAction(null);
             if (_frameRoot != null) ResManager.ReleaseInstance(_frameRoot);
             if (_contentRoot != null) ResManager.ReleaseInstance(_contentRoot);
             foreach (GameObject root in OutwardRoots.Values)
@@ -322,6 +380,8 @@ namespace Shenxiao.Module.Core.Role
             _window = null;
             _loading = false;
             _requestedTab = -1;
+            _activeSubView = null;
+            _returnView = null;
         }
     }
 }
