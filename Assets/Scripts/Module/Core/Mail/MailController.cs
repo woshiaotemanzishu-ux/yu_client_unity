@@ -34,12 +34,24 @@ namespace Shenxiao.Module.Core.Mail
             RegisterProtocal(Proto.MAIL_UNREAD, On19008);
             RegisterProtocal(Proto.MAIL_LEFT_NUM, On19009);
             RegisterProtocal(Proto.MAIL_FEEDBACK, On19010);
+            EventDispatcher.On(GlobalEvent.EVT_GAME_START, RequestStartup);
         }
 
         public override void Dispose()
         {
+            EventDispatcher.Off(GlobalEvent.EVT_GAME_START, RequestStartup);
             MailModel.Instance.Clear();
             base.Dispose();
+        }
+
+        /// <summary>
+        /// 对标老端 FriendController GAME_START：先请求 19008 未读权威状态，再请求 19001 邮件列表。
+        /// 主界面邮件通知只消费 19008，不能等用户首次打开邮件页后才补拉列表。
+        /// </summary>
+        public void RequestStartup()
+        {
+            SendFmt(Proto.MAIL_UNREAD);
+            RequestMailList();
         }
 
         /// <summary>请求邮件列表（无参，回包 19001）。</summary>
@@ -262,6 +274,7 @@ namespace Shenxiao.Module.Core.Mail
         private void On19008(NetReader r)
         {
             MailModel.Instance.HasUnread = r.ReadU8() != 0;
+            GameLog.Info("Mail", "19008 未读状态: {0}", MailModel.Instance.HasUnread);
             EventDispatcher.Emit(GlobalEvent.EVT_MAIL_UNREAD_UPDATE);
         }
 

@@ -186,6 +186,34 @@ namespace Shenxiao.EditorTools
             Run(MainUIChatHudCase.Run, 60.0);
         }
 
+        /// <summary>主界面 612xx 活动隔离、邮件首屏状态与通知条同步摇摆专项。</summary>
+        public static void MainUINotification()
+        {
+            Run(MainUINotificationCase.Run, 90.0);
+        }
+
+        [MenuItem("神霄/验证/MainUI 活动与消息通知")]
+        private static async void MainUINotificationInCurrentEditor()
+        {
+            string previousScenePath = EditorSceneManager.GetActiveScene().path;
+            if (EditorSceneManager.GetActiveScene().isDirty)
+            {
+                Debug.LogError("CLIVERIFY mainui-notification current-editor blocked: 当前场景有未保存改动");
+                return;
+            }
+
+            try
+            {
+                int code = await MainUINotificationCase.Run();
+                Debug.Log("CLIVERIFY mainui-notification current-editor code=" + code);
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(previousScenePath))
+                    EditorSceneManager.OpenScene(previousScenePath, OpenSceneMode.Single);
+            }
+        }
+
         /// <summary>公共顶栏与登录背景的 Prefab 所有权回归。</summary>
         public static void PrefabBackgrounds()
         {

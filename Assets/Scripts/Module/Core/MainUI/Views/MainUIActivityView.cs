@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Util;
@@ -26,6 +27,7 @@ namespace Shenxiao.Module.Core.MainUI
         private const string GroupOtherName = "Group_ActivityOther";
         private const string GroupFourthName = "Group_ActivityFourth";
         private const string SlotPrefix = "Slot_";
+        private const string LimitLevelShopIconPrefix = "612";
 
         private readonly Dictionary<string, ActivityIcon> _iconByType = new Dictionary<string, ActivityIcon>();
         private bool _activityFolded;
@@ -195,6 +197,9 @@ namespace Shenxiao.Module.Core.MainUI
             foreach (KeyValuePair<string, ActivityIconManager.IconInfo> kv in ActivityIconManager.Instance.IconInfoByType)
             {
                 if (kv.Value?.Data == null) continue;
+                // 老端 MainUIActivityView.Suppress612ShopActivityIconsForChatBar：612xx 的限购商城入口
+                // 只把特效/入口语义留给底部商城，不得再次占用左上活动网格槽位。
+                if (IsLimitLevelShopIcon(kv.Key)) continue;
                 int location = kv.Value.Data.LocationType;
                 if (location == ActivityIconManager.LocationType.ActivityOne) groups.One.Add(kv.Key);
                 else if (location == ActivityIconManager.LocationType.ActivityTwo) groups.Two.Add(kv.Key);
@@ -215,6 +220,10 @@ namespace Shenxiao.Module.Core.MainUI
             groups.Right.Sort(CompareIconType);
             return groups;
         }
+
+        private static bool IsLimitLevelShopIcon(string iconType)
+            => !string.IsNullOrEmpty(iconType)
+               && iconType.StartsWith(LimitLevelShopIconPrefix, StringComparison.Ordinal);
 
         private List<RectTransform> FindGroupSlots(string groupName)
         {

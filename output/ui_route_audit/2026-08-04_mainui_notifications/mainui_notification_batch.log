@@ -1,0 +1,11 @@
+worktree=E:\GitProject\yu_client_unity_verify_mainui_20260804
+commit=5db8ad792
+pid=64868
+CLIVERIFY mainui-notification activity prefix=True otherCount=1 grouping=True
+CLIVERIFY mainui-notification activity-612-suppression ok=True
+CLIVERIFY mainui-notification mail subscribed=True registered=True sentUnread=True sentList=True packet=True
+CLIVERIFY mainui-notification mail-startup-19008-19001 ok=True
+CLIVERIFY mainui-notification prefab mailVisible=True click=True curve=True sync=True reset=True visibleCount=1 shot=E:\GitProject\yu_client_unity_verify_mainui_20260804\Temp\mainui_notification_swing.png
+CLIVERIFY mainui-notification notification-prefab-mail-click-swing ok=True
+CLIVERIFY mainui-notification VERDICT pass=True
+process=clean shutdown; no compiler error or abnormal return marker

@@ -1866,3 +1866,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **Prefab与功能**：`FashionModule.prefab`删除重叠假Content，Bind接入唯一横向`ScrollRect→Viewport/RectMask2D→Content/Layout/Fitter`；套装竖牌改页面等价左上锚。四格改进`CommonModule.prefab/IllusionTips`，按`ConfigIllusionModel`显示角色或幻化模型/特效。
 - **资源与性能**：`FashionAssetPreflight`新增`ConfigIllusionModel`和七张`common4/other/ui_tips_pzbg_1..7`品质底图闭包；动态底图 Sprite 与模型共同构成视觉ready，禁止首次点击导入。
 - **门禁与收口**：路由台账最终升至schema 4，在`target_identity/layout_structure/scroll_interaction/page_space_geometry`之外新增`render_completion`；自动用例逐格点击、真实拖动、页面坐标、遮罩关闭和RT实际像素。第一次新闸回归虽业务全绿（四格184/12/13/11ms），人工看图发现底图透明并主动判失败；最终`SettingFashionCurrentCase code=0/pass=True`，四格模型非透明像素为`20208/31165/24249/7126`，详情/来源动态布局无重叠，设置首开/热开`1888/76ms`，Fashion闭包720项且第二次预检零变更，证据位于`output/settings_fashion_round4_delivery/`。模块与Editor构建0 error；未进行WebGL构建或部署后复验。
+
+## 2026-08-04：主界面活动网格与消息通知对标
+
+- **截图结论**：同账号老端中部通知为“首杀/邮件/资源找回/等级奖励”，Unity 少的是邮件 `ui_notice_3`；左上多出的“圣衣秘境”为 `61207`。原始 Unity/老端截图已固化到 `output/ui_route_audit/2026-08-04_mainui_notifications/`。
+- **根因与修复**：分组槽位版 `MainUIActivityView` 漏掉老端 `Suppress612ShopActivityIconsForChatBar`，现恢复所有 `612xx` 退出活动网格、底部商城语义不变。`MailController` 原有 `19008` handler 但没有启动请求，现对标老端在 `EVT_GAME_START` 精确请求 `19008→19001`，由权威未读回包即时刷新通知。
+- **动画**：`MainUINotificationView` 恢复老端共享摇摆，首段 `0→+20°`，之后每秒在 `±20°` 间 sine-in-out 往返；所有可见项同相，隐藏/复用/关闭时归零。未修改或重转人工 Prefab。
+- **门禁**：新增 `CliVerify.MainUINotification`，用真实 `HudActivity/HudNotification` 覆盖 612/621 边界、邮件启动顺序与 `ui_notice_3`、`GraphicRaycaster→PointerClick`、关键帧/同步/复位和截图。详细证据见 [专项记录](RuntimeCompare/MainUI-活动与消息通知-20260804.md)。
+- **验证状态**：常驻 Editor 与独立 worktree 批处理均 `VERDICT pass=True`，Editor 构建 0 error；`mainui.reported-defects` 台账 6/6 节点全部 `done`，验证后保持原 `Launch` 场景，未进行 WebGL 构建或部署后复验。

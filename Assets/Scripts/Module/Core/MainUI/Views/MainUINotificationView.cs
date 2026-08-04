@@ -32,6 +32,10 @@ namespace Shenxiao.Module.Core.MainUI
         public RectTransform NotificationContent;
 
         private readonly List<MainUINotificationItem> _items = new List<MainUINotificationItem>();
+        private const float SwingAngle = 20f;
+        private const float SwingLegSeconds = 1f;
+        private float _swingElapsed;
+        private bool _swingRunning;
 
         private readonly struct NotificationData
         {
@@ -65,6 +69,7 @@ namespace Shenxiao.Module.Core.MainUI
 
         protected override void OnShow(object args)
         {
+            ResetNotificationSwing();
             EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, RefreshGuildHelp);
             EventDispatcher.On(GlobalEvent.EVT_SERVER_TIME_REFRESH, RefreshGuildHelp);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, RefreshAll);
@@ -94,6 +99,14 @@ namespace Shenxiao.Module.Core.MainUI
             EventDispatcher.Off(GlobalEvent.EVT_TEAM_BE_INVITED_UPDATE, RefreshNotifications);
             EventDispatcher.Off(GlobalEvent.EVT_PUSH_GIFT_UPDATE, RefreshNotifications);
             EventDispatcher.Off(GlobalEvent.EVT_RUSH_GIFT_UPDATE, RefreshNotifications);
+            ResetNotificationSwing();
+        }
+
+        private void Update()
+        {
+            if (!_swingRunning) return;
+            _swingElapsed += Time.unscaledDeltaTime;
+            ApplyNotificationSwing(EvaluateSwingAngle(_swingElapsed));
         }
 
         private void RefreshAll()
@@ -122,6 +135,7 @@ namespace Shenxiao.Module.Core.MainUI
                 item.gameObject.SetActive(true);
                 if (!visible)
                 {
+                    item.transform.localRotation = Quaternion.identity;
                     item.gameObject.SetActive(false);
                     continue;
                 }
@@ -138,7 +152,62 @@ namespace Shenxiao.Module.Core.MainUI
             {
                 _box_notification_bar.gameObject.SetActive(active.Count > 0);
             }
+            bool wasRunning = _swingRunning;
+            _swingRunning = active.Count > 0;
+            if (_swingRunning && !wasRunning)
+            {
+                _swingElapsed = 0f;
+                ApplyNotificationSwing(0f);
+            }
+            else if (!_swingRunning)
+            {
+                ResetNotificationSwing();
+            }
             LayoutRebuilder.ForceRebuildLayoutImmediate(NotificationContent);
+        }
+
+        /// <summary>
+        /// 对标老端 MainUISecondaryView.PlayNotificationAnimation：首段 0→+20°，随后每秒在 ±20°
+        /// 之间按 sine-in-out 往返。角度由父 View 统一计算，保证所有消息图标同相摆动。
+        /// </summary>
+        private static float EvaluateSwingAngle(float elapsedSeconds)
+        {
+            float elapsed = Mathf.Max(0f, elapsedSeconds);
+            if (elapsed <= SwingLegSeconds)
+            {
+                return Mathf.Lerp(0f, SwingAngle, SineInOut(elapsed / SwingLegSeconds));
+            }
+
+            float repeated = elapsed - SwingLegSeconds;
+            int leg = Mathf.FloorToInt(repeated / SwingLegSeconds);
+            float t = (repeated - leg * SwingLegSeconds) / SwingLegSeconds;
+            float from = (leg & 1) == 0 ? SwingAngle : -SwingAngle;
+            float to = -from;
+            return Mathf.Lerp(from, to, SineInOut(t));
+        }
+
+        private static float SineInOut(float t)
+            => 0.5f - 0.5f * Mathf.Cos(Mathf.PI * Mathf.Clamp01(t));
+
+        private void ApplyNotificationSwing(float angle)
+        {
+            Quaternion rotation = Quaternion.Euler(0f, 0f, angle);
+            for (int i = 0; i < _items.Count; i++)
+            {
+                MainUINotificationItem item = _items[i];
+                if (item != null && item.gameObject.activeSelf) item.transform.localRotation = rotation;
+            }
+        }
+
+        private void ResetNotificationSwing()
+        {
+            _swingRunning = false;
+            _swingElapsed = 0f;
+            for (int i = 0; i < _items.Count; i++)
+            {
+                MainUINotificationItem item = _items[i];
+                if (item != null) item.transform.localRotation = Quaternion.identity;
+            }
         }
 
         private static List<NotificationData> CollectActiveNotifications()
