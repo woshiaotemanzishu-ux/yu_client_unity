@@ -24,10 +24,10 @@
 
 ### 1.1 新增 `Scene/DamageFontRenderer.cs` — 伤害飘字
 - 数据源:20001 defender.damage/damage_flag(不本地算伤)。
-- 对标 FightDamageManager:显示门槛=主角攻击或主角被击;damage==0 仅 闪避/免疫 有字;flag 全表 0-10(实测 flag=7 None 不飘)。
+- 对标 FightDamageManager:显示门槛=主角攻击或主角被击;damage==0 仅闪避有字，免疫与 flag=7 None 静默;flag 全表 0-10。
 - 三套动画对标 FightFontAniType:普通(弹出→停→上飘淡出 0.7s)、暴击系(0.5→2.0 backOut 回弹 0.9s)、主角被击(红字自己头顶 0.95s);横向随机散布 ±75(end_pos_offset)。
 - 位置口径与 MonsterRenderer 名牌一致(UILayer.Scene,anchored=世界像素-相机像素,每帧重算不漂移);对象池,上限 40 条复用最老。
-- **呈现降级(记录)**:老端位图字体 `fight_font_*.fnt` 未转换,先用场景 TMP 字体按 flag 配色(淡金/橙金/紫/蓝/红,取自字体 png 实色)近似;字体资产转换后替换 ApplyFont 即可。
+- **2026-08-05 已解除呈现降级**：十套 `fight_font_*` 已转为静态 TMP Bitmap 字体；flag 直接选择老端字体与 `a/b/c` 图形字，不再用普通 TMP 字体、中文前缀或顶点色模拟。20001/20028 的技能名字图也已接回，详见 [全局迁移记录](BitmapFont-全局迁移-20260805.md)。
 
 ### 1.2 `MonsterRenderer` — 死亡动作 + 尸体停留
 - 新增 `NotifyKilled(ins)`:FightController 在 hp==0、DeleteSceneObj **之前**预告;数据层照常立即移除(寻怪/目标马上看不到),仅视图层走死亡路径。
@@ -60,7 +60,7 @@
 
 ## 3. 遗留 blocker(不臆造,后续轮)
 - 音效系统(SoundManager)整体未移植:升级 "upgrade"、技能、受击音全缺。
-- 位图字体 fight_font_*.fnt → Unity 字体资产未转换(飘字美术字)。
+- 位图字体与技能名字图缺口已于 2026-08-05 解除；其余 blocker 不变。
 - BOSS 大血条 MainUIHiterBigBloodView 仍是空壳(SHOW_HITER_BIG_BLOOD_VIEW/hiter_vo 链未接)。
 - 受击击退位移、尸体透明淡出、结算演出动画(经验条/宝箱/倒计时)。
 - TaskModule 被外因销毁的第一现场未抓到(本轮 Error 日志已布防,复现即见栈)。

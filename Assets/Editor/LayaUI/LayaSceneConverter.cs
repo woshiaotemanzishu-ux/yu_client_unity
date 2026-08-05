@@ -1174,6 +1174,22 @@ namespace Shenxiao.Editor.LayaUI
             tmp.fontSize = LayaRectMath.F(p, "fontSize") ?? 24f;
             tmp.color = LayaRectMath.ParseColor((string)p["color"], Color.white);
 
+            // Laya 的 font 属性不只会指向 TTF，也会直接指向 resource/font/*.fnt。
+            // 这类字体的字形本身带颜色/描边/徽标，绝不能退化成项目默认 TMP 字体。
+            string legacyFontName = (string)p["font"];
+            if (!string.IsNullOrEmpty(legacyFontName))
+            {
+                string bitmapPath = "Assets/GameRes/Fonts/Bitmap/" + legacyFontName + ".asset";
+                TMP_FontAsset bitmap = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(bitmapPath);
+                if (bitmap != null)
+                {
+                    tmp.font = bitmap;
+                    tmp.fontSharedMaterial = bitmap.material;
+                    tmp.color = Color.white; // 美术颜色已烤进 PNG；顶点色必须保持白色，避免二次染色。
+                    report.Note(name + " 使用老端位图字体 " + legacyFontName);
+                }
+            }
+
             FontStyles style = FontStyles.Normal;
             if (IsTrue(p, "bold")) style |= FontStyles.Bold;
             if (IsTrue(p, "italic")) style |= FontStyles.Italic;

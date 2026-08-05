@@ -12,8 +12,30 @@ using UnityEngine.TextCore.LowLevel;
 namespace Shenxiao.Editor.UiCreator
 {
     /// <summary>把老端 BMFont XML + 彩色 PNG 转成可直接挂到 TMP 的静态位图字体资产。</summary>
-    internal static class BitmapFontAssetBuilder
+    public static class BitmapFontAssetBuilder
     {
+        private const string LegacyFontFolder = "Assets/GameRes/Fonts/Bitmap";
+
+        /// <summary>重建仓库内全部老端 BMFont。可从菜单调用，也可作为 batchmode executeMethod。</summary>
+        [MenuItem("神霄/资源/重建老端位图字体")]
+        public static void BuildAllLegacyFonts()
+        {
+            string[] fntPaths = Directory.GetFiles(LegacyFontFolder, "*.fnt", SearchOption.TopDirectoryOnly);
+            Array.Sort(fntPaths, StringComparer.OrdinalIgnoreCase);
+            int built = 0;
+            foreach (string rawPath in fntPaths)
+            {
+                string path = rawPath.Replace('\\', '/');
+                if (BuildOrUpdate(path) != null) built++;
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log($"[BitmapFont] 重建完成: {built}/{fntPaths.Length}, folder={LegacyFontFolder}");
+            if (built != fntPaths.Length)
+                throw new InvalidOperationException($"位图字体重建不完整: {built}/{fntPaths.Length}");
+        }
+
         public static TMP_FontAsset BuildOrUpdate(string fntAssetPath)
         {
             if (string.IsNullOrEmpty(fntAssetPath) || !File.Exists(fntAssetPath))
@@ -46,6 +68,10 @@ namespace Shenxiao.Editor.UiCreator
             string folder = Path.GetDirectoryName(fntAssetPath)?.Replace('\\', '/');
             string fontName = Path.GetFileNameWithoutExtension(fntAssetPath);
             string texturePath = folder + "/" + ReadString(page, "file");
+            // 老端运行目录里有一批 FNT 保留了导出工具时期的 page 文件名(test.png/my_0.png/*_0.png)，
+            // 真实 CDN 成对文件却统一为 <fontName>.png。Electron「位图字体」工具也按同样规则回退。
+            if (!File.Exists(texturePath))
+                texturePath = folder + "/" + fontName + ".png";
             string outputPath = folder + "/" + fontName + ".asset";
             if (!File.Exists(texturePath))
             {
@@ -73,9 +99,13 @@ namespace Shenxiao.Editor.UiCreator
             int maxGlyphHeight = 1;
             foreach (XElement node in chars.Elements("char"))
             {
+                int unicode = ReadInt(node, "id");
+                // BMFont 的 -1 是“缺字占位”，不是可输入 Unicode；TextCore 不接受它。
+                if (unicode < 0 || unicode > 0x10FFFF) continue;
+
                 var definition = new GlyphDefinition
                 {
-                    Unicode = ReadInt(node, "id"),
+                    Unicode = unicode,
                     X = ReadInt(node, "x"),
                     Y = ReadInt(node, "y"),
                     Width = ReadInt(node, "width"),

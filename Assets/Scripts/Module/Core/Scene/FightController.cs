@@ -98,6 +98,8 @@ namespace Shenxiao.Module.Core.Scene
             RegisterProtocal(Proto.CS_TRIGGER_SKILLS, On20028);
 
             _fighting = false;
+            _ = DamageFontRenderer.PreloadAsync(); // 首个 20001 前预热彩色 BMFont；未完成时渲染器会排队而非文字降级
+            _ = Shenxiao.Module.Core.Common.KeyValueConfigs.EnsureLoaded(); // 技能名字图白名单非阻塞预热，不回卷 GameStart 首屏预算
         }
 
         public override void Dispose()
@@ -395,7 +397,12 @@ namespace Shenxiao.Module.Core.Scene
             if (mainRoleId <= 0) return;
 
             bool attackerIsMainRole = vo.Attack.AttackerType == OBJ_ROLE && vo.Attack.RoleId == mainRoleId;
-            if (attackerIsMainRole) ApplyMainRoleHp(vo.Attack.Hp);
+            if (attackerIsMainRole)
+            {
+                ApplyMainRoleHp(vo.Attack.Hp);
+                for (int i = 0; i < vo.AttackTriggerSkills.Count; i++)
+                    DamageFontRenderer.ShowSkillImage(vo.AttackTriggerSkills[i], RoleModel.Instance.X, RoleModel.Instance.Y);
+            }
 
             SceneManager mgr = SceneManager.Instance;
             for (int i = 0; i < vo.DefenseList.Count; i++)
@@ -882,6 +889,8 @@ namespace Shenxiao.Module.Core.Scene
         private void On20028(NetReader r)
         {
             List<int> skillIds = r.ReadArray(rr => (int)rr.ReadU32());
+            for (int i = 0; i < skillIds.Count; i++)
+                DamageFontRenderer.ShowSkillImage(skillIds[i], RoleModel.Instance.X, RoleModel.Instance.Y);
             GameLog.Info("Fight", "recv 20028 触发技能列表 count={0}", skillIds.Count);
             EventDispatcher.Emit(GlobalEvent.EVT_TRIGGER_SKILLS, skillIds);
         }

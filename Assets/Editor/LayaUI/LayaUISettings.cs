@@ -30,10 +30,26 @@ namespace Shenxiao.Editor.LayaUI
         {
             get
             {
-                string def = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "yu_client"));
+                string def = FindDefaultClientRoot();
                 return EditorPrefs.GetString(ProjectKey(KEY_CLIENT_ROOT), def);
             }
             set { EditorPrefs.SetString(ProjectKey(KEY_CLIENT_ROOT), value); }
+        }
+
+        private static string FindDefaultClientRoot()
+        {
+            string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+            DirectoryInfo cursor = Directory.GetParent(projectRoot);
+            while (cursor != null)
+            {
+                string candidate = Path.Combine(cursor.FullName, "yu_client");
+                if (Directory.Exists(Path.Combine(candidate, "cdn", "resource", "game")))
+                    return candidate;
+                cursor = cursor.Parent;
+            }
+
+            // 保留原默认值作为可诊断的失败路径，ValidateClientRoot 会给出完整错误。
+            return Path.GetFullPath(Path.Combine(projectRoot, "..", "yu_client"));
         }
 
         /// <summary>h5/laya/assets 散图根(皮肤路径直接拼在它后面)。</summary>

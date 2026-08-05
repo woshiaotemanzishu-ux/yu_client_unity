@@ -1900,3 +1900,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 ## 2026-08-05 ActivityForeshow 调度异常恢复
 
 - [ ] 实现完成：ActivityForeshow 每轮先等待安全刷新完成再开始 15 秒延迟；刷新 owner 先占位，首轮同步完成或同步重入后不残留已完成 task。普通刷新异常只记录并继续下一轮。跨天/整点在既有刷新中合并为最多一次补跑，新建循环的首轮不重复补跑；generation/CTS 不回退且取消不记普通错误。跨天与整点仍只做本地复评、不发送 `65208`。专项仅在 controller、模型和活动栏/收纳盒均为空的隔离运行态执行，否则明确跳过以免影响编辑器现场；待主控 Unity 专项。
+
+## 2026-08-05：老端位图字体与技能名字图全局迁移
+
+- **盘点**：以 Electron“位图字体”当前 CDN 默认目录为事实源，确认 66 套 FNT、67 张 atlas/别名图，其中 55 套有当前运行引用、11 套仅保留历史素材；合并 `.scene font` 与现行 TS `LoadFont`，并单独识别 41 张 `skillName` 美术字（配置白名单当前 34 张全部存在）。
+- **资源流水线**：`BitmapFontAssetBuilder` 扩为全量静态 TMP Bitmap 字体生成器，兼容旧 page 文件名与 `id=-1`；`BitmapFontPrefabUpgrader` 负责同步 CDN、增量修改人工 Prefab、技能图 Sprite 导入、Addressables 分组和机器清单。转换器后续首次转换也会原生识别位图字体。
+- **运行逻辑**：20001 伤害飘字按老端十套字体及 `a/b/c` 图形字显示，移除普通文字/颜色近似；20001 触发技能和 20028 恢复 `skillName/{id}.png` 及 `FightFontFiveAni` 演出；公共战力组件改用 `num_new/num_new_green/view_fight_up`。
+- **验收**：Core/Editor 离线编译 0 error；真实图形设备 Unity 批处理 `CLIVERIFY bitmap-font PASS`。106 条绑定中 64 条命中现有页面并落到 33 个实际 Prefab，42 条未迁移页面映射留待首次转换；五张渲染证据均通过非背景像素门禁，二次同步 `copied/changedPrefabs/changedLabels=0/0/0`，路由账本 7/7 `done`。证据位于 `output/ui_route_audit/2026-08-05_bitmap-fonts/`，专项说明见 [老端图片字体全局迁移](RuntimeCompare/BitmapFont-全局迁移-20260805.md)。

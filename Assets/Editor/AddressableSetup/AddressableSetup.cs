@@ -52,6 +52,7 @@ namespace Shenxiao.EditorTools.AddrSetup
             var remoteRoot = "Assets/GameRes";
             if (AssetDatabase.IsValidFolder(remoteRoot))
             {
+                RemoveSkippedEntries(settings, remoteRoot);
                 foreach (var sub in AssetDatabase.GetSubFolders(remoteRoot))
                 {
                     var subName = Path.GetFileName(sub);
@@ -75,6 +76,36 @@ namespace Shenxiao.EditorTools.AddrSetup
             AssetDatabase.SaveAssets();
             EditorUtility.SetDirty(settings);
             Debug.Log($"[AddressableSetup] local entries: {countLocal}, remote entries: {countRemote}, pack units: {packUnits}");
+        }
+
+        /// <summary>
+        /// 只同步位图字体成品和单图技能名字，避免资源精修工具为了少量新增资源重排全部远端组。
+        /// 原始 FNT/atlas 仅作为 TMP_FontAsset 依赖入包，不拥有独立地址。
+        /// </summary>
+        public static void SyncBitmapFontEntries()
+        {
+            AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+            if (settings == null)
+                throw new System.InvalidOperationException("Addressable settings not found");
+
+            RemoveSkippedEntries(settings, "Assets/GameRes/Fonts/Bitmap");
+            int fonts = AssignFolderToGroup(settings, "Assets/GameRes/Fonts/Bitmap",
+                EnsureRemoteGroup(settings, RemoteGroupPrefix + "Fonts"), "pack_fonts");
+            int skillNames = AssignFolderToGroup(settings, "Assets/GameRes/resource/game/skillName",
+                EnsureRemoteGroup(settings, RemoteGroupPrefix + "resource"), "pack_resource_game_skillname");
+            AssetDatabase.SaveAssets();
+            EditorUtility.SetDirty(settings);
+            Debug.Log($"[AddressableSetup] bitmap fonts={fonts}, skill names={skillNames}");
+        }
+
+        private static void RemoveSkippedEntries(AddressableAssetSettings settings, string folder)
+        {
+            foreach (string guid in AssetDatabase.FindAssets("", new[] { folder }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!ShouldSkipAddressablePath(path)) continue;
+                if (settings.FindAssetEntry(guid) != null) settings.RemoveAssetEntry(guid);
+            }
         }
 
         /// <summary>CLI 入口：完成自动分组并以进程码返回，避免 -quit 抢在脚本重载后的方法执行之前。</summary>
@@ -147,6 +178,12 @@ namespace Shenxiao.EditorTools.AddrSetup
 
         private static int AssignFolderToGroup(AddressableAssetSettings settings, string folder, AddressableAssetGroup group)
         {
+            return AssignFolderToGroup(settings, folder, group, null);
+        }
+
+        private static int AssignFolderToGroup(AddressableAssetSettings settings, string folder,
+            AddressableAssetGroup group, string fixedPackLabel)
+        {
             if (!AssetDatabase.IsValidFolder(folder)) return 0;
 
             int count = 0;
@@ -165,6 +202,15 @@ namespace Shenxiao.EditorTools.AddrSetup
                 {
                     entry.address = address;
                 }
+                if (entry != null && !string.IsNullOrEmpty(fixedPackLabel))
+                {
+                    foreach (string stale in entry.labels
+                                 .Where(v => v.StartsWith(Shenxiao.EditorTools.Packaging.PackLabeler.LabelPrefix,
+                                     System.StringComparison.Ordinal) && v != fixedPackLabel).ToList())
+                        entry.SetLabel(stale, false, false, false);
+                    if (!entry.labels.Contains(fixedPackLabel))
+                        entry.SetLabel(fixedPackLabel, true, true, false);
+                }
                 count++;
             }
             settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, null, true, true);
@@ -174,6 +220,14 @@ namespace Shenxiao.EditorTools.AddrSetup
         private static bool ShouldSkipAddressablePath(string path)
         {
             string normalized = path.Replace('\\', '/');
+            // Bitmap font source files are dependencies of the generated TMP_FontAsset. Registering
+            // name.fnt, name.png and name.asset separately would give all three the same extensionless
+            // address (fonts/bitmap/name), making runtime type resolution ambiguous. Only the final
+            // .asset is an addressable entry; Addressables still packs its atlas texture dependency.
+            if (normalized.StartsWith("Assets/GameRes/Fonts/Bitmap/", System.StringComparison.OrdinalIgnoreCase)
+                && (normalized.EndsWith(".fnt", System.StringComparison.OrdinalIgnoreCase)
+                    || normalized.EndsWith(".png", System.StringComparison.OrdinalIgnoreCase)))
+                return true;
             return normalized == "Assets/GameRes/_Generated"
                 || normalized.StartsWith("Assets/GameRes/_Generated/", System.StringComparison.Ordinal);
         }

@@ -250,6 +250,17 @@ login 模块(13 个窗口、9 个内联模板、完整业务链)证明了分工�
 3D 展示位(SetRoleModel/_gp_model 类容器)、Laya 时间轴动画、粒子,分别归
 3D 转换线与特效线;报告里见到这类节点直接标注跳过。
 
+### 位图字体与单图美术字（2026-08-05）
+
+- `Label.props.font` 可能是 `resource/font/*.fnt` 名称，不是普通 TTF。转换器会优先加载
+  `Assets/GameRes/Fonts/Bitmap/<font>.asset`，绑定其 Bitmap 材质并把顶点色置白；找不到资产时才沿用普通 TMP 字体。
+- 已人工接管的 Prefab 禁止为补字体而重转。运行 `神霄/资源/同步并应用老端位图字体`，工具会读取当前 CDN、
+  scene 初值与 TS `LoadFont` 最终值，直接增量修改现有 Prefab 的字体引用。
+- Addressables 只给生成后的 `.asset` 分配 `fonts/bitmap/<name>`；`.fnt/.png` 是构建输入/依赖，不能再占同址条目。
+- `resource/game/skillName/*.png` 是战斗技能名字图而非字体 atlas，必须作为单 Sprite 使用，由战斗协议链按配置白名单加载。
+- 未显式配置 `yu_client` 时，设置会从当前项目向父级逐层寻找 `yu_client/cdn/resource/game`，因此位于 `_codex_worktrees` 的隔离工作树不会误指向 `_codex_worktrees/yu_client`。
+- 全量盘点、动态调用例外和验收命令见 [老端图片字体全局迁移](RuntimeCompare/BitmapFont-全局迁移-20260805.md)。
+
 
 ## 主界面(mainUI)组合生成(2026-06-16)
 

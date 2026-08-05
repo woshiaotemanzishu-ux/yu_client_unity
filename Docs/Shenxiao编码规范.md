@@ -578,6 +578,14 @@ public class LoginController : BaseController {
 
 ## 十三、变更与新增决策点（必须先报告，不要自决）
 
+### 位图字体与图片字
+
+- 老端 `LoadFont` 或 `.scene props.font` 指向 `resource/font/*.fnt` 时，必须使用生成的静态
+  `TMP_FontAsset` 与其 Bitmap 材质；禁止用普通 SDF 字体、颜色、描边或中文前缀近似图片字。
+- 彩色 atlas 已包含最终颜色，TMP 顶点色保持白色。样式引用保存进可编辑 Prefab；运行时代码只允许按老端状态选择已序列化字体并更新字符串。
+- `Assets/GameRes/Fonts/Bitmap` 的 `.fnt/.png` 是构建输入和依赖，Addressables 只暴露同名 `.asset`，避免无扩展地址冲突。
+- 单图美术字（当前为 `resource/game/skillName`）按 Sprite 加载并复刻原动画，不能用技能名称文字替代。
+
 下面这些事 **AI 一律不许直接做**，必须先写明计划并等确认：
 
 1. 新增 UPM 包 / NuGet 依赖

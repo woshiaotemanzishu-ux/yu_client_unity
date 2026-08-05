@@ -7,7 +7,7 @@ namespace Shenxiao.Module.Core.Common
     /// 战力展示小项(对标老客户端 common/FightingShowSmallItem.ts):主战力数字 + 火焰特效 + 提升框(_box_up 内 FightingUpItem)。
     ///
     /// SetFighting(value)→主战力;SetFightingUp(value)→提升框(>0 才显,克隆 _tpl_FightingUpItem)。
-    /// 降级:位图字体(num_new)+火焰特效未移植 → 火焰隐藏、文本直显;模板隐藏。
+    /// num_new 使用老端彩色 BMFont 转成的静态 TMP_FontAsset并直接保存在 Prefab；火焰特效仍待移植。
     /// </summary>
     public sealed class FightingShowSmallItem : FightingShowSmallItemBind
     {

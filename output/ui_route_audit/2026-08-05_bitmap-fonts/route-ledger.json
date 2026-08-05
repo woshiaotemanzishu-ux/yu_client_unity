@@ -1,0 +1,181 @@
+{
+  "schema": 4,
+  "route": "global.bitmap-fonts",
+  "baseline": {},
+  "nodes": [
+    {
+      "id": "global.bitmap-fonts",
+      "type": "navigation",
+      "risk": "read",
+      "parent": null,
+      "status": "done",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "font-source-inventory",
+      "parent": "global.bitmap-fonts",
+      "type": "read",
+      "risk": "read",
+      "status": "done",
+      "gates": {
+        "target_identity": true,
+        "resource_stable": true
+      },
+      "evidence": [
+        "bitmap-font-inventory.json"
+      ],
+      "applicable_gates": [
+        "target_identity",
+        "resource_stable"
+      ],
+      "identity_evidence": [
+        "老端 Electron 位图字体默认目录 E:/GitProject/yu_client/cdn/resource/font",
+        "老端单图技能名字目录 E:/GitProject/yu_client/cdn/resource/game/skillName"
+      ],
+      "resource_evidence": {
+        "preflight_first": "bitmap-font-inventory.json: fntCount=66, skillNameImageCount=41",
+        "preflight_second": "bitmap-font-inventory.json: copiedThisRun=0",
+        "runtime_delta": "66 FNT/TMP 字体与 41 单图字完整纳入 Unity 资源闭包"
+      }
+    },
+    {
+      "id": "combat-damage-fonts",
+      "parent": "global.bitmap-fonts",
+      "type": "read",
+      "risk": "read",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "render_completion": true
+      },
+      "evidence": [
+        "evidence/combat-bitmap-font-mapping.png",
+        "evidence/bitmap-font-verification.json"
+      ],
+      "applicable_gates": [
+        "runtime_state",
+        "render_completion"
+      ],
+      "render_evidence": [
+        "evidence/combat-bitmap-font-mapping.png",
+        "bitmap-font-verification.json renderedNonBackgroundPixels=57744"
+      ],
+      "state_evidence": [
+        "DamageFontRenderer 按老端主角/受击、暴击、卓越、会心、格挡、反弹、流血、回血映射真实图片字",
+        "闪避使用 a 图形字；免疫与无伤害保持不显示"
+      ]
+    },
+    {
+      "id": "common-fighting-fonts",
+      "parent": "global.bitmap-fonts",
+      "type": "read",
+      "risk": "read",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "render_completion": true
+      },
+      "evidence": [
+        "evidence/bitmap-font-contact-sheet-2.png",
+        "evidence/bitmap-font-verification.json"
+      ],
+      "applicable_gates": [
+        "runtime_state",
+        "render_completion"
+      ],
+      "render_evidence": [
+        "evidence/bitmap-font-contact-sheet-2.png",
+        "Unity Prefab 只读绑定校验通过"
+      ],
+      "state_evidence": [
+        "FightingShowSmallItem._lb_fighting 绑定 num_new",
+        "FightingUpItem style1/style2 绑定 num_new_green/view_fight_up"
+      ]
+    },
+    {
+      "id": "converted-module-fonts",
+      "parent": "global.bitmap-fonts",
+      "type": "read",
+      "risk": "read",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "resource_stable": true
+      },
+      "evidence": [
+        "bitmap-font-inventory.json"
+      ],
+      "applicable_gates": [
+        "runtime_state",
+        "resource_stable"
+      ],
+      "state_evidence": [
+        "从老端 scene.font 与现行 TS LoadFont 收集 106 条绑定，当前 Prefab 命中 64 条",
+        "命中的字体引用与白色贴图材质直接保存在现有 Prefab"
+      ],
+      "resource_evidence": {
+        "preflight_first": "首次应用完成 64 个当前 Prefab 节点绑定",
+        "preflight_second": "二次同步 changedPrefabs=0, changedLabels=0",
+        "runtime_delta": "未迁移页面保留字体资源与映射清单，后续转换自动带入"
+      }
+    },
+    {
+      "id": "skill-name-image-fonts",
+      "parent": "global.bitmap-fonts",
+      "type": "read",
+      "risk": "read",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "render_completion": true
+      },
+      "evidence": [
+        "evidence/skill-name-image-sheet.png",
+        "evidence/bitmap-font-verification.json"
+      ],
+      "applicable_gates": [
+        "runtime_state",
+        "render_completion"
+      ],
+      "render_evidence": [
+        "evidence/skill-name-image-sheet.png",
+        "bitmap-font-verification.json renderedNonBackgroundPixels=266633"
+      ],
+      "state_evidence": [
+        "FightController 读取 config_key_value[20001] 的 34 项白名单并预热图片",
+        "主角技能触发与 20028 广播使用 41 张独立技能名字 Sprite，不再生成文字"
+      ]
+    },
+    {
+      "id": "resource-and-reopen-regression",
+      "parent": "global.bitmap-fonts",
+      "type": "read",
+      "risk": "read",
+      "status": "done",
+      "gates": {
+        "reopen": true,
+        "resource_stable": true,
+        "render_completion": true
+      },
+      "evidence": [
+        "evidence/bitmap-font-verification.json",
+        "bitmap-font-inventory.json"
+      ],
+      "applicable_gates": [
+        "reopen",
+        "resource_stable",
+        "render_completion"
+      ],
+      "render_evidence": [
+        "三页全字体联系表、战斗映射表与技能名字表均通过非背景像素硬断言",
+        "evidence/bitmap-font-verification.json status=pass"
+      ],
+      "resource_evidence": {
+        "preflight_first": "Unity 有图形设备批处理首次同步、导入、渲染 PASS",
+        "preflight_second": "同进程二次完整同步 copied=0, changedPrefabs=0, changedLabels=0",
+        "runtime_delta": "Addressables 仅变更 Remote_Fonts 与 Remote_resource/skillName，原始 fnt/png 无重复地址"
+      }
+    }
+  ]
+}
