@@ -1924,3 +1924,8 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **回归**：`RoleSkillRouteCase` 在 720×1280 与 1920×1080 均为 `VERDICT pass=True restored=True`，覆盖入口、6+6+41逐格、四类切换回顶、重置确认取消、升级前置拦截、返回人物页及 warm 重开。最终 CLI 证据目录为 `output/ui_route_audit/2026-08-04_role_web_round2/cli_role_skill_route_20260805_2614/`。
 - **完整 Web**：执行 `BuildAllWebCli` 成套重建内容与壳，最终真实浏览器从登录到主场景，再走人物→技能→天赋→通用，拖到末行并分别点击第 10/11 格；四类切换回顶、重置打开后取消均通过。`catalog.bin` 与 `catalog_live.bin` SHA256 同为 `E3554C33A2BD2FF100490706F07D380A0F99D56A8EC10A36CAE670748EB5C107`，catalog 文本为 `9d8dbcbf18a729d115fcb22f1c69b54d`，`WebGL.wasm.gz` SHA256=`E3959D3D37F61AC2140446F3465B06DAC7CFD72316428BEE64B2BE74F7433C8E`。
 - **构建坑修复**：shell-only 显式强制 `PlayerBuildOption.DoNotBuildWithPlayer`，避免 `PreferencesValue(0)` 隐式重建内容。最终本地 Web 首次卡 90% 的根因是烧包默认 `{streaming}/cdn` 且缺 `boot_config.json`，资源请求落到 `/StreamingAssets/cdn/WebGL` 404；使用 `?cdn=http://127.0.0.1:8090/res` 后正常启动，不需要重打包。
+
+## 2026-08-06：节日大妖活动图标时间边界调度
+
+- 完成图标 51 的 FEASTBOSS 条件缓存、单实例可取消复评循环与 generation 防旧循环回写；等级变化改为按缓存重算。
+- 完成纯参数墙钟、多时间窗、总活动边界与非法条件治理专项；`git diff --check` 已通过，Unity 批处理因编辑器/构建锁待串行验收。

@@ -73,3 +73,9 @@
 | 🟡部分 | Kf1vnController | `621`=跨服1vn(loc6) | 62100 stage/page_info, 62101 stage push -> ShowIcon, 62102, 62103, 62104, 62105, 62107, 62108 | Only auto-generated prefab bind stubs exist: 26 files under Assets/Scripts/Generated/UI/Kf1vn/ (Kf1vnEnterViewBind, Kf1vnShopViewBind, Kf1vn |
 | 🟡部分 | KfHolyAreaModel | `284`=神陨禁区(loc5) | 28400, 28401, 28403, 28404, 28405, 28406, 28407, 28408 | Only auto-generated UI binding stubs exist: Assets/Scripts/Generated/UI/KfHolyArea/*Bind.cs (KfHolyAreaMainViewBind, SceneViewBind, BuildMsg |
 | 🟡部分 | MainStrongerController | `158`=变强(loc5) | 30000 | Views ported as data-only downgraded stubs: Assets/Scripts/Module/Core/MainStronger/Views/MainUIStrongerView.cs, MainUIStrongerTalkBoard.cs, |
+
+## 节日大妖图标 51（2026-08-06）
+
+- `33101` 解析侧调用 `BossController.EvaluateFeastBoss` 后，缓存 FEASTBOSS 的存在标记、`condition` 与总活动起止；有效条件启动单实例、可取消且 generation 隔离的约一秒本地复评。无活动、非法条件、总活动过期及 Dispose 都取消调度并清除派生图标状态。
+- `BossModel.ComputeFeastWindow` 的墙钟完全由传入 `nowSec` 推导，严格保持：开始秒不活跃、开始后 1 秒活跃、结束秒仍活跃、结束后 1 秒转下一预告；总活动区间为 `[start,end)`，支持多窗与跨日总区间。
+- 仅 active/end/foreshadow 三态真正变化时才刷新图标，避免每秒重复 `AddIconAsync`。`BossFeastScheduleCase.RunBatch` 覆盖固定时钟边界、非法条件、单循环、取消与重新进入；Unity 因编辑器锁未在本轮运行。

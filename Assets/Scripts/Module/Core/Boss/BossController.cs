@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Shenxiao.Common.Proto;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
@@ -27,7 +29,8 @@ namespace Shenxiao.Module.Core.Boss
     /// 时间窗后广播的事件(对标老端 AddVipServiceController 订阅首充 EVT_FIRST_RECHARGE_UPDATE 的做法),
     /// 但当前 CustomActivityController 既不广播活动更新事件、也不暴露 act info,暂无可订阅信号 →
     /// 图标默认隐藏(等价"当前无节日BOSS活动开启"),这是非破坏、与"无活动"一致的安全态。
-    /// 接线口子已留:CustomActivity 侧(或每秒时间窗计时器)算出 FEASTBOSS 时间窗后调 NotifyFeastBossActivity 即可点亮。
+    /// 33101 解析侧调用 EvaluateFeastBoss 后缓存 FEASTBOSS 时间窗；有效活动由本控制器约一秒复评，
+    /// 无活动、非法条件、总活动过期和 Dispose 均取消循环并清理图标派生状态。
     ///
     /// 等级变化(EVT_ROLE_INFO_UPDATE,去抖)复评图标以对齐模板;节日BOSS图标无等级门(靠活动时间窗),此处仅作复检钩子。
     /// 本期只做图标;节日BOSS玩法/面板(采集/掉落/结算/入口)未移植,待用户验收。
@@ -47,6 +50,22 @@ namespace Shenxiao.Module.Core.Boss
 
         // 复评图标的等级去抖:EVT_ROLE_INFO_UPDATE 亦随经验/货币变化触发,只在等级真变时复评。
         private int _lastLevel = -1;
+        private bool _hasFeastBossActivity;
+        private string _feastBossCondition;
+        private long _feastBossStartTime;
+        private long _feastBossEndTime;
+        private CancellationTokenSource _feastScheduleCts;
+        private Task _feastScheduleTask;
+        private int _feastScheduleGeneration;
+        private bool _hasAppliedFeastState;
+        private bool _appliedFeastActive;
+        private long _appliedFeastEndTime;
+        private string _appliedFeastForeshadow;
+#if UNITY_EDITOR
+        private static Func<int, CancellationToken, Task> s_feastDelayOverride;
+        private static Func<long> s_feastNowSecOverride;
+        private static Action<bool, long, string> s_feastIconStateOverride;
+#endif
 
         protected override void Register()
         {
@@ -62,11 +81,19 @@ namespace Shenxiao.Module.Core.Boss
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off<int>(GlobalEvent.EVT_SERVER_HOUR_REFRESH, OnServerHourRefresh);
-            ActivityIconManager.Instance.DeleteIcon(ICON_TYPE);
-            BossModel.Instance.Reset();
+            DisposeFeastScheduleState();
             BossModel.Instance.Clear46000();
             _lastLevel = -1;
             base.Dispose();
+        }
+
+        private void DisposeFeastScheduleState()
+        {
+            ClearFeastBossActivity("dispose");
+            _hasAppliedFeastState = false;
+            _appliedFeastActive = false;
+            _appliedFeastEndTime = 0;
+            _appliedFeastForeshadow = null;
         }
 
         /// <summary>整点刷新(对标老端 BossController.ts:168-180,hour==4 连发 7 个请求):46000×5
@@ -89,12 +116,12 @@ namespace Shenxiao.Module.Core.Boss
 
         /// <summary>
         /// 进游戏钩子(GameStartController.RequestStartupPackets 调用)。驱动协议 33101 已由
-        /// CustomActivityController.RequestActivityList() 请求,此处无需发包,仅按当前状态复评一次图标
-        /// (此刻多半无节日BOSS活动、复评为空;真正驱动在 NotifyFeastBossActivity 被接线后)。
+        /// CustomActivityController.RequestActivityList() 请求；此处不发包，只对已缓存的 FEASTBOSS
+        /// 条件做一次本地复评，后续边界由约一秒调度循环接管。
         /// </summary>
         public void RequestStartup()
         {
-            RefreshIcon("startup");
+            EvaluateCachedFeastBoss("startup");
         }
 
         /// <summary>
@@ -102,19 +129,22 @@ namespace Shenxiao.Module.Core.Boss
         /// 由 CustomActivityController 在 33101 列表刷新/复评时调用:
         ///   · hasActivity=false(列表里没有 FEASTBOSS 活动)→ 清图标;
         ///   · hasActivity=true → 按活动 condition 的每日时间窗算三态(窗内倒计时 / 当天下一场预告 / 都无则删)。
-        /// 注:未接每秒定时器,窗口边界的自动切换靠 33101 刷新或等级/任务复评时重算(icon-first 阶段够用);
-        /// 严格边界即时切换(老端 StartFeastTimer 每秒轮询)待后续接全局定时器基建后补。
+        /// 有效条件会缓存并建立约一秒复评循环；重复 33101 复用同一循环，取消或重入以 generation 隔离旧循环。
         /// </summary>
         public void EvaluateFeastBoss(bool hasActivity, string condition, long actStartTime, long actEndTime)
         {
-            if (!hasActivity)
+            _hasFeastBossActivity = hasActivity;
+            _feastBossCondition = condition;
+            _feastBossStartTime = actStartTime;
+            _feastBossEndTime = actEndTime;
+            if (!hasActivity || !BossModel.HasValidFeastWindow(condition))
             {
-                NotifyFeastBossActivity(false, 0, null);
+                ClearFeastBossActivity(hasActivity ? "invalidCondition" : "noActivity");
                 return;
             }
-            (bool active, long endTime, string foreshadow) =
-                BossModel.ComputeFeastWindow(condition, actStartTime, actEndTime, TimeUtil.NowSec());
-            NotifyFeastBossActivity(active, endTime, foreshadow);
+
+            EvaluateCachedFeastBoss("33101");
+            if (_hasFeastBossActivity) EnsureFeastScheduleLoop();
         }
 
         /// <summary>
@@ -125,8 +155,114 @@ namespace Shenxiao.Module.Core.Boss
         /// </summary>
         public void NotifyFeastBossActivity(bool active, long endTime, string foreshadow = null)
         {
+            ApplyFeastBossState(active, endTime, foreshadow, "feastBoss");
+        }
+
+        private void EvaluateCachedFeastBoss(string from)
+        {
+            if (!_hasFeastBossActivity || !BossModel.HasValidFeastWindow(_feastBossCondition)) return;
+            long nowSec = GetFeastNowSec();
+            if (_feastBossEndTime > 0 && nowSec >= _feastBossEndTime)
+            {
+                ClearFeastBossActivity("expired");
+                return;
+            }
+            (bool active, long endTime, string foreshadow) = BossModel.ComputeFeastWindow(
+                _feastBossCondition, _feastBossStartTime, _feastBossEndTime, nowSec);
+            ApplyFeastBossState(active, endTime, foreshadow, from);
+        }
+
+        private long GetFeastNowSec()
+        {
+#if UNITY_EDITOR
+            if (s_feastNowSecOverride != null) return s_feastNowSecOverride();
+#endif
+            return TimeUtil.NowSec();
+        }
+
+        private bool EnsureFeastScheduleLoop()
+        {
+            if (_feastScheduleCts != null && !_feastScheduleCts.IsCancellationRequested) return false;
+            CancellationTokenSource cts = new CancellationTokenSource();
+            int generation = ++_feastScheduleGeneration;
+            _feastScheduleCts = cts;
+            _feastScheduleTask = FeastScheduleLoopAsync(cts, generation);
+            return true;
+        }
+
+        private async Task FeastScheduleLoopAsync(CancellationTokenSource cts, int generation)
+        {
+            try
+            {
+                while (!cts.IsCancellationRequested && generation == _feastScheduleGeneration)
+                {
+                    await DelayFeastAsync(1000, cts.Token);
+                    if (cts.IsCancellationRequested || generation != _feastScheduleGeneration) break;
+                    EvaluateCachedFeastBoss("schedule");
+                }
+            }
+            catch (OperationCanceledException) when (cts.IsCancellationRequested) { }
+            catch (Exception exception)
+            {
+                GameLog.Error("Boss", "节日大妖时间调度异常: {0}", exception.Message);
+            }
+            finally
+            {
+                if (ReferenceEquals(_feastScheduleCts, cts) && generation == _feastScheduleGeneration)
+                {
+                    _feastScheduleCts = null;
+                    _feastScheduleTask = null;
+                    cts.Dispose();
+                }
+            }
+        }
+
+        private Task DelayFeastAsync(int milliseconds, CancellationToken token)
+        {
+#if UNITY_EDITOR
+            if (s_feastDelayOverride != null) return s_feastDelayOverride(milliseconds, token);
+#endif
+            return TimeUtil.Delay(milliseconds, token);
+        }
+
+        private void CancelFeastSchedule()
+        {
+            CancellationTokenSource oldCts = _feastScheduleCts;
+            _feastScheduleCts = null;
+            _feastScheduleTask = null;
+            _feastScheduleGeneration++;
+            oldCts?.Cancel();
+            oldCts?.Dispose();
+        }
+
+        private void ClearFeastBossActivity(string from)
+        {
+            _hasFeastBossActivity = false;
+            _feastBossCondition = null;
+            _feastBossStartTime = 0;
+            _feastBossEndTime = 0;
+            CancelFeastSchedule();
+            ApplyFeastBossState(false, 0, null, from);
+        }
+
+        private void ApplyFeastBossState(bool active, long endTime, string foreshadow, string from)
+        {
+            bool changed = !_hasAppliedFeastState || _appliedFeastActive != active
+                || _appliedFeastEndTime != endTime || _appliedFeastForeshadow != foreshadow;
             BossModel.Instance.SetFeastBossActivity(active, endTime, foreshadow);
-            RefreshIcon("feastBoss");
+            if (!changed) return;
+            _hasAppliedFeastState = true;
+            _appliedFeastActive = active;
+            _appliedFeastEndTime = endTime;
+            _appliedFeastForeshadow = foreshadow;
+#if UNITY_EDITOR
+            if (s_feastIconStateOverride != null)
+            {
+                s_feastIconStateOverride(active, endTime, foreshadow);
+                return;
+            }
+#endif
+            RefreshIcon(from);
         }
 
         private void RefreshIcon(string from)
@@ -158,7 +294,7 @@ namespace Shenxiao.Module.Core.Boss
             if (!role.HasBaseInfo) return;
             if (role.Level == _lastLevel) return;
             _lastLevel = role.Level;
-            RefreshIcon("levelChange");
+            EvaluateCachedFeastBoss("levelChange");
         }
 
         // ============================================================================================

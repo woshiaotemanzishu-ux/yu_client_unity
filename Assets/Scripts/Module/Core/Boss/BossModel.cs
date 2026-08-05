@@ -30,7 +30,7 @@ namespace Shenxiao.Module.Core.Boss
 
         /// <summary>
         /// 服务端配置时区(线上=UTC+8,按"落定线上值"做法)。活动 condition 里 time 窗的时分秒是服务端墙钟,
-        /// 需把 UTC 服务器时间(TimeUtil.NowUtc)加此偏移换算成墙钟再比窗(对标老端 TimeUtil.GetZoneTime 的 server_zone)。
+        /// 需把传入的 UTC 服务器秒加此偏移换算成墙钟再比窗(对标老端 TimeUtil.GetZoneTime 的 server_zone)。
         /// 轮20收敛:转发 TimeUtil.SERVER_ZONE_HOURS(唯一事实源),值不变、零行为变更,保留常量名/可见性
         /// 避免改调用点(spec_serverclock_round20.md §2.3)。
         /// </summary>
@@ -52,8 +52,8 @@ namespace Shenxiao.Module.Core.Boss
             IReadOnlyList<ErlangTerm> timeArr = ExtractTimeWindows(condition);
             if (timeArr == null || timeArr.Count == 0) return (false, 0, null);
 
-            // 服务端墙钟时分秒(UTC+SERVER_ZONE_HOURS)
-            DateTime zoneNow = TimeUtil.NowUtc().AddHours(SERVER_ZONE_HOURS);
+            // 墙钟只能由传入的服务器秒推导，专项和调度不能被本机当前时间污染。
+            DateTime zoneNow = DateTimeOffset.FromUnixTimeSeconds(nowSec).UtcDateTime.AddHours(SERVER_ZONE_HOURS);
             int hour = zoneNow.Hour, minute = zoneNow.Minute, second = zoneNow.Second;
             int nowAllToday = hour * 3600 + minute * 60 + second; // 今日已过秒(墙钟)
 
@@ -96,6 +96,15 @@ namespace Shenxiao.Module.Core.Boss
             return null;
         }
 
+        public static bool HasValidFeastWindow(string condition)
+        {
+            IReadOnlyList<ErlangTerm> windows = ExtractTimeWindows(condition);
+            if (windows == null) return false;
+            for (int i = 0; i < windows.Count; i++)
+                if (TryReadWindow(windows[i], out _, out _, out _, out _, out _, out _)) return true;
+            return false;
+        }
+
         // 解析单个窗 {{sH,sM,sS},{eH,eM,eS}} → 起止时分秒 + 当日秒偏移。
         private static bool TryReadWindow(ErlangTerm window, out int sH, out int sM, out int sS,
             out int startSec, out int eH, out int endSec)
@@ -107,9 +116,12 @@ namespace Shenxiao.Module.Core.Boss
             if (a == null || b == null || a.Count < 3 || b.Count < 3) return false;
             sH = a[0].As<int>(); sM = a[1].As<int>(); sS = a[2].As<int>();
             eH = b[0].As<int>(); int eM = b[1].As<int>(), eS = b[2].As<int>();
+            if (sH < 0 || sH > 23 || eH < 0 || eH > 23
+                || sM < 0 || sM > 59 || eM < 0 || eM > 59
+                || sS < 0 || sS > 59 || eS < 0 || eS > 59) return false;
             startSec = sH * 3600 + sM * 60 + sS;
             endSec = eH * 3600 + eM * 60 + eS;
-            return true;
+            return endSec > startSec;
         }
 
         // 节日BOSS图标最终判定(对标老端 FeastBossActivity 的三态):
