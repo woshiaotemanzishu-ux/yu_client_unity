@@ -26,17 +26,40 @@ namespace Shenxiao.Module.Core.Daily
         private static JObject _toBeStrong;
         private static JObject _activityReward;
         private static JObject _livenessActive;
+        private static Task _loading;
 
-        public static bool IsLoaded => _ac != null;
+        public static bool IsLoaded => _ac != null
+            && _activityLiveness != null
+            && _toBeStrong != null
+            && _activityReward != null
+            && _livenessActive != null;
 
-        public static async Task EnsureLoaded()
+#if UNITY_EDITOR
+        private static System.Func<string, Task<UnityEngine.TextAsset>> s_loadAssetOverride;
+        private static System.Action<UnityEngine.TextAsset> s_releaseAssetOverride;
+#endif
+
+        public static Task EnsureLoaded()
         {
-            if (_ac != null) return;
-            _ac = await Load("config_ac");
-            _activityLiveness = await Load("config_activity_liveness");
-            _toBeStrong = await Load("config_to_be_strong");
-            _activityReward = await Load("config_activity_reward");
-            _livenessActive = await Load("config_liveness_active");
+            if (IsLoaded) return Task.CompletedTask;
+            if (_loading == null || _loading.IsCompleted) _loading = LoadAllAsync();
+            return _loading;
+        }
+
+        private static async Task LoadAllAsync()
+        {
+            // 先落局部变量，五表全部成功后才替换公开快照；失败时保留旧完整快照。
+            JObject ac = await Load("config_ac");
+            JObject activityLiveness = await Load("config_activity_liveness");
+            JObject toBeStrong = await Load("config_to_be_strong");
+            JObject activityReward = await Load("config_activity_reward");
+            JObject livenessActive = await Load("config_liveness_active");
+
+            _ac = ac;
+            _activityLiveness = activityLiveness;
+            _toBeStrong = toBeStrong;
+            _activityReward = activityReward;
+            _livenessActive = livenessActive;
             GameLog.Info("Daily", "DailyConfigs 加载: ac={0} liveness={1} strong={2} reward={3} figure={4}",
                 _ac.Count, _activityLiveness.Count, _toBeStrong.Count, _activityReward.Count, _livenessActive.Count);
         }
@@ -44,15 +67,30 @@ namespace Shenxiao.Module.Core.Daily
         private static async Task<JObject> Load(string cfg)
         {
             string key = GameResPath.GetServerConfigPath(cfg);
-            UnityEngine.TextAsset asset = await ResManager.LoadAsync<UnityEngine.TextAsset>(key);
+            UnityEngine.TextAsset asset;
+#if UNITY_EDITOR
+            if (s_loadAssetOverride != null)
+                asset = await s_loadAssetOverride(cfg);
+            else
+#endif
+                asset = await ResManager.LoadAsync<UnityEngine.TextAsset>(key);
             if (asset == null)
             {
                 GameLog.Error("Daily", "缺配表: {0}(跑「神霄/配表/同步客户端配置」或手动拷贝)", key);
                 return new JObject();
             }
-            JObject obj = JObject.Parse(asset.text);
-            ResManager.Release(asset);
-            return obj;
+            try
+            {
+                return JObject.Parse(asset.text);
+            }
+            finally
+            {
+#if UNITY_EDITOR
+                if (s_releaseAssetOverride != null) s_releaseAssetOverride(asset);
+                else
+#endif
+                    ResManager.Release(asset);
+            }
         }
 
         public static JObject GetAc(int module, int moduleSub, int acSub)

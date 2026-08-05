@@ -1,5 +1,17 @@
 # Shenxiao 进游戏链路
 
+## Daily 配置加载与 GAME_START 生命周期
+
+Daily 的五张配置表必须作为一个快照发布。`GAME_START` 不能在快照未完整时发出日常请求，否则早到回包会按缺少 `config_ac` 被错误丢弃。
+
+`DailyController.OnGameStart` 是同步事件入口：它使前一代启动失效、取消旧 CTS、清理 DailyModel，然后启动私有 Task。每代最多尝试三次配置加载：首轮立即执行，失败或未完整后严格等待 1000ms，最多两次等待。配置异常只在终态记录一次；取消属于正常收束。
+
+每次 await 后都核验 epoch、CTS 引用、初始化状态与取消标记。只有最新代且五表完整时，才按原有顺序一次性发送 `15701(1) → 15701(2) → 15703 → 41900 → 15709 → 15721 → [15715] → 15718`。整批发送后才置 ready 并提交当前等级；ready 前角色等级事件不发送 15721。Dispose 先推进 epoch 并摘掉 CTS，再 Cancel/Dispose；旧 Task 的 finally 仅可清除仍属于自身代次的 CTS。
+
+`DailyConfigsAtomicLoadCase` 覆盖五表原子提交、单飞、故障不污染旧完整快照、资源释放和 null 配置 fail-soft。`DailyStartupLifecycleCase` 通过真实 `UserMsgAdapter` 编码拦截和仅 Editor 可见的可恢复 delay / Task observer 钩子，覆盖重试、最新代次胜出、三次失败、角色等级门控和出站帧顺序。两条用例必须先释放人为 gate，再有界等待全部已观察 Task 与当前 `_loading` 收束，确认不存在后到 continuation 后才允许恢复静态快照与控制器状态。
+
+缺资源沿用既有 fail-soft 边界：`ResManager` 或测试加载钩子返回 `null` 时记录缺配错误，并为该表发布空 `JObject`；它不触发三轮重试，也不得调用 `Release(null)`。加载或 JSON 解析异常才使本轮原子加载失败并进入启动重试。编辑器释放后，应串行运行 `DailyConfigsAtomicLoadCase` 与 `DailyStartupLifecycleCase`，确认 `VERDICT pass=True restored=True`。
+
 > 目的: 选角/创角后进入游戏的流程必须按阶段接入,避免把主界面、地图、主角、
 > NPC/怪物、弹层一次性混在一起做。业务行为以 `D:\GitProject\yu_client`
 > 老客户端源码为准。

@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
@@ -23,6 +26,17 @@ namespace Shenxiao.Module.Core.Daily
         private DailyController() { }
 
         private int _lastLevel = -1;
+        private int _startupEpoch;
+        private CancellationTokenSource _startupCts;
+        private bool _startupReady;
+        private const int StartupConfigMaxAttempts = 3;
+        private const int StartupConfigRetryDelayMs = 1000;
+
+#if UNITY_EDITOR
+        private static Func<byte[], bool> s_outboundIntercept;
+        private static Func<int, CancellationToken, Task> s_retryDelayOverride;
+        private static Action<Task> s_startupTaskObserver;
+#endif
 
         protected override void Register()
         {
@@ -57,7 +71,13 @@ namespace Shenxiao.Module.Core.Daily
         {
             EventDispatcher.Off(GlobalEvent.EVT_GAME_START, OnGameStart);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            _startupEpoch++;
+            _startupReady = false;
+            CancellationTokenSource startupCts = _startupCts;
+            _startupCts = null;
             _lastLevel = -1;
+            startupCts?.Cancel();
+            startupCts?.Dispose();
             DailyModel.Instance.Clear();
             ActivityIconManager.Instance.SetIconRedDot("157", false);
             base.Dispose();
@@ -74,32 +94,109 @@ namespace Shenxiao.Module.Core.Daily
         // 触发时机(对标老端 GAME_START 一次性批量请求 + CHANGE_LEVEL 补查 15721)
         // =====================================================================================
 
-        private async void OnGameStart()
+        private void OnGameStart()
         {
+            int epoch = ++_startupEpoch;
+            _startupReady = false;
+            CancellationTokenSource oldCts = _startupCts;
+            _startupCts = null;
+            oldCts?.Cancel();
+            oldCts?.Dispose();
             DailyModel.Instance.Clear();
-            // ⚠轮10交叉验收 blocker 订正:此前 fire-and-forget 后立刻发包,回包若先于配置到达会被
-            // SetDailyData/SetResTable 因 acCfg==null 误判摘空(同「Config load timing gotcha」记忆条目);
-            // 老端 config_ac 走 PRELOAD_SERVER_CONFIG 同步预载无此窗口,这里改为先 await 配置就绪再发包。
-            await DailyConfigs.EnsureLoaded();
-            SendFmt(Proto.DAILY_ACTIVITY_LIST, "c", DailyModel.ACT_UNLIMIT);
-            SendFmt(Proto.DAILY_ACTIVITY_LIST, "c", DailyModel.ACT_LIMIT);
-            SendFmt(Proto.DAILY_LIVENESS_REWARD);
-            SendFmt(Proto.DAILY_RES_FIND_INFO);
-            SendFmt(Proto.DAILY_LIVENESS_INFO);
-            SendFmt(Proto.DAILY_ACT_REMIND);
-            if (RoleModel.Instance.Level >= DailyModel.LIVENESS_FIND_OPEN_LEVEL) SendFmt(Proto.DAILY_LIVENESS_FIND_INFO);
-            SendFmt(Proto.DAILY_SIGNUP_LIST);
-            _lastLevel = RoleModel.Instance.Level;
-            GameLog.Info("Daily", "GAME_START 批量请求 15701×2/15703/41900/15709/15721/15718{0}",
-                RoleModel.Instance.Level >= DailyModel.LIVENESS_FIND_OPEN_LEVEL ? "/15715" : "");
+            _lastLevel = -1;
+            var cts = new CancellationTokenSource();
+            _startupCts = cts;
+            Task startup = StartAfterConfigsAsync(epoch, cts, cts.Token);
+#if UNITY_EDITOR
+            s_startupTaskObserver?.Invoke(startup);
+#endif
+            _ = startup;
+        }
+
+        private async Task StartAfterConfigsAsync(int epoch, CancellationTokenSource cts, CancellationToken token)
+        {
+            Exception lastException = null;
+            try
+            {
+                for (int attempt = 0; attempt < StartupConfigMaxAttempts; attempt++)
+                {
+                    if (!IsCurrentStartup(epoch, cts, token)) return;
+                    try { await DailyConfigs.EnsureLoaded(); }
+                    catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }
+                    catch (Exception exception) { lastException = exception; }
+                    if (!IsCurrentStartup(epoch, cts, token)) return;
+                    if (DailyConfigs.IsLoaded)
+                    {
+                        SendStartupBatch();
+                        if (!IsCurrentStartup(epoch, cts, token)) return;
+                        _lastLevel = RoleModel.Instance.Level;
+                        _startupReady = true;
+                        return;
+                    }
+                    if (attempt == StartupConfigMaxAttempts - 1)
+                    {
+                        if (lastException != null)
+                            GameLog.Error("Daily", "DailyConfigs 三次加载失败，跳过 GAME_START 请求: {0}", lastException);
+                        else
+                            GameLog.Error("Daily", "DailyConfigs 三次加载后仍未完整，跳过 GAME_START 请求");
+                        return;
+                    }
+                    await DelayRetryAsync(StartupConfigRetryDelayMs, token);
+                }
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+            catch (Exception exception)
+            {
+                if (IsCurrentStartup(epoch, cts, token)) GameLog.Error("Daily", "Daily GAME_START 启动异常: {0}", exception);
+            }
+            finally
+            {
+                if (_startupCts == cts && _startupEpoch == epoch)
+                {
+                    _startupCts = null;
+                    cts.Dispose();
+                }
+            }
+        }
+
+        private bool IsCurrentStartup(int epoch, CancellationTokenSource cts, CancellationToken token) =>
+            _startupEpoch == epoch && ReferenceEquals(_startupCts, cts) && IsInitialized && !token.IsCancellationRequested;
+
+        private static Task DelayRetryAsync(int milliseconds, CancellationToken token)
+        {
+#if UNITY_EDITOR
+            if (s_retryDelayOverride != null) return s_retryDelayOverride(milliseconds, token);
+#endif
+            return TimeUtil.Delay(milliseconds, token);
+        }
+
+        private void SendStartupBatch()
+        {
+            SendLifecycleRequest(Proto.DAILY_ACTIVITY_LIST, "c", DailyModel.ACT_UNLIMIT);
+            SendLifecycleRequest(Proto.DAILY_ACTIVITY_LIST, "c", DailyModel.ACT_LIMIT);
+            SendLifecycleRequest(Proto.DAILY_LIVENESS_REWARD);
+            SendLifecycleRequest(Proto.DAILY_RES_FIND_INFO);
+            SendLifecycleRequest(Proto.DAILY_LIVENESS_INFO);
+            SendLifecycleRequest(Proto.DAILY_ACT_REMIND);
+            if (RoleModel.Instance.Level >= DailyModel.LIVENESS_FIND_OPEN_LEVEL) SendLifecycleRequest(Proto.DAILY_LIVENESS_FIND_INFO);
+            SendLifecycleRequest(Proto.DAILY_SIGNUP_LIST);
+        }
+
+        private void SendLifecycleRequest(int protoId, string format = null, params object[] args)
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(protoId, format, args);
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return;
+#endif
+            SendFmt(protoId, format, args);
         }
 
         private void OnRoleInfoUpdate()
         {
             RoleModel role = RoleModel.Instance;
-            if (!role.HasBaseInfo || role.Level == _lastLevel) return;
+            if (!_startupReady || !role.HasBaseInfo || role.Level == _lastLevel) return;
             _lastLevel = role.Level;
-            SendFmt(Proto.DAILY_ACT_REMIND); // 对标老端 CHANGE_LEVEL → Fire(request_proto,15721)
+            SendLifecycleRequest(Proto.DAILY_ACT_REMIND);
         }
 
         // =====================================================================================
