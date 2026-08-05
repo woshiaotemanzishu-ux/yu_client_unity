@@ -38,7 +38,15 @@ namespace Shenxiao.Module.Core.ActivityForeshow
         // 复请求 65208 的等级去抖:EVT_ROLE_INFO_UPDATE 亦随经验/货币变化触发,只在等级真变时重发。
         private int _lastLevel = -1;
         private CancellationTokenSource _scheduleCts;
+        private Task _scheduleTask;
+        private Task _refreshTask;
+        private bool _refreshPending;
+        private int _scheduleGeneration;
         private readonly HashSet<string> _scheduledIconTypes = new HashSet<string>();
+#if UNITY_EDITOR
+        private static System.Func<CancellationToken, Task> s_refreshOverride;
+        private static System.Func<int, CancellationToken, Task> s_delayOverride;
+#endif
 
         protected override void Register()
         {
@@ -56,14 +64,19 @@ namespace Shenxiao.Module.Core.ActivityForeshow
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, OnServerDayChange);
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_TIME_REFRESH, OnServerDayChange);
-            _scheduleCts?.Cancel();
+            CancellationTokenSource oldCts = _scheduleCts;
+            _scheduleCts = null;
+            _scheduleTask = null;
+            _refreshTask = null;
+            _refreshPending = false;
+            _scheduleGeneration++;
+            oldCts?.Cancel();
+            oldCts?.Dispose();
             ActivityIconManager.Instance.DeleteIcon(ICON_SNATCH_TREASURE);
             foreach (string iconType in _scheduledIconTypes)
                 ActivityIconManager.Instance.DeleteIcon(iconType);
             _scheduledIconTypes.Clear();
             ActivityForeshowModel.Instance.Reset();
-            _scheduleCts?.Dispose();
-            _scheduleCts = null;
             _lastLevel = -1;
             base.Dispose();
         }
@@ -100,24 +113,119 @@ namespace Shenxiao.Module.Core.ActivityForeshow
                 ActivityIconManager.Instance.DeleteIcon(ICON_SNATCH_TREASURE);
         }
 
-        private void EnsureScheduleLoop()
+        // 返回 true 仅表示本次新建了循环；调用方据此避免把同一事件又排成补跑。
+        private bool EnsureScheduleLoop()
         {
-            if (_scheduleCts != null) return;
-            _scheduleCts = new CancellationTokenSource();
-            _ = ScheduleLoopAsync(_scheduleCts.Token);
+            if (_scheduleCts != null && !_scheduleCts.IsCancellationRequested) return false;
+            CancellationTokenSource cts = new CancellationTokenSource();
+            int generation = ++_scheduleGeneration;
+            _scheduleCts = cts;
+            _scheduleTask = ScheduleLoopAsync(cts, generation);
+            return true;
         }
 
-        private async Task ScheduleLoopAsync(CancellationToken token)
+        private async Task ScheduleLoopAsync(CancellationTokenSource cts, int generation)
         {
+            CancellationToken token = cts.Token;
             try
             {
                 while (!token.IsCancellationRequested)
                 {
-                    await RefreshScheduledIconsAsync(token);
-                    await TimeUtil.Delay(15000, token);
+                    try { await RequestScheduledRefreshAsync(generation, token); }
+                    catch (System.Exception exception)
+                    {
+                        GameLog.Error("ActivityForeshow", "调度刷新启动失败: {0}", exception.Message);
+                    }
+                    await DelayScheduledAsync(15000, token);
                 }
             }
             catch (System.OperationCanceledException) { }
+            catch (System.Exception exception)
+            {
+                GameLog.Error("ActivityForeshow", "调度循环异常退出: {0}", exception.Message);
+            }
+            finally
+            {
+                if (ReferenceEquals(_scheduleCts, cts) && _scheduleGeneration == generation)
+                {
+                    _scheduleCts = null;
+                    _scheduleTask = null;
+                    cts.Dispose();
+                }
+            }
+        }
+
+        private Task RequestScheduledRefreshAsync(int generation, CancellationToken token)
+        {
+            if (generation != _scheduleGeneration || token.IsCancellationRequested) return Task.CompletedTask;
+            if (_refreshTask != null && !_refreshTask.IsCompleted)
+            {
+                _refreshPending = true;
+                return _refreshTask;
+            }
+            _refreshPending = false;
+            // 必须先占位再启动 async 方法：若首轮同步完成，finally 仍只能清自己的 owner，
+            // 不能出现「finally 先置空、外层随后写回已完成 Task」的假空闲状态。
+            var completion = new TaskCompletionSource<bool>();
+            Task owner = completion.Task;
+            _refreshTask = owner;
+            _ = RefreshCoordinatorAsync(generation, token, owner, completion);
+            return owner;
+        }
+
+        private async Task RefreshCoordinatorAsync(int generation, CancellationToken token, Task owner,
+            TaskCompletionSource<bool> completion)
+        {
+            bool supplementUsed = false;
+            try
+            {
+                while (!token.IsCancellationRequested && generation == _scheduleGeneration)
+                {
+                    try
+                    {
+#if UNITY_EDITOR
+                        if (s_refreshOverride != null) await s_refreshOverride(token);
+                        else
+#endif
+                            await RefreshScheduledIconsAsync(token);
+                    }
+                    catch (System.OperationCanceledException) when (token.IsCancellationRequested) { return; }
+                    catch (System.Exception exception)
+                    {
+                        GameLog.Error("ActivityForeshow", "调度刷新失败: {0}", exception.Message);
+                    }
+
+                    if (supplementUsed || !_refreshPending) break;
+                    supplementUsed = true;
+                    _refreshPending = false;
+                }
+            }
+            catch (System.OperationCanceledException) when (token.IsCancellationRequested) { }
+            catch (System.Exception exception)
+            {
+                GameLog.Error("ActivityForeshow", "刷新协调异常: {0}", exception.Message);
+            }
+            finally
+            {
+                if (_scheduleGeneration == generation && ReferenceEquals(_refreshTask, owner))
+                {
+                    _refreshPending = false;
+                    _refreshTask = null;
+                }
+                completion.TrySetResult(true);
+            }
+        }
+
+        private async Task DelayScheduledAsync(int milliseconds, CancellationToken token)
+        {
+#if UNITY_EDITOR
+            if (s_delayOverride != null)
+            {
+                await s_delayOverride(milliseconds, token);
+                return;
+            }
+#endif
+            await TimeUtil.Delay(milliseconds, token);
         }
 
         private async Task RefreshScheduledIconsAsync(CancellationToken token = default)
@@ -176,7 +284,10 @@ namespace Shenxiao.Module.Core.ActivityForeshow
         private void OnServerDayChange()
         {
             RefreshSnatchIcon();
-            _ = RefreshScheduledIconsAsync(_scheduleCts?.Token ?? default);
+            bool started = EnsureScheduleLoop();
+            CancellationTokenSource cts = _scheduleCts;
+            // 新循环已经立即执行首轮刷新，不能把当前这次时间事件再误判为并发补跑。
+            if (!started && cts != null) _ = RequestScheduledRefreshAsync(_scheduleGeneration, cts.Token);
         }
 
         // 对标老端:主角等级变化复请求 65208(EVT_ROLE_INFO_UPDATE 亦随经验/货币触发,故只在等级真变时发)。
