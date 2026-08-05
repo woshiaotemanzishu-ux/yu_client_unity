@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using Shenxiao.Generated.UI.InnateSkill;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Role
 {
     /// <summary>
     /// 天赋技能树容器(对标老客户端 innateSkill/InnateListItem.ts):按 type 切换四套互斥连线装饰
-    /// (_gp_skill5/6/7/8)+ 高度动态(type7→850,5/6→637;type8 老端本身缺项/本端按几何报告兜底同 850)+
+    /// (_gp_skill5/6/7/8)+ 高度动态(type7→820,其余→637)+
     /// 技能图标逐个摆位(_gp_item,坐标来自 <see cref="SkillUIConfigs.GetInnateSlots"/> 绝对坐标,配置驱动的
     /// 内容坐标,非布局铁律要求的"结构位置",故允许在此代码里按数据设置)。
     ///
@@ -15,8 +16,7 @@ namespace Shenxiao.Module.Core.Role
     /// </summary>
     public sealed class InnateListItem : InnateListItemBind
     {
-        private const float HeightType7 = 850f;
-        private const float HeightType8Fallback = 850f; // 老端 InitView 只显式处理 5/6/7,type8 缺项:本端兜底同 type7
+        private const float HeightType7 = 820f;
         private const float HeightDefault = 637f;
 
         private GameObject _itemTemplate;
@@ -58,15 +58,32 @@ namespace Shenxiao.Module.Core.Role
 
         private void ApplyHeight(int type)
         {
-            float h = type == 7 ? HeightType7 : (type == 8 ? HeightType8Fallback : HeightDefault);
+            float h = type == 7 ? HeightType7 : HeightDefault;
             var rt = (RectTransform)transform;
             rt.sizeDelta = new Vector2(rt.sizeDelta.x, h);
             rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, 0f);
+
+            // 转换后的层级是 ScrollRect→Viewport→Content→InnateListItem。
+            // 只改 InnateListItem 高度不会给 ScrollRect 产生可滚动距离；type7 的末两项会被详情板永久遮住。
+            // 动态内容高度必须同步到 ScrollRect 真正引用的 Content，并在切换分支时回到顶部。
+            RectTransform content = rt.parent as RectTransform;
+            ScrollRect scroll = content != null ? content.GetComponentInParent<ScrollRect>() : null;
+            if (content != null && scroll != null && scroll.content == content)
+            {
+                content.anchorMin = new Vector2(0f, 1f);
+                content.anchorMax = new Vector2(1f, 1f);
+                content.pivot = new Vector2(0.5f, 1f);
+                content.sizeDelta = new Vector2(0f, h);
+                content.anchoredPosition = Vector2.zero;
+                scroll.StopMovement();
+                scroll.verticalNormalizedPosition = 1f;
+                LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+            }
         }
 
         private void PopulateItems(int type, int selectedSkillId)
         {
-            foreach (InnateSkillItem it in _itemPool) if (it != null) it.gameObject.SetActive(false);
+            foreach (InnateSkillItem it in _itemPool) if (it != null) it.Hide();
             if (_itemTemplate == null || _gp_item == null) return;
 
             int career = Shenxiao.Module.Core.Role.RoleModel.Instance.Career;
@@ -77,7 +94,9 @@ namespace Shenxiao.Module.Core.Role
             {
                 InnateSkillItem it = GetOrCreate(i);
                 if (it == null) continue;
-                it.gameObject.SetActive(true);
+                // 克隆自隐藏模板的 BaseView 必须走 Show，才能执行 BindNodes/OnInit 并建立真实点击面。
+                // 只 SetActive 会让图标看得见、SetData 也能工作，但 UIUtil.AddClick 永远没有机会绑定。
+                it.Show();
                 it.OnClicked = OnItemClicked;
                 PlaceTopLeft((RectTransform)it.transform, slots[i].X, slots[i].Y);
                 it.SetData(slots[i].SkillId, type, slots[i].SkillId == selectedSkillId);

@@ -112,7 +112,7 @@ namespace Shenxiao.EditorTools
                 SettingView setting = await WaitActive<SettingView>(8d);
                 bool settingVisible = setting != null && setting.change_head_btn != null;
                 stage.ForceCjkFont();
-                string settingShot = stage.Capture("output/settings_fashion_round4_delivery/setting.png");
+                string settingShot = stage.Capture("output/ui_route_audit/2026-08-04_role_web_round2/cli_fashion_20260804_2355/setting.png");
 
                 Stopwatch firstWatch = Stopwatch.StartNew();
                 bool settingClick = settingVisible && Click(setting.change_head_btn, camera, raycaster, eventSystem);
@@ -135,7 +135,7 @@ namespace Shenxiao.EditorTools
                 bool firstFast = firstWatch.ElapsedMilliseconds < 5000;
 
                 stage.ForceCjkFont();
-                string avatarShot = stage.Capture("output/settings_fashion_round4_delivery/avatar.png");
+                string avatarShot = stage.Capture("output/ui_route_audit/2026-08-04_role_web_round2/cli_fashion_20260804_2355/avatar.png");
 
                 DressSkillItem[] skillItems = sub != null
                     ? sub.GetComponentsInChildren<DressSkillItem>(false)
@@ -147,7 +147,7 @@ namespace Shenxiao.EditorTools
                     && !string.IsNullOrWhiteSpace(skillTip.name_text?.text)
                     && !string.IsNullOrWhiteSpace(skillTip.des_text?.text);
                 stage.ForceCjkFont();
-                string skillTipShot = stage.Capture("output/settings_fashion_round4_delivery/skill_tip.png");
+                string skillTipShot = stage.Capture("output/ui_route_audit/2026-08-04_role_web_round2/cli_fashion_20260804_2355/skill_tip.png");
                 bool skillTipClose = skillTipOk && Click(skillTip._Image1, camera, raycaster, eventSystem);
                 await Task.Delay(100);
                 skillTipClose = skillTipClose && FindActive<SkillTipsViewBind>() == null;
@@ -162,12 +162,12 @@ namespace Shenxiao.EditorTools
                 bool bubbleClick = Click(bubble?._Image1, camera, raycaster, eventSystem);
                 bool bubbleOk = bubbleClick && await WaitType(DressView.BubbleType, 5d);
                 stage.ForceCjkFont();
-                string bubbleShot = stage.Capture("output/settings_fashion_round4_delivery/bubble.png");
+                string bubbleShot = stage.Capture("output/ui_route_audit/2026-08-04_role_web_round2/cli_fashion_20260804_2355/bubble.png");
 
                 bool photoClick = Click(photo?._Image1, camera, raycaster, eventSystem);
                 bool photoOk = photoClick && await WaitType(DressView.PhotoType, 5d);
                 stage.ForceCjkFont();
-                string photoShot = stage.Capture("output/settings_fashion_round4_delivery/photo.png");
+                string photoShot = stage.Capture("output/ui_route_audit/2026-08-04_role_web_round2/cli_fashion_20260804_2355/photo.png");
 
                 bool headClick = Click(head?._Image1, camera, raycaster, eventSystem);
                 bool headBackOk = headClick && await WaitType(DressView.HeadType, 5d);
@@ -239,7 +239,7 @@ namespace Shenxiao.EditorTools
                     && fashionModel && fashionVisual && fashionView.PreviewHasWeapon
                     && fashionView.PreviewEffectCount > 0;
                 stage.ForceCjkFont();
-                string fashionShot = stage.Capture("output/settings_fashion_round4_delivery/fashion.png");
+                string fashionShot = stage.Capture("output/ui_route_audit/2026-08-04_role_web_round2/cli_fashion_20260804_2355/fashion.png");
 
                 FashionItem[] fashionItems = fashionView != null
                     ? fashionView.GetComponentsInChildren<FashionItem>(false)
@@ -317,7 +317,7 @@ namespace Shenxiao.EditorTools
                     colorStates = colorStates && fashionView.RenderedTextureName.EndsWith(
                         "_" + expectedColor, StringComparison.Ordinal);
                     stage.ForceCjkFont();
-                    colorShots.Add(stage.Capture("output/settings_fashion_round4_delivery/fashion_color" + colorIndex + ".png"));
+                    colorShots.Add(stage.Capture("output/ui_route_audit/2026-08-04_role_web_round2/cli_fashion_20260804_2355/fashion_color" + colorIndex + ".png"));
                 }
 
                 bool baseColorClick = colorStates && Click(colorItems[0].ClickSurface, camera, raycaster, eventSystem);
@@ -332,7 +332,7 @@ namespace Shenxiao.EditorTools
                 bool hairOk = hairClick && fashionView != null && fashionView.PosId == 3 && window.CurrentIndex == 1
                     && await WaitUntil(() => fashionView.IsModelPreviewReady, 12d);
                 stage.ForceCjkFont();
-                string hairShot = stage.Capture("output/settings_fashion_round4_delivery/hair.png");
+                string hairShot = stage.Capture("output/ui_route_audit/2026-08-04_role_web_round2/cli_fashion_20260804_2355/hair.png");
 
                 bool suitClick = Click(suitTab?._Image1, camera, raycaster, eventSystem);
                 FashionSuitView suitView = suitClick ? await WaitActive<FashionSuitView>(5d) : null;
@@ -422,7 +422,7 @@ namespace Shenxiao.EditorTools
                         + " bgHeight=" + (illusionTip?._img_bg?.rectTransform.rect.height ?? 0f)
                         + " identity=" + identityOk);
                     stage.ForceCjkFont();
-                    suitTipShots.Add(stage.Capture("output/settings_fashion_round4_delivery/suit_tip_" + goodsIndex + ".png"));
+                    suitTipShots.Add(stage.Capture("output/ui_route_audit/2026-08-04_role_web_round2/cli_fashion_20260804_2355/suit_tip_" + goodsIndex + ".png"));
                     suitTipTimings.Add(tipWatch.ElapsedMilliseconds);
                     ItemTipsModalLayout modal = FindActive<ItemTipsModalLayout>();
                     bool tipClose = identityOk && modal?.dimBlocker != null
@@ -450,9 +450,9 @@ namespace Shenxiao.EditorTools
                         + " partsOk=" + partsOk);
                     suitOk = suitOk && partsOk && suitView.PreviewEffectCount > 0;
                     stage.ForceCjkFont();
-                    suitShots.Add(stage.Capture("output/settings_fashion_round4_delivery/suit_" + expectedSuit + ".png"));
+                    suitShots.Add(stage.Capture("output/ui_route_audit/2026-08-04_role_web_round2/cli_fashion_20260804_2355/suit_" + expectedSuit + ".png"));
                 }
-                string suitShot = suitShots.Count > 0 ? suitShots[0] : stage.Capture("output/settings_fashion_round4_delivery/suit.png");
+                string suitShot = suitShots.Count > 0 ? suitShots[0] : stage.Capture("output/ui_route_audit/2026-08-04_role_web_round2/cli_fashion_20260804_2355/suit.png");
 
                 // 套装页不是只切四个预览：可见的“更换”必须真实点出确认框，发送两条 41302，
                 // 并在权威回包后由父页立即从“更换”切到“已更换”。其余两件幻化预置为已穿，

@@ -21,6 +21,7 @@ namespace Shenxiao.Module.Core.Tasks
             public string Desc;
             public string Tips;
             public int Type;
+            public int Level;
             public int Sep;
             public int MainLineOrder;
             public int ShowFinish;
@@ -67,6 +68,7 @@ namespace Shenxiao.Module.Core.Tasks
                 // local_config.config_table_default.config_task:
                 // 0 id, 1 name, 2 desc, 3 tips, 4 type, ..., 23 special_goods_list,
                 // 24 award_list, ..., 27 sep, 29 main_line_order, 30 show_finish.
+                Level = ReadInt(obj, "7"),
                 SpecialGoodsList = ReadString(obj, "23"),
                 AwardList = ReadString(obj, "24"),
                 Sep = ReadInt(obj, "27"),

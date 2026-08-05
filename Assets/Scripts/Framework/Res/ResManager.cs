@@ -668,6 +668,16 @@ namespace Shenxiao.Framework.Res
 
         private static T LoadEditorAssetFallback<T>(string key) where T : UnityEngine.Object
         {
+            if (ResourcePath.TryGetAliasedAssetPath(key, out string aliasedPath))
+            {
+                T aliasedAsset = AssetDatabase.LoadAssetAtPath<T>(aliasedPath);
+                if (aliasedAsset != null)
+                {
+                    _editorAssetPathCache[key] = aliasedPath;
+                    return aliasedAsset;
+                }
+            }
+
             string fileName = Path.GetFileName(key);
             if (string.IsNullOrEmpty(fileName)) return null;
 

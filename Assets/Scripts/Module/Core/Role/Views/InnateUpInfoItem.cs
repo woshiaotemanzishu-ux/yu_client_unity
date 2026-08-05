@@ -22,9 +22,9 @@ namespace Shenxiao.Module.Core.Role
     /// </summary>
     public sealed class InnateUpInfoItem : InnateUpInfoItemBind
     {
-        /// <summary>"剩余天赋点" 图标用的参照货币(对标老端 less_point_good_ = 6200002:点击弹出货币说明 tooltip,
+        /// <summary>"剩余天赋点" 图标用的参照货币(对标老端 less_point_good_ = 6200001:点击弹出货币说明 tooltip,
         /// 与实际升级消耗材料<see cref="SkillConfigs.TryGetGoodsCost"/> 相互独立)。</summary>
-        private const int RefGoodTypeId = 6200002;
+        private const int RefGoodTypeId = 6200001;
 
         private int _skillId;
         private bool _clickBound;
@@ -36,9 +36,7 @@ namespace Shenxiao.Module.Core.Role
             if (_gp_up_cond != null && _gp_up_cond.childCount > 0)
                 _condTemplate = _gp_up_cond.GetChild(0).gameObject;
 
-            GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(RefGoodTypeId);
-            if (basic != null && _img_icon != null && !string.IsNullOrEmpty(basic.Icon))
-                _ = ResManager.SetImageAsync(_img_icon, GameResPath.GetGoodsIconPath(basic.Icon), nativeSize: false);
+            RefreshCostIcon();
 
             if (_clickBound || _btn_up == null) return;
             UIUtil.AddClick(_btn_up, () => { if (_skillId > 0) SkillController.Instance.LearnTalent(_skillId); });
@@ -70,16 +68,23 @@ namespace Shenxiao.Module.Core.Role
             }
             if (_Image1 != null) _Image1.color = isMax ? new Color(0.6f, 0.6f, 0.6f, 1f) : Color.white;
 
-            bool showCost = false;
-            if (!isMax && SkillConfigs.TryGetGoodsCost(skillId, nextLv, out int typeId, out int need))
-            {
-                showCost = true;
-                if (_lb_cost != null) _lb_cost.text = need.ToString();
-            }
+            // 老端这里展示的是固定的“技能天赋 ×1”参照货币，不读取当前技能 condition 中的 goods。
+            // condition 仍只负责前置条件/真正发包前校验，不能把此处换成重置书或其它升级材料。
+            bool showCost = !isMax;
+            RefreshCostIcon();
+            if (_lb_cost != null) _lb_cost.text = "1";
+            if (_img_icon != null) _img_icon.gameObject.SetActive(showCost);
             if (_lb_cost != null) _lb_cost.gameObject.SetActive(showCost);
             if (_lb != null) _lb.gameObject.SetActive(showCost);
 
             BuildConditionRows(skillId, nextLv, isMax);
+        }
+
+        private void RefreshCostIcon()
+        {
+            GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(RefGoodTypeId);
+            if (basic != null && _img_icon != null && !string.IsNullOrEmpty(basic.Icon))
+                _ = ResManager.SetImageAsync(_img_icon, GameResPath.GetGoodsIconPath(basic.Icon), nativeSize: false);
         }
 
         private void SetButtonGray(bool gray)

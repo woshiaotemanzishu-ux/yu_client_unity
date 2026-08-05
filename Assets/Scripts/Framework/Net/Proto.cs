@@ -1258,9 +1258,13 @@
         public const int GODBEAST_ATTRIBUTE_POWER = 17309;
         /// <summary>称号列表快照。C2S 空包；S2C: current_id:u32,items:u16×{id:u32,order:u8,end_time:u32}。</summary>
         public const int DESIGNATION_LIST = 41101;
+        /// <summary>佩戴称号事务。C2S: id:u32；S2C: code:u32,id:u32。成功后以 41101 重查收权威状态。</summary>
+        public const int DESIGNATION_WEAR = 41102;
+        /// <summary>卸下称号事务。C2S: id:u32；S2C: code:u32。成功后以 41101 重查收权威状态。</summary>
+        public const int DESIGNATION_UNWEAR = 41103;
         /// <summary>称号激活结果通知（S2C-only）。S2C: code:u32,id:u32,end_time:u32；只保留原始通知，不自动佩戴。</summary>
         public const int DESIGNATION_ACTIVATED = 41104;
-        /// <summary>场景角色称号变更通知（S2C-only）。S2C: player_id:u64,id:u32；只保留原始通知，不接场景表现。</summary>
+        /// <summary>场景角色称号变更通知（S2C-only）。S2C: player_id:u64,id:u32；同步 Figure 与场景 NameBoard。</summary>
         public const int DESIGNATION_SCENE_NOTICE = 41105;
         /// <summary>称号升阶事务。C2S: id:u32；S2C: errcode:u32,order:u8,power:u32,currentused:u32,dsgtid:u32。</summary>
         public const int DESIGNATION_UPGRADE = 41106;
@@ -1270,8 +1274,8 @@
         public const int DESIGNATION_REMOVED = 41108;
         /// <summary>称号道具激活事务。C2S: id:u32；S2C: errcode:u32,power:u32,currentused:u32,dsgtid:u32。</summary>
         public const int DESIGNATION_ACTIVATE_BY_GOODS = 41109;
-        // 41102/41103 佩戴与卸下、41110 过期取消仍为未闭环写操作；禁止暴露裸操作 API。
-        // 41106/41109 只允许从真实称号详情页，经权威列表、配置和背包二次校验后单飞发送；不得复刻旧端
+        // 41110 过期取消仍为未闭环写操作；禁止暴露裸操作 API。
+        // 41102/41103/41106/41109 只允许从真实称号详情页，经权威列表、配置和事务门禁后单飞发送；不得复刻旧端
         // 41104 首次激活后自动发送 41102 的写链。
         /// <summary>面具状态快照。C2S 空包；S2C: mask_id:u8,end_time:u32。</summary>
         public const int MASK_INFO = 51101;

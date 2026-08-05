@@ -17,6 +17,9 @@ namespace Shenxiao.Common.Proto
         public byte career;
         public ushort level;
         public byte turn;
+        public uint DesignationId { get; private set; }
+        public byte MaskId { get; private set; }
+        public string MarriageName { get; private set; } = "";
 
         /// <summary>schema 全字段(列表字段为 List&lt;Dictionary&gt;)。</summary>
         public readonly Dictionary<string, object> Raw = new Dictionary<string, object>();
@@ -113,7 +116,24 @@ namespace Shenxiao.Common.Proto
             figure.career = (byte)figure.Raw["career"];
             figure.level = (ushort)figure.Raw["level"];
             figure.turn = (byte)figure.Raw["turn"];
+            figure.DesignationId = System.Convert.ToUInt32(figure.Raw["dsgt_id"]);
+            figure.MaskId = System.Convert.ToByte(figure.Raw["mask_id"]);
+            figure.MarriageName = figure.Raw["marriage_name"] as string ?? "";
             return figure;
+        }
+
+        /// <summary>41105 场景广播只改称号字段；同时维护 Raw，避免强类型与兼容读取分叉。</summary>
+        public void SetDesignationId(uint id)
+        {
+            DesignationId = id;
+            Raw["dsgt_id"] = id;
+        }
+
+        /// <summary>场景面具状态同步；称号 NameBoard 用它复刻老端蒙面时隐藏规则。</summary>
+        public void SetMaskId(byte id)
+        {
+            MaskId = id;
+            Raw["mask_id"] = id;
         }
 
         // ---------------- 形象取值(对标 Util.GetRoleClotheId / GetRoleHeadId / GetWeaponClotheId /

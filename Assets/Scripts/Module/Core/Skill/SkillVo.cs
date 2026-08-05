@@ -9,6 +9,9 @@ namespace Shenxiao.Module.Core.Skill
         public int Id { get; }
         public int Level;
 
+        /// <summary>被动技能解锁任务，仅用于角色技能页展示文案，不参与技能协议。</summary>
+        public int TaskId;
+
         public SkillVo(int id)
         {
             Id = id;

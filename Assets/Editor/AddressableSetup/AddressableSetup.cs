@@ -5,6 +5,7 @@ using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEngine;
+using Shenxiao.Framework.Res;
 
 namespace Shenxiao.EditorTools.AddrSetup
 {
@@ -20,7 +21,6 @@ namespace Shenxiao.EditorTools.AddrSetup
         private const string LocalGroupName = "App_Local";
         private const string RemoteGroupPrefix = "Remote_";
         private const string RemoteLoadPathDefault = AddressableAssetSettings.kRemoteBuildPathValue;
-
         [MenuItem("神霄/资源/Addressable 自动分组", priority = 20)]
         public static void AutoGroupAll()
         {
@@ -191,7 +191,8 @@ namespace Shenxiao.EditorTools.AddrSetup
 
             var ext = Path.GetExtension(rel);
             if (!string.IsNullOrEmpty(ext)) rel = rel.Substring(0, rel.Length - ext.Length);
-            return rel.Replace('\\', '/').ToLowerInvariant();
+            string defaultAddress = rel.Replace('\\', '/').ToLowerInvariant();
+            return ResourcePath.ApplyAssetAddressAlias(assetPath, defaultAddress);
         }
     }
 }

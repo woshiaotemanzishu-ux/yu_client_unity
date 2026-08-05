@@ -282,9 +282,15 @@ namespace Shenxiao.Framework.Event
         // ----- Role -----
         public const string EVT_ROLE_INFO_UPDATE = "EVT_ROLE_INFO_UPDATE";
         public const string EVT_DESIGNATION_LIST_UPDATE = "EVT_DESIGNATION_LIST_UPDATE";
+        /// <summary>称号 41107 显式战力查询返回，称号详情只刷新当前战力显示。</summary>
+        public const string EVT_DESIGNATION_POWER_RESULT = "EVT_DESIGNATION_POWER_RESULT";
         /// <summary>称号 41109 道具激活结果已落原始切片；不代表 41101 权威列表已刷新。</summary>
         public const string EVT_DESIGNATION_ACTIVATION_RESULT = "EVT_DESIGNATION_ACTIVATION_RESULT";
         public const string EVT_DESIGNATION_UPGRADE_RESULT = "EVT_DESIGNATION_UPGRADE_RESULT";
+        /// <summary>41102/41103 佩戴事务结果已落原始切片；成功后仍须等待 41101 权威列表。</summary>
+        public const string EVT_DESIGNATION_WEAR_RESULT = "EVT_DESIGNATION_WEAR_RESULT";
+        /// <summary>41105 已同步主角或其他玩家 Figure/NameBoard。参数: long playerId,uint designationId。</summary>
+        public const string EVT_DESIGNATION_SCENE_CHANGED = "EVT_DESIGNATION_SCENE_CHANGED";
         /// <summary>主角全量(13001)到齐,可进主城/场景。GameEntryFlow 发。</summary>
         public const string EVT_ROLE_READY = "EVT_ROLE_READY";
         /// <summary>主角战力上升(参数: long 旧战力, long 新战力)。对标老端 mainRoleVo "fighting" 变化 → FightingUpView 弹层。

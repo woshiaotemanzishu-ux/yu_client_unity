@@ -165,7 +165,27 @@ namespace Shenxiao.EditorTools.Packaging
                 options = development ? BuildOptions.Development : BuildOptions.None,
             };
 
-            var report = BuildPipeline.BuildPlayer(opts);
+            // Addressables 设置里的 0 是 PreferencesValue，不是“关闭随 Player 构建”。
+            // 若用户全局偏好为 true，所谓“只打壳”会暗中重建 ServerData/catalog，既慢又可能
+            // 让壳与发布内容失配。Player 永远复用本工作区最近一次成套内容；内容只由 BuildContent 产生。
+            AddressableAssetSettings addressableSettings = AddressableAssetSettingsDefaultObject.Settings;
+            AddressableAssetSettings.PlayerBuildOption previousPlayerBuildOption =
+                addressableSettings != null
+                    ? addressableSettings.BuildAddressablesWithPlayerBuild
+                    : AddressableAssetSettings.PlayerBuildOption.DoNotBuildWithPlayer;
+            UnityEditor.Build.Reporting.BuildReport report;
+            try
+            {
+                if (addressableSettings != null)
+                    addressableSettings.BuildAddressablesWithPlayerBuild =
+                        AddressableAssetSettings.PlayerBuildOption.DoNotBuildWithPlayer;
+                report = BuildPipeline.BuildPlayer(opts);
+            }
+            finally
+            {
+                if (addressableSettings != null)
+                    addressableSettings.BuildAddressablesWithPlayerBuild = previousPlayerBuildOption;
+            }
             bool ok = report.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded;
             var msg = $"[Packaging] Web 壳构建 {report.summary.result} → {WebOutputDir}, " +
                       $"{(long)report.summary.totalSize / 1024 / 1024} MB, 耗时 {report.summary.totalTime:hh\\:mm\\:ss} " +

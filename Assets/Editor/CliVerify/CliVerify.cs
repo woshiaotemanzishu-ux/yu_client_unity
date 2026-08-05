@@ -298,6 +298,16 @@ namespace Shenxiao.EditorTools
             Run(DesignationCase.Run, 60.0);
         }
 
+        public static void DesignationView()
+        {
+            Run(DesignationViewCase.Run, 180.0);
+        }
+
+        public static void DesignationWearScene()
+        {
+            Run(DesignationWearSceneCase.Run, 180.0);
+        }
+
         public static void DesignationReadContinuation()
         {
             Run(DesignationReadContinuationCase.Run, 60.0);
@@ -524,6 +534,18 @@ namespace Shenxiao.EditorTools
         public static void RolePresentationEffects()
         {
             Run(RolePresentationEffectsCase.Run, 120.0);
+        }
+
+        /// <summary>人物/设置面板 Prefab、资源、等级语义与运行态布局回归。</summary>
+        public static void RoleSettingPanel()
+        {
+            Run(RoleSettingPanelCase.Run, 180.0);
+        }
+
+        /// <summary>人物页技能入口、主动/被动/天赋页签、返回、关闭与重开的真实射线路由。</summary>
+        public static void RoleSkillRoute()
+        {
+            Run(RoleSkillRouteCase.Run, 180.0);
         }
 
         /// <summary>NPC 对话全面屏底部锚定与任意位置真实 PointerClick 专项。</summary>

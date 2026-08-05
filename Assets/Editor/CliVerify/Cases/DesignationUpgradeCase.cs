@@ -94,7 +94,7 @@ namespace Shenxiao.EditorTools
                 Check(ref pass, "constant/handler/registration boundary",
                     Proto.DESIGNATION_UPGRADE == 41106 && intercept != null
                     && on01 != null && on06 != null && handlers != null && handlers.Contains(41106)
-                    && !handlers.Contains(41102) && !handlers.Contains(41103) && !handlers.Contains(41110));
+                    && handlers.Contains(41102) && handlers.Contains(41103) && !handlers.Contains(41110));
 
                 var frames = new List<byte[]>();
                 intercept.SetValue(null, new Func<byte[], bool>(frame => { frames.Add(frame); return true; }));
@@ -162,7 +162,8 @@ namespace Shenxiao.EditorTools
                 controller.Dispose();
                 Check(ref pass, "dispose reset", !controller.IsInitialized && !model.HasData
                     && model.Entries.Count == 0 && model.UpgradeResult == null
-                    && !controller.HasPendingUpgrade && !controller.IsAwaitingUpgradeRefresh(row.Id));
+                    && model.WearResult == null && !controller.HasPendingUpgrade && !controller.HasPendingWear
+                    && !controller.IsAwaitingUpgradeRefresh(row.Id));
             }
             finally
             {
