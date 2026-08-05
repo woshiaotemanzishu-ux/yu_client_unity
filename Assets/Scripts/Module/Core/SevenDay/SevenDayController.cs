@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.Tasks;
 
 namespace Shenxiao.Module.Core.SevenDay
 {
@@ -22,6 +24,16 @@ namespace Shenxiao.Module.Core.SevenDay
 
         // 复请求的等级去抖(EVT_ROLE_INFO_UPDATE 亦随经验/货币变化触发,只在等级真变时重发)。
         private int _lastLevel = -1;
+        private int _lastObservedFinishTaskId = -1;
+        private bool _taskGateRefreshInFlight;
+        private bool _taskGatePending;
+        private int _taskGatePendingFrom;
+        private int _taskGatePendingTo;
+        private int _lifecycleVersion;
+#if UNITY_EDITOR
+        private static System.Func<byte[], bool> s_taskGateOutboundIntercept;
+        private static System.Func<Task> s_taskGateEnsureLoadedOverride;
+#endif
 
         protected override void Register()
         {
@@ -29,6 +41,8 @@ namespace Shenxiao.Module.Core.SevenDay
             RegisterProtocal(Proto.SEVENDAY_MERGE_INFO, On17502);
             // 对标老端 CHANGE_LEVEL→LevelChange:等级到 open_lv 时复请求 17500/17502。
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskListUpdated);
+            _lastObservedFinishTaskId = TaskModel.Instance.NewestFinishTaskId;
             // 对标老端 SevenDayController.ts:44:game_start(=RequestStartup 同款,发17500/17502)同时绑
             // GAME_START 与 DAY_CHANGE 两个事件——跨天后复请求(七天/合服七天面板按 current_day 换页)。
             EventDispatcher.On(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
@@ -37,12 +51,19 @@ namespace Shenxiao.Module.Core.SevenDay
         public override void Dispose()
         {
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_TASK_LIST_UPDATED, OnTaskListUpdated);
             EventDispatcher.Off(GlobalEvent.EVT_SERVER_DAY_CHANGE, RequestStartup);
+            _lifecycleVersion++;
+            _taskGateRefreshInFlight = false;
+            _taskGatePending = false;
+            _taskGatePendingFrom = 0;
+            _taskGatePendingTo = 0;
             ActivityIconManager.Instance.DeleteIcon(SevenDayModel.ICON_OPEN);
             ActivityIconManager.Instance.DeleteIcon(SevenDayModel.ICON_EIGHT);
             ActivityIconManager.Instance.DeleteIcon(SevenDayModel.ICON_MERGE);
             SevenDayModel.Instance.Reset();
             _lastLevel = -1;
+            _lastObservedFinishTaskId = -1;
             base.Dispose();
         }
 
@@ -118,6 +139,77 @@ namespace Shenxiao.Module.Core.SevenDay
             if (role.Level == _lastLevel) return;
             _lastLevel = role.Level;
             RequestStartup();
+        }
+
+        private void OnTaskListUpdated()
+        {
+            int newestFinishTaskId = TaskModel.Instance.NewestFinishTaskId;
+            int previousTaskId = _lastObservedFinishTaskId;
+            _lastObservedFinishTaskId = newestFinishTaskId;
+            if (newestFinishTaskId <= previousTaskId) return;
+
+            if (!_taskGatePending)
+            {
+                _taskGatePending = true;
+                _taskGatePendingFrom = previousTaskId;
+                _taskGatePendingTo = newestFinishTaskId;
+            }
+            else if (newestFinishTaskId > _taskGatePendingTo)
+            {
+                _taskGatePendingTo = newestFinishTaskId;
+            }
+
+            if (!_taskGateRefreshInFlight)
+            {
+                _taskGateRefreshInFlight = true;
+                _ = RefreshAfterTaskGateAsync(_lifecycleVersion);
+            }
+        }
+
+        private async Task RefreshAfterTaskGateAsync(int lifecycleVersion)
+        {
+            try
+            {
+                while (_taskGatePending && lifecycleVersion == _lifecycleVersion && IsInitialized)
+                {
+                    int pendingFrom = _taskGatePendingFrom;
+                    int pendingTo = _taskGatePendingTo;
+#if UNITY_EDITOR
+                    await (s_taskGateEnsureLoadedOverride == null
+                        ? MainUIConfigs.EnsureLoaded()
+                        : s_taskGateEnsureLoadedOverride());
+#else
+                    await MainUIConfigs.EnsureLoaded();
+#endif
+                    if (lifecycleVersion != _lifecycleVersion || !IsInitialized) return;
+
+                    MainUIConfigs.FunctionIconCfg cfg = MainUIConfigs.GetFunctionIconCfg(SevenDayModel.ICON_OPEN);
+                    if (cfg != null && cfg.OpenTaskId > 0 && pendingFrom < cfg.OpenTaskId && pendingTo >= cfg.OpenTaskId)
+                        SendTaskGateRefresh();
+
+                    if (_taskGatePendingFrom == pendingFrom && _taskGatePendingTo == pendingTo)
+                        _taskGatePending = false;
+                    else
+                    {
+                        // 本轮已消费到 capture 的 to；后续推进只能从该游标继续，不能再次从旧 from 重算跨门槛。
+                        _taskGatePendingFrom = pendingTo;
+                    }
+                }
+            }
+            finally
+            {
+                if (lifecycleVersion == _lifecycleVersion)
+                    _taskGateRefreshInFlight = false;
+            }
+        }
+
+        private void SendTaskGateRefresh()
+        {
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(Proto.SEVENDAY_OPEN_INFO, null, null);
+            if (s_taskGateOutboundIntercept != null && s_taskGateOutboundIntercept(frame)) return;
+#endif
+            SendFmt(Proto.SEVENDAY_OPEN_INFO);
         }
     }
 }

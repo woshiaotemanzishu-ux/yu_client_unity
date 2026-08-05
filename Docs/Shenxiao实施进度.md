@@ -1897,3 +1897,7 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **Web 适配**：模板 Canvas 铺满浏览器可视区，移动端 720×1280 主版式保持居中。新增通用 `RootCanvasRectFitter`，直接保存到 `SettingModule.prefab` 三个 `ModalDim`；1280×720 实包中主设置与改名弹窗均覆盖左右扩展区。
 - **构建与缓存**：先执行完整 `BuildAllWebCli`，生成 `2556` 文件、`2545` bundle、约 `1289MB` 内容及 `42MB` Web 壳；最后仅增量修改 Player ETA 后，在同一工作区重打壳。最终 `WebGL.wasm.gz` SHA256=`E5EF5CFE7FADCCB5ABF97CECC0B1A4AF3BA1B6D25797FB35C8AF4404105D21EA`，内容 `catalog_live.bin` SHA256=`4A8F36A7C048F755FA7203F55632A56739260E3AD267815C3579B3E4E2D8C824`、`catalog_live.hash` SHA256=`BF872267A9F7DD835312D73C5A7A73D46D85BDC144AB48246B0E3028F3556412`；条件请求返回 `304`。
 - **验证**：`CliVerify.SettingPk`（三个遮罩 Prefab/运行态根 Canvas）、`CliVerify.SceneMixDriver`（首屏/战斗动作后台预热后切换）、`CliVerify.LoadingView`（资源文案与 5 秒阶段 ETA）均 `pass=True`。浏览器连续过场采样无黑帧，暖刷新账号页上界约 6.9 秒；证据、日志和台账位于 `output/ui_route_audit/2026-08-04_web-foundation/`。本地服务保持在 `http://127.0.0.1:8090/?cdn=http%3A%2F%2F127.0.0.1%3A8090%2Fres`。
+## 2026-08-05 SevenDay 任务门槛即时重拉
+
+- [ ] 实现已完成：普通七日活动在主线任务门槛跨越后即时重拉 `17500`；精确命中、跳跃跨越、重复事件、配置延迟合并、回退再跨越与 Dispose 旧 continuation 均已加入专项。离线编译已通过，Unity专项因当前编辑器/构建锁未执行，仍待运行。
+- [ ] `17502`、`17501`、`17503` 保持不变；无协议覆盖数字变化，离线编译已通过，Unity专项因当前编辑器/构建锁未执行，仍待运行。
