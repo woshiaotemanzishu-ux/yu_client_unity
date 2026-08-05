@@ -34,7 +34,9 @@ namespace Shenxiao.Module.Core.Role
         public void SetType(int skillType, string label)
         {
             SkillType = skillType;
-            if (typeLb != null) typeLb.text = label ?? "";
+            // 老 H5 的 InnateTypeItemRenderer 对 type=8 有明确的运行时兼容覆盖：
+            // ConfigSkillUI 仍写“精通”，最终页签显示“绝对”。这里保持同一语义。
+            if (typeLb != null) typeLb.text = skillType == 8 ? "绝对" : (label ?? "");
             ApplyVisual();
         }
 

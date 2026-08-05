@@ -64,6 +64,8 @@ namespace Shenxiao.Editor.UiCreator.Role
         // 注意 UiCreatorKit.TrySetSprite 的根是 Assets/GameRes/,所以这里必须带 resource/game/ 前缀。
         private const string BgSpriteRelPath = "resource/game/role/other/uijn_001.jpg";
 
+        // Manual-Prefab takeover: keep this repair block disabled unless explicitly re-enabled.
+        #if false
         [InitializeOnLoadMethod]
         private static void Register()
         {
@@ -79,17 +81,16 @@ namespace Shenxiao.Editor.UiCreator.Role
             });
         }
 
+        #endif
+        [MenuItem("Tools/UiCreator/Role/InnateSkillView Creator")]
         public static void Generate()
         {
-            GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(RoleModulePath);
-            if (asset == null)
+            GameObject inst = PrefabUtility.LoadPrefabContents(RoleModulePath);
+            if (inst == null)
             {
                 Debug.LogError("[UiCreator] 找不到 " + RoleModulePath);
                 return;
             }
-
-            var inst = (GameObject)PrefabUtility.InstantiatePrefab(asset);
-            PrefabUtility.UnpackPrefabInstance(inst, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
             Transform root = inst.transform;
 
             // 修复式幂等:顶层已有 InnateSkillView(已提升过)→ 不重复搬树,但仍走【阶段B】组件补挂+贴图纠正。
@@ -100,7 +101,7 @@ namespace Shenxiao.Editor.UiCreator.Role
                 innateViewT = PromoteAndAssemble(root);
                 if (innateViewT == null)
                 {
-                    Object.DestroyImmediate(inst);
+                    PrefabUtility.UnloadPrefabContents(inst);
                     return;
                 }
             }
@@ -114,13 +115,16 @@ namespace Shenxiao.Editor.UiCreator.Role
             if (view == null)
             {
                 Debug.LogError("[UiCreator] InnateSkillView 运行时组件升级失败,停止保存(prefab 未改动)");
-                Object.DestroyImmediate(inst);
+                PrefabUtility.UnloadPrefabContents(inst);
                 return;
             }
             FixTextures(view);
             EnsureInnateInfoItem(view);
+            EnsureInnateInfoViewport(view);
 
-            GameObject saved = UiCreatorKit.SavePrefab(inst, RoleModulePath);
+            PrefabUtility.SaveAsPrefabAsset(inst, RoleModulePath);
+            PrefabUtility.UnloadPrefabContents(inst);
+            GameObject saved = AssetDatabase.LoadAssetAtPath<GameObject>(RoleModulePath);
             Selection.activeObject = saved;
             EditorGUIUtility.PingObject(saved);
             Debug.Log("[UiCreator] RoleModule.prefab 已更新: InnateSkillView 顶层内容视图 + 运行时组件齐备" +
@@ -436,6 +440,52 @@ namespace Shenxiao.Editor.UiCreator.Role
             BuildInnateInfoItem(view._gp_info);
         }
 
+        private static void EnsureInnateInfoViewport(RoleViews.InnateSkillView view)
+        {
+            RoleViews.InnateInfoItem info = view != null && view._gp_info != null
+                ? view._gp_info.GetComponentInChildren<RoleViews.InnateInfoItem>(true)
+                : null;
+            if (info == null) return;
+
+            RectTransform viewport = info.transform.Find("_gp_dec") as RectTransform;
+            if (viewport == null) return;
+
+            VerticalLayoutGroup staleLayout = viewport.GetComponent<VerticalLayoutGroup>();
+            if (staleLayout != null) Object.DestroyImmediate(staleLayout);
+            if (viewport.GetComponent<RectMask2D>() == null)
+                viewport.gameObject.AddComponent<RectMask2D>();
+
+            ScrollRect scroll = viewport.GetComponent<ScrollRect>();
+            if (scroll == null) scroll = viewport.gameObject.AddComponent<ScrollRect>();
+
+            RectTransform content = viewport.Find("Content") as RectTransform;
+            if (content == null) content = UiCreatorKit.NewNode("Content", viewport);
+            PlaceTopLeft(content, 0f, 0f, 280f, 0f);
+
+            VerticalLayoutGroup layout = content.GetComponent<VerticalLayoutGroup>();
+            if (layout == null) layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.childAlignment = TextAnchor.UpperLeft;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+            layout.spacing = 2f;
+
+            ContentSizeFitter fitter = content.GetComponent<ContentSizeFitter>();
+            if (fitter == null) fitter = content.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scroll.content = content;
+            scroll.viewport = viewport;
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.inertia = true;
+            scroll.scrollSensitivity = 20f;
+            info.DecContainer = content;
+        }
+
         /// <summary>手工建 InnateInfoItem 子树(几何数值照几何报告 §1 InnateInfoItem 小节;
         /// 圆形遮罩用真图 ui_circle_mask.png 叠加,非 Unity Mask 组件,对标已烤好的 InnateSkillItem 同类手法)。
         /// 贴图路径注意带 resource/game/ 前缀(UiCreatorKit.TrySetSprite 根是 Assets/GameRes/)。</summary>
@@ -458,6 +508,10 @@ namespace Shenxiao.Editor.UiCreator.Role
             Image mask = UiCreatorKit.NewImage("_img_mask", gpScr);
             PlaceTopLeft(mask.rectTransform, 19f, 8f, 73f, 75f);
             UiCreatorKit.TrySetSprite(mask, "resource/game/common/texture/ui_circle_mask.png", UiCreatorKit.Palette.Panel);
+            // ui_circle_mask.png 是供裁剪组件读取的黑色遮罩源，不是可见前景图。
+            // 当前详情技能图本身已经带透明圆形边缘；未挂 Unity Mask 时必须关闭该 Image，
+            // 否则它作为后绘制的同级节点会把真实技能图完全盖成黑块。
+            mask.enabled = false;
 
             TextMeshProUGUI lbName = UiCreatorKit.NewText("_lb_name", gpScr, "");
             PlaceTopLeft(lbName.rectTransform, 113f, 16f, 220f, 28f);

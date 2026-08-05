@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 
 namespace Shenxiao.Framework.Res
@@ -8,6 +9,11 @@ namespace Shenxiao.Framework.Res
     /// </summary>
     public static class ResourcePath
     {
+        public const string RoleSkillCareerArtAssetPath =
+            "Assets/GameRes/resource/game/role/other/uijn_001.png";
+        public const string RoleSkillCareerArtAddress =
+            "resource/game/role/other/uijn_001_character";
+
         /// <summary>
         /// Normalize an arbitrary resource reference into a canonical Addressable key.
         /// </summary>
@@ -51,6 +57,33 @@ namespace Shenxiao.Framework.Res
             }
 
             return s.ToLowerInvariant();
+        }
+
+        /// <summary>
+        /// Extension-stripped Addressables can collide when sibling files share a basename.
+        /// Keep the exceptional asset-path-to-address mapping here so the build pipeline and
+        /// editor fallback resolve the exact same key.
+        /// </summary>
+        public static string ApplyAssetAddressAlias(string assetPath, string defaultAddress)
+        {
+            string normalizedPath = (assetPath ?? string.Empty).Replace('\\', '/');
+            return string.Equals(normalizedPath, RoleSkillCareerArtAssetPath,
+                StringComparison.OrdinalIgnoreCase)
+                ? RoleSkillCareerArtAddress
+                : defaultAddress;
+        }
+
+        public static bool TryGetAliasedAssetPath(string address, out string assetPath)
+        {
+            if (string.Equals(Normalize(address), RoleSkillCareerArtAddress,
+                    StringComparison.Ordinal))
+            {
+                assetPath = RoleSkillCareerArtAssetPath;
+                return true;
+            }
+
+            assetPath = null;
+            return false;
         }
     }
 }

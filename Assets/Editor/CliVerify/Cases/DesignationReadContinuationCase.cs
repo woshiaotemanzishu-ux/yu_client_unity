@@ -9,14 +9,15 @@ using UnityEngine;
 
 namespace Shenxiao.EditorTools
 {
-    /// <summary>R507/R523/R526：称号只读续接与 41106/41109 已闭环事务的注册边界、隔离和 ambient 恢复。</summary>
+    /// <summary>称号读链与 41102/03/06/09 已闭环事务的注册边界、隔离和 ambient 恢复。</summary>
     public static class DesignationReadContinuationCase
     {
         private const BindingFlags IF = BindingFlags.Instance | BindingFlags.NonPublic;
         private const BindingFlags SF = BindingFlags.Static | BindingFlags.NonPublic;
         private static readonly int[] AllCommands =
             { 41100, 41101, 41102, 41103, 41104, 41105, 41106, 41107, 41108, 41109, 41110 };
-        private static readonly int[] RegisteredCommands = { 41101, 41104, 41105, 41106, 41107, 41108, 41109 };
+        private static readonly int[] RegisteredCommands =
+            { 41101, 41102, 41103, 41104, 41105, 41106, 41107, 41108, 41109 };
 
         public static Task<int> Run()
         {
@@ -48,19 +49,23 @@ namespace Shenxiao.EditorTools
             try
             {
                 controller.Init();
+                MethodInfo h02 = Handler("On41102");
+                MethodInfo h03 = Handler("On41103");
                 MethodInfo h04 = Handler("On41104");
                 MethodInfo h05 = Handler("On41105");
                 MethodInfo h06 = Handler("On41106");
                 MethodInfo h07 = Handler("On41107");
                 MethodInfo h08 = Handler("On41108");
                 MethodInfo h09 = Handler("On41109");
-                pass = Proto.DESIGNATION_ACTIVATED == 41104
+                pass = Proto.DESIGNATION_WEAR == 41102
+                    && Proto.DESIGNATION_UNWEAR == 41103
+                    && Proto.DESIGNATION_ACTIVATED == 41104
                     && Proto.DESIGNATION_SCENE_NOTICE == 41105
                     && Proto.DESIGNATION_UPGRADE == 41106
                     && Proto.DESIGNATION_POWER == 41107
                     && Proto.DESIGNATION_REMOVED == 41108
                     && Proto.DESIGNATION_ACTIVATE_BY_GOODS == 41109
-                    && h04 != null && h05 != null && h06 != null
+                    && h02 != null && h03 != null && h04 != null && h05 != null && h06 != null
                     && h07 != null && h08 != null && h09 != null
                     && intercept != null && RegistrationsExact(handlers) && RequestSurfaceExact();
                 Check(ref pass, "constants/registration/only-closed-write-registered", pass);

@@ -47,7 +47,7 @@ namespace Shenxiao.Module.Core.Role
                 if (_font == null) _font = NameLabel.font;
                 NameLabel.text = SkillConfigs.GetName(skillId);
             }
-            if (LevelLabel != null) LevelLabel.text = "等级:" + lv + "/" + maxLv;
+            if (LevelLabel != null) LevelLabel.text = "等级:<color=#0a953e>" + lv + "/" + maxLv + "</color>";
             if (Icon != null)
             {
                 int iconLv = Mathf.Max(lv, 1);
@@ -56,21 +56,23 @@ namespace Shenxiao.Module.Core.Role
 
             ClearDecLines();
             bool maxed = maxLv > 0 && lv >= maxLv;
-            string curTitle = lv <= 0 ? "尚未学习" : (maxed ? "[满级效果]" : "[当前效果]");
             if (lv <= 0)
             {
-                AddDecLine(SkillConfigs.GetDescForLevel(skillId, 1), "#663915", false);
+                // 老端 0 级节点用于预览最终形态：显示“满级效果”以及最后一级描述。
+                AddDecLine("[满级效果]", "#ff4f50", true);
+                AddDecLine(SkillConfigs.GetDescRichForLevel(skillId, maxLv), "#663915", false);
             }
             else
             {
-                AddDecLine(curTitle, "#0a953e", true);
-                AddDecLine(SkillConfigs.GetDescForLevel(skillId, lv), "#663915", false);
+                AddDecLine(maxed ? "[满级效果]" : "[当前效果]", maxed ? "#ff4f50" : "#0a953e", true);
+                AddDecLine(SkillConfigs.GetDescRichForLevel(skillId, lv), "#663915", false);
             }
-            if (!maxed && maxLv > 0)
+            if (lv > 0 && !maxed && maxLv > 0)
             {
                 AddDecLine("[下级效果]", "#ff4f50", true);
-                AddDecLine(SkillConfigs.GetDescForLevel(skillId, lv + 1), "#663915", false);
+                AddDecLine(SkillConfigs.GetDescRichForLevel(skillId, lv + 1), "#663915", false);
             }
+            if (DecContainer != null) LayoutRebuilder.ForceRebuildLayoutImmediate(DecContainer);
         }
 
         private void AddDecLine(string text, string colorHex, bool bold)
@@ -89,6 +91,8 @@ namespace Shenxiao.Module.Core.Role
             t.textWrappingMode = TextWrappingModes.Normal;
             LayoutElement le = go.AddComponent<LayoutElement>();
             le.preferredWidth = 280f;
+            le.preferredHeight = Mathf.Max(22f,
+                t.GetPreferredValues(text, 280f, float.PositiveInfinity).y);
             _decLines.Add(t);
         }
 

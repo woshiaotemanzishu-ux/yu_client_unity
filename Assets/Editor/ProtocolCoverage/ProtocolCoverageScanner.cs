@@ -189,6 +189,15 @@ namespace Shenxiao.Editor.ProtocolCoverage
 
         public static ScanResult Scan()
         {
+            if (!ProtocolCoverageSettings.ValidateClientRoot(out string clientError))
+            {
+                throw new DirectoryNotFoundException(clientError);
+            }
+            if (!ProtocolCoverageSettings.ValidateServerRoot(out string serverError))
+            {
+                throw new DirectoryNotFoundException(serverError);
+            }
+
             var r = new ScanResult { GeneratedAt = DateTime.Now };
             ReflectUnityRegistered(r);
             Dictionary<string, int> protoConsts = ParseProtoConsts();

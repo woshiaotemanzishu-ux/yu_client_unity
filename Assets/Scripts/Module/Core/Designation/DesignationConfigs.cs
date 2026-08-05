@@ -30,6 +30,7 @@ namespace Shenxiao.Module.Core.Designation
             public string Name = "";
             public string Description = "";
             public string ResourceId = "";
+            public int Type;
             public int MainType;
             public int Location;
             public int OrderLimit;
@@ -63,6 +64,19 @@ namespace Shenxiao.Module.Core.Designation
         {
             for (int i = 0; i < Rows.Count; i++)
                 if (Rows[i].Id == id) return Rows[i];
+            return null;
+        }
+
+        public static Row GetByActivationGoods(int typeId)
+        {
+            if (typeId <= 0) return null;
+            for (int i = 0; i < Rows.Count; i++)
+            {
+                Row row = Rows[i];
+                for (int j = 0; j < row.GoodsConsume.Count; j++)
+                    if (row.GoodsConsume[j].Type == 0 && row.GoodsConsume[j].TypeId == typeId)
+                        return row;
+            }
             return null;
         }
 
@@ -155,6 +169,7 @@ namespace Shenxiao.Module.Core.Designation
                         Name = ReadString(row, "name"),
                         Description = ReadString(row, "description"),
                         ResourceId = ReadString(row, "resource_id"),
+                        Type = (int)ReadLong(row, "type"),
                         MainType = (int)ReadLong(row, "main_type"),
                         Location = (int)ReadLong(row, "location"),
                         OrderLimit = (int)ReadLong(row, "order_limit"),
@@ -257,5 +272,95 @@ namespace Shenxiao.Module.Core.Designation
 
         private static string ReadString(JObject row, string key)
             => row?[key]?.ToString() ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Dynamic designation effect placement mirrored from the old H5 ClientEffDsgtShow config.
+    /// The same title intentionally uses different scales in list rows, details, obtain popups,
+    /// and scene name boards.
+    /// </summary>
+    public static class DesignationEffectDisplayConfigs
+    {
+        // UIEffectStage applies effect scale after local placement. Five imported effect units equal
+        // roughly fifty UI pixels for the common designation scale 10, compensating the Laya origin.
+        // ClientEffDsgtShow values remain raw above; apply this at the UIEffectStage boundary.
+        private const float ImportedTitleOriginYOffset = 5f;
+
+        public enum Surface
+        {
+            ListItem,
+            Details,
+            Obtain,
+            NameBoard,
+        }
+
+        public readonly struct Display
+        {
+            public readonly float Scale;
+            public readonly UnityEngine.Vector2 Position;
+            public readonly float Height;
+
+            public Display(float scale, float x = 0f, float y = 0f, float height = 75f)
+            {
+                Scale = scale;
+                Position = new UnityEngine.Vector2(x, y);
+                Height = height;
+            }
+        }
+
+        public static Display Get(uint id, Surface surface)
+        {
+            switch (surface)
+            {
+                case Surface.ListItem:
+                    if (id == 305414) return new Display(10f, 0f, -3f, 120f);
+                    if (id == 305145) return new Display(12f, height: 120f);
+                    if (id == 305030) return new Display(14f, height: 120f);
+                    if (id == 305031) return new Display(5f, height: 120f);
+                    if (id >= 306001 && id <= 306009) return new Display(10f, height: 120f);
+                    return new Display(IsCommonTwelve(id) ? 12f : 7f, height: 120f);
+
+                case Surface.Details:
+                    if (id == 305414) return new Display(12f, 1f, -3f, 150f);
+                    if (id == 305145) return new Display(13f, height: 150f);
+                    if (id == 305030) return new Display(15f, height: 150f);
+                    if (id == 305031) return new Display(7f, height: 150f);
+                    if (id >= 306001 && id <= 306009) return new Display(10f, height: 150f);
+                    return new Display(IsCommonTwelve(id) ? 12f : 7f, height: 150f);
+
+                case Surface.Obtain:
+                    if (id == 305414) return new Display(12f, -3f, -3f, 150f);
+                    if (id == 305145) return new Display(14f, height: 150f);
+                    if (id == 305030) return new Display(16f, height: 150f);
+                    if (id == 305031) return new Display(6f, height: 150f);
+                    if (id >= 306001 && id <= 306009) return new Display(12f, height: 150f);
+                    return new Display(IsCommonTwelve(id) ? 12f : 8f, height: 150f);
+
+                case Surface.NameBoard:
+                    if (id == 305030) return new Display(14f, height: 80f);
+                    if (id == 305031) return new Display(5f, height: 60f);
+                    if (id == 305143) return new Display(9f, height: 80f);
+                    if (id == 305145) return new Display(12f, height: 80f);
+                    if (id == 305153) return new Display(12f, height: 100f);
+                    if (id == 305154 || id == 305179) return new Display(12f, height: 90f);
+                    if (id >= 306001 && id <= 306009) return new Display(10f, height: 60f);
+                    if (id == 305414 || (id >= 305146 && id <= 305151))
+                        return new Display(12f, height: 60f);
+                    return new Display(IsCommonTwelve(id) ? 12f : 7f, height: 75f);
+
+                default:
+                    return new Display(7f);
+            }
+        }
+
+        public static UnityEngine.Vector2 ToUnityPosition(Display display)
+            => display.Position + new UnityEngine.Vector2(0f, ImportedTitleOriginYOffset);
+
+        private static bool IsCommonTwelve(uint id)
+        {
+            return (id >= 305146 && id <= 305160)
+                || (id >= 305164 && id <= 305169)
+                || (id >= 305179 && id <= 305184);
+        }
     }
 }

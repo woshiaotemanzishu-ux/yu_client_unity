@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
+using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Bag;
+using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.Scene;
 
 namespace Shenxiao.Module.Core.Designation
 {
     /// <summary>
-    /// 41101 权威列表、41104/41105/41107/41108 独立只读切片与 41106/41109 受控写事务。
-    /// 两条写事务只从真实称号页进入，发送前核对权威列表、配置和背包；成功后重查 41101，
+    /// 41101 权威列表、41104/41105/41107/41108 读链与 41102/41103/41106/41109 受控写事务。
+    /// 写事务只从真实称号页进入，发送前核对权威列表、配置、时效和背包；成功后重查 41101，
     /// 不做本地扣物、阶级/佩戴补丁或乐观激活。
     /// </summary>
     public sealed class DesignationController : BaseController
@@ -27,12 +30,18 @@ namespace Shenxiao.Module.Core.Designation
         private bool _upgradePending;
         private long _upgradeStartedTicks;
         private uint _upgradeRefreshPendingId;
+        private bool _wearPending;
+        private long _wearStartedTicks;
+        private uint _wearRequestedId;
+        private uint _wearRefreshPendingId;
 
         private DesignationController() { }
 
         protected override void Register()
         {
             RegisterProtocal(Proto.DESIGNATION_LIST, On41101);
+            RegisterProtocal(Proto.DESIGNATION_WEAR, On41102);
+            RegisterProtocal(Proto.DESIGNATION_UNWEAR, On41103);
             RegisterProtocal(Proto.DESIGNATION_ACTIVATED, On41104);
             RegisterProtocal(Proto.DESIGNATION_SCENE_NOTICE, On41105);
             RegisterProtocal(Proto.DESIGNATION_UPGRADE, On41106);
@@ -71,11 +80,77 @@ namespace Shenxiao.Module.Core.Designation
             }
         }
 
+        public bool HasPendingWear
+        {
+            get
+            {
+                RefreshWriteTimeouts();
+                return _wearPending;
+            }
+        }
+
         public bool IsAwaitingActivationRefresh(uint designationId)
             => designationId != 0 && _activationRefreshPendingId == designationId;
 
         public bool IsAwaitingUpgradeRefresh(uint designationId)
             => designationId != 0 && _upgradeRefreshPendingId == designationId;
+
+        public bool IsAwaitingWearRefresh(uint designationId)
+            => designationId != 0 && _wearRefreshPendingId == designationId;
+
+        private bool HasAnyPendingOrRefresh()
+        {
+            RefreshWriteTimeouts();
+            return _activationPending || _upgradePending || _wearPending
+                || _activationRefreshPendingId != 0 || _upgradeRefreshPendingId != 0
+                || _wearRefreshPendingId != 0;
+        }
+
+        /// <summary>
+        /// 真实详情按钮的佩戴/卸下入口。必须持有 41101 权威实例、配置存在且未过期；
+        /// 41102/41103 与激活、升阶共用单飞，成功只重查 41101，不乐观改 CurrentUsedId。
+        /// </summary>
+        public bool TryToggleWear(uint designationId)
+        {
+            if (HasAnyPendingOrRefresh())
+            {
+                TipsManager.Toast("称号操作处理中");
+                return false;
+            }
+            if (!DesignationModel.Instance.HasData)
+            {
+                TipsManager.Toast("称号数据尚未加载");
+                return false;
+            }
+            DesignationModel.Entry entry = DesignationModel.Instance.GetEntry(designationId);
+            if (entry == null)
+            {
+                TipsManager.Toast("称号尚未激活");
+                return false;
+            }
+            if (DesignationConfigs.Get(designationId) == null)
+            {
+                TipsManager.Toast("称号配置缺失");
+                return false;
+            }
+            if (entry.EndTime != 0 && entry.EndTime <= TimeUtil.NowSec())
+            {
+                TipsManager.Toast("称号已过期");
+                return false;
+            }
+
+            bool unwear = DesignationModel.Instance.CurrentUsedId == designationId;
+            int command = unwear ? Proto.DESIGNATION_UNWEAR : Proto.DESIGNATION_WEAR;
+            _wearPending = true;
+            _wearStartedTicks = DateTime.UtcNow.Ticks;
+            _wearRequestedId = designationId;
+#if UNITY_EDITOR
+            byte[] frame = UserMsgAdapter.Encode(command, "i", new object[] { designationId });
+            if (s_outboundIntercept != null && s_outboundIntercept(frame)) return true;
+#endif
+            SendFmt(command, "i", designationId);
+            return true;
+        }
 
         /// <summary>
         /// 从称号详情页发起 41109。无权威列表、已激活、配置非单背包物品、背包未加载或材料不足时均拒绝。
@@ -83,7 +158,7 @@ namespace Shenxiao.Module.Core.Designation
         public bool TryActivateByGoods(uint designationId)
         {
             RefreshWriteTimeouts();
-            if (_activationPending || _upgradePending)
+            if (HasAnyPendingOrRefresh())
             {
                 TipsManager.Toast("称号操作处理中");
                 return false;
@@ -96,11 +171,6 @@ namespace Shenxiao.Module.Core.Designation
             if (DesignationModel.Instance.GetEntry(designationId) != null)
             {
                 TipsManager.Toast("称号已激活");
-                return false;
-            }
-            if (IsAwaitingActivationRefresh(designationId))
-            {
-                TipsManager.Toast("称号状态刷新中");
                 return false;
             }
             if (!DesignationConfigs.TryGetActivationCost(designationId, out DesignationConfigs.Cost cost))
@@ -137,7 +207,7 @@ namespace Shenxiao.Module.Core.Designation
         public bool TryUpgrade(uint designationId)
         {
             RefreshWriteTimeouts();
-            if (_activationPending || _upgradePending)
+            if (HasAnyPendingOrRefresh())
             {
                 TipsManager.Toast("称号操作处理中");
                 return false;
@@ -151,11 +221,6 @@ namespace Shenxiao.Module.Core.Designation
             if (entry == null)
             {
                 TipsManager.Toast("称号尚未激活");
-                return false;
-            }
-            if (IsAwaitingActivationRefresh(designationId) || IsAwaitingUpgradeRefresh(designationId))
-            {
-                TipsManager.Toast("称号状态刷新中");
                 return false;
             }
             if (!DesignationConfigs.TryGetUpgradeCost(designationId, entry.Order, out DesignationConfigs.Cost cost))
@@ -204,14 +269,71 @@ namespace Shenxiao.Module.Core.Designation
             DesignationModel.Instance.ReplaceData(current, entries);
             _activationRefreshPendingId = 0;
             _upgradeRefreshPendingId = 0;
+            _wearRefreshPendingId = 0;
             EventDispatcher.Emit(GlobalEvent.EVT_DESIGNATION_LIST_UPDATE);
+        }
+
+        private void On41102(NetReader reader)
+        {
+            uint code = reader.ReadU32();
+            uint responseId = reader.ReadU32();
+            uint requestedId = _wearRequestedId;
+            ClearWearPending();
+            DesignationModel.Instance.ReplaceWearResult(code, responseId, false);
+            if (code == 1)
+            {
+                _wearRefreshPendingId = responseId != 0 ? responseId : requestedId;
+                TipsManager.Toast("称号佩戴成功");
+                RequestStartup();
+            }
+            else
+            {
+                TipsManager.Toast("称号佩戴失败(" + code + ")");
+            }
+            EventDispatcher.Emit(GlobalEvent.EVT_DESIGNATION_WEAR_RESULT);
+        }
+
+        private void On41103(NetReader reader)
+        {
+            uint code = reader.ReadU32();
+            uint requestedId = _wearRequestedId;
+            ClearWearPending();
+            DesignationModel.Instance.ReplaceWearResult(code, requestedId, true);
+            if (code == 1)
+            {
+                _wearRefreshPendingId = requestedId;
+                TipsManager.Toast("称号卸下成功");
+                RequestStartup();
+            }
+            else
+            {
+                TipsManager.Toast("称号卸下失败(" + code + ")");
+            }
+            EventDispatcher.Emit(GlobalEvent.EVT_DESIGNATION_WEAR_RESULT);
         }
 
         private void On41104(NetReader reader)
             => DesignationModel.Instance.ReplaceActivation(reader.ReadU32(), reader.ReadU32(), reader.ReadU32());
 
         private void On41105(NetReader reader)
-            => DesignationModel.Instance.ReplaceSceneNotice(unchecked((ulong)reader.ReadU64()), reader.ReadU32());
+        {
+            SceneDesignationPresenter.EnsureInstalled();
+            ulong playerId = unchecked((ulong)reader.ReadU64());
+            uint designationId = reader.ReadU32();
+            DesignationModel.Instance.ReplaceSceneNotice(playerId, designationId);
+            long signedPlayerId = unchecked((long)playerId);
+            if (RoleModel.Instance.RoleId == signedPlayerId && RoleModel.Instance.Figure != null)
+            {
+                RoleModel.Instance.Figure.SetDesignationId(designationId);
+                SceneDesignationPresenter.ApplySceneNotice(playerId, designationId);
+            }
+            else if (!SceneManager.Instance.SetRoleDesignation(signedPlayerId, designationId))
+            {
+                SceneDesignationPresenter.ApplySceneNotice(playerId, designationId);
+            }
+            EventDispatcher.Emit(GlobalEvent.EVT_DESIGNATION_SCENE_CHANGED,
+                signedPlayerId, designationId);
+        }
 
         private void On41106(NetReader reader)
         {
@@ -236,7 +358,10 @@ namespace Shenxiao.Module.Core.Designation
         }
 
         private void On41107(NetReader reader)
-            => DesignationModel.Instance.ReplacePowerQuery(reader.ReadU32(), reader.ReadU32());
+        {
+            DesignationModel.Instance.ReplacePowerQuery(reader.ReadU32(), reader.ReadU32());
+            EventDispatcher.Emit(GlobalEvent.EVT_DESIGNATION_POWER_RESULT);
+        }
 
         private void On41108(NetReader reader)
             => DesignationModel.Instance.ReplaceRemoval(reader.ReadU32());
@@ -275,6 +400,11 @@ namespace Shenxiao.Module.Core.Designation
                 long elapsed = now - _upgradeStartedTicks;
                 if (elapsed < 0 || elapsed >= ActivationTimeoutTicks) ClearUpgradePending();
             }
+            if (_wearPending)
+            {
+                long elapsed = now - _wearStartedTicks;
+                if (elapsed < 0 || elapsed >= ActivationTimeoutTicks) ClearWearPending();
+            }
         }
 
         private void ClearActivationPending()
@@ -289,12 +419,21 @@ namespace Shenxiao.Module.Core.Designation
             _upgradeStartedTicks = 0;
         }
 
+        private void ClearWearPending()
+        {
+            _wearPending = false;
+            _wearStartedTicks = 0;
+            _wearRequestedId = 0;
+        }
+
         public override void Dispose()
         {
             ClearActivationPending();
             ClearUpgradePending();
+            ClearWearPending();
             _activationRefreshPendingId = 0;
             _upgradeRefreshPendingId = 0;
+            _wearRefreshPendingId = 0;
             DesignationModel.Instance.Reset();
             base.Dispose();
         }

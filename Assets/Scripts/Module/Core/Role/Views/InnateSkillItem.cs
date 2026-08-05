@@ -47,11 +47,11 @@ namespace Shenxiao.Module.Core.Role
             if (_img_icon != null)
             {
                 _img_icon.gameObject.SetActive(true);
-                _img_icon.color = locked ? new Color(0.55f, 0.55f, 0.55f, 1f) : Color.white;
+                UIGrayStyle.Apply(_img_icon, locked);
                 _ = ResManager.SetImageAsync(_img_icon, GameResPath.GetSkillIcon(SkillConfigs.GetIconForLevel(skillId, Mathf.Max(lv, 1))), nativeSize: false);
             }
-            if (_Image1 != null) _Image1.color = locked ? new Color(0.55f, 0.55f, 0.55f, 1f) : Color.white;
-            if (_Image2 != null) _Image2.color = locked ? new Color(0.55f, 0.55f, 0.55f, 1f) : Color.white;
+            UIGrayStyle.Apply(_Image1, locked);
+            UIGrayStyle.Apply(_Image2, locked);
             if (_lb_lv != null) _lb_lv.text = lv + "/" + maxLv;
             SetSelected(selected);
         }

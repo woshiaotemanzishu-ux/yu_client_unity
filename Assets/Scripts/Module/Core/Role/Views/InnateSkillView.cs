@@ -65,6 +65,9 @@ namespace Shenxiao.Module.Core.Role
             for (int i = 0; i < _tabs.Length && i < _types.Count; i++)
             {
                 int type = _types[i];
+                // 这些页签由隐藏模板克隆而来；只 SetActive 不会触发 BaseView.OnInit，
+                // 必须先 Show 才会建立真实 Graphic 点击绑定。
+                _tabs[i].Show();
                 _tabs[i].SetType(type, SkillUIConfigs.GetInnateTypeName(type));
                 _tabs[i].OnClicked = OnTypeTabClicked;
             }

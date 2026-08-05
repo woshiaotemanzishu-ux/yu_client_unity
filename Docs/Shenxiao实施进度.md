@@ -6,7 +6,7 @@
 > - [编码规范](Shenxiao编码规范.md)
 > - [Copilot 红线](../.github/copilot-instructions.md)
 
-**最近更新**：2026-08-03
+**最近更新**：2026-08-05
 
 **状态图例**：
 - ✅ 已完成
@@ -1907,3 +1907,20 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **资源流水线**：`BitmapFontAssetBuilder` 扩为全量静态 TMP Bitmap 字体生成器，兼容旧 page 文件名与 `id=-1`；`BitmapFontPrefabUpgrader` 负责同步 CDN、增量修改人工 Prefab、技能图 Sprite 导入、Addressables 分组和机器清单。转换器后续首次转换也会原生识别位图字体。
 - **运行逻辑**：20001 伤害飘字按老端十套字体及 `a/b/c` 图形字显示，移除普通文字/颜色近似；20001 触发技能和 20028 恢复 `skillName/{id}.png` 及 `FightFontFiveAni` 演出；公共战力组件改用 `num_new/num_new_green/view_fight_up`。
 - **验收**：Core/Editor 离线编译 0 error；真实图形设备 Unity 批处理 `CLIVERIFY bitmap-font PASS`。106 条绑定中 64 条命中现有页面并落到 33 个实际 Prefab，42 条未迁移页面映射留待首次转换；五张渲染证据均通过非背景像素门禁，二次同步 `copied/changedPrefabs/changedLabels=0/0/0`，路由账本 7/7 `done`。证据位于 `output/ui_route_audit/2026-08-05_bitmap-fonts/`，专项说明见 [老端图片字体全局迁移](RuntimeCompare/BitmapFont-全局迁移-20260805.md)。
+## 2026-08-05：角色界面精修——称号详情、佩戴与场景表现闭环（R578解禁）
+
+- **详情页视觉与结构**：继续增量精修人工接管的`DsgtModule.prefab`，完成老端列表顺序、详情文案、动态称号特效、材料格与品质详情弹窗；未重转模块。`DesignationViewCase`真实Prefab冷开2070ms、热开38ms，列表拖动、末项可达、详情/材料弹窗、专用RT动态像素和佩戴/卸下点击均通过，证据目录为`output/ui_route_audit/2026-08-04_role_web_round2/cli_designation_20260805_2520/`。
+- **41102/41103权威事务**：详情按钮按41101权威态显示“佩戴/卸下”，发送前校验激活、配置与时效，并与41106/41109共用10秒互斥单飞；失败保旧且不重查，成功只精确空发一次41101，ACK不补丁`CurrentUsedId`、Figure或背包。两号完成整链后从hard-negative移除，41110仍延期。
+- **41105场景消费者**：Figure补齐称号、面具与婚姻名字段；41105区分主角和其他玩家写入权威RoleVo，并由幂等`SceneDesignationPresenter`刷新NameBoard静态图、动态`UIEffectStage`与婚姻文案。实现5502、36001～36999、面具态隐藏，以及角色移除、切场景、断线清理。
+- **双适配验证**：`DesignationWearSceneCase`在720×1280与1920×1080均为`pass=True/restored=True`；动态RT分别取得有效非透明/发光像素，位置、即时通知、遮蔽和清理断言全绿。证据目录为`output/ui_route_audit/2026-08-04_role_web_round2/cli_designation_scene_20260805_2501/`。称号分支已闭环，但角色面板整棵路由仍在继续巡检，不在此处宣称整体完成。
+- **覆盖工具纠偏**：首次在二级隔离worktree运行协议门禁时，旧默认路径把不存在的`_codex_worktrees/yu_client`与`yu_server`当事实源，并静默生成`liveGap=0`假报告；现改为向上定位带标记文件的真实双端仓库，且扫描前强制校验两端路径，缺源直接失败。冻结baseline未用错误候选覆盖。
+- **协议收口**：真实双端扫描确认411族为`registered=9/liveGap=0/deadGap=1`；正式baseline只把该族人工状态转为`done`并补证据说明，历史`unityRegistered=0/liveGap=9`冻结值不动。
+
+## 2026-08-05：角色技能页 6+6+41 逐叶精修与最终 Web 收口
+
+- **逐叶清单**：同账号顺序对照老 Web 与 Unity，主动 6 格、被动 6 格、天赋攻击 10/防御 10/通用 11/绝对 10 共 53 个格逐项点击。路线账本扩展到 117 节点，只读叶子全部 `done`；`21011` 升级和 `21012` 重置因无可恢复授权保持 `blocked`，技能父页不提前完成。
+- **视觉与资源**：同步 40 张真实技能图和天赋费用图标，修正灰阶、选中预览、连接线、条件与材料展示。老 H5 绝对树 `lv_data.icon=0` 导致全黑圈，登记为老端缺资源例外，Unity不降级复制。资源有疑问时比较实际文件哈希，不再凭同名路径判断一致。
+- **交互与结构**：运行时克隆页签改走 `BaseView.Show()`，补齐 `OnInit` 点击绑定；被动列表验证 `ScrollRect→Viewport(RectMask2D)→Content(Layout+Fitter)` 和末项可达。通用树真实为 11 格，规范实际 `ScrollRect.content` 顶部锚点与高度 `820`（视口 `637`），移动端/宽屏真实拖动分别约 `223/245px` 后末两格可点。
+- **回归**：`RoleSkillRouteCase` 在 720×1280 与 1920×1080 均为 `VERDICT pass=True restored=True`，覆盖入口、6+6+41逐格、四类切换回顶、重置确认取消、升级前置拦截、返回人物页及 warm 重开。最终 CLI 证据目录为 `output/ui_route_audit/2026-08-04_role_web_round2/cli_role_skill_route_20260805_2614/`。
+- **完整 Web**：执行 `BuildAllWebCli` 成套重建内容与壳，最终真实浏览器从登录到主场景，再走人物→技能→天赋→通用，拖到末行并分别点击第 10/11 格；四类切换回顶、重置打开后取消均通过。`catalog.bin` 与 `catalog_live.bin` SHA256 同为 `E3554C33A2BD2FF100490706F07D380A0F99D56A8EC10A36CAE670748EB5C107`，catalog 文本为 `9d8dbcbf18a729d115fcb22f1c69b54d`，`WebGL.wasm.gz` SHA256=`E3959D3D37F61AC2140446F3465B06DAC7CFD72316428BEE64B2BE74F7433C8E`。
+- **构建坑修复**：shell-only 显式强制 `PlayerBuildOption.DoNotBuildWithPlayer`，避免 `PreferencesValue(0)` 隐式重建内容。最终本地 Web 首次卡 90% 的根因是烧包默认 `{streaming}/cdn` 且缺 `boot_config.json`，资源请求落到 `/StreamingAssets/cdn/WebGL` 404；使用 `?cdn=http://127.0.0.1:8090/res` 后正常启动，不需要重打包。

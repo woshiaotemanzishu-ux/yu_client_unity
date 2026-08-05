@@ -25,12 +25,29 @@ namespace Shenxiao.Editor.ProtocolCoverage
             return key + ":" + Application.dataPath.GetHashCode();
         }
 
+        private static string FindRepositoryRoot(string repositoryName, string markerPath)
+        {
+            DirectoryInfo cursor = new DirectoryInfo(Path.GetFullPath(Path.Combine(Application.dataPath, "..")));
+            for (int i = 0; cursor != null && i < 6; i++, cursor = cursor.Parent)
+            {
+                string candidate = Path.Combine(cursor.FullName, repositoryName);
+                if (File.Exists(Path.Combine(candidate, markerPath))
+                    || Directory.Exists(Path.Combine(candidate, markerPath)))
+                {
+                    return candidate;
+                }
+            }
+
+            // 保留原默认形状，让 Validate* 输出可诊断的精确失败路径。
+            return Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", repositoryName));
+        }
+
         /// <summary>yu_client(老端 TS,只读事实源)仓库根,默认 ../../yu_client。</summary>
         public static string ClientRoot
         {
             get
             {
-                string def = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "yu_client"));
+                string def = FindRepositoryRoot("yu_client", Path.Combine("cdn", "resource", "game"));
                 return EditorPrefs.GetString(ProjectKey(KEY_CLIENT_ROOT), def);
             }
             set { EditorPrefs.SetString(ProjectKey(KEY_CLIENT_ROOT), value); }
@@ -41,7 +58,7 @@ namespace Shenxiao.Editor.ProtocolCoverage
         {
             get
             {
-                string def = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "yu_server"));
+                string def = FindRepositoryRoot("yu_server", Path.Combine("src", "server", "mod_server.erl"));
                 return EditorPrefs.GetString(ProjectKey(KEY_SERVER_ROOT), def);
             }
             set { EditorPrefs.SetString(ProjectKey(KEY_SERVER_ROOT), value); }

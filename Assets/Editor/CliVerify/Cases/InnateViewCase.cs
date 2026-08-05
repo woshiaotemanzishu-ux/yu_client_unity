@@ -1,110 +1,214 @@
 using System.Reflection;
 using System.Threading.Tasks;
+using Shenxiao.Common.Proto;
+using Shenxiao.Framework.Res;
+using Shenxiao.Framework.UI;
+using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Role;
+using Shenxiao.Module.Core.Skill;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Shenxiao.EditorTools
 {
     /// <summary>
-    /// 天赋技能页(InnateSkillView)实证:InnateSkillCreator 装配 RoleModule.prefab → 21010 合成包驱动
-    /// SkillTalentModel/SkillUIConfigs 真实数据 → 实例化 RoleModule → 找到 InnateSkillView 并 Show() →
-    /// 断言 _lb_point 文本(剩余天赋点)与技能树 item 数(对标 type5 真实配置槽位数)→ 截图。
-    /// 独立文件复用 CliVerify.Stage/Pkt(同 PetTrainCase 套路),不改 CliVerify.cs 本体(主控统一接 RenderAll)。
+    /// Read-only talent-page verification using the same three-tab common window shell as RoleFlow.
     /// </summary>
     public static class InnateViewCase
     {
         public static async Task<int> Run()
         {
-            // 1) 装配(幂等:已提升过会自己跳过,见 InnateSkillCreator 注释)
-            Shenxiao.Editor.UiCreator.Role.InnateSkillCreator.Generate();
-
+            ResManager.EditorPreferFallback = true;
             CliVerify.Stage stage = CliVerify.Stage.Create();
+            GameObject frameRoot = null;
+            GameObject roleRoot = null;
+            RoleModel role = RoleModel.Instance;
             try
             {
                 Shenxiao.EditorTools.ConfigGen.ClientConfigSync.SyncIfStale(true);
-                await Shenxiao.Module.Core.Skill.SkillConfigs.EnsureLoaded();
-                await Shenxiao.Module.Core.Skill.SkillUIConfigs.EnsureLoaded();
-                if (!Shenxiao.Module.Core.Skill.SkillUIConfigs.IsLoaded)
+                await SkillConfigs.EnsureLoaded();
+                await SkillUIConfigs.EnsureLoaded();
+                if (!SkillUIConfigs.IsLoaded)
                 {
                     Debug.LogError("CLIVERIFY innateview FAIL ConfigSkillUI not loaded");
                     return 3;
                 }
 
-                object skillCtrl = Shenxiao.Module.Core.Skill.SkillController.Instance;
-                const BindingFlags F = BindingFlags.NonPublic | BindingFlags.Instance;
-                MethodInfo m21010 = skillCtrl.GetType().GetMethod("On21010", F);
-                if (m21010 == null)
+                role.Reset();
+                role.RoleId = 4294967524L;
+                role.Level = 630;
+                role.Figure = new FigureProto
+                {
+                    name = "Talent verification role",
+                    career = 1,
+                    sex = 1,
+                    level = 630,
+                    turn = 4,
+                };
+                role.MarkBaseInfoReady();
+
+                object skillController = SkillController.Instance;
+                const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
+                MethodInfo on21010 = skillController.GetType().GetMethod("On21010", flags);
+                if (on21010 == null)
                 {
                     Debug.LogError("CLIVERIFY innateview handler missing (reflection): On21010");
                     return 3;
                 }
 
-                Shenxiao.Module.Core.Skill.SkillManager.Instance.Clear();
-                Shenxiao.Module.Core.Skill.SkillTalentModel.Instance.Clear();
+                SkillManager.Instance.Clear();
+                SkillTalentModel.Instance.Clear();
 
-                // 2) 21010:剩余点10 + type5(攻击)分支 point=3,已学一枚真实配置技能(59340001 lv=2)
                 const int lessPoint = 10;
                 const int type5 = 5;
                 const int point5 = 3;
-                const int skillId = 59340001; // 真实 configskillui.json innateSkill["5"]["1"][0]
+                const int skillId = 59340001;
                 const int skillLv = 2;
-                byte[] pkt = new CliVerify.Pkt()
+                byte[] packet = new CliVerify.Pkt()
                     .H(lessPoint).H(1)
-                        .C(type5).H(point5).H(1).I(skillId).H(skillLv)
+                    .C(type5).H(point5).H(1).I(skillId).H(skillLv)
                     .Bytes();
-                m21010.Invoke(skillCtrl, new object[] { new Shenxiao.Framework.Net.NetReader(pkt, 0, pkt.Length) });
+                on21010.Invoke(skillController, new object[]
+                {
+                    new Shenxiao.Framework.Net.NetReader(packet, 0, packet.Length),
+                });
 
-                var model = Shenxiao.Module.Core.Skill.SkillTalentModel.Instance;
+                SkillTalentModel model = SkillTalentModel.Instance;
                 bool dataOk = model.HasTalentInfo && model.LessPoint == lessPoint
-                    && model.GetGroup(type5)?.Point == point5 && model.GetTalentLevel(skillId) == skillLv;
-                Debug.Log("CLIVERIFY innateview 21010 dataOk=" + dataOk + " lessPoint=" + model.LessPoint
-                    + " point5=" + (model.GetGroup(type5)?.Point ?? -1) + " skillLv=" + model.GetTalentLevel(skillId));
+                    && model.GetGroup(type5)?.Point == point5
+                    && model.GetTalentLevel(skillId) == skillLv;
+                Debug.Log("CLIVERIFY innateview 21010 dataOk=" + dataOk
+                    + " lessPoint=" + model.LessPoint
+                    + " point5=" + (model.GetGroup(type5)?.Point ?? -1)
+                    + " skillLv=" + model.GetTalentLevel(skillId));
 
-                // 3) 实例化装配后的 RoleModule,拉起 InnateSkillView
-                GameObject prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/Role/RoleModule.prefab");
-                if (prefab == null)
+                GameObject framePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                    "Assets/Prefabs/UI/Common/BaseWindowSkin.prefab");
+                GameObject rolePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                    "Assets/Prefabs/UI/Role/RoleModule.prefab");
+                if (framePrefab == null || rolePrefab == null)
                 {
-                    Debug.LogError("CLIVERIFY innateview RoleModule.prefab missing");
+                    Debug.LogError("CLIVERIFY innateview common shell or RoleModule.prefab missing");
                     return 3;
                 }
-                GameObject go = Object.Instantiate(prefab, stage.CanvasRoot);
-                var view = go.GetComponentInChildren<Shenxiao.Module.Core.Role.InnateSkillView>(true);
-                if (view == null)
+
+                frameRoot = Object.Instantiate(framePrefab, ViewManager.GetLayer(UILayer.Window));
+                roleRoot = Object.Instantiate(rolePrefab, ViewManager.GetLayer(UILayer.Window));
+                foreach (Transform child in roleRoot.transform)
+                    child.gameObject.SetActive(false);
+
+                BaseWindowSkinView window = frameRoot.GetComponentInChildren<BaseWindowSkinView>(true);
+                SkillInitiativeSubItem active = roleRoot.transform.Find("SkillInitiativeSubItem")
+                    ?.GetComponent<SkillInitiativeSubItem>();
+                SkillPassiveSubItem passive = roleRoot.transform.Find("SkillPassiveSubItem")
+                    ?.GetComponent<SkillPassiveSubItem>();
+                InnateSkillView talent = roleRoot.transform.Find("InnateSkillView")
+                    ?.GetComponent<InnateSkillView>();
+                if (window == null || active == null || passive == null || talent == null)
                 {
-                    Debug.LogError("CLIVERIFY innateview InnateSkillView missing in RoleModule.prefab" +
-                        "(InnateSkillCreator 未成功提升为顶层内容视图,先查该 Creator 日志)");
-                    Object.DestroyImmediate(go);
+                    Debug.LogError("CLIVERIFY innateview skill shell/pages incomplete");
                     return 3;
                 }
-                view.gameObject.SetActive(true);
-                view.Show();
-                await Task.Delay(300);
+
+                window.Show();
+                window.Configure(new[]
+                {
+                    SkillTab("主动技能", active),
+                    SkillTab("被动技能", passive),
+                    SkillTab("天赋", talent),
+                }, 2);
+                await WaitUntil(() =>
+                {
+                    InnateInfoItem readyInfo = talent.GetComponentInChildren<InnateInfoItem>(true);
+                    return readyInfo != null && readyInfo.Icon != null && readyInfo.Icon.sprite != null;
+                }, 5d);
+                await Task.Delay(500);
                 stage.ForceCjkFont();
 
-                TMPro.TextMeshProUGUI lbPoint = view._lb_point;
-                bool pointLabelOk = lbPoint != null && lbPoint.text == lessPoint.ToString();
+                TMPro.TextMeshProUGUI pointLabel = talent._lb_point;
+                bool pointLabelOk = pointLabel != null && pointLabel.text == lessPoint.ToString();
+                int expectedSlots = SkillUIConfigs.GetInnateSlots(type5, role.Career).Count;
+                InnateSkillItem[] items = talent.GetComponentsInChildren<InnateSkillItem>(false);
+                bool itemCountOk = expectedSlots > 0 && items.Length == expectedSlots;
+                bool isolationOk = !active.gameObject.activeSelf && !passive.gameObject.activeSelf
+                    && talent.gameObject.activeSelf;
+                InnateTypeItemRenderer[] typeTabs = talent.GetComponentsInChildren<InnateTypeItemRenderer>(false);
+                InnateTypeItemRenderer type8Tab = System.Array.Find(typeTabs, tab => tab.SkillType == 8);
+                bool type8LabelOk = type8Tab != null && type8Tab.typeLb != null
+                    && type8Tab.typeLb.text == "绝对";
+                InnateInfoItem info = talent.GetComponentInChildren<InnateInfoItem>(true);
+                RectTransform detailContent = info != null ? info.DecContainer : null;
+                RectTransform detailViewport = detailContent != null ? detailContent.parent as RectTransform : null;
+                ScrollRect detailScroll = detailViewport != null ? detailViewport.GetComponent<ScrollRect>() : null;
+                bool detailScrollOk = detailContent != null && detailViewport != null
+                    && detailViewport.GetComponent<RectMask2D>() != null
+                    && detailContent.GetComponent<VerticalLayoutGroup>() != null
+                    && detailContent.GetComponent<ContentSizeFitter>() != null
+                    && detailScroll != null && detailScroll.content == detailContent
+                    && detailScroll.viewport == detailViewport && detailScroll.vertical && !detailScroll.horizontal;
+                bool detailIconOk = info != null && info.Icon != null && info.Icon.sprite != null
+                    && (info.Mask == null || !info.Mask.enabled || info.Mask.color.a <= 0.001f);
 
-                int expectSlots = Shenxiao.Module.Core.Skill.SkillUIConfigs.GetInnateSlots(type5, RoleModel().Career).Count;
-                var items = go.GetComponentsInChildren<Shenxiao.Module.Core.Role.InnateSkillItem>(false); // 只数激活的(隐藏模板不算)
-                bool itemCountOk = expectSlots > 0 && items.Length == expectSlots;
+                string png = stage.Capture(
+                    "output/ui_route_audit/2026-08-04_role_web_round2/cli_innate_shell_20260804_2411/innateview_type5.png");
+                Debug.Log("CLIVERIFY innateview render pointLabelOk=" + pointLabelOk
+                    + "(text=" + (pointLabel?.text ?? "<null>") + ")"
+                    + " itemCountOk=" + itemCountOk + " items=" + items.Length + "/" + expectedSlots
+                    + " isolationOk=" + isolationOk + " type8LabelOk=" + type8LabelOk
+                    + " detailScrollOk=" + detailScrollOk
+                    + " detailIconOk=" + detailIconOk
+                    + " shot=" + png);
 
-                string png = stage.Capture("Temp/innateview_type5.png");
-                Debug.Log("CLIVERIFY innateview render pointLabelOk=" + pointLabelOk + "(text=" + (lbPoint?.text ?? "<null>") + ")"
-                    + " itemCountOk=" + itemCountOk + " items=" + items.Length + "/" + expectSlots + " shot=" + png);
-
-                bool pass = dataOk && pointLabelOk && itemCountOk;
-                Debug.Log("CLIVERIFY innateview VERDICT dataOk=" + dataOk + " pointLabelOk=" + pointLabelOk
-                    + " itemCountOk=" + itemCountOk + " pass=" + pass);
-
-                Object.DestroyImmediate(go);
-                Shenxiao.Module.Core.Skill.SkillTalentModel.Instance.Clear();
+                bool pass = dataOk && pointLabelOk && itemCountOk && isolationOk && detailScrollOk
+                    && type8LabelOk && detailIconOk;
+                Debug.Log("CLIVERIFY innateview VERDICT dataOk=" + dataOk
+                    + " pointLabelOk=" + pointLabelOk
+                    + " itemCountOk=" + itemCountOk
+                    + " isolationOk=" + isolationOk
+                    + " type8LabelOk=" + type8LabelOk
+                    + " detailScrollOk=" + detailScrollOk
+                    + " detailIconOk=" + detailIconOk
+                    + " pass=" + pass);
                 return pass ? 0 : 3;
             }
             finally
             {
+                if (frameRoot != null) Object.DestroyImmediate(frameRoot);
+                if (roleRoot != null) Object.DestroyImmediate(roleRoot);
+                SkillManager.Instance.Clear();
+                SkillTalentModel.Instance.Clear();
+                role.Reset();
                 stage.Dispose();
             }
         }
 
-        private static Shenxiao.Module.Core.Role.RoleModel RoleModel() => Shenxiao.Module.Core.Role.RoleModel.Instance;
+        private static TabSpec SkillTab(string label, BaseView view)
+        {
+            return new TabSpec
+            {
+                Enabled = true,
+                Label = label,
+                TitleImagePath = GameResPath.GetIcon("role", "title_name"),
+                BackgroundImagePath = GameResPath.GetIconJpgOtherPath("role", "uijn_001"),
+                ContentFactory = parent =>
+                {
+                    view.transform.SetParent(parent, false);
+                    view.gameObject.SetActive(true);
+                    return view;
+                },
+            };
+        }
+
+        private static async Task<bool> WaitUntil(System.Func<bool> predicate, double timeoutSeconds)
+        {
+            double deadline = EditorApplication.timeSinceStartup + timeoutSeconds;
+            while (EditorApplication.timeSinceStartup < deadline)
+            {
+                if (predicate()) return true;
+                await Task.Delay(50);
+            }
+            return predicate();
+        }
     }
 }

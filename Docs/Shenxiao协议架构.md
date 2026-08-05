@@ -198,6 +198,8 @@
 
 ### 7.13 协议覆盖 baseline 的证据收口规则（2026-07-30 核对）
 
+隔离 worktree 的项目目录通常位于`<仓库根>/_codex_worktrees/<name>`，不能再假定`yu_client`和`yu_server`与当前Unity项目直接同级。`ProtocolCoverageSettings`必须从项目目录逐级向上寻找带事实源标记的真实仓库；扫描开始前必须同时验证老端`cdn/resource/game`和服务端`src/server/mod_server.erl`。任一来源缺失时直接失败，禁止继续产出`liveDefined=0/liveGap=0`的候选基线或报告。
+
 - `baseline.json` 的 `unityRegistered/liveGap` 是冻结比较基线，不能为了显示当前数字逐轮重写；`status` 则是人工策展门禁。当前扫描中某族的全部 raw 活缺口都已被运行时注册或带非空 evidence 的 killlist 覆盖时，必须把该族转为 `done`，让断言C持续阻止新缺口；继续保留 `pending/legacy_unverified` 会让真实完工家族逃逸C段检查。
 - R514按最新运行时报告与killlist交集一次收口 `110/151/211/221/240/339/399/460/470/510` 十族。状态上调不增加注册、不改变raw liveGap或对外有效覆盖率；每族 `statusNote` 必须写明具体剩余号和证据边界。以后若协议重新变活，应先更新双端证据和实现/killlist，再由C段决定是否允许done。
 - 187日常海域不能用baseline收口替代实现：18705/06/07/13都是玩家可达的真实写事务，18702/08/09是场景操作且没有同号S2C handler。它们必须随场景session、配置、资产/任务和结果闭环整体迁移；禁止把写操作加入killlist，或注册不存在的回执来清数字。

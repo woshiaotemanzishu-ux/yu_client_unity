@@ -57,6 +57,20 @@ namespace Shenxiao.Module.Core.Designation
             }
         }
 
+        public sealed class WearResultSnapshot
+        {
+            public uint Code { get; }
+            public uint Id { get; }
+            public bool IsUnwear { get; }
+
+            public WearResultSnapshot(uint code, uint id, bool isUnwear)
+            {
+                Code = code;
+                Id = id;
+                IsUnwear = isUnwear;
+            }
+        }
+
         public sealed class RemovalSnapshot
         {
             public uint Id { get; }
@@ -113,6 +127,7 @@ namespace Shenxiao.Module.Core.Designation
         public RemovalSnapshot Removal { get; private set; }
         public GoodsActivationResultSnapshot GoodsActivationResult { get; private set; }
         public UpgradeResultSnapshot UpgradeResult { get; private set; }
+        public WearResultSnapshot WearResult { get; private set; }
 
         public void ReplaceData(uint currentUsedId, List<Entry> entries)
         {
@@ -130,6 +145,9 @@ namespace Shenxiao.Module.Core.Designation
 
         public void ReplacePowerQuery(uint code, uint power)
             => PowerQuery = new PowerQuerySnapshot(code, power);
+
+        public void ReplaceWearResult(uint code, uint id, bool isUnwear)
+            => WearResult = new WearResultSnapshot(code, id, isUnwear);
 
         public void ReplaceRemoval(uint id) => Removal = new RemovalSnapshot(id);
 
@@ -162,6 +180,7 @@ namespace Shenxiao.Module.Core.Designation
             ClearReadContinuationSnapshots();
             GoodsActivationResult = null;
             UpgradeResult = null;
+            WearResult = null;
         }
     }
 }

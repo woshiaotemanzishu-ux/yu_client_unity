@@ -6,6 +6,8 @@ using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Pet;
+using Shenxiao.Module.Core.Skill;
+using Shenxiao.Module.Core.Tasks;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Role
@@ -75,8 +77,12 @@ namespace Shenxiao.Module.Core.Role
         private static GameObject _frameRoot;
         private static GameObject _contentRoot;
         private static BaseWindowSkinView _window;
+        private static GameObject _skillFrameRoot;
+        private static BaseWindowSkinView _skillWindow;
         private static bool _loading;
+        private static bool _skillLoading;
         private static int _requestedTab = -1;
+        private static int _skillReturnTab;
         private static BaseView _activeSubView;
         private static BaseView _returnView;
 
@@ -87,7 +93,7 @@ namespace Shenxiao.Module.Core.Role
 
         public static void Toggle()
         {
-            if (_window != null && _window.IsShown)
+            if ((_window != null && _window.IsShown) || (_skillWindow != null && _skillWindow.IsShown))
             {
                 Close();
                 return;
@@ -115,13 +121,27 @@ namespace Shenxiao.Module.Core.Role
         public static void Close()
         {
             HideSubView(false);
+            if (_skillWindow != null) _skillWindow.Hide();
             if (_window != null) _window.Hide();
         }
+
+        /// <summary>打开老端 SkillSubView 等价页：独立公共窗口壳 + 主动/被动/天赋三页签。</summary>
+        public static void OpenSkill() => _ = OpenSkillAsync();
 
         private static void HandleReturn()
         {
             if (HideSubView(true)) return;
             if (_window != null) _window.Hide();
+        }
+
+        private static void ReturnFromSkill()
+        {
+            if (_skillWindow != null) _skillWindow.Hide();
+            if (_window == null) return;
+
+            _window.SetReturnAction(HandleReturn);
+            _window.Show();
+            _window.Configure(BuildTabSpecs(BuildEnabledTabs()), _skillReturnTab);
         }
 
         private static BaseView FindShownPrimaryView()
@@ -190,6 +210,102 @@ namespace Shenxiao.Module.Core.Role
                 }
             }
             GameLog.Info("Role", "人物二级窗口 [{0}] 尚未接入", viewTypeName);
+        }
+
+        private static async Task OpenSkillAsync()
+        {
+            if (_skillLoading) return;
+            _skillLoading = true;
+            try
+            {
+                if (_contentRoot == null || _window == null)
+                    await OpenAsync();
+                if (_contentRoot == null || _window == null) return;
+
+                _skillReturnTab = _window.CurrentIndex >= 0 ? _window.CurrentIndex : DefaultTab;
+                if (_skillFrameRoot == null || _skillWindow == null)
+                {
+                    string frameKey = GameResPath.GetUIPrefab(FrameModule, FramePrefab);
+                    _skillFrameRoot = await ResManager.InstantiateAsync(
+                        frameKey, ViewManager.GetLayer(UILayer.Window));
+                    if (_skillFrameRoot == null)
+                    {
+                        GameLog.Error("Role", "技能窗口公共壳加载失败: {0}", frameKey);
+                        return;
+                    }
+                    _skillFrameRoot.name = "RoleSkillWindow";
+                    _skillWindow = _skillFrameRoot.GetComponent<BaseWindowSkinView>()
+                        ?? _skillFrameRoot.GetComponentInChildren<BaseWindowSkinView>(true);
+                    if (_skillWindow == null)
+                    {
+                        GameLog.Error("Role", "技能窗口公共壳缺 BaseWindowSkinView");
+                        return;
+                    }
+                }
+
+                await SkillConfigs.EnsureLoaded();
+                await SkillUIConfigs.EnsureLoaded();
+                await SkillPassiveConfigs.EnsureLoaded();
+                await TaskConfigs.EnsureLoaded();
+                _skillWindow.SetReturnAction(ReturnFromSkill);
+                _skillWindow.Configure(BuildSkillTabSpecs(), 0);
+                HideSubView(false);
+                _window.Hide();
+                _skillWindow.Show();
+            }
+            finally
+            {
+                _skillLoading = false;
+            }
+        }
+
+        private static List<TabSpec> BuildSkillTabSpecs()
+        {
+            string title = GameResPath.GetIcon("role", "title_name");
+            string background = GameResPath.GetIconJpgOtherPath("role", "uijn_001");
+            return new List<TabSpec>
+            {
+                new TabSpec
+                {
+                    Enabled = true,
+                    Label = "主动技能",
+                    TitleImagePath = title,
+                    BackgroundImagePath = background,
+                    ContentFactory = parent => ReparentSkillContent("SkillInitiativeSubItem", parent),
+                },
+                new TabSpec
+                {
+                    Enabled = true,
+                    Label = "被动技能",
+                    TitleImagePath = title,
+                    BackgroundImagePath = background,
+                    ContentFactory = parent => ReparentSkillContent("SkillPassiveSubItem", parent),
+                },
+                new TabSpec
+                {
+                    Enabled = true,
+                    Label = "天赋",
+                    TitleImagePath = title,
+                    BackgroundImagePath = background,
+                    OpenCheck = () => (RoleModel.Instance.Figure?.turn ?? 0) >= 4,
+                    LockedToast = "角色达到4转后开启",
+                    ContentFactory = parent => ReparentSkillContent("InnateSkillView", parent),
+                },
+            };
+        }
+
+        private static BaseView ReparentSkillContent(string viewName, RectTransform parent)
+        {
+            if (_contentRoot == null) return null;
+            Transform node = _contentRoot.transform.Find(viewName);
+            if (node == null)
+            {
+                GameLog.Warn("Role", "RoleModule 顶层缺技能内容页 {0}", viewName);
+                return null;
+            }
+            node.SetParent(parent, false);
+            node.gameObject.SetActive(true);
+            return node.GetComponent<BaseView>();
         }
 
         private static async Task OpenAsync()
@@ -369,7 +485,9 @@ namespace Shenxiao.Module.Core.Role
         {
             HideSubView(false);
             _window?.SetReturnAction(null);
+            _skillWindow?.SetReturnAction(null);
             if (_frameRoot != null) ResManager.ReleaseInstance(_frameRoot);
+            if (_skillFrameRoot != null) ResManager.ReleaseInstance(_skillFrameRoot);
             if (_contentRoot != null) ResManager.ReleaseInstance(_contentRoot);
             foreach (GameObject root in OutwardRoots.Values)
                 if (root != null) ResManager.ReleaseInstance(root);
@@ -378,8 +496,12 @@ namespace Shenxiao.Module.Core.Role
             _frameRoot = null;
             _contentRoot = null;
             _window = null;
+            _skillFrameRoot = null;
+            _skillWindow = null;
             _loading = false;
+            _skillLoading = false;
             _requestedTab = -1;
+            _skillReturnTab = DefaultTab;
             _activeSubView = null;
             _returnView = null;
         }

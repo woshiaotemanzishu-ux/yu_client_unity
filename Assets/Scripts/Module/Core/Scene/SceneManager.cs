@@ -28,6 +28,7 @@ namespace Shenxiao.Module.Core.Scene
         public event Action<long> RoleRemoved;
         public event Action<RoleVo> RoleMoved;
         public event Action<RoleVo> RoleHpChanged;
+        public event Action<RoleVo> RoleDesignationChanged;
 
         public event Action<MonsterVo> MonsterAdded;
         public event Action<int> MonsterRemoved;
@@ -74,6 +75,15 @@ namespace Shenxiao.Module.Core.Scene
             if (!_roles.TryGetValue(id, out RoleVo vo)) return;
             vo.X = x; vo.Y = y; vo.MoveFlag = moveFlag;
             RoleMoved?.Invoke(vo);
+        }
+
+        /// <summary>41105 场景称号广播：只更新已在场的其他玩家，并通知 NameBoard 消费者。</summary>
+        public bool SetRoleDesignation(long id, uint designationId)
+        {
+            if (!_roles.TryGetValue(id, out RoleVo vo) || vo.Figure == null) return false;
+            vo.Figure.SetDesignationId(designationId);
+            RoleDesignationChanged?.Invoke(vo);
+            return true;
         }
 
         // ===== 怪物 / 采集物 =====

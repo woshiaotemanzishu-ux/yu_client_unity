@@ -10,6 +10,7 @@ using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.Common;
 using Shenxiao.Module.Core.Bag;
+using Shenxiao.Module.Core.Designation;
 using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
@@ -39,6 +40,8 @@ namespace Shenxiao.Module.Core.Common
         private static int _modelType;
         private static int _effectCount;
         private static bool _modelRendered;
+        private static bool _designationRendered;
+        private static UIEffectStage.Handle _designationEffect;
 
         public static int CurrentTypeId => _pendingTypeId;
         public static int CurrentModelType => _modelType;
@@ -46,7 +49,7 @@ namespace Shenxiao.Module.Core.Common
         public static IllusionTipsBind ActiveView => _view != null && _view.gameObject.activeInHierarchy ? _view : null;
         public static bool IsModelReady => _modelRendered && ActiveView != null && _view.roleCon != null
             && _view.roleCon.GetComponentInChildren<RawImage>(true)?.texture != null;
-        public static bool IsVisualReady => IsModelReady && _view._img_bg != null
+        public static bool IsVisualReady => (IsModelReady || _designationRendered) && _view._img_bg != null
             && _view._img_bg.enabled && _view._img_bg.sprite != null && !_view._img_bg.canvasRenderer.cull;
 
         public static void Show(int typeId, int fashionPos = 0)
@@ -62,9 +65,12 @@ namespace Shenxiao.Module.Core.Common
             ++_requestId;
             Unsubscribe();
             ModelStage.ClearStage();
+            _designationEffect?.Dispose();
+            _designationEffect = null;
             _modelType = 0;
             _effectCount = 0;
             _modelRendered = false;
+            _designationRendered = false;
             if (_view != null && _view.IsShown) _view.Hide();
             if (_moduleRoot != null) _moduleRoot.SetActive(false);
         }
@@ -89,6 +95,9 @@ namespace Shenxiao.Module.Core.Common
             int fashionPos = _pendingFashionPos;
             int requestId = ++_requestId;
             _modelRendered = false;
+            _designationRendered = false;
+            _designationEffect?.Dispose();
+            _designationEffect = null;
             await Task.WhenAll(GoodsModel.EnsureLoaded(), IllusionModelConfigs.EnsureLoaded(),
                 LoginConfigs.EnsureLoaded());
             if (requestId != _requestId || typeId != _pendingTypeId) return;
@@ -97,10 +106,13 @@ namespace Shenxiao.Module.Core.Common
             GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(typeId);
             IllusionModelConfigs.Entry entry = IllusionModelConfigs.Get(typeId,
                 Mathf.Max(1, RoleModel.Instance.Career), Mathf.Max(1, RoleModel.Instance.Sex));
-            if (basic == null || entry == null)
+            DesignationConfigs.Row designation = basic != null && basic.Type == 38 && basic.Subtype == 6
+                ? DesignationConfigs.GetByActivationGoods(typeId)
+                : null;
+            if (basic == null || (entry == null && designation == null))
             {
-                GameLog.Warn("IllusionTips", "missing display data typeId={0} basic={1} model={2}",
-                    typeId, basic != null, entry != null);
+                GameLog.Warn("IllusionTips", "missing display data typeId={0} basic={1} model={2} designation={3}",
+                    typeId, basic != null, entry != null, designation != null);
                 return;
             }
 
@@ -115,10 +127,16 @@ namespace Shenxiao.Module.Core.Common
             _view.gameObject.SetActive(true);
             _view.transform.SetAsLastSibling();
             _view.Show(typeId);
-            await ConfigureTextAsync(basic, entry);
+            await ConfigureTextAsync(basic, entry, designation);
             if (requestId != _requestId || typeId != _pendingTypeId || ActiveView == null) return;
             Subscribe();
             BagController.Instance.RequestExpectPower(typeId);
+
+            if (designation != null)
+            {
+                await ConfigureDesignationVisualAsync(designation, requestId);
+                return;
+            }
 
             GameObject model = await BuildModelAsync(entry, fashionPos);
             if (requestId != _requestId || typeId != _pendingTypeId || ActiveView == null)
@@ -148,7 +166,8 @@ namespace Shenxiao.Module.Core.Common
             }
         }
 
-        private static async Task ConfigureTextAsync(GoodsModel.GoodsBasic basic, IllusionModelConfigs.Entry entry)
+        private static async Task ConfigureTextAsync(GoodsModel.GoodsBasic basic,
+            IllusionModelConfigs.Entry entry, DesignationConfigs.Row designation)
         {
             if (_view._img_bg != null)
             {
@@ -162,7 +181,8 @@ namespace Shenxiao.Module.Core.Common
             }
             if (_view.goods_name != null) _view.goods_name.text = basic.Name;
             if (_view.runeBox != null) _view.runeBox.gameObject.SetActive(false);
-            if (_view._gp_dsgt != null) _view._gp_dsgt.gameObject.SetActive(false);
+            if (_view._gp_dsgt != null) _view._gp_dsgt.gameObject.SetActive(designation != null);
+            if (_view.roleCon != null) _view.roleCon.gameObject.SetActive(designation == null);
             if (_view.skill_gp != null) _view.skill_gp.gameObject.SetActive(false);
             if (_view.gp_sp_skill != null) _view.gp_sp_skill.gameObject.SetActive(false);
             if (_view.btn_group != null) _view.btn_group.gameObject.SetActive(false);
@@ -170,9 +190,19 @@ namespace Shenxiao.Module.Core.Common
 
             var lines = new List<string>();
             if (!string.IsNullOrWhiteSpace(basic.Intro)) lines.Add(ToTmp(basic.Intro));
-            foreach (GoodsModel.EquipBaseAttrRow attr in GoodsModel.GetBaseAttrRows(basic.TypeId))
-                lines.Add("<color=#663915>" + attr.Name + "：</color><color=#d15e00>+"
-                    + GoodsModel.FormatAttrValue(attr.AttrId, attr.Value) + "</color>");
+            if (designation != null)
+            {
+                foreach (DesignationConfigs.Attr attr in designation.Attrs)
+                    lines.Add("<color=#663915>" + GoodsModel.GetAttrName(attr.Id)
+                        + "：</color><color=#d15e00>+"
+                        + GoodsModel.FormatAttrValue(attr.Id, attr.Value) + "</color>");
+            }
+            else
+            {
+                foreach (GoodsModel.EquipBaseAttrRow attr in GoodsModel.GetBaseAttrRows(basic.TypeId))
+                    lines.Add("<color=#663915>" + attr.Name + "：</color><color=#d15e00>+"
+                        + GoodsModel.FormatAttrValue(attr.AttrId, attr.Value) + "</color>");
+            }
             if (_view.intro != null)
             {
                 _view.intro.color = new Color32(0x66, 0x39, 0x15, 0xff);
@@ -210,9 +240,62 @@ namespace Shenxiao.Module.Core.Common
             EnsureFightItem();
             if (_fight != null)
             {
-                _fight.SetFighting(entry.Fight);
+                _fight.SetFighting(entry?.Fight ?? 0);
                 _fight.SetFightingUp(0);
             }
+        }
+
+        private static async Task ConfigureDesignationVisualAsync(DesignationConfigs.Row row, int requestId)
+        {
+            if (row == null || _view == null || _view._gp_dsgt == null) return;
+
+            _modelType = 0;
+            _effectCount = 0;
+            _designationRendered = false;
+            if (_view.roleCon != null) _view.roleCon.gameObject.SetActive(false);
+            _view._gp_dsgt.gameObject.SetActive(true);
+
+            if (_view._img_dsgt != null)
+            {
+                _view._img_dsgt.sprite = null;
+                _view._img_dsgt.enabled = false;
+                _view._img_dsgt.raycastTarget = false;
+                _view._img_dsgt.gameObject.SetActive(false);
+            }
+            if (_view._gp_dsgt_effect != null)
+                _view._gp_dsgt_effect.gameObject.SetActive(false);
+
+            if (row.Type == 1 && _view._gp_dsgt_effect != null)
+            {
+                RectTransform host = _view._gp_dsgt_effect;
+                DesignationEffectDisplayConfigs.Display display = DesignationEffectDisplayConfigs.Get(
+                    row.Id, DesignationEffectDisplayConfigs.Surface.Details);
+                UIEffectStage.Handle handle = await UIEffectStage.AddAsync(
+                    row.ResourceId?.Trim(), host, DesignationEffectDisplayConfigs.ToUnityPosition(display),
+                    Vector3.one * display.Scale,
+                    0f, new Vector2(237f, display.Height));
+                if (requestId != _requestId || ActiveView == null)
+                {
+                    handle?.Dispose();
+                    return;
+                }
+
+                _designationEffect = handle;
+                _effectCount = handle != null ? 1 : 0;
+                host.gameObject.SetActive(handle != null);
+                await Task.Yield();
+                _designationRendered = handle != null;
+                return;
+            }
+
+            if (_view._img_dsgt == null || string.IsNullOrWhiteSpace(row.ResourceId)) return;
+            string path = GameResPath.GetDesignImage(row.ResourceId.Trim());
+            if (!await ResManager.KeyExistsAsync<Sprite>(path)) return;
+            bool loaded = await ResManager.SetImageAsync(_view._img_dsgt, path, nativeSize: false);
+            if (requestId != _requestId || ActiveView == null) return;
+            _view._img_dsgt.raycastTarget = false;
+            _view._img_dsgt.gameObject.SetActive(loaded);
+            _designationRendered = loaded && _view._img_dsgt.sprite != null;
         }
 
         /// <summary>

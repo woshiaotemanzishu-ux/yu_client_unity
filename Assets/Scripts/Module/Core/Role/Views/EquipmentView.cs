@@ -24,7 +24,8 @@ namespace Shenxiao.Module.Core.Role
     /// </summary>
     public sealed class EquipmentView : EquipmentViewBind
     {
-        private const float ModelScale = 0.5f;
+        private const float ModelScale = 0.73f;
+        private static readonly Vector2 ModelPosition = new Vector2(0f, 2f);
         private sealed class AttrRow
         {
             public readonly string Label;
@@ -215,8 +216,18 @@ namespace Shenxiao.Module.Core.Role
             bool hasInfo = model.HasBaseInfo;
 
             SetText(_lb_name, hasInfo ? model.Name : string.Empty);
-            SetText(top_levelLb, hasInfo && model.Level > 0 ? "Lv." + model.Level : string.Empty);
-            SetText(levelLb, hasInfo && model.Level > 0 ? model.Level + "\u7EA7" : string.Empty);
+
+            // 老端 top_levelLb 在场景中固定隐藏；境界等级通过 destiny_img + (level - 370) 展示。
+            // 原始协议等级仍保留在 RoleModel，只有人物面板的显示值做同语义换算。
+            if (top_levelLb != null)
+            {
+                top_levelLb.text = string.Empty;
+                top_levelLb.gameObject.SetActive(false);
+            }
+            bool isDestinyLevel = hasInfo && model.Level > 370;
+            if (destiny_img != null) destiny_img.gameObject.SetActive(isDestinyLevel);
+            int displayLevel = isDestinyLevel ? model.Level - 370 : model.Level;
+            SetText(levelLb, hasInfo && displayLevel > 0 ? displayLevel + "\u7EA7" : string.Empty);
             SetText(expLb, hasInfo ? FormatNumber(model.Exp) + "/" + FormatNumber(model.ExpLim) : string.Empty);
             SetExp(model);
 
@@ -249,7 +260,7 @@ namespace Shenxiao.Module.Core.Role
         private void BindActions()
         {
             BindClick(_img_change_btn, () => ShowAttributePage(!_showingBaseAttrs));
-            BindClick(_Group1, () => RoleFlow.OpenSub("SkillInitiativeSubItem"));
+            BindClick(_Group1, RoleFlow.OpenSkill);
             BindClick(_Group5, SuitCollectShellView.Show);
             BindClick(fashion_gp, () => MainUIRouter.Open("fashion"));
             BindClick(_Group2, () => MainUIRouter.Open("AchvEnterView"));
@@ -324,9 +335,8 @@ namespace Shenxiao.Module.Core.Role
                 return;
             }
 
-            int sex = RoleModel.Instance.Figure != null ? RoleModel.Instance.Figure.sex : 0;
             UIModelStage.ShowInstance(model_gp, model, ModelScale,
-                LoginConfigs.GetModelPos("SelectRole", spec.Career, sex));
+                ModelPosition);
         }
 
         private static async Task<RoleModelSpec> BuildRoleModelSpecAsync(RoleModel model)

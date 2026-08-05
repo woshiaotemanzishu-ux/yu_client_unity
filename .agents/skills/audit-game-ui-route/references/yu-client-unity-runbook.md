@@ -56,6 +56,8 @@ screenY = rect.y + designY * rect.height / 1280
 7. 对弹窗记录“触发格 → 目标 View 类型 → 主底图 Sprite → 根尺寸 → 遮罩关闭”的身份链。列表中每个可见格都逐个点击，不能由同排一个成功项代验。
 8. 关键位置统一输出页面根左上角矩形；局部 `anchoredPosition` 只用于解释锚点，不作为跨容器视觉结论。
 
+当老 Web 与 Unity 使用同一账号，且服务器是单会话或后登录会踢前登录时，禁止两端同时在线做对照。必须在相同 viewport、角色、页面和状态下顺序采证：先在一端截图并完整退出/确认断线，再登录另一端复现。被踢端若只剩场景/HUD 残影而 `RoleModel` 或协议状态已清空，该证据无效；cold/warm 时间也必须各自在有效登录会话内测量。
+
 默认记录 `click→first-visible` 和 `click→interactive-ready`。首次打开为 cold，返回后立即再打为 warm。项目无明确阈值时，超过老端 2 倍或 2 秒是默认告警线；5 秒以上必须登记缺陷并拆出资源、配置、协议、建树和串行等待耗时。
 
 ## 安全点击边界
@@ -89,3 +91,6 @@ Unity 主界面固定入口必须绑定到 `_img_setting/_img_friend/_img_shop` 
 - 批次收口：累计多条路由后再打 WebGL，重新登录并复走。不要让 Web 冷启和打包时间阻塞每一项小修复。
 - 新建隔离工作树没有与当前内容匹配的 Addressables 构建状态时，禁止直接用 `BuildWebShellOnlyCli` 发布。2026-08-03 试跑已复现本地 catalog 缺 `prefabs/ui/login/loginstage` 导致新壳无法启动。使用持续构建工作区的已验证内容状态，或完整重打并成套发布内容+壳。
 - 禁止把旧壳的 `StreamingAssets/aa` 手工拼到新 player 当成可验收产物；两者没有成套验证时只能作排障，不能发布。
+- `AddressableAssetSettings` 的 Player Build Option 序列化值 `0` 是 `PreferencesValue`，并不等于禁止随 Player 构建内容。shell-only 必须在 Player 构建前强制 `DoNotBuildWithPlayer`，在 `finally` 恢复，并验证构建前后 catalog 未被意外改写。
+- 本地 Web 若烧包默认仍是 `{streaming}/cdn`，必须通过 `?cdn=http://127.0.0.1:8090/res` 或壳同目录 `boot_config.json` 覆盖。卡在 90% 时读取浏览器日志；出现 `/StreamingAssets/cdn/WebGL/*.bundle` 404 先修 CDN 基址，不重打内容。
+- 运行时克隆 `BaseView` 页签/格子时调用 `Show/Hide`；只 `SetActive` 不会触发 `OnInit`。动态列表把高度写到真正的 `ScrollRect.content`，规范顶部锚点并强制布局；拖动从可命中子项开始，必须验证隐藏末行可达。
