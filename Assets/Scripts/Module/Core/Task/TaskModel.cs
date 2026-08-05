@@ -215,6 +215,18 @@ namespace Shenxiao.Module.Core.Tasks
             NewestFinishTaskId = taskId;
         }
 
+        /// <summary>仅接受正向完成号，拒绝重复和倒退。</summary>
+        public bool TryAdvanceNewestFinishTaskId(int taskId)
+        {
+            if (taskId <= 0 || taskId <= NewestFinishTaskId)
+            {
+                return false;
+            }
+
+            NewestFinishTaskId = taskId;
+            return true;
+        }
+
         public void SetTaskLists(Dictionary<int, List<TaskVo>> canTaskList,
             Dictionary<int, List<TaskVo>> hasReceiveTaskList,
             Dictionary<int, List<TaskVo>> allTaskList)

@@ -2,7 +2,7 @@
 
 > 状态：生效
 >
-> 最后核对：2026-07-29
+> 最后核对：2026-08-06
 >
 > 适用范围：`DialogueView`、`TaskFinishView`、场景 NPC/怪物点击与选中表现
 
@@ -72,3 +72,10 @@
 - 禁止只给右下角图标加大 Button 冒充“任意位置”。
 - 禁止让关闭图标只 `Close()` 而不执行任务领取语义。
 - 禁止画临时 Sprite 圈替代 `function_selection`，或把选中特效复制进每种 NPC/怪物模型。
+
+## 7. 任务完成号（30004）单调同步
+
+- 老端锚点：`yu_client/h5/src/commonController/TaskController.ts` 的 `On30004` 注册与成功分支；领取入口仍由 `yu_client/h5/src/task/TaskFinishView.ts` 发起 `30004`。服务端锚点：`yu_server/src/task/pp_task.erl` 的 `handle(30004, ...)`，以及 `yu_server/src/pt/pt_300.erl` 的 `write(30004,[Id, ErrCode, ObjL])`，wire 为 `task_id:u32 + code:u32 + ObjectList`。
+- Unity 的 `TaskController.On30004` 只在 `code==1` 且 `TaskConfigs.Get(taskId)?.Type==MAIN_LINE` 时尝试推进 `NewestFinishTaskId`。推进必须严格递增；重复包、较小任务号、失败回包、非主线和缺配置均不得改值或派发 `EVT_TASK_LIST_UPDATED`。`30005` 的 `SetNewestFinishTaskId` 保持精确覆盖语义，不能改成单调推进。
+- 离线专项为 `TaskNewestFinishCase.RunBatch`：读取真实 `config_task.json` 中 100010/100020（主线）和 2000000（觉醒线），用精确大端空奖励包反射调用 `On30004`，并覆盖失败、两次递增、重复、较小、非主线和 30005 精确覆盖。它只在 Controller、TaskConfigs、EventDispatcher、NetManager 与 TaskModel 均为空闲默认态时执行，否则返回 `SKIP=2`；结束时移除事件处理器、清理成功特效并恢复所有快照。
+- 本轮仅完成离线静态实现与专项用例，未启动 Unity，也未抢占编辑器/构建锁；Unity 批处理验收待串行可用窗口执行。

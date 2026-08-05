@@ -211,6 +211,11 @@ namespace Shenxiao.Module.Core.Tasks
             PlayTaskSuccessEffect();
 
             TaskConfigs.TaskCfg cfg = TaskConfigs.Get(taskId);
+            if (cfg?.Type == TaskModel.MAIN_LINE && TaskModel.Instance.TryAdvanceNewestFinishTaskId(taskId))
+            {
+                EventDispatcher.Emit(GlobalEvent.EVT_TASK_LIST_UPDATED);
+            }
+
             int taskType = cfg?.Type ?? 0;
             if (taskType == TaskModel.AWAKE_LINE || taskType == TaskModel.NORMAL_DAILY) return;
             _taskFinishPendingAuto = true;
