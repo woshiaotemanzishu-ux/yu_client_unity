@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Shenxiao.Common.Audio;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.FunctionOpen;
@@ -57,6 +58,7 @@ namespace Shenxiao.Module.Core.FunctionOpen
             _canClose = false;
 
             view.Show();
+            _ = AudioManager.PlayUi("double_box");
             transform.SetAsLastSibling();
             ConfigureSkillMode(skillName, iconName, description);
             _presentation = StartCoroutine(PlayPresentation());

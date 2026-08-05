@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Audio;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
@@ -663,7 +664,8 @@ namespace Shenxiao.Module.Core.Bag
             if (res == 1)
             {
                 EventDispatcher.Emit(GlobalEvent.EVT_DROP_PICK_SUCCESS, vo);
-                GameLog.Info("Bag", "15053 拾取成功(对标老端 PlaySoundEffect(\"openorclosebutton\"),音效未接,仅log)");
+                _ = AudioManager.PlayUi("openorclosebutton");
+                GameLog.Info("Bag", "15053 拾取成功，已播放老端 ui/openorclosebutton");
             }
             else if (status == 1)
             {

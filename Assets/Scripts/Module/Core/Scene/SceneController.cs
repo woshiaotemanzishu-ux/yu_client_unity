@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Shenxiao.Common.Audio;
 using Shenxiao.Common.Loading;
 using Shenxiao.Common.Proto;
 using Shenxiao.Framework.Event;
@@ -9,6 +10,7 @@ using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Scene3D.Map;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Login;
+using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Preload;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene.Vo;
@@ -291,7 +293,15 @@ namespace Shenxiao.Module.Core.Scene
             EventDispatcher.Emit(GlobalEvent.EVT_ROLE_INFO_UPDATE);
 
             GameLog.Info("Scene", "12005 ok: sceneId={0} dunId={1} pos=({2},{3})", instanceId, dunId, x, y);
+            _ = PlaySceneMusicAsync(instanceId);
             _ = LoadSceneMapAsync(instanceId);
+        }
+
+        private static async Task PlaySceneMusicAsync(int sceneId)
+        {
+            await MainUIConfigs.EnsureSceneLoaded();
+            MainUIConfigs.SceneCfg scene = MainUIConfigs.GetSceneCfg(sceneId);
+            await AudioManager.PlaySceneMusic(sceneId, scene?.Type ?? 0);
         }
 
         private async Task LoadSceneMapAsync(int sceneId)

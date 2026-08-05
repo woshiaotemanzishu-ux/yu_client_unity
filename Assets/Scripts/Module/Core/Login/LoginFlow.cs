@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Shenxiao.Common.Audio;
 using Shenxiao.Common.Loading;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Config;
@@ -60,6 +61,7 @@ namespace Shenxiao.Module.Core.Login
         {
             _config = config;
             _finalizingWorldLoading = false;
+            _ = AudioManager.PlayLoginMusic(0.1f);
 
             // LoginStage 自身铺满 Window 层；先只加载能画出首屏的 LoadingView，避免把所有后续页面
             // 串行实例化完才撤 HTML 加载层。登录页就绪后，其余页面在用户输入账号时后台并行准备。
@@ -237,6 +239,7 @@ namespace Shenxiao.Module.Core.Login
         public static void ShowLogin()
         {
             if (_loginPanel == null) return;
+            _ = AudioManager.PlayLoginMusic(0.1f);
             _loginPanel.Show();        // 显示登录面板并置顶
             _loginPanel.ShowLogin();   // 切登录子面板
         }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Audio;
 using Shenxiao.Common.Tips;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
@@ -1018,6 +1019,7 @@ namespace Shenxiao.Module.Core.Scene
         /// </summary>
         public static void NotifyLevelUp()
         {
+            _ = AudioManager.PlayRole("upgrade");
             if (Current != null) Current.PlayLevelUpEffect();
             else _pendingLevelUpEffectCount = Mathf.Min(2, _pendingLevelUpEffectCount + 1);
         }
@@ -1133,6 +1135,7 @@ namespace Shenxiao.Module.Core.Scene
             float configuredHSpeed = 0f, float configuredVSpeed = 0f, float configuredGravity = 0f,
             float configuredFallStay = -1f, bool useTaskJumpDuration = false)
         {
+            _ = AudioManager.PlayRole("jump");
             float startX = _posX;
             float startY = _posY;
             float dx = targetX - startX;

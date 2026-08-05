@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Audio;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Scene3D.Map;
@@ -401,6 +402,12 @@ namespace Shenxiao.Module.Core.Scene
 
             AttackPlan plan = BuildAttackPlan(skillId, mon);
             MainRoleAgent.Current?.PlaySkill(skillId, plan.MonsterIds);
+            string sound = SkillMovieConfigs.GetSoundRes(skillId);
+            if (!string.IsNullOrEmpty(sound)
+                && (!SkillMovieConfigs.SoundRequiresHiter(skillId) || plan.MonsterIds.Count > 0))
+            {
+                _ = AudioManager.PlaySkill(sound, delaySeconds: SkillMovieConfigs.GetSoundStartTimeSeconds(skillId));
+            }
             int targetInstanceId = plan.Primary?.InstanceId ?? 0;
             EventDispatcher.Emit(GlobalEvent.EVT_RELEASE_MAIN_SKILL, skillId, targetInstanceId);
             GameLog.Info("Combat",

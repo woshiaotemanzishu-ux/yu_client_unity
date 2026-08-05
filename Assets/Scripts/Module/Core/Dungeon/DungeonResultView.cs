@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Audio;
 using Shenxiao.Common.Tips;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Generated.UI.DungeonCommon;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Role;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Dungeon
@@ -69,6 +71,7 @@ namespace Shenxiao.Module.Core.Dungeon
                 if (epoch != _openEpoch) return;
 
                 _moduleRoot.SetActive(true);
+                _ = AudioManager.PlayFightingVoice(RoleModel.Instance.Sex, victory ? 2 : 1);
                 if (victory) OpenVictory(grade, rewards);
                 else OpenFailure();
                 GameLog.Info("Dungeon", "DungeonResultView opened: victory={0} grade={1} rewards={2}",

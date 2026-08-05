@@ -35,6 +35,16 @@ namespace Shenxiao.Module.Core.Skill
         public static string GetActionName(int skillId)
             => GetMovie(skillId)?.Value<string>("anim") ?? "";
 
+        /// <summary>老端 FightMovieInfo 直接使用的 skill/{sound_res}，空值表示该动作没有主音效。</summary>
+        public static string GetSoundRes(int skillId)
+            => GetMovie(skillId)?.Value<string>("sound_res") ?? "";
+
+        public static float GetSoundStartTimeSeconds(int skillId)
+            => Mathf.Max(0f, GetMovie(skillId)?.Value<float?>("sound_start_time") ?? 0f);
+
+        public static bool SoundRequiresHiter(int skillId)
+            => GetMovie(skillId)?.Value<bool?>("sound_need_hiter") ?? false;
+
         public static float GetConfiguredDurationSeconds(int skillId)
         {
             JObject movie = GetMovie(skillId);
