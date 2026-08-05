@@ -1881,6 +1881,12 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **门禁**：新增 `CliVerify.MainUINotification`，用真实 `HudActivity/HudNotification` 覆盖 612/621 边界、邮件启动顺序与 `ui_notice_3`、`GraphicRaycaster→PointerClick`、关键帧/同步/复位和截图。详细证据见 [专项记录](RuntimeCompare/MainUI-活动与消息通知-20260804.md)。
 - **验证状态**：常驻 Editor 与独立 worktree 批处理均 `VERDICT pass=True`，Editor 构建 0 error；`mainui.reported-defects` 台账 6/6 节点全部 `done`，验证后保持原 `Launch` 场景，未进行 WebGL 构建或部署后复验。
 
+## 2026-08-06：首充横幅调度生命周期收口
+
+- **修复**：`FirstRechargeController` 对相同已提交展示签名保持单飞；发生实际状态变化时递增 generation 并取消旧 timer。配置加载完成后只允许当前 generation 按最新首充/角色权威状态提交红点、横幅或普通图标。timer 与 fire-and-forget refresh 都预占位 CTS/Task owner，忽略取消而晚完成的旧 delay 不能写 `IsNotify`、15907、图标或更新事件；有效到期恰好发一次本地事件后重评，Dispose 同样使配置续体与 timer 失效。
+- **门禁**：新增 `CliVerify.FirstRechargeIconSchedule`，覆盖并发配置逆序释放只提交最新一代、相同签名不重建 timer/图标、当前有效到期一次 15907/事件/重评、旧 delay 隔离、Dispose 后无回写及重新进入可用，并在隔离态完整恢复首充/角色槽位与测试 seam。
+- **验证状态**：以用户根生成并补齐当前 main 源列表的项目文件串行执行 `dotnet build Shenxiao.Module.Core.csproj --no-restore` 与 `dotnet build Shenxiao.Editor.csproj --no-restore`，均为 0 error（分别 81 条、2 条既有/测试 seam warning）。尚未运行 Unity 专项；编辑器锁仍占用，待空闲后串行验收。
+
 ## 2026-08-04：主界面挂机“提升”按钮与扫光补漏
 
 - **目标澄清**：用户指的是挂机经验条右侧绿色“提升”按钮本身，以及按钮内部循环扫光，不是下方通知图标或通知摇摆。近景、老端全图和修复前 Unity 全图已固化到 `output/ui_route_audit/2026-08-04_mainui_onhook_boost_sweep/`。
