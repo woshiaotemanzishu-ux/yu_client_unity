@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Shenxiao.Common.Audio;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Generated.UI.MainUI;
 using UnityEngine;
@@ -97,6 +98,7 @@ namespace Shenxiao.Module.Core.MainUI
 
         protected override void OnShow(object args)
         {
+            _ = AudioManager.PlayRole("fighting_up");
             if (args is FightUpData d) { _oldFight = d.OldFight; _newFight = d.NewFight; }
             CacheLayout();
 

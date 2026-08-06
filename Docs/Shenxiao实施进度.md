@@ -21,6 +21,15 @@
 - 现有8个611安全读侧/通知保持不变。baseline只补人工说明且历史3/15计数冻结；正向`coverage_20260803_041207.md`、七常量故障`coverage_20260803_041342.md`和最终`coverage_20260803_041510.md`完成，最终A～M全PASS、F=250/G=174/M=`81+250+0=331`，全局未落机器清单归零。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
+## 全量声音迁移（2026-08-05）
+
+- ✅ **资源闭包**：老端 676 个物理文件归并为 310 个逻辑声音，按 `scene: mp3>ogg>wav`、其他分类 `wav>ogg>mp3` 唯一选源；Unity 已落 310/310，保持 `resource/sound/{type}/{name}` 地址，并同步 `ConfigSound.json`。
+- ✅ **公共运行时**：`AudioManager` 已改为幂等自启动、单路可释放音乐和 12～32 路并发音效池；设置页现有音乐/音效音量继续生效。全局按钮在 pointer-down 自动播放 `ui/2_dianji`，不批量改 Prefab。
+- ✅ **高频消费链**：已接登录/切场/消除页音乐、技能配置音、升级、跳跃、拾取、获得技能、战力提示、副本/挂机结算和死亡复活。
+- ✅ **防半迁移工具**：`Tools/Audio/sync_legacy_audio.py` 统一维护选源、确定性 GUID、Unity 6 导入配置、Addressables 和台账；`--check` 可阻止资源/地址/状态漂移。`LegacyAudioImportPostprocessor.ValidateCli` 负责 Unity 侧 310 个 Clip 与导入设置复核。
+- 🟡 **后续业务消费**：老端 77 个主动调用点逐项登记，当前 23 个 `done`、54 个 `pending`；pending 均是对应 Unity 模块、场景对象或权威事务成功点尚未迁移，资源本身已齐，不得在待对接按钮上伪播成功音。见[声音迁移台账](声音迁移台账.md)。
+- **验证**：独立编译环境下 `Shenxiao.Module.Core` 与 `Shenxiao.Editor` 均 0 error；未占用另一个流程正在使用的 Unity Editor。Android/WebGL 解码、首播和正式 Addressables 分包随下次持续构建复验。
+
 ---
 
 ## 一、Phase 0：框架搭建

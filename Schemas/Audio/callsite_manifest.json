@@ -1,0 +1,625 @@
+{
+  "schemaVersion": 1,
+  "sourceRoot": "yu_client/h5/src",
+  "total": 77,
+  "done": 23,
+  "pending": 54,
+  "callsites": [
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "arena/ArenaFightSceneView.ts",
+      "legacyLine": 148,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(3)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "arena/ArenaResultView.ts",
+      "legacyLine": 137,
+      "expression": "voice=CommonManager.GetInstance().PlayFightingVoice(state)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "autoBrush/AutoBrushResultView.ts",
+      "legacyLine": 145,
+      "expression": "this.voice = CommonManager.GetInstance().PlayFightingVoice(2)",
+      "status": "done",
+      "coverage": "AutoBrushResultView"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "baby/BabyChangedView.ts",
+      "legacyLine": 46,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"3_huode\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "bossField/BossFieldReliveView.ts",
+      "legacyLine": 108,
+      "expression": "this.voice = CommonManager.GetInstance().PlayFightingVoice(1)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "bossSuit/BossSuitReliveView.ts",
+      "legacyLine": 86,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(1)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "brightSea/BrightSeaBattleResultView.ts",
+      "legacyLine": 128,
+      "expression": "voice=CommonManager.GetInstance().PlayFightingVoice(state)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "brightSea/BrightSeaFightSceneView.ts",
+      "legacyLine": 119,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(3)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "global_button",
+      "legacyPath": "common/BaseWindowComponent.ts",
+      "legacyLine": 668,
+      "expression": "sound_mgr.PlaySoundEffect(\"2_dianji\")",
+      "status": "done",
+      "coverage": "covered_by_global_button"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "common/CommonManager.ts",
+      "legacyLine": 138,
+      "expression": "let voice = SoundManager.GetInstance().PlaySoundEffect(mp3_name, true, null, \"role\")",
+      "status": "done",
+      "coverage": "runtime_fighting_voice_helper"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "common/CongratulationObtainView.ts",
+      "legacyLine": 907,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"fighting_up\", true, null, \"role\")",
+      "status": "done",
+      "coverage": "fighting_up_view"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "commonController/GoodsController.ts",
+      "legacyLine": 897,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"openorclosebutton\")",
+      "status": "done",
+      "coverage": "pickup_success"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "commonController/GuildFightController.ts",
+      "legacyLine": 166,
+      "expression": "CommonManager.GetInstance().PlayFightingVoice(2)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "commonController/GuildFightController.ts",
+      "legacyLine": 169,
+      "expression": "CommonManager.GetInstance().PlayFightingVoice(1)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "composite/CompositeGoodsView.ts",
+      "legacyLine": 191,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"guildboss\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "composite/CompositeGuardView.ts",
+      "legacyLine": 178,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"guildboss\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "composite/CompositeHolySealView.ts",
+      "legacyLine": 178,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"guildboss\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "composite/CompositeLonglangView.ts",
+      "legacyLine": 183,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"guildboss\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "composite/CompositeUnrealView.ts",
+      "legacyLine": 293,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"guildboss\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "composite/GodBeastCompositeView.ts",
+      "legacyLine": 250,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"guildboss\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "composite/GodBefallCompositeView.ts",
+      "legacyLine": 237,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"guildboss\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "demon/DemonMainView.ts",
+      "legacyLine": 650,
+      "expression": "this.channel=SoundManager.GetInstance().PlaySoundEffect(this.voice[index],true,null,\"npc\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "diamondFight/DiamondFightMatchSuccessView.ts",
+      "legacyLine": 63,
+      "expression": "voice=CommonManager.GetInstance().PlayFightingVoice(3)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "diamondFight/DiamondFightResultView.ts",
+      "legacyLine": 190,
+      "expression": "this.voice=CommonManager.GetInstance().PlayFightingVoice(state)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "dungeon/DungeonFailureView.ts",
+      "legacyLine": 103,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(1)",
+      "status": "done",
+      "coverage": "DungeonResultView"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "dungeon/DungeonFailureView.ts",
+      "legacyLine": 252,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(1)",
+      "status": "done",
+      "coverage": "DungeonResultView"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "dungeon/DungeonVictoryView.ts",
+      "legacyLine": 137,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(2)",
+      "status": "done",
+      "coverage": "DungeonResultView"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "dungeonDragon/DungeonDragonReliveView.ts",
+      "legacyLine": 91,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(1)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "dungeonDragon/DungeonDragonResultView.ts",
+      "legacyLine": 73,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(2)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "dungeonMaterial/DungeonMaterialNewResultView.ts",
+      "legacyLine": 67,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(2)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "dungeonPartner/DungeonPartnerResultView.ts",
+      "legacyLine": 55,
+      "expression": "voice=CommonManager.GetInstance().PlayFightingVoice(2)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "scene_music",
+      "legacyPath": "elim/ElimMainView.ts",
+      "legacyLine": 87,
+      "expression": "SoundManager.GetInstance().PlaySceneSound(0.1, null, \"new\")",
+      "status": "done",
+      "coverage": "ElimMainView.OnShow/OnHide"
+    },
+    {
+      "kind": "scene_music",
+      "legacyPath": "elim/ElimMainView.ts",
+      "legacyLine": 250,
+      "expression": "SoundManager.GetInstance().PlaySceneSound(0.1, null, \"main\")",
+      "status": "done",
+      "coverage": "ElimMainView.OnShow/OnHide"
+    },
+    {
+      "kind": "global_button",
+      "legacyPath": "fashion/FashionMainView.ts",
+      "legacyLine": 230,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"2_dianji\")",
+      "status": "done",
+      "coverage": "covered_by_global_button"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "funcOpen/FunctionOpenAutoView.ts",
+      "legacyLine": 71,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"double_box\")",
+      "status": "done",
+      "coverage": "function_open"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "funcOpen/FunctionOpenAutoView.ts",
+      "legacyLine": 158,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(2)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "godBefall/GodBefallMainView.ts",
+      "legacyLine": 1254,
+      "expression": "this.PlaySoundEffect(id)",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "godBefall/GodBefallMainView.ts",
+      "legacyLine": 1283,
+      "expression": "PlaySoundEffect(god_id) {",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "godBefall/GodBefallMainView.ts",
+      "legacyLine": 1291,
+      "expression": "this.cur_channel = this.sound_mgr.PlaySoundEffect(sound, false, null, \"npc\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "godCourt/GodCourtComView.ts",
+      "legacyLine": 195,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"guildboss\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "guildFight/GuildFightSceneView.ts",
+      "legacyLine": 157,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(3)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "holyBattle/HolyBattleFightSceneView.ts",
+      "legacyLine": 134,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(3)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "holyBattle/HolyBattleReliveView.ts",
+      "legacyLine": 93,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(1)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "holyBattle/HolyBattleResultView.ts",
+      "legacyLine": 161,
+      "expression": "voice=CommonManager.GetInstance().PlayFightingVoice(state)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "kf1vn/Kf1vnFightResultView.ts",
+      "legacyLine": 135,
+      "expression": "voice=CommonManager.GetInstance().PlayFightingVoice(state)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "kf1vn/Kf1vnMatchSuccessView.ts",
+      "legacyLine": 120,
+      "expression": "voice=CommonManager.GetInstance().PlayFightingVoice(3)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "kf1vn/Kf1vnPlatformMatchSuccessView.ts",
+      "legacyLine": 101,
+      "expression": "voice=CommonManager.GetInstance().PlayFightingVoice(3)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "kfSingleRank/kfSRVictoryView.ts",
+      "legacyLine": 130,
+      "expression": "voice=CommonManager.GetInstance().PlayFightingVoice(2)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "login/LoginBgView.ts",
+      "legacyLine": 96,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"2_dianji\", true, 0)",
+      "status": "done",
+      "coverage": "legacy_explicit_zero_volume_noop"
+    },
+    {
+      "kind": "scene_music",
+      "legacyPath": "login/LoginBgView.ts",
+      "legacyLine": 187,
+      "expression": "SoundManager.GetInstance().PlaySceneSound(0.1, null, \"main\")",
+      "status": "done",
+      "coverage": "LoginFlow.StartAsync"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "login/LoginCreateRoleView.ts",
+      "legacyLine": 599,
+      "expression": "this.sound_channel = SoundManager.GetInstance().PlaySoundEffect(sound);",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "mainUI/MainUIReliveView.ts",
+      "legacyLine": 80,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(1)",
+      "status": "done",
+      "coverage": "MainUIReliveView"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "marriage/MarriageRingChangeView.ts",
+      "legacyLine": 38,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"3_huode\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "global_button",
+      "legacyPath": "newgameui/UIVerTabBtn.ts",
+      "legacyLine": 153,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"2_dianji\")",
+      "status": "done",
+      "coverage": "covered_by_global_button"
+    },
+    {
+      "kind": "global_button",
+      "legacyPath": "newgameui/UIVerTabBtn2.ts",
+      "legacyLine": 143,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"2_dianji\");",
+      "status": "done",
+      "coverage": "covered_by_global_button"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "nineSky/NineSkyFightSceneView.ts",
+      "legacyLine": 262,
+      "expression": "this.voice = CommonManager.GetInstance().PlayFightingVoice(3)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "nineSky/NineSkyFloorRewardView.ts",
+      "legacyLine": 72,
+      "expression": "this.voice=CommonManager.GetInstance().PlayFightingVoice(2)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "nineSky/NineSkyReliveView.ts",
+      "legacyLine": 61,
+      "expression": "voice=CommonManager.GetInstance().PlayFightingVoice(1)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "nineSky/NineSkyResultView.ts",
+      "legacyLine": 88,
+      "expression": "this.voice = CommonManager.GetInstance().PlayFightingVoice(2)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "partner/PartnerDetailsView.ts",
+      "legacyLine": 296,
+      "expression": "this.channel = SoundManager.GetInstance().PlaySoundEffect(this.voice[e], true, null, \"npc\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "pet/OutwardChangedView.ts",
+      "legacyLine": 116,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"double_box\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "pet/OutwardChangedView.ts",
+      "legacyLine": 804,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"3_huode\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "pray/PrayItemView.ts",
+      "legacyLine": 115,
+      "expression": "this.channel=SoundManager.GetInstance().PlaySoundEffect(this.voice[this.pray_type-1],true,null,\"ui\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "redEquip/CompositeEquipView.ts",
+      "legacyLine": 365,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"guildboss\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "redEquip/RingCompositeView.ts",
+      "legacyLine": 360,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"guildboss\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "redEquip/RingUpgradeView.ts",
+      "legacyLine": 358,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"guildboss\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "role/EquipmentView.ts",
+      "legacyLine": 770,
+      "expression": "this.channel = SoundManager.GetInstance().PlaySoundEffect(volume, true, null, \"role\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "runeTreasure/RuneTreasureResultView.ts",
+      "legacyLine": 80,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"fighting_up\", true, null, \"role\")",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "scene_music",
+      "legacyPath": "scene/fight/FightController.ts",
+      "legacyLine": 751,
+      "expression": "SoundManager.GetInstance().PlaySceneSound()",
+      "status": "done",
+      "coverage": "SceneController.On12005"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "scene/fight/FightMovieInfo.ts",
+      "legacyLine": 355,
+      "expression": "let sound_id = local_SoundManager.PlaySoundEffect(cfg.sound_res, true, null, \"skill\");",
+      "status": "done",
+      "coverage": "skill_movie_config"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "scene/SceneController.ts",
+      "legacyLine": 1079,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"upgrade\")",
+      "status": "done",
+      "coverage": "role_level_up"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "scene/sceneobj/Drop.ts",
+      "legacyLine": 611,
+      "expression": "this.sound_id = SoundManager.GetInstance().PlaySoundEffect(sound_name, false)",
+      "status": "pending",
+      "coverage": "unity_module_or_transaction_consumer_missing"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "scene/sceneobj/Role.ts",
+      "legacyLine": 1436,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"jump\", true, null, \"role\")",
+      "status": "done",
+      "coverage": "role_jump"
+    },
+    {
+      "kind": "sound_effect",
+      "legacyPath": "scene/sceneobj/Role.ts",
+      "legacyLine": 1796,
+      "expression": "SoundManager.GetInstance().PlaySoundEffect(\"jump\", true, null, \"role\")//待修改",
+      "status": "done",
+      "coverage": "role_jump"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "topPk/TopPkMatchSuccessView.ts",
+      "legacyLine": 141,
+      "expression": "voice = CommonManager.GetInstance().PlayFightingVoice(3)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "fighting_voice",
+      "legacyPath": "topPk/TopPkResultView.ts",
+      "legacyLine": 137,
+      "expression": "voice=CommonManager.GetInstance().PlayFightingVoice(state)",
+      "status": "pending",
+      "coverage": "corresponding_unity_result_consumer_missing"
+    },
+    {
+      "kind": "global_button",
+      "legacyPath": "util/Util.ts",
+      "legacyLine": 165,
+      "expression": "window[\"SoundManager\"].GetInstance().PlaySoundEffect(\"2_dianji\");",
+      "status": "done",
+      "coverage": "covered_by_global_button"
+    }
+  ]
+}

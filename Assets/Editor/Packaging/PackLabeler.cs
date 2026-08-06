@@ -184,6 +184,9 @@ namespace Shenxiao.EditorTools.Packaging
                 return address;
             }
             else if (address.StartsWith("resource/game/", StringComparison.Ordinal)) depth = 3;
+            // 声音必须按老端六个用途目录拆包。若落到 resource/ 通配规则，310 个声音会合成单一大包，
+            // 任意按钮音都可能把场景音乐/语音一起拉下；category 粒度同时保持地址和迁移台账可核对。
+            else if (address.StartsWith("resource/sound/", StringComparison.Ordinal)) depth = 3;
             else if (address.StartsWith("resource/", StringComparison.Ordinal)) depth = 2;
             else if (address.StartsWith("object/", StringComparison.Ordinal) && seg.Length > 2 && seg[2] == "action")
             {

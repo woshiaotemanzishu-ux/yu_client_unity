@@ -1,5 +1,7 @@
 using System;
 using TMPro;
+using Shenxiao.Common.Audio;
+using Shenxiao.Framework.Res;
 using Shenxiao.Generated.UI.Elim;
 using Shenxiao.Framework.UI;
 using Shenxiao.Framework.Util;
@@ -27,7 +29,13 @@ namespace Shenxiao.Module.Core.Elim
 
         protected override void OnShow(object args)
         {
+            _ = AudioManager.PlayMusic(GameResPath.GetSoundPath("scene", "new"), 0.1f);
             GameLog.Info("Elim", "消除主界面打开 → 待对接 消除游戏数据(ElimGameMgr)");
+        }
+
+        protected override void OnHide()
+        {
+            _ = AudioManager.PlayMusic(GameResPath.GetSoundPath("scene", "main"), 0.1f);
         }
 
         private static void DefaultText(TextMeshProUGUI lb, string s)

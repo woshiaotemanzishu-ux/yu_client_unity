@@ -1,8 +1,10 @@
 using System.Collections;
+using Shenxiao.Common.Audio;
 using Shenxiao.Framework.Event;
 using Shenxiao.Generated.UI.MainUI;
 using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Relive;
+using Shenxiao.Module.Core.Role;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.MainUI
@@ -43,6 +45,7 @@ namespace Shenxiao.Module.Core.MainUI
         /// 服控场景(ReliveModel 已有 NextReviveTime)忽略 args,改走服务端时间戳驱动。</summary>
         protected override void OnShow(object args)
         {
+            _ = AudioManager.PlayFightingVoice(RoleModel.Instance.Sex, 1);
             ReliveModel model = ReliveModel.Instance;
             if (model.HasReviveInfo && model.NextReviveTime > 0)
             {
