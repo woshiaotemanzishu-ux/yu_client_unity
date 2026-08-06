@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Audio;
 using Shenxiao.Common.Proto;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
@@ -108,6 +109,8 @@ namespace Shenxiao.Module.Core.Role
         private bool _subscribed;
         private bool _showingBaseAttrs = true;
         private int _modelRequestId;
+        private int _roleVoiceRequestId;
+        private AudioManager.PlaybackHandle _roleVoice;
 
         protected override void OnInit()
         {
@@ -124,16 +127,19 @@ namespace Shenxiao.Module.Core.Role
             BuildRuntimeItems();
             RefreshRole();
             ShowRoleModel();
+            StartRoleVoice();
         }
 
         protected override void OnHide()
         {
+            StopRoleVoice();
             _modelRequestId++;
             UIModelStage.Clear();
         }
 
         protected override void OnDispose()
         {
+            StopRoleVoice();
             Unsubscribe();
             _modelRequestId++;
             UIModelStage.Clear();
@@ -141,9 +147,40 @@ namespace Shenxiao.Module.Core.Role
 
         private void OnDestroy()
         {
+            StopRoleVoice();
             Unsubscribe();
             _modelRequestId++;
             UIModelStage.Clear();
+        }
+
+        private void StartRoleVoice()
+        {
+            StopRoleVoice();
+            string sound = AudioManager.ResolveRoleShowVoice(RoleModel.Instance.Career);
+            if (string.IsNullOrEmpty(sound)) return;
+            int requestId = _roleVoiceRequestId;
+            _ = StartRoleVoiceAsync(sound, requestId);
+        }
+
+        private async Task StartRoleVoiceAsync(string sound, int requestId)
+        {
+            AudioManager.PlaybackHandle handle = await AudioManager.PlayRole(sound);
+            if (requestId != _roleVoiceRequestId
+                || this == null || !gameObject.activeInHierarchy)
+            {
+                handle.Stop();
+                return;
+            }
+
+            _roleVoice?.Stop();
+            _roleVoice = handle;
+        }
+
+        private void StopRoleVoice()
+        {
+            _roleVoiceRequestId++;
+            _roleVoice?.Stop();
+            _roleVoice = null;
         }
 
         private void Subscribe()

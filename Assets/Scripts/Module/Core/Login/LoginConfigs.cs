@@ -27,6 +27,7 @@ namespace Shenxiao.Module.Core.Login
             public string Img1;
             public string Img2;
             public string Img3;
+            public string Sound;
         }
 
         public sealed class CareerRes
@@ -87,6 +88,7 @@ namespace Shenxiao.Module.Core.Login
                     Img1 = o.Value<string>("img1"),
                     Img2 = o.Value<string>("img2"),
                     Img3 = o.Value<string>("img3"),
+                    Sound = o.Value<string>("sound"),
                 });
             }
             return list;

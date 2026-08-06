@@ -22,11 +22,24 @@ namespace Shenxiao.Common.Audio
         {
             public AudioSource Source;
             public AudioClip Clip;
+            public bool OwnsClipReference;
             public Category Category;
             public float LocalVolume;
             public float ReleaseAt;
             public int Generation;
             public bool Busy;
+        }
+
+        private readonly struct ClipLease
+        {
+            public ClipLease(AudioClip clip, bool ownsReference)
+            {
+                Clip = clip;
+                OwnsReference = ownsReference;
+            }
+
+            public AudioClip Clip { get; }
+            public bool OwnsReference { get; }
         }
 
         public sealed class PlaybackHandle
@@ -38,11 +51,19 @@ namespace Shenxiao.Common.Audio
         }
 
         private static readonly List<PlaybackSlot> Slots = new List<PlaybackSlot>(InitialSfxSources);
+        // 只驻留启动阶段明确会用到的小闭包（当前场景、当前职业、当前技能和高频 UI），
+        // 不允许把 310 个声音全量塞进内存。字典中的每个 clip 恰好持有一份 ResManager 引用。
+        private static readonly Dictionary<string, AudioClip> ResidentClips =
+            new Dictionary<string, AudioClip>(StringComparer.Ordinal);
+        private static readonly Dictionary<string, Task<AudioClip>> ResidentLoads =
+            new Dictionary<string, Task<AudioClip>>(StringComparer.Ordinal);
         private static AudioRuntime _runtime;
         private static AudioSource _music;
         private static AudioClip _musicClip;
+        private static bool _musicOwnsClipReference;
         private static string _musicKey = "";
         private static int _musicEpoch;
+        private static int _residentEpoch;
         private static float _musicLocalVolume = 1f;
         private static float _musicVol = 1f;
         private static float _sfxVol = 1f;
@@ -105,10 +126,11 @@ namespace Shenxiao.Common.Audio
             }
 
             int epoch = ++_musicEpoch;
-            AudioClip clip = await ResManager.LoadAsync<AudioClip>(key);
+            ClipLease lease = await GetPlaybackClipAsync(key);
+            AudioClip clip = lease.Clip;
             if (epoch != _musicEpoch || _music == null)
             {
-                if (clip != null) ResManager.Release(clip);
+                if (clip != null && lease.OwnsReference) ResManager.Release(clip);
                 return;
             }
             if (clip == null)
@@ -119,6 +141,7 @@ namespace Shenxiao.Common.Audio
 
             ReleaseCurrentMusic();
             _musicClip = clip;
+            _musicOwnsClipReference = lease.OwnsReference;
             _musicKey = key;
             _music.clip = clip;
             _music.loop = true;
@@ -132,6 +155,19 @@ namespace Shenxiao.Common.Audio
             if (config == null) return;
             string name = config.ResolveScene(sceneId, sceneType);
             await PlayMusic(GameResPath.GetSoundPath("scene", name), config.ResolveSceneVolume(name));
+        }
+
+        /// <summary>
+        /// 在加载页内准备即将进入场景的唯一一首 BGM。若登录/选角已经在播同一地址则无需重复持有。
+        /// </summary>
+        public static async Task PreloadSceneMusic(int sceneId, int sceneType)
+        {
+            LegacySoundConfig config = await LegacySoundConfig.LoadAsync();
+            if (config == null) return;
+            string key = ResourcePath.Normalize(
+                GameResPath.GetSoundPath("scene", config.ResolveScene(sceneId, sceneType)));
+            if (_musicClip != null && string.Equals(_musicKey, key, StringComparison.Ordinal)) return;
+            await PreloadAddressAsync(key);
         }
 
         public static async Task PlayLoginMusic(float localVolume = 0.1f)
@@ -159,12 +195,31 @@ namespace Shenxiao.Common.Audio
         public static Task<PlaybackHandle> PlayNoviceVoice(string name, float volume = 1f, float delaySeconds = 0f)
             => PlaySfxInternal(GameResPath.GetSoundPath("novice_voice", name), volume, delaySeconds, Category.Voice);
 
-        public static Task<PlaybackHandle> PlayFightingVoice(int sex, int state)
+        public static Task PreloadUi(params string[] names) => PreloadCategoryAsync("ui", names);
+        public static Task PreloadRole(params string[] names) => PreloadCategoryAsync("role", names);
+        public static Task PreloadSkill(params string[] names) => PreloadCategoryAsync("skill", names);
+
+        public static string ResolveRoleShowVoice(int career)
+        {
+            switch (career)
+            {
+                case 1: return "boy_show1";
+                case 2: return "girl_show1";
+                case 3: return "boy_show2";
+                case 4: return "girl_show2";
+                default: return string.Empty;
+            }
+        }
+
+        public static string ResolveFightingVoice(int sex, int state)
         {
             string prefix = sex == 1 ? "Girl" : "Boy";
             string suffix = state == 1 ? "Lose" : state == 2 ? "Win1" : "Win2";
-            return PlayRole(prefix + "_" + suffix);
+            return prefix + "_" + suffix;
         }
+
+        public static Task<PlaybackHandle> PlayFightingVoice(int sex, int state)
+            => PlayRole(ResolveFightingVoice(sex, state));
 
         public static void PauseMusic()
         {
@@ -209,8 +264,14 @@ namespace Shenxiao.Common.Audio
         internal static void OnRuntimeDestroy(AudioRuntime runtime)
         {
             if (_runtime != runtime) return;
+            ++_musicEpoch;
+            ++_residentEpoch;
             ReleaseCurrentMusic();
             ClearAllSfx();
+            foreach (AudioClip clip in ResidentClips.Values)
+                if (clip != null) ResManager.Release(clip);
+            ResidentClips.Clear();
+            ResidentLoads.Clear();
             _runtime = null;
             _music = null;
             _musicClip = null;
@@ -226,10 +287,11 @@ namespace Shenxiao.Common.Audio
             if (_runtime == null || string.IsNullOrWhiteSpace(addressKey)) return new PlaybackHandle();
 
             string key = ResourcePath.Normalize(addressKey);
-            AudioClip clip = await ResManager.LoadAsync<AudioClip>(key);
+            ClipLease lease = await GetPlaybackClipAsync(key);
+            AudioClip clip = lease.Clip;
             if (clip == null || _runtime == null)
             {
-                if (clip != null) ResManager.Release(clip);
+                if (clip != null && lease.OwnsReference) ResManager.Release(clip);
                 Debug.LogWarning("[Audio] 音效资源缺失: " + key);
                 return new PlaybackHandle();
             }
@@ -238,6 +300,7 @@ namespace Shenxiao.Common.Audio
             PlaybackSlot slot = Slots[index];
             slot.Generation++;
             slot.Clip = clip;
+            slot.OwnsClipReference = lease.OwnsReference;
             slot.Category = category;
             slot.LocalVolume = Mathf.Clamp01(volume);
             slot.Busy = true;
@@ -299,8 +362,9 @@ namespace Shenxiao.Common.Audio
                 slot.Source.Stop();
                 slot.Source.clip = null;
             }
-            if (slot.Clip != null) ResManager.Release(slot.Clip);
+            if (slot.Clip != null && slot.OwnsClipReference) ResManager.Release(slot.Clip);
             slot.Clip = null;
+            slot.OwnsClipReference = false;
             slot.Busy = false;
             slot.ReleaseAt = 0f;
             slot.Generation++;
@@ -313,9 +377,87 @@ namespace Shenxiao.Common.Audio
                 _music.Stop();
                 _music.clip = null;
             }
-            if (_musicClip != null) ResManager.Release(_musicClip);
+            if (_musicClip != null && _musicOwnsClipReference) ResManager.Release(_musicClip);
             _musicClip = null;
+            _musicOwnsClipReference = false;
             _musicKey = "";
+        }
+
+        private static Task PreloadCategoryAsync(string category, string[] names)
+        {
+            Init();
+            if (_runtime == null || names == null || names.Length == 0) return Task.CompletedTask;
+
+            var tasks = new List<Task>(names.Length);
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            for (int i = 0; i < names.Length; i++)
+            {
+                if (string.IsNullOrWhiteSpace(names[i])) continue;
+                string key = ResourcePath.Normalize(GameResPath.GetSoundPath(category, names[i]));
+                if (seen.Add(key)) tasks.Add(PreloadAddressAsync(key));
+            }
+            return tasks.Count == 0 ? Task.CompletedTask : Task.WhenAll(tasks);
+        }
+
+        private static Task<AudioClip> PreloadAddressAsync(string addressKey)
+        {
+            Init();
+            if (_runtime == null || string.IsNullOrWhiteSpace(addressKey))
+                return Task.FromResult<AudioClip>(null);
+
+            string key = ResourcePath.Normalize(addressKey);
+            if (ResidentClips.TryGetValue(key, out AudioClip resident) && resident != null)
+                return Task.FromResult(resident);
+            if (ResidentLoads.TryGetValue(key, out Task<AudioClip> pending)) return pending;
+
+            var completion = new TaskCompletionSource<AudioClip>();
+            ResidentLoads[key] = completion.Task;
+            _ = CompleteResidentLoadAsync(key, _residentEpoch, completion);
+            return completion.Task;
+        }
+
+        private static async Task CompleteResidentLoadAsync(string key, int epoch,
+            TaskCompletionSource<AudioClip> completion)
+        {
+            AudioClip clip = null;
+            try
+            {
+                clip = await ResManager.LoadAsync<AudioClip>(key);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[Audio] 预热失败: " + key + " - " + e.Message);
+            }
+
+            if (epoch != _residentEpoch || _runtime == null)
+            {
+                if (clip != null) ResManager.Release(clip);
+                clip = null;
+            }
+            else if (clip != null)
+            {
+                ResidentClips[key] = clip;
+            }
+            else
+            {
+                Debug.LogWarning("[Audio] 预热资源缺失: " + key);
+            }
+
+            if (ResidentLoads.TryGetValue(key, out Task<AudioClip> pending)
+                && ReferenceEquals(pending, completion.Task))
+            {
+                ResidentLoads.Remove(key);
+            }
+            completion.TrySetResult(clip);
+        }
+
+        private static async Task<ClipLease> GetPlaybackClipAsync(string key)
+        {
+            if (ResidentClips.TryGetValue(key, out AudioClip resident) && resident != null)
+                return new ClipLease(resident, false);
+            if (ResidentLoads.TryGetValue(key, out Task<AudioClip> pending))
+                return new ClipLease(await pending, false);
+            return new ClipLease(await ResManager.LoadAsync<AudioClip>(key), true);
         }
 
         private static float EffectiveVolume(PlaybackSlot slot)

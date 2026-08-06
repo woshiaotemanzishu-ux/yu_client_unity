@@ -83,7 +83,7 @@ namespace Shenxiao.Module.Core.Skill
         }
 
         /// <summary>
-        /// 从当前职业的真实技能栏配置生成首战表现预热清单。这里只收集动作与粒子资源，
+        /// 从当前职业的真实技能栏配置生成首战表现预热清单。这里只收集动作、粒子和声音资源，
         /// 不硬编码职业技能 ID；配置新增/替换技能后，预热范围会自动跟随。
         /// </summary>
         public static async Task<SkillVisualWarmupPlan> BuildCareerWarmupPlanAsync(int career)
@@ -93,8 +93,10 @@ namespace Shenxiao.Module.Core.Skill
 
             var actions = new List<string>();
             var effectKeys = new List<string>();
+            var soundNames = new List<string>();
             var seenActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var seenEffects = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var seenSounds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             List<SkillUIConfigs.CareerSkill> skills = SkillUIConfigs.GetCareerSkills(career);
             for (int i = 0; i < skills.Count; i++)
@@ -105,6 +107,10 @@ namespace Shenxiao.Module.Core.Skill
                 string action = GetActionName(skillId);
                 if (!string.IsNullOrEmpty(action) && seenActions.Add(action))
                     actions.Add(action);
+
+                string sound = GetSoundRes(skillId);
+                if (!string.IsNullOrEmpty(sound) && seenSounds.Add(sound))
+                    soundNames.Add(sound);
 
                 IReadOnlyList<SkillMovieParticle> particles = GetParticles(skillId);
                 for (int j = 0; j < particles.Count; j++)
@@ -117,7 +123,8 @@ namespace Shenxiao.Module.Core.Skill
                 }
             }
 
-            return new SkillVisualWarmupPlan(actions.ToArray(), effectKeys.ToArray());
+            return new SkillVisualWarmupPlan(
+                actions.ToArray(), effectKeys.ToArray(), soundNames.ToArray());
         }
 
         private static JObject GetMovie(int skillId)
@@ -257,15 +264,18 @@ namespace Shenxiao.Module.Core.Skill
     public sealed class SkillVisualWarmupPlan
     {
         public static readonly SkillVisualWarmupPlan Empty =
-            new SkillVisualWarmupPlan(Array.Empty<string>(), Array.Empty<string>());
+            new SkillVisualWarmupPlan(
+                Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>());
 
-        public SkillVisualWarmupPlan(string[] actions, string[] effectKeys)
+        public SkillVisualWarmupPlan(string[] actions, string[] effectKeys, string[] soundNames)
         {
             Actions = actions ?? Array.Empty<string>();
             EffectKeys = effectKeys ?? Array.Empty<string>();
+            SoundNames = soundNames ?? Array.Empty<string>();
         }
 
         public string[] Actions { get; }
         public string[] EffectKeys { get; }
+        public string[] SoundNames { get; }
     }
 }

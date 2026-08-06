@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "sourceRoot": "yu_client/h5/src",
   "total": 77,
-  "done": 23,
-  "pending": 54,
+  "done": 25,
+  "pending": 52,
   "callsites": [
     {
       "kind": "fighting_voice",
@@ -410,8 +410,8 @@
       "legacyPath": "login/LoginCreateRoleView.ts",
       "legacyLine": 599,
       "expression": "this.sound_channel = SoundManager.GetInstance().PlaySoundEffect(sound);",
-      "status": "pending",
-      "coverage": "unity_module_or_transaction_consumer_missing"
+      "status": "done",
+      "coverage": "RoleCreateView.ConfigLogin.sound_lifecycle"
     },
     {
       "kind": "fighting_voice",
@@ -538,8 +538,8 @@
       "legacyPath": "role/EquipmentView.ts",
       "legacyLine": 770,
       "expression": "this.channel = SoundManager.GetInstance().PlaySoundEffect(volume, true, null, \"role\")",
-      "status": "pending",
-      "coverage": "unity_module_or_transaction_consumer_missing"
+      "status": "done",
+      "coverage": "EquipmentView.role_show_voice_lifecycle"
     },
     {
       "kind": "sound_effect",

@@ -261,6 +261,14 @@ foreach (var c in ConfigSkill.All()) { ... }
 - `Character` 子类（`Role` / `Monster` / `Npc`）必须用 `StateMachine`，禁止 if-else 状态判断
 - 场景对象生命周期由 `SceneObj` 管理，业务不直接 `Destroy`
 
+### 3.7 声音（AudioManager）
+
+- 业务只通过 `AudioManager.PlayUi/PlayRole/PlaySkill/PlaySceneMusic` 等分类入口播放，地址由 `GameResPath.GetSoundPath` 统一生成，禁止带扩展名或直接 `Resources.Load/Addressables.LoadAssetAsync`。
+- 页面专属声音必须保留 `PlaybackHandle` 和异步请求代次；`OnHide/OnDispose/OnDestroy`、切职业或切展示对象时停止旧句柄，旧加载后到必须立即丢弃。通用按钮 `2_dianji` 不能代替页面语音或结果音。
+- 合成、领奖、祈福等语义声音只在权威成功回包或真实结果演出点播放；没有消费者/事务闭环时在调用点台账中保持 `pending`，禁止在点击事件里伪播成功。
+- 首屏预热只能走既有 Boot/RoleSelection/GameStart 加载阶段，并由当前场景、当前职业与当前技能配置生成固定小闭包。禁止全量预热声音库；驻留 Clip 与普通播放 Clip 必须区分引用所有权，前者由 `AudioManager` 生命周期统一释放。
+- 更新旧端声音调用点状态时运行 `python Tools/Audio/sync_legacy_audio.py --callsite-only --client-root E:\GitProject\yu_client`；只有资源/导入/Addressables 本身变化才运行完整同步。
+
 ---
 
 ## 四、UI 开发规范

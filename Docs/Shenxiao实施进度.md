@@ -30,14 +30,15 @@
 - 现有8个611安全读侧/通知保持不变。baseline只补人工说明且历史3/15计数冻结；正向`coverage_20260803_041207.md`、七常量故障`coverage_20260803_041342.md`和最终`coverage_20260803_041510.md`完成，最终A～M全PASS、F=250/G=174/M=`81+250+0=331`，全局未落机器清单归零。
 - 逐轮证据、边界和下一候选以[自动循环协议与逻辑接入工单](工单-自动循环-协议与逻辑接入-20260711.md)为准；覆盖 baseline 不按单轮追写。
 
-## 全量声音迁移（2026-08-05）
+## 全量声音迁移与消费复核（2026-08-06）
 
 - ✅ **资源闭包**：老端 676 个物理文件归并为 310 个逻辑声音，按 `scene: mp3>ogg>wav`、其他分类 `wav>ogg>mp3` 唯一选源；Unity 已落 310/310，保持 `resource/sound/{type}/{name}` 地址，并同步 `ConfigSound.json`。
-- ✅ **公共运行时**：`AudioManager` 已改为幂等自启动、单路可释放音乐和 12～32 路并发音效池；设置页现有音乐/音效音量继续生效。全局按钮在 pointer-down 自动播放 `ui/2_dianji`，不批量改 Prefab。
-- ✅ **高频消费链**：已接登录/切场/消除页音乐、技能配置音、升级、跳跃、拾取、获得技能、战力提示、副本/挂机结算和死亡复活。
-- ✅ **防半迁移工具**：`Tools/Audio/sync_legacy_audio.py` 统一维护选源、确定性 GUID、Unity 6 导入配置、Addressables 和台账；`--check` 可阻止资源/地址/状态漂移。`LegacyAudioImportPostprocessor.ValidateCli` 负责 Unity 侧 310 个 Clip 与导入设置复核。
-- 🟡 **后续业务消费**：老端 77 个主动调用点逐项登记，当前 23 个 `done`、54 个 `pending`；pending 均是对应 Unity 模块、场景对象或权威事务成功点尚未迁移，资源本身已齐，不得在待对接按钮上伪播成功音。见[声音迁移台账](声音迁移台账.md)。
-- **验证**：独立编译环境下 `Shenxiao.Module.Core` 与 `Shenxiao.Editor` 均 0 error；未占用另一个流程正在使用的 Unity Editor。Android/WebGL 解码、首播和正式 Addressables 分包随下次持续构建复验。
+- ✅ **公共运行时**：`AudioManager` 已改为幂等自启动、单路音乐和 12～32 路并发音效池；新增驻留/普通播放引用分离与同地址预热去重。只驻留当前场景、当前职业、当前技能和高频 UI 的固定小闭包，运行时销毁时统一释放，禁止全量加载 310 项。
+- ✅ **高频消费链**：除登录/切场/消除页音乐、技能配置音、升级、跳跃、拾取、获得技能、战力提示、副本/挂机结算和死亡复活外，已补创角 `ConfigLogin.sound` 与人物装备页职业展示语音，均有切职业/关闭/销毁的后到取消。
+- ✅ **首播时序**：Boot 预热通用点击音，选角阶段预热开放职业创角音，GAME_START 加载层并行等待当前场景 BGM、当前职业语音和当前职业技能音；完成后才派发 `EVT_GAME_START`，避免世界先出现、音乐/首个技能音后到。
+- ✅ **防半迁移工具**：`Tools/Audio/sync_legacy_audio.py` 统一维护选源、确定性 GUID、Unity 6 导入配置、Addressables 和台账；新增 `--callsite-only`，可只维护两份调用点产物而不触碰资源/共享 Addressables，并对两个新增消费者的播放/停止标记以及 ConfigLogin、场景选曲、33 个职业技能配置音和固定运行时声音做反漂移校验。
+- 🟡 **后续业务消费**：老端 77 个主动调用点逐项登记，当前 25 个 `done`、52 个 `pending`；pending 经复核仍属于尚未迁移的结果页/场景演出，或缺权威写事务的合成、祈福等页面，资源本身已齐，不得在待对接按钮上伪播成功音。见[声音迁移台账](声音迁移台账.md)。
+- **验证**：`--callsite-only --check` 通过（310 资源事实、77 调用点、25/52）；`Shenxiao.Module.Core` 与 `Shenxiao.Common` 串行离线编译均 0 warning / 0 error，Python 工具语法检查通过。按用户要求未启动/占用 Unity；真实听测、Android/WebGL 解码与正式 Addressables 分包仍需在后续运行态或持续构建复验。
 
 ---
 

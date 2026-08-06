@@ -179,6 +179,8 @@ def classify_direct(path: str, line: str) -> tuple[str, str]:
         "scene/sceneobj/Role.ts": "role_jump",
         "scene/fight/FightMovieInfo.ts": "skill_movie_config",
         "common/CongratulationObtainView.ts": "fighting_up_view",
+        "login/LoginCreateRoleView.ts": "RoleCreateView.ConfigLogin.sound_lifecycle",
+        "role/EquipmentView.ts": "EquipmentView.role_show_voice_lifecycle",
     }
     if path in mapping:
         return "done", mapping[path]
@@ -247,6 +249,88 @@ def collect_callsites(client_root: Path) -> list[dict]:
             )
     rows.sort(key=lambda row: (row["legacyPath"].lower(), row["legacyLine"], row["kind"]))
     return rows
+
+
+RUNTIME_COVERAGE_CHECKS = {
+    "RoleCreateView.ConfigLogin.sound_lifecycle": (
+        "Assets/Scripts/Module/Core/Login/Views/RoleCreateView.cs",
+        ("AudioManager.PlayUi(sound)", "StopCareerSound()"),
+    ),
+    "EquipmentView.role_show_voice_lifecycle": (
+        "Assets/Scripts/Module/Core/Role/Views/EquipmentView.cs",
+        ("AudioManager.PlayRole(sound)", "StopRoleVoice()"),
+    ),
+}
+
+FIXED_RUNTIME_SOUND_REFERENCES = {
+    "ui": ("2_dianji", "double_box", "openorclosebutton"),
+    "role": (
+        "boy_show1", "girl_show1", "boy_show2", "girl_show2",
+        "fighting_up", "upgrade", "jump",
+        "Boy_Lose", "Boy_Win1", "Boy_Win2",
+        "Girl_Lose", "Girl_Win1", "Girl_Win2",
+    ),
+}
+
+
+def validate_runtime_callsite_coverage(unity_root: Path, callsites: list[dict]) -> None:
+    """Reject newly marked done rows when their concrete Unity consumer/lifecycle was removed."""
+    active = {row["coverage"] for row in callsites if row["status"] == "done"}
+    for coverage, (relative, markers) in RUNTIME_COVERAGE_CHECKS.items():
+        if coverage not in active:
+            continue
+        path = unity_root / relative
+        if not path.is_file():
+            raise RuntimeError(f"audio runtime coverage file missing: {relative}")
+        text = path.read_text(encoding="utf-8")
+        missing = [marker for marker in markers if marker not in text]
+        if missing:
+            raise RuntimeError(
+                f"audio runtime coverage drift: {relative} missing {', '.join(missing)}"
+            )
+
+
+def validate_configured_sound_references(client_root: Path, resources: list[dict]) -> None:
+    """Ensure every sound selected by current login/scene/skill config exists in the 310-key closure."""
+    addresses = {row["address"].lower() for row in resources}
+    refs: set[tuple[str, str]] = set()
+    config_root = client_root / "cdn/resource/config/client"
+
+    login = json.loads((config_root / "ConfigLogin.json").read_text(encoding="utf-8"))
+    for row in login.get("CreateRole", {}).get("UI", []):
+        name = str(row.get("sound") or "").strip()
+        if name:
+            refs.add(("ui", name))
+
+    sound = json.loads((config_root / "ConfigSound.json").read_text(encoding="utf-8"))
+    scene_names = {sound.get("DefaultScene"), sound.get("LoginOrRole")}
+    scene_names.update(sound.get("Scene", {}).values())
+    scene_names.update(sound.get("DefaultSceneType", {}).values())
+    refs.update(("scene", str(name).strip()) for name in scene_names if name)
+
+    movies = json.loads(
+        (config_root / "ConfigCareerSkillMovies.json").read_text(encoding="utf-8")
+    )
+    for row in movies.values():
+        if not isinstance(row, dict):
+            continue
+        name = str(row.get("sound_res") or "").strip()
+        if name:
+            refs.add(("skill", name))
+
+    for category, names in FIXED_RUNTIME_SOUND_REFERENCES.items():
+        refs.update((category, name) for name in names)
+
+    missing = sorted(
+        f"resource/sound/{category}/{name}"
+        for category, name in refs
+        if f"resource/sound/{category}/{name}".lower() not in addresses
+    )
+    if missing:
+        raise RuntimeError(
+            "configured/runtime sound references missing from audio closure:\n"
+            + "\n".join(missing)
+        )
 
 
 def public_resource(row: dict) -> dict:
@@ -470,9 +554,18 @@ def sync(args: argparse.Namespace) -> int:
     if physical != 676:
         raise RuntimeError(f"legacy physical sound count changed: expected 676, got {physical}")
     callsites = collect_callsites(client_root)
+    validate_configured_sound_references(client_root, resources)
+    validate_runtime_callsite_coverage(unity_root, callsites)
     desired = build_desired(unity_root, client_root, resources, callsites)
+    if args.callsite_only:
+        selected = {
+            (unity_root / "Schemas/Audio/callsite_manifest.json").resolve(),
+            (unity_root / "Docs/声音迁移台账.md").resolve(),
+        }
+        desired = {path: content for path, content in desired.items() if path in selected}
     owned_paths = set(desired)
-    verify_guid_collisions(unity_root, owned_paths, desired)
+    if not args.callsite_only:
+        verify_guid_collisions(unity_root, owned_paths, desired)
 
     drift: list[str] = []
     for path, content in desired.items():
@@ -482,7 +575,8 @@ def sync(args: argparse.Namespace) -> int:
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(content)
     if args.check:
-        validate_resource_set(unity_root, resources)
+        if not args.callsite_only:
+            validate_resource_set(unity_root, resources)
         if drift:
             print("audio migration drift detected:", file=sys.stderr)
             print("\n".join(f"  {path}" for path in drift[:50]), file=sys.stderr)
@@ -490,7 +584,8 @@ def sync(args: argparse.Namespace) -> int:
         print(f"audio migration check passed: resources={len(resources)} callsites={len(callsites)}")
         return 0
 
-    validate_resource_set(unity_root, resources)
+    if not args.callsite_only:
+        validate_resource_set(unity_root, resources)
     print(f"audio migration synchronized: resources={len(resources)} physical={physical} callsites={len(callsites)} changed={len(drift)}")
     return 0
 
@@ -500,6 +595,11 @@ def main() -> int:
     parser.add_argument("--unity-root", help="Unity repository root; defaults from this script")
     parser.add_argument("--client-root", help="legacy yu_client root")
     parser.add_argument("--check", action="store_true", help="verify without writing")
+    parser.add_argument(
+        "--callsite-only",
+        action="store_true",
+        help="update/check only the callsite manifest and ledger; never rewrite audio or Addressables",
+    )
     args = parser.parse_args()
     try:
         return sync(args)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Shenxiao.Common.Audio;
 using Shenxiao.Common.Prefs;
 using Shenxiao.Common.Proto;
 using Shenxiao.Common.UI3D;
@@ -13,6 +14,7 @@ using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Role;
 using Shenxiao.Module.Core.Scene;
+using Shenxiao.Module.Core.Skill;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -67,7 +69,10 @@ namespace Shenxiao.Module.Core.Preload
                 }
             }
 
-            await RunStageAsync(LegacyPreloadStage.Boot, entries, progress);
+            // 登录页的第一次点击不能再等 Addressables 冷加载；只预热唯一的通用点击音。
+            await Task.WhenAll(
+                RunStageAsync(LegacyPreloadStage.Boot, entries, progress),
+                AudioManager.PreloadUi("2_dianji"));
         }
 
         /// <summary>
@@ -143,11 +148,14 @@ namespace Shenxiao.Module.Core.Preload
 
             AddLoginRoleUiEntries(entries);
             List<LoginConfigs.CareerOption> options = LoginConfigs.CreateRoleOptions();
+            var createSounds = new List<string>(options.Count);
             for (int i = 0; i < options.Count; i++)
             {
                 LoginConfigs.CareerOption option = options[i];
                 AddCreateRoleOptionEntries(entries, option);
+                if (!string.IsNullOrEmpty(option.Sound)) createSounds.Add(option.Sound);
             }
+            Task createSoundWarmup = AudioManager.PreloadUi(createSounds.ToArray());
 
             IReadOnlyList<GameRoleInfo> roles = LoginModel.Instance.Roles;
             var sortedRoles = new List<GameRoleInfo>(roles);
@@ -181,13 +189,17 @@ namespace Shenxiao.Module.Core.Preload
                 LoginConfigs.CareerOption option = FindOption(options, role.Career);
                 if (option == null)
                 {
-                    await RunStageAsync(LegacyPreloadStage.RoleSelection, entries, progress);
+                    await Task.WhenAll(
+                        RunStageAsync(LegacyPreloadStage.RoleSelection, entries, progress),
+                        createSoundWarmup);
                     return;
                 }
                 LoginConfigs.CareerRes res = LoginConfigs.GetCreateRes(option.Career, option.Sex);
                 if (res == null)
                 {
-                    await RunStageAsync(LegacyPreloadStage.RoleSelection, entries, progress);
+                    await Task.WhenAll(
+                        RunStageAsync(LegacyPreloadStage.RoleSelection, entries, progress),
+                        createSoundWarmup);
                     return;
                 }
 
@@ -204,7 +216,9 @@ namespace Shenxiao.Module.Core.Preload
                 });
             }
 
-            await RunStageAsync(LegacyPreloadStage.RoleSelection, entries, progress);
+            await Task.WhenAll(
+                RunStageAsync(LegacyPreloadStage.RoleSelection, entries, progress),
+                createSoundWarmup);
         }
 
         public static async Task PreloadGameStartAsync(Action<float, string> progress = null)
@@ -225,14 +239,60 @@ namespace Shenxiao.Module.Core.Preload
             await MonsterConfigs.EnsureLoaded();
 
             RoleModel role = RoleModel.Instance;
+            Task audioWarmup = Task.CompletedTask;
             if (role.HasBaseInfo && role.Figure != null)
             {
                 RoleModelSpec roleSpec = await BuildMainRoleSpecAsync(role);
                 await AddRoleModelSpecAsync(entries, roleSpec);
                 await AddSceneMapEntriesAsync(entries, role.SceneId, role.X, role.Y);
+                audioWarmup = PreloadGameAudioAsync(role);
             }
 
-            await RunStageAsync(LegacyPreloadStage.GameStart, entries, progress);
+            // EVT_GAME_START 在本方法完成后才发出。场景 BGM 和首个高频音效必须在加载层还可见时就绪，
+            // 避免世界已经揭开后才开始远端拉取；这里只预热当前角色真实可达的小闭包。
+            await Task.WhenAll(
+                RunStageAsync(LegacyPreloadStage.GameStart, entries, progress),
+                audioWarmup);
+        }
+
+        private static async Task PreloadGameAudioAsync(RoleModel role)
+        {
+            Task coreWarmup = Task.CompletedTask;
+            try
+            {
+                MainUIConfigs.SceneCfg scene = MainUIConfigs.GetSceneCfg(role.SceneId);
+                coreWarmup = Task.WhenAll(
+                    AudioManager.PreloadSceneMusic(role.SceneId, scene?.Type ?? 0),
+                    AudioManager.PreloadUi("2_dianji", "double_box", "openorclosebutton"),
+                    AudioManager.PreloadRole(
+                        AudioManager.ResolveRoleShowVoice(role.Career),
+                        "fighting_up",
+                        "upgrade",
+                        "jump",
+                        AudioManager.ResolveFightingVoice(role.Sex, 1),
+                        AudioManager.ResolveFightingVoice(role.Sex, 2),
+                        AudioManager.ResolveFightingVoice(role.Sex, 3)));
+
+                // 技能声音按当前职业真实技能栏配置收集，不硬编码技能 ID，也不加载其他职业声音。
+                SkillVisualWarmupPlan skillPlan = SkillVisualWarmupPlan.Empty;
+                try
+                {
+                    skillPlan = await SkillMovieConfigs.BuildCareerWarmupPlanAsync(role.Career);
+                }
+                catch (Exception e)
+                {
+                    GameLog.Warn("Preload", "skill audio plan skipped: {0}", e.Message);
+                }
+                await Task.WhenAll(coreWarmup,
+                    AudioManager.PreloadSkill(skillPlan.SoundNames));
+            }
+            catch (Exception e)
+            {
+                // 如果技能配置路径异常，已启动的场景/职业预热仍要收口后再揭开世界。
+                try { await coreWarmup; } catch { /* 下方统一记录 */ }
+                // 预热失败不破坏登录主链；实际播放仍会按地址冷加载并输出缺失日志。
+                GameLog.Warn("Preload", "game audio warmup skipped: {0}", e.Message);
+            }
         }
 
         public static async Task PreloadSceneMapAsync(int sceneId, int focusX, int focusY, Action<float, string> progress = null)

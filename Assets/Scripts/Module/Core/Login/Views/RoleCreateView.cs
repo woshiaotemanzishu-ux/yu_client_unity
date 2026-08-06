@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Shenxiao.Common.Audio;
 using Shenxiao.Common.Tips;
 using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
@@ -91,6 +92,8 @@ namespace Shenxiao.Module.Core.Login
         private VideoPlayer _videoPlayer;        // 挂在 videoImage 上,懒建,全职业共用
         private RenderTexture _videoTexture;     // 视频画布,按 clip 尺寸懒建,OnDispose 释放
         private VideoClip _pendingIdleClip;      // create2 播完要接的待机段(loopPointReached 时切)
+        private AudioManager.PlaybackHandle _careerSound;
+        private int _careerPresentationId;
 
         protected override void OnInit()
         {
@@ -106,12 +109,14 @@ namespace Shenxiao.Module.Core.Login
 
         protected override void OnHide()
         {
+            StopCareerSound();
             UIModelStage.Clear();
             StopVideo();
         }
 
         protected override void OnDispose()
         {
+            StopCareerSound();
             EventDispatcher.Off<int>(GlobalEvent.EVT_GAME_CREATE_ROLE_RESULT, OnCreateResult);
             if (_videoPlayer != null)
             {
@@ -264,6 +269,8 @@ namespace Shenxiao.Module.Core.Login
         /// 未交付视频的职业走拼装链 3D 模型(衣+头饰+武器 + ConfigModelAni 的 create 动作序列,原样保留)。</summary>
         private async void ShowCareerModel()
         {
+            StopCareerSound();
+            int presentationId = _careerPresentationId;
             var o = _options[_selectedIndex];
             LoginConfigs.CareerRes res = LoginConfigs.GetCreateRes(o.Career, o.Sex);
             if (res == null)
@@ -274,7 +281,12 @@ namespace Shenxiao.Module.Core.Login
             int selectedAtRequest = _selectedIndex;
 
             // 视频优先:职业交付了创角展示视频就播视频(老整模 model_create_* 资源已废弃),没有再走老拼装链
-            if (await TryShowVideo(res, selectedAtRequest)) return;
+            if (await TryShowVideo(res, selectedAtRequest))
+            {
+                if (selectedAtRequest == _selectedIndex && gameObject.activeInHierarchy)
+                    _ = PlayCareerSoundAsync(o.Sound, presentationId);
+                return;
+            }
             StopVideo(); // 本职业没视频:收掉上个职业可能在播的画面,让位 3D 模型
 
             string[] actions = LoginConfigs.RoleUIActions("LoginCreateRoleView");
@@ -312,6 +324,7 @@ namespace Shenxiao.Module.Core.Login
             {
                 EffectBinder.PlayOneShot(effect);
             }
+            _ = PlayCareerSoundAsync(o.Sound, presentationId);
         }
 
         /// <summary>
@@ -518,6 +531,28 @@ namespace Shenxiao.Module.Core.Login
             _pendingIdleClip = null;
             if (_videoPlayer != null) _videoPlayer.Stop();
             if (videoImage != null) videoImage.enabled = false;
+        }
+
+        private async Task PlayCareerSoundAsync(string sound, int presentationId)
+        {
+            if (string.IsNullOrEmpty(sound)) return;
+            AudioManager.PlaybackHandle handle = await AudioManager.PlayUi(sound);
+            if (presentationId != _careerPresentationId
+                || this == null || !gameObject.activeInHierarchy)
+            {
+                handle.Stop();
+                return;
+            }
+
+            _careerSound?.Stop();
+            _careerSound = handle;
+        }
+
+        private void StopCareerSound()
+        {
+            _careerPresentationId++;
+            _careerSound?.Stop();
+            _careerSound = null;
         }
 
         private static void ClearToBlack(RenderTexture rt)
