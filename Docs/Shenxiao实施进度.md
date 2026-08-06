@@ -1958,3 +1958,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 
 - 完成图标 51 的 FEASTBOSS 条件缓存、单实例可取消复评循环与 generation 防旧循环回写；等级变化改为按缓存重算。
 - 完成纯参数墙钟、多时间窗、总活动边界与非法条件治理专项；`git diff --check` 已通过，Unity 批处理因编辑器/构建锁待串行验收。
+
+## 2026-08-06：主角称号出生点静态残影修复
+
+- **根因**：`12002/12003` 主角角色块在同步 `PkStatus` 后仍被写入 `SceneManager._roles`。`SceneDesignationPresenter` 因而同时创建跟随 `RoleModel` 的 `MainRoleDesignation` 和读取进场快照的 `RoleDesignation_<主角ID>`；后者不参与主角本地移动，永久留在出生点。
+- **修复**：角色块识别主角后立即返回，恢复“主角不进入其他玩家表”的既有边界；称号展示层同时拒绝并清理主角同 ID 普通条目，兼容热重载前已存在的脏数据。未修改称号资源、Prefab、排序或正常跟随公式。
+- **门禁**：新增 `CliVerify.DesignationMainGhost` 无资源依赖专项，并扩展 `DesignationWearSceneCase`，强制构造主角同 ID 快照、移动主角并断言快照过滤、唯一实例、跟随位移、清场与现场恢复。
+- **验证状态**：修前稳定得到 `noDuplicateMain=False/stationaryGhostObserved=True`；修后专项 `snapshotFiltered/initialPosition/followsMain/noStaticGhost/restored` 全部为 `True`。720×1280 与 1920×1080 的完整称号场景均为 `VERDICT pass=True`，包含静态/动态称号、41105、位置、隐藏规则、清场和动态 RT 有效像素；两档 RT 的 `alpha/lit` 分别为 `19958/20994`、`19940/20971`。Core/Editor 离线构建均为 0 error（97/2 条既有 warning），专项路线账本 2/2 `done`；证据位于 `output/ui_route_audit/2026-08-06_designation_ghost/`。

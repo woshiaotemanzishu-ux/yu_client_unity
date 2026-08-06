@@ -106,12 +106,20 @@ namespace Shenxiao.Module.Core.Designation
         private static void RefreshMain()
         {
             RoleModel role = RoleModel.Instance;
+            // 清理旧版本或热重载期间曾按普通 RoleVo 建出的主角副本。
+            if (role.RoleId != 0) Remove(role.RoleId);
             Refresh(MainKey, true, null, role.Figure, role.Figure?.DesignationId ?? 0u);
         }
 
         private static void RefreshRole(RoleVo role)
         {
             if (role == null) return;
+            long mainRoleId = RoleModel.Instance.RoleId;
+            if (mainRoleId != 0 && role.RoleId == mainRoleId)
+            {
+                Remove(role.RoleId);
+                return;
+            }
             Refresh(role.RoleId, false, role, role.Figure, role.Figure?.DesignationId ?? 0u);
         }
 

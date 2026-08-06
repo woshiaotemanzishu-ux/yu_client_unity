@@ -308,6 +308,11 @@ namespace Shenxiao.EditorTools
             Run(DesignationWearSceneCase.Run, 180.0);
         }
 
+        public static void DesignationMainGhost()
+        {
+            Run(DesignationWearSceneCase.RunMainGhostRegression, 60.0);
+        }
+
         public static void DesignationReadContinuation()
         {
             Run(DesignationReadContinuationCase.Run, 60.0);

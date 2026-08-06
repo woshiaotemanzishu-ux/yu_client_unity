@@ -684,11 +684,22 @@ namespace Shenxiao.Module.Core.Scene
         {
             var vo = new RoleVo();
             vo.ReadFromProtocal(reader);
+            ApplyParsedRole(vo);
+        }
+
+        /// <summary>
+        /// 12002/12003 角色块落表。主角只同步自身状态，不得进入 SceneManager 的其他玩家表，
+        /// 否则依赖 AllRoles 的场景表现会为主角再创建一份停留在快照坐标的对象。
+        /// </summary>
+        private static void ApplyParsedRole(RoleVo vo)
+        {
+            if (vo == null) return;
             // 主角自块:老端 SceneManager.CreateRole 里 roleId==自己 → mainrole_vo.ChangeFromVo(同步 pk_status 等)。
             // 本端主角状态在 RoleModel,此处只取 PK 模式(HudTop 战斗模式图标/切换弹窗高亮依赖它)。
             if (vo.RoleId == RoleModel.Instance.RoleId)
             {
                 SetMainRolePkStatus(vo.PkStatus);
+                return;
             }
             SceneManager.Instance.AddRole(vo);
         }

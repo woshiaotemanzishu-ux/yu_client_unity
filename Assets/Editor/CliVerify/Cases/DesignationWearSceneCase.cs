@@ -27,9 +27,117 @@ namespace Shenxiao.EditorTools
         private const BindingFlags InstancePrivate = BindingFlags.Instance | BindingFlags.NonPublic;
         private const BindingFlags StaticPrivate = BindingFlags.Static | BindingFlags.NonPublic;
         private const string EvidenceRoot =
-            "output/ui_route_audit/2026-08-04_role_web_round2/cli_designation_scene_20260805_2501/";
+            "output/ui_route_audit/2026-08-06_designation_ghost/cli_designation_scene_main_duplicate/";
         private const long MainRoleId = 920000001;
         private const long OtherRoleId = 920000002;
+
+        /// <summary>
+        /// 不依赖称号图片/特效资源的主角同 ID 回归：覆盖 12002 落表边界、脏快照防御和移动跟随。
+        /// </summary>
+        public static async Task<int> RunMainGhostRegression()
+        {
+            RoleModel main = RoleModel.Instance;
+            long oldRoleId = main.RoleId;
+            FigureProto oldFigure = main.Figure;
+            int oldSceneId = main.SceneId;
+            int oldDunId = main.DunId;
+            int oldPkStatus = main.PkStatus;
+            int oldX = main.X;
+            int oldY = main.Y;
+            CliVerify.Stage stage = null;
+            bool pass = false;
+            bool restored = false;
+
+            try
+            {
+                SceneDesignationPresenter.EnsureInstalled();
+                SceneDesignationPresenter.ClearAll();
+                SceneManager.Instance.RemoveRole(MainRoleId);
+                await Task.Delay(50);
+                stage = CliVerify.Stage.Create();
+
+                Vector2 camera = SceneMapView.CameraPos;
+                var mainFigure = new FigureProto();
+                var snapshotFigure = new FigureProto();
+                mainFigure.SetDesignationId(801001);
+                snapshotFigure.SetDesignationId(801001);
+                main.RoleId = MainRoleId;
+                main.Figure = mainFigure;
+                main.SceneId = 1001;
+                main.DunId = 0;
+                main.X = Mathf.RoundToInt(camera.x + 40f);
+                main.Y = Mathf.RoundToInt(camera.y + 20f);
+                int snapshotPk = oldPkStatus == 2 ? 3 : 2;
+                var mainSnapshot = new RoleVo
+                {
+                    RoleId = MainRoleId,
+                    Figure = snapshotFigure,
+                    X = main.X,
+                    Y = main.Y,
+                    PkStatus = snapshotPk,
+                };
+
+                MethodInfo applyParsedRole = typeof(SceneController).GetMethod("ApplyParsedRole", StaticPrivate);
+                MethodInfo refreshMain = typeof(SceneDesignationPresenter).GetMethod("RefreshMain", StaticPrivate);
+                if (applyParsedRole == null || refreshMain == null)
+                    throw new MissingMethodException("designation main ghost hooks missing");
+
+                applyParsedRole.Invoke(null, new object[] { mainSnapshot });
+                bool snapshotFiltered = SceneManager.Instance.GetRole(MainRoleId) == null
+                    && main.PkStatus == snapshotPk;
+
+                // 模拟热重载前留下的脏表：展示层也不能创建 RoleDesignation_<主角ID>。
+                SceneManager.Instance.AddRole(mainSnapshot);
+                refreshMain.Invoke(null, null);
+                TickPresenter();
+                RectTransform mainRect = FindRect("MainRoleDesignation");
+                RectTransform duplicateBeforeMove = FindRect("RoleDesignation_" + MainRoleId);
+                Vector2 expectedStart = ExpectedPosition(main.X, main.Y);
+                bool initialPosition = mainRect != null
+                    && Vector2.Distance(mainRect.anchoredPosition, expectedStart) < 1.5f;
+
+                Vector2 start = mainRect != null ? mainRect.anchoredPosition : Vector2.zero;
+                main.X += 96;
+                main.Y += 44;
+                TickPresenter();
+                Vector2 expectedMoved = ExpectedPosition(main.X, main.Y);
+                RectTransform duplicateAfterMove = FindRect("RoleDesignation_" + MainRoleId);
+                bool followsMain = mainRect != null
+                    && Vector2.Distance(mainRect.anchoredPosition, expectedMoved) < 1.5f
+                    && Vector2.Distance(mainRect.anchoredPosition, start) > 20f;
+                bool noStaticGhost = duplicateBeforeMove == null && duplicateAfterMove == null;
+                pass = snapshotFiltered && initialPosition && followsMain && noStaticGhost;
+                Debug.Log("CLIVERIFY designation-main-ghost snapshotFiltered=" + snapshotFiltered
+                    + " initialPosition=" + initialPosition + " followsMain=" + followsMain
+                    + " noStaticGhost=" + noStaticGhost);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("CLIVERIFY designation-main-ghost EXCEPTION " + e);
+            }
+            finally
+            {
+                SceneDesignationPresenter.ClearAll();
+                SceneManager.Instance.RemoveRole(MainRoleId);
+                main.RoleId = oldRoleId;
+                main.Figure = oldFigure;
+                main.SceneId = oldSceneId;
+                main.DunId = oldDunId;
+                main.PkStatus = oldPkStatus;
+                main.X = oldX;
+                main.Y = oldY;
+                stage?.Dispose();
+                restored = main.RoleId == oldRoleId && ReferenceEquals(main.Figure, oldFigure)
+                    && main.SceneId == oldSceneId && main.DunId == oldDunId
+                    && main.PkStatus == oldPkStatus && main.X == oldX && main.Y == oldY
+                    && SceneManager.Instance.GetRole(MainRoleId) == null;
+            }
+
+            bool finalPass = pass && restored;
+            Debug.Log("CLIVERIFY designation-main-ghost restored=" + restored);
+            Debug.Log("CLIVERIFY designation-main-ghost VERDICT pass=" + finalPass);
+            return finalPass ? 0 : 3;
+        }
 
         public static async Task<int> Run()
         {
@@ -44,6 +152,7 @@ namespace Shenxiao.EditorTools
             FigureProto oldFigure = main.Figure;
             int oldSceneId = main.SceneId;
             int oldDunId = main.DunId;
+            int oldPkStatus = main.PkStatus;
             int oldX = main.X;
             int oldY = main.Y;
             CliVerify.Stage stage = null;
@@ -65,11 +174,13 @@ namespace Shenxiao.EditorTools
                 if (!controllerWasInitialized) controller.Init();
                 SceneDesignationPresenter.EnsureInstalled();
                 SceneDesignationPresenter.ClearAll();
+                SceneManager.Instance.RemoveRole(MainRoleId);
                 SceneManager.Instance.RemoveRole(OtherRoleId);
                 stage = CliVerify.Stage.Create();
 
                 Vector2 camera = SceneMapView.CameraPos;
                 var mainFigure = new FigureProto();
+                var mainSnapshotFigure = new FigureProto();
                 var otherFigure = new FigureProto();
                 main.RoleId = MainRoleId;
                 main.Figure = mainFigure;
@@ -77,6 +188,16 @@ namespace Shenxiao.EditorTools
                 main.DunId = 0;
                 main.X = Mathf.RoundToInt(camera.x + 48f);
                 main.Y = Mathf.RoundToInt(camera.y + 24f);
+                mainFigure.SetDesignationId(staticRow.Id);
+                mainSnapshotFigure.SetDesignationId(staticRow.Id);
+                var mainSnapshot = new RoleVo
+                {
+                    RoleId = MainRoleId,
+                    Figure = mainSnapshotFigure,
+                    X = main.X,
+                    Y = main.Y,
+                    PkStatus = oldPkStatus == 2 ? 3 : 2,
+                };
                 var other = new RoleVo
                 {
                     RoleId = OtherRoleId,
@@ -84,6 +205,15 @@ namespace Shenxiao.EditorTools
                     X = Mathf.RoundToInt(camera.x - 72f),
                     Y = Mathf.RoundToInt(camera.y - 36f),
                 };
+                // 12002 的角色列表会包含主角自身。主角只能由 MainRoleDesignation 消费；
+                // 如果又按普通 RoleVo 创建一次，移动后该副本会停在进场坐标形成静态残影。
+                MethodInfo applyParsedRole = typeof(SceneController).GetMethod("ApplyParsedRole", StaticPrivate);
+                if (applyParsedRole == null) throw new MissingMethodException("ApplyParsedRole missing");
+                applyParsedRole.Invoke(null, new object[] { mainSnapshot });
+                bool mainSnapshotFiltered = SceneManager.Instance.GetRole(MainRoleId) == null
+                    && main.PkStatus == mainSnapshot.PkStatus;
+                // 再模拟热重载前已经存在的脏数据，展示层也必须自行拒绝并清理主角同 ID 副本。
+                SceneManager.Instance.AddRole(mainSnapshot);
                 SceneManager.Instance.AddRole(other);
 
                 MethodInfo on41105 = typeof(DesignationController).GetMethod("On41105", InstancePrivate);
@@ -96,14 +226,25 @@ namespace Shenxiao.EditorTools
                     return mainBoard != null && mainBoard.DesignationId == staticRow.Id
                         && mainBoard.HasDesignationVisual
                         && otherBoard != null && otherBoard.DesignationId == dynamicRow.Id
-                        && otherBoard.HasDesignationVisual
-                        && SceneDesignationPresenter.VisibleCount == 2;
+                        && otherBoard.HasDesignationVisual;
                 }, 20d);
 
                 TickPresenter();
                 TickEffectStage();
                 await Task.Delay(120);
                 TickEffectStage();
+                RectTransform duplicateBeforeMove = FindRect("RoleDesignation_" + MainRoleId);
+                Vector2 duplicateStart = duplicateBeforeMove != null
+                    ? duplicateBeforeMove.anchoredPosition
+                    : Vector2.zero;
+                main.X += 96;
+                main.Y += 44;
+                TickPresenter();
+                RectTransform duplicateAfterMove = FindRect("RoleDesignation_" + MainRoleId);
+                bool noDuplicateMain = duplicateBeforeMove == null && duplicateAfterMove == null
+                    && SceneDesignationPresenter.VisibleCount == 2;
+                bool stationaryGhostObserved = duplicateAfterMove != null
+                    && Vector2.Distance(duplicateAfterMove.anchoredPosition, duplicateStart) < 1.5f;
                 bool dynamicPixels = CaptureDynamicEffect(dynamicRow.ResourceId,
                     "scene_designation_effect_rt.png", out int alphaPixels, out int litPixels);
                 string sceneShot = stage.Capture(EvidenceRoot + "scene_titles.png");
@@ -142,7 +283,9 @@ namespace Shenxiao.EditorTools
                 Feed(on41105, controller, new CliVerify.Pkt().L(MainRoleId).I(0).Bytes());
                 await Task.Delay(50);
                 bool mainCleared = mainFigure.DesignationId == 0
-                    && BoardCleared("MainRoleDesignation");
+                    && BoardCleared("MainRoleDesignation")
+                    && BoardCleared("RoleDesignation_" + MainRoleId);
+                SceneManager.Instance.RemoveRole(MainRoleId);
                 SceneManager.Instance.RemoveRole(OtherRoleId);
                 await Task.Delay(50);
                 bool otherRemoved = BoardCleared("RoleDesignation_" + OtherRoleId);
@@ -152,10 +295,14 @@ namespace Shenxiao.EditorTools
                 bool sceneCleared = SceneDesignationPresenter.VisibleCount == 0
                     && FindAnyLiveBoard() == null;
 
-                pass &= visualReady && dynamicPixels && positions && noticeData
+                pass &= mainSnapshotFiltered && visualReady && noDuplicateMain
+                    && dynamicPixels && positions && noticeData
                     && starHidden && polarHidden && maskHidden
                     && mainCleared && otherRemoved && sceneCleared;
-                Debug.Log("CLIVERIFY designation-wear-scene visual=" + visualReady
+                Debug.Log("CLIVERIFY designation-wear-scene mainSnapshotFiltered=" + mainSnapshotFiltered
+                    + " visual=" + visualReady
+                    + " noDuplicateMain=" + noDuplicateMain
+                    + " stationaryGhostObserved=" + stationaryGhostObserved
                     + " dynamicPixels=" + dynamicPixels + " alpha=" + alphaPixels + " lit=" + litPixels
                     + " positions=" + positions + " notice=" + noticeData
                     + " starHidden=" + starHidden + " polarHidden=" + polarHidden
@@ -173,11 +320,13 @@ namespace Shenxiao.EditorTools
             {
                 EventDispatcher.Emit(GlobalEvent.EVT_SCENE_OBJECTS_CLEARED);
                 SceneDesignationPresenter.ClearAll();
+                SceneManager.Instance.RemoveRole(MainRoleId);
                 SceneManager.Instance.RemoveRole(OtherRoleId);
                 main.RoleId = oldRoleId;
                 main.Figure = oldFigure;
                 main.SceneId = oldSceneId;
                 main.DunId = oldDunId;
+                main.PkStatus = oldPkStatus;
                 main.X = oldX;
                 main.Y = oldY;
                 stage?.Dispose();
@@ -189,6 +338,7 @@ namespace Shenxiao.EditorTools
                 restored = controller.IsInitialized == controllerWasInitialized
                     && main.RoleId == oldRoleId && ReferenceEquals(main.Figure, oldFigure)
                     && main.SceneId == oldSceneId && main.DunId == oldDunId
+                    && main.PkStatus == oldPkStatus
                     && main.X == oldX && main.Y == oldY
                     && SameAutoFields(model, oldModelFields)
                     && SameEntries(model.Entries, oldEntries);
