@@ -29,6 +29,7 @@ description: 作为项目统一“UI 对接 / UI 精修”流程中的增量修�
 | 绑定字段 null / 点了没反应 | Bind 字段没回填,或 View 没绑事件 | 重跑 `LayaBindFiller.FillPrefab(<prefab>)`;容器字段(RectTransform)按【声明类型】解析(烤后 Box 多挂 Image 会置空);点击 ClearClicks+AddClick |
 | 输入框/文字**重叠** | 老端 TextInput/Label 内部文字节点被烤成常显子 Text,盖住输入值/真实文字 | 删该 TMP_Text/输入框下多余的子 TMP_Text(父权威、子冗余);烤制器 `AdaptSnapshotNode` 已跳 text-like 子节点 + TextInput 提示提到 placeholder(治本) |
 | 列表**显示了不该有的项 / 数量像写死**(如选角"1 角色却显 3 个") | 烤制快照**冻结了数据驱动列表**(烤时那个账号的真实项被当固定节点) | View 必须按**真实数据**建表(遍历/克隆),别信烤制数量。逐层查漏出:① item 有 `{Item}Bind` 且字段非空(漏挂→View `bind==null` 整列跳过)② 无冗余子 Text ③ 绑的是**可见**节点(头像是 `icon_sys_head` 不是空的 `icon`;路径因 `_box_con` 嵌套失效就递归按名找)④ 空槽用 `节点.SetActive(false)` 整块隐藏(连子节点),比 `组件.enabled=false` 稳 |
+| 位图字体仍是普通字、审计显示未命中，或替换后尺寸异常 | 人工 Prefab 已重命名节点，名称扫描漏掉序列化 Bind；或把 FNT `info size`、glyph 槽高与 TMP `pointSize` 当成同一尺寸 | 先按 `source node → View 序列化 Bind 字段 → 当前 TMP` 定位，名称只作兜底；再核对老端 `BitmapFont.fontSize/autoScaleSize` 与 TMP `faceInfo.pointSize` 的实际缩放。只修确认的 Prefab/消费者，禁止因一个字体族异常全局重算或重建全部字体资源 |
 
 ## 步骤
 1. 读问题来源(diff 报告或用户描述),定位到具体节点 + 判断改哪层(上表)。
@@ -43,6 +44,7 @@ description: 作为项目统一“UI 对接 / UI 精修”流程中的增量修�
 - 一次修一个 view、一组症状;改完给出"改了什么 + 怎么验证"。
 - 位置类优先 prefab 直改(可视化、可回退),别动代码绕。
 - 系统性、跨多 view 的同类偏移 → 修共享 Prefab、公共 View 或公共升级器；不得用批量重转覆盖已接管页面。
+- 位图字体图集已经烤色时，TMP 顶点色保持白色；老端 `Image` 即使残留 `font` 属性，只要现行逻辑通过 `SetImageSprite` 换图，就归图片链而不是字体遗漏。
 - MCP 改 prefab/编译 OK;Addressables 写记得 `postEvent:false`;Play 验收靠用户。
 
 相关:`/convert-module`、[[runtime-ui-diff-oracle]]、[[conversion-architecture-and-plan]]。

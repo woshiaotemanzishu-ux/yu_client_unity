@@ -22,7 +22,9 @@ namespace Shenxiao.EditorTools
     {
         private const string FontFolder = "Assets/GameRes/Fonts/Bitmap";
         private const string SkillNameFolder = "Assets/GameRes/resource/game/skillName";
-        private const string EvidenceFolder = "output/ui_route_audit/2026-08-05_bitmap-fonts/evidence";
+        private const string OutputFolder = "output/ui_route_audit/2026-08-06_bitmap-font-remediation";
+        private const string EvidenceFolder = OutputFolder + "/evidence";
+        private const string InventoryPath = OutputFolder + "/bitmap-font-inventory.json";
         private static readonly JObject RenderedNonBackgroundPixels = new JObject();
         private static readonly string[] RequiredCombatFonts =
         {
@@ -46,6 +48,76 @@ namespace Shenxiao.EditorTools
                 Debug.LogError("CLIVERIFY bitmap-font FAIL\n" + e);
             }
             EditorApplication.Exit(code);
+        }
+
+        /// <summary>
+        /// 2026-08-06 用户复查专项：只读两个 HUD Prefab、FightingUpView 与十套战斗字体，
+        /// 不同步源目录、不重建 66 套字体、不改 Addressables，也不扫描全部 Prefab。
+        /// </summary>
+        public static void RunRemediationBatch()
+        {
+            int code = 0;
+            try
+            {
+                RunRemediation();
+                Debug.Log("CLIVERIFY bitmap-font-remediation PASS");
+            }
+            catch (Exception e)
+            {
+                code = 3;
+                Debug.LogError("CLIVERIFY bitmap-font-remediation FAIL\n" + e);
+            }
+            EditorApplication.Exit(code);
+        }
+
+        [MenuItem("神霄/验证/位图字体复查专项（定向）", priority = 120)]
+        public static void RunRemediationInEditor()
+        {
+            try
+            {
+                RunRemediation();
+                Debug.Log("CLIVERIFY bitmap-font-remediation PASS");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("CLIVERIFY bitmap-font-remediation FAIL\n" + e);
+                throw;
+            }
+        }
+
+        private static void RunRemediation()
+        {
+            Require(SystemInfo.graphicsDeviceType.ToString() != "Null",
+                "位图字体复查专项必须使用真实图形设备，禁止 -nographics");
+            RenderedNonBackgroundPixels.RemoveAll();
+            Directory.CreateDirectory(EvidenceFolder);
+
+            var combatFonts = new List<TMP_FontAsset>();
+            foreach (string name in RequiredCombatFonts)
+            {
+                TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontFolder + "/" + name + ".asset");
+                Require(font != null && font.material != null && font.atlasTextures?.Length == 1,
+                    "战斗位图字体资产不完整: " + name);
+                combatFonts.Add(font);
+            }
+
+            VerifyCommonPrefabBindings();
+            VerifyCombatMappings();
+            var captures = new JArray
+            {
+                RenderTargetBindingSheet(),
+                RenderCombatSheet(combatFonts),
+            };
+            var report = new JObject
+            {
+                ["status"] = "pass",
+                ["scope"] = "HudTop._lb_fighting + HudTaskTeam._lb_open_awaken_progress + " +
+                            "FightingUpView renamed binds + 10 combat bitmap fonts",
+                ["resourceMutation"] = "none",
+                ["captures"] = captures,
+                ["renderedNonBackgroundPixels"] = RenderedNonBackgroundPixels,
+            };
+            File.WriteAllText(EvidenceFolder + "/bitmap-font-remediation-verification.json", report.ToString());
         }
 
         private static void Run()
@@ -88,11 +160,10 @@ namespace Shenxiao.EditorTools
             VerifySkillWhitelist(skillPaths);
             VerifyCommonPrefabBindings();
             VerifyCombatMappings();
-            JObject firstInventory = JObject.Parse(File.ReadAllText(
-                "output/ui_route_audit/2026-08-05_bitmap-fonts/bitmap-font-inventory.json"));
-            Require(firstInventory.Value<int>("discoveredBindings") == 106,
+            JObject firstInventory = JObject.Parse(File.ReadAllText(InventoryPath));
+            Require(firstInventory.Value<int>("discoveredBindings") == 105,
                 "老端位图字体绑定盘点数漂移: " + firstInventory.Value<int>("discoveredBindings"));
-            Require(firstInventory.Value<int>("matchedCurrentPrefabBindings") == 64,
+            Require(firstInventory.Value<int>("matchedCurrentPrefabBindings") == 68,
                 "当前 Prefab 位图字体命中数漂移: " + firstInventory.Value<int>("matchedCurrentPrefabBindings"));
 
             Directory.CreateDirectory(EvidenceFolder);
@@ -108,8 +179,7 @@ namespace Shenxiao.EditorTools
 
             // 第二次跑完整同步必须不再拷文件或改 Prefab，防止每次构建持续制造资源漂移。
             BitmapFontPrefabUpgrader.SyncBuildAndApply();
-            JObject inventory = JObject.Parse(File.ReadAllText(
-                "output/ui_route_audit/2026-08-05_bitmap-fonts/bitmap-font-inventory.json"));
+            JObject inventory = JObject.Parse(File.ReadAllText(InventoryPath));
             Require(inventory.Value<int>("copiedThisRun") == 0, "第二次字体预检仍在复制文件");
             Require(inventory.Value<int>("changedPrefabs") == 0 && inventory.Value<int>("changedLabels") == 0,
                 "第二次字体预检仍在修改 Prefab");
@@ -205,6 +275,14 @@ namespace Shenxiao.EditorTools
         {
             VerifyPrefabFont("Assets/Prefabs/UI/Common/FightingShowSmallItem.prefab", "_lb_fighting", "num_new");
             VerifyPrefabFont("Assets/Prefabs/UI/Common/FightingUpItem.prefab", "_lb_fighting", "num_new_green");
+            VerifyBoundPrefabFont("Assets/Prefabs/UI/MainUI/Regions/HudTop.prefab", "MainUITopView",
+                "_lb_fighting", "num_new", 22f);
+            VerifyBoundPrefabFont("Assets/Prefabs/UI/MainUI/Regions/HudTaskTeam.prefab", "MainUITaskTeamView",
+                "_lb_open_awaken_progress", "temple_awaken_font", 22f * 15f / 14f);
+            VerifyBoundPrefabFont("Assets/Prefabs/UI/MainUI/FightingUpView.prefab", "FightingUpView",
+                "_lb_fight", "fight_up", 50f);
+            VerifyBoundPrefabFont("Assets/Prefabs/UI/MainUI/FightingUpView.prefab", "FightingUpView",
+                "_lb_add_fight", "fight_up2", 50f);
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/Common/FightingUpItem.prefab");
             FightingUpItem item = prefab != null ? prefab.GetComponent<FightingUpItem>() : null;
             Require(item != null, "FightingUpItem 脚本绑定缺失");
@@ -228,6 +306,16 @@ namespace Shenxiao.EditorTools
             RequireStyle(resolve, 123, 10, true, "b123", "fight_font_huixin");
             RequireStyle(resolve, 123, 6, false, "a123", "fight_font_gedang");
             RequireStyle(resolve, 123, 6, true, "b123", "fight_font_gedang");
+
+            MethodInfo resolveSize = typeof(DamageFontRenderer).GetMethod("ResolveRenderedFontSize",
+                BindingFlags.NonPublic | BindingFlags.Static);
+            Require(resolveSize != null, "DamageFontRenderer.ResolveRenderedFontSize 不存在");
+            TMP_FontAsset attackFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+                FontFolder + "/fight_font_attack.asset");
+            Require(attackFont != null, "fight_font_attack 资产不存在");
+            float renderedSize = (float)resolveSize.Invoke(null, new object[] { attackFont, 36f });
+            Require(Mathf.Approximately(renderedSize, attackFont.faceInfo.pointSize),
+                $"战斗位图字体没有按老端 1:1 原生尺寸绘制: actual={renderedSize}, native={attackFont.faceInfo.pointSize}");
         }
 
         private static void RequireStyle(MethodInfo resolve, long damage, int flag, bool defender,
@@ -251,6 +339,63 @@ namespace Shenxiao.EditorTools
                 $"Prefab 字体绑定错误: {prefabPath}/{nodeName}, expected={fontName}");
             Require(label.fontSharedMaterial == label.font.material && label.color == Color.white,
                 "Prefab 位图字体材质或颜色错误: " + prefabPath + "/" + nodeName);
+        }
+
+        private static void VerifyBoundPrefabFont(string prefabPath, string viewTypeName, string fieldName,
+            string fontName, float expectedSize)
+        {
+            TextMeshProUGUI label = FindBoundPrefabLabel(prefabPath, viewTypeName, fieldName);
+            Require(label.font != null && label.font.name == fontName,
+                $"Prefab Bind 字段字体错误: {prefabPath}/{viewTypeName}.{fieldName}, expected={fontName}");
+            Require(Mathf.Abs(label.fontSize - expectedSize) <= 0.01f,
+                $"Prefab Bind 字段位图字号错误: {prefabPath}/{viewTypeName}.{fieldName}, " +
+                $"actual={label.fontSize}, expected={expectedSize}");
+            Require(label.fontSharedMaterial == label.font.material && label.color == Color.white,
+                $"Prefab Bind 字段位图材质或颜色错误: {prefabPath}/{viewTypeName}.{fieldName}");
+        }
+
+        private static TextMeshProUGUI FindBoundPrefabLabel(string prefabPath, string viewTypeName, string fieldName)
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            Require(prefab != null, "Prefab 不存在: " + prefabPath);
+            foreach (MonoBehaviour component in prefab.GetComponentsInChildren<MonoBehaviour>(true))
+            {
+                if (component == null || component.GetType().Name != viewTypeName) continue;
+                var serialized = new SerializedObject(component);
+                SerializedProperty property = serialized.FindProperty(fieldName);
+                if (property?.objectReferenceValue is TextMeshProUGUI label) return label;
+            }
+            throw new InvalidOperationException(
+                $"Prefab Bind 字段不存在或不是 TMP: {prefabPath}/{viewTypeName}.{fieldName}");
+        }
+
+        private static string RenderTargetBindingSheet()
+        {
+            const int width = 900;
+            const int height = 420;
+            CreateStage(width, height, out RenderTexture rt, out Camera camera, out GameObject canvasGo);
+            TMP_FontAsset labelFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/_App/Fonts/FZYHJW SDF.asset");
+            AddText(canvasGo.transform, "2026-08-06 位图字体遗漏复查", labelFont, 30f,
+                new Vector2(18f, -15f), new Vector2(width - 36f, 48f), new Color(1f, 0.88f, 0.35f, 1f));
+
+            TextMeshProUGUI power = FindBoundPrefabLabel(
+                "Assets/Prefabs/UI/MainUI/Regions/HudTop.prefab", "MainUITopView", "_lb_fighting");
+            AddText(canvasGo.transform, "MainUITopView._lb_fighting → num_new / native 22px", labelFont, 20f,
+                new Vector2(22f, -90f), new Vector2(540f, 46f), new Color(0.72f, 0.78f, 0.88f, 1f));
+            AddText(canvasGo.transform, "293342", power.font, power.fontSize,
+                new Vector2(590f, -88f), new Vector2(270f, 52f), Color.white);
+
+            TextMeshProUGUI awaken = FindBoundPrefabLabel(
+                "Assets/Prefabs/UI/MainUI/Regions/HudTaskTeam.prefab", "MainUITaskTeamView",
+                "_lb_open_awaken_progress");
+            AddText(canvasGo.transform, "MainUITaskTeamView._lb_open_awaken_progress → temple_awaken_font / 22×15÷14",
+                labelFont, 20f, new Vector2(22f, -190f), new Vector2(650f, 52f),
+                new Color(0.72f, 0.78f, 0.88f, 1f));
+            AddText(canvasGo.transform, "10/35", awaken.font, awaken.fontSize,
+                new Vector2(700f, -186f), new Vector2(170f, 58f), Color.white);
+
+            return CaptureAndDestroy(rt, camera, canvasGo,
+                EvidenceFolder + "/hud-bitmap-font-remediation.png");
         }
 
         private static string RenderContactSheet(IReadOnlyList<TMP_FontAsset> fonts, int page)
@@ -339,8 +484,8 @@ namespace Shenxiao.EditorTools
                 AddText(canvasGo.transform, rows[i][0] + "  " + rows[i][1], labelFont, 20f,
                     new Vector2(22f, y), new Vector2(390f, 55f), new Color(0.72f, 0.78f, 0.88f, 1f));
                 TMP_FontAsset font = fonts.First(v => v.name == rows[i][1]);
-                TextMeshProUGUI sample = AddText(canvasGo.transform, rows[i][2], font, 48f,
-                    new Vector2(420f, y - 3f), new Vector2(455f, 64f), Color.white);
+                TextMeshProUGUI sample = AddText(canvasGo.transform, rows[i][2], font, font.faceInfo.pointSize,
+                    new Vector2(420f, y - 3f), new Vector2(455f, 120f), Color.white);
                 sample.ForceMeshUpdate();
                 Require(sample.mesh != null && sample.mesh.vertexCount > 0, "战斗图片字没有实际网格: " + rows[i][0]);
             }

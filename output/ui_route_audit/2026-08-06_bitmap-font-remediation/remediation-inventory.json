@@ -1,0 +1,73 @@
+{
+  "status": "static-analysis-complete-runtime-pending",
+  "historicalInventory": "output/ui_route_audit/2026-08-05_bitmap-fonts/bitmap-font-inventory.json",
+  "historicalDiscoveredBindings": 106,
+  "invalidImageBindingsRemoved": 1,
+  "correctedTextBindings": 105,
+  "historicalMatchedCurrentPrefabBindings": 64,
+  "renamedBindFalseNegativesRecovered": 4,
+  "correctedMatchedCurrentPrefabBindings": 68,
+  "bindingsWithoutCurrentEditablePrefab": 37,
+  "highRiskReview": [
+    {
+      "view": "MainUITopView",
+      "sourceNode": "_lb_fighting",
+      "currentNode": "CombatPowerLabel",
+      "font": "num_new",
+      "classification": "real-omission-fixed",
+      "evidence": "HudTop.prefab serialized MainUITopView._lb_fighting"
+    },
+    {
+      "view": "MainUITaskTeamView",
+      "sourceNode": "_lb_open_awaken_progress",
+      "currentNode": "AwakenProgressLabel",
+      "font": "temple_awaken_font",
+      "classification": "real-omission-fixed",
+      "evidence": "HudTaskTeam.prefab serialized MainUITaskTeamView._lb_open_awaken_progress"
+    },
+    {
+      "view": "FightingUpView",
+      "sourceNode": "_lb_fight",
+      "currentNode": "FightPowerValueLabel",
+      "font": "fight_up",
+      "classification": "historical-audit-false-negative-already-correct"
+    },
+    {
+      "view": "FightingUpView",
+      "sourceNode": "_lb_add_fight",
+      "currentNode": "FightPowerDeltaLabel",
+      "font": "fight_up2",
+      "classification": "historical-audit-false-negative-already-correct"
+    },
+    {
+      "view": "ElimMainView",
+      "sourceNode": "_lb_round",
+      "font": "elim_fnt_1",
+      "classification": "invalid-font-row-image-runtime-sprite",
+      "evidence": "old ElimMainView.ts UpdateRound uses SetImageSprite(elim_numN)"
+    },
+    {
+      "view": "NoonPartySceneView",
+      "sourceNode": "reliveLb",
+      "font": "SjjjFnt",
+      "classification": "no-current-editable-prefab-defer-to-first-conversion"
+    },
+    {
+      "view": "PrayMainView",
+      "sourceNode": "_bit_lv",
+      "font": "pray",
+      "classification": "no-current-editable-prefab-defer-to-first-conversion"
+    }
+  ],
+  "resourceScope": {
+    "modifiedPrefabs": [
+      "Assets/Prefabs/UI/MainUI/Regions/HudTop.prefab",
+      "Assets/Prefabs/UI/MainUI/Regions/HudTaskTeam.prefab"
+    ],
+    "modifiedRuntimeConsumers": [
+      "Assets/Scripts/Module/Core/Scene/DamageFontRenderer.cs"
+    ],
+    "fontOrAtlasAssetsRebuilt": 0,
+    "addressablesModifiedByThisRemediation": false
+  }
+}

@@ -1931,6 +1931,13 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **资源流水线**：`BitmapFontAssetBuilder` 扩为全量静态 TMP Bitmap 字体生成器，兼容旧 page 文件名与 `id=-1`；`BitmapFontPrefabUpgrader` 负责同步 CDN、增量修改人工 Prefab、技能图 Sprite 导入、Addressables 分组和机器清单。转换器后续首次转换也会原生识别位图字体。
 - **运行逻辑**：20001 伤害飘字按老端十套字体及 `a/b/c` 图形字显示，移除普通文字/颜色近似；20001 触发技能和 20028 恢复 `skillName/{id}.png` 及 `FightFontFiveAni` 演出；公共战力组件改用 `num_new/num_new_green/view_fight_up`。
 - **验收**：Core/Editor 离线编译 0 error；真实图形设备 Unity 批处理 `CLIVERIFY bitmap-font PASS`。106 条绑定中 64 条命中现有页面并落到 33 个实际 Prefab，42 条未迁移页面映射留待首次转换；五张渲染证据均通过非背景像素门禁，二次同步 `copied/changedPrefabs/changedLabels=0/0/0`，路由账本 7/7 `done`。证据位于 `output/ui_route_audit/2026-08-05_bitmap-fonts/`，专项说明见 [老端图片字体全局迁移](RuntimeCompare/BitmapFont-全局迁移-20260805.md)。
+
+## 2026-08-06：位图字体用户复查回卷与定向修复
+
+- **回卷结论**：用户截图确认主界面左上战力仍是普通 TMP，战斗伤害飘字缩小到难以辨认；因此 2026-08-05 的位图字体路线从历史 `done` 回卷为待真实运行复验。另确认任务区觉醒进度漏绑，`FightingUpView` 两处为节点改名导致的清单假阴性，`ElimMainView._lb_round` 则是运行时换 `elim_numN` 图片的 Image 误报。
+- **定向修复**：仅增量修改 `HudTop.prefab`、`HudTaskTeam.prefab` 与 `DamageFontRenderer`，没有重建字体或扫描/重序列化全库资源。主界面战力绑定 `num_new` 并按原生 22px；觉醒进度绑定 `temple_awaken_font` 并按老端 `15/14` 缩放语义设为约 23.57px；战斗飘字按 `faceInfo.pointSize` 还原 FNT 图集 1:1 尺寸，容器扩为 `480×120` 并允许 Overflow。
+- **工具与门禁**：`BitmapFontPrefabUpgrader` 改为优先解析 View 序列化 Bind 字段、节点名兜底，并排除 Image 上的残留 font；盘点口径修正为 105 条文字绑定、68 条现行 Prefab 命中、37 条待首次转换。`BitmapFontCase` 增加四个 Bind 字段、字号、白色顶点色和战斗原生尺寸断言，新证据固定写入 `output/ui_route_audit/2026-08-06_bitmap-font-remediation/`。
+- **当前验证**：Core/Editor 离线编译均 0 error；尚未占用 Unity 做真实图形设备专项，因此本轮当前只标“实现与离线编译通过”，不能标运行态完成。完整根因与复用规则见 [老端图片字体全局迁移 §5](RuntimeCompare/BitmapFont-全局迁移-20260805.md#5-2026-08-06-用户复查回卷改名绑定遗漏与战斗字号)。
 ## 2026-08-05：角色界面精修——称号详情、佩戴与场景表现闭环（R578解禁）
 
 - **详情页视觉与结构**：继续增量精修人工接管的`DsgtModule.prefab`，完成老端列表顺序、详情文案、动态称号特效、材料格与品质详情弹窗；未重转模块。`DesignationViewCase`真实Prefab冷开2070ms、热开38ms，列表拖动、末项可达、详情/材料弹窗、专用RT动态像素和佩戴/卸下点击均通过，证据目录为`output/ui_route_audit/2026-08-04_role_web_round2/cli_designation_20260805_2520/`。

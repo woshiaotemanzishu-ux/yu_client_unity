@@ -1,0 +1,87 @@
+{
+  "schema": 4,
+  "route": "global.bitmap-fonts.remediation-20260806",
+  "baseline": {
+    "oldClient": "E:/GitProject/yu_client",
+    "unity": "E:/GitProject/yu_client_unity"
+  },
+  "nodes": [
+    {
+      "id": "global.bitmap-fonts.remediation-20260806",
+      "type": "navigation",
+      "risk": "read",
+      "parent": null,
+      "status": "pending",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "binding-omission-classification",
+      "parent": "global.bitmap-fonts.remediation-20260806",
+      "type": "read",
+      "risk": "read",
+      "status": "done",
+      "applicable_gates": ["target_identity"],
+      "gates": {"target_identity": true},
+      "identity_evidence": [
+        "7 个含现行 Bind 线索的历史未命中项已逐条分类",
+        "2 个真实遗漏、2 个改名假阴性、1 个 Image 误报、2 个无现行 Prefab"
+      ],
+      "evidence": ["remediation-inventory.json"]
+    },
+    {
+      "id": "hud-combat-power-font",
+      "parent": "global.bitmap-fonts.remediation-20260806",
+      "type": "page",
+      "risk": "read",
+      "status": "pending",
+      "applicable_gates": ["runtime_state", "render_completion"],
+      "gates": {"runtime_state": false, "render_completion": false},
+      "state_evidence": [
+        "HudTop.prefab serialized MainUITopView._lb_fighting now binds num_new at native 22px"
+      ],
+      "evidence": ["remediation-inventory.json"]
+    },
+    {
+      "id": "hud-awaken-progress-font",
+      "parent": "global.bitmap-fonts.remediation-20260806",
+      "type": "page",
+      "risk": "read",
+      "status": "pending",
+      "applicable_gates": ["runtime_state", "render_completion"],
+      "gates": {"runtime_state": false, "render_completion": false},
+      "state_evidence": [
+        "HudTaskTeam.prefab serialized MainUITaskTeamView._lb_open_awaken_progress now binds temple_awaken_font at 22×15÷14"
+      ],
+      "evidence": ["remediation-inventory.json"]
+    },
+    {
+      "id": "combat-floating-number-size",
+      "parent": "global.bitmap-fonts.remediation-20260806",
+      "type": "page",
+      "risk": "read",
+      "status": "pending",
+      "applicable_gates": ["runtime_state", "render_completion"],
+      "gates": {"runtime_state": false, "render_completion": false},
+      "state_evidence": [
+        "DamageFontRenderer maps legacy size 36 to each combat font native faceInfo.pointSize and uses 480×120 Overflow container"
+      ],
+      "evidence": ["remediation-inventory.json"]
+    },
+    {
+      "id": "targeted-resource-regression",
+      "parent": "global.bitmap-fonts.remediation-20260806",
+      "type": "read",
+      "risk": "read",
+      "status": "done",
+      "applicable_gates": ["resource_stable"],
+      "gates": {"resource_stable": true},
+      "resource_evidence": {
+        "preflight_first": "Core/Editor dotnet build 0 error",
+        "preflight_second": "targeted diff contains 2 Prefabs, 1 runtime consumer, upgrader/case/docs only",
+        "runtime_delta": "0 font/atlas rebuilds; no Addressables mutation by this remediation"
+      },
+      "evidence": ["remediation-inventory.json"]
+    }
+  ]
+}

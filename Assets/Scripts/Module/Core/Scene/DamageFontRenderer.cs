@@ -85,6 +85,7 @@ namespace Shenxiao.Module.Core.Scene
         private const float HEAD_OFFSET = 165f;
         private const float SCATTER_RANGE = 75f;   // 对标老端 end_pos_offset=75
         private const int MAX_ACTIVE = 40;         // 极端 AOE 刷屏兜底:超限复用最老的一条
+        private const float LEGACY_COMBAT_FONT_SIZE = 36f;
 
         private static readonly List<FloatItem> _items = new List<FloatItem>(); // 池(Active 标记复用)
         private static readonly List<SkillImageItem> _skillItems = new List<SkillImageItem>();
@@ -190,9 +191,20 @@ namespace Shenxiao.Module.Core.Scene
             item.Text.font = font;
             item.Text.fontSharedMaterial = font.material;
             item.Text.color = Color.white;
-            item.Text.fontSize = fontSize;
+            item.Text.fontSize = ResolveRenderedFontSize(font, fontSize);
             item.Rt.gameObject.SetActive(true);
             UpdateItem(item); // 立即摆到出生位,避免首帧闪在旧位置
+        }
+
+        /// <summary>
+        /// 老端 FightFont 同时把 Label 与 BitmapFont 设为 36，因此 FNT 图集按 1:1 原尺寸绘制。
+        /// TMP 的 bitmap face pointSize 来自真实字形槽高度（当前战斗字体为 100），若继续写 36 会被再次缩成 36/100。
+        /// 这里保留 36 作为老端样式基准，并换算到当前字体的原生 pointSize；不要据此全局改写其它 BMFont 资产指标。
+        /// </summary>
+        private static float ResolveRenderedFontSize(TMP_FontAsset font, float legacyFontSize)
+        {
+            if (font == null || font.faceInfo.pointSize <= 0f) return legacyFontSize;
+            return font.faceInfo.pointSize * (legacyFontSize / LEGACY_COMBAT_FONT_SIZE);
         }
 
         /// <summary>flag → (占位字符, 位图字体, 字号, 动画)，逐项对标 FightDamageManager.InitFightFontData。</summary>
@@ -465,12 +477,13 @@ namespace Shenxiao.Module.Core.Scene
             var rt = (RectTransform)go.transform;
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f); // 与名牌同口径:锚屏幕中心,anchored=世界-相机
             rt.pivot = new Vector2(0.5f, 0f);
-            rt.sizeDelta = new Vector2(320f, 60f);
+            rt.sizeDelta = new Vector2(480f, 120f);
 
             var t = go.AddComponent<TextMeshProUGUI>();
             t.alignment = TextAlignmentOptions.Bottom;
             t.raycastTarget = false;
             t.textWrappingMode = TextWrappingModes.NoWrap;
+            t.overflowMode = TextOverflowModes.Overflow;
 
             var item = new FloatItem { Text = t, Rt = rt };
             _items.Add(item);

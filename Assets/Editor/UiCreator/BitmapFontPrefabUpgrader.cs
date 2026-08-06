@@ -25,6 +25,8 @@ namespace Shenxiao.Editor.UiCreator
         private const string FontAssetFolder = "Assets/GameRes/Fonts/Bitmap";
         private const string SkillNameAssetFolder = "Assets/GameRes/resource/game/skillName";
         private const string TmpSettingsPath = "Assets/Resources/TMP Settings.asset";
+        private const string InventoryReportPath =
+            "output/ui_route_audit/2026-08-06_bitmap-font-remediation/bitmap-font-inventory.json";
 
         private static readonly Regex ExportClassRegex = new Regex(
             @"export\s+class\s+(?<name>[A-Za-z_][A-Za-z0-9_]*)", RegexOptions.Compiled);
@@ -272,7 +274,10 @@ namespace Shenxiao.Editor.UiCreator
             {
                 string name = (string)props["name"];
                 string font = (string)props["font"];
-                if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(font)
+                string type = (string)obj["type"];
+                // 老端少量 Image 节点残留 font 属性，但实际通过 SetImageSprite 换独立数字图，不能当文字绑定。
+                if (!string.Equals(type, "Image", StringComparison.Ordinal)
+                    && !string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(font)
                     && File.Exists(FontAssetFolder + "/" + font + ".asset"))
                     AddBinding(result, view, name, font);
             }
@@ -310,15 +315,15 @@ namespace Shenxiao.Editor.UiCreator
                         if (!bindings.TryGetValue(viewRoot.name, out Dictionary<string, string> nodes)) continue;
                         if (PrefabUtility.IsPartOfPrefabInstance(viewRoot.gameObject)) continue;
 
-                        TextMeshProUGUI[] labels = viewRoot.GetComponentsInChildren<TextMeshProUGUI>(true);
-                        foreach (TextMeshProUGUI label in labels)
+                        foreach (KeyValuePair<string, string> node in nodes)
                         {
-                            if (!BelongsToView(label.transform, viewRoot, bindings)) continue;
-                            if (!nodes.TryGetValue(label.name, out string fontName)) continue;
+                            TextMeshProUGUI label = ResolveBoundLabel(viewRoot, node.Key, bindings);
+                            if (label == null) continue;
+                            string fontName = node.Value;
                             TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
                                 FontAssetFolder + "/" + fontName + ".asset");
                             if (font == null) continue;
-                            matchedBindings[viewRoot.name + "/" + label.name] = path;
+                            matchedBindings[viewRoot.name + "/" + node.Key] = path;
                             var serialized = new SerializedObject(label);
                             SerializedProperty fontAsset = serialized.FindProperty("m_fontAsset");
                             SerializedProperty material = serialized.FindProperty("m_sharedMaterial");
@@ -352,6 +357,25 @@ namespace Shenxiao.Editor.UiCreator
             }
         }
 
+        private static TextMeshProUGUI ResolveBoundLabel(Transform viewRoot, string sourceNode,
+            Dictionary<string, Dictionary<string, string>> bindings)
+        {
+            // 人工接管后的 Prefab 可以重命名节点；序列化 Bind 字段才是老端 source node 到当前控件的稳定映射。
+            foreach (MonoBehaviour component in viewRoot.GetComponents<MonoBehaviour>())
+            {
+                if (component == null) continue;
+                var serialized = new SerializedObject(component);
+                SerializedProperty property = serialized.FindProperty(sourceNode);
+                if (property == null || property.propertyType != SerializedPropertyType.ObjectReference) continue;
+                if (!(property.objectReferenceValue is TextMeshProUGUI boundLabel)) continue;
+                if (BelongsToView(boundLabel.transform, viewRoot, bindings)) return boundLabel;
+            }
+
+            return viewRoot.GetComponentsInChildren<TextMeshProUGUI>(true)
+                .FirstOrDefault(label => label.name == sourceNode
+                                         && BelongsToView(label.transform, viewRoot, bindings));
+        }
+
         private static bool BelongsToView(Transform label, Transform viewRoot,
             Dictionary<string, Dictionary<string, string>> bindings)
         {
@@ -366,7 +390,7 @@ namespace Shenxiao.Editor.UiCreator
             Dictionary<string, string> matchedBindings, int copied, int changedPrefabs, int changedLabels,
             int fontCount, int assetCount)
         {
-            string reportPath = "output/ui_route_audit/2026-08-05_bitmap-fonts/bitmap-font-inventory.json";
+            string reportPath = InventoryReportPath;
             Directory.CreateDirectory(Path.GetDirectoryName(reportPath));
             var rows = new JArray();
             foreach (KeyValuePair<string, Dictionary<string, string>> view in bindings.OrderBy(v => v.Key, StringComparer.Ordinal))

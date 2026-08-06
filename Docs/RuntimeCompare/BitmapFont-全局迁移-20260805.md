@@ -43,3 +43,15 @@ Unity.exe -batchmode -projectPath <worktree> `
 最终结果：发现 106 条 `view/node/font` 绑定，其中 64 条命中当前已迁移页面并落到 33 个实际 Prefab；其余 42 条属于尚无对应可编辑 Prefab 的老端页面，保留在清单中并由后续首次转换自动应用。最终 Unity `CLIVERIFY bitmap-font PASS`，五张证据图的非背景像素依次为 `151367/164029/207607/57744/266633`，二次同步为 `copied=0, changedPrefabs=0, changedLabels=0`。
 
 证据目录：`output/ui_route_audit/2026-08-05_bitmap-fonts/`；其中 `bitmap-font-inventory.json` 保存 scene/TS 发现的每个 `view/node/font` 及当前 Prefab 是否命中，`evidence/bitmap-font-contact-sheet-*.png` 保存真实 TMP Bitmap Shader 渲染结果，`route-ledger.json` 最终为 7/7 节点 `done`。
+
+## 5. 2026-08-06 用户复查回卷：改名绑定遗漏与战斗字号
+
+用户真实运行截图证明上一轮“64 条命中、其余都是未迁移页面”的结论不完整，本节覆盖该部分结论，但保留 2026-08-05 的原始数字作为历史证据。
+
+- **主界面真实遗漏**：`MainUITopView._lb_fighting` 在人工 Prefab 中已改名为 `CombatPowerLabel`，`MainUITaskTeamView._lb_open_awaken_progress` 已改名为 `AwakenProgressLabel`。旧升级器只比较 `GameObject.name`，因此即使 View 的序列化 Bind 字段仍精确指向目标 TMP，也会被判为未命中。现改为优先解析 View 根组件的序列化字段，再以同名节点兜底；对应 Prefab 分别绑定 `num_new` 与 `temple_awaken_font`，彩色 atlas 保持白色顶点色。
+- **清单误报**：`ElimMainView._lb_round` 虽在 `.scene` 残留 `font=elim_fnt_1`，节点类型和现行 TS 都证明它是 `Image`，运行时通过 `SetImageSprite(..., elim_numN)` 换独立轮数图。工具现排除这类 Image 字段，不再把图片链计为漏字体。`FightingUpView._lb_fight/_lb_add_fight` 已正确绑定 `fight_up/fight_up2`，此前同样只是节点改名造成的假阴性。
+- **纠正后的盘点口径**：删除 1 条 Image 误报后共 105 条文字绑定；序列化 Bind 解析补回 4 条现行 Prefab 命中，当前应为 68 条命中、37 条尚无可编辑 Prefab。后续专项输出改到新的不可变目录 `output/ui_route_audit/2026-08-06_bitmap-font-remediation/`，不覆盖 2026-08-05 证据。
+- **战斗飘字变小根因**：十套 `fight_font_*` 的 FNT `info size=36`，但 glyph 槽高为 100。老端 `FightFont` 把 Label 与 `BitmapFont.fontSize` 都设为 36，`autoScaleSize=true` 时等价于按图集 1:1 绘制；Unity 字体构建器按 glyph 槽高生成 `faceInfo.pointSize=100`，运行时却仍写 `fontSize=36`，于是又缩成 `36/100`。现由战斗消费者把老端 36 基准换算到字体原生 `pointSize`，并把动态文本容器从 `320×60` 扩到 `480×120`、启用 Overflow 防裁切。
+- **禁止全局改指标**：66 套 FNT 的 `glyphHeight/infoSize` 比例差异很大，且存在历史异常 info 值；不能因为战斗字体是 `100/36` 就把 `BitmapFontAssetBuilder` 的 face 指标统一改成 info size。主界面战力 `num_new` 的老端 `autoScaleSize=false`，按原生 22px；觉醒进度则按老端 Label 15 / BitmapFont 14 的比例换算为 `22×15/14≈23.57px`。尺寸必须逐消费链还原。
+- **定向复验入口**：本次禁止再调用会同步/重建全部字体的 `RunBatch`。编辑器内使用菜单 `神霄/验证/位图字体复查专项（定向）`；关闭编辑器后可用 `-executeMethod Shenxiao.EditorTools.BitmapFontCase.RunRemediationBatch`。该入口只读两个 HUD Prefab、`FightingUpView` 与十套战斗字体，只向新证据目录写 PNG/JSON，不同步源文件、不重建 66 套字体、不改 Addressables、不扫描全部 Prefab。
+- **验证状态**：`Shenxiao.Module.Core.csproj` 与 `Shenxiao.Editor.csproj` 离线编译均为 0 error；真实图形设备专项仍需在不打断用户前台的窗口执行，未执行前不得把本次视觉回卷写成最终 `done`。
