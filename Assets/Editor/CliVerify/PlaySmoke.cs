@@ -48,6 +48,9 @@ namespace Shenxiao.EditorTools
             _running = true;
             _deadline = SessionState.GetFloat(SsDeadline, (float)(EditorApplication.timeSinceStartup + TimeoutSeconds));
             _watchUntil = SessionState.GetFloat(SsWatchUntil, 0f);
+            _sceneRenderProbe = HasCommandLineFlag("-sceneRenderProbe");
+            _renderProbeCaptured = false;
+            _renderProbeAt = 0d;
             _nextHeartbeatAt = EditorApplication.timeSinceStartup + HeartbeatIntervalSeconds;
             Application.logMessageReceived -= OnLog;
             Application.logMessageReceived += OnLog;
@@ -66,6 +69,12 @@ namespace Shenxiao.EditorTools
         private static bool _sceneOk;
         private static bool _enterOk;
         private static bool _taskOk;
+        private static bool _mainRoleVisualOk;
+        private static bool _npcVisualOk;
+        private static bool _monsterVisualOk;
+        private static bool _sceneRenderProbe;
+        private static bool _renderProbeCaptured;
+        private static double _renderProbeAt;
 
         /// <summary>命令行入口:-executeMethod Shenxiao.EditorTools.PlaySmoke.Run</summary>
         public static void Run()
@@ -111,6 +120,12 @@ namespace Shenxiao.EditorTools
             _sceneOk = false;
             _enterOk = false;
             _taskOk = false;
+            _mainRoleVisualOk = false;
+            _npcVisualOk = false;
+            _monsterVisualOk = false;
+            _sceneRenderProbe = HasCommandLineFlag("-sceneRenderProbe");
+            _renderProbeCaptured = false;
+            _renderProbeAt = 0d;
         }
 
         private static void OnState(PlayModeStateChange state)
@@ -160,6 +175,21 @@ namespace Shenxiao.EditorTools
                 _taskOk = true;
                 Debug.Log("CLIVERIFY PLAYSMOKE gate task=OK");
             }
+            if (!_mainRoleVisualOk && condition.Contains("main role ready:"))
+            {
+                _mainRoleVisualOk = true;
+                Debug.Log("CLIVERIFY PLAYSMOKE gate mainRoleVisual=OK");
+            }
+            if (!_npcVisualOk && condition.Contains("npc visible:"))
+            {
+                _npcVisualOk = true;
+                Debug.Log("CLIVERIFY PLAYSMOKE gate npcVisual=OK");
+            }
+            if (!_monsterVisualOk && condition.Contains("monster visible:"))
+            {
+                _monsterVisualOk = true;
+                Debug.Log("CLIVERIFY PLAYSMOKE gate monsterVisual=OK");
+            }
 
             // 观察模式:统计主线推进深度(30001 finished 的任务 id / 最近 DoTask 的任务 id)。
             if (_watchUntil > 0)
@@ -192,8 +222,28 @@ namespace Shenxiao.EditorTools
                 return;
             }
 
-            if (_loginOk && _enterOk && _gameStartOk && _sceneOk && _taskOk)
+            bool baseGatesReady = _loginOk && _enterOk && _gameStartOk && _sceneOk && _taskOk;
+            bool visualGatesReady = _mainRoleVisualOk && _npcVisualOk && _monsterVisualOk;
+            if (baseGatesReady && (!_sceneRenderProbe || visualGatesReady))
             {
+                if (_sceneRenderProbe && !_renderProbeCaptured)
+                {
+                    if (_renderProbeAt <= 0d)
+                    {
+                        // 最后一个 visible 日志仍发生在模型加载的 Update 帧内；至少留出多个完整
+                        // 相机帧再读 RT，避免把“首帧尚未提交”误判成模型不可见。
+                        _renderProbeAt = EditorApplication.timeSinceStartup + 2d;
+                        return;
+                    }
+                    if (EditorApplication.timeSinceStartup < _renderProbeAt) return;
+                    if (!CaptureSceneRenderEvidence())
+                    {
+                        Finish(3);
+                        return;
+                    }
+                    _renderProbeCaptured = true;
+                    return;
+                }
                 if (_watchUntil <= 0) { Finish(0); return; }                       // 原行为:命中即退
                 if (EditorApplication.timeSinceStartup >= _watchUntil)             // 观察期满
                 {
@@ -216,10 +266,37 @@ namespace Shenxiao.EditorTools
             {
                 _nextHeartbeatAt = now + HeartbeatIntervalSeconds;
                 double remaining = _deadline - now;
+                string visualProgress = _sceneRenderProbe
+                    ? " mainRoleVisual=" + _mainRoleVisualOk + " npcVisual=" + _npcVisualOk
+                        + " monsterVisual=" + _monsterVisualOk
+                    : string.Empty;
                 Debug.Log("CLIVERIFY PLAYSMOKE progress login=" + _loginOk + " enter=" + _enterOk +
                     " gameStart=" + _gameStartOk + " scene=" + _sceneOk + " task=" + _taskOk +
+                    visualProgress +
                     " remainingSec=" + remaining.ToString("0", CultureInfo.InvariantCulture));
             }
+        }
+
+        private static bool CaptureSceneRenderEvidence()
+        {
+            string stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture);
+            string relativePng = "output/ui_route_audit/2026-08-06_scene-model-render/live_" + stamp
+                + "/scene_character_stage_rt.png";
+            bool pass = SceneCharacterRenderCase.CaptureCurrentStage(relativePng, false,
+                out int alphaPixels, out int litPixels, out string path, out string diagnostic);
+            Debug.Log("CLIVERIFY PLAYSMOKE scene-render alpha=" + alphaPixels + " lit=" + litPixels
+                + " pass=" + pass + " diagnostic=" + diagnostic + " rt=" + path);
+            if (!pass) return false;
+
+            return true;
+        }
+
+        private static bool HasCommandLineFlag(string expected)
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length; i++)
+                if (string.Equals(args[i], expected, StringComparison.OrdinalIgnoreCase)) return true;
+            return false;
         }
 
         private static void Finish(int code)
@@ -232,9 +309,13 @@ namespace Shenxiao.EditorTools
             Application.logMessageReceived -= OnLog;
             EditorApplication.playModeStateChanged -= OnState;
 
+            string visualVerdict = _sceneRenderProbe
+                ? " mainRoleVisual=" + _mainRoleVisualOk + " npcVisual=" + _npcVisualOk
+                    + " monsterVisual=" + _monsterVisualOk + " sceneRender=" + _renderProbeCaptured
+                : string.Empty;
             Debug.Log("CLIVERIFY PLAYSMOKE EXIT " + code +
                 " login=" + _loginOk + " enter=" + _enterOk + " gameStart=" + _gameStartOk +
-                " scene=" + _sceneOk + " task=" + _taskOk);
+                " scene=" + _sceneOk + " task=" + _taskOk + visualVerdict);
 
             // Play 中直接退出进程:不先退 Play,规避 ExitPlaymode 触发的二次 domain reload
             // 与随之而来的竞态(EditorApplication.Exit 会连 Play 一起终止,不需要先手动停 Play)。

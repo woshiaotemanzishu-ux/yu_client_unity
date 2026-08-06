@@ -66,6 +66,7 @@ namespace Shenxiao.Common.UI3D
         private static GameObject _mainRoleAttachedEffects;
         private static GameObject _mainRoleDetachedEffects;
         private static ReplaceableRoleModel _mainRoleDriver;
+        private static bool _rendering;
 
         /// <summary>场景角色挂载根(隔离区中心)。NPC/怪物后续按相对主角的偏移摆进来。</summary>
         public static Transform CharsRoot
@@ -328,6 +329,7 @@ namespace Shenxiao.Common.UI3D
             _root = new GameObject("__SceneCharStage");
             if (Application.isPlaying) Object.DontDestroyOnLoad(_root);
             _root.transform.position = STAGE_POS;
+            _root.AddComponent<SceneCharacterStageDriver>();
 
             var charsGo = new GameObject("Chars");
             charsGo.transform.SetParent(_root.transform, false);
@@ -348,7 +350,32 @@ namespace Shenxiao.Common.UI3D
             _cam.orthographicSize = ORTHO_SIZE; // 随后 SyncProjection 按实际画布高度覆盖
             _cam.nearClipPlane = 0.3f;
             _cam.farClipPlane = CAMERA_DISTANCE * 2f + 10f;
+            // 这是纯离屏合成相机。Unity 6 下动态 RT 相机并不总会进入自动相机列表，表现为
+            // Camera/Renderer/RT 全部有效但 RT 始终透明。官方 Camera.Render 用法要求先禁用相机，
+            // 再由我们在 LateUpdate 明确控制一次渲染；也避免自动渲染与手动渲染重入 D3D12。
+            _cam.enabled = false;
             SyncProjection();
+        }
+
+        /// <summary>由 <see cref="SceneCharacterStageDriver"/> 在玩家帧的 LateUpdate 驱动离屏合成。</summary>
+        internal static void RenderFrame()
+        {
+            if (_rendering || _cam == null || _img == null || _charsRoot == null
+                || !_img.gameObject.activeInHierarchy || _charsRoot.childCount == 0)
+                return;
+
+            EnsureRenderTexture();
+            if (_rt == null) return;
+            if (_cam.targetTexture != _rt) _cam.targetTexture = _rt;
+            _rendering = true;
+            try
+            {
+                _cam.Render();
+            }
+            finally
+            {
+                _rendering = false;
+            }
         }
 
         /// <summary>
@@ -411,7 +438,8 @@ namespace Shenxiao.Common.UI3D
         {
             int w = Mathf.Clamp(Screen.width, 64, 4096);
             int h = Mathf.Clamp(Screen.height, 64, 4096);
-            if (_rt != null && _rt.width == w && _rt.height == h && _rt.format == MODEL_RT_FORMAT) return;
+            if (_rt != null && _rt.width == w && _rt.height == h
+                && _rt.format == MODEL_RT_FORMAT && _rt.IsCreated()) return;
             if (_rt != null)
             {
                 if (_cam != null) _cam.targetTexture = null;

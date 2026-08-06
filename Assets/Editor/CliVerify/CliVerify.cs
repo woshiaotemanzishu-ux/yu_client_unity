@@ -530,6 +530,12 @@ namespace Shenxiao.EditorTools
             Run(SceneMixDriverCase.Run, 300.0);
         }
 
+        /// <summary>场景主角/NPC/怪物共用离屏舞台的真实 RT 出帧回归。</summary>
+        public static void SceneCharacterRender()
+        {
+            Run(SceneCharacterRenderCase.Run, 180.0);
+        }
+
         /// <summary>主角升级/任务跑动拖尾/任务跳跃/采集完成特效与挂载门禁专项。</summary>
         public static void RolePresentationEffects()
         {

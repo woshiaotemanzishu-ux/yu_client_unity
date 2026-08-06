@@ -6,7 +6,7 @@
 > - [编码规范](Shenxiao编码规范.md)
 > - [Copilot 红线](../.github/copilot-instructions.md)
 
-**最近更新**：2026-08-05
+**最近更新**：2026-08-06
 
 **状态图例**：
 - ✅ 已完成
@@ -14,6 +14,15 @@
 - 🔵 已规划，未开始
 - 🟠 需求变更/范围调整
 - ⛔ 已废弃/暂缓
+
+## 场景主角/NPC/怪物离屏合成恢复（2026-08-06）
+
+- ✅ **故障闭环**：已复现“称号/名字/血条可见，但主角、NPC、怪物 3D 模型全部透明”。活服中三类对象均已加载，共有 58 个 Renderer、43 个 active、9 个位于视锥内，但等待 2 秒后 `SceneCharStageRT` 仍为 `alpha=0, lit=0`。
+- ✅ **根因与修复**：共用动态 RT 相机没有进入有效自动渲染。`SceneCharCamera` 现保持 disabled，由新增 `SceneCharacterStageDriver` 在 `LateUpdate` 单次调用带重入保护的 `Camera.Render()`，在模型状态更新后明确写入 RT。
+- ✅ **合并范围复核**：从 2026-08-04 已知正常提交到当前 main，近期合并未修改 `SceneCharacterStage`、模型地址、材质或 Graphics/Quality/URP 资产；本次不是模型资源被误删或 Addressables 地址被错误合并，而是全新 worktree/Library 暴露了自动相机调度的隐式依赖。
+- ✅ **专项静态验证**：真实 `1111` 新美术主角经 `ArtModelStager.Stage`，与真实 NPC、怪物同台渲染；RT `alpha=4131, lit=4021`，PASS。
+- ✅ **活服运行验证**：完成登录、进游戏、GAME_START、场景和任务闸门，主角/NPC/怪物 visible 均命中；RT `alpha=4769, lit=4745`，PASS。最终证据：`output/ui_route_audit/2026-08-06_scene-model-render/live_20260806_122312/scene_character_stage_rt.png`。
+- 经验与复验命令见[场景角色离屏渲染-经验与排障](场景角色离屏渲染-经验与排障.md)。
 
 ## 当前协议迁移口径（2026-08-03）
 
