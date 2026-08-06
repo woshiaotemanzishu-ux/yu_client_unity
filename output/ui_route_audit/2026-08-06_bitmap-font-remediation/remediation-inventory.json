@@ -1,5 +1,5 @@
 {
-  "status": "static-analysis-complete-runtime-pending",
+  "status": "unity-targeted-pass-runtime-battle-retest-pending",
   "historicalInventory": "output/ui_route_audit/2026-08-05_bitmap-fonts/bitmap-font-inventory.json",
   "historicalDiscoveredBindings": 106,
   "invalidImageBindingsRemoved": 1,
@@ -69,5 +69,12 @@
     ],
     "fontOrAtlasAssetsRebuilt": 0,
     "addressablesModifiedByThisRemediation": false
+  },
+  "runtimeFloatLayout": {
+    "rolledBackFinding": "native pointSize + fixed 480x120 Overflow still clipped in user battle",
+    "current": "preferred-size dynamic Rect, min 480x180, padding 48x24, extraPadding, first-frame ForceMeshUpdate",
+    "machineGate": "long normal digits and a-prefixed critical digits textBounds are fully inside Rect",
+    "unityEvidence": "evidence-r2/bitmap-font-remediation-verification.json",
+    "userBattleRetest": "pending"
   }
 }

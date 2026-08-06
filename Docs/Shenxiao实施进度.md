@@ -1935,9 +1935,9 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 ## 2026-08-06：位图字体用户复查回卷与定向修复
 
 - **回卷结论**：用户截图确认主界面左上战力仍是普通 TMP，战斗伤害飘字缩小到难以辨认；因此 2026-08-05 的位图字体路线从历史 `done` 回卷为待真实运行复验。另确认任务区觉醒进度漏绑，`FightingUpView` 两处为节点改名导致的清单假阴性，`ElimMainView._lb_round` 则是运行时换 `elim_numN` 图片的 Image 误报。
-- **定向修复**：仅增量修改 `HudTop.prefab`、`HudTaskTeam.prefab` 与 `DamageFontRenderer`，没有重建字体或扫描/重序列化全库资源。主界面战力绑定 `num_new` 并按原生 22px；觉醒进度绑定 `temple_awaken_font` 并按老端 `15/14` 缩放语义设为约 23.57px；战斗飘字按 `faceInfo.pointSize` 还原 FNT 图集 1:1 尺寸，容器扩为 `480×120` 并允许 Overflow。
-- **工具与门禁**：`BitmapFontPrefabUpgrader` 改为优先解析 View 序列化 Bind 字段、节点名兜底，并排除 Image 上的残留 font；盘点口径修正为 105 条文字绑定、68 条现行 Prefab 命中、37 条待首次转换。`BitmapFontCase` 增加四个 Bind 字段、字号、白色顶点色和战斗原生尺寸断言，新证据固定写入 `output/ui_route_audit/2026-08-06_bitmap-font-remediation/`。
-- **当前验证**：Core/Editor 离线编译均 0 error；尚未占用 Unity 做真实图形设备专项，因此本轮当前只标“实现与离线编译通过”，不能标运行态完成。完整根因与复用规则见 [老端图片字体全局迁移 §5](RuntimeCompare/BitmapFont-全局迁移-20260805.md#5-2026-08-06-用户复查回卷改名绑定遗漏与战斗字号)。
+- **定向修复**：仅增量修改 `HudTop.prefab`、`HudTaskTeam.prefab` 与 `DamageFontRenderer`，没有重建字体或扫描/重序列化全库资源。主界面战力绑定 `num_new` 并按原生 22px；觉醒进度绑定 `temple_awaken_font` 并按老端 `15/14` 缩放语义设为约 23.57px；战斗飘字按 `faceInfo.pointSize` 还原 FNT 图集 1:1 尺寸。首次固定 `480×120 + Overflow` 被用户真实战斗回卷为“仍截断”，现改为按每条文本 preferred size 动态扩容（最低 `480×180`）、四周留边、`extraPadding` 和首帧强制重建网格。
+- **工具与门禁**：`BitmapFontPrefabUpgrader` 改为优先解析 View 序列化 Bind 字段、节点名兜底，并排除 Image 上的残留 font；盘点口径修正为 105 条文字绑定、68 条现行 Prefab 命中、37 条待首次转换。`BitmapFontCase` 增加四个 Bind 字段、字号、白色顶点色、战斗原生尺寸以及普通/暴击长数字 `textBounds` 不越 Rect 断言；修正后的不可变证据写入 `output/ui_route_audit/2026-08-06_bitmap-font-remediation/evidence-r2/`。
+- **当前验证**：Core/Editor 离线编译均 0 error；当前 Unity 真实图形设备专项 PASS，两张图分别有 `19658/133181` 个非背景像素，长数字 bounds 门禁通过。用户第一次实际战斗已完成并发现固定容器缺陷；动态容器方案等待第二次真实战斗确认，因此路线继续 pending，不能写最终完成。完整根因与复用规则见 [老端图片字体全局迁移 §5](RuntimeCompare/BitmapFont-全局迁移-20260805.md#5-2026-08-06-用户复查回卷改名绑定遗漏与战斗字号)。
 ## 2026-08-05：角色界面精修——称号详情、佩戴与场景表现闭环（R578解禁）
 
 - **详情页视觉与结构**：继续增量精修人工接管的`DsgtModule.prefab`，完成老端列表顺序、详情文案、动态称号特效、材料格与品质详情弹窗；未重转模块。`DesignationViewCase`真实Prefab冷开2070ms、热开38ms，列表拖动、末项可达、详情/材料弹窗、专用RT动态像素和佩戴/卸下点击均通过，证据目录为`output/ui_route_audit/2026-08-04_role_web_round2/cli_designation_20260805_2520/`。

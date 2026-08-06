@@ -86,6 +86,10 @@ namespace Shenxiao.Module.Core.Scene
         private const float SCATTER_RANGE = 75f;   // 对标老端 end_pos_offset=75
         private const int MAX_ACTIVE = 40;         // 极端 AOE 刷屏兜底:超限复用最老的一条
         private const float LEGACY_COMBAT_FONT_SIZE = 36f;
+        private const float MIN_COMBAT_TEXT_WIDTH = 480f;
+        private const float MIN_COMBAT_TEXT_HEIGHT = 180f;
+        private const float COMBAT_TEXT_HORIZONTAL_PADDING = 48f;
+        private const float COMBAT_TEXT_VERTICAL_PADDING = 24f;
 
         private static readonly List<FloatItem> _items = new List<FloatItem>(); // 池(Active 标记复用)
         private static readonly List<SkillImageItem> _skillItems = new List<SkillImageItem>();
@@ -192,6 +196,7 @@ namespace Shenxiao.Module.Core.Scene
             item.Text.fontSharedMaterial = font.material;
             item.Text.color = Color.white;
             item.Text.fontSize = ResolveRenderedFontSize(font, fontSize);
+            PrepareTextLayout(item.Text, item.Rt);
             item.Rt.gameObject.SetActive(true);
             UpdateItem(item); // 立即摆到出生位,避免首帧闪在旧位置
         }
@@ -205,6 +210,35 @@ namespace Shenxiao.Module.Core.Scene
         {
             if (font == null || font.faceInfo.pointSize <= 0f) return legacyFontSize;
             return font.faceInfo.pointSize * (legacyFontSize / LEGACY_COMBAT_FONT_SIZE);
+        }
+
+        /// <summary>
+        /// TMP 的 Overflow 只决定排版溢出策略，CanvasRenderer 仍会按 Graphic 的实际矩形和字形边界生成/裁剪网格。
+        /// 战斗 BMFont 从 36 恢复为原生 100 后，旧的固定 480×120 + 零边距不足以容纳高字形、前缀美术字和长伤害值，
+        /// 尤其在 Crit 的 2 倍回弹首帧会表现成“只剩半截”。这里按真实 preferred size 每次重用时扩容，
+        /// 并在四周保留透明安全边距；动画仍缩放整个 RectTransform，因此不会改变出生点和运动曲线。
+        /// </summary>
+        private static void PrepareTextLayout(TextMeshProUGUI text, RectTransform rect)
+        {
+            if (text == null || rect == null) return;
+
+            text.enableAutoSizing = false;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.overflowMode = TextOverflowModes.Overflow;
+            text.alignment = TextAlignmentOptions.Bottom;
+            text.margin = new Vector4(COMBAT_TEXT_HORIZONTAL_PADDING, COMBAT_TEXT_VERTICAL_PADDING,
+                COMBAT_TEXT_HORIZONTAL_PADDING, COMBAT_TEXT_VERTICAL_PADDING);
+            text.extraPadding = true;
+
+            Vector2 preferred = text.GetPreferredValues(text.text, float.PositiveInfinity, float.PositiveInfinity);
+            float width = Mathf.Max(MIN_COMBAT_TEXT_WIDTH,
+                preferred.x + COMBAT_TEXT_HORIZONTAL_PADDING * 2f);
+            float height = Mathf.Max(MIN_COMBAT_TEXT_HEIGHT,
+                preferred.y + COMBAT_TEXT_VERTICAL_PADDING * 2f);
+            rect.sizeDelta = new Vector2(Mathf.Ceil(width), Mathf.Ceil(height));
+
+            // 首帧立即生成新网格；否则同一池对象从短数字切到长数字时会沿用上一帧的裁剪边界。
+            text.ForceMeshUpdate(true, true);
         }
 
         /// <summary>flag → (占位字符, 位图字体, 字号, 动画)，逐项对标 FightDamageManager.InitFightFontData。</summary>
@@ -477,13 +511,14 @@ namespace Shenxiao.Module.Core.Scene
             var rt = (RectTransform)go.transform;
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f); // 与名牌同口径:锚屏幕中心,anchored=世界-相机
             rt.pivot = new Vector2(0.5f, 0f);
-            rt.sizeDelta = new Vector2(480f, 120f);
+            rt.sizeDelta = new Vector2(MIN_COMBAT_TEXT_WIDTH, MIN_COMBAT_TEXT_HEIGHT);
 
             var t = go.AddComponent<TextMeshProUGUI>();
             t.alignment = TextAlignmentOptions.Bottom;
             t.raycastTarget = false;
             t.textWrappingMode = TextWrappingModes.NoWrap;
             t.overflowMode = TextOverflowModes.Overflow;
+            t.extraPadding = true;
 
             var item = new FloatItem { Text = t, Rt = rt };
             _items.Add(item);

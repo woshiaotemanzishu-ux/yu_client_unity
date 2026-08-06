@@ -23,7 +23,8 @@ namespace Shenxiao.EditorTools
         private const string FontFolder = "Assets/GameRes/Fonts/Bitmap";
         private const string SkillNameFolder = "Assets/GameRes/resource/game/skillName";
         private const string OutputFolder = "output/ui_route_audit/2026-08-06_bitmap-font-remediation";
-        private const string EvidenceFolder = OutputFolder + "/evidence";
+        // 每轮最终证据写入新目录，避免桌面查看器/报告仍映射旧 PNG 时被覆盖后误读。
+        private const string EvidenceFolder = OutputFolder + "/evidence-r2";
         private const string InventoryPath = OutputFolder + "/bitmap-font-inventory.json";
         private static readonly JObject RenderedNonBackgroundPixels = new JObject();
         private static readonly string[] RequiredCombatFonts =
@@ -112,7 +113,7 @@ namespace Shenxiao.EditorTools
             {
                 ["status"] = "pass",
                 ["scope"] = "HudTop._lb_fighting + HudTaskTeam._lb_open_awaken_progress + " +
-                            "FightingUpView renamed binds + 10 combat bitmap fonts",
+                            "FightingUpView renamed binds + 10 combat bitmap fonts + runtime float bounds",
                 ["resourceMutation"] = "none",
                 ["captures"] = captures,
                 ["renderedNonBackgroundPixels"] = RenderedNonBackgroundPixels,
@@ -316,6 +317,58 @@ namespace Shenxiao.EditorTools
             float renderedSize = (float)resolveSize.Invoke(null, new object[] { attackFont, 36f });
             Require(Mathf.Approximately(renderedSize, attackFont.faceInfo.pointSize),
                 $"战斗位图字体没有按老端 1:1 原生尺寸绘制: actual={renderedSize}, native={attackFont.faceInfo.pointSize}");
+
+            MethodInfo prepareLayout = typeof(DamageFontRenderer).GetMethod("PrepareTextLayout",
+                BindingFlags.NonPublic | BindingFlags.Static);
+            Require(prepareLayout != null, "DamageFontRenderer.PrepareTextLayout 不存在");
+            RequireRuntimeCombatLayout(prepareLayout, attackFont, "1234567890123456789", renderedSize);
+
+            TMP_FontAsset critFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+                FontFolder + "/fight_font_baoji.asset");
+            Require(critFont != null, "fight_font_baoji 资产不存在");
+            float critSize = (float)resolveSize.Invoke(null, new object[] { critFont, 36f });
+            RequireRuntimeCombatLayout(prepareLayout, critFont, "a1234567890123456789", critSize);
+        }
+
+        private static void RequireRuntimeCombatLayout(MethodInfo prepareLayout, TMP_FontAsset font, string text,
+            float fontSize)
+        {
+            var canvasGo = new GameObject("CombatLayoutCheckCanvas", typeof(RectTransform), typeof(Canvas));
+            var labelGo = new GameObject("DamageFont", typeof(RectTransform), typeof(CanvasRenderer),
+                typeof(TextMeshProUGUI));
+            labelGo.transform.SetParent(canvasGo.transform, false);
+            try
+            {
+                var rect = (RectTransform)labelGo.transform;
+                rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.pivot = new Vector2(0.5f, 0f);
+                var label = labelGo.GetComponent<TextMeshProUGUI>();
+                label.font = font;
+                label.fontSharedMaterial = font.material;
+                label.fontSize = fontSize;
+                label.color = Color.white;
+                label.text = text;
+
+                prepareLayout.Invoke(null, new object[] { label, rect });
+                label.ForceMeshUpdate(true, true);
+
+                Require(label.mesh != null && label.mesh.vertexCount > 0,
+                    $"战斗飘字没有生成网格: font={font.name}, text={text}");
+                Bounds bounds = label.textBounds;
+                Rect box = rect.rect;
+                const float tolerance = 1f;
+                Require(bounds.min.x >= box.xMin - tolerance && bounds.max.x <= box.xMax + tolerance
+                        && bounds.min.y >= box.yMin - tolerance && bounds.max.y <= box.yMax + tolerance,
+                    $"战斗飘字网格仍越出容器: font={font.name}, text={text}, " +
+                    $"bounds=({bounds.min.x:F1},{bounds.min.y:F1})-({bounds.max.x:F1},{bounds.max.y:F1}), " +
+                    $"rect=({box.xMin:F1},{box.yMin:F1})-({box.xMax:F1},{box.yMax:F1})");
+                Require(rect.rect.width >= 480f && rect.rect.height >= 180f,
+                    $"战斗飘字安全容器过小: font={font.name}, size={rect.rect.size}");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(canvasGo);
+            }
         }
 
         private static void RequireStyle(MethodInfo resolve, long damage, int flag, bool defender,

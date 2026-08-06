@@ -36,11 +36,15 @@
       "risk": "read",
       "status": "pending",
       "applicable_gates": ["runtime_state", "render_completion"],
-      "gates": {"runtime_state": false, "render_completion": false},
+      "gates": {"runtime_state": false, "render_completion": true},
       "state_evidence": [
         "HudTop.prefab serialized MainUITopView._lb_fighting now binds num_new at native 22px"
       ],
-      "evidence": ["remediation-inventory.json"]
+      "evidence": [
+        "remediation-inventory.json",
+        "evidence-r2/hud-bitmap-font-remediation.png",
+        "evidence-r2/bitmap-font-remediation-verification.json"
+      ]
     },
     {
       "id": "hud-awaken-progress-font",
@@ -49,11 +53,15 @@
       "risk": "read",
       "status": "pending",
       "applicable_gates": ["runtime_state", "render_completion"],
-      "gates": {"runtime_state": false, "render_completion": false},
+      "gates": {"runtime_state": false, "render_completion": true},
       "state_evidence": [
         "HudTaskTeam.prefab serialized MainUITaskTeamView._lb_open_awaken_progress now binds temple_awaken_font at 22×15÷14"
       ],
-      "evidence": ["remediation-inventory.json"]
+      "evidence": [
+        "remediation-inventory.json",
+        "evidence-r2/hud-bitmap-font-remediation.png",
+        "evidence-r2/bitmap-font-remediation-verification.json"
+      ]
     },
     {
       "id": "combat-floating-number-size",
@@ -62,11 +70,17 @@
       "risk": "read",
       "status": "pending",
       "applicable_gates": ["runtime_state", "render_completion"],
-      "gates": {"runtime_state": false, "render_completion": false},
+      "gates": {"runtime_state": false, "render_completion": true},
       "state_evidence": [
-        "DamageFontRenderer maps legacy size 36 to each combat font native faceInfo.pointSize and uses 480×120 Overflow container"
+        "用户第一次实际战斗把 native pointSize + 固定 480×120 Overflow 回卷为截断",
+        "DamageFontRenderer 现按当前文本 preferred size 动态扩容，最低 480×180，四周留边并首帧强制重建网格",
+        "Unity 定向用例已覆盖普通长数字与 a 暴击前缀 textBounds 不越 Rect；等待用户第二次实际战斗"
       ],
-      "evidence": ["remediation-inventory.json"]
+      "evidence": [
+        "remediation-inventory.json",
+        "evidence-r2/combat-bitmap-font-mapping.png",
+        "evidence-r2/bitmap-font-remediation-verification.json"
+      ]
     },
     {
       "id": "targeted-resource-regression",
@@ -77,11 +91,14 @@
       "applicable_gates": ["resource_stable"],
       "gates": {"resource_stable": true},
       "resource_evidence": {
-        "preflight_first": "Core/Editor dotnet build 0 error",
-        "preflight_second": "targeted diff contains 2 Prefabs, 1 runtime consumer, upgrader/case/docs only",
+        "preflight_first": "Core/Editor dotnet build 0 error after dynamic bounds fix",
+        "preflight_second": "Unity targeted bitmap-font-remediation PASS on real graphics device",
         "runtime_delta": "0 font/atlas rebuilds; no Addressables mutation by this remediation"
       },
-      "evidence": ["remediation-inventory.json"]
+      "evidence": [
+        "remediation-inventory.json",
+        "evidence-r2/bitmap-font-remediation-verification.json"
+      ]
     }
   ]
 }

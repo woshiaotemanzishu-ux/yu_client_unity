@@ -4,7 +4,7 @@
 
 - 前台操作与资源闭包规则：用户在电脑前时，能不用 Computer Use 就不用，禁止静默抢占鼠标键盘、窗口焦点或启动/占用 Unity；确需 Computer Use、打开/操作/批处理 Unity 或其他会影响用户前台操作的程序时，必须先说明用途、影响和预计占用时间，待用户确认后再执行。资源任务先从配置、Addressables、版本清单和实际加载链确定固定文件或最小资源闭包，只修改、校验和导入这些目标；禁止无必要全量检出 LFS、创建新 Unity `Library`、触发全库 `AssetDatabase.Refresh`，或扫描、导入、转换、重序列化约 24 万资源。全量处理确实不可避免时，必须先说明理由、范围、预计耗时和替代方案，并取得用户同意。
 
-- 位图字体绑定与尺寸规则：人工接管的 Prefab 可以重命名节点，老端 `view/node/font` 到当前控件的匹配必须优先解析 View 的序列化 Bind 字段，再以同名节点兜底；禁止只按 `GameObject.name` 判定已应用或遗漏。老端 `Image` 上残留的 `font` 属性若实际由 `SetImageSprite` 等图片链消费，不得误转成 TMP。尺寸必须联合核对 FNT `info size`、真实 glyph 槽高、老端 `BitmapFont.fontSize/autoScaleSize` 与 TMP `faceInfo.pointSize`；单个字体族异常只修对应消费者或明确绑定，禁止据此全局改写全部字体指标或重建全库资源。
+- 位图字体绑定与尺寸规则：人工接管的 Prefab 可以重命名节点，老端 `view/node/font` 到当前控件的匹配必须优先解析 View 的序列化 Bind 字段，再以同名节点兜底；禁止只按 `GameObject.name` 判定已应用或遗漏。老端 `Image` 上残留的 `font` 属性若实际由 `SetImageSprite` 等图片链消费，不得误转成 TMP。尺寸必须联合核对 FNT `info size`、真实 glyph 槽高、老端 `BitmapFont.fontSize/autoScaleSize` 与 TMP `faceInfo.pointSize`；单个字体族异常只修对应消费者或明确绑定，禁止据此全局改写全部字体指标或重建全库资源。动态位图文字从缩小字号恢复到原生 `pointSize` 时，禁止继续依赖固定 Rect 加 `Overflow`；必须按本次文本的 `GetPreferredValues` 扩容、保留透明边距、强制首帧重建网格，并用长数字及 `a/b/c` 美术前缀断言 `textBounds` 完整落在 Rect 内。
 
 - UI 路由巡检深度优先规则：打开页面后必须先枚举当前页全部页签、按钮、列表、开关、输入、弹窗、条件显隐块和返回链，再选一个子节点跑到叶子；叶子事务必须验证提交、成败回包、当前父页即时刷新和关闭重开，跳转必须核对当前老端版本的页签/布局/功能并记录 cold/warm 耗时。只有所有应验叶子均 `done` 时父节点才能收口；“能打开”“协议已发”“退出重进后正确”都不能替代即时状态验收。日常快速循环使用老端 Browser MCP 基线 + Unity 真实 Prefab `GraphicRaycaster→PointerClick`，多条路由累计后再批次打 Web；禁止把 CLI 通过写成部署后 Web 通过。可恢复写入必须还原，未授权破坏性操作标 `blocked`，其父路由不得标完成。
 
