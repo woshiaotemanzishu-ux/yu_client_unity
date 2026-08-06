@@ -11,7 +11,7 @@
       "type": "navigation",
       "risk": "read",
       "parent": null,
-      "status": "pending",
+      "status": "needs-runtime-verify",
       "gates": {},
       "evidence": []
     },
@@ -34,7 +34,7 @@
       "parent": "global.bitmap-fonts.remediation-20260806",
       "type": "page",
       "risk": "read",
-      "status": "pending",
+      "status": "needs-runtime-verify",
       "applicable_gates": ["runtime_state", "render_completion"],
       "gates": {"runtime_state": false, "render_completion": true},
       "state_evidence": [
@@ -51,7 +51,7 @@
       "parent": "global.bitmap-fonts.remediation-20260806",
       "type": "page",
       "risk": "read",
-      "status": "pending",
+      "status": "needs-runtime-verify",
       "applicable_gates": ["runtime_state", "render_completion"],
       "gates": {"runtime_state": false, "render_completion": true},
       "state_evidence": [
@@ -68,18 +68,36 @@
       "parent": "global.bitmap-fonts.remediation-20260806",
       "type": "page",
       "risk": "read",
-      "status": "pending",
+      "status": "needs-runtime-verify",
       "applicable_gates": ["runtime_state", "render_completion"],
-      "gates": {"runtime_state": false, "render_completion": true},
+      "gates": {"runtime_state": false, "render_completion": false},
       "state_evidence": [
         "用户第一次实际战斗把 native pointSize + 固定 480×120 Overflow 回卷为截断",
-        "DamageFontRenderer 现按当前文本 preferred size 动态扩容，最低 480×180，四周留边并首帧强制重建网格",
-        "Unity 定向用例已覆盖普通长数字与 a 暴击前缀 textBounds 不越 Rect；等待用户第二次实际战斗"
+        "用户第二次实际战斗证明 preferred-size TMP Rect 虽通过 textBounds 仍未复刻旧端",
+        "DamageFontRenderer 现按 FNT GlyphRect/GlyphMetrics 逐字直绘原 atlas，完全绕过 TMP 排版与裁切",
+        "Core/Editor 离线编译 0 error；r3 图形专项和玩家战斗仍待复验"
       ],
       "evidence": [
         "remediation-inventory.json",
-        "evidence-r2/combat-bitmap-font-mapping.png",
-        "evidence-r2/bitmap-font-remediation-verification.json"
+        "Docs/RuntimeCompare/BitmapFont-全局迁移-20260805.md#6"
+      ]
+    },
+    {
+      "id": "combat-float-after-role-close",
+      "parent": "global.bitmap-fonts.remediation-20260806",
+      "type": "return",
+      "risk": "read",
+      "status": "needs-runtime-verify",
+      "applicable_gates": ["runtime_state", "reopen", "return_chain"],
+      "gates": {"runtime_state": false, "reopen": false, "return_chain": false},
+      "state_evidence": [
+        "旧 CanShowCombatFloat 把 Window 一级缓存模块根 active 误判为页面仍打开",
+        "角色页关闭只隐藏内部 BaseView，模块根常驻导致后续门槛永久 false",
+        "现删除 Window 根扫描，只保留 Time.timeScale；等待同一场战斗开关角色页复验"
+      ],
+      "evidence": [
+        "remediation-inventory.json",
+        "Assets/Scripts/Module/Core/Scene/DamageFontRenderer.cs"
       ]
     },
     {
@@ -87,17 +105,16 @@
       "parent": "global.bitmap-fonts.remediation-20260806",
       "type": "read",
       "risk": "read",
-      "status": "done",
+      "status": "needs-runtime-verify",
       "applicable_gates": ["resource_stable"],
-      "gates": {"resource_stable": true},
+      "gates": {"resource_stable": false},
       "resource_evidence": {
-        "preflight_first": "Core/Editor dotnet build 0 error after dynamic bounds fix",
-        "preflight_second": "Unity targeted bitmap-font-remediation PASS on real graphics device",
+        "preflight_first": "Core/Editor dotnet build 0 error after FNT direct mesh and lifecycle fix",
+        "preflight_second": "r3 Unity targeted case not run; user Unity was not occupied",
         "runtime_delta": "0 font/atlas rebuilds; no Addressables mutation by this remediation"
       },
       "evidence": [
-        "remediation-inventory.json",
-        "evidence-r2/bitmap-font-remediation-verification.json"
+        "remediation-inventory.json"
       ]
     }
   ]

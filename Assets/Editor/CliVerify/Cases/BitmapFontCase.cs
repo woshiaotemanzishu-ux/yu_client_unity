@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
 using Shenxiao.Editor.LayaUI;
 using Shenxiao.Editor.UiCreator;
@@ -24,7 +25,7 @@ namespace Shenxiao.EditorTools
         private const string SkillNameFolder = "Assets/GameRes/resource/game/skillName";
         private const string OutputFolder = "output/ui_route_audit/2026-08-06_bitmap-font-remediation";
         // 每轮最终证据写入新目录，避免桌面查看器/报告仍映射旧 PNG 时被覆盖后误读。
-        private const string EvidenceFolder = OutputFolder + "/evidence-r2";
+        private const string EvidenceFolder = OutputFolder + "/evidence-r3";
         private const string InventoryPath = OutputFolder + "/bitmap-font-inventory.json";
         private static readonly JObject RenderedNonBackgroundPixels = new JObject();
         private static readonly string[] RequiredCombatFonts =
@@ -113,7 +114,7 @@ namespace Shenxiao.EditorTools
             {
                 ["status"] = "pass",
                 ["scope"] = "HudTop._lb_fighting + HudTaskTeam._lb_open_awaken_progress + " +
-                            "FightingUpView renamed binds + 10 combat bitmap fonts + runtime float bounds",
+                            "FightingUpView renamed binds + 10 combat FNT glyph fidelity + direct runtime mesh + panel lifecycle gate",
                 ["resourceMutation"] = "none",
                 ["captures"] = captures,
                 ["renderedNonBackgroundPixels"] = RenderedNonBackgroundPixels,
@@ -308,65 +309,132 @@ namespace Shenxiao.EditorTools
             RequireStyle(resolve, 123, 6, false, "a123", "fight_font_gedang");
             RequireStyle(resolve, 123, 6, true, "b123", "fight_font_gedang");
 
-            MethodInfo resolveSize = typeof(DamageFontRenderer).GetMethod("ResolveRenderedFontSize",
-                BindingFlags.NonPublic | BindingFlags.Static);
-            Require(resolveSize != null, "DamageFontRenderer.ResolveRenderedFontSize 不存在");
+            foreach (string fontName in RequiredCombatFonts)
+            {
+                TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+                    FontFolder + "/" + fontName + ".asset");
+                Require(font != null, "战斗位图字体资产不存在: " + fontName);
+                VerifyFntGlyphFidelity(fontName, font);
+            }
+
             TMP_FontAsset attackFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
                 FontFolder + "/fight_font_attack.asset");
-            Require(attackFont != null, "fight_font_attack 资产不存在");
-            float renderedSize = (float)resolveSize.Invoke(null, new object[] { attackFont, 36f });
-            Require(Mathf.Approximately(renderedSize, attackFont.faceInfo.pointSize),
-                $"战斗位图字体没有按老端 1:1 原生尺寸绘制: actual={renderedSize}, native={attackFont.faceInfo.pointSize}");
-
-            MethodInfo prepareLayout = typeof(DamageFontRenderer).GetMethod("PrepareTextLayout",
-                BindingFlags.NonPublic | BindingFlags.Static);
-            Require(prepareLayout != null, "DamageFontRenderer.PrepareTextLayout 不存在");
-            RequireRuntimeCombatLayout(prepareLayout, attackFont, "1234567890123456789", renderedSize);
-
+            RequireRuntimeCombatMesh(attackFont, "1", "1234567890123456789");
             TMP_FontAsset critFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
                 FontFolder + "/fight_font_baoji.asset");
-            Require(critFont != null, "fight_font_baoji 资产不存在");
-            float critSize = (float)resolveSize.Invoke(null, new object[] { critFont, 36f });
-            RequireRuntimeCombatLayout(prepareLayout, critFont, "a1234567890123456789", critSize);
+            RequireRuntimeCombatMesh(critFont, "a1", "a1234567890123456789");
+            VerifyPanelLifecycleGate();
         }
 
-        private static void RequireRuntimeCombatLayout(MethodInfo prepareLayout, TMP_FontAsset font, string text,
-            float fontSize)
+        private static void VerifyFntGlyphFidelity(string fontName, TMP_FontAsset font)
         {
-            var canvasGo = new GameObject("CombatLayoutCheckCanvas", typeof(RectTransform), typeof(Canvas));
+            XDocument document = XDocument.Load(FontFolder + "/" + fontName + ".fnt");
+            XElement common = document.Root?.Element("common");
+            XElement chars = document.Root?.Element("chars");
+            Require(common != null && chars != null, "FNT 结构不完整: " + fontName);
+            int atlasHeight = int.Parse(common.Attribute("scaleH")?.Value ?? "0");
+            font.ReadFontAssetDefinition();
+            foreach (XElement node in chars.Elements("char"))
+            {
+                int unicode = int.Parse(node.Attribute("id")?.Value ?? "-1");
+                if (unicode < 0) continue;
+                Require(font.characterLookupTable.TryGetValue((uint)unicode, out TMP_Character character)
+                        && character?.glyph != null,
+                    $"生成字体缺少 FNT 字符: font={fontName}, id={unicode}");
+
+                UnityEngine.TextCore.Glyph glyph = character.glyph;
+                int x = int.Parse(node.Attribute("x")?.Value ?? "0");
+                int y = int.Parse(node.Attribute("y")?.Value ?? "0");
+                int width = int.Parse(node.Attribute("width")?.Value ?? "0");
+                int height = int.Parse(node.Attribute("height")?.Value ?? "0");
+                int xOffset = int.Parse(node.Attribute("xoffset")?.Value ?? "0");
+                int yOffset = int.Parse(node.Attribute("yoffset")?.Value ?? "0");
+                int advance = int.Parse(node.Attribute("xadvance")?.Value ?? "0");
+                Require(glyph.glyphRect.x == x && glyph.glyphRect.y == atlasHeight - y - height
+                        && glyph.glyphRect.width == width && glyph.glyphRect.height == height,
+                    $"FNT GlyphRect 抄写错误: font={fontName}, id={unicode}, " +
+                    $"actual={glyph.glyphRect}, expected=({x},{atlasHeight - y - height},{width},{height})");
+                Require(Mathf.Approximately(glyph.metrics.width, width)
+                        && Mathf.Approximately(glyph.metrics.height, height)
+                        && Mathf.Approximately(glyph.metrics.horizontalBearingX, xOffset)
+                        && Mathf.Approximately(glyph.metrics.horizontalBearingY, height - yOffset)
+                        && Mathf.Approximately(glyph.metrics.horizontalAdvance, advance),
+                    $"FNT GlyphMetrics 抄写错误: font={fontName}, id={unicode}");
+            }
+        }
+
+        private static void RequireRuntimeCombatMesh(TMP_FontAsset font, string shortText, string longText)
+        {
+            var canvasGo = new GameObject("CombatMeshCheckCanvas", typeof(RectTransform), typeof(Canvas));
             var labelGo = new GameObject("DamageFont", typeof(RectTransform), typeof(CanvasRenderer),
-                typeof(TextMeshProUGUI));
+                typeof(LegacyBitmapTextGraphic));
             labelGo.transform.SetParent(canvasGo.transform, false);
             try
             {
                 var rect = (RectTransform)labelGo.transform;
                 rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
                 rect.pivot = new Vector2(0.5f, 0f);
-                var label = labelGo.GetComponent<TextMeshProUGUI>();
-                label.font = font;
-                label.fontSharedMaterial = font.material;
-                label.fontSize = fontSize;
-                label.color = Color.white;
-                label.text = text;
-
-                prepareLayout.Invoke(null, new object[] { label, rect });
-                label.ForceMeshUpdate(true, true);
-
-                Require(label.mesh != null && label.mesh.vertexCount > 0,
-                    $"战斗飘字没有生成网格: font={font.name}, text={text}");
-                Bounds bounds = label.textBounds;
+                var label = labelGo.GetComponent<LegacyBitmapTextGraphic>();
+                label.SetContent(font, shortText);
+                Vector2 shortSize = label.ContentSize;
+                label.SetContent(font, longText);
+                label.Rebuild(CanvasUpdate.PreRender);
+                Mesh mesh = label.canvasRenderer.GetMesh();
+                Require(mesh != null, $"战斗 FNT 直绘没有提交 CanvasRenderer 网格: font={font.name}");
+                Require(mesh.vertexCount == longText.Length * 4 && label.RenderedGlyphCount == longText.Length,
+                    $"战斗 FNT 直绘网格字符数错误: font={font.name}, text={longText}, vertices={mesh.vertexCount}");
+                Require(label.ContentSize.x > shortSize.x,
+                    $"战斗 FNT 池对象从短串复用为长串时没有扩展: font={font.name}");
+                Bounds bounds = mesh.bounds;
                 Rect box = rect.rect;
-                const float tolerance = 1f;
+                const float tolerance = 0.01f;
                 Require(bounds.min.x >= box.xMin - tolerance && bounds.max.x <= box.xMax + tolerance
                         && bounds.min.y >= box.yMin - tolerance && bounds.max.y <= box.yMax + tolerance,
-                    $"战斗飘字网格仍越出容器: font={font.name}, text={text}, " +
+                    $"战斗 FNT 直绘网格越出自身精确矩形: font={font.name}, text={longText}, " +
                     $"bounds=({bounds.min.x:F1},{bounds.min.y:F1})-({bounds.max.x:F1},{bounds.max.y:F1}), " +
                     $"rect=({box.xMin:F1},{box.yMin:F1})-({box.xMax:F1},{box.yMax:F1})");
-                Require(rect.rect.width >= 480f && rect.rect.height >= 180f,
-                    $"战斗飘字安全容器过小: font={font.name}, size={rect.rect.size}");
+                Require(label.mainTexture == font.atlasTexture,
+                    $"战斗 FNT 直绘没有使用原图集: font={font.name}");
             }
             finally
             {
+                UnityEngine.Object.DestroyImmediate(canvasGo);
+            }
+        }
+
+        private static void VerifyPanelLifecycleGate()
+        {
+            MethodInfo canShow = typeof(DamageFontRenderer).GetMethod("CanShowCombatFloat",
+                BindingFlags.NonPublic | BindingFlags.Static);
+            FieldInfo layersField = typeof(Shenxiao.Framework.UI.ViewManager).GetField("_layers",
+                BindingFlags.NonPublic | BindingFlags.Static);
+            Require(canShow != null && layersField != null, "战斗飘字生命周期门禁不可检查");
+
+            object previousLayers = layersField.GetValue(null);
+            float previousTimeScale = Time.timeScale;
+            var canvasGo = new GameObject("CombatFloatLifecycleCanvas", typeof(RectTransform), typeof(Canvas));
+            try
+            {
+                var layers = new Shenxiao.Framework.UI.LayerManager();
+                layers.Init(canvasGo.GetComponent<Canvas>());
+                Shenxiao.Framework.UI.ViewManager.Init(layers);
+                Transform window = layers.GetLayer(Shenxiao.Framework.UI.UILayer.Window);
+                var cachedModuleRoot = new GameObject("CachedRoleModuleRoot");
+                cachedModuleRoot.transform.SetParent(window, false);
+                cachedModuleRoot.SetActive(true);
+                Time.timeScale = 1f;
+                Require((bool)canShow.Invoke(null, null),
+                    "活动的角色模块缓存根错误地永久拦截了战斗飘字");
+                cachedModuleRoot.SetActive(false);
+                Require((bool)canShow.Invoke(null, null),
+                    "角色面板关闭后战斗飘字没有恢复");
+                Time.timeScale = 0f;
+                Require(!(bool)canShow.Invoke(null, null), "全局暂停时仍允许战斗飘字");
+            }
+            finally
+            {
+                Time.timeScale = previousTimeScale;
+                layersField.SetValue(null, previousLayers);
                 UnityEngine.Object.DestroyImmediate(canvasGo);
             }
         }
@@ -537,10 +605,11 @@ namespace Shenxiao.EditorTools
                 AddText(canvasGo.transform, rows[i][0] + "  " + rows[i][1], labelFont, 20f,
                     new Vector2(22f, y), new Vector2(390f, 55f), new Color(0.72f, 0.78f, 0.88f, 1f));
                 TMP_FontAsset font = fonts.First(v => v.name == rows[i][1]);
-                TextMeshProUGUI sample = AddText(canvasGo.transform, rows[i][2], font, font.faceInfo.pointSize,
-                    new Vector2(420f, y - 3f), new Vector2(455f, 120f), Color.white);
-                sample.ForceMeshUpdate();
-                Require(sample.mesh != null && sample.mesh.vertexCount > 0, "战斗图片字没有实际网格: " + rows[i][0]);
+                LegacyBitmapTextGraphic sample = AddCombatBitmapText(canvasGo.transform, rows[i][2], font,
+                    new Vector2(420f, y - 3f));
+                sample.Rebuild(CanvasUpdate.PreRender);
+                Require(sample.RenderedGlyphCount == rows[i][2].Length,
+                    "战斗 FNT 直绘没有生成全部字形: " + rows[i][0]);
             }
             return CaptureAndDestroy(rt, camera, canvasGo, EvidenceFolder + "/combat-bitmap-font-mapping.png");
         }
@@ -660,6 +729,22 @@ namespace Shenxiao.EditorTools
             label.raycastTarget = false;
             label.text = text;
             return label;
+        }
+
+        private static LegacyBitmapTextGraphic AddCombatBitmapText(Transform parent, string text,
+            TMP_FontAsset font, Vector2 anchoredPosition)
+        {
+            var go = new GameObject("LegacyBitmapText", typeof(RectTransform), typeof(CanvasRenderer),
+                typeof(LegacyBitmapTextGraphic));
+            go.transform.SetParent(parent, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.anchoredPosition = anchoredPosition;
+            var graphic = go.GetComponent<LegacyBitmapTextGraphic>();
+            graphic.raycastTarget = false;
+            graphic.SetContent(font, text);
+            return graphic;
         }
 
         private static string BuildSample(TMP_FontAsset font)

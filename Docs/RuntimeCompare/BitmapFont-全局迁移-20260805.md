@@ -56,3 +56,13 @@ Unity.exe -batchmode -projectPath <worktree> `
 - **禁止全局改指标**：66 套 FNT 的 `glyphHeight/infoSize` 比例差异很大，且存在历史异常 info 值；不能因为战斗字体是 `100/36` 就把 `BitmapFontAssetBuilder` 的 face 指标统一改成 info size。主界面战力 `num_new` 的老端 `autoScaleSize=false`，按原生 22px；觉醒进度则按老端 Label 15 / BitmapFont 14 的比例换算为 `22×15/14≈23.57px`。尺寸必须逐消费链还原。
 - **定向复验入口**：本次禁止再调用会同步/重建全部字体的 `RunBatch`。编辑器内使用菜单 `神霄/验证/位图字体复查专项（定向）`；关闭编辑器后可用 `-executeMethod Shenxiao.EditorTools.BitmapFontCase.RunRemediationBatch`。该入口只读两个 HUD Prefab、`FightingUpView` 与十套战斗字体，只向新证据目录写 PNG/JSON，不同步源文件、不重建 66 套字体、不改 Addressables、不扫描全部 Prefab。每次最终截图必须换不可变目录，本轮修正证据位于 `evidence-r2/`。
 - **验证状态**：`Shenxiao.Module.Core.csproj` 与 `Shenxiao.Editor.csproj` 离线编译均为 0 error；当前 Unity 真实图形设备 `CLIVERIFY bitmap-font-remediation PASS`，两张图分别有 `19658/133181` 个非背景像素，长普通数字与 `a` 暴击前缀 bounds 断言通过。用户第一次真实战斗已把固定 `480×120` 方案回卷为“截断”；动态 Rect 修正仍等待用户第二次实际战斗确认，因此父路线继续 `pending`，不能仅凭专项 PASS 标最终 `done`。
+
+## 6. 2026-08-06 第二次用户复查：TMP 路线作废与窗口生命周期
+
+用户第二次真实战斗截图再次证明动态 Rect 方案仍是假修复：数字的 TMP `textBounds` 虽在自身 Rect 内，画面仍与老端 FNT 切片不一致；同时复现“战斗中打开角色面板再关闭，之后所有飘字永久消失”。第 5 节关于战斗字依靠 TMP preferred bounds 修复的结论到此作废，HUD 等普通位图 TMP 消费者不受影响。
+
+- **旧端真实绘制方式**：`Laya.BitmapFont.parseFont` 按 FNT 的 `x/y/width/height/xoffset/yoffset/xadvance` 创建每个字符纹理，`BitmapFont._drawText` 再逐字 `drawImage`；它不使用 FNT `common.lineHeight/base` 做通用文字基线排版。十套战斗 FNT 与 Unity 同名源文件 SHA-256 一致，问题不是图片或位置文件没复制，而是 Unity 把逐字图片链错误交给了 TMP 排版。
+- **最终代码路线**：`DamageFontRenderer` 的池对象改用 `LegacyBitmapTextGraphic`。现有 `TMP_FontAsset` 只作为 FNT 生成后的只读 `GlyphRect/GlyphMetrics/atlas` 数据容器；运行时逐字生成原图四边形，矩形直接取全部 glyph 的真实边界，短串复用成长串时重新生成，不再经过 TMP 的 pointSize、lineHeight、baseline、preferred bounds 或文字容器裁切。未同步、未重建任何字体/图集，也未改 Addressables。
+- **生命周期根因**：旧 `CanShowCombatFloat` 遍历 `UILayer.Window` 一级子节点，只要某个模块根 `activeInHierarchy` 就拒绝所有新飘字。角色模块关闭只隐藏内部 View，缓存根仍 active，因此首次开窗后门槛永久为 false。现删除窗口根扫描，只保留 `Time.timeScale` 暂停门槛；战斗字位于 `sortingOrder=-30` 的场景子 Canvas，打开窗口时由窗口层自然遮挡，关闭后无需恢复令牌或重建根。
+- **定向门禁**：`BitmapFontCase` 的 r3 专项逐字比较十套 FNT 与生成资产的 rect/metrics，检查直接网格字符数、原 atlas、短串→长串扩展和网格边界，并构造 active 的角色模块缓存根验证开窗前后门槛不被污染。旧的 `textBounds` 断言已删除。
+- **当前验证状态**：`Shenxiao.Module.Core.csproj` 与 `Shenxiao.Editor.csproj` 离线编译 0 error；未占用用户 Unity，r3 图形专项与同一场战斗的“有飘字→开角色→关闭→仍有飘字”仍待用户实际复验，路线保持 `pending`。

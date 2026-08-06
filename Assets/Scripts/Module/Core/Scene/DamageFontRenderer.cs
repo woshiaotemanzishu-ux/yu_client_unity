@@ -56,7 +56,7 @@ namespace Shenxiao.Module.Core.Scene
 
         private sealed class FloatItem
         {
-            public TextMeshProUGUI Text;
+            public LegacyBitmapTextGraphic Text;
             public RectTransform Rt;
             public float WorldX, WorldY; // 出生定格的世界像素(老端 defender_pos 快照,不追踪目标)
             public float ScatterX;       // 横向随机散布(对标 end_pos_offset=75)
@@ -85,11 +85,6 @@ namespace Shenxiao.Module.Core.Scene
         private const float HEAD_OFFSET = 165f;
         private const float SCATTER_RANGE = 75f;   // 对标老端 end_pos_offset=75
         private const int MAX_ACTIVE = 40;         // 极端 AOE 刷屏兜底:超限复用最老的一条
-        private const float LEGACY_COMBAT_FONT_SIZE = 36f;
-        private const float MIN_COMBAT_TEXT_WIDTH = 480f;
-        private const float MIN_COMBAT_TEXT_HEIGHT = 180f;
-        private const float COMBAT_TEXT_HORIZONTAL_PADDING = 48f;
-        private const float COMBAT_TEXT_VERTICAL_PADDING = 24f;
 
         private static readonly List<FloatItem> _items = new List<FloatItem>(); // 池(Active 标记复用)
         private static readonly List<SkillImageItem> _skillItems = new List<SkillImageItem>();
@@ -175,7 +170,7 @@ namespace Shenxiao.Module.Core.Scene
         private static void ShowDamageReady(int worldX, int worldY, long damage, int flag, bool mainRoleIsDefender)
         {
             if (!CanShowCombatFloat()) return;
-            (string text, string fontName, float fontSize, Ani ani) = ResolveStyle(damage, flag, mainRoleIsDefender);
+            var (text, fontName, ani) = ResolveStyle(damage, flag, mainRoleIsDefender);
             if (string.IsNullOrEmpty(text) || !_bitmapFonts.TryGetValue(fontName, out TMP_FontAsset font)
                 || font == null) return;
 
@@ -191,58 +186,16 @@ namespace Shenxiao.Module.Core.Scene
             item.Age = 0f;
             item.Ani = ani;
             item.Active = true;
-            item.Text.text = text;
-            item.Text.font = font;
-            item.Text.fontSharedMaterial = font.material;
-            item.Text.color = Color.white;
-            item.Text.fontSize = ResolveRenderedFontSize(font, fontSize);
-            PrepareTextLayout(item.Text, item.Rt);
+            // 老端 Laya.BitmapFont._drawText 不是通用文字排版：它直接按 FNT 的逐字切片和
+            // xadvance 画图。战斗字也必须走同一路径，不能再交给 TMP 的基线、行高和
+            // preferred bounds 推导，否则透明的 100px glyph 槽会再次引入裁切差异。
+            item.Text.SetContent(font, text);
             item.Rt.gameObject.SetActive(true);
             UpdateItem(item); // 立即摆到出生位,避免首帧闪在旧位置
         }
 
-        /// <summary>
-        /// 老端 FightFont 同时把 Label 与 BitmapFont 设为 36，因此 FNT 图集按 1:1 原尺寸绘制。
-        /// TMP 的 bitmap face pointSize 来自真实字形槽高度（当前战斗字体为 100），若继续写 36 会被再次缩成 36/100。
-        /// 这里保留 36 作为老端样式基准，并换算到当前字体的原生 pointSize；不要据此全局改写其它 BMFont 资产指标。
-        /// </summary>
-        private static float ResolveRenderedFontSize(TMP_FontAsset font, float legacyFontSize)
-        {
-            if (font == null || font.faceInfo.pointSize <= 0f) return legacyFontSize;
-            return font.faceInfo.pointSize * (legacyFontSize / LEGACY_COMBAT_FONT_SIZE);
-        }
-
-        /// <summary>
-        /// TMP 的 Overflow 只决定排版溢出策略，CanvasRenderer 仍会按 Graphic 的实际矩形和字形边界生成/裁剪网格。
-        /// 战斗 BMFont 从 36 恢复为原生 100 后，旧的固定 480×120 + 零边距不足以容纳高字形、前缀美术字和长伤害值，
-        /// 尤其在 Crit 的 2 倍回弹首帧会表现成“只剩半截”。这里按真实 preferred size 每次重用时扩容，
-        /// 并在四周保留透明安全边距；动画仍缩放整个 RectTransform，因此不会改变出生点和运动曲线。
-        /// </summary>
-        private static void PrepareTextLayout(TextMeshProUGUI text, RectTransform rect)
-        {
-            if (text == null || rect == null) return;
-
-            text.enableAutoSizing = false;
-            text.textWrappingMode = TextWrappingModes.NoWrap;
-            text.overflowMode = TextOverflowModes.Overflow;
-            text.alignment = TextAlignmentOptions.Bottom;
-            text.margin = new Vector4(COMBAT_TEXT_HORIZONTAL_PADDING, COMBAT_TEXT_VERTICAL_PADDING,
-                COMBAT_TEXT_HORIZONTAL_PADDING, COMBAT_TEXT_VERTICAL_PADDING);
-            text.extraPadding = true;
-
-            Vector2 preferred = text.GetPreferredValues(text.text, float.PositiveInfinity, float.PositiveInfinity);
-            float width = Mathf.Max(MIN_COMBAT_TEXT_WIDTH,
-                preferred.x + COMBAT_TEXT_HORIZONTAL_PADDING * 2f);
-            float height = Mathf.Max(MIN_COMBAT_TEXT_HEIGHT,
-                preferred.y + COMBAT_TEXT_VERTICAL_PADDING * 2f);
-            rect.sizeDelta = new Vector2(Mathf.Ceil(width), Mathf.Ceil(height));
-
-            // 首帧立即生成新网格；否则同一池对象从短数字切到长数字时会沿用上一帧的裁剪边界。
-            text.ForceMeshUpdate(true, true);
-        }
-
-        /// <summary>flag → (占位字符, 位图字体, 字号, 动画)，逐项对标 FightDamageManager.InitFightFontData。</summary>
-        private static (string, string, float, Ani) ResolveStyle(long damage, int flag, bool mainRoleIsDefender)
+        /// <summary>flag → (占位字符, 位图字体, 动画)，逐项对标 FightDamageManager.InitFightFontData。</summary>
+        private static (string, string, Ani) ResolveStyle(long damage, int flag, bool mainRoleIsDefender)
         {
             if (mainRoleIsDefender)
             {
@@ -250,16 +203,16 @@ namespace Shenxiao.Module.Core.Scene
                 {
                     case FLAG_CRIT:
                     case FLAG_CRIT_HUIXIN:
-                        return ("b" + damage, "fight_font_baoji", 36f, Ani.MainRoleHit);
+                        return ("b" + damage, "fight_font_baoji", Ani.MainRoleHit);
                     case FLAG_ZHUOYUE:
-                        return ("b" + damage, "fight_font_zhuoyue", 36f, Ani.MainRoleHit);
+                        return ("b" + damage, "fight_font_zhuoyue", Ani.MainRoleHit);
                     case FLAG_ZHUOYUE_HUIXIN: // 老端该组合明确复用会心被击字形
                     case FLAG_HUIXIN:
-                        return ("b" + damage, "fight_font_huixin", 36f, Ani.MainRoleHit);
+                        return ("b" + damage, "fight_font_huixin", Ani.MainRoleHit);
                     case FLAG_PARRY:
-                        return ("b" + damage, "fight_font_gedang", 36f, Ani.MainRoleHit);
+                        return ("b" + damage, "fight_font_gedang", Ani.MainRoleHit);
                     default:
-                        return (damage == 0 ? "a" : damage.ToString(), "fight_font_beattack", 36f, Ani.MainRoleHit);
+                        return (damage == 0 ? "a" : damage.ToString(), "fight_font_beattack", Ani.MainRoleHit);
                 }
             }
 
@@ -267,16 +220,16 @@ namespace Shenxiao.Module.Core.Scene
             {
                 case FLAG_CRIT:
                 case FLAG_CRIT_HUIXIN:
-                    return ("a" + damage, "fight_font_baoji", 36f, Ani.Crit);
+                    return ("a" + damage, "fight_font_baoji", Ani.Crit);
                 case FLAG_ZHUOYUE:
                 case FLAG_ZHUOYUE_HUIXIN:
-                    return ("a" + damage, "fight_font_zhuoyue", 36f, Ani.Crit);
+                    return ("a" + damage, "fight_font_zhuoyue", Ani.Crit);
                 case FLAG_HUIXIN:
-                    return ("a" + damage, "fight_font_huixin", 36f, Ani.Crit);
+                    return ("a" + damage, "fight_font_huixin", Ani.Crit);
                 case FLAG_PARRY:
-                    return ("a" + damage, "fight_font_gedang", 36f, Ani.Normal);
+                    return ("a" + damage, "fight_font_gedang", Ani.Normal);
                 default:
-                    return (damage == 0 ? "a" : damage.ToString(), "fight_font_attack", 36f, Ani.Normal);
+                    return (damage == 0 ? "a" : damage.ToString(), "fight_font_attack", Ani.Normal);
             }
         }
 
@@ -477,14 +430,10 @@ namespace Shenxiao.Module.Core.Scene
 
         private static bool CanShowCombatFloat()
         {
-            if (Time.timeScale <= 0f) return false;
-            Transform windowLayer = ViewManager.GetLayer(UILayer.Window);
-            if (windowLayer == null) return true;
-            for (int i = 0; i < windowLayer.childCount; i++)
-            {
-                if (windowLayer.GetChild(i).gameObject.activeInHierarchy) return false;
-            }
-            return true;
+            // Window 下的合并模块根会被缓存并长期保持 active，关闭角色页只隐藏其中的 BaseView。
+            // 用一级根 active 状态做门槛会让第一次开窗后永久停飘。飘字本来就在 sortingOrder=-30
+            // 的场景子 Canvas，窗口层会自然遮挡它，因此这里只保留真正的全局暂停门槛。
+            return Time.timeScale > 0f;
         }
 
         // ── 池 / 根节点 ──────────────────────────────────────────────────────────
@@ -511,14 +460,11 @@ namespace Shenxiao.Module.Core.Scene
             var rt = (RectTransform)go.transform;
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f); // 与名牌同口径:锚屏幕中心,anchored=世界-相机
             rt.pivot = new Vector2(0.5f, 0f);
-            rt.sizeDelta = new Vector2(MIN_COMBAT_TEXT_WIDTH, MIN_COMBAT_TEXT_HEIGHT);
+            rt.sizeDelta = Vector2.zero;
 
-            var t = go.AddComponent<TextMeshProUGUI>();
-            t.alignment = TextAlignmentOptions.Bottom;
+            var t = go.AddComponent<LegacyBitmapTextGraphic>();
             t.raycastTarget = false;
-            t.textWrappingMode = TextWrappingModes.NoWrap;
-            t.overflowMode = TextOverflowModes.Overflow;
-            t.extraPadding = true;
+            t.color = Color.white;
 
             var item = new FloatItem { Text = t, Rt = rt };
             _items.Add(item);
@@ -590,5 +536,121 @@ namespace Shenxiao.Module.Core.Scene
     public sealed class DamageFontDriver : MonoBehaviour
     {
         private void Update() => DamageFontRenderer.Tick();
+    }
+
+    /// <summary>
+    /// 战斗专用的老端 BMFont 直绘组件。TMP_FontAsset 在这里只充当由 .fnt 生成的只读数据容器；
+    /// 组件逐字符读取 GlyphRect / GlyphMetrics，按旧端 BitmapFont._drawText 的规则生成一个四边形，
+    /// 不经过 TMP 的 lineHeight、baseline、preferred bounds 或文字容器裁切。
+    /// </summary>
+    public sealed class LegacyBitmapTextGraphic : MaskableGraphic
+    {
+        private TMP_FontAsset _font;
+        private string _text = string.Empty;
+        private float _minX;
+        private float _maxX;
+        private float _minY;
+        private float _maxY;
+
+        public TMP_FontAsset Font => _font;
+        public string Text => _text;
+        public int RenderedGlyphCount { get; private set; }
+        public Vector2 ContentSize => new Vector2(_maxX - _minX, _maxY - _minY);
+
+        public override Texture mainTexture
+            => _font != null && _font.atlasTexture != null ? _font.atlasTexture : Texture2D.whiteTexture;
+
+        public void SetContent(TMP_FontAsset font, string value)
+        {
+            _font = font;
+            _text = value ?? string.Empty;
+            color = Color.white;
+            CalculateBounds();
+            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,
+                Mathf.Max(0f, Mathf.Ceil(_maxX - _minX)));
+            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,
+                Mathf.Max(0f, Mathf.Ceil(_maxY - _minY)));
+            SetMaterialDirty();
+            SetVerticesDirty();
+        }
+
+        protected override void OnPopulateMesh(VertexHelper vh)
+        {
+            vh.Clear();
+            RenderedGlyphCount = 0;
+            if (_font == null || _font.atlasTexture == null || string.IsNullOrEmpty(_text)) return;
+
+            Texture atlas = _font.atlasTexture;
+            Rect box = rectTransform.rect;
+            float shiftX = box.xMin - _minX;
+            float shiftY = box.yMin - _minY;
+            float cursor = 0f;
+            Color32 vertexColor = color;
+
+            foreach (char value in _text)
+            {
+                if (!_font.characterLookupTable.TryGetValue(value, out TMP_Character character)
+                    || character?.glyph == null)
+                    continue;
+
+                UnityEngine.TextCore.Glyph glyph = character.glyph;
+                UnityEngine.TextCore.GlyphMetrics metrics = glyph.metrics;
+                UnityEngine.TextCore.GlyphRect source = glyph.glyphRect;
+                float x0 = shiftX + cursor + metrics.horizontalBearingX;
+                float x1 = x0 + metrics.width;
+                float y1 = shiftY + metrics.horizontalBearingY;
+                float y0 = y1 - metrics.height;
+                float u0 = source.x / (float)atlas.width;
+                float v0 = source.y / (float)atlas.height;
+                float u1 = (source.x + source.width) / (float)atlas.width;
+                float v1 = (source.y + source.height) / (float)atlas.height;
+
+                var quad = new UIVertex[4];
+                quad[0] = MakeVertex(x0, y0, u0, v0, vertexColor);
+                quad[1] = MakeVertex(x0, y1, u0, v1, vertexColor);
+                quad[2] = MakeVertex(x1, y1, u1, v1, vertexColor);
+                quad[3] = MakeVertex(x1, y0, u1, v0, vertexColor);
+                vh.AddUIVertexQuad(quad);
+                RenderedGlyphCount++;
+                cursor += metrics.horizontalAdvance;
+            }
+        }
+
+        private void CalculateBounds()
+        {
+            _minX = _maxX = _minY = _maxY = 0f;
+            if (_font == null || string.IsNullOrEmpty(_text)) return;
+
+            float cursor = 0f;
+            foreach (char value in _text)
+            {
+                if (!_font.characterLookupTable.TryGetValue(value, out TMP_Character character)
+                    || character?.glyph == null)
+                    continue;
+
+                UnityEngine.TextCore.GlyphMetrics metrics = character.glyph.metrics;
+                float x0 = cursor + metrics.horizontalBearingX;
+                float x1 = x0 + metrics.width;
+                float y1 = metrics.horizontalBearingY;
+                float y0 = y1 - metrics.height;
+                // 0 是旧端 drawX/drawY 的真实原点；保留正 xoffset/yoffset 形成的透明边距，
+                // 不能为了“紧边界”把 FNT 明确记录的定位偏移吃掉。
+                _minX = Mathf.Min(_minX, x0);
+                _maxX = Mathf.Max(_maxX, x1);
+                _minY = Mathf.Min(_minY, y0);
+                _maxY = Mathf.Max(_maxY, y1);
+                cursor += metrics.horizontalAdvance;
+                _maxX = Mathf.Max(_maxX, cursor);
+            }
+        }
+
+        private static UIVertex MakeVertex(float x, float y, float u, float v, Color32 vertexColor)
+        {
+            UIVertex vertex = UIVertex.simpleVert;
+            vertex.position = new Vector3(x, y, 0f);
+            vertex.uv0 = new Vector2(u, v);
+            vertex.color = vertexColor;
+            return vertex;
+        }
     }
 }
