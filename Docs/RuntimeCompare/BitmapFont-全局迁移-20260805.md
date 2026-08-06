@@ -66,3 +66,12 @@ Unity.exe -batchmode -projectPath <worktree> `
 - **生命周期根因**：旧 `CanShowCombatFloat` 遍历 `UILayer.Window` 一级子节点，只要某个模块根 `activeInHierarchy` 就拒绝所有新飘字。角色模块关闭只隐藏内部 View，缓存根仍 active，因此首次开窗后门槛永久为 false。现删除窗口根扫描，只保留 `Time.timeScale` 暂停门槛；战斗字位于 `sortingOrder=-30` 的场景子 Canvas，打开窗口时由窗口层自然遮挡，关闭后无需恢复令牌或重建根。
 - **定向门禁**：`BitmapFontCase` 的 r3 专项逐字比较十套 FNT 与生成资产的 rect/metrics，检查直接网格字符数、原 atlas、短串→长串扩展和网格边界，并构造 active 的角色模块缓存根验证开窗前后门槛不被污染。旧的 `textBounds` 断言已删除。
 - **当前验证状态**：`Shenxiao.Module.Core.csproj` 与 `Shenxiao.Editor.csproj` 离线编译 0 error；未占用用户 Unity，r3 图形专项与同一场战斗的“有飘字→开角色→关闭→仍有飘字”仍待用户实际复验，路线保持 `pending`。
+
+## 7. 2026-08-06 第三次用户复查：自定义 Graphic 零像素
+
+用户第三次在真实战斗中确认修改后完全没有飘字。当前 `Editor.log` 同一战斗持续收到 `20001`，并存在 `damage=64/66/...` 的主角攻击伤害，因此协议、伤害解析和 `FightController` 消费入口正常；日志也没有字体预热不完整或运行异常。故障限定在上一版 `LegacyBitmapTextGraphic` 的实际场景出帧链。
+
+- **验收漏洞**：r3 设计只检查自定义 `CanvasRenderer` 的 Mesh、顶点数、UV 数据和局部边界。Mesh 存在只能证明 `OnPopulateMesh` 生成了几何，不能证明该自定义 `MaskableGraphic` 在真实 `UILayer.Scene` 的嵌套 Canvas、材质和裁剪链中产生像素。该门禁与先前“Renderer/RT 存在不等于模型出帧”属于同类假绿。
+- **修复方式**：保留 FNT `GlyphRect/GlyphMetrics` 的逐字边界计算，但移除自定义 Mesh 提交；每个字符改用 Unity 内置 `RawImage`，直接把同一 atlas 赋给 `texture`，把 GlyphRect 换算为 `uvRect`，并按 `xoffset/yoffset/xadvance` 设置子 Rect。短串复用成长串时复用或扩展 RawImage 子项，多余子项隐藏；父级 `CanvasGroup` 统一处理动画淡出。
+- **范围**：只修改 `DamageFontRenderer` 和定向 `BitmapFontCase`，没有修改、同步或重建任何 FNT/PNG/TMP 字体资产，没有改 Addressables，也没有扫描全库资源。新证据目录固定为 `evidence-r4/`，避免覆盖已作废的 r2/r3 结论。
+- **当前验证状态**：Core/Editor 串行离线编译均为 0 warning / 0 error；未操作用户 Unity。玩家真实战斗像素和“出现→开角色→关闭→再次出现”仍待复验，路线继续 `needs-runtime-verify`。

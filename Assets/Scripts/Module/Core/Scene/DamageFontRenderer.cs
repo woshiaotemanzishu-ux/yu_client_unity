@@ -57,6 +57,7 @@ namespace Shenxiao.Module.Core.Scene
         private sealed class FloatItem
         {
             public LegacyBitmapTextGraphic Text;
+            public CanvasGroup Group;
             public RectTransform Rt;
             public float WorldX, WorldY; // 出生定格的世界像素(老端 defender_pos 快照,不追踪目标)
             public float ScatterX;       // 横向随机散布(对标 end_pos_offset=75)
@@ -103,6 +104,7 @@ namespace Shenxiao.Module.Core.Scene
         private static GameObject _driverGo;
         private static Task _fontLoadTask;
         private static bool _fontLoadFinished;
+        private static bool _firstGlyphRenderLogged;
         private static HashSet<int> _skillNameWhitelist;
         private static Task _skillConfigTask;
 
@@ -158,6 +160,8 @@ namespace Shenxiao.Module.Core.Scene
 
             if (_bitmapFonts.Count != CombatFontNames.Length)
                 GameLog.Error("BitmapFont", "战斗位图字体预热不完整: {0}/{1}", _bitmapFonts.Count, CombatFontNames.Length);
+            else
+                GameLog.Info("BitmapFont", "战斗位图字体预热完成: {0}/{1}", _bitmapFonts.Count, CombatFontNames.Length);
 
             while (_pendingDamage.Count > 0)
             {
@@ -190,7 +194,15 @@ namespace Shenxiao.Module.Core.Scene
             // xadvance 画图。战斗字也必须走同一路径，不能再交给 TMP 的基线、行高和
             // preferred bounds 推导，否则透明的 100px glyph 槽会再次引入裁切差异。
             item.Text.SetContent(font, text);
+            item.Group.alpha = 1f;
             item.Rt.gameObject.SetActive(true);
+            if (!_firstGlyphRenderLogged)
+            {
+                _firstGlyphRenderLogged = true;
+                GameLog.Info("BitmapFont", "首条战斗飘字已创建: font={0} text={1} glyphs={2} atlas={3} size={4}",
+                    fontName, text, item.Text.RenderedGlyphCount, item.Text.mainTexture?.name ?? "<null>",
+                    item.Text.ContentSize);
+            }
             UpdateItem(item); // 立即摆到出生位,避免首帧闪在旧位置
         }
 
@@ -388,9 +400,7 @@ namespace Shenxiao.Module.Core.Scene
             float sy = -(item.WorldY - cam.y) + HEAD_OFFSET + rise;
             item.Rt.anchoredPosition = new Vector2(sx, sy);
             item.Rt.localScale = new Vector3(scale, scale, 1f);
-            Color c = item.Text.color;
-            c.a = Mathf.Clamp01(alpha);
-            item.Text.color = c;
+            item.Group.alpha = Mathf.Clamp01(alpha);
             return true;
         }
 
@@ -455,7 +465,7 @@ namespace Shenxiao.Module.Core.Scene
 
         private static FloatItem CreateItem()
         {
-            var go = new GameObject("DamageFont", typeof(RectTransform));
+            var go = new GameObject("DamageFont", typeof(RectTransform), typeof(CanvasGroup));
             go.transform.SetParent(_root, false);
             var rt = (RectTransform)go.transform;
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f); // 与名牌同口径:锚屏幕中心,anchored=世界-相机
@@ -463,10 +473,7 @@ namespace Shenxiao.Module.Core.Scene
             rt.sizeDelta = Vector2.zero;
 
             var t = go.AddComponent<LegacyBitmapTextGraphic>();
-            t.raycastTarget = false;
-            t.color = Color.white;
-
-            var item = new FloatItem { Text = t, Rt = rt };
+            var item = new FloatItem { Text = t, Group = go.GetComponent<CanvasGroup>(), Rt = rt };
             _items.Add(item);
             return item;
         }
@@ -540,11 +547,20 @@ namespace Shenxiao.Module.Core.Scene
 
     /// <summary>
     /// 战斗专用的老端 BMFont 直绘组件。TMP_FontAsset 在这里只充当由 .fnt 生成的只读数据容器；
-    /// 组件逐字符读取 GlyphRect / GlyphMetrics，按旧端 BitmapFont._drawText 的规则生成一个四边形，
-    /// 不经过 TMP 的 lineHeight、baseline、preferred bounds 或文字容器裁切。
+    /// 组件逐字符读取 GlyphRect / GlyphMetrics，并用 Unity 内置 RawImage 的 uvRect 直接绘制图集切片。
+    /// 这里刻意不再自定义 Graphic 网格：实际场景曾出现“CanvasRenderer 有网格但零像素”的假绿，
+    /// RawImage 子字形与旧端 BitmapFont._drawText 的逐图绘制模型更接近，也不会经过 TMP 的
+    /// lineHeight、baseline、preferred bounds 或文字容器裁切。
     /// </summary>
-    public sealed class LegacyBitmapTextGraphic : MaskableGraphic
+    public sealed class LegacyBitmapTextGraphic : MonoBehaviour
     {
+        private sealed class GlyphImage
+        {
+            public RawImage Image;
+            public RectTransform Rect;
+        }
+
+        private readonly List<GlyphImage> _glyphImages = new List<GlyphImage>();
         private TMP_FontAsset _font;
         private string _text = string.Empty;
         private float _minX;
@@ -556,36 +572,35 @@ namespace Shenxiao.Module.Core.Scene
         public string Text => _text;
         public int RenderedGlyphCount { get; private set; }
         public Vector2 ContentSize => new Vector2(_maxX - _minX, _maxY - _minY);
-
-        public override Texture mainTexture
-            => _font != null && _font.atlasTexture != null ? _font.atlasTexture : Texture2D.whiteTexture;
+        public Texture mainTexture => ResolveAtlas(_font) ?? Texture2D.whiteTexture;
+        private RectTransform RectTransform => (RectTransform)transform;
 
         public void SetContent(TMP_FontAsset font, string value)
         {
             _font = font;
             _text = value ?? string.Empty;
-            color = Color.white;
             CalculateBounds();
-            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,
+            RectTransform.SetSizeWithCurrentAnchors(UnityEngine.RectTransform.Axis.Horizontal,
                 Mathf.Max(0f, Mathf.Ceil(_maxX - _minX)));
-            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,
+            RectTransform.SetSizeWithCurrentAnchors(UnityEngine.RectTransform.Axis.Vertical,
                 Mathf.Max(0f, Mathf.Ceil(_maxY - _minY)));
-            SetMaterialDirty();
-            SetVerticesDirty();
+            RebuildGlyphImages();
         }
 
-        protected override void OnPopulateMesh(VertexHelper vh)
+        private void RebuildGlyphImages()
         {
-            vh.Clear();
             RenderedGlyphCount = 0;
-            if (_font == null || _font.atlasTexture == null || string.IsNullOrEmpty(_text)) return;
+            Texture atlas = ResolveAtlas(_font);
+            if (_font == null || atlas == null || string.IsNullOrEmpty(_text))
+            {
+                HideUnusedGlyphs(0);
+                return;
+            }
 
-            Texture atlas = _font.atlasTexture;
-            Rect box = rectTransform.rect;
+            Rect box = RectTransform.rect;
             float shiftX = box.xMin - _minX;
             float shiftY = box.yMin - _minY;
             float cursor = 0f;
-            Color32 vertexColor = color;
 
             foreach (char value in _text)
             {
@@ -600,20 +615,22 @@ namespace Shenxiao.Module.Core.Scene
                 float x1 = x0 + metrics.width;
                 float y1 = shiftY + metrics.horizontalBearingY;
                 float y0 = y1 - metrics.height;
-                float u0 = source.x / (float)atlas.width;
-                float v0 = source.y / (float)atlas.height;
-                float u1 = (source.x + source.width) / (float)atlas.width;
-                float v1 = (source.y + source.height) / (float)atlas.height;
-
-                var quad = new UIVertex[4];
-                quad[0] = MakeVertex(x0, y0, u0, v0, vertexColor);
-                quad[1] = MakeVertex(x0, y1, u0, v1, vertexColor);
-                quad[2] = MakeVertex(x1, y1, u1, v1, vertexColor);
-                quad[3] = MakeVertex(x1, y0, u1, v0, vertexColor);
-                vh.AddUIVertexQuad(quad);
+                GlyphImage glyphImage = ObtainGlyphImage(RenderedGlyphCount);
+                glyphImage.Image.texture = atlas;
+                glyphImage.Image.uvRect = new Rect(
+                    source.x / (float)atlas.width,
+                    source.y / (float)atlas.height,
+                    source.width / (float)atlas.width,
+                    source.height / (float)atlas.height);
+                glyphImage.Image.color = Color.white;
+                glyphImage.Rect.anchoredPosition = new Vector2(x0, y0);
+                glyphImage.Rect.sizeDelta = new Vector2(x1 - x0, y1 - y0);
+                glyphImage.Rect.gameObject.SetActive(true);
                 RenderedGlyphCount++;
                 cursor += metrics.horizontalAdvance;
             }
+
+            HideUnusedGlyphs(RenderedGlyphCount);
         }
 
         private void CalculateBounds()
@@ -644,13 +661,36 @@ namespace Shenxiao.Module.Core.Scene
             }
         }
 
-        private static UIVertex MakeVertex(float x, float y, float u, float v, Color32 vertexColor)
+        private GlyphImage ObtainGlyphImage(int index)
         {
-            UIVertex vertex = UIVertex.simpleVert;
-            vertex.position = new Vector3(x, y, 0f);
-            vertex.uv0 = new Vector2(u, v);
-            vertex.color = vertexColor;
-            return vertex;
+            while (_glyphImages.Count <= index)
+            {
+                var go = new GameObject("Glyph", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
+                go.transform.SetParent(transform, false);
+                var rect = (RectTransform)go.transform;
+                // 父容器 pivot=(0.5,0)，这里锚到同一原点，anchoredPosition 才能直接使用
+                // 上面按父 Rect 本地坐标算出的 x0/y0；锚左下会把 box.xMin 再叠加一次。
+                rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
+                rect.pivot = Vector2.zero;
+                RawImage image = go.GetComponent<RawImage>();
+                image.raycastTarget = false;
+                image.color = Color.white;
+                _glyphImages.Add(new GlyphImage { Image = image, Rect = rect });
+            }
+            return _glyphImages[index];
+        }
+
+        private void HideUnusedGlyphs(int used)
+        {
+            for (int i = used; i < _glyphImages.Count; i++)
+                _glyphImages[i].Rect.gameObject.SetActive(false);
+        }
+
+        private static Texture ResolveAtlas(TMP_FontAsset font)
+        {
+            if (font == null) return null;
+            if (font.atlasTexture != null) return font.atlasTexture;
+            return font.material != null ? font.material.mainTexture : null;
         }
     }
 }

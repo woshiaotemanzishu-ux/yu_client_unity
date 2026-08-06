@@ -45,7 +45,7 @@ description: 作为项目统一“UI 对接 / UI 精修”流程中的增量修�
 - 位置类优先 prefab 直改(可视化、可回退),别动代码绕。
 - 系统性、跨多 view 的同类偏移 → 修共享 Prefab、公共 View 或公共升级器；不得用批量重转覆盖已接管页面。
 - 位图字体图集已经烤色时，TMP 顶点色保持白色；老端 `Image` 即使残留 `font` 属性，只要现行逻辑通过 `SetImageSprite` 换图，就归图片链而不是字体遗漏。
-- 动态战斗字先确认旧端是通用文字排版还是 FNT 逐字直绘；后者不能用 TMP `textBounds` 绿灯替代。逐字核对位置文件、图集 UV、offset/advance，并覆盖普通长数字、`a/b/c` 前缀、对象池短串→长串复用和 Crit 最大缩放。
+- 动态战斗字先确认旧端是通用文字排版还是 FNT 逐字直绘；后者不能用 TMP `textBounds` 绿灯替代。逐字核对位置文件、图集 UV、offset/advance，并覆盖普通长数字、`a/b/c` 前缀、对象池短串→长串复用和 Crit 最大缩放。自定义 `Graphic` 的 `CanvasRenderer` 有 Mesh/顶点仍可能在玩家场景零像素；优先复用内置 `RawImage.uvRect` 逐字切图，验收必须读真实 Canvas 像素或由玩家同场截图确认。
 - 打开/关闭面板导致场景表现永久消失时，先查“模块缓存根 active”与“实际 BaseView shown”的混用；复验必须在同一场战斗中走“出现→开面板→关闭→再次出现”，不能只测冷启动或只测开窗前。
 - MCP 改 prefab/编译 OK;Addressables 写记得 `postEvent:false`;Play 验收靠用户。
 

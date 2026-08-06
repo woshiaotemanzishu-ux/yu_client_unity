@@ -1939,6 +1939,7 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **第二次真实回卷**：用户截图证明动态 TMP Rect 仍未复刻旧端，并复现打开/关闭角色面板后永久停飘。战斗消费者现放弃 TMP 排版，按 FNT `GlyphRect/GlyphMetrics` 逐字直绘原 atlas；同时删除对 `Window` 缓存模块根 `activeInHierarchy` 的错误全局门禁，只保留暂停判断。Core/Editor 离线编译 0 error，未占用用户 Unity；r3 图形专项及同场“飘字→开角色→关闭→再飘字”待玩家复验，因此路线仍为 `pending`。
 - **工具与门禁**：`BitmapFontPrefabUpgrader` 改为优先解析 View 序列化 Bind 字段、节点名兜底，并排除 Image 上的残留 font；盘点口径修正为 105 条文字绑定、68 条现行 Prefab 命中、37 条待首次转换。`evidence-r2` 与长数字 `textBounds` PASS 仅保留为被用户推翻的历史证据；当前 r3 改为逐字核对十套 FNT 的 rect/metrics、直绘网格、池复用与角色模块缓存根生命周期，不再把 TMP bounds 作为战斗完成门禁。
 - **当前验证**：Core/Editor 离线编译均 0 error，十套战斗 `.fnt/.png` 与老端源文件哈希 20/20 一致；r3 Unity 图形专项未执行，玩家同场复验也未执行，路线为 `needs-runtime-verify`。完整回卷与新规则见 [老端图片字体全局迁移 §6](RuntimeCompare/BitmapFont-全局迁移-20260805.md#6-2026-08-06-第二次用户复查tmp-路线作废与窗口生命周期)。
+- **第三次真实回卷**：玩家确认 r3 自定义 `MaskableGraphic` 运行后完全无飘字；同场日志仍持续收到 `20001` 且有真实非零伤害，根因收窄为“自定义 CanvasRenderer 有 Mesh 但玩家场景零像素”的渲染假绿。现保留 FNT 精确坐标，改为每字一个内置 `RawImage.uvRect` 直接切原 atlas，并用父 `CanvasGroup` 做淡出；没有动字体资源和 Addressables。Core/Editor 串行离线编译 0 warning / 0 error，r4 定向图形证据和玩家同场生命周期复验待执行，路线仍为 `needs-runtime-verify`。详见 [老端图片字体全局迁移 §7](RuntimeCompare/BitmapFont-全局迁移-20260805.md#7-2026-08-06-第三次用户复查自定义-graphic-零像素)。
 ## 2026-08-05：角色界面精修——称号详情、佩戴与场景表现闭环（R578解禁）
 
 - **详情页视觉与结构**：继续增量精修人工接管的`DsgtModule.prefab`，完成老端列表顺序、详情文案、动态称号特效、材料格与品质详情弹窗；未重转模块。`DesignationViewCase`真实Prefab冷开2070ms、热开38ms，列表拖动、末项可达、详情/材料弹窗、专用RT动态像素和佩戴/卸下点击均通过，证据目录为`output/ui_route_audit/2026-08-04_role_web_round2/cli_designation_20260805_2520/`。
