@@ -1,0 +1,61 @@
+{
+  "schema": 4,
+  "route": "scene.designation.main-follow",
+  "baseline": {},
+  "nodes": [
+    {
+      "id": "scene.designation.main-follow",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "main-title-follow",
+          "kind": "scene-runtime-presentation",
+          "child": "scene.designation.main-follow.lifecycle"
+        }
+      ],
+      "status": "done",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "scene.designation.main-follow.lifecycle",
+      "type": "action",
+      "risk": "read-only",
+      "parent": "scene.designation.main-follow",
+      "status": "done",
+      "gates": {
+        "runtime_state": true,
+        "render_completion": true,
+        "effect_match": true,
+        "restore": true
+      },
+      "evidence": [
+        "logs/prefit_designation_720x1280.log",
+        "logs/postfix_main_ghost_20260806.log",
+        "logs/postfix_designation_720x1280.log",
+        "logs/postfix_designation_1920x1080_correct.log"
+      ],
+      "applicable_gates": [
+        "runtime_state",
+        "render_completion",
+        "effect_match",
+        "restore"
+      ],
+      "render_evidence": [
+        "720x1280 DesignationWearScene visual=True/positions=True/noDuplicateMain=True",
+        "720x1280 动态称号 RT alpha=19958/lit=20994",
+        "1920x1080 DesignationWearScene visual=True/positions=True/noDuplicateMain=True",
+        "1920x1080 动态称号 RT alpha=19940/lit=20971"
+      ],
+      "state_evidence": [
+        "修前 noDuplicateMain=False/stationaryGhostObserved=True",
+        "修后 snapshotFiltered=True/initialPosition=True/followsMain=True/noStaticGhost=True"
+      ],
+      "effect_evidence": [
+        "DesignationWearScene dynamicPixels=True"
+      ]
+    }
+  ]
+}
