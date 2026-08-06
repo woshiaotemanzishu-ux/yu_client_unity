@@ -268,6 +268,7 @@ foreach (var c in ConfigSkill.All()) { ... }
 - 合成、领奖、祈福等语义声音只在权威成功回包或真实结果演出点播放；没有消费者/事务闭环时在调用点台账中保持 `pending`，禁止在点击事件里伪播成功。
 - 首屏预热只能走既有 Boot/RoleSelection/GameStart 加载阶段，并由当前场景、当前职业与当前技能配置生成固定小闭包。禁止全量预热声音库；驻留 Clip 与普通播放 Clip 必须区分引用所有权，前者由 `AudioManager` 生命周期统一释放。
 - 更新旧端声音调用点状态时运行 `python Tools/Audio/sync_legacy_audio.py --callsite-only --client-root E:\GitProject\yu_client`；只有资源/导入/Addressables 本身变化才运行完整同步。
+- 音乐正式交付覆盖现有场景键时，不新建地址、不改 `.meta`，先把一对一映射和哈希写入 `Schemas/Audio/scene_delivery_overrides.json`，再运行 `python Tools/Audio/apply_scene_delivery.py`。同名交付多于目标键或缺业务/ConfigSound 证据时必须登记 `unmapped`，不得猜测覆盖；生成台账使用 `--catalog-only`，避免为了 10 首配乐重写共享 Addressables 或全量声音资源。
 
 ---
 

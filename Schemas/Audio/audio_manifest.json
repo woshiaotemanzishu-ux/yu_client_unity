@@ -1,7 +1,9 @@
 {
   "schemaVersion": 1,
-  "policy": "scene: mp3>ogg>wav; other categories: wav>ogg>mp3",
+  "policy": "approved scene delivery overrides > legacy selection; scene: mp3>ogg>wav; other categories: wav>ogg>mp3",
   "sourceRoot": "yu_client/cdn/resource/sound",
+  "deliveryOverrideManifest": "Schemas/Audio/scene_delivery_overrides.json",
+  "deliveryOverrideCount": 10,
   "logicalCount": 310,
   "physicalCount": 676,
   "resources": [
@@ -2566,9 +2568,9 @@
       "category": "scene",
       "logicalName": "city",
       "address": "resource/sound/scene/city",
-      "source": "cdn/resource/sound/scene/city.mp3",
-      "sourceBytes": 660838,
-      "sourceSha256": "e9f61920f2c27debd79fdc5cda3348b19c8b09568159b157856ac6fd318c5f28",
+      "source": "music-delivery/配乐1/主城（包含场景和野外BGM）/city.mp3",
+      "sourceBytes": 3475941,
+      "sourceSha256": "356db22aa290a598792be7205addd633a36e163482abe4556e4c455b6d29b3dd",
       "candidates": [
         "cdn/resource/sound/scene/city.mp3",
         "cdn/resource/sound/scene/city.wav"
@@ -2577,15 +2579,16 @@
       "assetPath": "Assets/GameRes/resource/sound/scene/city.mp3",
       "guid": "669750de87e38366b1342f674e682bd8",
       "label": "pack_resource_sound_scene",
-      "status": "done"
+      "status": "done",
+      "deliveryOverride": "Schemas/Audio/scene_delivery_overrides.json"
     },
     {
       "category": "scene",
       "logicalName": "dungeon1",
       "address": "resource/sound/scene/dungeon1",
-      "source": "cdn/resource/sound/scene/dungeon1.mp3",
-      "sourceBytes": 560528,
-      "sourceSha256": "e60c66bcd083ba748e9c3aadac67f716547d0ba5339f983f2f3d37c77864811c",
+      "source": "music-delivery/配乐1/副本/dungeon1.mp3",
+      "sourceBytes": 1323693,
+      "sourceSha256": "acfe538f14f8447c97854bebbddd8fdbf964132f3cc09923fb1ceb1df660fa13",
       "candidates": [
         "cdn/resource/sound/scene/dungeon1.mp3",
         "cdn/resource/sound/scene/dungeon1.wav"
@@ -2594,15 +2597,16 @@
       "assetPath": "Assets/GameRes/resource/sound/scene/dungeon1.mp3",
       "guid": "70eaa77a8b4f88e435fca501615e6b83",
       "label": "pack_resource_sound_scene",
-      "status": "done"
+      "status": "done",
+      "deliveryOverride": "Schemas/Audio/scene_delivery_overrides.json"
     },
     {
       "category": "scene",
       "logicalName": "dungeon2",
       "address": "resource/sound/scene/dungeon2",
-      "source": "cdn/resource/sound/scene/dungeon2.mp3",
-      "sourceBytes": 471921,
-      "sourceSha256": "6defd082afe2f2aee3792ee852826b6be286ba4e128054cae11c086f4fe096c8",
+      "source": "music-delivery/配乐1/副本/dungeon2.mp3",
+      "sourceBytes": 658029,
+      "sourceSha256": "f6203bd3984f3f60624dadafccdecd30fdae6d4c574382130b75dcf40389c73d",
       "candidates": [
         "cdn/resource/sound/scene/dungeon2.mp3",
         "cdn/resource/sound/scene/dungeon2.wav"
@@ -2611,15 +2615,16 @@
       "assetPath": "Assets/GameRes/resource/sound/scene/dungeon2.mp3",
       "guid": "501e4351da262ff70b1509778a6dc9da",
       "label": "pack_resource_sound_scene",
-      "status": "done"
+      "status": "done",
+      "deliveryOverride": "Schemas/Audio/scene_delivery_overrides.json"
     },
     {
       "category": "scene",
       "logicalName": "dungeon3",
       "address": "resource/sound/scene/dungeon3",
-      "source": "cdn/resource/sound/scene/dungeon3.mp3",
-      "sourceBytes": 474011,
-      "sourceSha256": "1750d9feb149bede07b52273072ebce7a294583937737cf40a19dfd83f62d957",
+      "source": "music-delivery/配乐1/副本/dungeon3.mp3",
+      "sourceBytes": 4228269,
+      "sourceSha256": "b48a29f07361451a88158d1ab3d28a897c2f04c091522db735b87fbce290ed6d",
       "candidates": [
         "cdn/resource/sound/scene/dungeon3.mp3",
         "cdn/resource/sound/scene/dungeon3.wav"
@@ -2628,15 +2633,16 @@
       "assetPath": "Assets/GameRes/resource/sound/scene/dungeon3.mp3",
       "guid": "00003ae3cbe204648ba0c074bbc774d6",
       "label": "pack_resource_sound_scene",
-      "status": "done"
+      "status": "done",
+      "deliveryOverride": "Schemas/Audio/scene_delivery_overrides.json"
     },
     {
       "category": "scene",
       "logicalName": "field1",
       "address": "resource/sound/scene/field1",
-      "source": "cdn/resource/sound/scene/field1.mp3",
-      "sourceBytes": 513299,
-      "sourceSha256": "81859caffe6113001f14c4394818307a337122630c5810d8fb35a81b5c941edb",
+      "source": "music-delivery/配乐1/主城（包含场景和野外BGM）/field1.mp3",
+      "sourceBytes": 3295173,
+      "sourceSha256": "8639dd5fe2f5ce505215c31a15c1fb22245c2185273b1a86c85da3064d90bf7e",
       "candidates": [
         "cdn/resource/sound/scene/field1.mp3",
         "cdn/resource/sound/scene/field1.wav"
@@ -2645,15 +2651,16 @@
       "assetPath": "Assets/GameRes/resource/sound/scene/field1.mp3",
       "guid": "faea5914d111d0a0c47498631513e54e",
       "label": "pack_resource_sound_scene",
-      "status": "done"
+      "status": "done",
+      "deliveryOverride": "Schemas/Audio/scene_delivery_overrides.json"
     },
     {
       "category": "scene",
       "logicalName": "field2",
       "address": "resource/sound/scene/field2",
-      "source": "cdn/resource/sound/scene/field2.mp3",
-      "sourceBytes": 578501,
-      "sourceSha256": "8ecd04f5ce55ed8ad4b2154374229ff1c3aa41e84f84256a3a7f975b8802de5f",
+      "source": "music-delivery/配乐1/主城（包含场景和野外BGM）/field2.mp3",
+      "sourceBytes": 4675077,
+      "sourceSha256": "f522cd21a77b3d0efaddd6348245490cfe027f2627fe97c2127bb0371b7dadfb",
       "candidates": [
         "cdn/resource/sound/scene/field2.mp3",
         "cdn/resource/sound/scene/field2.wav"
@@ -2662,15 +2669,16 @@
       "assetPath": "Assets/GameRes/resource/sound/scene/field2.mp3",
       "guid": "d168804ea51d3e412296cbc80f9431ab",
       "label": "pack_resource_sound_scene",
-      "status": "done"
+      "status": "done",
+      "deliveryOverride": "Schemas/Audio/scene_delivery_overrides.json"
     },
     {
       "category": "scene",
       "logicalName": "field3",
       "address": "resource/sound/scene/field3",
-      "source": "cdn/resource/sound/scene/field3.mp3",
-      "sourceBytes": 676303,
-      "sourceSha256": "c531d52f0c06225891089c6ae94a2874d85b2efd673912b834c05cae99dc8d7d",
+      "source": "music-delivery/配乐1/主城（包含场景和野外BGM）/field3.mp3",
+      "sourceBytes": 4352301,
+      "sourceSha256": "fe24395227b0d37e57a465c5fcdf4c27f5ef937d28b3e3466952bcf7d0f088e4",
       "candidates": [
         "cdn/resource/sound/scene/field3.mp3",
         "cdn/resource/sound/scene/field3.wav"
@@ -2679,15 +2687,16 @@
       "assetPath": "Assets/GameRes/resource/sound/scene/field3.mp3",
       "guid": "53a6fd1248eb4d02e81303ef88b04429",
       "label": "pack_resource_sound_scene",
-      "status": "done"
+      "status": "done",
+      "deliveryOverride": "Schemas/Audio/scene_delivery_overrides.json"
     },
     {
       "category": "scene",
       "logicalName": "main",
       "address": "resource/sound/scene/main",
-      "source": "cdn/resource/sound/scene/main.mp3",
-      "sourceBytes": 513299,
-      "sourceSha256": "9ccf2edd40ec5d94cfa10442de4bb70d4d037b7263b62c0b76800fc1ec49b139",
+      "source": "music-delivery/配乐1/场景/主界面1.mp3",
+      "sourceBytes": 2516367,
+      "sourceSha256": "2b98e8aa22c8b4d7ed7d5675373f7f9e57ed12db2c05bf30347d61fac7767902",
       "candidates": [
         "cdn/resource/sound/scene/main.mp3",
         "cdn/resource/sound/scene/main.wav"
@@ -2696,15 +2705,16 @@
       "assetPath": "Assets/GameRes/resource/sound/scene/main.mp3",
       "guid": "e6e0819c4f9799ba226e4735d6ceb42a",
       "label": "pack_resource_sound_scene",
-      "status": "done"
+      "status": "done",
+      "deliveryOverride": "Schemas/Audio/scene_delivery_overrides.json"
     },
     {
       "category": "scene",
       "logicalName": "marry",
       "address": "resource/sound/scene/marry",
-      "source": "cdn/resource/sound/scene/marry.mp3",
-      "sourceBytes": 1408985,
-      "sourceSha256": "8f0ea6c0e93901ad2f076cfbdf93aa399566c3ff63ea687daf28249194779737",
+      "source": "music-delivery/配乐1/结婚/marry.mp3",
+      "sourceBytes": 5761194,
+      "sourceSha256": "171f3a3d8a6af372ebad722ec9602ff9f3dacf62671e3d38b3a350a162142f63",
       "candidates": [
         "cdn/resource/sound/scene/marry.mp3",
         "cdn/resource/sound/scene/marry.wav"
@@ -2713,15 +2723,16 @@
       "assetPath": "Assets/GameRes/resource/sound/scene/marry.mp3",
       "guid": "4415188d9da7c23e5ad0ba513d592175",
       "label": "pack_resource_sound_scene",
-      "status": "done"
+      "status": "done",
+      "deliveryOverride": "Schemas/Audio/scene_delivery_overrides.json"
     },
     {
       "category": "scene",
       "logicalName": "new",
       "address": "resource/sound/scene/new",
-      "source": "cdn/resource/sound/scene/new.mp3",
-      "sourceBytes": 667944,
-      "sourceSha256": "ffa93472d5f03d031cb5e6cc0477add39ea9318d703e9c7b5de8e3d5c0fad167",
+      "source": "music-delivery/配乐1/主城（包含场景和野外BGM）/new.mp3",
+      "sourceBytes": 3323829,
+      "sourceSha256": "e017259f8871d3ea4c5829084c09fed398dd2620260743808c2c2f5a7815656b",
       "candidates": [
         "cdn/resource/sound/scene/new.mp3",
         "cdn/resource/sound/scene/new.wav"
@@ -2730,7 +2741,8 @@
       "assetPath": "Assets/GameRes/resource/sound/scene/new.mp3",
       "guid": "3040d3f6908b9276a02e045ab81d1e1d",
       "label": "pack_resource_sound_scene",
-      "status": "done"
+      "status": "done",
+      "deliveryOverride": "Schemas/Audio/scene_delivery_overrides.json"
     },
     {
       "category": "scene",

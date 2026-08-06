@@ -37,6 +37,7 @@
 - ✅ **高频消费链**：除登录/切场/消除页音乐、技能配置音、升级、跳跃、拾取、获得技能、战力提示、副本/挂机结算和死亡复活外，已补创角 `ConfigLogin.sound` 与人物装备页职业展示语音，均有切职业/关闭/销毁的后到取消。
 - ✅ **首播时序**：Boot 预热通用点击音，选角阶段预热开放职业创角音，GAME_START 加载层并行等待当前场景 BGM、当前职业语音和当前职业技能音；完成后才派发 `EVT_GAME_START`，避免世界先出现、音乐/首个技能音后到。
 - ✅ **防半迁移工具**：`Tools/Audio/sync_legacy_audio.py` 统一维护选源、确定性 GUID、Unity 6 导入配置、Addressables 和台账；新增 `--callsite-only`，可只维护两份调用点产物而不触碰资源/共享 Addressables，并对两个新增消费者的播放/停止标记以及 ConfigLogin、场景选曲、33 个职业技能配置音和固定运行时声音做反漂移校验。
+- ✅ **正式配乐交付覆盖**：`E:\音乐交付\配乐1` 已精确覆盖 Unity 的 `city/field1/field2/field3/new/dungeon1/2/3/marry/main` 共 10 个场景键，原 `.meta`/GUID/地址不变；重复的 `场景/city.mp3` 因无唯一业务键保留为 `unmapped`，三个 `sound_scene_*` 未改。`scene_delivery_overrides.json` 固化源/目标/字节/时长/SHA-256，`apply_scene_delivery.py --check` 为 `10/1`，同步工具以后优先保留新曲。
 - 🟡 **后续业务消费**：老端 77 个主动调用点逐项登记，当前 25 个 `done`、52 个 `pending`；pending 经复核仍属于尚未迁移的结果页/场景演出，或缺权威写事务的合成、祈福等页面，资源本身已齐，不得在待对接按钮上伪播成功音。见[声音迁移台账](声音迁移台账.md)。
 - **验证**：`--callsite-only --check` 通过（310 资源事实、77 调用点、25/52）；`Shenxiao.Module.Core` 与 `Shenxiao.Common` 串行离线编译均 0 warning / 0 error，Python 工具语法检查通过。按用户要求未启动/占用 Unity；真实听测、Android/WebGL 解码与正式 Addressables 分包仍需在后续运行态或持续构建复验。
 

@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "deliveryRoot": "E:/音乐交付/配乐1",
+  "selectionPolicy": "同名文件一对一覆盖；主界面1映射main；重复city选择同批主城与野外BGM套装中的较新版本，另一版本保留为未映射交付物",
+  "qualityAudit": {
+    "decoder": "FFmpeg 8.1.2",
+    "decodeResult": "10/10 pass",
+    "integratedLufsRange": [-14.47, -12.14],
+    "maxTruePeakDb": 0.29,
+    "preserveOriginalEncoding": true,
+    "loopSilenceNotes": [
+      "city/field1/field2/field3/new含约0.54至0.85秒片头静音",
+      "field1含约0.88秒片尾静音，field3约1.47秒，new约0.89秒",
+      "本轮按交付原文件精准覆盖，不裁剪、不淡化、不重编码；循环间隔需由后续母带授权处理"
+    ]
+  },
+  "replacements": [
+    {
+      "logicalName": "city",
+      "deliveryRelative": "主城（包含场景和野外BGM）/city.mp3",
+      "target": "Assets/GameRes/resource/sound/scene/city.mp3",
+      "bytes": 3475941,
+      "sha256": "356db22aa290a598792be7205addd633a36e163482abe4556e4c455b6d29b3dd",
+      "durationSeconds": 146.48
+    },
+    {
+      "logicalName": "dungeon1",
+      "deliveryRelative": "副本/dungeon1.mp3",
+      "target": "Assets/GameRes/resource/sound/scene/dungeon1.mp3",
+      "bytes": 1323693,
+      "sha256": "acfe538f14f8447c97854bebbddd8fdbf964132f3cc09923fb1ceb1df660fa13",
+      "durationSeconds": 52.0
+    },
+    {
+      "logicalName": "dungeon2",
+      "deliveryRelative": "副本/dungeon2.mp3",
+      "target": "Assets/GameRes/resource/sound/scene/dungeon2.mp3",
+      "bytes": 658029,
+      "sha256": "f6203bd3984f3f60624dadafccdecd30fdae6d4c574382130b75dcf40389c73d",
+      "durationSeconds": 27.96
+    },
+    {
+      "logicalName": "dungeon3",
+      "deliveryRelative": "副本/dungeon3.mp3",
+      "target": "Assets/GameRes/resource/sound/scene/dungeon3.mp3",
+      "bytes": 4228269,
+      "sha256": "b48a29f07361451a88158d1ab3d28a897c2f04c091522db735b87fbce290ed6d",
+      "durationSeconds": 178.64
+    },
+    {
+      "logicalName": "field1",
+      "deliveryRelative": "主城（包含场景和野外BGM）/field1.mp3",
+      "target": "Assets/GameRes/resource/sound/scene/field1.mp3",
+      "bytes": 3295173,
+      "sha256": "8639dd5fe2f5ce505215c31a15c1fb22245c2185273b1a86c85da3064d90bf7e",
+      "durationSeconds": 138.92
+    },
+    {
+      "logicalName": "field2",
+      "deliveryRelative": "主城（包含场景和野外BGM）/field2.mp3",
+      "target": "Assets/GameRes/resource/sound/scene/field2.mp3",
+      "bytes": 4675077,
+      "sha256": "f522cd21a77b3d0efaddd6348245490cfe027f2627fe97c2127bb0371b7dadfb",
+      "durationSeconds": 198.6
+    },
+    {
+      "logicalName": "field3",
+      "deliveryRelative": "主城（包含场景和野外BGM）/field3.mp3",
+      "target": "Assets/GameRes/resource/sound/scene/field3.mp3",
+      "bytes": 4352301,
+      "sha256": "fe24395227b0d37e57a465c5fcdf4c27f5ef937d28b3e3466952bcf7d0f088e4",
+      "durationSeconds": 179.8
+    },
+    {
+      "logicalName": "main",
+      "deliveryRelative": "场景/主界面1.mp3",
+      "target": "Assets/GameRes/resource/sound/scene/main.mp3",
+      "bytes": 2516367,
+      "sha256": "2b98e8aa22c8b4d7ed7d5675373f7f9e57ed12db2c05bf30347d61fac7767902",
+      "durationSeconds": 157.226
+    },
+    {
+      "logicalName": "marry",
+      "deliveryRelative": "结婚/marry.mp3",
+      "target": "Assets/GameRes/resource/sound/scene/marry.mp3",
+      "bytes": 5761194,
+      "sha256": "171f3a3d8a6af372ebad722ec9602ff9f3dacf62671e3d38b3a350a162142f63",
+      "durationSeconds": 180.036
+    },
+    {
+      "logicalName": "new",
+      "deliveryRelative": "主城（包含场景和野外BGM）/new.mp3",
+      "target": "Assets/GameRes/resource/sound/scene/new.mp3",
+      "bytes": 3323829,
+      "sha256": "e017259f8871d3ea4c5829084c09fed398dd2620260743808c2c2f5a7815656b",
+      "durationSeconds": 139.52
+    }
+  ],
+  "unmapped": [
+    {
+      "deliveryRelative": "场景/city.mp3",
+      "bytes": 4033977,
+      "sha256": "d9137c4dc5e49eb7c7f926b2bc0087c457ca28d20d32fd400bccbc84b67cf547",
+      "durationSeconds": 252.072,
+      "reason": "与主城套装中的city内容不同；没有证据可映射到三个未被ConfigSound选中的sound_scene_*键，禁止猜测覆盖"
+    }
+  ]
+}

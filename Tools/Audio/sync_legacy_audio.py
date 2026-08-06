@@ -23,6 +23,7 @@ CATEGORIES = ("novice_voice", "npc", "role", "scene", "skill", "ui")
 AUDIO_EXTENSIONS = (".mp3", ".ogg", ".wav")
 SOUND_LABELS = tuple(f"pack_resource_sound_{category}" for category in CATEGORIES)
 SYNC_VERSION = 1
+SCENE_DELIVERY_OVERRIDES = Path("Schemas/Audio/scene_delivery_overrides.json")
 
 
 def md5_guid(asset_path: str) -> str:
@@ -155,6 +156,56 @@ def collect_resources(client_root: Path, unity_root: Path) -> list[dict]:
                 }
             )
     return result
+
+
+def apply_scene_delivery_overrides(unity_root: Path, resources: list[dict]) -> None:
+    """Make tracked Unity scene clips from an approved music delivery authoritative over legacy sources."""
+    manifest_path = unity_root / SCENE_DELIVERY_OVERRIDES
+    if not manifest_path.is_file():
+        return
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest.get("schemaVersion") != 1:
+        raise RuntimeError("unsupported scene delivery override schema")
+    by_key = {(row["category"], row["logicalName"]): row for row in resources}
+    seen: set[str] = set()
+    for override in manifest.get("replacements", []):
+        logical = str(override.get("logicalName") or "").strip()
+        if not logical or logical in seen:
+            raise RuntimeError(f"invalid/duplicate scene delivery logicalName: {logical!r}")
+        seen.add(logical)
+        row = by_key.get(("scene", logical))
+        if row is None:
+            raise RuntimeError(f"scene delivery target is not a legacy logical key: {logical}")
+
+        target_relative = normalize(Path(str(override.get("target") or "")))
+        if target_relative != row["assetPath"]:
+            raise RuntimeError(
+                f"scene delivery target mismatch for {logical}: {target_relative} != {row['assetPath']}"
+            )
+        target = (unity_root / target_relative).resolve()
+        if not target.is_file():
+            raise RuntimeError(f"tracked scene delivery target missing: {target_relative}")
+
+        expected_bytes = int(override.get("bytes") or 0)
+        expected_sha = str(override.get("sha256") or "").lower()
+        actual_bytes = target.stat().st_size
+        actual_sha = sha256(target)
+        if expected_bytes <= 0 or len(expected_sha) != 64:
+            raise RuntimeError(f"scene delivery manifest lacks bytes/sha256: {logical}")
+        if actual_bytes != expected_bytes or actual_sha != expected_sha:
+            raise RuntimeError(
+                f"scene delivery content drift: {logical} expected={expected_bytes}/{expected_sha} "
+                f"actual={actual_bytes}/{actual_sha}"
+            )
+
+        delivery_relative = str(override.get("deliveryRelative") or "").replace("\\", "/")
+        row["source"] = "music-delivery/配乐1/" + delivery_relative
+        row["sourceBytes"] = actual_bytes
+        row["sourceSha256"] = actual_sha
+        row["deliveryOverride"] = normalize(SCENE_DELIVERY_OVERRIDES)
+        # The delivered bytes are already tracked in Unity; future legacy syncs validate and preserve them.
+        row["_sourcePath"] = target
 
 
 def is_active_ts_line(line: str) -> bool:
@@ -346,6 +397,7 @@ def render_ledger(resources: list[dict], callsites: list[dict]) -> str:
     format_counts = Counter(row["selectedFormat"] for row in resources)
     callsite_counts = Counter(row["status"] for row in callsites)
     total_bytes = sum(row["sourceBytes"] for row in resources)
+    delivery_overrides = sum(bool(row.get("deliveryOverride")) for row in resources)
     lines = [
         "# 老客户端声音迁移台账",
         "",
@@ -358,6 +410,7 @@ def render_ledger(resources: list[dict], callsites: list[dict]) -> str:
         f"- 分类：" + "，".join(f"{key} {category_counts[key]}" for key in CATEGORIES),
         f"- 格式：" + "，".join(f"{key} {format_counts[key]}" for key in sorted(format_counts)),
         f"- 老端运行调用点：{len(callsites)}，已覆盖 {callsite_counts['done']}，待对应 Unity 业务页面/事务补齐 {callsite_counts['pending']}",
+        f"- 音乐交付覆盖：{delivery_overrides} 个场景逻辑键；映射与哈希见 `Schemas/Audio/scene_delivery_overrides.json`，完整同步不得回滚为老端旧曲。",
         "- 全局按钮：运行时自动绑定现有 `Button` 的 pointer-down，播放 `resource/sound/ui/2_dianji`；不重写人工 Prefab。",
         "- 场景音乐：按 `ConfigSound.Scene → DefaultSceneType → DefaultScene` 解析，保留老端 0.3 音量语义。",
         "",
@@ -501,8 +554,10 @@ def build_desired(unity_root: Path, client_root: Path, resources: list[dict], ca
 
     resource_manifest = {
         "schemaVersion": SYNC_VERSION,
-        "policy": "scene: mp3>ogg>wav; other categories: wav>ogg>mp3",
+        "policy": "approved scene delivery overrides > legacy selection; scene: mp3>ogg>wav; other categories: wav>ogg>mp3",
         "sourceRoot": "yu_client/cdn/resource/sound",
+        "deliveryOverrideManifest": normalize(SCENE_DELIVERY_OVERRIDES),
+        "deliveryOverrideCount": sum(bool(row.get("deliveryOverride")) for row in resources),
         "logicalCount": len(resources),
         "physicalCount": sum(len(row["candidates"]) for row in resources),
         "resources": [public_resource(row) for row in resources],
@@ -548,6 +603,7 @@ def sync(args: argparse.Namespace) -> int:
     unity_root = Path(args.unity_root).resolve() if args.unity_root else Path(__file__).resolve().parents[2]
     client_root = find_client_root(unity_root, args.client_root)
     resources = collect_resources(client_root, unity_root)
+    apply_scene_delivery_overrides(unity_root, resources)
     if len(resources) != 310:
         raise RuntimeError(f"legacy logical sound count changed: expected 310, got {len(resources)}")
     physical = sum(len(row["candidates"]) for row in resources)
@@ -557,14 +613,23 @@ def sync(args: argparse.Namespace) -> int:
     validate_configured_sound_references(client_root, resources)
     validate_runtime_callsite_coverage(unity_root, callsites)
     desired = build_desired(unity_root, client_root, resources, callsites)
+    if args.callsite_only and args.catalog_only:
+        raise RuntimeError("--callsite-only and --catalog-only are mutually exclusive")
     if args.callsite_only:
         selected = {
             (unity_root / "Schemas/Audio/callsite_manifest.json").resolve(),
             (unity_root / "Docs/声音迁移台账.md").resolve(),
         }
         desired = {path: content for path, content in desired.items() if path in selected}
+    elif args.catalog_only:
+        selected = {
+            (unity_root / "Schemas/Audio/audio_manifest.json").resolve(),
+            (unity_root / "Schemas/Audio/callsite_manifest.json").resolve(),
+            (unity_root / "Docs/声音迁移台账.md").resolve(),
+        }
+        desired = {path: content for path, content in desired.items() if path in selected}
     owned_paths = set(desired)
-    if not args.callsite_only:
+    if not (args.callsite_only or args.catalog_only):
         verify_guid_collisions(unity_root, owned_paths, desired)
 
     drift: list[str] = []
@@ -599,6 +664,11 @@ def main() -> int:
         "--callsite-only",
         action="store_true",
         help="update/check only the callsite manifest and ledger; never rewrite audio or Addressables",
+    )
+    parser.add_argument(
+        "--catalog-only",
+        action="store_true",
+        help="update/check generated audio manifests and ledger; never rewrite audio or Addressables",
     )
     args = parser.parse_args()
     try:
