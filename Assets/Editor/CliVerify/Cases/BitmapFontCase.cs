@@ -25,7 +25,7 @@ namespace Shenxiao.EditorTools
         private const string SkillNameFolder = "Assets/GameRes/resource/game/skillName";
         private const string OutputFolder = "output/ui_route_audit/2026-08-06_bitmap-font-remediation";
         // 每轮最终证据写入新目录，避免桌面查看器/报告仍映射旧 PNG 时被覆盖后误读。
-        private const string EvidenceFolder = OutputFolder + "/evidence-r4";
+        private const string EvidenceFolder = OutputFolder + "/evidence-r5";
         private const string InventoryPath = OutputFolder + "/bitmap-font-inventory.json";
         private static readonly JObject RenderedNonBackgroundPixels = new JObject();
         private static readonly string[] RequiredCombatFonts =
@@ -114,7 +114,7 @@ namespace Shenxiao.EditorTools
             {
                 ["status"] = "pass",
                 ["scope"] = "HudTop._lb_fighting + HudTaskTeam._lb_open_awaken_progress + " +
-                            "FightingUpView renamed binds + 10 combat FNT glyph fidelity + direct RawImage glyph rendering + panel lifecycle gate",
+                            "FightingUpView renamed binds + 10 combat FNT glyph fidelity + atlas slot isolation + direct RawImage glyph rendering + panel lifecycle gate",
                 ["resourceMutation"] = "none",
                 ["captures"] = captures,
                 ["renderedNonBackgroundPixels"] = RenderedNonBackgroundPixels,
@@ -315,6 +315,7 @@ namespace Shenxiao.EditorTools
                     FontFolder + "/" + fontName + ".asset");
                 Require(font != null, "战斗位图字体资产不存在: " + fontName);
                 VerifyFntGlyphFidelity(fontName, font);
+                VerifyCombatGlyphAtlasIsolation(fontName, font);
             }
 
             TMP_FontAsset attackFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
@@ -360,6 +361,53 @@ namespace Shenxiao.EditorTools
                         && Mathf.Approximately(glyph.metrics.horizontalBearingY, height - yOffset)
                         && Mathf.Approximately(glyph.metrics.horizontalAdvance, advance),
                     $"FNT GlyphMetrics 抄写错误: font={fontName}, id={unicode}");
+            }
+        }
+
+        /// <summary>
+        /// 战斗数字是美术逐字图，不允许替换后的笔画越过 FNT 槽位边界。
+        /// 2026-08-06 曾出现十张 PNG 保持旧 FNT 不变、但新字的实心笔画跨槽叠到相邻数字；
+        /// GlyphRect/UV/网格本身全部正确，只有真实组合文本会显示成多笔或多字。
+        /// </summary>
+        private static void VerifyCombatGlyphAtlasIsolation(string fontName, TMP_FontAsset font)
+        {
+            string pngPath = FontFolder + "/" + fontName + ".png";
+            Require(File.Exists(pngPath), "战斗位图字体 PNG 不存在: " + pngPath);
+
+            var atlas = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            try
+            {
+                Require(ImageConversion.LoadImage(atlas, File.ReadAllBytes(pngPath), false),
+                    "战斗位图字体 PNG 解码失败: " + fontName);
+                font.ReadFontAssetDefinition();
+                const byte opaqueBoundaryThreshold = 224;
+                for (char digit = '0'; digit <= '9'; digit++)
+                {
+                    Require(font.characterLookupTable.TryGetValue(digit, out TMP_Character character)
+                            && character?.glyph != null,
+                        $"战斗位图字体缺数字: font={fontName}, char={digit}");
+                    UnityEngine.TextCore.GlyphRect rect = character.glyph.glyphRect;
+                    Require(rect.x >= 0 && rect.y >= 0 && rect.x + rect.width <= atlas.width
+                            && rect.y + rect.height <= atlas.height,
+                        $"战斗位图字体槽位越出 atlas: font={fontName}, char={digit}, rect={rect}");
+
+                    byte leftMax = 0;
+                    byte rightMax = 0;
+                    for (int y = rect.y; y < rect.y + rect.height; y++)
+                    {
+                        Color32 left = atlas.GetPixel(rect.x, y);
+                        Color32 right = atlas.GetPixel(rect.x + rect.width - 1, y);
+                        if (left.a > leftMax) leftMax = left.a;
+                        if (right.a > rightMax) rightMax = right.a;
+                    }
+                    Require(leftMax < opaqueBoundaryThreshold && rightMax < opaqueBoundaryThreshold,
+                        $"战斗位图字体实心笔画跨过 FNT 槽边界: font={fontName}, char={digit}, " +
+                        $"leftAlpha={leftMax}, rightAlpha={rightMax}, threshold={opaqueBoundaryThreshold}");
+                }
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(atlas);
             }
         }
 

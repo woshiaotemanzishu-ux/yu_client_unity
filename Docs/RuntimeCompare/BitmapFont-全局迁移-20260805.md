@@ -75,3 +75,13 @@ Unity.exe -batchmode -projectPath <worktree> `
 - **修复方式**：保留 FNT `GlyphRect/GlyphMetrics` 的逐字边界计算，但移除自定义 Mesh 提交；每个字符改用 Unity 内置 `RawImage`，直接把同一 atlas 赋给 `texture`，把 GlyphRect 换算为 `uvRect`，并按 `xoffset/yoffset/xadvance` 设置子 Rect。短串复用成长串时复用或扩展 RawImage 子项，多余子项隐藏；父级 `CanvasGroup` 统一处理动画淡出。
 - **范围**：只修改 `DamageFontRenderer` 和定向 `BitmapFontCase`，没有修改、同步或重建任何 FNT/PNG/TMP 字体资产，没有改 Addressables，也没有扫描全库资源。新证据目录固定为 `evidence-r4/`，避免覆盖已作废的 r2/r3 结论。
 - **当前验证状态**：Core/Editor 串行离线编译均为 0 warning / 0 error；未操作用户 Unity。玩家真实战斗像素和“出现→开角色→关闭→再次出现”仍待复验，路线继续 `needs-runtime-verify`。
+
+## 8. 2026-08-06 第四次用户复查：替换图跨 FNT 槽串字
+
+用户第四次真实战斗确认 `RawImage` 路线已经恢复出帧，且日志中的四个真实伤害值依次为 `63/64/64/66`；但截图中的每个两位数都带有额外竖笔或相邻数字残片。第 6 节“问题不是图片”的判断只适用于当时检查的文件同源性，现已被更细的图像槽位检查推翻。
+
+- **根因**：十套战斗 `.fnt` 从未改变，Unity 字体资产的 `GlyphRect/GlyphMetrics` 也逐项正确；但 2026-08-04 的全局“字更换”只替换了 `yu_client/cdn/resource/font/fight_font_*.png`，没有同步调整对应 FNT。替换图把新数字画得比旧槽更宽，实心笔画直接跨过左右边界并与相邻数字重叠。Unity 同步的是 CDN 新图，而 `h5/laya/assets/resource/font` 仍保留替换前、与 FNT 配套的原图，所以此前只比较“Unity 与当前 CDN 哈希相等”反而把错误资源当成了绿灯。
+- **证据**：替换前 CDN 的十张战斗 PNG Git blob 与 H5 镜像十张 PNG 完全一致；当前 CDN/Unity 十张则全部不同。对每个数字槽左右边界扫描 Alpha，错误替换图在阈值 `224/255` 下有 77 个数字槽出现实心像素触边，替换前配套图为 0 个。`fight_font_attack` 的错误图在旧 FNT 的 `0/2/3/4/5/6` 连续槽中已经能直接看到相邻字串入。
+- **修复**：只把十张 `fight_font_attack/beattack/baoji/huixin/zhuoyue/shenwu/gedang/fantan/liuxue/huifu.png` 恢复为替换前、与现有 FNT 配套的版本，并同时修正老端 CDN 事实源与 Unity 固定副本。未改任何 `.fnt`、`.asset`、Prefab 或 Addressables，也未同步、导入或重建其他 56 套字体资源。
+- **新门禁**：`BitmapFontCase` 除了核对 FNT 坐标、RawImage UV 与真实像素，还会读取这十张 PNG，逐个检查 `0-9` 的左右槽边界；Alpha 大于等于 224 的实心笔画触边即失败。以后若要重做战斗字体，必须逐字在固定 FNT 槽内生成并先通过该门禁，不能把整张通用换字结果直接覆盖专用战斗 atlas。
+- **当前验证状态**：静态资源哈希与 Alpha 槽位检查已通过；`Shenxiao.Module.Core.csproj` 离线编译为 97 个既有 warning / 0 error，`Shenxiao.Editor.csproj` 为 2 个既有 warning / 0 error。未占用用户 Unity，因此 r5 真实图形专项与玩家同场最终复验仍待执行。玩家复验应覆盖“正常两位/多位伤害可读、无串字/截断，以及开关角色面板后继续出现”。

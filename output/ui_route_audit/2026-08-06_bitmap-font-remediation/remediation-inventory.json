@@ -1,5 +1,5 @@
 {
-  "status": "offline-pass-r4-unity-and-runtime-battle-retest-pending",
+  "status": "offline-build-pass-r5-unity-graphics-and-runtime-battle-retest-pending",
   "historicalInventory": "output/ui_route_audit/2026-08-05_bitmap-fonts/bitmap-font-inventory.json",
   "historicalDiscoveredBindings": 106,
   "invalidImageBindingsRemoved": 1,
@@ -67,19 +67,34 @@
     "modifiedRuntimeConsumers": [
       "Assets/Scripts/Module/Core/Scene/DamageFontRenderer.cs"
     ],
+    "restoredCombatAtlasAssets": [
+      "fight_font_attack.png",
+      "fight_font_beattack.png",
+      "fight_font_baoji.png",
+      "fight_font_huixin.png",
+      "fight_font_zhuoyue.png",
+      "fight_font_shenwu.png",
+      "fight_font_gedang.png",
+      "fight_font_fantan.png",
+      "fight_font_liuxue.png",
+      "fight_font_huifu.png"
+    ],
     "fontOrAtlasAssetsRebuilt": 0,
+    "fixedAtlasAssetsRestored": 10,
     "addressablesModifiedByThisRemediation": false
   },
   "runtimeFloatLayout": {
     "rolledBackFindings": [
       "native pointSize + fixed 480x120 Overflow still clipped in user battle",
       "preferred-size dynamic TMP Rect passed textBounds but still did not reproduce old FNT drawing",
-      "custom MaskableGraphic passed mesh/vertex checks but rendered zero visible pixels in the user battle"
+      "custom MaskableGraphic passed mesh/vertex checks but rendered zero visible pixels in the user battle",
+      "built-in RawImage rendered, but the replacement PNG had opaque strokes crossing the unchanged FNT slots and produced adjacent-glyph fragments"
     ],
-    "current": "LegacyBitmapTextGraphic uses one built-in RawImage uvRect per FNT GlyphRect/GlyphMetrics entry from the original atlas",
-    "machineGate": "r4 compares all 10 combat FNT glyph rects/metrics, active RawImage glyph count and atlas, short-to-long pool reuse, exact self bounds and rendered pixels",
-    "unityEvidence": "evidence-r4 pending; Unity was not occupied",
-    "userBattleRetest": "pending"
+    "current": "LegacyBitmapTextGraphic uses one built-in RawImage uvRect per FNT GlyphRect/GlyphMetrics entry; all 10 combat PNGs are restored to the pre-replacement versions paired with those FNT files",
+    "machineGate": "r5 compares all 10 combat FNT glyph rects/metrics, asserts every numeric glyph has no alpha >=224 on either slot boundary, then checks RawImage glyph count/atlas/UV, short-to-long pool reuse, exact self bounds and rendered pixels",
+    "staticAtlasEvidence": "rejected replacement: 77 opaque numeric slot boundary hits; restored paired atlases: 0",
+    "unityEvidence": "evidence-r5 pending; Unity was not occupied",
+    "userBattleRetest": "RawImage visibility confirmed; restored-atlas readability and lifecycle sequence pending"
   },
   "runtimeFloatLifecycle": {
     "rootCause": "CanShowCombatFloat treated any active UILayer.Window module root as an open window; cached Role module root remains active after its BaseView closes",

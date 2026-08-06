@@ -75,12 +75,13 @@
         "用户第一次实际战斗把 native pointSize + 固定 480×120 Overflow 回卷为截断",
         "用户第二次实际战斗证明 preferred-size TMP Rect 虽通过 textBounds 仍未复刻旧端",
         "用户第三次实际战斗证明自定义 CanvasRenderer 有 Mesh 仍可在场景零像素",
-        "DamageFontRenderer 现按 FNT GlyphRect/GlyphMetrics 用内置 RawImage.uvRect 逐字直绘原 atlas",
-        "Core/Editor 串行离线编译 0 warning / 0 error；r4 图形专项和玩家战斗仍待复验"
+        "用户第四次实际战斗证明 RawImage 已出帧，但 CDN/Unity 替换图的实心笔画跨出旧 FNT 槽位，63/64/64/66 串入邻字残片",
+        "十张专用战斗 PNG 已恢复为替换前与 FNT 配套的固定版本；DamageFontRenderer 继续用内置 RawImage.uvRect 逐字直绘",
+        "错误替换图有 77 个数字槽在 Alpha 224 阈值下触边，恢复图为 0；Core/Editor 离线编译 0 error，玩家最终战斗仍待复验"
       ],
       "evidence": [
         "remediation-inventory.json",
-        "Docs/RuntimeCompare/BitmapFont-全局迁移-20260805.md#6"
+        "Docs/RuntimeCompare/BitmapFont-全局迁移-20260805.md#8"
       ]
     },
     {
@@ -110,9 +111,9 @@
       "applicable_gates": ["resource_stable"],
       "gates": {"resource_stable": false},
       "resource_evidence": {
-        "preflight_first": "Core/Editor sequential dotnet build 0 warning / 0 error after RawImage glyph rendering and lifecycle fix",
-        "preflight_second": "r4 Unity targeted case not run; user Unity was not occupied",
-        "runtime_delta": "0 font/atlas rebuilds; no Addressables mutation by this remediation"
+        "preflight_first": "ten restored combat PNGs match the pre-replacement H5 mirror; opaque boundary hits are 0 versus 77 in the rejected replacement",
+        "preflight_second": "r5 Core build 97 existing warnings / 0 errors; Editor build 2 existing warnings / 0 errors; Unity targeted case pending",
+        "runtime_delta": "10 fixed combat atlas PNGs only; 0 FNT/TMP rebuilds and no Addressables mutation"
       },
       "evidence": [
         "remediation-inventory.json"

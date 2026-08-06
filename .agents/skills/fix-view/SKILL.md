@@ -29,7 +29,7 @@ description: 作为项目统一“UI 对接 / UI 精修”流程中的增量修�
 | 绑定字段 null / 点了没反应 | Bind 字段没回填,或 View 没绑事件 | 重跑 `LayaBindFiller.FillPrefab(<prefab>)`;容器字段(RectTransform)按【声明类型】解析(烤后 Box 多挂 Image 会置空);点击 ClearClicks+AddClick |
 | 输入框/文字**重叠** | 老端 TextInput/Label 内部文字节点被烤成常显子 Text,盖住输入值/真实文字 | 删该 TMP_Text/输入框下多余的子 TMP_Text(父权威、子冗余);烤制器 `AdaptSnapshotNode` 已跳 text-like 子节点 + TextInput 提示提到 placeholder(治本) |
 | 列表**显示了不该有的项 / 数量像写死**(如选角"1 角色却显 3 个") | 烤制快照**冻结了数据驱动列表**(烤时那个账号的真实项被当固定节点) | View 必须按**真实数据**建表(遍历/克隆),别信烤制数量。逐层查漏出:① item 有 `{Item}Bind` 且字段非空(漏挂→View `bind==null` 整列跳过)② 无冗余子 Text ③ 绑的是**可见**节点(头像是 `icon_sys_head` 不是空的 `icon`;路径因 `_box_con` 嵌套失效就递归按名找)④ 空槽用 `节点.SetActive(false)` 整块隐藏(连子节点),比 `组件.enabled=false` 稳 |
-| 位图字体仍是普通字、审计显示未命中，或替换后尺寸异常/被截断 | 人工 Prefab 已重命名节点，名称扫描漏掉序列化 Bind；把 FNT `info size`、glyph 槽高与 TMP `pointSize` 当成同一尺寸；或旧端本来逐字切图，Unity 却误用 TMP 基线/行高排版 | 先按 `source node → View 序列化 Bind 字段 → 当前控件` 定位，名称只作兜底；再查旧端实际绘制器。普通 TMP 消费者按 `BitmapFont.fontSize/autoScaleSize` 换算并用 preferred bounds 扩容；旧端若直接按 FNT 切片，则逐字符复制 `x/y/width/height/xoffset/yoffset/xadvance` 生成原图四边形，逐字核对源数据并覆盖池复用。只修确认的 Prefab/消费者，禁止因一个字体族异常全局重算或重建全部字体资源 |
+| 位图字体仍是普通字、审计显示未命中，或替换后尺寸异常/被截断/串入邻字 | 人工 Prefab 已重命名节点，名称扫描漏掉序列化 Bind；把 FNT `info size`、glyph 槽高与 TMP `pointSize` 当成同一尺寸；旧端本来逐字切图，Unity 却误用 TMP 基线/行高排版；或替换 PNG 的实心笔画已经越过旧 FNT 槽位 | 先按 `source node → View 序列化 Bind 字段 → 当前控件` 定位，名称只作兜底；再查旧端实际绘制器。普通 TMP 消费者按 `BitmapFont.fontSize/autoScaleSize` 换算并用 preferred bounds 扩容；旧端若直接按 FNT 切片，则逐字符复制 `x/y/width/height/xoffset/yoffset/xadvance` 生成原图四边形，并逐槽核对 PNG 不透明内容没有触边或串槽。只修确认的 Prefab/消费者/固定 atlas，禁止因一个字体族异常全局重算或重建全部字体资源 |
 
 ## 步骤
 1. 读问题来源(diff 报告或用户描述),定位到具体节点 + 判断改哪层(上表)。
@@ -45,7 +45,7 @@ description: 作为项目统一“UI 对接 / UI 精修”流程中的增量修�
 - 位置类优先 prefab 直改(可视化、可回退),别动代码绕。
 - 系统性、跨多 view 的同类偏移 → 修共享 Prefab、公共 View 或公共升级器；不得用批量重转覆盖已接管页面。
 - 位图字体图集已经烤色时，TMP 顶点色保持白色；老端 `Image` 即使残留 `font` 属性，只要现行逻辑通过 `SetImageSprite` 换图，就归图片链而不是字体遗漏。
-- 动态战斗字先确认旧端是通用文字排版还是 FNT 逐字直绘；后者不能用 TMP `textBounds` 绿灯替代。逐字核对位置文件、图集 UV、offset/advance，并覆盖普通长数字、`a/b/c` 前缀、对象池短串→长串复用和 Crit 最大缩放。自定义 `Graphic` 的 `CanvasRenderer` 有 Mesh/顶点仍可能在玩家场景零像素；优先复用内置 `RawImage.uvRect` 逐字切图，验收必须读真实 Canvas 像素或由玩家同场截图确认。
+- 动态战斗字先确认旧端是通用文字排版还是 FNT 逐字直绘；后者不能用 TMP `textBounds` 绿灯替代。逐字核对位置文件、图集 UV、offset/advance，并检查每个数字的实心 Alpha 没有跨出对应 FNT 槽；“Unity 与当前 CDN PNG 哈希一致”只能证明同步一致，不能证明替换图仍与 FNT 配套。覆盖普通长数字、`a/b/c` 前缀、对象池短串→长串复用和 Crit 最大缩放。自定义 `Graphic` 的 `CanvasRenderer` 有 Mesh/顶点仍可能在玩家场景零像素；优先复用内置 `RawImage.uvRect` 逐字切图，验收必须读真实 Canvas 像素或由玩家同场截图确认。
 - 打开/关闭面板导致场景表现永久消失时，先查“模块缓存根 active”与“实际 BaseView shown”的混用；复验必须在同一场战斗中走“出现→开面板→关闭→再次出现”，不能只测冷启动或只测开窗前。
 - MCP 改 prefab/编译 OK;Addressables 写记得 `postEvent:false`;Play 验收靠用户。
 
