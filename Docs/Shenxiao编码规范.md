@@ -200,6 +200,7 @@ var go = Object.Instantiate(prefab); // 来源不是 ResManager 的禁止
 - 复合按钮内只有部分文字需要按 preferred width/字号自适应时，`Horizontal/VerticalLayoutGroup` 必须
   挂在纯文字内层容器；背景 Image、唯一点击面、状态图标等留在按钮根并独立定位。禁止把 LayoutGroup
   直接挂到带背景或图标的按钮根，再依靠 `childForceExpand` 修补图片拉伸。
+- 同构 UI 必须按视觉结构、交互语义和数据形状复用共享 Prefab/View；页面只传数据、状态和回调，不得复制节点树、硬编码页面专用坐标或重复特效/按钮状态逻辑。共享组件变更至少覆盖适用的特效开关、1/2/3 项居中、短长文本、单/双按钮、充足/不足及空/有数据状态，再回页面复验。
 - 用户已手调或已验收的页面以 Prefab 为唯一视觉事实源；布局、图片、字体样式和 LayoutGroup
   参数直接在 Unity 中编辑并保存。页面专用 Creator 只可作为首次搭建脚手架；界面交付手调后必须
   移除其重建入口，禁止为了“防覆盖”继续双向维护 Creator 视觉常量和 Prefab。

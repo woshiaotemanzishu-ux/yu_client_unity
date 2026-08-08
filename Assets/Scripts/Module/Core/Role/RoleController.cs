@@ -33,6 +33,7 @@ namespace Shenxiao.Module.Core.Role
         private int _pendingRenameType;
 #if UNITY_EDITOR
         private static System.Func<byte[], bool> s_renameOutboundIntercept;
+        private static System.Func<byte[], bool> s_potionGuideOutboundIntercept;
 #endif
 
         protected override void Register()
@@ -72,6 +73,23 @@ namespace Shenxiao.Module.Core.Role
             SendFmt(Proto.ROLE_HEAD_LIST);
             SendFmt(Proto.ROLE_MISC_COUNTERS);
             GameLog.Info("Role", "request 13011/13017/13046/13080/13086(GAME_START 裸发族)");
+        }
+
+        /// <summary>
+        /// 属性药剂首次使用指引完成。老端 FuncFirstOpenKey.Potion 固定写
+        /// module=300/subModule=1/type=1；仅暴露该窄入口，避免把 13089 变成任意计数发送器。
+        /// </summary>
+        public void CompletePotionFirstUseGuide()
+        {
+#if UNITY_EDITOR
+            if (s_potionGuideOutboundIntercept != null)
+            {
+                byte[] frame = UserMsgAdapter.Encode(Proto.ROLE_LIFELONG_INCREMENT, "hhh", 300, 1, 1);
+                if (s_potionGuideOutboundIntercept(frame)) return;
+            }
+#endif
+            SendFmt(Proto.ROLE_LIFELONG_INCREMENT, "hhh", 300, 1, 1);
+            GameLog.Info("Role", "send 13089 potion first-use guide module=300 sub=1 type=1");
         }
 
         /// <summary>13001 主角全量(字段顺序严格对标 pt_130 write(13001))。</summary>
@@ -367,7 +385,7 @@ namespace Shenxiao.Module.Core.Role
         }
 
         /// <summary>13089 角色终身次数+1 "hhhh"(ModuleId,SubModule,Type,Count)。与 13088 共用
-        /// RoleModel 通用终身计数存储;无 UI 消费方(TODO)。</summary>
+        /// RoleModel 通用终身计数存储；属性药剂首次使用指引会消费 300/1/1 的即时更新。</summary>
         private void On13089(NetReader r)
         {
             int moduleId = r.ReadU16();
@@ -375,7 +393,7 @@ namespace Shenxiao.Module.Core.Role
             int type = r.ReadU16();
             int count = r.ReadU16();
             RoleModel.Instance.SetLifelongCount(moduleId, subModuleId, type, count);
-            GameLog.Info("Role", "13089 终身次数+1 module={0} sub={1} type={2} count={3}(无 UI 消费方 TODO)",
+            GameLog.Info("Role", "13089 终身次数+1 module={0} sub={1} type={2} count={3}",
                 moduleId, subModuleId, type, count);
             EventDispatcher.Emit(GlobalEvent.EVT_ROLE_LIFELONG_COUNT_UPDATE, moduleId, subModuleId);
         }

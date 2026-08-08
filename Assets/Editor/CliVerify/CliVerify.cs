@@ -386,6 +386,29 @@ namespace Shenxiao.EditorTools
             Run(EquipReadCase.Run, 60.0);
         }
 
+        /// <summary>共鸣三表、Prefab 结构、15221/15222 单飞/错误/主动推送与权威刷新闭环。</summary>
+        public static void Resonance()
+        {
+            Run(ResonanceCase.Run, 180.0);
+        }
+
+        /// <summary>人物→共鸣四页签/22部位/46阶/弹层/特效/无消耗事务的真实射线路由。</summary>
+        public static void ResonanceRoute()
+        {
+            Run(ResonanceRouteCase.Run, 900.0);
+        }
+
+        /// <summary>共鸣静态/协议门禁 + 完整无账号消耗真实射线路由。</summary>
+        public static void ResonanceSuite()
+        {
+            Run(async () =>
+            {
+                int staticCode = await ResonanceCase.Run();
+                if (staticCode != 0) return staticCode;
+                return await ResonanceRouteCase.Run();
+            }, 1080.0);
+        }
+
         public static void DragonWhisper()
         {
             Run(DragonWhisperCase.Run, 60.0);
@@ -557,6 +580,48 @@ namespace Shenxiao.EditorTools
         public static void RoleSkillRoute()
         {
             Run(RoleSkillRouteCase.Run, 180.0);
+        }
+
+        /// <summary>人物页属性说明的入口、完整内容、滚动、关闭、遮罩与重开真实射线路由。</summary>
+        public static void RoleInstructionRoute()
+        {
+            Run(RoleInstructionRouteCase.Run, 120.0);
+        }
+
+        /// <summary>人物页药水的四档、16 项详情/使用、权威刷新、滚动、遮罩与重开真实射线路由。</summary>
+        public static void RoleAttributePotionRoute()
+        {
+            Run(RoleAttributePotionRouteCase.Run, 300.0);
+        }
+
+        /// <summary>药水页单进程闭环：配置/协议守卫 + 人物入口到完整4档16行真实射线路由。</summary>
+        public static void RoleAttributePotionSuite()
+        {
+            Run(async () =>
+            {
+                var cases = new (string Name, Func<Task<int>> Run)[]
+                {
+                    ("AttributePotion", AttributePotionCase.Run),
+                    ("RoleAttributePotionRoute", RoleAttributePotionRouteCase.Run),
+                };
+                int result = 0;
+                foreach (var item in cases)
+                {
+                    int code;
+                    try { code = await item.Run(); }
+                    catch (Exception exception)
+                    {
+                        Debug.LogError("CLIVERIFY role-attribute-potion-suite "
+                            + item.Name + " EXCEPTION " + exception);
+                        code = 1;
+                    }
+                    Debug.Log("CLIVERIFY role-attribute-potion-suite "
+                        + item.Name + " code=" + code);
+                    if (code != 0) result = 3;
+                }
+                Debug.Log("CLIVERIFY role-attribute-potion-suite VERDICT pass=" + (result == 0));
+                return result;
+            }, 420.0);
         }
 
         /// <summary>NPC 对话全面屏底部锚定与任意位置真实 PointerClick 专项。</summary>

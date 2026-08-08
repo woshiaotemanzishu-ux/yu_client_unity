@@ -65,6 +65,7 @@ namespace Shenxiao.Module.Core.Equip
         private void On15200(NetReader r)
         {
             int res = (int)r.ReadU32();
+            EventDispatcher.Emit(GlobalEvent.EVT_EQUIP_ERROR, res);
             TipsManager.Toast("操作失败(" + res + ")");
             GameLog.Warn("Equip", "15200 装备家族错误码 res={0}", res);
         }

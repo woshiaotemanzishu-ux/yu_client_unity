@@ -80,6 +80,7 @@ namespace Shenxiao.Module.Core.Equip
         public uint GodPowerPreview { get; private set; }
         public bool HasSuitInfo { get; private set; }
         public IReadOnlyList<SuitEntry> SuitEntries { get; private set; } = Array.Empty<SuitEntry>();
+        public int Version { get; private set; }
         public int ReturnPreviewCount => _returnPreviews.Count;
         public int SuitPowerCount => _suitPowers.Count;
 
@@ -100,6 +101,40 @@ namespace Shenxiao.Module.Core.Equip
         {
             HasSuitInfo = true;
             SuitEntries = (entries ?? new List<SuitEntry>()).AsReadOnly();
+            Version++;
+        }
+
+        /// <summary>15221/15222 自身是权威事务结果；先局部换入对应位置，再由控制器立即重拉 15220 全量校正。</summary>
+        public void UpsertSuit(byte equipType, byte type, ushort level)
+        {
+            var next = new List<SuitEntry>(SuitEntries.Count + 1);
+            bool replaced = false;
+            for (int i = 0; i < SuitEntries.Count; i++)
+            {
+                SuitEntry entry = SuitEntries[i];
+                if (!replaced && entry.EquipType == equipType && entry.Type == type)
+                {
+                    if (level > 0) next.Add(new SuitEntry(equipType, type, level));
+                    replaced = true;
+                }
+                else next.Add(entry);
+            }
+            if (!replaced && level > 0) next.Add(new SuitEntry(equipType, type, level));
+            next.Sort((a, b) => a.EquipType != b.EquipType
+                ? a.EquipType.CompareTo(b.EquipType) : a.Type.CompareTo(b.Type));
+            HasSuitInfo = true;
+            SuitEntries = next.AsReadOnly();
+            Version++;
+        }
+
+        public ushort GetSuitLevel(byte equipType, byte type, byte expectedSuitType = 0)
+        {
+            for (int i = 0; i < SuitEntries.Count; i++)
+            {
+                SuitEntry entry = SuitEntries[i];
+                if (entry.EquipType == equipType && entry.Type == type) return entry.Level;
+            }
+            return 0;
         }
 
         public void ReplaceReturnPreview(SuitReturnPreview snapshot) =>
@@ -125,6 +160,7 @@ namespace Shenxiao.Module.Core.Equip
             SuitEntries = Array.Empty<SuitEntry>();
             _returnPreviews.Clear();
             _suitPowers.Clear();
+            Version++;
         }
 
         private static ushort ReturnKey(byte equipType, byte makeType) => (ushort)((equipType << 8) | makeType);

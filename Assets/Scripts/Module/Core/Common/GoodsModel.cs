@@ -48,7 +48,11 @@ namespace Shenxiao.Module.Core.Common
             public int Sex;            // sex(性别需求 0=通用,key "30")
             public int Turn;           // turn(转生需求,key "31")
             public string Getway = ""; // getway(获取途径/来源文本,key "3",对标 GoodsTooltips.ways=basic.getway)
+            public string GetwayUrl = ""; // getway_url(可跳转来源列表,key "4",Erlang [{open_fun_id,arg},...])
             public string Source = ""; // 运营来源展示,key "35"；IllusionTips 底部“获取途径”使用
+            public string ExpireTime = ""; // expire_time(key "19",静态限时标记/描述，既可能是数字也可能是日期串)
+            public int EffectId;        // effect_id(key "34",物品格品质流光)
+            public int ExpireType;      // expire_type(key "36",详情限时文案语义)
             public string BaseAttrList = ""; // base_attrlist(装备基础属性 Erlang term [{attr_id,val},...],key "26",对标 EquipToolTips basic.base_attrlist)
             public int Use;            // use(可使用标记,key "22";==0 不显使用按钮,对标 GoodsTooltips useBtn 隐藏条件 basic.use==0)
             public int UseOneKey;      // use_one_key(key "25";!=0 可进入一键使用列表)
@@ -61,6 +65,21 @@ namespace Shenxiao.Module.Core.Common
             public int Stage;            // 阶(对标 EquipToolTips grade=`${equip_vo.stage}阶`)
             public int Star;             // 星
             public int BaseRating;       // 基础评分(对标 EquipToolTips score 兜底 base_rating)
+            public int ClassType;        // 1=劣质装备标记(对标 EquipmentItem/BagItemRenderer._bad_icon)
+        }
+
+        public readonly struct GoodsSourceEntry
+        {
+            public readonly int Id;
+            public readonly int Argument;
+            public readonly string Name;
+
+            public GoodsSourceEntry(int id, int argument, string name)
+            {
+                Id = id;
+                Argument = argument;
+                Name = name ?? "";
+            }
         }
 
         public readonly struct EquipBaseAttrRow
@@ -93,6 +112,7 @@ namespace Shenxiao.Module.Core.Common
         private const string K_NAME = "1";
         private const string K_INTRO = "2";        // intro(物品介绍/描述)
         private const string K_GETWAY = "3";       // getway(获取途径/来源文本,对标 GoodsTooltips.ways)
+        private const string K_GETWAY_URL = "4";   // getway_url([{open_fun_id,arg},...],GoodsTooltips.sourceGp)
         private const string K_SOURCE = "35";      // 运营来源展示(世界BOSS/运营活动等)
         private const string K_TYPE = "9";         // type(物品大类;==10 装备)
         private const string K_SUBTYPE = "10";     // subtype(子类)
@@ -101,16 +121,20 @@ namespace Shenxiao.Module.Core.Common
         private const string K_CAREER = "15";      // career_id(职业需求 0=通用)
         private const string K_LEVEL = "16";       // level(需求等级)
         private const string K_COLOR = "18";       // color/品质 0..8
+        private const string K_EXPIRE_TIME = "19"; // expire_time(静态限时标记/描述)
         private const string K_USE = "22";         // use(可使用标记;==0 → GoodsTooltips 不显使用按钮)
         private const string K_USE_ONE_KEY = "25"; // use_one_key(老端 OneKeyUseView 过滤条件)
         private const string K_BASE_ATTR = "26";   // base_attrlist(装备基础属性 Erlang term)
         private const string K_SEX = "30";         // sex(性别需求 0=通用)
         private const string K_TURN = "31";        // turn(转生需求)
+        private const string K_EFFECT_ID = "34";   // effect_id(物品槽流光)
+        private const string K_EXPIRE_TYPE = "36"; // expire_type(限时文案语义)
 
         // config_equip_attr 数字键(config_table_default.json:goods_id/stage/star/base_rating/class_type/recommend_attr/other_attr)。
         private const string KE_STAGE = "1";
         private const string KE_STAR = "2";
         private const string KE_BASE_RATING = "3";
+        private const string KE_CLASS_TYPE = "4";
         private const string KE_RECOMMEND = "5";   // recommend_attr(极品属性预览,对标 EquipToolTips.SetBestPro is_preview;格式 [{100,{color,attr_id,v2,tmpl,v4}},...])
         private const string KE_OTHER = "6";        // other_attr(专有属性,对标 EquipToolTips.SetRedPro/Util.GetAttrStr;格式 [{attr_id,val},...] 同 base_attrlist)
 
@@ -129,6 +153,7 @@ namespace Shenxiao.Module.Core.Common
         private static JObject _goodsType;   // GoodsType:type→{type_name}(GetGoodsTypeName 用,对标 WordManager.GetGoodsStyle)
         private static JObject _itemAttr;    // ConfigItemAttr:attr_id→{name}(GetAttrName 用,对标 WordManager.GetProperties)
         private static JObject _equipAttr;   // config_equip_attr:type_id→{stage,star,base_rating,recommend_attr,other_attr}
+        private static JObject _goodsSource; // GoodsSourceConfig:open_fun_id→{name,view}
         private static readonly Dictionary<int, GoodsBasic> _cache = new Dictionary<int, GoodsBasic>();
 
         public static bool IsLoaded => _goods != null;
@@ -169,9 +194,10 @@ namespace Shenxiao.Module.Core.Common
             _goodsType = await LoadConfigObj(GameResPath.GetServerConfigPath("goodstype"), "GoodsType");
             _itemAttr = await LoadConfigObj(GameResPath.GetClientConfigPath("configitemattr"), "ConfigItemAttr");
             _equipAttr = await LoadConfigObj(GameResPath.GetServerConfigPath("config_equip_attr"), "config_equip_attr");
+            _goodsSource = await LoadConfigObj(GameResPath.GetClientConfigPath("goodssourceconfig"), "GoodsSourceConfig");
 
-            GameLog.Info("Goods", "config_goods={0} notNormal={1} goodsType={2} itemAttr={3} equipAttr={4}",
-                _goods.Count, _notNormal.Count, _goodsType.Count, _itemAttr.Count, _equipAttr.Count);
+            GameLog.Info("Goods", "config_goods={0} notNormal={1} goodsType={2} itemAttr={3} equipAttr={4} goodsSource={5}",
+                _goods.Count, _notNormal.Count, _goodsType.Count, _itemAttr.Count, _equipAttr.Count, _goodsSource.Count);
         }
 
         /// <summary>加载一份 JObject 配置(缺失返回空 JObject + 警告,不让缺表炸链路;对标 EnsureLoaded 的容错)。</summary>
@@ -210,7 +236,11 @@ namespace Shenxiao.Module.Core.Common
                 Sex = ReadInt(obj, K_SEX),
                 Turn = ReadInt(obj, K_TURN),
                 Getway = ReadString(obj, K_GETWAY),
+                GetwayUrl = ReadString(obj, K_GETWAY_URL),
                 Source = ReadString(obj, K_SOURCE),
+                ExpireTime = ReadString(obj, K_EXPIRE_TIME),
+                EffectId = ReadInt(obj, K_EFFECT_ID),
+                ExpireType = ReadInt(obj, K_EXPIRE_TYPE),
                 BaseAttrList = ReadString(obj, K_BASE_ATTR),
                 Use = ReadInt(obj, K_USE),
                 UseOneKey = ReadInt(obj, K_USE_ONE_KEY),
@@ -239,6 +269,53 @@ namespace Shenxiao.Module.Core.Common
         public static string GetGoodsGetway(int typeId) => GetGoodsBasicByTypeId(typeId)?.Getway ?? "";
 
         public static string GetGoodsSource(int typeId) => GetGoodsBasicByTypeId(typeId)?.Source ?? "";
+
+        /// <summary>
+        /// 普通物品详情底部的可达来源。顺序严格保留 config_goods.getway_url；名称来自当前老端
+        /// GoodsSourceConfig。Unity 尚未迁移的跳转只显示名称，不伪造点击成功。
+        /// </summary>
+        public static List<GoodsSourceEntry> GetGoodsSourceEntries(int typeId)
+        {
+            var result = new List<GoodsSourceEntry>();
+            string raw = GetGoodsBasicByTypeId(typeId)?.GetwayUrl;
+            if (string.IsNullOrWhiteSpace(raw) || raw.Trim() == "[]") return result;
+
+            ErlangTerm list = ErlangParser.Parse(raw);
+            if (list?.Items == null) return result;
+            foreach (ErlangTerm pair in list.Items)
+            {
+                if (!pair.IsCollection || pair.Items == null || pair.Items.Count < 2) continue;
+                int id = pair.Get<int>(0);
+                int argument = pair.Get<int>(1);
+                if (id <= 0 || !(_goodsSource?[id.ToString()] is JObject row)) continue;
+                string name = ReadString(row, "name");
+                if (!string.IsNullOrWhiteSpace(name))
+                    result.Add(new GoodsSourceEntry(id, argument, name.Trim()));
+            }
+            return result;
+        }
+
+        /// <summary>配置是否要求物品格显示限时角标；兼容数字 0、空串和空列表。</summary>
+        public static bool HasConfigExpiry(int typeId)
+        {
+            string value = GetGoodsBasicByTypeId(typeId)?.ExpireTime?.Trim();
+            return !string.IsNullOrEmpty(value) && value != "0" && value != "[]";
+        }
+
+        /// <summary>老端 BaseAwardItem.SetItemEffect 的固定 effect_id→UI 特效映射。</summary>
+        public static string GetItemEffectName(int effectId)
+        {
+            switch (effectId)
+            {
+                case 1004: return "ui_goods_orange";
+                case 1005: return "ui_goods_red";
+                case 1006: return "ui_goods_gold";
+                case 1007: return "ui_goods_pink";
+                case 1008: return "UI_1309";
+                case 1009: return "UI_1310";
+                default: return "";
+            }
+        }
 
         /// <summary>物品大类文案(GoodsType[type].type_name,如 10→"装备";对标 WordManager.GetGoodsStyle);无则空串。</summary>
         public static string GetGoodsTypeName(int type)
@@ -276,6 +353,7 @@ namespace Shenxiao.Module.Core.Common
                 Stage = ReadInt(o, KE_STAGE),
                 Star = ReadInt(o, KE_STAR),
                 BaseRating = ReadInt(o, KE_BASE_RATING),
+                ClassType = ReadInt(o, KE_CLASS_TYPE),
             };
         }
 

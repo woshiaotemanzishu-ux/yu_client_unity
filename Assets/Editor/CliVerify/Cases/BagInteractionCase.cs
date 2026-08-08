@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Net;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
@@ -26,6 +27,16 @@ namespace Shenxiao.EditorTools
     public static class BagInteractionCase
     {
         private const string PrefabPath = "Assets/Prefabs/UI/Bag/BagModule.prefab";
+        private const string BagEquipmentIconPrefabPath = "Assets/Prefabs/UI/Bag/BagEquipmentIcon.prefab";
+        private const string EquipmentItemPrefabPath = "Assets/Prefabs/UI/Common/EquipmentItem.prefab";
+        private const string BaseAwardItemPrefabPath = "Assets/Prefabs/UI/Common/BaseAwardItem.prefab";
+        private const string EffectProfileCatalogPath = "Assets/Resources/UIEffectProfileCatalog.asset";
+        private const string QualityEffectRootPath = "Assets/GameRes/effect/objs/ui_effect/";
+        private const string ClippableEffectShaderName = "Shenxiao/Effect/LayaParticleUnlit";
+        private static readonly string[] QualityEffectNames =
+        {
+            "ui_goods_orange", "ui_goods_red", "ui_goods_gold", "ui_goods_pink", "UI_1309", "UI_1310"
+        };
         private const BindingFlags F = BindingFlags.NonPublic | BindingFlags.Instance;
         private const BindingFlags SF = BindingFlags.NonPublic | BindingFlags.Static;
 
@@ -99,6 +110,39 @@ namespace Shenxiao.EditorTools
                 ItemUseFlow.Reset();
 
                 GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+                GameObject bagEquipmentPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BagEquipmentIconPrefabPath);
+                GameObject equipmentItemPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(EquipmentItemPrefabPath);
+                GameObject baseAwardItemPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BaseAwardItemPrefabPath);
+                BagEquipmentIcon bagEquipmentIcon = bagEquipmentPrefab != null
+                    ? bagEquipmentPrefab.GetComponent<BagEquipmentIcon>() : null;
+                BagItemRenderer sourceBagItem = prefab != null
+                    ? prefab.GetComponentInChildren<BagItemRenderer>(true) : null;
+                EquipmentItem equipmentItemRoot = equipmentItemPrefab != null
+                    ? equipmentItemPrefab.GetComponent<EquipmentItem>() : null;
+                BaseAwardItem baseAwardItemRoot = baseAwardItemPrefab != null
+                    ? baseAwardItemPrefab.GetComponent<BaseAwardItem>() : null;
+                UIEffectProfileCatalog effectProfileCatalog =
+                    AssetDatabase.LoadAssetAtPath<UIEffectProfileCatalog>(EffectProfileCatalogPath);
+                bool sharedItemIntegrity = equipmentItemRoot != null && baseAwardItemRoot != null
+                    && equipmentItemRoot._tpl_BaseAwardItem != null
+                    && equipmentItemRoot._tpl_BaseAwardItem.GetComponent<BaseAwardItem>() != null
+                    && bagEquipmentIcon?._tpl_EquipmentItem != null
+                    && bagEquipmentIcon._tpl_EquipmentItem.GetComponent<EquipmentItem>() != null
+                    && sourceBagItem?._tpl_BaseAwardItem != null
+                    && sourceBagItem._tpl_BaseAwardItem.GetComponent<BaseAwardItem>() != null;
+                bool sharedPresentationNodes = baseAwardItemRoot?.effect_con != null
+                    && baseAwardItemRoot.time_limit != null && baseAwardItemRoot.@lock != null
+                    && equipmentItemRoot?.effect_con != null && equipmentItemRoot.time_limit != null
+                    && equipmentItemRoot.grade != null && equipmentItemRoot._bad_icon != null
+                    && equipmentItemRoot.star_0 != null && equipmentItemRoot.star_1 != null
+                    && equipmentItemRoot.star_2 != null && equipmentItemRoot.star_3 != null
+                    && sourceBagItem?.up != null && sourceBagItem.down != null && sourceBagItem.ban != null
+                    && sourceBagItem.grade != null && sourceBagItem._bad_icon != null
+                    && sourceBagItem.star_1 != null && sourceBagItem.star_4 != null;
+                bool sharedQualityEffectSetup = IsCenteredQualityEffectHost(baseAwardItemRoot?.effect_con)
+                    && IsCenteredQualityEffectHost(equipmentItemRoot?.effect_con)
+                    && HasClippedQualityEffectProfiles(effectProfileCatalog)
+                    && HasAnimatedClippableQualityEffectAssets();
                 if (prefab == null || roots == null) return 3;
 
                 canvasGo = new GameObject("BagInteractionCase_Canvas", typeof(RectTransform), typeof(Canvas), typeof(GraphicRaycaster));
@@ -136,6 +180,8 @@ namespace Shenxiao.EditorTools
                 if (bagView == null || warehouseView == null || expandView == null || useView == null || smeltView == null)
                     return 3;
                 if (activityModal == null || activityModal.Blocker == null) return 3;
+                bool bagViewportMask = bagView.bag_con != null && bagView.bag_con.viewport != null
+                    && bagView.bag_con.viewport.GetComponent<RectMask2D>() != null;
 
                 foreach (BaseView view in prefabRoot.GetComponentsInChildren<BaseView>(true))
                     view.gameObject.SetActive(false);
@@ -224,10 +270,13 @@ namespace Shenxiao.EditorTools
                     + " smelt=" + warehouseSmeltClick + "/" + warehouseSmeltOpen + "/" + warehouseSmeltFrame
                     + " use=" + warehouseUseClick + "/" + warehouseUseOpen);
 
-                bool pass = protocolOk && itemUseRouting && manualWearOnly
+                bool pass = protocolOk && itemUseRouting && manualWearOnly && sharedItemIntegrity && sharedPresentationNodes
+                    && sharedQualityEffectSetup && bagViewportMask
                     && bagClicks && warehouseClicks && bagSuitDisabled && warehouseSuitDisabled;
                 Debug.Log("CLIVERIFY bag-interaction protocol=" + protocolOk
                     + " itemUseRouting=" + itemUseRouting + " manualWearOnly=" + manualWearOnly
+                    + " sharedItemIntegrity=" + sharedItemIntegrity + "/" + sharedPresentationNodes
+                    + " qualityEffectSetup=" + sharedQualityEffectSetup + " viewportMask=" + bagViewportMask
                     + " bagClicks=" + bagClicks + " warehouseClicks=" + warehouseClicks
                     + " blockedSuitRaycast=" + (bagSuitDisabled && warehouseSuitDisabled) + " pass=" + pass);
                 return pass ? 0 : 3;
@@ -259,6 +308,116 @@ namespace Shenxiao.EditorTools
                 if (canvasGo != null) UnityEngine.Object.DestroyImmediate(canvasGo);
                 ViewManager.Init(null);
             }
+        }
+
+        private static bool IsCenteredQualityEffectHost(RectTransform host)
+        {
+            if (host == null || !(host.parent is RectTransform parent)) return false;
+            if (Vector2.Distance(host.anchorMin, Vector2.zero) > 0.01f
+                || Vector2.Distance(host.anchorMax, Vector2.one) > 0.01f)
+                return false;
+
+            Rect hostRect = host.rect;
+            Rect parentRect = parent.rect;
+            if (hostRect.width < parentRect.width || hostRect.height < parentRect.height) return false;
+
+            Vector3 hostCenterInParent = parent.InverseTransformPoint(host.TransformPoint(hostRect.center));
+            return Vector2.Distance(hostCenterInParent, parentRect.center) <= 2.1f;
+        }
+
+        private static bool HasClippedQualityEffectProfiles(UIEffectProfileCatalog catalog)
+        {
+            if (catalog == null) return false;
+            for (int i = 0; i < QualityEffectNames.Length; i++)
+            {
+                string effectName = QualityEffectNames[i];
+                UIEffectProfile profile = catalog.Resolve(effectName);
+                if (profile == null || !profile.clipToRenderRect
+                    || !string.Equals(profile.effectName, effectName, StringComparison.OrdinalIgnoreCase))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static bool HasAnimatedClippableQualityEffectAssets()
+        {
+            for (int i = 0; i < QualityEffectNames.Length; i++)
+            {
+                string effectName = QualityEffectNames[i];
+                string prefabPath = QualityEffectRootPath + effectName + "/" + effectName + ".prefab";
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+                if (prefab == null) return false;
+
+                Animation[] animations = prefab.GetComponentsInChildren<Animation>(true);
+                bool hasLoopingUvFlow = false;
+                bool usesBaseMapUv = false;
+                for (int a = 0; a < animations.Length; a++)
+                {
+                    Animation animation = animations[a];
+                    if (animation == null || !animation.playAutomatically
+                        || animation.cullingType != AnimationCullingType.AlwaysAnimate)
+                        return false;
+
+                    foreach (AnimationState state in animation)
+                    {
+                        AnimationClip clip = state.clip;
+                        if (clip == null || !clip.legacy || clip.wrapMode != WrapMode.Loop) continue;
+                        EditorCurveBinding[] bindings = AnimationUtility.GetCurveBindings(clip);
+                        for (int b = 0; b < bindings.Length; b++)
+                        {
+                            string property = bindings[b].propertyName;
+                            bool baseMap = property.StartsWith("material._BaseMap_ST", StringComparison.Ordinal);
+                            bool mainTex = property.StartsWith("material._MainTex_ST", StringComparison.Ordinal);
+                            if (!baseMap && !mainTex) continue;
+                            AnimationCurve curve = AnimationUtility.GetEditorCurve(clip, bindings[b]);
+                            if (!HasCurveDelta(curve))
+                                continue;
+                            hasLoopingUvFlow = true;
+                            usesBaseMapUv |= baseMap;
+                        }
+                    }
+                }
+
+                if (!hasLoopingUvFlow) return false;
+
+                Renderer[] renderers = prefab.GetComponentsInChildren<Renderer>(true);
+                bool foundMaterial = false;
+                for (int r = 0; r < renderers.Length; r++)
+                {
+                    Material[] materials = renderers[r].sharedMaterials;
+                    for (int m = 0; m < materials.Length; m++)
+                    {
+                        Material material = materials[m];
+                        if (material == null) continue;
+                        foundMaterial = true;
+                        if (material.shader == null || material.shader.name != ClippableEffectShaderName)
+                            return false;
+                        // 这批历史动画只驱动 _BaseMap_ST；shader 默认读 _MainTex_ST 时会把动态流光
+                        // 定格成一帧。所有参与品质特效的材质必须显式选择 BaseMap UV。
+                        if (usesBaseMapUv && (!material.HasProperty("_UseBaseMapST")
+                            || material.GetFloat("_UseBaseMapST") <= 0.5f))
+                            return false;
+                    }
+                }
+
+                if (!foundMaterial) return false;
+            }
+
+            return true;
+        }
+
+        private static bool HasCurveDelta(AnimationCurve curve)
+        {
+            if (curve == null || curve.length < 2) return false;
+            float min = curve.keys[0].value;
+            float max = min;
+            for (int i = 1; i < curve.length; i++)
+            {
+                min = Mathf.Min(min, curve.keys[i].value);
+                max = Mathf.Max(max, curve.keys[i].value);
+            }
+            return max - min > 0.0001f;
         }
 
         private static bool VerifyItemUseRouting(MethodInfo setEquipment, List<byte[]> bagFrames)
@@ -397,6 +556,23 @@ namespace Shenxiao.EditorTools
                     eventSystemGo = new GameObject("BagTipsCase_EventSystem", typeof(EventSystem));
                     eventSystem = eventSystemGo.GetComponent<EventSystem>();
                 }
+
+                const int sourceTypeId = 17020001;
+                List<GoodsModel.GoodsSourceEntry> sourceEntries = GoodsModel.GetGoodsSourceEntries(sourceTypeId);
+                ItemTipsView.Show(sourceTypeId, 1);
+                GoodsTooltipsBind sourceView = await WaitActiveView<GoodsTooltipsBind>(camera);
+                float sourceTop = sourceView != null ? -sourceView.sourceGp.anchoredPosition.y : 0f;
+                float sourceBottom = sourceView != null ? sourceTop + sourceView.sourceGp.rect.height : 0f;
+                float buttonTop = sourceView != null ? -sourceView.btn_group.anchoredPosition.y : 0f;
+                bool sourceLayout = sourceEntries.Count == 3 && sourceView != null
+                    && sourceView.sourceGp.gameObject.activeInHierarchy
+                    && sourceView.source_txt.text.Contains("洞天秘境")
+                    && sourceView.source_txt.text.Contains("灵玉商城")
+                    && sourceView.source_txt.text.Contains("绑玉商城")
+                    && sourceBottom <= buttonTop + 1f
+                    && sourceView.root_wnd.rect.height >= 450f && sourceView.root_wnd.rect.height <= 680f
+                    && ((RectTransform)sourceView.bg.transform).rect.height + 1f >= sourceView.root_wnd.rect.height;
+                ItemTipsView.Close();
 
                 const int normalTypeId = 520100;
                 GoodsModel.GoodsBasic normalBasic = GoodsModel.GetGoodsBasicByTypeId(normalTypeId);
@@ -542,11 +718,11 @@ namespace Shenxiao.EditorTools
                     && U16(bagFrames[0], 14) == BagModel.POS_WAREHOUSE
                     && U16(bagFrames[0], 16) == BagModel.POS_BAG;
 
-                bool pass = noSiblingLeak && closeDeactivatesModule
+                bool pass = sourceLayout && noSiblingLeak && closeDeactivatesModule
                     && detailText && useClick && useFrame && compare && compareIcons && configGroups && compareCaptured && wearClick && wearFrame
                     && blockerClosedFirst
                     && depositClick && depositFrame && takeoutClick && takeoutFrame;
-                Debug.Log("CLIVERIFY bag-interaction tips isolated=" + noSiblingLeak
+                Debug.Log("CLIVERIFY bag-interaction tips sourceLayout=" + sourceLayout + " isolated=" + noSiblingLeak
                     + " closeRoot=" + closeDeactivatesModule + " detail=" + detailText
                     + " use=" + useClick + "/" + useFrame
                     + " compare=" + compare + " icons=" + compareIcons

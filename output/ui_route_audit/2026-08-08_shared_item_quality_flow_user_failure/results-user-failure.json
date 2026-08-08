@@ -1,0 +1,44 @@
+{
+  "nodes": [
+    {
+      "id": "shared.item.presentation.slot",
+      "status": "defect",
+      "note": "2026-08-08 用户运行态截图推翻旧结论：品质流光未贴合物品槽，动画越界内容散落到背包整页；BaseAwardItem 的 effect_con 同时为 0x0 且锚在左上角。",
+      "gates": {
+        "shared_component_identity": true,
+        "component_state_matrix": false,
+        "runtime_state": false,
+        "render_completion": false,
+        "effect_match": false,
+        "reopen": false
+      },
+      "effect_evidence": [
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/old-quality-flow-slot-crop.png",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/unity-bag-quality-flow-spill.png"
+      ],
+      "evidence": [
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/old-bag-equipment-slots.png",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/old-quality-flow-slot-crop.png",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/unity-bag-quality-flow-spill.png"
+      ]
+    },
+    {
+      "id": "shared.item.presentation.representative-regression",
+      "status": "defect",
+      "note": "共享物品槽改动导致背包已穿戴槽和普通背包格同时出现越界流光，消费者抽查失败；修复后须重验目标背包页，并各抽一个普通格、已穿戴槽、详情图标和共鸣边缘槽。",
+      "gates": {
+        "shared_component_identity": true,
+        "component_state_matrix": false,
+        "runtime_state": false,
+        "visual_match": false,
+        "return_chain": false
+      },
+      "effect_evidence": [
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/unity-bag-quality-flow-spill.png"
+      ],
+      "evidence": [
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/unity-bag-quality-flow-spill.png"
+      ]
+    }
+  ]
+}

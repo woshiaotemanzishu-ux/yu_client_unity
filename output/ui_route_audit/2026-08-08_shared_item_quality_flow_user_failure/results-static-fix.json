@@ -1,0 +1,53 @@
+{
+  "nodes": [
+    {
+      "id": "shared.item.presentation.slot",
+      "status": "needs-runtime-verify",
+      "note": "用户失败证据已回卷；0x0 左上角宿主与六种品质动画缺少实例裁切的根因已做共享根修复。静态几何、精确 profile、动画资源、可裁切 shader 和三个工程编译已通过，等待真实动画足迹复验。",
+      "gates": {
+        "shared_component_identity": true,
+        "component_state_matrix": false,
+        "runtime_state": false,
+        "render_completion": false,
+        "effect_match": false,
+        "reopen": false
+      },
+      "component_evidence": [
+        "Assets/Prefabs/UI/Common/BaseAwardItem.prefab",
+        "Assets/Prefabs/UI/Common/EquipmentItem.prefab",
+        "Assets/Resources/UIEffectProfileCatalog.asset",
+        "Assets/Scripts/Module/Core/Common/Views/BaseAwardItem.cs",
+        "Assets/Scripts/Module/Core/Common/Views/EquipmentItem.cs",
+        "Assets/Editor/CliVerify/Cases/BagInteractionCase.cs"
+      ],
+      "component_state_evidence": [
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/static-fix-result.md"
+      ],
+      "effect_evidence": [
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/old-quality-flow-slot-crop.png",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/unity-bag-quality-flow-spill.png"
+      ],
+      "evidence": [
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/static-fix-result.md"
+      ]
+    },
+    {
+      "id": "shared.item.presentation.representative-regression",
+      "status": "needs-runtime-verify",
+      "note": "共享根修复已完成；运行抽样固定为普通背包格、已穿戴装备槽、详情图标和共鸣边缘槽，目标背包页必须整页复验，样本失败才扩大同组。",
+      "gates": {
+        "shared_component_identity": true,
+        "component_state_matrix": false,
+        "runtime_state": false,
+        "visual_match": false,
+        "return_chain": false
+      },
+      "component_state_evidence": [
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/static-fix-result.md"
+      ],
+      "evidence": [
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/static-fix-result.md"
+      ]
+    }
+  ]
+}

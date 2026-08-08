@@ -130,7 +130,9 @@ namespace Shenxiao.Module.Core.Bag
 #if UNITY_EDITOR
             if (s_startupContainerIntercept != null && s_startupContainerIntercept(pos)) return;
 #endif
-            SendFmt(Proto.GOODS_CONTAINER_INFO, "h", pos);
+            // 统一走 SendAction，既保持运行时 wire 不变，也让 Editor 专项用例可以验证
+            // 共鸣事务后的背包/已穿装备权威重拉，而不会真的连接或改动账号。
+            SendAction(Proto.GOODS_CONTAINER_INFO, "h", pos);
         }
 
         /// <summary>显式重查一个物品容器；仓库面板在启动快照尚未返回时使用。</summary>
@@ -1030,7 +1032,7 @@ namespace Shenxiao.Module.Core.Bag
             r.ReadU8();                      // sell:c
             r.ReadU8();                      // is_drop:c
             g.Color = r.ReadU8();            // color:c
-            r.ReadU32();                     // expire_time:i
+            g.ExpireTime = r.ReadU32();      // expire_time:i
             g.CombatPower = r.ReadU32();     // combat_power:i
             g.Stren = r.ReadU16();           // stren:h
             g.Level = r.ReadU16();           // level:h

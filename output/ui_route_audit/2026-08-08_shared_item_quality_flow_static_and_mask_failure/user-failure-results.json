@@ -1,0 +1,45 @@
+[
+  {
+    "id": "shared.item.presentation.slot",
+    "status": "defect",
+    "note": "2026-08-08 用户运行态复查：品质框位置已对齐，但流光没有时间推进，只显示静态一帧；背包列表底部还出现离开物品内容、穿过页签区域的孤立框，证明共享特效未继承 ScrollRect/Viewport 的 RectMask2D 裁剪。",
+    "gates": {
+      "shared_component_identity": true,
+      "component_state_matrix": false,
+      "runtime_state": false,
+      "render_completion": false,
+      "effect_match": false,
+      "reopen": false
+    },
+    "state_evidence": [
+      "用户在真实运行态确认框为静态，不能以单帧可见或 Animation 组件存在判动态通过。"
+    ],
+    "effect_evidence": [
+      "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/unity-bag-static-flow-and-viewport-leak.png"
+    ],
+    "evidence": [
+      "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/unity-bag-static-flow-and-viewport-leak.png"
+    ]
+  },
+  {
+    "id": "shared.item.presentation.representative-regression",
+    "status": "defect",
+    "note": "高频代表消费者背包页抽查失败：列表底边的共享品质特效绕过 Viewport 裁剪并覆盖背包/仓库页签区域；按共享组件规则先回卷目标页和本代表样本，不机械回卷全部消费者。",
+    "gates": {
+      "shared_component_identity": true,
+      "component_state_matrix": false,
+      "runtime_state": false,
+      "visual_match": false,
+      "return_chain": false
+    },
+    "state_evidence": [
+      "背包 ScrollRect 底部的物品内容已被 Viewport 裁掉，但共享特效框仍继续显示。"
+    ],
+    "effect_evidence": [
+      "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/unity-bag-static-flow-and-viewport-leak.png"
+    ],
+    "evidence": [
+      "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/unity-bag-static-flow-and-viewport-leak.png"
+    ]
+  }
+]

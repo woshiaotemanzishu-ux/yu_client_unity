@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Shenxiao.Module.Core.AttributePotion
@@ -9,22 +10,31 @@ namespace Shenxiao.Module.Core.AttributePotion
         public static readonly AttributePotionModel Instance = new AttributePotionModel();
         private readonly Dictionary<int, Dictionary<int, Count>> _byLevel = new Dictionary<int, Dictionary<int, Count>>();
         private AttributePotionModel() { }
-        public void Clear() => _byLevel.Clear();
+        public event Action Changed;
+
+        public void Clear()
+        {
+            _byLevel.Clear();
+            Changed?.Invoke();
+        }
         public void ReplaceLevel(byte level, IList<Count> values)
         {
             var rows = new Dictionary<int, Count>();
             for (int i = 0; i < values.Count; ++i) if (values[i].Level == level) rows[values[i].GoodsId] = values[i];
             _byLevel[level] = rows;
+            Changed?.Invoke();
         }
         public void MergeAll(IList<Count> values)
         {
             for (int i = 0; i < values.Count; ++i) { Count x = values[i]; if (!_byLevel.TryGetValue(x.Level, out var rows)) _byLevel[x.Level] = rows = new Dictionary<int, Count>(); rows[x.GoodsId] = x; }
+            Changed?.Invoke();
         }
         public bool TryGet(byte level, int goodsId, out Count value)
         {
             value = null;
             return _byLevel.TryGetValue(level, out var rows) && rows.TryGetValue(goodsId, out value);
         }
+        public bool HasLevel(byte level) => _byLevel.ContainsKey(level);
         public int LevelCount => _byLevel.Count;
     }
 }

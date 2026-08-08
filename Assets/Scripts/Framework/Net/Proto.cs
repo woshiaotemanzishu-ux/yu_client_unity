@@ -2425,6 +2425,13 @@
         public const int EQUIP_GOD_POWER_PREVIEW = 15219;
         /// <summary>共鸣套装位置完整快照。C2S空包；S2C suit_list:u16×{equip_type:u8,type:u8,slv:u16}。</summary>
         public const int EQUIP_SUIT_INFO = 15220;
+        /// <summary>共鸣打造事务。C2S make_type:u8,equip_type:u8；S2C equip_type:u8,type:u8,slv:u16,
+        /// suit_list:u16×{suit_lv:u8,suit_slv:u8,suit_count:u8}。失败统一经 15200。</summary>
+        public const int EQUIP_SUIT_BUILD = 15221;
+        /// <summary>共鸣回退事务及服务端主动兼容性回退推送。C2S make_type:u8,equip_type:u8；S2C equip_type:u8,
+        /// make_type:u8,slv:u16,reward_list:u16×{type:u8,id:u32,num:u16,attr_list:str},suit_list 同 15221。
+        /// 无请求也必须消费主动推送，成功后重拉背包、已穿装备、邮件和 15220。</summary>
+        public const int EQUIP_SUIT_RETURN = 15222;
         /// <summary>共鸣套装还原奖励预览。C2S make_type:u8,equip_type:u8；S2C回显两键并带原始奖励表。</summary>
         public const int EQUIP_SUIT_RETURN_PREVIEW = 15223;
         /// <summary>共鸣套装战力明细。C2S pos:u8,type:u8,lv:u16；S2C回显三键并带num/u64 combat表。</summary>
@@ -2434,9 +2441,8 @@
         // 15206/15207 进阶装备/进阶属性预览:老端零 UI 参照,跳过。
         // 15242/15243 唤魔信息(旧):pp_equip.erl 整段注释、pt_152 无 read/write,服务端 DEAD,跳过。
         // 15253 神装升阶重复号:协议 read/write 都在但 pp_equip.erl 无 handle 分支,服务端 DEAD,跳过。
-        // 15218神装升阶会真实扣料/写等级/重算属性且异常返材；15221共鸣打造会扣货币和背包实例/写DB/推15000；
-        // 15222还原会降级/返物或邮件，换装不兼容时还可能由服务端主动下发。R570三号进入hard-negative，
-        // 必须等配置、可编辑业务页、冻结确认/单飞、背包货币邮件、属性和权威刷新成组闭环，禁止孤立常量/sender/handler。
+        // 15218神装升阶仍在 hard-negative。15221/15222 已由“共鸣”可编辑业务页成组落地：同源三表、装备/材料
+        // 冻结确认、单飞/错误/超时、主动15222推送、背包/货币属性推送/已穿装备/邮件/15220权威刷新与页面即时复验。
         // 15230-15233(铸灵/护灵)、15241/15244/15245(觉醒/唤魔技能):归后续包,本轮不加常量。
 
         // ----- 宝石(骸珀镶嵌,自动循环 轮4 下半/4b;pt_152 段内 15210/15211/15215/15216;

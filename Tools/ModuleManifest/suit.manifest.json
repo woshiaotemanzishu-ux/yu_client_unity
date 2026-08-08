@@ -1,0 +1,90 @@
+{
+  "//": "共鸣模块首次落地清单。当前老端 EquipSuitBaseView 没有独立 scene；外窗复用 Common/BaseWindowSkin，四页签共享 EquipSuitMianView。",
+  "module": "suit",
+  "source_prefab": "Assets/Prefabs/UI/Suit/SuitModule.prefab",
+  "item_policy": "部位、属性、材料为页面私有模板；EquipmentItem/FightingShowSmallItem 复用 Common 现役 prefab。",
+  "prefabs": [
+    {
+      "name": "EquipSuitMianView",
+      "kind": "window-content",
+      "label": "共鸣主内容",
+      "view_roots": [
+        "EquipSuitMianView"
+      ],
+      "source": "suit/EquipSuitMianView.json",
+      "open": "人物页 _Group5 真实点击打开 EquipSuitBaseView；外窗四页签参数依次为 [1,1]/[1,2]/[1,3]/[2,1]，共用本内容页。",
+      "owns_items": [
+        "EquipSuitPosItem",
+        "EquipNewSuitAttrItem",
+        "EquipSuitCostItem"
+      ],
+      "references": [
+        "EquipSuitPreviewTips",
+        "EquipSuitReturnView",
+        "InstructionView"
+      ],
+      "rationale": "当前老端真实运行态确认：武防三个页签各 6 个部位、饰物页 4 个部位；属性阶段分别 16/10/8/12 档。主内容还包含当前/下一阶装备、材料、红点、说明、特效预览、回退和 15221 打造入口。",
+      "flags": [
+        "15221 是真实消耗事务；在完整配置、背包冻结、单飞、确认、错误分支和权威刷新闭环完成前不得接孤立 sender。",
+        "老端运行时数据克隆只作为模板和状态证据，不能把测试账号的装备/材料/红点烤成静态 UI。"
+      ]
+    },
+    {
+      "name": "EquipSuitPreviewTips",
+      "kind": "modal",
+      "label": "共鸣特效预览",
+      "view_roots": [
+        "EquipSuitPreviewTips"
+      ],
+      "source": "suit/EquipSuitPreviewTips.json",
+      "open": "主内容 previewBox 条件可见时打开；只读，Activity 等价层，遮罩与关闭按钮均可关闭。",
+      "owns_items": [],
+      "references": [],
+      "rationale": "显示所选装备、最高可达共鸣名称和 ui_shenzhuang01/02/03 常驻预览特效；无写事务。"
+    },
+    {
+      "name": "EquipSuitReturnView",
+      "kind": "modal",
+      "label": "共鸣回退",
+      "view_roots": [
+        "EquipSuitReturnView"
+      ],
+      "source": "suit/EquipSuitReturnView.json",
+      "open": "当前部位已有共鸣等级时由 _btn_back 打开；先发只读 15223 获取返还预览，取消/遮罩/关闭不写入，确认才是 15222。",
+      "owns_items": [],
+      "references": [],
+      "rationale": "展示当前装备、回退后等级、100% 返还说明和奖励横列。15222 为真实回退事务，必须冻结部位/类型/等级/预览/背包指纹并等待权威回包。",
+      "flags": [
+        "当前 111111 基线账号四页签均未打造，真实入口条件下回退按钮不可见；本轮只能用源码/静态 scene/可控帧补齐，不能伪造真实账号已打造态。"
+      ]
+    }
+  ],
+  "shared_external": [
+    {
+      "name": "EquipmentItem",
+      "kind": "item(shared)",
+      "guid": "4b61db156a07d9c4182c38b719828178",
+      "owner": "Common",
+      "used_by": [
+        "EquipSuitMianView",
+        "EquipSuitPreviewTips",
+        "EquipSuitReturnView"
+      ],
+      "rationale": "共鸣页面的当前/下一阶装备、部位格和回退奖励均复用现役装备/物品展示件，不复制静态影子。"
+    },
+    {
+      "name": "FightingShowSmallItem",
+      "kind": "item(shared)",
+      "guid": "ba281e381b37c6941a41a2b674224305",
+      "owner": "Common",
+      "used_by": [
+        "EquipSuitMianView"
+      ],
+      "rationale": "2/4/6 件属性卡的战力数值复用现役位图字体展示件。"
+    }
+  ],
+  "open_questions": [
+    "111111 当前没有已打造共鸣，EquipSuitReturnView 的真实运行态需另一个不影响主基线的只读账号状态或可控帧证据。",
+    "礼包图标在 111111 当前条件下隐藏；若后续账号存在 EnumPushGiftType.eGongMing，需补真实打开和关闭链。"
+  ]
+}

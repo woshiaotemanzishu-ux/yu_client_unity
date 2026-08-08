@@ -11,6 +11,22 @@
 
 启动命令要放在隐藏后台进程中。结束本轮时只停止本轮启动且已核实 PID 的老端工具进程，不扩大到其他 Node/Unity 进程。
 
+## 日常无头对比
+
+- 常规对比使用项目已有 `tools/headless/` 的 Puppeteer/系统 Edge 能力扩展路线脚本，不使用 Computer Use。老 H5 与 Unity WebGL 均在后台浏览器中按真实 Canvas 指针事件操作；Browser MCP 只用于首次探索或排障。
+- 同账号单会话必须先完成老端路线并确认断线，再登录 Unity。固定保存 `720×1280` 移动端和一个宽屏 viewport 的 old/unity/overlay/diff。
+- Unity 页面采证前先核对当前源码指纹、Player 哈希和服务器 catalog 哈希。首次或内容状态不可信时运行 `BuildAllWebCli`；只改 C# 且持续工作区保留成套内容时才运行 `BuildWebShellOnlyCli`；纯 Addressable Prefab/资源改动只构建内容。缺少精确同批证明时禁止继续对比。
+- 当前壳构建预算按 12～25 分钟。Headless 只消除手工点击和截图整理，不消除构建时间；整包按页面/逻辑批次执行，页面 `done` 前至少有一份当前真实包报告。
+
+## 组件级快速回归
+
+- 页面枚举后先输出组件依赖清单：`页面节点 -> 共享 Prefab/View 路径或 GUID -> 数据/状态/回调输入`。同构结构不得靠页面内复制节点或硬编码坐标维持。
+- 组件状态矩阵按适用项覆盖：特效开/关，1/2/3 项整体居中，短/长文本不误换行，单/双按钮居中，充足/不足，选中/未选中，空/有数据及目标 viewport。
+- 修改共享组件前先列全直接消费者，并按直接/嵌套、展示/交互、空/有数据、特效开/关、宿主缩放/viewport 分组。运行态默认验目标页并对每个实质不同的组抽一个独立代表，通常共 2～4 个宿主页；根组件、Bind 或生命周期变化时必须包含一个高频既有页面。样本失败才扩大同组检查，公共 API/字段删改、整体换引用或持续失败时才全量核对。
+- 特效组件还要记录老端真实调用参数与归属，并做目标 Handle 隔离足迹：`effectName/parent/position/scale/rotation/loop/renderSize` 缺一项就不能只凭资源名补猜。旧端数值需经过转换资源、宿主、profile 与通道映射后校准，不直接复制到所有 Unity 宿主；输出两个不同动画时间点的目标 PNG、动画时间/材质属性推进值、两帧像素差、非透明像素数与 alpha 包围盒宽高，单帧、`isPlaying` 或几个亮点都不算动态特效。共享 RT/RawImage 的列表项还要核对曲线属性确实被 shader/material 消费，并保存完整可见、部分裁切、完全滚出祖先 `RectMask2D/Mask` 后目标 alpha 为零的三态证据。
+- 快速循环先加载真实共享 Prefab，保存局部截图、组件 GUID/实例链和页面根几何；组件通过后只沿原路线做一次整页点击、弹窗、返回与截图复验。页面最终 `done` 仍要求当前真实 Web 证据。
+- 用户新截图推翻旧结论时，把对应组件变体、目标页和代表样本降级，先修组件再回卷；未受影响的组件证据可以复用，不机械重跑所有引用页。若代表样本暴露同类回归，再扩大该使用形态的抽查范围。
+
 ## Canvas 坐标
 
 每次点击前在浏览器中读取 canvas 矩形：
@@ -94,3 +110,10 @@ Unity 主界面固定入口必须绑定到 `_img_setting/_img_friend/_img_shop` 
 - `AddressableAssetSettings` 的 Player Build Option 序列化值 `0` 是 `PreferencesValue`，并不等于禁止随 Player 构建内容。shell-only 必须在 Player 构建前强制 `DoNotBuildWithPlayer`，在 `finally` 恢复，并验证构建前后 catalog 未被意外改写。
 - 本地 Web 若烧包默认仍是 `{streaming}/cdn`，必须通过 `?cdn=http://127.0.0.1:8090/res` 或壳同目录 `boot_config.json` 覆盖。卡在 90% 时读取浏览器日志；出现 `/StreamingAssets/cdn/WebGL/*.bundle` 404 先修 CDN 基址，不重打内容。
 - 运行时克隆 `BaseView` 页签/格子时调用 `Show/Hide`；只 `SetActive` 不会触发 `OnInit`。动态列表把高度写到真正的 `ScrollRect.content`，规范顶部锚点并强制布局；拖动从可命中子项开始，必须验证隐藏末行可达。
+
+## 转换页的三项快速核对
+
+- **先算有效变换，不先目测调数值**：老端节点的最终尺寸必须包含父节点 `scale`、运行时 `SetScale` 和 `anchor/skew`。例如 `anchorX=1 + skewY=180` 在 Unity 中应保留为围绕右轴的 `localScale.x=-1`；漏掉翻转会让相邻页签底图压住文字，漏掉第二级 `SetScale(0.8)` 会把 80px 物品格放大到约 100px。
+- **重名 `Content` 只认序列化引用和实际组件树**：`Panel → List` 转换后可能出现外层包装、内层 `ScrollRect`、布局 Content 三个同名节点。先从 Bind 已序列化引用向下定位唯一的 `ScrollRect → Viewport(RectMask2D) → Content(LayoutGroup/ContentSizeFitter)`，禁用重复外层滚动，再把克隆项挂到该 `ScrollRect.content`；不得对同名节点直接 `GetComponent` 后凭空值回退到错误容器。
+- **CLI 首次点击前先真实渲染一帧**：`ScreenSpaceCamera + RenderTexture` 在 batchmode 首次 `Camera.Render/Capture` 前，页面虽然已实例化，`GraphicRaycaster` 仍可能返回空命中。入口页以及首次激活的缓存弹窗都先留一张不可变首帧证据，再执行 `GraphicRaycaster → PointerClick`；这能区分业务入口失败与验收脚本尚未建立射线几何。
+- **原始日志直接写入不可变证据目录**：Unity 重开项目时可能清理项目 `Temp/`，因此正式复验的 `-logFile` 不得继续指向 `Temp/cliverify_*.log`。应与本轮截图一起写入新的 `output/ui_route_audit/<route>/cli/<timestamp>/`，结果台账也只引用该持久路径；`Temp/` 仅允许承载可丢弃的调试跑法。

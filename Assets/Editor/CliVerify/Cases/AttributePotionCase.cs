@@ -53,10 +53,13 @@ namespace Shenxiao.EditorTools
 
             FieldInfo hasBaseInfo = typeof(RoleModel).GetField("<HasBaseInfo>k__BackingField", PrivateInstance);
             FieldInfo intercept = controller.GetType().GetField("s_outboundIntercept", PrivateStatic);
+            FieldInfo guideIntercept = typeof(RoleController).GetField(
+                "s_potionGuideOutboundIntercept", PrivateStatic);
             MethodInfo on21700 = controller.GetType().GetMethod("On21700", PrivateStatic);
             MethodInfo on21701 = controller.GetType().GetMethod("On21701", PrivateInstance);
             MethodInfo on21703 = controller.GetType().GetMethod("On21703", PrivateInstance);
             object oldIntercept = intercept?.GetValue(null);
+            object oldGuideIntercept = guideIntercept?.GetValue(null);
             var frames = new List<byte[]>();
             bool pass = true;
             void Check(string name, bool ok)
@@ -75,16 +78,30 @@ namespace Shenxiao.EditorTools
                     && AttributePotionConfigs.LimitCount == 224
                     && AttributePotionConfigs.TryGetPotion(56010001, out AttributePotionConfigs.Potion firstPotion)
                     && firstPotion.Level == 1
+                    && firstPotion.Attrs.Count == 1
+                    && firstPotion.Attrs[0].Id == 1 && firstPotion.Attrs[0].Value == 10
                     && AttributePotionConfigs.TryGetPotion(56040004, out AttributePotionConfigs.Potion lastPotion)
                     && lastPotion.Level == 4
+                    && lastPotion.Attrs.Count == 2
+                    && lastPotion.Attrs[0].Id == 3 && lastPotion.Attrs[0].Value == 150
+                    && lastPotion.Attrs[1].Id == 4 && lastPotion.Attrs[1].Value == 150
+                    && AttributePotionConfigs.GetPotions(1).Count == 4
+                    && AttributePotionConfigs.GetPotions(2).Count == 4
+                    && AttributePotionConfigs.GetPotions(3).Count == 4
+                    && AttributePotionConfigs.GetPotions(4).Count == 4
                     && AttributePotionConfigs.HasPotionLevel(1)
                     && AttributePotionConfigs.HasPotionLevel(4)
                     && !AttributePotionConfigs.HasPotionLevel(5)
                     && AttributePotionConfigs.TryGetLimit(56010001, 100, out AttributePotionConfigs.Limit firstLimit)
                     && firstLimit.DayTimes == 100 && firstLimit.AllTimes == 100
                     && AttributePotionConfigs.TryGetLimit(56040004, 800, out AttributePotionConfigs.Limit lastLimit)
-                    && lastLimit.DayTimes == 100 && lastLimit.AllTimes == 700;
-                Check("config 16/224/key rows", configOk);
+                    && lastLimit.DayTimes == 100 && lastLimit.AllTimes == 700
+                    && AttributePotionConfigs.Guide != null
+                    && AttributePotionConfigs.Guide.Direction == 6
+                    && Math.Abs(AttributePotionConfigs.Guide.EffectScaleX - 0.65f) < 0.001f
+                    && Math.Abs(AttributePotionConfigs.Guide.EffectScaleY - 0.8f) < 0.001f
+                    && AttributePotionConfigs.Guide.Text.Contains("药水");
+                Check("config 16/224/attrs/guide/key rows", configOk);
 
                 FieldInfo handlersField = typeof(NetManager).GetField("_handlers", PrivateStatic);
                 var handlers = handlersField?.GetValue(null) as IDictionary;
@@ -98,6 +115,14 @@ namespace Shenxiao.EditorTools
                 if (intercept != null)
                 {
                     intercept.SetValue(null, new Func<byte[], bool>(frame =>
+                    {
+                        frames.Add(frame);
+                        return true;
+                    }));
+                }
+                if (guideIntercept != null)
+                {
+                    guideIntercept.SetValue(null, new Func<byte[], bool>(frame =>
                     {
                         frames.Add(frame);
                         return true;
@@ -144,6 +169,60 @@ namespace Shenxiao.EditorTools
 
                 role.Level = 100;
                 hasBaseInfo?.SetValue(role, true);
+
+                bag.BagGoodsList.Clear();
+                var allPotionCounts = new List<AttributePotionModel.Count>(16);
+                int bagInstance = 91000000;
+                for (byte tier = 1; tier <= 4; tier++)
+                {
+                    IReadOnlyList<AttributePotionConfigs.Potion> rows = AttributePotionConfigs.GetPotions(tier);
+                    for (int i = 0; i < rows.Count; i++)
+                    {
+                        bag.BagGoodsList.Add(new BagGoods
+                        {
+                            GoodsId = bagInstance++,
+                            TypeId = rows[i].GoodsId,
+                            GoodsNum = 2,
+                        });
+                        allPotionCounts.Add(new AttributePotionModel.Count
+                        {
+                            GoodsId = rows[i].GoodsId,
+                            Level = tier,
+                            CurrentDayCount = 0,
+                            CurrentCount = 0,
+                        });
+                    }
+                }
+                model.Clear();
+                model.MergeAll(allPotionCounts);
+                bool everyUseControl = true;
+                int verifiedUseControls = 0;
+                for (byte tier = 1; tier <= 4; tier++)
+                {
+                    IReadOnlyList<AttributePotionConfigs.Potion> rows = AttributePotionConfigs.GetPotions(tier);
+                    for (int i = 0; i < rows.Count; i++)
+                    {
+                        frames.Clear();
+                        int goodsId = rows[i].GoodsId;
+                        bool sent = controller.TryRequestUse(goodsId);
+                        byte[] expected = new CliVerify.Pkt().I(goodsId).I(2).C(tier).Bytes();
+                        everyUseControl &= sent
+                            && OneFrame(frames, Proto.ATTRIBUTE_POTION_USE, expected)
+                            && model.TryGet(tier, goodsId, out AttributePotionModel.Count untouched)
+                            && untouched.CurrentDayCount == 0 && untouched.CurrentCount == 0;
+                        verifiedUseControls++;
+                    }
+                }
+                Check("21702 all 4x4 controls/exact frame/no optimistic update",
+                    everyUseControl && verifiedUseControls == 16);
+
+                frames.Clear();
+                RoleController.Instance.CompletePotionFirstUseGuide();
+                Check("13089 first-use guide exact hhh",
+                    OneFrame(frames, Proto.ROLE_LIFELONG_INCREMENT,
+                        new CliVerify.Pkt().H(300).H(1).H(1).Bytes()));
+
+                bag.BagGoodsList.Clear();
                 bag.BagGoodsList.Add(new BagGoods { GoodsId = 90000001, TypeId = 56010001, GoodsNum = 50 });
                 model.ReplaceLevel(1, new List<AttributePotionModel.Count>
                 {
@@ -209,6 +288,7 @@ namespace Shenxiao.EditorTools
             {
                 if (controller.IsInitialized) controller.Dispose();
                 if (intercept != null) intercept.SetValue(null, oldIntercept);
+                if (guideIntercept != null) guideIntercept.SetValue(null, oldGuideIntercept);
                 model.Clear();
                 model.MergeAll(savedCounts);
                 bag.BagGoodsList.Clear();

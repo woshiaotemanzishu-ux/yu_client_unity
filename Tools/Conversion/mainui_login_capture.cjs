@@ -9,6 +9,8 @@ const { chromium } = require('e:/GitProject/yu_client_unity/output/node_modules/
 const ACC = process.argv[2] || '123123';
 const PWD = process.argv[3] || '123123';
 const OUT = process.argv[4] || __dirname;
+const URL = process.argv[5] || 'http://127.0.0.1:8090/index.html';
+const ROUTE = process.argv[6] || '';
 const SHOTS = path.join(OUT, '_shots');
 
 // 常驻 HUD / 无害视图白名单(可见也不算"挡路弹窗")
@@ -42,7 +44,7 @@ function safeStringify(root) {
 
   const browser = await chromium.launch({ headless: true, channel: 'msedge' });
   const page = await browser.newPage({ viewport: { width: 720, height: 1280 } });
-  await page.goto('http://127.0.0.1:8090/index.html', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForFunction(() => !!(window.Laya && window.Laya.stage), { timeout: 30000 });
   await page.waitForTimeout(9000);
 
@@ -71,7 +73,10 @@ function safeStringify(root) {
         const x = ax + (n.x || 0), y = ay + (n.y || 0);
         const nm = (n.name || '').toLowerCase();
         if (n.effectiveVisible !== false && /close|guanbi|_btn_x\b|btn_quit|_img_x\b/.test(nm)) {
-          best = { name: n.name, cx: Math.round(x + (n.width || 40) / 2), cy: Math.round(y + (n.height || 40) / 2) };
+          const b = n.globalBounds;
+          best = { name: n.name,
+            cx: Math.round(b ? b.x + b.width / 2 : x + (n.width || 40) / 2),
+            cy: Math.round(b ? b.y + b.height / 2 : y + (n.height || 40) / 2) };
         }
         (n.children || []).forEach(c => walk(c, x, y));
       };
@@ -81,6 +86,46 @@ function safeStringify(root) {
       return best;
     } catch (e) { return null; }
   }, viewName);
+
+  // 按视图名正则和节点名取运行态累计坐标；用于固化真实点击路线，避免页面居中或宽高比变化后猜坐标。
+  const findNodes = async (viewPattern, nodeName) => page.evaluate(({ vp, nn }) => {
+    try {
+      const listed = window.__sxListLoadedPages__();
+      const matcher = new RegExp(vp, 'i');
+      const names = (listed.views || []).map(v => v.name);
+      const matched = names.find(name => matcher.test(name));
+      // EquipmentView 等页签 View 可能只是 RoleModule 顶层页面的嵌套子树，不会单独进入 loaded-pages。
+      // 此时只读导出所有已加载页面并按精确节点名找所属根，点击仍由浏览器真实指针完成。
+      const snap = window.__sxExportPageSnapshots__(matched ? [matched] : names);
+      const views = snap.views || [];
+      const nodes = [];
+      let owner = matched || null;
+      for (const view of views) {
+        const before = nodes.length;
+        const walk = (node, ax, ay) => {
+          const x = ax + (node.x || 0), y = ay + (node.y || 0);
+          if (node.effectiveVisible !== false && node.name === nn) {
+            const b = node.globalBounds;
+            nodes.push({
+              name: node.name,
+              x: b ? b.x : x,
+              y: b ? b.y : y,
+              width: b ? b.width : node.width || 0,
+              height: b ? b.height : node.height || 0,
+              cx: Math.round(b ? b.x + b.width / 2 : x + (node.width || 0) / 2),
+              cy: Math.round(b ? b.y + b.height / 2 : y + (node.height || 0) / 2),
+            });
+          }
+          (node.children || []).forEach(child => walk(child, x, y));
+        };
+        walk(view.nodeTree, 0, 0);
+        if (!owner && nodes.length > before) owner = view.meta.name;
+      }
+      return { viewName: owner, nodes };
+    } catch (e) {
+      return { viewName: null, nodes: [], error: String(e) };
+    }
+  }, { vp: viewPattern, nn: nodeName });
 
   // 登录:清空输入框再输入
   const typeInto = async (x, y, text) => {
@@ -114,8 +159,13 @@ function safeStringify(root) {
       clean = 0;
       const b = blockers[0];
       const c = await findClose(b.name);
-      if (c) { console.log(`close ${b.name} via ${c.name} @(${c.cx},${c.cy})`); await page.mouse.click(c.cx, c.cy); }
-      else { console.log(`no close btn in ${b.name}, screenshot`); await shot(`popup_${b.name}.png`); await page.mouse.click(360, 100); } // 点空白尝试关闭
+      const closeVisible = c && c.cx >= 0 && c.cx <= 720 && c.cy >= 0 && c.cy <= 1280;
+      if (closeVisible) { console.log(`close ${b.name} via ${c.name} @(${c.cx},${c.cy})`); await page.mouse.click(c.cx, c.cy); }
+      else {
+        console.log(`${c ? 'offscreen' : 'no'} close btn in ${b.name}, click visible center`);
+        await shot(`popup_${b.name}.png`);
+        await page.mouse.click(360, 640); // 奖励/公告类弹层普遍支持点击可视内容关闭。
+      }
     }
     else if (inCity) clean++;
     await page.waitForTimeout(4000);
@@ -125,11 +175,103 @@ function safeStringify(root) {
   await page.waitForTimeout(5000);
   await shot('50_city.png');
 
+  // 可选真实点击路线：主界面[角色] → 人物页[属性说明]，用于日常 UI 精修基线。
+  // 坐标来自 720x1280 运行态快照；两次点击都由页面自己的命中链处理，不直接调用业务事件。
+  if (ROUTE === 'role-instruction') {
+    await page.mouse.click(120, 1218);
+    await page.waitForTimeout(5000);
+    await inject();
+    await shot('60_role_person.png');
+
+    await page.mouse.click(670, 858);
+    await page.waitForTimeout(2500);
+    await inject();
+    await shot('61_instruction_top.png');
+
+    // 在说明正文内真实拖动到底，保留末项可达证据，再回到顶部验证回滚。
+    await page.mouse.move(360, 805);
+    await page.mouse.down();
+    await page.mouse.move(360, 500, { steps: 12 });
+    await page.mouse.up();
+    await page.waitForTimeout(1200);
+    await shot('62_instruction_scrolled.png');
+
+    await page.mouse.move(360, 805);
+    await page.mouse.down();
+    await page.mouse.move(360, 450, { steps: 12 });
+    await page.mouse.up();
+    await page.waitForTimeout(1200);
+    await shot('62b_instruction_bottom.png');
+
+    await page.mouse.click(653, 397);
+    await page.waitForTimeout(1200);
+    await shot('63_instruction_closed.png');
+
+    await page.mouse.click(670, 858);
+    await page.waitForTimeout(1200);
+    await shot('64_instruction_reopen.png');
+  }
+
+  // 角色页[增强药剂]完整只读基线：真实入口、四档页签、列表弹性拖动、关闭和热重开。
+  // 不点击“使用”，避免基线采集静默消耗真实账号道具。
+  if (ROUTE === 'role-attribute-potion') {
+    await page.mouse.click(120, 1218);
+    await page.waitForTimeout(5000);
+    await inject();
+    await shot('60_role_person.png');
+
+    const entry = await findNodes('EquipmentView', '_btn_attribute');
+    console.log('ATTRIBUTE ENTRY', JSON.stringify(entry));
+    if (!entry.nodes.length) throw new Error('EquipmentView._btn_attribute not found');
+    await page.mouse.click(entry.nodes[0].cx, entry.nodes[0].cy);
+    await page.waitForTimeout(3500);
+    await inject();
+    await shot('61_attribute_potion_tier1.png');
+
+    const tabs = await findNodes('attributePotionView', 'attributePotionTab');
+    console.log('ATTRIBUTE TABS', JSON.stringify(tabs));
+    const orderedTabs = tabs.nodes.slice().sort((a, b) => a.cx - b.cx);
+    for (let i = 0; i < orderedTabs.length; i++) {
+      await page.mouse.click(orderedTabs[i].cx, orderedTabs[i].cy);
+      await page.waitForTimeout(900);
+      await inject();
+      await shot(`62_attribute_potion_tier${i + 1}.png`);
+    }
+
+    // 对标老端 Content 的弹性拖动：内容被拖开后应自动回到 y=0，不把四行拉出视口。
+    const rows = await findNodes('attributePotionView', 'attributePotionItem');
+    console.log('ATTRIBUTE ROWS', JSON.stringify(rows));
+    if (rows.nodes.length) {
+      const first = rows.nodes.slice().sort((a, b) => a.cy - b.cy)[0];
+      await page.mouse.move(first.cx, first.cy);
+      await page.mouse.down();
+      await page.mouse.move(first.cx, first.cy + 130, { steps: 10 });
+      await page.mouse.up();
+      await page.waitForTimeout(1200);
+      await shot('63_attribute_potion_bounce_restored.png');
+    }
+
+    const potionView = tabs.viewName || 'attributePotionView';
+    const close = await findClose(potionView);
+    console.log('ATTRIBUTE CLOSE', JSON.stringify(close));
+    if (!close) throw new Error('attributePotionView close not found');
+    await page.mouse.click(close.cx, close.cy);
+    await page.waitForTimeout(1200);
+    await shot('64_attribute_potion_closed.png');
+
+    await page.mouse.click(entry.nodes[0].cx, entry.nodes[0].cy);
+    await page.waitForTimeout(1500);
+    await inject();
+    await shot('65_attribute_potion_reopen.png');
+  }
+
   // 导出全部已加载视图,一视图一文件(烤制器格式)
   const list = await page.evaluate(() => window.__sxListLoadedPages__());
   const names = (list.views || []).map(v => v.name);
   console.log('FINAL LOADED:', names.join(', '));
-  const exportNames = names.filter(n => EXPORT.test(n));
+  const exportNames = names.filter(n => EXPORT.test(n)
+    || (ROUTE === 'role-instruction' && n === 'InstructionView')
+    || (ROUTE === 'role-attribute-potion' && /EquipmentView|attributePotionView/i.test(n)));
   const snap = await page.evaluate(ns => window.__sxExportPageSnapshots__(ns), exportNames);
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   for (const v of snap.views || []) {

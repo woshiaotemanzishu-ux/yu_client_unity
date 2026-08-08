@@ -1,0 +1,218 @@
+{
+  "schema": 5,
+  "route": "shared.item.presentation",
+  "baseline": {
+    "user_reference": "output/ui_route_audit/2026-08-07_shared_item_presentation/user_reference",
+    "old_h5_source": "E:/GitProject/yu_client/h5/src/common",
+    "unity_runtime": "user-confirmed-2026-08-08-quality-flow-and-viewport-only",
+    "real_web_same_account": "not-run"
+  },
+  "nodes": [
+    {
+      "id": "shared.item.presentation",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "shared-slot",
+          "kind": "shared-item-slot-and-overlays",
+          "child": "shared.item.presentation.slot"
+        },
+        {
+          "id": "normal-detail",
+          "kind": "normal-item-detail",
+          "child": "shared.item.presentation.normal-detail"
+        },
+        {
+          "id": "equipment-detail",
+          "kind": "equipment-detail",
+          "child": "shared.item.presentation.equipment-detail"
+        },
+        {
+          "id": "representative-regression",
+          "kind": "shared-consumer-sampling",
+          "child": "shared.item.presentation.representative-regression"
+        }
+      ],
+      "note": "独立精修共享物品槽、普通物品详情和装备详情；共鸣页面布局与业务本身不在本路线修改范围。",
+      "parent": null,
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "shared.item.presentation.slot",
+      "parent": "shared.item.presentation",
+      "type": "read",
+      "risk": "read-only",
+      "note": "用户已在真实运行态确认品质流光持续运动、完全滚出背包 Viewport 后不再残留孤框；人工观察关闭本次两个具体缺陷。由于没有自动保存双时间点 PNG/像素差，也未覆盖共享槽完整状态矩阵，节点继续保留 needs-runtime-verify。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "shared_component_identity": true,
+        "component_state_matrix": false,
+        "runtime_state": true,
+        "render_completion": false,
+        "effect_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-07_shared_item_presentation/user_reference/old-bag-slot-states.png",
+        "output/ui_route_audit/2026-08-07_shared_item_presentation/static-result.md",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/old-bag-equipment-slots.png",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/old-quality-flow-slot-crop.png",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/unity-bag-quality-flow-spill.png",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/static-fix-result.md",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/unity-bag-static-flow-and-viewport-leak.png",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/static-fix-result.md",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/user-acceptance-2026-08-08.md"
+      ],
+      "applicable_gates": [
+        "shared_component_identity",
+        "component_state_matrix",
+        "runtime_state",
+        "render_completion",
+        "effect_match",
+        "reopen"
+      ],
+      "component_evidence": [
+        "Assets/Prefabs/UI/Common/BaseAwardItem.prefab",
+        "Assets/Prefabs/UI/Common/EquipmentItem.prefab",
+        "Assets/Resources/UIEffectProfileCatalog.asset",
+        "Assets/Scripts/Module/Core/Common/Views/BaseAwardItem.cs",
+        "Assets/Scripts/Module/Core/Common/Views/EquipmentItem.cs",
+        "Assets/Editor/CliVerify/Cases/BagInteractionCase.cs"
+      ],
+      "component_state_evidence": [
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/static-fix-result.md"
+      ],
+      "effect_evidence": [
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/unity-bag-static-flow-and-viewport-leak.png"
+      ],
+      "state_evidence": [
+        "2026-08-08 用户运行确认：品质框已为持续动效，背包底部完全滚出后没有孤立框。"
+      ]
+    },
+    {
+      "id": "shared.item.presentation.normal-detail",
+      "parent": "shared.item.presentation",
+      "type": "read",
+      "risk": "read-only",
+      "note": "CommonModule.GoodsTooltips 的图标、品质标题、简介、来源、单/双按钮和动态高度。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "shared_component_identity": true,
+        "component_state_matrix": false,
+        "layout_structure": false,
+        "page_space_geometry": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-07_shared_item_presentation/user_reference/old-normal-detail-red.png",
+        "output/ui_route_audit/2026-08-07_shared_item_presentation/user_reference/old-normal-detail.png",
+        "output/ui_route_audit/2026-08-07_shared_item_presentation/static-result.md"
+      ],
+      "applicable_gates": [
+        "shared_component_identity",
+        "component_state_matrix",
+        "layout_structure",
+        "page_space_geometry",
+        "visual_match",
+        "reopen"
+      ],
+      "component_evidence": [
+        "Assets/Prefabs/UI/Common/CommonModule.prefab",
+        "Assets/Scripts/Module/Core/Common/Views/ItemTipsView.cs",
+        "Assets/GameRes/resource/config/client/goodssourceconfig.json"
+      ],
+      "component_state_evidence": [
+        "output/ui_route_audit/2026-08-07_shared_item_presentation/static-result.md"
+      ]
+    },
+    {
+      "id": "shared.item.presentation.equipment-detail",
+      "parent": "shared.item.presentation",
+      "type": "read",
+      "risk": "read-only",
+      "note": "CommonModule.EquipToolTips 的实例品质、强化、阶星、属性分组、滚动正文和操作区。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "shared_component_identity": true,
+        "component_state_matrix": false,
+        "layout_structure": false,
+        "scroll_interaction": false,
+        "page_space_geometry": false,
+        "visual_match": false,
+        "reopen": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-07_shared_item_presentation/user_reference/unity-equipment-detail-distorted.png",
+        "output/ui_route_audit/2026-08-07_shared_item_presentation/user_reference/old-equipment-detail.png",
+        "output/ui_route_audit/2026-08-07_shared_item_presentation/static-result.md"
+      ],
+      "applicable_gates": [
+        "shared_component_identity",
+        "component_state_matrix",
+        "layout_structure",
+        "scroll_interaction",
+        "page_space_geometry",
+        "visual_match",
+        "reopen"
+      ],
+      "component_evidence": [
+        "Assets/Prefabs/UI/Common/CommonModule.prefab",
+        "Assets/Prefabs/UI/Common/EquipmentItem.prefab",
+        "Assets/Scripts/Module/Core/Common/Views/ItemTipsView.cs"
+      ],
+      "component_state_evidence": [
+        "output/ui_route_audit/2026-08-07_shared_item_presentation/static-result.md"
+      ]
+    },
+    {
+      "id": "shared.item.presentation.representative-regression",
+      "parent": "shared.item.presentation",
+      "type": "read",
+      "risk": "read-only",
+      "note": "高频背包代表消费者已获用户运行确认，静态首帧与 Viewport 泄漏回归关闭；其余代表宿主、返回链和可重跑像素证据未补齐，继续保留 needs-runtime-verify。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "shared_component_identity": true,
+        "component_state_matrix": false,
+        "runtime_state": true,
+        "visual_match": false,
+        "return_chain": false
+      },
+      "evidence": [
+        "output/ui_route_audit/2026-08-07_shared_item_presentation/static-result.md",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/unity-bag-quality-flow-spill.png",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/static-fix-result.md",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/unity-bag-static-flow-and-viewport-leak.png",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/static-fix-result.md",
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/user-acceptance-2026-08-08.md"
+      ],
+      "applicable_gates": [
+        "shared_component_identity",
+        "component_state_matrix",
+        "runtime_state",
+        "visual_match",
+        "return_chain"
+      ],
+      "component_evidence": [
+        "output/ui_route_audit/2026-08-07_shared_item_presentation/direct-consumers.md",
+        "Assets/Prefabs/UI/Bag/BagModule.prefab",
+        "Assets/Prefabs/UI/Bag/BagEquipmentIcon.prefab",
+        "Assets/Prefabs/UI/Suit/SuitModule.prefab",
+        "Assets/Prefabs/UI/Common/CommonModule.prefab"
+      ],
+      "component_state_evidence": [
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/static-fix-result.md"
+      ],
+      "effect_evidence": [
+        "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/unity-bag-static-flow-and-viewport-leak.png"
+      ],
+      "state_evidence": [
+        "背包代表样本由用户确认动态与滚动裁切均恢复；没有机械扩展为全部消费者通过。"
+      ]
+    }
+  ]
+}

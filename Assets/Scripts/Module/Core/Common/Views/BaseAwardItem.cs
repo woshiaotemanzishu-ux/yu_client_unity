@@ -1,4 +1,6 @@
 using System;
+using System.Threading.Tasks;
+using Shenxiao.Common.UI3D;
 using Shenxiao.Generated.UI.Common;
 using Shenxiao.Framework.Res;
 using Shenxiao.Framework.UI;
@@ -15,15 +17,21 @@ namespace Shenxiao.Module.Core.Common
     /// 公开 API 对标 Laya:SetData(typeId,num,lock,select)、SetCount、SetSelect、SetLock、SetScale、SetClickCallBack。
     /// 图标走 <see cref="GoodsModel"/>(type_id→goods_icon/color)+ ResManager.SetImageAsync:真实图标 + 品质底板
     /// (com_goods_plate_{color},common 图集)均已接,缺图降级隐藏 + 精确 blocker(见 <see cref="RefreshIcon"/>);
-    /// 数量/锁/选中/缩放/点击回调 即时可用;特效层(effect_con)、点击 tips(UIToolTipMgr)仍待移植。
-    /// 注:本类逻辑就绪,但 Assets/Prefabs/UI/Common/BaseAwardItem.prefab 当前【未挂本组件】(根仅 RectTransform,
-    /// 对照 ItemInfoItem.prefab 有挂),故经 prefab 实例化复用尚被阻断 —— 见第 6 轮任务包(回填 Bind 组件/修转换器)。
+    /// 数量/锁/选中/限时/品质流光/缩放/点击详情均由共享组件统一呈现，调用页只传数据。
+    /// BaseAwardItem.prefab 直接挂载本组件；背包、奖励、详情等消费者必须复用该 Prefab，禁止复制槽位节点树。
     /// </summary>
     public sealed class BaseAwardItem : BaseAwardItemBind
     {
+        // 老端 SetItemEffect 固定传 14；视觉边界由每格独立 RT 裁切。Unity 共享通道保留该语义倍率，
+        // 由 UIEffectProfile.clipToRenderRect 恢复实例级裁切，不能把动画替换成静态框。
+        private const float ItemQualityEffectScale = 14f;
+
         private Action _clickCb;
         private int _typeId;
         private long _num = 1;   // 堆叠数量(SetData/SetCount 同步;点击 tips 透传给 ItemTipsView,对标 GoodsTooltips quantity)
+        private UIEffectStage.Handle _itemEffect;
+        private string _itemEffectName = "";
+        private int _effectEpoch;
         private bool _inited;
 
         protected override void OnInit()
@@ -42,7 +50,7 @@ namespace Shenxiao.Module.Core.Common
             if (@lock != null) @lock.gameObject.SetActive(false);
             if (select_image != null) select_image.gameObject.SetActive(false);
             if (time_limit != null) time_limit.gameObject.SetActive(false);
-            if (effect_con != null) effect_con.gameObject.SetActive(false); // 物品特效待移植
+            if (effect_con != null) effect_con.gameObject.SetActive(false);
             BindClick();
         }
 
@@ -50,10 +58,12 @@ namespace Shenxiao.Module.Core.Common
         public void SetData(int typeId, long num, bool isLock = false, bool select = false)
         {
             EnsureInit();
+            ClearItemEffect();
             _typeId = typeId;
             SetCount(num);
             SetLock(isLock);
             SetSelect(select);
+            ApplyStaticPresentation(typeId);
             RefreshIcon();
         }
 
@@ -81,6 +91,12 @@ namespace Shenxiao.Module.Core.Common
             if (@lock != null) @lock.gameObject.SetActive(locked);
         }
 
+        /// <summary>限时角标。实例 expire_time 可在 SetData 后调用本方法覆盖为 true。</summary>
+        public void SetTimeLimit(bool visible)
+        {
+            if (time_limit != null) time_limit.gameObject.SetActive(visible);
+        }
+
         /// <summary>整体缩放(对标 SetScale:基准 127px 格子)。</summary>
         public void SetScale(float scale)
         {
@@ -98,6 +114,81 @@ namespace Shenxiao.Module.Core.Common
         public void SetClickCallBack(Action callback)
         {
             _clickCb = callback;
+        }
+
+        private void ApplyStaticPresentation(int typeId)
+        {
+            GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(typeId);
+            SetTimeLimit(basic != null && GoodsModel.HasConfigExpiry(typeId));
+            string effectName = GoodsModel.GetItemEffectName(basic?.EffectId ?? 0);
+            if (!string.IsNullOrEmpty(effectName)) SetItemEffect(effectName);
+        }
+
+        private void SetItemEffect(string effectName)
+        {
+            _itemEffectName = effectName?.Trim() ?? "";
+            RestartItemEffect();
+        }
+
+        private void RestartItemEffect()
+        {
+            ReleaseItemEffect();
+            if (!isActiveAndEnabled || !gameObject.activeInHierarchy || effect_con == null ||
+                string.IsNullOrEmpty(_itemEffectName)) return;
+            effect_con.gameObject.SetActive(true);
+            int epoch = _effectEpoch;
+            _ = AttachItemEffectAsync(_itemEffectName, epoch);
+        }
+
+        public void ClearItemEffect()
+        {
+            _itemEffectName = "";
+            ReleaseItemEffect();
+        }
+
+        private void ReleaseItemEffect()
+        {
+            ++_effectEpoch;
+            _itemEffect?.Dispose();
+            _itemEffect = null;
+            if (effect_con != null) effect_con.gameObject.SetActive(false);
+        }
+
+        private async Task AttachItemEffectAsync(string effectName, int epoch)
+        {
+            UIEffectStage.Handle handle = await UIEffectStage.AddAsync(
+                effectName, effect_con, Vector2.zero, Vector3.one * ItemQualityEffectScale, 0f);
+            if (this == null || effect_con == null || epoch != _effectEpoch || _typeId <= 0)
+            {
+                handle?.Dispose();
+                return;
+            }
+
+            _itemEffect = handle;
+            effect_con.gameObject.SetActive(handle != null);
+        }
+
+        protected override void OnDispose()
+        {
+            ClearItemEffect();
+            base.OnDispose();
+        }
+
+        private void OnDisable()
+        {
+            // 父页面隐藏时释放共享渲染通道，但保留期望状态；原数据重开后由 OnEnable 恢复。
+            ReleaseItemEffect();
+        }
+
+        private void OnEnable()
+        {
+            if (_inited && _typeId > 0 && !string.IsNullOrEmpty(_itemEffectName))
+                RestartItemEffect();
+        }
+
+        private void OnDestroy()
+        {
+            ClearItemEffect();
         }
 
         /// <summary>

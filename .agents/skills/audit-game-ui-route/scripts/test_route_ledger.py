@@ -10,10 +10,10 @@ from pathlib import Path
 from route_ledger import validate_ledger
 
 
-def write_case(folder: Path, name: str, node: dict) -> Path:
+def write_case(folder: Path, name: str, node: dict, schema: int = 5) -> Path:
     path = folder / f"{name}.json"
     path.write_text(
-        json.dumps({"schema": 4, "route": name, "nodes": [node]}, ensure_ascii=False),
+        json.dumps({"schema": schema, "route": name, "nodes": [node]}, ensure_ascii=False),
         encoding="utf-8",
     )
     return path
@@ -35,6 +35,8 @@ def complete_node() -> dict:
         "render_completion",
         "effect_match",
         "resource_stable",
+        "shared_component_identity",
+        "component_state_matrix",
     ]
     return {
         "id": "page.state",
@@ -50,6 +52,8 @@ def complete_node() -> dict:
         "model_evidence": {"old": "old.png", "unity": "unity.png"},
         "render_evidence": ["rt-pixel-probe.json"],
         "effect_evidence": ["effect-diff.png"],
+        "component_evidence": ["shared-prefab-guid.json"],
+        "component_state_evidence": ["component-state-matrix.json"],
         "resource_evidence": {
             "preflight_first": "preflight-first.log",
             "preflight_second": "preflight-second.log",
@@ -98,6 +102,41 @@ def main() -> int:
         missing_resource["resource_evidence"].pop("preflight_second")
         assert validate_ledger(write_case(folder, "missing-resource", missing_resource), quiet=True) == 1
 
+        missing_component = complete_node()
+        missing_component["component_evidence"] = []
+        assert validate_ledger(write_case(folder, "missing-component", missing_component), quiet=True) == 1
+
+        missing_component_state = complete_node()
+        missing_component_state.pop("component_state_evidence")
+        assert validate_ledger(
+            write_case(folder, "missing-component-state", missing_component_state), quiet=True
+        ) == 1
+
+        legacy_default = {
+            "id": "legacy.read",
+            "status": "done",
+            "gates": {gate: True for gate in (
+                "click", "result", "protocol", "immediate", "reopen", "return_chain", "timing",
+                "visual_version", "visual_match", "target_identity", "layout_structure",
+                "scroll_interaction", "page_space_geometry", "runtime_state", "model_presentation",
+                "render_completion", "effect_match", "resource_stable", "restore",
+            )},
+            "timing": {"cold_ms": 1, "warm_ms": 1},
+            "visual_evidence": {"old": "old", "unity": "unity", "diff": "diff"},
+            "identity_evidence": ["identity"],
+            "layout_evidence": ["layout"],
+            "interaction_evidence": ["drag"],
+            "geometry_evidence": ["geometry"],
+            "state_evidence": ["state"],
+            "model_evidence": {"old": "old", "unity": "unity"},
+            "render_evidence": ["render"],
+            "effect_evidence": ["effect"],
+            "resource_evidence": {
+                "preflight_first": "first", "preflight_second": "second", "runtime_delta": "delta"
+            },
+        }
+        assert validate_ledger(write_case(folder, "legacy-default", legacy_default, schema=4), quiet=True) == 0
+
         no_model_page = complete_node()
         no_model_page["applicable_gates"].remove("model_presentation")
         no_model_page["gates"].pop("model_presentation")
@@ -123,7 +162,7 @@ def main() -> int:
         child["parent"] = "page"
         page_path = folder / "page-good.json"
         page_path.write_text(
-            json.dumps({"schema": 4, "route": "page-good", "nodes": [page, child]}), encoding="utf-8"
+            json.dumps({"schema": 5, "route": "page-good", "nodes": [page, child]}), encoding="utf-8"
         )
         assert validate_ledger(page_path, quiet=True) == 0
 
@@ -131,7 +170,7 @@ def main() -> int:
         bad_page.pop("control_inventory")
         bad_page_path = folder / "page-missing-inventory.json"
         bad_page_path.write_text(
-            json.dumps({"schema": 4, "route": "page-missing-inventory", "nodes": [bad_page, child]}),
+            json.dumps({"schema": 5, "route": "page-missing-inventory", "nodes": [bad_page, child]}),
             encoding="utf-8",
         )
         assert validate_ledger(bad_page_path, quiet=True) == 1

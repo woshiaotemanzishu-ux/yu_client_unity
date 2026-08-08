@@ -164,6 +164,7 @@ namespace Shenxiao.Module.Core.Common
         {
             GoodsModel.EquipAttr equip = GoodsModel.GetEquipAttr(basic.TypeId);
             int stage = equip?.Stage ?? 0;
+            int qualityColor = goods != null ? Mathf.Clamp(goods.Color, 0, 8) : basic.Color;
             int strengthen = detail != null ? detail.Stren : goods?.Stren ?? 0;
             long rating = detail != null && detail.Rating > 0 ? detail.Rating
                 : goods != null && goods.Rating > 0 ? goods.Rating
@@ -188,23 +189,18 @@ namespace Shenxiao.Module.Core.Common
                                EquipmentTipsConfig.GetCareerRequirementName(basic) + "</color>";
             view.pos_part.text = "部位：";
             view.pos.text = "<color=#d15e00>" + GoodsModel.GetEquipPosName(basic.EquipType) + "</color>";
-            _ = SetQualityHeader(view.nameBG, basic.Color, epoch);
+            _ = SetQualityHeader(view.nameBG, qualityColor, epoch);
 
             if (icon != null)
             {
                 icon.SetClickCallBack(() => { });
                 icon.SetData(basic.TypeId, 1, goods != null && goods.Bind != 0);
-                if (icon.grade != null)
-                {
-                    icon.grade.text = stage > 0 ? stage + "阶" : "";
-                    icon.grade.gameObject.SetActive(stage > 0);
-                }
-                if (icon._img_grade_bg != null) icon._img_grade_bg.gameObject.SetActive(stage > 0);
-                if (icon.stren != null)
-                {
-                    icon.stren.text = "+" + strengthen;
-                    icon.stren.gameObject.SetActive(strengthen > 0);
-                }
+                icon.SetDisplayColor(qualityColor);
+                icon.SetGrade(stage);
+                icon.SetStar(equip?.Star ?? 0);
+                icon.SetBadIcon(equip?.ClassType == 1);
+                icon.SetStrengthen(strengthen);
+                icon.SetTimeLimit(GoodsModel.HasConfigExpiry(basic.TypeId) || (goods != null && goods.ExpireTime > 0));
             }
 
             ClearEquipmentSections(view);
@@ -436,14 +432,144 @@ namespace Shenxiao.Module.Core.Common
             view.quantity_text.text = "数量：<color=#ffe222>" + num + "</color>";
             view.level_text.text = basic.Level > 1 ? "等级：" : "";
             view.level_text_value.text = basic.Level > 1 ? basic.Level.ToString() : "";
-            view.intro.text = string.IsNullOrEmpty(basic.Intro) ? "" : ToTmpRich(basic.Intro);
-            view.ways.text = basic.Getway == "[]" ? "" : ToTmpRich(basic.Getway);
+            string intro = NormalizeConfigText(basic.Intro);
+            string ways = NormalizeConfigText(basic.Getway);
+            view.intro.text = intro;
+            view.ways.text = ways;
             view.tips.text = "";
+            SetActive(view._Group1, !string.IsNullOrEmpty(intro));
+            SetActive(view.intro, !string.IsNullOrEmpty(intro));
+            SetActive(view.tips, false);
+            SetActive(view.line2, !string.IsNullOrEmpty(ways));
+            SetActive(view.label2, !string.IsNullOrEmpty(ways));
+            SetActive(view.ways, !string.IsNullOrEmpty(ways));
             SetActive(view.rewardsList, false);
-            SetActive(view.sourceGp, false);
             SetActive(view._gp_cooling, false);
+            RenderGoodsSources(view, GoodsModel.GetGoodsSourceEntries(basic.TypeId));
             ConfigureGoodsButtons(view, goods, context);
+            _ = SetQualityHeader(view.nameBG, basic.Color, epoch);
+            LayoutGoodsTooltip(view);
             _ = BuildNormalIcon(view, basic.TypeId, epoch);
+        }
+
+        private static void RenderGoodsSources(GoodsTooltipsBind view,
+            List<GoodsModel.GoodsSourceEntry> entries)
+        {
+            bool show = entries != null && entries.Count > 0;
+            SetActive(view.sourceGp, show);
+            if (!show)
+            {
+                if (view.source_txt != null) view.source_txt.text = "";
+                return;
+            }
+
+            var text = new StringBuilder();
+            for (int i = 0; i < entries.Count; i++)
+            {
+                if (i > 0) text.Append("  ");
+                GoodsModel.GoodsSourceEntry entry = entries[i];
+                string color = entry.Argument != 0 ? "#d15e00" : "#8b8b8a";
+                text.Append("<color=").Append(color).Append('>').Append(entry.Name).Append("</color>");
+            }
+            view.source_txt.text = text.ToString();
+        }
+
+        /// <summary>
+        /// 老端 GoodsTooltips.SetTipsHeight 的 Unity 等价实现：详情、来源和按钮按 preferred height 排列，
+        /// 内容过长时只滚动详情区，背景始终包住全部可见分组。
+        /// </summary>
+        private static void LayoutGoodsTooltip(GoodsTooltipsBind view)
+        {
+            if (view == null || view.root_wnd == null) return;
+
+            FitTextHeight(view.intro, 24f);
+            FitTextHeight(view.tips, 24f);
+            FitTextHeight(view.ways, 24f);
+            if (view.source_txt != null)
+            {
+                RectTransform sourceTextRect = (RectTransform)view.source_txt.transform;
+                sourceTextRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 253f);
+                FitTextHeight(view.source_txt, 24f);
+            }
+
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(view.detail_group);
+            float contentHeight = GetActiveChildrenHeight(view.detail_group);
+            view.detail_group.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, contentHeight);
+
+            float sourceHeight = view.sourceGp != null && view.sourceGp.gameObject.activeSelf
+                ? 45f + Mathf.Max(24f, ((RectTransform)view.source_txt.transform).rect.height)
+                : 0f;
+            if (view.sourceGp != null)
+                view.sourceGp.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sourceHeight);
+
+            const float headerHeight = 166f;
+            const float buttonHeight = 86f;
+            float naturalHeight = headerHeight + contentHeight + sourceHeight + buttonHeight + 8f;
+            float panelHeight = Mathf.Clamp(naturalHeight, 450f, 680f);
+            float buttonTop = panelHeight - buttonHeight;
+            float sourceTop = buttonTop - sourceHeight - (sourceHeight > 0f ? 8f : 0f);
+            float scrollBottom = sourceHeight > 0f ? sourceTop : buttonTop;
+            float scrollHeight = Mathf.Clamp(scrollBottom - headerHeight, 1f, 400f);
+
+            RectTransform viewRect = view.transform as RectTransform;
+            viewRect?.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, panelHeight);
+            view.root_wnd.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, panelHeight);
+            if (view.bg != null)
+                ((RectTransform)view.bg.transform).SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, panelHeight);
+            if (view.detail_scroller != null)
+                ((RectTransform)view.detail_scroller.transform).SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, scrollHeight);
+            if (view.btn_group != null)
+            {
+                view.btn_group.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, buttonHeight);
+                Vector2 pos = view.btn_group.anchoredPosition;
+                pos.y = -buttonTop;
+                view.btn_group.anchoredPosition = pos;
+                LayoutRebuilder.ForceRebuildLayoutImmediate(view.btn_group);
+            }
+            if (view.sourceGp != null && sourceHeight > 0f)
+            {
+                Vector2 pos = view.sourceGp.anchoredPosition;
+                pos.y = -sourceTop;
+                view.sourceGp.anchoredPosition = pos;
+            }
+
+            view.detail_scroller.StopMovement();
+            Vector2 contentPosition = view.detail_group.anchoredPosition;
+            contentPosition.y = 0f;
+            view.detail_group.anchoredPosition = contentPosition;
+            view.detail_scroller.verticalNormalizedPosition = 1f;
+            Canvas.ForceUpdateCanvases();
+        }
+
+        private static float FitTextHeight(TextMeshProUGUI text, float minimum)
+        {
+            if (text == null || !text.gameObject.activeSelf) return 0f;
+            RectTransform rect = (RectTransform)text.transform;
+            float width = rect.rect.width > 1f ? rect.rect.width : rect.sizeDelta.x;
+            float height = Mathf.Max(minimum, Mathf.Ceil(text.GetPreferredValues(text.text, width, 0f).y) + 2f);
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+            return height;
+        }
+
+        private static float GetActiveChildrenHeight(RectTransform parent)
+        {
+            if (parent == null) return 0f;
+            VerticalLayoutGroup layout = parent.GetComponent<VerticalLayoutGroup>();
+            float spacing = layout != null ? layout.spacing : 0f;
+            float height = layout != null ? layout.padding.top + layout.padding.bottom : 0f;
+            int count = 0;
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                RectTransform child = parent.GetChild(i) as RectTransform;
+                if (child == null || !child.gameObject.activeSelf) continue;
+                LayoutElement element = child.GetComponent<LayoutElement>();
+                if (element != null && element.ignoreLayout) continue;
+                height += child.rect.height;
+                count++;
+            }
+            if (count > 1) height += spacing * (count - 1);
+            return Mathf.Max(1f, height);
         }
 
         private static void ConfigureGoodsButtons(GoodsTooltipsBind view, BagGoods goods, ItemContext context)
@@ -709,6 +835,13 @@ namespace Shenxiao.Module.Core.Common
             value = Regex.Replace(value, "<br\\s*/?>", "\n", RegexOptions.IgnoreCase);
             value = Regex.Replace(value, "<font\\s+color=['\"]?(#?[0-9a-fA-F]+)['\"]?\\s*>", "<color=$1>", RegexOptions.IgnoreCase);
             return Regex.Replace(value, "</font>", "</color>", RegexOptions.IgnoreCase);
+        }
+
+        private static string NormalizeConfigText(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return "";
+            value = value.Trim();
+            return value == "[]" ? "" : ToTmpRich(value);
         }
     }
 }

@@ -215,6 +215,14 @@ namespace Shenxiao.Framework.Event
         /// <summary>宝石(骸珀镶嵌)雕刻数据变动(15210 查询/15211 雕刻后)。自动循环 轮4 下半(4b)。
         /// 镶嵌/拆除(15208/09,EquipStoneController)仍复用既有 EVT_EQUIP_STREN_UPDATE,Jewel UI 需同时订阅两个事件。</summary>
         public const string EVT_EQUIP_JEWEL_UPDATE = "EVT_EQUIP_JEWEL_UPDATE";
+        /// <summary>15220 全量或 15221/15222 权威结果已更新共鸣位置切片。</summary>
+        public const string EVT_EQUIP_SUIT_UPDATE = "EVT_EQUIP_SUIT_UPDATE";
+        /// <summary>15221/15222 成功、15200 失败或本地超时；参数为 EquipReadController.SuitOperationResult。</summary>
+        public const string EVT_EQUIP_SUIT_OPERATION_RESULT = "EVT_EQUIP_SUIT_OPERATION_RESULT";
+        /// <summary>15223 指定部位的回退奖励预览已换入。</summary>
+        public const string EVT_EQUIP_SUIT_RETURN_PREVIEW = "EVT_EQUIP_SUIT_RETURN_PREVIEW";
+        /// <summary>装备家族统一 15200 错误出口；参数为原始 int 错误码。</summary>
+        public const string EVT_EQUIP_ERROR = "EVT_EQUIP_ERROR";
         /// <summary>14401 全量或 14402 成功权威切片已落地。</summary>
         public const string EVT_ARMOR_UPDATED = "EVT_ARMOR_UPDATED";
         /// <summary>14402 打造回执到达，参数为原始 uint code。</summary>

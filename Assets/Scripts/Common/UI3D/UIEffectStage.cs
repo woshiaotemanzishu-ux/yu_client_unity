@@ -99,6 +99,12 @@ namespace Shenxiao.Common.UI3D
             internal UIEffectProfile Profile;
             internal Renderer[] Renderers;
             internal MaterialPropertyBlock ClipPropertyBlock;
+            internal readonly List<RectMask2D> AncestorRectMasks = new List<RectMask2D>();
+            internal readonly List<Mask> AncestorStencilMasks = new List<Mask>();
+            internal Transform CachedMaskParent;
+            internal Vector4 AppliedClipRect;
+            internal int ActiveAncestorMaskCount;
+            internal float VisibleClipFraction = 1f;
             internal bool Visible;
             internal bool Loading = true;
             private bool _disposed;
@@ -185,6 +191,7 @@ namespace Shenxiao.Common.UI3D
             channel.Handles.Add(handle);
             channel.IdleSince = -1f;
             s_live.Add(handle);
+            CacheAncestorMasks(handle);
             UpdateHandleTransform(handle);
 
             GameObject effect = await ResManager.InstantiateAsync(effectKey, wrapper);
@@ -219,10 +226,12 @@ namespace Shenxiao.Common.UI3D
             effectTransform.localRotation = Quaternion.Euler(0f, rotationY + profile.rotationYOffset, 0f);
             effectTransform.localScale = finalScale;
 
+            // Addressables/编辑器兜底都可能返回未激活实例。先激活再重播，避免 Animation.Play
+            // 在 inactive hierarchy 上只留下资源首帧。
+            effect.SetActive(true);
             handle.Renderers = effect.GetComponentsInChildren<Renderer>(true);
             ApplyRenderDefaults(handle.Renderers);
             Play(effect);
-            effect.SetActive(true);
             UpdateHandleTransform(handle);
             return handle;
         }
@@ -400,8 +409,8 @@ namespace Shenxiao.Common.UI3D
             if (handle.Wrapper == null || channel == null || channel.UIRoot == null || parent == null)
                 return;
 
+            if (handle.CachedMaskParent != parent.parent) CacheAncestorMasks(handle);
             bool visible = parent.gameObject.activeInHierarchy && HasVisibleCanvasGroups(parent);
-            handle.Visible = visible;
 
             float channelHeight = Mathf.Max(1f, channel.UIRoot.rect.height);
             float stageHeight = GetStageHeight(channel.UIRoot);
@@ -421,33 +430,58 @@ namespace Shenxiao.Common.UI3D
             float relativeScaleZ = (relativeScaleX + relativeScaleY) * 0.5f;
             float angle = Mathf.Atan2(rightInChannel.y, rightInChannel.x) * Mathf.Rad2Deg;
 
-            handle.Wrapper.localPosition = new Vector3(
+            Vector3 wrapperPosition = new Vector3(
                 -centerInChannel.x / pixelsPerWorld,
                 centerInChannel.y / pixelsPerWorld,
-                visible ? 0f : HIDDEN_Z);
+                0f);
             handle.Wrapper.localRotation = Quaternion.Euler(0f, 0f, -angle);
             handle.Wrapper.localScale = new Vector3(
                 instanceFactor * relativeScaleX,
                 instanceFactor * relativeScaleY,
                 instanceFactor * relativeScaleZ);
-            UpdateHandleClip(handle, stageHeight);
+            handle.Wrapper.localPosition = wrapperPosition;
+
+            // 特效实际合成在页面根 RawImage，UGUI 的祖先 Mask/RectMask2D 不会自动作用到它。
+            // 把槽位自身边界与全部祖先遮罩求交，再写入实例 shader 裁剪；完全离开 Viewport 时
+            // 同时隐藏 wrapper，避免滚动列表底部只剩孤立流光框。
+            visible &= UpdateHandleClip(handle, stageHeight);
+            handle.Visible = visible;
+            wrapperPosition.z = visible ? 0f : HIDDEN_Z;
+            handle.Wrapper.localPosition = wrapperPosition;
         }
 
-        private static void UpdateHandleClip(Handle handle, float stageHeight)
+        private static bool UpdateHandleClip(Handle handle, float stageHeight)
         {
+            handle.ActiveAncestorMaskCount = 0;
+            handle.VisibleClipFraction = 1f;
+            handle.AppliedClipRect = default;
             if (handle.Profile == null || !handle.Profile.clipToRenderRect || handle.Renderers == null
                 || handle.Wrapper == null || handle.Parent == null)
-                return;
+                return true;
 
             Vector2 clipSize = GetPositiveSize(handle.RenderSize);
             if (clipSize == default) clipSize = GetPositiveSize(handle.Parent.rect.size);
-            if (clipSize == default) return;
+            if (clipSize == default) return true;
+
+            bool hasVisibleArea = TryGetVisibleNormalizedRect(handle, out Rect visibleNormalized);
 
             // 旧端每个 UIEffect 的相机纵向视野固定为 stageHeight*0.01，RT 宽高比由宿主决定。
             // 共享相机下把同一个视锥边界变成实例级 shader 裁剪，保留旧画面而不增加 Camera/RT。
             float halfHeight = Mathf.Max(0.01f, stageHeight * LAYA_STAGE_TO_WORLD * 0.5f);
             float halfWidth = halfHeight * clipSize.x / clipSize.y;
-            Vector4 clipRect = new Vector4(-halfWidth, -halfHeight, halfWidth, halfHeight);
+            // UI 根与共享特效舞台的 X 方向相反（RawImage.uvRect 做了水平翻转），因此 X 要反向映射；
+            // Y 方向保持一致。visibleNormalized=整格时仍得到原来的对称裁剪框。
+            Vector4 clipRect = hasVisibleArea
+                ? new Vector4(
+                    Mathf.Lerp(halfWidth, -halfWidth, visibleNormalized.xMax),
+                    Mathf.Lerp(-halfHeight, halfHeight, visibleNormalized.yMin),
+                    Mathf.Lerp(halfWidth, -halfWidth, visibleNormalized.xMin),
+                    Mathf.Lerp(-halfHeight, halfHeight, visibleNormalized.yMax))
+                : Vector4.zero;
+            handle.AppliedClipRect = clipRect;
+            handle.VisibleClipFraction = hasVisibleArea
+                ? Mathf.Clamp01(visibleNormalized.width * visibleNormalized.height)
+                : 0f;
             Matrix4x4 worldToLocal = handle.Wrapper.worldToLocalMatrix;
             MaterialPropertyBlock block = handle.ClipPropertyBlock ??= new MaterialPropertyBlock();
 
@@ -462,6 +496,100 @@ namespace Shenxiao.Common.UI3D
                 block.SetMatrix(ClipWorldToLocalId, worldToLocal);
                 renderer.SetPropertyBlock(block);
             }
+
+            return hasVisibleArea;
+        }
+
+        private static void CacheAncestorMasks(Handle handle)
+        {
+            handle.AncestorRectMasks.Clear();
+            handle.AncestorStencilMasks.Clear();
+            RectTransform parent = handle.Parent;
+            handle.CachedMaskParent = parent != null ? parent.parent : null;
+            if (parent == null || handle.Profile == null || !handle.Profile.clipToRenderRect) return;
+
+            Transform current = parent;
+            Transform channelRoot = handle.SharedChannel != null ? handle.SharedChannel.UIRoot : null;
+            while (current != null)
+            {
+                if (current.TryGetComponent(out RectMask2D rectMask))
+                    handle.AncestorRectMasks.Add(rectMask);
+                if (current.TryGetComponent(out Mask stencilMask))
+                    handle.AncestorStencilMasks.Add(stencilMask);
+                if (current == channelRoot) break;
+                current = current.parent;
+            }
+        }
+
+        private static bool TryGetVisibleNormalizedRect(Handle handle, out Rect normalized)
+        {
+            RectTransform parent = handle.Parent;
+            Rect hostRect = parent.rect;
+            normalized = new Rect(0f, 0f, 1f, 1f);
+            if (hostRect.width <= 0.001f || hostRect.height <= 0.001f) return false;
+
+            Rect visible = hostRect;
+            for (int i = 0; i < handle.AncestorRectMasks.Count; i++)
+            {
+                RectMask2D mask = handle.AncestorRectMasks[i];
+                if (mask == null || !mask.isActiveAndEnabled) continue;
+                Rect maskRect = mask.rectTransform.rect;
+                Vector4 padding = mask.padding;
+                maskRect.xMin += padding.x;
+                maskRect.yMin += padding.y;
+                maskRect.xMax -= padding.z;
+                maskRect.yMax -= padding.w;
+                handle.ActiveAncestorMaskCount++;
+                if (!TryIntersectWithRect(parent, ref visible, mask.rectTransform, maskRect)) return false;
+            }
+
+            for (int i = 0; i < handle.AncestorStencilMasks.Count; i++)
+            {
+                Mask mask = handle.AncestorStencilMasks[i];
+                if (mask == null || !mask.isActiveAndEnabled) continue;
+                handle.ActiveAncestorMaskCount++;
+                if (!TryIntersectWithRect(parent, ref visible, mask.rectTransform, mask.rectTransform.rect))
+                    return false;
+            }
+
+            float xMin = Mathf.Clamp01((visible.xMin - hostRect.xMin) / hostRect.width);
+            float xMax = Mathf.Clamp01((visible.xMax - hostRect.xMin) / hostRect.width);
+            float yMin = Mathf.Clamp01((visible.yMin - hostRect.yMin) / hostRect.height);
+            float yMax = Mathf.Clamp01((visible.yMax - hostRect.yMin) / hostRect.height);
+            if (xMax - xMin <= 0.0001f || yMax - yMin <= 0.0001f) return false;
+            normalized = Rect.MinMaxRect(xMin, yMin, xMax, yMax);
+            return true;
+        }
+
+        private static bool TryIntersectWithRect(RectTransform target, ref Rect visible,
+            RectTransform clippingTransform, Rect clippingRect)
+        {
+            if (target == null || clippingTransform == null || clippingRect.width <= 0f || clippingRect.height <= 0f)
+                return false;
+
+            Vector3 p0 = target.InverseTransformPoint(clippingTransform.TransformPoint(
+                new Vector3(clippingRect.xMin, clippingRect.yMin, 0f)));
+            Vector3 p1 = target.InverseTransformPoint(clippingTransform.TransformPoint(
+                new Vector3(clippingRect.xMin, clippingRect.yMax, 0f)));
+            Vector3 p2 = target.InverseTransformPoint(clippingTransform.TransformPoint(
+                new Vector3(clippingRect.xMax, clippingRect.yMax, 0f)));
+            Vector3 p3 = target.InverseTransformPoint(clippingTransform.TransformPoint(
+                new Vector3(clippingRect.xMax, clippingRect.yMin, 0f)));
+            float xMin = Mathf.Min(p0.x, p1.x, p2.x, p3.x);
+            float xMax = Mathf.Max(p0.x, p1.x, p2.x, p3.x);
+            float yMin = Mathf.Min(p0.y, p1.y, p2.y, p3.y);
+            float yMax = Mathf.Max(p0.y, p1.y, p2.y, p3.y);
+
+            float intersectionXMin = Mathf.Max(visible.xMin, xMin);
+            float intersectionXMax = Mathf.Min(visible.xMax, xMax);
+            float intersectionYMin = Mathf.Max(visible.yMin, yMin);
+            float intersectionYMax = Mathf.Min(visible.yMax, yMax);
+            if (intersectionXMax - intersectionXMin <= 0.0001f
+                || intersectionYMax - intersectionYMin <= 0.0001f)
+                return false;
+
+            visible = Rect.MinMaxRect(intersectionXMin, intersectionYMin, intersectionXMax, intersectionYMax);
+            return true;
         }
 
         private static bool HasVisibleCanvasGroups(Transform target)
@@ -856,6 +984,9 @@ namespace Shenxiao.Common.UI3D
             public int ParticleSystemCount;
             public int AliveParticleCount;
             public bool AnyParticlePlaying;
+            public int LegacyAnimationCount;
+            public bool AnyLegacyAnimationPlaying;
+            public float FirstPlayingAnimationTime;
             public int RendererCount;
             public bool AnyRendererVisible;
             public string FirstShader;
@@ -864,6 +995,9 @@ namespace Shenxiao.Common.UI3D
             public bool ParentActiveInHierarchy;
             public Vector2 ParentRectSize;
             public bool ClipToRenderRect;
+            public int ActiveAncestorMaskCount;
+            public Vector4 AppliedClipRect;
+            public float VisibleClipFraction;
             public int RtWidth;
             public int RtHeight;
             public bool CameraEnabled;
@@ -950,6 +1084,24 @@ namespace Shenxiao.Common.UI3D
                         diagnostic.AnyParticlePlaying |= systems[p].isPlaying;
                     }
 
+                    Animation[] animations = effect.GetComponentsInChildren<Animation>(true);
+                    diagnostic.LegacyAnimationCount = animations.Length;
+                    bool capturedAnimationTime = false;
+                    for (int a = 0; a < animations.Length; a++)
+                    {
+                        Animation animation = animations[a];
+                        if (animation == null) continue;
+                        diagnostic.AnyLegacyAnimationPlaying |= animation.isPlaying;
+                        if (capturedAnimationTime || !animation.isPlaying) continue;
+                        foreach (AnimationState state in animation)
+                        {
+                            if (!animation.IsPlaying(state.name)) continue;
+                            diagnostic.FirstPlayingAnimationTime = state.time;
+                            capturedAnimationTime = true;
+                            break;
+                        }
+                    }
+
                     Renderer[] renderers = effect.GetComponentsInChildren<Renderer>(true);
                     diagnostic.RendererCount = renderers.Length;
                     Bounds bounds = default;
@@ -973,6 +1125,9 @@ namespace Shenxiao.Common.UI3D
                     diagnostic.ParentActiveInHierarchy = handle.Parent.gameObject.activeInHierarchy;
                     diagnostic.ParentRectSize = handle.Parent.rect.size;
                 }
+                diagnostic.ActiveAncestorMaskCount = handle.ActiveAncestorMaskCount;
+                diagnostic.AppliedClipRect = handle.AppliedClipRect;
+                diagnostic.VisibleClipFraction = handle.VisibleClipFraction;
 
                 if (channel?.Texture != null)
                 {

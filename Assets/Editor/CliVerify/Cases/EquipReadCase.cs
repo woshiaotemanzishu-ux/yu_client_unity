@@ -47,7 +47,8 @@ namespace Shenxiao.EditorTools
                 MethodInfo on62 = typeof(EquipReadController).GetMethod("On15262", I);
                 pass = handlers != null && intercept != null && on17 != null && on19 != null && on20 != null && on23 != null && on62 != null;
                 foreach (int id in Protocols) pass &= handlers != null && handlers.Contains(id);
-                pass &= handlers != null && !handlers.Contains(15202) && !handlers.Contains(15218) && !handlers.Contains(15221) && !handlers.Contains(15222);
+                pass &= handlers != null && !handlers.Contains(15202) && !handlers.Contains(15218)
+                    && handlers.Contains(15221) && handlers.Contains(15222);
 
                 // 启动只清本模型并严格空发15217→15220；其它152启动号由既有控制器持有。
                 model.ReplaceGodInfo(1, new List<EquipReadModel.GodEntry> { new EquipReadModel.GodEntry(1, 1) });
@@ -131,6 +132,7 @@ namespace Shenxiao.EditorTools
                 controller.Dispose();
                 pass &= !controller.IsInitialized && EmptyModel(model);
                 foreach (int id in Protocols) pass &= handlers != null && !handlers.Contains(id);
+                pass &= handlers != null && !handlers.Contains(15221) && !handlers.Contains(15222);
                 Debug.Log("CLIVERIFY equip-read pass=" + pass);
             }
             finally

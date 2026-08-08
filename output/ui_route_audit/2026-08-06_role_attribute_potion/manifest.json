@@ -1,0 +1,1051 @@
+{
+  "route": "mainui.role.person.attribute-potion",
+  "nodes": [
+    {
+      "id": "mainui.role.person.attribute-potion",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "entry-open",
+          "kind": "secondary-navigation",
+          "child": "mainui.role.person.attribute-potion.entry-open"
+        },
+        {
+          "id": "entry-red-dot",
+          "kind": "conditional-red-dot",
+          "child": "mainui.role.person.attribute-potion.entry-red-dot"
+        },
+        {
+          "id": "identity-layout",
+          "kind": "page-identity-and-layout",
+          "child": "mainui.role.person.attribute-potion.identity-layout"
+        },
+        {
+          "id": "tier-tabs",
+          "kind": "four-tier-tabs",
+          "child": "mainui.role.person.attribute-potion.tiers"
+        },
+        {
+          "id": "usage-feedback",
+          "kind": "success-failure-feedback",
+          "child": "mainui.role.person.attribute-potion.usage-feedback"
+        },
+        {
+          "id": "first-use-guide",
+          "kind": "conditional-guide-finger",
+          "child": "mainui.role.person.attribute-potion.first-use-guide"
+        },
+        {
+          "id": "close",
+          "kind": "close-button",
+          "child": "mainui.role.person.attribute-potion.close"
+        },
+        {
+          "id": "mask-close",
+          "kind": "fullscreen-mask",
+          "child": "mainui.role.person.attribute-potion.mask-close"
+        },
+        {
+          "id": "reopen",
+          "kind": "window-reopen",
+          "child": "mainui.role.person.attribute-potion.reopen"
+        },
+        {
+          "id": "adaptation",
+          "kind": "mobile-web-adaptation",
+          "child": "mainui.role.person.attribute-potion.adaptation"
+        },
+        {
+          "id": "stability",
+          "kind": "cold-warm-resource-stability",
+          "child": "mainui.role.person.attribute-potion.stability"
+        }
+      ],
+      "note": "角色页独立增强药剂页面；4档×4行，共16种药剂。完整范围含物品详情与真实使用事务。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.entry-open",
+      "parent": "mainui.role.person.attribute-potion",
+      "type": "navigation",
+      "risk": "read-only",
+      "note": "主界面角色→人物页药水图标，必须真实Graphic点击进入 AttributePotionView，不得落占位。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.entry-red-dot",
+      "parent": "mainui.role.person.attribute-potion",
+      "type": "read",
+      "risk": "read-only",
+      "note": "入口红点由背包数量、21703/21701次数、日限/总限和功能开放共同决定，并随状态即时刷新。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.identity-layout",
+      "parent": "mainui.role.person.attribute-potion",
+      "type": "read",
+      "risk": "read-only",
+      "note": "647×655增强药剂页，Activity等价层、标题、两层底图、450高列表视口、底部四页签及全屏遮罩身份一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.usage-feedback",
+      "parent": "mainui.role.person.attribute-potion",
+      "type": "read",
+      "risk": "read-only",
+      "note": "覆盖道具不足、今日次数耗尽、永久上限耗尽、21700错误、提交演出和21701权威成功刷新；不得乐观扣包/改进度。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.first-use-guide",
+      "parent": "mainui.role.person.attribute-potion",
+      "type": "read",
+      "risk": "read-only",
+      "note": "老端首次使用会在首个可用药剂的使用按钮显示引导手指；仅在权威首次开放条件满足时出现，关闭、切页和完成后不得残留。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.close",
+      "parent": "mainui.role.person.attribute-potion",
+      "type": "return",
+      "risk": "read-only",
+      "note": "右上关闭只关药水页，人物页保持且无监听/特效残留。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.mask-close",
+      "parent": "mainui.role.person.attribute-potion",
+      "type": "return",
+      "risk": "read-only",
+      "note": "点击页外全屏遮罩关闭且不穿透人物页。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.reopen",
+      "parent": "mainui.role.person.attribute-potion",
+      "type": "return",
+      "risk": "read-only",
+      "note": "关闭后从人物页热重开；重新按当前权威状态选档、刷新16行，不累积克隆。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.adaptation",
+      "parent": "mainui.role.person.attribute-potion",
+      "type": "read",
+      "risk": "read-only",
+      "note": "720×1280移动端优先；1920×1080 Web中页面保持比例居中、遮罩覆盖全屏。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.stability",
+      "parent": "mainui.role.person.attribute-potion",
+      "type": "read",
+      "risk": "read-only",
+      "note": "记录cold/warm；第二次资源预检零导入/零配置，打开前后目录零新增，Player/catalog/source指纹同批。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tiers",
+      "parent": "mainui.role.person.attribute-potion",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "tier-1",
+          "kind": "tab-button",
+          "child": "mainui.role.person.attribute-potion.tier-1"
+        },
+        {
+          "id": "tier-2",
+          "kind": "tab-button",
+          "child": "mainui.role.person.attribute-potion.tier-2"
+        },
+        {
+          "id": "tier-3",
+          "kind": "tab-button",
+          "child": "mainui.role.person.attribute-potion.tier-3"
+        },
+        {
+          "id": "tier-4",
+          "kind": "tab-button",
+          "child": "mainui.role.person.attribute-potion.tier-4"
+        }
+      ],
+      "note": "底部初级/中级/高级/顶级四页签；选中底图、红点、列表、回顶和切页耗时逐档验证。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1",
+      "parent": "mainui.role.person.attribute-potion.tiers",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "item-56010001",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010001"
+        },
+        {
+          "id": "item-56010002",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010002"
+        },
+        {
+          "id": "item-56010003",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010003"
+        },
+        {
+          "id": "item-56010004",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010004"
+        },
+        {
+          "id": "elastic-list",
+          "kind": "vertical-list-elastic-return",
+          "child": "mainui.role.person.attribute-potion.tier-1.elastic-list"
+        }
+      ],
+      "note": "初级档：4种药剂；选中态、页签红点和4行数据均由当前背包与次数快照驱动。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.elastic-list",
+      "parent": "mainui.role.person.attribute-potion.tier-1",
+      "type": "read",
+      "risk": "read-only",
+      "note": "四行各120高、行距10，总内容高510，超出450高视口；真实拖动后Content必须上移、末行可达且仍受Viewport裁剪。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010001",
+      "parent": "mainui.role.person.attribute-potion.tier-1",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010001.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010001.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010001.use"
+        }
+      ],
+      "note": "药剂 56010001 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010001.display",
+      "parent": "mainui.role.person.attribute-potion.tier-1.item-56010001",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010001.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-1.item-56010001",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010001.use",
+      "parent": "mainui.role.person.attribute-potion.tier-1.item-56010001",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010002",
+      "parent": "mainui.role.person.attribute-potion.tier-1",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010002.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010002.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010002.use"
+        }
+      ],
+      "note": "药剂 56010002 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010002.display",
+      "parent": "mainui.role.person.attribute-potion.tier-1.item-56010002",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010002.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-1.item-56010002",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010002.use",
+      "parent": "mainui.role.person.attribute-potion.tier-1.item-56010002",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010003",
+      "parent": "mainui.role.person.attribute-potion.tier-1",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010003.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010003.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010003.use"
+        }
+      ],
+      "note": "药剂 56010003 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010003.display",
+      "parent": "mainui.role.person.attribute-potion.tier-1.item-56010003",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010003.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-1.item-56010003",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010003.use",
+      "parent": "mainui.role.person.attribute-potion.tier-1.item-56010003",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010004",
+      "parent": "mainui.role.person.attribute-potion.tier-1",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010004.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010004.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-1.item-56010004.use"
+        }
+      ],
+      "note": "药剂 56010004 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010004.display",
+      "parent": "mainui.role.person.attribute-potion.tier-1.item-56010004",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010004.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-1.item-56010004",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-1.item-56010004.use",
+      "parent": "mainui.role.person.attribute-potion.tier-1.item-56010004",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2",
+      "parent": "mainui.role.person.attribute-potion.tiers",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "item-56020001",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020001"
+        },
+        {
+          "id": "item-56020002",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020002"
+        },
+        {
+          "id": "item-56020003",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020003"
+        },
+        {
+          "id": "item-56020004",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020004"
+        },
+        {
+          "id": "elastic-list",
+          "kind": "vertical-list-elastic-return",
+          "child": "mainui.role.person.attribute-potion.tier-2.elastic-list"
+        }
+      ],
+      "note": "中级档：4种药剂；选中态、页签红点和4行数据均由当前背包与次数快照驱动。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.elastic-list",
+      "parent": "mainui.role.person.attribute-potion.tier-2",
+      "type": "read",
+      "risk": "read-only",
+      "note": "四行各120高、行距10，总内容高510，超出450高视口；真实拖动后Content必须上移、末行可达且仍受Viewport裁剪。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020001",
+      "parent": "mainui.role.person.attribute-potion.tier-2",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020001.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020001.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020001.use"
+        }
+      ],
+      "note": "药剂 56020001 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020001.display",
+      "parent": "mainui.role.person.attribute-potion.tier-2.item-56020001",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020001.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-2.item-56020001",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020001.use",
+      "parent": "mainui.role.person.attribute-potion.tier-2.item-56020001",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020002",
+      "parent": "mainui.role.person.attribute-potion.tier-2",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020002.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020002.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020002.use"
+        }
+      ],
+      "note": "药剂 56020002 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020002.display",
+      "parent": "mainui.role.person.attribute-potion.tier-2.item-56020002",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020002.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-2.item-56020002",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020002.use",
+      "parent": "mainui.role.person.attribute-potion.tier-2.item-56020002",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020003",
+      "parent": "mainui.role.person.attribute-potion.tier-2",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020003.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020003.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020003.use"
+        }
+      ],
+      "note": "药剂 56020003 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020003.display",
+      "parent": "mainui.role.person.attribute-potion.tier-2.item-56020003",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020003.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-2.item-56020003",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020003.use",
+      "parent": "mainui.role.person.attribute-potion.tier-2.item-56020003",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020004",
+      "parent": "mainui.role.person.attribute-potion.tier-2",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020004.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020004.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-2.item-56020004.use"
+        }
+      ],
+      "note": "药剂 56020004 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020004.display",
+      "parent": "mainui.role.person.attribute-potion.tier-2.item-56020004",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020004.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-2.item-56020004",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-2.item-56020004.use",
+      "parent": "mainui.role.person.attribute-potion.tier-2.item-56020004",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3",
+      "parent": "mainui.role.person.attribute-potion.tiers",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "item-56030001",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030001"
+        },
+        {
+          "id": "item-56030002",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030002"
+        },
+        {
+          "id": "item-56030003",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030003"
+        },
+        {
+          "id": "item-56030004",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030004"
+        },
+        {
+          "id": "elastic-list",
+          "kind": "vertical-list-elastic-return",
+          "child": "mainui.role.person.attribute-potion.tier-3.elastic-list"
+        }
+      ],
+      "note": "高级档：4种药剂；选中态、页签红点和4行数据均由当前背包与次数快照驱动。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.elastic-list",
+      "parent": "mainui.role.person.attribute-potion.tier-3",
+      "type": "read",
+      "risk": "read-only",
+      "note": "四行各120高、行距10，总内容高510，超出450高视口；真实拖动后Content必须上移、末行可达且仍受Viewport裁剪。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030001",
+      "parent": "mainui.role.person.attribute-potion.tier-3",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030001.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030001.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030001.use"
+        }
+      ],
+      "note": "药剂 56030001 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030001.display",
+      "parent": "mainui.role.person.attribute-potion.tier-3.item-56030001",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030001.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-3.item-56030001",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030001.use",
+      "parent": "mainui.role.person.attribute-potion.tier-3.item-56030001",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030002",
+      "parent": "mainui.role.person.attribute-potion.tier-3",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030002.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030002.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030002.use"
+        }
+      ],
+      "note": "药剂 56030002 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030002.display",
+      "parent": "mainui.role.person.attribute-potion.tier-3.item-56030002",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030002.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-3.item-56030002",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030002.use",
+      "parent": "mainui.role.person.attribute-potion.tier-3.item-56030002",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030003",
+      "parent": "mainui.role.person.attribute-potion.tier-3",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030003.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030003.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030003.use"
+        }
+      ],
+      "note": "药剂 56030003 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030003.display",
+      "parent": "mainui.role.person.attribute-potion.tier-3.item-56030003",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030003.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-3.item-56030003",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030003.use",
+      "parent": "mainui.role.person.attribute-potion.tier-3.item-56030003",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030004",
+      "parent": "mainui.role.person.attribute-potion.tier-3",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030004.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030004.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-3.item-56030004.use"
+        }
+      ],
+      "note": "药剂 56030004 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030004.display",
+      "parent": "mainui.role.person.attribute-potion.tier-3.item-56030004",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030004.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-3.item-56030004",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-3.item-56030004.use",
+      "parent": "mainui.role.person.attribute-potion.tier-3.item-56030004",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4",
+      "parent": "mainui.role.person.attribute-potion.tiers",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "item-56040001",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040001"
+        },
+        {
+          "id": "item-56040002",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040002"
+        },
+        {
+          "id": "item-56040003",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040003"
+        },
+        {
+          "id": "item-56040004",
+          "kind": "potion-row",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040004"
+        },
+        {
+          "id": "elastic-list",
+          "kind": "vertical-list-elastic-return",
+          "child": "mainui.role.person.attribute-potion.tier-4.elastic-list"
+        }
+      ],
+      "note": "顶级档：4种药剂；选中态、页签红点和4行数据均由当前背包与次数快照驱动。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.elastic-list",
+      "parent": "mainui.role.person.attribute-potion.tier-4",
+      "type": "read",
+      "risk": "read-only",
+      "note": "四行各120高、行距10，总内容高510，超出450高视口；真实拖动后Content必须上移、末行可达且仍受Viewport裁剪。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040001",
+      "parent": "mainui.role.person.attribute-potion.tier-4",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040001.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040001.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040001.use"
+        }
+      ],
+      "note": "药剂 56040001 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040001.display",
+      "parent": "mainui.role.person.attribute-potion.tier-4.item-56040001",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040001.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-4.item-56040001",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040001.use",
+      "parent": "mainui.role.person.attribute-potion.tier-4.item-56040001",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040002",
+      "parent": "mainui.role.person.attribute-potion.tier-4",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040002.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040002.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040002.use"
+        }
+      ],
+      "note": "药剂 56040002 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040002.display",
+      "parent": "mainui.role.person.attribute-potion.tier-4.item-56040002",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040002.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-4.item-56040002",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040002.use",
+      "parent": "mainui.role.person.attribute-potion.tier-4.item-56040002",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040003",
+      "parent": "mainui.role.person.attribute-potion.tier-4",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040003.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040003.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040003.use"
+        }
+      ],
+      "note": "药剂 56040003 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040003.display",
+      "parent": "mainui.role.person.attribute-potion.tier-4.item-56040003",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040003.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-4.item-56040003",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040003.use",
+      "parent": "mainui.role.person.attribute-potion.tier-4.item-56040003",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040004",
+      "parent": "mainui.role.person.attribute-potion.tier-4",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "display",
+          "kind": "name-icon-count-attr-progress-red-dot",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040004.display"
+        },
+        {
+          "id": "detail",
+          "kind": "goods-icon-detail",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040004.detail"
+        },
+        {
+          "id": "use",
+          "kind": "use-button",
+          "child": "mainui.role.person.attribute-potion.tier-4.item-56040004.use"
+        }
+      ],
+      "note": "药剂 56040004 行；显示、详情和使用均须独立验证，不能由同档其他行代验。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040004.display",
+      "parent": "mainui.role.person.attribute-potion.tier-4.item-56040004",
+      "type": "read",
+      "risk": "read-only",
+      "note": "真实名称/品质色/图标/背包数量、累计属性、current/all进度和可用红点与配置及权威状态一致。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040004.detail",
+      "parent": "mainui.role.person.attribute-potion.tier-4.item-56040004",
+      "type": "read",
+      "risk": "read-only",
+      "note": "点击物品格打开该具体药剂的 GoodsTooltips；核对目标typeId、品质底图、介绍、数量、遮罩、关闭和热开。"
+    },
+    {
+      "id": "mainui.role.person.attribute-potion.tier-4.item-56040004.use",
+      "parent": "mainui.role.person.attribute-potion.tier-4.item-56040004",
+      "type": "transaction",
+      "risk": "destructive-write",
+      "note": "点击使用按背包、日剩余、总剩余裁剪数量并精确发送21702(iic)；所有16个按钮均用可控帧验证，真实账号成功消耗需先列数量确认。"
+    }
+  ]
+}

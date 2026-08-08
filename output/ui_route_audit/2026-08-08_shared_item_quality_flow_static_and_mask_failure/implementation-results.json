@@ -1,0 +1,46 @@
+[
+  {
+    "id": "shared.item.presentation.slot",
+    "status": "needs-runtime-verify",
+    "note": "已修正六套品质动画的 BaseMap UV 消费链，并让共享特效实例裁切继承有效祖先 RectMask2D/Mask；静态资产审计与三工程编译通过，双时间点像素变化、Viewport 三态和关闭重开仍待真实运行复验。",
+    "gates": {
+      "shared_component_identity": true,
+      "component_state_matrix": false,
+      "runtime_state": false,
+      "render_completion": false,
+      "effect_match": false,
+      "reopen": false
+    },
+    "component_state_evidence": [
+      "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/static-fix-result.md"
+    ],
+    "state_evidence": [
+      "静态审计确认 8 个动画资产的 80 条 _BaseMap_ST 曲线均有材质消费分支；真实时间推进与像素差仍待运行态。",
+      "UIEffectStage 已实现槽位矩形与祖先 RectMask2D/Mask 交集；完整/部分/完全滚出三态仍待运行态。"
+    ],
+    "evidence": [
+      "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/static-fix-result.md"
+    ]
+  },
+  {
+    "id": "shared.item.presentation.representative-regression",
+    "status": "needs-runtime-verify",
+    "note": "共享根因已定向修复，背包高频代表消费者不再停留在 fixing/defect；尚未执行背包滚动三态和其余代表宿主真实像素抽查，因此不能标 done。",
+    "gates": {
+      "shared_component_identity": true,
+      "component_state_matrix": false,
+      "runtime_state": false,
+      "visual_match": false,
+      "return_chain": false
+    },
+    "component_state_evidence": [
+      "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/static-fix-result.md"
+    ],
+    "state_evidence": [
+      "目标页与背包代表样本的共享代码已修复；不机械回卷所有消费者，也不以静态检查代替抽样。"
+    ],
+    "evidence": [
+      "output/ui_route_audit/2026-08-08_shared_item_quality_flow_static_and_mask_failure/static-fix-result.md"
+    ]
+  }
+]

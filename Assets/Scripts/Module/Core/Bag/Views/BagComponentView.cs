@@ -9,6 +9,7 @@ using Shenxiao.Framework.Util;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Equip;
 using Shenxiao.Module.Core.Login;
+using Shenxiao.Module.Core.Resonance;
 using Shenxiao.Module.Core.Role;
 using UnityEngine;
 using UnityEngine.UI;
@@ -89,6 +90,7 @@ namespace Shenxiao.Module.Core.Bag
             if (_subscribed) return;
             EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, BuildGrid);
             EventDispatcher.On(GlobalEvent.EVT_EQUIPMENT_UPDATE, RefreshEquipmentSlots);
+            EventDispatcher.On(GlobalEvent.EVT_EQUIP_SUIT_UPDATE, RefreshEquipmentSlots);
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             _subscribed = true;
         }
@@ -98,6 +100,7 @@ namespace Shenxiao.Module.Core.Bag
             if (!_subscribed) return;
             EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, BuildGrid);
             EventDispatcher.Off(GlobalEvent.EVT_EQUIPMENT_UPDATE, RefreshEquipmentSlots);
+            EventDispatcher.Off(GlobalEvent.EVT_EQUIP_SUIT_UPDATE, RefreshEquipmentSlots);
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
             _subscribed = false;
         }
@@ -111,7 +114,7 @@ namespace Shenxiao.Module.Core.Bag
         /// <summary>登录时 15010 可能早于 config_goods；配置到齐后重绑一次，恢复真实图标和 equip_type 槽位。</summary>
         private async Task RefreshAfterGoodsConfigAsync()
         {
-            await GoodsModel.EnsureLoaded();
+            await Task.WhenAll(GoodsModel.EnsureLoaded(), ResonanceConfigs.EnsureLoaded());
             if (!IsShown) return;
             RefreshEquipmentSlots();
             BuildGrid();
@@ -372,6 +375,7 @@ namespace Shenxiao.Module.Core.Bag
                 if (icon != null)
                 {
                     icon.Show();
+                    icon.SetEquipPosition(pos);
                     _equipmentSlots.Add(icon);
                 }
             }

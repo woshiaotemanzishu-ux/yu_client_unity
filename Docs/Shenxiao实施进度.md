@@ -1977,3 +1977,29 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **修复**：角色块识别主角后立即返回，恢复“主角不进入其他玩家表”的既有边界；称号展示层同时拒绝并清理主角同 ID 普通条目，兼容热重载前已存在的脏数据。未修改称号资源、Prefab、排序或正常跟随公式。
 - **门禁**：新增 `CliVerify.DesignationMainGhost` 无资源依赖专项，并扩展 `DesignationWearSceneCase`，强制构造主角同 ID 快照、移动主角并断言快照过滤、唯一实例、跟随位移、清场与现场恢复。
 - **验证状态**：修前稳定得到 `noDuplicateMain=False/stationaryGhostObserved=True`；修后专项 `snapshotFiltered/initialPosition/followsMain/noStaticGhost/restored` 全部为 `True`。720×1280 与 1920×1080 的完整称号场景均为 `VERDICT pass=True`，包含静态/动态称号、41105、位置、隐藏规则、清场和动态 RT 有效像素；两档 RT 的 `alpha/lit` 分别为 `19958/20994`、`19940/20971`。Core/Editor 离线构建均为 0 error（97/2 条既有 warning），专项路线账本 2/2 `done`；证据位于 `output/ui_route_audit/2026-08-06_designation_ghost/`。
+
+## 2026-08-07：人物→共鸣模块首次落地与 UI 精修
+
+- **历史 blocker 更正**：2026-07-29 记录的“共鸣无可编辑 Prefab、15221/15222 保持 hard-negative”已被本轮实现取代。现已落成 `SuitModule.prefab`、三张同源配置和完整业务消费者；15221/15222 已移出 hard-negative，15218 仍为真实神装升阶事务并保持 hard-negative，152 族继续 `pending`，冻结 baseline 历史计数不动。
+- **逐叶清单**：同账号老 H5 枚举四页签 `6/6/6/4` 共 22 个部位、`16/10/8/12` 共 46 档属性。三轮人工复查回卷后，458 节点账本当前 `done=264 / blocked=80 / needs-runtime-verify=114`；80 个 blocked 包含 44 个写事务最终确认叶及其父节点传播、4 个无权威切片的条件礼包叶，不代表 80 个独立功能缺口。114 个待运行节点含原有 3 个 Web/适配/性能叶、共鸣路线内 66 个被用户截图推翻的目标叶、44 个材料详情/材料组父节点和全局特效叶；共享格的外部引用只按消费形态做代表性抽查，不机械重开全部页面。
+- **Prefab 与视觉**：当前可编辑 Prefab 保存页签、滚动、说明、预览、回退和遮罩；修复万物页第三种材料被 200px 视口裁剪的问题，最终视口 320px、三格同时可见并逐格可点。装备展示按老端使用 plate 4，业务品质仍保留真实 Color 7；说明编号纠正为 1524。
+- **功能与协议**：15221/15222 完成配置/角色/装备/背包/15220 就绪、装备与材料指纹冻结、二次确认、同页单飞、15200/12秒超时、失败保旧、主动推送及 15220/背包/已穿装备/邮件权威重拉；禁止乐观扣物、返物或本地发奖。本轮没有向真实账号发送 15221/15222。
+- **首轮 Editor 验收与三次人工回卷**：首轮曾得到 `positions=22/22`、`stages=46/46`、材料详情 `40/40`、打造取消 22、特效预览 18、回退预览 22、`code=0/verdict=pass/restored=true`。第一次人工截图发现部位装备格缺特效框、材料组未整体居中、共享详情类型换行且单按钮偏左；第二次特写证明旧 `>=8` 像素门禁不能代表完整流光；第三次纠正确认流光属于明确 opt-in 的已穿戴物品槽，把槽位倍率同时写入页面中央 Presenter 会生成错误贴身框，而且共享 `EquipmentItem`/`BaseAwardItem` 根组件被删会让背包装备位与普通格一起退化为空灰格。现已恢复两个共享根组件，保留已确认的透明空 Image 修正；共鸣边缘格和 `BagEquipmentIcon` 仅在精确当前穿戴实例满足共鸣状态时调用槽位流光，普通背包格、材料、奖励、详情及中央当前/下一阶保持 off，中央/预览继续走页面独立特效链。门禁同时覆盖精确 Handle 二维足迹、中央所有权隔离、背包装备位与普通格两个高频代表。材料与详情仍由 `SuitModule.costList.content`、`CommonModule.GoodsTooltips` 共享修复。Core/Editor 串行 build 均为 0 error，台账自测与 458 节点校验通过；修后真实运行尚未执行，相关路线保持待验。证据和完整边界见 [共鸣模块 UI 精修与路由验收](RuntimeCompare/共鸣模块UI精修-20260807.md)。
+- **未执行**：当前目标平台为 Android，未切换/构建 WebGL，因此没有当前 Player/catalog 哈希或同账号 old/unity/overlay/diff；真实 15221/15222 成功因会消耗账号资产保持 blocked；`eGongMing` 条件礼包缺权威切片和购买页，继续隐藏。三项均不能由 Editor 结果替代。
+
+## 2026-08-07：共享物品槽与物品详情精修
+
+- **范围**：共鸣页面本身保持不动，只修它与背包、装备位共同依赖的 `BaseAwardItem`、`EquipmentItem`、`BagItemRenderer` 和 `CommonModule` 两类详情。
+- **共享槽**：移除 `BagItemRenderer.SetData` 末尾无条件隐藏覆盖层的旧降级；恢复绑定锁、配置/实例限时、装备阶数/四星/劣质标、穿戴条件禁用及同部位 rating 升降比较；已穿戴格同步实例品质、强化和实例限时。`config_goods.effect_id` 的六种品质流光重新归属到共享槽 `effect_con`，与明确 opt-in 的套装/共鸣 `effBox*` 独立管理；父页失活释放 Handle、同数据重开恢复，两类期望状态互不清除；15010 `expire_time` 已进入 `BagGoods`。
+- **详情**：普通物品从 `getway_url` 读取来源序列并按当前老端 `GoodsSourceConfig` 显示名称，详情/来源/按钮按 TMP preferred height 自适应且限制在 450～680，来源与按钮留 8px 间距；装备详情只调用共享槽 setter 写实例品质、强化、阶星、劣质与限时，普通装备不再错误打开专用品阶背景。
+- **资源与门禁**：新增 Addressable `resource/config/client/goodssourceconfig`，内容与老端当前源逐字符一致（仅文件末尾换行差异）；`BagInteractionCase` 增加共享表现节点和 `17020001` 三来源、不重叠、背景包围门禁。
+- **验证状态**：`Shenxiao.Module.Core.csproj`（84 个既有 warning）和 `Shenxiao.Editor.csproj`（2 个既有 warning）均 0 error。schema 5 专项台账 5/5 节点均为 `needs-runtime-verify`，共享消费者清单与仓库重算结果 `80/80`、`81/81` 一致。按用户不在电脑前及前台保护约束未启动 Unity，新增专项、真实流光像素、背包/装备位/共鸣代表抽查和详情截图尚未执行；证据位于 `output/ui_route_audit/2026-08-07_shared_item_presentation/`。
+
+## 2026-08-08：共享物品槽品质流光越界回卷
+
+- **人工证据与根因**：新背包截图显示巨大亮色折线散落在装备位、普通格、底栏和页面空白处，推翻 2026-08-07 的品质流光视觉结论。老端 `BaseAwardItem.SetItemEffect` 的 `scale=14` 依赖每格独立、按宿主宽高裁切的 RenderTexture；Unity 共享全屏通道漏了六种品质资源的实例裁切，且 `BaseAwardItem.prefab/effect_con` 仍为左上角 0×0，二者共同造成越界和偏移。
+- **最小修复**：保留 `ui_goods_orange/ui_goods_red/ui_goods_gold/ui_goods_pink/UI_1309/UI_1310` 原动画与老端倍率；把 BaseAward 宿主改为围绕底板居中的 140×140，EquipmentItem 沿用老端边距宿主；两个共享 View 不再硬传固定 `renderSize`，六个精确 profile 开启 `clipToRenderRect`。没有修改背包页面坐标，也没有增加静态框。
+- **防回归与状态**：`BagInteractionCase` 同时检查两个宿主非零居中、六个 profile 精确命中并裁切、资源仍有 Animation/ParticleSystem、所有材质仍使用支持 `_UIEffectClip*` 的 `Shenxiao/Effect/LayaParticleUnlit`。`Shenxiao.Common/Module.Core/Editor` 离线编译 0 error；用户失败证据保存在 `output/ui_route_audit/2026-08-08_shared_item_quality_flow_user_failure/`，专项台账先回卷为 defect。由于未获本轮占用 Unity 的明确许可，新的动画双时刻、alpha 包围盒和四个代表消费者尚未执行，最终状态保持 `needs-runtime-verify`。
+- **第二轮动态与层级回卷**：位置修正后的新截图仍显示静止框，且列表底部已经滚出的物品只剩流光压在背包/仓库页签上。静态追链确认六个品质资源共 80 条 UV 曲线只写 `_BaseMap_ST`，而闭包内 27 个材质没有选择 shader 的 BaseMap UV 分支；现只给这 27 个材质写入 `_UseBaseMapST=1`。共享通道 `RawImage` 位于页面根、不会继承 `Viewport/RectMask2D`，因此 `UIEffectStage` 追加槽位矩形与有效祖先 `RectMask2D/Mask` 的逐帧交集，完全离开 viewport 时隐藏对应 wrapper；诊断同时公开动画播放时间、祖先遮罩数、实际裁切矩形和可见比例。
+- **新增门禁与待验边界**：`BagInteractionCase` 现在要求 Legacy Animation 自动播放/AlwaysAnimate、循环 UV 曲线有真实数值变化、shader 正确且 `_BaseMap_ST` 曲线确实由材质分支消费，并确认背包真实 Viewport 带 `RectMask2D`。通用 `fix-view/audit-game-ui-route` 流程已增加“同一隔离 Handle 双时间点像素差”和“完整可见/部分裁切/完全滚出零 alpha”证据要求。三个工程继续编译为 0 error；本轮没有启动或控制 Unity，所以当前只从 `defect` 前进到 `needs-runtime-verify`，不得宣称动态和层级已经通过。
+- **最终人工确认与完成边界**：用户重进运行态后确认品质流光已正常运动，背包底部滚出时也不再留下孤立框，本次“静态首帧 + viewport 泄漏”缺陷已由高频背包代表消费者人工验收。该确认不会自动覆盖尚未复走的普通详情、装备详情、其他宿主状态矩阵和真实 Web 双端证据；专项台账继续按未覆盖闸口保留 `needs-runtime-verify`，避免把局部修复扩大成整模块完成。

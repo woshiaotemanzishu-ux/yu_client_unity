@@ -1,0 +1,840 @@
+[
+  {
+    "id": "mainui.role.person.attribute-potion.entry-open",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "target_identity",
+      "timing"
+    ],
+    "gates": {
+      "click": true,
+      "target_identity": true,
+      "timing": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ],
+    "timing": {
+      "cold_ms": 472,
+      "warm_ms": 5
+    },
+    "identity_evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/role_potion_entry.png"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.entry-red-dot",
+    "status": "done",
+    "applicable_gates": [
+      "runtime_state"
+    ],
+    "gates": {
+      "runtime_state": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ],
+    "state_evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/role_potion_entry.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.identity-layout",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/old_baseline_v2/_shots/62_attribute_potion_tier4.png",
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier4.png",
+      "missing current Web same-state diff"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.usage-feedback",
+    "status": "done",
+    "applicable_gates": [
+      "protocol",
+      "immediate",
+      "runtime_state"
+    ],
+    "gates": {
+      "protocol": true,
+      "immediate": true,
+      "runtime_state": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log",
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_authoritative_refresh.png",
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_bag_refresh.png"
+    ],
+    "state_evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_authoritative_refresh.png",
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_bag_refresh.png"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.first-use-guide",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier1_guide.png",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log",
+      "missing current Web same-state effect comparison"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.close",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "return_chain"
+    ],
+    "gates": {
+      "click": true,
+      "return_chain": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_reopen.png"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.mask-close",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "return_chain"
+    ],
+    "gates": {
+      "click": true,
+      "return_chain": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_mask_closed.png"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.reopen",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "reopen",
+      "timing",
+      "target_identity"
+    ],
+    "gates": {
+      "click": true,
+      "reopen": true,
+      "timing": true,
+      "target_identity": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_reopen.png"
+    ],
+    "timing": {
+      "cold_ms": 472,
+      "warm_ms": 5
+    },
+    "identity_evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_reopen.png"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.adaptation",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier4.png",
+      "720x1280 CLI passed; 1920x1080 current Web not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.stability",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "cold_ms=472 warm_ms=5; current Player/catalog/source fingerprint report not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-1.elastic-list",
+    "status": "done",
+    "applicable_gates": [
+      "layout_structure",
+      "scroll_interaction"
+    ],
+    "gates": {
+      "layout_structure": true,
+      "scroll_interaction": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ],
+    "layout_evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ],
+    "interaction_evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier1_bottom.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-1.item-56010001.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier1.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-1.item-56010001.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-1.item-56010001.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-1.item-56010002.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier1.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-1.item-56010002.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-1.item-56010002.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-1.item-56010003.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier1.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-1.item-56010003.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-1.item-56010003.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-1.item-56010004.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier1.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-1.item-56010004.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-1.item-56010004.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-2.elastic-list",
+    "status": "done",
+    "applicable_gates": [
+      "layout_structure",
+      "scroll_interaction"
+    ],
+    "gates": {
+      "layout_structure": true,
+      "scroll_interaction": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ],
+    "layout_evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ],
+    "interaction_evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier1_bottom.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-2.item-56020001.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier2.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-2.item-56020001.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-2.item-56020001.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-2.item-56020002.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier2.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-2.item-56020002.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-2.item-56020002.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-2.item-56020003.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier2.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-2.item-56020003.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-2.item-56020003.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-2.item-56020004.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier2.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-2.item-56020004.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-2.item-56020004.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-3.elastic-list",
+    "status": "done",
+    "applicable_gates": [
+      "layout_structure",
+      "scroll_interaction"
+    ],
+    "gates": {
+      "layout_structure": true,
+      "scroll_interaction": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ],
+    "layout_evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ],
+    "interaction_evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier1_bottom.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-3.item-56030001.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier3.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-3.item-56030001.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-3.item-56030001.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-3.item-56030002.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier3.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-3.item-56030002.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-3.item-56030002.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-3.item-56030003.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier3.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-3.item-56030003.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-3.item-56030003.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-3.item-56030004.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier3.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-3.item-56030004.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-3.item-56030004.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-4.elastic-list",
+    "status": "done",
+    "applicable_gates": [
+      "layout_structure",
+      "scroll_interaction"
+    ],
+    "gates": {
+      "layout_structure": true,
+      "scroll_interaction": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ],
+    "layout_evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ],
+    "interaction_evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier1_bottom.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-4.item-56040001.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier4.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-4.item-56040001.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-4.item-56040001.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-4.item-56040002.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier4.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-4.item-56040002.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-4.item-56040002.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-4.item-56040003.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier4.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-4.item-56040003.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-4.item-56040003.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-4.item-56040004.display",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_tier4.png",
+      "CLI structure/state passed; current Web same-state pixel diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-4.item-56040004.detail",
+    "status": "needs-runtime-verify",
+    "evidence": [
+      "output/ui_route_audit/2026-08-06_role_attribute_potion/cli/2026-08-06_2000_final/potion_item_detail_first.png",
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "all 16 exact GoodsTooltips identities and close chains passed; current Web per-state visual diff not run"
+    ]
+  },
+  {
+    "id": "mainui.role.person.attribute-potion.tier-4.item-56040004.use",
+    "status": "done",
+    "applicable_gates": [
+      "click",
+      "protocol",
+      "immediate",
+      "restore"
+    ],
+    "gates": {
+      "click": true,
+      "protocol": true,
+      "immediate": true,
+      "restore": true
+    },
+    "evidence": [
+      "Temp/cliverify_role_attribute_potion_route_20260806_2000.log",
+      "Temp/cliverify_attribute_potion_protocol_20260806_2002.log"
+    ]
+  }
+]

@@ -1,5 +1,6 @@
 using Shenxiao.Generated.UI.Bag;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Role;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Bag
@@ -12,7 +13,7 @@ namespace Shenxiao.Module.Core.Bag
     /// 故克隆即得可用 View → SetData 走真实图标(对标 BaseAwardItem.SetData → GoodsModel.config_goods 图标/品质底板)。
     /// 列表项常被 <see cref="Views.BagComponentView"/> 克隆后直接 SetData(不经 BaseView.Show),OnInit 不会自动跑 →
     /// 用 <see cref="EnsureInit"/> 幂等保证模板克隆 + 覆盖件隐藏就位(不依赖 Show 时序)。
-    /// 装备态覆盖件(grade/star/装备升降/锁/限时/红点)依赖装备配置(config_equip_attr 等,未移植)→ 本轮先隐藏,待装备系统补。
+    /// 装备态覆盖件由共享格自身按 config_equip_attr + BagGoods 实例态恢复；列表页不再把这些状态一刀切隐藏。
     /// </summary>
     public sealed class BagItemRenderer : BagItemRendererBind
     {
@@ -35,7 +36,7 @@ namespace Shenxiao.Module.Core.Bag
                 go.SetActive(true);
                 _item = go.GetComponent<BaseAwardItem>();
             }
-            HideOverlays();
+            ResetOverlays();
         }
 
         /// <summary>填格子数据(对标 dataChanged);null/Count&lt;=0 = 空槽。有物品则走 BaseAwardItem 真实图标 + 品质底板 + 数量。</summary>
@@ -44,16 +45,19 @@ namespace Shenxiao.Module.Core.Bag
             EnsureInit();
             bool hasItem = data != null && data.Count > 0;
             ShowEmpty(!hasItem);
+            ResetOverlays();
 
             // 真实图标 + 品质底板 + 数量(对标 BaseAwardItem.SetData → GoodsModel.GetGoodsBasicByTypeId → goods_icon/color)。
             if (hasItem && _item != null)
             {
-                _item.SetData(data.TypeId, data.Count);
+                bool bound = data.Goods != null && data.Goods.Bind != 0;
+                _item.SetData(data.TypeId, data.Count, bound);
                 // 点击带 BagGoods 实例 → 装备实例 tips(极品 equip_extra_attr / 强化 stren);无实例(完成弹层等)走 BaseAwardItem 默认 Show(typeId,num)。
                 if (data.Goods != null) _item.SetClickCallBack(() => ItemTipsView.Show(data.Goods));
+                else _item.SetClickCallBack(null);
             }
 
-            HideOverlays();  // 品质角标/星级/装备升降/锁/限时/红点 依赖装备配置(未移植),本轮先隐藏
+            if (hasItem) RefreshPresentation(data);
         }
 
         private void ShowEmpty(bool empty)
@@ -62,17 +66,71 @@ namespace Shenxiao.Module.Core.Bag
             if (_item != null) _item.gameObject.SetActive(!empty);
         }
 
-        private void HideOverlays()
+        private void ResetOverlays()
         {
-            if (up != null) up.gameObject.SetActive(false);
-            if (down != null) down.gameObject.SetActive(false);
-            if (ban != null) ban.gameObject.SetActive(false);
+            SetActive(up, false);
+            SetActive(down, false);
+            SetActive(ban, false);
+            SetActive(grade, false);
             if (grade != null) grade.text = "";
-            if (star_group != null) star_group.gameObject.SetActive(false);
-            if (@lock != null) @lock.gameObject.SetActive(false);
-            if (time_limit != null) time_limit.gameObject.SetActive(false);
-            if (redMask != null) redMask.gameObject.SetActive(false);
-            if (_bad_icon != null) _bad_icon.gameObject.SetActive(false);
+            SetActive(star_group, false);
+            SetActive(star_1, false);
+            SetActive(star_2, false);
+            SetActive(star_3, false);
+            SetActive(star_4, false);
+            SetActive(@lock, false);
+            SetActive(time_limit, false);
+            SetActive(redMask, false);
+            SetActive(_bad_icon, false);
+            SetActive(group_eff, false);
+        }
+
+        private void RefreshPresentation(BagItemData data)
+        {
+            BagGoods goods = data?.Goods;
+            GoodsModel.GoodsBasic basic = GoodsModel.GetGoodsBasicByTypeId(data?.TypeId ?? 0);
+            if (basic == null) return;
+
+            // BaseAwardItem 负责配置型限时；背包外层补实例 expire_time，与老端 BagItemRenderer 一致。
+            SetActive(time_limit, goods != null && goods.ExpireTime > 0);
+            if (basic.Type != 10) return;
+
+            GoodsModel.EquipAttr equip = GoodsModel.GetEquipAttr(data.TypeId);
+            int stage = equip?.Stage ?? 0;
+            int star = Mathf.Clamp(equip?.Star ?? 0, 0, 4);
+            if (grade != null)
+            {
+                grade.text = stage > 0 ? stage + "阶" : "";
+                grade.gameObject.SetActive(stage > 0);
+            }
+            SetActive(star_group, star > 0);
+            SetActive(star_1, star >= 1);
+            SetActive(star_2, star >= 2);
+            SetActive(star_3, star >= 3);
+            SetActive(star_4, star >= 4);
+            SetActive(_bad_icon, equip?.ClassType == 1);
+
+            bool blocked = !CanWear(basic);
+            SetActive(ban, blocked);
+            if (blocked || goods == null) return;
+
+            BagGoods worn = basic.EquipType > 0 ? BagModel.Instance.GetEquipmentAt(basic.EquipType) : null;
+            SetActive(up, worn == null || worn.Rating < goods.Rating);
+            SetActive(down, worn != null && worn.Rating > goods.Rating);
+        }
+
+        private static bool CanWear(GoodsModel.GoodsBasic basic)
+        {
+            RoleModel role = RoleModel.Instance;
+            if (role.Level < basic.Level) return false;
+            if (basic.CareerId != 0 && basic.CareerId != role.Career) return false;
+            if (basic.Sex != 0 && basic.Sex != role.Sex) return false;
+            return basic.Turn <= (role.Figure?.turn ?? 0);
+        }
+
+        private static void SetActive(Component component, bool active)
+        {
+            if (component != null) component.gameObject.SetActive(active);
         }
     }
 

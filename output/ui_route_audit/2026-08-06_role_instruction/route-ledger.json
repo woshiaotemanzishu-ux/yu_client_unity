@@ -1,0 +1,154 @@
+{
+  "schema": 4,
+  "route": "mainui.role.person.instruction",
+  "baseline": {},
+  "nodes": [
+    {
+      "id": "mainui.role.person.instruction",
+      "type": "page",
+      "risk": "read",
+      "control_inventory": [
+        {
+          "id": "entry-open",
+          "kind": "help-button",
+          "child": "mainui.role.person.instruction.entry-open"
+        },
+        {
+          "id": "identity-layer",
+          "kind": "popup-identity",
+          "child": "mainui.role.person.instruction.identity-layer"
+        },
+        {
+          "id": "content",
+          "kind": "title-section-lines",
+          "child": "mainui.role.person.instruction.content"
+        },
+        {
+          "id": "scroll",
+          "kind": "vertical-scroll",
+          "child": "mainui.role.person.instruction.scroll"
+        },
+        {
+          "id": "close",
+          "kind": "close-button",
+          "child": "mainui.role.person.instruction.close"
+        },
+        {
+          "id": "mask-close",
+          "kind": "fullscreen-mask",
+          "child": "mainui.role.person.instruction.mask-close"
+        },
+        {
+          "id": "reopen",
+          "kind": "window-reopen",
+          "child": "mainui.role.person.instruction.reopen"
+        },
+        {
+          "id": "adaptation",
+          "kind": "mobile-web-adaptation",
+          "child": "mainui.role.person.instruction.adaptation"
+        },
+        {
+          "id": "stability",
+          "kind": "cold-warm-resource-stability",
+          "child": "mainui.role.person.instruction.stability"
+        }
+      ],
+      "note": "人物页属性说明完整叶子；配置键 ConfigInstruction[453]。",
+      "parent": null,
+      "status": "not-run",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.person.instruction.entry-open",
+      "parent": "mainui.role.person.instruction",
+      "type": "navigation",
+      "risk": "read",
+      "note": "从主界面真实点击角色，再真实点击人物页问号进入。",
+      "status": "not-run",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.person.instruction.identity-layer",
+      "parent": "mainui.role.person.instruction",
+      "type": "assertion",
+      "risk": "read",
+      "note": "必须是 CommonModule/InstructionView，位于 Popup 层且压住人物页。",
+      "status": "not-run",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.person.instruction.content",
+      "parent": "mainui.role.person.instruction",
+      "type": "read",
+      "risk": "read",
+      "note": "标题属性说明；极品属性22行、基础属性12行；富文本颜色、顺序、间距与老端一致。",
+      "status": "not-run",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.person.instruction.scroll",
+      "parent": "mainui.role.person.instruction",
+      "type": "assertion",
+      "risk": "read",
+      "note": "ScrollRect→Viewport(RectMask2D)→真实Content；从可命中正文拖动，末项绝对防御可达。",
+      "status": "not-run",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.person.instruction.close",
+      "parent": "mainui.role.person.instruction",
+      "type": "return",
+      "risk": "read",
+      "note": "右上关闭只关说明弹层，人物页保持。",
+      "status": "not-run",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.person.instruction.mask-close",
+      "parent": "mainui.role.person.instruction",
+      "type": "return",
+      "risk": "read",
+      "note": "移动和宽屏下遮罩覆盖全部视口；点击弹层外只关说明且不穿透。",
+      "status": "not-run",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.person.instruction.reopen",
+      "parent": "mainui.role.person.instruction",
+      "type": "return",
+      "risk": "read",
+      "note": "关闭后从原人物页重开，标题/34行恢复且滚动回顶。",
+      "status": "not-run",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.person.instruction.adaptation",
+      "parent": "mainui.role.person.instruction",
+      "type": "assertion",
+      "risk": "read",
+      "note": "720x1280移动主视口与1920x1080 Web均居中，内容不拉伸变形，遮罩全屏。",
+      "status": "not-run",
+      "gates": {},
+      "evidence": []
+    },
+    {
+      "id": "mainui.role.person.instruction.stability",
+      "parent": "mainui.role.person.instruction",
+      "type": "assertion",
+      "risk": "read",
+      "note": "记录cold/warm；多次重开不积累条目、遮罩、监听或资源实例。",
+      "status": "not-run",
+      "gates": {},
+      "evidence": []
+    }
+  ]
+}

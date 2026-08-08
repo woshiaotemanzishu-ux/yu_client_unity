@@ -50,6 +50,14 @@ UIEffectStage（兼容入口）
 
 宿主销毁时自动释放 Handle；宿主隐藏时只停止该实例渲染，粒子时间线继续推进，行为与旧离屏舞台一致。
 
+### 老端参数保真与实例足迹门禁
+
+迁移调用点时必须逐项记录老端实际消费的 `effectName/parent/position/scale/rotation/loop/renderSize`，但这些值是源引擎语义，不自动等于 Unity 最终 Transform 数值。接入前先确定效果所有者是页面、共享槽位还是模型骨骼；再结合转换后 Prefab 的基准尺度、宿主 RectTransform/世界缩放、profile 差异项和共享通道 `instanceFactor` 建立该类宿主的映射。禁止因为 Addressables 可解析、Handle 已创建或 Renderer 已启用就忽略源参数，也禁止把旧端的数值机械复制到所有 Unity 宿主。
+
+共鸣是当前回归样例。老端共享 `EquipmentItem.SetSuitEffAni` 与页面 `EquipSuitMianView.RednerEffAni` 虽然都消费 `ui_shenzhuang01/02/03`，但前者属于装备槽的按需流光状态，后者属于页面展示链，两者不是同一个消费者。此前把老端 `scale=10` 同时直接写入共享装备格和 Unity 共鸣 Presenter，结果页面中央上下图标出现了本不应有的贴身流光框，而真正需要流光的背包装备槽又因共享 Prefab 根组件缺失完全不工作。正确处理顺序是先恢复共享组件身份和 opt-in 边界，再分别校准槽位与页面宿主；同一资源名不能作为共用最终倍率的依据。
+
+运行态门禁必须定位到目标 Handle，临时隔离同通道其他 Wrapper，驱动该实例动画并在专用 Camera `Render()` 后读取 RenderTexture。证据至少包含目标实例 PNG、非透明像素数和 alpha 包围盒宽高；通过阈值按资源与宿主基线设置，要求形成预期的二维足迹。少量亮点、单条窄线、尺寸正确但出现在错误宿主，或其他同通道特效贡献的像素都不能证明目标特效正确。归属、位置和足迹必须同时通过；任意像素计数门禁已经失效。
+
 ## 配置体系
 
 `UIEffectProfileCatalog` 是可在 Inspector 中编辑的 ScriptableObject：
@@ -60,6 +68,18 @@ UIEffectStage（兼容入口）
 - `UIEffectSlot` 可选 profileId，常规特效保持 `default`，不需要业务代码。
 
 配置只描述差异。公共相机、材质、坐标和生命周期规则由服务统一维护。
+
+### 物品槽品质流光的实例裁切
+
+`BaseAwardItem.SetItemEffect` 的老端事实是 `scale=14`，资源为 `ui_goods_orange/ui_goods_red/ui_goods_gold/ui_goods_pink/UI_1309/UI_1310`。这个倍率依赖老端为每一个物品格创建独立 RenderTexture，并以 `parent.width/height` 自动裁掉格子外的动画网格；它不是一张可以直接叠到页面上的静态边框。迁入共享全屏通道后，如果只复制 `scale=14` 而漏掉实例裁切，资源中的大尺寸折线会越过物品格并散落在整页。
+
+这六个资源必须分别命中 `UIEffectProfileCatalog` 中 `clipToRenderRect=1` 的同名 profile，继续使用原始动画 Prefab 和 `Shenxiao/Effect/LayaParticleUnlit`，不得用静态框替代。`BaseAwardItem.effect_con` 与 `EquipmentItem.effect_con` 必须是以物品格为中心、尺寸非零且略包围底板的真实 RectTransform；调用方不再硬编码一个脱离宿主的 `renderSize`，裁切尺寸直接取当前共享 Prefab 宿主。静态门禁同时检查宿主几何、六个精确 profile、动画组件和支持实例裁切的材质；运行态仍须隔离一个真实 Handle，至少在两个动画时刻保存局部 PNG 和 alpha 包围盒，确认流光紧贴四周且格外无残留。
+
+同日第二张运行截图进一步证明“框回到格子”仍不等于修复完成：六套 Legacy Animation 共 80 条 UV 曲线只驱动 `material._BaseMap_ST`，而这 27 个品质特效材质原先没有启用 shader 的 `_UseBaseMapST` 分支，实际画面仍固定读取 `_MainTex_ST`，所以动画处于播放态也只显示静止的一帧。当前只给这六个资源闭包内的 27 个材质启用 `_UseBaseMapST=1`，不全局改写其他特效材质；静态门禁同时要求曲线有真实数值变化、材质 shader 正确且动画所写属性被当前分支消费。
+
+共享通道的 `RawImage` 挂在页面根，不在背包 `ScrollRect/Viewport` 的 UGUI 裁剪层级里，因此物品图标滚出列表时，特效不能只靠 `RectMask2D` 自动消失。`UIEffectStage` 现在按帧把槽位自身矩形与有效祖先 `RectMask2D/Mask` 的可见区求交，再写入该 Handle 的 shader 裁剪；完全离开 viewport 时同时隐藏 wrapper。运行验收必须对同一隔离 Handle 保存两个不同时间点且像素有变化的图，并覆盖“整格可见、底部部分被裁、完全离开后零 alpha”三态，单帧位置正确、`Animation.isPlaying` 或物品图标本身已被裁掉均不能通过。
+
+2026-08-08 最终人工复验已确认：品质框持续动态流动，背包底部滚动时按 viewport 同步裁切，完全离开后不再在背包/仓库页签与底栏留下孤框。本结论只关闭“品质流光动态与祖先裁剪”这两个被用户明确复验的缺陷，不自动替代其他共享消费者、详情页或真实 Web 的独立证据。
 
 ## 生命周期和失败处理
 
@@ -78,6 +98,7 @@ UIEffectStage（兼容入口）
 4. 变强按钮不再出现额外金框；任意顺序重复播放、脚本域重载后也不能跨特效串拍。
 5. 720x1280、常见刘海屏和编辑器 GameView 缩放下位置稳定。
 6. 连续创建/释放 100 次后 Handle 和 Addressables 实例回到基线；空闲超时后 Camera、RenderTexture 和 RawImage 一并释放。
+7. 每个需要视觉确认的特效都保留老端显式调用参数，并对目标 Handle 做隔离足迹检查；Handle/Renderer/纹理存在或任意少量像素不得替代实际尺寸、位置和动画可见性。
 
 ## 已实现落点
 

@@ -24,7 +24,7 @@ STATUSES = {
     "done",
 }
 
-LEAF_GATES = (
+LEGACY_LEAF_GATES = (
     "click",
     "result",
     "protocol",
@@ -46,6 +46,11 @@ LEAF_GATES = (
     "restore",
 )
 
+LEAF_GATES = LEGACY_LEAF_GATES + (
+    "shared_component_identity",
+    "component_state_matrix",
+)
+
 VISUAL_EVIDENCE_FIELDS = ("old", "unity", "diff")
 MODEL_EVIDENCE_FIELDS = ("old", "unity")
 RESOURCE_EVIDENCE_FIELDS = ("preflight_first", "preflight_second", "runtime_delta")
@@ -55,6 +60,8 @@ ARRAY_EVIDENCE_GATES = {
     "scroll_interaction": "interaction_evidence",
     "page_space_geometry": "geometry_evidence",
     "render_completion": "render_evidence",
+    "shared_component_identity": "component_evidence",
+    "component_state_matrix": "component_state_evidence",
 }
 
 
@@ -77,7 +84,7 @@ def init_ledger(manifest: Path, output: Path) -> int:
         raise ValueError("manifest must be a node array or contain nodes[]")
 
     ledger = {
-        "schema": 4,
+        "schema": 5,
         "route": source.get("route", output.stem) if isinstance(source, dict) else output.stem,
         "baseline": source.get("baseline", {}) if isinstance(source, dict) else {},
         "nodes": [],
@@ -129,6 +136,8 @@ def apply_results(ledger_path: Path, results_path: Path) -> int:
             "model_evidence",
             "effect_evidence",
             "resource_evidence",
+            "component_evidence",
+            "component_state_evidence",
         ):
             if key in result:
                 node[key] = result[key]
@@ -197,7 +206,8 @@ def validate_ledger(path: Path, quiet: bool = False) -> int:
         status = node.get("status")
         if children[node_id] == 0 and status == "done":
             gates = node.get("gates") or {}
-            applicable = node.get("applicable_gates", LEAF_GATES)
+            default_gates = LEAF_GATES if ledger.get("schema", 4) >= 5 else LEGACY_LEAF_GATES
+            applicable = node.get("applicable_gates", list(default_gates))
             if not isinstance(applicable, list):
                 errors.append(f"{node_id}: applicable_gates must be an array")
                 applicable = []

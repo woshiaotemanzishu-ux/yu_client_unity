@@ -7,12 +7,14 @@ using Shenxiao.Common.UI3D;
 using Shenxiao.Framework.Event;
 using Shenxiao.Framework.UI;
 using Shenxiao.Generated.UI.Role;
+using Shenxiao.Module.Core.AttributePotion;
+using Shenxiao.Module.Core.Bag;
 using Shenxiao.Module.Core.Common;
 using Shenxiao.Module.Core.Designation;
 using Shenxiao.Module.Core.Login;
 using Shenxiao.Module.Core.MainUI;
 using Shenxiao.Module.Core.Marriage;
-using Shenxiao.Module.Core.SuitCollect;
+using Shenxiao.Module.Core.Resonance;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -126,12 +128,14 @@ namespace Shenxiao.Module.Core.Role
         {
             BuildRuntimeItems();
             RefreshRole();
+            _ = RefreshAttributePotionRedAsync();
             ShowRoleModel();
             StartRoleVoice();
         }
 
         protected override void OnHide()
         {
+            AttributePotionFlow.Close();
             StopRoleVoice();
             _modelRequestId++;
             UIModelStage.Clear();
@@ -187,6 +191,8 @@ namespace Shenxiao.Module.Core.Role
         {
             if (_subscribed) return;
             EventDispatcher.On(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.On(GlobalEvent.EVT_BAG_UPDATE, OnAttributePotionStateChanged);
+            AttributePotionModel.Instance.Changed += OnAttributePotionStateChanged;
             _subscribed = true;
         }
 
@@ -194,13 +200,31 @@ namespace Shenxiao.Module.Core.Role
         {
             if (!_subscribed) return;
             EventDispatcher.Off(GlobalEvent.EVT_ROLE_INFO_UPDATE, OnRoleInfoUpdate);
+            EventDispatcher.Off(GlobalEvent.EVT_BAG_UPDATE, OnAttributePotionStateChanged);
+            AttributePotionModel.Instance.Changed -= OnAttributePotionStateChanged;
             _subscribed = false;
         }
 
         private void OnRoleInfoUpdate()
         {
             RefreshRole();
+            OnAttributePotionStateChanged();
             if (gameObject.activeInHierarchy) ShowRoleModel();
+        }
+
+        private async Task RefreshAttributePotionRedAsync()
+        {
+            await Task.WhenAll(AttributePotionConfigs.EnsureLoaded(), FuncOpenConfig.EnsureLoaded());
+            if (this == null) return;
+            OnAttributePotionStateChanged();
+        }
+
+        private void OnAttributePotionStateChanged()
+        {
+            if (attribute_red == null) return;
+            bool open = FuncOpenConfig.IsLoaded
+                && FuncOpenConfig.CheckFuncOpenState("attributePotionView");
+            attribute_red.gameObject.SetActive(open && AttributePotionFlow.HasAnyUsable());
         }
 
         private void BuildRuntimeItems()
@@ -298,12 +322,12 @@ namespace Shenxiao.Module.Core.Role
         {
             BindClick(_img_change_btn, () => ShowAttributePage(!_showingBaseAttrs));
             BindClick(_Group1, RoleFlow.OpenSkill);
-            BindClick(_Group5, SuitCollectShellView.Show);
+            BindClick(_Group5, ResonanceFlow.Open);
             BindClick(fashion_gp, () => MainUIRouter.Open("fashion"));
             BindClick(_Group2, () => MainUIRouter.Open("AchvEnterView"));
             BindClick(_Group3, () => MainUIRouter.Open("MedalEnterView"));
             BindClick(_Group4, DesignationFlow.Open);
-            BindClick(_btn_attribute, () => MainUIRouter.Open("AttributePotionView"));
+            BindClick(_btn_attribute, AttributePotionFlow.Open);
             BindClick(_Group6, () => MainUIRouter.Open("UnrealEquipView"));
             BindClick(_btn_fame, MarriageHonourFlow.Show);
             BindClick(tipsImg, () => InstructionFlow.Show(453));

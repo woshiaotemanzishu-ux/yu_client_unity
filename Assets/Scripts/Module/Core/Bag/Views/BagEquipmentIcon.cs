@@ -1,20 +1,20 @@
 using Shenxiao.Generated.UI.Bag;
 using Shenxiao.Module.Core.Common;
+using Shenxiao.Module.Core.Resonance;
 using UnityEngine;
 
 namespace Shenxiao.Module.Core.Bag
 {
     /// <summary>
-    /// 背包装备图标槽(对标老客户端 bag 装备槽图标):展示已穿戴装备 / 空槽(加号 _img_add),带锁/红点/特效。
-    /// 独立 prefab(BagEquipmentIcon.prefab),多处复用。
-    ///
-    /// 降级:装备数据(EquipModel/BagModel)未移植 → 物品模板(BaseAwardItem/EquipmentItem)/红点/锁隐藏、
-    /// 默认空槽(显加号);SetEmpty 预留(数据接上后:有装备显 award_con 内物品、隐加号)。事件驱动,默认关闭、不进 FirstPass。
+    /// 背包装备图标槽（对标老客户端 bag 装备槽图标）：展示已穿戴装备或空槽（加号 _img_add）。
+    /// 独立 prefab（BagEquipmentIcon.prefab）复用共享 EquipmentItem；只有当前部位的真实已穿戴实例
+    /// 满足共鸣状态时才显式启用槽位流光，普通背包格、奖励和详情不会随共享模板自动点亮。
     /// </summary>
     public sealed class BagEquipmentIcon : BagEquipmentIconBind
     {
         private EquipmentItem _item;
         private BagGoods _goods;
+        private int _equipPosition;
 
         protected override void OnInit()
         {
@@ -34,6 +34,12 @@ namespace Shenxiao.Module.Core.Bag
             if (_item != null) _item.gameObject.SetActive(!empty);
         }
 
+        /// <summary>设置角色已穿戴容器中的装备部位；对应老端 EquipmentIcon.SetEquipPos。</summary>
+        public void SetEquipPosition(int equipPosition)
+        {
+            _equipPosition = equipPosition;
+        }
+
         /// <summary>绑定当前部位的真实穿戴实例；点击沿用通用实例物品 tips。</summary>
         public void SetData(BagGoods goods)
         {
@@ -50,6 +56,16 @@ namespace Shenxiao.Module.Core.Bag
             SetEmpty(false);
             if (_item == null) return;
             _item.SetData(goods.TypeId, goods.GoodsNum, goods.Bind != 0);
+            _item.SetDisplayColor(goods.Color);
+            _item.SetStrengthen(goods.Stren);
+            _item.SetTimeLimit(GoodsModel.HasConfigExpiry(goods.TypeId) || goods.ExpireTime > 0);
+            byte effectTier = _equipPosition > 0 && _equipPosition <= byte.MaxValue
+                ? ResonanceConfigs.GetPositionEffectTier((byte)_equipPosition, goods)
+                : (byte)0;
+            if (effectTier > 0)
+                _item.SetSuitEffect(
+                    ResonanceConfigs.GetEffectName(ResonanceConfigs.GetPositionSuitType((byte)_equipPosition), effectTier),
+                    effectTier);
             _item.SetClickCallBack(() =>
             {
                 if (_goods != null) ItemTipsView.ShowEquipped(_goods);
