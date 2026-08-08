@@ -2003,3 +2003,10 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **第二轮动态与层级回卷**：位置修正后的新截图仍显示静止框，且列表底部已经滚出的物品只剩流光压在背包/仓库页签上。静态追链确认六个品质资源共 80 条 UV 曲线只写 `_BaseMap_ST`，而闭包内 27 个材质没有选择 shader 的 BaseMap UV 分支；现只给这 27 个材质写入 `_UseBaseMapST=1`。共享通道 `RawImage` 位于页面根、不会继承 `Viewport/RectMask2D`，因此 `UIEffectStage` 追加槽位矩形与有效祖先 `RectMask2D/Mask` 的逐帧交集，完全离开 viewport 时隐藏对应 wrapper；诊断同时公开动画播放时间、祖先遮罩数、实际裁切矩形和可见比例。
 - **新增门禁与待验边界**：`BagInteractionCase` 现在要求 Legacy Animation 自动播放/AlwaysAnimate、循环 UV 曲线有真实数值变化、shader 正确且 `_BaseMap_ST` 曲线确实由材质分支消费，并确认背包真实 Viewport 带 `RectMask2D`。通用 `fix-view/audit-game-ui-route` 流程已增加“同一隔离 Handle 双时间点像素差”和“完整可见/部分裁切/完全滚出零 alpha”证据要求。三个工程继续编译为 0 error；本轮没有启动或控制 Unity，所以当前只从 `defect` 前进到 `needs-runtime-verify`，不得宣称动态和层级已经通过。
 - **最终人工确认与完成边界**：用户重进运行态后确认品质流光已正常运动，背包底部滚出时也不再留下孤立框，本次“静态首帧 + viewport 泄漏”缺陷已由高频背包代表消费者人工验收。该确认不会自动覆盖尚未复走的普通详情、装备详情、其他宿主状态矩阵和真实 Web 双端证据；专项台账继续按未覆盖闸口保留 `needs-runtime-verify`，避免把局部修复扩大成整模块完成。
+
+## 2026-08-08：BaseWindowSkin 自适应背景与单主窗口统一管理
+
+- **老端事实**：`BaseView1` 为大窗创建独立 `full_screen_bg1.jpg`，按 16:9 覆盖舞台；`PopManager.popViewOpen` 打开新大窗前关闭当前大窗，不维护可逐层返回的窗口栈。因此“背包→角色”应只保留角色，关闭角色一次即回到主场景。
+- **共享 Prefab**：`BaseWindowSkin.prefab` 外层根改为全父级拉伸，新增首层 `AdaptiveBackground`，直接保存老端同源背景并用 `AspectRatioFitter.EnvelopeParent` 自适应裁切；既有 `_root_gp` 继续保持 870×1280 居中，页面内容、页签和各业务背景坐标未改。
+- **统一生命周期**：`BaseWindowSkinView` 新增 `BaseWindowManager`，在 `OnShow` 原子替换当前窗口并隐藏旧窗口，在 `OnHide/OnDestroy` 清理当前引用。14 个直接实例化该共享窗框的业务 Flow 自动获得一致行为，不新增页面互相依赖。
+- **门禁与状态**：`PrefabBackgroundOwnershipCase` 增加根/背景锚点、图片、16:9 Envelope、内部窗体尺寸及“双窗打开后仅新窗显示、关闭一次不恢复旧窗”的回归断言。当前只执行不占用前台 Unity 的离线编译与静态校验；720×1280、宽屏真实像素，以及背包↔角色真实点击链仍标记 `needs-runtime-verify`。

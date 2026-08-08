@@ -11,6 +11,33 @@ using UnityEngine.UI;
 
 namespace Shenxiao.Module.Core.Common
 {
+    /// <summary>
+    /// 共享大窗的唯一当前窗口管理器，对齐老端 PopManager：新窗口显示时关闭旧窗口，
+    /// 关闭当前窗口后不会恢复更早的窗口。
+    /// </summary>
+    public static class BaseWindowManager
+    {
+        private static BaseWindowSkinView _current;
+
+        public static BaseWindowSkinView Current => _current;
+
+        internal static void ShowExclusive(BaseWindowSkinView next)
+        {
+            if (next == null) return;
+
+            BaseWindowSkinView previous = _current;
+            _current = next;
+            if (previous != null && previous != next && previous.IsShown)
+                previous.Hide();
+        }
+
+        internal static void NotifyClosed(BaseWindowSkinView view)
+        {
+            if (_current == view)
+                _current = null;
+        }
+    }
+
     /// <summary>一个标签页的配置:是否开放 + 内容工厂(把内容视图挂到内容区并返回其 BaseView)+ 可选 选中/未选中 sprite。</summary>
     public sealed class TabSpec
     {
@@ -88,6 +115,7 @@ namespace Shenxiao.Module.Core.Common
         /// <summary>配置标签页 + 默认页索引。在窗口 Show() 之后调用(此时 OnInit 已跑)。</summary>
         protected override void OnShow(object args)
         {
+            BaseWindowManager.ShowExclusive(this);
             if (_windowOpenRaised) return;
             _windowOpenRaised = true;
             EventDispatcher.Emit(GlobalEvent.EVT_BASE_WINDOW_OPENED);
@@ -95,11 +123,13 @@ namespace Shenxiao.Module.Core.Common
 
         protected override void OnHide()
         {
+            BaseWindowManager.NotifyClosed(this);
             RaiseWindowClosed();
         }
 
         private void OnDestroy()
         {
+            BaseWindowManager.NotifyClosed(this);
             RaiseWindowClosed();
         }
 

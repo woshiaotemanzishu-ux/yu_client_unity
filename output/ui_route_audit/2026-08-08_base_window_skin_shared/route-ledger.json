@@ -1,0 +1,137 @@
+{
+  "schema": 5,
+  "route": "shared.base-window-skin",
+  "baseline": {
+    "user_reference": "C:/Users/FXL/AppData/Local/Temp/codex-clipboard-7dd28081-6f5a-4ca0-97d4-066cd652d8f6.png",
+    "old_h5_source": "E:/GitProject/yu_client/h5/src/common/BaseView1.ts;E:/GitProject/yu_client/h5/src/common/PopManager.ts",
+    "unity_runtime": "not-run-user-editor-protected",
+    "real_web_same_account": "not-run"
+  },
+  "nodes": [
+    {
+      "id": "shared.base-window-skin",
+      "type": "page",
+      "risk": "read-only",
+      "control_inventory": [
+        {
+          "id": "adaptive-background",
+          "kind": "shared-prefab-background",
+          "child": "shared.base-window-skin.adaptive-background"
+        },
+        {
+          "id": "exclusive-replacement",
+          "kind": "shared-window-lifecycle",
+          "child": "shared.base-window-skin.exclusive-replacement"
+        },
+        {
+          "id": "representative-consumers",
+          "kind": "shared-consumer-sampling",
+          "child": "shared.base-window-skin.representative-consumers"
+        }
+      ],
+      "note": "共享 BaseWindowSkin 的自适应背景与单主窗口语义；不修改各业务页内容、协议或页签。",
+      "parent": null,
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "evidence": [
+        "output/ui_route_audit/2026-08-08_base_window_skin_shared/static-result.md"
+      ]
+    },
+    {
+      "id": "shared.base-window-skin.adaptive-background",
+      "parent": "shared.base-window-skin",
+      "type": "read",
+      "risk": "read-only",
+      "note": "Prefab 已直接保存 16:9 EnvelopeParent 背景，内部 870x1280 窗体不变；真实 720x1280 与宽屏像素待验。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "shared_component_identity": true,
+        "layout_structure": true,
+        "page_space_geometry": false,
+        "visual_match": false,
+        "render_completion": false
+      },
+      "applicable_gates": [
+        "shared_component_identity",
+        "layout_structure",
+        "page_space_geometry",
+        "visual_match",
+        "render_completion"
+      ],
+      "evidence": [
+        "Assets/Prefabs/UI/Common/BaseWindowSkin.prefab",
+        "Assets/GameRes/resource/game/login/other/full_screen_bg1.jpg",
+        "Assets/Editor/CliVerify/Cases/PrefabBackgroundOwnershipCase.cs"
+      ],
+      "component_evidence": [
+        "Assets/Prefabs/UI/Common/BaseWindowSkin.prefab",
+        "Assets/Scripts/Module/Core/Common/Views/BaseWindowSkinView.cs"
+      ],
+      "component_state_evidence": [
+        "output/ui_route_audit/2026-08-08_base_window_skin_shared/static-result.md"
+      ]
+    },
+    {
+      "id": "shared.base-window-skin.exclusive-replacement",
+      "parent": "shared.base-window-skin",
+      "type": "interaction",
+      "risk": "reversible-write",
+      "note": "静态回归断言覆盖 A.Show -> B.Show 隐藏 A -> B.Hide 后不恢复 A；真实背包与角色入口点击链待验。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "shared_component_identity": true,
+        "click": false,
+        "runtime_state": false,
+        "immediate_state": false,
+        "reopen": false
+      },
+      "applicable_gates": [
+        "shared_component_identity",
+        "click",
+        "runtime_state",
+        "immediate_state",
+        "reopen"
+      ],
+      "evidence": [
+        "Assets/Scripts/Module/Core/Common/Views/BaseWindowSkinView.cs",
+        "Assets/Editor/CliVerify/Cases/PrefabBackgroundOwnershipCase.cs"
+      ],
+      "component_evidence": [
+        "Assets/Scripts/Module/Core/Common/Views/BaseWindowSkinView.cs"
+      ],
+      "component_state_evidence": [
+        "output/ui_route_audit/2026-08-08_base_window_skin_shared/static-result.md"
+      ]
+    },
+    {
+      "id": "shared.base-window-skin.representative-consumers",
+      "parent": "shared.base-window-skin",
+      "type": "read",
+      "risk": "read-only",
+      "note": "14 个直接 Flow 已静态盘点；高频背包与角色两个代表消费者的双向替换、关闭和宽屏背景待真实运行抽查。",
+      "status": "needs-runtime-verify",
+      "gates": {
+        "shared_component_identity": true,
+        "component_state_matrix": false,
+        "runtime_state": false,
+        "reopen": false
+      },
+      "applicable_gates": [
+        "shared_component_identity",
+        "component_state_matrix",
+        "runtime_state",
+        "reopen"
+      ],
+      "evidence": [
+        "output/ui_route_audit/2026-08-08_base_window_skin_shared/static-result.md"
+      ],
+      "component_evidence": [
+        "Assets/Scripts/Module/Core/Bag/BagFlow.cs",
+        "Assets/Scripts/Module/Core/Role/RoleFlow.cs"
+      ],
+      "component_state_evidence": [
+        "output/ui_route_audit/2026-08-08_base_window_skin_shared/static-result.md"
+      ]
+    }
+  ]
+}

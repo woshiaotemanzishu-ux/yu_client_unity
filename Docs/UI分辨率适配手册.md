@@ -3,6 +3,17 @@
 > 目标:像老端一样,同一套 UI 同时适应 web(宽屏)与手机(长屏)。
 > 本文是这条工作线的唯一事实源,动 UI 锚定前先读这里。
 
+## BaseWindowSkin 自适应背景与单窗口语义（2026-08-08）
+
+老端 `BaseView1` 在移动端为 `BaseWindowComponent` 创建独立的 `full_screen_bg1.jpg` 背景：背景按 16:9 覆盖舞台，超出部分裁切；720 宽的业务窗体继续居中并保持原坐标。老端 `PopManager.popViewOpen` 同时只记录一个当前大窗，新窗打开时会直接关闭旧窗，关闭新窗后不会恢复更早的窗口。
+
+Unity 的对应实现统一落在共享根，不允许业务页各自复制：
+
+- `BaseWindowSkin.prefab` 根节点铺满所属 Window 层；第一子节点 `AdaptiveBackground` 直接持有 `resource/game/login/other/full_screen_bg1.jpg`，使用 `AspectRatioFitter.EnvelopeParent` 和图片原始 16:9 比例覆盖父容器，并拦截两侧空白区点击。
+- `_root_gp` 仍保持 870×1280 并居中，`_img_bg` 仍是各业务页 720×1222 的内容背景。不得为适配宽屏改写它们的内部坐标，也不得在运行时代码重新创建视觉树。
+- `BaseWindowManager` 由 `BaseWindowSkinView.OnShow/OnHide/OnDestroy` 统一驱动。任一共享大窗 `Show()` 时先隐藏旧的当前大窗；隐藏或销毁当前大窗时清空记录，不回退到历史窗口。业务 Flow 不需要、也不应互相感知或逐一关闭其他模块。
+- 回归至少覆盖 720×1280 与宽屏两种 viewport，并顺序复走“背包→角色→关闭”和“角色→背包→关闭”：任一时刻只能有一个 `BaseWindowSkinView.IsShown`，背景完整覆盖可见区，业务主体不拉伸，最后只需关闭一次即可回到主场景。
+
 ## Web 画布与弹窗遮罩（2026-08-04）
 
 - Web 模板的 `html/body/#unity-container/#unity-canvas` 必须跟随 `100vw × 100dvh`，窗口变化时 Canvas 继续铺满浏览器可视区；竖版 720×1280 页面仍按移动端设计居中显示，左右由场景或外层背景补齐，不改全局 `CanvasScaler`。
