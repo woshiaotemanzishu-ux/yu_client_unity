@@ -5,6 +5,13 @@ namespace Shenxiao.Module.Core.Medal
     /// <summary>13400 错误、13401 勋章与13405称号独立原始状态；不驱动角色战力、UI、红点或操作协议。</summary>
     public sealed class MedalModel
     {
+        public enum TitleOperationKind
+        {
+            Upgrade,
+            Equip,
+            Unequip,
+        }
+
         public sealed class TitleEntry
         {
             public uint Id { get; }
@@ -18,6 +25,7 @@ namespace Shenxiao.Module.Core.Medal
         private MedalModel() { }
         public event Action Changed;
         public event Action<uint> ErrorReceived;
+        public event Action<TitleOperationKind, uint, ushort, uint> TitleOperationCompleted;
         public uint Id { get; private set; }
         public uint StrengthenLevel { get; private set; }
         public uint StrengthenExp { get; private set; }
@@ -54,6 +62,11 @@ namespace Shenxiao.Module.Core.Medal
             _titles.Clear();
             if (titles != null) _titles.AddRange(titles);
             HasTitleData = true;
+            Changed?.Invoke();
+        }
+        public void NotifyTitleOperation(TitleOperationKind kind, uint id, ushort level, uint code)
+        {
+            TitleOperationCompleted?.Invoke(kind, id, level, code);
         }
         public void SetError(uint code)
         {

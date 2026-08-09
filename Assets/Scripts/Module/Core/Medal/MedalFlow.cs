@@ -28,9 +28,11 @@ namespace Shenxiao.Module.Core.Medal
 
         private static GameObject _frameRoot;
         private static GameObject _moduleRoot;
+        private static GameObject _titleRoot;
         private static GameObject _awardPrefab;
         private static BaseWindowSkinView _window;
         private static MedalViewBind _view;
+        private static TitleMainView _titleView;
         private static MedalCostItemBind _costTemplate;
         private static MedalConfigs.UpgradePreview _preview;
         private static bool _loading;
@@ -57,11 +59,11 @@ namespace Shenxiao.Module.Core.Medal
             _loading = true;
             try
             {
-                await Task.WhenAll(MedalConfigs.EnsureLoaded(), GoodsModel.EnsureLoaded(),
+                await Task.WhenAll(MedalConfigs.EnsureLoaded(), TitleConfigs.EnsureLoaded(), GoodsModel.EnsureLoaded(),
                     FuncOpenConfig.EnsureLoaded());
-                if (!MedalConfigs.IsLoaded)
+                if (!MedalConfigs.IsLoaded || !TitleConfigs.IsLoaded)
                 {
-                    TipsManager.Toast("勋章配置加载失败");
+                    TipsManager.Toast("境界配置加载失败");
                     return;
                 }
                 if (!FuncOpenConfig.CheckFuncOpenState("MedalView"))
@@ -76,32 +78,9 @@ namespace Shenxiao.Module.Core.Medal
 
                 _window.SetReturnAction(ReturnToRole);
                 _window.Show();
-                _window.Configure(new[]
-                {
-                    new TabSpec
-                    {
-                        Enabled = true,
-                        Label = "地境",
-                        TitleImagePath = GameResPath.GetIcon("medal", "uixz_001"),
-                        BackgroundImagePath = GameResPath.GetBigBgPath("ui_role_bg2.jpg"),
-                        UpImagePath = GameResPath.GetIcon("medal", "uixunzhang_012b"),
-                        DownImagePath = GameResPath.GetIcon("medal", "uixunzhang_012a"),
-                        ContentFactory = ReparentView,
-                    },
-                    new TabSpec
-                    {
-                        Enabled = true,
-                        Label = "天境",
-                        TitleImagePath = GameResPath.GetIcon("title", "uixz_001"),
-                        BackgroundImagePath = GameResPath.GetBigBgPath("ui_role_bg1.jpg"),
-                        UpImagePath = GameResPath.GetIcon("title", "uidttx_015_02"),
-                        DownImagePath = GameResPath.GetIcon("title", "uidttx_015_01"),
-                        OpenCheck = () => false,
-                        LockedToast = "天境称号尚未接入，本轮仅开放地境勋章",
-                    },
-                }, 0);
+                _window.Configure(BuildTabSpecs(), 0);
 
-                MedalController.Instance.RequestInfo();
+                MedalController.Instance.RequestStartup();
                 Render();
             }
             finally
@@ -110,42 +89,71 @@ namespace Shenxiao.Module.Core.Medal
             }
         }
 
+        private static IList<TabSpec> BuildTabSpecs()
+        {
+            return new[]
+            {
+                new TabSpec
+                {
+                    Enabled = true,
+                    Label = "地境",
+                    TitleImagePath = GameResPath.GetIcon("medal", "uixz_001"),
+                    BackgroundImagePath = GameResPath.GetBigBgPath("ui_role_bg2.jpg"),
+                    ContentFactory = ReparentView,
+                },
+                new TabSpec
+                {
+                    Enabled = true,
+                    Label = "天境",
+                    TitleImagePath = GameResPath.GetIcon("title", "uixz_001"),
+                    BackgroundImagePath = GameResPath.GetBigBgPath("ui_role_bg1.jpg"),
+                    ContentFactory = ReparentTitleView,
+                },
+            };
+        }
+
         private static async Task<bool> EnsureViewAsync()
         {
-            if (_frameRoot != null && _moduleRoot != null && _window != null
-                && _view != null && _costTemplate != null) return true;
+            if (_frameRoot != null && _moduleRoot != null && _titleRoot != null && _window != null
+                && _view != null && _titleView != null && _costTemplate != null) return true;
 
             Transform layer = ViewManager.GetLayer(UILayer.Window);
             Task<GameObject> frameTask = ResManager.InstantiateAsync(
                 GameResPath.GetUIPrefab("common", "BaseWindowSkin"), layer);
             Task<GameObject> moduleTask = ResManager.InstantiateAsync(
                 GameResPath.GetUIPrefab("role", "RoleModule"), layer);
+            Task<GameObject> titleTask = ResManager.InstantiateAsync(
+                GameResPath.GetUIPrefab("title", "TitleMainView"), layer);
             Task<GameObject> awardTask = ResManager.LoadAsync<GameObject>(
                 GameResPath.GetUIPrefab("common", "BaseAwardItem"));
-            await Task.WhenAll(frameTask, moduleTask, awardTask);
+            await Task.WhenAll(frameTask, moduleTask, titleTask, awardTask);
 
             _frameRoot = frameTask.Result;
             _moduleRoot = moduleTask.Result;
+            _titleRoot = titleTask.Result;
             _awardPrefab = awardTask.Result;
-            if (_frameRoot == null || _moduleRoot == null)
+            if (_frameRoot == null || _moduleRoot == null || _titleRoot == null)
             {
-                GameLog.Error("Medal", "勋章外窗加载失败 frame={0} module={1}",
-                    _frameRoot != null, _moduleRoot != null);
+                GameLog.Error("Medal", "境界外窗加载失败 frame={0} module={1} title={2}",
+                    _frameRoot != null, _moduleRoot != null, _titleRoot != null);
                 ReleaseView();
                 return false;
             }
 
             _frameRoot.name = "BaseWindowSkin(Medal)";
             _moduleRoot.name = "RoleModule(Medal)";
+            _titleRoot.name = "TitleMainView(Medal)";
             _window = _frameRoot.GetComponent<BaseWindowSkinView>()
                 ?? _frameRoot.GetComponentInChildren<BaseWindowSkinView>(true);
             _view = _moduleRoot.GetComponentInChildren<MedalViewBind>(true);
+            _titleView = _titleRoot.GetComponent<TitleMainView>()
+                ?? _titleRoot.GetComponentInChildren<TitleMainView>(true);
             _costTemplate = _moduleRoot.GetComponentsInChildren<MedalCostItemBind>(true)
                 .FirstOrDefault();
-            if (_window == null || _view == null || _costTemplate == null
+            if (_window == null || _view == null || _titleView == null || _costTemplate == null
                 || _view.costList == null || _view.costList.content == null)
             {
-                GameLog.Error("Medal", "RoleModule 缺 BaseWindow/MedalView/MedalCostItem 或 costList.content 绑定");
+                GameLog.Error("Medal", "境界缺 BaseWindow/MedalView/TitleMainView/MedalCostItem 或 costList.content 绑定");
                 ReleaseView();
                 return false;
             }
@@ -156,6 +164,7 @@ namespace Shenxiao.Module.Core.Medal
             }
             _view.gameObject.SetActive(false);
             _costTemplate.gameObject.SetActive(false);
+            _titleView.gameObject.SetActive(false);
             _moduleRoot.SetActive(true);
             return true;
         }
@@ -171,12 +180,20 @@ namespace Shenxiao.Module.Core.Medal
             return _view;
         }
 
+        private static BaseView ReparentTitleView(RectTransform parent)
+        {
+            _titleView.transform.SetParent(parent, false);
+            _titleView.gameObject.SetActive(true);
+            _titleView.Show();
+            return _titleView;
+        }
+
         private static void ApplyStaticVisibility()
         {
             // 当前 config_medal_stren_cost 的所有门槛均为 9999，地境等级最大 131；强化入口不可达。
             SetActive(_view._gp_icon, false);
             SetActive(_view._str_red, false);
-            // PushGiftModel/TitleMainView 尚未移植，不伪造礼包和天境内容。
+            // 礼包属于 PushGift 跨模块，不在境界页内伪造。
             SetActive(_view.giftIcon, false);
             // 新版消耗统一由现有 MedalCostItem 列表呈现，隐藏旧版三块重复条件。
             SetActive(_view._gp, false);
@@ -287,7 +304,7 @@ namespace Shenxiao.Module.Core.Medal
             bool ready = _preview.CanUpgrade;
             SetActive(_view._red_dot, ready);
             _window.SetTabRed(0, ready);
-            _window.SetTabRed(1, false);
+            _window.SetTabRed(1, TitleMainView.HasAnyRed());
         }
 
         private static void RenderStars(int count)
@@ -315,8 +332,14 @@ namespace Shenxiao.Module.Core.Medal
                 _ = ResManager.SetImageAsync(_view._img_txt_cur,
                     GameResPath.GetIcon("mainUI", "tx_" + current.Title), nativeSize: true);
             SplitAttributes(current.Attributes, out string currentNames, out string currentValues);
-            if (_view._lb_cur_attr != null) _view._lb_cur_attr.text = currentNames;
-            if (_view._lb_cur_attr1 != null) _view._lb_cur_attr1.text = currentValues;
+            if (_view._lb_cur_attr != null)
+            {
+                SetTopLeftX(_view._lb_cur_attr.rectTransform,
+                    current.Attributes.Count > 2 ? 60f : 65f);
+                ConfigureAttributeText(_view._lb_cur_attr, currentNames);
+            }
+            if (_view._lb_cur_attr1 != null)
+                ConfigureAttributeText(_view._lb_cur_attr1, currentValues);
 
             SetActive(_view._gp_next, next != null);
             if (next == null)
@@ -332,8 +355,30 @@ namespace Shenxiao.Module.Core.Medal
                 _ = ResManager.SetImageAsync(_view._img_txt_next,
                     GameResPath.GetIcon("mainUI", "tx_" + next.Title), nativeSize: true);
             SplitAttributes(next.Attributes, out string nextNames, out string nextValues);
-            if (_view._lb_cur_next != null) _view._lb_cur_next.text = nextNames;
-            if (_view._lb_cur_next1 != null) _view._lb_cur_next1.text = nextValues;
+            if (_view._lb_cur_next != null)
+            {
+                SetTopLeftX(_view._lb_cur_next.rectTransform,
+                    next.Attributes.Count > 2 ? 70f : 90f);
+                ConfigureAttributeText(_view._lb_cur_next, nextNames);
+            }
+            if (_view._lb_cur_next1 != null)
+                ConfigureAttributeText(_view._lb_cur_next1, nextValues);
+        }
+
+        private static void ConfigureAttributeText(TMPro.TextMeshProUGUI label, string text)
+        {
+            if (label == null) return;
+            label.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+            label.overflowMode = TMPro.TextOverflowModes.Overflow;
+            label.text = text;
+        }
+
+        private static void SetTopLeftX(RectTransform rect, float x)
+        {
+            if (rect == null) return;
+            Vector2 position = rect.anchoredPosition;
+            position.x = x;
+            rect.anchoredPosition = position;
         }
 
         private static void SplitAttributes(IReadOnlyList<MedalConfigs.AttributeValue> attrs,
@@ -345,7 +390,7 @@ namespace Shenxiao.Module.Core.Medal
             {
                 MedalConfigs.AttributeValue attr = attrs[i];
                 string name = GoodsModel.GetAttrName(attr.Id);
-                left.Add(string.IsNullOrEmpty(name) ? ("属性" + attr.Id) : name);
+                left.Add((string.IsNullOrEmpty(name) ? ("属性" + attr.Id) : name) + ":");
                 right.Add(GoodsModel.FormatAttrValue(attr.Id, attr.Value));
             }
             names = string.Join("\n", left);
@@ -357,7 +402,17 @@ namespace Shenxiao.Module.Core.Medal
             ClearCostRows();
             RectTransform parent = _view.costList != null ? _view.costList.content : null;
             if (parent == null || _costTemplate == null) return;
-            for (int i = 0; i < conditions.Count && i < 3; i++)
+            int count = Mathf.Min(conditions.Count, 3);
+            const float itemWidth = 420f;
+            const float itemHeight = 34f;
+            const float itemStride = 36f;
+            float listHeight = count > 0 ? count * 38f : 1f;
+            RectTransform listRect = (RectTransform)_view.costList.transform;
+            listRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, listHeight);
+            parent.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, itemWidth);
+            parent.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, listHeight);
+
+            for (int i = 0; i < count; i++)
             {
                 MedalConfigs.ConditionState condition = conditions[i];
                 GameObject go = UnityEngine.Object.Instantiate(
@@ -372,6 +427,12 @@ namespace Shenxiao.Module.Core.Medal
                 CostRows.Add(go);
                 go.SetActive(true);
                 bind.Show();
+                RectTransform row = (RectTransform)go.transform;
+                row.anchorMin = row.anchorMax = new Vector2(0f, 1f);
+                row.pivot = new Vector2(0f, 1f);
+                row.anchoredPosition = new Vector2(0f, -i * itemStride);
+                row.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, itemWidth);
+                row.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, itemHeight);
                 BindCost(bind, condition);
             }
             Canvas.ForceUpdateCanvases();
@@ -492,12 +553,15 @@ namespace Shenxiao.Module.Core.Medal
             _window?.SetReturnAction(null);
             if (_frameRoot != null) ResManager.ReleaseInstance(_frameRoot);
             if (_moduleRoot != null) ResManager.ReleaseInstance(_moduleRoot);
+            if (_titleRoot != null) ResManager.ReleaseInstance(_titleRoot);
             if (_awardPrefab != null) ResManager.Release(_awardPrefab);
             _frameRoot = null;
             _moduleRoot = null;
+            _titleRoot = null;
             _awardPrefab = null;
             _window = null;
             _view = null;
+            _titleView = null;
             _costTemplate = null;
             _preview = null;
             _clicksBound = false;

@@ -1240,10 +1240,16 @@
         public const int MEDAL_INFO = 13401;
         /// <summary>地境勋章激活/升级/晋升。C2S 严格空包；S2C: id:u32,honour:u64。</summary>
         public const int MEDAL_UPGRADE = 13402;
+        /// <summary>天境称号激活/升星。C2S: id:u32；S2C: code:u32,id:u32,level:u16,power:u32,is_equip:u8。</summary>
+        public const int MEDAL_TITLE_UPGRADE = 13403;
+        /// <summary>天境称号幻化。C2S: id:u32；S2C: id:u32,code:u32。</summary>
+        public const int MEDAL_TITLE_EQUIP = 13404;
         /// <summary>勋章统一错误切片。仅 S2C: code:u32；服务端虽有空 read 分支，但旧端不发送且 pp 默认忽略，绝不请求本号。</summary>
         public const int MEDAL_ERROR = 13400;
         /// <summary>勋章称号全量状态。C2S 空包；S2C: titles:u16×{id:u32,level:u16,power:u32,is_equip:u8}。</summary>
         public const int MEDAL_TITLE_SNAPSHOT = 13405;
+        /// <summary>取消当前天境称号幻化。C2S 空包；S2C: code:u32。</summary>
+        public const int MEDAL_TITLE_UNEQUIP = 13406;
         /// <summary>跨服分组基础快照。C2S 空包；S2C 为服务器与模块分组全量数据。</summary>
         public const int KF_STAGE_INFO = 10200;
         /// <summary>天命觉醒激活列表快照。C2S 空包；S2C: ids:u16×u32。</summary>

@@ -1,0 +1,45 @@
+{
+  "route": "mainui.role.person.realm.v2",
+  "baseline": {
+    "authority": "Current old H5 and Unity must use the same account, state and viewport; V15 is a composed Editor runtime pass, while current same-build Web remains pending.",
+    "legacy_sources": [
+      "output/ui_route_audit/2026-08-09_role_person_realm_honour_runtime_v3/legacy_medal/_shots/61_medal_ground.png",
+      "output/ui_route_audit/2026-08-09_role_person_realm_honour_runtime_v3/legacy_medal/_shots/62_medal_sky.png"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/Role/RoleModule.prefab",
+      "Assets/Prefabs/UI/Title/TitleMainView.prefab",
+      "Assets/Scripts/Module/Core/Medal/MedalFlow.cs",
+      "Assets/Scripts/Module/Core/Medal/Views/TitleMainView.cs"
+    ],
+    "protocol_inventory": {
+      "reads": ["13401", "13405"],
+      "writes": ["13402", "13403", "13404", "13406"],
+      "note": "V15 intercepted startup reads and sent no account write."
+    }
+  },
+  "nodes": [
+    {"id":"mainui.role.person.realm.v2","type":"page","risk":"read-only","parent":null,"control_inventory":[{"id":"entry","kind":"navigation","child":"mainui.role.person.realm.v2.entry"},{"id":"tabs","kind":"tabs","child":"mainui.role.person.realm.v2.tabs"},{"id":"ground","kind":"page","child":"mainui.role.person.realm.v2.ground"},{"id":"sky","kind":"page","child":"mainui.role.person.realm.v2.sky"},{"id":"lifecycle","kind":"lifecycle","child":"mainui.role.person.realm.v2.lifecycle"}]},
+    {"id":"mainui.role.person.realm.v2.entry","type":"navigation","risk":"read-only","parent":"mainui.role.person.realm.v2","note":"EquipmentView _Group3 opens MedalEnterView without GM."},
+    {"id":"mainui.role.person.realm.v2.tabs","type":"page","risk":"read-only","parent":"mainui.role.person.realm.v2","control_inventory":[{"id":"ground","kind":"tab","child":"mainui.role.person.realm.v2.tabs.ground"},{"id":"sky","kind":"tab","child":"mainui.role.person.realm.v2.tabs.sky"},{"id":"return","kind":"return","child":"mainui.role.person.realm.v2.tabs.return"}]},
+    {"id":"mainui.role.person.realm.v2.tabs.ground","type":"tab","risk":"read-only","parent":"mainui.role.person.realm.v2.tabs"},
+    {"id":"mainui.role.person.realm.v2.tabs.sky","type":"tab","risk":"read-only","parent":"mainui.role.person.realm.v2.tabs"},
+    {"id":"mainui.role.person.realm.v2.tabs.return","type":"return","risk":"read-only","parent":"mainui.role.person.realm.v2.tabs"},
+    {"id":"mainui.role.person.realm.v2.ground","type":"page","risk":"read-only","parent":"mainui.role.person.realm.v2","control_inventory":[{"id":"visual","kind":"visual","child":"mainui.role.person.realm.v2.ground.visual"},{"id":"state","kind":"state","child":"mainui.role.person.realm.v2.ground.state"},{"id":"upgrade","kind":"transaction","child":"mainui.role.person.realm.v2.ground.upgrade"}]},
+    {"id":"mainui.role.person.realm.v2.ground.visual","type":"read","risk":"read-only","parent":"mainui.role.person.realm.v2.ground"},
+    {"id":"mainui.role.person.realm.v2.ground.state","type":"read","risk":"read-only","parent":"mainui.role.person.realm.v2.ground"},
+    {"id":"mainui.role.person.realm.v2.ground.upgrade","type":"transaction","risk":"destructive-write","parent":"mainui.role.person.realm.v2.ground"},
+    {"id":"mainui.role.person.realm.v2.sky","type":"page","risk":"read-only","parent":"mainui.role.person.realm.v2","control_inventory":[{"id":"header","kind":"state","child":"mainui.role.person.realm.v2.sky.header"},{"id":"effect","kind":"effect","child":"mainui.role.person.realm.v2.sky.effect"},{"id":"attrs","kind":"scroll-list","child":"mainui.role.person.realm.v2.sky.attrs"},{"id":"list","kind":"scroll-list","child":"mainui.role.person.realm.v2.sky.list"},{"id":"select","kind":"interaction","child":"mainui.role.person.realm.v2.sky.select"},{"id":"activate","kind":"transaction","child":"mainui.role.person.realm.v2.sky.activate"},{"id":"illusion","kind":"transaction","child":"mainui.role.person.realm.v2.sky.illusion"}]},
+    {"id":"mainui.role.person.realm.v2.sky.header","type":"read","risk":"read-only","parent":"mainui.role.person.realm.v2.sky"},
+    {"id":"mainui.role.person.realm.v2.sky.effect","type":"read","risk":"read-only","parent":"mainui.role.person.realm.v2.sky"},
+    {"id":"mainui.role.person.realm.v2.sky.attrs","type":"read","risk":"read-only","parent":"mainui.role.person.realm.v2.sky"},
+    {"id":"mainui.role.person.realm.v2.sky.list","type":"read","risk":"read-only","parent":"mainui.role.person.realm.v2.sky"},
+    {"id":"mainui.role.person.realm.v2.sky.select","type":"tab","risk":"read-only","parent":"mainui.role.person.realm.v2.sky"},
+    {"id":"mainui.role.person.realm.v2.sky.activate","type":"transaction","risk":"destructive-write","parent":"mainui.role.person.realm.v2.sky"},
+    {"id":"mainui.role.person.realm.v2.sky.illusion","type":"transaction","risk":"destructive-write","parent":"mainui.role.person.realm.v2.sky"},
+    {"id":"mainui.role.person.realm.v2.lifecycle","type":"page","risk":"read-only","parent":"mainui.role.person.realm.v2","control_inventory":[{"id":"reopen","kind":"lifecycle","child":"mainui.role.person.realm.v2.lifecycle.reopen"},{"id":"web720","kind":"visual","child":"mainui.role.person.realm.v2.lifecycle.web720"},{"id":"webwide","kind":"visual","child":"mainui.role.person.realm.v2.lifecycle.webwide"}]},
+    {"id":"mainui.role.person.realm.v2.lifecycle.reopen","type":"read","risk":"read-only","parent":"mainui.role.person.realm.v2.lifecycle"},
+    {"id":"mainui.role.person.realm.v2.lifecycle.web720","type":"read","risk":"read-only","parent":"mainui.role.person.realm.v2.lifecycle"},
+    {"id":"mainui.role.person.realm.v2.lifecycle.webwide","type":"read","risk":"read-only","parent":"mainui.role.person.realm.v2.lifecycle"}
+  ]
+}

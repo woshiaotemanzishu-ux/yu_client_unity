@@ -1,0 +1,19 @@
+[
+  {"id":"mainui.role.person.realm.v2.entry","status":"needs-runtime-verify","runtime_gap":"Current same-build real Web entry click remains pending.","note":"V15 real GraphicRaycaster entry passed; same-build Web pending."},
+  {"id":"mainui.role.person.realm.v2.tabs.ground","status":"needs-runtime-verify","runtime_gap":"Current same-build real Web tab click remains pending.","note":"V15 switch passed."},
+  {"id":"mainui.role.person.realm.v2.tabs.sky","status":"needs-runtime-verify","runtime_gap":"Current same-build real Web tab click remains pending.","note":"V15 switch passed without GM."},
+  {"id":"mainui.role.person.realm.v2.tabs.return","status":"needs-runtime-verify","runtime_gap":"Current same-build real Web return remains pending.","note":"V15 return passed."},
+  {"id":"mainui.role.person.realm.v2.ground.visual","status":"needs-runtime-verify","runtime_gap":"Current same-build real Web pixel comparison remains pending.","note":"Old/Unity page-root geometry and final V15 screenshot passed."},
+  {"id":"mainui.role.person.realm.v2.ground.state","status":"needs-runtime-verify","runtime_gap":"Current same-build real Web state comparison remains pending.","note":"Current/next attributes, power and cost render passed."},
+  {"id":"mainui.role.person.realm.v2.ground.upgrade","status":"blocked","blocked_reason":"13402 account write was not authorized; no local success was fabricated."},
+  {"id":"mainui.role.person.realm.v2.sky.header","status":"needs-runtime-verify","runtime_gap":"Current same-build real Web state comparison remains pending.","note":"Inactive first title state and config text passed in V15."},
+  {"id":"mainui.role.person.realm.v2.sky.effect","status":"needs-runtime-verify","runtime_gap":"Current same-build real Web two-frame effect comparison remains pending.","note":"11 live effects, mirrored text orientation, two RT frames and 6957 changed pixels passed; Web pending."},
+  {"id":"mainui.role.person.realm.v2.sky.attrs","status":"needs-runtime-verify","runtime_gap":"Current same-build real Web layout and clipping remain pending.","note":"Five visible 20px attribute rows and masks passed."},
+  {"id":"mainui.role.person.realm.v2.sky.list","status":"needs-runtime-verify","runtime_gap":"Current same-build real Web raycast drag remains pending.","note":"Horizontal drag exposed later titles with correct clipping."},
+  {"id":"mainui.role.person.realm.v2.sky.select","status":"needs-runtime-verify","runtime_gap":"Current same-build real Web selection refresh remains pending.","note":"Clicking 1006 refreshed 文月 text, attributes and main effect."},
+  {"id":"mainui.role.person.realm.v2.sky.activate","status":"blocked","blocked_reason":"Insufficient-material click was verified to send no 13403; successful account write remains unauthorized."},
+  {"id":"mainui.role.person.realm.v2.sky.illusion","status":"blocked","blocked_reason":"Inactive click was verified to send no 13404/13406; successful account write remains unauthorized."},
+  {"id":"mainui.role.person.realm.v2.lifecycle.reopen","status":"needs-runtime-verify","runtime_gap":"Current same-build real Web close/reopen remains pending.","note":"Sky-to-ground and close/reopen composed lifecycle passed."},
+  {"id":"mainui.role.person.realm.v2.lifecycle.web720","status":"needs-runtime-verify","runtime_gap":"Current same-build 720x1280 Web Player/catalog and comparison are not yet produced.","note":"Current same-build real Web Player/catalog not yet produced."},
+  {"id":"mainui.role.person.realm.v2.lifecycle.webwide","status":"needs-runtime-verify","runtime_gap":"Current same-build wide-viewport Web comparison remains pending.","note":"Wide viewport same-build Web comparison pending."}
+]

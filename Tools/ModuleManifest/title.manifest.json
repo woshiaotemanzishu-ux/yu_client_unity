@@ -1,0 +1,18 @@
+{
+  "module": "title",
+  "item_policy": "TitleMainView owns one inline TitleItem and TitleAttrItem template from the real runtime tree; BaseAwardItem remains the shared runtime component already present in the captured tree.",
+  "prefabs": [
+    {
+      "name": "TitleMainView",
+      "kind": "embedded-tab-page",
+      "label": "天境",
+      "view_roots": ["TitleMainView"],
+      "source": "title/TitleMainView.json + same-account runtime snapshot",
+      "open": "MedalEnterView tab index 1; directly reachable on account 111111 without GM",
+      "owns_items": ["TitleItem", "TitleAttrItem"],
+      "references": ["BaseAwardItem", "FightingShowSmallItem"],
+      "rationale": "TitleMainView is an embedded BaseItem1 managed by MedalEnterView, while its two list item types are private dynamic templates."
+    }
+  ],
+  "shared_external": []
+}

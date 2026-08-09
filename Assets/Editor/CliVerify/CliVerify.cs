@@ -576,6 +576,12 @@ namespace Shenxiao.EditorTools
             Run(RoleSettingPanelCase.Run, 180.0);
         }
 
+        /// <summary>人物页境界/名誉：真实 Prefab、老端几何与生产 Flow 布局回归。</summary>
+        public static void RoleRealmHonour()
+        {
+            Run(RoleRealmHonourCase.Run, 300.0);
+        }
+
         /// <summary>人物页技能入口、主动/被动/天赋页签、返回、关闭与重开的真实射线路由。</summary>
         public static void RoleSkillRoute()
         {

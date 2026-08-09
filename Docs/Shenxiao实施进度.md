@@ -2063,3 +2063,11 @@ LV/FinDunType/TrainMount 降级、Welcome no-op、未知类型兜底,5/5 True);R
 - **实际代码落地范围**：本批在主界面底栏与固定 HUD、聊天/好友/邮件、角色外观与勋章、背包/装备、宠物、技能、地图、帮派、日常、商城、活动、福利、挂机/斩妖、市场/兑换/合成/限时商城等独立文件岛中补入了入口、Flow/Model/Controller、动态列表生命周期、红点/空态/排序、只读协议刷新、弹窗与若干写事务安全门禁；同时为仍缺 Prefab、共享组件、协议或运行证据的叶子保留明确 blocker。该段只表示代码和台账已落盘，不表示玩家界面已经逐页验收。
 - **Unity 恢复**：Safe Mode 的直接编译阻塞来自 `LimitLevelShopGiftConfigCase` 仍按旧三参数构造 `LimitLevelShopModel.GiftEntry`；测试已同步为当前八参数构造。`Shenxiao.Editor.csproj` restore/build 完成，结果为 0 error（102 个既有 warning）；随后在用户已打开的 Unity 中退出 Safe Mode，Tundra 两轮构建成功并完成 Domain Reload。当前窗口标题为 `yu_client_unity - Launch - Android - Unity 6.3 LTS (6000.3.17f1) <DX12>`，Safe Mode 退出标记之后未出现新的 `error CS`。Unity Connect 的 Token Exchange 证书/网络错误不是本次脚本编译阻塞。
 - **完成边界**：本批尚未为新增 schema 6 路线生成与当前提交精确匹配的 Player/catalog，也没有完成同账号真实 Web 双 viewport、逐控件点击、事务成功/失败、即时刷新、重开、滚动、动态特效或 3D 出帧证据，因此当前新增路线的真实 UI 完成数为 0。下一轮必须以本次提交为源码基线，按底部菜单 → 固定 HUD → 活动 → 其他页面逐页运行验收，而不是继续扩大静态清单。
+
+## 2026-08-09：人物 → 境界（地境/天境）与名誉组合运行收口
+
+- **老端事实纠偏**：账号 `111111` 可直接从人物页打开境界并切换地境/天境，不需要 GM；Unity 之前把天境当作未开放属于实现判断错误。天境确实没有可编辑 Prefab，按 `convert-module` 只做一次首转；地境与名誉沿现有 Prefab 走 `fix-view` 增量修复。
+- **地境/名誉**：地境按同账号老端运行树恢复当前/下一阶属性列与 385×38 材料行几何；名誉列表恢复 93px 行高、103px 步长和 10px 间隔，首屏恰好 5 行，真实拖动可达末项且关闭重开回顶，“获取名誉”真实打开 `MarriageFlowerView`。
+- **天境**：落地 `TitleMainView.prefab`、10 个称号配置/协议读链、横向称号列表、5 行属性、共享材料格/战力、激活/幻化安全门禁和 11 个 UI 特效。修复运行时 HTML 字号丢失、卡片被 HBox 上移 41px 后标题全被裁剪、文字特效横向镜像及 disabled 空 Image 造成按钮显示但不可点；横向拖动后切换到“文月”会同步刷新文案、属性和主特效。
+- **组合验收**：`RoleRealmHonourCase` 从真实 `EquipmentView` 入口经 `GraphicRaycaster → PointerClick` 顺序执行人物→地境→天境→横向拖动/切换→无材料激活/未激活幻化门禁→地境返回→名誉→纵向拖动/末项→关闭重开→获取名誉。最终 V15 `route/startupRead/groundGeometry/skyGeometry/skyRuntime/skyEffects/titleScrolled/guardedWrites/honourGeometry/honourScroll/honourReopen` 全部为 true；天境 11 个特效的共享 RT 两帧约 4.9 万非透明像素并有 6957 像素变化，未发送 13402/13403/13404/13406 写事务。证据位于 `output/ui_route_audit/2026-08-09_role_person_realm_honour_runtime_v15/`。
+- **边界**：本轮完成的是当前源码组合 Editor/CLI 运行态和老端对照；真实账号写事务仍未授权，当前同批 WebGL Player/catalog 与双 viewport Headless 对比尚需随后生成，不能用本段扩大为整个角色模块完成。
