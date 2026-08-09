@@ -14,6 +14,8 @@ namespace Shenxiao.Module.Core.Marriage
     /// <summary>人物页“名”按钮对应的名誉等级弹层。</summary>
     public static class MarriageHonourFlow
     {
+        private const float HonourItemHeight = 93f;
+        private const float HonourItemStride = 103f;
         private static readonly List<GameObject> RuntimeItems = new List<GameObject>();
         private static GameObject _moduleRoot;
         private static MarriageHonourViewBind _view;
@@ -123,7 +125,9 @@ namespace Shenxiao.Module.Core.Marriage
 
             List<MarriageConfigs.FameLevelRow> rows = MarriageConfigs.GetFameLevels();
             RectTransform content = _view._gp_con.content;
-            const float itemHeight = 93f;
+            // 老端 MarriageHonourView 的实际运行树不是 93px 紧贴排列：
+            // 每项高 93px，纵向步长 103px（10px 间隔），列表可视区高 516px，
+            // 因而首屏恰好显示 5 项。紧贴排列会让第 6 项提前 50px 侵入固定底栏。
             for (int i = 0; i < rows.Count; i++)
             {
                 MarriageConfigs.FameLevelRow row = rows[i];
@@ -145,14 +149,29 @@ namespace Shenxiao.Module.Core.Marriage
                     item._img_unlock.gameObject.SetActive(fame >= row.Fame);
 
                 RectTransform rect = (RectTransform)go.transform;
-                rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
-                rect.pivot = new Vector2(0f, 1f);
-                rect.anchoredPosition = new Vector2(0f, -i * itemHeight);
-                rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, itemHeight);
+                LayoutHonourItem(rect, i);
             }
-            content.SetSizeWithCurrentAnchors(
-                RectTransform.Axis.Vertical, Mathf.Max(1f, rows.Count * itemHeight));
+            ResizeHonourContent(content, rows.Count);
+            _view._gp_con.StopMovement();
             _view._gp_con.verticalNormalizedPosition = 1f;
+        }
+
+        private static void LayoutHonourItem(RectTransform rect, int index)
+        {
+            if (rect == null) return;
+            rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(0f, -index * HonourItemStride);
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, HonourItemHeight);
+        }
+
+        private static void ResizeHonourContent(RectTransform content, int count)
+        {
+            if (content == null) return;
+            content.SetSizeWithCurrentAnchors(
+                RectTransform.Axis.Vertical,
+                Mathf.Max(1f, count * HonourItemStride
+                    - (HonourItemStride - HonourItemHeight)));
         }
 
         private static string FormatAttrs(string raw)
@@ -167,7 +186,7 @@ namespace Shenxiao.Module.Core.Marriage
                     if (!(token is JObject row)) continue;
                     int id = row["0"]?.Value<int>() ?? 0;
                     long value = row["1"]?.Value<long>() ?? 0L;
-                    parts.Add(GoodsModel.GetAttrName(id) + "+"
+                    parts.Add(GoodsModel.GetAttrName(id) + "："
                         + GoodsModel.FormatAttrValue(id, value));
                 }
                 return string.Join("   ", parts);

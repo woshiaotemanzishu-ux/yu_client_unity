@@ -1,0 +1,23 @@
+{
+  "route": "mainui.role.person.honour.v2",
+  "baseline": {
+    "authority": "Current old H5 and Unity use the same account and state; V15 is composed Editor runtime evidence and same-build Web remains pending.",
+    "legacy_sources": ["output/ui_route_audit/2026-08-09_role_person_realm_honour_runtime/legacy_honour/_shots/61_honour.png"],
+    "unity_sources": ["Assets/Prefabs/UI/Marriage/MarriageModule.prefab", "Assets/Scripts/Module/Core/Marriage/MarriageHonourFlow.cs"],
+    "protocol_inventory": {"reads": [], "writes": [], "note": "This level-list page reads the current MarriageModel snapshot and performs no account write."}
+  },
+  "nodes": [
+    {"id":"mainui.role.person.honour.v2","type":"page","risk":"read-only","parent":null,"control_inventory":[{"id":"entry","kind":"navigation","child":"mainui.role.person.honour.v2.entry"},{"id":"visual","kind":"visual","child":"mainui.role.person.honour.v2.visual"},{"id":"list","kind":"scroll-list","child":"mainui.role.person.honour.v2.list"},{"id":"close","kind":"return","child":"mainui.role.person.honour.v2.close"},{"id":"get","kind":"navigation","child":"mainui.role.person.honour.v2.get"},{"id":"lifecycle","kind":"lifecycle","child":"mainui.role.person.honour.v2.lifecycle"}]},
+    {"id":"mainui.role.person.honour.v2.entry","type":"navigation","risk":"read-only","parent":"mainui.role.person.honour.v2"},
+    {"id":"mainui.role.person.honour.v2.visual","type":"read","risk":"read-only","parent":"mainui.role.person.honour.v2"},
+    {"id":"mainui.role.person.honour.v2.list","type":"page","risk":"read-only","parent":"mainui.role.person.honour.v2","control_inventory":[{"id":"rows","kind":"state","child":"mainui.role.person.honour.v2.list.rows"},{"id":"scroll","kind":"interaction","child":"mainui.role.person.honour.v2.list.scroll"},{"id":"last","kind":"state","child":"mainui.role.person.honour.v2.list.last"}]},
+    {"id":"mainui.role.person.honour.v2.list.rows","type":"read","risk":"read-only","parent":"mainui.role.person.honour.v2.list"},
+    {"id":"mainui.role.person.honour.v2.list.scroll","type":"read","risk":"read-only","parent":"mainui.role.person.honour.v2.list"},
+    {"id":"mainui.role.person.honour.v2.list.last","type":"read","risk":"read-only","parent":"mainui.role.person.honour.v2.list"},
+    {"id":"mainui.role.person.honour.v2.close","type":"return","risk":"read-only","parent":"mainui.role.person.honour.v2"},
+    {"id":"mainui.role.person.honour.v2.get","type":"navigation","risk":"read-only","parent":"mainui.role.person.honour.v2"},
+    {"id":"mainui.role.person.honour.v2.lifecycle","type":"page","risk":"read-only","parent":"mainui.role.person.honour.v2","control_inventory":[{"id":"reopen","kind":"lifecycle","child":"mainui.role.person.honour.v2.lifecycle.reopen"},{"id":"web","kind":"visual","child":"mainui.role.person.honour.v2.lifecycle.web"}]},
+    {"id":"mainui.role.person.honour.v2.lifecycle.reopen","type":"read","risk":"read-only","parent":"mainui.role.person.honour.v2.lifecycle"},
+    {"id":"mainui.role.person.honour.v2.lifecycle.web","type":"read","risk":"read-only","parent":"mainui.role.person.honour.v2.lifecycle"}
+  ]
+}

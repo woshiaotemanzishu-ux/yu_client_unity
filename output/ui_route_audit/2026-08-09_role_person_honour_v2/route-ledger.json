@@ -1,0 +1,246 @@
+{
+  "schema": 6,
+  "route": "mainui.role.person.honour.v2",
+  "baseline": {
+    "authority": "Current old H5 and Unity use the same account and state; V15 is composed Editor runtime evidence and same-build Web remains pending.",
+    "legacy_sources": [
+      "output/ui_route_audit/2026-08-09_role_person_realm_honour_runtime/legacy_honour/_shots/61_honour.png"
+    ],
+    "unity_sources": [
+      "Assets/Prefabs/UI/Marriage/MarriageModule.prefab",
+      "Assets/Scripts/Module/Core/Marriage/MarriageHonourFlow.cs"
+    ],
+    "protocol_inventory": {
+      "reads": [],
+      "writes": [],
+      "note": "This level-list page reads the current MarriageModel snapshot and performs no account write."
+    }
+  },
+  "manifest_source": {
+    "path": "output/ui_route_audit/2026-08-09_role_person_honour_v2/route-manifest.json",
+    "sha256": "f91e1a5986a587af9e93c0e8952ec9d0b5f367c852b312c8657da2df3ca15e79"
+  },
+  "verification_runs": {},
+  "nodes": [
+    {
+      "id": "mainui.role.person.honour.v2",
+      "type": "page",
+      "risk": "read-only",
+      "parent": null,
+      "control_inventory": [
+        {
+          "id": "entry",
+          "kind": "navigation",
+          "child": "mainui.role.person.honour.v2.entry"
+        },
+        {
+          "id": "visual",
+          "kind": "visual",
+          "child": "mainui.role.person.honour.v2.visual"
+        },
+        {
+          "id": "list",
+          "kind": "scroll-list",
+          "child": "mainui.role.person.honour.v2.list"
+        },
+        {
+          "id": "close",
+          "kind": "return",
+          "child": "mainui.role.person.honour.v2.close"
+        },
+        {
+          "id": "get",
+          "kind": "navigation",
+          "child": "mainui.role.person.honour.v2.get"
+        },
+        {
+          "id": "lifecycle",
+          "kind": "lifecycle",
+          "child": "mainui.role.person.honour.v2.lifecycle"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.honour.v2.entry, mainui.role.person.honour.v2.visual, mainui.role.person.honour.v2.list, mainui.role.person.honour.v2.close, mainui.role.person.honour.v2.get, mainui.role.person.honour.v2.lifecycle"
+    },
+    {
+      "id": "mainui.role.person.honour.v2.entry",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.person.honour.v2",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Current same-build real Web entry click remains pending.",
+      "note": "V15 real person-page 名 button click opened the popup."
+    },
+    {
+      "id": "mainui.role.person.honour.v2.visual",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.person.honour.v2",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Current same-build real Web pixel comparison remains pending.",
+      "note": "Old/Unity root and list rectangles match within tolerance."
+    },
+    {
+      "id": "mainui.role.person.honour.v2.list",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.person.honour.v2",
+      "control_inventory": [
+        {
+          "id": "rows",
+          "kind": "state",
+          "child": "mainui.role.person.honour.v2.list.rows"
+        },
+        {
+          "id": "scroll",
+          "kind": "interaction",
+          "child": "mainui.role.person.honour.v2.list.scroll"
+        },
+        {
+          "id": "last",
+          "kind": "state",
+          "child": "mainui.role.person.honour.v2.list.last"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.honour.v2.list.rows, mainui.role.person.honour.v2.list.scroll, mainui.role.person.honour.v2.list.last"
+    },
+    {
+      "id": "mainui.role.person.honour.v2.list.rows",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.person.honour.v2.list",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Current same-build real Web row rendering remains pending.",
+      "note": "Rows are 502x93 with 103px stride; first screen shows five."
+    },
+    {
+      "id": "mainui.role.person.honour.v2.list.scroll",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.person.honour.v2.list",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Current same-build real Web raycast drag remains pending.",
+      "note": "Real ScrollRect drag changed content position."
+    },
+    {
+      "id": "mainui.role.person.honour.v2.list.last",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.person.honour.v2.list",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Current same-build real Web last-item reachability remains pending.",
+      "note": "The last configured item entered the viewport after drag."
+    },
+    {
+      "id": "mainui.role.person.honour.v2.close",
+      "type": "return",
+      "risk": "read-only",
+      "parent": "mainui.role.person.honour.v2",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Current same-build real Web return remains pending.",
+      "note": "Close click returned to person page."
+    },
+    {
+      "id": "mainui.role.person.honour.v2.get",
+      "type": "navigation",
+      "risk": "read-only",
+      "parent": "mainui.role.person.honour.v2",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Current same-build real Web target identity remains pending.",
+      "note": "获取名誉 opened the real MarriageFlowerView route; its downstream content is outside this panel scope."
+    },
+    {
+      "id": "mainui.role.person.honour.v2.lifecycle",
+      "type": "page",
+      "risk": "read-only",
+      "parent": "mainui.role.person.honour.v2",
+      "control_inventory": [
+        {
+          "id": "reopen",
+          "kind": "lifecycle",
+          "child": "mainui.role.person.honour.v2.lifecycle.reopen"
+        },
+        {
+          "id": "web",
+          "kind": "visual",
+          "child": "mainui.role.person.honour.v2.lifecycle.web"
+        }
+      ],
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "unfinished runtime verification children: mainui.role.person.honour.v2.lifecycle.reopen, mainui.role.person.honour.v2.lifecycle.web"
+    },
+    {
+      "id": "mainui.role.person.honour.v2.lifecycle.reopen",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.person.honour.v2.lifecycle",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Current same-build real Web close/reopen remains pending.",
+      "note": "Close/reopen reset the list to top."
+    },
+    {
+      "id": "mainui.role.person.honour.v2.lifecycle.web",
+      "type": "read",
+      "risk": "read-only",
+      "parent": "mainui.role.person.honour.v2.lifecycle",
+      "status": "needs-runtime-verify",
+      "gates": {},
+      "gate_runs": {},
+      "gate_evidence": {},
+      "evidence": [],
+      "runtime_gap": "Current same-build real Web Player/catalog and comparison are not yet produced.",
+      "note": "Current same-build real Web comparison pending."
+    }
+  ],
+  "summary": {
+    "total": 12,
+    "status_counts": {
+      "needs-runtime-verify": 12
+    }
+  }
+}
